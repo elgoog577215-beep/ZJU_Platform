@@ -1,0 +1,119 @@
+{
+  "nav": {
+    "gallery": "Gallery",
+    "music": "Music",
+    "videos": "Videos",
+    "articles": "Articles",
+    "events": "Events",
+    "about": "About",
+    "contact": "Contact"
+  },
+  "hero": {
+    "title": "CAPTURE",
+    "subtitle": "Freezing moments in time, creating eternity through the lens."
+  },
+  "gallery": {
+    "title": "Selected Works",
+    "subtitle": "A collection of moments captured across the globe.",
+    "play": "Play",
+    "categories": {
+      "All": "All",
+      "Nature": "Nature",
+      "Urban": "Urban",
+      "Portrait": "Portrait",
+      "Fashion": "Fashion",
+      "Photography": "Photography",
+      "Abstract": "Abstract"
+    }
+  },
+  "about": {
+    "title": "Capturing life's",
+    "subtitle": "fleeting moments.",
+    "p1": "I'm a visual storyteller based in Tokyo. With over a decade of experience behind the lens, I strive to find beauty in the mundane and the extraordinary alike. My work explores the intersection of light, shadow, and human emotion.",
+    "p2": "Whether it's the neon-lit streets of a metropolis or the serene silence of a mountain peak, I bring a unique perspective to every shot.",
+    "exp": "Years Experience",
+    "exhibitions": "Exhibitions",
+    "projects": "Projects"
+  },
+  "contact": {
+    "title": "Get in Touch",
+    "subtitle": "Have a project in mind? Let's create something together.",
+    "name": "Name",
+    "email": "Email",
+    "message": "Message",
+    "send": "Send Message",
+    "sending": "Sending...",
+    "sent": "Message Sent",
+    "error": "Fill all fields",
+    "placeholder_name": "John Doe",
+    "placeholder_email": "john@example.com",
+    "placeholder_message": "Tell me about your project..."
+  },
+  "game": {
+    "intro_subtitle": "SIMULATION SEQUENCE",
+    "controls": "Controls",
+    "start": "START",
+    "cancel": "Cancel",
+    "steer": "[MOUSE] Steer Plane",
+    "jump": "[SPACE] Jump",
+    "shoot": "[CLICK] Capture Targets",
+    "flip": "[CLICK] Flip Cards",
+    "score": "SCORE",
+    "distance": "DISTANCE",
+    "altitude": "ALTITUDE",
+    "captures": "CAPTURES",
+    "abort": "ABORT",
+    "exit": "Exit",
+    "finish": "FINISH ROLL"
+  },
+  "footer": {
+    "rights": "© 2024 Lumos Photography. All rights reserved."
+  },
+  "admin": {
+    "dashboard": "Admin Dashboard",
+    "subtitle": "Manage your website content and database.",
+    "add_new": "Add New",
+    "edit_item": "Edit Item",
+    "add_item": "Add New Item",
+    "cancel": "Cancel",
+    "save": "Save Changes",
+    "delete_confirm": "Are you sure you want to delete this item?",
+    "id": "ID",
+    "actions": "Actions",
+    "tabs": {
+      "photos": "Photos",
+      "music": "Music",
+      "videos": "Videos",
+      "articles": "Articles",
+      "events": "Events"
+    },
+    "fields": {
+      "title": "Title",
+      "category": "Category",
+      "url": "Image URL",
+      "size": "Size",
+      "gameType": "Game Type",
+      "gameDescription": "Game Description",
+      "artist": "Artist",
+      "duration": "Duration (s)",
+      "cover": "Cover URL",
+      "audio": "Audio URL",
+      "thumbnail": "Thumbnail URL",
+      "video": "Video URL",
+      "date": "Date",
+      "tag": "Tag",
+      "excerpt": "Excerpt",
+      "content": "Content (HTML)",
+      "location": "Location",
+      "status": "Status",
+      "image": "Image URL",
+      "description": "Description"
+    }
+  },
+  "sort_filter": {
+    "newest": "Newest",
+    "oldest": "Oldest",
+    "likes": "Most Liked",
+    "title": "Title A-Z"
+  }
+}

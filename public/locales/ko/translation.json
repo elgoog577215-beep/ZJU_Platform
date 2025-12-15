@@ -1,0 +1,153 @@
+{
+  "nav": {
+    "gallery": "갤러리",
+    "music": "음악",
+    "videos": "비디오",
+    "articles": "기사",
+    "events": "이벤트",
+    "about": "소개",
+    "contact": "연락처"
+  },
+  "hero": {
+    "title": "포착하다",
+    "subtitle": "순간을 정지시키고 렌즈를 통해 영원함을 창조합니다."
+  },
+  "about": {
+    "title": "순간을 포착하고,",
+    "subtitle": "이야기를 전하다",
+    "p1": "사진은 단순히 이미지를 찍는 것이 아니라 느낌을 포착하는 것입니다. 시각 예술가로서 저는 렌즈를 통해 일상의 비범한 아름다움을 탐구합니다.",
+    "p2": "도시 거리의 원초적인 에너지든 자연 풍경의 평온함이든, 저의 목표는 깊은 감정적 울림을 주는 시각적 서사를 만드는 것입니다.",
+    "exp": "년 경력",
+    "exhibitions": "회 전시",
+    "projects": "개 프로젝트 완료"
+  },
+  "contact": {
+    "title": "연락하기",
+    "subtitle": "함께 무언가를 만들어 봅시다",
+    "name": "이름",
+    "email": "이메일",
+    "message": "메시지",
+    "placeholder_name": "성함",
+    "placeholder_email": "이메일 주소",
+    "placeholder_message": "프로젝트에 대해 알려주세요...",
+    "send": "메시지 보내기",
+    "sending": "전송 중...",
+    "sent": "메시지가 전송되었습니다!",
+    "error": "모든 필드를 입력해주세요"
+  },
+  "game": {
+    "intro_subtitle": "몰입형 경험",
+    "controls": "조작",
+    "steer": "마우스로 이동",
+    "jump": "스페이스바로 점프",
+    "shoot": "클릭하여 촬영",
+    "flip": "클릭하여 뒤집기",
+    "start": "게임 시작",
+    "cancel": "취소",
+    "default_desc": "환경에 몰입하세요. 요소에 반응하고 순간의 본질을 포착하세요."
+  },
+  "footer": {
+    "rights": "© 2024 Lumos Photography. 모든 권리 보유."
+  },
+  "home": {
+    "featured_premiere": "추천 프리미어",
+    "cinematic_journey": "디지털 공허로의 영화적 여정.",
+    "now_playing": "재생 중",
+    "selected_works": "엄선된 작품"
+  },
+  "common": {
+    "upload": "업로드",
+    "upload_now": "지금 업로드",
+    "title": "제목",
+    "description": "설명",
+    "category": "카테고리",
+    "date": "날짜",
+    "location": "장소",
+    "image": "이미지",
+    "audio": "오디오",
+    "video": "비디오",
+    "cover": "커버",
+    "artist": "아티스트",
+    "create_event": "이벤트 생성",
+    "view_details": "상세 보기",
+    "read_full_story": "전체 읽기",
+    "read_article": "기사 읽기",
+    "register_now": "지금 등록",
+    "share": "공유",
+    "time": "시간",
+    "all": "전체"
+  },
+  "gallery": {
+    "title": "빛과 그림자 갤러리",
+    "subtitle": "빛과 그림자의 시각적 서사 탐구",
+    "play": "플레이",
+    "view_3d": "3D 보기",
+    "categories": {
+      "All": "전체",
+      "Nature": "자연",
+      "Urban": "도시",
+      "Portrait": "인물",
+      "Fashion": "패션",
+      "Photography": "사진",
+      "Abstract": "추상",
+      "User Upload": "사용자 업로드"
+    }
+  },
+  "music": {
+    "title": "소닉 랜드스케이프",
+    "subtitle": "몰입형 오디오 경험"
+  },
+  "videos": {
+    "title": "모션 픽처",
+    "subtitle": "디지털 시네마틱 아트"
+  },
+  "articles": {
+    "title": "생각의 공간",
+    "subtitle": "예술과 기술에 대한 고찰"
+  },
+  "events": {
+    "title": "커뮤니티 이벤트",
+    "subtitle": "최신 이벤트 및 워크샵에 참여하세요"
+  },
+  "admin": {
+    "dashboard": "관리자 대시보드",
+    "subtitle": "웹사이트 콘텐츠 및 데이터베이스 관리",
+    "add_new": "새로 추가",
+    "edit_item": "항목 편집",
+    "add_item": "항목 추가",
+    "cancel": "취소",
+    "save": "변경사항 저장",
+    "delete_confirm": "이 항목을 삭제하시겠습니까?",
+    "id": "ID",
+    "actions": "작업",
+    "tabs": {
+      "photos": "사진",
+      "music": "음악",
+      "videos": "비디오",
+      "articles": "기사",
+      "events": "이벤트"
+    },
+    "fields": {
+      "title": "제목",
+      "category": "카테고리",
+      "url": "이미지 URL",
+      "size": "크기",
+      "gameType": "게임 유형",
+      "gameDescription": "게임 설명",
+      "artist": "아티스트",
+      "duration": "재생 시간(초)",
+      "cover": "커버 URL",
+      "audio": "오디오 URL",
+      "thumbnail": "썸네일 URL",
+      "video": "비디오 URL",
+      "date": "날짜",
+      "tag": "태그",
+      "excerpt": "요약",
+      "content": "내용 (HTML)",
+      "location": "장소",
+      "status": "상태",
+      "image": "이미지 URL",
+      "description": "설명"
+    }
+  }
+}

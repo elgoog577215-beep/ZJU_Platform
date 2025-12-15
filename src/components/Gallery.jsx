@@ -1,0 +1,273 @@
+import React, { useState, useMemo, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import Lightbox from './Lightbox';
+import GameOverlay from './GameOverlay';
+import LivePhotoViewer from './Image3DViewer';
+import Pagination from './Pagination';
+import { Play, Box, Upload, Heart } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import UploadModal from './UploadModal';
+import { useSettings } from '../context/SettingsContext';
+import ImageWithLoader from './ImageWithLoader';
+import api from '../services/api';
+import SortSelector from './SortSelector';
+import { useSearchParams } from 'react-router-dom';
+
+const Gallery = () => {
+  const [searchParams] = useSearchParams();
+  const [photos, setPhotos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [sort, setSort] = useState('newest');
+
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
+  const [activeGamePhoto, setActiveGamePhoto] = useState(null);
+  const [active3DPhoto, setActive3DPhoto] = useState(null);
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const { t } = useTranslation();
+  const { settings } = useSettings();
+
+  // Deep linking: Check for ID in URL
+  useEffect(() => {
+    const id = searchParams.get('id');
+    if (id) {
+        // Fetch specific photo
+        api.get(`/photos/${id}`)
+           .then(res => {
+               if (res.data) {
+                   // For now, we just open it in 3D viewer or Lightbox. 
+                   // Since Gallery logic uses index for lightbox, it's tricky to inject into paginated list.
+                   // Easier to open as 3D view or Game view if type matches, or standalone lightbox.
+                   // Let's use 3D viewer for deep linked photos as a safe default or checking logic.
+                   setActive3DPhoto(res.data);
+               }
+           })
+           .catch(err => console.error("Failed to fetch deep linked photo", err));
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    setLoading(true);
+    const limit = settings.pagination_enabled === 'true' ? 12 : 1000;
+    
+    const params = {
+      page: currentPage,
+      limit,
+      sort,
+    };
+
+    api.get('/photos', { params })
+      .then(res => {
+        setPhotos(res.data.data);
+        setTotalPages(res.data.pagination.totalPages);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to fetch photos:", err);
+        setLoading(false);
+      });
+  }, [currentPage, sort, settings.pagination_enabled]);
+
+  const addPhoto = (newItem) => {
+    api.post('/photos', newItem)
+    .then(() => {
+        // Refresh current page
+        const limit = 12; // Always refresh with default limit or current limit? Logic used 12 before.
+        const params = {
+            page: currentPage,
+            limit: 12,
+        };
+        return api.get('/photos', { params });
+    })
+    .then(res => {
+        setPhotos(res.data.data);
+        setTotalPages(res.data.pagination.totalPages);
+    })
+    .catch(err => console.error("Failed to save photo", err));
+  };
+
+  const handleLike = (id) => {
+      api.post(`/photos/${id}/like`)
+        .then(res => {
+            setPhotos(prev => prev.map(p => 
+                p.id === id ? { ...p, likes: res.data.likes } : p
+            ));
+        })
+        .catch(err => console.error("Failed to like photo", err));
+  };
+
+  const handleNext = () => {
+    setSelectedPhotoIndex((prev) => (prev + 1) % photos.length);
+  };
+
+  const handlePrev = () => {
+    setSelectedPhotoIndex((prev) => (prev - 1 + photos.length) % photos.length);
+  };
+
+  const handleUpload = (newItem) => {
+    addPhoto(newItem);
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  return (
+    <section className="py-12 md:py-20 px-4 md:px-8 min-h-screen">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        viewport={{ once: true }}
+        className="mb-8 md:mb-12 text-center relative"
+      >
+        <button
+          onClick={() => setIsUploadOpen(true)}
+          className="absolute right-0 top-0 md:top-2 bg-white/10 hover:bg-white/20 text-white p-2 md:p-3 rounded-full backdrop-blur-md border border-white/10 transition-all"
+          title="Upload Photo"
+        >
+          <Upload size={18} className="md:w-5 md:h-5" />
+        </button>
+
+        <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold font-serif mb-3 md:mb-4">{t('gallery.title')}</h2>
+        <p className="text-gray-400 max-w-xl mx-auto mb-6 md:mb-8 text-sm md:text-base">{t('gallery.subtitle')}</p>
+        
+        {/* Filter Buttons */}
+        <div className="flex flex-wrap justify-center items-center gap-4 relative z-50">
+          <SortSelector sort={sort} onSortChange={setSort} />
+        </div>
+      </motion.div>
+
+      {loading ? (
+        <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4 mx-auto max-w-7xl">
+            {[...Array(6)].map((_, i) => (
+                <div key={i} className="break-inside-avoid relative rounded-lg overflow-hidden bg-gray-900 animate-pulse" style={{ height: `${Math.random() * 200 + 200}px` }}>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                </div>
+            ))}
+        </div>
+      ) : (
+      <motion.div 
+        layout
+        className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4 mx-auto max-w-7xl"
+      >
+        <AnimatePresence mode="wait">
+          {photos.map((photo, index) => (
+            <motion.div
+              layout
+              key={photo.id}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.3 }}
+              className="break-inside-avoid relative group overflow-hidden rounded-lg cursor-pointer border border-transparent hover:border-white/20 hover:shadow-2xl hover:shadow-white/5 transition-all duration-300"
+              onClick={() => setSelectedPhotoIndex(index)}
+            >
+              <ImageWithLoader 
+                src={photo.url} 
+                alt={photo.title} 
+                loading="lazy"
+                className="w-full h-auto"
+                imageClassName="h-auto object-cover transform transition-transform duration-700 group-hover:scale-110"
+              />
+              
+              {/* Hover Overlay */}
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-center p-4">
+                <h3 className="text-xl font-bold font-serif mb-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-300">{photo.title}</h3>
+                
+                <div className="flex flex-wrap justify-center gap-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-100">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveGamePhoto(photo);
+                    }}
+                    className="flex items-center gap-2 bg-white text-black px-3 py-1.5 md:px-4 md:py-2 text-sm font-bold rounded-full hover:bg-gray-200 hover:scale-105"
+                  >
+                    <Play size={14} fill="currentColor" className="md:w-4 md:h-4" />
+                    {t('gallery.play')}
+                  </button>
+                  
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActive3DPhoto(photo);
+                    }}
+                    className="flex items-center gap-2 bg-black/50 border border-white/30 text-white px-3 py-1.5 md:px-4 md:py-2 text-sm font-bold rounded-full hover:bg-white hover:text-black hover:scale-105 backdrop-blur-sm transition-all"
+                    title={t('gallery.view_3d')}
+                  >
+                    <Box size={14} className="md:w-4 md:h-4" />
+                  </button>
+
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleLike(photo.id);
+                    }}
+                    className="flex items-center gap-2 bg-black/50 border border-white/30 text-white px-3 py-1.5 md:px-4 md:py-2 text-sm font-bold rounded-full hover:bg-pink-500 hover:border-pink-500 hover:scale-105 backdrop-blur-sm transition-all"
+                    title="Like"
+                  >
+                    <Heart size={14} className={`md:w-4 md:h-4 ${photo.likes > 0 ? 'fill-pink-500 text-pink-500' : ''}`} />
+                    <span>{photo.likes || 0}</span>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </motion.div>
+      )}
+
+      {settings.pagination_enabled === 'true' && (
+        <Pagination 
+          currentPage={currentPage} 
+          totalPages={totalPages} 
+          onPageChange={handlePageChange} 
+        />
+      )}
+
+      <AnimatePresence>
+        {selectedPhotoIndex !== null && (
+          <Lightbox 
+            photo={photos[selectedPhotoIndex]} 
+            onClose={() => setSelectedPhotoIndex(null)}
+            onNext={handleNext}
+            onPrev={handlePrev}
+            onView3D={() => {
+              setActive3DPhoto(photos[selectedPhotoIndex]);
+              setSelectedPhotoIndex(null); 
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {activeGamePhoto && (
+          <GameOverlay 
+            photo={activeGamePhoto} 
+            onClose={() => setActiveGamePhoto(null)} 
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {active3DPhoto && (
+          <LivePhotoViewer 
+            photo={active3DPhoto} 
+            onClose={() => setActive3DPhoto(null)} 
+          />
+        )}
+      </AnimatePresence>
+
+      <UploadModal 
+        isOpen={isUploadOpen}
+        onClose={() => setIsUploadOpen(false)}
+        onUpload={handleUpload}
+        type="image"
+      />
+    </section>
+  );
+};
+
+export default Gallery;

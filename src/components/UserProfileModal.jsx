@@ -1,0 +1,488 @@
+import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, User, Lock, Upload, Calendar, CheckCircle, Clock, XCircle, LogOut, Heart, Image, Music, Film, FileText } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import api, { uploadFile } from '../services/api';
+import { toast } from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
+import Dropdown from './Dropdown';
+
+const UserProfileModal = ({ isOpen, onClose }) => {
+  const { user, logout } = useAuth();
+  const { t } = useTranslation();
+  const [activeTab, setActiveTab] = useState('profile'); // profile, uploads, favorites, security
+  const [uploads, setUploads] = useState([]);
+  const [favorites, setFavorites] = useState([]);
+  const [loadingUploads, setLoadingUploads] = useState(false);
+  const [loadingFavorites, setLoadingFavorites] = useState(false);
+  const [uploadType, setUploadType] = useState('photos');
+  const [favoriteType, setFavoriteType] = useState('photo');
+  
+  // Profile edit state
+  const [profileData, setProfileData] = useState({
+      avatar: '',
+      nickname: '',
+      gender: '',
+      age: '',
+      organization: '',
+      inviteCode: ''
+  });
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  // Security state
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordLoading, setPasswordLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && user) {
+        setProfileData({
+            avatar: user.avatar || '',
+            nickname: user.nickname || '',
+            gender: user.gender || '',
+            age: user.age || '',
+            organization: user.organization || '',
+            inviteCode: ''
+        });
+    }
+    if (isOpen && activeTab === 'uploads' && user) {
+        fetchUploads();
+    }
+    if (isOpen && activeTab === 'favorites' && user) {
+        fetchFavorites();
+    }
+  }, [isOpen, activeTab, uploadType, favoriteType, user]);
+
+  const fetchUploads = async () => {
+      setLoadingUploads(true);
+      try {
+          const res = await api.get(`/${uploadType}?uploader_id=${user.id}&status=all&limit=50`);
+          setUploads(res.data.data || []);
+      } catch (err) {
+          console.error(err);
+          toast.error(t('common.error_fetching_data'));
+      } finally {
+          setLoadingUploads(false);
+      }
+  };
+
+  const fetchFavorites = async () => {
+      setLoadingFavorites(true);
+      try {
+          // Assuming endpoint structure for favorites
+          const res = await api.get(`/favorites?type=${favoriteType}`);
+          setFavorites(res.data || []);
+      } catch (err) {
+           // Silently fail if endpoint not ready
+      } finally {
+          setLoadingFavorites(false);
+      }
+  };
+
+  const handleLogout = () => {
+      logout();
+      onClose();
+      toast.success(t('user_profile.logout'));
+  };
+
+  const handleProfileUpdate = async (e) => {
+      e.preventDefault();
+      setProfileLoading(true);
+      try {
+          // Filter out empty age to avoid issues
+          const payload = { ...profileData };
+          if (!payload.age) delete payload.age;
+          
+          await api.put(`/admin/users/${user.id}`, payload);
+          toast.success(t('user_profile.profile_updated'));
+          // Ideally refresh user context here, but full refresh works for now or simple toast
+          window.location.reload(); 
+      } catch (err) {
+          toast.error(err.response?.data?.error || t('admin.toast.update_fail'));
+      } finally {
+          setProfileLoading(false);
+      }
+  };
+
+  const handlePasswordUpdate = async (e) => {
+      e.preventDefault();
+      if (newPassword !== confirmPassword) {
+          toast.error(t('user_profile.security.password_mismatch'));
+          return;
+      }
+      setPasswordLoading(true);
+      try {
+          await api.put('/auth/password', { currentPassword, newPassword });
+          toast.success(t('user_profile.security.update_success'));
+          setCurrentPassword('');
+          setNewPassword('');
+          setConfirmPassword('');
+      } catch (err) {
+          toast.error(err.response?.data?.message || t('user_profile.security.update_fail'));
+      } finally {
+          setPasswordLoading(false);
+      }
+  };
+
+  if (!isOpen) return null;
+
+  const typeOptions = [
+      { value: 'photos', label: t('nav.gallery'), icon: Image },
+      { value: 'music', label: t('nav.music'), icon: Music },
+      { value: 'videos', label: t('nav.videos'), icon: Film },
+      { value: 'articles', label: t('nav.articles'), icon: FileText },
+      { value: 'events', label: t('nav.events'), icon: Calendar },
+  ];
+
+  // Map singular type for favorites (if backend uses singular)
+  const favoriteTypeOptions = [
+      { value: 'photo', label: t('nav.gallery'), icon: Image },
+      { value: 'music', label: t('nav.music'), icon: Music },
+      { value: 'video', label: t('nav.videos'), icon: Film },
+      { value: 'article', label: t('nav.articles'), icon: FileText },
+      { value: 'event', label: t('nav.events'), icon: Calendar },
+  ];
+
+  return ReactDOM.createPortal(
+    <AnimatePresence>
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        />
+        
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          className="relative w-full max-w-4xl bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row h-[600px] z-10"
+        >
+          {/* Glass Effect Background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 opacity-50 pointer-events-none" />
+          
+          <button 
+            onClick={onClose}
+            className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-20 md:hidden"
+          >
+            <X size={20} />
+          </button>
+
+          {/* Sidebar */}
+          <div className="w-full md:w-64 bg-black/20 border-b md:border-b-0 md:border-r border-white/10 p-6 flex flex-col relative z-10">
+              <div className="flex items-center gap-4 mb-8">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-xl">
+                      {user?.username?.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="overflow-hidden">
+                      <h3 className="text-white font-bold truncate">{user?.username}</h3>
+                      <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+                  </div>
+              </div>
+
+              <nav className="space-y-2 flex-1">
+                  <button 
+                    onClick={() => setActiveTab('profile')}
+                    className={`w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 transition-colors ${activeTab === 'profile' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                  >
+                      <User size={18} /> {t('user_profile.tabs.profile')}
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab('uploads')}
+                    className={`w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 transition-colors ${activeTab === 'uploads' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                  >
+                      <Upload size={18} /> {t('user_profile.tabs.uploads')}
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab('favorites')}
+                    className={`w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 transition-colors ${activeTab === 'favorites' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                  >
+                      <Heart size={18} /> {t('user_profile.tabs.favorites')}
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab('security')}
+                    className={`w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 transition-colors ${activeTab === 'security' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                  >
+                      <Lock size={18} /> {t('user_profile.tabs.security')}
+                  </button>
+              </nav>
+
+              <button 
+                onClick={handleLogout}
+                className="mt-auto w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-red-400 hover:bg-red-500/10 transition-colors"
+              >
+                  <LogOut size={18} /> {t('user_profile.logout')}
+              </button>
+          </div>
+
+          {/* Content Area */}
+          <div className="flex-1 p-6 md:p-8 overflow-y-auto custom-scrollbar relative z-10 bg-[#1a1a1a]">
+              <div className="max-w-2xl mx-auto">
+                  {activeTab === 'profile' && (
+                      <div className="space-y-6">
+                          <h3 className="text-xl font-bold text-white mb-6">{t('user_profile.tabs.profile')}</h3>
+                          
+                          <form onSubmit={handleProfileUpdate} className="space-y-4">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                      <label className="block text-sm font-medium text-gray-400 mb-1">{t('user_profile.fields.avatar')}</label>
+                                      <input 
+                                          type="text" 
+                                          value={profileData.avatar}
+                                          onChange={(e) => setProfileData({...profileData, avatar: e.target.value})}
+                                          placeholder={t('user_profile.fields.avatar_placeholder')}
+                                          className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500"
+                                      />
+                                  </div>
+                                  <div>
+                                      <label className="block text-sm font-medium text-gray-400 mb-1">{t('user_profile.fields.nickname')}</label>
+                                      <input 
+                                          type="text" 
+                                          value={profileData.nickname}
+                                          onChange={(e) => setProfileData({...profileData, nickname: e.target.value})}
+                                          className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500"
+                                      />
+                                  </div>
+                                  <div>
+                                      <label className="block text-sm font-medium text-gray-400 mb-1">{t('user_profile.fields.gender')}</label>
+                                      <Dropdown
+                                          value={profileData.gender}
+                                          onChange={(value) => setProfileData({...profileData, gender: value})}
+                                          options={[
+                                              { value: 'male', label: t('user_profile.gender.male') },
+                                              { value: 'female', label: t('user_profile.gender.female') },
+                                              { value: 'other', label: t('user_profile.gender.other') }
+                                          ]}
+                                          placeholder={t('common.select')}
+                                          buttonClassName="bg-black/20 border-white/10 w-full py-3"
+                                      />
+                                  </div>
+                                  <div>
+                                      <label className="block text-sm font-medium text-gray-400 mb-1">{t('user_profile.fields.age')}</label>
+                                      <input 
+                                          type="number" 
+                                          value={profileData.age}
+                                          onChange={(e) => setProfileData({...profileData, age: e.target.value})}
+                                          className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500"
+                                      />
+                                  </div>
+                              </div>
+
+                              <div className="pt-4 border-t border-white/10">
+                                  <label className="block text-sm font-medium text-gray-400 mb-1">{t('user_profile.fields.organization')}</label>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                      <input 
+                                          type="text" 
+                                          value={profileData.organization}
+                                          onChange={(e) => setProfileData({...profileData, organization: e.target.value})}
+                                          placeholder={t('user_profile.fields.org_placeholder')}
+                                          className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500"
+                                      />
+                                      <input 
+                                          type="text" 
+                                          value={profileData.inviteCode}
+                                          onChange={(e) => setProfileData({...profileData, inviteCode: e.target.value})}
+                                          placeholder={t('user_profile.fields.invite_code_hint')}
+                                          className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500"
+                                      />
+                                  </div>
+                                  <p className="text-xs text-gray-500 mt-2">{t('user_profile.fields.org_help')}</p>
+                              </div>
+
+                              <div className="flex justify-end pt-4">
+                                  <button 
+                                      type="submit"
+                                      disabled={profileLoading}
+                                      className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-colors disabled:opacity-50"
+                                  >
+                                      {profileLoading ? t('common.saving') : t('common.save')}
+                                  </button>
+                              </div>
+                          </form>
+
+                          <div className="bg-white/5 rounded-2xl p-6 border border-white/10 mt-8">
+                              <div className="grid grid-cols-2 gap-6">
+                                  <div>
+                                      <p className="text-sm text-gray-400 mb-1">{t('user_profile.profile.username')}</p>
+                                      <p className="font-bold text-white text-lg">{user?.username}</p>
+                                  </div>
+                                  <div>
+                                      <p className="text-sm text-gray-400 mb-1">{t('user_profile.profile.role')}</p>
+                                      <p className="font-bold text-white text-lg uppercase">{t(`user_profile.roles.${user?.role}`) || user?.role}</p>
+                                  </div>
+                                  <div>
+                                      <p className="text-sm text-gray-400 mb-1">{t('user_profile.profile.joined')}</p>
+                                      <p className="font-bold text-white">{new Date(user?.created_at || Date.now()).toLocaleDateString()}</p>
+                                  </div>
+                                  <div>
+                                      <p className="text-sm text-gray-400 mb-1">{t('user_profile.profile.id')}</p>
+                                      <p className="font-bold text-white font-mono">#{user?.id}</p>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                  )}
+
+                  {activeTab === 'uploads' && (
+                      <div className="space-y-6">
+                          <div className="flex justify-between items-center mb-4">
+                              <h3 className="text-xl font-bold text-white">{t('user_profile.uploads.title')}</h3>
+                              <div className="w-40">
+                                <Dropdown
+                                    value={uploadType}
+                                    onChange={setUploadType}
+                                    options={typeOptions}
+                                    buttonClassName="bg-black/40 border-white/10 w-full"
+                                />
+                              </div>
+                          </div>
+
+                          {loadingUploads ? (
+                              <div className="flex justify-center py-12">
+                                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+                              </div>
+                          ) : uploads.length === 0 ? (
+                              <div className="text-center py-12 text-gray-500 bg-black/20 rounded-xl border border-white/5 border-dashed">
+                                  <Upload size={48} className="mx-auto mb-4 opacity-20" />
+                                  <p>{t('user_profile.uploads.no_uploads')}</p>
+                              </div>
+                          ) : (
+                              <div className="grid grid-cols-1 gap-3">
+                                  {uploads.map(item => (
+                                      <div key={item.id} className="flex items-center gap-4 p-3 rounded-xl bg-black/20 border border-white/5 hover:border-white/10 transition-colors">
+                                          <div className="w-16 h-16 rounded-lg bg-black/50 overflow-hidden flex-shrink-0">
+                                              <img 
+                                                src={item.cover || item.thumbnail || item.url || item.image} 
+                                                alt={item.title}
+                                                className="w-full h-full object-cover"
+                                              />
+                                          </div>
+                                          <div className="flex-1 min-w-0">
+                                              <h4 className="font-bold text-white truncate">{item.title}</h4>
+                                              <p className="text-xs text-gray-500 truncate">{new Date(item.created_at || Date.now()).toLocaleDateString()}</p>
+                                          </div>
+                                          <div className="flex-shrink-0">
+                                              <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${
+                                                  item.status === 'approved' ? 'bg-green-500/20 text-green-400' : 
+                                                  item.status === 'rejected' ? 'bg-red-500/20 text-red-400' : 'bg-yellow-500/20 text-yellow-400'
+                                              }`}>
+                                                  {t(`user_profile.uploads.status.${item.status}`) || item.status}
+                                              </span>
+                                          </div>
+                                      </div>
+                                  ))}
+                              </div>
+                          )}
+                      </div>
+                  )}
+
+                  {activeTab === 'favorites' && (
+                      <div className="space-y-6">
+                           <div className="flex justify-between items-center mb-4">
+                              <h3 className="text-xl font-bold text-white">{t('user_profile.favorites.title')}</h3>
+                              <div className="w-40">
+                                <Dropdown
+                                    value={favoriteType}
+                                    onChange={setFavoriteType}
+                                    options={favoriteTypeOptions}
+                                    buttonClassName="bg-black/40 border-white/10 w-full"
+                                />
+                              </div>
+                          </div>
+
+                          {loadingFavorites ? (
+                              <div className="flex justify-center py-12">
+                                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+                              </div>
+                          ) : favorites.length === 0 ? (
+                              <div className="text-center py-12 text-gray-500 bg-black/20 rounded-xl border border-white/5 border-dashed">
+                                  <Heart size={48} className="mx-auto mb-4 opacity-20" />
+                                  <p>{t('user_profile.favorites.no_favorites')}</p>
+                              </div>
+                          ) : (
+                              <div className="grid grid-cols-1 gap-3">
+                                  {favorites.map(item => (
+                                      <div key={item.id} className="flex items-center gap-4 p-3 rounded-xl bg-black/20 border border-white/5 hover:border-white/10 transition-colors">
+                                          <div className="w-16 h-16 rounded-lg bg-black/50 overflow-hidden flex-shrink-0">
+                                              <img 
+                                                src={item.cover || item.thumbnail || item.url || item.image} 
+                                                alt={item.title}
+                                                className="w-full h-full object-cover"
+                                              />
+                                          </div>
+                                          <div className="flex-1 min-w-0">
+                                              <h4 className="font-bold text-white truncate">{item.title}</h4>
+                                              <p className="text-xs text-gray-500 truncate">{item.artist || item.category}</p>
+                                          </div>
+                                          <button className="p-2 text-pink-500 hover:text-white transition-colors">
+                                              <Heart size={18} fill="currentColor" />
+                                          </button>
+                                      </div>
+                                  ))}
+                              </div>
+                          )}
+                      </div>
+                  )}
+
+                  {activeTab === 'security' && (
+                      <div className="space-y-6">
+                          <h3 className="text-xl font-bold text-white mb-6">{t('user_profile.security.title')}</h3>
+                          
+                          <form onSubmit={handlePasswordUpdate} className="bg-white/5 rounded-2xl p-6 border border-white/10 space-y-4">
+                              <h4 className="text-lg font-bold text-white mb-4">{t('user_profile.security.change_password')}</h4>
+                              <div>
+                                  <label className="block text-sm font-medium text-gray-400 mb-1">{t('user_profile.security.current_password')}</label>
+                                  <input 
+                                    type="password" 
+                                    value={currentPassword}
+                                    onChange={(e) => setCurrentPassword(e.target.value)}
+                                    className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500"
+                                    required
+                                  />
+                              </div>
+                              <div>
+                                  <label className="block text-sm font-medium text-gray-400 mb-1">{t('user_profile.security.new_password')}</label>
+                                  <input 
+                                    type="password" 
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500"
+                                    required
+                                    minLength={6}
+                                  />
+                              </div>
+                              <div>
+                                  <label className="block text-sm font-medium text-gray-400 mb-1">{t('user_profile.security.confirm_password')}</label>
+                                  <input 
+                                    type="password" 
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500"
+                                    required
+                                    minLength={6}
+                                  />
+                              </div>
+                              <button 
+                                type="submit" 
+                                disabled={passwordLoading}
+                                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl transition-all disabled:opacity-50"
+                              >
+                                  {passwordLoading ? t('user_profile.security.updating') : t('user_profile.security.update_btn')}
+                              </button>
+                          </form>
+                      </div>
+                  )}
+              </div>
+          </div>
+        </motion.div>
+      </div>
+    </AnimatePresence>,
+    document.body
+  );
+};
+
+export default UserProfileModal;

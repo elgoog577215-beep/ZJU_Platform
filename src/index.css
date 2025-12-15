@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: dark;
+  background-color: #0a0a0a;
+  color: rgba(255, 255, 255, 0.87);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  /* cursor: none; - Moved to CustomCursor component for toggle support */
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0a0a; 
+}
+::-webkit-scrollbar-thumb {
+  background: #333; 
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #555; 
+}
+
+/* Selection */
+::selection {
+  background: rgba(99, 102, 241, 0.5); /* Indigo-500 with opacity */
+  color: #fff;
+}
+
+.strike-diagonal {
+  position: relative;
+}
+.strike-diagonal::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120%;
+  height: 2px;
+  background-color: currentColor;
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+/* Shine Effect Animation */
+@keyframes shine {
+  0% { transform: translateX(-100%) skewX(-15deg); }
+  100% { transform: translateX(200%) skewX(-15deg); }
+}
+
+.group:hover .shine-effect {
+  animation: shine 1s;
+}
