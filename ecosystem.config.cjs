@@ -1,10 +1,10 @@
 module.exports = {
   apps: [{
-    name: "lumos-portfolio",
+    name: "zju-platform",
     script: "./server/index.js",
     env: {
       NODE_ENV: "production",
-      PORT: 3001
+      PORT: 80
     }
   }]
 }
