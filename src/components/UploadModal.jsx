@@ -308,18 +308,12 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">标签</label>
-                  <div className="relative">
-                      <Tag className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
-                      <input
-                        type="text"
-                        value={tags}
-                        onChange={e => setTags(e.target.value)}
-                        className="w-full bg-black/20 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:border-white/30"
-                        placeholder="输入标签，用逗号分隔..."
-                      />
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">例如: 风景, 4K, 赛博朋克</p>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">{t('upload.tags')}</label>
+                  <TagInput 
+                    value={tags}
+                    onChange={setTags}
+                    placeholder={t('upload.tags_placeholder')}
+                  />
                 </div>
 
                 {type === 'image' && (

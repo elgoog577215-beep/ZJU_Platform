@@ -1,4 +1,5 @@
 import React, { useState, useRef, useMemo, useEffect, Suspense } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Canvas, useFrame, useThree, extend } from '@react-three/fiber';
 import { shaderMaterial, useTexture, Float, Stars, Cloud, Sparkles, Torus, Icosahedron, Points, PointMaterial, Line, Circle, Sphere, Box, PerformanceMonitor } from '@react-three/drei';
 import { EffectComposer, Bloom, Noise, Vignette } from '@react-three/postprocessing';
@@ -596,12 +597,94 @@ const ScannerScene = () => {
 
 
 // ==========================================
+// 🌌 21. ELEGANCE (Tech Noir)
+// ==========================================
+const EleganceScene = () => (
+  <group>
+    <color attach="background" args={['#050505']} />
+    <fog attach="fog" args={['#050505', 10, 50]} />
+    
+    {/* Subtle Grid Floor */}
+    <group rotation={[Math.PI / 2.5, 0, 0]} position={[0, -5, -10]}>
+       <gridHelper args={[100, 40, 0x333333, 0x111111]} />
+    </group>
+
+    {/* Floating Particles */}
+    <Float speed={1} rotationIntensity={0.5} floatIntensity={0.5}>
+      <Sparkles 
+        count={100} 
+        scale={[20, 10, 15]} 
+        size={2} 
+        speed={0.2} 
+        opacity={0.4} 
+        color="#4488ff"
+      />
+    </Float>
+
+    {/* Ambient Light Orbs */}
+    <group>
+        <Float speed={2} rotationIntensity={0} floatIntensity={2} position={[-5, 2, -10]}>
+            <mesh>
+                <sphereGeometry args={[0.2, 32, 32]} />
+                <meshBasicMaterial color="#4488ff" transparent opacity={0.5} />
+            </mesh>
+            <pointLight distance={10} intensity={2} color="#4488ff" />
+        </Float>
+        <Float speed={3} rotationIntensity={0} floatIntensity={1.5} position={[5, -2, -15]}>
+            <mesh>
+                <sphereGeometry args={[0.15, 32, 32]} />
+                <meshBasicMaterial color="#00ffaa" transparent opacity={0.5} />
+            </mesh>
+            <pointLight distance={10} intensity={2} color="#00ffaa" />
+        </Float>
+    </group>
+    
+    {/* Digital Rain Effect (Subtle) */}
+    <MatrixShaderMaterial transparent opacity={0.1} position={[0,0,-20]} scale={[50,50,1]} />
+  </group>
+);
+
+
+// ==========================================
 // 🚀 MAIN SYSTEM
 // ==========================================
 
 const BackgroundSystem = ({ forcedTheme = null }) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
-  const [scene, setScene] = useState('space');
+  
+  const scenes = useMemo(() => ({
+    space: { name: t('themes.space.name'), icon: SparklesIcon, component: DeepSpaceScene, desc: t('themes.space.desc'), color: 'text-purple-400', bg: 'bg-purple-500/20' },
+    water: { name: t('themes.water.name'), icon: Droplets, component: SereneWaterScene, desc: t('themes.water.desc'), color: 'text-blue-400', bg: 'bg-blue-500/20' },
+    matrix: { name: t('themes.matrix.name'), icon: Grid, component: NeonMatrixScene, desc: t('themes.matrix.desc'), color: 'text-green-400', bg: 'bg-green-500/20' },
+    grid: { name: t('themes.grid.name'), icon: Grid, component: RetroGridScene, desc: t('themes.grid.desc'), color: 'text-pink-400', bg: 'bg-pink-500/20' },
+    aurora: { name: t('themes.aurora.name'), icon: Wind, component: AuroraScene, desc: t('themes.aurora.desc'), color: 'text-teal-400', bg: 'bg-teal-500/20' },
+    embers: { name: t('themes.embers.name'), icon: Flame, component: FireEmbersScene, desc: t('themes.embers.desc'), color: 'text-orange-400', bg: 'bg-orange-500/20' },
+    crystal: { name: t('themes.crystal.name'), icon: Hexagon, component: CrystalCaveScene, desc: t('themes.crystal.desc'), color: 'text-cyan-400', bg: 'bg-cyan-500/20' },
+    quantum: { name: t('themes.quantum.name'), icon: Zap, component: QuantumFieldScene, desc: t('themes.quantum.desc'), color: 'text-emerald-400', bg: 'bg-emerald-500/20' },
+    clouds: { name: t('themes.clouds.name'), icon: Mountain, component: EtherealCloudsScene, desc: t('themes.clouds.desc'), color: 'text-sky-300', bg: 'bg-sky-500/20' },
+    tunnel: { name: t('themes.tunnel.name'), icon: Aperture, component: HyperTunnelScene, desc: t('themes.tunnel.desc'), color: 'text-red-400', bg: 'bg-red-500/20' },
+    elegance: { name: t('themes.elegance.name'), icon: SparklesIcon, component: EleganceScene, desc: t('themes.elegance.desc'), color: 'text-indigo-400', bg: 'bg-indigo-500/20' },
+    
+    // New Scenes
+    cyber: { name: t('themes.cyber.name'), icon: Cpu, component: CyberCircuitScene, desc: t('themes.cyber.desc'), color: 'text-cyan-500', bg: 'bg-cyan-500/20' },
+    dna: { name: t('themes.dna.name'), icon: Dna, component: DNAScene, desc: t('themes.dna.desc'), color: 'text-green-500', bg: 'bg-green-500/20' },
+    binary: { name: t('themes.binary.name'), icon: Binary, component: BinaryStreamScene, desc: t('themes.binary.desc'), color: 'text-green-300', bg: 'bg-green-500/20' },
+    network: { name: t('themes.network.name'), icon: Network, component: NetworkScene, desc: t('themes.network.desc'), color: 'text-blue-500', bg: 'bg-blue-500/20' },
+    holo: { name: t('themes.holo.name'), icon: Globe, component: HoloSurfaceScene, desc: t('themes.holo.desc'), color: 'text-sky-400', bg: 'bg-sky-500/20' },
+    wave: { name: t('themes.wave.name'), icon: Waves, component: ParticleWaveScene, desc: t('themes.wave.desc'), color: 'text-pink-500', bg: 'bg-pink-500/20' },
+    hex: { name: t('themes.hex.name'), icon: BoxIcon, component: HexFieldScene, desc: t('themes.hex.desc'), color: 'text-yellow-400', bg: 'bg-yellow-500/20' },
+    sonar: { name: t('themes.sonar.name'), icon: Radio, component: SonarScene, desc: t('themes.sonar.desc'), color: 'text-teal-300', bg: 'bg-teal-500/20' },
+    orbit: { name: t('themes.orbit.name'), icon: Orbit, component: OrbitalScene, desc: t('themes.orbit.desc'), color: 'text-rose-400', bg: 'bg-rose-500/20' },
+    scanner: { name: t('themes.scanner.name'), icon: Scan, component: ScannerScene, desc: t('themes.scanner.desc'), color: 'text-gray-300', bg: 'bg-gray-500/20' },
+  }), [t]);
+
+  const [scene, setScene] = useState(() => {
+    // Try to get saved theme from localStorage, default to 'elegance'
+    const saved = localStorage.getItem('background_scene');
+    return saved && scenes[saved] ? saved : 'elegance';
+  });
+
   const [dpr, setDpr] = useState(1.5);
   const [perfSufficient, setPerfSufficient] = useState(true);
 
@@ -612,30 +695,12 @@ const BackgroundSystem = ({ forcedTheme = null }) => {
     }
   }, [forcedTheme]);
 
-  const scenes = {
-    space: { name: 'Deep Space', icon: SparklesIcon, component: DeepSpaceScene, desc: 'Stellar Nebula', color: 'text-purple-400', bg: 'bg-purple-500/20' },
-    water: { name: 'Serene Water', icon: Droplets, component: SereneWaterScene, desc: 'Ocean Waves', color: 'text-blue-400', bg: 'bg-blue-500/20' },
-    matrix: { name: 'Neon Matrix', icon: Grid, component: NeonMatrixScene, desc: 'Digital Rain', color: 'text-green-400', bg: 'bg-green-500/20' },
-    grid: { name: 'Retro Grid', icon: Grid, component: RetroGridScene, desc: 'Synthwave', color: 'text-pink-400', bg: 'bg-pink-500/20' },
-    aurora: { name: 'Aurora', icon: Wind, component: AuroraScene, desc: 'Northern Lights', color: 'text-teal-400', bg: 'bg-teal-500/20' },
-    embers: { name: 'Fire Embers', icon: Flame, component: FireEmbersScene, desc: 'Rising Sparks', color: 'text-orange-400', bg: 'bg-orange-500/20' },
-    crystal: { name: 'Crystal Cave', icon: Hexagon, component: CrystalCaveScene, desc: 'Refraction', color: 'text-cyan-400', bg: 'bg-cyan-500/20' },
-    quantum: { name: 'Quantum Field', icon: Zap, component: QuantumFieldScene, desc: 'Energy Flow', color: 'text-emerald-400', bg: 'bg-emerald-500/20' },
-    clouds: { name: 'Ethereal', icon: Mountain, component: EtherealCloudsScene, desc: 'Soft Sky', color: 'text-sky-300', bg: 'bg-sky-500/20' },
-    tunnel: { name: 'Hyper Tunnel', icon: Aperture, component: HyperTunnelScene, desc: 'Warp Speed', color: 'text-red-400', bg: 'bg-red-500/20' },
-    
-    // New Scenes
-    cyber: { name: 'Cyber Circuit', icon: Cpu, component: CyberCircuitScene, desc: 'Mainframe', color: 'text-cyan-500', bg: 'bg-cyan-500/20' },
-    dna: { name: 'Digital DNA', icon: Dna, component: DNAScene, desc: 'Code of Life', color: 'text-green-500', bg: 'bg-green-500/20' },
-    binary: { name: 'Binary Stream', icon: Binary, component: BinaryStreamScene, desc: 'Data Flow', color: 'text-green-300', bg: 'bg-green-500/20' },
-    network: { name: 'Network Nodes', icon: Network, component: NetworkScene, desc: 'Connectivity', color: 'text-blue-500', bg: 'bg-blue-500/20' },
-    holo: { name: 'Holo Surface', icon: Globe, component: HoloSurfaceScene, desc: 'Virtual Plane', color: 'text-sky-400', bg: 'bg-sky-500/20' },
-    wave: { name: 'Particle Wave', icon: Waves, component: ParticleWaveScene, desc: 'Oscillation', color: 'text-pink-500', bg: 'bg-pink-500/20' },
-    hex: { name: 'Hex Field', icon: BoxIcon, component: HexFieldScene, desc: 'Hive Mind', color: 'text-yellow-400', bg: 'bg-yellow-500/20' },
-    sonar: { name: 'Sonar Pulse', icon: Radio, component: SonarScene, desc: 'Detection', color: 'text-teal-300', bg: 'bg-teal-500/20' },
-    orbit: { name: 'Orbital Rings', icon: Orbit, component: OrbitalScene, desc: 'Gravity', color: 'text-rose-400', bg: 'bg-rose-500/20' },
-    scanner: { name: 'Void Scanner', icon: Scan, component: ScannerScene, desc: 'Searching', color: 'text-gray-300', bg: 'bg-gray-500/20' },
-  };
+  // Save theme to localStorage when it changes
+  useEffect(() => {
+    if (!forcedTheme) {
+      localStorage.setItem('background_scene', scene);
+    }
+  }, [scene, forcedTheme]);
 
   const CurrentScene = scenes[scene].component;
 

@@ -7,6 +7,7 @@ import api, { uploadFile } from '../services/api';
 import { toast } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import Dropdown from './Dropdown';
+import FavoriteButton from './FavoriteButton';
 
 const UserProfileModal = ({ isOpen, onClose }) => {
   const { user, logout } = useAuth();
@@ -418,9 +419,19 @@ const UserProfileModal = ({ isOpen, onClose }) => {
                                               <h4 className="font-bold text-white truncate">{item.title}</h4>
                                               <p className="text-xs text-gray-500 truncate">{item.artist || item.category}</p>
                                           </div>
-                                          <button className="p-2 text-pink-500 hover:text-white transition-colors">
-                                              <Heart size={18} fill="currentColor" />
-                                          </button>
+                                          <FavoriteButton 
+                                              itemId={item.id}
+                                              itemType={favoriteType}
+                                              initialFavorited={true}
+                                              size={18}
+                                              showCount={false}
+                                              className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                                              onToggle={(favorited) => {
+                                                  if (!favorited) {
+                                                      setFavorites(prev => prev.filter(f => f.id !== item.id));
+                                                  }
+                                              }}
+                                          />
                                       </div>
                                   ))}
                               </div>

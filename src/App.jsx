@@ -27,7 +27,6 @@ const Articles = lazy(() => import('./components/Articles'));
 const Events = lazy(() => import('./components/Events'));
 const HomeCategories = lazy(() => import('./components/HomeCategories'));
 const About = lazy(() => import('./components/About'));
-const Contact = lazy(() => import('./components/Contact'));
 const AdminDashboard = lazy(() => import('./components/Admin/AdminDashboard'));
 const NotFound = lazy(() => import('./components/NotFound'));
 
@@ -82,7 +81,6 @@ const AppContent = () => {
             <Route path="/articles" element={<Articles />} />
             <Route path="/events" element={<Events />} />
             <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

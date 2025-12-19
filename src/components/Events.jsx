@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, MapPin, ArrowRight, X, Filter, Upload, Clock, Heart, CheckCircle, ExternalLink, Download, Search, Share2, Globe, FileText } from 'lucide-react';
+import { Calendar, MapPin, ArrowRight, X, Filter, Upload, Clock, CheckCircle, ExternalLink, Download, Search, Share2, Globe, FileText } from 'lucide-react';
 import UploadModal from './UploadModal';
+import FavoriteButton from './FavoriteButton';
 import { useTranslation } from 'react-i18next';
 import Pagination from './Pagination';
 import { useSettings } from '../context/SettingsContext';
@@ -11,7 +12,7 @@ import Dropdown from './Dropdown';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import Countdown from './Countdown';
-import ImageWithLoader from './ImageWithLoader';
+import SmartImage from './SmartImage';
 
 import { useSearchParams } from 'react-router-dom';
 
@@ -171,17 +172,6 @@ END:VCALENDAR`;
     .catch(err => console.error("Failed to save event", err));
   };
 
-  const handleLike = (e, id) => {
-      e.stopPropagation();
-      api.post(`/events/${id}/like`)
-        .then(res => {
-            setEvents(prev => prev.map(ev => 
-                ev.id === id ? { ...ev, likes: res.data.likes } : ev
-            ));
-        })
-        .catch(err => console.error("Failed to like event", err));
-  };
-
   const handleUpload = (newItem) => {
     addEvent(newItem);
   };
@@ -231,7 +221,7 @@ END:VCALENDAR`;
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
-        className="mb-8 md:mb-12"
+        className="mb-8 md:mb-12 relative z-40"
       >
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
           <div>
@@ -288,28 +278,26 @@ END:VCALENDAR`;
            ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-            <AnimatePresence mode='popLayout'>
-            {events.map((event, index) => {
-              const status = getEventLifecycle(event.date);
-              const isUpcoming = status === t('events.status.upcoming');
-              const dateObj = new Date(event.date);
-              const day = dateObj.getDate();
-              const month = dateObj.toLocaleString('default', { month: 'short' }).toUpperCase();
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+                {events.map((event, index) => {
+                  const status = getEventLifecycle(event.date);
+                  const isUpcoming = status === t('events.status.upcoming');
+                  const dateObj = new Date(event.date);
+                  const day = dateObj.getDate();
+                  const month = dateObj.toLocaleString('default', { month: 'short' }).toUpperCase();
 
-              return (
-              <motion.div
-                key={event.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="group relative bg-[#111] border border-white/10 rounded-3xl overflow-hidden hover:shadow-2xl hover:shadow-indigo-500/20 transition-all duration-500 hover:-translate-y-2 cursor-pointer"
-                onClick={() => setSelectedEvent(event)}
-              >
+                  return (
+                  <motion.div
+                    key={event.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                    className="group relative bg-[#111] border border-white/10 rounded-3xl overflow-hidden hover:shadow-2xl hover:shadow-indigo-500/20 transition-all duration-500 hover:-translate-y-2 cursor-pointer"
+                    onClick={() => setSelectedEvent(event)}
+                  >
                 {/* Image Section */}
                 <div className="h-64 overflow-hidden relative">
-                    <ImageWithLoader 
+                    <SmartImage 
                       src={event.image} 
                       alt={event.title} 
                       loading="lazy"
@@ -332,13 +320,24 @@ END:VCALENDAR`;
                     </div>
 
                     {/* Share Button */}
-                    <button 
-                        onClick={(e) => handleShare(event, e)}
-                        className="absolute bottom-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0"
-                        title="Share Event"
-                    >
-                        <Share2 size={18} />
-                    </button>
+                    <div className="absolute bottom-4 right-4 flex gap-2">
+                        <FavoriteButton 
+                            itemId={event.id}
+                            itemType="event"
+                            size={18}
+                            showCount={false}
+                            favorited={event.favorited}
+                            className="p-2 bg-black/40 hover:bg-indigo-600 rounded-full text-white backdrop-blur-md transition-all"
+                            onToggle={(favorited, likes) => {
+                                setEvents(prev => prev.map(e => 
+                                    e.id === event.id ? { ...e, likes: likes !== undefined ? likes : e.likes, favorited } : e
+                                ));
+                                if (selectedEvent && selectedEvent.id === event.id) {
+                                    setSelectedEvent(prev => ({ ...prev, likes: likes !== undefined ? likes : prev.likes, favorited }));
+                                }
+                            }}
+                        />
+                    </div>
 
                     {/* Countdown Overlay (Upcoming only) */}
                     {isUpcoming && (
@@ -373,7 +372,6 @@ END:VCALENDAR`;
                 </div>
               </motion.div>
             )})}
-            </AnimatePresence>
         </div>
       )}
       
@@ -412,11 +410,13 @@ END:VCALENDAR`;
             >
               {/* Modal Header Image */}
               <div className="h-72 sm:h-96 relative">
-                 <ImageWithLoader 
+                 <SmartImage 
                     src={selectedEvent.image} 
                     alt={selectedEvent.title} 
+                    type="event"
                     className="w-full h-full"
                     imageClassName="w-full h-full object-cover"
+                    iconSize={64}
                  />
                  <div className="absolute inset-0 bg-gradient-to-t from-[#111] to-transparent" />
                  
@@ -438,7 +438,24 @@ END:VCALENDAR`;
                              </span>
                         ))}
                      </div>
-                     <h2 className="text-3xl sm:text-5xl font-bold text-white mb-2 leading-tight">{selectedEvent.title}</h2>
+                     <div className="flex justify-between items-start gap-4">
+                        <h2 className="text-3xl sm:text-5xl font-bold text-white mb-2 leading-tight">{selectedEvent.title}</h2>
+                        <FavoriteButton 
+                            itemId={selectedEvent.id}
+                            itemType="event"
+                            size={24}
+                            showCount={true}
+                            count={selectedEvent.likes || 0}
+                            favorited={selectedEvent.favorited}
+                            className="p-3 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md transition-colors mt-1"
+                            onToggle={(favorited, likes) => {
+                                setSelectedEvent(prev => ({ ...prev, likes: likes !== undefined ? likes : prev.likes, favorited }));
+                                setEvents(prev => prev.map(e => 
+                                    e.id === selectedEvent.id ? { ...e, likes: likes !== undefined ? likes : e.likes, favorited } : e
+                                ));
+                            }}
+                        />
+                     </div>
                      <div className="flex flex-wrap items-center gap-6 text-gray-300 text-sm sm:text-base font-medium">
                          <div className="flex items-center gap-2">
                              <Calendar size={18} className="text-indigo-400" />

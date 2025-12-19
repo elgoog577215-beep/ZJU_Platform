@@ -10,13 +10,16 @@ const { getDb } = require('./src/config/db');
 const apiRoutes = require('./src/routes/api');
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 // Security & Optimization Middleware
 app.use(compression());
 app.use(helmet({
   crossOriginResourcePolicy: false, // Allow loading resources (images) from localhost
 }));
+
+// Trust proxy for correct protocol/secure cookies behind Nginx/ALB
+app.set('trust proxy', 1);
 
 // Rate Limiting
 const limiter = rateLimit({
@@ -30,7 +33,13 @@ const limiter = rateLimit({
 // Apply rate limiting to API routes
 app.use('/api', limiter);
 
-app.use(cors());
+// CORS: allow specific frontend origin if provided
+const allowedOrigin = process.env.FRONTEND_URL;
+if (allowedOrigin) {
+  app.use(cors({ origin: allowedOrigin, credentials: true }));
+} else {
+  app.use(cors());
+}
 app.use(express.json());
 
 // Static files
@@ -73,7 +82,8 @@ getDb().then(async (db) => {
       description TEXT,
       content TEXT,
       link TEXT,
-      featured BOOLEAN DEFAULT 0
+      featured BOOLEAN DEFAULT 0,
+      likes INTEGER DEFAULT 0
     );
     CREATE TABLE IF NOT EXISTS comments (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -292,6 +302,17 @@ getDb().then(async (db) => {
       }
   }
   
+  // Migration: Add likes column to events if not exists
+  try {
+    await db.run('ALTER TABLE events ADD COLUMN likes INTEGER DEFAULT 0');
+    console.log('Added likes column to events table');
+  } catch (error) {
+    // Ignore error if column already exists
+    if (!error.message.includes('duplicate column name')) {
+      console.error('Failed to add likes column to events:', error);
+    }
+  }
+
   // Fix events status migration: Update legacy status to approved
   try {
       const legacyStatuses = ['Upcoming', 'Past', 'Ongoing', 'Open'];

@@ -270,7 +270,7 @@ const UserManager = () => {
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">{t('admin.delete_confirm')}</h3>
                 <p className="text-gray-400 mb-6 text-sm">
-                  Are you sure you want to delete this user? This action cannot be undone.
+                  {t('admin.delete_user_confirm')}
                 </p>
                 
                 <div className="flex gap-3 w-full">
@@ -284,7 +284,7 @@ const UserManager = () => {
                     onClick={confirmDelete}
                     className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-red-500/25"
                   >
-                    Delete User
+                    {t('admin.delete_user')}
                   </button>
                 </div>
               </div>

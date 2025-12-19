@@ -1,87 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, ArrowRight, Calendar, X, User, Tag, Upload, Clock, Share2, Check, Heart } from 'lucide-react';
+import { BookOpen, ArrowRight, Calendar, X, User, Tag, Upload, Clock, Share2, Check } from 'lucide-react';
+import SmartImage from './SmartImage';
 import UploadModal from './UploadModal';
+import FavoriteButton from './FavoriteButton';
 import { useTranslation } from 'react-i18next';
 import Pagination from './Pagination';
 import { useSettings } from '../context/SettingsContext';
-import ImageWithLoader from './ImageWithLoader';
+import { useAuth } from '../context/AuthContext';
 import useSWR, { mutate } from 'swr';
 import api, { fetcher } from '../services/api';
 import SortSelector from './SortSelector';
-
-const CommentSection = ({ articleId }) => {
-  const [newComment, setNewComment] = useState('');
-  const [authorName, setAuthorName] = useState('');
-  
-  const { data: comments = [] } = useSWR(`/articles/${articleId}/comments`, fetcher);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!newComment.trim() || !authorName.trim()) return;
-
-    api.post(`/articles/${articleId}/comments`, {
-        author: authorName,
-        content: newComment,
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${authorName}`
-    })
-    .then(() => {
-      mutate(`/articles/${articleId}/comments`); // Trigger re-fetch
-      setNewComment('');
-    })
-    .catch(err => console.error(err));
-  };
-
-  return (
-    <div className="mt-12 pt-12 border-t border-white/10">
-      <h3 className="text-2xl font-bold text-white mb-8">Comments ({comments.length})</h3>
-      
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="mb-10 space-y-4">
-        <div className="flex flex-col sm:flex-row gap-4">
-           <input 
-             type="text" 
-             placeholder="Your Name"
-             value={authorName}
-             onChange={e => setAuthorName(e.target.value)}
-             className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 w-full sm:w-1/3 transition-colors"
-           />
-           <input 
-             type="text" 
-             placeholder="Add a comment..."
-             value={newComment}
-             onChange={e => setNewComment(e.target.value)}
-             className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 flex-1 transition-colors"
-           />
-           <button 
-             type="submit"
-             className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-xl transition-colors whitespace-nowrap"
-           >
-             Post
-           </button>
-        </div>
-      </form>
-
-      {/* List */}
-      <div className="space-y-6">
-        {comments.map(comment => (
-          <div key={comment.id} className="flex gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <img src={comment.avatar} alt={comment.author} className="w-10 h-10 rounded-full bg-white/10 flex-shrink-0" />
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="font-bold text-white">{comment.author}</span>
-                <span className="text-xs text-gray-500">{comment.date}</span>
-              </div>
-              <p className="text-gray-300 text-sm">{comment.content}</p>
-            </div>
-          </div>
-        ))}
-        {comments.length === 0 && <p className="text-gray-500 text-sm italic">No comments yet. Be the first to share your thoughts!</p>}
-      </div>
-    </div>
-  );
-};
 
 const Articles = () => {
   const { t } = useTranslation();
@@ -120,7 +50,7 @@ const Articles = () => {
     const wordsPerMinute = 200;
     const words = text ? text.split(/\s+/).length : 0;
     const minutes = Math.ceil(words / wordsPerMinute);
-    return `${minutes} min read`;
+    return `${minutes} ${t('common.min_read')}`;
   };
 
   const handleShare = (e, article) => {
@@ -129,15 +59,6 @@ const Articles = () => {
     navigator.clipboard.writeText(`${article.title} - ${url}`);
     setCopiedId(article.id);
     setTimeout(() => setCopiedId(null), 2000);
-  };
-
-  const handleLike = (e, id) => {
-      e.stopPropagation();
-      api.post(`/articles/${id}/like`)
-        .then(() => {
-            mutate(`/articles?page=${currentPage}&limit=${limit}&sort=${sort}`);
-        })
-        .catch(err => console.error("Failed to like article", err));
   };
 
   const addArticle = (newItem) => {
@@ -165,7 +86,7 @@ const Articles = () => {
              <button
               onClick={() => setIsUploadOpen(true)}
               className="bg-white/10 hover:bg-white/20 text-white p-2 md:p-3 rounded-full backdrop-blur-md border border-white/10 transition-all"
-              title="Upload Article"
+              title={t('common.upload_article')}
             >
               <Upload size={18} className="md:w-5 md:h-5" />
             </button>
@@ -191,7 +112,7 @@ const Articles = () => {
           {articles.length === 0 && !isLoading && (
             <div className="text-center py-20 text-gray-500">
               <BookOpen size={48} className="mx-auto mb-4 opacity-20" />
-              <p>No articles found. Start writing!</p>
+              <p>{t('articles.no_articles')}</p>
             </div>
           )}
           {articles.map((article, index) => (
@@ -213,37 +134,42 @@ const Articles = () => {
                 {/* Cover Image */}
                 {article.cover && (
                   <div className="w-full md:w-48 h-48 md:h-32 rounded-xl overflow-hidden flex-shrink-0">
-                    <ImageWithLoader 
+                    <SmartImage 
                       src={article.cover} 
                       alt={article.title} 
+                      type="article"
                       className="w-full h-full"
-                      imageClassName="h-full object-cover"
+                      imageClassName="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                      iconSize={32}
                     />
                   </div>
                 )}
 
-                <div className="absolute top-4 right-4 flex gap-2">
-                  <button 
-                    onClick={(e) => handleLike(e, article.id)}
+                <div className="absolute top-4 right-4 flex gap-2 md:hidden">
+                  <FavoriteButton 
+                    itemId={article.id}
+                    itemType="article"
+                    size={16}
+                    showCount={true}
+                    count={article.likes || 0}
                     className="p-2 bg-black/50 hover:bg-orange-500 rounded-full backdrop-blur-md transition-all group/btn border border-white/10"
-                    title="Like"
-                  >
-                    <div className="flex items-center gap-1">
-                       <Heart size={16} className={`transition-colors ${article.likes > 0 ? 'fill-white text-white' : 'text-gray-300 group-hover/btn:text-white'}`} />
-                       {article.likes > 0 && <span className="text-xs font-bold text-white">{article.likes}</span>}
-                    </div>
-                  </button>
-                  <button 
-                    onClick={(e) => handleShare(e, article)}
-                    className="p-2 bg-black/50 hover:bg-white rounded-full backdrop-blur-md transition-all group/btn border border-white/10"
-                    title="Share"
-                  >
-                    {copiedId === article.id ? (
-                      <Check size={16} className="text-green-500" />
-                    ) : (
-                      <Share2 size={16} className="text-gray-300 group-hover/btn:text-black" />
-                    )}
-                  </button>
+                    onToggle={(favorited, likes) => {
+                        // Optimistically update the SWR cache
+                        mutate(
+                            `/articles?page=${currentPage}&limit=${limit}&sort=${sort}`,
+                            (data) => {
+                                if (!data) return data;
+                                return {
+                                    ...data,
+                                    data: data.data.map(a => 
+                                        a.id === article.id ? { ...a, likes: likes !== undefined ? likes : a.likes } : a
+                                    )
+                                };
+                            },
+                            false // Don't revalidate immediately
+                        );
+                    }}
+                  />
                 </div>
 
                 <div className="flex-1 flex flex-col justify-center space-y-3">
@@ -267,13 +193,38 @@ const Articles = () => {
                 </div>
 
                 <div className="hidden md:flex flex-col items-center justify-between pl-4 border-l border-white/5 py-2">
-                   <button 
-                    onClick={(e) => handleShare(e, article)}
-                    className="p-2 text-gray-500 hover:text-white transition-colors relative"
-                    title="Share"
-                   >
-                      {copiedId === article.id ? <Check size={18} className="text-green-500" /> : <Share2 size={18} />}
-                   </button>
+                   <div className="flex flex-col gap-3 items-center">
+                       <FavoriteButton 
+                        itemId={article.id}
+                        itemType="article"
+                        size={16}
+                        showCount={true}
+                        count={article.likes || 0}
+                        className="p-2 bg-white/5 hover:bg-orange-500 rounded-full backdrop-blur-md transition-all border border-white/10"
+                        onToggle={(favorited, likes) => {
+                            mutate(
+                                `/articles?page=${currentPage}&limit=${limit}&sort=${sort}`,
+                                (data) => {
+                                    if (!data) return data;
+                                    return {
+                                        ...data,
+                                        data: data.data.map(a => 
+                                            a.id === article.id ? { ...a, likes: likes !== undefined ? likes : a.likes } : a
+                                        )
+                                    };
+                                },
+                                false
+                            );
+                        }}
+                      />
+                       <button 
+                        onClick={(e) => handleShare(e, article)}
+                        className="p-2 bg-white/5 hover:bg-white/20 text-gray-300 hover:text-white rounded-full backdrop-blur-md border border-white/10 transition-all"
+                        title="Share"
+                       >
+                          {copiedId === article.id ? <Check size={16} className="text-green-500" /> : <Share2 size={16} />}
+                       </button>
+                   </div>
                    <div className="p-3 rounded-full bg-white/5 group-hover:bg-orange-500 group-hover:text-black transition-all duration-300">
                       <ArrowRight size={20} className="-rotate-45 group-hover:rotate-0 transition-transform duration-300" />
                    </div>
@@ -340,8 +291,8 @@ const Articles = () => {
                       <User size={20} className="text-gray-400" />
                     </div>
                     <div>
-                      <div className="text-sm font-bold text-white">Lumos Admin</div>
-                      <div className="text-xs text-gray-500">Author</div>
+                      <div className="text-sm font-bold text-white">{t('common.admin_name')}</div>
+                      <div className="text-xs text-gray-500">{t('common.author')}</div>
                     </div>
                   </div>
                   
@@ -350,7 +301,7 @@ const Articles = () => {
                     className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full hover:bg-white/10 text-sm font-bold text-gray-300 hover:text-white transition-all"
                   >
                     {copiedId === selectedArticle.id ? <Check size={16} className="text-green-500" /> : <Share2 size={16} />}
-                    Share
+                    {t('common.share')}
                   </button>
                 </div>
 
@@ -359,7 +310,7 @@ const Articles = () => {
                   dangerouslySetInnerHTML={{ __html: selectedArticle.content }}
                 />
 
-                <CommentSection articleId={selectedArticle.id} />
+
               </div>
 
             </motion.div>
@@ -377,5 +328,4 @@ const Articles = () => {
   );
 };
 
-export { CommentSection };
 export default Articles;

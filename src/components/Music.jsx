@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Pause, SkipForward, SkipBack, Music as MusicIcon, Volume2, VolumeX, Upload, Heart } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, Music as MusicIcon, Volume2, VolumeX, Upload } from 'lucide-react';
 import UploadModal from './UploadModal';
+import FavoriteButton from './FavoriteButton';
 import { useTranslation } from 'react-i18next';
 import Pagination from './Pagination';
 import { useSettings } from '../context/SettingsContext';
@@ -9,6 +10,7 @@ import { useMusic } from '../context/MusicContext';
 import api from '../services/api';
 import SortSelector from './SortSelector';
 import { useSearchParams } from 'react-router-dom';
+import SmartImage from './SmartImage';
 
 const formatTime = (seconds) => {
   const mins = Math.floor(seconds / 60);
@@ -83,16 +85,6 @@ const Music = () => {
     .catch(err => console.error("Failed to save music", err));
   };
 
-  const handleLike = (id) => {
-      api.post(`/music/${id}/like`)
-        .then(res => {
-            setTracks(prev => prev.map(t => 
-                t.id === id ? { ...t, likes: res.data.likes } : t
-            ));
-        })
-        .catch(err => console.error("Failed to like music", err));
-  };
-
   useEffect(() => {
     const audio = audioRef.current;
     
@@ -163,7 +155,24 @@ const Music = () => {
     if(audioRef.current) audioRef.current.playbackRate = 1.0;
   }, [currentTrack]);
 
-  const activeTrack = currentTrack || { title: "Select a track", artist: "to start listening", duration: 0, cover: "https://via.placeholder.com/300", audio: "" };
+  // Local state for player track (likes/favorited) when not in current list
+  const [playerTrackState, setPlayerTrackState] = useState({});
+  
+  // Reset player track state when track changes
+  useEffect(() => {
+    setPlayerTrackState({});
+  }, [currentTrack?.id]);
+
+  const defaultTrack = { title: t('music.select_track'), artist: t('music.to_start'), duration: 0, cover: "https://via.placeholder.com/300", audio: "" };
+  const activeTrackObj = currentTrack || defaultTrack;
+  const activeTrackInList = tracks.find(t => t.id === activeTrackObj.id);
+  
+  // Merge sources: List > Local State > Context/Default
+  const activeTrack = { 
+      ...activeTrackObj, 
+      ...playerTrackState, 
+      ...(activeTrackInList || {}) 
+  };
 
   return (
     <section className="py-12 md:py-24 px-4 md:px-8 min-h-screen flex items-center justify-center relative z-10">
@@ -174,7 +183,7 @@ const Music = () => {
           <button
             onClick={() => setIsUploadOpen(true)}
             className="bg-white/10 hover:bg-white/20 text-white p-2 md:p-3 rounded-full backdrop-blur-md border border-white/10 transition-all"
-            title="Upload Track"
+            title={t('common.upload_track')}
           >
             <Upload size={18} className="md:w-5 md:h-5" />
           </button>
@@ -212,7 +221,14 @@ const Music = () => {
                 transition={{ duration: 3, repeat: Infinity, ease: "linear", paused: !isPlaying }}
                 className="relative w-64 h-64 rounded-full border-4 border-white/10 shadow-2xl overflow-hidden"
               >
-                <img src={activeTrack.cover} alt="Cover" className="w-full h-full object-cover" />
+                <SmartImage 
+                  src={activeTrack.cover} 
+                  alt={activeTrack.title} 
+                  type="music"
+                  className="w-full h-full" 
+                  imageClassName="w-full h-full object-cover"
+                  iconSize={64} 
+                />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-8 h-8 bg-black rounded-full border-2 border-white/20" />
                 </div>
@@ -220,9 +236,29 @@ const Music = () => {
             </div>
 
             {/* Info */}
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-white mb-2">{activeTrack.title}</h2>
-              <p className="text-cyan-400 font-medium">{activeTrack.artist}</p>
+            <div className="text-center mb-8 relative">
+              <h2 className="text-3xl font-bold text-white mb-2 px-8">{activeTrack.title}</h2>
+              <p className="text-cyan-400 font-medium mb-4">{activeTrack.artist}</p>
+              
+              {activeTrack.id && (
+                  <div className="flex justify-center">
+                      <FavoriteButton 
+                        itemId={activeTrack.id}
+                        itemType="music"
+                        size={20}
+                        showCount={true}
+                        count={activeTrack.likes}
+                        favorited={activeTrack.favorited}
+                        className="p-2 bg-white/5 hover:bg-cyan-500/20 rounded-full transition-colors border border-white/10"
+                        onToggle={(favorited, likes) => {
+                            setPlayerTrackState({ likes, favorited });
+                            setTracks(prev => prev.map(t => 
+                                t.id === activeTrack.id ? { ...t, likes: likes !== undefined ? likes : t.likes, favorited } : t
+                            ));
+                        }}
+                      />
+                  </div>
+              )}
             </div>
 
             {/* Progress */}
@@ -247,21 +283,21 @@ const Music = () => {
                 <button 
                   onClick={handlePrev} 
                   className="p-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-all active:scale-95"
-                  title="Previous Track"
+                  title={t('common.previous_track')}
                 >
                   <SkipBack size={28} />
                 </button>
                 <button 
                   onClick={togglePlay}
                   className="w-20 h-20 bg-gradient-to-br from-cyan-400 to-blue-600 text-white rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] hover:scale-105 active:scale-95 transition-all"
-                  title={isPlaying ? "Pause" : "Play"}
+                  title={isPlaying ? t('common.pause') : t('common.play')}
                 >
                   {isPlaying ? <Pause size={32} fill="currentColor" /> : <Play size={32} fill="currentColor" className="ml-1" />}
                 </button>
                 <button 
                   onClick={handleNext} 
                   className="p-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-all active:scale-95"
-                  title="Next Track"
+                  title={t('common.next_track')}
                 >
                   <SkipForward size={28} />
                 </button>
@@ -271,9 +307,9 @@ const Music = () => {
               <button 
                 onClick={handleSpeedChange}
                 className="text-xs font-bold text-cyan-400 border border-cyan-500/30 bg-cyan-500/5 px-4 py-1.5 rounded-full hover:bg-cyan-500/20 hover:border-cyan-500/50 transition-all active:scale-95 uppercase tracking-wider"
-                title="Playback Speed"
+                title={t('common.playback_speed')}
               >
-                {playbackSpeed}x Speed
+                {playbackSpeed}x {t('common.speed')}
               </button>
             </div>
 
@@ -282,7 +318,7 @@ const Music = () => {
               <button 
                 onClick={toggleMute}
                 className="p-2 hover:bg-white/10 rounded-full transition-colors hover:text-white"
-                title={isMuted ? "Unmute" : "Mute"}
+                title={isMuted ? t('common.unmute') : t('common.mute')}
               >
                 {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
               </button>
@@ -332,7 +368,7 @@ const Music = () => {
                 {tracks.length === 0 && (
                     <div className="text-center py-12 text-gray-500">
                     <MusicIcon size={48} className="mx-auto mb-4 opacity-20" />
-                    <p>No tracks found. Upload some music!</p>
+                    <p>{t('music.no_tracks')}</p>
                     </div>
                 )}
                 {tracks.map((track) => (
@@ -343,7 +379,14 @@ const Music = () => {
                     ${activeTrack.id === track.id ? 'bg-white/10 border-white/10' : 'hover:bg-white/5'}`}
                 >
                   <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                    <img src={track.cover} alt={track.title} className="w-full h-full object-cover" />
+                    <SmartImage 
+                      src={track.cover} 
+                      alt={track.title} 
+                      type="music" 
+                      className="w-full h-full" 
+                      imageClassName="w-full h-full object-cover"
+                      iconSize={20} 
+                    />
                   </div>
                   <div className="flex-1">
                     <h4 className={`font-bold ${activeTrack.id === track.id ? 'text-cyan-400' : 'text-white'}`}>
@@ -353,20 +396,24 @@ const Music = () => {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-gray-500 font-mono">{formatTime(track.duration)}</span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleLike(track.id);
-                      }}
-                      className="p-2 hover:bg-white/10 rounded-full transition-colors group"
-                      title="Like"
-                    >
-                      <Heart 
-                        size={16} 
-                        className={`transition-colors ${track.likes > 0 ? 'fill-pink-500 text-pink-500' : 'text-gray-500 group-hover:text-pink-400'}`} 
-                      />
-                      {track.likes > 0 && <span className="text-[10px] ml-1 text-gray-400">{track.likes}</span>}
-                    </button>
+                    <FavoriteButton
+                        itemId={track.id}
+                        itemType="music"
+                        size={16}
+                        showCount={true}
+                        count={track.likes}
+                        favorited={track.favorited}
+                        className="p-2 hover:bg-white/10 rounded-full transition-colors group"
+                        onToggle={(favorited, likes) => {
+                            setTracks(prev => prev.map(t => 
+                                t.id === track.id ? { ...t, likes: likes !== undefined ? likes : t.likes, favorited } : t
+                            ));
+                            // Also update player state if it matches
+                            if (activeTrack.id === track.id) {
+                                setPlayerTrackState(prev => ({ ...prev, likes, favorited }));
+                            }
+                        }}
+                    />
                   </div>
                   {activeTrack.id === track.id && isPlaying && (
                     <div className="flex gap-0.5 items-end h-4">

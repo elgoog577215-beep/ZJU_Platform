@@ -144,7 +144,6 @@ const Navbar = () => {
     { key: 'videos', path: '/videos' },
     { key: 'articles', path: '/articles' },
     { key: 'about', path: '/about' },
-    { key: 'contact', path: '/contact' },
     { key: 'admin', path: '/admin' }
   ];
 
@@ -204,7 +203,7 @@ const Navbar = () => {
         <button
           onClick={toggleCursor}
           className={`p-2 rounded-full transition-all ${cursorEnabled ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}
-          title={cursorEnabled ? "Disable Custom Cursor" : "Enable Custom Cursor"}
+          title={cursorEnabled ? t('nav.cursor_disable') : t('nav.cursor_enable')}
         >
           <MousePointer2 size={18} />
         </button>

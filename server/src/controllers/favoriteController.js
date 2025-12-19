@@ -10,11 +10,22 @@ const toggleFavorite = async (req, res) => {
             return res.status(400).json({ error: 'Item ID and Type are required' });
         }
 
+        const tableMap = {
+            'photo': 'photos',
+            'music': 'music',
+            'video': 'videos',
+            'article': 'articles',
+            'event': 'events'
+        };
+        const tableName = tableMap[itemType];
+
         // Check if exists
         const existing = await db.get(
             'SELECT id FROM favorites WHERE user_id = ? AND item_id = ? AND item_type = ?', 
             [userId, itemId, itemType]
         );
+
+        let newLikes = 0;
 
         if (existing) {
             // Remove
@@ -22,14 +33,30 @@ const toggleFavorite = async (req, res) => {
                 'DELETE FROM favorites WHERE id = ?', 
                 [existing.id]
             );
-            res.json({ favorited: false });
+            
+            // Decrement likes count in the item table
+            if (tableName) {
+                await db.run(`UPDATE ${tableName} SET likes = MAX(0, likes - 1) WHERE id = ?`, [itemId]);
+                const item = await db.get(`SELECT likes FROM ${tableName} WHERE id = ?`, [itemId]);
+                newLikes = item ? item.likes : 0;
+            }
+
+            res.json({ favorited: false, likes: newLikes });
         } else {
             // Add
             await db.run(
                 'INSERT INTO favorites (user_id, item_id, item_type) VALUES (?, ?, ?)', 
                 [userId, itemId, itemType]
             );
-            res.json({ favorited: true });
+            
+            // Increment likes count in the item table
+            if (tableName) {
+                await db.run(`UPDATE ${tableName} SET likes = likes + 1 WHERE id = ?`, [itemId]);
+                const item = await db.get(`SELECT likes FROM ${tableName} WHERE id = ?`, [itemId]);
+                newLikes = item ? item.likes : 0;
+            }
+
+            res.json({ favorited: true, likes: newLikes });
         }
     } catch (error) {
         res.status(500).json({ error: error.message });

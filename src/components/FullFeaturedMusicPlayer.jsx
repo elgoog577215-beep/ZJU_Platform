@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Pause, SkipForward, SkipBack, Music as MusicIcon, Volume2, VolumeX, Heart } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, Music as MusicIcon, Volume2, VolumeX } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useMusic } from '../context/MusicContext';
 import api from '../services/api';
+import SmartImage from './SmartImage';
+import FavoriteButton from './FavoriteButton';
 
 const formatTime = (seconds) => {
   const mins = Math.floor(seconds / 60);
@@ -77,12 +79,6 @@ const FullFeaturedMusicPlayer = ({ tracks = [] }) => {
     if(audioRef.current) audioRef.current.playbackRate = 1.0;
   }, [currentTrack]);
 
-  const handleLike = (id) => {
-      // Optimistic update would be complex here without prop drilling setTracks back up
-      // For now we just call API
-      api.post(`/music/${id}/like`).catch(err => console.error("Failed to like", err));
-  };
-
   // If no track is playing globally, and we have local tracks, use the first one as "display" (not playing)
   const displayTrack = currentTrack || (tracks.length > 0 ? tracks[0] : { title: t('music.select_track_title', 'Select a track'), artist: t('music.select_track_artist', 'to start listening'), duration: 0, cover: "https://via.placeholder.com/300" });
 
@@ -99,11 +95,22 @@ const FullFeaturedMusicPlayer = ({ tracks = [] }) => {
 
          <div className="relative z-10 flex flex-col items-center">
             {/* Header */}
-            <div className="w-full flex items-center gap-2 mb-4">
-                <div className="p-1.5 bg-cyan-500/20 rounded-lg text-cyan-400">
-                    <MusicIcon size={16} />
+            <div className="w-full flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                    <div className="p-1.5 bg-cyan-500/20 rounded-lg text-cyan-400">
+                        <MusicIcon size={16} />
+                    </div>
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">{t('home.now_playing')}</h3>
                 </div>
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider">{t('home.now_playing')}</h3>
+                {displayTrack && displayTrack.id && (
+                    <FavoriteButton 
+                        itemId={displayTrack.id}
+                        itemType="music"
+                        size={16}
+                        showCount={false}
+                        className="p-1.5 hover:bg-white/10 rounded-full transition-colors"
+                    />
+                )}
             </div>
 
             {/* Vinyl */}
@@ -112,8 +119,8 @@ const FullFeaturedMusicPlayer = ({ tracks = [] }) => {
                 transition={{ duration: 3, repeat: Infinity, ease: "linear", paused: !isPlaying }}
                 className="relative w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white/10 shadow-2xl overflow-hidden mb-6"
             >
-                <img src={displayTrack.cover} alt="Cover" className="w-full h-full object-cover" />
-                <div className="absolute inset-0 flex items-center justify-center">
+                <SmartImage src={displayTrack.cover} alt={displayTrack.title} type="music" className="w-full h-full" iconSize={32} />
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <div className="w-4 h-4 bg-black rounded-full border-2 border-white/20" />
                 </div>
             </motion.div>
@@ -187,7 +194,7 @@ const FullFeaturedMusicPlayer = ({ tracks = [] }) => {
                 >
                     <span className="text-[10px] font-mono text-gray-500 w-4">{idx + 1}</span>
                     <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
-                        <img src={track.cover} alt="cover" className="w-full h-full object-cover" />
+                        <SmartImage src={track.cover} alt="cover" type="music" className="w-full h-full" iconSize={16} />
                     </div>
                     <div className="min-w-0 flex-1">
                         <div className={`text-xs font-bold truncate ${currentTrack?.id === track.id ? 'text-cyan-400' : 'text-white'}`}>{track.title}</div>

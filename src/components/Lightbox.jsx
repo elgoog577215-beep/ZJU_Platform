@@ -1,22 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronLeft, ChevronRight, Box, Download, Share2, Info, Camera, Aperture, Clock, Gauge, Heart } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Box, Download, Share2, Info, Camera, Aperture, Clock, Gauge } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
+import FavoriteButton from './FavoriteButton';
 
-const Lightbox = ({ photo, onClose, onNext, onPrev, onView3D }) => {
+const Lightbox = ({ photo, onClose, onNext, onPrev, onView3D, onLikeToggle }) => {
   const [showInfo, setShowInfo] = useState(false);
-  const [isFavorited, setIsFavorited] = useState(false);
   const { user } = useAuth();
-
-  useEffect(() => {
-    if (user && photo) {
-        api.get(`/favorites/check?itemId=${photo.id}&itemType=photo`)
-           .then(res => setIsFavorited(res.data.favorited))
-           .catch(console.error);
-    }
-  }, [photo, user]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -28,19 +19,6 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onView3D }) => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose, onNext, onPrev]);
-
-  const handleFavorite = async () => {
-      if (!user) {
-          return toast.error('Please login to favorite');
-      }
-      try {
-          const res = await api.post('/favorites/toggle', { itemId: photo.id, itemType: 'photo' });
-          setIsFavorited(res.data.favorited);
-          toast.success(res.data.favorited ? 'Added to favorites' : 'Removed from favorites');
-      } catch (error) {
-          toast.error('Failed to update favorite');
-      }
-  };
 
   const handleDownload = async () => {
       try {
@@ -96,13 +74,13 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onView3D }) => {
               <Box size={20} />
             </button>
             <div className="w-px h-4 bg-white/20"></div>
-            <button 
-              onClick={handleFavorite}
-              className={`p-3 rounded-full transition-all ${isFavorited ? 'text-red-500 hover:bg-white/10' : 'text-white/70 hover:text-red-500 hover:bg-white/10'}`}
-              title="Favorite"
-            >
-              <Heart size={20} fill={isFavorited ? "currentColor" : "none"} />
-            </button>
+            <FavoriteButton 
+              itemId={photo.id}
+              itemType="photo"
+              className="p-3 hover:bg-white/10 rounded-full"
+              onToggle={onLikeToggle}
+              favorited={photo.favorited}
+            />
             <button 
               onClick={handleDownload}
               className="p-3 text-white/70 hover:text-green-400 hover:bg-white/10 rounded-full transition-all"

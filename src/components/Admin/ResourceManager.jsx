@@ -8,6 +8,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../services/api';
 import Dropdown from '../Dropdown';
+import TagInput from '../TagInput';
 
 const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
   const { t } = useTranslation();
@@ -28,7 +29,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
           { name: 'title', type: 'text', label: t('admin.fields.title') },
           { name: 'category', type: 'text', label: t('admin.fields.category') },
           { name: 'url', type: 'file', label: t('admin.fields.url') },
-          { name: 'tags', type: 'text', label: t('admin.fields.tags') },
+          { name: 'tags', type: 'tag-input', label: t('admin.fields.tags') },
           { name: 'size', type: 'text', label: t('admin.fields.size') },
           { name: 'featured', type: 'checkbox', label: t('admin.fields.featured') }
         ];
@@ -40,7 +41,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
           { name: 'audio', type: 'file', label: t('admin.fields.audio') },
           { name: 'cover', type: 'file', label: t('admin.fields.cover') },
           { name: 'duration', type: 'number', label: t('admin.fields.duration') },
-          { name: 'tags', type: 'text', label: t('admin.fields.tags') },
+          { name: 'tags', type: 'tag-input', label: t('admin.fields.tags') },
           { name: 'featured', type: 'checkbox', label: t('admin.fields.featured') }
         ];
       case 'video': // videos
@@ -55,6 +56,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
       case 'article': // articles
         return [
           { name: 'title', type: 'text', label: t('admin.fields.title') },
+          { name: 'tag', type: 'text', label: t('admin.fields.category') },
           { name: 'date', type: 'date', label: t('admin.fields.date') },
           { name: 'cover', type: 'file', label: t('admin.fields.cover') },
           { name: 'excerpt', type: 'textarea', label: t('admin.fields.excerpt') },
@@ -72,7 +74,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
           { name: 'description', type: 'textarea', label: t('admin.fields.description') },
           { name: 'link', type: 'text', label: t('admin.fields.link') },
           { name: 'status', type: 'select', label: t('admin.fields.status'), options: ['upcoming', 'ongoing', 'past'] },
-          { name: 'tags', type: 'text', label: t('admin.fields.tags') },
+          { name: 'tags', type: 'tag-input', label: t('admin.fields.tags') },
           { name: 'featured', type: 'checkbox', label: t('admin.fields.featured') }
         ];
       default:
@@ -294,7 +296,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
               <ChevronLeft size={16} />
             </button>
             <span className="text-sm text-gray-400">
-              Page {pagination.page} of {pagination.totalPages}
+              {t('admin.resource_manager_ui.pagination_info', { page: pagination.page, total: pagination.totalPages })}
             </span>
             <button 
               disabled={pagination.page === pagination.totalPages}
@@ -323,7 +325,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">{t('admin.delete_confirm')}</h3>
                 <p className="text-gray-400 mb-6 text-sm">
-                  This action cannot be undone. This will permanently delete the item and remove data from our servers.
+                  {t('admin.delete_warning_desc')}
                 </p>
                 
                 <div className="flex gap-3 w-full">
@@ -337,7 +339,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
                     onClick={confirmDelete}
                     className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-red-500/25"
                   >
-                    Delete
+                    {t('admin.delete')}
                   </button>
                 </div>
               </div>
@@ -378,6 +380,12 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
                           value={formData[field.name] || ''}
                           onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
                           className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-indigo-500 h-32"
+                        />
+                      ) : field.type === 'tag-input' ? (
+                        <TagInput
+                          value={formData[field.name] || ''}
+                          onChange={(val) => setFormData({ ...formData, [field.name]: val })}
+                          placeholder={field.label}
                         />
                       ) : field.type === 'file' ? (
                         <div className="flex gap-2">

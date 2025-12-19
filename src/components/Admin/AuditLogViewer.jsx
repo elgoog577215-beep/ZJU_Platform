@@ -66,7 +66,7 @@ const AuditLogViewer = () => {
                     <td className="p-4">
                       <div className="flex items-center gap-2">
                         <User size={14} className="text-gray-500" />
-                        <span className="font-bold text-white">{log.admin_name || 'System'}</span>
+                        <span className="font-bold text-white">{log.admin_name || t('admin.system_user')}</span>
                       </div>
                     </td>
                     <td className="p-4">

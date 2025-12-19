@@ -20,7 +20,7 @@ const SettingsManager = () => {
       const response = await api.get('/settings');
       setSettings(response.data);
     } catch (error) {
-      toast.error('Failed to load settings');
+      toast.error(t('admin.toast.load_fail'));
     } finally {
       setLoading(false);
     }
@@ -43,7 +43,7 @@ const SettingsManager = () => {
     setSettings(prev => ({ ...prev, [key]: value }));
   };
 
-  if (loading) return <div className="p-8 text-center text-gray-500">Loading settings...</div>;
+  if (loading) return <div className="p-8 text-center text-gray-500">{t('admin.loading_settings')}</div>;
 
   return (
     <div className="space-y-6">
@@ -60,7 +60,7 @@ const SettingsManager = () => {
                 type="text" 
                 value={settings.invite_code || ''} 
                 onChange={(e) => handleChange('invite_code', e.target.value)}
-                placeholder="Enter invite code"
+                placeholder={t('admin.enter_invite_code')}
                 className="flex-1 bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-indigo-500"
               />
               <button 

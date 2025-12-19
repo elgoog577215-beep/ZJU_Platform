@@ -9,15 +9,16 @@ const cacheMiddleware = require('../middleware/cache');
 // Controllers
 const resourceController = require('../controllers/resourceController');
 const favoriteController = require('../controllers/favoriteController');
-const commentController = require('../controllers/commentController');
 const categoryController = require('../controllers/categoryController');
 const settingsController = require('../controllers/settingsController');
 const systemController = require('../controllers/systemController');
 const fsController = require('../controllers/fsController');
 const eventController = require('../controllers/eventController');
 const userController = require('../controllers/userController');
+const messageController = require('../controllers/messageController');
+const tagController = require('../controllers/tagController');
 
-const { authenticateToken, isAdmin } = require('../middleware/auth');
+const { authenticateToken, isAdmin, optionalAuth } = require('../middleware/auth');
 const authController = require('../controllers/authController');
 
 // Rate Limiter
@@ -78,16 +79,25 @@ const resources = ['photos', 'music', 'videos', 'articles', 'events'];
 router.post('/events/:id/register', authenticateToken, eventController.registerEvent);
 router.get('/events/:id/registration', authenticateToken, eventController.getRegistrationStatus);
 
-// Comments Routes
-router.get('/articles/:id/comments', commentController.getComments);
-router.post('/articles/:id/comments', commentController.addComment);
+// Contact / Messages Routes
+router.post('/contact', messageController.submitMessage);
+router.get('/admin/messages', authenticateToken, isAdmin, messageController.getMessages);
+router.delete('/admin/messages/:id', authenticateToken, isAdmin, messageController.deleteMessage);
+router.put('/admin/messages/:id/read', authenticateToken, isAdmin, messageController.markAsRead);
+
+// Tag Routes
+router.get('/tags', tagController.getTags);
+router.post('/tags', authenticateToken, isAdmin, tagController.createTag);
+router.put('/tags/:id', authenticateToken, isAdmin, tagController.updateTag);
+router.delete('/tags/:id', authenticateToken, isAdmin, tagController.deleteTag);
+router.post('/tags/sync', authenticateToken, isAdmin, tagController.syncTags);
 
 resources.forEach(resource => {
     // Get All
-    router.get(`/${resource}`, resourceController.getAllHandler(resource));
+    router.get(`/${resource}`, optionalAuth, resourceController.getAllHandler(resource));
     
     // Get One
-    router.get(`/${resource}/:id`, resourceController.getOneHandler(resource));
+    router.get(`/${resource}/:id`, optionalAuth, resourceController.getOneHandler(resource));
 
     // Get Categories
     router.get(`/${resource}/categories`, categoryController.getCategories(resource));

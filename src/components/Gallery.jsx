@@ -4,11 +4,12 @@ import Lightbox from './Lightbox';
 import GameOverlay from './GameOverlay';
 import LivePhotoViewer from './Image3DViewer';
 import Pagination from './Pagination';
-import { Play, Box, Upload, Heart } from 'lucide-react';
+import { Play, Box, Upload } from 'lucide-react';
+import FavoriteButton from './FavoriteButton';
 import { useTranslation } from 'react-i18next';
 import UploadModal from './UploadModal';
 import { useSettings } from '../context/SettingsContext';
-import ImageWithLoader from './ImageWithLoader';
+import SmartImage from './SmartImage';
 import api from '../services/api';
 import SortSelector from './SortSelector';
 import { useSearchParams } from 'react-router-dom';
@@ -87,16 +88,6 @@ const Gallery = () => {
     .catch(err => console.error("Failed to save photo", err));
   };
 
-  const handleLike = (id) => {
-      api.post(`/photos/${id}/like`)
-        .then(res => {
-            setPhotos(prev => prev.map(p => 
-                p.id === id ? { ...p, likes: res.data.likes } : p
-            ));
-        })
-        .catch(err => console.error("Failed to like photo", err));
-  };
-
   const handleNext = () => {
     setSelectedPhotoIndex((prev) => (prev + 1) % photos.length);
   };
@@ -126,7 +117,7 @@ const Gallery = () => {
         <button
           onClick={() => setIsUploadOpen(true)}
           className="absolute right-0 top-0 md:top-2 bg-white/10 hover:bg-white/20 text-white p-2 md:p-3 rounded-full backdrop-blur-md border border-white/10 transition-all"
-          title="Upload Photo"
+          title={t('common.upload_photo')}
         >
           <Upload size={18} className="md:w-5 md:h-5" />
         </button>
@@ -165,10 +156,10 @@ const Gallery = () => {
               className="break-inside-avoid relative group overflow-hidden rounded-lg cursor-pointer border border-transparent hover:border-white/20 hover:shadow-2xl hover:shadow-white/5 transition-all duration-300"
               onClick={() => setSelectedPhotoIndex(index)}
             >
-              <ImageWithLoader 
+              <SmartImage 
                 src={photo.url} 
                 alt={photo.title} 
-                loading="lazy"
+                type="image"
                 className="w-full h-auto"
                 imageClassName="h-auto object-cover transform transition-transform duration-700 group-hover:scale-110"
               />
@@ -200,17 +191,19 @@ const Gallery = () => {
                     <Box size={14} className="md:w-4 md:h-4" />
                   </button>
 
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleLike(photo.id);
+                  <FavoriteButton 
+                    itemId={photo.id}
+                    itemType="photo"
+                    size={14}
+                    showCount={true}
+                    count={photo.likes || 0}
+                    className="flex items-center gap-2 bg-black/50 border border-white/30 px-3 py-1.5 md:px-4 md:py-2 text-sm font-bold rounded-full hover:bg-pink-500 hover:border-pink-500 hover:scale-105 backdrop-blur-sm transition-all"
+                    onToggle={(favorited, likes) => {
+                        setPhotos(prev => prev.map(p => 
+                            p.id === photo.id ? { ...p, likes: likes !== undefined ? likes : p.likes } : p
+                        ));
                     }}
-                    className="flex items-center gap-2 bg-black/50 border border-white/30 text-white px-3 py-1.5 md:px-4 md:py-2 text-sm font-bold rounded-full hover:bg-pink-500 hover:border-pink-500 hover:scale-105 backdrop-blur-sm transition-all"
-                    title="Like"
-                  >
-                    <Heart size={14} className={`md:w-4 md:h-4 ${photo.likes > 0 ? 'fill-pink-500 text-pink-500' : ''}`} />
-                    <span>{photo.likes || 0}</span>
-                  </button>
+                  />
                 </div>
               </div>
             </motion.div>
@@ -237,6 +230,11 @@ const Gallery = () => {
             onView3D={() => {
               setActive3DPhoto(photos[selectedPhotoIndex]);
               setSelectedPhotoIndex(null); 
+            }}
+            onLikeToggle={(favorited, likes) => {
+                setPhotos(prev => prev.map(p => 
+                    p.id === photos[selectedPhotoIndex].id ? { ...p, likes: likes !== undefined ? likes : p.likes, favorited } : p
+                ));
             }}
           />
         )}

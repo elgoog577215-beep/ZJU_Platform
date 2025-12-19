@@ -19,6 +19,8 @@ import DatabaseManager from './DatabaseManager';
 import AuditLogViewer from './AuditLogViewer';
 import PageContentEditor from './PageContentEditor';
 import ResourceManager from './ResourceManager';
+import MessageManager from './MessageManager';
+import TagManager from './TagManager';
 
 const AdminDashboard = () => {
   const { t } = useTranslation();
@@ -37,23 +39,19 @@ const AdminDashboard = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (password === '12345') {
-      try {
-        // Authenticate with backend to get access token
-        const res = await api.post('/auth/admin-login', { password });
-        
-        // Store token for API requests
-        sessionStorage.setItem('token', res.data.token);
-        // Store auth state for UI persistence
-        sessionStorage.setItem('admin_auth', 'true');
-        
-        setIsAuthenticated(true);
-        toast.success(t('admin.login.welcome_back'));
-      } catch (error) {
-        console.error('Login error:', error);
-        toast.error(t('admin.login.incorrect'));
-      }
-    } else {
+    try {
+      // Authenticate with backend to get access token
+      const res = await api.post('/auth/admin-login', { password });
+      
+      // Store token for API requests
+      sessionStorage.setItem('token', res.data.token);
+      // Store auth state for UI persistence
+      sessionStorage.setItem('admin_auth', 'true');
+      
+      setIsAuthenticated(true);
+      toast.success(t('admin.login.welcome_back'));
+    } catch (error) {
+      console.error('Login error:', error);
       toast.error(t('admin.login.incorrect'));
     }
   };
@@ -80,12 +78,16 @@ const AdminDashboard = () => {
     { id: 'audit', label: t('admin.tabs.audit'), icon: ClipboardList },
     { id: 'settings', label: t('admin.tabs.settings'), icon: Settings },
     { id: 'users', label: t('admin.tabs.users'), icon: Users },
+    { id: 'messages', label: t('admin.tabs.messages'), icon: Inbox },
+    { id: 'tags', label: t('admin.tabs.tags'), icon: LayoutGrid },
   ];
 
   const renderContent = () => {
     switch (activeTab) {
       case 'overview': return <Overview onChangeTab={setActiveTab} />;
       case 'pending': return <PendingReviewManager />;
+      case 'messages': return <MessageManager />;
+      case 'tags': return <TagManager />;
       case 'settings': return <SettingsManager />;
       case 'files': return <FileManager />;
       case 'users': return <UserManager />;

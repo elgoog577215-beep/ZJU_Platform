@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Film, X, Upload, Heart } from 'lucide-react';
+import { Play, Film, X, Upload } from 'lucide-react';
 import UploadModal from './UploadModal';
+import FavoriteButton from './FavoriteButton';
+import SmartImage from './SmartImage';
 import { useTranslation } from 'react-i18next';
 import Pagination from './Pagination';
 import { useSettings } from '../context/SettingsContext';
@@ -66,16 +68,6 @@ const Videos = () => {
     .catch(err => console.error("Failed to save video", err));
   };
 
-  const handleLike = (id) => {
-      api.post(`/videos/${id}/like`)
-        .then(res => {
-            setVideos(prev => prev.map(v => 
-                v.id === id ? { ...v, likes: res.data.likes } : v
-            ));
-        })
-        .catch(err => console.error("Failed to like video", err));
-  };
-
   const [isUploadOpen, setIsUploadOpen] = useState(false);
 
   const handleUpload = (newItem) => {
@@ -95,7 +87,7 @@ const Videos = () => {
              <button
               onClick={() => setIsUploadOpen(true)}
               className="bg-white/10 hover:bg-white/20 text-white p-2 md:p-3 rounded-full backdrop-blur-md border border-white/10 transition-all"
-              title="Upload Video"
+              title={t('common.upload_video')}
             >
               <Upload size={18} className="md:w-5 md:h-5" />
             </button>
@@ -141,13 +133,16 @@ const Videos = () => {
               onClick={() => setSelectedVideo(video)}
               className="group relative aspect-video rounded-2xl overflow-hidden bg-gray-900 cursor-pointer"
             >
-              <img 
+              <SmartImage 
                 src={video.thumbnail} 
                 alt={video.title} 
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100"
+                type="video"
+                className="w-full h-full"
+                imageClassName="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100"
+                iconSize={48}
               />
               
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-100 transition-opacity" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-300" />
               
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30 shadow-[0_0_30px_rgba(255,255,255,0.2)] group-hover:scale-110 transition-transform duration-300">
@@ -161,22 +156,20 @@ const Videos = () => {
                     <h3 className="text-xl font-bold text-white">{video.title}</h3>
                   </div>
                   
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleLike(video.id);
-                    }}
+                  <FavoriteButton 
+                    itemId={video.id}
+                    itemType="video"
+                    size={18}
+                    showCount={true}
+                    count={video.likes || 0}
+                    favorited={video.favorited}
                     className="p-2 bg-black/50 hover:bg-pink-500/20 rounded-full backdrop-blur-md transition-colors group/btn border border-white/10"
-                    title="Like"
-                  >
-                    <div className="flex items-center gap-1">
-                      <Heart 
-                        size={18} 
-                        className={`transition-colors ${video.likes > 0 ? 'fill-pink-500 text-pink-500' : 'text-white group-hover/btn:text-pink-500'}`} 
-                      />
-                      {video.likes > 0 && <span className="text-xs font-bold text-white">{video.likes}</span>}
-                    </div>
-                  </button>
+                    onToggle={(favorited, likes) => {
+                        setVideos(prev => prev.map(v => 
+                            v.id === video.id ? { ...v, likes: likes !== undefined ? likes : v.likes, favorited } : v
+                        ));
+                    }}
+                  />
                 </div>
               </div>
             </motion.div>
@@ -188,7 +181,7 @@ const Videos = () => {
         {videos.length === 0 && !loading && (
           <div className="text-center py-20 text-gray-500">
             <Film size={48} className="mx-auto mb-4 opacity-20" />
-            <p>No videos found. Upload your first video!</p>
+            <p>{t('videos.no_videos')}</p>
           </div>
         )}
 
@@ -210,28 +203,51 @@ const Videos = () => {
             className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 md:p-12"
             onClick={() => setSelectedVideo(null)}
           >
-            <div className="relative w-full max-w-5xl bg-black rounded-2xl overflow-hidden shadow-2xl aspect-video border border-white/10" onClick={(e) => e.stopPropagation()}>
-              <button 
-                onClick={() => setSelectedVideo(null)}
-                className="absolute top-4 right-4 z-10 p-3 bg-black/50 hover:bg-red-500/80 text-white rounded-full backdrop-blur-md border border-white/10 transition-all hover:rotate-90 shadow-lg"
-                title="Close Video"
-              >
-                <X size={24} />
-              </button>
-              <video 
-                src={selectedVideo.video} 
-                controls 
-                autoPlay 
-                className="w-full h-full"
-                ref={(el) => {
-                    if(el) {
-                        el.playbackRate = 1.0; // Default speed
-                    }
-                }}
-              />
+            <div className="relative w-full max-w-5xl bg-black rounded-2xl overflow-hidden shadow-2xl flex flex-col border border-white/10" onClick={(e) => e.stopPropagation()}>
+              <div className="relative aspect-video bg-black">
+                  <button 
+                    onClick={() => setSelectedVideo(null)}
+                    className="absolute top-4 right-4 z-10 p-3 bg-black/50 hover:bg-red-500/80 text-white rounded-full backdrop-blur-md border border-white/10 transition-all hover:rotate-90 shadow-lg"
+                    title={t('common.close_video')}
+                  >
+                    <X size={24} />
+                  </button>
+                  <video 
+                    src={selectedVideo.video} 
+                    controls 
+                    autoPlay 
+                    className="w-full h-full"
+                    ref={(el) => {
+                        if(el) {
+                            el.playbackRate = 1.0; // Default speed
+                        }
+                    }}
+                  />
+              </div>
               
-              {/* Video Speed Control Overlay (Optional: Browser native controls usually have this, but we can add custom if needed) */}
-              {/* For now, rely on browser native controls as they include speed in most modern browsers */}
+              <div className="p-6 bg-[#111] border-t border-white/10 flex justify-between items-center">
+                  <div>
+                      <h3 className="text-2xl font-bold text-white mb-1">{selectedVideo.title}</h3>
+                      <p className="text-gray-400 text-sm">{new Date(selectedVideo.created_at || Date.now()).toLocaleDateString()}</p>
+                  </div>
+                  <FavoriteButton 
+                    itemId={selectedVideo.id}
+                    itemType="video"
+                    size={24}
+                    showCount={true}
+                    count={selectedVideo.likes || 0}
+                    favorited={selectedVideo.favorited}
+                    className="p-3 bg-white/5 hover:bg-pink-500/20 rounded-full transition-colors border border-white/10"
+                    onToggle={(favorited, likes) => {
+                        // Update selected video state
+                        setSelectedVideo(prev => ({ ...prev, likes: likes !== undefined ? likes : prev.likes, favorited }));
+                        // Update list state
+                        setVideos(prev => prev.map(v => 
+                            v.id === selectedVideo.id ? { ...v, likes: likes !== undefined ? likes : v.likes, favorited } : v
+                        ));
+                    }}
+                  />
+              </div>
             </div>
           </motion.div>
         )}

@@ -6,8 +6,7 @@ import { useTranslation } from 'react-i18next';
 import useSWR from 'swr';
 import { fetcher } from '../services/api';
 import { Helmet } from 'react-helmet-async';
-
-import ImageWithLoader from './ImageWithLoader';
+import SmartImage from './SmartImage';
 
 const getHighResUrl = (url) => {
   if (!url) return url;
@@ -31,11 +30,13 @@ const DashboardEvent = ({ event, onClick }) => {
     onClick={() => onClick(event)}
     className="relative w-full h-full rounded-3xl overflow-hidden cursor-pointer group border border-white/10 bg-black"
   >
-    <ImageWithLoader 
+    <SmartImage 
         src={getHighResUrl(event.image)} 
         alt={event.title} 
+        type="event"
         className="w-full h-full"
         imageClassName="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-500" 
+        iconSize={64}
     />
     
     {/* Gradient Overlay */}
@@ -93,11 +94,13 @@ const DashboardPhotoStack = ({ photos, onSelect }) => {
                 transition={{ duration: 0.8 }}
                 className="absolute inset-0 w-full h-full"
             >
-                <ImageWithLoader 
+                <SmartImage 
                     src={getHighResUrl(currentPhoto.url)} 
                     alt={currentPhoto.title} 
+                    type="image"
                     className="w-full h-full"
                     imageClassName="w-full h-full object-cover" 
+                    iconSize={48}
                 />
             </motion.div>
         </AnimatePresence>
@@ -137,11 +140,13 @@ const DashboardVideo = ({ videos, onSelect }) => {
       onClick={() => onSelect(mainVideo)}
       className="relative w-full h-full rounded-3xl overflow-hidden cursor-pointer group border border-white/10 bg-black"
     >
-      <ImageWithLoader 
+      <SmartImage 
           src={getHighResUrl(mainVideo.thumbnail || mainVideo.cover)} 
           alt={mainVideo.title} 
+          type="video"
           className="w-full h-full"
           imageClassName="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-500" 
+          iconSize={48}
       />
       
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
@@ -178,11 +183,13 @@ const DashboardArticles = ({ events, onSelect }) => {
         >
         {event.image && (
           <>
-            <ImageWithLoader 
+            <SmartImage 
                 src={getHighResUrl(event.image)} 
                 alt={event.title} 
+                type="event"
                 className="absolute inset-0 w-full h-full"
                 imageClassName="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:opacity-30 transition-opacity duration-500" 
+                iconSize={32}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/80 to-transparent" />
           </>

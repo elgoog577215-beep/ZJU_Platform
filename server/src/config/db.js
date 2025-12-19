@@ -7,7 +7,7 @@ let db;
 async function getDb() {
   if (!db) {
     db = await open({
-      filename: path.join(__dirname, '../../database.sqlite'),
+      filename: process.env.DATABASE_FILE || path.join(__dirname, '../../database.sqlite'),
       driver: sqlite3.Database
     });
     await db.exec('PRAGMA journal_mode = WAL;'); // Better concurrency

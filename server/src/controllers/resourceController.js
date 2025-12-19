@@ -111,14 +111,45 @@ const restoreHandler = (table) => async (req, res) => {
   }
 };
 
+const getSingularType = (table) => {
+    const map = {
+        'photos': 'photo',
+        'music': 'music',
+        'videos': 'video',
+        'articles': 'article',
+        'events': 'event'
+    };
+    return map[table] || table.slice(0, -1);
+};
+
 const getOneHandler = (table) => async (req, res) => {
   try {
     const db = await getDb();
     const { id } = req.params;
-    const item = await db.get(`SELECT * FROM ${table} WHERE id = ?`, id);
+    const userId = req.user ? req.user.id : null;
+    const itemType = getSingularType(table);
+
+    let query = `SELECT ${table}.*`;
+    let params = [];
+
+    if (userId) {
+         query += `, (SELECT 1 FROM favorites WHERE favorites.item_id = ${table}.id AND favorites.item_type = ? AND favorites.user_id = ?) as favorited`;
+         params.push(itemType, userId);
+    }
+
+    query += ` FROM ${table} WHERE id = ?`;
+    params.push(id);
+
+    const item = await db.get(query, params);
     if (!item) {
       return res.status(404).json({ error: 'Item not found' });
     }
+    
+    // Convert favorited to boolean
+    if (userId) {
+        item.favorited = !!item.favorited;
+    }
+
     res.json(item);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -139,9 +170,20 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res) => {
         const trashed = req.query.trashed === 'true'; // Check if requesting trash
         const offset = (page - 1) * limit;
 
-        let query = `SELECT * FROM ${table}`;
-        let countQuery = `SELECT COUNT(*) as count FROM ${table}`;
+        const userId = (req.user && req.user.id) ? req.user.id : null;
+        const itemType = getSingularType(table);
+
+        let query = `SELECT ${table}.*`;
         let params = [];
+
+        if (userId) {
+             query += `, (SELECT 1 FROM favorites WHERE favorites.item_id = ${table}.id AND favorites.item_type = ? AND favorites.user_id = ?) as favorited`;
+             params.push(itemType, userId);
+        }
+
+        query += ` FROM ${table}`;
+
+        let countQuery = `SELECT COUNT(*) as count FROM ${table}`;
         let countParams = [];
         let whereClauses = [];
         
@@ -231,8 +273,19 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res) => {
         query += ' LIMIT ? OFFSET ?';
         params.push(limit, offset);
 
+        console.log(`[ResourceController] Query: ${query}`);
+        console.log(`[ResourceController] Params:`, params);
+        
         const items = await db.all(query, params);
+        console.log(`[ResourceController] Fetched ${items.length} items from ${table}`);
         const countResult = await db.get(countQuery, countParams);
+
+        // Convert favorited to boolean for all items
+        if (userId) {
+            items.forEach(item => {
+                item.favorited = !!item.favorited;
+            });
+        }
 
         res.json({
             data: items,
@@ -244,6 +297,7 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res) => {
             }
         });
     } catch (error) {
+        console.error(`[ResourceController] getAllHandler Error for ${table}:`, error);
         res.status(500).json({ error: error.message });
     }
 }

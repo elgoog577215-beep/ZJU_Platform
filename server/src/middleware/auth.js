@@ -14,6 +14,20 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+const optionalAuth = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) return next();
+
+  jwt.verify(token, SECRET_KEY, (err, user) => {
+    if (!err) {
+        req.user = user;
+    }
+    next();
+  });
+};
+
 const isAdmin = (req, res, next) => {
     if (req.user && req.user.role === 'admin') {
         next();
@@ -22,4 +36,4 @@ const isAdmin = (req, res, next) => {
     }
 };
 
-module.exports = { authenticateToken, isAdmin };
+module.exports = { authenticateToken, isAdmin, optionalAuth };
