@@ -60,7 +60,7 @@ const About = () => {
           >
             <div className="absolute -inset-4 border-2 border-white/20 rounded-lg translate-x-4 translate-y-4" />
             <img 
-              src={settings.about_image || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80"} 
+              src={settings.profile_image_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80"} 
               alt="Photographer" 
               className="relative z-10 rounded-lg shadow-2xl grayscale hover:grayscale-0 transition-all duration-500"
             />
@@ -77,23 +77,23 @@ const About = () => {
               <span className="text-gray-500">{settings.about_subtitle || t('about.subtitle')}</span>
             </h2>
             <p className="text-lg text-gray-300 mb-6 leading-relaxed">
-              {settings.about_p1 || t('about.p1')}
+              {settings.about_intro || t('about.p1')}
             </p>
             <p className="text-lg text-gray-300 mb-8 leading-relaxed">
-              {settings.about_p2 || t('about.p2')}
+              {settings.about_detail || t('about.p2')}
             </p>
             
             <div className="flex gap-8">
               <div>
-                <span className="block text-3xl font-bold font-serif">{settings.about_exp_count || "10+"}</span>
+                <span className="block text-3xl font-bold font-serif">{settings.about_exp_years || "10+"}</span>
                 <span className="text-sm text-gray-500">{t('about.exp')}</span>
               </div>
               <div>
-                <span className="block text-3xl font-bold font-serif">{settings.about_exhibitions_count || "50+"}</span>
+                <span className="block text-3xl font-bold font-serif">{settings.about_exhibitions || "50+"}</span>
                 <span className="text-sm text-gray-500">{t('about.exhibitions')}</span>
               </div>
               <div>
-                <span className="block text-3xl font-bold font-serif">{settings.about_projects_count || "200+"}</span>
+                <span className="block text-3xl font-bold font-serif">{settings.about_projects || "200+"}</span>
                 <span className="text-sm text-gray-500">{t('about.projects')}</span>
               </div>
             </div>
