@@ -223,15 +223,14 @@ END:VCALENDAR`;
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
-        className="mb-8 md:mb-12 relative z-40 md:pt-0"
+        className="mb-8 md:mb-12 relative z-40 md:pt-0 text-center"
       >
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
-          <div>
-            <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold font-serif mb-3 md:mb-4">{t('events.title')}</h2>
-            <p className="text-gray-400 max-w-xl text-sm md:text-base">{t('events.subtitle')}</p>
-          </div>
+        <div className="mb-8">
+          <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold font-serif mb-3 md:mb-4">{t('events.title')}</h2>
+          <p className="text-gray-400 max-w-xl mx-auto text-sm md:text-base">{t('events.subtitle')}</p>
+        </div>
           
-          <div className="flex items-center gap-2 w-full md:w-auto">
+        <div className="flex items-center gap-2 w-full md:w-auto justify-center md:absolute md:right-0 md:top-0">
              <button
                 onClick={() => setIsUploadOpen(true)}
                 className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 md:px-6 md:py-3 rounded-full backdrop-blur-md border border-white/10 transition-all font-bold text-sm md:text-base shrink-0"
@@ -240,7 +239,7 @@ END:VCALENDAR`;
              </button>
 
              {/* Compact Search Bar */}
-             <div className="relative flex-1 md:w-64 group">
+             <div className="relative flex-1 md:w-64 group max-w-xs md:max-w-none">
                 <div className="absolute inset-0 bg-white/5 rounded-full blur-sm group-focus-within:bg-indigo-500/20 transition-all duration-300 -z-10" />
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-400 transition-colors" size={16} />
                 <input 
@@ -251,7 +250,6 @@ END:VCALENDAR`;
                     className="w-full bg-black/20 border border-white/10 rounded-full pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500/50 transition-all placeholder:text-gray-500/70 shadow-inner"
                 />
              </div>
-          </div>
         </div>
 
         {/* Toolbar */}

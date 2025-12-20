@@ -185,19 +185,18 @@ const Music = () => {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
-        className="mb-8 md:mb-12 relative z-40"
+        className="mb-8 md:mb-12 relative z-40 text-center"
       >
         
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
-          <div>
-            <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold font-serif mb-3 md:mb-4">{t('music.title')}</h2>
-            <p className="text-gray-400 max-w-xl text-sm md:text-base">{t('music.subtitle')}</p>
-          </div>
+        <div className="mb-8">
+          <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold font-serif mb-3 md:mb-4">{t('music.title')}</h2>
+          <p className="text-gray-400 max-w-xl mx-auto text-sm md:text-base">{t('music.subtitle')}</p>
+        </div>
           
-          <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
-            <div className="w-40 md:w-48">
-              <SortSelector sort={sort} onSortChange={setSort} />
-            </div>
+        <div className="flex items-center gap-4 w-full md:w-auto justify-center md:absolute md:right-0 md:top-0">
+          <div className="w-40 md:w-48">
+            <SortSelector sort={sort} onSortChange={setSort} />
+          </div>
             <button
               onClick={() => setIsUploadOpen(true)}
               className="bg-white/10 hover:bg-white/20 text-white p-2 md:p-3 rounded-full backdrop-blur-md border border-white/10 transition-all"
