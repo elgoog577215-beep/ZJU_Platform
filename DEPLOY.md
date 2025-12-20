@@ -1,139 +1,52 @@
-# 部署指南 (Deployment Guide)
-
-本项目包含 React 前端和 Node.js 后端。以下是将网站发布到 Linux 服务器（如 Ubuntu）的详细步骤。
+# 部署指南
 
 ## 1. 准备工作
 
-你需要：
-- 一台 Linux 服务器 (推荐 Ubuntu 20.04 或 22.04)
-- 域名 (可选，但推荐)
-- SSH 工具 (如 Putty, Xshell 或 终端)
+确保您的服务器（如 118.31.78.72）已安装 Git。
 
-## 2. 服务器环境配置
+## 2. 部署步骤
 
-连接到你的服务器，依次运行以下命令安装 Node.js 和 Nginx。
+### 第一步：在服务器上拉取代码
 
-### 安装 Node.js (v18+)
-```bash
-# 更新系统
-sudo apt update
-sudo apt upgrade -y
-
-# 安装 Node.js 20
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt install -y nodejs
-
-# 验证安装
-node -v
-npm -v
-```
-
-### 安装 PM2 (进程管理器)
-```bash
-sudo npm install -g pm2
-```
-
-## 3. 上传代码
-
-你可以使用 Git 或 FTP/SFTP 上传代码。
-
-### 方法 A: 使用 Git (推荐)
-1. 将代码推送到 GitHub/GitLab。
-2. 在服务器上克隆仓库：
-```bash
-git clone https://github.com/your-username/your-repo.git
-cd your-repo
-```
-
-### 方法 B: 使用 SFTP
-将本地项目文件夹直接上传到服务器的 `/var/www/777` (或其他目录)。
-
-## 4. 安装依赖与构建
-
-进入项目根目录：
+通过 SSH 登录到您的服务器，然后克隆或拉取代码：
 
 ```bash
-# 1. 安装根目录依赖 (如果有)
-npm install
+# 如果是首次部署
+git clone -b mmaster https://github.com/elgoog577215-beep/ZJU_Platform.git
+cd ZJU_Platform
 
-# 2. 安装前端依赖并构建
-npm install
-npm run build
-
-# 这将生成 dist 文件夹，后端会自动托管这些静态文件。
-
-# 3. 安装后端依赖
-cd server
-npm install
-cd ..
+# 如果已经部署过
+cd ZJU_Platform
+git pull origin mmaster
 ```
 
-## 5. 启动服务
+### 第二步：运行部署脚本
 
-使用 PM2 启动后端服务（它同时会提供前端页面）：
+在项目根目录下运行：
 
 ```bash
-# 在根目录下运行
-pm2 start ecosystem.config.cjs
+# 赋予执行权限
+chmod +x deploy.sh
 
-# 保存当前进程列表，以便开机自启
-pm2 save
-pm2 startup
+# 运行部署脚本
+./deploy.sh
 ```
 
-此时，网站应该已经在 `http://你的服务器IP:3001` 上运行了。
+脚本会自动安装 Node.js、PM2、依赖，并构建和启动服务。网站将在 80 端口运行。
 
-## 6. 配置 Nginx 反向代理 (推荐)
+## 3. 数据库同步 (Windows 本地 -> 服务器)
 
-为了使用 80 端口 (HTTP) 或域名访问，建议配置 Nginx。
+如果您想把本地的数据库 (`server/database.sqlite`) 同步到服务器，请在**本地电脑**上运行提供的 `sync_db.ps1` 脚本。
 
-### 安装 Nginx
-```bash
-sudo apt install -y nginx
-```
+1. 右键点击 `sync_db.ps1`，选择“使用 PowerShell 运行”。
+2. 或者在 PowerShell 中运行：
+   ```powershell
+   .\sync_db.ps1
+   ```
 
-### 配置站点
-创建一个新的配置文件：
-```bash
-sudo nano /etc/nginx/sites-available/lumos
-```
+**注意**：该脚本默认将数据库上传到 `/root/ZJU_Platform/server/database.sqlite`。如果您的项目路径不同，请编辑脚本中的 `$RemotePath` 变量。
 
-粘贴以下内容 (将 `your_domain.com` 替换为你的域名或服务器 IP)：
+## 4. 常见问题
 
-```nginx
-server {
-    listen 80;
-    server_name your_domain.com; # 或者是你的 IP
-
-    location / {
-        proxy_pass http://localhost:3001;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
-
-启用配置并重启 Nginx：
-```bash
-sudo ln -s /etc/nginx/sites-available/lumos /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl restart nginx
-```
-
-现在你应该可以通过 `http://your_domain.com` 访问网站了。
-
-## 7. 常见问题
-
-- **数据库数据在哪里？**
-  数据存储在 `server/database.sqlite`。请定期备份此文件。
-
-- **如何查看日志？**
-  运行 `pm2 logs`。
-
-- **如何更新代码？**
-  1. `git pull` (或重新上传)
-  2. `npm run build` (如果前端有变动)
-  3. `pm2 restart lumos-portfolio`
+- **端口被占用**：如果 80 端口被占用，请修改 `ecosystem.config.cjs` 中的端口号，然后运行 `pm2 restart all`。
+- **权限问题**：如果遇到权限错误，请使用 `sudo` 运行命令。

@@ -11,22 +11,14 @@ export const MusicProvider = ({ children }) => {
   const [isMiniPlayerVisible, setIsMiniPlayerVisible] = useState(false);
   const audioRef = useRef(new Audio());
 
-  useEffect(() => {
-    const audio = audioRef.current;
-    
-    const handleEnded = () => {
-      if (playlist.length > 0 && currentTrack) {
-        const currentIndex = playlist.findIndex(t => t.id === currentTrack.id);
-        const nextIndex = (currentIndex + 1) % playlist.length;
-        playTrack(playlist[nextIndex], playlist);
-      } else {
-        setIsPlaying(false);
-      }
-    };
-
-    audio.addEventListener('ended', handleEnded);
-    return () => audio.removeEventListener('ended', handleEnded);
-  }, [currentTrack, playlist]);
+  const togglePlay = () => {
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play().catch(err => console.error("Playback failed", err));
+    }
+    setIsPlaying(!isPlaying);
+  };
 
   const playTrack = (track, newPlaylist = []) => {
     if (newPlaylist.length > 0) {
@@ -44,14 +36,22 @@ export const MusicProvider = ({ children }) => {
     }
   };
 
-  const togglePlay = () => {
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play().catch(err => console.error("Playback failed", err));
-    }
-    setIsPlaying(!isPlaying);
-  };
+  useEffect(() => {
+    const audio = audioRef.current;
+    
+    const handleEnded = () => {
+      if (playlist.length > 0 && currentTrack) {
+        const currentIndex = playlist.findIndex(t => t.id === currentTrack.id);
+        const nextIndex = (currentIndex + 1) % playlist.length;
+        playTrack(playlist[nextIndex], playlist);
+      } else {
+        setIsPlaying(false);
+      }
+    };
+
+    audio.addEventListener('ended', handleEnded);
+    return () => audio.removeEventListener('ended', handleEnded);
+  }, [currentTrack, playlist]);
 
   const nextTrack = () => {
     if (playlist.length === 0 || !currentTrack) return;
