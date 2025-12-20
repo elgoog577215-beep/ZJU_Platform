@@ -28,6 +28,8 @@ const Music = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [sort, setSort] = useState('newest');
+  const [error, setError] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   
   // Deep linking
   useEffect(() => {
@@ -65,12 +67,14 @@ const Music = () => {
         setTracks(res.data.data);
         setTotalPages(res.data.pagination.totalPages);
         setLoading(false);
+        setError(false);
       })
       .catch(err => {
         console.error("Failed to fetch music:", err);
         setLoading(false);
+        setError(true);
       });
-  }, [currentPage, sort, settings.pagination_enabled]);
+  }, [currentPage, sort, settings.pagination_enabled, refreshKey]);
 
   const addTrack = (newItem) => {
     api.post('/music', newItem)
