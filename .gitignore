@@ -27,6 +27,8 @@ server/uploads/
 
 # Local database file
 # server/database.sqlite
+*.sqlite-shm
+*.sqlite-wal
 
 # Editor/IDE
 .vscode/

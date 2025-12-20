@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, ArrowRight, Calendar, X, User, Tag, Upload, Clock, Share2, Check } from 'lucide-react';
+import { BookOpen, ArrowRight, Calendar, X, User, Tag, Upload, Clock, Share2, Check, AlertCircle } from 'lucide-react';
 import SmartImage from './SmartImage';
 import UploadModal from './UploadModal';
 import FavoriteButton from './FavoriteButton';

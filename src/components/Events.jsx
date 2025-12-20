@@ -276,7 +276,18 @@ END:VCALENDAR`;
         </div>
       </motion.div>
 
-      {loading ? (
+      {error ? (
+          <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
+            <AlertCircle size={48} className="text-red-400 mb-4 opacity-50 mx-auto" />
+            <p className="text-gray-300 mb-6">{t('common.error_fetching_data') || 'Failed to load events'}</p>
+            <button 
+              onClick={() => setRefreshKey(prev => prev + 1)}
+              className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all border border-white/10"
+            >
+              Retry
+            </button>
+          </div>
+        ) : loading ? (
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto">
            {[1,2,3].map(i => (
                <div key={i} className="bg-white/5 rounded-3xl h-64 md:h-96 animate-pulse" />

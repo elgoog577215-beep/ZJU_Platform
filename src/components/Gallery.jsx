@@ -4,7 +4,7 @@ import Lightbox from './Lightbox';
 import GameOverlay from './GameOverlay';
 import LivePhotoViewer from './Image3DViewer';
 import Pagination from './Pagination';
-import { Play, Box, Upload } from 'lucide-react';
+import { Play, Box, Upload, AlertCircle } from 'lucide-react';
 import FavoriteButton from './FavoriteButton';
 import { useTranslation } from 'react-i18next';
 import UploadModal from './UploadModal';

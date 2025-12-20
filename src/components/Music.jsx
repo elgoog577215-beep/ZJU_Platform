@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Pause, SkipForward, SkipBack, Music as MusicIcon, Volume2, VolumeX, Upload } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, Music as MusicIcon, Volume2, VolumeX, Upload, AlertCircle } from 'lucide-react';
 import UploadModal from './UploadModal';
 import FavoriteButton from './FavoriteButton';
 import { useTranslation } from 'react-i18next';
@@ -382,6 +382,17 @@ const Music = () => {
                         </div>
                     </div>
                 ))
+              ) : error ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <AlertCircle size={48} className="text-red-400 mb-4 opacity-50 mx-auto" />
+                  <p className="text-gray-300 mb-6">{t('common.error_fetching_data') || 'Failed to load music'}</p>
+                  <button 
+                    onClick={() => setRefreshKey(prev => prev + 1)}
+                    className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all border border-white/10"
+                  >
+                    {t('common.retry') || 'Retry'}
+                  </button>
+                </div>
               ) : (
                 <>
                 {tracks.length === 0 && (
