@@ -80,7 +80,7 @@ const Articles = () => {
 
 
   return (
-    <section className="py-12 md:py-24 px-4 md:px-8 min-h-screen flex items-center justify-center relative z-10">
+    <section className="pt-36 pb-12 md:py-24 px-4 md:px-8 min-h-screen flex items-center justify-center relative z-10">
       <div className="max-w-5xl w-full mx-auto relative">
         <div className="absolute right-0 top-0 flex items-center gap-4 z-20">
              <button
@@ -233,6 +233,7 @@ const Articles = () => {
             </motion.div>
           ))}
         </div>
+        )}
 
         {settings.pagination_enabled === 'true' && (
             <Pagination 

@@ -12,7 +12,7 @@ const Hero = () => {
   const { settings } = useSettings();
 
   return (
-    <div className="relative h-screen w-full overflow-hidden flex items-center justify-center">
+    <div className="relative h-[100dvh] w-full overflow-hidden flex items-center justify-center">
       {/* Background Image with Parallax */}
       <motion.div 
         style={{ y }}

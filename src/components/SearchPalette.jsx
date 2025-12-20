@@ -109,7 +109,7 @@ const SearchPalette = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[20vh] px-4">
+      <div className="fixed inset-0 z-[100] flex items-start justify-center md:pt-[20vh] md:px-4">
         {/* Backdrop */}
         <motion.div 
           initial={{ opacity: 0 }}
@@ -125,10 +125,10 @@ const SearchPalette = () => {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: -20 }}
           transition={{ duration: 0.2 }}
-          className="relative w-full max-w-2xl bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden"
+          className="relative w-full h-[100dvh] md:h-auto md:max-w-2xl bg-[#1a1a1a] border-0 md:border md:border-white/10 rounded-none md:rounded-xl shadow-2xl overflow-hidden flex flex-col"
         >
           {/* Input Header */}
-          <div className="flex items-center gap-3 px-4 py-4 border-b border-white/10">
+          <div className="flex items-center gap-3 px-4 py-4 border-b border-white/10 shrink-0 mt-[env(safe-area-inset-top)] md:mt-0">
             <Search className="text-gray-400" size={20} />
             <input
               ref={inputRef}
@@ -143,14 +143,14 @@ const SearchPalette = () => {
                 <kbd className="hidden md:inline-flex items-center gap-1 px-2 py-1 bg-white/5 rounded text-xs text-gray-400 font-mono">
                     <span className="text-xs">ESC</span>
                 </kbd>
-                <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-white">
+                <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-white p-2">
                     <X size={20} />
                 </button>
             </div>
           </div>
 
           {/* Results List */}
-          <div className="max-h-[60vh] overflow-y-auto custom-scrollbar p-2">
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-2 pb-[env(safe-area-inset-bottom)]">
             {loading ? (
                 <div className="p-8 text-center text-gray-500">Searching...</div>
             ) : results.length > 0 ? (

@@ -95,8 +95,20 @@ const adminLogin = async (req, res) => {
 };
 
 const me = async (req, res) => {
-    // User is already attached by middleware
-    res.json(req.user);
+    try {
+        const db = await getDb();
+        // Fetch full user details from DB to ensure we have the latest data
+        // Exclude password for security
+        const user = await db.get('SELECT id, username, role, avatar, organization_cr, gender, age, nickname, created_at FROM users WHERE id = ?', [req.user.id]);
+        
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 };
 
 const changePassword = async (req, res) => {

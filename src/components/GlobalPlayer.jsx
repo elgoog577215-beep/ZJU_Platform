@@ -75,9 +75,9 @@ const GlobalPlayer = () => {
       drag
       dragMomentum={false}
       whileDrag={{ scale: 1.05, cursor: 'grabbing' }}
-      className="fixed bottom-4 right-4 z-[100] w-full max-w-md cursor-grab active:cursor-grabbing"
+      className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] md:bottom-4 right-0 md:right-4 z-[80] w-full md:w-auto max-w-md cursor-grab active:cursor-grabbing px-4 md:px-0"
     >
-      <div className="bg-[#0a0a0a] border border-white/20 rounded-2xl p-4 shadow-2xl mx-4 md:mx-0 flex flex-col relative overflow-hidden">
+      <div className="bg-[#0a0a0a] border border-white/20 rounded-2xl p-4 shadow-2xl flex flex-col relative overflow-hidden">
         {/* Visualizer Background */}
         <div className="absolute top-0 left-0 w-full h-full opacity-20 pointer-events-none z-0">
             <Visualizer isPlaying={isPlaying} />
@@ -106,8 +106,8 @@ const GlobalPlayer = () => {
                 <h4 className="font-bold text-white text-sm truncate">{currentTrack.title}</h4>
                 <p className="text-xs text-gray-400 truncate">{currentTrack.artist}</p>
                 </div>
-                <button onClick={() => setIsMiniPlayerVisible(false)} className="text-gray-400 hover:text-white">
-                <X size={16} />
+                <button onClick={() => setIsMiniPlayerVisible(false)} className="p-2 -mr-2 text-gray-400 hover:text-white active:scale-95 transition-transform">
+                <X size={20} />
                 </button>
             </div>
 

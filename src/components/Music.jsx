@@ -175,19 +175,37 @@ const Music = () => {
   };
 
   return (
-    <section className="py-12 md:py-24 px-4 md:px-8 min-h-screen flex items-center justify-center relative z-10">
-      <div className="max-w-6xl w-full mx-auto grid lg:grid-cols-2 gap-8 md:gap-16 items-center relative pt-8 md:pt-20">
+    <section className="pt-36 pb-32 md:py-20 px-4 md:px-8 min-h-screen">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        viewport={{ once: true }}
+        className="mb-8 md:mb-12 relative z-40"
+      >
         
-        <div className="absolute right-0 top-0 flex flex-wrap justify-end items-center gap-4 z-50 w-full mb-8 lg:mb-0 lg:w-auto">
-          <SortSelector sort={sort} onSortChange={setSort} />
-          <button
-            onClick={() => setIsUploadOpen(true)}
-            className="bg-white/10 hover:bg-white/20 text-white p-2 md:p-3 rounded-full backdrop-blur-md border border-white/10 transition-all"
-            title={t('common.upload_track')}
-          >
-            <Upload size={18} className="md:w-5 md:h-5" />
-          </button>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
+          <div>
+            <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold font-serif mb-3 md:mb-4">{t('music.title')}</h2>
+            <p className="text-gray-400 max-w-xl text-sm md:text-base">{t('music.subtitle')}</p>
+          </div>
+          
+          <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
+            <div className="w-40 md:w-48">
+              <SortSelector sort={sort} onSortChange={setSort} />
+            </div>
+            <button
+              onClick={() => setIsUploadOpen(true)}
+              className="bg-white/10 hover:bg-white/20 text-white p-2 md:p-3 rounded-full backdrop-blur-md border border-white/10 transition-all"
+              title={t('common.upload_music')}
+            >
+              <Upload size={18} className="md:w-5 md:h-5" />
+            </button>
+          </div>
         </div>
+      </motion.div>
+
+      <div className="max-w-6xl w-full mx-auto grid lg:grid-cols-2 gap-8 md:gap-16 items-center relative">
 
         {/* Player View */}
         <motion.div 
@@ -218,7 +236,8 @@ const Music = () => {
             <div className="flex justify-center mb-8">
               <motion.div 
                 animate={{ rotate: isPlaying ? 360 : 0 }}
-                transition={{ duration: 3, repeat: Infinity, ease: "linear", paused: !isPlaying }}
+                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                style={{ animationPlayState: isPlaying ? 'running' : 'paused' }}
                 className="relative w-64 h-64 rounded-full border-4 border-white/10 shadow-2xl overflow-hidden"
               >
                 <SmartImage 

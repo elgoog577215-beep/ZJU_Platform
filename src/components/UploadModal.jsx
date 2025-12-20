@@ -6,6 +6,7 @@ import { toast } from 'react-hot-toast';
 import api, { uploadFile } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import Dropdown from './Dropdown';
+import TagInput from './TagInput';
 
 const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = null, customFields = [] }) => {
   const { t } = useTranslation();

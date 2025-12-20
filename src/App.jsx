@@ -16,6 +16,7 @@ import CustomCursor from './components/CustomCursor';
 import ScrollProgress from './components/ScrollProgress';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import SearchPalette from './components/SearchPalette';
+import MobileNavbar from './components/MobileNavbar';
 
 // Lazy load page components
 const Hero = lazy(() => import('./components/Hero'));
@@ -71,7 +72,7 @@ const AppContent = () => {
         <SearchPalette />
       </ErrorBoundary>
 
-      <main>
+      <main className="pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<Home />} />
@@ -92,6 +93,7 @@ const AppContent = () => {
             <GlobalPlayer />
         </ErrorBoundary>
       )}
+      {!isAdminRoute && <MobileNavbar />}
       <ScrollToTop />
       <PWAInstallPrompt />
     </>

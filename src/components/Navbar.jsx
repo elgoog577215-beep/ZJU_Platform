@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Camera, Menu, X, MousePointer2, Cloud, Clock, CloudRain, Sun, CloudLightning, CloudSnow, CloudFog, MapPin, Search, LogOut, User, LogIn } from 'lucide-react';
+import { Camera, MousePointer2, Cloud, Clock, CloudRain, Sun, CloudLightning, CloudSnow, CloudFog, MapPin, Search, LogOut, User, LogIn, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -19,7 +19,6 @@ const Portal = ({ children }) => {
 import { POPULAR_CITIES } from '../data/cities';
 
 const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const location = useLocation();
@@ -131,11 +130,6 @@ const Navbar = () => {
       return <Cloud size={14} />;
   };
 
-  // Close menu when route changes
-  React.useEffect(() => {
-    setIsOpen(false);
-  }, [location]);
-
   const navLinks = [
     { key: 'home', path: '/' },
     { key: 'events', path: '/events' },
@@ -232,57 +226,31 @@ const Navbar = () => {
         )}
       </div>
 
-      {/* Mobile Menu Toggle */}
-      <div className="md:hidden flex items-center gap-4 z-50">
-        <LanguageSwitcher />
+      {/* Mobile Actions */}
+      <div className="md:hidden flex items-center gap-3 z-50">
         <button 
-          onClick={() => setIsOpen(!isOpen)}
-          className="text-white relative"
+          onClick={() => window.dispatchEvent(new Event('open-search-palette'))}
+          className="p-2 text-gray-300 hover:text-white"
         >
-          {isOpen ? <X size={24} /> : <Menu size={24} />}
+          <Search size={20} />
         </button>
-      </div>
-
-      {/* Mobile Menu Overlay */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-black/90 backdrop-blur-xl border-t border-white/10 overflow-hidden"
-          >
-            <div className="flex flex-col p-6 gap-4">
-              {navLinks.map((item) => (
-                <Link 
-                  key={item.key} 
-                  to={item.path} 
-                  className="flex items-center justify-between text-lg font-medium text-gray-300 hover:text-white p-3 rounded-xl hover:bg-white/10 transition-all"
-                >
-                  <span>{t(`nav.${item.key}`)}</span>
-                </Link>
-              ))}
-              <div className="flex flex-col gap-4 pt-4 border-t border-white/10">
-                <div className="flex justify-between items-center">
-                    <span className="text-gray-400">{t('admin.settings')}</span>
-                    <LanguageSwitcher />
-                </div>
-                {user ? (
-                  <button onClick={logout} className="flex items-center gap-3 text-red-400 font-bold p-3 rounded-xl hover:bg-white/5 w-full">
-                      <LogOut size={20} />
-                      {t('user_profile.logout')}
-                  </button>
-                ) : (
-                  <button onClick={() => setIsAuthOpen(true)} className="flex items-center gap-3 text-white font-bold p-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 w-full justify-center">
-                      <LogIn size={20} />
-                      {t('auth.log_in')}
-                  </button>
-                )}
-              </div>
-            </div>
-          </motion.div>
+        <LanguageSwitcher />
+        {user ? (
+            <button 
+               onClick={() => setIsProfileOpen(true)}
+               className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] text-white font-bold border border-white/20"
+            >
+                {user.username.charAt(0).toUpperCase()}
+            </button>
+        ) : (
+            <button 
+                onClick={() => setIsAuthOpen(true)}
+                className="p-2 text-white bg-indigo-600 hover:bg-indigo-700 rounded-full transition-colors"
+            >
+                <LogIn size={18} />
+            </button>
         )}
-      </AnimatePresence>
+      </div>
 
       <AnimatePresence>
         {isWeatherModalOpen && (

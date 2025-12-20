@@ -13,11 +13,14 @@ import SmartImage from './SmartImage';
 import api from '../services/api';
 import SortSelector from './SortSelector';
 import { useSearchParams } from 'react-router-dom';
+import TagInput from './TagInput';
 
 const Gallery = () => {
   const [searchParams] = useSearchParams();
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [sort, setSort] = useState('newest');
@@ -106,13 +109,13 @@ const Gallery = () => {
   };
 
   return (
-    <section className="py-12 md:py-20 px-4 md:px-8 min-h-screen">
+    <section className="pt-36 pb-32 md:py-20 px-4 md:px-8 min-h-screen">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
-        className="mb-8 md:mb-12 text-center relative"
+        className="mb-8 md:mb-12 relative z-40"
       >
         <button
           onClick={() => setIsUploadOpen(true)}
@@ -132,23 +135,27 @@ const Gallery = () => {
       </motion.div>
 
       {loading ? (
-        <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4 mx-auto max-w-7xl">
-            {[...Array(6)].map((_, i) => (
-                <div key={i} className="break-inside-avoid relative rounded-lg overflow-hidden bg-gray-900 animate-pulse" style={{ height: `${Math.random() * 200 + 200}px` }}>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                </div>
-            ))}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8 max-w-7xl mx-auto">
+           {[1,2,3,4].map(i => (
+               <div key={i} className="bg-white/5 rounded-3xl h-64 md:h-80 animate-pulse" />
+           ))}
         </div>
+      ) : error ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+              <AlertCircle size={48} className="text-red-400 mb-4 opacity-50 mx-auto" />
+              <p className="text-gray-300 mb-6">{t('common.error_fetching_data') || 'Failed to load photos'}</p>
+              <button 
+                  onClick={() => setRefreshKey(prev => prev + 1)}
+                  className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all border border-white/10"
+              >
+                  {t('common.retry') || 'Retry'}
+              </button>
+          </div>
       ) : (
-      <motion.div 
-        layout
-        className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4 mx-auto max-w-7xl"
-      >
-        <AnimatePresence mode="wait">
-          {photos.map((photo, index) => (
-            <motion.div
-              layout
-              key={photo.id}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8 max-w-7xl mx-auto">
+            {photos.map((photo, index) => (
+              <motion.div
+                key={photo.id}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
@@ -208,8 +215,7 @@ const Gallery = () => {
               </div>
             </motion.div>
           ))}
-        </AnimatePresence>
-      </motion.div>
+        </div>
       )}
 
       {settings.pagination_enabled === 'true' && (

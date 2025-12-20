@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Film, X, Upload } from 'lucide-react';
+import { Play, Film, X, Upload, AlertCircle } from 'lucide-react';
 import UploadModal from './UploadModal';
 import FavoriteButton from './FavoriteButton';
 import SmartImage from './SmartImage';
@@ -21,6 +21,8 @@ const Videos = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [sort, setSort] = useState('newest');
   const [selectedVideo, setSelectedVideo] = useState(null);
+  const [error, setError] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Deep linking
   useEffect(() => {
@@ -48,12 +50,14 @@ const Videos = () => {
         setVideos(res.data.data);
         setTotalPages(res.data.pagination.totalPages);
         setLoading(false);
+        setError(false);
       })
       .catch(err => {
         console.error("Failed to fetch videos:", err);
         setLoading(false);
+        setError(true);
       });
-  }, [currentPage, sort, settings.pagination_enabled]);
+  }, [currentPage, sort, settings.pagination_enabled, refreshKey]);
 
   const addVideo = (newItem) => {
       api.post('/videos', newItem)
@@ -81,7 +85,7 @@ const Videos = () => {
 
 
   return (
-    <section className="py-12 md:py-24 px-4 md:px-8 min-h-screen flex items-center justify-center relative z-10">
+    <section className="pt-36 pb-32 md:py-24 px-4 md:px-8 min-h-screen flex items-center justify-center relative z-10">
       <div className="max-w-7xl w-full mx-auto relative">
         <div className="absolute right-0 top-0 flex items-center gap-4 z-20">
              <button
@@ -109,7 +113,7 @@ const Videos = () => {
           <SortSelector sort={sort} onSortChange={setSort} />
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
           {loading && videos.length === 0 ? (
             // Loading Skeletons
             [...Array(6)].map((_, i) => (
@@ -121,6 +125,17 @@ const Videos = () => {
                     </div>
                 </div>
             ))
+          ) : error ? (
+            <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
+                <AlertCircle size={48} className="text-red-400 mb-4 opacity-50 mx-auto" />
+                <p className="text-gray-300 mb-6">{t('common.error_fetching_data') || 'Failed to load videos'}</p>
+                <button 
+                    onClick={() => setRefreshKey(prev => prev + 1)}
+                    className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all border border-white/10"
+                >
+                    Retry
+                </button>
+            </div>
           ) : (
           <>
           {videos.map((video, index) => (

@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, MapPin, ArrowRight, X, Filter, Upload, Clock, CheckCircle, ExternalLink, Download, Search, Share2, Globe, FileText } from 'lucide-react';
+import { Calendar, MapPin, ArrowRight, X, Filter, Upload, Clock, CheckCircle, ExternalLink, Download, Search, Share2, Globe, FileText, AlertCircle } from 'lucide-react';
 import UploadModal from './UploadModal';
 import FavoriteButton from './FavoriteButton';
 import { useTranslation } from 'react-i18next';
@@ -23,6 +23,8 @@ const Events = () => {
   const [searchParams] = useSearchParams();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -215,13 +217,13 @@ END:VCALENDAR`;
   ];
 
   return (
-    <section className="py-12 md:py-20 px-4 md:px-8 min-h-screen">
+    <section className="pt-36 pb-32 md:py-20 px-4 md:px-8 min-h-screen">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
-        className="mb-8 md:mb-12 relative z-40"
+        className="mb-8 md:mb-12 relative z-40 md:pt-0"
       >
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
           <div>
@@ -229,30 +231,31 @@ END:VCALENDAR`;
             <p className="text-gray-400 max-w-xl text-sm md:text-base">{t('events.subtitle')}</p>
           </div>
           
-          <button
-            onClick={() => setIsUploadOpen(true)}
-            className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 md:px-6 md:py-3 rounded-full backdrop-blur-md border border-white/10 transition-all font-bold text-sm md:text-base"
-          >
-            <Upload size={18} className="md:w-5 md:h-5" /> {t('common.create_event')}
-          </button>
+          <div className="flex items-center gap-2 w-full md:w-auto">
+             <button
+                onClick={() => setIsUploadOpen(true)}
+                className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 md:px-6 md:py-3 rounded-full backdrop-blur-md border border-white/10 transition-all font-bold text-sm md:text-base shrink-0"
+             >
+                <Upload size={18} className="md:w-5 md:h-5" /> {t('common.create_event')}
+             </button>
+
+             {/* Compact Search Bar */}
+             <div className="relative flex-1 md:w-64 group">
+                <div className="absolute inset-0 bg-white/5 rounded-full blur-sm group-focus-within:bg-indigo-500/20 transition-all duration-300 -z-10" />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-400 transition-colors" size={16} />
+                <input 
+                    type="text" 
+                    placeholder={t('common.search') || "Search..."}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-black/20 border border-white/10 rounded-full pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500/50 transition-all placeholder:text-gray-500/70 shadow-inner"
+                />
+             </div>
+          </div>
         </div>
 
         {/* Toolbar */}
         <div className="flex flex-col md:flex-row gap-4 p-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
-          {/* Search */}
-          <div className="relative w-full md:w-72 group">
-             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-indigo-400 transition-colors" size={18} />
-             <input 
-                type="text" 
-                placeholder={t('common.search') || "Search events..."}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-black/20 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white focus:outline-none focus:border-indigo-500/50 transition-all"
-             />
-          </div>
-
-          <div className="h-8 w-px bg-white/10 hidden md:block" />
-
           {/* Lifecycle Filter */}
           <div className="w-full md:w-48">
              <Dropdown
@@ -264,6 +267,8 @@ END:VCALENDAR`;
              />
           </div>
 
+          <div className="h-8 w-px bg-white/10 hidden md:block" />
+
           {/* Sort */}
           <div className="w-full md:w-48">
             <SortSelector sort={sort} onSortChange={setSort} />
@@ -272,13 +277,24 @@ END:VCALENDAR`;
       </motion.div>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto">
            {[1,2,3].map(i => (
-               <div key={i} className="bg-white/5 rounded-3xl h-96 animate-pulse" />
+               <div key={i} className="bg-white/5 rounded-3xl h-64 md:h-96 animate-pulse" />
            ))}
         </div>
+      ) : error ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+              <AlertCircle size={48} className="text-red-400 mb-4 opacity-50 mx-auto" />
+              <p className="text-gray-300 mb-6">{t('common.error_fetching_data') || 'Failed to load events'}</p>
+              <button 
+                  onClick={() => setRefreshKey(prev => prev + 1)}
+                  className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all border border-white/10"
+              >
+                  {t('common.retry') || 'Retry'}
+              </button>
+          </div>
       ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto">
                 {events.map((event, index) => {
                   const status = getEventLifecycle(event.date);
                   const isUpcoming = status === t('events.status.upcoming');

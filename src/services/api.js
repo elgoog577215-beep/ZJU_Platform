@@ -23,10 +23,24 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor for error handling
+// Response interceptor for error handling and retry
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    const config = error.config;
+    
+    // Retry logic for network errors or 5xx status codes
+    if (!config || !config.retry) {
+        config.retry = 0;
+    }
+
+    if (config.retry < 3 && (error.message === 'Network Error' || (error.response && error.response.status >= 500))) {
+        config.retry += 1;
+        const delayRetry = new Promise(resolve => setTimeout(resolve, 1000 * config.retry));
+        await delayRetry;
+        return api(config);
+    }
+
     console.error('API Error:', error.response ? error.response.data : error.message);
     return Promise.reject(error);
   }

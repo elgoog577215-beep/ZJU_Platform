@@ -49,7 +49,7 @@ const About = () => {
   return (
     <div className="min-h-screen">
       {/* About Section */}
-      <section className="py-24 px-4 flex items-center">
+      <section className="pt-36 pb-24 md:py-24 px-4 flex items-center">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 items-center">
           <motion.div 
             initial={{ opacity: 0, x: -50 }}

@@ -88,22 +88,31 @@ const UserProfileModal = ({ isOpen, onClose }) => {
       toast.success(t('user_profile.logout'));
   };
 
+  const isSubmittingRef = React.useRef(false);
+
   const handleProfileUpdate = async (e) => {
       e.preventDefault();
+      if (isSubmittingRef.current) return;
+      isSubmittingRef.current = true;
       setProfileLoading(true);
+      
       try {
           // Filter out empty age to avoid issues
-          const payload = { ...profileData };
+          const payload = { 
+            ...profileData,
+            organization_cr: profileData.organization,
+            invitation_code: profileData.inviteCode
+          };
           if (!payload.age) delete payload.age;
           
-          await api.put(`/admin/users/${user.id}`, payload);
+          await api.put('/auth/profile', payload);
           toast.success(t('user_profile.profile_updated'));
-          // Ideally refresh user context here, but full refresh works for now or simple toast
-          window.location.reload(); 
+          await refreshUser();
       } catch (err) {
           toast.error(err.response?.data?.error || t('admin.toast.update_fail'));
       } finally {
           setProfileLoading(false);
+          isSubmittingRef.current = false;
       }
   };
 
@@ -127,7 +136,7 @@ const UserProfileModal = ({ isOpen, onClose }) => {
       }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !user) return null;
 
   const typeOptions = [
       { value: 'photos', label: t('nav.gallery'), icon: Image },
@@ -161,7 +170,7 @@ const UserProfileModal = ({ isOpen, onClose }) => {
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-4xl bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row h-[600px] z-10"
+          className="relative w-full max-w-4xl bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row h-[85vh] md:h-[600px] z-10"
         >
           {/* Glass Effect Background */}
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 opacity-50 pointer-events-none" />
@@ -173,50 +182,49 @@ const UserProfileModal = ({ isOpen, onClose }) => {
             <X size={20} />
           </button>
 
-          {/* Sidebar */}
-          <div className="w-full md:w-64 bg-black/20 border-b md:border-b-0 md:border-r border-white/10 p-6 flex flex-col relative z-10">
-              <div className="flex items-center gap-4 mb-8">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-xl">
+          <div className="w-full md:w-64 bg-black/20 border-b md:border-b-0 md:border-r border-white/10 p-4 md:p-6 flex flex-col relative z-10 shrink-0">
+              <div className="flex items-center gap-4 mb-4 md:mb-8">
+                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg md:text-xl shrink-0">
                       {user?.username?.charAt(0).toUpperCase()}
                   </div>
                   <div className="overflow-hidden">
-                      <h3 className="text-white font-bold truncate">{user?.username}</h3>
+                      <h3 className="text-white font-bold truncate text-sm md:text-base">{user?.username}</h3>
                       <p className="text-xs text-gray-400 truncate">{user?.email}</p>
                   </div>
               </div>
 
-              <nav className="space-y-2 flex-1">
+              <nav className="grid grid-cols-2 gap-2 md:flex md:flex-col md:space-y-2 flex-1 mb-4 md:mb-0">
                   <button 
                     onClick={() => setActiveTab('profile')}
-                    className={`w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 transition-colors ${activeTab === 'profile' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                    className={`w-full text-left px-3 py-2 md:px-4 md:py-3 rounded-xl flex items-center gap-2 md:gap-3 transition-colors text-sm md:text-base ${activeTab === 'profile' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
                   >
-                      <User size={18} /> {t('user_profile.tabs.profile')}
+                      <User size={16} className="md:w-[18px] md:h-[18px]" /> {t('user_profile.tabs.profile')}
                   </button>
                   <button 
                     onClick={() => setActiveTab('uploads')}
-                    className={`w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 transition-colors ${activeTab === 'uploads' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                    className={`w-full text-left px-3 py-2 md:px-4 md:py-3 rounded-xl flex items-center gap-2 md:gap-3 transition-colors text-sm md:text-base ${activeTab === 'uploads' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
                   >
-                      <Upload size={18} /> {t('user_profile.tabs.uploads')}
+                      <Upload size={16} className="md:w-[18px] md:h-[18px]" /> {t('user_profile.tabs.uploads')}
                   </button>
                   <button 
                     onClick={() => setActiveTab('favorites')}
-                    className={`w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 transition-colors ${activeTab === 'favorites' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                    className={`w-full text-left px-3 py-2 md:px-4 md:py-3 rounded-xl flex items-center gap-2 md:gap-3 transition-colors text-sm md:text-base ${activeTab === 'favorites' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
                   >
-                      <Heart size={18} /> {t('user_profile.tabs.favorites')}
+                      <Heart size={16} className="md:w-[18px] md:h-[18px]" /> {t('user_profile.tabs.favorites')}
                   </button>
                   <button 
                     onClick={() => setActiveTab('security')}
-                    className={`w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 transition-colors ${activeTab === 'security' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                    className={`w-full text-left px-3 py-2 md:px-4 md:py-3 rounded-xl flex items-center gap-2 md:gap-3 transition-colors text-sm md:text-base ${activeTab === 'security' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
                   >
-                      <Lock size={18} /> {t('user_profile.tabs.security')}
+                      <Lock size={16} className="md:w-[18px] md:h-[18px]" /> {t('user_profile.tabs.security')}
                   </button>
               </nav>
 
               <button 
                 onClick={handleLogout}
-                className="mt-auto w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-red-400 hover:bg-red-500/10 transition-colors"
+                className="mt-auto w-full text-left px-3 py-2 md:px-4 md:py-3 rounded-xl flex items-center gap-2 md:gap-3 text-red-400 hover:bg-red-500/10 transition-colors text-sm md:text-base"
               >
-                  <LogOut size={18} /> {t('user_profile.logout')}
+                  <LogOut size={16} className="md:w-[18px] md:h-[18px]" /> {t('user_profile.logout')}
               </button>
           </div>
 
