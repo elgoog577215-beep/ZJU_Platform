@@ -1,22 +1,40 @@
 # 部署指南
 
-## 1. 准备工作
+## 1. 快速部署 (推荐)
 
-确保您的服务器（如 118.31.78.72）已安装 Git。
+我们在项目根目录下准备了一个一键部署脚本 `remote_deploy.ps1`，您可以在**本地电脑**上直接运行它来完成部署。
 
-## 2. 部署步骤
+### 使用方法：
+
+1. 打开 PowerShell 终端。
+2. 运行以下命令：
+   ```powershell
+   .\remote_deploy.ps1
+   ```
+3. 按照提示输入服务器密码即可。
+
+脚本会自动连接服务器、拉取最新代码、安装依赖、构建前端并重启服务。
+
+---
+
+## 2. 手动部署
+
+如果您更喜欢手动操作，可以按照以下步骤进行：
 
 ### 第一步：在服务器上拉取代码
 
 通过 SSH 登录到您的服务器，然后克隆或拉取代码：
 
 ```bash
+ssh root@118.31.78.72
+
 # 如果是首次部署
+cd ~
 git clone -b mmaster https://github.com/elgoog577215-beep/ZJU_Platform.git
 cd ZJU_Platform
 
 # 如果已经部署过
-cd ZJU_Platform
+cd ~/ZJU_Platform
 git pull origin mmaster
 ```
 
@@ -33,6 +51,8 @@ chmod +x deploy.sh
 ```
 
 脚本会自动安装 Node.js、PM2、依赖，并构建和启动服务。网站将在 80 端口运行。
+
+---
 
 ## 3. 数据库同步 (Windows 本地 -> 服务器)
 
