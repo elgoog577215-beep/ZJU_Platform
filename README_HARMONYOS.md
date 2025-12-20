@@ -1,46 +1,39 @@
-# HarmonyOS 版网站 (HarmonyOS App Version)
+# HarmonyOS Next App (WebView Version)
 
-这是一个基于 HarmonyOS SDK 5.0 (API 12) 开发的鸿蒙应用项目，它使用 ArkTS 和 ArkWeb 组件直接加载你的网站。
+此目录 `HarmonyOS_App` 包含了为您生成的 HarmonyOS Next (API 11/12) 应用程序代码。该应用使用 WebView 加载您的网站，并适配了手机的返回逻辑。
 
-## 📁 项目结构 (Project Structure)
+## 目录结构
 
-项目位于根目录下的 `harmonyos_app` 文件夹中：
-
-- `AppScope/`: 全局应用配置
-- `entry/`: 主要模块
-  - `src/main/ets/pages/Index.ets`: **核心代码**，WebView 组件在这里定义，指向 `http://118.31.78.72`
-  - `src/main/ets/entryability/EntryAbility.ets`: 应用入口
-  - `src/main/module.json5`: 权限配置 (已添加 ohos.permission.INTERNET)
-
-## 🛠️ 如何使用 (How to Use)
-
-### 1. 准备环境
-你需要下载并安装 **DevEco Studio** (华为鸿蒙开发工具)，并下载 HarmonyOS NEXT SDK (API 12/5.0.0)。
-
-### 2. 导入项目
-1. 打开 DevEco Studio。
-2. 选择 **Open Project**。
-3. 导航到 `harmonyos_app` 文件夹并打开。
-
-### 3. 运行应用
-1. 连接鸿蒙真机或启动模拟器 (API 12)。
-2. 点击顶部的 **Run** 按钮 (绿色三角形)。
-3. 应用启动后，会自动全屏加载 `http://118.31.78.72`。
-
-## ⚙️ 修改配置
-
-如果你想修改加载的网址，请打开：
-`harmonyos_app/entry/src/main/ets/pages/Index.ets`
-
-找到以下代码并修改：
-```typescript
-private readonly targetUrl: string = 'http://118.31.78.72'; // 修改为你想要的网址
+```
+HarmonyOS_App/
+├── AppScope/               # 应用全局配置
+├── entry/                  # 主模块
+│   └── src/main/ets/
+│       ├── entryability/   # 应用入口 Ability
+│       └── pages/
+│           └── Index.ets   # 包含 WebView 的主页面
+├── build-profile.json5     # 构建配置
+└── ...
 ```
 
-## 📱 功能特性
-- **全屏浏览**: 隐藏了默认标题栏，提供沉浸式体验。
-- **返回键处理**: 按下物理返回键或手势返回时，如果是网页内部跳转，会优先网页后退；如果网页无法后退，则退出应用。
-- **权限**: 已申请网络访问权限。
+## 核心功能
 
----
-**注意**: 如果你在本地测试 (localhost)，鸿蒙模拟器可能无法直接访问电脑的 localhost。建议使用局域网 IP 或部署到公网服务器后测试。
+1.  **WebView 集成**: 在 `entry/src/main/ets/pages/Index.ets` 中使用了 `Web` 组件加载 `http://118.31.78.72`。
+2.  **返回逻辑适配**: 实现了 `onBackPress` 接口。
+    *   当用户点击物理返回键或使用手势返回时：
+        *   如果网页可以后退（如进入了二级页面），则网页后退。
+        *   如果网页无法后退（在首页），则退出应用。
+
+## 如何运行
+
+1.  下载并安装 **DevEco Studio** (HarmonyOS Next 版本)。
+2.  打开 DevEco Studio，选择 **Open Project**。
+3.  选择此 `HarmonyOS_App` 文件夹。
+4.  等待 Gradle/Hvigor 同步完成。
+5.  连接真机或启动模拟器。
+6.  点击 **Run** 按钮。
+
+## 注意事项
+
+*   **图标资源**: 由于我是文本生成助手，无法直接生成图片文件。请确保在编译前检查 `entry/src/main/resources/base/media/icon.png` 和 `AppScope/resources/base/media/app_icon.png` 是否存在。如果报错，请手动放入任意 png 图片并重命名。
+*   **网络权限**: 已在 `entry/src/main/module.json5` 中配置了 `ohos.permission.INTERNET` 权限。

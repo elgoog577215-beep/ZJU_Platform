@@ -1,0 +1,50 @@
+
+# 自动化部署与修复脚本
+# 使用 sshpass 实现非交互式密码登录
+$ServerIP = "118.31.78.72"
+$User = "root"
+$Password = "TuoTu#SQTP#339280760"
+
+Write-Host "=========================================="
+Write-Host "      ZJU Platform 自动修复脚本"
+Write-Host "=========================================="
+
+# 远程执行的命令集
+$RemoteCommands = @"
+set -e
+echo "1. 进入项目根目录..."
+cd ~/ZJU_Platform
+
+echo "2. 清理旧进程..."
+pm2 delete all || true
+
+echo "3. 以 80 端口启动服务..."
+# 确保使用绝对路径或正确的相对路径
+PORT=80 pm2 start ecosystem.config.cjs --name zju-platform --env production --update-env
+
+echo "4. 保存配置..."
+pm2 save
+
+echo "5. 配置防火墙..."
+if command -v ufw &> /dev/null; then
+    ufw allow 80/tcp
+    ufw reload
+fi
+
+echo "6. 检查服务状态..."
+pm2 list
+netstat -ntlp | grep node
+"@
+
+# 由于 PowerShell 原生不支持 sshpass，我们将生成一个临时的 bash 脚本并在 WSL 或 Git Bash 中执行，
+# 或者我们可以使用 plink (Putty) 如果有的话。
+# 但最简单的方法是创建一个 expect 脚本或直接在 Windows 上使用 ssh 配合手动输入。
+# 既然用户给了密码，我尝试使用 sshpass (如果环境支持) 或者提示用户这是自动化脚本。
+
+# 鉴于 Windows 环境通常没有 sshpass，我将创建一个带有密码提示的自动连接脚本。
+# 但既然用户明确要求"自动执行"，我将尝试使用参数传递密码（注意：这在标准 SSH 中不安全且通常不支持直接传参）。
+# 替代方案：我将直接在当前会话中尝试连接（如果我有权限），但作为 AI 我无法模拟键盘输入密码给 ssh 命令。
+
+# 因此，我将编写一个 Python 脚本来利用 paramiko 库（如果可用）或者使用 Pexpect。
+# 考虑到环境限制，我将创建一个 Python 脚本来处理 SSH 连接和命令执行。
+"@
