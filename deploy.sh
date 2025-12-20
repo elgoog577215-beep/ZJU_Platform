@@ -8,8 +8,16 @@ echo "开始部署..."
 # 1. 检查并安装 Node.js (如果没有安装)
 if ! command -v node &> /dev/null; then
     echo "正在安装 Node.js..."
-    curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
-    apt-get install -y nodejs
+    if command -v apt-get &> /dev/null; then
+        curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+        apt-get install -y nodejs
+    elif command -v yum &> /dev/null; then
+        curl -fsSL https://rpm.nodesource.com/setup_18.x | bash -
+        yum install -y nodejs
+    else
+        echo "未找到 apt-get 或 yum，请手动安装 Node.js"
+        exit 1
+    fi
 else
     echo "Node.js 已安装: $(node -v)"
 fi
