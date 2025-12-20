@@ -1,0 +1,1 @@
+{"name":"Lumos Portfolio","short_name":"Lumos","description":"A futuristic portfolio website with immersive interactions.","start_url":"/","display":"standalone","background_color":"#0a0a0a","theme_color":"#0a0a0a","lang":"en","scope":"/","orientation":"portrait","icons":[{"src":"pwa-icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}

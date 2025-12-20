@@ -205,7 +205,6 @@ const Music = () => {
               <Upload size={18} className="md:w-5 md:h-5" />
             </button>
           </div>
-        </div>
       </motion.div>
 
       <div className="max-w-6xl w-full mx-auto grid lg:grid-cols-2 gap-8 md:gap-16 items-center relative">
