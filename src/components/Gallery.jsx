@@ -115,7 +115,7 @@ const Gallery = () => {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
-        className="mb-8 md:mb-12 relative z-40"
+        className="mb-8 md:mb-12 relative z-40 text-center"
       >
         <button
           onClick={() => setIsUploadOpen(true)}
