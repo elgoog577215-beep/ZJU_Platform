@@ -9,9 +9,11 @@ import { useTranslation } from 'react-i18next';
 import Pagination from './Pagination';
 import { useSettings } from '../context/SettingsContext';
 import { useAuth } from '../context/AuthContext';
-import useSWR, { mutate } from 'swr';
-import api, { fetcher } from '../services/api';
+// import useSWR, { mutate } from 'swr'; // Replaced by useCachedResource
+import api from '../services/api';
 import SortSelector from './SortSelector';
+import { useBackClose } from '../hooks/useBackClose';
+import { useCachedResource } from '../hooks/useCachedResource';
 
 const Articles = () => {
   const { t } = useTranslation();
@@ -23,16 +25,27 @@ const Articles = () => {
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
 
+  useBackClose(selectedArticle !== null, () => setSelectedArticle(null));
+
   const limit = settings.pagination_enabled === 'true' ? 6 : 1000;
   
-  // Use SWR for fetching articles
-  const { data: articlesData, error, isLoading } = useSWR(
-    `/articles?page=${currentPage}&limit=${limit}&sort=${sort}`,
-    fetcher
-  );
+  // Use cached resource hook instead of SWR
+  const { 
+    data: articles, 
+    pagination, 
+    loading: isLoading, 
+    error, 
+    setData: setArticles, 
+    refresh 
+  } = useCachedResource('/articles', {
+    page: currentPage,
+    limit,
+    sort
+  }, {
+    dependencies: [settings.pagination_enabled]
+  });
 
-  const articles = articlesData?.data || [];
-  const totalPages = articlesData?.pagination?.totalPages || 1;
+  const totalPages = pagination?.totalPages || 1;
 
   // Deep linking
   useEffect(() => {
@@ -206,19 +219,9 @@ const Articles = () => {
                         count={article.likes || 0}
                         className="p-2 bg-white/5 hover:bg-orange-500 rounded-full backdrop-blur-md transition-all border border-white/10"
                         onToggle={(favorited, likes) => {
-                            mutate(
-                                `/articles?page=${currentPage}&limit=${limit}&sort=${sort}`,
-                                (data) => {
-                                    if (!data) return data;
-                                    return {
-                                        ...data,
-                                        data: data.data.map(a => 
-                                            a.id === article.id ? { ...a, likes: likes !== undefined ? likes : a.likes } : a
-                                        )
-                                    };
-                                },
-                                false
-                            );
+                            setArticles(prev => prev.map(a => 
+                                a.id === article.id ? { ...a, likes: likes !== undefined ? likes : a.likes } : a
+                            ));
                         }}
                       />
                    </div>
@@ -246,88 +249,90 @@ const Articles = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 md:p-8 overflow-y-auto"
+            className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md overflow-y-auto"
             onClick={() => setSelectedArticle(null)}
           >
-            <motion.div 
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 50, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-3xl bg-[#0a0a0a] border border-white/10 rounded-3xl shadow-2xl overflow-hidden"
-            >
-              {/* Header Image / Gradient */}
-              <div 
-                className="h-48 bg-gradient-to-br from-orange-900/40 to-black relative bg-cover bg-center"
-                style={selectedArticle.cover ? { backgroundImage: `url(${selectedArticle.cover})` } : {}}
+            <div className="flex min-h-full items-center justify-center p-4 md:p-8">
+              <motion.div 
+                initial={{ y: 50, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 50, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="relative w-full max-w-3xl bg-[#0a0a0a] border border-white/10 rounded-3xl shadow-2xl overflow-hidden"
               >
-                {!selectedArticle.cover && <div className="absolute inset-0 bg-gradient-to-br from-orange-900/40 to-black" />}
-                <button 
-                  onClick={() => setSelectedArticle(null)}
-                  className="absolute top-6 right-6 p-2 bg-black/50 text-white rounded-full hover:bg-white/20 transition-colors z-10"
+                {/* Header Image / Gradient */}
+                <div 
+                  className="h-48 bg-gradient-to-br from-orange-900/40 to-black relative bg-cover bg-center"
+                  style={selectedArticle.cover ? { backgroundImage: `url(${selectedArticle.cover})` } : {}}
                 >
-                  <X size={24} />
-                </button>
-                <div className="absolute bottom-0 left-0 w-full p-8 bg-gradient-to-t from-[#0a0a0a] to-transparent">
-                  <div className="flex items-center gap-3 text-xs font-mono text-orange-300 mb-2">
-                     <span>{selectedArticle.date}</span>
-                     <span>•</span>
-                     <span>{calculateReadingTime(selectedArticle.content)}</span>
+                  {!selectedArticle.cover && <div className="absolute inset-0 bg-gradient-to-br from-orange-900/40 to-black" />}
+                  <button 
+                    onClick={() => setSelectedArticle(null)}
+                    className="absolute top-6 right-6 p-2 bg-black/50 text-white rounded-full hover:bg-white/20 transition-colors z-10"
+                  >
+                    <X size={24} />
+                  </button>
+                  <div className="absolute bottom-0 left-0 w-full p-8 bg-gradient-to-t from-[#0a0a0a] to-transparent">
+                    <div className="flex items-center gap-3 text-xs font-mono text-orange-300 mb-2">
+                       <span>{selectedArticle.date}</span>
+                       <span>•</span>
+                       <span>{calculateReadingTime(selectedArticle.content)}</span>
+                    </div>
+                    <h2 className="text-3xl md:text-4xl font-bold font-serif text-white leading-tight">
+                      {selectedArticle.title}
+                    </h2>
                   </div>
-                  <h2 className="text-3xl md:text-4xl font-bold font-serif text-white leading-tight">
-                    {selectedArticle.title}
-                  </h2>
                 </div>
-              </div>
 
-              {/* Content */}
-              <div className="p-8 md:p-12 pt-4">
-                <div className="flex items-center justify-between gap-3 mb-8 pb-8 border-b border-white/5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
-                      <User size={20} className="text-gray-400" />
+                {/* Content */}
+                <div className="p-8 md:p-12 pt-4">
+                  <div className="flex items-center justify-between gap-3 mb-8 pb-8 border-b border-white/5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
+                        <User size={20} className="text-gray-400" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold text-white">{t('common.admin_name')}</div>
+                        <div className="text-xs text-gray-500">{t('common.author')}</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="text-sm font-bold text-white">{t('common.admin_name')}</div>
-                      <div className="text-xs text-gray-500">{t('common.author')}</div>
-                    </div>
+                    
+                    <FavoriteButton 
+                      itemId={selectedArticle.id}
+                      itemType="article"
+                      size={24}
+                      showCount={true}
+                      count={selectedArticle.likes || 0}
+                      className="p-3 bg-white/5 hover:bg-red-500/20 text-white rounded-full transition-all border border-white/10"
+                      onToggle={(favorited, likes) => {
+                          setSelectedArticle(prev => ({ ...prev, likes: likes !== undefined ? likes : prev.likes }));
+                          mutate(
+                              `/articles?page=${currentPage}&limit=${limit}&sort=${sort}`,
+                              (data) => {
+                                  if (!data) return data;
+                                  return {
+                                      ...data,
+                                      data: data.data.map(a => 
+                                          a.id === selectedArticle.id ? { ...a, likes: likes !== undefined ? likes : a.likes } : a
+                                      )
+                                  };
+                              },
+                              false
+                          );
+                      }}
+                    />
                   </div>
                   
-                  <FavoriteButton 
-                    itemId={selectedArticle.id}
-                    itemType="article"
-                    size={24}
-                    showCount={true}
-                    count={selectedArticle.likes || 0}
-                    className="p-3 bg-white/5 hover:bg-red-500/20 text-white rounded-full transition-all border border-white/10"
-                    onToggle={(favorited, likes) => {
-                        setSelectedArticle(prev => ({ ...prev, likes: likes !== undefined ? likes : prev.likes }));
-                        mutate(
-                            `/articles?page=${currentPage}&limit=${limit}&sort=${sort}`,
-                            (data) => {
-                                if (!data) return data;
-                                return {
-                                    ...data,
-                                    data: data.data.map(a => 
-                                        a.id === selectedArticle.id ? { ...a, likes: likes !== undefined ? likes : a.likes } : a
-                                    )
-                                };
-                            },
-                            false
-                        );
-                    }}
+                  <div 
+                    className="prose prose-invert prose-lg max-w-none text-gray-300 leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: selectedArticle.content }}
                   />
+
+
                 </div>
-                
-                <div 
-                  className="prose prose-invert prose-lg max-w-none text-gray-300 leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: selectedArticle.content }}
-                />
 
-
-              </div>
-
-            </motion.div>
+              </motion.div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

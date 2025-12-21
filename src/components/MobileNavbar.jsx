@@ -16,6 +16,7 @@ const MobileNavbar = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   
   const { onNavigate } = useBackClose(showMenu, () => setShowMenu(false));
+  useBackClose(showAuthModal, () => setShowAuthModal(false));
 
   const navItems = [
     { key: 'home', path: '/', icon: Home },
@@ -29,8 +30,6 @@ const MobileNavbar = () => {
     { key: 'music', path: '/music', icon: Music },
     { key: 'videos', path: '/videos', icon: Film },
     { key: 'articles', path: '/articles', icon: FileText },
-    // Add User Profile access in menu if logged in
-    ...(user ? [{ key: 'profile', action: 'profile', icon: UserCircle }] : []),
   ];
 
   const handleAction = (action) => {

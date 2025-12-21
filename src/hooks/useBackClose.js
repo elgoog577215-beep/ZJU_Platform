@@ -2,32 +2,44 @@ import { useEffect, useRef } from 'react';
 
 /**
  * Hook to handle closing modals/overlays with the system back button.
- * Pushes a state to history when opened, and listens for popstate to close.
+ * Uses URL Hash (#modal) to ensure robust history tracking in WebViews.
  * 
  * @param {boolean} isOpen - Whether the modal is open
  * @param {function} onClose - Function to call to close the modal
- * @returns {object} - { onNavigate } function to call before navigating away to prevent double-back
  */
 export const useBackClose = (isOpen, onClose) => {
   const isClosingRef = useRef(false);
-  const isNavigatingRef = useRef(false);
+  const hashRef = useRef(`modal-${Math.random().toString(36).substr(2, 9)}`); // Unique hash for this modal instance
+  const onCloseRef = useRef(onClose);
+
+  // Keep onCloseRef updated
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (isOpen) {
-      // Reset refs
-      isNavigatingRef.current = false;
       isClosingRef.current = false;
       
-      // Push state to trap back button
-      // We use a unique object so we could potentially identify it, though simple check is usually enough
-      const state = { modalOpen: true, timestamp: Date.now() };
-      window.history.pushState(state, '');
+      // Push hash state
+      // We use a unique hash to ensure we can identify *this* modal's state
+      const newHash = `#${hashRef.current}`;
+      
+      // Check if we are already at this hash (re-renders)
+      if (window.location.hash !== newHash) {
+          window.history.pushState({ modalOpen: true, id: hashRef.current }, '', newHash);
+      }
 
-      const handlePopState = (event) => {
-        // User pressed hardware back button
-        // The history is already popped by the browser
-        isClosingRef.current = true;
-        onClose();
+      const handlePopState = () => {
+        // If the hash matches, we are still "open" (forward navigation?), 
+        // but typically popstate means we went BACK or FORWARD.
+        // If the current hash DOES NOT match our hash anymore, it means we navigated away (Back).
+        if (window.location.hash !== newHash) {
+            isClosingRef.current = true;
+            if (onCloseRef.current) {
+                onCloseRef.current();
+            }
+        }
       };
 
       window.addEventListener('popstate', handlePopState);
@@ -35,19 +47,15 @@ export const useBackClose = (isOpen, onClose) => {
       return () => {
         window.removeEventListener('popstate', handlePopState);
         
-        // Cleanup logic:
-        // If closing manually (not by back button) and not navigating away,
-        // we must manually pop the history state we pushed.
-        if (!isClosingRef.current && !isNavigatingRef.current) {
+        // Cleanup: If closing programmatically (not via Back button), we must go back manually
+        // to remove the hash we added.
+        if (!isClosingRef.current && window.location.hash === newHash) {
            window.history.back();
         }
       };
     }
-  }, [isOpen, onClose]);
+  }, [isOpen]); // Removed onClose from dependency array
 
-  const onNavigate = () => {
-    isNavigatingRef.current = true;
-  };
-
-  return { onNavigate };
+  // Compatibility return for existing usage
+  return { onNavigate: () => {} }; 
 };

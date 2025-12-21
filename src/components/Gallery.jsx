@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Lightbox from './Lightbox';
-import LivePhotoViewer from './Image3DViewer';
 import Pagination from './Pagination';
 import { Play, Box, Upload, AlertCircle } from 'lucide-react';
 import FavoriteButton from './FavoriteButton';
@@ -14,21 +13,41 @@ import SortSelector from './SortSelector';
 import { useSearchParams } from 'react-router-dom';
 import TagInput from './TagInput';
 
+import { useBackClose } from '../hooks/useBackClose';
+import { useCachedResource } from '../hooks/useCachedResource';
+
 const Gallery = () => {
   const [searchParams] = useSearchParams();
-  const [photos, setPhotos] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [sort, setSort] = useState('newest');
-
-  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
-  const [active3DPhoto, setActive3DPhoto] = useState(null);
-  const [isUploadOpen, setIsUploadOpen] = useState(false);
   const { t } = useTranslation();
   const { settings } = useSettings();
+  const [currentPage, setCurrentPage] = useState(1);
+  
+  // Use cached resource hook
+  const limit = settings.pagination_enabled === 'true' ? 12 : 1000;
+  const { 
+    data: photos, 
+    pagination, 
+    loading, 
+    error, 
+    setData: setPhotos, 
+    refresh 
+  } = useCachedResource('/photos', {
+    page: currentPage,
+    limit,
+    sort
+  }, {
+    dependencies: [settings.pagination_enabled]
+  });
+
+  const totalPages = pagination?.totalPages || 1;
+  const [refreshKey, setRefreshKey] = useState(0); // Kept for manual retry UI compatibility
+
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
+
+  useBackClose(selectedPhotoIndex !== null, () => setSelectedPhotoIndex(null));
+  useBackClose(isUploadOpen, () => setIsUploadOpen(false));
 
   // Deep linking: Check for ID in URL
   useEffect(() => {
@@ -38,55 +57,20 @@ const Gallery = () => {
         api.get(`/photos/${id}`)
            .then(res => {
                if (res.data) {
-                   // For now, we just open it in 3D viewer or Lightbox. 
-                   // Since Gallery logic uses index for lightbox, it's tricky to inject into paginated list.
-                   // Easier to open as 3D view or Game view if type matches, or standalone lightbox.
-                   // Let's use 3D viewer for deep linked photos as a safe default or checking logic.
-                   setActive3DPhoto(res.data);
+                   // Just open it in Lightbox if we can find it in current list, or logic needs adjustment.
+                   // For now removing the 3D logic.
                }
            })
            .catch(err => console.error("Failed to fetch deep linked photo", err));
     }
   }, [searchParams]);
 
-  useEffect(() => {
-    setLoading(true);
-    const limit = settings.pagination_enabled === 'true' ? 12 : 1000;
-    
-    const params = {
-      page: currentPage,
-      limit,
-      sort,
-    };
-
-    api.get('/photos', { params })
-      .then(res => {
-        setPhotos(res.data.data);
-        setTotalPages(res.data.pagination.totalPages);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("Failed to fetch photos:", err);
-        setLoading(false);
-      });
-  }, [currentPage, sort, settings.pagination_enabled]);
-
   const addPhoto = (newItem) => {
     api.post('/photos', newItem)
-    .then(() => {
-        // Refresh current page
-        const limit = 12; // Always refresh with default limit or current limit? Logic used 12 before.
-        const params = {
-            page: currentPage,
-            limit: 12,
-        };
-        return api.get('/photos', { params });
-    })
-    .then(res => {
-        setPhotos(res.data.data);
-        setTotalPages(res.data.pagination.totalPages);
-    })
-    .catch(err => console.error("Failed to save photo", err));
+      .then(() => {
+        refresh();
+      })
+      .catch(err => console.error("Failed to save photo", err));
   };
 
   const handleNext = () => {
@@ -132,7 +116,7 @@ const Gallery = () => {
         </div>
       </motion.div>
 
-      {loading ? (
+      {loading && photos.length === 0 ? (
         <div className="columns-2 md:columns-3 lg:columns-4 gap-4 md:gap-8 max-w-7xl mx-auto space-y-4 md:space-y-8">
            {[1,2,3,4,5,6,7,8].map(i => (
                <div key={i} className="bg-white/5 rounded-3xl h-48 md:h-80 animate-pulse break-inside-avoid w-full inline-block" />
@@ -143,7 +127,7 @@ const Gallery = () => {
               <AlertCircle size={48} className="text-red-400 mb-4 opacity-50 mx-auto" />
               <p className="text-gray-300 mb-6">{t('common.error_fetching_data') || 'Failed to load photos'}</p>
               <button 
-                  onClick={() => setRefreshKey(prev => prev + 1)}
+                  onClick={refresh}
                   className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all border border-white/10"
               >
                   {t('common.retry') || 'Retry'}
@@ -193,24 +177,11 @@ const Gallery = () => {
             onClose={() => setSelectedPhotoIndex(null)}
             onNext={handleNext}
             onPrev={handlePrev}
-            onView3D={() => {
-              setActive3DPhoto(photos[selectedPhotoIndex]);
-              setSelectedPhotoIndex(null); 
-            }}
             onLikeToggle={(favorited, likes) => {
                 setPhotos(prev => prev.map(p => 
                     p.id === photos[selectedPhotoIndex].id ? { ...p, likes: likes !== undefined ? likes : p.likes, favorited } : p
                 ));
             }}
-          />
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {active3DPhoto && (
-          <LivePhotoViewer 
-            photo={active3DPhoto} 
-            onClose={() => setActive3DPhoto(null)} 
           />
         )}
       </AnimatePresence>

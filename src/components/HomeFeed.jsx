@@ -220,6 +220,10 @@ const HomeFeed = () => {
   const [activeVideo, setActiveVideo] = useState(null);
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { settings } = useSettings();
+
+  useBackClose(activePhoto !== null, () => setActivePhoto(null));
+  useBackClose(activeEvent !== null, () => setActiveEvent(null));
 
   const { data: featuredContent, error } = useSWR('/featured', fetcher);
 

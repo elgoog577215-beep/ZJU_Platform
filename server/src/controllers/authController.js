@@ -34,7 +34,7 @@ const register = async (req, res) => {
       [username, hashedPassword, role]
     );
 
-    const token = jwt.sign({ id: result.lastID, username, role }, SECRET_KEY, { expiresIn: '7d' });
+    const token = jwt.sign({ id: result.lastID, username, role }, SECRET_KEY, { expiresIn: '30d' });
 
     res.json({ token, user: { id: result.lastID, username, role } });
   } catch (error) {
@@ -57,7 +57,7 @@ const login = async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, SECRET_KEY, { expiresIn: '7d' });
+    const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, SECRET_KEY, { expiresIn: '30d' });
 
     // Log successful login
     await db.run(
@@ -85,7 +85,7 @@ const adminLogin = async (req, res) => {
     const token = jwt.sign(
       { id: 1, username: 'admin', role: 'admin' }, 
       SECRET_KEY, 
-      { expiresIn: '7d' }
+      { expiresIn: '30d' }
     );
 
     res.json({ token, user: { id: 1, username: 'admin', role: 'admin' } });
@@ -102,6 +102,16 @@ const me = async (req, res) => {
         const user = await db.get('SELECT id, username, role, avatar, organization_cr, gender, age, nickname, created_at FROM users WHERE id = ?', [req.user.id]);
         
         if (!user) {
+            // Handle special case for hardcoded admin (id: 1)
+            if (req.user.id === 1 && req.user.username === 'admin') {
+                return res.json({
+                    id: 1,
+                    username: 'admin',
+                    role: 'admin',
+                    nickname: 'Administrator',
+                    created_at: new Date().toISOString()
+                });
+            }
             return res.status(404).json({ error: 'User not found' });
         }
         

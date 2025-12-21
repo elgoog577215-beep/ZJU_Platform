@@ -34,3 +34,6 @@ server/uploads/
 # Editor/IDE
 .vscode/
 .idea/
+
+# HarmonyOS App
+zju_app/

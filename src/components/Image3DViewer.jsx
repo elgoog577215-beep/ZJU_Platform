@@ -3,6 +3,7 @@ import { Canvas, useFrame, useThree, extend } from '@react-three/fiber';
 import { PerspectiveCamera, shaderMaterial, useTexture, Image, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { X, Aperture, Zap, Loader as LoaderIcon } from 'lucide-react';
+import { useBackClose } from '../hooks/useBackClose';
 
 // --- Live Photo Shader ---
 // A shader that transitions from a flat 2D image to a 2.5D parallax scene
@@ -160,6 +161,8 @@ const LiveScene = ({ url, isPressed }) => {
 const LivePhotoViewer = ({ photo, onClose }) => {
   const [isPressed, setIsPressed] = useState(false);
   const [showHint, setShowHint] = useState(true);
+
+  useBackClose(true, onClose);
 
   return (
     <div 

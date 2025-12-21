@@ -10,6 +10,7 @@ import { useSettings } from '../context/SettingsContext';
 import api from '../services/api';
 import SortSelector from './SortSelector';
 import { useSearchParams } from 'react-router-dom';
+import { useBackClose } from '../hooks/useBackClose';
 
 const Videos = () => {
   const { t } = useTranslation();
@@ -23,6 +24,10 @@ const Videos = () => {
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [error, setError] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
+
+  useBackClose(selectedVideo !== null, () => setSelectedVideo(null));
+  useBackClose(isUploadOpen, () => setIsUploadOpen(false));
 
   // Deep linking
   useEffect(() => {
@@ -71,8 +76,6 @@ const Videos = () => {
     })
     .catch(err => console.error("Failed to save video", err));
   };
-
-  const [isUploadOpen, setIsUploadOpen] = useState(false);
 
   const handleUpload = (newItem) => {
       addVideo(newItem);
@@ -130,7 +133,7 @@ const Videos = () => {
                 <AlertCircle size={48} className="text-red-400 mb-4 opacity-50 mx-auto" />
                 <p className="text-gray-300 mb-6">{t('common.error_fetching_data') || 'Failed to load videos'}</p>
                 <button 
-                    onClick={() => setRefreshKey(prev => prev + 1)}
+                    onClick={refresh}
                     className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all border border-white/10"
                 >
                     Retry
@@ -215,53 +218,55 @@ const Videos = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 md:p-12"
+            className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md overflow-y-auto"
             onClick={() => setSelectedVideo(null)}
           >
-            <div className="relative w-full max-w-5xl bg-black rounded-2xl overflow-hidden shadow-2xl flex flex-col border border-white/10" onClick={(e) => e.stopPropagation()}>
-              <div className="relative aspect-video bg-black">
-                  <button 
-                    onClick={() => setSelectedVideo(null)}
-                    className="absolute top-4 right-4 z-10 p-3 bg-black/50 hover:bg-red-500/80 text-white rounded-full backdrop-blur-md border border-white/10 transition-all hover:rotate-90 shadow-lg"
-                    title={t('common.close_video')}
-                  >
-                    <X size={24} />
-                  </button>
-                  <video 
-                    src={selectedVideo.video} 
-                    controls 
-                    autoPlay 
-                    className="w-full h-full"
-                    ref={(el) => {
-                        if(el) {
-                            el.playbackRate = 1.0; // Default speed
-                        }
-                    }}
-                  />
-              </div>
-              
-              <div className="p-6 bg-[#111] border-t border-white/10 flex justify-between items-center">
-                  <div>
-                      <h3 className="text-2xl font-bold text-white mb-1">{selectedVideo.title}</h3>
-                      <p className="text-gray-400 text-sm">{new Date(selectedVideo.created_at || Date.now()).toLocaleDateString()}</p>
-                  </div>
-                  <FavoriteButton 
-                    itemId={selectedVideo.id}
-                    itemType="video"
-                    size={24}
-                    showCount={true}
-                    count={selectedVideo.likes || 0}
-                    favorited={selectedVideo.favorited}
-                    className="p-3 bg-white/5 hover:bg-pink-500/20 rounded-full transition-colors border border-white/10"
-                    onToggle={(favorited, likes) => {
-                        // Update selected video state
-                        setSelectedVideo(prev => ({ ...prev, likes: likes !== undefined ? likes : prev.likes, favorited }));
-                        // Update list state
-                        setVideos(prev => prev.map(v => 
-                            v.id === selectedVideo.id ? { ...v, likes: likes !== undefined ? likes : v.likes, favorited } : v
-                        ));
-                    }}
-                  />
+            <div className="flex min-h-full items-center justify-center p-4 md:p-12">
+              <div className="relative w-full max-w-5xl bg-black rounded-2xl overflow-hidden shadow-2xl flex flex-col border border-white/10" onClick={(e) => e.stopPropagation()}>
+                <div className="relative aspect-video bg-black">
+                    <button 
+                      onClick={() => setSelectedVideo(null)}
+                      className="absolute top-4 right-4 z-10 p-3 bg-black/50 hover:bg-red-500/80 text-white rounded-full backdrop-blur-md border border-white/10 transition-all hover:rotate-90 shadow-lg"
+                      title={t('common.close_video')}
+                    >
+                      <X size={24} />
+                    </button>
+                    <video 
+                      src={selectedVideo.video} 
+                      controls 
+                      autoPlay 
+                      className="w-full h-full"
+                      ref={(el) => {
+                          if(el) {
+                              el.playbackRate = 1.0; // Default speed
+                          }
+                      }}
+                    />
+                </div>
+                
+                <div className="p-6 bg-[#111] border-t border-white/10 flex justify-between items-center">
+                    <div>
+                        <h3 className="text-2xl font-bold text-white mb-1">{selectedVideo.title}</h3>
+                        <p className="text-gray-400 text-sm">{new Date(selectedVideo.created_at || Date.now()).toLocaleDateString()}</p>
+                    </div>
+                    <FavoriteButton 
+                      itemId={selectedVideo.id}
+                      itemType="video"
+                      size={24}
+                      showCount={true}
+                      count={selectedVideo.likes || 0}
+                      favorited={selectedVideo.favorited}
+                      className="p-3 bg-white/5 hover:bg-pink-500/20 rounded-full transition-colors border border-white/10"
+                      onToggle={(favorited, likes) => {
+                          // Update selected video state
+                          setSelectedVideo(prev => ({ ...prev, likes: likes !== undefined ? likes : prev.likes, favorited }));
+                          // Update list state
+                          setVideos(prev => prev.map(v => 
+                              v.id === selectedVideo.id ? { ...v, likes: likes !== undefined ? likes : v.likes, favorited } : v
+                          ));
+                      }}
+                    />
+                </div>
               </div>
             </div>
           </motion.div>

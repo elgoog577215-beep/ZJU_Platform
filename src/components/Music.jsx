@@ -388,7 +388,7 @@ const Music = () => {
                   <AlertCircle size={48} className="text-red-400 mb-4 opacity-50 mx-auto" />
                   <p className="text-gray-300 mb-6">{t('common.error_fetching_data') || 'Failed to load music'}</p>
                   <button 
-                    onClick={() => setRefreshKey(prev => prev + 1)}
+                    onClick={refresh}
                     className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all border border-white/10"
                   >
                     {t('common.retry') || 'Retry'}

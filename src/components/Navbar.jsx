@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher';
 import { useSettings } from '../context/SettingsContext';
 import { useAuth } from '../context/AuthContext';
+import { useBackClose } from '../hooks/useBackClose';
 import AuthModal from './AuthModal';
 import axios from 'axios';
 import { themeConfig } from '../data/themeConfig';
@@ -177,8 +178,12 @@ const Navbar = () => {
       transition={{ duration: 0.8 }}
       className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 backdrop-blur-md bg-black/30 border-b border-white/10"
     >
-      <Link to="/" className="flex items-center gap-2 text-white group z-50">
-        <img src="/logo.png" alt="TUOTU ZHEXIANG" className="h-10 w-auto object-contain" />
+      <Link to="/" className="flex items-center gap-3 text-white group z-50">
+        <img src="/newlogo.png" alt="拓途浙享" className="h-10 w-auto object-contain" />
+        <div className="flex flex-col items-start leading-none">
+          <span className="text-xl font-bold tracking-[0.2em] text-white">拓途浙享</span>
+          <span className="text-[10px] tracking-[0.3em] text-gray-400 mt-1">TUOTU ZHEXIANG</span>
+        </div>
       </Link>
       
       {/* Desktop Menu */}

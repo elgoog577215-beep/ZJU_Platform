@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, MapPin, ArrowRight, X, Filter, Upload, Clock, CheckCircle, ExternalLink, Download, Globe, FileText, AlertCircle } from 'lucide-react';
+import { Calendar, MapPin, ArrowRight, X, Filter, Upload, Clock, CheckCircle, ExternalLink, Download, Globe, FileText, AlertCircle, Share2, Copy } from 'lucide-react';
 import UploadModal from './UploadModal';
 import FavoriteButton from './FavoriteButton';
 import { useTranslation } from 'react-i18next';
@@ -13,6 +13,7 @@ import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import Countdown from './Countdown';
 import SmartImage from './SmartImage';
+import { useBackClose } from '../hooks/useBackClose';
 
 import { useSearchParams } from 'react-router-dom';
 
@@ -31,6 +32,9 @@ const Events = () => {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [sort, setSort] = useState('newest');
   const [lifecycle, setLifecycle] = useState('all');
+
+  useBackClose(selectedEvent !== null, () => setSelectedEvent(null));
+  useBackClose(isUploadOpen, () => setIsUploadOpen(false));
   
   // Deep linking
   useEffect(() => {
@@ -145,6 +149,42 @@ END:VCALENDAR`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+  };
+
+  const handleCopyLocation = () => {
+    if (selectedEvent && selectedEvent.location) {
+        navigator.clipboard.writeText(selectedEvent.location)
+            .then(() => toast.success(t('common.copied_to_clipboard') || 'Address copied!'))
+            .catch(() => toast.error('Failed to copy address'));
+    }
+  };
+
+  const handleShare = async () => {
+    if (!selectedEvent) return;
+    const shareData = {
+        title: selectedEvent.title,
+        text: `${selectedEvent.title}\n${selectedEvent.date}\n${selectedEvent.location}\n\n${selectedEvent.description}`,
+        url: window.location.href
+    };
+
+    if (navigator.share) {
+        try {
+            await navigator.share(shareData);
+        } catch (err) {
+            console.error('Error sharing:', err);
+        }
+    } else {
+        // Fallback to copy
+        handleCopyInfo();
+    }
+  };
+
+  const handleCopyInfo = () => {
+      if (!selectedEvent) return;
+      const info = `${selectedEvent.title}\n${selectedEvent.date}\n${selectedEvent.location}\n\n${selectedEvent.description}`;
+      navigator.clipboard.writeText(info)
+        .then(() => toast.success(t('common.copied_to_clipboard') || 'Event details copied!'))
+        .catch(() => toast.error('Failed to copy info'));
   };
 
   const addEvent = (newItem) => {
@@ -263,13 +303,13 @@ END:VCALENDAR`;
             <AlertCircle size={48} className="text-red-400 mb-4 opacity-50 mx-auto" />
             <p className="text-gray-300 mb-6">{t('common.error_fetching_data') || 'Failed to load events'}</p>
             <button 
-              onClick={() => setRefreshKey(prev => prev + 1)}
+              onClick={refresh}
               className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all border border-white/10"
             >
               Retry
             </button>
           </div>
-        ) : loading ? (
+        ) : loading && events.length === 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto">
            {[1,2,3].map(i => (
                <div key={i} className="bg-white/5 rounded-3xl h-64 md:h-96 animate-pulse" />
@@ -481,86 +521,68 @@ END:VCALENDAR`;
                              />
                          </div>
 
-                         {/* Map Integration (Mock) */}
-                         {selectedEvent.location && (
-                             <div className="bg-white/5 rounded-2xl p-6 border border-white/5">
-                                 <h4 className="font-bold text-white mb-4 flex items-center gap-2">
-                                     <MapPin size={18} className="text-indigo-400" /> Location
-                                 </h4>
-                                 <p className="text-gray-400 mb-4">{selectedEvent.location}</p>
-                                 <a 
-                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedEvent.location)}`}
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="text-indigo-400 hover:text-indigo-300 text-sm font-bold flex items-center gap-1"
-                                 >
-                                     View on Google Maps <ExternalLink size={12} />
-                                 </a>
-                             </div>
-                         )}
-                     </div>
-
-                     {/* Sidebar Actions */}
-                     <div className="w-full lg:w-80 space-y-6">
-                         <div className="bg-white/5 rounded-2xl p-6 border border-white/5 sticky top-8">
-                             <h4 className="font-bold text-white mb-6">Action Center</h4>
-                             
-                             <div className="space-y-4">
-                                {selectedEvent.link ? (
-                                    <a 
-                                        href={selectedEvent.link} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
-                                        className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all shadow-xl shadow-indigo-500/20 flex items-center justify-center gap-2 group"
-                                    >
-                                        <ExternalLink size={20} className="group-hover:rotate-45 transition-transform" /> 
-                                        Visit Event Link
-                                    </a>
-                                ) : (
-                                    (getEventLifecycle(selectedEvent.date) === t('events.status.upcoming') || getEventLifecycle(selectedEvent.date) === t('events.status.ongoing')) && (
-                                        <button 
-                                            onClick={handleRegister}
-                                            disabled={registering}
-                                            className={`w-full py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
-                                                isRegistered 
-                                                ? 'bg-green-500/20 text-green-400 border border-green-500/20' 
-                                                : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-xl shadow-indigo-500/20'
-                                            }`}
-                                        >
-                                            {registering ? <Clock className="animate-spin" size={20} /> : (isRegistered ? <CheckCircle size={20} /> : <ArrowRight size={20} />)}
-                                            {isRegistered ? t('events.registered') : t('events.register')}
-                                        </button>
-                                    )
-                                )}
-
-                                <div className="grid grid-cols-2 gap-3 pt-4 border-t border-white/10">
-                                    <button 
-                                        onClick={addToGoogleCalendar}
-                                        className="flex flex-col items-center justify-center gap-2 p-3 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-colors text-xs font-medium"
-                                    >
-                                        <Calendar size={20} />
-                                        Google Cal
-                                    </button>
-                                    <button 
-                                        onClick={downloadICS}
-                                        className="flex-col items-center justify-center gap-2 p-3 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-colors text-xs font-medium flex"
-                                    >
-                                        <Download size={20} />
-                                        Save .ICS
-                                    </button>
+                         {/* Simple Location & Time Display (Text Only) */}
+                         <div className="bg-white/5 rounded-2xl p-6 border border-white/5 space-y-4">
+                             {selectedEvent.location && (
+                                <div className="flex items-start gap-3">
+                                    <MapPin size={20} className="text-indigo-400 shrink-0 mt-1" />
+                                    <div>
+                                        <h4 className="font-bold text-white text-sm uppercase tracking-wider mb-1">Location</h4>
+                                        <p className="text-gray-300">{selectedEvent.location}</p>
+                                    </div>
                                 </div>
-                                
-                                <button 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setSelectedEvent(null);
-                                    }}
-                                    className="w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl text-white transition-colors text-sm font-medium"
-                                >
-                                    Close
-                                </button>
+                             )}
+                             
+                             <div className="flex items-start gap-3">
+                                <Calendar size={20} className="text-indigo-400 shrink-0 mt-1" />
+                                <div>
+                                    <h4 className="font-bold text-white text-sm uppercase tracking-wider mb-1">Date</h4>
+                                    <p className="text-gray-300">{selectedEvent.date}</p>
+                                </div>
                              </div>
                          </div>
+                     </div>
+
+                     {/* Sidebar - Registration */}
+                     <div className="lg:w-1/3 space-y-6">
+                        <div className="bg-white/5 rounded-2xl p-6 border border-white/5 sticky top-8">
+                            <h3 className="text-xl font-bold text-white mb-6">Registration</h3>
+                            
+                            <button
+                                onClick={handleRegister}
+                                disabled={registering}
+                                className={`w-full py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 ${
+                                    isRegistered 
+                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' 
+                                    : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20'
+                                }`}
+                            >
+                                {registering ? (
+                                    <span className="animate-pulse">Processing...</span>
+                                ) : isRegistered ? (
+                                    <>
+                                        <CheckCircle size={20} />
+                                        Signed Up
+                                    </>
+                                ) : (
+                                    <>
+                                        Sign Up Now
+                                    </>
+                                )}
+                            </button>
+                            
+                            {isRegistered && (
+                                <p className="text-emerald-400/80 text-sm text-center mt-4">
+                                    You are successfully registered for this event.
+                                </p>
+                            )}
+
+                            {!isRegistered && (
+                                <p className="text-gray-500 text-sm text-center mt-4">
+                                    Limited spots available.
+                                </p>
+                            )}
+                        </div>
                      </div>
                  </div>
               </div>

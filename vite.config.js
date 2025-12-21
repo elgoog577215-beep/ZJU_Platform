@@ -17,10 +17,10 @@ export default defineConfig({
       devOptions: {
         enabled: true
       },
-      includeAssets: ['pwa-icon.svg'],
+      includeAssets: ['newlogo.png'],
       manifest: {
-        name: 'Lumos Portfolio',
-        short_name: 'Lumos',
+        name: '拓途浙享',
+        short_name: '拓途浙享',
         description: 'A futuristic portfolio website with immersive interactions.',
         theme_color: '#0a0a0a',
         background_color: '#0a0a0a',
@@ -92,6 +92,7 @@ export default defineConfig({
     }
   },
   server: {
+    host: true, // Allow external access
     proxy: {
       '/api': {
         target: 'http://localhost:3001',

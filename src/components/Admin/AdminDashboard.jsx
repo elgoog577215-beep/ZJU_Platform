@@ -30,8 +30,8 @@ const AdminDashboard = () => {
   const [password, setPassword] = useState('');
 
   useEffect(() => {
-    const auth = sessionStorage.getItem('admin_auth');
-    const token = sessionStorage.getItem('token');
+    const auth = localStorage.getItem('admin_auth');
+    const token = localStorage.getItem('token');
     if (auth === 'true' && token) {
       setIsAuthenticated(true);
     }
@@ -44,9 +44,9 @@ const AdminDashboard = () => {
       const res = await api.post('/auth/admin-login', { password });
       
       // Store token for API requests
-      sessionStorage.setItem('token', res.data.token);
+      localStorage.setItem('token', res.data.token);
       // Store auth state for UI persistence
-      sessionStorage.setItem('admin_auth', 'true');
+      localStorage.setItem('admin_auth', 'true');
       
       setIsAuthenticated(true);
       toast.success(t('admin.login.welcome_back'));
@@ -58,9 +58,9 @@ const AdminDashboard = () => {
 
   const handleLogout = () => {
     setIsAuthenticated(false);
-    sessionStorage.removeItem('admin_auth');
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('user');
+    localStorage.removeItem('admin_auth');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     toast.success(t('admin.login.logged_out'));
   };
 

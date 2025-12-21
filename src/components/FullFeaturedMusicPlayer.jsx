@@ -22,6 +22,7 @@ const FullFeaturedMusicPlayer = ({ tracks = [] }) => {
   const [volume, setVolume] = useState(0.5);
   const [isMuted, setIsMuted] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
   const speedOptions = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
 
@@ -97,10 +98,76 @@ const FullFeaturedMusicPlayer = ({ tracks = [] }) => {
       {/* Player Section - Fixed Height or Flex */}
       <div className="p-6 relative overflow-hidden flex-shrink-0">
          {/* Background Blur */}
-         <div className="absolute inset-0 bg-white/5 backdrop-blur-3xl z-0" 
+         <div 
+            className="absolute inset-0 bg-white/5 backdrop-blur-3xl z-0 cursor-pointer md:cursor-default" 
             style={{ backgroundImage: `url(${displayTrack.cover})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+            onClick={() => {
+                if (window.innerWidth < 768) {
+                    setIsFullScreen(true);
+                }
+            }}
           />
          <div className="absolute inset-0 bg-black/60 z-0" />
+
+         {/* Full Screen Mobile Player Overlay */}
+         {isFullScreen && (
+            <motion.div 
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex flex-col p-8 md:hidden"
+            >
+                <div className="flex justify-end mb-8">
+                    <button onClick={() => setIsFullScreen(false)} className="text-white/50 p-2">
+                        <VolumeX className="rotate-45" size={32} />
+                    </button>
+                </div>
+                
+                <div className="flex-1 flex flex-col items-center justify-center gap-8">
+                    <div className="w-64 h-64 rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+                        <SmartImage 
+                            src={displayTrack.cover} 
+                            type="music" 
+                            className="w-full h-full" 
+                            imageClassName="w-full h-full object-cover" 
+                        />
+                    </div>
+                    <div className="text-center">
+                        <h3 className="text-2xl font-bold text-white mb-2">{displayTrack.title}</h3>
+                        <p className="text-lg text-gray-400">{displayTrack.artist}</p>
+                    </div>
+                </div>
+
+                {/* Controls in Full Screen */}
+                <div className="mb-12">
+                     <div className="flex items-center justify-between text-xs font-mono text-gray-400 mb-4">
+                        <span>{formatTime(progress)}</span>
+                        <div className="flex-1 mx-4 h-1 bg-white/10 rounded-full">
+                            <div 
+                                className="h-full bg-cyan-500 rounded-full relative" 
+                                style={{ width: `${(progress / (audioRef.current?.duration || 100)) * 100}%` }}
+                            />
+                        </div>
+                        <span>{formatTime(audioRef.current?.duration || 0)}</span>
+                    </div>
+
+                    <div className="flex items-center justify-center gap-8">
+                        <button onClick={prevTrack} className="text-white hover:text-cyan-400 transition-colors">
+                            <SkipBack size={32} />
+                        </button>
+                        <button 
+                            onClick={togglePlay}
+                            className="w-20 h-20 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center text-white shadow-lg hover:scale-105 transition-all"
+                        >
+                            {isPlaying ? <Pause size={32} fill="currentColor" /> : <Play size={32} fill="currentColor" className="ml-1" />}
+                        </button>
+                        <button onClick={nextTrack} className="text-white hover:text-cyan-400 transition-colors">
+                            <SkipForward size={32} />
+                        </button>
+                    </div>
+                </div>
+            </motion.div>
+         )}
 
          <div className="relative z-10 flex flex-col items-center pt-4">
             {/* Favorite Button - Absolute Top Right */}
