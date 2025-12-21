@@ -1,23 +1,4 @@
 {
-  "common": {
-    "search": "搜索...",
-    "link_copied": "链接已复制到剪贴板！",
-    "loading": "加载中",
-    "uploading": "上传中",
-    "cancel": "取消",
-    "event": "活动",
-    "article": "文章",
-    "previous_track": "上一首",
-    "next_track": "下一首",
-    "pause": "暂停",
-    "play": "播放",
-    "playback_speed": "播放速度",
-    "speed": "倍速",
-    "unmute": "取消静音",
-    "mute": "静音",
-    "like": "喜欢",
-    "upload_track": "上传音乐"
-  },
   "auth": {
     "welcome_back": "欢迎回来",
     "join_lumos": "加入 Lumos",
@@ -98,6 +79,7 @@
       "nickname": "昵称",
       "gender": "性别",
       "age": "年龄",
+      "invite_code_label": "邀请码",
       "organization": "组织名称",
       "org_placeholder": "请输入组织名称",
       "invite_code_hint": "邀请码 (修改组织需填写)",
@@ -191,20 +173,17 @@
     "by_trae": "由 Trae"
   },
   "home": {
-    "meta_title": "主页",
-    "meta_desc": "探索最新的照片、音乐、视频和文章。",
-    "featured_premiere": "精选首映",
-    "cinematic_journey": "电影之旅",
-    "now_playing": "正在播放",
-    "visual_gallery": "视觉画廊",
+    "meta_title": "TUOTU ZHEXIANG",
+    "meta_desc": "探索数字艺术与科技的边界",
+    "featured_event": "精选活动",
     "selected_works": "精选作品",
-    "latest_articles": "最新文章",
+    "view_details": "查看详情",
     "categories": {
-      "events_desc": "探索最新的研讨会、展览和聚会。",
-      "gallery_desc": "浏览捕捉光影与情感的精选摄影作品。",
-      "music_desc": "沉浸在我们精选的音频旅程和声景中。",
-      "videos_desc": "体验挑战界限的电影叙事和视觉艺术。",
-      "articles_desc": "深入阅读关于创意、技术和文化的深度文章。"
+      "events_desc": "加入我们的最新活动与研讨会",
+      "gallery_desc": "探索我们的数字艺术作品集",
+      "music_desc": "聆听我们的原创音乐作品",
+      "videos_desc": "观看我们的精选视频内容",
+      "articles_desc": "阅读关于技术与艺术的深度文章"
     }
   },
   "weather": {
@@ -219,7 +198,11 @@
   "common": {
     "error_fetching_data": "获取数据失败",
     "explore": "探索",
+    "uncategorized": "未分类",
+    "unknown_artist": "未知艺术家",
+    "popular_tags": "常用标签",
     "upload": "上传",
+    "verify": "验证",
     "upload_now": "立即上传",
     "title": "标题",
     "description": "描述",
@@ -266,7 +249,10 @@
     "uploading": "上传中",
     "cancel": "取消",
     "event": "活动",
-    "article": "文章"
+    "article": "文章",
+    "photo": "照片",
+    "game": "游戏",
+    "music": "音乐"
   },
   "gallery": {
     "title": "光影画廊",
@@ -322,7 +308,7 @@
   },
   "music": {
     "title": "声景",
-    "subtitle": "深度工作与放松的精选歌单。",
+    "subtitle": "精选歌单",
     "no_tracks": "暂无音乐，上传一些音乐吧！",
     "select_track": "选择一首曲目",
     "to_start": "开始聆听"
@@ -533,6 +519,10 @@
     "general_settings": "常规设置",
     "loading_settings": "正在加载设置...",
     "site_name_label": "网站名称",
+    "appearance_settings": "外观设置",
+    "logo_label": "网站 Logo URL",
+    "logo_desc": "输入 Logo 图片的 URL 或上传新图片。",
+    "upload_logo": "上传 Logo",
     "save_btn": "保存",
     "file_manager_ui": {
       "explorer": "资源管理器",
@@ -617,6 +607,32 @@
       "start_btn": "开始同步",
       "crawling": "抓取中..."
     },
+    "upload": {
+      "title_required": "请输入标题",
+      "file_required": "请选择要上传的文件",
+      "invalid_file_type": "无效的文件类型。请上传 {{type}}",
+      "upload_success": "上传成功！",
+      "update_success": "更新成功！",
+      "upload_failed": "上传失败，请重试。",
+      "drop_file": "拖放文件到此处",
+      "drag_drop_browse": "拖放或点击浏览",
+      "click_drag_replace": "点击或拖拽替换",
+      "replace": "替换",
+      "drop_image": "拖放图片",
+      "game_type": "游戏类型",
+      "game_desc": "游戏描述",
+      "game_desc_placeholder": "简短的游戏描述...",
+      "tags": "标签",
+      "tags_placeholder": "输入标签...",
+      "title_placeholder": "输入标题...",
+      "location_placeholder": "例如：线上，市政厅...",
+      "event_link": "活动链接 (外部)",
+      "artist_placeholder": "艺术家名称...",
+      "summary": "摘要",
+      "desc_placeholder": "简短描述或摘要...",
+      "detailed_content": "详细内容 (支持 HTML)",
+      "content_placeholder": "<p>在此输入详细内容...</p>"
+    },
     "database": {
       "title": "数据库管理",
       "backup_title": "备份数据库",
@@ -686,31 +702,48 @@
   },
   "themes": {
     "space": { "name": "深空", "desc": "星云" },
-    "water": { "name": "宁静水域", "desc": "海浪" },
-    "matrix": { "name": "霓虹矩阵", "desc": "数字雨" },
     "grid": { "name": "复古网格", "desc": "合成波" },
-    "aurora": { "name": "极光", "desc": "北极光" },
     "embers": { "name": "火焰余烬", "desc": "飞溅火花" },
     "crystal": { "name": "水晶洞穴", "desc": "折射" },
-    "quantum": { "name": "量子场", "desc": "能量流" },
     "clouds": { "name": "飘渺云层", "desc": "柔和天空" },
-    "tunnel": { "name": "超空间隧道", "desc": "曲速" },
-    "elegance": { "name": "优雅", "desc": "科技黑色" },
     "cyber": { "name": "赛博电路", "desc": "主机" },
     "dna": { "name": "数字 DNA", "desc": "生命代码" },
     "binary": { "name": "二进制流", "desc": "数据流" },
     "network": { "name": "网络节点", "desc": "连接" },
-    "holo": { "name": "全息表面", "desc": "虚拟平面" },
     "wave": { "name": "粒子波", "desc": "振荡" },
-    "hex": { "name": "六边形场", "desc": "蜂巢思维" },
-    "sonar": { "name": "声纳脉冲", "desc": "探测" },
-    "orbit": { "name": "轨道环", "desc": "引力" },
-    "scanner": { "name": "虚空扫描", "desc": "搜索中" }
+    "orbit": { "name": "轨道环", "desc": "引力" }
   },
   "sort_filter": {
     "newest": "最新发布",
     "oldest": "最早发布",
     "likes": "最多喜欢",
     "title": "标题 A-Z"
+  },
+  "upload": {
+    "title_required": "请输入标题",
+    "file_required": "请选择要上传的文件",
+    "invalid_file_type": "无效的文件类型。请上传 {{type}}",
+    "upload_success": "上传成功！",
+    "update_success": "更新成功！",
+    "upload_failed": "上传失败，请重试。",
+    "drop_file": "拖放文件到此处",
+    "drag_drop_browse": "拖放或点击浏览",
+    "click_drag_replace": "点击或拖拽替换",
+    "replace": "替换",
+    "drop_image": "拖放图片",
+    "game_type": "游戏类型",
+    "game_desc": "游戏描述",
+    "game_desc_placeholder": "简短的游戏描述...",
+    "tags": "标签",
+    "tags_placeholder": "输入标签...",
+    "title_placeholder": "输入标题...",
+    "location_placeholder": "例如：线上，市政厅...",
+    "event_link": "活动链接 (外部)",
+    "artist_placeholder": "艺术家名称...",
+    "summary": "摘要",
+    "desc_placeholder": "简短描述或摘要...",
+    "description_placeholder": "简短描述或摘要...",
+    "detailed_content": "详细内容 (支持 HTML)",
+    "content_placeholder": "<p>在此输入详细内容...</p>"
   }
 }

@@ -85,7 +85,7 @@ const Videos = () => {
 
 
   return (
-    <section className="pt-36 pb-32 md:py-24 px-4 md:px-8 min-h-screen flex items-center justify-center relative z-10">
+    <section className="pt-24 pb-40 md:py-24 px-4 md:px-8 min-h-screen flex items-center justify-center relative z-10">
       <div className="max-w-7xl w-full mx-auto relative">
         <div className="absolute right-0 top-0 flex items-center gap-4 z-20">
              <button
@@ -102,9 +102,9 @@ const Videos = () => {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="mb-12 text-center"
+          className="mb-8 md:mb-12 text-center"
         >
-          <h2 className="text-4xl md:text-6xl font-bold font-serif mb-4">{t('videos.title')}</h2>
+          <h2 className="text-4xl md:text-5xl font-bold font-serif mb-4 md:mb-6">{t('videos.title')}</h2>
           <p className="text-gray-400 max-w-xl mx-auto">{t('videos.subtitle')}</p>
         </motion.div>
 

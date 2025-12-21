@@ -33,7 +33,7 @@ const categories = [
     id: 'videos',
     path: '/videos',
     icon: Film,
-    image: 'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=800&auto=format&fit=crop&q=80',
+    image: 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=800&auto=format&fit=crop&q=80',
     color: 'from-pink-500/80 to-rose-600/80',
     delay: 0.4
   },
@@ -125,7 +125,7 @@ const HomeCategories = () => {
         </motion.div>
 
         {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
           {categories.map((category) => (
             <CategoryCard key={category.id} item={category} />
           ))}

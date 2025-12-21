@@ -20,7 +20,6 @@ import MobileNavbar from './components/MobileNavbar';
 
 // Lazy load page components
 const Hero = lazy(() => import('./components/Hero'));
-const HomeFeed = lazy(() => import('./components/HomeFeed'));
 const Gallery = lazy(() => import('./components/Gallery'));
 const Music = lazy(() => import('./components/Music'));
 const Videos = lazy(() => import('./components/Videos'));
@@ -49,9 +48,14 @@ const Home = () => {
 
 const AppContent = () => {
   const location = useLocation();
-  const isAdmin = location.pathname.startsWith('/admin');
   const isAdminRoute = location.pathname.startsWith('/admin');
-  const { cursorEnabled } = useSettings();
+  const { cursorEnabled, settings } = useSettings();
+
+  React.useEffect(() => {
+    if (settings?.site_title) {
+      document.title = settings.site_title;
+    }
+  }, [settings?.site_title]);
 
   return (
     <>

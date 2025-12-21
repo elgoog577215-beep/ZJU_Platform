@@ -28,29 +28,45 @@ async function seed() {
       url TEXT,
       title TEXT,
       category TEXT,
+      tags TEXT,
       size TEXT,
       gameType TEXT,
       gameDescription TEXT,
-      featured BOOLEAN DEFAULT 0
+      featured BOOLEAN DEFAULT 0,
+      likes INTEGER DEFAULT 0,
+      status TEXT DEFAULT 'approved',
+      uploader_id INTEGER,
+      deleted_at DATETIME
     );
 
     CREATE TABLE music (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT,
       artist TEXT,
-      duration TEXT,
+      duration INTEGER,
       cover TEXT,
       audio TEXT,
-      featured BOOLEAN DEFAULT 0
+      category TEXT,
+      tags TEXT,
+      featured BOOLEAN DEFAULT 0,
+      likes INTEGER DEFAULT 0,
+      status TEXT DEFAULT 'approved',
+      uploader_id INTEGER,
+      deleted_at DATETIME
     );
 
     CREATE TABLE videos (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT,
       category TEXT,
+      tags TEXT,
       thumbnail TEXT,
       video TEXT,
-      featured BOOLEAN DEFAULT 0
+      featured BOOLEAN DEFAULT 0,
+      likes INTEGER DEFAULT 0,
+      status TEXT DEFAULT 'approved',
+      uploader_id INTEGER,
+      deleted_at DATETIME
     );
 
     CREATE TABLE articles (
@@ -59,9 +75,14 @@ async function seed() {
       date TEXT,
       excerpt TEXT,
       tag TEXT,
+      tags TEXT,
       content TEXT,
       cover TEXT,
-      featured BOOLEAN DEFAULT 0
+      featured BOOLEAN DEFAULT 0,
+      likes INTEGER DEFAULT 0,
+      status TEXT DEFAULT 'approved',
+      uploader_id INTEGER,
+      deleted_at DATETIME
     );
 
     CREATE TABLE events (
@@ -70,11 +91,15 @@ async function seed() {
       date TEXT,
       location TEXT,
       category TEXT,
+      tags TEXT,
       status TEXT,
       image TEXT,
       description TEXT,
       content TEXT,
-      featured BOOLEAN DEFAULT 0
+      link TEXT,
+      featured BOOLEAN DEFAULT 0,
+      likes INTEGER DEFAULT 0,
+      deleted_at DATETIME
     );
 
     CREATE TABLE event_categories (
@@ -93,510 +118,248 @@ async function seed() {
   // Photos
   const photos = [
     {
-      url: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&auto=format&fit=crop',
-      title: 'Neon City',
-      category: '赛博朋克',
-      size: '4MB',
-      gameType: '科幻',
-      gameDescription: 'A futuristic city bathed in neon lights.',
-      featured: true
+      id: 1,
+      url: "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=800&auto=format&fit=crop&q=60",
+      title: "山峰",
+      category: "Nature",
+      size: "large",
+      gameType: "skyfall",
+      gameDescription: "滑翔穿过山峰！避开障碍物。"
     },
     {
-      url: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&auto=format&fit=crop',
-      title: 'Virtual Reality',
-      category: '科技',
-      size: '3.2MB',
-      gameType: '模拟',
-      gameDescription: 'Immersive VR experience.',
-      featured: true
+      id: 2,
+      url: "https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?w=800&auto=format&fit=crop&q=60",
+      title: "霓虹城市",
+      category: "Urban",
+      size: "small",
+      gameType: "runner",
+      gameDescription: "在赛博城市中竞速！收集能量。"
     },
     {
-      url: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&auto=format&fit=crop',
-      title: 'Retro Gaming',
-      category: '复古',
-      size: '2.1MB',
-      gameType: '街机',
-      gameDescription: 'Classic arcade vibes.',
-      featured: true
+      id: 3,
+      url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=60",
+      title: "人像研究",
+      category: "Portrait",
+      size: "tall",
+      gameType: "puzzle",
+      gameDescription: "重组记忆。"
     },
     {
-      url: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&auto=format&fit=crop',
-      title: 'Live Concert',
-      category: '活动',
-      size: '5MB',
-      gameType: '现场',
-      gameDescription: 'Energy of the crowd.'
+      id: 4,
+      url: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800&auto=format&fit=crop&q=60",
+      title: "时装周",
+      category: "Fashion",
+      size: "small",
+      gameType: "shutter",
+      gameDescription: "捕捉完美的姿势！"
     },
     {
-      url: 'https://images.unsplash.com/photo-1519638399535-1b036603ac77?w=800&auto=format&fit=crop',
-      title: 'Anime Style',
-      category: '艺术',
-      size: '1.5MB',
-      gameType: '视觉小说',
-      gameDescription: 'Hand-drawn aesthetic.'
+      id: 5,
+      url: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&auto=format&fit=crop&q=60",
+      title: "优胜美地",
+      category: "Nature",
+      size: "wide",
+      gameType: "skyfall",
+      gameDescription: "驾驭山谷之风。"
     },
     {
-      url: 'https://images.unsplash.com/photo-1614728853913-1e22ba6e8a75?w=800&auto=format&fit=crop',
-      title: 'Space Exploration',
-      category: '科幻',
-      size: '6MB',
-      gameType: '冒险',
-      gameDescription: 'Journey to the stars.'
+      id: 6,
+      url: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&auto=format&fit=crop&q=60",
+      title: "相机镜头",
+      category: "Photography",
+      size: "small",
+      gameType: "shutter",
+      gameDescription: "快速对焦拍摄！"
     },
     {
-      url: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&auto=format&fit=crop',
-      title: 'Industrial Mech',
-      category: '赛博朋克',
-      size: '4.5MB',
-      gameType: '动作',
-      gameDescription: 'Heavy machinery and robotics.'
+      id: 7,
+      url: "https://images.unsplash.com/photo-1552168324-d612d77725e3?w=800&auto=format&fit=crop&q=60",
+      title: "街头生活",
+      category: "Urban",
+      size: "tall",
+      gameType: "runner",
+      gameDescription: "躲避城市交通。"
     },
     {
-      url: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&auto=format&fit=crop',
-      title: 'Cyber Security',
-      category: '科技',
-      size: '2.8MB',
-      gameType: '益智',
-      gameDescription: 'Hacking terminal interface.'
+      id: 8,
+      url: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&auto=format&fit=crop&q=60",
+      title: "迷雾森林",
+      category: "Nature",
+      size: "large",
+      gameType: "skyfall",
+      gameDescription: "在迷雾中漂移。"
     },
     {
-      url: 'https://images.unsplash.com/photo-1614332287897-cdc485fa562d?w=800&auto=format&fit=crop',
-      title: 'Coming Soon',
-      category: '预告',
-      size: '3.0MB',
-      gameType: '策略',
-      gameDescription: 'A glimpse into the future.'
+      id: 9,
+      url: "https://images.unsplash.com/photo-1551316679-9c6ae9dec224?w=800&auto=format&fit=crop&q=60",
+      title: "极简主义",
+      category: "Abstract",
+      size: "small",
+      gameType: "puzzle",
+      gameDescription: "寻找隐藏的模式。"
     },
     {
-      url: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=800&auto=format&fit=crop',
-      title: 'Abstract Flow',
-      category: '艺术',
-      size: '5.2MB',
-      gameType: '休闲',
-      gameDescription: 'Relaxing visual patterns.'
+      id: 10,
+      url: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=800&auto=format&fit=crop&q=60",
+      title: "高山湖泊",
+      category: "Nature",
+      size: "wide",
+      gameType: "skyfall",
+      gameDescription: "反思旅程。"
     },
     {
-      url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop',
-      title: 'Digital Waves',
-      category: '抽象',
-      size: '4.1MB',
-      gameType: '节奏',
-      gameDescription: 'Music-driven visuals.'
+      id: 11,
+      url: "https://images.unsplash.com/photo-1517849845537-4d257902454a?w=800&auto=format&fit=crop&q=60",
+      title: "忠诚伙伴",
+      category: "Portrait",
+      size: "small",
+      gameType: "puzzle",
+      gameDescription: "忠诚的朋友。"
     },
     {
-      url: 'https://images.unsplash.com/photo-1563089145-599997674d42?w=800&auto=format&fit=crop',
-      title: 'Neon Sign',
-      category: '赛博朋克',
-      size: '2.5MB',
-      gameType: '模拟',
-      gameDescription: 'City nightlife simulation.'
+      id: 12,
+      url: "https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=800&auto=format&fit=crop&q=60",
+      title: "雨夜",
+      category: "Urban",
+      size: "tall",
+      gameType: "runner",
+      gameDescription: "在雨中奔跑。"
     },
     {
-      url: 'https://images.unsplash.com/photo-1506318137071-a8bcbf670b27?w=800&auto=format&fit=crop',
-      title: 'Mountain Peak',
-      category: '自然',
-      size: '3.8MB',
-      gameType: '冒险',
-      gameDescription: 'Summit the highest peaks.'
+      id: 13,
+      url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&auto=format&fit=crop&q=60",
+      title: "海岸线",
+      category: "Nature",
+      size: "wide",
+      gameType: "skyfall",
+      gameDescription: "沿着海岸飞翔。"
     },
     {
-      url: 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800&auto=format&fit=crop',
-      title: 'Urban Jungle',
-      category: '建筑',
-      size: '4.2MB',
-      gameType: '模拟',
-      gameDescription: 'Navigate the concrete maze.'
+      id: 14,
+      url: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=800&auto=format&fit=crop&q=60",
+      title: "现代女性",
+      category: "Portrait",
+      size: "large",
+      gameType: "puzzle",
+      gameDescription: "拼凑面孔。"
     },
     {
-      url: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=800&auto=format&fit=crop',
-      title: 'Synthwave Sunset',
-      category: '复古',
-      size: '2.9MB',
-      gameType: '竞速',
-      gameDescription: 'Drive into the horizon.'
+      id: 15,
+      url: "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&auto=format&fit=crop&q=60",
+      title: "几何结构",
+      category: "Abstract",
+      size: "small",
+      gameType: "puzzle",
+      gameDescription: "解开几何谜题。"
     },
     {
-      url: 'https://images.unsplash.com/photo-1535378437323-9555f3747975?w=800&auto=format&fit=crop',
-      title: 'Deep Ocean',
-      category: '自然',
-      size: '3.5MB',
-      gameType: '生存',
-      gameDescription: 'Explore the abyss.'
+      id: 16,
+      url: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&auto=format&fit=crop&q=60",
+      title: "街头风格",
+      category: "Fashion",
+      size: "tall",
+      gameType: "shutter",
+      gameDescription: "捕捉时尚瞬间。"
     },
     {
-      url: 'https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?w=800&auto=format&fit=crop',
-      title: 'Cyber Samurai',
-      category: '角色',
-      size: '4.8MB',
-      gameType: '动作',
-      gameDescription: 'Warrior of the future.'
+      id: 17,
+      url: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=800&auto=format&fit=crop&q=60",
+      title: "流动的光",
+      category: "Abstract",
+      size: "wide",
+      gameType: "puzzle",
+      gameDescription: "连接光线。"
     },
     {
-      url: 'https://images.unsplash.com/photo-1515462277126-2dd0c162007a?w=800&auto=format&fit=crop',
-      title: 'Retro Console',
-      category: '游戏',
-      size: '2.3MB',
-      gameType: '历史',
-      gameDescription: 'The golden age of gaming.'
+      id: 18,
+      url: "https://images.unsplash.com/photo-1519638399535-1b036603ac77?w=800&auto=format&fit=crop&q=60",
+      title: "朋友",
+      category: "Portrait",
+      size: "small",
+      gameType: "puzzle",
+      gameDescription: "回忆美好时光。"
     },
     {
-      url: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&auto=format&fit=crop',
-      title: 'Data Stream',
-      category: '科技',
-      size: '3.1MB',
-      gameType: '益智',
-      gameDescription: 'Decode the matrix.'
+      id: 19,
+      url: "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800&auto=format&fit=crop&q=60",
+      title: "摩天大楼",
+      category: "Urban",
+      size: "large",
+      gameType: "runner",
+      gameDescription: "攀登高峰。"
     },
     {
-      url: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&auto=format&fit=crop',
-      title: 'Holographic UI',
-      category: '设计',
-      size: '2.7MB',
-      gameType: '科幻',
-      gameDescription: 'Interactive future interfaces.'
-    },
-    // More New Photos
-    {
-      url: 'https://images.unsplash.com/photo-1555680202-c86f0e12f086?w=800&auto=format&fit=crop',
-      title: 'Code Editor',
-      category: '科技',
-      size: '2.4MB',
-      gameType: '模拟',
-      gameDescription: 'The art of programming.'
+      id: 20,
+      url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&auto=format&fit=crop&q=60",
+      title: "静谧森林",
+      category: "Nature",
+      size: "tall",
+      gameType: "skyfall",
+      gameDescription: "在树林中穿梭。"
     },
     {
-      url: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&auto=format&fit=crop',
-      title: 'Streaming Setup',
-      category: '游戏',
-      size: '3.6MB',
-      gameType: '生活',
-      gameDescription: 'Broadcast yourself.'
+      id: 21,
+      url: "https://images.unsplash.com/photo-1558981806-ec527fa84c3d?w=800&auto=format&fit=crop&q=60",
+      title: "机车",
+      category: "Photography",
+      size: "small",
+      gameType: "shutter",
+      gameDescription: "捕捉速度。"
     },
     {
-      url: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&auto=format&fit=crop',
-      title: 'Orbit',
-      category: '科幻',
-      size: '5.5MB',
-      gameType: '策略',
-      gameDescription: 'Command the fleet.'
-    },
-    {
-      url: 'https://images.unsplash.com/photo-1523961131990-5ea7c61b2107?w=800&auto=format&fit=crop',
-      title: 'Drone Shot',
-      category: '科技',
-      size: '4.0MB',
-      gameType: '模拟',
-      gameDescription: 'Fly high above.'
-    },
-    {
-      url: 'https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85?w=800&auto=format&fit=crop',
-      title: 'Gold Circuit',
-      category: '抽象',
-      size: '3.3MB',
-      gameType: '益智',
-      gameDescription: 'Connect the nodes.'
-    },
-    {
-      url: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&auto=format&fit=crop',
-      title: 'Arcade Night',
-      category: '复古',
-      size: '2.8MB',
-      gameType: '街机',
-      gameDescription: 'High scores only.'
-    },
-    {
-      url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop',
-      title: 'Liquid Metal',
-      category: '抽象',
-      size: '4.7MB',
-      gameType: '艺术',
-      gameDescription: 'Fluid dynamics.'
-    },
-    {
-      url: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&auto=format&fit=crop',
-      title: 'Chipset',
-      category: '科技',
-      size: '3.9MB',
-      gameType: '模拟',
-      gameDescription: 'Build your PC.'
-    },
-    {
-      url: 'https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?w=800&auto=format&fit=crop',
-      title: 'Dark Moody',
-      category: '艺术',
-      size: '2.2MB',
-      gameType: '恐怖',
-      gameDescription: 'Survive the night.'
-    },
-    {
-      url: 'https://images.unsplash.com/photo-1592478411213-61535fdd861d?w=800&auto=format&fit=crop',
-      title: 'Character Design',
-      category: '角色',
-      size: '5.1MB',
-      gameType: '角色扮演',
-      gameDescription: 'Create your hero.'
+      id: 22,
+      url: "https://images.unsplash.com/photo-1542206391-78c48b40dd5f?w=800&auto=format&fit=crop&q=60",
+      title: "秋色",
+      category: "Nature",
+      size: "wide",
+      gameType: "skyfall",
+      gameDescription: "感受秋风。"
     }
   ];
 
   for (const photo of photos) {
     await db.run(
-      'INSERT INTO photos (url, title, category, size, gameType, gameDescription, featured) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [photo.url, photo.title, photo.category, photo.size, photo.gameType, photo.gameDescription, photo.featured ? 1 : 0]
+      'INSERT INTO photos (url, title, category, tags, size, gameType, gameDescription, featured) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [photo.url, photo.title, photo.category, photo.tags || '', photo.size, photo.gameType, photo.gameDescription, photo.featured ? 1 : 0]
     );
   }
 
   // Music
   const music = [
-    {
-      title: 'Cyberpunk City',
-      artist: 'Synthwave Boy',
-      duration: '3:45',
-      cover: 'https://images.unsplash.com/photo-1614726365723-49cfae927827?w=800&auto=format&fit=crop',
-      audio: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-      featured: true
-    },
-    {
-      title: 'Neon Dreams',
-      artist: 'Retro Future',
-      duration: '4:20',
-      cover: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=800&auto=format&fit=crop',
-      audio: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
-      featured: true
-    },
-    {
-      title: 'Digital Rain',
-      artist: 'Matrix Core',
-      duration: '3:15',
-      cover: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&auto=format&fit=crop',
-      audio: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
-      featured: true
-    },
-    {
-      title: 'Night Drive',
-      artist: 'Kavinsky Style',
-      duration: '5:10',
-      cover: 'https://images.unsplash.com/photo-1493225255756-d9584f8606e9?w=800&auto=format&fit=crop',
-      audio: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
-      featured: true
-    },
-    {
-      title: 'Glitch in the System',
-      artist: 'Error 404',
-      duration: '2:55',
-      cover: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&auto=format&fit=crop',
-      audio: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3',
-      featured: true
-    },
-    {
-      title: 'Future Bass',
-      artist: 'Bass Drop',
-      duration: '3:30',
-      cover: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&auto=format&fit=crop',
-      audio: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3'
-    },
-    {
-      title: 'Ambient Space',
-      artist: 'Star Gazer',
-      duration: '6:00',
-      cover: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=800&auto=format&fit=crop',
-      audio: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3'
-    },
-    {
-      title: 'Retro Arcade',
-      artist: '8-Bit Hero',
-      duration: '2:45',
-      cover: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&auto=format&fit=crop',
-      audio: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3'
-    },
-    {
-      title: 'Lo-Fi Study Beats',
-      artist: 'Chill Cow',
-      duration: '4:15',
-      cover: 'https://images.unsplash.com/photo-1516280440614-6697288d5d38?w=800&auto=format&fit=crop',
-      audio: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3'
-    },
-    {
-      title: 'Epic Orchestral',
-      artist: 'Hans Score',
-      duration: '5:30',
-      cover: 'https://images.unsplash.com/photo-1507838153414-b4b713384ebd?w=800&auto=format&fit=crop',
-      audio: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3'
-    },
-    {
-      title: 'Smooth Jazz',
-      artist: 'Sax Master',
-      duration: '3:50',
-      cover: 'https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=800&auto=format&fit=crop',
-      audio: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3'
-    },
-    {
-      title: 'Techno Bunker',
-      artist: 'Deep Bass',
-      duration: '6:45',
-      cover: 'https://images.unsplash.com/photo-1594623930572-300a3011d9ae?w=800&auto=format&fit=crop',
-      audio: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3'
-    },
-    {
-      title: 'Acoustic Morning',
-      artist: 'Guitar Guy',
-      duration: '3:10',
-      cover: 'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=800&auto=format&fit=crop',
-      audio: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3'
-    },
-    // More New Music
-    {
-      title: 'Midnight Run',
-      artist: 'Dark Synth',
-      duration: '4:05',
-      cover: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop',
-      audio: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3'
-    },
-    {
-      title: 'Piano Dreams',
-      artist: 'Melody Maker',
-      duration: '3:55',
-      cover: 'https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=800&auto=format&fit=crop',
-      audio: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3'
-    },
-    {
-      title: 'Heavy Metal',
-      artist: 'Iron Clad',
-      duration: '4:30',
-      cover: 'https://images.unsplash.com/photo-1511735111819-9a3f77ebd307?w=800&auto=format&fit=crop',
-      audio: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3'
-    },
-    {
-      title: 'Pop Hit',
-      artist: 'Star Singer',
-      duration: '3:20',
-      cover: 'https://images.unsplash.com/photo-1493225255756-d9584f8606e9?w=800&auto=format&fit=crop',
-      audio: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
-    },
-    {
-      title: 'Electric Groove',
-      artist: 'Funky Bot',
-      duration: '3:40',
-      cover: 'https://images.unsplash.com/photo-1459749411177-8c4750bb09d0?w=800&auto=format&fit=crop',
-      audio: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3'
-    },
-    {
-      title: 'Deep House',
-      artist: 'Club Mix',
-      duration: '5:15',
-      cover: 'https://images.unsplash.com/photo-1571330735066-03aaa9429d89?w=800&auto=format&fit=crop',
-      audio: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3'
-    }
+    { id: 1, title: "霓虹地平线", artist: "合成波少年", duration: 225, cover: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=1000&auto=format&fit=crop", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
+    { id: 2, title: "赛博之雨", artist: "数字梦境", duration: 260, cover: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=1000&auto=format&fit=crop", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" },
+    { id: 3, title: "午夜城市", artist: "守夜人", duration: 192, cover: "https://images.unsplash.com/photo-1515630278258-407f66498911?q=80&w=1000&auto=format&fit=crop", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" },
+    { id: 4, title: "星际航行", artist: "太空学员", duration: 305, cover: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=1000&auto=format&fit=crop", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3" },
+    { id: 5, title: "复古驾驶", artist: "激光网格", duration: 210, cover: "https://images.unsplash.com/photo-1535131749006-b7f58c99034b?q=80&w=1000&auto=format&fit=crop", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3" },
+    { id: 6, title: "梦境", artist: "空灵思维", duration: 245, cover: "https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?q=80&w=1000&auto=format&fit=crop", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3" },
+    { id: 7, title: "深海信号", artist: "声纳", duration: 300, cover: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1000&auto=format&fit=crop", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3" },
+    { id: 8, title: "量子跃迁", artist: "光速", duration: 180, cover: "https://images.unsplash.com/photo-1506318137071-a8bcbf670b27?q=80&w=1000&auto=format&fit=crop", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" },
+    { id: 9, title: "机械心跳", artist: "机器人", duration: 240, cover: "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1000&auto=format&fit=crop", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3" },
+    { id: 10, title: "失落的频率", artist: "电波", duration: 215, cover: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1000&auto=format&fit=crop", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3" },
+    { id: 11, title: "虚拟日落", artist: "像素", duration: 270, cover: "https://images.unsplash.com/photo-1495615080073-6b89c98beddb?q=80&w=1000&auto=format&fit=crop", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3" },
+    { id: 12, title: "引力波", artist: "黑洞", duration: 290, cover: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=1000&auto=format&fit=crop", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3" }
   ];
 
   for (const track of music) {
     await db.run(
-      'INSERT INTO music (title, artist, duration, cover, audio, featured) VALUES (?, ?, ?, ?, ?, ?)',
-      [track.title, track.artist, track.duration, track.cover, track.audio, track.featured ? 1 : 0]
+      'INSERT INTO music (title, artist, duration, cover, audio, category, tags, featured) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [track.title, track.artist, track.duration, track.cover, track.audio, 'music', track.tags || '', track.featured ? 1 : 0]
     );
   }
 
   // Videos
   const videos = [
-    {
-      title: 'Cyberpunk 2077 Gameplay',
-      category: '游戏',
-      thumbnail: 'https://images.unsplash.com/photo-1605901309584-818e25960b8f?w=800&auto=format&fit=crop',
-      video: 'https://media.w3.org/2010/05/sintel/trailer.mp4',
-      featured: true
-    },
-    {
-      title: 'Future Tech Showcase',
-      category: '科技',
-      thumbnail: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&auto=format&fit=crop',
-      video: 'https://media.w3.org/2010/05/bunny/trailer.mp4',
-      featured: true
-    },
-    {
-      title: 'Digital Art Tutorial',
-      category: '艺术',
-      thumbnail: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop',
-      video: 'https://media.w3.org/2010/05/sintel/trailer.mp4',
-      featured: true
-    },
-    {
-      title: 'Synthwave Visualizer',
-      category: '音乐',
-      thumbnail: 'https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?w=800&auto=format&fit=crop',
-      video: 'https://media.w3.org/2010/05/bunny/trailer.mp4'
-    },
-    {
-      title: 'VR Experience Demo',
-      category: '科技',
-      thumbnail: 'https://images.unsplash.com/photo-1622979135225-d2ba269fb1bd?w=800&auto=format&fit=crop',
-      video: 'https://media.w3.org/2010/05/sintel/trailer.mp4'
-    },
-    {
-      title: 'Indie Game Trailer',
-      category: '游戏',
-      thumbnail: 'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=800&auto=format&fit=crop',
-      video: 'https://media.w3.org/2010/05/bunny/trailer.mp4'
-    },
-    {
-      title: 'Nature Documentary',
-      category: '自然',
-      thumbnail: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&auto=format&fit=crop',
-      video: 'https://media.w3.org/2010/05/sintel/trailer.mp4'
-    },
-    {
-      title: 'Space Launch',
-      category: '科幻',
-      thumbnail: 'https://images.unsplash.com/photo-1517976487492-5750f3195933?w=800&auto=format&fit=crop',
-      video: 'https://media.w3.org/2010/05/bunny/trailer.mp4'
-    },
-    {
-      title: 'Cooking Masterclass',
-      category: '生活',
-      thumbnail: 'https://images.unsplash.com/photo-1556910103-1c02745a30bf?w=800&auto=format&fit=crop',
-      video: 'https://media.w3.org/2010/05/sintel/trailer.mp4'
-    },
-    {
-      title: 'Animated Short Film',
-      category: '动画',
-      thumbnail: 'https://images.unsplash.com/photo-1626544827763-d516dce335ca?w=800&auto=format&fit=crop',
-      video: 'https://media.w3.org/2010/05/bunny/trailer.mp4'
-    },
-    // More New Videos
-    {
-      title: 'Travel Vlog: Tokyo',
-      category: '生活',
-      thumbnail: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=800&auto=format&fit=crop',
-      video: 'https://media.w3.org/2010/05/sintel/trailer.mp4'
-    },
-    {
-      title: 'Speed Painting',
-      category: '艺术',
-      thumbnail: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&auto=format&fit=crop',
-      video: 'https://media.w3.org/2010/05/bunny/trailer.mp4'
-    },
-    {
-      title: 'Esports Finals',
-      category: '游戏',
-      thumbnail: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&auto=format&fit=crop',
-      video: 'https://media.w3.org/2010/05/sintel/trailer.mp4'
-    },
-    {
-      title: 'Product Unboxing',
-      category: '科技',
-      thumbnail: 'https://images.unsplash.com/photo-1526406915894-7bcd65f60845?w=800&auto=format&fit=crop',
-      video: 'https://media.w3.org/2010/05/bunny/trailer.mp4'
-    },
-    {
-      title: 'Yoga Routine',
-      category: '生活',
-      thumbnail: 'https://images.unsplash.com/photo-1544367563-12123d8965cd?w=800&auto=format&fit=crop',
-      video: 'https://media.w3.org/2010/05/sintel/trailer.mp4'
-    },
-    {
-      title: 'Wildlife Photography',
-      category: '自然',
-      thumbnail: 'https://images.unsplash.com/photo-1472396961693-142e6e596e35?w=800&auto=format&fit=crop',
-      video: 'https://media.w3.org/2010/05/bunny/trailer.mp4'
-    }
+    { id: 1, title: "虚空", category: "动画", thumbnail: "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4" },
+    { id: 2, title: "数字灵魂", category: "短片", thumbnail: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4" },
+    { id: 3, title: "霓虹之夜", category: "音乐视频", thumbnail: "https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_1MB.mp4" },
+    { id: 4, title: "赛博城市", category: "作品集锦", thumbnail: "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4" },
+    { id: 5, title: "抽象流动", category: "实验", thumbnail: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4" },
+    { id: 6, title: "未来科技", category: "纪录片", thumbnail: "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_1MB.mp4" },
+    { id: 7, title: "深空探索", category: "纪录片", thumbnail: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4" },
+    { id: 8, title: "粒子风暴", category: "实验", thumbnail: "https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4" },
+    { id: 9, title: "城市节奏", category: "短片", thumbnail: "https://images.unsplash.com/photo-1495615080073-6b89c98beddb?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_1MB.mp4" },
+    { id: 10, title: "虚拟现实", category: "动画", thumbnail: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4" },
+    { id: 11, title: "海洋之心", category: "纪录片", thumbnail: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4" }
   ];
 
   for (const video of videos) {
@@ -608,262 +371,255 @@ async function seed() {
 
   // Articles
   const articles = [
-    {
-      title: 'The Future of Digital Art',
-      date: '2023-10-15',
-      excerpt: 'Exploring how AI and VR are reshaping the creative landscape.',
-      tag: '科技',
-      content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-      cover: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&auto=format&fit=crop',
-      featured: true
-    },
-    {
-      title: 'Cyberpunk Aesthetics in 2024',
-      date: '2023-11-02',
-      excerpt: 'Why the neon-soaked dystopian look is making a comeback.',
-      tag: '设计',
-      content: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-      cover: 'https://images.unsplash.com/photo-1515630278258-407f66498911?w=800&auto=format&fit=crop',
-      featured: true
-    },
-    {
-      title: 'Top 10 Synthwave Tracks',
-      date: '2023-11-20',
-      excerpt: 'A curated list of the best retro-futuristic beats.',
-      tag: '音乐',
-      content: 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
-      cover: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&auto=format&fit=crop'
-    },
-    {
-      title: 'Coding for the Metaverse',
-      date: '2023-12-05',
-      excerpt: 'Essential skills for building the next generation of the internet.',
-      tag: '编程',
-      content: 'Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-      cover: 'https://images.unsplash.com/photo-1555680202-c86f0e12f086?w=800&auto=format&fit=crop'
-    },
-    {
-      title: 'Game Design Principles',
-      date: '2024-01-10',
-      excerpt: 'Creating immersive worlds and engaging gameplay loops.',
-      tag: '游戏',
-      content: 'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.',
-      cover: 'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=800&auto=format&fit=crop'
-    },
-    {
-      title: 'The Rise of Virtual Events',
-      date: '2024-02-15',
-      excerpt: 'How online gatherings are changing the way we connect.',
-      tag: '文化',
-      content: 'Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.',
-      cover: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&auto=format&fit=crop'
-    },
-    {
-      title: 'AI in Creative Writing',
-      date: '2024-03-20',
-      excerpt: 'Can artificial intelligence truly replace human creativity in literature?',
-      tag: '人工智能',
-      content: 'At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident.',
-      cover: 'https://images.unsplash.com/photo-1531746790731-6c087fecd65a?w=800&auto=format&fit=crop'
-    },
-    {
-      title: 'Sustainable Tech Trends',
-      date: '2024-04-05',
-      excerpt: 'Green technology innovations shaping a better future.',
-      tag: '科技',
-      content: 'Similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio.',
-      cover: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=800&auto=format&fit=crop'
-    },
-    {
-      title: 'Photography Basics',
-      date: '2024-04-25',
-      excerpt: 'Mastering the art of composition and lighting.',
-      tag: '艺术',
-      content: 'Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus.',
-      cover: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&auto=format&fit=crop'
-    },
-    {
-      title: 'The History of Synthesizers',
-      date: '2024-05-12',
-      excerpt: 'From modular giants to digital plugins: a sonic journey.',
-      tag: '音乐',
-      content: 'Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae.',
-      cover: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=800&auto=format&fit=crop'
-    },
-    // More New Articles
-    {
-      title: 'Minimalist Web Design',
-      date: '2024-06-01',
-      excerpt: 'Less is more: strategies for clean and effective UI.',
-      tag: '设计',
-      content: 'Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?',
-      cover: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=800&auto=format&fit=crop'
-    },
-    {
-      title: 'The State of Esports',
-      date: '2024-06-20',
-      excerpt: 'How competitive gaming became a global phenomenon.',
-      tag: '游戏',
-      content: 'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.',
-      cover: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&auto=format&fit=crop'
-    },
-    {
-      title: 'Remote Work Culture',
-      date: '2024-07-05',
-      excerpt: 'Building team cohesion in a distributed world.',
-      tag: '文化',
-      content: 'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.',
-      cover: 'https://images.unsplash.com/photo-1593642632823-8f78536788c6?w=800&auto=format&fit=crop'
-    },
-    {
-      title: 'Understanding Blockchain',
-      date: '2024-07-18',
-      excerpt: 'A beginner\'s guide to decentralized technology.',
-      tag: '科技',
-      content: 'Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.',
-      cover: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800&auto=format&fit=crop'
-    },
-    {
-      title: 'Digital Detox Tips',
-      date: '2024-08-02',
-      excerpt: 'Finding balance in an always-connected world.',
-      tag: '生活',
-      content: 'Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur?',
-      cover: 'https://images.unsplash.com/photo-1511871893393-82e9c16b8d77?w=800&auto=format&fit=crop'
-    }
+  { 
+    id: 1, 
+    title: "数字艺术的未来", 
+    date: "2024-10-24", 
+    excerpt: "探索人工智能、虚拟现实与传统绘画技巧的交汇点。", 
+    tag: "观点",
+    content: `
+      <p class="mb-4">数字艺术领域正在以前所未有的速度演变。随着生成式 AI 和沉浸式 VR 体验的出现，“艺术”的定义正在被重写。</p>
+      <p class="mb-4">传统上，艺术局限于物理媒介——画布、石头、纸张。今天，像素和顶点是新的粘土。但这是否削弱了人的因素？我认为恰恰相反。</p>
+      <h3 class="text-xl font-bold text-white mt-6 mb-4">AI 协作者</h3>
+      <p class="mb-4">AI 工具不是在取代艺术家；而是在赋能他们。就像照相机没有扼杀绘画，而是将其从现实主义的需求中解放出来一样，AI 正在将数字艺术家从技术束缚中解放出来，让纯粹的想象力占据中心舞台。</p>
+      <p>展望未来，最成功的艺术家将是那些能够融合这些技术的人——将人类创造力的原始情感与机器智能的无限可能性相结合。</p>
+    `
+  },
+  { 
+    id: 2, 
+    title: "幕后揭秘：天际坠落", 
+    date: "2024-09-12", 
+    excerpt: "深入解析我最新的 WebGL 游戏的开发过程。", 
+    tag: "开发日志",
+    content: `
+      <p class="mb-4">Skyfall（天际坠落）最初只是 Three.js 中的一个简单实验：“我能让飞机飞过无限的云层吗？”答案是肯定的，但让它<em>感觉</em>良好才是真正的挑战。</p>
+      <h3 class="text-xl font-bold text-white mt-6 mb-4">性能优化</h3>
+      <p class="mb-4">最大的障碍之一是在渲染数千个云粒子和体积光的同时保持 60 FPS。解决方案涉及实例化网格渲染和自定义着色器，在 GPU 而非 CPU 上处理运动。</p>
+      <p class="mb-4">这种方法使我们能够从 100 个对象扩展到 10,000 个对象，而几乎没有性能成本。</p>
+      <h3 class="text-xl font-bold text-white mt-6 mb-4">飞行物理</h3>
+      <p>我们要的不是模拟器；我们要的是街机感。通过将空气动力学模型简化为仅包含推力、阻力和一个“趣味因子”向量，我们实现了既直观又灵敏的控制。</p>
+    `
+  },
+  { 
+    id: 3, 
+    title: "代码中的极简主义", 
+    date: "2024-08-05", 
+    excerpt: "为什么少写代码通常能带来更好、更易维护的软件。", 
+    tag: "技术",
+    content: `
+      <p class="mb-4">“完美的达成，不是当没有什么可以添加时，而是当没有什么可以去掉时。” —— 安托万·德·圣埃克苏佩里</p>
+      <p class="mb-4">在软件工程中，复杂性是敌人。你写的每一行代码都是一种负债——它需要被测试、维护，并最终被重构。</p>
+      <h3 class="text-xl font-bold text-white mt-6 mb-4">删除的艺术</h3>
+      <p class="mb-4">我发现我效率最高的日子往往是代码行数为负的日子。删除无用的功能、简化逻辑和移除依赖项会让代码库更健康。</p>
+      <p>下次当你准备安装一个新的库或编写一个复杂的辅助函数时，问问自己：有没有更简单的方法？</p>
+    `
+  },
+  { 
+    id: 4, 
+    title: "网页设计中的色彩理论", 
+    date: "2024-07-15", 
+    excerpt: "如何使用调色板来唤起情感并引导用户行为。", 
+    tag: "设计",
+    content: `
+      <p class="mb-4">颜色不仅仅是装饰；它是一种语言。它在甚至我们还没意识到的情况下就与我们的潜意识对话并影响我们的决定。</p>
+      <p class="mb-4">在网页设计中，“60-30-10”规则之所以经典是有原因的。60% 的主色，30% 的辅助色，10% 的强调色。这种平衡确保了你的设计感觉连贯而不压抑。</p>
+      <p>对于“Lumos”，我选择了带有霓虹青色点缀的暗色主题，以唤起一种未来主义的神秘感和科技优雅感。</p>
+    `
+  },
+  { 
+    id: 5, 
+    title: "胶片摄影的静谧力量", 
+    date: "2024-06-02", 
+    excerpt: "在数字世界中重新发现模拟过程的乐趣。", 
+    tag: "摄影",
+    content: `
+      <p class="mb-4">在一个我们可以一分钟拍 1000 张照片的时代，36 张胶卷的限制是一种礼物。它迫使你慢下来，思考，在按下快门之前真正地<em>看</em>。</p>
+      <p class="mb-4">冲洗胶卷有一种切实的魔力——化学药品的味道，房间的黑暗，以及看到你的图像从底片中显现出来的期待。</p>
+      <p>胶片颗粒增加了数字滤镜仍然难以完美复制的质感和温暖。这不仅仅是一种美学；这是一种感觉。</p>
+    `
+  },
+  { 
+    id: 6, 
+    title: "沉浸式音频体验", 
+    date: "2024-05-18", 
+    excerpt: "空间音频如何改变我们体验数字媒体的方式。", 
+    tag: "技术",
+    content: `
+      <p class="mb-4">声音不仅仅是我们听到的东西，它是我们感受环境的关键。随着 VR 和 AR 的发展，空间音频正在成为创造沉浸感不可或缺的一部分。</p>
+      <p class="mb-4">双耳录音技术让我们能够通过耳机体验到声音的方向和距离，仿佛身临其境。这对于游戏和电影来说是一个巨大的飞跃。</p>
+      <p>未来的界面可能不仅仅是视觉的，而是听觉的。想象一下，通过声音的微妙变化来导航数字空间。</p>
+    `
+  },
+  { 
+    id: 7, 
+    title: "生成式艺术的伦理", 
+    date: "2024-04-30", 
+    excerpt: "当机器开始创作时，谁拥有版权？", 
+    tag: "观点",
+    content: `
+      <p class="mb-4">AI 生成的艺术作品引发了关于原创性和版权的激烈争论。如果一个 AI 是在数百万张受版权保护的图像上训练出来的，那么它的输出属于谁？</p>
+      <p class="mb-4">我们需要重新思考“作者”的定义。也许未来的艺术家更像是策展人或导演，指导 AI 产生特定的结果。</p>
+      <p>这是一个法律和道德的灰色地带，我们需要在保护人类创造力和拥抱技术进步之间找到平衡。</p>
+    `
+  },
+  { 
+    id: 8, 
+    title: "独立游戏开发的苦与乐", 
+    date: "2024-04-12", 
+    excerpt: "从零开始构建一个世界的个人旅程。", 
+    tag: "开发日志",
+    content: `
+      <p class="mb-4">做独立游戏是一场孤独的马拉松。你既是程序员，又是美术，还是音效师和市场经理。每一个像素、每一行代码都出自你手。</p>
+      <p class="mb-4">但当你看到玩家沉浸在你创造的世界中，体验你设计的故事时，所有的辛苦都值得了。</p>
+      <p>保持动力的关键是设定小目标，并庆祝每一个微小的胜利。不要试图一口气造出罗马，一块砖一块砖地来。</p>
+    `
+  },
+  { 
+    id: 9, 
+    title: "UI 设计中的微交互", 
+    date: "2024-03-25", 
+    excerpt: "小细节如何产生大影响。", 
+    tag: "设计",
+    content: `
+      <p class="mb-4">微交互是那些由于用户操作而发生的微小动画或反馈。比如点赞时的心跳动画，或者下拉刷新时的加载指示器。</p>
+      <p class="mb-4">这些细节看似微不足道，但它们赋予了界面生命力。它们告诉用户：系统正在工作，你的操作已被接收。</p>
+      <p>好的微交互应该是几乎不可见的——它们感觉自然、流畅，增强了体验而不是打断它。</p>
+    `
+  },
+  { 
+    id: 10, 
+    title: "赛博朋克美学指南", 
+    date: "2024-03-10", 
+    excerpt: "霓虹灯、雨夜与高科技低生活的视觉语言。", 
+    tag: "艺术",
+    content: `
+      <p class="mb-4">赛博朋克不仅仅是科幻，它是一种独特的视觉风格。高对比度的霓虹色调、潮湿的街道、复杂的机械结构，构成了这种美学的核心。</p>
+      <p class="mb-4">在设计赛博朋克风格的作品时，光影是关键。利用发光材质和体积光来创造氛围。</p>
+      <p>但不要忘记“低生活”的部分。破败的建筑、混乱的电线和涂鸦，与高科技元素形成对比，才能讲述完整的故事。</p>
+    `
+  }
   ];
 
   for (const article of articles) {
     await db.run(
-      'INSERT INTO articles (title, date, excerpt, tag, content, cover, featured) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [article.title, article.date, article.excerpt, article.tag, article.content, article.cover, article.featured ? 1 : 0]
+      'INSERT INTO articles (title, date, excerpt, tag, tags, content, cover, featured) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [article.title, article.date, article.excerpt, article.tag, article.tags || article.tag, article.content, article.cover || null, article.featured ? 1 : 0]
     );
   }
 
   // Events
   const events = [
-    {
-      title: 'Neon Nights Festival',
-      date: '2024-06-15',
-      location: 'Tokyo, Japan',
-      category: '音乐',
-      status: 'approved',
-      image: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&auto=format&fit=crop',
-      description: 'A three-day celebration of synthwave and cyberpunk culture.',
-      content: 'Join us for an unforgettable experience with top artists from around the globe.'
-    },
-    {
-      title: 'Tech Expo 2024',
-      date: '2024-08-20',
-      location: 'San Francisco, CA',
-      category: '科技',
-      status: 'approved',
-      image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop',
-      description: 'Showcasing the latest innovations in VR, AR, and AI.',
-      content: 'Experience the future today at the annual Tech Expo.'
-    },
-    {
-      title: 'Digital Art Workshop',
-      date: '2024-05-10',
-      location: 'Online',
-      category: '工坊',
-      status: 'Closed',
-      image: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&auto=format&fit=crop',
-      description: 'Learn the fundamentals of generative art.',
-      content: 'A hands-on workshop for aspiring digital artists.'
-    },
-    {
-      title: 'Indie Game Jam',
-      date: '2024-09-01',
-      location: 'Berlin, Germany',
-      category: '游戏',
-      status: 'Upcoming',
-      image: 'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=800&auto=format&fit=crop',
-      description: '48 hours to create a game from scratch.',
-      content: 'Compete with developers from around the world in this intense game jam.'
-    },
-    {
-      title: 'Cyber Security Summit',
-      date: '2024-10-12',
-      location: 'London, UK',
-      category: '科技',
-      status: 'Upcoming',
-      image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&auto=format&fit=crop',
-      description: 'Discussing the latest threats and defense strategies.',
-      content: 'Experts from leading security firms share their insights.'
-    },
-    {
-      title: 'AI Art Exhibition',
-      date: '2024-11-05',
-      location: 'New York, NY',
-      category: '艺术',
-      status: 'Upcoming',
-      image: 'https://images.unsplash.com/photo-1547891654-e66ed7ebb968?w=800&auto=format&fit=crop',
-      description: 'Exploring the intersection of artificial intelligence and creativity.',
-      content: 'Witness groundbreaking artworks generated by neural networks.'
-    },
-    {
-      title: 'Global Hackathon',
-      date: '2024-12-01',
-      location: 'Online',
-      category: '编程',
-      status: 'Upcoming',
-      image: 'https://images.unsplash.com/photo-1504384308090-c54be3855833?w=800&auto=format&fit=crop',
-      description: 'Solve real-world problems with code.',
-      content: 'Join thousands of developers in a race to build innovative solutions.'
-    },
-    {
-      title: 'Retro Gaming Expo',
-      date: '2025-01-15',
-      location: 'Osaka, Japan',
-      category: '游戏',
-      status: 'Upcoming',
-      image: 'https://images.unsplash.com/photo-1551103782-8ab07afd45c1?w=800&auto=format&fit=crop',
-      description: 'Celebrate the classics of video game history.',
-      content: 'Play vintage consoles, meet industry legends, and buy rare collectibles.'
-    },
-    // More New Events
-    {
-      title: 'Startup Pitch Night',
-      date: '2025-02-10',
-      location: 'Austin, TX',
-      category: '商业',
-      status: 'Upcoming',
-      image: 'https://images.unsplash.com/photo-1559136555-930d72f18615?w=800&auto=format&fit=crop',
-      description: 'Entrepreneurs showcase their next big idea.',
-      content: 'Investors and innovators meet to shape the future of business.'
-    },
-    {
-      title: 'Music Production Masterclass',
-      date: '2025-03-05',
-      location: 'Los Angeles, CA',
-      category: '音乐',
-      status: 'Upcoming',
-      image: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=800&auto=format&fit=crop',
-      description: 'Learn from Grammy-winning producers.',
-      content: 'Deep dive into mixing, mastering, and sound design techniques.',
-      status: 'approved'
-    },
-    {
-      title: 'Cosplay Convention',
-      date: '2025-04-20',
-      location: 'Seoul, South Korea',
-      category: '文化',
-      status: 'approved',
-      image: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&auto=format&fit=crop',
-      description: 'The ultimate gathering for cosplay enthusiasts.',
-      content: 'Costume contests, workshops, and photoshoots.'
-    },
-    {
-      title: 'Web3 Conference',
-      date: '2025-05-15',
-      location: 'Miami, FL',
-      category: '科技',
-      status: 'approved',
-      image: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800&auto=format&fit=crop',
-      description: 'The future of the decentralized web.',
-      content: 'Keynotes on crypto, NFTs, and DAOs.'
-    }
+  {
+    id: 1,
+    title: "全球 AI 艺术黑客马拉松 2024",
+    date: "2024-11-15",
+    location: "线上 / 旧金山",
+    category: "比赛",
+    status: "Upcoming",
+    image: "https://images.unsplash.com/photo-1592478411213-61535fdd861d?q=80&w=1000&auto=format&fit=crop",
+    description: "与来自世界各地的艺术家和开发者一起，拓展生成式艺术的边界。48小时的编码、创作与协作。",
+    content: "<p>全球 AI 艺术黑客马拉松回归！今年的主题是‘共生’。人类创造力与机器智能如何共存并相互增强？</p><p>奖品包括 1 万美元的奖金、云服务额度以及《数字艺术月刊》的专题报道。</p>"
+  },
+  {
+    id: 2,
+    title: "社区科技教育工作坊",
+    date: "2024-10-05",
+    location: "市图书馆 302 室",
+    category: "志愿者",
+    status: "Past",
+    image: "https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=1000&auto=format&fit=crop",
+    description: "向老年人教授基础编程和数字素养。通过科技连接两代人的美好下午。",
+    content: "<p>我们与当地图书馆合作举办了这次工作坊。看到老人们写下第一行 Python 代码时的兴奋，真是太棒了！</p>"
+  },
+  {
+    id: 3,
+    title: "WebGL 的未来",
+    date: "2024-12-01",
+    location: "科技中心礼堂",
+    category: "讲座",
+    status: "Upcoming",
+    image: "https://images.unsplash.com/photo-1544531586-fde5298cdd40?q=80&w=1000&auto=format&fit=crop",
+    description: "深入探讨基于浏览器的图形技术的最新进展。来自主要浏览器厂商和游戏工作室的特邀嘉宾。",
+    content: "<p>主题将包括 WebGPU、浏览器光线追踪以及 Web 3D 资产优化。会后有交流环节。</p>"
+  },
+  {
+    id: 4,
+    title: "生态代码挑战赛",
+    date: "2024-09-20",
+    location: "绿谷公园",
+    category: "比赛",
+    status: "Past",
+    image: "https://images.unsplash.com/photo-1497250681960-ef04820a93bf?q=80&w=1000&auto=format&fit=crop",
+    description: "为当地环境问题构建可持续的技术解决方案。团队竞争创造最佳的碳足迹追踪应用。",
+    content: "<p>获胜团队创建了一个面向高中生的垃圾分类游戏化应用。目前正在三所当地学校试运行！</p>"
+  },
+  {
+    id: 5,
+    title: "VR 公益行动",
+    date: "2025-01-10",
+    location: "虚拟空间",
+    category: "志愿者",
+    status: "Upcoming",
+    image: "https://images.unsplash.com/photo-1593508512255-86ab42a8e620?q=80&w=1000&auto=format&fit=crop",
+    description: "为住院儿童创造 VR 体验。我们需要 3D 建模师、故事讲述者和 Unity 开发者。",
+    content: "<p>我们的目标是将外面的世界带给那些无法离开病房的孩子。我们正在建造一个虚拟动物园和一个空间站体验。</p>"
+  },
+  // New Events
+  {
+    id: 6,
+    title: "创意编程工作坊",
+    date: "2025-02-15",
+    location: "艺术学院",
+    category: "工作坊",
+    status: "Upcoming",
+    image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&auto=format&fit=crop&q=60",
+    description: "学习如何使用 Processing 和 p5.js 创作视觉艺术。适合初学者。",
+    content: "<p>无论你是设计师还是程序员，这里都有你发挥的空间。我们将从基础开始，最终创作出属于你自己的生成艺术作品。</p>"
+  },
+  {
+    id: 7,
+    title: "数字遗产论坛",
+    date: "2024-08-12",
+    location: "线上",
+    category: "讲座",
+    status: "Past",
+    image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60",
+    description: "探讨在数字时代如何保存和传承人类文化遗产。",
+    content: "<p>专家小组讨论关于数据持久性、数字考古学以及人工智能在文化保护中的作用。</p>"
+  },
+  {
+    id: 8,
+    title: "24小时游戏开发挑战",
+    date: "2025-03-20",
+    location: "创新中心",
+    category: "比赛",
+    status: "Upcoming",
+    image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&auto=format&fit=crop&q=60",
+    description: "在24小时内从零开始制作一款游戏。主题将在活动开始时公布。",
+    content: "<p>挑战极限，激发潜能。我们提供食物、饮料和休息区，你只需要带上你的电脑和创意。</p>"
+  },
+  {
+    id: 9,
+    title: "科技助老公益日",
+    date: "2024-11-05",
+    location: "社区中心",
+    category: "志愿者",
+    status: "Past",
+    image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=800&auto=format&fit=crop&q=60",
+    description: "帮助社区老人解决智能手机使用难题，跨越数字鸿沟。",
+    content: "<p>一对一辅导，耐心解答。让科技不再是障碍，而是连接亲情的桥梁。</p>"
+  },
+  {
+    id: 10,
+    title: "沉浸式叙事研讨会",
+    date: "2025-04-10",
+    location: "VR 实验室",
+    category: "工作坊",
+    status: "Upcoming",
+    image: "https://images.unsplash.com/photo-1478720568477-152d9b164e63?w=800&auto=format&fit=crop&q=60",
+    description: "探索 VR/AR 环境下的非线性叙事技巧。",
+    content: "<p>如何引导观众的注意力？如何在自由探索与故事推进之间取得平衡？来这里寻找答案。</p>"
+  }
   ];
 
   for (const event of events) {
@@ -873,20 +629,11 @@ async function seed() {
     );
   }
 
-  // Seed Event Categories
-  const categories = [...new Set(events.map(e => e.category))];
-  for (const category of categories) {
-    await db.run('INSERT INTO event_categories (name) VALUES (?)', [category]);
-  }
-
-  // Settings
-  await db.run("INSERT OR REPLACE INTO settings (key, value) VALUES ('pagination_enabled', 'false')");
-  await db.run("INSERT OR REPLACE INTO settings (key, value) VALUES ('theme', 'cyber')");
-  await db.run("INSERT OR REPLACE INTO settings (key, value) VALUES ('language', 'zh')");
-
-  console.log('Database seeded successfully!');
+  console.log('Seeding completed.');
+  await db.close();
 }
 
 seed().catch(err => {
-  console.error('Seeding failed:', err);
+  console.error(err);
+  process.exit(1);
 });

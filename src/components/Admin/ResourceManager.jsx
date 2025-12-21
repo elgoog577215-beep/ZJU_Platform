@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../services/api';
 import Dropdown from '../Dropdown';
 import TagInput from '../TagInput';
+import UploadModal from '../UploadModal';
 
 const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
   const { t } = useTranslation();
@@ -18,71 +19,6 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
-  const [formData, setFormData] = useState({});
-  const [uploading, setUploading] = useState(false);
-
-  // Define fields based on type
-  const getFields = () => {
-    switch (type) {
-      case 'image': // photos
-        return [
-          { name: 'title', type: 'text', label: t('admin.fields.title') },
-          { name: 'category', type: 'text', label: t('admin.fields.category') },
-          { name: 'url', type: 'file', label: t('admin.fields.url') },
-          { name: 'tags', type: 'tag-input', label: t('admin.fields.tags') },
-          { name: 'size', type: 'text', label: t('admin.fields.size') },
-          { name: 'featured', type: 'checkbox', label: t('admin.fields.featured') }
-        ];
-      case 'audio': // music
-        return [
-          { name: 'title', type: 'text', label: t('admin.fields.title') },
-          { name: 'artist', type: 'text', label: t('admin.fields.artist') },
-          { name: 'category', type: 'text', label: t('admin.fields.category') },
-          { name: 'audio', type: 'file', label: t('admin.fields.audio') },
-          { name: 'cover', type: 'file', label: t('admin.fields.cover') },
-          { name: 'duration', type: 'number', label: t('admin.fields.duration') },
-          { name: 'tags', type: 'tag-input', label: t('admin.fields.tags') },
-          { name: 'featured', type: 'checkbox', label: t('admin.fields.featured') }
-        ];
-      case 'video': // videos
-        return [
-          { name: 'title', type: 'text', label: t('admin.fields.title') },
-          { name: 'category', type: 'text', label: t('admin.fields.category') },
-          { name: 'video', type: 'file', label: t('admin.fields.video') },
-          { name: 'thumbnail', type: 'file', label: t('admin.fields.thumbnail') },
-          { name: 'tags', type: 'text', label: t('admin.fields.tags') },
-          { name: 'featured', type: 'checkbox', label: t('admin.fields.featured') }
-        ];
-      case 'article': // articles
-        return [
-          { name: 'title', type: 'text', label: t('admin.fields.title') },
-          { name: 'tag', type: 'text', label: t('admin.fields.category') },
-          { name: 'date', type: 'date', label: t('admin.fields.date') },
-          { name: 'cover', type: 'file', label: t('admin.fields.cover') },
-          { name: 'excerpt', type: 'textarea', label: t('admin.fields.excerpt') },
-          { name: 'content', type: 'textarea', label: t('admin.fields.content') },
-          { name: 'tags', type: 'text', label: t('admin.fields.tags') },
-          { name: 'featured', type: 'checkbox', label: t('admin.fields.featured') }
-        ];
-      case 'event': // events
-        return [
-          { name: 'title', type: 'text', label: t('admin.fields.title') },
-          { name: 'date', type: 'date', label: t('admin.fields.date') },
-          { name: 'location', type: 'text', label: t('admin.fields.location') },
-          { name: 'category', type: 'text', label: t('admin.fields.category') },
-          { name: 'image', type: 'file', label: t('admin.fields.image') },
-          { name: 'description', type: 'textarea', label: t('admin.fields.description') },
-          { name: 'link', type: 'text', label: t('admin.fields.link') },
-          { name: 'status', type: 'select', label: t('admin.fields.status'), options: ['upcoming', 'ongoing', 'past'] },
-          { name: 'tags', type: 'tag-input', label: t('admin.fields.tags') },
-          { name: 'featured', type: 'checkbox', label: t('admin.fields.featured') }
-        ];
-      default:
-        return [];
-    }
-  };
-
-  const fields = getFields();
 
   const fetchItems = async (page = 1) => {
     setLoading(true);
@@ -111,8 +47,6 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
 
   const [deleteConfirmation, setDeleteConfirmation] = useState(null);
 
-  // ... (previous code)
-
   const handleDelete = (id) => {
     setDeleteConfirmation(id);
   };
@@ -133,49 +67,70 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
     }
   };
 
-  // ... (rest of the code)
-
   const handleEdit = (item) => {
     setEditingItem(item);
-    setFormData({ ...item });
     setIsModalOpen(true);
   };
 
   const handleAdd = () => {
     setEditingItem(null);
-    setFormData({});
     setIsModalOpen(true);
   };
 
-  const handleFileUpload = async (e, fieldName) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const uploadData = new FormData();
-    uploadData.append('file', file);
-
-    setUploading(true);
+  const handleSave = async (newItem) => {
     try {
-      const response = await api.post('/upload', uploadData);
-      setFormData(prev => ({ ...prev, [fieldName]: response.data.fileUrl }));
-      toast.success(t('admin.resource_manager_ui.upload_success'));
-    } catch (error) {
-      toast.error(t('admin.resource_manager_ui.upload_fail'));
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
+      // If newItem has an id, it's an update. But wait, UploadModal usually creates new items or returns the data.
+      // UploadModal's onUpload usually handles the API call if it's self-contained, but here we might need to handle it.
+      // Let's check UploadModal logic. 
+      // If UploadModal handles the upload, it might just return the result. 
+      // Actually, looking at UploadModal, it has internal submit logic for creating items.
+      // But for EDITING, we need to pass the item.
+      
+      // However, UploadModal in this codebase (based on previous context) seems to handle the API call internally for creation.
+      // Does it handle updates?
+      // Let's check UploadModal again in the next step if needed. 
+      // But for now, assuming UploadModal is used for CREATION and we might need to adapt it for EDITING or just use it for UI and handle save here.
+      
+      // Wait, if UploadModal handles the API call, then we just need to refresh.
+      // If UploadModal returns data, we handle the API call.
+      
+      // Let's assume for now we want to use UploadModal's form but handle the save here OR rely on UploadModal's internal logic.
+      // If UploadModal is designed for user uploads (creation), it might POST to /uploads or /events.
+      // For Admin, we might want to PUT to /events/:id.
+      
+      // If I look at the previous UploadModal code (I don't have it open but I recall editing it), 
+      // it sends a POST request.
+      
+      // If we want to reuse UploadModal for editing, we might need to modify UploadModal to support 'initialData' and 'isEditing' mode, 
+      // OR we handle the submission via a callback.
+      
+      // In the `UploadModal` I edited earlier, I saw:
+      // const handleSubmit = async (e) => { ... await api.post(...) ... }
+      
+      // So it does the POST internally.
+      // To support editing, I should probably update UploadModal to handle PUT if initialData is present, 
+      // OR allow overriding the submit handler.
+      
+      // For now, I will implement `handleSave` to just refresh the list, assuming UploadModal handles the submission.
+      // BUT, if UploadModal doesn't support editing (PUT), then I need to fix UploadModal first.
+      
+      // Let's proceed with replacing ResourceManager first, and then I will check and update UploadModal to support editing.
+      
+      // Actually, if I pass `onUpload` to UploadModal, does it override the default behavior?
+      // The previous code for UploadModal (which I can't see right now but I can infer) likely uses onUpload as a callback AFTER success, or as the handler itself.
+      // I'll assume `onUpload` is the handler. If not, I'll fix it.
+      
+      // Let's pass `handleSave` which handles both Create (if UploadModal delegates) and Update.
+      // If UploadModal handles Create internally, I'll need to adjust.
+      
+      // PROPOSAL: I'll update UploadModal to accept `onSubmit` prop. If provided, it uses that. If not, it uses default.
+      // And for this ResourceManager, I'll pass a handleSave that handles both POST and PUT.
+      
       if (editingItem) {
-        console.log(`Updating item ${editingItem.id} in ${apiEndpoint}...`);
-        await api.put(`/${apiEndpoint}/${editingItem.id}`, formData);
+        await api.put(`/${apiEndpoint}/${editingItem.id}`, newItem);
         toast.success(t('admin.toast.update_success'));
       } else {
-        console.log(`Creating new item in ${apiEndpoint}...`);
-        await api.post(`/${apiEndpoint}`, formData);
+        await api.post(`/${apiEndpoint}`, newItem);
         toast.success(t('admin.toast.create_success'));
       }
       setIsModalOpen(false);
@@ -228,7 +183,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
                 <th className="p-4">{t('admin.id')}</th>
                 <th className="p-4">{t('admin.fields.title')}</th>
                 {type === 'image' && <th className="p-4">{t('admin.fields.preview')}</th>}
-                {type === 'music' && <th className="p-4">{t('admin.fields.artist')}</th>}
+                {type === 'audio' && <th className="p-4">{t('admin.fields.artist')}</th>}
                 <th className="p-4">{t('admin.fields.category')}</th>
                 <th className="p-4 text-right">{t('admin.actions')}</th>
               </tr>
@@ -256,7 +211,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
                         <img src={item.url} alt={item.title} className="w-12 h-12 object-cover rounded-lg border border-white/10" />
                       </td>
                     )}
-                    {type === 'music' && <td className="p-4 text-gray-400">{item.artist}</td>}
+                    {type === 'audio' && <td className="p-4 text-gray-400">{item.artist}</td>}
                     <td className="p-4">
                       <span className="px-2 py-1 bg-white/5 rounded text-xs text-gray-400 border border-white/5">
                         {item.category}
@@ -348,118 +303,14 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
         )}
       </AnimatePresence>
 
-      {/* Edit/Create Modal */}
-      <AnimatePresence>
-        {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-2xl bg-[#111] border border-white/10 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
-            >
-              <div className="p-6 border-b border-white/10 flex justify-between items-center">
-                <h3 className="text-xl font-bold text-white">
-                  {editingItem ? t('admin.edit_item') : t('admin.add_item')}
-                </h3>
-                <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white">
-                  <X size={24} />
-                </button>
-              </div>
-
-              <div className="p-6 overflow-y-auto custom-scrollbar">
-                <form id="resourceForm" onSubmit={handleSubmit} className="space-y-4">
-                  {fields.map(field => (
-                    <div key={field.name}>
-                      <label className="block text-sm font-bold text-gray-400 mb-2">
-                        {field.label}
-                      </label>
-                      
-                      {field.type === 'textarea' ? (
-                        <textarea
-                          value={formData[field.name] || ''}
-                          onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
-                          className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-indigo-500 h-32"
-                        />
-                      ) : field.type === 'tag-input' ? (
-                        <TagInput
-                          value={formData[field.name] || ''}
-                          onChange={(val) => setFormData({ ...formData, [field.name]: val })}
-                          placeholder={field.label}
-                        />
-                      ) : field.type === 'file' ? (
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={formData[field.name] || ''}
-                            onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
-                            className="flex-1 bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-indigo-500"
-                            placeholder={t('admin.resource_manager_ui.file_url_placeholder')}
-                          />
-                          <label className="cursor-pointer bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-3 flex items-center justify-center transition-colors">
-                            <Upload size={20} className="text-gray-400" />
-                            <input 
-                              type="file" 
-                              className="hidden" 
-                              onChange={(e) => handleFileUpload(e, field.name)}
-                              disabled={uploading}
-                            />
-                          </label>
-                        </div>
-                      ) : field.type === 'select' ? (
-                        <Dropdown
-                            value={formData[field.name]}
-                            onChange={(value) => setFormData({ ...formData, [field.name]: value })}
-                            options={field.options.map(opt => ({
-                                value: opt,
-                                label: t(`events.status.${opt}`) || opt // Try to translate if it's an event status, else use raw
-                            }))}
-                            placeholder={t('admin.resource_manager_ui.select_placeholder')}
-                            buttonClassName="bg-black/40 border-white/10 w-full"
-                        />
-                      ) : field.type === 'checkbox' ? (
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="checkbox"
-                                checked={!!formData[field.name]}
-                                onChange={(e) => setFormData({ ...formData, [field.name]: e.target.checked })}
-                                className="w-5 h-5 rounded border-gray-600 bg-black/40 text-indigo-600 focus:ring-indigo-500"
-                            />
-                            <span className="text-white">{t('admin.resource_manager_ui.yes')}</span>
-                        </div>
-                      ) : (
-                        <input
-                          type={field.type}
-                          value={formData[field.name] || ''}
-                          onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
-                          className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-indigo-500"
-                        />
-                      )}
-                    </div>
-                  ))}
-                </form>
-              </div>
-
-              <div className="p-6 border-t border-white/10 bg-black/20 flex justify-end gap-3">
-                <button 
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
-                >
-                  {t('admin.cancel')}
-                </button>
-                <button 
-                  type="submit"
-                  form="resourceForm"
-                  disabled={uploading}
-                  className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-indigo-500/25 disabled:opacity-50"
-                >
-                  {uploading ? t('admin.resource_manager_ui.uploading') : t('admin.save')}
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      {/* Upload/Edit Modal */}
+      <UploadModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onUpload={handleSave}
+        type={type}
+        initialData={editingItem}
+      />
     </div>
   );
 };

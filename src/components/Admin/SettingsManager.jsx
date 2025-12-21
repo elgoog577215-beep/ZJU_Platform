@@ -39,6 +39,31 @@ const SettingsManager = () => {
     }
   };
 
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    setSaving(true);
+    try {
+      const res = await api.post('/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      if (res.data.fileUrl) {
+        await api.post('/settings', { key: 'logo_url', value: res.data.fileUrl });
+        setSettings(prev => ({ ...prev, logo_url: res.data.fileUrl }));
+        toast.success(t('admin.toast.save_success'));
+      }
+    } catch (error) {
+      console.error('Upload failed:', error);
+      toast.error(t('admin.toast.upload_fail') || 'Upload failed');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleChange = (key, value) => {
     setSettings(prev => ({ ...prev, [key]: value }));
   };

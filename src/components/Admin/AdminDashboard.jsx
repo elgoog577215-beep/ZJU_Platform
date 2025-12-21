@@ -145,14 +145,22 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white pt-24 px-4 md:px-8 pb-12">
+    <div className="min-h-screen bg-black text-white pt-24 px-4 md:px-8 pb-12 pb-safe">
       <div className="max-w-[1600px] mx-auto">
         <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <h1 className="text-4xl md:text-5xl font-bold font-serif mb-2 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-500">
-                {t('admin.dashboard')}
-            </h1>
-            <p className="text-gray-400">{t('admin.subtitle')}</p>
+          <div className="flex items-center gap-4">
+            <button 
+              className="lg:hidden p-2 bg-white/10 rounded-lg text-white"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              <LayoutGrid size={24} />
+            </button>
+            <div>
+              <h1 className="text-3xl md:text-5xl font-bold font-serif mb-2 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-500">
+                  {t('admin.dashboard')}
+              </h1>
+              <p className="text-gray-400 text-sm md:text-base">{t('admin.subtitle')}</p>
+            </div>
           </div>
           <div className="text-right hidden md:block">
               <button 

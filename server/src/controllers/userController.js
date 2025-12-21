@@ -27,8 +27,9 @@ const updateUser = async (req, res) => {
             if (!invitation_code) {
                 return res.status(400).json({ error: 'Invitation code required for Organization/Cr' });
             }
-            const settings = await db.get('SELECT value FROM settings WHERE key = ?', ['org_invite_code']);
-            if (!settings || settings.value !== invitation_code) {
+            const settings = await db.get('SELECT value FROM settings WHERE key = ?', ['invite_code']);
+            if (!settings || String(settings.value).trim() !== String(invitation_code).trim()) {
+                console.log(`Invite code mismatch: Server '${settings?.value}', Client '${invitation_code}'`);
                 return res.status(400).json({ error: 'Invalid invitation code' });
             }
         }

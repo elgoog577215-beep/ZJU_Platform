@@ -141,7 +141,7 @@ const DashboardVideo = ({ videos, onSelect }) => {
       className="relative w-full h-full rounded-3xl overflow-hidden cursor-pointer group border border-white/10 bg-black"
     >
       <SmartImage 
-          src={getHighResUrl(mainVideo.thumbnail || mainVideo.cover)} 
+          src={mainVideo.thumbnail || mainVideo.cover} 
           alt={mainVideo.title} 
           type="video"
           className="w-full h-full"

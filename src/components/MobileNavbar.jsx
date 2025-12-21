@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Image, Music, Film, Menu, X, Calendar, FileText, Info, User } from 'lucide-react';
+import { Home, Image, Music, Film, Compass, X, Calendar, FileText, Info, User, Users, UserCircle, LogIn } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { useBackClose } from '../hooks/useBackClose';
 
 import AuthModal from './AuthModal';
 
@@ -13,11 +14,14 @@ const MobileNavbar = () => {
   const { user } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  
+  const { onNavigate } = useBackClose(showMenu, () => setShowMenu(false));
 
   const navItems = [
+    { key: 'home', path: '/', icon: Home },
     { key: 'events', path: '/events', icon: Calendar },
+    { key: 'menu', action: 'menu', icon: Compass }, // Replaced Users with Menu icon for clarity
     { key: 'about', path: '/about', icon: Info },
-    { key: 'menu', action: 'menu', icon: Menu },
   ];
 
   const menuItems = [
@@ -25,14 +29,9 @@ const MobileNavbar = () => {
     { key: 'music', path: '/music', icon: Music },
     { key: 'videos', path: '/videos', icon: Film },
     { key: 'articles', path: '/articles', icon: FileText },
+    // Add User Profile access in menu if logged in
+    ...(user ? [{ key: 'profile', action: 'profile', icon: UserCircle }] : []),
   ];
-
-  if (user) {
-    menuItems.push({ key: 'profile', path: '/admin', icon: User });
-  } 
-  // else {
-  //   menuItems.push({ key: 'login', action: 'login', icon: User });
-  // }
 
   const handleAction = (action) => {
     if (navigator.vibrate) navigator.vibrate(10);
@@ -40,11 +39,19 @@ const MobileNavbar = () => {
       setShowMenu(true);
     } else if (action === 'login') {
       setShowAuthModal(true);
+    } else if (action === 'profile') {
+      // Logic to open profile modal, might need to lift state or use context
+      // For now, let's just use a simple way or assume we can trigger it.
+      // But wait, Navbar has the state. We might need to expose it or use a global UI context.
+      // Or simply duplicate the modal here? Ideally context.
+      // Given constraints, I'll emit a custom event like the search palette does.
+      window.dispatchEvent(new Event('open-profile-modal'));
     }
   };
 
   const handleNavClick = () => {
       if (navigator.vibrate) navigator.vibrate(10);
+      onNavigate();
       setShowMenu(false);
   };
 
@@ -140,7 +147,7 @@ const MobileNavbar = () => {
 
                 {/* Grid Menu */}
                 <div className="flex-1 overflow-y-auto p-6">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-3">
                         {menuItems.map(item => {
                             if (item.action) {
                                 return (
@@ -150,10 +157,14 @@ const MobileNavbar = () => {
                                             setShowMenu(false);
                                             handleAction(item.action);
                                         }}
-                                        className="flex flex-col items-center justify-center gap-3 p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors aspect-square"
+                                        className="flex flex-col items-center justify-center gap-2 p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors h-24 active:scale-95 touch-manipulation"
                                     >
-                                        <item.icon size={32} className="text-indigo-400" />
-                                        <span className="font-medium text-white">{item.key === 'login' ? '登录' : t(`nav.${item.key}`, item.key)}</span>
+                                        <item.icon size={24} className="text-indigo-400" />
+                                        <span className="font-medium text-white text-xs">
+                                            {item.key === 'login' ? t('auth.log_in') : 
+                                             item.key === 'profile' ? t('user_profile.title') : 
+                                             t(`nav.${item.key}`, item.key)}
+                                        </span>
                                     </button>
                                 );
                             }
@@ -161,11 +172,12 @@ const MobileNavbar = () => {
                                 <Link
                                     key={item.key}
                                     to={item.path}
-                                    onClick={() => setShowMenu(false)}
-                                    className="flex flex-col items-center justify-center gap-3 p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors aspect-square"
+                                    replace
+                                    onClick={handleNavClick}
+                                    className="flex flex-col items-center justify-center gap-2 p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors h-24 active:scale-95 touch-manipulation"
                                 >
-                                    <item.icon size={32} className="text-indigo-400" />
-                                    <span className="font-medium text-white">{t(`nav.${item.key}`, item.key.charAt(0).toUpperCase() + item.key.slice(1))}</span>
+                                    <item.icon size={24} className="text-indigo-400" />
+                                    <span className="font-medium text-white text-xs">{t(`nav.${item.key}`, item.key.charAt(0).toUpperCase() + item.key.slice(1))}</span>
                                 </Link>
                             );
                         })}

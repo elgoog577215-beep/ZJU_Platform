@@ -4,9 +4,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, Lock, ArrowRight, Loader } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
+import { useBackClose } from '../hooks/useBackClose';
 
 const AuthModal = ({ isOpen, onClose }) => {
   const { t } = useTranslation();
+  useBackClose(isOpen, onClose);
+  
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');

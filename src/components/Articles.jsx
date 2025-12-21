@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, ArrowRight, Calendar, X, User, Tag, Upload, Clock, Share2, Check, AlertCircle } from 'lucide-react';
+import { BookOpen, ArrowRight, Calendar, X, User, Tag, Upload, Clock, Check, AlertCircle } from 'lucide-react';
 import SmartImage from './SmartImage';
 import UploadModal from './UploadModal';
 import FavoriteButton from './FavoriteButton';
@@ -53,14 +53,6 @@ const Articles = () => {
     return `${minutes} ${t('common.min_read')}`;
   };
 
-  const handleShare = (e, article) => {
-    e.stopPropagation();
-    const url = window.location.href; // In a real app, this would be a specific article URL
-    navigator.clipboard.writeText(`${article.title} - ${url}`);
-    setCopiedId(article.id);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
-
   const addArticle = (newItem) => {
     api.post('/articles', newItem)
     .then(() => {
@@ -80,7 +72,7 @@ const Articles = () => {
 
 
   return (
-    <section className="pt-36 pb-12 md:py-24 px-4 md:px-8 min-h-screen flex items-center justify-center relative z-10">
+    <section className="pt-24 pb-40 md:py-24 px-4 md:px-8 min-h-screen flex items-center justify-center relative z-10">
       <div className="max-w-5xl w-full mx-auto relative">
         <div className="absolute right-0 top-0 flex items-center gap-4 z-20">
              <button
@@ -99,7 +91,7 @@ const Articles = () => {
           viewport={{ once: true }}
           className="mb-8 md:mb-12 text-center"
         >
-          <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold font-serif mb-3 md:mb-4">{t('articles.title')}</h2>
+          <h2 className="text-4xl md:text-5xl font-bold font-serif mb-4 md:mb-6">{t('articles.title')}</h2>
           <p className="text-gray-400 max-w-xl mx-auto text-sm md:text-base">{t('articles.subtitle')}</p>
         </motion.div>
 
@@ -229,13 +221,6 @@ const Articles = () => {
                             );
                         }}
                       />
-                       <button 
-                        onClick={(e) => handleShare(e, article)}
-                        className="p-2 bg-white/5 hover:bg-white/20 text-gray-300 hover:text-white rounded-full backdrop-blur-md border border-white/10 transition-all"
-                        title="Share"
-                       >
-                          {copiedId === article.id ? <Check size={16} className="text-green-500" /> : <Share2 size={16} />}
-                       </button>
                    </div>
                    <div className="p-3 rounded-full bg-white/5 group-hover:bg-orange-500 group-hover:text-black transition-all duration-300">
                       <ArrowRight size={20} className="-rotate-45 group-hover:rotate-0 transition-transform duration-300" />
@@ -308,15 +293,32 @@ const Articles = () => {
                     </div>
                   </div>
                   
-                  <button 
-                    onClick={(e) => handleShare(e, selectedArticle)}
-                    className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full hover:bg-white/10 text-sm font-bold text-gray-300 hover:text-white transition-all"
-                  >
-                    {copiedId === selectedArticle.id ? <Check size={16} className="text-green-500" /> : <Share2 size={16} />}
-                    {t('common.share')}
-                  </button>
+                  <FavoriteButton 
+                    itemId={selectedArticle.id}
+                    itemType="article"
+                    size={24}
+                    showCount={true}
+                    count={selectedArticle.likes || 0}
+                    className="p-3 bg-white/5 hover:bg-red-500/20 text-white rounded-full transition-all border border-white/10"
+                    onToggle={(favorited, likes) => {
+                        setSelectedArticle(prev => ({ ...prev, likes: likes !== undefined ? likes : prev.likes }));
+                        mutate(
+                            `/articles?page=${currentPage}&limit=${limit}&sort=${sort}`,
+                            (data) => {
+                                if (!data) return data;
+                                return {
+                                    ...data,
+                                    data: data.data.map(a => 
+                                        a.id === selectedArticle.id ? { ...a, likes: likes !== undefined ? likes : a.likes } : a
+                                    )
+                                };
+                            },
+                            false
+                        );
+                    }}
+                  />
                 </div>
-
+                
                 <div 
                   className="prose prose-invert prose-lg max-w-none text-gray-300 leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: selectedArticle.content }}

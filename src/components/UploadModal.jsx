@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Upload, Image, Film, Music, FileText, Plus, Calendar, Tag, Link, Gamepad } from 'lucide-react';
+import { X, Upload, Image, Film, Music, FileText, Plus, Calendar, Tag, Link } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
 import api, { uploadFile } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import Dropdown from './Dropdown';
 import TagInput from './TagInput';
 
 const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = null, customFields = [] }) => {
@@ -27,8 +26,6 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   const [artist, setArtist] = useState(initialData?.artist || '');
   
   // Photo specific
-  const [gameType, setGameType] = useState(initialData?.gameType || 'puzzle');
-  const [gameDescription, setGameDescription] = useState(initialData?.gameDescription || '');
   
   // Event specific
   const [eventDate, setEventDate] = useState(initialData?.date || '');
@@ -40,13 +37,11 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
     if (isOpen) {
         if (initialData) {
             setTitle(initialData.title || '');
-            setCategory(initialData.category || '未分类');
+            setCategory(initialData.category || t('common.uncategorized'));
             setTags(initialData.tags || '');
             setDescription(initialData.excerpt || initialData.description || '');
             setContent(initialData.content || '');
             setArtist(initialData.artist || '');
-            setGameType(initialData.gameType || 'puzzle');
-            setGameDescription(initialData.gameDescription || '');
             setEventDate(initialData.date || '');
             setEventLocation(initialData.location || '');
             setEventLink(initialData.link || '');
@@ -54,13 +49,11 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             setCoverPreview(initialData.cover || initialData.thumbnail || initialData.image || null);
         } else {
             setTitle('');
-            setCategory('未分类'); 
+            setCategory(t('common.uncategorized')); 
             setTags('');
             setDescription('');
             setContent('');
             setArtist('');
-            setGameType('puzzle');
-            setGameDescription('');
             setEventDate('');
             setEventLocation('');
             setEventLink('');
@@ -89,6 +82,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
     }
   };
 
+  const [dragTarget, setDragTarget] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -97,7 +91,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         toast.error(t('upload.title_required'));
         return;
     }
-    if (!isEditing && type !== 'event' && !file) {
+    if (!isEditing && type !== 'event' && type !== 'article' && !file) {
         toast.error(t('upload.file_required'));
         return;
     }
@@ -131,7 +125,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         
         // Music specific
         audio: type === 'audio' ? fileUrl : null,
-        artist: type === 'audio' ? (artist || 'Unknown Artist') : null,
+        artist: type === 'audio' ? (artist || t('common.unknown_artist')) : null,
         
         // Video specific
         video: type === 'video' ? fileUrl : null,
@@ -141,7 +135,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         date: type === 'event' ? eventDate : new Date().toLocaleDateString(),
         location: type === 'event' ? eventLocation : null,
         link: type === 'event' ? eventLink : null,
-        status: type === 'event' ? (new Date(eventDate) > new Date() ? 'Upcoming' : 'Past') : null,
+        status: initialData?.status || 'pending', // Default to pending review
 
         // Cover/Thumbnail logic
         cover: coverUrl || (type === 'image' ? fileUrl : null) || 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000&auto=format&fit=crop',
@@ -153,28 +147,25 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         
         // Defaults if new
         ...(!isEditing ? {
-            gameType: type === 'image' ? gameType : 'puzzle',
-            gameDescription: type === 'image' ? gameDescription : 'User uploaded content',
             duration: 0,
             size: 'small',
         } : {
             // If editing, update these too if type matches
-            ...(type === 'image' ? { gameType, gameDescription } : {})
         })
       };
 
       await onUpload(newItem);
       
       const successMessage = isEditing 
-        ? 'Updated successfully!' 
-        : 'Uploaded successfully!';
+        ? t('upload.update_success')
+        : t('upload.upload_success');
       
       toast.success(successMessage);
       onClose();
 
     } catch (err) {
       console.error("Upload failed:", err);
-      toast.error("Upload failed. Please try again.");
+      toast.error(t('upload.upload_failed'));
     } finally {
         setIsUploading(false);
     }
@@ -201,6 +192,53 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
       }
   };
 
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDrop = (e, isCover = false) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    
+    const droppedFile = e.dataTransfer.files[0];
+    if (droppedFile) {
+        const accept = getAcceptType(isCover);
+        // Simple regex check for type
+        const typeRegex = new RegExp(accept.replace('*', '.*'));
+        if (!droppedFile.type.match(typeRegex)) {
+             toast.error(t('upload.invalid_file_type', { type: accept }));
+             return;
+        }
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            if (isCover) {
+                setCoverFile(droppedFile);
+                setCoverPreview(reader.result);
+            } else {
+                setFile(droppedFile);
+                setPreview(reader.result);
+            }
+        };
+        reader.readAsDataURL(droppedFile);
+    }
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -223,7 +261,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
 
             <div className="p-6 border-b border-white/10 flex justify-between items-center sticky top-0 bg-[#1a1a1a]/95 backdrop-blur-md z-20">
               <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                {getIcon()} {isEditing ? t('admin.edit_item') : t('common.upload')} {type.charAt(0).toUpperCase() + type.slice(1)}
+                {getIcon()} {isEditing ? t('admin.edit_item') : t('common.upload')} {t(`common.${type}`)}
               </h3>
               <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
                 <X size={24} />
@@ -238,7 +276,13 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                 <label className="block text-sm font-medium text-gray-400">
                     {t(`common.${type}`)}
                 </label>
-                <div className="relative border-2 border-dashed border-white/20 rounded-xl p-8 flex flex-col items-center justify-center group hover:border-white/40 transition-colors bg-white/5">
+                <div 
+                    className={`relative border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center group transition-all duration-300 bg-white/5 ${dragTarget === 'main' ? 'border-indigo-500 bg-indigo-500/10 scale-[1.02]' : 'border-white/20 hover:border-white/40'}`}
+                    onDragEnter={(e) => handleDragEnter(e, 'main')}
+                    onDragLeave={handleDragLeave}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, false)}
+                >
                     <input
                     type="file"
                     accept={getAcceptType()}
@@ -248,24 +292,32 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                     
                     {preview ? (
                         type === 'audio' ? (
-                            <div className="text-center">
+                            <div className="text-center relative z-20 pointer-events-none">
                                 <Music size={48} className="text-green-400 mx-auto mb-2" />
                                 <p className="text-green-400 font-medium text-sm break-all">{file?.name}</p>
+                                <p className="text-xs text-gray-500 mt-1">{t('upload.click_drag_replace')}</p>
                             </div>
                         ) : type === 'video' ? (
-                            <video src={preview} className="max-h-48 rounded-lg" controls />
+                            <div className="relative z-20 pointer-events-none w-full flex justify-center">
+                                <video src={preview} className="max-h-48 rounded-lg" controls />
+                            </div>
                         ) : (
-                            <img src={preview} alt="Preview" className="max-h-48 rounded-lg object-cover" />
+                            <div className="relative z-20 pointer-events-none">
+                                <img src={preview} alt="Preview" className="max-h-48 rounded-lg object-cover shadow-lg" />
+                            </div>
                         )
                     ) : (
-                    <>
-                        <div className="mb-4 group-hover:scale-110 transition-transform duration-300">
-                        {getIcon()}
+                    <div className="flex flex-col items-center justify-center text-center pointer-events-none">
+                        <div className={`mb-4 transition-transform duration-300 ${dragTarget === 'main' ? 'scale-110 text-indigo-400' : 'group-hover:scale-110 text-gray-400'}`}>
+                           {dragTarget === 'main' ? <Upload size={48} /> : getIcon()}
                         </div>
-                        <p className="text-gray-400 text-sm text-center">
-                        {t('common.upload')} {t(`common.${type}`)}
+                        <p className="text-gray-300 font-medium">
+                        {dragTarget === 'main' ? t('upload.drop_file') : `${t('common.upload')} ${t(`common.${type}`)}`}
                         </p>
-                    </>
+                        <p className="text-xs text-gray-500 mt-2">
+                            {t('upload.drag_drop_browse')}
+                        </p>
+                    </div>
                     )}
                 </div>
               </div>
@@ -275,7 +327,13 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
               {(type === 'audio' || type === 'video' || type === 'event') && (
                  <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-400">{type === 'event' ? t('common.image') : t('common.cover')}</label>
-                    <div className="relative border-2 border-dashed border-white/20 rounded-xl p-4 flex flex-col items-center justify-center group hover:border-white/40 transition-colors bg-white/5 h-32">
+                    <div 
+                        className={`relative border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center group transition-all duration-300 bg-white/5 h-32 ${dragTarget === 'cover' ? 'border-indigo-500 bg-indigo-500/10 scale-[1.02]' : 'border-white/20 hover:border-white/40'}`}
+                        onDragEnter={(e) => handleDragEnter(e, 'cover')}
+                        onDragLeave={handleDragLeave}
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, true)}
+                    >
                         <input
                             type="file"
                             accept="image/*"
@@ -283,11 +341,18 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                             className="absolute inset-0 opacity-0 cursor-pointer z-10"
                         />
                         {coverPreview ? (
-                            <img src={coverPreview} alt="Cover Preview" className="h-full rounded-lg object-contain" />
+                            <div className="relative h-full w-full flex justify-center items-center pointer-events-none">
+                                <img src={coverPreview} alt="Cover Preview" className="h-full rounded-lg object-contain" />
+                                <div className={`absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity ${dragTarget === 'cover' ? 'opacity-100' : ''}`}>
+                                    <p className="text-xs text-white">{t('upload.replace')}</p>
+                                </div>
+                            </div>
                         ) : (
-                            <div className="flex flex-col items-center">
-                                <Plus size={24} className="text-gray-400 mb-1" />
-                                <span className="text-xs text-gray-500">{t('common.upload')} {t('common.image')}</span>
+                            <div className="flex flex-col items-center pointer-events-none">
+                                <Plus size={24} className={`mb-1 transition-colors ${dragTarget === 'cover' ? 'text-indigo-400' : 'text-gray-400'}`} />
+                                <span className={`text-xs transition-colors ${dragTarget === 'cover' ? 'text-indigo-300' : 'text-gray-500'}`}>
+                                    {dragTarget === 'cover' ? t('upload.drop_image') : `${t('common.upload')} ${t('common.image')}`}
+                                </span>
                             </div>
                         )}
                     </div>
@@ -304,7 +369,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                     value={title}
                     onChange={e => setTitle(e.target.value)}
                     className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-white/30"
-                    placeholder="Enter title..."
+                    placeholder={t('upload.title_placeholder')}
                   />
                 </div>
 
@@ -316,37 +381,6 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                     placeholder={t('upload.tags_placeholder')}
                   />
                 </div>
-
-                {type === 'image' && (
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-400 mb-1">Game Type</label>
-                            <Dropdown
-                                value={gameType}
-                                onChange={setGameType}
-                                options={[
-                                    { value: '益智', label: '益智' },
-                                    { value: '动作', label: '动作' },
-                                    { value: '策略', label: '策略' },
-                                    { value: '角色扮演', label: '角色扮演' },
-                                    { value: '冒险', label: '冒险' }
-                                ]}
-                                icon={Gamepad}
-                                buttonClassName="bg-black/20 border-white/10 hover:bg-black/30 w-full"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-400 mb-1">Game Description</label>
-                            <input
-                                type="text"
-                                value={gameDescription}
-                                onChange={e => setGameDescription(e.target.value)}
-                                className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-white/30"
-                                placeholder="Short game desc..."
-                            />
-                        </div>
-                    </div>
-                )}
 
                 {type === 'event' && (
                     <div className="grid grid-cols-2 gap-4">
@@ -368,87 +402,58 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                 value={eventLocation}
                                 onChange={e => setEventLocation(e.target.value)}
                                 className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-white/30"
-                                placeholder="e.g. Online, City Hall..."
+                                placeholder={t('upload.location_placeholder')}
                             />
                         </div>
                         <div className="col-span-2">
-                            <label className="block text-sm font-medium text-gray-400 mb-1">活动链接 (外部链接)</label>
+                            <label className="block text-sm font-medium text-gray-400 mb-1">{t('upload.event_link')}</label>
                             <div className="relative">
-                                <Link className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+                                <Link size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
                                 <input
                                     type="url"
                                     value={eventLink}
                                     onChange={e => setEventLink(e.target.value)}
                                     className="w-full bg-black/20 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:border-white/30"
-                                    placeholder="https://..."
+                                    placeholder="https://"
                                 />
                             </div>
                         </div>
                     </div>
                 )}
 
-                {type === 'audio' && (
-                    <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-1">{t('common.artist')}</label>
-                        <input
-                            type="text"
-                            value={artist}
-                            onChange={e => setArtist(e.target.value)}
-                            className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-white/30"
-                            placeholder="Artist name..."
-                        />
-                    </div>
-                )}
-                
-                {(type === 'article' || type === 'event') && (
-                     <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-400 mb-1">{t('common.description')} (摘要)</label>
-                            <textarea
-                                required
-                                value={description}
-                                onChange={e => setDescription(e.target.value)}
-                                className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-white/30 h-24"
-                                placeholder="Short description or excerpt..."
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-400 mb-1">详细内容 (支持 HTML)</label>
-                            <textarea
-                                value={content}
-                                onChange={e => setContent(e.target.value)}
-                                className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-white/30 h-48 font-mono text-sm"
-                                placeholder="<p>Detailed content here...</p>"
-                            />
-                        </div>
-                    </div>
-                )}
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">{t('admin.fields.description')}</label>
+                  <textarea
+                    value={description}
+                    onChange={e => setDescription(e.target.value)}
+                    className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-white/30 h-24 resize-none"
+                    placeholder={t('upload.description_placeholder')}
+                  />
+                </div>
               </div>
 
-              <div className="flex items-center justify-end gap-4 pt-4">
+              <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-6 py-3 text-gray-400 hover:text-white transition-colors"
-                  disabled={isUploading}
+                  className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
                 >
                   {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={isUploading}
-                  className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2 bg-white text-black rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {isUploading ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        {t('common.uploading')}...
-                      </>
+                    <>
+                      <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                      {t('common.loading')}
+                    </>
                   ) : (
-                      <>
-                        <Upload size={20} />
-                        {isEditing ? t('common.save') : t('common.upload')}
-                      </>
+                    <>
+                      {isEditing ? t('common.save') : t('common.upload')}
+                    </>
                   )}
                 </button>
               </div>

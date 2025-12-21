@@ -272,12 +272,8 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res) => {
 
         query += ' LIMIT ? OFFSET ?';
         params.push(limit, offset);
-
-        console.log(`[ResourceController] Query: ${query}`);
-        console.log(`[ResourceController] Params:`, params);
         
         const items = await db.all(query, params);
-        console.log(`[ResourceController] Fetched ${items.length} items from ${table}`);
         const countResult = await db.get(countQuery, countParams);
 
         // Convert favorited to boolean for all items
@@ -360,7 +356,7 @@ const fields = {
     music: ['title', 'artist', 'duration', 'cover', 'audio', 'featured', 'category', 'tags'],
     videos: ['title', 'category', 'tags', 'thumbnail', 'video', 'featured'],
     articles: ['title', 'date', 'excerpt', 'tag', 'tags', 'content', 'cover', 'featured'],
-    events: ['title', 'date', 'location', 'category', 'tags', 'status', 'image', 'description', 'content', 'link', 'featured']
+    events: ['title', 'date', 'location', 'category', 'tags', 'image', 'description', 'content', 'link', 'featured']
 };
 
 module.exports = {

@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Lightbox from './Lightbox';
-import GameOverlay from './GameOverlay';
 import LivePhotoViewer from './Image3DViewer';
 import Pagination from './Pagination';
 import { Play, Box, Upload, AlertCircle } from 'lucide-react';
@@ -26,7 +25,6 @@ const Gallery = () => {
   const [sort, setSort] = useState('newest');
 
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
-  const [activeGamePhoto, setActiveGamePhoto] = useState(null);
   const [active3DPhoto, setActive3DPhoto] = useState(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const { t } = useTranslation();
@@ -109,7 +107,7 @@ const Gallery = () => {
   };
 
   return (
-    <section className="pt-36 pb-32 md:py-20 px-4 md:px-8 min-h-screen">
+    <section className="pt-24 pb-40 md:py-20 px-4 md:px-8 min-h-screen">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -125,7 +123,7 @@ const Gallery = () => {
           <Upload size={18} className="md:w-5 md:h-5" />
         </button>
 
-        <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold font-serif mb-3 md:mb-4">{t('gallery.title')}</h2>
+        <h2 className="text-4xl md:text-5xl font-bold font-serif mb-4 md:mb-6">{t('gallery.title')}</h2>
         <p className="text-gray-400 max-w-xl mx-auto mb-6 md:mb-8 text-sm md:text-base">{t('gallery.subtitle')}</p>
         
         {/* Filter Buttons */}
@@ -135,9 +133,9 @@ const Gallery = () => {
       </motion.div>
 
       {loading ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8 max-w-7xl mx-auto">
-           {[1,2,3,4].map(i => (
-               <div key={i} className="bg-white/5 rounded-3xl h-64 md:h-80 animate-pulse" />
+        <div className="columns-2 md:columns-3 lg:columns-4 gap-4 md:gap-8 max-w-7xl mx-auto space-y-4 md:space-y-8">
+           {[1,2,3,4,5,6,7,8].map(i => (
+               <div key={i} className="bg-white/5 rounded-3xl h-48 md:h-80 animate-pulse break-inside-avoid w-full inline-block" />
            ))}
         </div>
       ) : error ? (
@@ -152,7 +150,7 @@ const Gallery = () => {
               </button>
           </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8 max-w-7xl mx-auto">
+        <div className="columns-2 md:columns-3 lg:columns-4 gap-3 md:gap-8 max-w-7xl mx-auto space-y-3 md:space-y-8 pb-20 md:pb-0">
             {photos.map((photo, index) => (
               <motion.div
                 key={photo.id}
@@ -160,7 +158,7 @@ const Gallery = () => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.3 }}
-              className="break-inside-avoid relative group overflow-hidden rounded-lg cursor-pointer border border-transparent hover:border-white/20 hover:shadow-2xl hover:shadow-white/5 transition-all duration-300"
+              className="break-inside-avoid relative group overflow-hidden rounded-xl md:rounded-lg cursor-pointer border border-white/5 hover:border-white/20 hover:shadow-2xl hover:shadow-white/5 transition-all duration-300 w-full inline-block touch-manipulation"
               onClick={() => setSelectedPhotoIndex(index)}
             >
               <SmartImage 
@@ -174,44 +172,6 @@ const Gallery = () => {
               {/* Hover Overlay */}
               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-center p-4">
                 <h3 className="text-xl font-bold font-serif mb-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-300">{photo.title}</h3>
-                
-                <div className="flex flex-wrap justify-center gap-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-100">
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActiveGamePhoto(photo);
-                    }}
-                    className="flex items-center gap-2 bg-white text-black px-3 py-1.5 md:px-4 md:py-2 text-sm font-bold rounded-full hover:bg-gray-200 hover:scale-105"
-                  >
-                    <Play size={14} fill="currentColor" className="md:w-4 md:h-4" />
-                    {t('gallery.play')}
-                  </button>
-                  
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActive3DPhoto(photo);
-                    }}
-                    className="flex items-center gap-2 bg-black/50 border border-white/30 text-white px-3 py-1.5 md:px-4 md:py-2 text-sm font-bold rounded-full hover:bg-white hover:text-black hover:scale-105 backdrop-blur-sm transition-all"
-                    title={t('gallery.view_3d')}
-                  >
-                    <Box size={14} className="md:w-4 md:h-4" />
-                  </button>
-
-                  <FavoriteButton 
-                    itemId={photo.id}
-                    itemType="photo"
-                    size={14}
-                    showCount={true}
-                    count={photo.likes || 0}
-                    className="flex items-center gap-2 bg-black/50 border border-white/30 px-3 py-1.5 md:px-4 md:py-2 text-sm font-bold rounded-full hover:bg-pink-500 hover:border-pink-500 hover:scale-105 backdrop-blur-sm transition-all"
-                    onToggle={(favorited, likes) => {
-                        setPhotos(prev => prev.map(p => 
-                            p.id === photo.id ? { ...p, likes: likes !== undefined ? likes : p.likes } : p
-                        ));
-                    }}
-                  />
-                </div>
               </div>
             </motion.div>
           ))}
@@ -242,15 +202,6 @@ const Gallery = () => {
                     p.id === photos[selectedPhotoIndex].id ? { ...p, likes: likes !== undefined ? likes : p.likes, favorited } : p
                 ));
             }}
-          />
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {activeGamePhoto && (
-          <GameOverlay 
-            photo={activeGamePhoto} 
-            onClose={() => setActiveGamePhoto(null)} 
           />
         )}
       </AnimatePresence>

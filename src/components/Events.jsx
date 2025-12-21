@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, MapPin, ArrowRight, X, Filter, Upload, Clock, CheckCircle, ExternalLink, Download, Search, Share2, Globe, FileText, AlertCircle } from 'lucide-react';
+import { Calendar, MapPin, ArrowRight, X, Filter, Upload, Clock, CheckCircle, ExternalLink, Download, Globe, FileText, AlertCircle } from 'lucide-react';
 import UploadModal from './UploadModal';
 import FavoriteButton from './FavoriteButton';
 import { useTranslation } from 'react-i18next';
@@ -30,7 +30,6 @@ const Events = () => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [sort, setSort] = useState('newest');
-  const [searchQuery, setSearchQuery] = useState('');
   const [lifecycle, setLifecycle] = useState('all');
   
   // Deep linking
@@ -57,7 +56,7 @@ const Events = () => {
       page: currentPage,
       limit,
       sort,
-      search: searchQuery,
+      status: 'all', // Ensure we fetch all events regardless of moderation status
       lifecycle: lifecycle === 'all' ? undefined : lifecycle
     };
 
@@ -76,7 +75,7 @@ const Events = () => {
         setEvents([]); // Ensure events is an array on error
         setLoading(false);
       });
-  }, [currentPage, sort, searchQuery, lifecycle, settings.pagination_enabled]);
+  }, [currentPage, sort, lifecycle, settings.pagination_enabled]);
 
   useEffect(() => {
     if (selectedEvent && user) {
@@ -103,14 +102,6 @@ const Events = () => {
       } finally {
           setRegistering(false);
       }
-  };
-
-  const handleShare = (event, e) => {
-      e.stopPropagation();
-      const url = `${window.location.origin}/events?id=${event.id}`;
-      navigator.clipboard.writeText(url).then(() => {
-          toast.success(t('common.link_copied') || 'Link copied to clipboard!');
-      });
   };
 
   const addToGoogleCalendar = () => {
@@ -217,59 +208,52 @@ END:VCALENDAR`;
   ];
 
   return (
-    <section className="pt-36 pb-32 md:py-20 px-4 md:px-8 min-h-screen">
+    <section className="pt-24 pb-40 md:py-20 px-4 md:px-8 min-h-screen">
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
-        className="mb-8 md:mb-12 relative z-40 md:pt-0 text-center"
-      >
-        <div className="mb-8">
-          <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold font-serif mb-3 md:mb-4">{t('events.title')}</h2>
-          <p className="text-gray-400 max-w-xl mx-auto text-sm md:text-base">{t('events.subtitle')}</p>
-        </div>
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+          className="mb-8 md:mb-12 relative z-40 md:pt-0 text-center"
+        >
+          <div className="mb-8">
+            <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold font-serif mb-3 md:mb-8">{t('events.title')}</h2>
+            <p className="text-gray-400 max-w-xl mx-auto text-sm md:text-base">{t('events.subtitle')}</p>
+          </div>
           
-        <div className="flex items-center gap-2 w-full md:w-auto justify-center md:absolute md:right-0 md:top-0">
+        <div className="flex items-center gap-2 w-full md:w-auto justify-center md:absolute md:right-0 md:top-0 mb-4 md:mb-0">
              <button
                 onClick={() => setIsUploadOpen(true)}
                 className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 md:px-6 md:py-3 rounded-full backdrop-blur-md border border-white/10 transition-all font-bold text-sm md:text-base shrink-0"
              >
                 <Upload size={18} className="md:w-5 md:h-5" /> {t('common.create_event')}
              </button>
-
-             {/* Compact Search Bar */}
-             <div className="relative flex-1 md:w-64 group max-w-xs md:max-w-none">
-                <div className="absolute inset-0 bg-white/5 rounded-full blur-sm group-focus-within:bg-indigo-500/20 transition-all duration-300 -z-10" />
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-400 transition-colors" size={16} />
-                <input 
-                    type="text" 
-                    placeholder={t('common.search') || "Search..."}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-black/20 border border-white/10 rounded-full pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500/50 transition-all placeholder:text-gray-500/70 shadow-inner"
-                />
-             </div>
         </div>
 
         {/* Toolbar */}
-        <div className="flex flex-col md:flex-row gap-4 p-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
-          {/* Lifecycle Filter */}
-          <div className="w-full md:w-48">
-             <Dropdown
+        <div className="flex flex-col gap-4 p-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
+          {/* Filters & Sort */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Lifecycle Filter */}
+            <div className="w-full">
+              <Dropdown
                 value={lifecycle}
                 onChange={setLifecycle}
                 options={lifecycleOptions}
                 icon={Filter}
-                buttonClassName="bg-black/20 border-white/10 hover:bg-black/30 w-full"
-             />
-          </div>
+                buttonClassName="bg-black/20 border-white/10 hover:bg-black/30 w-full py-3 rounded-xl"
+              />
+            </div>
 
-          <div className="h-8 w-px bg-white/10 hidden md:block" />
-
-          {/* Sort */}
-          <div className="w-full md:w-48">
-            <SortSelector sort={sort} onSortChange={setSort} />
+            {/* Sort */}
+            <div className="w-full">
+              <SortSelector 
+                sort={sort} 
+                onSortChange={setSort} 
+                className="w-full" 
+                buttonClassName="bg-black/20 border-white/10 hover:bg-black/30 w-full py-3 rounded-xl" 
+              />
+            </div>
           </div>
         </div>
       </motion.div>
@@ -292,7 +276,7 @@ END:VCALENDAR`;
            ))}
         </div>
       ) : (
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto">
                 {events.map((event, index) => {
                   const status = getEventLifecycle(event.date);
                   const isUpcoming = status === t('events.status.upcoming');
@@ -306,11 +290,11 @@ END:VCALENDAR`;
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
-                    className="group relative bg-[#111] border border-white/10 rounded-3xl overflow-hidden hover:shadow-2xl hover:shadow-indigo-500/20 transition-all duration-500 hover:-translate-y-2 cursor-pointer"
+                    className="group relative bg-[#111] border border-white/10 rounded-3xl overflow-hidden hover:shadow-2xl hover:shadow-indigo-500/20 transition-all duration-500 hover:-translate-y-2 cursor-pointer flex flex-row md:flex-col h-32 md:h-auto"
                     onClick={() => setSelectedEvent(event)}
                   >
                 {/* Image Section */}
-                <div className="h-64 overflow-hidden relative">
+                <div className="w-1/3 md:w-full h-full md:h-64 overflow-hidden relative shrink-0">
                     <SmartImage 
                       src={event.image} 
                       alt={event.title} 
@@ -320,21 +304,21 @@ END:VCALENDAR`;
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#111] via-transparent to-transparent opacity-80" />
                     
-                    {/* Date Badge */}
-                    <div className="absolute top-4 left-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 flex flex-col items-center justify-center min-w-[60px] shadow-lg group-hover:bg-indigo-600 group-hover:border-indigo-500 transition-colors duration-300">
+                    {/* Date Badge - Hidden on mobile list view to save space, or scaled down */}
+                    <div className="hidden md:flex absolute top-4 left-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 flex-col items-center justify-center min-w-[60px] shadow-lg group-hover:bg-indigo-600 group-hover:border-indigo-500 transition-colors duration-300">
                         <span className="text-xs font-bold uppercase tracking-wider text-gray-300 group-hover:text-white/80">{month}</span>
                         <span className="text-2xl font-black text-white">{day}</span>
                     </div>
 
-                    {/* Status Badge */}
-                    <div className={`absolute top-4 right-4 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg backdrop-blur-md flex items-center gap-1.5 ${getStatusColor(status)}`}>
-                        {status === t('events.status.upcoming') && <Clock size={12} />}
-                        {status === t('events.status.ongoing') && <span className="w-2 h-2 rounded-full bg-white animate-pulse" />}
+                    {/* Status Badge - Adjusted for mobile */}
+                    <div className={`absolute top-2 right-2 md:top-4 md:right-4 px-2 py-1 md:px-3 md:py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider shadow-lg backdrop-blur-md flex items-center gap-1.5 ${getStatusColor(status)}`}>
+                        {status === t('events.status.upcoming') && <Clock size={10} className="md:w-3 md:h-3" />}
+                        {status === t('events.status.ongoing') && <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-white animate-pulse" />}
                         {status}
                     </div>
 
-                    {/* Share Button */}
-                    <div className="absolute bottom-4 right-4 flex gap-2">
+                    {/* Share Button - Hidden on mobile list */}
+                    <div className="hidden md:flex absolute bottom-4 right-4 gap-2">
                         <FavoriteButton 
                             itemId={event.id}
                             itemType="event"
@@ -356,7 +340,7 @@ END:VCALENDAR`;
                     {/* Countdown Overlay (Upcoming only) */}
                     {isUpcoming && (
                         <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm">
-                            <div className="transform scale-75">
+                            <div className="transform scale-75 hidden md:block">
                                 <Countdown targetDate={event.date} />
                             </div>
                         </div>
@@ -364,24 +348,22 @@ END:VCALENDAR`;
                 </div>
 
                 {/* Content Section */}
-                <div className="p-6 relative">
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="flex items-center gap-2 text-sm text-gray-400">
-                             <MapPin size={14} className="text-indigo-400" />
-                             <span className="truncate max-w-[150px]">{event.location || 'Online'}</span>
+                <div className="p-3 md:p-6 relative flex-1 flex flex-col justify-center">
+                    <div className="flex items-center gap-4 mb-1 md:mb-4">
+                        <div className="flex items-center gap-1 md:gap-2 text-xs md:text-sm text-gray-400">
+                             <MapPin size={12} className="md:w-3.5 md:h-3.5 text-indigo-400" />
+                             <span className="truncate max-w-[100px] md:max-w-[150px]">{event.location || 'Online'}</span>
                         </div>
-                        {event.link && (
-                             <div className="flex items-center gap-1 text-xs text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20">
-                                 <Globe size={10} /> External
-                             </div>
-                        )}
                     </div>
 
-                    <h3 className="text-2xl font-bold text-white mb-3 line-clamp-2 group-hover:text-indigo-400 transition-colors leading-tight">{event.title}</h3>
-                    <p className="text-gray-400 text-sm line-clamp-2 mb-6 leading-relaxed">{event.description}</p>
+                    <h3 className="text-base md:text-2xl font-bold text-white mb-1 md:mb-3 line-clamp-2 group-hover:text-indigo-400 transition-colors leading-tight">{event.title}</h3>
+                    <p className="text-gray-400 text-xs md:text-sm line-clamp-2 mb-2 md:mb-6 leading-relaxed hidden md:block">{event.description}</p>
+                    
+                    {/* Mobile Date Display since badge is hidden */}
+                    <p className="text-gray-500 text-xs md:hidden mb-1">{event.date}</p>
 
-                    <div className="flex items-center text-indigo-400 font-bold text-sm group-hover:translate-x-2 transition-transform">
-                        {t('common.view_details')} <ArrowRight size={16} className="ml-2" />
+                    <div className="flex items-center text-indigo-400 font-bold text-xs md:text-sm group-hover:translate-x-2 transition-transform mt-auto md:mt-0">
+                        {t('common.view_details')} <ArrowRight size={14} className="ml-1 md:ml-2 md:w-4 md:h-4" />
                     </div>
                 </div>
               </motion.div>
@@ -569,11 +551,13 @@ END:VCALENDAR`;
                                 </div>
                                 
                                 <button 
-                                    onClick={(e) => handleShare(selectedEvent, e)}
-                                    className="w-full flex items-center justify-center gap-2 p-3 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-colors text-sm font-medium"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedEvent(null);
+                                    }}
+                                    className="w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl text-white transition-colors text-sm font-medium"
                                 >
-                                    <Share2 size={18} />
-                                    Share Event
+                                    Close
                                 </button>
                              </div>
                          </div>

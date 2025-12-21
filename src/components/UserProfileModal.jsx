@@ -8,11 +8,17 @@ import { toast } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import Dropdown from './Dropdown';
 import FavoriteButton from './FavoriteButton';
+import { useSettings } from '../context/SettingsContext';
+import { useBackClose } from '../hooks/useBackClose';
 
 const UserProfileModal = ({ isOpen, onClose }) => {
-  const { user, logout } = useAuth();
   const { t } = useTranslation();
+  const { user, logout, updateProfile } = useAuth();
+  const { settings } = useSettings();
   const [activeTab, setActiveTab] = useState('profile'); // profile, uploads, favorites, security
+  const [editing, setEditing] = useState(false);
+  
+  useBackClose(isOpen, onClose);
   const [uploads, setUploads] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [loadingUploads, setLoadingUploads] = useState(false);
@@ -22,14 +28,11 @@ const UserProfileModal = ({ isOpen, onClose }) => {
   
   // Profile edit state
   const [profileData, setProfileData] = useState({
-      avatar: '',
-      nickname: '',
-      gender: '',
-      age: '',
       organization: '',
       inviteCode: ''
   });
   const [profileLoading, setProfileLoading] = useState(false);
+  const [isInviteCodeVerified, setIsInviteCodeVerified] = useState(false);
 
   // Security state
   const [currentPassword, setCurrentPassword] = useState('');
@@ -40,13 +43,10 @@ const UserProfileModal = ({ isOpen, onClose }) => {
   useEffect(() => {
     if (isOpen && user) {
         setProfileData({
-            avatar: user.avatar || '',
-            nickname: user.nickname || '',
-            gender: user.gender || '',
-            age: user.age || '',
             organization: user.organization || '',
             inviteCode: ''
         });
+        setIsInviteCodeVerified(!!user.organization);
     }
     if (isOpen && activeTab === 'uploads' && user) {
         fetchUploads();
@@ -97,13 +97,10 @@ const UserProfileModal = ({ isOpen, onClose }) => {
       setProfileLoading(true);
       
       try {
-          // Filter out empty age to avoid issues
           const payload = { 
-            ...profileData,
             organization_cr: profileData.organization,
             invitation_code: profileData.inviteCode
           };
-          if (!payload.age) delete payload.age;
           
           await api.put('/auth/profile', payload);
           toast.success(t('user_profile.profile_updated'));
@@ -114,6 +111,22 @@ const UserProfileModal = ({ isOpen, onClose }) => {
           setProfileLoading(false);
           isSubmittingRef.current = false;
       }
+  };
+
+  const handleVerifyInviteCode = () => {
+    if (!profileData.inviteCode) {
+        toast.error(t('user_profile.invite_code_required'));
+        return;
+    }
+    
+    // Check against global settings (in a real app, verify with backend)
+    if (profileData.inviteCode === settings.invite_code) {
+        setIsInviteCodeVerified(true);
+        toast.success(t('user_profile.invite_code_verified'));
+    } else {
+        toast.error(t('user_profile.invite_code_invalid'));
+        setIsInviteCodeVerified(false);
+    }
   };
 
   const handlePasswordUpdate = async (e) => {
@@ -236,81 +249,56 @@ const UserProfileModal = ({ isOpen, onClose }) => {
                           <h3 className="text-xl font-bold text-white mb-6">{t('user_profile.tabs.profile')}</h3>
                           
                           <form onSubmit={handleProfileUpdate} className="space-y-4">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  <div>
-                                      <label className="block text-sm font-medium text-gray-400 mb-1">{t('user_profile.fields.avatar')}</label>
-                                      <input 
-                                          type="text" 
-                                          value={profileData.avatar}
-                                          onChange={(e) => setProfileData({...profileData, avatar: e.target.value})}
-                                          placeholder={t('user_profile.fields.avatar_placeholder')}
-                                          className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500"
-                                      />
-                                  </div>
-                                  <div>
-                                      <label className="block text-sm font-medium text-gray-400 mb-1">{t('user_profile.fields.nickname')}</label>
-                                      <input 
-                                          type="text" 
-                                          value={profileData.nickname}
-                                          onChange={(e) => setProfileData({...profileData, nickname: e.target.value})}
-                                          className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500"
-                                      />
-                                  </div>
-                                  <div>
-                                      <label className="block text-sm font-medium text-gray-400 mb-1">{t('user_profile.fields.gender')}</label>
-                                      <Dropdown
-                                          value={profileData.gender}
-                                          onChange={(value) => setProfileData({...profileData, gender: value})}
-                                          options={[
-                                              { value: 'male', label: t('user_profile.gender.male') },
-                                              { value: 'female', label: t('user_profile.gender.female') },
-                                              { value: 'other', label: t('user_profile.gender.other') }
-                                          ]}
-                                          placeholder={t('common.select')}
-                                          buttonClassName="bg-black/20 border-white/10 w-full py-3"
-                                      />
-                                  </div>
-                                  <div>
-                                      <label className="block text-sm font-medium text-gray-400 mb-1">{t('user_profile.fields.age')}</label>
-                                      <input 
-                                          type="number" 
-                                          value={profileData.age}
-                                          onChange={(e) => setProfileData({...profileData, age: e.target.value})}
-                                          className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500"
-                                      />
-                                  </div>
-                              </div>
+                              <div className="pt-4">
+                                  <label className="block text-sm font-medium text-gray-400 mb-2">{t('user_profile.fields.organization')}</label>
+                                  
+                                  {/* Invite Code Section - Only show if not verified */}
+                                  {!isInviteCodeVerified && (
+                                    <div className="mb-4 space-y-2">
+                                        <label className="text-xs text-gray-500">{t('user_profile.fields.invite_code_label')}</label>
+                                        <div className="flex gap-2">
+                                            <input 
+                                                type="text" 
+                                                value={profileData.inviteCode}
+                                                onChange={(e) => setProfileData({...profileData, inviteCode: e.target.value})}
+                                                placeholder={t('user_profile.fields.invite_code_hint')}
+                                                className="flex-1 bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={handleVerifyInviteCode}
+                                                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold transition-colors"
+                                            >
+                                                {t('common.verify')}
+                                            </button>
+                                        </div>
+                                    </div>
+                                  )}
 
-                              <div className="pt-4 border-t border-white/10">
-                                  <label className="block text-sm font-medium text-gray-400 mb-1">{t('user_profile.fields.organization')}</label>
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div className="space-y-2">
                                       <input 
                                           type="text" 
                                           value={profileData.organization}
                                           onChange={(e) => setProfileData({...profileData, organization: e.target.value})}
                                           placeholder={t('user_profile.fields.org_placeholder')}
-                                          className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500"
+                                          disabled={!isInviteCodeVerified}
+                                          className={`w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 ${!isInviteCodeVerified ? 'opacity-50 cursor-not-allowed' : ''}`}
                                       />
-                                      <input 
-                                          type="text" 
-                                          value={profileData.inviteCode}
-                                          onChange={(e) => setProfileData({...profileData, inviteCode: e.target.value})}
-                                          placeholder={t('user_profile.fields.invite_code_hint')}
-                                          className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500"
-                                      />
+                                      <p className="text-xs text-gray-500">{t('user_profile.fields.org_help')}</p>
                                   </div>
-                                  <p className="text-xs text-gray-500 mt-2">{t('user_profile.fields.org_help')}</p>
                               </div>
 
-                              <div className="flex justify-end pt-4">
-                                  <button 
-                                      type="submit"
-                                      disabled={profileLoading}
-                                      className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-colors disabled:opacity-50"
-                                  >
-                                      {profileLoading ? t('common.saving') : t('common.save')}
-                                  </button>
-                              </div>
+                              {isInviteCodeVerified && (
+                                <div className="flex justify-end pt-4">
+                                    <button 
+                                        type="submit"
+                                        disabled={profileLoading}
+                                        className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-colors disabled:opacity-50"
+                                    >
+                                        {profileLoading ? t('common.saving') : t('common.save')}
+                                    </button>
+                                </div>
+                              )}
                           </form>
 
                           <div className="bg-white/5 rounded-2xl p-6 border border-white/10 mt-8">

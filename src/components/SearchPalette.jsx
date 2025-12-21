@@ -3,12 +3,14 @@ import { Search, Command, X, ArrowRight, Image as ImageIcon, Music, Film, FileTe
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { useBackClose } from '../hooks/useBackClose';
 
 import { useTranslation } from 'react-i18next';
 
 const SearchPalette = () => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
+  const { onNavigate } = useBackClose(isOpen, () => setIsOpen(false));
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(0);

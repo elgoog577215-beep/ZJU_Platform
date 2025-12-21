@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Plus, Tag } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 
-const TagInput = ({ value = '', onChange, placeholder = 'Add tags...' }) => {
+const TagInput = ({ value = '', onChange }) => {
+  const { t } = useTranslation();
   const [tags, setTags] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [suggestions, setSuggestions] = useState([]);
@@ -113,9 +115,16 @@ const TagInput = ({ value = '', onChange, placeholder = 'Add tags...' }) => {
           value={inputValue}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          onFocus={() => inputValue && setShowSuggestions(true)}
+          onFocus={() => {
+            if (inputValue) setShowSuggestions(true);
+            else if (allTags.length > 0) {
+                 // Show top 5 tags if input is empty
+                 setSuggestions(allTags.slice(0, 5));
+                 setShowSuggestions(true);
+            }
+          }}
           className="bg-transparent border-none outline-none text-white placeholder-gray-500 flex-1 min-w-[120px]"
-          placeholder={tags.length === 0 ? placeholder : ''}
+          placeholder={tags.length === 0 ? t('upload.tags_placeholder') : ''}
         />
       </div>
 
@@ -132,10 +141,27 @@ const TagInput = ({ value = '', onChange, placeholder = 'Add tags...' }) => {
               className="w-full text-left px-4 py-2 text-gray-300 hover:bg-white/10 hover:text-white transition-colors flex justify-between items-center"
             >
               <span>{tag.name}</span>
-              <span className="text-xs text-gray-500">{tag.count} usage</span>
+              <span className="text-xs text-gray-500">{tag.count} {t('admin.tag_manager.items_count')}</span>
             </button>
           ))}
         </div>
+      )}
+      
+      {/* Quick Select for Popular Tags */}
+      {allTags.length > 0 && tags.length < 5 && !showSuggestions && (
+          <div className="mt-2 flex flex-wrap gap-2">
+              <span className="text-xs text-gray-500 py-1">{t('upload.popular_tags')}</span>
+              {allTags.slice(0, 5).filter(t => !tags.includes(t.name)).map(tag => (
+                  <button
+                      key={tag.id}
+                      type="button"
+                      onClick={() => addTag(tag.name)}
+                      className="text-xs bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white px-2 py-1 rounded-lg transition-colors border border-white/5"
+                  >
+                      {tag.name}
+                  </button>
+              ))}
+          </div>
       )}
     </div>
   );

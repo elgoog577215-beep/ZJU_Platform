@@ -80,10 +80,19 @@ const FullFeaturedMusicPlayer = ({ tracks = [] }) => {
   }, [currentTrack]);
 
   // If no track is playing globally, and we have local tracks, use the first one as "display" (not playing)
-  const displayTrack = currentTrack || (tracks.length > 0 ? tracks[0] : { title: t('music.select_track_title', 'Select a track'), artist: t('music.select_track_artist', 'to start listening'), duration: 0, cover: "https://via.placeholder.com/300" });
+  const displayTrack = currentTrack || (tracks.length > 0 ? tracks[0] : null);
+
+  if (!displayTrack) {
+    return (
+        <div className="h-full flex flex-col items-center justify-center bg-[#0a0a0a]/50 backdrop-blur-2xl border border-white/20 rounded-3xl overflow-hidden shadow-2xl p-6 text-center text-gray-500">
+            <MusicIcon size={48} className="mb-4 opacity-50" />
+            <p className="text-sm">{t('music.no_tracks', 'No tracks available')}</p>
+        </div>
+    );
+  }
 
   return (
-    <div className="h-full flex flex-col bg-[#0a0a0a]/50 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden">
+    <div className="h-full flex flex-col bg-[#0a0a0a]/50 backdrop-blur-2xl border border-white/20 rounded-3xl overflow-hidden shadow-2xl">
       
       {/* Player Section - Fixed Height or Flex */}
       <div className="p-6 relative overflow-hidden flex-shrink-0">
@@ -93,42 +102,36 @@ const FullFeaturedMusicPlayer = ({ tracks = [] }) => {
           />
          <div className="absolute inset-0 bg-black/60 z-0" />
 
-         <div className="relative z-10 flex flex-col items-center">
-            {/* Header */}
-            <div className="w-full flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                    <div className="p-1.5 bg-cyan-500/20 rounded-lg text-cyan-400">
-                        <MusicIcon size={16} />
-                    </div>
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">{t('home.now_playing')}</h3>
-                </div>
-                {displayTrack && displayTrack.id && (
+         <div className="relative z-10 flex flex-col items-center pt-4">
+            {/* Favorite Button - Absolute Top Right */}
+            {displayTrack.id && (
+                <div className="absolute top-0 right-0">
                     <FavoriteButton 
                         itemId={displayTrack.id}
                         itemType="music"
                         size={16}
                         showCount={false}
-                        className="p-1.5 hover:bg-white/10 rounded-full transition-colors"
+                        className="p-2 hover:bg-white/10 rounded-full transition-colors text-white/60 hover:text-white"
                     />
-                )}
-            </div>
+                </div>
+            )}
 
             {/* Vinyl */}
             <motion.div 
                 animate={{ rotate: isPlaying ? 360 : 0 }}
                 transition={{ duration: 3, repeat: Infinity, ease: "linear", paused: !isPlaying }}
-                className="relative w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white/10 shadow-2xl overflow-hidden mb-6"
+                className="relative w-28 h-28 md:w-36 md:h-36 rounded-full border-4 border-white/20 shadow-2xl overflow-hidden mb-4"
             >
                 <SmartImage src={displayTrack.cover} alt={displayTrack.title} type="music" className="w-full h-full" iconSize={32} />
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="w-4 h-4 bg-black rounded-full border-2 border-white/20" />
+                    <div className="w-3 h-3 bg-black rounded-full border-2 border-white/20" />
                 </div>
             </motion.div>
 
             {/* Info */}
-            <div className="text-center mb-4 w-full">
-                <h2 className="text-xl font-bold text-white mb-1 truncate">{displayTrack.title}</h2>
-                <p className="text-cyan-400 text-sm truncate">{displayTrack.artist}</p>
+            <div className="text-center mb-4 w-full px-4">
+                <h2 className="text-lg font-bold text-white mb-0.5 truncate">{displayTrack.title}</h2>
+                <p className="text-cyan-400 text-xs truncate">{displayTrack.artist}</p>
             </div>
 
             {/* Progress */}

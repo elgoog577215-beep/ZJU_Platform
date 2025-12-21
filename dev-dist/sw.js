@@ -67,7 +67,7 @@ if (!self.define) {
     });
   };
 }
-define(['./workbox-cffa4085'], (function (workbox) { 'use strict';
+define(['./workbox-90b86364'], (function (workbox) { 'use strict';
 
   self.skipWaiting();
   workbox.clientsClaim();
@@ -82,7 +82,7 @@ define(['./workbox-cffa4085'], (function (workbox) { 'use strict';
     "revision": "3ca0b8505b4bec776b69afdba2768812"
   }, {
     "url": "/index.html",
-    "revision": "0.e9hmdcnbmp"
+    "revision": "0.n2c0j86dldk"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("/index.html"), {
@@ -95,18 +95,18 @@ define(['./workbox-cffa4085'], (function (workbox) { 'use strict';
       statuses: [0, 200]
     })]
   }), 'GET');
-  workbox.registerRoute(/^\/uploads\/.*$/, new workbox.CacheFirst({
+  workbox.registerRoute(/^\/uploads\/.*$/, new workbox.StaleWhileRevalidate({
     "cacheName": "uploads-cache",
     plugins: [new workbox.ExpirationPlugin({
       maxEntries: 200,
       maxAgeSeconds: 2592000
     }), new workbox.CacheableResponsePlugin({
-      statuses: [0, 200]
+      statuses: [200]
     })]
   }), 'GET');
   workbox.registerRoute(({
     request
-  }) => request.destination === "image", new workbox.CacheFirst({
+  }) => request.destination === "image", new workbox.StaleWhileRevalidate({
     "cacheName": "image-cache",
     plugins: [new workbox.ExpirationPlugin({
       maxEntries: 200,

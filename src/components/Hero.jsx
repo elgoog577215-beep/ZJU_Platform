@@ -20,8 +20,8 @@ const Hero = () => {
       >
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black z-10" />
         <img 
-          src={settings.hero_image || "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=1600&auto=format&fit=crop&q=80"} 
-          srcSet={`${settings.hero_image || "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=800&auto=format&fit=crop&q=80"} 800w, ${settings.hero_image || "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=1600&auto=format&fit=crop&q=80"} 1600w`}
+          src={settings.hero_bg_url || "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=1600&auto=format&fit=crop&q=80"} 
+          srcSet={`${settings.hero_bg_url || "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=800&auto=format&fit=crop&q=80"} 800w, ${settings.hero_bg_url || "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=1600&auto=format&fit=crop&q=80"} 1600w`}
           sizes="(max-width: 768px) 800px, 1600px"
           alt="Hero Background" 
           className="w-full h-full object-cover"

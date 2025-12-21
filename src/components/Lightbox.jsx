@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronLeft, ChevronRight, Box, Download, Share2, Info, Camera, Aperture, Clock, Gauge } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Box, Download, Info, Camera, Aperture, Clock, Gauge } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import FavoriteButton from './FavoriteButton';
@@ -37,13 +37,6 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onView3D, onLikeToggle }) =>
           console.error(error);
           toast.error('Download failed');
       }
-  };
-
-  const handleShare = () => {
-      const url = window.location.href;
-      navigator.clipboard.writeText(url).then(() => {
-          toast.success('Link copied to clipboard');
-      });
   };
 
   // Mock Exif Data (since we don't have it in DB yet)
@@ -87,13 +80,6 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onView3D, onLikeToggle }) =>
               title="Download"
             >
               <Download size={20} />
-            </button>
-            <button 
-              onClick={handleShare}
-              className="p-3 text-white/70 hover:text-blue-400 hover:bg-white/10 rounded-full transition-all"
-              title="Share"
-            >
-              <Share2 size={20} />
             </button>
             <button 
               onClick={() => setShowInfo(!showInfo)}

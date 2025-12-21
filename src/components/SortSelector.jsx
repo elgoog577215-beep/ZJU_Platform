@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { ArrowUpDown } from 'lucide-react';
 import Dropdown from './Dropdown';
 
-const SortSelector = ({ sort, onSortChange }) => {
+const SortSelector = ({ sort, onSortChange, className, buttonClassName }) => {
   const { t } = useTranslation();
 
   const options = [
@@ -14,13 +14,13 @@ const SortSelector = ({ sort, onSortChange }) => {
   ];
 
   return (
-    <div className="w-40">
+    <div className={className || "w-40"}>
       <Dropdown
         value={sort}
         onChange={onSortChange}
         options={options}
         icon={ArrowUpDown}
-        buttonClassName="bg-neutral-900 rounded-full px-4 py-2 border-white/10 hover:bg-neutral-800"
+        buttonClassName={buttonClassName || "bg-neutral-900 rounded-full px-4 py-2 border-white/10 hover:bg-neutral-800"}
       />
     </div>
   );

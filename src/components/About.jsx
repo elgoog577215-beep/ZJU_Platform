@@ -76,10 +76,10 @@ const About = () => {
               {settings.about_title || t('about.title')} <br />
               <span className="text-gray-500">{settings.about_subtitle || t('about.subtitle')}</span>
             </h2>
-            <p className="text-lg text-gray-300 mb-6 leading-relaxed">
+            <p className="text-lg text-gray-300 mb-6 leading-relaxed whitespace-pre-line">
               {settings.about_intro || t('about.p1')}
             </p>
-            <p className="text-lg text-gray-300 mb-8 leading-relaxed">
+            <p className="text-lg text-gray-300 mb-8 leading-relaxed whitespace-pre-line">
               {settings.about_detail || t('about.p2')}
             </p>
             

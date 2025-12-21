@@ -179,7 +179,7 @@ const Music = () => {
   };
 
   return (
-    <section className="pt-36 pb-32 md:py-20 px-4 md:px-8 min-h-screen">
+    <section className="pt-24 pb-40 md:py-20 px-4 md:px-8 min-h-screen">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -189,7 +189,7 @@ const Music = () => {
       >
         
         <div className="mb-8">
-          <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold font-serif mb-3 md:mb-4">{t('music.title')}</h2>
+          <h2 className="text-4xl md:text-5xl font-bold font-serif mb-4 md:mb-6">{t('music.title')}</h2>
           <p className="text-gray-400 max-w-xl mx-auto text-sm md:text-base">{t('music.subtitle')}</p>
         </div>
           
@@ -207,14 +207,16 @@ const Music = () => {
           </div>
       </motion.div>
 
+      {/* Mobile Mini Player - Removed (Moved to GlobalPlayer) */}
+
       <div className="max-w-6xl w-full mx-auto grid lg:grid-cols-2 gap-8 md:gap-16 items-center relative">
 
-        {/* Player View */}
+        {/* Player View - Hidden on Mobile */}
         <motion.div 
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
-          className="bg-[#0a0a0a]/50 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 md:p-12 shadow-2xl relative overflow-hidden"
+          className="hidden md:block bg-[#0a0a0a]/50 backdrop-blur-2xl border border-white/20 rounded-3xl p-6 md:p-12 shadow-2xl relative overflow-hidden"
         >
           <div className="absolute inset-0 bg-white/5 backdrop-blur-3xl z-0 rounded-3xl" 
             style={{ backgroundImage: `url(${activeTrack.cover})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
@@ -224,23 +226,20 @@ const Music = () => {
           {/* Content Wrapper to ensure z-index above background */}
           <div className="relative z-10">
             {/* Header */}
-            <div className="flex items-center gap-3 mb-8">
-              <div className="p-2 bg-cyan-500/20 rounded-lg text-cyan-400">
+            <div className="flex items-center gap-4 mb-6 sticky top-0 bg-white/5 backdrop-blur-2xl border border-white/20 p-4 rounded-xl z-10 shadow-lg">
+              <div className="p-3 bg-cyan-500/20 rounded-full text-cyan-400">
                 <MusicIcon size={24} />
               </div>
               <div>
-                <h2 className="text-2xl font-bold font-serif">{t('music.title')}</h2>
-                <p className="text-gray-400 text-sm">{t('music.subtitle')}</p>
+                <h2 className="text-xl md:text-2xl font-bold font-serif">{t('music.title')}</h2>
               </div>
             </div>
 
             {/* Vinyl / Cover */}
-            <div className="flex justify-center mb-8">
-              <motion.div 
-                animate={{ rotate: isPlaying ? 360 : 0 }}
-                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+            <div className="flex justify-center mb-6 md:mb-8">
+              <div 
+                className="relative w-48 h-48 md:w-56 md:h-56 rounded-full border-4 border-white/10 shadow-2xl overflow-hidden animate-[spin_4s_linear_infinite]"
                 style={{ animationPlayState: isPlaying ? 'running' : 'paused' }}
-                className="relative w-64 h-64 rounded-full border-4 border-white/10 shadow-2xl overflow-hidden"
               >
                 <SmartImage 
                   src={activeTrack.cover} 
@@ -253,7 +252,7 @@ const Music = () => {
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-8 h-8 bg-black rounded-full border-2 border-white/20" />
                 </div>
-              </motion.div>
+              </div>
             </div>
 
             {/* Info */}
@@ -365,11 +364,11 @@ const Music = () => {
             viewport={{ once: true }}
             className="flex-1 overflow-y-auto custom-scrollbar pr-2"
           >
-            <div className="flex items-center gap-4 mb-4 sticky top-0 bg-black/50 backdrop-blur-md p-4 rounded-xl z-10">
+            <div className="flex items-center gap-4 mb-4 sticky top-0 bg-white/5 backdrop-blur-2xl border border-white/20 p-4 rounded-xl z-10 shadow-lg">
               <div className="p-3 bg-cyan-500/20 rounded-full text-cyan-400">
                 <MusicIcon size={24} />
               </div>
-              <h3 className="text-2xl font-bold">{t('music.subtitle')} ({tracks.length})</h3>
+              <h3 className="text-xl md:text-2xl font-bold">{t('music.title')} ({tracks.length})</h3>
             </div>
 
             <div className="space-y-2">

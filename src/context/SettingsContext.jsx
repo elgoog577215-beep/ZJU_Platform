@@ -17,6 +17,15 @@ export const SettingsProvider = ({ children }) => {
     return saved !== null ? JSON.parse(saved) : true;
   });
 
+  const [backgroundScene, setBackgroundScene] = useState(() => {
+    return localStorage.getItem('background_scene') || 'space';
+  });
+
+  const changeBackgroundScene = (scene) => {
+    setBackgroundScene(scene);
+    localStorage.setItem('background_scene', scene);
+  };
+
   const toggleCursor = () => {
     setCursorEnabled(prev => {
       const newValue = !prev;
@@ -54,7 +63,7 @@ export const SettingsProvider = ({ children }) => {
   };
 
   return (
-    <SettingsContext.Provider value={{ settings, updateSetting, loading, cursorEnabled, toggleCursor }}>
+    <SettingsContext.Provider value={{ settings, updateSetting, loading, cursorEnabled, toggleCursor, backgroundScene, changeBackgroundScene }}>
       {children}
     </SettingsContext.Provider>
   );

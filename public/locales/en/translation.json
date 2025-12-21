@@ -1,23 +1,4 @@
 {
-  "common": {
-    "search": "Search...",
-    "link_copied": "Link copied to clipboard!",
-    "loading": "Loading",
-    "uploading": "Uploading",
-    "cancel": "Cancel",
-    "event": "Event",
-    "article": "Article",
-    "previous_track": "Previous Track",
-    "next_track": "Next Track",
-    "pause": "Pause",
-    "play": "Play",
-    "playback_speed": "Playback Speed",
-    "speed": "Speed",
-    "unmute": "Unmute",
-    "mute": "Mute",
-    "like": "Like",
-    "upload_track": "Upload Track"
-  },
   "auth": {
     "welcome_back": "Welcome Back",
     "join_lumos": "Join Lumos",
@@ -274,7 +255,10 @@
     "uploading": "Uploading",
     "cancel": "Cancel",
     "event": "Event",
-    "article": "Article"
+    "article": "Article",
+    "photo": "Photo",
+    "game": "Game",
+    "music": "Music"
   },
   "gallery": {
     "title": "Selected Works",
@@ -586,6 +570,32 @@
       "start_btn": "Start Sync",
       "crawling": "Crawling..."
     },
+    "upload": {
+      "title_required": "Title is required",
+      "file_required": "File is required",
+      "invalid_file_type": "Invalid file type. Please upload {{type}}",
+      "upload_success": "Uploaded successfully!",
+      "update_success": "Updated successfully!",
+      "upload_failed": "Upload failed. Please try again.",
+      "drop_file": "Drop file here",
+      "drag_drop_browse": "Drag & drop or click to browse",
+      "click_drag_replace": "Click or Drag to replace",
+      "replace": "Replace",
+      "drop_image": "Drop Image",
+      "game_type": "Game Type",
+      "game_desc": "Game Description",
+      "game_desc_placeholder": "Short game description...",
+      "tags": "Tags",
+      "tags_placeholder": "Enter tags...",
+      "title_placeholder": "Enter title...",
+      "location_placeholder": "e.g. Online, City Hall...",
+      "event_link": "Event Link (External)",
+      "artist_placeholder": "Artist name...",
+      "summary": "Summary",
+      "desc_placeholder": "Short description or excerpt...",
+      "detailed_content": "Detailed Content (HTML supported)",
+      "content_placeholder": "<p>Detailed content here...</p>"
+    },
     "database": {
       "title": "Database Management",
       "backup_title": "Backup Database",
@@ -652,26 +662,16 @@
   },
   "themes": {
     "space": { "name": "Deep Space", "desc": "Stellar Nebula" },
-    "water": { "name": "Serene Water", "desc": "Ocean Waves" },
-    "matrix": { "name": "Neon Matrix", "desc": "Digital Rain" },
     "grid": { "name": "Retro Grid", "desc": "Synthwave" },
-    "aurora": { "name": "Aurora", "desc": "Northern Lights" },
     "embers": { "name": "Fire Embers", "desc": "Rising Sparks" },
     "crystal": { "name": "Crystal Cave", "desc": "Refraction" },
-    "quantum": { "name": "Quantum Field", "desc": "Energy Flow" },
     "clouds": { "name": "Ethereal", "desc": "Soft Sky" },
-    "tunnel": { "name": "Hyper Tunnel", "desc": "Warp Speed" },
-    "elegance": { "name": "Elegance", "desc": "Tech Noir" },
     "cyber": { "name": "Cyber Circuit", "desc": "Mainframe" },
     "dna": { "name": "Digital DNA", "desc": "Code of Life" },
     "binary": { "name": "Binary Stream", "desc": "Data Flow" },
     "network": { "name": "Network Nodes", "desc": "Connectivity" },
-    "holo": { "name": "Holo Surface", "desc": "Virtual Plane" },
     "wave": { "name": "Particle Wave", "desc": "Oscillation" },
-    "hex": { "name": "Hex Field", "desc": "Hive Mind" },
-    "sonar": { "name": "Sonar Pulse", "desc": "Detection" },
-    "orbit": { "name": "Orbital Rings", "desc": "Gravity" },
-    "scanner": { "name": "Void Scanner", "desc": "Searching" }
+    "orbit": { "name": "Orbital Rings", "desc": "Gravity" }
   },
   "sort_filter": {
     "newest": "Newest",

@@ -6,9 +6,6 @@ import { Globe } from 'lucide-react';
 const languages = [
   { code: 'zh', name: '中文', dir: 'ltr' },
   { code: 'en', name: 'English', dir: 'ltr' },
-  { code: 'fr', name: 'Français', dir: 'ltr' },
-  { code: 'ja', name: '日本語', dir: 'ltr' },
-  { code: 'ko', name: '한국어', dir: 'ltr' },
 ];
 
 const LanguageSwitcher = () => {
