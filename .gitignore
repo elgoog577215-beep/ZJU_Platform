@@ -5,7 +5,7 @@ server/node_modules/
 # Build outputs
 .vite/
 dev-dist/
-dist/
+# dist/
 
 # Logs and cache
 npm-debug.log*
