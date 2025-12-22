@@ -9,7 +9,7 @@ const categories = [
     id: 'events',
     path: '/events',
     icon: Calendar,
-    image: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&auto=format&fit=crop&q=80',
+    image: '/uploads/cat_events.jpg',
     color: 'from-red-500/80 to-orange-600/80',
     delay: 0.1
   },
@@ -17,7 +17,7 @@ const categories = [
     id: 'gallery',
     path: '/gallery',
     icon: Camera,
-    image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&auto=format&fit=crop&q=80',
+    image: '/uploads/cat_gallery.jpg',
     color: 'from-purple-500/80 to-indigo-600/80',
     delay: 0.2
   },
@@ -25,7 +25,7 @@ const categories = [
     id: 'music',
     path: '/music',
     icon: Music,
-    image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80',
+    image: '/uploads/cat_music.jpg',
     color: 'from-cyan-500/80 to-blue-600/80',
     delay: 0.3
   },
@@ -33,7 +33,7 @@ const categories = [
     id: 'videos',
     path: '/videos',
     icon: Film,
-    image: 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=800&auto=format&fit=crop&q=80',
+    image: '/uploads/cat_videos.jpg',
     color: 'from-pink-500/80 to-rose-600/80',
     delay: 0.4
   },
@@ -41,7 +41,7 @@ const categories = [
     id: 'articles',
     path: '/articles',
     icon: BookOpen,
-    image: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=800&auto=format&fit=crop&q=80',
+    image: '/uploads/cat_articles.jpg',
     color: 'from-emerald-500/80 to-teal-600/80',
     delay: 0.5
   }
@@ -64,12 +64,12 @@ const CategoryCard = ({ item }) => {
           <img 
             src={item.image} 
             alt={t(`nav.${item.id}`)}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 grayscale group-hover:grayscale-0"
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           />
         </div>
         
         {/* Gradient Overlay */}
-        <div className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-60 group-hover:opacity-80 transition-opacity duration-500`} />
+        <div className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-40 group-hover:opacity-60 transition-opacity duration-500`} />
         
         {/* Dark Gradient for Text Legibility */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80" />
