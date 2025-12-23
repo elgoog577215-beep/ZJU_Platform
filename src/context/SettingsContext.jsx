@@ -10,7 +10,10 @@ export const SettingsProvider = ({ children }) => {
     pagination_enabled: 'false',
     theme: 'space',
     language: 'zh',
-    site_title: '拓途浙享'
+    site_title: '拓途浙享',
+    background_brightness: '1.0',
+    background_vignette: '0.5',
+    background_bloom: '0.8'
   });
   // Client-side only settings (not persisted to DB, but maybe localStorage)
   const [cursorEnabled, setCursorEnabled] = useState(() => {

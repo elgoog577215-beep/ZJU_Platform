@@ -317,9 +317,17 @@ const BackgroundSystem = ({ forcedTheme = null }) => {
             <CurrentScene />
             {perfSufficient && (
               <EffectComposer disableNormalPass>
-                <Bloom luminanceThreshold={0.5} mipmapBlur intensity={0.8} radius={0.4} />
+                <Bloom 
+                  luminanceThreshold={0.5} 
+                  mipmapBlur 
+                  intensity={parseFloat(settings.background_bloom || 0.8)} 
+                  radius={0.4} 
+                />
                 <Noise opacity={0.02} />
-                <Vignette offset={0.5} darkness={0.5} />
+                <Vignette 
+                  offset={0.5} 
+                  darkness={parseFloat(settings.background_vignette || 0.5)} 
+                />
               </EffectComposer>
             )}
           </Suspense>
