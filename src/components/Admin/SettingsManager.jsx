@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
-import { Save, RefreshCw, Key, Globe, Shield, Palette } from 'lucide-react';
+import { Save, RefreshCw, Key, Globe, Shield, Sun } from 'lucide-react';
 import api from '../../services/api';
 
 const SettingsManager = () => {
@@ -130,7 +130,7 @@ const SettingsManager = () => {
 
       <div className="bg-[#111] p-6 rounded-2xl border border-white/10">
         <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-          <Palette size={20} className="text-indigo-400" />
+          <Sun size={20} className="text-indigo-400" />
           {t('admin.appearance_settings')}
         </h3>
         <div className="space-y-6">
