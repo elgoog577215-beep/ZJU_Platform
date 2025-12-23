@@ -360,21 +360,22 @@ END:VCALENDAR`;
                     {/* Share Button - Hidden on mobile list */}
                     <div className="hidden md:flex absolute bottom-4 right-4 gap-2">
                         <FavoriteButton 
-                            itemId={event.id}
-                            itemType="event"
-                            size={18}
-                            showCount={false}
-                            favorited={event.favorited}
-                            className="p-2 bg-black/40 hover:bg-indigo-600 rounded-full text-white backdrop-blur-md transition-all"
-                            onToggle={(favorited, likes) => {
-                                setEvents(prev => prev.map(e => 
-                                    e.id === event.id ? { ...e, likes: likes !== undefined ? likes : e.likes, favorited } : e
-                                ));
-                                if (selectedEvent && selectedEvent.id === event.id) {
-                                    setSelectedEvent(prev => ({ ...prev, likes: likes !== undefined ? likes : prev.likes, favorited }));
-                                }
-                            }}
-                        />
+                                                itemId={event.id}
+                                                itemType="event"
+                                                size={18}
+                                                showCount={false}
+                                                favorited={event.favorited}
+                                                initialFavorited={event.favorited}
+                                                className="p-2 bg-black/40 hover:bg-indigo-600 rounded-full text-white backdrop-blur-md transition-all"
+                                                onToggle={(favorited, likes) => {
+                                                    setEvents(prev => prev.map(e => 
+                                                        e.id === event.id ? { ...e, likes: likes !== undefined ? likes : e.likes, favorited } : e
+                                                    ));
+                                                    if (selectedEvent && selectedEvent.id === event.id) {
+                                                        setSelectedEvent(prev => ({ ...prev, likes: likes !== undefined ? likes : prev.likes, favorited }));
+                                                    }
+                                                }}
+                                            />
                     </div>
 
                     {/* Countdown Overlay (Upcoming only) */}

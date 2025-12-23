@@ -263,20 +263,21 @@ const Music = () => {
               {activeTrack.id && (
                   <div className="flex justify-center">
                       <FavoriteButton 
-                        itemId={activeTrack.id}
-                        itemType="music"
-                        size={20}
-                        showCount={true}
-                        count={activeTrack.likes}
-                        favorited={activeTrack.favorited}
-                        className="p-2 bg-white/5 hover:bg-cyan-500/20 rounded-full transition-colors border border-white/10"
-                        onToggle={(favorited, likes) => {
-                            setPlayerTrackState({ likes, favorited });
-                            setTracks(prev => prev.map(t => 
-                                t.id === activeTrack.id ? { ...t, likes: likes !== undefined ? likes : t.likes, favorited } : t
-                            ));
-                        }}
-                      />
+                                itemId={activeTrack.id}
+                                itemType="music"
+                                size={20}
+                                showCount={true}
+                                count={activeTrack.likes}
+                                favorited={activeTrack.favorited}
+                                initialFavorited={activeTrack.favorited}
+                                className="p-2 bg-white/5 hover:bg-cyan-500/20 rounded-full transition-colors border border-white/10"
+                                onToggle={(favorited, likes) => {
+                                    setPlayerTrackState({ likes, favorited });
+                                    setTracks(prev => prev.map(t => 
+                                        t.id === activeTrack.id ? { ...t, likes: likes !== undefined ? likes : t.likes, favorited } : t
+                                    ));
+                                }}
+                            />
                   </div>
               )}
             </div>

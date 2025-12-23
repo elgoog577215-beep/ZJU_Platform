@@ -181,6 +181,7 @@ const Videos = () => {
                     showCount={true}
                     count={video.likes || 0}
                     favorited={video.favorited}
+                    initialFavorited={video.favorited}
                     className="p-2 bg-black/50 hover:bg-pink-500/20 rounded-full backdrop-blur-md transition-colors group/btn border border-white/10"
                     onToggle={(favorited, likes) => {
                         setVideos(prev => prev.map(v => 
