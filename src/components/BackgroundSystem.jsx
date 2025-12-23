@@ -145,10 +145,12 @@ const DNAScene = () => {
     return p;
   }, []);
 
+  const geometry = useMemo(() => new THREE.BufferGeometry().setFromPoints(points), [points]);
+
   return (
     <group ref={group} rotation={[0, 0, Math.PI / 4]}>
       <Points limit={1000} range={1000}>
-        <primitive object={new THREE.BufferGeometry().setFromPoints(points)} />
+        <primitive object={geometry} attach="geometry" />
         <PointMaterial transparent vertexColors size={0.15} sizeAttenuation={true} depthWrite={false} color="#00ff88" />
       </Points>
       <Stars radius={50} count={1000} factor={2} fade speed={0.2} />
