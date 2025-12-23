@@ -55,12 +55,12 @@ router.get('/favorites/check', authenticateToken, favoriteController.checkFavori
 // System Routes
 router.get('/search', systemController.searchContent);
 router.get('/stats', systemController.getStats);
-router.post('/upload', upload.fields([{ name: 'file', maxCount: 1 }, { name: 'cover', maxCount: 1 }]), systemController.handleUpload);
+router.post('/upload', authenticateToken, upload.fields([{ name: 'file', maxCount: 1 }, { name: 'cover', maxCount: 1 }]), systemController.handleUpload);
 router.get('/db/backup', systemController.downloadDbBackup);
 router.get('/featured', systemController.getFeaturedContent);
 router.post('/events/crawl', systemController.crawlEvents);
 router.get('/audit-logs', systemController.getAuditLogs);
-router.get('/admin/pending', systemController.getPendingContent);
+router.get('/admin/pending', authenticateToken, isAdmin, systemController.getPendingContent);
 
 // Settings Routes
 router.get('/settings', settingsController.getSettings);
@@ -108,7 +108,7 @@ resources.forEach(resource => {
     router.delete(`/${resource}/categories/:name`, categoryController.deleteCategory(resource));
 
     // Create
-    router.post(`/${resource}`, resourceController.createHandler(resource, resourceController.fields[resource]));
+    router.post(`/${resource}`, authenticateToken, resourceController.createHandler(resource, resourceController.fields[resource]));
     
     // Update
     router.put(`/${resource}/:id`, resourceController.updateHandler(resource, resourceController.fields[resource]));
@@ -126,7 +126,7 @@ resources.forEach(resource => {
     router.post(`/${resource}/:id/like`, resourceController.toggleLike(resource));
 
     // Update Status
-    router.put(`/${resource}/:id/status`, resourceController.updateStatus(resource));
+    router.put(`/${resource}/:id/status`, authenticateToken, isAdmin, resourceController.updateStatus(resource));
 });
 
 module.exports = router;

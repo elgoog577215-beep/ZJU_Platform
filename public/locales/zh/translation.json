@@ -480,7 +480,24 @@
       "featured": "精选",
       "link": "链接",
       "preview": "预览",
-      "tags": "标签"
+      "tags": "标签",
+      "upload_pending_review": "上传成功，等待管理员审核"
+    },
+    "pending_review_ui": {
+      "title": "待审核内容",
+      "load_fail": "加载待审核内容失败",
+      "approved_success": "已批准发布",
+      "rejected_success": "已拒绝发布",
+      "action_fail": "操作失败",
+      "loading": "加载中...",
+      "refresh": "刷新",
+      "all_caught_up": "全部处理完毕！",
+      "no_pending": "目前没有待审核的内容。",
+      "no_img": "无预览图",
+      "user_label": "用户",
+      "approve": "批准",
+      "reject": "拒绝",
+      "admin_rejected": "管理员拒绝"
     },
     "overview": "概览",
     "file_manager": "文件管理",
@@ -631,7 +648,8 @@
       "summary": "摘要",
       "desc_placeholder": "简短描述或摘要...",
       "detailed_content": "详细内容 (支持 HTML)",
-      "content_placeholder": "<p>在此输入详细内容...</p>"
+      "content_placeholder": "<p>在此输入详细内容...</p>",
+      "upload_pending_review": "上传成功，等待管理员审核"
     },
     "database": {
       "title": "数据库管理",

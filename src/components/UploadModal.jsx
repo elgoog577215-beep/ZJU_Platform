@@ -7,9 +7,12 @@ import api, { uploadFile } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import TagInput from './TagInput';
 
+import { useNavigate } from 'react-router-dom';
+
 const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = null, customFields = [] }) => {
   const { t } = useTranslation();
   const { user, isAdmin } = useAuth();
+  const navigate = useNavigate();
   const isEditing = !!initialData;
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(initialData?.url || initialData?.audio || initialData?.video || null);
@@ -35,6 +38,12 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   // Reset form when modal opens with new data or closes
   React.useEffect(() => {
     if (isOpen) {
+        if (!user) {
+            toast.error(t('auth.signin_desc'));
+            onClose();
+            return;
+        }
+
         if (initialData) {
             setTitle(initialData.title || '');
             setCategory(initialData.category || t('common.uncategorized'));
@@ -158,7 +167,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
       
       const successMessage = isEditing 
         ? t('upload.update_success')
-        : t('upload.upload_success');
+        : (isAdmin ? t('upload.upload_success') : t('upload.upload_pending_review'));
       
       toast.success(successMessage);
       onClose();

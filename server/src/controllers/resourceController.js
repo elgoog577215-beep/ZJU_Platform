@@ -8,10 +8,10 @@ const createHandler = (table, fields) => async (req, res) => {
     const placeholders = fields.map(() => '?').join(',');
     
     // Determine status based on user role
-    const userRole = req.user ? req.user.role : 'admin'; // Default to admin/approved for this demo/personal project
-    // If not authenticated, maybe reject? For now let's assume auth middleware is used.
+    const userRole = req.user ? req.user.role : 'user'; 
+    
     // If user is admin, auto-approve. Else pending.
-    const status = userRole === 'admin' ? 'approved' : 'approved'; // Force approved for smoother experience as requested
+    const status = userRole === 'admin' ? 'approved' : 'pending'; 
     const uploader_id = req.user ? req.user.id : null;
 
     const sql = `INSERT INTO ${table} (${fields.join(',')}, status, uploader_id) VALUES (${placeholders}, ?, ?)`;

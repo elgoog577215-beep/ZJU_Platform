@@ -79,13 +79,13 @@ const getStats = async (req, res) => {
 const handleUpload = (req, res) => {
   try {
     const response = {};
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    // const baseUrl = `${req.protocol}://${req.get('host')}`; // Remove absolute URL
     
     if (req.files && req.files['file']) {
-      response.fileUrl = `${baseUrl}/uploads/${req.files['file'][0].filename}`;
+      response.fileUrl = `/uploads/${req.files['file'][0].filename}`;
     }
     if (req.files && req.files['cover']) {
-      response.coverUrl = `${baseUrl}/uploads/${req.files['cover'][0].filename}`;
+      response.coverUrl = `/uploads/${req.files['cover'][0].filename}`;
     }
     res.json(response);
   } catch (error) {
