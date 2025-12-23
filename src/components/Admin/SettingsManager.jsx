@@ -3,9 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
 import { Save, RefreshCw, Key, Globe, Shield, Sun } from 'lucide-react';
 import api from '../../services/api';
+import { useSettings } from '../../context/SettingsContext';
 
 const SettingsManager = () => {
   const { t } = useTranslation();
+  const { updateSetting: updateGlobalSetting } = useSettings();
   const [settings, setSettings] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -29,7 +31,7 @@ const SettingsManager = () => {
   const handleSave = async (key, value) => {
     setSaving(true);
     try {
-      await api.post('/settings', { key, value });
+      await updateGlobalSetting(key, value);
       setSettings(prev => ({ ...prev, [key]: value }));
       toast.success(t('admin.toast.save_success'));
     } catch (error) {

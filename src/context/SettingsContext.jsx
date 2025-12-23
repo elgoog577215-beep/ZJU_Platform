@@ -64,13 +64,17 @@ export const SettingsProvider = ({ children }) => {
   }, []);
 
   const updateSetting = (key, value) => {
-    api.post('/settings', { key, value })
+    return api.post('/settings', { key, value })
       .then(res => {
         if (res.data.success) {
           setSettings(prev => ({ ...prev, [key]: String(value) }));
         }
+        return res;
       })
-      .catch(err => console.error("Failed to update setting:", err));
+      .catch(err => {
+        console.error("Failed to update setting:", err);
+        throw err;
+      });
   };
 
   return (
