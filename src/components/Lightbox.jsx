@@ -73,6 +73,7 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onView3D, onLikeToggle }) =>
               className="p-3 hover:bg-white/10 rounded-full"
               onToggle={onLikeToggle}
               favorited={photo.favorited}
+              initialFavorited={photo.favorited}
             />
             <button 
               onClick={handleDownload}

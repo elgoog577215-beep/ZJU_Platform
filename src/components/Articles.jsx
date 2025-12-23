@@ -169,6 +169,7 @@ const Articles = () => {
                     size={16}
                     showCount={true}
                     count={article.likes || 0}
+                    initialFavorited={article.favorited}
                     className="p-2 bg-black/50 hover:bg-orange-500 rounded-full backdrop-blur-md transition-all group/btn border border-white/10"
                     onToggle={(favorited, likes) => {
                         // Optimistically update the SWR cache
@@ -179,7 +180,7 @@ const Articles = () => {
                                 return {
                                     ...data,
                                     data: data.data.map(a => 
-                                        a.id === article.id ? { ...a, likes: likes !== undefined ? likes : a.likes } : a
+                                        a.id === article.id ? { ...a, likes: likes !== undefined ? likes : a.likes, favorited } : a
                                     )
                                 };
                             },
@@ -217,10 +218,11 @@ const Articles = () => {
                         size={16}
                         showCount={true}
                         count={article.likes || 0}
+                        initialFavorited={article.favorited}
                         className="p-2 bg-white/5 hover:bg-orange-500 rounded-full backdrop-blur-md transition-all border border-white/10"
                         onToggle={(favorited, likes) => {
                             setArticles(prev => prev.map(a => 
-                                a.id === article.id ? { ...a, likes: likes !== undefined ? likes : a.likes } : a
+                                a.id === article.id ? { ...a, likes: likes !== undefined ? likes : a.likes, favorited } : a
                             ));
                         }}
                       />
@@ -303,9 +305,10 @@ const Articles = () => {
                       size={24}
                       showCount={true}
                       count={selectedArticle.likes || 0}
+                      initialFavorited={selectedArticle.favorited}
                       className="p-3 bg-white/5 hover:bg-red-500/20 text-white rounded-full transition-all border border-white/10"
                       onToggle={(favorited, likes) => {
-                          setSelectedArticle(prev => ({ ...prev, likes: likes !== undefined ? likes : prev.likes }));
+                          setSelectedArticle(prev => ({ ...prev, likes: likes !== undefined ? likes : prev.likes, favorited }));
                           mutate(
                               `/articles?page=${currentPage}&limit=${limit}&sort=${sort}`,
                               (data) => {
@@ -313,7 +316,7 @@ const Articles = () => {
                                   return {
                                       ...data,
                                       data: data.data.map(a => 
-                                          a.id === selectedArticle.id ? { ...a, likes: likes !== undefined ? likes : a.likes } : a
+                                          a.id === selectedArticle.id ? { ...a, likes: likes !== undefined ? likes : a.likes, favorited } : a
                                       )
                                   };
                               },

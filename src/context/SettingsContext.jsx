@@ -25,6 +25,7 @@ export const SettingsProvider = ({ children }) => {
   const changeBackgroundScene = (scene) => {
     setBackgroundScene(scene);
     localStorage.setItem('background_scene', scene);
+    updateSetting('theme', scene);
   };
 
   const toggleCursor = () => {
@@ -41,6 +42,11 @@ export const SettingsProvider = ({ children }) => {
     api.get('/settings')
       .then(res => {
         setSettings(prev => ({ ...prev, ...res.data }));
+        // Sync background scene with DB setting if available
+        if (res.data.theme) {
+            setBackgroundScene(res.data.theme);
+            localStorage.setItem('background_scene', res.data.theme);
+        }
         setLoading(false);
       })
       .catch(err => {

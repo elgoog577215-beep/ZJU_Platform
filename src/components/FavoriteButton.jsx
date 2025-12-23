@@ -8,7 +8,7 @@ import api from '../services/api';
 const FavoriteButton = ({ 
   itemId, 
   itemType, 
-  initialFavorited = false, 
+  initialFavorited, 
   favorited, // Controlled state
   className = "", 
   size = 20, 
@@ -16,7 +16,10 @@ const FavoriteButton = ({
   count = 0,
   onToggle
 }) => {
-  const [isFavorited, setIsFavorited] = useState(initialFavorited);
+  const [isFavorited, setIsFavorited] = useState(() => {
+    if (favorited !== undefined) return favorited;
+    return !!initialFavorited;
+  });
   const [loading, setLoading] = useState(false);
   const [likeCount, setLikeCount] = useState(typeof count === 'number' ? count : 0);
   const { user } = useAuth();
@@ -28,6 +31,14 @@ const FavoriteButton = ({
     }
   }, [favorited]);
 
+  // Sync with initialFavorited if it changes (e.g. from parent re-fetch)
+  // But be careful not to overwrite local optimistic state if we are interacting
+  useEffect(() => {
+      if (initialFavorited !== undefined && favorited === undefined) {
+          setIsFavorited(initialFavorited);
+      }
+  }, [initialFavorited, favorited]);
+
   useEffect(() => {
     setLikeCount(typeof count === 'number' ? count : 0);
   }, [count]);
@@ -37,12 +48,11 @@ const FavoriteButton = ({
     let mounted = true;
     
     const checkStatus = async () => {
+      // If we have explicit state (controlled or initial), skip check
       if (!user || !itemId || !itemType) return;
+      if (favorited !== undefined) return;
+      if (initialFavorited !== undefined) return; // Trust parent if provided
       
-      // If initialFavorited is provided, we might trust it, but checking ensures sync
-      // However, to save requests, we might skip if we are sure. 
-      // For now, let's rely on initialFavorited if passed, otherwise check.
-      // Actually, checking is safer to avoid UI mismatch.
       try {
         const res = await api.get(`/favorites/check?itemId=${itemId}&itemType=${itemType}`);
         if (mounted) setIsFavorited(res.data.favorited);
@@ -51,8 +61,6 @@ const FavoriteButton = ({
       }
     };
 
-    // Only check if we didn't receive an explicit initial state or if we want to verify
-    // For this implementation, let's check if user is logged in
     if (user) {
         checkStatus();
     } else {
@@ -60,7 +68,7 @@ const FavoriteButton = ({
     }
 
     return () => { mounted = false; };
-  }, [itemId, itemType, user]);
+  }, [itemId, itemType, user, favorited, initialFavorited]);
 
   const handleToggle = async (e) => {
     e.preventDefault();
@@ -88,18 +96,19 @@ const FavoriteButton = ({
         setLikeCount(res.data.likes);
       }
       
-      if (res.data.favorited) {
-        // toast.success('已收藏');
-      } else {
-        // toast.success('已取消收藏');
-      }
-
       if (onToggle) onToggle(res.data.favorited, res.data.likes);
     } catch (error) {
       // Revert on error
       setIsFavorited(previousState);
       setLikeCount(previousLikes);
-      toast.error('操作失败，请重试');
+      
+      if (error.response?.status === 401) {
+          toast.error('登录已过期，请重新登录');
+      } else if (error.response?.status === 404) {
+          toast.error('该内容已不存在');
+      } else {
+          toast.error('操作失败，请重试');
+      }
       console.error(error);
     } finally {
       setLoading(false);
