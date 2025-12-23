@@ -24,7 +24,7 @@ pnpm-debug.log*
 Thumbs.db
 
 # Uploads & generated assets
-server/uploads/
+# server/uploads/
 
 # Local database file
 # server/database.sqlite
