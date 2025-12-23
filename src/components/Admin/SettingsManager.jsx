@@ -127,6 +127,39 @@ const SettingsManager = () => {
           </div>
         </div>
       </div>
+
+      <div className="bg-[#111] p-6 rounded-2xl border border-white/10">
+        <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+          <Palette size={20} className="text-indigo-400" />
+          {t('admin.appearance_settings')}
+        </h3>
+        <div className="space-y-6">
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-bold text-gray-400">
+                {t('admin.bg_brightness_label')} ({settings.background_brightness || 1.0})
+            </label>
+            <div className="flex gap-4 items-center">
+              <input 
+                type="range" 
+                min="0.2" 
+                max="2.0" 
+                step="0.1"
+                value={settings.background_brightness || 1.0} 
+                onChange={(e) => handleChange('background_brightness', e.target.value)}
+                className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+              />
+              <button 
+                onClick={() => handleSave('background_brightness', settings.background_brightness)}
+                disabled={saving}
+                className="px-6 bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold transition-colors disabled:opacity-50"
+              >
+                {t('admin.save_btn')}
+              </button>
+            </div>
+             <p className="text-xs text-gray-500">{t('admin.bg_brightness_desc')}</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

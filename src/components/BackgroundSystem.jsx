@@ -310,7 +310,7 @@ const BackgroundSystem = ({ forcedTheme = null }) => {
 
   return (
     <>
-      <div className="fixed inset-0 -z-10 bg-black">
+      <div className="fixed inset-0 -z-10 bg-black" style={{ filter: `brightness(${settings.background_brightness || 1})` }}>
         <Canvas dpr={dpr} camera={{ position: [0, 0, 10], fov: 60 }} gl={{ antialias: false, powerPreference: "high-performance" }}>
           <PerformanceMonitor onDecline={() => { setDpr(1); setPerfSufficient(false); }} onIncline={() => { setDpr(1.5); setPerfSufficient(true); }} />
           <Suspense fallback={null}>

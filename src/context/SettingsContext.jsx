@@ -70,7 +70,7 @@ export const SettingsProvider = ({ children }) => {
   };
 
   return (
-    <SettingsContext.Provider value={{ settings, updateSetting, loading, cursorEnabled, toggleCursor, backgroundScene, changeBackgroundScene }}>
+    <SettingsContext.Provider value={{ settings, updateSetting, loading, cursorEnabled, toggleCursor, backgroundScene, changeBackgroundScene, changeBackgroundBrightness }}>
       {children}
     </SettingsContext.Provider>
   );

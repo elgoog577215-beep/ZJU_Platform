@@ -486,6 +486,9 @@
     "invite_code_desc": "Code required for users to join or change organization.",
     "general_settings": "General Settings",
     "site_name_label": "Site Name",
+    "bg_brightness_label": "Background Brightness",
+    "bg_brightness_desc": "Adjust global 3D background brightness (0.2 - 2.0)",
+    "appearance_settings": "Appearance Settings",
     "save_btn": "Save",
     "file_manager_ui": {
       "explorer": "Explorer",
