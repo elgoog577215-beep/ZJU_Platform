@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
-import { Save, RefreshCw, Key, Globe, Shield } from 'lucide-react';
+import { Save, RefreshCw, Key, Globe, Shield, Palette } from 'lucide-react';
 import api from '../../services/api';
 
 const SettingsManager = () => {
