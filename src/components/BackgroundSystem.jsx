@@ -218,25 +218,29 @@ const ParticleWaveScene = () => {
         return p;
     }, []);
     
+    const geometry = useMemo(() => new THREE.BufferGeometry().setFromPoints(points), [points]);
+    
     const ref = useRef();
     useFrame((state) => {
         if (!ref.current) return;
-        const positions = ref.current.geometry.attributes.position.array;
+        const geom = ref.current.geometry;
+        if (!geom) return;
+        
+        const positions = geom.attributes.position.array;
         const t = state.clock.elapsedTime;
         for(let i=0; i<positions.length; i+=3) {
             const x = positions[i];
             const z = positions[i+2];
             positions[i+1] = Math.sin(x * 0.5 + t) * Math.cos(z * 0.5 + t) * 1.5;
         }
-        ref.current.geometry.attributes.position.needsUpdate = true;
+        geom.attributes.position.needsUpdate = true;
     });
 
     return (
         <group rotation={[Math.PI/6, 0, 0]} position={[0, -2, -5]}>
-            <Points ref={ref} limit={2500} range={2500}>
-                <primitive object={new THREE.BufferGeometry().setFromPoints(points)} />
+            <points ref={ref} geometry={geometry}>
                 <PointMaterial transparent size={0.1} color="#ff00aa" />
-            </Points>
+            </points>
         </group>
     );
 };
