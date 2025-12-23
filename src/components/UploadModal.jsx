@@ -171,6 +171,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
       
       toast.success(successMessage);
       onClose();
+      navigate(0);
 
     } catch (err) {
       console.error("Upload failed:", err);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
-import { LayoutTemplate, Save, Globe, FileText, Image, Mail } from 'lucide-react';
+import { LayoutTemplate, Save, Globe, FileText, Image, Mail, Upload } from 'lucide-react';
 import api from '../../services/api';
 
 const PageContentEditor = () => {
@@ -31,7 +31,30 @@ const PageContentEditor = () => {
     setSettings(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleSave = async () => {
+  const handleImageUpload = async (e, key) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const loadingToast = toast.loading(t('common.uploading'));
+
+    try {
+      const res = await api.post('/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      if (res.data.fileUrl) {
+        handleChange(key, res.data.fileUrl);
+        toast.success(t('upload.upload_success'), { id: loadingToast });
+      }
+    } catch (error) {
+      console.error('Upload failed:', error);
+      toast.error(t('upload.upload_failed'), { id: loadingToast });
+    }
+  };
+
+  const handleSave = async (section) => {
     setSaving(true);
     try {
       // Save all settings in current section
@@ -143,6 +166,15 @@ const PageContentEditor = () => {
                                 onChange={(e) => handleChange('hero_bg_url', e.target.value)}
                                 className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-indigo-500"
                             />
+                            <label className="px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl cursor-pointer transition-colors whitespace-nowrap">
+                                <Upload size={20} />
+                                <input 
+                                    type="file" 
+                                    className="hidden" 
+                                    accept="image/*"
+                                    onChange={(e) => handleImageUpload(e, 'hero_bg_url')}
+                                />
+                            </label>
                         </div>
                         {settings.hero_bg_url && (
                             <img src={settings.hero_bg_url} alt={t('admin.fields.preview')} className="mt-4 h-32 w-full object-cover rounded-xl border border-white/10" />
