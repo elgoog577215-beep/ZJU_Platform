@@ -28,6 +28,10 @@ export const SettingsProvider = ({ children }) => {
     updateSetting('theme', scene);
   };
 
+  const changeBackgroundBrightness = (value) => {
+    updateSetting('background_brightness', value);
+  };
+
   const toggleCursor = () => {
     setCursorEnabled(prev => {
       const newValue = !prev;
