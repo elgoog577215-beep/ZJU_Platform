@@ -84,6 +84,9 @@ const SmartImage = ({
     );
   }
 
+  // Handle relative paths (prepend API_URL if needed, but standard img tag handles relative to domain)
+  // If src starts with /uploads, it should be fine as long as backend serves it.
+  
   return (
     <div className={`${className} relative overflow-hidden bg-gradient-to-br ${gradient}`}>
        <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-500 ${loaded ? 'opacity-0' : 'opacity-100'}`}>
