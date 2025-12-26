@@ -543,7 +543,6 @@
     "bg_bloom_desc": "调整发光效果的强度 (0.0 - 3.0)",
     "bg_vignette_label": "暗角程度",
     "bg_vignette_desc": "调整屏幕四周的暗角效果 (0.0 - 1.0)",
-    "save_btn": "保存""appearance_settings": "外观设置",
     "logo_label": "网站 Logo URL",
     "logo_desc": "输入 Logo 图片的 URL 或上传新图片。",
     "upload_logo": "上传 Logo",

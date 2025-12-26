@@ -283,7 +283,7 @@ const OrbitalScene = () => {
 
 const BackgroundSystem = ({ forcedTheme = null }) => {
   const { t } = useTranslation();
-  const { backgroundScene } = useSettings();
+  const { backgroundScene, settings } = useSettings();
   
   const scenes = useMemo(() => ({
     space: { name: t('themes.space.name'), icon: SparklesIcon, component: DeepSpaceScene, desc: t('themes.space.desc'), color: 'text-purple-400', bg: 'bg-purple-500/20' },
