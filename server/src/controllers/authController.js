@@ -99,7 +99,7 @@ const me = async (req, res) => {
         const db = await getDb();
         // Fetch full user details from DB to ensure we have the latest data
         // Exclude password for security
-        const user = await db.get('SELECT id, username, role, avatar, organization_cr, gender, age, nickname, created_at FROM users WHERE id = ?', [req.user.id]);
+        const user = await db.get('SELECT id, username, role, avatar, organization as organization_cr, gender, age, nickname, created_at FROM users WHERE id = ?', [req.user.id]);
         
         if (!user) {
             // Handle special case for hardcoded admin (id: 1)
