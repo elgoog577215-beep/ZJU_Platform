@@ -8,10 +8,9 @@ const createHandler = (table, fields) => async (req, res) => {
     const placeholders = fields.map(() => '?').join(',');
     
     // Determine status based on user role
-    const userRole = req.user ? req.user.role : 'user'; 
-    
-    // If user is admin, auto-approve. Else pending.
-    const status = userRole === 'admin' ? 'approved' : 'pending'; 
+    // const status = userRole === 'admin' ? 'approved' : 'pending'; 
+    // CHANGE: All uploads go to pending review as per user request
+    const status = 'pending'; 
     const uploader_id = req.user ? req.user.id : null;
 
     const sql = `INSERT INTO ${table} (${fields.join(',')}, status, uploader_id) VALUES (${placeholders}, ?, ?)`;
