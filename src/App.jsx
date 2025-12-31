@@ -17,6 +17,7 @@ import ScrollProgress from './components/ScrollProgress';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import SearchPalette from './components/SearchPalette';
 import MobileNavbar from './components/MobileNavbar';
+import Footer from './components/Footer';
 
 // Lazy load page components
 const Hero = lazy(() => import('./components/Hero'));
@@ -91,6 +92,8 @@ const AppContent = () => {
           </Routes>
         </Suspense>
       </main>
+
+      {!isAdminRoute && <Footer />}
 
       {!isAdminRoute && (
         <ErrorBoundary variant="inline" silent>
