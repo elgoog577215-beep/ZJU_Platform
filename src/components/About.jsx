@@ -168,12 +168,6 @@ const About = () => {
                ))}
             </div>
 
-            {/* ICP License */}
-            <div className="pt-8 border-t border-white/10">
-              <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-500 hover:text-gray-300 transition-colors">
-                浙ICP备2025221213号
-              </a>
-            </div>
           </motion.div>
 
           {/* Right: Contact Form */}

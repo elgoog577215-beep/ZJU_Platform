@@ -18,7 +18,7 @@ export const SettingsProvider = ({ children }) => {
   // Client-side only settings (not persisted to DB, but maybe localStorage)
   const [cursorEnabled, setCursorEnabled] = useState(() => {
     const saved = localStorage.getItem('cursorEnabled');
-    return saved !== null ? JSON.parse(saved) : true;
+    return saved !== null ? JSON.parse(saved) : false;
   });
 
   const [backgroundScene, setBackgroundScene] = useState(() => {
