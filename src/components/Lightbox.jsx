@@ -103,7 +103,7 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onView3D, onLikeToggle }) =>
             />
             <button 
               onClick={handleDownload}
-              className={`p-3 text-white/70 hover:text-green-400 hover:bg-white/10 rounded-full transition-all ${!isApp ? 'hidden md:block' : ''}`}
+              className="hidden md:block p-3 text-white/70 hover:text-green-400 hover:bg-white/10 rounded-full transition-all"
               title="Download"
             >
               <Download size={20} />

@@ -93,7 +93,7 @@ const AppContent = () => {
         </Suspense>
       </main>
 
-      {!isAdminRoute && <Footer />}
+      {!isAdminRoute && location.pathname !== '/' && location.pathname !== '/about' && <Footer />}
 
       {!isAdminRoute && (
         <ErrorBoundary variant="inline" silent>
