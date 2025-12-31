@@ -75,7 +75,12 @@ const Footer = () => {
       </div>
 
       <div className="max-w-7xl mx-auto mt-16 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
-        <p>{t('footer.rights')}</p>
+        <div className="flex flex-col md:flex-row gap-4 items-center">
+          <p>{t('footer.rights')}</p>
+          <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer" className="hover:text-gray-300 transition-colors">
+            浙ICP备2025221213号
+          </a>
+        </div>
         <p className="flex items-center gap-1">
           {t('footer.made_with')} <Heart size={12} className="text-red-500 fill-red-500" /> {t('footer.by_trae')}
         </p>
