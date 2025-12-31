@@ -16,10 +16,9 @@ import CustomCursor from './components/CustomCursor';
 import ScrollProgress from './components/ScrollProgress';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import SearchPalette from './components/SearchPalette';
-import MobileNavbar from './components/MobileNavbar';
-import Footer from './components/Footer';
-
-// Lazy load page components
+  import MobileNavbar from './components/MobileNavbar';
+  
+  // Lazy load page components
 const Hero = lazy(() => import('./components/Hero'));
 const Gallery = lazy(() => import('./components/Gallery'));
 const Music = lazy(() => import('./components/Music'));
@@ -92,8 +91,6 @@ const AppContent = () => {
           </Routes>
         </Suspense>
       </main>
-
-      {!isAdminRoute && location.pathname !== '/' && location.pathname !== '/about' && <Footer />}
 
       {!isAdminRoute && (
         <ErrorBoundary variant="inline" silent>
