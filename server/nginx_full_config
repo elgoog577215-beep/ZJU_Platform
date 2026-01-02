@@ -25,8 +25,8 @@ server {
     }
 
     # 2. Uploads -> Serve Directly from Disk (Faster & Safer)
-    location ^~ /uploads/ {
-        alias /var/www/ZJU_Platform/server/uploads/;
+    location /uploads {
+        root /var/www/ZJU_Platform/server;
         expires 30d;
         add_header Cache-Control "public, no-transform";
         try_files $uri $uri/ =404;
