@@ -24,12 +24,18 @@ server {
         proxy_cache_bypass $http_upgrade;
     }
 
-    # 2. Uploads -> Serve Directly from Disk (Faster & Safer)
+    # 2. Uploads -> Proxy to Backend (Bypassing Nginx Permission Issues)
+    # We use a simple prefix match. Since proxy_pass has NO URI part, 
+    # Nginx passes the full request path (e.g. /uploads/img.jpg) to the backend.
     location /uploads {
-        root /var/www/ZJU_Platform/server;
+        proxy_pass http://localhost:3001;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
         expires 30d;
         add_header Cache-Control "public, no-transform";
-        try_files $uri $uri/ =404;
     }
 
     # 3. Static Files (Frontend)
