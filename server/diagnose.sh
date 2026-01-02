@@ -1,75 +1,83 @@
 #!/bin/bash
 
 echo "========================================"
-echo "       ZJU Platform Diagnosis Tool      "
+echo "       ZJU Platform Diagnosis Tool"
 echo "========================================"
 
-echo "[1] Checking Nginx Status..."
+# 1. Check Nginx Status
+echo -e "\n[1] Checking Nginx Status..."
 systemctl is-active nginx
 if [ $? -eq 0 ]; then
     echo "Nginx is RUNNING."
 else
-    echo "Nginx is NOT RUNNING."
+    echo "ERROR: Nginx is NOT running."
 fi
 
-echo ""
-echo "[2] Checking Backend Process (Port 3001)..."
-if lsof -Pi :3001 -sTCP:LISTEN -t >/dev/null ; then
+# 2. Check Backend Process
+echo -e "\n[2] Checking Backend Process (Port 3001)..."
+if lsof -i :3001 > /dev/null; then
     echo "Port 3001 is OPEN (Backend is running)."
 else
-    echo "Port 3001 is CLOSED (Backend is NOT running!)."
+    echo "ERROR: Port 3001 is CLOSED. Backend is NOT running."
 fi
 
-echo ""
-echo "[3] Checking Uploads Directory..."
-UPLOAD_DIR="$(pwd)/uploads"
-if [ -d "$UPLOAD_DIR" ]; then
-    echo "Uploads directory exists at: $UPLOAD_DIR"
-    FILE_COUNT=$(ls -1 "$UPLOAD_DIR" | wc -l)
-    echo "File count: $FILE_COUNT"
-    ls -lt "$UPLOAD_DIR" | head -n 5
-else
-    echo "ERROR: Uploads directory NOT found at $UPLOAD_DIR"
-fi
+# 3. Check Uploads Directory (Correct Path)
+# Assuming script is run from project root or server dir, try to find the absolute path
+# We know the backend is in .../server/ and uploads is .../server/uploads
+BASE_DIR=$(dirname $(readlink -f "$0"))
+# If script is in server/, then BASE_DIR is .../server
+UPLOADS_DIR="$BASE_DIR/uploads"
 
-echo ""
-echo "[4] Checking Nginx Configuration..."
-echo "Checking sites-available/default for /uploads location block:"
-if grep -q "location /uploads" /etc/nginx/sites-available/default; then
-    echo "SUCCESS: 'location /uploads' found in config."
-    grep -A 5 "location /uploads" /etc/nginx/sites-available/default
-else
-    echo "FAILURE: 'location /uploads' NOT found in /etc/nginx/sites-available/default"
-fi
+echo -e "\n[3] Checking Uploads Directory at $UPLOADS_DIR..."
 
-echo ""
-echo "[5] Connectivity Test..."
-# Find a test file
-TEST_FILE=$(ls "$UPLOAD_DIR" | head -n 1)
-if [ ! -z "$TEST_FILE" ]; then
-    echo "Testing access to file: $TEST_FILE"
+if [ -d "$UPLOADS_DIR" ]; then
+    echo "Uploads directory EXISTS."
+    ls -ld "$UPLOADS_DIR"
     
-    echo "--- Test 1: Direct Backend Access (localhost:3001) ---"
-    HTTP_CODE=$(curl -o /dev/null -s -w "%{http_code}\n" http://localhost:3001/uploads/$TEST_FILE)
-    echo "Response Code: $HTTP_CODE"
-    if [ "$HTTP_CODE" == "200" ]; then
-        echo "Backend serving file: OK"
+    # Check for files
+    FILE_COUNT=$(ls -1 "$UPLOADS_DIR" | wc -l)
+    echo "Found $FILE_COUNT files in uploads directory."
+    
+    if [ "$FILE_COUNT" -gt 0 ]; then
+        FIRST_FILE=$(ls -1 "$UPLOADS_DIR" | head -n 1)
+        echo "Sample file: $FIRST_FILE"
+        
+        # 4. Connectivity Test (Backend)
+        echo -e "\n[4] Testing Direct Backend Access (http://localhost:3001/uploads/$FIRST_FILE)..."
+        HTTP_CODE=$(curl -o /dev/null -s -w "%{http_code}\n" "http://localhost:3001/uploads/$FIRST_FILE")
+        if [ "$HTTP_CODE" == "200" ]; then
+            echo "SUCCESS: Backend is serving the file (HTTP 200)."
+        else
+            echo "ERROR: Backend returned HTTP $HTTP_CODE."
+        fi
+        
+        # 5. Connectivity Test (Nginx Proxy)
+        echo -e "\n[5] Testing Nginx Proxy Access (http://localhost/uploads/$FIRST_FILE)..."
+        HTTP_CODE_NGINX=$(curl -o /dev/null -s -w "%{http_code}\n" "http://localhost/uploads/$FIRST_FILE")
+        if [ "$HTTP_CODE_NGINX" == "200" ]; then
+            echo "SUCCESS: Nginx is proxying the file correctly (HTTP 200)."
+        else
+            echo "ERROR: Nginx returned HTTP $HTTP_CODE_NGINX."
+            echo "Possible causes: Nginx config not applied, permission issues, or wrong proxy path."
+        fi
+        
     else
-        echo "Backend serving file: FAILED"
-    fi
-
-    echo "--- Test 2: Nginx Proxy Access (localhost:80) ---"
-    HTTP_CODE_NGINX=$(curl -o /dev/null -s -w "%{http_code}\n" http://localhost/uploads/$TEST_FILE)
-    echo "Response Code: $HTTP_CODE_NGINX"
-    if [ "$HTTP_CODE_NGINX" == "200" ]; then
-        echo "Nginx proxying file: OK"
-    else
-        echo "Nginx proxying file: FAILED (Check Nginx logs)"
+        echo "WARNING: Uploads directory is empty. Cannot test file access."
     fi
 else
-    echo "No files to test in uploads directory."
+    echo "ERROR: Uploads directory NOT found at $UPLOADS_DIR"
+    echo "Attempting to find it elsewhere..."
+    find /var/www -name "uploads" -type d 2>/dev/null
 fi
 
-echo ""
-echo "========================================"
+# 6. Check Settings API
+echo -e "\n[6] Checking API Settings..."
+API_CODE=$(curl -o /dev/null -s -w "%{http_code}\n" "http://localhost:3001/api/settings")
+if [ "$API_CODE" == "200" ]; then
+    echo "API is accessible (HTTP 200)."
+else
+    echo "ERROR: API is returning HTTP $API_CODE."
+fi
+
+echo -e "\n========================================"
 echo "Diagnosis Complete."
