@@ -1,6 +1,6 @@
 $ServerIP = "118.31.78.72"
 $User = "root"
-$Branch = "mmaster"
+$Branch = "test"
 $ProjectDir = "ZJU_Platform"
 
 Write-Host "=========================================="
