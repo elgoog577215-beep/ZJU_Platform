@@ -47,7 +47,12 @@ const TagFilter = ({ selectedTags = [], onChange, className, variant = 'card', t
     onChange(newTags);
   };
 
-  if (loading || allTags.length === 0) return null;
+  if (loading) return null;
+  
+  if (allTags.length === 0) {
+    console.debug(`TagFilter: No tags found for type "${type}"`);
+    return null;
+  }
 
   const initialLimit = isMobile ? 10 : 20;
   const displayedTags = isExpanded ? allTags : allTags.slice(0, initialLimit);
