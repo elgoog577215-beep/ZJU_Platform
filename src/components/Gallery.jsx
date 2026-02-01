@@ -79,7 +79,7 @@ const Gallery = () => {
   const addPhoto = (newItem) => {
     api.post('/photos', newItem)
       .then(() => {
-        refresh();
+        refresh({ clearCache: true });
       })
       .catch(err => console.error("Failed to save photo", err));
   };
@@ -123,58 +123,58 @@ const Gallery = () => {
         
         {/* Filter Buttons */}
         <div className="flex flex-col items-center gap-6 relative z-50">
-          <div className="w-full max-w-4xl mx-auto px-4">
-             <TagFilter selectedTags={selectedTags} onChange={setSelectedTags} type="photos" />
+            <div className="w-full max-w-4xl mx-auto px-4">
+               <TagFilter selectedTags={selectedTags} onChange={setSelectedTags} type="photos" />
+            </div>
+            <SortSelector sort={sort} onSortChange={setSort} />
           </div>
-          <SortSelector sort={sort} onSortChange={setSort} />
-        </div>
-      </motion.div>
+        </motion.div>
 
-      {loading && photos.length === 0 ? (
-        <div className="columns-2 md:columns-3 lg:columns-4 gap-4 md:gap-8 max-w-7xl mx-auto space-y-4 md:space-y-8">
-           {[1,2,3,4,5,6,7,8].map(i => (
-               <div key={i} className="bg-white/5 rounded-3xl h-48 md:h-80 animate-pulse break-inside-avoid w-full inline-block" />
-           ))}
-        </div>
-      ) : error ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-              <AlertCircle size={48} className="text-red-400 mb-4 opacity-50 mx-auto" />
-              <p className="text-gray-300 mb-6">{t('common.error_fetching_data')}</p>
-              <button 
-                  onClick={refresh}
-                  className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all border border-white/10"
-              >
-                  {t('common.retry')}
-              </button>
+        {loading && photos.length === 0 ? (
+          <div className="columns-2 md:columns-3 lg:columns-4 gap-4 md:gap-6 max-w-7xl mx-auto space-y-4 md:space-y-6">
+             {[1,2,3,4,5,6,7,8].map(i => (
+                 <div key={i} className="bg-white/5 rounded-2xl h-48 md:h-80 animate-pulse break-inside-avoid w-full inline-block" />
+             ))}
           </div>
-      ) : (
-        <div className="columns-2 md:columns-3 lg:columns-4 gap-3 md:gap-8 max-w-7xl mx-auto space-y-3 md:space-y-8 pb-20 md:pb-0">
-            {photos.map((photo, index) => (
-              <motion.div
-                key={photo.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.3 }}
-              className="break-inside-avoid relative group overflow-hidden rounded-xl md:rounded-lg cursor-pointer border border-white/5 hover:border-white/20 hover:shadow-2xl hover:shadow-white/5 transition-all duration-300 w-full inline-block touch-manipulation"
-              onClick={() => setSelectedPhotoIndex(index)}
-            >
-              <SmartImage 
-                src={photo.url} 
-                alt={photo.title} 
-                type="image"
-                className="w-full h-auto"
-                imageClassName="h-auto object-cover transform transition-transform duration-700 group-hover:scale-110"
-              />
-              
-              {/* Hover Overlay */}
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-center p-4">
-                <h3 className="text-xl font-bold font-serif mb-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-300">{photo.title}</h3>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      )}
+        ) : error ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+                <AlertCircle size={48} className="text-red-400 mb-4 opacity-50 mx-auto" />
+                <p className="text-gray-300 mb-6">{t('common.error_fetching_data')}</p>
+                <button 
+                    onClick={refresh}
+                    className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all border border-white/10"
+                >
+                    {t('common.retry')}
+                </button>
+            </div>
+        ) : (
+          <div className="columns-2 md:columns-3 lg:columns-4 gap-4 md:gap-6 max-w-7xl mx-auto pb-20 md:pb-0">
+              {photos.map((photo, index) => (
+                <motion.div
+                  key={photo.id}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.3 }}
+                className="break-inside-avoid relative group overflow-hidden rounded-2xl cursor-pointer card-standard hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all duration-500 w-full inline-block touch-manipulation mb-4 md:mb-6"
+                onClick={() => setSelectedPhotoIndex(index)}
+              >
+                <SmartImage 
+                  src={photo.url} 
+                  alt={photo.title} 
+                  type="image"
+                  className="w-full h-auto"
+                  imageClassName="h-auto object-cover transform transition-transform duration-700 group-hover:scale-110"
+                />
+                
+                {/* Hover Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-6">
+                  <h3 className="text-lg font-bold text-white translate-y-4 group-hover:translate-y-0 transition-transform duration-500 delay-75 drop-shadow-md line-clamp-2">{photo.title}</h3>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
 
       {settings.pagination_enabled === 'true' && (
         <Pagination 
@@ -191,6 +191,16 @@ const Gallery = () => {
             onClose={() => { setSelectedPhotoIndex(null); setTempPhoto(null); }}
             onNext={selectedPhotoIndex !== null ? handleNext : undefined}
             onPrev={selectedPhotoIndex !== null ? handlePrev : undefined}
+            onSelect={(photo) => {
+                const idx = photos.findIndex(p => p.id === photo.id);
+                if (idx !== -1) {
+                    setSelectedPhotoIndex(idx);
+                    setTempPhoto(null);
+                } else {
+                    setSelectedPhotoIndex(null);
+                    setTempPhoto(photo);
+                }
+            }}
             onLikeToggle={(favorited, likes) => {
                 if (selectedPhotoIndex !== null) {
                     setPhotos(prev => prev.map(p => 

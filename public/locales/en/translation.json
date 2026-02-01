@@ -1,4 +1,15 @@
 {
+  "notifications": {
+    "title": "Notifications",
+    "mark_all_read": "Mark all read",
+    "clear_all": "Clear all",
+    "no_notifications": "No notifications",
+    "delete_failed": "Failed to delete",
+    "mark_read_failed": "Failed to mark as read",
+    "mark_all_read_failed": "Failed to mark all as read",
+    "clear_all_failed": "Failed to clear all",
+    "new_notification": "New notification"
+  },
   "auth": {
     "welcome_back": "Welcome Back",
     "join_lumos": "Join Lumos",
@@ -19,10 +30,18 @@
     "title": "User Profile",
     "logout": "Logout",
     "tabs": {
+      "published": "Published",
+      "settings": "Settings",
       "profile": "Profile",
       "uploads": "Uploads",
       "favorites": "Favorites",
       "security": "Security"
+    },
+    "no_published_works": "This user hasn't published any works yet.",
+    "user_not_found": "User Not Found",
+    "go_home": "Go Home",
+    "stats": {
+      "works": "Works"
     },
     "uploads": {
       "title": "My Uploads",
@@ -250,10 +269,12 @@
     "save": "Save",
     "saving": "Saving...",
     "search": "Search...",
+    "search_placeholder": "Search events...",
     "link_copied": "Link copied to clipboard!",
     "loading": "Loading",
     "uploading": "Uploading",
     "cancel": "Cancel",
+    "delete": "Delete",
     "event": "Event",
     "article": "Article",
     "photo": "Photo",
@@ -264,7 +285,6 @@
     "title": "Selected Works",
     "subtitle": "A collection of moments captured across the globe.",
     "play": "Play",
-    "view_3d": "3D Preview",
     "categories": {
       "All": "All",
       "Nature": "Nature",
@@ -668,11 +688,9 @@
     "go_home": "Go Home"
   },
   "themes": {
-    "space": { "name": "Deep Space", "desc": "Stellar Nebula" },
     "grid": { "name": "Retro Grid", "desc": "Synthwave" },
     "embers": { "name": "Fire Embers", "desc": "Rising Sparks" },
     "crystal": { "name": "Crystal Cave", "desc": "Refraction" },
-    "clouds": { "name": "Ethereal", "desc": "Soft Sky" },
     "cyber": { "name": "Cyber Circuit", "desc": "Mainframe" },
     "dna": { "name": "Digital DNA", "desc": "Code of Life" },
     "binary": { "name": "Binary Stream", "desc": "Data Flow" },

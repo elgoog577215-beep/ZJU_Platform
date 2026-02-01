@@ -30,6 +30,7 @@ const HomeCategories = lazy(() => import('./components/HomeCategories'));
 const About = lazy(() => import('./components/About'));
 const AdminDashboard = lazy(() => import('./components/Admin/AdminDashboard'));
 const NotFound = lazy(() => import('./components/NotFound'));
+const PublicProfile = lazy(() => import('./components/PublicProfile'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-screen bg-black text-white">
@@ -93,6 +94,7 @@ const AppContent = () => {
             <Route path="/events" element={<Events />} />
             <Route path="/about" element={<About />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/user/:id" element={<PublicProfile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

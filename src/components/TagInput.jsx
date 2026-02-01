@@ -91,7 +91,7 @@ const TagInput = ({ value = '', onChange, type }) => {
 
   return (
     <div className="relative">
-      <div className="flex flex-wrap gap-2 p-2 bg-black/20 border border-white/10 rounded-xl focus-within:border-indigo-500 transition-colors min-h-[50px]">
+      <div className="flex flex-wrap gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-xl focus-within:border-indigo-500/50 focus-within:bg-white/10 transition-all duration-200 min-h-[44px] items-center">
         {tags.map((tag, index) => (
           <span 
             key={index} 
@@ -123,7 +123,7 @@ const TagInput = ({ value = '', onChange, type }) => {
                  setShowSuggestions(true);
             }
           }}
-          className="bg-transparent border-none outline-none text-white placeholder-gray-500 flex-1 min-w-[120px]"
+          className="bg-transparent border-none outline-none text-white placeholder-gray-500 flex-1 min-w-[120px] text-base"
           placeholder={tags.length === 0 ? t('upload.tags_placeholder') : ''}
         />
       </div>
@@ -131,14 +131,14 @@ const TagInput = ({ value = '', onChange, type }) => {
       {showSuggestions && suggestions.length > 0 && (
         <div 
           ref={suggestionsRef}
-          className="absolute z-50 left-0 right-0 mt-1 bg-gray-900 border border-white/10 rounded-xl shadow-xl max-h-60 overflow-y-auto"
+          className="absolute z-50 left-0 right-0 mt-2 bg-[#0a0a0a]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl max-h-60 overflow-y-auto custom-scrollbar"
         >
           {suggestions.map((tag) => (
             <button
               key={tag.id}
               type="button"
               onClick={() => addTag(tag.name)}
-              className="w-full text-left px-4 py-2 text-gray-300 hover:bg-white/10 hover:text-white transition-colors flex justify-between items-center"
+              className="w-full text-left px-4 py-3 text-gray-300 hover:bg-white/10 hover:text-white transition-colors flex justify-between items-center text-base"
             >
               <span>{tag.name}</span>
               <span className="text-xs text-gray-500">{tag.count} {t('admin.tag_manager.items_count')}</span>
@@ -150,13 +150,13 @@ const TagInput = ({ value = '', onChange, type }) => {
       {/* Quick Select for Popular Tags */}
       {allTags.length > 0 && tags.length < 5 && !showSuggestions && (
           <div className="mt-2 flex flex-wrap gap-2">
-              <span className="text-xs text-gray-500 py-1">{t('upload.popular_tags')}</span>
+              <span className="text-sm text-gray-500 py-1">{t('upload.popular_tags')}</span>
               {allTags.slice(0, 5).filter(t => !tags.includes(t.name)).map(tag => (
                   <button
                       key={tag.id}
                       type="button"
                       onClick={() => addTag(tag.name)}
-                      className="text-xs bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white px-2 py-1 rounded-lg transition-colors border border-white/5"
+                      className="text-sm bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white px-3 py-1.5 rounded-lg transition-colors border border-white/5"
                   >
                       {tag.name}
                   </button>

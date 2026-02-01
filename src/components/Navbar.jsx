@@ -10,7 +10,7 @@ import { useBackClose } from '../hooks/useBackClose';
 import AuthModal from './AuthModal';
 import axios from 'axios';
 import { themeConfig } from '../data/themeConfig';
-import UserProfileModal from './UserProfileModal';
+import NotificationCenter from './NotificationCenter';
 import ReactDOM from 'react-dom';
 
 const Portal = ({ children }) => {
@@ -22,7 +22,6 @@ import { POPULAR_CITIES } from '../data/cities';
 const Navbar = () => {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isThemeOpen, setIsThemeOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const location = useLocation();
   const { t } = useTranslation();
   const { settings, cursorEnabled, toggleCursor, backgroundScene, changeBackgroundScene } = useSettings();
@@ -168,45 +167,39 @@ const Navbar = () => {
     { key: 'admin', path: '/admin' }
   ];
 
-  useEffect(() => {
-    const handleOpenProfile = () => setIsProfileOpen(true);
-    window.addEventListener('open-profile-modal', handleOpenProfile);
-    return () => window.removeEventListener('open-profile-modal', handleOpenProfile);
-  }, []);
-
   return (
     <motion.nav 
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.8 }}
-      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 backdrop-blur-md bg-black/30 border-b border-white/10"
+      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-3 glass-panel border-b border-white/5"
     >
       <Link to="/" className="flex items-center gap-3 text-white group z-50">
-        <img src="/newlogo.png" alt="拓途浙享" className="h-10 w-auto object-contain" />
+        <img src="/newlogo.png" alt="拓途浙享" className="h-9 w-auto object-contain" />
         <div className="flex flex-col items-start leading-none">
-          <span className="text-xl font-bold tracking-[0.2em] text-white">拓途浙享</span>
-          <span className="text-[10px] tracking-[0.3em] text-gray-400 mt-1">数字艺术与科技</span>
+          <span className="text-lg font-bold tracking-tighter text-white">拓途浙享</span>
+          <span className="text-[10px] font-medium tracking-widest text-gray-500 mt-0.5">数字艺术与科技</span>
         </div>
       </Link>
       
       {/* Desktop Menu */}
-      <div className="hidden md:flex items-center gap-8">
+      <div className="hidden md:flex items-center gap-6">
         {navLinks.map((item) => (
           <Link 
             key={item.key} 
             to={item.path} 
-            className="text-sm font-medium text-gray-300 hover:text-white transition-colors relative group"
+            className="text-sm font-medium text-gray-400 hover:text-white transition-colors relative group py-1"
           >
             {t(`nav.${item.key}`)}
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full" />
           </Link>
         ))}
         
-        <div className="w-px h-6 bg-white/20 mx-2" />
+        <div className="w-px h-5 bg-white/10 mx-2" />
         
         <button 
           onClick={() => window.dispatchEvent(new Event('open-search-palette'))}
-          className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-all"
+          className="btn-icon"
           title={t('nav.search_title')}
         >
           <Search size={18} />
@@ -215,24 +208,24 @@ const Navbar = () => {
         {/* Weather & Clock Widget */}
         <button 
             onClick={() => setIsWeatherModalOpen(true)}
-            className="flex items-center gap-3 text-xs text-gray-400 border border-white/10 px-3 py-1.5 rounded-full bg-black/20 hover:bg-white/10 hover:text-white transition-all cursor-pointer"
+            className="flex items-center gap-3 text-xs text-gray-400 border border-white/5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 hover:text-white transition-all cursor-pointer active:scale-95"
         >
             <div className="flex items-center gap-1">
                 <Clock size={12} />
                 <span>{time.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
             </div>
-            <div className="w-px h-3 bg-white/20" />
+            <div className="w-px h-3 bg-white/10" />
             <div className="flex items-center gap-1">
                 {weather ? getWeatherIcon(weather.weathercode) : <Cloud size={12} />}
                 <span>{weather ? `${Math.round(weather.temperature)}°C` : '...'}</span>
             </div>
-            <div className="w-px h-3 bg-white/20" />
+            <div className="w-px h-3 bg-white/10" />
             <span className="truncate max-w-[60px]">{city}</span>
         </button>
 
         <button
           onClick={toggleCursor}
-          className={`p-2 rounded-full transition-all ${cursorEnabled ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}
+          className={`btn-icon ${cursorEnabled ? 'text-white bg-white/10' : ''}`}
           title={cursorEnabled ? t('nav.cursor_disable') : t('nav.cursor_enable')}
         >
           <MousePointer2 size={18} />
@@ -240,28 +233,30 @@ const Navbar = () => {
 
         <button
             onClick={() => setIsThemeOpen(true)}
-            className={`p-2 rounded-full transition-all ${isThemeOpen ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}
+            className={`btn-icon ${isThemeOpen ? 'text-white bg-white/10' : ''}`}
             title={t('nav.theme_settings')}
         >
             <Palette size={18} />
         </button>
         
+        <NotificationCenter />
+        
         <LanguageSwitcher />
 
         {user ? (
-          <div className="flex items-center gap-4">
-             <button 
-                onClick={() => setIsProfileOpen(true)}
-                className="flex items-center gap-2 text-sm font-bold text-white px-4 py-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition-all"
+          <div className="flex items-center gap-3">
+             <Link 
+                to={`/user/${user.id}`}
+                className="flex items-center gap-2 text-sm font-medium text-white px-3 py-1.5 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition-all active:scale-95"
              >
-                <div className="w-5 h-5 rounded-full bg-purple-600 flex items-center justify-center text-[10px] text-white">
+                <div className="w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] text-white">
                     {user.username.charAt(0).toUpperCase()}
                 </div>
                 <span>{user.username}</span>
-             </button>
+             </Link>
              <button
                 onClick={logout}
-                className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-all"
+                className="btn-icon"
                 title={t('auth.log_out')}
              >
                 <LogOut size={18} />
@@ -270,7 +265,7 @@ const Navbar = () => {
         ) : (
           <button 
             onClick={() => setIsAuthOpen(true)}
-            className="text-sm font-bold bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-full transition-all"
+            className="text-sm font-medium bg-white text-black px-4 py-1.5 rounded-full transition-all hover:bg-gray-200 active:scale-95"
           >
             {t('auth.log_in')}
           </button>
@@ -285,14 +280,15 @@ const Navbar = () => {
         >
           <Search size={20} />
         </button>
+        <NotificationCenter />
         <LanguageSwitcher />
         {user ? (
-            <button 
-               onClick={() => setIsProfileOpen(true)}
+            <Link 
+               to={`/user/${user.id}`}
                className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-[10px] text-white font-bold border border-white/20"
             >
                 {user.username.charAt(0).toUpperCase()}
-            </button>
+            </Link>
         ) : (
             <button 
                 onClick={() => setIsAuthOpen(true)}
@@ -427,7 +423,7 @@ const Navbar = () => {
                         key={s.id}
                         onClick={() => changeBackgroundScene(s.id)}
                         className={`w-full text-left p-3 rounded-xl transition-all duration-300 border group relative overflow-hidden
-                          ${isActive ? `${s.bg} border-${s.color.split('-')[1]}-500/50` : 'bg-white/5 border-transparent hover:bg-white/10'}`}
+                          ${isActive ? `${s.bg} ${s.borderColor}` : 'bg-white/5 border-transparent hover:bg-white/10'}`}
                       >
                         <div className="relative z-10 flex items-center gap-4">
                           <div className={`p-2 rounded-lg ${isActive ? 'bg-black/20' : 'bg-black/40'} ${s.color}`}>
@@ -440,8 +436,8 @@ const Navbar = () => {
                           {isActive && (
                             <div className="ml-auto">
                               <span className="relative flex h-2 w-2">
-                                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${s.color.replace('text', 'bg')}`}></span>
-                                <span className={`relative inline-flex rounded-full h-2 w-2 ${s.color.replace('text', 'bg')}`}></span>
+                                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${s.dotColor}`}></span>
+                                <span className={`relative inline-flex rounded-full h-2 w-2 ${s.dotColor}`}></span>
                               </span>
                             </div>
                           )}
@@ -457,7 +453,6 @@ const Navbar = () => {
       </AnimatePresence>
 
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
-      <UserProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
     </motion.nav>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Upload, Image, Film, Music, FileText, Plus, Calendar, Tag, Link } from 'lucide-react';
+import { X, Upload, Image, Film, Music, FileText, Plus, Calendar, Tag, Link, ChevronDown, Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
 import api, { uploadFile } from '../services/api';
@@ -28,6 +28,8 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   const [description, setDescription] = useState(initialData?.excerpt || initialData?.description || '');
   const [content, setContent] = useState(initialData?.content || ''); // Full content
   const [artist, setArtist] = useState(initialData?.artist || '');
+  const [featured, setFeatured] = useState(initialData?.featured || false);
+  const [size, setSize] = useState(initialData?.size || '');
   const [dragTarget, setDragTarget] = useState(null);
   
   // Photo specific
@@ -36,6 +38,12 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   const [eventDate, setEventDate] = useState(initialData?.date || '');
   const [eventLocation, setEventLocation] = useState(initialData?.location || '');
   const [eventLink, setEventLink] = useState(initialData?.link || '');
+  
+  // Phase 1 New Fields
+  const [eventScore, setEventScore] = useState(initialData?.score || '');
+  const [eventVolunteerTime, setEventVolunteerTime] = useState(initialData?.volunteer_time || '');
+  const [eventTarget, setEventTarget] = useState(initialData?.target_audience || '');
+  const [eventOrganizer, setEventOrganizer] = useState(initialData?.organizer || '');
 
   // Reset form when modal opens with new data or closes
   React.useEffect(() => {
@@ -55,6 +63,12 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             setEventDate(initialData.date || '');
             setEventLocation(initialData.location || '');
             setEventLink(initialData.link || '');
+            setEventScore(initialData.score || '');
+            setEventVolunteerTime(initialData.volunteer_time || '');
+            setEventTarget(initialData.target_audience || '');
+            setEventOrganizer(initialData.organizer || '');
+            setFeatured(initialData.featured || false);
+            setSize(initialData.size || '');
             setPreview(initialData.url || initialData.audio || initialData.video || null);
             setCoverPreview(initialData.cover || initialData.thumbnail || initialData.image || null);
         } else {
@@ -66,6 +80,11 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             setEventDate('');
             setEventLocation('');
             setEventLink('');
+            setEventScore('');
+            setEventTarget('');
+            setEventOrganizer('');
+            setFeatured(false);
+            setSize('');
             setPreview(null);
             setCoverPreview(null);
         }
@@ -139,23 +158,28 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         
         // Event specific
         image: type === 'event' ? (coverUrl || 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=1000&auto=format&fit=crop') : null,
-        date: type === 'event' ? eventDate : new Date().toLocaleDateString(),
+        date: (type === 'event' || type === 'article') ? eventDate : new Date().toLocaleDateString(),
         location: type === 'event' ? eventLocation : null,
         link: type === 'event' ? eventLink : null,
+        score: type === 'event' ? eventScore : null,
+        target_audience: type === 'event' ? eventTarget : null,
+        organizer: type === 'event' ? eventOrganizer : null,
         status: initialData?.status || 'pending', // Default to pending review
+        volunteer_time: type === 'event' ? eventVolunteerTime : null,
 
         // Cover/Thumbnail logic
-        cover: coverUrl || (type === 'image' ? fileUrl : null) || 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000&auto=format&fit=crop',
-        thumbnail: coverUrl || (type === 'image' ? fileUrl : null) || 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000&auto=format&fit=crop',
+        cover: coverUrl || (type === 'image' || type === 'article' ? fileUrl : null) || 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000&auto=format&fit=crop',
+        thumbnail: coverUrl || (type === 'image' || type === 'article' ? fileUrl : null) || 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000&auto=format&fit=crop',
 
         excerpt: description,
         content: content || `<p>${description}</p>`, // Use content if available, else fallback
         description: description, // for events/photos consistency
+        featured: featured ? 1 : 0,
+        size: type === 'image' ? size : null,
         
         // Defaults if new
         ...(!isEditing ? {
             duration: 0,
-            size: 'small',
         } : {
             // If editing, update these too if type matches
         })
@@ -169,7 +193,6 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
       
       toast.success(successMessage);
       onClose();
-      navigate(0);
 
     } catch (err) {
       console.error("Upload failed:", err);
@@ -226,7 +249,6 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile) {
         const accept = getAcceptType(isCover);
-        // Simple regex check for type
         const typeRegex = new RegExp(accept.replace('*', '.*'));
         if (!droppedFile.type.match(typeRegex)) {
              toast.error(t('upload.invalid_file_type', { type: accept }));
@@ -247,6 +269,12 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
     }
   };
 
+  // UI Constants
+  const inputClasses = "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder:text-gray-500 focus:outline-none focus:border-indigo-500/50 focus:bg-white/10 transition-all duration-200 text-base";
+  const labelClasses = "block text-sm font-medium text-gray-400 mb-1.5 uppercase tracking-wide";
+  const cardClasses = "bg-white/[0.02] border border-white/5 rounded-2xl p-6 space-y-5";
+  const uploadBoxClasses = (isActive) => `relative border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center group transition-all duration-300 bg-white/[0.02] ${isActive ? 'border-indigo-500 bg-indigo-500/10 scale-[1.01]' : 'border-white/10 hover:border-white/30 hover:bg-white/[0.04]'}`;
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -254,214 +282,439 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
           onClick={onClose}
         >
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            className="relative bg-[#1a1a1a] border border-white/10 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar z-10"
+            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+            className={`relative bg-[#0a0a0a]/95 backdrop-blur-2xl border border-white/10 rounded-3xl w-full ${type === 'event' ? 'max-w-5xl' : 'max-w-2xl'} overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar z-10 ring-1 ring-white/5`}
             onClick={e => e.stopPropagation()}
           >
-             {/* Glass Effect Background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 opacity-50 pointer-events-none" />
+             {/* Gradient Ambience */}
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-purple-500/5 to-transparent opacity-50 pointer-events-none" />
 
-            <div className="p-6 border-b border-white/10 flex justify-between items-center sticky top-0 bg-[#1a1a1a]/95 backdrop-blur-md z-20">
-              <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                {getIcon()} {isEditing ? t('admin.edit_item') : t('common.upload')} {t(`common.${type}`)}
+            {/* Header */}
+            <div className="px-8 py-5 border-b border-white/10 flex justify-between items-center sticky top-0 bg-[#0a0a0a]/95 backdrop-blur-xl z-20">
+              <h3 className="text-xl font-bold text-white flex items-center gap-3">
+                <span className="p-2 bg-white/5 rounded-lg border border-white/5">
+                    {getIcon()}
+                </span>
+                <span className="tracking-tight">
+                    {isEditing ? t('admin.edit_item') : t('common.upload')} <span className="text-indigo-400">{t(`common.${type}`)}</span>
+                </span>
               </h3>
-              <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
-                <X size={24} />
+              <button onClick={onClose} className="text-gray-400 hover:text-white hover:bg-white/10 p-2 rounded-full transition-all">
+                <X size={20} />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-6 relative z-10">
-              
-              {/* Main File Upload (Skip for Event, use Cover instead as main image) */}
-              {type !== 'event' && (
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-400">
-                    {t(`common.${type}`)}
-                </label>
-                <div 
-                    className={`relative border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center group transition-all duration-300 bg-white/5 ${dragTarget === 'main' ? 'border-indigo-500 bg-indigo-500/10 scale-[1.02]' : 'border-white/20 hover:border-white/40'}`}
-                    onDragEnter={(e) => handleDragEnter(e, 'main')}
-                    onDragLeave={handleDragLeave}
-                    onDragOver={(e) => handleDragOver(e, 'main')}
-                    onDrop={(e) => handleDrop(e, false)}
-                >
-                    <input
-                    type="file"
-                    accept={getAcceptType()}
-                    onChange={(e) => handleFileChange(e, false)}
-                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                    />
-                    
-                    {preview ? (
-                        type === 'audio' ? (
-                            <div className="text-center relative z-20 pointer-events-none">
-                                <Music size={48} className="text-green-400 mx-auto mb-2" />
-                                <p className="text-green-400 font-medium text-sm break-all">{file?.name}</p>
-                                <p className="text-xs text-gray-500 mt-1">{t('upload.click_drag_replace')}</p>
-                            </div>
-                        ) : type === 'video' ? (
-                            <div className="relative z-20 pointer-events-none w-full flex justify-center">
-                                <video src={preview} className="max-h-48 rounded-lg" controls />
-                            </div>
-                        ) : (
-                            <div className="relative z-20 pointer-events-none">
-                                <img src={preview} alt="Preview" className="max-h-48 rounded-lg object-cover shadow-lg" />
-                            </div>
-                        )
-                    ) : (
-                    <div className="flex flex-col items-center justify-center text-center pointer-events-none">
-                        <div className={`mb-4 transition-transform duration-300 ${dragTarget === 'main' ? 'scale-110 text-indigo-400' : 'group-hover:scale-110 text-gray-400'}`}>
-                           {dragTarget === 'main' ? <Upload size={48} /> : getIcon()}
+            <form onSubmit={handleSubmit} className="p-8 relative z-10">
+              {type === 'event' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Left Column: Media & Core Info */}
+                  <div className="space-y-6">
+                     {/* Cover Image (Event Image) */}
+                     <div className="space-y-2">
+                        <label className={labelClasses}>{t('common.image')}</label>
+                        <div 
+                            className={`${uploadBoxClasses(dragTarget === 'cover')} h-56`}
+                            onDragEnter={(e) => handleDragEnter(e, 'cover')}
+                            onDragLeave={handleDragLeave}
+                            onDragOver={(e) => handleDragOver(e, 'cover')}
+                            onDrop={(e) => handleDrop(e, true)}
+                        >
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => handleFileChange(e, true)}
+                                className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                            />
+                            {coverPreview ? (
+                                <div className="relative h-full w-full flex justify-center items-center pointer-events-none">
+                                    <img src={coverPreview} alt="Cover Preview" className="h-full rounded-xl object-contain shadow-lg" />
+                                    <div className={`absolute inset-0 flex items-center justify-center bg-black/60 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm ${dragTarget === 'cover' ? 'opacity-100' : ''}`}>
+                                        <p className="text-sm font-medium text-white flex items-center gap-2"><Upload size={16} /> {t('upload.replace')}</p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center pointer-events-none text-center">
+                                    <div className={`p-3 rounded-full mb-3 transition-colors ${dragTarget === 'cover' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-white/5 text-gray-400 group-hover:bg-white/10 group-hover:text-white'}`}>
+                                        <Plus size={24} />
+                                    </div>
+                                    <span className={`text-sm font-medium transition-colors ${dragTarget === 'cover' ? 'text-indigo-300' : 'text-gray-400 group-hover:text-gray-300'}`}>
+                                        {dragTarget === 'cover' ? t('upload.drop_image') : `${t('common.upload')} ${t('common.image')}`}
+                                    </span>
+                                </div>
+                            )}
                         </div>
-                        <p className="text-gray-300 font-medium">
-                        {dragTarget === 'main' ? t('upload.drop_file') : `${t('common.upload')} ${t(`common.${type}`)}`}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-2">
-                            {t('upload.drag_drop_browse')}
-                        </p>
-                    </div>
-                    )}
-                </div>
-              </div>
-              )}
+                     </div>
 
-              {/* Cover Image Upload (For Audio/Video/Event) */}
-              {(type === 'audio' || type === 'video' || type === 'event') && (
-                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-400">{type === 'event' ? t('common.image') : t('common.cover')}</label>
-                    <div 
-                        className={`relative border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center group transition-all duration-300 bg-white/5 h-32 ${dragTarget === 'cover' ? 'border-indigo-500 bg-indigo-500/10 scale-[1.02]' : 'border-white/20 hover:border-white/40'}`}
-                        onDragEnter={(e) => handleDragEnter(e, 'cover')}
+                     {/* Title & Description */}
+                     <div className={cardClasses}>
+                        <div>
+                            <label className={labelClasses}>{t('common.title')}</label>
+                            <input
+                              type="text"
+                              required
+                              value={title}
+                              onChange={e => setTitle(e.target.value)}
+                              className={`${inputClasses} text-lg font-medium`}
+                              placeholder={t('upload.title_placeholder')}
+                            />
+                        </div>
+                        <div>
+                            <label className={labelClasses}>{t('admin.fields.description')}</label>
+                            <textarea
+                              value={description}
+                              onChange={e => setDescription(e.target.value)}
+                              className={`${inputClasses} h-32 resize-none leading-relaxed`}
+                              placeholder={t('upload.description_placeholder')}
+                            />
+                        </div>
+                        <div>
+                            <label className={labelClasses}>{t('upload.tags')}</label>
+                            <TagInput 
+                              value={tags}
+                              onChange={setTags}
+                              placeholder={t('upload.tags_placeholder')}
+                              type="events"
+                            />
+                        </div>
+                     </div>
+                  </div>
+
+                  {/* Right Column: Event Details */}
+                  <div className="space-y-6">
+                      {/* Basic Info Card */}
+                      <div className={cardClasses}>
+                           <h4 className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2 pb-3 border-b border-white/5">
+                               <Calendar size={14} className="text-indigo-400" /> {t('event_fields.basic_info')}
+                           </h4>
+                           <div className="grid grid-cols-2 gap-5">
+                               <div className="col-span-1">
+                                    <label className={labelClasses}>{t('common.date')}</label>
+                                    <input
+                                        type="date"
+                                        required
+                                        value={eventDate}
+                                        onChange={e => setEventDate(e.target.value)}
+                                        className={inputClasses}
+                                    />
+                               </div>
+                               <div className="col-span-1">
+                                    <label className={labelClasses}>{t('common.location')}</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={eventLocation}
+                                        onChange={e => setEventLocation(e.target.value)}
+                                        className={inputClasses}
+                                        placeholder={t('upload.location_placeholder')}
+                                    />
+                               </div>
+                           </div>
+                      </div>
+
+                      {/* Attributes Card */}
+                      <div className={cardClasses}>
+                           <h4 className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2 pb-3 border-b border-white/5">
+                               <Tag size={14} className="text-indigo-400" /> {t('event_fields.attributes')}
+                           </h4>
+                           <div className="grid grid-cols-2 gap-5">
+                               <div className="col-span-1">
+                                   <label className={labelClasses}>志愿时长</label>
+                                   <input
+                                       type="text"
+                                       value={eventVolunteerTime}
+                                       onChange={e => setEventVolunteerTime(e.target.value)}
+                                       className={inputClasses}
+                                       placeholder="例如: 2小时"
+                                   />
+                               </div>
+                               <div className="col-span-1">
+                                   <label className={labelClasses}>{t('advanced_filter.organizer')}</label>
+                                   <input
+                                       type="text"
+                                       value={eventOrganizer}
+                                       onChange={e => setEventOrganizer(e.target.value)}
+                                       className={inputClasses}
+                                       placeholder={t('event_fields.organizer_placeholder')}
+                                   />
+                               </div>
+                               <div className="col-span-1">
+                                   <label className={labelClasses}>{t('event_fields.score')}</label>
+                                   <input
+                                       type="text"
+                                       value={eventScore}
+                                       onChange={e => setEventScore(e.target.value)}
+                                       className={inputClasses}
+                                       placeholder={t('event_fields.score_placeholder')}
+                                   />
+                               </div>
+                               <div className="col-span-1">
+                                   <label className={labelClasses}>{t('advanced_filter.target_audience')}</label>
+                                   <input
+                                       type="text"
+                                       value={eventTarget}
+                                       onChange={e => setEventTarget(e.target.value)}
+                                       className={inputClasses}
+                                       placeholder={t('event_fields.target_placeholder')}
+                                   />
+                               </div>
+                               <div className="col-span-2">
+                                   <label className={labelClasses}>{t('upload.event_link')}</label>
+                                   <div className="relative">
+                                       <Link size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+                                       <input
+                                           type="text"
+                                           value={eventLink}
+                                           onChange={e => setEventLink(e.target.value)}
+                                           className={`${inputClasses} pl-10`}
+                                           placeholder="https://..."
+                                       />
+                                   </div>
+                               </div>
+                           </div>
+                      </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Main File Upload */}
+                  {type !== 'event' && (
+                  <div className="space-y-2">
+                    <label className={labelClasses}>
+                        {t(`common.${type}`)}
+                    </label>
+                     <div 
+                        className={uploadBoxClasses(dragTarget === 'main')}
+                        onDragEnter={(e) => handleDragEnter(e, 'main')}
                         onDragLeave={handleDragLeave}
-                        onDragOver={(e) => handleDragOver(e, 'cover')}
-                        onDrop={(e) => handleDrop(e, true)}
+                        onDragOver={(e) => handleDragOver(e, 'main')}
+                        onDrop={(e) => handleDrop(e, false)}
                     >
                         <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => handleFileChange(e, true)}
-                            className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                        type="file"
+                        accept={getAcceptType()}
+                        onChange={(e) => handleFileChange(e, false)}
+                        className="absolute inset-0 opacity-0 cursor-pointer z-10"
                         />
-                        {coverPreview ? (
-                            <div className="relative h-full w-full flex justify-center items-center pointer-events-none">
-                                <img src={coverPreview} alt="Cover Preview" className="h-full rounded-lg object-contain" />
-                                <div className={`absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity ${dragTarget === 'cover' ? 'opacity-100' : ''}`}>
-                                    <p className="text-xs text-white">{t('upload.replace')}</p>
+                        
+                        {preview ? (
+                            type === 'audio' ? (
+                                <div className="text-center relative z-20 pointer-events-none">
+                                    <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-3">
+                                        <Music size={32} className="text-green-400" />
+                                    </div>
+                                    <p className="text-white font-medium text-sm break-all">{file?.name}</p>
+                                    <p className="text-xs text-gray-400 mt-1">{t('upload.click_drag_replace')}</p>
                                 </div>
-                            </div>
+                            ) : type === 'video' ? (
+                                <div className="relative z-20 pointer-events-none w-full flex justify-center">
+                                    <video src={preview} className="max-h-64 rounded-xl shadow-lg" controls />
+                                </div>
+                            ) : (
+                                <div className="relative z-20 pointer-events-none">
+                                    <img src={preview} alt="Preview" className="max-h-64 rounded-xl object-contain shadow-2xl" />
+                                </div>
+                            )
                         ) : (
-                            <div className="flex flex-col items-center pointer-events-none">
-                                <Plus size={24} className={`mb-1 transition-colors ${dragTarget === 'cover' ? 'text-indigo-400' : 'text-gray-400'}`} />
-                                <span className={`text-xs transition-colors ${dragTarget === 'cover' ? 'text-indigo-300' : 'text-gray-500'}`}>
-                                    {dragTarget === 'cover' ? t('upload.drop_image') : `${t('common.upload')} ${t('common.image')}`}
-                                </span>
+                        <div className="flex flex-col items-center justify-center text-center pointer-events-none">
+                            <div className={`p-4 rounded-full mb-4 transition-transform duration-300 ${dragTarget === 'main' ? 'bg-indigo-500/20 scale-110 text-indigo-400' : 'bg-white/5 text-gray-400 group-hover:bg-white/10 group-hover:scale-110 group-hover:text-white'}`}>
+                               {dragTarget === 'main' ? <Upload size={32} /> : React.cloneElement(getIcon(), { size: 32, className: '' })}
                             </div>
+                            <p className="text-white font-medium text-lg">
+                            {dragTarget === 'main' ? t('upload.drop_file') : `${t('common.upload')} ${t(`common.${type}`)}`}
+                            </p>
+                            <p className="text-sm text-gray-500 mt-2 max-w-xs mx-auto">
+                                {t('upload.drag_drop_browse')}
+                            </p>
+                        </div>
                         )}
                     </div>
-                 </div>
-              )}
+                  </div>
+                  )}
 
-              {/* Inputs */}
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">{t('common.title')}</label>
-                  <input
-                    type="text"
-                    required
-                    value={title}
-                    onChange={e => setTitle(e.target.value)}
-                    className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-white/30"
-                    placeholder={t('upload.title_placeholder')}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">{t('upload.tags')}</label>
-                  <TagInput 
-                    value={tags}
-                    onChange={setTags}
-                    placeholder={t('upload.tags_placeholder')}
-                    type={type === 'image' ? 'photos' : type === 'audio' ? 'music' : type}
-                  />
-                </div>
-
-                {type === 'event' && (
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="col-span-2">
-                            <label className="block text-sm font-medium text-gray-400 mb-1">{t('common.date')}</label>
+                  {/* Cover Image Upload (For Audio/Video) */}
+                  {(type === 'audio' || type === 'video') && (
+                     <div className="space-y-2">
+                        <label className={labelClasses}>{t('common.cover')}</label>
+                        <div 
+                            className={`${uploadBoxClasses(dragTarget === 'cover')} h-40`}
+                            onDragEnter={(e) => handleDragEnter(e, 'cover')}
+                            onDragLeave={handleDragLeave}
+                            onDragOver={(e) => handleDragOver(e, 'cover')}
+                            onDrop={(e) => handleDrop(e, true)}
+                        >
                             <input
-                                type="date"
-                                required
-                                value={eventDate}
-                                onChange={e => setEventDate(e.target.value)}
-                                className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-white/30"
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => handleFileChange(e, true)}
+                                className="absolute inset-0 opacity-0 cursor-pointer z-10"
                             />
+                            {coverPreview ? (
+                                <div className="relative h-full w-full flex justify-center items-center pointer-events-none">
+                                    <img src={coverPreview} alt="Cover Preview" className="h-full rounded-lg object-contain" />
+                                    <div className={`absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm ${dragTarget === 'cover' ? 'opacity-100' : ''}`}>
+                                        <p className="text-xs text-white flex items-center gap-1"><Upload size={14}/> {t('upload.replace')}</p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center pointer-events-none">
+                                    <Plus size={24} className={`mb-2 transition-colors ${dragTarget === 'cover' ? 'text-indigo-400' : 'text-gray-400'}`} />
+                                    <span className={`text-xs font-medium transition-colors ${dragTarget === 'cover' ? 'text-indigo-300' : 'text-gray-500'}`}>
+                                        {dragTarget === 'cover' ? t('upload.drop_image') : `${t('common.upload')} ${t('common.image')}`}
+                                    </span>
+                                </div>
+                            )}
                         </div>
-                        <div className="col-span-2">
-                            <label className="block text-sm font-medium text-gray-400 mb-1">{t('common.location')}</label>
-                            <input
-                                type="text"
-                                required
-                                value={eventLocation}
-                                onChange={e => setEventLocation(e.target.value)}
-                                className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-white/30"
-                                placeholder={t('upload.location_placeholder')}
-                            />
-                        </div>
-                        <div className="col-span-2">
-                            <label className="block text-sm font-medium text-gray-400 mb-1">{t('upload.event_link')}</label>
-                            <div className="relative">
-                                <Link size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                     </div>
+                  )}
+
+                  {/* Inputs Card */}
+                  <div className={cardClasses}>
+                    <div>
+                      <label className={labelClasses}>{t('common.title')}</label>
+                      <input
+                        type="text"
+                        required
+                        value={title}
+                        onChange={e => setTitle(e.target.value)}
+                        className={`${inputClasses} text-lg font-medium`}
+                        placeholder={t('upload.title_placeholder')}
+                      />
+                    </div>
+
+                    {/* Image Specific Fields: Size */}
+                    {type === 'image' && (
+                         <div className="grid grid-cols-2 gap-4">
+                            <div className="col-span-1">
+                                <label className={labelClasses}>{t('common.size')}</label>
                                 <input
                                     type="text"
-                                    value={eventLink}
-                                    onChange={e => setEventLink(e.target.value)}
-                                    className="w-full bg-black/20 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:border-white/30"
-                                    placeholder={t('upload.link_placeholder')}
+                                    value={size}
+                                    onChange={e => setSize(e.target.value)}
+                                    className={inputClasses}
+                                    placeholder={t('upload.size_placeholder')}
+                                />
+                            </div>
+                            <div className="col-span-1">
+                                <label className={labelClasses}>{t('upload.tags')}</label>
+                                <TagInput 
+                                    value={tags}
+                                    onChange={setTags}
+                                    placeholder={t('upload.tags_placeholder')}
+                                    type={type === 'image' ? 'photos' : type === 'audio' ? 'music' : type}
+                                />
+                            </div>
+                         </div>
+                    )}
+                    
+                    {type !== 'image' && (
+                        <div>
+                            <label className={labelClasses}>{t('upload.tags')}</label>
+                            <TagInput 
+                                value={tags}
+                                onChange={setTags}
+                                placeholder={t('upload.tags_placeholder')}
+                                type={type === 'image' ? 'photos' : type === 'audio' ? 'music' : type}
+                            />
+                        </div>
+                    )}
+
+
+                    {/* Audio Specific Fields */}
+                    {type === 'audio' && (
+                        <div>
+                            <label className={labelClasses}>{t('common.artist')}</label>
+                            <input
+                                type="text"
+                                value={artist}
+                                onChange={e => setArtist(e.target.value)}
+                                className={inputClasses}
+                                placeholder={t('upload.artist_placeholder')}
+                            />
+                        </div>
+                    )}
+
+                    {/* Article Specific Fields */}
+                    {type === 'article' && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                             <div className="col-span-1">
+                                <label className={labelClasses}>{t('common.date')}</label>
+                                <input
+                                    type="date"
+                                    value={eventDate}
+                                    onChange={e => setEventDate(e.target.value)}
+                                    className={inputClasses}
+                                />
+                            </div>
+                             <div className="col-span-2">
+                                <label className={labelClasses}>{t('common.content')}</label>
+                                <textarea
+                                    value={content}
+                                    onChange={e => setContent(e.target.value)}
+                                    className={`${inputClasses} h-40 font-mono text-sm leading-relaxed`}
+                                    placeholder="# Markdown content supported..."
                                 />
                             </div>
                         </div>
+                    )}
+
+                    <div>
+                      <label className={labelClasses}>{t('admin.fields.description')}</label>
+                      <textarea
+                        value={description}
+                        onChange={e => setDescription(e.target.value)}
+                        className={`${inputClasses} h-24 resize-none`}
+                        placeholder={t('upload.description_placeholder')}
+                      />
                     </div>
-                )}
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">{t('admin.fields.description')}</label>
-                  <textarea
-                    value={description}
-                    onChange={e => setDescription(e.target.value)}
-                    className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-white/30 h-24 resize-none"
-                    placeholder={t('upload.description_placeholder')}
-                  />
+                    
+                    {/* Featured Checkbox */}
+                    <div className="flex items-center gap-3 pt-2">
+                        <div 
+                            className={`w-5 h-5 rounded border flex items-center justify-center cursor-pointer transition-colors ${featured ? 'bg-indigo-500 border-indigo-500' : 'bg-white/5 border-white/20 hover:border-white/40'}`}
+                            onClick={() => setFeatured(!featured)}
+                        >
+                            {featured && <Check size={12} className="text-white" />}
+                        </div>
+                        <label 
+                            className="text-sm font-medium text-gray-300 select-none cursor-pointer hover:text-white transition-colors"
+                            onClick={() => setFeatured(!featured)}
+                        >
+                            {t('common.featured')}
+                        </label>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
+              {/* Submit Buttons */}
+              <div className="flex justify-end gap-3 pt-6 border-t border-white/10 mt-8">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
+                  className="px-5 py-2.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all font-medium text-sm"
                 >
                   {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={isUploading}
-                  className="px-6 py-2 bg-white text-black rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-8 py-2.5 bg-white text-black rounded-xl hover:bg-gray-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-semibold text-sm shadow-lg shadow-white/5"
                 >
                   {isUploading ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                      {t('common.loading')}
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-black border-t-transparent" />
+                      <span>{t('upload.uploading')}...</span>
                     </>
                   ) : (
                     <>
-                      {isEditing ? t('common.save') : t('common.upload')}
+                      <Upload size={18} />
+                      <span>{isEditing ? t('common.save') : t('common.upload_now')}</span>
                     </>
                   )}
                 </button>

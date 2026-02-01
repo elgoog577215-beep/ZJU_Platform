@@ -62,6 +62,7 @@ const Music = () => {
       page: currentPage,
       limit,
       sort,
+      tags: selectedTags.join(','),
     };
 
     api.get('/music', { params })
@@ -76,7 +77,7 @@ const Music = () => {
         setLoading(false);
         setError(true);
       });
-  }, [currentPage, sort, settings.pagination_enabled, refreshKey]);
+  }, [currentPage, sort, selectedTags, settings.pagination_enabled, refreshKey]);
 
   const refresh = () => {
     setLoading(true);
@@ -87,12 +88,7 @@ const Music = () => {
   const addTrack = (newItem) => {
     api.post('/music', newItem)
     .then(() => {
-        const limit = settings.pagination_enabled === 'true' ? 10 : 1000;
-        return api.get(`/music?page=${currentPage}&limit=${limit}`);
-    })
-    .then(res => {
-        setTracks(res.data.data);
-        setTotalPages(res.data.pagination.totalPages);
+        refresh({ clearCache: true });
     })
     .catch(err => console.error("Failed to save music", err));
   };
@@ -199,6 +195,10 @@ const Music = () => {
         <div className="mb-8">
           <h2 className="text-4xl md:text-5xl font-bold font-serif mb-4 md:mb-6">{t('music.title')}</h2>
           <p className="text-gray-400 max-w-xl mx-auto text-sm md:text-base">{t('music.subtitle')}</p>
+        </div>
+
+        <div className="w-full max-w-4xl mx-auto px-4 mb-8">
+          <TagFilter selectedTags={selectedTags} onChange={setSelectedTags} type="music" />
         </div>
           
         <div className="flex items-center gap-4 w-full md:w-auto justify-center md:absolute md:right-0 md:top-0">

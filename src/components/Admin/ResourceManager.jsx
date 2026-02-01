@@ -54,8 +54,9 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
   const confirmDelete = async () => {
     if (!deleteConfirmation) return;
     try {
-      console.log(`Deleting item ${deleteConfirmation} from ${apiEndpoint}...`);
-      await api.delete(`/${apiEndpoint}/${deleteConfirmation}`);
+      console.log(`Permanently deleting item ${deleteConfirmation} from ${apiEndpoint}...`);
+      // Use permanent delete endpoint for full cleanup
+      await api.delete(`/${apiEndpoint}/${deleteConfirmation}/permanent`);
       toast.success(t('admin.toast.delete_success'));
       fetchItems(pagination.page);
     } catch (error) {

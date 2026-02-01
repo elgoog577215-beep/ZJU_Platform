@@ -60,6 +60,11 @@ async function verifyIsolation() {
     
     const uniqueToArticles = articleKeys.filter(x => !photoKeys.includes(x));
     console.log('Unique to Articles:', uniqueToArticles);
+
+    // Check Event Images
+    console.log('\n--- Event Images ---');
+    const events = await db.all('SELECT id, title, image FROM events LIMIT 5');
+    console.log(JSON.stringify(events, null, 2));
 }
 
 verifyIsolation();

@@ -1,5 +1,6 @@
 const { getDb } = require('../config/db');
 const { deleteFileFromUrl } = require('../utils/fileUtils');
+const { createNotification } = require('./notificationController');
 
 // Helper to ensure tags exist in the tags table
 const processTags = async (tagsString) => {
@@ -56,16 +57,23 @@ const updateHandler = (table, fields) => async (req, res) => {
     const db = await getDb();
     const { id } = req.params;
     
-    // Check for file changes to delete old files
+    // Check ownership
     const oldItem = await db.get(`SELECT * FROM ${table} WHERE id = ?`, id);
-    if (oldItem) {
-      const fileFields = ['url', 'cover', 'thumbnail', 'image', 'audio', 'video'];
-      fileFields.forEach(field => {
-        if (req.body[field] && req.body[field] !== oldItem[field]) {
-          deleteFileFromUrl(oldItem[field]);
-        }
-      });
+    if (!oldItem) {
+        return res.status(404).json({ error: 'Item not found' });
     }
+
+    if (req.user.role !== 'admin' && oldItem.uploader_id !== req.user.id) {
+        return res.status(403).json({ error: 'You do not have permission to update this resource' });
+    }
+
+    // Check for file changes to delete old files
+    const fileFields = ['url', 'cover', 'thumbnail', 'image', 'audio', 'video'];
+    fileFields.forEach(field => {
+    if (req.body[field] && req.body[field] !== oldItem[field]) {
+        deleteFileFromUrl(oldItem[field]);
+    }
+    });
 
     const setClause = fields.map(field => `${field} = ?`).join(',');
     const sql = `UPDATE ${table} SET ${setClause} WHERE id = ?`;
@@ -87,6 +95,17 @@ const deleteHandler = (table) => async (req, res) => {
   try {
     const db = await getDb();
     const { id } = req.params;
+    
+    // Check ownership
+    const item = await db.get(`SELECT * FROM ${table} WHERE id = ?`, id);
+    if (!item) {
+        return res.status(404).json({ error: 'Item not found' });
+    }
+
+    if (req.user.role !== 'admin' && item.uploader_id !== req.user.id) {
+        return res.status(403).json({ error: 'You do not have permission to delete this resource' });
+    }
+
     console.log(`[ResourceController] Soft deleting from ${table}, ID: ${id}`);
     
     // Soft delete: Update deleted_at timestamp
@@ -104,6 +123,8 @@ const permanentDeleteHandler = (table) => async (req, res) => {
   try {
     const db = await getDb();
     const { id } = req.params;
+    const singularType = getSingularType(table);
+    
     console.log(`[ResourceController] Permanently deleting from ${table}, ID: ${id}`);
     
     // Delete associated files
@@ -119,9 +140,35 @@ const permanentDeleteHandler = (table) => async (req, res) => {
         });
     }
 
+    // 1. Delete from favorites (handle both singular and plural types for safety)
+    await db.run(
+        'DELETE FROM favorites WHERE item_id = ? AND (item_type = ? OR item_type = ?)', 
+        [id, singularType, table]
+    );
+    
+    // 2. Delete from comments (handle both singular and plural types)
+    // Check if comments table exists first? It should.
+    await db.run(
+        'DELETE FROM comments WHERE resource_id = ? AND (resource_type = ? OR resource_type = ?)', 
+        [id, singularType, table]
+    );
+
+    // 3. Delete from notifications (handle both singular and plural types)
+    await db.run(
+        'DELETE FROM notifications WHERE related_resource_id = ? AND (related_resource_type = ? OR related_resource_type = ?)', 
+        [id, singularType, table]
+    );
+
+    // 4. Delete from event_registrations (only for events)
+    if (table === 'events') {
+        await db.run('DELETE FROM event_registrations WHERE event_id = ?', [id]);
+    }
+
+    // 5. Delete from table
     await db.run(`DELETE FROM ${table} WHERE id = ?`, id);
-    console.log(`[ResourceController] DB permanent delete executed`);
-    res.json({ message: 'Permanently deleted' });
+    
+    console.log(`[ResourceController] DB permanent delete executed with cascading cleanup`);
+    res.json({ message: 'Permanently deleted with all associated data' });
   } catch (error) {
     console.error(`[ResourceController] Permanent delete error:`, error);
     res.status(500).json({ error: error.message });
@@ -230,9 +277,19 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res) => {
         // Generic Search
         if (search && search.trim() !== '') {
             const searchTerm = `%${search}%`;
-            whereClauses.push('(title LIKE ? OR tags LIKE ?)');
-            params.push(searchTerm, searchTerm);
-            countParams.push(searchTerm, searchTerm);
+            if (table === 'events') {
+                whereClauses.push('(title LIKE ? OR tags LIKE ? OR description LIKE ? OR organizer LIKE ? OR target_audience LIKE ?)');
+                params.push(searchTerm, searchTerm, searchTerm, searchTerm, searchTerm);
+                countParams.push(searchTerm, searchTerm, searchTerm, searchTerm, searchTerm);
+            } else if (table === 'articles') {
+                whereClauses.push('(title LIKE ? OR tags LIKE ? OR excerpt LIKE ? OR content LIKE ?)');
+                params.push(searchTerm, searchTerm, searchTerm, searchTerm);
+                countParams.push(searchTerm, searchTerm, searchTerm, searchTerm);
+            } else {
+                whereClauses.push('(title LIKE ? OR tags LIKE ?)');
+                params.push(searchTerm, searchTerm);
+                countParams.push(searchTerm, searchTerm);
+            }
         }
 
         // Filter by status unless asking for 'all'
@@ -248,15 +305,22 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res) => {
             countParams.push(uploader_id);
         }
 
-        if (category && category !== 'All') {
-            whereClauses.push('category = ?');
-            params.push(category);
-            countParams.push(category);
-        }
         if (tag && tag !== 'All') {
             whereClauses.push('tag = ?');
             params.push(tag);
             countParams.push(tag);
+        }
+
+        // Dynamic Field Filtering
+        if (table === 'events') {
+            const filterableFields = ['location', 'organizer', 'target_audience'];
+            filterableFields.forEach(field => {
+                if (req.query[field]) {
+                    whereClauses.push(`"${field}" = ?`);
+                    params.push(req.query[field]);
+                    countParams.push(req.query[field]);
+                }
+            });
         }
         
         // Tags Search (comma separated for multiple tags OR logic)
@@ -264,12 +328,26 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res) => {
         if (tagsQuery && tagsQuery.trim() !== '') {
              const tagsList = tagsQuery.split(',').map(t => t.trim()).filter(Boolean);
              if (tagsList.length > 0) {
-                 const tagConditions = tagsList.map(() => 'tags LIKE ?').join(' OR ');
+                 // Optimize tag matching to avoid substring matches (e.g. 'art' matching 'smart')
+                 const tagConditions = tagsList.map(() => 
+                    '(tags = ? OR tags LIKE ? OR tags LIKE ? OR tags LIKE ?)'
+                 ).join(' OR ');
+                 
                  whereClauses.push(`(${tagConditions})`);
+                 
                  tagsList.forEach(tag => {
-                     const term = `%${tag}%`;
-                     params.push(term);
-                     countParams.push(term);
+                     // Exact match
+                     params.push(tag);
+                     countParams.push(tag);
+                     // Start of string
+                     params.push(`${tag},%`);
+                     countParams.push(`${tag},%`);
+                     // End of string
+                     params.push(`%,${tag}`);
+                     countParams.push(`%,${tag}`);
+                     // Middle of string
+                     params.push(`%,${tag},%`);
+                     countParams.push(`%,${tag},%`);
                  });
              }
         }
@@ -351,12 +429,39 @@ const updateStatus = (table) => async (req, res) => {
         // Update resource status and rejection_reason
         await db.run(`UPDATE ${table} SET status = ?, rejection_reason = ? WHERE id = ?`, [status, reason || null, id]);
 
+        // Get resource details to find uploader
+        const resource = await db.get(`SELECT * FROM ${table} WHERE id = ?`, [id]);
+        
         // Add audit log
         if (adminId) {
              await db.run(
                 `INSERT INTO audit_logs (admin_id, resource_type, resource_id, action, reason) VALUES (?, ?, ?, ?, ?)`,
                 [adminId, table, id, status, reason || null]
             );
+        }
+
+        // Send notification to uploader
+        if (resource && resource.uploader_id && resource.uploader_id !== adminId) {
+            let notificationContent = '';
+            let notificationType = 'system';
+            
+            if (status === 'approved') {
+                notificationContent = `Your ${getSingularType(table)} "${resource.title}" has been approved!`;
+                notificationType = 'approval';
+            } else if (status === 'rejected') {
+                notificationContent = `Your ${getSingularType(table)} "${resource.title}" was rejected. Reason: ${reason || 'No reason provided'}`;
+                notificationType = 'rejection';
+            }
+            
+            if (notificationContent) {
+                await createNotification(
+                    resource.uploader_id,
+                    notificationType,
+                    notificationContent,
+                    id,
+                    table
+                );
+            }
         }
 
         res.json({ success: true, id, status, reason });
@@ -389,14 +494,126 @@ const getCategories = (table) => async (req, res) => {
     }
 }
 
+const getDistinctValues = (table) => async (req, res) => {
+    try {
+        const db = await getDb();
+        const { field } = req.params;
+        
+        // Validate field to prevent SQL injection
+        const allowedFields = fields[table];
+        if (!allowedFields || !allowedFields.includes(field)) {
+             return res.status(400).json({ error: `Invalid field: ${field}` });
+        }
+
+        let query = `SELECT DISTINCT "${field}" FROM ${table}`;
+        let whereClauses = [];
+        let params = [];
+
+        // Always exclude null/empty
+        whereClauses.push(`"${field}" IS NOT NULL AND "${field}" != ''`);
+
+        // Apply filters from req.query (similar to getAllHandler)
+        const status = req.query.status || 'approved';
+        if (status !== 'all') {
+            whereClauses.push('status = ?');
+            params.push(status);
+        }
+
+        // Dynamic Field Filtering for Events
+        if (table === 'events') {
+            const filterableFields = ['location', 'organizer', 'target_audience'];
+            filterableFields.forEach(f => {
+                // Don't filter by the field we are querying distinct values for
+                if (f !== field && req.query[f]) {
+                    whereClauses.push(`"${f}" = ?`);
+                    params.push(req.query[f]);
+                }
+            });
+
+            // Lifecycle filter
+            const lifecycle = req.query.lifecycle;
+            if (lifecycle) {
+                 if (lifecycle === 'upcoming') {
+                     whereClauses.push('date > date("now", "localtime")');
+                 } else if (lifecycle === 'past') {
+                     whereClauses.push('date < date("now", "localtime")');
+                 } else if (lifecycle === 'ongoing') {
+                     whereClauses.push('date = date("now", "localtime")');
+                 }
+            }
+        }
+
+        if (whereClauses.length > 0) {
+            query += ' WHERE ' + whereClauses.join(' AND ');
+        }
+
+        query += ` ORDER BY "${field}" ASC`;
+
+        const values = await db.all(query, params);
+        res.json(values.map(v => v[field]));
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}
+
 // Fields Definitions
 const fields = {
-    photos: ['url', 'title', 'category', 'tags', 'size', 'gameType', 'gameDescription', 'featured'],
-    music: ['title', 'artist', 'duration', 'cover', 'audio', 'featured', 'category', 'tags'],
-    videos: ['title', 'category', 'tags', 'thumbnail', 'video', 'featured'],
-    articles: ['title', 'date', 'excerpt', 'tag', 'tags', 'content', 'cover', 'featured'],
-    events: ['title', 'date', 'location', 'category', 'tags', 'image', 'description', 'content', 'link', 'featured']
+    photos: ['url', 'title', 'tags', 'size', 'gameType', 'gameDescription', 'featured'],
+    music: ['title', 'artist', 'duration', 'cover', 'audio', 'featured', 'tags'],
+    videos: ['title', 'tags', 'thumbnail', 'video', 'featured'],
+    articles: ['title', 'date', 'excerpt', 'tags', 'content', 'cover', 'featured'],
+    events: ['title', 'date', 'location', 'tags', 'image', 'description', 'content', 'link', 'featured', 'score', 'target_audience', 'organizer', 'volunteer_time', 'category']
 };
+
+const getRelatedHandler = (table) => async (req, res) => {
+    try {
+        const db = await getDb();
+        const { id } = req.params;
+        const limit = parseInt(req.query.limit) || 6;
+        
+        const item = await db.get(`SELECT tags, category FROM ${table} WHERE id = ?`, id);
+        
+        if (!item) {
+            return res.status(404).json({ error: 'Item not found' });
+        }
+
+        let whereClauses = [`id != ?`, `status = 'approved'`, `deleted_at IS NULL`];
+        let params = [id];
+        
+        if (item.tags) {
+            const tags = item.tags.split(',').map(t => t.trim()).filter(Boolean);
+            if (tags.length > 0) {
+                 const tagConditions = tags.map(() => 
+                    '(tags LIKE ? OR tags LIKE ? OR tags LIKE ? OR tags LIKE ?)'
+                 ).join(' OR ');
+                 
+                 whereClauses.push(`(${tagConditions})`);
+                 
+                 tags.forEach(tag => {
+                     params.push(tag);
+                     params.push(`${tag},%`);
+                     params.push(`%,${tag}`);
+                     params.push(`%,${tag},%`);
+                 });
+            } else if (item.category) {
+                 whereClauses.push('category = ?');
+                 params.push(item.category);
+            }
+        } else if (item.category) {
+             whereClauses.push('category = ?');
+             params.push(item.category);
+        }
+
+        const whereSQL = ' WHERE ' + whereClauses.join(' AND ');
+        const query = `SELECT * FROM ${table} ${whereSQL} ORDER BY RANDOM() LIMIT ?`;
+        params.push(limit);
+
+        const related = await db.all(query, params);
+        res.json(related);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}
 
 module.exports = {
     createHandler,
@@ -406,7 +623,8 @@ module.exports = {
     restoreHandler,
     getAllHandler,
     getOneHandler,
-    getCategories,
+    getRelatedHandler,
+    getDistinctValues,
     toggleLike,
     updateStatus,
     fields

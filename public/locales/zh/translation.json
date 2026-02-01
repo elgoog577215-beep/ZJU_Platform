@@ -1,8 +1,18 @@
 {
+  "notifications": {
+    "title": "通知中心",
+    "mark_all_read": "全部已读",
+    "clear_all": "清空通知",
+    "no_notifications": "暂无通知",
+    "delete_failed": "删除失败",
+    "mark_read_failed": "标记已读失败",
+    "mark_all_read_failed": "全部已读失败",
+    "clear_all_failed": "清空失败",
+    "new_notification": "新通知"
+  },
   "lightbox": {
     "download_started": "下载已开始",
     "download_failed": "下载失败",
-    "view_3d": "3D 预览",
     "download": "下载",
     "info": "信息",
     "title": "标题",
@@ -11,6 +21,15 @@
     "stats": "统计",
     "views": "浏览量",
     "likes": "点赞数"
+  },
+  "comments": {
+    "title": "评论",
+    "placeholder": "写下你的评论...",
+    "posted": "评论已发布",
+    "post_failed": "发布评论失败",
+    "deleted": "评论已删除",
+    "delete_failed": "删除评论失败",
+    "empty": "暂无评论，快来抢沙发吧！"
   },
   "auth": {
     "welcome_back": "欢迎回来",
@@ -37,10 +56,18 @@
     "title": "用户资料",
     "logout": "退出登录",
     "tabs": {
+      "published": "已发布",
+      "settings": "设置",
       "profile": "资料",
       "uploads": "上传",
       "favorites": "收藏",
       "security": "安全"
+    },
+    "no_published_works": "该用户尚未发布任何作品。",
+    "user_not_found": "用户未找到",
+    "go_home": "返回首页",
+    "stats": {
+      "works": "作品"
     },
     "uploads": {
       "title": "我的上传",
@@ -263,10 +290,12 @@
     "author": "作者",
     "admin_name": "Lumos 管理员",
     "search": "搜索...",
+    "search_placeholder": "搜索活动...",
     "link_copied": "链接已复制到剪贴板！",
     "loading": "加载中",
     "uploading": "上传中",
     "cancel": "取消",
+    "delete": "删除",
     "event": "活动",
     "article": "文章",
     "photo": "照片",
@@ -278,7 +307,9 @@
     "show_less": "收起",
     "copied_to_clipboard": "已复制到剪贴板",
     "copy_failed": "复制失败",
-    "retry": "重试"
+    "retry": "重试",
+    "size": "尺寸",
+    "featured": "精选"
   },
   "upload": {
     "title_required": "标题不能为空",
@@ -300,7 +331,9 @@
     "link_placeholder": "输入活动链接...",
     "description_placeholder": "输入描述...",
     "location_placeholder": "输入地点...",
-    "popular_tags": "常用标签"
+    "date_placeholder": "选择日期...",
+    "popular_tags": "常用标签",
+    "size_placeholder": "例如: 1920x1080"
   },
   "sort_filter": {
     "newest": "最新发布",
@@ -808,16 +841,34 @@
     "go_home": "返回首页"
   },
   "themes": {
-    "space": { "name": "深空", "desc": "星云" },
     "grid": { "name": "复古网格", "desc": "合成波" },
     "embers": { "name": "火焰余烬", "desc": "飞溅火花" },
     "crystal": { "name": "水晶洞穴", "desc": "折射" },
-    "clouds": { "name": "飘渺云层", "desc": "柔和天空" },
     "cyber": { "name": "赛博电路", "desc": "主机" },
     "dna": { "name": "数字 DNA", "desc": "生命代码" },
     "binary": { "name": "二进制流", "desc": "数据流" },
     "network": { "name": "网络节点", "desc": "连接" },
     "wave": { "name": "粒子波", "desc": "振荡" },
     "orbit": { "name": "轨道环", "desc": "引力" }
+  },
+  "advanced_filter": {
+    "title": "筛选属性",
+    "nature": "活动性质",
+    "organizer": "主办方",
+    "location": "地点",
+    "target_audience": "目标人群",
+    "all_natures": "所有性质",
+    "all_organizers": "所有主办方",
+    "all_locations": "所有地点",
+    "all_target_audiences": "所有目标人群"
+  },
+  "event_fields": {
+    "basic_info": "基本信息",
+    "attributes": "活动属性",
+    "nature_placeholder": "选择/输入",
+    "organizer_placeholder": "例如：校学生会",
+    "score": "素质分",
+    "score_placeholder": "+1.5",
+    "target_placeholder": "例如：全体师生"
   }
 }

@@ -30,6 +30,7 @@ const MobileNavbar = () => {
     { key: 'music', path: '/music', icon: Music },
     { key: 'videos', path: '/videos', icon: Film },
     { key: 'articles', path: '/articles', icon: FileText },
+    ...(user ? [{ key: 'profile', path: `/user/${user.id}`, icon: UserCircle }] : [{ key: 'login', action: 'login', icon: LogIn }])
   ];
 
   const handleAction = (action) => {
@@ -38,13 +39,6 @@ const MobileNavbar = () => {
       setShowMenu(true);
     } else if (action === 'login') {
       setShowAuthModal(true);
-    } else if (action === 'profile') {
-      // Logic to open profile modal, might need to lift state or use context
-      // For now, let's just use a simple way or assume we can trigger it.
-      // But wait, Navbar has the state. We might need to expose it or use a global UI context.
-      // Or simply duplicate the modal here? Ideally context.
-      // Given constraints, I'll emit a custom event like the search palette does.
-      window.dispatchEvent(new Event('open-profile-modal'));
     }
   };
 
@@ -56,7 +50,7 @@ const MobileNavbar = () => {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 z-[90] bg-black/90 backdrop-blur-xl border-t border-white/10 pb-[env(safe-area-inset-bottom)] md:hidden app-select-none">
+      <nav className="fixed bottom-0 left-0 right-0 z-[90] glass-panel-heavy border-t border-white/5 pb-[env(safe-area-inset-bottom)] md:hidden app-select-none">
         <div className="flex justify-around items-center h-16 px-2">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;

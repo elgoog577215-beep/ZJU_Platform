@@ -1,14 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, Music, Film, BookOpen, ArrowRight, X, Maximize2, Loader, Calendar } from 'lucide-react';
-import LivePhotoViewer from './Image3DViewer';
+import Lightbox from './Lightbox';
 import { useTranslation } from 'react-i18next';
-import useSWR from 'swr';
-import { fetcher } from '../services/api';
+// import useSWR from 'swr'; // Removed
+// import { fetcher } from '../services/api'; // Removed
 import { Helmet } from 'react-helmet-async';
 import SmartImage from './SmartImage';
 import { useSettings } from '../context/SettingsContext';
 import { useBackClose } from '../hooks/useBackClose';
+import { useCachedResource } from '../hooks/useCachedResource';
 
 const getHighResUrl = (url) => {
   if (!url) return url;
@@ -227,14 +228,18 @@ const HomeFeed = () => {
   useBackClose(activePhoto !== null, () => setActivePhoto(null));
   useBackClose(activeEvent !== null, () => setActiveEvent(null));
 
-  const { data: featuredContent, error } = useSWR('/featured', fetcher);
+  // Use cached resource hook
+  const { data: featuredContent, loading, error } = useCachedResource('/featured');
 
   if (error) {
       console.error("Failed to fetch featured content:", error);
       // Optional: render error state
   }
 
-  if (!featuredContent) {
+  // Check if content is loaded (and not just empty array from initial state)
+  const isLoaded = featuredContent && featuredContent.photos && Array.isArray(featuredContent.photos);
+
+  if (!isLoaded) {
     return (
       <div className="w-full min-h-screen flex items-center justify-center bg-black">
         <Loader className="animate-spin text-white" size={48} />
@@ -344,7 +349,7 @@ const HomeFeed = () => {
           <ErrorBoundary fallback={
              <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-xl" onClick={() => setActivePhoto(null)}>
                 <div className="text-center p-8 bg-[#111] border border-white/10 rounded-2xl">
-                    <p className="text-red-400 mb-4">{t('common.error_loading_viewer') || 'Failed to load 3D viewer'}</p>
+                    <p className="text-red-400 mb-4">{t('common.error_loading_viewer') || 'Failed to load viewer'}</p>
                     <button 
                         onClick={() => setActivePhoto(null)}
                         className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all"
@@ -354,7 +359,7 @@ const HomeFeed = () => {
                 </div>
              </div>
           }>
-            <LivePhotoViewer 
+            <Lightbox 
                 photo={{ ...activePhoto, url: getHighResUrl(activePhoto.url) }} 
                 onClose={() => setActivePhoto(null)} 
             />
@@ -398,7 +403,7 @@ const HomeFeed = () => {
                                href={activeEvent.link} 
                                target="_blank" 
                                rel="noopener noreferrer"
-                               className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl transition-colors"
+                               className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-red-600/20"
                            >
                                {t('common.view_details')} <ArrowRight size={18} />
                            </a>
@@ -406,10 +411,9 @@ const HomeFeed = () => {
                    )}
                 </div>
              </motion.div>
-          </motion.div>
+           </motion.div>
         )}
       </AnimatePresence>
-
     </section>
   );
 };

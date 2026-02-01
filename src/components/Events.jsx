@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, MapPin, ArrowRight, X, Filter, Upload, Clock, CheckCircle, ExternalLink, Download, Globe, FileText, AlertCircle, Share2, Copy } from 'lucide-react';
+import { Calendar, MapPin, ArrowRight, X, Filter, Upload, Clock, CheckCircle, ExternalLink, Download, Globe, FileText, AlertCircle, Share2, Copy, Award, Users, Building2, Tag, Search } from 'lucide-react';
 import UploadModal from './UploadModal';
 import FavoriteButton from './FavoriteButton';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +16,7 @@ import SmartImage from './SmartImage';
 import { useBackClose } from '../hooks/useBackClose';
 import { useCachedResource } from '../hooks/useCachedResource';
 import TagFilter from './TagFilter';
+import AdvancedFilter from './AdvancedFilter';
 
 import { useSearchParams } from 'react-router-dom';
 
@@ -30,6 +31,22 @@ const Events = () => {
   const [sort, setSort] = useState('newest');
   const [lifecycle, setLifecycle] = useState('all');
   const [selectedTags, setSelectedTags] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [filterVersion, setFilterVersion] = useState(0);
+  const [filters, setFilters] = useState({
+      location: null,
+      organizer: null,
+      target_audience: null
+  });
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+        setDebouncedSearch(searchQuery);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   useBackClose(selectedEvent !== null, () => setSelectedEvent(null));
   useBackClose(isUploadOpen, () => setIsUploadOpen(false));
@@ -49,9 +66,11 @@ const Events = () => {
     sort,
     status: 'all',
     lifecycle: lifecycle === 'all' ? undefined : lifecycle,
-    tags: selectedTags.join(',')
+    tags: selectedTags.join(','),
+    search: debouncedSearch,
+    ...filters
   }, {
-    dependencies: [settings.pagination_enabled, lifecycle, selectedTags.join(',')]
+    dependencies: [settings.pagination_enabled, lifecycle, selectedTags.join(','), debouncedSearch, JSON.stringify(filters)]
   });
 
   const totalPages = pagination?.totalPages || 1;
@@ -150,17 +169,8 @@ END:VCALENDAR`;
   const addEvent = (newItem) => {
     api.post('/events', newItem)
     .then(() => {
-        // Refresh current page
-        const limit = 6;
-        const params = {
-            page: currentPage,
-            limit,
-        };
-        return api.get('/events', { params });
-    })
-    .then(res => {
-        setEvents(res.data.data);
-        setTotalPages(res.data.pagination.totalPages);
+        refresh({ clearCache: true });
+        setFilterVersion(prev => prev + 1);
     })
     .catch(err => console.error("Failed to save event", err));
   };
@@ -232,6 +242,10 @@ END:VCALENDAR`;
 
         {/* Filter Section */}
         <div className="w-full max-w-4xl mx-auto mb-8 flex flex-col gap-4">
+          {/* Search Bar Removed */}
+
+          <AdvancedFilter filters={filters} onChange={setFilters} refreshTrigger={filterVersion} />
+
           <TagFilter selectedTags={selectedTags} onChange={setSelectedTags} type="events" />
           
           <div className="grid grid-cols-2 gap-4">
@@ -291,35 +305,46 @@ END:VCALENDAR`;
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
-                    className="group relative bg-[#111] border border-white/10 rounded-3xl overflow-hidden hover:shadow-2xl hover:shadow-indigo-500/20 transition-all duration-500 hover:-translate-y-2 cursor-pointer flex flex-row md:flex-col h-32 md:h-auto"
+                    className="group relative bg-[#111] border border-white/10 rounded-3xl overflow-hidden hover:shadow-2xl hover:shadow-indigo-500/20 transition-all duration-500 hover:-translate-y-2 cursor-pointer flex flex-row md:flex-col md:h-auto"
                     onClick={() => setSelectedEvent(event)}
                   >
                 {/* Image Section */}
-                <div className="w-1/3 md:w-full h-full md:h-64 overflow-hidden relative shrink-0">
+                <div className="w-1/3 aspect-square md:w-full md:aspect-auto md:h-64 overflow-hidden relative shrink-0">
                     <SmartImage 
                       src={event.image} 
                       alt={event.title} 
                       loading="lazy"
-                      className="w-full h-full"
+                      className="absolute inset-0 w-full h-full"
                       imageClassName="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#111] via-transparent to-transparent opacity-80" />
                     
-                    {/* Date Badge - Hidden on mobile list view to save space, or scaled down */}
-                    <div className="hidden md:flex absolute top-4 left-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 flex-col items-center justify-center min-w-[60px] shadow-lg group-hover:bg-indigo-600 group-hover:border-indigo-500 transition-colors duration-300">
-                        <span className="text-xs font-bold uppercase tracking-wider text-gray-300 group-hover:text-white/80">{month}</span>
-                        <span className="text-2xl font-black text-white">{day}</span>
+                    {/* Date Badge & Score Badge Container */}
+                    <div className="absolute top-4 left-4 flex gap-3 z-40">
+                        {/* Date Badge */}
+                        <div className="hidden md:flex bg-black/60 backdrop-blur-md border border-white/20 rounded-2xl p-3 flex-col items-center justify-center min-w-[64px] shadow-lg group-hover:bg-indigo-600 group-hover:border-indigo-500 transition-colors duration-300">
+                            <span className="text-xs font-bold uppercase tracking-wider text-gray-200 group-hover:text-white/90">{month}</span>
+                            <span className="text-2xl font-black text-white">{day}</span>
+                        </div>
+
+                        {/* Score Badge */}
+                        {event.score && (
+                            <div className="hidden md:flex bg-indigo-600/90 backdrop-blur-md border border-indigo-500/50 rounded-2xl p-3 flex-col items-center justify-center min-w-[64px] shadow-lg">
+                                <span className="text-xs font-bold uppercase tracking-wider text-indigo-100">Score</span>
+                                <span className="text-xl font-black text-white">{event.score}</span>
+                            </div>
+                        )}
                     </div>
 
                     {/* Status Badge - Adjusted for mobile */}
-                    <div className={`absolute top-2 right-2 md:top-4 md:right-4 px-2 py-1 md:px-3 md:py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider shadow-lg backdrop-blur-md flex items-center gap-1.5 ${getStatusColor(status)}`}>
-                        {status === t('events.status.upcoming') && <Clock size={10} className="md:w-3 md:h-3" />}
+                    <div className={`absolute top-2 right-2 md:top-4 md:right-4 px-2 py-1 md:px-3 md:py-1.5 rounded-full text-[10px] md:text-sm font-bold uppercase tracking-wider shadow-lg backdrop-blur-md flex items-center gap-1.5 z-40 ${getStatusColor(status)}`}>
+                        {status === t('events.status.upcoming') && <Clock size={12} className="md:w-4 md:h-4" />}
                         {status === t('events.status.ongoing') && <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-white animate-pulse" />}
                         {status}
                     </div>
 
                     {/* Share Button - Hidden on mobile list */}
-                    <div className="hidden md:flex absolute bottom-4 right-4 gap-2">
+                    <div className="hidden md:flex absolute bottom-4 right-4 gap-2 z-30">
                         <FavoriteButton 
                                                 itemId={event.id}
                                                 itemType="event"
@@ -341,7 +366,7 @@ END:VCALENDAR`;
 
                     {/* Countdown Overlay (Upcoming only) */}
                     {isUpcoming && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm">
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm z-40">
                             <div className="transform scale-75 hidden md:block">
                                 <Countdown targetDate={event.date} />
                             </div>
@@ -350,24 +375,40 @@ END:VCALENDAR`;
                 </div>
 
                 {/* Content Section */}
-                <div className="p-3 md:p-6 relative flex-1 flex flex-col justify-center">
-                    <div className="flex items-center gap-4 mb-1 md:mb-4">
-                        <div className="flex items-center gap-1 md:gap-2 text-xs md:text-sm text-gray-400">
-                             <MapPin size={12} className="md:w-3.5 md:h-3.5 text-indigo-400" />
-                             <span className="truncate max-w-[100px] md:max-w-[150px]">{event.location || 'Online'}</span>
+                    <div className="p-4 md:p-6 relative flex-1 flex flex-col justify-center">
+                        <div className="flex items-center gap-4 mb-2 md:mb-4">
+                            <div className="flex items-center gap-1 md:gap-2 text-sm md:text-base text-gray-400">
+                                 <MapPin size={14} className="md:w-4 md:h-4 text-indigo-400" />
+                                 <span className="truncate max-w-[100px] md:max-w-[150px]">{event.location || 'Online'}</span>
+                            </div>
+                        </div>
+
+                        <h3 className="text-xl md:text-3xl font-bold text-white mb-2 md:mb-3 line-clamp-2 group-hover:text-indigo-400 transition-colors leading-tight">{event.title}</h3>
+                        <p className="text-gray-400 text-sm md:text-base line-clamp-2 mb-3 md:mb-4 leading-relaxed hidden md:block">{event.description}</p>
+                        
+                        {/* Phase 1: Key Info on Card */}
+                        <div className="flex flex-wrap gap-2 mb-3">
+                            {event.tags && event.tags.split(',').slice(0, 2).map((tag, i) => (
+                                <span key={i} className="px-2 py-1 rounded-md bg-purple-500/10 text-purple-300 text-sm font-bold uppercase tracking-wider border border-purple-500/20 flex items-center gap-1 group-hover:bg-purple-500/20 transition-colors">
+                                    <Tag size={14} /> {tag.trim()}
+                                </span>
+                            ))}
+                            {event.target_audience && (
+                                 <span className="px-2 py-1 rounded-md bg-blue-500/10 text-blue-300 text-sm font-bold uppercase tracking-wider border border-blue-500/20 flex items-center gap-1 max-w-[120px] truncate group-hover:bg-blue-500/20 transition-colors">
+                                    <Users size={14} /> {event.target_audience}
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Mobile Date Display - Keeping it as backup but badges are now visible */}
+                        <p className="text-gray-300 font-medium text-sm md:hidden mb-2 mt-2 flex items-center gap-1.5">
+                            <Calendar size={16} className="text-indigo-400" /> {event.date}
+                        </p>
+
+                        <div className="flex items-center text-indigo-400 font-bold text-base md:text-lg group-hover:translate-x-2 transition-transform mt-auto md:mt-0">
+                            {t('common.view_details')} <ArrowRight size={18} className="ml-1 md:ml-2 md:w-5 md:h-5" />
                         </div>
                     </div>
-
-                    <h3 className="text-base md:text-2xl font-bold text-white mb-1 md:mb-3 line-clamp-2 group-hover:text-indigo-400 transition-colors leading-tight">{event.title}</h3>
-                    <p className="text-gray-400 text-xs md:text-sm line-clamp-2 mb-2 md:mb-6 leading-relaxed hidden md:block">{event.description}</p>
-                    
-                    {/* Mobile Date Display since badge is hidden */}
-                    <p className="text-gray-500 text-xs md:hidden mb-1">{event.date}</p>
-
-                    <div className="flex items-center text-indigo-400 font-bold text-xs md:text-sm group-hover:translate-x-2 transition-transform mt-auto md:mt-0">
-                        {t('common.view_details')} <ArrowRight size={14} className="ml-1 md:ml-2 md:w-4 md:h-4" />
-                    </div>
-                </div>
               </motion.div>
             )})}
         </div>
@@ -395,7 +436,7 @@ END:VCALENDAR`;
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
             onClick={() => setSelectedEvent(null)}
           >
             <motion.div 
@@ -437,7 +478,7 @@ END:VCALENDAR`;
                         ))}
                      </div>
                      <div className="flex justify-between items-start gap-4">
-                        <h2 className="text-3xl sm:text-5xl font-bold text-white mb-2 leading-tight">{selectedEvent.title}</h2>
+                        <h2 className="text-2xl sm:text-4xl font-bold text-white mb-2 leading-tight">{selectedEvent.title}</h2>
                         <FavoriteButton 
                             itemId={selectedEvent.id}
                             itemType="event"
@@ -468,11 +509,11 @@ END:VCALENDAR`;
               </div>
 
               {/* Modal Content */}
-              <div className="p-8 sm:p-12">
-                 <div className="flex flex-col lg:flex-row gap-12">
-                     <div className="flex-1 space-y-8">
-                         <div>
-                             <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <div className="p-5 sm:p-8">
+                 <div className="flex flex-col lg:flex-row gap-5">
+                     <div className="flex-1 space-y-4">
+                         <div className="bg-white/5 rounded-2xl p-5 border border-white/5 h-full">
+                             <h3 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
                                  <FileText size={20} className="text-indigo-400" /> 
                                  {t('common.description')}
                              </h3>
@@ -482,49 +523,125 @@ END:VCALENDAR`;
                                 dangerouslySetInnerHTML={{ __html: selectedEvent.content || `<p>${selectedEvent.description}</p>` }} 
                              />
                          </div>
-
-                         {/* Simple Location & Time Display (Text Only) */}
-                         <div className="bg-white/5 rounded-2xl p-6 border border-white/5 space-y-4">
-                             {selectedEvent.location && (
-                                <div className="flex items-start gap-3">
-                                    <MapPin size={20} className="text-indigo-400 shrink-0 mt-1" />
-                                    <div>
-                                        <h4 className="font-bold text-white text-sm uppercase tracking-wider mb-1">{t('events.location_label')}</h4>
-                                        <p className="text-gray-300">{selectedEvent.location}</p>
-                                    </div>
-                                </div>
-                             )}
-                             
-                             <div className="flex items-start gap-3">
-                                <Calendar size={20} className="text-indigo-400 shrink-0 mt-1" />
-                                <div>
-                                    <h4 className="font-bold text-white text-sm uppercase tracking-wider mb-1">{t('events.date_label')}</h4>
-                                    <p className="text-gray-300">{selectedEvent.date}</p>
-                                </div>
-                             </div>
-                         </div>
                      </div>
 
-                     {/* Sidebar - Link */}
-                     <div className="lg:w-1/3 space-y-6">
-                        <div className="bg-white/5 rounded-2xl p-6 border border-white/5 sticky top-8">
-                            <h3 className="text-xl font-bold text-white mb-6">{t('events.event_link')}</h3>
+                     {/* Sidebar - Details & Link */}
+                     <div className="lg:w-1/2 space-y-4">
+                        <div className="bg-white/5 rounded-2xl p-5 border border-white/5 sticky top-8 space-y-5">
                             
-                            {selectedEvent.link ? (
-                                <a
-                                    href={selectedEvent.link}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="w-full py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20"
-                                >
-                                    {t('events.visit_link')}
-                                    <ExternalLink size={20} />
-                                </a>
-                            ) : (
-                                <div className="text-gray-500 text-center py-4">
-                                    {t('events.no_link_available')}
+                            {/* Call to Action - Link */}
+                            <div>
+                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                    <Globe size={16} className="text-indigo-400" />
+                                    {t('events.event_link')}
+                                </h3>
+                                {selectedEvent.link ? (
+                                    <a
+                                        href={selectedEvent.link}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="w-full py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20"
+                                    >
+                                        {t('events.visit_link')}
+                                        <ExternalLink size={18} />
+                                    </a>
+                                ) : (
+                                    <div className="p-3 bg-white/5 rounded-xl text-gray-500 text-sm text-center border border-white/5">
+                                        {t('events.no_link_available')}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="h-px bg-white/5" />
+
+                            {/* Key Attributes Grid */}
+                            <div className="grid grid-cols-2 gap-3">
+                                {selectedEvent.score && (
+                                    <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                                        <div className="flex items-center gap-2 text-indigo-400 mb-1">
+                                            <Award size={18} />
+                                            <span className="text-sm font-bold uppercase">加分</span>
+                                        </div>
+                                        <p className="text-2xl font-bold text-white">{selectedEvent.score}</p>
+                                    </div>
+                                )}
+
+                                {selectedEvent.volunteer_time && (
+                                    <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                                        <div className="flex items-center gap-2 text-emerald-400 mb-1">
+                                            <Clock size={18} />
+                                            <span className="text-sm font-bold uppercase">志愿时长</span>
+                                        </div>
+                                        <p className="text-2xl font-bold text-white">{selectedEvent.volunteer_time}</p>
+                                    </div>
+                                )}
+
+                                {selectedEvent.tags && (
+                                    <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                                        <div className="flex items-center gap-2 text-indigo-400 mb-2">
+                                            <Tag size={18} />
+                                            <span className="text-sm font-bold uppercase">{t('upload.tags')}</span>
+                                        </div>
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {selectedEvent.tags.split(',').map((tag, i) => (
+                                                <span key={i} className="px-2 py-1 rounded-md bg-white/10 text-gray-200 text-xs font-medium border border-white/5">
+                                                    {tag.trim()}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="h-px bg-white/5" />
+
+                            {/* Detailed Info List */}
+                            <div className="space-y-4">
+                                {selectedEvent.target_audience && (
+                                    <div className="flex gap-3 items-center">
+                                        <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400 shrink-0">
+                                            <Users size={18} />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-gray-400 text-xs uppercase tracking-wider mb-0.5">面向对象</h4>
+                                            <p className="text-gray-200 text-sm leading-snug">{selectedEvent.target_audience}</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {selectedEvent.organizer && (
+                                    <div className="flex gap-3 items-center">
+                                        <div className="p-2 bg-green-500/10 rounded-lg text-green-400 shrink-0">
+                                            <Building2 size={18} />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-gray-400 text-xs uppercase tracking-wider mb-0.5">主办方</h4>
+                                            <p className="text-gray-200 text-sm leading-snug">{selectedEvent.organizer}</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="flex gap-3 items-center">
+                                    <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400 shrink-0">
+                                        <MapPin size={18} />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-gray-400 text-xs uppercase tracking-wider mb-0.5">{t('events.location_label')}</h4>
+                                        <p className="text-gray-200 text-sm leading-snug">{selectedEvent.location || '线上'}</p>
+                                    </div>
                                 </div>
-                            )}
+
+                                <div className="flex gap-3 items-center">
+                                    <div className="p-2 bg-orange-500/10 rounded-lg text-orange-400 shrink-0">
+                                        <Calendar size={18} />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-gray-400 text-xs uppercase tracking-wider mb-0.5">{t('events.date_label')}</h4>
+                                        <p className="text-gray-200 text-sm leading-snug">{selectedEvent.date}</p>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
                      </div>
                  </div>

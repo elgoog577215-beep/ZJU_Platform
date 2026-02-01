@@ -62,7 +62,7 @@ const Videos = () => {
   const addVideo = (newItem) => {
       api.post('/videos', newItem)
     .then(() => {
-        refresh();
+        refresh({ clearCache: true });
     })
     .catch(err => console.error("Failed to save video", err));
   };

@@ -8,7 +8,7 @@ export const useSettings = () => useContext(SettingsContext);
 export const SettingsProvider = ({ children }) => {
   const [settings, setSettings] = useState({
     pagination_enabled: 'false',
-    theme: 'space',
+    theme: 'grid',
     language: 'zh',
     site_title: '拓途浙享',
     background_brightness: '1.0',
@@ -22,7 +22,7 @@ export const SettingsProvider = ({ children }) => {
   });
 
   const [backgroundScene, setBackgroundScene] = useState(() => {
-    return localStorage.getItem('background_scene') || 'space';
+    return localStorage.getItem('background_scene') || 'grid';
   });
 
   const changeBackgroundScene = (scene) => {

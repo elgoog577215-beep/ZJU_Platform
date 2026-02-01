@@ -12,12 +12,13 @@ const searchContent = async (req, res) => {
         const term = `%${q}%`;
         
         // Parallel search with enhanced fuzzy matching (Description, Content, Artist, Tags, etc.)
+        // Ensure we only show visible items (not deleted, approved)
         const [photos, music, videos, articles, events] = await Promise.all([
-            db.all('SELECT id, title, "photo" as type, url as image FROM photos WHERE title LIKE ? OR tags LIKE ? LIMIT 5', [term, term]),
-            db.all('SELECT id, title, "music" as type, cover as image FROM music WHERE title LIKE ? OR artist LIKE ? OR tags LIKE ? LIMIT 5', [term, term, term]),
-            db.all('SELECT id, title, "video" as type, thumbnail as image FROM videos WHERE title LIKE ? OR tags LIKE ? LIMIT 5', [term, term]),
-            db.all('SELECT id, title, "article" as type, cover as image FROM articles WHERE title LIKE ? OR excerpt LIKE ? OR content LIKE ? OR tags LIKE ? LIMIT 5', [term, term, term, term]),
-            db.all('SELECT id, title, "event" as type, image FROM events WHERE title LIKE ? OR description LIKE ? OR content LIKE ? OR tags LIKE ? LIMIT 5', [term, term, term, term])
+            db.all('SELECT id, title, "photo" as type, url as image FROM photos WHERE (title LIKE ? OR tags LIKE ?) AND deleted_at IS NULL AND status = "approved" LIMIT 5', [term, term]),
+            db.all('SELECT id, title, "music" as type, cover as image FROM music WHERE (title LIKE ? OR artist LIKE ? OR tags LIKE ?) AND deleted_at IS NULL AND status = "approved" LIMIT 5', [term, term, term]),
+            db.all('SELECT id, title, "video" as type, thumbnail as image FROM videos WHERE (title LIKE ? OR tags LIKE ?) AND deleted_at IS NULL AND status = "approved" LIMIT 5', [term, term]),
+            db.all('SELECT id, title, "article" as type, cover as image FROM articles WHERE (title LIKE ? OR excerpt LIKE ? OR content LIKE ? OR tags LIKE ?) AND deleted_at IS NULL AND status = "approved" LIMIT 5', [term, term, term, term]),
+            db.all('SELECT id, title, "event" as type, image FROM events WHERE (title LIKE ? OR description LIKE ? OR content LIKE ? OR tags LIKE ?) AND deleted_at IS NULL AND status = "approved" LIMIT 5', [term, term, term, term])
         ]);
 
         const results = [
@@ -38,12 +39,27 @@ const getStats = async (req, res) => {
   try {
     const db = await getDb();
     
+    // Helper to get detailed stats for a table
+    const getTableStats = async (table) => {
+        const total = await db.get(`SELECT COUNT(*) as count FROM ${table}`);
+        const active = await db.get(`SELECT COUNT(*) as count FROM ${table} WHERE deleted_at IS NULL AND status = 'approved'`);
+        const pending = await db.get(`SELECT COUNT(*) as count FROM ${table} WHERE deleted_at IS NULL AND status = 'pending'`);
+        const deleted = await db.get(`SELECT COUNT(*) as count FROM ${table} WHERE deleted_at IS NOT NULL`);
+        
+        return {
+            total: total.count,
+            active: active.count,
+            pending: pending.count,
+            deleted: deleted.count
+        };
+    };
+
     const [photos, music, videos, articles, events, users, audit] = await Promise.all([
-      db.get('SELECT COUNT(*) as count FROM photos'),
-      db.get('SELECT COUNT(*) as count FROM music'),
-      db.get('SELECT COUNT(*) as count FROM videos'),
-      db.get('SELECT COUNT(*) as count FROM articles'),
-      db.get('SELECT COUNT(*) as count FROM events'),
+      getTableStats('photos'),
+      getTableStats('music'),
+      getTableStats('videos'),
+      getTableStats('articles'),
+      getTableStats('events'),
       db.get('SELECT COUNT(*) as count FROM users'),
       db.get('SELECT COUNT(*) as count FROM audit_logs'),
     ]);
@@ -56,13 +72,20 @@ const getStats = async (req, res) => {
 
     res.json({
       counts: {
-        photos: photos.count,
-        music: music.count,
-        videos: videos.count,
-        articles: articles.count,
-        events: events.count,
+        photos: photos.total,
+        music: music.total,
+        videos: videos.total,
+        articles: articles.total,
+        events: events.total,
         users: users.count,
         audit_logs: audit.count
+      },
+      breakdown: {
+        photos,
+        music,
+        videos,
+        articles,
+        events
       },
       system: {
         uptime: process.uptime(),
@@ -108,12 +131,13 @@ const getFeaturedContent = async (req, res) => {
     
     // Fetch featured items, falling back to recent ones if not enough featured
     // ORDER BY featured DESC ensures featured items come first
+    // Only show active (approved, not deleted) items
     const [photos, music, videos, articles, events] = await Promise.all([
-      db.all('SELECT * FROM photos ORDER BY featured DESC, id DESC LIMIT 10'),
-      db.all('SELECT * FROM music ORDER BY featured DESC, id DESC LIMIT 10'),
-      db.all('SELECT * FROM videos ORDER BY featured DESC, id DESC LIMIT 10'),
-      db.all('SELECT * FROM articles ORDER BY featured DESC, id DESC LIMIT 10'),
-      db.all('SELECT * FROM events ORDER BY featured DESC, id DESC LIMIT 10')
+      db.all('SELECT * FROM photos WHERE deleted_at IS NULL AND status = "approved" ORDER BY featured DESC, id DESC LIMIT 10'),
+      db.all('SELECT * FROM music WHERE deleted_at IS NULL AND status = "approved" ORDER BY featured DESC, id DESC LIMIT 10'),
+      db.all('SELECT * FROM videos WHERE deleted_at IS NULL AND status = "approved" ORDER BY featured DESC, id DESC LIMIT 10'),
+      db.all('SELECT * FROM articles WHERE deleted_at IS NULL AND status = "approved" ORDER BY featured DESC, id DESC LIMIT 10'),
+      db.all('SELECT * FROM events WHERE deleted_at IS NULL AND status = "approved" ORDER BY featured DESC, id DESC LIMIT 10')
     ]);
 
     res.json({
@@ -175,13 +199,13 @@ const getPendingContent = async (req, res) => {
     try {
         const db = await getDb();
         
-        // Fetch pending items from all tables
+        // Fetch pending items from all tables (only active ones)
         const [photos, music, videos, articles, events] = await Promise.all([
-            db.all("SELECT *, 'photos' as resource_type, url as preview_image FROM photos WHERE status = 'pending'"),
-            db.all("SELECT *, 'music' as resource_type, cover as preview_image FROM music WHERE status = 'pending'"),
-            db.all("SELECT *, 'videos' as resource_type, thumbnail as preview_image FROM videos WHERE status = 'pending'"),
-            db.all("SELECT *, 'articles' as resource_type, cover as preview_image FROM articles WHERE status = 'pending'"),
-            db.all("SELECT *, 'events' as resource_type, image as preview_image FROM events WHERE status = 'pending'")
+            db.all("SELECT *, 'photos' as resource_type, url as preview_image FROM photos WHERE status = 'pending' AND deleted_at IS NULL"),
+            db.all("SELECT *, 'music' as resource_type, cover as preview_image FROM music WHERE status = 'pending' AND deleted_at IS NULL"),
+            db.all("SELECT *, 'videos' as resource_type, thumbnail as preview_image FROM videos WHERE status = 'pending' AND deleted_at IS NULL"),
+            db.all("SELECT *, 'articles' as resource_type, cover as preview_image FROM articles WHERE status = 'pending' AND deleted_at IS NULL"),
+            db.all("SELECT *, 'events' as resource_type, image as preview_image FROM events WHERE status = 'pending' AND deleted_at IS NULL")
         ]);
 
         // Combine and sort (newest first based on ID as proxy)

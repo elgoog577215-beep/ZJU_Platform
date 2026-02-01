@@ -72,7 +72,7 @@ const Articles = () => {
   const addArticle = (newItem) => {
     api.post('/articles', newItem)
     .then(() => {
-        refresh();
+        refresh({ clearCache: true });
     })
     .catch(err => console.error("Failed to save article", err));
   };

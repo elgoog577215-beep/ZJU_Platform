@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FileText, Film, Image as ImageIcon, Calendar, Music, AlertCircle } from 'lucide-react';
 
 const getGradient = (text) => {
@@ -43,6 +43,7 @@ const SmartImage = ({
   const [error, setError] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+  const imgRef = useRef(null);
   const maxRetries = 3;
 
   useEffect(() => {
@@ -50,6 +51,13 @@ const SmartImage = ({
     setLoaded(false);
     setRetryCount(0);
   }, [src]);
+
+  // Check if image is already loaded from cache
+  useEffect(() => {
+    if (imgRef.current && imgRef.current.complete) {
+        setLoaded(true);
+    }
+  }, [src, retryCount]);
 
   const handleError = () => {
     if (retryCount < maxRetries) {
@@ -95,6 +103,7 @@ const SmartImage = ({
        </div>
 
        <img 
+          ref={imgRef}
           key={`${src}-${retryCount}`}
           src={src} 
           alt={alt} 

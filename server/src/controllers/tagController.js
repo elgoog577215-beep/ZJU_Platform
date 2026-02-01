@@ -51,7 +51,21 @@ const getTags = async (req, res) => {
         }
 
         if (targetTable) {
-             const items = await db.all(`SELECT tags FROM ${targetTable}`);
+             // Only count tags from visible resources (not deleted, approved)
+             // Check if columns exist first to avoid errors on tables that might lack them (though they should have them)
+             let whereClause = "WHERE 1=1";
+             try {
+                 const columns = await db.all(`PRAGMA table_info(${targetTable})`);
+                 const hasDeletedAt = columns.some(c => c.name === 'deleted_at');
+                 const hasStatus = columns.some(c => c.name === 'status');
+                 
+                 if (hasDeletedAt) whereClause += " AND deleted_at IS NULL";
+                 if (hasStatus) whereClause += " AND status = 'approved'";
+             } catch (e) {
+                 console.warn(`[TagController] Failed to check columns for ${targetTable}:`, e);
+             }
+
+             const items = await db.all(`SELECT tags FROM ${targetTable} ${whereClause}`);
              const tagCounts = {};
              
              for (const item of items) {

@@ -27,7 +27,6 @@ async function seed() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       url TEXT,
       title TEXT,
-      category TEXT,
       tags TEXT,
       size TEXT,
       gameType TEXT,
@@ -46,7 +45,6 @@ async function seed() {
       duration INTEGER,
       cover TEXT,
       audio TEXT,
-      category TEXT,
       tags TEXT,
       featured BOOLEAN DEFAULT 0,
       likes INTEGER DEFAULT 0,
@@ -58,7 +56,6 @@ async function seed() {
     CREATE TABLE videos (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT,
-      category TEXT,
       tags TEXT,
       thumbnail TEXT,
       video TEXT,
@@ -90,7 +87,6 @@ async function seed() {
       title TEXT,
       date TEXT,
       location TEXT,
-      category TEXT,
       tags TEXT,
       status TEXT,
       image TEXT,
@@ -100,11 +96,6 @@ async function seed() {
       featured BOOLEAN DEFAULT 0,
       likes INTEGER DEFAULT 0,
       deleted_at DATETIME
-    );
-
-    CREATE TABLE event_categories (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT UNIQUE
     );
 
     CREATE TABLE settings (
@@ -121,7 +112,6 @@ async function seed() {
       id: 1,
       url: "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=800&auto=format&fit=crop&q=60",
       title: "山峰",
-      category: "Nature",
       size: "large",
       gameType: "skyfall",
       gameDescription: "滑翔穿过山峰！避开障碍物。"
@@ -130,7 +120,6 @@ async function seed() {
       id: 2,
       url: "https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?w=800&auto=format&fit=crop&q=60",
       title: "霓虹城市",
-      category: "Urban",
       size: "small",
       gameType: "runner",
       gameDescription: "在赛博城市中竞速！收集能量。"
@@ -139,7 +128,6 @@ async function seed() {
       id: 3,
       url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=60",
       title: "人像研究",
-      category: "Portrait",
       size: "tall",
       gameType: "puzzle",
       gameDescription: "重组记忆。"
@@ -148,7 +136,6 @@ async function seed() {
       id: 4,
       url: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800&auto=format&fit=crop&q=60",
       title: "时装周",
-      category: "Fashion",
       size: "small",
       gameType: "shutter",
       gameDescription: "捕捉完美的姿势！"
@@ -157,7 +144,6 @@ async function seed() {
       id: 5,
       url: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&auto=format&fit=crop&q=60",
       title: "优胜美地",
-      category: "Nature",
       size: "wide",
       gameType: "skyfall",
       gameDescription: "驾驭山谷之风。"
@@ -166,7 +152,6 @@ async function seed() {
       id: 6,
       url: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&auto=format&fit=crop&q=60",
       title: "相机镜头",
-      category: "Photography",
       size: "small",
       gameType: "shutter",
       gameDescription: "快速对焦拍摄！"
@@ -175,7 +160,6 @@ async function seed() {
       id: 7,
       url: "https://images.unsplash.com/photo-1552168324-d612d77725e3?w=800&auto=format&fit=crop&q=60",
       title: "街头生活",
-      category: "Urban",
       size: "tall",
       gameType: "runner",
       gameDescription: "躲避城市交通。"
@@ -184,7 +168,6 @@ async function seed() {
       id: 8,
       url: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&auto=format&fit=crop&q=60",
       title: "迷雾森林",
-      category: "Nature",
       size: "large",
       gameType: "skyfall",
       gameDescription: "在迷雾中漂移。"
@@ -193,7 +176,6 @@ async function seed() {
       id: 9,
       url: "https://images.unsplash.com/photo-1551316679-9c6ae9dec224?w=800&auto=format&fit=crop&q=60",
       title: "极简主义",
-      category: "Abstract",
       size: "small",
       gameType: "puzzle",
       gameDescription: "寻找隐藏的模式。"
@@ -202,7 +184,6 @@ async function seed() {
       id: 10,
       url: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=800&auto=format&fit=crop&q=60",
       title: "高山湖泊",
-      category: "Nature",
       size: "wide",
       gameType: "skyfall",
       gameDescription: "反思旅程。"
@@ -211,7 +192,6 @@ async function seed() {
       id: 11,
       url: "https://images.unsplash.com/photo-1517849845537-4d257902454a?w=800&auto=format&fit=crop&q=60",
       title: "忠诚伙伴",
-      category: "Portrait",
       size: "small",
       gameType: "puzzle",
       gameDescription: "忠诚的朋友。"
@@ -220,7 +200,6 @@ async function seed() {
       id: 12,
       url: "https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=800&auto=format&fit=crop&q=60",
       title: "雨夜",
-      category: "Urban",
       size: "tall",
       gameType: "runner",
       gameDescription: "在雨中奔跑。"
@@ -229,7 +208,6 @@ async function seed() {
       id: 13,
       url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&auto=format&fit=crop&q=60",
       title: "海岸线",
-      category: "Nature",
       size: "wide",
       gameType: "skyfall",
       gameDescription: "沿着海岸飞翔。"
@@ -238,7 +216,6 @@ async function seed() {
       id: 14,
       url: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=800&auto=format&fit=crop&q=60",
       title: "现代女性",
-      category: "Portrait",
       size: "large",
       gameType: "puzzle",
       gameDescription: "拼凑面孔。"
@@ -247,7 +224,6 @@ async function seed() {
       id: 15,
       url: "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&auto=format&fit=crop&q=60",
       title: "几何结构",
-      category: "Abstract",
       size: "small",
       gameType: "puzzle",
       gameDescription: "解开几何谜题。"
@@ -256,7 +232,6 @@ async function seed() {
       id: 16,
       url: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&auto=format&fit=crop&q=60",
       title: "街头风格",
-      category: "Fashion",
       size: "tall",
       gameType: "shutter",
       gameDescription: "捕捉时尚瞬间。"
@@ -265,7 +240,6 @@ async function seed() {
       id: 17,
       url: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=800&auto=format&fit=crop&q=60",
       title: "流动的光",
-      category: "Abstract",
       size: "wide",
       gameType: "puzzle",
       gameDescription: "连接光线。"
@@ -274,7 +248,6 @@ async function seed() {
       id: 18,
       url: "https://images.unsplash.com/photo-1519638399535-1b036603ac77?w=800&auto=format&fit=crop&q=60",
       title: "朋友",
-      category: "Portrait",
       size: "small",
       gameType: "puzzle",
       gameDescription: "回忆美好时光。"
@@ -283,7 +256,6 @@ async function seed() {
       id: 19,
       url: "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800&auto=format&fit=crop&q=60",
       title: "摩天大楼",
-      category: "Urban",
       size: "large",
       gameType: "runner",
       gameDescription: "攀登高峰。"
@@ -292,7 +264,6 @@ async function seed() {
       id: 20,
       url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&auto=format&fit=crop&q=60",
       title: "静谧森林",
-      category: "Nature",
       size: "tall",
       gameType: "skyfall",
       gameDescription: "在树林中穿梭。"
@@ -301,7 +272,6 @@ async function seed() {
       id: 21,
       url: "https://images.unsplash.com/photo-1558981806-ec527fa84c3d?w=800&auto=format&fit=crop&q=60",
       title: "机车",
-      category: "Photography",
       size: "small",
       gameType: "shutter",
       gameDescription: "捕捉速度。"
@@ -310,7 +280,6 @@ async function seed() {
       id: 22,
       url: "https://images.unsplash.com/photo-1542206391-78c48b40dd5f?w=800&auto=format&fit=crop&q=60",
       title: "秋色",
-      category: "Nature",
       size: "wide",
       gameType: "skyfall",
       gameDescription: "感受秋风。"
@@ -319,8 +288,8 @@ async function seed() {
 
   for (const photo of photos) {
     await db.run(
-      'INSERT INTO photos (url, title, category, tags, size, gameType, gameDescription, featured) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [photo.url, photo.title, photo.category, photo.tags || '', photo.size, photo.gameType, photo.gameDescription, photo.featured ? 1 : 0]
+      'INSERT INTO photos (url, title, tags, size, gameType, gameDescription, featured) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [photo.url, photo.title, photo.tags || '', photo.size, photo.gameType, photo.gameDescription, photo.featured ? 1 : 0]
     );
   }
 
@@ -342,30 +311,30 @@ async function seed() {
 
   for (const track of music) {
     await db.run(
-      'INSERT INTO music (title, artist, duration, cover, audio, category, tags, featured) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [track.title, track.artist, track.duration, track.cover, track.audio, 'music', track.tags || '', track.featured ? 1 : 0]
+      'INSERT INTO music (title, artist, duration, cover, audio, tags, featured) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [track.title, track.artist, track.duration, track.cover, track.audio, track.tags || '', track.featured ? 1 : 0]
     );
   }
 
   // Videos
   const videos = [
-    { id: 1, title: "虚空", category: "动画", thumbnail: "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4" },
-    { id: 2, title: "数字灵魂", category: "短片", thumbnail: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4" },
-    { id: 3, title: "霓虹之夜", category: "音乐视频", thumbnail: "https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_1MB.mp4" },
-    { id: 4, title: "赛博城市", category: "作品集锦", thumbnail: "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4" },
-    { id: 5, title: "抽象流动", category: "实验", thumbnail: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4" },
-    { id: 6, title: "未来科技", category: "纪录片", thumbnail: "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_1MB.mp4" },
-    { id: 7, title: "深空探索", category: "纪录片", thumbnail: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4" },
-    { id: 8, title: "粒子风暴", category: "实验", thumbnail: "https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4" },
-    { id: 9, title: "城市节奏", category: "短片", thumbnail: "https://images.unsplash.com/photo-1495615080073-6b89c98beddb?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_1MB.mp4" },
-    { id: 10, title: "虚拟现实", category: "动画", thumbnail: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4" },
-    { id: 11, title: "海洋之心", category: "纪录片", thumbnail: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4" }
+    { id: 1, title: "虚空", thumbnail: "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4" },
+    { id: 2, title: "数字灵魂", thumbnail: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4" },
+    { id: 3, title: "霓虹之夜", thumbnail: "https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_1MB.mp4" },
+    { id: 4, title: "赛博城市", thumbnail: "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4" },
+    { id: 5, title: "抽象流动", thumbnail: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4" },
+    { id: 6, title: "未来科技", thumbnail: "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_1MB.mp4" },
+    { id: 7, title: "深空探索", thumbnail: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4" },
+    { id: 8, title: "粒子风暴", thumbnail: "https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4" },
+    { id: 9, title: "城市节奏", thumbnail: "https://images.unsplash.com/photo-1495615080073-6b89c98beddb?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_1MB.mp4" },
+    { id: 10, title: "虚拟现实", thumbnail: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4" },
+    { id: 11, title: "海洋之心", thumbnail: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4" }
   ];
 
   for (const video of videos) {
     await db.run(
-      'INSERT INTO videos (title, category, thumbnail, video, featured) VALUES (?, ?, ?, ?, ?)',
-      [video.title, video.category, video.thumbnail, video.video, video.featured ? 1 : 0]
+      'INSERT INTO videos (title, tags, thumbnail, video, featured) VALUES (?, ?, ?, ?, ?)',
+      [video.title, video.tags || '', video.thumbnail, video.video, video.featured ? 1 : 0]
     );
   }
 
@@ -514,7 +483,6 @@ async function seed() {
     title: "全球 AI 艺术黑客马拉松 2024",
     date: "2024-11-15",
     location: "线上 / 旧金山",
-    category: "比赛",
     status: "Upcoming",
     image: "https://images.unsplash.com/photo-1592478411213-61535fdd861d?q=80&w=1000&auto=format&fit=crop",
     description: "与来自世界各地的艺术家和开发者一起，拓展生成式艺术的边界。48小时的编码、创作与协作。",
@@ -525,7 +493,6 @@ async function seed() {
     title: "社区科技教育工作坊",
     date: "2024-10-05",
     location: "市图书馆 302 室",
-    category: "志愿者",
     status: "Past",
     image: "https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=1000&auto=format&fit=crop",
     description: "向老年人教授基础编程和数字素养。通过科技连接两代人的美好下午。",
@@ -536,7 +503,6 @@ async function seed() {
     title: "WebGL 的未来",
     date: "2024-12-01",
     location: "科技中心礼堂",
-    category: "讲座",
     status: "Upcoming",
     image: "https://images.unsplash.com/photo-1544531586-fde5298cdd40?q=80&w=1000&auto=format&fit=crop",
     description: "深入探讨基于浏览器的图形技术的最新进展。来自主要浏览器厂商和游戏工作室的特邀嘉宾。",
@@ -547,7 +513,6 @@ async function seed() {
     title: "生态代码挑战赛",
     date: "2024-09-20",
     location: "绿谷公园",
-    category: "比赛",
     status: "Past",
     image: "https://images.unsplash.com/photo-1497250681960-ef04820a93bf?q=80&w=1000&auto=format&fit=crop",
     description: "为当地环境问题构建可持续的技术解决方案。团队竞争创造最佳的碳足迹追踪应用。",
@@ -558,7 +523,6 @@ async function seed() {
     title: "VR 公益行动",
     date: "2025-01-10",
     location: "虚拟空间",
-    category: "志愿者",
     status: "Upcoming",
     image: "https://images.unsplash.com/photo-1593508512255-86ab42a8e620?q=80&w=1000&auto=format&fit=crop",
     description: "为住院儿童创造 VR 体验。我们需要 3D 建模师、故事讲述者和 Unity 开发者。",
@@ -570,7 +534,6 @@ async function seed() {
     title: "创意编程工作坊",
     date: "2025-02-15",
     location: "艺术学院",
-    category: "工作坊",
     status: "Upcoming",
     image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&auto=format&fit=crop&q=60",
     description: "学习如何使用 Processing 和 p5.js 创作视觉艺术。适合初学者。",
@@ -581,7 +544,6 @@ async function seed() {
     title: "数字遗产论坛",
     date: "2024-08-12",
     location: "线上",
-    category: "讲座",
     status: "Past",
     image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60",
     description: "探讨在数字时代如何保存和传承人类文化遗产。",
@@ -592,7 +554,6 @@ async function seed() {
     title: "24小时游戏开发挑战",
     date: "2025-03-20",
     location: "创新中心",
-    category: "比赛",
     status: "Upcoming",
     image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&auto=format&fit=crop&q=60",
     description: "在24小时内从零开始制作一款游戏。主题将在活动开始时公布。",
@@ -603,7 +564,6 @@ async function seed() {
     title: "科技助老公益日",
     date: "2024-11-05",
     location: "社区中心",
-    category: "志愿者",
     status: "Past",
     image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=800&auto=format&fit=crop&q=60",
     description: "帮助社区老人解决智能手机使用难题，跨越数字鸿沟。",
@@ -614,7 +574,6 @@ async function seed() {
     title: "沉浸式叙事研讨会",
     date: "2025-04-10",
     location: "VR 实验室",
-    category: "工作坊",
     status: "Upcoming",
     image: "https://images.unsplash.com/photo-1478720568477-152d9b164e63?w=800&auto=format&fit=crop&q=60",
     description: "探索 VR/AR 环境下的非线性叙事技巧。",
@@ -624,8 +583,8 @@ async function seed() {
 
   for (const event of events) {
     await db.run(
-      'INSERT INTO events (title, date, location, category, status, image, description, content, featured) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [event.title, event.date, event.location, event.category, event.status, event.image, event.description, event.content, event.featured ? 1 : 0]
+      'INSERT INTO events (title, date, location, tags, status, image, description, content, link, featured) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [event.title, event.date, event.location, event.tags || '', event.status, event.image, event.description, event.content, event.link || null, event.featured ? 1 : 0]
     );
   }
 

@@ -78,42 +78,34 @@ getDb().then(async (db) => {
       title TEXT,
       date TEXT,
       location TEXT,
-      category TEXT,
       status TEXT,
       image TEXT,
       description TEXT,
       content TEXT,
       link TEXT,
       featured BOOLEAN DEFAULT 0,
-      likes INTEGER DEFAULT 0
+      likes INTEGER DEFAULT 0,
+      volunteer_time TEXT
     );
     CREATE TABLE IF NOT EXISTS comments (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      articleId INTEGER,
+      user_id INTEGER,
+      resource_id INTEGER,
+      resource_type TEXT,
       author TEXT,
       content TEXT,
-      date TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       avatar TEXT
     );
-    CREATE TABLE IF NOT EXISTS event_categories (
+    CREATE TABLE IF NOT EXISTS notifications (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT UNIQUE
-    );
-    CREATE TABLE IF NOT EXISTS photo_categories (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT UNIQUE
-    );
-    CREATE TABLE IF NOT EXISTS video_categories (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT UNIQUE
-    );
-    CREATE TABLE IF NOT EXISTS music_categories (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT UNIQUE
-    );
-    CREATE TABLE IF NOT EXISTS article_categories (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT UNIQUE
+      user_id INTEGER,
+      type TEXT,
+      content TEXT,
+      related_resource_id INTEGER,
+      related_resource_type TEXT,
+      is_read BOOLEAN DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
     CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
@@ -123,7 +115,6 @@ getDb().then(async (db) => {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       url TEXT,
       title TEXT,
-      category TEXT,
       size TEXT,
       gameType TEXT,
       gameDescription TEXT,
@@ -139,7 +130,6 @@ getDb().then(async (db) => {
       duration TEXT,
       cover TEXT,
       audio TEXT,
-      category TEXT,
       featured BOOLEAN DEFAULT 0,
       likes INTEGER DEFAULT 0,
       status TEXT DEFAULT 'pending',
@@ -148,7 +138,6 @@ getDb().then(async (db) => {
     CREATE TABLE IF NOT EXISTS videos (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT,
-      category TEXT,
       thumbnail TEXT,
       video TEXT,
       featured BOOLEAN DEFAULT 0,
@@ -206,6 +195,16 @@ getDb().then(async (db) => {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(event_id, user_id)
     );
+    CREATE TABLE IF NOT EXISTS notifications (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
+      type TEXT,
+      content TEXT,
+      related_resource_id INTEGER,
+      related_resource_type TEXT,
+      is_read BOOLEAN DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
   `);
   
   // Migration for user table
@@ -233,13 +232,6 @@ getDb().then(async (db) => {
           await db.exec(`ALTER TABLE ${table} ADD COLUMN rejection_reason TEXT`);
       } catch (e) {}
       
-      // Ensure music has category column if it was missing
-      if (table === 'music') {
-          try {
-              await db.exec(`ALTER TABLE music ADD COLUMN category TEXT`);
-          } catch (e) {}
-      }
-      
       // Ensure all tables have tags column
       try {
           await db.exec(`ALTER TABLE ${table} ADD COLUMN tags TEXT`);
@@ -250,15 +242,26 @@ getDb().then(async (db) => {
           try {
               await db.exec(`ALTER TABLE events ADD COLUMN link TEXT`);
           } catch (e) {}
+          try {
+              await db.exec(`ALTER TABLE events ADD COLUMN organizer TEXT`);
+          } catch (e) {}
+          try {
+              await db.exec(`ALTER TABLE events ADD COLUMN target_audience TEXT`);
+          } catch (e) {}
+          try {
+              await db.exec(`ALTER TABLE events ADD COLUMN volunteer_time TEXT`);
+          } catch (e) {}
+          try {
+              await db.exec(`ALTER TABLE events ADD COLUMN max_participants INTEGER`);
+          } catch (e) {}
+          try {
+              await db.exec(`ALTER TABLE events ADD COLUMN registration_deadline TEXT`);
+          } catch (e) {}
       }
 
       // Create Indices for Performance
       try {
           await db.exec(`CREATE INDEX IF NOT EXISTS idx_${table}_status ON ${table}(status)`);
-          
-          if (['photos', 'videos', 'events', 'music'].includes(table)) {
-             await db.exec(`CREATE INDEX IF NOT EXISTS idx_${table}_category ON ${table}(category)`);
-          }
           
           if (table === 'articles') {
              await db.exec(`CREATE INDEX IF NOT EXISTS idx_${table}_tag ON ${table}(tag)`);
@@ -268,39 +271,6 @@ getDb().then(async (db) => {
           await db.exec(`CREATE INDEX IF NOT EXISTS idx_${table}_uploader_id ON ${table}(uploader_id)`);
       } catch (e) {
           console.error(`Failed to create indices for ${table}:`, e);
-      }
-  }
-  
-  // Seed Categories if empty
-  const categoryResources = [
-      { table: 'photos', catTable: 'photo_categories' },
-      { table: 'videos', catTable: 'video_categories' },
-      { table: 'music', catTable: 'music_categories' }, // Music might use 'category' or something else?
-      { table: 'articles', catTable: 'article_categories', col: 'tag' },
-      { table: 'events', catTable: 'event_categories' }
-  ];
-
-  for (const { table, catTable, col } of categoryResources) {
-      try {
-          const count = await db.get(`SELECT COUNT(*) as count FROM ${catTable}`);
-          if (count.count === 0) {
-              console.log(`Seeding ${catTable} from existing ${table}...`);
-              const column = col || 'category';
-              // Check if column exists first? 
-              // Actually articles uses 'tag' not 'category' in the definition!
-              // But wait, the table definition for articles says:
-              // id, title, date, excerpt, tag, content, cover...
-              // So for articles it is 'tag'.
-              
-              const distinctCats = await db.all(`SELECT DISTINCT ${column} FROM ${table}`);
-              for (const row of distinctCats) {
-                  if (row[column]) {
-                      await db.run(`INSERT OR IGNORE INTO ${catTable} (name) VALUES (?)`, [row[column]]);
-                  }
-              }
-          }
-      } catch (e) {
-          console.error(`Failed to seed ${catTable}:`, e);
       }
   }
   

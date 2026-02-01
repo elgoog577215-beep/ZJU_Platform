@@ -6,10 +6,10 @@ import {
 } from 'lucide-react';
 import api from '../../services/api';
 
-const StatCard = ({ title, value, icon: Icon, color, onClick }) => (
+const StatCard = ({ title, value, icon: Icon, color, onClick, breakdown }) => (
   <button 
     onClick={onClick}
-    className="bg-[#111] p-6 rounded-2xl border border-white/10 text-left hover:border-indigo-500/50 hover:bg-[#161616] transition-all group relative overflow-hidden"
+    className="bg-[#111] p-6 rounded-2xl border border-white/10 text-left hover:border-indigo-500/50 hover:bg-[#161616] transition-all group relative overflow-hidden w-full"
   >
     <div className={`absolute top-0 right-0 w-24 h-24 bg-${color}-500/10 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110`} />
     
@@ -18,7 +18,25 @@ const StatCard = ({ title, value, icon: Icon, color, onClick }) => (
         <Icon size={24} />
       </div>
       <h3 className="text-3xl font-bold text-white mb-1">{value}</h3>
-      <p className="text-gray-400 text-sm font-medium uppercase tracking-wider">{title}</p>
+      <p className="text-gray-400 text-sm font-medium uppercase tracking-wider mb-2">{title}</p>
+      
+      {breakdown && (
+        <div className="flex flex-wrap gap-2 text-xs">
+          <span className="text-green-400 bg-green-400/10 px-1.5 py-0.5 rounded">
+            {breakdown.active} Active
+          </span>
+          {breakdown.pending > 0 && (
+            <span className="text-yellow-400 bg-yellow-400/10 px-1.5 py-0.5 rounded">
+               {breakdown.pending} Pending
+            </span>
+          )}
+          {breakdown.deleted > 0 && (
+            <span className="text-red-400 bg-red-400/10 px-1.5 py-0.5 rounded">
+               {breakdown.deleted} Deleted
+            </span>
+          )}
+        </div>
+      )}
     </div>
   </button>
 );
@@ -27,6 +45,7 @@ const Overview = ({ onChangeTab }) => {
   const { t } = useTranslation();
   const [stats, setStats] = useState({
     counts: { photos: 0, music: 0, videos: 0, articles: 0, events: 0 },
+    breakdown: {},
     system: { uptime: 0, nodeVersion: '', platform: '' }
   });
   const [loading, setLoading] = useState(true);
@@ -61,6 +80,7 @@ const Overview = ({ onChangeTab }) => {
         <StatCard 
           title={t('admin.tabs.photos')} 
           value={stats.counts.photos} 
+          breakdown={stats.breakdown?.photos}
           icon={LayoutGrid} 
           color="indigo"
           onClick={() => onChangeTab('photos')}
@@ -68,6 +88,7 @@ const Overview = ({ onChangeTab }) => {
         <StatCard 
           title={t('admin.tabs.music')} 
           value={stats.counts.music} 
+          breakdown={stats.breakdown?.music}
           icon={Music} 
           color="pink"
           onClick={() => onChangeTab('music')}
@@ -75,6 +96,7 @@ const Overview = ({ onChangeTab }) => {
         <StatCard 
           title={t('admin.tabs.videos')} 
           value={stats.counts.videos} 
+          breakdown={stats.breakdown?.videos}
           icon={Film} 
           color="red"
           onClick={() => onChangeTab('videos')}
@@ -82,6 +104,7 @@ const Overview = ({ onChangeTab }) => {
         <StatCard 
           title={t('admin.tabs.articles')} 
           value={stats.counts.articles} 
+          breakdown={stats.breakdown?.articles}
           icon={BookOpen} 
           color="yellow"
           onClick={() => onChangeTab('articles')}
@@ -89,6 +112,7 @@ const Overview = ({ onChangeTab }) => {
         <StatCard 
           title={t('admin.tabs.events')} 
           value={stats.counts.events} 
+          breakdown={stats.breakdown?.events}
           icon={Calendar} 
           color="green"
           onClick={() => onChangeTab('events')}

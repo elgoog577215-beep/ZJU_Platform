@@ -9,7 +9,6 @@ const cacheMiddleware = require('../middleware/cache');
 // Controllers
 const resourceController = require('../controllers/resourceController');
 const favoriteController = require('../controllers/favoriteController');
-const categoryController = require('../controllers/categoryController');
 const settingsController = require('../controllers/settingsController');
 const systemController = require('../controllers/systemController');
 const fsController = require('../controllers/fsController');
@@ -17,6 +16,8 @@ const eventController = require('../controllers/eventController');
 const userController = require('../controllers/userController');
 const messageController = require('../controllers/messageController');
 const tagController = require('../controllers/tagController');
+const notificationController = require('../controllers/notificationController');
+const commentController = require('../controllers/commentController');
 
 const { authenticateToken, isAdmin, optionalAuth } = require('../middleware/auth');
 const authController = require('../controllers/authController');
@@ -46,6 +47,20 @@ router.put('/auth/profile', authenticateToken, (req, res) => {
 router.get('/admin/users', authenticateToken, isAdmin, userController.getAllUsers);
 router.put('/admin/users/:id', authenticateToken, isAdmin, userController.updateUser);
 router.delete('/admin/users/:id', authenticateToken, isAdmin, userController.deleteUser);
+
+// Public Profile Routes
+router.get('/users/:id/profile', userController.getPublicProfile);
+router.get('/users/:id/resources', userController.getUserResources);
+
+// Notification Routes
+router.get('/notifications', authenticateToken, notificationController.getNotifications);
+router.put('/notifications/:id/read', authenticateToken, notificationController.markAsRead);
+router.delete('/notifications/:id', authenticateToken, notificationController.deleteNotification);
+
+// Comment Routes
+router.get('/comments', commentController.getComments);
+router.post('/comments', authenticateToken, commentController.createComment);
+router.delete('/comments/:id', authenticateToken, commentController.deleteComment);
 
 // Favorite Routes
 router.post('/favorites/toggle', authenticateToken, favoriteController.toggleFavorite);
@@ -99,28 +114,26 @@ resources.forEach(resource => {
     // Get One
     router.get(`/${resource}/:id`, optionalAuth, resourceController.getOneHandler(resource));
 
-    // Get Categories
-    router.get(`/${resource}/categories`, categoryController.getCategories(resource));
+    // Get Related
+    router.get(`/${resource}/:id/related`, optionalAuth, resourceController.getRelatedHandler(resource));
     
-    // Manage Categories (Independent Management)
-    router.post(`/${resource}/categories`, categoryController.addCategory(resource));
-    router.put(`/${resource}/categories/:oldName`, categoryController.updateCategory(resource));
-    router.delete(`/${resource}/categories/:name`, categoryController.deleteCategory(resource));
+    // Get Distinct Values for a Field
+    router.get(`/${resource}/distinct/:field`, resourceController.getDistinctValues(resource));
 
     // Create
     router.post(`/${resource}`, authenticateToken, resourceController.createHandler(resource, resourceController.fields[resource]));
     
     // Update
-    router.put(`/${resource}/:id`, resourceController.updateHandler(resource, resourceController.fields[resource]));
+    router.put(`/${resource}/:id`, authenticateToken, resourceController.updateHandler(resource, resourceController.fields[resource]));
     
     // Delete (Soft Delete)
-    router.delete(`/${resource}/:id`, resourceController.deleteHandler(resource));
+    router.delete(`/${resource}/:id`, authenticateToken, resourceController.deleteHandler(resource));
 
     // Permanent Delete
-    router.delete(`/${resource}/:id/permanent`, resourceController.permanentDeleteHandler(resource));
+    router.delete(`/${resource}/:id/permanent`, authenticateToken, isAdmin, resourceController.permanentDeleteHandler(resource));
 
     // Restore
-    router.post(`/${resource}/:id/restore`, resourceController.restoreHandler(resource));
+    router.post(`/${resource}/:id/restore`, authenticateToken, isAdmin, resourceController.restoreHandler(resource));
 
     // Like
     router.post(`/${resource}/:id/like`, resourceController.toggleLike(resource));

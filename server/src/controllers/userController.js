@@ -76,4 +76,41 @@ const deleteUser = async (req, res) => {
   }
 };
 
-module.exports = { getAllUsers, updateUser, deleteUser };
+const getPublicProfile = async (req, res) => {
+    try {
+        const db = await getDb();
+        const { id } = req.params;
+        const user = await db.get('SELECT id, username, nickname, avatar, role, created_at, organization_cr, gender, age FROM users WHERE id = ?', [id]);
+        
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+const getUserResources = async (req, res) => {
+    try {
+        const db = await getDb();
+        const { id } = req.params;
+        const tables = ['photos', 'videos', 'music', 'articles', 'events'];
+        let allResources = [];
+
+        for (const table of tables) {
+            const resources = await db.all(`SELECT *, '${table}' as type FROM ${table} WHERE uploader_id = ? AND status = 'approved' ORDER BY id DESC`, [id]);
+            allResources = [...allResources, ...resources];
+        }
+
+        // Sort by id desc (approx time)
+        allResources.sort((a, b) => b.id - a.id);
+
+        res.json(allResources);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+module.exports = { getAllUsers, updateUser, deleteUser, getPublicProfile, getUserResources };

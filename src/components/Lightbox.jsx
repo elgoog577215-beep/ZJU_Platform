@@ -1,16 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronLeft, ChevronRight, Box, Download, Info, Camera, Aperture, Clock, Gauge } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Download, Info, Camera, Aperture, Clock, Grid } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import FavoriteButton from './FavoriteButton';
 import { useBackClose } from '../hooks/useBackClose';
+import api from '../services/api';
 
-const Lightbox = ({ photo, onClose, onNext, onPrev, onView3D, onLikeToggle }) => {
+const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) => {
   const { t } = useTranslation();
   const [showInfo, setShowInfo] = useState(false);
+  const [activeTab, setActiveTab] = useState('info'); // 'info', 'related'
   const { user } = useAuth();
   const [isApp, setIsApp] = useState(false);
+  const [relatedPhotos, setRelatedPhotos] = useState([]);
+
+  useEffect(() => {
+    if (photo?.id) {
+        api.get(`/photos/${photo.id}/related?limit=6`)
+           .then(res => setRelatedPhotos(res.data))
+           .catch(err => console.error("Failed to fetch related photos", err));
+    }
+  }, [photo?.id]);
   
   useBackClose(true, onClose);
 
@@ -89,14 +100,6 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onView3D, onLikeToggle }) =>
       {/* Top Controls */}
       <div className="absolute top-4 right-4 flex gap-4 z-50" onClick={e => e.stopPropagation()}>
         <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md rounded-full p-1 border border-white/10">
-            <button 
-              onClick={onView3D}
-              className="p-3 text-white/70 hover:text-cyan-400 hover:bg-white/10 rounded-full transition-all"
-              title={t('lightbox.view_3d')}
-            >
-              <Box size={20} />
-            </button>
-            <div className="w-px h-4 bg-white/20"></div>
             <FavoriteButton 
               itemId={photo.id}
               itemType="photo"
@@ -173,66 +176,111 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onView3D, onLikeToggle }) =>
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="fixed top-0 right-0 bottom-0 w-80 bg-[#1a1a1a]/95 backdrop-blur-xl border-l border-white/10 p-6 z-[70] overflow-y-auto"
+                className="fixed top-0 right-0 bottom-0 w-80 md:w-96 bg-[#1a1a1a]/95 backdrop-blur-xl border-l border-white/10 flex flex-col z-[70]"
                 onClick={e => e.stopPropagation()}
             >
-                <div className="flex justify-between items-center mb-8">
-                    <h3 className="text-xl font-bold text-white">{t('lightbox.info')}</h3>
+                <div className="flex justify-between items-center p-6 pb-2">
+                    <div className="flex gap-4">
+                        <button 
+                            onClick={() => setActiveTab('info')}
+                            className={`text-lg font-bold pb-2 border-b-2 transition-colors ${activeTab === 'info' ? 'text-white border-indigo-500' : 'text-gray-500 border-transparent hover:text-gray-300'}`}
+                        >
+                            {t('lightbox.info')}
+                        </button>
+                        <button 
+                            onClick={() => setActiveTab('related')}
+                            className={`text-lg font-bold pb-2 border-b-2 transition-colors ${activeTab === 'related' ? 'text-white border-indigo-500' : 'text-gray-500 border-transparent hover:text-gray-300'}`}
+                        >
+                            {t('lightbox.related', 'Related')}
+                        </button>
+                    </div>
                     <button onClick={() => setShowInfo(false)} className="text-gray-400 hover:text-white">
                         <X size={20} />
                     </button>
                 </div>
 
-                <div className="space-y-6">
-                    <div>
-                        <h4 className="text-sm font-bold text-gray-500 uppercase mb-2">{t('common.title')}</h4>
-                        <p className="text-white text-lg font-serif">{photo.title}</p>
-                    </div>
-                    
-                    <div>
-                        <h4 className="text-sm font-bold text-gray-500 uppercase mb-2">{t('common.category')}</h4>
-                        <span className="px-3 py-1 bg-white/10 rounded-full text-sm text-white">{photo.category}</span>
-                    </div>
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 pt-4">
+                    {activeTab === 'info' ? (
+                        <div className="space-y-6">
+                            <div>
+                                <h4 className="text-sm font-bold text-gray-500 uppercase mb-2">{t('common.title')}</h4>
+                                <p className="text-white text-lg font-serif">{photo.title}</p>
+                            </div>
+                            
+                            <div>
+                                <h4 className="text-sm font-bold text-gray-500 uppercase mb-2">{t('common.category')}</h4>
+                                <span className="px-3 py-1 bg-white/10 rounded-full text-sm text-white">{photo.category}</span>
+                            </div>
 
-                    <div className="border-t border-white/10 pt-6">
-                        <h4 className="text-sm font-bold text-gray-500 uppercase mb-4">{t('lightbox.exif')}</h4>
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-3 text-gray-300">
-                                <Camera size={18} className="text-indigo-400" />
-                                <span>{exif.camera}</span>
+                            <div className="border-t border-white/10 pt-6">
+                                <h4 className="text-sm font-bold text-gray-500 uppercase mb-4">{t('lightbox.exif')}</h4>
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-3 text-gray-300">
+                                        <Camera size={18} className="text-indigo-400" />
+                                        <span>{exif.camera}</span>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-gray-300">
+                                        <Aperture size={18} className="text-purple-400" />
+                                        <div className="flex gap-4">
+                                            <span>{exif.lens}</span>
+                                            <span>{exif.aperture}</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-gray-300">
+                                        <Clock size={18} className="text-pink-400" />
+                                        <div className="flex gap-4">
+                                            <span>{exif.shutter}</span>
+                                            <span>ISO {exif.iso}</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-3 text-gray-300">
-                                <Aperture size={18} className="text-pink-400" />
-                                <span>{exif.lens}</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-gray-300">
-                                <Gauge size={18} className="text-green-400" />
-                                <span>ISO {exif.iso}</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-gray-300">
-                                <Clock size={18} className="text-yellow-400" />
-                                <span>{exif.shutter}</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-gray-300">
-                                <div className="w-4 h-4 rounded-full border-2 border-blue-400 flex items-center justify-center text-[10px]">f</div>
-                                <span>{exif.aperture}</span>
+                            
+                            <div className="border-t border-white/10 pt-6">
+                                <h4 className="text-sm font-bold text-gray-500 uppercase mb-4">{t('lightbox.stats')}</h4>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-white/5 p-4 rounded-xl text-center">
+                                        <div className="text-2xl font-bold text-white mb-1">1.2k</div>
+                                        <div className="text-xs text-gray-500 uppercase">{t('lightbox.views')}</div>
+                                    </div>
+                                    <div className="bg-white/5 p-4 rounded-xl text-center">
+                                        <div className="text-2xl font-bold text-white mb-1">{photo.likes || 0}</div>
+                                        <div className="text-xs text-gray-500 uppercase">{t('lightbox.likes')}</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-
-                    <div className="border-t border-white/10 pt-6">
-                        <h4 className="text-sm font-bold text-gray-500 uppercase mb-2">{t('lightbox.stats')}</h4>
-                        <div className="flex justify-between text-gray-300 text-sm">
-                            <span>{t('lightbox.likes')}</span>
-                            <span className="text-white font-bold">{photo.likes || 0}</span>
+                    ) : (
+                        <div className="grid grid-cols-2 gap-4 animate-in fade-in duration-300">
+                            {relatedPhotos.map(p => (
+                                <div 
+                                    key={p.id} 
+                                    onClick={() => onSelect && onSelect(p)} 
+                                    className="cursor-pointer group relative aspect-square bg-white/5 rounded-xl overflow-hidden border border-white/10 hover:border-indigo-500/50 transition-all"
+                                >
+                                    <img 
+                                        src={p.thumbnail || p.url} 
+                                        alt={p.title} 
+                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                                    />
+                                    <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
+                                    <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <p className="text-xs text-white truncate">{p.title}</p>
+                                    </div>
+                                </div>
+                            ))}
+                            {relatedPhotos.length === 0 && (
+                                <div className="col-span-2 text-center py-8 text-gray-500">
+                                    <Grid size={32} className="mx-auto mb-2 opacity-50" />
+                                    <p>{t('lightbox.no_related', 'No related photos found')}</p>
+                                </div>
+                            )}
                         </div>
-                        <div className="flex justify-between text-gray-300 text-sm mt-2">
-                            <span>{t('lightbox.views')}</span>
-                            <span className="text-white font-bold">{Math.floor(Math.random() * 1000) + 100}</span>
-                        </div>
-                    </div>
+                    )}
                 </div>
             </motion.div>
+
+
         )}
       </AnimatePresence>
     </motion.div>
