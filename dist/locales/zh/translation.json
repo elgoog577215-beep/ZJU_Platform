@@ -1,6 +1,43 @@
 {
+  "notifications": {
+    "title": "通知中心",
+    "mark_all_read": "全部已读",
+    "clear_all": "清空通知",
+    "no_notifications": "暂无通知",
+    "delete_failed": "删除失败",
+    "mark_read_failed": "标记已读失败",
+    "mark_all_read_failed": "全部已读失败",
+    "clear_all_failed": "清空失败",
+    "new_notification": "新通知"
+  },
+  "lightbox": {
+    "download_started": "下载已开始",
+    "download_failed": "下载失败",
+    "download": "下载",
+    "info": "信息",
+    "title": "标题",
+    "category": "分类",
+    "exif": "EXIF 信息",
+    "stats": "统计",
+    "views": "浏览量",
+    "likes": "点赞数"
+  },
+  "comments": {
+    "title": "评论",
+    "placeholder": "写下你的评论...",
+    "posted": "评论已发布",
+    "post_failed": "发布评论失败",
+    "deleted": "评论已删除",
+    "delete_failed": "删除评论失败",
+    "empty": "暂无评论，快来抢沙发吧！"
+  },
   "auth": {
     "welcome_back": "欢迎回来",
+    "welcome_back_user": "欢迎回来，{{username}}！",
+    "welcome_user": "欢迎，{{username}}！",
+    "logout_success": "已成功退出登录",
+    "login_failed": "登录失败",
+    "registration_failed": "注册失败",
     "join_lumos": "加入 Lumos",
     "signin_desc": "登录以管理您的内容",
     "signup_desc": "创建账户以开始上传",
@@ -19,10 +56,18 @@
     "title": "用户资料",
     "logout": "退出登录",
     "tabs": {
+      "published": "已发布",
+      "settings": "设置",
       "profile": "资料",
       "uploads": "上传",
       "favorites": "收藏",
       "security": "安全"
+    },
+    "no_published_works": "该用户尚未发布任何作品。",
+    "user_not_found": "用户未找到",
+    "go_home": "返回首页",
+    "stats": {
+      "works": "作品"
     },
     "uploads": {
       "title": "我的上传",
@@ -116,6 +161,7 @@
     "events": "活动",
     "admin": "管理",
     "search_title": "搜索",
+    "theme_settings": "主题设置",
     "cursor_enable": "启用自定义光标",
     "cursor_disable": "禁用自定义光标"
   },
@@ -189,7 +235,7 @@
   "weather": {
     "location": "天气位置",
     "city_label": "城市名称 (英文/拼音)",
-    "placeholder": "例如：London, Tokyo, Shanghai, Hangzhou",
+    "placeholder": "例如：Beijing, Shanghai, Hangzhou",
     "search_help": "输入城市名称以搜索并更新天气。",
     "search_btn": "搜索城市",
     "searching": "搜索中...",
@@ -244,15 +290,56 @@
     "author": "作者",
     "admin_name": "Lumos 管理员",
     "search": "搜索...",
+    "search_placeholder": "搜索活动...",
     "link_copied": "链接已复制到剪贴板！",
     "loading": "加载中",
     "uploading": "上传中",
     "cancel": "取消",
+    "delete": "删除",
     "event": "活动",
     "article": "文章",
     "photo": "照片",
     "game": "游戏",
-    "music": "音乐"
+    "music": "音乐",
+    "filter_by_tags": "标签筛选",
+    "clear_all": "清除全部",
+    "show_more": "显示更多",
+    "show_less": "收起",
+    "copied_to_clipboard": "已复制到剪贴板",
+    "copy_failed": "复制失败",
+    "retry": "重试",
+    "size": "尺寸",
+    "featured": "精选"
+  },
+  "upload": {
+    "title_required": "标题不能为空",
+    "file_required": "请上传文件",
+    "update_success": "更新成功",
+    "upload_success": "上传成功",
+    "upload_pending_review": "上传成功，等待审核",
+    "upload_failed": "上传失败",
+    "invalid_file_type": "文件类型无效，需要 {{type}}",
+    "click_drag_replace": "点击或拖拽以替换",
+    "drop_file": "释放文件以上传",
+    "drag_drop_browse": "拖拽文件到此处，或点击浏览",
+    "replace": "替换",
+    "drop_image": "释放图片以上传",
+    "title_placeholder": "输入标题...",
+    "tags": "标签",
+    "tags_placeholder": "输入标签，按回车添加...",
+    "event_link": "活动链接",
+    "link_placeholder": "输入活动链接...",
+    "description_placeholder": "输入描述...",
+    "location_placeholder": "输入地点...",
+    "date_placeholder": "选择日期...",
+    "popular_tags": "常用标签",
+    "size_placeholder": "例如: 1920x1080"
+  },
+  "sort_filter": {
+    "newest": "最新发布",
+    "oldest": "最早发布",
+    "likes": "最多喜欢",
+    "title": "标题排序"
   },
   "gallery": {
     "title": "光影画廊",
@@ -342,14 +429,31 @@
     "location": "地点",
     "date": "日期",
     "about_event": "关于活动",
+    "no_events": "没有找到符合条件的活动",
+    "registration_failed": "报名失败",
     "countdown": {
       "days": "天",
       "hours": "时",
       "minutes": "分",
       "seconds": "秒"
-    }
+    },
+    "location_label": "地点",
+    "date_label": "日期",
+    "registration_title": "活动报名",
+    "event_link": "活动链接",
+    "visit_link": "前往活动",
+    "no_link_available": "暂无链接",
+    "processing": "处理中...",
+    "signed_up": "已报名",
+    "sign_up_now": "立即报名",
+    "registered_success": "您已成功报名参加此活动。",
+    "limited_spots": "名额有限，先到先得。"
   },
   "admin": {
+    "resource_manager_ui": {
+      "loading": "加载中...",
+      "pagination_info": "第 {{page}} 页，共 {{total}} 页"
+    },
     "dashboard": "管理控制台",
     "subtitle": "管理网站内容和数据库",
     "add_new": "新增",
@@ -378,8 +482,9 @@
       "events": "活动",
       "audit": "审核日志",
       "audit_logs": {
-        "title": "审核日志",
-        "time": "时间",
+      "title": "审核日志",
+      "load_fail": "加载审核日志失败",
+      "time": "时间",
         "admin": "管理员",
         "action": "操作",
         "resource": "资源",
@@ -481,7 +586,14 @@
       "link": "链接",
       "preview": "预览",
       "tags": "标签",
-      "upload_pending_review": "上传成功，等待管理员审核"
+      "upload_pending_review": "上传成功，等待管理员审核",
+      "description_placeholder": "简短描述或摘要..."
+    },
+    "live_photo": {
+      "failed_load": "加载 3D 视图失败",
+      "live_badge": "LIVE",
+      "press_hold": "按住查看",
+      "just_now": "刚刚"
     },
     "pending_review_ui": {
       "title": "待审核内容",
@@ -505,7 +617,11 @@
     "welcome": "欢迎回来，管理员",
     "manage_desc": "从这个中央仪表板管理您的内容、监控系统健康状况并配置网站设置。",
     "system_admin": "系统管理与内容管理",
-    "menu": "菜单",
+    "menu": {
+      "overview": "概览",
+      "content": "内容管理",
+      "system": "系统管理"
+    },
     "pro_tip": "专业提示",
     "pro_tip_desc": "使用网格/列表视图切换来高效管理内容。",
     "manage_prefix": "管理",
@@ -725,11 +841,9 @@
     "go_home": "返回首页"
   },
   "themes": {
-    "space": { "name": "深空", "desc": "星云" },
     "grid": { "name": "复古网格", "desc": "合成波" },
     "embers": { "name": "火焰余烬", "desc": "飞溅火花" },
     "crystal": { "name": "水晶洞穴", "desc": "折射" },
-    "clouds": { "name": "飘渺云层", "desc": "柔和天空" },
     "cyber": { "name": "赛博电路", "desc": "主机" },
     "dna": { "name": "数字 DNA", "desc": "生命代码" },
     "binary": { "name": "二进制流", "desc": "数据流" },
@@ -737,37 +851,24 @@
     "wave": { "name": "粒子波", "desc": "振荡" },
     "orbit": { "name": "轨道环", "desc": "引力" }
   },
-  "sort_filter": {
-    "newest": "最新发布",
-    "oldest": "最早发布",
-    "likes": "最多喜欢",
-    "title": "标题 A-Z"
+  "advanced_filter": {
+    "title": "筛选属性",
+    "nature": "活动性质",
+    "organizer": "主办方",
+    "location": "地点",
+    "target_audience": "目标人群",
+    "all_natures": "所有性质",
+    "all_organizers": "所有主办方",
+    "all_locations": "所有地点",
+    "all_target_audiences": "所有目标人群"
   },
-  "upload": {
-    "title_required": "请输入标题",
-    "file_required": "请选择要上传的文件",
-    "invalid_file_type": "无效的文件类型。请上传 {{type}}",
-    "upload_success": "上传成功！",
-    "update_success": "更新成功！",
-    "upload_failed": "上传失败，请重试。",
-    "drop_file": "拖放文件到此处",
-    "drag_drop_browse": "拖放或点击浏览",
-    "click_drag_replace": "点击或拖拽替换",
-    "replace": "替换",
-    "drop_image": "拖放图片",
-    "game_type": "游戏类型",
-    "game_desc": "游戏描述",
-    "game_desc_placeholder": "简短的游戏描述...",
-    "tags": "标签",
-    "tags_placeholder": "输入标签...",
-    "title_placeholder": "输入标题...",
-    "location_placeholder": "例如：线上，市政厅...",
-    "event_link": "活动链接 (外部)",
-    "artist_placeholder": "艺术家名称...",
-    "summary": "摘要",
-    "desc_placeholder": "简短描述或摘要...",
-    "description_placeholder": "简短描述或摘要...",
-    "detailed_content": "详细内容 (支持 HTML)",
-    "content_placeholder": "<p>在此输入详细内容...</p>"
+  "event_fields": {
+    "basic_info": "基本信息",
+    "attributes": "活动属性",
+    "nature_placeholder": "选择/输入",
+    "organizer_placeholder": "例如：校学生会",
+    "score": "素质分",
+    "score_placeholder": "+1.5",
+    "target_placeholder": "例如：全体师生"
   }
 }
