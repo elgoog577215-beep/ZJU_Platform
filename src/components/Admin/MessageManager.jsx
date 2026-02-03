@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Mail, Trash2, Check, Clock, Eye, RefreshCw } from 'lucide-react';
+import { Mail, Trash2, Check, Clock, RefreshCw } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import api from '../../services/api';
 

@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, ArrowRight, Calendar, X, User, Tag, Upload, Clock, Check, AlertCircle } from 'lucide-react';
+import { BookOpen, ArrowRight, Calendar, X, User, Tag, Upload, Clock, Check, AlertCircle, Eye } from 'lucide-react';
 import SmartImage from './SmartImage';
 import UploadModal from './UploadModal';
 import FavoriteButton from './FavoriteButton';
+import ViewCounter from './ViewCounter';
 import { useTranslation } from 'react-i18next';
 import Pagination from './Pagination';
 import { useSettings } from '../context/SettingsContext';
@@ -15,6 +16,105 @@ import SortSelector from './SortSelector';
 import { useBackClose } from '../hooks/useBackClose';
 import { useCachedResource } from '../hooks/useCachedResource';
 import TagFilter from './TagFilter';
+
+const calculateReadingTime = (text, t) => {
+    const wordsPerMinute = 200;
+    const words = text ? text.split(/\s+/).length : 0;
+    const minutes = Math.ceil(words / wordsPerMinute);
+    return `${minutes} ${t('common.min_read')}`;
+};
+
+const ArticleCard = memo(({ article, index, onClick, onToggleFavorite }) => {
+  const { t } = useTranslation();
+  
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.1 }}
+      viewport={{ once: true }}
+      onClick={() => onClick(article)}
+      className="group relative bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl p-6 transition-all hover:border-white/20 cursor-pointer overflow-hidden hover:shadow-2xl hover:shadow-orange-500/10"
+    >
+      {/* Shine Effect */}
+      <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden rounded-2xl">
+          <div className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full shine-effect" />
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-6">
+        {/* Cover Image */}
+        {article.cover && (
+          <div className="w-full md:w-48 h-48 md:h-32 rounded-xl overflow-hidden flex-shrink-0">
+            <SmartImage 
+              src={article.cover} 
+              alt={article.title} 
+              type="article"
+              className="w-full h-full"
+              imageClassName="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              iconSize={32}
+            />
+          </div>
+        )}
+
+        <div className="absolute top-4 right-4 flex gap-2 md:hidden">
+          <FavoriteButton 
+            itemId={article.id}
+            itemType="article"
+            size={16}
+            showCount={true}
+            count={article.likes || 0}
+            initialFavorited={article.favorited}
+            className="p-2 bg-black/50 hover:bg-orange-500 rounded-full backdrop-blur-md transition-all group/btn border border-white/10"
+            onToggle={(favorited, likes) => onToggleFavorite(article.id, favorited, likes)}
+          />
+        </div>
+
+        <div className="flex-1 flex flex-col justify-center space-y-3">
+          <div className="flex items-center gap-3 text-xs font-mono text-gray-400">
+            <span className="flex items-center gap-1">
+              <Calendar size={12} />
+              {article.date}
+            </span>
+            <span>•</span>
+            <span className="flex items-center gap-1">
+              <Clock size={12} />
+              {calculateReadingTime(article.content, t)}
+            </span>
+            <span>•</span>
+            <span className="flex items-center gap-1">
+              <Eye size={12} />
+              {article.views || 0}
+            </span>
+          </div>
+          <h3 className="text-2xl font-bold text-white group-hover:text-orange-400 transition-colors">
+            {article.title}
+          </h3>
+          <p className="text-gray-400 line-clamp-2">
+            {article.excerpt}
+          </p>
+        </div>
+
+        <div className="hidden md:flex flex-col items-center justify-between pl-4 border-l border-white/5 py-2">
+           <div className="flex flex-col gap-3 items-center">
+               <FavoriteButton 
+                itemId={article.id}
+                itemType="article"
+                size={16}
+                showCount={true}
+                count={article.likes || 0}
+                initialFavorited={article.favorited}
+                className="p-2 bg-white/5 hover:bg-orange-500 rounded-full backdrop-blur-md transition-all border border-white/10"
+                onToggle={(favorited, likes) => onToggleFavorite(article.id, favorited, likes)}
+              />
+           </div>
+           <div className="p-3 rounded-full bg-white/5 group-hover:bg-orange-500 group-hover:text-black transition-all duration-300">
+              <ArrowRight size={20} className="-rotate-45 group-hover:rotate-0 transition-transform duration-300" />
+           </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+});
 
 const Articles = () => {
   const { t } = useTranslation();
@@ -62,12 +162,31 @@ const Articles = () => {
     }
   }, [searchParams]);
 
-  const calculateReadingTime = (text) => {
-    const wordsPerMinute = 200;
-    const words = text ? text.split(/\s+/).length : 0;
-    const minutes = Math.ceil(words / wordsPerMinute);
-    return `${minutes} ${t('common.min_read')}`;
-  };
+  const handleToggleFavorite = useCallback((articleId, favorited, likes) => {
+      setArticles(prev => prev.map(a => 
+          a.id === articleId ? { ...a, likes: likes !== undefined ? likes : a.likes, favorited } : a
+      ));
+      
+      setSelectedArticle(prev => {
+          if (prev && prev.id === articleId) {
+             return { ...prev, likes: likes !== undefined ? likes : prev.likes, favorited };
+          }
+          return prev;
+      });
+  }, [setArticles, setSelectedArticle]);
+
+  const handleViewsUpdate = useCallback((id, newViews) => {
+      setArticles(prev => prev.map(a => 
+          a.id === id ? { ...a, views: newViews } : a
+      ));
+      
+      setSelectedArticle(prev => {
+          if (prev && prev.id === id) {
+             return { ...prev, views: newViews };
+          }
+          return prev;
+      });
+  }, [setArticles]);
 
   const addArticle = (newItem) => {
     api.post('/articles', newItem)
@@ -139,95 +258,13 @@ const Articles = () => {
             </div>
           )}
           {articles.map((article, index) => (
-            <motion.div
+            <ArticleCard
               key={article.id}
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
-              viewport={{ once: true }}
-              onClick={() => setSelectedArticle(article)}
-              className="group relative bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl p-6 transition-all hover:border-white/20 cursor-pointer overflow-hidden hover:shadow-2xl hover:shadow-orange-500/10"
-            >
-              {/* Shine Effect */}
-              <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden rounded-2xl">
-                  <div className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full shine-effect" />
-              </div>
-
-              <div className="flex flex-col md:flex-row gap-6">
-                {/* Cover Image */}
-                {article.cover && (
-                  <div className="w-full md:w-48 h-48 md:h-32 rounded-xl overflow-hidden flex-shrink-0">
-                    <SmartImage 
-                      src={article.cover} 
-                      alt={article.title} 
-                      type="article"
-                      className="w-full h-full"
-                      imageClassName="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                      iconSize={32}
-                    />
-                  </div>
-                )}
-
-                <div className="absolute top-4 right-4 flex gap-2 md:hidden">
-                  <FavoriteButton 
-                    itemId={article.id}
-                    itemType="article"
-                    size={16}
-                    showCount={true}
-                    count={article.likes || 0}
-                    initialFavorited={article.favorited}
-                    className="p-2 bg-black/50 hover:bg-orange-500 rounded-full backdrop-blur-md transition-all group/btn border border-white/10"
-                    onToggle={(favorited, likes) => {
-                        setArticles(prev => prev.map(a => 
-                          a.id === article.id ? { ...a, likes: likes !== undefined ? likes : a.likes, favorited } : a
-                        ));
-                    }}
-                  />
-                </div>
-
-                <div className="flex-1 flex flex-col justify-center space-y-3">
-                  <div className="flex items-center gap-3 text-xs font-mono text-gray-400">
-                    <span className="flex items-center gap-1">
-                      <Calendar size={12} />
-                      {article.date}
-                    </span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1">
-                      <Clock size={12} />
-                      {calculateReadingTime(article.content)}
-                    </span>
-                  </div>
-                  <h3 className="text-2xl font-bold text-white group-hover:text-orange-400 transition-colors">
-                    {article.title}
-                  </h3>
-                  <p className="text-gray-400 line-clamp-2">
-                    {article.excerpt}
-                  </p>
-                </div>
-
-                <div className="hidden md:flex flex-col items-center justify-between pl-4 border-l border-white/5 py-2">
-                   <div className="flex flex-col gap-3 items-center">
-                       <FavoriteButton 
-                        itemId={article.id}
-                        itemType="article"
-                        size={16}
-                        showCount={true}
-                        count={article.likes || 0}
-                        initialFavorited={article.favorited}
-                        className="p-2 bg-white/5 hover:bg-orange-500 rounded-full backdrop-blur-md transition-all border border-white/10"
-                        onToggle={(favorited, likes) => {
-                            setArticles(prev => prev.map(a => 
-                                a.id === article.id ? { ...a, likes: likes !== undefined ? likes : a.likes, favorited } : a
-                            ));
-                        }}
-                      />
-                   </div>
-                   <div className="p-3 rounded-full bg-white/5 group-hover:bg-orange-500 group-hover:text-black transition-all duration-300">
-                      <ArrowRight size={20} className="-rotate-45 group-hover:rotate-0 transition-transform duration-300" />
-                   </div>
-                </div>
-              </div>
-            </motion.div>
+              article={article}
+              index={index}
+              onClick={setSelectedArticle}
+              onToggleFavorite={handleToggleFavorite}
+            />
           ))}
         </div>
 
@@ -273,7 +310,15 @@ const Articles = () => {
                     <div className="flex items-center gap-3 text-xs font-mono text-orange-300 mb-2">
                        <span>{selectedArticle.date}</span>
                        <span>•</span>
-                       <span>{calculateReadingTime(selectedArticle.content)}</span>
+                       <span>{calculateReadingTime(selectedArticle.content, t)}</span>
+                       <span>•</span>
+                       <ViewCounter 
+                          type="article" 
+                          item={selectedArticle} 
+                          onViewsUpdate={handleViewsUpdate}
+                          className="text-orange-300"
+                          iconSize={12}
+                       />
                     </div>
                     <h2 className="text-3xl md:text-4xl font-bold font-serif text-white leading-tight">
                       {selectedArticle.title}
@@ -302,12 +347,7 @@ const Articles = () => {
                       count={selectedArticle.likes || 0}
                       initialFavorited={selectedArticle.favorited}
                       className="p-3 bg-white/5 hover:bg-red-500/20 text-white rounded-full transition-all border border-white/10"
-                      onToggle={(favorited, likes) => {
-                          setSelectedArticle(prev => prev ? { ...prev, likes: likes !== undefined ? likes : prev.likes, favorited } : prev);
-                          setArticles(prev => prev.map(a => 
-                            a.id === selectedArticle.id ? { ...a, likes: likes !== undefined ? likes : a.likes, favorited } : a
-                          ));
-                      }}
+                      onToggle={(favorited, likes) => handleToggleFavorite(selectedArticle.id, favorited, likes)}
                     />
                   </div>
                   

@@ -1,8 +1,9 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, MapPin, ArrowRight, X, Filter, Upload, Clock, CheckCircle, ExternalLink, Download, Globe, FileText, AlertCircle, Share2, Copy, Award, Users, Building2, Tag, Search } from 'lucide-react';
+import { Calendar, MapPin, ArrowRight, X, Filter, Upload, Clock, CheckCircle, ExternalLink, Download, Globe, FileText, AlertCircle, Share2, Copy, Award, Users, Building2, Tag, Search, Eye } from 'lucide-react';
 import UploadModal from './UploadModal';
 import FavoriteButton from './FavoriteButton';
+import ViewCounter from './ViewCounter';
 import { useTranslation } from 'react-i18next';
 import Pagination from './Pagination';
 import { useSettings } from '../context/SettingsContext';
@@ -19,6 +20,154 @@ import TagFilter from './TagFilter';
 import AdvancedFilter from './AdvancedFilter';
 
 import { useSearchParams } from 'react-router-dom';
+import { getThumbnailUrl } from '../utils/imageUtils';
+
+const getEventLifecycle = (date, t) => {
+  if (!date) return t('events.status.unknown');
+  try {
+      const d = new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const today = `${year}-${month}-${day}`;
+      
+      if (date > today) return t('events.status.upcoming');
+      if (date === today) return t('events.status.ongoing');
+      return t('events.status.past');
+  } catch (e) {
+      return t('events.status.unknown');
+  }
+};
+
+const getStatusColor = (status, t) => {
+  switch(status) {
+    case t('events.status.upcoming'): return 'bg-emerald-500 text-white';
+    case t('events.status.ongoing'): return 'bg-blue-500 text-white animate-pulse';
+    case t('events.status.past'): return 'bg-gray-500 text-gray-200';
+    default: return 'bg-gray-500 text-white';
+  }
+};
+
+const EventCard = memo(({ event, index, onClick, onToggleFavorite }) => {
+  const { t } = useTranslation();
+
+  const status = getEventLifecycle(event.date, t);
+  const isUpcoming = status === t('events.status.upcoming');
+  const dateObj = new Date(event.date);
+  const day = dateObj.getDate();
+  const month = dateObj.toLocaleString('default', { month: 'short' }).toUpperCase();
+
+  return (
+    <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5, delay: index * 0.1 }}
+    className="group relative bg-[#111] border border-white/10 rounded-3xl overflow-hidden hover:shadow-2xl hover:shadow-indigo-500/20 transition-all duration-500 hover:-translate-y-2 cursor-pointer flex flex-row md:flex-col md:h-auto"
+    onClick={() => onClick(event)}
+  >
+{/* Image Section */}
+<div className="w-1/3 aspect-square md:w-full md:aspect-auto md:h-64 overflow-hidden relative shrink-0">
+    <SmartImage 
+      src={getThumbnailUrl(event.image)} 
+      alt={event.title} 
+      loading="lazy"
+      className="absolute inset-0 w-full h-full"
+      imageClassName="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+    />
+    <div className="absolute inset-0 bg-gradient-to-t from-[#111] via-transparent to-transparent opacity-80" />
+    
+    {/* Date Badge & Score Badge Container */}
+    <div className="absolute top-4 left-4 flex gap-3 z-40">
+        {/* Date Badge */}
+        <div className="hidden md:flex bg-black/60 backdrop-blur-md border border-white/20 rounded-2xl p-3 flex-col items-center justify-center min-w-[64px] shadow-lg group-hover:bg-indigo-600 group-hover:border-indigo-500 transition-colors duration-300">
+            <span className="text-xs font-bold uppercase tracking-wider text-gray-200 group-hover:text-white/90">{month}</span>
+            <span className="text-2xl font-black text-white">{day}</span>
+        </div>
+
+        {/* Score Badge */}
+        {event.score && (
+            <div className="hidden md:flex bg-indigo-600/90 backdrop-blur-md border border-indigo-500/50 rounded-2xl p-3 flex-col items-center justify-center min-w-[64px] shadow-lg">
+                <span className="text-xs font-bold uppercase tracking-wider text-indigo-100">Score</span>
+                <span className="text-xl font-black text-white">{event.score}</span>
+            </div>
+        )}
+    </div>
+
+    {/* Status Badge - Adjusted for mobile */}
+    <div className={`absolute top-2 right-2 md:top-4 md:right-4 px-2 py-1 md:px-3 md:py-1.5 rounded-full text-[10px] md:text-sm font-bold uppercase tracking-wider shadow-lg backdrop-blur-md flex items-center gap-1.5 z-40 ${getStatusColor(status, t)}`}>
+        {status === t('events.status.upcoming') && <Clock size={12} className="md:w-4 md:h-4" />}
+        {status === t('events.status.ongoing') && <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-white animate-pulse" />}
+        {status}
+    </div>
+
+    {/* Share Button - Hidden on mobile list */}
+    <div className="hidden md:flex absolute bottom-4 right-4 gap-2 z-30">
+        <FavoriteButton 
+            itemId={event.id}
+            itemType="event"
+            size={18}
+            showCount={false}
+            favorited={event.favorited}
+            initialFavorited={event.favorited}
+            className="p-2 bg-black/40 hover:bg-indigo-600 rounded-full text-white backdrop-blur-md transition-all"
+            onToggle={(favorited, likes) => onToggleFavorite(event.id, favorited, likes)}
+        />
+    </div>
+
+    {/* Countdown Overlay (Upcoming only) */}
+    {isUpcoming && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm z-40">
+            <div className="transform scale-75 hidden md:block">
+                <Countdown targetDate={event.date} />
+            </div>
+        </div>
+    )}
+</div>
+
+{/* Content Section */}
+    <div className="p-4 md:p-6 relative flex-1 flex flex-col justify-center">
+        <div className="flex items-center gap-4 mb-2 md:mb-4">
+            <div className="flex items-center gap-1 md:gap-2 text-sm md:text-base text-gray-400">
+                 <MapPin size={14} className="md:w-4 md:h-4 text-indigo-400" />
+                 <span className="truncate max-w-[100px] md:max-w-[150px]">{event.location || 'Online'}</span>
+            </div>
+            {event.views > 0 && (
+                <div className="flex items-center gap-1 md:gap-2 text-sm md:text-base text-gray-400">
+                    <Eye size={14} className="md:w-4 md:h-4 text-indigo-400" />
+                    <span>{event.views}</span>
+                </div>
+            )}
+        </div>
+
+        <h3 className="text-xl md:text-3xl font-bold text-white mb-2 md:mb-3 line-clamp-2 group-hover:text-indigo-400 transition-colors leading-tight">{event.title}</h3>
+        <p className="text-gray-400 text-sm md:text-base line-clamp-2 mb-3 md:mb-4 leading-relaxed hidden md:block">{event.description}</p>
+        
+        {/* Phase 1: Key Info on Card */}
+        <div className="flex flex-wrap gap-2 mb-3">
+            {event.tags && event.tags.split(',').slice(0, 2).map((tag, i) => (
+                <span key={i} className="px-2 py-1 rounded-md bg-purple-500/10 text-purple-300 text-sm font-bold uppercase tracking-wider border border-purple-500/20 flex items-center gap-1 group-hover:bg-purple-500/20 transition-colors">
+                    <Tag size={14} /> {tag.trim()}
+                </span>
+            ))}
+            {event.target_audience && (
+                 <span className="px-2 py-1 rounded-md bg-blue-500/10 text-blue-300 text-sm font-bold uppercase tracking-wider border border-blue-500/20 flex items-center gap-1 max-w-[120px] truncate group-hover:bg-blue-500/20 transition-colors">
+                    <Users size={14} /> {event.target_audience}
+                </span>
+            )}
+        </div>
+
+        {/* Mobile Date Display - Keeping it as backup but badges are now visible */}
+        <p className="text-gray-300 font-medium text-sm md:hidden mb-2 mt-2 flex items-center gap-1.5">
+            <Calendar size={16} className="text-indigo-400" /> {event.date}
+        </p>
+
+        <div className="flex items-center text-indigo-400 font-bold text-base md:text-lg group-hover:translate-x-2 transition-transform mt-auto md:mt-0">
+            {t('common.view_details')} <ArrowRight size={18} className="ml-1 md:ml-2 md:w-5 md:h-5" />
+        </div>
+    </div>
+  </motion.div>
+  );
+});
 
 const Events = () => {
   const { t } = useTranslation();
@@ -184,31 +333,31 @@ END:VCALENDAR`;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const getEventLifecycle = (date) => {
-    if (!date) return t('events.status.unknown');
-    try {
-        const d = new Date();
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        const today = `${year}-${month}-${day}`;
-        
-        if (date > today) return t('events.status.upcoming');
-        if (date === today) return t('events.status.ongoing');
-        return t('events.status.past');
-    } catch (e) {
-        return t('events.status.unknown');
-    }
-  };
+  const handleToggleFavorite = useCallback((eventId, favorited, likes) => {
+    setEvents(prev => prev.map(e => 
+        e.id === eventId ? { ...e, likes: likes !== undefined ? likes : e.likes, favorited } : e
+    ));
+    
+    setSelectedEvent(prev => {
+        if (prev && prev.id === eventId) {
+           return { ...prev, likes: likes !== undefined ? likes : prev.likes, favorited };
+        }
+        return prev;
+    });
+  }, [setEvents, setSelectedEvent]);
 
-  const getStatusColor = (status) => {
-    switch(status) {
-      case t('events.status.upcoming'): return 'bg-emerald-500 text-white';
-      case t('events.status.ongoing'): return 'bg-blue-500 text-white animate-pulse';
-      case t('events.status.past'): return 'bg-gray-500 text-gray-200';
-      default: return 'bg-gray-500 text-white';
-    }
-  };
+  const handleViewsUpdate = useCallback((id, newViews) => {
+      setEvents(prev => prev.map(e => 
+          e.id === id ? { ...e, views: newViews } : e
+      ));
+      
+      setSelectedEvent(prev => {
+          if (prev && prev.id === id) {
+               return { ...prev, views: newViews };
+          }
+          return prev;
+      });
+  }, [setEvents, setSelectedEvent]);
 
   const lifecycleOptions = [
       { value: 'all', label: t('common.all') },
@@ -292,126 +441,16 @@ END:VCALENDAR`;
         </div>
       ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto">
-                {events.map((event, index) => {
-                  const status = getEventLifecycle(event.date);
-                  const isUpcoming = status === t('events.status.upcoming');
-                  const dateObj = new Date(event.date);
-                  const day = dateObj.getDate();
-                  const month = dateObj.toLocaleString('default', { month: 'short' }).toUpperCase();
-
-                  return (
-                  <motion.div
+                {events.map((event, index) => (
+                  <EventCard
                     key={event.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                    className="group relative bg-[#111] border border-white/10 rounded-3xl overflow-hidden hover:shadow-2xl hover:shadow-indigo-500/20 transition-all duration-500 hover:-translate-y-2 cursor-pointer flex flex-row md:flex-col md:h-auto"
-                    onClick={() => setSelectedEvent(event)}
-                  >
-                {/* Image Section */}
-                <div className="w-1/3 aspect-square md:w-full md:aspect-auto md:h-64 overflow-hidden relative shrink-0">
-                    <SmartImage 
-                      src={event.image} 
-                      alt={event.title} 
-                      loading="lazy"
-                      className="absolute inset-0 w-full h-full"
-                      imageClassName="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#111] via-transparent to-transparent opacity-80" />
-                    
-                    {/* Date Badge & Score Badge Container */}
-                    <div className="absolute top-4 left-4 flex gap-3 z-40">
-                        {/* Date Badge */}
-                        <div className="hidden md:flex bg-black/60 backdrop-blur-md border border-white/20 rounded-2xl p-3 flex-col items-center justify-center min-w-[64px] shadow-lg group-hover:bg-indigo-600 group-hover:border-indigo-500 transition-colors duration-300">
-                            <span className="text-xs font-bold uppercase tracking-wider text-gray-200 group-hover:text-white/90">{month}</span>
-                            <span className="text-2xl font-black text-white">{day}</span>
-                        </div>
-
-                        {/* Score Badge */}
-                        {event.score && (
-                            <div className="hidden md:flex bg-indigo-600/90 backdrop-blur-md border border-indigo-500/50 rounded-2xl p-3 flex-col items-center justify-center min-w-[64px] shadow-lg">
-                                <span className="text-xs font-bold uppercase tracking-wider text-indigo-100">Score</span>
-                                <span className="text-xl font-black text-white">{event.score}</span>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Status Badge - Adjusted for mobile */}
-                    <div className={`absolute top-2 right-2 md:top-4 md:right-4 px-2 py-1 md:px-3 md:py-1.5 rounded-full text-[10px] md:text-sm font-bold uppercase tracking-wider shadow-lg backdrop-blur-md flex items-center gap-1.5 z-40 ${getStatusColor(status)}`}>
-                        {status === t('events.status.upcoming') && <Clock size={12} className="md:w-4 md:h-4" />}
-                        {status === t('events.status.ongoing') && <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-white animate-pulse" />}
-                        {status}
-                    </div>
-
-                    {/* Share Button - Hidden on mobile list */}
-                    <div className="hidden md:flex absolute bottom-4 right-4 gap-2 z-30">
-                        <FavoriteButton 
-                                                itemId={event.id}
-                                                itemType="event"
-                                                size={18}
-                                                showCount={false}
-                                                favorited={event.favorited}
-                                                initialFavorited={event.favorited}
-                                                className="p-2 bg-black/40 hover:bg-indigo-600 rounded-full text-white backdrop-blur-md transition-all"
-                                                onToggle={(favorited, likes) => {
-                                                    setEvents(prev => prev.map(e => 
-                                                        e.id === event.id ? { ...e, likes: likes !== undefined ? likes : e.likes, favorited } : e
-                                                    ));
-                                                    if (selectedEvent && selectedEvent.id === event.id) {
-                                                        setSelectedEvent(prev => ({ ...prev, likes: likes !== undefined ? likes : prev.likes, favorited }));
-                                                    }
-                                                }}
-                                            />
-                    </div>
-
-                    {/* Countdown Overlay (Upcoming only) */}
-                    {isUpcoming && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm z-40">
-                            <div className="transform scale-75 hidden md:block">
-                                <Countdown targetDate={event.date} />
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Content Section */}
-                    <div className="p-4 md:p-6 relative flex-1 flex flex-col justify-center">
-                        <div className="flex items-center gap-4 mb-2 md:mb-4">
-                            <div className="flex items-center gap-1 md:gap-2 text-sm md:text-base text-gray-400">
-                                 <MapPin size={14} className="md:w-4 md:h-4 text-indigo-400" />
-                                 <span className="truncate max-w-[100px] md:max-w-[150px]">{event.location || 'Online'}</span>
-                            </div>
-                        </div>
-
-                        <h3 className="text-xl md:text-3xl font-bold text-white mb-2 md:mb-3 line-clamp-2 group-hover:text-indigo-400 transition-colors leading-tight">{event.title}</h3>
-                        <p className="text-gray-400 text-sm md:text-base line-clamp-2 mb-3 md:mb-4 leading-relaxed hidden md:block">{event.description}</p>
-                        
-                        {/* Phase 1: Key Info on Card */}
-                        <div className="flex flex-wrap gap-2 mb-3">
-                            {event.tags && event.tags.split(',').slice(0, 2).map((tag, i) => (
-                                <span key={i} className="px-2 py-1 rounded-md bg-purple-500/10 text-purple-300 text-sm font-bold uppercase tracking-wider border border-purple-500/20 flex items-center gap-1 group-hover:bg-purple-500/20 transition-colors">
-                                    <Tag size={14} /> {tag.trim()}
-                                </span>
-                            ))}
-                            {event.target_audience && (
-                                 <span className="px-2 py-1 rounded-md bg-blue-500/10 text-blue-300 text-sm font-bold uppercase tracking-wider border border-blue-500/20 flex items-center gap-1 max-w-[120px] truncate group-hover:bg-blue-500/20 transition-colors">
-                                    <Users size={14} /> {event.target_audience}
-                                </span>
-                            )}
-                        </div>
-
-                        {/* Mobile Date Display - Keeping it as backup but badges are now visible */}
-                        <p className="text-gray-300 font-medium text-sm md:hidden mb-2 mt-2 flex items-center gap-1.5">
-                            <Calendar size={16} className="text-indigo-400" /> {event.date}
-                        </p>
-
-                        <div className="flex items-center text-indigo-400 font-bold text-base md:text-lg group-hover:translate-x-2 transition-transform mt-auto md:mt-0">
-                            {t('common.view_details')} <ArrowRight size={18} className="ml-1 md:ml-2 md:w-5 md:h-5" />
-                        </div>
-                    </div>
-              </motion.div>
-            )})}
-        </div>
+                    event={event}
+                    index={index}
+                    onClick={setSelectedEvent}
+                    onToggleFavorite={handleToggleFavorite}
+                  />
+                ))}
+            </div>
       )}
       
       {!loading && events.length === 0 && (
@@ -459,6 +498,25 @@ END:VCALENDAR`;
                  />
                  <div className="absolute inset-0 bg-gradient-to-t from-[#111] to-transparent" />
                  
+                 <div className="absolute bottom-6 left-6 md:left-10 right-6 md:right-10 z-20">
+                    <div className="flex flex-wrap items-center gap-3 mb-3">
+                         <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${getStatusColor(getEventLifecycle(selectedEvent.date, t), t)}`}>
+                             {getEventLifecycle(selectedEvent.date, t)}
+                         </div>
+                         <ViewCounter 
+                            type="event" 
+                            item={selectedEvent} 
+                            onViewsUpdate={handleViewsUpdate}
+                            className="text-gray-300 text-sm"
+                         />
+                    </div>
+                    <h2 className="text-3xl md:text-5xl font-bold text-white mb-2 leading-tight">{selectedEvent.title}</h2>
+                    <div className="flex flex-wrap items-center gap-4 text-gray-300 text-sm md:text-base">
+                        <span className="flex items-center gap-1.5 bg-black/40 px-3 py-1 rounded-lg backdrop-blur-md border border-white/10"><Calendar size={16} className="text-indigo-400" /> {selectedEvent.date}</span>
+                        <span className="flex items-center gap-1.5 bg-black/40 px-3 py-1 rounded-lg backdrop-blur-md border border-white/10" onClick={handleCopyLocation} role="button"><MapPin size={16} className="text-indigo-400" /> {selectedEvent.location}</span>
+                    </div>
+                 </div>
+
                  <button 
                     onClick={() => setSelectedEvent(null)}
                     className="absolute top-6 right-6 p-2 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur-md border border-white/10 transition-all z-20"
@@ -468,9 +526,9 @@ END:VCALENDAR`;
 
                  <div className="absolute bottom-0 left-0 p-8 w-full">
                      <div className="flex flex-wrap gap-3 mb-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${getStatusColor(getEventLifecycle(selectedEvent.date))}`}>
-                            {getEventLifecycle(selectedEvent.date)}
-                        </span>
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${getStatusColor(getEventLifecycle(selectedEvent.date, t), t)}`}>
+    {getEventLifecycle(selectedEvent.date, t)}
+</span>
                         {selectedEvent.tags && selectedEvent.tags.split(',').map((tag, i) => (
                              <span key={i} className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-white/10 text-gray-300 border border-white/5">
                                  {tag.trim()}

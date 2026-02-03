@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Camera, MousePointer2, Cloud, Clock, CloudRain, Sun, CloudLightning, CloudSnow, CloudFog, MapPin, Search, LogOut, User, LogIn, X, Palette } from 'lucide-react';
+import { Cloud, Clock, CloudRain, Sun, CloudLightning, CloudSnow, CloudFog, MapPin, Search, LogOut, User, LogIn, X, Palette, MousePointer2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher';
 import { useSettings } from '../context/SettingsContext';
 import { useAuth } from '../context/AuthContext';
 import { useBackClose } from '../hooks/useBackClose';
+import { useWeather } from '../hooks/useWeather';
 import AuthModal from './AuthModal';
-import axios from 'axios';
 import { themeConfig } from '../data/themeConfig';
 import NotificationCenter from './NotificationCenter';
 import ReactDOM from 'react-dom';
@@ -16,8 +16,6 @@ import ReactDOM from 'react-dom';
 const Portal = ({ children }) => {
   return ReactDOM.createPortal(children, document.body);
 };
-
-import { POPULAR_CITIES } from '../data/cities';
 
 const Navbar = () => {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -27,13 +25,19 @@ const Navbar = () => {
   const { settings, cursorEnabled, toggleCursor, backgroundScene, changeBackgroundScene } = useSettings();
   const { user, logout } = useAuth();
   const [time, setTime] = useState(new Date());
-  const [weather, setWeather] = useState(null);
-  const [isWeatherModalOpen, setIsWeatherModalOpen] = useState(false);
-  const [city, setCity] = useState(localStorage.getItem('weather_city') || '杭州');
-  const [coords, setCoords] = useState(JSON.parse(localStorage.getItem('weather_coords')) || { lat: 30.27, lon: 120.15 });
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState([]);
+
+  const {
+    weather,
+    city,
+    isWeatherModalOpen,
+    setIsWeatherModalOpen,
+    searchQuery,
+    setSearchQuery,
+    isSearching,
+    searchResults,
+    handleCitySearch,
+    selectCity
+  } = useWeather();
 
   useBackClose(isWeatherModalOpen, () => setIsWeatherModalOpen(false));
   useBackClose(isThemeOpen, () => setIsThemeOpen(false));
@@ -43,107 +47,6 @@ const Navbar = () => {
     const timer = setInterval(() => setTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
-
-  // Weather
-  useEffect(() => {
-    if (!coords) return;
-    
-    axios.get(`https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current_weather=true`)
-      .then(res => {
-        setWeather(res.data.current_weather);
-      })
-      .catch(err => console.error("Weather fetch failed", err));
-  }, [coords]);
-
-  const handleCitySearch = async (e) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) return;
-
-    setIsSearching(true);
-    setSearchResults([]);
-    
-    const query = searchQuery.toLowerCase().trim();
-    const localResults = POPULAR_CITIES.filter(city => 
-        city.name.includes(query) || 
-        city.name_en.toLowerCase().includes(query) ||
-        (city.admin1 && city.admin1.toLowerCase().includes(query))
-    ).map(city => ({
-        id: `local-${city.id}`,
-        name: city.name,
-        country: city.country,
-        admin1: city.admin1,
-        latitude: city.lat,
-        longitude: city.lon,
-        isLocal: true
-    }));
-
-    try {
-        const res = await axios.get(`https://geocoding-api.open-meteo.com/v1/search?name=${searchQuery}&count=10&language=zh&format=json`);
-        
-        let apiResults = [];
-        if (res.data.results && res.data.results.length > 0) {
-            apiResults = res.data.results;
-        } else {
-             const fallbackRes = await axios.get(`https://geocoding-api.open-meteo.com/v1/search?name=${searchQuery}&count=10&format=json`);
-             if (fallbackRes.data.results && fallbackRes.data.results.length > 0) {
-                  apiResults = fallbackRes.data.results;
-             }
-        }
-        
-        // Merge results, prioritizing local ones
-        // Filter apiResults to remove duplicates that are already in localResults (by name)
-        // Also filter out results that have the same name as a popular city but are in a different location (likely noise)
-        const filteredApiResults = apiResults.filter(apiCity => {
-            // Check if it's already in local results
-            const isDuplicate = localResults.some(localCity => localCity.name === apiCity.name);
-            if (isDuplicate) return false;
-
-            // Check if it's a "fake" version of a popular city (same name, different admin1/country)
-            // e.g. preventing "Hangzhou, Sichuan" if "Hangzhou" (Zhejiang) is the popular one
-            const isSuspicious = POPULAR_CITIES.some(popCity => 
-                popCity.name === apiCity.name && 
-                popCity.admin1 !== apiCity.admin1 && // Different province
-                popCity.country === apiCity.country // Same country (to avoid blocking international cities with same name)
-            );
-            
-            // If the user explicitly typed the province, allow it. Otherwise, filter it.
-            // But checking query against province is complex. For now, strict filtering for popular city names.
-            if (isSuspicious) return false;
-
-            return true;
-        });
-
-        const mergedResults = [...localResults, ...filteredApiResults];
-        
-        // Deduplicate based on coordinates (roughly)
-        const uniqueResults = mergedResults.filter((v, i, a) => a.findIndex(v2 => (
-            Math.abs(v2.latitude - v.latitude) < 0.1 && Math.abs(v2.longitude - v.longitude) < 0.1
-        )) === i);
-
-        setSearchResults(uniqueResults);
-
-    } catch (err) {
-        console.error("Geocoding failed", err);
-        // Still show local results if API fails
-        setSearchResults(localResults);
-    } finally {
-        setIsSearching(false);
-    }
-  };
-
-  const selectCity = (result) => {
-      const newCoords = { lat: result.latitude, lon: result.longitude };
-      const newCity = result.name;
-      
-      setCoords(newCoords);
-      setCity(newCity);
-      localStorage.setItem('weather_city', newCity);
-      localStorage.setItem('weather_coords', JSON.stringify(newCoords));
-      
-      setIsWeatherModalOpen(false);
-      setSearchQuery('');
-      setSearchResults([]);
-  };
 
   const getWeatherIcon = (code) => {
       if (code === 0 || code === 1) return <Sun size={14} className="text-yellow-400" />;

@@ -75,7 +75,7 @@ const FavoriteButton = ({
     e.stopPropagation();
 
     if (!user) {
-      toast.error('请先登录以收藏');
+      toast.error(t('auth.login_required', 'Please login first'));
       return;
     }
 
@@ -103,11 +103,11 @@ const FavoriteButton = ({
       setLikeCount(previousLikes);
       
       if (error.response?.status === 401) {
-          toast.error('登录已过期，请重新登录');
+          toast.error(t('auth.session_expired', 'Session expired, please login again'));
       } else if (error.response?.status === 404) {
-          toast.error('该内容已不存在');
+          toast.error(t('common.item_not_found', 'Content not found'));
       } else {
-          toast.error('操作失败，请重试');
+          toast.error(t('common.operation_failed', 'Operation failed, please try again'));
       }
       console.error(error);
     } finally {

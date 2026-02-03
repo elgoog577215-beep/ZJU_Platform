@@ -7,6 +7,8 @@ import { useBackClose } from '../hooks/useBackClose';
 
 import { useTranslation } from 'react-i18next';
 
+import { getThumbnailUrl } from '../utils/imageUtils';
+
 const SearchPalette = () => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -44,34 +46,45 @@ const SearchPalette = () => {
   // Auto-focus input when opened
   useEffect(() => {
     if (isOpen) {
-      setTimeout(() => inputRef.current?.focus(), 100);
+      // Use requestAnimationFrame for better timing than setTimeout
+      requestAnimationFrame(() => {
+        inputRef.current?.focus();
+      });
     } else {
       setQuery('');
       setResults([]);
     }
   }, [isOpen]);
 
-  // Search Logic
+  // Search Logic with AbortController to prevent race conditions
   useEffect(() => {
+    const controller = new AbortController();
+    
     const timer = setTimeout(() => {
       if (query.length >= 2) {
         setLoading(true);
-        api.get(`/search?q=${query}`)
+        api.get(`/search?q=${query}`, { signal: controller.signal })
           .then(res => {
             setResults(res.data);
             setSelectedIndex(0);
             setLoading(false);
           })
           .catch(err => {
+            // Ignore cancellation errors
+            if (err.code === 'ERR_CANCELED' || err.name === 'CanceledError') return;
             console.error(err);
             setLoading(false);
           });
       } else {
         setResults([]);
+        setLoading(false);
       }
     }, 300);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
   }, [query]);
 
   // Keyboard Navigation
@@ -168,7 +181,7 @@ const SearchPalette = () => {
                             >
                                 <div className="w-10 h-10 rounded bg-black/50 overflow-hidden flex-shrink-0 border border-white/10">
                                     {item.image ? (
-                                        <img src={item.image} alt="" className="w-full h-full object-cover" />
+                                        <img src={getThumbnailUrl(item.image)} alt="" className="w-full h-full object-cover" />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center text-gray-500">
                                             {getIcon(item.type)}

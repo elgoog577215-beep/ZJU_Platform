@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   LayoutGrid, Music, Film, BookOpen, Calendar, 
-  Users, HardDrive, Activity, Clock
+  Users, HardDrive, Activity, Clock, Eye
 } from 'lucide-react';
 import api from '../../services/api';
 
@@ -22,6 +22,9 @@ const StatCard = ({ title, value, icon: Icon, color, onClick, breakdown }) => (
       
       {breakdown && (
         <div className="flex flex-wrap gap-2 text-xs">
+          <span className="text-gray-400 bg-gray-400/10 px-1.5 py-0.5 rounded flex items-center gap-1">
+             <Eye size={10} /> {breakdown.views || 0}
+          </span>
           <span className="text-green-400 bg-green-400/10 px-1.5 py-0.5 rounded">
             {breakdown.active} Active
           </span>

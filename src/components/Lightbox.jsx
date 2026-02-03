@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ViewCounter from './ViewCounter';
 import { X, ChevronLeft, ChevronRight, Download, Info, Camera, Aperture, Clock, Grid } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
@@ -7,7 +8,7 @@ import FavoriteButton from './FavoriteButton';
 import { useBackClose } from '../hooks/useBackClose';
 import api from '../services/api';
 
-const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) => {
+const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect, onViewsUpdate }) => {
   const { t } = useTranslation();
   const [showInfo, setShowInfo] = useState(false);
   const [activeTab, setActiveTab] = useState('info'); // 'info', 'related'
@@ -239,8 +240,14 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) =>
                             <div className="border-t border-white/10 pt-6">
                                 <h4 className="text-sm font-bold text-gray-500 uppercase mb-4">{t('lightbox.stats')}</h4>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="bg-white/5 p-4 rounded-xl text-center">
-                                        <div className="text-2xl font-bold text-white mb-1">1.2k</div>
+                                    <div className="bg-white/5 p-4 rounded-xl text-center flex flex-col items-center justify-center">
+                                        <ViewCounter 
+                                            type="photo" 
+                                            item={photo} 
+                                            onViewsUpdate={onViewsUpdate}
+                                            className="text-2xl font-bold text-white mb-1"
+                                            showIcon={false}
+                                        />
                                         <div className="text-xs text-gray-500 uppercase">{t('lightbox.views')}</div>
                                     </div>
                                     <div className="bg-white/5 p-4 rounded-xl text-center">

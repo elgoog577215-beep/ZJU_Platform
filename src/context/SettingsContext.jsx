@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useMemo } from 'react';
 import api from '../services/api';
 
 const SettingsContext = createContext();
@@ -80,8 +80,19 @@ export const SettingsProvider = ({ children }) => {
       });
   };
 
+  const value = useMemo(() => ({
+    settings,
+    updateSetting,
+    loading,
+    cursorEnabled,
+    toggleCursor,
+    backgroundScene,
+    changeBackgroundScene,
+    changeBackgroundBrightness
+  }), [settings, loading, cursorEnabled, backgroundScene]);
+
   return (
-    <SettingsContext.Provider value={{ settings, updateSetting, loading, cursorEnabled, toggleCursor, backgroundScene, changeBackgroundScene, changeBackgroundBrightness }}>
+    <SettingsContext.Provider value={value}>
       {children}
     </SettingsContext.Provider>
   );

@@ -9,6 +9,19 @@
   color-scheme: dark;
   background-color: #0a0a0a;
   color: rgba(255, 255, 255, 0.87);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background-color: rgba(59, 130, 246, 0.5); /* blue-500/50 */
+  color: #ffffff;
 }
 
 body {

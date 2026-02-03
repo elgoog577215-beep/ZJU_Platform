@@ -1,7 +1,11 @@
 const { getDb } = require('../config/db');
 const path = require('path');
 const fs = require('fs');
-// const { runCrawler } = require('../../crawler'); // Removed for now
+
+// Placeholder for crawler until implemented
+const runCrawler = async (url, source) => {
+    return { status: 'skipped', message: 'Crawler module is not yet implemented.' };
+};
 
 const searchContent = async (req, res) => {
     try {
@@ -45,12 +49,14 @@ const getStats = async (req, res) => {
         const active = await db.get(`SELECT COUNT(*) as count FROM ${table} WHERE deleted_at IS NULL AND status = 'approved'`);
         const pending = await db.get(`SELECT COUNT(*) as count FROM ${table} WHERE deleted_at IS NULL AND status = 'pending'`);
         const deleted = await db.get(`SELECT COUNT(*) as count FROM ${table} WHERE deleted_at IS NOT NULL`);
+        const views = await db.get(`SELECT SUM(views) as totalViews FROM ${table}`);
         
         return {
             total: total.count,
             active: active.count,
             pending: pending.count,
-            deleted: deleted.count
+            deleted: deleted.count,
+            views: views.totalViews || 0
         };
     };
 

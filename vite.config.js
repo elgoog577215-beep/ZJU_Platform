@@ -94,13 +94,16 @@ export default defineConfig({
   },
   server: {
     host: true, // Allow external access
+    watch: {
+      ignored: ['**/wechat_crawler/**', '**/wechat-batch-crawler/**'],
+    },
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
+        target: 'http://localhost:3002',
         changeOrigin: true,
       },
       '/uploads': {
-        target: 'http://localhost:3001',
+        target: 'http://localhost:3002',
         changeOrigin: true,
       }
     }

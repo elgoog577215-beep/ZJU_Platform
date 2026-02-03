@@ -69,7 +69,7 @@ const MobileNavbar = () => {
                     >
                       <Icon size={20} />
                       <span className="text-[10px] font-medium">
-                          {item.key === 'menu' ? '社区' : item.key === 'about' ? '关于' : t(`nav.${item.key}`, item.key.charAt(0).toUpperCase() + item.key.slice(1))}
+                          {item.key === 'menu' ? t('nav.community', '社区') : item.key === 'about' ? t('nav.about', '关于') : t(`nav.${item.key}`, item.key.charAt(0).toUpperCase() + item.key.slice(1))}
                       </span>
                     </motion.div>
                   </button>

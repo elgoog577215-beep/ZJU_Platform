@@ -25,14 +25,19 @@ pnpm-debug.log*
 Thumbs.db
 
 # Uploads & generated assets
-# server/uploads/
+server/uploads/
+uploads/
 
 # Local database file
-# server/database.sqlite
-# *.sqlite
-# *.sqlite-wal
-# *.sqlite-shm
-# *.db
+server/database.sqlite
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.db
+
+# Crawler
+wechat-batch-crawler/
+wechat_crawler/
 
 # Editor/IDE
 .vscode/

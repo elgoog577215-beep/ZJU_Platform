@@ -67,7 +67,9 @@
     "user_not_found": "用户未找到",
     "go_home": "返回首页",
     "stats": {
-      "works": "作品"
+      "works": "作品",
+      "views": "浏览量",
+      "likes": "点赞数"
     },
     "uploads": {
       "title": "我的上传",

@@ -276,32 +276,37 @@ const BackgroundSystem = ({ forcedTheme = null }) => {
   const [dpr, setDpr] = useState(1.5);
   const [perfSufficient, setPerfSufficient] = useState(true);
 
+  // Memoize the canvas content to prevent unnecessary re-renders when other settings change
+  const canvasContent = useMemo(() => (
+    <div className="fixed inset-0 -z-10 bg-black" style={{ filter: `brightness(${settings.background_brightness || 1})` }}>
+      <Canvas dpr={dpr} camera={{ position: [0, 0, 10], fov: 60 }} gl={{ antialias: false, powerPreference: "high-performance" }}>
+        <PerformanceMonitor onDecline={() => { setDpr(1); setPerfSufficient(false); }} onIncline={() => { setDpr(1.5); setPerfSufficient(true); }} />
+        <Suspense fallback={null}>
+          <CurrentScene />
+          {perfSufficient && (
+            <EffectComposer disableNormalPass>
+              <Bloom 
+                luminanceThreshold={0.5} 
+                luminanceSmoothing={0.9}
+                mipmapBlur={true}
+                intensity={parseFloat(settings.background_bloom || 0.8)} 
+                radius={0.4} 
+              />
+              <Noise opacity={0.02} />
+              <Vignette 
+                offset={0.5} 
+                darkness={parseFloat(settings.background_vignette || 0.5)} 
+              />
+            </EffectComposer>
+          )}
+        </Suspense>
+      </Canvas>
+    </div>
+  ), [dpr, perfSufficient, CurrentScene, settings.background_brightness, settings.background_bloom, settings.background_vignette]);
+
   return (
     <>
-      <div className="fixed inset-0 -z-10 bg-black" style={{ filter: `brightness(${settings.background_brightness || 1})` }}>
-        <Canvas dpr={dpr} camera={{ position: [0, 0, 10], fov: 60 }} gl={{ antialias: false, powerPreference: "high-performance" }}>
-          <PerformanceMonitor onDecline={() => { setDpr(1); setPerfSufficient(false); }} onIncline={() => { setDpr(1.5); setPerfSufficient(true); }} />
-          <Suspense fallback={null}>
-            <CurrentScene />
-            {perfSufficient && (
-              <EffectComposer disableNormalPass>
-                <Bloom 
-                  luminanceThreshold={0.5} 
-                  luminanceSmoothing={0.9}
-                  mipmapBlur={true}
-                  intensity={parseFloat(settings.background_bloom || 0.8)} 
-                  radius={0.4} 
-                />
-                <Noise opacity={0.02} />
-                <Vignette 
-                  offset={0.5} 
-                  darkness={parseFloat(settings.background_vignette || 0.5)} 
-                />
-              </EffectComposer>
-            )}
-          </Suspense>
-        </Canvas>
-      </div>
+      {canvasContent}
     </>
   );
 };

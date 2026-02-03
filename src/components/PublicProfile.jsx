@@ -91,18 +91,7 @@ const PublicProfile = () => {
     }
   }, [activeTab, uploadType, favoriteType, isOwner]);
 
-  const fetchUploads = async () => {
-      setLoadingUploads(true);
-      try {
-          const res = await api.get(`/${uploadType}?uploader_id=${currentUser.id}&status=all&limit=50`);
-          setUploads(res.data.data || []);
-      } catch (err) {
-          console.error(err);
-          toast.error(t('common.error_fetching_data'));
-      } finally {
-          setLoadingUploads(false);
-      }
-  };
+
 
   const fetchFavorites = async () => {
       setLoadingFavorites(true);
@@ -200,13 +189,7 @@ const PublicProfile = () => {
     );
   }
 
-  const typeOptions = [
-      { value: 'photos', label: t('nav.gallery'), icon: Image },
-      { value: 'music', label: t('nav.music'), icon: Music },
-      { value: 'videos', label: t('nav.videos'), icon: Film },
-      { value: 'articles', label: t('nav.articles'), icon: FileText },
-      { value: 'events', label: t('nav.events'), icon: Calendar },
-  ];
+
 
   const favoriteTypeOptions = [
       { value: 'photo', label: t('nav.gallery'), icon: Image },
@@ -217,25 +200,25 @@ const PublicProfile = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] pt-24 pb-12 px-4 md:px-8">
+    <div className="min-h-screen bg-[#0a0a0a] pt-20 pb-20 px-3 md:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Profile Header */}
-        <div className="glass-panel rounded-3xl p-8 md:p-12 mb-8 relative overflow-hidden">
+        <div className="glass-panel rounded-[2rem] p-5 md:p-12 mb-6 md:mb-8 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 blur-3xl -z-10" />
           
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8">
             {/* Avatar */}
-            <div className="relative group">
-              <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white/10 shadow-2xl">
+            <div className="relative group shrink-0">
+              <div className="w-24 h-24 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white/10 shadow-2xl">
                 {user.avatar ? (
                   <img src={user.avatar} alt={user.nickname || user.username} className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-4xl font-bold text-white">
+                  <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-3xl md:text-4xl font-bold text-white">
                     {(user.nickname || user.username || '?').charAt(0).toUpperCase()}
                   </div>
                 )}
               </div>
-              <div className="absolute -bottom-2 -right-2 bg-black/80 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full text-xs font-medium text-indigo-400 uppercase tracking-wider">
+              <div className="absolute -bottom-2 -right-2 bg-black/80 backdrop-blur-md border border-white/10 px-2 py-0.5 md:px-3 md:py-1 rounded-full text-[10px] md:text-xs font-medium text-indigo-400 uppercase tracking-wider">
                 {user.role}
               </div>
             </div>
@@ -243,38 +226,40 @@ const PublicProfile = () => {
             {/* Info */}
             <div className="flex-1 text-center md:text-left w-full">
               <div className="flex flex-col md:flex-row items-center md:justify-between gap-4 mb-4">
-                  <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight">
+                  <h1 className="text-2xl md:text-5xl font-bold text-white tracking-tight">
                     {user.nickname || user.username}
                   </h1>
                   {isOwner && (
                       <button 
-                        onClick={handleLogout}
-                        className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-full font-medium transition-all active:scale-95 border border-red-500/20"
+                        onClick={() => navigate('/settings')}
+                        className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full text-sm font-medium text-white transition-colors flex items-center gap-2"
                       >
-                        <LogOut size={16} />
-                        <span>{t('user_profile.logout')}</span>
+                        <Settings size={16} />
+                        {t('user_profile.edit_profile')}
                       </button>
                   )}
               </div>
               
-              <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm text-gray-400 mb-6">
-                {user.organization_cr && (
-                  <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
-                    <Briefcase size={14} />
-                    <span>{user.organization_cr}</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
-                  <Calendar size={14} />
-                  <span>{t('user_profile.profile.joined')} {new Date(user.created_at).toLocaleDateString()}</span>
+              {user.organization_cr && (
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs md:text-sm font-medium mb-6">
+                  <Briefcase size={14} />
+                  {user.organization_cr}
                 </div>
-              </div>
+              )}
 
               {/* Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-lg mx-auto md:mx-0">
-                <div className="bg-white/5 rounded-2xl p-4 text-center border border-white/5">
-                  <div className="text-2xl font-bold text-white mb-1">{resources.length}</div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wider">{t('user_profile.stats.works')}</div>
+              <div className="flex items-center justify-center md:justify-start gap-6 md:gap-12 border-t border-white/5 pt-6">
+                <div className="text-center md:text-left">
+                  <div className="text-lg md:text-2xl font-bold text-white mb-0.5 md:mb-1">{resources.reduce((acc, curr) => acc + (curr.views || 0), 0)}</div>
+                  <div className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wider">{t('user_profile.stats.views')}</div>
+                </div>
+                <div className="text-center md:text-left">
+                  <div className="text-lg md:text-2xl font-bold text-white mb-0.5 md:mb-1">{resources.reduce((acc, curr) => acc + (curr.likes || 0), 0)}</div>
+                  <div className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wider">{t('user_profile.stats.likes')}</div>
+                </div>
+                <div className="text-center md:text-left">
+                  <div className="text-lg md:text-2xl font-bold text-white mb-0.5 md:mb-1">{resources.length}</div>
+                  <div className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wider">{t('user_profile.stats.works')}</div>
                 </div>
               </div>
             </div>
@@ -282,7 +267,7 @@ const PublicProfile = () => {
         </div>
 
         {/* Tabs */}
-        <div className="mb-8 flex overflow-x-auto pb-2 custom-scrollbar gap-2">
+        <div className="mb-6 flex overflow-x-auto pb-2 custom-scrollbar gap-2 px-1">
             <button
                 onClick={() => setActiveTab('published')}
                 className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
@@ -297,17 +282,7 @@ const PublicProfile = () => {
             
             {isOwner && (
                 <>
-                    <button
-                        onClick={() => setActiveTab('uploads')}
-                        className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
-                            activeTab === 'uploads' 
-                            ? 'bg-white text-black' 
-                            : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
-                        }`}
-                    >
-                        <Upload size={18} />
-                        {t('user_profile.tabs.uploads')}
-                    </button>
+
                     <button
                         onClick={() => setActiveTab('favorites')}
                         className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
@@ -350,7 +325,18 @@ const PublicProfile = () => {
                         animate={{ opacity: 1, y: 0 }}
                         className="break-inside-avoid relative group rounded-xl md:rounded-2xl overflow-hidden bg-white/5 border border-white/10 hover:border-indigo-500/30 transition-all duration-300"
                       >
-                        <div className="aspect-w-16 aspect-h-9 bg-black/50">
+                        <div className="aspect-w-16 aspect-h-9 bg-black/50 relative">
+                           {isOwner && item.status && (
+                             <div className="absolute top-2 right-2 z-20">
+                               <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase backdrop-blur-md shadow-lg ${
+                                 item.status === 'approved' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 
+                                 item.status === 'rejected' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 
+                                 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                               }`}>
+                                 {t(`user_profile.uploads.status.${item.status}`) || item.status}
+                               </span>
+                             </div>
+                           )}
                            {(item.type === 'photos' || item.type === 'events') && (
                               <SmartImage src={item.url || item.image} alt={item.title} className="w-full h-full object-cover" />
                            )}
@@ -389,58 +375,7 @@ const PublicProfile = () => {
                 )
             )}
 
-            {isOwner && activeTab === 'uploads' && (
-                <div className="space-y-6">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-xl font-bold text-white">{t('user_profile.uploads.title')}</h3>
-                        <div className="w-40">
-                          <Dropdown
-                              value={uploadType}
-                              onChange={setUploadType}
-                              options={typeOptions}
-                              buttonClassName="bg-black/40 border-white/10 w-full"
-                          />
-                        </div>
-                    </div>
 
-                    {loadingUploads ? (
-                        <div className="flex justify-center py-12">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
-                        </div>
-                    ) : uploads.length === 0 ? (
-                        <div className="text-center py-12 text-gray-500 bg-black/20 rounded-xl border border-white/5 border-dashed">
-                            <Upload size={48} className="mx-auto mb-4 opacity-20" />
-                            <p>{t('user_profile.uploads.no_uploads')}</p>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-                            {uploads.map(item => (
-                                <div key={item.id} className="flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-colors">
-                                    <div className="w-14 h-14 md:w-16 md:h-16 rounded-lg bg-black/50 overflow-hidden flex-shrink-0">
-                                        <img 
-                                          src={item.cover || item.thumbnail || item.url || item.image} 
-                                          alt={item.title}
-                                          className="w-full h-full object-cover"
-                                        />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <h4 className="font-bold text-white truncate">{item.title}</h4>
-                                        <p className="text-xs text-gray-500 truncate">{new Date(item.created_at || Date.now()).toLocaleDateString()}</p>
-                                    </div>
-                                    <div className="flex-shrink-0">
-                                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${
-                                            item.status === 'approved' ? 'bg-green-500/20 text-green-400' : 
-                                            item.status === 'rejected' ? 'bg-red-500/20 text-red-400' : 'bg-yellow-500/20 text-yellow-400'
-                                        }`}>
-                                            {t(`user_profile.uploads.status.${item.status}`) || item.status}
-                                        </span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            )}
 
             {isOwner && activeTab === 'favorites' && (
                 <div className="space-y-6">

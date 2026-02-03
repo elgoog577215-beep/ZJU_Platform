@@ -98,9 +98,22 @@ const getUserResources = async (req, res) => {
         const { id } = req.params;
         const tables = ['photos', 'videos', 'music', 'articles', 'events'];
         let allResources = [];
+        
+        // Check if requester is the owner
+        const isOwner = req.user && String(req.user.id) === String(id);
 
         for (const table of tables) {
-            const resources = await db.all(`SELECT *, '${table}' as type FROM ${table} WHERE uploader_id = ? AND status = 'approved' ORDER BY id DESC`, [id]);
+            let query = `SELECT *, '${table}' as type FROM ${table} WHERE uploader_id = ?`;
+            const params = [id];
+
+            // If not owner, only show approved
+            if (!isOwner) {
+                query += ` AND status = 'approved'`;
+            }
+            
+            query += ` ORDER BY id DESC`;
+
+            const resources = await db.all(query, params);
             allResources = [...allResources, ...resources];
         }
 

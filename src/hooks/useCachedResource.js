@@ -97,13 +97,19 @@ export const useCachedResource = (endpoint, params = {}, options = {}) => {
                 setPagination(newPagination);
                 setError(null);
 
-                // Save to cache
-                const cachePayload = {
-                    data: newData,
-                    pagination: newPagination,
-                    timestamp: Date.now()
-                };
-                localStorage.setItem(cacheKey, JSON.stringify(cachePayload));
+                // Save to cache (non-blocking)
+                setTimeout(() => {
+                    try {
+                        const cachePayload = {
+                            data: newData,
+                            pagination: newPagination,
+                            timestamp: Date.now()
+                        };
+                        localStorage.setItem(cacheKey, JSON.stringify(cachePayload));
+                    } catch (e) {
+                        console.warn('Failed to save to cache', e);
+                    }
+                }, 0);
             } catch (err) {
                 console.error(`Fetch error for ${endpoint}`, err);
                 if (!hasCache) {

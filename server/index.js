@@ -11,12 +11,33 @@ const { getDb } = require('./src/config/db');
 const apiRoutes = require('./src/routes/api');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 
 // Security & Optimization Middleware
 app.use(compression());
+
+// Enhanced Security Headers
 app.use(helmet({
-  crossOriginResourcePolicy: false, // Allow loading resources (images) from localhost
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // 'unsafe-eval' required for some dev tools
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+      imgSrc: ["'self'", "data:", "blob:", "https:", "*"], // Allow external images
+      connectSrc: ["'self'", "https:", "ws:", "wss:"], // Allow WebSocket for HMR
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'", "https:", "data:", "blob:"],
+      frameSrc: ["'self'", "https:"],
+      upgradeInsecureRequests: [],
+    },
+  },
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true,
+  },
 }));
 
 // Trust proxy for correct protocol/secure cookies behind Nginx/ALB
@@ -90,6 +111,7 @@ getDb().then(async (db) => {
       link TEXT,
       featured BOOLEAN DEFAULT 0,
       likes INTEGER DEFAULT 0,
+      views INTEGER DEFAULT 0,
       volunteer_time TEXT
     );
     CREATE TABLE IF NOT EXISTS comments (
@@ -125,6 +147,7 @@ getDb().then(async (db) => {
       gameDescription TEXT,
       featured BOOLEAN DEFAULT 0,
       likes INTEGER DEFAULT 0,
+      views INTEGER DEFAULT 0,
       status TEXT DEFAULT 'pending',
       uploader_id INTEGER
     );
@@ -137,6 +160,7 @@ getDb().then(async (db) => {
       audio TEXT,
       featured BOOLEAN DEFAULT 0,
       likes INTEGER DEFAULT 0,
+      views INTEGER DEFAULT 0,
       status TEXT DEFAULT 'pending',
       uploader_id INTEGER
     );
@@ -147,6 +171,7 @@ getDb().then(async (db) => {
       video TEXT,
       featured BOOLEAN DEFAULT 0,
       likes INTEGER DEFAULT 0,
+      views INTEGER DEFAULT 0,
       status TEXT DEFAULT 'pending',
       uploader_id INTEGER
     );
@@ -160,6 +185,7 @@ getDb().then(async (db) => {
       cover TEXT,
       featured BOOLEAN DEFAULT 0,
       likes INTEGER DEFAULT 0,
+      views INTEGER DEFAULT 0,
       status TEXT DEFAULT 'pending',
       uploader_id INTEGER
     );
@@ -300,12 +326,115 @@ getDb().then(async (db) => {
       console.error('Event status migration failed:', e);
   }
 
-  console.log('Database initialized');
+  // Migration: Add views column if missing
+  const migrationTables = ['events', 'photos', 'music', 'videos', 'articles'];
+  for (const table of migrationTables) {
+    try {
+      const columns = await db.all(`PRAGMA table_info(${table})`);
+      const hasViews = columns.some(col => col.name === 'views');
+      if (!hasViews) {
+        console.log(`Adding views column to ${table}...`);
+        await db.run(`ALTER TABLE ${table} ADD COLUMN views INTEGER DEFAULT 0`);
+      }
+    } catch (err) {
+      console.error(`Migration error for ${table}:`, err);
+    }
+  }
+
+  // Check and Fix comments table schema (item_id -> resource_id)
+    try {
+      const columns = await db.all("PRAGMA table_info(comments)");
+      const columnNames = columns.map(c => c.name);
+      console.log('[Migration] Current comments table columns:', columnNames);
+
+      const hasResourceId = columnNames.includes('resource_id');
+      const hasItemId = columnNames.includes('item_id');
+      const hasResourceType = columnNames.includes('resource_type');
+      
+      if (!hasResourceId) {
+         if (hasItemId) {
+            console.log('[Migration] Renaming item_id to resource_id in comments table');
+            await db.exec('ALTER TABLE comments RENAME COLUMN item_id TO resource_id');
+         } else {
+            console.log('[Migration] Adding missing resource_id column to comments table');
+             await db.exec('ALTER TABLE comments ADD COLUMN resource_id INTEGER');
+          }
+        }
+
+        // Migrate data from articleId if it exists (run this check regardless of column creation)
+        if (columnNames.includes('articleId')) {
+             // Only update if we have null resource_ids
+             const check = await db.get("SELECT count(*) as count FROM comments WHERE resource_id IS NULL AND articleId IS NOT NULL");
+             if (check && check.count > 0) {
+                 console.log(`[Migration] Migrating ${check.count} records from articleId to resource_id`);
+                 await db.exec("UPDATE comments SET resource_id = articleId, resource_type = 'article' WHERE articleId IS NOT NULL AND resource_id IS NULL");
+             }
+        }
+  
+        if (!hasResourceType) {
+           console.log('[Migration] Adding missing resource_type column to comments table');
+           await db.exec('ALTER TABLE comments ADD COLUMN resource_type TEXT');
+       }
+
+       // Check for created_at vs date
+       const hasCreatedAt = columnNames.includes('created_at');
+       const hasDate = columnNames.includes('date');
+       
+       if (!hasCreatedAt) {
+           if (hasDate) {
+               console.log('[Migration] Renaming date to created_at in comments table');
+               await db.exec('ALTER TABLE comments RENAME COLUMN date TO created_at');
+           } else {
+               console.log('[Migration] Adding missing created_at column to comments table');
+               await db.exec('ALTER TABLE comments ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP');
+           }
+       }
+
+    } catch (e) {
+      console.error('[Migration] Failed to migrate comments table:', e);
+    }
+
+    // Check and Fix notifications table schema
+    try {
+      const columns = await db.all("PRAGMA table_info(notifications)");
+      const columnNames = columns.map(c => c.name);
+      console.log('[Migration] Current notifications table columns:', columnNames);
+
+      if (!columnNames.includes('related_resource_id')) {
+           console.log('[Migration] Adding missing related_resource_id column to notifications table');
+           await db.exec('ALTER TABLE notifications ADD COLUMN related_resource_id INTEGER');
+       }
+       
+       // Migrate data from resource_id if it exists (run independent of column creation)
+       if (columnNames.includes('resource_id')) {
+          const check = await db.get("SELECT count(*) as count FROM notifications WHERE related_resource_id IS NULL AND resource_id IS NOT NULL");
+          if (check && check.count > 0) {
+              console.log(`[Migration] Migrating ${check.count} records from resource_id to related_resource_id in notifications`);
+              await db.exec("UPDATE notifications SET related_resource_id = resource_id WHERE related_resource_id IS NULL AND resource_id IS NOT NULL");
+          }
+       }
+ 
+       if (!columnNames.includes('related_resource_type')) {
+           console.log('[Migration] Adding missing related_resource_type column to notifications table');
+           await db.exec('ALTER TABLE notifications ADD COLUMN related_resource_type TEXT');
+       }
+
+       // Migrate data from resource_type if it exists
+       if (columnNames.includes('resource_type')) {
+          const check = await db.get("SELECT count(*) as count FROM notifications WHERE related_resource_type IS NULL AND resource_type IS NOT NULL");
+          if (check && check.count > 0) {
+              console.log(`[Migration] Migrating ${check.count} records from resource_type to related_resource_type in notifications`);
+              await db.exec("UPDATE notifications SET related_resource_type = resource_type WHERE related_resource_type IS NULL AND resource_type IS NOT NULL");
+          }
+       }
+    } catch (e) {
+      console.error('[Migration] Failed to migrate notifications table:', e);
+    }
+
+    console.log('Database initialized');
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
 }).catch(err => {
   console.error('Database initialization failed:', err);
-});
-
-// Start Server
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
 });

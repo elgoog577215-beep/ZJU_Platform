@@ -1,9 +1,10 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Lightbox from './Lightbox';
 import Pagination from './Pagination';
-import { Play, Box, Upload, AlertCircle } from 'lucide-react';
+import { Play, Box, Upload, AlertCircle, Eye } from 'lucide-react';
 import FavoriteButton from './FavoriteButton';
+import ViewCounter from './ViewCounter';
 import { useTranslation } from 'react-i18next';
 import UploadModal from './UploadModal';
 import { useSettings } from '../context/SettingsContext';
@@ -16,6 +17,33 @@ import TagFilter from './TagFilter';
 
 import { useBackClose } from '../hooks/useBackClose';
 import { useCachedResource } from '../hooks/useCachedResource';
+import { getThumbnailUrl } from '../utils/imageUtils';
+
+const PhotoCard = memo(({ photo, index, onClick }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ duration: 0.3 }}
+      className="break-inside-avoid relative group overflow-hidden rounded-2xl cursor-pointer card-standard hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all duration-500 w-full inline-block touch-manipulation mb-4 md:mb-6"
+      onClick={() => onClick(index)}
+    >
+      <SmartImage 
+        src={getThumbnailUrl(photo.url)} 
+        alt={photo.title} 
+        type="image"
+        className="w-full h-auto"
+        imageClassName="h-auto object-cover transform transition-transform duration-700 group-hover:scale-110"
+      />
+      
+      {/* Hover Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-6">
+        <h3 className="text-lg font-bold text-white translate-y-4 group-hover:translate-y-0 transition-transform duration-500 delay-75 drop-shadow-md line-clamp-2">{photo.title}</h3>
+      </div>
+    </motion.div>
+  );
+});
 
 const Gallery = () => {
   const [searchParams] = useSearchParams();
@@ -101,6 +129,32 @@ const Gallery = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleToggleFavorite = useCallback((photoId, favorited, likes) => {
+    setPhotos(prev => prev.map(p => 
+        p.id === photoId ? { ...p, likes: likes !== undefined ? likes : p.likes, favorited } : p
+    ));
+    
+    setTempPhoto(prev => {
+        if (prev && prev.id === photoId) {
+             return { ...prev, likes: likes !== undefined ? likes : prev.likes, favorited };
+        }
+        return prev;
+    });
+  }, [setPhotos]);
+
+  const handleViewsUpdate = useCallback((id, newViews) => {
+    setPhotos(prev => prev.map(p => 
+        p.id === id ? { ...p, views: newViews } : p
+    ));
+    
+    setTempPhoto(prev => {
+        if (prev && prev.id === id) {
+             return { ...prev, views: newViews };
+        }
+        return prev;
+    });
+  }, [setPhotos]);
+
   return (
     <section className="pt-24 pb-40 md:py-20 px-4 md:px-8 min-h-screen">
       <motion.div 
@@ -131,9 +185,9 @@ const Gallery = () => {
         </motion.div>
 
         {loading && photos.length === 0 ? (
-          <div className="columns-2 md:columns-3 lg:columns-4 gap-4 md:gap-6 max-w-7xl mx-auto space-y-4 md:space-y-6">
+          <div className="columns-2 md:columns-3 lg:columns-4 gap-4 md:gap-6 max-w-7xl mx-auto">
              {[1,2,3,4,5,6,7,8].map(i => (
-                 <div key={i} className="bg-white/5 rounded-2xl h-48 md:h-80 animate-pulse break-inside-avoid w-full inline-block" />
+                 <div key={i} className="bg-white/5 rounded-2xl h-48 md:h-80 animate-pulse break-inside-avoid w-full inline-block mb-4 md:mb-6" />
              ))}
           </div>
         ) : error ? (
@@ -170,6 +224,12 @@ const Gallery = () => {
                 {/* Hover Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-6">
                   <h3 className="text-lg font-bold text-white translate-y-4 group-hover:translate-y-0 transition-transform duration-500 delay-75 drop-shadow-md line-clamp-2">{photo.title}</h3>
+                  {photo.views > 0 && (
+                      <div className="flex items-center gap-1.5 text-gray-300 text-xs mt-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-500 delay-100">
+                          <Eye size={14} />
+                          <span>{photo.views}</span>
+                      </div>
+                  )}
                 </div>
               </motion.div>
             ))}
@@ -201,15 +261,8 @@ const Gallery = () => {
                     setTempPhoto(photo);
                 }
             }}
-            onLikeToggle={(favorited, likes) => {
-                if (selectedPhotoIndex !== null) {
-                    setPhotos(prev => prev.map(p => 
-                        p.id === photos[selectedPhotoIndex].id ? { ...p, likes: likes !== undefined ? likes : p.likes, favorited } : p
-                    ));
-                } else if (tempPhoto) {
-                    setTempPhoto(prev => ({ ...prev, likes: likes !== undefined ? likes : prev.likes, favorited }));
-                }
-            }}
+            onLikeToggle={handleToggleFavorite}
+            onViewsUpdate={handleViewsUpdate}
           />
         )}
       </AnimatePresence>

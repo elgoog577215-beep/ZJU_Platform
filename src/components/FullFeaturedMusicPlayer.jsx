@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { motion } from 'framer-motion';
 import { Play, Pause, SkipForward, SkipBack, Music as MusicIcon, Volume2, VolumeX } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -6,6 +6,7 @@ import { useMusic } from '../context/MusicContext';
 import api from '../services/api';
 import SmartImage from './SmartImage';
 import FavoriteButton from './FavoriteButton';
+import { getThumbnailUrl } from '../utils/imageUtils';
 
 const formatTime = (seconds) => {
   const mins = Math.floor(seconds / 60);
@@ -13,7 +14,7 @@ const formatTime = (seconds) => {
   return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 };
 
-const FullFeaturedMusicPlayer = ({ tracks = [] }) => {
+const FullFeaturedMusicPlayer = memo(({ tracks = [] }) => {
   const { t } = useTranslation();
   const { currentTrack, isPlaying, playTrack, togglePlay, nextTrack, prevTrack, audioRef } = useMusic();
   
@@ -189,7 +190,7 @@ const FullFeaturedMusicPlayer = ({ tracks = [] }) => {
                 transition={{ duration: 3, repeat: Infinity, ease: "linear", paused: !isPlaying }}
                 className="relative w-28 h-28 md:w-36 md:h-36 rounded-full border-4 border-white/20 shadow-2xl overflow-hidden mb-4"
             >
-                <SmartImage src={displayTrack.cover} alt={displayTrack.title} type="music" className="w-full h-full" iconSize={32} />
+                <SmartImage src={getThumbnailUrl(displayTrack.cover)} alt={displayTrack.title} type="music" className="w-full h-full" iconSize={32} />
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <div className="w-3 h-3 bg-black rounded-full border-2 border-white/20" />
                 </div>
@@ -284,6 +285,6 @@ const FullFeaturedMusicPlayer = ({ tracks = [] }) => {
 
     </div>
   );
-};
+});
 
 export default FullFeaturedMusicPlayer;

@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Film, X, Upload, AlertCircle } from 'lucide-react';
+import { Play, Film, X, Upload, AlertCircle, Eye } from 'lucide-react';
 import UploadModal from './UploadModal';
 import FavoriteButton from './FavoriteButton';
+import ViewCounter from './ViewCounter';
 import SmartImage from './SmartImage';
 import { useTranslation } from 'react-i18next';
 import Pagination from './Pagination';
@@ -13,6 +14,61 @@ import { useSearchParams } from 'react-router-dom';
 import { useBackClose } from '../hooks/useBackClose';
 import { useCachedResource } from '../hooks/useCachedResource';
 import TagFilter from './TagFilter';
+import { getThumbnailUrl } from '../utils/imageUtils';
+
+const VideoCard = memo(({ video, index, onClick, onToggleFavorite }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      transition={{ delay: index * 0.1 }}
+      viewport={{ once: true }}
+      onClick={() => onClick(video)}
+      className="group relative aspect-video rounded-2xl overflow-hidden bg-gray-900 cursor-pointer"
+    >
+      <SmartImage 
+        src={getThumbnailUrl(video.thumbnail)} 
+        alt={video.title} 
+        type="video"
+        className="w-full h-full"
+        imageClassName="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100"
+        iconSize={48}
+      />
+      
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-300" />
+      
+      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30 shadow-[0_0_30px_rgba(255,255,255,0.2)] group-hover:scale-110 transition-transform duration-300">
+          <Play size={40} fill="white" className="text-white ml-2" />
+        </div>
+      </div>
+
+      <div className="absolute bottom-0 left-0 w-full p-6 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+        <div className="flex justify-between items-end">
+          <div>
+            <h3 className="text-xl font-bold text-white">{video.title}</h3>
+             <div className="flex items-center gap-1.5 text-xs text-gray-300 mt-1 opacity-80">
+                <Eye size={14} />
+                {video.views || 0}
+             </div>
+          </div>
+          
+          <FavoriteButton 
+            itemId={video.id}
+            itemType="video"
+            size={18}
+            showCount={true}
+            count={video.likes || 0}
+            favorited={video.favorited}
+            initialFavorited={video.favorited}
+            className="p-2 bg-black/50 hover:bg-pink-500/20 rounded-full backdrop-blur-md transition-colors group/btn border border-white/10"
+            onToggle={(favorited, likes) => onToggleFavorite(video.id, favorited, likes)}
+          />
+        </div>
+      </div>
+    </motion.div>
+  );
+});
 
 const Videos = () => {
   const { t } = useTranslation();
@@ -76,7 +132,31 @@ const Videos = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleToggleFavorite = useCallback((videoId, favorited, likes) => {
+    setVideos(prev => prev.map(v => 
+        v.id === videoId ? { ...v, likes: likes !== undefined ? likes : v.likes, favorited } : v
+    ));
+    
+    setSelectedVideo(prev => {
+        if (prev && prev.id === videoId) {
+           return { ...prev, likes: likes !== undefined ? likes : prev.likes, favorited };
+        }
+        return prev;
+    });
+  }, [setVideos, setSelectedVideo]);
 
+  const handleViewsUpdate = useCallback((id, newViews) => {
+    setVideos(prev => prev.map(v => 
+        v.id === id ? { ...v, views: newViews } : v
+    ));
+    
+    setSelectedVideo(prev => {
+        if (prev && prev.id === id) {
+           return { ...prev, views: newViews };
+        }
+        return prev;
+    });
+  }, [setVideos, setSelectedVideo]);
 
   return (
     <section className="pt-24 pb-40 md:py-24 px-4 md:px-8 min-h-screen flex items-center justify-center relative z-10">
@@ -136,56 +216,13 @@ const Videos = () => {
           ) : (
           <>
           {videos.map((video, index) => (
-            <motion.div
+            <VideoCard
               key={video.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.1 }}
-              viewport={{ once: true }}
-              onClick={() => setSelectedVideo(video)}
-              className="group relative aspect-video rounded-2xl overflow-hidden bg-gray-900 cursor-pointer"
-            >
-              <SmartImage 
-                src={video.thumbnail} 
-                alt={video.title} 
-                type="video"
-                className="w-full h-full"
-                imageClassName="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100"
-                iconSize={48}
-              />
-              
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-300" />
-              
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30 shadow-[0_0_30px_rgba(255,255,255,0.2)] group-hover:scale-110 transition-transform duration-300">
-                  <Play size={40} fill="white" className="text-white ml-2" />
-                </div>
-              </div>
-
-              <div className="absolute bottom-0 left-0 w-full p-6 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                <div className="flex justify-between items-end">
-                  <div>
-                    <h3 className="text-xl font-bold text-white">{video.title}</h3>
-                  </div>
-                  
-                  <FavoriteButton 
-                    itemId={video.id}
-                    itemType="video"
-                    size={18}
-                    showCount={true}
-                    count={video.likes || 0}
-                    favorited={video.favorited}
-                    initialFavorited={video.favorited}
-                    className="p-2 bg-black/50 hover:bg-pink-500/20 rounded-full backdrop-blur-md transition-colors group/btn border border-white/10"
-                    onToggle={(favorited, likes) => {
-                        setVideos(prev => prev.map(v => 
-                            v.id === video.id ? { ...v, likes: likes !== undefined ? likes : v.likes, favorited } : v
-                        ));
-                    }}
-                  />
-                </div>
-              </div>
-            </motion.div>
+              video={video}
+              index={index}
+              onClick={setSelectedVideo}
+              onToggleFavorite={handleToggleFavorite}
+            />
           ))}
           </>
           )}
@@ -242,9 +279,17 @@ const Videos = () => {
                 <div className="p-6 bg-[#111] border-t border-white/10 flex justify-between items-center">
                     <div>
                         <h3 className="text-2xl font-bold text-white mb-1">{selectedVideo.title}</h3>
-                        {selectedVideo.created_at && (
-                          <p className="text-gray-400 text-sm">{new Date(selectedVideo.created_at).toLocaleDateString()}</p>
-                        )}
+                        <div className="flex items-center gap-4 text-gray-400 text-sm">
+                            {selectedVideo.created_at && (
+                            <p>{new Date(selectedVideo.created_at).toLocaleDateString()}</p>
+                            )}
+                            <ViewCounter 
+                                type="video" 
+                                item={selectedVideo} 
+                                onViewsUpdate={handleViewsUpdate}
+                                className="text-gray-400"
+                            />
+                        </div>
                     </div>
                     <FavoriteButton 
                       itemId={selectedVideo.id}
@@ -254,14 +299,7 @@ const Videos = () => {
                       count={selectedVideo.likes || 0}
                       favorited={selectedVideo.favorited}
                       className="p-3 bg-white/5 hover:bg-pink-500/20 rounded-full transition-colors border border-white/10"
-                      onToggle={(favorited, likes) => {
-                          // Update selected video state
-                          setSelectedVideo(prev => ({ ...prev, likes: likes !== undefined ? likes : prev.likes, favorited }));
-                          // Update list state
-                          setVideos(prev => prev.map(v => 
-                              v.id === selectedVideo.id ? { ...v, likes: likes !== undefined ? likes : v.likes, favorited } : v
-                          ));
-                      }}
+                      onToggle={(favorited, likes) => handleToggleFavorite(selectedVideo.id, favorited, likes)}
                     />
                 </div>
               </div>

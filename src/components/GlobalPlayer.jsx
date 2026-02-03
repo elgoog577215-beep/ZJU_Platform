@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, memo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, SkipBack, SkipForward, X, Music, Volume2, Maximize2, VolumeX, Minimize2 } from 'lucide-react';
 import { useMusic } from '../context/MusicContext';
 import { useLocation } from 'react-router-dom';
 
-// Simple Audio Visualizer Component
-const Visualizer = ({ isPlaying }) => {
+// Simple Audio Visualizer Component - Memoized
+const Visualizer = memo(({ isPlaying }) => {
   return (
     <div className="flex items-end justify-center gap-1 h-8 w-full mb-2 opacity-50">
       {[...Array(20)].map((_, i) => (
@@ -26,7 +26,87 @@ const Visualizer = ({ isPlaying }) => {
       ))}
     </div>
   );
-};
+});
+
+// Memoized Player Info Component
+const PlayerInfo = memo(({ currentTrack, isPlaying, onClose }) => {
+  return (
+    <div className="flex items-center gap-4 relative z-10 mb-2">
+        {/* Drag Handle Indicator */}
+        <div className="w-1 h-8 bg-white/10 rounded-full cursor-grab active:cursor-grabbing hover:bg-white/20 transition-colors" />
+        
+        {/* Cover Art */}
+        <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 relative group shadow-lg">
+        <img 
+            src={currentTrack.cover} 
+            alt={currentTrack.title} 
+            className={`w-full h-full object-cover ${isPlaying ? 'animate-[spin_4s_linear_infinite]' : ''}`} 
+        />
+        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <Music size={16} className="text-white" />
+        </div>
+        </div>
+
+        {/* Info & Close */}
+        <div className="flex-1 min-w-0">
+        <div className="flex justify-between items-start">
+            <div className="truncate pr-2">
+            <h4 className="font-bold text-white text-sm truncate leading-tight">{currentTrack.title}</h4>
+            <p className="text-[10px] text-gray-400 truncate uppercase tracking-wider">{currentTrack.artist}</p>
+            </div>
+            <button onClick={onClose} className="p-1.5 -mr-1 text-gray-400 hover:text-white hover:bg-white/10 rounded-full active:scale-95 transition-all">
+            <X size={16} />
+            </button>
+        </div>
+        </div>
+    </div>
+  );
+});
+
+// Memoized Progress Bar Component
+const ProgressBar = memo(({ progress, duration, onSeek }) => {
+  const formatTime = (time) => {
+    if (!time) return "0:00";
+    const mins = Math.floor(time / 60);
+    const secs = Math.floor(time % 60);
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
+
+  return (
+    <div className="flex items-center gap-2 mb-2 relative z-10 px-1">
+        <span className="text-[9px] text-gray-500 font-mono w-6 text-right">{formatTime(progress)}</span>
+        <input
+        type="range"
+        min="0"
+        max={duration || 100}
+        value={progress}
+        onChange={onSeek}
+        className="flex-1 h-0.5 bg-white/20 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2 [&::-webkit-slider-thumb]:h-2 [&::-webkit-slider-thumb]:bg-cyan-500 [&::-webkit-slider-thumb]:rounded-full hover:[&::-webkit-slider-thumb]:scale-125 transition-all"
+        />
+        <span className="text-[9px] text-gray-500 font-mono w-6">{formatTime(duration)}</span>
+    </div>
+  );
+});
+
+// Memoized Controls Component
+const PlayerControls = memo(({ isPlaying, onPlayPause, onNext, onPrev }) => {
+  return (
+    <div className="flex items-center justify-center gap-2 relative z-10">
+        <button onClick={onPrev} className="p-2 hover:bg-white/10 rounded-full text-white transition-colors">
+            <SkipBack size={18} />
+        </button>
+        <button 
+            onClick={onPlayPause} 
+            className="p-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white rounded-full transition-all hover:scale-105 shadow-[0_0_15px_rgba(6,182,212,0.5)]"
+        >
+            {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" className="ml-0.5" />}
+        </button>
+        <button onClick={onNext} className="p-2 hover:bg-white/10 rounded-full text-white transition-colors">
+            <SkipForward size={18} />
+        </button>
+    </div>
+  );
+});
 
 const GlobalPlayer = () => {
   const { currentTrack, isPlaying, togglePlay, nextTrack, prevTrack, audioRef, isMiniPlayerVisible, setIsMiniPlayerVisible } = useMusic();
@@ -36,6 +116,7 @@ const GlobalPlayer = () => {
 
   useEffect(() => {
     const audio = audioRef.current;
+    if (!audio) return;
     
     const updateProgress = () => {
       setProgress(audio.currentTime);
@@ -51,18 +132,17 @@ const GlobalPlayer = () => {
     };
   }, [audioRef]);
 
-  const formatTime = (time) => {
-    if (!time) return "0:00";
-    const mins = Math.floor(time / 60);
-    const secs = Math.floor(time % 60);
-    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-  };
-
-  const handleSeek = (e) => {
+  const handleSeek = useCallback((e) => {
     const newTime = parseFloat(e.target.value);
-    audioRef.current.currentTime = newTime;
-    setProgress(newTime);
-  };
+    if (audioRef.current) {
+        audioRef.current.currentTime = newTime;
+        setProgress(newTime);
+    }
+  }, [audioRef]);
+
+  const handleClose = useCallback(() => {
+    setIsMiniPlayerVisible(false);
+  }, [setIsMiniPlayerVisible]);
 
   const [isMobile, setIsMobile] = useState(false);
 
@@ -80,12 +160,12 @@ const GlobalPlayer = () => {
   if (isMobile) {
       return (
         <motion.div
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-4 right-4 z-[90] pointer-events-none"
+            initial={{ y: 100, opacity: 0, scale: 0.9 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 100, opacity: 0, scale: 0.9 }}
+            className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] left-4 right-4 z-[90] pointer-events-none"
         >
-            <div className="bg-[#1a1a1a]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-3 flex items-center justify-between shadow-2xl pointer-events-auto">
+            <div className="bg-black/60 backdrop-blur-2xl border border-white/10 rounded-full p-2 pr-4 flex items-center justify-between shadow-[0_8px_32px_rgba(0,0,0,0.5)] pointer-events-auto ring-1 ring-white/5">
                 <div className="flex items-center gap-3 overflow-hidden">
                     <div 
                         className="relative w-10 h-10 rounded-full border border-white/10 overflow-hidden shrink-0 animate-[spin_4s_linear_infinite]"
@@ -100,30 +180,30 @@ const GlobalPlayer = () => {
                             <div className="w-1.5 h-1.5 bg-black rounded-full border border-white/20" />
                         </div>
                     </div>
-                    <div className="flex flex-col overflow-hidden">
+                    <div className="flex flex-col overflow-hidden max-w-[120px]">
                         <span className="text-white font-bold text-sm truncate">{currentTrack.title}</span>
-                        <span className="text-cyan-400 text-xs truncate">{currentTrack.artist}</span>
+                        <span className="text-gray-400 text-[10px] truncate">{currentTrack.artist}</span>
                     </div>
                 </div>
                 
-                <div className="flex items-center gap-3 shrink-0 pl-2">
+                <div className="flex items-center gap-2 shrink-0 pl-2">
                      <button 
                         onClick={(e) => { e.stopPropagation(); togglePlay(); }}
-                        className="p-2 bg-white text-black rounded-full hover:scale-105 transition-transform"
+                        className="w-8 h-8 flex items-center justify-center bg-white text-black rounded-full active:scale-90 transition-transform shadow-lg"
                      >
-                        {isPlaying ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" className="ml-0.5" />}
+                        {isPlaying ? <Pause size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" className="ml-0.5" />}
                      </button>
                      <button 
                         onClick={(e) => { e.stopPropagation(); nextTrack(); }}
-                        className="p-2 text-white/70 hover:text-white transition-colors"
+                        className="w-8 h-8 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 rounded-full active:scale-90 transition-all"
                      >
-                        <SkipForward size={20} />
+                        <SkipForward size={18} />
                      </button>
                      <button 
                         onClick={(e) => { e.stopPropagation(); setIsMiniPlayerVisible(false); }}
-                        className="p-2 text-white/70 hover:text-white transition-colors"
+                        className="w-8 h-8 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 rounded-full active:scale-90 transition-all"
                      >
-                        <X size={20} />
+                        <X size={16} />
                      </button>
                 </div>
             </div>
@@ -139,73 +219,32 @@ const GlobalPlayer = () => {
       drag
       dragMomentum={false}
       whileDrag={{ scale: 1.05, cursor: 'grabbing' }}
-      className="fixed bottom-4 right-4 z-[80] w-auto max-w-md cursor-grab active:cursor-grabbing"
+      className="fixed bottom-6 right-6 z-[80] w-auto max-w-sm cursor-grab active:cursor-grabbing"
     >
-      <div className="bg-[#0a0a0a]/90 backdrop-blur-3xl border border-white/10 rounded-3xl p-4 shadow-2xl flex flex-col relative overflow-hidden ring-1 ring-white/5">
+      <div className="bg-black/60 backdrop-blur-3xl border border-white/10 rounded-[2rem] p-5 shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex flex-col relative overflow-hidden ring-1 ring-white/5 group hover:border-white/20 transition-colors">
         {/* Visualizer Background */}
-        <div className="absolute bottom-0 left-0 w-full h-32 opacity-10 pointer-events-none z-0 mask-image-gradient-to-t">
+        <div className="absolute bottom-0 left-0 w-full h-32 opacity-20 pointer-events-none z-0 mask-image-gradient-to-t mix-blend-screen">
             <Visualizer isPlaying={isPlaying} />
         </div>
 
-        <div className="flex items-center gap-4 relative z-10">
-            {/* Drag Handle Indicator */}
-            <div className="w-1 h-8 bg-white/10 rounded-full cursor-grab active:cursor-grabbing hover:bg-white/20 transition-colors" />
-            
-            {/* Cover Art */}
-            <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 relative group shadow-lg">
-            <img 
-                src={currentTrack.cover} 
-                alt={currentTrack.title} 
-                className={`w-full h-full object-cover ${isPlaying ? 'animate-[spin_4s_linear_infinite]' : ''}`} 
-            />
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <Music size={16} className="text-white" />
-            </div>
-            </div>
+        <PlayerInfo 
+            currentTrack={currentTrack} 
+            isPlaying={isPlaying} 
+            onClose={handleClose} 
+        />
 
-            {/* Info & Controls */}
-            <div className="flex-1 min-w-0">
-            <div className="flex justify-between items-start">
-                <div className="truncate pr-2">
-                <h4 className="font-bold text-white text-sm truncate leading-tight">{currentTrack.title}</h4>
-                <p className="text-[10px] text-gray-400 truncate uppercase tracking-wider">{currentTrack.artist}</p>
-                </div>
-                <button onClick={() => setIsMiniPlayerVisible(false)} className="p-1.5 -mr-1 text-gray-400 hover:text-white hover:bg-white/10 rounded-full active:scale-95 transition-all">
-                <X size={16} />
-                </button>
-            </div>
+        <ProgressBar 
+            progress={progress} 
+            duration={duration} 
+            onSeek={handleSeek} 
+        />
 
-            {/* Progress Bar */}
-            <div className="flex items-center gap-2 mt-2">
-                <span className="text-[9px] text-gray-500 font-mono w-6 text-right">{formatTime(progress)}</span>
-                <input
-                type="range"
-                min="0"
-                max={duration || 100}
-                value={progress}
-                onChange={handleSeek}
-                className="flex-1 h-0.5 bg-white/20 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2 [&::-webkit-slider-thumb]:h-2 [&::-webkit-slider-thumb]:bg-cyan-500 [&::-webkit-slider-thumb]:rounded-full hover:[&::-webkit-slider-thumb]:scale-125 transition-all"
-                />
-                <span className="text-[9px] text-gray-500 font-mono w-6">{formatTime(duration)}</span>
-            </div>
-            </div>
-
-            {/* Playback Controls */}
-            <div className="flex items-center gap-2">
-            <button onClick={prevTrack} className="p-2 hover:bg-white/10 rounded-full text-white transition-colors">
-                <SkipBack size={18} />
-            </button>
-            <button 
-                onClick={togglePlay} 
-                className="p-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white rounded-full transition-all hover:scale-105 shadow-[0_0_15px_rgba(6,182,212,0.5)]"
-            >
-                {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" className="ml-0.5" />}
-            </button>
-            <button onClick={nextTrack} className="p-2 hover:bg-white/10 rounded-full text-white transition-colors">
-                <SkipForward size={18} />
-            </button>
-            </div>
-        </div>
+        <PlayerControls 
+            isPlaying={isPlaying} 
+            onPlayPause={togglePlay} 
+            onNext={nextTrack} 
+            onPrev={prevTrack} 
+        />
       </div>
     </motion.div>
   );
