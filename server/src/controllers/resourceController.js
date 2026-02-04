@@ -381,6 +381,12 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res) => {
             case 'title':
                 query += ' ORDER BY title ASC';
                 break;
+            case 'date_asc':
+                query += ' ORDER BY date ASC';
+                break;
+            case 'date_desc':
+                query += ' ORDER BY date DESC';
+                break;
             case 'newest':
             default:
                 query += ' ORDER BY id DESC';

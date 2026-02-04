@@ -18,7 +18,6 @@ const messageController = require('../controllers/messageController');
 const tagController = require('../controllers/tagController');
 const notificationController = require('../controllers/notificationController');
 const commentController = require('../controllers/commentController');
-const viewController = require('../controllers/viewController');
 
 const { authenticateToken, isAdmin, optionalAuth } = require('../middleware/auth');
 const authController = require('../controllers/authController');
@@ -67,9 +66,6 @@ router.delete('/comments/:id', authenticateToken, commentController.deleteCommen
 router.post('/favorites/toggle', authenticateToken, favoriteController.toggleFavorite);
 router.get('/favorites', authenticateToken, favoriteController.getFavorites);
 router.get('/favorites/check', authenticateToken, favoriteController.checkFavoriteStatus);
-
-// View Routes
-router.post('/views/:type/:id', viewController.incrementView);
 
 // System Routes
 router.get('/search', systemController.searchContent);

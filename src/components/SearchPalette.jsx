@@ -130,7 +130,7 @@ const SearchPalette = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsOpen(false)}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/40 backdrop-blur-3xl"
             />
 
             {/* Modal */}
@@ -139,7 +139,7 @@ const SearchPalette = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -20 }}
             transition={{ duration: 0.2 }}
-            className="relative w-full h-[100dvh] md:h-auto md:max-w-2xl bg-[#1a1a1a] border-0 md:border md:border-white/10 rounded-none md:rounded-xl shadow-2xl overflow-hidden flex flex-col"
+            className="relative w-full h-[100dvh] md:h-auto md:max-w-2xl bg-[#0a0a0a]/80 backdrop-blur-3xl border-0 md:border md:border-white/10 rounded-none md:rounded-xl shadow-2xl overflow-hidden flex flex-col"
             >
             {/* Input Header */}
             <div className="flex items-center gap-3 px-4 py-4 border-b border-white/10 shrink-0 mt-[env(safe-area-inset-top)] md:mt-0">

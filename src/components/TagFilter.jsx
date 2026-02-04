@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Filter, ChevronDown, ChevronUp, X, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
@@ -23,11 +23,7 @@ const TagFilter = ({ selectedTags = [], onChange, className, variant = 'card', t
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  useEffect(() => {
-    fetchTags();
-  }, [type]);
-
-  const fetchTags = async () => {
+  const fetchTags = useCallback(async () => {
     try {
       const res = await api.get('/tags', { params: { type } });
       // Sort by usage count if available, otherwise alphabetical
@@ -38,7 +34,11 @@ const TagFilter = ({ selectedTags = [], onChange, className, variant = 'card', t
     } finally {
       setLoading(false);
     }
-  };
+  }, [type]);
+
+  useEffect(() => {
+    fetchTags();
+  }, [fetchTags]);
 
   const toggleTag = (tagName) => {
     const newTags = selectedTags.includes(tagName)
@@ -58,7 +58,7 @@ const TagFilter = ({ selectedTags = [], onChange, className, variant = 'card', t
   const displayedTags = isExpanded ? allTags : allTags.slice(0, initialLimit);
   
   const containerClasses = variant === 'card' 
-    ? "bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-3 md:p-6 shadow-xl"
+    ? "bg-[#0a0a0a]/60 backdrop-blur-3xl border border-white/10 rounded-2xl p-3 md:p-6 shadow-xl"
     : "";
 
   return (

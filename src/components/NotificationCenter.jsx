@@ -139,7 +139,7 @@ const NotificationCenter = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 mt-2 w-80 md:w-96 glass-panel rounded-2xl overflow-hidden shadow-2xl z-50 border border-white/10 bg-[#1a1a1a]/95 backdrop-blur-xl"
+            className="absolute right-0 mt-2 w-80 md:w-96 glass-panel rounded-2xl overflow-hidden shadow-2xl z-50 border border-white/10"
           >
             <div className="p-4 border-b border-white/10 flex justify-between items-center bg-white/5">
               <h3 className="font-bold text-white text-lg">{t('notifications.title')}</h3>

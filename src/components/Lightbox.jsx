@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import ViewCounter from './ViewCounter';
 import { X, ChevronLeft, ChevronRight, Download, Info, Camera, Aperture, Clock, Grid } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
@@ -8,7 +8,7 @@ import FavoriteButton from './FavoriteButton';
 import { useBackClose } from '../hooks/useBackClose';
 import api from '../services/api';
 
-const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect, onViewsUpdate }) => {
+const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) => {
   const { t } = useTranslation();
   const [showInfo, setShowInfo] = useState(false);
   const [activeTab, setActiveTab] = useState('info'); // 'info', 'related'
@@ -90,17 +90,17 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect, onVi
       iso: '100'
   };
 
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 backdrop-blur-md p-4"
-      onClick={onClose}
-    >
-      {/* Top Controls */}
-      <div className="absolute top-4 right-4 flex gap-4 z-50" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md rounded-full p-1 border border-white/10">
+  const lightboxContent = (
+        <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 backdrop-blur-md p-4"
+            onClick={onClose}
+        >
+            {/* Top Controls */}
+            <div className="absolute top-4 right-4 flex gap-4 z-50" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md rounded-full p-1 border border-white/10">
             <FavoriteButton 
               itemId={photo.id}
               itemType="photo"
@@ -239,17 +239,7 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect, onVi
                             
                             <div className="border-t border-white/10 pt-6">
                                 <h4 className="text-sm font-bold text-gray-500 uppercase mb-4">{t('lightbox.stats')}</h4>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="bg-white/5 p-4 rounded-xl text-center flex flex-col items-center justify-center">
-                                        <ViewCounter 
-                                            type="photo" 
-                                            item={photo} 
-                                            onViewsUpdate={onViewsUpdate}
-                                            className="text-2xl font-bold text-white mb-1"
-                                            showIcon={false}
-                                        />
-                                        <div className="text-xs text-gray-500 uppercase">{t('lightbox.views')}</div>
-                                    </div>
+                                <div className="grid grid-cols-1 gap-4">
                                     <div className="bg-white/5 p-4 rounded-xl text-center">
                                         <div className="text-2xl font-bold text-white mb-1">{photo.likes || 0}</div>
                                         <div className="text-xs text-gray-500 uppercase">{t('lightbox.likes')}</div>
@@ -292,6 +282,8 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect, onVi
       </AnimatePresence>
     </motion.div>
   );
+
+  return createPortal(lightboxContent, document.body);
 };
 
 export default Lightbox;

@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useCallback, memo } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Pause, SkipForward, SkipBack, Music as MusicIcon, Volume2, VolumeX, Upload, AlertCircle, Eye } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, Music as MusicIcon, Volume2, VolumeX, Upload, AlertCircle } from 'lucide-react';
 import UploadModal from './UploadModal';
 import FavoriteButton from './FavoriteButton';
-import ViewCounter from './ViewCounter';
 import { useTranslation } from 'react-i18next';
 import Pagination from './Pagination';
 import { useSettings } from '../context/SettingsContext';
@@ -61,12 +60,6 @@ const TrackItem = memo(({ track, activeTrackId, isPlaying, onClick, onToggleFavo
       </div>
       
       <div className="flex items-center gap-3" onClick={e => e.stopPropagation()}>
-        {track.views > 0 && (
-            <div className="flex items-center gap-1 text-gray-500 hidden sm:flex">
-                <Eye size={14} />
-                <span className="text-xs font-mono">{track.views}</span>
-            </div>
-        )}
         <span className="text-xs font-mono text-gray-500 hidden sm:block">{formatTime(track.duration)}</span>
         <FavoriteButton 
             itemId={track.id}
@@ -261,16 +254,6 @@ const Music = () => {
       }
   }, [setTracks, currentTrack]);
 
-  const handleViewsUpdate = useCallback((id, newViews) => {
-      setTracks(prev => prev.map(t => 
-          t.id === id ? { ...t, views: newViews } : t
-      ));
-      
-      if (currentTrack && currentTrack.id === id) {
-          setPlayerTrackState(prev => ({ ...prev, views: newViews }));
-      }
-  }, [setTracks, currentTrack]);
-
   return (
     <section className="pt-24 pb-40 md:py-20 px-4 md:px-8 min-h-screen">
       <motion.div 
@@ -358,14 +341,6 @@ const Music = () => {
               <p className="text-cyan-400 font-medium mb-4">{activeTrack.artist}</p>
               
               <div className="flex items-center justify-center gap-4 mb-4">
-                  {activeTrack.id && (
-                    <ViewCounter 
-                        type="music" 
-                        item={activeTrack} 
-                        onViewsUpdate={handleViewsUpdate}
-                        className="text-gray-400 text-sm"
-                    />
-                  )}
               </div>
 
               {activeTrack.id && (

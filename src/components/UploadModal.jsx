@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Upload, Image, Film, Music, FileText, Plus, Calendar, Tag, Link, ChevronDown, Check } from 'lucide-react';
+import { X, Upload, Image, Film, Music, FileText, Plus, Calendar, Tag, Link, ChevronDown, Check, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
 import api, { uploadFile } from '../services/api';
@@ -36,6 +37,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   
   // Event specific
   const [eventDate, setEventDate] = useState(initialData?.date || '');
+  const [eventEndDate, setEventEndDate] = useState(initialData?.end_date || '');
   const [eventLocation, setEventLocation] = useState(initialData?.location || '');
   const [eventLink, setEventLink] = useState(initialData?.link || '');
   
@@ -44,6 +46,89 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   const [eventVolunteerTime, setEventVolunteerTime] = useState(initialData?.volunteer_time || '');
   const [eventTarget, setEventTarget] = useState(initialData?.target_audience || '');
   const [eventOrganizer, setEventOrganizer] = useState(initialData?.organizer || '');
+  const [dateReasoning, setDateReasoning] = useState('');
+
+  // WeChat Parsing
+  const [wechatUrl, setWechatUrl] = useState('');
+  const [isParsing, setIsParsing] = useState(false);
+
+  const handleParseWeChat = async () => {
+    if (!wechatUrl) return;
+    
+    setIsParsing(true);
+    try {
+        const { data } = await api.post('/resources/parse-wechat', { url: wechatUrl });
+        console.log('WeChat Parsed Data:', data);
+        
+        if (data) {
+            if (data.title) setTitle(data.title);
+            
+            // Smart Time Merging
+            let startDate = data.date;
+            let endDate = data.end_date;
+            
+            if (data.time && startDate) {
+                 const timeParts = data.time.match(/(\d{1,2}:\d{2})/g);
+                 if (timeParts) {
+                     if (timeParts.length >= 1 && !startDate.includes('T')) {
+                         let t1 = timeParts[0];
+                         if (t1.indexOf(':') === 1) t1 = '0' + t1;
+                         startDate = `${startDate}T${t1}`;
+                     }
+                     if (timeParts.length >= 2) {
+                         let t2 = timeParts[1];
+                         if (t2.indexOf(':') === 1) t2 = '0' + t2;
+                         
+                         if (endDate && !endDate.includes('T')) {
+                             endDate = `${endDate}T${t2}`;
+                         } else if (!endDate) {
+                             endDate = `${data.date}T${t2}`;
+                         }
+                     }
+                 }
+            }
+
+            // Fallback for datetime-local: ensure T00:00 if no time extracted
+            if (startDate && !startDate.includes('T')) {
+                startDate = `${startDate}T00:00`;
+            }
+            if (endDate && !endDate.includes('T')) {
+                endDate = `${endDate}T00:00`;
+            }
+
+            if (startDate) setEventDate(startDate);
+            if (endDate) setEventEndDate(endDate);
+            
+            if (data.location) setEventLocation(data.location);
+            if (data.organizer) setEventOrganizer(data.organizer);
+            if (data.description) setDescription(data.description);
+            // if (data.content) setContent(data.content); // User requested to ignore original content to avoid mismatch
+            if (data.target_audience) setEventTarget(data.target_audience);
+            if (data.volunteer_time) setEventVolunteerTime(data.volunteer_time);
+            if (data.score) setEventScore(data.score);
+            if (data.tags) {
+                const tagsVal = Array.isArray(data.tags) ? data.tags.join(', ') : data.tags;
+                setTags(tagsVal);
+            }
+            if (data.date_reasoning) setDateReasoning(data.date_reasoning);
+            
+            // Auto-fill link with WeChat URL
+            setEventLink(wechatUrl);
+            
+            if (data.coverImage) {
+                setCoverPreview(data.coverImage);
+                setCoverFile(null); // Clear any manually selected file
+            }
+            
+            toast.success('解析成功！已自动填充相关信息');
+        }
+    } catch (error) {
+        console.error('WeChat parse error:', error);
+        toast.error('解析失败，请检查链接或稍后重试');
+    } finally {
+        setIsParsing(false);
+    }
+  };
 
   // Reset form when modal opens with new data or closes
   React.useEffect(() => {
@@ -61,6 +146,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             setContent(initialData.content || '');
             setArtist(initialData.artist || '');
             setEventDate(initialData.date || '');
+            setEventEndDate(initialData.end_date || '');
             setEventLocation(initialData.location || '');
             setEventLink(initialData.link || '');
             setEventScore(initialData.score || '');
@@ -78,6 +164,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             setContent('');
             setArtist('');
             setEventDate('');
+            setEventEndDate('');
             setEventLocation('');
             setEventLink('');
             setEventScore('');
@@ -90,8 +177,10 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         }
         setFile(null);
         setCoverFile(null);
+        setWechatUrl('');
+        setIsParsing(false);
     }
-  }, [isOpen, initialData]);
+  }, [isOpen, initialData, user, t, onClose]);
 
   const handleFileChange = (e, isCover = false) => {
     const selectedFile = e.target.files[0];
@@ -159,6 +248,8 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         // Event specific
         image: type === 'event' ? (coverUrl || 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=1000&auto=format&fit=crop') : null,
         date: (type === 'event' || type === 'article') ? eventDate : new Date().toLocaleDateString(),
+        end_date: type === 'event' ? eventEndDate : null,
+        time: null,
         location: type === 'event' ? eventLocation : null,
         link: type === 'event' ? eventLink : null,
         score: type === 'event' ? eventScore : null,
@@ -275,21 +366,21 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   const cardClasses = "bg-white/[0.02] border border-white/5 rounded-2xl p-6 space-y-5";
   const uploadBoxClasses = (isActive) => `relative border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center group transition-all duration-300 bg-white/[0.02] ${isActive ? 'border-indigo-500 bg-indigo-500/10 scale-[1.01]' : 'border-white/10 hover:border-white/30 hover:bg-white/[0.04]'}`;
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-3xl"
           onClick={onClose}
         >
           <motion.div
             initial={{ scale: 0.95, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-            className={`relative bg-[#0a0a0a]/95 backdrop-blur-2xl border border-white/10 rounded-3xl w-full ${type === 'event' ? 'max-w-5xl' : 'max-w-2xl'} overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar z-10 ring-1 ring-white/5`}
+            className={`relative bg-[#0a0a0a]/80 backdrop-blur-3xl border border-white/10 rounded-3xl w-full ${type === 'event' ? 'max-w-5xl' : 'max-w-2xl'} overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar z-10 ring-1 ring-white/5`}
             onClick={e => e.stopPropagation()}
           >
              {/* Gradient Ambience */}
@@ -312,6 +403,46 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
 
             <form onSubmit={handleSubmit} className="p-8 relative z-10">
               {type === 'event' ? (
+                <>
+                <div className="mb-8 p-6 bg-gradient-to-r from-green-500/10 to-emerald-500/5 border border-green-500/20 rounded-2xl relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
+                        <Link size={64} className="text-green-500" />
+                    </div>
+                    <h4 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                        <span className="p-1.5 bg-green-500/20 rounded-lg text-green-400">
+                            <Link size={16} />
+                        </span>
+                        从微信公众号导入
+                    </h4>
+                    <div className="flex gap-3">
+                        <input 
+                            type="text" 
+                            value={wechatUrl}
+                            onChange={(e) => setWechatUrl(e.target.value)}
+                            placeholder="粘贴微信公众号文章链接..."
+                            className={`${inputClasses} flex-1 !bg-black/20 !border-green-500/20 focus:!border-green-500/50`}
+                        />
+                        <button 
+                            type="button"
+                            onClick={handleParseWeChat}
+                            disabled={isParsing || !wechatUrl}
+                            className="px-6 py-2.5 bg-green-600 hover:bg-green-500 disabled:bg-green-600/50 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-all shadow-lg shadow-green-900/20 flex items-center gap-2 whitespace-nowrap"
+                        >
+                            {isParsing ? (
+                                <>
+                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    解析中...
+                                </>
+                            ) : (
+                                <>
+                                    <Check size={18} />
+                                    智能识别
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {/* Left Column: Media & Core Info */}
                   <div className="space-y-6">
@@ -392,18 +523,27 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                            <h4 className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2 pb-3 border-b border-white/5">
                                <Calendar size={14} className="text-indigo-400" /> {t('event_fields.basic_info')}
                            </h4>
-                           <div className="grid grid-cols-2 gap-5">
+                           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                                <div className="col-span-1">
-                                    <label className={labelClasses}>{t('common.date')}</label>
+                                    <label className={labelClasses}>开始时间</label>
                                     <input
-                                        type="date"
+                                        type="datetime-local"
                                         required
-                                        value={eventDate}
+                                        value={eventDate.length === 10 ? `${eventDate}T00:00` : eventDate}
                                         onChange={e => setEventDate(e.target.value)}
                                         className={inputClasses}
                                     />
                                </div>
                                <div className="col-span-1">
+                                    <label className={labelClasses}>截止时间 (可选)</label>
+                                    <input
+                                        type="datetime-local"
+                                        value={eventEndDate ? (eventEndDate.length === 10 ? `${eventEndDate}T00:00` : eventEndDate) : ''}
+                                        onChange={e => setEventEndDate(e.target.value)}
+                                        className={inputClasses}
+                                    />
+                               </div>
+                               <div className="col-span-1 md:col-span-3">
                                     <label className={labelClasses}>{t('common.location')}</label>
                                     <input
                                         type="text"
@@ -430,7 +570,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                        value={eventVolunteerTime}
                                        onChange={e => setEventVolunteerTime(e.target.value)}
                                        className={inputClasses}
-                                       placeholder="例如: 2小时"
+                                       placeholder={t('event_fields.volunteer_time_placeholder')}
                                    />
                                </div>
                                <div className="col-span-1">
@@ -480,6 +620,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                       </div>
                   </div>
                 </div>
+                </>
               ) : (
                 <div className="space-y-6">
                   {/* Main File Upload */}
@@ -723,7 +864,8 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 

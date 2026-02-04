@@ -120,7 +120,7 @@ const MobileNavbar = () => {
                     }
                 }}
                 transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                className="fixed inset-0 z-[100] bg-[#0a0a0a] md:hidden flex flex-col touch-none"
+                className="fixed inset-0 z-[100] bg-[#0a0a0a]/80 backdrop-blur-3xl md:hidden flex flex-col touch-none"
             >
                 {/* Drag Handle */}
                 <div className="w-full flex justify-center pt-3 pb-1" onClick={() => setShowMenu(false)}>
@@ -128,7 +128,7 @@ const MobileNavbar = () => {
                 </div>
                 
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-white/10 bg-black/50 backdrop-blur-md">
+                <div className="flex items-center justify-between p-6 border-b border-white/10 bg-black/20 backdrop-blur-3xl">
                     <h2 className="text-2xl font-bold text-white">{t('nav.more', 'Menu')}</h2>
                     <button 
                         onClick={() => setShowMenu(false)}

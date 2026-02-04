@@ -83,7 +83,7 @@ const AdvancedFilter = ({ filters, onChange, className = "", variant = 'card', r
     ];
 
     const containerClasses = variant === 'card' 
-        ? "bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-3 md:p-6 shadow-xl"
+        ? "bg-[#0a0a0a]/60 backdrop-blur-3xl border border-white/10 rounded-2xl p-3 md:p-6 shadow-xl"
         : "";
 
     if (loading) return <div className="animate-pulse h-24 bg-white/5 rounded-2xl w-full mb-4"></div>;

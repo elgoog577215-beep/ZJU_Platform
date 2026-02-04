@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useEffect, useCallback, memo } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, MapPin, ArrowRight, X, Filter, Upload, Clock, CheckCircle, ExternalLink, Download, Globe, FileText, AlertCircle, Share2, Copy, Award, Users, Building2, Tag, Search, Eye } from 'lucide-react';
+import { Calendar, MapPin, ArrowRight, X, Filter, Upload, Clock, CheckCircle, ExternalLink, Download, Globe, FileText, AlertCircle, Share2, Copy, Award, Users, Building2, Tag, Search } from 'lucide-react';
 import UploadModal from './UploadModal';
 import FavoriteButton from './FavoriteButton';
-import ViewCounter from './ViewCounter';
 import { useTranslation } from 'react-i18next';
 import Pagination from './Pagination';
 import { useSettings } from '../context/SettingsContext';
@@ -31,8 +31,14 @@ const getEventLifecycle = (date, t) => {
       const day = String(d.getDate()).padStart(2, '0');
       const today = `${year}-${month}-${day}`;
       
-      if (date > today) return t('events.status.upcoming');
-      if (date === today) return t('events.status.ongoing');
+      // Extract date part if ISO string
+      let eventDateStr = date;
+      if (date.includes('T')) {
+          eventDateStr = date.split('T')[0];
+      }
+      
+      if (eventDateStr > today) return t('events.status.upcoming');
+      if (eventDateStr === today) return t('events.status.ongoing');
       return t('events.status.past');
   } catch (e) {
       return t('events.status.unknown');
@@ -46,6 +52,55 @@ const getStatusColor = (status, t) => {
     case t('events.status.past'): return 'bg-gray-500 text-gray-200';
     default: return 'bg-gray-500 text-white';
   }
+};
+
+const isSameDay = (d1, d2) => {
+    if (!d1 || !d2) return false;
+    // Handle simplified dates (YYYY-MM-DD) and ISO strings
+    const date1 = new Date(d1.includes('T') ? d1 : d1.replace(/-/g, '/'));
+    const date2 = new Date(d2.includes('T') ? d2 : d2.replace(/-/g, '/'));
+    return date1.getFullYear() === date2.getFullYear() &&
+           date1.getMonth() === date2.getMonth() &&
+           date1.getDate() === date2.getDate();
+};
+
+const formatTime = (dateStr) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '';
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+};
+
+const formatDateTime = (dateStr, timeStr) => {
+    if (!dateStr) return '';
+    
+    // Check if dateStr contains time info (e.g. YYYY-MM-DDTHH:mm)
+    // Also handle cases where time might be appended differently or standard ISO
+    if (dateStr.includes('T') || (dateStr.includes(':') && dateStr.length > 10)) {
+        const d = new Date(dateStr);
+        if (!isNaN(d.getTime())) {
+            const month = d.getMonth() + 1;
+            const day = d.getDate();
+            // REMOVE TIME FROM HERE - Time is handled separately or via formatTime
+            return `${month}月${day}日`; 
+        }
+    }
+    
+    // Fallback for legacy date only (YYYY-MM-DD)
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    
+    const month = d.getMonth() + 1;
+    const day = d.getDate();
+    
+    // Legacy time argument support (deprecated but kept for safety)
+    if (timeStr && timeStr.trim()) {
+         return `${month}月${day}日 ${timeStr}`;
+    }
+    
+    return `${month}月${day}日`;
 };
 
 const EventCard = memo(({ event, index, onClick, onToggleFavorite }) => {
@@ -62,46 +117,31 @@ const EventCard = memo(({ event, index, onClick, onToggleFavorite }) => {
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5, delay: index * 0.1 }}
-    className="group relative bg-[#111] border border-white/10 rounded-3xl overflow-hidden hover:shadow-2xl hover:shadow-indigo-500/20 transition-all duration-500 hover:-translate-y-2 cursor-pointer flex flex-row md:flex-col md:h-auto"
+    className="group relative bg-[#1a1a1a]/60 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden hover:shadow-2xl hover:shadow-indigo-500/20 transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-row md:flex-col h-full"
     onClick={() => onClick(event)}
   >
 {/* Image Section */}
-<div className="w-1/3 aspect-square md:w-full md:aspect-auto md:h-64 overflow-hidden relative shrink-0">
+<div className="w-1/3 md:w-full aspect-square md:aspect-auto md:h-64 overflow-hidden relative shrink-0">
     <SmartImage 
       src={getThumbnailUrl(event.image)} 
       alt={event.title} 
       loading="lazy"
       className="absolute inset-0 w-full h-full"
-      imageClassName="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+      imageClassName="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
     />
-    <div className="absolute inset-0 bg-gradient-to-t from-[#111] via-transparent to-transparent opacity-80" />
+    <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent opacity-90" />
     
-    {/* Date Badge & Score Badge Container */}
-    <div className="absolute top-4 left-4 flex gap-3 z-40">
-        {/* Date Badge */}
-        <div className="hidden md:flex bg-black/60 backdrop-blur-md border border-white/20 rounded-2xl p-3 flex-col items-center justify-center min-w-[64px] shadow-lg group-hover:bg-indigo-600 group-hover:border-indigo-500 transition-colors duration-300">
-            <span className="text-xs font-bold uppercase tracking-wider text-gray-200 group-hover:text-white/90">{month}</span>
-            <span className="text-2xl font-black text-white">{day}</span>
-        </div>
-
-        {/* Score Badge */}
-        {event.score && (
-            <div className="hidden md:flex bg-indigo-600/90 backdrop-blur-md border border-indigo-500/50 rounded-2xl p-3 flex-col items-center justify-center min-w-[64px] shadow-lg">
-                <span className="text-xs font-bold uppercase tracking-wider text-indigo-100">Score</span>
-                <span className="text-xl font-black text-white">{event.score}</span>
-            </div>
-        )}
-    </div>
-
     {/* Status Badge - Adjusted for mobile */}
-    <div className={`absolute top-2 right-2 md:top-4 md:right-4 px-2 py-1 md:px-3 md:py-1.5 rounded-full text-[10px] md:text-sm font-bold uppercase tracking-wider shadow-lg backdrop-blur-md flex items-center gap-1.5 z-40 ${getStatusColor(status, t)}`}>
-        {status === t('events.status.upcoming') && <Clock size={12} className="md:w-4 md:h-4" />}
+    <div className={`absolute top-2 right-2 md:top-4 md:right-4 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider shadow-lg backdrop-blur-xl flex items-center gap-1.5 z-40 border border-white/10 ${getStatusColor(status, t)} bg-opacity-80`}>
+        {status === t('events.status.upcoming') && <Clock size={12} className="md:w-3.5 md:h-3.5" />}
         {status === t('events.status.ongoing') && <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-white animate-pulse" />}
         {status}
     </div>
 
-    {/* Share Button - Hidden on mobile list */}
-    <div className="hidden md:flex absolute bottom-4 right-4 gap-2 z-30">
+
+    {/* Share Button - Hidden on mobile list */
+    /* Moved to footer as requested */}
+    {/* <div className="hidden md:flex absolute bottom-4 right-4 gap-2 z-30">
         <FavoriteButton 
             itemId={event.id}
             itemType="event"
@@ -112,7 +152,7 @@ const EventCard = memo(({ event, index, onClick, onToggleFavorite }) => {
             className="p-2 bg-black/40 hover:bg-indigo-600 rounded-full text-white backdrop-blur-md transition-all"
             onToggle={(favorited, likes) => onToggleFavorite(event.id, favorited, likes)}
         />
-    </div>
+    </div> */}
 
     {/* Countdown Overlay (Upcoming only) */}
     {isUpcoming && (
@@ -125,44 +165,96 @@ const EventCard = memo(({ event, index, onClick, onToggleFavorite }) => {
 </div>
 
 {/* Content Section */}
-    <div className="p-4 md:p-6 relative flex-1 flex flex-col justify-center">
-        <div className="flex items-center gap-4 mb-2 md:mb-4">
-            <div className="flex items-center gap-1 md:gap-2 text-sm md:text-base text-gray-400">
-                 <MapPin size={14} className="md:w-4 md:h-4 text-indigo-400" />
-                 <span className="truncate max-w-[100px] md:max-w-[150px]">{event.location || 'Online'}</span>
-            </div>
-            {event.views > 0 && (
-                <div className="flex items-center gap-1 md:gap-2 text-sm md:text-base text-gray-400">
-                    <Eye size={14} className="md:w-4 md:h-4 text-indigo-400" />
-                    <span>{event.views}</span>
+    <div className="p-4 md:p-6 relative flex-1 flex flex-col min-w-0 h-full">
+        {/* Title */}
+        <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-white mb-3 line-clamp-2 group-hover:text-indigo-400 transition-colors leading-tight tracking-tight">
+            {event.title}
+        </h3>
+
+        {/* Metadata Row: Date & Location */}
+        <div className="flex flex-nowrap items-center gap-3 mb-4 text-xs md:text-sm text-gray-400 font-medium overflow-hidden">
+             {/* Date - Smart Display */}
+             <div className="flex items-center gap-2 shrink-0 bg-white/5 px-2.5 py-1 rounded-lg border border-white/5">
+                <Calendar size={14} className={`shrink-0 ${event.end_date && !isSameDay(event.date, event.end_date) ? 'text-rose-400' : 'text-indigo-400'}`} />
+                <div className="flex flex-col leading-none">
+                    {event.end_date ? (
+                        isSameDay(event.date, event.end_date) ? (
+                            // Same Day: Show Date + Time Range
+                            <span className="font-medium text-gray-200">
+                                {formatDateTime(event.date)}
+                                {event.date.includes('T') && event.end_date.includes('T') ? 
+                                    <span className="text-gray-400 ml-1.5 text-[10px] uppercase">
+                                        {formatTime(event.date)} - {formatTime(event.end_date)}
+                                    </span>
+                                : ''}
+                            </span>
+                        ) : (
+                            // Different Day: Prioritize Deadline
+                            <div className="flex items-baseline gap-1.5">
+                                <span className="font-bold text-rose-300">
+                                    截止 {formatDateTime(event.end_date)}
+                                </span>
+                                <span className="text-[10px] text-gray-500">
+                                    从 {formatDateTime(event.date)}
+                                </span>
+                            </div>
+                        )
+                    ) : (
+                        <span className="font-medium text-gray-200">
+                            {formatDateTime(event.date)} {formatTime(event.date) && <span className="ml-1 text-gray-400">{formatTime(event.date)}</span>}
+                        </span>
+                    )}
                 </div>
-            )}
+            </div>
+
+            {/* Location */}
+            <div className="flex items-center gap-1.5 min-w-0 bg-white/5 px-2.5 py-1 rounded-lg border border-white/5">
+                 <MapPin size={14} className="text-indigo-400 shrink-0" />
+                 <span className="truncate max-w-[100px] md:max-w-[160px]">{event.location || 'Online'}</span>
+            </div>
         </div>
 
-        <h3 className="text-xl md:text-3xl font-bold text-white mb-2 md:mb-3 line-clamp-2 group-hover:text-indigo-400 transition-colors leading-tight">{event.title}</h3>
-        <p className="text-gray-400 text-sm md:text-base line-clamp-2 mb-3 md:mb-4 leading-relaxed hidden md:block">{event.description}</p>
-        
-        {/* Phase 1: Key Info on Card */}
-        <div className="flex flex-wrap gap-2 mb-3">
-            {event.tags && event.tags.split(',').slice(0, 2).map((tag, i) => (
-                <span key={i} className="px-2 py-1 rounded-md bg-purple-500/10 text-purple-300 text-sm font-bold uppercase tracking-wider border border-purple-500/20 flex items-center gap-1 group-hover:bg-purple-500/20 transition-colors">
-                    <Tag size={14} /> {tag.trim()}
-                </span>
-            ))}
-            {event.target_audience && (
-                 <span className="px-2 py-1 rounded-md bg-blue-500/10 text-blue-300 text-sm font-bold uppercase tracking-wider border border-blue-500/20 flex items-center gap-1 max-w-[120px] truncate group-hover:bg-blue-500/20 transition-colors">
-                    <Users size={14} /> {event.target_audience}
-                </span>
-            )}
-        </div>
-
-        {/* Mobile Date Display - Keeping it as backup but badges are now visible */}
-        <p className="text-gray-300 font-medium text-sm md:hidden mb-2 mt-2 flex items-center gap-1.5">
-            <Calendar size={16} className="text-indigo-400" /> {event.date}
+        {/* Description */}
+        <p className="text-gray-400 text-xs md:text-base line-clamp-2 mb-4 leading-relaxed break-words flex-grow">
+            {event.description}
         </p>
 
-        <div className="flex items-center text-indigo-400 font-bold text-base md:text-lg group-hover:translate-x-2 transition-transform mt-auto md:mt-0">
-            {t('common.view_details')} <ArrowRight size={18} className="ml-1 md:ml-2 md:w-5 md:h-5" />
+        {/* Secondary Info: Organizer & Target Audience (Below Description) */}
+        {(event.organizer || event.target_audience) && (
+            <div className="flex flex-wrap items-center gap-3 mb-4 pt-3 border-t border-white/5">
+                {event.organizer && (
+                     <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                        <Building2 size={14} className="text-indigo-400 shrink-0" />
+                        <span className="truncate max-w-[150px]">{event.organizer}</span>
+                    </div>
+                )}
+                {event.target_audience && (
+                    <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                        <Users size={14} className="text-indigo-400 shrink-0" />
+                        <span className="truncate max-w-[150px]">{event.target_audience}</span>
+                    </div>
+                )}
+            </div>
+        )}
+        
+        {/* Footer: Tags & Actions */}
+        <div className="flex flex-wrap gap-2 mt-auto items-center">
+            {event.tags && event.tags.split(',').slice(0, 3).map((tag, i) => (
+                <span key={i} className="px-2 py-1 rounded-lg bg-indigo-500/10 text-indigo-300 text-[10px] md:text-xs font-medium border border-indigo-500/20 flex items-center gap-1 group-hover:bg-indigo-500/20 transition-colors shrink-0">
+                    <Tag size={12} className="hidden md:block" /> #{tag.trim()}
+                </span>
+            ))}
+            
+            <FavoriteButton 
+                itemId={event.id}
+                itemType="event"
+                size={18}
+                showCount={false}
+                favorited={event.favorited}
+                initialFavorited={event.favorited}
+                className="ml-auto p-2 rounded-full hover:bg-white/10 transition-colors"
+                onToggle={(favorited, likes) => onToggleFavorite(event.id, favorited, likes)}
+            />
         </div>
     </div>
   </motion.div>
@@ -241,8 +333,29 @@ const Events = () => {
       const title = encodeURIComponent(selectedEvent.title);
       const details = encodeURIComponent(selectedEvent.description + "\n\n" + selectedEvent.content); 
       const location = encodeURIComponent(selectedEvent.location);
-      const dateStr = selectedEvent.date.replace(/-/g, '');
-      const dates = `${dateStr}/${dateStr}`; 
+      
+      const startDateStr = selectedEvent.date.replace(/-/g, '');
+      let endDateStr = startDateStr; // Default to start date if no end date
+      
+      if (selectedEvent.end_date) {
+          // Google Calendar end date is exclusive for all-day events, so we might want to add 1 day
+          // But since we store simple YYYY-MM-DD, let's just use the end date + 1 day for all-day logic
+          // Or just use the end date. Let's try to be precise.
+          // If input is YYYY-MM-DD, Google treats it as all day.
+          // For multi-day all-day events, end date should be the day AFTER the last day.
+          const d = new Date(selectedEvent.end_date);
+          d.setDate(d.getDate() + 1);
+          const year = d.getFullYear();
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          endDateStr = `${year}${month}${day}`;
+      } else {
+          // Single day all-day event: end date should be next day too?
+          // Google Calendar template dates=YYYYMMDD/YYYYMMDD usually means start/end.
+          // If same day, it works as single day.
+      }
+
+      const dates = `${startDateStr}/${endDateStr}`; 
       
       const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=${location}&dates=${dates}`;
       window.open(url, '_blank');
@@ -253,16 +366,26 @@ const Events = () => {
       const title = selectedEvent.title;
       const desc = selectedEvent.description;
       const location = selectedEvent.location;
-      const dateStr = selectedEvent.date.replace(/-/g, '');
-      
+      const startDateStr = selectedEvent.date.replace(/-/g, '');
+      let endDateStr = startDateStr;
+
+      if (selectedEvent.end_date) {
+           const d = new Date(selectedEvent.end_date);
+           d.setDate(d.getDate() + 1); // ICS also uses exclusive end date for all-day events
+           const year = d.getFullYear();
+           const month = String(d.getMonth() + 1).padStart(2, '0');
+           const day = String(d.getDate()).padStart(2, '0');
+           endDateStr = `${year}${month}${day}`;
+      }
+
       const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//777//Events//EN
 BEGIN:VEVENT
 UID:${selectedEvent.id}@777.com
 DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z
-DTSTART;VALUE=DATE:${dateStr}
-DTEND;VALUE=DATE:${dateStr}
+DTSTART;VALUE=DATE:${startDateStr}
+DTEND;VALUE=DATE:${endDateStr}
 SUMMARY:${title}
 DESCRIPTION:${desc}
 LOCATION:${location}
@@ -346,19 +469,6 @@ END:VCALENDAR`;
     });
   }, [setEvents, setSelectedEvent]);
 
-  const handleViewsUpdate = useCallback((id, newViews) => {
-      setEvents(prev => prev.map(e => 
-          e.id === id ? { ...e, views: newViews } : e
-      ));
-      
-      setSelectedEvent(prev => {
-          if (prev && prev.id === id) {
-               return { ...prev, views: newViews };
-          }
-          return prev;
-      });
-  }, [setEvents, setSelectedEvent]);
-
   const lifecycleOptions = [
       { value: 'all', label: t('common.all') },
       { value: 'upcoming', label: t('events.status.upcoming') },
@@ -405,7 +515,7 @@ END:VCALENDAR`;
                 onChange={setLifecycle}
                 options={lifecycleOptions}
                 icon={Filter}
-                buttonClassName="bg-white/5 border border-white/10 hover:bg-white/10 w-full py-3 rounded-xl text-white backdrop-blur-sm transition-all shadow-lg"
+                buttonClassName="bg-[#0a0a0a]/60 border border-white/10 hover:bg-[#0a0a0a]/80 w-full py-3 rounded-xl text-white backdrop-blur-3xl transition-all shadow-lg"
               />
             </div>
 
@@ -415,7 +525,11 @@ END:VCALENDAR`;
                 sort={sort} 
                 onSortChange={setSort} 
                 className="w-full" 
-                buttonClassName="bg-white/5 border border-white/10 hover:bg-white/10 w-full py-3 rounded-xl text-white backdrop-blur-sm transition-all shadow-lg" 
+                buttonClassName="bg-[#0a0a0a]/60 border border-white/10 hover:bg-[#0a0a0a]/80 w-full py-3 rounded-xl text-white backdrop-blur-3xl transition-all shadow-lg" 
+                extraOptions={[
+                    { value: 'date_asc', label: t('sort_filter.date_asc') || 'Date (Earliest)' },
+                    { value: 'date_desc', label: t('sort_filter.date_desc') || 'Date (Latest)' }
+                ]}
               />
             </div>
           </div>
@@ -434,13 +548,26 @@ END:VCALENDAR`;
             </button>
           </div>
         ) : loading && events.length === 0 ? (
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto">
-           {[1,2,3].map(i => (
-               <div key={i} className="bg-white/5 rounded-3xl h-64 md:h-96 animate-pulse" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-14 lg:gap-16 max-w-7xl mx-auto">
+           {[1,2,3,4,5,6].map(i => (
+               <div key={i} className="bg-[#1a1a1a]/40 backdrop-blur-xl border border-white/5 rounded-3xl overflow-hidden h-full flex flex-row md:flex-col animate-pulse">
+                   {/* Image Skeleton */}
+                   <div className="w-1/3 md:w-full aspect-square md:h-64 bg-white/5" />
+                   {/* Content Skeleton */}
+                   <div className="p-4 md:p-6 flex-1 flex flex-col w-2/3 md:w-full">
+                       <div className="h-6 bg-white/10 rounded-lg w-3/4 mb-4" />
+                       <div className="flex gap-2 mb-4">
+                           <div className="h-6 bg-white/5 rounded-lg w-20" />
+                           <div className="h-6 bg-white/5 rounded-lg w-24" />
+                       </div>
+                       <div className="h-4 bg-white/5 rounded-lg w-full mb-2" />
+                       <div className="h-4 bg-white/5 rounded-lg w-2/3" />
+                   </div>
+               </div>
            ))}
         </div>
       ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-14 lg:gap-16 max-w-7xl mx-auto">
                 {events.map((event, index) => (
                   <EventCard
                     key={event.id}
@@ -454,11 +581,14 @@ END:VCALENDAR`;
       )}
       
       {!loading && events.length === 0 && (
-          <div className="text-center py-20">
-              <div className="bg-white/5 rounded-full p-6 inline-block mb-4">
-                  <Calendar size={48} className="text-gray-600" />
+          <div className="flex flex-col items-center justify-center py-20 px-4">
+              <div className="bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-3xl p-8 mb-6 border border-white/5 backdrop-blur-xl shadow-xl">
+                  <Calendar size={64} className="text-indigo-400 opacity-80" />
               </div>
-              <p className="text-gray-500 text-lg">{t('events.no_events')}</p>
+              <h3 className="text-2xl font-bold text-white mb-2">{t('events.no_events')}</h3>
+              <p className="text-gray-400 text-center max-w-md">
+                  目前没有找到相关活动。尝试调整筛选条件或稍后再来看看。
+              </p>
           </div>
       )}
 
@@ -469,21 +599,22 @@ END:VCALENDAR`;
       />
 
       {/* Event Details Modal */}
-      <AnimatePresence>
-        {selectedEvent && (
-          <motion.div 
-            initial={{ opacity: 0 }}
+      {createPortal(
+        <AnimatePresence>
+          {selectedEvent && (
+            <motion.div 
+              initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-3xl"
             onClick={() => setSelectedEvent(null)}
           >
             <motion.div 
-              initial={{ scale: 0.9, y: 50, opacity: 0 }}
+              initial={{ scale: 0.95, y: 20, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.9, y: 50, opacity: 0 }}
-              transition={{ type: "spring", duration: 0.5 }}
-              className="bg-[#111] w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl border border-white/10 shadow-2xl custom-scrollbar relative"
+              exit={{ scale: 0.95, y: 20, opacity: 0 }}
+              transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
+              className="bg-[#0a0a0a] w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl border border-white/10 shadow-2xl custom-scrollbar relative"
               onClick={e => e.stopPropagation()}
             >
               {/* Modal Header Image */}
@@ -496,78 +627,81 @@ END:VCALENDAR`;
                     imageClassName="w-full h-full object-cover"
                     iconSize={64}
                  />
-                 <div className="absolute inset-0 bg-gradient-to-t from-[#111] to-transparent" />
+                 <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/40 to-transparent" />
                  
-                 <div className="absolute bottom-6 left-6 md:left-10 right-6 md:right-10 z-20">
-                    <div className="flex flex-wrap items-center gap-3 mb-3">
-                         <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${getStatusColor(getEventLifecycle(selectedEvent.date, t), t)}`}>
-                             {getEventLifecycle(selectedEvent.date, t)}
-                         </div>
-                         <ViewCounter 
-                            type="event" 
-                            item={selectedEvent} 
-                            onViewsUpdate={handleViewsUpdate}
-                            className="text-gray-300 text-sm"
-                         />
-                    </div>
-                    <h2 className="text-3xl md:text-5xl font-bold text-white mb-2 leading-tight">{selectedEvent.title}</h2>
-                    <div className="flex flex-wrap items-center gap-4 text-gray-300 text-sm md:text-base">
-                        <span className="flex items-center gap-1.5 bg-black/40 px-3 py-1 rounded-lg backdrop-blur-md border border-white/10"><Calendar size={16} className="text-indigo-400" /> {selectedEvent.date}</span>
-                        <span className="flex items-center gap-1.5 bg-black/40 px-3 py-1 rounded-lg backdrop-blur-md border border-white/10" onClick={handleCopyLocation} role="button"><MapPin size={16} className="text-indigo-400" /> {selectedEvent.location}</span>
-                    </div>
-                 </div>
-
                  <button 
                     onClick={() => setSelectedEvent(null)}
-                    className="absolute top-6 right-6 p-2 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur-md border border-white/10 transition-all z-20"
+                    className="absolute top-6 right-6 p-2 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur-md border border-white/10 transition-all z-20 group"
                  >
-                    <X size={24} />
+                    <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />
                  </button>
 
-                 <div className="absolute bottom-0 left-0 p-8 w-full">
-                     <div className="flex flex-wrap gap-3 mb-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${getStatusColor(getEventLifecycle(selectedEvent.date, t), t)}`}>
-    {getEventLifecycle(selectedEvent.date, t)}
-</span>
-                        {selectedEvent.tags && selectedEvent.tags.split(',').map((tag, i) => (
-                             <span key={i} className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-white/10 text-gray-300 border border-white/5">
-                                 {tag.trim()}
-                             </span>
-                        ))}
-                     </div>
-                     <div className="flex justify-between items-start gap-4">
-                        <h2 className="text-2xl sm:text-4xl font-bold text-white mb-2 leading-tight">{selectedEvent.title}</h2>
-                        <FavoriteButton 
-                            itemId={selectedEvent.id}
-                            itemType="event"
-                            size={24}
-                            showCount={true}
-                            count={selectedEvent.likes || 0}
-                            favorited={selectedEvent.favorited}
-                            className="p-3 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md transition-colors mt-1"
-                            onToggle={(favorited, likes) => {
-                                setSelectedEvent(prev => ({ ...prev, likes: likes !== undefined ? likes : prev.likes, favorited }));
-                                setEvents(prev => prev.map(e => 
-                                    e.id === selectedEvent.id ? { ...e, likes: likes !== undefined ? likes : e.likes, favorited } : e
-                                ));
-                            }}
-                        />
-                     </div>
-                     <div className="flex flex-wrap items-center gap-6 text-gray-300 text-sm sm:text-base font-medium">
-                         <div className="flex items-center gap-2">
-                             <Calendar size={18} className="text-indigo-400" />
-                             {selectedEvent.date}
-                         </div>
-                         <div className="flex items-center gap-2">
-                             <MapPin size={18} className="text-indigo-400" />
-                             {selectedEvent.location || 'Online'}
-                         </div>
+                 <div className="absolute bottom-0 left-0 px-6 pt-6 pb-6 md:px-10 md:pt-10 md:pb-8 w-full z-20 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/90 to-transparent pt-48 -mb-1 backdrop-blur-[2px]">
+                             {/* Editorial Eyebrow: Date & Location & Status */}
+                        <div className="flex justify-between items-end w-full mb-4">
+                            <div className="flex items-center gap-3 text-indigo-300 font-bold text-lg md:text-xl uppercase tracking-[0.2em] ml-1 opacity-100 drop-shadow-lg">
+                                    <span className="flex items-center gap-2">
+                                        {selectedEvent.end_date ? (
+                                            isSameDay(selectedEvent.date, selectedEvent.end_date) ? (
+                                                <span className="text-indigo-300 font-bold">
+                                                    {formatDateTime(selectedEvent.date)}
+                                                    {selectedEvent.date.includes('T') && selectedEvent.end_date.includes('T') && 
+                                                        <span className="ml-2 text-white/80 text-lg">
+                                                            {formatTime(selectedEvent.date)} - {formatTime(selectedEvent.end_date)}
+                                                        </span>
+                                                    }
+                                                </span>
+                                            ) : (
+                                                <>
+                                                    <span className="text-rose-300 font-bold">截止 {formatDateTime(selectedEvent.end_date)} {formatTime(selectedEvent.end_date)}</span>
+                                                    <span className="text-white/20 text-base mx-2">|</span>
+                                                    <span className="text-white/60 text-base">{formatDateTime(selectedEvent.date)} 开始</span>
+                                                </>
+                                            )
+                                        ) : (
+                                            <span className="text-indigo-300 font-bold">{formatDateTime(selectedEvent.date)} {formatTime(selectedEvent.date)}</span>
+                                        )}
+                                    </span>
+                                    <span className="text-white/40">|</span>
+                                    <span className="flex items-center gap-2">
+                                        {selectedEvent.location || 'ONLINE'}
+                                    </span>
+                            </div>
+                        </div>
+
+                    <div className="flex justify-between items-end gap-6">
+                       <div className="max-w-[85%]">
+                           <h2 className="text-4xl md:text-6xl font-black text-white leading-[0.95] tracking-tight font-serif drop-shadow-2xl inline decoration-clone">
+                               {selectedEvent.title}
+                               <span className={`inline-flex items-center justify-center align-middle ml-4 px-3 py-1.5 rounded-lg text-sm font-bold uppercase tracking-wider border backdrop-blur-md font-sans shadow-lg translate-y-[-0.2em] ${getStatusColor(getEventLifecycle(selectedEvent.date, t), t).replace('rounded-full', 'rounded-lg').replace('px-4', 'px-3').replace('py-1.5', 'py-1.5')}`}>
+                                   {getEventLifecycle(selectedEvent.date, t)}
+                               </span>
+                           </h2>
+                       </div>
+                        
+                        <div className="flex flex-col items-end gap-3 shrink-0 mb-1">
+                            <FavoriteButton 
+                                itemId={selectedEvent.id}
+                                itemType="event"
+                                size={24}
+                                showCount={true}
+                                count={selectedEvent.likes || 0}
+                                favorited={selectedEvent.favorited}
+                                className="p-3 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md transition-colors shrink-0 border border-white/10"
+                                onToggle={(favorited, likes) => {
+                                    setSelectedEvent(prev => ({ ...prev, likes: likes !== undefined ? likes : prev.likes, favorited }));
+                                    setEvents(prev => prev.map(e => 
+                                        e.id === selectedEvent.id ? { ...e, likes: likes !== undefined ? likes : e.likes, favorited } : e
+                                    ));
+                                }}
+                            />
+                        </div>
                      </div>
                  </div>
               </div>
 
               {/* Modal Content */}
-              <div className="p-5 sm:p-8">
+              <div className="p-5 sm:p-8 pt-2 sm:pt-4">
                  <div className="flex flex-col lg:flex-row gap-5">
                      <div className="flex-1 space-y-4">
                          <div className="bg-white/5 rounded-2xl p-5 border border-white/5 h-full">
@@ -598,78 +732,64 @@ END:VCALENDAR`;
                                         href={selectedEvent.link}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="w-full py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20"
+                                        className="w-full py-3.5 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 bg-indigo-500/80 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 backdrop-blur-md border border-white/10 group"
                                     >
                                         {t('events.visit_link')}
-                                        <ExternalLink size={18} />
+                                        <ExternalLink size={18} className="group-hover:translate-x-0.5 transition-transform" />
                                     </a>
                                 ) : (
-                                    <div className="p-3 bg-white/5 rounded-xl text-gray-500 text-sm text-center border border-white/5">
+                                    <div className="p-3 bg-white/5 rounded-xl text-gray-500 text-sm text-center border border-white/5 backdrop-blur-sm">
                                         {t('events.no_link_available')}
                                     </div>
                                 )}
                             </div>
 
-                            <div className="h-px bg-white/5" />
+                            <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-                            {/* Key Attributes Grid */}
-                            <div className="grid grid-cols-2 gap-3">
-                                {selectedEvent.score && (
-                                    <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-                                        <div className="flex items-center gap-2 text-indigo-400 mb-1">
-                                            <Award size={18} />
-                                            <span className="text-sm font-bold uppercase">加分</span>
-                                        </div>
-                                        <p className="text-2xl font-bold text-white">{selectedEvent.score}</p>
+                            {/* Key Attributes Grid - Now just Tags */}
+                            {selectedEvent.tags && (
+                                <div className="bg-white/[0.03] rounded-xl p-3 border border-white/5 backdrop-blur-sm">
+                                    <div className="flex items-center gap-2 text-indigo-400 mb-2">
+                                        <Tag size={16} />
+                                        <span className="text-xs font-bold uppercase tracking-wider">{t('upload.tags')}</span>
                                     </div>
-                                )}
-
-                                {selectedEvent.volunteer_time && (
-                                    <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-                                        <div className="flex items-center gap-2 text-emerald-400 mb-1">
-                                            <Clock size={18} />
-                                            <span className="text-sm font-bold uppercase">志愿时长</span>
-                                        </div>
-                                        <p className="text-2xl font-bold text-white">{selectedEvent.volunteer_time}</p>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {selectedEvent.tags.split(',').map((tag, i) => (
+                                            <span key={i} className="px-2.5 py-1 rounded-lg bg-white/5 text-gray-300 text-xs font-medium border border-white/5 hover:bg-white/10 transition-colors">
+                                                {tag.trim()}
+                                            </span>
+                                        ))}
                                     </div>
-                                )}
+                                </div>
+                            )}
 
-                                {selectedEvent.tags && (
-                                    <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-                                        <div className="flex items-center gap-2 text-indigo-400 mb-2">
-                                            <Tag size={18} />
-                                            <span className="text-sm font-bold uppercase">{t('upload.tags')}</span>
-                                        </div>
-                                        <div className="flex flex-wrap gap-1.5">
-                                            {selectedEvent.tags.split(',').map((tag, i) => (
-                                                <span key={i} className="px-2 py-1 rounded-md bg-white/10 text-gray-200 text-xs font-medium border border-white/5">
-                                                    {tag.trim()}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="h-px bg-white/5" />
+                            <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
                             {/* Detailed Info List */}
-                            <div className="space-y-4">
-                                {selectedEvent.target_audience && (
-                                    <div className="flex gap-3 items-center">
-                                        <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400 shrink-0">
-                                            <Users size={18} />
-                                        </div>
-                                        <div>
-                                            <h4 className="font-bold text-gray-400 text-xs uppercase tracking-wider mb-0.5">面向对象</h4>
-                                            <p className="text-gray-200 text-sm leading-snug">{selectedEvent.target_audience}</p>
-                                        </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="flex gap-3 items-center group">
+                                    <div className="p-2 bg-orange-500/5 border border-orange-500/10 rounded-lg text-orange-400 shrink-0 group-hover:bg-orange-500/10 transition-colors">
+                                        <Calendar size={18} />
                                     </div>
-                                )}
+                                    <div>
+                                        <h4 className="font-bold text-gray-400 text-xs uppercase tracking-wider mb-0.5">{t('events.date_label')}</h4>
+                                        <p className="text-gray-200 text-sm leading-snug">{formatDateTime(selectedEvent.date, selectedEvent.time)}{selectedEvent.end_date ? ` - ${formatDateTime(selectedEvent.end_date)}` : ''}</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3 items-center group">
+                                    <div className="p-2 bg-indigo-500/5 border border-indigo-500/10 rounded-lg text-indigo-400 shrink-0 group-hover:bg-indigo-500/10 transition-colors">
+                                        <MapPin size={18} />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-gray-400 text-xs uppercase tracking-wider mb-0.5">{t('events.location_label')}</h4>
+                                        <p className="text-gray-200 text-sm leading-snug">{selectedEvent.location || '线上'}</p>
+                                    </div>
+                                </div>
 
                                 {selectedEvent.organizer && (
-                                    <div className="flex gap-3 items-center">
-                                        <div className="p-2 bg-green-500/10 rounded-lg text-green-400 shrink-0">
+                                    <div className="flex gap-3 items-center group">
+                                        <div className="p-2 bg-green-500/5 border border-green-500/10 rounded-lg text-green-400 shrink-0 group-hover:bg-green-500/10 transition-colors">
                                             <Building2 size={18} />
                                         </div>
                                         <div>
@@ -679,25 +799,41 @@ END:VCALENDAR`;
                                     </div>
                                 )}
 
-                                <div className="flex gap-3 items-center">
-                                    <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400 shrink-0">
-                                        <MapPin size={18} />
+                                {selectedEvent.target_audience && (
+                                    <div className="flex gap-3 items-center group">
+                                        <div className="p-2 bg-blue-500/5 border border-blue-500/10 rounded-lg text-blue-400 shrink-0 group-hover:bg-blue-500/10 transition-colors">
+                                            <Users size={18} />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-gray-400 text-xs uppercase tracking-wider mb-0.5">面向对象</h4>
+                                            <p className="text-gray-200 text-sm leading-snug">{selectedEvent.target_audience}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h4 className="font-bold text-gray-400 text-xs uppercase tracking-wider mb-0.5">{t('events.location_label')}</h4>
-                                        <p className="text-gray-200 text-sm leading-snug">{selectedEvent.location || '线上'}</p>
-                                    </div>
-                                </div>
+                                )}
 
-                                <div className="flex gap-3 items-center">
-                                    <div className="p-2 bg-orange-500/10 rounded-lg text-orange-400 shrink-0">
-                                        <Calendar size={18} />
+                                {selectedEvent.volunteer_time && (
+                                    <div className="flex gap-3 items-center group">
+                                        <div className="p-2 bg-emerald-500/5 border border-emerald-500/10 rounded-lg text-emerald-400 shrink-0 group-hover:bg-emerald-500/10 transition-colors">
+                                            <Clock size={18} />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-gray-400 text-xs uppercase tracking-wider mb-0.5">志愿时长</h4>
+                                            <p className="text-gray-200 text-sm leading-snug">{selectedEvent.volunteer_time}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h4 className="font-bold text-gray-400 text-xs uppercase tracking-wider mb-0.5">{t('events.date_label')}</h4>
-                                        <p className="text-gray-200 text-sm leading-snug">{selectedEvent.date}</p>
+                                )}
+
+                                {selectedEvent.score && (
+                                    <div className="flex gap-3 items-center group">
+                                        <div className="p-2 bg-purple-500/5 border border-purple-500/10 rounded-lg text-purple-400 shrink-0 group-hover:bg-purple-500/10 transition-colors">
+                                            <Award size={18} />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-gray-400 text-xs uppercase tracking-wider mb-0.5">加分</h4>
+                                            <p className="text-gray-200 text-sm leading-snug">{selectedEvent.score}</p>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
 
                         </div>
@@ -706,8 +842,10 @@ END:VCALENDAR`;
               </div>
             </motion.div>
           </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       <UploadModal 
         isOpen={isUploadOpen}

@@ -55,7 +55,7 @@ const Dropdown = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className={`absolute top-full right-0 mt-2 w-full min-w-[160px] bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-[100] ${menuClassName}`}
+            className={`absolute top-full right-0 mt-2 w-full min-w-[160px] bg-[#0a0a0a]/80 backdrop-blur-3xl border border-white/10 rounded-xl shadow-2xl overflow-hidden z-[100] ${menuClassName}`}
           >
             <div className="max-h-60 overflow-y-auto custom-scrollbar p-1">
               {options.map((option) => (

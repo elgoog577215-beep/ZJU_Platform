@@ -11,7 +11,7 @@ const { getDb } = require('./src/config/db');
 const apiRoutes = require('./src/routes/api');
 
 const app = express();
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 3001;
 
 // Security & Optimization Middleware
 app.use(compression());
@@ -81,6 +81,39 @@ if (fs.existsSync(distPath)) {
   app.use(express.static(distPath));
 }
 
+const { scrapeWeChat, parseWithLLM } = require('./src/utils/wechat');
+
+// WeChat Parsing Endpoint
+app.post('/api/resources/parse-wechat', async (req, res) => {
+    const { url } = req.body;
+    
+    if (!url) {
+        return res.status(400).json({ error: 'URL is required' });
+    }
+
+    try {
+        // 1. Scrape
+        const scrapedData = await scrapeWeChat(url);
+        
+        // 2. Parse with LLM
+        const parsedData = await parseWithLLM(scrapedData);
+        
+        if (!parsedData) {
+             return res.status(500).json({ error: 'Failed to parse content with LLM' });
+        }
+
+        // Merge original content into the response for the editor
+        // We use the cleaned text from scraping as a starting point for the content field
+        parsedData.content = scrapedData.content;
+
+        res.json(parsedData);
+
+    } catch (error) {
+        console.error('WeChat parsing error:', error);
+        res.status(500).json({ error: error.message || 'Failed to process WeChat URL' });
+    }
+});
+
 // API Routes
 app.use('/api', apiRoutes);
 
@@ -111,8 +144,8 @@ getDb().then(async (db) => {
       link TEXT,
       featured BOOLEAN DEFAULT 0,
       likes INTEGER DEFAULT 0,
-      views INTEGER DEFAULT 0,
-      volunteer_time TEXT
+      volunteer_time TEXT,
+      score TEXT
     );
     CREATE TABLE IF NOT EXISTS comments (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -147,7 +180,6 @@ getDb().then(async (db) => {
       gameDescription TEXT,
       featured BOOLEAN DEFAULT 0,
       likes INTEGER DEFAULT 0,
-      views INTEGER DEFAULT 0,
       status TEXT DEFAULT 'pending',
       uploader_id INTEGER
     );
@@ -160,7 +192,6 @@ getDb().then(async (db) => {
       audio TEXT,
       featured BOOLEAN DEFAULT 0,
       likes INTEGER DEFAULT 0,
-      views INTEGER DEFAULT 0,
       status TEXT DEFAULT 'pending',
       uploader_id INTEGER
     );
@@ -171,7 +202,7 @@ getDb().then(async (db) => {
       video TEXT,
       featured BOOLEAN DEFAULT 0,
       likes INTEGER DEFAULT 0,
-      views INTEGER DEFAULT 0,
+      -- views INTEGER DEFAULT 0,
       status TEXT DEFAULT 'pending',
       uploader_id INTEGER
     );
@@ -185,7 +216,7 @@ getDb().then(async (db) => {
       cover TEXT,
       featured BOOLEAN DEFAULT 0,
       likes INTEGER DEFAULT 0,
-      views INTEGER DEFAULT 0,
+      -- views INTEGER DEFAULT 0,
       status TEXT DEFAULT 'pending',
       uploader_id INTEGER
     );
@@ -283,6 +314,15 @@ getDb().then(async (db) => {
               await db.exec(`ALTER TABLE events ADD COLUMN volunteer_time TEXT`);
           } catch (e) {}
           try {
+                await db.exec(`ALTER TABLE events ADD COLUMN score TEXT`);
+            } catch (e) {}
+            try {
+                await db.exec(`ALTER TABLE events ADD COLUMN end_date TEXT`);
+            } catch (e) {}
+            try {
+                await db.exec(`ALTER TABLE events ADD COLUMN time TEXT`);
+            } catch (e) {}
+          try {
               await db.exec(`ALTER TABLE events ADD COLUMN max_participants INTEGER`);
           } catch (e) {}
           try {
@@ -326,20 +366,7 @@ getDb().then(async (db) => {
       console.error('Event status migration failed:', e);
   }
 
-  // Migration: Add views column if missing
-  const migrationTables = ['events', 'photos', 'music', 'videos', 'articles'];
-  for (const table of migrationTables) {
-    try {
-      const columns = await db.all(`PRAGMA table_info(${table})`);
-      const hasViews = columns.some(col => col.name === 'views');
-      if (!hasViews) {
-        console.log(`Adding views column to ${table}...`);
-        await db.run(`ALTER TABLE ${table} ADD COLUMN views INTEGER DEFAULT 0`);
-      }
-    } catch (err) {
-      console.error(`Migration error for ${table}:`, err);
-    }
-  }
+  // View count migration removed
 
   // Check and Fix comments table schema (item_id -> resource_id)
     try {

@@ -2,10 +2,28 @@ import React, { useState, useRef, useMemo, useEffect, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSettings } from '../context/SettingsContext';
 import { Canvas, useFrame, useThree, extend } from '@react-three/fiber';
-import { Float, Stars, Sparkles, Torus, Icosahedron, Points, PointMaterial, Sphere, Box, PerformanceMonitor } from '@react-three/drei';
+import { shaderMaterial, useTexture, Float, Stars, Cloud, Sparkles, Torus, Icosahedron, Points, PointMaterial, Line, Circle, Sphere, Box, PerformanceMonitor } from '@react-three/drei';
 import { EffectComposer, Bloom, Noise, Vignette } from '@react-three/postprocessing';
 import * as THREE from 'three';
-import { Grid, Hexagon, Flame, Cpu, Dna, Binary, Network, Waves, Orbit } from 'lucide-react';
+import { Palette, X, Grid, Droplets, Sparkles as SparklesIcon, Zap, Hexagon, Flame, Wind, Mountain, Aperture, Cpu, Dna, Binary, Network, Globe, Waves, Box as BoxIcon, Radio, Orbit, Scan } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const CLOUD_URL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cmFkaWFsR3JhZGllbnQgaWQ9ImciIGN4PSI1MCUiIGN5PSI1MCUiIHI9IjUwJSIgZng9IjUwJSIgZnk9IjUwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0id2hpdGUiIHN0b3Atb3BhY2l0eT0iMSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0id2hpdGUiIHN0b3Atb3BhY2l0eT0iMCIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPjxjaXJjbGUgY3g9IjY0IiBjeT0iNjQiIHI9IjY0IiBmaWxsPSJ1cmwoI2cpIi8+PC9zdmc+";
+
+// ==========================================
+// 🌌 1. DEEP SPACE (Stars + Nebula)
+// ==========================================
+const DeepSpaceScene = () => (
+  <group>
+    <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={0.5} />
+    <Float speed={1} rotationIntensity={0.2} floatIntensity={0.2}>
+      <Cloud texture={CLOUD_URL} opacity={0.3} speed={0.2} width={10} depth={1.5} segments={20} position={[0, 0, -20]} color="#4c1d95" />
+      <Cloud texture={CLOUD_URL} opacity={0.3} speed={0.2} width={10} depth={1.5} segments={20} position={[10, 5, -25]} color="#1e40af" />
+    </Float>
+  </group>
+);
+
+
 
 // ==========================================
 // 🕸️ 4. RETRO GRID (Synthwave)
@@ -73,7 +91,19 @@ const CrystalCaveScene = () => (
 );
 
 
-
+// ==========================================
+// ☁️ 9. ETHEREAL CLOUDS (Soft Atmosphere)
+// ==========================================
+const EtherealCloudsScene = () => (
+  <group>
+    <color attach="background" args={['#88ccff']} />
+    <Float speed={0.5} rotationIntensity={0.1} floatIntensity={0.5}>
+       <Cloud texture={CLOUD_URL} opacity={0.5} speed={0.1} width={20} depth={2} segments={20} position={[0, 0, -15]} color="white" />
+       <Cloud texture={CLOUD_URL} opacity={0.3} speed={0.1} width={10} depth={1} segments={10} position={[-5, 2, -10]} color="#ffdddd" />
+    </Float>
+    <ambientLight intensity={1} />
+  </group>
+);
 
 
 // ==========================================
@@ -256,9 +286,11 @@ const BackgroundSystem = ({ forcedTheme = null }) => {
   const { backgroundScene, settings } = useSettings();
   
   const scenes = useMemo(() => ({
+    space: { name: t('themes.space.name'), icon: SparklesIcon, component: DeepSpaceScene, desc: t('themes.space.desc'), color: 'text-purple-400', bg: 'bg-purple-500/20' },
     grid: { name: t('themes.grid.name'), icon: Grid, component: RetroGridScene, desc: t('themes.grid.desc'), color: 'text-pink-400', bg: 'bg-pink-500/20' },
     embers: { name: t('themes.embers.name'), icon: Flame, component: FireEmbersScene, desc: t('themes.embers.desc'), color: 'text-orange-400', bg: 'bg-orange-500/20' },
     crystal: { name: t('themes.crystal.name'), icon: Hexagon, component: CrystalCaveScene, desc: t('themes.crystal.desc'), color: 'text-cyan-400', bg: 'bg-cyan-500/20' },
+    clouds: { name: t('themes.clouds.name'), icon: Mountain, component: EtherealCloudsScene, desc: t('themes.clouds.desc'), color: 'text-sky-300', bg: 'bg-sky-500/20' },
     
     // New Scenes
     cyber: { name: t('themes.cyber.name'), icon: Cpu, component: CyberCircuitScene, desc: t('themes.cyber.desc'), color: 'text-cyan-500', bg: 'bg-cyan-500/20' },
@@ -271,42 +303,36 @@ const BackgroundSystem = ({ forcedTheme = null }) => {
 
   // Use forcedTheme if provided, otherwise use global setting
   const activeScene = forcedTheme || backgroundScene;
-  const CurrentScene = (scenes[activeScene] || scenes['grid']).component;
+  const CurrentScene = (scenes[activeScene] || scenes['space']).component;
 
   const [dpr, setDpr] = useState(1.5);
   const [perfSufficient, setPerfSufficient] = useState(true);
 
-  // Memoize the canvas content to prevent unnecessary re-renders when other settings change
-  const canvasContent = useMemo(() => (
-    <div className="fixed inset-0 -z-10 bg-black" style={{ filter: `brightness(${settings.background_brightness || 1})` }}>
-      <Canvas dpr={dpr} camera={{ position: [0, 0, 10], fov: 60 }} gl={{ antialias: false, powerPreference: "high-performance" }}>
-        <PerformanceMonitor onDecline={() => { setDpr(1); setPerfSufficient(false); }} onIncline={() => { setDpr(1.5); setPerfSufficient(true); }} />
-        <Suspense fallback={null}>
-          <CurrentScene />
-          {perfSufficient && (
-            <EffectComposer disableNormalPass>
-              <Bloom 
-                luminanceThreshold={0.5} 
-                luminanceSmoothing={0.9}
-                mipmapBlur={true}
-                intensity={parseFloat(settings.background_bloom || 0.8)} 
-                radius={0.4} 
-              />
-              <Noise opacity={0.02} />
-              <Vignette 
-                offset={0.5} 
-                darkness={parseFloat(settings.background_vignette || 0.5)} 
-              />
-            </EffectComposer>
-          )}
-        </Suspense>
-      </Canvas>
-    </div>
-  ), [dpr, perfSufficient, CurrentScene, settings.background_brightness, settings.background_bloom, settings.background_vignette]);
-
   return (
     <>
-      {canvasContent}
+      <div className="fixed inset-0 -z-10 bg-black" style={{ filter: `brightness(${settings.background_brightness || 1})` }}>
+        <Canvas dpr={dpr} camera={{ position: [0, 0, 10], fov: 60 }} gl={{ antialias: false, powerPreference: "high-performance" }}>
+          <PerformanceMonitor onDecline={() => { setDpr(1); setPerfSufficient(false); }} onIncline={() => { setDpr(1.5); setPerfSufficient(true); }} />
+          <Suspense fallback={null}>
+            <CurrentScene />
+            {perfSufficient && (
+              <EffectComposer disableNormalPass>
+                <Bloom 
+                  luminanceThreshold={0.5} 
+                  mipmapBlur 
+                  intensity={parseFloat(settings.background_bloom || 0.8)} 
+                  radius={0.4} 
+                />
+                <Noise opacity={0.02} />
+                <Vignette 
+                  offset={0.5} 
+                  darkness={parseFloat(settings.background_vignette || 0.5)} 
+                />
+              </EffectComposer>
+            )}
+          </Suspense>
+        </Canvas>
+      </div>
     </>
   );
 };

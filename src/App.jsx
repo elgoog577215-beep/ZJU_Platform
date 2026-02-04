@@ -1,10 +1,10 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Toaster } from 'react-hot-toast';
 import { MusicProvider } from './context/MusicContext';
 import { SettingsProvider, useSettings } from './context/SettingsContext';
 import { AuthProvider } from './context/AuthContext';
-import { Loader } from 'lucide-react';
 import { HelmetProvider } from 'react-helmet-async';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -16,8 +16,9 @@ import CustomCursor from './components/CustomCursor';
 import ScrollProgress from './components/ScrollProgress';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import SearchPalette from './components/SearchPalette';
-  import MobileNavbar from './components/MobileNavbar';
+import MobileNavbar from './components/MobileNavbar';
 import Footer from './components/Footer';
+import LoadingScreen from './components/LoadingScreen';
 
 // Lazy load page components
 const Hero = lazy(() => import('./components/Hero'));
@@ -32,10 +33,16 @@ const AdminDashboard = lazy(() => import('./components/Admin/AdminDashboard'));
 const NotFound = lazy(() => import('./components/NotFound'));
 const PublicProfile = lazy(() => import('./components/PublicProfile'));
 
-const PageLoader = () => (
-  <div className="flex items-center justify-center min-h-screen bg-black text-white">
-    <Loader className="animate-spin" size={48} />
-  </div>
+const PageTransition = ({ children }) => (
+  <motion.div
+    initial={{ opacity: 0, filter: 'blur(5px)' }}
+    animate={{ opacity: 1, filter: 'blur(0px)' }}
+    exit={{ opacity: 0, filter: 'blur(5px)' }}
+    transition={{ duration: 0.2, ease: "easeOut" }}
+    className="w-full"
+  >
+    {children}
+  </motion.div>
 );
 
 const Home = () => {
@@ -84,19 +91,21 @@ const AppContent = () => {
       </ErrorBoundary>
 
       <main className="pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/gallery" element={<Gallery />} />
-            <Route path="/music" element={<Music />} />
-            <Route path="/videos" element={<Videos />} />
-            <Route path="/articles" element={<Articles />} />
-            <Route path="/events" element={<Events />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/user/:id" element={<PublicProfile />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+        <Suspense fallback={<LoadingScreen />}>
+          <AnimatePresence mode="wait">
+            <Routes location={location} key={location.pathname}>
+              <Route path="/" element={<PageTransition><Home /></PageTransition>} />
+              <Route path="/gallery" element={<PageTransition><Gallery /></PageTransition>} />
+              <Route path="/music" element={<PageTransition><Music /></PageTransition>} />
+              <Route path="/videos" element={<PageTransition><Videos /></PageTransition>} />
+              <Route path="/articles" element={<PageTransition><Articles /></PageTransition>} />
+              <Route path="/events" element={<PageTransition><Events /></PageTransition>} />
+              <Route path="/about" element={<PageTransition><About /></PageTransition>} />
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/user/:id" element={<PageTransition><PublicProfile /></PageTransition>} />
+              <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
+            </Routes>
+          </AnimatePresence>
         </Suspense>
       </main>
 

@@ -40,8 +40,10 @@ const getTags = async (req, res) => {
                 targetTable = normalizedType + 's';
             } else if (normalizedType.endsWith('s') && resources.includes(normalizedType.slice(0, -1))) {
                 targetTable = normalizedType.slice(0, -1);
-            } else if (normalizedType === 'gallery') {
-                 targetTable = 'photos';
+            } else if (normalizedType === 'gallery' || normalizedType === 'image') {
+                targetTable = 'photos';
+            } else if (normalizedType === 'audio') {
+                targetTable = 'music';
             }
 
             // If a type was requested but not found, return empty to prevent leak

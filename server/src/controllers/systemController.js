@@ -49,14 +49,12 @@ const getStats = async (req, res) => {
         const active = await db.get(`SELECT COUNT(*) as count FROM ${table} WHERE deleted_at IS NULL AND status = 'approved'`);
         const pending = await db.get(`SELECT COUNT(*) as count FROM ${table} WHERE deleted_at IS NULL AND status = 'pending'`);
         const deleted = await db.get(`SELECT COUNT(*) as count FROM ${table} WHERE deleted_at IS NOT NULL`);
-        const views = await db.get(`SELECT SUM(views) as totalViews FROM ${table}`);
         
         return {
             total: total.count,
             active: active.count,
             pending: pending.count,
-            deleted: deleted.count,
-            views: views.totalViews || 0
+            deleted: deleted.count
         };
     };
 

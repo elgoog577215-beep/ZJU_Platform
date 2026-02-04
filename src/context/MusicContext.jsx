@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useRef, useEffect } from 'react';
+import React, { createContext, useState, useContext, useRef, useEffect, useCallback } from 'react';
 
 const MusicContext = createContext();
 
@@ -11,16 +11,16 @@ export const MusicProvider = ({ children }) => {
   const [isMiniPlayerVisible, setIsMiniPlayerVisible] = useState(false);
   const audioRef = useRef(new Audio());
 
-  const togglePlay = () => {
+  const togglePlay = useCallback(() => {
     if (isPlaying) {
       audioRef.current.pause();
     } else {
       audioRef.current.play().catch(err => console.error("Playback failed", err));
     }
-    setIsPlaying(!isPlaying);
-  };
+    setIsPlaying(prev => !prev);
+  }, [isPlaying]);
 
-  const playTrack = (track, newPlaylist = []) => {
+  const playTrack = useCallback((track, newPlaylist = []) => {
     if (newPlaylist.length > 0) {
       setPlaylist(newPlaylist);
     }
@@ -34,7 +34,7 @@ export const MusicProvider = ({ children }) => {
       audioRef.current.src = track.audio;
       audioRef.current.play().catch(err => console.error("Playback failed", err));
     }
-  };
+  }, [currentTrack, togglePlay]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -51,7 +51,7 @@ export const MusicProvider = ({ children }) => {
 
     audio.addEventListener('ended', handleEnded);
     return () => audio.removeEventListener('ended', handleEnded);
-  }, [currentTrack, playlist]);
+  }, [currentTrack, playlist, playTrack]);
 
   const nextTrack = () => {
     if (playlist.length === 0 || !currentTrack) return;

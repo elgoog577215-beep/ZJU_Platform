@@ -52,10 +52,19 @@ const CategoryCard = ({ item }) => {
   
   return (
     <motion.div
-      initial={{ opacity: 0, y: 50 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.8, delay: item.delay }}
+      variants={{
+        hidden: { opacity: 0, y: 50 },
+        visible: { 
+          opacity: 1, 
+          y: 0,
+          transition: {
+            type: "spring",
+            stiffness: 100,
+            damping: 20
+          }
+        }
+      }}
+      whileHover={{ y: -10 }}
       className="relative group h-[400px] w-full overflow-hidden rounded-3xl cursor-pointer"
     >
       <Link to={item.path} className="block w-full h-full">
@@ -125,11 +134,25 @@ const HomeCategories = () => {
         </motion.div>
 
         {/* Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+        <motion.div 
+          className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: {
+                staggerChildren: 0.1
+              }
+            }
+          }}
+        >
           {categories.map((category) => (
             <CategoryCard key={category.id} item={category} />
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

@@ -18,8 +18,6 @@
     "title": "标题",
     "category": "分类",
     "exif": "EXIF 信息",
-    "stats": "统计",
-    "views": "浏览量",
     "likes": "点赞数"
   },
   "comments": {
@@ -67,10 +65,9 @@
     "user_not_found": "用户未找到",
     "go_home": "返回首页",
     "stats": {
-      "works": "作品",
-      "views": "浏览量",
-      "likes": "点赞数"
-    },
+        "works": "作品",
+        "likes": "点赞数"
+      },
     "uploads": {
       "title": "我的上传",
       "no_uploads": "暂无上传",
@@ -341,7 +338,9 @@
     "newest": "最新发布",
     "oldest": "最早发布",
     "likes": "最多喜欢",
-    "title": "标题排序"
+    "title": "标题排序",
+    "date_asc": "日期 (最早)",
+    "date_desc": "日期 (最晚)"
   },
   "gallery": {
     "title": "光影画廊",
@@ -871,6 +870,7 @@
     "organizer_placeholder": "例如：校学生会",
     "score": "素质分",
     "score_placeholder": "+1.5",
+    "volunteer_time_placeholder": "例如: 2小时",
     "target_placeholder": "例如：全体师生"
   }
 }

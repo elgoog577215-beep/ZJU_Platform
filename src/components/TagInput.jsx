@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Plus, Tag } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import api from '../services/api';
@@ -13,6 +13,15 @@ const TagInput = ({ value = '', onChange, type }) => {
   const inputRef = useRef(null);
   const suggestionsRef = useRef(null);
 
+  const fetchTags = useCallback(async () => {
+    try {
+      const response = await api.get('/tags', { params: { type } });
+      setAllTags(response.data);
+    } catch (error) {
+      console.error('Failed to fetch tags', error);
+    }
+  }, [type]);
+
   useEffect(() => {
     // Parse initial value
     if (value) {
@@ -24,7 +33,7 @@ const TagInput = ({ value = '', onChange, type }) => {
 
   useEffect(() => {
     fetchTags();
-  }, [type]); // Refetch when type changes
+  }, [fetchTags]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -36,15 +45,6 @@ const TagInput = ({ value = '', onChange, type }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  async function fetchTags() {
-    try {
-      const response = await api.get('/tags', { params: { type } });
-      setAllTags(response.data);
-    } catch (error) {
-      console.error('Failed to fetch tags', error);
-    }
-  }
 
   const handleInputChange = (e) => {
     const val = e.target.value;

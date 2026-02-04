@@ -250,8 +250,7 @@ const PublicProfile = () => {
               {/* Stats */}
               <div className="flex items-center justify-center md:justify-start gap-6 md:gap-12 border-t border-white/5 pt-6">
                 <div className="text-center md:text-left">
-                  <div className="text-lg md:text-2xl font-bold text-white mb-0.5 md:mb-1">{resources.reduce((acc, curr) => acc + (curr.views || 0), 0)}</div>
-                  <div className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wider">{t('user_profile.stats.views')}</div>
+                  {/* Views removed */}
                 </div>
                 <div className="text-center md:text-left">
                   <div className="text-lg md:text-2xl font-bold text-white mb-0.5 md:mb-1">{resources.reduce((acc, curr) => acc + (curr.likes || 0), 0)}</div>

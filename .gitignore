@@ -1,6 +1,6 @@
 # Node dependencies
-node_modules/
-server/node_modules/
+# node_modules/ <-- Un-ignored for WeChat dependencies
+# server/node_modules/ <-- Un-ignored for WeChat dependencies
 
 # Build outputs
 .vite/
@@ -25,15 +25,15 @@ pnpm-debug.log*
 Thumbs.db
 
 # Uploads & generated assets
-server/uploads/
-uploads/
+# server/uploads/ <-- Un-ignored per user request
+# uploads/ <-- Un-ignored per user request
 
 # Local database file
-server/database.sqlite
-*.sqlite
-*.sqlite-wal
-*.sqlite-shm
-*.db
+# server/database.sqlite <-- Un-ignored per user request
+# *.sqlite <-- Un-ignored per user request
+# *.sqlite-wal <-- Un-ignored per user request
+# *.sqlite-shm <-- Un-ignored per user request
+# *.db <-- Un-ignored per user request
 
 # Crawler
 wechat-batch-crawler/

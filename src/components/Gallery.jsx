@@ -2,9 +2,8 @@ import React, { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Lightbox from './Lightbox';
 import Pagination from './Pagination';
-import { Play, Box, Upload, AlertCircle, Eye } from 'lucide-react';
+import { Play, Box, Upload, AlertCircle } from 'lucide-react';
 import FavoriteButton from './FavoriteButton';
-import ViewCounter from './ViewCounter';
 import { useTranslation } from 'react-i18next';
 import UploadModal from './UploadModal';
 import { useSettings } from '../context/SettingsContext';
@@ -40,6 +39,15 @@ const PhotoCard = memo(({ photo, index, onClick }) => {
       {/* Hover Overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-6">
         <h3 className="text-lg font-bold text-white translate-y-4 group-hover:translate-y-0 transition-transform duration-500 delay-75 drop-shadow-md line-clamp-2">{photo.title}</h3>
+        {photo.tags && (
+          <div className="flex flex-wrap gap-1.5 mt-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-500 delay-100">
+            {photo.tags.split(',').slice(0, 3).map((tag, i) => (
+              <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white/90 backdrop-blur-sm border border-white/10">
+                {tag.trim()}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </motion.div>
   );
@@ -142,19 +150,6 @@ const Gallery = () => {
     });
   }, [setPhotos]);
 
-  const handleViewsUpdate = useCallback((id, newViews) => {
-    setPhotos(prev => prev.map(p => 
-        p.id === id ? { ...p, views: newViews } : p
-    ));
-    
-    setTempPhoto(prev => {
-        if (prev && prev.id === id) {
-             return { ...prev, views: newViews };
-        }
-        return prev;
-    });
-  }, [setPhotos]);
-
   return (
     <section className="pt-24 pb-40 md:py-20 px-4 md:px-8 min-h-screen">
       <motion.div 
@@ -224,12 +219,6 @@ const Gallery = () => {
                 {/* Hover Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-6">
                   <h3 className="text-lg font-bold text-white translate-y-4 group-hover:translate-y-0 transition-transform duration-500 delay-75 drop-shadow-md line-clamp-2">{photo.title}</h3>
-                  {photo.views > 0 && (
-                      <div className="flex items-center gap-1.5 text-gray-300 text-xs mt-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-500 delay-100">
-                          <Eye size={14} />
-                          <span>{photo.views}</span>
-                      </div>
-                  )}
                 </div>
               </motion.div>
             ))}
@@ -262,7 +251,6 @@ const Gallery = () => {
                 }
             }}
             onLikeToggle={handleToggleFavorite}
-            onViewsUpdate={handleViewsUpdate}
           />
         )}
       </AnimatePresence>
