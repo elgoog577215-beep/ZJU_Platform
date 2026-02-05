@@ -17,8 +17,9 @@ pnpm-debug.log*
 .cache/
 
 # Local env/config
-.env
+# .env <-- User requested to push .env
 .env.*
+
 
 # OS junk
 .DS_Store
