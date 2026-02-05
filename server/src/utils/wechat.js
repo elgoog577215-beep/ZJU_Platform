@@ -160,9 +160,22 @@ async function parseWithLLM(data) {
         const content = response.data.choices[0].message.content;
         
         // Remove markdown code blocks if present
-        const jsonStr = content.replace(/```json\n?|\n?```/g, '').trim();
+        let jsonStr = content.replace(/```json\n?|\n?```/g, '').trim();
         
-        return JSON.parse(jsonStr);
+        // Clean up common JSON syntax errors from LLM
+        jsonStr = jsonStr.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']'); // Remove trailing commas
+        
+        let result = JSON.parse(jsonStr);
+
+        // Sanitize fields
+        if (result.description) {
+            result.description = result.description.replace(/^活动详情摘要[：:]\s*/, '').trim();
+        }
+        if (result.location) {
+            result.location = result.location.replace(/^活动地点[：:]\s*/, '').trim();
+        }
+        
+        return result;
     } catch (error) {
         console.error('❌ LLM Error:', error.response?.data || error.message);
         throw new Error('LLM parsing failed');
