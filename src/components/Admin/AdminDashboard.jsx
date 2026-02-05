@@ -225,11 +225,6 @@ const AdminDashboard = () => {
                   </div>
               </a>
             </div>
-            
-            <div className="mt-6 bg-gradient-to-br from-indigo-900/20 to-purple-900/20 rounded-2xl p-6 border border-white/5 text-center hidden lg:block">
-                <p className="text-xs text-indigo-300 font-bold uppercase tracking-wider mb-2">{t('admin.pro_tip')}</p>
-                <p className="text-sm text-gray-400">{t('admin.pro_tip_desc')}</p>
-            </div>
           </div>
 
           {/* Main Content Area */}

@@ -34,8 +34,8 @@ const register = async (req, res) => {
     const role = userCount.count === 0 ? 'admin' : 'user';
 
     const result = await db.run(
-      'INSERT INTO users (username, password, role) VALUES (?, ?, ?)',
-      [username, hashedPassword, role]
+      'INSERT INTO users (username, password, role, created_at) VALUES (?, ?, ?, ?)',
+      [username, hashedPassword, role, new Date().toISOString()]
     );
 
     const token = jwt.sign({ id: result.lastID, username, role }, SECRET_KEY, { expiresIn: '30d' });
@@ -59,6 +59,14 @@ const login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Upgrade hash if using old format (optional, not strictly necessary if all users are new)
+    // But good practice if migrating
+    const BCRYPT_REGEX = /^\$2[ayb]\$.{56}$/;
+    if (!BCRYPT_REGEX.test(user.password)) {
+        const newHash = await bcrypt.hash(password, 12);
+        await db.run('UPDATE users SET password = ? WHERE id = ?', [newHash, user.id]);
     }
 
     const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, SECRET_KEY, { expiresIn: '30d' });
