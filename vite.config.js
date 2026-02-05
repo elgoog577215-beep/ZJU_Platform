@@ -81,13 +81,14 @@ export default defineConfig({
     },
   },
   build: {
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom', 'framer-motion'],
           'three-vendor': ['three', '@react-three/fiber', '@react-three/drei'],
           'ui-vendor': ['lucide-react', 'react-hot-toast', 'clsx', 'tailwind-merge'],
-          'utils': ['axios', 'swr']
+          'utils': ['axios', 'swr', 'i18next', 'react-i18next']
         }
       }
     }

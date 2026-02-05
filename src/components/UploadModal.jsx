@@ -81,11 +81,11 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                 setTags(newTags.join(','));
             }
 
-            toast.success(t('upload.parse_success') || 'Parsed successfully');
+            toast.success(t('upload.parse_success'));
         }
     } catch (error) {
         console.error('WeChat Parse Error:', error);
-        toast.error(t('upload.parse_failed') || 'Failed to parse WeChat article');
+        toast.error(t('upload.parse_failed'));
     } finally {
         setIsParsing(false);
     }
@@ -174,7 +174,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
     }
 
     if (type === 'event' && !eventEndDate) {
-        toast.error('截止日期为必填项');
+        toast.error(t('upload.required_end_date'));
         return;
     }
 
@@ -378,14 +378,14 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                         <span className="p-1.5 bg-green-500/20 rounded-lg text-green-400">
                             <Link size={16} />
                         </span>
-                        从微信公众号导入
+                        {t('upload.wechat_import')}
                     </h4>
                     <div className="flex gap-3">
                         <input 
                             type="text" 
                             value={wechatUrl}
                             onChange={(e) => setWechatUrl(e.target.value)}
-                            placeholder="粘贴微信公众号文章链接..."
+                            placeholder={t('upload.wechat_placeholder')}
                             className={`${inputClasses} flex-1 !bg-black/20 !border-green-500/20 focus:!border-green-500/50`}
                         />
                         <button 
@@ -397,12 +397,12 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                             {isParsing ? (
                                 <>
                                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                    解析中...
+                                    {t('upload.parsing')}
                                 </>
                             ) : (
                                 <>
                                     <Check size={18} />
-                                    智能识别
+                                    {t('upload.smart_parse')}
                                 </>
                             )}
                         </button>
@@ -491,7 +491,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                            </h4>
                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                <div className="col-span-1">
-                                    <label className={labelClasses}>开始日期</label>
+                                    <label className={labelClasses}>{t('event_fields.start_date')}</label>
                                     <input
                                         type="date"
                                         required
@@ -501,7 +501,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                     />
                                </div>
                                <div className="col-span-1">
-                                    <label className={labelClasses}>截止日期</label>
+                                    <label className={labelClasses}>{t('event_fields.end_date')}</label>
                                     <input
                                         type="date"
                                         required
@@ -531,7 +531,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                            </h4>
                            <div className="grid grid-cols-2 gap-5">
                                <div className="col-span-1">
-                                   <label className={labelClasses}>志愿时长</label>
+                                   <label className={labelClasses}>{t('event_fields.volunteer_duration')}</label>
                                    <input
                                        type="text"
                                        value={eventVolunteerTime}
@@ -541,7 +541,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                    />
                                </div>
                                <div className="col-span-1">
-                                   <label className={labelClasses}>{t('advanced_filter.organizer')}</label>
+                                   <label className={labelClasses}>{t('event_fields.organizer')}</label>
                                    <input
                                        type="text"
                                        value={eventOrganizer}
@@ -551,7 +551,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                    />
                                </div>
                                <div className="col-span-1">
-                                   <label className={labelClasses}>{t('event_fields.score')}</label>
+                                   <label className={labelClasses}>{t('event_fields.score_label')}</label>
                                    <input
                                        type="text"
                                        value={eventScore}
@@ -561,7 +561,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                    />
                                </div>
                                <div className="col-span-1">
-                                   <label className={labelClasses}>{t('advanced_filter.target_audience')}</label>
+                                   <label className={labelClasses}>{t('event_fields.target_audience')}</label>
                                    <input
                                        type="text"
                                        value={eventTarget}

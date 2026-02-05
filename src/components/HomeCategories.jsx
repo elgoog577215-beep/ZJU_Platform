@@ -123,6 +123,7 @@ const CategoryCard = ({ item }) => {
 };
 
 const HomeCategories = () => {
+  const { t } = useTranslation();
   return (
     <section className="py-24 px-4 md:px-8 bg-black relative z-10">
       <div className="max-w-[1800px] mx-auto">
@@ -134,7 +135,7 @@ const HomeCategories = () => {
           className="text-center mb-16"
         >
           <h2 className="text-4xl md:text-6xl font-bold font-serif text-white mb-4">
-            Discover
+            {t('home.discover')}
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-transparent via-white/50 to-transparent mx-auto" />
         </motion.div>

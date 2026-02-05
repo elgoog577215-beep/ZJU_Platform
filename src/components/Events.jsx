@@ -641,7 +641,7 @@ END:VCALENDAR`;
                                     </span>
                                     <span className="text-white/40">|</span>
                                     <span className="flex items-center gap-2">
-                                        {selectedEvent.location || 'ONLINE'}
+                                        {selectedEvent.location || t('common.online')}
                                     </span>
                             </div>
                         </div>
@@ -763,7 +763,7 @@ END:VCALENDAR`;
                                     </div>
                                     <div>
                                         <h4 className="font-bold text-gray-400 text-sm uppercase tracking-wider mb-1">{t('events.location_label')}</h4>
-                                        <p className="text-gray-200 text-base leading-snug">{selectedEvent.location || '线上'}</p>
+                                        <p className="text-gray-200 text-base leading-snug">{selectedEvent.location || t('common.online')}</p>
                                     </div>
                                 </div>
 
@@ -773,7 +773,7 @@ END:VCALENDAR`;
                                             <Building2 size={20} />
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-gray-400 text-sm uppercase tracking-wider mb-1">主办方</h4>
+                                            <h4 className="font-bold text-gray-400 text-sm uppercase tracking-wider mb-1">{t('event_fields.organizer')}</h4>
                                             <p className="text-gray-200 text-base leading-snug">{selectedEvent.organizer}</p>
                                         </div>
                                     </div>
@@ -785,7 +785,7 @@ END:VCALENDAR`;
                                             <Users size={20} />
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-gray-400 text-sm uppercase tracking-wider mb-1">面向对象</h4>
+                                            <h4 className="font-bold text-gray-400 text-sm uppercase tracking-wider mb-1">{t('event_fields.target_audience')}</h4>
                                             <p className="text-gray-200 text-base leading-snug">{selectedEvent.target_audience}</p>
                                         </div>
                                     </div>
@@ -797,7 +797,7 @@ END:VCALENDAR`;
                                             <Clock size={20} />
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-gray-400 text-sm uppercase tracking-wider mb-1">志愿时长</h4>
+                                            <h4 className="font-bold text-gray-400 text-sm uppercase tracking-wider mb-1">{t('event_fields.volunteer_duration')}</h4>
                                             <p className="text-gray-200 text-base leading-snug">{selectedEvent.volunteer_time}</p>
                                         </div>
                                     </div>
@@ -809,7 +809,7 @@ END:VCALENDAR`;
                                             <Award size={20} />
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-gray-400 text-sm uppercase tracking-wider mb-1">加分</h4>
+                                            <h4 className="font-bold text-gray-400 text-sm uppercase tracking-wider mb-1">{t('event_fields.score_label')}</h4>
                                             <p className="text-gray-200 text-base leading-snug">{selectedEvent.score}</p>
                                         </div>
                                     </div>

@@ -169,7 +169,12 @@
     "cursor_disable": "禁用自定义光标"
   },
   "search": {
-    "placeholder": "搜索内容..."
+    "placeholder": "搜索内容...",
+    "no_results": "没有找到关于 \"{{query}}\" 的结果",
+    "empty_hint": "搜索文章、视频、音乐或活动...",
+    "min_chars": "输入至少 2 个字符以开始搜索",
+    "footer_hint": "使用 ↑↓ 键导航，Enter 键选择",
+    "brand_search": "Lumos 智能搜索"
   },
   "hero": {
     "title": "捕捉",
@@ -224,6 +229,7 @@
   "home": {
     "meta_title": "TUOTU ZHEXIANG",
     "meta_desc": "探索数字艺术与科技的边界",
+    "discover": "发现",
     "featured_event": "精选活动",
     "selected_works": "精选作品",
     "view_details": "查看详情",
@@ -246,6 +252,7 @@
   },
   "common": {
     "error_fetching_data": "获取数据失败",
+    "online": "线上",
     "explore": "探索",
     "uncategorized": "未分类",
     "unknown_artist": "未知艺术家",
@@ -331,6 +338,13 @@
     "replace": "替换",
     "drop_image": "释放图片以上传",
     "title_placeholder": "输入标题...",
+    "parse_success": "解析成功",
+    "parse_failed": "解析微信文章失败",
+    "required_end_date": "截止日期为必填项",
+    "wechat_import": "从微信公众号导入",
+    "wechat_placeholder": "粘贴微信公众号文章链接...",
+    "parsing": "解析中...",
+    "smart_parse": "智能识别",
     "tags": "标签",
     "tags_placeholder": "输入标签，按回车添加...",
     "event_link": "活动链接",
@@ -858,6 +872,12 @@
   "event_fields": {
     "basic_info": "基本信息",
     "attributes": "活动属性",
+    "start_date": "开始日期",
+    "end_date": "截止日期",
+    "volunteer_duration": "志愿时长",
+    "target_audience": "面向对象",
+    "organizer": "主办方",
+    "score_label": "加分",
     "nature_placeholder": "选择/输入",
     "organizer_placeholder": "例如：校学生会",
     "score": "素质分",

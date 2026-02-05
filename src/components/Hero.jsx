@@ -36,7 +36,7 @@ const Hero = () => {
         style={{ opacity }}
         className="relative z-20 text-center px-4"
       >
-        <div className="md:bg-transparent bg-black/20 backdrop-blur-sm rounded-3xl p-6 md:p-0 border border-white/5 md:border-none">
+        <div className="md:bg-transparent bg-black/20 rounded-3xl p-6 md:p-0 border border-white/5 md:border-none">
         <motion.h1 
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}

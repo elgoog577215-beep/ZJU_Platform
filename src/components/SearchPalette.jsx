@@ -212,7 +212,7 @@ const SearchPalette = () => {
                             <Command className="text-white/20" size={40} />
                         </div>
                         <p className="text-lg font-medium text-white/40">{t('search.empty_hint')}</p>
-                        <p className="text-xs text-white/20 mt-2">Type at least 2 characters to search</p>
+                        <p className="text-xs text-white/20 mt-2">{t('search.min_chars')}</p>
                     </div>
                 )}
             </div>
