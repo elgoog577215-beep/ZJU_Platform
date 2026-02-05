@@ -58,7 +58,6 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
     setIsParsing(true);
     try {
         const { data } = await api.post('/resources/parse-wechat', { url: wechatUrl });
-        // console.log('WeChat Parsed Data:', data);
         
         if (data) {
             if (data.title) setTitle(data.title);

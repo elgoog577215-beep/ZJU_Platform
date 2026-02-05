@@ -18,13 +18,13 @@ const ensureTagsTable = async () => {
         const columns = await db.all(`PRAGMA table_info(${resource})`);
         const hasTags = columns.some(c => c.name === 'tags');
         if (!hasTags) {
-            console.log(`Adding tags column to ${resource}...`);
+
             await db.exec(`ALTER TABLE ${resource} ADD COLUMN tags TEXT`);
         }
     }
 };
 
-const getTags = async (req, res) => {
+const getTags = async (req, res, next) => {
     try {
         await ensureTagsTable();
         const db = await getDb();
@@ -108,12 +108,10 @@ const getTags = async (req, res) => {
         
         const tags = await db.all('SELECT * FROM tags ORDER BY count DESC, name ASC');
         res.json(tags);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
-const createTag = async (req, res) => {
+const createTag = async (req, res, next) => {
     try {
         await ensureTagsTable();
         const db = await getDb();
@@ -130,12 +128,10 @@ const createTag = async (req, res) => {
             }
             throw e;
         }
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
-const updateTag = async (req, res) => {
+const updateTag = async (req, res, next) => {
     try {
         await ensureTagsTable();
         const db = await getDb();
@@ -173,12 +169,10 @@ const updateTag = async (req, res) => {
         }
         
         res.json({ success: true, oldName, newName });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
-const deleteTag = async (req, res) => {
+const deleteTag = async (req, res, next) => {
     try {
         await ensureTagsTable();
         const db = await getDb();
@@ -209,13 +203,11 @@ const deleteTag = async (req, res) => {
         }
         
         res.json({ success: true });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
 // Scan all resources and populate the tags table (Maintenance tool)
-const syncTags = async (req, res) => {
+const syncTags = async (req, res, next) => {
     try {
         await ensureTagsTable();
         const db = await getDb();
@@ -250,9 +242,7 @@ const syncTags = async (req, res) => {
         // Let's just return the result.
         
         res.json({ success: true, stats: tagCounts });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
 module.exports = {

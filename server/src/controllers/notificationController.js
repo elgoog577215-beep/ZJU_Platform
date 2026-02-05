@@ -7,13 +7,13 @@ const createNotification = async (userId, type, content, resourceId = null, reso
             'INSERT INTO notifications (user_id, type, content, related_resource_id, related_resource_type) VALUES (?, ?, ?, ?, ?)',
             [userId, type, content, resourceId, resourceType]
         );
-        console.log(`[Notification] Created for user ${userId}: ${content}`);
+
     } catch (error) {
         console.error('[Notification] Create error:', error);
     }
 };
 
-const getNotifications = async (req, res) => {
+const getNotifications = async (req, res, next) => {
     try {
         const db = await getDb();
         const userId = req.user.id;
@@ -46,12 +46,10 @@ const getNotifications = async (req, res) => {
                 totalPages: Math.ceil(countResult.count / limit)
             }
         });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
-const markAsRead = async (req, res) => {
+const markAsRead = async (req, res, next) => {
     try {
         const db = await getDb();
         const userId = req.user.id;
@@ -64,12 +62,10 @@ const markAsRead = async (req, res) => {
         }
 
         res.json({ success: true });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
-const deleteNotification = async (req, res) => {
+const deleteNotification = async (req, res, next) => {
     try {
         const db = await getDb();
         const userId = req.user.id;
@@ -82,9 +78,7 @@ const deleteNotification = async (req, res) => {
         }
 
         res.json({ success: true });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
 module.exports = {

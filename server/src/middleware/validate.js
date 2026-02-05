@@ -35,9 +35,15 @@ const changePasswordValidation = [
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d\W]{8,}$/).withMessage('New password must include uppercase, lowercase, and number')
 ];
 
+const settingsValidation = [
+  body('key').isIn(['site_title', 'site_description', 'allow_registrations', 'maintenance_mode', 'theme_color']).withMessage('Invalid setting key'),
+  body('value').notEmpty().withMessage('Value is required')
+];
+
 module.exports = {
   validate,
   registerValidation,
   loginValidation,
-  changePasswordValidation
+  changePasswordValidation,
+  settingsValidation
 };

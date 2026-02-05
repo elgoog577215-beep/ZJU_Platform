@@ -1,6 +1,6 @@
 const { getDb } = require('../config/db');
 
-const toggleFavorite = async (req, res) => {
+const toggleFavorite = async (req, res, next) => {
     try {
         const db = await getDb();
         const userId = req.user.id;
@@ -58,12 +58,10 @@ const toggleFavorite = async (req, res) => {
 
             res.json({ favorited: true, likes: newLikes });
         }
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
-const getFavorites = async (req, res) => {
+const getFavorites = async (req, res, next) => {
     try {
         const db = await getDb();
         const userId = req.user.id;
@@ -107,12 +105,10 @@ const getFavorites = async (req, res) => {
         }
 
         res.json(results);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
-const checkFavoriteStatus = async (req, res) => {
+const checkFavoriteStatus = async (req, res, next) => {
     try {
         const db = await getDb();
         const userId = req.user.id;
@@ -124,9 +120,7 @@ const checkFavoriteStatus = async (req, res) => {
         );
         
         res.json({ favorited: !!existing });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 }
 
 module.exports = { toggleFavorite, getFavorites, checkFavoriteStatus };

@@ -7,7 +7,7 @@ const runCrawler = async (url, source) => {
     return { status: 'skipped', message: 'Crawler module is not yet implemented.' };
 };
 
-const searchContent = async (req, res) => {
+const searchContent = async (req, res, next) => {
     try {
         const db = await getDb();
         const { q } = req.query;
@@ -34,12 +34,10 @@ const searchContent = async (req, res) => {
         ];
 
         res.json(results);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
-const getStats = async (req, res) => {
+const getStats = async (req, res, next) => {
   try {
     const db = await getDb();
     
@@ -103,7 +101,7 @@ const getStats = async (req, res) => {
   }
 };
 
-const handleUpload = (req, res) => {
+const handleUpload = (req, res, next) => {
   try {
     const response = {};
     // const baseUrl = `${req.protocol}://${req.get('host')}`; // Remove absolute URL
@@ -115,12 +113,10 @@ const handleUpload = (req, res) => {
       response.coverUrl = `/uploads/${req.files['cover'][0].filename}`;
     }
     res.json(response);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  } catch (error) { next(error); }
 };
 
-const downloadDbBackup = (req, res) => {
+const downloadDbBackup = (req, res, next) => {
   const dbPath = path.join(__dirname, '../../database.sqlite');
   if (fs.existsSync(dbPath)) {
     res.download(dbPath, `backup-${Date.now()}.sqlite`);
@@ -129,7 +125,7 @@ const downloadDbBackup = (req, res) => {
   }
 };
 
-const getFeaturedContent = async (req, res) => {
+const getFeaturedContent = async (req, res, next) => {
   try {
     const db = await getDb();
     
@@ -151,15 +147,13 @@ const getFeaturedContent = async (req, res) => {
       articles,
       events
     });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  } catch (error) { next(error); }
 };
 
-const crawlEvents = async (req, res) => {
+const crawlEvents = async (req, res, next) => {
     try {
         const { url, source } = req.body;
-        console.log(`Starting crawler for ${url || 'default'} (${source || 'ZJU'})...`);
+
         const result = await runCrawler(url, source);
         res.json({ success: true, ...result });
     } catch (error) {
@@ -168,7 +162,7 @@ const crawlEvents = async (req, res) => {
     }
 };
 
-const getAuditLogs = async (req, res) => {
+const getAuditLogs = async (req, res, next) => {
     try {
         const db = await getDb();
         const page = parseInt(req.query.page) || 1;
@@ -194,12 +188,10 @@ const getAuditLogs = async (req, res) => {
                 totalPages: Math.ceil(count.count / limit)
             }
         });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
-const getPendingContent = async (req, res) => {
+const getPendingContent = async (req, res, next) => {
     try {
         const db = await getDb();
         
@@ -225,9 +217,7 @@ const getPendingContent = async (req, res) => {
         allPending.sort((a, b) => b.id - a.id);
 
         res.json(allPending);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
 module.exports = { getStats, handleUpload, downloadDbBackup, getFeaturedContent, crawlEvents, searchContent, getAuditLogs, getPendingContent };

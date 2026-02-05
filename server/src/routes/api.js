@@ -4,7 +4,6 @@ const rateLimit = require('express-rate-limit');
 
 // Middleware
 const upload = require('../middleware/upload');
-const cacheMiddleware = require('../middleware/cache');
 
 // Controllers
 const resourceController = require('../controllers/resourceController');
@@ -20,7 +19,7 @@ const notificationController = require('../controllers/notificationController');
 const commentController = require('../controllers/commentController');
 
 const { authenticateToken, isAdmin, optionalAuth } = require('../middleware/auth');
-const { validate, registerValidation, loginValidation, changePasswordValidation } = require('../middleware/validate');
+const { validate, registerValidation, loginValidation, changePasswordValidation, settingsValidation } = require('../middleware/validate');
 const authController = require('../controllers/authController');
 
 // Rate Limiter
@@ -82,13 +81,13 @@ router.get('/stats', authenticateToken, isAdmin, systemController.getStats);
 router.post('/upload', authenticateToken, upload.fields([{ name: 'file', maxCount: 1 }, { name: 'cover', maxCount: 1 }]), systemController.handleUpload);
 router.get('/db/backup', authenticateToken, isAdmin, systemController.downloadDbBackup);
 router.get('/featured', systemController.getFeaturedContent);
-router.post('/events/crawl', systemController.crawlEvents);
-router.get('/audit-logs', systemController.getAuditLogs);
+router.post('/events/crawl', authenticateToken, isAdmin, systemController.crawlEvents);
+router.get('/audit-logs', authenticateToken, isAdmin, systemController.getAuditLogs);
 router.get('/admin/pending', authenticateToken, isAdmin, systemController.getPendingContent);
 
 // Settings Routes
-router.get('/settings', settingsController.getSettings);
-router.post('/settings', settingsController.updateSetting);
+router.get('/settings', authenticateToken, isAdmin, settingsController.getSettings);
+router.post('/settings', authenticateToken, isAdmin, validate(settingsValidation), settingsController.updateSetting);
 
 // File System Routes
 router.get('/fs/list', authenticateToken, isAdmin, fsController.listFiles);

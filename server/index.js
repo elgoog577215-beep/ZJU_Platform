@@ -7,12 +7,26 @@ const compression = require('compression');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const hpp = require('hpp');
+const morgan = require('morgan');
 
 const { getDb } = require('./src/config/db');
 const apiRoutes = require('./src/routes/api');
+const errorHandler = require('./src/middleware/errorHandler');
+const { authenticateToken, isAdmin } = require('./src/middleware/auth');
 
 const app = express();
+app.disable('x-powered-by'); // Hide Tech Stack
 const PORT = process.env.PORT || 3001;
+
+// Logging
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+} else {
+  // Production logging (shorter, no colors)
+  app.use(morgan('combined', {
+    skip: (req, res) => res.statusCode < 400 // Only log errors in production to save space/IO
+  }));
+}
 
 // Security & Optimization Middleware
 app.use(compression({
@@ -69,9 +83,22 @@ const limiter = rateLimit({
 // Apply rate limiting to API routes
 app.use('/api', limiter);
 
-// CORS: Allow all origins for simplicity
+// CORS: Restrict to Frontend URL
+const allowedOrigins = [process.env.FRONTEND_URL || 'http://localhost:5173'];
 app.use(cors({
-  origin: true, // Reflects the request origin, allowing all domains
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      // In development, you might want to allow localhost
+      if (process.env.NODE_ENV !== 'production') {
+        return callback(null, true);
+      }
+      var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
   credentials: true
 }));
 
@@ -98,7 +125,7 @@ if (fs.existsSync(distPath)) {
 const { scrapeWeChat, parseWithLLM } = require('./src/utils/wechat');
 
 // WeChat Parsing Endpoint
-app.post('/api/resources/parse-wechat', async (req, res) => {
+app.post('/api/resources/parse-wechat', authenticateToken, isAdmin, async (req, res, next) => {
     const { url } = req.body;
     
     if (!url) {
@@ -123,8 +150,7 @@ app.post('/api/resources/parse-wechat', async (req, res) => {
         res.json(parsedData);
 
     } catch (error) {
-        console.error('WeChat parsing error:', error);
-        res.status(500).json({ error: error.message || 'Failed to process WeChat URL' });
+        next(error);
     }
 });
 
@@ -142,6 +168,9 @@ if (fs.existsSync(distPath)) {
     res.sendFile(path.join(distPath, 'index.html'));
   });
 }
+
+// Global Error Handler
+app.use(errorHandler);
 
 // Database Initialization
 getDb().then(async (db) => {
@@ -281,7 +310,17 @@ getDb().then(async (db) => {
       is_read BOOLEAN DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
+    CREATE INDEX IF NOT EXISTS idx_photos_status_deleted ON photos(status, deleted_at);
+    CREATE INDEX IF NOT EXISTS idx_music_status_deleted ON music(status, deleted_at);
+    CREATE INDEX IF NOT EXISTS idx_videos_status_deleted ON videos(status, deleted_at);
+    CREATE INDEX IF NOT EXISTS idx_articles_status_deleted ON articles(status, deleted_at);
+    CREATE INDEX IF NOT EXISTS idx_events_status_deleted ON events(status, deleted_at);
+    CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+    CREATE INDEX IF NOT EXISTS idx_comments_resource ON comments(resource_id, resource_type);
+    CREATE INDEX IF NOT EXISTS idx_notifications_user_read ON notifications(user_id, is_read);
   `);
+
+  // Add default settings if not exist
   
   // Migration for user table
   try {

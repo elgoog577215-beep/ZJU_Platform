@@ -1,6 +1,6 @@
 const { getDb } = require('../config/db');
 
-const submitMessage = async (req, res) => {
+const submitMessage = async (req, res, next) => {
   const { name, email, message } = req.body;
   
   if (!name || !email || !message) {
@@ -14,39 +14,31 @@ const submitMessage = async (req, res) => {
       [name, email, message, new Date().toISOString()]
     );
     res.status(201).json({ id: result.lastID, message: 'Message sent successfully' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  } catch (error) { next(error); }
 };
 
-const getMessages = async (req, res) => {
+const getMessages = async (req, res, next) => {
   try {
     const db = await getDb();
     const messages = await db.all('SELECT * FROM messages ORDER BY date DESC');
     res.json(messages);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  } catch (error) { next(error); }
 };
 
-const deleteMessage = async (req, res) => {
+const deleteMessage = async (req, res, next) => {
     try {
         const db = await getDb();
         await db.run('DELETE FROM messages WHERE id = ?', [req.params.id]);
         res.json({ message: 'Message deleted' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
-const markAsRead = async (req, res) => {
+const markAsRead = async (req, res, next) => {
     try {
         const db = await getDb();
         await db.run('UPDATE messages SET read = 1 WHERE id = ?', [req.params.id]);
         res.json({ message: 'Message marked as read' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 }
 
 module.exports = {

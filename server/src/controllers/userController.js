@@ -1,17 +1,15 @@
 const bcrypt = require('bcryptjs');
 const { getDb } = require('../config/db');
 
-const getAllUsers = async (req, res) => {
+const getAllUsers = async (req, res, next) => {
   try {
     const db = await getDb();
     const users = await db.all('SELECT id, username, role, created_at FROM users ORDER BY created_at DESC');
     res.json(users);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  } catch (error) { next(error); }
 };
 
-const updateUser = async (req, res) => {
+const updateUser = async (req, res, next) => {
   try {
     const db = await getDb();
     const { id } = req.params;
@@ -29,7 +27,7 @@ const updateUser = async (req, res) => {
             }
             const settings = await db.get('SELECT value FROM settings WHERE key = ?', ['invite_code']);
             if (!settings || String(settings.value).trim() !== String(invitation_code).trim()) {
-                console.log(`Invite code mismatch: Server '${settings?.value}', Client '${invitation_code}'`);
+
                 return res.status(400).json({ error: 'Invalid invitation code' });
             }
         }
@@ -54,12 +52,10 @@ const updateUser = async (req, res) => {
     }
 
     res.json({ message: 'User updated successfully' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  } catch (error) { next(error); }
 };
 
-const deleteUser = async (req, res) => {
+const deleteUser = async (req, res, next) => {
   try {
     const db = await getDb();
     const { id } = req.params;
@@ -71,12 +67,10 @@ const deleteUser = async (req, res) => {
 
     await db.run('DELETE FROM users WHERE id = ?', [id]);
     res.json({ message: 'User deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  } catch (error) { next(error); }
 };
 
-const getPublicProfile = async (req, res) => {
+const getPublicProfile = async (req, res, next) => {
     try {
         const db = await getDb();
         const { id } = req.params;
@@ -87,12 +81,10 @@ const getPublicProfile = async (req, res) => {
         }
         
         res.json(user);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
-const getUserResources = async (req, res) => {
+const getUserResources = async (req, res, next) => {
     try {
         const db = await getDb();
         const { id } = req.params;
@@ -121,9 +113,7 @@ const getUserResources = async (req, res) => {
         allResources.sort((a, b) => b.id - a.id);
 
         res.json(allResources);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
 module.exports = { getAllUsers, updateUser, deleteUser, getPublicProfile, getUserResources };

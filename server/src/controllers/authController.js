@@ -4,7 +4,7 @@ const { getDb } = require('../config/db');
 
 const SECRET_KEY = process.env.SECRET_KEY || 'dev-secret-key-change-in-prod';
 
-const register = async (req, res) => {
+const register = async (req, res, next) => {
   try {
     const db = await getDb();
     const { username, password } = req.body;
@@ -41,12 +41,10 @@ const register = async (req, res) => {
     const token = jwt.sign({ id: result.lastID, username, role }, SECRET_KEY, { expiresIn: '30d' });
 
     res.json({ token, user: { id: result.lastID, username, role } });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  } catch (error) { next(error); }
 };
 
-const login = async (req, res) => {
+const login = async (req, res, next) => {
   try {
     const db = await getDb();
     const { username, password } = req.body;
@@ -78,12 +76,10 @@ const login = async (req, res) => {
     );
 
     res.json({ token, user: { id: user.id, username: user.username, role: user.role } });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  } catch (error) { next(error); }
 };
 
-const adminLogin = async (req, res) => {
+const adminLogin = async (req, res, next) => {
   try {
     const { password } = req.body;
 
@@ -107,12 +103,10 @@ const adminLogin = async (req, res) => {
     );
 
     res.json({ token, user: { id: 1, username: 'admin', role: 'admin' } });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  } catch (error) { next(error); }
 };
 
-const me = async (req, res) => {
+const me = async (req, res, next) => {
     try {
         const db = await getDb();
         // Fetch full user details from DB to ensure we have the latest data
@@ -134,12 +128,10 @@ const me = async (req, res) => {
         }
         
         res.json(user);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
-const changePassword = async (req, res) => {
+const changePassword = async (req, res, next) => {
     try {
         const db = await getDb();
         const { currentPassword, newPassword } = req.body;
@@ -159,9 +151,7 @@ const changePassword = async (req, res) => {
         await db.run('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, userId]);
 
         res.json({ message: 'Password updated successfully' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
 module.exports = { register, login, adminLogin, me, changePassword, SECRET_KEY };

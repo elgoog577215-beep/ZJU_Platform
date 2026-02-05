@@ -1,6 +1,6 @@
 const { getDb } = require('../config/db');
 
-const createComment = async (req, res) => {
+const createComment = async (req, res, next) => {
     try {
         const db = await getDb();
         const userId = req.user.id;
@@ -37,12 +37,10 @@ const createComment = async (req, res) => {
         };
 
         res.json(newComment);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
-const getComments = async (req, res) => {
+const getComments = async (req, res, next) => {
     try {
         const db = await getDb();
         const { resourceId, resourceType } = req.query;
@@ -57,12 +55,10 @@ const getComments = async (req, res) => {
         );
 
         res.json(comments);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
-const deleteComment = async (req, res) => {
+const deleteComment = async (req, res, next) => {
     try {
         const db = await getDb();
         const userId = req.user.id;
@@ -78,9 +74,7 @@ const deleteComment = async (req, res) => {
 
         await db.run('DELETE FROM comments WHERE id = ?', [id]);
         res.json({ success: true });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
 module.exports = {

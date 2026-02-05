@@ -1,6 +1,6 @@
 const { getDb } = require('../config/db');
 
-const registerEvent = async (req, res) => {
+const registerEvent = async (req, res, next) => {
     try {
         const db = await getDb();
         const { id } = req.params;
@@ -29,12 +29,10 @@ const registerEvent = async (req, res) => {
             return res.json({ registered: true, message: 'Successfully registered' });
         }
 
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
-const getRegistrationStatus = async (req, res) => {
+const getRegistrationStatus = async (req, res, next) => {
     try {
         const db = await getDb();
         const { id } = req.params;
@@ -47,9 +45,7 @@ const getRegistrationStatus = async (req, res) => {
         const existing = await db.get('SELECT * FROM event_registrations WHERE event_id = ? AND user_id = ?', [id, userId]);
         res.json({ registered: !!existing });
 
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
 module.exports = { registerEvent, getRegistrationStatus };

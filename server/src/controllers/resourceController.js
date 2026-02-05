@@ -26,7 +26,7 @@ const processTags = async (tagsString) => {
 };
 
 // Helper Factories
-const createHandler = (table, fields) => async (req, res) => {
+const createHandler = (table, fields) => async (req, res, next) => {
   try {
     const db = await getDb();
     const placeholders = fields.map(() => '?').join(',');
@@ -47,12 +47,10 @@ const createHandler = (table, fields) => async (req, res) => {
     }
 
     res.json({ id: result.lastID, ...req.body, status, likes: 0 });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  } catch (error) { next(error); }
 };
 
-const updateHandler = (table, fields) => async (req, res) => {
+const updateHandler = (table, fields) => async (req, res, next) => {
   try {
     const db = await getDb();
     const { id } = req.params;
@@ -86,12 +84,10 @@ const updateHandler = (table, fields) => async (req, res) => {
     }
 
     res.json({ id, ...req.body });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  } catch (error) { next(error); }
 };
 
-const deleteHandler = (table) => async (req, res) => {
+const deleteHandler = (table) => async (req, res, next) => {
   try {
     const db = await getDb();
     const { id } = req.params;
@@ -106,8 +102,6 @@ const deleteHandler = (table) => async (req, res) => {
         return res.status(403).json({ error: 'You do not have permission to delete this resource' });
     }
 
-    console.log(`[ResourceController] Soft deleting from ${table}, ID: ${id}`);
-    
     // Soft delete: Update deleted_at timestamp
     await db.run(`UPDATE ${table} SET deleted_at = datetime('now') WHERE id = ?`, id);
     
@@ -119,30 +113,24 @@ const deleteHandler = (table) => async (req, res) => {
         );
     }
 
-    console.log(`[ResourceController] Item moved to trash`);
     res.json({ message: 'Moved to trash' });
-  } catch (error) {
-    console.error(`[ResourceController] Delete error:`, error);
-    res.status(500).json({ error: error.message });
-  }
+  } catch (error) { next(error); }
 };
 
-const permanentDeleteHandler = (table) => async (req, res) => {
+const permanentDeleteHandler = (table) => async (req, res, next) => {
   try {
     const db = await getDb();
     const { id } = req.params;
     const singularType = getSingularType(table);
-    
-    console.log(`[ResourceController] Permanently deleting from ${table}, ID: ${id}`);
-    
+
     // Delete associated files
     const item = await db.get(`SELECT * FROM ${table} WHERE id = ?`, id);
     if (item) {
-        console.log(`[ResourceController] Item found, deleting files...`);
+
         const fileFields = ['url', 'cover', 'thumbnail', 'image', 'audio', 'video'];
         fileFields.forEach(field => {
             if (item[field]) {
-                console.log(`[ResourceController] Deleting file: ${item[field]}`);
+
                 deleteFileFromUrl(item[field]);
             }
         });
@@ -182,21 +170,16 @@ const permanentDeleteHandler = (table) => async (req, res) => {
             [req.user.id, table, id, 'permanent_delete', 'Admin permanently deleted resource']
         );
     }
-    
-    console.log(`[ResourceController] DB permanent delete executed with cascading cleanup`);
+
     res.json({ message: 'Permanently deleted with all associated data' });
-  } catch (error) {
-    console.error(`[ResourceController] Permanent delete error:`, error);
-    res.status(500).json({ error: error.message });
-  }
+  } catch (error) { next(error); }
 };
 
-const restoreHandler = (table) => async (req, res) => {
+const restoreHandler = (table) => async (req, res, next) => {
   try {
     const db = await getDb();
     const { id } = req.params;
-    console.log(`[ResourceController] Restoring item in ${table}, ID: ${id}`);
-    
+
     await db.run(`UPDATE ${table} SET deleted_at = NULL WHERE id = ?`, id);
     
     // Audit Log for Admins
@@ -206,13 +189,9 @@ const restoreHandler = (table) => async (req, res) => {
             [req.user.id, table, id, 'restore', 'Admin restored resource']
         );
     }
-    
-    console.log(`[ResourceController] Item restored`);
+
     res.json({ message: 'Restored successfully' });
-  } catch (error) {
-    console.error(`[ResourceController] Restore error:`, error);
-    res.status(500).json({ error: error.message });
-  }
+  } catch (error) { next(error); }
 };
 
 const getSingularType = (table) => {
@@ -226,7 +205,7 @@ const getSingularType = (table) => {
     return map[table] || table.slice(0, -1);
 };
 
-const getOneHandler = (table) => async (req, res) => {
+const getOneHandler = (table) => async (req, res, next) => {
   try {
     const db = await getDb();
     const { id } = req.params;
@@ -265,12 +244,10 @@ const getOneHandler = (table) => async (req, res) => {
     }
 
     res.json(item);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  } catch (error) { next(error); }
 };
 
-const getAllHandler = (table, defaultLimit = 12) => async (req, res) => {
+const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
     try {
         const db = await getDb();
         const page = parseInt(req.query.page) || 1;
@@ -450,13 +427,10 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res) => {
                 totalPages: Math.ceil(countResult.count / limit)
             }
         });
-    } catch (error) {
-        console.error(`[ResourceController] getAllHandler Error for ${table}:`, error);
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 }
 
-const updateStatus = (table) => async (req, res) => {
+const updateStatus = (table) => async (req, res, next) => {
     try {
         const db = await getDb();
         const { id } = req.params;
@@ -506,12 +480,10 @@ const updateStatus = (table) => async (req, res) => {
         }
 
         res.json({ success: true, id, status, reason });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
-const toggleLike = (table) => async (req, res) => {
+const toggleLike = (table) => async (req, res, next) => {
     try {
         const db = await getDb();
         const { id } = req.params;
@@ -519,23 +491,19 @@ const toggleLike = (table) => async (req, res) => {
         await db.run(`UPDATE ${table} SET likes = likes + 1 WHERE id = ?`, [id]);
         const item = await db.get(`SELECT likes FROM ${table} WHERE id = ?`, [id]);
         res.json({ likes: item.likes });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 }
 
 // Specific Handlers
-const getCategories = (table) => async (req, res) => {
+const getCategories = (table) => async (req, res, next) => {
     try {
         const db = await getDb();
         const categories = await db.all(`SELECT DISTINCT category FROM ${table}`);
         res.json(categories.map(c => c.category));
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 }
 
-const getDistinctValues = (table) => async (req, res) => {
+const getDistinctValues = (table) => async (req, res, next) => {
     try {
         const db = await getDb();
         const { field } = req.params;
@@ -592,9 +560,7 @@ const getDistinctValues = (table) => async (req, res) => {
 
         const values = await db.all(query, params);
         res.json(values.map(v => v[field]));
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 }
 
 // Fields Definitions
@@ -606,7 +572,7 @@ const fields = {
     events: ['title', 'date', 'location', 'tags', 'image', 'description', 'content', 'link', 'featured', 'score', 'target_audience', 'organizer', 'volunteer_time', 'category']
 };
 
-const getRelatedHandler = (table) => async (req, res) => {
+const getRelatedHandler = (table) => async (req, res, next) => {
     try {
         const db = await getDb();
         const { id } = req.params;
@@ -651,9 +617,7 @@ const getRelatedHandler = (table) => async (req, res) => {
 
         const related = await db.all(query, params);
         res.json(related);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 }
 
 module.exports = {

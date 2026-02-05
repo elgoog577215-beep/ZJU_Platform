@@ -16,7 +16,7 @@ const validatePath = (relativePath) => {
     return fullPath;
 };
 
-const listFiles = (req, res) => {
+const listFiles = (req, res, next) => {
     const relativePath = req.query.path || '';
     const fullPath = validatePath(relativePath);
     
@@ -60,7 +60,7 @@ const listFiles = (req, res) => {
     }
 };
 
-const getFileContent = (req, res) => {
+const getFileContent = (req, res, next) => {
     const relativePath = req.query.path;
     const fullPath = validatePath(relativePath);
     
@@ -79,7 +79,7 @@ const getFileContent = (req, res) => {
     }
 };
 
-const saveFileContent = (req, res) => {
+const saveFileContent = (req, res, next) => {
     const { path: relativePath, content } = req.body;
     const fullPath = validatePath(relativePath);
     
