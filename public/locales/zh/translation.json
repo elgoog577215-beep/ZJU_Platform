@@ -342,6 +342,7 @@
     "title_placeholder": "输入标题...",
     "parse_success": "解析成功",
     "parse_failed": "解析微信文章失败",
+    "ai_reasoning": "AI 日期推断逻辑",
     "required_end_date": "截止日期为必填项",
     "wechat_import": "从微信公众号导入",
     "wechat_placeholder": "粘贴微信公众号文章链接...",

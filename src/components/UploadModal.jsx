@@ -516,6 +516,24 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                         className={inputClasses}
                                     />
                                </div>
+                               
+                               {/* Date Reasoning Display */}
+                               {dateReasoning && (
+                                   <div className="col-span-1 md:col-span-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4">
+                                       <div className="flex items-start gap-3">
+                                           <Sparkles size={16} className="text-indigo-400 mt-1 flex-shrink-0" />
+                                           <div>
+                                               <h5 className="text-xs font-bold text-indigo-300 uppercase tracking-wide mb-1">
+                                                   {t('upload.ai_reasoning') || 'AI Reasoning'}
+                                               </h5>
+                                               <p className="text-sm text-indigo-100/80 leading-relaxed">
+                                                   {dateReasoning}
+                                               </p>
+                                           </div>
+                                       </div>
+                                   </div>
+                               )}
+
                                <div className="col-span-1 md:col-span-2">
                                     <label className={labelClasses}>{t('common.location')}</label>
                                     <input

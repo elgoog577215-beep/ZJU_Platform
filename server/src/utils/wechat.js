@@ -83,8 +83,6 @@ async function parseWithLLM(data) {
     console.log(`\n🧠 Sending to LLM (${process.env.LLM_MODEL})...`);
     
     const today = new Date().toISOString().split('T')[0];
-    const currentYear = new Date().getFullYear();
-
     const ACADEMIC_CALENDAR = `
     【浙江大学校历参考 (2025-2026学年)】
     - 冬学期: 2025年11月中旬 - 2026年1月中旬
@@ -139,47 +137,76 @@ async function parseWithLLM(data) {
     6. **缺失处理**：如果经过深思熟虑仍无法推断，请填 null。
     `;
 
-    try {
-        const response = await axios.post(`${process.env.LLM_BASE_URL}/chat/completions`, {
-            model: process.env.LLM_MODEL,
-            messages: [
-                { role: 'system', content: prompt },
-                { role: 'user', content: `文章标题: ${data.title}\n\n文章内容:\n${data.content.substring(0, 15000)}` } // Truncate to avoid context limit
-            ],
-            stream: false, // Use non-streaming for simplicity in backend
-            enable_thinking: false // Explicitly disable thinking for non-streaming calls
-        }, {
-            headers: {
-                'Authorization': `Bearer ${process.env.LLM_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            timeout: 60000 // 60s timeout
-        });
+    const MAX_RETRIES = 3;
+    let lastError = null;
 
-        // Handle ModelScope specific response structure if needed, or standard OpenAI format
-        const content = response.data.choices[0].message.content;
-        
-        // Remove markdown code blocks if present
-        let jsonStr = content.replace(/```json\n?|\n?```/g, '').trim();
-        
-        // Clean up common JSON syntax errors from LLM
-        jsonStr = jsonStr.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']'); // Remove trailing commas
-        
-        let result = JSON.parse(jsonStr);
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+            console.log(`\n🔄 LLM Attempt ${attempt}/${MAX_RETRIES}...`);
+            
+            const response = await axios.post(`${process.env.LLM_BASE_URL}/chat/completions`, {
+                model: process.env.LLM_MODEL,
+                messages: [
+                    { role: 'system', content: prompt },
+                    { role: 'user', content: `文章标题: ${data.title}\n\n文章内容:\n${data.content.substring(0, 15000)}` } // Truncate to avoid context limit
+                ],
+                stream: false,
+                enable_thinking: false
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${process.env.LLM_API_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                timeout: 60000 // 60s timeout
+            });
 
-        // Sanitize fields
-        if (result.description) {
-            result.description = result.description.replace(/^活动详情摘要[：:]\s*/, '').trim();
+            const content = response.data.choices[0].message.content;
+            
+            // Extract JSON from code blocks or raw text
+            let jsonStr = content;
+            const jsonMatch = content.match(/```json\n?([\s\S]*?)\n?```/) || content.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                jsonStr = jsonMatch[1] || jsonMatch[0];
+            }
+            
+            // Clean up common JSON syntax errors
+            jsonStr = jsonStr.trim()
+                .replace(/,\s*}/g, '}')
+                .replace(/,\s*]/g, ']');
+
+            let result;
+            try {
+                result = JSON.parse(jsonStr);
+            } catch (e) {
+                console.warn(`⚠️ JSON Parse failed on attempt ${attempt}. Content:`, jsonStr.substring(0, 100) + '...');
+                throw new Error('Invalid JSON response');
+            }
+
+            // Sanitize fields
+            const cleanField = (str, prefixRegex) => {
+                if (!str) return null;
+                return str.replace(prefixRegex, '').trim();
+            };
+
+            if (result.description) result.description = cleanField(result.description, /^活动详情摘要[：:]\s*/);
+            if (result.location) result.location = cleanField(result.location, /^活动地点[：:]\s*/);
+            if (result.organizer) result.organizer = cleanField(result.organizer, /^主办方[：:]\s*/);
+            if (result.target_audience) result.target_audience = cleanField(result.target_audience, /^面向群体[：:]\s*/);
+            if (result.volunteer_time) result.volunteer_time = cleanField(result.volunteer_time, /^志愿时长[：:]\s*/);
+            if (result.score) result.score = cleanField(result.score, /^综测\/素质分[：:]\s*/);
+
+            return result; // Success!
+
+        } catch (error) {
+            lastError = error;
+            console.error(`❌ LLM Attempt ${attempt} failed:`, error.response?.data || error.message);
+            if (attempt === MAX_RETRIES) break;
+            // Wait 1s before retry
+            await new Promise(resolve => setTimeout(resolve, 1000));
         }
-        if (result.location) {
-            result.location = result.location.replace(/^活动地点[：:]\s*/, '').trim();
-        }
-        
-        return result;
-    } catch (error) {
-        console.error('❌ LLM Error:', error.response?.data || error.message);
-        throw new Error('LLM parsing failed');
     }
+
+    throw new Error(`LLM parsing failed after ${MAX_RETRIES} attempts: ${lastError?.message}`);
 }
 
 module.exports = {
