@@ -1,1 +1,1 @@
-push之前要先生成dist，然后连带dist一起
+push之前要先生成dist，然后连带dist一起push

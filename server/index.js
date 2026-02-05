@@ -55,23 +55,9 @@ const limiter = rateLimit({
 // Apply rate limiting to API routes
 app.use('/api', limiter);
 
-// CORS: allow specific frontend origin if provided
-const allowedOrigins = process.env.FRONTEND_URL 
-  ? process.env.FRONTEND_URL.split(',').map(url => url.trim()) 
-  : ['http://localhost:5173', 'http://localhost:3000'];
-
+// CORS: Allow all origins for simplicity
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
-      callback(null, true)
-    } else {
-      console.error(`[CORS] Blocked request from origin: ${origin}. Allowed: ${allowedOrigins.join(', ')}`);
-      callback(new Error('Not allowed by CORS'))
-    }
-  },
+  origin: true, // Reflects the request origin, allowing all domains
   credentials: true
 }));
 
