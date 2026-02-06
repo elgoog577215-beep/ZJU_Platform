@@ -76,6 +76,8 @@ const PhotoCard = memo(({ photo, index, onClick, onToggleFavorite }) => {
   );
 });
 
+PhotoCard.displayName = 'PhotoCard';
+
 const Gallery = () => {
   const [searchParams] = useSearchParams();
   const [sort, setSort] = useState('newest');
@@ -174,7 +176,7 @@ const Gallery = () => {
   }, [setPhotos]);
 
   return (
-    <section className="pt-24 pb-40 md:py-20 px-4 md:px-8 min-h-screen relative overflow-hidden">
+    <section className="pt-24 pb-24 md:py-20 px-4 md:px-8 relative overflow-hidden flex-grow">
       {/* Ambient Background */}
       <div className="fixed inset-0 pointer-events-none z-0">
           <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-blue-500/10 blur-[130px]" />

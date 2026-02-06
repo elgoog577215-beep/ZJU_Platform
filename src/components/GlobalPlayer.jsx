@@ -28,6 +28,8 @@ const Visualizer = memo(({ isPlaying }) => {
   );
 });
 
+Visualizer.displayName = 'Visualizer';
+
 // Memoized Player Info Component
 const PlayerInfo = memo(({ currentTrack, isPlaying, onClose }) => {
   return (
@@ -64,6 +66,8 @@ const PlayerInfo = memo(({ currentTrack, isPlaying, onClose }) => {
   );
 });
 
+PlayerInfo.displayName = 'PlayerInfo';
+
 // Memoized Progress Bar Component
 const ProgressBar = memo(({ progress, duration, onSeek }) => {
   const formatTime = (time) => {
@@ -89,6 +93,8 @@ const ProgressBar = memo(({ progress, duration, onSeek }) => {
   );
 });
 
+ProgressBar.displayName = 'ProgressBar';
+
 // Memoized Controls Component
 const PlayerControls = memo(({ isPlaying, onPlayPause, onNext, onPrev }) => {
   return (
@@ -108,6 +114,8 @@ const PlayerControls = memo(({ isPlaying, onPlayPause, onNext, onPrev }) => {
     </div>
   );
 });
+
+PlayerControls.displayName = 'PlayerControls';
 
 const GlobalPlayer = () => {
   const { currentTrack, isPlaying, togglePlay, nextTrack, prevTrack, audioRef, isMiniPlayerVisible, setIsMiniPlayerVisible } = useMusic();

@@ -5,6 +5,8 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
+import { useTranslation } from 'react-i18next';
+
 const FavoriteButton = ({ 
   itemId, 
   itemType, 
@@ -16,6 +18,7 @@ const FavoriteButton = ({
   count = 0,
   onToggle
 }) => {
+  const { t } = useTranslation();
   const [isFavorited, setIsFavorited] = useState(() => {
     if (favorited !== undefined) return favorited;
     return !!initialFavorited;

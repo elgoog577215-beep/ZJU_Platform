@@ -240,6 +240,8 @@ const EventCard = memo(({ event, index, onClick, onToggleFavorite }) => {
   );
 });
 
+EventCard.displayName = 'EventCard';
+
 const Events = () => {
   const { t } = useTranslation();
   const { settings } = useSettings();
@@ -456,7 +458,7 @@ END:VCALENDAR`;
   ];
 
   return (
-    <section className="pt-24 pb-40 md:py-20 px-4 md:px-8 min-h-screen relative overflow-hidden">
+    <section className="pt-24 pb-24 md:py-20 px-4 md:px-8 relative overflow-hidden flex-grow">
       {/* Ambient Background */}
       <div className="fixed inset-0 pointer-events-none z-0">
           <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-purple-500/10 blur-[120px]" />

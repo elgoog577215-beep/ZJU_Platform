@@ -72,7 +72,7 @@ const AppContent = () => {
   }, [location.pathname]);
 
   return (
-    <>
+    <div className="flex flex-col min-h-screen">
       {!isAdminRoute && (
         <ErrorBoundary variant="inline" silent>
             <Navbar />
@@ -90,7 +90,7 @@ const AppContent = () => {
         <SearchPalette />
       </ErrorBoundary>
 
-      <main className="pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
+      <main className="flex-grow">
         <Suspense fallback={<LoadingScreen />}>
           <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
@@ -119,7 +119,7 @@ const AppContent = () => {
       {!isAdminRoute && <MobileNavbar />}
       <ScrollToTop />
       <PWAInstallPrompt />
-    </>
+    </div>
   );
 };
 

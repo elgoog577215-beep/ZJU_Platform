@@ -104,6 +104,8 @@ const ArticleCard = memo(({ article, index, onClick, onToggleFavorite }) => {
   );
 });
 
+ArticleCard.displayName = 'ArticleCard';
+
 const Articles = () => {
   const { t } = useTranslation();
   const { settings } = useSettings();
