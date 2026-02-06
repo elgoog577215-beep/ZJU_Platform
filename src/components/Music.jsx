@@ -106,8 +106,6 @@ const TrackItem = memo(({ track, activeTrackId, isPlaying, onClick, onToggleFavo
   );
 });
 
-TrackItem.displayName = 'TrackItem';
-
 const Music = () => {
   const { t } = useTranslation();
   const { settings } = useSettings();

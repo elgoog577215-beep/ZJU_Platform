@@ -78,7 +78,6 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             if (data.volunteer_time) setEventVolunteerTime(data.volunteer_time);
             if (data.score) setEventScore(data.score);
             if (data.date_reasoning) setDateReasoning(data.date_reasoning);
-            if (data.link) setEventLink(data.link);
 
             // Auto-generate tags if available
             if (data.tags && data.tags.length > 0) {

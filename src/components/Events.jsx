@@ -240,8 +240,6 @@ const EventCard = memo(({ event, index, onClick, onToggleFavorite }) => {
   );
 });
 
-EventCard.displayName = 'EventCard';
-
 const Events = () => {
   const { t } = useTranslation();
   const { settings } = useSettings();

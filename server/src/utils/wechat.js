@@ -131,31 +131,32 @@ async function parseWithLLM(data) {
     {
         "title": "活动名称 (优先提取具体活动名，若无则使用文章标题)",
         "description": "活动详情摘要 (字数严格控制在50-80字以内。这是展示在活动卡片上的关键信息，必须包含：1. 活动核心内容/亮点；2. 参与收益(如有)。语气要吸引人，避免流水账。例如：'知名校友分享职场经验，揭秘互联网大厂面试技巧，现场提供简历修改服务，助你斩获心仪Offer！')",
-        "content": "【核心任务】请基于原文，重写一份结构清晰、排版精美的活动详情（HTML格式字符串）。\n要求：\n1. 必须使用 HTML 标签进行排版（如 <h3>小标题</h3>, <p>正文</p>, <ul><li>列表</li></ul>）。\n2. 内容结构化：建议包含“活动背景”、“活动内容”、“嘉宾介绍”、“时间地点”、“报名方式”等模块（根据原文实际内容调整）。\n3. 去除干扰信息：严禁包含“点击蓝字”、“关注我们”、“扫码”、“广告”、“阅读原文”等无关内容。\n4. 语言精炼：保留原文核心信息，但去除冗余修饰，使其更适合作为活动通知阅读。\n5. 不要包含 <html>, <body>, <head> 标签，直接返回 body 内的内容片段。\n6. 如果原文中有图片，请暂时忽略图片（因为你无法获取图片URL），只专注于文本内容的重组。",
+        "content": "活动详细内容 (HTML格式)。请对原文进行【重组和精简】，去除广告、关注引导、无关图片占位符等噪音，只保留活动介绍、嘉宾、议程、报名方式等核心信息。使用 <h3>, <p>, <ul>, <li> 等标签排版，保持美观易读。不要包含 <html> 或 <body> 标签。",
         "date_reasoning": "【关键步骤】请在此字段详细描述你对活动日期的推断逻辑。例如：'文中未明确写日期，但提到了寒假，结合校历寒假从1月26日开始，推断活动开始日期为2026-01-26'。",
         "date": "活动开始日期 (格式 YYYY-MM-DD)",
         "end_date": "活动结束日期 (格式 YYYY-MM-DD。注意：如果是单日活动，结束日期必须与开始日期相同，不能为 null)",
-        "location": "活动地点 (尽可能详细，包含校区/楼号/室号。例如：'紫金港校区 东六-201'。如果是线上活动，请填'线上'或平台名称。若有多个地点，请用逗号分隔)",
-        "organizer": "主办方 (优先提取文中提及的具体主办/承办单位，若无则null)",
+        "time": "活动具体时间 (如 14:00-16:00)",
+        "location": "活动地点 (尽可能详细，包含校区/楼号/室号。例如：'紫金港校区 东六-201'。如果是线上活动，请填'线上'或平台名称)",
+        "organizer": "主办方 (优先提取文中提及的具体主办/承办单位，若无则填文章作者)",
         "target_audience": "面向群体 (如：全校师生、特定学院、本科生、研究生等)",
         "volunteer_time": "志愿时长 (提取具体时长，如 '2.5小时'，无则 null)",
-        "score": "综测/素质分/二课分 (提取具体分值，如 '0.5分'，无则 null)",
-        "link": "报名链接/原文链接 (如果文中提供了具体的HTTP报名链接，请提取；否则请填null。注意：不要提取微信公众号文章本身的链接)",
-        "tags": ["标签1", "标签2"] // 最好从以下列表中选择最匹配的1-2个标签：讲座、志愿活动、竞赛、沙龙、展览、演出、会议、文体活动、招聘、宣讲、学术报告、社会实践、班团活动、音乐会、舞会、义卖。如果没有合适的类别，你可以自己创建一个，但是要和我给你的列表里的文字风格相同，也就是只描述活动的客观类别。
+        "score": "综测/素质分 (提取具体分值，如 '0.5分'，无则 null)",
+        "tags": ["标签1", "标签2"] (【严格限制】只能从以下列表中选择最匹配的1-2个标签，严禁使用其他词汇：讲座、志愿活动、竞赛、沙龙、展览、演出、会议、文体活动、招聘、宣讲、学术报告、社会实践、班团活动)
     }
     
     【智能推断指南 (Human-like Reasoning)】
-    你的目标不仅仅是“提取”，更是“理解”。像一个聪明的人类助理一样思考：
-    1. **Description 优化**：不要直接截取开头。请通读全文，提炼出最能吸引同学参加的亮点。如果文中包含多个活动，请概括整体情况。
-    2. **结合语境与常识**：如果文中说“寒假期间”，你需要结合提供的【校历】推断出具体的大致日期范围（如寒假开始日期）。
+    你的目标不仅仅是“提取”，更是“理解”和“重组”。像一个聪明的人类助理一样思考：
+    1. **Description vs Content**: 
+       - Description 是简短的摘要，用于列表展示。
+       - Content 是详情页内容，需要保留原文的核心结构和信息，但要清洗掉噪音。
+    2. **结合语境与常识**: 如果文中说“寒假期间”，你需要结合提供的【校历】推断出具体的大致日期范围（如寒假开始日期）。
     3. **处理模糊时间**：
        - "本周五" -> 结合【当前日期】计算具体日期。
        - "下个月初" -> 推断为下个月的1号。
        - "2025-2026秋冬学期" -> 结合校历推断大致范围。
-    4. **日期优先**：我们只需要日期 (YYYY-MM-DD)，不需要具体时间 (HH:MM)。
+    4. **日期优先**：我们只需要日期 (YYYY-MM-DD)。
     5. **单日活动**：Start Date 和 End Date 必须一致。
-    6. **Content 重写**：用户非常在意正文的质量。请务必将原文中的杂乱信息清洗干净，只保留有用的活动信息，并用 HTML 格式化好。
-    7. **缺失处理**：如果经过深思熟虑仍无法推断，请填 null。
+    6. **缺失处理**：如果经过深思熟虑仍无法推断，请填 null。
     `;
 
     const MAX_RETRIES = 3;
@@ -171,7 +172,8 @@ async function parseWithLLM(data) {
                     { role: 'system', content: prompt },
                     { role: 'user', content: `文章标题: ${data.title}\n\n文章内容:\n${data.content.substring(0, 15000)}` } // Truncate to avoid context limit
                 ],
-                stream: false
+                stream: false,
+                enable_thinking: false
             }, {
                 headers: {
                     'Authorization': `Bearer ${process.env.LLM_API_KEY}`,
@@ -208,13 +210,13 @@ async function parseWithLLM(data) {
                 return str.replace(prefixRegex, '').trim();
             };
 
-            if (result.description) result.description = cleanField(result.description, /^(活动详情摘要|description)[：:]\s*/i);
-            if (result.location) result.location = cleanField(result.location, /^(活动地点|location)[：:]\s*/i);
-            if (result.organizer) result.organizer = cleanField(result.organizer, /^(主办方|organizer)[：:]\s*/i);
-            if (result.target_audience) result.target_audience = cleanField(result.target_audience, /^(面向群体|target_audience)[：:]\s*/i);
-            if (result.volunteer_time) result.volunteer_time = cleanField(result.volunteer_time, /^(志愿时长|volunteer_time)[：:]\s*/i);
-            if (result.score) result.score = cleanField(result.score, /^(综测|素质分|二课分|score)[：:]\s*/i);
-            if (result.link) result.link = cleanField(result.link, /^(报名链接|原文链接|link)[：:]\s*/i);
+            if (result.description) result.description = cleanField(result.description, /^活动详情摘要[：:]\s*/);
+            if (result.content) result.content = cleanField(result.content, /^活动详细内容[：:]\s*/);
+            if (result.location) result.location = cleanField(result.location, /^活动地点[：:]\s*/);
+            if (result.organizer) result.organizer = cleanField(result.organizer, /^主办方[：:]\s*/);
+            if (result.target_audience) result.target_audience = cleanField(result.target_audience, /^面向群体[：:]\s*/);
+            if (result.volunteer_time) result.volunteer_time = cleanField(result.volunteer_time, /^志愿时长[：:]\s*/);
+            if (result.score) result.score = cleanField(result.score, /^综测\/素质分[：:]\s*/);
 
             return result; // Success!
 

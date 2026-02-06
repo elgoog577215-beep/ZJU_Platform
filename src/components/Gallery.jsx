@@ -76,8 +76,6 @@ const PhotoCard = memo(({ photo, index, onClick, onToggleFavorite }) => {
   );
 });
 
-PhotoCard.displayName = 'PhotoCard';
-
 const Gallery = () => {
   const [searchParams] = useSearchParams();
   const [sort, setSort] = useState('newest');

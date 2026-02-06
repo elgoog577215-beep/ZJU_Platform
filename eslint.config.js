@@ -5,7 +5,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 
 export default [
-  { ignores: ['dist', 'dev-dist', 'server', 'node_modules', 'zju_app', 'wechat_crawler', 'wechat-batch-crawler', 'scripts'] },
+  { ignores: ['dist', 'dev-dist', 'server', 'node_modules', 'zju_app', 'wechat_crawler', 'wechat-batch-crawler'] },
   {
     files: ['**/*.{js,jsx}'],
     languageOptions: {

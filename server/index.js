@@ -157,9 +157,10 @@ app.post('/api/resources/parse-wechat', authenticateToken, isAdmin, async (req, 
              return res.status(500).json({ error: 'Failed to parse content with LLM' });
         }
 
-        // Merge original content into the response for the editor
-        // We use the cleaned text from scraping as a starting point for the content field
-        parsedData.content = scrapedData.content;
+        // Merge original content if LLM didn't provide it
+        if (!parsedData.content) {
+            parsedData.content = scrapedData.content;
+        }
 
         // 5. Cache Result
         wechatCache.set(cleanedUrl, {

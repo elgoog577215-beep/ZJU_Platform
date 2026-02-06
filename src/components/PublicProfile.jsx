@@ -99,24 +99,10 @@ const PublicProfile = () => {
           const res = await api.get(`/favorites?type=${favoriteType}`);
           setFavorites(res.data || []);
       } catch (err) {
-          console.error("Failed to fetch favorites", err);
-          toast.error("Failed to load favorites");
+           // Silently fail if endpoint not ready
       } finally {
           setLoadingFavorites(false);
       }
-  };
-
-  const fetchUploads = async () => {
-    setLoadingUploads(true);
-    try {
-        const res = await api.get(`/uploads?type=${uploadType}`);
-        setUploads(res.data || []);
-    } catch (err) {
-        console.error("Failed to fetch uploads", err);
-        toast.error("Failed to load uploads");
-    } finally {
-        setLoadingUploads(false);
-    }
   };
 
   const handleProfileUpdate = async (e) => {
