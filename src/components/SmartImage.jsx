@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { FileText, Film, Image as ImageIcon, Calendar, Music, AlertCircle } from 'lucide-react';
 
 const getGradient = (text) => {
@@ -38,13 +39,44 @@ const SmartImage = ({
   imageClassName = "", 
   iconSize = 24, 
   type = 'generic',
+  priority = false,
+  blurPlaceholder,
+  onLoad,
+  onError,
+  objectFit = 'cover',
   ...props 
 }) => {
   const [error, setError] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+  const [isInView, setIsInView] = useState(priority);
   const imgRef = useRef(null);
+  const containerRef = useRef(null);
   const maxRetries = 3;
+
+  // Intersection Observer for lazy loading
+  useEffect(() => {
+    if (priority || isInView) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect();
+        }
+      },
+      {
+        rootMargin: '50px 0px',
+        threshold: 0.01
+      }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [priority]);
 
   useEffect(() => {
     setError(false);
@@ -55,19 +87,26 @@ const SmartImage = ({
   // Check if image is already loaded from cache
   useEffect(() => {
     if (imgRef.current && imgRef.current.complete) {
-        setLoaded(true);
+      setLoaded(true);
+      onLoad?.();
     }
-  }, [src, retryCount]);
+  }, [src, retryCount, onLoad]);
 
-  const handleError = () => {
+  const handleLoad = useCallback(() => {
+    setLoaded(true);
+    onLoad?.();
+  }, [onLoad]);
+
+  const handleError = useCallback(() => {
     if (retryCount < maxRetries) {
-        setTimeout(() => {
-            setRetryCount(prev => prev + 1);
-        }, 1000 * (retryCount + 1));
+      setTimeout(() => {
+        setRetryCount(prev => prev + 1);
+      }, 1000 * (retryCount + 1));
     } else {
-        setError(true);
+      setError(true);
+      onError?.();
     }
-  };
+  }, [retryCount, onError]);
 
   const icons = {
     generic: FileText,
@@ -82,35 +121,81 @@ const SmartImage = ({
   const Icon = icons[type] || icons.generic;
   const gradient = getGradient(alt || type);
 
+  // Get actual image source
+  const imageSrc = typeof src === 'object' ? (src.url || src.medium?.url || src.small?.url) : src;
+
   // Fallback state (error or missing src)
-  if (!src || error) {
+  if (!imageSrc || error) {
     return (
-      <div className={`${className} bg-gradient-to-br ${gradient} flex items-center justify-center relative overflow-hidden`}>
+      <div 
+        ref={containerRef}
+        className={`${className} bg-gradient-to-br ${gradient} flex items-center justify-center relative overflow-hidden`}
+      >
         <div className="absolute inset-0 bg-black/10" />
         <Icon size={iconSize} className="text-white/70 relative z-10" />
       </div>
     );
   }
 
-  // Handle relative paths (prepend API_URL if needed, but standard img tag handles relative to domain)
-  // If src starts with /uploads, it should be fine as long as backend serves it.
-  
   return (
-    <div className={`${className} relative overflow-hidden bg-gradient-to-br ${gradient}`}>
-       <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-700 ${loaded ? 'opacity-0' : 'opacity-100'}`}>
-          <div className="bg-white/10 p-2 rounded-full">
-            <Icon size={iconSize} className="text-white/70" />
-          </div>
-       </div>
-      <img
-        ref={imgRef}
-        src={src}
-        alt={alt}
-        className={`${imageClassName} w-full h-full object-cover transition-all duration-700 ease-in-out ${loaded ? 'opacity-100 blur-0 scale-100' : 'opacity-0 blur-xl scale-105'}`}
-        onLoad={() => setLoaded(true)}
-        onError={handleError}
-        {...props}
-      />
+    <div 
+      ref={containerRef}
+      className={`${className} relative overflow-hidden bg-gradient-to-br ${gradient}`}
+    >
+      {/* Skeleton/Placeholder */}
+      <AnimatePresence>
+        {!loaded && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="absolute inset-0 bg-white/5"
+          >
+            {blurPlaceholder ? (
+              <img
+                src={blurPlaceholder}
+                alt=""
+                className="w-full h-full blur-xl scale-110"
+                style={{ objectFit }}
+              />
+            ) : (
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Actual Image */}
+      {isInView && (
+        <motion.img
+          ref={imgRef}
+          key={`${imageSrc}-${retryCount}`}
+          src={imageSrc}
+          alt={alt || ''}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: loaded ? 1 : 0 }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
+          onLoad={handleLoad}
+          onError={handleError}
+          className={`
+            w-full h-full
+            transition-all duration-700
+            ${loaded ? 'opacity-100' : 'opacity-0'}
+            ${imageClassName}
+          `}
+          style={{ objectFit }}
+          loading={priority ? 'eager' : 'lazy'}
+          decoding={priority ? 'sync' : 'async'}
+          {...props}
+        />
+      )}
+
+      {/* Retry indicator */}
+      {retryCount > 0 && !loaded && !error && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        </div>
+      )}
     </div>
   );
 };

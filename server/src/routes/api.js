@@ -3,7 +3,7 @@ const router = express.Router();
 const rateLimit = require('express-rate-limit');
 
 // Middleware
-const upload = require('../middleware/upload');
+const { upload } = require('../middleware/upload');
 
 // Controllers
 const resourceController = require('../controllers/resourceController');
