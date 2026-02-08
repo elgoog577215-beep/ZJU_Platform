@@ -21,6 +21,13 @@ const {
   customRateLimit 
 } = require('./src/middleware/security');
 const { scanFile } = require('./src/middleware/upload');
+const {
+  enhancedCompression,
+  cacheControl,
+  staticCacheControl,
+  performanceMonitor,
+  conditionalRequest
+} = require('./src/middleware/performance');
 
 const app = express();
 app.disable('x-powered-by');
@@ -61,15 +68,14 @@ if (NODE_ENV === 'development') {
 // Security Middleware
 // ====================
 
-// Compression
-app.use(compression({
-  level: 6,
-  threshold: 1024,
-  filter: (req, res) => {
-    if (req.headers['x-no-compression']) return false;
-    return compression.filter(req, res);
-  }
-}));
+// Performance Monitoring (early in stack)
+app.use(performanceMonitor);
+
+// Enhanced Compression
+app.use(enhancedCompression);
+
+// Conditional Request Handling (ETags)
+app.use(conditionalRequest);
 
 // Helmet security headers
 app.use(helmet(helmetConfig));
@@ -175,25 +181,28 @@ app.use(express.urlencoded({
 // Static Files
 // ====================
 
-// Uploads directory with security headers
+// Uploads directory with security headers and cache control
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-app.use('/uploads', express.static(uploadDir, {
-  maxAge: '30d',
-  immutable: true,
-  setHeaders: (res, path) => {
-    // Add security headers for static files
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    
-    // Prevent execution of uploaded files
-    if (path.match(/\.(php|jsp|asp|aspx|exe|sh|bat)$/i)) {
-      res.setHeader('Content-Type', 'text/plain');
+app.use('/uploads', 
+  staticCacheControl, // Apply optimized cache headers
+  express.static(uploadDir, {
+    maxAge: '30d',
+    immutable: true,
+    setHeaders: (res, path) => {
+      // Add security headers for static files
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      
+      // Prevent execution of uploaded files
+      if (path.match(/\.(php|jsp|asp|aspx|exe|sh|bat)$/i)) {
+        res.setHeader('Content-Type', 'text/plain');
+      }
     }
-  }
-}));
+  })
+);
 
 // Serve Frontend Static Files (Production)
 const distPath = path.join(__dirname, '../dist');

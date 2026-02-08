@@ -150,4 +150,30 @@ resources.forEach(resource => {
     router.put(`/${resource}/:id/status`, authenticateToken, isAdmin, resourceController.updateStatus(resource));
 });
 
+// Performance Metrics Endpoint
+router.post('/analytics/performance', (req, res) => {
+    // Store performance metrics (in production, send to analytics service)
+    const metric = req.body;
+    
+    // Log slow metrics for monitoring
+    if (metric.value > 1000 || metric.duration > 1000) {
+        console.warn('[Performance] Slow metric detected:', metric);
+    }
+    
+    res.status(204).send();
+});
+
+// Health check endpoint with performance info
+router.get('/health', (req, res) => {
+    const health = {
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        memory: process.memoryUsage(),
+        version: process.env.npm_package_version || '1.0.0'
+    };
+    
+    res.json(health);
+});
+
 module.exports = router;

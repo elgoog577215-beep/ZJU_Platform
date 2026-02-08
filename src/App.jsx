@@ -7,6 +7,8 @@ import { SettingsProvider, useSettings } from './context/SettingsContext';
 import { AuthProvider } from './context/AuthContext';
 import { HelmetProvider } from 'react-helmet-async';
 import ErrorBoundary from './components/ErrorBoundary';
+import { ResourceHints } from './components/ResourceHints';
+import { usePerformanceMonitor } from './hooks/usePerformanceMonitor';
 
 import Navbar from './components/Navbar';
 import BackgroundSystem from './components/BackgroundSystem';
@@ -60,6 +62,17 @@ const AppContent = () => {
   const isAdminRoute = location.pathname.startsWith('/admin');
   const { cursorEnabled, settings } = useSettings();
 
+  // Performance monitoring
+  usePerformanceMonitor({
+    enabled: import.meta.env.PROD,
+    onMetric: (metric) => {
+      // Log metrics in development
+      if (import.meta.env.DEV) {
+        console.log('[Performance]', metric);
+      }
+    }
+  });
+
   React.useEffect(() => {
     if (settings?.site_title) {
       document.title = settings.site_title;
@@ -73,6 +86,7 @@ const AppContent = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <ResourceHints />
       {!isAdminRoute && (
         <ErrorBoundary variant="inline" silent>
             <Navbar />
