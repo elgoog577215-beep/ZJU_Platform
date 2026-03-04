@@ -233,15 +233,19 @@ app.post('/api/resources/parse-wechat', authenticateToken, isAdmin, async (req, 
     return res.status(400).json({ error: 'URL is required' });
   }
 
-  // Validate URL
+  // Validate URL - support more WeChat URL patterns
   const urlRegex = /^https?:\/\/(mp\.weixin\.qq\.com|www\.weixin\.qq\.com)/i;
   if (!urlRegex.test(url)) {
-    return res.status(400).json({ error: 'Invalid WeChat URL' });
+    return res.status(400).json({ 
+      error: 'Invalid WeChat URL',
+      message: 'URL must be from mp.weixin.qq.com or www.weixin.qq.com'
+    });
   }
 
   try {
     // Clean URL
     const cleanedUrl = cleanWeChatUrl(url);
+    console.log(`📝 Processing WeChat URL: ${cleanedUrl}`);
     
     // Check Cache
     if (wechatCache.has(cleanedUrl)) {
@@ -255,30 +259,65 @@ app.post('/api/resources/parse-wechat', authenticateToken, isAdmin, async (req, 
     }
 
     // Scrape
+    console.log(`🔍 Starting scrape for: ${cleanedUrl}`);
     const scrapedData = await scrapeWeChat(cleanedUrl);
     
+    if (!scrapedData || !scrapedData.content) {
+      return res.status(422).json({ 
+        error: 'Failed to extract content',
+        message: 'Could not extract content from the provided URL. The article might be protected or require authentication.'
+      });
+    }
+    
     // Parse with LLM
+    console.log(`🧠 Starting LLM parsing...`);
     const parsedData = await parseWithLLM(scrapedData);
     
     if (!parsedData) {
-      return res.status(500).json({ error: 'Failed to parse content with LLM' });
+      return res.status(500).json({ 
+        error: 'LLM parsing failed',
+        message: 'Failed to parse content with AI. Please try again or fill in the information manually.'
+      });
     }
 
     // Merge original content if LLM didn't provide it
     if (!parsedData.content) {
       parsedData.content = scrapedData.content;
     }
+    
+    // Ensure required fields have defaults
+    parsedData.title = parsedData.title || scrapedData.title || 'Untitled';
+    parsedData.description = parsedData.description || scrapedData.content?.substring(0, 200) || '';
 
     // Cache Result
     wechatCache.set(cleanedUrl, {
       data: parsedData,
       timestamp: Date.now()
     });
+    
+    console.log(`✅ Successfully parsed WeChat article: ${parsedData.title}`);
 
     res.json(parsedData);
 
   } catch (error) {
-    next(error);
+    console.error('❌ WeChat parse error:', error);
+    
+    // Handle specific error types
+    let statusCode = 500;
+    let errorMessage = error.message || 'An unexpected error occurred while parsing the WeChat article';
+    
+    if (error.message && error.message.includes('LLM_API_KEY_INVALID')) {
+      statusCode = 401;
+      errorMessage = 'LLM API密钥无效或已过期，请联系管理员检查配置';
+    } else if (error.message && error.message.includes('LLM_RATE_LIMIT')) {
+      statusCode = 429;
+      errorMessage = '请求过于频繁，请稍后再试';
+    }
+    
+    res.status(statusCode).json({
+      error: 'Parse failed',
+      message: errorMessage
+    });
   }
 });
 

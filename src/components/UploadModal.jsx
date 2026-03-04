@@ -53,7 +53,17 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   const [isParsing, setIsParsing] = useState(false);
 
   const handleParseWeChat = async () => {
-    if (!wechatUrl) return;
+    if (!wechatUrl) {
+        toast.error('请输入微信公众号文章链接');
+        return;
+    }
+    
+    // Validate URL format
+    const wechatUrlRegex = /^https?:\/\/(mp\.weixin\.qq\.com|www\.weixin\.qq\.com)/i;
+    if (!wechatUrlRegex.test(wechatUrl)) {
+        toast.error('请输入有效的微信公众号文章链接 (mp.weixin.qq.com)');
+        return;
+    }
     
     setIsParsing(true);
     try {
@@ -91,7 +101,8 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         }
     } catch (error) {
         console.error('WeChat Parse Error:', error);
-        toast.error(t('upload.parse_failed'));
+        const errorMessage = error.response?.data?.message || error.response?.data?.error || t('upload.parse_failed');
+        toast.error(errorMessage);
     } finally {
         setIsParsing(false);
     }
@@ -362,26 +373,26 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-3xl"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-3xl"
           onClick={onClose}
         >
           <motion.div
             initial={{ scale: 0.95, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-            className={`relative bg-[#0a0a0a]/80 backdrop-blur-3xl border border-white/10 rounded-3xl w-full ${type === 'event' ? 'max-w-5xl' : 'max-w-2xl'} overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar z-10 ring-1 ring-white/5`}
+            className={`relative bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/10 rounded-none sm:rounded-3xl w-full h-full sm:h-auto ${type === 'event' ? 'sm:max-w-5xl' : 'sm:max-w-2xl'} overflow-hidden shadow-2xl max-h-[100vh] sm:max-h-[90vh] overflow-y-auto custom-scrollbar z-10 ring-1 ring-white/5`}
             onClick={e => e.stopPropagation()}
           >
              {/* Gradient Ambience */}
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-purple-500/5 to-transparent opacity-50 pointer-events-none" />
 
             {/* Header */}
-            <div className="px-8 py-5 border-b border-white/10 flex justify-between items-center sticky top-0 bg-[#0a0a0a]/95 backdrop-blur-xl z-20">
-              <h3 className="text-xl font-bold text-white flex items-center gap-3">
-                <span className="p-2 bg-white/5 rounded-lg border border-white/5">
-                    {getIcon()}
+            <div className="px-4 sm:px-8 py-4 sm:py-5 border-b border-white/10 flex justify-between items-center sticky top-0 bg-[#0a0a0a]/95 backdrop-blur-xl z-20">
+              <h3 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2 sm:gap-3">
+                <span className="p-1.5 sm:p-2 bg-white/5 rounded-lg border border-white/5">
+                    {React.cloneElement(getIcon(), { size: 24 })}
                 </span>
-                <span className="tracking-tight">
+                <span className="tracking-tight truncate">
                     {isEditing ? t('admin.edit_item') : t('common.upload')} <span className="text-indigo-400">{t(`common.${type}`)}</span>
                 </span>
               </h3>
@@ -390,67 +401,70 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-8 relative z-10">
+            <form onSubmit={handleSubmit} className="p-4 sm:p-8 relative z-10">
               {type === 'event' ? (
                 <>
-                <div className="mb-8 p-6 bg-gradient-to-r from-green-500/10 to-emerald-500/5 border border-green-500/20 rounded-2xl relative overflow-hidden group">
+                <div className="mb-6 sm:mb-8 p-4 sm:p-6 bg-gradient-to-r from-green-500/10 to-emerald-500/5 border border-green-500/20 rounded-2xl relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
-                        <Link size={64} className="text-green-500" />
+                        <Link size={48} className="text-green-500 sm:w-16 sm:h-16" />
                     </div>
-                    <h4 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                    <h4 className="text-sm sm:text-base font-bold text-white mb-3 sm:mb-4 flex items-center gap-2">
                         <span className="p-1.5 bg-green-500/20 rounded-lg text-green-400">
-                            <Link size={16} />
+                            <Link size={14} className="sm:w-4 sm:h-4" />
                         </span>
                         {t('upload.wechat_import')}
                     </h4>
-                    <div className="flex gap-3">
+                    <div className="flex flex-col sm:flex-row gap-3">
                         <input 
                             type="text" 
                             value={wechatUrl}
                             onChange={(e) => setWechatUrl(e.target.value)}
                             placeholder={t('upload.wechat_placeholder')}
-                            className={`${inputClasses} flex-1 !bg-black/20 !border-green-500/20 focus:!border-green-500/50`}
+                            className={`${inputClasses} flex-1 !bg-black/20 !border-green-500/20 focus:!border-green-500/50 text-sm sm:text-base`}
                         />
-                        <button 
-                            type="button"
-                            onClick={handleParseWeChat}
-                            disabled={isParsing || !wechatUrl}
-                            className="px-6 py-2.5 bg-green-600 hover:bg-green-500 disabled:bg-green-600/50 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-all shadow-lg shadow-green-900/20 flex items-center gap-2 whitespace-nowrap"
-                        >
-                            {isParsing ? (
-                                <>
-                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                    {t('upload.parsing')}
-                                </>
-                            ) : (
-                                <>
-                                    <Check size={18} />
-                                    {t('upload.smart_parse')}
-                                </>
-                            )}
-                        </button>
-                        
-                        {(wechatUrl || title) && (
+                        <div className="flex gap-2">
                             <button 
                                 type="button"
-                                onClick={handleClearParsedData}
-                                className="px-3 py-2.5 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white rounded-xl transition-all border border-white/5"
-                                title={t('common.clear')}
+                                onClick={handleParseWeChat}
+                                disabled={isParsing || !wechatUrl}
+                                className="flex-1 sm:flex-none px-4 sm:px-6 py-2.5 bg-green-600 hover:bg-green-500 disabled:bg-green-600/50 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-all shadow-lg shadow-green-900/20 flex items-center justify-center gap-2 whitespace-nowrap text-sm sm:text-base"
                             >
-                                <RotateCcw size={18} />
+                                {isParsing ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        <span className="hidden sm:inline">{t('upload.parsing')}</span>
+                                        <span className="sm:hidden">解析中...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Check size={16} className="sm:w-[18px] sm:h-[18px]" />
+                                        {t('upload.smart_parse')}
+                                    </>
+                                )}
                             </button>
-                        )}
+                            
+                            {(wechatUrl || title) && (
+                                <button 
+                                    type="button"
+                                    onClick={handleClearParsedData}
+                                    className="px-3 py-2.5 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white rounded-xl transition-all border border-white/5"
+                                    title={t('common.clear')}
+                                >
+                                    <RotateCcw size={16} className="sm:w-[18px] sm:h-[18px]" />
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
                   {/* Left Column: Media & Core Info */}
-                  <div className="space-y-6">
+                  <div className="space-y-4 lg:space-y-6">
                      {/* Cover Image (Event Image) */}
                      <div className="space-y-2">
                         <label className={labelClasses}>{t('common.image')}</label>
                         <div 
-                            className={`${uploadBoxClasses(dragTarget === 'cover')} h-56`}
+                            className={`${uploadBoxClasses(dragTarget === 'cover')} h-40 sm:h-56`}
                             onDragEnter={(e) => handleDragEnter(e, 'cover')}
                             onDragLeave={handleDragLeave}
                             onDragOver={(e) => handleDragOver(e, 'cover')}
@@ -517,13 +531,13 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                   </div>
 
                   {/* Right Column: Event Details */}
-                  <div className="space-y-6">
+                  <div className="space-y-4 lg:space-y-6">
                       {/* Basic Info Card */}
-                      <div className={cardClasses}>
-                           <h4 className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2 pb-3 border-b border-white/5">
-                               <Calendar size={14} className="text-indigo-400" /> {t('event_fields.basic_info')}
+                      <div className={`${cardClasses} p-4 sm:p-6`}>
+                           <h4 className="text-xs sm:text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2 pb-3 border-b border-white/5">
+                               <Calendar size={12} className="sm:w-3.5 sm:h-3.5 text-indigo-400" /> {t('event_fields.basic_info')}
                            </h4>
-                           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                                <div className="col-span-1">
                                     <label className={labelClasses}>{t('event_fields.start_date')}</label>
                                     <input
@@ -547,14 +561,14 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                
                                {/* Date Reasoning Display */}
                                {dateReasoning && (
-                                   <div className="col-span-1 md:col-span-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4">
-                                       <div className="flex items-start gap-3">
-                                           <Sparkles size={16} className="text-indigo-400 mt-1 flex-shrink-0" />
+                                   <div className="col-span-1 sm:col-span-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-3 sm:p-4">
+                                       <div className="flex items-start gap-2 sm:gap-3">
+                                           <Sparkles size={14} className="sm:w-4 sm:h-4 text-indigo-400 mt-1 flex-shrink-0" />
                                            <div>
-                                               <h5 className="text-xs font-bold text-indigo-300 uppercase tracking-wide mb-1">
+                                               <h5 className="text-[10px] sm:text-xs font-bold text-indigo-300 uppercase tracking-wide mb-1">
                                                    {t('upload.ai_reasoning') || 'AI Reasoning'}
                                                </h5>
-                                               <p className="text-sm text-indigo-100/80 leading-relaxed">
+                                               <p className="text-xs sm:text-sm text-indigo-100/80 leading-relaxed">
                                                    {dateReasoning}
                                                </p>
                                            </div>
@@ -577,11 +591,11 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                       </div>
 
                       {/* Attributes Card */}
-                      <div className={cardClasses}>
-                           <h4 className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2 pb-3 border-b border-white/5">
-                               <Tag size={14} className="text-indigo-400" /> {t('event_fields.attributes')}
+                      <div className={`${cardClasses} p-4 sm:p-6`}>
+                           <h4 className="text-xs sm:text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2 pb-3 border-b border-white/5">
+                               <Tag size={12} className="sm:w-3.5 sm:h-3.5 text-indigo-400" /> {t('event_fields.attributes')}
                            </h4>
-                           <div className="grid grid-cols-2 gap-5">
+                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                                <div className="col-span-1">
                                    <label className={labelClasses}>{t('event_fields.volunteer_duration')}</label>
                                    <input
@@ -622,15 +636,15 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                        placeholder={t('event_fields.target_placeholder')}
                                    />
                                </div>
-                               <div className="col-span-2">
+                               <div className="col-span-1 sm:col-span-2">
                                    <label className={labelClasses}>{t('upload.event_link')}</label>
                                    <div className="relative">
-                                       <Link size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+                                       <Link size={14} className="sm:w-4 sm:h-4 absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-gray-500" />
                                        <input
                                            type="text"
                                            value={eventLink}
                                            onChange={e => setEventLink(e.target.value)}
-                                           className={`${inputClasses} pl-10`}
+                                           className={`${inputClasses} pl-9 sm:pl-10 text-sm sm:text-base`}
                                            placeholder="https://..."
                                        />
                                    </div>
@@ -853,18 +867,18 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
               )}
 
               {/* Submit Buttons */}
-              <div className="flex justify-end gap-3 pt-6 border-t border-white/10 mt-8">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 sm:pt-6 border-t border-white/10 mt-6 sm:mt-8">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-5 py-2.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all font-medium text-sm"
+                  className="w-full sm:w-auto px-5 py-3 sm:py-2.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all font-medium text-sm"
                 >
                   {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={isUploading}
-                  className="px-8 py-2.5 bg-white text-black rounded-xl hover:bg-gray-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-semibold text-sm shadow-lg shadow-white/5"
+                  className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-2.5 bg-white text-black rounded-xl hover:bg-gray-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold text-sm shadow-lg shadow-white/5"
                 >
                   {isUploading ? (
                     <>
@@ -873,7 +887,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                     </>
                   ) : (
                     <>
-                      <Upload size={18} />
+                      <Upload size={16} className="sm:w-[18px] sm:h-[18px]" />
                       <span>{isEditing ? t('common.save') : t('common.upload_now')}</span>
                     </>
                   )}

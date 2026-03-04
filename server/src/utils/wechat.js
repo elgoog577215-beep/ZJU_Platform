@@ -28,9 +28,9 @@ async function scrapeWeChat(url) {
     console.log(`\n🔍 Fetching URL: ${url}...`);
     
     // SSRF Protection
-
+    let parsedUrl;
     try {
-        const parsedUrl = new URL(url);
+        parsedUrl = new URL(url);
         const hostname = parsedUrl.hostname;
         
         // Block private IP ranges and localhost
@@ -43,52 +43,106 @@ async function scrapeWeChat(url) {
         if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
             throw new Error('Invalid URL: Only HTTP/HTTPS allowed');
         }
+        
+        // Validate WeChat domain
+        const isWeChatDomain = hostname.includes('weixin.qq.com') || hostname.includes('mp.weixin.qq.com');
+        if (!isWeChatDomain) {
+            console.warn(`⚠️  Non-WeChat domain detected: ${hostname}`);
+        }
     } catch (e) {
         console.error('SSRF Protection blocked:', e.message);
-        throw new Error('Invalid URL');
+        throw new Error(`Invalid URL: ${e.message}`);
     }
 
     try {
         const response = await axios.get(url, {
             headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-            }
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1'
+            },
+            timeout: 30000, // 30 second timeout
+            maxRedirects: 5,
+            validateStatus: (status) => status < 400
         });
         
         const html = response.data;
+        
+        if (!html || html.length === 0) {
+            throw new Error('Empty response from server');
+        }
+        
         const $ = cheerio.load(html);
         
-        // Extract basic info
-        const title = $('meta[property="og:title"]').attr('content') || $('#activity-name').text().trim();
-        const author = $('meta[property="og:article:author"]').attr('content') || $('#js_name').text().trim();
+        // Extract basic info with multiple fallback strategies
+        let title = $('meta[property="og:title"]').attr('content') || 
+                    $('meta[name="twitter:title"]').attr('content') ||
+                    $('#activity-name').text().trim() ||
+                    $('h1').first().text().trim() ||
+                    $('title').text().trim();
+                    
+        let author = $('meta[property="og:article:author"]').attr('content') || 
+                     $('meta[name="author"]').attr('content') ||
+                     $('#js_name').text().trim() ||
+                     $('.profile_nickname').text().trim() ||
+                     $('a#js_name').text().trim();
         
-        // Extract content
+        // Extract content with multiple fallback strategies
+        let contentElement = $('#js_content');
+        if (!contentElement.length) {
+            contentElement = $('#js_article');
+        }
+        if (!contentElement.length) {
+            contentElement = $('.rich_media_content');
+        }
+        if (!contentElement.length) {
+            contentElement = $('article');
+        }
+        
         // Remove scripts and styles
-        $('#js_content script').remove();
-        $('#js_content style').remove();
+        contentElement.find('script').remove();
+        contentElement.find('style').remove();
+        contentElement.find('iframe').remove();
         
-        let content = $('#js_content').text().trim();
+        let content = contentElement.text().trim();
+        
         // Clean up excessive whitespace
-        content = content.replace(/\s+/g, ' ').replace(/\n+/g, '\n');
+        content = content.replace(/\s+/g, ' ').replace(/\n+/g, '\n').trim();
         
-        // Extract first image as cover
-        const coverImage = $('meta[property="og:image"]').attr('content');
+        // If still no content, try to get any text from the body
+        if (content.length === 0) {
+            content = $('body').text().replace(/\s+/g, ' ').trim().substring(0, 5000);
+        }
+        
+        // Extract cover image with multiple fallback strategies
+        const coverImage = $('meta[property="og:image"]').attr('content') || 
+                          $('meta[name="twitter:image"]').attr('content') ||
+                          $('#js_content img').first().attr('data-src') ||
+                          $('#js_content img').first().attr('src');
         
         console.log(`✅ Fetched Article: "${title}" by ${author}`);
+        console.log(`📝 Content Length: ${content.length} chars`);
         
         if (content.length === 0) {
             console.warn('⚠️  Warning: No content extracted. The page might be dynamic or blocked.');
         }
 
         return {
-            title,
-            author,
+            title: title || 'Untitled',
+            author: author || 'Unknown',
             content,
             coverImage
         };
     } catch (error) {
         console.error('❌ Error fetching URL:', error.message);
-        throw new Error('Failed to fetch WeChat article');
+        if (error.response) {
+            console.error(`   Status: ${error.response.status}`);
+            console.error(`   Headers:`, JSON.stringify(error.response.headers));
+        }
+        throw new Error(`Failed to fetch WeChat article: ${error.message}`);
     }
 }
 
@@ -162,21 +216,33 @@ async function parseWithLLM(data) {
     const MAX_RETRIES = 3;
     let lastError = null;
 
+    // Debug: Log environment variables (masked)
+    const apiKey = process.env.LLM_API_KEY;
+    const baseUrl = process.env.LLM_BASE_URL;
+    const model = process.env.LLM_MODEL;
+    
+    console.log('\n🔧 LLM Configuration:');
+    console.log(`   Base URL: ${baseUrl}`);
+    console.log(`   Model: ${model}`);
+    console.log(`   API Key: ${apiKey ? apiKey.substring(0, 10) + '...' + apiKey.substring(apiKey.length - 4) : 'NOT SET'}`);
+    console.log(`   API Key Length: ${apiKey ? apiKey.length : 0}`);
+
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
             console.log(`\n🔄 LLM Attempt ${attempt}/${MAX_RETRIES}...`);
             
-            const response = await axios.post(`${process.env.LLM_BASE_URL}/chat/completions`, {
-                model: process.env.LLM_MODEL,
+            const response = await axios.post(`${baseUrl}/chat/completions`, {
+                model: model,
                 messages: [
                     { role: 'system', content: prompt },
                     { role: 'user', content: `文章标题: ${data.title}\n\n文章内容:\n${data.content.substring(0, 15000)}` } // Truncate to avoid context limit
                 ],
                 stream: false,
-                enable_thinking: false
+                enable_thinking: false,
+                max_tokens: 4096
             }, {
                 headers: {
-                    'Authorization': `Bearer ${process.env.LLM_API_KEY}`,
+                    'Authorization': `Bearer ${apiKey}`,
                     'Content-Type': 'application/json'
                 },
                 timeout: 60000 // 60s timeout
@@ -222,7 +288,27 @@ async function parseWithLLM(data) {
 
         } catch (error) {
             lastError = error;
-            console.error(`❌ LLM Attempt ${attempt} failed:`, error.response?.data || error.message);
+            
+            // Handle specific error codes
+            if (error.response) {
+                const status = error.response.status;
+                const errorData = error.response.data;
+                
+                if (status === 401) {
+                    console.error(`❌ LLM Authentication failed (401): API Key无效或已过期`);
+                    throw new Error('LLM_API_KEY_INVALID: API密钥无效或已过期，请检查server/.env文件中的LLM_API_KEY配置');
+                } else if (status === 429) {
+                    console.error(`❌ LLM Rate limit exceeded (429)`);
+                    throw new Error('LLM_RATE_LIMIT: 请求过于频繁，请稍后再试');
+                } else if (status >= 500) {
+                    console.error(`❌ LLM Server error (${status}):`, errorData);
+                } else {
+                    console.error(`❌ LLM Attempt ${attempt} failed (${status}):`, errorData || error.message);
+                }
+            } else {
+                console.error(`❌ LLM Attempt ${attempt} failed:`, error.message);
+            }
+            
             if (attempt === MAX_RETRIES) break;
             // Wait 1s before retry
             await new Promise(resolve => setTimeout(resolve, 1000));
