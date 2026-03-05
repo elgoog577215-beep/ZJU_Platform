@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 import Pagination from './Pagination';
 import { useSettings } from '../context/SettingsContext';
 import { useAuth } from '../context/AuthContext';
-// import useSWR, { mutate } from 'swr'; // Replaced by useCachedResource
+import toast from 'react-hot-toast';
 import api from '../services/api';
 import SortSelector from './SortSelector';
 import { useBackClose } from '../hooks/useBackClose';
@@ -107,6 +107,7 @@ const ArticleCard = memo(({ article, index, onClick, onToggleFavorite }) => {
 const Articles = () => {
   const { t } = useTranslation();
   const { settings } = useSettings();
+  const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const [currentPage, setCurrentPage] = useState(1);
   const [copiedId, setCopiedId] = useState(null);
@@ -192,7 +193,13 @@ const Articles = () => {
       <div className="max-w-5xl w-full mx-auto relative z-10">
         <div className="absolute right-0 top-0 flex items-center gap-4 z-20">
              <button
-              onClick={() => setIsUploadOpen(true)}
+              onClick={() => {
+                if (!user) {
+                  toast.error(t('auth.signin_required'));
+                  return;
+                }
+                setIsUploadOpen(true);
+              }}
               className="bg-white/10 hover:bg-white/20 text-white p-2 md:p-3 rounded-full backdrop-blur-md border border-white/10 transition-all"
               title={t('common.upload_article')}
             >

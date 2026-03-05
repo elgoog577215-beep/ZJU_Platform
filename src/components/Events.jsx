@@ -477,7 +477,13 @@ END:VCALENDAR`;
           
         <div className="flex items-center gap-2 w-full md:w-auto justify-center md:absolute md:right-0 md:top-0 mb-4 md:mb-0">
              <button
-                onClick={() => setIsUploadOpen(true)}
+                onClick={() => {
+                  if (!user) {
+                    toast.error(t('auth.signin_required'));
+                    return;
+                  }
+                  setIsUploadOpen(true);
+                }}
                 className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 md:px-6 md:py-3 rounded-full backdrop-blur-md border border-white/10 transition-all font-bold text-sm md:text-base shrink-0"
              >
                 <Upload size={18} className="md:w-5 md:h-5" /> {t('common.create_event')}
@@ -583,7 +589,13 @@ END:VCALENDAR`;
             <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setIsUploadOpen(true)}
+                onClick={() => {
+                  if (!user) {
+                    toast.error(t('auth.signin_required'));
+                    return;
+                  }
+                  setIsUploadOpen(true);
+                }}
                 className="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full font-bold transition-all shadow-lg shadow-indigo-500/25 flex items-center gap-3 border border-indigo-400/20"
             >
                 <Plus size={20} />

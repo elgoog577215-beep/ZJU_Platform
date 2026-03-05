@@ -6,12 +6,14 @@ import FavoriteButton from './FavoriteButton';
 import { useTranslation } from 'react-i18next';
 import Pagination from './Pagination';
 import { useSettings } from '../context/SettingsContext';
+import { useAuth } from '../context/AuthContext';
 import { useMusic } from '../context/MusicContext';
 import api from '../services/api';
 import SortSelector from './SortSelector';
 import { useSearchParams } from 'react-router-dom';
 import SmartImage from './SmartImage';
 import TagFilter from './TagFilter';
+import toast from 'react-hot-toast';
 import { getThumbnailUrl } from '../utils/imageUtils';
 
 const formatTime = (seconds) => {
@@ -109,6 +111,7 @@ const TrackItem = memo(({ track, activeTrackId, isPlaying, onClick, onToggleFavo
 const Music = () => {
   const { t } = useTranslation();
   const { settings } = useSettings();
+  const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const { currentTrack, isPlaying, playTrack, togglePlay, nextTrack, prevTrack, audioRef } = useMusic();
   const [tracks, setTracks] = useState([]);
@@ -319,7 +322,13 @@ const Music = () => {
             <SortSelector sort={sort} onSortChange={setSort} />
           </div>
             <button
-              onClick={() => setIsUploadOpen(true)}
+              onClick={() => {
+                if (!user) {
+                  toast.error(t('auth.signin_required'));
+                  return;
+                }
+                setIsUploadOpen(true);
+              }}
               className="bg-white/10 hover:bg-white/20 text-white p-2 md:p-3 rounded-full backdrop-blur-md border border-white/10 transition-all"
               title={t('common.upload_music')}
             >

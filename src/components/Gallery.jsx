@@ -7,6 +7,7 @@ import FavoriteButton from './FavoriteButton';
 import { useTranslation } from 'react-i18next';
 import UploadModal from './UploadModal';
 import { useSettings } from '../context/SettingsContext';
+import { useAuth } from '../context/AuthContext';
 import SmartImage from './SmartImage';
 import api from '../services/api';
 import SortSelector from './SortSelector';
@@ -14,6 +15,7 @@ import { useSearchParams } from 'react-router-dom';
 import TagInput from './TagInput';
 import TagFilter from './TagFilter';
 import { GallerySkeleton } from './SkeletonLoader';
+import toast from 'react-hot-toast';
 
 import { useBackClose } from '../hooks/useBackClose';
 import { useCachedResource } from '../hooks/useCachedResource';
@@ -159,6 +161,7 @@ const Gallery = () => {
   const [selectedTags, setSelectedTags] = useState([]);
   const { t } = useTranslation();
   const { settings } = useSettings();
+  const { user } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   
   // Use cached resource hook
@@ -289,7 +292,13 @@ const Gallery = () => {
         <motion.button
           whileHover={{ scale: 1.05, rotate: 90 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => setIsUploadOpen(true)}
+          onClick={() => {
+            if (!user) {
+              toast.error(t('auth.signin_required'));
+              return;
+            }
+            setIsUploadOpen(true);
+          }}
           className="absolute right-0 top-0 md:top-2 bg-white/10 hover:bg-white/20 text-white 
                      p-2 md:p-3 rounded-full backdrop-blur-md border border-white/10 
                      transition-all hover:shadow-lg hover:shadow-indigo-500/20"
