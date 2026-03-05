@@ -30,8 +30,25 @@ const AdminDashboard = () => {
   useEffect(() => {
     const auth = localStorage.getItem('admin_auth');
     const token = localStorage.getItem('token');
+    
     if (auth === 'true' && token) {
-      setIsAuthenticated(true);
+      // Verify the token has admin role
+      api.get('/auth/me')
+        .then(res => {
+          if (res.data.role === 'admin') {
+            setIsAuthenticated(true);
+          } else {
+            // Token is valid but not admin, clear and require re-login
+            console.log('[AdminDashboard] User is not admin, clearing auth');
+            localStorage.removeItem('admin_auth');
+            localStorage.removeItem('token');
+          }
+        })
+        .catch(err => {
+          console.log('[AdminDashboard] Token verification failed:', err);
+          localStorage.removeItem('admin_auth');
+          localStorage.removeItem('token');
+        });
     }
   }, []);
 
