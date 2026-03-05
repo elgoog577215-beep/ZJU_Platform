@@ -166,7 +166,7 @@ const Videos = () => {
   }, [setVideos, setSelectedVideo]);
 
   return (
-    <section className="pt-24 pb-40 md:py-24 px-4 md:px-8 min-h-screen flex items-center justify-center relative z-10 overflow-hidden">
+    <section className="pt-24 pb-28 md:py-24 px-4 md:px-8 min-h-screen flex items-center justify-center relative z-10 overflow-hidden">
       {/* Ambient Background */}
       <div className="fixed inset-0 pointer-events-none z-0">
           <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-pink-500/10 blur-[130px]" />

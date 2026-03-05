@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Image, Music, Film, Compass, X, Calendar, FileText, Info, User, Users, UserCircle, LogIn } from 'lucide-react';
+import { Home, Image, Music, Film, Grid3X3, X, Calendar, FileText, Info, User, Users, UserCircle, LogIn } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
@@ -21,7 +21,7 @@ const MobileNavbar = () => {
   const navItems = [
     { key: 'home', path: '/', icon: Home },
     { key: 'events', path: '/events', icon: Calendar },
-    { key: 'menu', action: 'menu', icon: Compass }, // Replaced Users with Menu icon for clarity
+    { key: 'menu', action: 'menu', icon: Grid3X3 },
     { key: 'about', path: '/about', icon: Info },
   ];
 
@@ -69,7 +69,7 @@ const MobileNavbar = () => {
                     >
                       <Icon size={20} />
                       <span className="text-[10px] font-medium">
-                          {item.key === 'menu' ? t('nav.community', '社区') : item.key === 'about' ? t('nav.about', '关于') : t(`nav.${item.key}`, item.key.charAt(0).toUpperCase() + item.key.slice(1))}
+                          {item.key === 'menu' ? t('nav.more', '更多') : item.key === 'about' ? t('nav.about', '关于') : t(`nav.${item.key}`, item.key.charAt(0).toUpperCase() + item.key.slice(1))}
                       </span>
                     </motion.div>
                   </button>

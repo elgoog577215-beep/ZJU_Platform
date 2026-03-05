@@ -250,7 +250,7 @@ const Gallery = () => {
   }, [setPhotos]);
 
   return (
-    <section className="pt-24 pb-24 md:py-20 px-4 md:px-8 relative overflow-hidden flex-grow">
+    <section className="pt-24 pb-28 md:py-20 px-4 md:px-8 relative overflow-hidden flex-grow">
       {/* Enhanced Ambient Background */}
       <div className="fixed inset-0 pointer-events-none z-0">
           <motion.div 
@@ -357,7 +357,7 @@ const Gallery = () => {
         ) : (
           <motion.div 
             layout
-            className="columns-2 md:columns-3 lg:columns-4 gap-4 md:gap-6 max-w-7xl mx-auto pb-20 md:pb-0"
+            className="columns-2 md:columns-3 lg:columns-4 gap-4 md:gap-6 max-w-7xl mx-auto pb-8 md:pb-0"
           >
               <AnimatePresence mode="popLayout">
                 {photos.map((photo, index) => (

@@ -289,7 +289,7 @@ const Music = () => {
   }, [setTracks, currentTrack]);
 
   return (
-    <section className="pt-24 pb-40 md:py-20 px-4 md:px-8 min-h-screen relative overflow-hidden">
+    <section className="pt-24 pb-28 md:py-20 px-4 md:px-8 min-h-screen relative overflow-hidden">
       {/* Ambient Background */}
       <div className="fixed inset-0 pointer-events-none z-0">
           <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-purple-500/10 blur-[120px]" />
@@ -477,7 +477,7 @@ const Music = () => {
         </motion.div>
 
         {/* Playlist View */}
-        <div className="flex flex-col h-[600px]">
+        <div className="flex flex-col h-[400px] md:h-[600px]">
           <motion.div 
             initial={{ opacity: 0, x: 50 }}
             whileInView={{ opacity: 1, x: 0 }}

@@ -61,7 +61,7 @@ const Hero = () => {
         style={{ opacity }}
         animate={{ y: [0, 10, 0] }}
         transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 text-white/50 hover:text-white transition-colors cursor-pointer"
+        className="absolute bottom-24 md:bottom-10 left-1/2 -translate-x-1/2 z-20 text-white/50 hover:text-white transition-colors cursor-pointer"
         onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
       >
         <div className="p-2 rounded-full border border-white/10 backdrop-blur-sm bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)]">

@@ -210,28 +210,28 @@ const EventCard = memo(({ event, index, onClick, onToggleFavorite }) => {
 
         {/* Footer: Tags & Actions */}
         <div className="flex items-center justify-between mt-auto pt-3 border-t border-white/5">
-            <div className="flex flex-wrap gap-2 overflow-hidden h-[32px]">
-                {event.tags && event.tags.split(',').slice(0, 3).map((tag, i) => (
-                    <span key={i} className="px-2.5 py-1.5 rounded-lg bg-indigo-500/10 text-indigo-300 text-xs md:text-sm font-medium border border-indigo-500/20 flex items-center gap-1 group-hover:bg-indigo-500/20 transition-colors shrink-0 max-w-[120px]">
+            <div className="flex flex-wrap gap-2 overflow-hidden min-h-[28px] md:min-h-[32px]">
+                {event.tags && event.tags.split(',').slice(0, 2).map((tag, i) => (
+                    <span key={i} className="px-2 py-1 md:px-2.5 md:py-1.5 rounded-lg bg-indigo-500/10 text-indigo-300 text-xs font-medium border border-indigo-500/20 flex items-center gap-1 group-hover:bg-indigo-500/20 transition-colors shrink-0 max-w-[100px] md:max-w-[120px]">
                         <Tag size={14} className="hidden md:block shrink-0" /> 
                         <span className="truncate">{tag.trim()}</span>
                     </span>
                 ))}
             </div>
             
-            <div className="flex items-center gap-3 ml-auto">
+            <div className="flex items-center gap-2 md:gap-3 ml-auto">
                 <FavoriteButton 
                     itemId={event.id}
                     itemType="event"
-                    size={18}
+                    size={16}
                     showCount={false}
                     favorited={event.favorited}
                     initialFavorited={event.favorited}
-                    className="p-2 rounded-full hover:bg-white/10 transition-colors"
+                    className="p-1.5 md:p-2 rounded-full hover:bg-white/10 transition-colors"
                     onToggle={(favorited, likes) => onToggleFavorite(event.id, favorited, likes)}
                 />
-                <div className="p-2 rounded-full bg-white/5 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-300">
-                    <ArrowRight size={18} className="-rotate-45 group-hover:rotate-0 transition-transform duration-300" />
+                <div className="p-1.5 md:p-2 rounded-full bg-white/5 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-300">
+                    <ArrowRight size={16} className="md:w-[18px] md:h-[18px] -rotate-45 group-hover:rotate-0 transition-transform duration-300" />
                 </div>
             </div>
         </div>
@@ -456,7 +456,7 @@ END:VCALENDAR`;
   ];
 
   return (
-    <section className="pt-24 pb-24 md:py-20 px-4 md:px-8 relative overflow-hidden flex-grow">
+    <section className="pt-24 pb-28 md:py-20 px-4 md:px-8 relative overflow-hidden flex-grow">
       {/* Ambient Background */}
       <div className="fixed inset-0 pointer-events-none z-0">
           <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-purple-500/10 blur-[120px]" />
