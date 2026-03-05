@@ -177,7 +177,7 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) =>
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="fixed top-0 right-0 bottom-0 w-80 md:w-96 bg-[#1a1a1a]/95 backdrop-blur-xl border-l border-white/10 flex flex-col z-[70]"
+                className="fixed top-0 right-0 bottom-0 w-full sm:w-80 md:w-96 bg-[#1a1a1a]/95 backdrop-blur-xl border-l border-white/10 md:border-l flex flex-col z-[70]"
                 onClick={e => e.stopPropagation()}
             >
                 <div className="flex justify-between items-center p-6 pb-2">

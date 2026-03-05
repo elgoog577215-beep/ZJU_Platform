@@ -49,7 +49,7 @@ const About = () => {
   return (
     <div className="min-h-screen">
       {/* About Section */}
-      <section className="pt-36 pb-24 md:py-24 px-4 flex items-center">
+      <section className="pt-36 pb-28 md:py-24 px-4 flex items-center">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 items-center">
           <motion.div 
             initial={{ opacity: 0, x: -50 }}
@@ -83,18 +83,18 @@ const About = () => {
               {settings.about_detail || t('about.p2')}
             </p>
             
-            <div className="flex gap-8">
+            <div className="flex flex-wrap gap-6 md:gap-8">
               <div>
-                <span className="block text-3xl font-bold font-serif">{settings.about_exp_years || "10+"}</span>
-                <span className="text-sm text-gray-500">{t('about.exp')}</span>
+                <span className="block text-2xl md:text-3xl font-bold font-serif">{settings.about_exp_years || "10+"}</span>
+                <span className="text-xs md:text-sm text-gray-500">{t('about.exp')}</span>
               </div>
               <div>
-                <span className="block text-3xl font-bold font-serif">{settings.about_exhibitions || "50+"}</span>
-                <span className="text-sm text-gray-500">{t('about.exhibitions')}</span>
+                <span className="block text-2xl md:text-3xl font-bold font-serif">{settings.about_exhibitions || "50+"}</span>
+                <span className="text-xs md:text-sm text-gray-500">{t('about.exhibitions')}</span>
               </div>
               <div>
-                <span className="block text-3xl font-bold font-serif">{settings.about_projects || "200+"}</span>
-                <span className="text-sm text-gray-500">{t('about.projects')}</span>
+                <span className="block text-2xl md:text-3xl font-bold font-serif">{settings.about_projects || "200+"}</span>
+                <span className="text-xs md:text-sm text-gray-500">{t('about.projects')}</span>
               </div>
             </div>
           </motion.div>
@@ -102,7 +102,7 @@ const About = () => {
       </section>
 
       {/* Contact Section */}
-      <section className="py-24 px-4 relative overflow-hidden bg-white/5">
+      <section className="py-20 md:py-24 px-4 pb-28 md:pb-24 relative overflow-hidden bg-white/5">
         {/* Background Elements */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
             <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px]" />
