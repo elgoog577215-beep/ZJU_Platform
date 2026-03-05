@@ -34,7 +34,7 @@ const Dropdown = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center justify-between gap-2 w-full bg-black/40 backdrop-blur-sm border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500/50 transition-all duration-300 hover:bg-white/5 hover:border-indigo-500/30 hover:shadow-[0_0_20px_-10px_rgba(99,102,241,0.3)] group ${buttonClassName}`}
+        className={`flex items-center justify-between gap-2 w-full bg-black/40 backdrop-blur-sm border border-white/10 rounded-2xl px-4 py-3.5 sm:py-3 text-white focus:outline-none focus:border-indigo-500/50 transition-all duration-300 hover:bg-white/5 hover:border-indigo-500/30 hover:shadow-[0_0_20px_-10px_rgba(99,102,241,0.3)] group min-h-[44px] sm:min-h-0 ${buttonClassName}`}
       >
         <div className="flex items-center gap-3 truncate">
           {Icon && <Icon size={18} className={`text-gray-400 group-hover:text-indigo-400 transition-colors ${selectedOption ? 'text-indigo-400' : ''}`} />}
@@ -66,7 +66,7 @@ const Dropdown = ({
                     onChange(option.value);
                     setIsOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between px-4 py-3 text-sm rounded-xl transition-all ${
+                  className={`w-full flex items-center justify-between px-4 py-3.5 sm:py-3 text-sm rounded-xl transition-all min-h-[44px] sm:min-h-0 ${
                     value === option.value 
                       ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/20 font-bold' 
                       : 'text-gray-400 hover:bg-white/10 hover:text-white active:bg-white/5 active:scale-[0.98]'

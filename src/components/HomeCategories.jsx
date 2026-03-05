@@ -67,7 +67,7 @@ const CategoryCard = ({ item }) => {
       whileHover={{ y: -15, scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
-      className="relative group h-[400px] w-full overflow-hidden rounded-[2rem] cursor-pointer border border-white/10 shadow-2xl bg-black/40 backdrop-blur-sm hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)] hover:border-white/20"
+      className="relative group h-[200px] sm:h-[280px] md:h-[350px] lg:h-[400px] w-full overflow-hidden rounded-2xl sm:rounded-[2rem] cursor-pointer border border-white/10 shadow-2xl bg-black/40 backdrop-blur-sm hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)] hover:border-white/20"
     >
       <Link to={item.path} className="block w-full h-full">
         {/* Background Image */}
@@ -90,33 +90,33 @@ const CategoryCard = ({ item }) => {
         <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
         {/* Content */}
-        <div className="absolute inset-0 p-8 flex flex-col justify-end">
+        <div className="absolute inset-0 p-4 sm:p-6 md:p-8 flex flex-col justify-end">
           <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
             {/* Icon */}
-            <div className="mb-4 inline-block p-4 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 text-white shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] group-hover:bg-white/10 group-hover:scale-110 transition-all duration-300">
-              <item.icon size={32} strokeWidth={1.5} className="drop-shadow-lg" />
+            <div className="mb-2 sm:mb-4 inline-block p-2.5 sm:p-3 md:p-4 rounded-xl sm:rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 text-white shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] group-hover:bg-white/10 group-hover:scale-110 transition-all duration-300">
+              <item.icon size={20} strokeWidth={1.5} className="sm:w-6 sm:h-6 md:w-8 md:h-8 drop-shadow-lg" />
             </div>
 
             {/* Title */}
-            <h3 className="text-3xl font-bold font-serif text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300 mb-2 tracking-tight group-hover:to-white transition-all">
+            <h3 className="text-xl sm:text-2xl md:text-3xl font-bold font-serif text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300 mb-1 sm:mb-2 tracking-tight group-hover:to-white transition-all">
               {t(`nav.${item.id}`)}
             </h3>
 
-            {/* Description (Static for now, could be dynamic or translated) */}
-            <p className="text-gray-300 mb-6 max-w-xs opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 transform translate-y-2 group-hover:translate-y-0">
+            {/* Description */}
+            <p className="hidden sm:block text-gray-300 mb-4 md:mb-6 max-w-xs opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 transform translate-y-2 group-hover:translate-y-0 text-sm md:text-base">
               {t(`home.categories.${item.id}_desc`)}
             </p>
 
             {/* Action Button */}
-            <div className="flex items-center gap-2 text-white font-bold tracking-wider uppercase text-sm">
+            <div className="flex items-center gap-2 text-white font-bold tracking-wider uppercase text-xs sm:text-sm">
               <span>{t('common.explore')}</span>
-              <ArrowRight size={16} className="transform group-hover:translate-x-2 transition-transform duration-300" />
+              <ArrowRight size={14} className="sm:w-4 sm:h-4 transform group-hover:translate-x-2 transition-transform duration-300" />
             </div>
           </div>
         </div>
 
         {/* Decorative Border */}
-        <div className="absolute inset-0 border border-white/10 rounded-3xl group-hover:border-white/30 transition-colors duration-500 pointer-events-none" />
+        <div className="absolute inset-0 border border-white/10 rounded-2xl sm:rounded-3xl group-hover:border-white/30 transition-colors duration-500 pointer-events-none" />
       </Link>
     </motion.div>
   );
@@ -125,16 +125,16 @@ const CategoryCard = ({ item }) => {
 const HomeCategories = () => {
   const { t } = useTranslation();
   return (
-    <section className="py-24 px-4 md:px-8 bg-black relative z-10">
+    <section className="py-12 sm:py-16 md:py-24 px-4 md:px-8 bg-black relative z-10 pb-28 md:pb-0">
       <div className="max-w-[1800px] mx-auto">
         {/* Section Header */}
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          className="text-center mb-8 sm:mb-12 md:mb-16"
         >
-          <h2 className="text-4xl md:text-6xl font-bold font-serif text-white mb-4">
+          <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold font-serif text-white mb-3 sm:mb-4">
             {t('home.discover')}
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-transparent via-white/50 to-transparent mx-auto" />
@@ -142,7 +142,7 @@ const HomeCategories = () => {
 
         {/* Grid */}
         <motion.div 
-          className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}

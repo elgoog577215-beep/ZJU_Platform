@@ -62,7 +62,7 @@ const AuthModal = ({ isOpen, onClose }) => {
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 opacity-50 pointer-events-none" />
           <button 
             onClick={onClose}
-            className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-20"
+            className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-20 p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
           >
             <X size={20} />
           </button>
@@ -99,7 +99,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                   type="text" 
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 focus:bg-white/5 focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300"
+                  className="w-full bg-black/20 border border-white/10 rounded-xl py-3.5 sm:py-3 pl-10 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 focus:bg-white/5 focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 min-h-[44px]"
                   placeholder={t('auth.username_placeholder')}
                 />
               </div>
@@ -113,7 +113,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                   type="password" 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 focus:bg-white/5 focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300"
+                  className="w-full bg-black/20 border border-white/10 rounded-xl py-3.5 sm:py-3 pl-10 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 focus:bg-white/5 focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 min-h-[44px]"
                   placeholder={t('auth.password_placeholder')}
                   minLength={6}
                 />
@@ -123,7 +123,7 @@ const AuthModal = ({ isOpen, onClose }) => {
             <button 
               type="submit" 
               disabled={loading}
-              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-8 shadow-lg shadow-indigo-500/25 active:scale-[0.98]"
+              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-4 sm:py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-8 shadow-lg shadow-indigo-500/25 active:scale-[0.98] min-h-[44px]"
             >
               {loading ? <Loader className="animate-spin" size={20} /> : (
                 <>
@@ -138,7 +138,7 @@ const AuthModal = ({ isOpen, onClose }) => {
             {isLogin ? t('auth.no_account') : t('auth.has_account')}
             <button 
               onClick={() => setIsLogin(!isLogin)}
-              className="text-white hover:text-indigo-400 font-bold ml-1 transition-colors underline decoration-indigo-500/50 hover:decoration-indigo-500"
+              className="text-white hover:text-indigo-400 font-bold ml-1 transition-colors underline decoration-indigo-500/50 hover:decoration-indigo-500 py-2 px-1"
             >
               {isLogin ? t('auth.sign_up') : t('auth.log_in')}
             </button>

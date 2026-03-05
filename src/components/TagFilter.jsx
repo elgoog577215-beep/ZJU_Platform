@@ -69,7 +69,7 @@ const TagFilter = ({ selectedTags = [], onChange, className, variant = 'card', t
                 className="flex items-center gap-2 cursor-pointer md:cursor-default" 
                 onClick={() => isMobile && setIsMobileCollapsed(!isMobileCollapsed)}
             >
-                <div className={`p-1.5 md:p-2 rounded-lg ${variant === 'card' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-white/10 text-white'}`}>
+                <div className={`p-2.5 sm:p-2 rounded-lg ${variant === 'card' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-white/10 text-white'}`}>
                     <Filter size={isMobile ? 16 : 18} />
                 </div>
                 <span className="font-bold text-white text-base md:text-lg tracking-wide">{t('common.filter_by_tags', 'Filter by Tags')}</span>
@@ -86,7 +86,7 @@ const TagFilter = ({ selectedTags = [], onChange, className, variant = 'card', t
             {selectedTags.length > 0 && (
                 <button 
                     onClick={() => onChange([])}
-                    className="text-xs font-medium text-gray-400 hover:text-white flex items-center gap-1 transition-colors px-2.5 py-1 md:px-3 md:py-1.5 rounded-full bg-white/5 hover:bg-white/10"
+                    className="text-xs font-medium text-gray-400 hover:text-white flex items-center gap-1 transition-colors px-3 py-2 sm:px-3 sm:py-1.5 rounded-full bg-white/5 hover:bg-white/10 min-h-[44px] sm:min-h-0"
                 >
                     <X size={12} />
                     {t('common.clear_all', 'Clear All')}
@@ -112,7 +112,7 @@ const TagFilter = ({ selectedTags = [], onChange, className, variant = 'card', t
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => toggleTag(tag.name)}
-                                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all border flex items-center gap-2 ${
+                                className={`px-4 py-2.5 sm:py-2 rounded-xl text-sm font-medium transition-all border flex items-center gap-2 min-h-[44px] sm:min-h-0 ${
                                     selectedTags.includes(tag.name)
                                         ? 'bg-indigo-500 text-white border-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.3)]'
                                         : 'bg-white/5 text-gray-400 border-white/5 hover:bg-white/10 hover:text-white hover:border-white/10'
