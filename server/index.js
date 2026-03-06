@@ -306,14 +306,20 @@ app.post('/api/resources/parse-wechat', authenticateToken, isAdmin, async (req, 
     parsedData.description = parsedData.description || scrapedData.content?.substring(0, 200) || '';
     
     // Download cover image to local server (bypass WeChat hotlink protection)
+    console.log(`🔍 Checking cover image: ${scrapedData.coverImage ? 'Found' : 'Not found'}`);
     if (scrapedData.coverImage) {
-      console.log(`📥 Downloading cover image...`);
-      const localImagePath = await downloadWeChatImage(scrapedData.coverImage);
-      if (localImagePath) {
-        parsedData.coverImage = localImagePath;
-        console.log(`✅ Cover image saved: ${localImagePath}`);
-      } else {
-        // Fallback to original URL (may not work due to hotlink protection)
+      console.log(`📥 Downloading cover image from: ${scrapedData.coverImage.substring(0, 100)}...`);
+      try {
+        const localImagePath = await downloadWeChatImage(scrapedData.coverImage);
+        if (localImagePath) {
+          parsedData.coverImage = localImagePath;
+          console.log(`✅ Cover image saved: ${localImagePath}`);
+        } else {
+          console.log(`⚠️ Download returned null, using original URL`);
+          parsedData.coverImage = scrapedData.coverImage;
+        }
+      } catch (downloadError) {
+        console.error(`❌ Download error: ${downloadError.message}`);
         parsedData.coverImage = scrapedData.coverImage;
       }
     }
