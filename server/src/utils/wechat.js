@@ -118,13 +118,53 @@ async function scrapeWeChat(url) {
         }
         
         // Extract cover image with multiple fallback strategies
-        const coverImage = $('meta[property="og:image"]').attr('content') || 
-                          $('meta[name="twitter:image"]').attr('content') ||
-                          $('#js_content img').first().attr('data-src') ||
-                          $('#js_content img').first().attr('src');
+        let coverImage = $('meta[property="og:image"]').attr('content') || 
+                          $('meta[name="twitter:image"]').attr('content');
+        
+        // If no meta image, find the best image from content
+        if (!coverImage) {
+            const contentImages = [];
+            $('#js_content img').each((i, el) => {
+                const $img = $(el);
+                const dataSrc = $img.attr('data-src');
+                const src = $img.attr('src');
+                const imgUrl = dataSrc || src;
+                
+                if (imgUrl) {
+                    // Skip small images (emojis, icons, ads)
+                    const width = parseInt($img.attr('width') || $img.css('width') || 0);
+                    const height = parseInt($img.attr('height') || $img.css('height') || 0);
+                    const dataType = $img.attr('data-type');
+                    
+                    // Skip if it's clearly a small image or emoji
+                    if (width > 0 && width < 100) return;
+                    if (height > 0 && height < 100) return;
+                    if (dataType === 'emoji' || imgUrl.includes('emoji')) return;
+                    if (imgUrl.includes('mmbiz.qpic.cn/mmbiz_')) return; // Skip emojis
+                    if (imgUrl.includes('qrcode')) return; // Skip QR codes
+                    
+                    contentImages.push({
+                        url: imgUrl,
+                        width,
+                        height,
+                        index: i
+                    });
+                }
+            });
+            
+            // Select the best image (prefer larger images, first image as fallback)
+            if (contentImages.length > 0) {
+                // Sort by estimated size, prefer first large image
+                const bestImage = contentImages.find(img => img.width >= 300 || img.height >= 200) 
+                               || contentImages[0];
+                coverImage = bestImage.url;
+                console.log(`📸 Selected cover from ${contentImages.length} content images`);
+            }
+        }
         
         console.log(`✅ Fetched Article: "${title}" by ${author}`);
         console.log(`📝 Content Length: ${content.length} chars`);
+        console.log(`🖼️ Cover Image: ${coverImage ? coverImage.substring(0, 100) + '...' : 'Not found'}`);
         
         if (content.length === 0) {
             console.warn('⚠️  Warning: No content extracted. The page might be dynamic or blocked.');
