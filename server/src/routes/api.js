@@ -128,8 +128,8 @@ resources.forEach(resource => {
     // Restore
     router.post(`/${resource}/:id/restore`, authenticateToken, isAdmin, resourceController.restoreHandler(resource));
 
-    // Like
-    router.post(`/${resource}/:id/like`, resourceController.toggleLike(resource));
+    // Like (requires authentication to prevent abuse)
+    router.post(`/${resource}/:id/like`, authenticateToken, resourceController.toggleLike(resource));
 
     // Update Status
     router.put(`/${resource}/:id/status`, authenticateToken, isAdmin, resourceController.updateStatus(resource));

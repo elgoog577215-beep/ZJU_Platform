@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight, Download, Info, Camera, Aperture, Clock, Grid } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import FavoriteButton from './FavoriteButton';
 import { useBackClose } from '../hooks/useBackClose';

@@ -11,6 +11,9 @@ const createComment = async (req, res, next) => {
         }
 
         const user = await db.get('SELECT username, avatar, nickname FROM users WHERE id = ?', [userId]);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
         const authorName = user.nickname || user.username;
 
         const result = await db.run(
