@@ -36,7 +36,7 @@ const helmetConfig = {
   crossOriginOpenerPolicy: { policy: "same-origin" },
   crossOriginEmbedderPolicy: false,
   dnsPrefetchControl: { allow: false },
-  frameguard: { action: 'deny' },
+  frameguard: { action: 'sameorigin' },
   hidePoweredBy: true,
   hsts: {
     maxAge: 31536000,
@@ -165,33 +165,34 @@ const csrfProtection = (options = {}) => {
 
 /**
  * Request sanitization middleware
- * Sanitizes common XSS vectors in request body
+ * Only sanitizes specific fields that should not contain HTML
+ * Does NOT sanitize content fields like description, content, excerpt, etc.
  */
 const sanitizeRequest = (req, res, next) => {
-  const sanitize = (obj) => {
-    if (typeof obj === 'string') {
-      return obj
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#x27;')
-        .replace(/\//g, '&#x2F;');
-    }
-    if (Array.isArray(obj)) {
-      return obj.map(sanitize);
-    }
-    if (obj && typeof obj === 'object') {
-      const sanitized = {};
-      for (const [key, value] of Object.entries(obj)) {
-        sanitized[key] = sanitize(value);
-      }
-      return sanitized;
-    }
-    return obj;
+  const sanitize = (str) => {
+    if (typeof str !== 'string') return str;
+    return str
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;')
+      .replace(/\//g, '&#x2F;');
   };
-  
-  if (req.body) {
-    req.body = sanitize(req.body);
+
+  // Fields that should be sanitized (usernames, titles, names, etc.)
+  // Content fields like 'content', 'description', 'excerpt' are NOT sanitized
+  // as they may contain legitimate HTML/Markdown
+  const fieldsToSanitize = [
+    'username', 'password', 'email', 'name', 'nickname',
+    'location', 'organizer', 'target_audience'
+  ];
+
+  if (req.body && typeof req.body === 'object') {
+    for (const field of fieldsToSanitize) {
+      if (req.body[field] && typeof req.body[field] === 'string') {
+        req.body[field] = sanitize(req.body[field]);
+      }
+    }
   }
   
   next();
