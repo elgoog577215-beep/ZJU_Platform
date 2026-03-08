@@ -23,7 +23,7 @@ const Navbar = () => {
   const location = useLocation();
   const { t } = useTranslation();
   const { settings, cursorEnabled, toggleCursor, backgroundScene, changeBackgroundScene } = useSettings();
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const [time, setTime] = useState(new Date());
 
   const {
@@ -67,7 +67,7 @@ const Navbar = () => {
     { key: 'videos', path: '/videos' },
     { key: 'articles', path: '/articles' },
     { key: 'about', path: '/about' },
-    { key: 'admin', path: '/admin' }
+    ...(isAdmin ? [{ key: 'admin', path: '/admin' }] : [])
   ];
 
   return (

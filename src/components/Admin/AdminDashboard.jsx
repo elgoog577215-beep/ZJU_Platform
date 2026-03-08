@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   LayoutDashboard, Inbox, LayoutGrid, Music, Film, BookOpen, 
   Calendar, LayoutTemplate, Folder, HardDrive, ClipboardList, 
-  Settings, Users, Lock, Home, LogOut, ChevronRight, Tag
+  Settings, Users, Home, LogOut, ChevronRight, Tag
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import toast from 'react-hot-toast';
-import api from '../../services/api';
 
 // Imported Components
 import Overview from './Overview';
@@ -22,61 +20,10 @@ import TagManager from './TagManager';
 const AdminDashboard = () => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('overview');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  useEffect(() => {
-    const auth = localStorage.getItem('admin_auth');
-    const token = localStorage.getItem('token');
-    
-    if (auth === 'true' && token) {
-      // Verify the token has admin role
-      api.get('/auth/me')
-        .then(res => {
-          if (res.data.role === 'admin') {
-            setIsAuthenticated(true);
-          } else {
-            // Token is valid but not admin, clear and require re-login
-            console.log('[AdminDashboard] User is not admin, clearing auth');
-            localStorage.removeItem('admin_auth');
-            localStorage.removeItem('token');
-          }
-        })
-        .catch(err => {
-          console.log('[AdminDashboard] Token verification failed:', err);
-          localStorage.removeItem('admin_auth');
-          localStorage.removeItem('token');
-        });
-    }
-  }, []);
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      // Authenticate with backend to get access token
-      const res = await api.post('/auth/admin-login', { password });
-      
-      // Store token for API requests
-      localStorage.setItem('token', res.data.token);
-      // Store auth state for UI persistence
-      localStorage.setItem('admin_auth', 'true');
-      
-      setIsAuthenticated(true);
-      toast.success(t('admin.login.welcome_back'));
-    } catch (error) {
-      console.error('Login error:', error);
-      toast.error(t('admin.login.incorrect'));
-    }
-  };
-
   const handleLogout = () => {
-    setIsAuthenticated(false);
-    localStorage.removeItem('admin_auth');
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    toast.success(t('admin.login.logged_out'));
+    window.location.href = '/';
   };
 
   const menuGroups = [
@@ -126,47 +73,6 @@ const AdminDashboard = () => {
       default: return null;
     }
   };
-
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-[#111] border border-white/10 rounded-2xl p-8 shadow-2xl">
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-indigo-500/20 rounded-full flex items-center justify-center mx-auto mb-4 text-indigo-400">
-              <Lock size={32} />
-            </div>
-            <h2 className="text-2xl font-bold text-white mb-2">{t('admin.login.access')}</h2>
-            <p className="text-gray-400 text-sm">{t('admin.login.prompt')}</p>
-          </div>
-          
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <input 
-                type="password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={t('admin.login.placeholder')}
-                className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-center tracking-widest"
-                autoFocus
-              />
-            </div>
-            <button 
-              type="submit"
-              className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-indigo-500/20"
-            >
-              {t('admin.login.unlock')}
-            </button>
-          </form>
-          
-          <div className="mt-6 text-center">
-            <a href="/" className="text-sm text-gray-500 hover:text-white transition-colors flex items-center justify-center gap-2">
-              <Home size={14} /> {t('admin.login.back')}
-            </a>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-black text-white pt-24 px-4 md:px-8 pb-12 pb-safe">
