@@ -29,7 +29,7 @@ Thumbs.db
 *.sqlite-wal
 *.sqlite-shm
 *.db
-
+server/uploads
 # Uploads (user-generated content, not for git)
 server/uploads/
 
