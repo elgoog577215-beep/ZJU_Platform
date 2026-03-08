@@ -149,7 +149,7 @@ const PublicProfile = () => {
       }
       setPasswordLoading(true);
       try {
-          await api.put('/auth/password', { currentPassword, newPassword });
+          await api.post('/auth/change-password', { currentPassword, newPassword });
           toast.success(t('user_profile.security.update_success'));
           setCurrentPassword('');
           setNewPassword('');
