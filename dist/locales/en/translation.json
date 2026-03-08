@@ -698,8 +698,8 @@
   "event_fields": {
     "basic_info": "Basic Info",
     "attributes": "Attributes",
-    "start_date": "Start Date",
-    "end_date": "End Date",
+    "start_date": "Start Date & Time",
+    "end_date": "End Date & Time",
     "volunteer_duration": "Volunteer Duration",
     "target_audience": "Target Audience",
     "organizer": "Organizer",

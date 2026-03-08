@@ -877,8 +877,8 @@
   "event_fields": {
     "basic_info": "基本信息",
     "attributes": "活动属性",
-    "start_date": "开始日期",
-    "end_date": "截止日期",
+    "start_date": "开始日期时间",
+    "end_date": "截止日期时间",
     "volunteer_duration": "志愿时长",
     "target_audience": "面向对象",
     "organizer": "主办方",
