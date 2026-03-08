@@ -3,45 +3,44 @@ node_modules/
 server/node_modules/
 
 # Build outputs
-.vite/
+dist/
 dev-dist/
-# Ensure dist is tracked (not ignored)
-!dist/
+.vite/
 
-# Logs and cache
+# Logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-*.log
 .cache/
 
-# Local env/config
-# .env <-- User requested to push .env
+# Environment variables (sensitive)
+.env
 .env.*
-
+server/.env
 
 # OS junk
 .DS_Store
 Thumbs.db
 
-# Uploads & generated assets
-# server/uploads/ <-- Un-ignored per user request
-# uploads/ <-- Un-ignored per user request
-
-# Local database file
+# Database files
 *.sqlite
 *.sqlite-wal
 *.sqlite-shm
 *.db
 
-# Crawler
-wechat-batch-crawler/
-wechat_crawler/
+# Uploads (user-generated content, not for git)
+server/uploads/
+
+# Lock files (keep package-lock.json, ignore pnpm)
+pnpm-lock.yaml
 
 # Editor/IDE
 .vscode/
 .idea/
 
-# HarmonyOS App
+# Misc project folders
+wechat-batch-crawler/
+wechat_crawler/
 zju_app/
