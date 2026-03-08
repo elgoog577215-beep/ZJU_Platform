@@ -1,23 +1,20 @@
 import React, { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, MapPin, ArrowRight, X, Filter, Upload, Clock, CheckCircle, ExternalLink, Download, Globe, FileText, AlertCircle, Share2, Copy, Award, Users, Building2, Tag, Search, Plus } from 'lucide-react';
+import { Calendar, MapPin, ArrowRight, X, Upload, Clock, CheckCircle, ExternalLink, Download, Globe, FileText, AlertCircle, Share2, Copy, Award, Users, Building2, Tag, Search, Plus } from 'lucide-react';
 import UploadModal from './UploadModal';
 import FavoriteButton from './FavoriteButton';
 import { useTranslation } from 'react-i18next';
 import Pagination from './Pagination';
 import { useSettings } from '../context/SettingsContext';
 import api from '../services/api';
-import SortSelector from './SortSelector';
-import Dropdown from './Dropdown';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import Countdown from './Countdown';
 import SmartImage from './SmartImage';
 import { useBackClose } from '../hooks/useBackClose';
 import { useCachedResource } from '../hooks/useCachedResource';
-import TagFilter from './TagFilter';
-import AdvancedFilter from './AdvancedFilter';
+import EventFilterPanel from './EventFilterPanel';
 import DOMPurify from 'dompurify';
 
 import { useSearchParams } from 'react-router-dom';
@@ -231,7 +228,7 @@ const Events = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
-  const [sort, setSort] = useState('newest');
+  const [sort, setSort] = useState('date_desc');
   const [lifecycle, setLifecycle] = useState('all');
   const [selectedTags, setSelectedTags] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -439,12 +436,6 @@ END:VCALENDAR`;
     });
   }, [setEvents, setSelectedEvent]);
 
-  const lifecycleOptions = [
-      { value: 'all', label: t('common.all') },
-      { value: 'upcoming', label: t('events.status.upcoming') },
-      { value: 'ongoing', label: t('events.status.ongoing') },
-      { value: 'past', label: t('events.status.past') }
-  ];
 
   return (
     <section className="pt-24 pb-28 md:py-20 px-4 md:px-8 relative overflow-hidden flex-grow">
@@ -482,39 +473,18 @@ END:VCALENDAR`;
         </div>
 
         {/* Filter Section */}
-        <div className="w-full max-w-4xl mx-auto mb-8 flex flex-col gap-4">
-          {/* Search Bar Removed */}
-
-          <AdvancedFilter filters={filters} onChange={setFilters} refreshTrigger={filterVersion} />
-
-          <TagFilter selectedTags={selectedTags} onChange={setSelectedTags} type="events" />
-          
-          <div className="grid grid-cols-2 gap-4">
-            {/* Lifecycle Filter */}
-            <div className="w-full">
-              <Dropdown
-                value={lifecycle}
-                onChange={setLifecycle}
-                options={lifecycleOptions}
-                icon={Filter}
-                buttonClassName="bg-[#0a0a0a]/60 border border-white/10 hover:bg-[#0a0a0a]/80 w-full py-3 rounded-xl text-white backdrop-blur-3xl transition-all shadow-lg"
-              />
-            </div>
-
-            {/* Sort */}
-            <div className="w-full">
-              <SortSelector 
-                sort={sort} 
-                onSortChange={setSort} 
-                className="w-full" 
-                buttonClassName="bg-[#0a0a0a]/60 border border-white/10 hover:bg-[#0a0a0a]/80 w-full py-3 rounded-xl text-white backdrop-blur-3xl transition-all shadow-lg" 
-                extraOptions={[
-                    { value: 'date_asc', label: t('sort_filter.date_asc') || 'Date (Earliest)' },
-                    { value: 'date_desc', label: t('sort_filter.date_desc') || 'Date (Latest)' }
-                ]}
-              />
-            </div>
-          </div>
+        <div className="w-full max-w-4xl mx-auto mb-8">
+          <EventFilterPanel
+            filters={filters}
+            onFiltersChange={setFilters}
+            selectedTags={selectedTags}
+            onTagsChange={setSelectedTags}
+            lifecycle={lifecycle}
+            onLifecycleChange={setLifecycle}
+            sort={sort}
+            onSortChange={setSort}
+            refreshTrigger={filterVersion}
+          />
         </div>
       </motion.div>
 

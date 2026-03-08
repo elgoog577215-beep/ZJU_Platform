@@ -1,11 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Building2, Tag, Users, Filter, X, ChevronDown, SlidersHorizontal } from 'lucide-react';
+import { MapPin, Building2, Users, Filter, X, ChevronDown, SlidersHorizontal } from 'lucide-react';
 import Dropdown from './Dropdown';
 import api from '../services/api';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const AdvancedFilter = ({ filters, onChange, className = "", variant = 'card', refreshTrigger = 0 }) => {
+const AdvancedFilter = ({
+    filters,
+    onChange,
+    className = "",
+    variant = 'card',
+    refreshTrigger = 0,
+    lifecycle = 'all',
+    onLifecycleChange,
+}) => {
     const { t } = useTranslation();
     const [options, setOptions] = useState({
         location: [],
@@ -67,30 +75,38 @@ const AdvancedFilter = ({ filters, onChange, className = "", variant = 'card', r
     };
 
     const clearFilters = () => {
-        onChange({
-            location: null,
-            organizer: null,
-            target_audience: null
-        });
+        onChange({ location: null, organizer: null, target_audience: null });
+        if (onLifecycleChange) onLifecycleChange('all');
     };
 
-    const hasActiveFilters = Object.values(filters).some(v => v);
+    const lifecycleOptions = [
+        { value: 'all', label: t('common.all') },
+        { value: 'upcoming', label: t('events.status.upcoming') },
+        { value: 'ongoing', label: t('events.status.ongoing') },
+        { value: 'past', label: t('events.status.past') },
+    ];
 
-    const filterConfig = [
+    const hasActiveFilters = Object.values(filters).some(v => v) || lifecycle !== 'all';
+
+    const attributeFilterConfig = [
         { key: 'organizer', icon: Building2, labelKey: 'advanced_filter.organizer', allLabelKey: 'advanced_filter.all_organizers', options: options.organizer },
         { key: 'location', icon: MapPin, labelKey: 'advanced_filter.location', allLabelKey: 'advanced_filter.all_locations', options: options.location },
         { key: 'target_audience', icon: Users, labelKey: 'advanced_filter.target_audience', allLabelKey: 'advanced_filter.all_target_audiences', options: options.target_audience },
     ];
 
-    const containerClasses = variant === 'card' 
-        ? "bg-black/20 backdrop-blur-2xl border border-white/10 rounded-3xl p-4 md:p-6 shadow-[0_8px_32px_rgba(0,0,0,0.2)] hover:shadow-[0_8px_32px_rgba(99,102,241,0.1)] transition-shadow duration-500"
+    const containerClasses = variant === 'card'
+        ? "bg-black/20 border border-white/10 rounded-3xl p-4 md:p-6 shadow-[0_8px_32px_rgba(0,0,0,0.2)]"
         : "";
 
     if (loading) return <div className="animate-pulse h-24 bg-white/5 rounded-2xl w-full mb-4"></div>;
 
     return (
         <div className={`w-full relative z-20 ${className}`}>
-            <div className={containerClasses}>
+            {/* Backdrop blur as a separate non-clipping layer */}
+            {variant === 'card' && (
+                <div className="absolute inset-0 rounded-3xl backdrop-blur-2xl pointer-events-none" />
+            )}
+            <div className={`relative ${containerClasses}`}>
                 <div className="flex items-center justify-between mb-4 md:mb-6">
                     <div 
                         className="flex items-center gap-3 cursor-pointer md:cursor-default"
@@ -142,8 +158,8 @@ const AdvancedFilter = ({ filters, onChange, className = "", variant = 'card', r
                             }}
                             className={isMobile && !overflowVisible ? "overflow-hidden" : ""}
                         >
-                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pb-1">
-                                {filterConfig.map(({ key, icon, labelKey, allLabelKey, options: fieldOptions }) => (
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pb-1">
+                                {attributeFilterConfig.map(({ key, icon, labelKey, allLabelKey, options: fieldOptions }) => (
                                     <Dropdown
                                         key={key}
                                         value={filters[key] || 'all'}
@@ -154,6 +170,16 @@ const AdvancedFilter = ({ filters, onChange, className = "", variant = 'card', r
                                         buttonClassName="bg-white/5 border border-white/10 hover:bg-white/10 hover:border-indigo-500/30 hover:shadow-[0_0_20px_-5px_rgba(99,102,241,0.3)] w-full py-2.5 rounded-xl text-white text-sm backdrop-blur-sm transition-all shadow-lg"
                                     />
                                 ))}
+                                {/* Lifecycle filter lives here alongside attribute filters */}
+                                {onLifecycleChange && (
+                                    <Dropdown
+                                        value={lifecycle}
+                                        onChange={onLifecycleChange}
+                                        options={lifecycleOptions}
+                                        icon={Filter}
+                                        buttonClassName="bg-white/5 border border-white/10 hover:bg-white/10 hover:border-indigo-500/30 hover:shadow-[0_0_20px_-5px_rgba(99,102,241,0.3)] w-full py-2.5 rounded-xl text-white text-sm backdrop-blur-sm transition-all shadow-lg"
+                                    />
+                                )}
                             </div>
                         </motion.div>
                     )}

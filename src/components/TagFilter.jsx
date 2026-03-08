@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Filter, ChevronDown, ChevronUp, X, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
 import { useTranslation } from 'react-i18next';
 
-const TagFilter = ({ selectedTags = [], onChange, className, variant = 'card', type }) => {
+const TagFilter = ({ selectedTags = [], onChange, className, variant = 'card', type, filters = {} }) => {
   const { t } = useTranslation();
   const [allTags, setAllTags] = useState([]);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -23,22 +23,28 @@ const TagFilter = ({ selectedTags = [], onChange, className, variant = 'card', t
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const fetchTags = useCallback(async () => {
-    try {
-      const res = await api.get('/tags', { params: { type } });
-      // Sort by usage count if available, otherwise alphabetical
-      const sortedTags = res.data.sort((a, b) => (b.count || 0) - (a.count || 0));
-      setAllTags(sortedTags);
-    } catch (error) {
-      console.error('Failed to fetch tags', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [type]);
+  // Serialize filters to a stable string for use as effect dependency
+  const filtersKey = JSON.stringify(filters);
 
   useEffect(() => {
+    const fetchTags = async () => {
+      setLoading(true);
+      try {
+        const activeFilters = Object.fromEntries(
+          Object.entries(filters).filter(([, v]) => v != null && v !== '')
+        );
+        const res = await api.get('/tags', { params: { type, ...activeFilters } });
+        const sortedTags = res.data.sort((a, b) => (b.count || 0) - (a.count || 0));
+        setAllTags(sortedTags);
+      } catch (error) {
+        console.error('Failed to fetch tags', error);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchTags();
-  }, [fetchTags]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type, filtersKey]);
 
   const toggleTag = (tagName) => {
     const newTags = selectedTags.includes(tagName)

@@ -56,6 +56,7 @@ const getTags = async (req, res, next) => {
              // Only count tags from visible resources (not deleted, approved)
              // Check if columns exist first to avoid errors on tables that might lack them (though they should have them)
              let whereClause = "WHERE 1=1";
+             const whereParams = [];
              try {
                  const columns = await db.all(`PRAGMA table_info(${targetTable})`);
                  const hasDeletedAt = columns.some(c => c.name === 'deleted_at');
@@ -67,7 +68,28 @@ const getTags = async (req, res, next) => {
                  console.warn(`[TagController] Failed to check columns for ${targetTable}:`, e);
              }
 
-             const items = await db.all(`SELECT tags FROM ${targetTable} ${whereClause}`);
+             // For events, support attribute filtering so tag counts reflect current filter context
+             if (targetTable === 'events') {
+                 const filterableFields = ['organizer', 'location', 'target_audience'];
+                 filterableFields.forEach(field => {
+                     if (req.query[field]) {
+                         whereClause += ` AND "${field}" = ?`;
+                         whereParams.push(req.query[field]);
+                     }
+                 });
+
+                 // Lifecycle filter (mirrors resourceController logic)
+                 const lifecycle = req.query.lifecycle;
+                 if (lifecycle === 'upcoming') {
+                     whereClause += ' AND date > date("now", "localtime")';
+                 } else if (lifecycle === 'past') {
+                     whereClause += ' AND date < date("now", "localtime")';
+                 } else if (lifecycle === 'ongoing') {
+                     whereClause += ' AND date = date("now", "localtime")';
+                 }
+             }
+
+             const items = await db.all(`SELECT tags FROM ${targetTable} ${whereClause}`, whereParams);
              const tagCounts = {};
              
              for (const item of items) {
