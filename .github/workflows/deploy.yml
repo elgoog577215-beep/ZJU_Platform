@@ -16,9 +16,11 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
+            set -e
             cd /var/www/ZJU_Platform
             git pull origin master
-            npm install --production=false
+            rm -rf node_modules
+            npm install
             npm run build
             pm2 restart all
             systemctl reload nginx
