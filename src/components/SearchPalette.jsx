@@ -3,12 +3,16 @@ import { Search, Command, X, ArrowRight, Image as ImageIcon, Music, Film, FileTe
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { useBackClose } from '../hooks/useBackClose';
 
 import { useTranslation } from 'react-i18next';
+
+import { getThumbnailUrl } from '../utils/imageUtils';
 
 const SearchPalette = () => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
+  const { onNavigate } = useBackClose(isOpen, () => setIsOpen(false));
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -42,34 +46,45 @@ const SearchPalette = () => {
   // Auto-focus input when opened
   useEffect(() => {
     if (isOpen) {
-      setTimeout(() => inputRef.current?.focus(), 100);
+      // Use requestAnimationFrame for better timing than setTimeout
+      requestAnimationFrame(() => {
+        inputRef.current?.focus();
+      });
     } else {
       setQuery('');
       setResults([]);
     }
   }, [isOpen]);
 
-  // Search Logic
+  // Search Logic with AbortController to prevent race conditions
   useEffect(() => {
+    const controller = new AbortController();
+    
     const timer = setTimeout(() => {
       if (query.length >= 2) {
         setLoading(true);
-        api.get(`/search?q=${query}`)
+        api.get(`/search?q=${query}`, { signal: controller.signal })
           .then(res => {
             setResults(res.data);
             setSelectedIndex(0);
             setLoading(false);
           })
           .catch(err => {
+            // Ignore cancellation errors
+            if (err.code === 'ERR_CANCELED' || err.name === 'CanceledError') return;
             console.error(err);
             setLoading(false);
           });
       } else {
         setResults([]);
+        setLoading(false);
       }
     }, 300);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
   }, [query]);
 
   // Keyboard Navigation
@@ -105,104 +120,111 @@ const SearchPalette = () => {
     }
   };
 
-  if (!isOpen) return null;
-
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[20vh] px-4">
-        {/* Backdrop */}
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={() => setIsOpen(false)}
-          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        />
-
-        {/* Modal */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95, y: -20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: -20 }}
-          transition={{ duration: 0.2 }}
-          className="relative w-full max-w-2xl bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden"
-        >
-          {/* Input Header */}
-          <div className="flex items-center gap-3 px-4 py-4 border-b border-white/10">
-            <Search className="text-gray-400" size={20} />
-            <input
-              ref={inputRef}
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={handleInputKeyDown}
-              placeholder={t('search.placeholder')}
-              className="flex-1 bg-transparent text-white placeholder-gray-500 focus:outline-none text-lg"
+      {isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-start justify-center md:pt-[20vh] md:px-4">
+            {/* Backdrop */}
+            <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsOpen(false)}
+            className="absolute inset-0 bg-black/60 backdrop-blur-md"
             />
-            <div className="flex items-center gap-2">
-                <kbd className="hidden md:inline-flex items-center gap-1 px-2 py-1 bg-white/5 rounded text-xs text-gray-400 font-mono">
-                    <span className="text-xs">ESC</span>
-                </kbd>
-                <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-white">
-                    <X size={20} />
-                </button>
-            </div>
-          </div>
 
-          {/* Results List */}
-          <div className="max-h-[60vh] overflow-y-auto custom-scrollbar p-2">
-            {loading ? (
-                <div className="p-8 text-center text-gray-500">Searching...</div>
-            ) : results.length > 0 ? (
-                <div className="space-y-1">
-                    {results.map((item, index) => (
-                        <motion.button
-                            key={`${item.type}-${item.id}`}
-                            layout
-                            onClick={() => handleSelect(item)}
-                            onMouseEnter={() => setSelectedIndex(index)}
-                            className={`w-full flex items-center gap-4 px-4 py-3 rounded-lg transition-colors ${
-                                index === selectedIndex ? 'bg-white/10' : 'hover:bg-white/5'
-                            }`}
-                        >
-                            <div className="w-10 h-10 rounded bg-black/50 overflow-hidden flex-shrink-0 border border-white/10">
-                                {item.image ? (
-                                    <img src={item.image} alt="" className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-gray-500">
-                                        {getIcon(item.type)}
-                                    </div>
+            {/* Modal */}
+            <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: -20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -20 }}
+            transition={{ duration: 0.2 }}
+            className="relative w-full h-[100dvh] md:h-auto md:max-w-2xl bg-[#0a0a0a]/80 backdrop-blur-3xl border-0 md:border md:border-white/10 rounded-none md:rounded-xl shadow-2xl overflow-hidden flex flex-col"
+            >
+            {/* Input Header */}
+            <div className="flex items-center gap-3 px-4 py-4 border-b border-white/10 shrink-0 mt-[env(safe-area-inset-top)] md:mt-0">
+                <Search className="text-gray-400" size={20} />
+                <input
+                ref={inputRef}
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={handleInputKeyDown}
+                placeholder={t('search.placeholder')}
+                className="flex-1 bg-transparent text-white placeholder-gray-500 focus:outline-none text-lg"
+                />
+                <div className="flex items-center gap-2">
+                    <kbd className="hidden md:inline-flex items-center gap-1 px-2 py-1 bg-white/5 rounded text-xs text-gray-400 font-mono">
+                        <span className="text-xs">ESC</span>
+                    </kbd>
+                    <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-white p-2">
+                        <X size={20} />
+                    </button>
+                </div>
+            </div>
+
+            {/* Results List */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-2 pb-[env(safe-area-inset-bottom)]">
+                {loading ? (
+                    <div className="p-8 text-center text-gray-500">{t('common.searching')}</div>
+                ) : results.length > 0 ? (
+                    <div className="space-y-1">
+                        {results.map((item, index) => (
+                            <motion.button
+                                key={`${item.type}-${item.id}`}
+                                layout
+                                onClick={() => handleSelect(item)}
+                                onMouseEnter={() => setSelectedIndex(index)}
+                                className={`w-full flex items-center gap-4 px-4 py-3 rounded-lg transition-colors ${
+                                    index === selectedIndex ? 'bg-white/10' : 'hover:bg-white/5'
+                                }`}
+                            >
+                                <div className="w-10 h-10 rounded bg-black/50 overflow-hidden flex-shrink-0 border border-white/10">
+                                    {item.image ? (
+                                        <img src={getThumbnailUrl(item.image)} alt="" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-gray-500">
+                                            {getIcon(item.type)}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex-1 text-left">
+                                    <h4 className={`text-sm font-medium ${index === selectedIndex ? 'text-white' : 'text-gray-300'}`}>
+                                        {item.title.split(new RegExp(`(${query})`, 'gi')).map((part, i) => 
+                                            part.toLowerCase() === query.toLowerCase() 
+                                                ? <span key={i} className="text-indigo-400 bg-indigo-500/10 px-0.5 rounded">{part}</span> 
+                                                : part
+                                        )}
+                                    </h4>
+                                    <span className="text-xs text-gray-500 capitalize">{t(`common.${item.type}`, item.type)}</span>
+                                </div>
+                                {index === selectedIndex && (
+                                    <ArrowRight size={16} className="text-gray-400" />
                                 )}
-                            </div>
-                            <div className="flex-1 text-left">
-                                <h4 className={`text-sm font-medium ${index === selectedIndex ? 'text-white' : 'text-gray-300'}`}>
-                                    {item.title}
-                                </h4>
-                                <span className="text-xs text-gray-500 capitalize">{item.type}</span>
-                            </div>
-                            {index === selectedIndex && (
-                                <ArrowRight size={16} className="text-gray-400" />
-                            )}
-                        </motion.button>
-                    ))}
-                </div>
-            ) : query.length >= 2 ? (
-                <div className="p-8 text-center text-gray-500">No results found for "{query}"</div>
-            ) : (
-                <div className="p-12 text-center text-gray-500">
-                    <Command className="mx-auto mb-4 opacity-20" size={48} />
-                    <p>Type to search photos, music, videos, and more...</p>
-                </div>
-            )}
-          </div>
-          
-          {/* Footer Hint */}
-          <div className="bg-black/20 px-4 py-2 border-t border-white/5 text-xs text-gray-500 flex justify-between">
-            <span>Pro tip: Use arrow keys to navigate</span>
-            <span>Lumos Search</span>
-          </div>
-        </motion.div>
-      </div>
+                            </motion.button>
+                        ))}
+                    </div>
+                ) : query.length >= 2 ? (
+                    <div className="p-8 text-center text-gray-500">{t('search.no_results', { query })}</div>
+                ) : (
+                    <div className="p-12 text-center text-gray-500 flex flex-col items-center">
+                        <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6 animate-pulse">
+                            <Command className="text-white/20" size={40} />
+                        </div>
+                        <p className="text-lg font-medium text-white/40">{t('search.empty_hint')}</p>
+                        <p className="text-xs text-white/20 mt-2">{t('search.min_chars')}</p>
+                    </div>
+                )}
+            </div>
+            
+            {/* Footer Hint */}
+            <div className="bg-black/20 px-4 py-2 border-t border-white/5 text-xs text-gray-500 flex justify-between">
+                <span>{t('search.footer_hint')}</span>
+                <span>{t('search.brand_search')}</span>
+            </div>
+            </motion.div>
+        </div>
+      )}
     </AnimatePresence>
   );
 };

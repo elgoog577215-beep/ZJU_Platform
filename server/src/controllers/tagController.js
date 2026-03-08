@@ -18,16 +18,111 @@ const ensureTagsTable = async () => {
         const columns = await db.all(`PRAGMA table_info(${resource})`);
         const hasTags = columns.some(c => c.name === 'tags');
         if (!hasTags) {
-            console.log(`Adding tags column to ${resource}...`);
+
             await db.exec(`ALTER TABLE ${resource} ADD COLUMN tags TEXT`);
         }
     }
 };
 
-const getTags = async (req, res) => {
+const getTags = async (req, res, next) => {
     try {
         await ensureTagsTable();
         const db = await getDb();
+        const { type } = req.query;
+        
+        let targetTable = null;
+        if (type) {
+            const normalizedType = type.toLowerCase().trim();
+            // Handle plural/singular mapping
+            if (resources.includes(normalizedType)) {
+                targetTable = normalizedType;
+            } else if (resources.includes(normalizedType + 's')) {
+                targetTable = normalizedType + 's';
+            } else if (normalizedType.endsWith('s') && resources.includes(normalizedType.slice(0, -1))) {
+                targetTable = normalizedType.slice(0, -1);
+            } else if (normalizedType === 'gallery' || normalizedType === 'image') {
+                targetTable = 'photos';
+            } else if (normalizedType === 'audio') {
+                targetTable = 'music';
+            }
+
+            // If a type was requested but not found, return empty to prevent leak
+            if (!targetTable) {
+                return res.json([]);
+            }
+        }
+
+        if (targetTable) {
+             // Only count tags from visible resources (not deleted, approved)
+             // Check if columns exist first to avoid errors on tables that might lack them (though they should have them)
+             let whereClause = "WHERE 1=1";
+             const whereParams = [];
+             try {
+                 const columns = await db.all(`PRAGMA table_info(${targetTable})`);
+                 const hasDeletedAt = columns.some(c => c.name === 'deleted_at');
+                 const hasStatus = columns.some(c => c.name === 'status');
+                 
+                 if (hasDeletedAt) whereClause += " AND deleted_at IS NULL";
+                 if (hasStatus) whereClause += " AND status = 'approved'";
+             } catch (e) {
+                 console.warn(`[TagController] Failed to check columns for ${targetTable}:`, e);
+             }
+
+             // For events, support attribute filtering so tag counts reflect current filter context
+             if (targetTable === 'events') {
+                 const filterableFields = ['organizer', 'location', 'target_audience'];
+                 filterableFields.forEach(field => {
+                     if (req.query[field]) {
+                         whereClause += ` AND "${field}" = ?`;
+                         whereParams.push(req.query[field]);
+                     }
+                 });
+
+                 // Lifecycle filter (mirrors resourceController logic)
+                 const lifecycle = req.query.lifecycle;
+                 if (lifecycle === 'upcoming') {
+                     whereClause += ' AND date > date("now", "localtime")';
+                 } else if (lifecycle === 'past') {
+                     whereClause += ' AND date < date("now", "localtime")';
+                 } else if (lifecycle === 'ongoing') {
+                     whereClause += ' AND date = date("now", "localtime")';
+                 }
+             }
+
+             const items = await db.all(`SELECT tags FROM ${targetTable} ${whereClause}`, whereParams);
+             const tagCounts = {};
+             
+             for (const item of items) {
+                if (item.tags) {
+                    item.tags.split(',').forEach(t => {
+                        const tag = t.trim();
+                        if (tag) {
+                            tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+                        }
+                    });
+                }
+             }
+             
+             const result = [];
+             const names = Object.keys(tagCounts);
+             
+             if (names.length > 0) {
+                 const placeholders = names.map(() => '?').join(',');
+                 const definedTags = await db.all(`SELECT id, name FROM tags WHERE name IN (${placeholders})`, names);
+                 const definedTagMap = new Map(definedTags.map(t => [t.name, t.id]));
+                 
+                 for (const [name, count] of Object.entries(tagCounts)) {
+                     result.push({
+                         id: definedTagMap.get(name) || `temp-${name}-${Date.now()}`,
+                         name,
+                         count
+                     });
+                 }
+             }
+             
+             result.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+             return res.json(result);
+        }
         
         // Sync counts (optional, but good for "powerful" management)
         // For now, just return the tags.
@@ -35,12 +130,10 @@ const getTags = async (req, res) => {
         
         const tags = await db.all('SELECT * FROM tags ORDER BY count DESC, name ASC');
         res.json(tags);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
-const createTag = async (req, res) => {
+const createTag = async (req, res, next) => {
     try {
         await ensureTagsTable();
         const db = await getDb();
@@ -57,12 +150,10 @@ const createTag = async (req, res) => {
             }
             throw e;
         }
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
-const updateTag = async (req, res) => {
+const updateTag = async (req, res, next) => {
     try {
         await ensureTagsTable();
         const db = await getDb();
@@ -100,12 +191,10 @@ const updateTag = async (req, res) => {
         }
         
         res.json({ success: true, oldName, newName });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
-const deleteTag = async (req, res) => {
+const deleteTag = async (req, res, next) => {
     try {
         await ensureTagsTable();
         const db = await getDb();
@@ -136,13 +225,11 @@ const deleteTag = async (req, res) => {
         }
         
         res.json({ success: true });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
 // Scan all resources and populate the tags table (Maintenance tool)
-const syncTags = async (req, res) => {
+const syncTags = async (req, res, next) => {
     try {
         await ensureTagsTable();
         const db = await getDb();
@@ -177,9 +264,7 @@ const syncTags = async (req, res) => {
         // Let's just return the result.
         
         res.json({ success: true, stats: tagCounts });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    } catch (error) { next(error); }
 };
 
 module.exports = {

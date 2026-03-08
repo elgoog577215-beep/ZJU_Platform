@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { motion } from 'framer-motion';
 import { Play, Pause, SkipForward, SkipBack, Music as MusicIcon, Volume2, VolumeX } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -6,6 +6,7 @@ import { useMusic } from '../context/MusicContext';
 import api from '../services/api';
 import SmartImage from './SmartImage';
 import FavoriteButton from './FavoriteButton';
+import { getThumbnailUrl } from '../utils/imageUtils';
 
 const formatTime = (seconds) => {
   const mins = Math.floor(seconds / 60);
@@ -13,7 +14,7 @@ const formatTime = (seconds) => {
   return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 };
 
-const FullFeaturedMusicPlayer = ({ tracks = [] }) => {
+const FullFeaturedMusicPlayer = memo(({ tracks = [] }) => {
   const { t } = useTranslation();
   const { currentTrack, isPlaying, playTrack, togglePlay, nextTrack, prevTrack, audioRef } = useMusic();
   
@@ -22,6 +23,7 @@ const FullFeaturedMusicPlayer = ({ tracks = [] }) => {
   const [volume, setVolume] = useState(0.5);
   const [isMuted, setIsMuted] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
   const speedOptions = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
 
@@ -80,55 +82,124 @@ const FullFeaturedMusicPlayer = ({ tracks = [] }) => {
   }, [currentTrack]);
 
   // If no track is playing globally, and we have local tracks, use the first one as "display" (not playing)
-  const displayTrack = currentTrack || (tracks.length > 0 ? tracks[0] : { title: t('music.select_track_title', 'Select a track'), artist: t('music.select_track_artist', 'to start listening'), duration: 0, cover: "https://via.placeholder.com/300" });
+  const displayTrack = currentTrack || (tracks.length > 0 ? tracks[0] : null);
+
+  if (!displayTrack) {
+    return (
+        <div className="h-full flex flex-col items-center justify-center bg-[#0a0a0a]/50 backdrop-blur-2xl border border-white/20 rounded-3xl overflow-hidden shadow-2xl p-6 text-center text-gray-500">
+            <MusicIcon size={48} className="mb-4 opacity-50" />
+            <p className="text-sm">{t('music.no_tracks', 'No tracks available')}</p>
+        </div>
+    );
+  }
 
   return (
-    <div className="h-full flex flex-col bg-[#0a0a0a]/50 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden">
+    <div className="h-full flex flex-col bg-[#0a0a0a]/50 backdrop-blur-2xl border border-white/20 rounded-3xl overflow-hidden shadow-2xl">
       
       {/* Player Section - Fixed Height or Flex */}
       <div className="p-6 relative overflow-hidden flex-shrink-0">
          {/* Background Blur */}
-         <div className="absolute inset-0 bg-white/5 backdrop-blur-3xl z-0" 
+         <div 
+            className="absolute inset-0 bg-white/5 backdrop-blur-3xl z-0 cursor-pointer md:cursor-default" 
             style={{ backgroundImage: `url(${displayTrack.cover})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+            onClick={() => {
+                if (window.innerWidth < 768) {
+                    setIsFullScreen(true);
+                }
+            }}
           />
          <div className="absolute inset-0 bg-black/60 z-0" />
 
-         <div className="relative z-10 flex flex-col items-center">
-            {/* Header */}
-            <div className="w-full flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                    <div className="p-1.5 bg-cyan-500/20 rounded-lg text-cyan-400">
-                        <MusicIcon size={16} />
-                    </div>
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">{t('home.now_playing')}</h3>
+         {/* Full Screen Mobile Player Overlay */}
+         {isFullScreen && (
+            <motion.div 
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex flex-col p-8 md:hidden"
+            >
+                <div className="flex justify-end mb-8">
+                    <button onClick={() => setIsFullScreen(false)} className="text-white/50 p-2">
+                        <VolumeX className="rotate-45" size={32} />
+                    </button>
                 </div>
-                {displayTrack && displayTrack.id && (
+                
+                <div className="flex-1 flex flex-col items-center justify-center gap-8">
+                    <div className="w-64 h-64 rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+                        <SmartImage 
+                            src={displayTrack.cover} 
+                            type="music" 
+                            className="w-full h-full" 
+                            imageClassName="w-full h-full object-cover" 
+                        />
+                    </div>
+                    <div className="text-center">
+                        <h3 className="text-2xl font-bold text-white mb-2">{displayTrack.title}</h3>
+                        <p className="text-lg text-gray-400">{displayTrack.artist}</p>
+                    </div>
+                </div>
+
+                {/* Controls in Full Screen */}
+                <div className="mb-12">
+                     <div className="flex items-center justify-between text-xs font-mono text-gray-400 mb-4">
+                        <span>{formatTime(progress)}</span>
+                        <div className="flex-1 mx-4 h-1 bg-white/10 rounded-full">
+                            <div 
+                                className="h-full bg-cyan-500 rounded-full relative" 
+                                style={{ width: `${(progress / (audioRef.current?.duration || 100)) * 100}%` }}
+                            />
+                        </div>
+                        <span>{formatTime(audioRef.current?.duration || 0)}</span>
+                    </div>
+
+                    <div className="flex items-center justify-center gap-8">
+                        <button onClick={prevTrack} className="text-white hover:text-cyan-400 transition-colors">
+                            <SkipBack size={32} />
+                        </button>
+                        <button 
+                            onClick={togglePlay}
+                            className="w-20 h-20 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center text-white shadow-lg hover:scale-105 transition-all"
+                        >
+                            {isPlaying ? <Pause size={32} fill="currentColor" /> : <Play size={32} fill="currentColor" className="ml-1" />}
+                        </button>
+                        <button onClick={nextTrack} className="text-white hover:text-cyan-400 transition-colors">
+                            <SkipForward size={32} />
+                        </button>
+                    </div>
+                </div>
+            </motion.div>
+         )}
+
+         <div className="relative z-10 flex flex-col items-center pt-4">
+            {/* Favorite Button - Absolute Top Right */}
+            {displayTrack.id && (
+                <div className="absolute top-0 right-0">
                     <FavoriteButton 
                         itemId={displayTrack.id}
                         itemType="music"
                         size={16}
                         showCount={false}
-                        className="p-1.5 hover:bg-white/10 rounded-full transition-colors"
+                        className="p-2 hover:bg-white/10 rounded-full transition-colors text-white/60 hover:text-white"
                     />
-                )}
-            </div>
+                </div>
+            )}
 
             {/* Vinyl */}
             <motion.div 
                 animate={{ rotate: isPlaying ? 360 : 0 }}
                 transition={{ duration: 3, repeat: Infinity, ease: "linear", paused: !isPlaying }}
-                className="relative w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white/10 shadow-2xl overflow-hidden mb-6"
+                className="relative w-28 h-28 md:w-36 md:h-36 rounded-full border-4 border-white/20 shadow-2xl overflow-hidden mb-4"
             >
-                <SmartImage src={displayTrack.cover} alt={displayTrack.title} type="music" className="w-full h-full" iconSize={32} />
+                <SmartImage src={getThumbnailUrl(displayTrack.cover)} alt={displayTrack.title} type="music" className="w-full h-full" iconSize={32} />
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="w-4 h-4 bg-black rounded-full border-2 border-white/20" />
+                    <div className="w-3 h-3 bg-black rounded-full border-2 border-white/20" />
                 </div>
             </motion.div>
 
             {/* Info */}
-            <div className="text-center mb-4 w-full">
-                <h2 className="text-xl font-bold text-white mb-1 truncate">{displayTrack.title}</h2>
-                <p className="text-cyan-400 text-sm truncate">{displayTrack.artist}</p>
+            <div className="text-center mb-4 w-full px-4">
+                <h2 className="text-lg font-bold text-white mb-0.5 truncate">{displayTrack.title}</h2>
+                <p className="text-cyan-400 text-xs truncate">{displayTrack.artist}</p>
             </div>
 
             {/* Progress */}
@@ -214,6 +285,6 @@ const FullFeaturedMusicPlayer = ({ tracks = [] }) => {
 
     </div>
   );
-};
+});
 
 export default FullFeaturedMusicPlayer;

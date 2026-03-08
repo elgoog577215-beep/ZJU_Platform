@@ -1,6 +1,6 @@
 const { getDb } = require('../config/db');
 
-const getSettings = async (req, res) => {
+const getSettings = async (req, res, next) => {
   try {
     const db = await getDb();
     const settings = await db.all('SELECT * FROM settings');
@@ -9,20 +9,16 @@ const getSettings = async (req, res) => {
       return acc;
     }, {});
     res.json(settingsObj);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  } catch (error) { next(error); }
 };
 
-const updateSetting = async (req, res) => {
+const updateSetting = async (req, res, next) => {
   try {
     const db = await getDb();
     const { key, value } = req.body;
     await db.run('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', [key, String(value)]);
     res.json({ success: true, key, value });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  } catch (error) { next(error); }
 };
 
 module.exports = { getSettings, updateSetting };

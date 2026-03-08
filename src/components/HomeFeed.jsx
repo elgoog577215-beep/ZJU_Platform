@@ -1,218 +1,23 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, Music, Film, BookOpen, ArrowRight, X, Maximize2, Loader, Calendar } from 'lucide-react';
-import LivePhotoViewer from './Image3DViewer';
+import Lightbox from './Lightbox';
 import { useTranslation } from 'react-i18next';
-import useSWR from 'swr';
-import { fetcher } from '../services/api';
 import { Helmet } from 'react-helmet-async';
 import SmartImage from './SmartImage';
-
-const getHighResUrl = (url) => {
-  if (!url) return url;
-  if (url.includes('images.unsplash.com')) {
-    return url.replace('w=800', 'w=1600');
-  }
-  return url;
-};
-
+import { useSettings } from '../context/SettingsContext';
+import { useBackClose } from '../hooks/useBackClose';
+import { useCachedResource } from '../hooks/useCachedResource';
+import { getHighResUrl } from '../utils/imageUtils';
 import ErrorBoundary from './ErrorBoundary';
-
 import { Link, useNavigate } from 'react-router-dom';
 import FullFeaturedMusicPlayer from './FullFeaturedMusicPlayer';
+import DOMPurify from 'dompurify';
 
-// --- Compact Components for Dashboard ---
-
-const DashboardEvent = ({ event, onClick }) => {
-  const { t } = useTranslation();
-  return (
-  <div 
-    onClick={() => onClick(event)}
-    className="relative w-full h-full rounded-3xl overflow-hidden cursor-pointer group border border-white/10 bg-black"
-  >
-    <SmartImage 
-        src={getHighResUrl(event.image)} 
-        alt={event.title} 
-        type="event"
-        className="w-full h-full"
-        imageClassName="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-500" 
-        iconSize={64}
-    />
-    
-    {/* Gradient Overlay */}
-    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
-    
-    {/* Date Badge */}
-    <div className="absolute top-6 left-6 flex flex-col items-center bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-3 shadow-lg group-hover:bg-white/20 transition-colors">
-        <span className="text-xs font-bold text-red-400 uppercase tracking-wider">{new Date(event.date).toLocaleString('default', { month: 'short' })}</span>
-        <span className="text-2xl font-bold text-white font-serif">{new Date(event.date).getDate()}</span>
-    </div>
-
-    {/* Info */}
-    <div className="absolute bottom-0 left-0 w-full p-8">
-      <div className="flex items-center gap-3 mb-2">
-        <div className="p-1.5 bg-red-500/20 rounded-lg text-red-400 backdrop-blur-sm">
-          <Calendar size={16} />
-        </div>
-        <span className="text-sm font-bold text-red-400 uppercase tracking-widest">{t('home.featured_event')}</span>
-      </div>
-      <h3 className="text-4xl font-bold text-white font-serif leading-tight mb-2">{event.title}</h3>
-      <p className="text-gray-300 max-w-lg line-clamp-2">{event.location} • {t('common.view_details')}</p>
-    </div>
-  </div>
-)};
-
-const DashboardPhotoStack = ({ photos, onSelect }) => {
-  const { t } = useTranslation();
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  useEffect(() => {
-    if (photos.length <= 1) return;
-    const interval = setInterval(() => {
-        setCurrentIndex((prev) => (prev + 1) % photos.length);
-    }, 4000); // Rotate every 4 seconds
-    return () => clearInterval(interval);
-  }, [photos.length]);
-
-  const currentPhoto = photos[currentIndex];
-
-  if (!currentPhoto) return null;
-
-  return (
-    <div className="h-full flex flex-col">
-      <div 
-        key={currentPhoto.id} 
-        onClick={() => onSelect(currentPhoto)}
-        className="relative flex-1 rounded-3xl overflow-hidden cursor-pointer group border border-white/10"
-      >
-        <AnimatePresence mode='wait'>
-            <motion.div 
-                key={currentPhoto.id}
-                initial={{ opacity: 0, scale: 1.1 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.8 }}
-                className="absolute inset-0 w-full h-full"
-            >
-                <SmartImage 
-                    src={getHighResUrl(currentPhoto.url)} 
-                    alt={currentPhoto.title} 
-                    type="image"
-                    className="w-full h-full"
-                    imageClassName="w-full h-full object-cover" 
-                    iconSize={48}
-                />
-            </motion.div>
-        </AnimatePresence>
-
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 opacity-60 group-hover:opacity-80 transition-opacity" />
-        
-        <div className="absolute top-3 right-3 bg-black/30 backdrop-blur-md p-2 rounded-full border border-white/20 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0 z-10">
-           <Maximize2 size={14} className="text-white" />
-        </div>
-
-        <div className="absolute bottom-4 left-4 z-10">
-          <p className="text-[10px] font-bold text-white/60 uppercase tracking-wider mb-1">{t(`gallery.categories.${currentPhoto.category}`)}</p>
-          <h4 className="text-white font-bold leading-tight">{currentPhoto.title}</h4>
-        </div>
-        
-        {/* Progress Indicators */}
-        <div className="absolute bottom-4 right-4 flex gap-1 z-10">
-            {photos.map((_, idx) => (
-                <div 
-                    key={idx} 
-                    className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentIndex ? 'bg-white w-3' : 'bg-white/30'}`} 
-                />
-            ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const DashboardVideo = ({ videos, onSelect }) => {
-  const { t } = useTranslation();
-  if (!videos || videos.length === 0) return null;
-  const mainVideo = videos[0];
-
-  return (
-    <div 
-      onClick={() => onSelect(mainVideo)}
-      className="relative w-full h-full rounded-3xl overflow-hidden cursor-pointer group border border-white/10 bg-black"
-    >
-      <SmartImage 
-          src={getHighResUrl(mainVideo.thumbnail || mainVideo.cover)} 
-          alt={mainVideo.title} 
-          type="video"
-          className="w-full h-full"
-          imageClassName="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-500" 
-          iconSize={48}
-      />
-      
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
-      
-      <div className="absolute inset-0 flex items-center justify-center">
-         <div className="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:scale-110 transition-transform duration-300">
-            <Play size={24} fill="currentColor" className="text-white ml-1" />
-         </div>
-      </div>
-
-      <div className="absolute bottom-0 left-0 w-full p-6">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="p-1.5 bg-purple-500/20 rounded-lg text-purple-400 backdrop-blur-sm">
-            <Film size={16} />
-          </div>
-          <span className="text-xs font-bold text-purple-400 uppercase tracking-widest">{t('nav.videos')}</span>
-        </div>
-        <h3 className="text-xl font-bold text-white font-serif leading-tight line-clamp-2">{mainVideo.title}</h3>
-      </div>
-    </div>
-  );
-};
-
-const DashboardArticles = ({ events, onSelect }) => {
-  const { t } = useTranslation();
-  return (
-  <div className="h-full overflow-y-auto pr-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20">
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2">
-      {events.map((event) => (
-        <div 
-          key={event.id}
-          onClick={() => onSelect(event)}
-          className="bg-[#0a0a0a]/80 border border-white/10 rounded-3xl p-6 hover:border-red-500/30 transition-all cursor-pointer group flex flex-col justify-between relative overflow-hidden min-h-[180px]"
-        >
-        {event.image && (
-          <>
-            <SmartImage 
-                src={getHighResUrl(event.image)} 
-                alt={event.title} 
-                type="event"
-                className="absolute inset-0 w-full h-full"
-                imageClassName="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:opacity-30 transition-opacity duration-500" 
-                iconSize={32}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/80 to-transparent" />
-          </>
-        )}
-        <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/10 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-red-500/20 transition-colors" />
-        
-        <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-4">
-            <Calendar size={16} className="text-red-400" />
-            <span className="text-xs font-bold text-red-400 uppercase tracking-wider">{event.date}</span>
-          </div>
-          <h3 className="text-xl font-bold text-white mb-2 leading-tight group-hover:text-red-400 transition-colors line-clamp-2">{event.title}</h3>
-          <p className="text-sm text-gray-400 line-clamp-3 leading-relaxed">{event.description}</p>
-        </div>
-
-        <div className="relative z-10 flex items-center gap-2 text-xs font-bold text-white mt-4 opacity-50 group-hover:opacity-100 transition-opacity">
-          {t('common.view_details')} <ArrowRight size={12} />
-        </div>
-      </div>
-    ))}
-    </div>
-  </div>
-)};
+import DashboardEvent from './dashboard/DashboardEvent';
+import DashboardPhotoStack from './dashboard/DashboardPhotoStack';
+import DashboardVideo from './dashboard/DashboardVideo';
+import DashboardArticles from './dashboard/DashboardArticles';
 
 const HomeFeed = () => {
   const [activePhoto, setActivePhoto] = useState(null);
@@ -220,15 +25,23 @@ const HomeFeed = () => {
   const [activeVideo, setActiveVideo] = useState(null);
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { settings } = useSettings();
 
-  const { data: featuredContent, error } = useSWR('/featured', fetcher);
+  useBackClose(activePhoto !== null, () => setActivePhoto(null));
+  useBackClose(activeEvent !== null, () => setActiveEvent(null));
+
+  // Use cached resource hook
+  const { data: featuredContent, loading, error } = useCachedResource('/featured');
 
   if (error) {
       console.error("Failed to fetch featured content:", error);
       // Optional: render error state
   }
 
-  if (!featuredContent) {
+  // Check if content is loaded (and not just empty array from initial state)
+  const isLoaded = featuredContent && featuredContent.photos && Array.isArray(featuredContent.photos);
+
+  if (!isLoaded) {
     return (
       <div className="w-full min-h-screen flex items-center justify-center bg-black">
         <Loader className="animate-spin text-white" size={48} />
@@ -323,7 +136,7 @@ const HomeFeed = () => {
               {/* Articles (Bottom half of right col) */}
               <div className="flex-1 min-h-0 overflow-hidden">
                  <ErrorBoundary variant="inline" silent>
-                    <DashboardArticles events={feedArticles} onSelect={(a) => navigate(`/articles`)} />
+                    <DashboardArticles articles={feedArticles} onSelect={(a) => navigate(`/articles`)} />
                  </ErrorBoundary>
               </div>
            </div>
@@ -335,10 +148,24 @@ const HomeFeed = () => {
 
       <AnimatePresence>
         {activePhoto && (
-          <LivePhotoViewer 
-            photo={{ ...activePhoto, url: getHighResUrl(activePhoto.url) }} 
-            onClose={() => setActivePhoto(null)} 
-          />
+          <ErrorBoundary fallback={
+             <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-xl" onClick={() => setActivePhoto(null)}>
+                <div className="text-center p-8 bg-[#111] border border-white/10 rounded-2xl">
+                    <p className="text-red-400 mb-4">{t('common.error_loading_viewer') || 'Failed to load viewer'}</p>
+                    <button 
+                        onClick={() => setActivePhoto(null)}
+                        className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all"
+                    >
+                        {t('common.close') || 'Close'}
+                    </button>
+                </div>
+             </div>
+          }>
+            <Lightbox 
+                photo={{ ...activePhoto, url: getHighResUrl(activePhoto.url) }} 
+                onClose={() => setActivePhoto(null)} 
+            />
+          </ErrorBoundary>
         )}
       </AnimatePresence>
 
@@ -370,26 +197,18 @@ const HomeFeed = () => {
                    </div>
                 </div>
                 <div className="p-8 md:p-12">
-                   <div className="prose prose-invert prose-lg max-w-none text-gray-300" dangerouslySetInnerHTML={{ __html: activeEvent.content || activeEvent.description }} />
+                   <div className="prose prose-invert prose-lg max-w-none text-gray-300" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(activeEvent.content || activeEvent.description) }} />
                    
-                   {activeEvent.link && (
-                       <div className="mt-8 pt-8 border-t border-white/10">
-                           <a 
-                               href={activeEvent.link} 
-                               target="_blank" 
-                               rel="noopener noreferrer"
-                               className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl transition-colors"
-                           >
-                               {t('common.view_details')} <ArrowRight size={18} />
-                           </a>
-                       </div>
-                   )}
+                   <div className="mt-8 pt-8 border-t border-white/10 flex flex-wrap gap-4">
+                     <Link to={`/events?id=${activeEvent.id}`} className="px-6 py-3 bg-white text-black rounded-full font-bold hover:bg-gray-200 transition-colors flex items-center gap-2">
+                        {t('common.view_details')} <ArrowRight size={18}/>
+                     </Link>
+                   </div>
                 </div>
              </motion.div>
-          </motion.div>
+           </motion.div>
         )}
       </AnimatePresence>
-
     </section>
   );
 };

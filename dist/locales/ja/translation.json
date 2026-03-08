@@ -1,0 +1,153 @@
+{
+  "nav": {
+    "gallery": "ギャラリー",
+    "music": "音楽",
+    "videos": "動画",
+    "articles": "記事",
+    "events": "イベント",
+    "about": "について",
+    "contact": "お問い合わせ"
+  },
+  "hero": {
+    "title": "キャプチャ",
+    "subtitle": "瞬間を凍結し、レンズを通して永遠を創造する。"
+  },
+  "about": {
+    "title": "瞬間を捉え、",
+    "subtitle": "物語を語る",
+    "p1": "写真は単に画像を撮ることではなく、感覚を捉えることです。ビジュアルアーティストとして、私はレンズを通して日常の中にある非凡な美しさを探求しています。",
+    "p2": "都市の通りの生のエネルギーであろうと、自然の風景の静けさであろうと、私の目標は深い感情的な共鳴を呼び起こす視覚的な物語を作り出すことです。",
+    "exp": "年の経験",
+    "exhibitions": "回の展示会",
+    "projects": "の完了プロジェクト"
+  },
+  "contact": {
+    "title": "お問い合わせ",
+    "subtitle": "一緒に何かを作りましょう",
+    "name": "名前",
+    "email": "メール",
+    "message": "メッセージ",
+    "placeholder_name": "お名前",
+    "placeholder_email": "メールアドレス",
+    "placeholder_message": "プロジェクトについて教えてください...",
+    "send": "送信",
+    "sending": "送信中...",
+    "sent": "送信完了！",
+    "error": "すべての項目を入力してください"
+  },
+  "game": {
+    "intro_subtitle": "没入型体験",
+    "controls": "操作",
+    "steer": "マウスで操作",
+    "jump": "スペースキーでジャンプ",
+    "shoot": "クリックで撮影",
+    "flip": "クリックで反転",
+    "start": "ゲーム開始",
+    "cancel": "キャンセル",
+    "default_desc": "環境に没入してください。要素に反応し、瞬間の本質を捉えます。"
+  },
+  "footer": {
+    "rights": "© 2024 Lumos Photography. 全著作権所有。"
+  },
+  "home": {
+    "featured_premiere": "注目のプレミア",
+    "cinematic_journey": "デジタル・ボイドへの映画の旅。",
+    "now_playing": "再生中",
+    "selected_works": "厳選作品"
+  },
+  "common": {
+    "upload": "アップロード",
+    "upload_now": "今すぐアップロード",
+    "title": "タイトル",
+    "description": "説明",
+    "category": "カテゴリ",
+    "date": "日付",
+    "location": "場所",
+    "image": "画像",
+    "audio": "音声",
+    "video": "動画",
+    "cover": "カバー",
+    "artist": "アーティスト",
+    "create_event": "イベント作成",
+    "view_details": "詳細を見る",
+    "read_full_story": "全文を読む",
+    "read_article": "記事を読む",
+    "register_now": "今すぐ登録",
+    "share": "共有",
+    "time": "時間",
+    "all": "すべて"
+  },
+  "gallery": {
+    "title": "光と影のギャラリー",
+    "subtitle": "光と影の視覚的物語を探求する",
+    "play": "プレイ",
+    "view_3d": "3Dビュー",
+    "categories": {
+      "All": "すべて",
+      "Nature": "自然",
+      "Urban": "都市",
+      "Portrait": "ポートレート",
+      "Fashion": "ファッション",
+      "Photography": "写真",
+      "Abstract": "抽象",
+      "User Upload": "ユーザー投稿"
+    }
+  },
+  "music": {
+    "title": "ソニック・ランドスケープ",
+    "subtitle": "没入型オーディオ体験"
+  },
+  "videos": {
+    "title": "モーション・ピクチャー",
+    "subtitle": "デジタル・シネマティック・アート"
+  },
+  "articles": {
+    "title": "思考空間",
+    "subtitle": "芸術と技術に関する考察"
+  },
+  "events": {
+    "title": "コミュニティイベント",
+    "subtitle": "最新のイベントやワークショップに参加しよう"
+  },
+  "admin": {
+    "dashboard": "管理ダッシュボード",
+    "subtitle": "ウェブサイトのコンテンツとデータベースを管理します。",
+    "add_new": "新規追加",
+    "edit_item": "アイテムを編集",
+    "add_item": "アイテムを追加",
+    "cancel": "キャンセル",
+    "save": "変更を保存",
+    "delete_confirm": "このアイテムを削除してもよろしいですか？",
+    "id": "ID",
+    "actions": "アクション",
+    "tabs": {
+      "photos": "写真",
+      "music": "音楽",
+      "videos": "動画",
+      "articles": "記事",
+      "events": "イベント"
+    },
+    "fields": {
+      "title": "タイトル",
+      "category": "カテゴリ",
+      "url": "画像URL",
+      "size": "サイズ",
+      "gameType": "ゲームタイプ",
+      "gameDescription": "ゲーム説明",
+      "artist": "アーティスト",
+      "duration": "期間（秒）",
+      "cover": "カバーURL",
+      "audio": "音声URL",
+      "thumbnail": "サムネイルURL",
+      "video": "動画URL",
+      "date": "日付",
+      "tag": "タグ",
+      "excerpt": "抜粋",
+      "content": "コンテンツ (HTML)",
+      "location": "場所",
+      "status": "ステータス",
+      "image": "画像URL",
+      "description": "説明"
+    }
+  }
+}

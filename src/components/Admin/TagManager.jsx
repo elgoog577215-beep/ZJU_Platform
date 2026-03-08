@@ -4,7 +4,7 @@ import {
   Tag, Search, Plus, Trash2, Edit2, Check, X, 
   RefreshCw, AlertTriangle 
 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import api from '../../services/api';
 
 const TagManager = () => {
@@ -12,11 +12,21 @@ const TagManager = () => {
   const [tags, setTags] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [selectedSection, setSelectedSection] = useState('all');
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState('');
   const [newTagMode, setNewTagMode] = useState(false);
   const [newTagName, setNewTagName] = useState('');
   const [syncing, setSyncing] = useState(false);
+
+  const sections = [
+    { id: 'all', label: t('common.all') },
+    { id: 'gallery', label: t('nav.gallery') },
+    { id: 'music', label: t('nav.music') },
+    { id: 'videos', label: t('nav.videos') },
+    { id: 'articles', label: t('nav.articles') },
+    { id: 'events', label: t('nav.events') },
+  ];
 
   useEffect(() => {
     fetchTags();
@@ -94,7 +104,7 @@ const TagManager = () => {
 
   return (
     <div className="bg-black/40 backdrop-blur-md rounded-3xl p-8 border border-white/10">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-0 mb-8">
         <div>
           <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-3">
             <Tag className="text-indigo-400" />
@@ -147,15 +157,29 @@ const TagManager = () => {
         </div>
       )}
 
-      <div className="mb-6 relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={18} />
-        <input 
-          type="text" 
-          placeholder={t('admin.tag_manager.search_placeholder')}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-indigo-500 transition-colors"
-        />
+      <div className="mb-6 relative flex flex-col md:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={18} />
+          <input 
+            type="text" 
+            placeholder={t('admin.tag_manager.search_placeholder')}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-indigo-500 transition-colors"
+          />
+        </div>
+        
+        <select
+          value={selectedSection}
+          onChange={(e) => setSelectedSection(e.target.value)}
+          className="bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors cursor-pointer"
+        >
+          {sections.map(section => (
+            <option key={section.id} value={section.id} className="bg-[#111] text-white">
+              {section.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       {loading ? (

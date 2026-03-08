@@ -1,124 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Camera, Menu, X, MousePointer2, Cloud, Clock, CloudRain, Sun, CloudLightning, CloudSnow, CloudFog, MapPin, Search, LogOut, User, LogIn } from 'lucide-react';
+import { Cloud, Clock, CloudRain, Sun, CloudLightning, CloudSnow, CloudFog, Search, LogOut, Palette, MousePointer2, X, MapPin } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher';
 import { useSettings } from '../context/SettingsContext';
 import { useAuth } from '../context/AuthContext';
+import { useBackClose } from '../hooks/useBackClose';
+import { useWeather } from '../hooks/useWeather';
 import AuthModal from './AuthModal';
-import UserProfileModal from './UserProfileModal';
-import axios from 'axios';
-
+import { themeConfig } from '../data/themeConfig';
+import NotificationCenter from './NotificationCenter';
 import ReactDOM from 'react-dom';
 
 const Portal = ({ children }) => {
   return ReactDOM.createPortal(children, document.body);
 };
 
-import { POPULAR_CITIES } from '../data/cities';
-
 const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isThemeOpen, setIsThemeOpen] = useState(false);
   const location = useLocation();
   const { t } = useTranslation();
-  const { cursorEnabled, toggleCursor } = useSettings();
-  const { user, logout } = useAuth();
+  const { settings, cursorEnabled, toggleCursor, backgroundScene, changeBackgroundScene } = useSettings();
+  const { user, logout, isAdmin } = useAuth();
   const [time, setTime] = useState(new Date());
-  const [weather, setWeather] = useState(null);
-  const [isWeatherModalOpen, setIsWeatherModalOpen] = useState(false);
-  const [city, setCity] = useState(localStorage.getItem('weather_city') || 'Hangzhou');
-  const [coords, setCoords] = useState(JSON.parse(localStorage.getItem('weather_coords')) || { lat: 30.27, lon: 120.15 });
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState([]);
+
+  const {
+    weather,
+    city,
+    isWeatherModalOpen,
+    setIsWeatherModalOpen,
+    searchQuery,
+    setSearchQuery,
+    isSearching,
+    searchResults,
+    handleCitySearch,
+    selectCity
+  } = useWeather();
+
+  useBackClose(isWeatherModalOpen, () => setIsWeatherModalOpen(false));
+  useBackClose(isThemeOpen, () => setIsThemeOpen(false));
 
   // Clock
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
-
-  // Weather
-  useEffect(() => {
-    if (!coords) return;
-    
-    axios.get(`https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current_weather=true`)
-      .then(res => {
-        setWeather(res.data.current_weather);
-      })
-      .catch(err => console.error("Weather fetch failed", err));
-  }, [coords]);
-
-  const handleCitySearch = async (e) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) return;
-
-    setIsSearching(true);
-    setSearchResults([]);
-    
-    const query = searchQuery.toLowerCase().trim();
-    const localResults = POPULAR_CITIES.filter(city => 
-        city.name.includes(query) || 
-        city.name_en.toLowerCase().includes(query) ||
-        (city.admin1 && city.admin1.toLowerCase().includes(query))
-    ).map(city => ({
-        id: `local-${city.id}`,
-        name: city.name,
-        country: city.country,
-        admin1: city.admin1,
-        latitude: city.lat,
-        longitude: city.lon,
-        isLocal: true
-    }));
-
-    try {
-        const res = await axios.get(`https://geocoding-api.open-meteo.com/v1/search?name=${searchQuery}&count=10&language=zh&format=json`);
-        
-        let apiResults = [];
-        if (res.data.results && res.data.results.length > 0) {
-            apiResults = res.data.results;
-        } else {
-             const fallbackRes = await axios.get(`https://geocoding-api.open-meteo.com/v1/search?name=${searchQuery}&count=10&format=json`);
-             if (fallbackRes.data.results && fallbackRes.data.results.length > 0) {
-                  apiResults = fallbackRes.data.results;
-             }
-        }
-        
-        // Merge results, prioritizing local ones
-        const mergedResults = [...localResults, ...apiResults];
-        
-        // Deduplicate based on coordinates (roughly)
-        const uniqueResults = mergedResults.filter((v, i, a) => a.findIndex(v2 => (
-            Math.abs(v2.latitude - v.latitude) < 0.1 && Math.abs(v2.longitude - v.longitude) < 0.1
-        )) === i);
-
-        setSearchResults(uniqueResults);
-
-    } catch (err) {
-        console.error("Geocoding failed", err);
-        // Still show local results if API fails
-        setSearchResults(localResults);
-    } finally {
-        setIsSearching(false);
-    }
-  };
-
-  const selectCity = (result) => {
-      const newCoords = { lat: result.latitude, lon: result.longitude };
-      const newCity = result.name;
-      
-      setCoords(newCoords);
-      setCity(newCity);
-      localStorage.setItem('weather_city', newCity);
-      localStorage.setItem('weather_coords', JSON.stringify(newCoords));
-      
-      setIsWeatherModalOpen(false);
-      setSearchQuery('');
-      setSearchResults([]);
-  };
 
   const getWeatherIcon = (code) => {
       if (code === 0 || code === 1) return <Sun size={14} className="text-yellow-400" />;
@@ -131,11 +59,6 @@ const Navbar = () => {
       return <Cloud size={14} />;
   };
 
-  // Close menu when route changes
-  React.useEffect(() => {
-    setIsOpen(false);
-  }, [location]);
-
   const navLinks = [
     { key: 'home', path: '/' },
     { key: 'events', path: '/events' },
@@ -144,7 +67,7 @@ const Navbar = () => {
     { key: 'videos', path: '/videos' },
     { key: 'articles', path: '/articles' },
     { key: 'about', path: '/about' },
-    { key: 'admin', path: '/admin' }
+    ...(isAdmin ? [{ key: 'admin', path: '/admin' }] : [])
   ];
 
   return (
@@ -152,31 +75,43 @@ const Navbar = () => {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.8 }}
-      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 backdrop-blur-md bg-black/30 border-b border-white/10"
+      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-3 bg-black/20 backdrop-blur-xl border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)]"
     >
-      <Link to="/" className="flex items-center gap-2 text-white group z-50">
-        <Camera className="w-6 h-6 group-hover:rotate-12 transition-transform duration-300" />
-        <span className="font-bold font-serif text-xl tracking-tighter">LUMOS</span>
+      <Link to="/" className="flex items-center gap-3 text-white group z-50">
+        <div className="relative">
+          <div className="absolute inset-0 bg-indigo-500/50 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-full" />
+          <img src="/newlogo.png" alt="拓途浙享" className="relative h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105" />
+        </div>
+        <div className="flex flex-col items-start leading-none">
+          <span className="text-lg font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70 group-hover:to-indigo-300 transition-all duration-300">拓途浙享</span>
+          <span className="text-[10px] font-medium tracking-widest text-gray-400 mt-0.5 group-hover:text-indigo-400 transition-colors">数字艺术与科技</span>
+        </div>
       </Link>
       
       {/* Desktop Menu */}
-      <div className="hidden md:flex items-center gap-8">
+      <div className="hidden md:flex items-center gap-1 bg-white/5 px-2 py-1 rounded-full border border-white/5 backdrop-blur-md">
         {navLinks.map((item) => (
           <Link 
             key={item.key} 
             to={item.path} 
-            className="text-sm font-medium text-gray-300 hover:text-white transition-colors relative group"
+            className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white transition-all relative group rounded-full hover:bg-white/10"
           >
-            {t(`nav.${item.key}`)}
-            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full" />
+            <span className="relative z-10">{t(`nav.${item.key}`)}</span>
+            {location.pathname === item.path && (
+              <motion.div
+                layoutId="navbar-indicator"
+                className="absolute inset-0 bg-white/10 rounded-full border border-white/10"
+                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+              />
+            )}
           </Link>
         ))}
         
-        <div className="w-px h-6 bg-white/20 mx-2" />
+        <div className="w-px h-5 bg-white/10 mx-2" />
         
         <button 
           onClick={() => window.dispatchEvent(new Event('open-search-palette'))}
-          className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-all"
+          className="btn-icon"
           title={t('nav.search_title')}
         >
           <Search size={18} />
@@ -185,104 +120,88 @@ const Navbar = () => {
         {/* Weather & Clock Widget */}
         <button 
             onClick={() => setIsWeatherModalOpen(true)}
-            className="flex items-center gap-3 text-xs text-gray-400 border border-white/10 px-3 py-1.5 rounded-full bg-black/20 hover:bg-white/10 hover:text-white transition-all cursor-pointer"
+            className="flex items-center gap-3 text-xs text-gray-400 border border-white/5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 hover:text-white hover:border-indigo-500/30 hover:shadow-[0_0_15px_rgba(99,102,241,0.2)] transition-all cursor-pointer active:scale-95 group"
         >
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 group-hover:text-indigo-300 transition-colors">
                 <Clock size={12} />
-                <span>{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                <span>{time.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
             </div>
-            <div className="w-px h-3 bg-white/20" />
-            <div className="flex items-center gap-1">
+            <div className="w-px h-3 bg-white/10 group-hover:bg-indigo-500/30 transition-colors" />
+            <div className="flex items-center gap-1 group-hover:text-indigo-300 transition-colors">
                 {weather ? getWeatherIcon(weather.weathercode) : <Cloud size={12} />}
                 <span>{weather ? `${Math.round(weather.temperature)}°C` : '...'}</span>
             </div>
-            <div className="w-px h-3 bg-white/20" />
-            <span className="truncate max-w-[60px]">{city}</span>
+            <div className="w-px h-3 bg-white/10 group-hover:bg-indigo-500/30 transition-colors" />
+            <span className="truncate max-w-[60px] group-hover:text-white transition-colors">{city}</span>
         </button>
 
         <button
-          onClick={toggleCursor}
-          className={`p-2 rounded-full transition-all ${cursorEnabled ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}
-          title={cursorEnabled ? t('nav.cursor_disable') : t('nav.cursor_enable')}
+          onClick={() => setIsThemeOpen(true)}
+            className={`btn-icon ${isThemeOpen ? 'text-white bg-white/10' : ''}`}
+            title={t('nav.theme_settings')}
         >
-          <MousePointer2 size={18} />
+            <Palette size={18} />
         </button>
+        
+        <NotificationCenter />
         
         <LanguageSwitcher />
 
         {user ? (
-          <div className="flex items-center gap-4">
-             <button 
-               onClick={() => setIsProfileOpen(true)}
-               className="flex items-center gap-2 text-sm font-bold text-white hover:text-indigo-400 transition-colors bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full border border-white/10"
+          <div className="flex items-center gap-3">
+             <Link 
+                to={`/user/${user.id}`}
+                className="flex items-center gap-2 text-sm font-medium text-white px-3 py-1.5 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition-all active:scale-95"
              >
                 <div className="w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] text-white">
                     {user.username.charAt(0).toUpperCase()}
                 </div>
                 <span>{user.username}</span>
+             </Link>
+             <button
+                onClick={logout}
+                className="btn-icon"
+                title={t('auth.log_out')}
+             >
+                <LogOut size={18} />
              </button>
           </div>
         ) : (
           <button 
             onClick={() => setIsAuthOpen(true)}
-            className="text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-full transition-all"
+            className="text-sm font-medium bg-white text-black px-4 py-1.5 rounded-full transition-all hover:bg-gray-200 active:scale-95"
           >
             {t('auth.log_in')}
           </button>
         )}
       </div>
 
-      {/* Mobile Menu Toggle */}
-      <div className="md:hidden flex items-center gap-4 z-50">
-        <LanguageSwitcher />
+      {/* Mobile Actions */}
+      <div className="md:hidden flex items-center gap-3 z-50">
         <button 
-          onClick={() => setIsOpen(!isOpen)}
-          className="text-white relative"
+          onClick={() => window.dispatchEvent(new Event('open-search-palette'))}
+          className="p-2 text-gray-300 hover:text-white"
         >
-          {isOpen ? <X size={24} /> : <Menu size={24} />}
+          <Search size={20} />
         </button>
-      </div>
-
-      {/* Mobile Menu Overlay */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-black/90 backdrop-blur-xl border-t border-white/10 overflow-hidden"
-          >
-            <div className="flex flex-col p-6 gap-4">
-              {navLinks.map((item) => (
-                <Link 
-                  key={item.key} 
-                  to={item.path} 
-                  className="flex items-center justify-between text-lg font-medium text-gray-300 hover:text-white p-3 rounded-xl hover:bg-white/10 transition-all"
-                >
-                  <span>{t(`nav.${item.key}`)}</span>
-                </Link>
-              ))}
-              <div className="flex flex-col gap-4 pt-4 border-t border-white/10">
-                <div className="flex justify-between items-center">
-                    <span className="text-gray-400">{t('admin.settings')}</span>
-                    <LanguageSwitcher />
-                </div>
-                {user ? (
-                  <button onClick={logout} className="flex items-center gap-3 text-red-400 font-bold p-3 rounded-xl hover:bg-white/5 w-full">
-                      <LogOut size={20} />
-                      {t('user_profile.logout')}
-                  </button>
-                ) : (
-                  <button onClick={() => setIsAuthOpen(true)} className="flex items-center gap-3 text-white font-bold p-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 w-full justify-center">
-                      <LogIn size={20} />
-                      {t('auth.log_in')}
-                  </button>
-                )}
-              </div>
-            </div>
-          </motion.div>
+        <NotificationCenter />
+        <LanguageSwitcher />
+        {user ? (
+            <Link 
+               to={`/user/${user.id}`}
+               className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-[10px] text-white font-bold border border-white/20"
+            >
+                {user.username.charAt(0).toUpperCase()}
+            </Link>
+        ) : (
+            <button 
+                onClick={() => setIsAuthOpen(true)}
+                className="text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-full transition-all"
+            >
+                {t('auth.log_in')}
+            </button>
         )}
-      </AnimatePresence>
+      </div>
 
       <AnimatePresence>
         {isWeatherModalOpen && (
@@ -373,10 +292,71 @@ const Navbar = () => {
             </motion.div>
           </Portal>
         )}
+        {isThemeOpen && (
+          <Portal>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+              onClick={() => setIsThemeOpen(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                className="bg-[#0f172a]/90 backdrop-blur-xl border border-white/10 p-4 rounded-2xl shadow-2xl w-full max-w-sm max-h-[80vh] overflow-y-auto custom-scrollbar relative z-10"
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-4 text-white/80 sticky top-0 bg-[#0f172a]/95 p-2 rounded-lg z-10 backdrop-blur-md">
+                  <div className="flex items-center gap-2">
+                      <Palette size={16} />
+                      <h3 className="text-sm font-bold uppercase tracking-widest">{t('nav.theme_settings')}</h3>
+                  </div>
+                  <button onClick={() => setIsThemeOpen(false)} className="text-gray-400 hover:text-white">
+                    <X size={20} />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 gap-2">
+                  {themeConfig.map((s) => {
+                    const Icon = s.icon;
+                    const isActive = backgroundScene === s.id;
+                    return (
+                      <button
+                        key={s.id}
+                        onClick={() => changeBackgroundScene(s.id)}
+                        className={`w-full text-left p-3 rounded-xl transition-all duration-300 border group relative overflow-hidden
+                          ${isActive ? `${s.bg} ${s.borderColor}` : 'bg-white/5 border-transparent hover:bg-white/10'}`}
+                      >
+                        <div className="relative z-10 flex items-center gap-4">
+                          <div className={`p-2 rounded-lg ${isActive ? 'bg-black/20' : 'bg-black/40'} ${s.color}`}>
+                            <Icon size={20} />
+                          </div>
+                          <div>
+                            <div className={`font-bold text-sm ${isActive ? 'text-white' : 'text-gray-300'}`}>{t(s.labelKey)}</div>
+                            <div className="text-[10px] text-white/50 font-mono uppercase tracking-wider">{t(s.descKey)}</div>
+                          </div>
+                          {isActive && (
+                            <div className="ml-auto">
+                              <span className="relative flex h-2 w-2">
+                                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${s.dotColor}`}></span>
+                                <span className={`relative inline-flex rounded-full h-2 w-2 ${s.dotColor}`}></span>
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            </motion.div>
+          </Portal>
+        )}
       </AnimatePresence>
 
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
-      <UserProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
     </motion.nav>
   );
 };

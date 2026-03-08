@@ -39,7 +39,7 @@ const Countdown = ({ targetDate }) => {
           <div className="w-16 h-16 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-2xl font-bold text-white shadow-lg backdrop-blur-md">
             {timeLeft[interval]}
           </div>
-          <span className="text-xs text-gray-500 uppercase mt-2 font-bold tracking-wider">
+          <span className="text-sm text-gray-500 uppercase mt-2 font-bold tracking-wider">
             {t(`events.countdown.${interval}`)}
           </span>
         </div>

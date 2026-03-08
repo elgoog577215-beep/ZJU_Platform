@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, RotateCcw, AlertTriangle, Keyboard, Mouse } from 'lucide-react';
 import { ACTIONS, DEFAULT_BINDINGS, getKeybindings, saveKeybindings, resetKeybindings, getActionLabel, getKeyLabel } from '../utils/keybindings';
+import { useBackClose } from '../hooks/useBackClose';
 
 const KeybindingSettings = ({ isOpen, onClose, onSave }) => {
   const [bindings, setBindings] = useState(getKeybindings());
   const [editingAction, setEditingAction] = useState(null);
   const [conflict, setConflict] = useState(null);
+
+  useBackClose(isOpen, onClose);
 
   useEffect(() => {
     if (isOpen) {

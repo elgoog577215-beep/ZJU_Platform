@@ -2,14 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   LayoutGrid, Music, Film, BookOpen, Calendar, 
-  Users, HardDrive, Activity, Clock
+  Users, HardDrive, Activity, Clock, AlertCircle
 } from 'lucide-react';
 import api from '../../services/api';
+import toast from 'react-hot-toast';
 
-const StatCard = ({ title, value, icon: Icon, color, onClick }) => (
+const StatCard = ({ title, value, icon: Icon, color, onClick, breakdown }) => {
+  const { t } = useTranslation();
+  return (
   <button 
     onClick={onClick}
-    className="bg-[#111] p-6 rounded-2xl border border-white/10 text-left hover:border-indigo-500/50 hover:bg-[#161616] transition-all group relative overflow-hidden"
+    className="bg-[#111] p-6 rounded-2xl border border-white/10 text-left hover:border-indigo-500/50 hover:bg-[#161616] transition-all group relative overflow-hidden w-full"
   >
     <div className={`absolute top-0 right-0 w-24 h-24 bg-${color}-500/10 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110`} />
     
@@ -18,15 +21,34 @@ const StatCard = ({ title, value, icon: Icon, color, onClick }) => (
         <Icon size={24} />
       </div>
       <h3 className="text-3xl font-bold text-white mb-1">{value}</h3>
-      <p className="text-gray-400 text-sm font-medium uppercase tracking-wider">{title}</p>
+      <p className="text-gray-400 text-sm font-medium uppercase tracking-wider mb-2">{title}</p>
+      
+      {breakdown && (
+        <div className="flex flex-wrap gap-2 text-xs">
+          <span className="text-green-400 bg-green-400/10 px-1.5 py-0.5 rounded">
+            {breakdown.active} {t('admin.overview_ui.active')}
+          </span>
+          {breakdown.pending > 0 && (
+            <span className="text-yellow-400 bg-yellow-400/10 px-1.5 py-0.5 rounded">
+               {breakdown.pending} {t('admin.overview_ui.pending')}
+            </span>
+          )}
+          {breakdown.deleted > 0 && (
+            <span className="text-red-400 bg-red-400/10 px-1.5 py-0.5 rounded">
+               {breakdown.deleted} {t('admin.overview_ui.deleted')}
+            </span>
+          )}
+        </div>
+      )}
     </div>
   </button>
-);
+)};
 
 const Overview = ({ onChangeTab }) => {
   const { t } = useTranslation();
   const [stats, setStats] = useState({
     counts: { photos: 0, music: 0, videos: 0, articles: 0, events: 0 },
+    breakdown: {},
     system: { uptime: 0, nodeVersion: '', platform: '' }
   });
   const [loading, setLoading] = useState(true);
@@ -35,9 +57,19 @@ const Overview = ({ onChangeTab }) => {
     const fetchStats = async () => {
       try {
         const response = await api.get('/stats');
-        setStats(response.data);
+        setStats(response.data || {
+          counts: { photos: 0, music: 0, videos: 0, articles: 0, events: 0 },
+          breakdown: {},
+          system: { uptime: 0, nodeVersion: '', platform: '' }
+        });
       } catch (error) {
         console.error('Failed to fetch stats', error);
+        const errorMsg = error.response?.status === 403 
+          ? t('admin.overview_ui.no_permission', '没有权限访问')
+          : error.response?.status === 401
+          ? t('admin.overview_ui.not_logged_in', '请先登录')
+          : t('admin.overview_ui.load_fail', '获取统计数据失败');
+        toast.error(errorMsg);
       } finally {
         setLoading(false);
       }
@@ -49,7 +81,7 @@ const Overview = ({ onChangeTab }) => {
     const d = Math.floor(seconds / (3600 * 24));
     const h = Math.floor(seconds % (3600 * 24) / 3600);
     const m = Math.floor(seconds % 3600 / 60);
-    return `${d}d ${h}h ${m}m`;
+    return `${d}${t('admin.overview_ui.uptime_days')} ${h}${t('admin.overview_ui.uptime_hours')} ${m}${t('admin.overview_ui.uptime_minutes')}`;
   };
 
   if (loading) return <div className="p-8 text-center text-gray-500">{t('admin.overview_ui.loading_stats')}</div>;
@@ -61,6 +93,7 @@ const Overview = ({ onChangeTab }) => {
         <StatCard 
           title={t('admin.tabs.photos')} 
           value={stats.counts.photos} 
+          breakdown={stats.breakdown?.photos}
           icon={LayoutGrid} 
           color="indigo"
           onClick={() => onChangeTab('photos')}
@@ -68,6 +101,7 @@ const Overview = ({ onChangeTab }) => {
         <StatCard 
           title={t('admin.tabs.music')} 
           value={stats.counts.music} 
+          breakdown={stats.breakdown?.music}
           icon={Music} 
           color="pink"
           onClick={() => onChangeTab('music')}
@@ -75,6 +109,7 @@ const Overview = ({ onChangeTab }) => {
         <StatCard 
           title={t('admin.tabs.videos')} 
           value={stats.counts.videos} 
+          breakdown={stats.breakdown?.videos}
           icon={Film} 
           color="red"
           onClick={() => onChangeTab('videos')}
@@ -82,6 +117,7 @@ const Overview = ({ onChangeTab }) => {
         <StatCard 
           title={t('admin.tabs.articles')} 
           value={stats.counts.articles} 
+          breakdown={stats.breakdown?.articles}
           icon={BookOpen} 
           color="yellow"
           onClick={() => onChangeTab('articles')}
@@ -89,6 +125,7 @@ const Overview = ({ onChangeTab }) => {
         <StatCard 
           title={t('admin.tabs.events')} 
           value={stats.counts.events} 
+          breakdown={stats.breakdown?.events}
           icon={Calendar} 
           color="green"
           onClick={() => onChangeTab('events')}

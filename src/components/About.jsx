@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useSettings } from '../context/SettingsContext';
-import { Send, CheckCircle, AlertCircle, Mail, MapPin, Phone, Github, Twitter, Instagram, Linkedin } from 'lucide-react';
+import { Send, CheckCircle, AlertCircle, Mail, MapPin, Phone } from 'lucide-react';
 import api from '../services/api';
 
 const About = () => {
@@ -49,7 +49,7 @@ const About = () => {
   return (
     <div className="min-h-screen">
       {/* About Section */}
-      <section className="py-24 px-4 flex items-center">
+      <section className="pt-36 pb-28 md:py-24 px-4 flex items-center">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 items-center">
           <motion.div 
             initial={{ opacity: 0, x: -50 }}
@@ -60,7 +60,7 @@ const About = () => {
           >
             <div className="absolute -inset-4 border-2 border-white/20 rounded-lg translate-x-4 translate-y-4" />
             <img 
-              src={settings.about_image || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80"} 
+              src={settings.profile_image_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80"} 
               alt="Photographer" 
               className="relative z-10 rounded-lg shadow-2xl grayscale hover:grayscale-0 transition-all duration-500"
             />
@@ -76,25 +76,25 @@ const About = () => {
               {settings.about_title || t('about.title')} <br />
               <span className="text-gray-500">{settings.about_subtitle || t('about.subtitle')}</span>
             </h2>
-            <p className="text-lg text-gray-300 mb-6 leading-relaxed">
-              {settings.about_p1 || t('about.p1')}
+            <p className="text-lg text-gray-300 mb-6 leading-relaxed whitespace-pre-line">
+              {settings.about_intro || t('about.p1')}
             </p>
-            <p className="text-lg text-gray-300 mb-8 leading-relaxed">
-              {settings.about_p2 || t('about.p2')}
+            <p className="text-lg text-gray-300 mb-8 leading-relaxed whitespace-pre-line">
+              {settings.about_detail || t('about.p2')}
             </p>
             
-            <div className="flex gap-8">
+            <div className="flex flex-wrap gap-6 md:gap-8">
               <div>
-                <span className="block text-3xl font-bold font-serif">{settings.about_exp_count || "10+"}</span>
-                <span className="text-sm text-gray-500">{t('about.exp')}</span>
+                <span className="block text-2xl md:text-3xl font-bold font-serif">{settings.about_exp_years || "10+"}</span>
+                <span className="text-xs md:text-sm text-gray-500">{t('about.exp')}</span>
               </div>
               <div>
-                <span className="block text-3xl font-bold font-serif">{settings.about_exhibitions_count || "50+"}</span>
-                <span className="text-sm text-gray-500">{t('about.exhibitions')}</span>
+                <span className="block text-2xl md:text-3xl font-bold font-serif">{settings.about_exhibitions || "50+"}</span>
+                <span className="text-xs md:text-sm text-gray-500">{t('about.exhibitions')}</span>
               </div>
               <div>
-                <span className="block text-3xl font-bold font-serif">{settings.about_projects_count || "200+"}</span>
-                <span className="text-sm text-gray-500">{t('about.projects')}</span>
+                <span className="block text-2xl md:text-3xl font-bold font-serif">{settings.about_projects || "200+"}</span>
+                <span className="text-xs md:text-sm text-gray-500">{t('about.projects')}</span>
               </div>
             </div>
           </motion.div>
@@ -102,7 +102,7 @@ const About = () => {
       </section>
 
       {/* Contact Section */}
-      <section className="py-24 px-4 relative overflow-hidden bg-white/5">
+      <section className="py-20 md:py-24 px-4 pb-28 md:pb-24 relative overflow-hidden bg-white/5">
         {/* Background Elements */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
             <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px]" />
@@ -160,13 +160,6 @@ const About = () => {
               </div>
             </div>
 
-            <div className="flex gap-4">
-               {[Github, Twitter, Instagram, Linkedin].map((Icon, i) => (
-                 <a key={i} href="#" className="p-3 bg-white/5 border border-white/10 rounded-full hover:bg-white hover:text-black transition-all">
-                   <Icon size={20} />
-                 </a>
-               ))}
-            </div>
           </motion.div>
 
           {/* Right: Contact Form */}
@@ -182,14 +175,24 @@ const About = () => {
             <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
               <div>
                 <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">{t('contact.name')}</label>
-                <input 
-                  type="text" 
-                  name="name"
-                  value={formState.name}
-                  onChange={handleChange}
-                  className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors placeholder-gray-600"
-                  placeholder={t('contact.name')}
-                />
+                <div className="relative group">
+                  <input 
+                    type="text" 
+                    name="name"
+                    value={formState.name}
+                    onChange={handleChange}
+                    placeholder={t('contact.name')}
+                    className={`w-full bg-white/5 border ${status === 'error' && !formState.name ? 'border-red-500/50' : 'border-white/10'} rounded-xl px-6 py-4 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 focus:bg-white/10 transition-all`}
+                  />
+                  {status === 'error' && !formState.name && (
+                      <motion.div 
+                        initial={{ x: -10 }} animate={{ x: [0, -10, 10, -10, 0] }} transition={{ duration: 0.4 }}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-red-500"
+                      >
+                          <AlertCircle size={18} />
+                      </motion.div>
+                  )}
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">{t('contact.email')}</label>

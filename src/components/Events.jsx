@@ -1,35 +1,279 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, memo } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, MapPin, ArrowRight, X, Filter, Upload, Clock, CheckCircle, ExternalLink, Download, Search, Share2, Globe, FileText } from 'lucide-react';
+import { Calendar, MapPin, ArrowRight, X, Upload, Clock, CheckCircle, ExternalLink, Download, Globe, FileText, AlertCircle, Share2, Copy, Award, Users, Building2, Tag, Search, Plus } from 'lucide-react';
 import UploadModal from './UploadModal';
 import FavoriteButton from './FavoriteButton';
 import { useTranslation } from 'react-i18next';
 import Pagination from './Pagination';
 import { useSettings } from '../context/SettingsContext';
 import api from '../services/api';
-import SortSelector from './SortSelector';
-import Dropdown from './Dropdown';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import Countdown from './Countdown';
 import SmartImage from './SmartImage';
+import { useBackClose } from '../hooks/useBackClose';
+import { useCachedResource } from '../hooks/useCachedResource';
+import EventFilterPanel from './EventFilterPanel';
+import DOMPurify from 'dompurify';
 
 import { useSearchParams } from 'react-router-dom';
+import { getThumbnailUrl } from '../utils/imageUtils';
+
+const getEventLifecycle = (date, endDate, t) => {
+  if (!date) return t('events.status.unknown');
+  try {
+      const now = new Date();
+      // For YYYY-MM-DD (no time), treat as local midnight by replacing - with /
+      const startDate = new Date(date.includes('T') ? date : date.replace(/-/g, '/'));
+
+      if (endDate) {
+          // For YYYY-MM-DD (no time), treat as end of that day (23:59:59)
+          let end;
+          if (endDate.includes('T')) {
+              end = new Date(endDate);
+          } else {
+              end = new Date(endDate.replace(/-/g, '/'));
+              end.setHours(23, 59, 59, 999);
+          }
+
+          if (now < startDate) return t('events.status.upcoming');
+          if (now >= startDate && now <= end) return t('events.status.ongoing');
+          return t('events.status.past');
+      }
+
+      // Fallback: only start date — treat as ongoing for the full start day
+      if (now < startDate) return t('events.status.upcoming');
+      const startDayEnd = new Date(startDate);
+      startDayEnd.setHours(23, 59, 59, 999);
+      if (now <= startDayEnd) return t('events.status.ongoing');
+      return t('events.status.past');
+  } catch (e) {
+      return t('events.status.unknown');
+  }
+};
+
+const getStatusColor = (status, t) => {
+  switch(status) {
+    case t('events.status.upcoming'): return 'bg-emerald-500 text-white';
+    case t('events.status.ongoing'): return 'bg-blue-500 text-white animate-pulse';
+    case t('events.status.past'): return 'bg-gray-500 text-gray-200';
+    default: return 'bg-gray-500 text-white';
+  }
+};
+
+const isSameDay = (d1, d2) => {
+    if (!d1 || !d2) return false;
+    // Compare only the date portion (first 10 chars: YYYY-MM-DD) to avoid timezone issues
+    return d1.substring(0, 10) === d2.substring(0, 10);
+};
+
+const formatDateTime = (dateStr) => {
+    if (!dateStr) return '';
+    // Extract date parts from string directly to avoid timezone issues
+    // Supports: YYYY-MM-DD, YYYY-MM-DDTHH:MM, YYYY-MM-DDTHH:MM:SS
+    const datePart = dateStr.substring(0, 10); // YYYY-MM-DD
+    const parts = datePart.split('-');
+    if (parts.length < 3) return dateStr;
+    const month = parseInt(parts[1], 10);
+    const day = parseInt(parts[2], 10);
+    if (isNaN(month) || isNaN(day)) return dateStr;
+
+    // Check if time part exists (format: YYYY-MM-DDTHH:MM)
+    if (dateStr.length > 10 && dateStr[10] === 'T') {
+        const timePart = dateStr.substring(11, 16); // HH:MM
+        if (timePart && timePart !== '00:00') {
+            return `${month}.${day} ${timePart}`;
+        }
+    }
+    return `${month}.${day}`;
+};
+
+const EventCard = memo(({ event, index, onClick, onToggleFavorite }) => {
+  const { t } = useTranslation();
+
+  const status = getEventLifecycle(event.date, event.end_date, t);
+  const isUpcoming = status === t('events.status.upcoming');
+  const dateObj = new Date(event.date);
+  const day = dateObj.getDate();
+  const month = dateObj.toLocaleString('default', { month: 'short' }).toUpperCase();
+
+  return (
+    <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    whileHover={{ y: -8, scale: 1.02 }}
+    transition={{ type: "spring", stiffness: 300, damping: 20, delay: index * 0.05 }}
+    className="group relative bg-[#1a1a1a]/60 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden shadow-lg hover:shadow-[0_20px_50px_-12px_rgba(79,70,229,0.3)] hover:border-indigo-500/30 cursor-pointer flex flex-row md:flex-col h-full ring-1 ring-white/5 hover:ring-indigo-500/50"
+    onClick={() => onClick(event)}
+  >
+    {/* Glass Shine Effect */}
+    <div className="absolute inset-0 z-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+{/* Image Section */}
+<div className="w-1/3 md:w-full aspect-square md:aspect-auto md:h-64 overflow-hidden relative shrink-0 z-10">
+    <SmartImage 
+      src={getThumbnailUrl(event.image)} 
+      alt={event.title} 
+      loading="lazy"
+      className="absolute inset-0 w-full h-full"
+      imageClassName="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 group-hover:brightness-110 will-change-transform" 
+    />
+    <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent opacity-90 group-hover:opacity-60 transition-opacity duration-500" />
+    
+    {/* Status Badge - Adjusted for mobile */}
+    <div className={`absolute top-2 right-2 md:top-4 md:right-4 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider shadow-lg backdrop-blur-xl flex items-center gap-1.5 z-40 border border-white/10 ${getStatusColor(status, t)} bg-opacity-80`}>
+        {status === t('events.status.upcoming') && <Clock size={12} className="md:w-3.5 md:h-3.5" />}
+        {status === t('events.status.ongoing') && <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-white animate-pulse" />}
+        {status}
+    </div>
+
+    {/* Countdown Overlay (Upcoming only) */}
+    {isUpcoming && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm z-40">
+            <div className="transform scale-75 hidden md:block">
+                <Countdown targetDate={event.date} />
+            </div>
+        </div>
+    )}
+</div>
+
+{/* Content Section */}
+    <div className="p-4 md:p-6 relative flex-1 flex flex-col min-w-0 h-full">
+        {/* Title */}
+        <h3 className="text-xl md:text-2xl font-bold text-white mb-2 line-clamp-2 group-hover:text-indigo-400 transition-colors leading-tight tracking-tight">
+            {event.title}
+        </h3>
+
+        {/* Date & Location - Clean Text Row */}
+        <div className="flex items-center gap-3 text-base text-gray-400 mb-4">
+            <div className="flex items-center gap-1.5 shrink-0">
+                <Calendar size={16} className="text-indigo-400" />
+                <span className="text-gray-200 font-medium whitespace-nowrap">
+                    {formatDateTime(event.date)}
+                    {event.end_date && !isSameDay(event.date, event.end_date) && `-${formatDateTime(event.end_date)}`}
+                </span>
+            </div>
+            
+            <span className="text-white/20">•</span>
+            
+            <div className="flex items-center gap-1.5 min-w-0">
+                <MapPin size={16} className="text-indigo-400 shrink-0" />
+                <span className="truncate">{event.location || 'Online'}</span>
+            </div>
+        </div>
+
+        {/* Description - Max 3 lines */}
+        {event.description && (
+            <p className="text-base text-gray-400 mb-4 line-clamp-3 leading-relaxed">
+                {event.description}
+            </p>
+        )}
+
+        {/* Benefits Badges */}
+        {(event.score || event.volunteer_time) && (
+            <div className="flex flex-wrap gap-2 mb-4">
+                {event.score && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-500/10 text-purple-300 border border-purple-500/20 text-xs font-bold uppercase tracking-wider">
+                        <Award size={12} />
+                        {event.score}
+                    </span>
+                )}
+                {event.volunteer_time && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 text-xs font-bold uppercase tracking-wider">
+                        <Clock size={12} />
+                        {event.volunteer_time}
+                    </span>
+                )}
+            </div>
+        )}
+
+        {/* Footer: Tags & Actions */}
+        <div className="flex items-center justify-between mt-auto pt-3 border-t border-white/5">
+            <div className="flex flex-wrap gap-2 overflow-hidden min-h-[28px] md:min-h-[32px]">
+                {event.tags && event.tags.split(',').slice(0, 2).map((tag, i) => (
+                    <span key={i} className="px-2 py-1 md:px-2.5 md:py-1.5 rounded-lg bg-indigo-500/10 text-indigo-300 text-xs font-medium border border-indigo-500/20 flex items-center gap-1 group-hover:bg-indigo-500/20 transition-colors shrink-0 max-w-[100px] md:max-w-[120px]">
+                        <Tag size={14} className="hidden md:block shrink-0" /> 
+                        <span className="truncate">{tag.trim()}</span>
+                    </span>
+                ))}
+            </div>
+            
+            <div className="flex items-center gap-2 md:gap-3 ml-auto">
+                <FavoriteButton 
+                    itemId={event.id}
+                    itemType="event"
+                    size={16}
+                    showCount={false}
+                    favorited={event.favorited}
+                    initialFavorited={event.favorited}
+                    className="p-1.5 md:p-2 rounded-full hover:bg-white/10 transition-colors"
+                    onToggle={(favorited, likes) => onToggleFavorite(event.id, favorited, likes)}
+                />
+                <div className="p-1.5 md:p-2 rounded-full bg-white/5 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-300">
+                    <ArrowRight size={16} className="md:w-[18px] md:h-[18px] -rotate-45 group-hover:rotate-0 transition-transform duration-300" />
+                </div>
+            </div>
+        </div>
+    </div>
+  </motion.div>
+  );
+});
 
 const Events = () => {
   const { t } = useTranslation();
   const { settings } = useSettings();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
-  const [sort, setSort] = useState('newest');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [sort, setSort] = useState('date_desc');
   const [lifecycle, setLifecycle] = useState('all');
+  const [selectedTags, setSelectedTags] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [filterVersion, setFilterVersion] = useState(0);
+  const [filters, setFilters] = useState({
+      location: null,
+      organizer: null,
+      target_audience: null
+  });
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+        setDebouncedSearch(searchQuery);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  useBackClose(selectedEvent !== null, () => setSelectedEvent(null));
+  useBackClose(isUploadOpen, () => setIsUploadOpen(false));
+
+  const limit = settings.pagination_enabled === 'true' ? 6 : 1000;
+
+  const { 
+    data: events, 
+    pagination, 
+    loading, 
+    error, 
+    setData: setEvents, 
+    refresh 
+  } = useCachedResource('/events', {
+    page: currentPage,
+    limit,
+    sort,
+    status: 'all',
+    lifecycle: lifecycle === 'all' ? undefined : lifecycle,
+    tags: selectedTags.join(','),
+    search: debouncedSearch,
+    ...filters
+  }, {
+    dependencies: [settings.pagination_enabled, lifecycle, selectedTags.join(','), debouncedSearch, JSON.stringify(filters)]
+  });
+
+  const totalPages = pagination?.totalPages || 1;
   
   // Deep linking
   useEffect(() => {
@@ -43,82 +287,34 @@ const Events = () => {
     }
   }, [searchParams]);
 
-  // Registration State
-  const [isRegistered, setIsRegistered] = useState(false);
-  const [registering, setRegistering] = useState(false);
-
-  useEffect(() => {
-    setLoading(true);
-    const limit = settings.pagination_enabled === 'true' ? 6 : 1000;
-    
-    const params = {
-      page: currentPage,
-      limit,
-      sort,
-      search: searchQuery,
-      lifecycle: lifecycle === 'all' ? undefined : lifecycle
-    };
-
-    api.get('/events', { params })
-      .then(res => {
-        if (res.data && Array.isArray(res.data.data)) {
-            setEvents(res.data.data);
-            setTotalPages(res.data.pagination ? res.data.pagination.totalPages : 1);
-        } else {
-            setEvents([]);
-        }
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("Failed to fetch events:", err);
-        setEvents([]); // Ensure events is an array on error
-        setLoading(false);
-      });
-  }, [currentPage, sort, searchQuery, lifecycle, settings.pagination_enabled]);
-
-  useEffect(() => {
-    if (selectedEvent && user) {
-        api.get(`/events/${selectedEvent.id}/registration`)
-           .then(res => setIsRegistered(res.data.registered))
-           .catch(err => console.error(err));
-    } else {
-        setIsRegistered(false);
-    }
-  }, [selectedEvent, user]);
-
-  const handleRegister = async () => {
-      if (!user) {
-          toast.error(t('events.login_to_register'));
-          return;
-      }
-      setRegistering(true);
-      try {
-          const res = await api.post(`/events/${selectedEvent.id}/register`);
-          setIsRegistered(res.data.registered);
-          toast.success(res.data.message);
-      } catch (err) {
-          toast.error("Registration failed");
-      } finally {
-          setRegistering(false);
-      }
-  };
-
-  const handleShare = (event, e) => {
-      e.stopPropagation();
-      const url = `${window.location.origin}/events?id=${event.id}`;
-      navigator.clipboard.writeText(url).then(() => {
-          toast.success(t('common.link_copied') || 'Link copied to clipboard!');
-      });
-  };
-
   const addToGoogleCalendar = () => {
       if (!selectedEvent) return;
       const title = encodeURIComponent(selectedEvent.title);
       const details = encodeURIComponent(selectedEvent.description + "\n\n" + selectedEvent.content); 
       const location = encodeURIComponent(selectedEvent.location);
-      const dateStr = selectedEvent.date.replace(/-/g, '');
-      const dates = `${dateStr}/${dateStr}`; 
-      
+      const hasTime = (str) => str && str.length > 10 && str[10] === 'T';
+
+      let dates;
+      if (hasTime(selectedEvent.date)) {
+          // datetime event: format YYYYMMDDTHHMMSS/YYYYMMDDTHHMMSS
+          const toGCalDateTime = (str) => str.substring(0, 16).replace(/[-:T]/g, '') + '00';
+          const startStr = toGCalDateTime(selectedEvent.date);
+          const endStr = selectedEvent.end_date
+              ? toGCalDateTime(selectedEvent.end_date)
+              : toGCalDateTime(selectedEvent.date); // same time if no end
+          dates = `${startStr}/${endStr}`;
+      } else {
+          // all-day event: format YYYYMMDD/YYYYMMDD (end is exclusive, add 1 day)
+          const startStr = selectedEvent.date.replace(/-/g, '');
+          let endStr = startStr;
+          if (selectedEvent.end_date) {
+              const d = new Date(selectedEvent.end_date.replace(/-/g, '/'));
+              d.setDate(d.getDate() + 1);
+              endStr = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+          }
+          dates = `${startStr}/${endStr}`;
+      }
+
       const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=${location}&dates=${dates}`;
       window.open(url, '_blank');
   };
@@ -128,16 +324,35 @@ const Events = () => {
       const title = selectedEvent.title;
       const desc = selectedEvent.description;
       const location = selectedEvent.location;
-      const dateStr = selectedEvent.date.replace(/-/g, '');
-      
+      const hasTime = (str) => str && str.length > 10 && str[10] === 'T';
+
+      let dtStart, dtEnd;
+      if (hasTime(selectedEvent.date)) {
+          // datetime event: DTSTART:YYYYMMDDTHHMMSS
+          const toICSDateTime = (str) => str.substring(0, 16).replace(/[-:T]/g, '') + '00';
+          dtStart = `DTSTART:${toICSDateTime(selectedEvent.date)}`;
+          dtEnd = `DTEND:${selectedEvent.end_date ? toICSDateTime(selectedEvent.end_date) : toICSDateTime(selectedEvent.date)}`;
+      } else {
+          // all-day event: DTSTART;VALUE=DATE:YYYYMMDD (end is exclusive)
+          const startStr = selectedEvent.date.replace(/-/g, '');
+          let endStr = startStr;
+          if (selectedEvent.end_date) {
+              const d = new Date(selectedEvent.end_date.replace(/-/g, '/'));
+              d.setDate(d.getDate() + 1);
+              endStr = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+          }
+          dtStart = `DTSTART;VALUE=DATE:${startStr}`;
+          dtEnd = `DTEND;VALUE=DATE:${endStr}`;
+      }
+
       const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//777//Events//EN
 BEGIN:VEVENT
 UID:${selectedEvent.id}@777.com
 DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z
-DTSTART;VALUE=DATE:${dateStr}
-DTEND;VALUE=DATE:${dateStr}
+${dtStart}
+${dtEnd}
 SUMMARY:${title}
 DESCRIPTION:${desc}
 LOCATION:${location}
@@ -154,20 +369,47 @@ END:VCALENDAR`;
       document.body.removeChild(link);
   };
 
+  const handleCopyLocation = () => {
+    if (selectedEvent && selectedEvent.location) {
+        navigator.clipboard.writeText(selectedEvent.location)
+            .then(() => toast.success(t('common.copied_to_clipboard')))
+            .catch(() => toast.error(t('common.copy_failed')));
+    }
+  };
+
+  const handleShare = async () => {
+    if (!selectedEvent) return;
+    const shareData = {
+        title: selectedEvent.title,
+        text: `${selectedEvent.title}\n${selectedEvent.date}\n${selectedEvent.location}\n\n${selectedEvent.description}`,
+        url: window.location.href
+    };
+
+    if (navigator.share) {
+        try {
+            await navigator.share(shareData);
+        } catch (err) {
+            console.error('Error sharing:', err);
+        }
+    } else {
+        // Fallback to copy
+        handleCopyInfo();
+    }
+  };
+
+  const handleCopyInfo = () => {
+      if (!selectedEvent) return;
+      const info = `${selectedEvent.title}\n${selectedEvent.date}\n${selectedEvent.location}\n\n${selectedEvent.description}`;
+      navigator.clipboard.writeText(info)
+        .then(() => toast.success(t('common.copied_to_clipboard')))
+        .catch(() => toast.error(t('common.copy_failed')));
+  };
+
   const addEvent = (newItem) => {
     api.post('/events', newItem)
     .then(() => {
-        // Refresh current page
-        const limit = 6;
-        const params = {
-            page: currentPage,
-            limit,
-        };
-        return api.get('/events', { params });
-    })
-    .then(res => {
-        setEvents(res.data.data);
-        setTotalPages(res.data.pagination.totalPages);
+        refresh({ clearCache: true });
+        setFilterVersion(prev => prev + 1);
     })
     .catch(err => console.error("Failed to save event", err));
   };
@@ -181,207 +423,146 @@ END:VCALENDAR`;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const getEventLifecycle = (date) => {
-    if (!date) return t('events.status.unknown');
-    try {
-        const d = new Date();
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        const today = `${year}-${month}-${day}`;
-        
-        if (date > today) return t('events.status.upcoming');
-        if (date === today) return t('events.status.ongoing');
-        return t('events.status.past');
-    } catch (e) {
-        return t('events.status.unknown');
-    }
-  };
+  const handleToggleFavorite = useCallback((eventId, favorited, likes) => {
+    setEvents(prev => prev.map(e => 
+        e.id === eventId ? { ...e, likes: likes !== undefined ? likes : e.likes, favorited } : e
+    ));
+    
+    setSelectedEvent(prev => {
+        if (prev && prev.id === eventId) {
+           return { ...prev, likes: likes !== undefined ? likes : prev.likes, favorited };
+        }
+        return prev;
+    });
+  }, [setEvents, setSelectedEvent]);
 
-  const getStatusColor = (status) => {
-    switch(status) {
-      case t('events.status.upcoming'): return 'bg-emerald-500 text-white';
-      case t('events.status.ongoing'): return 'bg-blue-500 text-white animate-pulse';
-      case t('events.status.past'): return 'bg-gray-500 text-gray-200';
-      default: return 'bg-gray-500 text-white';
-    }
-  };
-
-  const lifecycleOptions = [
-      { value: 'all', label: t('common.all') || 'All Events' },
-      { value: 'upcoming', label: t('events.status.upcoming') || 'Upcoming' },
-      { value: 'ongoing', label: t('events.status.ongoing') || 'Ongoing' },
-      { value: 'past', label: t('events.status.past') || 'Past' }
-  ];
 
   return (
-    <section className="py-12 md:py-20 px-4 md:px-8 min-h-screen">
+    <section className="pt-24 pb-28 md:py-20 px-4 md:px-8 relative overflow-hidden flex-grow">
+      {/* Ambient Background */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+          <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-purple-500/10 blur-[120px]" />
+          <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-500/10 blur-[120px]" />
+      </div>
+
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
-        className="mb-8 md:mb-12 relative z-40"
-      >
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
-          <div>
-            <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold font-serif mb-3 md:mb-4">{t('events.title')}</h2>
-            <p className="text-gray-400 max-w-xl text-sm md:text-base">{t('events.subtitle')}</p>
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+          className="mb-8 md:mb-12 relative z-40 md:pt-0 text-center"
+        >
+          <div className="mb-8">
+            <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold font-serif mb-3 md:mb-8">{t('events.title')}</h2>
+            <p className="text-gray-400 max-w-xl mx-auto text-sm md:text-base">{t('events.subtitle')}</p>
           </div>
           
-          <button
-            onClick={() => setIsUploadOpen(true)}
-            className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 md:px-6 md:py-3 rounded-full backdrop-blur-md border border-white/10 transition-all font-bold text-sm md:text-base"
-          >
-            <Upload size={18} className="md:w-5 md:h-5" /> {t('common.create_event')}
-          </button>
+        <div className="flex items-center gap-2 w-full md:w-auto justify-center md:absolute md:right-0 md:top-0 mb-4 md:mb-0">
+             <button
+                onClick={() => {
+                  if (!user) {
+                    toast.error(t('auth.signin_required'));
+                    return;
+                  }
+                  setIsUploadOpen(true);
+                }}
+                className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 md:px-6 md:py-3 rounded-full backdrop-blur-md border border-white/10 transition-all font-bold text-sm md:text-base shrink-0"
+             >
+                <Upload size={18} className="md:w-5 md:h-5" /> {t('common.create_event')}
+             </button>
         </div>
 
-        {/* Toolbar */}
-        <div className="flex flex-col md:flex-row gap-4 p-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
-          {/* Search */}
-          <div className="relative w-full md:w-72 group">
-             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-indigo-400 transition-colors" size={18} />
-             <input 
-                type="text" 
-                placeholder={t('common.search') || "Search events..."}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-black/20 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white focus:outline-none focus:border-indigo-500/50 transition-all"
-             />
-          </div>
-
-          <div className="h-8 w-px bg-white/10 hidden md:block" />
-
-          {/* Lifecycle Filter */}
-          <div className="w-full md:w-48">
-             <Dropdown
-                value={lifecycle}
-                onChange={setLifecycle}
-                options={lifecycleOptions}
-                icon={Filter}
-                buttonClassName="bg-black/20 border-white/10 hover:bg-black/30 w-full"
-             />
-          </div>
-
-          {/* Sort */}
-          <div className="w-full md:w-48">
-            <SortSelector sort={sort} onSortChange={setSort} />
-          </div>
+        {/* Filter Section */}
+        <div className="w-full max-w-4xl mx-auto mb-8">
+          <EventFilterPanel
+            filters={filters}
+            onFiltersChange={setFilters}
+            selectedTags={selectedTags}
+            onTagsChange={setSelectedTags}
+            lifecycle={lifecycle}
+            onLifecycleChange={setLifecycle}
+            sort={sort}
+            onSortChange={setSort}
+            refreshTrigger={filterVersion}
+          />
         </div>
       </motion.div>
 
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-           {[1,2,3].map(i => (
-               <div key={i} className="bg-white/5 rounded-3xl h-96 animate-pulse" />
+      {error ? (
+          <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
+            <AlertCircle size={48} className="text-red-400 mb-4 opacity-50 mx-auto" />
+            <p className="text-gray-300 mb-6">{t('common.error_fetching_data') || 'Failed to load events'}</p>
+            <button 
+              onClick={refresh}
+              className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all border border-white/10"
+            >
+              Retry
+            </button>
+          </div>
+        ) : loading && events.length === 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-14 lg:gap-16 max-w-7xl mx-auto">
+           {[1,2,3,4,5,6].map(i => (
+               <div key={i} className="bg-[#1a1a1a]/40 backdrop-blur-xl border border-white/5 rounded-3xl overflow-hidden h-full flex flex-row md:flex-col relative group">
+                   {/* Shimmer Effect */}
+                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-skeleton" />
+                   
+                   {/* Image Skeleton */}
+                   <div className="w-1/3 md:w-full aspect-square md:h-64 bg-white/5" />
+                   {/* Content Skeleton */}
+                   <div className="p-4 md:p-6 flex-1 flex flex-col w-2/3 md:w-full">
+                       <div className="h-6 bg-white/10 rounded-lg w-3/4 mb-4" />
+                       <div className="flex gap-2 mb-4">
+                           <div className="h-6 bg-white/5 rounded-lg w-20" />
+                           <div className="h-6 bg-white/5 rounded-lg w-24" />
+                       </div>
+                       <div className="h-4 bg-white/5 rounded-lg w-full mb-2" />
+                       <div className="h-4 bg-white/5 rounded-lg w-2/3" />
+                   </div>
+               </div>
            ))}
         </div>
       ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-                {events.map((event, index) => {
-                  const status = getEventLifecycle(event.date);
-                  const isUpcoming = status === t('events.status.upcoming');
-                  const dateObj = new Date(event.date);
-                  const day = dateObj.getDate();
-                  const month = dateObj.toLocaleString('default', { month: 'short' }).toUpperCase();
-
-                  return (
-                  <motion.div
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-14 lg:gap-16 max-w-7xl mx-auto">
+                {events.map((event, index) => (
+                  <EventCard
                     key={event.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                    className="group relative bg-[#111] border border-white/10 rounded-3xl overflow-hidden hover:shadow-2xl hover:shadow-indigo-500/20 transition-all duration-500 hover:-translate-y-2 cursor-pointer"
-                    onClick={() => setSelectedEvent(event)}
-                  >
-                {/* Image Section */}
-                <div className="h-64 overflow-hidden relative">
-                    <SmartImage 
-                      src={event.image} 
-                      alt={event.title} 
-                      loading="lazy"
-                      className="w-full h-full"
-                      imageClassName="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#111] via-transparent to-transparent opacity-80" />
-                    
-                    {/* Date Badge */}
-                    <div className="absolute top-4 left-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 flex flex-col items-center justify-center min-w-[60px] shadow-lg group-hover:bg-indigo-600 group-hover:border-indigo-500 transition-colors duration-300">
-                        <span className="text-xs font-bold uppercase tracking-wider text-gray-300 group-hover:text-white/80">{month}</span>
-                        <span className="text-2xl font-black text-white">{day}</span>
-                    </div>
-
-                    {/* Status Badge */}
-                    <div className={`absolute top-4 right-4 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg backdrop-blur-md flex items-center gap-1.5 ${getStatusColor(status)}`}>
-                        {status === t('events.status.upcoming') && <Clock size={12} />}
-                        {status === t('events.status.ongoing') && <span className="w-2 h-2 rounded-full bg-white animate-pulse" />}
-                        {status}
-                    </div>
-
-                    {/* Share Button */}
-                    <div className="absolute bottom-4 right-4 flex gap-2">
-                        <FavoriteButton 
-                            itemId={event.id}
-                            itemType="event"
-                            size={18}
-                            showCount={false}
-                            favorited={event.favorited}
-                            className="p-2 bg-black/40 hover:bg-indigo-600 rounded-full text-white backdrop-blur-md transition-all"
-                            onToggle={(favorited, likes) => {
-                                setEvents(prev => prev.map(e => 
-                                    e.id === event.id ? { ...e, likes: likes !== undefined ? likes : e.likes, favorited } : e
-                                ));
-                                if (selectedEvent && selectedEvent.id === event.id) {
-                                    setSelectedEvent(prev => ({ ...prev, likes: likes !== undefined ? likes : prev.likes, favorited }));
-                                }
-                            }}
-                        />
-                    </div>
-
-                    {/* Countdown Overlay (Upcoming only) */}
-                    {isUpcoming && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm">
-                            <div className="transform scale-75">
-                                <Countdown targetDate={event.date} />
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Content Section */}
-                <div className="p-6 relative">
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="flex items-center gap-2 text-sm text-gray-400">
-                             <MapPin size={14} className="text-indigo-400" />
-                             <span className="truncate max-w-[150px]">{event.location || 'Online'}</span>
-                        </div>
-                        {event.link && (
-                             <div className="flex items-center gap-1 text-xs text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20">
-                                 <Globe size={10} /> External
-                             </div>
-                        )}
-                    </div>
-
-                    <h3 className="text-2xl font-bold text-white mb-3 line-clamp-2 group-hover:text-indigo-400 transition-colors leading-tight">{event.title}</h3>
-                    <p className="text-gray-400 text-sm line-clamp-2 mb-6 leading-relaxed">{event.description}</p>
-
-                    <div className="flex items-center text-indigo-400 font-bold text-sm group-hover:translate-x-2 transition-transform">
-                        {t('common.view_details')} <ArrowRight size={16} className="ml-2" />
-                    </div>
-                </div>
-              </motion.div>
-            )})}
-        </div>
+                    event={event}
+                    index={index}
+                    onClick={setSelectedEvent}
+                    onToggleFavorite={handleToggleFavorite}
+                  />
+                ))}
+            </div>
       )}
       
       {!loading && events.length === 0 && (
-          <div className="text-center py-20">
-              <div className="bg-white/5 rounded-full p-6 inline-block mb-4">
-                  <Calendar size={48} className="text-gray-600" />
-              </div>
-              <p className="text-gray-500 text-lg">No events found matching your criteria.</p>
-          </div>
+        <div className="flex flex-col items-center justify-center py-32 px-4 text-center">
+            <div className="bg-white/5 rounded-full p-8 mb-6 border border-white/5 backdrop-blur-xl shadow-2xl relative group">
+                <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <Calendar size={64} className="text-white/40 relative z-10" />
+            </div>
+            <h3 className="text-3xl font-bold text-white mb-3 tracking-tight">{t('events.no_events')}</h3>
+            <p className="text-gray-400 mb-8 max-w-md text-lg">
+                {(selectedTags.length > 0 || debouncedSearch || Object.values(filters).some(v => v))
+                  ? (t('advanced_filter.clear') || "Clear filters") + " " + (t('common.or') || "or") + " " + (t('common.search') || "search")
+                  : "暂时没有即将开始的活动，稍后再来看看吧"}
+            </p>
+            <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  if (!user) {
+                    toast.error(t('auth.signin_required'));
+                    return;
+                  }
+                  setIsUploadOpen(true);
+                }}
+                className="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full font-bold transition-all shadow-lg shadow-indigo-500/25 flex items-center gap-3 border border-indigo-400/20"
+            >
+                <Plus size={20} />
+                {t('common.create_event')}
+            </motion.button>
+        </div>
       )}
 
       <Pagination 
@@ -391,21 +572,22 @@ END:VCALENDAR`;
       />
 
       {/* Event Details Modal */}
-      <AnimatePresence>
-        {selectedEvent && (
-          <motion.div 
-            initial={{ opacity: 0 }}
+      {createPortal(
+        <AnimatePresence>
+          {selectedEvent && (
+            <motion.div 
+              initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-3xl"
             onClick={() => setSelectedEvent(null)}
           >
             <motion.div 
-              initial={{ scale: 0.9, y: 50, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.9, y: 50, opacity: 0 }}
-              transition={{ type: "spring", duration: 0.5 }}
-              className="bg-[#111] w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl border border-white/10 shadow-2xl custom-scrollbar relative"
+              initial={{ scale: 0.9, opacity: 0, y: 50 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="bg-[#0a0a0a] w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-3xl border border-white/10 shadow-2xl custom-scrollbar relative"
               onClick={e => e.stopPropagation()}
             >
               {/* Modal Header Image */}
@@ -418,158 +600,223 @@ END:VCALENDAR`;
                     imageClassName="w-full h-full object-cover"
                     iconSize={64}
                  />
-                 <div className="absolute inset-0 bg-gradient-to-t from-[#111] to-transparent" />
+                 <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/40 to-transparent" />
                  
                  <button 
                     onClick={() => setSelectedEvent(null)}
-                    className="absolute top-6 right-6 p-2 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur-md border border-white/10 transition-all z-20"
+                    className="absolute top-6 right-6 p-2 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur-md border border-white/10 transition-all z-20 group"
                  >
-                    <X size={24} />
+                    <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />
                  </button>
 
-                 <div className="absolute bottom-0 left-0 p-8 w-full">
-                     <div className="flex flex-wrap gap-3 mb-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${getStatusColor(getEventLifecycle(selectedEvent.date))}`}>
-                            {getEventLifecycle(selectedEvent.date)}
-                        </span>
-                        {selectedEvent.tags && selectedEvent.tags.split(',').map((tag, i) => (
-                             <span key={i} className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-white/10 text-gray-300 border border-white/5">
-                                 {tag.trim()}
-                             </span>
-                        ))}
-                     </div>
-                     <div className="flex justify-between items-start gap-4">
-                        <h2 className="text-3xl sm:text-5xl font-bold text-white mb-2 leading-tight">{selectedEvent.title}</h2>
-                        <FavoriteButton 
-                            itemId={selectedEvent.id}
-                            itemType="event"
-                            size={24}
-                            showCount={true}
-                            count={selectedEvent.likes || 0}
-                            favorited={selectedEvent.favorited}
-                            className="p-3 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md transition-colors mt-1"
-                            onToggle={(favorited, likes) => {
-                                setSelectedEvent(prev => ({ ...prev, likes: likes !== undefined ? likes : prev.likes, favorited }));
-                                setEvents(prev => prev.map(e => 
-                                    e.id === selectedEvent.id ? { ...e, likes: likes !== undefined ? likes : e.likes, favorited } : e
-                                ));
-                            }}
-                        />
-                     </div>
-                     <div className="flex flex-wrap items-center gap-6 text-gray-300 text-sm sm:text-base font-medium">
-                         <div className="flex items-center gap-2">
-                             <Calendar size={18} className="text-indigo-400" />
-                             {selectedEvent.date}
-                         </div>
-                         <div className="flex items-center gap-2">
-                             <MapPin size={18} className="text-indigo-400" />
-                             {selectedEvent.location || 'Online'}
-                         </div>
+                 <div className="absolute bottom-0 left-0 px-6 pt-6 pb-6 md:px-10 md:pt-10 md:pb-8 w-full z-20 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/90 to-transparent pt-48 -mb-1 backdrop-blur-[2px]">
+                             {/* Editorial Eyebrow: Date & Location & Status */}
+                        <div className="flex justify-between items-end w-full mb-4">
+                            <div className="flex items-center gap-3 text-indigo-300 font-bold text-lg md:text-xl uppercase tracking-[0.2em] ml-1 opacity-100 drop-shadow-lg">
+                                    <span className="flex items-center gap-2">
+                                        {selectedEvent.end_date ? (
+                                            isSameDay(selectedEvent.date, selectedEvent.end_date) ? (
+                                                <span className="text-indigo-300 font-bold">
+                                                    {formatDateTime(selectedEvent.date)}
+                                                </span>
+                                            ) : (
+                                                <>
+                                                    <span className="text-indigo-300 font-bold">{formatDateTime(selectedEvent.date)}</span>
+                                                    <span className="text-white/40 text-base mx-1">-</span>
+                                                    <span className="text-rose-300 font-bold">{formatDateTime(selectedEvent.end_date)}</span>
+                                                </>
+                                            )
+                                        ) : (
+                                            <span className="text-indigo-300 font-bold">{formatDateTime(selectedEvent.date)}</span>
+                                        )}
+                                    </span>
+                                    <span className="text-white/40">|</span>
+                                    <span className="flex items-center gap-2">
+                                        {selectedEvent.location || t('common.online')}
+                                    </span>
+                            </div>
+                        </div>
+
+                    <div className="flex justify-between items-end gap-6">
+                       <div className="max-w-[85%]">
+                           <h2 className="text-4xl md:text-6xl font-black text-white leading-[0.95] tracking-tight font-serif drop-shadow-2xl inline decoration-clone">
+                               {selectedEvent.title}
+                               <span className={`inline-flex items-center justify-center align-middle ml-4 px-3 py-1.5 rounded-lg text-sm font-bold uppercase tracking-wider border backdrop-blur-md font-sans shadow-lg translate-y-[-0.2em] ${getStatusColor(getEventLifecycle(selectedEvent.date, selectedEvent.end_date, t), t).replace('rounded-full', 'rounded-lg').replace('px-4', 'px-3').replace('py-1.5', 'py-1.5')}`}>
+                                   {getEventLifecycle(selectedEvent.date, selectedEvent.end_date, t)}
+                               </span>
+                           </h2>
+                       </div>
+                        
+                        <div className="flex flex-col items-end gap-3 shrink-0 mb-1">
+                            <FavoriteButton 
+                                itemId={selectedEvent.id}
+                                itemType="event"
+                                size={24}
+                                showCount={true}
+                                count={selectedEvent.likes || 0}
+                                favorited={selectedEvent.favorited}
+                                className="p-3 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md transition-colors shrink-0 border border-white/10"
+                                onToggle={(favorited, likes) => {
+                                    setSelectedEvent(prev => ({ ...prev, likes: likes !== undefined ? likes : prev.likes, favorited }));
+                                    setEvents(prev => prev.map(e => 
+                                        e.id === selectedEvent.id ? { ...e, likes: likes !== undefined ? likes : e.likes, favorited } : e
+                                    ));
+                                }}
+                            />
+                        </div>
                      </div>
                  </div>
               </div>
 
               {/* Modal Content */}
-              <div className="p-8 sm:p-12">
-                 <div className="flex flex-col lg:flex-row gap-12">
-                     <div className="flex-1 space-y-8">
-                         <div>
-                             <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <div className="p-5 sm:p-8 pt-2 sm:pt-4">
+                 <div className="flex flex-col lg:flex-row gap-5">
+                     <div className="flex-1 space-y-4">
+                         <div className="bg-white/5 rounded-2xl p-5 border border-white/5 h-full">
+                             <h3 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
                                  <FileText size={20} className="text-indigo-400" /> 
                                  {t('common.description')}
                              </h3>
                              {/* Render HTML content safely */}
                              <div 
                                 className="prose prose-invert prose-lg max-w-none text-gray-300 leading-relaxed"
-                                dangerouslySetInnerHTML={{ __html: selectedEvent.content || `<p>${selectedEvent.description}</p>` }} 
+                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedEvent.content || `<p>${selectedEvent.description}</p>`) }} 
                              />
                          </div>
-
-                         {/* Map Integration (Mock) */}
-                         {selectedEvent.location && (
-                             <div className="bg-white/5 rounded-2xl p-6 border border-white/5">
-                                 <h4 className="font-bold text-white mb-4 flex items-center gap-2">
-                                     <MapPin size={18} className="text-indigo-400" /> Location
-                                 </h4>
-                                 <p className="text-gray-400 mb-4">{selectedEvent.location}</p>
-                                 <a 
-                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedEvent.location)}`}
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="text-indigo-400 hover:text-indigo-300 text-sm font-bold flex items-center gap-1"
-                                 >
-                                     View on Google Maps <ExternalLink size={12} />
-                                 </a>
-                             </div>
-                         )}
                      </div>
 
-                     {/* Sidebar Actions */}
-                     <div className="w-full lg:w-80 space-y-6">
-                         <div className="bg-white/5 rounded-2xl p-6 border border-white/5 sticky top-8">
-                             <h4 className="font-bold text-white mb-6">Action Center</h4>
-                             
-                             <div className="space-y-4">
+                     {/* Sidebar - Details & Link */}
+                     <div className="lg:w-1/2 space-y-4">
+                        <div className="bg-white/5 rounded-2xl p-5 border border-white/5 sticky top-8 space-y-5">
+                            
+                            {/* Call to Action - Link */}
+                            <div>
+                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                    <Globe size={16} className="text-indigo-400" />
+                                    {t('events.event_link')}
+                                </h3>
                                 {selectedEvent.link ? (
-                                    <a 
-                                        href={selectedEvent.link} 
-                                        target="_blank" 
+                                    <a
+                                        href={selectedEvent.link}
+                                        target="_blank"
                                         rel="noopener noreferrer"
-                                        className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all shadow-xl shadow-indigo-500/20 flex items-center justify-center gap-2 group"
+                                        className="w-full py-3.5 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 bg-indigo-500/80 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 backdrop-blur-md border border-white/10 group"
                                     >
-                                        <ExternalLink size={20} className="group-hover:rotate-45 transition-transform" /> 
-                                        Visit Event Link
+                                        {t('events.visit_link')}
+                                        <ExternalLink size={18} className="group-hover:translate-x-0.5 transition-transform" />
                                     </a>
                                 ) : (
-                                    (getEventLifecycle(selectedEvent.date) === t('events.status.upcoming') || getEventLifecycle(selectedEvent.date) === t('events.status.ongoing')) && (
-                                        <button 
-                                            onClick={handleRegister}
-                                            disabled={registering}
-                                            className={`w-full py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
-                                                isRegistered 
-                                                ? 'bg-green-500/20 text-green-400 border border-green-500/20' 
-                                                : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-xl shadow-indigo-500/20'
-                                            }`}
-                                        >
-                                            {registering ? <Clock className="animate-spin" size={20} /> : (isRegistered ? <CheckCircle size={20} /> : <ArrowRight size={20} />)}
-                                            {isRegistered ? t('events.registered') : t('events.register')}
-                                        </button>
-                                    )
+                                    <div className="p-3 bg-white/5 rounded-xl text-gray-500 text-sm text-center border border-white/5 backdrop-blur-sm">
+                                        {t('events.no_link_available')}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+                            {/* Key Attributes Grid - Now just Tags */}
+                            {selectedEvent.tags && (
+                                <div className="bg-white/[0.03] rounded-xl p-4 border border-white/5 backdrop-blur-sm">
+                                    <div className="flex items-center gap-2 text-indigo-400 mb-3">
+                                        <Tag size={18} />
+                                        <span className="text-sm font-bold uppercase tracking-wider">{t('upload.tags')}</span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                        {selectedEvent.tags.split(',').map((tag, i) => (
+                                            <span key={i} className="px-3 py-1.5 rounded-lg bg-white/5 text-gray-300 text-sm font-medium border border-white/5 hover:bg-white/10 transition-colors">
+                                                {tag.trim()}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+                            {/* Detailed Info List */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                <div className="flex gap-3 items-center group">
+                                    <div className="p-2.5 bg-orange-500/5 border border-orange-500/10 rounded-xl text-orange-400 shrink-0 group-hover:bg-orange-500/10 transition-colors">
+                                        <Calendar size={20} />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-gray-400 text-sm uppercase tracking-wider mb-1">{t('events.date_label')}</h4>
+                                        <span className="text-gray-200 text-base leading-snug whitespace-nowrap">
+                                            {formatDateTime(selectedEvent.date)}
+                                            {selectedEvent.end_date && !isSameDay(selectedEvent.date, selectedEvent.end_date) && `-${formatDateTime(selectedEvent.end_date)}`}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3 items-center group">
+                                    <div className="p-2.5 bg-indigo-500/5 border border-indigo-500/10 rounded-xl text-indigo-400 shrink-0 group-hover:bg-indigo-500/10 transition-colors">
+                                        <MapPin size={20} />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-gray-400 text-sm uppercase tracking-wider mb-1">{t('events.location_label')}</h4>
+                                        <p className="text-gray-200 text-base leading-snug">{selectedEvent.location || t('common.online')}</p>
+                                    </div>
+                                </div>
+
+                                {selectedEvent.organizer && (
+                                    <div className="flex gap-3 items-center group">
+                                        <div className="p-2.5 bg-green-500/5 border border-green-500/10 rounded-xl text-green-400 shrink-0 group-hover:bg-green-500/10 transition-colors">
+                                            <Building2 size={20} />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-gray-400 text-sm uppercase tracking-wider mb-1">{t('event_fields.organizer')}</h4>
+                                            <p className="text-gray-200 text-base leading-snug">{selectedEvent.organizer}</p>
+                                        </div>
+                                    </div>
                                 )}
 
-                                <div className="grid grid-cols-2 gap-3 pt-4 border-t border-white/10">
-                                    <button 
-                                        onClick={addToGoogleCalendar}
-                                        className="flex flex-col items-center justify-center gap-2 p-3 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-colors text-xs font-medium"
-                                    >
-                                        <Calendar size={20} />
-                                        Google Cal
-                                    </button>
-                                    <button 
-                                        onClick={downloadICS}
-                                        className="flex-col items-center justify-center gap-2 p-3 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-colors text-xs font-medium flex"
-                                    >
-                                        <Download size={20} />
-                                        Save .ICS
-                                    </button>
-                                </div>
-                                
-                                <button 
-                                    onClick={(e) => handleShare(selectedEvent, e)}
-                                    className="w-full flex items-center justify-center gap-2 p-3 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-colors text-sm font-medium"
-                                >
-                                    <Share2 size={18} />
-                                    Share Event
-                                </button>
-                             </div>
-                         </div>
+                                {selectedEvent.target_audience && (
+                                    <div className="flex gap-3 items-center group">
+                                        <div className="p-2.5 bg-blue-500/5 border border-blue-500/10 rounded-xl text-blue-400 shrink-0 group-hover:bg-blue-500/10 transition-colors">
+                                            <Users size={20} />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-gray-400 text-sm uppercase tracking-wider mb-1">{t('event_fields.target_audience')}</h4>
+                                            <p className="text-gray-200 text-base leading-snug">{selectedEvent.target_audience}</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {selectedEvent.volunteer_time && (
+                                    <div className="flex gap-3 items-center group">
+                                        <div className="p-2.5 bg-emerald-500/5 border border-emerald-500/10 rounded-xl text-emerald-400 shrink-0 group-hover:bg-emerald-500/10 transition-colors">
+                                            <Clock size={20} />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-gray-400 text-sm uppercase tracking-wider mb-1">{t('event_fields.volunteer_duration')}</h4>
+                                            <p className="text-gray-200 text-base leading-snug">{selectedEvent.volunteer_time}</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {selectedEvent.score && (
+                                    <div className="flex gap-3 items-center group">
+                                        <div className="p-2.5 bg-purple-500/5 border border-purple-500/10 rounded-xl text-purple-400 shrink-0 group-hover:bg-purple-500/10 transition-colors">
+                                            <Award size={20} />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-gray-400 text-sm uppercase tracking-wider mb-1">{t('event_fields.score_label')}</h4>
+                                            <p className="text-gray-200 text-base leading-snug">{selectedEvent.score}</p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                        </div>
                      </div>
                  </div>
               </div>
             </motion.div>
           </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       <UploadModal 
         isOpen={isUploadOpen}

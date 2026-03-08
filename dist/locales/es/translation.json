@@ -1,0 +1,68 @@
+{
+  "nav": {
+    "gallery": "Galería",
+    "about": "Sobre mí",
+    "contact": "Contacto"
+  },
+  "hero": {
+    "title": "CAPTURAR",
+    "subtitle": "Congelando momentos en el tiempo, creando eternidad a través de la lente."
+  },
+  "gallery": {
+    "title": "Obras Seleccionadas",
+    "subtitle": "Una colección de momentos capturados en todo el mundo.",
+    "play": "Jugar",
+    "categories": {
+      "All": "Todo",
+      "Nature": "Naturaleza",
+      "Urban": "Urbano",
+      "Portrait": "Retrato",
+      "Fashion": "Moda",
+      "Photography": "Fotografía",
+      "Abstract": "Abstracto"
+    }
+  },
+  "about": {
+    "title": "Capturando la vida",
+    "subtitle": "momentos fugaces.",
+    "p1": "Soy un narrador visual con sede en Tokio. Con más de una década de experiencia detrás de la lente, me esfuerzo por encontrar la belleza tanto en lo mundano como en lo extraordinario. Mi trabajo explora la intersección de la luz, la sombra y la emoción humana.",
+    "p2": "Ya sean las calles iluminadas con neón de una metrópolis o el sereno silencio de la cima de una montaña, aporto una perspectiva única a cada toma.",
+    "exp": "Años de Experiencia",
+    "exhibitions": "Exposiciones",
+    "projects": "Proyectos"
+  },
+  "contact": {
+    "title": "Ponerse en Contacto",
+    "subtitle": "¿Tienes un proyecto en mente? Creemos algo juntos.",
+    "name": "Nombre",
+    "email": "Correo electrónico",
+    "message": "Mensaje",
+    "send": "Enviar Mensaje",
+    "sending": "Enviando...",
+    "sent": "Mensaje Enviado",
+    "error": "Rellena todos los campos",
+    "placeholder_name": "Juan Pérez",
+    "placeholder_email": "juan@ejemplo.com",
+    "placeholder_message": "Cuéntame sobre tu proyecto..."
+  },
+  "game": {
+    "intro_subtitle": "SECUENCIA DE SIMULACIÓN",
+    "controls": "Controles",
+    "start": "INICIAR",
+    "cancel": "Cancelar",
+    "steer": "[RATÓN] Pilotar Avión",
+    "jump": "[ESPACIO] Saltar",
+    "shoot": "[CLIC] Capturar Objetivos",
+    "flip": "[CLIC] Voltear Cartas",
+    "score": "PUNTUACIÓN",
+    "distance": "DISTANCIA",
+    "altitude": "ALTITUD",
+    "captures": "CAPTURAS",
+    "abort": "ABORTAR",
+    "exit": "Salir",
+    "finish": "TERMINAR"
+  },
+  "footer": {
+    "rights": "© 2024 Lumos Photography. Todos los derechos reservados."
+  }
+}

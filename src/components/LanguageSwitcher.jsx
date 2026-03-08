@@ -6,9 +6,6 @@ import { Globe } from 'lucide-react';
 const languages = [
   { code: 'zh', name: '中文', dir: 'ltr' },
   { code: 'en', name: 'English', dir: 'ltr' },
-  { code: 'fr', name: 'Français', dir: 'ltr' },
-  { code: 'ja', name: '日本語', dir: 'ltr' },
-  { code: 'ko', name: '한국어', dir: 'ltr' },
 ];
 
 const LanguageSwitcher = () => {
@@ -48,11 +45,18 @@ const LanguageSwitcher = () => {
               <button
                 key={lang.code}
                 onClick={() => changeLanguage(lang.code)}
-                className={`w-full text-left px-4 py-3 text-sm hover:bg-white/10 transition-colors flex items-center justify-between
-                  ${i18n.language === lang.code ? 'text-white bg-white/5 font-bold' : 'text-gray-400'}`}
+                className={`w-full text-left px-4 py-3 text-sm hover:bg-white/10 transition-colors flex items-center justify-between relative
+                  ${i18n.language === lang.code ? 'text-white font-bold' : 'text-gray-400'}`}
               >
-                {lang.name}
-                {i18n.language === lang.code && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                {i18n.language === lang.code && (
+                    <motion.div 
+                        layoutId="activeLang"
+                        className="absolute inset-0 bg-white/5"
+                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                )}
+                <span className="relative z-10">{lang.name}</span>
+                {i18n.language === lang.code && <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 relative z-10 shadow-[0_0_8px_rgba(99,102,241,0.8)]" />}
               </button>
             ))}
           </motion.div>

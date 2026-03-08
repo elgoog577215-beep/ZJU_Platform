@@ -1,11 +1,14 @@
 {
   "name": "server",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Backend for Lumos Photography",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "seed": "node seed.js"
+    "dev": "nodemon index.js",
+    "seed": "node seed.js",
+    "backup": "node scripts/backup.js",
+    "optimize-images": "node scripts/optimizeImages.js"
   },
   "dependencies": {
     "apicache": "^1.6.3",
@@ -13,15 +16,25 @@
     "bcryptjs": "^3.0.3",
     "cheerio": "^1.1.2",
     "compression": "^1.8.1",
+    "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
     "express": "^4.18.2",
     "express-rate-limit": "^8.2.1",
+    "express-validator": "^7.3.1",
     "helmet": "^8.1.0",
+    "hpp": "^0.2.3",
     "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.10.1",
     "multer": "^2.0.2",
-    "react-hot-toast": "^2.6.0",
+    "sharp": "^0.33.0",
     "sqlite": "^5.1.1",
-    "sqlite3": "^5.1.6",
-    "swr": "^2.3.7"
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

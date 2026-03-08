@@ -1,5 +1,6 @@
 import React from 'react';
 import { Home, RefreshCw, AlertTriangle } from 'lucide-react';
+import { withTranslation } from 'react-i18next';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -21,6 +22,7 @@ class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
+      const { t } = this.props;
       // Fallback UI can be customized via props
       if (this.props.fallback) {
         return this.props.fallback;
@@ -41,9 +43,9 @@ class ErrorBoundary extends React.Component {
       // Default Full Page Error
       return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-black text-white p-6 text-center z-[100] relative">
-            <h1 className="text-4xl font-bold font-serif text-red-500 mb-4">Something went wrong</h1>
+            <h1 className="text-4xl font-bold font-serif text-red-500 mb-4">{t('error.something_went_wrong')}</h1>
             <p className="text-gray-400 max-w-md mb-8">
-                The application encountered an error but has attempted to contain it.
+                {t('error.boundary_desc')}
             </p>
             {this.state.error && (
                 <div className="bg-white/5 border border-white/10 p-4 rounded-lg text-left text-xs font-mono text-red-300 max-w-2xl overflow-auto mb-8 w-full max-h-48">
@@ -61,14 +63,14 @@ class ErrorBoundary extends React.Component {
                     className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 rounded-full transition-colors font-bold"
                 >
                     <RefreshCw size={20} />
-                    Try Again
+                    {t('common.try_again')}
                 </button>
                 <button 
                     onClick={() => window.location.reload()}
                     className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 rounded-full transition-colors font-bold"
                 >
                     <RefreshCw size={20} />
-                    Force Reload
+                    {t('common.force_reload')}
                 </button>
             </div>
         </div>
@@ -79,4 +81,4 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-export default ErrorBoundary;
+export default withTranslation()(ErrorBoundary);

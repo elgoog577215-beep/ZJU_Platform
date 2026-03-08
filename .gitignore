@@ -4,30 +4,43 @@ server/node_modules/
 
 # Build outputs
 dist/
+dev-dist/
 .vite/
 
-# Logs and cache
+# Logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-*.log
 .cache/
 
-# Local env/config
+# Environment variables (sensitive)
 .env
 .env.*
+server/.env
 
 # OS junk
 .DS_Store
 Thumbs.db
 
-# Uploads & generated assets
+# Database files
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.db
+server/uploads
+# Uploads (user-generated content, not for git)
 server/uploads/
 
-# Local database file
-server/database.sqlite
+# Lock files (keep package-lock.json, ignore pnpm)
+pnpm-lock.yaml
 
 # Editor/IDE
 .vscode/
 .idea/
+
+# Misc project folders
+wechat-batch-crawler/
+wechat_crawler/
+zju_app/

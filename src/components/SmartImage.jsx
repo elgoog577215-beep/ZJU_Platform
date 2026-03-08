@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { FileText, Film, Image as ImageIcon, Calendar, Music, AlertCircle } from 'lucide-react';
 
 const getGradient = (text) => {
@@ -38,12 +39,44 @@ const SmartImage = ({
   imageClassName = "", 
   iconSize = 24, 
   type = 'generic',
+  priority = false,
+  blurPlaceholder,
+  onLoad,
+  onError,
+  objectFit = 'cover',
   ...props 
 }) => {
   const [error, setError] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+  const [isInView, setIsInView] = useState(priority);
+  const imgRef = useRef(null);
+  const containerRef = useRef(null);
   const maxRetries = 3;
+
+  // Intersection Observer for lazy loading
+  useEffect(() => {
+    if (priority || isInView) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect();
+        }
+      },
+      {
+        rootMargin: '50px 0px',
+        threshold: 0.01
+      }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [priority]);
 
   useEffect(() => {
     setError(false);
@@ -51,15 +84,29 @@ const SmartImage = ({
     setRetryCount(0);
   }, [src]);
 
-  const handleError = () => {
-    if (retryCount < maxRetries) {
-        setTimeout(() => {
-            setRetryCount(prev => prev + 1);
-        }, 1000 * (retryCount + 1));
-    } else {
-        setError(true);
+  // Check if image is already loaded from cache
+  useEffect(() => {
+    if (imgRef.current && imgRef.current.complete) {
+      setLoaded(true);
+      onLoad?.();
     }
-  };
+  }, [src, retryCount, onLoad]);
+
+  const handleLoad = useCallback(() => {
+    setLoaded(true);
+    onLoad?.();
+  }, [onLoad]);
+
+  const handleError = useCallback(() => {
+    if (retryCount < maxRetries) {
+      setTimeout(() => {
+        setRetryCount(prev => prev + 1);
+      }, 1000 * (retryCount + 1));
+    } else {
+      setError(true);
+      onError?.();
+    }
+  }, [retryCount, onError]);
 
   const icons = {
     generic: FileText,
@@ -74,10 +121,16 @@ const SmartImage = ({
   const Icon = icons[type] || icons.generic;
   const gradient = getGradient(alt || type);
 
+  // Get actual image source
+  const imageSrc = typeof src === 'object' ? (src.url || src.medium?.url || src.small?.url) : src;
+
   // Fallback state (error or missing src)
-  if (!src || error) {
+  if (!imageSrc || error) {
     return (
-      <div className={`${className} bg-gradient-to-br ${gradient} flex items-center justify-center relative overflow-hidden`}>
+      <div 
+        ref={containerRef}
+        className={`${className} bg-gradient-to-br ${gradient} flex items-center justify-center relative overflow-hidden`}
+      >
         <div className="absolute inset-0 bg-black/10" />
         <Icon size={iconSize} className="text-white/70 relative z-10" />
       </div>
@@ -85,22 +138,64 @@ const SmartImage = ({
   }
 
   return (
-    <div className={`${className} relative overflow-hidden bg-gradient-to-br ${gradient}`}>
-       <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-500 ${loaded ? 'opacity-0' : 'opacity-100'}`}>
-          <div className="absolute inset-0 bg-black/10" />
-          <Icon size={iconSize} className="text-white/70 relative z-10 animate-pulse" />
-       </div>
+    <div 
+      ref={containerRef}
+      className={`${className} relative overflow-hidden bg-gradient-to-br ${gradient}`}
+    >
+      {/* Skeleton/Placeholder */}
+      <AnimatePresence>
+        {!loaded && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="absolute inset-0 bg-white/5"
+          >
+            {blurPlaceholder ? (
+              <img
+                src={blurPlaceholder}
+                alt=""
+                className="w-full h-full blur-xl scale-110"
+                style={{ objectFit }}
+              />
+            ) : (
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-       <img 
-          key={`${src}-${retryCount}`}
-          src={src} 
-          alt={alt} 
-          className={`${imageClassName} ${loaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500 relative z-20`}
+      {/* Actual Image */}
+      {isInView && (
+        <motion.img
+          ref={imgRef}
+          key={`${imageSrc}-${retryCount}`}
+          src={imageSrc}
+          alt={alt || ''}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: loaded ? 1 : 0 }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
+          onLoad={handleLoad}
           onError={handleError}
-          onLoad={() => setLoaded(true)}
-          loading="lazy"
+          className={`
+            w-full h-full
+            transition-all duration-700
+            ${loaded ? 'opacity-100' : 'opacity-0'}
+            ${imageClassName}
+          `}
+          style={{ objectFit }}
+          loading={priority ? 'eager' : 'lazy'}
+          decoding={priority ? 'sync' : 'async'}
           {...props}
-      />
+        />
+      )}
+
+      {/* Retry indicator */}
+      {retryCount > 0 && !loaded && !error && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        </div>
+      )}
     </div>
   );
 };

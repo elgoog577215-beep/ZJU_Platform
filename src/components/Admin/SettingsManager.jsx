@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'react-hot-toast';
-import { Save, RefreshCw, Key, Globe, Shield } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { Save, RefreshCw, Key, Globe, Shield, Sun } from 'lucide-react';
 import api from '../../services/api';
+import { useSettings } from '../../context/SettingsContext';
 
 const SettingsManager = () => {
   const { t } = useTranslation();
+  const { updateSetting: updateGlobalSetting } = useSettings();
   const [settings, setSettings] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -29,11 +31,36 @@ const SettingsManager = () => {
   const handleSave = async (key, value) => {
     setSaving(true);
     try {
-      await api.post('/settings', { key, value });
+      await updateGlobalSetting(key, value);
       setSettings(prev => ({ ...prev, [key]: value }));
       toast.success(t('admin.toast.save_success'));
     } catch (error) {
       toast.error(t('admin.toast.save_fail'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    setSaving(true);
+    try {
+      const res = await api.post('/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      if (res.data.fileUrl) {
+        await api.post('/settings', { key: 'logo_url', value: res.data.fileUrl });
+        setSettings(prev => ({ ...prev, logo_url: res.data.fileUrl }));
+        toast.success(t('admin.toast.save_success'));
+      }
+    } catch (error) {
+      console.error('Upload failed:', error);
+      toast.error(t('admin.toast.upload_fail') || 'Upload failed');
     } finally {
       setSaving(false);
     }
@@ -100,6 +127,97 @@ const SettingsManager = () => {
               </button>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div className="bg-[#111] p-6 rounded-2xl border border-white/10">
+        <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+          <Sun size={20} className="text-indigo-400" />
+          {t('admin.appearance_settings')}
+        </h3>
+        <div className="space-y-6">
+          {/* Appearance Settings */}
+            <div className="flex flex-col gap-6">
+              
+              {/* Brightness */}
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-bold text-gray-400">
+                    {t('admin.bg_brightness_label')} ({settings.background_brightness || 1.0})
+                </label>
+                <div className="flex gap-4 items-center">
+                  <input 
+                    type="range" 
+                    min="0.2" 
+                    max="2.0" 
+                    step="0.1"
+                    value={settings.background_brightness || 1.0} 
+                    onChange={(e) => handleChange('background_brightness', e.target.value)}
+                    className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <button 
+                    onClick={() => handleSave('background_brightness', settings.background_brightness)}
+                    disabled={saving}
+                    className="px-6 bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold transition-colors disabled:opacity-50"
+                  >
+                    {t('admin.save_btn')}
+                  </button>
+                </div>
+                 <p className="text-xs text-gray-500">{t('admin.bg_brightness_desc')}</p>
+              </div>
+
+              {/* Bloom (Glow) */}
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-bold text-gray-400">
+                    {t('admin.bg_bloom_label')} ({settings.background_bloom || 0.8})
+                </label>
+                <div className="flex gap-4 items-center">
+                  <input 
+                    type="range" 
+                    min="0.0" 
+                    max="3.0" 
+                    step="0.1"
+                    value={settings.background_bloom || 0.8} 
+                    onChange={(e) => handleChange('background_bloom', e.target.value)}
+                    className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <button 
+                    onClick={() => handleSave('background_bloom', settings.background_bloom)}
+                    disabled={saving}
+                    className="px-6 bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold transition-colors disabled:opacity-50"
+                  >
+                    {t('admin.save_btn')}
+                  </button>
+                </div>
+                 <p className="text-xs text-gray-500">{t('admin.bg_bloom_desc')}</p>
+              </div>
+
+              {/* Vignette (Dark Corners) */}
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-bold text-gray-400">
+                    {t('admin.bg_vignette_label')} ({settings.background_vignette || 0.5})
+                </label>
+                <div className="flex gap-4 items-center">
+                  <input 
+                    type="range" 
+                    min="0.0" 
+                    max="1.0" 
+                    step="0.1"
+                    value={settings.background_vignette || 0.5} 
+                    onChange={(e) => handleChange('background_vignette', e.target.value)}
+                    className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <button 
+                    onClick={() => handleSave('background_vignette', settings.background_vignette)}
+                    disabled={saving}
+                    className="px-6 bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold transition-colors disabled:opacity-50"
+                  >
+                    {t('admin.save_btn')}
+                  </button>
+                </div>
+                 <p className="text-xs text-gray-500">{t('admin.bg_vignette_desc')}</p>
+              </div>
+
+            </div>
         </div>
       </div>
     </div>

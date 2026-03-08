@@ -1,13 +1,29 @@
 import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useMotionValue, useSpring } from 'framer-motion';
 
 const CustomCursor = () => {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  // Use MotionValues to track mouse position without triggering re-renders
+  const mouseX = useMotionValue(-100);
+  const mouseY = useMotionValue(-100);
+
+  // Smooth springs for the cursor movement
+  // Main dot follows closely
+  const dotSpringConfig = { damping: 25, stiffness: 700 };
+  const dotX = useSpring(mouseX, dotSpringConfig);
+  const dotY = useSpring(mouseY, dotSpringConfig);
+
+  // Ring follows with a bit more delay/smoothness
+  const ringSpringConfig = { damping: 20, stiffness: 300 };
+  const ringX = useSpring(mouseX, ringSpringConfig);
+  const ringY = useSpring(mouseY, ringSpringConfig);
+
   const [isHovering, setIsHovering] = useState(false);
 
   useEffect(() => {
     const updateMousePosition = (e) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
+      // Update MotionValues directly - highly performant
+      mouseX.set(e.clientX);
+      mouseY.set(e.clientY);
     };
 
     const handleMouseEnter = () => setIsHovering(true);
@@ -56,36 +72,41 @@ const CustomCursor = () => {
       {/* Main Cursor Dot */}
       <motion.div
         className="fixed top-0 left-0 w-3 h-3 bg-white rounded-full pointer-events-none z-[9999] mix-blend-difference"
+        style={{
+          x: dotX,
+          y: dotY,
+          translateX: '-50%', // Center the dot
+          translateY: '-50%'
+        }}
         animate={{
-          x: mousePosition.x - 6,
-          y: mousePosition.y - 6,
           scale: isHovering ? 0 : 1, // Disappear on hover to let the ring take over or content show
           opacity: isHovering ? 0 : 1
         }}
         transition={{
-          type: "spring",
-          stiffness: 1000,
-          damping: 50,
-          mass: 0.1
+          scale: { duration: 0.2 },
+          opacity: { duration: 0.2 }
         }}
       />
       
       {/* Trailing Ring / Hover Highlight */}
       <motion.div
         className="fixed top-0 left-0 w-8 h-8 border border-white rounded-full pointer-events-none z-[9998] mix-blend-difference"
+        style={{
+          x: ringX,
+          y: ringY,
+          translateX: '-50%', // Center the ring
+          translateY: '-50%'
+        }}
         animate={{
-          x: mousePosition.x - 16,
-          y: mousePosition.y - 16,
           scale: isHovering ? 2.5 : 1,
           backgroundColor: isHovering ? "rgba(255, 255, 255, 1)" : "rgba(255, 255, 255, 0)",
           borderWidth: isHovering ? "0px" : "1px",
           mixBlendMode: "difference"
         }}
         transition={{
-          type: "spring",
-          stiffness: 300,
-          damping: 25,
-          mass: 0.5
+          scale: { type: "spring", stiffness: 300, damping: 20 },
+          backgroundColor: { duration: 0.2 },
+          borderWidth: { duration: 0.2 }
         }}
       />
     </>

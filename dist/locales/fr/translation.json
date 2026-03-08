@@ -1,0 +1,109 @@
+{
+  "nav": {
+    "gallery": "Galerie",
+    "about": "À propos",
+    "contact": "Contact"
+  },
+  "hero": {
+    "title": "CAPTURER",
+    "subtitle": "Figer des moments dans le temps, créer l'éternité à travers l'objectif."
+  },
+  "gallery": {
+    "title": "Œuvres Choisies",
+    "subtitle": "Une collection de moments capturés à travers le monde.",
+    "play": "Jouer",
+    "categories": {
+      "All": "Tout",
+      "Nature": "Nature",
+      "Urban": "Urbain",
+      "Portrait": "Portrait",
+      "Fashion": "Mode",
+      "Photography": "Photographie",
+      "Abstract": "Abstrait"
+    }
+  },
+  "about": {
+    "title": "Capturer la vie",
+    "subtitle": "moments éphémères.",
+    "p1": "Je suis un conteur visuel basé à Tokyo. Avec plus d'une décennie d'expérience derrière l'objectif, je m'efforce de trouver la beauté dans le banal comme dans l'extraordinaire. Mon travail explore l'intersection de la lumière, de l'ombre et de l'émotion humaine.",
+    "p2": "Que ce soit les rues éclairées au néon d'une métropole ou le silence serein d'un sommet de montagne, j'apporte une perspective unique à chaque cliché.",
+    "exp": "Années d'expérience",
+    "exhibitions": "Expositions",
+    "projects": "Projets"
+  },
+  "contact": {
+    "title": "Prendre Contact",
+    "subtitle": "Vous avez un projet en tête ? Créons quelque chose ensemble.",
+    "name": "Nom",
+    "email": "E-mail",
+    "message": "Message",
+    "send": "Envoyer le message",
+    "sending": "Envoi...",
+    "sent": "Message envoyé",
+    "error": "Remplissez tous les champs",
+    "placeholder_name": "Jean Dupont",
+    "placeholder_email": "jean@exemple.com",
+    "placeholder_message": "Parlez-moi de votre projet..."
+  },
+  "game": {
+    "intro_subtitle": "SÉQUENCE DE SIMULATION",
+    "controls": "Commandes",
+    "start": "DÉMARRER",
+    "cancel": "Annuler",
+    "steer": "[SOURIS] Piloter l'avion",
+    "jump": "[ESPACE] Sauter",
+    "shoot": "[CLIC] Capturer les cibles",
+    "flip": "[CLIC] Retourner les cartes",
+    "score": "SCORE",
+    "distance": "DISTANCE",
+    "altitude": "ALTITUDE",
+    "captures": "CAPTURES",
+    "abort": "ABANDONNER",
+    "exit": "Quitter",
+    "finish": "TERMINER"
+  },
+  "footer": {
+    "rights": "© 2024 Lumos Photography. Tous droits réservés."
+  },
+  "admin": {
+    "dashboard": "Tableau de Bord Admin",
+    "subtitle": "Gérez le contenu de votre site web et la base de données.",
+    "add_new": "Ajouter",
+    "edit_item": "Modifier l'élément",
+    "add_item": "Ajouter un élément",
+    "cancel": "Annuler",
+    "save": "Enregistrer les modifications",
+    "delete_confirm": "Êtes-vous sûr de vouloir supprimer cet élément ?",
+    "id": "ID",
+    "actions": "Actions",
+    "tabs": {
+      "photos": "Photos",
+      "music": "Musique",
+      "videos": "Vidéos",
+      "articles": "Articles",
+      "events": "Événements"
+    },
+    "fields": {
+      "title": "Titre",
+      "category": "Catégorie",
+      "url": "URL de l'image",
+      "size": "Taille",
+      "gameType": "Type de jeu",
+      "gameDescription": "Description du jeu",
+      "artist": "Artiste",
+      "duration": "Durée (s)",
+      "cover": "URL de la couverture",
+      "audio": "URL de l'audio",
+      "thumbnail": "URL de la vignette",
+      "video": "URL de la vidéo",
+      "date": "Date",
+      "tag": "Étiquette",
+      "excerpt": "Extrait",
+      "content": "Contenu (HTML)",
+      "location": "Lieu",
+      "status": "Statut",
+      "image": "URL de l'image",
+      "description": "Description"
+    }
+  }
+}

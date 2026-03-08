@@ -1,16 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Pause, SkipForward, SkipBack, Music as MusicIcon, Volume2, VolumeX, Upload } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, Music as MusicIcon, Volume2, VolumeX, Upload, AlertCircle, Tag } from 'lucide-react';
 import UploadModal from './UploadModal';
 import FavoriteButton from './FavoriteButton';
 import { useTranslation } from 'react-i18next';
 import Pagination from './Pagination';
 import { useSettings } from '../context/SettingsContext';
+import { useAuth } from '../context/AuthContext';
 import { useMusic } from '../context/MusicContext';
 import api from '../services/api';
 import SortSelector from './SortSelector';
 import { useSearchParams } from 'react-router-dom';
 import SmartImage from './SmartImage';
+import TagFilter from './TagFilter';
+import toast from 'react-hot-toast';
+import { getThumbnailUrl } from '../utils/imageUtils';
 
 const formatTime = (seconds) => {
   const mins = Math.floor(seconds / 60);
@@ -18,9 +22,96 @@ const formatTime = (seconds) => {
   return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 };
 
+const TrackItem = memo(({ track, activeTrackId, isPlaying, onClick, onToggleFavorite }) => {
+  const { t } = useTranslation();
+  const isActive = track.id === activeTrackId;
+  
+  return (
+    <motion.div 
+      layout
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`group flex items-center gap-4 p-3 rounded-xl transition-all cursor-pointer border backdrop-blur-md ${
+        isActive 
+          ? 'bg-cyan-500/10 border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.15)]' 
+          : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10 hover:shadow-lg hover:shadow-black/20'
+      }`}
+      onClick={() => onClick(track)}
+    >
+      <div className="relative w-14 h-14 md:w-16 md:h-16 rounded-xl overflow-hidden shrink-0 shadow-lg">
+        <SmartImage 
+           src={getThumbnailUrl(track.cover)} 
+           alt={track.title} 
+           type="music"
+           className="w-full h-full"
+           imageClassName={`w-full h-full object-cover transition-transform duration-700 ${isActive && isPlaying ? 'scale-110' : 'group-hover:scale-110'}`}
+           iconSize={24}
+        />
+        <div className={`absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+          {isActive && isPlaying ? (
+            <div className="flex gap-0.5 items-end h-4">
+              <span className="w-1 bg-cyan-400 animate-[music-bar_1s_ease-in-out_infinite]" style={{ animationDelay: '0s' }} />
+              <span className="w-1 bg-cyan-400 animate-[music-bar_1s_ease-in-out_infinite]" style={{ animationDelay: '0.2s' }} />
+              <span className="w-1 bg-cyan-400 animate-[music-bar_1s_ease-in-out_infinite]" style={{ animationDelay: '0.4s' }} />
+            </div>
+          ) : (
+            <Play size={24} className="text-white fill-white drop-shadow-lg" />
+          )}
+        </div>
+      </div>
+      
+      <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
+        <div className="flex items-center gap-2">
+            <h4 className={`font-bold truncate text-base md:text-lg ${isActive ? 'text-cyan-400' : 'text-white group-hover:text-cyan-400'} transition-colors`}>
+                {track.title}
+            </h4>
+        </div>
+        
+        <div className="flex items-center gap-2 text-xs text-gray-400">
+            <span className="truncate max-w-[150px]">{track.artist}</span>
+            
+            {track.tags && (
+                <>
+                    <span className="w-1 h-1 rounded-full bg-gray-600 hidden md:block" />
+                    <div className="hidden md:flex flex-wrap gap-1.5">
+                        {track.tags.split(',').slice(0, 3).map((tag, i) => (
+                            <span key={i} className="px-1.5 py-0.5 rounded-md bg-white/5 border border-white/5 text-[10px] text-gray-400 flex items-center gap-1">
+                                <Tag size={8} /> {tag.trim()}
+                            </span>
+                        ))}
+                    </div>
+                </>
+            )}
+        </div>
+      </div>
+      
+      <div className="flex items-center gap-3 md:gap-5 mr-2" onClick={e => e.stopPropagation()}>
+        <span className="text-xs font-mono text-gray-500 hidden sm:block bg-black/20 px-2 py-1 rounded-md border border-white/5">
+            {formatTime(track.duration)}
+        </span>
+        <FavoriteButton 
+            itemId={track.id}
+            itemType="music"
+            size={18}
+            showCount={false}
+            favorited={track.favorited}
+            initialFavorited={track.favorited}
+            className={`p-2.5 rounded-full transition-all border ${
+                isActive 
+                ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' 
+                : 'bg-white/5 text-gray-400 border-white/5 hover:text-white hover:bg-white/20 hover:border-white/10'
+            }`}
+            onToggle={(favorited, likes) => onToggleFavorite(track.id, favorited, likes)}
+        />
+      </div>
+    </motion.div>
+  );
+});
+
 const Music = () => {
   const { t } = useTranslation();
   const { settings } = useSettings();
+  const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const { currentTrack, isPlaying, playTrack, togglePlay, nextTrack, prevTrack, audioRef } = useMusic();
   const [tracks, setTracks] = useState([]);
@@ -28,6 +119,9 @@ const Music = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [sort, setSort] = useState('newest');
+  const [selectedTags, setSelectedTags] = useState([]); // Added selectedTags state
+  const [error, setError] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   
   // Deep linking
   useEffect(() => {
@@ -51,6 +145,10 @@ const Music = () => {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
 
   useEffect(() => {
+    setCurrentPage(1);
+  }, [sort, selectedTags, settings.pagination_enabled]);
+
+  useEffect(() => {
     setLoading(true);
     const limit = settings.pagination_enabled === 'true' ? 12 : 1000;
     
@@ -58,6 +156,7 @@ const Music = () => {
       page: currentPage,
       limit,
       sort,
+      tags: selectedTags.join(','),
     };
 
     api.get('/music', { params })
@@ -65,22 +164,25 @@ const Music = () => {
         setTracks(res.data.data);
         setTotalPages(res.data.pagination.totalPages);
         setLoading(false);
+        setError(false);
       })
       .catch(err => {
         console.error("Failed to fetch music:", err);
         setLoading(false);
+        setError(true);
       });
-  }, [currentPage, sort, settings.pagination_enabled]);
+  }, [currentPage, sort, selectedTags, settings.pagination_enabled, refreshKey]);
+
+  const refresh = () => {
+    setLoading(true);
+    setError(false);
+    setRefreshKey((k) => k + 1);
+  };
 
   const addTrack = (newItem) => {
     api.post('/music', newItem)
     .then(() => {
-        const limit = settings.pagination_enabled === 'true' ? 10 : 1000;
-        return api.get(`/music?page=${currentPage}&limit=${limit}`);
-    })
-    .then(res => {
-        setTracks(res.data.data);
-        setTotalPages(res.data.pagination.totalPages);
+        refresh({ clearCache: true });
     })
     .catch(err => console.error("Failed to save music", err));
   };
@@ -163,7 +265,7 @@ const Music = () => {
     setPlayerTrackState({});
   }, [currentTrack?.id]);
 
-  const defaultTrack = { title: t('music.select_track'), artist: t('music.to_start'), duration: 0, cover: "https://via.placeholder.com/300", audio: "" };
+  const defaultTrack = { title: t('music.select_track'), artist: t('music.to_start'), duration: 0, cover: "", audio: "" };
   const activeTrackObj = currentTrack || defaultTrack;
   const activeTrackInList = tracks.find(t => t.id === activeTrackObj.id);
   
@@ -174,27 +276,77 @@ const Music = () => {
       ...(activeTrackInList || {}) 
   };
 
+  const handleTrackClick = (track) => {
+    playTrack(track);
+  };
+
+  const handleTrackToggleFavorite = useCallback((trackId, favorited, likes) => {
+      setTracks(prev => prev.map(t => 
+          t.id === trackId ? { ...t, likes: likes !== undefined ? likes : t.likes, favorited } : t
+      ));
+      
+      // Also update current player track state if it matches
+      if (currentTrack && currentTrack.id === trackId) {
+          setPlayerTrackState(prev => ({ ...prev, likes: likes !== undefined ? likes : prev.likes, favorited }));
+      }
+  }, [setTracks, currentTrack]);
+
   return (
-    <section className="py-12 md:py-24 px-4 md:px-8 min-h-screen flex items-center justify-center relative z-10">
-      <div className="max-w-6xl w-full mx-auto grid lg:grid-cols-2 gap-8 md:gap-16 items-center relative pt-8 md:pt-20">
+    <section className="pt-24 pb-28 md:py-20 px-4 md:px-8 min-h-screen relative overflow-hidden">
+      {/* Ambient Background */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+          <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-purple-500/10 blur-[120px]" />
+          <div className="absolute top-[40%] right-[-10%] w-[40%] h-[40%] rounded-full bg-cyan-500/10 blur-[100px]" />
+          <div className="absolute bottom-[-10%] left-[20%] w-[60%] h-[40%] rounded-full bg-indigo-500/10 blur-[120px]" />
+      </div>
+
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        viewport={{ once: true }}
+        className="mb-8 md:mb-12 relative z-40 text-center"
+      >
         
-        <div className="absolute right-0 top-0 flex flex-wrap justify-end items-center gap-4 z-50 w-full mb-8 lg:mb-0 lg:w-auto">
-          <SortSelector sort={sort} onSortChange={setSort} />
-          <button
-            onClick={() => setIsUploadOpen(true)}
-            className="bg-white/10 hover:bg-white/20 text-white p-2 md:p-3 rounded-full backdrop-blur-md border border-white/10 transition-all"
-            title={t('common.upload_track')}
-          >
-            <Upload size={18} className="md:w-5 md:h-5" />
-          </button>
+        <div className="mb-8">
+          <h2 className="text-4xl md:text-5xl font-bold font-serif mb-4 md:mb-6">{t('music.title')}</h2>
+          <p className="text-gray-400 max-w-xl mx-auto text-sm md:text-base">{t('music.subtitle')}</p>
         </div>
 
-        {/* Player View */}
+        <div className="w-full max-w-4xl mx-auto px-4 mb-8">
+          <TagFilter selectedTags={selectedTags} onChange={setSelectedTags} type="music" />
+        </div>
+          
+        <div className="flex items-center gap-4 w-full md:w-auto justify-center md:absolute md:right-0 md:top-0">
+          <div className="w-40 md:w-48">
+            <SortSelector sort={sort} onSortChange={setSort} />
+          </div>
+            <button
+              onClick={() => {
+                if (!user) {
+                  toast.error(t('auth.signin_required'));
+                  return;
+                }
+                setIsUploadOpen(true);
+              }}
+              className="bg-white/10 hover:bg-white/20 text-white p-2 md:p-3 rounded-full backdrop-blur-md border border-white/10 transition-all"
+              title={t('common.upload_music')}
+            >
+              <Upload size={18} className="md:w-5 md:h-5" />
+            </button>
+          </div>
+      </motion.div>
+
+      {/* Mobile Mini Player - Removed (Moved to GlobalPlayer) */}
+
+      <div className="max-w-6xl w-full mx-auto grid lg:grid-cols-2 gap-8 md:gap-16 items-center relative">
+
+        {/* Player View - Hidden on Mobile */}
         <motion.div 
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
-          className="bg-[#0a0a0a]/50 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 md:p-12 shadow-2xl relative overflow-hidden"
+          className="hidden md:block bg-[#0a0a0a]/50 backdrop-blur-2xl border border-white/20 rounded-3xl p-6 md:p-12 shadow-2xl relative overflow-hidden"
         >
           <div className="absolute inset-0 bg-white/5 backdrop-blur-3xl z-0 rounded-3xl" 
             style={{ backgroundImage: `url(${activeTrack.cover})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
@@ -204,23 +356,22 @@ const Music = () => {
           {/* Content Wrapper to ensure z-index above background */}
           <div className="relative z-10">
             {/* Header */}
-            <div className="flex items-center gap-3 mb-8">
-              <div className="p-2 bg-cyan-500/20 rounded-lg text-cyan-400">
+            <div className="flex items-center gap-4 mb-6 sticky top-0 bg-white/5 backdrop-blur-2xl border border-white/20 p-4 rounded-xl z-10 shadow-lg">
+              <div className="p-3 bg-cyan-500/20 rounded-full text-cyan-400">
                 <MusicIcon size={24} />
               </div>
               <div>
-                <h2 className="text-2xl font-bold font-serif">{t('music.title')}</h2>
-                <p className="text-gray-400 text-sm">{t('music.subtitle')}</p>
+                <h2 className="text-xl md:text-2xl font-bold font-serif">{t('music.title')}</h2>
               </div>
             </div>
 
             {/* Vinyl / Cover */}
-            <div className="flex justify-center mb-8">
-              <motion.div 
-                animate={{ rotate: isPlaying ? 360 : 0 }}
-                transition={{ duration: 3, repeat: Infinity, ease: "linear", paused: !isPlaying }}
-                className="relative w-64 h-64 rounded-full border-4 border-white/10 shadow-2xl overflow-hidden"
+            <div className="flex justify-center mb-6 md:mb-8">
+              <div 
+                className="relative w-48 h-48 md:w-56 md:h-56 rounded-full border-4 border-white/10 shadow-2xl overflow-hidden animate-[spin_4s_linear_infinite]"
+                style={{ animationPlayState: isPlaying ? 'running' : 'paused' }}
               >
+                <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent pointer-events-none z-10 rounded-full" />
                 <SmartImage 
                   src={activeTrack.cover} 
                   alt={activeTrack.title} 
@@ -232,7 +383,7 @@ const Music = () => {
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-8 h-8 bg-black rounded-full border-2 border-white/20" />
                 </div>
-              </motion.div>
+              </div>
             </div>
 
             {/* Info */}
@@ -240,23 +391,22 @@ const Music = () => {
               <h2 className="text-3xl font-bold text-white mb-2 px-8">{activeTrack.title}</h2>
               <p className="text-cyan-400 font-medium mb-4">{activeTrack.artist}</p>
               
+              <div className="flex items-center justify-center gap-4 mb-4">
+              </div>
+
               {activeTrack.id && (
                   <div className="flex justify-center">
                       <FavoriteButton 
-                        itemId={activeTrack.id}
-                        itemType="music"
-                        size={20}
-                        showCount={true}
-                        count={activeTrack.likes}
-                        favorited={activeTrack.favorited}
-                        className="p-2 bg-white/5 hover:bg-cyan-500/20 rounded-full transition-colors border border-white/10"
-                        onToggle={(favorited, likes) => {
-                            setPlayerTrackState({ likes, favorited });
-                            setTracks(prev => prev.map(t => 
-                                t.id === activeTrack.id ? { ...t, likes: likes !== undefined ? likes : t.likes, favorited } : t
-                            ));
-                        }}
-                      />
+                                itemId={activeTrack.id}
+                                itemType="music"
+                                size={20}
+                                showCount={true}
+                                count={activeTrack.likes}
+                                favorited={activeTrack.favorited}
+                                initialFavorited={activeTrack.favorited}
+                                className="p-2 bg-white/5 hover:bg-cyan-500/20 rounded-full transition-colors border border-white/10"
+                                onToggle={handleTrackToggleFavorite}
+                            />
                   </div>
               )}
             </div>
@@ -336,7 +486,7 @@ const Music = () => {
         </motion.div>
 
         {/* Playlist View */}
-        <div className="flex flex-col h-[600px]">
+        <div className="flex flex-col h-[400px] md:h-[600px]">
           <motion.div 
             initial={{ opacity: 0, x: 50 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -344,11 +494,11 @@ const Music = () => {
             viewport={{ once: true }}
             className="flex-1 overflow-y-auto custom-scrollbar pr-2"
           >
-            <div className="flex items-center gap-4 mb-4 sticky top-0 bg-black/50 backdrop-blur-md p-4 rounded-xl z-10">
+            <div className="flex items-center gap-4 mb-4 sticky top-0 bg-white/5 backdrop-blur-2xl border border-white/20 p-4 rounded-xl z-10 shadow-lg">
               <div className="p-3 bg-cyan-500/20 rounded-full text-cyan-400">
                 <MusicIcon size={24} />
               </div>
-              <h3 className="text-2xl font-bold">{t('music.subtitle')} ({tracks.length})</h3>
+              <h3 className="text-xl md:text-2xl font-bold">{t('music.title')} ({tracks.length})</h3>
             </div>
 
             <div className="space-y-2">
@@ -363,6 +513,17 @@ const Music = () => {
                         </div>
                     </div>
                 ))
+              ) : error ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <AlertCircle size={48} className="text-red-400 mb-4 opacity-50 mx-auto" />
+                  <p className="text-gray-300 mb-6">{t('common.error_fetching_data') || 'Failed to load music'}</p>
+                  <button 
+                    onClick={refresh}
+                    className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all border border-white/10"
+                  >
+                    {t('common.retry') || 'Retry'}
+                  </button>
+                </div>
               ) : (
                 <>
                 {tracks.length === 0 && (
@@ -372,57 +533,14 @@ const Music = () => {
                     </div>
                 )}
                 {tracks.map((track) => (
-                <div 
+                <TrackItem
                   key={track.id}
-                  onClick={() => playTrack(track, tracks)}
-                  className={`p-4 rounded-xl flex items-center gap-4 cursor-pointer transition-all border border-transparent
-                    ${activeTrack.id === track.id ? 'bg-white/10 border-white/10' : 'hover:bg-white/5'}`}
-                >
-                  <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                    <SmartImage 
-                      src={track.cover} 
-                      alt={track.title} 
-                      type="music" 
-                      className="w-full h-full" 
-                      imageClassName="w-full h-full object-cover"
-                      iconSize={20} 
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className={`font-bold ${activeTrack.id === track.id ? 'text-cyan-400' : 'text-white'}`}>
-                      {track.title}
-                    </h4>
-                    <p className="text-sm text-gray-400">{track.artist}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs text-gray-500 font-mono">{formatTime(track.duration)}</span>
-                    <FavoriteButton
-                        itemId={track.id}
-                        itemType="music"
-                        size={16}
-                        showCount={true}
-                        count={track.likes}
-                        favorited={track.favorited}
-                        className="p-2 hover:bg-white/10 rounded-full transition-colors group"
-                        onToggle={(favorited, likes) => {
-                            setTracks(prev => prev.map(t => 
-                                t.id === track.id ? { ...t, likes: likes !== undefined ? likes : t.likes, favorited } : t
-                            ));
-                            // Also update player state if it matches
-                            if (activeTrack.id === track.id) {
-                                setPlayerTrackState(prev => ({ ...prev, likes, favorited }));
-                            }
-                        }}
-                    />
-                  </div>
-                  {activeTrack.id === track.id && isPlaying && (
-                    <div className="flex gap-0.5 items-end h-4">
-                      <div className="w-1 bg-cyan-400 animate-[music-bar_1s_ease-in-out_infinite] h-full" />
-                      <div className="w-1 bg-cyan-400 animate-[music-bar_1.2s_ease-in-out_infinite] h-2/3" />
-                      <div className="w-1 bg-cyan-400 animate-[music-bar_0.8s_ease-in-out_infinite] h-1/2" />
-                    </div>
-                  )}
-                </div>
+                  track={track}
+                  activeTrackId={activeTrack.id}
+                  isPlaying={isPlaying}
+                  onClick={handleTrackClick}
+                  onToggleFavorite={handleTrackToggleFavorite}
+                />
               ))}
               </>
               )}

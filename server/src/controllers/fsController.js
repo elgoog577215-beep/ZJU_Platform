@@ -3,11 +3,24 @@ const fs = require('fs');
 
 const PROJECT_ROOT = path.resolve(__dirname, '../../../src');
 
-const listFiles = (req, res) => {
-    const relativePath = req.query.path || '';
-    if (relativePath.includes('..')) return res.status(403).json({ error: 'Access denied' });
+// Helper to validate path
+const validatePath = (relativePath) => {
+    if (!relativePath) return null;
+    // Prevent directory traversal
+    if (relativePath.includes('..')) return null;
     
-    const fullPath = path.join(PROJECT_ROOT, relativePath);
+    // Resolve absolute path and ensure it's within PROJECT_ROOT
+    const fullPath = path.resolve(PROJECT_ROOT, relativePath);
+    if (!fullPath.startsWith(PROJECT_ROOT)) return null;
+    
+    return fullPath;
+};
+
+const listFiles = (req, res, next) => {
+    const relativePath = req.query.path || '';
+    const fullPath = validatePath(relativePath);
+    
+    if (!fullPath) return res.status(403).json({ error: 'Access denied' });
     
     if (!fs.existsSync(fullPath)) {
         return res.status(404).json({ error: 'Path not found' });
@@ -42,16 +55,17 @@ const listFiles = (req, res) => {
 
         res.json(items);
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error('FS Error:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 };
 
-const getFileContent = (req, res) => {
+const getFileContent = (req, res, next) => {
     const relativePath = req.query.path;
-    if(!relativePath || relativePath.includes('..')) return res.status(400).json({error: 'Invalid path'});
+    const fullPath = validatePath(relativePath);
     
-    const fullPath = path.join(PROJECT_ROOT, relativePath);
-
+    if (!fullPath) return res.status(400).json({error: 'Invalid path'});
+    
     try {
         if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
             const content = fs.readFileSync(fullPath, 'utf8');
@@ -60,21 +74,31 @@ const getFileContent = (req, res) => {
             res.status(404).json({ error: 'File not found' });
         }
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error('FS Error:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 };
 
-const saveFileContent = (req, res) => {
+const saveFileContent = (req, res, next) => {
     const { path: relativePath, content } = req.body;
-    if(!relativePath || relativePath.includes('..')) return res.status(400).json({error: 'Invalid path'});
+    const fullPath = validatePath(relativePath);
+    
+    if (!fullPath) return res.status(400).json({error: 'Invalid path'});
 
-    const fullPath = path.join(PROJECT_ROOT, relativePath);
+    // Security: Whitelist allowed extensions for editing
+    const allowedExtensions = ['.json', '.md', '.txt', '.css', '.scss'];
+    const ext = path.extname(fullPath).toLowerCase();
+    
+    if (!allowedExtensions.includes(ext)) {
+        return res.status(403).json({ error: 'Editing this file type is not allowed for security reasons.' });
+    }
 
     try {
         fs.writeFileSync(fullPath, content, 'utf8');
         res.json({ success: true });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error('FS Error:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 };
 
