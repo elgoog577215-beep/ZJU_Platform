@@ -36,17 +36,22 @@ const AdminDashboard = lazy(() => import('./components/Admin/AdminDashboard'));
 const NotFound = lazy(() => import('./components/NotFound'));
 const PublicProfile = lazy(() => import('./components/PublicProfile'));
 
-const PageTransition = ({ children }) => (
-  <motion.div
-    initial={{ opacity: 0, filter: 'blur(5px)' }}
-    animate={{ opacity: 1, filter: 'blur(0px)' }}
-    exit={{ opacity: 0, filter: 'blur(5px)' }}
-    transition={{ duration: 0.15, ease: "easeOut" }}
-    className="w-full"
-  >
-    {children}
-  </motion.div>
-);
+const PageTransition = ({ children }) => {
+  // Check if we are on a mobile device to disable heavy filters
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: isMobile ? 0 : 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: isMobile ? 0 : -10 }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
+      className="w-full"
+    >
+      {children}
+    </motion.div>
+  );
+};
 
 const Home = () => {
     return (
@@ -113,7 +118,7 @@ const AppContent = () => {
         <SearchPalette />
       </ErrorBoundary>
 
-      <main className="flex-grow">
+      <main className="flex-grow pb-24 md:pb-0">
         <Suspense fallback={<LoadingScreen />}>
           <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>

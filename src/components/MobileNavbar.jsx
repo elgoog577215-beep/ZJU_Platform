@@ -50,7 +50,7 @@ const MobileNavbar = () => {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 z-[100] bg-black/80 backdrop-blur-xl border-t border-white/10 pb-[env(safe-area-inset-bottom)] md:hidden app-select-none shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.5)]">
+      <nav className="fixed bottom-4 left-4 right-4 z-[100] bg-[#1a1a1a]/80 backdrop-blur-2xl border border-white/10 rounded-2xl md:hidden app-select-none shadow-[0_8px_32px_rgba(0,0,0,0.4)] mb-[env(safe-area-inset-bottom)]">
         <div className="flex justify-around items-center h-16 px-2">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
@@ -61,14 +61,16 @@ const MobileNavbar = () => {
                   <button
                     key={item.key}
                     onClick={() => handleAction(item.action)}
-                    className={`flex flex-col items-center justify-center w-full h-full transition-colors ${showMenu && item.action === 'menu' ? 'text-indigo-400' : 'text-gray-400 hover:text-white'}`}
+                    className={`relative flex flex-col items-center justify-center w-full h-full transition-colors ${showMenu && item.action === 'menu' ? 'text-white' : 'text-gray-400 hover:text-white'}`}
                   >
                     <motion.div
-                      whileTap={{ scale: 0.9 }}
-                      className="flex flex-col items-center gap-1"
+                      whileTap={{ scale: 0.85 }}
+                      className="flex flex-col items-center gap-1.5"
                     >
-                      <Icon size={20} />
-                      <span className="text-[10px] font-medium">
+                      <div className={`p-1.5 rounded-xl transition-all duration-300 ${showMenu && item.action === 'menu' ? 'bg-indigo-500/20 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.3)]' : ''}`}>
+                        <Icon size={22} strokeWidth={showMenu && item.action === 'menu' ? 2.5 : 2} />
+                      </div>
+                      <span className={`text-[10px] font-medium transition-all ${showMenu && item.action === 'menu' ? 'opacity-100 font-semibold' : 'opacity-70'}`}>
                           {item.key === 'menu' ? t('nav.more', '更多') : item.key === 'about' ? t('nav.about', '关于') : t(`nav.${item.key}`, item.key.charAt(0).toUpperCase() + item.key.slice(1))}
                       </span>
                     </motion.div>
@@ -81,22 +83,20 @@ const MobileNavbar = () => {
                 key={item.key}
                 to={item.path}
                 onClick={handleNavClick}
-                className={`flex flex-col items-center justify-center w-full h-full transition-colors ${
-                  isActive && !showMenu ? 'text-indigo-400' : 'text-gray-400 hover:text-white'
+                className={`relative flex flex-col items-center justify-center w-full h-full transition-colors ${
+                  isActive && !showMenu ? 'text-white' : 'text-gray-400 hover:text-white'
                 }`}
               >
                 <motion.div
-                  whileTap={{ scale: 0.9 }}
-                  className="flex flex-col items-center gap-1"
+                  whileTap={{ scale: 0.85 }}
+                  className="flex flex-col items-center gap-1.5"
                 >
-                  <Icon size={20} strokeWidth={isActive && !showMenu ? 2.5 : 2} />
-                  <span className="text-[10px] font-medium">{t(`nav.${item.key}`, item.key.charAt(0).toUpperCase() + item.key.slice(1))}</span>
-                  {isActive && !showMenu && (
-                      <motion.div 
-                          layoutId="activeTab"
-                          className="absolute bottom-1 w-1 h-1 bg-indigo-400 rounded-full"
-                      />
-                  )}
+                  <div className={`p-1.5 rounded-xl transition-all duration-300 ${isActive && !showMenu ? 'bg-indigo-500/20 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.3)]' : ''}`}>
+                    <Icon size={22} strokeWidth={isActive && !showMenu ? 2.5 : 2} />
+                  </div>
+                  <span className={`text-[10px] font-medium transition-all ${isActive && !showMenu ? 'opacity-100 font-semibold' : 'opacity-70'}`}>
+                    {t(`nav.${item.key}`, item.key.charAt(0).toUpperCase() + item.key.slice(1))}
+                  </span>
                 </motion.div>
               </Link>
             );

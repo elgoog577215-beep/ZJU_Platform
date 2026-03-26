@@ -48,7 +48,7 @@ const About = () => {
 
   return (
     <div className="min-h-screen">
-      {/* About Section */}
+      {/* About Section  */}
       <section className="pt-36 pb-28 md:py-24 px-4 flex items-center">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 items-center">
           <motion.div 
@@ -103,8 +103,8 @@ const About = () => {
 
       {/* Contact Section */}
       <section className="py-20 md:py-24 px-4 pb-28 md:pb-24 relative overflow-hidden bg-white/5">
-        {/* Background Elements */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+        {/* Background Elements - Hidden on mobile */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0 hidden md:block">
             <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px]" />
             <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px]" />
         </div>

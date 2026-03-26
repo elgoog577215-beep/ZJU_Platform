@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   LayoutDashboard, Inbox, LayoutGrid, Music, Film, BookOpen, 
   Calendar, LayoutTemplate, Folder, HardDrive, ClipboardList, 
-  Settings, Users, Home, LogOut, ChevronRight, Tag
+  Settings, Users, Home, LogOut, ChevronRight, Tag, Lock
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -21,10 +21,82 @@ const AdminDashboard = () => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('overview');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // Secondary Password Lock State
+  const [isLocked, setIsLocked] = useState(true);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [lockError, setLockError] = useState('');
 
   const handleLogout = () => {
     window.location.href = '/';
   };
+
+  const handleUnlock = (e) => {
+    e.preventDefault();
+    if (passwordInput === '12345') {
+      setIsLocked(false);
+      setLockError('');
+    } else {
+      setLockError('Incorrect password');
+      setPasswordInput('');
+    }
+  };
+
+  if (isLocked) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center px-4 relative overflow-hidden">
+        {/* Ambient background */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-600/20 rounded-full blur-[120px]" />
+        </div>
+        
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          className="relative z-10 w-full max-w-md bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-2xl"
+        >
+          <div className="flex flex-col items-center mb-8">
+            <div className="w-16 h-16 bg-indigo-500/20 rounded-full flex items-center justify-center text-indigo-400 mb-4 shadow-[0_0_30px_rgba(99,102,241,0.3)]">
+              <Lock size={32} />
+            </div>
+            <h2 className="text-2xl font-bold text-white tracking-wide">Admin Access</h2>
+            <p className="text-gray-400 text-sm mt-2">Please enter secondary password</p>
+          </div>
+
+          <form onSubmit={handleUnlock} className="space-y-4">
+            <div>
+              <input
+                type="password"
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                placeholder="Enter password"
+                className={`w-full bg-black/40 border ${lockError ? 'border-red-500/50 focus:border-red-500' : 'border-white/10 focus:border-indigo-500'} rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:bg-white/5 transition-all text-center tracking-widest text-lg`}
+                autoFocus
+              />
+              <AnimatePresence>
+                {lockError && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="text-red-400 text-sm text-center mt-2"
+                  >
+                    {lockError}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+            <button
+              type="submit"
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-colors shadow-lg shadow-indigo-500/25"
+            >
+              Unlock
+            </button>
+          </form>
+        </motion.div>
+      </div>
+    );
+  }
 
   const menuGroups = [
     {

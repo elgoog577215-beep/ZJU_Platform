@@ -410,6 +410,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             <form onSubmit={handleSubmit} className="p-4 sm:p-8 pb-24 sm:pb-8 relative z-10">
               {type === 'event' ? (
                 <>
+                {/* Event Specific Fields */}
                 <div className="mb-6 sm:mb-8 p-4 sm:p-6 bg-gradient-to-r from-green-500/10 to-emerald-500/5 border border-green-500/20 rounded-2xl relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
                         <Link size={48} className="text-green-500 sm:w-16 sm:h-16" />

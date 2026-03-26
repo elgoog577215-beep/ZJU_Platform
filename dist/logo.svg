@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 120" fill="none">
+  <!-- Gradient Definition -->
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#818cf8" /> <!-- Indigo 400 -->
+      <stop offset="100%" stop-color="#c084fc" /> <!-- Purple 400 -->
+    </linearGradient>
+  </defs>
+
+  <!-- Icon Part (Abstract T/Z shape) -->
+  <path d="M40 30 L80 30 L60 60 L80 90 L40 90 L60 60 Z" fill="url(#logoGradient)" stroke="white" stroke-width="2" />
+  
+  <!-- Text Part: 拓途浙享 -->
+  <text x="100" y="80" font-family="'Microsoft YaHei', 'SimHei', sans-serif" font-weight="bold" font-size="48" fill="white" letter-spacing="4">
+    拓途浙享
+  </text>
+  
+  <!-- Subtitle: TUOTU ZHEXIANG -->
+  <text x="105" y="105" font-family="sans-serif" font-size="14" fill="#9ca3af" letter-spacing="6">
+    TUOTU ZHEXIANG
+  </text>
+</svg>

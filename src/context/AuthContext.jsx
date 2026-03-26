@@ -20,7 +20,10 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (!token) return;
+    if (!token) {
+      setLoading(false);
+      return;
+    }
 
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     api.get('/auth/me')
@@ -29,6 +32,7 @@ export const AuthProvider = ({ children }) => {
         if (err.response && (err.response.status === 401 || err.response.status === 403)) {
           localStorage.removeItem('token');
           delete api.defaults.headers.common['Authorization'];
+          setUser(null);
         }
       })
       .finally(() => setLoading(false));

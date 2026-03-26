@@ -365,7 +365,7 @@ const Gallery = () => {
             </motion.div>
         ) : (
           <motion.div 
-            layout
+            layout={typeof window !== 'undefined' && window.innerWidth >= 768}
             className="columns-2 md:columns-3 lg:columns-4 gap-4 md:gap-6 max-w-7xl mx-auto pb-8 md:pb-0"
           >
               <AnimatePresence mode="popLayout">

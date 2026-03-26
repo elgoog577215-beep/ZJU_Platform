@@ -102,7 +102,7 @@ app.use(sanitizeRequest);
 // General API rate limiting
 const generalLimiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 500,
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 5000, // Increased significantly
   standardHeaders: true,
   legacyHeaders: false,
   message: { 
@@ -121,7 +121,7 @@ const generalLimiter = rateLimit({
 // Stricter rate limit for auth routes
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: parseInt(process.env.AUTH_RATE_LIMIT_MAX) || 20,
+  max: parseInt(process.env.AUTH_RATE_LIMIT_MAX) || 2000, // Increased significantly to effectively disable for normal use
   standardHeaders: true,
   legacyHeaders: false,
   skipSuccessfulRequests: true, // Don't count successful logins
@@ -242,7 +242,7 @@ if (fs.existsSync(distPath)) {
 // ====================
 const { scrapeWeChat, parseWithLLM, cleanWeChatUrl, wechatCache, CACHE_TTL, downloadWeChatImage } = require('./src/utils/wechat');
 
-app.post('/api/resources/parse-wechat', authenticateToken, isAdmin, async (req, res, next) => {
+app.post('/api/resources/parse-wechat', authenticateToken, async (req, res, next) => {
   const { url } = req.body;
   
   if (!url) {

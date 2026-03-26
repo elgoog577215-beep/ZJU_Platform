@@ -308,6 +308,19 @@ const BackgroundSystem = ({ forcedTheme = null }) => {
   const [dpr, setDpr] = useState(1.5);
   const [perfSufficient, setPerfSufficient] = useState(true);
 
+  // Check if mobile on mount
+  useEffect(() => {
+    const checkMobile = () => {
+      if (window.innerWidth < 768) {
+        setDpr(1); // Start with lower DPR on mobile
+        setPerfSufficient(false); // Disable heavy post-processing by default on mobile
+      }
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   return (
     <>
       <div className="fixed inset-0 -z-10 bg-black" style={{ filter: `brightness(${settings.background_brightness || 1})` }}>
