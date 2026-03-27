@@ -60,7 +60,8 @@ const TagFilter = ({ selectedTags = [], onChange, className, variant = 'card', t
     return null;
   }
 
-  const initialLimit = isMobile ? 10 : 20;
+  const isSheetVariant = variant === 'sheet';
+  const initialLimit = isSheetVariant ? 14 : isMobile ? 10 : 20;
   const displayedTags = isExpanded ? allTags : allTags.slice(0, initialLimit);
   
   const containerClasses = variant === 'card' 
@@ -70,45 +71,51 @@ const TagFilter = ({ selectedTags = [], onChange, className, variant = 'card', t
   return (
     <div className={`w-full ${className || ''}`}>
       <div className={containerClasses}>
-        <div className="flex items-center justify-between mb-3 md:mb-4">
-            <div 
-                className="flex items-center gap-2 cursor-pointer md:cursor-default" 
-                onClick={() => isMobile && setIsMobileCollapsed(!isMobileCollapsed)}
-            >
-                <div className={`p-2.5 sm:p-2 rounded-lg ${variant === 'card' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-white/10 text-white'}`}>
-                    <Filter size={isMobile ? 16 : 18} />
-                </div>
-                <span className="font-bold text-white text-base md:text-lg tracking-wide">{t('common.filter_by_tags', 'Filter by Tags')}</span>
-                {isMobile && (
-                    <motion.div 
-                        animate={{ rotate: isMobileCollapsed ? 0 : 180 }}
-                        className="ml-1 text-gray-400"
-                    >
-                        <ChevronDown size={16} />
-                    </motion.div>
-                )}
-            </div>
-            
-            {selectedTags.length > 0 && (
-                <button 
-                    onClick={() => onChange([])}
-                    className="text-xs font-medium text-gray-400 hover:text-white flex items-center gap-1 transition-colors px-3 py-2 sm:px-3 sm:py-1.5 rounded-full bg-white/5 hover:bg-white/10 min-h-[44px] sm:min-h-0"
-                >
-                    <X size={12} />
-                    {t('common.clear_all', 'Clear All')}
-                </button>
-            )}
-        </div>
+        {!isSheetVariant ? (
+          <div className="flex items-center justify-between mb-3 md:mb-4">
+              <div 
+                  className="flex items-center gap-2 cursor-pointer md:cursor-default" 
+                  onClick={() => isMobile && setIsMobileCollapsed(!isMobileCollapsed)}
+              >
+                  <div className={`p-2.5 sm:p-2 rounded-lg ${variant === 'card' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-white/10 text-white'}`}>
+                      <Filter size={isMobile ? 16 : 18} />
+                  </div>
+                  <span className="font-bold text-white text-base md:text-lg tracking-wide">{t('common.filter_by_tags', 'Filter by Tags')}</span>
+                  {isMobile && (
+                      <motion.div 
+                          animate={{ rotate: isMobileCollapsed ? 0 : 180 }}
+                          className="ml-1 text-gray-400"
+                      >
+                          <ChevronDown size={16} />
+                      </motion.div>
+                  )}
+              </div>
+              
+              {selectedTags.length > 0 && (
+                  <button 
+                      onClick={() => onChange([])}
+                      className="text-xs font-medium text-gray-400 hover:text-white flex items-center gap-1 transition-colors px-3 py-2 sm:px-3 sm:py-1.5 rounded-full bg-white/5 hover:bg-white/10 min-h-[44px] sm:min-h-0"
+                  >
+                      <X size={12} />
+                      {t('common.clear_all', 'Clear All')}
+                  </button>
+              )}
+          </div>
+        ) : (
+          <div className="mb-3 pl-1">
+             <span className="text-sm font-bold text-white/80">{t('common.filter_by_tags', 'Filter by Tags')}</span>
+          </div>
+        )}
 
         <AnimatePresence>
-            {(!isMobile || !isMobileCollapsed) && (
+            {((!isMobile || !isMobileCollapsed) || isSheetVariant) && (
                 <motion.div 
-                    initial={isMobile ? { height: 0, opacity: 0 } : false}
-                    animate={isMobile ? { height: 'auto', opacity: 1 } : false}
-                    exit={isMobile ? { height: 0, opacity: 0 } : false}
+                    initial={isMobile && !isSheetVariant ? { height: 0, opacity: 0 } : false}
+                    animate={isMobile && !isSheetVariant ? { height: 'auto', opacity: 1 } : false}
+                    exit={isMobile && !isSheetVariant ? { height: 0, opacity: 0 } : false}
                     className="overflow-hidden"
                 >
-                    <motion.div layout className="flex flex-wrap gap-2 md:gap-3">
+                    <motion.div layout className={`flex flex-wrap ${isSheetVariant ? 'gap-2.5' : 'gap-2 md:gap-3'}`}>
                         {displayedTags.map(tag => (
                             <motion.button
                                 layout
@@ -118,20 +125,20 @@ const TagFilter = ({ selectedTags = [], onChange, className, variant = 'card', t
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => toggleTag(tag.name)}
-                                className={`px-4 py-2.5 sm:py-2 rounded-xl text-sm font-medium transition-all border flex items-center gap-2 min-h-[44px] sm:min-h-0 ${
+                                className={`px-4 py-2.5 sm:py-2 rounded-2xl text-sm font-medium transition-all border flex items-center gap-2 min-h-[44px] sm:min-h-0 ${
                                     selectedTags.includes(tag.name)
-                                        ? 'bg-indigo-500 text-white border-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.3)]'
-                                        : 'bg-white/5 text-gray-400 border-white/5 hover:bg-white/10 hover:text-white hover:border-white/10'
+                                        ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40 shadow-[0_0_15px_rgba(99,102,241,0.15)]'
+                                        : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/20'
                                 }`}
                             >
                                 {selectedTags.includes(tag.name) && (
-                                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="bg-white rounded-full p-0.5">
-                                        <CheckCircle size={10} className="text-indigo-500" />
+                                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="bg-indigo-400 rounded-full p-0.5">
+                                        <CheckCircle size={12} className="text-black" />
                                     </motion.div>
                                 )}
                                 {tag.name}
                                 <span className={`ml-1 px-1.5 py-0.5 rounded-md text-xs font-semibold ${
-                                    selectedTags.includes(tag.name) ? 'bg-white/20 text-white' : 'bg-white/10 text-gray-400'
+                                    selectedTags.includes(tag.name) ? 'bg-indigo-500/30 text-indigo-200' : 'bg-white/10 text-gray-400'
                                 }`}>
                                     {tag.count}
                                 </span>

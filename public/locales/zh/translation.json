@@ -324,7 +324,11 @@
     "featured": "精选",
     "try_again": "重试",
     "force_reload": "强制刷新",
-    "searching": "搜索中..."
+    "searching": "搜索中...",
+    "clear": "清除",
+    "done": "完成",
+    "sort": "排序",
+    "filters": "筛选"
   },
   "upload": {
     "title_required": "标题不能为空",
@@ -349,6 +353,8 @@
     "parsing": "解析中...",
     "cleared": "已清空解析数据",
     "smart_parse": "智能识别",
+    "smart_parse_title": "智能识别",
+    "smart_parse_desc": "粘贴微信公众号文章链接，一键自动提取活动详情。",
     "tags": "标签",
     "tags_placeholder": "输入标签，按回车添加...",
     "event_link": "活动链接",
@@ -363,9 +369,19 @@
     "newest": "最新发布",
     "oldest": "最早发布",
     "likes": "最多喜欢",
-    "title": "标题排序",
+    "title": "选择排序方式",
     "date_asc": "日期 (最早)",
     "date_desc": "日期 (最晚)"
+  },
+  "advanced_filter": {
+    "title": "筛选活动内容",
+    "clear": "清除所有筛选",
+    "organizer": "主办方",
+    "all_organizers": "所有主办方",
+    "location": "地点",
+    "all_locations": "所有地点",
+    "target_audience": "面向对象",
+    "all_target_audiences": "所有目标人群"
   },
   "gallery": {
     "title": "光影画廊",
@@ -627,6 +643,14 @@
       "content": "内容管理",
       "users": "用户管理",
       "system": "系统管理"
+    },
+    "tabs": {
+      "events": "活动管理",
+      "pages": "页面管理",
+      "tags": "标签管理",
+      "users": "用户管理",
+      "messages": "消息管理",
+      "settings": "系统设置"
     },
     "pro_tip": "专业提示",
     "pro_tip_desc": "使用网格/列表视图切换来高效管理内容。",

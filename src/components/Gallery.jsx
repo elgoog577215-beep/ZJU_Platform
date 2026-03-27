@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import React, { useState, useMemo, useEffect, useCallback, memo, forwardRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Lightbox from './Lightbox';
@@ -188,6 +189,54 @@ const Gallery = () => {
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
   const [tempPhoto, setTempPhoto] = useState(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
+  const hasActiveMobileFilters = selectedTags.length > 0;
+  const mobileSortLabel = useMemo(() => {
+    switch (sort) {
+      case 'oldest':
+        return t('sort_filter.oldest', '最旧');
+      case 'likes':
+        return t('sort_filter.likes', '最热');
+      case 'title':
+        return t('sort_filter.title', '标题');
+      default:
+        return t('sort_filter.newest', '最新');
+    }
+  }, [sort, t]);
+
+  // Listen for global events from Navbar
+  useEffect(() => {
+    const handleOpenUpload = (e) => {
+        if (e.detail.type === 'image') setIsUploadOpen(true);
+    };
+    const handleToggleFilter = () => {
+        setIsMobileSortOpen(false);
+        setIsMobileFilterOpen(prev => !prev);
+    };
+    const handleToggleSort = () => {
+        setIsMobileFilterOpen(false);
+        setIsMobileSortOpen(prev => !prev);
+    };
+
+    window.addEventListener('open-upload-modal', handleOpenUpload);
+    window.addEventListener('toggle-mobile-filter', handleToggleFilter);
+    window.addEventListener('toggle-mobile-sort', handleToggleSort);
+    return () => {
+        window.removeEventListener('open-upload-modal', handleOpenUpload);
+        window.removeEventListener('toggle-mobile-filter', handleToggleFilter);
+        window.removeEventListener('toggle-mobile-sort', handleToggleSort);
+    };
+  }, []);
+
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('set-mobile-toolbar-state', {
+      detail: {
+        filterCount: selectedTags.length,
+        sortLabel: mobileSortLabel
+      }
+    }));
+  }, [selectedTags.length, mobileSortLabel]);
 
   useBackClose(selectedPhotoIndex !== null || tempPhoto !== null, () => {
       setSelectedPhotoIndex(null);
@@ -287,7 +336,7 @@ const Gallery = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="mb-8 md:mb-12 relative z-40 text-center"
+        className="mb-6 md:mb-12 relative z-40 text-center"
       >
         <motion.button
           whileHover={{ scale: 1.05, rotate: 90 }}
@@ -299,7 +348,7 @@ const Gallery = () => {
             }
             setIsUploadOpen(true);
           }}
-          className="absolute right-0 top-0 md:top-2 bg-white/10 hover:bg-white/20 text-white 
+          className="hidden md:block absolute right-0 top-0 md:top-2 bg-white/10 hover:bg-white/20 text-white 
                      p-2 md:p-3 rounded-full backdrop-blur-md border border-white/10 
                      transition-all hover:shadow-lg hover:shadow-indigo-500/20"
           title={t('common.upload_photo')}
@@ -311,7 +360,7 @@ const Gallery = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-4xl md:text-5xl font-bold font-serif mb-4 md:mb-6"
+          className="hidden md:block text-4xl md:text-5xl font-bold font-serif mb-4 md:mb-6"
         >
           {t('gallery.title')}
         </motion.h2>
@@ -319,7 +368,7 @@ const Gallery = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-gray-400 max-w-xl mx-auto mb-6 md:mb-8 text-sm md:text-base"
+          className="hidden md:block text-gray-400 max-w-xl mx-auto mb-6 md:mb-8 text-sm md:text-base"
         >
           {t('gallery.subtitle')}
         </motion.p>
@@ -329,7 +378,7 @@ const Gallery = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="flex flex-col items-center gap-6 relative z-50"
+          className="hidden md:flex flex-col items-center gap-6 relative z-50"
         >
           <div className="w-full max-w-4xl mx-auto px-4">
              <TagFilter selectedTags={selectedTags} onChange={setSelectedTags} type="photos" />
@@ -337,6 +386,121 @@ const Gallery = () => {
           <SortSelector sort={sort} onSortChange={setSort} />
         </motion.div>
       </motion.div>
+
+        {/* Mobile Filter Drawer (Bottom Sheet) */}
+        {createPortal(
+          <AnimatePresence>
+              {isMobileFilterOpen && (
+                  <>
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setIsMobileFilterOpen(false)}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] md:hidden"
+                    />
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.96, y: 16 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.96, y: 16 }}
+                        transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+                        className="fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit bg-[#1a1a1a]/95 backdrop-blur-xl border border-white/10 rounded-3xl z-[101] md:hidden flex flex-col max-h-[80vh] max-w-md mx-auto shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
+                    >
+                        <div className="p-4 border-b border-white/10 flex justify-between items-center sticky top-0 z-10 bg-[#1a1a1a]/95 backdrop-blur-xl rounded-t-3xl">
+                            <div>
+                                <h3 className="text-lg font-bold text-white">{t('common.filters', '筛选')}</h3>
+                                <p className="text-xs text-gray-400 mt-1">{t('common.filter_by_tags', 'Filter by Tags')}</p>
+                            </div>
+                            <button onClick={() => setIsMobileFilterOpen(false)} className="p-2 text-gray-400 hover:text-white bg-white/5 rounded-full transition-colors">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="p-6 overflow-y-auto custom-scrollbar flex-1 min-h-0 space-y-6">
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between gap-3">
+                                    <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">{t('common.tags') || 'Tags'}</h4>
+                                    {selectedTags.length > 0 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setSelectedTags([])}
+                                            className="text-xs text-red-300 bg-red-500/10 border border-red-500/20 px-3 py-1.5 rounded-full"
+                                        >
+                                            {t('common.clear_all') || 'Clear All'}
+                                        </button>
+                                    )}
+                                </div>
+                                <TagFilter selectedTags={selectedTags} onChange={setSelectedTags} type="photos" variant="sheet" />
+                            </div>
+                        </div>
+                        <div className="p-4 border-t border-white/10 bg-[#1a1a1a]/95 backdrop-blur-xl rounded-b-3xl flex items-center gap-3 shrink-0">
+                            <button
+                                type="button"
+                                onClick={() => setSelectedTags([])}
+                                disabled={!hasActiveMobileFilters}
+                                className="flex-1 py-3 rounded-2xl border border-white/10 bg-white/5 text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                                {t('common.clear_all', '重置')}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setIsMobileFilterOpen(false)}
+                                className="flex-1 py-3 rounded-2xl bg-white text-black font-semibold"
+                            >
+                                {t('common.done', '完成')}
+                            </button>
+                        </div>
+                    </motion.div>
+                  </>
+              )}
+          </AnimatePresence>,
+          document.body
+        )}
+
+        {/* Mobile Sort Drawer (Bottom Sheet) */}
+        {createPortal(
+          <AnimatePresence>
+              {isMobileSortOpen && (
+                  <>
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setIsMobileSortOpen(false)}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] md:hidden"
+                    />
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.96, y: 16 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.96, y: 16 }}
+                        transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+                        className="fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit bg-[#1a1a1a]/95 backdrop-blur-xl border border-white/10 rounded-3xl z-[101] md:hidden flex flex-col max-w-sm mx-auto shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
+                    >
+                        <div className="p-4 border-b border-white/10 flex justify-between items-center sticky top-0 z-10 bg-[#1a1a1a]/95 backdrop-blur-xl rounded-t-3xl">
+                            <div>
+                                <h3 className="text-lg font-bold text-white">{t('common.sort', '排序')}</h3>
+                                <p className="text-xs text-gray-400 mt-1">{t('sort_filter.title') || '选择排序方式'}</p>
+                            </div>
+                            <button onClick={() => setIsMobileSortOpen(false)} className="p-2 text-gray-400 hover:text-white bg-white/5 rounded-full transition-colors">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="p-4">
+                            <SortSelector 
+                                sort={sort} 
+                                onSortChange={(val) => {
+                                    setSort(val);
+                                    setTimeout(() => setIsMobileSortOpen(false), 300);
+                                }} 
+                                className="w-full"
+                                renderMode="list"
+                            />
+                        </div>
+                    </motion.div>
+                </>
+            )}
+        </AnimatePresence>,
+        document.body
+        )}
 
         {loading && photos.length === 0 ? (
           <GallerySkeleton count={12} />

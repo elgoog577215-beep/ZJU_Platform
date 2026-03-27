@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Cloud, Clock, CloudRain, Sun, CloudLightning, CloudSnow, CloudFog, Search, LogOut, Palette, MousePointer2, X, MapPin } from 'lucide-react';
+import { Cloud, Clock, CloudRain, Sun, CloudLightning, CloudSnow, CloudFog, Search, LogOut, Palette, MousePointer2, X, MapPin, Upload, Plus, Filter, ArrowUpDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -12,6 +12,7 @@ import AuthModal from './AuthModal';
 import { themeConfig } from '../data/themeConfig';
 import NotificationCenter from './NotificationCenter';
 import ReactDOM from 'react-dom';
+import toast from 'react-hot-toast';
 
 const Portal = ({ children }) => {
   return ReactDOM.createPortal(children, document.body);
@@ -20,6 +21,7 @@ const Portal = ({ children }) => {
 const Navbar = () => {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isThemeOpen, setIsThemeOpen] = useState(false);
+  const [mobileToolbarState, setMobileToolbarState] = useState({ filterCount: 0, sortLabel: '' });
   const location = useLocation();
   const { t } = useTranslation();
   const { settings, cursorEnabled, toggleCursor, backgroundScene, changeBackgroundScene } = useSettings();
@@ -70,14 +72,53 @@ const Navbar = () => {
     ...(isAdmin ? [{ key: 'admin', path: '/admin' }] : [])
   ];
 
+  // Map route to specific upload type, and dispatch custom event
+  const handleUploadClick = () => {
+    if (!user) {
+        toast.error(t('auth.signin_required'));
+        setIsAuthOpen(true);
+        return;
+    }
+    
+    let type = '';
+    if (location.pathname === '/events') type = 'event';
+    else if (location.pathname === '/gallery') type = 'image';
+    else if (location.pathname === '/music') type = 'audio';
+    else if (location.pathname === '/videos') type = 'video';
+    else if (location.pathname === '/articles') type = 'article';
+    
+    if (type) {
+        window.dispatchEvent(new CustomEvent('open-upload-modal', { detail: { type } }));
+    }
+  };
+
+  const uploadablePaths = ['/events', '/gallery', '/music', '/videos', '/articles'];
+  const showUploadButton = uploadablePaths.includes(location.pathname);
+
+  useEffect(() => {
+    const handleToolbarState = (event) => {
+      setMobileToolbarState({
+        filterCount: event.detail?.filterCount || 0,
+        sortLabel: event.detail?.sortLabel || ''
+      });
+    };
+
+    window.addEventListener('set-mobile-toolbar-state', handleToolbarState);
+    return () => window.removeEventListener('set-mobile-toolbar-state', handleToolbarState);
+  }, []);
+
+  useEffect(() => {
+    setMobileToolbarState({ filterCount: 0, sortLabel: '' });
+  }, [location.pathname]);
+
   return (
     <motion.nav 
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.8 }}
-      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-3 bg-black/20 backdrop-blur-xl border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)]"
+      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 md:px-6 py-3 bg-black/20 backdrop-blur-xl border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)]"
     >
-      <Link to="/" className="flex items-center gap-3 text-white group z-50">
+      <Link to="/" className="hidden md:flex items-center gap-3 text-white group z-50">
         <div className="relative">
           <div className="absolute inset-0 bg-indigo-500/50 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-full" />
           <img src="/newlogo.png" alt="拓途浙享" className="relative h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105" />
@@ -177,30 +218,76 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Actions */}
-      <div className="md:hidden flex items-center gap-3 z-50">
-        <button 
-          onClick={() => window.dispatchEvent(new Event('open-search-palette'))}
-          className="p-2 text-gray-300 hover:text-white"
-        >
-          <Search size={20} />
-        </button>
-        <NotificationCenter />
-        <LanguageSwitcher />
-        {user ? (
-            <Link 
-               to={`/user/${user.id}`}
-               className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-[10px] text-white font-bold border border-white/20"
-            >
-                {user.username.charAt(0).toUpperCase()}
-            </Link>
-        ) : (
+      <div className="md:hidden flex items-center justify-between w-full z-50 px-2">
+        {/* Mobile Page Title */}
+        <div className="text-lg font-bold text-white/90 tracking-wide absolute left-1/2 -translate-x-1/2 pointer-events-none">
+          {navLinks.find(link => location.pathname === link.path)?.key ? t(`nav.${navLinks.find(link => location.pathname === link.path).key}`) : ''}
+        </div>
+
+        {/* Left Side Actions */}
+        <div className="flex items-center gap-2">
             <button 
-                onClick={() => setIsAuthOpen(true)}
-                className="text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-full transition-all"
+              onClick={() => window.dispatchEvent(new Event('open-search-palette'))}
+              className="p-2 text-gray-300 hover:text-white"
             >
-                {t('auth.log_in')}
+              <Search size={20} />
             </button>
-        )}
+            <LanguageSwitcher />
+        </div>
+
+        {/* Right Side Actions */}
+        <div className="flex items-center gap-2">
+            {showUploadButton && (
+               <button 
+                  onClick={() => window.dispatchEvent(new CustomEvent('toggle-mobile-sort'))}
+                  className="flex items-center gap-1.5 px-2 py-1.5 text-gray-300 hover:text-white transition-colors relative bg-white/5 rounded-full border border-white/10"
+               >
+                  <ArrowUpDown size={18} />
+                  {mobileToolbarState.sortLabel && (
+                    <span className="text-[10px] font-semibold leading-none">
+                      {mobileToolbarState.sortLabel}
+                    </span>
+                  )}
+               </button>
+            )}
+            {showUploadButton && (
+               <button 
+                  onClick={() => window.dispatchEvent(new CustomEvent('toggle-mobile-filter'))}
+                  className="p-1.5 text-gray-300 hover:text-white transition-colors relative bg-white/5 rounded-full border border-white/10"
+               >
+                  <Filter size={18} />
+                  {mobileToolbarState.filterCount > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-indigo-500 text-white text-[10px] font-bold flex items-center justify-center shadow-[0_0_12px_rgba(99,102,241,0.45)]">
+                      {mobileToolbarState.filterCount}
+                    </span>
+                  )}
+               </button>
+            )}
+            {showUploadButton && (
+               <button 
+                  onClick={handleUploadClick}
+                  className="p-1.5 bg-indigo-500 hover:bg-indigo-400 text-white rounded-full shadow-[0_0_15px_rgba(99,102,241,0.3)] transition-colors ml-1"
+               >
+                  <Plus size={16} strokeWidth={3} />
+               </button>
+            )}
+            <NotificationCenter />
+            {user ? (
+                <Link 
+                   to={`/user/${user.id}`}
+                   className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-[10px] text-white font-bold border border-white/20"
+                >
+                    {user.username.charAt(0).toUpperCase()}
+                </Link>
+            ) : (
+                <button 
+                    onClick={() => setIsAuthOpen(true)}
+                    className="text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-full transition-all"
+                >
+                    {t('auth.log_in')}
+                </button>
+            )}
+        </div>
       </div>
 
       <AnimatePresence>

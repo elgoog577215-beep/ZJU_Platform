@@ -16,8 +16,11 @@ const EventFilterPanel = ({
   sort,
   onSortChange,
   refreshTrigger = 0,
+  hideSort = false,
+  mode = 'default'
 }) => {
   const { t } = useTranslation();
+  const isSheetMode = mode === 'sheet';
 
   const sortExtraOptions = [
     { value: 'date_asc', label: t('sort_filter.date_asc') || 'Date (Earliest)' },
@@ -50,6 +53,7 @@ const EventFilterPanel = ({
         refreshTrigger={refreshTrigger}
         lifecycle={lifecycle}
         onLifecycleChange={onLifecycleChange}
+        variant={isSheetMode ? 'sheet' : 'card'}
       />
 
       {/* Tag filter — independent card, receives filters + lifecycle for count sync */}
@@ -58,31 +62,35 @@ const EventFilterPanel = ({
         onChange={onTagsChange}
         type="events"
         filters={tagFilters}
+        variant={isSheetMode ? 'sheet' : 'card'}
       />
 
       {/* Sort row */}
-      <div className="flex justify-end items-center gap-3">
+      <div className={`flex ${isSheetMode ? 'justify-stretch' : 'justify-end items-center'} gap-3`}>
         <AnimatePresence>
-          {hasActiveFilters && (
+          {hasActiveFilters && !isSheetMode && (
             <motion.button
               initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 10 }}
               onClick={clearAll}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all border border-red-500/10 text-sm font-medium shrink-0"
+              className={`${isSheetMode ? 'w-full justify-center rounded-2xl py-3.5' : 'px-4 py-2 rounded-full'} flex items-center gap-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all border border-red-500/10 text-sm font-medium shrink-0`}
             >
               <X size={14} />
               {t('advanced_filter.clear') || '清除所有筛选'}
             </motion.button>
           )}
         </AnimatePresence>
-        <SortSelector
-          sort={sort}
-          onSortChange={onSortChange}
-          className="w-48"
-          buttonClassName="bg-[#0a0a0a]/60 border border-white/10 hover:bg-[#0a0a0a]/80 w-full py-3 rounded-xl text-white backdrop-blur-3xl transition-all shadow-lg"
-          extraOptions={sortExtraOptions}
-        />
+        {!hideSort && (
+          <SortSelector
+            sort={sort}
+            onSortChange={onSortChange}
+            className={isSheetMode ? 'w-full' : 'w-48'}
+            buttonClassName="bg-[#0a0a0a]/60 border border-white/10 hover:bg-[#0a0a0a]/80 w-full py-3 rounded-xl text-white backdrop-blur-3xl transition-all shadow-lg"
+            extraOptions={sortExtraOptions}
+            renderMode={isSheetMode ? 'list' : 'dropdown'}
+          />
+        )}
       </div>
     </div>
   );

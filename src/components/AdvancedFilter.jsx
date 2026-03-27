@@ -94,6 +94,7 @@ const AdvancedFilter = ({
         { key: 'target_audience', icon: Users, labelKey: 'advanced_filter.target_audience', allLabelKey: 'advanced_filter.all_target_audiences', options: options.target_audience },
     ];
 
+    const isSheetVariant = variant === 'sheet';
     const containerClasses = variant === 'card'
         ? "bg-black/20 border border-white/10 rounded-3xl p-4 md:p-6 shadow-[0_8px_32px_rgba(0,0,0,0.2)]"
         : "";
@@ -107,58 +108,60 @@ const AdvancedFilter = ({
                 <div className="absolute inset-0 rounded-3xl backdrop-blur-2xl pointer-events-none" />
             )}
             <div className={`relative ${containerClasses}`}>
-                <div className="flex items-center justify-between mb-4 md:mb-6">
-                    <div 
-                        className="flex items-center gap-3 cursor-pointer md:cursor-default"
-                        onClick={() => {
-                            if (isMobile) {
-                                setOverflowVisible(false);
-                                setIsCollapsed(!isCollapsed);
-                            }
-                        }}
-                    >
-                        <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 shadow-[0_0_15px_-5px_rgba(99,102,241,0.3)]">
-                            <SlidersHorizontal size={20} />
-                        </div>
-                        <h3 className="text-lg font-bold text-white tracking-wide">
-                            {t('advanced_filter.title')}
-                        </h3>
-                        {isMobile && (
-                            <motion.div
-                                animate={{ rotate: isCollapsed ? 0 : 180 }}
-                                transition={{ duration: 0.2 }}
-                                className="ml-2 text-gray-500"
-                            >
-                                <ChevronDown size={16} />
-                            </motion.div>
-                        )}
-                    </div>
-                    
-                    {hasActiveFilters && !isCollapsed && (
-                        <motion.button
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            onClick={clearFilters}
-                            className="text-xs flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all border border-red-500/10"
-                        >
-                            <X size={12} />
-                            {t('advanced_filter.clear')}
-                        </motion.button>
-                    )}
-                </div>
+                {!isSheetVariant && (
+                  <div className="flex items-center justify-between mb-4 md:mb-6">
+                      <div 
+                          className="flex items-center gap-3 cursor-pointer md:cursor-default"
+                          onClick={() => {
+                              if (isMobile) {
+                                  setOverflowVisible(false);
+                                  setIsCollapsed(!isCollapsed);
+                              }
+                          }}
+                      >
+                          <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 shadow-[0_0_15px_-5px_rgba(99,102,241,0.3)]">
+                              <SlidersHorizontal size={20} />
+                          </div>
+                          <h3 className="text-lg font-bold text-white tracking-wide">
+                              {t('advanced_filter.title')}
+                          </h3>
+                          {isMobile && (
+                              <motion.div
+                                  animate={{ rotate: isCollapsed ? 0 : 180 }}
+                                  transition={{ duration: 0.2 }}
+                                  className="ml-2 text-gray-500"
+                              >
+                                  <ChevronDown size={16} />
+                              </motion.div>
+                          )}
+                      </div>
+                      
+                      {hasActiveFilters && !isCollapsed && (
+                          <motion.button
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              onClick={clearFilters}
+                              className="text-xs flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all border border-red-500/10"
+                          >
+                              <X size={12} />
+                              {t('advanced_filter.clear')}
+                          </motion.button>
+                      )}
+                  </div>
+                )}
                 
                 <AnimatePresence>
-                    {(!isMobile || !isCollapsed) && (
+                    {((!isMobile || !isCollapsed) || isSheetVariant) && (
                         <motion.div
-                            initial={isMobile ? { height: 0, opacity: 0 } : false}
-                            animate={isMobile ? { height: 'auto', opacity: 1 } : false}
-                            exit={isMobile ? { height: 0, opacity: 0 } : false}
+                            initial={isMobile && !isSheetVariant ? { height: 0, opacity: 0 } : false}
+                            animate={isMobile && !isSheetVariant ? { height: 'auto', opacity: 1 } : false}
+                            exit={isMobile && !isSheetVariant ? { height: 0, opacity: 0 } : false}
                             onAnimationComplete={() => {
                                 if (!isCollapsed) setOverflowVisible(true);
                             }}
-                            className={isMobile && !overflowVisible ? "overflow-hidden" : ""}
+                            className={isMobile && !overflowVisible && !isSheetVariant ? "overflow-hidden" : ""}
                         >
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pb-1">
+                            <div className={`grid ${isSheetVariant ? 'grid-cols-1 gap-3' : 'grid-cols-2 md:grid-cols-4 gap-3'} pb-1`}>
                                 {attributeFilterConfig.map(({ key, icon, labelKey, allLabelKey, options: fieldOptions }) => (
                                     <Dropdown
                                         key={key}
@@ -167,7 +170,8 @@ const AdvancedFilter = ({
                                         options={[{ value: 'all', label: t(allLabelKey) }, ...fieldOptions]}
                                         icon={icon}
                                         placeholder={t(labelKey)}
-                                        buttonClassName="bg-white/5 border border-white/10 hover:bg-white/10 hover:border-indigo-500/30 hover:shadow-[0_0_20px_-5px_rgba(99,102,241,0.3)] w-full py-2.5 rounded-xl text-white text-sm backdrop-blur-sm transition-all shadow-lg"
+                                        variant={variant}
+                                        buttonClassName={`${isSheetVariant ? 'w-full py-3.5 rounded-2xl text-sm backdrop-blur-sm transition-all shadow-sm' : 'bg-white/5 border border-white/10 hover:bg-white/10 hover:border-indigo-500/30 hover:shadow-[0_0_20px_-5px_rgba(99,102,241,0.3)] w-full py-2.5 rounded-xl text-white text-sm backdrop-blur-sm transition-all shadow-lg'}`}
                                     />
                                 ))}
                                 {/* Lifecycle filter lives here alongside attribute filters */}
@@ -177,7 +181,8 @@ const AdvancedFilter = ({
                                         onChange={onLifecycleChange}
                                         options={lifecycleOptions}
                                         icon={Filter}
-                                        buttonClassName="bg-white/5 border border-white/10 hover:bg-white/10 hover:border-indigo-500/30 hover:shadow-[0_0_20px_-5px_rgba(99,102,241,0.3)] w-full py-2.5 rounded-xl text-white text-sm backdrop-blur-sm transition-all shadow-lg"
+                                        variant={variant}
+                                        buttonClassName={`${isSheetVariant ? 'w-full py-3.5 rounded-2xl text-sm backdrop-blur-sm transition-all shadow-sm' : 'bg-white/5 border border-white/10 hover:bg-white/10 hover:border-indigo-500/30 hover:shadow-[0_0_20px_-5px_rgba(99,102,241,0.3)] w-full py-2.5 rounded-xl text-white text-sm backdrop-blur-sm transition-all shadow-lg'}`}
                                     />
                                 )}
                             </div>

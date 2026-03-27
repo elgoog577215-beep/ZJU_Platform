@@ -15,6 +15,7 @@ import SmartImage from './SmartImage';
 import { useBackClose } from '../hooks/useBackClose';
 import { useCachedResource } from '../hooks/useCachedResource';
 import EventFilterPanel from './EventFilterPanel';
+import SortSelector from './SortSelector';
 import DOMPurify from 'dompurify';
 
 import { useSearchParams } from 'react-router-dom';
@@ -111,7 +112,7 @@ const EventCard = memo(({ event, index, onClick, onToggleFavorite }) => {
     <div className="absolute inset-0 z-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
 {/* Image Section */}
-<div className="w-1/3 md:w-full aspect-square md:aspect-auto md:h-64 overflow-hidden relative shrink-0 z-10">
+<div className="w-[120px] sm:w-1/3 md:w-full aspect-square md:h-64 overflow-hidden relative shrink-0 z-10 m-3 md:m-0 rounded-2xl md:rounded-none">
     <SmartImage 
       src={getThumbnailUrl(event.image)} 
       alt={event.title} 
@@ -139,40 +140,40 @@ const EventCard = memo(({ event, index, onClick, onToggleFavorite }) => {
 </div>
 
 {/* Content Section */}
-    <div className="p-4 md:p-6 relative flex-1 flex flex-col min-w-0 h-full">
+    <div className="p-3 md:p-6 relative flex-1 flex flex-col min-w-0 h-full justify-center md:justify-start">
         {/* Title */}
-        <h3 className="text-xl md:text-2xl font-bold text-white mb-2 line-clamp-2 group-hover:text-indigo-400 transition-colors leading-tight tracking-tight">
+        <h3 className="text-base sm:text-lg md:text-2xl font-bold text-white mb-1.5 md:mb-2 line-clamp-2 group-hover:text-indigo-400 transition-colors leading-tight tracking-tight">
             {event.title}
         </h3>
 
         {/* Date & Location - Clean Text Row */}
-        <div className="flex items-center gap-3 text-base text-gray-400 mb-4">
+        <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 text-xs sm:text-sm md:text-base text-gray-400 mb-2 md:mb-4">
             <div className="flex items-center gap-1.5 shrink-0">
-                <Calendar size={16} className="text-indigo-400" />
+                <Calendar size={14} className="text-indigo-400 md:w-4 md:h-4" />
                 <span className="text-gray-200 font-medium whitespace-nowrap">
                     {formatDateTime(event.date)}
                     {event.end_date && !isSameDay(event.date, event.end_date) && `-${formatDateTime(event.end_date)}`}
                 </span>
             </div>
             
-            <span className="text-white/20">•</span>
+            <span className="hidden md:inline text-white/20">•</span>
             
             <div className="flex items-center gap-1.5 min-w-0">
-                <MapPin size={16} className="text-indigo-400 shrink-0" />
+                <MapPin size={14} className="text-indigo-400 shrink-0 md:w-4 md:h-4" />
                 <span className="truncate">{event.location || 'Online'}</span>
             </div>
         </div>
 
-        {/* Description - Max 3 lines */}
+        {/* Description - Max 3 lines (Hidden on Mobile) */}
         {event.description && (
-            <p className="text-base text-gray-400 mb-4 line-clamp-3 leading-relaxed">
+            <p className="hidden md:block text-base text-gray-400 mb-4 line-clamp-3 leading-relaxed">
                 {event.description}
             </p>
         )}
 
         {/* Benefits Badges */}
         {(event.score || event.volunteer_time) && (
-            <div className="flex flex-wrap gap-2 mb-4">
+            <div className="flex flex-wrap gap-1.5 md:gap-2 mb-2 md:mb-4">
                 {event.score && (
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-500/10 text-purple-300 border border-purple-500/20 text-xs font-bold uppercase tracking-wider">
                         <Award size={12} />
@@ -189,17 +190,17 @@ const EventCard = memo(({ event, index, onClick, onToggleFavorite }) => {
         )}
 
         {/* Footer: Tags & Actions */}
-        <div className="flex items-center justify-between mt-auto pt-3 border-t border-white/5">
-            <div className="flex flex-wrap gap-2 overflow-hidden min-h-[28px] md:min-h-[32px]">
+        <div className="flex items-center justify-between mt-auto pt-2 md:pt-3 border-t border-white/5">
+            <div className="flex flex-wrap gap-1.5 md:gap-2 overflow-hidden min-h-[24px] md:min-h-[32px]">
                 {event.tags && event.tags.split(',').slice(0, 2).map((tag, i) => (
-                    <span key={i} className="px-2 py-1 md:px-2.5 md:py-1.5 rounded-lg bg-indigo-500/10 text-indigo-300 text-xs font-medium border border-indigo-500/20 flex items-center gap-1 group-hover:bg-indigo-500/20 transition-colors shrink-0 max-w-[100px] md:max-w-[120px]">
-                        <Tag size={14} className="hidden md:block shrink-0" /> 
+                    <span key={i} className="px-1.5 py-0.5 md:px-2.5 md:py-1.5 rounded-md md:rounded-lg bg-indigo-500/10 text-indigo-300 text-[10px] md:text-xs font-medium border border-indigo-500/20 flex items-center gap-1 group-hover:bg-indigo-500/20 transition-colors shrink-0 max-w-[80px] md:max-w-[120px]">
+                        <Tag size={10} className="md:w-3 md:h-3" />
                         <span className="truncate">{tag.trim()}</span>
                     </span>
                 ))}
             </div>
             
-            <div className="flex items-center gap-2 md:gap-3 ml-auto">
+            <div className="flex items-center gap-2 md:gap-3 shrink-0 ml-auto">
                 <FavoriteButton 
                     itemId={event.id}
                     itemType="event"
@@ -228,6 +229,33 @@ const Events = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
+
+  // Listen for global events from Navbar
+  useEffect(() => {
+    const handleOpenUpload = (e) => {
+        if (e.detail.type === 'event') setIsUploadOpen(true);
+    };
+    const handleToggleFilter = () => {
+        setIsMobileSortOpen(false);
+        setIsMobileFilterOpen(prev => !prev);
+    };
+    const handleToggleSort = () => {
+        setIsMobileFilterOpen(false);
+        setIsMobileSortOpen(prev => !prev);
+    };
+
+    window.addEventListener('open-upload-modal', handleOpenUpload);
+    window.addEventListener('toggle-mobile-filter', handleToggleFilter);
+    window.addEventListener('toggle-mobile-sort', handleToggleSort);
+    return () => {
+        window.removeEventListener('open-upload-modal', handleOpenUpload);
+        window.removeEventListener('toggle-mobile-filter', handleToggleFilter);
+        window.removeEventListener('toggle-mobile-sort', handleToggleSort);
+    };
+  }, []);
+
   const [sort, setSort] = useState('date_desc');
   const [lifecycle, setLifecycle] = useState('all');
   const [selectedTags, setSelectedTags] = useState([]);
@@ -239,6 +267,37 @@ const Events = () => {
       organizer: null,
       target_audience: null
   });
+  const hasActiveMobileFilters = Object.values(filters).some(v => v) || selectedTags.length > 0 || lifecycle !== 'all';
+  const mobileSortLabel = useMemo(() => {
+    switch (sort) {
+      case 'date_asc':
+        return t('sort_filter.date_asc', '最早');
+      case 'date_desc':
+        return t('sort_filter.date_desc', '最晚');
+      case 'likes':
+        return t('sort_filter.likes', '最热');
+      case 'title':
+        return t('sort_filter.title', '标题');
+      default:
+        return t('sort_filter.newest', '最新');
+    }
+  }, [sort, t]);
+
+  const resetMobileFilters = () => {
+    setFilters({ location: null, organizer: null, target_audience: null });
+    setSelectedTags([]);
+    setLifecycle('all');
+  };
+
+  useEffect(() => {
+    const count = Object.values(filters).filter(Boolean).length + selectedTags.length + (lifecycle !== 'all' ? 1 : 0);
+    window.dispatchEvent(new CustomEvent('set-mobile-toolbar-state', {
+      detail: {
+        filterCount: count,
+        sortLabel: mobileSortLabel
+      }
+    }));
+  }, [filters, selectedTags, lifecycle, mobileSortLabel]);
 
   // Debounce search
   useEffect(() => {
@@ -450,14 +509,14 @@ END:VCALENDAR`;
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="mb-8 md:mb-12 relative z-40 md:pt-0 text-center"
+          className="mb-6 md:mb-12 relative z-40 md:pt-0 text-center"
         >
-          <div className="mb-8">
+          <div className="hidden md:block mb-8">
             <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold font-serif mb-3 md:mb-8">{t('events.title')}</h2>
             <p className="text-gray-400 max-w-xl mx-auto text-sm md:text-base">{t('events.subtitle')}</p>
           </div>
           
-        <div className="flex items-center gap-2 w-full md:w-auto justify-center md:absolute md:right-0 md:top-0 mb-4 md:mb-0">
+        <div className="hidden md:flex items-center gap-2 w-full md:w-auto justify-center md:absolute md:right-0 md:top-0 mb-4 md:mb-0">
              <button
                 onClick={() => {
                   if (!user) {
@@ -472,8 +531,8 @@ END:VCALENDAR`;
              </button>
         </div>
 
-        {/* Filter Section */}
-        <div className="w-full max-w-4xl mx-auto mb-8">
+        {/* Desktop Filter Section */}
+        <div className="hidden md:block w-full max-w-4xl mx-auto mb-8">
           <EventFilterPanel
             filters={filters}
             onFiltersChange={setFilters}
@@ -486,6 +545,123 @@ END:VCALENDAR`;
             refreshTrigger={filterVersion}
           />
         </div>
+
+        {/* Mobile Filter Drawer (Bottom Sheet) */}
+        {createPortal(
+          <AnimatePresence>
+              {isMobileFilterOpen && (
+                  <>
+                      <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          onClick={() => setIsMobileFilterOpen(false)}
+                          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] md:hidden"
+                      />
+                      <motion.div
+                          initial={{ opacity: 0, scale: 0.96, y: 16 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.96, y: 16 }}
+                          transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+                          className="fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit bg-[#1a1a1a]/95 backdrop-blur-xl border border-white/10 rounded-3xl z-[101] md:hidden flex flex-col max-h-[80vh] max-w-md mx-auto shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
+                      >
+                          <div className="p-4 border-b border-white/10 flex justify-between items-center sticky top-0 z-10 bg-[#1a1a1a]/95 backdrop-blur-xl rounded-t-3xl">
+                              <div>
+                                  <h3 className="text-lg font-bold text-white">{t('common.filters', '筛选')}</h3>
+                                  <p className="text-xs text-gray-400 mt-1">{t('advanced_filter.title') || '筛选活动内容'}</p>
+                              </div>
+                              <button onClick={() => setIsMobileFilterOpen(false)} className="p-2 text-gray-400 hover:text-white bg-white/5 rounded-full transition-colors">
+                                  <X size={20} />
+                              </button>
+                          </div>
+                          <div className="p-4 overflow-y-auto custom-scrollbar flex-1 min-h-0">
+                              <EventFilterPanel
+                                  filters={filters}
+                                  onFiltersChange={setFilters}
+                                  selectedTags={selectedTags}
+                                  onTagsChange={setSelectedTags}
+                                  lifecycle={lifecycle}
+                                  onLifecycleChange={setLifecycle}
+                                  sort={sort}
+                                  onSortChange={setSort}
+                                  refreshTrigger={filterVersion}
+                                  hideSort={true}
+                                  mode="sheet"
+                              />
+                          </div>
+                          <div className="p-4 border-t border-white/10 bg-[#1a1a1a]/95 backdrop-blur-xl rounded-b-3xl flex items-center gap-3 shrink-0">
+                              <button
+                                  type="button"
+                                  onClick={resetMobileFilters}
+                                  disabled={!hasActiveMobileFilters}
+                                  className="flex-1 py-3 rounded-2xl border border-white/10 bg-white/5 text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                              >
+                                  {t('common.clear_all', '重置')}
+                              </button>
+                              <button
+                                  type="button"
+                                  onClick={() => setIsMobileFilterOpen(false)}
+                                  className="flex-1 py-3 rounded-2xl bg-white text-black font-semibold"
+                              >
+                                  {t('common.done', '完成')}
+                              </button>
+                          </div>
+                      </motion.div>
+                  </>
+              )}
+          </AnimatePresence>,
+          document.body
+        )}
+
+        {/* Mobile Sort Drawer (Bottom Sheet) */}
+        {createPortal(
+          <AnimatePresence>
+              {isMobileSortOpen && (
+                  <>
+                      <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          onClick={() => setIsMobileSortOpen(false)}
+                          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] md:hidden"
+                      />
+                      <motion.div
+                          initial={{ opacity: 0, scale: 0.96, y: 16 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.96, y: 16 }}
+                          transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+                          className="fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit bg-[#1a1a1a]/95 backdrop-blur-xl border border-white/10 rounded-3xl z-[101] md:hidden flex flex-col max-w-sm mx-auto shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
+                      >
+                          <div className="p-4 border-b border-white/10 flex justify-between items-center sticky top-0 z-10 bg-[#1a1a1a]/95 backdrop-blur-xl rounded-t-3xl">
+                              <div>
+                                  <h3 className="text-lg font-bold text-white">{t('common.sort', '排序')}</h3>
+                                  <p className="text-xs text-gray-400 mt-1">{t('sort_filter.title') || '选择活动排序方式'}</p>
+                              </div>
+                              <button onClick={() => setIsMobileSortOpen(false)} className="p-2 text-gray-400 hover:text-white bg-white/5 rounded-full transition-colors">
+                                  <X size={20} />
+                              </button>
+                          </div>
+                          <div className="p-4">
+                              <SortSelector 
+                                  sort={sort} 
+                                  onSortChange={(val) => {
+                                      setSort(val);
+                                      setTimeout(() => setIsMobileSortOpen(false), 300);
+                                  }} 
+                                  className="w-full" 
+                                  extraOptions={[
+                                      { value: 'date_asc', label: t('sort_filter.date_asc') || 'Date (Earliest)' },
+                                      { value: 'date_desc', label: t('sort_filter.date_desc') || 'Date (Latest)' }
+                                  ]}
+                                  renderMode="list"
+                              />
+                          </div>
+                      </motion.div>
+                  </>
+              )}
+          </AnimatePresence>,
+          document.body
+        )}
       </motion.div>
 
       {error ? (
@@ -579,7 +755,7 @@ END:VCALENDAR`;
               initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-3xl"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md"
             onClick={() => setSelectedEvent(null)}
           >
             <motion.div 
@@ -587,11 +763,11 @@ END:VCALENDAR`;
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="bg-[#0a0a0a] w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-3xl border border-white/10 shadow-2xl custom-scrollbar relative"
+              className="bg-[#0f0f0f] w-full max-w-5xl h-[100dvh] sm:h-auto sm:max-h-[90vh] overflow-y-auto rounded-none sm:rounded-[2rem] border-0 sm:border border-white/10 shadow-2xl custom-scrollbar relative flex flex-col"
               onClick={e => e.stopPropagation()}
             >
               {/* Modal Header Image */}
-              <div className="h-72 sm:h-96 relative">
+              <div className="h-72 sm:h-96 relative shrink-0">
                  <SmartImage 
                     src={selectedEvent.image} 
                     alt={selectedEvent.title} 
@@ -600,48 +776,33 @@ END:VCALENDAR`;
                     imageClassName="w-full h-full object-cover"
                     iconSize={64}
                  />
-                 <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/40 to-transparent" />
+                 <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-[#0f0f0f]/40 to-transparent" />
                  
                  <button 
                     onClick={() => setSelectedEvent(null)}
-                    className="absolute top-6 right-6 p-2 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur-md border border-white/10 transition-all z-20 group"
+                    className="absolute top-[max(env(safe-area-inset-top),16px)] right-4 sm:top-6 sm:right-6 p-2.5 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur-md border border-white/10 transition-all z-20 group"
                  >
                     <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />
                  </button>
 
-                 <div className="absolute bottom-0 left-0 px-6 pt-6 pb-6 md:px-10 md:pt-10 md:pb-8 w-full z-20 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/90 to-transparent pt-48 -mb-1 backdrop-blur-[2px]">
+                 <div className="absolute bottom-0 left-0 px-5 pt-8 pb-5 sm:px-10 sm:pt-12 sm:pb-8 w-full z-20 bg-gradient-to-t from-[#0f0f0f] via-[#0f0f0f]/90 to-transparent backdrop-blur-[2px]">
                              {/* Editorial Eyebrow: Date & Location & Status */}
-                        <div className="flex justify-between items-end w-full mb-4">
-                            <div className="flex items-center gap-3 text-indigo-300 font-bold text-lg md:text-xl uppercase tracking-[0.2em] ml-1 opacity-100 drop-shadow-lg">
-                                    <span className="flex items-center gap-2">
-                                        {selectedEvent.end_date ? (
-                                            isSameDay(selectedEvent.date, selectedEvent.end_date) ? (
-                                                <span className="text-indigo-300 font-bold">
-                                                    {formatDateTime(selectedEvent.date)}
-                                                </span>
-                                            ) : (
-                                                <>
-                                                    <span className="text-indigo-300 font-bold">{formatDateTime(selectedEvent.date)}</span>
-                                                    <span className="text-white/40 text-base mx-1">-</span>
-                                                    <span className="text-rose-300 font-bold">{formatDateTime(selectedEvent.end_date)}</span>
-                                                </>
-                                            )
-                                        ) : (
-                                            <span className="text-indigo-300 font-bold">{formatDateTime(selectedEvent.date)}</span>
-                                        )}
-                                    </span>
-                                    <span className="text-white/40">|</span>
-                                    <span className="flex items-center gap-2">
-                                        {selectedEvent.location || t('common.online')}
-                                    </span>
-                            </div>
+                         <div className="flex justify-between items-end w-full mb-3 sm:mb-4">
+                             <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
+                                 <div className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl shadow-inner flex items-center gap-2">
+                                     <Calendar size={14} className="text-white sm:w-4 sm:h-4" />
+                                     <span className="text-white font-bold text-xs sm:text-sm tracking-wide">
+                                         {formatDateTime(selectedEvent.date)}
+                                     </span>
+                                 </div>
+                             </div>
                         </div>
 
-                    <div className="flex justify-between items-end gap-6">
+                    <div className="flex justify-between items-end gap-4 sm:gap-6">
                        <div className="max-w-[85%]">
-                           <h2 className="text-4xl md:text-6xl font-black text-white leading-[0.95] tracking-tight font-serif drop-shadow-2xl inline decoration-clone">
+                           <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white leading-[1.2] sm:leading-[1.1] tracking-tight">
                                {selectedEvent.title}
-                               <span className={`inline-flex items-center justify-center align-middle ml-4 px-3 py-1.5 rounded-lg text-sm font-bold uppercase tracking-wider border backdrop-blur-md font-sans shadow-lg translate-y-[-0.2em] ${getStatusColor(getEventLifecycle(selectedEvent.date, selectedEvent.end_date, t), t).replace('rounded-full', 'rounded-lg').replace('px-4', 'px-3').replace('py-1.5', 'py-1.5')}`}>
+                               <span className={`inline-flex items-center justify-center align-middle ml-3 sm:ml-4 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-bold uppercase tracking-wider border backdrop-blur-md font-sans shadow-lg translate-y-[-0.1em] sm:translate-y-[-0.2em] ${getStatusColor(getEventLifecycle(selectedEvent.date, selectedEvent.end_date, t), t)}`}>
                                    {getEventLifecycle(selectedEvent.date, selectedEvent.end_date, t)}
                                </span>
                            </h2>
@@ -669,11 +830,11 @@ END:VCALENDAR`;
               </div>
 
               {/* Modal Content */}
-              <div className="p-5 sm:p-8 pt-2 sm:pt-4">
-                 <div className="flex flex-col lg:flex-row gap-5">
+              <div className="p-4 sm:p-8 pt-4 flex-1 overflow-y-auto pb-[max(env(safe-area-inset-bottom),20px)] sm:pb-8">
+                 <div className="flex flex-col-reverse lg:flex-row gap-5">
                      <div className="flex-1 space-y-4">
-                         <div className="bg-white/5 rounded-2xl p-5 border border-white/5 h-full">
-                             <h3 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
+                         <div className="bg-white/5 rounded-2xl p-4 sm:p-5 border border-white/5 h-full">
+                             <h3 className="text-lg sm:text-xl font-bold text-white mb-3 flex items-center gap-2">
                                  <FileText size={20} className="text-indigo-400" /> 
                                  {t('common.description')}
                              </h3>
