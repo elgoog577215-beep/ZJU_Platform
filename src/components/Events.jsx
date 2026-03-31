@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, MapPin, ArrowRight, X, Upload, Clock, CheckCircle, ExternalLink, Download, Globe, FileText, AlertCircle, Share2, Copy, Award, Users, Building2, Tag, Search, Plus } from 'lucide-react';
+import { Calendar, MapPin, ArrowRight, X, Upload, Clock, CheckCircle, ExternalLink, Download, Globe, FileText, AlertCircle, Share2, Copy, Award, Users, Building2, Tag, Search, Plus, Eye } from 'lucide-react';
 import UploadModal from './UploadModal';
 import FavoriteButton from './FavoriteButton';
 import { useTranslation } from 'react-i18next';
@@ -20,6 +20,7 @@ import DOMPurify from 'dompurify';
 
 import { useSearchParams } from 'react-router-dom';
 import { getThumbnailUrl } from '../utils/imageUtils';
+import { useReducedMotion } from '../utils/animations';
 
 const getEventLifecycle = (date, endDate, t) => {
   if (!date) return t('events.status.unknown');
@@ -90,21 +91,18 @@ const formatDateTime = (dateStr) => {
     return `${month}.${day}`;
 };
 
-const EventCard = memo(({ event, index, onClick, onToggleFavorite }) => {
+const EventCard = memo(({ event, index, onClick, onToggleFavorite, reduceMotion }) => {
   const { t } = useTranslation();
 
   const status = getEventLifecycle(event.date, event.end_date, t);
   const isUpcoming = status === t('events.status.upcoming');
-  const dateObj = new Date(event.date);
-  const day = dateObj.getDate();
-  const month = dateObj.toLocaleString('default', { month: 'short' }).toUpperCase();
 
   return (
     <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    whileHover={{ y: -8, scale: 1.02 }}
-    transition={{ type: "spring", stiffness: 300, damping: 20, delay: index * 0.05 }}
+    initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+    animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+    whileHover={reduceMotion ? undefined : { y: -8, scale: 1.02 }}
+    transition={reduceMotion ? undefined : { type: "spring", stiffness: 300, damping: 20, delay: index * 0.05 }}
     className="group relative bg-[#1a1a1a]/60 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden shadow-lg hover:shadow-[0_20px_50px_-12px_rgba(79,70,229,0.3)] hover:border-indigo-500/30 cursor-pointer flex flex-row md:flex-col h-full ring-1 ring-white/5 hover:ring-indigo-500/50"
     onClick={() => onClick(event)}
   >
@@ -118,7 +116,7 @@ const EventCard = memo(({ event, index, onClick, onToggleFavorite }) => {
       alt={event.title} 
       loading="lazy"
       className="absolute inset-0 w-full h-full"
-      imageClassName="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 group-hover:brightness-110 will-change-transform" 
+      imageClassName={`w-full h-full object-cover ${reduceMotion ? '' : 'transition-transform duration-700 group-hover:scale-110 group-hover:brightness-110 will-change-transform'}`}
     />
     <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent opacity-90 group-hover:opacity-60 transition-opacity duration-500" />
     
@@ -162,6 +160,7 @@ const EventCard = memo(({ event, index, onClick, onToggleFavorite }) => {
                 <MapPin size={14} className="text-indigo-400 shrink-0 md:w-4 md:h-4" />
                 <span className="truncate">{event.location || t('common.online', '线上')}</span>
             </div>
+
         </div>
 
         {/* Description - Max 3 lines (Hidden on Mobile) */}
@@ -226,12 +225,15 @@ const Events = () => {
   const { t } = useTranslation();
   const { settings } = useSettings();
   const { user } = useAuth();
+  const prefersReducedMotion = useReducedMotion();
   const [searchParams] = useSearchParams();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(() => (typeof window !== 'undefined' ? window.innerWidth < 768 : false));
+  const shouldReduceCardMotion = prefersReducedMotion || isMobileViewport;
 
   // Listen for global events from Navbar
   useEffect(() => {
@@ -255,6 +257,18 @@ const Events = () => {
         window.removeEventListener('toggle-mobile-filter', handleToggleFilter);
         window.removeEventListener('toggle-mobile-sort', handleToggleSort);
     };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const updateViewport = () => {
+      setIsMobileViewport(window.innerWidth < 768);
+    };
+
+    updateViewport();
+    window.addEventListener('resize', updateViewport, { passive: true });
+    return () => window.removeEventListener('resize', updateViewport);
   }, []);
 
   const [sort, setSort] = useState('date_desc');
@@ -707,6 +721,7 @@ END:VCALENDAR`;
                     index={index}
                     onClick={setSelectedEvent}
                     onToggleFavorite={handleToggleFavorite}
+                    reduceMotion={shouldReduceCardMotion}
                   />
                 ))}
             </div>
@@ -756,7 +771,7 @@ END:VCALENDAR`;
               initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md"
+            className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md"
             onClick={() => setSelectedEvent(null)}
           >
             <motion.div 
@@ -764,7 +779,7 @@ END:VCALENDAR`;
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="bg-[#0f0f0f] w-full max-w-5xl h-[100dvh] sm:h-auto sm:max-h-[90vh] overflow-y-auto rounded-none sm:rounded-[2rem] border-0 sm:border border-white/10 shadow-2xl custom-scrollbar relative flex flex-col"
+              className="bg-[#0f0f0f] w-full max-w-5xl min-h-[100dvh] sm:min-h-0 max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto overscroll-contain rounded-t-[2rem] sm:rounded-[2rem] border-x-0 border-b-0 sm:border border-white/10 shadow-2xl custom-scrollbar relative flex flex-col"
               onClick={e => e.stopPropagation()}
             >
               {/* Modal Header Image */}
@@ -788,7 +803,7 @@ END:VCALENDAR`;
 
                  <div className="absolute bottom-0 left-0 px-5 pt-8 pb-5 sm:px-10 sm:pt-12 sm:pb-8 w-full z-20 bg-gradient-to-t from-[#0f0f0f] via-[#0f0f0f]/90 to-transparent backdrop-blur-[2px]">
                              {/* Editorial Eyebrow: Date & Location & Status */}
-                         <div className="flex justify-between items-end w-full mb-3 sm:mb-4">
+                        <div className="flex justify-between items-end w-full mb-3 sm:mb-4">
                              <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
                                  <div className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl shadow-inner flex items-center gap-2">
                                      <Calendar size={14} className="text-white sm:w-4 sm:h-4" />
@@ -799,8 +814,8 @@ END:VCALENDAR`;
                              </div>
                         </div>
 
-                    <div className="flex justify-between items-end gap-4 sm:gap-6">
-                       <div className="max-w-[85%]">
+                    <div className="flex flex-col gap-4 sm:gap-6 sm:flex-row sm:items-end sm:justify-between">
+                       <div className="max-w-full sm:max-w-[85%]">
                            <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white leading-[1.2] sm:leading-[1.1] tracking-tight">
                                {selectedEvent.title}
                                <span className={`inline-flex items-center justify-center align-middle ml-3 sm:ml-4 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-bold uppercase tracking-wider border backdrop-blur-md font-sans shadow-lg translate-y-[-0.1em] sm:translate-y-[-0.2em] ${getStatusColor(getEventLifecycle(selectedEvent.date, selectedEvent.end_date, t), t)}`}>
@@ -809,7 +824,7 @@ END:VCALENDAR`;
                            </h2>
                        </div>
                         
-                        <div className="flex flex-col items-end gap-3 shrink-0 mb-1">
+                        <div className="flex flex-row justify-start sm:justify-end sm:flex-col items-start sm:items-end gap-3 shrink-0 mb-1">
                             <FavoriteButton 
                                 itemId={selectedEvent.id}
                                 itemType="event"
@@ -849,7 +864,7 @@ END:VCALENDAR`;
 
                      {/* Sidebar - Details & Link */}
                      <div className="lg:w-1/2 space-y-4">
-                        <div className="bg-white/5 rounded-2xl p-5 border border-white/5 sticky top-8 space-y-5">
+                        <div className="bg-white/5 rounded-2xl p-5 border border-white/5 lg:sticky lg:top-8 space-y-5">
                             
                             {/* Call to Action - Link */}
                             <div>
@@ -872,6 +887,25 @@ END:VCALENDAR`;
                                         {t('events.no_link_available')}
                                     </div>
                                 )}
+                            </div>
+
+                            <div className="rounded-2xl border border-white/8 bg-[linear-gradient(135deg,rgba(99,102,241,0.12),rgba(255,255,255,0.03))] px-4 py-3.5 backdrop-blur-sm">
+                                <div className="flex items-center justify-between gap-4">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/12 border border-indigo-400/15 text-indigo-300 shrink-0">
+                                            <Eye size={18} />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-[11px] uppercase tracking-[0.24em] text-gray-400">{t('events.view_count')}</p>
+                                            <p className="text-sm text-gray-300 mt-0.5 truncate">{t('events.about_event')}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right shrink-0">
+                                        <div className="text-2xl font-black tracking-[-0.04em] text-white leading-none">
+                                            {new Intl.NumberFormat('zh-CN').format(selectedEvent.views || 0)}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />

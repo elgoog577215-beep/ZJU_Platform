@@ -11,6 +11,7 @@ const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 
 const { getDb, pool } = require('./src/config/db');
+const { runMigrations } = require('./src/config/runMigrations');
 const apiRoutes = require('./src/routes/api');
 const errorHandler = require('./src/middleware/errorHandler');
 const { authenticateToken, isAdmin } = require('./src/middleware/auth');
@@ -416,137 +417,7 @@ const startServer = async () => {
   try {
     // Initialize database
     const db = await getDb();
-    
-    // Run database migrations
-    console.log('🔄 Running database migrations...');
-    
-    // Migration 1: Add missing columns to events table
-    try {
-      const eventsInfo = await db.all(`PRAGMA table_info(events)`);
-      const eventsColumns = eventsInfo.map(col => col.name);
-      
-      if (!eventsColumns.includes('uploader_id')) {
-        await db.exec(`ALTER TABLE events ADD COLUMN uploader_id INTEGER`);
-        console.log('✅ Added uploader_id to events table');
-      }
-      if (!eventsColumns.includes('status')) {
-        await db.exec(`ALTER TABLE events ADD COLUMN status TEXT DEFAULT 'approved'`);
-        console.log('✅ Added status to events table');
-      }
-      if (!eventsColumns.includes('end_date')) {
-        await db.exec(`ALTER TABLE events ADD COLUMN end_date TEXT`);
-        console.log('✅ Added end_date to events table');
-      }
-    } catch (err) {
-      if (!err.message.includes('duplicate column')) {
-        console.warn('Migration warning (events):', err.message);
-      }
-    }
-    
-    // Migration 2: Create comments table if not exists
-    try {
-      await db.exec(`
-        CREATE TABLE IF NOT EXISTS comments (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          resource_type TEXT NOT NULL,
-          resource_id INTEGER NOT NULL,
-          user_id INTEGER,
-          author_name TEXT,
-          content TEXT NOT NULL,
-          parent_id INTEGER,
-          likes INTEGER DEFAULT 0,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-      console.log('✅ Comments table ready');
-    } catch (err) {
-      if (!err.message.includes('already exists')) {
-        console.warn('Migration warning (comments):', err.message);
-      }
-    }
-    
-    // Migration 3: Create notifications table if not exists
-    try {
-      await db.exec(`
-        CREATE TABLE IF NOT EXISTS notifications (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          user_id INTEGER NOT NULL,
-          type TEXT NOT NULL,
-          title TEXT,
-          message TEXT,
-          data TEXT,
-          is_read BOOLEAN DEFAULT 0,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-      console.log('✅ Notifications table ready');
-    } catch (err) {
-      if (!err.message.includes('already exists')) {
-        console.warn('Migration warning (notifications):', err.message);
-      }
-    }
-    
-    // Migration 4: Create tags table if not exists
-    try {
-      await db.exec(`
-        CREATE TABLE IF NOT EXISTS tags (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          name TEXT UNIQUE NOT NULL,
-          type TEXT,
-          count INTEGER DEFAULT 0,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-      console.log('✅ Tags table ready');
-    } catch (err) {
-      if (!err.message.includes('already exists')) {
-        console.warn('Migration warning (tags):', err.message);
-      }
-    }
-    
-    // Migration 5: Create audit_logs table if not exists
-    try {
-      await db.exec(`
-        CREATE TABLE IF NOT EXISTS audit_logs (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          admin_id INTEGER,
-          resource_type TEXT,
-          resource_id INTEGER,
-          action TEXT,
-          reason TEXT,
-          old_value TEXT,
-          new_value TEXT,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-      console.log('✅ Audit logs table ready');
-    } catch (err) {
-      if (!err.message.includes('already exists')) {
-        console.warn('Migration warning (audit_logs):', err.message);
-      }
-    }
-    
-    // Migration 6: Create favorites table if not exists
-    try {
-      await db.exec(`
-        CREATE TABLE IF NOT EXISTS favorites (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          user_id INTEGER NOT NULL,
-          item_id INTEGER NOT NULL,
-          item_type TEXT NOT NULL,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          UNIQUE(user_id, item_id, item_type)
-        )
-      `);
-      console.log('✅ Favorites table ready');
-    } catch (err) {
-      if (!err.message.includes('already exists')) {
-        console.warn('Migration warning (favorites):', err.message);
-      }
-    }
-    
-    console.log('✅ Database migrations completed');
+    await runMigrations(db);
     
     // Start server
     app.listen(PORT, () => {

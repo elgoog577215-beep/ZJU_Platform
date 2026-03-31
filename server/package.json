@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
+    "migrate": "node scripts/migrate.js",
     "seed": "node seed.js",
     "backup": "node scripts/backup.js",
     "optimize-images": "node scripts/optimizeImages.js"

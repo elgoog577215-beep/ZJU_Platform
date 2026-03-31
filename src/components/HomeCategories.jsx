@@ -1,8 +1,10 @@
-import React from 'react';
+import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Camera, Music, Film, BookOpen, Calendar, ArrowRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { normalizeExternalImageUrl } from '../utils/imageUtils';
+import { useReducedMotion } from '../utils/animations';
 
 const categories = [
   {
@@ -47,12 +49,13 @@ const categories = [
   }
 ];
 
-const CategoryCard = ({ item }) => {
+const CategoryCard = memo(({ item, reduceMotion }) => {
   const { t } = useTranslation();
+  const optimizedImage = normalizeExternalImageUrl(item.image, 720);
   
   return (
     <motion.div
-      variants={{
+      variants={reduceMotion ? undefined : {
         hidden: { opacity: 0, y: 50 },
         visible: { 
           opacity: 1, 
@@ -64,24 +67,27 @@ const CategoryCard = ({ item }) => {
           }
         }
       }}
-      whileHover={{ y: -15, scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      whileHover={reduceMotion ? undefined : { y: -15, scale: 1.02 }}
+      whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+      transition={reduceMotion ? undefined : { type: "spring", stiffness: 300, damping: 20 }}
       className="relative group h-[200px] sm:h-[280px] md:h-[350px] lg:h-[400px] w-full overflow-hidden rounded-2xl sm:rounded-[2rem] cursor-pointer border border-white/10 shadow-2xl bg-black/40 backdrop-blur-sm hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)] hover:border-white/20"
     >
       <Link to={item.path} className="block w-full h-full">
         {/* Background Image */}
         <div className="absolute inset-0">
           <img 
-            src={item.image} 
+            src={optimizedImage}
             alt={t(`nav.${item.id}`)}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 grayscale-[0.5] group-hover:grayscale-0"
+            loading="lazy"
+            decoding="async"
+            sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 20vw"
+            className={`w-full h-full object-cover grayscale-[0.5] group-hover:grayscale-0 ${reduceMotion ? '' : 'transition-transform duration-700 group-hover:scale-110'}`}
           />
         </div>
         
         {/* Gradient Overlay */}
         <div className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-40 group-hover:opacity-60 transition-opacity duration-500 mix-blend-overlay`} />
-        <div className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-xl`} />
+        <div className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-xl hidden md:block`} />
         
         {/* Dark Gradient for Text Legibility */}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90" />
@@ -91,7 +97,7 @@ const CategoryCard = ({ item }) => {
 
         {/* Content */}
         <div className="absolute inset-0 p-4 sm:p-6 md:p-8 flex flex-col justify-end">
-          <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+          <div className={`${reduceMotion ? '' : 'transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500'}`}>
             {/* Icon */}
             <div className="mb-2 sm:mb-4 inline-block p-2.5 sm:p-3 md:p-4 rounded-xl sm:rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 text-white shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] group-hover:bg-white/10 group-hover:scale-110 transition-all duration-300">
               <item.icon size={20} strokeWidth={1.5} className="sm:w-6 sm:h-6 md:w-8 md:h-8 drop-shadow-lg" />
@@ -120,17 +126,23 @@ const CategoryCard = ({ item }) => {
       </Link>
     </motion.div>
   );
-};
+});
+CategoryCard.displayName = 'CategoryCard';
 
 const HomeCategories = () => {
   const { t } = useTranslation();
+  const prefersReducedMotion = useReducedMotion();
+
   return (
-    <section className="py-12 sm:py-16 md:py-24 px-4 md:px-8 bg-black relative z-10 pb-28 md:pb-0">
+    <section
+      className="py-12 sm:py-16 md:py-24 px-4 md:px-8 bg-black relative z-10 pb-28 md:pb-0"
+      style={{ contentVisibility: 'auto', containIntrinsicSize: '1000px' }}
+    >
       <div className="max-w-[1800px] mx-auto">
         {/* Section Header */}
         <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 30 }}
+          whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mb-8 sm:mb-12 md:mb-16"
         >
@@ -143,10 +155,10 @@ const HomeCategories = () => {
         {/* Grid */}
         <motion.div 
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6"
-          initial="hidden"
-          whileInView="visible"
+          initial={prefersReducedMotion ? false : 'hidden'}
+          whileInView={prefersReducedMotion ? undefined : 'visible'}
           viewport={{ once: true, margin: "-50px" }}
-          variants={{
+          variants={prefersReducedMotion ? undefined : {
             hidden: { opacity: 0 },
             visible: {
               opacity: 1,
@@ -157,7 +169,7 @@ const HomeCategories = () => {
           }}
         >
           {categories.map((category) => (
-            <CategoryCard key={category.id} item={category} />
+            <CategoryCard key={category.id} item={category} reduceMotion={prefersReducedMotion} />
           ))}
         </motion.div>
       </div>

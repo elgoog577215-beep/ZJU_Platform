@@ -36,7 +36,7 @@ const createHandler = (table, fields) => async (req, res, next) => {
     const status = userRole === 'admin' ? 'approved' : 'pending'; 
     const uploader_id = req.user ? req.user.id : null;
 
-    const sql = `INSERT INTO ${table} (${fields.join(',')}, status, uploader_id) VALUES (${placeholders}, ?, ?)`;
+    const sql = `INSERT INTO ${table} (${fields.join(',')}, status, uploader_id, created_at) VALUES (${placeholders}, ?, ?, datetime('now'))`;
     const values = [...fields.map(field => req.body[field]), status, uploader_id];
     
     const result = await db.run(sql, values);
@@ -268,6 +268,10 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
         let query = `SELECT ${table}.*`;
         let params = [];
 
+        if (table === 'events') {
+             query += `, (SELECT COUNT(*) FROM event_registrations WHERE event_registrations.event_id = events.id) as registration_count`;
+        }
+
         if (userId) {
              query += `, (SELECT 1 FROM favorites WHERE favorites.item_id = ${table}.id AND favorites.item_type = ? AND favorites.user_id = ?) as favorited`;
              params.push(itemType, userId);
@@ -386,6 +390,20 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
         switch (sort) {
             case 'oldest':
                 query += ' ORDER BY id ASC';
+                break;
+            case 'views':
+                if (table === 'events') {
+                    query += ' ORDER BY COALESCE(views, 0) DESC, date DESC, id DESC';
+                    break;
+                }
+                query += ' ORDER BY id DESC';
+                break;
+            case 'registrations':
+                if (table === 'events') {
+                    query += ' ORDER BY registration_count DESC, date DESC, id DESC';
+                    break;
+                }
+                query += ' ORDER BY id DESC';
                 break;
             case 'likes':
                 query += ' ORDER BY likes DESC, id DESC';

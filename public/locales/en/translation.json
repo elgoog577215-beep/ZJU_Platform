@@ -190,6 +190,27 @@
     "visual_gallery": "Visual Gallery",
     "selected_works": "Selected Works",
     "latest_articles": "Latest Articles",
+    "stats": {
+      "eyebrow": "Platform Overview",
+      "title": "Recent platform activity",
+      "subtitle": "Shows recent visits, uploads, and content volume so visitors can quickly understand the platform's current state.",
+      "weekly_growth": "Weekly Growth",
+      "today_views": "Today's Visits",
+      "today_visitors": "Today's Unique Visitors",
+      "today_uploads": "Today's Uploads",
+      "total_views": "Total Visits",
+      "total_engagement": "Total Engagement",
+      "active_creators": "Active Creators",
+      "week_upload_growth": "7-Day Upload Growth",
+      "seven_day_visits": "7-Day Visits",
+      "platform_snapshot": "Platform Snapshot",
+      "snapshot_title": "Content, visits, and engagement shape the platform's strength curve",
+      "snapshot_desc": "What you see here is the platform's real accumulation of traffic, published works, and user feedback working together as proof of momentum.",
+      "total_uploads": "Total Works",
+      "registered_users": "Registered Users",
+      "total_visitors": "Total Unique Visitors",
+      "seven_day_uploads": "7-Day Uploads"
+    },
     "categories": {
       "events_desc": "Discover the latest workshops, exhibitions, and meetups.",
       "gallery_desc": "Browse selected photography capturing light and emotion.",
@@ -370,6 +391,7 @@
     "location": "Location",
     "date": "Date",
     "about_event": "About Event",
+    "view_count": "views",
     "countdown": {
       "days": "Days",
       "hours": "Hours",
@@ -676,7 +698,13 @@
       "uptime": "Uptime",
       "welcome_back": "Welcome back, Admin",
       "control_text": "You have full control over platform content and users.",
-      "check_pending": "Check Pending Items"
+      "check_pending": "Check Pending Items",
+      "event_analytics": "Event Analytics",
+      "event_analytics_desc": "Review event views, registrations, and current hot events in one place.",
+      "manage_events": "Open Event Manager",
+      "hot_events": "Hot Events",
+      "sorted_by_views": "Sorted by views",
+      "no_hot_events": "No event analytics yet"
     },
     "user_manager_ui": {
       "role_user": "User",
@@ -702,6 +730,7 @@
       "upload_success": "File uploaded successfully",
       "upload_fail": "Upload failed",
       "loading": "Loading...",
+      "event_manager_desc": "Manage event heat, registrations, and review status from one backend view.",
       "file_url_placeholder": "File URL",
       "select_placeholder": "Please select...",
       "yes": "Yes",
@@ -710,7 +739,19 @@
       "restored": "Restored",
       "permanently_deleted": "Permanently deleted",
       "restore_fail": "Restore failed",
-      "permanent_delete_fail": "Permanent delete failed"
+      "permanent_delete_fail": "Permanent delete failed",
+      "pagination_info": "Page {{page}} / {{total}}",
+      "sort_by": "Sort by",
+      "sort_views": "By Views",
+      "sort_registrations": "By Registrations",
+      "views": "Views",
+      "registrations": "Registrations",
+      "views_unit": "views",
+      "registrations_unit": "registrations",
+      "views_7d": "Views in 7d",
+      "upcoming_events": "Upcoming Events",
+      "event_date": "Event Date",
+      "review_status": "Review Status"
     }
   },
   "not_found": {

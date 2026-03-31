@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Image, Music, Film, Grid3X3, X, Calendar, FileText, Info, User, Users, UserCircle, LogIn } from 'lucide-react';
+import { Home, Image, Music, Film, Grid3X3, X, Calendar, FileText, Info, UserCircle, LogIn } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useBackClose } from '../hooks/useBackClose';
+import { useReducedMotion } from '../utils/animations';
 
 import AuthModal from './AuthModal';
 
@@ -12,6 +13,7 @@ const MobileNavbar = () => {
   const { t } = useTranslation();
   const location = useLocation();
   const { user } = useAuth();
+  const prefersReducedMotion = useReducedMotion();
   const [showMenu, setShowMenu] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   
@@ -50,7 +52,7 @@ const MobileNavbar = () => {
 
   return (
     <>
-      <nav className="fixed bottom-4 left-4 right-4 z-[100] bg-[#1a1a1a]/80 backdrop-blur-2xl border border-white/10 rounded-2xl md:hidden app-select-none shadow-[0_8px_32px_rgba(0,0,0,0.4)] mb-[env(safe-area-inset-bottom)]">
+      <nav className="fixed left-3 right-3 bottom-[max(env(safe-area-inset-bottom),12px)] sm:left-4 sm:right-4 z-[100] bg-[#1a1a1a]/80 backdrop-blur-2xl border border-white/10 rounded-2xl md:hidden app-select-none shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
         <div className="flex justify-around items-center h-16 px-2">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
@@ -64,7 +66,7 @@ const MobileNavbar = () => {
                     className={`relative flex flex-col items-center justify-center w-full h-full transition-colors ${showMenu && item.action === 'menu' ? 'text-white' : 'text-gray-400 hover:text-white'}`}
                   >
                     <motion.div
-                      whileTap={{ scale: 0.85 }}
+                      whileTap={prefersReducedMotion ? undefined : { scale: 0.85 }}
                       className="flex flex-col items-center gap-1.5"
                     >
                       <div className={`p-1.5 rounded-xl transition-all duration-300 ${showMenu && item.action === 'menu' ? 'bg-indigo-500/20 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.3)]' : ''}`}>
@@ -88,7 +90,7 @@ const MobileNavbar = () => {
                 }`}
               >
                 <motion.div
-                  whileTap={{ scale: 0.85 }}
+                  whileTap={prefersReducedMotion ? undefined : { scale: 0.85 }}
                   className="flex flex-col items-center gap-1.5"
                 >
                   <div className={`p-1.5 rounded-xl transition-all duration-300 ${isActive && !showMenu ? 'bg-indigo-500/20 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.3)]' : ''}`}>
@@ -108,18 +110,18 @@ const MobileNavbar = () => {
       <AnimatePresence>
         {showMenu && (
             <motion.div
-                initial={{ opacity: 0, y: '100%' }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: '100%' }}
-                drag="y"
-                dragConstraints={{ top: 0 }}
-                dragElastic={0.1}
+                initial={prefersReducedMotion ? false : { opacity: 0, y: '100%' }}
+                animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+                exit={prefersReducedMotion ? undefined : { opacity: 0, y: '100%' }}
+                drag={prefersReducedMotion ? false : 'y'}
+                dragConstraints={prefersReducedMotion ? undefined : { top: 0 }}
+                dragElastic={prefersReducedMotion ? 0 : 0.1}
                 onDragEnd={(e, info) => {
                     if (info.offset.y > 100) {
                         setShowMenu(false);
                     }
                 }}
-                transition={{ type: "spring", damping: 30, stiffness: 400 }}
+                transition={prefersReducedMotion ? undefined : { type: "spring", damping: 30, stiffness: 400 }}
                 className="fixed inset-0 z-[100] bg-[#0a0a0a]/80 backdrop-blur-xl md:hidden flex flex-col touch-none"
             >
                 {/* Drag Handle */}
@@ -128,7 +130,7 @@ const MobileNavbar = () => {
                 </div>
                 
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-white/10 bg-black/20 backdrop-blur-3xl">
+                <div className="flex items-center justify-between px-6 pt-[max(env(safe-area-inset-top),24px)] pb-6 border-b border-white/10 bg-black/20 backdrop-blur-3xl">
                     <h2 className="text-2xl font-bold text-white">{t('nav.more', 'Menu')}</h2>
                     <button 
                         onClick={() => setShowMenu(false)}
@@ -139,7 +141,7 @@ const MobileNavbar = () => {
                 </div>
 
                 {/* Grid Menu */}
-                <div className="flex-1 overflow-y-auto p-6">
+                <div className="flex-1 overflow-y-auto p-6 pb-[max(env(safe-area-inset-bottom),24px)]">
                     <div className="grid grid-cols-2 gap-3">
                         {menuItems.map(item => {
                             if (item.action) {

@@ -4,10 +4,15 @@ import { useTranslation } from 'react-i18next';
 import { useSettings } from '../context/SettingsContext';
 import { Send, CheckCircle, AlertCircle, Mail, MapPin, Phone } from 'lucide-react';
 import api from '../services/api';
+import { normalizeExternalImageUrl } from '../utils/imageUtils';
 
 const About = () => {
   const { t } = useTranslation();
   const { settings } = useSettings();
+  const profileImageUrl = normalizeExternalImageUrl(
+    settings.profile_image_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80',
+    960
+  );
   
   // Contact Form State
   const [formState, setFormState] = useState({
@@ -49,7 +54,10 @@ const About = () => {
   return (
     <div className="min-h-screen">
       {/* About Section  */}
-      <section className="pt-36 pb-28 md:py-24 px-4 flex items-center">
+      <section
+        className="pt-36 pb-28 md:py-24 px-4 flex items-center"
+        style={{ contentVisibility: 'auto', containIntrinsicSize: '1200px' }}
+      >
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 items-center">
           <motion.div 
             initial={{ opacity: 0, x: -50 }}
@@ -60,9 +68,12 @@ const About = () => {
           >
             <div className="absolute -inset-4 border-2 border-white/20 rounded-lg translate-x-4 translate-y-4" />
             <img 
-              src={settings.profile_image_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80"} 
+              src={profileImageUrl}
               alt="Photographer" 
               className="relative z-10 rounded-lg shadow-2xl grayscale hover:grayscale-0 transition-all duration-500"
+              loading="lazy"
+              decoding="async"
+              sizes="(max-width: 768px) 100vw, 50vw"
             />
           </motion.div>
 

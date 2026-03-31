@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -10,15 +10,13 @@ import { HelmetProvider } from 'react-helmet-async';
 import ErrorBoundary from './components/ErrorBoundary';
 import { ResourceHints } from './components/ResourceHints';
 import { usePerformanceMonitor } from './hooks/usePerformanceMonitor';
+import api from './services/api';
 
 import Navbar from './components/Navbar';
-import BackgroundSystem from './components/BackgroundSystem';
-import GlobalPlayer from './components/GlobalPlayer';
 import ScrollToTop from './components/ScrollToTop';
 import CustomCursor from './components/CustomCursor';
 import ScrollProgress from './components/ScrollProgress';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
-import SearchPalette from './components/SearchPalette';
 import MobileNavbar from './components/MobileNavbar';
 import Footer from './components/Footer';
 import LoadingScreen from './components/LoadingScreen';
@@ -31,10 +29,34 @@ const Videos = lazy(() => import('./components/Videos'));
 const Articles = lazy(() => import('./components/Articles'));
 const Events = lazy(() => import('./components/Events'));
 const HomeCategories = lazy(() => import('./components/HomeCategories'));
+const PlatformStats = lazy(() => import('./components/PlatformStats'));
 const About = lazy(() => import('./components/About'));
 const AdminDashboard = lazy(() => import('./components/Admin/AdminDashboard'));
 const NotFound = lazy(() => import('./components/NotFound'));
 const PublicProfile = lazy(() => import('./components/PublicProfile'));
+const BackgroundSystem = lazy(() => import('./components/BackgroundSystem'));
+const SearchPalette = lazy(() => import('./components/SearchPalette'));
+const GlobalPlayer = lazy(() => import('./components/GlobalPlayer'));
+
+const useDeferredMount = (delay = 0) => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const mount = () => setMounted(true);
+
+    if ('requestIdleCallback' in window) {
+      const idleId = window.requestIdleCallback(mount, { timeout: Math.max(delay, 1200) });
+      return () => window.cancelIdleCallback?.(idleId);
+    }
+
+    const timeoutId = window.setTimeout(mount, delay);
+    return () => window.clearTimeout(timeoutId);
+  }, [delay]);
+
+  return mounted;
+};
 
 const PageTransition = ({ children }) => {
   // Check if we are on a mobile device to disable heavy filters
@@ -57,6 +79,7 @@ const Home = () => {
     return (
         <>
             <Hero />
+            <PlatformStats />
             <HomeCategories />
             <About />
         </>
@@ -75,6 +98,20 @@ const AppContent = () => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
   const { cursorEnabled, settings } = useSettings();
+  const shouldMountDeferredUi = useDeferredMount(700);
+  const shouldMountHeavyBackground = useDeferredMount(1400);
+  const [canRenderHeavyEffects, setCanRenderHeavyEffects] = useState(false);
+  const allowBackgroundEffects = !isAdminRoute && settings?.backgroundEnabled !== false;
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const isSmallScreen = window.innerWidth < 1024;
+    const saveDataEnabled = navigator.connection?.saveData === true;
+
+    setCanRenderHeavyEffects(!prefersReducedMotion && !isSmallScreen && !saveDataEnabled);
+  }, []);
 
   // Performance monitoring
   usePerformanceMonitor({
@@ -87,16 +124,42 @@ const AppContent = () => {
     }
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (settings?.site_title) {
       document.title = settings.site_title;
     }
   }, [settings?.site_title]);
 
   // Scroll to top on route change
-  React.useEffect(() => {
+  useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
+
+  useEffect(() => {
+    if (isAdminRoute || typeof window === 'undefined') return;
+
+    const currentDate = new Date().toISOString().slice(0, 10);
+    const sessionVisitKey = `site-visit:${currentDate}:${location.pathname}`;
+
+    if (window.sessionStorage.getItem(sessionVisitKey)) {
+      return;
+    }
+
+    let visitorKey = window.localStorage.getItem('site-visitor-key');
+    if (!visitorKey) {
+      visitorKey = window.crypto?.randomUUID?.() || `visitor-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+      window.localStorage.setItem('site-visitor-key', visitorKey);
+    }
+
+    window.sessionStorage.setItem(sessionVisitKey, '1');
+
+    api.post('/site-metrics/visit', {
+      visitorKey,
+      pagePath: location.pathname
+    }).catch(() => {
+      window.sessionStorage.removeItem(sessionVisitKey);
+    });
+  }, [isAdminRoute, location.pathname]);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -106,17 +169,23 @@ const AppContent = () => {
             <Navbar />
         </ErrorBoundary>
       )}
-      {!isAdminRoute && (
+      {allowBackgroundEffects && canRenderHeavyEffects && shouldMountHeavyBackground && (
         <ErrorBoundary variant="inline" silent>
+          <Suspense fallback={null}>
             <BackgroundSystem />
+          </Suspense>
         </ErrorBoundary>
       )}
       {!isAdminRoute && cursorEnabled && <div className="hidden md:block"><CustomCursor /></div>}
       {!isAdminRoute && <ScrollProgress />}
       
-      <ErrorBoundary variant="inline" silent>
-        <SearchPalette />
-      </ErrorBoundary>
+      {shouldMountDeferredUi && (
+        <ErrorBoundary variant="inline" silent>
+          <Suspense fallback={null}>
+            <SearchPalette />
+          </Suspense>
+        </ErrorBoundary>
+      )}
 
       <main className="flex-grow pb-24 md:pb-0">
         <Suspense fallback={<LoadingScreen />}>
@@ -139,9 +208,11 @@ const AppContent = () => {
 
       {!isAdminRoute && <Footer />}
 
-      {!isAdminRoute && (
+      {!isAdminRoute && shouldMountDeferredUi && (
         <ErrorBoundary variant="inline" silent>
+          <Suspense fallback={null}>
             <GlobalPlayer />
+          </Suspense>
         </ErrorBoundary>
       )}
       {!isAdminRoute && <MobileNavbar />}

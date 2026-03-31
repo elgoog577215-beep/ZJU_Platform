@@ -1,21 +1,36 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ArrowDown } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 import { useSettings } from '../context/SettingsContext';
+import { useReducedMotion } from '../utils/animations';
 
 const Hero = () => {
   const { scrollY } = useScroll();
   const y = useTransform(scrollY, [0, 500], [0, 200]);
   const opacity = useTransform(scrollY, [0, 300], [1, 0]);
-  const { t } = useTranslation();
   const { settings } = useSettings();
+  const prefersReducedMotion = useReducedMotion();
+  const [isMobile, setIsMobile] = useState(() => (typeof window !== 'undefined' ? window.innerWidth < 768 : false));
+  const shouldUseMotion = !prefersReducedMotion;
+  const shouldUseParallax = shouldUseMotion && !isMobile;
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const updateViewport = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    updateViewport();
+    window.addEventListener('resize', updateViewport, { passive: true });
+    return () => window.removeEventListener('resize', updateViewport);
+  }, []);
 
   return (
-    <div className="relative h-[100dvh] w-full overflow-hidden flex items-center justify-center">
+    <div className="relative h-[100dvh] w-full overflow-hidden flex items-center justify-center px-4 pt-[max(env(safe-area-inset-top),0px)] pb-[max(env(safe-area-inset-bottom),24px)]">
       {/* Background Image with Parallax */}
       <motion.div 
-        style={{ y }}
+        style={shouldUseParallax ? { y } : undefined}
         className="absolute inset-0 z-0"
       >
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black z-10" />
@@ -26,30 +41,29 @@ const Hero = () => {
           alt="Hero Background" 
           className="w-full h-full object-cover"
           loading="eager"
-          fetchpriority="high"
           decoding="async"
         />
       </motion.div>
 
       {/* Content */}
       <motion.div 
-        style={{ opacity }}
-        className="relative z-20 text-center px-4"
+        style={shouldUseParallax ? { opacity } : undefined}
+        className="relative z-20 text-center px-4 w-full max-w-6xl"
       >
         <div className="md:bg-transparent bg-black/20 rounded-3xl p-6 md:p-0 border border-white/5 md:border-none">
         <motion.h1 
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-          className="text-5xl md:text-7xl lg:text-9xl font-bold font-serif text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-200 to-white/70 tracking-tighter mb-4 md:mb-6 drop-shadow-[0_0_25px_rgba(255,255,255,0.2)] animate-text-gradient"
+          initial={shouldUseMotion ? { y: 50, opacity: 0 } : false}
+          animate={shouldUseMotion ? { y: 0, opacity: 1 } : undefined}
+          transition={shouldUseMotion ? { duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] } : undefined}
+          className="text-4xl sm:text-5xl md:text-7xl lg:text-9xl font-bold font-serif text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-200 to-white/70 tracking-tighter mb-4 md:mb-6 drop-shadow-[0_0_25px_rgba(255,255,255,0.2)] animate-text-gradient"
         >
           {settings.hero_title || "浙江大学信息聚合平台"}
         </motion.h1>
         <motion.p 
-          initial={{ y: 30, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-lg md:text-2xl text-gray-200 font-light tracking-wide max-w-2xl mx-auto px-4"
+          initial={shouldUseMotion ? { y: 30, opacity: 0 } : false}
+          animate={shouldUseMotion ? { y: 0, opacity: 1 } : undefined}
+          transition={shouldUseMotion ? { duration: 0.6, delay: 0.2 } : undefined}
+          className="text-base sm:text-lg md:text-2xl text-gray-200 font-light tracking-wide max-w-2xl mx-auto px-2 sm:px-4"
         >
           {settings.hero_subtitle || "打破信息差，共建信息网络"}
         </motion.p>
@@ -58,10 +72,10 @@ const Hero = () => {
 
       {/* Scroll Indicator */}
       <motion.div 
-        style={{ opacity }}
-        animate={{ y: [0, 10, 0] }}
-        transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-        className="absolute bottom-24 md:bottom-10 left-1/2 -translate-x-1/2 z-20 text-white/50 hover:text-white transition-colors cursor-pointer"
+        style={shouldUseParallax ? { opacity } : undefined}
+        animate={shouldUseMotion ? { y: [0, 10, 0] } : undefined}
+        transition={shouldUseMotion ? { repeat: Infinity, duration: 2, ease: "easeInOut" } : undefined}
+        className="absolute bottom-[max(env(safe-area-inset-bottom),88px)] md:bottom-10 left-1/2 -translate-x-1/2 z-20 text-white/50 hover:text-white transition-colors cursor-pointer"
         onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
       >
         <div className="p-2 rounded-full border border-white/10 backdrop-blur-sm bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)]">

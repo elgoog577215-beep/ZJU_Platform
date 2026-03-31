@@ -1,600 +1,480 @@
-const sqlite3 = require('sqlite3');
-const { open } = require('sqlite');
+require('dotenv').config();
+
 const path = require('path');
+const bcrypt = require('bcryptjs');
+const { getDb, pool } = require('./src/config/db');
+const { runMigrations } = require('./src/config/runMigrations');
 
-async function seed() {
-  const db = await open({
-    filename: path.join(__dirname, 'database.sqlite'),
-    driver: sqlite3.Database
-  });
+const databaseFile = process.env.DATABASE_FILE || path.join(__dirname, 'database.sqlite');
 
-  console.log('Clearing existing data...');
-  
+const settingsSeed = {
+  pagination_enabled: 'false',
+  theme: 'cyber',
+  language: 'zh',
+  site_title: '拓途浙享 | TUOTUZJU',
+  hero_title: '浙江大学信息聚合平台',
+  hero_subtitle: '打破信息差，共建信息网络',
+  about_title: '浙江大学信息聚合平台',
+  about_subtitle: '打破信息差，共建信息网络',
+  about_intro: '我们致力于消除信息差，提供一个优质信息共享平台。',
+  about_detail: '欢迎加入我们！在这里，你可以参与优质活动，并分享活动有关的影像、文章、音乐，共建一个有温度、有情怀的优质社区！',
+  contact_email: 'service@tuotuzju.com',
+  contact_phone: '0571-87950000',
+  contact_address: '浙江大学 SQTP 项目：拓途浙享团队'
+};
+
+const usersSeed = [
+  {
+    username: process.env.SEED_ADMIN_USERNAME || 'seed_admin',
+    password: process.env.SEED_ADMIN_PASSWORD || 'Admin123456',
+    role: 'admin',
+    nickname: '种子管理员',
+    organization_cr: '拓途浙享',
+    created_at: '2026-03-01 09:00:00'
+  },
+  {
+    username: process.env.SEED_USER_USERNAME || 'demo_user',
+    password: process.env.SEED_USER_PASSWORD || 'Demo123456',
+    role: 'user',
+    nickname: '演示用户',
+    organization_cr: '浙江大学',
+    created_at: '2026-03-02 10:30:00'
+  }
+];
+
+const photosSeed = [
+  {
+    title: '求是晨光',
+    url: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1200&auto=format&fit=crop&q=80',
+    tags: '校园,摄影,晨光',
+    size: 'large',
+    featured: 1,
+    created_at: '2026-03-20 08:00:00'
+  },
+  {
+    title: '图书馆一角',
+    url: 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=1200&auto=format&fit=crop&q=80',
+    tags: '学习,空间,记录',
+    size: 'wide',
+    featured: 0,
+    created_at: '2026-03-24 14:00:00'
+  },
+  {
+    title: '夜色跑道',
+    url: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=1200&auto=format&fit=crop&q=80',
+    tags: '运动,夜景,校园',
+    size: 'tall',
+    featured: 0,
+    created_at: '2026-03-26 20:00:00'
+  }
+];
+
+const musicSeed = [
+  {
+    title: '求是之声',
+    artist: '拓途乐队',
+    duration: 228,
+    cover: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=1200&auto=format&fit=crop&q=80',
+    audio: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+    tags: '校园,原创,轻音乐',
+    featured: 1,
+    created_at: '2026-03-18 19:30:00'
+  },
+  {
+    title: '西溪晚风',
+    artist: '湖畔录音室',
+    duration: 203,
+    cover: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1200&auto=format&fit=crop&q=80',
+    audio: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
+    tags: '治愈,校园,夜晚',
+    featured: 0,
+    created_at: '2026-03-22 21:00:00'
+  }
+];
+
+const videosSeed = [
+  {
+    title: '社团招新回顾',
+    thumbnail: 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=1200&auto=format&fit=crop&q=80',
+    video: 'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4',
+    tags: '社团,活动,招新',
+    featured: 1,
+    created_at: '2026-03-17 12:00:00'
+  },
+  {
+    title: '实验室开放日',
+    thumbnail: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&auto=format&fit=crop&q=80',
+    video: 'https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4',
+    tags: '科研,实验室,开放日',
+    featured: 0,
+    created_at: '2026-03-25 15:30:00'
+  }
+];
+
+const articlesSeed = [
+  {
+    title: '如何高效发现校内活动',
+    date: '2026-03-21',
+    excerpt: '从讲座、比赛到公益志愿，整理一套更适合学生的信息获取方式。',
+    tag: '校园指南',
+    tags: '校园指南,活动,信息整合',
+    cover: 'https://images.unsplash.com/photo-1513258496099-48168024aec0?w=1200&auto=format&fit=crop&q=80',
+    content: '<p>拓途浙享希望减少“知道得晚、错过报名”的问题。好的活动信息，应该被更早、更清晰地看见。</p>',
+    featured: 1,
+    created_at: '2026-03-16 09:30:00'
+  },
+  {
+    title: '志愿活动记录模板',
+    date: '2026-03-23',
+    excerpt: '给活动发起者和参与者一套更清晰的记录方式，方便后续沉淀和复盘。',
+    tag: '志愿服务',
+    tags: '志愿服务,模板,复盘',
+    cover: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=1200&auto=format&fit=crop&q=80',
+    content: '<p>一篇活动记录不只用于存档，也能帮助后来者快速理解活动价值和参与方式。</p>',
+    featured: 0,
+    created_at: '2026-03-24 11:15:00'
+  },
+  {
+    title: '校园创作者为什么需要统一展示平台',
+    date: '2026-03-26',
+    excerpt: '作品、活动和文章如果分散在多个渠道，往往很难形成长期影响。',
+    tag: '平台思考',
+    tags: '平台思考,创作,展示',
+    cover: 'https://images.unsplash.com/photo-1516321497487-e288fb19713f?w=1200&auto=format&fit=crop&q=80',
+    content: '<p>统一的平台能让创作、活动、互动之间形成连接，也更方便后续做数据分析和运营。</p>',
+    featured: 0,
+    created_at: '2026-03-27 16:45:00'
+  }
+];
+
+const eventsSeed = [
+  {
+    title: '春季校园市集志愿招募',
+    date: '2026-04-12 09:00:00',
+    end_date: '2026-04-12 17:30:00',
+    location: '紫金港校区主广场',
+    tags: '志愿,市集,校园',
+    status: 'approved',
+    image: 'https://images.unsplash.com/photo-1528605248644-14dd04022da1?w=1200&auto=format&fit=crop&q=80',
+    description: '协助春季校园市集的现场指引、秩序维护与摊位协调。',
+    content: '<p>欢迎希望积累活动组织经验的同学参与。活动结束后会提供志愿服务证明。</p>',
+    link: 'https://example.com/events/spring-market',
+    featured: 1,
+    score: '4.8',
+    target_audience: '本科生,研究生',
+    organizer: '拓途浙享团队',
+    volunteer_time: '8 小时',
+    category: '志愿服务',
+    views: 18,
+    created_at: '2026-03-20 09:00:00'
+  },
+  {
+    title: 'AI 工具效率分享会',
+    date: '2026-04-18 14:00:00',
+    end_date: '2026-04-18 16:00:00',
+    location: '图书馆报告厅',
+    tags: '讲座,AI,学习效率',
+    status: 'approved',
+    image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&auto=format&fit=crop&q=80',
+    description: '围绕学习、资料整理、活动运营三类场景，分享 AI 工具的真实使用经验。',
+    content: '<p>本次活动会结合校内场景，介绍信息整合、内容生产和协作流程的实践案例。</p>',
+    link: 'https://example.com/events/ai-workshop',
+    featured: 0,
+    score: '4.7',
+    target_audience: '全校师生',
+    organizer: '信息素养协会',
+    volunteer_time: '',
+    category: '学术讲座',
+    views: 11,
+    created_at: '2026-03-22 13:00:00'
+  },
+  {
+    title: '社区助老数字服务日',
+    date: '2026-03-28 09:30:00',
+    end_date: '2026-03-28 12:00:00',
+    location: '文三路社区中心',
+    tags: '公益,助老,数字服务',
+    status: 'approved',
+    image: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=1200&auto=format&fit=crop&q=80',
+    description: '帮助社区老人解决手机支付、挂号和线上出行等常见问题。',
+    content: '<p>活动已顺利结束，欢迎上传现场照片与心得，帮助更多团队复用活动经验。</p>',
+    link: 'https://example.com/events/community-service',
+    featured: 0,
+    score: '4.9',
+    target_audience: '志愿者',
+    organizer: '青年志愿者协会',
+    volunteer_time: '3 小时',
+    category: '公益实践',
+    views: 26,
+    created_at: '2026-03-12 10:00:00'
+  },
+  {
+    title: '跨学科项目招募说明会',
+    date: '2026-04-25 19:00:00',
+    end_date: '2026-04-25 20:30:00',
+    location: '线上会议',
+    tags: '项目,招募,跨学科',
+    status: 'pending',
+    image: 'https://images.unsplash.com/photo-1515169067868-5387ec356754?w=1200&auto=format&fit=crop&q=80',
+    description: '面向想做真实项目的同学，介绍选题方向、协作机制和报名方式。',
+    content: '<p>该活动仍在审核中，用于验证后台审核流和待审核列表。</p>',
+    link: 'https://example.com/events/project-open-call',
+    featured: 0,
+    score: '4.6',
+    target_audience: '本科生,研究生',
+    organizer: '创新实践中心',
+    volunteer_time: '',
+    category: '项目招募',
+    views: 0,
+    created_at: '2026-03-27 18:20:00'
+  }
+];
+
+const messagesSeed = [
+  {
+    name: '王同学',
+    email: 'student@example.com',
+    message: '希望后续可以增加按学院筛选活动的功能。',
+    date: '2026-03-28T08:30:00.000Z',
+    read: 0
+  }
+];
+
+async function resetDatabase(db) {
+  console.log('🧹 Resetting database...');
+  await db.exec('PRAGMA foreign_keys = OFF');
   await db.exec(`
-    DROP TABLE IF EXISTS photos;
-    DROP TABLE IF EXISTS music;
-    DROP TABLE IF EXISTS videos;
-    DROP TABLE IF EXISTS articles;
-    DROP TABLE IF EXISTS events;
-    DROP TABLE IF EXISTS event_categories;
+    DROP TABLE IF EXISTS event_registrations;
+    DROP TABLE IF EXISTS event_view_events;
+    DROP TABLE IF EXISTS site_daily_visitors;
+    DROP TABLE IF EXISTS site_visit_events;
+    DROP TABLE IF EXISTS notifications;
+    DROP TABLE IF EXISTS comments;
+    DROP TABLE IF EXISTS favorites;
+    DROP TABLE IF EXISTS audit_logs;
+    DROP TABLE IF EXISTS tags;
+    DROP TABLE IF EXISTS messages;
     DROP TABLE IF EXISTS settings;
+    DROP TABLE IF EXISTS events;
+    DROP TABLE IF EXISTS articles;
+    DROP TABLE IF EXISTS videos;
+    DROP TABLE IF EXISTS music;
+    DROP TABLE IF EXISTS photos;
+    DROP TABLE IF EXISTS users;
   `);
-
-  console.log('Creating tables...');
-
-  await db.exec(`
-    CREATE TABLE photos (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      url TEXT,
-      title TEXT,
-      tags TEXT,
-      size TEXT,
-      gameType TEXT,
-      gameDescription TEXT,
-      featured BOOLEAN DEFAULT 0,
-      likes INTEGER DEFAULT 0,
-      status TEXT DEFAULT 'approved',
-      uploader_id INTEGER,
-      deleted_at DATETIME
-    );
-
-    CREATE TABLE music (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT,
-      artist TEXT,
-      duration INTEGER,
-      cover TEXT,
-      audio TEXT,
-      tags TEXT,
-      featured BOOLEAN DEFAULT 0,
-      likes INTEGER DEFAULT 0,
-      status TEXT DEFAULT 'approved',
-      uploader_id INTEGER,
-      deleted_at DATETIME
-    );
-
-    CREATE TABLE videos (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT,
-      tags TEXT,
-      thumbnail TEXT,
-      video TEXT,
-      featured BOOLEAN DEFAULT 0,
-      likes INTEGER DEFAULT 0,
-      status TEXT DEFAULT 'approved',
-      uploader_id INTEGER,
-      deleted_at DATETIME
-    );
-
-    CREATE TABLE articles (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT,
-      date TEXT,
-      excerpt TEXT,
-      tag TEXT,
-      tags TEXT,
-      content TEXT,
-      cover TEXT,
-      featured BOOLEAN DEFAULT 0,
-      likes INTEGER DEFAULT 0,
-      status TEXT DEFAULT 'approved',
-      uploader_id INTEGER,
-      deleted_at DATETIME
-    );
-
-    CREATE TABLE events (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT,
-      date TEXT,
-      end_date TEXT,
-      location TEXT,
-      tags TEXT,
-      status TEXT DEFAULT 'approved',
-      image TEXT,
-      description TEXT,
-      content TEXT,
-      link TEXT,
-      featured BOOLEAN DEFAULT 0,
-      likes INTEGER DEFAULT 0,
-      uploader_id INTEGER,
-      deleted_at DATETIME
-    );
-
-    CREATE TABLE settings (
-      key TEXT PRIMARY KEY,
-      value TEXT
-    );
-  `);
-
-  console.log('Seeding data...');
-
-  // Photos
-  const photos = [
-    {
-      id: 1,
-      url: "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=800&auto=format&fit=crop&q=60",
-      title: "山峰",
-      size: "large",
-      gameType: "skyfall",
-      gameDescription: "滑翔穿过山峰！避开障碍物。"
-    },
-    {
-      id: 2,
-      url: "https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?w=800&auto=format&fit=crop&q=60",
-      title: "霓虹城市",
-      size: "small",
-      gameType: "runner",
-      gameDescription: "在赛博城市中竞速！收集能量。"
-    },
-    {
-      id: 3,
-      url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=60",
-      title: "人像研究",
-      size: "tall",
-      gameType: "puzzle",
-      gameDescription: "重组记忆。"
-    },
-    {
-      id: 4,
-      url: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800&auto=format&fit=crop&q=60",
-      title: "时装周",
-      size: "small",
-      gameType: "shutter",
-      gameDescription: "捕捉完美的姿势！"
-    },
-    {
-      id: 5,
-      url: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&auto=format&fit=crop&q=60",
-      title: "优胜美地",
-      size: "wide",
-      gameType: "skyfall",
-      gameDescription: "驾驭山谷之风。"
-    },
-    {
-      id: 6,
-      url: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&auto=format&fit=crop&q=60",
-      title: "相机镜头",
-      size: "small",
-      gameType: "shutter",
-      gameDescription: "快速对焦拍摄！"
-    },
-    {
-      id: 7,
-      url: "https://images.unsplash.com/photo-1552168324-d612d77725e3?w=800&auto=format&fit=crop&q=60",
-      title: "街头生活",
-      size: "tall",
-      gameType: "runner",
-      gameDescription: "躲避城市交通。"
-    },
-    {
-      id: 8,
-      url: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&auto=format&fit=crop&q=60",
-      title: "迷雾森林",
-      size: "large",
-      gameType: "skyfall",
-      gameDescription: "在迷雾中漂移。"
-    },
-    {
-      id: 9,
-      url: "https://images.unsplash.com/photo-1551316679-9c6ae9dec224?w=800&auto=format&fit=crop&q=60",
-      title: "极简主义",
-      size: "small",
-      gameType: "puzzle",
-      gameDescription: "寻找隐藏的模式。"
-    },
-    {
-      id: 10,
-      url: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=800&auto=format&fit=crop&q=60",
-      title: "高山湖泊",
-      size: "wide",
-      gameType: "skyfall",
-      gameDescription: "反思旅程。"
-    },
-    {
-      id: 11,
-      url: "https://images.unsplash.com/photo-1517849845537-4d257902454a?w=800&auto=format&fit=crop&q=60",
-      title: "忠诚伙伴",
-      size: "small",
-      gameType: "puzzle",
-      gameDescription: "忠诚的朋友。"
-    },
-    {
-      id: 12,
-      url: "https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=800&auto=format&fit=crop&q=60",
-      title: "雨夜",
-      size: "tall",
-      gameType: "runner",
-      gameDescription: "在雨中奔跑。"
-    },
-    {
-      id: 13,
-      url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&auto=format&fit=crop&q=60",
-      title: "海岸线",
-      size: "wide",
-      gameType: "skyfall",
-      gameDescription: "沿着海岸飞翔。"
-    },
-    {
-      id: 14,
-      url: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=800&auto=format&fit=crop&q=60",
-      title: "现代女性",
-      size: "large",
-      gameType: "puzzle",
-      gameDescription: "拼凑面孔。"
-    },
-    {
-      id: 15,
-      url: "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&auto=format&fit=crop&q=60",
-      title: "几何结构",
-      size: "small",
-      gameType: "puzzle",
-      gameDescription: "解开几何谜题。"
-    },
-    {
-      id: 16,
-      url: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&auto=format&fit=crop&q=60",
-      title: "街头风格",
-      size: "tall",
-      gameType: "shutter",
-      gameDescription: "捕捉时尚瞬间。"
-    },
-    {
-      id: 17,
-      url: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=800&auto=format&fit=crop&q=60",
-      title: "流动的光",
-      size: "wide",
-      gameType: "puzzle",
-      gameDescription: "连接光线。"
-    },
-    {
-      id: 18,
-      url: "https://images.unsplash.com/photo-1519638399535-1b036603ac77?w=800&auto=format&fit=crop&q=60",
-      title: "朋友",
-      size: "small",
-      gameType: "puzzle",
-      gameDescription: "回忆美好时光。"
-    },
-    {
-      id: 19,
-      url: "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800&auto=format&fit=crop&q=60",
-      title: "摩天大楼",
-      size: "large",
-      gameType: "runner",
-      gameDescription: "攀登高峰。"
-    },
-    {
-      id: 20,
-      url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&auto=format&fit=crop&q=60",
-      title: "静谧森林",
-      size: "tall",
-      gameType: "skyfall",
-      gameDescription: "在树林中穿梭。"
-    },
-    {
-      id: 21,
-      url: "https://images.unsplash.com/photo-1558981806-ec527fa84c3d?w=800&auto=format&fit=crop&q=60",
-      title: "机车",
-      size: "small",
-      gameType: "shutter",
-      gameDescription: "捕捉速度。"
-    },
-    {
-      id: 22,
-      url: "https://images.unsplash.com/photo-1542206391-78c48b40dd5f?w=800&auto=format&fit=crop&q=60",
-      title: "秋色",
-      size: "wide",
-      gameType: "skyfall",
-      gameDescription: "感受秋风。"
-    }
-  ];
-
-  for (const photo of photos) {
-    await db.run(
-      'INSERT INTO photos (url, title, tags, size, gameType, gameDescription, featured) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [photo.url, photo.title, photo.tags || '', photo.size, photo.gameType, photo.gameDescription, photo.featured ? 1 : 0]
-    );
-  }
-
-  // Music
-  const music = [
-    { id: 1, title: "霓虹地平线", artist: "合成波少年", duration: 225, cover: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=1000&auto=format&fit=crop", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
-    { id: 2, title: "赛博之雨", artist: "数字梦境", duration: 260, cover: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=1000&auto=format&fit=crop", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" },
-    { id: 3, title: "午夜城市", artist: "守夜人", duration: 192, cover: "https://images.unsplash.com/photo-1515630278258-407f66498911?q=80&w=1000&auto=format&fit=crop", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" },
-    { id: 4, title: "星际航行", artist: "太空学员", duration: 305, cover: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=1000&auto=format&fit=crop", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3" },
-    { id: 5, title: "复古驾驶", artist: "激光网格", duration: 210, cover: "https://images.unsplash.com/photo-1535131749006-b7f58c99034b?q=80&w=1000&auto=format&fit=crop", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3" },
-    { id: 6, title: "梦境", artist: "空灵思维", duration: 245, cover: "https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?q=80&w=1000&auto=format&fit=crop", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3" },
-    { id: 7, title: "深海信号", artist: "声纳", duration: 300, cover: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1000&auto=format&fit=crop", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3" },
-    { id: 8, title: "量子跃迁", artist: "光速", duration: 180, cover: "https://images.unsplash.com/photo-1506318137071-a8bcbf670b27?q=80&w=1000&auto=format&fit=crop", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" },
-    { id: 9, title: "机械心跳", artist: "机器人", duration: 240, cover: "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1000&auto=format&fit=crop", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3" },
-    { id: 10, title: "失落的频率", artist: "电波", duration: 215, cover: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1000&auto=format&fit=crop", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3" },
-    { id: 11, title: "虚拟日落", artist: "像素", duration: 270, cover: "https://images.unsplash.com/photo-1495615080073-6b89c98beddb?q=80&w=1000&auto=format&fit=crop", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3" },
-    { id: 12, title: "引力波", artist: "黑洞", duration: 290, cover: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=1000&auto=format&fit=crop", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3" }
-  ];
-
-  for (const track of music) {
-    await db.run(
-      'INSERT INTO music (title, artist, duration, cover, audio, tags, featured) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [track.title, track.artist, track.duration, track.cover, track.audio, track.tags || '', track.featured ? 1 : 0]
-    );
-  }
-
-  // Videos
-  const videos = [
-    { id: 1, title: "虚空", thumbnail: "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4" },
-    { id: 2, title: "数字灵魂", thumbnail: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4" },
-    { id: 3, title: "霓虹之夜", thumbnail: "https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_1MB.mp4" },
-    { id: 4, title: "赛博城市", thumbnail: "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4" },
-    { id: 5, title: "抽象流动", thumbnail: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4" },
-    { id: 6, title: "未来科技", thumbnail: "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_1MB.mp4" },
-    { id: 7, title: "深空探索", thumbnail: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4" },
-    { id: 8, title: "粒子风暴", thumbnail: "https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4" },
-    { id: 9, title: "城市节奏", thumbnail: "https://images.unsplash.com/photo-1495615080073-6b89c98beddb?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_1MB.mp4" },
-    { id: 10, title: "虚拟现实", thumbnail: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4" },
-    { id: 11, title: "海洋之心", thumbnail: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1000&auto=format&fit=crop", video: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4" }
-  ];
-
-  for (const video of videos) {
-    await db.run(
-      'INSERT INTO videos (title, tags, thumbnail, video, featured) VALUES (?, ?, ?, ?, ?)',
-      [video.title, video.tags || '', video.thumbnail, video.video, video.featured ? 1 : 0]
-    );
-  }
-
-  // Articles
-  const articles = [
-  { 
-    id: 1, 
-    title: "数字艺术的未来", 
-    date: "2024-10-24", 
-    excerpt: "探索人工智能、虚拟现实与传统绘画技巧的交汇点。", 
-    tag: "观点",
-    content: `
-      <p class="mb-4">数字艺术领域正在以前所未有的速度演变。随着生成式 AI 和沉浸式 VR 体验的出现，“艺术”的定义正在被重写。</p>
-      <p class="mb-4">传统上，艺术局限于物理媒介——画布、石头、纸张。今天，像素和顶点是新的粘土。但这是否削弱了人的因素？我认为恰恰相反。</p>
-      <h3 class="text-xl font-bold text-white mt-6 mb-4">AI 协作者</h3>
-      <p class="mb-4">AI 工具不是在取代艺术家；而是在赋能他们。就像照相机没有扼杀绘画，而是将其从现实主义的需求中解放出来一样，AI 正在将数字艺术家从技术束缚中解放出来，让纯粹的想象力占据中心舞台。</p>
-      <p>展望未来，最成功的艺术家将是那些能够融合这些技术的人——将人类创造力的原始情感与机器智能的无限可能性相结合。</p>
-    `
-  },
-  { 
-    id: 2, 
-    title: "幕后揭秘：天际坠落", 
-    date: "2024-09-12", 
-    excerpt: "深入解析我最新的 WebGL 游戏的开发过程。", 
-    tag: "开发日志",
-    content: `
-      <p class="mb-4">Skyfall（天际坠落）最初只是 Three.js 中的一个简单实验：“我能让飞机飞过无限的云层吗？”答案是肯定的，但让它<em>感觉</em>良好才是真正的挑战。</p>
-      <h3 class="text-xl font-bold text-white mt-6 mb-4">性能优化</h3>
-      <p class="mb-4">最大的障碍之一是在渲染数千个云粒子和体积光的同时保持 60 FPS。解决方案涉及实例化网格渲染和自定义着色器，在 GPU 而非 CPU 上处理运动。</p>
-      <p class="mb-4">这种方法使我们能够从 100 个对象扩展到 10,000 个对象，而几乎没有性能成本。</p>
-      <h3 class="text-xl font-bold text-white mt-6 mb-4">飞行物理</h3>
-      <p>我们要的不是模拟器；我们要的是街机感。通过将空气动力学模型简化为仅包含推力、阻力和一个“趣味因子”向量，我们实现了既直观又灵敏的控制。</p>
-    `
-  },
-  { 
-    id: 3, 
-    title: "代码中的极简主义", 
-    date: "2024-08-05", 
-    excerpt: "为什么少写代码通常能带来更好、更易维护的软件。", 
-    tag: "技术",
-    content: `
-      <p class="mb-4">“完美的达成，不是当没有什么可以添加时，而是当没有什么可以去掉时。” —— 安托万·德·圣埃克苏佩里</p>
-      <p class="mb-4">在软件工程中，复杂性是敌人。你写的每一行代码都是一种负债——它需要被测试、维护，并最终被重构。</p>
-      <h3 class="text-xl font-bold text-white mt-6 mb-4">删除的艺术</h3>
-      <p class="mb-4">我发现我效率最高的日子往往是代码行数为负的日子。删除无用的功能、简化逻辑和移除依赖项会让代码库更健康。</p>
-      <p>下次当你准备安装一个新的库或编写一个复杂的辅助函数时，问问自己：有没有更简单的方法？</p>
-    `
-  },
-  { 
-    id: 4, 
-    title: "网页设计中的色彩理论", 
-    date: "2024-07-15", 
-    excerpt: "如何使用调色板来唤起情感并引导用户行为。", 
-    tag: "设计",
-    content: `
-      <p class="mb-4">颜色不仅仅是装饰；它是一种语言。它在甚至我们还没意识到的情况下就与我们的潜意识对话并影响我们的决定。</p>
-      <p class="mb-4">在网页设计中，“60-30-10”规则之所以经典是有原因的。60% 的主色，30% 的辅助色，10% 的强调色。这种平衡确保了你的设计感觉连贯而不压抑。</p>
-      <p>对于“Lumos”，我选择了带有霓虹青色点缀的暗色主题，以唤起一种未来主义的神秘感和科技优雅感。</p>
-    `
-  },
-  { 
-    id: 5, 
-    title: "胶片摄影的静谧力量", 
-    date: "2024-06-02", 
-    excerpt: "在数字世界中重新发现模拟过程的乐趣。", 
-    tag: "摄影",
-    content: `
-      <p class="mb-4">在一个我们可以一分钟拍 1000 张照片的时代，36 张胶卷的限制是一种礼物。它迫使你慢下来，思考，在按下快门之前真正地<em>看</em>。</p>
-      <p class="mb-4">冲洗胶卷有一种切实的魔力——化学药品的味道，房间的黑暗，以及看到你的图像从底片中显现出来的期待。</p>
-      <p>胶片颗粒增加了数字滤镜仍然难以完美复制的质感和温暖。这不仅仅是一种美学；这是一种感觉。</p>
-    `
-  },
-  { 
-    id: 6, 
-    title: "沉浸式音频体验", 
-    date: "2024-05-18", 
-    excerpt: "空间音频如何改变我们体验数字媒体的方式。", 
-    tag: "技术",
-    content: `
-      <p class="mb-4">声音不仅仅是我们听到的东西，它是我们感受环境的关键。随着 VR 和 AR 的发展，空间音频正在成为创造沉浸感不可或缺的一部分。</p>
-      <p class="mb-4">双耳录音技术让我们能够通过耳机体验到声音的方向和距离，仿佛身临其境。这对于游戏和电影来说是一个巨大的飞跃。</p>
-      <p>未来的界面可能不仅仅是视觉的，而是听觉的。想象一下，通过声音的微妙变化来导航数字空间。</p>
-    `
-  },
-  { 
-    id: 7, 
-    title: "生成式艺术的伦理", 
-    date: "2024-04-30", 
-    excerpt: "当机器开始创作时，谁拥有版权？", 
-    tag: "观点",
-    content: `
-      <p class="mb-4">AI 生成的艺术作品引发了关于原创性和版权的激烈争论。如果一个 AI 是在数百万张受版权保护的图像上训练出来的，那么它的输出属于谁？</p>
-      <p class="mb-4">我们需要重新思考“作者”的定义。也许未来的艺术家更像是策展人或导演，指导 AI 产生特定的结果。</p>
-      <p>这是一个法律和道德的灰色地带，我们需要在保护人类创造力和拥抱技术进步之间找到平衡。</p>
-    `
-  },
-  { 
-    id: 8, 
-    title: "独立游戏开发的苦与乐", 
-    date: "2024-04-12", 
-    excerpt: "从零开始构建一个世界的个人旅程。", 
-    tag: "开发日志",
-    content: `
-      <p class="mb-4">做独立游戏是一场孤独的马拉松。你既是程序员，又是美术，还是音效师和市场经理。每一个像素、每一行代码都出自你手。</p>
-      <p class="mb-4">但当你看到玩家沉浸在你创造的世界中，体验你设计的故事时，所有的辛苦都值得了。</p>
-      <p>保持动力的关键是设定小目标，并庆祝每一个微小的胜利。不要试图一口气造出罗马，一块砖一块砖地来。</p>
-    `
-  },
-  { 
-    id: 9, 
-    title: "UI 设计中的微交互", 
-    date: "2024-03-25", 
-    excerpt: "小细节如何产生大影响。", 
-    tag: "设计",
-    content: `
-      <p class="mb-4">微交互是那些由于用户操作而发生的微小动画或反馈。比如点赞时的心跳动画，或者下拉刷新时的加载指示器。</p>
-      <p class="mb-4">这些细节看似微不足道，但它们赋予了界面生命力。它们告诉用户：系统正在工作，你的操作已被接收。</p>
-      <p>好的微交互应该是几乎不可见的——它们感觉自然、流畅，增强了体验而不是打断它。</p>
-    `
-  },
-  { 
-    id: 10, 
-    title: "赛博朋克美学指南", 
-    date: "2024-03-10", 
-    excerpt: "霓虹灯、雨夜与高科技低生活的视觉语言。", 
-    tag: "艺术",
-    content: `
-      <p class="mb-4">赛博朋克不仅仅是科幻，它是一种独特的视觉风格。高对比度的霓虹色调、潮湿的街道、复杂的机械结构，构成了这种美学的核心。</p>
-      <p class="mb-4">在设计赛博朋克风格的作品时，光影是关键。利用发光材质和体积光来创造氛围。</p>
-      <p>但不要忘记“低生活”的部分。破败的建筑、混乱的电线和涂鸦，与高科技元素形成对比，才能讲述完整的故事。</p>
-    `
-  }
-  ];
-
-  for (const article of articles) {
-    await db.run(
-      'INSERT INTO articles (title, date, excerpt, tag, tags, content, cover, featured) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [article.title, article.date, article.excerpt, article.tag, article.tags || article.tag, article.content, article.cover || null, article.featured ? 1 : 0]
-    );
-  }
-
-  // Events
-  const events = [
-  {
-    id: 1,
-    title: "全球 AI 艺术黑客马拉松 2024",
-    date: "2024-11-15",
-    location: "线上 / 旧金山",
-    status: "Upcoming",
-    image: "https://images.unsplash.com/photo-1592478411213-61535fdd861d?q=80&w=1000&auto=format&fit=crop",
-    description: "与来自世界各地的艺术家和开发者一起，拓展生成式艺术的边界。48小时的编码、创作与协作。",
-    content: "<p>全球 AI 艺术黑客马拉松回归！今年的主题是‘共生’。人类创造力与机器智能如何共存并相互增强？</p><p>奖品包括 1 万美元的奖金、云服务额度以及《数字艺术月刊》的专题报道。</p>"
-  },
-  {
-    id: 2,
-    title: "社区科技教育工作坊",
-    date: "2024-10-05",
-    location: "市图书馆 302 室",
-    status: "Past",
-    image: "https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=1000&auto=format&fit=crop",
-    description: "向老年人教授基础编程和数字素养。通过科技连接两代人的美好下午。",
-    content: "<p>我们与当地图书馆合作举办了这次工作坊。看到老人们写下第一行 Python 代码时的兴奋，真是太棒了！</p>"
-  },
-  {
-    id: 3,
-    title: "WebGL 的未来",
-    date: "2024-12-01",
-    location: "科技中心礼堂",
-    status: "Upcoming",
-    image: "https://images.unsplash.com/photo-1544531586-fde5298cdd40?q=80&w=1000&auto=format&fit=crop",
-    description: "深入探讨基于浏览器的图形技术的最新进展。来自主要浏览器厂商和游戏工作室的特邀嘉宾。",
-    content: "<p>主题将包括 WebGPU、浏览器光线追踪以及 Web 3D 资产优化。会后有交流环节。</p>"
-  },
-  {
-    id: 4,
-    title: "生态代码挑战赛",
-    date: "2024-09-20",
-    location: "绿谷公园",
-    status: "Past",
-    image: "https://images.unsplash.com/photo-1497250681960-ef04820a93bf?q=80&w=1000&auto=format&fit=crop",
-    description: "为当地环境问题构建可持续的技术解决方案。团队竞争创造最佳的碳足迹追踪应用。",
-    content: "<p>获胜团队创建了一个面向高中生的垃圾分类游戏化应用。目前正在三所当地学校试运行！</p>"
-  },
-  {
-    id: 5,
-    title: "VR 公益行动",
-    date: "2025-01-10",
-    location: "虚拟空间",
-    status: "Upcoming",
-    image: "https://images.unsplash.com/photo-1593508512255-86ab42a8e620?q=80&w=1000&auto=format&fit=crop",
-    description: "为住院儿童创造 VR 体验。我们需要 3D 建模师、故事讲述者和 Unity 开发者。",
-    content: "<p>我们的目标是将外面的世界带给那些无法离开病房的孩子。我们正在建造一个虚拟动物园和一个空间站体验。</p>"
-  },
-  // New Events
-  {
-    id: 6,
-    title: "创意编程工作坊",
-    date: "2025-02-15",
-    location: "艺术学院",
-    status: "Upcoming",
-    image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&auto=format&fit=crop&q=60",
-    description: "学习如何使用 Processing 和 p5.js 创作视觉艺术。适合初学者。",
-    content: "<p>无论你是设计师还是程序员，这里都有你发挥的空间。我们将从基础开始，最终创作出属于你自己的生成艺术作品。</p>"
-  },
-  {
-    id: 7,
-    title: "数字遗产论坛",
-    date: "2024-08-12",
-    location: "线上",
-    status: "Past",
-    image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60",
-    description: "探讨在数字时代如何保存和传承人类文化遗产。",
-    content: "<p>专家小组讨论关于数据持久性、数字考古学以及人工智能在文化保护中的作用。</p>"
-  },
-  {
-    id: 8,
-    title: "24小时游戏开发挑战",
-    date: "2025-03-20",
-    location: "创新中心",
-    status: "Upcoming",
-    image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&auto=format&fit=crop&q=60",
-    description: "在24小时内从零开始制作一款游戏。主题将在活动开始时公布。",
-    content: "<p>挑战极限，激发潜能。我们提供食物、饮料和休息区，你只需要带上你的电脑和创意。</p>"
-  },
-  {
-    id: 9,
-    title: "科技助老公益日",
-    date: "2024-11-05",
-    location: "社区中心",
-    status: "Past",
-    image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=800&auto=format&fit=crop&q=60",
-    description: "帮助社区老人解决智能手机使用难题，跨越数字鸿沟。",
-    content: "<p>一对一辅导，耐心解答。让科技不再是障碍，而是连接亲情的桥梁。</p>"
-  },
-  {
-    id: 10,
-    title: "沉浸式叙事研讨会",
-    date: "2025-04-10",
-    location: "VR 实验室",
-    status: "Upcoming",
-    image: "https://images.unsplash.com/photo-1478720568477-152d9b164e63?w=800&auto=format&fit=crop&q=60",
-    description: "探索 VR/AR 环境下的非线性叙事技巧。",
-    content: "<p>如何引导观众的注意力？如何在自由探索与故事推进之间取得平衡？来这里寻找答案。</p>"
-  }
-  ];
-
-  for (const event of events) {
-    await db.run(
-      'INSERT INTO events (title, date, location, tags, status, image, description, content, link, featured) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [event.title, event.date, event.location, event.tags || '', event.status, event.image, event.description, event.content, event.link || null, event.featured ? 1 : 0]
-    );
-  }
-
-  console.log('Seeding completed.');
-  await db.close();
+  await db.exec('PRAGMA foreign_keys = ON');
 }
 
-seed().catch(err => {
-  console.error(err);
+async function insertSettings(db) {
+  for (const [key, value] of Object.entries(settingsSeed)) {
+    await db.run('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', [key, value]);
+  }
+}
+
+async function insertUsers(db) {
+  const insertedUsers = [];
+
+  for (const user of usersSeed) {
+    const password = await bcrypt.hash(user.password, 10);
+    const result = await db.run(
+      `
+        INSERT INTO users (username, password, role, nickname, organization_cr, created_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `,
+      [user.username, password, user.role, user.nickname, user.organization_cr, user.created_at]
+    );
+
+    insertedUsers.push({ ...user, id: result.lastID });
+  }
+
+  return insertedUsers;
+}
+
+async function insertContent(db, users) {
+  const adminId = users.find(user => user.role === 'admin')?.id || null;
+
+  for (const photo of photosSeed) {
+    await db.run(
+      `
+        INSERT INTO photos (url, title, tags, size, gameType, gameDescription, featured, status, uploader_id, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 'approved', ?, ?)
+      `,
+      [photo.url, photo.title, photo.tags, photo.size, null, null, photo.featured, adminId, photo.created_at]
+    );
+  }
+
+  for (const track of musicSeed) {
+    await db.run(
+      `
+        INSERT INTO music (title, artist, duration, cover, audio, featured, tags, status, uploader_id, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 'approved', ?, ?)
+      `,
+      [track.title, track.artist, track.duration, track.cover, track.audio, track.featured, track.tags, adminId, track.created_at]
+    );
+  }
+
+  for (const video of videosSeed) {
+    await db.run(
+      `
+        INSERT INTO videos (title, tags, thumbnail, video, featured, status, uploader_id, created_at)
+        VALUES (?, ?, ?, ?, ?, 'approved', ?, ?)
+      `,
+      [video.title, video.tags, video.thumbnail, video.video, video.featured, adminId, video.created_at]
+    );
+  }
+
+  for (const article of articlesSeed) {
+    await db.run(
+      `
+        INSERT INTO articles (title, date, excerpt, tag, tags, content, cover, featured, status, uploader_id, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'approved', ?, ?)
+      `,
+      [article.title, article.date, article.excerpt, article.tag, article.tags, article.content, article.cover, article.featured, adminId, article.created_at]
+    );
+  }
+
+  for (const event of eventsSeed) {
+    await db.run(
+      `
+        INSERT INTO events (
+          title, date, end_date, location, tags, status, image, description, content, link,
+          featured, likes, views, uploader_id, score, target_audience, organizer, volunteer_time, category, created_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?)
+      `,
+      [
+        event.title,
+        event.date,
+        event.end_date,
+        event.location,
+        event.tags,
+        event.status,
+        event.image,
+        event.description,
+        event.content,
+        event.link,
+        event.featured,
+        event.views,
+        adminId,
+        event.score,
+        event.target_audience,
+        event.organizer,
+        event.volunteer_time,
+        event.category,
+        event.created_at
+      ]
+    );
+  }
+
+  for (const message of messagesSeed) {
+    await db.run(
+      'INSERT INTO messages (name, email, message, date, read) VALUES (?, ?, ?, ?, ?)',
+      [message.name, message.email, message.message, message.date, message.read]
+    );
+  }
+}
+
+async function syncTags(db) {
+  const resources = ['photos', 'music', 'videos', 'articles', 'events'];
+  const tagCounter = new Map();
+
+  for (const table of resources) {
+    const rows = await db.all(`SELECT tags FROM ${table} WHERE tags IS NOT NULL AND TRIM(tags) <> ''`);
+    for (const row of rows) {
+      const tags = String(row.tags).split(',').map(tag => tag.trim()).filter(Boolean);
+      for (const tag of tags) {
+        tagCounter.set(tag, (tagCounter.get(tag) || 0) + 1);
+      }
+    }
+  }
+
+  for (const [tag, count] of tagCounter.entries()) {
+    await db.run('INSERT INTO tags (name, count, created_at) VALUES (?, ?, datetime(\'now\'))', [tag, count]);
+  }
+}
+
+async function seedAnalytics(db, users) {
+  const demoUser = users.find(user => user.role === 'user');
+  const events = await db.all('SELECT id, title FROM events ORDER BY id ASC');
+  const eventByTitle = Object.fromEntries(events.map(event => [event.title, event]));
+
+  const siteVisits = [
+    { visitorKey: 'visitor-a', pagePath: '/', dateKey: '2026-03-26', createdAt: '2026-03-26 09:00:00' },
+    { visitorKey: 'visitor-b', pagePath: '/events', dateKey: '2026-03-27', createdAt: '2026-03-27 10:00:00' },
+    { visitorKey: 'visitor-c', pagePath: '/articles', dateKey: '2026-03-28', createdAt: '2026-03-28 11:00:00' },
+    { visitorKey: 'visitor-a', pagePath: '/events', dateKey: '2026-03-28', createdAt: '2026-03-28 15:30:00' },
+    { visitorKey: 'visitor-d', pagePath: '/', dateKey: '2026-03-29', createdAt: '2026-03-29 09:45:00' },
+    { visitorKey: 'visitor-e', pagePath: '/events/1', dateKey: '2026-03-30', createdAt: '2026-03-30 16:20:00' }
+  ];
+
+  for (const visit of siteVisits) {
+    await db.run(
+      'INSERT INTO site_visit_events (visitor_key, page_path, date_key, created_at) VALUES (?, ?, ?, ?)',
+      [visit.visitorKey, visit.pagePath, visit.dateKey, visit.createdAt]
+    );
+
+    await db.run(
+      'INSERT OR IGNORE INTO site_daily_visitors (date_key, visitor_key, first_path, created_at) VALUES (?, ?, ?, ?)',
+      [visit.dateKey, visit.visitorKey, visit.pagePath, visit.createdAt]
+    );
+  }
+
+  const eventViews = [
+    { title: '春季校园市集志愿招募', visitorKey: 'visitor-a', dateKey: '2026-03-28', createdAt: '2026-03-28 09:00:00' },
+    { title: '春季校园市集志愿招募', visitorKey: 'visitor-b', dateKey: '2026-03-29', createdAt: '2026-03-29 11:20:00' },
+    { title: 'AI 工具效率分享会', visitorKey: 'visitor-c', dateKey: '2026-03-29', createdAt: '2026-03-29 13:10:00' },
+    { title: '社区助老数字服务日', visitorKey: 'visitor-d', dateKey: '2026-03-27', createdAt: '2026-03-27 08:40:00' }
+  ];
+
+  for (const view of eventViews) {
+    const event = eventByTitle[view.title];
+    if (!event) continue;
+
+    await db.run(
+      'INSERT INTO event_view_events (event_id, visitor_key, date_key, created_at) VALUES (?, ?, ?, ?)',
+      [event.id, view.visitorKey, view.dateKey, view.createdAt]
+    );
+  }
+
+  if (demoUser) {
+    const registrationTargets = ['春季校园市集志愿招募', 'AI 工具效率分享会'];
+    for (const title of registrationTargets) {
+      const event = eventByTitle[title];
+      if (!event) continue;
+
+      await db.run(
+        'INSERT OR IGNORE INTO event_registrations (event_id, user_id, created_at) VALUES (?, ?, ?)',
+        [event.id, demoUser.id, '2026-03-30 12:00:00']
+      );
+    }
+  }
+}
+
+async function seed() {
+  console.log(`📦 Target database: ${databaseFile}`);
+  const db = await getDb();
+
+  await resetDatabase(db);
+  await runMigrations(db);
+
+  console.log('🌱 Seeding essential demo data...');
+  await insertSettings(db);
+  const users = await insertUsers(db);
+  await insertContent(db, users);
+  await syncTags(db);
+  await seedAnalytics(db, users);
+
+  await pool.close();
+
+  console.log('✅ Seed completed');
+  console.log(`👤 Admin user: ${usersSeed[0].username} / ${usersSeed[0].password}`);
+  console.log(`👤 Demo user: ${usersSeed[1].username} / ${usersSeed[1].password}`);
+}
+
+seed().catch(async (error) => {
+  console.error('❌ Seed failed:', error);
+  try {
+    await pool.close();
+  } catch {}
   process.exit(1);
 });

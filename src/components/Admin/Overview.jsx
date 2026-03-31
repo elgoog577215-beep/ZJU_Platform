@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   LayoutGrid, Music, Film, BookOpen, Calendar, 
-  Users, HardDrive, Activity, Clock, AlertCircle
+  Users, HardDrive, Activity, Clock, AlertCircle, Eye, TrendingUp
 } from 'lucide-react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
@@ -44,11 +44,24 @@ const StatCard = ({ title, value, icon: Icon, color, onClick, breakdown }) => {
   </button>
 )};
 
+const CompactMetric = ({ label, value, icon: Icon, accent = 'indigo' }) => (
+  <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+    <div className="flex items-center justify-between gap-3">
+      <p className="text-xs uppercase tracking-[0.22em] text-gray-400">{label}</p>
+      <div className={`flex h-9 w-9 items-center justify-center rounded-xl bg-${accent}-500/15 text-${accent}-400`}>
+        <Icon size={16} />
+      </div>
+    </div>
+    <p className="mt-3 text-2xl font-bold text-white">{value}</p>
+  </div>
+);
+
 const Overview = ({ onChangeTab }) => {
   const { t } = useTranslation();
   const [stats, setStats] = useState({
     counts: { photos: 0, music: 0, videos: 0, articles: 0, events: 0 },
     breakdown: {},
+    eventAnalytics: { totalViews: 0, totalRegistrations: 0, upcomingCount: 0, views7d: 0, registrations7d: 0, hottestEvents: [] },
     system: { uptime: 0, nodeVersion: '', platform: '' }
   });
   const [loading, setLoading] = useState(true);
@@ -60,6 +73,7 @@ const Overview = ({ onChangeTab }) => {
         setStats(response.data || {
           counts: { photos: 0, music: 0, videos: 0, articles: 0, events: 0 },
           breakdown: {},
+          eventAnalytics: { totalViews: 0, totalRegistrations: 0, upcomingCount: 0, views7d: 0, registrations7d: 0, hottestEvents: [] },
           system: { uptime: 0, nodeVersion: '', platform: '' }
         });
       } catch (error) {
@@ -83,6 +97,8 @@ const Overview = ({ onChangeTab }) => {
     const m = Math.floor(seconds % 3600 / 60);
     return `${d}${t('admin.overview_ui.uptime_days')} ${h}${t('admin.overview_ui.uptime_hours')} ${m}${t('admin.overview_ui.uptime_minutes')}`;
   };
+
+  const formatNumber = (value) => new Intl.NumberFormat('zh-CN').format(Number(value || 0));
 
   if (loading) return <div className="p-8 text-center text-gray-500">{t('admin.overview_ui.loading_stats')}</div>;
 
@@ -132,8 +148,7 @@ const Overview = ({ onChangeTab }) => {
         />
       </div>
 
-      {/* System Info */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         <div className="bg-[#111] p-6 rounded-2xl border border-white/10">
           <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
             <Activity size={20} className="text-indigo-400" />
@@ -158,16 +173,69 @@ const Overview = ({ onChangeTab }) => {
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-indigo-900/20 to-purple-900/20 p-6 rounded-2xl border border-white/10 flex flex-col justify-center text-center">
-            <h3 className="text-2xl font-bold text-white mb-2">{t('admin.overview_ui.welcome_back')}</h3>
-            <p className="text-gray-400 mb-6">{t('admin.overview_ui.control_text')}</p>
-            <button 
-                onClick={() => onChangeTab('pending')}
-                className="mx-auto px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-colors shadow-lg shadow-indigo-500/20"
+        <div className="bg-[#111] p-6 rounded-2xl border border-white/10">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
+            <div>
+              <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                <Eye size={20} className="text-emerald-400" />
+                {t('admin.overview_ui.event_analytics', '活动数据概览')}
+              </h3>
+              <p className="text-sm text-gray-400 mt-2">{t('admin.overview_ui.event_analytics_desc', '集中查看活动访问量、报名量和当前热门活动。')}</p>
+            </div>
+            <button
+              onClick={() => onChangeTab('events')}
+              className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold text-sm transition-colors"
             >
-                {t('admin.overview_ui.check_pending')}
+              {t('admin.overview_ui.manage_events', '进入活动管理')}
             </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <CompactMetric label={t('admin.resource_manager_ui.views', '累计访问')} value={formatNumber(stats.eventAnalytics?.totalViews)} icon={Eye} accent="indigo" />
+            <CompactMetric label={t('admin.resource_manager_ui.registrations', '累计报名')} value={formatNumber(stats.eventAnalytics?.totalRegistrations)} icon={Users} accent="emerald" />
+            <CompactMetric label={t('admin.resource_manager_ui.views_7d', '近 7 日访问')} value={formatNumber(stats.eventAnalytics?.views7d)} icon={TrendingUp} accent="violet" />
+            <CompactMetric label={t('admin.resource_manager_ui.upcoming_events', '待开始活动')} value={formatNumber(stats.eventAnalytics?.upcomingCount)} icon={Calendar} accent="amber" />
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <h4 className="text-sm font-bold uppercase tracking-[0.22em] text-gray-300">{t('admin.overview_ui.hot_events', '热门活动')}</h4>
+              <span className="text-xs text-gray-500">{t('admin.overview_ui.sorted_by_views', '按访问量排序')}</span>
+            </div>
+
+            <div className="space-y-3">
+              {(stats.eventAnalytics?.hottestEvents || []).length === 0 ? (
+                <div className="text-sm text-gray-500">{t('admin.overview_ui.no_hot_events', '暂无活动统计数据')}</div>
+              ) : (
+                stats.eventAnalytics.hottestEvents.map((event) => (
+                  <div key={event.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-xl bg-black/20 px-4 py-3">
+                    <div className="min-w-0">
+                      <p className="font-semibold text-white truncate">{event.title}</p>
+                      <p className="text-xs text-gray-500 mt-1">{event.date || t('common.unknown', '未知')}</p>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm">
+                      <span className="text-indigo-300">{formatNumber(event.views)} {t('admin.resource_manager_ui.views_unit', '访问')}</span>
+                      <span className="text-emerald-300">{formatNumber(event.registrations)} {t('admin.resource_manager_ui.registrations_unit', '报名')}</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
+      </div>
+
+      <div className="bg-gradient-to-br from-indigo-900/20 to-purple-900/20 p-6 rounded-2xl border border-white/10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        <div>
+          <h3 className="text-2xl font-bold text-white mb-2">{t('admin.overview_ui.welcome_back')}</h3>
+          <p className="text-gray-400">{t('admin.overview_ui.control_text')}</p>
+        </div>
+        <button 
+          onClick={() => onChangeTab('pending')}
+          className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-colors shadow-lg shadow-indigo-500/20"
+        >
+          {t('admin.overview_ui.check_pending')}
+        </button>
       </div>
     </div>
   );

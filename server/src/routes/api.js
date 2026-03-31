@@ -63,6 +63,8 @@ router.get('/favorites/check', authenticateToken, favoriteController.checkFavori
 // System Routes
 router.get('/search', systemController.searchContent);
 router.get('/stats', authenticateToken, isAdmin, systemController.getStats);
+router.get('/site-metrics', systemController.getSiteMetrics);
+router.post('/site-metrics/visit', optionalAuth, systemController.trackVisit);
 router.post('/upload', authenticateToken, upload.fields([{ name: 'file', maxCount: 1 }, { name: 'cover', maxCount: 1 }]), systemController.handleUpload);
 router.get('/db/backup', authenticateToken, isAdmin, systemController.downloadDbBackup);
 router.get('/featured', systemController.getFeaturedContent);
@@ -86,6 +88,7 @@ const resources = ['photos', 'music', 'videos', 'articles', 'events'];
 // Event Registration Routes
 router.post('/events/:id/register', authenticateToken, eventController.registerEvent);
 router.get('/events/:id/registration', authenticateToken, eventController.getRegistrationStatus);
+router.post('/events/:id/view', optionalAuth, eventController.trackEventView);
 
 // Contact / Messages Routes
 router.post('/contact', messageController.submitMessage);
