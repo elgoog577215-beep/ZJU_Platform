@@ -197,14 +197,14 @@
     "selected_works": "Selected Works",
     "latest_articles": "Latest Articles",
     "stats": {
-      "eyebrow": "Platform Overview",
+      "eyebrow": "Platform Activity",
       "title": "Recent platform activity",
       "subtitle": "Shows recent visits, uploads, and content volume so visitors can quickly understand the platform's current state.",
       "weekly_growth": "Weekly Growth",
-      "today_views": "Today's Visits",
-      "today_visitors": "Today's Unique Visitors",
+      "today_views": "Today's Views",
+      "today_visitors": "Today's Visitors",
       "today_uploads": "Today's Uploads",
-      "total_views": "Total Visits",
+      "total_views": "Total Views",
       "total_engagement": "Total Engagement",
       "active_creators": "Active Creators",
       "week_upload_growth": "7-Day Upload Growth",
@@ -214,8 +214,19 @@
       "snapshot_desc": "What you see here is the platform's real accumulation of traffic, published works, and user feedback working together as proof of momentum.",
       "total_uploads": "Total Works",
       "registered_users": "Registered Users",
-      "total_visitors": "Total Unique Visitors",
-      "seven_day_uploads": "7-Day Uploads"
+      "total_visitors": "Total Visitors",
+      "seven_day_uploads": "7-Day Uploads",
+      "trend_title": "7-Day Trend",
+      "total_short": "Total",
+      "weekday_short": {
+        "Mon": "Mon",
+        "Tue": "Tue",
+        "Wed": "Wed",
+        "Thu": "Thu",
+        "Fri": "Fri",
+        "Sat": "Sat",
+        "Sun": "Sun"
+      }
     },
     "categories": {
       "events_desc": "Discover the latest workshops, exhibitions, and meetups.",

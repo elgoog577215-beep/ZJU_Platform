@@ -242,14 +242,14 @@
     "selected_works": "精选作品",
     "view_details": "查看详情",
     "stats": {
-      "eyebrow": "平台近况",
+      "eyebrow": "平台热度",
       "title": "平台最近的使用情况",
       "subtitle": "这里展示最近访问、作品上传和内容规模，帮助用户快速了解平台近况。",
       "weekly_growth": "周增长",
-      "today_views": "今日访问量",
+      "today_views": "今日浏览",
       "today_visitors": "今日独立访客",
-      "today_uploads": "今日作品上传",
-      "total_views": "累计访问量",
+      "today_uploads": "今日上传",
+      "total_views": "累计访问",
       "total_engagement": "累计互动量",
       "active_creators": "活跃创作者",
       "week_upload_growth": "近 7 日上传增幅",
@@ -257,10 +257,21 @@
       "platform_snapshot": "平台快照",
       "snapshot_title": "内容、访问与互动共同构成平台的实力曲线",
       "snapshot_desc": "你现在看到的是平台真实沉淀下来的访问轨迹、作品规模和用户反馈，它们共同构成用户对站点的第一层信任。",
-      "total_uploads": "累计作品量",
+      "total_uploads": "累计作品",
       "registered_users": "注册用户",
       "total_visitors": "累计独立访客",
-      "seven_day_uploads": "近 7 日上传"
+      "seven_day_uploads": "近 7 日上传",
+      "trend_title": "近 7 日访问趋势",
+      "total_short": "总计",
+      "weekday_short": {
+        "一": "一",
+        "二": "二",
+        "三": "三",
+        "四": "四",
+        "五": "五",
+        "六": "六",
+        "日": "日"
+      }
     },
     "categories": {
       "events_desc": "加入我们的最新活动与研讨会",
