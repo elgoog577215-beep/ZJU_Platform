@@ -31,7 +31,9 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
       setItems(response.data.data);
       setPagination(response.data.pagination);
     } catch (error) {
-      console.error('Fetch error:', error);
+      if (process.env.NODE_ENV === 'development') {
+          console.error('Fetch error:', error);
+      }
       toast.error(t('admin.toast.fetch_error'));
     } finally {
       setLoading(false);
@@ -88,13 +90,14 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
   const confirmDelete = async () => {
     if (!deleteConfirmation) return;
     try {
-      console.log(`Permanently deleting item ${deleteConfirmation} from ${apiEndpoint}...`);
       // Use permanent delete endpoint for full cleanup
       await api.delete(`/${apiEndpoint}/${deleteConfirmation}/permanent`);
       toast.success(t('admin.toast.delete_success'));
       fetchItems(pagination.page);
     } catch (error) {
-      console.error('Delete failed:', error);
+      if (process.env.NODE_ENV === 'development') {
+          console.error('Delete failed:', error);
+      }
       const errorMessage = error.response?.data?.error || error.message || t('admin.toast.delete_fail');
       toast.error(errorMessage);
     } finally {
@@ -171,7 +174,9 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
       setIsModalOpen(false);
       fetchItems(pagination.page);
     } catch (error) {
-      console.error('Save failed:', error);
+      if (process.env.NODE_ENV === 'development') {
+          console.error('Save failed:', error);
+      }
       const errorMessage = error.response?.data?.error || error.message || t('admin.toast.save_fail');
       toast.error(errorMessage);
     }

@@ -38,7 +38,9 @@ const About = () => {
       setStatus('success');
       setFormState({ name: '', email: '', message: '' });
     } catch (error) {
-      console.error('Failed to send message:', error);
+      if (process.env.NODE_ENV === 'development') {
+          console.error('Failed to send message:', error);
+      }
       setStatus('error');
     } finally {
       setTimeout(() => setStatus('idle'), 3000);

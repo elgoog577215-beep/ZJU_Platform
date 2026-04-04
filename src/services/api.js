@@ -41,9 +41,17 @@ api.interceptors.response.use(
         return api(config);
     }
 
-    if (!config?.silent) {
-      console.error('API Error:', error.response ? error.response.data : error.message);
+    // 仅在生产环境且非静默模式下记录错误
+    if (!config?.silent && process.env.NODE_ENV === 'development') {
+      // 开发环境下记录详细错误信息用于调试
+      console.error('[API Error]', {
+        url: error.config?.url,
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
     }
+    
     return Promise.reject(error);
   }
 );

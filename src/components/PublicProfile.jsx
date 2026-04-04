@@ -65,7 +65,9 @@ const PublicProfile = () => {
             setIsInviteCodeVerified(!!currentUser.organization);
         }
       } catch (err) {
-        console.error('Failed to fetch profile', err);
+        if (process.env.NODE_ENV === 'development') {
+            console.error('Failed to fetch profile', err);
+        }
         setError('User not found');
       } finally {
         setLoading(false);

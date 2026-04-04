@@ -26,7 +26,9 @@ const NotificationCenter = () => {
       setNotifications(res.data.data);
       setUnreadCount(res.data.unreadCount);
     } catch (error) {
-      console.error('Failed to fetch notifications', error);
+      if (process.env.NODE_ENV === 'development') {
+          console.error('Failed to fetch notifications', error);
+      }
     }
   };
 
@@ -56,7 +58,9 @@ const NotificationCenter = () => {
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: 1 } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
-      console.error('Failed to mark as read', error);
+      if (process.env.NODE_ENV === 'development') {
+          console.error('Failed to mark as read', error);
+      }
       toast.error(t('notifications.mark_read_failed'));
     }
   };
@@ -67,7 +71,9 @@ const NotificationCenter = () => {
       setNotifications(prev => prev.map(n => ({ ...n, is_read: 1 })));
       setUnreadCount(0);
     } catch (error) {
-      console.error('Failed to mark all as read', error);
+      if (process.env.NODE_ENV === 'development') {
+          console.error('Failed to mark all as read', error);
+      }
       toast.error(t('notifications.mark_all_read_failed'));
     }
   };
@@ -81,7 +87,9 @@ const NotificationCenter = () => {
           setUnreadCount(prev => Math.max(0, prev - 1));
       }
     } catch (error) {
-      console.error('Failed to delete notification', error);
+      if (process.env.NODE_ENV === 'development') {
+          console.error('Failed to delete notification', error);
+      }
       toast.error(t('notifications.delete_failed'));
     }
   };
@@ -92,7 +100,9 @@ const NotificationCenter = () => {
       setNotifications([]);
       setUnreadCount(0);
     } catch (error) {
-      console.error('Failed to clear all notifications', error);
+      if (process.env.NODE_ENV === 'development') {
+          console.error('Failed to clear all notifications', error);
+      }
       toast.error(t('notifications.clear_all_failed'));
     }
   };

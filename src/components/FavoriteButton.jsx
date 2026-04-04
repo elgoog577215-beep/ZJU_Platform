@@ -59,7 +59,9 @@ const FavoriteButton = ({
         const res = await api.get(`/favorites/check?itemId=${itemId}&itemType=${itemType}`);
         if (mounted) setIsFavorited(res.data.favorited);
       } catch (error) {
-        console.error("Failed to check favorite status", error);
+        if (process.env.NODE_ENV === 'development') {
+            console.error("Failed to check favorite status", error);
+        }
       }
     };
 
@@ -103,7 +105,9 @@ const FavoriteButton = ({
       // Revert on error
       setIsFavorited(previousState);
       setLikeCount(previousLikes);
-      console.error("Failed to toggle favorite", error);
+      if (process.env.NODE_ENV === 'development') {
+          console.error("Failed to toggle favorite", error);
+      }
       toast.error(t('common.error_occurred', '发生错误'));
     } finally {
       setLoading(false);

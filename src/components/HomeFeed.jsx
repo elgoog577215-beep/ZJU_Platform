@@ -33,9 +33,9 @@ const HomeFeed = () => {
   // Use cached resource hook
   const { data: featuredContent, loading, error } = useCachedResource('/featured');
 
-  if (error) {
+  // 错误已在 useCachedResource 中处理，这里只记录开发环境
+  if (error && process.env.NODE_ENV === 'development') {
       console.error("Failed to fetch featured content:", error);
-      // Optional: render error state
   }
 
   // Check if content is loaded (and not just empty array from initial state)

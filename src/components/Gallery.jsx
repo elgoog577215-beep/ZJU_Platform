@@ -246,7 +246,11 @@ const Gallery = () => {
                    }
                }
            })
-           .catch(err => console.error("Failed to fetch deep linked photo", err));
+           .catch(err => {
+               if (process.env.NODE_ENV === 'development') {
+                   console.error("Failed to fetch deep linked photo", err);
+               }
+           });
     }
   }, [searchParams, displayPhotos]);
 
@@ -255,7 +259,11 @@ const Gallery = () => {
       .then(() => {
         refresh({ clearCache: true });
       })
-      .catch(err => console.error("Failed to save photo", err));
+      .catch(err => {
+          if (process.env.NODE_ENV === 'development') {
+              console.error("Failed to save photo", err);
+          }
+      });
   };
 
   const handleNext = () => {

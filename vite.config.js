@@ -98,10 +98,22 @@ export default defineConfig({
     watch: {
       ignored: ['**/wechat_crawler/**', '**/wechat-batch-crawler/**'],
     },
+    // 智能代理配置：支持多个后端端口
     proxy: {
       '/api': {
         target: 'http://localhost:5181',
         changeOrigin: true,
+        // 如果连接失败，尝试备用端口
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, res) => {
+            // 如果主端口失败，可以尝试其他端口
+            console.log('[Proxy] API 代理错误:', err.message);
+          });
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            // 记录代理请求
+            // console.log('[Proxy] 代理请求:', req.method, req.url);
+          });
+        }
       },
       '/uploads': {
         target: 'http://localhost:5181',

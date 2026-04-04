@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }) => {
       toast.success(t('auth.welcome_back_user', { username: user.username }));
       return true;
     } catch (err) {
-      console.error(err);
+      // 错误已在 API 拦截器中处理
       toast.error(getAuthErrorMessage(err, 'auth.login_failed'));
       return false;
     }
@@ -64,7 +64,7 @@ export const AuthProvider = ({ children }) => {
       toast.success(t('auth.welcome_user', { username: user.username }));
       return true;
     } catch (err) {
-      console.error(err);
+      // 错误已在 API 拦截器中处理
       toast.error(getAuthErrorMessage(err, 'auth.registration_failed'));
       return false;
     }
@@ -82,7 +82,7 @@ export const AuthProvider = ({ children }) => {
       const res = await api.get('/auth/me');
       setUser(res.data);
     } catch (err) {
-      console.error(err);
+      // 静默失败，不影响用户体验
     }
   };
 

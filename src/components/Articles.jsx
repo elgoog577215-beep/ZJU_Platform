@@ -209,7 +209,11 @@ const Articles = () => {
            .then(res => {
                if (res.data) setSelectedArticle(res.data);
            })
-           .catch(err => console.error("Failed to fetch deep linked article", err));
+           .catch(err => {
+               if (process.env.NODE_ENV === 'development') {
+                   console.error("Failed to fetch deep linked article", err);
+               }
+           });
     }
   }, [searchParams]);
 
@@ -235,7 +239,11 @@ const Articles = () => {
     .then(() => {
         refresh({ clearCache: true });
     })
-    .catch(err => console.error("Failed to save article", err));
+    .catch(err => {
+        if (process.env.NODE_ENV === 'development') {
+            console.error("Failed to save article", err);
+        }
+    });
   };
 
   const handleUpload = (newItem) => {

@@ -142,7 +142,11 @@ const Music = () => {
                    playTrack(res.data);
                }
            })
-           .catch(err => console.error("Failed to fetch deep linked music", err));
+           .catch(err => {
+               if (process.env.NODE_ENV === 'development') {
+                   console.error("Failed to fetch deep linked music", err);
+               }
+           });
     }
   }, [searchParams]);
 
@@ -229,7 +233,9 @@ const Music = () => {
         setError(false);
       })
       .catch(err => {
-        console.error("Failed to fetch music:", err);
+        if (process.env.NODE_ENV === 'development') {
+            console.error("Failed to fetch music:", err);
+        }
         setLoading(false);
         setError(true);
       });
@@ -246,7 +252,11 @@ const Music = () => {
     .then(() => {
         refresh({ clearCache: true });
     })
-    .catch(err => console.error("Failed to save music", err));
+    .catch(err => {
+        if (process.env.NODE_ENV === 'development') {
+            console.error("Failed to save music", err);
+        }
+    });
   };
 
   useEffect(() => {

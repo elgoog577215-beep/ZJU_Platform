@@ -168,6 +168,7 @@ img {
   clip: auto;
   white-space: normal;
 }
+}
 
 /* Focus Styles - 焦点样式 */
 *:focus {
@@ -333,45 +334,47 @@ select:focus-visible {
     padding-top: max(1rem, env(safe-area-inset-top));
   }
 }
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-    color: #ffffff;
-    box-shadow: 0 10px 28px rgba(99, 102, 241, 0.28);
-  }
 
-  .btn-primary:hover {
-    box-shadow: 0 14px 32px rgba(99, 102, 241, 0.32);
-  }
+/* Button Styles */
+.btn-primary {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: #ffffff;
+  box-shadow: 0 10px 28px rgba(99, 102, 241, 0.28);
+}
 
-  .btn-glow {
-    @apply relative overflow-hidden transition-all duration-300 hover:shadow-[0_0_20px_rgba(99,102,241,0.4)] hover:border-indigo-500/50;
-  }
+.btn-primary:hover {
+  box-shadow: 0 14px 32px rgba(99, 102, 241, 0.32);
+}
 
-  /* Cards */
-  .card-standard {
-    @apply rounded-2xl overflow-hidden transition-colors duration-300;
-    background: var(--theme-surface);
-    border: 1px solid var(--theme-border);
-  }
+.btn-glow {
+  @apply relative overflow-hidden transition-all duration-300 hover:shadow-[0_0_20px_rgba(99,102,241,0.4)] hover:border-indigo-500/50;
+}
 
-  .card-standard:hover {
-    border-color: var(--theme-border-strong);
-  }
+/* Cards */
+.card-standard {
+  @apply rounded-2xl overflow-hidden transition-colors duration-300;
+  background: var(--theme-surface);
+  border: 1px solid var(--theme-border);
+}
 
-  /* Focus Visible - Accessibility */
-  .focus-ring {
-    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2;
-    --tw-ring-offset-color: var(--theme-bg);
-  }
+.card-standard:hover {
+  border-color: var(--theme-border-strong);
+}
 
-  /* Reduced Motion */
-  @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-    }
+/* Focus Visible - Accessibility */
+.focus-ring {
+  @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2;
+  --tw-ring-offset-color: var(--theme-bg);
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 

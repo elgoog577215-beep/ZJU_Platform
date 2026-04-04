@@ -511,7 +511,11 @@ const Events = () => {
            .then(res => {
                if (res.data) setSelectedEvent(res.data);
            })
-           .catch(err => console.error("Failed to fetch deep linked event", err));
+           .catch(err => {
+               if (process.env.NODE_ENV === 'development') {
+                   console.error("Failed to fetch deep linked event", err);
+               }
+           });
     }
   }, [searchParams]);
 

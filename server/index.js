@@ -32,6 +32,8 @@ const {
 
 const app = express();
 app.disable('x-powered-by');
+
+// 端口配置：优先使用环境变量，否则使用 5181
 const PORT = process.env.PORT || 5181;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
@@ -419,15 +421,50 @@ const startServer = async () => {
     const db = await getDb();
     await runMigrations(db);
     
-    // Start server
-    app.listen(PORT, () => {
-      console.log(`
-🚀 Server running on port ${PORT}
+    // 尝试启动服务器，如果端口被占用则尝试下一个端口
+    const startOnPort = (port) => {
+      return new Promise((resolve, reject) => {
+        const server = app.listen(port, () => {
+          console.log(`
+🚀 Server running on port ${port}
 📊 Environment: ${NODE_ENV}
 🔒 Security: ${NODE_ENV === 'production' ? 'Enabled' : 'Development Mode'}
 📁 Upload directory: ${uploadDir}
-      `);
-    });
+          `);
+          resolve(server);
+        });
+        
+        server.on('error', (err) => {
+          if (err.code === 'EADDRINUSE') {
+            reject({ code: 'EADDRINUSE', port });
+          } else {
+            reject(err);
+          }
+        });
+      });
+    };
+    
+    // 尝试端口：配置的端口 -> 配置的端口 +1 -> 配置的端口 +2
+    let server;
+    try {
+      server = await startOnPort(PORT);
+    } catch (err) {
+      if (err.code === 'EADDRINUSE') {
+        console.warn(`⚠️  Port ${PORT} is in use, trying ${PORT + 1}...`);
+        try {
+          server = await startOnPort(PORT + 1);
+        } catch (err2) {
+          if (err2.code === 'EADDRINUSE') {
+            console.warn(`⚠️  Port ${PORT + 1} is in use, trying ${PORT + 2}...`);
+            server = await startOnPort(PORT + 2);
+          } else {
+            throw err2;
+          }
+        }
+      } else {
+        throw err;
+      }
+    }
   } catch (error) {
     console.error('❌ Failed to start server:', error);
     process.exit(1);

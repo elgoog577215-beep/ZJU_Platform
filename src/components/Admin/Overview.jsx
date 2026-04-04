@@ -77,7 +77,9 @@ const Overview = ({ onChangeTab }) => {
           system: { uptime: 0, nodeVersion: '', platform: '' }
         });
       } catch (error) {
-        console.error('Failed to fetch stats', error);
+        if (process.env.NODE_ENV === 'development') {
+            console.error('Failed to fetch stats', error);
+        }
         const errorMsg = error.response?.status === 403 
           ? t('admin.overview_ui.no_permission', '没有权限访问')
           : error.response?.status === 401

@@ -204,7 +204,11 @@ const Videos = () => {
            .then(res => {
                if (res.data) setSelectedVideo(res.data);
            })
-           .catch(err => console.error("Failed to fetch deep linked video", err));
+           .catch(err => {
+               if (process.env.NODE_ENV === 'development') {
+                   console.error("Failed to fetch deep linked video", err);
+               }
+           });
     }
   }, [searchParams]);
 
@@ -213,7 +217,11 @@ const Videos = () => {
     .then(() => {
         refresh({ clearCache: true });
     })
-    .catch(err => console.error("Failed to save video", err));
+    .catch(err => {
+        if (process.env.NODE_ENV === 'development') {
+            console.error("Failed to save video", err);
+        }
+    });
   };
 
   const handleUpload = (newItem) => {

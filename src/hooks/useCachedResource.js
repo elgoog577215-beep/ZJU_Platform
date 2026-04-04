@@ -30,7 +30,9 @@ const readStoredCache = (cacheKey) => {
         memoryCache.set(cacheKey, parsed);
         return parsed;
     } catch (error) {
-        console.warn('Cache parse error', error);
+        if (process.env.NODE_ENV === 'development') {
+            console.warn('Cache parse error', error);
+        }
         localStorage.removeItem(cacheKey);
         memoryCache.delete(cacheKey);
         return null;
@@ -43,7 +45,9 @@ const persistCache = (cacheKey, payload) => {
         try {
             localStorage.setItem(cacheKey, JSON.stringify(payload));
         } catch (error) {
-            console.warn('Failed to save to cache', error);
+            if (process.env.NODE_ENV === 'development') {
+                console.warn('Failed to save to cache', error);
+            }
         }
     }, 0);
 };
@@ -159,7 +163,7 @@ export const useCachedResource = (endpoint, params = {}, options = {}) => {
                 setPagination(payload.pagination || {});
                 setError(null);
             } catch (err) {
-                if (!silent) {
+                if (!silent && process.env.NODE_ENV === 'development') {
                     console.error(`Fetch error for ${endpoint}`, err);
                 }
                 if (!hasCache) {
