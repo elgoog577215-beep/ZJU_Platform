@@ -42,6 +42,8 @@ const PublicProfile = lazy(() => import('./components/PublicProfile'));
 const BackgroundSystem = lazy(() => import('./components/BackgroundSystem'));
 const SearchPalette = lazy(() => import('./components/SearchPalette'));
 const GlobalPlayer = lazy(() => import('./components/GlobalPlayer'));
+const CommunityLayout = lazy(() => import('./community/CommunityLayout'));
+const CommunitySectionPage = lazy(() => import('./community/CommunitySectionPage'));
 
 const useDeferredMount = (delay = 0) => {
   const [mounted, setMounted] = useState(false);
@@ -224,6 +226,10 @@ const AppContent = () => {
               <Route path="/music" element={<PageTransition><Music /></PageTransition>} />
               <Route path="/videos" element={<PageTransition><Videos /></PageTransition>} />
               <Route path="/articles" element={<PageTransition><Articles /></PageTransition>} />
+              <Route path="/community" element={<PageTransition><CommunityLayout /></PageTransition>}>
+                <Route index element={<Navigate to="help" replace />} />
+                <Route path=":section" element={<CommunitySectionPage />} />
+              </Route>
               <Route path="/events" element={<PageTransition><Events /></PageTransition>} />
               <Route path="/about" element={<PageTransition><About /></PageTransition>} />
               <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />

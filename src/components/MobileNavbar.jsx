@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Image, Music, Film, Grid3X3, X, Calendar, FileText, Info, UserCircle, LogIn, Sun, Moon } from 'lucide-react';
+import { Home, Image, Music, Film, Grid3X3, X, Calendar, FileText, Info, UserCircle, LogIn, Sun, Moon, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
@@ -31,6 +31,7 @@ const MobileNavbar = () => {
   ];
 
   const menuItems = [
+    { key: 'community', path: '/community', icon: Users },
     { key: 'gallery', path: '/gallery', icon: Image },
     { key: 'music', path: '/music', icon: Music },
     { key: 'videos', path: '/videos', icon: Film },

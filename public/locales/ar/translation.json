@@ -2,7 +2,14 @@
   "nav": {
     "gallery": "معرض الصور",
     "about": "عني",
-    "contact": "اتصل بي"
+    "contact": "اتصل بي",
+    "community": "المجتمع",
+    "community_help": "المساعدة",
+    "community_tech": "تقني",
+    "community_news": "أخبار",
+    "community_team": "فرق واجتماعات",
+    "community_groups": "مجموعات",
+    "community_rules": "إرشادات"
   },
   "hero": {
     "title": "التقاط",

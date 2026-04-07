@@ -67,6 +67,7 @@ const Navbar = () => {
   const navLinks = [
     { key: 'home', path: '/' },
     { key: 'events', path: '/events' },
+    { key: 'community', path: '/community' },
     { key: 'gallery', path: '/gallery' },
     { key: 'music', path: '/music' },
     { key: 'videos', path: '/videos' },
@@ -74,7 +75,11 @@ const Navbar = () => {
     { key: 'about', path: '/about' },
     ...(isAdmin ? [{ key: 'admin', path: '/admin' }] : [])
   ];
-  const currentNavLink = navLinks.find((link) => location.pathname === link.path);
+  const isNavItemActive = (path) => {
+    if (path === '/community') return location.pathname.startsWith('/community');
+    return location.pathname === path;
+  };
+  const currentNavLink = navLinks.find((link) => isNavItemActive(link.path));
 
   // Map route to specific upload type, and dispatch custom event
   const handleUploadClick = () => {
@@ -168,12 +173,18 @@ const Navbar = () => {
           <Link 
             key={item.key} 
             to={item.path} 
-            className={navLinkClasses}
+            className={`${navLinkClasses}${
+              item.key === 'community' && isNavItemActive(item.path)
+                ? isDayMode
+                  ? ' !text-blue-700'
+                  : ' !text-blue-400'
+                : ''
+            }`}
             role="menuitem"
-            aria-current={location.pathname === item.path ? 'page' : undefined}
+            aria-current={isNavItemActive(item.path) ? 'page' : undefined}
           >
             <span className="relative z-10">{t(`nav.${item.key}`)}</span>
-            {location.pathname === item.path && (
+            {isNavItemActive(item.path) && (
               prefersReducedMotion ? (
                 <div className={navIndicatorClasses} />
               ) : (

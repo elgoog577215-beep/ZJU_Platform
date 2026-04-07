@@ -6,7 +6,14 @@
     "articles": "記事",
     "events": "イベント",
     "about": "について",
-    "contact": "お問い合わせ"
+    "contact": "お問い合わせ",
+    "community": "コミュニティ",
+    "community_help": "ヘルプ",
+    "community_tech": "技術共有",
+    "community_news": "ニュース",
+    "community_team": "チーム・会議",
+    "community_groups": "グループ",
+    "community_rules": "ガイドライン"
   },
   "hero": {
     "title": "キャプチャ",

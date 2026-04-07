@@ -7,6 +7,8 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const apiProxyTarget = process.env.VITE_API_PROXY_TARGET || 'http://localhost:5181';
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
@@ -101,7 +103,7 @@ export default defineConfig({
     // 智能代理配置：支持多个后端端口
     proxy: {
       '/api': {
-        target: 'http://localhost:5181',
+        target: apiProxyTarget,
         changeOrigin: true,
         // 如果连接失败，尝试备用端口
         configure: (proxy, _options) => {
@@ -116,7 +118,7 @@ export default defineConfig({
         }
       },
       '/uploads': {
-        target: 'http://localhost:5181',
+        target: apiProxyTarget,
         changeOrigin: true,
       }
     }

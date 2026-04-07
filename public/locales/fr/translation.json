@@ -2,7 +2,14 @@
   "nav": {
     "gallery": "Galerie",
     "about": "À propos",
-    "contact": "Contact"
+    "contact": "Contact",
+    "community": "Communauté",
+    "community_help": "Aide",
+    "community_tech": "Partage technique",
+    "community_news": "Actualités",
+    "community_team": "Équipes et réunions",
+    "community_groups": "Groupes",
+    "community_rules": "Règles"
   },
   "hero": {
     "title": "CAPTURER",
