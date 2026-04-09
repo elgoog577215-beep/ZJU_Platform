@@ -11,6 +11,7 @@ const settingsController = require('../controllers/settingsController');
 const systemController = require('../controllers/systemController');
 const fsController = require('../controllers/fsController');
 const eventController = require('../controllers/eventController');
+const eventAssistantController = require('../controllers/eventAssistantController');
 const userController = require('../controllers/userController');
 const messageController = require('../controllers/messageController');
 const tagController = require('../controllers/tagController');
@@ -86,6 +87,7 @@ const resources = ['photos', 'music', 'videos', 'articles', 'events'];
 
 // Specific routes that shouldn't be overridden by the loop
 // Event Registration Routes
+router.post('/events/assistant', optionalAuth, eventAssistantController.handleEventAssistant);
 router.post('/events/:id/register', authenticateToken, eventController.registerEvent);
 router.get('/events/:id/registration', authenticateToken, eventController.getRegistrationStatus);
 router.post('/events/:id/view', optionalAuth, eventController.trackEventView);

@@ -16,6 +16,7 @@ import { useBackClose } from '../hooks/useBackClose';
 import { useCachedResource } from '../hooks/useCachedResource';
 import EventFilterPanel from './EventFilterPanel';
 import SortSelector from './SortSelector';
+import EventAssistantPanel from './EventAssistantPanel';
 import DOMPurify from 'dompurify';
 
 import { useSearchParams } from 'react-router-dom';
@@ -410,6 +411,7 @@ const Events = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filterVersion, setFilterVersion] = useState(0);
+  const [discoveryMode, setDiscoveryMode] = useState('filters');
   const [filters, setFilters] = useState({
       location: null,
       organizer: null,
@@ -473,7 +475,7 @@ const Events = () => {
     page: currentPage,
     limit: pageSize,
     sort,
-    status: 'all',
+    status: 'approved',
     lifecycle: lifecycle === 'all' ? undefined : lifecycle,
     tags: selectedTags.join(','),
     search: debouncedSearch,
@@ -727,6 +729,91 @@ END:VCALENDAR`;
     });
   }, [setEvents, setSelectedEvent, setDisplayEvents]);
 
+  const handleOpenAssistantEvent = useCallback((assistantEvent) => {
+    if (!assistantEvent?.id) return;
+
+    const cachedEvent = displayEvents.find((event) => event.id === assistantEvent.id)
+      || events.find((event) => event.id === assistantEvent.id);
+
+    setSelectedEvent(cachedEvent || assistantEvent);
+
+    api.get(`/events/${assistantEvent.id}`, { silent: true })
+      .then((response) => {
+        if (response.data) {
+          setSelectedEvent(response.data);
+        }
+      })
+      .catch(() => {
+        toast.error(t('events.assistant.detail_error', '活动详情加载失败，请稍后再试。'));
+      });
+  }, [displayEvents, events, t]);
+
+  const discoveryToggleClasses = isDayMode
+    ? 'bg-white/88 border border-slate-200/80 shadow-[0_14px_32px_rgba(148,163,184,0.12)]'
+    : 'bg-white/10 border border-white/10 shadow-[0_14px_32px_rgba(0,0,0,0.18)]';
+
+  const renderDiscoveryModeToggle = (compact = false) => (
+    <div className={`flex ${compact ? 'flex-col items-stretch gap-3' : 'items-center justify-between gap-4'} w-full`}>
+      {!compact && (
+        <div className="text-left">
+          <p className={`text-xs font-semibold uppercase tracking-[0.24em] ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+            {t('events.assistant.mode_label', '发现方式')}
+          </p>
+          <p className={`mt-1 text-sm ${isDayMode ? 'text-slate-600' : 'text-gray-300'}`}>
+            {discoveryMode === 'assistant'
+              ? t('events.assistant.beta_hint', 'Beta 测试，可能不稳定')
+              : t('events.assistant.mode_filters_hint', '默认使用属性筛选，AI 搜索作为补充入口。')}
+          </p>
+        </div>
+      )}
+
+      <div className={`inline-flex items-center gap-1 p-1 rounded-full ${discoveryToggleClasses} ${compact ? 'w-full justify-between' : ''}`}>
+        <button
+          type="button"
+          onClick={() => setDiscoveryMode('filters')}
+          className={`inline-flex items-center justify-center rounded-full px-4 py-2.5 text-sm font-semibold transition-all ${compact ? 'flex-1' : ''} ${discoveryMode === 'filters'
+            ? isDayMode
+              ? 'bg-slate-900 text-white shadow-[0_10px_24px_rgba(15,23,42,0.18)]'
+              : 'bg-white text-black shadow-[0_10px_24px_rgba(255,255,255,0.08)]'
+            : isDayMode
+              ? 'text-slate-600 hover:text-slate-900'
+              : 'text-gray-300 hover:text-white'}`}
+        >
+          {t('events.assistant.mode_filters', '属性筛选')}
+        </button>
+        <button
+          type="button"
+          onClick={() => setDiscoveryMode('assistant')}
+          className={`inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all ${compact ? 'flex-1' : ''} ${discoveryMode === 'assistant'
+            ? isDayMode
+              ? 'bg-slate-900 text-white shadow-[0_10px_24px_rgba(15,23,42,0.18)]'
+              : 'bg-white text-black shadow-[0_10px_24px_rgba(255,255,255,0.08)]'
+            : isDayMode
+              ? 'text-slate-600 hover:text-slate-900'
+              : 'text-gray-300 hover:text-white'}`}
+        >
+          <Search size={15} />
+          {t('events.assistant.mode_ai', 'AI 搜索')}
+          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] ${discoveryMode === 'assistant'
+            ? isDayMode
+              ? 'bg-white/15 text-white'
+              : 'bg-black/10 text-black/70'
+            : isDayMode
+              ? 'bg-amber-100 text-amber-700'
+              : 'bg-amber-400/15 text-amber-200'}`}>
+            Beta
+          </span>
+        </button>
+      </div>
+
+      {compact && discoveryMode === 'assistant' && (
+        <p className={`text-xs text-left ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+          {t('events.assistant.beta_hint', 'Beta 测试，可能不稳定')}
+        </p>
+      )}
+    </div>
+  );
+
 
   return (
     <section className="pt-24 pb-28 md:py-20 px-4 md:px-8 relative overflow-hidden flex-grow">
@@ -764,18 +851,29 @@ END:VCALENDAR`;
         </div>
 
         {/* Desktop Filter Section */}
-        <div className="hidden md:block w-full max-w-4xl mx-auto mb-8">
-          <EventFilterPanel
-            filters={filters}
-            onFiltersChange={setFilters}
-            selectedTags={selectedTags}
-            onTagsChange={setSelectedTags}
-            lifecycle={lifecycle}
-            onLifecycleChange={setLifecycle}
-            sort={sort}
-            onSortChange={setSort}
-            refreshTrigger={filterVersion}
-          />
+        <div className="hidden md:block w-full max-w-5xl mx-auto mb-8">
+          <div className="mb-4">
+            {renderDiscoveryModeToggle()}
+          </div>
+
+          {discoveryMode === 'assistant' ? (
+            <EventAssistantPanel
+              isDayMode={isDayMode}
+              onOpenEvent={handleOpenAssistantEvent}
+            />
+          ) : (
+            <EventFilterPanel
+              filters={filters}
+              onFiltersChange={setFilters}
+              selectedTags={selectedTags}
+              onTagsChange={setSelectedTags}
+              lifecycle={lifecycle}
+              onLifecycleChange={setLifecycle}
+              sort={sort}
+              onSortChange={setSort}
+              refreshTrigger={filterVersion}
+            />
+          )}
         </div>
 
         {/* Mobile Filter Drawer (Bottom Sheet) */}
@@ -799,44 +897,78 @@ END:VCALENDAR`;
                       >
                           <div className={`p-4 border-b flex justify-between items-center sticky top-0 z-10 backdrop-blur-xl rounded-t-3xl ${isDayMode ? 'border-slate-200/80 bg-white/92' : 'border-white/10 bg-[#1a1a1a]/95'}`}>
                               <div>
-                                  <h3 className={`text-lg font-bold ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{t('common.filters', '筛选')}</h3>
-                                  <p className={`text-xs mt-1 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{t('advanced_filter.title', '筛选活动内容')}</p>
+                                  <h3 className={`text-lg font-bold ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
+                                    {discoveryMode === 'assistant'
+                                      ? t('events.assistant.mode_ai', 'AI 搜索')
+                                      : t('common.filters', '筛选')}
+                                  </h3>
+                                  <p className={`text-xs mt-1 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+                                    {discoveryMode === 'assistant'
+                                      ? t('events.assistant.beta_hint', 'Beta 测试，可能不稳定')
+                                      : t('advanced_filter.title', '筛选活动内容')}
+                                  </p>
                               </div>
                               <button onClick={() => setIsMobileFilterOpen(false)} className={`p-2 rounded-full transition-colors ${isDayMode ? 'text-slate-500 hover:text-slate-900 bg-slate-100' : 'text-gray-400 hover:text-white bg-white/5'}`}>
                                   <X size={20} />
                               </button>
                           </div>
                           <div className="p-4 overflow-y-auto custom-scrollbar flex-1 min-h-0">
-                              <EventFilterPanel
-                                  filters={filters}
-                                  onFiltersChange={setFilters}
-                                  selectedTags={selectedTags}
-                                  onTagsChange={setSelectedTags}
-                                  lifecycle={lifecycle}
-                                  onLifecycleChange={setLifecycle}
-                                  sort={sort}
-                                  onSortChange={setSort}
-                                  refreshTrigger={filterVersion}
-                                  hideSort={true}
-                                  mode="sheet"
-                              />
+                              <div className="mb-4">
+                                {renderDiscoveryModeToggle(true)}
+                              </div>
+
+                              {discoveryMode === 'assistant' ? (
+                                <EventAssistantPanel
+                                  isDayMode={isDayMode}
+                                  onOpenEvent={(event) => {
+                                    handleOpenAssistantEvent(event);
+                                    setIsMobileFilterOpen(false);
+                                  }}
+                                />
+                              ) : (
+                                <EventFilterPanel
+                                    filters={filters}
+                                    onFiltersChange={setFilters}
+                                    selectedTags={selectedTags}
+                                    onTagsChange={setSelectedTags}
+                                    lifecycle={lifecycle}
+                                    onLifecycleChange={setLifecycle}
+                                    sort={sort}
+                                    onSortChange={setSort}
+                                    refreshTrigger={filterVersion}
+                                    hideSort={true}
+                                    mode="sheet"
+                                />
+                              )}
                           </div>
                           <div className={`p-4 border-t backdrop-blur-xl rounded-b-3xl flex items-center gap-3 shrink-0 ${isDayMode ? 'border-slate-200/80 bg-white/92' : 'border-white/10 bg-[#1a1a1a]/95'}`}>
-                              <button
-                                  type="button"
-                                  onClick={resetMobileFilters}
-                                  disabled={!hasActiveMobileFilters}
-                                  className={`flex-1 py-3 rounded-2xl border disabled:opacity-40 disabled:cursor-not-allowed ${isDayMode ? 'border-slate-200/80 bg-slate-100/90 text-slate-600' : 'border-white/10 bg-white/5 text-gray-200'}`}
-                              >
-                                  {t('common.clear_all', '重置')}
-                              </button>
-                              <button
-                                  type="button"
-                                  onClick={() => setIsMobileFilterOpen(false)}
-                                  className="flex-1 py-3 rounded-2xl bg-white text-black font-semibold"
-                              >
-                                  {t('common.done', '完成')}
-                              </button>
+                              {discoveryMode === 'assistant' ? (
+                                <button
+                                    type="button"
+                                    onClick={() => setIsMobileFilterOpen(false)}
+                                    className="w-full py-3 rounded-2xl bg-white text-black font-semibold"
+                                >
+                                    {t('common.done', '完成')}
+                                </button>
+                              ) : (
+                                <>
+                                  <button
+                                      type="button"
+                                      onClick={resetMobileFilters}
+                                      disabled={!hasActiveMobileFilters}
+                                      className={`flex-1 py-3 rounded-2xl border disabled:opacity-40 disabled:cursor-not-allowed ${isDayMode ? 'border-slate-200/80 bg-slate-100/90 text-slate-600' : 'border-white/10 bg-white/5 text-gray-200'}`}
+                                  >
+                                      {t('common.clear_all', '重置')}
+                                  </button>
+                                  <button
+                                      type="button"
+                                      onClick={() => setIsMobileFilterOpen(false)}
+                                      className="flex-1 py-3 rounded-2xl bg-white text-black font-semibold"
+                                  >
+                                      {t('common.done', '完成')}
+                                  </button>
+                                </>
+                              )}
                           </div>
                       </motion.div>
                   </>
