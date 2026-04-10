@@ -107,12 +107,12 @@ const AdminRoute = ({ children }) => {
 const AppContent = () => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
-  const { cursorEnabled, settings } = useSettings();
+  const { cursorEnabled, settings, backgroundEnabled } = useSettings();
   const shouldMountDeferredUi = useDeferredMount(700);
   const shouldMountHeavyBackground = useDeferredMount(100);
   const canRenderHeavyEffects = true;
-  const allowBackgroundEffects = !isAdminRoute && settings?.backgroundEnabled !== false;
-  const shouldUseThreeBackground = location.pathname === '/';
+  const allowBackgroundEffects = !isAdminRoute && backgroundEnabled;
+  const shouldRenderBackground = allowBackgroundEffects && canRenderHeavyEffects && shouldMountHeavyBackground;
   
   // 注册 Service Worker
   useServiceWorker();
@@ -173,70 +173,71 @@ const AppContent = () => {
   }, [isAdminRoute, location.pathname]);
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <ResourceHints />
-      {/* 跳过链接 - 无障碍功能 */}
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-6 focus:py-3 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
-      >
-        跳转到主要内容
-      </a>
-      {!isAdminRoute && (
-        <ErrorBoundary variant="inline" silent>
-            <Navbar />
-        </ErrorBoundary>
-      )}
-      {allowBackgroundEffects && shouldUseThreeBackground && canRenderHeavyEffects && shouldMountHeavyBackground && (
+    <div className="relative min-h-screen">
+      {shouldRenderBackground && (
         <ErrorBoundary variant="inline" silent>
           <Suspense fallback={null}>
             <BackgroundSystem />
           </Suspense>
         </ErrorBoundary>
       )}
-      {!isAdminRoute && cursorEnabled && <div className="hidden md:block"><CustomCursor /></div>}
-      {!isAdminRoute && <ScrollProgress />}
-      
-      {shouldMountDeferredUi && (
-        <ErrorBoundary variant="inline" silent>
-          <Suspense fallback={null}>
-            <SearchPalette />
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <ResourceHints />
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-6 focus:py-3 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
+        >
+          跳转到主要内容
+        </a>
+        {!isAdminRoute && (
+          <ErrorBoundary variant="inline" silent>
+            <Navbar />
+          </ErrorBoundary>
+        )}
+        {!isAdminRoute && cursorEnabled && <div className="hidden md:block"><CustomCursor /></div>}
+        {!isAdminRoute && <ScrollProgress />}
+
+        {shouldMountDeferredUi && (
+          <ErrorBoundary variant="inline" silent>
+            <Suspense fallback={null}>
+              <SearchPalette />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+
+        <main id="main-content" className="flex-grow pb-24 md:pb-0" role="main">
+          <Suspense fallback={<LoadingScreen />}>
+            <AnimatePresence mode="wait">
+              <Routes location={location} key={location.pathname}>
+                <Route path="/" element={<PageTransition><Home /></PageTransition>} />
+                <Route path="/gallery" element={<PageTransition><Gallery /></PageTransition>} />
+                <Route path="/music" element={<PageTransition><Music /></PageTransition>} />
+                <Route path="/videos" element={<PageTransition><Videos /></PageTransition>} />
+                <Route path="/articles" element={<PageTransition><Articles /></PageTransition>} />
+                <Route path="/events" element={<PageTransition><Events /></PageTransition>} />
+                <Route path="/about" element={<PageTransition><About /></PageTransition>} />
+                <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+                <Route path="/user/:id" element={<PageTransition><PublicProfile /></PageTransition>} />
+                <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
+              </Routes>
+            </AnimatePresence>
           </Suspense>
-        </ErrorBoundary>
-      )}
+        </main>
 
-      <main id="main-content" className="flex-grow pb-24 md:pb-0" role="main">
-        <Suspense fallback={<LoadingScreen />}>
-          <AnimatePresence mode="wait">
-            <Routes location={location} key={location.pathname}>
-              <Route path="/" element={<PageTransition><Home /></PageTransition>} />
-              <Route path="/gallery" element={<PageTransition><Gallery /></PageTransition>} />
-              <Route path="/music" element={<PageTransition><Music /></PageTransition>} />
-              <Route path="/videos" element={<PageTransition><Videos /></PageTransition>} />
-              <Route path="/articles" element={<PageTransition><Articles /></PageTransition>} />
-              <Route path="/events" element={<PageTransition><Events /></PageTransition>} />
-              <Route path="/about" element={<PageTransition><About /></PageTransition>} />
-              <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-              <Route path="/user/:id" element={<PageTransition><PublicProfile /></PageTransition>} />
-              <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
-            </Routes>
-          </AnimatePresence>
-        </Suspense>
-      </main>
+        {!isAdminRoute && <Footer />}
 
-      {!isAdminRoute && <Footer />}
-
-      {!isAdminRoute && shouldMountDeferredUi && (
-        <ErrorBoundary variant="inline" silent>
-          <Suspense fallback={null}>
-            <GlobalPlayer />
-          </Suspense>
-        </ErrorBoundary>
-      )}
-      {!isAdminRoute && <MobileNavbar />}
-      <ScrollToTop />
-      <PWAInstallPrompt />
-      <PerformancePanel />
+        {!isAdminRoute && shouldMountDeferredUi && (
+          <ErrorBoundary variant="inline" silent>
+            <Suspense fallback={null}>
+              <GlobalPlayer />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+        {!isAdminRoute && <MobileNavbar />}
+        <ScrollToTop />
+        <PWAInstallPrompt />
+        <PerformancePanel />
+      </div>
     </div>
   );
 };

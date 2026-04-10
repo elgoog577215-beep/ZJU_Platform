@@ -350,7 +350,8 @@ const BackgroundSystem = ({ forcedTheme = null }) => {
     };
   }, [prefersReducedMotion, viewportWidth]);
 
-  const activeScene = forcedTheme || backgroundScene || 'cyber';
+  const sceneFromSettings = settings?.background_scene || settings?.theme;
+  const activeScene = forcedTheme || backgroundScene || sceneFromSettings || 'cyber';
   const CurrentScene = sceneMap[activeScene] || sceneMap.cyber;
   const themeMode = uiMode === 'day' ? 'day' : 'dark';
   const themeStyle = themeStyles[themeMode]?.[activeScene] || themeStyles[themeMode]?.cyber || themeStyles.dark.cyber;
@@ -358,14 +359,8 @@ const BackgroundSystem = ({ forcedTheme = null }) => {
   const bloomIntensity = Number.parseFloat(settings.background_bloom || 0.55);
   const vignetteDarkness = Number.parseFloat(settings.background_vignette || 0.45);
 
-  // 调试日志 - 仅开发环境
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[BackgroundSystem] uiMode:', uiMode, 'themeMode:', themeMode, 'activeScene:', activeScene);
-    console.log('[BackgroundSystem] themeStyle:', themeStyle);
-  }
-
   return (
-    <div className={`fixed inset-0 -z-10 overflow-hidden ${themeMode === 'day' ? 'bg-[#f8fafc]' : 'bg-black'}`} style={{ filter: `brightness(${brightness})` }}>
+    <div className={`pointer-events-none fixed inset-0 z-0 overflow-hidden ${themeMode === 'day' ? 'bg-[#f8fafc]' : 'bg-black'}`} style={{ filter: `brightness(${brightness})` }}>
       <div className="absolute inset-0" style={{ background: themeStyle.gradient }} />
       <div
         className="absolute left-1/2 top-0 h-[40vw] w-[40vw] min-h-[280px] min-w-[280px] -translate-x-1/2 rounded-full blur-3xl"
@@ -384,11 +379,6 @@ const BackgroundSystem = ({ forcedTheme = null }) => {
           }}
         >
           <Suspense fallback={null}>
-            {/* 测试：渲染一个明显的立方体 */}
-            <mesh rotation={[0, 0, 0]}>
-              <boxGeometry args={[2, 2, 2]} />
-              <meshNormalMaterial />
-            </mesh>
             <CurrentScene dense={profile.dense} animate={profile.animate} />
             {profile.enableComposer && (
               <EffectComposer disableNormalPass multisampling={0}>

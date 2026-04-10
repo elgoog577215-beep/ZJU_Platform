@@ -25,7 +25,14 @@ const Navbar = () => {
   const [mobileToolbarState, setMobileToolbarState] = useState({ filterCount: 0, sortLabel: '' });
   const location = useLocation();
   const { t } = useTranslation();
-  const { backgroundScene, changeBackgroundScene, uiMode, changeUiMode } = useSettings();
+  const {
+    backgroundScene,
+    changeBackgroundScene,
+    backgroundEnabled,
+    changeBackgroundEnabled,
+    uiMode,
+    changeUiMode
+  } = useSettings();
   const { user, logout, isAdmin } = useAuth();
   const [time, setTime] = useState(new Date());
   const prefersReducedMotion = useReducedMotion();
@@ -472,6 +479,9 @@ const Navbar = () => {
                   <div className={`mb-2 px-2 pt-1 text-[10px] font-semibold uppercase tracking-[0.24em] ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>
                     {t('nav.appearance_mode')}
                   </div>
+                  <div className={`mb-2 px-2 text-[11px] ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+                    日间/夜间影响全站配色与文字对比度
+                  </div>
                   <div className="grid grid-cols-2 gap-2">
                     {['dark', 'day'].map((mode) => {
                       const isActiveMode = uiMode === mode;
@@ -490,6 +500,20 @@ const Navbar = () => {
                 </div>
 
                 <div className="grid grid-cols-1 gap-2">
+                  <div className={`px-2 pb-1 text-[11px] ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+                    背景场景仅影响背景视觉，不改变组件配色
+                  </div>
+                  <button
+                    onClick={() => changeBackgroundEnabled(!backgroundEnabled)}
+                    className={`w-full rounded-xl border px-3 py-2 text-left transition-all ${isDayMode ? 'bg-white/90 border-slate-200/80 hover:bg-white' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}
+                  >
+                    <div className={`text-sm font-semibold ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
+                      背景渲染
+                    </div>
+                    <div className={`mt-1 text-[11px] ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+                      {backgroundEnabled ? '已开启（显示3D/动态背景）' : '已关闭（仅保留纯色主题背景）'}
+                    </div>
+                  </button>
                   {themeConfig.map((s) => {
                     const Icon = s.icon;
                     const isActive = backgroundScene === s.id;
