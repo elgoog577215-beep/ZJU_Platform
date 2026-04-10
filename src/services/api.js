@@ -35,7 +35,7 @@ api.interceptors.response.use(
         config.retry = 0;
     }
 
-    if (config.retry < 3 && (error.message === 'Network Error' || (error.response && error.response.status >= 500))) {
+    if (!config?.noRetry && config.retry < 3 && (error.message === 'Network Error' || (error.response && error.response.status >= 500))) {
         config.retry += 1;
         const delayRetry = new Promise(resolve => setTimeout(resolve, 1000 * config.retry));
         await delayRetry;

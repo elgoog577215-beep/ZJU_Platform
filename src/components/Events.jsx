@@ -770,8 +770,9 @@ END:VCALENDAR`;
       <div className={`inline-flex items-center gap-1 p-1 rounded-full ${discoveryToggleClasses} ${compact ? 'w-full justify-between' : ''}`}>
         <button
           type="button"
+          aria-pressed={discoveryMode === 'filters'}
           onClick={() => setDiscoveryMode('filters')}
-          className={`inline-flex items-center justify-center rounded-full px-4 py-2.5 text-sm font-semibold transition-all ${compact ? 'flex-1' : ''} ${discoveryMode === 'filters'
+          className={`inline-flex items-center justify-center rounded-full px-4 py-2.5 min-h-[44px] text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${compact ? 'flex-1' : ''} ${discoveryMode === 'filters'
             ? isDayMode
               ? 'bg-slate-900 text-white shadow-[0_10px_24px_rgba(15,23,42,0.18)]'
               : 'bg-white text-black shadow-[0_10px_24px_rgba(255,255,255,0.08)]'
@@ -783,8 +784,9 @@ END:VCALENDAR`;
         </button>
         <button
           type="button"
+          aria-pressed={discoveryMode === 'assistant'}
           onClick={() => setDiscoveryMode('assistant')}
-          className={`inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all ${compact ? 'flex-1' : ''} ${discoveryMode === 'assistant'
+          className={`inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 min-h-[44px] text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${compact ? 'flex-1' : ''} ${discoveryMode === 'assistant'
             ? isDayMode
               ? 'bg-slate-900 text-white shadow-[0_10px_24px_rgba(15,23,42,0.18)]'
               : 'bg-white text-black shadow-[0_10px_24px_rgba(255,255,255,0.08)]'
@@ -837,6 +839,8 @@ END:VCALENDAR`;
           
         <div className="hidden md:flex items-center gap-2 w-full md:w-auto justify-center md:absolute md:right-0 md:top-0 mb-4 md:mb-0">
              <button
+                type="button"
+                aria-label={t('common.create_event')}
                 onClick={() => {
                   if (!user) {
                     toast.error(t('auth.signin_required'));
@@ -844,7 +848,7 @@ END:VCALENDAR`;
                   }
                   setIsUploadOpen(true);
                 }}
-                className={`flex items-center gap-2 px-4 py-2 md:px-6 md:py-3 rounded-full backdrop-blur-md border transition-all font-bold text-sm md:text-base shrink-0 ${isDayMode ? 'bg-white/88 hover:bg-white text-slate-700 border-slate-200/80 shadow-[0_14px_32px_rgba(148,163,184,0.14)]' : 'bg-white/10 hover:bg-white/20 text-white border border-white/10'}`}
+                className={`flex items-center gap-2 px-4 py-2 md:px-6 md:py-3 rounded-full backdrop-blur-md border transition-all font-bold text-sm md:text-base shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-white/88 hover:bg-white text-slate-700 border-slate-200/80 shadow-[0_14px_32px_rgba(148,163,184,0.14)]' : 'bg-white/10 hover:bg-white/20 text-white border border-white/10'}`}
              >
                 <Upload size={18} className="md:w-5 md:h-5" /> {t('common.create_event')}
              </button>
@@ -908,7 +912,7 @@ END:VCALENDAR`;
                                       : t('advanced_filter.title', '筛选活动内容')}
                                   </p>
                               </div>
-                              <button onClick={() => setIsMobileFilterOpen(false)} className={`p-2 rounded-full transition-colors ${isDayMode ? 'text-slate-500 hover:text-slate-900 bg-slate-100' : 'text-gray-400 hover:text-white bg-white/5'}`}>
+                              <button type="button" aria-label={t('common.close', '关闭')} onClick={() => setIsMobileFilterOpen(false)} className={`p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'text-slate-500 hover:text-slate-900 bg-slate-100' : 'text-gray-400 hover:text-white bg-white/5'}`}>
                                   <X size={20} />
                               </button>
                           </div>
@@ -945,8 +949,9 @@ END:VCALENDAR`;
                               {discoveryMode === 'assistant' ? (
                                 <button
                                     type="button"
+                                    aria-label={t('common.done', '完成')}
                                     onClick={() => setIsMobileFilterOpen(false)}
-                                    className="w-full py-3 rounded-2xl bg-white text-black font-semibold"
+                                    className={`w-full py-3 min-h-[44px] rounded-2xl font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-slate-900 text-white' : 'bg-white text-black'}`}
                                 >
                                     {t('common.done', '完成')}
                                 </button>
@@ -954,16 +959,18 @@ END:VCALENDAR`;
                                 <>
                                   <button
                                       type="button"
+                                      aria-label={t('common.clear_all', '重置')}
                                       onClick={resetMobileFilters}
                                       disabled={!hasActiveMobileFilters}
-                                      className={`flex-1 py-3 rounded-2xl border disabled:opacity-40 disabled:cursor-not-allowed ${isDayMode ? 'border-slate-200/80 bg-slate-100/90 text-slate-600' : 'border-white/10 bg-white/5 text-gray-200'}`}
+                                      className={`flex-1 py-3 min-h-[44px] rounded-2xl border disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'border-slate-200/80 bg-slate-100/90 text-slate-600' : 'border-white/10 bg-white/5 text-gray-200'}`}
                                   >
                                       {t('common.clear_all', '重置')}
                                   </button>
                                   <button
                                       type="button"
+                                      aria-label={t('common.done', '完成')}
                                       onClick={() => setIsMobileFilterOpen(false)}
-                                      className="flex-1 py-3 rounded-2xl bg-white text-black font-semibold"
+                                      className={`flex-1 py-3 min-h-[44px] rounded-2xl font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-slate-900 text-white' : 'bg-white text-black'}`}
                                   >
                                       {t('common.done', '完成')}
                                   </button>
@@ -1001,7 +1008,7 @@ END:VCALENDAR`;
                                   <h3 className={`text-lg font-bold ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{t('common.sort', '排序')}</h3>
                                   <p className={`text-xs mt-1 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{t('sort_filter.title', '选择活动排序方式')}</p>
                               </div>
-                              <button onClick={() => setIsMobileSortOpen(false)} className={`p-2 rounded-full transition-colors ${isDayMode ? 'text-slate-500 hover:text-slate-900 bg-slate-100' : 'text-gray-400 hover:text-white bg-white/5'}`}>
+                              <button type="button" aria-label={t('common.close', '关闭')} onClick={() => setIsMobileSortOpen(false)} className={`p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'text-slate-500 hover:text-slate-900 bg-slate-100' : 'text-gray-400 hover:text-white bg-white/5'}`}>
                                   <X size={20} />
                               </button>
                           </div>

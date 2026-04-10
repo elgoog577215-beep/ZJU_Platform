@@ -33,8 +33,9 @@ const SortSelector = ({
               <button
                 key={option.value}
                 type="button"
+                aria-pressed={active}
                 onClick={() => onSortChange(option.value)}
-                className={`w-full flex items-center justify-between gap-3 px-4 py-4 rounded-2xl border transition-all text-left ${
+                className={`w-full min-h-[48px] flex items-center justify-between gap-3 px-4 py-4 rounded-2xl border transition-all text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
                   active
                     ? isDayMode
                       ? 'bg-indigo-500/10 border-indigo-300/50 text-slate-900 shadow-[0_10px_24px_rgba(99,102,241,0.12)]'
@@ -69,8 +70,8 @@ const SortSelector = ({
         options={options}
         icon={ArrowUpDown}
         buttonClassName={buttonClassName || (isDayMode
-          ? "bg-white/82 border border-slate-200/80 hover:bg-white hover:border-indigo-300/70 rounded-full px-6 py-2.5 backdrop-blur-3xl transition-all text-sm font-medium shadow-[0_12px_28px_rgba(148,163,184,0.14)] text-slate-700"
-          : "bg-[#0a0a0a]/60 border border-white/10 hover:bg-[#0a0a0a]/80 hover:border-indigo-500/30 rounded-full px-6 py-2.5 backdrop-blur-3xl transition-all text-sm font-medium shadow-lg text-white hover:shadow-[0_0_15px_rgba(99,102,241,0.2)]")}
+          ? "bg-white/82 border border-slate-200/80 hover:bg-white hover:border-indigo-300/70 rounded-full px-6 py-2.5 min-h-[44px] backdrop-blur-3xl transition-all text-sm font-medium shadow-[0_12px_28px_rgba(148,163,184,0.14)] text-slate-700"
+          : "bg-[#0a0a0a]/60 border border-white/10 hover:bg-[#0a0a0a]/80 hover:border-indigo-500/30 rounded-full px-6 py-2.5 min-h-[44px] backdrop-blur-3xl transition-all text-sm font-medium shadow-lg text-white hover:shadow-[0_0_15px_rgba(99,102,241,0.2)]")}
       />
     </div>
   );

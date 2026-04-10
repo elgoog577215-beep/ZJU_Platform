@@ -5,13 +5,15 @@ import api from '../services/api';
 import { useTranslation } from 'react-i18next';
 import { useSettings } from '../context/SettingsContext';
 
+const TAG_CACHE = new Map();
+
 const TagFilter = ({ selectedTags = [], onChange, className, variant = 'card', type, filters = {} }) => {
   const { t } = useTranslation();
   const { uiMode } = useSettings();
   const isDayMode = uiMode === 'day';
   const [allTags, setAllTags] = useState([]);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [isFetching, setIsFetching] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
   const [isMobile, setIsMobile] = useState(false);
@@ -31,16 +33,32 @@ const TagFilter = ({ selectedTags = [], onChange, className, variant = 'card', t
   const filtersKey = JSON.stringify(filters);
 
   useEffect(() => {
+    let cancelled = false;
     const fetchTags = async () => {
-      setLoading(true);
+      const activeFilters = Object.fromEntries(
+        Object.entries(filters).filter(([, v]) => v != null && v !== '')
+      );
+      const cacheKey = JSON.stringify({ type, ...activeFilters });
+      const cachedTags = TAG_CACHE.get(cacheKey);
+
+      if (cachedTags) {
+        setAllTags(cachedTags);
+      }
+
+      setIsFetching(true);
       try {
-        const activeFilters = Object.fromEntries(
-          Object.entries(filters).filter(([, v]) => v != null && v !== '')
-        );
-        const res = await api.get('/tags', { params: { type, ...activeFilters }, silent: true });
+        const res = await api.get('/tags', {
+          params: { type, ...activeFilters },
+          silent: true,
+          noRetry: true,
+          timeout: 4000
+        });
         const sortedTags = res.data.sort((a, b) => (b.count || 0) - (a.count || 0));
-        setAllTags(sortedTags);
-        if (selectedTags.length > 0) {
+        TAG_CACHE.set(cacheKey, sortedTags);
+        if (!cancelled) {
+          setAllTags(sortedTags);
+        }
+        if (!cancelled && selectedTags.length > 0) {
           const tagNames = new Set(sortedTags.map((tag) => tag.name));
           const nextSelected = selectedTags.filter((tag) => tagNames.has(tag));
           if (nextSelected.length !== selectedTags.length) {
@@ -48,12 +66,19 @@ const TagFilter = ({ selectedTags = [], onChange, className, variant = 'card', t
           }
         }
       } catch {
-        setAllTags([]);
+        if (!cancelled && !cachedTags) {
+          setAllTags([]);
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setIsFetching(false);
+        }
       }
     };
     fetchTags();
+    return () => {
+      cancelled = true;
+    };
   }, [type, filtersKey]);
 
   const isSheetVariant = variant === 'sheet';
@@ -87,8 +112,6 @@ const TagFilter = ({ selectedTags = [], onChange, className, variant = 'card', t
     onChange(newTags);
   };
 
-  if (loading) return null;
-  
   if (allTags.length === 0) {
     return null;
   }
@@ -99,11 +122,14 @@ const TagFilter = ({ selectedTags = [], onChange, className, variant = 'card', t
 
   return (
     <div className={`w-full ${className || ''}`}>
-      <div className={containerClasses}>
+      <div className={`${containerClasses} ${isFetching ? 'opacity-90 transition-opacity duration-150' : ''}`}>
         {!isSheetVariant ? (
           <div className="flex items-center justify-between mb-4 md:mb-5">
-              <div 
-                  className="flex items-center gap-2 cursor-pointer md:cursor-default" 
+              <button
+                  type="button"
+                  aria-expanded={!isMobileCollapsed}
+                  aria-label={t('common.filter_by_tags', '标签筛选')}
+                  className={`flex items-center gap-2 ${isMobile ? 'cursor-pointer' : 'cursor-default'} rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70`}
                   onClick={() => isMobile && setIsMobileCollapsed(!isMobileCollapsed)}
               >
                   <div className={`p-2.5 sm:p-2 rounded-xl ${variant === 'card' ? (isDayMode ? 'bg-indigo-50 text-indigo-500 border border-indigo-200/80 shadow-[0_8px_20px_rgba(99,102,241,0.14)]' : 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/25 shadow-[0_0_20px_-8px_rgba(99,102,241,0.5)]') : (isDayMode ? 'bg-slate-100 text-slate-700 border border-slate-200/80' : 'bg-white/10 text-white')}`}>
@@ -118,13 +144,13 @@ const TagFilter = ({ selectedTags = [], onChange, className, variant = 'card', t
                           <ChevronDown size={16} />
                       </motion.div>
                   )}
-              </div>
+              </button>
               
               {selectedTags.length > 0 && (
                   <button
                       type="button"
                       onClick={() => onChange([])}
-                      className={`text-xs font-medium flex items-center gap-1 transition-colors px-3 py-2 sm:px-3 sm:py-1.5 rounded-full min-h-[44px] sm:min-h-0 ${isDayMode ? 'text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-white border border-slate-200/80' : 'text-gray-400 hover:text-white bg-white/5 hover:bg-white/10'}`}
+                      className={`text-xs font-medium flex items-center gap-1 transition-colors px-3 py-2 sm:px-3 sm:py-1.5 rounded-full min-h-[44px] sm:min-h-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-white border border-slate-200/80' : 'text-gray-400 hover:text-white bg-white/5 hover:bg-white/10'}`}
                   >
                       <X size={12} />
                       {t('common.clear_all', '清除全部')}
@@ -152,13 +178,14 @@ const TagFilter = ({ selectedTags = [], onChange, className, variant = 'card', t
                 setIsExpanded(true);
               }}
               placeholder={t('common.search', '搜索...')}
-              className={`w-full rounded-xl border pl-9 pr-8 py-2 text-sm outline-none transition-colors ${isDayMode ? 'bg-white/90 border-slate-200/80 text-slate-700 placeholder:text-slate-400 focus:border-indigo-300/80' : 'bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-indigo-400/40'}`}
+              className={`w-full rounded-xl border pl-9 pr-10 py-2.5 min-h-[44px] text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-white/90 border-slate-200/80 text-slate-700 placeholder:text-slate-400 focus:border-indigo-300/80' : 'bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-indigo-400/40'}`}
             />
             {searchTerm && (
               <button
                 type="button"
                 onClick={() => setSearchTerm('')}
-                className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md ${isDayMode ? 'text-slate-400 hover:text-slate-700' : 'text-gray-500 hover:text-white'}`}
+                aria-label={t('common.clear', '清除')}
+                className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 min-h-[36px] min-w-[36px] inline-flex items-center justify-center rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'text-slate-400 hover:text-slate-700' : 'text-gray-500 hover:text-white'}`}
               >
                 <X size={14} />
               </button>

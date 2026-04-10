@@ -404,8 +404,9 @@ const PlatformStats = () => {
             </div>
             <button
               type="button"
+              aria-label="进入发现"
               onClick={() => navigate('/articles')}
-              className={`inline-flex items-center gap-1 text-xs font-semibold ${isDayMode ? 'text-amber-600' : 'text-amber-300'}`}
+              className={`inline-flex items-center gap-1 min-h-[36px] px-2 rounded-lg text-xs font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'text-amber-600 hover:bg-amber-50' : 'text-amber-300 hover:bg-white/5'}`}
             >
               进入发现
               <ArrowRight size={12} />
@@ -426,8 +427,9 @@ const PlatformStats = () => {
                   <button
                     key={`${item.subtitle}-${item.id}`}
                     type="button"
+                    aria-label={`${item.subtitle} ${item.title}`}
                     onClick={() => navigate(item.targetPath)}
-                    className={`group text-left rounded-xl overflow-hidden border transition-all ${
+                    className={`group text-left rounded-xl overflow-hidden border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
                       isDayMode
                         ? 'border-slate-200/80 bg-white hover:shadow-[0_12px_28px_rgba(148,163,184,0.18)]'
                         : 'border-white/10 bg-black/25 hover:bg-white/[0.06]'

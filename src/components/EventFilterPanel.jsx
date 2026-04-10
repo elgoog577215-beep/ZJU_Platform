@@ -76,8 +76,10 @@ const EventFilterPanel = ({
               initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 10 }}
+              type="button"
+              aria-label={t('advanced_filter.clear', '清除所有筛选')}
               onClick={clearAll}
-              className={`${isSheetMode ? 'w-full justify-center rounded-2xl py-3.5' : 'px-4 py-2 rounded-full'} flex items-center gap-1.5 transition-all border text-sm font-medium shrink-0 ${isDayMode ? 'bg-red-50 text-red-500 hover:bg-red-100 border-red-200/80' : 'bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 border-red-500/10'}`}
+              className={`${isSheetMode ? 'w-full justify-center rounded-2xl py-3.5' : 'px-4 py-2 rounded-full'} min-h-[44px] flex items-center gap-1.5 transition-all border text-sm font-medium shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-red-50 text-red-500 hover:bg-red-100 border-red-200/80' : 'bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 border-red-500/10'}`}
             >
               <X size={14} />
               {t('advanced_filter.clear', '清除所有筛选')}

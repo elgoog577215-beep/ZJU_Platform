@@ -65,8 +65,10 @@ const MobileNavbar = () => {
                return (
                   <button
                     key={item.key}
+                    type="button"
+                    aria-label={item.key === 'menu' ? t('nav.more', '更多') : t(`nav.${item.key}`, item.key)}
                     onClick={() => handleAction(item.action)}
-                    className={`relative flex flex-col items-center justify-center w-full h-full transition-colors ${showMenu && item.action === 'menu' ? (isDayMode ? 'text-slate-900' : 'text-white') : (isDayMode ? 'text-slate-500 hover:text-slate-900' : 'text-gray-400 hover:text-white')}`}
+                    className={`relative flex flex-col items-center justify-center w-full h-full rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 transition-colors ${showMenu && item.action === 'menu' ? (isDayMode ? 'text-slate-900' : 'text-white') : (isDayMode ? 'text-slate-500 hover:text-slate-900' : 'text-gray-400 hover:text-white')}`}
                   >
                     <motion.div
                       whileTap={prefersReducedMotion ? undefined : { scale: 0.85 }}
@@ -87,8 +89,9 @@ const MobileNavbar = () => {
               <Link
                 key={item.key}
                 to={item.path}
+                aria-label={t(`nav.${item.key}`, item.key)}
                 onClick={handleNavClick}
-                className={`relative flex flex-col items-center justify-center w-full h-full transition-colors ${
+                className={`relative flex flex-col items-center justify-center w-full h-full rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 transition-colors ${
                   isActive && !showMenu ? (isDayMode ? 'text-slate-900' : 'text-white') : (isDayMode ? 'text-slate-500 hover:text-slate-900' : 'text-gray-400 hover:text-white')
                 }`}
               >
@@ -137,15 +140,19 @@ const MobileNavbar = () => {
                     <h2 className={`text-2xl font-bold ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{t('nav.more', 'Menu')}</h2>
                     <div className="flex items-center gap-2">
                       <button
+                        type="button"
+                        aria-label={t(isDayMode ? 'nav.night_mode' : 'nav.day_mode')}
                         onClick={() => changeUiMode(isDayMode ? 'dark' : 'day')}
-                        className={`p-2 rounded-full transition-colors ${isDayMode ? 'bg-amber-100 text-amber-500' : 'bg-white/10 text-yellow-300'}`}
+                        className={`p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-amber-100 text-amber-500' : 'bg-white/10 text-yellow-300'}`}
                         title={t(isDayMode ? 'nav.night_mode' : 'nav.day_mode')}
                       >
                         {isDayMode ? <Moon size={20} /> : <Sun size={20} />}
                       </button>
                       <button 
+                          type="button"
+                          aria-label={t('common.close', '关闭')}
                           onClick={() => setShowMenu(false)}
-                          className={`p-2 rounded-full transition-colors ${isDayMode ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                          className={`p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' : 'bg-white/10 text-white hover:bg-white/20'}`}
                       >
                           <X size={24} />
                       </button>
@@ -160,14 +167,16 @@ const MobileNavbar = () => {
                                 return (
                                     <button
                                         key={item.key}
+                                        type="button"
+                                        aria-label={item.key === 'login' ? t('auth.log_in') : t(`nav.${item.key}`, item.key)}
                                         onClick={() => {
                                             setShowMenu(false);
                                             handleAction(item.action);
                                         }}
-                                        className="flex flex-col items-center justify-center gap-2 p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors h-24 active:scale-95 touch-manipulation"
+                                        className={`flex flex-col items-center justify-center gap-2 p-4 border rounded-2xl transition-colors h-24 active:scale-95 touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-white/90 border-slate-200/80 hover:bg-white' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}
                                     >
-                                        <item.icon size={24} className="text-indigo-400" />
-                                        <span className="font-medium text-white text-xs">
+                                        <item.icon size={24} className={isDayMode ? 'text-indigo-500' : 'text-indigo-400'} />
+                                        <span className={`font-medium text-xs ${isDayMode ? 'text-slate-700' : 'text-white'}`}>
                                             {item.key === 'login' ? t('auth.log_in') : 
                                              item.key === 'profile' ? t('user_profile.title') : 
                                              t(`nav.${item.key}`, item.key)}
@@ -179,12 +188,13 @@ const MobileNavbar = () => {
                                 <Link
                                     key={item.key}
                                     to={item.path}
+                                    aria-label={t(`nav.${item.key}`, item.key)}
                                     replace
                                     onClick={handleNavClick}
-                                    className="flex flex-col items-center justify-center gap-2 p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors h-24 active:scale-95 touch-manipulation"
+                                    className={`flex flex-col items-center justify-center gap-2 p-4 border rounded-2xl transition-colors h-24 active:scale-95 touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-white/90 border-slate-200/80 hover:bg-white' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}
                                 >
-                                    <item.icon size={24} className="text-indigo-400" />
-                                    <span className="font-medium text-white text-xs">{t(`nav.${item.key}`, item.key.charAt(0).toUpperCase() + item.key.slice(1))}</span>
+                                    <item.icon size={24} className={isDayMode ? 'text-indigo-500' : 'text-indigo-400'} />
+                                    <span className={`font-medium text-xs ${isDayMode ? 'text-slate-700' : 'text-white'}`}>{t(`nav.${item.key}`, item.key.charAt(0).toUpperCase() + item.key.slice(1))}</span>
                                 </Link>
                             );
                         })}

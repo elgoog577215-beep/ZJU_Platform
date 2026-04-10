@@ -136,7 +136,7 @@ const SearchPalette = () => {
   return (
     <AnimatePresence initial={false}>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-start justify-center md:pt-[20vh] md:px-4">
+        <div className="fixed inset-0 z-[100] flex items-start justify-center md:pt-[20vh] md:px-4" role="dialog" aria-modal="true" aria-label={t('search.placeholder')}>
             <motion.div 
             initial={prefersReducedMotion ? false : { opacity: 0 }}
             animate={prefersReducedMotion ? undefined : { opacity: 1 }}
@@ -167,7 +167,7 @@ const SearchPalette = () => {
                     <kbd className={`hidden md:inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-mono ${isDayMode ? 'bg-slate-100 text-slate-500' : 'bg-white/5 text-gray-400'}`}>
                         <span className="text-xs">ESC</span>
                     </kbd>
-                    <button onClick={() => setIsOpen(false)} className={`p-2 transition-colors ${isDayMode ? 'text-slate-400 hover:text-slate-900' : 'text-gray-400 hover:text-white'}`}>
+                    <button type="button" aria-label={t('common.close', '关闭')} onClick={() => setIsOpen(false)} className={`p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'text-slate-400 hover:text-slate-900' : 'text-gray-400 hover:text-white'}`}>
                         <X size={20} />
                     </button>
                 </div>
@@ -181,9 +181,11 @@ const SearchPalette = () => {
                         {results.map((item, index) => (
                             <button
                                 key={`${item.type}-${item.id}`}
+                                type="button"
+                                aria-label={`${t(`common.${item.type}`, item.type)} ${item.title}`}
                                 onClick={() => handleSelect(item)}
                                 onMouseEnter={() => setSelectedIndex(index)}
-                                className={`w-full flex items-center gap-4 px-4 py-3 rounded-lg transition-colors ${
+                                className={`w-full min-h-[52px] flex items-center gap-4 px-4 py-3 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
                                     index === selectedIndex 
                                       ? (isDayMode ? 'bg-indigo-50 border border-indigo-100/80' : 'bg-white/10')
                                       : (isDayMode ? 'hover:bg-slate-50' : 'hover:bg-white/5')
@@ -191,7 +193,7 @@ const SearchPalette = () => {
                             >
                                 <div className={`w-10 h-10 rounded overflow-hidden flex-shrink-0 border ${isDayMode ? 'bg-white border-slate-200/80' : 'bg-black/50 border-white/10'}`}>
                                     {item.image ? (
-                                        <img src={getThumbnailUrl(item.image)} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                                        <img src={getThumbnailUrl(item.image)} alt={item.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center text-gray-500">
                                             {getIcon(item.type)}

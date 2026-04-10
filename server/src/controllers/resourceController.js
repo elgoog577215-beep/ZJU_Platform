@@ -615,6 +615,57 @@ const getDistinctValues = (table) => async (req, res, next) => {
     } catch (error) { next(error); }
 }
 
+const getEventDistinctOptions = async (req, res, next) => {
+    try {
+        const db = await getDb();
+        const status = req.query.status || 'approved';
+        const lifecycle = req.query.lifecycle;
+        const filterableFields = ['location', 'organizer', 'target_audience'];
+
+        const buildQueryForField = (field) => {
+            const whereClauses = [`"${field}" IS NOT NULL AND "${field}" != ''`];
+            const params = [];
+
+            if (status !== 'all') {
+                whereClauses.push('status = ?');
+                params.push(status);
+            }
+
+            filterableFields.forEach((f) => {
+                if (f !== field && req.query[f]) {
+                    whereClauses.push(`"${f}" = ?`);
+                    params.push(req.query[f]);
+                }
+            });
+
+            if (lifecycle === 'upcoming') {
+                whereClauses.push('date > date("now", "localtime")');
+            } else if (lifecycle === 'past') {
+                whereClauses.push('date < date("now", "localtime")');
+            } else if (lifecycle === 'ongoing') {
+                whereClauses.push('date = date("now", "localtime")');
+            }
+
+            const whereSQL = whereClauses.length > 0 ? ` WHERE ${whereClauses.join(' AND ')}` : '';
+            const query = `SELECT DISTINCT "${field}" FROM events${whereSQL} ORDER BY "${field}" ASC`;
+            return { query, params };
+        };
+
+        const [locationRows, organizerRows, audienceRows] = await Promise.all(
+            filterableFields.map((field) => {
+                const { query, params } = buildQueryForField(field);
+                return db.all(query, params);
+            })
+        );
+
+        res.json({
+            location: locationRows.map((row) => row.location),
+            organizer: organizerRows.map((row) => row.organizer),
+            target_audience: audienceRows.map((row) => row.target_audience)
+        });
+    } catch (error) { next(error); }
+}
+
 // Fields Definitions
 const fields = {
     photos: ['url', 'title', 'tags', 'size', 'gameType', 'gameDescription', 'featured'],
@@ -682,6 +733,7 @@ module.exports = {
     getOneHandler,
     getRelatedHandler,
     getDistinctValues,
+    getEventDistinctOptions,
     toggleLike,
     updateStatus,
     fields

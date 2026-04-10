@@ -1,7 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useSettings } from '../context/SettingsContext';
 
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+  const { uiMode } = useSettings();
+  const isDayMode = uiMode === 'day';
   if (totalPages <= 1) return null;
 
   const getVisiblePages = () => {
@@ -29,9 +32,11 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   return (
     <div className="flex justify-center items-center space-x-2 sm:space-x-3 mt-8 pb-20 md:pb-8">
       <button
+        type="button"
+        aria-label="上一页"
         onClick={() => onPageChange(Math.max(1, currentPage - 1))}
         disabled={currentPage === 1}
-        className="px-4 py-3 sm:py-2 rounded-lg bg-[#0a0a0a]/60 backdrop-blur-3xl hover:bg-[#0a0a0a]/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-white border border-white/10 min-h-[44px] min-w-[44px] flex items-center justify-center"
+        className={`px-4 py-3 sm:py-2 rounded-lg backdrop-blur-3xl disabled:opacity-50 disabled:cursor-not-allowed transition-all border min-h-[44px] min-w-[44px] inline-flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-white/90 hover:bg-white text-slate-700 border-slate-200/80' : 'bg-[#0a0a0a]/60 hover:bg-[#0a0a0a]/80 text-white border-white/10'}`}
       >
         &lt;
       </button>
@@ -40,11 +45,16 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         {getVisiblePages().map((page) => (
           <button
             key={page}
+            type="button"
+            aria-current={currentPage === page ? 'page' : undefined}
+            aria-label={`第 ${page} 页`}
             onClick={() => onPageChange(page)}
             className={`min-w-[44px] h-11 sm:min-w-[40px] sm:h-10 rounded-full transition-all border font-bold relative overflow-hidden group ${
               currentPage === page
                 ? 'text-white border-transparent shadow-[0_0_15px_rgba(6,182,212,0.5)] scale-110'
-                : 'bg-[#0a0a0a]/60 backdrop-blur-3xl hover:bg-[#0a0a0a]/80 text-gray-400 hover:text-white border-white/10 hover:border-white/30'
+                : isDayMode
+                  ? 'bg-white/90 backdrop-blur-3xl hover:bg-white text-slate-500 hover:text-slate-900 border-slate-200/80 hover:border-indigo-200/80'
+                  : 'bg-[#0a0a0a]/60 backdrop-blur-3xl hover:bg-[#0a0a0a]/80 text-gray-400 hover:text-white border-white/10 hover:border-white/30'
             }`}
           >
             {currentPage === page && (
@@ -63,9 +73,11 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
       </div>
 
       <button
+        type="button"
+        aria-label="下一页"
         onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
         disabled={currentPage === totalPages}
-        className="px-4 py-3 sm:py-2 rounded-lg bg-[#0a0a0a]/60 backdrop-blur-3xl hover:bg-[#0a0a0a]/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-white border border-white/10 min-h-[44px] min-w-[44px] flex items-center justify-center"
+        className={`px-4 py-3 sm:py-2 rounded-lg backdrop-blur-3xl disabled:opacity-50 disabled:cursor-not-allowed transition-all border min-h-[44px] min-w-[44px] inline-flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-white/90 hover:bg-white text-slate-700 border-slate-200/80' : 'bg-[#0a0a0a]/60 hover:bg-[#0a0a0a]/80 text-white border-white/10'}`}
       >
         &gt;
       </button>

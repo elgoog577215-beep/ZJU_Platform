@@ -272,14 +272,18 @@ const Navbar = () => {
 
         <div className="flex items-center gap-2">
             <button 
+              type="button"
+              aria-label={t('search.placeholder')}
               onClick={() => window.dispatchEvent(new Event('open-search-palette'))}
-              className={`p-2 transition-colors ${isDayMode ? 'text-slate-500 hover:text-slate-900' : 'text-gray-300 hover:text-white'}`}
+              className={`p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'text-slate-500 hover:text-slate-900' : 'text-gray-300 hover:text-white'}`}
             >
               <Search size={20} />
             </button>
             <button
+              type="button"
+              aria-label={t(isDayMode ? 'nav.night_mode' : 'nav.day_mode')}
               onClick={() => changeUiMode(isDayMode ? 'dark' : 'day')}
-              className={`p-2 rounded-full transition-colors ${isDayMode ? 'bg-white/80 text-amber-500 shadow-[0_8px_18px_rgba(148,163,184,0.12)]' : 'bg-white/10 text-yellow-300'}`}
+              className={`p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-white/80 text-amber-500 shadow-[0_8px_18px_rgba(148,163,184,0.12)]' : 'bg-white/10 text-yellow-300'}`}
               title={t(isDayMode ? 'nav.night_mode' : 'nav.day_mode')}
             >
               <Sun size={18} />
@@ -290,8 +294,10 @@ const Navbar = () => {
         <div className="flex items-center gap-2">
             {showUploadButton && (
                <button 
+                  type="button"
+                  aria-label={t('common.sort', '排序')}
                   onClick={() => window.dispatchEvent(new CustomEvent('toggle-mobile-sort'))}
-                  className={`flex items-center gap-1.5 px-2 py-1.5 transition-colors relative rounded-full border ${isDayMode ? 'text-slate-500 hover:text-slate-900 bg-white/82 border-slate-200/80 shadow-[0_8px_18px_rgba(148,163,184,0.12)]' : 'text-gray-300 hover:text-white bg-white/5 border-white/10'}`}
+                  className={`flex items-center gap-1.5 px-2 py-1.5 min-h-[44px] transition-colors relative rounded-full border focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'text-slate-500 hover:text-slate-900 bg-white/82 border-slate-200/80 shadow-[0_8px_18px_rgba(148,163,184,0.12)]' : 'text-gray-300 hover:text-white bg-white/5 border-white/10'}`}
                >
                   <ArrowUpDown size={18} />
                   {mobileToolbarState.sortLabel && (
@@ -303,8 +309,10 @@ const Navbar = () => {
             )}
             {showUploadButton && (
                <button 
+                  type="button"
+                  aria-label={t('common.filters', '筛选')}
                   onClick={() => window.dispatchEvent(new CustomEvent('toggle-mobile-filter'))}
-                  className={`p-1.5 transition-colors relative rounded-full border ${isDayMode ? 'text-slate-500 hover:text-slate-900 bg-white/82 border-slate-200/80 shadow-[0_8px_18px_rgba(148,163,184,0.12)]' : 'text-gray-300 hover:text-white bg-white/5 border-white/10'}`}
+                  className={`p-1.5 min-h-[44px] min-w-[44px] inline-flex items-center justify-center transition-colors relative rounded-full border focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'text-slate-500 hover:text-slate-900 bg-white/82 border-slate-200/80 shadow-[0_8px_18px_rgba(148,163,184,0.12)]' : 'text-gray-300 hover:text-white bg-white/5 border-white/10'}`}
                >
                   <Filter size={18} />
                   {mobileToolbarState.filterCount > 0 && (
@@ -316,8 +324,10 @@ const Navbar = () => {
             )}
             {showUploadButton && (
                <button 
+                  type="button"
+                  aria-label={t('common.upload', '上传')}
                   onClick={handleUploadClick}
-                  className="p-1.5 bg-indigo-500 hover:bg-indigo-400 text-white rounded-full shadow-[0_0_15px_rgba(99,102,241,0.3)] transition-colors ml-1"
+                  className="p-1.5 min-h-[44px] min-w-[44px] inline-flex items-center justify-center bg-indigo-500 hover:bg-indigo-400 text-white rounded-full shadow-[0_0_15px_rgba(99,102,241,0.3)] transition-colors ml-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300/80"
                >
                   <Plus size={16} strokeWidth={3} />
                </button>
@@ -326,14 +336,17 @@ const Navbar = () => {
             {user ? (
                 <Link 
                    to={`/user/${user.id}`}
-                   className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-[10px] text-white font-bold border border-white/20"
+                   aria-label={t('user_profile.title')}
+                   className="w-10 h-10 rounded-full bg-purple-600 inline-flex items-center justify-center text-xs text-white font-bold border border-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70"
                 >
                     {user.username.charAt(0).toUpperCase()}
                 </Link>
             ) : (
                 <button 
+                    type="button"
+                    aria-label={t('auth.log_in')}
                     onClick={() => setIsAuthOpen(true)}
-                    className={`text-xs font-bold px-3 py-1.5 rounded-full transition-all ${isDayMode ? 'bg-white/92 text-slate-800 border border-slate-200/80 hover:bg-white hover:text-indigo-600 shadow-[0_10px_24px_rgba(148,163,184,0.16)]' : 'bg-purple-600 hover:bg-purple-700 text-white'}`}
+                    className={`text-xs font-bold px-3 py-1.5 min-h-[44px] rounded-full transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-white/92 text-slate-800 border border-slate-200/80 hover:bg-white hover:text-indigo-600 shadow-[0_10px_24px_rgba(148,163,184,0.16)]' : 'bg-purple-600 hover:bg-purple-700 text-white'}`}
                 >
                     {t('auth.log_in')}
                 </button>

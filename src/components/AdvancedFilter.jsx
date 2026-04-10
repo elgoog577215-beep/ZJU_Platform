@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { MapPin, Building2, Users, Filter, X, ChevronDown, SlidersHorizontal } from 'lucide-react';
 import Dropdown from './Dropdown';
 import api from '../services/api';
@@ -24,10 +24,11 @@ const AdvancedFilter = ({
         target_audience: []
     });
 
-    const [loading, setLoading] = useState(true);
+    const [isFetching, setIsFetching] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [overflowVisible, setOverflowVisible] = useState(false);
+    const optionsCacheRef = useRef(new Map());
 
     useEffect(() => {
         const checkMobile = () => {
@@ -41,36 +42,66 @@ const AdvancedFilter = ({
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
+    const normalizedFilters = useMemo(() => ({
+        location: filters?.location || null,
+        organizer: filters?.organizer || null,
+        target_audience: filters?.target_audience || null,
+    }), [filters?.location, filters?.organizer, filters?.target_audience]);
+
+    const normalizedFiltersKey = useMemo(
+        () => JSON.stringify(normalizedFilters),
+        [normalizedFilters]
+    );
+
     useEffect(() => {
+        let cancelled = false;
+        const params = {};
+        Object.keys(normalizedFilters).forEach((key) => {
+            if (normalizedFilters[key] && normalizedFilters[key] !== 'all') {
+                params[key] = normalizedFilters[key];
+            }
+        });
+        if (lifecycle && lifecycle !== 'all') {
+            params.lifecycle = lifecycle;
+        }
+
+        const cacheKey = JSON.stringify(params);
+        const cachedOptions = optionsCacheRef.current.get(cacheKey);
+
+        if (cachedOptions) setOptions(cachedOptions);
+
         const fetchOptions = async () => {
-            setLoading(true);
+            setIsFetching(true);
             try {
-                // Prepare params from current filters
-                const params = {};
-                Object.keys(filters).forEach(key => {
-                    if (filters[key] && filters[key] !== 'all') {
-                        params[key] = filters[key];
-                    }
+                const response = await api.get('/events/distinct-options', {
+                    params,
+                    silent: true,
+                    noRetry: true,
+                    timeout: 4000
                 });
+                const data = response?.data || {};
+                const nextOptions = {
+                    location: Array.isArray(data.location) ? data.location.map((item) => ({ value: item, label: item })) : [],
+                    organizer: Array.isArray(data.organizer) ? data.organizer.map((item) => ({ value: item, label: item })) : [],
+                    target_audience: Array.isArray(data.target_audience) ? data.target_audience.map((item) => ({ value: item, label: item })) : []
+                };
 
-                const [locations, organizers, audiences] = await Promise.allSettled([
-                    api.get('/events/distinct/location', { params, silent: true }),
-                    api.get('/events/distinct/organizer', { params, silent: true }),
-                    api.get('/events/distinct/target_audience', { params, silent: true })
-                ]);
-
-                setOptions({
-                    location: locations.status === 'fulfilled' ? locations.value.data.map(item => ({ value: item, label: item })) : [],
-                    organizer: organizers.status === 'fulfilled' ? organizers.value.data.map(item => ({ value: item, label: item })) : [],
-                    target_audience: audiences.status === 'fulfilled' ? audiences.value.data.map(item => ({ value: item, label: item })) : []
-                });
+                if (!cancelled) {
+                    setOptions(nextOptions);
+                    optionsCacheRef.current.set(cacheKey, nextOptions);
+                }
             } finally {
-                setLoading(false);
+                if (!cancelled) {
+                    setIsFetching(false);
+                }
             }
         };
 
         fetchOptions();
-    }, [filters, refreshTrigger]);
+        return () => {
+            cancelled = true;
+        };
+    }, [normalizedFiltersKey, lifecycle, refreshTrigger]);
 
     const handleFilterChange = (key, value) => {
         onChange({ ...filters, [key]: value === 'all' ? null : value });
@@ -106,19 +137,20 @@ const AdvancedFilter = ({
         ? `${isDayMode ? 'bg-white/82 border border-slate-200/80 shadow-[0_18px_44px_rgba(148,163,184,0.14)]' : 'bg-black/20 border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.2)]'} rounded-3xl p-4 md:p-6`
         : "";
 
-    if (loading) return <div className={`animate-pulse h-24 rounded-2xl w-full mb-4 ${isDayMode ? 'bg-white/75 border border-slate-200/80' : 'bg-white/5'}`}></div>;
-
     return (
         <div className={`w-full relative z-20 ${className}`}>
             {/* Backdrop blur as a separate non-clipping layer */}
             {variant === 'card' && (
                 <div className="absolute inset-0 rounded-3xl backdrop-blur-2xl pointer-events-none" />
             )}
-            <div className={`relative ${containerClasses}`}>
+            <div className={`relative ${containerClasses} ${isFetching ? 'opacity-90 transition-opacity duration-150' : ''}`}>
                 {!isSheetVariant && (
                   <div className="flex items-center justify-between mb-4 md:mb-6">
-                      <div 
-                          className="flex items-center gap-3 cursor-pointer md:cursor-default"
+                      <button
+                          type="button"
+                          aria-expanded={!isCollapsed}
+                          aria-label={t('advanced_filter.title')}
+                          className={`flex items-center gap-3 ${isMobile ? 'cursor-pointer' : 'cursor-default'} focus:outline-none rounded-xl focus-visible:ring-2 focus-visible:ring-indigo-400/70`}
                           onClick={() => {
                               if (isMobile) {
                                   setOverflowVisible(false);
@@ -146,7 +178,7 @@ const AdvancedFilter = ({
                                   <ChevronDown size={16} />
                               </motion.div>
                           )}
-                      </div>
+                      </button>
                       
                       {hasActiveFilters && (
                           <motion.button
@@ -154,7 +186,7 @@ const AdvancedFilter = ({
                               animate={{ opacity: 1, scale: 1 }}
                               type="button"
                               onClick={clearFilters}
-                              className={`text-xs flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all border ${isDayMode ? 'bg-red-50 text-red-500 hover:bg-red-100 border-red-200/80' : 'bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 border-red-500/10'}`}
+                              className={`text-xs flex items-center gap-1.5 px-3 py-2 rounded-full min-h-[44px] transition-all border focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-red-50 text-red-500 hover:bg-red-100 border-red-200/80' : 'bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 border-red-500/10'}`}
                           >
                               <X size={12} />
                               {t('advanced_filter.clear')}

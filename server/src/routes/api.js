@@ -105,6 +105,7 @@ const resources = ['photos', 'music', 'videos', 'articles', 'events'];
 // Specific routes that shouldn't be overridden by the loop
 // Event Registration Routes
 router.post('/events/assistant', optionalAuth, eventAssistantController.handleEventAssistant);
+router.get('/events/distinct-options', resourceController.getEventDistinctOptions);
 router.post('/events/:id/register', authenticateToken, eventController.registerEvent);
 router.get('/events/:id/registration', authenticateToken, eventController.getRegistrationStatus);
 router.post('/events/:id/view', optionalAuth, eventController.trackEventView);
