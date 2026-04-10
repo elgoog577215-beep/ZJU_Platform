@@ -358,7 +358,11 @@ const BackgroundSystem = ({ forcedTheme = null }) => {
   const bloomIntensity = Number.parseFloat(settings.background_bloom || 0.55);
   const vignetteDarkness = Number.parseFloat(settings.background_vignette || 0.45);
 
-  // 调试日志已移除 - 生产环境不应输出
+  // 调试日志 - 仅开发环境
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[BackgroundSystem] uiMode:', uiMode, 'themeMode:', themeMode, 'activeScene:', activeScene);
+    console.log('[BackgroundSystem] themeStyle:', themeStyle);
+  }
 
   return (
     <div className={`fixed inset-0 -z-10 overflow-hidden ${themeMode === 'day' ? 'bg-[#f8fafc]' : 'bg-black'}`} style={{ filter: `brightness(${brightness})` }}>

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, ArrowRight, Calendar, X, User, Tag, Upload, Clock, Check, AlertCircle } from 'lucide-react';
+import { BookOpen, ArrowRight, Calendar, X, User, Upload, Clock, AlertCircle, Paperclip } from 'lucide-react';
 import SmartImage from './SmartImage';
 import UploadModal from './UploadModal';
 import FavoriteButton from './FavoriteButton';
@@ -24,6 +24,58 @@ const calculateReadingTime = (text, t) => {
     const words = text ? text.split(/\s+/).length : 0;
     const minutes = Math.ceil(words / wordsPerMinute);
     return `${minutes} ${t('common.min_read')}`;
+};
+
+const parseContentBlocks = (raw) => {
+  if (!raw) return [];
+  try {
+    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    if (!Array.isArray(parsed)) return [];
+    return parsed;
+  } catch {
+    return [];
+  }
+};
+
+const formatBytes = (bytes = 0) => {
+  if (!bytes || Number.isNaN(bytes)) return '';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+const getFileTypeLabel = (name = '', mime = '') => {
+  const extension = name.split('.').pop()?.toUpperCase();
+  if (extension && extension.length <= 5) return extension;
+  if (mime.includes('pdf')) return 'PDF';
+  if (mime.includes('word')) return 'DOC';
+  if (mime.includes('excel') || mime.includes('sheet')) return 'XLS';
+  if (mime.includes('powerpoint') || mime.includes('presentation')) return 'PPT';
+  if (mime.includes('zip') || mime.includes('rar')) return 'ZIP';
+  return 'FILE';
+};
+
+const getFileTypeBadgeClass = (name = '', mime = '', isDayMode = false) => {
+  const normalized = getFileTypeLabel(name, mime);
+  if (normalized === 'PDF') return isDayMode ? 'bg-red-50 text-red-600 border-red-200' : 'bg-red-500/15 text-red-200 border-red-400/30';
+  if (normalized === 'DOC' || normalized === 'DOCX') return isDayMode ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-blue-500/15 text-blue-200 border-blue-400/30';
+  if (normalized === 'XLS' || normalized === 'XLSX' || normalized === 'CSV') return isDayMode ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-emerald-500/15 text-emerald-200 border-emerald-400/30';
+  if (normalized === 'PPT' || normalized === 'PPTX') return isDayMode ? 'bg-orange-50 text-orange-600 border-orange-200' : 'bg-orange-500/15 text-orange-200 border-orange-400/30';
+  if (normalized === 'ZIP' || normalized === 'RAR') return isDayMode ? 'bg-violet-50 text-violet-600 border-violet-200' : 'bg-violet-500/15 text-violet-200 border-violet-400/30';
+  return isDayMode ? 'bg-slate-100 text-slate-600 border-slate-200' : 'bg-white/10 text-gray-300 border-white/10';
+};
+
+const getImageAlignClass = (align = 'center') => {
+  if (align === 'left') return 'justify-start';
+  if (align === 'right') return 'justify-end';
+  return 'justify-center';
+};
+
+const getImageWidthClass = (width = 'wide') => {
+  if (width === 'small') return 'w-full max-w-sm';
+  if (width === 'medium') return 'w-full max-w-xl';
+  if (width === 'full') return 'w-full';
+  return 'w-full max-w-3xl';
 };
 
 const ArticleCard = memo(({ article, index, onClick, onToggleFavorite, canAnimate, isDayMode }) => {
@@ -102,7 +154,6 @@ const Articles = () => {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const [currentPage, setCurrentPage] = useState(1);
-  const [copiedId, setCopiedId] = useState(null);
   const [sort, setSort] = useState('newest');
   const [selectedTags, setSelectedTags] = useState([]);
   const [selectedArticle, setSelectedArticle] = useState(null);
@@ -234,26 +285,30 @@ const Articles = () => {
       });
   }, [setArticles, setSelectedArticle, setDisplayArticles]);
 
-  const addArticle = (newItem) => {
-    api.post('/articles', newItem)
-    .then(() => {
-        refresh({ clearCache: true });
-    })
-    .catch(err => {
-        if (process.env.NODE_ENV === 'development') {
-            console.error("Failed to save article", err);
-        }
-    });
+  const addArticle = async (newItem) => {
+    try {
+      await api.post('/articles', newItem);
+      await refresh({ clearCache: true });
+    } catch (err) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error("Failed to save article", err);
+      }
+      throw err;
+    }
   };
 
-  const handleUpload = (newItem) => {
-    addArticle(newItem);
+  const handleUpload = async (newItem) => {
+    await addArticle(newItem);
   };
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+  const selectedContentBlocks = useMemo(
+    () => parseContentBlocks(selectedArticle?.content_blocks),
+    [selectedArticle?.content_blocks]
+  );
 
 
   return (
@@ -476,6 +531,15 @@ const Articles = () => {
               <p className={`text-center max-w-md ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
                   {t('articles.subtitle')}
               </p>
+              {selectedTags.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedTags([])}
+                  className={`mt-6 px-5 py-2 rounded-full border text-sm font-medium ${isDayMode ? 'bg-white/90 border-slate-200/80 text-slate-700 hover:bg-white' : 'bg-white/10 border-white/15 text-white hover:bg-white/15'}`}
+                >
+                  {t('common.clear_all', '清除全部')}
+                </button>
+              )}
             </div>
           ) : (
             displayArticles.map((article, index) => (
@@ -524,13 +588,13 @@ const Articles = () => {
               className={`fixed inset-0 z-[100] backdrop-blur-md overflow-y-auto ${isDayMode ? 'bg-white/70' : 'bg-black/90'}`}
               onClick={() => setSelectedArticle(null)}
             >
-              <div className="flex min-h-full items-center justify-center p-4 md:p-8">
+              <div className="min-h-full">
                 <motion.div 
                   initial={{ y: 50, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: 50, opacity: 0 }}
                   onClick={(e) => e.stopPropagation()}
-                  className={`relative w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden border ${isDayMode ? 'bg-white/96 border-slate-200/80 shadow-[0_28px_80px_rgba(148,163,184,0.24)]' : 'bg-[#0a0a0a] border-white/10'}`}
+                  className={`relative w-full min-h-screen shadow-2xl overflow-hidden ${isDayMode ? 'bg-white border-slate-200/80' : 'bg-[#0a0a0a] border-white/10'}`}
                 >
                   {/* Header Image / Gradient */}
                   <div 
@@ -555,7 +619,7 @@ const Articles = () => {
                   </div>
 
                   {/* Content */}
-                  <div className="p-8 md:p-12 pt-4">
+                  <div className="px-5 sm:px-8 md:px-12 pt-4 pb-12 max-w-5xl mx-auto">
                     <div className={`flex items-center justify-between gap-3 mb-8 pb-8 border-b ${isDayMode ? 'border-slate-200/80' : 'border-white/5'}`}>
                       <div className="flex items-center gap-3">
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center overflow-hidden ${isDayMode ? 'bg-slate-100' : 'bg-gray-700'}`}>
@@ -579,10 +643,69 @@ const Articles = () => {
                       />
                     </div>
                     
-                    <div 
-                      className={`prose prose-lg max-w-none leading-relaxed ${isDayMode ? 'prose-slate text-slate-700' : 'prose-invert text-gray-300'}`}
-                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedArticle.content) }}
-                    />
+                    {selectedContentBlocks.length > 0 ? (
+                      <div className="space-y-6">
+                        {selectedContentBlocks.map((block) => (
+                          <div key={block.id || `${block.type}-${block.url || block.text || Math.random()}`} className={`space-y-3 rounded-2xl p-4 md:p-5 border ${isDayMode ? 'bg-slate-50/80 border-slate-200/80' : 'bg-white/[0.03] border-white/10'}`}>
+                            {block.type === 'text' && (
+                              block.style === 'heading' ? (
+                                <h3 className={`whitespace-pre-wrap leading-tight text-3xl md:text-4xl font-black tracking-tight ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{block.text}</h3>
+                              ) : block.style === 'quote' ? (
+                                <blockquote className={`whitespace-pre-wrap leading-8 text-lg border-l-4 pl-4 italic ${isDayMode ? 'text-slate-600 border-orange-300' : 'text-gray-300 border-orange-400/60'}`}>{block.text}</blockquote>
+                              ) : block.style === 'list' ? (
+                                <ul className={`list-disc pl-8 space-y-2 leading-8 text-lg ${isDayMode ? 'text-slate-700' : 'text-gray-300'}`}>
+                                  {(block.text || '').split('\n').map((line) => line.trim()).filter(Boolean).map((line, idx) => (
+                                    <li key={`${block.id}-list-${idx}`}>{line.replace(/^[-*]\s*/, '')}</li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <p className={`whitespace-pre-wrap leading-8 text-lg ${isDayMode ? 'text-slate-700' : 'text-gray-300'}`}>
+                                  {block.text}
+                                </p>
+                              )
+                            )}
+                            {block.type === 'image' && block.url && (
+                              <figure className="space-y-3">
+                                <div className={`flex ${getImageAlignClass(block.align)}`}>
+                                  <div className={`${getImageWidthClass(block.width)} rounded-2xl overflow-hidden border ${isDayMode ? 'border-slate-200 bg-white' : 'border-white/10 bg-black/20'}`}>
+                                    <img src={block.url} alt={block.caption || selectedArticle.title} className="w-full object-cover" />
+                                  </div>
+                                </div>
+                                {block.caption && <figcaption className={`text-sm px-1 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{block.caption}</figcaption>}
+                              </figure>
+                            )}
+                            {block.type === 'video' && block.url && (
+                              <figure className="space-y-3">
+                                <div className={`rounded-2xl overflow-hidden border ${isDayMode ? 'border-slate-200 bg-white' : 'border-white/10 bg-black/20'}`}>
+                                  <video controls src={block.url} className="w-full" />
+                                </div>
+                                {block.caption && <figcaption className={`text-sm px-1 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{block.caption}</figcaption>}
+                              </figure>
+                            )}
+                            {block.type === 'file' && block.url && (
+                              <a
+                                href={block.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl border transition-all font-medium ${isDayMode ? 'bg-white border-slate-200 text-slate-700 hover:border-orange-300 hover:shadow-[0_8px_20px_rgba(148,163,184,0.18)]' : 'bg-white/5 border-white/10 text-gray-200 hover:border-orange-400/40 hover:bg-white/10'}`}
+                              >
+                                <Paperclip size={14} />
+                                <span className={`text-[10px] px-2 py-0.5 rounded-full border ${getFileTypeBadgeClass(block.name, block.mime, isDayMode)}`}>
+                                  {getFileTypeLabel(block.name, block.mime)}
+                                </span>
+                                <span>{block.name || t('common.attachment', '附件')}</span>
+                                {!!block.size && <span className={`text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>({formatBytes(block.size)})</span>}
+                              </a>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div 
+                        className={`prose prose-lg max-w-none leading-relaxed ${isDayMode ? 'prose-slate text-slate-700' : 'prose-invert text-gray-300'}`}
+                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedArticle.content) }}
+                      />
+                    )}
 
 
                   </div>

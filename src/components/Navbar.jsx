@@ -67,16 +67,14 @@ const Navbar = () => {
   const navLinks = [
     { key: 'home', path: '/' },
     { key: 'events', path: '/events' },
-    { key: 'community', path: '/community' },
-    { key: 'gallery', path: '/gallery' },
-    { key: 'music', path: '/music' },
-    { key: 'videos', path: '/videos' },
     { key: 'articles', path: '/articles' },
+    { key: 'music', path: '/music' },
+    { key: 'gallery', path: '/gallery' },
+    { key: 'videos', path: '/videos' },
     { key: 'about', path: '/about' },
     ...(isAdmin ? [{ key: 'admin', path: '/admin' }] : [])
   ];
   const isNavItemActive = (path) => {
-    if (path === '/community') return location.pathname.startsWith('/community');
     return location.pathname === path;
   };
   const currentNavLink = navLinks.find((link) => isNavItemActive(link.path));
@@ -173,13 +171,7 @@ const Navbar = () => {
           <Link 
             key={item.key} 
             to={item.path} 
-            className={`${navLinkClasses}${
-              item.key === 'community' && isNavItemActive(item.path)
-                ? isDayMode
-                  ? ' !text-blue-700'
-                  : ' !text-blue-400'
-                : ''
-            }`}
+            className={navLinkClasses}
             role="menuitem"
             aria-current={isNavItemActive(item.path) ? 'page' : undefined}
           >
@@ -244,7 +236,7 @@ const Navbar = () => {
         {user ? (
           <div className="flex items-center gap-3">
              <Link 
-                to={`/public-profile/${user.id}`}
+                to={`/user/${user.id}`}
                 className={`flex items-center gap-2 text-sm font-medium px-3 py-1.5 rounded-full border transition-all active:scale-95 ${isDayMode ? 'text-slate-900 border-slate-200/80 bg-white/80 hover:bg-white shadow-[0_8px_18px_rgba(148,163,184,0.12)]' : 'text-white border-white/10 bg-white/5 hover:bg-white/10'}`}
                 aria-label={`访问 ${user.username} 的个人主页`}
              >
@@ -333,7 +325,7 @@ const Navbar = () => {
             <NotificationCenter />
             {user ? (
                 <Link 
-                   to={`/public-profile/${user.id}`}
+                   to={`/user/${user.id}`}
                    className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-[10px] text-white font-bold border border-white/20"
                 >
                     {user.username.charAt(0).toUpperCase()}

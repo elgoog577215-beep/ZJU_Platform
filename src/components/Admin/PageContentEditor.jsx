@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { LayoutTemplate, Save, Globe, FileText, Image, Mail, Upload } from 'lucide-react';
+import { LayoutTemplate, Save, Globe, FileText, Mail, Upload } from 'lucide-react';
 import api from '../../services/api';
 
 const PageContentEditor = () => {
@@ -20,7 +20,7 @@ const PageContentEditor = () => {
     try {
       const response = await api.get('/settings');
       setSettings(response.data);
-    } catch (error) {
+    } catch {
       toast.error(t('admin.toast.load_fail'));
     } finally {
       setLoading(false);
@@ -54,7 +54,7 @@ const PageContentEditor = () => {
     }
   };
 
-  const handleSave = async (section) => {
+  const handleSave = async () => {
     setSaving(true);
     try {
       // Save all settings in current section
@@ -71,7 +71,7 @@ const PageContentEditor = () => {
       }
       
       toast.success(t('admin.toast.save_success'));
-    } catch (error) {
+    } catch {
       toast.error(t('admin.toast.save_fail'));
     } finally {
       setSaving(false);

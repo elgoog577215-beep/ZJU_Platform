@@ -25,10 +25,35 @@ const processTags = async (tagsString) => {
   }
 };
 
+const normalizeArticlePayload = (table, body) => {
+  if (table !== 'articles' || !body) return;
+  if (body.content_blocks == null) return;
+
+  if (Array.isArray(body.content_blocks)) {
+    body.content_blocks = JSON.stringify(body.content_blocks);
+    return;
+  }
+
+  if (typeof body.content_blocks === 'string') {
+    try {
+      const parsed = JSON.parse(body.content_blocks);
+      if (!Array.isArray(parsed)) {
+        body.content_blocks = null;
+      }
+    } catch (_error) {
+      body.content_blocks = null;
+    }
+    return;
+  }
+
+  body.content_blocks = null;
+};
+
 // Helper Factories
 const createHandler = (table, fields) => async (req, res, next) => {
   try {
     const db = await getDb();
+    normalizeArticlePayload(table, req.body);
     const placeholders = fields.map(() => '?').join(',');
     
     // Determine status based on user role
@@ -53,6 +78,7 @@ const createHandler = (table, fields) => async (req, res, next) => {
 const updateHandler = (table, fields) => async (req, res, next) => {
   try {
     const db = await getDb();
+    normalizeArticlePayload(table, req.body);
     const { id } = req.params;
     
     // Check ownership
@@ -594,7 +620,7 @@ const fields = {
     photos: ['url', 'title', 'tags', 'size', 'gameType', 'gameDescription', 'featured'],
     music: ['title', 'artist', 'duration', 'cover', 'audio', 'featured', 'tags'],
     videos: ['title', 'tags', 'thumbnail', 'video', 'featured'],
-    articles: ['title', 'date', 'excerpt', 'tags', 'content', 'cover', 'featured'],
+    articles: ['title', 'date', 'excerpt', 'tags', 'content', 'content_blocks', 'cover', 'featured'],
     events: ['title', 'date', 'end_date', 'location', 'tags', 'image', 'description', 'content', 'link', 'featured', 'score', 'target_audience', 'organizer', 'volunteer_time', 'category']
 };
 

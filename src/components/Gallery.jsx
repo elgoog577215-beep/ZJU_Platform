@@ -535,6 +535,23 @@ const Gallery = () => {
                     {t('common.retry')}
                 </motion.button>
             </motion.div>
+        ) : displayPhotos.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
+            <div className={`rounded-3xl p-8 mb-6 border backdrop-blur-xl ${isDayMode ? 'bg-white/88 border-slate-200/80' : 'bg-white/5 border-white/10'}`}>
+              <Box size={56} className={isDayMode ? 'text-slate-400' : 'text-gray-500'} />
+            </div>
+            <h3 className={`text-2xl font-bold mb-2 ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{t('gallery.title')}</h3>
+            <p className={`max-w-md ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{t('search.no_results', '没有找到关于 "{{query}}" 的结果', { query: selectedTags.join(' / ') || t('common.filters', '筛选') })}</p>
+            {selectedTags.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setSelectedTags([])}
+                className={`mt-6 px-5 py-2 rounded-full border text-sm font-medium ${isDayMode ? 'bg-white/90 border-slate-200/80 text-slate-700 hover:bg-white' : 'bg-white/10 border-white/15 text-white hover:bg-white/15'}`}
+              >
+                {t('common.clear_all', '清除全部')}
+              </button>
+            )}
+          </div>
         ) : (
           <motion.div 
             layout={!prefersReducedMotion && typeof window !== 'undefined' && window.innerWidth >= 768}

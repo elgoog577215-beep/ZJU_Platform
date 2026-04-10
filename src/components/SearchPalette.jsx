@@ -69,7 +69,7 @@ const SearchPalette = () => {
         setLoading(true);
         api.get(`/search?q=${normalizedQuery}`, { signal: controller.signal })
           .then(res => {
-            setResults(res.data);
+            setResults((res.data || []).filter((item) => item.type !== 'community'));
             setSelectedIndex(0);
             setLoading(false);
           })

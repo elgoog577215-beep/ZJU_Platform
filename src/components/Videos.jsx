@@ -451,6 +451,15 @@ const Videos = () => {
               <p className="text-gray-400 text-center max-w-md">
                   {t('videos.subtitle')}
               </p>
+              {selectedTags.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedTags([])}
+                  className="mt-6 px-5 py-2 rounded-full border text-sm font-medium bg-white/10 border-white/15 text-white hover:bg-white/15"
+                >
+                  {t('common.clear_all', '清除全部')}
+                </button>
+              )}
             </div>
           ) : (
             displayVideos.map((video, index) => (

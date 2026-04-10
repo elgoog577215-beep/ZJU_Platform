@@ -107,6 +107,7 @@ const TagInput = ({ value = '', onChange, type }) => {
             <Tag size={12} />
             {tag}
             <button 
+              type="button"
               onClick={() => removeTag(tag)}
               className="hover:text-white ml-1 p-0.5 rounded-full hover:bg-indigo-500/50 transition-colors"
             >

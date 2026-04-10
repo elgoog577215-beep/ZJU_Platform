@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { 
-  Search, Trash2, Edit2, Shield, User, Key, Check, X, Loader, AlertTriangle
+  Search, Trash2, Edit2, User, Key, Loader, AlertTriangle
 } from 'lucide-react';
 import api from '../../services/api';
 import { motion, AnimatePresence } from 'framer-motion';

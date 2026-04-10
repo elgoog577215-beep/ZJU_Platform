@@ -17,11 +17,11 @@ const categories = [
     delay: 0.05
   },
   {
-    id: 'gallery',
-    path: '/gallery',
-    icon: Camera,
-    image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&auto=format&fit=crop&q=80',
-    color: 'from-purple-500/80 to-indigo-600/80',
+    id: 'articles',
+    path: '/articles',
+    icon: BookOpen,
+    image: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=800&auto=format&fit=crop&q=80',
+    color: 'from-emerald-500/80 to-teal-600/80',
     delay: 0.1
   },
   {
@@ -33,19 +33,19 @@ const categories = [
     delay: 0.15
   },
   {
+    id: 'gallery',
+    path: '/gallery',
+    icon: Camera,
+    image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&auto=format&fit=crop&q=80',
+    color: 'from-purple-500/80 to-indigo-600/80',
+    delay: 0.2
+  },
+  {
     id: 'videos',
     path: '/videos',
     icon: Film,
     image: 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=800&auto=format&fit=crop&q=80',
     color: 'from-pink-500/80 to-rose-600/80',
-    delay: 0.2
-  },
-  {
-    id: 'articles',
-    path: '/articles',
-    icon: BookOpen,
-    image: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=800&auto=format&fit=crop&q=80',
-    color: 'from-emerald-500/80 to-teal-600/80',
     delay: 0.25
   }
 ];

@@ -1,10 +1,13 @@
 import { memo, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Eye, Upload, Activity, TrendingUp, Sparkles } from 'lucide-react';
+import { Eye, Upload, Activity, TrendingUp, Sparkles, Users, ArrowRight, Camera, Film, Music2, BookOpen, CalendarDays } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useCachedResource } from '../hooks/useCachedResource';
 import { useReducedMotion } from '../utils/animations';
 import { useSettings } from '../context/SettingsContext';
+import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
+import { useNavigate } from 'react-router-dom';
 
 const formatCompactNumber = (value) => {
   const number = Number(value || 0);
@@ -146,14 +149,109 @@ MiniTrendChart.displayName = 'MiniTrendChart';
 
 const PlatformStats = () => {
   const { t } = useTranslation();
-  const prefersReducedMotion = useReducedMotion();
   const { uiMode } = useSettings();
   const isDayMode = uiMode === 'day';
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const { data, loading } = useCachedResource('/site-metrics', {}, { keyPrefix: 'site-metrics', ttl: 1000 * 60 * 3, silent: true });
+  const { data: featuredData, loading: featuredLoading } = useCachedResource('/featured', {}, { keyPrefix: 'home-featured-mix', ttl: 1000 * 60 * 3, silent: true });
+  const [followingFeed, setFollowingFeed] = useState([]);
+  const [followRecommendations, setFollowRecommendations] = useState([]);
+  const [followLoading, setFollowLoading] = useState(false);
+  const [followingIds, setFollowingIds] = useState([]);
 
   const summary = data?.summary || {};
   const growth = data?.growth || {};
   const trend = data?.trend || [];
+  const featuredItems = [
+    ...(featuredData?.photos || []).slice(0, 2).map((item) => ({
+      id: item.id,
+      title: item.title || '精选图片',
+      subtitle: '摄影',
+      image: item.url,
+      targetPath: `/gallery?id=${item.id}`,
+      icon: Camera
+    })),
+    ...(featuredData?.articles || []).slice(0, 2).map((item) => ({
+      id: item.id,
+      title: item.title || '精选文章',
+      subtitle: '文章',
+      image: item.cover,
+      targetPath: `/articles?id=${item.id}`,
+      icon: BookOpen
+    })),
+    ...(featuredData?.videos || []).slice(0, 1).map((item) => ({
+      id: item.id,
+      title: item.title || '精选视频',
+      subtitle: '视频',
+      image: item.thumbnail,
+      targetPath: `/videos?id=${item.id}`,
+      icon: Film
+    })),
+    ...(featuredData?.music || []).slice(0, 1).map((item) => ({
+      id: item.id,
+      title: item.title || '精选音频',
+      subtitle: '音频',
+      image: item.cover,
+      targetPath: `/music?id=${item.id}`,
+      icon: Music2
+    })),
+    ...(featuredData?.events || []).slice(0, 1).map((item) => ({
+      id: item.id,
+      title: item.title || '精选活动',
+      subtitle: '活动',
+      image: item.image,
+      targetPath: `/events?id=${item.id}`,
+      icon: CalendarDays
+    }))
+  ].filter((item) => item?.id).slice(0, 7);
+
+  useEffect(() => {
+    if (!user) {
+      setFollowingFeed([]);
+      setFollowRecommendations([]);
+      setFollowingIds([]);
+      return;
+    }
+    let cancelled = false;
+    setFollowLoading(true);
+    Promise.all([
+      api.get('/users/following/feed', { params: { limit: 5 } }),
+      api.get('/users/recommendations/follow', { params: { limit: 4 } }),
+      api.get('/users/following/ids')
+    ]).then(([feedRes, recRes, idsRes]) => {
+      if (cancelled) return;
+      setFollowingFeed(Array.isArray(feedRes.data?.data) ? feedRes.data.data : []);
+      setFollowRecommendations(Array.isArray(recRes.data) ? recRes.data : []);
+      setFollowingIds(Array.isArray(idsRes.data?.ids) ? idsRes.data.ids : []);
+    }).catch(() => {
+      if (cancelled) return;
+      setFollowingFeed([]);
+      setFollowRecommendations([]);
+      setFollowingIds([]);
+    }).finally(() => {
+      if (!cancelled) setFollowLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  const toggleFollow = async (targetUserId, event) => {
+    event?.stopPropagation();
+    if (!user || !targetUserId || Number(targetUserId) === Number(user.id)) return;
+    const isFollowing = followingIds.includes(Number(targetUserId));
+    try {
+      await api[isFollowing ? 'delete' : 'post'](`/users/${targetUserId}/follow`);
+      setFollowingIds((prev) => (
+        isFollowing
+          ? prev.filter((id) => id !== Number(targetUserId))
+          : [...prev, Number(targetUserId)]
+      ));
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   if (loading) {
     return (
@@ -283,6 +381,169 @@ const PlatformStats = () => {
             </motion.div>
           )}
         </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.45, delay: 0.08 }}
+          className={`mt-4 rounded-2xl border p-4 sm:p-5 ${
+            isDayMode
+              ? 'border-slate-200/80 bg-white/88 shadow-[0_16px_48px_rgba(148,163,184,0.14)]'
+              : 'border-white/10 bg-white/[0.03] shadow-[0_16px_48px_rgba(0,0,0,0.16)]'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${isDayMode ? 'bg-amber-50 text-amber-500' : 'bg-amber-400/10 text-amber-300'}`}>
+                <Sparkles size={14} />
+              </div>
+              <span className={`text-xs font-semibold uppercase tracking-[0.18em] ${isDayMode ? 'text-slate-600' : 'text-white/70'}`}>
+                精选作品
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate('/articles')}
+              className={`inline-flex items-center gap-1 text-xs font-semibold ${isDayMode ? 'text-amber-600' : 'text-amber-300'}`}
+            >
+              进入发现
+              <ArrowRight size={12} />
+            </button>
+          </div>
+
+          {featuredLoading ? (
+            <div className={`text-sm ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{t('common.loading')}</div>
+          ) : featuredItems.length === 0 ? (
+            <div className={`text-sm rounded-xl border px-3 py-4 ${isDayMode ? 'border-slate-200/80 bg-slate-50/80 text-slate-500' : 'border-white/10 bg-black/20 text-gray-400'}`}>
+              暂无精选内容
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {featuredItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={`${item.subtitle}-${item.id}`}
+                    type="button"
+                    onClick={() => navigate(item.targetPath)}
+                    className={`group text-left rounded-xl overflow-hidden border transition-all ${
+                      isDayMode
+                        ? 'border-slate-200/80 bg-white hover:shadow-[0_12px_28px_rgba(148,163,184,0.18)]'
+                        : 'border-white/10 bg-black/25 hover:bg-white/[0.06]'
+                    }`}
+                  >
+                    <div className={`h-28 ${isDayMode ? 'bg-slate-100' : 'bg-black/40'}`}>
+                      {item.image ? (
+                        <img src={item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Icon size={18} className={isDayMode ? 'text-slate-400' : 'text-gray-500'} />
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-3">
+                      <div className={`text-xs mb-1 inline-flex items-center gap-1 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+                        <Icon size={12} />
+                        {item.subtitle}
+                      </div>
+                      <div className={`text-sm font-semibold line-clamp-1 ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
+                        {item.title}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </motion.div>
+
+        {user && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.45, delay: 0.05 }}
+            className={`mt-4 rounded-2xl border p-4 sm:p-5 ${
+              isDayMode
+                ? 'border-slate-200/80 bg-white/88 shadow-[0_16px_48px_rgba(148,163,184,0.14)]'
+                : 'border-white/10 bg-white/[0.03] shadow-[0_16px_48px_rgba(0,0,0,0.16)]'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${isDayMode ? 'bg-indigo-50 text-indigo-500' : 'bg-indigo-400/10 text-indigo-300'}`}>
+                  <Users size={14} />
+                </div>
+                <span className={`text-xs font-semibold uppercase tracking-[0.18em] ${isDayMode ? 'text-slate-600' : 'text-white/70'}`}>
+                  关注动态
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/articles')}
+                className={`inline-flex items-center gap-1 text-xs font-semibold ${isDayMode ? 'text-indigo-600' : 'text-indigo-300'}`}
+              >
+                查看内容
+                <ArrowRight size={12} />
+              </button>
+            </div>
+
+            {followLoading ? (
+              <div className={`text-sm ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{t('common.loading')}</div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_280px] gap-4">
+                <div className="space-y-2">
+                  {followingFeed.length === 0 ? (
+                    <div className={`text-sm rounded-xl border px-3 py-4 ${isDayMode ? 'border-slate-200/80 bg-slate-50/80 text-slate-500' : 'border-white/10 bg-black/20 text-gray-400'}`}>
+                      你关注的作者还没有发布新内容
+                    </div>
+                  ) : (
+                    followingFeed.map((item) => (
+                      <button
+                        key={`${item.resource_type}-${item.id}`}
+                        type="button"
+                        onClick={() => navigate(item.target_path || '/articles')}
+                        className={`w-full text-left rounded-xl border px-3 py-2.5 transition-colors ${isDayMode ? 'border-slate-200/80 bg-slate-50/80 hover:bg-white' : 'border-white/10 bg-black/20 hover:bg-white/5'}`}
+                      >
+                        <div className={`text-sm font-semibold truncate ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{item.title}</div>
+                        <div className={`text-xs mt-1 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+                          {[item.author_name, item.resource_type].filter(Boolean).join(' · ')}
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+
+                <div className={`rounded-xl border p-3 ${isDayMode ? 'border-slate-200/80 bg-slate-50/80' : 'border-white/10 bg-black/20'}`}>
+                  <div className={`text-xs font-semibold uppercase tracking-[0.18em] mb-2 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>推荐关注</div>
+                  <div className="space-y-2">
+                    {followRecommendations.slice(0, 4).map((item) => {
+                      const followed = followingIds.includes(Number(item.id));
+                      return (
+                        <div key={item.id} className="flex items-center justify-between gap-2">
+                          <button type="button" className={`text-sm truncate ${isDayMode ? 'text-slate-700' : 'text-gray-200'}`} onClick={() => navigate(`/user/${item.id}`)}>
+                            {item.nickname || item.username}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => toggleFollow(item.id, e)}
+                            className={`text-xs px-2.5 py-1 rounded-full border ${followed ? (isDayMode ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-black border-white') : (isDayMode ? 'bg-white text-slate-700 border-slate-200/80' : 'bg-white/5 text-gray-200 border-white/10')}`}
+                          >
+                            {followed ? '已关注' : '关注'}
+                          </button>
+                        </div>
+                      );
+                    })}
+                    {followRecommendations.length === 0 && (
+                      <div className={`text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>暂无推荐</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )}
       </div>
     </section>
   );

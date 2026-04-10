@@ -7,12 +7,10 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const apiProxyTarget = process.env.VITE_API_PROXY_TARGET || 'http://localhost:5181';
-
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const apiProxyTarget = env.VITE_API_PROXY_TARGET || 'http://localhost:3001';
+  const apiProxyTarget = env.VITE_API_PROXY_TARGET || 'http://localhost:5181';
 
   return {
     plugins: [

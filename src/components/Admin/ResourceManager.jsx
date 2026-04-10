@@ -2,13 +2,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { 
-  Search, Plus, Trash2, Edit2, Check, X, 
-  ChevronLeft, ChevronRight, Upload, Filter, AlertTriangle, Eye, Users, CalendarDays, BarChart3
+  Search, Plus, Trash2, Edit2,
+  ChevronLeft, ChevronRight, AlertTriangle, Eye, Users, CalendarDays, BarChart3
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../services/api';
 import Dropdown from '../Dropdown';
-import TagInput from '../TagInput';
 import UploadModal from '../UploadModal';
 
 const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {

@@ -1,5 +1,14 @@
 const { getDb } = require('../config/db');
 
+let commentsColumnCache = null;
+
+const getCommentsColumns = async (db) => {
+    if (commentsColumnCache) return commentsColumnCache;
+    const info = await db.all('PRAGMA table_info(comments)');
+    commentsColumnCache = new Set(info.map((col) => col.name));
+    return commentsColumnCache;
+};
+
 const createComment = async (req, res, next) => {
     try {
         const db = await getDb();
@@ -16,18 +25,29 @@ const createComment = async (req, res, next) => {
         }
         const authorName = user.nickname || user.username;
 
+        const columns = await getCommentsColumns(db);
+        const names = ['user_id', 'resource_id', 'resource_type', 'content'];
+        const values = [userId, resourceId, resourceType, content];
+
+        if (columns.has('author')) {
+            names.push('author');
+            values.push(authorName);
+        } else if (columns.has('author_name')) {
+            names.push('author_name');
+            values.push(authorName);
+        }
+
+        if (columns.has('avatar')) {
+            names.push('avatar');
+            values.push(user.avatar || null);
+        }
+
+        const placeholders = names.map(() => '?').join(', ');
         const result = await db.run(
-            'INSERT INTO comments (user_id, resource_id, resource_type, author, content, avatar) VALUES (?, ?, ?, ?, ?, ?)',
-            [userId, resourceId, resourceType, authorName, content, user.avatar]
+            `INSERT INTO comments (${names.join(', ')}) VALUES (${placeholders})`,
+            values
         );
 
-        // Notify resource owner (if not self)
-        // Need to find owner of the resource.
-        // For simplicity, let's assume we can fetch it or just skip for now unless we implement ownership logic per resource.
-        // But for photos/events uploaded by admin, maybe notify admin?
-        // Let's implement basic notification if we can find the owner.
-        
-        // Return the created comment
         const newComment = {
             id: result.lastID,
             user_id: userId,
@@ -35,7 +55,7 @@ const createComment = async (req, res, next) => {
             resource_type: resourceType,
             author: authorName,
             content,
-            avatar: user.avatar,
+            avatar: user.avatar || null,
             created_at: new Date().toISOString() // Approximate, DB has the real one
         };
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { Save, RefreshCw, Key, Globe, Shield, Sun } from 'lucide-react';
+import { Key, Globe, Sun } from 'lucide-react';
 import api from '../../services/api';
 import { useSettings } from '../../context/SettingsContext';
 
@@ -21,7 +21,7 @@ const SettingsManager = () => {
     try {
       const response = await api.get('/settings');
       setSettings(response.data);
-    } catch (error) {
+    } catch {
       toast.error(t('admin.toast.load_fail'));
     } finally {
       setLoading(false);
@@ -34,33 +34,8 @@ const SettingsManager = () => {
       await updateGlobalSetting(key, value);
       setSettings(prev => ({ ...prev, [key]: value }));
       toast.success(t('admin.toast.save_success'));
-    } catch (error) {
+    } catch {
       toast.error(t('admin.toast.save_fail'));
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleLogoUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    setSaving(true);
-    try {
-      const res = await api.post('/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      if (res.data.fileUrl) {
-        await api.post('/settings', { key: 'logo_url', value: res.data.fileUrl });
-        setSettings(prev => ({ ...prev, logo_url: res.data.fileUrl }));
-        toast.success(t('admin.toast.save_success'));
-      }
-    } catch (error) {
-      console.error('Upload failed:', error);
-      toast.error(t('admin.toast.upload_fail') || 'Upload failed');
     } finally {
       setSaving(false);
     }

@@ -17,6 +17,7 @@ const messageController = require('../controllers/messageController');
 const tagController = require('../controllers/tagController');
 const notificationController = require('../controllers/notificationController');
 const commentController = require('../controllers/commentController');
+const communityController = require('../controllers/communityController');
 
 const { authenticateToken, isAdmin, optionalAuth } = require('../middleware/auth');
 const { validate, registerValidation, loginValidation, changePasswordValidation, settingsValidation } = require('../middleware/validate');
@@ -43,8 +44,15 @@ router.put('/admin/users/:id', authenticateToken, isAdmin, userController.update
 router.delete('/admin/users/:id', authenticateToken, isAdmin, userController.deleteUser);
 
 // Public Profile Routes
-router.get('/users/:id/profile', userController.getPublicProfile);
+router.get('/users/:id/profile', optionalAuth, userController.getPublicProfile);
 router.get('/users/:id/resources', optionalAuth, userController.getUserResources);
+router.post('/users/:id/follow', authenticateToken, userController.toggleFollowUser);
+router.delete('/users/:id/follow', authenticateToken, userController.toggleFollowUser);
+router.get('/users/:id/followers', optionalAuth, userController.listFollowers);
+router.get('/users/:id/following', optionalAuth, userController.listFollowing);
+router.get('/users/following/ids', authenticateToken, userController.getFollowingIds);
+router.get('/users/following/feed', authenticateToken, userController.getFollowingFeed);
+router.get('/users/recommendations/follow', authenticateToken, userController.getFollowRecommendations);
 
 // Notification Routes
 router.get('/notifications', authenticateToken, notificationController.getNotifications);
@@ -55,6 +63,15 @@ router.delete('/notifications/:id', authenticateToken, notificationController.de
 router.get('/comments', commentController.getComments);
 router.post('/comments', authenticateToken, commentController.createComment);
 router.delete('/comments/:id', authenticateToken, commentController.deleteComment);
+
+// Community Routes
+router.get('/community/posts', optionalAuth, communityController.listPosts);
+router.get('/community/posts/:id', optionalAuth, communityController.getPost);
+router.post('/community/posts', authenticateToken, communityController.createPost);
+router.post('/community/posts/:id/like', authenticateToken, communityController.togglePostLike);
+router.get('/community/posts/:id/comments', optionalAuth, communityController.listPostComments);
+router.post('/community/posts/:id/comments', authenticateToken, communityController.createPostComment);
+router.get('/community/search', optionalAuth, communityController.searchPosts);
 
 // Favorite Routes
 router.post('/favorites/toggle', authenticateToken, favoriteController.toggleFavorite);

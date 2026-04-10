@@ -33,6 +33,11 @@ const PublicProfile = () => {
   const [favorites, setFavorites] = useState([]);
   const [loadingFavorites, setLoadingFavorites] = useState(false);
   const [favoriteType, setFavoriteType] = useState('photo');
+  const [followLoading, setFollowLoading] = useState(false);
+  const [relationTab, setRelationTab] = useState('followers');
+  const [relationLoading, setRelationLoading] = useState(false);
+  const [relations, setRelations] = useState([]);
+  const [relationFollowLoadingIds, setRelationFollowLoadingIds] = useState({});
 
   // Settings State
   const [profileData, setProfileData] = useState({ organization: '', inviteCode: '' });
@@ -87,6 +92,27 @@ const PublicProfile = () => {
         fetchFavorites();
     }
   }, [activeTab, favoriteType, isOwner]);
+
+  useEffect(() => {
+    if (activeTab !== 'relations' || !id) return;
+    let cancelled = false;
+    const fetchRelations = async () => {
+      setRelationLoading(true);
+      try {
+        const endpoint = relationTab === 'followers' ? 'followers' : 'following';
+        const res = await api.get(`/users/${id}/${endpoint}`, { params: { limit: 100 } });
+        if (!cancelled) setRelations(Array.isArray(res.data?.data) ? res.data.data : []);
+      } catch (err) {
+        if (!cancelled) setRelations([]);
+      } finally {
+        if (!cancelled) setRelationLoading(false);
+      }
+    };
+    fetchRelations();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, id, relationTab]);
 
   const fetchFavorites = async () => {
       setLoadingFavorites(true);
@@ -154,6 +180,64 @@ const PublicProfile = () => {
       } finally {
           setPasswordLoading(false);
       }
+  };
+
+  const handleFollowToggle = async (targetUserId, currentlyFollowing) => {
+    if (!currentUser) {
+      toast.error(t('auth.signin_required'));
+      return;
+    }
+    if (followLoading) return;
+    setFollowLoading(true);
+    try {
+      const method = currentlyFollowing ? 'delete' : 'post';
+      const res = await api[method](`/users/${targetUserId}/follow`);
+      const payload = res.data || {};
+      setUser((prev) => prev ? {
+        ...prev,
+        is_following: Boolean(payload.is_following),
+        followers_count: typeof payload.followers_count === 'number' ? payload.followers_count : prev.followers_count
+      } : prev);
+      if (activeTab === 'relations' && relationTab === 'followers') {
+        setRelations((prev) => prev.map((item) => (
+          String(item.id) === String(currentUser.id)
+            ? { ...item, is_following: Boolean(payload.is_following) }
+            : item
+        )));
+      }
+      toast.success(currentlyFollowing ? '已取消关注' : '关注成功');
+    } catch (err) {
+      toast.error(err.response?.data?.error || '操作失败，请稍后再试');
+    } finally {
+      setFollowLoading(false);
+    }
+  };
+
+  const handleRelationItemFollowToggle = async (targetUserId, currentlyFollowing) => {
+    if (!currentUser) {
+      toast.error(t('auth.signin_required'));
+      return;
+    }
+    setRelationFollowLoadingIds((prev) => ({ ...prev, [targetUserId]: true }));
+    try {
+      await api[currentlyFollowing ? 'delete' : 'post'](`/users/${targetUserId}/follow`);
+      setRelations((prev) => prev.map((item) => (
+        String(item.id) === String(targetUserId)
+          ? { ...item, is_following: !currentlyFollowing }
+          : item
+      )));
+      if (String(user?.id) === String(targetUserId)) {
+        setUser((prev) => prev ? {
+          ...prev,
+          is_following: !currentlyFollowing,
+          followers_count: Math.max(0, (prev.followers_count || 0) + (currentlyFollowing ? -1 : 1))
+        } : prev);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.error || '操作失败，请稍后再试');
+    } finally {
+      setRelationFollowLoadingIds((prev) => ({ ...prev, [targetUserId]: false }));
+    }
   };
 
   if (loading) {
@@ -233,6 +317,15 @@ const PublicProfile = () => {
                         {t('user_profile.edit_profile')}
                       </button>
                   )}
+                  {!isOwner && (
+                      <button
+                        onClick={() => handleFollowToggle(user.id, Boolean(user.is_following))}
+                        disabled={followLoading || !currentUser}
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${user.is_following ? (isDayMode ? 'bg-slate-900 text-white' : 'bg-white text-black') : (isDayMode ? 'bg-white/90 hover:bg-white text-slate-700 border border-slate-200/80 shadow-[0_12px_28px_rgba(148,163,184,0.14)]' : 'bg-white/10 hover:bg-white/20 text-white border border-white/10')} disabled:opacity-60`}
+                      >
+                        {!currentUser ? '登录后关注' : followLoading ? '处理中...' : user.is_following ? '已关注' : '关注'}
+                      </button>
+                  )}
               </div>
               
               {user.organization_cr && (
@@ -255,6 +348,14 @@ const PublicProfile = () => {
                   <div className={`text-lg md:text-2xl font-bold mb-0.5 md:mb-1 ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{resources.length}</div>
                   <div className={`text-[10px] md:text-xs uppercase tracking-wider ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>{t('user_profile.stats.works')}</div>
                 </div>
+                <div className="text-center md:text-left">
+                  <div className={`text-lg md:text-2xl font-bold mb-0.5 md:mb-1 ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{user.followers_count || 0}</div>
+                  <div className={`text-[10px] md:text-xs uppercase tracking-wider ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>粉丝</div>
+                </div>
+                <div className="text-center md:text-left">
+                  <div className={`text-lg md:text-2xl font-bold mb-0.5 md:mb-1 ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{user.following_count || 0}</div>
+                  <div className={`text-[10px] md:text-xs uppercase tracking-wider ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>关注</div>
+                </div>
               </div>
             </div>
           </div>
@@ -262,6 +363,18 @@ const PublicProfile = () => {
 
         {/* Tabs */}
         <div className="mb-6 flex overflow-x-auto pb-2 custom-scrollbar gap-2 px-1">
+            <button
+                onClick={() => setActiveTab('relations')}
+                className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
+                    activeTab === 'relations'
+                    ? (isDayMode ? 'bg-slate-900 text-white shadow-[0_12px_28px_rgba(15,23,42,0.16)]' : 'bg-white text-black')
+                    : (isDayMode ? 'bg-white/85 text-slate-500 border border-slate-200/80 hover:bg-white hover:text-slate-900' : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white')
+                }`}
+            >
+                <User size={18} />
+                关注关系
+            </button>
+
             <button
                 onClick={() => setActiveTab('published')}
                 className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
@@ -367,6 +480,70 @@ const PublicProfile = () => {
                     ))}
                   </div>
                 )
+            )}
+
+            {activeTab === 'relations' && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setRelationTab('followers')}
+                    className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${relationTab === 'followers' ? (isDayMode ? 'bg-slate-900 text-white' : 'bg-white text-black') : (isDayMode ? 'bg-white border border-slate-200/80 text-slate-600' : 'bg-white/5 border border-white/10 text-gray-300')}`}
+                  >
+                    粉丝
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRelationTab('following')}
+                    className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${relationTab === 'following' ? (isDayMode ? 'bg-slate-900 text-white' : 'bg-white text-black') : (isDayMode ? 'bg-white border border-slate-200/80 text-slate-600' : 'bg-white/5 border border-white/10 text-gray-300')}`}
+                  >
+                    关注
+                  </button>
+                </div>
+                {relationLoading ? (
+                  <div className="py-12 flex justify-center">
+                    <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : relations.length === 0 ? (
+                  <div className={`text-center py-12 rounded-xl border border-dashed ${isDayMode ? 'text-slate-500 bg-white/82 border-slate-200/80' : 'text-gray-500 bg-black/20 border-white/5'}`}>
+                    暂无数据
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {relations.map((item) => (
+                      <div key={item.id} className={`flex items-center gap-3 p-3 rounded-xl border ${isDayMode ? 'bg-white/82 border-slate-200/80' : 'bg-white/5 border-white/10'}`}>
+                        <div className={`w-10 h-10 rounded-full overflow-hidden ${isDayMode ? 'bg-slate-100' : 'bg-black/40'}`}>
+                          {item.avatar ? (
+                            <img src={item.avatar} alt={item.nickname || item.username} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-sm font-bold text-indigo-400">
+                              {(item.nickname || item.username || '?').charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/user/${item.id}`)}
+                          className="flex-1 text-left min-w-0"
+                        >
+                          <div className={`font-semibold truncate ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{item.nickname || item.username}</div>
+                          <div className={`text-xs truncate ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{item.organization_cr || item.username}</div>
+                        </button>
+                        {currentUser && String(currentUser.id) !== String(item.id) && (
+                          <button
+                            type="button"
+                            onClick={() => handleRelationItemFollowToggle(item.id, Boolean(item.is_following))}
+                            disabled={Boolean(relationFollowLoadingIds[item.id])}
+                            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${item.is_following ? (isDayMode ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-black border-white') : (isDayMode ? 'bg-white text-slate-700 border-slate-200/80' : 'bg-white/5 text-gray-300 border-white/10')} disabled:opacity-60`}
+                          >
+                            {relationFollowLoadingIds[item.id] ? '处理中...' : item.is_following ? '已关注' : '关注'}
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
 
 

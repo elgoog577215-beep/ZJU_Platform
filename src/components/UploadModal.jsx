@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Upload, Image, Film, Music, FileText, Plus, Calendar, Tag, Link, ChevronDown, Check, Sparkles, RotateCcw } from 'lucide-react';
+import { X, Upload, Image, Film, Music, FileText, Plus, Calendar, Tag, Link, Check, Sparkles, RotateCcw, GripVertical, ArrowUp, ArrowDown, Trash2, Paperclip, PenSquare, Eye, Clock3, List } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import api, { uploadFile } from '../services/api';
@@ -9,13 +9,200 @@ import { useAuth } from '../context/AuthContext';
 import TagInput from './TagInput';
 import { useBackClose } from '../hooks/useBackClose';
 
-import { useNavigate } from 'react-router-dom';
+const createArticleBlock = (blockType = 'text') => ({
+  id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+  type: blockType,
+  style: blockType === 'text' ? 'paragraph' : 'default',
+  align: blockType === 'image' ? 'center' : 'default',
+  width: blockType === 'image' ? 'wide' : 'default',
+  text: '',
+  file: null,
+  url: '',
+  caption: '',
+  name: '',
+  size: 0,
+  mime: ''
+});
 
-const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = null, customFields = [] }) => {
+const toParagraphHtml = (text = '') => {
+  const escaped = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+  return escaped
+    .split('\n')
+    .map(line => line.trim())
+    .filter(Boolean)
+    .map(line => `<p>${line}</p>`)
+    .join('');
+};
+
+const extractPlainText = (html = '') => html
+  .replace(/<[^>]*>/g, ' ')
+  .replace(/\s+/g, ' ')
+  .trim();
+
+const escapeHtml = (text = '') => text
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;');
+
+const buildArticleHtmlFromBlocks = (blocks = []) => blocks
+  .map((block) => {
+    if (block.type === 'text') {
+      const paragraphs = toParagraphHtml(block.text || '');
+      if (!paragraphs) return '';
+      if (block.style === 'heading') return `<h2>${extractPlainText(paragraphs)}</h2>`;
+      if (block.style === 'quote') return `<blockquote>${extractPlainText(paragraphs)}</blockquote>`;
+      if (block.style === 'list') {
+        const items = (block.text || '')
+          .split('\n')
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .map((line) => `<li>${escapeHtml(line.replace(/^[-*]\s*/, ''))}</li>`)
+          .join('');
+        return items ? `<ul>${items}</ul>` : '';
+      }
+      return paragraphs;
+    }
+    if (block.type === 'image' && block.url) {
+      const safeCaption = block.caption ? `<figcaption>${toParagraphHtml(block.caption)}</figcaption>` : '';
+      const alignMap = { left: 'left', center: 'center', right: 'right' };
+      const widthMap = { small: '420px', medium: '680px', wide: '980px', full: '100%' };
+      const imageAlign = alignMap[block.align] || 'center';
+      const imageWidth = widthMap[block.width] || '980px';
+      return `<figure style="text-align:${imageAlign};"><img style="width:${imageWidth};max-width:100%;display:inline-block;" src="${block.url}" alt="${(block.caption || '').replace(/"/g, '&quot;')}" />${safeCaption}</figure>`;
+    }
+    if (block.type === 'video' && block.url) {
+      const safeCaption = block.caption ? `<p>${toParagraphHtml(block.caption)}</p>` : '';
+      return `<figure><video controls src="${block.url}"></video>${safeCaption}</figure>`;
+    }
+    if (block.type === 'file' && block.url) {
+      const label = (block.name || '下载附件').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return `<p><a href="${block.url}" target="_blank" rel="noopener noreferrer" download>${label}</a></p>`;
+    }
+    return '';
+  })
+  .join('');
+
+const buildBlocksFromPlainText = (rawText = '') => {
+  const normalized = (rawText || '').replace(/\r\n/g, '\n').trim();
+  if (!normalized) return [createArticleBlock('text')];
+  const paragraphs = normalized
+    .split(/\n{2,}/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const blocks = paragraphs.map((paragraph) => {
+    const block = createArticleBlock('text');
+    const listLines = paragraph
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean);
+    const isList = listLines.length > 1 && listLines.every((line) => /^[-*•]\s+/.test(line));
+    if (isList) {
+      block.style = 'list';
+      block.text = listLines.map((line) => line.replace(/^[-*•]\s+/, '')).join('\n');
+      return block;
+    }
+    block.text = paragraph;
+    return block;
+  });
+  return blocks.length ? blocks : [createArticleBlock('text')];
+};
+
+const buildBlocksFromMarkdown = (rawMarkdown = '') => {
+  const lines = (rawMarkdown || '').replace(/\r\n/g, '\n').split('\n');
+  const blocks = [];
+  let currentParagraph = [];
+  let currentList = [];
+  const pushParagraph = () => {
+    const text = currentParagraph.join('\n').trim();
+    if (!text) return;
+    const block = createArticleBlock('text');
+    block.text = text;
+    blocks.push(block);
+    currentParagraph = [];
+  };
+  const pushList = () => {
+    if (!currentList.length) return;
+    const block = createArticleBlock('text');
+    block.style = 'list';
+    block.text = currentList.join('\n');
+    blocks.push(block);
+    currentList = [];
+  };
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      pushParagraph();
+      pushList();
+      return;
+    }
+    const headingMatch = trimmed.match(/^#{1,6}\s+(.+)$/);
+    if (headingMatch) {
+      pushParagraph();
+      pushList();
+      const block = createArticleBlock('text');
+      block.style = 'heading';
+      block.text = headingMatch[1].trim();
+      blocks.push(block);
+      return;
+    }
+    const quoteMatch = trimmed.match(/^>\s?(.+)$/);
+    if (quoteMatch) {
+      pushParagraph();
+      pushList();
+      const block = createArticleBlock('text');
+      block.style = 'quote';
+      block.text = quoteMatch[1].trim();
+      blocks.push(block);
+      return;
+    }
+    const listMatch = trimmed.match(/^[-*+]\s+(.+)$/);
+    if (listMatch) {
+      pushParagraph();
+      currentList.push(listMatch[1].trim());
+      return;
+    }
+    pushList();
+    currentParagraph.push(trimmed);
+  });
+  pushParagraph();
+  pushList();
+  return blocks.length ? blocks : [createArticleBlock('text')];
+};
+
+const ARTICLE_BLOCK_META = {
+  text: {
+    label: '文字',
+    icon: FileText,
+    chipClass: 'text-blue-200 bg-blue-500/15 border-blue-400/25'
+  },
+  image: {
+    label: '图片',
+    icon: Image,
+    chipClass: 'text-emerald-200 bg-emerald-500/15 border-emerald-400/25'
+  },
+  video: {
+    label: '视频',
+    icon: Film,
+    chipClass: 'text-purple-200 bg-purple-500/15 border-purple-400/25'
+  },
+  file: {
+    label: '附件',
+    icon: Paperclip,
+    chipClass: 'text-amber-200 bg-amber-500/15 border-amber-400/25'
+  }
+};
+
+const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = null }) => {
   const { t } = useTranslation();
   useBackClose(isOpen, onClose);
   const { user, isAdmin } = useAuth();
-  const navigate = useNavigate();
   const isEditing = !!initialData;
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(initialData?.url || initialData?.audio || initialData?.video || null);
@@ -28,6 +215,39 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   const [tags, setTags] = useState(initialData?.tags || ''); // Tags state
   const [description, setDescription] = useState(initialData?.excerpt || initialData?.description || '');
   const [content, setContent] = useState(initialData?.content || ''); // Full content
+  const [articleBlocks, setArticleBlocks] = useState(() => {
+    const raw = initialData?.content_blocks;
+    if (raw) {
+      try {
+        const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((block) => ({
+            id: block.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            type: block.type || 'text',
+            style: block.style || 'paragraph',
+            align: block.align || 'default',
+            width: block.width || 'default',
+            text: block.text || '',
+            file: null,
+            url: block.url || '',
+            caption: block.caption || '',
+            name: block.name || '',
+            size: block.size || 0,
+            mime: block.mime || ''
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to parse content_blocks:', error);
+      }
+    }
+    if (initialData?.content) {
+      return [{ ...createArticleBlock('text'), text: extractPlainText(initialData.content) }];
+    }
+    return [createArticleBlock('text')];
+  });
+  const [draggingBlockId, setDraggingBlockId] = useState(null);
+  const [dragOverBlockId, setDragOverBlockId] = useState(null);
+  const [dragOverPosition, setDragOverPosition] = useState('before');
   const [artist, setArtist] = useState(initialData?.artist || '');
   const [featured, setFeatured] = useState(initialData?.featured || false);
   const [size, setSize] = useState(initialData?.size || '');
@@ -51,6 +271,73 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   // WeChat Parsing
   const [wechatUrl, setWechatUrl] = useState('');
   const [isParsing, setIsParsing] = useState(false);
+  const [articleEditorMode, setArticleEditorMode] = useState('edit');
+  const [hasLocalDraft, setHasLocalDraft] = useState(false);
+  const [activeTextBlockId, setActiveTextBlockId] = useState(null);
+  const [slashMenuBlockId, setSlashMenuBlockId] = useState(null);
+  const [isImportingDocument, setIsImportingDocument] = useState(false);
+  const articleImportInputRef = React.useRef(null);
+
+  const articleDraftStorageKey = React.useMemo(
+    () => `zju-article-draft-${user?.id || 'guest'}`,
+    [user?.id]
+  );
+  const articleWordCount = React.useMemo(() => articleBlocks
+    .filter((block) => block.type === 'text')
+    .reduce((total, block) => total + (block.text?.trim() ? block.text.trim().split(/\s+/).length : 0), 0), [articleBlocks]);
+  const articleReadingMinutes = Math.max(1, Math.ceil(articleWordCount / 240));
+  const activeTextStyle = React.useMemo(() => {
+    if (!activeTextBlockId) return 'paragraph';
+    const activeBlock = articleBlocks.find((block) => block.id === activeTextBlockId);
+    return activeBlock?.style || 'paragraph';
+  }, [activeTextBlockId, articleBlocks]);
+  const articleCompletion = React.useMemo(() => {
+    const total = articleBlocks.length || 1;
+    const completed = articleBlocks.filter((block) => {
+      if (block.type === 'text') return !!block.text?.trim();
+      if (block.type === 'file') return !!block.file || !!block.url;
+      return !!block.url || !!block.file;
+    }).length;
+    return {
+      completed,
+      total,
+      percent: Math.round((completed / total) * 100)
+    };
+  }, [articleBlocks]);
+
+  const restoreArticleDraft = React.useCallback(() => {
+    if (type !== 'article' || isEditing) return;
+    try {
+      const rawDraft = localStorage.getItem(articleDraftStorageKey);
+      if (!rawDraft) {
+        toast('没有可恢复的草稿');
+        return;
+      }
+      const draft = JSON.parse(rawDraft);
+      if (draft.title) setTitle(draft.title);
+      if (draft.tags) setTags(draft.tags);
+      if (draft.description) setDescription(draft.description);
+      if (draft.eventDate) setEventDate(draft.eventDate);
+      if (draft.coverPreview) setCoverPreview(draft.coverPreview);
+      if (Array.isArray(draft.articleBlocks) && draft.articleBlocks.length > 0) {
+        setArticleBlocks(draft.articleBlocks.map((block) => ({
+          ...createArticleBlock(block.type || 'text'),
+          ...block,
+          file: null
+        })));
+      }
+      setHasLocalDraft(true);
+      toast.success('已恢复本地草稿');
+    } catch {
+      toast.error('草稿恢复失败');
+    }
+  }, [articleDraftStorageKey, isEditing, type]);
+
+  const clearArticleDraft = React.useCallback(() => {
+    localStorage.removeItem(articleDraftStorageKey);
+    setHasLocalDraft(false);
+    toast.success('草稿已清除');
+  }, [articleDraftStorageKey]);
 
   const handleParseWeChat = async () => {
     if (!wechatUrl) {
@@ -145,6 +432,38 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             setTags(initialData.tags || '');
             setDescription(initialData.excerpt || initialData.description || '');
             setContent(initialData.content || '');
+            if (type === 'article') {
+              if (initialData.content_blocks) {
+                try {
+                  const parsed = typeof initialData.content_blocks === 'string'
+                    ? JSON.parse(initialData.content_blocks)
+                    : initialData.content_blocks;
+                  if (Array.isArray(parsed) && parsed.length > 0) {
+                    setArticleBlocks(parsed.map((block) => ({
+                      id: block.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                      type: block.type || 'text',
+                      style: block.style || 'paragraph',
+                      align: block.align || 'default',
+                      width: block.width || 'default',
+                      text: block.text || '',
+                      file: null,
+                      url: block.url || '',
+                      caption: block.caption || '',
+                      name: block.name || '',
+                      size: block.size || 0,
+                      mime: block.mime || ''
+                    })));
+                  } else {
+                    setArticleBlocks([{ ...createArticleBlock('text'), text: extractPlainText(initialData.content || '') }]);
+                  }
+                } catch (error) {
+                  console.error('Failed to parse content blocks on reset:', error);
+                  setArticleBlocks([{ ...createArticleBlock('text'), text: extractPlainText(initialData.content || '') }]);
+                }
+              } else {
+                setArticleBlocks([{ ...createArticleBlock('text'), text: extractPlainText(initialData.content || '') }]);
+              }
+            }
             setArtist(initialData.artist || '');
             setEventDate(initialData.date || '');
             setEventEndDate(initialData.end_date || '');
@@ -163,6 +482,9 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             setTags('');
             setDescription('');
             setContent('');
+            if (type === 'article') {
+              setArticleBlocks([createArticleBlock('text')]);
+            }
             setArtist('');
             setEventDate('');
             setEventEndDate('');
@@ -180,8 +502,325 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         setCoverFile(null);
         setWechatUrl('');
         setIsParsing(false);
+        setArticleEditorMode('edit');
+        setActiveTextBlockId(null);
+        setSlashMenuBlockId(null);
     }
-  }, [isOpen, initialData, user, t, onClose]);
+  }, [isOpen, initialData, user, t, onClose, type]);
+
+  React.useEffect(() => {
+    if (!isOpen || type !== 'article' || isEditing) return;
+    const existingDraft = localStorage.getItem(articleDraftStorageKey);
+    setHasLocalDraft(!!existingDraft);
+  }, [articleDraftStorageKey, isEditing, isOpen, type]);
+
+  React.useEffect(() => {
+    if (!isOpen || type !== 'article' || isEditing) return;
+    const draftPayload = {
+      title,
+      tags,
+      description,
+      eventDate,
+      coverPreview,
+      articleBlocks: articleBlocks.map((block) => {
+        const serialized = { ...block };
+        delete serialized.file;
+        return serialized;
+      }),
+      updatedAt: Date.now()
+    };
+    localStorage.setItem(articleDraftStorageKey, JSON.stringify(draftPayload));
+    setHasLocalDraft(true);
+  }, [articleBlocks, articleDraftStorageKey, coverPreview, description, eventDate, isEditing, isOpen, tags, title, type]);
+
+  const addArticleBlock = (blockType) => {
+    const nextBlock = createArticleBlock(blockType);
+    setArticleBlocks((prev) => [...prev, nextBlock]);
+    if (blockType === 'text') {
+      setActiveTextBlockId(nextBlock.id);
+    }
+  };
+
+  const updateArticleBlock = (blockId, patch) => {
+    setArticleBlocks((prev) => prev.map((block) => (block.id === blockId ? { ...block, ...patch } : block)));
+  };
+
+  const updateActiveTextStyle = (style) => {
+    const isCurrentActiveText = articleBlocks.some((block) => block.id === activeTextBlockId && block.type === 'text');
+    const targetTextBlockId = isCurrentActiveText
+      ? activeTextBlockId
+      : articleBlocks.find((block) => block.type === 'text')?.id;
+    if (!targetTextBlockId) return;
+    setActiveTextBlockId(targetTextBlockId);
+    updateArticleBlock(targetTextBlockId, { style });
+  };
+
+  React.useEffect(() => {
+    if (type !== 'article') return;
+    if (!articleBlocks.length) {
+      setActiveTextBlockId(null);
+      return;
+    }
+    const hasActiveText = articleBlocks.some((block) => block.id === activeTextBlockId && block.type === 'text');
+    if (hasActiveText) return;
+    const firstTextBlockId = articleBlocks.find((block) => block.type === 'text')?.id || null;
+    setActiveTextBlockId(firstTextBlockId);
+  }, [activeTextBlockId, articleBlocks, type]);
+
+  const deriveTitleFromFileName = (fileName = '') => fileName
+    .replace(/\.[^.]+$/, '')
+    .replace(/[_-]+/g, ' ')
+    .trim();
+
+  const applyImportedDocumentBlocks = (rawContent, sourceType, fileName) => {
+    const parsedBlocks = sourceType === 'markdown'
+      ? buildBlocksFromMarkdown(rawContent)
+      : buildBlocksFromPlainText(rawContent);
+    if (!parsedBlocks.length || parsedBlocks.every((block) => !(block.text || '').trim())) {
+      toast.error('文档没有可导入的内容');
+      return;
+    }
+    setArticleBlocks(parsedBlocks);
+    const firstTextBlockId = parsedBlocks.find((block) => block.type === 'text')?.id || null;
+    setActiveTextBlockId(firstTextBlockId);
+    setArticleEditorMode('edit');
+    setContent(buildArticleHtmlFromBlocks(parsedBlocks));
+    setTitle((prev) => (prev?.trim() ? prev : deriveTitleFromFileName(fileName)));
+    setDescription((prev) => {
+      if (prev?.trim()) return prev;
+      const firstText = parsedBlocks.find((block) => block.type === 'text' && block.text?.trim())?.text || '';
+      return firstText.slice(0, 120);
+    });
+  };
+
+  const parsePdfFileToText = async (file) => {
+    const [pdfjsLib, workerModule] = await Promise.all([
+      import('pdfjs-dist'),
+      import('pdfjs-dist/build/pdf.worker.min.mjs?url')
+    ]);
+    pdfjsLib.GlobalWorkerOptions.workerSrc = workerModule.default;
+    const loadingTask = pdfjsLib.getDocument({ data: await file.arrayBuffer() });
+    const pdf = await loadingTask.promise;
+    const pageTexts = [];
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum += 1) {
+      const page = await pdf.getPage(pageNum);
+      const contentData = await page.getTextContent();
+      const text = contentData.items.map((item) => item.str || '').join(' ').replace(/\s+/g, ' ').trim();
+      if (text) pageTexts.push(text);
+    }
+    return pageTexts.join('\n\n');
+  };
+
+  const handleImportArticleDocument = async (event) => {
+    const fileToImport = event.target.files?.[0];
+    if (!fileToImport) return;
+    try {
+      setIsImportingDocument(true);
+      const fileNameLower = fileToImport.name.toLowerCase();
+      if (fileNameLower.endsWith('.md') || fileNameLower.endsWith('.markdown')) {
+        const markdownText = await fileToImport.text();
+        applyImportedDocumentBlocks(markdownText, 'markdown', fileToImport.name);
+        toast.success('Markdown 导入成功');
+        return;
+      }
+      if (fileNameLower.endsWith('.docx')) {
+        const mammothModule = await import('mammoth/mammoth.browser');
+        const result = await mammothModule.extractRawText({ arrayBuffer: await fileToImport.arrayBuffer() });
+        applyImportedDocumentBlocks(result.value || '', 'plain', fileToImport.name);
+        toast.success('DOCX 导入成功');
+        return;
+      }
+      if (fileNameLower.endsWith('.pdf')) {
+        const pdfText = await parsePdfFileToText(fileToImport);
+        applyImportedDocumentBlocks(pdfText, 'plain', fileToImport.name);
+        toast.success('PDF 导入成功');
+        return;
+      }
+      toast.error('仅支持 docx、pdf、md 文档');
+    } catch (error) {
+      console.error('Document import failed:', error);
+      toast.error('文档导入失败，请检查文件格式');
+    } finally {
+      setIsImportingDocument(false);
+      if (event.target) event.target.value = '';
+    }
+  };
+
+  const insertArticleBlockAfter = (blockId, blockType) => {
+    setArticleBlocks((prev) => {
+      const index = prev.findIndex((block) => block.id === blockId);
+      if (index < 0) return [...prev, createArticleBlock(blockType)];
+      const next = [...prev];
+      next.splice(index + 1, 0, createArticleBlock(blockType));
+      return next;
+    });
+  };
+
+  const removeArticleBlock = (blockId) => {
+    setArticleBlocks((prev) => {
+      if (prev.length <= 1) return prev;
+      return prev.filter((block) => block.id !== blockId);
+    });
+  };
+
+  const moveArticleBlock = (blockId, direction) => {
+    setArticleBlocks((prev) => {
+      const index = prev.findIndex((block) => block.id === blockId);
+      if (index < 0) return prev;
+      const targetIndex = direction === 'up' ? index - 1 : index + 1;
+      if (targetIndex < 0 || targetIndex >= prev.length) return prev;
+      const next = [...prev];
+      [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
+      return next;
+    });
+  };
+
+  const moveArticleBlockTo = (sourceId, targetId, position = 'before') => {
+    setArticleBlocks((prev) => {
+      const sourceIndex = prev.findIndex((block) => block.id === sourceId);
+      const targetIndex = prev.findIndex((block) => block.id === targetId);
+      if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(sourceIndex, 1);
+      let insertIndex = sourceIndex < targetIndex ? targetIndex - 1 : targetIndex;
+      if (position === 'after') insertIndex += 1;
+      next.splice(insertIndex, 0, moved);
+      return next;
+    });
+  };
+
+  const handleArticleBlockDragStart = (blockId) => {
+    setDraggingBlockId(blockId);
+  };
+
+  const handleArticleBlockDrop = (targetId) => {
+    if (!draggingBlockId || draggingBlockId === targetId) {
+      setDraggingBlockId(null);
+      setDragOverBlockId(null);
+      setDragOverPosition('before');
+      return;
+    }
+    moveArticleBlockTo(draggingBlockId, targetId, dragOverPosition);
+    setDraggingBlockId(null);
+    setDragOverBlockId(null);
+    setDragOverPosition('before');
+  };
+
+  const readFileAsDataUrl = (sourceFile) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(sourceFile);
+  });
+
+  const resolveDragOverPosition = (event) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const midpoint = rect.top + rect.height / 2;
+    return event.clientY <= midpoint ? 'before' : 'after';
+  };
+
+  const handleArticleEditorPaste = (event) => {
+    const clipboardItems = Array.from(event.clipboardData?.items || []);
+    const imageItems = clipboardItems.filter((item) => item.type?.startsWith('image/'));
+    if (imageItems.length === 0) return;
+    event.preventDefault();
+    Promise.all(
+      imageItems.map(async (item, index) => {
+        const pastedFile = item.getAsFile();
+        if (!pastedFile) return null;
+        const dataUrl = await readFileAsDataUrl(pastedFile);
+        return {
+          ...createArticleBlock('image'),
+          file: pastedFile,
+          url: dataUrl,
+          name: pastedFile.name || `粘贴图片-${Date.now()}-${index + 1}.png`,
+          size: pastedFile.size || 0,
+          mime: pastedFile.type || ''
+        };
+      })
+    ).then((newBlocks) => {
+      const validBlocks = newBlocks.filter(Boolean);
+      if (validBlocks.length === 0) return;
+      setArticleBlocks((prev) => [...prev, ...validBlocks]);
+      toast.success(`已插入 ${validBlocks.length} 张粘贴图片`);
+    }).catch(() => {
+      toast.error('粘贴图片失败，请重试');
+    });
+  };
+
+  const handleArticleTextKeyDown = (event, block) => {
+    if (event.key === 'Escape') {
+      setSlashMenuBlockId(null);
+      return;
+    }
+    if (event.key !== 'Enter') return;
+    const lines = (block.text || '').split('\n');
+    const commandText = lines[lines.length - 1].trim().toLowerCase();
+    const commandMap = {
+      '/image': 'image',
+      '/img': 'image',
+      '/video': 'video',
+      '/file': 'file',
+      '/text': 'text'
+    };
+    const commandType = commandMap[commandText];
+    if (!commandType) return;
+    event.preventDefault();
+    const cleanedText = lines.slice(0, -1).join('\n');
+    updateArticleBlock(block.id, { text: cleanedText });
+    insertArticleBlockAfter(block.id, commandType);
+    setSlashMenuBlockId(null);
+    toast.success(`已插入${ARTICLE_BLOCK_META[commandType]?.label || commandType}块`);
+  };
+
+  const handleSlashCommandInsert = (block, commandType) => {
+    const lines = (block.text || '').split('\n');
+    const lastLine = lines[lines.length - 1];
+    const cleanedLastLine = lastLine.trim() === '/' ? '' : lastLine.replace(/\/$/, '');
+    const cleanedText = [...lines.slice(0, -1), cleanedLastLine].join('\n').trimEnd();
+    updateArticleBlock(block.id, { text: cleanedText });
+    insertArticleBlockAfter(block.id, commandType);
+    setSlashMenuBlockId(null);
+  };
+
+  const getArticleBlockAccept = (blockType) => {
+    if (blockType === 'image') return 'image/*';
+    if (blockType === 'video') return 'video/*';
+    return '*/*';
+  };
+
+  const handleArticleBlockFileChange = (blockId, blockType, selectedFile) => {
+    if (!selectedFile) return;
+    const accept = getArticleBlockAccept(blockType);
+    if (accept !== '*/*') {
+      const pattern = new RegExp(accept.replace('*', '.*'));
+      if (!selectedFile.type.match(pattern)) {
+        toast.error(t('upload.invalid_file_type', { type: accept }));
+        return;
+      }
+    }
+    if (blockType === 'image' || blockType === 'video') {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        updateArticleBlock(blockId, {
+          file: selectedFile,
+          url: reader.result,
+          name: selectedFile.name,
+          size: selectedFile.size || 0,
+          mime: selectedFile.type || ''
+        });
+      };
+      reader.readAsDataURL(selectedFile);
+      return;
+    }
+    updateArticleBlock(blockId, {
+      file: selectedFile,
+      url: '',
+      name: selectedFile.name,
+      size: selectedFile.size || 0,
+      mime: selectedFile.type || ''
+    });
+  };
 
   const handleFileChange = (e, isCover = false) => {
     const selectedFile = e.target.files[0];
@@ -217,6 +856,16 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         toast.error(t('upload.required_end_date'));
         return;
     }
+    if (type === 'article') {
+      const hasEffectiveContent = articleBlocks.some((block) => {
+        if (block.type === 'text') return !!block.text?.trim();
+        return !!block.file || !!block.url;
+      });
+      if (!hasEffectiveContent && !description.trim()) {
+        toast.error('请至少添加一段正文或一个媒体块');
+        return;
+      }
+    }
 
     setIsUploading(true);
 
@@ -235,6 +884,29 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
           if (file) fileUrl = uploadData.fileUrl;
           if (coverFile) coverUrl = uploadData.coverUrl;
       }
+
+      let normalizedBlocks = articleBlocks;
+      if (type === 'article') {
+        normalizedBlocks = await Promise.all(articleBlocks.map(async (block) => {
+          if (!block.file) return block;
+          const blockData = new FormData();
+          blockData.append('file', block.file);
+          const blockUploadRes = await uploadFile('/upload', blockData);
+          return {
+            ...block,
+            url: blockUploadRes.data.fileUrl,
+            name: block.name || block.file.name,
+            file: null
+          };
+        }));
+      }
+
+      const articleHtml = type === 'article'
+        ? buildArticleHtmlFromBlocks(normalizedBlocks)
+        : content;
+      const firstTextBlock = normalizedBlocks.find((block) => block.type === 'text' && block.text?.trim());
+      const firstImageBlock = normalizedBlocks.find((block) => block.type === 'image' && block.url);
+      const fallbackExcerpt = firstTextBlock?.text?.trim()?.slice(0, 160) || description;
 
       // 2. Construct new item
       const newItem = {
@@ -265,11 +937,16 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         volunteer_time: type === 'event' ? eventVolunteerTime : null,
 
         // Cover/Thumbnail logic
-        cover: coverUrl || (type === 'image' || type === 'article' ? fileUrl : null) || 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000&auto=format&fit=crop',
-        thumbnail: coverUrl || (type === 'image' || type === 'article' ? fileUrl : null) || 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000&auto=format&fit=crop',
+        cover: coverUrl || (type === 'image' ? fileUrl : null) || (type === 'article' ? (fileUrl || firstImageBlock?.url || null) : null) || 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000&auto=format&fit=crop',
+        thumbnail: coverUrl || (type === 'image' ? fileUrl : null) || (type === 'article' ? (fileUrl || firstImageBlock?.url || null) : null) || 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000&auto=format&fit=crop',
 
-        excerpt: description,
-        content: content || `<p>${description}</p>`, // Use content if available, else fallback
+        excerpt: type === 'article' ? fallbackExcerpt : description,
+        content: type === 'article' ? (articleHtml || `<p>${description}</p>`) : (content || `<p>${description}</p>`),
+        content_blocks: type === 'article' ? JSON.stringify(normalizedBlocks.map((block) => {
+          const serialized = { ...block };
+          delete serialized.file;
+          return serialized;
+        })) : null,
         description: description, // for events/photos consistency
         featured: featured ? 1 : 0,
         size: type === 'image' ? size : null,
@@ -283,6 +960,10 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
       };
 
       await onUpload(newItem);
+      if (type === 'article') {
+        localStorage.removeItem(articleDraftStorageKey);
+        setHasLocalDraft(false);
+      }
       
       const successMessage = isEditing 
         ? t('upload.update_success')
@@ -367,9 +1048,9 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   };
 
   // UI Constants
-  const inputClasses = "w-full bg-black/40 border border-white/10 rounded-2xl px-4 py-3.5 sm:py-3 text-white placeholder:text-gray-500 focus:outline-none focus:border-indigo-500/50 focus:bg-white/5 transition-all duration-300 text-base min-h-[48px] sm:min-h-[44px]";
+  const inputClasses = "w-full bg-black/35 border border-white/10 rounded-2xl px-4 py-3.5 sm:py-3 text-white placeholder:text-gray-500 focus:outline-none focus:border-indigo-400/70 focus:bg-white/10 transition-all duration-300 text-base min-h-[48px] sm:min-h-[44px] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]";
   const labelClasses = "block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider pl-1";
-  const cardClasses = "bg-[#1a1a1a]/60 backdrop-blur-xl border border-white/5 rounded-3xl p-5 sm:p-6 space-y-5 sm:space-y-6 shadow-xl";
+  const cardClasses = "bg-gradient-to-br from-[#1a1a1a]/80 to-[#111111]/70 backdrop-blur-xl border border-white/10 rounded-3xl p-5 sm:p-6 space-y-5 sm:space-y-6 shadow-[0_24px_48px_rgba(0,0,0,0.45)]";
   const uploadBoxClasses = (isActive) => `relative border-2 border-dashed rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center group transition-all duration-300 bg-black/20 ${isActive ? 'border-indigo-500 bg-indigo-500/10 scale-[1.02] shadow-[0_0_30px_rgba(99,102,241,0.2)]' : 'border-white/10 hover:border-white/30 hover:bg-white/5'}`;
 
   return createPortal(
@@ -379,7 +1060,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md"
+          className={`fixed inset-0 z-[100] flex items-center justify-center ${type === 'article' ? 'p-0 bg-black/90' : 'p-0 sm:p-4 bg-black/80'} backdrop-blur-md`}
           onClick={onClose}
         >
           <motion.div
@@ -387,30 +1068,43 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 30 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className={`relative bg-[#0f0f0f] border-0 sm:border border-white/10 rounded-none sm:rounded-[2rem] w-full h-[100dvh] sm:h-auto ${type === 'event' ? 'sm:max-w-5xl' : 'sm:max-w-2xl'} overflow-hidden shadow-2xl sm:max-h-[90vh] flex flex-col z-10`}
+            className={`relative bg-[#0f0f0f] w-full h-[100dvh] overflow-hidden flex flex-col z-10 ${type === 'article' ? 'max-w-none border-0 rounded-none shadow-none' : `border-0 sm:border border-white/10 rounded-none sm:rounded-[2rem] ${type === 'event' ? 'sm:max-w-5xl' : 'sm:max-w-2xl'} shadow-2xl sm:max-h-[90vh]`}`}
             onClick={e => e.stopPropagation()}
           >
              {/* Gradient Ambience */}
-            <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-indigo-500/10 via-purple-500/5 to-transparent opacity-50 pointer-events-none" />
+            {type !== 'article' && <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-indigo-500/10 via-purple-500/5 to-transparent opacity-50 pointer-events-none" />}
 
             {/* Header - Fixed at top */}
-            <div className="px-5 sm:px-8 py-4 sm:py-6 border-b border-white/5 flex justify-between items-center bg-[#0f0f0f]/95 backdrop-blur-xl z-20 flex-shrink-0 pt-[max(env(safe-area-inset-top),16px)] sm:pt-6">
+            <div className={`px-5 ${type === 'article' ? 'sm:px-6 py-3 sm:py-4 border-white/10' : 'sm:px-8 py-4 sm:py-6 border-white/5'} border-b flex justify-between items-center bg-[#0f0f0f]/95 backdrop-blur-xl z-20 flex-shrink-0 pt-[max(env(safe-area-inset-top),16px)]`}>
               <h3 className="text-xl sm:text-2xl font-black text-white flex items-center gap-3 tracking-tight">
                 <span className="p-2 sm:p-2.5 bg-white/5 rounded-xl border border-white/10 shadow-inner">
                     {React.cloneElement(getIcon(), { size: 24 })}
                 </span>
                 <span className="truncate">
-                    {isEditing ? t('admin.edit_item') : t('common.upload')} <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">{t(`common.${type}`)}</span>
+                    {type === 'article' ? '文章撰写' : `${isEditing ? t('admin.edit_item') : t('common.upload')} `}
+                    {type !== 'article' && <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">{t(`common.${type}`)}</span>}
                 </span>
               </h3>
-              <button onClick={onClose} className="text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 p-2.5 rounded-full transition-all border border-white/5">
-                <X size={20} />
-              </button>
+              <div className="flex items-center gap-2">
+                {type === 'article' && hasLocalDraft && !isEditing && (
+                  <button type="button" onClick={restoreArticleDraft} className="hidden sm:inline-flex px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-xs text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
+                    恢复草稿
+                  </button>
+                )}
+                {type === 'article' && hasLocalDraft && !isEditing && (
+                  <button type="button" onClick={clearArticleDraft} className="hidden sm:inline-flex px-3 py-2 rounded-xl border border-red-500/30 bg-red-500/10 text-xs text-red-300 hover:bg-red-500/20 transition-colors">
+                    清除草稿
+                  </button>
+                )}
+                <button onClick={onClose} className="text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 p-2.5 rounded-full transition-all border border-white/5">
+                  <X size={20} />
+                </button>
+              </div>
             </div>
 
             {/* Form Content - Scrollable */}
             <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar relative z-10 flex flex-col">
-              <div className="p-5 sm:p-8 flex-1 space-y-6 sm:space-y-8">
+              <div className={`${type === 'article' ? 'p-4 sm:p-6' : 'p-5 sm:p-8'} flex-1 ${type === 'article' ? 'space-y-4 sm:space-y-5' : 'space-y-6 sm:space-y-8'}`}>
               {type === 'event' ? (
                 <>
                 {/* Event Specific Fields */}
@@ -677,11 +1371,302 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                 </>
               ) : (
                 <div className="space-y-4 sm:space-y-6">
+                  {type === 'article' && (
+                    <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-4 sm:gap-5">
+                      <div className="space-y-4">
+                        <input
+                          type="text"
+                          required
+                          value={title}
+                          onChange={e => setTitle(e.target.value)}
+                          className="w-full bg-transparent border-0 border-b border-white/10 focus:border-white/25 text-2xl sm:text-3xl font-black tracking-tight text-white placeholder:text-gray-500 px-1 py-3 focus:outline-none"
+                          placeholder="输入标题，开始写作"
+                        />
+
+                        <div className="py-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+                          <div className="flex items-center gap-2">
+                            <button type="button" onClick={() => setArticleEditorMode('edit')} className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5 ${articleEditorMode === 'edit' ? 'bg-white text-black border-white' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'}`}>
+                              <PenSquare size={14} />
+                              撰写
+                            </button>
+                            <button type="button" onClick={() => setArticleEditorMode('preview')} className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5 ${articleEditorMode === 'preview' ? 'bg-white text-black border-white' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'}`}>
+                              <Eye size={14} />
+                              预览
+                            </button>
+                            <button type="button" onClick={() => articleImportInputRef.current?.click()} disabled={isImportingDocument} className="px-3 py-2 rounded-xl text-xs font-bold border bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 transition-colors inline-flex items-center gap-1.5 disabled:opacity-60">
+                              <Upload size={14} />
+                              {isImportingDocument ? '导入中...' : '导入文档'}
+                            </button>
+                            <input
+                              ref={articleImportInputRef}
+                              type="file"
+                              accept=".docx,.pdf,.md,.markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/markdown"
+                              className="hidden"
+                              onChange={handleImportArticleDocument}
+                            />
+                            {hasLocalDraft && !isEditing && (
+                              <button type="button" onClick={restoreArticleDraft} className="sm:hidden px-3 py-2 rounded-xl text-xs font-bold border bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 transition-colors">
+                                恢复草稿
+                              </button>
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-500 inline-flex items-center gap-1.5">
+                            <span>{articleBlocks.length} 块</span>
+                            <span>·</span>
+                            <span>{articleWordCount} 词</span>
+                            <span>·</span>
+                            <span className="inline-flex items-center gap-1"><Clock3 size={11} />{articleReadingMinutes} 分钟</span>
+                          </div>
+                        </div>
+
+                        {articleEditorMode === 'edit' ? (
+                          <div onPaste={handleArticleEditorPaste} className="space-y-3">
+                            <div className="sticky top-0 z-20 bg-[#0f0f0f]/95 py-2 border-b border-white/10">
+                              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                <div className="flex flex-wrap gap-2">
+                                <button type="button" onClick={() => updateActiveTextStyle('paragraph')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors ${activeTextStyle === 'paragraph' ? 'bg-white text-black border-white' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10'}`}>正文</button>
+                                <button type="button" onClick={() => updateActiveTextStyle('heading')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors ${activeTextStyle === 'heading' ? 'bg-white text-black border-white' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10'}`}>标题</button>
+                                <button type="button" onClick={() => updateActiveTextStyle('quote')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors ${activeTextStyle === 'quote' ? 'bg-white text-black border-white' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10'}`}>引用</button>
+                                <button type="button" onClick={() => updateActiveTextStyle('list')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors inline-flex items-center gap-1.5 ${activeTextStyle === 'list' ? 'bg-white text-black border-white' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10'}`}><List size={12} />列表</button>
+                                </div>
+                                <div className="flex flex-wrap gap-2 sm:justify-end sm:ml-3">
+                                {Object.entries(ARTICLE_BLOCK_META).map(([blockType, meta]) => {
+                                  const BlockIcon = meta.icon;
+                                  return (
+                                    <button
+                                      key={blockType}
+                                      type="button"
+                                      onClick={() => addArticleBlock(blockType)}
+                                      className="px-2 py-1.5 rounded-md bg-white/[0.03] border border-white/10 text-gray-200 text-[11px] font-medium hover:bg-white/10 transition-all inline-flex items-center gap-1.5"
+                                    >
+                                      <BlockIcon size={12} />
+                                      <span>+{meta.label}</span>
+                                    </button>
+                                  );
+                                })}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="space-y-2">
+                              {articleBlocks.map((block, index) => (
+                                <div
+                                  key={block.id}
+                                  draggable
+                                  onDragStart={() => handleArticleBlockDragStart(block.id)}
+                                  onDragEnd={() => {
+                                    setDraggingBlockId(null);
+                                    setDragOverBlockId(null);
+                                    setDragOverPosition('before');
+                                  }}
+                                  onDragOver={(e) => {
+                                    e.preventDefault();
+                                    if (draggingBlockId && draggingBlockId !== block.id) {
+                                      setDragOverBlockId(block.id);
+                                      setDragOverPosition(resolveDragOverPosition(e));
+                                    }
+                                  }}
+                                  onDragLeave={() => {
+                                    if (dragOverBlockId === block.id) {
+                                      setDragOverBlockId(null);
+                                      setDragOverPosition('before');
+                                    }
+                                  }}
+                                  onDrop={() => handleArticleBlockDrop(block.id)}
+                                  className={`relative border rounded-lg p-3 transition-all ${draggingBlockId === block.id ? 'opacity-60 border-indigo-400/50 bg-indigo-500/10' : 'border-white/10 bg-transparent hover:border-white/20'} ${dragOverBlockId === block.id && draggingBlockId !== block.id ? 'ring-2 ring-indigo-400/40 border-indigo-300/50' : ''}`}
+                                >
+                                  <div className="flex items-center justify-between gap-2 mb-3">
+                                    <div className="flex items-center gap-2 text-xs text-gray-400">
+                                      <GripVertical size={14} />
+                                      <span>
+                                        {(ARTICLE_BLOCK_META[block.type]?.label || block.type) + (block.type === 'text' ? ` · ${block.style === 'heading' ? '标题' : block.style === 'quote' ? '引用' : block.style === 'list' ? '列表' : '正文'}` : '')}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <button type="button" aria-label="上移内容块" onClick={() => moveArticleBlock(block.id, 'up')} disabled={index === 0} className="p-1.5 rounded-md bg-white/5 border border-white/10 text-gray-300 disabled:opacity-40 hover:bg-white/10">
+                                        <ArrowUp size={14} />
+                                      </button>
+                                      <button type="button" aria-label="下移内容块" onClick={() => moveArticleBlock(block.id, 'down')} disabled={index === articleBlocks.length - 1} className="p-1.5 rounded-md bg-white/5 border border-white/10 text-gray-300 disabled:opacity-40 hover:bg-white/10">
+                                        <ArrowDown size={14} />
+                                      </button>
+                                      <button type="button" aria-label="删除内容块" onClick={() => removeArticleBlock(block.id)} disabled={articleBlocks.length <= 1} className="p-1.5 rounded-md bg-red-500/10 border border-red-500/30 text-red-300 disabled:opacity-40 hover:bg-red-500/20">
+                                        <Trash2 size={14} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                  {block.type === 'text' && (
+                                    <>
+                                      <textarea
+                                        value={block.text}
+                                        onChange={(e) => {
+                                          const nextText = e.target.value;
+                                          updateArticleBlock(block.id, { text: nextText });
+                                          const lastLine = nextText.split('\n').at(-1)?.trim();
+                                          setSlashMenuBlockId(lastLine === '/' ? block.id : null);
+                                        }}
+                                        onFocus={() => setActiveTextBlockId(block.id)}
+                                        onKeyDown={(e) => handleArticleTextKeyDown(e, block)}
+                                        className={`${inputClasses} h-32 text-[15px] leading-7`}
+                                        placeholder="输入正文内容，输入 / 后回车可快速插入块"
+                                      />
+                                      {slashMenuBlockId === block.id && (
+                                        <div className="mt-2 rounded-lg border border-white/15 bg-white/[0.04] p-2 flex flex-wrap gap-2">
+                                          <button type="button" onClick={() => handleSlashCommandInsert(block, 'image')} className="px-2.5 py-1.5 rounded-lg bg-white/10 border border-white/15 text-[11px] text-white hover:bg-white/15">图片块</button>
+                                          <button type="button" onClick={() => handleSlashCommandInsert(block, 'video')} className="px-2.5 py-1.5 rounded-lg bg-white/10 border border-white/15 text-[11px] text-white hover:bg-white/15">视频块</button>
+                                          <button type="button" onClick={() => handleSlashCommandInsert(block, 'file')} className="px-2.5 py-1.5 rounded-lg bg-white/10 border border-white/15 text-[11px] text-white hover:bg-white/15">附件块</button>
+                                          <button type="button" onClick={() => handleSlashCommandInsert(block, 'text')} className="px-2.5 py-1.5 rounded-lg bg-white/10 border border-white/15 text-[11px] text-white hover:bg-white/15">文字块</button>
+                                        </div>
+                                      )}
+                                    </>
+                                  )}
+                                  {(block.type === 'image' || block.type === 'video' || block.type === 'file') && (
+                                    <div className="space-y-3">
+                                      <div className="relative">
+                                        <input
+                                          type="file"
+                                          accept={getArticleBlockAccept(block.type)}
+                                          onChange={(e) => handleArticleBlockFileChange(block.id, block.type, e.target.files?.[0])}
+                                          className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                                        />
+                                        <div className="h-24 rounded-xl border border-dashed border-white/20 bg-white/[0.03] flex items-center justify-center text-xs text-gray-300">
+                                          {block.name || (block.type === 'file' ? '选择附件文件' : `选择${block.type === 'image' ? '图片' : '视频'}文件`)}
+                                        </div>
+                                      </div>
+                                      {(block.type === 'image' || block.type === 'video') && block.url && (
+                                        <div className="rounded-xl border border-white/10 bg-black/40 p-2">
+                                          {block.type === 'image' ? (
+                                            <img src={block.url} alt={block.caption || 'preview'} className="max-h-56 w-full rounded-lg object-contain" />
+                                          ) : (
+                                            <video src={block.url} controls className="max-h-56 rounded-lg w-full" />
+                                          )}
+                                        </div>
+                                      )}
+                                      {block.type === 'file' && (block.name || block.url) && (
+                                        <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-gray-300 flex items-center gap-2">
+                                          <Paperclip size={14} />
+                                          <span className="truncate">{block.name || '附件'}</span>
+                                        </div>
+                                      )}
+                                      {block.type !== 'file' && (
+                                        <input
+                                          type="text"
+                                          value={block.caption || ''}
+                                          onChange={(e) => updateArticleBlock(block.id, { caption: e.target.value })}
+                                          className={inputClasses}
+                                          placeholder="可选：说明文字"
+                                        />
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="rounded-2xl border border-white/10 bg-[#121212] p-5 space-y-4">
+                            <div className="text-sm font-semibold text-white/90">{title || '未命名文章'}</div>
+                            {articleBlocks.map((block) => (
+                              <div key={`preview-${block.id}`} className="space-y-2">
+                                {block.type === 'text' && (
+                                  block.style === 'heading' ? (
+                                    <h3 className="text-2xl font-black text-white leading-tight">{block.text || '（空标题）'}</h3>
+                                  ) : block.style === 'quote' ? (
+                                    <blockquote className="text-gray-300 leading-8 whitespace-pre-wrap border-l-4 border-indigo-400/60 pl-4 italic">{block.text || '（空引用）'}</blockquote>
+                                  ) : block.style === 'list' ? (
+                                    <ul className="list-disc pl-6 space-y-2 text-gray-200 leading-8">
+                                      {(block.text || '').split('\n').map((line) => line.trim()).filter(Boolean).map((line, idx) => (
+                                        <li key={`${block.id}-list-${idx}`}>{line.replace(/^[-*]\s*/, '')}</li>
+                                      ))}
+                                    </ul>
+                                  ) : (
+                                    <p className="text-gray-200 leading-8 whitespace-pre-wrap">{block.text || '（空段落）'}</p>
+                                  )
+                                )}
+                                {block.type === 'image' && block.url && (
+                                  <figure className="space-y-2">
+                                    <img src={block.url} alt={block.caption || 'preview'} className="w-full rounded-xl border border-white/10" />
+                                    {block.caption && <figcaption className="text-xs text-gray-400">{block.caption}</figcaption>}
+                                  </figure>
+                                )}
+                                {block.type === 'video' && block.url && (
+                                  <figure className="space-y-2">
+                                    <video src={block.url} controls className="w-full rounded-xl border border-white/10" />
+                                    {block.caption && <figcaption className="text-xs text-gray-400">{block.caption}</figcaption>}
+                                  </figure>
+                                )}
+                                {block.type === 'file' && (block.url || block.name) && (
+                                  <a href={block.url || '#'} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-white/10 bg-white/5 text-sm text-gray-200">
+                                    <Paperclip size={14} />
+                                    <span>{block.name || '附件'}</span>
+                                  </a>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <aside className="space-y-4 xl:sticky xl:top-4 self-start">
+                        <div className="rounded-xl border border-white/10 bg-[#121212] p-4 space-y-3.5">
+                          <div className="text-xs font-semibold tracking-wider text-gray-400">发布设置</div>
+                          <div>
+                            <label className={labelClasses}>发布时间</label>
+                            <input
+                              type="date"
+                              value={eventDate ? eventDate.split('T')[0] : ''}
+                              onChange={e => setEventDate(e.target.value)}
+                              className={inputClasses}
+                            />
+                          </div>
+                          <div>
+                            <label className={labelClasses}>文章封面</label>
+                            <div className="h-[48px] rounded-2xl border border-white/10 bg-white/5 px-4 flex items-center justify-between gap-3 text-xs text-gray-400 relative overflow-hidden">
+                              <input type="file" accept="image/*" onChange={e => handleFileChange(e, true)} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                              <span className="truncate">{coverFile?.name || (coverPreview ? '已设置封面，点击可替换' : '点击上传封面图')}</span>
+                              <span className="px-2 py-0.5 rounded-lg border border-white/10 bg-white/5 text-[10px]">JPG/PNG</span>
+                            </div>
+                          </div>
+                          <div>
+                            <label className={labelClasses}>{t('upload.tags')}</label>
+                            <TagInput value={tags} onChange={setTags} placeholder={t('upload.tags_placeholder')} type="articles" />
+                          </div>
+                          <div>
+                            <label className={labelClasses}>文章摘要</label>
+                            <textarea
+                              value={description}
+                              onChange={e => setDescription(e.target.value)}
+                              className={`${inputClasses} h-28 resize-none`}
+                              placeholder="用于列表展示与搜索摘要，建议 40-120 字"
+                            />
+                          </div>
+                          <div className="flex items-center gap-3 pt-1">
+                            <div className={`w-5 h-5 rounded border flex items-center justify-center cursor-pointer transition-colors ${featured ? 'bg-indigo-500 border-indigo-500' : 'bg-white/5 border-white/20 hover:border-white/40'}`} onClick={() => setFeatured(!featured)}>
+                              {featured && <Check size={12} className="text-white" />}
+                            </div>
+                            <label className="text-sm text-gray-300 cursor-pointer" onClick={() => setFeatured(!featured)}>{t('common.featured')}</label>
+                          </div>
+                          <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-2.5">
+                            <div className="flex items-center justify-between text-[11px] text-gray-400 mb-2">
+                              <span>发布完整度</span>
+                              <span>{articleCompletion.percent}%</span>
+                            </div>
+                            <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                              <div className="h-full rounded-full bg-white/70" style={{ width: `${articleCompletion.percent}%` }} />
+                            </div>
+                            <div className="mt-2 text-[11px] text-gray-500">
+                              已完成 {articleCompletion.completed}/{articleCompletion.total} 个内容块
+                            </div>
+                          </div>
+                        </div>
+                      </aside>
+                    </div>
+                  )}
+                  <div className={type === 'article' ? 'hidden' : ''}>
                   {/* Main File Upload */}
-                  {type !== 'event' && (
+                  {type !== 'event' && type !== 'article' && (
                   <div className="space-y-2">
                     <label className={labelClasses}>
-                        {t(`common.${type}`)}
+                        {type === 'article' ? t('common.cover', '封面') : t(`common.${type}`)}
                     </label>
                      <div 
                         className={`${uploadBoxClasses(dragTarget === 'main')} min-h-[160px] sm:min-h-[200px]`}
@@ -731,6 +1716,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                     </div>
                   </div>
                   )}
+                  
 
                   {/* Cover Image Upload (For Audio/Video) */}
                   {(type === 'audio' || type === 'video') && (
@@ -766,6 +1752,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                             )}
                         </div>
                      </div>
+                  
                   )}
 
                   {/* Inputs Card */}
@@ -834,37 +1821,13 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                         </div>
                     )}
 
-                    {/* Article Specific Fields */}
-                    {type === 'article' && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                             <div className="col-span-1">
-                                <label className={labelClasses}>{t('common.date')}</label>
-                                <input
-                                    type="date"
-                                    value={eventDate ? eventDate.split('T')[0] : ''}
-                                    onChange={e => setEventDate(e.target.value)}
-                                    className={inputClasses}
-                                />
-                            </div>
-                             <div className="col-span-1 sm:col-span-2">
-                                <label className={labelClasses}>{t('common.content')}</label>
-                                <textarea
-                                    value={content}
-                                    onChange={e => setContent(e.target.value)}
-                                    className={`${inputClasses} h-32 sm:h-40 font-mono text-sm leading-relaxed`}
-                                    placeholder="# Markdown content supported..."
-                                />
-                            </div>
-                        </div>
-                    )}
-
                     <div>
-                      <label className={labelClasses}>{t('admin.fields.description')}</label>
+                      <label className={labelClasses}>{type === 'article' ? '文章摘要' : t('admin.fields.description')}</label>
                       <textarea
                         value={description}
                         onChange={e => setDescription(e.target.value)}
-                        className={`${inputClasses} h-20 sm:h-24 resize-none`}
-                        placeholder={t('upload.description_placeholder')}
+                        className={`${inputClasses} ${type === 'article' ? 'h-28 sm:h-32' : 'h-20 sm:h-24'} resize-none`}
+                        placeholder={type === 'article' ? '用于列表展示与搜索摘要，建议 40-120 字' : t('upload.description_placeholder')}
                       />
                     </div>
                     
@@ -884,7 +1847,8 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                         </label>
                     </div>
                   </div>
-                </div>
+                  </div>
+              </div>
               )}
               </div>
 
@@ -909,8 +1873,8 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                     </>
                   ) : (
                     <>
-                      <Upload size={20} />
-                      <span>{isEditing ? t('common.save') : t('common.upload_now')}</span>
+                      {type === 'article' ? <PenSquare size={20} /> : <Upload size={20} />}
+                      <span>{isEditing ? t('common.save') : type === 'article' ? '发布文章' : t('common.upload_now')}</span>
                     </>
                   )}
                 </button>

@@ -32,7 +32,7 @@ export const sanitizeHTML = (html, options = {}) => {
       'width', 'height', 'controls',
       'colspan', 'rowspan'
     ],
-    ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+    ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto):|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i,
     ADD_ATTR: ['target'],
     FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onfocus', 'onblur'],
     FORBID_TAGS: ['style', 'script', 'iframe', 'object', 'embed', 'form'],

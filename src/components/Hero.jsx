@@ -34,7 +34,7 @@ const Hero = () => {
         style={shouldUseParallax ? { y } : undefined}
         className="absolute inset-0 z-0"
       >
-        <div className={`absolute inset-0 z-10 ${isDayMode ? 'bg-[linear-gradient(180deg,rgba(248,250,252,0.12)_0%,rgba(248,250,252,0.32)_28%,rgba(248,250,252,0.76)_100%)]' : 'bg-gradient-to-b from-black/30 via-black/50 to-black'}`} />
+        <div className={`absolute inset-0 z-10 ${isDayMode ? 'bg-transparent' : 'bg-gradient-to-b from-black/15 via-black/35 to-black/60'}`} />
         <img 
           src={settings.hero_bg_url || "/uploads/1767349451839-56405188.jpg"} 
           srcSet={`${settings.hero_bg_url || "/uploads/1767349451839-56405188.jpg"} 800w, ${settings.hero_bg_url || "/uploads/1767349451839-56405188.jpg"} 1600w`}
@@ -51,12 +51,11 @@ const Hero = () => {
         style={shouldUseParallax ? { opacity } : undefined}
         className="relative z-20 text-center px-4 w-full max-w-6xl"
       >
-        <div className={`rounded-3xl p-6 md:p-0 md:bg-transparent md:border-none ${isDayMode ? 'bg-white/45 backdrop-blur-xl border border-slate-200/60 shadow-[0_24px_60px_rgba(148,163,184,0.14)]' : 'bg-black/20 border border-white/5'}`}>
         <motion.h1 
           initial={shouldUseMotion ? { y: 50, opacity: 0 } : false}
           animate={shouldUseMotion ? { y: 0, opacity: 1 } : undefined}
           transition={shouldUseMotion ? { duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] } : undefined}
-          className={`text-4xl sm:text-5xl md:text-7xl lg:text-9xl font-bold font-serif text-transparent bg-clip-text tracking-tighter mb-4 md:mb-6 ${isDayMode ? 'bg-gradient-to-r from-slate-900 via-indigo-700 to-slate-500 drop-shadow-[0_16px_36px_rgba(255,255,255,0.35)]' : 'bg-gradient-to-r from-white via-indigo-200 to-white/70 drop-shadow-[0_0_25px_rgba(255,255,255,0.2)] animate-text-gradient'}`}
+          className={`text-4xl sm:text-5xl md:text-7xl lg:text-9xl font-bold font-serif text-transparent bg-clip-text tracking-tighter mb-4 md:mb-6 ${isDayMode ? 'bg-gradient-to-r from-white via-indigo-200 to-white/70 drop-shadow-[0_0_25px_rgba(255,255,255,0.2)] animate-text-gradient' : 'bg-gradient-to-r from-white via-indigo-200 to-white/70 drop-shadow-[0_0_25px_rgba(255,255,255,0.2)] animate-text-gradient'}`}
         >
           {settings.hero_title || "浙江大学信息聚合平台"}
         </motion.h1>
@@ -64,15 +63,12 @@ const Hero = () => {
           initial={shouldUseMotion ? { y: 30, opacity: 0 } : false}
           animate={shouldUseMotion ? { y: 0, opacity: 1 } : undefined}
           transition={shouldUseMotion ? { duration: 0.6, delay: 0.2 } : undefined}
-          className={`text-base sm:text-lg md:text-2xl font-light tracking-wide max-w-2xl mx-auto px-2 sm:px-4 ${isDayMode ? 'text-slate-600' : 'text-gray-200'}`}
+          className={`text-base sm:text-lg md:text-2xl font-light tracking-wide max-w-2xl mx-auto px-2 sm:px-4 text-gray-200`}
         >
           {settings.hero_subtitle || "打破信息差，共建信息网络"}
         </motion.p>
-        {isDayMode && (
-          <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-indigo-200/70 bg-white/70 px-4 py-2 text-[11px] sm:text-xs font-medium uppercase tracking-[0.28em] text-indigo-700 shadow-[0_12px_30px_rgba(99,102,241,0.12)]">
-            数字艺术 · 科技社群 · 轻盈日光
-          </div>
-        )}
+        <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] sm:text-xs font-medium uppercase tracking-[0.28em] text-white/80 shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+          数字艺术 · 科技社群 · 轻盈日光
         </div>
       </motion.div>
 

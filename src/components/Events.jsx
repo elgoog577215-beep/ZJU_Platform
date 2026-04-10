@@ -1098,10 +1098,23 @@ END:VCALENDAR`;
             </div>
             <h3 className={`text-3xl font-bold mb-3 tracking-tight ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{t('events.no_events')}</h3>
             <p className={`mb-8 max-w-md text-lg ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
-                {(selectedTags.length > 0 || debouncedSearch || Object.values(filters).some(v => v))
+                {(selectedTags.length > 0 || debouncedSearch || Object.values(filters).some(v => v) || lifecycle !== 'all')
                   ? `${t('advanced_filter.clear', '清除所有筛选')} ${t('common.or', '或')} ${t('common.search', '搜索...')}`
                   : "暂时没有即将开始的活动，稍后再来看看吧"}
             </p>
+            {(selectedTags.length > 0 || Object.values(filters).some(v => v) || lifecycle !== 'all') && (
+              <button
+                type="button"
+                onClick={() => {
+                  setFilters({ location: null, organizer: null, target_audience: null });
+                  setSelectedTags([]);
+                  setLifecycle('all');
+                }}
+                className={`mb-4 px-5 py-2 rounded-full border text-sm font-medium ${isDayMode ? 'bg-white/90 border-slate-200/80 text-slate-700 hover:bg-white' : 'bg-white/10 border-white/15 text-white hover:bg-white/15'}`}
+              >
+                {t('advanced_filter.clear', '清除所有筛选')}
+              </button>
+            )}
             <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}

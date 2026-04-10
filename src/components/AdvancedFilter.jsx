@@ -89,6 +89,8 @@ const AdvancedFilter = ({
     ];
 
     const hasActiveFilters = Object.values(filters).some(v => v) || lifecycle !== 'all';
+    const activeAttributeCount = Object.values(filters).filter(Boolean).length;
+    const activeFilterCount = activeAttributeCount + (lifecycle !== 'all' ? 1 : 0);
 
     const attributeFilterConfig = [
         { key: 'organizer', icon: Building2, labelKey: 'advanced_filter.organizer', allLabelKey: 'advanced_filter.all_organizers', options: options.organizer },
@@ -97,6 +99,9 @@ const AdvancedFilter = ({
     ];
 
     const isSheetVariant = variant === 'sheet';
+    const dropdownButtonClassName = isSheetVariant
+        ? 'w-full py-3.5 rounded-2xl text-sm transition-all shadow-sm'
+        : 'w-full py-2.5 rounded-xl text-sm transition-all';
     const containerClasses = variant === 'card'
         ? `${isDayMode ? 'bg-white/82 border border-slate-200/80 shadow-[0_18px_44px_rgba(148,163,184,0.14)]' : 'bg-black/20 border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.2)]'} rounded-3xl p-4 md:p-6`
         : "";
@@ -127,6 +132,11 @@ const AdvancedFilter = ({
                           <h3 className={`text-lg font-bold tracking-wide ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
                               {t('advanced_filter.title')}
                           </h3>
+                          {activeFilterCount > 0 && (
+                              <span className={`text-xs px-2 py-0.5 rounded-full border ${isDayMode ? 'bg-indigo-50 text-indigo-600 border-indigo-200/80' : 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30'}`}>
+                                  {t('common.selected_count', '已选 {{count}} 项', { count: activeFilterCount })}
+                              </span>
+                          )}
                           {isMobile && (
                               <motion.div
                                   animate={{ rotate: isCollapsed ? 0 : 180 }}
@@ -138,10 +148,11 @@ const AdvancedFilter = ({
                           )}
                       </div>
                       
-                      {hasActiveFilters && !isCollapsed && (
+                      {hasActiveFilters && (
                           <motion.button
                               initial={{ opacity: 0, scale: 0.9 }}
                               animate={{ opacity: 1, scale: 1 }}
+                              type="button"
                               onClick={clearFilters}
                               className={`text-xs flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all border ${isDayMode ? 'bg-red-50 text-red-500 hover:bg-red-100 border-red-200/80' : 'bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 border-red-500/10'}`}
                           >
@@ -163,7 +174,7 @@ const AdvancedFilter = ({
                             }}
                             className={isMobile && !overflowVisible && !isSheetVariant ? "overflow-hidden" : ""}
                         >
-                            <div className={`grid ${isSheetVariant ? 'grid-cols-1 gap-3' : 'grid-cols-2 md:grid-cols-4 gap-3'} pb-1`}>
+                            <div className={`grid ${isSheetVariant ? 'grid-cols-1 gap-3' : 'grid-cols-2 xl:grid-cols-4 gap-3'} pb-1`}>
                                 {attributeFilterConfig.map(({ key, icon, labelKey, allLabelKey, options: fieldOptions }) => (
                                     <Dropdown
                                         key={key}
@@ -173,7 +184,7 @@ const AdvancedFilter = ({
                                         icon={icon}
                                         placeholder={t(labelKey)}
                                         variant={variant}
-                                        buttonClassName={`${isSheetVariant ? 'w-full py-3.5 rounded-2xl text-sm backdrop-blur-sm transition-all shadow-sm' : isDayMode ? 'bg-white/88 border border-slate-200/80 hover:bg-white hover:border-indigo-200/80 w-full py-2.5 rounded-xl text-slate-700 text-sm backdrop-blur-sm transition-all shadow-[0_12px_28px_rgba(148,163,184,0.12)]' : 'bg-white/5 border border-white/10 hover:bg-white/10 hover:border-indigo-500/30 hover:shadow-[0_0_20px_-5px_rgba(99,102,241,0.3)] w-full py-2.5 rounded-xl text-white text-sm backdrop-blur-sm transition-all shadow-lg'}`}
+                                        buttonClassName={dropdownButtonClassName}
                                     />
                                 ))}
                                 {/* Lifecycle filter lives here alongside attribute filters */}
@@ -184,7 +195,7 @@ const AdvancedFilter = ({
                                         options={lifecycleOptions}
                                         icon={Filter}
                                         variant={variant}
-                                        buttonClassName={`${isSheetVariant ? 'w-full py-3.5 rounded-2xl text-sm backdrop-blur-sm transition-all shadow-sm' : isDayMode ? 'bg-white/88 border border-slate-200/80 hover:bg-white hover:border-indigo-200/80 w-full py-2.5 rounded-xl text-slate-700 text-sm backdrop-blur-sm transition-all shadow-[0_12px_28px_rgba(148,163,184,0.12)]' : 'bg-white/5 border border-white/10 hover:bg-white/10 hover:border-indigo-500/30 hover:shadow-[0_0_20px_-5px_rgba(99,102,241,0.3)] w-full py-2.5 rounded-xl text-white text-sm backdrop-blur-sm transition-all shadow-lg'}`}
+                                        buttonClassName={dropdownButtonClassName}
                                     />
                                 )}
                             </div>

@@ -534,7 +534,7 @@ const Music = () => {
           transition={{ duration: 0.6 }}
           className={`hidden md:block backdrop-blur-2xl border rounded-3xl p-6 md:p-12 shadow-2xl relative overflow-hidden ${isDayMode ? 'bg-white/72 border-slate-200/80 shadow-[0_28px_80px_rgba(148,163,184,0.18)]' : 'bg-[#0a0a0a]/50 border-white/20'}`}
         >
-          <div className="absolute inset-0 bg-white/5 backdrop-blur-3xl z-0 rounded-3xl" 
+          <div className={`absolute inset-0 backdrop-blur-3xl z-0 rounded-3xl ${isDayMode ? 'bg-slate-100/35' : 'bg-white/5'}`} 
             style={{ backgroundImage: `url(${activeTrack.cover})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
           />
           <div className={`absolute inset-0 z-0 ${isDayMode ? 'bg-white/45' : 'bg-black/40'}`} />
@@ -554,10 +554,10 @@ const Music = () => {
             {/* Vinyl / Cover */}
             <div className="flex justify-center mb-6 md:mb-8">
               <div 
-                className="relative w-48 h-48 md:w-56 md:h-56 rounded-full border-4 border-white/10 shadow-2xl overflow-hidden animate-[spin_4s_linear_infinite]"
+                className={`relative w-48 h-48 md:w-56 md:h-56 rounded-full border-4 overflow-hidden animate-[spin_4s_linear_infinite] ${isDayMode ? 'border-slate-200/90 shadow-[0_20px_50px_rgba(148,163,184,0.24)]' : 'border-white/10 shadow-2xl'}`}
                 style={{ animationPlayState: isPlaying ? 'running' : 'paused' }}
               >
-                <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent pointer-events-none z-10 rounded-full" />
+                <div className={`absolute inset-0 bg-gradient-to-tr pointer-events-none z-10 rounded-full ${isDayMode ? 'from-white/40 to-transparent' : 'from-white/20 to-transparent'}`} />
                 <SmartImage 
                   src={activeTrack.cover} 
                   alt={activeTrack.title} 
@@ -605,7 +605,7 @@ const Music = () => {
                 max={activeTrack.duration || 100} 
                 value={progress} 
                 onChange={handleSeek}
-                className="w-full h-1 bg-white/10 rounded-full appearance-none cursor-pointer accent-cyan-400 hover:accent-cyan-300"
+                className={`w-full h-1 rounded-full appearance-none cursor-pointer transition-colors ${isDayMode ? 'bg-slate-200/90 accent-cyan-500 hover:accent-cyan-600' : 'bg-white/10 accent-cyan-400 hover:accent-cyan-300'}`}
               />
               <div className={`flex justify-between text-xs font-mono mt-2 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
                 <span>{formatTime(progress)}</span>
@@ -665,7 +665,7 @@ const Music = () => {
                 step="0.01" 
                 value={volume} 
                 onChange={handleVolumeChange}
-                className="w-24 h-1 bg-white/10 rounded-full appearance-none cursor-pointer accent-gray-400 hover:accent-white transition-all"
+                className={`w-24 h-1 rounded-full appearance-none cursor-pointer transition-all ${isDayMode ? 'bg-slate-200/90 accent-slate-500 hover:accent-slate-700' : 'bg-white/10 accent-gray-400 hover:accent-white'}`}
               />
             </div>
           </div>
@@ -716,6 +716,15 @@ const Music = () => {
                     <div className={`text-center py-12 ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>
                     <MusicIcon size={48} className="mx-auto mb-4 opacity-20" />
                     <p>{t('music.no_tracks')}</p>
+                    {selectedTags.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedTags([])}
+                        className={`mt-5 px-5 py-2 rounded-full border text-sm font-medium ${isDayMode ? 'bg-white/90 border-slate-200/80 text-slate-700 hover:bg-white' : 'bg-white/10 border-white/15 text-white hover:bg-white/15'}`}
+                      >
+                        {t('common.clear_all', '清除全部')}
+                      </button>
+                    )}
                     </div>
                 )}
                 {tracks.map((track, index) => (

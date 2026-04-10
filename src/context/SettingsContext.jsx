@@ -36,7 +36,21 @@ export const SettingsProvider = ({ children }) => {
   });
 
   const [uiMode, setUiMode] = useState(() => {
-    return localStorage.getItem('ui_mode') || 'dark';
+    try {
+      const saved = localStorage.getItem('ui_mode');
+      // Validate the saved value to ensure it's either 'day' or 'dark'
+      if (saved === 'day' || saved === 'dark') {
+        return saved;
+      }
+      // If invalid or missing, default to 'dark'
+      return 'dark';
+    } catch (e) {
+      // localStorage may be unavailable in private browsing or restricted contexts
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[SettingsContext] localStorage unavailable, using default theme:', e);
+      }
+      return 'dark';
+    }
   });
 
   const updateSetting = useCallback((key, value) => {
@@ -74,7 +88,16 @@ export const SettingsProvider = ({ children }) => {
   const changeUiMode = useCallback((mode) => {
     const nextMode = mode === 'day' ? 'day' : 'dark';
     setUiMode(nextMode);
-    localStorage.setItem('ui_mode', nextMode);
+    try {
+      localStorage.setItem('ui_mode', nextMode);
+    } catch (e) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[SettingsContext] Failed to save uiMode to localStorage:', e);
+      }
+    }
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[SettingsContext] Changed uiMode to:', nextMode);
+    }
   }, []);
 
   const [loading, setLoading] = useState(true);
@@ -106,6 +129,14 @@ export const SettingsProvider = ({ children }) => {
     document.documentElement.dataset.theme = uiMode;
     document.documentElement.style.colorScheme = uiMode === 'day' ? 'light' : 'dark';
     document.body.dataset.theme = uiMode;
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[SettingsContext] Applied theme to DOM:', {
+        uiMode,
+        datasetTheme: document.documentElement.dataset.theme,
+        colorScheme: document.documentElement.style.colorScheme
+      });
+    }
   }, [uiMode]);
 
   const value = useMemo(() => ({

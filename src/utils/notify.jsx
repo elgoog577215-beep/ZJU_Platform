@@ -168,7 +168,8 @@ export const showActionToast = ({
   actionLabel,
   onAction,
   onCancel,
-  type = 'info'
+  type = 'info',
+  options = {}
 }) => {
   const iconColors = {
     info: 'text-blue-400',

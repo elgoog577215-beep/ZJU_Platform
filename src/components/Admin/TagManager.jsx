@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   Tag, Search, Plus, Trash2, Edit2, Check, X, 
-  RefreshCw, AlertTriangle 
+  RefreshCw
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
@@ -37,7 +37,7 @@ const TagManager = () => {
     try {
       const response = await api.get('/tags');
       setTags(response.data);
-    } catch (error) {
+    } catch {
       toast.error(t('admin.tag_manager.load_fail'));
     } finally {
       setLoading(false);
@@ -50,7 +50,7 @@ const TagManager = () => {
       await api.post('/tags/sync');
       toast.success(t('admin.tag_manager.sync_success'));
       fetchTags();
-    } catch (error) {
+    } catch {
       toast.error(t('admin.tag_manager.sync_fail'));
     } finally {
       setSyncing(false);
@@ -88,7 +88,7 @@ const TagManager = () => {
       await api.delete(`/tags/${id}`);
       setTags(tags.filter(tag => tag.id !== id));
       toast.success(t('admin.tag_manager.delete_success'));
-    } catch (error) {
+    } catch {
       toast.error(t('admin.tag_manager.delete_fail'));
     }
   };

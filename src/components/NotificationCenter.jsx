@@ -112,11 +112,10 @@ const NotificationCenter = () => {
         await handleMarkAsRead(notification.id);
     }
     
-    // Navigate if related resource exists
     if (notification.related_resource_id && notification.related_resource_type) {
-        // Map singular/plural if needed, but usually frontend routes are like /gallery for photos
-        // Let's assume singular type for detail pages if they exist, or just stay on notification
-        // For now, let's just close the dropdown
+        if (notification.related_resource_type === 'user') {
+          navigate(`/user/${notification.related_resource_id}`);
+        }
     }
     setIsOpen(false);
   };

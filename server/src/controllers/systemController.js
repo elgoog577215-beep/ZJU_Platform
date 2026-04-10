@@ -17,12 +17,13 @@ const searchContent = async (req, res, next) => {
         
         // Parallel search with enhanced fuzzy matching (Description, Content, Artist, Tags, etc.)
         // Ensure we only show visible items (not deleted, approved)
-        const [photos, music, videos, articles, events] = await Promise.all([
+        const [photos, music, videos, articles, events, communityPosts] = await Promise.all([
             db.all('SELECT id, title, "photo" as type, url as image FROM photos WHERE (title LIKE ? OR tags LIKE ?) AND deleted_at IS NULL AND status = "approved" LIMIT 5', [term, term]),
             db.all('SELECT id, title, "music" as type, cover as image FROM music WHERE (title LIKE ? OR artist LIKE ? OR tags LIKE ?) AND deleted_at IS NULL AND status = "approved" LIMIT 5', [term, term, term]),
             db.all('SELECT id, title, "video" as type, thumbnail as image FROM videos WHERE (title LIKE ? OR tags LIKE ?) AND deleted_at IS NULL AND status = "approved" LIMIT 5', [term, term]),
             db.all('SELECT id, title, "article" as type, cover as image FROM articles WHERE (title LIKE ? OR excerpt LIKE ? OR content LIKE ? OR tags LIKE ?) AND deleted_at IS NULL AND status = "approved" LIMIT 5', [term, term, term, term]),
-            db.all('SELECT id, title, "event" as type, image FROM events WHERE (title LIKE ? OR description LIKE ? OR content LIKE ? OR tags LIKE ?) AND deleted_at IS NULL AND status = "approved" LIMIT 5', [term, term, term, term])
+            db.all('SELECT id, title, "event" as type, image FROM events WHERE (title LIKE ? OR description LIKE ? OR content LIKE ? OR tags LIKE ?) AND deleted_at IS NULL AND status = "approved" LIMIT 5', [term, term, term, term]),
+            db.all('SELECT id, title, "community" as type, section FROM community_posts WHERE status = "approved" AND (title LIKE ? OR content LIKE ? OR tags LIKE ? OR author_name LIKE ?) LIMIT 5', [term, term, term, term]).catch(() => [])
         ]);
 
         const results = [
@@ -30,7 +31,8 @@ const searchContent = async (req, res, next) => {
             ...music.map(i => ({ ...i, link: '/music' })),
             ...videos.map(i => ({ ...i, link: '/videos' })),
             ...articles.map(i => ({ ...i, link: '/articles' })),
-            ...events.map(i => ({ ...i, link: '/events' }))
+            ...events.map(i => ({ ...i, link: '/events' })),
+            ...communityPosts.map(i => ({ ...i, link: `/community/${i.section || 'help'}` }))
         ];
 
         res.json(results);

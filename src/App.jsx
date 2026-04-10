@@ -11,10 +11,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { ResourceHints } from './components/ResourceHints';
 import { usePerformanceMonitor } from './hooks/usePerformanceMonitor';
 import { useServiceWorker } from './hooks/useServiceWorker';
-import api from './services/api';
 import SEO from './components/SEO';
-import errorMonitor from './utils/errorMonitor';
-import performanceMonitor from './utils/performanceMonitor';
 
 import Navbar from './components/Navbar';
 import ScrollToTop from './components/ScrollToTop';
@@ -42,8 +39,6 @@ const PublicProfile = lazy(() => import('./components/PublicProfile'));
 const BackgroundSystem = lazy(() => import('./components/BackgroundSystem'));
 const SearchPalette = lazy(() => import('./components/SearchPalette'));
 const GlobalPlayer = lazy(() => import('./components/GlobalPlayer'));
-const CommunityLayout = lazy(() => import('./community/CommunityLayout'));
-const CommunitySectionPage = lazy(() => import('./community/CommunitySectionPage'));
 
 const useDeferredMount = (delay = 0) => {
   const [mounted, setMounted] = useState(false);
@@ -95,9 +90,8 @@ const Home = () => {
               description="探索数字艺术与科技的边界 - 浙江大学 SQTP 项目组官方平台，展示摄影、音乐、视频、文章等多元创作内容"
             />
             <Hero />
-            <PlatformStats />
             <HomeCategories />
-            <About />
+            <PlatformStats />
         </>
     )
 }
@@ -116,7 +110,7 @@ const AppContent = () => {
   const { cursorEnabled, settings } = useSettings();
   const shouldMountDeferredUi = useDeferredMount(700);
   const shouldMountHeavyBackground = useDeferredMount(100);
-  const [canRenderHeavyEffects, setCanRenderHeavyEffects] = useState(true);
+  const canRenderHeavyEffects = true;
   const allowBackgroundEffects = !isAdminRoute && settings?.backgroundEnabled !== false;
   const shouldUseThreeBackground = location.pathname === '/';
   
@@ -136,7 +130,7 @@ const AppContent = () => {
   // Performance monitoring
   usePerformanceMonitor({
     enabled: import.meta.env.PROD,
-    onMetric: (metric) => {
+    onMetric: (_metric) => {
       // 仅在生产环境记录性能指标
       if (import.meta.env.PROD && window.location.hostname === 'tuotuzj.com') {
         // 发送到分析服务
@@ -175,13 +169,7 @@ const AppContent = () => {
     }
 
     window.sessionStorage.setItem(sessionVisitKey, '1');
-
-    api.post('/site-metrics/visit', {
-      visitorKey,
-      pagePath: location.pathname
-    }).catch(() => {
-      window.sessionStorage.removeItem(sessionVisitKey);
-    });
+    // 数据推送已移除
   }, [isAdminRoute, location.pathname]);
 
   return (
@@ -226,10 +214,6 @@ const AppContent = () => {
               <Route path="/music" element={<PageTransition><Music /></PageTransition>} />
               <Route path="/videos" element={<PageTransition><Videos /></PageTransition>} />
               <Route path="/articles" element={<PageTransition><Articles /></PageTransition>} />
-              <Route path="/community" element={<PageTransition><CommunityLayout /></PageTransition>}>
-                <Route index element={<Navigate to="help" replace />} />
-                <Route path=":section" element={<CommunitySectionPage />} />
-              </Route>
               <Route path="/events" element={<PageTransition><Events /></PageTransition>} />
               <Route path="/about" element={<PageTransition><About /></PageTransition>} />
               <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />

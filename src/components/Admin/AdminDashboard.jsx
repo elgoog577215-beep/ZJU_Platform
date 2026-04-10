@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   LayoutDashboard, Inbox, LayoutGrid, Music, Film, BookOpen, 
-  Calendar, LayoutTemplate, Folder, HardDrive, ClipboardList, 
+  Calendar, LayoutTemplate,
   Settings, Users, Home, LogOut, ChevronRight, Tag, Lock
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';

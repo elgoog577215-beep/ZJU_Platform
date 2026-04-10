@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   LayoutGrid, Music, Film, BookOpen, Calendar, 
-  Users, HardDrive, Activity, Clock, AlertCircle, Eye, TrendingUp
+  Users, Activity, Clock, Eye, TrendingUp
 } from 'lucide-react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';

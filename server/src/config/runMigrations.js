@@ -25,6 +25,20 @@ async function runMigrations(db) {
       console.warn('Migration warning (events):', err.message);
     }
   }
+
+  try {
+    const articlesInfo = await db.all(`PRAGMA table_info(articles)`);
+    const articlesColumns = articlesInfo.map(col => col.name);
+
+    if (articlesColumns.length > 0 && !articlesColumns.includes('content_blocks')) {
+      await db.exec(`ALTER TABLE articles ADD COLUMN content_blocks TEXT`);
+      console.log('✅ Added content_blocks to articles table');
+    }
+  } catch (err) {
+    if (!err.message.includes('duplicate column')) {
+      console.warn('Migration warning (articles):', err.message);
+    }
+  }
   
   try {
     await db.exec(`
@@ -45,6 +59,32 @@ async function runMigrations(db) {
   } catch (err) {
     if (!err.message.includes('already exists')) {
       console.warn('Migration warning (comments):', err.message);
+    }
+  }
+
+  try {
+    const commentsInfo = await db.all(`PRAGMA table_info(comments)`);
+    const commentColumns = commentsInfo.map(col => col.name);
+
+    if (commentColumns.length > 0 && !commentColumns.includes('author')) {
+      await db.exec(`ALTER TABLE comments ADD COLUMN author TEXT`);
+    }
+    if (commentColumns.length > 0 && !commentColumns.includes('avatar')) {
+      await db.exec(`ALTER TABLE comments ADD COLUMN avatar TEXT`);
+    }
+    if (commentColumns.length > 0 && commentColumns.includes('author_name')) {
+      await db.exec(`
+        UPDATE comments
+        SET author = author_name
+        WHERE (author IS NULL OR TRIM(author) = '')
+          AND author_name IS NOT NULL
+          AND TRIM(author_name) != ''
+      `);
+    }
+    console.log('✅ Comments columns synced');
+  } catch (err) {
+    if (!err.message.includes('duplicate column')) {
+      console.warn('Migration warning (comments columns):', err.message);
     }
   }
   
@@ -121,6 +161,27 @@ async function runMigrations(db) {
   } catch (err) {
     if (!err.message.includes('already exists')) {
       console.warn('Migration warning (favorites):', err.message);
+    }
+  }
+
+  try {
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS user_follows (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        follower_id INTEGER NOT NULL,
+        following_id INTEGER NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(follower_id, following_id),
+        FOREIGN KEY (follower_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (following_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+    await db.exec(`CREATE INDEX IF NOT EXISTS idx_user_follows_follower ON user_follows(follower_id)`);
+    await db.exec(`CREATE INDEX IF NOT EXISTS idx_user_follows_following ON user_follows(following_id)`);
+    console.log('✅ User follows table ready');
+  } catch (err) {
+    if (!err.message.includes('already exists')) {
+      console.warn('Migration warning (user_follows):', err.message);
     }
   }
 
@@ -314,6 +375,51 @@ async function runMigrations(db) {
   } catch (err) {
     if (!err.message.includes('already exists') && !err.message.includes('duplicate column')) {
       console.warn('Migration warning (event registrations):', err.message);
+    }
+  }
+
+  try {
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS community_posts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        section TEXT NOT NULL,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        tags TEXT,
+        status TEXT DEFAULT 'approved',
+        author_id INTEGER NOT NULL,
+        author_name TEXT,
+        author_avatar TEXT,
+        likes_count INTEGER DEFAULT 0,
+        comments_count INTEGER DEFAULT 0,
+        views_count INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS community_post_likes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        post_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(post_id, user_id),
+        FOREIGN KEY (post_id) REFERENCES community_posts(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+
+    await db.exec(`CREATE INDEX IF NOT EXISTS idx_community_posts_section_status_created ON community_posts(section, status, created_at DESC)`);
+    await db.exec(`CREATE INDEX IF NOT EXISTS idx_community_posts_author ON community_posts(author_id)`);
+    await db.exec(`CREATE INDEX IF NOT EXISTS idx_community_posts_likes ON community_posts(likes_count DESC, created_at DESC)`);
+    await db.exec(`CREATE INDEX IF NOT EXISTS idx_community_post_likes_post ON community_post_likes(post_id)`);
+    await db.exec(`CREATE INDEX IF NOT EXISTS idx_community_post_likes_user ON community_post_likes(user_id)`);
+    console.log('✅ Community posts tables ready');
+  } catch (err) {
+    if (!err.message.includes('already exists')) {
+      console.warn('Migration warning (community posts):', err.message);
     }
   }
 
