@@ -1,9 +1,40 @@
 import { createContext, useState, useEffect, useContext, useMemo, useCallback } from 'react';
 import api from '../services/api';
 
-const SettingsContext = createContext();
+const defaultSettingsValue = {
+  settings: {
+    pagination_enabled: 'false',
+    theme: 'cyber',
+    language: 'zh',
+    site_title: '拓途浙享 | TUOTUZJU',
+    hero_title: '浙江大学信息聚合平台',
+    hero_subtitle: '打破信息差，共建信息网络',
+    background_brightness: '1.0',
+    background_vignette: '0.5',
+    background_bloom: '0.8',
+    hero_bg_url: '/uploads/1767349451839-56405188.jpg',
+    about_title: '浙江大学信息聚合平台',
+    about_subtitle: '打破信息差，共建信息网络',
+    about_intro: '我们致力于消除信息差，提供一个优质信息共享平台。',
+    about_detail: '欢迎加入我们!在这里，你可以参与优质活动，并分享活动有关的影象、文章、音乐，共建一个有温度、有情怀的优质社区!',
+    contact_email: 'yq20070130@outlook.com',
+    contact_phone: '18668079838',
+    contact_address: '浙江大学SQTP项目：拓途浙享团队'
+  },
+  updateSetting: async () => ({ data: { success: false } }),
+  loading: false,
+  cursorEnabled: false,
+  toggleCursor: () => {},
+  uiMode: 'dark',
+  changeUiMode: () => {},
+  backgroundScene: 'cyber',
+  changeBackgroundScene: () => {},
+  changeBackgroundBrightness: () => {}
+};
 
-export const useSettings = () => useContext(SettingsContext);
+const SettingsContext = createContext(defaultSettingsValue);
+
+export const useSettings = () => useContext(SettingsContext) || defaultSettingsValue;
 
 export const SettingsProvider = ({ children }) => {
   const [settings, setSettings] = useState({
