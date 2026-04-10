@@ -22,7 +22,7 @@
     "@react-three/fiber": "^8.16.0",
     "@react-three/postprocessing": "^2.16.2",
     "@tailwindcss/typography": "^0.5.19",
-    "axios": "^1.13.2",
+    "axios": "1.13.2",
     "clsx": "^2.1.0",
     "compression": "^1.8.1",
     "dompurify": "^3.3.1",
@@ -62,5 +62,13 @@
     "vite": "^5.1.4",
     "vite-plugin-pwa": "^1.2.0",
     "workbox-window": "^7.4.0"
+  },
+  "overrides": {
+    "axios": "1.13.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "axios": "1.13.2"
+    }
   }
 }
