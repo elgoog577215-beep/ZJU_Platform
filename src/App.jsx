@@ -104,6 +104,25 @@ const Home = () => {
   );
 };
 
+const CommunityHelp = () => {
+  return (
+    <section className="mx-auto w-full max-w-5xl px-4 pt-28 pb-24 sm:px-6 lg:px-8">
+      <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+        求助天地
+      </h1>
+      <p className="mt-4 text-base sm:text-lg leading-7 text-slate-600 dark:text-slate-300">
+        社区求助功能正在持续升级中，你可以先前往活动页面获取最新动态与参与入口。
+      </p>
+      <a
+        href="/events"
+        className="mt-8 inline-flex items-center rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-indigo-500"
+      >
+        前往活动页
+      </a>
+    </section>
+  );
+};
+
 // 路由守卫：仅 admin 可访问，否则重定向到首页
 const AdminRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -296,6 +315,14 @@ const AppContent = () => {
                   element={
                     <PageTransition>
                       <PublicProfile />
+                    </PageTransition>
+                  }
+                />
+                <Route
+                  path="/community/help"
+                  element={
+                    <PageTransition>
+                      <CommunityHelp />
                     </PageTransition>
                   }
                 />
