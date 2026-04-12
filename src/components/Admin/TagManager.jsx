@@ -1,31 +1,37 @@
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { 
-  Tag, Search, Plus, Trash2, Edit2, Check, X, 
-  RefreshCw
-} from 'lucide-react';
-import toast from 'react-hot-toast';
-import api from '../../services/api';
+import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import {
+  Tag,
+  Search,
+  Plus,
+  Trash2,
+  Edit2,
+  Check,
+  X,
+  RefreshCw,
+} from "lucide-react";
+import toast from "react-hot-toast";
+import api from "../../services/api";
 
 const TagManager = () => {
   const { t } = useTranslation();
   const [tags, setTags] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [selectedSection, setSelectedSection] = useState('all');
+  const [search, setSearch] = useState("");
+  const [selectedSection, setSelectedSection] = useState("all");
   const [editingId, setEditingId] = useState(null);
-  const [editName, setEditName] = useState('');
+  const [editName, setEditName] = useState("");
   const [newTagMode, setNewTagMode] = useState(false);
-  const [newTagName, setNewTagName] = useState('');
+  const [newTagName, setNewTagName] = useState("");
   const [syncing, setSyncing] = useState(false);
 
   const sections = [
-    { id: 'all', label: t('common.all') },
-    { id: 'gallery', label: t('nav.gallery') },
-    { id: 'music', label: t('nav.music') },
-    { id: 'videos', label: t('nav.videos') },
-    { id: 'articles', label: t('nav.articles') },
-    { id: 'events', label: t('nav.events') },
+    { id: "all", label: t("common.all") },
+    { id: "gallery", label: t("nav.gallery") },
+    { id: "music", label: t("nav.music") },
+    { id: "videos", label: t("nav.videos") },
+    { id: "articles", label: t("nav.articles") },
+    { id: "events", label: t("nav.events") },
   ];
 
   useEffect(() => {
@@ -35,10 +41,10 @@ const TagManager = () => {
   const fetchTags = async () => {
     setLoading(true);
     try {
-      const response = await api.get('/tags');
+      const response = await api.get("/tags");
       setTags(response.data);
     } catch {
-      toast.error(t('admin.tag_manager.load_fail'));
+      toast.error(t("admin.tag_manager.load_fail"));
     } finally {
       setLoading(false);
     }
@@ -47,11 +53,11 @@ const TagManager = () => {
   const handleSync = async () => {
     setSyncing(true);
     try {
-      await api.post('/tags/sync');
-      toast.success(t('admin.tag_manager.sync_success'));
+      await api.post("/tags/sync");
+      toast.success(t("admin.tag_manager.sync_success"));
       fetchTags();
     } catch {
-      toast.error(t('admin.tag_manager.sync_fail'));
+      toast.error(t("admin.tag_manager.sync_fail"));
     } finally {
       setSyncing(false);
     }
@@ -60,13 +66,15 @@ const TagManager = () => {
   const handleCreate = async () => {
     if (!newTagName.trim()) return;
     try {
-      const response = await api.post('/tags', { name: newTagName });
+      const response = await api.post("/tags", { name: newTagName });
       setTags([...tags, response.data]);
-      setNewTagName('');
+      setNewTagName("");
       setNewTagMode(false);
-      toast.success(t('admin.tag_manager.create_success'));
+      toast.success(t("admin.tag_manager.create_success"));
     } catch (error) {
-      toast.error(error.response?.data?.error || t('admin.tag_manager.create_fail'));
+      toast.error(
+        error.response?.data?.error || t("admin.tag_manager.create_fail"),
+      );
     }
   };
 
@@ -74,22 +82,26 @@ const TagManager = () => {
     if (!editName.trim()) return;
     try {
       await api.put(`/tags/${id}`, { name: editName });
-      setTags(tags.map(tag => tag.id === id ? { ...tag, name: editName } : tag));
+      setTags(
+        tags.map((tag) => (tag.id === id ? { ...tag, name: editName } : tag)),
+      );
       setEditingId(null);
-      toast.success(t('admin.tag_manager.update_success'));
+      toast.success(t("admin.tag_manager.update_success"));
     } catch (error) {
-      toast.error(error.response?.data?.error || t('admin.tag_manager.update_fail'));
+      toast.error(
+        error.response?.data?.error || t("admin.tag_manager.update_fail"),
+      );
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm(t('admin.tag_manager.delete_confirm'))) return;
+    if (!window.confirm(t("admin.tag_manager.delete_confirm"))) return;
     try {
       await api.delete(`/tags/${id}`);
-      setTags(tags.filter(tag => tag.id !== id));
-      toast.success(t('admin.tag_manager.delete_success'));
+      setTags(tags.filter((tag) => tag.id !== id));
+      toast.success(t("admin.tag_manager.delete_success"));
     } catch {
-      toast.error(t('admin.tag_manager.delete_fail'));
+      toast.error(t("admin.tag_manager.delete_fail"));
     }
   };
 
@@ -98,59 +110,65 @@ const TagManager = () => {
     setEditName(tag.name);
   };
 
-  const filteredTags = tags.filter(tag => 
-    tag.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredTags = tags.filter((tag) => {
+    const keywordMatch = tag.name.toLowerCase().includes(search.toLowerCase());
+    if (!keywordMatch) return false;
+    if (selectedSection === "all") return true;
+    const sectionKey = String(
+      tag.section || tag.type || tag.resource_type || "",
+    ).toLowerCase();
+    return sectionKey === selectedSection;
+  });
 
   return (
-    <div className="bg-black/40 backdrop-blur-md rounded-3xl p-8 border border-white/10">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-0 mb-8">
+    <div className="bg-black/40 backdrop-blur-md rounded-3xl p-4 md:p-8 border border-white/10">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-0 mb-6 md:mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-3">
+          <h2 className="text-xl md:text-2xl font-bold text-white mb-2 flex items-center gap-3">
             <Tag className="text-indigo-400" />
-            {t('admin.tag_manager.title')}
+            {t("admin.tag_manager.title")}
           </h2>
-          <p className="text-gray-400">{t('admin.tag_manager.subtitle')}</p>
+          <p className="text-gray-400">{t("admin.tag_manager.subtitle")}</p>
         </div>
-        <div className="flex gap-4">
-          <button 
+        <div className="flex flex-wrap gap-3 w-full md:w-auto">
+          <button
             onClick={handleSync}
             disabled={syncing}
-            className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-xl transition-colors disabled:opacity-50"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] bg-white/5 hover:bg-white/10 text-white rounded-xl transition-colors disabled:opacity-50"
           >
             <RefreshCw size={18} className={syncing ? "animate-spin" : ""} />
-            {t('admin.tag_manager.sync_btn')}
+            {t("admin.tag_manager.sync_btn")}
           </button>
-          <button 
+          <button
             onClick={() => setNewTagMode(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-colors shadow-lg shadow-indigo-500/20"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-colors shadow-lg shadow-indigo-500/20"
           >
             <Plus size={18} />
-            {t('admin.tag_manager.create_btn')}
+            {t("admin.tag_manager.create_btn")}
           </button>
         </div>
       </div>
 
       {newTagMode && (
-        <div className="mb-8 p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl flex gap-4 items-center animate-in fade-in slide-in-from-top-4">
+        <div className="mb-8 p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center animate-in fade-in slide-in-from-top-4">
           <input
             type="text"
             value={newTagName}
             onChange={(e) => setNewTagName(e.target.value)}
-            placeholder={t('admin.tag_manager.name_placeholder')}
-            className="flex-1 bg-black/40 border border-white/10 rounded-lg p-2 text-white focus:outline-none focus:border-indigo-500"
+            placeholder={t("admin.tag_manager.name_placeholder")}
+            className="flex-1 bg-black/40 border border-white/10 rounded-lg p-3 min-h-[44px] text-white focus:outline-none focus:border-indigo-500"
             autoFocus
-            onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+            onKeyDown={(e) => e.key === "Enter" && handleCreate()}
           />
-          <button 
+          <button
             onClick={handleCreate}
-            className="p-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors"
+            className="p-2.5 min-h-[44px] min-w-[44px] inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors"
           >
             <Check size={18} />
           </button>
-          <button 
+          <button
             onClick={() => setNewTagMode(false)}
-            className="p-2 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-colors"
+            className="p-2.5 min-h-[44px] min-w-[44px] inline-flex items-center justify-center bg-white/5 hover:bg-white/10 text-white rounded-lg transition-colors"
           >
             <X size={18} />
           </button>
@@ -159,23 +177,30 @@ const TagManager = () => {
 
       <div className="mb-6 relative flex flex-col md:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={18} />
-          <input 
-            type="text" 
-            placeholder={t('admin.tag_manager.search_placeholder')}
+          <Search
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+            size={18}
+          />
+          <input
+            type="text"
+            placeholder={t("admin.tag_manager.search_placeholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-indigo-500 transition-colors"
+            className="w-full bg-black/20 border border-white/10 rounded-xl py-3 min-h-[44px] pl-10 pr-4 text-white focus:outline-none focus:border-indigo-500 transition-colors"
           />
         </div>
-        
+
         <select
           value={selectedSection}
           onChange={(e) => setSelectedSection(e.target.value)}
-          className="bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors cursor-pointer"
+          className="bg-black/20 border border-white/10 rounded-xl px-4 py-3 min-h-[44px] text-white focus:outline-none focus:border-indigo-500 transition-colors cursor-pointer"
         >
-          {sections.map(section => (
-            <option key={section.id} value={section.id} className="bg-[#111] text-white">
+          {sections.map((section) => (
+            <option
+              key={section.id}
+              value={section.id}
+              className="bg-[#111] text-white"
+            >
               {section.label}
             </option>
           ))}
@@ -183,15 +208,20 @@ const TagManager = () => {
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-500">{t('admin.tag_manager.loading')}</div>
+        <div className="text-center py-12 text-gray-500">
+          {t("admin.tag_manager.loading")}
+        </div>
       ) : filteredTags.length === 0 ? (
         <div className="text-center py-12 text-gray-500 border border-white/5 rounded-2xl border-dashed">
-          {t('admin.tag_manager.no_tags')}
+          {t("admin.tag_manager.no_tags")}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredTags.map(tag => (
-            <div key={tag.id} className="bg-[#111] border border-white/5 rounded-xl p-4 flex justify-between items-center group hover:border-indigo-500/30 transition-all">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+          {filteredTags.map((tag) => (
+            <div
+              key={tag.id}
+              className="bg-[#111] border border-white/5 rounded-xl p-3.5 md:p-4 flex justify-between items-center gap-2 group hover:border-indigo-500/30 transition-all"
+            >
               {editingId === tag.id ? (
                 <div className="flex gap-2 flex-1 mr-2">
                   <input
@@ -200,27 +230,43 @@ const TagManager = () => {
                     onChange={(e) => setEditName(e.target.value)}
                     className="flex-1 bg-black/40 border border-indigo-500 rounded px-2 py-1 text-white text-sm focus:outline-none"
                     autoFocus
-                    onKeyDown={(e) => e.key === 'Enter' && handleUpdate(tag.id)}
+                    onKeyDown={(e) => e.key === "Enter" && handleUpdate(tag.id)}
                   />
-                  <button onClick={() => handleUpdate(tag.id)} className="text-green-400 hover:text-green-300"><Check size={16} /></button>
-                  <button onClick={() => setEditingId(null)} className="text-red-400 hover:text-red-300"><X size={16} /></button>
+                  <button
+                    onClick={() => handleUpdate(tag.id)}
+                    className="text-green-400 hover:text-green-300"
+                  >
+                    <Check size={16} />
+                  </button>
+                  <button
+                    onClick={() => setEditingId(null)}
+                    className="text-red-400 hover:text-red-300"
+                  >
+                    <X size={16} />
+                  </button>
                 </div>
               ) : (
                 <div className="flex items-center gap-3">
                   <span className="text-white font-medium">{tag.name}</span>
                   <span className="text-xs bg-white/5 px-2 py-0.5 rounded-full text-gray-400">
-                    {tag.count} {t('admin.tag_manager.items_count')}
+                    {tag.count} {t("admin.tag_manager.items_count")}
                   </span>
                 </div>
               )}
-              
-              <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+
+              <div className="flex gap-1 md:gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                 {editingId !== tag.id && (
                   <>
-                    <button onClick={() => startEdit(tag)} className="p-1.5 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors">
+                    <button
+                      onClick={() => startEdit(tag)}
+                      className="p-2 min-h-[36px] min-w-[36px] inline-flex items-center justify-center hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
+                    >
                       <Edit2 size={14} />
                     </button>
-                    <button onClick={() => handleDelete(tag.id)} className="p-1.5 hover:bg-red-500/10 rounded-lg text-gray-400 hover:text-red-400 transition-colors">
+                    <button
+                      onClick={() => handleDelete(tag.id)}
+                      className="p-2 min-h-[36px] min-w-[36px] inline-flex items-center justify-center hover:bg-red-500/10 rounded-lg text-gray-400 hover:text-red-400 transition-colors"
+                    >
                       <Trash2 size={14} />
                     </button>
                   </>

@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import toast from 'react-hot-toast';
-import { Key, Globe, Sun } from 'lucide-react';
-import api from '../../services/api';
-import { useSettings } from '../../context/SettingsContext';
+import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import toast from "react-hot-toast";
+import { Key, Globe, Sun } from "lucide-react";
+import api from "../../services/api";
+import { useSettings } from "../../context/SettingsContext";
 
 const SettingsManager = () => {
   const { t } = useTranslation();
@@ -19,10 +19,10 @@ const SettingsManager = () => {
   const fetchSettings = async () => {
     setLoading(true);
     try {
-      const response = await api.get('/settings');
+      const response = await api.get("/settings");
       setSettings(response.data);
     } catch {
-      toast.error(t('admin.toast.load_fail'));
+      toast.error(t("admin.toast.load_fail"));
     } finally {
       setLoading(false);
     }
@@ -32,167 +32,199 @@ const SettingsManager = () => {
     setSaving(true);
     try {
       await updateGlobalSetting(key, value);
-      setSettings(prev => ({ ...prev, [key]: value }));
-      toast.success(t('admin.toast.save_success'));
+      setSettings((prev) => ({ ...prev, [key]: value }));
+      toast.success(t("admin.toast.save_success"));
     } catch {
-      toast.error(t('admin.toast.save_fail'));
+      toast.error(t("admin.toast.save_fail"));
     } finally {
       setSaving(false);
     }
   };
 
   const handleChange = (key, value) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
+    setSettings((prev) => ({ ...prev, [key]: value }));
   };
 
-  if (loading) return <div className="p-8 text-center text-gray-500">{t('admin.loading_settings')}</div>;
+  if (loading)
+    return (
+      <div className="p-8 text-center text-gray-500">
+        {t("admin.loading_settings")}
+      </div>
+    );
 
   return (
-    <div className="space-y-6">
-      <div className="bg-[#111] p-6 rounded-2xl border border-white/10">
+    <div className="space-y-4 md:space-y-6">
+      <div className="bg-[#111] p-4 md:p-6 rounded-2xl border border-white/10">
         <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
           <Key size={20} className="text-indigo-400" />
-          {t('admin.security_settings')}
+          {t("admin.security_settings")}
         </h3>
         <div className="space-y-6">
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-bold text-gray-400">{t('admin.invite_code_label')}</label>
-            <div className="flex gap-4">
-              <input 
-                type="text" 
-                value={settings.invite_code || ''} 
-                onChange={(e) => handleChange('invite_code', e.target.value)}
-                placeholder={t('admin.enter_invite_code')}
-                className="flex-1 bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-indigo-500"
+            <label className="text-sm font-bold text-gray-400">
+              {t("admin.invite_code_label")}
+            </label>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <input
+                type="text"
+                value={settings.invite_code || ""}
+                onChange={(e) => handleChange("invite_code", e.target.value)}
+                placeholder={t("admin.enter_invite_code")}
+                className="flex-1 bg-black/40 border border-white/10 rounded-xl p-3 min-h-[44px] text-white focus:outline-none focus:border-indigo-500"
               />
-              <button 
-                onClick={() => handleSave('invite_code', settings.invite_code)}
+              <button
+                onClick={() => handleSave("invite_code", settings.invite_code)}
                 disabled={saving}
-                className="px-6 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-colors shadow-lg shadow-indigo-500/20 disabled:opacity-50"
+                className="px-6 min-h-[44px] bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-colors shadow-lg shadow-indigo-500/20 disabled:opacity-50"
               >
-                {t('admin.save_btn')}
+                {t("admin.save_btn")}
               </button>
             </div>
-            <p className="text-xs text-gray-500">{t('admin.invite_code_desc')}</p>
+            <p className="text-xs text-gray-500">
+              {t("admin.invite_code_desc")}
+            </p>
           </div>
         </div>
       </div>
 
-      <div className="bg-[#111] p-6 rounded-2xl border border-white/10">
+      <div className="bg-[#111] p-4 md:p-6 rounded-2xl border border-white/10">
         <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
           <Globe size={20} className="text-indigo-400" />
-          {t('admin.general_settings')}
+          {t("admin.general_settings")}
         </h3>
         <div className="space-y-6">
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-bold text-gray-400">{t('admin.site_name_label')}</label>
-            <div className="flex gap-4">
-              <input 
-                type="text" 
-                value={settings.site_name || '777'} 
-                onChange={(e) => handleChange('site_name', e.target.value)}
-                className="flex-1 bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-indigo-500"
+            <label className="text-sm font-bold text-gray-400">
+              {t("admin.site_name_label")}
+            </label>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <input
+                type="text"
+                value={settings.site_name || "777"}
+                onChange={(e) => handleChange("site_name", e.target.value)}
+                className="flex-1 bg-black/40 border border-white/10 rounded-xl p-3 min-h-[44px] text-white focus:outline-none focus:border-indigo-500"
               />
-              <button 
-                onClick={() => handleSave('site_name', settings.site_name)}
+              <button
+                onClick={() => handleSave("site_name", settings.site_name)}
                 disabled={saving}
-                className="px-6 bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold transition-colors disabled:opacity-50"
+                className="px-6 min-h-[44px] bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold transition-colors disabled:opacity-50"
               >
-                {t('admin.save_btn')}
+                {t("admin.save_btn")}
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="bg-[#111] p-6 rounded-2xl border border-white/10">
+      <div className="bg-[#111] p-4 md:p-6 rounded-2xl border border-white/10">
         <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
           <Sun size={20} className="text-indigo-400" />
-          {t('admin.appearance_settings')}
+          {t("admin.appearance_settings")}
         </h3>
         <div className="space-y-6">
           {/* Appearance Settings */}
-            <div className="flex flex-col gap-6">
-              
-              {/* Brightness */}
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-gray-400">
-                    {t('admin.bg_brightness_label')} ({settings.background_brightness || 1.0})
-                </label>
-                <div className="flex gap-4 items-center">
-                  <input 
-                    type="range" 
-                    min="0.2" 
-                    max="2.0" 
-                    step="0.1"
-                    value={settings.background_brightness || 1.0} 
-                    onChange={(e) => handleChange('background_brightness', e.target.value)}
-                    className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
-                  />
-                  <button 
-                    onClick={() => handleSave('background_brightness', settings.background_brightness)}
-                    disabled={saving}
-                    className="px-6 bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold transition-colors disabled:opacity-50"
-                  >
-                    {t('admin.save_btn')}
-                  </button>
-                </div>
-                 <p className="text-xs text-gray-500">{t('admin.bg_brightness_desc')}</p>
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-bold text-gray-400">
+                {t("admin.bg_brightness_label")} (
+                {settings.background_brightness || 1.0})
+              </label>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-center">
+                <input
+                  type="range"
+                  min="0.2"
+                  max="2.0"
+                  step="0.1"
+                  value={settings.background_brightness || 1.0}
+                  onChange={(e) =>
+                    handleChange("background_brightness", e.target.value)
+                  }
+                  className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                />
+                <button
+                  onClick={() =>
+                    handleSave(
+                      "background_brightness",
+                      settings.background_brightness,
+                    )
+                  }
+                  disabled={saving}
+                  className="px-6 min-h-[42px] bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold transition-colors disabled:opacity-50"
+                >
+                  {t("admin.save_btn")}
+                </button>
               </div>
-
-              {/* Bloom (Glow) */}
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-gray-400">
-                    {t('admin.bg_bloom_label')} ({settings.background_bloom || 0.8})
-                </label>
-                <div className="flex gap-4 items-center">
-                  <input 
-                    type="range" 
-                    min="0.0" 
-                    max="3.0" 
-                    step="0.1"
-                    value={settings.background_bloom || 0.8} 
-                    onChange={(e) => handleChange('background_bloom', e.target.value)}
-                    className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
-                  />
-                  <button 
-                    onClick={() => handleSave('background_bloom', settings.background_bloom)}
-                    disabled={saving}
-                    className="px-6 bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold transition-colors disabled:opacity-50"
-                  >
-                    {t('admin.save_btn')}
-                  </button>
-                </div>
-                 <p className="text-xs text-gray-500">{t('admin.bg_bloom_desc')}</p>
-              </div>
-
-              {/* Vignette (Dark Corners) */}
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-gray-400">
-                    {t('admin.bg_vignette_label')} ({settings.background_vignette || 0.5})
-                </label>
-                <div className="flex gap-4 items-center">
-                  <input 
-                    type="range" 
-                    min="0.0" 
-                    max="1.0" 
-                    step="0.1"
-                    value={settings.background_vignette || 0.5} 
-                    onChange={(e) => handleChange('background_vignette', e.target.value)}
-                    className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
-                  />
-                  <button 
-                    onClick={() => handleSave('background_vignette', settings.background_vignette)}
-                    disabled={saving}
-                    className="px-6 bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold transition-colors disabled:opacity-50"
-                  >
-                    {t('admin.save_btn')}
-                  </button>
-                </div>
-                 <p className="text-xs text-gray-500">{t('admin.bg_vignette_desc')}</p>
-              </div>
-
+              <p className="text-xs text-gray-500">
+                {t("admin.bg_brightness_desc")}
+              </p>
             </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-bold text-gray-400">
+                {t("admin.bg_bloom_label")} ({settings.background_bloom || 0.8})
+              </label>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-center">
+                <input
+                  type="range"
+                  min="0.0"
+                  max="3.0"
+                  step="0.1"
+                  value={settings.background_bloom || 0.8}
+                  onChange={(e) =>
+                    handleChange("background_bloom", e.target.value)
+                  }
+                  className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                />
+                <button
+                  onClick={() =>
+                    handleSave("background_bloom", settings.background_bloom)
+                  }
+                  disabled={saving}
+                  className="px-6 min-h-[42px] bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold transition-colors disabled:opacity-50"
+                >
+                  {t("admin.save_btn")}
+                </button>
+              </div>
+              <p className="text-xs text-gray-500">
+                {t("admin.bg_bloom_desc")}
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-bold text-gray-400">
+                {t("admin.bg_vignette_label")} (
+                {settings.background_vignette || 0.5})
+              </label>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-center">
+                <input
+                  type="range"
+                  min="0.0"
+                  max="1.0"
+                  step="0.1"
+                  value={settings.background_vignette || 0.5}
+                  onChange={(e) =>
+                    handleChange("background_vignette", e.target.value)
+                  }
+                  className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                />
+                <button
+                  onClick={() =>
+                    handleSave(
+                      "background_vignette",
+                      settings.background_vignette,
+                    )
+                  }
+                  disabled={saving}
+                  className="px-6 min-h-[42px] bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold transition-colors disabled:opacity-50"
+                >
+                  {t("admin.save_btn")}
+                </button>
+              </div>
+              <p className="text-xs text-gray-500">
+                {t("admin.bg_vignette_desc")}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
 /**
  * Service Worker 注册 Hook
@@ -6,41 +6,44 @@ import { useEffect } from 'react';
  */
 export const useServiceWorker = () => {
   useEffect(() => {
-    if (!('serviceWorker' in navigator)) {
+    if (!("serviceWorker" in navigator)) {
       return;
     }
 
     const registerSW = async () => {
+      if (import.meta.env.DEV) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(
+          registrations.map((registration) => registration.unregister()),
+        );
+        if ("caches" in window) {
+          const cacheKeys = await caches.keys();
+          await Promise.all(cacheKeys.map((key) => caches.delete(key)));
+        }
+        return;
+      }
+
       try {
-        const registration = await navigator.serviceWorker.register('/sw.js', {
-          scope: '/',
+        const registration = await navigator.serviceWorker.register("/sw.js", {
+          scope: "/",
         });
 
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[SW] Service Worker 注册成功:', registration.scope);
-        }
-
-        // 检查更新
-        registration.addEventListener('updatefound', () => {
+        registration.addEventListener("updatefound", () => {
           const newWorker = registration.installing;
-          
+
           if (!newWorker) return;
 
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              if (process.env.NODE_ENV === 'development') {
-                console.log('[SW] 新版本可用，刷新后生效');
-              }
-              
-              // 可以在这里显示更新提示
-              if (window.confirm('有新版本可用，是否刷新？')) {
-                window.location.reload();
-              }
+          newWorker.addEventListener("statechange", () => {
+            if (
+              newWorker.state === "installed" &&
+              navigator.serviceWorker.controller
+            ) {
+              window.location.reload();
             }
           });
         });
       } catch (error) {
-        console.error('[SW] Service Worker 注册失败:', error);
+        console.error(error);
       }
     };
 
@@ -54,30 +57,23 @@ export const useServiceWorker = () => {
 export const useNetworkStatus = () => {
   useEffect(() => {
     const handleOnline = () => {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[Network] 网络已连接');
-      }
-      // 可以在这里触发后台同步
-      if ('serviceWorker' in navigator && 'sync' in window.registration) {
+      if ("serviceWorker" in navigator) {
         navigator.serviceWorker.ready.then((registration) => {
-          registration.sync.register('sync-data');
+          if ("sync" in registration) {
+            registration.sync.register("sync-data");
+          }
         });
       }
     };
 
-    const handleOffline = () => {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[Network] 网络已断开');
-      }
-      // 可以在这里显示离线提示
-    };
+    const handleOffline = () => {};
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
     };
   }, []);
 };

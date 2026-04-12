@@ -1,58 +1,79 @@
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { 
-  LayoutGrid, Music, Film, BookOpen, Calendar, 
-  Users, Activity, Clock, Eye, TrendingUp
-} from 'lucide-react';
-import api from '../../services/api';
-import toast from 'react-hot-toast';
+import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import {
+  LayoutGrid,
+  Music,
+  Film,
+  BookOpen,
+  Calendar,
+  Users,
+  Activity,
+  Clock,
+  Eye,
+  TrendingUp,
+} from "lucide-react";
+import api from "../../services/api";
+import toast from "react-hot-toast";
 
 const StatCard = ({ title, value, icon: Icon, color, onClick, breakdown }) => {
   const { t } = useTranslation();
   return (
-  <button 
-    onClick={onClick}
-    className="bg-[#111] p-6 rounded-2xl border border-white/10 text-left hover:border-indigo-500/50 hover:bg-[#161616] transition-all group relative overflow-hidden w-full"
-  >
-    <div className={`absolute top-0 right-0 w-24 h-24 bg-${color}-500/10 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110`} />
-    
-    <div className="relative z-10">
-      <div className={`w-12 h-12 rounded-xl bg-${color}-500/20 flex items-center justify-center text-${color}-400 mb-4 group-hover:scale-110 transition-transform`}>
-        <Icon size={24} />
-      </div>
-      <h3 className="text-3xl font-bold text-white mb-1">{value}</h3>
-      <p className="text-gray-400 text-sm font-medium uppercase tracking-wider mb-2">{title}</p>
-      
-      {breakdown && (
-        <div className="flex flex-wrap gap-2 text-xs">
-          <span className="text-green-400 bg-green-400/10 px-1.5 py-0.5 rounded">
-            {breakdown.active} {t('admin.overview_ui.active')}
-          </span>
-          {breakdown.pending > 0 && (
-            <span className="text-yellow-400 bg-yellow-400/10 px-1.5 py-0.5 rounded">
-               {breakdown.pending} {t('admin.overview_ui.pending')}
-            </span>
-          )}
-          {breakdown.deleted > 0 && (
-            <span className="text-red-400 bg-red-400/10 px-1.5 py-0.5 rounded">
-               {breakdown.deleted} {t('admin.overview_ui.deleted')}
-            </span>
-          )}
-        </div>
-      )}
-    </div>
-  </button>
-)};
+    <button
+      onClick={onClick}
+      className="bg-[#111] p-4 md:p-6 rounded-2xl border border-white/10 text-left hover:border-indigo-500/50 hover:bg-[#161616] transition-all group relative overflow-hidden w-full"
+    >
+      <div
+        className={`absolute top-0 right-0 w-24 h-24 bg-${color}-500/10 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110`}
+      />
 
-const CompactMetric = ({ label, value, icon: Icon, accent = 'indigo' }) => (
-  <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+      <div className="relative z-10">
+        <div
+          className={`w-10 h-10 md:w-12 md:h-12 rounded-xl bg-${color}-500/20 flex items-center justify-center text-${color}-400 mb-3 md:mb-4 group-hover:scale-110 transition-transform`}
+        >
+          <Icon size={20} />
+        </div>
+        <h3 className="text-2xl md:text-3xl font-bold text-white mb-1">
+          {value}
+        </h3>
+        <p className="text-gray-400 text-sm font-medium uppercase tracking-wider mb-2">
+          {title}
+        </p>
+
+        {breakdown && (
+          <div className="flex flex-wrap gap-2 text-xs">
+            <span className="text-green-400 bg-green-400/10 px-1.5 py-0.5 rounded">
+              {breakdown.active} {t("admin.overview_ui.active")}
+            </span>
+            {breakdown.pending > 0 && (
+              <span className="text-yellow-400 bg-yellow-400/10 px-1.5 py-0.5 rounded">
+                {breakdown.pending} {t("admin.overview_ui.pending")}
+              </span>
+            )}
+            {breakdown.deleted > 0 && (
+              <span className="text-red-400 bg-red-400/10 px-1.5 py-0.5 rounded">
+                {breakdown.deleted} {t("admin.overview_ui.deleted")}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+    </button>
+  );
+};
+
+const CompactMetric = ({ label, value, icon: Icon, accent = "indigo" }) => (
+  <div className="rounded-xl border border-white/10 bg-white/5 p-3.5 md:p-4">
     <div className="flex items-center justify-between gap-3">
-      <p className="text-xs uppercase tracking-[0.22em] text-gray-400">{label}</p>
-      <div className={`flex h-9 w-9 items-center justify-center rounded-xl bg-${accent}-500/15 text-${accent}-400`}>
+      <p className="text-xs uppercase tracking-[0.22em] text-gray-400">
+        {label}
+      </p>
+      <div
+        className={`flex h-9 w-9 items-center justify-center rounded-xl bg-${accent}-500/15 text-${accent}-400`}
+      >
         <Icon size={16} />
       </div>
     </div>
-    <p className="mt-3 text-2xl font-bold text-white">{value}</p>
+    <p className="mt-3 text-xl md:text-2xl font-bold text-white">{value}</p>
   </div>
 );
 
@@ -61,30 +82,47 @@ const Overview = ({ onChangeTab }) => {
   const [stats, setStats] = useState({
     counts: { photos: 0, music: 0, videos: 0, articles: 0, events: 0 },
     breakdown: {},
-    eventAnalytics: { totalViews: 0, totalRegistrations: 0, upcomingCount: 0, views7d: 0, registrations7d: 0, hottestEvents: [] },
-    system: { uptime: 0, nodeVersion: '', platform: '' }
+    eventAnalytics: {
+      totalViews: 0,
+      totalRegistrations: 0,
+      upcomingCount: 0,
+      views7d: 0,
+      registrations7d: 0,
+      hottestEvents: [],
+    },
+    system: { uptime: 0, nodeVersion: "", platform: "" },
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await api.get('/stats');
-        setStats(response.data || {
-          counts: { photos: 0, music: 0, videos: 0, articles: 0, events: 0 },
-          breakdown: {},
-          eventAnalytics: { totalViews: 0, totalRegistrations: 0, upcomingCount: 0, views7d: 0, registrations7d: 0, hottestEvents: [] },
-          system: { uptime: 0, nodeVersion: '', platform: '' }
-        });
+        const response = await api.get("/stats");
+        setStats(
+          response.data || {
+            counts: { photos: 0, music: 0, videos: 0, articles: 0, events: 0 },
+            breakdown: {},
+            eventAnalytics: {
+              totalViews: 0,
+              totalRegistrations: 0,
+              upcomingCount: 0,
+              views7d: 0,
+              registrations7d: 0,
+              hottestEvents: [],
+            },
+            system: { uptime: 0, nodeVersion: "", platform: "" },
+          },
+        );
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-            console.error('Failed to fetch stats', error);
+        if (process.env.NODE_ENV === "development") {
+          console.error("Failed to fetch stats", error);
         }
-        const errorMsg = error.response?.status === 403 
-          ? t('admin.overview_ui.no_permission', '没有权限访问')
-          : error.response?.status === 401
-          ? t('admin.overview_ui.not_logged_in', '请先登录')
-          : t('admin.overview_ui.load_fail', '获取统计数据失败');
+        const errorMsg =
+          error.response?.status === 403
+            ? t("admin.overview_ui.no_permission", "没有权限访问")
+            : error.response?.status === 401
+              ? t("admin.overview_ui.not_logged_in", "请先登录")
+              : t("admin.overview_ui.load_fail", "获取统计数据失败");
         toast.error(errorMsg);
       } finally {
         setLoading(false);
@@ -95,78 +133,94 @@ const Overview = ({ onChangeTab }) => {
 
   const formatUptime = (seconds) => {
     const d = Math.floor(seconds / (3600 * 24));
-    const h = Math.floor(seconds % (3600 * 24) / 3600);
-    const m = Math.floor(seconds % 3600 / 60);
-    return `${d}${t('admin.overview_ui.uptime_days')} ${h}${t('admin.overview_ui.uptime_hours')} ${m}${t('admin.overview_ui.uptime_minutes')}`;
+    const h = Math.floor((seconds % (3600 * 24)) / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    return `${d}${t("admin.overview_ui.uptime_days")} ${h}${t("admin.overview_ui.uptime_hours")} ${m}${t("admin.overview_ui.uptime_minutes")}`;
   };
 
-  const formatNumber = (value) => new Intl.NumberFormat('zh-CN').format(Number(value || 0));
+  const formatNumber = (value) =>
+    new Intl.NumberFormat("zh-CN").format(Number(value || 0));
 
-  if (loading) return <div className="p-8 text-center text-gray-500">{t('admin.overview_ui.loading_stats')}</div>;
+  if (loading)
+    return (
+      <div className="p-8 text-center text-gray-500">
+        {t("admin.overview_ui.loading_stats")}
+      </div>
+    );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       {/* Quick Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        <StatCard 
-          title={t('admin.tabs.photos')} 
-          value={stats.counts.photos} 
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
+        <StatCard
+          title={t("admin.tabs.photos")}
+          value={stats.counts.photos}
           breakdown={stats.breakdown?.photos}
-          icon={LayoutGrid} 
+          icon={LayoutGrid}
           color="indigo"
-          onClick={() => onChangeTab('photos')}
+          onClick={() => onChangeTab("photos")}
         />
-        <StatCard 
-          title={t('admin.tabs.music')} 
-          value={stats.counts.music} 
+        <StatCard
+          title={t("admin.tabs.music")}
+          value={stats.counts.music}
           breakdown={stats.breakdown?.music}
-          icon={Music} 
+          icon={Music}
           color="pink"
-          onClick={() => onChangeTab('music')}
+          onClick={() => onChangeTab("music")}
         />
-        <StatCard 
-          title={t('admin.tabs.videos')} 
-          value={stats.counts.videos} 
+        <StatCard
+          title={t("admin.tabs.videos")}
+          value={stats.counts.videos}
           breakdown={stats.breakdown?.videos}
-          icon={Film} 
+          icon={Film}
           color="red"
-          onClick={() => onChangeTab('videos')}
+          onClick={() => onChangeTab("videos")}
         />
-        <StatCard 
-          title={t('admin.tabs.articles')} 
-          value={stats.counts.articles} 
+        <StatCard
+          title={t("admin.tabs.articles")}
+          value={stats.counts.articles}
           breakdown={stats.breakdown?.articles}
-          icon={BookOpen} 
+          icon={BookOpen}
           color="yellow"
-          onClick={() => onChangeTab('articles')}
+          onClick={() => onChangeTab("articles")}
         />
-        <StatCard 
-          title={t('admin.tabs.events')} 
-          value={stats.counts.events} 
+        <StatCard
+          title={t("admin.tabs.events")}
+          value={stats.counts.events}
           breakdown={stats.breakdown?.events}
-          icon={Calendar} 
+          icon={Calendar}
           color="green"
-          onClick={() => onChangeTab('events')}
+          onClick={() => onChangeTab("events")}
         />
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        <div className="bg-[#111] p-6 rounded-2xl border border-white/10">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 md:gap-8">
+        <div className="bg-[#111] p-4 md:p-6 rounded-2xl border border-white/10">
           <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
             <Activity size={20} className="text-indigo-400" />
-            {t('admin.overview_ui.system_status')}
+            {t("admin.overview_ui.system_status")}
           </h3>
           <div className="space-y-4">
-            <div className="flex justify-between items-center p-4 bg-white/5 rounded-xl">
-              <span className="text-gray-400">{t('admin.overview_ui.node_version')}</span>
-              <span className="font-mono text-white">{stats.system.nodeVersion}</span>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 p-4 bg-white/5 rounded-xl">
+              <span className="text-gray-400">
+                {t("admin.overview_ui.node_version")}
+              </span>
+              <span className="font-mono text-white">
+                {stats.system.nodeVersion}
+              </span>
             </div>
-            <div className="flex justify-between items-center p-4 bg-white/5 rounded-xl">
-              <span className="text-gray-400">{t('admin.overview_ui.platform')}</span>
-              <span className="font-mono text-white capitalize">{stats.system.platform}</span>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 p-4 bg-white/5 rounded-xl">
+              <span className="text-gray-400">
+                {t("admin.overview_ui.platform")}
+              </span>
+              <span className="font-mono text-white capitalize">
+                {stats.system.platform}
+              </span>
             </div>
-            <div className="flex justify-between items-center p-4 bg-white/5 rounded-xl">
-              <span className="text-gray-400">{t('admin.overview_ui.uptime')}</span>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 p-4 bg-white/5 rounded-xl">
+              <span className="text-gray-400">
+                {t("admin.overview_ui.uptime")}
+              </span>
               <div className="flex items-center gap-2 text-green-400 font-mono">
                 <Clock size={14} />
                 {formatUptime(stats.system.uptime)}
@@ -175,49 +229,99 @@ const Overview = ({ onChangeTab }) => {
           </div>
         </div>
 
-        <div className="bg-[#111] p-6 rounded-2xl border border-white/10">
+        <div className="bg-[#111] p-4 md:p-6 rounded-2xl border border-white/10">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
             <div>
               <h3 className="text-xl font-bold text-white flex items-center gap-2">
                 <Eye size={20} className="text-emerald-400" />
-                {t('admin.overview_ui.event_analytics', '活动数据概览')}
+                {t("admin.overview_ui.event_analytics", "活动数据概览")}
               </h3>
-              <p className="text-sm text-gray-400 mt-2">{t('admin.overview_ui.event_analytics_desc', '集中查看活动访问量、报名量和当前热门活动。')}</p>
+              <p className="text-sm text-gray-400 mt-2">
+                {t(
+                  "admin.overview_ui.event_analytics_desc",
+                  "集中查看活动访问量、报名量和当前热门活动。",
+                )}
+              </p>
             </div>
             <button
-              onClick={() => onChangeTab('events')}
+              onClick={() => onChangeTab("events")}
               className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold text-sm transition-colors"
             >
-              {t('admin.overview_ui.manage_events', '进入活动管理')}
+              {t("admin.overview_ui.manage_events", "进入活动管理")}
             </button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <CompactMetric label={t('admin.resource_manager_ui.views', '累计访问')} value={formatNumber(stats.eventAnalytics?.totalViews)} icon={Eye} accent="indigo" />
-            <CompactMetric label={t('admin.resource_manager_ui.registrations', '累计报名')} value={formatNumber(stats.eventAnalytics?.totalRegistrations)} icon={Users} accent="emerald" />
-            <CompactMetric label={t('admin.resource_manager_ui.views_7d', '近 7 日访问')} value={formatNumber(stats.eventAnalytics?.views7d)} icon={TrendingUp} accent="violet" />
-            <CompactMetric label={t('admin.resource_manager_ui.upcoming_events', '待开始活动')} value={formatNumber(stats.eventAnalytics?.upcomingCount)} icon={Calendar} accent="amber" />
+            <CompactMetric
+              label={t("admin.resource_manager_ui.views", "累计访问")}
+              value={formatNumber(stats.eventAnalytics?.totalViews)}
+              icon={Eye}
+              accent="indigo"
+            />
+            <CompactMetric
+              label={t("admin.resource_manager_ui.registrations", "累计报名")}
+              value={formatNumber(stats.eventAnalytics?.totalRegistrations)}
+              icon={Users}
+              accent="emerald"
+            />
+            <CompactMetric
+              label={t("admin.resource_manager_ui.views_7d", "近 7 日访问")}
+              value={formatNumber(stats.eventAnalytics?.views7d)}
+              icon={TrendingUp}
+              accent="violet"
+            />
+            <CompactMetric
+              label={t(
+                "admin.resource_manager_ui.upcoming_events",
+                "待开始活动",
+              )}
+              value={formatNumber(stats.eventAnalytics?.upcomingCount)}
+              icon={Calendar}
+              accent="amber"
+            />
           </div>
 
           <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
             <div className="flex items-center justify-between gap-3 mb-4">
-              <h4 className="text-sm font-bold uppercase tracking-[0.22em] text-gray-300">{t('admin.overview_ui.hot_events', '热门活动')}</h4>
-              <span className="text-xs text-gray-500">{t('admin.overview_ui.sorted_by_views', '按访问量排序')}</span>
+              <h4 className="text-sm font-bold uppercase tracking-[0.22em] text-gray-300">
+                {t("admin.overview_ui.hot_events", "热门活动")}
+              </h4>
+              <span className="text-xs text-gray-500">
+                {t("admin.overview_ui.sorted_by_views", "按访问量排序")}
+              </span>
             </div>
 
             <div className="space-y-3">
               {(stats.eventAnalytics?.hottestEvents || []).length === 0 ? (
-                <div className="text-sm text-gray-500">{t('admin.overview_ui.no_hot_events', '暂无活动统计数据')}</div>
+                <div className="text-sm text-gray-500">
+                  {t("admin.overview_ui.no_hot_events", "暂无活动统计数据")}
+                </div>
               ) : (
                 stats.eventAnalytics.hottestEvents.map((event) => (
-                  <div key={event.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-xl bg-black/20 px-4 py-3">
+                  <div
+                    key={event.id}
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-xl bg-black/20 px-4 py-3"
+                  >
                     <div className="min-w-0">
-                      <p className="font-semibold text-white truncate">{event.title}</p>
-                      <p className="text-xs text-gray-500 mt-1">{event.date || t('common.unknown', '未知')}</p>
+                      <p className="font-semibold text-white truncate">
+                        {event.title}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {event.date || t("common.unknown", "未知")}
+                      </p>
                     </div>
                     <div className="flex items-center gap-4 text-sm">
-                      <span className="text-indigo-300">{formatNumber(event.views)} {t('admin.resource_manager_ui.views_unit', '访问')}</span>
-                      <span className="text-emerald-300">{formatNumber(event.registrations)} {t('admin.resource_manager_ui.registrations_unit', '报名')}</span>
+                      <span className="text-indigo-300">
+                        {formatNumber(event.views)}{" "}
+                        {t("admin.resource_manager_ui.views_unit", "访问")}
+                      </span>
+                      <span className="text-emerald-300">
+                        {formatNumber(event.registrations)}{" "}
+                        {t(
+                          "admin.resource_manager_ui.registrations_unit",
+                          "报名",
+                        )}
+                      </span>
                     </div>
                   </div>
                 ))
@@ -227,16 +331,20 @@ const Overview = ({ onChangeTab }) => {
         </div>
       </div>
 
-      <div className="bg-gradient-to-br from-indigo-900/20 to-purple-900/20 p-6 rounded-2xl border border-white/10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+      <div className="bg-gradient-to-br from-indigo-900/20 to-purple-900/20 p-4 md:p-6 rounded-2xl border border-white/10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 md:gap-6">
         <div>
-          <h3 className="text-2xl font-bold text-white mb-2">{t('admin.overview_ui.welcome_back')}</h3>
-          <p className="text-gray-400">{t('admin.overview_ui.control_text')}</p>
+          <h3 className="text-xl md:text-2xl font-bold text-white mb-2">
+            {t("admin.overview_ui.welcome_back")}
+          </h3>
+          <p className="text-sm md:text-base text-gray-400">
+            {t("admin.overview_ui.control_text")}
+          </p>
         </div>
-        <button 
-          onClick={() => onChangeTab('pending')}
+        <button
+          onClick={() => onChangeTab("pending")}
           className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-colors shadow-lg shadow-indigo-500/20"
         >
-          {t('admin.overview_ui.check_pending')}
+          {t("admin.overview_ui.check_pending")}
         </button>
       </div>
     </div>

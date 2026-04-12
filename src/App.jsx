@@ -1,55 +1,63 @@
-import React, { Suspense, lazy, useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from './context/AuthContext';
-import { AnimatePresence, motion } from 'framer-motion';
-import { Toaster } from 'react-hot-toast';
-import { MusicProvider } from './context/MusicContext';
-import { SettingsProvider, useSettings } from './context/SettingsContext';
-import { AuthProvider } from './context/AuthContext';
-import { HelmetProvider } from 'react-helmet-async';
-import ErrorBoundary from './components/ErrorBoundary';
-import { ResourceHints } from './components/ResourceHints';
-import { usePerformanceMonitor } from './hooks/usePerformanceMonitor';
-import { useServiceWorker } from './hooks/useServiceWorker';
-import SEO from './components/SEO';
+import React, { Suspense, lazy, useEffect, useState } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
+import { useAuth } from "./context/AuthContext";
+import { AnimatePresence, motion } from "framer-motion";
+import { Toaster } from "react-hot-toast";
+import { MusicProvider } from "./context/MusicContext";
+import { SettingsProvider, useSettings } from "./context/SettingsContext";
+import { AuthProvider } from "./context/AuthContext";
+import { HelmetProvider } from "react-helmet-async";
+import ErrorBoundary from "./components/ErrorBoundary";
+import { ResourceHints } from "./components/ResourceHints";
+import { usePerformanceMonitor } from "./hooks/usePerformanceMonitor";
+import { useServiceWorker } from "./hooks/useServiceWorker";
+import SEO from "./components/SEO";
 
-import Navbar from './components/Navbar';
-import ScrollToTop from './components/ScrollToTop';
-import CustomCursor from './components/CustomCursor';
-import ScrollProgress from './components/ScrollProgress';
-import PWAInstallPrompt from './components/PWAInstallPrompt';
-import MobileNavbar from './components/MobileNavbar';
-import Footer from './components/Footer';
-import LoadingScreen from './components/LoadingScreen';
-import PerformancePanel from './components/PerformancePanel';
+import Navbar from "./components/Navbar";
+import ScrollToTop from "./components/ScrollToTop";
+import CustomCursor from "./components/CustomCursor";
+import ScrollProgress from "./components/ScrollProgress";
+import PWAInstallPrompt from "./components/PWAInstallPrompt";
+import MobileNavbar from "./components/MobileNavbar";
+import Footer from "./components/Footer";
+import LoadingScreen from "./components/LoadingScreen";
+import PerformancePanel from "./components/PerformancePanel";
 
 // Lazy load page components
-const Hero = lazy(() => import('./components/Hero'));
-const Gallery = lazy(() => import('./components/Gallery'));
-const Music = lazy(() => import('./components/Music'));
-const Videos = lazy(() => import('./components/Videos'));
-const Articles = lazy(() => import('./components/Articles'));
-const Events = lazy(() => import('./components/Events'));
-const HomeCategories = lazy(() => import('./components/HomeCategories'));
-const PlatformStats = lazy(() => import('./components/PlatformStats'));
-const About = lazy(() => import('./components/About'));
-const AdminDashboard = lazy(() => import('./components/Admin/AdminDashboard'));
-const NotFound = lazy(() => import('./components/NotFound'));
-const PublicProfile = lazy(() => import('./components/PublicProfile'));
-const BackgroundSystem = lazy(() => import('./components/BackgroundSystem'));
-const SearchPalette = lazy(() => import('./components/SearchPalette'));
-const GlobalPlayer = lazy(() => import('./components/GlobalPlayer'));
+const Hero = lazy(() => import("./components/Hero"));
+const Gallery = lazy(() => import("./components/Gallery"));
+const Music = lazy(() => import("./components/Music"));
+const Videos = lazy(() => import("./components/Videos"));
+const Articles = lazy(() => import("./components/Articles"));
+const Events = lazy(() => import("./components/Events"));
+const HomeCategories = lazy(() => import("./components/HomeCategories"));
+const PlatformStats = lazy(() => import("./components/PlatformStats"));
+const About = lazy(() => import("./components/About"));
+const AdminDashboard = lazy(() => import("./components/Admin/AdminDashboard"));
+const NotFound = lazy(() => import("./components/NotFound"));
+const PublicProfile = lazy(() => import("./components/PublicProfile"));
+const BackgroundSystem = lazy(() => import("./components/BackgroundSystem"));
+const SearchPalette = lazy(() => import("./components/SearchPalette"));
+const GlobalPlayer = lazy(() => import("./components/GlobalPlayer"));
 
 const useDeferredMount = (delay = 0) => {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return undefined;
+    if (typeof window === "undefined") return undefined;
 
     const mount = () => setMounted(true);
 
-    if ('requestIdleCallback' in window) {
-      const idleId = window.requestIdleCallback(mount, { timeout: Math.max(delay, 1200) });
+    if ("requestIdleCallback" in window) {
+      const idleId = window.requestIdleCallback(mount, {
+        timeout: Math.max(delay, 1200),
+      });
       return () => window.cancelIdleCallback?.(idleId);
     }
 
@@ -64,11 +72,11 @@ const PageTransition = ({ children }) => {
   // Check if we are on a mobile device to disable heavy filters
   // Use useState to avoid hydration mismatch
   const [isMobile, setIsMobile] = useState(false);
-  
+
   useEffect(() => {
     setIsMobile(window.innerWidth < 768);
   }, []);
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, y: isMobile ? 0 : 10 }}
@@ -83,37 +91,41 @@ const PageTransition = ({ children }) => {
 };
 
 const Home = () => {
-    return (
-        <>
-            <SEO 
-              title="首页"
-              description="探索数字艺术与科技的边界 - 浙江大学 SQTP 项目组官方平台，展示摄影、音乐、视频、文章等多元创作内容"
-            />
-            <Hero />
-            <HomeCategories />
-            <PlatformStats />
-        </>
-    )
-}
+  return (
+    <>
+      <SEO
+        title="首页"
+        description="探索数字艺术与科技的边界 - 浙江大学 SQTP 项目组官方平台，展示摄影、音乐、视频、文章等多元创作内容"
+      />
+      <Hero />
+      <HomeCategories />
+      <PlatformStats />
+    </>
+  );
+};
 
 // 路由守卫：仅 admin 可访问，否则重定向到首页
 const AdminRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return null;
-  if (!user || user.role !== 'admin') return <Navigate to="/" replace />;
+  if (!user || user.role !== "admin") return <Navigate to="/" replace />;
   return children;
 };
 
 const AppContent = () => {
   const location = useLocation();
-  const isAdminRoute = location.pathname.startsWith('/admin');
+  const isAdminRoute = location.pathname.startsWith("/admin");
+  const isHomeRoute = location.pathname === "/";
   const { cursorEnabled, settings, backgroundEnabled } = useSettings();
   const shouldMountDeferredUi = useDeferredMount(700);
-  const shouldMountHeavyBackground = useDeferredMount(100);
+  const shouldMountHeavyBackground = useDeferredMount(isHomeRoute ? 120 : 480);
   const canRenderHeavyEffects = true;
   const allowBackgroundEffects = !isAdminRoute && backgroundEnabled;
-  const shouldRenderBackground = allowBackgroundEffects && canRenderHeavyEffects && shouldMountHeavyBackground;
-  
+  const shouldRenderBackground =
+    allowBackgroundEffects &&
+    canRenderHeavyEffects &&
+    shouldMountHeavyBackground;
+
   // 注册 Service Worker
   useServiceWorker();
 
@@ -132,11 +144,11 @@ const AppContent = () => {
     enabled: import.meta.env.PROD,
     onMetric: (_metric) => {
       // 仅在生产环境记录性能指标
-      if (import.meta.env.PROD && window.location.hostname === 'tuotuzj.com') {
+      if (import.meta.env.PROD && window.location.hostname === "tuotuzj.com") {
         // 发送到分析服务
         // analytics.track('performance', metric);
       }
-    }
+    },
   });
 
   useEffect(() => {
@@ -153,7 +165,7 @@ const AppContent = () => {
   }, [location.pathname]);
 
   useEffect(() => {
-    if (isAdminRoute || typeof window === 'undefined') return;
+    if (isAdminRoute || typeof window === "undefined") return;
 
     const currentDate = new Date().toISOString().slice(0, 10);
     const sessionVisitKey = `site-visit:${currentDate}:${location.pathname}`;
@@ -162,13 +174,15 @@ const AppContent = () => {
       return;
     }
 
-    let visitorKey = window.localStorage.getItem('site-visitor-key');
+    let visitorKey = window.localStorage.getItem("site-visitor-key");
     if (!visitorKey) {
-      visitorKey = window.crypto?.randomUUID?.() || `visitor-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-      window.localStorage.setItem('site-visitor-key', visitorKey);
+      visitorKey =
+        window.crypto?.randomUUID?.() ||
+        `visitor-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+      window.localStorage.setItem("site-visitor-key", visitorKey);
     }
 
-    window.sessionStorage.setItem(sessionVisitKey, '1');
+    window.sessionStorage.setItem(sessionVisitKey, "1");
     // 数据推送已移除
   }, [isAdminRoute, location.pathname]);
 
@@ -177,7 +191,7 @@ const AppContent = () => {
       {shouldRenderBackground && (
         <ErrorBoundary variant="inline" silent>
           <Suspense fallback={null}>
-            <BackgroundSystem />
+            <BackgroundSystem quality={isHomeRoute ? "full" : "lite"} />
           </Suspense>
         </ErrorBoundary>
       )}
@@ -194,7 +208,11 @@ const AppContent = () => {
             <Navbar />
           </ErrorBoundary>
         )}
-        {!isAdminRoute && cursorEnabled && <div className="hidden md:block"><CustomCursor /></div>}
+        {!isAdminRoute && cursorEnabled && (
+          <div className="hidden md:block">
+            <CustomCursor />
+          </div>
+        )}
         {!isAdminRoute && <ScrollProgress />}
 
         {shouldMountDeferredUi && (
@@ -209,16 +227,86 @@ const AppContent = () => {
           <Suspense fallback={<LoadingScreen />}>
             <AnimatePresence mode="wait">
               <Routes location={location} key={location.pathname}>
-                <Route path="/" element={<PageTransition><Home /></PageTransition>} />
-                <Route path="/gallery" element={<PageTransition><Gallery /></PageTransition>} />
-                <Route path="/music" element={<PageTransition><Music /></PageTransition>} />
-                <Route path="/videos" element={<PageTransition><Videos /></PageTransition>} />
-                <Route path="/articles" element={<PageTransition><Articles /></PageTransition>} />
-                <Route path="/events" element={<PageTransition><Events /></PageTransition>} />
-                <Route path="/about" element={<PageTransition><About /></PageTransition>} />
-                <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-                <Route path="/user/:id" element={<PageTransition><PublicProfile /></PageTransition>} />
-                <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
+                <Route
+                  path="/"
+                  element={
+                    <PageTransition>
+                      <Home />
+                    </PageTransition>
+                  }
+                />
+                <Route
+                  path="/gallery"
+                  element={
+                    <PageTransition>
+                      <Gallery />
+                    </PageTransition>
+                  }
+                />
+                <Route
+                  path="/music"
+                  element={
+                    <PageTransition>
+                      <Music />
+                    </PageTransition>
+                  }
+                />
+                <Route
+                  path="/videos"
+                  element={
+                    <PageTransition>
+                      <Videos />
+                    </PageTransition>
+                  }
+                />
+                <Route
+                  path="/articles"
+                  element={
+                    <PageTransition>
+                      <Articles />
+                    </PageTransition>
+                  }
+                />
+                <Route
+                  path="/events"
+                  element={
+                    <PageTransition>
+                      <Events />
+                    </PageTransition>
+                  }
+                />
+                <Route
+                  path="/about"
+                  element={
+                    <PageTransition>
+                      <About />
+                    </PageTransition>
+                  }
+                />
+                <Route
+                  path="/admin"
+                  element={
+                    <AdminRoute>
+                      <AdminDashboard />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="/user/:id"
+                  element={
+                    <PageTransition>
+                      <PublicProfile />
+                    </PageTransition>
+                  }
+                />
+                <Route
+                  path="*"
+                  element={
+                    <PageTransition>
+                      <NotFound />
+                    </PageTransition>
+                  }
+                />
               </Routes>
             </AnimatePresence>
           </Suspense>
@@ -249,22 +337,22 @@ const App = () => {
         <SettingsProvider>
           <MusicProvider>
             <Router>
-              <Toaster 
+              <Toaster
                 position="top-center"
                 toastOptions={{
-                  className: '',
+                  className: "",
                   style: {
-                    background: 'rgba(10, 10, 10, 0.8)',
-                    color: '#fff',
-                    backdropFilter: 'blur(16px)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderRadius: '16px',
-                    fontSize: '14px',
+                    background: "rgba(10, 10, 10, 0.8)",
+                    color: "#fff",
+                    backdropFilter: "blur(16px)",
+                    border: "1px solid rgba(255, 255, 255, 0.1)",
+                    borderRadius: "16px",
+                    fontSize: "14px",
                   },
                   success: {
                     iconTheme: {
-                      primary: '#6366f1',
-                      secondary: '#fff',
+                      primary: "#6366f1",
+                      secondary: "#fff",
                     },
                   },
                 }}
