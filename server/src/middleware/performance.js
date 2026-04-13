@@ -128,7 +128,7 @@ const performanceMonitor = (req, res, next) => {
     }
     
     // Add performance headers in development
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development' && !res.headersSent) {
       res.setHeader('X-Response-Time', `${durationMs}ms`);
     }
   });

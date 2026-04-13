@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Cloud,
   Clock,
@@ -38,15 +38,12 @@ const Portal = ({ children }) => {
 const Navbar = () => {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isThemeOpen, setIsThemeOpen] = useState(false);
-  const [mobileToolbarState, setMobileToolbarState] = useState({
-    filterCount: 0,
-    sortLabel: "",
-  });
   const location = useLocation();
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const {
-    backgroundScene,
-    changeBackgroundScene,
+    themeScene,
+    changeThemeScene,
     backgroundEnabled,
     changeBackgroundEnabled,
     uiMode,
@@ -111,6 +108,22 @@ const Navbar = () => {
     return location.pathname === path;
   };
   const currentNavLink = navLinks.find((link) => isNavItemActive(link.path));
+  const getMobileTitle = (pathname) => {
+    if (pathname === "/") return t("nav.home");
+    if (pathname.startsWith("/events")) return t("nav.events");
+    if (pathname.startsWith("/articles")) return t("nav.articles");
+    if (pathname.startsWith("/music")) return t("nav.music", "播客");
+    if (pathname.startsWith("/gallery")) return t("nav.gallery");
+    if (pathname.startsWith("/videos")) return t("nav.videos");
+    if (pathname.startsWith("/media")) return t("nav.media", "Media");
+    if (pathname.startsWith("/me") || pathname.startsWith("/user/")) {
+      return t("nav.me", "Me");
+    }
+    if (pathname.startsWith("/about")) return t("nav.about");
+    if (pathname.startsWith("/admin")) return t("nav.admin");
+    return currentNavLink?.key ? t(`nav.${currentNavLink.key}`) : "";
+  };
+  const mobileTitle = getMobileTitle(location.pathname);
 
   // Map route to specific upload type, and dispatch custom event
   const handleUploadClick = () => {
@@ -144,24 +157,11 @@ const Navbar = () => {
   const showUploadButton = uploadablePaths.includes(location.pathname);
 
   useEffect(() => {
-    const handleToolbarState = (event) => {
-      setMobileToolbarState({
-        filterCount: event.detail?.filterCount || 0,
-        sortLabel: event.detail?.sortLabel || "",
-      });
-    };
+    const openAuthModal = () => setIsAuthOpen(true);
 
-    window.addEventListener("set-mobile-toolbar-state", handleToolbarState);
-    return () =>
-      window.removeEventListener(
-        "set-mobile-toolbar-state",
-        handleToolbarState,
-      );
+    window.addEventListener("open-auth-modal", openAuthModal);
+    return () => window.removeEventListener("open-auth-modal", openAuthModal);
   }, []);
-
-  useEffect(() => {
-    setMobileToolbarState({ filterCount: 0, sortLabel: "" });
-  }, [location.pathname]);
 
   const shellClasses = isDayMode
     ? "bg-white/70 border-slate-200/70 shadow-[0_10px_30px_rgba(148,163,184,0.18)]"
@@ -190,6 +190,11 @@ const Navbar = () => {
   const weatherModalClasses = isDayMode
     ? "bg-white/94 border border-slate-200/80 shadow-[0_18px_44px_rgba(148,163,184,0.2)]"
     : "bg-[#1a1a1a] border border-white/10 shadow-2xl";
+  const showMobileUploadAction = showUploadButton;
+  const showMobileSearchAction =
+    !showMobileUploadAction &&
+    !location.pathname.startsWith("/me") &&
+    !location.pathname.startsWith("/user/");
 
   return (
     <motion.nav
@@ -365,68 +370,26 @@ const Navbar = () => {
         <div
           className={`text-base font-bold tracking-wide absolute left-1/2 -translate-x-1/2 pointer-events-none max-w-[42vw] truncate ${isDayMode ? "text-slate-800" : "text-white/90"}`}
         >
-          {currentNavLink?.key ? t(`nav.${currentNavLink.key}`) : ""}
+          {mobileTitle}
         </div>
 
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            aria-label={t("search.placeholder")}
-            onClick={() =>
-              window.dispatchEvent(new Event("open-search-palette"))
-            }
-            className={`p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-300 hover:text-white"}`}
-          >
-            <Search size={20} />
-          </button>
-          <button
-            type="button"
-            aria-label={t(isDayMode ? "nav.night_mode" : "nav.day_mode")}
-            onClick={() => changeUiMode(isDayMode ? "dark" : "day")}
-            className={`p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-white/80 text-amber-500 shadow-[0_8px_18px_rgba(148,163,184,0.12)]" : "bg-white/10 text-yellow-300"}`}
-            title={t(isDayMode ? "nav.night_mode" : "nav.day_mode")}
-          >
-            <Sun size={18} />
-          </button>
-          <LanguageSwitcher />
+        <div className="flex items-center">
+          <div className="min-h-[44px] min-w-[44px]" aria-hidden="true" />
         </div>
 
-        <div className="flex items-center gap-1">
-          {showUploadButton && (
+        <div className="flex items-center">
+          {showMobileSearchAction && (
             <button
               type="button"
-              aria-label={t("common.sort", "排序")}
-              onClick={() =>
-                window.dispatchEvent(new CustomEvent("toggle-mobile-sort"))
-              }
-              className={`p-1.5 min-h-[44px] min-w-[44px] inline-flex items-center justify-center transition-colors relative rounded-full border focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-slate-500 hover:text-slate-900 bg-white/82 border-slate-200/80 shadow-[0_8px_18px_rgba(148,163,184,0.12)]" : "text-gray-300 hover:text-white bg-white/5 border-white/10"}`}
+              aria-label={t("search.placeholder")}
+              onClick={() => navigate("/search")}
+              className={`p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-slate-500 hover:text-slate-900 bg-white/82 border border-slate-200/80 shadow-[0_8px_18px_rgba(148,163,184,0.12)]" : "text-gray-200 hover:text-white bg-white/10 border border-white/10"}`}
             >
-              <ArrowUpDown size={18} />
-              {mobileToolbarState.sortLabel && (
-                <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] px-1 rounded-full bg-slate-900 text-white text-[9px] font-bold flex items-center justify-center">
-                  S
-                </span>
-              )}
+              <Search size={18} />
             </button>
           )}
-          {showUploadButton && (
-            <button
-              type="button"
-              aria-label={t("common.filters", "筛选")}
-              onClick={() =>
-                window.dispatchEvent(new CustomEvent("toggle-mobile-filter"))
-              }
-              className={`p-1.5 min-h-[44px] min-w-[44px] inline-flex items-center justify-center transition-colors relative rounded-full border focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-slate-500 hover:text-slate-900 bg-white/82 border-slate-200/80 shadow-[0_8px_18px_rgba(148,163,184,0.12)]" : "text-gray-300 hover:text-white bg-white/5 border-white/10"}`}
-            >
-              <Filter size={18} />
-              {mobileToolbarState.filterCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-indigo-500 text-white text-[10px] font-bold flex items-center justify-center shadow-[0_0_12px_rgba(99,102,241,0.45)]">
-                  {mobileToolbarState.filterCount}
-                </span>
-              )}
-            </button>
-          )}
-          {showUploadButton && (
+          {/* Mobile sort/filter quick actions are intentionally hidden for now. */}
+          {showMobileUploadAction && (
             <button
               type="button"
               aria-label={t("common.upload", "上传")}
@@ -436,24 +399,8 @@ const Navbar = () => {
               <Plus size={16} strokeWidth={3} />
             </button>
           )}
-          {!showUploadButton && <NotificationCenter />}
-          {user ? (
-            <Link
-              to={`/user/${user.id}`}
-              aria-label={t("user_profile.title")}
-              className="w-10 h-10 rounded-full bg-purple-600 inline-flex items-center justify-center text-xs text-white font-bold border border-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70"
-            >
-              {user.username.charAt(0).toUpperCase()}
-            </Link>
-          ) : (
-            <button
-              type="button"
-              aria-label={t("auth.log_in")}
-              onClick={() => setIsAuthOpen(true)}
-              className={`text-xs font-bold px-3 py-1.5 min-h-[44px] rounded-full transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-white/92 text-slate-800 border border-slate-200/80 hover:bg-white hover:text-indigo-600 shadow-[0_10px_24px_rgba(148,163,184,0.16)]" : "bg-purple-600 hover:bg-purple-700 text-white"}`}
-            >
-              {t("auth.log_in")}
-            </button>
+          {!showMobileSearchAction && !showMobileUploadAction && (
+            <div className="min-h-[44px] min-w-[44px]" aria-hidden="true" />
           )}
         </div>
       </div>
@@ -710,11 +657,11 @@ const Navbar = () => {
                   </button>
                   {themeConfig.map((s) => {
                     const Icon = s.icon;
-                    const isActive = backgroundScene === s.id;
+                    const isActive = themeScene === s.id;
                     return (
                       <button
                         key={s.id}
-                        onClick={() => changeBackgroundScene(s.id)}
+                        onClick={() => changeThemeScene(s.id)}
                         className={`w-full text-left p-3 rounded-xl transition-all duration-300 border group relative overflow-hidden
                           ${isActive ? `${s.bg} ${s.borderColor}` : isDayMode ? "bg-slate-50/80 border-slate-200/70 hover:bg-white" : "bg-white/5 border-transparent hover:bg-white/10"}`}
                       >

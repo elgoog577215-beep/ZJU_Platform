@@ -16,6 +16,11 @@ import {
   Music,
   Film,
   FileText,
+  Download,
+  Globe,
+  LogOut,
+  Moon,
+  Sun,
 } from "lucide-react";
 import api from "../services/api";
 import SmartImage from "./SmartImage";
@@ -25,14 +30,16 @@ import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import Dropdown from "./Dropdown";
 import FavoriteButton from "./FavoriteButton";
+import PersonalCenterShell from "./PersonalCenterShell";
 import { useReducedMotion } from "../utils/animations";
 
-const PublicProfile = () => {
-  const { id } = useParams();
+const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
+  const { id: routeId } = useParams();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user: currentUser, logout, refreshUser } = useAuth();
-  const { settings, uiMode } = useSettings();
+  const { settings, uiMode, changeUiMode } = useSettings();
+  const id = profileId ?? routeId;
 
   const [user, setUser] = useState(null);
   const [resources, setResources] = useState([]);
@@ -44,6 +51,15 @@ const PublicProfile = () => {
     currentUser && user && String(currentUser.id) === String(user.id);
   const prefersReducedMotion = useReducedMotion();
   const isDayMode = uiMode === "day";
+  const settingsPanelClass = isDayMode
+    ? "rounded-2xl p-4 md:p-6 border h-fit bg-white/82 border-slate-200/80 shadow-[0_18px_40px_rgba(148,163,184,0.12)]"
+    : "rounded-2xl p-4 md:p-6 border h-fit bg-white/5 border-white/10";
+  const settingsActionClass = isDayMode
+    ? "w-full flex items-center gap-3 rounded-2xl border px-4 py-4 transition-colors bg-slate-50/90 border-slate-200/80 text-slate-800 hover:bg-white"
+    : "w-full flex items-center gap-3 rounded-2xl border px-4 py-4 transition-colors bg-white/5 border-white/10 text-white hover:bg-white/10";
+  const settingsIconClass = isDayMode
+    ? "h-10 w-10 rounded-xl flex items-center justify-center bg-slate-100 text-slate-700"
+    : "h-10 w-10 rounded-xl flex items-center justify-center bg-white/10 text-white";
 
   // Favorites State
   const [favorites, setFavorites] = useState([]);
@@ -100,9 +116,9 @@ const PublicProfile = () => {
 
     if (id) {
       fetchData();
-      setActiveTab("published"); // Reset tab on id change
+      setActiveTab(initialTab); // Reset tab on profile source change
     }
-  }, [id, currentUser?.id]);
+  }, [id, currentUser?.id, initialTab]);
 
   useEffect(() => {
     if (!isOwner) return;
@@ -331,17 +347,11 @@ const PublicProfile = () => {
   ];
 
   return (
-    <div
-      className={`min-h-screen pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+88px)] px-3 md:px-8 relative overflow-hidden ${isDayMode ? "bg-transparent" : "bg-[#0a0a0a]"}`}
+    <PersonalCenterShell
+      isDayMode={isDayMode}
+      maxWidthClass="max-w-7xl"
+      showAmbient={!prefersReducedMotion}
     >
-      {!prefersReducedMotion && (
-        <div className="fixed inset-0 pointer-events-none z-0">
-          <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-indigo-500/10 blur-[130px]" />
-          <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-purple-500/10 blur-[130px]" />
-        </div>
-      )}
-
-      <div className="max-w-7xl mx-auto relative z-10">
         {/* Profile Header */}
         <div
           className={`glass-panel rounded-[2rem] p-5 md:p-12 mb-6 md:mb-8 relative overflow-hidden shadow-2xl border group ${isDayMode ? "border-slate-200/80 bg-white/72 shadow-[0_28px_80px_rgba(148,163,184,0.18)]" : "border-white/10"}`}
@@ -852,11 +862,9 @@ const PublicProfile = () => {
           )}
 
           {isOwner && activeTab === "settings" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
               {/* Profile Settings */}
-              <div
-                className={`rounded-2xl p-4 md:p-6 border h-fit ${isDayMode ? "bg-white/82 border-slate-200/80 shadow-[0_18px_40px_rgba(148,163,184,0.12)]" : "bg-white/5 border-white/10"}`}
-              >
+              <div className={settingsPanelClass}>
                 <h3
                   className={`text-xl font-bold mb-6 flex items-center gap-2 ${isDayMode ? "text-slate-900" : "text-white"}`}
                 >
@@ -942,9 +950,7 @@ const PublicProfile = () => {
               </div>
 
               {/* Security Settings */}
-              <div
-                className={`rounded-2xl p-4 md:p-6 border h-fit ${isDayMode ? "bg-white/82 border-slate-200/80 shadow-[0_18px_40px_rgba(148,163,184,0.12)]" : "bg-white/5 border-white/10"}`}
-              >
+              <div className={settingsPanelClass}>
                 <h3
                   className={`text-xl font-bold mb-6 flex items-center gap-2 ${isDayMode ? "text-slate-900" : "text-white"}`}
                 >
@@ -1008,11 +1014,104 @@ const PublicProfile = () => {
                   </button>
                 </form>
               </div>
+
+              <div className={settingsPanelClass}>
+                <h3
+                  className={`text-xl font-bold mb-6 flex items-center gap-2 ${isDayMode ? "text-slate-900" : "text-white"}`}
+                >
+                  <Settings size={20} className="text-indigo-500" />
+                  {t("me.preferences", "偏好与设备")}
+                </h3>
+
+                <div className="space-y-3">
+                  <button
+                    type="button"
+                    onClick={() => changeUiMode(isDayMode ? "dark" : "day")}
+                    className={settingsActionClass}
+                  >
+                    <div
+                      className={`${settingsIconClass} ${isDayMode ? "bg-amber-100 text-amber-500" : "text-yellow-300"}`}
+                    >
+                      {isDayMode ? <Moon size={18} /> : <Sun size={18} />}
+                    </div>
+                    <div className="min-w-0 flex-1 text-left">
+                      <div className="text-sm font-semibold">
+                        {t("nav.appearance_mode", "显示模式")}
+                      </div>
+                      <div
+                        className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                      >
+                        {isDayMode
+                          ? t("nav.night_mode", "夜间模式")
+                          : t("nav.day_mode", "日间模式")}
+                      </div>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      i18n.changeLanguage(i18n.language.startsWith("zh") ? "en" : "zh")
+                    }
+                    className={settingsActionClass}
+                  >
+                    <div className={settingsIconClass}>
+                      <Globe size={18} />
+                    </div>
+                    <div className="min-w-0 flex-1 text-left">
+                      <div className="text-sm font-semibold">
+                        {t("me.language", "语言")}
+                      </div>
+                      <div
+                        className={`text-xs mt-1 uppercase ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                      >
+                        {i18n.language}
+                      </div>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => window.dispatchEvent(new Event("request-pwa-install"))}
+                    className={settingsActionClass}
+                  >
+                    <div
+                      className={`${settingsIconClass} ${isDayMode ? "bg-indigo-50 text-indigo-500" : ""}`}
+                    >
+                      <Download size={18} />
+                    </div>
+                    <div className="min-w-0 flex-1 text-left">
+                      <div className="text-sm font-semibold">
+                        {t("me.install_app", "安装应用")}
+                      </div>
+                      <div
+                        className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                      >
+                        {t("me.install_app_hint", "在支持的浏览器中安装为桌面应用。")}
+                      </div>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={logout}
+                    className={settingsActionClass}
+                  >
+                    <div className={settingsIconClass}>
+                      <LogOut size={18} />
+                    </div>
+                    <div className="min-w-0 flex-1 text-left">
+                      <div className="text-sm font-semibold">
+                        {t("auth.log_out", "退出登录")}
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>
-      </div>
-    </div>
+    </PersonalCenterShell>
   );
 };
 

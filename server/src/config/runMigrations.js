@@ -423,6 +423,40 @@ async function runMigrations(db) {
     }
   }
 
+  // --- Articles: add category column ---
+  try {
+    const articlesInfo2 = await db.all(`PRAGMA table_info(articles)`);
+    const articlesColumns2 = articlesInfo2.map(col => col.name);
+
+    if (articlesColumns2.length > 0 && !articlesColumns2.includes('category')) {
+      await db.exec(`ALTER TABLE articles ADD COLUMN category TEXT NOT NULL DEFAULT 'tech'`);
+      console.log('✅ Added category column to articles table');
+    }
+  } catch (err) {
+    if (!err.message.includes('duplicate column')) {
+      console.warn('Migration warning (articles category):', err.message);
+    }
+  }
+
+  // --- Community posts: add content_blocks and link columns ---
+  try {
+    const cpInfo = await db.all(`PRAGMA table_info(community_posts)`);
+    const cpColumns = cpInfo.map(col => col.name);
+
+    if (cpColumns.length > 0 && !cpColumns.includes('content_blocks')) {
+      await db.exec(`ALTER TABLE community_posts ADD COLUMN content_blocks TEXT`);
+      console.log('✅ Added content_blocks column to community_posts');
+    }
+    if (cpColumns.length > 0 && !cpColumns.includes('link')) {
+      await db.exec(`ALTER TABLE community_posts ADD COLUMN link TEXT`);
+      console.log('✅ Added link column to community_posts');
+    }
+  } catch (err) {
+    if (!err.message.includes('duplicate column')) {
+      console.warn('Migration warning (community_posts columns):', err.message);
+    }
+  }
+
   console.log('✅ Database migrations completed');
 }
 

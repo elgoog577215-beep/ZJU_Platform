@@ -238,7 +238,7 @@ const getOneHandler = (table) => async (req, res, next) => {
     const userId = req.user ? req.user.id : null;
     const itemType = getSingularType(table);
 
-    let query = `SELECT ${table}.*`;
+    let query = `SELECT ${table}.*, u.nickname AS author_name, u.avatar AS author_avatar`;
     let params = [];
 
     if (userId) {
@@ -246,7 +246,7 @@ const getOneHandler = (table) => async (req, res, next) => {
          params.push(itemType, userId);
     }
 
-    query += ` FROM ${table} WHERE id = ?`;
+    query += ` FROM ${table} LEFT JOIN users u ON ${table}.uploader_id = u.id WHERE ${table}.id = ?`;
     params.push(id);
 
     const item = await db.get(query, params);
@@ -295,7 +295,7 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
         const userId = (req.user && req.user.id) ? req.user.id : null;
         const itemType = getSingularType(table);
 
-        let query = `SELECT ${table}.*`;
+        let query = `SELECT ${table}.*, u.nickname AS author_name, u.avatar AS author_avatar`;
         let params = [];
 
         if (table === 'events') {
@@ -307,7 +307,7 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
              params.push(itemType, userId);
         }
 
-        query += ` FROM ${table}`;
+        query += ` FROM ${table} LEFT JOIN users u ON ${table}.uploader_id = u.id`;
 
         let countQuery = `SELECT COUNT(*) as count FROM ${table}`;
         let countParams = [];
@@ -349,6 +349,12 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
             whereClauses.push('uploader_id = ?');
             params.push(uploader_id);
             countParams.push(uploader_id);
+        }
+
+        if (category && (table === 'articles' || table === 'events')) {
+            whereClauses.push('category = ?');
+            params.push(category);
+            countParams.push(category);
         }
 
         if (tag && tag !== 'All') {
@@ -671,7 +677,7 @@ const fields = {
     photos: ['url', 'title', 'tags', 'size', 'gameType', 'gameDescription', 'featured'],
     music: ['title', 'artist', 'duration', 'cover', 'audio', 'featured', 'tags'],
     videos: ['title', 'tags', 'thumbnail', 'video', 'featured'],
-    articles: ['title', 'date', 'excerpt', 'tags', 'content', 'content_blocks', 'cover', 'featured'],
+    articles: ['title', 'date', 'excerpt', 'tags', 'content', 'content_blocks', 'cover', 'featured', 'category'],
     events: ['title', 'date', 'end_date', 'location', 'tags', 'image', 'description', 'content', 'link', 'featured', 'score', 'target_audience', 'organizer', 'volunteer_time', 'category']
 };
 

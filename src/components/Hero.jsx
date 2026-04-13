@@ -31,7 +31,6 @@ const Hero = () => {
 
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden flex items-center justify-center px-4 pt-[max(env(safe-area-inset-top),0px)] pb-[max(env(safe-area-inset-bottom),24px)]">
-      {/* Background Image with Parallax */}
       <motion.div
         style={shouldUseParallax ? { y } : undefined}
         className="absolute inset-0 z-0"
@@ -50,7 +49,6 @@ const Hero = () => {
         />
       </motion.div>
 
-      {/* Content */}
       <motion.div
         style={shouldUseParallax ? { opacity } : undefined}
         className="relative z-20 text-center px-4 w-full max-w-6xl"
@@ -84,7 +82,6 @@ const Hero = () => {
         </div>
       </motion.div>
 
-      {/* Scroll Indicator */}
       <motion.div
         style={shouldUseParallax ? { opacity } : undefined}
         animate={shouldUseMotion ? { y: [0, 10, 0] } : undefined}

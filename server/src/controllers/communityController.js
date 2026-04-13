@@ -34,6 +34,8 @@ const serializePost = (row) => {
     likes_count: row.likes_count || 0,
     comments_count: row.comments_count || 0,
     views_count: row.views_count || 0,
+    content_blocks: row.content_blocks || null,
+    link: row.link || null,
     created_at: row.created_at,
     updated_at: row.updated_at,
     excerpt: row.content ? String(row.content).slice(0, 120) : ''
@@ -117,6 +119,8 @@ const createPost = async (req, res, next) => {
     const title = String(req.body.title || '').trim();
     const content = String(req.body.content || '').trim();
     const tags = parseTags(req.body.tags);
+    const contentBlocks = req.body.content_blocks || null;
+    const link = req.body.link ? String(req.body.link).trim() : null;
 
     if (!section) {
       return res.status(400).json({ error: 'Invalid section' });
@@ -138,10 +142,10 @@ const createPost = async (req, res, next) => {
     const result = await db.run(
       `
       INSERT INTO community_posts
-      (section, title, content, tags, status, author_id, author_name, author_avatar, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+      (section, title, content, content_blocks, link, tags, status, author_id, author_name, author_avatar, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
       `,
-      [section, title, content, tags, status, userId, authorName, user.avatar || null]
+      [section, title, content, contentBlocks, link, tags, status, userId, authorName, user.avatar || null]
     );
 
     const post = await db.get('SELECT * FROM community_posts WHERE id = ?', [result.lastID]);

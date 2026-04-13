@@ -613,7 +613,7 @@ const sceneMap = {
 };
 
 const BackgroundSystem = ({ forcedTheme = null, quality = "full" }) => {
-  const { backgroundScene, settings, uiMode } = useSettings();
+  const { themeScene, settings, uiMode } = useSettings();
   const prefersReducedMotion = useReducedMotion();
   const [viewportWidth, setViewportWidth] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth : 1440,
@@ -662,16 +662,14 @@ const BackgroundSystem = ({ forcedTheme = null, quality = "full" }) => {
         hardwareConcurrency <= 8 ||
         deviceMemory <= 8 ||
         liteMode);
-    const allowCanvas =
-      !saveDataEnabled && !slowNetwork && !(liteMode && lowTier);
+    const allowCanvas = !saveDataEnabled && !slowNetwork;
 
     return {
       tier: lowTier ? "low" : mediumTier ? "medium" : "high",
       dense: !mediumTier && !lowTier && !liteMode,
-      animate:
-        !prefersReducedMotion && !saveDataEnabled && !slowNetwork && !liteMode,
+      animate: !prefersReducedMotion && !saveDataEnabled && !slowNetwork,
       useCanvas: allowCanvas,
-      dpr: lowTier ? 0.58 : mediumTier ? 0.75 : 0.98,
+      dpr: lowTier ? 0.5 : mediumTier ? 0.72 : 0.96,
       enableComposer:
         !liteMode &&
         !mediumTier &&
@@ -681,9 +679,7 @@ const BackgroundSystem = ({ forcedTheme = null, quality = "full" }) => {
     };
   }, [prefersReducedMotion, quality, viewportWidth]);
 
-  const sceneFromSettings = settings?.background_scene || settings?.theme;
-  const activeScene =
-    forcedTheme || backgroundScene || sceneFromSettings || "cyber";
+  const activeScene = forcedTheme || themeScene || "cyber";
   const CurrentScene = sceneMap[activeScene] || sceneMap.cyber;
   const themeMode = uiMode === "day" ? "day" : "dark";
   const themeStyle =

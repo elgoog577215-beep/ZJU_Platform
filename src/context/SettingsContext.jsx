@@ -11,7 +11,7 @@ const DEFAULT_SETTINGS = {
   background_brightness: '1.0',
   background_vignette: '0.5',
   background_bloom: '0.8',
-  background_enabled: 'true',
+  background_enabled: 'false',
   background_scene: 'cyber',
   hero_bg_url: '/uploads/1767349451839-56405188.jpg',
   about_title: '浙江大学信息聚合平台',
@@ -60,8 +60,10 @@ const defaultSettingsValue = {
   toggleCursor: () => {},
   uiMode: 'dark',
   changeUiMode: () => {},
-  backgroundEnabled: true,
+  backgroundEnabled: false,
   changeBackgroundEnabled: () => {},
+  themeScene: 'cyber',
+  changeThemeScene: () => {},
   backgroundScene: 'cyber',
   changeBackgroundScene: () => {},
   changeBackgroundBrightness: () => {}
@@ -78,7 +80,7 @@ export const SettingsProvider = ({ children }) => {
     return saved === 'true';
   });
 
-  const [backgroundScene, setBackgroundScene] = useState(() => {
+  const [themeScene, setThemeScene] = useState(() => {
     return readStorage('background_scene', DEFAULT_SETTINGS.background_scene);
   });
 
@@ -101,16 +103,25 @@ export const SettingsProvider = ({ children }) => {
       });
   }, []);
 
-  const syncBackgroundScene = useCallback((scene) => {
-    setBackgroundScene(scene);
+  const syncThemeScene = useCallback((scene) => {
+    setThemeScene(scene);
     writeStorage('background_scene', scene);
     setSettings(prev => normalizeSettings({ ...prev, background_scene: scene, theme: scene }));
   }, []);
 
-  const changeBackgroundScene = useCallback((scene) => {
-    syncBackgroundScene(scene);
-    updateSetting('background_scene', scene).catch(() => {});
-  }, [syncBackgroundScene, updateSetting]);
+  const changeThemeScene = useCallback(async (scene) => {
+    syncThemeScene(scene);
+    try {
+      await Promise.all([
+        updateSetting('background_scene', scene),
+        updateSetting('theme', scene)
+      ]);
+    } catch {
+      return;
+    }
+  }, [syncThemeScene, updateSetting]);
+
+  const changeBackgroundScene = changeThemeScene;
 
   const changeBackgroundBrightness = useCallback((value) => {
     return updateSetting('background_brightness', value);
@@ -147,7 +158,7 @@ export const SettingsProvider = ({ children }) => {
         setSettings(normalizedSettings);
         const remoteScene = normalizedSettings.background_scene;
         if (remoteScene) {
-          syncBackgroundScene(remoteScene);
+          syncThemeScene(remoteScene);
         }
         setLoading(false);
       })
@@ -159,7 +170,7 @@ export const SettingsProvider = ({ children }) => {
 
   useEffect(() => {
     fetchSettings();
-  }, [syncBackgroundScene]);
+  }, [syncThemeScene]);
 
   useEffect(() => {
     if (typeof document === 'undefined') return;
@@ -179,7 +190,9 @@ export const SettingsProvider = ({ children }) => {
     changeUiMode,
     backgroundEnabled,
     changeBackgroundEnabled,
-    backgroundScene,
+    themeScene,
+    changeThemeScene,
+    backgroundScene: themeScene,
     changeBackgroundScene,
     changeBackgroundBrightness
   }), [
@@ -192,7 +205,8 @@ export const SettingsProvider = ({ children }) => {
     changeUiMode,
     backgroundEnabled,
     changeBackgroundEnabled,
-    backgroundScene, 
+    themeScene,
+    changeThemeScene,
     changeBackgroundScene, 
     changeBackgroundBrightness
   ]);

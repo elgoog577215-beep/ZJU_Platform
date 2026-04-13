@@ -47,6 +47,7 @@ import EventFilterPanel from "./EventFilterPanel";
 import SortSelector from "./SortSelector";
 import EventAssistantPanel from "./EventAssistantPanel";
 import DOMPurify from "dompurify";
+import MobileContentToolbar from "./MobileContentToolbar";
 
 import { useSearchParams } from "react-router-dom";
 import { getThumbnailUrl } from "../utils/imageUtils";
@@ -477,7 +478,7 @@ EventCard.displayName = "EventCard";
 
 const Events = () => {
   const { t, i18n } = useTranslation();
-  const { settings, uiMode, backgroundScene } = useSettings();
+  const { settings, uiMode, themeScene } = useSettings();
   const { user } = useAuth();
   const prefersReducedMotion = useReducedMotion();
   const isDayMode = uiMode === "day";
@@ -504,31 +505,19 @@ const Events = () => {
     [selectedEvent?.views, t],
   );
   const eventThemeAccent = useMemo(() => {
-    const themeKey = EVENT_THEME_BY_SCENE[backgroundScene] || "cyan";
+    const themeKey = EVENT_THEME_BY_SCENE[themeScene] || "cyan";
     return EVENT_THEME_VARIANTS[themeKey];
-  }, [backgroundScene]);
+  }, [themeScene]);
 
   // Listen for global events from Navbar
   useEffect(() => {
     const handleOpenUpload = (e) => {
       if (e.detail.type === "event") setIsUploadOpen(true);
     };
-    const handleToggleFilter = () => {
-      setIsMobileSortOpen(false);
-      setIsMobileFilterOpen((prev) => !prev);
-    };
-    const handleToggleSort = () => {
-      setIsMobileFilterOpen(false);
-      setIsMobileSortOpen((prev) => !prev);
-    };
 
     window.addEventListener("open-upload-modal", handleOpenUpload);
-    window.addEventListener("toggle-mobile-filter", handleToggleFilter);
-    window.addEventListener("toggle-mobile-sort", handleToggleSort);
     return () => {
       window.removeEventListener("open-upload-modal", handleOpenUpload);
-      window.removeEventListener("toggle-mobile-filter", handleToggleFilter);
-      window.removeEventListener("toggle-mobile-sort", handleToggleSort);
     };
   }, []);
 
@@ -581,20 +570,10 @@ const Events = () => {
     setLifecycle("all");
   };
 
-  useEffect(() => {
-    const count =
-      Object.values(filters).filter(Boolean).length +
-      selectedTags.length +
-      (lifecycle !== "all" ? 1 : 0);
-    window.dispatchEvent(
-      new CustomEvent("set-mobile-toolbar-state", {
-        detail: {
-          filterCount: count,
-          sortLabel: mobileSortLabel,
-        },
-      }),
-    );
-  }, [filters, selectedTags, lifecycle, mobileSortLabel]);
+  const mobileFilterCount =
+    Object.values(filters).filter(Boolean).length +
+    selectedTags.length +
+    (lifecycle !== "all" ? 1 : 0);
 
   // Debounce search
   useEffect(() => {
@@ -1079,6 +1058,22 @@ END:VCALENDAR`;
             {t("events.subtitle")}
           </p>
         </div>
+        <MobileContentToolbar
+          isDayMode={isDayMode}
+          resultCount={displayEvents.length}
+          sortLabel={mobileSortLabel}
+          filterCount={mobileFilterCount}
+          onOpenSort={() => {
+            setIsMobileFilterOpen(false);
+            setIsMobileSortOpen(true);
+          }}
+          onOpenFilter={() => {
+            setIsMobileSortOpen(false);
+            setIsMobileFilterOpen(true);
+          }}
+          onClearFilters={resetMobileFilters}
+          clearLabel={t("common.clear_all", "重置")}
+        />
         <div className="hidden md:block mb-8">
           <h2
             className={`text-3xl md:text-5xl lg:text-6xl font-bold font-serif mb-3 md:mb-8 ${isDayMode ? "text-slate-900" : "text-white"}`}
