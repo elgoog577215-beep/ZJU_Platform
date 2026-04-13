@@ -440,13 +440,19 @@ const getStats = async (req, res, next) => {
 const handleUpload = (req, res, next) => {
   try {
     const response = {};
-    // const baseUrl = `${req.protocol}://${req.get('host')}`; // Remove absolute URL
-    
+
+    // Build URL that includes the subdirectory (images/, videos/, etc.)
+    const buildUrl = (fileObj) => {
+      const uploadsDir = path.join(__dirname, '../../uploads');
+      const relativePath = path.relative(uploadsDir, fileObj.path).replace(/\\/g, '/');
+      return `/uploads/${relativePath}`;
+    };
+
     if (req.files && req.files['file']) {
-      response.fileUrl = `/uploads/${req.files['file'][0].filename}`;
+      response.fileUrl = buildUrl(req.files['file'][0]);
     }
     if (req.files && req.files['cover']) {
-      response.coverUrl = `/uploads/${req.files['cover'][0].filename}`;
+      response.coverUrl = buildUrl(req.files['cover'][0]);
     }
     res.json(response);
   } catch (error) { next(error); }

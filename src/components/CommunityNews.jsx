@@ -1,0 +1,383 @@
+import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
+import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Newspaper, ArrowRight, Calendar, X, User, Upload, Clock, AlertCircle, Paperclip } from 'lucide-react';
+import SmartImage from './SmartImage';
+import UploadModal from './UploadModal';
+import FavoriteButton from './FavoriteButton';
+import { useTranslation } from 'react-i18next';
+import Pagination from './Pagination';
+import { useSettings } from '../context/SettingsContext';
+import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
+import api from '../services/api';
+import SortSelector from './SortSelector';
+import { useCachedResource } from '../hooks/useCachedResource';
+import DOMPurify from 'dompurify';
+import { useReducedMotion } from '../utils/animations';
+import { useBackClose } from '../hooks/useBackClose';
+
+const calculateReadingTime = (text, t) => {
+  const wordsPerMinute = 200;
+  const words = text ? text.split(/\s+/).length : 0;
+  const minutes = Math.ceil(words / wordsPerMinute);
+  return `${minutes} ${t('common.min_read')}`;
+};
+
+const parseContentBlocks = (raw) => {
+  if (!raw) return [];
+  try {
+    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    return Array.isArray(parsed) ? parsed : [];
+  } catch { return []; }
+};
+
+const NewsCard = memo(({ article, index, onClick, onToggleFavorite, canAnimate, isDayMode }) => {
+  const { t } = useTranslation();
+
+  return (
+    <motion.div
+      initial={canAnimate ? { opacity: 0, y: 14 } : false}
+      animate={canAnimate ? { opacity: 1, y: 0 } : undefined}
+      transition={canAnimate ? { duration: 0.24, delay: Math.min(index, 5) * 0.03 } : undefined}
+      onClick={() => onClick(article)}
+      className={`group relative backdrop-blur-xl border rounded-3xl p-6 transition-all duration-300 hover:border-blue-500/30 cursor-pointer overflow-hidden hover:shadow-[0_20px_40px_-15px_rgba(59,130,246,0.15)] hover:-translate-y-1 ${isDayMode ? 'bg-white/82 hover:bg-white border-slate-200/80 shadow-[0_18px_42px_rgba(148,163,184,0.12)]' : 'bg-[#1a1a1a]/60 hover:bg-[#1a1a1a]/80 border-white/10'}`}
+    >
+      <div className="flex flex-col md:flex-row gap-6">
+        {article.cover && (
+          <div className="w-full md:w-48 h-48 md:h-32 rounded-xl overflow-hidden flex-shrink-0">
+            <SmartImage
+              src={article.cover}
+              alt={article.title}
+              type="article"
+              className="w-full h-full"
+              imageClassName="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              iconSize={32}
+            />
+          </div>
+        )}
+
+        <div className="flex-1 flex flex-col justify-center space-y-3">
+          <div className={`flex items-center gap-3 text-xs font-mono ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+            <span className="flex items-center gap-1">
+              <Calendar size={12} />
+              {article.date}
+            </span>
+            <span>•</span>
+            <span className="flex items-center gap-1">
+              <Clock size={12} />
+              {calculateReadingTime(article.content, t)}
+            </span>
+          </div>
+          <h3 className={`text-2xl font-bold group-hover:text-blue-400 transition-colors ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
+            {article.title}
+          </h3>
+          <p className={`line-clamp-2 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+            {article.excerpt}
+          </p>
+
+          <div className="pt-2 flex items-center justify-between mt-auto">
+            <div className="flex gap-2" />
+            <div className="flex items-center gap-3 ml-auto">
+              <FavoriteButton
+                itemId={article.id}
+                itemType="article"
+                size={18}
+                showCount={true}
+                count={article.likes || 0}
+                initialFavorited={article.favorited}
+                className={`p-2 rounded-full transition-colors hover:text-blue-500 ${isDayMode ? 'hover:bg-blue-50 text-slate-500' : 'hover:bg-white/10 text-gray-400'}`}
+                onToggle={(favorited, likes) => onToggleFavorite(article.id, favorited, likes)}
+              />
+              <div className={`p-2 rounded-full group-hover:bg-blue-500 group-hover:text-white transition-all duration-300 ${isDayMode ? 'bg-blue-50 text-blue-500' : 'bg-white/5'}`}>
+                <ArrowRight size={18} className="-rotate-45 group-hover:rotate-0 transition-transform duration-300" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+});
+NewsCard.displayName = 'NewsCard';
+
+const CommunityNews = () => {
+  const { t } = useTranslation();
+  const { settings, uiMode } = useSettings();
+  const { user } = useAuth();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sort, setSort] = useState('newest');
+  const [selectedArticle, setSelectedArticle] = useState(null);
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
+  const isDayMode = uiMode === 'day';
+  const isAdmin = user?.role === 'admin';
+  const isPaginationEnabled = settings.pagination_enabled === 'true';
+  const pageSize = isPaginationEnabled ? 6 : 10;
+  const [displayArticles, setDisplayArticles] = useState([]);
+
+  useBackClose(selectedArticle !== null, () => setSelectedArticle(null));
+
+  const {
+    data: articles,
+    pagination,
+    loading: isLoading,
+    error,
+    setData: setArticles,
+    refresh
+  } = useCachedResource('/articles', {
+    page: currentPage,
+    limit: pageSize,
+    sort,
+    category: 'news'
+  }, {
+    dependencies: [settings.pagination_enabled]
+  });
+
+  const totalPages = pagination?.totalPages || 1;
+  const hasMore = !isPaginationEnabled && currentPage < totalPages;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [sort, settings.pagination_enabled]);
+
+  useEffect(() => {
+    if (isPaginationEnabled) {
+      setDisplayArticles(articles);
+      return;
+    }
+    setDisplayArticles((prev) => {
+      if (currentPage === 1) return articles;
+      const seen = new Set(prev.map((item) => item.id));
+      const next = articles.filter((item) => !seen.has(item.id));
+      return next.length === 0 ? prev : [...prev, ...next];
+    });
+  }, [articles, currentPage, isPaginationEnabled]);
+
+  const handleToggleFavorite = useCallback((articleId, favorited, likes) => {
+    setArticles(prev => prev.map(a =>
+      a.id === articleId ? { ...a, likes: likes !== undefined ? likes : a.likes, favorited } : a
+    ));
+    setDisplayArticles(prev => prev.map(a =>
+      a.id === articleId ? { ...a, likes: likes !== undefined ? likes : a.likes, favorited } : a
+    ));
+    setSelectedArticle(prev => {
+      if (prev && prev.id === articleId) {
+        return { ...prev, likes: likes !== undefined ? likes : prev.likes, favorited };
+      }
+      return prev;
+    });
+  }, [setArticles]);
+
+  const handleUpload = async (newItem) => {
+    try {
+      await api.post('/articles', { ...newItem, category: 'news' });
+      await refresh({ clearCache: true });
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const selectedContentBlocks = useMemo(
+    () => parseContentBlocks(selectedArticle?.content_blocks),
+    [selectedArticle?.content_blocks]
+  );
+
+  return (
+    <div role="tabpanel" aria-labelledby="tab-news">
+      {/* Controls */}
+      <div className="flex items-center justify-end gap-3 mb-8">
+        <div className="w-40 md:w-48">
+          <SortSelector sort={sort} onSortChange={setSort} />
+        </div>
+        {isAdmin && (
+          <button
+            onClick={() => setIsUploadOpen(true)}
+            className={`p-2 md:p-3 rounded-full backdrop-blur-md border transition-all ${isDayMode ? 'bg-white/85 hover:bg-white text-slate-700 border-slate-200/80 shadow-[0_12px_28px_rgba(148,163,184,0.14)]' : 'bg-white/10 hover:bg-white/20 text-white border border-white/10'}`}
+            title={t('common.upload_article')}
+          >
+            <Upload size={18} className="md:w-5 md:h-5" />
+          </button>
+        )}
+      </div>
+
+      {/* News List */}
+      <div className="space-y-6">
+        {isLoading && displayArticles.length === 0 ? (
+          [...Array(4)].map((_, i) => (
+            <div key={i} className={`backdrop-blur-xl border rounded-3xl p-6 animate-pulse flex flex-col md:flex-row gap-6 ${isDayMode ? 'bg-white/82 border-slate-200/80' : 'bg-[#1a1a1a]/40 border-white/5'}`}>
+              <div className={`w-full md:w-48 h-48 md:h-32 rounded-xl shrink-0 ${isDayMode ? 'bg-slate-100' : 'bg-white/5'}`} />
+              <div className="flex-1 space-y-4 py-2">
+                <div className={`h-8 rounded w-3/4 ${isDayMode ? 'bg-slate-100' : 'bg-white/10'}`} />
+                <div className={`h-4 rounded w-full ${isDayMode ? 'bg-slate-100' : 'bg-white/5'}`} />
+              </div>
+            </div>
+          ))
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-20 px-4">
+            <div className="bg-red-500/10 rounded-full p-6 mb-6 border border-red-500/20 backdrop-blur-xl">
+              <AlertCircle size={48} className="text-red-400 opacity-80" />
+            </div>
+            <p className={`mb-6 text-lg ${isDayMode ? 'text-slate-600' : 'text-gray-300'}`}>{t('common.error_fetching_data')}</p>
+            <button onClick={refresh} className={`px-8 py-3 rounded-full transition-all border font-medium hover:scale-105 active:scale-95 ${isDayMode ? 'bg-white/88 hover:bg-white text-slate-700 border-slate-200/80' : 'bg-white/10 hover:bg-white/20 text-white border border-white/10'}`}>
+              {t('common.retry')}
+            </button>
+          </div>
+        ) : displayArticles.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 px-4">
+            <div className={`bg-gradient-to-br from-blue-500/10 to-indigo-500/10 rounded-3xl p-8 mb-6 border backdrop-blur-xl shadow-xl ${isDayMode ? 'border-blue-100/80 bg-white/72' : 'border-white/5'}`}>
+              <Newspaper size={64} className="text-blue-400 opacity-80" />
+            </div>
+            <h3 className={`text-2xl font-bold mb-2 ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{t('community.news_empty', '暂无新闻')}</h3>
+            <p className={`text-center max-w-md ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+              {t('community.news_empty_desc', '新闻内容正在建设中，敬请期待。')}
+            </p>
+          </div>
+        ) : (
+          displayArticles.map((article, index) => (
+            <NewsCard
+              key={article.id}
+              article={article}
+              index={index}
+              onClick={setSelectedArticle}
+              onToggleFavorite={handleToggleFavorite}
+              canAnimate={!prefersReducedMotion && index < 8}
+              isDayMode={isDayMode}
+            />
+          ))
+        )}
+      </div>
+
+      {/* Load more */}
+      {!isLoading && !error && displayArticles.length > 0 && !isPaginationEnabled && hasMore && (
+        <div className="flex items-center justify-center pt-10">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            className={`px-6 py-2.5 rounded-full border transition-colors text-sm font-semibold ${isDayMode ? 'bg-white/88 hover:bg-white text-slate-700 border-slate-200/80' : 'bg-white/10 hover:bg-white/15 text-white border-white/10'}`}
+          >
+            {t('common.load_more', '加载更多')}
+          </button>
+        </div>
+      )}
+
+      {isPaginationEnabled && (
+        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
+      )}
+
+      {/* Article Detail Modal */}
+      {createPortal(
+        <AnimatePresence>
+          {selectedArticle && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className={`fixed inset-0 z-[100] backdrop-blur-md overflow-y-auto ${isDayMode ? 'bg-white/70' : 'bg-black/90'}`}
+              onClick={() => setSelectedArticle(null)}
+            >
+              <div className="min-h-full">
+                <motion.div
+                  initial={{ y: 50, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: 50, opacity: 0 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className={`relative w-full min-h-screen shadow-2xl overflow-hidden ${isDayMode ? 'bg-white' : 'bg-[#0a0a0a]'}`}
+                >
+                  <div
+                    className="h-72 sm:h-96 bg-gradient-to-br from-blue-900/40 to-black relative bg-cover bg-center"
+                    style={selectedArticle.cover ? { backgroundImage: `url(${selectedArticle.cover})` } : {}}
+                  >
+                    {!selectedArticle.cover && <div className="absolute inset-0 bg-gradient-to-br from-blue-900/40 to-black" />}
+                    <button
+                      onClick={() => setSelectedArticle(null)}
+                      className={`absolute top-6 right-6 p-2 rounded-full backdrop-blur-md border transition-all z-20 group ${isDayMode ? 'bg-white/82 hover:bg-white text-slate-700 border-slate-200/80' : 'bg-black/40 hover:bg-black/60 text-white border-white/10'}`}
+                    >
+                      <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />
+                    </button>
+                    <div className={`absolute bottom-0 left-0 px-6 pt-6 pb-6 md:px-10 md:pt-10 md:pb-8 w-full z-20 pt-48 -mb-1 backdrop-blur-[2px] ${isDayMode ? 'bg-gradient-to-t from-white via-white/92 to-transparent' : 'bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/90 to-transparent'}`}>
+                      <div className={`flex items-center gap-3 font-bold text-lg md:text-xl uppercase tracking-[0.2em] mb-4 ${isDayMode ? 'text-blue-500' : 'text-blue-300 drop-shadow-lg'}`}>
+                        <span>{selectedArticle.date}</span>
+                      </div>
+                      <h2 className={`text-4xl md:text-6xl font-black leading-[0.95] tracking-tight font-serif ${isDayMode ? 'text-slate-900' : 'text-white drop-shadow-2xl'}`}>
+                        {selectedArticle.title}
+                      </h2>
+                    </div>
+                  </div>
+
+                  <div className="px-5 sm:px-8 md:px-12 pt-4 pb-12 max-w-5xl mx-auto">
+                    <div className={`flex items-center justify-between gap-3 mb-8 pb-8 border-b ${isDayMode ? 'border-slate-200/80' : 'border-white/5'}`}>
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center overflow-hidden ${isDayMode ? 'bg-slate-100' : 'bg-gray-700'}`}>
+                          {selectedArticle.author_avatar ? (
+                            <img src={selectedArticle.author_avatar} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <User size={20} className={isDayMode ? 'text-slate-500' : 'text-gray-400'} />
+                          )}
+                        </div>
+                        <div>
+                          <div className={`text-sm font-bold ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{selectedArticle.author_name || t('common.anonymous', '匿名用户')}</div>
+                          <div className={`text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>{t('common.author')}</div>
+                        </div>
+                      </div>
+                      <FavoriteButton
+                        itemId={selectedArticle.id}
+                        itemType="article"
+                        size={24}
+                        showCount={true}
+                        count={selectedArticle.likes || 0}
+                        initialFavorited={selectedArticle.favorited}
+                        className={`p-3 rounded-full transition-all border ${isDayMode ? 'bg-white/85 hover:bg-red-50 text-slate-700 border-slate-200/80' : 'bg-white/5 hover:bg-red-500/20 text-white border border-white/10'}`}
+                        onToggle={(favorited, likes) => handleToggleFavorite(selectedArticle.id, favorited, likes)}
+                      />
+                    </div>
+
+                    {selectedContentBlocks.length > 0 ? (
+                      <div className="space-y-6">
+                        {selectedContentBlocks.map((block) => (
+                          <div key={block.id || `${block.type}-${block.url || block.text || Math.random()}`} className={`space-y-3 rounded-2xl p-4 md:p-5 border ${isDayMode ? 'bg-slate-50/80 border-slate-200/80' : 'bg-white/[0.03] border-white/10'}`}>
+                            {block.type === 'text' && (
+                              <p className={`whitespace-pre-wrap leading-8 text-lg ${isDayMode ? 'text-slate-700' : 'text-gray-300'}`}>{block.text}</p>
+                            )}
+                            {block.type === 'image' && block.url && (
+                              <figure className="space-y-3">
+                                <div className="rounded-2xl overflow-hidden border border-white/10">
+                                  <img src={block.url} alt={block.caption || selectedArticle.title} className="w-full object-cover" />
+                                </div>
+                                {block.caption && <figcaption className={`text-sm px-1 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{block.caption}</figcaption>}
+                              </figure>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div
+                        className={`prose prose-lg max-w-none leading-relaxed ${isDayMode ? 'prose-slate text-slate-700' : 'prose-invert text-gray-300'}`}
+                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedArticle.content) }}
+                      />
+                    )}
+
+                  </div>
+                </motion.div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+
+      <UploadModal
+        isOpen={isUploadOpen}
+        onClose={() => setIsUploadOpen(false)}
+        onUpload={handleUpload}
+        type="article"
+      />
+    </div>
+  );
+};
+
+export default CommunityNews;

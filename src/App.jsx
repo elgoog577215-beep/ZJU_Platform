@@ -28,7 +28,7 @@ const Hero = lazy(() => import('./components/Hero'));
 const Gallery = lazy(() => import('./components/Gallery'));
 const Music = lazy(() => import('./components/Music'));
 const Videos = lazy(() => import('./components/Videos'));
-const Articles = lazy(() => import('./components/Articles'));
+const Articles = lazy(() => import('./components/AICommunity'));
 const Events = lazy(() => import('./components/Events'));
 const HomeCategories = lazy(() => import('./components/HomeCategories'));
 const PlatformStats = lazy(() => import('./components/PlatformStats'));
