@@ -58,7 +58,6 @@
     "i18next-http-backend": "^3.0.2",
     "lucide-react": "^0.344.0",
     "mammoth": "^1.12.0",
-    "pdf-parse": "^1.1.1",
     "pdfjs-dist": "^5.6.205",
     "postprocessing": "^6.38.0",
     "react": "^18.2.0",
@@ -69,7 +68,6 @@
     "react-router-dom": "^6.22.0",
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7",
-    "ssh2": "^1.17.0",
     "swr": "^2.3.7",
     "tailwind-merge": "^2.2.1",
     "three": "^0.160.0"

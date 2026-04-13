@@ -6,6 +6,7 @@ import React, {
   memo,
   useRef,
 } from "react";
+import { useMobileSortLabel } from "../hooks/useContentPage";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -549,20 +550,7 @@ const Events = () => {
     Object.values(filters).some((v) => v) ||
     selectedTags.length > 0 ||
     lifecycle !== "all";
-  const mobileSortLabel = useMemo(() => {
-    switch (sort) {
-      case "date_asc":
-        return t("sort_filter.date_asc", "最早");
-      case "date_desc":
-        return t("sort_filter.date_desc", "最晚");
-      case "likes":
-        return t("sort_filter.likes", "最热");
-      case "title":
-        return t("sort_filter.title", "标题");
-      default:
-        return t("sort_filter.newest", "最新");
-    }
-  }, [sort, t]);
+  const mobileSortLabel = useMobileSortLabel(sort, t);
 
   const resetMobileFilters = () => {
     setFilters({ location: null, organizer: null, target_audience: null });

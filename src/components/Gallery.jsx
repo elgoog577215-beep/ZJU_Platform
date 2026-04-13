@@ -1,13 +1,13 @@
 import { createPortal } from "react-dom";
 import React, {
   useState,
-  useMemo,
   useEffect,
   useCallback,
   useRef,
   memo,
   forwardRef,
 } from "react";
+import { useContentPageEvents, useMobileSortLabel, useMobileToolbarSync } from "../hooks/useContentPage";
 import { motion, AnimatePresence } from "framer-motion";
 import Lightbox from "./Lightbox";
 import Pagination from "./Pagination";
@@ -206,45 +206,12 @@ const Gallery = () => {
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
   const hasActiveMobileFilters = selectedTags.length > 0;
-  const mobileSortLabel = useMemo(() => {
-    switch (sort) {
-      case "oldest":
-        return t("sort_filter.oldest", "最旧");
-      case "likes":
-        return t("sort_filter.likes", "最热");
-      case "title":
-        return t("sort_filter.title", "标题");
-      default:
-        return t("sort_filter.newest", "最新");
-    }
-  }, [sort, t]);
+  const mobileSortLabel = useMobileSortLabel(sort, t);
   const allowAmbientEffects =
     !prefersReducedMotion &&
     (typeof window === "undefined" || window.innerWidth >= 768);
 
-  // Listen for global events from Navbar
-  useEffect(() => {
-    const handleOpenUpload = (e) => {
-      if (e.detail.type === "image") setIsUploadOpen(true);
-    };
-    const handleToggleFilter = () => {
-      setIsMobileSortOpen(false);
-      setIsMobileFilterOpen((prev) => !prev);
-    };
-    const handleToggleSort = () => {
-      setIsMobileFilterOpen(false);
-      setIsMobileSortOpen((prev) => !prev);
-    };
-
-    window.addEventListener("open-upload-modal", handleOpenUpload);
-    window.addEventListener("toggle-mobile-filter", handleToggleFilter);
-    window.addEventListener("toggle-mobile-sort", handleToggleSort);
-    return () => {
-      window.removeEventListener("open-upload-modal", handleOpenUpload);
-      window.removeEventListener("toggle-mobile-filter", handleToggleFilter);
-      window.removeEventListener("toggle-mobile-sort", handleToggleSort);
-    };
-  }, []);
+  useContentPageEvents("image", setIsUploadOpen, setIsMobileFilterOpen, setIsMobileSortOpen);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -255,7 +222,6 @@ const Gallery = () => {
       setDisplayPhotos(photos);
       return;
     }
-
     setDisplayPhotos((prev) => {
       if (currentPage === 1) return photos;
       const seen = new Set(prev.map((item) => item.id));
@@ -264,16 +230,7 @@ const Gallery = () => {
     });
   }, [photos, currentPage, isPaginationEnabled]);
 
-  useEffect(() => {
-    window.dispatchEvent(
-      new CustomEvent("set-mobile-toolbar-state", {
-        detail: {
-          filterCount: selectedTags.length,
-          sortLabel: mobileSortLabel,
-        },
-      }),
-    );
-  }, [selectedTags.length, mobileSortLabel]);
+  useMobileToolbarSync(selectedTags.length, mobileSortLabel);
 
   useBackClose(selectedPhotoIndex !== null || tempPhoto !== null, () => {
     setSelectedPhotoIndex(null);

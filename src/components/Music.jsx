@@ -1,5 +1,6 @@
 import { createPortal } from "react-dom";
-import React, { useState, useEffect, useCallback, useMemo, memo } from "react";
+import React, { useState, useEffect, useCallback, memo } from "react";
+import { useContentPageEvents, useMobileSortLabel, useMobileToolbarSync } from "../hooks/useContentPage";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Play,
@@ -226,53 +227,9 @@ const Music = () => {
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
   const hasActiveMobileFilters = selectedTags.length > 0;
-  const mobileSortLabel = useMemo(() => {
-    switch (sort) {
-      case "oldest":
-        return t("sort_filter.oldest", "最旧");
-      case "likes":
-        return t("sort_filter.likes", "最热");
-      case "title":
-        return t("sort_filter.title", "标题");
-      default:
-        return t("sort_filter.newest", "最新");
-    }
-  }, [sort, t]);
-
-  // Listen for global events from Navbar
-  useEffect(() => {
-    const handleOpenUpload = (e) => {
-      if (e.detail.type === "audio") setIsUploadOpen(true);
-    };
-    const handleToggleFilter = () => {
-      setIsMobileSortOpen(false);
-      setIsMobileFilterOpen((prev) => !prev);
-    };
-    const handleToggleSort = () => {
-      setIsMobileFilterOpen(false);
-      setIsMobileSortOpen((prev) => !prev);
-    };
-
-    window.addEventListener("open-upload-modal", handleOpenUpload);
-    window.addEventListener("toggle-mobile-filter", handleToggleFilter);
-    window.addEventListener("toggle-mobile-sort", handleToggleSort);
-    return () => {
-      window.removeEventListener("open-upload-modal", handleOpenUpload);
-      window.removeEventListener("toggle-mobile-filter", handleToggleFilter);
-      window.removeEventListener("toggle-mobile-sort", handleToggleSort);
-    };
-  }, []);
-
-  useEffect(() => {
-    window.dispatchEvent(
-      new CustomEvent("set-mobile-toolbar-state", {
-        detail: {
-          filterCount: selectedTags.length,
-          sortLabel: mobileSortLabel,
-        },
-      }),
-    );
-  }, [selectedTags.length, mobileSortLabel]);
+  const mobileSortLabel = useMobileSortLabel(sort, t);
+  useContentPageEvents("audio", setIsUploadOpen, setIsMobileFilterOpen, setIsMobileSortOpen);
+  useMobileToolbarSync(selectedTags.length, mobileSortLabel);
 
   useEffect(() => {
     setCurrentPage(1);
