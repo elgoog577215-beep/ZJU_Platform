@@ -21,20 +21,21 @@ const getNotifications = async (req, res, next) => {
         const limit = parseInt(req.query.limit) || 20;
         const offset = (page - 1) * limit;
 
-        const notifications = await db.all(
-            'SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?',
-            [userId, limit, offset]
-        );
-
-        const countResult = await db.get(
-            'SELECT COUNT(*) as count FROM notifications WHERE user_id = ?',
-            [userId]
-        );
-        
-        const unreadCountResult = await db.get(
-            'SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = 0',
-            [userId]
-        );
+        // FIX: O1 — Parallelize 3 independent queries with Promise.all()
+        const [notifications, countResult, unreadCountResult] = await Promise.all([
+            db.all(
+                'SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?',
+                [userId, limit, offset]
+            ),
+            db.get(
+                'SELECT COUNT(*) as count FROM notifications WHERE user_id = ?',
+                [userId]
+            ),
+            db.get(
+                'SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = 0',
+                [userId]
+            )
+        ]);
 
         res.json({
             data: notifications,

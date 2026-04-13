@@ -88,6 +88,9 @@ class DatabasePool {
       return this.db;
     } catch (error) {
       console.error('❌ Database initialization error:', error);
+      // FIX: B7 — Reject queued promises on init failure so callers don't hang forever
+      this.initQueue.forEach(resolve => resolve(Promise.reject(error)));
+      this.initQueue = [];
       throw error;
     } finally {
       this.isInitializing = false;

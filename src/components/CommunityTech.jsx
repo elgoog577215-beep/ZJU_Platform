@@ -246,19 +246,21 @@ const CommunityTech = () => {
     setCurrentPage(1);
   }, [sort, selectedTags.join(','), settings.pagination_enabled]);
 
+  // FIX: B2 — Guard against null articles to prevent TypeError on .filter()
+  const effectiveArticles = articles || [];
   useEffect(() => {
     if (isPaginationEnabled) {
-      setDisplayArticles(articles);
+      setDisplayArticles(effectiveArticles);
       return;
     }
 
     setDisplayArticles((prev) => {
-      if (currentPage === 1) return articles;
+      if (currentPage === 1) return effectiveArticles;
       const seen = new Set(prev.map((item) => item.id));
-      const next = articles.filter((item) => !seen.has(item.id));
+      const next = effectiveArticles.filter((item) => !seen.has(item.id));
       return next.length === 0 ? prev : [...prev, ...next];
     });
-  }, [articles, currentPage, isPaginationEnabled]);
+  }, [effectiveArticles, currentPage, isPaginationEnabled]);
 
   // Deep linking
   useEffect(() => {
@@ -629,8 +631,9 @@ const CommunityTech = () => {
 
                     {selectedContentBlocks.length > 0 ? (
                       <div className="space-y-6">
-                        {selectedContentBlocks.map((block) => (
-                          <div key={block.id || `${block.type}-${block.url || block.text || Math.random()}`} className={`space-y-3 rounded-2xl p-4 md:p-5 border ${isDayMode ? 'bg-slate-50/80 border-slate-200/80' : 'bg-white/[0.03] border-white/10'}`}>
+                        {/* FIX: B3 — Replace Math.random() key with stable index-based fallback */}
+                        {selectedContentBlocks.map((block, bIdx) => (
+                          <div key={block.id || `block-${bIdx}`} className={`space-y-3 rounded-2xl p-4 md:p-5 border ${isDayMode ? 'bg-slate-50/80 border-slate-200/80' : 'bg-white/[0.03] border-white/10'}`}>
                             {block.type === 'text' && (
                               block.style === 'heading' ? (
                                 <h3 className={`whitespace-pre-wrap leading-tight text-3xl md:text-4xl font-black tracking-tight ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{block.text}</h3>

@@ -1,5 +1,14 @@
 const { getDb } = require('../config/db');
 
+// FIX: O2 — Extract shared tableMap to module level (was duplicated in toggleFavorite and getFavorites)
+const FAVORITE_TABLE_MAP = {
+    'photo': 'photos',
+    'music': 'music',
+    'video': 'videos',
+    'article': 'articles',
+    'event': 'events'
+};
+
 const toggleFavorite = async (req, res, next) => {
     try {
         const db = await getDb();
@@ -10,14 +19,7 @@ const toggleFavorite = async (req, res, next) => {
             return res.status(400).json({ error: 'Item ID and Type are required' });
         }
 
-        const tableMap = {
-            'photo': 'photos',
-            'music': 'music',
-            'video': 'videos',
-            'article': 'articles',
-            'event': 'events'
-        };
-        const tableName = tableMap[itemType];
+        const tableName = FAVORITE_TABLE_MAP[itemType];
 
         // Check if exists
         const existing = await db.get(
@@ -86,21 +88,24 @@ const getFavorites = async (req, res, next) => {
         // Actually, for "My Favorites" page, we want the item details.
         // We can do a loop or separate queries.
         
-        const results = [];
+        // FIX: B11 — Batch-fetch favorites by type to eliminate N+1 query loop
+        const grouped = {};
         for (const fav of favorites) {
-            const tableMap = {
-                'photo': 'photos',
-                'music': 'music',
-                'video': 'videos',
-                'article': 'articles',
-                'event': 'events'
-            };
-            const table = tableMap[fav.item_type];
-            if (table) {
-                const item = await db.get(`SELECT * FROM ${table} WHERE id = ?`, [fav.item_id]);
-                if (item) {
-                    results.push({ ...item, type: fav.item_type, favorited_at: fav.created_at });
-                }
+            const table = FAVORITE_TABLE_MAP[fav.item_type];
+            if (!table) continue;
+            if (!grouped[fav.item_type]) grouped[fav.item_type] = { table, favs: [] };
+            grouped[fav.item_type].favs.push(fav);
+        }
+
+        const results = [];
+        for (const [itemType, { table, favs }] of Object.entries(grouped)) {
+            const ids = favs.map(f => f.item_id);
+            const placeholders = ids.map(() => '?').join(',');
+            const items = await db.all(`SELECT * FROM ${table} WHERE id IN (${placeholders})`, ids);
+            const itemMap = new Map(items.map(i => [i.id, i]));
+            for (const fav of favs) {
+                const item = itemMap.get(fav.item_id);
+                if (item) results.push({ ...item, type: itemType, favorited_at: fav.created_at });
             }
         }
 

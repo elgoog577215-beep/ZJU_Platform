@@ -261,11 +261,12 @@ class LoginAttemptTracker {
       };
     }
     
-    // Reset if lockout period has passed
+    // FIX: B6 — Reset and return fresh attemptsRemaining after lockout expiry
     if (record.lockedUntil && record.lockedUntil <= now) {
       this.attempts.delete(identifier);
+      return { locked: false, attemptsRemaining: this.maxAttempts };
     }
-    
+
     return { locked: false, attemptsRemaining: this.maxAttempts - record.count };
   }
   

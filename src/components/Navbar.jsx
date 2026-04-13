@@ -14,8 +14,6 @@ import {
   X,
   MapPin,
   Plus,
-  Filter,
-  ArrowUpDown,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";

@@ -174,7 +174,10 @@ const PostComposer = ({ isOpen, onClose, section = 'help', onSuccess }) => {
         { type: 'file', icon: Paperclip, label: '附件' },
       ];
 
-  const inputCls = `w-full px-4 py-3 rounded-xl border text-sm outline-none transition-all focus:ring-2 ${isDayMode ? `bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-${accentColor}-300/50 focus:border-${accentColor}-300` : `bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:ring-${accentColor}-500/30 focus:border-${accentColor}-500/40`}`;
+  // FIX: B5 — Use static Tailwind class map instead of dynamic interpolation (purged at build time)
+  const accentFocusDay = { violet: 'focus:ring-violet-300/50 focus:border-violet-300', amber: 'focus:ring-amber-300/50 focus:border-amber-300', cyan: 'focus:ring-cyan-300/50 focus:border-cyan-300', rose: 'focus:ring-rose-300/50 focus:border-rose-300', emerald: 'focus:ring-emerald-300/50 focus:border-emerald-300' };
+  const accentFocusNight = { violet: 'focus:ring-violet-500/30 focus:border-violet-500/40', amber: 'focus:ring-amber-500/30 focus:border-amber-500/40', cyan: 'focus:ring-cyan-500/30 focus:border-cyan-500/40', rose: 'focus:ring-rose-500/30 focus:border-rose-500/40', emerald: 'focus:ring-emerald-500/30 focus:border-emerald-500/40' };
+  const inputCls = `w-full px-4 py-3 rounded-xl border text-sm outline-none transition-all focus:ring-2 ${isDayMode ? `bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 ${accentFocusDay[accentColor] || accentFocusDay.violet}` : `bg-white/5 border-white/10 text-white placeholder:text-gray-500 ${accentFocusNight[accentColor] || accentFocusNight.violet}`}`;
   const labelCls = `text-sm font-medium ${isDayMode ? 'text-slate-700' : 'text-gray-300'}`;
 
   return createPortal(

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, X, User, Upload, AlertCircle, Calendar, UserPlus, Clock, FileText, Download, ExternalLink } from 'lucide-react';
+import { Users, X, User, Upload, Calendar, UserPlus, Clock, FileText, Download, ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Pagination from './Pagination';
 import { useSettings } from '../context/SettingsContext';
@@ -88,14 +88,15 @@ const CommunityTeam = () => {
     });
   }, [effectivePosts, currentPage, isPaginationEnabled]);
 
-  // Deep linking
+  // FIX: B9 — Add AbortController to deep-link fetch
   useEffect(() => {
     const postId = searchParams.get('post');
-    if (postId) {
-      api.get(`/community/posts/${postId}`)
-        .then((res) => { if (res.data) setSelectedPost(res.data); })
-        .catch(() => {});
-    }
+    if (!postId) return;
+    const ac = new AbortController();
+    api.get(`/community/posts/${postId}`, { signal: ac.signal })
+      .then((res) => { if (res.data) setSelectedPost(res.data); })
+      .catch(() => {});
+    return () => ac.abort();
   }, [searchParams]);
 
   const handlePostClick = useCallback((post) => {

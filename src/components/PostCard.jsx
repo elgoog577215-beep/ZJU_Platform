@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { motion } from 'framer-motion';
-import { MessageCircle, Clock, User, Calendar, CheckCircle, AlertCircle, Users, UserPlus } from 'lucide-react';
+import { MessageCircle, User, Calendar, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const STATUS_CONFIG = {

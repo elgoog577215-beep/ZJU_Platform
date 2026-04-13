@@ -329,18 +329,22 @@ const getStats = async (req, res, next) => {
     const db = await getDb();
     
     // Helper to get detailed stats for a table
+    // FIX: O3 — Merge 4 queries per table into a single query
     const getTableStats = async (table) => {
         try {
-          const total = await db.get(`SELECT COUNT(*) as count FROM ${table}`);
-          const active = await db.get(`SELECT COUNT(*) as count FROM ${table} WHERE deleted_at IS NULL AND status = 'approved'`);
-          const pending = await db.get(`SELECT COUNT(*) as count FROM ${table} WHERE deleted_at IS NULL AND status = 'pending'`);
-          const deleted = await db.get(`SELECT COUNT(*) as count FROM ${table} WHERE deleted_at IS NOT NULL`);
-          
+          const row = await db.get(`
+            SELECT
+              COUNT(*) as total,
+              SUM(CASE WHEN deleted_at IS NULL AND status = 'approved' THEN 1 ELSE 0 END) as active,
+              SUM(CASE WHEN deleted_at IS NULL AND status = 'pending' THEN 1 ELSE 0 END) as pending,
+              SUM(CASE WHEN deleted_at IS NOT NULL THEN 1 ELSE 0 END) as deleted
+            FROM ${table}
+          `);
           return {
-              total: total?.count || 0,
-              active: active?.count || 0,
-              pending: pending?.count || 0,
-              deleted: deleted?.count || 0
+              total: row?.total || 0,
+              active: row?.active || 0,
+              pending: row?.pending || 0,
+              deleted: row?.deleted || 0
           };
         } catch (err) {
           console.error(`[Stats] Error getting stats for ${table}:`, err.message);

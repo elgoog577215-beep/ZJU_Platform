@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Newspaper, ArrowRight, Calendar, X, User, Upload, Clock, AlertCircle, Paperclip } from 'lucide-react';
+import { Newspaper, ArrowRight, Calendar, X, User, Upload, Clock, AlertCircle } from 'lucide-react';
 import SmartImage from './SmartImage';
 import UploadModal from './UploadModal';
 import FavoriteButton from './FavoriteButton';
@@ -140,18 +140,20 @@ const CommunityNews = () => {
     setCurrentPage(1);
   }, [sort, settings.pagination_enabled]);
 
+  // FIX: B1 — Guard against null articles to prevent TypeError on .filter()
+  const effectiveArticles = articles || [];
   useEffect(() => {
     if (isPaginationEnabled) {
-      setDisplayArticles(articles);
+      setDisplayArticles(effectiveArticles);
       return;
     }
     setDisplayArticles((prev) => {
-      if (currentPage === 1) return articles;
+      if (currentPage === 1) return effectiveArticles;
       const seen = new Set(prev.map((item) => item.id));
-      const next = articles.filter((item) => !seen.has(item.id));
+      const next = effectiveArticles.filter((item) => !seen.has(item.id));
       return next.length === 0 ? prev : [...prev, ...next];
     });
-  }, [articles, currentPage, isPaginationEnabled]);
+  }, [effectiveArticles, currentPage, isPaginationEnabled]);
 
   const handleToggleFavorite = useCallback((articleId, favorited, likes) => {
     setArticles(prev => prev.map(a =>
@@ -333,8 +335,9 @@ const CommunityNews = () => {
 
                     {selectedContentBlocks.length > 0 ? (
                       <div className="space-y-6">
-                        {selectedContentBlocks.map((block) => (
-                          <div key={block.id || `${block.type}-${block.url || block.text || Math.random()}`} className={`space-y-3 rounded-2xl p-4 md:p-5 border ${isDayMode ? 'bg-slate-50/80 border-slate-200/80' : 'bg-white/[0.03] border-white/10'}`}>
+                        {/* FIX: B4 — Replace Math.random() key with stable index-based fallback */}
+                        {selectedContentBlocks.map((block, bIdx) => (
+                          <div key={block.id || `block-${bIdx}`} className={`space-y-3 rounded-2xl p-4 md:p-5 border ${isDayMode ? 'bg-slate-50/80 border-slate-200/80' : 'bg-white/[0.03] border-white/10'}`}>
                             {block.type === 'text' && (
                               <p className={`whitespace-pre-wrap leading-8 text-lg ${isDayMode ? 'text-slate-700' : 'text-gray-300'}`}>{block.text}</p>
                             )}

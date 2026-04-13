@@ -2,20 +2,11 @@ const { getDb } = require('../config/db');
 const { deleteFileFromUrl } = require('../utils/fileUtils');
 const { createNotification } = require('./notificationController');
 
-// Helper to ensure tags exist in the tags table
+// FIX: O4 — Remove CREATE TABLE from hot path; table should exist from migrations
 const processTags = async (tagsString) => {
   if (!tagsString) return;
   try {
     const db = await getDb();
-    // Ensure table exists just in case
-    await db.exec(`
-        CREATE TABLE IF NOT EXISTS tags (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT UNIQUE,
-            count INTEGER DEFAULT 0
-        )
-    `);
-    
     const tags = tagsString.split(',').map(t => t.trim()).filter(Boolean);
     for (const tag of tags) {
       await db.run('INSERT OR IGNORE INTO tags (name, count) VALUES (?, 0)', [tag]);
