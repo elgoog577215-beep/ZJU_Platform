@@ -4,6 +4,7 @@ import React, {
   useMemo,
   useEffect,
   useCallback,
+  useRef,
   memo,
   forwardRef,
 } from "react";
@@ -280,31 +281,41 @@ const Gallery = () => {
   });
   useBackClose(isUploadOpen, () => setIsUploadOpen(false));
 
-  // Deep linking: Check for ID in URL
+  // FIX: BUG-16 — Use ref to track if deep link was processed; remove displayPhotos dependency
+  const deepLinkProcessedRef = useRef(false);
+  useEffect(() => {
+    deepLinkProcessedRef.current = false;
+  }, [searchParams]);
+
   useEffect(() => {
     const id = searchParams.get("id");
-    if (id) {
-      api
-        .get(`/photos/${id}`)
-        .then((res) => {
-          if (res.data) {
-            const foundIndex = displayPhotos.findIndex(
-              (p) => String(p.id) === String(res.data.id),
-            );
-            if (foundIndex !== -1) {
-              setSelectedPhotoIndex(foundIndex);
-            } else {
-              setTempPhoto(res.data);
-            }
+    if (!id || deepLinkProcessedRef.current) return;
+    deepLinkProcessedRef.current = true;
+
+    const abortController = new AbortController();
+    api
+      .get(`/photos/${id}`, { signal: abortController.signal })
+      .then((res) => {
+        if (abortController.signal.aborted) return;
+        if (res.data) {
+          const foundIndex = displayPhotos.findIndex(
+            (p) => String(p.id) === String(res.data.id),
+          );
+          if (foundIndex !== -1) {
+            setSelectedPhotoIndex(foundIndex);
+          } else {
+            setTempPhoto(res.data);
           }
-        })
-        .catch((err) => {
-          if (process.env.NODE_ENV === "development") {
-            console.error("Failed to fetch deep linked photo", err);
-          }
-        });
-    }
-  }, [searchParams, displayPhotos]);
+        }
+      })
+      .catch((err) => {
+        if (abortController.signal.aborted) return;
+        if (process.env.NODE_ENV === "development") {
+          console.error("Failed to fetch deep linked photo", err);
+        }
+      });
+    return () => abortController.abort();
+  }, [searchParams]);
 
   const addPhoto = (newItem) => {
     api
@@ -319,11 +330,14 @@ const Gallery = () => {
       });
   };
 
+  // FIX: BUG-29 — Guard against empty displayPhotos to prevent division by zero
   const handleNext = () => {
+    if (displayPhotos.length === 0) return;
     setSelectedPhotoIndex((prev) => (prev + 1) % displayPhotos.length);
   };
 
   const handlePrev = () => {
+    if (displayPhotos.length === 0) return;
     setSelectedPhotoIndex(
       (prev) => (prev - 1 + displayPhotos.length) % displayPhotos.length,
     );
@@ -734,7 +748,7 @@ const Gallery = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
             className="text-center py-10"
-            onPageChange={handlePageChange}
+            /* FIX: BUG-31 — Removed invalid onPageChange prop from motion.div */
           />
         )}
 

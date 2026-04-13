@@ -11,14 +11,20 @@ export const useWeather = (initialCity = '杭州', initialCoords = { lat: 30.27,
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
 
+  // FIX: BUG-25 — Add AbortController for weather fetch cancellation
   useEffect(() => {
     if (!coords) return;
-    
-    axios.get(`https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current_weather=true`)
+
+    const abortController = new AbortController();
+    axios.get(`https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current_weather=true`, { signal: abortController.signal })
       .then(res => {
-        setWeather(res.data.current_weather);
+        if (!abortController.signal.aborted) setWeather(res.data.current_weather);
       })
-      .catch(err => console.error("Weather fetch failed", err));
+      .catch(err => {
+        if (!abortController.signal.aborted) console.error("Weather fetch failed", err);
+      });
+
+    return () => abortController.abort();
   }, [coords]);
 
   const handleCitySearch = async (e) => {

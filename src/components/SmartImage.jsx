@@ -98,9 +98,17 @@ const SmartImage = ({
     onLoad?.();
   }, [onLoad]);
 
+  // FIX: BUG-28 — Store retry timeout and clear on unmount
+  const retryTimeoutRef = useRef(null);
+  useEffect(() => {
+    return () => {
+      if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
+    };
+  }, []);
+
   const handleError = useCallback(() => {
     if (retryCount < maxRetries) {
-      setTimeout(() => {
+      retryTimeoutRef.current = setTimeout(() => {
         setRetryCount(prev => prev + 1);
       }, 1000 * (retryCount + 1));
     } else {

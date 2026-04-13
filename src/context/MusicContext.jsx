@@ -9,7 +9,11 @@ export const MusicProvider = ({ children }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [playlist, setPlaylist] = useState([]);
   const [isMiniPlayerVisible, setIsMiniPlayerVisible] = useState(false);
-  const audioRef = useRef(new Audio());
+  // FIX: BUG-26 — Lazy initialize Audio to avoid duplicate instances in StrictMode
+  const audioRef = useRef(null);
+  if (audioRef.current === null) {
+    audioRef.current = new Audio();
+  }
 
   const togglePlay = useCallback(() => {
     if (isPlaying) {

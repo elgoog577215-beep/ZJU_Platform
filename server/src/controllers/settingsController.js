@@ -1,11 +1,16 @@
 const { getDb } = require('../config/db');
 
+// FIX: BUG-03 — Filter out sensitive fields from public settings response
+const SENSITIVE_SETTINGS_KEYS = ['invite_code', 'admin_password', 'secret_key'];
+
 const getSettings = async (req, res, next) => {
   try {
     const db = await getDb();
     const settings = await db.all('SELECT * FROM settings');
     const settingsObj = settings.reduce((acc, curr) => {
-      acc[curr.key] = curr.value;
+      if (!SENSITIVE_SETTINGS_KEYS.includes(curr.key)) {
+        acc[curr.key] = curr.value;
+      }
       return acc;
     }, {});
     res.json(settingsObj);

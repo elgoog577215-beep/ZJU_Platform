@@ -49,11 +49,12 @@ const HomeFeed = () => {
     );
   }
 
-  const feedPhotos = featuredContent.photos.slice(0, 10); // Show more photos for rotation
-  const feedTracks = featuredContent.music;
-  const feedMainEvent = featuredContent.events[0];
-  const feedVideos = featuredContent.videos;
-  const feedArticles = featuredContent.articles.slice(0, 6).map(a => ({
+  // FIX: BUG-10 — Add null guards to prevent white-screen crash when content categories are empty
+  const feedPhotos = (featuredContent.photos || []).slice(0, 10);
+  const feedTracks = featuredContent.music || [];
+  const feedMainEvent = featuredContent.events?.[0] || null;
+  const feedVideos = featuredContent.videos || [];
+  const feedArticles = (featuredContent.articles || []).slice(0, 6).map(a => ({
       ...a,
       image: a.cover,
       date: new Date(a.created_at || Date.now()).toLocaleDateString(),

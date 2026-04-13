@@ -739,21 +739,22 @@ const Events = () => {
   const addToGoogleCalendar = () => {
     if (!selectedEvent) return;
     const title = encodeURIComponent(selectedEvent.title);
+    // FIX: BUG-30 — Guard against null values in calendar export strings
     const details = encodeURIComponent(
-      selectedEvent.description + "\n\n" + selectedEvent.content,
+      (selectedEvent.description || '') + "\n\n" + (selectedEvent.content || ''),
     );
-    const location = encodeURIComponent(selectedEvent.location);
+    const location = encodeURIComponent(selectedEvent.location || '');
     const hasTime = (str) => str && str.length > 10 && str[10] === "T";
 
     let dates;
     if (hasTime(selectedEvent.date)) {
-      // datetime event: format YYYYMMDDTHHMMSS/YYYYMMDDTHHMMSS
+      // FIX: BUG-20 — Append Z for UTC to ensure correct timezone interpretation
       const toGCalDateTime = (str) =>
-        str.substring(0, 16).replace(/-|:|T/g, "") + "00";
+        str.substring(0, 16).replace(/-|:|T/g, "") + "00Z";
       const startStr = toGCalDateTime(selectedEvent.date);
       const endStr = selectedEvent.end_date
         ? toGCalDateTime(selectedEvent.end_date)
-        : toGCalDateTime(selectedEvent.date); // same time if no end
+        : toGCalDateTime(selectedEvent.date);
       dates = `${startStr}/${endStr}`;
     } else {
       // all-day event: format YYYYMMDD/YYYYMMDD (end is exclusive, add 1 day)
@@ -773,16 +774,17 @@ const Events = () => {
 
   const downloadICS = () => {
     if (!selectedEvent) return;
-    const title = selectedEvent.title;
-    const desc = selectedEvent.description;
-    const location = selectedEvent.location;
+    // FIX: BUG-30 — Guard against null values
+    const title = selectedEvent.title || '';
+    const desc = selectedEvent.description || '';
+    const location = selectedEvent.location || '';
     const hasTime = (str) => str && str.length > 10 && str[10] === "T";
 
     let dtStart, dtEnd;
     if (hasTime(selectedEvent.date)) {
-      // datetime event: DTSTART:YYYYMMDDTHHMMSS
+      // FIX: BUG-20 — Append Z for UTC timezone in ICS datetime
       const toICSDateTime = (str) =>
-        str.substring(0, 16).replace(/-|:|T/g, "") + "00";
+        str.substring(0, 16).replace(/-|:|T/g, "") + "00Z";
       dtStart = `DTSTART:${toICSDateTime(selectedEvent.date)}`;
       dtEnd = `DTEND:${selectedEvent.end_date ? toICSDateTime(selectedEvent.end_date) : toICSDateTime(selectedEvent.date)}`;
     } else {

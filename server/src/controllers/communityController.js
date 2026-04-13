@@ -167,24 +167,32 @@ const togglePostLike = async (req, res, next) => {
       return res.status(404).json({ error: 'Post not found' });
     }
 
+    // FIX: BUG-21 — Wrap like toggle + count update in transaction for consistency
     const existing = await db.get('SELECT id FROM community_post_likes WHERE post_id = ? AND user_id = ?', [id, userId]);
     let liked = false;
-    if (existing) {
-      await db.run('DELETE FROM community_post_likes WHERE id = ?', [existing.id]);
-    } else {
-      await db.run('INSERT INTO community_post_likes (post_id, user_id) VALUES (?, ?)', [id, userId]);
-      liked = true;
-    }
+    await db.exec('BEGIN TRANSACTION');
+    try {
+      if (existing) {
+        await db.run('DELETE FROM community_post_likes WHERE id = ?', [existing.id]);
+      } else {
+        await db.run('INSERT INTO community_post_likes (post_id, user_id) VALUES (?, ?)', [id, userId]);
+        liked = true;
+      }
 
-    await db.run(
-      `
-      UPDATE community_posts
-      SET likes_count = (SELECT COUNT(*) FROM community_post_likes WHERE post_id = ?),
-          updated_at = datetime('now')
-      WHERE id = ?
-      `,
-      [id, id]
-    );
+      await db.run(
+        `
+        UPDATE community_posts
+        SET likes_count = (SELECT COUNT(*) FROM community_post_likes WHERE post_id = ?),
+            updated_at = datetime('now')
+        WHERE id = ?
+        `,
+        [id, id]
+      );
+      await db.exec('COMMIT');
+    } catch (txError) {
+      await db.exec('ROLLBACK');
+      throw txError;
+    }
 
     const row = await db.get('SELECT likes_count FROM community_posts WHERE id = ?', [id]);
     res.json({ liked, likes_count: row?.likes_count || 0 });

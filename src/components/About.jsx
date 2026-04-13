@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { useSettings } from "../context/SettingsContext";
@@ -31,11 +31,22 @@ const About = () => {
   });
   const [status, setStatus] = useState("idle"); // idle, submitting, success, error
 
+  // FIX: BUG-27 — Store timeout IDs in ref and clear on unmount
+  const statusTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (statusTimeoutRef.current) clearTimeout(statusTimeoutRef.current);
+    };
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (statusTimeoutRef.current) clearTimeout(statusTimeoutRef.current);
+
     if (!formState.name || !formState.email || !formState.message) {
       setStatus("error");
-      setTimeout(() => setStatus("idle"), 3000);
+      statusTimeoutRef.current = setTimeout(() => setStatus("idle"), 3000);
       return;
     }
 
@@ -51,7 +62,7 @@ const About = () => {
       }
       setStatus("error");
     } finally {
-      setTimeout(() => setStatus("idle"), 3000);
+      statusTimeoutRef.current = setTimeout(() => setStatus("idle"), 3000);
     }
   };
 

@@ -55,7 +55,8 @@ const NotificationCenter = () => {
     e && e.stopPropagation();
     try {
       await api.put(`/notifications/${id}/read`);
-      setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: 1 } : n));
+      // FIX: BUG-17 — Use boolean true for consistent is_read type
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
@@ -68,7 +69,8 @@ const NotificationCenter = () => {
   const handleMarkAllRead = async () => {
     try {
       await api.put('/notifications/all/read');
-      setNotifications(prev => prev.map(n => ({ ...n, is_read: 1 })));
+      // FIX: BUG-17
+      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
       setUnreadCount(0);
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
@@ -83,7 +85,8 @@ const NotificationCenter = () => {
     try {
       await api.delete(`/notifications/${id}`);
       setNotifications(prev => prev.filter(n => n.id !== id));
-      if (notifications.find(n => n.id === id)?.is_read === 0) {
+      // FIX: BUG-17 — Use negation instead of strict equality with 0
+      if (!notifications.find(n => n.id === id)?.is_read) {
           setUnreadCount(prev => Math.max(0, prev - 1));
       }
     } catch (error) {
@@ -108,7 +111,8 @@ const NotificationCenter = () => {
   };
 
   const handleNotificationClick = async (notification) => {
-    if (notification.is_read === 0) {
+    // FIX: BUG-17
+    if (!notification.is_read) {
         await handleMarkAsRead(notification.id);
     }
     
@@ -196,6 +200,7 @@ const NotificationCenter = () => {
                       onClick={() => handleNotificationClick(notification)}
                       className={`p-4 transition-colors cursor-pointer group relative ${notification.is_read ? 'opacity-60' : 'bg-indigo-500/5'} ${isDayMode ? 'hover:bg-slate-50' : 'hover:bg-white/5'}`}
                     >
+                      {/* FIX: BUG-17 — Consistent truthy check for is_read */}
                       <div className="flex gap-3">
                         <div className={`mt-1.5 w-2 h-2 rounded-full shrink-0 transition-colors ${notification.is_read ? 'bg-transparent' : 'bg-indigo-500'}`} />
                         <div className="flex-1 pr-6">

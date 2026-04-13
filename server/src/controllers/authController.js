@@ -3,7 +3,11 @@ const bcrypt = require('bcryptjs');
 const { getDb } = require('../config/db');
 const { loginAttemptTracker } = require('../middleware/security');
 
-const SECRET_KEY = process.env.SECRET_KEY || 'dev-secret-key-change-in-prod';
+// FIX: BUG-02 — Remove hardcoded JWT secret fallback; fail fast if not configured
+const SECRET_KEY = process.env.SECRET_KEY;
+if (!SECRET_KEY) {
+  throw new Error('FATAL: SECRET_KEY environment variable is required. Set it before starting the server.');
+}
 
 const register = async (req, res, next) => {
   try {
@@ -109,13 +113,21 @@ const adminLogin = async (req, res, next) => {
 
     loginAttemptTracker.clear(clientIp);
 
+    // FIX: BUG-14 — Look up actual admin user from database instead of hardcoding id:1
+    const db = await getDb();
+    let adminUser = await db.get("SELECT id, username, role FROM users WHERE role = 'admin' LIMIT 1");
+    if (!adminUser) {
+      // Fallback: create a virtual admin identity if no admin user exists in DB
+      adminUser = { id: 0, username: 'admin', role: 'admin' };
+    }
+
     const token = jwt.sign(
-      { id: 1, username: 'admin', role: 'admin' }, 
-      SECRET_KEY, 
+      { id: adminUser.id, username: adminUser.username, role: 'admin' },
+      SECRET_KEY,
       { expiresIn: '7d' }
     );
 
-    res.json({ token, user: { id: 1, username: 'admin', role: 'admin' } });
+    res.json({ token, user: { id: adminUser.id, username: adminUser.username, role: 'admin' } });
   } catch (error) { next(error); }
 };
 

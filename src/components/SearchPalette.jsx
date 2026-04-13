@@ -126,7 +126,9 @@ const SearchPalette = () => {
   const highlightTitle = (title) => {
     if (normalizedQuery.length < 2) return title;
 
-    return title.split(new RegExp(`(${normalizedQuery})`, 'gi')).map((part, index) =>
+    // FIX: BUG-11 — Escape regex special characters from user input to prevent SyntaxError
+    const escaped = normalizedQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return title.split(new RegExp(`(${escaped})`, 'gi')).map((part, index) =>
       part.toLowerCase() === normalizedQuery.toLowerCase()
         ? <span key={index} className="text-indigo-400 bg-indigo-500/10 px-0.5 rounded">{part}</span>
         : part

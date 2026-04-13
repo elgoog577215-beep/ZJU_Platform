@@ -10,12 +10,23 @@ const authenticateToken = (req, res, next) => {
     return res.sendStatus(401);
   }
 
-  jwt.verify(token, SECRET_KEY, (err, user) => {
+  // FIX: BUG-12 — Specify algorithm to prevent "none" algorithm attack
+  jwt.verify(token, SECRET_KEY, { algorithms: ['HS256'] }, async (err, user) => {
     if (err) {
       console.log('[Auth] Token verification failed:', err.message, 'for:', req.originalUrl);
       return res.status(403).json({ error: 'Invalid or expired token' });
     }
-    console.log('[Auth] Token verified. User:', user.username, 'Role:', user.role);
+    // FIX: BUG-13 — Refresh role from database to prevent stale JWT role persistence
+    try {
+      const { getDb } = require('../config/db');
+      const db = await getDb();
+      const dbUser = await db.get('SELECT id, username, role FROM users WHERE id = ?', [user.id]);
+      if (dbUser) {
+        user.role = dbUser.role;
+      }
+    } catch (dbErr) {
+      // Fall back to JWT role if DB lookup fails
+    }
     req.user = user;
     next();
   });
@@ -27,7 +38,8 @@ const optionalAuth = (req, res, next) => {
 
   if (!token) return next();
 
-  jwt.verify(token, SECRET_KEY, (err, user) => {
+  // FIX: BUG-12 — Specify algorithm for optionalAuth as well
+  jwt.verify(token, SECRET_KEY, { algorithms: ['HS256'] }, (err, user) => {
     if (!err) {
         req.user = user;
     }

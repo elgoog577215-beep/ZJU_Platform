@@ -291,7 +291,8 @@ const EventAssistantPanel = ({ isDayMode, onOpenEvent, className = '' }) => {
 
                   {assistantState.type === 'recommend' && (
                     <div className="mt-4 grid grid-cols-1 xl:grid-cols-2 gap-4">
-                      {assistantState.recommendations.map((item) => (
+                      {/* FIX: BUG-19 — Guard against null recommendations */}
+                      {(assistantState.recommendations || []).map((item) => (
                         <button
                           key={item.id}
                           type="button"

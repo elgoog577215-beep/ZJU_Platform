@@ -20,16 +20,19 @@ const commentController = require('../controllers/commentController');
 const communityController = require('../controllers/communityController');
 
 const { authenticateToken, isAdmin, optionalAuth } = require('../middleware/auth');
-const { validate, registerValidation, loginValidation, changePasswordValidation, settingsValidation } = require('../middleware/validate');
+const { validate, registerValidation, loginValidation, changePasswordValidation, settingsValidation, resourceValidation } = require('../middleware/validate');
 const authController = require('../controllers/authController');
+// FIX: BUG-04 — Import bruteForceProtection middleware
+const { bruteForceProtection } = require('../middleware/security');
 
 // Note: Rate limiting is configured globally in server/index.js
 // No need for additional rate limiters here to avoid double-counting
 
 // Auth Routes
 router.post('/auth/register', validate(registerValidation), authController.register);
-router.post('/auth/login', validate(loginValidation), authController.login);
-router.post('/auth/admin-login', authController.adminLogin);
+// FIX: BUG-04 — Mount bruteForceProtection on login routes
+router.post('/auth/login', bruteForceProtection, validate(loginValidation), authController.login);
+router.post('/auth/admin-login', bruteForceProtection, authController.adminLogin);
 router.get('/auth/me', authenticateToken, authController.me);
 router.post('/auth/change-password', authenticateToken, validate(changePasswordValidation), authController.changePassword);
 router.put('/auth/profile', authenticateToken, (req, res) => {
@@ -136,11 +139,12 @@ resources.forEach(resource => {
     // Get Distinct Values for a Field
     router.get(`/${resource}/distinct/:field`, resourceController.getDistinctValues(resource));
 
+    // FIX: BUG-22 — Add input validation middleware for resource create/update
     // Create
-    router.post(`/${resource}`, authenticateToken, resourceController.createHandler(resource, resourceController.fields[resource]));
-    
+    router.post(`/${resource}`, authenticateToken, validate(resourceValidation), resourceController.createHandler(resource, resourceController.fields[resource]));
+
     // Update
-    router.put(`/${resource}/:id`, authenticateToken, resourceController.updateHandler(resource, resourceController.fields[resource]));
+    router.put(`/${resource}/:id`, authenticateToken, validate(resourceValidation), resourceController.updateHandler(resource, resourceController.fields[resource]));
     
     // Delete (Soft Delete)
     router.delete(`/${resource}/:id`, authenticateToken, resourceController.deleteHandler(resource));

@@ -9,8 +9,9 @@ const UPLOAD_CONFIG = {
   uploadDir: process.env.UPLOAD_DIR || path.join(__dirname, '../../uploads'),
   allowedTypes: {
     image: {
-      extensions: ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp'],
-      mimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/bmp'],
+      // FIX: BUG-05 — Remove SVG to prevent stored XSS via event handlers (onload, onerror, etc.)
+      extensions: ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'],
+      mimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp'],
       maxSize: 50 * 1024 * 1024 // 50MB for images
     },
     video: {
@@ -187,10 +188,15 @@ const scanFile = async (filePath) => {
       throw new Error('Empty file');
     }
     
-    // Check for PHP tags in non-PHP files
+    // FIX: BUG-07 — Only read first 8KB to prevent OOM on large files (videos, audio)
     const ext = path.extname(filePath).toLowerCase();
     if (!['.php', '.phtml'].includes(ext)) {
-      const buffer = await fs.promises.readFile(filePath, { encoding: 'utf8', flag: 'r' });
+      const MAX_SCAN_BYTES = 8192;
+      const fd = await fs.promises.open(filePath, 'r');
+      const scanBuffer = Buffer.alloc(Math.min(MAX_SCAN_BYTES, stats.size));
+      await fd.read(scanBuffer, 0, scanBuffer.length, 0);
+      await fd.close();
+      const buffer = scanBuffer.toString('utf8');
       const dangerousPatterns = [
         /<?php/i,
         /<script\b[^>]*>[\s\S]*?<\/script>/i,

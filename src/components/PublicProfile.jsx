@@ -84,15 +84,19 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordLoading, setPasswordLoading] = useState(false);
 
-  // Initial Fetch
+  // FIX: BUG-24 — Add AbortController to cancel stale requests when switching profiles
   useEffect(() => {
+    if (!id) return;
+
+    const abortController = new AbortController();
     const fetchData = async () => {
       try {
         setLoading(true);
         const [userRes, resourcesRes] = await Promise.all([
-          api.get(`/users/${id}/profile`),
-          api.get(`/users/${id}/resources`),
+          api.get(`/users/${id}/profile`, { signal: abortController.signal }),
+          api.get(`/users/${id}/resources`, { signal: abortController.signal }),
         ]);
+        if (abortController.signal.aborted) return;
         setUser(userRes.data);
         setResources(resourcesRes.data);
 
@@ -105,12 +109,15 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
           setIsInviteCodeVerified(!!currentUser.organization);
         }
       } catch (err) {
+        if (abortController.signal.aborted) return;
         if (process.env.NODE_ENV === "development") {
           console.error("Failed to fetch profile", err);
         }
         setError("User not found");
       } finally {
-        setLoading(false);
+        if (!abortController.signal.aborted) {
+          setLoading(false);
+        }
       }
     };
 
@@ -118,6 +125,8 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
       fetchData();
       setActiveTab(initialTab); // Reset tab on profile source change
     }
+
+    return () => abortController.abort();
   }, [id, currentUser?.id, initialTab]);
 
   useEffect(() => {

@@ -64,7 +64,8 @@ const updateUser = async (req, res, next) => {
         await db.run('UPDATE users SET organization_cr = ? WHERE id = ?', [organization_cr, id]);
     }
 
-    if (role) {
+    // FIX: BUG-01 — Only admins can change roles; ignore role field from non-admin users
+    if (role && req.user && req.user.role === 'admin') {
       await db.run('UPDATE users SET role = ? WHERE id = ?', [role, id]);
     }
 

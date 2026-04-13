@@ -4,7 +4,8 @@ const { body, validationResult } = require('express-validator');
 const { RateLimiter, LoginAttemptTracker, generateCsrfToken, verifyCsrfToken } = require('../utils/security');
 
 // Initialize rate limiters
-const loginAttemptTracker = new LoginAttemptTracker(500, 1); // 500 attempts, 1 min lockout (effectively disabled brute force)
+// FIX: BUG-04 — Tighten brute force protection: 5 attempts, 15 min lockout
+const loginAttemptTracker = new LoginAttemptTracker(5, 15);
 const apiRateLimiter = new RateLimiter(
   parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 900000,
   parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 5000
@@ -183,7 +184,8 @@ const sanitizeRequest = (req, res, next) => {
   // Content fields like 'content', 'description', 'excerpt' are NOT sanitized
   // as they may contain legitimate HTML/Markdown
   const fieldsToSanitize = [
-    'username', 'password', 'email', 'name', 'nickname',
+    // FIX: BUG-06 — Remove 'password' from sanitization list to prevent corruption before hashing
+    'username', 'email', 'name', 'nickname',
     'location', 'organizer', 'target_audience'
   ];
 

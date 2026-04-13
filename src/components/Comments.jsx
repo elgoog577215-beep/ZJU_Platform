@@ -108,7 +108,8 @@ const Comments = ({ resourceId, resourceType }) => {
                                             <span className="text-[10px] text-gray-500">{new Date(comment.created_at).toLocaleString()}</span>
                                         </div>
                                     </div>
-                                    {(user && (user.id === comment.user_id || user.role === 'admin')) && (
+                                    {/* FIX: BUG-18 — Use String() to normalize ID types for comparison */}
+                                    {(user && (String(user.id) === String(comment.user_id) || user.role === 'admin')) && (
                                         <button 
                                             onClick={() => handleDelete(comment.id)}
                                             className="text-gray-500 hover:text-red-400 transition-colors p-1"

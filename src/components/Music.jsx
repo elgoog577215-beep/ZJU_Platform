@@ -278,7 +278,9 @@ const Music = () => {
     setCurrentPage(1);
   }, [sort, selectedTags, settings.pagination_enabled]);
 
+  // FIX: BUG-15 — Add AbortController to cancel stale requests on rapid sort/filter changes
   useEffect(() => {
+    const abortController = new AbortController();
     setLoading(true);
     const params = {
       page: currentPage,
@@ -288,8 +290,9 @@ const Music = () => {
     };
 
     api
-      .get("/music", { params })
+      .get("/music", { params, signal: abortController.signal })
       .then((res) => {
+        if (abortController.signal.aborted) return;
         const nextTracks = res.data.data || [];
         const nextTotalPages = res.data.pagination?.totalPages || 1;
 
@@ -304,12 +307,15 @@ const Music = () => {
         setError(false);
       })
       .catch((err) => {
+        if (abortController.signal.aborted) return;
         if (process.env.NODE_ENV === "development") {
           console.error("Failed to fetch music:", err);
         }
         setLoading(false);
         setError(true);
       });
+
+    return () => abortController.abort();
   }, [
     currentPage,
     sort,

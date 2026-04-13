@@ -38,10 +38,19 @@ const settingsValidation = [
   body('value').notEmpty().withMessage('Value is required')
 ];
 
+// FIX: BUG-22 — Add validation for resource create/update endpoints
+const resourceValidation = [
+  body('title')
+    .trim()
+    .notEmpty().withMessage('Title is required')
+    .isLength({ max: 500 }).withMessage('Title must be under 500 characters'),
+];
+
 module.exports = {
   validate,
   registerValidation,
   loginValidation,
   changePasswordValidation,
-  settingsValidation
+  settingsValidation,
+  resourceValidation
 };

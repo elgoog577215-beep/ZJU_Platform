@@ -124,7 +124,8 @@ const generalLimiter = rateLimit({
 // Stricter rate limit for auth routes
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: parseInt(process.env.AUTH_RATE_LIMIT_MAX) || 2000, // Increased significantly to effectively disable for normal use
+  // FIX: BUG-04 — Reduce auth rate limit from 2000 to 20 per 15 minutes
+  max: parseInt(process.env.AUTH_RATE_LIMIT_MAX) || 20,
   standardHeaders: true,
   legacyHeaders: false,
   skipSuccessfulRequests: true, // Don't count successful logins

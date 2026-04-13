@@ -52,11 +52,12 @@ const persistCache = (cacheKey, payload) => {
     }, 0);
 };
 
+// FIX: BUG-09 — Accept signal option for AbortController support
 const fetchAndCacheResource = async (endpoint, requestParams, cacheKey, requestOptions = {}) => {
     const existingRequest = inflightRequests.get(cacheKey);
     if (existingRequest) return existingRequest;
 
-    const requestPromise = api.get(endpoint, { params: requestParams, ...requestOptions }).then((res) => {
+    const requestPromise = api.get(endpoint, { params: requestParams, signal: requestOptions.signal, ...requestOptions }).then((res) => {
         const newData = res.data.data !== undefined ? res.data.data : res.data;
         const newPagination = res.data.pagination || {};
         const payload = {
@@ -128,15 +129,18 @@ export const useCachedResource = (endpoint, params = {}, options = {}) => {
         setRefreshKey((prev) => prev + 1);
     }, [cacheKey]);
 
+    // FIX: BUG-09 — Add AbortController to cancel stale requests and prevent setState after unmount
     useEffect(() => {
         if (!enabled) return;
+
+        const abortController = new AbortController();
 
         const fetchData = async () => {
             const now = Date.now();
             const cached = readStoredCache(cacheKey);
             let hasCache = false;
             let isFreshCache = false;
-            
+
             if (cached) {
                 if (cached.data !== undefined) {
                     setData(cached.data);
@@ -158,11 +162,14 @@ export const useCachedResource = (endpoint, params = {}, options = {}) => {
 
             try {
                 const requestParams = Object.fromEntries(new URLSearchParams(queryString));
-                const payload = await fetchAndCacheResource(endpoint, requestParams, cacheKey, { silent });
-                setData(payload.data);
-                setPagination(payload.pagination || {});
-                setError(null);
+                const payload = await fetchAndCacheResource(endpoint, requestParams, cacheKey, { silent, signal: abortController.signal });
+                if (!abortController.signal.aborted) {
+                    setData(payload.data);
+                    setPagination(payload.pagination || {});
+                    setError(null);
+                }
             } catch (err) {
+                if (abortController.signal.aborted) return;
                 if (!silent && process.env.NODE_ENV === 'development') {
                     console.error(`Fetch error for ${endpoint}`, err);
                 }
@@ -170,11 +177,15 @@ export const useCachedResource = (endpoint, params = {}, options = {}) => {
                     setError(err);
                 }
             } finally {
-                setLoading(false);
+                if (!abortController.signal.aborted) {
+                    setLoading(false);
+                }
             }
         };
 
         fetchData();
+
+        return () => abortController.abort();
     }, [enabled, cacheKey, endpoint, queryString, refreshKey, ttl, dependenciesKey, silent]);
 
     return { data, pagination, loading, error, setData, refresh };

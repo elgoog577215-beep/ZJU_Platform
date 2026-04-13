@@ -162,39 +162,48 @@ const permanentDeleteHandler = (table) => async (req, res, next) => {
         });
     }
 
-    // 1. Delete from favorites (handle both singular and plural types for safety)
-    await db.run(
-        'DELETE FROM favorites WHERE item_id = ? AND (item_type = ? OR item_type = ?)', 
-        [id, singularType, table]
-    );
-    
-    // 2. Delete from comments (handle both singular and plural types)
-    // Check if comments table exists first? It should.
-    await db.run(
-        'DELETE FROM comments WHERE resource_id = ? AND (resource_type = ? OR resource_type = ?)', 
-        [id, singularType, table]
-    );
+    // FIX: BUG-08 — Wrap cascade deletes in a transaction for data consistency
+    try {
+      await db.exec('BEGIN TRANSACTION');
 
-    // 3. Delete from notifications (handle both singular and plural types)
-    await db.run(
-        'DELETE FROM notifications WHERE related_resource_id = ? AND (related_resource_type = ? OR related_resource_type = ?)', 
-        [id, singularType, table]
-    );
+      // 1. Delete from favorites
+      await db.run(
+          'DELETE FROM favorites WHERE item_id = ? AND (item_type = ? OR item_type = ?)',
+          [id, singularType, table]
+      );
 
-    // 4. Delete from event_registrations (only for events)
-    if (table === 'events') {
-        await db.run('DELETE FROM event_registrations WHERE event_id = ?', [id]);
-    }
+      // 2. Delete from comments
+      await db.run(
+          'DELETE FROM comments WHERE resource_id = ? AND (resource_type = ? OR resource_type = ?)',
+          [id, singularType, table]
+      );
 
-    // 5. Delete from table
-    await db.run(`DELETE FROM ${table} WHERE id = ?`, id);
-    
-    // Audit Log for Admins
-    if (req.user.role === 'admin') {
-         await db.run(
-            `INSERT INTO audit_logs (admin_id, resource_type, resource_id, action, reason) VALUES (?, ?, ?, ?, ?)`,
-            [req.user.id, table, id, 'permanent_delete', 'Admin permanently deleted resource']
-        );
+      // 3. Delete from notifications
+      await db.run(
+          'DELETE FROM notifications WHERE related_resource_id = ? AND (related_resource_type = ? OR related_resource_type = ?)',
+          [id, singularType, table]
+      );
+
+      // 4. Delete from event_registrations (only for events)
+      if (table === 'events') {
+          await db.run('DELETE FROM event_registrations WHERE event_id = ?', [id]);
+      }
+
+      // 5. Delete from table
+      await db.run(`DELETE FROM ${table} WHERE id = ?`, id);
+
+      // Audit Log for Admins
+      if (req.user.role === 'admin') {
+           await db.run(
+              `INSERT INTO audit_logs (admin_id, resource_type, resource_id, action, reason) VALUES (?, ?, ?, ?, ?)`,
+              [req.user.id, table, id, 'permanent_delete', 'Admin permanently deleted resource']
+          );
+      }
+
+      await db.exec('COMMIT');
+    } catch (txError) {
+      await db.exec('ROLLBACK');
+      throw txError;
     }
 
     res.json({ message: 'Permanently deleted with all associated data' });

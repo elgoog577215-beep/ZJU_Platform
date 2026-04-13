@@ -138,19 +138,31 @@ class PerformanceMonitor {
   /**
    * 监控内存使用
    */
+  // FIX: BUG-23 — Store interval ID so it can be cleared via destroy()
   observeMemory() {
     if (performance.memory) {
-      setInterval(() => {
+      this._memoryIntervalId = setInterval(() => {
         const memory = performance.memory;
         const usedMB = (memory.usedJSHeapSize / 1048576).toFixed(2);
         const totalMB = (memory.totalJSHeapSize / 1048576).toFixed(2);
-        
+
         console.log('[Performance] Memory:', {
           used: `${usedMB} MB`,
           total: `${totalMB} MB`,
           usage: ((memory.usedJSHeapSize / memory.totalJSHeapSize) * 100).toFixed(2) + '%'
         });
       }, 10000);
+    }
+  }
+
+  destroy() {
+    if (this._memoryIntervalId) {
+      clearInterval(this._memoryIntervalId);
+      this._memoryIntervalId = null;
+    }
+    if (this.observer) {
+      this.observer.disconnect();
+      this.observer = null;
     }
   }
 
