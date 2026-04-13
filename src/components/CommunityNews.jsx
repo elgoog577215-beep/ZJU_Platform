@@ -15,21 +15,7 @@ import { useCachedResource } from '../hooks/useCachedResource';
 import DOMPurify from 'dompurify';
 import { useReducedMotion } from '../utils/animations';
 import { useBackClose } from '../hooks/useBackClose';
-
-const calculateReadingTime = (text, t) => {
-  const wordsPerMinute = 200;
-  const words = text ? text.split(/\s+/).length : 0;
-  const minutes = Math.ceil(words / wordsPerMinute);
-  return `${minutes} ${t('common.min_read')}`;
-};
-
-const parseContentBlocks = (raw) => {
-  if (!raw) return [];
-  try {
-    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-    return Array.isArray(parsed) ? parsed : [];
-  } catch { return []; }
-};
+import { parseContentBlocks, calculateReadingTime } from './communityUtils';
 
 const NewsCard = memo(({ article, index, onClick, onToggleFavorite, canAnimate, isDayMode }) => {
   const { t } = useTranslation();

@@ -7,20 +7,23 @@ import { useSettings } from '../context/SettingsContext';
 const groups = [
   {
     id: 'wechat-main',
-    nameKey: 'community.groups.wechat_main',
-    descKey: 'community.groups.wechat_main_desc',
+    name: 'AI 社区总群',
+    desc: '发布社群公告、活动速递与平台更新，适合新加入同学。',
+    joinLink: 'https://example.com/groups/main',
     qrPlaceholder: true,
   },
   {
     id: 'wechat-tech',
-    nameKey: 'community.groups.wechat_tech',
-    descKey: 'community.groups.wechat_tech_desc',
+    name: '技术分享群',
+    desc: '聚焦工程实践与论文复现，欢迎分享项目进展与踩坑记录。',
+    joinLink: 'https://example.com/groups/tech',
     qrPlaceholder: true,
   },
   {
     id: 'wechat-activity',
-    nameKey: 'community.groups.wechat_activity',
-    descKey: 'community.groups.wechat_activity_desc',
+    name: '组队与活动群',
+    desc: '用于 hackathon 组队、赛事通知和跨学院协作对接。',
+    joinLink: 'https://example.com/groups/activity',
     qrPlaceholder: true,
   },
 ];
@@ -52,11 +55,22 @@ const GroupCard = memo(({ group, index, isDayMode }) => {
       </div>
 
       <h3 className={`text-lg font-bold mb-2 ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
-        {t(group.nameKey)}
+        {group.name}
       </h3>
       <p className={`text-sm leading-relaxed ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
-        {t(group.descKey)}
+        {group.desc}
       </p>
+      <a
+        href={group.joinLink}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`mt-4 inline-flex items-center gap-1.5 text-xs font-semibold ${
+          isDayMode ? 'text-orange-600 hover:text-orange-700' : 'text-orange-300 hover:text-orange-200'
+        }`}
+      >
+        {t('community.groups.join_link', '加入链接')}
+        <ExternalLink size={14} />
+      </a>
     </motion.div>
   );
 });

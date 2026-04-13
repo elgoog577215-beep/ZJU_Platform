@@ -120,6 +120,7 @@ const articlesSeed = [
     tags: '校园指南,活动,信息整合',
     cover: 'https://images.unsplash.com/photo-1513258496099-48168024aec0?w=1200&auto=format&fit=crop&q=80',
     content: '<p>拓途浙享希望减少“知道得晚、错过报名”的问题。好的活动信息，应该被更早、更清晰地看见。</p>',
+    category: 'tech',
     featured: 1,
     created_at: '2026-03-16 09:30:00'
   },
@@ -131,6 +132,7 @@ const articlesSeed = [
     tags: '志愿服务,模板,复盘',
     cover: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=1200&auto=format&fit=crop&q=80',
     content: '<p>一篇活动记录不只用于存档，也能帮助后来者快速理解活动价值和参与方式。</p>',
+    category: 'tech',
     featured: 0,
     created_at: '2026-03-24 11:15:00'
   },
@@ -142,8 +144,150 @@ const articlesSeed = [
     tags: '平台思考,创作,展示',
     cover: 'https://images.unsplash.com/photo-1516321497487-e288fb19713f?w=1200&auto=format&fit=crop&q=80',
     content: '<p>统一的平台能让创作、活动、互动之间形成连接，也更方便后续做数据分析和运营。</p>',
+    category: 'tech',
     featured: 0,
     created_at: '2026-03-27 16:45:00'
+  },
+  {
+    title: '学院 AI 讲座周报（第 12 期）',
+    date: '2026-03-29',
+    excerpt: '整理本周校内外 AI 方向公开讲座、开放课程与参赛通知。',
+    tag: '社区新闻',
+    tags: '新闻,讲座,AI,周报',
+    cover: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1200&auto=format&fit=crop&q=80',
+    content: '<p>本期收录 7 场公开讲座与 2 场比赛说明会，建议按研究方向提前预约。</p>',
+    category: 'news',
+    featured: 1,
+    created_at: '2026-03-29 10:20:00'
+  },
+  {
+    title: '开源社群动态：四月协作日程',
+    date: '2026-03-30',
+    excerpt: '发布四月开源协作安排，含新手 onboarding 与 maintainer office hour。',
+    tag: '社区新闻',
+    tags: '新闻,开源,社区',
+    cover: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=1200&auto=format&fit=crop&q=80',
+    content: '<p>欢迎对开源感兴趣的同学报名参与，本月新增文档翻译与 issue triage 专场。</p>',
+    category: 'news',
+    featured: 0,
+    created_at: '2026-03-30 18:00:00'
+  },
+  {
+    title: '校园算力开放时段调整公告',
+    date: '2026-04-01',
+    excerpt: '实验教学周期间，公共 GPU 机房开放时段与预约规则更新。',
+    tag: '社区新闻',
+    tags: '新闻,算力,GPU',
+    cover: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=1200&auto=format&fit=crop&q=80',
+    content: '<p>夜间时段将优先保障课程实验，科研任务建议提前两天提交预约申请。</p>',
+    category: 'news',
+    featured: 0,
+    created_at: '2026-04-01 09:00:00'
+  }
+];
+
+const communityPostsSeed = [
+  {
+    section: 'help',
+    title: 'PyTorch 2.4 在 Windows 上编译扩展报错，求排查思路',
+    content: '在 VS Build Tools 和 CUDA 环境都安装后，编译自定义 op 仍然报符号缺失，想请教大家怎么定位。',
+    tags: 'PyTorch,CUDA,Windows',
+    status: 'approved',
+    post_status: 'open',
+    content_blocks: JSON.stringify([
+      { type: 'text', text: '环境：Python 3.11、CUDA 12.1、PyTorch 2.4。' },
+      { type: 'text', text: '错误信息集中在 C++ extension 链接阶段。' }
+    ]),
+    created_at: '2026-04-02 10:00:00'
+  },
+  {
+    section: 'help',
+    title: '大模型微调显存不足问题已解决，分享排查记录',
+    content: '把 batch size 与 gradient checkpointing 调整后，24GB 显存可以稳定训练。',
+    tags: 'LLM,显存,微调',
+    status: 'approved',
+    post_status: 'solved',
+    content_blocks: JSON.stringify([
+      { type: 'text', text: '最终配置：batch size 2 + accumulation 8。' },
+      { type: 'text', text: '建议先用 profile 工具观察激活占用。' }
+    ]),
+    created_at: '2026-04-03 09:30:00'
+  },
+  {
+    section: 'help',
+    title: '求推荐适合课程项目的 RAG 基线实现',
+    content: '课程项目要求两周内出结果，希望选择上手快、可解释性好的方案。',
+    tags: 'RAG,课程项目,检索',
+    status: 'approved',
+    post_status: 'open',
+    content_blocks: JSON.stringify([
+      { type: 'text', text: '优先考虑 LangChain 或 LlamaIndex 的轻量组合。' }
+    ]),
+    created_at: '2026-04-04 15:40:00'
+  },
+  {
+    section: 'team',
+    title: 'CVPR 复现小队招募：视频理解方向',
+    content: '希望招募 3 名同学一起做论文复现，按周推进实验与报告。',
+    tags: 'CV,论文复现,组队',
+    status: 'approved',
+    post_status: 'recruiting',
+    deadline: '2026-05-10',
+    max_members: 4,
+    current_members: 2,
+    link: 'https://example.com/team/cvpr-reproduce',
+    content_blocks: JSON.stringify([
+      { type: 'text', text: '方向：视频动作识别与多模态融合。' },
+      { type: 'text', text: '每周两次站会，要求能稳定投入。' }
+    ]),
+    created_at: '2026-04-02 20:00:00'
+  },
+  {
+    section: 'team',
+    title: 'AI 黑客松队伍补位：前端 + Prompt 工程',
+    content: '已有后端和算法同学，缺 1 位前端与 1 位 prompt 工程同学。',
+    tags: '黑客松,前端,Prompt',
+    status: 'approved',
+    post_status: 'full',
+    deadline: '2026-04-20',
+    max_members: 5,
+    current_members: 5,
+    link: 'https://example.com/team/hackathon-ai',
+    content_blocks: JSON.stringify([
+      { type: 'text', text: '目标是完成可演示的 AI 助手产品 MVP。' }
+    ]),
+    created_at: '2026-04-01 18:20:00'
+  },
+  {
+    section: 'team',
+    title: '校园数据可视化项目协作招募',
+    content: '寻找对数据分析与交互可视化感兴趣的同学，共建公开展示站点。',
+    tags: '数据可视化,协作,开源',
+    status: 'approved',
+    post_status: 'recruiting',
+    deadline: '2026-05-30',
+    max_members: 6,
+    current_members: 3,
+    link: 'https://example.com/team/dataviz-campus',
+    content_blocks: JSON.stringify([
+      { type: 'text', text: '使用 React + ECharts，数据源来自公开校园统计。' }
+    ]),
+    created_at: '2026-04-05 11:10:00'
+  }
+];
+
+const communityCommentsSeed = [
+  {
+    postTitle: 'PyTorch 2.4 在 Windows 上编译扩展报错，求排查思路',
+    author: '演示用户',
+    content: '可以先检查一下 `cl` 和 `nvcc` 的 PATH 顺序，我之前是这个问题。',
+    created_at: '2026-04-02 11:00:00'
+  },
+  {
+    postTitle: '求推荐适合课程项目的 RAG 基线实现',
+    author: '种子管理员',
+    content: '建议先用 BM25 + 向量检索双路召回，评估指标更稳。',
+    created_at: '2026-04-04 16:10:00'
   }
 ];
 
@@ -250,6 +394,9 @@ async function resetDatabase(db) {
     DROP TABLE IF EXISTS site_visit_events;
     DROP TABLE IF EXISTS notifications;
     DROP TABLE IF EXISTS comments;
+    DROP TABLE IF EXISTS community_post_members;
+    DROP TABLE IF EXISTS community_post_likes;
+    DROP TABLE IF EXISTS community_posts;
     DROP TABLE IF EXISTS favorites;
     DROP TABLE IF EXISTS audit_logs;
     DROP TABLE IF EXISTS tags;
@@ -326,10 +473,10 @@ async function insertContent(db, users) {
   for (const article of articlesSeed) {
     await db.run(
       `
-        INSERT INTO articles (title, date, excerpt, tag, tags, content, cover, featured, status, uploader_id, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'approved', ?, ?)
+        INSERT INTO articles (title, date, excerpt, tag, tags, content, cover, category, featured, status, uploader_id, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved', ?, ?)
       `,
-      [article.title, article.date, article.excerpt, article.tag, article.tags, article.content, article.cover, article.featured, adminId, article.created_at]
+      [article.title, article.date, article.excerpt, article.tag, article.tags, article.content, article.cover, article.category || 'tech', article.featured, adminId, article.created_at]
     );
   }
 
@@ -371,6 +518,85 @@ async function insertContent(db, users) {
       'INSERT INTO messages (name, email, message, date, read) VALUES (?, ?, ?, ?, ?)',
       [message.name, message.email, message.message, message.date, message.read]
     );
+  }
+}
+
+async function insertCommunityData(db, users) {
+  const adminUser = users.find(user => user.role === 'admin');
+  const demoUser = users.find(user => user.role === 'user');
+  const adminId = adminUser?.id || null;
+  const demoId = demoUser?.id || adminId;
+
+  const postIdByTitle = new Map();
+  for (const item of communityPostsSeed) {
+    const result = await db.run(
+      `
+        INSERT INTO community_posts (
+          section, title, content, content_blocks, tags, status, post_status, deadline, max_members, current_members,
+          link, author_id, author_name, author_avatar, created_at, updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?)
+      `,
+      [
+        item.section,
+        item.title,
+        item.content,
+        item.content_blocks || null,
+        item.tags || '',
+        item.status || 'approved',
+        item.post_status || (item.section === 'team' ? 'recruiting' : item.section === 'help' ? 'open' : 'published'),
+        item.deadline || null,
+        item.max_members || null,
+        item.current_members || 0,
+        item.link || null,
+        adminId,
+        adminUser?.nickname || adminUser?.username || '管理员',
+        item.created_at,
+        item.created_at
+      ]
+    );
+    postIdByTitle.set(item.title, result.lastID);
+  }
+
+  for (const item of communityCommentsSeed) {
+    const postId = postIdByTitle.get(item.postTitle);
+    if (!postId) continue;
+    await db.run(
+      `
+        INSERT INTO comments (resource_type, resource_id, user_id, author, content, avatar, created_at)
+        VALUES ('community_post', ?, ?, ?, ?, NULL, ?)
+      `,
+      [postId, demoId, item.author, item.content, item.created_at]
+    );
+  }
+
+  await db.run(
+    `
+      UPDATE community_posts
+      SET comments_count = (
+        SELECT COUNT(*) FROM comments
+        WHERE resource_type = 'community_post' AND resource_id = community_posts.id
+      )
+    `
+  );
+
+  const recruitingPosts = await db.all(
+    `SELECT id, author_id, max_members, current_members FROM community_posts WHERE section = 'team'`
+  );
+  for (const post of recruitingPosts) {
+    const ownerId = post.author_id || adminId;
+    if (ownerId) {
+      await db.run(
+        `INSERT OR IGNORE INTO community_post_members (post_id, user_id, created_at) VALUES (?, ?, datetime('now'))`,
+        [post.id, ownerId]
+      );
+    }
+    if (demoId && demoId !== ownerId && (post.current_members || 0) > 1) {
+      await db.run(
+        `INSERT OR IGNORE INTO community_post_members (post_id, user_id, created_at) VALUES (?, ?, datetime('now'))`,
+        [post.id, demoId]
+      );
+    }
   }
 }
 
@@ -461,6 +687,7 @@ async function seed() {
   await insertSettings(db);
   const users = await insertUsers(db);
   await insertContent(db, users);
+  await insertCommunityData(db, users);
   await syncTags(db);
   await seedAnalytics(db, users);
 

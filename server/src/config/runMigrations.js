@@ -387,6 +387,10 @@ async function runMigrations(db) {
         content TEXT NOT NULL,
         tags TEXT,
         status TEXT DEFAULT 'approved',
+        post_status TEXT,
+        deadline TEXT,
+        max_members INTEGER,
+        current_members INTEGER DEFAULT 0,
         author_id INTEGER NOT NULL,
         author_name TEXT,
         author_avatar TEXT,
@@ -411,11 +415,26 @@ async function runMigrations(db) {
       )
     `);
 
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS community_post_members (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        post_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(post_id, user_id),
+        FOREIGN KEY (post_id) REFERENCES community_posts(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+
     await db.exec(`CREATE INDEX IF NOT EXISTS idx_community_posts_section_status_created ON community_posts(section, status, created_at DESC)`);
     await db.exec(`CREATE INDEX IF NOT EXISTS idx_community_posts_author ON community_posts(author_id)`);
     await db.exec(`CREATE INDEX IF NOT EXISTS idx_community_posts_likes ON community_posts(likes_count DESC, created_at DESC)`);
+    await db.exec(`CREATE INDEX IF NOT EXISTS idx_community_posts_post_status ON community_posts(section, post_status, created_at DESC)`);
     await db.exec(`CREATE INDEX IF NOT EXISTS idx_community_post_likes_post ON community_post_likes(post_id)`);
     await db.exec(`CREATE INDEX IF NOT EXISTS idx_community_post_likes_user ON community_post_likes(user_id)`);
+    await db.exec(`CREATE INDEX IF NOT EXISTS idx_community_post_members_post ON community_post_members(post_id)`);
+    await db.exec(`CREATE INDEX IF NOT EXISTS idx_community_post_members_user ON community_post_members(user_id)`);
     console.log('✅ Community posts tables ready');
   } catch (err) {
     if (!err.message.includes('already exists')) {
@@ -451,6 +470,32 @@ async function runMigrations(db) {
       await db.exec(`ALTER TABLE community_posts ADD COLUMN link TEXT`);
       console.log('✅ Added link column to community_posts');
     }
+    if (cpColumns.length > 0 && !cpColumns.includes('post_status')) {
+      await db.exec(`ALTER TABLE community_posts ADD COLUMN post_status TEXT`);
+      console.log('✅ Added post_status column to community_posts');
+    }
+    if (cpColumns.length > 0 && !cpColumns.includes('deadline')) {
+      await db.exec(`ALTER TABLE community_posts ADD COLUMN deadline TEXT`);
+      console.log('✅ Added deadline column to community_posts');
+    }
+    if (cpColumns.length > 0 && !cpColumns.includes('max_members')) {
+      await db.exec(`ALTER TABLE community_posts ADD COLUMN max_members INTEGER`);
+      console.log('✅ Added max_members column to community_posts');
+    }
+    if (cpColumns.length > 0 && !cpColumns.includes('current_members')) {
+      await db.exec(`ALTER TABLE community_posts ADD COLUMN current_members INTEGER DEFAULT 0`);
+      console.log('✅ Added current_members column to community_posts');
+    }
+
+    await db.exec(`
+      UPDATE community_posts
+      SET post_status = CASE
+        WHEN section = 'help' THEN COALESCE(post_status, 'open')
+        WHEN section = 'team' THEN COALESCE(post_status, 'recruiting')
+        ELSE COALESCE(post_status, 'published')
+      END
+      WHERE post_status IS NULL OR TRIM(post_status) = ''
+    `);
   } catch (err) {
     if (!err.message.includes('duplicate column')) {
       console.warn('Migration warning (community_posts columns):', err.message);

@@ -74,6 +74,8 @@ router.post('/community/posts', authenticateToken, communityController.createPos
 router.post('/community/posts/:id/like', authenticateToken, communityController.togglePostLike);
 router.get('/community/posts/:id/comments', optionalAuth, communityController.listPostComments);
 router.post('/community/posts/:id/comments', authenticateToken, communityController.createPostComment);
+router.put('/community/posts/:id/status', authenticateToken, communityController.updatePostStatus);
+router.post('/community/posts/:id/join', authenticateToken, communityController.joinTeamPost);
 router.get('/community/search', optionalAuth, communityController.searchPosts);
 
 // Favorite Routes

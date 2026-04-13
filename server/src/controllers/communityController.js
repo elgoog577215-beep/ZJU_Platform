@@ -17,6 +17,27 @@ const parseTags = (input) => {
     .join(',');
 };
 
+const normalizePostStatus = (section, status) => {
+  const normalizedSection = normalizeSection(section);
+  const normalizedStatus = String(status || '').trim().toLowerCase();
+  if (normalizedSection === 'help') {
+    if (normalizedStatus === 'solved') return 'solved';
+    return 'open';
+  }
+  if (normalizedSection === 'team') {
+    if (normalizedStatus === 'full' || normalizedStatus === 'closed') return normalizedStatus;
+    return 'recruiting';
+  }
+  return 'published';
+};
+
+const validatePostStatus = (section, status) => {
+  const s = String(status || '').trim().toLowerCase();
+  if (section === 'help') return s === 'open' || s === 'solved';
+  if (section === 'team') return s === 'recruiting' || s === 'full' || s === 'closed';
+  return s === 'published';
+};
+
 const serializePost = (row) => {
   const tags = row.tags
     ? String(row.tags).split(',').map((tag) => tag.trim()).filter(Boolean)
@@ -27,7 +48,7 @@ const serializePost = (row) => {
     title: row.title,
     content: row.content,
     tags,
-    status: row.status,
+    status: normalizePostStatus(row.section, row.post_status),
     author_id: row.author_id,
     author_name: row.author_name,
     author_avatar: row.author_avatar,
@@ -36,6 +57,9 @@ const serializePost = (row) => {
     views_count: row.views_count || 0,
     content_blocks: row.content_blocks || null,
     link: row.link || null,
+    deadline: row.deadline || null,
+    max_members: row.max_members || null,
+    current_members: row.current_members || 0,
     created_at: row.created_at,
     updated_at: row.updated_at,
     excerpt: row.content ? String(row.content).slice(0, 120) : ''
@@ -49,6 +73,7 @@ const listPosts = async (req, res, next) => {
     const limit = Math.min(Math.max(parseInt(req.query.limit || '20', 10), 1), 50);
     const offset = (page - 1) * limit;
     const section = normalizeSection(req.query.section);
+    const status = String(req.query.status || '').trim().toLowerCase();
     const q = String(req.query.search || '').trim();
     const sort = String(req.query.sort || 'newest');
 
@@ -58,6 +83,11 @@ const listPosts = async (req, res, next) => {
     if (section) {
       whereClauses.push('section = ?');
       whereParams.push(section);
+    }
+
+    if (section && status && status !== 'all' && validatePostStatus(section, status)) {
+      whereClauses.push('post_status = ?');
+      whereParams.push(status);
     }
 
     if (q.length >= 2) {
@@ -121,6 +151,8 @@ const createPost = async (req, res, next) => {
     const tags = parseTags(req.body.tags);
     const contentBlocks = req.body.content_blocks || null;
     const link = req.body.link ? String(req.body.link).trim() : null;
+    const deadline = req.body.deadline ? String(req.body.deadline).trim() : null;
+    const maxMembersRaw = req.body.max_members;
 
     if (!section) {
       return res.status(400).json({ error: 'Invalid section' });
@@ -139,13 +171,18 @@ const createPost = async (req, res, next) => {
 
     const authorName = user.nickname || user.username;
     const status = user.role === 'admin' ? 'approved' : 'pending';
+    const postStatus = normalizePostStatus(section, req.body.post_status);
+    const maxMembers = section === 'team' && Number.isInteger(Number(maxMembersRaw))
+      ? Math.min(Math.max(parseInt(maxMembersRaw, 10), 2), 100)
+      : null;
+    const currentMembers = section === 'team' ? 1 : 0;
     const result = await db.run(
       `
       INSERT INTO community_posts
-      (section, title, content, content_blocks, link, tags, status, author_id, author_name, author_avatar, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+      (section, title, content, content_blocks, link, tags, status, post_status, deadline, max_members, current_members, author_id, author_name, author_avatar, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
       `,
-      [section, title, content, contentBlocks, link, tags, status, userId, authorName, user.avatar || null]
+      [section, title, content, contentBlocks, link, tags, status, postStatus, deadline, maxMembers, currentMembers, userId, authorName, user.avatar || null]
     );
 
     const post = await db.get('SELECT * FROM community_posts WHERE id = ?', [result.lastID]);
@@ -291,6 +328,100 @@ const searchPosts = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+const updatePostStatus = async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const { id } = req.params;
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Login required' });
+    }
+
+    const status = String(req.body.status || '').trim().toLowerCase();
+    const post = await db.get('SELECT * FROM community_posts WHERE id = ? AND status = "approved"', [id]);
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+    if (post.section !== 'help' && post.section !== 'team') {
+      return res.status(400).json({ error: 'Status update is not supported for this section' });
+    }
+
+    const actor = await db.get('SELECT id, role FROM users WHERE id = ?', [userId]);
+    if (!actor || (actor.role !== 'admin' && post.author_id !== userId)) {
+      return res.status(403).json({ error: 'Permission denied' });
+    }
+    if (!validatePostStatus(post.section, status)) {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
+
+    await db.run(
+      'UPDATE community_posts SET post_status = ?, updated_at = datetime("now") WHERE id = ?',
+      [status, id]
+    );
+    const updated = await db.get('SELECT * FROM community_posts WHERE id = ?', [id]);
+    res.json(serializePost(updated));
+  } catch (error) { next(error); }
+};
+
+const joinTeamPost = async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const { id } = req.params;
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Login required' });
+    }
+
+    const post = await db.get('SELECT * FROM community_posts WHERE id = ? AND status = "approved"', [id]);
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+    if (post.section !== 'team') {
+      return res.status(400).json({ error: 'This post is not a team post' });
+    }
+    if (normalizePostStatus(post.section, post.post_status) !== 'recruiting') {
+      return res.status(400).json({ error: 'Team is not recruiting' });
+    }
+
+    const existed = await db.get(
+      'SELECT id FROM community_post_members WHERE post_id = ? AND user_id = ?',
+      [id, userId]
+    );
+    if (existed) {
+      return res.status(400).json({ error: 'Already joined' });
+    }
+
+    const maxMembers = post.max_members || 0;
+    const currentMembers = post.current_members || 0;
+    if (maxMembers > 0 && currentMembers >= maxMembers) {
+      await db.run('UPDATE community_posts SET post_status = "full", updated_at = datetime("now") WHERE id = ?', [id]);
+      return res.status(400).json({ error: 'Team is full' });
+    }
+
+    await db.run(
+      'INSERT INTO community_post_members (post_id, user_id, created_at) VALUES (?, ?, datetime("now"))',
+      [id, userId]
+    );
+
+    await db.run(
+      `
+      UPDATE community_posts
+      SET current_members = COALESCE(current_members, 0) + 1,
+          post_status = CASE
+            WHEN max_members IS NOT NULL AND max_members > 0 AND COALESCE(current_members, 0) + 1 >= max_members THEN 'full'
+            ELSE post_status
+          END,
+          updated_at = datetime('now')
+      WHERE id = ?
+      `,
+      [id]
+    );
+
+    const updated = await db.get('SELECT * FROM community_posts WHERE id = ?', [id]);
+    res.json(serializePost(updated));
+  } catch (error) { next(error); }
+};
+
 module.exports = {
   listPosts,
   getPost,
@@ -298,5 +429,7 @@ module.exports = {
   togglePostLike,
   listPostComments,
   createPostComment,
-  searchPosts
+  searchPosts,
+  updatePostStatus,
+  joinTeamPost
 };

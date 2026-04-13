@@ -16,14 +16,7 @@ import { useReducedMotion } from '../utils/animations';
 import { useBackClose } from '../hooks/useBackClose';
 import PostCard from './PostCard';
 import PostComposer from './PostComposer';
-
-const parseContentBlocks = (raw) => {
-  if (!raw) return [];
-  try {
-    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-    return Array.isArray(parsed) ? parsed : [];
-  } catch { return []; }
-};
+import { parseContentBlocks } from './communityUtils';
 
 const STATUS_TABS = [
   { key: 'all', label: 'community.tab_all' },
