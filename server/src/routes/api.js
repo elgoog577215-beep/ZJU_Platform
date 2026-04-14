@@ -75,8 +75,22 @@ router.post('/community/posts/:id/like', authenticateToken, communityController.
 router.get('/community/posts/:id/comments', optionalAuth, communityController.listPostComments);
 router.post('/community/posts/:id/comments', authenticateToken, communityController.createPostComment);
 router.put('/community/posts/:id/status', authenticateToken, communityController.updatePostStatus);
+router.put('/community/posts/:id/solve', authenticateToken, communityController.solvePost);
 router.post('/community/posts/:id/join', authenticateToken, communityController.joinTeamPost);
+router.delete('/community/posts/:id/join', authenticateToken, communityController.leaveTeamPost);
+router.get('/community/posts/:id/members', optionalAuth, communityController.listTeamMembers);
 router.get('/community/search', optionalAuth, communityController.searchPosts);
+
+// Community Groups
+router.get('/community/groups', communityController.listGroups);
+router.post('/community/groups', authenticateToken, communityController.createGroup);
+router.put('/community/groups/:id', authenticateToken, communityController.updateGroup);
+router.delete('/community/groups/:id', authenticateToken, communityController.deleteGroup);
+
+// Admin Community Routes
+router.get('/admin/community/stats', authenticateToken, isAdmin, communityController.adminCommunityStats);
+router.put('/admin/community/posts/:id/review', authenticateToken, isAdmin, communityController.reviewPost);
+router.post('/admin/community/posts/batch-review', authenticateToken, isAdmin, communityController.batchReviewPosts);
 
 // Favorite Routes
 router.post('/favorites/toggle', authenticateToken, favoriteController.toggleFavorite);

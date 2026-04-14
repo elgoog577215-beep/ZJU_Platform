@@ -20,8 +20,11 @@ export const useWeather = (initialCity = '杭州', initialCoords = { lat: 30.27,
       .then(res => {
         if (!abortController.signal.aborted) setWeather(res.data.current_weather);
       })
-      .catch(err => {
-        if (!abortController.signal.aborted) console.error("Weather fetch failed", err);
+      .catch(() => {
+        // Silently degrade — show placeholder weather instead of crashing
+        if (!abortController.signal.aborted) {
+          setWeather({ temperature: '--', weathercode: 0, windspeed: 0, winddirection: 0, is_day: 1, time: new Date().toISOString() });
+        }
       });
 
     return () => abortController.abort();

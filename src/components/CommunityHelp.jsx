@@ -1,22 +1,15 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { HelpCircle, Upload, AlertCircle, MessageCircle, Send, CheckCircle, Clock, User } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import { HelpCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import Pagination from './Pagination';
 import { useSettings } from '../context/SettingsContext';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import api from '../services/api';
-import SortSelector from './SortSelector';
-import { useCachedResource } from '../hooks/useCachedResource';
-import { useReducedMotion } from '../utils/animations';
-import { useBackClose } from '../hooks/useBackClose';
 import PostCard from './PostCard';
 import PostComposer from './PostComposer';
-import CommunityDetailModal from './CommunityDetailModal';
-import { parseContentBlocks, communityTheme } from './communityUtils';
-import { useCommunitySection } from '../hooks/useCommunitySection';
+import CommunityPostDetail from './CommunityPostDetail';
+import CommunityFeedPanel from './CommunityFeedPanel';
+import { useCommunityFeed } from '../hooks/useCommunityFeed';
 
 const STATUS_TABS = [
   { key: 'all', label: 'community.tab_all' },
@@ -24,363 +17,80 @@ const STATUS_TABS = [
   { key: 'solved', label: 'community.tab_solved' },
 ];
 
-
 const CommunityHelp = () => {
   const { t } = useTranslation();
-  const { settings, uiMode } = useSettings();
+  const { uiMode } = useSettings();
   const { user } = useAuth();
-  const [searchParams] = useSearchParams();
-  const [currentPage, setCurrentPage] = useState(1);
-  const [sort, setSort] = useState('newest');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [selectedPost, setSelectedPost] = useState(null);
-  const [isComposerOpen, setIsComposerOpen] = useState(false);
-  const [commentText, setCommentText] = useState('');
-  const [comments, setComments] = useState([]);
-  const [loadingComments, setLoadingComments] = useState(false);
-  const [submittingComment, setSubmittingComment] = useState(false);
-  const prefersReducedMotion = useReducedMotion();
   const isDayMode = uiMode === 'day';
-  const isPaginationEnabled = settings.pagination_enabled === 'true';
-  const pageSize = isPaginationEnabled ? 10 : 15;
-  const [displayPosts, setDisplayPosts] = useState([]);
+  const [isComposerOpen, setIsComposerOpen] = useState(false);
 
-  useBackClose(selectedPost !== null, () => setSelectedPost(null));
-
-  const queryParams = useMemo(() => {
-    const p = { page: currentPage, limit: pageSize, sort, section: 'help' };
-    if (statusFilter !== 'all') p.status = statusFilter;
-    return p;
-  }, [currentPage, pageSize, sort, statusFilter]);
-
-  const {
-    data: posts,
-    pagination,
-    loading: isLoading,
-    error,
-    refresh
-  } = useCachedResource('/community/posts', queryParams, {
-    dependencies: [settings.pagination_enabled, statusFilter]
+  const feed = useCommunityFeed({
+    endpoint: '/community/posts',
+    section: 'help',
+    deepLinkParam: 'post',
+    defaultPageSize: 10,
   });
 
-  const totalPages = pagination?.totalPages || 1;
-  const hasMore = !isPaginationEnabled && currentPage < totalPages;
-
-  const effectivePosts = useMemo(() => posts || [], [posts]);
-
-  useEffect(() => { setCurrentPage(1); }, [sort, statusFilter, settings.pagination_enabled]);
-
-  useEffect(() => {
-    if (isPaginationEnabled) {
-      setDisplayPosts(effectivePosts);
-      return;
-    }
-    setDisplayPosts((prev) => {
-      if (currentPage === 1) return effectivePosts;
-      const seen = new Set(prev.map((item) => item.id));
-      const next = effectivePosts.filter((item) => !seen.has(item.id));
-      return next.length === 0 ? prev : [...prev, ...next];
-    });
-  }, [effectivePosts, currentPage, isPaginationEnabled]);
-
-  // FIX: B8 — Add AbortController to deep-link fetch
-  useEffect(() => {
-    const postId = searchParams.get('post');
-    if (!postId) return;
-    const ac = new AbortController();
-    api.get(`/community/posts/${postId}`, { signal: ac.signal })
-      .then((res) => { if (res.data) setSelectedPost(res.data); })
-      .catch(() => {});
-    return () => ac.abort();
-  }, [searchParams]);
-
-  // FIX: B10 — Add AbortController to comment fetch
-  useEffect(() => {
-    if (!selectedPost) { setComments([]); return; }
-    const ac = new AbortController();
-    setLoadingComments(true);
-    api.get(`/community/posts/${selectedPost.id}/comments`, { signal: ac.signal })
-      .then((res) => { if (!ac.signal.aborted) setComments(res.data || []); })
-      .catch(() => { if (!ac.signal.aborted) setComments([]); })
-      .finally(() => { if (!ac.signal.aborted) setLoadingComments(false); });
-    return () => ac.abort();
-  }, [selectedPost?.id]);
-
-  const { handleItemClick: handlePostClick, handlePageChange, handleComposerSuccess } = useCommunitySection({
-    setSelectedItem: setSelectedPost,
-    setCurrentPage,
-    refresh,
-  });
-
-  const handleSubmitComment = useCallback(async () => {
-    if (!user) { toast.error(t('auth.signin_required')); return; }
-    if (!commentText.trim()) return;
-    setSubmittingComment(true);
+  const handleSolve = useCallback(async (commentId) => {
+    if (!feed.selectedItem) return;
     try {
-      const res = await api.post(`/community/posts/${selectedPost.id}/comments`, { content: commentText.trim() });
-      setComments((prev) => [res.data, ...prev]);
-      setCommentText('');
-      // Update comment count in post
-      setSelectedPost((prev) => prev ? { ...prev, comments_count: (prev.comments_count || 0) + 1 } : prev);
-    } catch {
-      toast.error(t('community.post_comment_failed', '评论失败'));
-    } finally {
-      setSubmittingComment(false);
-    }
-  }, [user, commentText, selectedPost?.id, t]);
-
-  const handleMarkSolved = useCallback(async () => {
-    if (!selectedPost) return;
-    try {
-      await api.put(`/community/posts/${selectedPost.id}/status`, { status: 'solved' });
-      setSelectedPost((prev) => prev ? { ...prev, status: 'solved' } : prev);
-      toast.success(t('community.post_marked_solved', '已标记为解决'));
-      refresh({ clearCache: true });
+      await api.put(`/community/posts/${feed.selectedItem.id}/solve`, { comment_id: commentId });
+      feed.setSelectedItem((prev) => prev ? { ...prev, status: 'solved', solved_comment_id: commentId } : prev);
+      toast.success(t('community.post_marked_solved', '已采纳最佳答案'));
+      feed.handleRefresh();
     } catch {
       toast.error(t('community.post_mark_solved_failed', '操作失败'));
     }
-  }, [selectedPost, t, refresh]);
+  }, [feed.selectedItem, t, feed.handleRefresh]);
 
-  const selectedContentBlocks = useMemo(
-    () => parseContentBlocks(selectedPost?.content_blocks),
-    [selectedPost?.content_blocks]
+  const renderCard = (post, index, { canAnimate, isDayMode: dm }) => (
+    <PostCard key={post.id} post={post} index={index} onClick={feed.handleItemClick} canAnimate={canAnimate} isDayMode={dm} />
+  );
+
+  const renderDetail = () => (
+    <CommunityPostDetail
+      post={feed.selectedItem}
+      onClose={() => feed.setSelectedItem(null)}
+      isDayMode={isDayMode}
+      gradientFrom="from-amber-900/30"
+      onSolve={handleSolve}
+      headerContent={feed.selectedItem && (
+        <>
+          <div className="flex items-center gap-3 mb-3">
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${feed.selectedItem.status === 'solved' ? (isDayMode ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20') : (isDayMode ? 'bg-amber-50 text-amber-600 border border-amber-200' : 'bg-amber-500/15 text-amber-400 border border-amber-500/20')}`}>
+              {feed.selectedItem.status === 'solved' ? t('community.post_status_solved', '已解决') : t('community.post_status_open', '待答')}
+            </span>
+            <span className={`text-sm font-mono ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+              {feed.selectedItem.created_at && new Date(feed.selectedItem.created_at).toLocaleDateString('zh-CN')}
+            </span>
+          </div>
+          <h2 className={`text-3xl md:text-5xl font-black leading-tight tracking-tight font-serif ${isDayMode ? 'text-slate-900' : 'text-white drop-shadow-2xl'}`}>
+            {feed.selectedItem.title}
+          </h2>
+        </>
+      )}
+    />
   );
 
   return (
-    <div role="tabpanel" aria-labelledby="tab-help">
-      {/* Controls: status tabs + sort + post button */}
-      <div className="flex flex-col gap-4 mb-6">
-        <div className="flex items-center justify-between gap-3">
-          {/* Status filter tabs */}
-          <div className="flex items-center gap-2">
-            {STATUS_TABS.map(({ key, label }) => (
-              <button
-                key={key}
-                onClick={() => setStatusFilter(key)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all ${statusFilter === key
-                  ? (isDayMode ? 'bg-amber-500 text-white border-amber-500 shadow-lg shadow-amber-500/20' : 'bg-amber-600 text-white border-amber-600')
-                  : (isDayMode ? 'bg-white/80 text-slate-600 border-slate-200/80 hover:bg-slate-50' : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10')
-                }`}
-              >
-                {t(label)}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div className="hidden md:block w-40">
-              <SortSelector sort={sort} onSortChange={setSort} />
-            </div>
-            <button
-              onClick={() => {
-                if (!user) { toast.error(t('auth.signin_required')); return; }
-                setIsComposerOpen(true);
-              }}
-              className={`p-2 md:p-3 rounded-full backdrop-blur-md border transition-all ${isDayMode ? 'bg-white/85 hover:bg-white text-slate-700 border-slate-200/80 shadow-[0_12px_28px_rgba(148,163,184,0.14)]' : 'bg-white/10 hover:bg-white/20 text-white border-white/10'}`}
-              title={t('community.post_new_help', '发帖')}
-            >
-              <Upload size={18} className="md:w-5 md:h-5" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Post List */}
-      <div className="space-y-4">
-        {isLoading && displayPosts.length === 0 ? (
-          [...Array(5)].map((_, i) => (
-            <div key={i} className={`backdrop-blur-xl border rounded-3xl p-5 md:p-6 animate-pulse ${isDayMode ? 'bg-white/82 border-slate-200/80' : 'bg-[#1a1a1a]/40 border-white/5'}`}>
-              <div className="space-y-3">
-                <div className="flex gap-2">
-                  <div className={`h-5 rounded-full w-14 ${isDayMode ? 'bg-slate-100' : 'bg-white/5'}`} />
-                  <div className={`h-5 rounded w-20 ${isDayMode ? 'bg-slate-100' : 'bg-white/5'}`} />
-                </div>
-                <div className={`h-6 rounded w-3/4 ${isDayMode ? 'bg-slate-100' : 'bg-white/10'}`} />
-                <div className={`h-4 rounded w-full ${isDayMode ? 'bg-slate-100' : 'bg-white/5'}`} />
-                <div className={`h-4 rounded w-1/2 ${isDayMode ? 'bg-slate-100' : 'bg-white/5'}`} />
-              </div>
-            </div>
-          ))
-        ) : displayPosts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 px-4">
-            <div className={`rounded-3xl p-8 mb-6 border backdrop-blur-xl ${isDayMode ? 'bg-amber-50/80 border-amber-100/80' : 'bg-amber-500/10 border-white/5'}`}>
-              <HelpCircle size={64} className="text-amber-400 opacity-80" />
-            </div>
-            <h3 className={`text-2xl font-bold mb-2 ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{t('community.help_empty', '暂无帖子')}</h3>
-            <p className={`text-center max-w-md ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
-              {t('community.help_empty_desc', '成为第一个发帖的人吧！')}
-            </p>
-          </div>
-        ) : (
-          displayPosts.map((post, index) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              index={index}
-              onClick={handlePostClick}
-              canAnimate={!prefersReducedMotion && index < 8}
-              isDayMode={isDayMode}
-            />
-          ))
-        )}
-      </div>
-
-      {/* Load more */}
-      {!isLoading && !error && displayPosts.length > 0 && !isPaginationEnabled && hasMore && (
-        <div className="flex items-center justify-center pt-10">
-          <motion.button
-            whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
-            whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-            className={`px-6 py-2.5 rounded-full border transition-colors text-sm font-semibold ${isDayMode ? 'bg-white/88 hover:bg-white text-slate-700 border-slate-200/80' : 'bg-white/10 hover:bg-white/15 text-white border-white/10'}`}
-          >
-            {t('common.load_more', '加载更多')}
-          </motion.button>
-        </div>
-      )}
-
-      {settings.pagination_enabled === 'true' && (
-        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
-      )}
-
-      {/* Post Detail Modal — uses shared CommunityDetailModal */}
-      <CommunityDetailModal
-        item={selectedPost}
-        onClose={() => setSelectedPost(null)}
-        isDayMode={isDayMode}
-        gradientFrom="from-amber-900/30"
-        headerContent={selectedPost && (
-          <>
-            <div className="flex items-center gap-3 mb-3">
-              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${selectedPost.status === 'solved' ? (isDayMode ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20') : (isDayMode ? 'bg-amber-50 text-amber-600 border border-amber-200' : 'bg-amber-500/15 text-amber-400 border border-amber-500/20')}`}>
-                {selectedPost.status === 'solved' ? t('community.post_status_solved', '已解决') : t('community.post_status_open', '待答')}
-              </span>
-              <span className={`text-sm font-mono ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
-                {selectedPost.created_at && new Date(selectedPost.created_at).toLocaleDateString('zh-CN')}
-              </span>
-            </div>
-            <h2 className={`text-3xl md:text-5xl font-black leading-tight tracking-tight font-serif ${isDayMode ? 'text-slate-900' : 'text-white drop-shadow-2xl'}`}>
-              {selectedPost.title}
-            </h2>
-          </>
-        )}
-        authorBar={
-          selectedPost && selectedPost.status !== 'solved' && user && (user.id === selectedPost.author_id || user.role === 'admin') ? (
-            <button
-              onClick={handleMarkSolved}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-all ${isDayMode ? 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20'}`}
-            >
-              <CheckCircle size={16} />
-              {t('community.post_mark_solved', '标记已解决')}
-            </button>
-          ) : undefined
-        }
-        contentBlocks={selectedContentBlocks}
-        htmlContent={selectedPost?.content}
-        afterContent={selectedPost && (
-          <>
-            {/* Tags */}
-            {selectedPost.tags && selectedPost.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-8">
-                {(Array.isArray(selectedPost.tags) ? selectedPost.tags : []).map((tag) => (
-                  <span key={tag} className={`px-3 py-1 rounded-lg text-xs font-medium ${isDayMode ? 'bg-slate-100 text-slate-600' : 'bg-white/5 text-gray-400'}`}>
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Comments section */}
-            <div className={`border-t pt-8 ${isDayMode ? 'border-slate-200/80' : 'border-white/5'}`}>
-              <h3 className={`text-lg font-bold mb-6 flex items-center gap-2 ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
-                <MessageCircle size={20} />
-                {comments.length} {t('community.post_replies', '条回复')}
-              </h3>
-
-              {/* Comment input */}
-              <div className={`flex gap-3 mb-8 p-4 rounded-2xl border ${isDayMode ? 'bg-slate-50/80 border-slate-200/80' : 'bg-white/[0.03] border-white/10'}`}>
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${isDayMode ? 'bg-slate-200' : 'bg-gray-700'}`}>
-                  <User size={16} className={isDayMode ? 'text-slate-500' : 'text-gray-400'} />
-                </div>
-                <div className="flex-1">
-                  <textarea
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                    placeholder={t('community.post_write_reply', '写回复...')}
-                    rows={2}
-                    className={`w-full px-3 py-2 rounded-xl border text-sm outline-none resize-none transition-all focus:ring-2 ${isDayMode ? 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-amber-300/50' : 'bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:ring-amber-500/30'}`}
-                  />
-                  <div className="flex justify-end mt-2">
-                    <button
-                      onClick={handleSubmitComment}
-                      disabled={submittingComment || !commentText.trim()}
-                      className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-40 ${isDayMode ? 'bg-amber-500 text-white hover:bg-amber-600' : 'bg-amber-600 text-white hover:bg-amber-500'}`}
-                    >
-                      <Send size={12} />
-                      {t('community.post_send_reply', '发送')}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Comment list */}
-              {loadingComments ? (
-                <div className="space-y-4">
-                  {[...Array(3)].map((_, i) => (
-                    <div key={i} className={`flex gap-3 p-4 rounded-2xl animate-pulse ${isDayMode ? 'bg-slate-50' : 'bg-white/[0.02]'}`}>
-                      <div className={`w-8 h-8 rounded-full flex-shrink-0 ${isDayMode ? 'bg-slate-200' : 'bg-white/10'}`} />
-                      <div className="flex-1 space-y-2">
-                        <div className={`h-3 w-24 rounded ${isDayMode ? 'bg-slate-200' : 'bg-white/10'}`} />
-                        <div className={`h-4 w-full rounded ${isDayMode ? 'bg-slate-100' : 'bg-white/5'}`} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : comments.length === 0 ? (
-                <p className={`text-center py-8 text-sm ${isDayMode ? 'text-slate-400' : 'text-gray-500'}`}>
-                  {t('community.post_no_replies', '暂无回复，来说两句吧')}
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {comments.map((comment) => (
-                    <div key={comment.id} className={`flex gap-3 p-4 rounded-2xl border ${isDayMode ? 'bg-slate-50/60 border-slate-200/60' : 'bg-white/[0.02] border-white/5'}`}>
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden ${isDayMode ? 'bg-slate-200' : 'bg-gray-700'}`}>
-                        {comment.avatar ? (
-                          <img src={comment.avatar} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                          <User size={14} className={isDayMode ? 'text-slate-500' : 'text-gray-400'} />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className={`text-sm font-semibold ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
-                            {comment.author || comment.author_name || t('common.anonymous', '匿名用户')}
-                          </span>
-                          <span className={`text-xs ${isDayMode ? 'text-slate-400' : 'text-gray-500'}`}>
-                            {comment.created_at && new Date(comment.created_at).toLocaleDateString('zh-CN')}
-                          </span>
-                        </div>
-                        <p className={`text-sm leading-relaxed ${isDayMode ? 'text-slate-600' : 'text-gray-300'}`}>
-                          {comment.content}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </>
-        )}
-      />
-
-      {/* Post Composer */}
-      <PostComposer
-        isOpen={isComposerOpen}
-        onClose={() => setIsComposerOpen(false)}
-        section="help"
-        onSuccess={handleComposerSuccess}
-      />
-    </div>
+    <CommunityFeedPanel
+      feed={feed}
+      isDayMode={isDayMode}
+      renderCard={renderCard}
+      renderDetail={renderDetail}
+      emptyIcon={HelpCircle}
+      emptyTitle={t('community.help_empty', '暂无帖子')}
+      emptyDesc={t('community.help_empty_desc', '成为第一个发帖的人吧！')}
+      accentColor="amber"
+      statusTabs={STATUS_TABS}
+      onNewPost={() => {
+        if (!user) { toast.error(t('auth.signin_required')); return; }
+        setIsComposerOpen(true);
+      }}
+      extraBottom={
+        <PostComposer isOpen={isComposerOpen} onClose={() => setIsComposerOpen(false)} section="help" onSuccess={feed.handleRefresh} />
+      }
+    />
   );
 };
 

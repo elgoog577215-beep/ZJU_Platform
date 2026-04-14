@@ -60,6 +60,7 @@ const serializePost = (row) => {
     deadline: row.deadline || null,
     max_members: row.max_members || null,
     current_members: row.current_members || 0,
+    solved_comment_id: row.solved_comment_id || null,
     created_at: row.created_at,
     updated_at: row.updated_at,
     excerpt: row.content ? String(row.content).slice(0, 120) : ''
@@ -422,6 +423,253 @@ const joinTeamPost = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+// --- 4.1 Help: solve with best-answer comment ---
+const solvePost = async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const { id } = req.params;
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: 'Login required' });
+
+    const commentId = req.body.comment_id;
+    const post = await db.get('SELECT * FROM community_posts WHERE id = ? AND status = "approved"', [id]);
+    if (!post) return res.status(404).json({ error: 'Post not found' });
+    if (post.section !== 'help') return res.status(400).json({ error: 'Only help posts can be solved' });
+
+    const actor = await db.get('SELECT id, role FROM users WHERE id = ?', [userId]);
+    if (!actor || (actor.role !== 'admin' && post.author_id !== userId)) {
+      return res.status(403).json({ error: 'Permission denied' });
+    }
+
+    if (commentId) {
+      const comment = await db.get('SELECT id FROM comments WHERE id = ? AND resource_type = "community_post" AND resource_id = ?', [commentId, id]);
+      if (!comment) return res.status(404).json({ error: 'Comment not found' });
+    }
+
+    await db.run(
+      'UPDATE community_posts SET post_status = "solved", solved_comment_id = ?, updated_at = datetime("now") WHERE id = ?',
+      [commentId || null, id]
+    );
+    const updated = await db.get('SELECT * FROM community_posts WHERE id = ?', [id]);
+    res.json(serializePost(updated));
+  } catch (error) { next(error); }
+};
+
+// --- 4.2 Team: leave and members ---
+const leaveTeamPost = async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const { id } = req.params;
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: 'Login required' });
+
+    const post = await db.get('SELECT * FROM community_posts WHERE id = ? AND status = "approved"', [id]);
+    if (!post) return res.status(404).json({ error: 'Post not found' });
+    if (post.section !== 'team') return res.status(400).json({ error: 'Not a team post' });
+    if (post.author_id === userId) return res.status(400).json({ error: 'Post owner cannot leave' });
+
+    const membership = await db.get('SELECT id FROM community_post_members WHERE post_id = ? AND user_id = ?', [id, userId]);
+    if (!membership) return res.status(400).json({ error: 'Not a member' });
+
+    await db.run('DELETE FROM community_post_members WHERE id = ?', [membership.id]);
+    await db.run(`
+      UPDATE community_posts
+      SET current_members = MAX(0, COALESCE(current_members, 1) - 1),
+          post_status = CASE WHEN post_status = 'full' THEN 'recruiting' ELSE post_status END,
+          updated_at = datetime('now')
+      WHERE id = ?
+    `, [id]);
+
+    const updated = await db.get('SELECT * FROM community_posts WHERE id = ?', [id]);
+    res.json(serializePost(updated));
+  } catch (error) { next(error); }
+};
+
+const listTeamMembers = async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const { id } = req.params;
+    const members = await db.all(`
+      SELECT u.id, u.username, u.nickname, u.avatar, cpm.created_at as joined_at
+      FROM community_post_members cpm
+      JOIN users u ON u.id = cpm.user_id
+      WHERE cpm.post_id = ?
+      ORDER BY cpm.created_at ASC
+    `, [id]);
+    res.json(members.map(m => ({
+      id: m.id,
+      username: m.nickname || m.username,
+      avatar: m.avatar,
+      joined_at: m.joined_at
+    })));
+  } catch (error) { next(error); }
+};
+
+// --- 4.3 Groups CRUD ---
+const listGroups = async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const rows = await db.all('SELECT * FROM community_groups ORDER BY id DESC');
+    res.json(rows);
+  } catch (error) { next(error); }
+};
+
+const createGroup = async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: 'Login required' });
+    const { name, description, platform, qr_code_url, invite_link, member_count, category } = req.body;
+    if (!name || !name.trim()) return res.status(400).json({ error: 'Group name is required' });
+
+    const result = await db.run(
+      `INSERT INTO community_groups (name, description, platform, qr_code_url, invite_link, member_count, category, created_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [name.trim(), description || '', platform || 'wechat', qr_code_url || null, invite_link || null, member_count || 0, category || null, userId]
+    );
+    const group = await db.get('SELECT * FROM community_groups WHERE id = ?', [result.lastID]);
+    res.status(201).json(group);
+  } catch (error) { next(error); }
+};
+
+const updateGroup = async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const userId = req.user?.id;
+    const { id } = req.params;
+    const group = await db.get('SELECT * FROM community_groups WHERE id = ?', [id]);
+    if (!group) return res.status(404).json({ error: 'Group not found' });
+
+    const actor = await db.get('SELECT role FROM users WHERE id = ?', [userId]);
+    if (!actor || (actor.role !== 'admin' && group.created_by !== userId)) {
+      return res.status(403).json({ error: 'Permission denied' });
+    }
+
+    const { name, description, platform, qr_code_url, invite_link, member_count, category } = req.body;
+    await db.run(
+      `UPDATE community_groups SET name=?, description=?, platform=?, qr_code_url=?, invite_link=?, member_count=?, category=?, updated_at=datetime('now') WHERE id=?`,
+      [name || group.name, description ?? group.description, platform || group.platform, qr_code_url ?? group.qr_code_url, invite_link ?? group.invite_link, member_count ?? group.member_count, category ?? group.category, id]
+    );
+    const updated = await db.get('SELECT * FROM community_groups WHERE id = ?', [id]);
+    res.json(updated);
+  } catch (error) { next(error); }
+};
+
+const deleteGroup = async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const userId = req.user?.id;
+    const { id } = req.params;
+    const group = await db.get('SELECT * FROM community_groups WHERE id = ?', [id]);
+    if (!group) return res.status(404).json({ error: 'Group not found' });
+
+    const actor = await db.get('SELECT role FROM users WHERE id = ?', [userId]);
+    if (!actor || (actor.role !== 'admin' && group.created_by !== userId)) {
+      return res.status(403).json({ error: 'Permission denied' });
+    }
+
+    await db.run('DELETE FROM community_groups WHERE id = ?', [id]);
+    res.json({ message: 'Group deleted' });
+  } catch (error) { next(error); }
+};
+
+// --- 5.1 Admin: community stats ---
+const adminCommunityStats = async (req, res, next) => {
+  try {
+    const db = await getDb();
+
+    const totalPosts = await db.get('SELECT COUNT(*) as count FROM community_posts');
+    const pendingPosts = await db.get('SELECT COUNT(*) as count FROM community_posts WHERE status = "pending"');
+    const approvedPosts = await db.get('SELECT COUNT(*) as count FROM community_posts WHERE status = "approved"');
+    const rejectedPosts = await db.get('SELECT COUNT(*) as count FROM community_posts WHERE status = "rejected"');
+
+    const bySectionRows = await db.all(
+      'SELECT section, COUNT(*) as count FROM community_posts GROUP BY section'
+    );
+    const bySection = {};
+    for (const row of bySectionRows) {
+      bySection[row.section] = row.count;
+    }
+
+    const totalGroups = await db.get('SELECT COUNT(*) as count FROM community_groups');
+    const totalComments = await db.get(
+      'SELECT COUNT(*) as count FROM comments WHERE resource_type = "community_post"'
+    );
+    const totalLikes = await db.get('SELECT COUNT(*) as count FROM community_post_likes');
+
+    res.json({
+      posts: {
+        total: totalPosts?.count || 0,
+        pending: pendingPosts?.count || 0,
+        approved: approvedPosts?.count || 0,
+        rejected: rejectedPosts?.count || 0,
+        bySection
+      },
+      groups: totalGroups?.count || 0,
+      comments: totalComments?.count || 0,
+      likes: totalLikes?.count || 0
+    });
+  } catch (error) { next(error); }
+};
+
+// --- 5.2 Admin: batch review posts ---
+const batchReviewPosts = async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: 'Login required' });
+
+    const { ids, action } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'ids must be a non-empty array' });
+    }
+    if (action !== 'approve' && action !== 'reject') {
+      return res.status(400).json({ error: 'action must be "approve" or "reject"' });
+    }
+
+    const newStatus = action === 'approve' ? 'approved' : 'rejected';
+    const placeholders = ids.map(() => '?').join(',');
+
+    const result = await db.run(
+      `UPDATE community_posts SET status = ?, updated_at = datetime('now') WHERE id IN (${placeholders}) AND status = 'pending'`,
+      [newStatus, ...ids]
+    );
+
+    res.json({
+      updated: result.changes || 0,
+      status: newStatus
+    });
+  } catch (error) { next(error); }
+};
+
+// --- 5.1 Admin: single post review ---
+const reviewPost = async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const userId = req.user?.id;
+    const { id } = req.params;
+    const { action, reason } = req.body;
+
+    if (action !== 'approve' && action !== 'reject') {
+      return res.status(400).json({ error: 'action must be "approve" or "reject"' });
+    }
+
+    const post = await db.get('SELECT * FROM community_posts WHERE id = ?', [id]);
+    if (!post) return res.status(404).json({ error: 'Post not found' });
+
+    const newStatus = action === 'approve' ? 'approved' : 'rejected';
+    await db.run(
+      'UPDATE community_posts SET status = ?, updated_at = datetime("now") WHERE id = ?',
+      [newStatus, id]
+    );
+
+    console.log(JSON.stringify({ action: 'review', postId: id, reviewAction: action, reason: reason || null, userId, timestamp: new Date().toISOString() }));
+
+    const updated = await db.get('SELECT * FROM community_posts WHERE id = ?', [id]);
+    res.json(serializePost(updated));
+  } catch (error) { next(error); }
+};
+
 module.exports = {
   listPosts,
   getPost,
@@ -431,5 +679,15 @@ module.exports = {
   createPostComment,
   searchPosts,
   updatePostStatus,
-  joinTeamPost
+  joinTeamPost,
+  solvePost,
+  leaveTeamPost,
+  listTeamMembers,
+  listGroups,
+  createGroup,
+  updateGroup,
+  deleteGroup,
+  adminCommunityStats,
+  batchReviewPosts,
+  reviewPost
 };

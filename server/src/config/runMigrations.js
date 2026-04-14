@@ -502,6 +502,44 @@ async function runMigrations(db) {
     }
   }
 
+  // --- Community posts: add solved_comment_id ---
+  try {
+    const cpInfo2 = await db.all(`PRAGMA table_info(community_posts)`);
+    const cpCols2 = cpInfo2.map(col => col.name);
+    if (cpCols2.length > 0 && !cpCols2.includes('solved_comment_id')) {
+      await db.exec(`ALTER TABLE community_posts ADD COLUMN solved_comment_id INTEGER`);
+      console.log('✅ Added solved_comment_id column to community_posts');
+    }
+  } catch (err) {
+    if (!err.message.includes('duplicate column')) {
+      console.warn('Migration warning (solved_comment_id):', err.message);
+    }
+  }
+
+  // --- Community groups table ---
+  try {
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS community_groups (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        description TEXT,
+        platform TEXT NOT NULL DEFAULT 'wechat',
+        qr_code_url TEXT,
+        invite_link TEXT,
+        member_count INTEGER DEFAULT 0,
+        category TEXT,
+        created_by INTEGER,
+        created_at TEXT DEFAULT (datetime('now')),
+        updated_at TEXT DEFAULT (datetime('now'))
+      )
+    `);
+    console.log('✅ Community groups table ready');
+  } catch (err) {
+    if (!err.message.includes('already exists')) {
+      console.warn('Migration warning (community_groups):', err.message);
+    }
+  }
+
   console.log('✅ Database migrations completed');
 }
 

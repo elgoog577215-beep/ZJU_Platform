@@ -17,6 +17,7 @@ import {
   Tag,
   Lock,
   X,
+  MessageSquare,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -29,6 +30,7 @@ import PageContentEditor from "./PageContentEditor";
 import ResourceManager from "./ResourceManager";
 import MessageManager from "./MessageManager";
 import TagManager from "./TagManager";
+import AdminCommunity from "./AdminCommunity";
 
 const AdminDashboard = () => {
   const { t } = useTranslation();
@@ -148,6 +150,12 @@ const AdminDashboard = () => {
       ],
     },
     {
+      title: t("admin.menu.community", "社区"),
+      items: [
+        { id: "community", label: t("admin.tabs.community", "社区管理"), icon: MessageSquare },
+      ],
+    },
+    {
       title: t("admin.menu.system"),
       items: [
         { id: "tags", label: t("admin.tabs.tags"), icon: Tag },
@@ -224,6 +232,8 @@ const AdminDashboard = () => {
             icon={Calendar}
           />
         );
+      case "community":
+        return <AdminCommunity />;
       default:
         return null;
     }

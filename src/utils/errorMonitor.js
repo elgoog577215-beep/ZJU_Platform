@@ -8,7 +8,7 @@ import api from '../services/api';
 class ErrorMonitor {
   constructor() {
     this.enabled = process.env.NODE_ENV === 'development';
-    this.endpoint = '/api/errors';
+    this.endpoint = '/errors';
     this.queue = [];
     this.maxQueueSize = 10;
     this.batchSize = 5;
@@ -117,6 +117,9 @@ class ErrorMonitor {
       type: 'manual',
       error: error?.message || error,
       stack: error?.stack,
+      path: context.url || error?.config?.url,
+      status: context.status || error?.response?.status,
+      method: context.method || error?.config?.method,
       context
     });
   }

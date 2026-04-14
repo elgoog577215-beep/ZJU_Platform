@@ -15,6 +15,32 @@ export const calculateReadingTime = (text, t) => {
   return `${minutes} ${t('common.min_read')}`;
 };
 
+export const formatBytes = (bytes = 0) => {
+  if (!bytes || Number.isNaN(bytes)) return '';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+export const getFileTypeLabel = (name = '', mime = '') => {
+  const ext = name.split('.').pop()?.toUpperCase();
+  if (ext && ext.length <= 5) return ext;
+  if (mime.includes('pdf')) return 'PDF';
+  if (mime.includes('word')) return 'DOC';
+  if (mime.includes('excel') || mime.includes('sheet')) return 'XLS';
+  if (mime.includes('powerpoint') || mime.includes('presentation')) return 'PPT';
+  if (mime.includes('zip') || mime.includes('rar')) return 'ZIP';
+  return 'FILE';
+};
+
+export const getFileTypeBadgeClass = (name = '', mime = '', isDayMode = false) => {
+  const n = getFileTypeLabel(name, mime);
+  const map = { PDF: 'red', DOC: 'blue', DOCX: 'blue', XLS: 'emerald', XLSX: 'emerald', CSV: 'emerald', PPT: 'orange', PPTX: 'orange', ZIP: 'violet', RAR: 'violet' };
+  const c = map[n];
+  if (c) return isDayMode ? `bg-${c}-50 text-${c}-600 border-${c}-200` : `bg-${c}-500/15 text-${c}-200 border-${c}-400/30`;
+  return isDayMode ? 'bg-slate-100 text-slate-600 border-slate-200' : 'bg-white/10 text-gray-300 border-white/10';
+};
+
 /** Shared theme class-name maps to reduce isDayMode ternary repetition */
 export const communityTheme = (isDayMode) => ({
   // Modal

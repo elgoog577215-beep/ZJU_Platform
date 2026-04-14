@@ -273,6 +273,75 @@ const communityPostsSeed = [
       { type: 'text', text: '使用 React + ECharts，数据源来自公开校园统计。' }
     ]),
     created_at: '2026-04-05 11:10:00'
+  },
+  // --- tech 版块 ---
+  {
+    section: 'tech',
+    title: 'LoRA 微调 LLaMA-3 实战总结',
+    content: '记录在单卡 A100 上使用 LoRA 微调 LLaMA-3-8B 的完整流程与踩坑经验。',
+    tags: 'LoRA,LLaMA,微调',
+    status: 'approved',
+    content_blocks: JSON.stringify([
+      { type: 'text', text: '使用 PEFT + bitsandbytes 实现 4-bit 量化训练。' },
+      { type: 'text', text: '最终在自建数据集上 BLEU 提升了 12%。' }
+    ]),
+    created_at: '2026-04-03 14:00:00'
+  },
+  {
+    section: 'tech',
+    title: '用 LangGraph 构建多 Agent 工作流',
+    content: '分享基于 LangGraph 的多 Agent 编排方案，适合课程项目快速搭建原型。',
+    tags: 'LangGraph,Agent,工作流',
+    status: 'approved',
+    content_blocks: JSON.stringify([
+      { type: 'text', text: '核心思路是将任务拆分为 planner、executor、reviewer 三个角色。' }
+    ]),
+    created_at: '2026-04-04 10:30:00'
+  },
+  {
+    section: 'tech',
+    title: 'CUDA 并行优化入门：从矩阵乘法说起',
+    content: '从最基础的矩阵乘法 kernel 出发，逐步介绍 shared memory 和 warp-level 优化技巧。',
+    tags: 'CUDA,GPU,并行计算',
+    status: 'approved',
+    content_blocks: JSON.stringify([
+      { type: 'text', text: '包含完整的 benchmark 对比和 Nsight 分析截图。' }
+    ]),
+    created_at: '2026-04-06 09:00:00'
+  },
+  // --- news 版块 ---
+  {
+    section: 'news',
+    title: 'GPT-5 发布：多模态能力大幅提升',
+    content: 'OpenAI 正式发布 GPT-5，在推理、多模态理解等方面均有显著进步，社区热议中。',
+    tags: 'GPT-5,OpenAI,行业动态',
+    status: 'approved',
+    content_blocks: JSON.stringify([
+      { type: 'text', text: '关键改进：原生多模态、更长上下文窗口、推理准确率提升。' }
+    ]),
+    created_at: '2026-04-01 08:00:00'
+  },
+  {
+    section: 'news',
+    title: '浙大 AI 实验室两篇论文入选 ICML 2026',
+    content: '浙大计算机学院 AI 实验室在强化学习与图神经网络方向各有一篇论文被 ICML 2026 接收。',
+    tags: 'ICML,浙大,论文',
+    status: 'approved',
+    content_blocks: JSON.stringify([
+      { type: 'text', text: '感兴趣的同学可以关注实验室主页获取预印本链接。' }
+    ]),
+    created_at: '2026-04-02 12:00:00'
+  },
+  {
+    section: 'news',
+    title: '国内首个高校 AI 算力共享平台上线',
+    content: '教育部联合多所高校推出 AI 算力共享平台，浙大为首批接入高校之一。',
+    tags: '算力,高校,政策',
+    status: 'approved',
+    content_blocks: JSON.stringify([
+      { type: 'text', text: '学生可通过校园账号申请 GPU 时长，支持 A100/H100。' }
+    ]),
+    created_at: '2026-04-05 16:00:00'
   }
 ];
 
@@ -284,10 +353,44 @@ const communityCommentsSeed = [
     created_at: '2026-04-02 11:00:00'
   },
   {
+    postTitle: '大模型微调显存不足问题已解决，分享排查记录',
+    author: '演示用户',
+    content: '确认了，gradient checkpointing 确实能大幅减少显存占用，感谢分享！',
+    created_at: '2026-04-03 10:00:00',
+    isBestAnswer: true
+  },
+  {
     postTitle: '求推荐适合课程项目的 RAG 基线实现',
     author: '种子管理员',
     content: '建议先用 BM25 + 向量检索双路召回，评估指标更稳。',
     created_at: '2026-04-04 16:10:00'
+  }
+];
+
+const communityGroupsSeed = [
+  {
+    name: 'AI 社区总群',
+    description: '发布社群公告、活动速递与平台更新，适合新加入同学。',
+    platform: 'wechat',
+    invite_link: 'https://example.com/groups/main',
+    member_count: 128,
+    category: '综合交流'
+  },
+  {
+    name: '技术分享群',
+    description: '聚焦工程实践与论文复现，欢迎分享项目进展与踩坑记录。',
+    platform: 'qq',
+    invite_link: 'https://example.com/groups/tech',
+    member_count: 76,
+    category: '技术交流'
+  },
+  {
+    name: 'AI Builders',
+    description: '英文频道，面向 AI 项目协作与开源贡献讨论。',
+    platform: 'discord',
+    invite_link: 'https://discord.gg/example',
+    member_count: 42,
+    category: '国际交流'
   }
 ];
 
@@ -397,6 +500,7 @@ async function resetDatabase(db) {
     DROP TABLE IF EXISTS community_post_members;
     DROP TABLE IF EXISTS community_post_likes;
     DROP TABLE IF EXISTS community_posts;
+    DROP TABLE IF EXISTS community_groups;
     DROP TABLE IF EXISTS favorites;
     DROP TABLE IF EXISTS audit_logs;
     DROP TABLE IF EXISTS tags;
@@ -561,13 +665,20 @@ async function insertCommunityData(db, users) {
   for (const item of communityCommentsSeed) {
     const postId = postIdByTitle.get(item.postTitle);
     if (!postId) continue;
-    await db.run(
+    const commentResult = await db.run(
       `
         INSERT INTO comments (resource_type, resource_id, user_id, author, content, avatar, created_at)
         VALUES ('community_post', ?, ?, ?, ?, NULL, ?)
       `,
       [postId, demoId, item.author, item.content, item.created_at]
     );
+    // Link best answer for solved posts
+    if (item.isBestAnswer && commentResult.lastID) {
+      await db.run(
+        'UPDATE community_posts SET solved_comment_id = ? WHERE id = ?',
+        [commentResult.lastID, postId]
+      );
+    }
   }
 
   await db.run(
@@ -676,6 +787,17 @@ async function seedAnalytics(db, users) {
   }
 }
 
+async function insertCommunityGroups(db, users) {
+  const adminId = users.find(u => u.role === 'admin')?.id || null;
+  for (const g of communityGroupsSeed) {
+    await db.run(
+      `INSERT INTO community_groups (name, description, platform, qr_code_url, invite_link, member_count, category, created_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [g.name, g.description, g.platform, g.qr_code_url || null, g.invite_link || null, g.member_count || 0, g.category || null, adminId]
+    );
+  }
+}
+
 async function seed() {
   console.log(`📦 Target database: ${databaseFile}`);
   const db = await getDb();
@@ -688,6 +810,7 @@ async function seed() {
   const users = await insertUsers(db);
   await insertContent(db, users);
   await insertCommunityData(db, users);
+  await insertCommunityGroups(db, users);
   await syncTags(db);
   await seedAnalytics(db, users);
 
