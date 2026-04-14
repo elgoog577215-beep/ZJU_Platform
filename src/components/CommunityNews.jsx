@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
-import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Newspaper, ArrowRight, Calendar, X, User, Upload, Clock, AlertCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Newspaper, ArrowRight, Calendar, Upload, Clock, AlertCircle } from 'lucide-react';
 import SmartImage from './SmartImage';
 import UploadModal from './UploadModal';
 import FavoriteButton from './FavoriteButton';
@@ -12,9 +11,9 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import SortSelector from './SortSelector';
 import { useCachedResource } from '../hooks/useCachedResource';
-import DOMPurify from 'dompurify';
 import { useReducedMotion } from '../utils/animations';
 import { useBackClose } from '../hooks/useBackClose';
+import CommunityDetailModal from './CommunityDetailModal';
 import { parseContentBlocks, calculateReadingTime } from './communityUtils';
 
 const NewsCard = memo(({ article, index, onClick, onToggleFavorite, canAnimate, isDayMode }) => {
@@ -142,12 +141,14 @@ const CommunityNews = () => {
   }, [effectiveArticles, currentPage, isPaginationEnabled]);
 
   const handleToggleFavorite = useCallback((articleId, favorited, likes) => {
-    setArticles(prev => prev.map(a =>
-      a.id === articleId ? { ...a, likes: likes !== undefined ? likes : a.likes, favorited } : a
-    ));
-    setDisplayArticles(prev => prev.map(a =>
-      a.id === articleId ? { ...a, likes: likes !== undefined ? likes : a.likes, favorited } : a
-    ));
+    setArticles(prev => {
+      if (!prev) return prev;
+      return prev.map(a => a.id === articleId ? { ...a, likes: likes !== undefined ? likes : a.likes, favorited } : a);
+    });
+    setDisplayArticles(prev => {
+      if (!prev) return prev;
+      return prev.map(a => a.id === articleId ? { ...a, likes: likes !== undefined ? likes : a.likes, favorited } : a);
+    });
     setSelectedArticle(prev => {
       if (prev && prev.id === articleId) {
         return { ...prev, likes: likes !== undefined ? likes : prev.likes, favorited };
@@ -252,107 +253,39 @@ const CommunityNews = () => {
         <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
       )}
 
-      {/* Article Detail Modal */}
-      {createPortal(
-        <AnimatePresence>
-          {selectedArticle && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className={`fixed inset-0 z-[100] backdrop-blur-md overflow-y-auto ${isDayMode ? 'bg-white/70' : 'bg-black/90'}`}
-              onClick={() => setSelectedArticle(null)}
-            >
-              <div className="min-h-full">
-                <motion.div
-                  initial={{ y: 50, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: 50, opacity: 0 }}
-                  onClick={(e) => e.stopPropagation()}
-                  className={`relative w-full min-h-screen shadow-2xl overflow-hidden ${isDayMode ? 'bg-white' : 'bg-[#0a0a0a]'}`}
-                >
-                  <div
-                    className="h-72 sm:h-96 bg-gradient-to-br from-blue-900/40 to-black relative bg-cover bg-center"
-                    style={selectedArticle.cover ? { backgroundImage: `url(${selectedArticle.cover})` } : {}}
-                  >
-                    {!selectedArticle.cover && <div className="absolute inset-0 bg-gradient-to-br from-blue-900/40 to-black" />}
-                    <button
-                      onClick={() => setSelectedArticle(null)}
-                      className={`absolute top-6 right-6 p-2 rounded-full backdrop-blur-md border transition-all z-20 group ${isDayMode ? 'bg-white/82 hover:bg-white text-slate-700 border-slate-200/80' : 'bg-black/40 hover:bg-black/60 text-white border-white/10'}`}
-                    >
-                      <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />
-                    </button>
-                    <div className={`absolute bottom-0 left-0 px-6 pt-6 pb-6 md:px-10 md:pt-10 md:pb-8 w-full z-20 pt-48 -mb-1 backdrop-blur-[2px] ${isDayMode ? 'bg-gradient-to-t from-white via-white/92 to-transparent' : 'bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/90 to-transparent'}`}>
-                      <div className={`flex items-center gap-3 font-bold text-lg md:text-xl uppercase tracking-[0.2em] mb-4 ${isDayMode ? 'text-blue-500' : 'text-blue-300 drop-shadow-lg'}`}>
-                        <span>{selectedArticle.date}</span>
-                      </div>
-                      <h2 className={`text-4xl md:text-6xl font-black leading-[0.95] tracking-tight font-serif ${isDayMode ? 'text-slate-900' : 'text-white drop-shadow-2xl'}`}>
-                        {selectedArticle.title}
-                      </h2>
-                    </div>
-                  </div>
-
-                  <div className="px-5 sm:px-8 md:px-12 pt-4 pb-12 max-w-5xl mx-auto">
-                    <div className={`flex items-center justify-between gap-3 mb-8 pb-8 border-b ${isDayMode ? 'border-slate-200/80' : 'border-white/5'}`}>
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center overflow-hidden ${isDayMode ? 'bg-slate-100' : 'bg-gray-700'}`}>
-                          {selectedArticle.author_avatar ? (
-                            <img src={selectedArticle.author_avatar} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            <User size={20} className={isDayMode ? 'text-slate-500' : 'text-gray-400'} />
-                          )}
-                        </div>
-                        <div>
-                          <div className={`text-sm font-bold ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{selectedArticle.author_name || t('common.anonymous', '匿名用户')}</div>
-                          <div className={`text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>{t('common.author')}</div>
-                        </div>
-                      </div>
-                      <FavoriteButton
-                        itemId={selectedArticle.id}
-                        itemType="article"
-                        size={24}
-                        showCount={true}
-                        count={selectedArticle.likes || 0}
-                        initialFavorited={selectedArticle.favorited}
-                        className={`p-3 rounded-full transition-all border ${isDayMode ? 'bg-white/85 hover:bg-red-50 text-slate-700 border-slate-200/80' : 'bg-white/5 hover:bg-red-500/20 text-white border border-white/10'}`}
-                        onToggle={(favorited, likes) => handleToggleFavorite(selectedArticle.id, favorited, likes)}
-                      />
-                    </div>
-
-                    {selectedContentBlocks.length > 0 ? (
-                      <div className="space-y-6">
-                        {/* FIX: B4 — Replace Math.random() key with stable index-based fallback */}
-                        {selectedContentBlocks.map((block, bIdx) => (
-                          <div key={block.id || `block-${bIdx}`} className={`space-y-3 rounded-2xl p-4 md:p-5 border ${isDayMode ? 'bg-slate-50/80 border-slate-200/80' : 'bg-white/[0.03] border-white/10'}`}>
-                            {block.type === 'text' && (
-                              <p className={`whitespace-pre-wrap leading-8 text-lg ${isDayMode ? 'text-slate-700' : 'text-gray-300'}`}>{block.text}</p>
-                            )}
-                            {block.type === 'image' && block.url && (
-                              <figure className="space-y-3">
-                                <div className="rounded-2xl overflow-hidden border border-white/10">
-                                  <img src={block.url} alt={block.caption || selectedArticle.title} className="w-full object-cover" />
-                                </div>
-                                {block.caption && <figcaption className={`text-sm px-1 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{block.caption}</figcaption>}
-                              </figure>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div
-                        className={`prose prose-lg max-w-none leading-relaxed ${isDayMode ? 'prose-slate text-slate-700' : 'prose-invert text-gray-300'}`}
-                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedArticle.content) }}
-                      />
-                    )}
-
-                  </div>
-                </motion.div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>,
-        document.body
-      )}
+      {/* Article Detail Modal — uses shared CommunityDetailModal */}
+      <CommunityDetailModal
+        item={selectedArticle}
+        onClose={() => setSelectedArticle(null)}
+        isDayMode={isDayMode}
+        gradientFrom="from-blue-900/40"
+        headerHeight="h-72 sm:h-96"
+        coverImage={selectedArticle?.cover}
+        headerContent={selectedArticle && (
+          <>
+            <div className={`flex items-center gap-3 font-bold text-lg md:text-xl uppercase tracking-[0.2em] mb-4 ${isDayMode ? 'text-blue-500' : 'text-blue-300 drop-shadow-lg'}`}>
+              <span>{selectedArticle.date}</span>
+            </div>
+            <h2 className={`text-4xl md:text-6xl font-black leading-[0.95] tracking-tight font-serif ${isDayMode ? 'text-slate-900' : 'text-white drop-shadow-2xl'}`}>
+              {selectedArticle.title}
+            </h2>
+          </>
+        )}
+        authorBar={selectedArticle && (
+          <FavoriteButton
+            itemId={selectedArticle.id}
+            itemType="article"
+            size={24}
+            showCount={true}
+            count={selectedArticle.likes || 0}
+            initialFavorited={selectedArticle.favorited}
+            className={`p-3 rounded-full transition-all border ${isDayMode ? 'bg-white/85 hover:bg-red-50 text-slate-700 border-slate-200/80' : 'bg-white/5 hover:bg-red-500/20 text-white border border-white/10'}`}
+            onToggle={(favorited, likes) => handleToggleFavorite(selectedArticle.id, favorited, likes)}
+          />
+        )}
+        contentBlocks={selectedContentBlocks}
+        htmlContent={selectedArticle?.content}
+      />
 
       <UploadModal
         isOpen={isUploadOpen}

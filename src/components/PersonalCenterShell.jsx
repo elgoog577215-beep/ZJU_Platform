@@ -1,26 +1,14 @@
-const PersonalCenterShell = ({
-  children,
-  isDayMode,
-  maxWidthClass = "max-w-7xl",
-  contentClassName = "",
-  showAmbient = true,
-}) => {
-  return (
-    <div
-      className={`min-h-screen pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+88px)] px-3 md:px-8 relative overflow-hidden ${isDayMode ? "bg-transparent" : "bg-[#0a0a0a]"}`}
-    >
-      {showAmbient && (
-        <div className="fixed inset-0 pointer-events-none z-0">
-          <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-indigo-500/10 blur-[130px]" />
-          <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-purple-500/10 blur-[130px]" />
-        </div>
-      )}
+import React from 'react';
 
-      <div className={`${maxWidthClass} mx-auto relative z-10 ${contentClassName}`}>
-        {children}
+const PersonalCenterShell = ({ children, isDayMode, maxWidthClass = 'max-w-7xl', showAmbient = false }) => (
+  <section className={`relative min-h-screen px-4 py-6 md:px-8 md:py-12 ${isDayMode ? 'bg-slate-50/80' : ''}`}>
+    {showAmbient && (
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className={`absolute -top-1/2 -left-1/4 w-[80vw] h-[80vw] rounded-full blur-3xl opacity-10 ${isDayMode ? 'bg-indigo-300' : 'bg-indigo-600'}`} />
       </div>
-    </div>
-  );
-};
+    )}
+    <div className={`mx-auto ${maxWidthClass}`}>{children}</div>
+  </section>
+);
 
 export default PersonalCenterShell;

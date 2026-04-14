@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { motion } from 'framer-motion';
-import { QrCode } from 'lucide-react';
+import { QrCode, ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useSettings } from '../context/SettingsContext';
 

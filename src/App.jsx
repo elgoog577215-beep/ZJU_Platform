@@ -1,11 +1,10 @@
 import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from './context/AuthContext';
+import { useAuth, AuthProvider } from './context/AuthContext';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Toaster } from 'react-hot-toast';
 import { MusicProvider } from './context/MusicContext';
 import { SettingsProvider, useSettings } from './context/SettingsContext';
-import { AuthProvider } from './context/AuthContext';
 import { HelmetProvider } from 'react-helmet-async';
 import ErrorBoundary from './components/ErrorBoundary';
 import { ResourceHints } from './components/ResourceHints';

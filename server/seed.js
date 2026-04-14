@@ -693,9 +693,7 @@ async function seed() {
 
   await pool.close();
 
-  console.log('✅ Seed completed');
-  console.log(`👤 Admin user: ${usersSeed[0].username} / ${usersSeed[0].password}`);
-  console.log(`👤 Demo user: ${usersSeed[1].username} / ${usersSeed[1].password}`);
+  console.log('✅ Seed completed — default accounts created (see env vars or source for credentials)');
 }
 
 seed().catch(async (error) => {

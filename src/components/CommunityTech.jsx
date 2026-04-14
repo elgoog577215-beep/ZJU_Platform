@@ -248,23 +248,24 @@ const CommunityTech = () => {
   // Deep linking
   useEffect(() => {
     const id = searchParams.get('id');
-    if (id) {
-        api.get(`/articles/${id}`)
-           .then(res => {
-               if (res.data) setSelectedArticle(res.data);
-           })
-           .catch(() => {});
-    }
+    if (!id) return;
+    const ac = new AbortController();
+    api.get(`/articles/${id}`, { signal: ac.signal })
+      .then(res => { if (res.data) setSelectedArticle(res.data); })
+      .catch(() => {});
+    return () => ac.abort();
   }, [searchParams]);
 
   const handleToggleFavorite = useCallback((articleId, favorited, likes) => {
-      setArticles(prev => prev.map(a =>
-          a.id === articleId ? { ...a, likes: likes !== undefined ? likes : a.likes, favorited } : a
-      ));
+      setArticles(prev => {
+        if (!prev) return prev;
+        return prev.map(a => a.id === articleId ? { ...a, likes: likes !== undefined ? likes : a.likes, favorited } : a);
+      });
 
-      setDisplayArticles(prev => prev.map(a =>
-        a.id === articleId ? { ...a, likes: likes !== undefined ? likes : a.likes, favorited } : a
-      ));
+      setDisplayArticles(prev => {
+        if (!prev) return prev;
+        return prev.map(a => a.id === articleId ? { ...a, likes: likes !== undefined ? likes : a.likes, favorited } : a);
+      });
 
       setSelectedArticle(prev => {
           if (prev && prev.id === articleId) {
@@ -563,10 +564,10 @@ const CommunityTech = () => {
                 >
                   {/* Header Image / Gradient */}
                   <div
-                    className="h-72 sm:h-96 bg-gradient-to-br from-orange-900/40 to-black relative bg-cover bg-center"
+                    className={`h-72 sm:h-96 bg-gradient-to-br from-orange-900/40 ${isDayMode ? 'to-slate-100' : 'to-gray-900'} relative bg-cover bg-center`}
                     style={selectedArticle.cover ? { backgroundImage: `url(${selectedArticle.cover})` } : {}}
                   >
-                    {!selectedArticle.cover && <div className="absolute inset-0 bg-gradient-to-br from-orange-900/40 to-black" />}
+                    {!selectedArticle.cover && <div className={`absolute inset-0 bg-gradient-to-br from-orange-900/40 ${isDayMode ? 'to-slate-100' : 'to-gray-900'}`} />}
                     <button
                       onClick={() => setSelectedArticle(null)}
                       className={`absolute top-6 right-6 p-2 rounded-full backdrop-blur-md border transition-all z-20 group ${isDayMode ? 'bg-white/82 hover:bg-white text-slate-700 border-slate-200/80' : 'bg-black/40 hover:bg-black/60 text-white border-white/10'}`}

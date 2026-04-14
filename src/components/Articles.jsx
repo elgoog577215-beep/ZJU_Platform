@@ -19,24 +19,7 @@ import { useCachedResource } from '../hooks/useCachedResource';
 import TagFilter from './TagFilter';
 import DOMPurify from 'dompurify';
 import { useReducedMotion } from '../utils/animations';
-
-const calculateReadingTime = (text, t) => {
-    const wordsPerMinute = 200;
-    const words = text ? text.split(/\s+/).length : 0;
-    const minutes = Math.ceil(words / wordsPerMinute);
-    return `${minutes} ${t('common.min_read')}`;
-};
-
-const parseContentBlocks = (raw) => {
-  if (!raw) return [];
-  try {
-    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-    if (!Array.isArray(parsed)) return [];
-    return parsed;
-  } catch {
-    return [];
-  }
-};
+import { parseContentBlocks, calculateReadingTime } from './communityUtils';
 
 const formatBytes = (bytes = 0) => {
   if (!bytes || Number.isNaN(bytes)) return '';

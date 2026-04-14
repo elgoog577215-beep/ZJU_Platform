@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Users, X, User, Upload, Calendar, UserPlus, Clock, FileText, Download, ExternalLink } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Users, Upload, Calendar, UserPlus, ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Pagination from './Pagination';
 import { useSettings } from '../context/SettingsContext';
@@ -11,12 +10,13 @@ import toast from 'react-hot-toast';
 import api from '../services/api';
 import SortSelector from './SortSelector';
 import { useCachedResource } from '../hooks/useCachedResource';
-import DOMPurify from 'dompurify';
 import { useReducedMotion } from '../utils/animations';
 import { useBackClose } from '../hooks/useBackClose';
 import PostCard from './PostCard';
 import PostComposer from './PostComposer';
+import CommunityDetailModal from './CommunityDetailModal';
 import { parseContentBlocks } from './communityUtils';
+import { useCommunitySection } from '../hooks/useCommunitySection';
 
 const STATUS_TABS = [
   { key: 'all', label: 'community.tab_all' },
@@ -92,18 +92,11 @@ const CommunityTeam = () => {
     return () => ac.abort();
   }, [searchParams]);
 
-  const handlePostClick = useCallback((post) => {
-    setSelectedPost(post);
-  }, []);
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleComposerSuccess = useCallback(() => {
-    refresh({ clearCache: true });
-  }, [refresh]);
+  const { handleItemClick: handlePostClick, handlePageChange, handleComposerSuccess } = useCommunitySection({
+    setSelectedItem: setSelectedPost,
+    setCurrentPage,
+    refresh,
+  });
 
   const handleJoinTeam = useCallback(async () => {
     if (!user) { toast.error(t('auth.signin_required')); return; }
@@ -228,209 +221,112 @@ const CommunityTeam = () => {
         <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
       )}
 
-      {/* Post Detail Modal (方案A: 全屏弹窗, violet theme) */}
-      {createPortal(
-        <AnimatePresence>
-          {selectedPost && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className={`fixed inset-0 z-[100] backdrop-blur-md overflow-y-auto ${isDayMode ? 'bg-white/70' : 'bg-black/90'}`}
-              onClick={() => setSelectedPost(null)}
+      {/* Post Detail Modal — uses shared CommunityDetailModal */}
+      <CommunityDetailModal
+        item={selectedPost}
+        onClose={() => setSelectedPost(null)}
+        isDayMode={isDayMode}
+        gradientFrom="from-violet-900/30"
+        headerContent={selectedPost && (
+          <>
+            <div className="flex items-center gap-3 mb-3">
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                selectedPost.status === 'full'
+                  ? (isDayMode ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'bg-blue-500/15 text-blue-400 border border-blue-500/20')
+                  : selectedPost.status === 'closed'
+                  ? (isDayMode ? 'bg-gray-100 text-gray-600 border border-gray-200' : 'bg-gray-500/15 text-gray-400 border border-gray-500/20')
+                  : (isDayMode ? 'bg-violet-50 text-violet-600 border border-violet-200' : 'bg-violet-500/15 text-violet-400 border border-violet-500/20')
+              }`}>
+                {selectedPost.status === 'full' ? t('community.post_status_full', '已满')
+                  : selectedPost.status === 'closed' ? t('community.post_status_closed', '已结束')
+                  : t('community.post_status_recruiting', '招募中')}
+              </span>
+              <span className={`text-sm font-mono ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+                {selectedPost.created_at && new Date(selectedPost.created_at).toLocaleDateString('zh-CN')}
+              </span>
+            </div>
+            <h2 className={`text-3xl md:text-5xl font-black leading-tight tracking-tight font-serif ${isDayMode ? 'text-slate-900' : 'text-white drop-shadow-2xl'}`}>
+              {selectedPost.title}
+            </h2>
+          </>
+        )}
+        authorBar={
+          selectedPost && selectedPost.status === 'recruiting' && !isTeamFull ? (
+            <button
+              onClick={handleJoinTeam}
+              disabled={joining}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 ${isDayMode ? 'bg-violet-600 text-white hover:bg-violet-700' : 'bg-violet-600 text-white hover:bg-violet-500'}`}
             >
-              <div className="min-h-full">
-                <motion.div
-                  initial={{ y: 50, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: 50, opacity: 0 }}
-                  onClick={(e) => e.stopPropagation()}
-                  className={`relative w-full min-h-screen shadow-2xl overflow-hidden ${isDayMode ? 'bg-white' : 'bg-[#0a0a0a]'}`}
-                >
-                  {/* Header Gradient (violet for team) */}
-                  <div className="h-56 sm:h-72 bg-gradient-to-br from-violet-900/30 to-black relative">
-                    <button
-                      onClick={() => setSelectedPost(null)}
-                      className={`absolute top-6 right-6 p-2 rounded-full backdrop-blur-md border transition-all z-20 group ${isDayMode ? 'bg-white/82 hover:bg-white text-slate-700 border-slate-200/80' : 'bg-black/40 hover:bg-black/60 text-white border-white/10'}`}
-                    >
-                      <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />
-                    </button>
-                    <div className={`absolute bottom-0 left-0 px-6 pt-6 pb-6 md:px-10 md:pt-10 md:pb-8 w-full z-20 pt-32 -mb-1 backdrop-blur-[2px] ${isDayMode ? 'bg-gradient-to-t from-white via-white/92 to-transparent' : 'bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/90 to-transparent'}`}>
-                      <div className="flex items-center gap-3 mb-3">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                          selectedPost.status === 'full'
-                            ? (isDayMode ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'bg-blue-500/15 text-blue-400 border border-blue-500/20')
-                            : selectedPost.status === 'closed'
-                            ? (isDayMode ? 'bg-gray-100 text-gray-600 border border-gray-200' : 'bg-gray-500/15 text-gray-400 border border-gray-500/20')
-                            : (isDayMode ? 'bg-violet-50 text-violet-600 border border-violet-200' : 'bg-violet-500/15 text-violet-400 border border-violet-500/20')
-                        }`}>
-                          {selectedPost.status === 'full' ? t('community.post_status_full', '已满')
-                            : selectedPost.status === 'closed' ? t('community.post_status_closed', '已结束')
-                            : t('community.post_status_recruiting', '招募中')}
-                        </span>
-                        <span className={`text-sm font-mono ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
-                          {selectedPost.created_at && new Date(selectedPost.created_at).toLocaleDateString('zh-CN')}
-                        </span>
-                      </div>
-                      <h2 className={`text-3xl md:text-5xl font-black leading-tight tracking-tight font-serif ${isDayMode ? 'text-slate-900' : 'text-white drop-shadow-2xl'}`}>
-                        {selectedPost.title}
-                      </h2>
-                    </div>
+              <UserPlus size={16} />
+              {joining ? t('community.post_joining', '报名中...') : t('community.post_join', '报名参加')}
+            </button>
+          ) : undefined
+        }
+        beforeContent={selectedPost && (
+          <>
+            {/* Team progress card */}
+            {selectedPost.max_members && (
+              <div className={`mb-8 p-5 rounded-2xl border ${isDayMode ? 'bg-violet-50/50 border-violet-100' : 'bg-violet-500/5 border-violet-500/15'}`}>
+                <div className="flex items-center justify-between mb-3">
+                  <span className={`text-sm font-medium flex items-center gap-2 ${isDayMode ? 'text-violet-700' : 'text-violet-300'}`}>
+                    <Users size={16} />
+                    {t('community.post_team_progress', '组队进度')}
+                  </span>
+                  <span className={`text-sm font-bold ${isDayMode ? 'text-violet-600' : 'text-violet-400'}`}>
+                    {selectedPost.current_members || 0} / {selectedPost.max_members}
+                  </span>
+                </div>
+                <div className={`w-full h-2.5 rounded-full overflow-hidden ${isDayMode ? 'bg-violet-100' : 'bg-white/10'}`}>
+                  <div
+                    className={`h-full rounded-full transition-all duration-700 ${isTeamFull ? (isDayMode ? 'bg-blue-500' : 'bg-blue-400') : (isDayMode ? 'bg-violet-500' : 'bg-violet-400')}`}
+                    style={{ width: `${teamProgress * 100}%` }}
+                  />
+                </div>
+                {selectedPost.deadline && (
+                  <div className={`flex items-center gap-1.5 mt-3 text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+                    <Calendar size={12} />
+                    {t('community.post_deadline_prefix', '截止')}: {selectedPost.deadline}
                   </div>
-
-                  {/* Content */}
-                  <div className="px-5 sm:px-8 md:px-12 pt-4 pb-12 max-w-5xl mx-auto">
-                    {/* Author + team info */}
-                    <div className={`flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pb-6 border-b ${isDayMode ? 'border-slate-200/80' : 'border-white/5'}`}>
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center overflow-hidden ${isDayMode ? 'bg-slate-100' : 'bg-gray-700'}`}>
-                          {selectedPost.author_avatar ? (
-                            <img src={selectedPost.author_avatar} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            <User size={20} className={isDayMode ? 'text-slate-500' : 'text-gray-400'} />
-                          )}
-                        </div>
-                        <div>
-                          <div className={`text-sm font-bold ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
-                            {selectedPost.author_name || t('common.anonymous', '匿名用户')}
-                          </div>
-                          <div className={`text-xs flex items-center gap-2 ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>
-                            <span className="flex items-center gap-1"><Clock size={11} />{selectedPost.views_count || 0} {t('community.post_views', '浏览')}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Join button */}
-                      {selectedPost.status === 'recruiting' && !isTeamFull && (
-                        <button
-                          onClick={handleJoinTeam}
-                          disabled={joining}
-                          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 ${isDayMode ? 'bg-violet-600 text-white hover:bg-violet-700' : 'bg-violet-600 text-white hover:bg-violet-500'}`}
-                        >
-                          <UserPlus size={16} />
-                          {joining ? t('community.post_joining', '报名中...') : t('community.post_join', '报名参加')}
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Team progress card */}
-                    {selectedPost.max_members && (
-                      <div className={`mb-8 p-5 rounded-2xl border ${isDayMode ? 'bg-violet-50/50 border-violet-100' : 'bg-violet-500/5 border-violet-500/15'}`}>
-                        <div className="flex items-center justify-between mb-3">
-                          <span className={`text-sm font-medium flex items-center gap-2 ${isDayMode ? 'text-violet-700' : 'text-violet-300'}`}>
-                            <Users size={16} />
-                            {t('community.post_team_progress', '组队进度')}
-                          </span>
-                          <span className={`text-sm font-bold ${isDayMode ? 'text-violet-600' : 'text-violet-400'}`}>
-                            {selectedPost.current_members || 0} / {selectedPost.max_members}
-                          </span>
-                        </div>
-                        <div className={`w-full h-2.5 rounded-full overflow-hidden ${isDayMode ? 'bg-violet-100' : 'bg-white/10'}`}>
-                          <div
-                            className={`h-full rounded-full transition-all duration-700 ${isTeamFull ? (isDayMode ? 'bg-blue-500' : 'bg-blue-400') : (isDayMode ? 'bg-violet-500' : 'bg-violet-400')}`}
-                            style={{ width: `${teamProgress * 100}%` }}
-                          />
-                        </div>
-                        {selectedPost.deadline && (
-                          <div className={`flex items-center gap-1.5 mt-3 text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
-                            <Calendar size={12} />
-                            {t('community.post_deadline_prefix', '截止')}: {selectedPost.deadline}
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Activity link */}
-                    {selectedPost.link && (
-                      <a
-                        href={selectedPost.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`flex items-center gap-3 mb-8 p-4 rounded-2xl border transition-colors ${isDayMode ? 'bg-indigo-50/60 border-indigo-100 hover:bg-indigo-50' : 'bg-indigo-500/5 border-indigo-500/15 hover:bg-indigo-500/10'}`}
-                      >
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isDayMode ? 'bg-indigo-100 text-indigo-600' : 'bg-indigo-500/15 text-indigo-400'}`}>
-                          <ExternalLink size={20} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className={`text-sm font-medium ${isDayMode ? 'text-indigo-700' : 'text-indigo-300'}`}>
-                            {t('community.post_activity_link', '活动链接')}
-                          </div>
-                          <div className={`text-xs truncate ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
-                            {selectedPost.link}
-                          </div>
-                        </div>
-                        <ExternalLink size={14} className={isDayMode ? 'text-indigo-400 flex-shrink-0' : 'text-indigo-500 flex-shrink-0'} />
-                      </a>
-                    )}
-
-                    {/* Post body */}
-                    {selectedContentBlocks.length > 0 ? (
-                      <div className="space-y-6 mb-10">
-                        {selectedContentBlocks.map((block, bIdx) => (
-                          <div key={block.id || `${block.type}-${bIdx}`}>
-                            {block.type === 'text' && (
-                              <p className={`whitespace-pre-wrap leading-8 text-lg ${isDayMode ? 'text-slate-700' : 'text-gray-300'}`}>
-                                {block.text}
-                              </p>
-                            )}
-                            {block.type === 'image' && block.url && (
-                              <figure className="space-y-2">
-                                <div className={`rounded-2xl overflow-hidden border ${isDayMode ? 'border-slate-200 bg-white' : 'border-white/10 bg-black/20'}`}>
-                                  <img src={block.url} alt={block.caption || ''} className="w-full object-cover" />
-                                </div>
-                                {block.caption && <figcaption className={`text-sm ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{block.caption}</figcaption>}
-                              </figure>
-                            )}
-                            {block.type === 'file' && block.url && (
-                              <a
-                                href={block.url}
-                                download={block.name || true}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={`flex items-center gap-3 p-4 rounded-2xl border transition-colors ${isDayMode ? 'bg-slate-50 border-slate-200 hover:bg-slate-100' : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.06]'}`}
-                              >
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isDayMode ? 'bg-violet-100 text-violet-600' : 'bg-violet-500/15 text-violet-400'}`}>
-                                  <FileText size={20} />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className={`text-sm font-medium truncate ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{block.name || t('community.file_attachment', '附件')}</div>
-                                  {block.size && <div className={`text-xs ${isDayMode ? 'text-slate-400' : 'text-gray-500'}`}>{(block.size / 1024).toFixed(1)} KB</div>}
-                                </div>
-                                <Download size={16} className={isDayMode ? 'text-slate-400' : 'text-gray-500'} />
-                              </a>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    ) : selectedPost.content && (
-                      <div
-                        className={`prose prose-lg max-w-none leading-relaxed mb-10 ${isDayMode ? 'prose-slate text-slate-700' : 'prose-invert text-gray-300'}`}
-                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedPost.content) }}
-                      />
-                    )}
-
-                    {/* Tags */}
-                    {selectedPost.tags && selectedPost.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-8">
-                        {(Array.isArray(selectedPost.tags) ? selectedPost.tags : []).map((tag) => (
-                          <span
-                            key={tag}
-                            className={`px-3 py-1 rounded-lg text-xs font-medium ${isDayMode ? 'bg-slate-100 text-slate-600' : 'bg-white/5 text-gray-400'}`}
-                          >
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                  </div>
-                </motion.div>
+                )}
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>,
-        document.body
-      )}
+            )}
+
+            {/* Activity link */}
+            {selectedPost.link && (
+              <a
+                href={selectedPost.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`flex items-center gap-3 mb-8 p-4 rounded-2xl border transition-colors ${isDayMode ? 'bg-indigo-50/60 border-indigo-100 hover:bg-indigo-50' : 'bg-indigo-500/5 border-indigo-500/15 hover:bg-indigo-500/10'}`}
+              >
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isDayMode ? 'bg-indigo-100 text-indigo-600' : 'bg-indigo-500/15 text-indigo-400'}`}>
+                  <ExternalLink size={20} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className={`text-sm font-medium ${isDayMode ? 'text-indigo-700' : 'text-indigo-300'}`}>
+                    {t('community.post_activity_link', '活动链接')}
+                  </div>
+                  <div className={`text-xs truncate ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+                    {selectedPost.link}
+                  </div>
+                </div>
+                <ExternalLink size={14} className={isDayMode ? 'text-indigo-400 flex-shrink-0' : 'text-indigo-500 flex-shrink-0'} />
+              </a>
+            )}
+          </>
+        )}
+        contentBlocks={selectedContentBlocks}
+        htmlContent={selectedPost?.content}
+        afterContent={selectedPost && selectedPost.tags && selectedPost.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-8">
+            {(Array.isArray(selectedPost.tags) ? selectedPost.tags : []).map((tag) => (
+              <span key={tag} className={`px-3 py-1 rounded-lg text-xs font-medium ${isDayMode ? 'bg-slate-100 text-slate-600' : 'bg-white/5 text-gray-400'}`}>
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
+      />
 
       {/* Post Composer */}
       <PostComposer
