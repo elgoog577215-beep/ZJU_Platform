@@ -44,6 +44,8 @@ npm run dev:client
 | `PORT` | No | `5181` | HTTP port for the backend |
 | `DATABASE_FILE` | No | `./database.sqlite` | SQLite file path |
 | `NODE_ENV` | No | `development` | `development` or `production` |
+| `CORS_ALLOWED_ORIGINS` | No | — | Comma-separated allowlist for production origins, e.g. `https://tuotuzju.com,http://118.31.78.72` |
+| `CORS_ORIGIN` | No | — | Legacy compatibility field; now also supports comma-separated origins |
 
 See `server/.env.example` for the full list.
 
@@ -69,6 +71,8 @@ npm run build          # outputs to dist/
 ```
 
 The backend serves the `dist/` folder as static files in production mode.
+
+For production deployments that still accept both the canonical domain and a temporary public IP entry, set `CORS_ALLOWED_ORIGINS` explicitly instead of relying on a single `CORS_ORIGIN` value.
 
 ## Common Issues
 

@@ -174,6 +174,126 @@ const getRecommendationCountBounds = (candidateCount) => ({
   max: Math.min(MAX_RECOMMENDATIONS, candidateCount)
 });
 
+const uniq = (values) => Array.from(new Set(values));
+
+const extractIntentTokens = (intent) => {
+  if (typeof intent !== 'string' || intent.trim() === '') {
+    return [];
+  }
+
+  const matches = intent.toLowerCase().match(/[\p{Script=Han}]{2,}|[a-z0-9]{2,}/gu);
+  return uniq((matches || []).filter((token) => token.length >= 2)).slice(0, 12);
+};
+
+const buildFallbackReason = (event, intent) => {
+  const intentLower = intent.toLowerCase();
+  const searchableFields = [
+    event.title,
+    event.description,
+    event.tags,
+    event.organizer,
+    event.target_audience,
+    event.location
+  ]
+    .filter((value) => typeof value === 'string' && value.trim() !== '')
+    .map((value) => value.toLowerCase());
+
+  const matchedToken = extractIntentTokens(intent).find((token) => (
+    searchableFields.some((field) => field.includes(token))
+  ));
+
+  const reasonParts = [];
+
+  if (matchedToken) {
+    reasonParts.push(`更贴近你提到的“${matchedToken}”`);
+  }
+
+  if (intentLower.includes('新生') && (event.target_audience || '').includes('新生')) {
+    reasonParts.push('面向新生更明确');
+  }
+
+  if (intentLower.includes('综测') && event.score) {
+    reasonParts.push('含综测信息');
+  }
+
+  if (intentLower.includes('志愿') && event.volunteer_time) {
+    reasonParts.push('含志愿时长');
+  }
+
+  if (intentLower.includes('线下') && event.location) {
+    reasonParts.push(`地点：${sanitizeText(event.location, 24)}`);
+  }
+
+  if (reasonParts.length === 0 && event.target_audience) {
+    reasonParts.push(`面向${sanitizeText(event.target_audience, 24)}`);
+  }
+
+  if (reasonParts.length === 0 && event.location) {
+    reasonParts.push(`地点：${sanitizeText(event.location, 24)}`);
+  }
+
+  if (reasonParts.length === 0) {
+    reasonParts.push('时间较近，建议先看详情');
+  }
+
+  return sanitizeText(reasonParts.slice(0, 3).join('，'), 120);
+};
+
+const scoreCandidateForFallback = (event, intent, originalIndex) => {
+  const intentLower = intent.toLowerCase();
+  const searchableFields = [
+    event.title,
+    event.description,
+    event.tags,
+    event.organizer,
+    event.target_audience,
+    event.location
+  ]
+    .filter((value) => typeof value === 'string' && value.trim() !== '')
+    .map((value) => value.toLowerCase());
+
+  let score = Math.max(0, MAX_CANDIDATES - originalIndex);
+
+  for (const token of extractIntentTokens(intent)) {
+    if (searchableFields.some((field) => field.includes(token))) {
+      score += 6;
+    }
+  }
+
+  if (intentLower.includes('新生') && (event.target_audience || '').includes('新生')) {
+    score += 8;
+  }
+
+  if (intentLower.includes('综测') && event.score) {
+    score += 7;
+  }
+
+  if (intentLower.includes('志愿') && event.volunteer_time) {
+    score += 7;
+  }
+
+  if (intentLower.includes('线下') && event.location) {
+    score += 4;
+  }
+
+  return score;
+};
+
+const buildDeterministicFallbackRecommendations = ({ candidates, intent }) => {
+  const { max } = getRecommendationCountBounds(candidates.length);
+
+  return candidates
+    .map((event, index) => ({
+      id: event.id,
+      originalIndex: index,
+      score: scoreCandidateForFallback(event, intent, index),
+      reason: buildFallbackReason(event, intent)
+    }))
+    .sort((left, right) => right.score - left.score || left.originalIndex - right.originalIndex)
+    .slice(0, max)
+    .map(({ id, reason }) => ({ id, reason }));
+};
+
 const loadScopedCandidates = async (db, scope, now = new Date()) => {
   const rows = await db.all(
     `
@@ -423,24 +543,43 @@ const runEventAssistantTurn = async ({
   const candidateMap = new Map(scopeInfo.candidates.map((event) => [event.id, event]));
   const assistantCandidates = scopeInfo.candidates.map(serializeEventForAssistant);
 
-  const rawJson = await modelRunner({
-    intent,
-    scope: scopeInfo.scope,
-    clarificationAllowed: !clarificationUsed,
-    candidates: assistantCandidates
-  });
-
-  let parsed;
+  let validated;
   try {
-    parsed = JSON.parse(rawJson);
-  } catch (error) {
-    throw createAssistantError('EVENT_ASSISTANT_MODEL_INVALID', 'Model returned invalid JSON.', 502);
-  }
+    const rawJson = await modelRunner({
+      intent,
+      scope: scopeInfo.scope,
+      clarificationAllowed: !clarificationUsed,
+      candidates: assistantCandidates
+    });
 
-  const validated = validateModelResult(parsed, {
-    clarificationAllowed: !clarificationUsed,
-    candidateMap
-  });
+    let parsed;
+    try {
+      parsed = JSON.parse(rawJson);
+    } catch (error) {
+      throw createAssistantError('EVENT_ASSISTANT_MODEL_INVALID', 'Model returned invalid JSON.', 502);
+    }
+
+    validated = validateModelResult(parsed, {
+      clarificationAllowed: !clarificationUsed,
+      candidateMap
+    });
+  } catch (error) {
+    if (!['EVENT_ASSISTANT_MODEL_INVALID', 'EVENT_ASSISTANT_MODEL_EMPTY'].includes(error?.code)) {
+      throw error;
+    }
+
+    console.warn(
+      `[EventAssistant] Falling back to deterministic recommendations after ${error.code}. scope=${scopeInfo.scope} candidates=${scopeInfo.candidates.length}`
+    );
+
+    validated = {
+      type: 'recommend',
+      recommendations: buildDeterministicFallbackRecommendations({
+        candidates: scopeInfo.candidates,
+        intent
+      })
+    };
+  }
 
   if (validated.type === 'empty') {
     return {
@@ -478,6 +617,7 @@ module.exports = {
   classifyEventScope,
   serializeEventForAssistant,
   serializeEventForClient,
+  buildDeterministicFallbackRecommendations,
   loadScopedCandidates,
   runEventAssistantTurn,
   callEventAssistantModel,

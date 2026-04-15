@@ -29,7 +29,7 @@ npm run dev
 
 ## CORS / 环境变量
 
-若前端与后端不同源，需在 `server` 的 `allowedOrigins`（或项目等价配置）中加入前端 dev origin，并核对 `FRONTEND_URL` 等文档字段。
+若前端与后端不同源，需在后端 `CORS_ALLOWED_ORIGINS` 中加入前端 origin；`CORS_ORIGIN` 仅保留兼容旧配置。生产环境建议显式填写完整 allowlist，而不是只补单个域名字段。
 
 ## 冒烟
 

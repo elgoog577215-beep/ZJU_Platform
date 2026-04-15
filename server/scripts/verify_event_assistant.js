@@ -87,6 +87,23 @@ const main = async () => {
     assert(recommendUpcoming.recommendations.length >= 1, 'Backup DB should return at least one recommendation.');
     console.log('✓ 4.2 Backup DB can produce recommendations from real upcoming candidates.');
 
+    const fallbackRecommend = await runEventAssistantTurn({
+      db: backupDb,
+      query: '想找线下、适合新生、最好有综测的活动',
+      modelRunner: async () => JSON.stringify({
+        type: 'recommend',
+        recommendations: [{ id: 999999, reason: 'bad id' }]
+      })
+    });
+
+    assert(fallbackRecommend.type === 'recommend', 'Invalid model IDs should trigger deterministic fallback recommendations.');
+    assert(fallbackRecommend.recommendations.length >= 1, 'Fallback recommendations should still return visible candidates.');
+    assert(
+      fallbackRecommend.recommendations.every((item) => typeof item.reason === 'string' && item.reason.trim() !== ''),
+      'Fallback recommendations should include short deterministic reasons.'
+    );
+    console.log('✓ 4.2 Invalid model IDs fall back to deterministic recommendations.');
+
     const clarify = await runEventAssistantTurn({
       db: backupDb,
       query: '想找个适合我的活动',

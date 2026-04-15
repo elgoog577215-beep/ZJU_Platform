@@ -23,6 +23,11 @@ const {
 } = require('./src/middleware/security');
 const { scanFile } = require('./src/middleware/upload');
 const {
+  getAllowedOrigins,
+  hasExplicitProductionOrigins,
+  isOriginAllowed
+} = require('./src/utils/cors');
+const {
   enhancedCompression,
   cacheControl,
   staticCacheControl,
@@ -142,42 +147,35 @@ app.use('/api/auth/', authLimiter);
 // ====================
 // CORS Configuration
 // ====================
-const allowedOrigins = [
-  process.env.FRONTEND_URL || 'http://localhost:5173',
-  process.env.CORS_ORIGIN,
-  'http://localhost:5180',
-  'http://localhost:3000',
-  'http://localhost:3001'
-].filter(Boolean);
+const allowedOrigins = getAllowedOrigins(process.env);
 
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    
-    const isAllowed = allowedOrigins.some(allowed => {
-      if (allowed === origin) return true;
-      try {
-        const allowedUrl = new URL(allowed);
-        const originUrl = new URL(origin);
-        return allowedUrl.hostname === originUrl.hostname;
-      } catch {
-        return false;
-      }
+if (NODE_ENV === 'production' && !hasExplicitProductionOrigins(process.env)) {
+  console.warn('[CORS] Production origins are using repository fallbacks. Configure CORS_ALLOWED_ORIGINS explicitly.');
+}
+
+const corsOptionsDelegate = (req, callback) => {
+  const origin = req.header('Origin');
+
+  if (isOriginAllowed(origin, allowedOrigins) || NODE_ENV !== 'production') {
+    return callback(null, {
+      origin: true,
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-Requested-With'],
+      exposedHeaders: ['X-Total-Count', 'X-Page', 'X-Per-Page'],
+      maxAge: 86400
     });
-    
-    if (isAllowed || NODE_ENV !== 'production') {
-      return callback(null, true);
-    }
-    
-    console.warn(`[CORS] Blocked origin: ${origin}`);
-    callback(new Error('CORS policy violation: Origin not allowed'));
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-Requested-With'],
-  exposedHeaders: ['X-Total-Count', 'X-Page', 'X-Per-Page'],
-  maxAge: 86400
-}));
+  }
+
+  console.warn(
+    `[CORS] Blocked origin: ${origin || '<missing>'} host=${req.headers.host || '<missing>'} referer=${req.headers.referer || '<missing>'} x-forwarded-proto=${req.headers['x-forwarded-proto'] || '<missing>'}`
+  );
+
+  callback(new Error('CORS policy violation: Origin not allowed'));
+};
+
+app.use(cors(corsOptionsDelegate));
+app.options('*', cors(corsOptionsDelegate));
 
 // ====================
 // Body Parsing
