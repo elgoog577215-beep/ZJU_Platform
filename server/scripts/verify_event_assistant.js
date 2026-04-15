@@ -96,13 +96,12 @@ const main = async () => {
       })
     });
 
-    assert(fallbackRecommend.type === 'recommend', 'Invalid model IDs should trigger deterministic fallback recommendations.');
-    assert(fallbackRecommend.recommendations.length >= 1, 'Fallback recommendations should still return visible candidates.');
+    assert(fallbackRecommend.type === 'empty', 'Invalid model IDs should stop at an explicit empty state.');
     assert(
-      fallbackRecommend.recommendations.every((item) => typeof item.reason === 'string' && item.reason.trim() !== ''),
-      'Fallback recommendations should include short deterministic reasons.'
+      fallbackRecommend.emptyReason === 'assistant_unreliable',
+      'Invalid model IDs should surface an assistant_unreliable empty reason.'
     );
-    console.log('✓ 4.2 Invalid model IDs fall back to deterministic recommendations.');
+    console.log('✓ 4.2 Invalid model IDs stop at an explicit unreliable-result empty state.');
 
     const clarify = await runEventAssistantTurn({
       db: backupDb,

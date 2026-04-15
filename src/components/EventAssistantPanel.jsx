@@ -51,6 +51,8 @@ const EventAssistantPanel = ({ isDayMode, onOpenEvent, className = '' }) => {
 
   const emptyStateText = useMemo(() => {
     switch (assistantState?.emptyReason) {
+      case 'assistant_unreliable':
+        return t('events.assistant.empty_unreliable', '这次 AI 给出的结果不够可靠，我先不乱推活动。你可以换个说法再试。');
       case 'clarification_limit_reached':
         return t('events.assistant.empty_after_clarify', '这次我还是没法更稳地收敛结果了，你可以换个说法再试。');
       case 'no_matches':
@@ -270,7 +272,9 @@ const EventAssistantPanel = ({ isDayMode, onOpenEvent, className = '' }) => {
                         {emptyStateText}
                       </p>
                       <p className={`mt-3 text-sm leading-7 ${isDayMode ? 'text-slate-600' : 'text-gray-300'}`}>
-                        {assistantState.canExpandScope
+                        {assistantState.emptyReason === 'assistant_unreliable'
+                          ? t('events.assistant.unreliable_hint', '后台已经记录了这次模型输出，方便后续排查。你也可以换个更具体的说法再试。')
+                          : assistantState.canExpandScope
                           ? t('events.assistant.expand_hint', '如果你愿意，我可以继续帮你看看进行中或历史活动。')
                           : t('events.assistant.empty_hint', '你可以换个说法，或者放宽一些条件再试试。')}
                       </p>
