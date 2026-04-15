@@ -267,11 +267,11 @@ const EventAssistantPanel = ({ isDayMode, onOpenEvent, className = '' }) => {
                   )}
 
                   {assistantState.type === 'empty' && (
-                    <div className="mt-4 max-w-2xl">
-                      <p className={`text-lg leading-8 font-semibold ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
+                    <div className={`mt-4 mx-auto max-w-2xl rounded-[1.35rem] border px-5 py-6 text-center sm:px-7 sm:py-7 ${isDayMode ? 'bg-white/78 border-slate-200/80 shadow-[0_12px_28px_rgba(148,163,184,0.12)]' : 'bg-white/[0.04] border-white/10'}`}>
+                      <p className={`text-base sm:text-lg leading-8 font-semibold ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
                         {emptyStateText}
                       </p>
-                      <p className={`mt-3 text-sm leading-7 ${isDayMode ? 'text-slate-600' : 'text-gray-300'}`}>
+                      <p className={`mt-2 text-sm leading-7 ${isDayMode ? 'text-slate-600' : 'text-gray-300'}`}>
                         {assistantState.emptyReason === 'assistant_unreliable'
                           ? t('events.assistant.unreliable_hint', '您可以换个更具体的说法，或者放宽一些条件再试试。')
                           : assistantState.canExpandScope
