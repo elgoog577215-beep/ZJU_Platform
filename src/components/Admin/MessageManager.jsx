@@ -1,22 +1,33 @@
-import React, { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
+import React, { useEffect, useMemo, useState } from "react";
 import { Mail, Trash2, Check, Clock, RefreshCw } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "../../services/api";
+import {
+  AdminButton,
+  AdminEmptyState,
+  AdminLoadingState,
+  AdminPageShell,
+  AdminPanel,
+  AdminToolbar,
+  ConfirmDialog,
+  FilterChip,
+  ToolbarGroup,
+} from "./AdminUI";
 
 const MessageManager = () => {
-  const { t } = useTranslation();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("all");
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [pending, setPending] = useState(false);
 
   const fetchMessages = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/admin/messages");
-      setMessages(res.data);
-    } catch (error) {
-      console.error("Failed to fetch messages:", error);
-      toast.error(t("admin.messages.load_fail"));
+      const response = await api.get("/admin/messages");
+      setMessages(response.data || []);
+    } catch {
+      toast.error("加载留言失败");
     } finally {
       setLoading(false);
     }
@@ -26,110 +37,210 @@ const MessageManager = () => {
     fetchMessages();
   }, []);
 
-  const handleDelete = async (id) => {
-    if (!window.confirm(t("admin.messages.delete_confirm"))) return;
-    try {
-      await api.delete(`/admin/messages/${id}`);
-      setMessages((prev) => prev.filter((msg) => msg.id !== id));
-      toast.success(t("admin.messages.deleted"));
-    } catch (error) {
-      console.error("Failed to delete message:", error);
-      toast.error(t("admin.messages.delete_fail"));
-    }
-  };
+  const filteredMessages = useMemo(() => {
+    if (filter === "read") return messages.filter((message) => Number(message.read) === 1);
+    if (filter === "unread") return messages.filter((message) => Number(message.read) !== 1);
+    return messages;
+  }, [filter, messages]);
+
+  const counts = useMemo(
+    () => ({
+      total: messages.length,
+      unread: messages.filter((message) => Number(message.read) !== 1).length,
+      read: messages.filter((message) => Number(message.read) === 1).length,
+    }),
+    [messages],
+  );
 
   const handleMarkAsRead = async (id) => {
     try {
       await api.put(`/admin/messages/${id}/read`);
-      setMessages((prev) =>
-        prev.map((msg) => (msg.id === id ? { ...msg, read: 1 } : msg)),
+      setMessages((previous) =>
+        previous.map((message) =>
+          message.id === id ? { ...message, read: 1 } : message,
+        ),
       );
-      toast.success(t("admin.messages.marked_read"));
-    } catch (error) {
-      console.error("Failed to mark as read:", error);
-      toast.error(t("admin.messages.mark_fail"));
+      toast.success("已标记为已读");
+    } catch {
+      toast.error("标记失败");
     }
   };
 
+  const markVisibleAsRead = async () => {
+    const unreadIds = filteredMessages
+      .filter((message) => Number(message.read) !== 1)
+      .map((message) => message.id);
+    if (unreadIds.length === 0) return;
+    setPending(true);
+    try {
+      await Promise.all(unreadIds.map((id) => api.put(`/admin/messages/${id}/read`)));
+      setMessages((previous) =>
+        previous.map((message) =>
+          unreadIds.includes(message.id) ? { ...message, read: 1 } : message,
+        ),
+      );
+      toast.success(`已标记 ${unreadIds.length} 条留言为已读`);
+    } catch {
+      toast.error("批量标记失败");
+    } finally {
+      setPending(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirmDeleteId) return;
+    setPending(true);
+    try {
+      await api.delete(`/admin/messages/${confirmDeleteId}`);
+      setMessages((previous) =>
+        previous.filter((message) => message.id !== confirmDeleteId),
+      );
+      toast.success("留言已删除");
+      setConfirmDeleteId(null);
+    } catch {
+      toast.error("删除留言失败");
+    } finally {
+      setPending(false);
+    }
+  };
+
+  if (loading) {
+    return <AdminLoadingState text="正在加载留言..." />;
+  }
+
   return (
-    <div className="space-y-4 md:space-y-6">
-      <div className="flex items-center justify-between bg-[#111] border border-white/10 rounded-2xl p-3 md:p-4">
-        <h2 className="text-lg md:text-2xl font-bold text-white flex items-center gap-3">
-          <Mail className="text-indigo-400" /> {t("admin.messages.title")}
-        </h2>
-        <button
-          onClick={fetchMessages}
-          className="p-2 min-h-[40px] min-w-[40px] inline-flex items-center justify-center hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
-          title={t("admin.pending_review_ui.refresh")}
-        >
-          <RefreshCw size={20} />
-        </button>
-      </div>
-
-      {loading ? (
-        <div className="text-center py-20 text-gray-500">
-          {t("admin.messages.loading")}
-        </div>
-      ) : messages.length === 0 ? (
-        <div className="text-center py-20 bg-[#111] rounded-2xl border border-white/5">
-          <Mail size={48} className="mx-auto text-gray-600 mb-4" />
-          <p className="text-gray-400">{t("admin.messages.no_messages")}</p>
-        </div>
-      ) : (
-        <div className="grid gap-4">
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`bg-[#111] border rounded-xl p-4 md:p-6 transition-all ${msg.read ? "border-white/5 opacity-75" : "border-indigo-500/30 bg-indigo-900/5"}`}
+    <>
+      <AdminPageShell
+        title="留言中心"
+        description="这里集中处理站点联系表单提交的留言。建议优先处理未读消息。"
+        actions={
+          <>
+            <AdminButton tone="subtle" onClick={fetchMessages}>
+              <RefreshCw size={16} />
+              刷新
+            </AdminButton>
+            <AdminButton
+              tone="primary"
+              disabled={counts.unread === 0 || pending}
+              onClick={markVisibleAsRead}
             >
-              <div className="flex flex-col md:flex-row gap-4 justify-between items-start">
-                <div className="flex-1 space-y-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="font-bold text-base md:text-lg text-white">
-                      {msg.name}
-                    </h3>
-                    <span className="text-xs md:text-sm text-gray-500 bg-white/5 px-2 py-0.5 rounded-full border border-white/5 break-all">
-                      {msg.email}
-                    </span>
-                    {!msg.read && (
-                      <span className="text-xs bg-indigo-500 text-white px-2 py-0.5 rounded-full font-bold">
-                        {t("admin.messages.new")}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm md:text-base text-gray-300 whitespace-pre-wrap">
-                    {msg.message}
-                  </p>
-                  <div className="flex items-center gap-2 text-xs text-gray-500 pt-2">
-                    <Clock size={12} />
-                    {new Date(msg.date).toLocaleString()}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 self-start md:self-center">
-                  {!msg.read && (
-                    <button
-                      onClick={() => handleMarkAsRead(msg.id)}
-                      className="p-2 min-h-[40px] min-w-[40px] inline-flex items-center justify-center hover:bg-green-500/10 text-green-500 rounded-lg transition-colors"
-                      title={t("admin.messages.mark_read")}
-                    >
-                      <Check size={18} />
-                    </button>
-                  )}
-                  <button
-                    onClick={() => handleDelete(msg.id)}
-                    className="p-2 min-h-[40px] min-w-[40px] inline-flex items-center justify-center hover:bg-red-500/10 text-red-500 rounded-lg transition-colors"
-                    title={t("admin.messages.delete")}
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+              <Check size={16} />
+              标记当前结果为已读
+            </AdminButton>
+          </>
+        }
+        toolbar={
+          <AdminToolbar>
+            <ToolbarGroup>
+              <FilterChip active={filter === "all"} onClick={() => setFilter("all")}>
+                全部 ({counts.total})
+              </FilterChip>
+              <FilterChip active={filter === "unread"} onClick={() => setFilter("unread")}>
+                未读 ({counts.unread})
+              </FilterChip>
+              <FilterChip active={filter === "read"} onClick={() => setFilter("read")}>
+                已读 ({counts.read})
+              </FilterChip>
+            </ToolbarGroup>
+          </AdminToolbar>
+        }
+      >
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <AdminPanel className="p-4">
+            <div className="text-xs uppercase tracking-[0.2em] text-gray-500">总留言</div>
+            <div className="mt-3 text-2xl font-bold text-white">{counts.total}</div>
+          </AdminPanel>
+          <AdminPanel className="p-4">
+            <div className="text-xs uppercase tracking-[0.2em] text-gray-500">未读</div>
+            <div className="mt-3 text-2xl font-bold text-white">{counts.unread}</div>
+          </AdminPanel>
+          <AdminPanel className="p-4">
+            <div className="text-xs uppercase tracking-[0.2em] text-gray-500">已读</div>
+            <div className="mt-3 text-2xl font-bold text-white">{counts.read}</div>
+          </AdminPanel>
         </div>
-      )}
-    </div>
+
+        <AdminPanel title={`留言列表 (${filteredMessages.length})`}>
+          {filteredMessages.length === 0 ? (
+            <AdminEmptyState
+              icon={Mail}
+              title="当前没有匹配的留言"
+              description="可以切换筛选条件，或稍后刷新重试。"
+            />
+          ) : (
+            <div className="grid gap-4">
+              {filteredMessages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`rounded-3xl border p-4 md:p-5 ${
+                    Number(message.read) === 1
+                      ? "border-white/10 bg-white/[0.03]"
+                      : "border-indigo-500/20 bg-indigo-500/10"
+                  }`}
+                >
+                  <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-lg font-semibold text-white">
+                          {message.name || "匿名用户"}
+                        </h3>
+                        <span className="break-all rounded-full bg-white/5 px-2.5 py-1 text-xs text-gray-400">
+                          {message.email}
+                        </span>
+                        {Number(message.read) !== 1 ? (
+                          <span className="rounded-full bg-indigo-600 px-2.5 py-1 text-xs font-semibold text-white">
+                            未读
+                          </span>
+                        ) : null}
+                      </div>
+                      <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-gray-300">
+                        {message.message}
+                      </p>
+                      <div className="mt-4 flex items-center gap-2 text-xs text-gray-500">
+                        <Clock size={12} />
+                        {message.date
+                          ? new Date(message.date).toLocaleString("zh-CN")
+                          : "未知时间"}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      {Number(message.read) !== 1 ? (
+                        <button
+                          onClick={() => handleMarkAsRead(message.id)}
+                          className="inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-xl bg-white/5 text-emerald-300 transition-colors hover:bg-emerald-500/10"
+                          title="标记为已读"
+                        >
+                          <Check size={18} />
+                        </button>
+                      ) : null}
+                      <button
+                        onClick={() => setConfirmDeleteId(message.id)}
+                        className="inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-xl bg-white/5 text-red-300 transition-colors hover:bg-red-500/10"
+                        title="删除留言"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </AdminPanel>
+      </AdminPageShell>
+
+      <ConfirmDialog
+        open={Boolean(confirmDeleteId)}
+        title="确认删除留言"
+        description="删除后不可恢复。"
+        confirmText="确认删除"
+        tone="danger"
+        pending={pending}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
+    </>
   );
 };
 

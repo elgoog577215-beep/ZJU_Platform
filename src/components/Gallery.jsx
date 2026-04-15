@@ -33,6 +33,7 @@ import TagInput from "./TagInput";
 import TagFilter from "./TagFilter";
 import { GallerySkeleton } from "./SkeletonLoader";
 import toast from "react-hot-toast";
+import SEO from "./SEO";
 
 import { useBackClose } from "../hooks/useBackClose";
 import { useCachedResource } from "../hooks/useCachedResource";
@@ -304,11 +305,6 @@ const Gallery = () => {
     addPhoto(newItem);
   };
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
   const handleToggleFavorite = useCallback(
     (photoId, favorited, likes) => {
       setPhotos((prev) =>
@@ -343,6 +339,10 @@ const Gallery = () => {
 
   return (
     <section className="pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:py-20 px-4 md:px-8 relative overflow-hidden flex-grow">
+      <SEO
+        title="画廊"
+        description="浏览校园摄影、创作影像与精选画廊内容。"
+      />
       {/* Enhanced Ambient Background */}
       <div className="fixed inset-0 pointer-events-none z-0">
         {allowAmbientEffects ? (
@@ -620,7 +620,7 @@ const Gallery = () => {
           </motion.button>
         </motion.div>
       ) : displayPhotos.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
+        <div className="flex min-h-[52vh] flex-col items-center justify-center px-4 py-16 text-center md:min-h-[48vh] md:py-20">
           <div
             className={`rounded-3xl p-8 mb-6 border backdrop-blur-xl ${isDayMode ? "bg-white/88 border-slate-200/80" : "bg-white/5 border-white/10"}`}
           >

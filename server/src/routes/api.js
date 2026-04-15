@@ -18,6 +18,7 @@ const tagController = require('../controllers/tagController');
 const notificationController = require('../controllers/notificationController');
 const commentController = require('../controllers/commentController');
 const communityController = require('../controllers/communityController');
+const { logger } = require('../utils/logger');
 
 const { authenticateToken, isAdmin, optionalAuth } = require('../middleware/auth');
 const { validate, registerValidation, loginValidation, changePasswordValidation, settingsValidation, resourceValidation } = require('../middleware/validate');
@@ -134,6 +135,33 @@ router.post('/contact', messageController.submitMessage);
 router.get('/admin/messages', authenticateToken, isAdmin, messageController.getMessages);
 router.delete('/admin/messages/:id', authenticateToken, isAdmin, messageController.deleteMessage);
 router.put('/admin/messages/:id/read', authenticateToken, isAdmin, messageController.markAsRead);
+
+// Client-side error reporting
+router.post('/errors', (req, res) => {
+    const { errors } = req.body || {};
+
+    if (!Array.isArray(errors)) {
+        return res.status(400).json({
+            error: 'Invalid payload',
+            message: '`errors` must be an array'
+        });
+    }
+
+    if (errors.length > 0) {
+        logger.warn('Client errors reported', {
+            count: errors.length,
+            sample: errors.slice(0, 3).map((error) => ({
+                type: error?.type,
+                message: error?.message || error?.reason || error?.error,
+                path: error?.path || error?.context?.url,
+                timestamp: error?.timestamp
+            })),
+            ip: req.ip
+        });
+    }
+
+    res.status(204).send();
+});
 
 // Tag Routes
 router.get('/tags', tagController.getTags);

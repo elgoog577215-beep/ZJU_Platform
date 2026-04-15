@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const apiProxyTarget = env.VITE_API_PROXY_TARGET || 'http://localhost:5181';
+  const apiProxyTarget = env.VITE_API_PROXY_TARGET || 'http://localhost:3001';
 
   return {
     plugins: [

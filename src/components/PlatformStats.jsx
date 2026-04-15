@@ -1,4 +1,4 @@
-import { memo, useEffect, useState } from "react";
+﻿import { memo, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Eye,
@@ -67,9 +67,8 @@ const StatCard = memo(
   ({ icon: Icon, label, value, accentColor, isDayMode, delay = 0 }) => {
     return (
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
+        initial={false}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay }}
         className={`relative overflow-hidden rounded-2xl border p-4 backdrop-blur-xl ${
           isDayMode
@@ -337,9 +336,8 @@ const PlatformStats = () => {
     <section className="px-4 sm:px-6 lg:px-8 py-6">
       <div className="max-w-5xl mx-auto">
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          initial={false}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
           className={`relative overflow-hidden rounded-2xl border p-4 sm:p-5 backdrop-blur-2xl ${
             isDayMode
@@ -415,9 +413,8 @@ const PlatformStats = () => {
           {/* 7 天趋势曲线图 */}
           {trend.length > 0 && (
             <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              initial={false}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.25 }}
               className={`mt-4 rounded-xl border p-4 backdrop-blur-xl ${
                 isDayMode
@@ -474,9 +471,8 @@ const PlatformStats = () => {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          initial={false}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.08 }}
           className={`mt-4 rounded-2xl border p-4 sm:p-5 ${
             isDayMode
@@ -578,9 +574,8 @@ const PlatformStats = () => {
 
         {user && (
           <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            initial={false}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.05 }}
             className={`mt-4 rounded-2xl border p-4 sm:p-5 ${
               isDayMode
@@ -705,3 +700,4 @@ const PlatformStats = () => {
 };
 
 export default PlatformStats;
+

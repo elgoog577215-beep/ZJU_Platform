@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import api from "../services/api";
 import { normalizeExternalImageUrl } from "../utils/imageUtils";
+import SEO from "./SEO";
 
 const About = () => {
   const { t } = useTranslation();
@@ -75,10 +76,13 @@ const About = () => {
 
   return (
     <div className="min-h-screen">
+      <SEO
+        title="关于"
+        description="了解拓途浙享项目背景、团队定位与联系方式。"
+      />
       {/* About Section  */}
       <section
         className="pt-[calc(env(safe-area-inset-top)+88px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:py-24 px-4 flex items-center"
-        style={{ contentVisibility: "auto", containIntrinsicSize: "1200px" }}
       >
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 md:gap-16 items-center">
           <motion.div
@@ -216,7 +220,7 @@ const About = () => {
                     {t("contact.email_label")}
                   </div>
                   <div className="text-base md:text-lg font-medium break-all">
-                    {settings.contact_email || "hello@lumos.studio"}
+                    {settings.contact_email || "service@tuotuzju.com"}
                   </div>
                 </div>
               </div>
@@ -237,7 +241,7 @@ const About = () => {
                   </div>
                   <div className="text-base md:text-lg font-medium">
                     {settings.contact_address ||
-                      "123 Creative Ave, New York, NY"}
+                      "浙江大学 SQTP 项目：拓途浙享团队"}
                   </div>
                 </div>
               </div>
@@ -257,7 +261,7 @@ const About = () => {
                     {t("contact.phone_label")}
                   </div>
                   <div className="text-base md:text-lg font-medium">
-                    {settings.contact_phone || "+1 (555) 123-4567"}
+                    {settings.contact_phone || "0571-87950000"}
                   </div>
                 </div>
               </div>

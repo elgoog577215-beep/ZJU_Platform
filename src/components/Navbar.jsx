@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Cloud,
@@ -113,9 +113,9 @@ const Navbar = () => {
     if (pathname.startsWith("/music")) return t("nav.music", "播客");
     if (pathname.startsWith("/gallery")) return t("nav.gallery");
     if (pathname.startsWith("/videos")) return t("nav.videos");
-    if (pathname.startsWith("/media")) return t("nav.media", "Media");
+    if (pathname.startsWith("/media")) return t("nav.media", "媒体");
     if (pathname.startsWith("/me") || pathname.startsWith("/user/")) {
-      return t("nav.me", "Me");
+      return t("nav.me", "我的");
     }
     if (pathname.startsWith("/about")) return t("nav.about");
     if (pathname.startsWith("/admin")) return t("nav.admin");
@@ -703,3 +703,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+

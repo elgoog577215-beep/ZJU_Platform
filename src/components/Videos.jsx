@@ -27,6 +27,7 @@ import TagFilter from "./TagFilter";
 import toast from "react-hot-toast";
 import { getThumbnailUrl } from "../utils/imageUtils";
 import { useReducedMotion } from "../utils/animations";
+import SEO from "./SEO";
 
 const VideoCard = memo(
   ({ video, index, onClick, onToggleFavorite, canAnimate, isDayMode }) => {
@@ -272,6 +273,10 @@ const Videos = () => {
 
   return (
     <section className="pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:py-24 px-4 md:px-8 min-h-screen relative z-10 overflow-hidden">
+      <SEO
+        title="视频"
+        description="查看校园视频、活动回顾与精选影像内容。"
+      />
       {/* Ambient Background */}
       <div className="fixed inset-0 pointer-events-none z-0">
         {allowAmbientEffects ? (

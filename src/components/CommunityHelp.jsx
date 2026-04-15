@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { HelpCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useSettings } from '../context/SettingsContext';
@@ -31,7 +31,7 @@ const CommunityHelp = () => {
     defaultPageSize: 10,
   });
 
-  const handleSolve = useCallback(async (commentId) => {
+  const handleSolve = async (commentId) => {
     if (!feed.selectedItem) return;
     try {
       await api.put(`/community/posts/${feed.selectedItem.id}/solve`, { comment_id: commentId });
@@ -41,7 +41,7 @@ const CommunityHelp = () => {
     } catch {
       toast.error(t('community.post_mark_solved_failed', '操作失败'));
     }
-  }, [feed.selectedItem, t, feed.handleRefresh]);
+  };
 
   const renderCard = (post, index, { canAnimate, isDayMode: dm }) => (
     <PostCard key={post.id} post={post} index={index} onClick={feed.handleItemClick} canAnimate={canAnimate} isDayMode={dm} />

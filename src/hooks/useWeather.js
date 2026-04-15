@@ -1,96 +1,185 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { POPULAR_CITIES } from '../data/cities';
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { POPULAR_CITIES } from "../data/cities";
 
-export const useWeather = (initialCity = '杭州', initialCoords = { lat: 30.27, lon: 120.15 }) => {
+const DEFAULT_CITY = "杭州";
+const DEFAULT_COORDS = { lat: 30.27, lon: 120.15 };
+const WEATHER_CACHE_TTL = 15 * 60 * 1000;
+
+const buildWeatherCacheKey = (coords) =>
+  `weather_cache:${coords.lat.toFixed(2)}:${coords.lon.toFixed(2)}`;
+
+const buildFallbackWeather = () => ({
+  temperature: "--",
+  weathercode: 0,
+  windspeed: 0,
+  winddirection: 0,
+  is_day: 1,
+  time: new Date().toISOString(),
+});
+
+const readWeatherCache = (coords) => {
+  try {
+    const rawValue = localStorage.getItem(buildWeatherCacheKey(coords));
+    if (!rawValue) {
+      return null;
+    }
+
+    const parsed = JSON.parse(rawValue);
+    const isExpired = Date.now() - parsed.timestamp > WEATHER_CACHE_TTL;
+    return isExpired ? null : parsed.data;
+  } catch {
+    return null;
+  }
+};
+
+const writeWeatherCache = (coords, data) => {
+  try {
+    localStorage.setItem(
+      buildWeatherCacheKey(coords),
+      JSON.stringify({
+        timestamp: Date.now(),
+        data,
+      }),
+    );
+  } catch {
+    // Ignore storage failures in private mode or quota pressure.
+  }
+};
+
+export const useWeather = (
+  initialCity = DEFAULT_CITY,
+  initialCoords = DEFAULT_COORDS,
+) => {
   const [weather, setWeather] = useState(null);
-  const [city, setCity] = useState(localStorage.getItem('weather_city') || initialCity);
-  const [coords, setCoords] = useState(JSON.parse(localStorage.getItem('weather_coords')) || initialCoords);
+  const [city, setCity] = useState(
+    localStorage.getItem("weather_city") || initialCity,
+  );
+  const [coords, setCoords] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("weather_coords")) || initialCoords;
+    } catch {
+      return initialCoords;
+    }
+  });
   const [isWeatherModalOpen, setIsWeatherModalOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
 
-  // FIX: BUG-25 — Add AbortController for weather fetch cancellation
   useEffect(() => {
-    if (!coords) return;
+    if (!coords) {
+      return undefined;
+    }
+
+    const cachedWeather = readWeatherCache(coords);
+    if (cachedWeather) {
+      setWeather(cachedWeather);
+      return undefined;
+    }
 
     const abortController = new AbortController();
-    axios.get(`https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current_weather=true`, { signal: abortController.signal })
-      .then(res => {
-        if (!abortController.signal.aborted) setWeather(res.data.current_weather);
-      })
-      .catch(() => {
-        // Silently degrade — show placeholder weather instead of crashing
-        if (!abortController.signal.aborted) {
-          setWeather({ temperature: '--', weathercode: 0, windspeed: 0, winddirection: 0, is_day: 1, time: new Date().toISOString() });
-        }
-      });
+    const timeoutId = window.setTimeout(async () => {
+      try {
+        const response = await axios.get(
+          `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current_weather=true`,
+          { signal: abortController.signal },
+        );
 
-    return () => abortController.abort();
+        if (abortController.signal.aborted) {
+          return;
+        }
+
+        const nextWeather = response.data.current_weather;
+        setWeather(nextWeather);
+        writeWeatherCache(coords, nextWeather);
+      } catch {
+        if (!abortController.signal.aborted) {
+          setWeather(buildFallbackWeather());
+        }
+      }
+    }, 250);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      abortController.abort();
+    };
   }, [coords]);
 
-  const handleCitySearch = async (e) => {
-    e?.preventDefault();
-    if (!searchQuery.trim()) return;
+  const handleCitySearch = async (event) => {
+    event?.preventDefault();
+    if (!searchQuery.trim()) {
+      return;
+    }
 
     setIsSearching(true);
     setSearchResults([]);
-    
+
     const query = searchQuery.toLowerCase().trim();
-    const localResults = POPULAR_CITIES.filter(city => 
-        city.name.includes(query) || 
-        city.name_en.toLowerCase().includes(query) ||
-        (city.admin1 && city.admin1.toLowerCase().includes(query))
-    ).map(city => ({
-        id: `local-${city.id}`,
-        name: city.name,
-        country: city.country,
-        admin1: city.admin1,
-        latitude: city.lat,
-        longitude: city.lon,
-        isLocal: true
+    const localResults = POPULAR_CITIES.filter(
+      (item) =>
+        item.name.includes(query) ||
+        item.name_en.toLowerCase().includes(query) ||
+        item.admin1.toLowerCase().includes(query),
+    ).map((item) => ({
+      id: `local-${item.id}`,
+      name: item.name,
+      country: item.country,
+      admin1: item.admin1,
+      latitude: item.lat,
+      longitude: item.lon,
+      isLocal: true,
     }));
 
     try {
-        const res = await axios.get(`https://geocoding-api.open-meteo.com/v1/search?name=${searchQuery}&count=10&language=zh&format=json`);
-        
-        let apiResults = [];
-        if (res.data.results && res.data.results.length > 0) {
-            apiResults = res.data.results;
-        } else {
-             const fallbackRes = await axios.get(`https://geocoding-api.open-meteo.com/v1/search?name=${searchQuery}&count=10&format=json`);
-             if (fallbackRes.data.results && fallbackRes.data.results.length > 0) {
-                  apiResults = fallbackRes.data.results;
-             }
-        }
-        
-        const filteredApiResults = apiResults.filter(apiCity => {
-            const isDuplicate = localResults.some(localCity => localCity.name === apiCity.name);
-            if (isDuplicate) return false;
-            return true;
-        });
+      const primaryResponse = await axios.get(
+        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(searchQuery)}&count=10&language=zh&format=json`,
+      );
 
-        setSearchResults([...localResults, ...filteredApiResults]);
-    } catch (error) {
-        console.error("City search failed", error);
-        setSearchResults(localResults);
+      let apiResults = primaryResponse.data.results || [];
+      if (apiResults.length === 0) {
+        const fallbackResponse = await axios.get(
+          `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(searchQuery)}&count=10&format=json`,
+        );
+        apiResults = fallbackResponse.data.results || [];
+      }
+
+      const dedupedApiResults = apiResults.filter(
+        (apiCity) =>
+          !localResults.some(
+            (localCity) =>
+              localCity.name === apiCity.name &&
+              localCity.admin1 === apiCity.admin1,
+          ),
+      );
+
+      setSearchResults([...localResults, ...dedupedApiResults]);
+    } catch {
+      setSearchResults(localResults);
     } finally {
-        setIsSearching(false);
+      setIsSearching(false);
     }
   };
 
   const selectCity = (selectedCity) => {
-    const newCityName = selectedCity.name;
-    const newCoords = { lat: selectedCity.latitude, lon: selectedCity.longitude };
-    
-    setCity(newCityName);
-    setCoords(newCoords);
-    localStorage.setItem('weather_city', newCityName);
-    localStorage.setItem('weather_coords', JSON.stringify(newCoords));
-    
+    const nextCityName = selectedCity.name;
+    const nextCoords = {
+      lat: selectedCity.latitude,
+      lon: selectedCity.longitude,
+    };
+
+    setCity(nextCityName);
+    setCoords(nextCoords);
+    localStorage.setItem("weather_city", nextCityName);
+    localStorage.setItem("weather_coords", JSON.stringify(nextCoords));
+
+    const cachedWeather = readWeatherCache(nextCoords);
+    if (cachedWeather) {
+      setWeather(cachedWeather);
+    }
+
     setIsWeatherModalOpen(false);
-    setSearchQuery('');
+    setSearchQuery("");
     setSearchResults([]);
   };
 
@@ -105,6 +194,6 @@ export const useWeather = (initialCity = '杭州', initialCoords = { lat: 30.27,
     isSearching,
     searchResults,
     handleCitySearch,
-    selectCity
+    selectCity,
   };
 };

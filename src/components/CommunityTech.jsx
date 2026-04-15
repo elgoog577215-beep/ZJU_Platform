@@ -15,7 +15,7 @@ import TagFilter from './TagFilter';
 import DOMPurify from 'dompurify';
 import CommunityDetailModal from './CommunityDetailModal';
 import CommunityFeedPanel from './CommunityFeedPanel';
-import { parseContentBlocks, calculateReadingTime, formatBytes, getFileTypeLabel, getFileTypeBadgeClass } from './communityUtils';
+import { parseContentBlocks, calculateReadingTime } from './communityUtils';
 import { useCommunityFeed } from '../hooks/useCommunityFeed';
 
 const ArticleCard = memo(({ article, index, onClick, onToggleFavorite, canAnimate, isDayMode }) => {

@@ -1,4 +1,4 @@
-import React, {
+﻿import React, {
   useState,
   useMemo,
   useEffect,
@@ -49,6 +49,7 @@ import SortSelector from "./SortSelector";
 import EventAssistantPanel from "./EventAssistantPanel";
 import DOMPurify from "dompurify";
 import MobileContentToolbar from "./MobileContentToolbar";
+import SEO from "./SEO";
 
 import { useSearchParams } from "react-router-dom";
 import { getThumbnailUrl } from "../utils/imageUtils";
@@ -1023,6 +1024,10 @@ END:VCALENDAR`;
 
   return (
     <section className="pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:py-20 px-4 md:px-8 relative overflow-hidden flex-grow">
+      <SEO
+        title="活动"
+        description="浏览浙江大学校内活动、志愿服务、讲座与报名信息。"
+      />
       {/* Ambient Background - Hidden on mobile for performance */}
       <div className="fixed inset-0 pointer-events-none z-0 hidden md:block">
         <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-purple-500/10 blur-[120px]" />
@@ -1402,7 +1407,7 @@ END:VCALENDAR`;
         )}
 
       {!loading && displayEvents.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-32 px-4 text-center">
+        <div className="flex min-h-[52vh] flex-col items-center justify-center px-4 py-20 text-center md:min-h-[48vh] md:py-32">
           <div
             className={`rounded-full p-8 mb-6 border backdrop-blur-xl shadow-2xl relative group ${isDayMode ? "bg-white/82 border-slate-200/80" : "bg-white/5 border-white/5"}`}
           >
@@ -2043,3 +2048,4 @@ END:VCALENDAR`;
 };
 
 export default Events;
+

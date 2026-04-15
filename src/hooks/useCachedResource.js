@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import api from '../services/api';
+import api, { isCanceledRequest } from '../services/api';
 
 const memoryCache = new Map();
 const inflightRequests = new Map();
@@ -169,7 +169,7 @@ export const useCachedResource = (endpoint, params = {}, options = {}) => {
                     setError(null);
                 }
             } catch (err) {
-                if (abortController.signal.aborted) return;
+                if (abortController.signal.aborted || isCanceledRequest(err)) return;
                 if (!silent && process.env.NODE_ENV === 'development') {
                     console.error(`Fetch error for ${endpoint}`, err);
                 }

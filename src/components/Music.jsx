@@ -30,6 +30,7 @@ import TagFilter from "./TagFilter";
 import toast from "react-hot-toast";
 import { getThumbnailUrl } from "../utils/imageUtils";
 import { useReducedMotion } from "../utils/animations";
+import SEO from "./SEO";
 
 const formatTime = (seconds) => {
   const mins = Math.floor(seconds / 60);
@@ -425,6 +426,10 @@ const Music = () => {
 
   return (
     <section className="pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:py-20 px-4 md:px-8 min-h-screen relative overflow-hidden">
+      <SEO
+        title="播客"
+        description="收听校园播客、原创音乐与精选音频内容。"
+      />
       {/* Ambient Background */}
       <div className="fixed inset-0 pointer-events-none z-0 hidden md:block">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-purple-500/10 blur-[120px]" />

@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 import {
   Search,
@@ -8,19 +7,38 @@ import {
   Edit2,
   ChevronLeft,
   ChevronRight,
-  AlertTriangle,
   Eye,
   Users,
   CalendarDays,
   BarChart3,
+  RefreshCw,
+  CheckCircle2,
+  RotateCcw,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import api from "../../services/api";
 import Dropdown from "../Dropdown";
 import UploadModal from "../UploadModal";
+import {
+  AdminButton,
+  AdminEmptyState,
+  AdminLoadingState,
+  AdminPageShell,
+  AdminPanel,
+  AdminToolbar,
+  ConfirmDialog,
+  FilterChip,
+  StatusBadge,
+  ToolbarGroup,
+} from "./AdminUI";
+
+const STATUS_FILTERS = [
+  { id: "all", label: "全部状态" },
+  { id: "approved", label: "已通过" },
+  { id: "pending", label: "待审核" },
+  { id: "rejected", label: "已驳回" },
+];
 
 const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
-  const { t } = useTranslation();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({
@@ -28,58 +46,64 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
     total: 0,
     totalPages: 1,
   });
-  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [confirmState, setConfirmState] = useState(null);
+  const [actionPending, setActionPending] = useState(false);
   const isEventResource = apiEndpoint === "events";
   const [sort, setSort] = useState(isEventResource ? "views" : "newest");
 
   const fetchItems = async (page = 1) => {
     setLoading(true);
     try {
-      // Add timestamp to prevent browser caching
-      const timestamp = new Date().getTime();
-      const response = await api.get(
-        `/${apiEndpoint}?page=${page}&limit=10&search=${search}&status=all&sort=${sort}&_t=${timestamp}`,
+      const response = await api.get(`/${apiEndpoint}`, {
+        params: {
+          page,
+          limit: 10,
+          search: searchQuery,
+          status: "all",
+          sort,
+          _t: Date.now(),
+        },
+      });
+      setItems(response.data?.data || []);
+      setPagination(
+        response.data?.pagination || { page: 1, total: 0, totalPages: 1 },
       );
-      setItems(response.data.data);
-      setPagination(response.data.pagination);
+      setSelectedIds([]);
     } catch (error) {
-      if (process.env.NODE_ENV === "development") {
-        console.error("Fetch error:", error);
-      }
-      toast.error(t("admin.toast.fetch_error"));
+      const errorMessage =
+        error.response?.data?.error || "获取资源列表失败，请稍后重试";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchItems();
-  }, [apiEndpoint, type, sort]);
-
-  const handleSearch = (e) => {
-    e.preventDefault();
     fetchItems(1);
-  };
+  }, [apiEndpoint, sort, searchQuery]);
 
-  const [deleteConfirmation, setDeleteConfirmation] = useState(null);
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      if (statusFilter === "all") return true;
+      return item.status === statusFilter;
+    });
+  }, [items, statusFilter]);
 
   const eventSortOptions = useMemo(
     () => [
-      {
-        value: "views",
-        label: t("admin.resource_manager_ui.sort_views", "按访问量"),
-      },
-      {
-        value: "registrations",
-        label: t("admin.resource_manager_ui.sort_registrations", "按报名量"),
-      },
-      { value: "date_desc", label: t("sort_filter.date_desc", "日期（最晚）") },
-      { value: "date_asc", label: t("sort_filter.date_asc", "日期（最早）") },
-      { value: "newest", label: t("sort_filter.newest", "最新") },
+      { value: "views", label: "按访问量" },
+      { value: "registrations", label: "按报名量" },
+      { value: "date_desc", label: "按日期（最近）" },
+      { value: "date_asc", label: "按日期（最早）" },
+      { value: "newest", label: "按最新创建" },
     ],
-    [t],
+    [],
   );
 
   const eventStats = useMemo(() => {
@@ -107,47 +131,20 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
 
   const formatNumber = (value) =>
     new Intl.NumberFormat("zh-CN").format(Number(value || 0));
+
   const formatDate = (value) =>
-    value ? String(value).replace("T", " ").slice(0, 16) : "—";
-  const getStatusClassName = (status) => {
-    if (status === "approved")
-      return "bg-emerald-500/10 text-emerald-300 border-emerald-500/20";
-    if (status === "pending")
-      return "bg-amber-500/10 text-amber-300 border-amber-500/20";
-    if (status === "rejected")
-      return "bg-red-500/10 text-red-300 border-red-500/20";
-    return "bg-white/5 text-gray-300 border-white/10";
-  };
-  const tableColumnCount =
-    4 +
-    (type === "image" ? 1 : 0) +
-    (type === "audio" ? 1 : 0) +
-    (isEventResource ? 4 : 0);
+    value ? String(value).replace("T", " ").slice(0, 16) : "未设置";
 
-  const handleDelete = (id) => {
-    setDeleteConfirmation(id);
+  const handleSearch = (event) => {
+    event.preventDefault();
+    setSearchQuery(searchInput.trim());
   };
 
-  const confirmDelete = async () => {
-    if (!deleteConfirmation) return;
-    try {
-      // Use permanent delete endpoint for full cleanup
-      await api.delete(`/${apiEndpoint}/${deleteConfirmation}/permanent`);
-      toast.success(t("admin.toast.delete_success"));
-      fetchItems(pagination.page);
-    } catch (error) {
-      if (process.env.NODE_ENV === "development") {
-        console.error("Delete failed:", error);
-      }
-      const errorMessage =
-        error.response?.data?.error ||
-        error.message ||
-        t("admin.toast.delete_fail");
-      toast.error(errorMessage);
-    } finally {
-      setDeleteConfirmation(null);
-    }
+  const openConfirm = (mode, payload = {}) => {
+    setConfirmState({ mode, ...payload });
   };
+
+  const closeConfirm = () => setConfirmState(null);
 
   const handleEdit = (item) => {
     setEditingItem(item);
@@ -163,418 +160,446 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
     try {
       if (editingItem) {
         await api.put(`/${apiEndpoint}/${editingItem.id}`, newItem);
-        toast.success(t("admin.toast.update_success"));
+        toast.success("内容已更新");
       } else {
         await api.post(`/${apiEndpoint}`, newItem);
-        toast.success(t("admin.toast.create_success"));
+        toast.success("内容已创建");
       }
       setIsModalOpen(false);
       fetchItems(pagination.page);
     } catch (error) {
-      if (process.env.NODE_ENV === "development") {
-        console.error("Save failed:", error);
-      }
-      const errorMessage =
-        error.response?.data?.error ||
-        error.message ||
-        t("admin.toast.save_fail");
+      const errorMessage = error.response?.data?.error || "保存失败";
       toast.error(errorMessage);
     }
   };
 
-  return (
-    <div className="space-y-4 md:space-y-6">
-      <div className="flex flex-col gap-4 bg-[#111] p-3 md:p-4 rounded-2xl border border-white/10">
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <div className="w-10 h-10 rounded-xl bg-indigo-600/20 flex items-center justify-center text-indigo-400">
-              <Icon size={20} />
-            </div>
-            <div>
-              <h2 className="text-lg md:text-xl font-bold text-white">
-                {title}
-              </h2>
-              {isEventResource ? (
-                <p className="text-sm text-gray-400 mt-1">
-                  {t(
-                    "admin.resource_manager_ui.event_manager_desc",
-                    "后台统一查看活动热度、报名和审核状态。",
-                  )}
-                </p>
-              ) : null}
-            </div>
-          </div>
+  const selectedItems = filteredItems.filter((item) => selectedIds.includes(item.id));
 
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <form onSubmit={handleSearch} className="relative flex-1 sm:w-64">
-              <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
-                size={16}
-              />
+  const submitConfirmedAction = async () => {
+    if (!confirmState) return;
+    setActionPending(true);
+    try {
+      if (confirmState.mode === "delete") {
+        await api.delete(`/${apiEndpoint}/${confirmState.id}/permanent`);
+        toast.success("内容已彻底删除");
+      }
+
+      if (confirmState.mode === "batch-delete") {
+        await Promise.all(
+          confirmState.ids.map((id) => api.delete(`/${apiEndpoint}/${id}/permanent`)),
+        );
+        toast.success(`已删除 ${confirmState.ids.length} 条内容`);
+      }
+
+      if (confirmState.mode === "batch-status") {
+        await Promise.all(
+          confirmState.ids.map((id) =>
+            api.put(`/${apiEndpoint}/${id}/status`, {
+              status: confirmState.status,
+              reason:
+                confirmState.status === "rejected" ? "管理员批量驳回" : "",
+            }),
+          ),
+        );
+        toast.success(
+          confirmState.status === "approved"
+            ? `已通过 ${confirmState.ids.length} 条内容`
+            : `已驳回 ${confirmState.ids.length} 条内容`,
+        );
+      }
+
+      closeConfirm();
+      fetchItems(pagination.page);
+    } catch (error) {
+      toast.error(error.response?.data?.error || "操作失败，请稍后重试");
+    } finally {
+      setActionPending(false);
+    }
+  };
+
+  const toggleSelected = (id) => {
+    setSelectedIds((previous) =>
+      previous.includes(id)
+        ? previous.filter((value) => value !== id)
+        : [...previous, id],
+    );
+  };
+
+  const toggleSelectedVisible = () => {
+    const visibleIds = filteredItems.map((item) => item.id);
+    const allSelected =
+      visibleIds.length > 0 && visibleIds.every((id) => selectedIds.includes(id));
+    if (allSelected) {
+      setSelectedIds((previous) => previous.filter((id) => !visibleIds.includes(id)));
+    } else {
+      setSelectedIds((previous) => Array.from(new Set([...previous, ...visibleIds])));
+    }
+  };
+
+  const descriptionMap = {
+    image: "统一管理图片资源，可查看状态、标签和封面预览。",
+    video: "集中处理视频内容，支持搜索、状态筛选和快速编辑。",
+    audio: "管理音频内容、作者信息和资源状态。",
+    article: "维护文章内容与发布状态。",
+    event: "查看活动热度、报名情况与审核状态。",
+  };
+
+  const renderTable = () => (
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[860px] text-left text-sm">
+        <thead>
+          <tr className="border-b border-white/10 text-xs uppercase tracking-[0.2em] text-gray-500">
+            <th className="p-4">
               <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={t("admin.search_placeholder")}
-                className="w-full bg-black border border-white/10 rounded-xl pl-10 pr-4 py-2.5 min-h-[44px] text-sm text-white focus:outline-none focus:border-indigo-500"
+                type="checkbox"
+                checked={
+                  filteredItems.length > 0 &&
+                  filteredItems.every((item) => selectedIds.includes(item.id))
+                }
+                onChange={toggleSelectedVisible}
+                className="rounded border-white/20 bg-transparent"
               />
-            </form>
-            <button
-              onClick={handleAdd}
-              className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-3 md:px-4 py-2.5 min-h-[44px] rounded-xl font-bold text-sm transition-colors shadow-lg shadow-indigo-500/20"
-            >
+            </th>
+            <th className="p-4">标题</th>
+            {isEventResource ? <th className="p-4">活动时间</th> : null}
+            <th className="p-4">状态</th>
+            {isEventResource ? <th className="p-4">访问</th> : null}
+            {isEventResource ? <th className="p-4">报名</th> : null}
+            {type === "image" ? <th className="p-4">预览</th> : null}
+            {type === "audio" ? <th className="p-4">作者</th> : null}
+            <th className="p-4">标签</th>
+            <th className="p-4 text-right">操作</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-white/5">
+          {filteredItems.map((item) => (
+            <tr key={item.id} className="hover:bg-white/[0.03]">
+              <td className="p-4">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.includes(item.id)}
+                  onChange={() => toggleSelected(item.id)}
+                  className="rounded border-white/20 bg-transparent"
+                />
+              </td>
+              <td className="p-4">
+                <div className="font-semibold text-white">{item.title || "未命名内容"}</div>
+                <div className="mt-1 text-xs text-gray-500">ID {item.id}</div>
+              </td>
+              {isEventResource ? (
+                <td className="p-4 text-gray-300">{formatDate(item.date)}</td>
+              ) : null}
+              <td className="p-4">
+                <StatusBadge status={item.status} />
+              </td>
+              {isEventResource ? (
+                <td className="p-4 text-indigo-300">{formatNumber(item.views)}</td>
+              ) : null}
+              {isEventResource ? (
+                <td className="p-4 text-emerald-300">
+                  {formatNumber(item.registration_count)}
+                </td>
+              ) : null}
+              {type === "image" ? (
+                <td className="p-4">
+                  {item.url ? (
+                    <img
+                      src={item.url}
+                      alt={item.title}
+                      className="h-12 w-12 rounded-lg border border-white/10 object-cover"
+                    />
+                  ) : (
+                    <div className="text-xs text-gray-500">无预览</div>
+                  )}
+                </td>
+              ) : null}
+              {type === "audio" ? (
+                <td className="p-4 text-gray-300">{item.artist || "-"}</td>
+              ) : null}
+              <td className="p-4">
+                <div className="flex max-w-xs flex-wrap gap-1">
+                  {String(item.tags || "")
+                    .split(",")
+                    .map((tag) => tag.trim())
+                    .filter(Boolean)
+                    .slice(0, 4)
+                    .map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-full bg-white/5 px-2 py-1 text-xs text-gray-400"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  {!item.tags ? <span className="text-xs text-gray-500">无标签</span> : null}
+                </div>
+              </td>
+              <td className="p-4">
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => handleEdit(item)}
+                    className="inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg bg-white/5 text-gray-400 transition-colors hover:bg-white/10 hover:text-indigo-300"
+                    title="编辑"
+                  >
+                    <Edit2 size={16} />
+                  </button>
+                  <button
+                    onClick={() => openConfirm("delete", { id: item.id })}
+                    className="inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg bg-white/5 text-gray-400 transition-colors hover:bg-white/10 hover:text-red-300"
+                    title="删除"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  if (loading) {
+    return <AdminLoadingState text="正在加载资源列表..." />;
+  }
+
+  return (
+    <>
+      <AdminPageShell
+        title={title}
+        description={descriptionMap[type] || "管理当前资源内容。"}
+        actions={
+          <>
+            <AdminButton tone="subtle" onClick={() => fetchItems(pagination.page)}>
+              <RefreshCw size={16} />
+              刷新
+            </AdminButton>
+            <AdminButton tone="primary" onClick={handleAdd}>
               <Plus size={16} />
-              <span className="hidden sm:inline">{t("admin.add_new")}</span>
-            </button>
-          </div>
-        </div>
+              新增内容
+            </AdminButton>
+          </>
+        }
+        toolbar={
+          <AdminToolbar>
+            <ToolbarGroup className="flex-1">
+              <form
+                onSubmit={handleSearch}
+                className="flex min-w-[260px] flex-1 max-w-xl items-center gap-2"
+              >
+                <div className="relative flex-1">
+                  <Search
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                    size={16}
+                  />
+                  <input
+                    type="text"
+                    value={searchInput}
+                    onChange={(event) => setSearchInput(event.target.value)}
+                    placeholder="搜索标题或标签"
+                    className="w-full rounded-xl border border-white/10 bg-black/40 py-2.5 pl-10 pr-4 text-sm text-white outline-none transition-colors focus:border-indigo-500"
+                  />
+                </div>
+                <AdminButton type="submit" tone="subtle">
+                  搜索
+                </AdminButton>
+              </form>
+            </ToolbarGroup>
 
-        {isEventResource ? (
-          <div className="flex flex-col xl:flex-row gap-4 xl:items-end xl:justify-between">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
-              <div className="rounded-xl border border-white/10 bg-white/5 p-3 md:p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs uppercase tracking-[0.22em] text-gray-400">
-                    {t("admin.resource_manager_ui.views", "访问量")}
-                  </span>
-                  <Eye size={16} className="text-indigo-400" />
+            <ToolbarGroup>
+              {STATUS_FILTERS.map((filter) => (
+                <FilterChip
+                  key={filter.id}
+                  active={statusFilter === filter.id}
+                  onClick={() => setStatusFilter(filter.id)}
+                >
+                  {filter.label}
+                </FilterChip>
+              ))}
+              {isEventResource ? (
+                <div className="min-w-[220px]">
+                  <Dropdown
+                    value={sort}
+                    onChange={setSort}
+                    options={eventSortOptions}
+                    placeholder="排序方式"
+                    icon={BarChart3}
+                  />
                 </div>
-                <div className="mt-3 text-xl md:text-2xl font-bold text-white">
-                  {formatNumber(eventStats?.totalViews)}
-                </div>
+              ) : null}
+            </ToolbarGroup>
+          </AdminToolbar>
+        }
+      >
+        {isEventResource && eventStats ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <AdminPanel className="p-4">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-xs uppercase tracking-[0.22em] text-gray-500">
+                  累计访问
+                </span>
+                <Eye size={16} className="text-indigo-300" />
               </div>
-              <div className="rounded-xl border border-white/10 bg-white/5 p-3 md:p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs uppercase tracking-[0.22em] text-gray-400">
-                    {t("admin.resource_manager_ui.registrations", "报名量")}
-                  </span>
-                  <Users size={16} className="text-emerald-400" />
-                </div>
-                <div className="mt-3 text-xl md:text-2xl font-bold text-white">
-                  {formatNumber(eventStats?.totalRegistrations)}
-                </div>
+              <div className="mt-3 text-2xl font-bold text-white">
+                {formatNumber(eventStats.totalViews)}
               </div>
-              <div className="rounded-xl border border-white/10 bg-white/5 p-3 md:p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs uppercase tracking-[0.22em] text-gray-400">
-                    {t("admin.resource_manager_ui.upcoming_events", "待开始")}
-                  </span>
-                  <CalendarDays size={16} className="text-amber-400" />
-                </div>
-                <div className="mt-3 text-xl md:text-2xl font-bold text-white">
-                  {formatNumber(eventStats?.upcoming)}
-                </div>
+            </AdminPanel>
+            <AdminPanel className="p-4">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-xs uppercase tracking-[0.22em] text-gray-500">
+                  累计报名
+                </span>
+                <Users size={16} className="text-emerald-300" />
               </div>
-            </div>
-
-            <div className="w-full xl:w-72">
-              <Dropdown
-                value={sort}
-                onChange={setSort}
-                options={eventSortOptions}
-                placeholder={t("admin.resource_manager_ui.sort_by", "排序方式")}
-                icon={BarChart3}
-              />
-            </div>
-          </div>
-        ) : null}
-      </div>
-
-      <div className="bg-[#111] rounded-2xl border border-white/10 overflow-hidden">
-        {isEventResource ? (
-          <div className="md:hidden divide-y divide-white/5">
-            {loading ? (
-              <div className="p-8 text-center text-gray-500">
-                {t("admin.resource_manager_ui.loading")}
+              <div className="mt-3 text-2xl font-bold text-white">
+                {formatNumber(eventStats.totalRegistrations)}
               </div>
-            ) : items.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
-                {t("admin.no_items")}
+            </AdminPanel>
+            <AdminPanel className="p-4">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-xs uppercase tracking-[0.22em] text-gray-500">
+                  待开始活动
+                </span>
+                <CalendarDays size={16} className="text-amber-300" />
               </div>
-            ) : (
-              items.map((item) => (
-                <div key={item.id} className="p-4 space-y-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <div className="text-xs text-gray-500 font-mono mb-1">
-                        #{item.id}
-                      </div>
-                      <h3 className="text-base font-bold text-white leading-snug">
-                        {item.title}
-                      </h3>
-                    </div>
-                    <span
-                      className={`shrink-0 px-2.5 py-1 rounded-full border text-xs font-semibold ${getStatusClassName(item.status)}`}
-                    >
-                      {item.status || "—"}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-xl bg-white/5 border border-white/5 p-3">
-                      <div className="text-xs text-gray-400 mb-1">
-                        {t("admin.resource_manager_ui.event_date", "活动时间")}
-                      </div>
-                      <div className="text-sm text-white">
-                        {formatDate(item.date)}
-                      </div>
-                    </div>
-                    <div className="rounded-xl bg-white/5 border border-white/5 p-3">
-                      <div className="text-xs text-gray-400 mb-1">
-                        {t("admin.resource_manager_ui.views", "访问量")}
-                      </div>
-                      <div className="text-sm text-white">
-                        {formatNumber(item.views)}
-                      </div>
-                    </div>
-                    <div className="rounded-xl bg-white/5 border border-white/5 p-3">
-                      <div className="text-xs text-gray-400 mb-1">
-                        {t("admin.resource_manager_ui.registrations", "报名量")}
-                      </div>
-                      <div className="text-sm text-white">
-                        {formatNumber(item.registration_count)}
-                      </div>
-                    </div>
-                    <div className="rounded-xl bg-white/5 border border-white/5 p-3">
-                      <div className="text-xs text-gray-400 mb-1">
-                        {t("admin.fields.tags")}
-                      </div>
-                      <div className="text-sm text-white line-clamp-2">
-                        {item.tags || "—"}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => handleEdit(item)}
-                      className="p-2 min-h-[40px] min-w-[40px] inline-flex items-center justify-center bg-white/5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-indigo-400 transition-colors"
-                    >
-                      <Edit2 size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(item.id)}
-                      className="p-2 min-h-[40px] min-w-[40px] inline-flex items-center justify-center bg-white/5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-red-400 transition-colors"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
+              <div className="mt-3 text-2xl font-bold text-white">
+                {formatNumber(eventStats.upcoming)}
+              </div>
+            </AdminPanel>
           </div>
         ) : null}
 
-        <div className="overflow-x-auto">
-          <table
-            className={`w-full text-left border-collapse ${isEventResource ? "hidden md:table" : ""}`}
-          >
-            <thead>
-              <tr className="bg-white/5 text-gray-400 text-xs uppercase tracking-wider">
-                <th className="p-3 md:p-4">{t("admin.id")}</th>
-                <th className="p-3 md:p-4">{t("admin.fields.title")}</th>
-                {isEventResource ? (
-                  <th className="p-3 md:p-4">
-                    {t("admin.resource_manager_ui.event_date", "活动时间")}
-                  </th>
-                ) : null}
-                {isEventResource ? (
-                  <th className="p-3 md:p-4">
-                    {t("admin.resource_manager_ui.review_status", "审核状态")}
-                  </th>
-                ) : null}
-                {isEventResource ? (
-                  <th className="p-3 md:p-4">
-                    {t("admin.resource_manager_ui.views", "访问量")}
-                  </th>
-                ) : null}
-                {isEventResource ? (
-                  <th className="p-3 md:p-4">
-                    {t("admin.resource_manager_ui.registrations", "报名量")}
-                  </th>
-                ) : null}
-                {type === "image" ? (
-                  <th className="p-3 md:p-4">{t("admin.fields.preview")}</th>
-                ) : null}
-                {type === "audio" ? (
-                  <th className="p-3 md:p-4">{t("admin.fields.artist")}</th>
-                ) : null}
-                <th className="p-3 md:p-4">{t("admin.fields.tags")}</th>
-                <th className="p-3 md:p-4 text-right">{t("admin.actions")}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {loading ? (
-                <tr>
-                  <td
-                    colSpan={tableColumnCount}
-                    className="p-8 text-center text-gray-500"
-                  >
-                    {t("admin.resource_manager_ui.loading")}
-                  </td>
-                </tr>
-              ) : items.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={tableColumnCount}
-                    className="p-8 text-center text-gray-500"
-                  >
-                    {t("admin.no_items")}
-                  </td>
-                </tr>
-              ) : (
-                items.map((item) => (
-                  <tr
-                    key={item.id}
-                    className="hover:bg-white/5 transition-colors"
-                  >
-                    <td className="p-4 text-gray-500 font-mono text-xs">
-                      #{item.id}
-                    </td>
-                    <td className="p-4 font-bold text-white">{item.title}</td>
-                    {isEventResource ? (
-                      <td className="p-4 text-gray-300">
-                        {formatDate(item.date)}
-                      </td>
-                    ) : null}
-                    {isEventResource ? (
-                      <td className="p-4">
-                        <span
-                          className={`inline-flex px-2.5 py-1 rounded-full border text-xs font-semibold ${getStatusClassName(item.status)}`}
-                        >
-                          {item.status || "—"}
-                        </span>
-                      </td>
-                    ) : null}
-                    {isEventResource ? (
-                      <td className="p-4 text-indigo-300 font-semibold">
-                        {formatNumber(item.views)}
-                      </td>
-                    ) : null}
-                    {isEventResource ? (
-                      <td className="p-4 text-emerald-300 font-semibold">
-                        {formatNumber(item.registration_count)}
-                      </td>
-                    ) : null}
-                    {type === "image" ? (
-                      <td className="p-4">
-                        <img
-                          src={item.url}
-                          alt={item.title}
-                          className="w-12 h-12 object-cover rounded-lg border border-white/10"
-                        />
-                      </td>
-                    ) : null}
-                    {type === "audio" ? (
-                      <td className="p-4 text-gray-400">{item.artist}</td>
-                    ) : null}
-                    <td className="p-4">
-                      <div className="flex flex-wrap gap-1">
-                        {item.tags &&
-                          item.tags
-                            .split(",")
-                            .filter(Boolean)
-                            .map((tag, idx) => (
-                              <span
-                                key={idx}
-                                className="px-2 py-1 bg-white/5 rounded text-xs text-gray-400 border border-white/5"
-                              >
-                                {tag.trim()}
-                              </span>
-                            ))}
-                      </div>
-                    </td>
-                    <td className="p-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => handleEdit(item)}
-                          className="p-2 min-h-[40px] min-w-[40px] inline-flex items-center justify-center bg-white/5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-indigo-400 transition-colors"
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item.id)}
-                          className="p-2 min-h-[40px] min-w-[40px] inline-flex items-center justify-center bg-white/5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-red-400 transition-colors"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {pagination.totalPages > 1 && (
-          <div className="p-4 border-t border-white/10 flex items-center justify-center gap-3 md:gap-4">
-            <button
-              disabled={pagination.page === 1}
-              onClick={() => fetchItems(pagination.page - 1)}
-              className="p-2 min-h-[40px] min-w-[40px] inline-flex items-center justify-center bg-white/5 rounded-lg disabled:opacity-50 hover:bg-white/10 transition-colors"
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <span className="text-sm text-gray-400">
-              {t("admin.resource_manager_ui.pagination_info", {
-                page: pagination.page,
-                total: pagination.totalPages,
-              })}
-            </span>
-            <button
-              disabled={pagination.page === pagination.totalPages}
-              onClick={() => fetchItems(pagination.page + 1)}
-              className="p-2 min-h-[40px] min-w-[40px] inline-flex items-center justify-center bg-white/5 rounded-lg disabled:opacity-50 hover:bg-white/10 transition-colors"
-            >
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Delete Confirmation Modal */}
-      <AnimatePresence>
-        {deleteConfirmation && (
-          <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4 bg-black/80 backdrop-blur-sm">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-md bg-[#111] border border-white/10 rounded-t-2xl md:rounded-2xl shadow-2xl overflow-hidden p-6 pb-[calc(env(safe-area-inset-bottom)+24px)] md:pb-6"
-            >
-              <div className="flex flex-col items-center text-center">
-                <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center text-red-500 mb-4">
-                  <AlertTriangle size={32} />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2">
-                  {t("admin.delete_confirm")}
-                </h3>
-                <p className="text-gray-400 mb-6 text-sm">
-                  {t("admin.delete_warning_desc")}
-                </p>
-
-                <div className="flex gap-3 w-full">
-                  <button
-                    onClick={() => setDeleteConfirmation(null)}
-                    className="flex-1 py-3 rounded-xl font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
-                  >
-                    {t("admin.cancel")}
-                  </button>
-                  <button
-                    onClick={confirmDelete}
-                    className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-red-500/25"
-                  >
-                    {t("admin.delete")}
-                  </button>
-                </div>
+        {selectedItems.length > 0 ? (
+          <AdminPanel className="border-indigo-500/20 bg-indigo-500/10">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div className="text-sm text-indigo-100">
+                已选择 <span className="font-semibold">{selectedItems.length}</span>{" "}
+                条内容。
               </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+              <div className="flex flex-wrap gap-2">
+                <AdminButton
+                  tone="success"
+                  onClick={() =>
+                    openConfirm("batch-status", {
+                      ids: selectedItems.map((item) => item.id),
+                      status: "approved",
+                    })
+                  }
+                >
+                  <CheckCircle2 size={16} />
+                  批量通过
+                </AdminButton>
+                <AdminButton
+                  tone="subtle"
+                  onClick={() =>
+                    openConfirm("batch-status", {
+                      ids: selectedItems.map((item) => item.id),
+                      status: "rejected",
+                    })
+                  }
+                >
+                  <RotateCcw size={16} />
+                  批量驳回
+                </AdminButton>
+                <AdminButton
+                  tone="danger"
+                  onClick={() =>
+                    openConfirm("batch-delete", {
+                      ids: selectedItems.map((item) => item.id),
+                    })
+                  }
+                >
+                  <Trash2 size={16} />
+                  批量删除
+                </AdminButton>
+              </div>
+            </div>
+          </AdminPanel>
+        ) : null}
 
-      {/* Upload/Edit Modal */}
+        <AdminPanel
+          title={`${title}列表`}
+          description={`当前页共 ${filteredItems.length} 条结果，服务器总计 ${pagination.total} 条。`}
+        >
+          {filteredItems.length === 0 ? (
+            <AdminEmptyState
+              icon={Icon}
+              title="没有匹配的内容"
+              description="尝试切换状态筛选、清空搜索词，或者直接创建新内容。"
+              action={
+                <AdminButton tone="primary" onClick={handleAdd}>
+                  <Plus size={16} />
+                  新增内容
+                </AdminButton>
+              }
+            />
+          ) : (
+            renderTable()
+          )}
+
+          {pagination.totalPages > 1 ? (
+            <div className="mt-5 flex items-center justify-center gap-3">
+              <AdminButton
+                tone="subtle"
+                disabled={pagination.page === 1}
+                onClick={() => fetchItems(pagination.page - 1)}
+              >
+                <ChevronLeft size={16} />
+              </AdminButton>
+              <span className="text-sm text-gray-400">
+                第 {pagination.page} / {pagination.totalPages} 页
+              </span>
+              <AdminButton
+                tone="subtle"
+                disabled={pagination.page === pagination.totalPages}
+                onClick={() => fetchItems(pagination.page + 1)}
+              >
+                <ChevronRight size={16} />
+              </AdminButton>
+            </div>
+          ) : null}
+        </AdminPanel>
+      </AdminPageShell>
+
+      <ConfirmDialog
+        open={Boolean(confirmState)}
+        title={
+          confirmState?.mode === "delete"
+            ? "确认删除内容"
+            : confirmState?.mode === "batch-delete"
+              ? "确认批量删除"
+              : confirmState?.status === "approved"
+                ? "确认批量通过"
+                : "确认批量驳回"
+        }
+        description={
+          confirmState?.mode === "delete"
+            ? "这将直接永久删除该内容，无法撤销。"
+            : confirmState?.mode === "batch-delete"
+              ? `即将永久删除 ${confirmState.ids?.length || 0} 条内容，无法撤销。`
+              : confirmState?.status === "approved"
+                ? `即将通过 ${confirmState.ids?.length || 0} 条内容。`
+                : `即将驳回 ${confirmState.ids?.length || 0} 条内容。`
+        }
+        confirmText={
+          confirmState?.mode?.includes("delete")
+            ? "确认删除"
+            : confirmState?.status === "approved"
+              ? "确认通过"
+              : "确认驳回"
+        }
+        tone={
+          confirmState?.mode?.includes("delete")
+            ? "danger"
+            : confirmState?.status === "approved"
+              ? "success"
+              : "danger"
+        }
+        pending={actionPending}
+        onConfirm={submitConfirmedAction}
+        onCancel={closeConfirm}
+      />
+
       <UploadModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -582,7 +607,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
         type={type}
         initialData={editingItem}
       />
-    </div>
+    </>
   );
 };
 

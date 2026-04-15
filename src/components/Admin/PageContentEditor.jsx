@@ -1,463 +1,348 @@
-import React, { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
+import React, { useEffect, useMemo, useState } from "react";
+import { LayoutTemplate, Save, Globe, FileText, Mail, Upload } from "lucide-react";
 import toast from "react-hot-toast";
-import {
-  LayoutTemplate,
-  Save,
-  Globe,
-  FileText,
-  Mail,
-  Upload,
-} from "lucide-react";
 import api from "../../services/api";
+import {
+  AdminButton,
+  AdminLoadingState,
+  AdminPageShell,
+  AdminPanel,
+  FilterChip,
+} from "./AdminUI";
 
 const PageContentEditor = () => {
-  const { t } = useTranslation();
   const [activeSection, setActiveSection] = useState("home");
   const [settings, setSettings] = useState({});
+  const [initialSettings, setInitialSettings] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    fetchSettings();
-  }, []);
 
   const fetchSettings = async () => {
     setLoading(true);
     try {
       const response = await api.get("/settings");
-      setSettings(response.data);
+      const nextSettings = response.data || {};
+      setSettings(nextSettings);
+      setInitialSettings(nextSettings);
     } catch {
-      toast.error(t("admin.toast.load_fail"));
+      toast.error("加载页面内容失败");
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
   const handleChange = (key, value) => {
-    setSettings((prev) => ({ ...prev, [key]: value }));
+    setSettings((previous) => ({ ...previous, [key]: value }));
   };
 
-  const handleImageUpload = async (e, key) => {
-    const file = e.target.files[0];
+  const handleImageUpload = async (event, key) => {
+    const file = event.target.files?.[0];
     if (!file) return;
 
     const formData = new FormData();
     formData.append("file", file);
 
-    const loadingToast = toast.loading(t("common.uploading"));
+    const uploadingToast = toast.loading("正在上传图片...");
 
     try {
-      const res = await api.post("/upload", formData, {
+      const response = await api.post("/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      if (res.data.fileUrl) {
-        handleChange(key, res.data.fileUrl);
-        toast.success(t("upload.upload_success"), { id: loadingToast });
+      if (response.data.fileUrl) {
+        handleChange(key, response.data.fileUrl);
+        toast.success("图片上传成功", { id: uploadingToast });
       }
-    } catch (error) {
-      console.error("Upload failed:", error);
-      toast.error(t("upload.upload_failed"), { id: loadingToast });
+    } catch {
+      toast.error("图片上传失败", { id: uploadingToast });
     }
   };
+
+  const sectionFields = useMemo(
+    () => ({
+      home: ["site_title", "favicon_url", "hero_title", "hero_subtitle", "hero_bg_url"],
+      about: [
+        "about_title",
+        "about_subtitle",
+        "profile_image_url",
+        "about_intro",
+        "about_detail",
+        "about_exp_years",
+        "about_exhibitions",
+        "about_projects",
+      ],
+      contact: [
+        "contact_email",
+        "contact_phone",
+        "contact_address",
+        "social_github",
+        "social_twitter",
+        "social_instagram",
+        "social_linkedin",
+      ],
+    }),
+    [],
+  );
+
+  const hasDirtyFields = sectionFields[activeSection].some(
+    (key) => String(settings[key] ?? "") !== String(initialSettings[key] ?? ""),
+  );
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Save all settings in current section
-      const keysToSave = Object.keys(settings).filter((key) => {
-        if (activeSection === "home")
-          return key.startsWith("hero_") || key.startsWith("site_");
-        if (activeSection === "about")
-          return key.startsWith("about_") || key.startsWith("profile_");
-        if (activeSection === "contact")
-          return key.startsWith("contact_") || key.startsWith("social_");
-        return false;
-      });
-
-      // Save sequentially to avoid race conditions with simple backend
-      for (const key of keysToSave) {
-        await api.post("/settings", { key, value: settings[key] });
+      for (const key of sectionFields[activeSection]) {
+        if (String(settings[key] ?? "") === String(initialSettings[key] ?? "")) {
+          continue;
+        }
+        await api.post("/settings", { key, value: settings[key] ?? "" });
       }
-
-      toast.success(t("admin.toast.save_success"));
+      setInitialSettings((previous) => ({
+        ...previous,
+        ...Object.fromEntries(
+          sectionFields[activeSection].map((key) => [key, settings[key] ?? ""]),
+        ),
+      }));
+      toast.success("页面内容已保存");
     } catch {
-      toast.error(t("admin.toast.save_fail"));
+      toast.error("保存页面内容失败");
     } finally {
       setSaving(false);
     }
   };
 
   const sections = [
-    { id: "home", label: t("nav.home"), icon: Globe },
-    { id: "about", label: t("nav.about"), icon: FileText },
-    { id: "contact", label: t("nav.contact"), icon: Mail },
+    { id: "home", label: "首页", icon: Globe },
+    { id: "about", label: "关于页", icon: FileText },
+    { id: "contact", label: "联系页", icon: Mail },
   ];
 
-  if (loading)
-    return (
-      <div className="p-8 text-center text-gray-500">
-        {t("admin.audit_logs.loading")}
-      </div>
-    );
+  if (loading) {
+    return <AdminLoadingState text="正在加载页面内容..." />;
+  }
 
   return (
-    <div className="space-y-4 md:space-y-6">
-      <div className="bg-[#111] p-4 md:p-6 rounded-2xl border border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-indigo-600/20 flex items-center justify-center text-indigo-400">
-            <LayoutTemplate size={20} />
-          </div>
-          <h2 className="text-lg md:text-xl font-bold text-white">
-            {t("admin.editor.title")}
-          </h2>
-        </div>
-
-        <div className="flex bg-black/40 p-1 rounded-xl border border-white/10 w-full md:w-auto overflow-x-auto">
+    <AdminPageShell
+      title="页面内容编辑"
+      description="这里维护首页、关于页和联系页的静态文字与图片链接。保存会逐项写入当前后端 settings 表。"
+      actions={
+        <AdminButton
+          tone={hasDirtyFields ? "primary" : "subtle"}
+          disabled={saving}
+          onClick={handleSave}
+        >
+          <Save size={16} />
+          {saving ? "保存中..." : hasDirtyFields ? "保存当前分区" : "当前分区已保存"}
+        </AdminButton>
+      }
+    >
+      <AdminPanel
+        title="编辑分区"
+        description="分区切换只影响当前可编辑字段，不会丢失未保存内容。"
+        action={<LayoutTemplate size={18} className="text-indigo-300" />}
+      >
+        <div className="flex flex-wrap gap-2">
           {sections.map((section) => (
-            <button
+            <FilterChip
               key={section.id}
+              active={activeSection === section.id}
               onClick={() => setActiveSection(section.id)}
-              className={`px-4 py-2 min-h-[40px] rounded-lg text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
-                activeSection === section.id
-                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/25"
-                  : "text-gray-400 hover:text-white hover:bg-white/5"
-              }`}
             >
               <section.icon size={14} />
               {section.label}
-            </button>
+            </FilterChip>
           ))}
         </div>
-      </div>
+      </AdminPanel>
 
-      <div className="bg-[#111] p-4 md:p-6 rounded-2xl border border-white/10">
-        <div className="space-y-6 max-w-3xl">
-          {activeSection === "home" && (
+      <AdminPanel title={sections.find((item) => item.id === activeSection)?.label}>
+        <div className="grid max-w-4xl gap-5">
+          {activeSection === "home" ? (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                <div>
-                  <label className="block text-sm font-bold text-gray-400 mb-2">
-                    {t("admin.editor.site_title")}
-                  </label>
-                  <input
-                    type="text"
-                    value={settings.site_title || ""}
-                    onChange={(e) => handleChange("site_title", e.target.value)}
-                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 min-h-[44px] text-white focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-400 mb-2">
-                    {t("admin.editor.favicon_url")}
-                  </label>
-                  <input
-                    type="text"
-                    value={settings.favicon_url || ""}
-                    onChange={(e) =>
-                      handleChange("favicon_url", e.target.value)
-                    }
-                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 min-h-[44px] text-white focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
+              <div className="grid gap-5 md:grid-cols-2">
+                <Field
+                  label="站点标题"
+                  value={settings.site_title || ""}
+                  onChange={(value) => handleChange("site_title", value)}
+                />
+                <Field
+                  label="Favicon URL"
+                  value={settings.favicon_url || ""}
+                  onChange={(value) => handleChange("favicon_url", value)}
+                />
               </div>
+              <Field
+                label="Hero 标题"
+                value={settings.hero_title || ""}
+                onChange={(value) => handleChange("hero_title", value)}
+              />
+              <Field
+                label="Hero 副标题"
+                value={settings.hero_subtitle || ""}
+                onChange={(value) => handleChange("hero_subtitle", value)}
+              />
+              <ImageField
+                label="Hero 背景图"
+                value={settings.hero_bg_url || ""}
+                onChange={(value) => handleChange("hero_bg_url", value)}
+                onUpload={(event) => handleImageUpload(event, "hero_bg_url")}
+              />
+            </>
+          ) : null}
 
-              <div>
-                <label className="block text-sm font-bold text-gray-400 mb-2">
-                  {t("admin.editor.hero_title")}
-                </label>
-                <input
-                  type="text"
-                  value={settings.hero_title || ""}
-                  onChange={(e) => handleChange("hero_title", e.target.value)}
-                  className="w-full bg-black/40 border border-white/10 rounded-xl p-3 min-h-[44px] text-white focus:outline-none focus:border-indigo-500"
+          {activeSection === "about" ? (
+            <>
+              <div className="grid gap-5 md:grid-cols-2">
+                <Field
+                  label="关于页标题"
+                  value={settings.about_title || ""}
+                  onChange={(value) => handleChange("about_title", value)}
+                />
+                <Field
+                  label="关于页副标题"
+                  value={settings.about_subtitle || ""}
+                  onChange={(value) => handleChange("about_subtitle", value)}
                 />
               </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-400 mb-2">
-                  {t("admin.editor.hero_subtitle")}
-                </label>
-                <input
-                  type="text"
-                  value={settings.hero_subtitle || ""}
-                  onChange={(e) =>
-                    handleChange("hero_subtitle", e.target.value)
-                  }
-                  className="w-full bg-black/40 border border-white/10 rounded-xl p-3 min-h-[44px] text-white focus:outline-none focus:border-indigo-500"
+              <ImageField
+                label="头像图片链接"
+                value={settings.profile_image_url || ""}
+                onChange={(value) => handleChange("profile_image_url", value)}
+              />
+              <TextareaField
+                label="简介"
+                value={settings.about_intro || ""}
+                onChange={(value) => handleChange("about_intro", value)}
+                rows={4}
+              />
+              <TextareaField
+                label="详细介绍"
+                value={settings.about_detail || ""}
+                onChange={(value) => handleChange("about_detail", value)}
+                rows={6}
+              />
+              <div className="grid gap-5 md:grid-cols-3">
+                <Field
+                  label="经验年限"
+                  value={settings.about_exp_years || ""}
+                  onChange={(value) => handleChange("about_exp_years", value)}
                 />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-400 mb-2">
-                  {t("admin.editor.hero_bg_url")}
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={settings.hero_bg_url || ""}
-                    onChange={(e) =>
-                      handleChange("hero_bg_url", e.target.value)
-                    }
-                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 min-h-[44px] text-white focus:outline-none focus:border-indigo-500"
-                  />
-                  <label className="px-4 py-3 min-h-[44px] inline-flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-xl cursor-pointer transition-colors whitespace-nowrap">
-                    <Upload size={20} />
-                    <input
-                      type="file"
-                      className="hidden"
-                      accept="image/*"
-                      onChange={(e) => handleImageUpload(e, "hero_bg_url")}
-                    />
-                  </label>
-                </div>
-                {settings.hero_bg_url && (
-                  <img
-                    src={settings.hero_bg_url}
-                    alt={t("admin.fields.preview")}
-                    className="mt-4 h-32 w-full object-cover rounded-xl border border-white/10"
-                  />
-                )}
+                <Field
+                  label="展览数量"
+                  value={settings.about_exhibitions || ""}
+                  onChange={(value) => handleChange("about_exhibitions", value)}
+                />
+                <Field
+                  label="项目数量"
+                  value={settings.about_projects || ""}
+                  onChange={(value) => handleChange("about_projects", value)}
+                />
               </div>
             </>
-          )}
+          ) : null}
 
-          {activeSection === "about" && (
+          {activeSection === "contact" ? (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                <div>
-                  <label className="block text-sm font-bold text-gray-400 mb-2">
-                    {t("admin.editor.about_title")}
-                  </label>
-                  <input
-                    type="text"
-                    value={settings.about_title || ""}
-                    onChange={(e) =>
-                      handleChange("about_title", e.target.value)
-                    }
-                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 min-h-[44px] text-white focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-400 mb-2">
-                    {t("admin.editor.about_subtitle")}
-                  </label>
-                  <input
-                    type="text"
-                    value={settings.about_subtitle || ""}
-                    onChange={(e) =>
-                      handleChange("about_subtitle", e.target.value)
-                    }
-                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 min-h-[44px] text-white focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-gray-400 mb-2">
-                  {t("admin.editor.profile_image_url")}
-                </label>
-                <input
-                  type="text"
-                  value={settings.profile_image_url || ""}
-                  onChange={(e) =>
-                    handleChange("profile_image_url", e.target.value)
-                  }
-                  className="w-full bg-black/40 border border-white/10 rounded-xl p-3 min-h-[44px] text-white focus:outline-none focus:border-indigo-500"
+              <Field
+                label="联系邮箱"
+                value={settings.contact_email || ""}
+                onChange={(value) => handleChange("contact_email", value)}
+              />
+              <Field
+                label="联系电话"
+                value={settings.contact_phone || ""}
+                onChange={(value) => handleChange("contact_phone", value)}
+              />
+              <Field
+                label="联系地址"
+                value={settings.contact_address || ""}
+                onChange={(value) => handleChange("contact_address", value)}
+              />
+              <div className="grid gap-5 md:grid-cols-2">
+                <Field
+                  label="GitHub"
+                  value={settings.social_github || ""}
+                  onChange={(value) => handleChange("social_github", value)}
                 />
-                {settings.profile_image_url && (
-                  <img
-                    src={settings.profile_image_url}
-                    alt={t("admin.fields.preview")}
-                    className="mt-4 w-32 h-32 object-cover rounded-full border border-white/10"
-                  />
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-gray-400 mb-2">
-                  {t("admin.editor.intro_p")}
-                </label>
-                <textarea
-                  value={settings.about_intro || ""}
-                  onChange={(e) => handleChange("about_intro", e.target.value)}
-                  className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-indigo-500 h-24"
+                <Field
+                  label="Twitter / X"
+                  value={settings.social_twitter || ""}
+                  onChange={(value) => handleChange("social_twitter", value)}
                 />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-gray-400 mb-2">
-                  {t("admin.editor.detail_p")}
-                </label>
-                <textarea
-                  value={settings.about_detail || ""}
-                  onChange={(e) => handleChange("about_detail", e.target.value)}
-                  className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-indigo-500 h-32"
+                <Field
+                  label="Instagram"
+                  value={settings.social_instagram || ""}
+                  onChange={(value) => handleChange("social_instagram", value)}
                 />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-bold text-gray-400 mb-2">
-                    {t("admin.editor.exp_years")}
-                  </label>
-                  <input
-                    type="text"
-                    value={settings.about_exp_years || ""}
-                    onChange={(e) =>
-                      handleChange("about_exp_years", e.target.value)
-                    }
-                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 min-h-[44px] text-white focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-400 mb-2">
-                    {t("admin.editor.exhibitions")}
-                  </label>
-                  <input
-                    type="text"
-                    value={settings.about_exhibitions || ""}
-                    onChange={(e) =>
-                      handleChange("about_exhibitions", e.target.value)
-                    }
-                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 min-h-[44px] text-white focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-400 mb-2">
-                    {t("admin.editor.projects")}
-                  </label>
-                  <input
-                    type="text"
-                    value={settings.about_projects || ""}
-                    onChange={(e) =>
-                      handleChange("about_projects", e.target.value)
-                    }
-                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 min-h-[44px] text-white focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
+                <Field
+                  label="LinkedIn"
+                  value={settings.social_linkedin || ""}
+                  onChange={(value) => handleChange("social_linkedin", value)}
+                />
               </div>
             </>
-          )}
-
-          {activeSection === "contact" && (
-            <>
-              <div>
-                <label className="block text-sm font-bold text-gray-400 mb-2">
-                  {t("admin.editor.contact_email")}
-                </label>
-                <input
-                  type="text"
-                  value={settings.contact_email || ""}
-                  onChange={(e) =>
-                    handleChange("contact_email", e.target.value)
-                  }
-                  className="w-full bg-black/40 border border-white/10 rounded-xl p-3 min-h-[44px] text-white focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-400 mb-2">
-                  {t("admin.editor.contact_phone")}
-                </label>
-                <input
-                  type="text"
-                  value={settings.contact_phone || ""}
-                  onChange={(e) =>
-                    handleChange("contact_phone", e.target.value)
-                  }
-                  className="w-full bg-black/40 border border-white/10 rounded-xl p-3 min-h-[44px] text-white focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-400 mb-2">
-                  {t("admin.editor.address")}
-                </label>
-                <input
-                  type="text"
-                  value={settings.contact_address || ""}
-                  onChange={(e) =>
-                    handleChange("contact_address", e.target.value)
-                  }
-                  className="w-full bg-black/40 border border-white/10 rounded-xl p-3 min-h-[44px] text-white focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-
-              <div className="pt-4 border-t border-white/10">
-                <h4 className="text-white font-bold mb-4">
-                  {t("admin.editor.social_links")}
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-bold text-gray-400 mb-2">
-                      {t("admin.editor.github_url")}
-                    </label>
-                    <input
-                      type="text"
-                      value={settings.social_github || ""}
-                      onChange={(e) =>
-                        handleChange("social_github", e.target.value)
-                      }
-                      className="w-full bg-black/40 border border-white/10 rounded-xl p-3 min-h-[44px] text-white focus:outline-none focus:border-indigo-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-400 mb-2">
-                      {t("admin.editor.twitter_url")}
-                    </label>
-                    <input
-                      type="text"
-                      value={settings.social_twitter || ""}
-                      onChange={(e) =>
-                        handleChange("social_twitter", e.target.value)
-                      }
-                      className="w-full bg-black/40 border border-white/10 rounded-xl p-3 min-h-[44px] text-white focus:outline-none focus:border-indigo-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-400 mb-2">
-                      {t("admin.editor.instagram_url")}
-                    </label>
-                    <input
-                      type="text"
-                      value={settings.social_instagram || ""}
-                      onChange={(e) =>
-                        handleChange("social_instagram", e.target.value)
-                      }
-                      className="w-full bg-black/40 border border-white/10 rounded-xl p-3 min-h-[44px] text-white focus:outline-none focus:border-indigo-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-400 mb-2">
-                      {t("admin.editor.linkedin_url")}
-                    </label>
-                    <input
-                      type="text"
-                      value={settings.social_linkedin || ""}
-                      onChange={(e) =>
-                        handleChange("social_linkedin", e.target.value)
-                      }
-                      className="w-full bg-black/40 border border-white/10 rounded-xl p-3 min-h-[44px] text-white focus:outline-none focus:border-indigo-500"
-                    />
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-
-          <div className="flex justify-end pt-6 border-t border-white/10">
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 min-h-[44px] bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50"
-            >
-              <Save size={18} />
-              {saving
-                ? t("admin.file_manager_ui.saving")
-                : t("admin.editor.save_changes")}
-            </button>
-          </div>
+          ) : null}
         </div>
-      </div>
-    </div>
+      </AdminPanel>
+    </AdminPageShell>
   );
 };
+
+const baseInputClassName =
+  "w-full rounded-xl border border-white/10 bg-black/40 p-3 text-white outline-none transition-colors focus:border-indigo-500";
+
+const Field = ({ label, value, onChange }) => (
+  <div>
+    <label className="mb-2 block text-sm font-medium text-gray-400">{label}</label>
+    <input
+      type="text"
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className={baseInputClassName}
+    />
+  </div>
+);
+
+const TextareaField = ({ label, value, onChange, rows = 4 }) => (
+  <div>
+    <label className="mb-2 block text-sm font-medium text-gray-400">{label}</label>
+    <textarea
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      rows={rows}
+      className={baseInputClassName}
+    />
+  </div>
+);
+
+const ImageField = ({ label, value, onChange, onUpload }) => (
+  <div>
+    <label className="mb-2 block text-sm font-medium text-gray-400">{label}</label>
+    <div className="flex gap-2">
+      <input
+        type="text"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className={baseInputClassName}
+      />
+      {onUpload ? (
+        <label className="inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 text-white transition-colors hover:bg-white/10">
+          <Upload size={18} />
+          <input type="file" accept="image/*" className="hidden" onChange={onUpload} />
+        </label>
+      ) : null}
+    </div>
+    {value ? (
+      <img
+        src={value}
+        alt={label}
+        className="mt-4 h-36 w-full rounded-2xl border border-white/10 object-cover"
+      />
+    ) : null}
+  </div>
+);
 
 export default PageContentEditor;

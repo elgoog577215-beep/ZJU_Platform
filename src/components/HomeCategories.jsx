@@ -68,29 +68,20 @@ const CategoryCard = memo(({ item, reduceMotion, isDayMode }) => {
 
   return (
     <motion.div
-      variants={
+      initial={reduceMotion ? false : { opacity: 0, y: 24 }}
+      animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+      transition={
         reduceMotion
           ? undefined
           : {
-              hidden: { opacity: 0, y: 50 },
-              visible: {
-                opacity: 1,
-                y: 0,
-                transition: {
-                  type: "spring",
-                  stiffness: 100,
-                  damping: 20,
-                },
-              },
+              type: "spring",
+              stiffness: 100,
+              damping: 20,
+              delay: item.delay,
             }
       }
       whileHover={reduceMotion ? undefined : { y: -15, scale: 1.02 }}
       whileTap={reduceMotion ? undefined : { scale: 0.98 }}
-      transition={
-        reduceMotion
-          ? undefined
-          : { type: "spring", stiffness: 300, damping: 20 }
-      }
       className={`relative group h-[200px] sm:h-[280px] md:h-[350px] lg:h-[400px] w-full overflow-hidden rounded-2xl sm:rounded-[2rem] cursor-pointer border backdrop-blur-sm transition-all duration-300 ${
         isDayMode
           ? "border-slate-200/80 shadow-[0_20px_50px_rgba(148,163,184,0.18)] bg-white/55 hover:shadow-[0_24px_60px_rgba(148,163,184,0.22)] hover:border-indigo-200/80"
@@ -201,16 +192,15 @@ const HomeCategories = () => {
 
   return (
     <section
-      className={`py-12 sm:py-16 md:py-24 px-4 md:px-8 relative z-10 pb-28 md:pb-0 ${
-        isDayMode ? "bg-white/28" : "bg-black"
+      className={`relative z-10 px-4 py-12 pb-28 sm:py-16 md:px-8 md:py-24 md:pb-0 ${
+        isDayMode ? "bg-white/28" : "bg-transparent"
       }`}
-      style={{ contentVisibility: "auto", containIntrinsicSize: "1000px" }}
     >
       <div className="max-w-[1800px] mx-auto">
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 30 }}
-          whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+          animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+          transition={prefersReducedMotion ? undefined : { duration: 0.5 }}
           className="text-center mb-8 sm:mb-12 md:mb-16"
         >
           <h2
@@ -230,23 +220,10 @@ const HomeCategories = () => {
         </motion.div>
 
         <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6"
-          initial={prefersReducedMotion ? false : "hidden"}
-          whileInView={prefersReducedMotion ? undefined : "visible"}
-          viewport={{ once: true, margin: "-50px" }}
-          variants={
-            prefersReducedMotion
-              ? undefined
-              : {
-                  hidden: { opacity: 0 },
-                  visible: {
-                    opacity: 1,
-                    transition: {
-                      staggerChildren: 0.1,
-                    },
-                  },
-                }
-          }
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-5"
+          initial={prefersReducedMotion ? false : { opacity: 0 }}
+          animate={prefersReducedMotion ? undefined : { opacity: 1 }}
+          transition={prefersReducedMotion ? undefined : { duration: 0.4 }}
         >
           {categories.map((category) => (
             <CategoryCard

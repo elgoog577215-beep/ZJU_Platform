@@ -1,5 +1,11 @@
 import React, { Suspense, lazy, useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from 'react-router-dom';
 import { useAuth, AuthProvider } from './context/AuthContext';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Toaster } from 'react-hot-toast';
@@ -22,7 +28,6 @@ import Footer from './components/Footer';
 import LoadingScreen from './components/LoadingScreen';
 import PerformancePanel from './components/PerformancePanel';
 
-// Lazy load page components
 const Hero = lazy(() => import('./components/Hero'));
 const Gallery = lazy(() => import('./components/Gallery'));
 const Music = lazy(() => import('./components/Music'));
@@ -60,20 +65,18 @@ const useDeferredMount = (delay = 0) => {
 };
 
 const PageTransition = ({ children }) => {
-  // Check if we are on a mobile device to disable heavy filters
-  // Use useState to avoid hydration mismatch
   const [isMobile, setIsMobile] = useState(false);
-  
+
   useEffect(() => {
     setIsMobile(window.innerWidth < 768);
   }, []);
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, y: isMobile ? 0 : 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: isMobile ? 0 : -10 }}
-      transition={{ duration: 0.2, ease: "easeOut" }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
       className="w-full"
     >
       {children}
@@ -81,21 +84,18 @@ const PageTransition = ({ children }) => {
   );
 };
 
-const Home = () => {
-    return (
-        <>
-            <SEO 
-              title="首页"
-              description="探索数字艺术与科技的边界 - 浙江大学 SQTP 项目组官方平台，展示摄影、音乐、视频、文章等多元创作内容"
-            />
-            <Hero />
-            <HomeCategories />
-            <PlatformStats />
-        </>
-    )
-}
+const Home = () => (
+  <>
+    <SEO
+      title="首页"
+      description="浙江大学 SQTP 项目信息聚合平台，聚合活动、作品与 AI 社区内容。"
+    />
+    <Hero />
+    <HomeCategories />
+    <PlatformStats />
+  </>
+);
 
-// 路由守卫：仅 admin 可访问，否则重定向到首页
 const AdminRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return null;
@@ -109,33 +109,41 @@ const AppContent = () => {
   const { cursorEnabled, settings } = useSettings();
   const shouldMountDeferredUi = useDeferredMount(700);
   const shouldMountHeavyBackground = useDeferredMount(100);
-  const canRenderHeavyEffects = true;
-  const allowBackgroundEffects = !isAdminRoute && settings?.backgroundEnabled !== false;
+  const [canRenderHeavyEffects, setCanRenderHeavyEffects] = useState(false);
+  const allowBackgroundEffects =
+    !isAdminRoute && String(settings?.background_enabled ?? "false") !== "false";
   const shouldUseThreeBackground = location.pathname === '/';
-  
-  // 注册 Service Worker
+
   useServiceWorker();
 
-  // 调试：强制启用 3D 背景渲染
-  // useEffect(() => {
-  //   if (typeof window === 'undefined') return undefined;
-  //   const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-  //   const isSmallScreen = window.innerWidth < 1024;
-  //   const saveDataEnabled = navigator.connection?.saveData === true;
-  //   // 调试日志已移除
-  //   setCanRenderHeavyEffects(!prefersReducedMotion && !isSmallScreen && !saveDataEnabled);
-  // }, []);
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
 
-  // Performance monitoring
+    const mediaQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    const updateHeavyEffects = () => {
+      const prefersReducedMotion = mediaQuery?.matches === true;
+      const isSmallScreen = window.innerWidth < 1280;
+      const saveDataEnabled = navigator.connection?.saveData === true;
+      setCanRenderHeavyEffects(!prefersReducedMotion && !isSmallScreen && !saveDataEnabled);
+    };
+
+    updateHeavyEffects();
+    window.addEventListener('resize', updateHeavyEffects);
+    mediaQuery?.addEventListener?.('change', updateHeavyEffects);
+
+    return () => {
+      window.removeEventListener('resize', updateHeavyEffects);
+      mediaQuery?.removeEventListener?.('change', updateHeavyEffects);
+    };
+  }, []);
+
   usePerformanceMonitor({
     enabled: import.meta.env.PROD,
     onMetric: (_metric) => {
-      // 仅在生产环境记录性能指标
       if (import.meta.env.PROD && window.location.hostname === 'tuotuzj.com') {
-        // 发送到分析服务
-        // analytics.track('performance', metric);
+        return;
       }
-    }
+    },
   });
 
   useEffect(() => {
@@ -144,9 +152,6 @@ const AppContent = () => {
     }
   }, [settings?.site_title]);
 
-  // 背景渲染条件调试已移除
-
-  // Scroll to top on route change
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
@@ -163,18 +168,18 @@ const AppContent = () => {
 
     let visitorKey = window.localStorage.getItem('site-visitor-key');
     if (!visitorKey) {
-      visitorKey = window.crypto?.randomUUID?.() || `visitor-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+      visitorKey =
+        window.crypto?.randomUUID?.() ||
+        `visitor-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
       window.localStorage.setItem('site-visitor-key', visitorKey);
     }
 
     window.sessionStorage.setItem(sessionVisitKey, '1');
-    // 数据推送已移除
   }, [isAdminRoute, location.pathname]);
 
   return (
     <div className="flex flex-col min-h-screen">
       <ResourceHints />
-      {/* 跳过链接 - 无障碍功能 */}
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-6 focus:py-3 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
@@ -183,19 +188,26 @@ const AppContent = () => {
       </a>
       {!isAdminRoute && (
         <ErrorBoundary variant="inline" silent>
-            <Navbar />
+          <Navbar />
         </ErrorBoundary>
       )}
-      {allowBackgroundEffects && shouldUseThreeBackground && canRenderHeavyEffects && shouldMountHeavyBackground && (
-        <ErrorBoundary variant="inline" silent>
-          <Suspense fallback={null}>
-            <BackgroundSystem />
-          </Suspense>
-        </ErrorBoundary>
+      {allowBackgroundEffects &&
+        shouldUseThreeBackground &&
+        canRenderHeavyEffects &&
+        shouldMountHeavyBackground && (
+          <ErrorBoundary variant="inline" silent>
+            <Suspense fallback={null}>
+              <BackgroundSystem quality="lite" />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      {!isAdminRoute && cursorEnabled && (
+        <div className="hidden md:block">
+          <CustomCursor />
+        </div>
       )}
-      {!isAdminRoute && cursorEnabled && <div className="hidden md:block"><CustomCursor /></div>}
       {!isAdminRoute && <ScrollProgress />}
-      
+
       {shouldMountDeferredUi && (
         <ErrorBoundary variant="inline" silent>
           <Suspense fallback={null}>
@@ -215,7 +227,14 @@ const AppContent = () => {
               <Route path="/articles" element={<PageTransition><Articles /></PageTransition>} />
               <Route path="/events" element={<PageTransition><Events /></PageTransition>} />
               <Route path="/about" element={<PageTransition><About /></PageTransition>} />
-              <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+              <Route
+                path="/admin"
+                element={
+                  <AdminRoute>
+                    <AdminDashboard />
+                  </AdminRoute>
+                }
+              />
               <Route path="/user/:id" element={<PageTransition><PublicProfile /></PageTransition>} />
               <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
             </Routes>
@@ -235,7 +254,7 @@ const AppContent = () => {
       {!isAdminRoute && <MobileNavbar />}
       <ScrollToTop />
       <PWAInstallPrompt />
-      <PerformancePanel />
+      {import.meta.env.DEV && <PerformancePanel />}
     </div>
   );
 };
@@ -246,8 +265,8 @@ const App = () => {
       <AuthProvider>
         <SettingsProvider>
           <MusicProvider>
-            <Router>
-              <Toaster 
+            <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+              <Toaster
                 position="top-center"
                 toastOptions={{
                   className: '',

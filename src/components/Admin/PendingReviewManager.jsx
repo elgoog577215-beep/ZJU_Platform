@@ -1,18 +1,36 @@
-import React, { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
+import React, { useEffect, useMemo, useState } from "react";
+import { Search, Check, X, Clock, Inbox, RefreshCw } from "lucide-react";
 import toast from "react-hot-toast";
-import { Check, X, Clock } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import api from "../../services/api";
+import {
+  AdminButton,
+  AdminEmptyState,
+  AdminLoadingState,
+  AdminPageShell,
+  AdminPanel,
+  AdminToolbar,
+  ConfirmDialog,
+  FilterChip,
+  StatusBadge,
+  ToolbarGroup,
+} from "./AdminUI";
+
+const TYPE_LABELS = {
+  photos: "图片",
+  videos: "视频",
+  music: "音频",
+  articles: "文章",
+  events: "活动",
+};
 
 const PendingReviewManager = () => {
-  const { t } = useTranslation();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchPending();
-  }, []);
+  const [keyword, setKeyword] = useState("");
+  const [activeType, setActiveType] = useState("all");
+  const [selected, setSelected] = useState([]);
+  const [confirmState, setConfirmState] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const fetchPending = async () => {
     setLoading(true);
@@ -20,149 +38,323 @@ const PendingReviewManager = () => {
       const response = await api.get("/admin/pending");
       setItems(response.data || []);
     } catch (error) {
-      console.error("Failed to fetch pending items:", error);
-      const errorMsg =
+      const errorMessage =
         error.response?.status === 403
-          ? t("admin.pending_review_ui.no_permission", "没有权限访问")
+          ? "没有权限访问审核中心"
           : error.response?.status === 401
-            ? t("admin.pending_review_ui.not_logged_in", "请先登录")
-            : t("admin.pending_review_ui.load_fail", "获取数据失败");
-      toast.error(errorMsg);
+            ? "请先登录管理员账号"
+            : "获取待审核内容失败";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAction = async (item, status, reason = "") => {
+  useEffect(() => {
+    fetchPending();
+  }, []);
+
+  const filteredItems = useMemo(() => {
+    const lowerKeyword = keyword.trim().toLowerCase();
+    return items.filter((item) => {
+      const matchesType = activeType === "all" || item.type === activeType;
+      const matchesKeyword =
+        !lowerKeyword ||
+        String(item.title || "").toLowerCase().includes(lowerKeyword) ||
+        String(item.description || "").toLowerCase().includes(lowerKeyword) ||
+        String(item.tags || "").toLowerCase().includes(lowerKeyword);
+      return matchesType && matchesKeyword;
+    });
+  }, [activeType, items, keyword]);
+
+  const countsByType = useMemo(() => {
+    return items.reduce(
+      (accumulator, item) => {
+        accumulator[item.type] = (accumulator[item.type] || 0) + 1;
+        return accumulator;
+      },
+      { all: items.length },
+    );
+  }, [items]);
+
+  const openConfirm = (mode, currentItems) => {
+    setConfirmState({ mode, items: currentItems });
+  };
+
+  const clearConfirm = () => setConfirmState(null);
+
+  const submitReview = async () => {
+    if (!confirmState?.items?.length) return;
+    setSubmitting(true);
+    const status = confirmState.mode === "approve" ? "approved" : "rejected";
+    const reason = confirmState.mode === "approve" ? "" : "管理员驳回";
+
     try {
-      await api.put(`/${item.type}/${item.id}/status`, { status, reason });
-      setItems((prev) =>
-        prev.filter((i) => !(i.id === item.id && i.type === item.type)),
+      await Promise.all(
+        confirmState.items.map((item) =>
+          api.put(`/${item.type}/${item.id}/status`, { status, reason }),
+        ),
+      );
+      const acceptedKeys = new Set(
+        confirmState.items.map((item) => `${item.type}-${item.id}`),
+      );
+      setItems((previous) =>
+        previous.filter((item) => !acceptedKeys.has(`${item.type}-${item.id}`)),
+      );
+      setSelected((previous) =>
+        previous.filter((key) => !acceptedKeys.has(key)),
       );
       toast.success(
-        status === "approved"
-          ? t("admin.pending_review_ui.approved_success")
-          : t("admin.pending_review_ui.rejected_success"),
+        confirmState.mode === "approve"
+          ? `已通过 ${confirmState.items.length} 条内容`
+          : `已驳回 ${confirmState.items.length} 条内容`,
       );
-    } catch (error) {
-      toast.error(t("admin.pending_review_ui.action_fail"));
+      clearConfirm();
+    } catch {
+      toast.error("审核操作失败，请稍后重试");
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  if (loading)
-    return (
-      <div className="p-8 text-center text-gray-500">
-        {t("admin.pending_review_ui.loading")}
-      </div>
+  const toggleSelected = (item) => {
+    const key = `${item.type}-${item.id}`;
+    setSelected((previous) =>
+      previous.includes(key)
+        ? previous.filter((value) => value !== key)
+        : [...previous, key],
     );
+  };
+
+  const toggleSelectAllVisible = () => {
+    const visibleKeys = filteredItems.map((item) => `${item.type}-${item.id}`);
+    const allVisibleSelected = visibleKeys.every((key) => selected.includes(key));
+    if (allVisibleSelected) {
+      setSelected((previous) => previous.filter((key) => !visibleKeys.includes(key)));
+    } else {
+      setSelected((previous) => Array.from(new Set([...previous, ...visibleKeys])));
+    }
+  };
+
+  if (loading) {
+    return <AdminLoadingState text="正在加载待审核内容..." />;
+  }
+
+  const selectedItems = filteredItems.filter((item) =>
+    selected.includes(`${item.type}-${item.id}`),
+  );
 
   return (
-    <div className="space-y-4 md:space-y-6">
-      <div className="bg-[#111] p-4 md:p-6 rounded-2xl border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h3 className="text-lg md:text-xl font-bold text-white flex items-center gap-2">
-          <Clock size={20} className="text-yellow-400" />
-          {t("admin.pending_review_ui.title")} ({items.length})
-        </h3>
-        <button
-          onClick={fetchPending}
-          className="text-sm text-gray-400 hover:text-white underline min-h-[40px] px-1"
-        >
-          {t("admin.pending_review_ui.refresh")}
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4">
-        <AnimatePresence>
-          {items.length === 0 ? (
-            <div className="p-12 text-center border border-white/5 rounded-2xl border-dashed">
-              <Check size={48} className="mx-auto text-green-500/50 mb-4" />
-              <p className="text-gray-500 font-bold">
-                {t("admin.pending_review_ui.all_caught_up")}
-              </p>
-              <p className="text-gray-600 text-sm">
-                {t("admin.pending_review_ui.no_pending")}
-              </p>
+    <>
+      <AdminPageShell
+        title="审核中心"
+        description="集中处理站内所有待审核资源。这里优先做批量操作，细节编辑再进入对应模块。"
+        actions={
+          <AdminButton tone="subtle" onClick={fetchPending}>
+            <RefreshCw size={16} />
+            刷新
+          </AdminButton>
+        }
+        toolbar={
+          <AdminToolbar>
+            <ToolbarGroup className="flex-1">
+              <div className="relative min-w-[240px] flex-1 max-w-md">
+                <Search
+                  size={16}
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                />
+                <input
+                  type="text"
+                  value={keyword}
+                  onChange={(event) => setKeyword(event.target.value)}
+                  placeholder="搜索标题、描述或标签"
+                  className="w-full rounded-xl border border-white/10 bg-black/40 py-2.5 pl-10 pr-4 text-sm text-white outline-none transition-colors focus:border-indigo-500"
+                />
+              </div>
+            </ToolbarGroup>
+            <ToolbarGroup>
+              {["all", "photos", "videos", "music", "articles", "events"].map((type) => (
+                <FilterChip
+                  key={type}
+                  active={activeType === type}
+                  onClick={() => setActiveType(type)}
+                >
+                  {type === "all" ? "全部" : TYPE_LABELS[type]} ({countsByType[type] || 0})
+                </FilterChip>
+              ))}
+            </ToolbarGroup>
+          </AdminToolbar>
+        }
+      >
+        {selectedItems.length > 0 ? (
+          <AdminPanel className="border-indigo-500/20 bg-indigo-500/10">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div className="text-sm text-indigo-200">
+                已选择 <span className="font-semibold">{selectedItems.length}</span> 条待审核内容。
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <AdminButton
+                  tone="success"
+                  onClick={() => openConfirm("approve", selectedItems)}
+                >
+                  <Check size={16} />
+                  批量通过
+                </AdminButton>
+                <AdminButton
+                  tone="danger"
+                  onClick={() => openConfirm("reject", selectedItems)}
+                >
+                  <X size={16} />
+                  批量驳回
+                </AdminButton>
+              </div>
             </div>
+          </AdminPanel>
+        ) : null}
+
+        <AdminPanel
+          title={`待处理内容 (${filteredItems.length})`}
+          description="这里只展示尚未处理的资源审核项。"
+          action={
+            filteredItems.length > 0 ? (
+              <label className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-gray-300">
+                <input
+                  type="checkbox"
+                  checked={
+                    filteredItems.length > 0 &&
+                    filteredItems.every((item) =>
+                      selected.includes(`${item.type}-${item.id}`),
+                    )
+                  }
+                  onChange={toggleSelectAllVisible}
+                  className="rounded border-white/20 bg-transparent"
+                />
+                全选当前结果
+              </label>
+            ) : null
+          }
+        >
+          {filteredItems.length === 0 ? (
+            <AdminEmptyState
+              icon={Inbox}
+              title={items.length === 0 ? "当前没有待审核内容" : "没有匹配的审核项"}
+              description={
+                items.length === 0
+                  ? "所有资源都已经处理完成。"
+                  : "可以尝试切换类型筛选或修改搜索关键词。"
+              }
+            />
           ) : (
-            items.map((item) => (
-              <motion.div
-                key={`${item.type}-${item.id}`}
-                layout
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="bg-[#111] border border-white/10 rounded-2xl p-3.5 md:p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center"
-              >
-                <div className="w-full sm:w-24 h-24 bg-black rounded-xl overflow-hidden flex-shrink-0 border border-white/5 relative">
-                  {item.preview_image ? (
-                    <img
-                      src={item.preview_image}
-                      alt={item.title}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-700">
-                      {t("admin.pending_review_ui.no_img")}
+            <div className="grid grid-cols-1 gap-4">
+              {filteredItems.map((item) => {
+                const itemKey = `${item.type}-${item.id}`;
+                const isSelected = selected.includes(itemKey);
+                return (
+                  <div
+                    key={itemKey}
+                    className={`grid gap-4 rounded-3xl border p-4 transition-colors md:grid-cols-[auto_96px_minmax(0,1fr)_auto] ${
+                      isSelected
+                        ? "border-indigo-500/30 bg-indigo-500/10"
+                        : "border-white/10 bg-white/[0.03]"
+                    }`}
+                  >
+                    <div className="flex items-start pt-1">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleSelected(item)}
+                        className="mt-1 rounded border-white/20 bg-transparent"
+                      />
                     </div>
-                  )}
-                  <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-black/60 rounded text-[10px] font-bold uppercase text-white backdrop-blur-sm">
-                    {item.type}
-                  </div>
-                </div>
 
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-lg font-bold text-white truncate">
-                    {item.title}
-                  </h4>
-                  <div className="flex flex-wrap gap-2 text-xs text-gray-400 mt-1">
-                    <span className="bg-white/5 px-2 py-1 rounded">
-                      ID: {item.id}
-                    </span>
-                    {item.uploader_id && (
-                      <span className="bg-white/5 px-2 py-1 rounded">
-                        {t("admin.pending_review_ui.user_label")}{" "}
-                        {item.uploader_id}
-                      </span>
-                    )}
-                    {item.category && (
-                      <span className="bg-white/5 px-2 py-1 rounded">
-                        {item.category}
-                      </span>
-                    )}
-                  </div>
-                  {item.description && (
-                    <p className="text-sm text-gray-500 mt-2 line-clamp-1">
-                      {item.description}
-                    </p>
-                  )}
-                </div>
+                    <div className="h-24 w-24 overflow-hidden rounded-2xl border border-white/10 bg-black/40">
+                      {item.preview_image ? (
+                        <img
+                          src={item.preview_image}
+                          alt={item.title}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-xs text-gray-500">
+                          无预览
+                        </div>
+                      )}
+                    </div>
 
-                <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
-                  <button
-                    onClick={() => handleAction(item, "approved")}
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 min-h-[42px] bg-green-600/20 text-green-400 hover:bg-green-600 hover:text-white rounded-xl font-bold transition-all border border-green-600/20"
-                  >
-                    <Check size={18} /> {t("admin.pending_review_ui.approve")}
-                  </button>
-                  <button
-                    onClick={() =>
-                      handleAction(
-                        item,
-                        "rejected",
-                        t("admin.pending_review_ui.admin_rejected"),
-                      )
-                    }
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 min-h-[42px] bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white rounded-xl font-bold transition-all border border-red-600/20"
-                  >
-                    <X size={18} /> {t("admin.pending_review_ui.reject")}
-                  </button>
-                </div>
-              </motion.div>
-            ))
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <StatusBadge status="pending" />
+                        <span className="rounded-full bg-white/5 px-2.5 py-1 text-xs text-gray-400">
+                          {TYPE_LABELS[item.type] || item.type}
+                        </span>
+                        <span className="rounded-full bg-white/5 px-2.5 py-1 text-xs text-gray-400">
+                          ID {item.id}
+                        </span>
+                      </div>
+                      <h3 className="mt-3 text-lg font-semibold text-white">
+                        {item.title || "未命名内容"}
+                      </h3>
+                      {item.description ? (
+                        <p className="mt-2 line-clamp-2 text-sm text-gray-400">
+                          {item.description}
+                        </p>
+                      ) : null}
+                      <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-500">
+                        {item.uploader_id ? <span>上传者 ID: {item.uploader_id}</span> : null}
+                        {item.category ? <span>分类: {item.category}</span> : null}
+                        {item.tags ? <span>标签: {item.tags}</span> : null}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 md:w-[180px] md:flex-col">
+                      <AdminButton
+                        tone="success"
+                        className="flex-1"
+                        onClick={() => openConfirm("approve", [item])}
+                      >
+                        <Check size={16} />
+                        通过
+                      </AdminButton>
+                      <AdminButton
+                        tone="danger"
+                        className="flex-1"
+                        onClick={() => openConfirm("reject", [item])}
+                      >
+                        <X size={16} />
+                        驳回
+                      </AdminButton>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           )}
-        </AnimatePresence>
-      </div>
-    </div>
+        </AdminPanel>
+      </AdminPageShell>
+
+      <ConfirmDialog
+        open={Boolean(confirmState)}
+        title={confirmState?.mode === "approve" ? "确认批量通过" : "确认批量驳回"}
+        description={
+          confirmState
+            ? `即将${
+                confirmState.mode === "approve" ? "通过" : "驳回"
+              } ${confirmState.items.length} 条内容。`
+            : ""
+        }
+        confirmText={confirmState?.mode === "approve" ? "确认通过" : "确认驳回"}
+        tone={confirmState?.mode === "approve" ? "success" : "danger"}
+        pending={submitting}
+        onConfirm={submitReview}
+        onCancel={clearConfirm}
+      >
+        {confirmState?.mode === "reject" ? (
+          <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-200">
+            当前将使用统一驳回原因“管理员驳回”。后续如果后端提供原因字段检索，再补更细的驳回模板。
+          </div>
+        ) : null}
+      </ConfirmDialog>
+    </>
   );
 };
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -15,13 +15,12 @@ import {
   LogOut,
   ChevronRight,
   Tag,
-  Lock,
   X,
   MessageSquare,
+  Mail,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-// Imported Components
 import Overview from "./Overview";
 import PendingReviewManager from "./PendingReviewManager";
 import SettingsManager from "./SettingsManager";
@@ -32,15 +31,19 @@ import MessageManager from "./MessageManager";
 import TagManager from "./TagManager";
 import AdminCommunity from "./AdminCommunity";
 
+const STORAGE_KEY = "admin.activeTab";
+
 const AdminDashboard = () => {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window === "undefined") return "overview";
+    return sessionStorage.getItem(STORAGE_KEY) || "overview";
+  });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Secondary Password Lock State
-  const [isLocked, setIsLocked] = useState(true);
-  const [passwordInput, setPasswordInput] = useState("");
-  const [lockError, setLockError] = useState("");
+  useEffect(() => {
+    sessionStorage.setItem(STORAGE_KEY, activeTab);
+  }, [activeTab]);
 
   useEffect(() => {
     if (!isMobileMenuOpen) return undefined;
@@ -52,119 +55,119 @@ const AdminDashboard = () => {
   }, [isMobileMenuOpen]);
 
   const handleLogout = () => {
+    sessionStorage.removeItem("token");
+    localStorage.removeItem("token");
+    sessionStorage.removeItem(STORAGE_KEY);
     window.location.href = "/";
   };
 
-  const handleUnlock = (e) => {
-    e.preventDefault();
-    if (passwordInput === "12345") {
-      setIsLocked(false);
-      setLockError("");
-    } else {
-      setLockError("Incorrect password");
-      setPasswordInput("");
-    }
-  };
+  const menuGroups = useMemo(
+    () => [
+      {
+        title: t("admin.menu.overview", "总览"),
+        items: [
+          {
+            id: "overview",
+            label: t("admin.tabs.overview", "总览"),
+            icon: LayoutDashboard,
+            description: "查看关键数据和快捷入口",
+          },
+          {
+            id: "pending",
+            label: t("admin.tabs.pending", "审核中心"),
+            icon: Inbox,
+            description: "统一处理待审核内容",
+          },
+        ],
+      },
+      {
+        title: t("admin.menu.content", "内容"),
+        items: [
+          {
+            id: "photos",
+            label: t("admin.tabs.photos", "图片"),
+            icon: LayoutGrid,
+            description: "管理图片资源",
+          },
+          {
+            id: "videos",
+            label: t("admin.tabs.videos", "视频"),
+            icon: Film,
+            description: "管理视频资源",
+          },
+          {
+            id: "music",
+            label: t("admin.tabs.music", "音频"),
+            icon: Music,
+            description: "管理音频资源",
+          },
+          {
+            id: "articles",
+            label: t("admin.tabs.articles", "文章"),
+            icon: BookOpen,
+            description: "管理文章内容",
+          },
+          {
+            id: "events",
+            label: t("admin.tabs.events", "活动"),
+            icon: Calendar,
+            description: "管理活动和报名数据",
+          },
+          {
+            id: "pages",
+            label: t("admin.tabs.pages", "页面内容"),
+            icon: LayoutTemplate,
+            description: "编辑站点静态内容",
+          },
+        ],
+      },
+      {
+        title: t("admin.menu.community", "社区"),
+        items: [
+          {
+            id: "community",
+            label: t("admin.tabs.community", "社区运营"),
+            icon: MessageSquare,
+            description: "查看社区帖子和社群数据",
+          },
+        ],
+      },
+      {
+        title: t("admin.menu.system", "系统"),
+        items: [
+          {
+            id: "tags",
+            label: t("admin.tabs.tags", "标签"),
+            icon: Tag,
+            description: "管理标签字典",
+          },
+          {
+            id: "users",
+            label: t("admin.tabs.users", "用户"),
+            icon: Users,
+            description: "管理用户与角色",
+          },
+          {
+            id: "messages",
+            label: t("admin.tabs.messages", "留言"),
+            icon: Mail,
+            description: "处理站内联系留言",
+          },
+          {
+            id: "settings",
+            label: t("admin.tabs.settings", "设置"),
+            icon: Settings,
+            description: "调整站点配置",
+          },
+        ],
+      },
+    ],
+    [t],
+  );
 
-  if (isLocked) {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center px-4 relative overflow-hidden">
-        {/* Ambient background */}
-        <div className="absolute inset-0 z-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-600/20 rounded-full blur-[120px]" />
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="relative z-10 w-full max-w-md bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-2xl"
-        >
-          <div className="flex flex-col items-center mb-8">
-            <div className="w-16 h-16 bg-indigo-500/20 rounded-full flex items-center justify-center text-indigo-400 mb-4 shadow-[0_0_30px_rgba(99,102,241,0.3)]">
-              <Lock size={32} />
-            </div>
-            <h2 className="text-2xl font-bold text-white tracking-wide">
-              Admin Access
-            </h2>
-            <p className="text-gray-400 text-sm mt-2">
-              Please enter secondary password
-            </p>
-          </div>
-
-          <form onSubmit={handleUnlock} className="space-y-4">
-            <div>
-              <input
-                type="password"
-                value={passwordInput}
-                onChange={(e) => setPasswordInput(e.target.value)}
-                placeholder="Enter password"
-                className={`w-full bg-black/40 border ${lockError ? "border-red-500/50 focus:border-red-500" : "border-white/10 focus:border-indigo-500"} rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:bg-white/5 transition-all text-center tracking-widest text-lg`}
-                autoFocus
-              />
-              <AnimatePresence>
-                {lockError && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="text-red-400 text-sm text-center mt-2"
-                  >
-                    {lockError}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-            <button
-              type="submit"
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-colors shadow-lg shadow-indigo-500/25"
-            >
-              Unlock
-            </button>
-          </form>
-        </motion.div>
-      </div>
-    );
-  }
-
-  const menuGroups = [
-    {
-      title: t("admin.menu.overview"),
-      items: [
-        {
-          id: "overview",
-          label: t("admin.tabs.overview"),
-          icon: LayoutDashboard,
-        },
-        { id: "pending", label: t("admin.tabs.pending"), icon: Inbox },
-      ],
-    },
-    {
-      title: t("admin.menu.content"),
-      items: [
-        { id: "photos", label: t("admin.tabs.photos"), icon: LayoutGrid },
-        { id: "videos", label: t("admin.tabs.videos"), icon: Film },
-        { id: "music", label: t("admin.tabs.music"), icon: Music },
-        { id: "articles", label: t("admin.tabs.articles"), icon: BookOpen },
-        { id: "events", label: t("admin.tabs.events"), icon: Calendar },
-        { id: "pages", label: t("admin.tabs.pages"), icon: LayoutTemplate },
-      ],
-    },
-    {
-      title: t("admin.menu.community", "社区"),
-      items: [
-        { id: "community", label: t("admin.tabs.community", "社区管理"), icon: MessageSquare },
-      ],
-    },
-    {
-      title: t("admin.menu.system"),
-      items: [
-        { id: "tags", label: t("admin.tabs.tags"), icon: Tag },
-        { id: "users", label: t("admin.tabs.users"), icon: Users },
-        { id: "messages", label: t("admin.tabs.messages"), icon: Inbox },
-        { id: "settings", label: t("admin.tabs.settings"), icon: Settings },
-      ],
-    },
-  ];
+  const activeItem = menuGroups
+    .flatMap((group) => group.items)
+    .find((item) => item.id === activeTab);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -186,7 +189,7 @@ const AdminDashboard = () => {
         return (
           <ResourceManager
             key="photos"
-            title={t("admin.tabs.photos")}
+            title="图片资源"
             apiEndpoint="photos"
             type="image"
             icon={LayoutGrid}
@@ -196,7 +199,7 @@ const AdminDashboard = () => {
         return (
           <ResourceManager
             key="music"
-            title={t("admin.tabs.music")}
+            title="音频资源"
             apiEndpoint="music"
             type="audio"
             icon={Music}
@@ -206,7 +209,7 @@ const AdminDashboard = () => {
         return (
           <ResourceManager
             key="videos"
-            title={t("admin.tabs.videos")}
+            title="视频资源"
             apiEndpoint="videos"
             type="video"
             icon={Film}
@@ -216,7 +219,7 @@ const AdminDashboard = () => {
         return (
           <ResourceManager
             key="articles"
-            title={t("admin.tabs.articles")}
+            title="文章内容"
             apiEndpoint="articles"
             type="article"
             icon={BookOpen}
@@ -226,7 +229,7 @@ const AdminDashboard = () => {
         return (
           <ResourceManager
             key="events"
-            title={t("admin.tabs.events")}
+            title="活动管理"
             apiEndpoint="events"
             type="event"
             icon={Calendar}
@@ -241,45 +244,52 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-black text-white pt-[calc(env(safe-area-inset-top)+72px)] md:pt-24 px-3 md:px-8 pb-[calc(env(safe-area-inset-bottom)+96px)] md:pb-12">
-      <div className="max-w-[1600px] mx-auto">
-        <div className="mb-6 md:mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div className="mx-auto max-w-[1680px]">
+        <div className="mb-6 flex flex-col gap-4 md:mb-8 lg:flex-row lg:items-end lg:justify-between">
           <div className="flex items-start gap-3 md:gap-4">
             <button
-              className="lg:hidden p-2.5 bg-white/10 rounded-xl text-white mt-1"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="mt-1 rounded-xl bg-white/10 p-2.5 text-white lg:hidden"
+              onClick={() => setIsMobileMenuOpen((value) => !value)}
             >
-              <LayoutGrid size={24} />
+              <LayoutGrid size={22} />
             </button>
             <div>
-              <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold font-serif mb-1 md:mb-2 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-500">
-                {t("admin.dashboard")}
+              <p className="text-xs uppercase tracking-[0.32em] text-indigo-300/80">
+                Operations Console
+              </p>
+              <h1 className="mt-2 text-2xl font-bold md:text-4xl lg:text-5xl">
+                {t("admin.dashboard", "管理员后台")}
               </h1>
-              <p className="text-gray-400 text-xs sm:text-sm md:text-base max-w-[26rem]">
-                {t("admin.subtitle")}
+              <p className="mt-2 max-w-2xl text-sm text-gray-400 md:text-base">
+                {activeItem?.description || t("admin.subtitle", "统一管理内容、用户、社区和系统配置。")}
               </p>
             </div>
           </div>
-          <div className="md:hidden flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
-            <p className="text-[11px] text-gray-400 font-mono">
-              {new Date().toLocaleDateString("zh-CN")}
-            </p>
+
+          <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+            <div>
+              <div className="text-xs uppercase tracking-[0.24em] text-gray-500">
+                当前模块
+              </div>
+              <div className="mt-1 text-sm font-semibold text-white">
+                {activeItem?.label || "总览"}
+              </div>
+            </div>
+            <div className="h-10 w-px bg-white/10" />
+            <div>
+              <div className="text-xs uppercase tracking-[0.24em] text-gray-500">
+                日期
+              </div>
+              <div className="mt-1 text-sm font-semibold text-white">
+                {new Date().toLocaleDateString("zh-CN")}
+              </div>
+            </div>
             <button
               onClick={handleLogout}
-              className="inline-flex items-center gap-1.5 text-xs text-gray-300 hover:text-red-300 transition-colors bg-white/5 hover:bg-white/10 px-2.5 py-1.5 rounded-lg"
+              className="ml-auto inline-flex min-h-[40px] items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-gray-300 transition-colors hover:bg-white/10 hover:text-red-300"
             >
-              <LogOut size={13} /> {t("admin.logout")}
+              <LogOut size={16} /> {t("admin.logout", "退出管理")}
             </button>
-          </div>
-          <div className="text-right hidden md:block">
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 text-sm text-gray-500 hover:text-red-400 transition-colors bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg ml-auto"
-            >
-              <LogOut size={14} /> {t("admin.logout")}
-            </button>
-            <p className="text-xs text-gray-600 font-mono mt-2">
-              {new Date().toLocaleDateString("zh-CN")}
-            </p>
           </div>
         </div>
 
@@ -295,87 +305,109 @@ const AdminDashboard = () => {
           )}
         </AnimatePresence>
 
-        <div className="flex flex-col lg:flex-row gap-8">
-          <div
-            className={`${isMobileMenuOpen ? "fixed inset-x-3 top-[calc(env(safe-area-inset-top)+76px)] bottom-[calc(env(safe-area-inset-bottom)+16px)] z-[100]" : "hidden"} lg:static lg:inset-auto lg:z-auto w-auto lg:w-72 flex-shrink-0 lg:block`}
+        <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
+          <aside
+            className={`${
+              isMobileMenuOpen
+                ? "fixed inset-x-3 top-[calc(env(safe-area-inset-top)+76px)] bottom-[calc(env(safe-area-inset-bottom)+16px)] z-[100]"
+                : "hidden"
+            } lg:static lg:block lg:w-80 lg:flex-shrink-0`}
           >
-            <div className="bg-[#0a0a0a] rounded-2xl border border-white/10 p-3 md:p-4 space-y-4 md:space-y-6 shadow-xl overflow-y-auto h-full lg:h-auto lg:max-h-[80vh] lg:sticky lg:top-24">
-              <div className="flex items-center justify-between px-2 lg:hidden">
-                <div className="text-xs text-gray-400 uppercase tracking-[0.18em]">
-                  {t("admin.dashboard")}
+            <div className="h-full overflow-y-auto rounded-3xl border border-white/10 bg-[#0d0d0d] p-4 shadow-xl lg:sticky lg:top-24 lg:h-auto lg:max-h-[calc(100vh-7.5rem)]">
+              <div className="mb-4 flex items-center justify-between px-1 lg:hidden">
+                <div className="text-xs uppercase tracking-[0.22em] text-gray-500">
+                  导航
                 </div>
                 <button
-                  className="p-2 rounded-lg bg-white/5 text-gray-300 hover:text-white"
+                  className="rounded-lg bg-white/5 p-2 text-gray-300 hover:text-white"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <X size={16} />
                 </button>
               </div>
-              {menuGroups.map((group, index) => (
-                <div key={index}>
-                  <div className="px-4 py-2 mb-2 text-xs font-bold text-gray-500 uppercase tracking-widest">
-                    {group.title}
-                  </div>
-                  <div className="space-y-1">
-                    {group.items.map((tab) => (
-                      <button
-                        key={tab.id}
-                        onClick={() => {
-                          setActiveTab(tab.id);
-                          setIsMobileMenuOpen(false);
-                        }}
-                        className={`w-full flex items-center justify-between p-3 rounded-xl text-sm font-bold transition-all group
-                          ${
-                            activeTab === tab.id
-                              ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/25"
-                              : "text-gray-400 hover:bg-white/5 hover:text-white"
-                          }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <tab.icon
-                            size={18}
-                            className={
-                              activeTab === tab.id
-                                ? "text-white"
-                                : "text-gray-500 group-hover:text-white"
-                            }
-                          />
-                          {tab.label}
-                        </div>
-                        {activeTab === tab.id && <ChevronRight size={16} />}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
 
-              <div className="my-2 border-t border-white/10"></div>
+              <div className="space-y-5">
+                {menuGroups.map((group) => (
+                  <div key={group.title}>
+                    <div className="px-3 pb-2 text-xs font-bold uppercase tracking-[0.24em] text-gray-500">
+                      {group.title}
+                    </div>
+                    <div className="space-y-1.5">
+                      {group.items.map((tab) => (
+                        <button
+                          key={tab.id}
+                          onClick={() => {
+                            setActiveTab(tab.id);
+                            setIsMobileMenuOpen(false);
+                          }}
+                          className={`w-full rounded-2xl border p-3 text-left transition-all ${
+                            activeTab === tab.id
+                              ? "border-indigo-500/30 bg-indigo-600 text-white shadow-lg shadow-indigo-500/20"
+                              : "border-transparent bg-white/[0.03] text-gray-300 hover:border-white/10 hover:bg-white/5 hover:text-white"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                                  activeTab === tab.id
+                                    ? "bg-white/15"
+                                    : "bg-white/5"
+                                }`}
+                              >
+                                <tab.icon size={18} />
+                              </div>
+                              <div>
+                                <div className="font-semibold">{tab.label}</div>
+                                <div
+                                  className={`mt-1 text-xs ${
+                                    activeTab === tab.id
+                                      ? "text-indigo-100/80"
+                                      : "text-gray-500"
+                                  }`}
+                                >
+                                  {tab.description}
+                                </div>
+                              </div>
+                            </div>
+                            {activeTab === tab.id ? <ChevronRight size={16} /> : null}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="my-5 border-t border-white/10" />
 
               <a
                 href="/"
-                className="w-full flex items-center justify-between p-3 rounded-xl text-sm font-bold transition-all group text-gray-400 hover:bg-white/5 hover:text-white"
+                className="flex w-full items-center justify-between rounded-2xl border border-transparent bg-white/[0.03] p-3 text-sm font-semibold text-gray-300 transition-all hover:border-white/10 hover:bg-white/5 hover:text-white"
               >
                 <div className="flex items-center gap-3">
-                  <Home
-                    size={18}
-                    className="text-gray-500 group-hover:text-white"
-                  />
-                  {t("nav.home")}
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5">
+                    <Home size={18} />
+                  </div>
+                  <div>
+                    <div>{t("nav.home", "首页")}</div>
+                    <div className="mt-1 text-xs text-gray-500">返回站点前台</div>
+                  </div>
                 </div>
               </a>
             </div>
-          </div>
+          </aside>
 
-          <div className="flex-1 min-w-0">
+          <main className="min-w-0 flex-1">
             <motion.div
               key={activeTab}
-              initial={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0, x: 18 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.25 }}
             >
               {renderContent()}
             </motion.div>
-          </div>
+          </main>
         </div>
       </div>
     </div>

@@ -10,6 +10,12 @@ const api = axios.create({
   },
 });
 
+const isCanceledRequest = (error) =>
+  axios.isCancel?.(error) ||
+  error?.code === 'ERR_CANCELED' ||
+  error?.name === 'CanceledError' ||
+  error?.message === 'canceled';
+
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
@@ -29,6 +35,10 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const config = error.config;
+
+    if (isCanceledRequest(error)) {
+      return Promise.reject(error);
+    }
     
     // Retry logic for network errors or 5xx status codes
     if (!config || !config.retry) {
@@ -78,3 +88,4 @@ export const uploadFile = (endpoint, formData) => {
 };
 
 export default api;
+export { isCanceledRequest };

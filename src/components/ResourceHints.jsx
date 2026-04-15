@@ -14,11 +14,7 @@ export const ResourceHints = () => {
     }
 
     const apiUrl = import.meta.env?.VITE_API_URL || '';
-    const preconnectDomains = [
-      'https://fonts.googleapis.com',
-      'https://fonts.gstatic.com',
-      apiUrl ? apiUrl.replace('/api', '') : null
-    ].filter(Boolean);
+    const preconnectDomains = [apiUrl ? apiUrl.replace('/api', '') : null].filter(Boolean);
 
     preconnectDomains.forEach(domain => {
       if (!document.querySelector(`link[rel="preconnect"][href="${domain}"]`)) {

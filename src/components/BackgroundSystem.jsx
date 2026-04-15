@@ -667,8 +667,12 @@ const BackgroundSystem = ({ forcedTheme = null, quality = "full" }) => {
     return {
       tier: lowTier ? "low" : mediumTier ? "medium" : "high",
       dense: !mediumTier && !lowTier && !liteMode,
-      animate: !prefersReducedMotion && !saveDataEnabled && !slowNetwork,
-      useCanvas: allowCanvas,
+      animate:
+        !mediumTier &&
+        !prefersReducedMotion &&
+        !saveDataEnabled &&
+        !slowNetwork,
+      useCanvas: allowCanvas && !lowTier && !liteMode,
       dpr: lowTier ? 0.5 : mediumTier ? 0.72 : 0.96,
       enableComposer:
         !liteMode &&

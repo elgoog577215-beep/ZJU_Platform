@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Tag,
   Search,
@@ -12,9 +11,28 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "../../services/api";
+import {
+  AdminButton,
+  AdminEmptyState,
+  AdminLoadingState,
+  AdminPageShell,
+  AdminPanel,
+  AdminToolbar,
+  ConfirmDialog,
+  FilterChip,
+  ToolbarGroup,
+} from "./AdminUI";
+
+const SECTION_OPTIONS = [
+  { id: "all", label: "全部" },
+  { id: "gallery", label: "图片" },
+  { id: "music", label: "音频" },
+  { id: "videos", label: "视频" },
+  { id: "articles", label: "文章" },
+  { id: "events", label: "活动" },
+];
 
 const TagManager = () => {
-  const { t } = useTranslation();
   const [tags, setTags] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -24,40 +42,33 @@ const TagManager = () => {
   const [newTagMode, setNewTagMode] = useState(false);
   const [newTagName, setNewTagName] = useState("");
   const [syncing, setSyncing] = useState(false);
-
-  const sections = [
-    { id: "all", label: t("common.all") },
-    { id: "gallery", label: t("nav.gallery") },
-    { id: "music", label: t("nav.music") },
-    { id: "videos", label: t("nav.videos") },
-    { id: "articles", label: t("nav.articles") },
-    { id: "events", label: t("nav.events") },
-  ];
-
-  useEffect(() => {
-    fetchTags();
-  }, []);
+  const [deleteTag, setDeleteTag] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const fetchTags = async () => {
     setLoading(true);
     try {
       const response = await api.get("/tags");
-      setTags(response.data);
+      setTags(Array.isArray(response.data) ? response.data : []);
     } catch {
-      toast.error(t("admin.tag_manager.load_fail"));
+      toast.error("加载标签失败");
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchTags();
+  }, []);
+
   const handleSync = async () => {
     setSyncing(true);
     try {
       await api.post("/tags/sync");
-      toast.success(t("admin.tag_manager.sync_success"));
+      toast.success("标签计数已同步");
       fetchTags();
     } catch {
-      toast.error(t("admin.tag_manager.sync_fail"));
+      toast.error("同步标签失败");
     } finally {
       setSyncing(false);
     }
@@ -65,218 +76,249 @@ const TagManager = () => {
 
   const handleCreate = async () => {
     if (!newTagName.trim()) return;
+    setSubmitting(true);
     try {
-      const response = await api.post("/tags", { name: newTagName });
-      setTags([...tags, response.data]);
+      const response = await api.post("/tags", { name: newTagName.trim() });
+      setTags((previous) => [...previous, response.data]);
       setNewTagName("");
       setNewTagMode(false);
-      toast.success(t("admin.tag_manager.create_success"));
+      toast.success("标签已创建");
     } catch (error) {
-      toast.error(
-        error.response?.data?.error || t("admin.tag_manager.create_fail"),
-      );
+      toast.error(error.response?.data?.error || "创建标签失败");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleUpdate = async (id) => {
     if (!editName.trim()) return;
+    setSubmitting(true);
     try {
-      await api.put(`/tags/${id}`, { name: editName });
-      setTags(
-        tags.map((tag) => (tag.id === id ? { ...tag, name: editName } : tag)),
+      await api.put(`/tags/${id}`, { name: editName.trim() });
+      setTags((previous) =>
+        previous.map((tag) => (tag.id === id ? { ...tag, name: editName.trim() } : tag)),
       );
       setEditingId(null);
-      toast.success(t("admin.tag_manager.update_success"));
+      setEditName("");
+      toast.success("标签已更新");
     } catch (error) {
-      toast.error(
-        error.response?.data?.error || t("admin.tag_manager.update_fail"),
-      );
+      toast.error(error.response?.data?.error || "更新标签失败");
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm(t("admin.tag_manager.delete_confirm"))) return;
+  const handleDelete = async () => {
+    if (!deleteTag) return;
+    setSubmitting(true);
     try {
-      await api.delete(`/tags/${id}`);
-      setTags(tags.filter((tag) => tag.id !== id));
-      toast.success(t("admin.tag_manager.delete_success"));
+      await api.delete(`/tags/${deleteTag.id}`);
+      setTags((previous) => previous.filter((tag) => tag.id !== deleteTag.id));
+      toast.success("标签已删除");
+      setDeleteTag(null);
     } catch {
-      toast.error(t("admin.tag_manager.delete_fail"));
+      toast.error("删除标签失败");
+    } finally {
+      setSubmitting(false);
     }
   };
+
+  const filteredTags = useMemo(() => {
+    const keyword = search.trim().toLowerCase();
+    return tags.filter((tag) => {
+      const keywordMatch = String(tag.name || "")
+        .toLowerCase()
+        .includes(keyword);
+      if (!keywordMatch) return false;
+      if (selectedSection === "all") return true;
+      const sectionKey = String(
+        tag.section || tag.type || tag.resource_type || "",
+      ).toLowerCase();
+      return sectionKey === selectedSection;
+    });
+  }, [search, selectedSection, tags]);
 
   const startEdit = (tag) => {
     setEditingId(tag.id);
     setEditName(tag.name);
   };
 
-  const filteredTags = tags.filter((tag) => {
-    const keywordMatch = tag.name.toLowerCase().includes(search.toLowerCase());
-    if (!keywordMatch) return false;
-    if (selectedSection === "all") return true;
-    const sectionKey = String(
-      tag.section || tag.type || tag.resource_type || "",
-    ).toLowerCase();
-    return sectionKey === selectedSection;
-  });
+  if (loading) {
+    return <AdminLoadingState text="正在加载标签..." />;
+  }
 
   return (
-    <div className="bg-black/40 backdrop-blur-md rounded-3xl p-4 md:p-8 border border-white/10">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-0 mb-6 md:mb-8">
-        <div>
-          <h2 className="text-xl md:text-2xl font-bold text-white mb-2 flex items-center gap-3">
-            <Tag className="text-indigo-400" />
-            {t("admin.tag_manager.title")}
-          </h2>
-          <p className="text-gray-400">{t("admin.tag_manager.subtitle")}</p>
-        </div>
-        <div className="flex flex-wrap gap-3 w-full md:w-auto">
-          <button
-            onClick={handleSync}
-            disabled={syncing}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] bg-white/5 hover:bg-white/10 text-white rounded-xl transition-colors disabled:opacity-50"
-          >
-            <RefreshCw size={18} className={syncing ? "animate-spin" : ""} />
-            {t("admin.tag_manager.sync_btn")}
-          </button>
-          <button
-            onClick={() => setNewTagMode(true)}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-colors shadow-lg shadow-indigo-500/20"
-          >
-            <Plus size={18} />
-            {t("admin.tag_manager.create_btn")}
-          </button>
-        </div>
-      </div>
-
-      {newTagMode && (
-        <div className="mb-8 p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center animate-in fade-in slide-in-from-top-4">
-          <input
-            type="text"
-            value={newTagName}
-            onChange={(e) => setNewTagName(e.target.value)}
-            placeholder={t("admin.tag_manager.name_placeholder")}
-            className="flex-1 bg-black/40 border border-white/10 rounded-lg p-3 min-h-[44px] text-white focus:outline-none focus:border-indigo-500"
-            autoFocus
-            onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-          />
-          <button
-            onClick={handleCreate}
-            className="p-2.5 min-h-[44px] min-w-[44px] inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors"
-          >
-            <Check size={18} />
-          </button>
-          <button
-            onClick={() => setNewTagMode(false)}
-            className="p-2.5 min-h-[44px] min-w-[44px] inline-flex items-center justify-center bg-white/5 hover:bg-white/10 text-white rounded-lg transition-colors"
-          >
-            <X size={18} />
-          </button>
-        </div>
-      )}
-
-      <div className="mb-6 relative flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-            size={18}
-          />
-          <input
-            type="text"
-            placeholder={t("admin.tag_manager.search_placeholder")}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-black/20 border border-white/10 rounded-xl py-3 min-h-[44px] pl-10 pr-4 text-white focus:outline-none focus:border-indigo-500 transition-colors"
-          />
-        </div>
-
-        <select
-          value={selectedSection}
-          onChange={(e) => setSelectedSection(e.target.value)}
-          className="bg-black/20 border border-white/10 rounded-xl px-4 py-3 min-h-[44px] text-white focus:outline-none focus:border-indigo-500 transition-colors cursor-pointer"
-        >
-          {sections.map((section) => (
-            <option
-              key={section.id}
-              value={section.id}
-              className="bg-[#111] text-white"
-            >
-              {section.label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {loading ? (
-        <div className="text-center py-12 text-gray-500">
-          {t("admin.tag_manager.loading")}
-        </div>
-      ) : filteredTags.length === 0 ? (
-        <div className="text-center py-12 text-gray-500 border border-white/5 rounded-2xl border-dashed">
-          {t("admin.tag_manager.no_tags")}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-          {filteredTags.map((tag) => (
-            <div
-              key={tag.id}
-              className="bg-[#111] border border-white/5 rounded-xl p-3.5 md:p-4 flex justify-between items-center gap-2 group hover:border-indigo-500/30 transition-all"
-            >
-              {editingId === tag.id ? (
-                <div className="flex gap-2 flex-1 mr-2">
-                  <input
-                    type="text"
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    className="flex-1 bg-black/40 border border-indigo-500 rounded px-2 py-1 text-white text-sm focus:outline-none"
-                    autoFocus
-                    onKeyDown={(e) => e.key === "Enter" && handleUpdate(tag.id)}
-                  />
-                  <button
-                    onClick={() => handleUpdate(tag.id)}
-                    className="text-green-400 hover:text-green-300"
-                  >
-                    <Check size={16} />
-                  </button>
-                  <button
-                    onClick={() => setEditingId(null)}
-                    className="text-red-400 hover:text-red-300"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <span className="text-white font-medium">{tag.name}</span>
-                  <span className="text-xs bg-white/5 px-2 py-0.5 rounded-full text-gray-400">
-                    {tag.count} {t("admin.tag_manager.items_count")}
-                  </span>
-                </div>
-              )}
-
-              <div className="flex gap-1 md:gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                {editingId !== tag.id && (
-                  <>
-                    <button
-                      onClick={() => startEdit(tag)}
-                      className="p-2 min-h-[36px] min-w-[36px] inline-flex items-center justify-center hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
-                    >
-                      <Edit2 size={14} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(tag.id)}
-                      className="p-2 min-h-[36px] min-w-[36px] inline-flex items-center justify-center hover:bg-red-500/10 rounded-lg text-gray-400 hover:text-red-400 transition-colors"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </>
-                )}
+    <>
+      <AdminPageShell
+        title="标签管理"
+        description="统一维护内容标签字典，并按需同步各资源里的引用计数。"
+        actions={
+          <>
+            <AdminButton tone="subtle" disabled={syncing} onClick={handleSync}>
+              <RefreshCw size={16} className={syncing ? "animate-spin" : ""} />
+              {syncing ? "同步中..." : "同步计数"}
+            </AdminButton>
+            <AdminButton tone="primary" onClick={() => setNewTagMode(true)}>
+              <Plus size={16} />
+              新建标签
+            </AdminButton>
+          </>
+        }
+        toolbar={
+          <AdminToolbar>
+            <ToolbarGroup className="flex-1">
+              <div className="relative min-w-[260px] flex-1 max-w-md">
+                <Search
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                  size={16}
+                />
+                <input
+                  type="text"
+                  placeholder="搜索标签"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-black/40 py-2.5 pl-10 pr-4 text-white outline-none transition-colors focus:border-indigo-500"
+                />
+              </div>
+            </ToolbarGroup>
+            <ToolbarGroup>
+              {SECTION_OPTIONS.map((section) => (
+                <FilterChip
+                  key={section.id}
+                  active={selectedSection === section.id}
+                  onClick={() => setSelectedSection(section.id)}
+                >
+                  {section.label}
+                </FilterChip>
+              ))}
+            </ToolbarGroup>
+          </AdminToolbar>
+        }
+      >
+        {newTagMode ? (
+          <AdminPanel className="border-indigo-500/20 bg-indigo-500/10">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <input
+                type="text"
+                value={newTagName}
+                onChange={(event) => setNewTagName(event.target.value)}
+                placeholder="输入标签名称"
+                className="flex-1 rounded-xl border border-white/10 bg-black/40 p-3 text-white outline-none transition-colors focus:border-indigo-500"
+                autoFocus
+                onKeyDown={(event) => event.key === "Enter" && handleCreate()}
+              />
+              <div className="flex gap-2">
+                <AdminButton tone="primary" disabled={submitting} onClick={handleCreate}>
+                  <Check size={16} />
+                  创建
+                </AdminButton>
+                <AdminButton
+                  tone="subtle"
+                  onClick={() => {
+                    setNewTagMode(false);
+                    setNewTagName("");
+                  }}
+                >
+                  <X size={16} />
+                  取消
+                </AdminButton>
               </div>
             </div>
-          ))}
-        </div>
-      )}
-    </div>
+          </AdminPanel>
+        ) : null}
+
+        <AdminPanel title={`标签列表 (${filteredTags.length})`}>
+          {filteredTags.length === 0 ? (
+            <AdminEmptyState
+              icon={Tag}
+              title="没有匹配的标签"
+              description="可以清空搜索词、切换资源类型，或者直接新建标签。"
+            />
+          ) : (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {filteredTags.map((tag) => (
+                <div
+                  key={tag.id}
+                  className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition-colors hover:bg-white/5"
+                >
+                  {editingId === tag.id ? (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={editName}
+                        onChange={(event) => setEditName(event.target.value)}
+                        className="flex-1 rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-indigo-500"
+                        autoFocus
+                        onKeyDown={(event) =>
+                          event.key === "Enter" && handleUpdate(tag.id)
+                        }
+                      />
+                      <button
+                        onClick={() => handleUpdate(tag.id)}
+                        className="inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-300 transition-colors hover:bg-emerald-500/20"
+                      >
+                        <Check size={16} />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingId(null);
+                          setEditName("");
+                        }}
+                        className="inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-xl bg-white/5 text-gray-300 transition-colors hover:bg-white/10"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="truncate text-base font-semibold text-white">
+                          {tag.name}
+                        </div>
+                        <div className="mt-2 text-xs text-gray-500">
+                          引用数 {tag.count || 0}
+                        </div>
+                      </div>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => startEdit(tag)}
+                          className="inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg bg-white/5 text-gray-400 transition-colors hover:bg-white/10 hover:text-indigo-300"
+                          title="编辑标签"
+                        >
+                          <Edit2 size={15} />
+                        </button>
+                        <button
+                          onClick={() => setDeleteTag(tag)}
+                          className="inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg bg-white/5 text-gray-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
+                          title="删除标签"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </AdminPanel>
+      </AdminPageShell>
+
+      <ConfirmDialog
+        open={Boolean(deleteTag)}
+        title="确认删除标签"
+        description={
+          deleteTag
+            ? `删除“${deleteTag.name}”后，会同时从相关资源的标签字段中移除该标签。`
+            : ""
+        }
+        confirmText="确认删除"
+        tone="danger"
+        pending={submitting}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTag(null)}
+      />
+    </>
   );
 };
 
