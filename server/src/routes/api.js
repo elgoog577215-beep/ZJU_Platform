@@ -18,16 +18,40 @@ const tagController = require('../controllers/tagController');
 const notificationController = require('../controllers/notificationController');
 const commentController = require('../controllers/commentController');
 const communityController = require('../controllers/communityController');
+const newsController = require('../controllers/newsController');
 const { logger } = require('../utils/logger');
 
 const { authenticateToken, isAdmin, optionalAuth } = require('../middleware/auth');
 const { validate, registerValidation, loginValidation, changePasswordValidation, settingsValidation, resourceValidation } = require('../middleware/validate');
 const authController = require('../controllers/authController');
 // FIX: BUG-04 — Import bruteForceProtection middleware
-const { bruteForceProtection } = require('../middleware/security');
+const { bruteForceProtection, customRateLimit } = require('../middleware/security');
 
 // Note: Rate limiting is configured globally in server/index.js
 // No need for additional rate limiters here to avoid double-counting
+const communityPostCreateLimiter = customRateLimit({
+  windowMs: 10 * 60 * 1000,
+  maxRequests: 12,
+  keyGenerator: (req) => req.user?.id ? `community-post:${req.user.id}` : `community-post:${req.ip}`,
+  handler: (_req, res) => {
+    res.status(429).json({
+      error: '发帖过于频繁，请稍后再试',
+      retryAfter: 10 * 60,
+    });
+  },
+});
+
+const communityCommentCreateLimiter = customRateLimit({
+  windowMs: 5 * 60 * 1000,
+  maxRequests: 30,
+  keyGenerator: (req) => req.user?.id ? `community-comment:${req.user.id}` : `community-comment:${req.ip}`,
+  handler: (_req, res) => {
+    res.status(429).json({
+      error: '回复过于频繁，请稍后再试',
+      retryAfter: 5 * 60,
+    });
+  },
+});
 
 // Auth Routes
 router.post('/auth/register', validate(registerValidation), authController.register);
@@ -71,10 +95,13 @@ router.delete('/comments/:id', authenticateToken, commentController.deleteCommen
 // Community Routes
 router.get('/community/posts', optionalAuth, communityController.listPosts);
 router.get('/community/posts/:id', optionalAuth, communityController.getPost);
-router.post('/community/posts', authenticateToken, communityController.createPost);
+router.post('/community/posts', authenticateToken, communityPostCreateLimiter, communityController.createPost);
+router.delete('/community/posts/:id', authenticateToken, communityController.deletePost);
+router.post('/community/posts/:id/report', authenticateToken, communityController.reportPostContent);
 router.post('/community/posts/:id/like', authenticateToken, communityController.togglePostLike);
 router.get('/community/posts/:id/comments', optionalAuth, communityController.listPostComments);
-router.post('/community/posts/:id/comments', authenticateToken, communityController.createPostComment);
+router.post('/community/posts/:id/comments', authenticateToken, communityCommentCreateLimiter, communityController.createPostComment);
+router.delete('/community/posts/:id/comments/:commentId', authenticateToken, communityController.deletePostComment);
 router.put('/community/posts/:id/status', authenticateToken, communityController.updatePostStatus);
 router.put('/community/posts/:id/solve', authenticateToken, communityController.solvePost);
 router.post('/community/posts/:id/join', authenticateToken, communityController.joinTeamPost);
@@ -83,10 +110,20 @@ router.get('/community/posts/:id/members', optionalAuth, communityController.lis
 router.get('/community/search', optionalAuth, communityController.searchPosts);
 
 // Community Groups
-router.get('/community/groups', communityController.listGroups);
+router.get('/community/groups', optionalAuth, communityController.listGroups);
 router.post('/community/groups', authenticateToken, communityController.createGroup);
 router.put('/community/groups/:id', authenticateToken, communityController.updateGroup);
 router.delete('/community/groups/:id', authenticateToken, communityController.deleteGroup);
+
+// News
+router.get('/news', optionalAuth, newsController.listNews);
+router.get('/news/:id', optionalAuth, newsController.getNews);
+router.get('/news/:id/source-health', optionalAuth, newsController.checkNewsSourceHealth);
+router.post('/news', authenticateToken, newsController.createNews);
+router.post('/news/import', authenticateToken, newsController.importNews);
+router.put('/news/:id', authenticateToken, newsController.updateNews);
+router.put('/news/:id/review', authenticateToken, isAdmin, newsController.reviewNews);
+router.delete('/news/:id', authenticateToken, newsController.deleteNews);
 
 // Admin Community Routes
 router.get('/admin/community/stats', authenticateToken, isAdmin, communityController.adminCommunityStats);
@@ -121,6 +158,9 @@ router.post('/fs/content', authenticateToken, isAdmin, fsController.saveFileCont
 
 // Resource Routes (Generic)
 const resources = ['photos', 'music', 'videos', 'articles', 'events'];
+
+// Allow article owners to restore their own soft-deleted drafts/submissions.
+router.post('/articles/:id/recover', authenticateToken, resourceController.restoreOwnHandler('articles'));
 
 // Specific routes that shouldn't be overridden by the loop
 // Event Registration Routes

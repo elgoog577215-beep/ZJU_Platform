@@ -1,5 +1,6 @@
 import axios from 'axios';
 import errorMonitor from '../utils/errorMonitor';
+import { resolveCommunityMock } from '../mocks/communityMockApi';
 
 // Create an axios instance
 // We use a relative path '/api' which Vite will proxy to the backend
@@ -9,6 +10,8 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+const useCommunityMock = import.meta.env.VITE_USE_COMMUNITY_MOCK === '1';
 
 const isCanceledRequest = (error) =>
   axios.isCancel?.(error) ||
@@ -86,6 +89,37 @@ export const uploadFile = (endpoint, formData) => {
         },
     });
 };
+
+if (useCommunityMock) {
+  const originalGet = api.get.bind(api);
+  const originalPost = api.post.bind(api);
+  const originalPut = api.put.bind(api);
+  const originalDelete = api.delete.bind(api);
+
+  api.get = (url, config = {}) => {
+    const mocked = resolveCommunityMock('get', url, config);
+    if (mocked) return Promise.resolve(mocked);
+    return originalGet(url, config);
+  };
+
+  api.post = (url, data, config = {}) => {
+    const mocked = resolveCommunityMock('post', url, data);
+    if (mocked) return Promise.resolve(mocked);
+    return originalPost(url, data, config);
+  };
+
+  api.put = (url, data, config = {}) => {
+    const mocked = resolveCommunityMock('put', url, data);
+    if (mocked) return Promise.resolve(mocked);
+    return originalPut(url, data, config);
+  };
+
+  api.delete = (url, config = {}) => {
+    const mocked = resolveCommunityMock('delete', url, config?.data || {});
+    if (mocked) return Promise.resolve(mocked);
+    return originalDelete(url, config);
+  };
+}
 
 export default api;
 export { isCanceledRequest };

@@ -1,6 +1,7 @@
 const { getDb } = require('../config/db');
 
 const ALLOWED_SECTIONS = new Set(['help', 'tech', 'news', 'team', 'groups']);
+const ALLOWED_GROUP_PLATFORMS = new Set(['wechat', 'qq', 'discord', 'telegram', 'other']);
 
 const normalizeSection = (value) => {
   const section = String(value || '').trim().toLowerCase();
@@ -15,6 +16,174 @@ const parseTags = (input) => {
     .filter(Boolean)
     .slice(0, 12)
     .join(',');
+};
+
+const sanitizeCommunityText = (input) => {
+  if (typeof input !== 'string') return '';
+  // Keep text readable while removing executable payloads.
+  return input
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, '')
+    .replace(/javascript:/gi, '')
+    .replace(/on\w+\s*=/gi, '')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .trim();
+};
+
+const reportPostContent = async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const { id } = req.params;
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: 'Login required' });
+
+    const post = await db.get('SELECT id, status FROM community_posts WHERE id = ?', [id]);
+    if (!post || post.status !== 'approved') {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    const targetType = String(req.body.target_type || 'post').trim().toLowerCase();
+    if (targetType !== 'post' && targetType !== 'comment') {
+      return res.status(400).json({ error: 'Invalid target type' });
+    }
+
+    let targetCommentId = null;
+    if (targetType === 'comment') {
+      const parsedCommentId = parseInt(req.body.target_id, 10);
+      if (!Number.isInteger(parsedCommentId) || parsedCommentId <= 0) {
+        return res.status(400).json({ error: 'Invalid target comment id' });
+      }
+      const comment = await db.get(
+        'SELECT id FROM comments WHERE id = ? AND resource_type = "community_post" AND resource_id = ?',
+        [parsedCommentId, id]
+      );
+      if (!comment) {
+        return res.status(404).json({ error: 'Comment not found' });
+      }
+      targetCommentId = parsedCommentId;
+    }
+
+    const reason = sanitizeCommunityText(String(req.body.reason || '')).slice(0, 300);
+    const duplicate = await db.get(
+      `
+      SELECT id FROM community_reports
+      WHERE post_id = ?
+        AND reporter_id = ?
+        AND target_type = ?
+        AND COALESCE(comment_id, 0) = COALESCE(?, 0)
+      `,
+      [id, userId, targetType, targetCommentId]
+    );
+    if (duplicate) {
+      return res.status(409).json({ error: 'Already reported' });
+    }
+
+    await db.run(
+      `
+      INSERT INTO community_reports (post_id, comment_id, target_type, reason, reporter_id, created_at)
+      VALUES (?, ?, ?, ?, ?, datetime('now'))
+      `,
+      [id, targetCommentId, targetType, reason || null, userId]
+    );
+    res.status(201).json({ success: true });
+  } catch (error) { next(error); }
+};
+
+const deletePost = async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const { id } = req.params;
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: 'Login required' });
+
+    const post = await db.get('SELECT id, author_id, status FROM community_posts WHERE id = ?', [id]);
+    if (!post || post.status === 'deleted') {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    const actor = await db.get('SELECT role FROM users WHERE id = ?', [userId]);
+    const canDelete = actor?.role === 'admin' || post.author_id === userId;
+    if (!canDelete) {
+      return res.status(403).json({ error: 'Permission denied' });
+    }
+
+    await db.run(
+      `UPDATE community_posts
+       SET status = 'deleted', updated_at = datetime('now')
+       WHERE id = ?`,
+      [id]
+    );
+    res.json({ success: true });
+  } catch (error) { next(error); }
+};
+
+const deletePostComment = async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const { id, commentId } = req.params;
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: 'Login required' });
+
+    const post = await db.get('SELECT id, author_id, status FROM community_posts WHERE id = ?', [id]);
+    if (!post || post.status !== 'approved') {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    const comment = await db.get(
+      `
+      SELECT id, user_id, parent_id
+      FROM comments
+      WHERE id = ? AND resource_type = 'community_post' AND resource_id = ?
+      `,
+      [commentId, id]
+    );
+    if (!comment) {
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+
+    const actor = await db.get('SELECT role FROM users WHERE id = ?', [userId]);
+    const canDelete = actor?.role === 'admin' || comment.user_id === userId || post.author_id === userId;
+    if (!canDelete) {
+      return res.status(403).json({ error: 'Permission denied' });
+    }
+
+    let result;
+    if (!comment.parent_id) {
+      result = await db.run(
+        `
+        DELETE FROM comments
+        WHERE resource_type = 'community_post'
+          AND resource_id = ?
+          AND (id = ? OR root_id = ?)
+        `,
+        [id, comment.id, comment.id]
+      );
+    } else {
+      result = await db.run(
+        `
+        DELETE FROM comments
+        WHERE id = ? AND resource_type = 'community_post' AND resource_id = ?
+        `,
+        [comment.id, id]
+      );
+    }
+
+    await db.run(
+      `
+      UPDATE community_posts
+      SET comments_count = (
+        SELECT COUNT(*) FROM comments
+        WHERE resource_type = 'community_post' AND resource_id = ?
+      ),
+      updated_at = datetime('now')
+      WHERE id = ?
+      `,
+      [id, id]
+    );
+
+    res.json({ success: true, deleted: result?.changes || 0 });
+  } catch (error) { next(error); }
 };
 
 const normalizePostStatus = (section, status) => {
@@ -61,11 +230,90 @@ const serializePost = (row) => {
     max_members: row.max_members || null,
     current_members: row.current_members || 0,
     solved_comment_id: row.solved_comment_id || null,
+    is_pinned: Boolean(row.is_pinned),
+    pin_weight: row.pin_weight || 0,
+    last_replied_at: row.last_replied_at || null,
     created_at: row.created_at,
     updated_at: row.updated_at,
     excerpt: row.content ? String(row.content).slice(0, 120) : ''
   };
 };
+
+const normalizeHttpUrl = (value) => {
+  const raw = String(value || '').trim();
+  if (!raw) return null;
+  try {
+    const parsed = new URL(raw);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return null;
+    }
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+};
+
+const normalizeGroupPlatform = (value) => {
+  const platform = String(value || '').trim().toLowerCase();
+  if (!platform) return 'wechat';
+  return ALLOWED_GROUP_PLATFORMS.has(platform) ? platform : null;
+};
+
+const normalizeValidUntil = (value) => {
+  const raw = String(value || '').trim();
+  if (!raw) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString().slice(0, 10);
+};
+
+const deriveExpiredFlag = (validUntil, explicitFlag, fallback = 0) => {
+  if (typeof explicitFlag === 'boolean') return explicitFlag ? 1 : 0;
+  if (explicitFlag === 1 || explicitFlag === 0) return explicitFlag;
+  if (validUntil) {
+    const today = new Date().toISOString().slice(0, 10);
+    if (validUntil < today) return 1;
+  }
+  return fallback ? 1 : 0;
+};
+
+const serializeGroup = (row) => {
+  const validUntil = row.valid_until || null;
+  const autoExpired = validUntil ? (validUntil < new Date().toISOString().slice(0, 10) ? 1 : 0) : 0;
+  return {
+    ...row,
+    is_expired: row.is_expired ? 1 : autoExpired,
+    review_note: row.review_note || null,
+  };
+};
+
+const serializeComment = (row) => ({
+  id: row.id,
+  resource_type: row.resource_type,
+  resource_id: row.resource_id,
+  user_id: row.user_id,
+  parent_id: row.parent_id || null,
+  root_id: row.root_id || null,
+  reply_to_comment_id: row.reply_to_comment_id || null,
+  floor_number: row.floor_number || null,
+  quote_snapshot: (() => {
+    if (!row.quote_snapshot) return null;
+    try {
+      return typeof row.quote_snapshot === 'string'
+        ? JSON.parse(row.quote_snapshot)
+        : row.quote_snapshot;
+    } catch {
+      return null;
+    }
+  })(),
+  author: row.author || row.author_name || '匿名用户',
+  author_name: row.author || row.author_name || '匿名用户',
+  avatar: row.avatar || null,
+  content: row.content,
+  created_at: row.created_at,
+  likes: row.likes || 0,
+});
 
 const listPosts = async (req, res, next) => {
   try {
@@ -99,8 +347,8 @@ const listPosts = async (req, res, next) => {
 
     const whereSQL = `WHERE ${whereClauses.join(' AND ')}`;
     const orderSQL = sort === 'hot'
-      ? 'ORDER BY likes_count DESC, comments_count DESC, id DESC'
-      : 'ORDER BY id DESC';
+      ? 'ORDER BY COALESCE(is_pinned, 0) DESC, COALESCE(pin_weight, 0) DESC, likes_count DESC, comments_count DESC, id DESC'
+      : 'ORDER BY COALESCE(is_pinned, 0) DESC, COALESCE(pin_weight, 0) DESC, COALESCE(last_replied_at, created_at) DESC, id DESC';
 
     const rows = await db.all(
       `SELECT * FROM community_posts ${whereSQL} ${orderSQL} LIMIT ? OFFSET ?`,
@@ -147,8 +395,8 @@ const createPost = async (req, res, next) => {
     }
 
     const section = normalizeSection(req.body.section);
-    const title = String(req.body.title || '').trim();
-    const content = String(req.body.content || '').trim();
+    const title = sanitizeCommunityText(String(req.body.title || ''));
+    const content = sanitizeCommunityText(String(req.body.content || ''));
     const tags = parseTags(req.body.tags);
     const contentBlocks = req.body.content_blocks || null;
     const link = req.body.link ? String(req.body.link).trim() : null;
@@ -177,6 +425,7 @@ const createPost = async (req, res, next) => {
       ? Math.min(Math.max(parseInt(maxMembersRaw, 10), 2), 100)
       : null;
     const currentMembers = section === 'team' ? 1 : 0;
+
     const result = await db.run(
       `
       INSERT INTO community_posts
@@ -185,6 +434,13 @@ const createPost = async (req, res, next) => {
       `,
       [section, title, content, contentBlocks, link, tags, status, postStatus, deadline, maxMembers, currentMembers, userId, authorName, user.avatar || null]
     );
+
+    if (section === 'team') {
+      await db.run(
+        'INSERT OR IGNORE INTO community_post_members (post_id, user_id, created_at) VALUES (?, ?, datetime("now"))',
+        [result.lastID, userId]
+      );
+    }
 
     const post = await db.get('SELECT * FROM community_posts WHERE id = ?', [result.lastID]);
     res.status(201).json(serializePost(post));
@@ -241,12 +497,13 @@ const listPostComments = async (req, res, next) => {
   try {
     const db = await getDb();
     const { id } = req.params;
+    const sort = String(req.query.sort || 'oldest').trim().toLowerCase();
     const comments = await db.all(
       `
-      SELECT id, resource_type, resource_id, user_id, author, author_name, avatar, content, created_at
+      SELECT id, resource_type, resource_id, user_id, author, author_name, avatar, content, created_at, parent_id, root_id, reply_to_comment_id, floor_number, quote_snapshot, likes
       FROM comments
       WHERE resource_id = ? AND resource_type = 'community_post'
-      ORDER BY created_at DESC
+      ORDER BY COALESCE(floor_number, 999999) ASC, created_at ASC
       `,
       [id]
     );
@@ -254,7 +511,55 @@ const listPostComments = async (req, res, next) => {
       ...item,
       author: item.author || item.author_name || '匿名用户'
     }));
-    res.json(normalized);
+    const floors = normalized
+      .filter((item) => !item.parent_id)
+      .sort((a, b) => {
+        if (sort === 'hot') {
+          const likeDiff = (b.likes || 0) - (a.likes || 0);
+          if (likeDiff !== 0) return likeDiff;
+          return new Date(b.created_at) - new Date(a.created_at);
+        }
+        if (sort === 'newest') {
+          return new Date(b.created_at) - new Date(a.created_at);
+        }
+        return (a.floor_number || 0) - (b.floor_number || 0);
+      });
+
+    const commentById = new Map(normalized.map((item) => [item.id, item]));
+    const repliesMap = new Map();
+    normalized
+      .filter((item) => item.parent_id)
+      .forEach((item) => {
+        const key = item.root_id || item.parent_id;
+        const bucket = repliesMap.get(key) || [];
+        bucket.push(item);
+        repliesMap.set(key, bucket);
+      });
+    res.json(
+      floors.map((item) => ({
+        ...serializeComment(item),
+        replies: (repliesMap.get(item.id) || [])
+          .sort((a, b) => {
+            if (sort === 'hot') {
+              const likeDiff = (b.likes || 0) - (a.likes || 0);
+              if (likeDiff !== 0) return likeDiff;
+              return new Date(b.created_at) - new Date(a.created_at);
+            }
+            if (sort === 'newest') {
+              return new Date(b.created_at) - new Date(a.created_at);
+            }
+            return new Date(a.created_at) - new Date(b.created_at);
+          })
+          .map((reply) => {
+            const base = serializeComment(reply);
+            const replyTarget = reply.reply_to_comment_id ? commentById.get(reply.reply_to_comment_id) : null;
+            return {
+              ...base,
+              reply_to_author: replyTarget ? (replyTarget.author || replyTarget.author_name || '匿名用户') : null,
+            };
+          }),
+      }))
+    );
   } catch (error) { next(error); }
 };
 
@@ -272,20 +577,70 @@ const createPostComment = async (req, res, next) => {
       return res.status(404).json({ error: 'Post not found' });
     }
 
-    const content = String(req.body.content || '').trim();
+    const content = sanitizeCommunityText(String(req.body.content || ''));
     if (!content) {
       return res.status(400).json({ error: 'Comment content is required' });
     }
 
     const user = await db.get('SELECT username, nickname, avatar FROM users WHERE id = ?', [userId]);
+    const rawParentId = req.body.parent_id ? parseInt(req.body.parent_id, 10) : null;
+    const rawReplyToCommentId = req.body.reply_to_comment_id ? parseInt(req.body.reply_to_comment_id, 10) : null;
+    let parentId = Number.isInteger(rawParentId) && rawParentId > 0 ? rawParentId : null;
+    let replyToCommentId = Number.isInteger(rawReplyToCommentId) && rawReplyToCommentId > 0 ? rawReplyToCommentId : null;
+    let rootId = null;
+    let floorNumber = null;
+    let quoteSnapshot = null;
     const authorName = user?.nickname || user?.username || '匿名用户';
+
+    if (replyToCommentId) {
+      const replyTarget = await db.get(
+        'SELECT id, content, author, author_name, parent_id, root_id FROM comments WHERE id = ? AND resource_type = "community_post" AND resource_id = ?',
+        [replyToCommentId, id]
+      );
+      if (!replyTarget) {
+        return res.status(404).json({ error: 'Reply target not found' });
+      }
+      quoteSnapshot = JSON.stringify({
+        id: replyTarget.id,
+        author: replyTarget.author || replyTarget.author_name || '匿名用户',
+        content: String(replyTarget.content || '').slice(0, 140)
+      });
+      if (!parentId) {
+        parentId = replyTarget.parent_id
+          ? (replyTarget.root_id || replyTarget.parent_id)
+          : replyTarget.id;
+      }
+    }
+
+    if (parentId) {
+      const parent = await db.get(
+        'SELECT id, parent_id, root_id FROM comments WHERE id = ? AND resource_type = "community_post" AND resource_id = ?',
+        [parentId, id]
+      );
+      if (!parent) {
+        return res.status(404).json({ error: 'Parent comment not found' });
+      }
+      // Keep at most 2 levels: any reply to a reply is attached to the root floor.
+      const floorRoot = parent.parent_id ? (parent.root_id || parent.parent_id) : parent.id;
+      rootId = floorRoot;
+      parentId = floorRoot;
+      if (!replyToCommentId) {
+        replyToCommentId = parent.id;
+      }
+    } else {
+      const floorRow = await db.get(
+        'SELECT COALESCE(MAX(floor_number), 0) AS max_floor FROM comments WHERE resource_type = "community_post" AND resource_id = ? AND parent_id IS NULL',
+        [id]
+      );
+      floorNumber = (floorRow?.max_floor || 0) + 1;
+    }
 
     const result = await db.run(
       `
-      INSERT INTO comments (resource_type, resource_id, user_id, author, content, avatar, created_at)
-      VALUES ('community_post', ?, ?, ?, ?, ?, datetime('now'))
+      INSERT INTO comments (resource_type, resource_id, user_id, author, content, avatar, parent_id, root_id, reply_to_comment_id, floor_number, quote_snapshot, created_at)
+      VALUES ('community_post', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
       `,
-      [id, userId, authorName, content, user?.avatar || null]
+      [id, userId, authorName, content, user?.avatar || null, parentId, rootId, replyToCommentId, floorNumber, quoteSnapshot]
     );
 
     await db.run(
@@ -295,6 +650,7 @@ const createPostComment = async (req, res, next) => {
         SELECT COUNT(*) FROM comments
         WHERE resource_type = 'community_post' AND resource_id = ?
       ),
+      last_replied_at = datetime('now'),
       updated_at = datetime('now')
       WHERE id = ?
       `,
@@ -302,10 +658,7 @@ const createPostComment = async (req, res, next) => {
     );
 
     const newComment = await db.get('SELECT * FROM comments WHERE id = ?', [result.lastID]);
-    res.status(201).json({
-      ...newComment,
-      author: newComment.author || newComment.author_name || authorName
-    });
+    res.status(201).json(serializeComment(newComment));
   } catch (error) { next(error); }
 };
 
@@ -509,8 +862,21 @@ const listTeamMembers = async (req, res, next) => {
 const listGroups = async (req, res, next) => {
   try {
     const db = await getDb();
-    const rows = await db.all('SELECT * FROM community_groups ORDER BY id DESC');
-    res.json(rows);
+    const requestedReviewStatus = String(req.query.review_status || 'approved').trim().toLowerCase();
+    const actor = req.user?.id
+      ? await db.get('SELECT role FROM users WHERE id = ?', [req.user.id])
+      : null;
+    const reviewStatus = actor?.role === 'admin'
+      ? requestedReviewStatus
+      : 'approved';
+    const params = [];
+    let where = '';
+    if (reviewStatus !== 'all') {
+      where = 'WHERE review_status = ?';
+      params.push(reviewStatus);
+    }
+    const rows = await db.all(`SELECT * FROM community_groups ${where} ORDER BY is_recommended DESC, sort_order DESC, id DESC`, params);
+    res.json(rows.map(serializeGroup));
   } catch (error) { next(error); }
 };
 
@@ -519,16 +885,43 @@ const createGroup = async (req, res, next) => {
     const db = await getDb();
     const userId = req.user?.id;
     if (!userId) return res.status(401).json({ error: 'Login required' });
-    const { name, description, platform, qr_code_url, invite_link, member_count, category } = req.body;
+    const { name, description, platform, qr_code_url, invite_link, member_count, category, valid_until, is_recommended, sort_order, is_expired, review_note } = req.body;
     if (!name || !name.trim()) return res.status(400).json({ error: 'Group name is required' });
+    const actor = await db.get('SELECT role FROM users WHERE id = ?', [userId]);
+    const reviewStatus = actor?.role === 'admin' ? 'approved' : 'pending';
+    const normalizedPlatform = normalizeGroupPlatform(platform);
+    const normalizedQr = normalizeHttpUrl(qr_code_url);
+    const normalizedInvite = normalizeHttpUrl(invite_link);
+    const normalizedValidUntil = normalizeValidUntil(valid_until);
+    if (!normalizedPlatform) return res.status(400).json({ error: 'Invalid platform type' });
+    if (qr_code_url && !normalizedQr) return res.status(400).json({ error: 'Invalid QR code URL' });
+    if (invite_link && !normalizedInvite) return res.status(400).json({ error: 'Invalid invite link URL' });
+    if (valid_until && !normalizedValidUntil) return res.status(400).json({ error: 'Invalid valid_until date' });
+    const adminMode = actor?.role === 'admin';
+    const expiredFlag = deriveExpiredFlag(normalizedValidUntil, adminMode ? is_expired : undefined, 0);
 
     const result = await db.run(
-      `INSERT INTO community_groups (name, description, platform, qr_code_url, invite_link, member_count, category, created_by)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [name.trim(), description || '', platform || 'wechat', qr_code_url || null, invite_link || null, member_count || 0, category || null, userId]
+      `INSERT INTO community_groups (name, description, platform, qr_code_url, invite_link, member_count, category, created_by, review_status, valid_until, is_recommended, sort_order, is_expired, review_note)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        name.trim(),
+        description || '',
+        normalizedPlatform,
+        normalizedQr,
+        normalizedInvite,
+        member_count || 0,
+        category || null,
+        userId,
+        reviewStatus,
+        normalizedValidUntil,
+        adminMode && is_recommended ? 1 : 0,
+        adminMode ? (sort_order || 0) : 0,
+        expiredFlag,
+        adminMode ? (review_note || null) : null,
+      ]
     );
     const group = await db.get('SELECT * FROM community_groups WHERE id = ?', [result.lastID]);
-    res.status(201).json(group);
+    res.status(201).json(serializeGroup(group));
   } catch (error) { next(error); }
 };
 
@@ -545,13 +938,40 @@ const updateGroup = async (req, res, next) => {
       return res.status(403).json({ error: 'Permission denied' });
     }
 
-    const { name, description, platform, qr_code_url, invite_link, member_count, category } = req.body;
+    const { name, description, platform, qr_code_url, invite_link, member_count, category, review_status, valid_until, is_recommended, sort_order, is_expired, review_note } = req.body;
+    if (name !== undefined && !String(name).trim()) {
+      return res.status(400).json({ error: 'Group name is required' });
+    }
+    const normalizedPlatform = platform !== undefined ? normalizeGroupPlatform(platform) : group.platform;
+    const normalizedQr = qr_code_url !== undefined ? normalizeHttpUrl(qr_code_url) : group.qr_code_url;
+    const normalizedInvite = invite_link !== undefined ? normalizeHttpUrl(invite_link) : group.invite_link;
+    const normalizedValidUntil = valid_until !== undefined ? normalizeValidUntil(valid_until) : group.valid_until;
+    if (!normalizedPlatform) return res.status(400).json({ error: 'Invalid platform type' });
+    if (qr_code_url !== undefined && qr_code_url && !normalizedQr) return res.status(400).json({ error: 'Invalid QR code URL' });
+    if (invite_link !== undefined && invite_link && !normalizedInvite) return res.status(400).json({ error: 'Invalid invite link URL' });
+    if (valid_until !== undefined && valid_until && !normalizedValidUntil) return res.status(400).json({ error: 'Invalid valid_until date' });
+    const expiredFlag = deriveExpiredFlag(normalizedValidUntil, actor.role === 'admin' ? is_expired : undefined, group.is_expired);
     await db.run(
-      `UPDATE community_groups SET name=?, description=?, platform=?, qr_code_url=?, invite_link=?, member_count=?, category=?, updated_at=datetime('now') WHERE id=?`,
-      [name || group.name, description ?? group.description, platform || group.platform, qr_code_url ?? group.qr_code_url, invite_link ?? group.invite_link, member_count ?? group.member_count, category ?? group.category, id]
+      `UPDATE community_groups SET name=?, description=?, platform=?, qr_code_url=?, invite_link=?, member_count=?, category=?, review_status=?, valid_until=?, is_recommended=?, sort_order=?, is_expired=?, review_note=?, updated_at=datetime('now') WHERE id=?`,
+      [
+        name !== undefined ? String(name).trim() : group.name,
+        description ?? group.description,
+        normalizedPlatform,
+        normalizedQr,
+        normalizedInvite,
+        member_count ?? group.member_count,
+        category ?? group.category,
+        actor.role === 'admin' ? (review_status || group.review_status || 'approved') : group.review_status,
+        normalizedValidUntil,
+        typeof is_recommended === 'boolean' ? (is_recommended ? 1 : 0) : group.is_recommended,
+        sort_order ?? group.sort_order,
+        expiredFlag,
+        actor.role === 'admin' ? (review_note ?? group.review_note ?? null) : (group.review_note ?? null),
+        id
+      ]
     );
     const updated = await db.get('SELECT * FROM community_groups WHERE id = ?', [id]);
-    res.json(updated);
+    res.json(serializeGroup(updated));
   } catch (error) { next(error); }
 };
 
@@ -674,9 +1094,12 @@ module.exports = {
   listPosts,
   getPost,
   createPost,
+  deletePost,
+  reportPostContent,
   togglePostLike,
   listPostComments,
   createPostComment,
+  deletePostComment,
   searchPosts,
   updatePostStatus,
   joinTeamPost,

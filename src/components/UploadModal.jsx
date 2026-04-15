@@ -421,6 +421,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   // Reset form when modal opens with new data or closes
   React.useEffect(() => {
     if (isOpen) {
+        setSubmitIntent('publish');
         if (!user) {
             toast.error(t('auth.signin_desc'));
             onClose();
@@ -840,6 +841,8 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   };
 
   const [isUploading, setIsUploading] = useState(false);
+  const [submitIntent, setSubmitIntent] = useState('publish');
+  const formRef = React.useRef(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -909,6 +912,10 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
       const fallbackExcerpt = firstTextBlock?.text?.trim()?.slice(0, 160) || description;
 
       // 2. Construct new item
+      const resolvedStatus = submitIntent === 'draft'
+        ? 'draft'
+        : (isAdmin ? 'approved' : 'pending');
+
       const newItem = {
         ...initialData, // Keep existing ID and other fields if editing
         title,
@@ -933,7 +940,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         score: type === 'event' ? eventScore : null,
         target_audience: type === 'event' ? eventTarget : null,
         organizer: type === 'event' ? eventOrganizer : null,
-        status: initialData?.status || 'pending', // Default to pending review
+        status: resolvedStatus,
         volunteer_time: type === 'event' ? eventVolunteerTime : null,
 
         // Cover/Thumbnail logic
@@ -959,15 +966,17 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         })
       };
 
-      await onUpload(newItem);
+      await onUpload(newItem, { intent: submitIntent });
       if (type === 'article') {
         localStorage.removeItem(articleDraftStorageKey);
         setHasLocalDraft(false);
       }
       
-      const successMessage = isEditing 
-        ? t('upload.update_success')
-        : (isAdmin ? t('upload.upload_success') : t('upload.upload_pending_review'));
+      const successMessage = submitIntent === 'draft'
+        ? '草稿已保存'
+        : (isEditing
+          ? t('upload.update_success')
+          : (isAdmin ? t('upload.upload_success') : t('upload.upload_pending_review')));
       
       toast.success(successMessage);
       onClose();
@@ -1103,7 +1112,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             </div>
 
             {/* Form Content - Scrollable */}
-            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar relative z-10 flex flex-col">
+            <form ref={formRef} onSubmit={handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar relative z-10 flex flex-col">
               <div className={`${type === 'article' ? 'p-4 sm:p-6' : 'p-5 sm:p-8'} flex-1 ${type === 'article' ? 'space-y-4 sm:space-y-5' : 'space-y-6 sm:space-y-8'}`}>
               {type === 'event' ? (
                 <>
@@ -1862,7 +1871,13 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                   {t('common.cancel')}
                 </button>
                 <button
-                  type="submit"
+                  type={type === 'article' ? 'button' : 'submit'}
+                  onClick={() => {
+                    if (type === 'article') {
+                      setSubmitIntent('publish');
+                      formRef.current?.requestSubmit();
+                    }
+                  }}
                   disabled={isUploading}
                   className="w-full sm:w-auto px-8 py-4 sm:py-3.5 bg-white text-black rounded-2xl hover:bg-gray-100 hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 font-black text-sm shadow-xl shadow-white/10"
                 >
@@ -1874,10 +1889,24 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                   ) : (
                     <>
                       {type === 'article' ? <PenSquare size={20} /> : <Upload size={20} />}
-                      <span>{isEditing ? t('common.save') : type === 'article' ? '发布文章' : t('common.upload_now')}</span>
+                      <span>{isEditing ? t('common.save') : type === 'article' ? '提交发布' : t('common.upload_now')}</span>
                     </>
                   )}
                 </button>
+                {type === 'article' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSubmitIntent('draft');
+                      formRef.current?.requestSubmit();
+                    }}
+                    disabled={isUploading}
+                    className="w-full sm:w-auto px-6 py-4 sm:py-3.5 rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm border border-white/15 bg-white/5 text-gray-200 hover:bg-white/10"
+                  >
+                    <PenSquare size={18} />
+                    <span>保存草稿</span>
+                  </button>
+                )}
               </div>
             </form>
           </motion.div>

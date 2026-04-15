@@ -60,6 +60,8 @@ const AdminCommunity = () => {
   const [groupForm, setGroupForm] = useState(EMPTY_GROUP_FORM);
   const [groupSaving, setGroupSaving] = useState(false);
   const [deleteGroupId, setDeleteGroupId] = useState(null);
+  const [groupReviewFilter, setGroupReviewFilter] = useState("all");
+  const [noteFilter, setNoteFilter] = useState("all");
 
   const fetchStats = useCallback(async () => {
     setLoadingStats(true);
@@ -90,14 +92,16 @@ const AdminCommunity = () => {
   const fetchGroups = useCallback(async () => {
     setLoadingGroups(true);
     try {
-      const response = await api.get("/community/groups");
+      const response = await api.get("/community/groups", {
+        params: { review_status: groupReviewFilter },
+      });
       setGroups(response.data || []);
     } catch {
       toast.error("获取社群列表失败");
     } finally {
       setLoadingGroups(false);
     }
-  }, []);
+  }, [groupReviewFilter]);
 
   useEffect(() => {
     fetchStats();
@@ -109,6 +113,16 @@ const AdminCommunity = () => {
     if (sectionFilter === "all") return posts;
     return posts.filter((post) => post.section === sectionFilter);
   }, [posts, sectionFilter]);
+
+  const filteredGroups = useMemo(() => {
+    if (noteFilter === "has_note") {
+      return groups.filter((group) => String(group.review_note || "").trim().length > 0);
+    }
+    if (noteFilter === "no_note") {
+      return groups.filter((group) => String(group.review_note || "").trim().length === 0);
+    }
+    return groups;
+  }, [groups, noteFilter]);
 
   const statCards = stats
     ? [
@@ -461,7 +475,7 @@ const AdminCommunity = () => {
               <div>
                 {loadingGroups ? (
                   <AdminLoadingState text="正在加载社群列表..." />
-                ) : groups.length === 0 ? (
+                ) : filteredGroups.length === 0 ? (
                   <AdminEmptyState
                     icon={Users}
                     title="还没有社群"
@@ -469,7 +483,30 @@ const AdminCommunity = () => {
                   />
                 ) : (
                   <div className="grid gap-4">
-                    {groups.map((group) => (
+                    <div className="flex flex-wrap gap-2">
+                      <FilterChip active={groupReviewFilter === "all"} onClick={() => setGroupReviewFilter("all")}>
+                        全部状态
+                      </FilterChip>
+                      <FilterChip active={groupReviewFilter === "approved"} onClick={() => setGroupReviewFilter("approved")}>
+                        已通过
+                      </FilterChip>
+                      <FilterChip active={groupReviewFilter === "pending"} onClick={() => setGroupReviewFilter("pending")}>
+                        待审核
+                      </FilterChip>
+                      <FilterChip active={groupReviewFilter === "rejected"} onClick={() => setGroupReviewFilter("rejected")}>
+                        已驳回
+                      </FilterChip>
+                      <FilterChip active={noteFilter === "all"} onClick={() => setNoteFilter("all")}>
+                        全部备注
+                      </FilterChip>
+                      <FilterChip active={noteFilter === "has_note"} onClick={() => setNoteFilter("has_note")}>
+                        有备注
+                      </FilterChip>
+                      <FilterChip active={noteFilter === "no_note"} onClick={() => setNoteFilter("no_note")}>
+                        无备注
+                      </FilterChip>
+                    </div>
+                    {filteredGroups.map((group) => (
                       <div
                         key={group.id}
                         className="rounded-3xl border border-white/10 bg-white/[0.03] p-4"
@@ -494,9 +531,15 @@ const AdminCommunity = () => {
                             ) : null}
                             <div className="mt-3 flex flex-wrap gap-4 text-xs text-gray-500">
                               <span>成员数: {group.member_count || 0}</span>
+                              <span>审核: {group.review_status || "approved"}</span>
                               {group.invite_link ? <span>含邀请链接</span> : null}
                               {group.qr_code_url ? <span>含二维码</span> : null}
                             </div>
+                            {group.review_note ? (
+                              <div className="mt-2 rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+                                备注：{group.review_note}
+                              </div>
+                            ) : null}
                           </div>
                           <div className="flex gap-2">
                             <button

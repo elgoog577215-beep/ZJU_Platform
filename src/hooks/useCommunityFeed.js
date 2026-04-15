@@ -10,7 +10,7 @@ import api from '../services/api';
  *
  * @param {object} opts
  * @param {string} opts.endpoint        – API path, e.g. '/community/posts' or '/articles'
- * @param {string} [opts.section]       – 'help'|'team' (appended as query param for posts)
+ * @param {string} [opts.section]       – e.g. 'help' (appended as query param for posts)
  * @param {string} [opts.category]      – 'news'|'tech' (appended as query param for articles)
  * @param {string} [opts.deepLinkParam] – search-param key for deep link, e.g. 'post' or 'id'
  * @param {number} [opts.defaultPageSize] – items per page (default 10)
@@ -21,6 +21,8 @@ export function useCommunityFeed({
   category,
   deepLinkParam = 'post',
   defaultPageSize = 10,
+  extraQueryParams = {},
+  extraDependencies = [],
 } = {}) {
   const { settings } = useSettings();
   const [searchParams] = useSearchParams();
@@ -42,8 +44,13 @@ export function useCommunityFeed({
     if (category) p.category = category;
     if (statusFilter !== 'all') p.status = statusFilter;
     if (selectedTags.length) p.tags = selectedTags.join(',');
+    Object.entries(extraQueryParams || {}).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== '') {
+        p[k] = v;
+      }
+    });
     return p;
-  }, [currentPage, pageSize, sort, section, category, statusFilter, selectedTags]);
+  }, [currentPage, pageSize, sort, section, category, statusFilter, selectedTags, extraQueryParams]);
 
   const {
     data: items,
@@ -53,7 +60,8 @@ export function useCommunityFeed({
     setData: setItems,
     refresh,
   } = useCachedResource(endpoint, queryParams, {
-    dependencies: [settings.pagination_enabled, statusFilter, selectedTags.join(',')],
+    dependencies: [settings.pagination_enabled, statusFilter, selectedTags.join(','), ...extraDependencies],
+    keyPrefix: 'cache:v2:',
   });
 
   const totalPages = pagination?.totalPages || 1;
@@ -62,7 +70,7 @@ export function useCommunityFeed({
   // Reset page on filter / sort change
   useEffect(() => {
     setCurrentPage(1);
-  }, [sort, statusFilter, selectedTags.join(','), settings.pagination_enabled]);
+  }, [sort, statusFilter, selectedTags.join(','), settings.pagination_enabled, ...extraDependencies]);
 
   // Accumulate items for infinite-scroll or replace for pagination
   const effectiveItems = useMemo(() => items || [], [items]);

@@ -113,7 +113,7 @@ const CommunityDetailModal = ({
                     {contentBlocks.map((block, bIdx) => (
                       <div key={block.id || `${block.type}-${bIdx}`}>
                         {block.type === 'text' && (
-                          <p className={`whitespace-pre-wrap leading-8 text-lg ${th.textContent}`}>
+                          <p className={`whitespace-pre-wrap break-words leading-8 text-lg ${th.textContent}`}>
                             {block.text}
                           </p>
                         )}
@@ -165,7 +165,7 @@ const CommunityDetailModal = ({
                   </div>
                 ) : htmlContent ? (
                   <div
-                    className={`prose prose-lg max-w-none leading-relaxed mb-10 ${th.prose}`}
+                    className={`prose prose-lg max-w-none leading-relaxed break-words mb-10 ${th.prose}`}
                     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent) }}
                   />
                 ) : null}

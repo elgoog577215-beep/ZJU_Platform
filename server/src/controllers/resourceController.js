@@ -40,6 +40,50 @@ const normalizeArticlePayload = (table, body) => {
   body.content_blocks = null;
 };
 
+const normalizeArticleWorkflowStatus = (table, requestedStatus, userRole = 'user') => {
+  if (table !== 'articles') return null;
+  const normalized = String(requestedStatus || '').trim().toLowerCase();
+  if (!normalized) {
+    return userRole === 'admin' ? 'approved' : 'pending';
+  }
+  // Non-admin users can only create drafts or submit for pending review.
+  if (userRole !== 'admin') {
+    if (normalized === 'draft') return 'draft';
+    if (normalized === 'pending') return 'pending';
+    return 'pending';
+  }
+  // Admins can set any workflow status explicitly.
+  if (['draft', 'pending', 'approved', 'rejected'].includes(normalized)) {
+    return normalized;
+  }
+  return 'approved';
+};
+
+const restoreOwnHandler = (table) => async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const { id } = req.params;
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Login required' });
+    }
+
+    const item = await db.get(`SELECT id, uploader_id, deleted_at FROM ${table} WHERE id = ?`, [id]);
+    if (!item) {
+      return res.status(404).json({ error: 'Item not found' });
+    }
+    if (!item.deleted_at) {
+      return res.status(400).json({ error: 'Item is not in trash' });
+    }
+    if (req.user.role !== 'admin' && item.uploader_id !== userId) {
+      return res.status(403).json({ error: 'You do not have permission to restore this resource' });
+    }
+
+    await db.run(`UPDATE ${table} SET deleted_at = NULL WHERE id = ?`, [id]);
+    res.json({ message: 'Restored successfully' });
+  } catch (error) { next(error); }
+};
+
 // Helper Factories
 const createHandler = (table, fields) => async (req, res, next) => {
   try {
@@ -47,9 +91,10 @@ const createHandler = (table, fields) => async (req, res, next) => {
     normalizeArticlePayload(table, req.body);
     const placeholders = fields.map(() => '?').join(',');
     
-    // Determine status based on user role
-    const userRole = req.user ? req.user.role : 'user'; 
-    const status = userRole === 'admin' ? 'approved' : 'pending'; 
+    // Determine status based on user role and optional workflow intent.
+    const userRole = req.user ? req.user.role : 'user';
+    const workflowStatus = normalizeArticleWorkflowStatus(table, req.body.status, userRole);
+    const status = workflowStatus || (userRole === 'admin' ? 'approved' : 'pending');
     const uploader_id = req.user ? req.user.id : null;
 
     const sql = `INSERT INTO ${table} (${fields.join(',')}, status, uploader_id, created_at) VALUES (${placeholders}, ?, ?, datetime('now'))`;
@@ -285,15 +330,35 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
         const limit = Math.min(parseInt(req.query.limit) || defaultLimit, 100);
         const category = req.query.category;
         const tag = req.query.tag; // For articles
-        const status = req.query.status || 'approved'; // Default to approved only
-        const uploader_id = req.query.uploader_id;
+        const requestedStatus = String(req.query.status || 'approved').trim().toLowerCase();
+        const requestedUploaderId = req.query.uploader_id ? Number.parseInt(req.query.uploader_id, 10) : null;
         const sort = req.query.sort || 'newest'; // Default to newest
         const search = req.query.search; // Generic search
         const trashed = req.query.trashed === 'true'; // Check if requesting trash
         const offset = (page - 1) * limit;
 
         const userId = (req.user && req.user.id) ? req.user.id : null;
+        const isAdmin = req.user && req.user.role === 'admin';
         const itemType = getSingularType(table);
+
+        let effectiveStatus = requestedStatus;
+        let effectiveUploaderId = requestedUploaderId;
+
+        // Non-admin visibility guard:
+        // - only approved resources are public
+        // - draft/pending/rejected/all are only allowed when querying own uploader_id
+        if (!isAdmin) {
+            const ownUploaderScope = !!(userId && effectiveUploaderId && Number(userId) === Number(effectiveUploaderId));
+            if (effectiveUploaderId && !ownUploaderScope) {
+                effectiveUploaderId = null;
+            }
+
+            if (['all', 'draft', 'pending', 'rejected'].includes(effectiveStatus)) {
+                if (!ownUploaderScope) {
+                    effectiveStatus = 'approved';
+                }
+            }
+        }
 
         let query = `SELECT ${table}.*, u.nickname AS author_name, u.avatar AS author_avatar`;
         let params = [];
@@ -315,7 +380,13 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
         
         // Trash Filter
         if (trashed) {
-            whereClauses.push('deleted_at IS NOT NULL');
+            if (isAdmin) {
+                whereClauses.push('deleted_at IS NOT NULL');
+            } else if (userId && effectiveUploaderId && Number(userId) === Number(effectiveUploaderId)) {
+                whereClauses.push('deleted_at IS NOT NULL');
+            } else {
+                whereClauses.push('deleted_at IS NULL');
+            }
         } else {
             whereClauses.push('deleted_at IS NULL');
         }
@@ -339,16 +410,16 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
         }
 
         // Filter by status unless asking for 'all'
-        if (status !== 'all') {
+        if (effectiveStatus !== 'all') {
             whereClauses.push('status = ?');
-            params.push(status);
-            countParams.push(status);
+            params.push(effectiveStatus);
+            countParams.push(effectiveStatus);
         }
 
-        if (uploader_id) {
+        if (effectiveUploaderId) {
             whereClauses.push('uploader_id = ?');
-            params.push(uploader_id);
-            countParams.push(uploader_id);
+            params.push(effectiveUploaderId);
+            countParams.push(effectiveUploaderId);
         }
 
         if (category && (table === 'articles' || table === 'events')) {
@@ -472,7 +543,7 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
             });
         }
 
-        if (!userId && status === 'approved' && !trashed && !search && !uploader_id) {
+        if (!userId && effectiveStatus === 'approved' && !trashed && !search && !effectiveUploaderId) {
             res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
         }
 
@@ -495,7 +566,7 @@ const updateStatus = (table) => async (req, res, next) => {
         const { status, reason } = req.body;
         const adminId = req.user ? req.user.id : null;
         
-        if (!['approved', 'pending', 'rejected'].includes(status)) {
+        if (!['approved', 'pending', 'rejected', 'draft'].includes(status)) {
             return res.status(400).json({ error: 'Invalid status' });
         }
 
@@ -735,6 +806,7 @@ module.exports = {
     deleteHandler,
     permanentDeleteHandler,
     restoreHandler,
+    restoreOwnHandler,
     getAllHandler,
     getOneHandler,
     getRelatedHandler,

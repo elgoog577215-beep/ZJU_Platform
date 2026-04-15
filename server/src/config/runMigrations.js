@@ -72,6 +72,18 @@ async function runMigrations(db) {
     if (commentColumns.length > 0 && !commentColumns.includes('avatar')) {
       await db.exec(`ALTER TABLE comments ADD COLUMN avatar TEXT`);
     }
+    if (commentColumns.length > 0 && !commentColumns.includes('root_id')) {
+      await db.exec(`ALTER TABLE comments ADD COLUMN root_id INTEGER`);
+    }
+    if (commentColumns.length > 0 && !commentColumns.includes('reply_to_comment_id')) {
+      await db.exec(`ALTER TABLE comments ADD COLUMN reply_to_comment_id INTEGER`);
+    }
+    if (commentColumns.length > 0 && !commentColumns.includes('floor_number')) {
+      await db.exec(`ALTER TABLE comments ADD COLUMN floor_number INTEGER`);
+    }
+    if (commentColumns.length > 0 && !commentColumns.includes('quote_snapshot')) {
+      await db.exec(`ALTER TABLE comments ADD COLUMN quote_snapshot TEXT`);
+    }
     if (commentColumns.length > 0 && commentColumns.includes('author_name')) {
       await db.exec(`
         UPDATE comments
@@ -451,6 +463,18 @@ async function runMigrations(db) {
       await db.exec(`ALTER TABLE articles ADD COLUMN category TEXT NOT NULL DEFAULT 'tech'`);
       console.log('✅ Added category column to articles table');
     }
+    if (articlesColumns2.length > 0 && !articlesColumns2.includes('reading_time')) {
+      await db.exec(`ALTER TABLE articles ADD COLUMN reading_time INTEGER DEFAULT 0`);
+      console.log('✅ Added reading_time column to articles table');
+    }
+    if (articlesColumns2.length > 0 && !articlesColumns2.includes('slug')) {
+      await db.exec(`ALTER TABLE articles ADD COLUMN slug TEXT`);
+      console.log('✅ Added slug column to articles table');
+    }
+    if (articlesColumns2.length > 0 && !articlesColumns2.includes('views_count')) {
+      await db.exec(`ALTER TABLE articles ADD COLUMN views_count INTEGER DEFAULT 0`);
+      console.log('✅ Added views_count column to articles table');
+    }
   } catch (err) {
     if (!err.message.includes('duplicate column')) {
       console.warn('Migration warning (articles category):', err.message);
@@ -510,6 +534,18 @@ async function runMigrations(db) {
       await db.exec(`ALTER TABLE community_posts ADD COLUMN solved_comment_id INTEGER`);
       console.log('✅ Added solved_comment_id column to community_posts');
     }
+    if (cpCols2.length > 0 && !cpCols2.includes('is_pinned')) {
+      await db.exec(`ALTER TABLE community_posts ADD COLUMN is_pinned INTEGER DEFAULT 0`);
+      console.log('✅ Added is_pinned column to community_posts');
+    }
+    if (cpCols2.length > 0 && !cpCols2.includes('pin_weight')) {
+      await db.exec(`ALTER TABLE community_posts ADD COLUMN pin_weight INTEGER DEFAULT 0`);
+      console.log('✅ Added pin_weight column to community_posts');
+    }
+    if (cpCols2.length > 0 && !cpCols2.includes('last_replied_at')) {
+      await db.exec(`ALTER TABLE community_posts ADD COLUMN last_replied_at DATETIME`);
+      console.log('✅ Added last_replied_at column to community_posts');
+    }
   } catch (err) {
     if (!err.message.includes('duplicate column')) {
       console.warn('Migration warning (solved_comment_id):', err.message);
@@ -529,6 +565,7 @@ async function runMigrations(db) {
         member_count INTEGER DEFAULT 0,
         category TEXT,
         created_by INTEGER,
+        review_note TEXT,
         created_at TEXT DEFAULT (datetime('now')),
         updated_at TEXT DEFAULT (datetime('now'))
       )
@@ -537,6 +574,93 @@ async function runMigrations(db) {
   } catch (err) {
     if (!err.message.includes('already exists')) {
       console.warn('Migration warning (community_groups):', err.message);
+    }
+  }
+
+  console.log('✅ Database migrations completed');
+  try {
+    const groupInfo = await db.all(`PRAGMA table_info(community_groups)`);
+    const groupColumns = groupInfo.map(col => col.name);
+    if (groupColumns.length > 0 && !groupColumns.includes('review_status')) {
+      await db.exec(`ALTER TABLE community_groups ADD COLUMN review_status TEXT DEFAULT 'approved'`);
+    }
+    if (groupColumns.length > 0 && !groupColumns.includes('is_recommended')) {
+      await db.exec(`ALTER TABLE community_groups ADD COLUMN is_recommended INTEGER DEFAULT 0`);
+    }
+    if (groupColumns.length > 0 && !groupColumns.includes('sort_order')) {
+      await db.exec(`ALTER TABLE community_groups ADD COLUMN sort_order INTEGER DEFAULT 0`);
+    }
+    if (groupColumns.length > 0 && !groupColumns.includes('valid_until')) {
+      await db.exec(`ALTER TABLE community_groups ADD COLUMN valid_until TEXT`);
+    }
+    if (groupColumns.length > 0 && !groupColumns.includes('is_expired')) {
+      await db.exec(`ALTER TABLE community_groups ADD COLUMN is_expired INTEGER DEFAULT 0`);
+    }
+    if (groupColumns.length > 0 && !groupColumns.includes('review_note')) {
+      await db.exec(`ALTER TABLE community_groups ADD COLUMN review_note TEXT`);
+    }
+  } catch (err) {
+    if (!err.message.includes('duplicate column')) {
+      console.warn('Migration warning (community_groups columns):', err.message);
+    }
+  }
+
+  try {
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS community_reports (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        post_id INTEGER NOT NULL,
+        comment_id INTEGER,
+        target_type TEXT NOT NULL DEFAULT 'post',
+        reason TEXT,
+        reporter_id INTEGER NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (post_id) REFERENCES community_posts(id) ON DELETE CASCADE,
+        FOREIGN KEY (reporter_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+    await db.exec(`CREATE INDEX IF NOT EXISTS idx_community_reports_post ON community_reports(post_id, created_at DESC)`);
+    await db.exec(`CREATE INDEX IF NOT EXISTS idx_community_reports_reporter ON community_reports(reporter_id, created_at DESC)`);
+    await db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_community_reports_unique_target ON community_reports(post_id, COALESCE(comment_id, 0), reporter_id, target_type)`);
+    console.log('✅ Community reports table ready');
+  } catch (err) {
+    if (!err.message.includes('already exists')) {
+      console.warn('Migration warning (community_reports):', err.message);
+    }
+  }
+
+  try {
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS news (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        excerpt TEXT,
+        content TEXT,
+        content_blocks TEXT,
+        cover TEXT,
+        source_name TEXT,
+        source_url TEXT,
+        import_type TEXT DEFAULT 'manual',
+        external_id TEXT,
+        hot_score INTEGER DEFAULT 0,
+        views_count INTEGER DEFAULT 0,
+        is_pinned INTEGER DEFAULT 0,
+        pin_weight INTEGER DEFAULT 0,
+        featured INTEGER DEFAULT 0,
+        status TEXT DEFAULT 'approved',
+        uploader_id INTEGER,
+        created_at TEXT DEFAULT (datetime('now')),
+        updated_at TEXT DEFAULT (datetime('now')),
+        deleted_at DATETIME
+      )
+    `);
+    await db.exec(`CREATE INDEX IF NOT EXISTS idx_news_status_created ON news(status, created_at DESC)`);
+    await db.exec(`CREATE INDEX IF NOT EXISTS idx_news_hot_score ON news(status, is_pinned DESC, pin_weight DESC, hot_score DESC, created_at DESC)`);
+    await db.exec(`CREATE INDEX IF NOT EXISTS idx_news_source_url ON news(source_url)`);
+    console.log('✅ News table ready');
+  } catch (err) {
+    if (!err.message.includes('already exists')) {
+      console.warn('Migration warning (news):', err.message);
     }
   }
 

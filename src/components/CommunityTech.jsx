@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo, memo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, ArrowRight, Calendar, X, User, Clock, Paperclip } from 'lucide-react';
+import { BookOpen, ArrowRight, Calendar, X, User, Clock, Edit2, RotateCcw, Trash2 } from 'lucide-react';
 import SmartImage from './SmartImage';
 import UploadModal from './UploadModal';
 import FavoriteButton from './FavoriteButton';
@@ -18,7 +18,7 @@ import CommunityFeedPanel from './CommunityFeedPanel';
 import { parseContentBlocks, calculateReadingTime } from './communityUtils';
 import { useCommunityFeed } from '../hooks/useCommunityFeed';
 
-const ArticleCard = memo(({ article, index, onClick, onToggleFavorite, canAnimate, isDayMode }) => {
+const ArticleCard = memo(({ article, index, onClick, onToggleFavorite, canAnimate, isDayMode, actionBar = null }) => {
   const { t } = useTranslation();
   return (
     <motion.div
@@ -44,6 +44,7 @@ const ArticleCard = memo(({ article, index, onClick, onToggleFavorite, canAnimat
           <h3 className={`text-2xl font-bold group-hover:text-orange-400 transition-colors ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{article.title}</h3>
           <p className={`line-clamp-2 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{article.excerpt}</p>
           <div className="pt-2 flex items-center justify-end gap-3 mt-auto">
+            {actionBar}
             <FavoriteButton itemId={article.id} itemType="article" size={18} showCount count={article.likes || 0} initialFavorited={article.favorited} className={`p-2 rounded-full transition-colors hover:text-orange-500 ${isDayMode ? 'hover:bg-orange-50 text-slate-500' : 'hover:bg-white/10 text-gray-400'}`} onToggle={(f, l) => onToggleFavorite(article.id, f, l)} />
             <div className={`p-2 rounded-full group-hover:bg-orange-500 group-hover:text-black transition-all duration-300 ${isDayMode ? 'bg-orange-50 text-orange-500' : 'bg-white/5'}`}>
               <ArrowRight size={18} className="-rotate-45 group-hover:rotate-0 transition-transform duration-300" />
@@ -64,8 +65,26 @@ const CommunityTech = () => {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
+  const [viewMode, setViewMode] = useState('public');
+  const [editingArticle, setEditingArticle] = useState(null);
 
-  const feed = useCommunityFeed({ endpoint: '/articles', category: 'tech', deepLinkParam: 'id', defaultPageSize: 6 });
+  const techQueryParams = useMemo(() => {
+    if (!user) return {};
+    if (viewMode === 'mine') return { status: 'all', uploader_id: user.id };
+    if (viewMode === 'draft') return { status: 'draft', uploader_id: user.id };
+    if (viewMode === 'pending') return { status: 'pending', uploader_id: user.id };
+    if (viewMode === 'trash') return { status: 'all', uploader_id: user.id, trashed: true };
+    return {};
+  }, [user, viewMode]);
+
+  const feed = useCommunityFeed({
+    endpoint: '/articles',
+    category: 'tech',
+    deepLinkParam: 'id',
+    defaultPageSize: 6,
+    extraQueryParams: techQueryParams,
+    extraDependencies: [viewMode, user?.id],
+  });
 
   // Mobile toolbar events
   const mobileSortLabel = useMemo(() => {
@@ -89,11 +108,105 @@ const CommunityTech = () => {
 
   const contentBlocks = useMemo(() => parseContentBlocks(feed.selectedItem?.content_blocks), [feed.selectedItem?.content_blocks]);
 
-  const renderCard = (article, idx, { canAnimate, isDayMode: dm }) => (
-    <ArticleCard key={article.id} article={article} index={idx} onClick={feed.handleItemClick} onToggleFavorite={feed.handleToggleFavorite} canAnimate={canAnimate} isDayMode={dm} />
-  );
+  const handleOpenEditor = useCallback(async (article) => {
+    try {
+      const { data } = await api.get(`/articles/${article.id}`);
+      setEditingArticle(data || article);
+      setIsUploadOpen(true);
+    } catch {
+      toast.error('加载投稿详情失败');
+    }
+  }, []);
 
-  const handleUpload = async (item) => { await api.post('/articles', { ...item, category: 'tech' }); feed.handleRefresh(); };
+  const handleSoftDelete = useCallback(async (article) => {
+    if (!window.confirm('确认将该投稿移入回收站吗？')) return;
+    try {
+      await api.delete(`/articles/${article.id}`);
+      toast.success('已移入回收站');
+      feed.handleRefresh();
+    } catch (error) {
+      toast.error(error?.response?.data?.error || '删除失败');
+    }
+  }, [feed]);
+
+  const handleRecover = useCallback(async (article) => {
+    try {
+      await api.post(`/articles/${article.id}/recover`);
+      toast.success('已从回收站恢复');
+      feed.handleRefresh();
+    } catch (error) {
+      toast.error(error?.response?.data?.error || '恢复失败');
+    }
+  }, [feed]);
+
+  const renderCard = (article, idx, { canAnimate, isDayMode: dm }) => {
+    const isWorkflowView = ['mine', 'draft', 'pending', 'trash'].includes(viewMode);
+    const actionBar = isWorkflowView ? (
+      <div className="flex items-center gap-2">
+        {viewMode !== 'trash' && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleOpenEditor(article);
+            }}
+            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] border ${dm ? 'text-slate-600 border-slate-200 hover:bg-slate-100' : 'text-gray-300 border-white/10 hover:bg-white/10'}`}
+          >
+            <Edit2 size={12} />
+            编辑
+          </button>
+        )}
+        {viewMode === 'trash' ? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRecover(article);
+            }}
+            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] border ${dm ? 'text-emerald-700 border-emerald-200 hover:bg-emerald-50' : 'text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/10'}`}
+          >
+            <RotateCcw size={12} />
+            恢复
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleSoftDelete(article);
+            }}
+            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] border ${dm ? 'text-rose-700 border-rose-200 hover:bg-rose-50' : 'text-rose-300 border-rose-500/30 hover:bg-rose-500/10'}`}
+          >
+            <Trash2 size={12} />
+            删除
+          </button>
+        )}
+      </div>
+    ) : null;
+
+    return (
+      <ArticleCard
+        key={article.id}
+        article={article}
+        index={idx}
+        onClick={feed.handleItemClick}
+        onToggleFavorite={feed.handleToggleFavorite}
+        canAnimate={canAnimate}
+        isDayMode={dm}
+        actionBar={actionBar}
+      />
+    );
+  };
+
+  const handleUpload = async (item) => {
+    if (item.id) {
+      await api.put(`/articles/${item.id}`, { ...item, category: 'tech' });
+    } else {
+      await api.post('/articles', { ...item, category: 'tech' });
+    }
+    feed.handleRefresh();
+    setEditingArticle(null);
+  };
 
   const renderDetail = () => (
     <CommunityDetailModal
@@ -147,9 +260,57 @@ const CommunityTech = () => {
     </>
   );
 
+  const viewModeSwitch = user && (
+    <div className={`rounded-xl border p-1 inline-flex gap-1 ${isDayMode ? 'bg-white border-slate-200' : 'bg-white/5 border-white/10'}`}>
+      <button
+        type="button"
+        onClick={() => setViewMode('public')}
+        className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${viewMode === 'public' ? (isDayMode ? 'bg-orange-500 text-white' : 'bg-orange-500 text-black') : (isDayMode ? 'text-slate-600' : 'text-gray-300')}`}
+      >
+        全部
+      </button>
+      <button
+        type="button"
+        onClick={() => setViewMode('mine')}
+        className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${viewMode === 'mine' ? (isDayMode ? 'bg-orange-500 text-white' : 'bg-orange-500 text-black') : (isDayMode ? 'text-slate-600' : 'text-gray-300')}`}
+      >
+        我的投稿
+      </button>
+      <button
+        type="button"
+        onClick={() => setViewMode('draft')}
+        className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${viewMode === 'draft' ? (isDayMode ? 'bg-orange-500 text-white' : 'bg-orange-500 text-black') : (isDayMode ? 'text-slate-600' : 'text-gray-300')}`}
+      >
+        草稿箱
+      </button>
+      <button
+        type="button"
+        onClick={() => setViewMode('pending')}
+        className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${viewMode === 'pending' ? (isDayMode ? 'bg-orange-500 text-white' : 'bg-orange-500 text-black') : (isDayMode ? 'text-slate-600' : 'text-gray-300')}`}
+      >
+        待审核
+      </button>
+      <button
+        type="button"
+        onClick={() => setViewMode('trash')}
+        className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${viewMode === 'trash' ? (isDayMode ? 'bg-orange-500 text-white' : 'bg-orange-500 text-black') : (isDayMode ? 'text-slate-600' : 'text-gray-300')}`}
+      >
+        回收站
+      </button>
+    </div>
+  );
+
   const extraControls = (
-    <div className="hidden md:block flex-1">
-      <TagFilter selectedTags={feed.selectedTags} onChange={feed.setSelectedTags} type="articles" />
+    <div className="flex-1">
+      {user && (
+        <div className="md:hidden mb-3">
+          {viewModeSwitch}
+        </div>
+      )}
+      <div className="hidden md:flex items-center gap-3">
+        <TagFilter selectedTags={feed.selectedTags} onChange={feed.setSelectedTags} type="articles" />
+        {viewModeSwitch && <div className="ml-auto">{viewModeSwitch}</div>}
+      </div>
     </div>
   );
 
@@ -172,7 +333,18 @@ const CommunityTech = () => {
             <div className="flex-1 space-y-4 py-2"><div className={`h-8 rounded w-3/4 ${isDayMode ? 'bg-slate-100' : 'bg-white/10'}`} /><div className={`h-4 rounded w-full ${isDayMode ? 'bg-slate-100' : 'bg-white/5'}`} /></div>
           </div>
         )}
-        extraBottom={<UploadModal isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} onUpload={handleUpload} type="article" />}
+        extraBottom={(
+          <UploadModal
+            isOpen={isUploadOpen}
+            onClose={() => {
+              setIsUploadOpen(false);
+              setEditingArticle(null);
+            }}
+            onUpload={handleUpload}
+            type="article"
+            initialData={editingArticle}
+          />
+        )}
       />
       {mobileDrawers}
     </>

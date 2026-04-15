@@ -374,7 +374,12 @@ const communityGroupsSeed = [
     platform: 'wechat',
     invite_link: 'https://example.com/groups/main',
     member_count: 128,
-    category: '综合交流'
+    category: '综合交流',
+    review_status: 'approved',
+    is_recommended: 1,
+    sort_order: 12,
+    valid_until: '2026-12-31',
+    is_expired: 0
   },
   {
     name: '技术分享群',
@@ -382,7 +387,12 @@ const communityGroupsSeed = [
     platform: 'qq',
     invite_link: 'https://example.com/groups/tech',
     member_count: 76,
-    category: '技术交流'
+    category: '技术交流',
+    review_status: 'approved',
+    is_recommended: 1,
+    sort_order: 9,
+    valid_until: '2026-10-01',
+    is_expired: 0
   },
   {
     name: 'AI Builders',
@@ -390,7 +400,127 @@ const communityGroupsSeed = [
     platform: 'discord',
     invite_link: 'https://discord.gg/example',
     member_count: 42,
-    category: '国际交流'
+    category: '国际交流',
+    review_status: 'pending',
+    is_recommended: 0,
+    sort_order: 2,
+    valid_until: '2026-09-01',
+    is_expired: 0
+  },
+  {
+    name: '已过期示例群',
+    description: '用于展示过期状态样式与管理流程。',
+    platform: 'wechat',
+    invite_link: 'https://example.com/groups/expired',
+    member_count: 18,
+    category: '测试',
+    review_status: 'approved',
+    is_recommended: 0,
+    sort_order: 1,
+    valid_until: '2025-12-31',
+    is_expired: 1,
+    review_note: '二维码已过期，请更新后重新提交'
+  },
+  {
+    name: '驳回示例群',
+    description: '用于展示审核驳回状态与备注。',
+    platform: 'telegram',
+    invite_link: 'https://t.me/example_group',
+    member_count: 5,
+    category: '测试',
+    review_status: 'rejected',
+    is_recommended: 0,
+    sort_order: 0,
+    valid_until: '2026-08-01',
+    is_expired: 0,
+    review_note: '邀请链接格式不规范，请补充有效二维码'
+  }
+];
+
+const newsSeed = [
+  {
+    title: 'AI 社区周报：本周活动与资源更新',
+    excerpt: '汇总本周 AI 社区重点活动、讲座、项目协作与资源上新。',
+    content: '本周新增 6 场讲座、3 个开源协作任务，建议优先关注周末报名截止项。',
+    source_name: 'tuotuzju.com',
+    source_url: 'https://tuotuzju.com/news/weekly-01',
+    import_type: 'manual',
+    hot_score: 168,
+    is_pinned: 1,
+    pin_weight: 12,
+    featured: 1,
+    status: 'approved',
+    created_at: '2026-04-09 08:30:00'
+  },
+  {
+    title: '浙大 AI 公开讲座开放报名',
+    excerpt: '本周末将举办大模型工程化专题讲座，名额有限。',
+    content: '讲座聚焦推理优化、服务稳定性、评测闭环，面向全校学生开放。',
+    source_name: 'zju.edu.cn',
+    source_url: 'https://www.zju.edu.cn/lecture/ai-engineering',
+    import_type: 'external',
+    hot_score: 96,
+    is_pinned: 0,
+    pin_weight: 0,
+    featured: 1,
+    status: 'approved',
+    created_at: '2026-04-10 12:00:00'
+  },
+  {
+    title: 'GPU 公共算力时段调整通知',
+    excerpt: '实验教学周期间，GPU 机房开放时段将进行临时调整。',
+    content: '夜间时段优先保障课程实验任务，科研作业建议提前预约。',
+    source_name: 'lab.zju.edu.cn',
+    source_url: 'https://lab.zju.edu.cn/notice/gpu-schedule',
+    import_type: 'external',
+    hot_score: 82,
+    is_pinned: 0,
+    pin_weight: 0,
+    featured: 0,
+    status: 'approved',
+    created_at: '2026-04-11 09:20:00'
+  },
+  {
+    title: '导入草稿示例：LLM Benchmark 新榜单',
+    excerpt: '用于测试导入后编辑确认发布流程。',
+    content: '该条目处于草稿状态，用于测试管理员编辑与发布链路。',
+    source_name: 'benchmark.example.com',
+    source_url: 'https://benchmark.example.com/llm/rankings',
+    import_type: 'external',
+    hot_score: 20,
+    is_pinned: 0,
+    pin_weight: 0,
+    featured: 0,
+    status: 'draft',
+    created_at: '2026-04-11 10:00:00'
+  },
+  {
+    title: '待审核示例：校园 AI 创客营开放申请',
+    excerpt: '用于测试待审核筛选与审核动作。',
+    content: '该条目用于测试 pending -> approved/rejected 审核流。',
+    source_name: 'maker.example.com',
+    source_url: 'https://maker.example.com/ai-camp',
+    import_type: 'manual',
+    hot_score: 35,
+    is_pinned: 0,
+    pin_weight: 0,
+    featured: 0,
+    status: 'pending',
+    created_at: '2026-04-12 08:00:00'
+  },
+  {
+    title: '驳回示例：失效来源新闻',
+    excerpt: '用于测试失效来源 fallback 提示。',
+    content: '该条目来源可能不可达，前端会提示复制标题+来源进行搜索。',
+    source_name: 'legacy.example.org',
+    source_url: 'https://legacy.example.org/unreachable-news',
+    import_type: 'external',
+    hot_score: 10,
+    is_pinned: 0,
+    pin_weight: 0,
+    featured: 0,
+    status: 'rejected',
+    created_at: '2026-04-12 09:00:00'
   }
 ];
 
@@ -501,6 +631,8 @@ async function resetDatabase(db) {
     DROP TABLE IF EXISTS community_post_likes;
     DROP TABLE IF EXISTS community_posts;
     DROP TABLE IF EXISTS community_groups;
+    DROP TABLE IF EXISTS community_reports;
+    DROP TABLE IF EXISTS news;
     DROP TABLE IF EXISTS favorites;
     DROP TABLE IF EXISTS audit_logs;
     DROP TABLE IF EXISTS tags;
@@ -791,9 +923,58 @@ async function insertCommunityGroups(db, users) {
   const adminId = users.find(u => u.role === 'admin')?.id || null;
   for (const g of communityGroupsSeed) {
     await db.run(
-      `INSERT INTO community_groups (name, description, platform, qr_code_url, invite_link, member_count, category, created_by)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [g.name, g.description, g.platform, g.qr_code_url || null, g.invite_link || null, g.member_count || 0, g.category || null, adminId]
+      `INSERT INTO community_groups (
+        name, description, platform, qr_code_url, invite_link, member_count, category, created_by,
+        review_status, is_recommended, sort_order, valid_until, is_expired, review_note
+      )
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        g.name,
+        g.description,
+        g.platform,
+        g.qr_code_url || null,
+        g.invite_link || null,
+        g.member_count || 0,
+        g.category || null,
+        adminId,
+        g.review_status || 'approved',
+        g.is_recommended ? 1 : 0,
+        g.sort_order || 0,
+        g.valid_until || null,
+        g.is_expired ? 1 : 0,
+        g.review_note || null
+      ]
+    );
+  }
+}
+
+async function insertCommunityNews(db, users) {
+  const adminId = users.find(u => u.role === 'admin')?.id || null;
+  for (const item of newsSeed) {
+    await db.run(
+      `INSERT INTO news (
+        title, excerpt, content, content_blocks, cover, source_name, source_url, import_type, hot_score,
+        is_pinned, pin_weight, featured, status, uploader_id, created_at, updated_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        item.title,
+        item.excerpt || '',
+        item.content || '',
+        item.content_blocks || null,
+        item.cover || null,
+        item.source_name || null,
+        item.source_url || null,
+        item.import_type || 'manual',
+        item.hot_score || 0,
+        item.is_pinned ? 1 : 0,
+        item.pin_weight || 0,
+        item.featured ? 1 : 0,
+        item.status || 'approved',
+        adminId,
+        item.created_at || new Date().toISOString().slice(0, 19).replace('T', ' '),
+        item.created_at || new Date().toISOString().slice(0, 19).replace('T', ' ')
+      ]
     );
   }
 }
@@ -811,6 +992,7 @@ async function seed() {
   await insertContent(db, users);
   await insertCommunityData(db, users);
   await insertCommunityGroups(db, users);
+  await insertCommunityNews(db, users);
   await syncTags(db);
   await seedAnalytics(db, users);
 
