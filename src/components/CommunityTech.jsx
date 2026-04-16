@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, ArrowRight, Calendar, X, User, Clock, Edit2, RotateCcw, Trash2 } from 'lucide-react';
+import { BookOpen, ArrowRight, Calendar, X, User, Clock, Edit2, RotateCcw, Trash2, Share2, AlertCircle, Clock3 } from 'lucide-react';
 import SmartImage from './SmartImage';
 import UploadModal from './UploadModal';
 import FavoriteButton from './FavoriteButton';
@@ -12,11 +12,34 @@ import toast from 'react-hot-toast';
 import api from '../services/api';
 import SortSelector from './SortSelector';
 import TagFilter from './TagFilter';
-import DOMPurify from 'dompurify';
 import CommunityDetailModal from './CommunityDetailModal';
 import CommunityFeedPanel from './CommunityFeedPanel';
-import { parseContentBlocks, calculateReadingTime } from './communityUtils';
+import { parseContentBlocks, calculateReadingTime, extractTocItems } from './communityUtils';
 import { useCommunityFeed } from '../hooks/useCommunityFeed';
+
+const RelatedMiniSection = ({ title, items = [], isDayMode, renderLabel }) => {
+  if (!Array.isArray(items) || items.length === 0) return null;
+  return (
+    <div className="mt-8">
+      <h4 className={`text-sm font-semibold mb-2 ${isDayMode ? 'text-slate-700' : 'text-gray-200'}`}>{title}</h4>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+        {items.slice(0, 4).map((item) => (
+          <div
+            key={`${item.type || 'item'}-${item.id}`}
+            className={`rounded-xl border p-3 ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'}`}
+          >
+            <p className={`text-sm font-semibold line-clamp-1 ${isDayMode ? 'text-slate-800' : 'text-gray-100'}`}>
+              {item.title || item.name}
+            </p>
+            {renderLabel ? (
+              <p className={`mt-1 text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{renderLabel(item)}</p>
+            ) : null}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const ArticleCard = memo(({ article, index, onClick, onToggleFavorite, canAnimate, isDayMode, actionBar = null }) => {
   const { t } = useTranslation();
@@ -67,15 +90,25 @@ const CommunityTech = () => {
   const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
   const [viewMode, setViewMode] = useState('public');
   const [editingArticle, setEditingArticle] = useState(null);
+  const [searchInput, setSearchInput] = useState('');
+  const [searchKeyword, setSearchKeyword] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => setSearchKeyword(searchInput.trim()), 280);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   const techQueryParams = useMemo(() => {
-    if (!user) return {};
-    if (viewMode === 'mine') return { status: 'all', uploader_id: user.id };
-    if (viewMode === 'draft') return { status: 'draft', uploader_id: user.id };
-    if (viewMode === 'pending') return { status: 'pending', uploader_id: user.id };
-    if (viewMode === 'trash') return { status: 'all', uploader_id: user.id, trashed: true };
-    return {};
-  }, [user, viewMode]);
+    const query = {};
+    if (searchKeyword) query.search = searchKeyword;
+    if (!user) return query;
+    if (viewMode === 'mine') return { ...query, status: 'all', uploader_id: user.id };
+    if (viewMode === 'draft') return { ...query, status: 'draft', uploader_id: user.id };
+    if (viewMode === 'pending') return { ...query, status: 'pending', uploader_id: user.id };
+    if (viewMode === 'rejected') return { ...query, status: 'rejected', uploader_id: user.id };
+    if (viewMode === 'trash') return { ...query, status: 'all', uploader_id: user.id, trashed: true };
+    return query;
+  }, [searchKeyword, user, viewMode]);
 
   const feed = useCommunityFeed({
     endpoint: '/articles',
@@ -83,8 +116,20 @@ const CommunityTech = () => {
     deepLinkParam: 'id',
     defaultPageSize: 6,
     extraQueryParams: techQueryParams,
-    extraDependencies: [viewMode, user?.id],
+    extraDependencies: [viewMode, user?.id, searchKeyword],
   });
+
+  const featuredArticle = useMemo(() => {
+    if (viewMode !== 'public' || searchKeyword) return null;
+    return (feed.displayItems || []).find((item) => item.featured) || null;
+  }, [feed.displayItems, viewMode, searchKeyword]);
+
+  const panelItems = useMemo(
+    () => (featuredArticle ? (feed.displayItems || []).filter((item) => item.id !== featuredArticle.id) : (feed.displayItems || [])),
+    [feed.displayItems, featuredArticle]
+  );
+
+  const panelFeed = useMemo(() => ({ ...feed, displayItems: panelItems }), [feed, panelItems]);
 
   // Mobile toolbar events
   const mobileSortLabel = useMemo(() => {
@@ -107,6 +152,7 @@ const CommunityTech = () => {
   }, [feed.selectedTags.length, mobileSortLabel]);
 
   const contentBlocks = useMemo(() => parseContentBlocks(feed.selectedItem?.content_blocks), [feed.selectedItem?.content_blocks]);
+  const tocItems = useMemo(() => extractTocItems(contentBlocks), [contentBlocks]);
 
   const handleOpenEditor = useCallback(async (article) => {
     try {
@@ -140,7 +186,10 @@ const CommunityTech = () => {
   }, [feed]);
 
   const renderCard = (article, idx, { canAnimate, isDayMode: dm }) => {
-    const isWorkflowView = ['mine', 'draft', 'pending', 'trash'].includes(viewMode);
+    const isWorkflowView = ['mine', 'draft', 'pending', 'rejected', 'trash'].includes(viewMode);
+    const isRejected = viewMode === 'rejected' || article.status === 'rejected';
+    const isPending = viewMode === 'pending' || article.status === 'pending';
+    const rejectionReason = article.rejection_reason || article.review_note || article.review_reason || '';
     const actionBar = isWorkflowView ? (
       <div className="flex items-center gap-2">
         {viewMode !== 'trash' && (
@@ -153,7 +202,7 @@ const CommunityTech = () => {
             className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] border ${dm ? 'text-slate-600 border-slate-200 hover:bg-slate-100' : 'text-gray-300 border-white/10 hover:bg-white/10'}`}
           >
             <Edit2 size={12} />
-            编辑
+            {isRejected ? '编辑并重提' : '编辑'}
           </button>
         )}
         {viewMode === 'trash' ? (
@@ -183,18 +232,64 @@ const CommunityTech = () => {
         )}
       </div>
     ) : null;
+    const workflowNotice = isWorkflowView && viewMode !== 'trash' ? (
+      <div className={`mt-2 rounded-xl border px-3 py-2 text-xs ${isRejected ? (dm ? 'bg-rose-50 border-rose-200 text-rose-700' : 'bg-rose-500/10 border-rose-500/30 text-rose-200') : isPending ? (dm ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-amber-500/10 border-amber-500/30 text-amber-200') : (dm ? 'bg-slate-50 border-slate-200 text-slate-600' : 'bg-white/5 border-white/10 text-gray-300')}`}>
+        <div className="inline-flex items-center gap-1.5 font-semibold">
+          {isRejected ? <AlertCircle size={13} /> : isPending ? <Clock3 size={13} /> : null}
+          {isRejected ? '已驳回' : isPending ? '审核中' : article.status === 'draft' ? '草稿' : '仅自己可见'}
+        </div>
+        {isRejected && (
+          <p className="mt-1 leading-relaxed">
+            驳回原因：{rejectionReason || '暂无备注'}。点击“编辑并重提”后提交发布即可重新进入待审核。
+          </p>
+        )}
+        {isPending && (
+          <p className="mt-1 leading-relaxed">文章已提交审核，通过后会出现在公开列表。</p>
+        )}
+      </div>
+    ) : null;
+
+    const combinedActionBar = (actionBar || workflowNotice) ? (
+      <div className="flex flex-col items-end gap-1.5">
+        {actionBar}
+        {workflowNotice}
+      </div>
+    ) : null;
 
     return (
-      <ArticleCard
-        key={article.id}
-        article={article}
-        index={idx}
-        onClick={feed.handleItemClick}
-        onToggleFavorite={feed.handleToggleFavorite}
-        canAnimate={canAnimate}
-        isDayMode={dm}
-        actionBar={actionBar}
-      />
+      <React.Fragment key={article.id}>
+        {idx === 0 && featuredArticle && (
+          <motion.div
+            initial={canAnimate ? { opacity: 0, y: 10 } : false}
+            animate={canAnimate ? { opacity: 1, y: 0 } : undefined}
+            className={`mb-4 rounded-3xl border p-5 md:p-6 ${dm ? 'bg-orange-50/90 border-orange-200' : 'bg-orange-500/10 border-orange-500/30'}`}
+          >
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${dm ? 'bg-orange-100 text-orange-700' : 'bg-orange-500/20 text-orange-300'}`}>
+                精选文章
+              </span>
+              <button
+                type="button"
+                onClick={() => feed.handleItemClick(featuredArticle)}
+                className={`text-xs font-semibold ${dm ? 'text-orange-700 hover:text-orange-800' : 'text-orange-300 hover:text-orange-200'}`}
+              >
+                查看详情
+              </button>
+            </div>
+            <h3 className={`text-xl font-bold mb-2 ${dm ? 'text-slate-900' : 'text-white'}`}>{featuredArticle.title}</h3>
+            <p className={`${dm ? 'text-slate-600' : 'text-gray-300'} line-clamp-2`}>{featuredArticle.excerpt}</p>
+          </motion.div>
+        )}
+        <ArticleCard
+          article={article}
+          index={idx}
+          onClick={feed.handleItemClick}
+          onToggleFavorite={feed.handleToggleFavorite}
+          canAnimate={canAnimate}
+          isDayMode={dm}
+          actionBar={combinedActionBar}
+        />
+      </React.Fragment>
     );
   };
 
@@ -207,6 +302,23 @@ const CommunityTech = () => {
     feed.handleRefresh();
     setEditingArticle(null);
   };
+
+  const handleShareDetail = useCallback(async () => {
+    if (!feed.selectedItem?.id) return;
+    const link = new URL(window.location.href);
+    link.searchParams.set('id', String(feed.selectedItem.id));
+    const text = `${feed.selectedItem.title || 'AI 技术文章'} - 拓途浙享`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: feed.selectedItem.title, text, url: link.toString() });
+      } else {
+        await navigator.clipboard?.writeText(link.toString());
+        toast.success('已复制文章链接');
+      }
+    } catch {
+      // noop: 用户取消分享
+    }
+  }, [feed.selectedItem]);
 
   const renderDetail = () => (
     <CommunityDetailModal
@@ -223,10 +335,65 @@ const CommunityTech = () => {
         </>
       )}
       authorBar={feed.selectedItem && (
-        <FavoriteButton itemId={feed.selectedItem.id} itemType="article" size={24} showCount count={feed.selectedItem.likes || 0} initialFavorited={feed.selectedItem.favorited} className={`p-3 rounded-full transition-all border ${isDayMode ? 'bg-white/85 hover:bg-red-50 text-slate-700 border-slate-200/80' : 'bg-white/5 hover:bg-red-500/20 text-white border border-white/10'}`} onToggle={(f, l) => feed.handleToggleFavorite(feed.selectedItem.id, f, l)} />
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleShareDetail}
+            className={`p-3 rounded-full transition-all border ${isDayMode ? 'bg-white/85 hover:bg-slate-100 text-slate-700 border-slate-200/80' : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'}`}
+            title="分享"
+          >
+            <Share2 size={20} />
+          </button>
+          <FavoriteButton itemId={feed.selectedItem.id} itemType="article" size={24} showCount count={feed.selectedItem.likes || 0} initialFavorited={feed.selectedItem.favorited} className={`p-3 rounded-full transition-all border ${isDayMode ? 'bg-white/85 hover:bg-red-50 text-slate-700 border-slate-200/80' : 'bg-white/5 hover:bg-red-500/20 text-white border border-white/10'}`} onToggle={(f, l) => feed.handleToggleFavorite(feed.selectedItem.id, f, l)} />
+        </div>
       )}
+      beforeContent={tocItems.length >= 2 ? (
+        <div className={`mb-8 rounded-2xl border p-4 ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
+          <p className={`text-xs font-semibold mb-2 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>目录</p>
+          <div className="space-y-1.5">
+            {tocItems.map((toc) => (
+              <button
+                key={toc.id}
+                type="button"
+                onClick={() => document.getElementById(toc.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                className={`w-full text-left text-sm px-2 py-1.5 rounded-lg ${isDayMode ? 'text-slate-700 hover:bg-white' : 'text-gray-200 hover:bg-white/10'}`}
+              >
+                {toc.title}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
       contentBlocks={contentBlocks}
       htmlContent={feed.selectedItem?.content}
+      afterContent={feed.selectedItem?.linked_resources ? (
+        <>
+          <RelatedMiniSection
+            title="相关文章"
+            items={feed.selectedItem.linked_resources.articles}
+            isDayMode={isDayMode}
+            renderLabel={(item) => (item.tags || []).slice(0, 2).join(' · ')}
+          />
+          <RelatedMiniSection
+            title="相关求助"
+            items={feed.selectedItem.linked_resources.posts}
+            isDayMode={isDayMode}
+            renderLabel={(item) => item.post_status || ''}
+          />
+          <RelatedMiniSection
+            title="相关新闻"
+            items={feed.selectedItem.linked_resources.news}
+            isDayMode={isDayMode}
+            renderLabel={(item) => item.source_name || ''}
+          />
+          <RelatedMiniSection
+            title="相关社群"
+            items={feed.selectedItem.linked_resources.groups}
+            isDayMode={isDayMode}
+            renderLabel={(item) => item.platform || ''}
+          />
+        </>
+      ) : null}
     />
   );
 
@@ -297,6 +464,13 @@ const CommunityTech = () => {
       >
         回收站
       </button>
+      <button
+        type="button"
+        onClick={() => setViewMode('rejected')}
+        className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${viewMode === 'rejected' ? (isDayMode ? 'bg-orange-500 text-white' : 'bg-orange-500 text-black') : (isDayMode ? 'text-slate-600' : 'text-gray-300')}`}
+      >
+        已驳回
+      </button>
     </div>
   );
 
@@ -307,6 +481,14 @@ const CommunityTech = () => {
           {viewModeSwitch}
         </div>
       )}
+      <div className="mb-3">
+        <input
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          placeholder="搜索技术文章（标题/标签/摘要）"
+          className={`w-full h-10 px-3 rounded-xl border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`}
+        />
+      </div>
       <div className="hidden md:flex items-center gap-3">
         <TagFilter selectedTags={feed.selectedTags} onChange={feed.setSelectedTags} type="articles" />
         {viewModeSwitch && <div className="ml-auto">{viewModeSwitch}</div>}
@@ -317,7 +499,7 @@ const CommunityTech = () => {
   return (
     <>
       <CommunityFeedPanel
-        feed={feed}
+        feed={panelFeed}
         isDayMode={isDayMode}
         renderCard={renderCard}
         renderDetail={renderDetail}
