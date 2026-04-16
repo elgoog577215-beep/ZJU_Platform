@@ -674,7 +674,7 @@ const PlatformStats = () => {
                           <button
                             type="button"
                             onClick={(e) => toggleFollow(item.id, e)}
-                            className={`text-xs px-2.5 py-1 rounded-full border ${followed ? (isDayMode ? "bg-slate-900 text-white border-slate-900" : "bg-white text-black border-white") : isDayMode ? "bg-white text-slate-700 border-slate-200/80" : "bg-white/5 text-gray-200 border-white/10"}`}
+                            className={`text-xs px-2.5 py-1 rounded-full border ${followed ? (isDayMode ? "bg-indigo-600 text-white border-indigo-600 shadow-[0_10px_22px_rgba(99,102,241,0.2)]" : "bg-white text-black border-white") : isDayMode ? "bg-white text-slate-700 border-slate-200/80" : "bg-white/5 text-gray-200 border-white/10"}`}
                           >
                             {followed ? "已关注" : "关注"}
                           </button>

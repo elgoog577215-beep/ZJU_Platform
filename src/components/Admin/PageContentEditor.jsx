@@ -292,7 +292,7 @@ const PageContentEditor = () => {
 };
 
 const baseInputClassName =
-  "w-full rounded-xl border border-white/10 bg-black/40 p-3 text-white outline-none transition-colors focus:border-indigo-500";
+  "theme-admin-input w-full rounded-xl p-3";
 
 const Field = ({ label, value, onChange }) => (
   <div>
@@ -329,7 +329,7 @@ const ImageField = ({ label, value, onChange, onUpload }) => (
         className={baseInputClassName}
       />
       {onUpload ? (
-        <label className="inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 text-white transition-colors hover:bg-white/10">
+        <label className="theme-button-secondary inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl px-4">
           <Upload size={18} />
           <input type="file" accept="image/*" className="hidden" onChange={onUpload} />
         </label>

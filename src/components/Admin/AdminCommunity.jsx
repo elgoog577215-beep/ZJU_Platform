@@ -28,6 +28,7 @@ import {
   StatusBadge,
   ToolbarGroup,
 } from "./AdminUI";
+import { useSettings } from "../../context/SettingsContext";
 
 const SECTION_META = {
   help: { label: "求助", icon: HelpCircle },
@@ -48,6 +49,8 @@ const EMPTY_GROUP_FORM = {
 };
 
 const AdminCommunity = () => {
+  const { uiMode } = useSettings();
+  const isDayMode = uiMode === "day";
   const [stats, setStats] = useState(null);
   const [posts, setPosts] = useState([]);
   const [groups, setGroups] = useState([]);
@@ -254,10 +257,10 @@ const AdminCommunity = () => {
             {statCards.map((card) => (
               <AdminPanel key={card.label} className="p-5">
                 <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <card.icon size={16} className="text-indigo-300" />
+                  <card.icon size={16} className={isDayMode ? "text-indigo-600" : "text-indigo-300"} />
                   {card.label}
                 </div>
-                <div className="mt-3 text-2xl font-bold text-white">{card.value}</div>
+                <div className={`mt-3 text-2xl font-bold ${isDayMode ? "text-slate-950" : "text-white"}`}>{card.value}</div>
               </AdminPanel>
             ))}
           </div>
@@ -276,20 +279,20 @@ const AdminCommunity = () => {
                     setActiveTab("posts");
                     setSectionFilter(card.id);
                   }}
-                  className="rounded-2xl border border-white/10 bg-white/5 p-4 text-left transition-colors hover:bg-white/10"
+                  className={`rounded-2xl border p-4 text-left transition-colors ${isDayMode ? "border-slate-200/80 bg-white/88 hover:bg-white" : "border-white/10 bg-white/5 hover:bg-white/10"}`}
                 >
-                  <div className="flex items-center gap-2 text-sm text-gray-400">
-                    <card.Icon size={16} className="text-indigo-300" />
+                  <div className={`flex items-center gap-2 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+                    <card.Icon size={16} className={isDayMode ? "text-indigo-600" : "text-indigo-300"} />
                     {card.label}
                   </div>
-                  <div className="mt-3 text-2xl font-bold text-white">{card.value}</div>
+                  <div className={`mt-3 text-2xl font-bold ${isDayMode ? "text-slate-950" : "text-white"}`}>{card.value}</div>
                 </button>
               ))}
             </div>
           </AdminPanel>
 
           <AdminPanel title="接口说明" description="社区后台当前受现有 API 能力约束。">
-            <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm text-amber-100">
+            <div className={`rounded-2xl border p-4 text-sm ${isDayMode ? "border-amber-200/80 bg-amber-50 text-amber-800" : "border-amber-500/20 bg-amber-500/10 text-amber-100"}`}>
               现有后端没有提供管理员专用的帖子列表接口，因此这里展示的是已发布帖子列表，
               可以用于运营巡检和下架处理。待审核数量仍会显示在统计卡中。
             </div>
@@ -343,7 +346,7 @@ const AdminCommunity = () => {
                 <div className="mt-4 overflow-x-auto">
                   <table className="w-full min-w-[860px] text-left text-sm">
                     <thead>
-                      <tr className="border-b border-white/10 text-xs uppercase tracking-[0.2em] text-gray-500">
+                      <tr className={`border-b text-xs uppercase tracking-[0.2em] ${isDayMode ? "border-slate-200/80 text-slate-500" : "border-white/10 text-gray-500"}`}>
                         <th className="p-4">标题</th>
                         <th className="p-4">栏目</th>
                         <th className="p-4">作者</th>
@@ -356,24 +359,24 @@ const AdminCommunity = () => {
                       {filteredPosts.map((post) => {
                         const Icon = SECTION_META[post.section]?.icon || MessageSquare;
                         return (
-                          <tr key={post.id} className="hover:bg-white/[0.03]">
+                          <tr key={post.id} className={isDayMode ? "hover:bg-slate-50/80" : "hover:bg-white/[0.03]"}>
                             <td className="p-4">
-                              <div className="font-semibold text-white">{post.title}</div>
-                              <div className="mt-1 text-xs text-gray-500">
+                              <div className={`font-semibold ${isDayMode ? "text-slate-900" : "text-white"}`}>{post.title}</div>
+                              <div className={`mt-1 text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>
                                 {post.excerpt || "暂无摘要"}
                               </div>
                             </td>
                             <td className="p-4">
-                              <span className="inline-flex items-center gap-2 text-gray-300">
-                                <Icon size={14} className="text-indigo-300" />
+                              <span className={`inline-flex items-center gap-2 ${isDayMode ? "text-slate-600" : "text-gray-300"}`}>
+                                <Icon size={14} className={isDayMode ? "text-indigo-600" : "text-indigo-300"} />
                                 {SECTION_META[post.section]?.label || post.section}
                               </span>
                             </td>
-                            <td className="p-4 text-gray-400">{post.author_name || "-"}</td>
+                            <td className={`p-4 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>{post.author_name || "-"}</td>
                             <td className="p-4">
                               <StatusBadge status={post.status} />
                             </td>
-                            <td className="p-4 text-gray-400">
+                            <td className={`p-4 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
                               {post.created_at
                                 ? new Date(post.created_at).toLocaleDateString("zh-CN")
                                 : "-"}
@@ -382,7 +385,7 @@ const AdminCommunity = () => {
                               <div className="flex justify-end gap-2">
                                 <a
                                   href={`/community/${post.section}`}
-                                  className="inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg bg-white/5 text-gray-400 transition-colors hover:bg-white/10 hover:text-white"
+                                  className={`inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg transition-colors ${isDayMode ? "bg-white border border-slate-200/80 text-slate-500 hover:bg-slate-50 hover:text-slate-900" : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"}`}
                                   title="前往社区页面"
                                 >
                                   <ExternalLink size={16} />
@@ -390,7 +393,7 @@ const AdminCommunity = () => {
                                 <button
                                   onClick={() => handleReview(post.id, "reject")}
                                   disabled={postAction.pendingId === post.id}
-                                  className="inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg bg-white/5 text-red-300 transition-colors hover:bg-red-500/10 disabled:opacity-50"
+                                  className={`inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg transition-colors disabled:opacity-50 ${isDayMode ? "bg-white border border-slate-200/80 text-rose-600 hover:bg-rose-50" : "bg-white/5 text-red-300 hover:bg-red-500/10"}`}
                                   title="下架帖子"
                                 >
                                   <XCircle size={16} />
@@ -398,7 +401,7 @@ const AdminCommunity = () => {
                                 <button
                                   onClick={() => handleReview(post.id, "approve")}
                                   disabled={postAction.pendingId === post.id}
-                                  className="inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg bg-white/5 text-emerald-300 transition-colors hover:bg-emerald-500/10 disabled:opacity-50"
+                                  className={`inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg transition-colors disabled:opacity-50 ${isDayMode ? "bg-white border border-slate-200/80 text-emerald-600 hover:bg-emerald-50" : "bg-white/5 text-emerald-300 hover:bg-emerald-500/10"}`}
                                   title="重新通过"
                                 >
                                   <CheckCircle size={16} />
@@ -418,7 +421,7 @@ const AdminCommunity = () => {
               <AdminPanel
                 title={groupForm.id ? "编辑社群" : "新增社群"}
                 description="该表单直接调用现有 community groups 接口。"
-                className="bg-white/[0.03]"
+                className={isDayMode ? "bg-white/88" : "bg-white/[0.03]"}
               >
                 <div className="grid gap-4">
                   <FormField
@@ -509,25 +512,25 @@ const AdminCommunity = () => {
                     {filteredGroups.map((group) => (
                       <div
                         key={group.id}
-                        className="rounded-3xl border border-white/10 bg-white/[0.03] p-4"
+                        className={`rounded-3xl border p-4 ${isDayMode ? "border-slate-200/80 bg-white/88" : "border-white/10 bg-white/[0.03]"}`}
                       >
                         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-2">
-                              <h3 className="text-lg font-semibold text-white">
+                              <h3 className={`text-lg font-semibold ${isDayMode ? "text-slate-900" : "text-white"}`}>
                                 {group.name}
                               </h3>
-                              <span className="rounded-full bg-white/5 px-2.5 py-1 text-xs text-gray-400">
+                              <span className={`rounded-full px-2.5 py-1 text-xs ${isDayMode ? "bg-slate-100 text-slate-500" : "bg-white/5 text-gray-400"}`}>
                                 {group.platform || "wechat"}
                               </span>
                               {group.category ? (
-                                <span className="rounded-full bg-white/5 px-2.5 py-1 text-xs text-gray-400">
+                                <span className={`rounded-full px-2.5 py-1 text-xs ${isDayMode ? "bg-slate-100 text-slate-500" : "bg-white/5 text-gray-400"}`}>
                                   {group.category}
                                 </span>
                               ) : null}
                             </div>
                             {group.description ? (
-                              <p className="mt-2 text-sm text-gray-400">{group.description}</p>
+                              <p className={`mt-2 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>{group.description}</p>
                             ) : null}
                             <div className="mt-3 flex flex-wrap gap-4 text-xs text-gray-500">
                               <span>成员数: {group.member_count || 0}</span>
@@ -544,14 +547,14 @@ const AdminCommunity = () => {
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleEditGroup(group)}
-                              className="inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg bg-white/5 text-gray-400 transition-colors hover:bg-white/10 hover:text-indigo-300"
+                              className={`inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg transition-colors ${isDayMode ? "bg-white border border-slate-200/80 text-slate-500 hover:bg-slate-50 hover:text-indigo-600" : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-indigo-300"}`}
                               title="编辑社群"
                             >
                               <Edit2 size={16} />
                             </button>
                             <button
                               onClick={() => setDeleteGroupId(group.id)}
-                              className="inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg bg-white/5 text-red-300 transition-colors hover:bg-red-500/10"
+                              className={`inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg transition-colors ${isDayMode ? "bg-white border border-slate-200/80 text-rose-600 hover:bg-rose-50" : "bg-white/5 text-red-300 hover:bg-red-500/10"}`}
                               title="删除社群"
                             >
                               <Trash2 size={16} />
@@ -583,7 +586,7 @@ const AdminCommunity = () => {
 };
 
 const inputClassName =
-  "w-full rounded-xl border border-white/10 bg-black/40 p-3 text-white outline-none transition-colors focus:border-indigo-500";
+  "theme-admin-input w-full rounded-xl p-3";
 
 const FormField = ({ label, value, onChange, textarea = false }) => (
   <div>

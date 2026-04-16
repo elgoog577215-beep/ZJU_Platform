@@ -248,7 +248,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
     <div className="overflow-x-auto">
       <table className="w-full min-w-[860px] text-left text-sm">
         <thead>
-          <tr className="border-b border-white/10 text-xs uppercase tracking-[0.2em] text-gray-500">
+          <tr className="theme-admin-table-head border-b text-xs uppercase tracking-[0.2em]">
             <th className="p-4">
               <input
                 type="checkbox"
@@ -273,7 +273,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
         </thead>
         <tbody className="divide-y divide-white/5">
           {filteredItems.map((item) => (
-            <tr key={item.id} className="hover:bg-white/[0.03]">
+            <tr key={item.id} className="theme-admin-row">
               <td className="p-4">
                 <input
                   type="checkbox"
@@ -397,7 +397,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
                     value={searchInput}
                     onChange={(event) => setSearchInput(event.target.value)}
                     placeholder="搜索标题或标签"
-                    className="w-full rounded-xl border border-white/10 bg-black/40 py-2.5 pl-10 pr-4 text-sm text-white outline-none transition-colors focus:border-indigo-500"
+                    className="theme-admin-input w-full rounded-xl py-2.5 pl-10 pr-4 text-sm"
                   />
                 </div>
                 <AdminButton type="submit" tone="subtle">

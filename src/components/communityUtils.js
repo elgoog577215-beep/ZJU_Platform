@@ -8,6 +8,38 @@ export const parseContentBlocks = (raw) => {
   }
 };
 
+export const slugifyHeading = (text = '', index = 0) => {
+  const base = String(text || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\u4e00-\u9fa5\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+  return base ? `${base}-${index}` : `section-${index}`;
+};
+
+export const extractTocItems = (blocks = []) => {
+  return (Array.isArray(blocks) ? blocks : [])
+    .map((block, index) => ({ block, index }))
+    .filter(({ block }) => block?.type === 'text' && block?.style === 'heading' && String(block?.text || '').trim())
+    .map(({ block, index }) => ({
+      id: slugifyHeading(block.text, index),
+      title: String(block.text || '').trim(),
+      index,
+    }));
+};
+
+export const flattenLinkedResources = (linkedResources = {}) => {
+  const groups = [
+    { key: 'articles', label: '相关文章', items: linkedResources?.articles || [] },
+    { key: 'posts', label: '相关讨论', items: linkedResources?.posts || [] },
+    { key: 'news', label: '相关新闻', items: linkedResources?.news || [] },
+    { key: 'groups', label: '相关社群', items: linkedResources?.groups || [] },
+  ];
+  return groups.filter((group) => Array.isArray(group.items) && group.items.length > 0);
+};
+
 export const calculateReadingTime = (text, t) => {
   const wordsPerMinute = 200;
   const words = text ? text.split(/\s+/).length : 0;

@@ -1,19 +1,21 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Newspaper, Flame, Clock3, Pin, X, ExternalLink, PlusCircle } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Newspaper, Flame, Clock3, Pin, ExternalLink, PlusCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
 import { useSettings } from '../context/SettingsContext';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import UploadModal from './UploadModal';
+import CommunityDetailModal from './CommunityDetailModal';
 import { useCachedResource } from '../hooks/useCachedResource';
 import { parseContentBlocks, calculateReadingTime } from './communityUtils';
-import toast from 'react-hot-toast';
 
 const TAB_CONFIG = [
   { key: 'hot', icon: Flame, labelKey: 'community.news_hot', fallback: '热榜' },
   { key: 'latest', icon: Clock3, labelKey: 'community.news_latest', fallback: '最新' },
 ];
+
 const ADMIN_STATUS_FILTERS = [
   { key: 'all', label: '全部' },
   { key: 'draft', label: '草稿' },
@@ -26,6 +28,7 @@ const CommunityNewsRail = () => {
   const { t } = useTranslation();
   const { uiMode } = useSettings();
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isDayMode = uiMode === 'day';
   const isAdmin = user?.role === 'admin';
 
@@ -36,7 +39,13 @@ const CommunityNewsRail = () => {
   const [isImporting, setIsImporting] = useState(false);
   const [editingNews, setEditingNews] = useState(null);
   const [adminStatusFilter, setAdminStatusFilter] = useState('all');
-  const [sourceHealth, setSourceHealth] = useState({ loading: false, checked: false, reachable: true, status: null, reason: null });
+  const [sourceHealth, setSourceHealth] = useState({
+    loading: false,
+    checked: false,
+    reachable: true,
+    status: null,
+    reason: null,
+  });
 
   const {
     data: newsItems,
@@ -51,19 +60,54 @@ const CommunityNewsRail = () => {
 
   const list = Array.isArray(newsItems) ? newsItems : [];
   const contentBlocks = useMemo(() => parseContentBlocks(selectedNews?.content_blocks), [selectedNews?.content_blocks]);
+  const currentTab = searchParams.get('tab') || 'help';
+
+  const detailItem = useMemo(() => {
+    if (!selectedNews) return null;
+    return {
+      ...selectedNews,
+      author_name: selectedNews.author_name || selectedNews.source_name || t('community.news_source_internal', '站内新闻'),
+    };
+  }, [selectedNews, t]);
+
+  const updateParams = useCallback((next) => {
+    const params = new URLSearchParams(searchParams);
+    ['id', 'post', 'news', 'group'].forEach((key) => params.delete(key));
+    Object.entries(next).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        params.set(key, String(value));
+      }
+    });
+    if (!params.get('tab')) {
+      params.set('tab', currentTab);
+    }
+    setSearchParams(params, { replace: false });
+  }, [currentTab, searchParams, setSearchParams]);
 
   useEffect(() => {
-    if (!selectedNews) return undefined;
-    const onKeyDown = (event) => {
-      if (event.key === 'Escape') {
-        setSelectedNews(null);
-      }
-    };
-    window.addEventListener('keydown', onKeyDown);
+    const newsId = searchParams.get('news');
+    if (!newsId) {
+      setSelectedNews(null);
+      return;
+    }
+
+    let cancelled = false;
+    api.get(`/news/${newsId}`)
+      .then(({ data }) => {
+        if (!cancelled) {
+          setSelectedNews(data);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setSelectedNews(null);
+        }
+      });
+
     return () => {
-      window.removeEventListener('keydown', onKeyDown);
+      cancelled = true;
     };
-  }, [selectedNews]);
+  }, [searchParams]);
 
   useEffect(() => {
     if (!selectedNews?.id) {
@@ -74,6 +118,7 @@ const CommunityNewsRail = () => {
       setSourceHealth({ loading: false, checked: true, reachable: false, status: null, reason: 'missing_source_url' });
       return undefined;
     }
+
     let cancelled = false;
     setSourceHealth((prev) => ({ ...prev, loading: true, checked: false }));
     api.get(`/news/${selectedNews.id}/source-health`)
@@ -91,20 +136,40 @@ const CommunityNewsRail = () => {
         if (cancelled) return;
         setSourceHealth({ loading: false, checked: true, reachable: false, status: null, reason: 'network_error' });
       });
+
     return () => {
       cancelled = true;
     };
   }, [selectedNews?.id, selectedNews?.source_url]);
 
-  const handleOpen = async (item) => {
+  const handleOpen = useCallback((item) => {
     setSelectedNews(item);
-    try {
-      const { data } = await api.get(`/news/${item.id}`);
-      setSelectedNews(data);
-    } catch {
-      // keep optimistic modal content
+    updateParams({ tab: currentTab, news: item.id });
+  }, [currentTab, updateParams]);
+
+  const handleClose = useCallback(() => {
+    setSelectedNews(null);
+    updateParams({ tab: currentTab });
+  }, [currentTab, updateParams]);
+
+  const handleRelatedSelect = useCallback((resource) => {
+    if (!resource?.id) return;
+    if (resource.type === 'article') {
+      if (selectedNews?.id) {
+        api.post('/community/metrics/track', {
+          metric_type: 'news_to_article_click',
+          source_type: 'news',
+          source_id: selectedNews.id,
+          target_type: 'article',
+          target_id: resource.id,
+        }).catch(() => {});
+      }
+      return updateParams({ tab: 'tech', id: resource.id });
     }
-  };
+    if (resource.type === 'post') return updateParams({ tab: 'help', post: resource.id });
+    if (resource.type === 'group') return updateParams({ tab: 'groups', group: resource.id });
+    return updateParams({ tab: currentTab, news: resource.id });
+  }, [currentTab, selectedNews?.id, updateParams]);
 
   const handleCreateNews = async (form, meta = {}) => {
     const payload = {
@@ -120,6 +185,10 @@ const CommunityNewsRail = () => {
       pin_weight: form.pin_weight || 0,
       is_pinned: !!form.is_pinned,
       featured: !!form.featured,
+      related_article_ids: form.related_article_ids || '',
+      related_post_ids: form.related_post_ids || '',
+      related_news_ids: form.related_news_ids || '',
+      related_group_ids: form.related_group_ids || '',
     };
     if (form.id) {
       await api.put(`/news/${form.id}`, payload);
@@ -192,6 +261,87 @@ const CommunityNewsRail = () => {
     }
   };
 
+  const renderSourceActions = selectedNews?.source_url ? (
+    <div className="mt-6 space-y-2">
+      {sourceHealth.checked && !sourceHealth.reachable ? (
+        <div className={`rounded-lg border px-3 py-2 text-xs ${isDayMode ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-amber-500/10 border-amber-500/30 text-amber-200'}`}>
+          {t('community.news_source_unreachable', '原文链接可能已失效，建议使用标题搜索来源站点。')}
+          {sourceHealth.status ? ` (HTTP ${sourceHealth.status})` : ''}
+        </div>
+      ) : null}
+      <div className="flex flex-wrap items-center gap-3">
+        <a
+          href={selectedNews.source_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`inline-flex items-center gap-1.5 text-sm font-semibold ${isDayMode ? 'text-blue-600 hover:text-blue-700' : 'text-blue-300 hover:text-blue-200'}`}
+        >
+          {t('community.open_original', '查看原文')}
+          <ExternalLink size={14} />
+        </a>
+        <button
+          type="button"
+          onClick={() => {
+            const fallbackText = `${selectedNews.title || ''} ${selectedNews.source_name || ''}`.trim();
+            navigator.clipboard?.writeText(fallbackText);
+            toast.success(t('community.news_copy_search_hint', '已复制“标题 + 来源”，可直接粘贴搜索'));
+          }}
+          className={`text-xs px-2.5 py-1 rounded-md border ${isDayMode ? 'text-slate-600 border-slate-200 hover:bg-slate-100' : 'text-gray-300 border-white/10 hover:bg-white/10'}`}
+        >
+          {t('community.news_copy_search', '复制标题+来源')}
+        </button>
+        {sourceHealth.loading ? (
+          <span className={`text-[11px] ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+            {t('community.news_source_checking', '正在检测原文链接...')}
+          </span>
+        ) : null}
+      </div>
+    </div>
+  ) : null;
+
+  const renderDestinationActions = selectedNews?.linked_resources ? (() => {
+    const articles = Array.isArray(selectedNews.linked_resources.articles) ? selectedNews.linked_resources.articles : [];
+    const posts = Array.isArray(selectedNews.linked_resources.posts) ? selectedNews.linked_resources.posts : [];
+    const groups = Array.isArray(selectedNews.linked_resources.groups) ? selectedNews.linked_resources.groups : [];
+    if (articles.length === 0 && posts.length === 0 && groups.length === 0) return null;
+    return (
+      <div className={`mt-6 rounded-xl border p-3 ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
+        <p className={`text-xs font-semibold mb-2 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+          {t('community.next_actions', '下一步')}
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {articles.length > 0 ? (
+            <button
+              type="button"
+              onClick={() => handleRelatedSelect({ ...articles[0], type: 'article' })}
+              className={`px-2.5 py-1.5 rounded-lg text-xs border ${isDayMode ? 'text-orange-700 border-orange-200 hover:bg-orange-50' : 'text-orange-300 border-orange-500/30 hover:bg-orange-500/10'}`}
+            >
+              {t('community.read_related_article', '去看相关文章')}
+            </button>
+          ) : null}
+          {posts.length > 0 ? (
+            <button
+              type="button"
+              onClick={() => handleRelatedSelect({ ...posts[0], type: 'post' })}
+              className={`px-2.5 py-1.5 rounded-lg text-xs border ${isDayMode ? 'text-amber-700 border-amber-200 hover:bg-amber-50' : 'text-amber-300 border-amber-500/30 hover:bg-amber-500/10'}`}
+            >
+              {t('community.open_related_help', '查看相关求助')}
+            </button>
+          ) : null}
+          {groups.length > 0 ? (
+            <button
+              type="button"
+              onClick={() => handleRelatedSelect({ ...groups[0], type: 'group' })}
+              className={`px-2.5 py-1.5 rounded-lg text-xs border ${isDayMode ? 'text-blue-700 border-blue-200 hover:bg-blue-50' : 'text-blue-300 border-blue-500/30 hover:bg-blue-500/10'}`}
+            >
+              {t('community.join_related_group', '加入相关社群')}
+            </button>
+          ) : null}
+        </div>
+      </div>
+    );
+  })() : null;
+
   return (
     <div className={`rounded-2xl border backdrop-blur-xl p-4 md:p-5 ${isDayMode ? 'bg-white/82 border-slate-200/80 shadow-[0_18px_42px_rgba(148,163,184,0.12)]' : 'bg-[#141414]/70 border-white/10'}`}>
       <div className="flex items-center justify-between mb-4">
@@ -204,7 +354,7 @@ const CommunityNewsRail = () => {
           </h3>
         </div>
 
-        {isAdmin && (
+        {isAdmin ? (
           <button
             type="button"
             onClick={() => setIsUploadOpen(true)}
@@ -213,7 +363,7 @@ const CommunityNewsRail = () => {
             <PlusCircle size={13} />
             {t('common.publish', '发布')}
           </button>
-        )}
+        ) : null}
       </div>
 
       <div className="flex items-center gap-2 mb-4">
@@ -233,7 +383,8 @@ const CommunityNewsRail = () => {
           </button>
         ))}
       </div>
-      {isAdmin && (
+
+      {isAdmin ? (
         <div className="mb-3 flex flex-wrap gap-1.5">
           {ADMIN_STATUS_FILTERS.map((item) => (
             <button
@@ -250,8 +401,9 @@ const CommunityNewsRail = () => {
             </button>
           ))}
         </div>
-      )}
-      {isAdmin && (
+      ) : null}
+
+      {isAdmin ? (
         <div className={`mb-4 p-2 rounded-xl border ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
           <div className="flex gap-2">
             <input
@@ -265,25 +417,25 @@ const CommunityNewsRail = () => {
               type="button"
               onClick={handleImportNews}
               disabled={isImporting}
-              className={`px-3 h-9 rounded-lg text-xs font-semibold ${isDayMode ? 'bg-blue-500 text-white' : 'bg-blue-500 text-white'} disabled:opacity-60`}
+              className="px-3 h-9 rounded-lg text-xs font-semibold bg-blue-500 text-white disabled:opacity-60"
             >
               {isImporting ? t('common.loading', '加载中') : t('community.import', '导入')}
             </button>
           </div>
         </div>
-      )}
+      ) : null}
 
       <div className="space-y-2 max-h-[560px] overflow-y-auto pr-1">
-        {loading && (
+        {loading ? (
           [...Array(6)].map((_, i) => (
             <div key={i} className={`rounded-xl border p-3 animate-pulse ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
               <div className={`h-3 rounded w-4/5 mb-2 ${isDayMode ? 'bg-slate-200' : 'bg-white/10'}`} />
               <div className={`h-3 rounded w-1/2 ${isDayMode ? 'bg-slate-200' : 'bg-white/10'}`} />
             </div>
           ))
-        )}
+        ) : null}
 
-        {!loading && error && (
+        {!loading && error ? (
           <button
             type="button"
             onClick={() => refresh({ clearCache: true })}
@@ -291,13 +443,13 @@ const CommunityNewsRail = () => {
           >
             {t('common.retry', '重试')}
           </button>
-        )}
+        ) : null}
 
-        {!loading && !error && list.length === 0 && (
+        {!loading && !error && list.length === 0 ? (
           <div className={`rounded-xl border p-4 text-sm text-center ${isDayMode ? 'bg-slate-50 text-slate-500 border-slate-200' : 'bg-white/[0.03] text-gray-400 border-white/10'}`}>
             {t('community.news_empty', '暂无新闻')}
           </div>
-        )}
+        ) : null}
 
         {!loading && !error && list.map((item, index) => (
           <button
@@ -319,21 +471,21 @@ const CommunityNewsRail = () => {
                 <div className={`text-[11px] mt-1 flex items-center gap-2 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
                   {item.is_pinned ? <span className="inline-flex items-center gap-1"><Pin size={10} />{t('common.pinned', '置顶')}</span> : null}
                   <span>{item.source_name || t('community.news_source_internal', '站内')}</span>
-                  {isAdmin && item.status && (
+                  {isAdmin && item.status ? (
                     <span className={`px-1.5 py-0.5 rounded-full border text-[10px] ${
                       item.status === 'approved'
                         ? (isDayMode ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30')
                         : item.status === 'draft'
                           ? (isDayMode ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-white/10 text-gray-300 border-white/20')
-                        : item.status === 'rejected'
-                          ? (isDayMode ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-rose-500/15 text-rose-300 border-rose-500/30')
-                          : (isDayMode ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-amber-500/15 text-amber-300 border-amber-500/30')
+                          : item.status === 'rejected'
+                            ? (isDayMode ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-rose-500/15 text-rose-300 border-rose-500/30')
+                            : (isDayMode ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-amber-500/15 text-amber-300 border-amber-500/30')
                     }`}>
                       {item.status === 'approved' ? '已通过' : item.status === 'rejected' ? '已驳回' : item.status === 'draft' ? '草稿待确认' : '待审核'}
                     </span>
-                  )}
+                  ) : null}
                 </div>
-                {isAdmin && (
+                {isAdmin ? (
                   <div className="mt-2 flex flex-wrap items-center gap-1.5">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] border ${isDayMode ? 'text-slate-600 border-slate-200 bg-slate-50' : 'text-gray-300 border-white/15 bg-white/[0.03]'}`}>
                       热度 {Number(item.hot_score || 0)}
@@ -368,7 +520,7 @@ const CommunityNewsRail = () => {
                     >
                       权重-1
                     </span>
-                    {item.status !== 'approved' && (
+                    {item.status !== 'approved' ? (
                       <span
                         role="button"
                         tabIndex={0}
@@ -378,8 +530,8 @@ const CommunityNewsRail = () => {
                       >
                         发布
                       </span>
-                    )}
-                    {item.status !== 'rejected' && (
+                    ) : null}
+                    {item.status !== 'rejected' ? (
                       <span
                         role="button"
                         tabIndex={0}
@@ -389,7 +541,7 @@ const CommunityNewsRail = () => {
                       >
                         驳回
                       </span>
-                    )}
+                    ) : null}
                     <span
                       role="button"
                       tabIndex={0}
@@ -429,114 +581,46 @@ const CommunityNewsRail = () => {
                       编辑
                     </span>
                   </div>
-                )}
+                ) : null}
               </div>
             </div>
           </button>
         ))}
       </div>
 
-      <AnimatePresence>
-        {selectedNews && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className={`fixed inset-0 z-[130] backdrop-blur-md ${isDayMode ? 'bg-white/70' : 'bg-black/85'}`}
-            onClick={() => setSelectedNews(null)}
-            role="dialog"
-            aria-modal="true"
-            aria-label={t('community.news_detail', '新闻详情')}
-          >
-            <motion.div
-              initial={{ y: 30, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 30, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className={`relative mx-auto mt-10 mb-10 w-[92vw] max-w-4xl max-h-[88vh] overflow-y-auto rounded-2xl border ${isDayMode ? 'bg-white border-slate-200' : 'bg-[#0e0e0e] border-white/10'}`}
-            >
-              <button
-                type="button"
-                onClick={() => setSelectedNews(null)}
-                className={`absolute top-4 right-4 z-10 p-2 rounded-full border ${isDayMode ? 'bg-white text-slate-700 border-slate-200' : 'bg-black/40 text-white border-white/10'}`}
-              >
-                <X size={18} />
-              </button>
-
-              {selectedNews.cover && (
-                <div className="h-56 sm:h-72 bg-cover bg-center rounded-t-2xl" style={{ backgroundImage: `url(${selectedNews.cover})` }} />
-              )}
-
-              <div className="p-6 md:p-8">
-                <h2 className={`text-2xl md:text-4xl font-black leading-tight mb-3 ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
-                  {selectedNews.title}
-                </h2>
-                <div className={`text-xs md:text-sm flex items-center gap-3 mb-6 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
-                  <span>{selectedNews.source_name || t('community.news_source_internal', '站内')}</span>
-                  <span>•</span>
-                  <span>{selectedNews.created_at ? new Date(selectedNews.created_at).toLocaleDateString('zh-CN') : ''}</span>
-                  <span>•</span>
-                  <span>{calculateReadingTime(selectedNews.content, t)}</span>
-                </div>
-
-                {contentBlocks.length > 0 ? (
-                  <div className="space-y-4">
-                    {contentBlocks.map((block, idx) => (
-                      <div key={block.id || `${block.type}-${idx}`}>
-                        {block.type === 'text' && <p className={`${isDayMode ? 'text-slate-700' : 'text-gray-300'} whitespace-pre-wrap leading-7`}>{block.text}</p>}
-                        {block.type === 'image' && block.url && <img src={block.url} alt={block.caption || ''} className="w-full rounded-xl border border-white/10" />}
-                        {block.type === 'video' && block.url && <video src={block.url} controls className="w-full rounded-xl border border-white/10" />}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className={`${isDayMode ? 'text-slate-700' : 'text-gray-300'} whitespace-pre-wrap leading-7`}>{selectedNews.content}</p>
-                )}
-
-                {selectedNews.source_url && (
-                  <div className="mt-6 space-y-2">
-                    {sourceHealth.checked && !sourceHealth.reachable && (
-                      <div className={`rounded-lg border px-3 py-2 text-xs ${isDayMode ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-amber-500/10 border-amber-500/30 text-amber-200'}`}>
-                        {t('community.news_source_unreachable', '原文链接可能已失效，建议使用标题搜索来源站点。')}
-                        {sourceHealth.status ? ` (HTTP ${sourceHealth.status})` : ''}
-                      </div>
-                    )}
-                    <div className="flex flex-wrap items-center gap-3">
-                      <a
-                        href={selectedNews.source_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`inline-flex items-center gap-1.5 text-sm font-semibold ${isDayMode ? 'text-blue-600 hover:text-blue-700' : 'text-blue-300 hover:text-blue-200'}`}
-                      >
-                        {t('community.open_original', '查看原文')}
-                        <ExternalLink size={14} />
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const fallbackText = `${selectedNews.title || ''} ${selectedNews.source_name || ''}`.trim();
-                          navigator.clipboard?.writeText(fallbackText);
-                          toast.success(t('community.news_copy_search_hint', '已复制“标题 + 来源”，可直接粘贴搜索'));
-                        }}
-                        className={`text-xs px-2.5 py-1 rounded-md border ${isDayMode ? 'text-slate-600 border-slate-200 hover:bg-slate-100' : 'text-gray-300 border-white/10 hover:bg-white/10'}`}
-                      >
-                        {t('community.news_copy_search', '复制标题+来源')}
-                      </button>
-                      {sourceHealth.loading && (
-                        <span className={`text-[11px] ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
-                          {t('community.news_source_checking', '正在检测原文链接...')}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </motion.div>
+      <CommunityDetailModal
+        item={detailItem}
+        onClose={handleClose}
+        isDayMode={isDayMode}
+        gradientFrom="from-sky-900/35"
+        coverImage={selectedNews?.cover}
+        shareParam="news"
+        onRelatedSelect={handleRelatedSelect}
+        headerContent={selectedNews ? (
+          <>
+            <div className={`text-xs md:text-sm flex flex-wrap items-center gap-3 mb-4 ${isDayMode ? 'text-sky-700' : 'text-sky-200'}`}>
+              <span>{selectedNews.source_name || t('community.news_source_internal', '站内')}</span>
+              <span>•</span>
+              <span>{selectedNews.created_at ? new Date(selectedNews.created_at).toLocaleDateString('zh-CN') : ''}</span>
+              <span>•</span>
+              <span>{calculateReadingTime(selectedNews.content, t)}</span>
+            </div>
+            <h2 className={`text-3xl md:text-5xl font-black leading-tight ${isDayMode ? 'text-slate-900' : 'text-white drop-shadow-2xl'}`}>
+              {selectedNews.title}
+            </h2>
+          </>
+        ) : null}
+        contentBlocks={contentBlocks}
+        htmlContent={selectedNews?.content}
+        afterContent={(
+          <>
+            {renderSourceActions}
+            {renderDestinationActions}
+          </>
         )}
-      </AnimatePresence>
+      />
 
-      {isAdmin && (
+      {isAdmin ? (
         <UploadModal
           isOpen={isUploadOpen}
           onClose={() => {
@@ -547,7 +631,7 @@ const CommunityNewsRail = () => {
           type="article"
           initialData={editingNews}
         />
-      )}
+      ) : null}
     </div>
   );
 };

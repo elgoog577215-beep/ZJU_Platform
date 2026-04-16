@@ -29,6 +29,7 @@ export function useCommunityFeed({
   const [currentPage, setCurrentPage] = useState(1);
   const [sort, setSort] = useState('newest');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedTags, setSelectedTags] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [displayItems, setDisplayItems] = useState([]);
@@ -43,6 +44,7 @@ export function useCommunityFeed({
     if (section) p.section = section;
     if (category) p.category = category;
     if (statusFilter !== 'all') p.status = statusFilter;
+    if (searchQuery.trim()) p.search = searchQuery.trim();
     if (selectedTags.length) p.tags = selectedTags.join(',');
     Object.entries(extraQueryParams || {}).forEach(([k, v]) => {
       if (v !== undefined && v !== null && v !== '') {
@@ -50,7 +52,7 @@ export function useCommunityFeed({
       }
     });
     return p;
-  }, [currentPage, pageSize, sort, section, category, statusFilter, selectedTags, extraQueryParams]);
+  }, [currentPage, pageSize, sort, section, category, statusFilter, searchQuery, selectedTags, extraQueryParams]);
 
   const {
     data: items,
@@ -70,7 +72,7 @@ export function useCommunityFeed({
   // Reset page on filter / sort change
   useEffect(() => {
     setCurrentPage(1);
-  }, [sort, statusFilter, selectedTags.join(','), settings.pagination_enabled, ...extraDependencies]);
+  }, [sort, statusFilter, searchQuery, selectedTags.join(','), settings.pagination_enabled, ...extraDependencies]);
 
   // Accumulate items for infinite-scroll or replace for pagination
   const effectiveItems = useMemo(() => items || [], [items]);
@@ -146,6 +148,8 @@ export function useCommunityFeed({
     setSort,
     statusFilter,
     setStatusFilter,
+    searchQuery,
+    setSearchQuery,
     selectedTags,
     setSelectedTags,
 

@@ -146,7 +146,7 @@ const UserManager = () => {
                   placeholder="搜索用户名"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-black/40 py-2.5 pl-10 pr-4 text-white outline-none transition-colors focus:border-indigo-500"
+                className="theme-admin-input w-full rounded-xl py-2.5 pl-10 pr-4"
                 />
               </div>
             </ToolbarGroup>
@@ -193,7 +193,7 @@ const UserManager = () => {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[720px] text-left text-sm">
                 <thead>
-                  <tr className="border-b border-white/10 text-xs uppercase tracking-[0.2em] text-gray-500">
+          <tr className="theme-admin-table-head border-b text-xs uppercase tracking-[0.2em]">
                     <th className="p-4">用户</th>
                     <th className="p-4">角色</th>
                     <th className="p-4">创建时间</th>
@@ -274,7 +274,7 @@ const UserManager = () => {
               type="text"
               value={editingUser?.username || ""}
               disabled
-              className="w-full rounded-xl border border-white/10 bg-black/40 p-3 text-gray-500"
+                  className="theme-admin-input w-full rounded-xl p-3 text-gray-500"
             />
           </div>
           <div>
@@ -282,7 +282,7 @@ const UserManager = () => {
             <select
               value={newRole}
               onChange={(event) => setNewRole(event.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-black/40 p-3 text-white outline-none focus:border-indigo-500"
+                  className="theme-admin-input w-full rounded-xl p-3"
             >
               <option value="user">普通用户</option>
               <option value="admin">管理员</option>
@@ -298,7 +298,7 @@ const UserManager = () => {
               value={newPassword}
               onChange={(event) => setNewPassword(event.target.value)}
               placeholder="留空则不修改"
-              className="w-full rounded-xl border border-white/10 bg-black/40 p-3 text-white outline-none focus:border-indigo-500"
+                  className="theme-admin-input w-full rounded-xl p-3"
             />
             <p className="mt-2 text-xs text-gray-500">密码至少 6 位。</p>
           </div>

@@ -32,6 +32,10 @@ const PostComposer = ({ isOpen, onClose, section = 'help', onSuccess }) => {
   const [deadline, setDeadline] = useState('');
   const [maxMembers, setMaxMembers] = useState('');
   const [link, setLink] = useState('');
+  const [relatedArticleIds, setRelatedArticleIds] = useState('');
+  const [relatedPostIds, setRelatedPostIds] = useState('');
+  const [relatedNewsIds, setRelatedNewsIds] = useState('');
+  const [relatedGroupIds, setRelatedGroupIds] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [uploadingBlockId, setUploadingBlockId] = useState(null);
   const fileInputRefs = useRef({});
@@ -52,6 +56,10 @@ const PostComposer = ({ isOpen, onClose, section = 'help', onSuccess }) => {
     setDeadline('');
     setMaxMembers('');
     setLink('');
+    setRelatedArticleIds('');
+    setRelatedPostIds('');
+    setRelatedNewsIds('');
+    setRelatedGroupIds('');
   }, []);
 
   const handleClose = useCallback(() => {
@@ -137,6 +145,10 @@ const PostComposer = ({ isOpen, onClose, section = 'help', onSuccess }) => {
       content: plainContent,
       content_blocks: JSON.stringify(contentBlocks),
       tags: tags.trim(),
+      related_article_ids: relatedArticleIds.trim(),
+      related_post_ids: relatedPostIds.trim(),
+      related_news_ids: relatedNewsIds.trim(),
+      related_group_ids: relatedGroupIds.trim(),
     };
 
     if (isTeam) {
@@ -265,7 +277,7 @@ const PostComposer = ({ isOpen, onClose, section = 'help', onSuccess }) => {
                         />
                       )}
 
-                      {(block.type === 'image' || block.type === 'video' || block.type === 'file') && (
+              {(block.type === 'image' || block.type === 'video' || block.type === 'file') && (
                         <div className="space-y-2">
                           {!block.url ? (
                             <div className="relative">
@@ -338,6 +350,16 @@ const PostComposer = ({ isOpen, onClose, section = 'help', onSuccess }) => {
                       {label}
                     </button>
                   ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className={labelCls}>跨模块关联（ID）</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <input value={relatedArticleIds} onChange={(e) => setRelatedArticleIds(e.target.value)} placeholder="相关文章 ID，如 12,15" className={inputCls} />
+                  <input value={relatedPostIds} onChange={(e) => setRelatedPostIds(e.target.value)} placeholder="相关讨论 ID，如 31,35" className={inputCls} />
+                  <input value={relatedNewsIds} onChange={(e) => setRelatedNewsIds(e.target.value)} placeholder="相关新闻 ID，如 5,6" className={inputCls} />
+                  <input value={relatedGroupIds} onChange={(e) => setRelatedGroupIds(e.target.value)} placeholder="相关社群 ID，如 8,9" className={inputCls} />
                 </div>
               </div>
 

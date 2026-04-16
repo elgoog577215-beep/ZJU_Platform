@@ -690,11 +690,30 @@ const BackgroundSystem = ({ forcedTheme = null, quality = "full" }) => {
     themeStyles[themeMode]?.[activeScene] ||
     themeStyles[themeMode]?.cyber ||
     themeStyles.dark.cyber;
-  const brightness = Number.parseFloat(settings.background_brightness || 1);
-  const bloomIntensity = Number.parseFloat(settings.background_bloom || 0.55);
-  const vignetteDarkness = Number.parseFloat(
+  const rawBrightness = Number.parseFloat(settings.background_brightness || 1);
+  const rawBloomIntensity = Number.parseFloat(
+    settings.background_bloom || 0.55,
+  );
+  const rawVignetteDarkness = Number.parseFloat(
     settings.background_vignette || 0.45,
   );
+  const brightness =
+    themeMode === "day" ? Math.min(rawBrightness, 1.02) : rawBrightness;
+  const bloomIntensity =
+    themeMode === "day" ? Math.min(rawBloomIntensity, 0.08) : rawBloomIntensity;
+  const vignetteDarkness =
+    themeMode === "day"
+      ? Math.min(rawVignetteDarkness, 0.08)
+      : rawVignetteDarkness;
+  const orbOpacity =
+    themeMode === "day"
+      ? profile.tier === "high"
+        ? 0.14
+        : 0.1
+      : profile.tier === "high"
+        ? 0.24
+        : 0.16;
+  const shouldUseComposer = profile.enableComposer && themeMode !== "day";
 
   return (
     <div
@@ -709,7 +728,7 @@ const BackgroundSystem = ({ forcedTheme = null, quality = "full" }) => {
         className="absolute left-1/2 top-0 h-[40vw] w-[40vw] min-h-[280px] min-w-[280px] -translate-x-1/2 rounded-full blur-3xl"
         style={{
           backgroundColor: themeStyle.orb,
-          opacity: profile.tier === "high" ? 0.24 : 0.16,
+          opacity: orbOpacity,
         }}
       />
       {profile.useCanvas ? (
@@ -731,7 +750,7 @@ const BackgroundSystem = ({ forcedTheme = null, quality = "full" }) => {
         >
           <Suspense fallback={null}>
             <CurrentScene dense={profile.dense} animate={profile.animate} />
-            {profile.enableComposer && (
+            {shouldUseComposer && (
               <EffectComposer disableNormalPass multisampling={0}>
                 <Bloom
                   luminanceThreshold={0.55}
@@ -754,7 +773,7 @@ const BackgroundSystem = ({ forcedTheme = null, quality = "full" }) => {
         style={{
           background:
             themeMode === "day"
-              ? "radial-gradient(circle_at_center,transparent_0%,rgba(255,255,255,0.12)_72%,rgba(255,255,255,0.18)_100%)"
+              ? "radial-gradient(circle_at_center,transparent_0%,rgba(255,255,255,0.04)_68%,rgba(248,250,252,0.12)_100%)"
               : "radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.42)_72%,rgba(0,0,0,0.72)_100%)",
         }}
       />

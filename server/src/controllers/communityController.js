@@ -1,4 +1,5 @@
 const { getDb } = require('../config/db');
+const { normalizeLinkagePayload, serializeLinkageFields, attachLinkedResources } = require('../utils/communityLinks');
 
 const ALLOWED_SECTIONS = new Set(['help', 'tech', 'news', 'team', 'groups']);
 const ALLOWED_GROUP_PLATFORMS = new Set(['wechat', 'qq', 'discord', 'telegram', 'other']);
@@ -211,7 +212,7 @@ const serializePost = (row) => {
   const tags = row.tags
     ? String(row.tags).split(',').map((tag) => tag.trim()).filter(Boolean)
     : [];
-  return {
+  return serializeLinkageFields({
     id: row.id,
     section: row.section,
     title: row.title,
@@ -235,8 +236,12 @@ const serializePost = (row) => {
     last_replied_at: row.last_replied_at || null,
     created_at: row.created_at,
     updated_at: row.updated_at,
-    excerpt: row.content ? String(row.content).slice(0, 120) : ''
-  };
+    excerpt: row.content ? String(row.content).slice(0, 120) : '',
+    related_article_ids: row.related_article_ids,
+    related_post_ids: row.related_post_ids,
+    related_news_ids: row.related_news_ids,
+    related_group_ids: row.related_group_ids,
+  });
 };
 
 const normalizeHttpUrl = (value) => {
@@ -281,11 +286,11 @@ const deriveExpiredFlag = (validUntil, explicitFlag, fallback = 0) => {
 const serializeGroup = (row) => {
   const validUntil = row.valid_until || null;
   const autoExpired = validUntil ? (validUntil < new Date().toISOString().slice(0, 10) ? 1 : 0) : 0;
-  return {
+  return serializeLinkageFields({
     ...row,
     is_expired: row.is_expired ? 1 : autoExpired,
     review_note: row.review_note || null,
-  };
+  }, { includePrimaryTags: true });
 };
 
 const serializeComment = (row) => ({
@@ -382,7 +387,9 @@ const getPost = async (req, res, next) => {
 
     await db.run('UPDATE community_posts SET views_count = COALESCE(views_count, 0) + 1 WHERE id = ?', [id]);
     const updated = await db.get('SELECT * FROM community_posts WHERE id = ?', [id]);
-    res.json(serializePost(updated));
+    const serialized = serializePost(updated);
+    const linked = await attachLinkedResources(db, serialized);
+    res.json(linked);
   } catch (error) { next(error); }
 };
 
@@ -394,14 +401,16 @@ const createPost = async (req, res, next) => {
       return res.status(401).json({ error: 'Login required' });
     }
 
-    const section = normalizeSection(req.body.section);
+    const mutableBody = { ...req.body };
+    normalizeLinkagePayload(mutableBody, { strict: true });
+    const section = normalizeSection(mutableBody.section);
     const title = sanitizeCommunityText(String(req.body.title || ''));
     const content = sanitizeCommunityText(String(req.body.content || ''));
     const tags = parseTags(req.body.tags);
-    const contentBlocks = req.body.content_blocks || null;
-    const link = req.body.link ? String(req.body.link).trim() : null;
-    const deadline = req.body.deadline ? String(req.body.deadline).trim() : null;
-    const maxMembersRaw = req.body.max_members;
+    const contentBlocks = mutableBody.content_blocks || null;
+    const link = mutableBody.link ? String(mutableBody.link).trim() : null;
+    const deadline = mutableBody.deadline ? String(mutableBody.deadline).trim() : null;
+    const maxMembersRaw = mutableBody.max_members;
 
     if (!section) {
       return res.status(400).json({ error: 'Invalid section' });
@@ -429,10 +438,29 @@ const createPost = async (req, res, next) => {
     const result = await db.run(
       `
       INSERT INTO community_posts
-      (section, title, content, content_blocks, link, tags, status, post_status, deadline, max_members, current_members, author_id, author_name, author_avatar, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+      (section, title, content, content_blocks, link, tags, status, post_status, deadline, max_members, current_members, author_id, author_name, author_avatar, related_article_ids, related_post_ids, related_news_ids, related_group_ids, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
       `,
-      [section, title, content, contentBlocks, link, tags, status, postStatus, deadline, maxMembers, currentMembers, userId, authorName, user.avatar || null]
+      [
+        section,
+        title,
+        content,
+        contentBlocks,
+        link,
+        tags,
+        status,
+        postStatus,
+        deadline,
+        maxMembers,
+        currentMembers,
+        userId,
+        authorName,
+        user.avatar || null,
+        mutableBody.related_article_ids || null,
+        mutableBody.related_post_ids || null,
+        mutableBody.related_news_ids || null,
+        mutableBody.related_group_ids || null,
+      ]
     );
 
     if (section === 'team') {
@@ -880,12 +908,101 @@ const listGroups = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+const updatePost = async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const { id } = req.params;
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Login required' });
+    }
+
+    const existing = await db.get('SELECT * FROM community_posts WHERE id = ?', [id]);
+    if (!existing || existing.status === 'deleted') {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+    const actor = await db.get('SELECT role FROM users WHERE id = ?', [userId]);
+    if (!actor || (actor.role !== 'admin' && existing.author_id !== userId)) {
+      return res.status(403).json({ error: 'Permission denied' });
+    }
+
+    const mutableBody = { ...req.body };
+    normalizeLinkagePayload(mutableBody, { strict: true });
+    const title = mutableBody.title !== undefined
+      ? sanitizeCommunityText(String(mutableBody.title || ''))
+      : existing.title;
+    const content = mutableBody.content !== undefined
+      ? sanitizeCommunityText(String(mutableBody.content || ''))
+      : existing.content;
+    const tags = mutableBody.tags !== undefined ? parseTags(mutableBody.tags) : existing.tags;
+    const postStatus = mutableBody.post_status
+      ? String(mutableBody.post_status || '').trim().toLowerCase()
+      : normalizePostStatus(existing.section, existing.post_status);
+    if (!validatePostStatus(existing.section, postStatus)) {
+      return res.status(400).json({ error: 'Invalid post_status' });
+    }
+    if (!title || title.length < 4) {
+      return res.status(400).json({ error: 'Title is too short' });
+    }
+    if (!content || content.length < 8) {
+      return res.status(400).json({ error: 'Content is too short' });
+    }
+
+    await db.run(
+      `
+      UPDATE community_posts
+      SET title = ?, content = ?, content_blocks = ?, link = ?, tags = ?, post_status = ?, deadline = ?, max_members = ?,
+          related_article_ids = ?, related_post_ids = ?, related_news_ids = ?, related_group_ids = ?,
+          updated_at = datetime('now')
+      WHERE id = ?
+      `,
+      [
+        title,
+        content,
+        mutableBody.content_blocks ?? existing.content_blocks ?? null,
+        mutableBody.link ?? existing.link ?? null,
+        tags,
+        postStatus,
+        mutableBody.deadline ?? existing.deadline ?? null,
+        mutableBody.max_members ?? existing.max_members ?? null,
+        mutableBody.related_article_ids ?? existing.related_article_ids ?? null,
+        mutableBody.related_post_ids ?? existing.related_post_ids ?? null,
+        mutableBody.related_news_ids ?? existing.related_news_ids ?? null,
+        mutableBody.related_group_ids ?? existing.related_group_ids ?? null,
+        id,
+      ]
+    );
+
+    const updated = await db.get('SELECT * FROM community_posts WHERE id = ?', [id]);
+    res.json(serializePost(updated));
+  } catch (error) { next(error); }
+};
+
+const getGroup = async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const { id } = req.params;
+    const actor = req.user?.id
+      ? await db.get('SELECT role FROM users WHERE id = ?', [req.user.id])
+      : null;
+    const row = await db.get('SELECT * FROM community_groups WHERE id = ?', [id]);
+    if (!row) return res.status(404).json({ error: 'Group not found' });
+    if (row.review_status !== 'approved' && actor?.role !== 'admin' && row.created_by !== req.user?.id) {
+      return res.status(403).json({ error: 'Permission denied' });
+    }
+    const linked = await attachLinkedResources(db, serializeGroup(row), { includePrimaryTags: true });
+    res.json(linked);
+  } catch (error) { next(error); }
+};
+
 const createGroup = async (req, res, next) => {
   try {
     const db = await getDb();
     const userId = req.user?.id;
     if (!userId) return res.status(401).json({ error: 'Login required' });
-    const { name, description, platform, qr_code_url, invite_link, member_count, category, valid_until, is_recommended, sort_order, is_expired, review_note } = req.body;
+    const mutableBody = { ...req.body };
+    normalizeLinkagePayload(mutableBody, { includePrimaryTags: true, strict: true });
+    const { name, description, platform, qr_code_url, invite_link, member_count, category, valid_until, is_recommended, sort_order, is_expired, review_note, primary_tags, related_article_ids, related_post_ids, related_news_ids, related_group_ids } = mutableBody;
     if (!name || !name.trim()) return res.status(400).json({ error: 'Group name is required' });
     const actor = await db.get('SELECT role FROM users WHERE id = ?', [userId]);
     const reviewStatus = actor?.role === 'admin' ? 'approved' : 'pending';
@@ -901,8 +1018,8 @@ const createGroup = async (req, res, next) => {
     const expiredFlag = deriveExpiredFlag(normalizedValidUntil, adminMode ? is_expired : undefined, 0);
 
     const result = await db.run(
-      `INSERT INTO community_groups (name, description, platform, qr_code_url, invite_link, member_count, category, created_by, review_status, valid_until, is_recommended, sort_order, is_expired, review_note)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO community_groups (name, description, platform, qr_code_url, invite_link, member_count, category, created_by, review_status, valid_until, is_recommended, sort_order, is_expired, review_note, primary_tags, related_article_ids, related_post_ids, related_news_ids, related_group_ids)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         name.trim(),
         description || '',
@@ -918,6 +1035,11 @@ const createGroup = async (req, res, next) => {
         adminMode ? (sort_order || 0) : 0,
         expiredFlag,
         adminMode ? (review_note || null) : null,
+        primary_tags || null,
+        related_article_ids || null,
+        related_post_ids || null,
+        related_news_ids || null,
+        related_group_ids || null,
       ]
     );
     const group = await db.get('SELECT * FROM community_groups WHERE id = ?', [result.lastID]);
@@ -938,7 +1060,9 @@ const updateGroup = async (req, res, next) => {
       return res.status(403).json({ error: 'Permission denied' });
     }
 
-    const { name, description, platform, qr_code_url, invite_link, member_count, category, review_status, valid_until, is_recommended, sort_order, is_expired, review_note } = req.body;
+    const mutableBody = { ...req.body };
+    normalizeLinkagePayload(mutableBody, { includePrimaryTags: true, strict: true });
+    const { name, description, platform, qr_code_url, invite_link, member_count, category, review_status, valid_until, is_recommended, sort_order, is_expired, review_note, primary_tags, related_article_ids, related_post_ids, related_news_ids, related_group_ids } = mutableBody;
     if (name !== undefined && !String(name).trim()) {
       return res.status(400).json({ error: 'Group name is required' });
     }
@@ -952,7 +1076,7 @@ const updateGroup = async (req, res, next) => {
     if (valid_until !== undefined && valid_until && !normalizedValidUntil) return res.status(400).json({ error: 'Invalid valid_until date' });
     const expiredFlag = deriveExpiredFlag(normalizedValidUntil, actor.role === 'admin' ? is_expired : undefined, group.is_expired);
     await db.run(
-      `UPDATE community_groups SET name=?, description=?, platform=?, qr_code_url=?, invite_link=?, member_count=?, category=?, review_status=?, valid_until=?, is_recommended=?, sort_order=?, is_expired=?, review_note=?, updated_at=datetime('now') WHERE id=?`,
+      `UPDATE community_groups SET name=?, description=?, platform=?, qr_code_url=?, invite_link=?, member_count=?, category=?, review_status=?, valid_until=?, is_recommended=?, sort_order=?, is_expired=?, review_note=?, primary_tags=?, related_article_ids=?, related_post_ids=?, related_news_ids=?, related_group_ids=?, updated_at=datetime('now') WHERE id=?`,
       [
         name !== undefined ? String(name).trim() : group.name,
         description ?? group.description,
@@ -967,6 +1091,11 @@ const updateGroup = async (req, res, next) => {
         sort_order ?? group.sort_order,
         expiredFlag,
         actor.role === 'admin' ? (review_note ?? group.review_note ?? null) : (group.review_note ?? null),
+        primary_tags ?? group.primary_tags ?? null,
+        related_article_ids ?? group.related_article_ids ?? null,
+        related_post_ids ?? group.related_post_ids ?? null,
+        related_news_ids ?? group.related_news_ids ?? null,
+        related_group_ids ?? group.related_group_ids ?? null,
         id
       ]
     );
@@ -1090,10 +1219,95 @@ const reviewPost = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+const trackCommunityMetric = async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const userId = req.user?.id || null;
+    const {
+      metric_type,
+      source_type = null,
+      source_id = null,
+      target_type = null,
+      target_id = null,
+    } = req.body || {};
+
+    const allowedTypes = new Set([
+      'article_view',
+      'article_share',
+      'news_to_article_click',
+      'article_to_group_click',
+    ]);
+    if (!allowedTypes.has(metric_type)) {
+      return res.status(400).json({ error: 'Unsupported metric_type' });
+    }
+
+    await db.run(
+      `INSERT INTO community_metrics_events
+       (metric_type, source_type, source_id, target_type, target_id, actor_id, date_key, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
+      [
+        metric_type,
+        source_type,
+        source_id ? Number(source_id) : null,
+        target_type,
+        target_id ? Number(target_id) : null,
+        userId,
+        new Date().toISOString().slice(0, 10),
+      ],
+    );
+    res.status(204).send();
+  } catch (error) { next(error); }
+};
+
+const adminCommunityMetrics = async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const days = Math.min(Math.max(parseInt(req.query.days || '30', 10) || 30, 1), 90);
+    const since = new Date(Date.now() - (days - 1) * 86400000).toISOString().slice(0, 10);
+
+    const metricRows = await db.all(
+      `SELECT metric_type, COUNT(*) as count
+       FROM community_metrics_events
+       WHERE date_key >= ?
+       GROUP BY metric_type`,
+      [since]
+    );
+
+    const dailyRows = await db.all(
+      `SELECT date_key, metric_type, COUNT(*) as count
+       FROM community_metrics_events
+       WHERE date_key >= ?
+       GROUP BY date_key, metric_type
+       ORDER BY date_key ASC`,
+      [since]
+    );
+
+    const summary = {
+      article_view: 0,
+      article_share: 0,
+      news_to_article_click: 0,
+      article_to_group_click: 0,
+    };
+    for (const row of metricRows) {
+      if (summary[row.metric_type] !== undefined) {
+        summary[row.metric_type] = row.count || 0;
+      }
+    }
+
+    res.json({
+      range_days: days,
+      since,
+      summary,
+      daily: dailyRows,
+    });
+  } catch (error) { next(error); }
+};
+
 module.exports = {
   listPosts,
   getPost,
   createPost,
+  updatePost,
   deletePost,
   reportPostContent,
   togglePostLike,
@@ -1107,10 +1321,13 @@ module.exports = {
   leaveTeamPost,
   listTeamMembers,
   listGroups,
+  getGroup,
   createGroup,
   updateGroup,
   deleteGroup,
   adminCommunityStats,
+  adminCommunityMetrics,
+  trackCommunityMetric,
   batchReviewPosts,
   reviewPost
 };

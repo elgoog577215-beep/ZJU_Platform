@@ -340,7 +340,7 @@ const About = () => {
               <button
                 type="submit"
                 disabled={status === "submitting"}
-                className={`w-full font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed group ${isDayMode ? "bg-slate-900 text-white hover:bg-slate-800 shadow-[0_18px_40px_rgba(15,23,42,0.16)]" : "bg-white text-black hover:bg-gray-200"}`}
+                className={`w-full font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed group ${isDayMode ? "bg-indigo-600 text-white hover:bg-indigo-500 shadow-[0_18px_40px_rgba(99,102,241,0.24)]" : "bg-white text-black hover:bg-gray-200"}`}
               >
                 {status === "submitting" ? (
                   <span className="animate-pulse">{t("contact.sending")}</span>

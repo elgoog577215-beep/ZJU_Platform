@@ -986,7 +986,7 @@ END:VCALENDAR`;
           className={`inline-flex items-center justify-center rounded-full px-4 py-2.5 min-h-[44px] text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${compact ? "flex-1" : ""} ${
             discoveryMode === "filters"
               ? isDayMode
-                ? "bg-slate-900 text-white shadow-[0_10px_24px_rgba(15,23,42,0.18)]"
+                ? "bg-indigo-600 text-white shadow-[0_12px_28px_rgba(99,102,241,0.24)]"
                 : "bg-white text-black shadow-[0_10px_24px_rgba(255,255,255,0.08)]"
               : isDayMode
                 ? "text-slate-600 hover:text-slate-900"
@@ -1002,7 +1002,7 @@ END:VCALENDAR`;
           className={`inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 min-h-[44px] text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${compact ? "flex-1" : ""} ${
             discoveryMode === "assistant"
               ? isDayMode
-                ? "bg-slate-900 text-white shadow-[0_10px_24px_rgba(15,23,42,0.18)]"
+                ? "bg-indigo-600 text-white shadow-[0_12px_28px_rgba(99,102,241,0.24)]"
                 : "bg-white text-black shadow-[0_10px_24px_rgba(255,255,255,0.08)]"
               : isDayMode
                 ? "text-slate-600 hover:text-slate-900"
@@ -1226,7 +1226,7 @@ END:VCALENDAR`;
                         type="button"
                         aria-label={t("common.done", "完成")}
                         onClick={() => setIsMobileFilterOpen(false)}
-                        className={`w-full py-3 min-h-[44px] rounded-2xl font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-slate-900 text-white" : "bg-white text-black"}`}
+                        className={`w-full py-3 min-h-[44px] rounded-2xl font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-indigo-600 text-white shadow-[0_12px_28px_rgba(99,102,241,0.24)]" : "bg-white text-black"}`}
                       >
                         {t("common.done", "完成")}
                       </button>
@@ -1245,7 +1245,7 @@ END:VCALENDAR`;
                           type="button"
                           aria-label={t("common.done", "完成")}
                           onClick={() => setIsMobileFilterOpen(false)}
-                          className={`flex-1 py-3 min-h-[44px] rounded-2xl font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-slate-900 text-white" : "bg-white text-black"}`}
+                          className={`flex-1 py-3 min-h-[44px] rounded-2xl font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-indigo-600 text-white shadow-[0_12px_28px_rgba(99,102,241,0.24)]" : "bg-white text-black"}`}
                         >
                           {t("common.done", "完成")}
                         </button>

@@ -168,7 +168,7 @@ const PendingReviewManager = () => {
                   value={keyword}
                   onChange={(event) => setKeyword(event.target.value)}
                   placeholder="搜索标题、描述或标签"
-                  className="w-full rounded-xl border border-white/10 bg-black/40 py-2.5 pl-10 pr-4 text-sm text-white outline-none transition-colors focus:border-indigo-500"
+                  className="theme-admin-input w-full rounded-xl py-2.5 pl-10 pr-4 text-sm"
                 />
               </div>
             </ToolbarGroup>

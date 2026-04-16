@@ -144,7 +144,7 @@ const SearchPalette = () => {
             animate={prefersReducedMotion ? undefined : { opacity: 1 }}
             exit={prefersReducedMotion ? undefined : { opacity: 0 }}
             onClick={() => setIsOpen(false)}
-            className={`absolute inset-0 backdrop-blur-md ${isDayMode ? 'bg-white/55' : 'bg-black/60'}`}
+            className={`absolute inset-0 backdrop-blur-md ${isDayMode ? 'theme-overlay-backdrop' : 'bg-black/60'}`}
             />
 
             <motion.div 
@@ -152,9 +152,9 @@ const SearchPalette = () => {
             animate={prefersReducedMotion ? undefined : { opacity: 1, scale: 1, y: 0 }}
             exit={prefersReducedMotion ? undefined : { opacity: 0, scale: 0.98, y: -12 }}
             transition={prefersReducedMotion ? undefined : { duration: 0.16 }}
-            className={`relative w-full h-[100dvh] md:h-auto md:max-w-2xl backdrop-blur-xl border-0 md:border rounded-none md:rounded-xl shadow-2xl overflow-hidden flex flex-col ${isDayMode ? 'bg-white/94 md:bg-white/88 md:border-slate-200/80' : 'bg-[#0a0a0a]/92 md:bg-[#0a0a0a]/88 md:border-white/10'}`}
+            className={`relative flex h-[100dvh] w-full flex-col overflow-hidden rounded-none border-0 md:h-auto md:max-w-2xl md:rounded-[28px] md:border ${isDayMode ? 'theme-dialog' : 'bg-[#0a0a0a]/92 md:bg-[#0a0a0a]/88 md:border-white/10 shadow-2xl'} backdrop-blur-xl`}
             >
-            <div className={`flex items-center gap-3 px-4 py-4 border-b shrink-0 mt-[env(safe-area-inset-top)] md:mt-0 ${isDayMode ? 'border-slate-200/80' : 'border-white/10'}`}>
+            <div className={`mt-[env(safe-area-inset-top)] flex shrink-0 items-center gap-3 border-b px-4 py-4 md:mt-0 ${isDayMode ? 'theme-divider' : 'border-white/10'}`}>
                 <Search className={isDayMode ? 'text-slate-400' : 'text-gray-400'} size={20} />
                 <input
                 ref={inputRef}
@@ -163,10 +163,10 @@ const SearchPalette = () => {
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleInputKeyDown}
                 placeholder={t('search.placeholder')}
-                className={`flex-1 bg-transparent placeholder-gray-500 focus:outline-none text-lg ${isDayMode ? 'text-slate-900' : 'text-white'}`}
+                className={`flex-1 bg-transparent text-lg placeholder-gray-500 focus:outline-none ${isDayMode ? 'text-slate-900' : 'text-white'}`}
                 />
                 <div className="flex items-center gap-2">
-                    <kbd className={`hidden md:inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-mono ${isDayMode ? 'bg-slate-100 text-slate-500' : 'bg-white/5 text-gray-400'}`}>
+                    <kbd className={`hidden md:inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-mono ${isDayMode ? 'theme-kbd' : 'bg-white/5 text-gray-400'}`}>
                         <span className="text-xs">ESC</span>
                     </kbd>
                     <button type="button" aria-label={t('common.close', '关闭')} onClick={() => setIsOpen(false)} className={`p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'text-slate-400 hover:text-slate-900' : 'text-gray-400 hover:text-white'}`}>
@@ -218,7 +218,7 @@ const SearchPalette = () => {
                     <div className={`p-8 text-center ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>{t('search.no_results', { query: normalizedQuery })}</div>
                 ) : (
                     <div className={`p-12 text-center flex flex-col items-center ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>
-                        <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 animate-pulse ${isDayMode ? 'bg-slate-100' : 'bg-white/5'}`}>
+                        <div className={`mb-6 flex h-20 w-20 items-center justify-center rounded-full animate-pulse ${isDayMode ? 'bg-slate-100' : 'bg-white/5'}`}>
                             <Command className={isDayMode ? 'text-slate-300' : 'text-white/20'} size={40} />
                         </div>
                         <p className={`text-lg font-medium ${isDayMode ? 'text-slate-400' : 'text-white/40'}`}>{t('search.empty_hint')}</p>
@@ -227,7 +227,7 @@ const SearchPalette = () => {
                 )}
             </div>
             
-            <div className={`px-4 py-2 border-t text-xs flex justify-between ${isDayMode ? 'bg-slate-50/90 border-slate-200/80 text-slate-500' : 'bg-black/20 border-white/5 text-gray-500'}`}>
+            <div className={`flex justify-between border-t px-4 py-2 text-xs ${isDayMode ? 'theme-surface-muted theme-divider text-slate-500' : 'bg-black/20 border-white/5 text-gray-500'}`}>
                 <span>{t('search.footer_hint')}</span>
                 <span>{t('search.brand_search')}</span>
             </div>

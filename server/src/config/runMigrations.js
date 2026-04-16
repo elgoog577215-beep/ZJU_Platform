@@ -4,6 +4,25 @@ async function runMigrations(db) {
   console.log('🔄 Running database migrations...');
   await ensureCoreSchema(db);
 
+  const ensureColumns = async (table, columns, label) => {
+    try {
+      const info = await db.all(`PRAGMA table_info(${table})`);
+      const existing = info.map((col) => col.name);
+      if (existing.length === 0) return;
+
+      for (const [name, definition] of Object.entries(columns)) {
+        if (!existing.includes(name)) {
+          await db.exec(`ALTER TABLE ${table} ADD COLUMN ${name} ${definition}`);
+          console.log(`鉁?Added ${name} to ${label || table}`);
+        }
+      }
+    } catch (err) {
+      if (!err.message.includes('duplicate column')) {
+        console.warn(`Migration warning (${label || table} columns):`, err.message);
+      }
+    }
+  };
+
   try {
     const eventsInfo = await db.all(`PRAGMA table_info(events)`);
     const eventsColumns = eventsInfo.map(col => col.name);
@@ -481,6 +500,13 @@ async function runMigrations(db) {
     }
   }
 
+  await ensureColumns('articles', {
+    related_article_ids: 'TEXT',
+    related_post_ids: 'TEXT',
+    related_news_ids: 'TEXT',
+    related_group_ids: 'TEXT',
+  }, 'articles');
+
   // --- Community posts: add content_blocks and link columns ---
   try {
     const cpInfo = await db.all(`PRAGMA table_info(community_posts)`);
@@ -525,6 +551,13 @@ async function runMigrations(db) {
       console.warn('Migration warning (community_posts columns):', err.message);
     }
   }
+
+  await ensureColumns('community_posts', {
+    related_article_ids: 'TEXT',
+    related_post_ids: 'TEXT',
+    related_news_ids: 'TEXT',
+    related_group_ids: 'TEXT',
+  }, 'community_posts');
 
   // --- Community posts: add solved_comment_id ---
   try {
@@ -605,6 +638,14 @@ async function runMigrations(db) {
     }
   }
 
+  await ensureColumns('community_groups', {
+    primary_tags: 'TEXT',
+    related_article_ids: 'TEXT',
+    related_post_ids: 'TEXT',
+    related_news_ids: 'TEXT',
+    related_group_ids: 'TEXT',
+  }, 'community_groups');
+
   try {
     await db.exec(`
       CREATE TABLE IF NOT EXISTS community_reports (
@@ -665,6 +706,36 @@ async function runMigrations(db) {
   }
 
   console.log('✅ Database migrations completed');
+  await ensureColumns('news', {
+    related_article_ids: 'TEXT',
+    related_post_ids: 'TEXT',
+    related_news_ids: 'TEXT',
+    related_group_ids: 'TEXT',
+  }, 'news');
+
+  try {
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS community_metrics_events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        metric_type TEXT NOT NULL,
+        source_type TEXT,
+        source_id INTEGER,
+        target_type TEXT,
+        target_id INTEGER,
+        actor_id INTEGER,
+        date_key TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await db.exec(`CREATE INDEX IF NOT EXISTS idx_community_metrics_type_date ON community_metrics_events(metric_type, date_key)`);
+    await db.exec(`CREATE INDEX IF NOT EXISTS idx_community_metrics_source ON community_metrics_events(source_type, source_id, date_key)`);
+    console.log('✅ Community metrics events table ready');
+  } catch (err) {
+    if (!err.message.includes('already exists')) {
+      console.warn('Migration warning (community metrics):', err.message);
+    }
+  }
+
 }
 
 module.exports = {

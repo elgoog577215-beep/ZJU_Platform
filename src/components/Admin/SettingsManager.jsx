@@ -96,7 +96,7 @@ const SettingsManager = () => {
                 value={settings.invite_code || ""}
                 onChange={(event) => handleChange("invite_code", event.target.value)}
                 placeholder="输入新的邀请码"
-                className="flex-1 rounded-xl border border-white/10 bg-black/40 p-3 text-white outline-none transition-colors focus:border-indigo-500"
+                  className="theme-admin-input flex-1 rounded-xl p-3"
               />
               {fieldAction("invite_code")}
             </div>
@@ -122,7 +122,7 @@ const SettingsManager = () => {
                 type="text"
                 value={settings.site_name || ""}
                 onChange={(event) => handleChange("site_name", event.target.value)}
-                className="flex-1 rounded-xl border border-white/10 bg-black/40 p-3 text-white outline-none transition-colors focus:border-indigo-500"
+                  className="theme-admin-input flex-1 rounded-xl p-3"
               />
               {fieldAction("site_name")}
             </div>

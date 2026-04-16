@@ -1,6 +1,7 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 const { getDb } = require('../config/db');
+const { normalizeLinkagePayload, serializeLinkageFields, attachLinkedResources } = require('../utils/communityLinks');
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
@@ -41,7 +42,7 @@ const normalizeSourceUrl = (value = '') => {
   }
 };
 
-const serializeNews = (row) => ({
+const serializeNews = (row) => serializeLinkageFields({
   id: row.id,
   title: row.title,
   excerpt: row.excerpt || '',
@@ -62,6 +63,10 @@ const serializeNews = (row) => ({
   updated_at: row.updated_at,
   author_name: row.author_name || null,
   author_avatar: row.author_avatar || null,
+  related_article_ids: row.related_article_ids,
+  related_post_ids: row.related_post_ids,
+  related_news_ids: row.related_news_ids,
+  related_group_ids: row.related_group_ids,
 });
 
 const listNews = async (req, res, next) => {
@@ -148,7 +153,9 @@ const getNews = async (req, res, next) => {
       `,
       [id]
     );
-    res.json(serializeNews(updated));
+    const serialized = serializeNews(updated);
+    const linked = await attachLinkedResources(db, serialized);
+    res.json(linked);
   } catch (error) {
     next(error);
   }
@@ -196,6 +203,8 @@ const checkNewsSourceHealth = async (req, res, next) => {
 };
 
 const buildNewsPayload = (body = {}, userRole = 'user') => {
+  const mutableBody = { ...body };
+  normalizeLinkagePayload(mutableBody, { strict: true });
   const title = String(body.title || '').trim();
   const excerpt = String(body.excerpt || '').trim();
   const content = String(body.content || '').trim();
@@ -217,6 +226,10 @@ const buildNewsPayload = (body = {}, userRole = 'user') => {
     pin_weight: clamp(parseInt(body.pin_weight || '0', 10) || 0, 0, 9999),
     featured: body.featured ? 1 : 0,
     status: userRole === 'admin' ? 'approved' : 'pending',
+    related_article_ids: mutableBody.related_article_ids || null,
+    related_post_ids: mutableBody.related_post_ids || null,
+    related_news_ids: mutableBody.related_news_ids || null,
+    related_group_ids: mutableBody.related_group_ids || null,
   };
 };
 
@@ -237,8 +250,8 @@ const createNews = async (req, res, next) => {
     const result = await db.run(
       `
       INSERT INTO news
-      (title, excerpt, content, content_blocks, cover, source_name, source_url, import_type, external_id, hot_score, is_pinned, pin_weight, featured, status, uploader_id, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+      (title, excerpt, content, content_blocks, cover, source_name, source_url, import_type, external_id, hot_score, is_pinned, pin_weight, featured, status, related_article_ids, related_post_ids, related_news_ids, related_group_ids, uploader_id, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
       `,
       [
         payload.title,
@@ -255,6 +268,10 @@ const createNews = async (req, res, next) => {
         payload.pin_weight,
         payload.featured,
         payload.status,
+        payload.related_article_ids,
+        payload.related_post_ids,
+        payload.related_news_ids,
+        payload.related_group_ids,
         userId,
       ]
     );
@@ -290,7 +307,7 @@ const updateNews = async (req, res, next) => {
     await db.run(
       `
       UPDATE news
-      SET title = ?, excerpt = ?, content = ?, content_blocks = ?, cover = ?, source_name = ?, source_url = ?, import_type = ?, external_id = ?, hot_score = ?, is_pinned = ?, pin_weight = ?, featured = ?, status = ?, updated_at = datetime('now')
+      SET title = ?, excerpt = ?, content = ?, content_blocks = ?, cover = ?, source_name = ?, source_url = ?, import_type = ?, external_id = ?, hot_score = ?, is_pinned = ?, pin_weight = ?, featured = ?, status = ?, related_article_ids = ?, related_post_ids = ?, related_news_ids = ?, related_group_ids = ?, updated_at = datetime('now')
       WHERE id = ?
       `,
       [
@@ -308,6 +325,10 @@ const updateNews = async (req, res, next) => {
         payload.pin_weight,
         payload.featured,
         req.user?.role === 'admin' ? (req.body.status || existing.status || 'approved') : existing.status,
+        payload.related_article_ids,
+        payload.related_post_ids,
+        payload.related_news_ids,
+        payload.related_group_ids,
         id,
       ]
     );

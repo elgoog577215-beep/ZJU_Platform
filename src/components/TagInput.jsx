@@ -2,11 +2,13 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Plus, Tag } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import api from '../services/api';
-
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSettings } from '../context/SettingsContext';
 
 const TagInput = ({ value = '', onChange, type }) => {
   const { t } = useTranslation();
+  const { uiMode } = useSettings();
+  const isDayMode = uiMode === 'day';
   const [tags, setTags] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [suggestions, setSuggestions] = useState([]);
@@ -93,7 +95,7 @@ const TagInput = ({ value = '', onChange, type }) => {
 
   return (
     <div className="relative">
-      <div className="flex flex-wrap gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-xl focus-within:border-indigo-500/50 focus-within:bg-white/10 transition-all duration-200 min-h-[44px] items-center">
+      <div className={`flex flex-wrap gap-2 px-3 py-2 rounded-xl transition-all duration-200 min-h-[44px] items-center ${isDayMode ? 'bg-white/92 border border-slate-200/80 focus-within:border-indigo-400/70 focus-within:bg-white shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]' : 'bg-white/5 border border-white/10 focus-within:border-indigo-500/50 focus-within:bg-white/10'}`}>
         <AnimatePresence>
         {tags.map((tag, index) => (
           <motion.span 
@@ -102,14 +104,14 @@ const TagInput = ({ value = '', onChange, type }) => {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.8, opacity: 0 }}
             layout
-            className="flex items-center gap-1 bg-indigo-500/10 text-indigo-300 px-3 py-1 rounded-full text-sm border border-indigo-500/30 shadow-[0_0_10px_rgba(99,102,241,0.1)] hover:border-indigo-500/50 hover:bg-indigo-500/20 transition-all"
+            className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm border transition-all ${isDayMode ? 'bg-indigo-50 text-indigo-600 border-indigo-200/80 shadow-[0_8px_18px_rgba(99,102,241,0.12)] hover:bg-indigo-100' : 'bg-indigo-500/10 text-indigo-300 border-indigo-500/30 shadow-[0_0_10px_rgba(99,102,241,0.1)] hover:border-indigo-500/50 hover:bg-indigo-500/20'}`}
           >
             <Tag size={12} />
             {tag}
             <button 
               type="button"
               onClick={() => removeTag(tag)}
-              className="hover:text-white ml-1 p-0.5 rounded-full hover:bg-indigo-500/50 transition-colors"
+              className={`ml-1 p-0.5 rounded-full transition-colors ${isDayMode ? 'text-indigo-500 hover:text-indigo-700 hover:bg-indigo-100' : 'hover:text-white hover:bg-indigo-500/50'}`}
             >
               <X size={12} />
             </button>
@@ -130,7 +132,7 @@ const TagInput = ({ value = '', onChange, type }) => {
                  setShowSuggestions(true);
             }
           }}
-          className="bg-transparent border-none outline-none text-white placeholder-gray-500 flex-1 min-w-[120px] text-base"
+          className={`bg-transparent border-none outline-none flex-1 min-w-[120px] text-base ${isDayMode ? 'text-slate-900 placeholder:text-slate-400' : 'text-white placeholder-gray-500'}`}
           placeholder={tags.length === 0 ? t('upload.tags_placeholder') : ''}
         />
       </div>
@@ -138,17 +140,17 @@ const TagInput = ({ value = '', onChange, type }) => {
       {showSuggestions && suggestions.length > 0 && (
         <div 
           ref={suggestionsRef}
-          className="absolute z-50 left-0 right-0 mt-2 bg-[#0a0a0a]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl max-h-60 overflow-y-auto custom-scrollbar"
+          className={`absolute z-50 left-0 right-0 mt-2 rounded-xl shadow-2xl max-h-60 overflow-y-auto custom-scrollbar backdrop-blur-xl ${isDayMode ? 'bg-white/96 border border-slate-200/90 shadow-[0_24px_60px_rgba(148,163,184,0.2)]' : 'bg-[#0a0a0a]/95 border border-white/10'}`}
         >
           {suggestions.map((tag) => (
             <button
               key={tag.id}
               type="button"
               onClick={() => addTag(tag.name)}
-              className="w-full text-left px-4 py-3 text-gray-300 hover:bg-white/10 hover:text-white transition-colors flex justify-between items-center text-base"
+              className={`w-full text-left px-4 py-3 transition-colors flex justify-between items-center text-base ${isDayMode ? 'text-slate-700 hover:bg-slate-50 hover:text-slate-900' : 'text-gray-300 hover:bg-white/10 hover:text-white'}`}
             >
               <span>{tag.name}</span>
-              <span className="text-xs text-gray-500">{tag.count} {t('admin.tag_manager.items_count')}</span>
+              <span className={`text-xs ${isDayMode ? 'text-slate-400' : 'text-gray-500'}`}>{tag.count} {t('admin.tag_manager.items_count')}</span>
             </button>
           ))}
         </div>
@@ -157,13 +159,13 @@ const TagInput = ({ value = '', onChange, type }) => {
       {/* Quick Select for Popular Tags */}
       {allTags.length > 0 && tags.length < 5 && !showSuggestions && (
           <div className="mt-2 flex flex-wrap gap-2">
-              <span className="text-sm text-gray-500 py-1">{t('upload.popular_tags')}</span>
+              <span className={`text-sm py-1 ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>{t('upload.popular_tags')}</span>
               {allTags.slice(0, 5).filter(t => !tags.includes(t.name)).map(tag => (
                   <button
                       key={tag.id}
                       type="button"
                       onClick={() => addTag(tag.name)}
-                      className="text-sm bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white px-3 py-1.5 rounded-lg transition-colors border border-white/5"
+                      className={`text-sm px-3 py-1.5 rounded-lg transition-colors border ${isDayMode ? 'bg-white/92 hover:bg-white text-slate-600 hover:text-slate-900 border-slate-200/80 hover:border-indigo-200/80 shadow-[0_8px_18px_rgba(148,163,184,0.12)]' : 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white border border-white/5'}`}
                   >
                       {tag.name}
                   </button>

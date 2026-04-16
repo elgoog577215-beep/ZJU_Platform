@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Upload, Image, Film, Music, FileText, Plus, Calendar, Tag, Link, Check, Sparkles, RotateCcw, GripVertical, ArrowUp, ArrowDown, Trash2, Paperclip, PenSquare, Eye, Clock3, List } from 'lucide-react';
+import { X, Upload, Image, Film, Music, FileText, Plus, Calendar, Tag, Link, Check, Sparkles, RotateCcw, GripVertical, ArrowUp, ArrowDown, Trash2, Paperclip, PenSquare, Eye, Clock3, List, Code2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import api, { uploadFile } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useSettings } from '../context/SettingsContext';
 import TagInput from './TagInput';
 import { useBackClose } from '../hooks/useBackClose';
 
 const createArticleBlock = (blockType = 'text') => ({
   id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-  type: blockType,
-  style: blockType === 'text' ? 'paragraph' : 'default',
+  type: blockType === 'code' ? 'text' : blockType,
+  style: blockType === 'code' ? 'code' : (blockType === 'text' ? 'paragraph' : 'default'),
   align: blockType === 'image' ? 'center' : 'default',
   width: blockType === 'image' ? 'wide' : 'default',
   text: '',
@@ -21,7 +22,8 @@ const createArticleBlock = (blockType = 'text') => ({
   caption: '',
   name: '',
   size: 0,
-  mime: ''
+  mime: '',
+  language: ''
 });
 
 const toParagraphHtml = (text = '') => {
@@ -67,6 +69,7 @@ const buildArticleHtmlFromBlocks = (blocks = []) => blocks
           .join('');
         return items ? `<ul>${items}</ul>` : '';
       }
+      if (block.style === 'code') return `<pre><code>${escapeHtml(block.text || '')}</code></pre>`;
       return paragraphs;
     }
     if (block.type === 'image' && block.url) {
@@ -182,6 +185,11 @@ const ARTICLE_BLOCK_META = {
     icon: FileText,
     chipClass: 'text-blue-200 bg-blue-500/15 border-blue-400/25'
   },
+  code: {
+    label: '代码',
+    icon: Code2,
+    chipClass: 'text-indigo-200 bg-indigo-500/15 border-indigo-400/25'
+  },
   image: {
     label: '图片',
     icon: Image,
@@ -203,6 +211,8 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   const { t } = useTranslation();
   useBackClose(isOpen, onClose);
   const { user, isAdmin } = useAuth();
+  const { uiMode } = useSettings();
+  const isDayMode = uiMode === 'day';
   const isEditing = !!initialData;
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(initialData?.url || initialData?.audio || initialData?.video || null);
@@ -233,7 +243,8 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             caption: block.caption || '',
             name: block.name || '',
             size: block.size || 0,
-            mime: block.mime || ''
+            mime: block.mime || '',
+            language: block.language || ''
           }));
         }
       } catch (error) {
@@ -267,6 +278,10 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   const [eventTarget, setEventTarget] = useState(initialData?.target_audience || '');
   const [eventOrganizer, setEventOrganizer] = useState(initialData?.organizer || '');
   const [dateReasoning, setDateReasoning] = useState('');
+  const [relatedArticleIds, setRelatedArticleIds] = useState(Array.isArray(initialData?.related_article_ids) ? initialData.related_article_ids.join(',') : (initialData?.related_article_ids || ''));
+  const [relatedPostIds, setRelatedPostIds] = useState(Array.isArray(initialData?.related_post_ids) ? initialData.related_post_ids.join(',') : (initialData?.related_post_ids || ''));
+  const [relatedNewsIds, setRelatedNewsIds] = useState(Array.isArray(initialData?.related_news_ids) ? initialData.related_news_ids.join(',') : (initialData?.related_news_ids || ''));
+  const [relatedGroupIds, setRelatedGroupIds] = useState(Array.isArray(initialData?.related_group_ids) ? initialData.related_group_ids.join(',') : (initialData?.related_group_ids || ''));
 
   // WeChat Parsing
   const [wechatUrl, setWechatUrl] = useState('');
@@ -452,7 +467,8 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                       caption: block.caption || '',
                       name: block.name || '',
                       size: block.size || 0,
-                      mime: block.mime || ''
+                      mime: block.mime || '',
+                      language: block.language || ''
                     })));
                   } else {
                     setArticleBlocks([{ ...createArticleBlock('text'), text: extractPlainText(initialData.content || '') }]);
@@ -478,6 +494,10 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             setSize(initialData.size || '');
             setPreview(initialData.url || initialData.audio || initialData.video || null);
             setCoverPreview(initialData.cover || initialData.thumbnail || initialData.image || null);
+            setRelatedArticleIds(Array.isArray(initialData.related_article_ids) ? initialData.related_article_ids.join(',') : (initialData.related_article_ids || ''));
+            setRelatedPostIds(Array.isArray(initialData.related_post_ids) ? initialData.related_post_ids.join(',') : (initialData.related_post_ids || ''));
+            setRelatedNewsIds(Array.isArray(initialData.related_news_ids) ? initialData.related_news_ids.join(',') : (initialData.related_news_ids || ''));
+            setRelatedGroupIds(Array.isArray(initialData.related_group_ids) ? initialData.related_group_ids.join(',') : (initialData.related_group_ids || ''));
         } else {
             setTitle('');
             setTags('');
@@ -498,6 +518,10 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             setSize('');
             setPreview(null);
             setCoverPreview(null);
+            setRelatedArticleIds('');
+            setRelatedPostIds('');
+            setRelatedNewsIds('');
+            setRelatedGroupIds('');
         }
         setFile(null);
         setCoverFile(null);
@@ -762,7 +786,8 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
       '/img': 'image',
       '/video': 'video',
       '/file': 'file',
-      '/text': 'text'
+      '/text': 'text',
+      '/code': 'code'
     };
     const commandType = commandMap[commandText];
     if (!commandType) return;
@@ -942,6 +967,10 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         organizer: type === 'event' ? eventOrganizer : null,
         status: resolvedStatus,
         volunteer_time: type === 'event' ? eventVolunteerTime : null,
+        related_article_ids: relatedArticleIds,
+        related_post_ids: relatedPostIds,
+        related_news_ids: relatedNewsIds,
+        related_group_ids: relatedGroupIds,
 
         // Cover/Thumbnail logic
         cover: coverUrl || (type === 'image' ? fileUrl : null) || (type === 'article' ? (fileUrl || firstImageBlock?.url || null) : null) || 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000&auto=format&fit=crop',
@@ -1057,10 +1086,33 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   };
 
   // UI Constants
-  const inputClasses = "w-full bg-black/35 border border-white/10 rounded-2xl px-4 py-3.5 sm:py-3 text-white placeholder:text-gray-500 focus:outline-none focus:border-indigo-400/70 focus:bg-white/10 transition-all duration-300 text-base min-h-[48px] sm:min-h-[44px] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]";
-  const labelClasses = "block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider pl-1";
-  const cardClasses = "bg-gradient-to-br from-[#1a1a1a]/80 to-[#111111]/70 backdrop-blur-xl border border-white/10 rounded-3xl p-5 sm:p-6 space-y-5 sm:space-y-6 shadow-[0_24px_48px_rgba(0,0,0,0.45)]";
-  const uploadBoxClasses = (isActive) => `relative border-2 border-dashed rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center group transition-all duration-300 bg-black/20 ${isActive ? 'border-indigo-500 bg-indigo-500/10 scale-[1.02] shadow-[0_0_30px_rgba(99,102,241,0.2)]' : 'border-white/10 hover:border-white/30 hover:bg-white/5'}`;
+  const inputClasses = isDayMode
+    ? "w-full rounded-2xl px-4 py-3.5 sm:py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-indigo-400/70 transition-all duration-300 text-base min-h-[48px] sm:min-h-[44px] border border-slate-200/80 bg-white/92 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] focus:bg-white focus:shadow-[0_0_0_4px_rgba(99,102,241,0.08)]"
+    : "w-full bg-black/35 border border-white/10 rounded-2xl px-4 py-3.5 sm:py-3 text-white placeholder:text-gray-500 focus:outline-none focus:border-indigo-400/70 focus:bg-white/10 transition-all duration-300 text-base min-h-[48px] sm:min-h-[44px] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]";
+  const labelClasses = isDayMode
+    ? "block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider pl-1"
+    : "block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider pl-1";
+  const cardClasses = isDayMode
+    ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.88))] backdrop-blur-xl border border-slate-200/80 rounded-3xl p-5 sm:p-6 space-y-5 sm:space-y-6 shadow-[0_24px_48px_rgba(148,163,184,0.18)]"
+    : "bg-gradient-to-br from-[#1a1a1a]/80 to-[#111111]/70 backdrop-blur-xl border border-white/10 rounded-3xl p-5 sm:p-6 space-y-5 sm:space-y-6 shadow-[0_24px_48px_rgba(0,0,0,0.45)]";
+  const uploadBoxClasses = (isActive) =>
+    `relative border-2 border-dashed rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center group transition-all duration-300 ${
+      isDayMode
+        ? `${isActive ? 'border-indigo-400 bg-indigo-50 scale-[1.02] shadow-[0_0_30px_rgba(99,102,241,0.12)]' : 'border-slate-200/80 bg-white/78 hover:border-indigo-200 hover:bg-white'}`
+        : `bg-black/20 ${isActive ? 'border-indigo-500 bg-indigo-500/10 scale-[1.02] shadow-[0_0_30px_rgba(99,102,241,0.2)]' : 'border-white/10 hover:border-white/30 hover:bg-white/5'}`
+    }`;
+  const overlayShellClass = type === 'article'
+    ? (isDayMode ? 'p-0 bg-white/78' : 'p-0 bg-black/90')
+    : (isDayMode ? 'p-0 sm:p-4 bg-white/68' : 'p-0 sm:p-4 bg-black/80');
+  const modalPanelClass = isDayMode
+    ? `relative bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.94))] w-full h-[100dvh] overflow-hidden flex flex-col z-10 ${type === 'article' ? 'max-w-none border-0 rounded-none shadow-none' : `border-0 sm:border border-slate-200/80 rounded-none sm:rounded-[2rem] ${type === 'event' ? 'sm:max-w-5xl' : 'sm:max-w-2xl'} shadow-[0_28px_80px_rgba(148,163,184,0.28)] sm:max-h-[90vh]`}`
+    : `relative bg-[#0f0f0f] w-full h-[100dvh] overflow-hidden flex flex-col z-10 ${type === 'article' ? 'max-w-none border-0 rounded-none shadow-none' : `border-0 sm:border border-white/10 rounded-none sm:rounded-[2rem] ${type === 'event' ? 'sm:max-w-5xl' : 'sm:max-w-2xl'} shadow-2xl sm:max-h-[90vh]`}`;
+  const headerClass = isDayMode
+    ? `px-5 ${type === 'article' ? 'sm:px-6 py-3 sm:py-4 border-slate-200/80' : 'sm:px-8 py-4 sm:py-6 border-slate-200/70'} border-b flex justify-between items-center bg-white/82 backdrop-blur-xl z-20 flex-shrink-0 pt-[max(env(safe-area-inset-top),16px)]`
+    : `px-5 ${type === 'article' ? 'sm:px-6 py-3 sm:py-4 border-white/10' : 'sm:px-8 py-4 sm:py-6 border-white/5'} border-b flex justify-between items-center bg-[#0f0f0f]/95 backdrop-blur-xl z-20 flex-shrink-0 pt-[max(env(safe-area-inset-top),16px)]`;
+  const stickyFooterClass = isDayMode
+    ? "sticky bottom-0 bg-white/88 backdrop-blur-2xl border-t border-slate-200/70 p-5 sm:p-8 mt-auto z-20 pb-[max(env(safe-area-inset-bottom),20px)] sm:pb-8 flex flex-col-reverse sm:flex-row justify-end gap-3 shadow-[0_-18px_36px_rgba(148,163,184,0.16)]"
+    : "sticky bottom-0 bg-[#0f0f0f]/95 backdrop-blur-2xl border-t border-white/5 p-5 sm:p-8 mt-auto z-20 pb-[max(env(safe-area-inset-bottom),20px)] sm:pb-8 flex flex-col-reverse sm:flex-row justify-end gap-3 shadow-[0_-20px_40px_rgba(0,0,0,0.8)]";
 
   return createPortal(
     <AnimatePresence>
@@ -1069,7 +1121,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className={`fixed inset-0 z-[100] flex items-center justify-center ${type === 'article' ? 'p-0 bg-black/90' : 'p-0 sm:p-4 bg-black/80'} backdrop-blur-md`}
+          className={`fixed inset-0 z-[100] flex items-center justify-center ${overlayShellClass} backdrop-blur-md`}
           onClick={onClose}
         >
           <motion.div
@@ -1077,16 +1129,16 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 30 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className={`relative bg-[#0f0f0f] w-full h-[100dvh] overflow-hidden flex flex-col z-10 ${type === 'article' ? 'max-w-none border-0 rounded-none shadow-none' : `border-0 sm:border border-white/10 rounded-none sm:rounded-[2rem] ${type === 'event' ? 'sm:max-w-5xl' : 'sm:max-w-2xl'} shadow-2xl sm:max-h-[90vh]`}`}
+            className={modalPanelClass}
             onClick={e => e.stopPropagation()}
           >
              {/* Gradient Ambience */}
             {type !== 'article' && <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-indigo-500/10 via-purple-500/5 to-transparent opacity-50 pointer-events-none" />}
 
             {/* Header - Fixed at top */}
-            <div className={`px-5 ${type === 'article' ? 'sm:px-6 py-3 sm:py-4 border-white/10' : 'sm:px-8 py-4 sm:py-6 border-white/5'} border-b flex justify-between items-center bg-[#0f0f0f]/95 backdrop-blur-xl z-20 flex-shrink-0 pt-[max(env(safe-area-inset-top),16px)]`}>
-              <h3 className="text-xl sm:text-2xl font-black text-white flex items-center gap-3 tracking-tight">
-                <span className="p-2 sm:p-2.5 bg-white/5 rounded-xl border border-white/10 shadow-inner">
+            <div className={headerClass}>
+              <h3 className={`text-xl sm:text-2xl font-black flex items-center gap-3 tracking-tight ${isDayMode ? 'text-slate-950' : 'text-white'}`}>
+                <span className={`p-2 sm:p-2.5 rounded-xl border shadow-inner ${isDayMode ? 'bg-white border-slate-200/80 text-indigo-600' : 'bg-white/5 border-white/10'}`}>
                     {React.cloneElement(getIcon(), { size: 24 })}
                 </span>
                 <span className="truncate">
@@ -1096,7 +1148,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
               </h3>
               <div className="flex items-center gap-2">
                 {type === 'article' && hasLocalDraft && !isEditing && (
-                  <button type="button" onClick={restoreArticleDraft} className="hidden sm:inline-flex px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-xs text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
+                  <button type="button" onClick={restoreArticleDraft} className={`hidden sm:inline-flex px-3 py-2 rounded-xl border text-xs transition-colors ${isDayMode ? 'border-slate-200/80 bg-white/88 text-slate-600 hover:text-slate-900 hover:border-indigo-200 hover:bg-white' : 'border-white/10 bg-white/5 text-gray-300 hover:text-white hover:bg-white/10'}`}>
                     恢复草稿
                   </button>
                 )}
@@ -1105,7 +1157,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                     清除草稿
                   </button>
                 )}
-                <button onClick={onClose} className="text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 p-2.5 rounded-full transition-all border border-white/5">
+                <button onClick={onClose} className={`p-2.5 rounded-full transition-all border ${isDayMode ? 'text-slate-500 hover:text-slate-900 bg-white/88 hover:bg-white border-slate-200/70' : 'text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 border-white/5'}`}>
                   <X size={20} />
                 </button>
               </div>
@@ -1137,7 +1189,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                     value={wechatUrl}
                                     onChange={(e) => setWechatUrl(e.target.value)}
                                     placeholder="https://mp.weixin.qq.com/s/..."
-                                    className="w-full bg-black/40 border border-green-500/30 rounded-2xl pl-11 pr-4 py-3.5 sm:py-3 text-white placeholder:text-green-500/30 focus:outline-none focus:border-green-500 focus:bg-black/60 transition-all text-sm shadow-inner"
+                                    className={`w-full rounded-2xl pl-11 pr-4 py-3.5 sm:py-3 focus:outline-none transition-all text-sm shadow-inner ${isDayMode ? 'bg-white/92 border border-emerald-200/80 text-slate-900 placeholder:text-emerald-400/60 focus:border-emerald-400 focus:bg-white' : 'bg-black/40 border border-green-500/30 text-white placeholder:text-green-500/30 focus:border-green-500 focus:bg-black/60'}`}
                                 />
                             </div>
                             <button
@@ -1163,7 +1215,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                 <button 
                                     type="button"
                                     onClick={handleClearParsedData}
-                                    className="w-full sm:w-auto px-6 py-3.5 sm:px-4 sm:py-3 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white rounded-2xl transition-all border border-white/5 flex items-center justify-center gap-2"
+                                    className={`w-full sm:w-auto px-6 py-3.5 sm:px-4 sm:py-3 rounded-2xl transition-all border flex items-center justify-center gap-2 ${isDayMode ? 'bg-white/90 hover:bg-white text-slate-500 hover:text-slate-900 border-slate-200/80 shadow-[0_12px_24px_rgba(148,163,184,0.14)]' : 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white border-white/5'}`}
                                     title={t('common.clear')}
                                 >
                                     <RotateCcw size={18} />
@@ -1196,16 +1248,16 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                             {coverPreview ? (
                                 <div className="relative h-full w-full flex justify-center items-center pointer-events-none">
                                     <img src={coverPreview} alt="Cover Preview" className="h-full rounded-2xl object-contain shadow-lg" />
-                                    <div className={`absolute inset-0 flex items-center justify-center bg-black/60 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm ${dragTarget === 'cover' ? 'opacity-100' : ''}`}>
-                                        <p className="text-sm font-medium text-white flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full backdrop-blur-md border border-white/20"><Upload size={16} /> {t('upload.replace')}</p>
+                                    <div className={`absolute inset-0 flex items-center justify-center rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm ${isDayMode ? 'bg-white/70' : 'bg-black/60'} ${dragTarget === 'cover' ? 'opacity-100' : ''}`}>
+                                        <p className={`text-sm font-medium flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-md border ${isDayMode ? 'text-slate-900 bg-white/92 border-slate-200/80 shadow-[0_10px_24px_rgba(148,163,184,0.18)]' : 'text-white bg-white/10 border-white/20'}`}><Upload size={16} /> {t('upload.replace')}</p>
                                     </div>
                                 </div>
                             ) : (
                                 <div className="flex flex-col items-center pointer-events-none text-center">
-                                    <div className={`p-4 rounded-full mb-4 transition-transform duration-300 ${dragTarget === 'cover' ? 'bg-indigo-500/20 text-indigo-400 scale-110' : 'bg-white/5 text-gray-400 group-hover:bg-white/10 group-hover:text-white group-hover:scale-110'}`}>
+                                    <div className={`p-4 rounded-full mb-4 transition-transform duration-300 ${dragTarget === 'cover' ? 'bg-indigo-500/20 text-indigo-400 scale-110' : (isDayMode ? 'bg-white/90 text-slate-400 group-hover:bg-white group-hover:text-slate-900 group-hover:scale-110 shadow-[0_12px_24px_rgba(148,163,184,0.14)]' : 'bg-white/5 text-gray-400 group-hover:bg-white/10 group-hover:text-white group-hover:scale-110')}`}>
                                         <Plus size={28} />
                                     </div>
-                                    <span className={`text-base font-bold transition-colors ${dragTarget === 'cover' ? 'text-indigo-300' : 'text-gray-400 group-hover:text-white'}`}>
+                                    <span className={`text-base font-bold transition-colors ${dragTarget === 'cover' ? (isDayMode ? 'text-indigo-600' : 'text-indigo-300') : (isDayMode ? 'text-slate-500 group-hover:text-slate-900' : 'text-gray-400 group-hover:text-white')}`}>
                                         {dragTarget === 'cover' ? t('upload.drop_image') : `${t('common.upload')} ${t('common.image')}`}
                                     </span>
                                 </div>
@@ -1388,21 +1440,21 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                           required
                           value={title}
                           onChange={e => setTitle(e.target.value)}
-                          className="w-full bg-transparent border-0 border-b border-white/10 focus:border-white/25 text-2xl sm:text-3xl font-black tracking-tight text-white placeholder:text-gray-500 px-1 py-3 focus:outline-none"
+                          className={`w-full bg-transparent border-0 border-b px-1 py-3 focus:outline-none text-2xl sm:text-3xl font-black tracking-tight ${isDayMode ? 'border-slate-200/90 focus:border-indigo-300 text-slate-950 placeholder:text-slate-400' : 'border-white/10 focus:border-white/25 text-white placeholder:text-gray-500'}`}
                           placeholder="输入标题，开始写作"
                         />
 
                         <div className="py-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
                           <div className="flex items-center gap-2">
-                            <button type="button" onClick={() => setArticleEditorMode('edit')} className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5 ${articleEditorMode === 'edit' ? 'bg-white text-black border-white' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'}`}>
+                            <button type="button" onClick={() => setArticleEditorMode('edit')} className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5 ${articleEditorMode === 'edit' ? (isDayMode ? 'bg-indigo-600 text-white border-indigo-600 shadow-[0_12px_28px_rgba(99,102,241,0.24)]' : 'bg-white text-black border-white') : (isDayMode ? 'bg-white/88 border-slate-200/80 text-slate-600 hover:bg-white hover:border-indigo-200' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10')}`}>
                               <PenSquare size={14} />
                               撰写
                             </button>
-                            <button type="button" onClick={() => setArticleEditorMode('preview')} className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5 ${articleEditorMode === 'preview' ? 'bg-white text-black border-white' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'}`}>
+                            <button type="button" onClick={() => setArticleEditorMode('preview')} className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5 ${articleEditorMode === 'preview' ? (isDayMode ? 'bg-indigo-600 text-white border-indigo-600 shadow-[0_12px_28px_rgba(99,102,241,0.24)]' : 'bg-white text-black border-white') : (isDayMode ? 'bg-white/88 border-slate-200/80 text-slate-600 hover:bg-white hover:border-indigo-200' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10')}`}>
                               <Eye size={14} />
                               预览
                             </button>
-                            <button type="button" onClick={() => articleImportInputRef.current?.click()} disabled={isImportingDocument} className="px-3 py-2 rounded-xl text-xs font-bold border bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 transition-colors inline-flex items-center gap-1.5 disabled:opacity-60">
+                            <button type="button" onClick={() => articleImportInputRef.current?.click()} disabled={isImportingDocument} className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors inline-flex items-center gap-1.5 disabled:opacity-60 ${isDayMode ? 'bg-white/88 border-slate-200/80 text-slate-600 hover:bg-white hover:border-indigo-200' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'}`}>
                               <Upload size={14} />
                               {isImportingDocument ? '导入中...' : '导入文档'}
                             </button>
@@ -1414,7 +1466,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                               onChange={handleImportArticleDocument}
                             />
                             {hasLocalDraft && !isEditing && (
-                              <button type="button" onClick={restoreArticleDraft} className="sm:hidden px-3 py-2 rounded-xl text-xs font-bold border bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 transition-colors">
+                              <button type="button" onClick={restoreArticleDraft} className={`sm:hidden px-3 py-2 rounded-xl text-xs font-bold border transition-colors ${isDayMode ? 'bg-white/88 border-slate-200/80 text-slate-600 hover:bg-white hover:border-indigo-200' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'}`}>
                                 恢复草稿
                               </button>
                             )}
@@ -1430,13 +1482,13 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
 
                         {articleEditorMode === 'edit' ? (
                           <div onPaste={handleArticleEditorPaste} className="space-y-3">
-                            <div className="sticky top-0 z-20 bg-[#0f0f0f]/95 py-2 border-b border-white/10">
+                            <div className={`sticky top-0 z-20 py-2 border-b ${isDayMode ? 'bg-white/92 border-slate-200/80' : 'bg-[#0f0f0f]/95 border-white/10'}`}>
                               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                 <div className="flex flex-wrap gap-2">
-                                <button type="button" onClick={() => updateActiveTextStyle('paragraph')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors ${activeTextStyle === 'paragraph' ? 'bg-white text-black border-white' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10'}`}>正文</button>
-                                <button type="button" onClick={() => updateActiveTextStyle('heading')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors ${activeTextStyle === 'heading' ? 'bg-white text-black border-white' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10'}`}>标题</button>
-                                <button type="button" onClick={() => updateActiveTextStyle('quote')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors ${activeTextStyle === 'quote' ? 'bg-white text-black border-white' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10'}`}>引用</button>
-                                <button type="button" onClick={() => updateActiveTextStyle('list')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors inline-flex items-center gap-1.5 ${activeTextStyle === 'list' ? 'bg-white text-black border-white' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10'}`}><List size={12} />列表</button>
+                                <button type="button" onClick={() => updateActiveTextStyle('paragraph')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors ${activeTextStyle === 'paragraph' ? (isDayMode ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-black border-white') : (isDayMode ? 'border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 hover:border-indigo-200' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10')}`}>正文</button>
+                                <button type="button" onClick={() => updateActiveTextStyle('heading')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors ${activeTextStyle === 'heading' ? (isDayMode ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-black border-white') : (isDayMode ? 'border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 hover:border-indigo-200' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10')}`}>标题</button>
+                                <button type="button" onClick={() => updateActiveTextStyle('quote')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors ${activeTextStyle === 'quote' ? (isDayMode ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-black border-white') : (isDayMode ? 'border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 hover:border-indigo-200' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10')}`}>引用</button>
+                                <button type="button" onClick={() => updateActiveTextStyle('list')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors inline-flex items-center gap-1.5 ${activeTextStyle === 'list' ? (isDayMode ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-black border-white') : (isDayMode ? 'border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 hover:border-indigo-200' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10')}`}><List size={12} />列表</button>
                                 </div>
                                 <div className="flex flex-wrap gap-2 sm:justify-end sm:ml-3">
                                 {Object.entries(ARTICLE_BLOCK_META).map(([blockType, meta]) => {
@@ -1446,7 +1498,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                       key={blockType}
                                       type="button"
                                       onClick={() => addArticleBlock(blockType)}
-                                      className="px-2 py-1.5 rounded-md bg-white/[0.03] border border-white/10 text-gray-200 text-[11px] font-medium hover:bg-white/10 transition-all inline-flex items-center gap-1.5"
+                                      className={`px-2 py-1.5 rounded-md border text-[11px] font-medium transition-all inline-flex items-center gap-1.5 ${isDayMode ? 'bg-white border-slate-200/80 text-slate-600 hover:bg-slate-50 hover:text-slate-900 hover:border-indigo-200 shadow-[0_8px_18px_rgba(148,163,184,0.12)]' : 'bg-white/[0.03] border-white/10 text-gray-200 hover:bg-white/10'}`}
                                     >
                                       <BlockIcon size={12} />
                                       <span>+{meta.label}</span>
@@ -1482,20 +1534,20 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                     }
                                   }}
                                   onDrop={() => handleArticleBlockDrop(block.id)}
-                                  className={`relative border rounded-lg p-3 transition-all ${draggingBlockId === block.id ? 'opacity-60 border-indigo-400/50 bg-indigo-500/10' : 'border-white/10 bg-transparent hover:border-white/20'} ${dragOverBlockId === block.id && draggingBlockId !== block.id ? 'ring-2 ring-indigo-400/40 border-indigo-300/50' : ''}`}
+                                  className={`relative border rounded-lg p-3 transition-all ${draggingBlockId === block.id ? 'opacity-60 border-indigo-400/50 bg-indigo-500/10' : (isDayMode ? 'border-slate-200/80 bg-white/90 hover:border-indigo-200 shadow-[0_10px_20px_rgba(148,163,184,0.12)]' : 'border-white/10 bg-transparent hover:border-white/20')} ${dragOverBlockId === block.id && draggingBlockId !== block.id ? 'ring-2 ring-indigo-400/40 border-indigo-300/50' : ''}`}
                                 >
                                   <div className="flex items-center justify-between gap-2 mb-3">
-                                    <div className="flex items-center gap-2 text-xs text-gray-400">
+                                    <div className={`flex items-center gap-2 text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
                                       <GripVertical size={14} />
                                       <span>
                                         {(ARTICLE_BLOCK_META[block.type]?.label || block.type) + (block.type === 'text' ? ` · ${block.style === 'heading' ? '标题' : block.style === 'quote' ? '引用' : block.style === 'list' ? '列表' : '正文'}` : '')}
                                       </span>
                                     </div>
                                     <div className="flex items-center gap-1">
-                                      <button type="button" aria-label="上移内容块" onClick={() => moveArticleBlock(block.id, 'up')} disabled={index === 0} className="p-1.5 rounded-md bg-white/5 border border-white/10 text-gray-300 disabled:opacity-40 hover:bg-white/10">
+                                      <button type="button" aria-label="上移内容块" onClick={() => moveArticleBlock(block.id, 'up')} disabled={index === 0} className={`p-1.5 rounded-md border disabled:opacity-40 ${isDayMode ? 'bg-white text-slate-500 border-slate-200/80 hover:bg-slate-50 hover:text-slate-900' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'}`}>
                                         <ArrowUp size={14} />
                                       </button>
-                                      <button type="button" aria-label="下移内容块" onClick={() => moveArticleBlock(block.id, 'down')} disabled={index === articleBlocks.length - 1} className="p-1.5 rounded-md bg-white/5 border border-white/10 text-gray-300 disabled:opacity-40 hover:bg-white/10">
+                                      <button type="button" aria-label="下移内容块" onClick={() => moveArticleBlock(block.id, 'down')} disabled={index === articleBlocks.length - 1} className={`p-1.5 rounded-md border disabled:opacity-40 ${isDayMode ? 'bg-white text-slate-500 border-slate-200/80 hover:bg-slate-50 hover:text-slate-900' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'}`}>
                                         <ArrowDown size={14} />
                                       </button>
                                       <button type="button" aria-label="删除内容块" onClick={() => removeArticleBlock(block.id)} disabled={articleBlocks.length <= 1} className="p-1.5 rounded-md bg-red-500/10 border border-red-500/30 text-red-300 disabled:opacity-40 hover:bg-red-500/20">
@@ -1518,12 +1570,22 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                         className={`${inputClasses} h-32 text-[15px] leading-7`}
                                         placeholder="输入正文内容，输入 / 后回车可快速插入块"
                                       />
+                                      {block.style === 'code' && (
+                                        <input
+                                          type="text"
+                                          value={block.language || ''}
+                                          onChange={(e) => updateArticleBlock(block.id, { language: e.target.value })}
+                                          className={`${inputClasses} mt-2`}
+                                          placeholder="可选：语言标记，例如 python / js / bash"
+                                        />
+                                      )}
                                       {slashMenuBlockId === block.id && (
-                                        <div className="mt-2 rounded-lg border border-white/15 bg-white/[0.04] p-2 flex flex-wrap gap-2">
-                                          <button type="button" onClick={() => handleSlashCommandInsert(block, 'image')} className="px-2.5 py-1.5 rounded-lg bg-white/10 border border-white/15 text-[11px] text-white hover:bg-white/15">图片块</button>
-                                          <button type="button" onClick={() => handleSlashCommandInsert(block, 'video')} className="px-2.5 py-1.5 rounded-lg bg-white/10 border border-white/15 text-[11px] text-white hover:bg-white/15">视频块</button>
-                                          <button type="button" onClick={() => handleSlashCommandInsert(block, 'file')} className="px-2.5 py-1.5 rounded-lg bg-white/10 border border-white/15 text-[11px] text-white hover:bg-white/15">附件块</button>
-                                          <button type="button" onClick={() => handleSlashCommandInsert(block, 'text')} className="px-2.5 py-1.5 rounded-lg bg-white/10 border border-white/15 text-[11px] text-white hover:bg-white/15">文字块</button>
+                                        <div className={`mt-2 rounded-lg border p-2 flex flex-wrap gap-2 ${isDayMode ? 'border-slate-200/80 bg-slate-50/90' : 'border-white/15 bg-white/[0.04]'}`}>
+                                          <button type="button" onClick={() => handleSlashCommandInsert(block, 'image')} className={`px-2.5 py-1.5 rounded-lg border text-[11px] transition-colors ${isDayMode ? 'bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50 hover:text-slate-900' : 'bg-white/10 border-white/15 text-white hover:bg-white/15'}`}>图片块</button>
+                                          <button type="button" onClick={() => handleSlashCommandInsert(block, 'video')} className={`px-2.5 py-1.5 rounded-lg border text-[11px] transition-colors ${isDayMode ? 'bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50 hover:text-slate-900' : 'bg-white/10 border-white/15 text-white hover:bg-white/15'}`}>视频块</button>
+                                          <button type="button" onClick={() => handleSlashCommandInsert(block, 'file')} className={`px-2.5 py-1.5 rounded-lg border text-[11px] transition-colors ${isDayMode ? 'bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50 hover:text-slate-900' : 'bg-white/10 border-white/15 text-white hover:bg-white/15'}`}>附件块</button>
+                                          <button type="button" onClick={() => handleSlashCommandInsert(block, 'text')} className={`px-2.5 py-1.5 rounded-lg border text-[11px] transition-colors ${isDayMode ? 'bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50 hover:text-slate-900' : 'bg-white/10 border-white/15 text-white hover:bg-white/15'}`}>文字块</button>
+                                          <button type="button" onClick={() => handleSlashCommandInsert(block, 'code')} className={`px-2.5 py-1.5 rounded-lg border text-[11px] transition-colors ${isDayMode ? 'bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50 hover:text-slate-900' : 'bg-white/10 border-white/15 text-white hover:bg-white/15'}`}>代码块</button>
                                         </div>
                                       )}
                                     </>
@@ -1537,12 +1599,12 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                           onChange={(e) => handleArticleBlockFileChange(block.id, block.type, e.target.files?.[0])}
                                           className="absolute inset-0 opacity-0 cursor-pointer z-10"
                                         />
-                                        <div className="h-24 rounded-xl border border-dashed border-white/20 bg-white/[0.03] flex items-center justify-center text-xs text-gray-300">
+                                        <div className={`h-24 rounded-xl border border-dashed flex items-center justify-center text-xs ${isDayMode ? 'border-slate-200/90 bg-slate-50/80 text-slate-500' : 'border-white/20 bg-white/[0.03] text-gray-300'}`}>
                                           {block.name || (block.type === 'file' ? '选择附件文件' : `选择${block.type === 'image' ? '图片' : '视频'}文件`)}
                                         </div>
                                       </div>
                                       {(block.type === 'image' || block.type === 'video') && block.url && (
-                                        <div className="rounded-xl border border-white/10 bg-black/40 p-2">
+                                        <div className={`rounded-xl border p-2 ${isDayMode ? 'border-slate-200/80 bg-slate-50/90' : 'border-white/10 bg-black/40'}`}>
                                           {block.type === 'image' ? (
                                             <img src={block.url} alt={block.caption || 'preview'} className="max-h-56 w-full rounded-lg object-contain" />
                                           ) : (
@@ -1551,7 +1613,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                         </div>
                                       )}
                                       {block.type === 'file' && (block.name || block.url) && (
-                                        <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-gray-300 flex items-center gap-2">
+                                        <div className={`rounded-xl border p-3 text-xs flex items-center gap-2 ${isDayMode ? 'border-slate-200/80 bg-slate-50/90 text-slate-600' : 'border-white/10 bg-white/5 text-gray-300'}`}>
                                           <Paperclip size={14} />
                                           <span className="truncate">{block.name || '附件'}</span>
                                         </div>
@@ -1572,39 +1634,48 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                             </div>
                           </div>
                         ) : (
-                          <div className="rounded-2xl border border-white/10 bg-[#121212] p-5 space-y-4">
-                            <div className="text-sm font-semibold text-white/90">{title || '未命名文章'}</div>
+                          <div className={`rounded-2xl border p-5 space-y-4 ${isDayMode ? 'border-slate-200/80 bg-white/95 shadow-[0_18px_40px_rgba(148,163,184,0.14)]' : 'border-white/10 bg-[#121212]'}`}>
+                            <div className={`text-sm font-semibold ${isDayMode ? 'text-slate-700' : 'text-white/90'}`}>{title || '未命名文章'}</div>
                             {articleBlocks.map((block) => (
                               <div key={`preview-${block.id}`} className="space-y-2">
                                 {block.type === 'text' && (
                                   block.style === 'heading' ? (
-                                    <h3 className="text-2xl font-black text-white leading-tight">{block.text || '（空标题）'}</h3>
+                                    <h3 className={`text-2xl font-black leading-tight ${isDayMode ? 'text-slate-950' : 'text-white'}`}>{block.text || '（空标题）'}</h3>
                                   ) : block.style === 'quote' ? (
-                                    <blockquote className="text-gray-300 leading-8 whitespace-pre-wrap border-l-4 border-indigo-400/60 pl-4 italic">{block.text || '（空引用）'}</blockquote>
+                                    <blockquote className={`leading-8 whitespace-pre-wrap border-l-4 border-indigo-400/60 pl-4 italic ${isDayMode ? 'text-slate-600' : 'text-gray-300'}`}>{block.text || '（空引用）'}</blockquote>
+                                  ) : block.style === 'code' ? (
+                                    <div className={`rounded-xl border overflow-hidden ${isDayMode ? 'border-slate-200/80' : 'border-white/10'}`}>
+                                      <div className={`px-3 py-2 text-[11px] uppercase tracking-[0.18em] ${isDayMode ? 'text-slate-400 bg-slate-50/90' : 'text-gray-400 bg-white/5'}`}>
+                                        {block.language || 'code'}
+                                      </div>
+                                      <pre className={`px-4 py-4 text-sm overflow-x-auto whitespace-pre-wrap ${isDayMode ? 'text-slate-700 bg-slate-50/70' : 'text-gray-100'}`}>
+                                        <code>{block.text || '（空代码块）'}</code>
+                                      </pre>
+                                    </div>
                                   ) : block.style === 'list' ? (
-                                    <ul className="list-disc pl-6 space-y-2 text-gray-200 leading-8">
+                                    <ul className={`list-disc pl-6 space-y-2 leading-8 ${isDayMode ? 'text-slate-700' : 'text-gray-200'}`}>
                                       {(block.text || '').split('\n').map((line) => line.trim()).filter(Boolean).map((line, idx) => (
                                         <li key={`${block.id}-list-${idx}`}>{line.replace(/^[-*]\s*/, '')}</li>
                                       ))}
                                     </ul>
                                   ) : (
-                                    <p className="text-gray-200 leading-8 whitespace-pre-wrap">{block.text || '（空段落）'}</p>
+                                    <p className={`leading-8 whitespace-pre-wrap ${isDayMode ? 'text-slate-700' : 'text-gray-200'}`}>{block.text || '（空段落）'}</p>
                                   )
                                 )}
                                 {block.type === 'image' && block.url && (
                                   <figure className="space-y-2">
-                                    <img src={block.url} alt={block.caption || 'preview'} className="w-full rounded-xl border border-white/10" />
-                                    {block.caption && <figcaption className="text-xs text-gray-400">{block.caption}</figcaption>}
+                                    <img src={block.url} alt={block.caption || 'preview'} className={`w-full rounded-xl border ${isDayMode ? 'border-slate-200/80' : 'border-white/10'}`} />
+                                    {block.caption && <figcaption className={`text-xs ${isDayMode ? 'text-slate-400' : 'text-gray-400'}`}>{block.caption}</figcaption>}
                                   </figure>
                                 )}
                                 {block.type === 'video' && block.url && (
                                   <figure className="space-y-2">
-                                    <video src={block.url} controls className="w-full rounded-xl border border-white/10" />
-                                    {block.caption && <figcaption className="text-xs text-gray-400">{block.caption}</figcaption>}
+                                    <video src={block.url} controls className={`w-full rounded-xl border ${isDayMode ? 'border-slate-200/80' : 'border-white/10'}`} />
+                                    {block.caption && <figcaption className={`text-xs ${isDayMode ? 'text-slate-400' : 'text-gray-400'}`}>{block.caption}</figcaption>}
                                   </figure>
                                 )}
                                 {block.type === 'file' && (block.url || block.name) && (
-                                  <a href={block.url || '#'} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-white/10 bg-white/5 text-sm text-gray-200">
+                                  <a href={block.url || '#'} target="_blank" rel="noopener noreferrer" className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-sm ${isDayMode ? 'border-slate-200/80 bg-slate-50/90 text-slate-700' : 'border-white/10 bg-white/5 text-gray-200'}`}>
                                     <Paperclip size={14} />
                                     <span>{block.name || '附件'}</span>
                                   </a>
@@ -1616,8 +1687,8 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                       </div>
 
                       <aside className="space-y-4 xl:sticky xl:top-4 self-start">
-                        <div className="rounded-xl border border-white/10 bg-[#121212] p-4 space-y-3.5">
-                          <div className="text-xs font-semibold tracking-wider text-gray-400">发布设置</div>
+                        <div className={`rounded-xl border p-4 space-y-3.5 ${isDayMode ? 'border-slate-200/80 bg-white/92' : 'border-white/10 bg-[#121212]'}`}>
+                          <div className={`text-xs font-semibold tracking-wider ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>发布设置</div>
                           <div>
                             <label className={labelClasses}>发布时间</label>
                             <input
@@ -1629,7 +1700,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                           </div>
                           <div>
                             <label className={labelClasses}>文章封面</label>
-                            <div className="h-[48px] rounded-2xl border border-white/10 bg-white/5 px-4 flex items-center justify-between gap-3 text-xs text-gray-400 relative overflow-hidden">
+                            <div className={`h-[48px] rounded-2xl border px-4 flex items-center justify-between gap-3 text-xs relative overflow-hidden ${isDayMode ? 'border-slate-200/80 bg-slate-50/90 text-slate-500' : 'border-white/10 bg-white/5 text-gray-400'}`}>
                               <input type="file" accept="image/*" onChange={e => handleFileChange(e, true)} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
                               <span className="truncate">{coverFile?.name || (coverPreview ? '已设置封面，点击可替换' : '点击上传封面图')}</span>
                               <span className="px-2 py-0.5 rounded-lg border border-white/10 bg-white/5 text-[10px]">JPG/PNG</span>
@@ -1649,23 +1720,32 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                             />
                           </div>
                           <div className="flex items-center gap-3 pt-1">
-                            <div className={`w-5 h-5 rounded border flex items-center justify-center cursor-pointer transition-colors ${featured ? 'bg-indigo-500 border-indigo-500' : 'bg-white/5 border-white/20 hover:border-white/40'}`} onClick={() => setFeatured(!featured)}>
+                            <div className={`w-5 h-5 rounded border flex items-center justify-center cursor-pointer transition-colors ${featured ? 'bg-indigo-500 border-indigo-500' : (isDayMode ? 'bg-white border-slate-300 hover:border-indigo-300' : 'bg-white/5 border-white/20 hover:border-white/40')}`} onClick={() => setFeatured(!featured)}>
                               {featured && <Check size={12} className="text-white" />}
                             </div>
-                            <label className="text-sm text-gray-300 cursor-pointer" onClick={() => setFeatured(!featured)}>{t('common.featured')}</label>
+                            <label className={`text-sm cursor-pointer ${isDayMode ? 'text-slate-600' : 'text-gray-300'}`} onClick={() => setFeatured(!featured)}>{t('common.featured')}</label>
                           </div>
-                          <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-2.5">
-                            <div className="flex items-center justify-between text-[11px] text-gray-400 mb-2">
+                          <div className={`rounded-lg border px-3 py-2.5 ${isDayMode ? 'border-slate-200/80 bg-slate-50/90' : 'border-white/10 bg-white/5'}`}>
+                            <div className={`flex items-center justify-between text-[11px] mb-2 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
                               <span>发布完整度</span>
                               <span>{articleCompletion.percent}%</span>
                             </div>
-                            <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
-                              <div className="h-full rounded-full bg-white/70" style={{ width: `${articleCompletion.percent}%` }} />
+                            <div className={`h-1.5 rounded-full overflow-hidden ${isDayMode ? 'bg-slate-200/80' : 'bg-white/10'}`}>
+                              <div className={`h-full rounded-full ${isDayMode ? 'bg-indigo-500' : 'bg-white/70'}`} style={{ width: `${articleCompletion.percent}%` }} />
                             </div>
-                            <div className="mt-2 text-[11px] text-gray-500">
+                            <div className={`mt-2 text-[11px] ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>
                               已完成 {articleCompletion.completed}/{articleCompletion.total} 个内容块
                             </div>
                           </div>
+                          {isAdmin && (
+                            <div className={`rounded-lg border p-3 space-y-2 ${isDayMode ? 'border-slate-200/80 bg-slate-50/90' : 'border-white/10 bg-white/5'}`}>
+                              <div className={`text-[11px] font-semibold ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>关联内容（ID）</div>
+                              <input value={relatedArticleIds} onChange={(e) => setRelatedArticleIds(e.target.value)} className={inputClasses} placeholder="related_article_ids: 1,2,3" />
+                              <input value={relatedPostIds} onChange={(e) => setRelatedPostIds(e.target.value)} className={inputClasses} placeholder="related_post_ids: 11,12" />
+                              <input value={relatedNewsIds} onChange={(e) => setRelatedNewsIds(e.target.value)} className={inputClasses} placeholder="related_news_ids: 21,22" />
+                              <input value={relatedGroupIds} onChange={(e) => setRelatedGroupIds(e.target.value)} className={inputClasses} placeholder="related_group_ids: 31,32" />
+                            </div>
+                          )}
                         </div>
                       </aside>
                     </div>
@@ -1697,8 +1777,8 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                     <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-2 sm:mb-3">
                                         <Music size={24} className="text-green-400 sm:w-8 sm:h-8" />
                                     </div>
-                                    <p className="text-white font-medium text-sm break-all">{file?.name}</p>
-                                    <p className="text-xs text-gray-400 mt-1">{t('upload.click_drag_replace')}</p>
+                                    <p className={`font-medium text-sm break-all ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{file?.name}</p>
+                                    <p className={`text-xs mt-1 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{t('upload.click_drag_replace')}</p>
                                 </div>
                             ) : type === 'video' ? (
                                 <div className="relative z-20 pointer-events-none w-full flex justify-center px-4">
@@ -1711,13 +1791,13 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                             )
                         ) : (
                         <div className="flex flex-col items-center justify-center text-center pointer-events-none px-4">
-                            <div className={`p-3 sm:p-4 rounded-full mb-3 sm:mb-4 transition-transform duration-300 ${dragTarget === 'main' ? 'bg-indigo-500/20 scale-110 text-indigo-400' : 'bg-white/5 text-gray-400 group-hover:bg-white/10 group-hover:scale-110 group-hover:text-white'}`}>
+                            <div className={`p-3 sm:p-4 rounded-full mb-3 sm:mb-4 transition-transform duration-300 ${dragTarget === 'main' ? 'bg-indigo-500/20 scale-110 text-indigo-400' : (isDayMode ? 'bg-white/90 text-slate-400 group-hover:bg-white group-hover:scale-110 group-hover:text-slate-900' : 'bg-white/5 text-gray-400 group-hover:bg-white/10 group-hover:scale-110 group-hover:text-white')}`}>
                                {dragTarget === 'main' ? <Upload size={24} className="sm:w-8 sm:h-8" /> : React.cloneElement(getIcon(), { size: 24, className: 'sm:w-8 sm:h-8' })}
                             </div>
-                            <p className="text-white font-medium text-base sm:text-lg">
+                            <p className={`font-medium text-base sm:text-lg ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
                             {dragTarget === 'main' ? t('upload.drop_file') : `${t('common.upload')} ${t(`common.${type}`)}`}
                             </p>
-                            <p className="text-xs sm:text-sm text-gray-500 mt-1 sm:mt-2 max-w-xs mx-auto">
+                            <p className={`text-xs sm:text-sm mt-1 sm:mt-2 max-w-xs mx-auto ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>
                                 {t('upload.drag_drop_browse')}
                             </p>
                         </div>
@@ -1747,14 +1827,15 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                             {coverPreview ? (
                                 <div className="relative h-full w-full flex justify-center items-center pointer-events-none px-4">
                                     <img src={coverPreview} alt="Cover Preview" className="h-full rounded-lg object-contain" />
-                                    <div className={`absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm ${dragTarget === 'cover' ? 'opacity-100' : ''}`}>
-                                        <p className="text-xs text-white flex items-center gap-1"><Upload size={14}/> {t('upload.replace')}</p>
+                                    <div className={`absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm ${dragTarget === 'cover' ? 'opacity-100' : ''} ${isDayMode ? 'bg-white/68' : 'bg-black/50'}`}>
+                                        <p className={`text-xs flex items-center gap-1 ${isDayMode ? 'text-slate-900' : 'text-white'}`}><Upload size={14}/> {t('upload.replace')}</p>
                                     </div>
+                                <button type="button" onClick={() => updateActiveTextStyle('code')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors inline-flex items-center gap-1.5 ${activeTextStyle === 'code' ? (isDayMode ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-black border-white') : (isDayMode ? 'border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 hover:border-indigo-200' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10')}`}><Code2 size={12} />代码</button>
                                 </div>
                             ) : (
                                 <div className="flex flex-col items-center pointer-events-none">
-                                    <Plus size={20} className={`mb-2 transition-colors sm:w-6 sm:h-6 ${dragTarget === 'cover' ? 'text-indigo-400' : 'text-gray-400'}`} />
-                                    <span className={`text-xs font-medium transition-colors ${dragTarget === 'cover' ? 'text-indigo-300' : 'text-gray-500'}`}>
+                                    <Plus size={20} className={`mb-2 transition-colors sm:w-6 sm:h-6 ${dragTarget === 'cover' ? 'text-indigo-400' : (isDayMode ? 'text-slate-400' : 'text-gray-400')}`} />
+                                    <span className={`text-xs font-medium transition-colors ${dragTarget === 'cover' ? (isDayMode ? 'text-indigo-500' : 'text-indigo-300') : (isDayMode ? 'text-slate-500' : 'text-gray-500')}`}>
                                         {dragTarget === 'cover' ? t('upload.drop_image') : `${t('common.upload')} ${t('common.image')}`}
                                     </span>
                                 </div>
@@ -1843,13 +1924,13 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                     {/* Featured Checkbox */}
                     <div className="flex items-center gap-3 pt-2">
                         <div 
-                            className={`w-6 h-6 sm:w-5 sm:h-5 rounded border flex items-center justify-center cursor-pointer transition-colors ${featured ? 'bg-indigo-500 border-indigo-500' : 'bg-white/5 border-white/20 hover:border-white/40'}`}
+                            className={`w-6 h-6 sm:w-5 sm:h-5 rounded border flex items-center justify-center cursor-pointer transition-colors ${featured ? 'bg-indigo-500 border-indigo-500' : (isDayMode ? 'bg-white border-slate-300 hover:border-indigo-300' : 'bg-white/5 border-white/20 hover:border-white/40')}`}
                             onClick={() => setFeatured(!featured)}
                         >
                             {featured && <Check size={14} className="text-white sm:w-3 sm:h-3" />}
                         </div>
                         <label 
-                            className="text-sm font-medium text-gray-300 select-none cursor-pointer hover:text-white transition-colors"
+                            className={`text-sm font-medium select-none cursor-pointer transition-colors ${isDayMode ? 'text-slate-600 hover:text-slate-900' : 'text-gray-300 hover:text-white'}`}
                             onClick={() => setFeatured(!featured)}
                         >
                             {t('common.featured')}
@@ -1862,11 +1943,11 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
               </div>
 
               {/* Submit Buttons - Sticky at bottom */}
-              <div className="sticky bottom-0 bg-[#0f0f0f]/95 backdrop-blur-2xl border-t border-white/5 p-5 sm:p-8 mt-auto z-20 pb-[max(env(safe-area-inset-bottom),20px)] sm:pb-8 flex flex-col-reverse sm:flex-row justify-end gap-3 shadow-[0_-20px_40px_rgba(0,0,0,0.8)]">
+              <div className={stickyFooterClass}>
                 <button
                   type="button"
                   onClick={onClose}
-                  className="w-full sm:w-auto px-6 py-4 sm:py-3.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-2xl transition-all font-bold text-sm border border-white/5 sm:border-none bg-white/5 sm:bg-transparent"
+                  className={`w-full sm:w-auto px-6 py-4 sm:py-3.5 rounded-2xl transition-all font-bold text-sm ${isDayMode ? 'text-slate-600 hover:text-slate-900 hover:bg-white border border-slate-200/80 bg-white/88' : 'text-gray-400 hover:text-white hover:bg-white/5 border border-white/5 sm:border-none bg-white/5 sm:bg-transparent'}`}
                 >
                   {t('common.cancel')}
                 </button>
@@ -1879,11 +1960,11 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                     }
                   }}
                   disabled={isUploading}
-                  className="w-full sm:w-auto px-8 py-4 sm:py-3.5 bg-white text-black rounded-2xl hover:bg-gray-100 hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 font-black text-sm shadow-xl shadow-white/10"
+                  className={`w-full sm:w-auto px-8 py-4 sm:py-3.5 rounded-2xl hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 font-black text-sm ${isDayMode ? 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-[0_18px_36px_rgba(99,102,241,0.26)]' : 'bg-white text-black hover:bg-gray-100 shadow-xl shadow-white/10'}`}
                 >
                   {isUploading ? (
                     <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-black border-t-transparent" />
+                      <div className={`animate-spin rounded-full h-5 w-5 border-2 ${isDayMode ? 'border-white border-t-transparent' : 'border-black border-t-transparent'}`} />
                       <span>{t('upload.uploading')}...</span>
                     </>
                   ) : (
@@ -1901,7 +1982,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                       formRef.current?.requestSubmit();
                     }}
                     disabled={isUploading}
-                    className="w-full sm:w-auto px-6 py-4 sm:py-3.5 rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm border border-white/15 bg-white/5 text-gray-200 hover:bg-white/10"
+                    className={`w-full sm:w-auto px-6 py-4 sm:py-3.5 rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm border ${isDayMode ? 'border-slate-200/80 bg-white/88 text-slate-700 hover:bg-white hover:border-indigo-200' : 'border-white/15 bg-white/5 text-gray-200 hover:bg-white/10'}`}
                   >
                     <PenSquare size={18} />
                     <span>保存草稿</span>

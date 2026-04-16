@@ -96,6 +96,7 @@ router.delete('/comments/:id', authenticateToken, commentController.deleteCommen
 router.get('/community/posts', optionalAuth, communityController.listPosts);
 router.get('/community/posts/:id', optionalAuth, communityController.getPost);
 router.post('/community/posts', authenticateToken, communityPostCreateLimiter, communityController.createPost);
+router.put('/community/posts/:id', authenticateToken, communityController.updatePost);
 router.delete('/community/posts/:id', authenticateToken, communityController.deletePost);
 router.post('/community/posts/:id/report', authenticateToken, communityController.reportPostContent);
 router.post('/community/posts/:id/like', authenticateToken, communityController.togglePostLike);
@@ -111,6 +112,7 @@ router.get('/community/search', optionalAuth, communityController.searchPosts);
 
 // Community Groups
 router.get('/community/groups', optionalAuth, communityController.listGroups);
+router.get('/community/groups/:id', optionalAuth, communityController.getGroup);
 router.post('/community/groups', authenticateToken, communityController.createGroup);
 router.put('/community/groups/:id', authenticateToken, communityController.updateGroup);
 router.delete('/community/groups/:id', authenticateToken, communityController.deleteGroup);
@@ -127,6 +129,8 @@ router.delete('/news/:id', authenticateToken, newsController.deleteNews);
 
 // Admin Community Routes
 router.get('/admin/community/stats', authenticateToken, isAdmin, communityController.adminCommunityStats);
+router.get('/admin/community/metrics', authenticateToken, isAdmin, communityController.adminCommunityMetrics);
+router.post('/community/metrics/track', optionalAuth, communityController.trackCommunityMetric);
 router.put('/admin/community/posts/:id/review', authenticateToken, isAdmin, communityController.reviewPost);
 router.post('/admin/community/posts/batch-review', authenticateToken, isAdmin, communityController.batchReviewPosts);
 

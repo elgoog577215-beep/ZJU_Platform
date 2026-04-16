@@ -177,7 +177,7 @@ const TagManager = () => {
                   placeholder="搜索标签"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-black/40 py-2.5 pl-10 pr-4 text-white outline-none transition-colors focus:border-indigo-500"
+                className="theme-admin-input w-full rounded-xl py-2.5 pl-10 pr-4"
                 />
               </div>
             </ToolbarGroup>
@@ -203,7 +203,7 @@ const TagManager = () => {
                 value={newTagName}
                 onChange={(event) => setNewTagName(event.target.value)}
                 placeholder="输入标签名称"
-                className="flex-1 rounded-xl border border-white/10 bg-black/40 p-3 text-white outline-none transition-colors focus:border-indigo-500"
+                    className="theme-admin-input flex-1 rounded-xl p-3"
                 autoFocus
                 onKeyDown={(event) => event.key === "Enter" && handleCreate()}
               />
@@ -247,7 +247,7 @@ const TagManager = () => {
                         type="text"
                         value={editName}
                         onChange={(event) => setEditName(event.target.value)}
-                        className="flex-1 rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-indigo-500"
+                            className="theme-admin-input flex-1 rounded-xl px-3 py-2 text-sm"
                         autoFocus
                         onKeyDown={(event) =>
                           event.key === "Enter" && handleUpdate(tag.id)

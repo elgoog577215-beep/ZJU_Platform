@@ -1,6 +1,7 @@
 const { getDb } = require('../config/db');
 const { deleteFileFromUrl } = require('../utils/fileUtils');
 const { createNotification } = require('./notificationController');
+const { normalizeLinkagePayload, serializeLinkageFields, attachLinkedResources } = require('../utils/communityLinks');
 
 // FIX: O4 — Remove CREATE TABLE from hot path; table should exist from migrations
 const processTags = async (tagsString) => {
@@ -17,7 +18,9 @@ const processTags = async (tagsString) => {
 };
 
 const normalizeArticlePayload = (table, body) => {
-  if (table !== 'articles' || !body) return;
+  if (!body) return;
+  normalizeLinkagePayload(body, { strict: true });
+  if (table !== 'articles') return;
   if (body.content_blocks == null) return;
 
   if (Array.isArray(body.content_blocks)) {
@@ -38,6 +41,11 @@ const normalizeArticlePayload = (table, body) => {
   }
 
   body.content_blocks = null;
+};
+
+const serializeResourceItem = (table, item) => {
+  if (!item || typeof item !== 'object') return item;
+  return serializeLinkageFields(item);
 };
 
 const normalizeArticleWorkflowStatus = (table, requestedStatus, userRole = 'user') => {
@@ -107,7 +115,7 @@ const createHandler = (table, fields) => async (req, res, next) => {
         await processTags(req.body.tags);
     }
 
-    res.json({ id: result.lastID, ...req.body, status, likes: 0 });
+    res.json(serializeResourceItem(table, { id: result.lastID, ...req.body, status, likes: 0 }));
   } catch (error) { next(error); }
 };
 
@@ -145,7 +153,7 @@ const updateHandler = (table, fields) => async (req, res, next) => {
         await processTags(req.body.tags);
     }
 
-    res.json({ id, ...req.body });
+    res.json(serializeResourceItem(table, { id, ...req.body }));
   } catch (error) { next(error); }
 };
 
@@ -318,7 +326,12 @@ const getOneHandler = (table) => async (req, res, next) => {
         res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
     }
 
-    res.json(item);
+    if (table === 'articles') {
+      const linkedItem = await attachLinkedResources(db, item);
+      return res.json(linkedItem);
+    }
+
+    res.json(serializeResourceItem(table, item));
   } catch (error) { next(error); }
 };
 
@@ -548,7 +561,7 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
         }
 
         res.json({
-            data: items,
+            data: items.map((item) => serializeResourceItem(table, item)),
             pagination: {
                 total: countResult.count,
                 page,
@@ -748,7 +761,7 @@ const fields = {
     photos: ['url', 'title', 'tags', 'size', 'gameType', 'gameDescription', 'featured'],
     music: ['title', 'artist', 'duration', 'cover', 'audio', 'featured', 'tags'],
     videos: ['title', 'tags', 'thumbnail', 'video', 'featured'],
-    articles: ['title', 'date', 'excerpt', 'tags', 'content', 'content_blocks', 'cover', 'featured', 'category'],
+    articles: ['title', 'date', 'excerpt', 'tags', 'content', 'content_blocks', 'cover', 'featured', 'category', 'related_article_ids', 'related_post_ids', 'related_news_ids', 'related_group_ids'],
     events: ['title', 'date', 'end_date', 'location', 'tags', 'image', 'description', 'content', 'link', 'featured', 'score', 'target_audience', 'organizer', 'volunteer_time', 'category']
 };
 

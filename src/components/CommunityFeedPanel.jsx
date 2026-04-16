@@ -38,6 +38,7 @@ const CommunityFeedPanel = ({
   statusTabs,
   onNewPost,
   extraControls,
+  featuredSection,
   extraBottom,
   skeletonCount = 5,
   renderSkeleton,
@@ -126,9 +127,14 @@ const CommunityFeedPanel = ({
             )}
           </div>
         </div>
+        {statusTabs && extraControls ? (
+          <div>{extraControls}</div>
+        ) : null}
       </div>
 
       {/* Item list */}
+      {featuredSection}
+
       <div className="space-y-4">
         {isLoading && displayItems.length === 0 ? (
           [...Array(skeletonCount)].map((_, i) => renderSkeleton ? renderSkeleton(i) : defaultSkeleton(i))

@@ -180,13 +180,13 @@ const Navbar = () => {
     ? "text-sm font-medium bg-white/92 text-slate-800 border border-slate-200/80 px-4 py-1.5 rounded-full transition-all hover:bg-white hover:text-indigo-600 hover:border-indigo-200/80 active:scale-95 shadow-[0_10px_24px_rgba(148,163,184,0.16)]"
     : "text-sm font-medium bg-white text-black px-4 py-1.5 rounded-full transition-all hover:bg-gray-200 active:scale-95";
   const themeModalClasses = isDayMode
-    ? "bg-white/92 backdrop-blur-xl border border-slate-200/80 text-slate-900"
+    ? "theme-dialog text-slate-900"
     : "bg-[#0f172a]/92 backdrop-blur-lg border border-white/10";
   const themeModalHeaderClasses = isDayMode
     ? "text-slate-700 bg-white/90 border border-slate-200/70"
     : "text-white/80 bg-[#0f172a]/95";
   const weatherModalClasses = isDayMode
-    ? "bg-white/94 border border-slate-200/80 shadow-[0_18px_44px_rgba(148,163,184,0.2)]"
+    ? "theme-dialog text-slate-900"
     : "bg-[#1a1a1a] border border-white/10 shadow-2xl";
   const showMobileUploadAction = showUploadButton;
   const showMobileSearchAction =

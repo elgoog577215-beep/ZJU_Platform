@@ -4,9 +4,12 @@ import { Maximize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SmartImage from '../SmartImage';
 import { getHighResUrl } from '../../utils/imageUtils';
+import { useSettings } from '../../context/SettingsContext';
 
 const DashboardPhotoStack = ({ photos, onSelect }) => {
   const { t } = useTranslation();
+  const { uiMode } = useSettings();
+  const isDayMode = uiMode === 'day';
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
@@ -26,7 +29,7 @@ const DashboardPhotoStack = ({ photos, onSelect }) => {
       <div 
         key={currentPhoto.id} 
         onClick={() => onSelect(currentPhoto)}
-        className="relative flex-1 rounded-3xl overflow-hidden cursor-pointer group border border-white/10"
+        className={`relative flex-1 rounded-3xl overflow-hidden cursor-pointer group border ${isDayMode ? 'border-slate-200/80 bg-white/88 shadow-[0_18px_40px_rgba(148,163,184,0.16)]' : 'border-white/10'}`}
       >
         <AnimatePresence mode='wait'>
             <motion.div 
@@ -48,15 +51,15 @@ const DashboardPhotoStack = ({ photos, onSelect }) => {
             </motion.div>
         </AnimatePresence>
 
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 opacity-60 group-hover:opacity-80 transition-opacity" />
+        <div className={`absolute inset-0 opacity-60 group-hover:opacity-80 transition-opacity ${isDayMode ? 'bg-gradient-to-b from-transparent to-white/88' : 'bg-gradient-to-b from-transparent to-black/60'}`} />
         
-        <div className="absolute top-3 right-3 bg-black/30 backdrop-blur-md p-2 rounded-full border border-white/20 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0 z-10">
-           <Maximize2 size={14} className="text-white" />
+        <div className={`absolute top-3 right-3 backdrop-blur-md p-2 rounded-full border opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0 z-10 ${isDayMode ? 'bg-white/88 border-slate-200/80' : 'bg-black/30 border-white/20'}`}>
+           <Maximize2 size={14} className={isDayMode ? 'text-slate-700' : 'text-white'} />
         </div>
 
         <div className="absolute bottom-4 left-4 z-10">
-          <p className="text-[10px] font-bold text-white/60 uppercase tracking-wider mb-1">{t(`gallery.categories.${currentPhoto.category}`)}</p>
-          <h4 className="text-white font-bold leading-tight">{currentPhoto.title}</h4>
+          <p className={`text-[10px] font-bold uppercase tracking-wider mb-1 ${isDayMode ? 'text-slate-500' : 'text-white/60'}`}>{t(`gallery.categories.${currentPhoto.category}`)}</p>
+          <h4 className={`font-bold leading-tight ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{currentPhoto.title}</h4>
         </div>
         
         {/* Progress Indicators */}

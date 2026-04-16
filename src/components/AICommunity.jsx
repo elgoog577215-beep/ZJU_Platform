@@ -1,9 +1,11 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { HelpCircle, BookOpen, QrCode, Newspaper, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useSettings } from '../context/SettingsContext';
+import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 import SEO from './SEO';
 import CommunityTech from './CommunityTech';
 import CommunityHelp from './CommunityHelp';
@@ -25,12 +27,35 @@ const TABS = [
 const AICommunity = () => {
   const { t } = useTranslation();
   const { uiMode } = useSettings();
+  const { user } = useAuth();
   const isDayMode = uiMode === 'day';
   const [searchParams, setSearchParams] = useSearchParams();
   const [isMobileNewsOpen, setIsMobileNewsOpen] = useState(false);
+  const [metricsSummary, setMetricsSummary] = useState(null);
 
   const requestedTab = searchParams.get('tab') || 'help';
   const activeTab = panels[requestedTab] ? requestedTab : 'help';
+
+  useEffect(() => {
+    if (searchParams.get('news')) {
+      setIsMobileNewsOpen(true);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (user?.role !== 'admin') return;
+    let cancelled = false;
+    api.get('/admin/community/metrics', { params: { days: 14 } })
+      .then(({ data }) => {
+        if (!cancelled) setMetricsSummary(data?.summary || null);
+      })
+      .catch(() => {
+        if (!cancelled) setMetricsSummary(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.role]);
 
   const handleTabChange = useCallback((tab) => {
     setSearchParams({ tab }, { replace: true });
@@ -100,6 +125,32 @@ const AICommunity = () => {
             </button>
           ))}
         </div>
+
+        {user?.role === 'admin' && metricsSummary ? (
+          <div className={`mb-5 p-4 rounded-2xl border ${isDayMode ? 'bg-white/82 border-slate-200/80' : 'bg-[#1a1a1a]/40 border-white/10'}`}>
+            <p className={`text-xs uppercase tracking-[0.2em] mb-3 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+              {t('community.metrics_14d', '社区转化指标（近14天）')}
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+              <div className={`rounded-xl border p-3 ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
+                <p className={`text-[11px] ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>文章阅读</p>
+                <p className={`text-xl font-black mt-1 ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{metricsSummary.article_view || 0}</p>
+              </div>
+              <div className={`rounded-xl border p-3 ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
+                <p className={`text-[11px] ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>文章分享</p>
+                <p className={`text-xl font-black mt-1 ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{metricsSummary.article_share || 0}</p>
+              </div>
+              <div className={`rounded-xl border p-3 ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
+                <p className={`text-[11px] ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>新闻→文章</p>
+                <p className={`text-xl font-black mt-1 ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{metricsSummary.news_to_article_click || 0}</p>
+              </div>
+              <div className={`rounded-xl border p-3 ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
+                <p className={`text-[11px] ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>文章→社群</p>
+                <p className={`text-xl font-black mt-1 ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{metricsSummary.article_to_group_click || 0}</p>
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         <div className={`rounded-2xl border p-3 md:p-4 ${isDayMode ? 'bg-white/82 border-slate-200/80' : 'bg-[#1a1a1a]/40 border-white/10'}`}>
           <ActivePanel />

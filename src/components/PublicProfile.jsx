@@ -418,7 +418,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                       handleFollowToggle(user.id, Boolean(user.is_following))
                     }
                     disabled={followLoading || !currentUser}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${user.is_following ? (isDayMode ? "bg-slate-900 text-white" : "bg-white text-black") : isDayMode ? "bg-white/90 hover:bg-white text-slate-700 border border-slate-200/80 shadow-[0_12px_28px_rgba(148,163,184,0.14)]" : "bg-white/10 hover:bg-white/20 text-white border border-white/10"} disabled:opacity-60`}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${user.is_following ? (isDayMode ? "bg-indigo-600 text-white shadow-[0_12px_28px_rgba(99,102,241,0.22)]" : "bg-white text-black") : isDayMode ? "bg-white/90 hover:bg-white text-slate-700 border border-slate-200/80 shadow-[0_12px_28px_rgba(148,163,184,0.14)]" : "bg-white/10 hover:bg-white/20 text-white border border-white/10"} disabled:opacity-60`}
                   >
                     {!currentUser
                       ? "登录后关注"
@@ -505,7 +505,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
             className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
               activeTab === "relations"
                 ? isDayMode
-                  ? "bg-slate-900 text-white shadow-[0_12px_28px_rgba(15,23,42,0.16)]"
+                  ? "bg-indigo-600 text-white shadow-[0_12px_28px_rgba(99,102,241,0.22)]"
                   : "bg-white text-black"
                 : isDayMode
                   ? "bg-white/85 text-slate-500 border border-slate-200/80 hover:bg-white hover:text-slate-900"
@@ -521,7 +521,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
             className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
               activeTab === "published"
                 ? isDayMode
-                  ? "bg-slate-900 text-white shadow-[0_12px_28px_rgba(15,23,42,0.16)]"
+                  ? "bg-indigo-600 text-white shadow-[0_12px_28px_rgba(99,102,241,0.22)]"
                   : "bg-white text-black"
                 : isDayMode
                   ? "bg-white/85 text-slate-500 border border-slate-200/80 hover:bg-white hover:text-slate-900"
@@ -539,7 +539,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                 className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
                   activeTab === "favorites"
                     ? isDayMode
-                      ? "bg-slate-900 text-white shadow-[0_12px_28px_rgba(15,23,42,0.16)]"
+                      ? "bg-indigo-600 text-white shadow-[0_12px_28px_rgba(99,102,241,0.22)]"
                       : "bg-white text-black"
                     : isDayMode
                       ? "bg-white/85 text-slate-500 border border-slate-200/80 hover:bg-white hover:text-slate-900"
@@ -554,7 +554,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                 className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
                   activeTab === "settings"
                     ? isDayMode
-                      ? "bg-slate-900 text-white shadow-[0_12px_28px_rgba(15,23,42,0.16)]"
+                      ? "bg-indigo-600 text-white shadow-[0_12px_28px_rgba(99,102,241,0.22)]"
                       : "bg-white text-black"
                     : isDayMode
                       ? "bg-white/85 text-slate-500 border border-slate-200/80 hover:bg-white hover:text-slate-900"
@@ -689,14 +689,14 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                 <button
                   type="button"
                   onClick={() => setRelationTab("followers")}
-                  className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${relationTab === "followers" ? (isDayMode ? "bg-slate-900 text-white" : "bg-white text-black") : isDayMode ? "bg-white border border-slate-200/80 text-slate-600" : "bg-white/5 border border-white/10 text-gray-300"}`}
+                  className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${relationTab === "followers" ? (isDayMode ? "bg-indigo-600 text-white shadow-[0_12px_28px_rgba(99,102,241,0.2)]" : "bg-white text-black") : isDayMode ? "bg-white border border-slate-200/80 text-slate-600" : "bg-white/5 border border-white/10 text-gray-300"}`}
                 >
                   粉丝
                 </button>
                 <button
                   type="button"
                   onClick={() => setRelationTab("following")}
-                  className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${relationTab === "following" ? (isDayMode ? "bg-slate-900 text-white" : "bg-white text-black") : isDayMode ? "bg-white border border-slate-200/80 text-slate-600" : "bg-white/5 border border-white/10 text-gray-300"}`}
+                  className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${relationTab === "following" ? (isDayMode ? "bg-indigo-600 text-white shadow-[0_12px_28px_rgba(99,102,241,0.2)]" : "bg-white text-black") : isDayMode ? "bg-white border border-slate-200/80 text-slate-600" : "bg-white/5 border border-white/10 text-gray-300"}`}
                 >
                   关注
                 </button>
@@ -764,7 +764,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                             disabled={Boolean(
                               relationFollowLoadingIds[item.id],
                             )}
-                            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${item.is_following ? (isDayMode ? "bg-slate-900 text-white border-slate-900" : "bg-white text-black border-white") : isDayMode ? "bg-white text-slate-700 border-slate-200/80" : "bg-white/5 text-gray-300 border-white/10"} disabled:opacity-60`}
+                            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${item.is_following ? (isDayMode ? "bg-indigo-600 text-white border-indigo-600 shadow-[0_10px_22px_rgba(99,102,241,0.2)]" : "bg-white text-black border-white") : isDayMode ? "bg-white text-slate-700 border-slate-200/80" : "bg-white/5 text-gray-300 border-white/10"} disabled:opacity-60`}
                           >
                             {relationFollowLoadingIds[item.id]
                               ? "处理中..."

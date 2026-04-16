@@ -302,7 +302,7 @@ const Videos = () => {
               }
               setIsUploadOpen(true);
             }}
-            className="bg-white/10 hover:bg-white/20 text-white p-2 md:p-3 rounded-full backdrop-blur-md border border-white/10 transition-all"
+            className={`p-2 md:p-3 rounded-full backdrop-blur-md border transition-all ${isDayMode ? "bg-white/88 hover:bg-white text-slate-700 border-slate-200/80 shadow-[0_12px_28px_rgba(148,163,184,0.16)]" : "bg-white/10 hover:bg-white/20 text-white border-white/10"}`}
             title={t("common.upload_video")}
           >
             <Upload size={18} className="md:w-5 md:h-5" />
@@ -357,27 +357,27 @@ const Videos = () => {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   onClick={() => setIsMobileFilterOpen(false)}
-                  className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] md:hidden"
+                  className={`fixed inset-0 backdrop-blur-sm z-[100] md:hidden ${isDayMode ? "bg-white/70" : "bg-black/60"}`}
                 />
                 <motion.div
                   initial={{ opacity: 0, scale: 0.96, y: 16 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.96, y: 16 }}
                   transition={{ type: "spring", damping: 28, stiffness: 320 }}
-                  className="fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit bg-[#1a1a1a]/95 backdrop-blur-xl border border-white/10 rounded-3xl z-[101] md:hidden flex flex-col max-h-[80vh] max-w-md mx-auto shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
+                  className={`fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit backdrop-blur-xl border rounded-3xl z-[101] md:hidden flex flex-col max-h-[80vh] max-w-md mx-auto ${isDayMode ? "bg-white/96 border-slate-200/80 shadow-[0_24px_64px_rgba(148,163,184,0.24)]" : "bg-[#1a1a1a]/95 border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.45)]"}`}
                 >
-                  <div className="p-4 border-b border-white/10 flex justify-between items-center sticky top-0 z-10 bg-[#1a1a1a]/95 backdrop-blur-xl rounded-t-3xl">
+                  <div className={`p-4 border-b flex justify-between items-center sticky top-0 z-10 backdrop-blur-xl rounded-t-3xl ${isDayMode ? "bg-white/96 border-slate-200/80" : "bg-[#1a1a1a]/95 border-white/10"}`}>
                     <div>
-                      <h3 className="text-lg font-bold text-white">
+                      <h3 className={`text-lg font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}>
                         {t("common.filters", "筛选")}
                       </h3>
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
                         {t("common.filter_by_tags", "标签筛选")}
                       </p>
                     </div>
                     <button
                       onClick={() => setIsMobileFilterOpen(false)}
-                      className="p-2 text-gray-400 hover:text-white bg-white/5 rounded-full transition-colors"
+                      className={`p-2 rounded-full transition-colors ${isDayMode ? "text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-white border border-slate-200/80" : "text-gray-400 hover:text-white bg-white/5"}`}
                     >
                       <X size={20} />
                     </button>
@@ -406,19 +406,19 @@ const Videos = () => {
                       />
                     </div>
                   </div>
-                  <div className="p-4 border-t border-white/10 bg-[#1a1a1a]/95 backdrop-blur-xl rounded-b-3xl flex items-center gap-3 shrink-0">
+                  <div className={`p-4 border-t backdrop-blur-xl rounded-b-3xl flex items-center gap-3 shrink-0 ${isDayMode ? "bg-white/96 border-slate-200/80" : "bg-[#1a1a1a]/95 border-white/10"}`}>
                     <button
                       type="button"
                       onClick={() => setSelectedTags([])}
                       disabled={!hasActiveMobileFilters}
-                      className="flex-1 py-3 rounded-2xl border border-white/10 bg-white/5 text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                      className={`flex-1 py-3 rounded-2xl border disabled:opacity-40 disabled:cursor-not-allowed ${isDayMode ? "border-slate-200/80 bg-slate-100 text-slate-600" : "border-white/10 bg-white/5 text-gray-200"}`}
                     >
                       {t("common.clear_all", "重置")}
                     </button>
                     <button
                       type="button"
                       onClick={() => setIsMobileFilterOpen(false)}
-                      className="flex-1 py-3 rounded-2xl bg-white text-black font-semibold"
+                      className={`flex-1 py-3 rounded-2xl font-semibold ${isDayMode ? "bg-indigo-600 text-white" : "bg-white text-black"}`}
                     >
                       {t("common.done", "完成")}
                     </button>
@@ -440,27 +440,27 @@ const Videos = () => {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   onClick={() => setIsMobileSortOpen(false)}
-                  className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] md:hidden"
+                  className={`fixed inset-0 backdrop-blur-sm z-[100] md:hidden ${isDayMode ? "bg-white/70" : "bg-black/60"}`}
                 />
                 <motion.div
                   initial={{ opacity: 0, scale: 0.96, y: 16 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.96, y: 16 }}
                   transition={{ type: "spring", damping: 28, stiffness: 320 }}
-                  className="fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit bg-[#1a1a1a]/95 backdrop-blur-xl border border-white/10 rounded-3xl z-[101] md:hidden flex flex-col max-w-sm mx-auto shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
+                  className={`fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit backdrop-blur-xl border rounded-3xl z-[101] md:hidden flex flex-col max-w-sm mx-auto ${isDayMode ? "bg-white/96 border-slate-200/80 shadow-[0_24px_64px_rgba(148,163,184,0.24)]" : "bg-[#1a1a1a]/95 border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.45)]"}`}
                 >
-                  <div className="p-4 border-b border-white/10 flex justify-between items-center sticky top-0 z-10 bg-[#1a1a1a]/95 backdrop-blur-xl rounded-t-3xl">
+                  <div className={`p-4 border-b flex justify-between items-center sticky top-0 z-10 backdrop-blur-xl rounded-t-3xl ${isDayMode ? "bg-white/96 border-slate-200/80" : "bg-[#1a1a1a]/95 border-white/10"}`}>
                     <div>
-                      <h3 className="text-lg font-bold text-white">
+                      <h3 className={`text-lg font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}>
                         {t("common.sort", "排序")}
                       </h3>
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
                         {t("sort_filter.title", "选择排序方式")}
                       </p>
                     </div>
                     <button
                       onClick={() => setIsMobileSortOpen(false)}
-                      className="p-2 text-gray-400 hover:text-white bg-white/5 rounded-full transition-colors"
+                      className={`p-2 rounded-full transition-colors ${isDayMode ? "text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-white border border-slate-200/80" : "text-gray-400 hover:text-white bg-white/5"}`}
                     >
                       <X size={20} />
                     </button>
@@ -489,9 +489,9 @@ const Videos = () => {
             [...Array(6)].map((_, i) => (
               <div
                 key={i}
-                className="aspect-video rounded-3xl bg-[#1a1a1a]/40 backdrop-blur-xl border border-white/5 animate-pulse relative overflow-hidden"
+                className={`aspect-video rounded-3xl backdrop-blur-xl border animate-pulse relative overflow-hidden ${isDayMode ? "bg-white/82 border-slate-200/80" : "bg-[#1a1a1a]/40 border-white/5"}`}
               >
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                <div className={`absolute inset-0 ${isDayMode ? "bg-gradient-to-t from-slate-200/70 to-transparent" : "bg-gradient-to-t from-black/50 to-transparent"}`} />
                 <div className="absolute bottom-6 left-6 right-6 space-y-3">
                   <div className="h-4 bg-white/10 rounded w-1/4" />
                   <div className="h-6 bg-white/10 rounded w-3/4" />
@@ -508,7 +508,7 @@ const Videos = () => {
               </p>
               <button
                 onClick={refresh}
-                className="px-8 py-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all border border-white/10 font-medium hover:scale-105 active:scale-95"
+                className={`px-8 py-3 rounded-full transition-all border font-medium hover:scale-105 active:scale-95 ${isDayMode ? "bg-white border-slate-200/80 text-slate-700 hover:bg-slate-50" : "bg-white/10 hover:bg-white/20 text-white border-white/10"}`}
               >
                 {t("common.retry")}
               </button>
@@ -518,7 +518,7 @@ const Videos = () => {
               <div className="bg-gradient-to-br from-pink-500/10 to-rose-500/10 rounded-3xl p-8 mb-6 border border-white/5 backdrop-blur-xl shadow-xl">
                 <Film size={64} className="text-pink-400 opacity-80" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-2">
+              <h3 className={`text-2xl font-bold mb-2 ${isDayMode ? "text-slate-900" : "text-white"}`}>
                 {t("videos.no_videos")}
               </h3>
               <p className="text-gray-400 text-center max-w-md">
@@ -528,7 +528,7 @@ const Videos = () => {
                 <button
                   type="button"
                   onClick={() => setSelectedTags([])}
-                  className="mt-6 px-5 py-2 rounded-full border text-sm font-medium bg-white/10 border-white/15 text-white hover:bg-white/15"
+                  className={`mt-6 px-5 py-2 rounded-full border text-sm font-medium ${isDayMode ? "bg-white border-slate-200/80 text-slate-700 hover:bg-slate-50" : "bg-white/10 border-white/15 text-white hover:bg-white/15"}`}
                 >
                   {t("common.clear_all", "清除全部")}
                 </button>
@@ -561,7 +561,7 @@ const Videos = () => {
                 onClick={() =>
                   setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                 }
-                className="px-6 py-2.5 rounded-full bg-white/10 hover:bg-white/15 text-white border border-white/10 hover:border-white/20 transition-colors text-sm font-semibold"
+                className={`px-6 py-2.5 rounded-full border transition-colors text-sm font-semibold ${isDayMode ? "bg-white border-slate-200/80 text-slate-700 hover:bg-slate-50 hover:border-indigo-200" : "bg-white/10 hover:bg-white/15 text-white border-white/10 hover:border-white/20"}`}
               >
                 {t("common.load_more", "加载更多")}
               </motion.button>

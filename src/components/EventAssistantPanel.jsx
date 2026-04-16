@@ -217,7 +217,7 @@ const EventAssistantPanel = ({ isDayMode, onOpenEvent, className = '' }) => {
                 <button
                   type="submit"
                   disabled={loading || input.trim() === ''}
-                  className={`inline-flex min-w-[148px] items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${isDayMode ? 'bg-slate-900 text-white hover:bg-slate-800 shadow-[0_14px_28px_rgba(15,23,42,0.18)]' : 'bg-white text-black hover:bg-gray-200 shadow-[0_12px_24px_rgba(255,255,255,0.08)]'}`}
+                  className={`inline-flex min-w-[148px] items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${isDayMode ? 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-[0_14px_28px_rgba(99,102,241,0.24)]' : 'bg-white text-black hover:bg-gray-200 shadow-[0_12px_24px_rgba(255,255,255,0.08)]'}`}
                 >
                   {loading ? (
                     <>
@@ -284,7 +284,7 @@ const EventAssistantPanel = ({ isDayMode, onOpenEvent, className = '' }) => {
                           type="button"
                           onClick={handleExpandScope}
                           disabled={loading}
-                          className={`mt-4 inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all ${isDayMode ? 'bg-slate-900 text-white hover:bg-slate-800 shadow-[0_12px_24px_rgba(15,23,42,0.18)]' : 'bg-white text-black hover:bg-gray-200 shadow-[0_12px_24px_rgba(255,255,255,0.08)]'}`}
+                          className={`mt-4 inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all ${isDayMode ? 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-[0_12px_24px_rgba(99,102,241,0.22)]' : 'bg-white text-black hover:bg-gray-200 shadow-[0_12px_24px_rgba(255,255,255,0.08)]'}`}
                         >
                           <ArrowRight size={15} />
                           {t('events.assistant.expand_button', '看看进行中或历史活动')}
