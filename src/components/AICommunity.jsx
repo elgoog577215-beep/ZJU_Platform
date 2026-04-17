@@ -162,30 +162,30 @@ const AICommunity = () => {
       <AnimatePresence>
         {isMobileNewsOpen && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.18, ease: 'easeOut' }}
-            className={`fixed inset-0 z-[130] md:hidden overflow-y-auto ${
+            className={`fixed inset-0 z-[130] md:hidden ${
               isDayMode ? 'bg-white' : 'bg-[#0f0f0f]'
             }`}
-            style={{ minHeight: '100vh', height: '100dvh' }}
+            style={{ height: '100dvh' }}
           >
+            <div className="absolute inset-0 overflow-y-auto overscroll-contain p-3 pt-16">
+              <CommunityNewsRail />
+            </div>
             <button
               type="button"
               aria-label={t('common.close', '关闭')}
               onClick={() => setIsMobileNewsOpen(false)}
-              className={`absolute top-4 right-4 z-10 p-2 rounded-full border transition-transform hover:rotate-90 ${
+              className={`absolute top-[max(env(safe-area-inset-top),1rem)] right-4 z-20 p-2 rounded-full border transition-transform hover:rotate-90 ${
                 isDayMode
-                  ? 'bg-white text-slate-700 border-slate-200 shadow-sm'
-                  : 'bg-white/5 text-white border-white/10'
+                  ? 'bg-white text-slate-700 border-slate-200 shadow-md'
+                  : 'bg-black/60 text-white border-white/20 backdrop-blur-sm'
               }`}
             >
               <X size={24} />
             </button>
-            <div className="p-3 pt-16">
-              <CommunityNewsRail />
-            </div>
           </motion.div>
         )}
       </AnimatePresence>
