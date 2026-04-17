@@ -24,12 +24,12 @@ const MobileNavbar = () => {
     { key: "events", path: "/events", icon: Calendar, label: t("nav.events", "活动") },
     { key: "articles", path: "/articles", icon: FileText, label: t("nav.articles", "AI社区") },
     { key: "music", path: "/music", icon: Music, label: t("nav.music", "播客") },
-    { key: "me", path: user ? `/user/${user.id}` : "/me", icon: UserCircle, label: t("nav.profile", "我的") },
+    { key: "me", path: user ? `/user/${user.id}` : null, icon: UserCircle, label: t("nav.profile", "我的") },
   ];
 
   const isItemActive = (path, key) => {
     if (key === "me") {
-      return location.pathname === "/me" || location.pathname.startsWith("/user/");
+      return location.pathname.startsWith("/user/");
     }
     return location.pathname === path;
   };
@@ -44,28 +44,48 @@ const MobileNavbar = () => {
           const Icon = item.icon;
           const isActive = isItemActive(item.path, item.key);
 
+          const sharedClassName = `relative flex flex-col items-center justify-center rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isActive ? (isDayMode ? "text-slate-900" : "text-white") : isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white"}`;
+
+          const inner = (
+            <motion.div
+              whileTap={prefersReducedMotion ? undefined : { scale: 0.88 }}
+              className="flex flex-col items-center gap-1"
+            >
+              <div
+                className={`rounded-xl p-1.5 transition-all duration-300 ${isActive ? "bg-indigo-500/20 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.28)]" : ""}`}
+              >
+                <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+              </div>
+              <span
+                className={`text-[10px] transition-all ${isActive ? "font-semibold opacity-100" : "font-medium opacity-75"}`}
+              >
+                {item.label}
+              </span>
+            </motion.div>
+          );
+
+          if (item.key === "me" && !user) {
+            return (
+              <button
+                key={item.key}
+                type="button"
+                aria-label={item.label}
+                onClick={() => window.dispatchEvent(new Event("open-auth-modal"))}
+                className={sharedClassName}
+              >
+                {inner}
+              </button>
+            );
+          }
+
           return (
             <Link
               key={item.key}
               to={item.path}
               aria-label={item.label}
-              className={`relative flex flex-col items-center justify-center rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isActive ? (isDayMode ? "text-slate-900" : "text-white") : isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white"}`}
+              className={sharedClassName}
             >
-              <motion.div
-                whileTap={prefersReducedMotion ? undefined : { scale: 0.88 }}
-                className="flex flex-col items-center gap-1"
-              >
-                <div
-                  className={`rounded-xl p-1.5 transition-all duration-300 ${isActive ? "bg-indigo-500/20 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.28)]" : ""}`}
-                >
-                  <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
-                </div>
-                <span
-                  className={`text-[10px] transition-all ${isActive ? "font-semibold opacity-100" : "font-medium opacity-75"}`}
-                >
-                  {item.label}
-                </span>
-              </motion.div>
+              {inner}
             </Link>
           );
         })}
