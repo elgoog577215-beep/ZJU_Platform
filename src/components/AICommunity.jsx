@@ -178,7 +178,8 @@ const AICommunity = () => {
               type="button"
               aria-label={t('common.close', '关闭')}
               onClick={() => setIsMobileNewsOpen(false)}
-              className={`absolute top-[max(env(safe-area-inset-top),1rem)] right-4 z-20 p-2 rounded-full border transition-transform hover:rotate-90 ${
+              style={{ top: 'max(env(safe-area-inset-top), 1rem)', right: '1rem' }}
+              className={`absolute z-20 p-2 rounded-full border transition-transform hover:rotate-90 ${
                 isDayMode
                   ? 'bg-white text-slate-700 border-slate-200 shadow-md'
                   : 'bg-black/60 text-white border-white/20 backdrop-blur-sm'
