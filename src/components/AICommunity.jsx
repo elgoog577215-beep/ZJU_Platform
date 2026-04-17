@@ -5,6 +5,7 @@ import { HelpCircle, BookOpen, QrCode, Newspaper, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useSettings } from '../context/SettingsContext';
 import { useAuth } from '../context/AuthContext';
+import { useBackClose } from '../hooks/useBackClose';
 import api from '../services/api';
 import SEO from './SEO';
 import CommunityTech from './CommunityTech';
@@ -31,6 +32,7 @@ const AICommunity = () => {
   const isDayMode = uiMode === 'day';
   const [searchParams, setSearchParams] = useSearchParams();
   const [isMobileNewsOpen, setIsMobileNewsOpen] = useState(false);
+  useBackClose(isMobileNewsOpen, () => setIsMobileNewsOpen(false));
   const [metricsSummary, setMetricsSummary] = useState(null);
 
   const requestedTab = searchParams.get('tab') || 'help';
@@ -160,36 +162,30 @@ const AICommunity = () => {
       <AnimatePresence>
         {isMobileNewsOpen && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className={`fixed inset-0 z-[130] md:hidden ${isDayMode ? 'bg-white/65' : 'bg-black/80'} backdrop-blur-md`}
-            onClick={() => setIsMobileNewsOpen(false)}
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+            className={`fixed inset-0 z-[130] md:hidden overflow-y-auto ${
+              isDayMode ? 'bg-white' : 'bg-[#0f0f0f]'
+            }`}
+            style={{ minHeight: '100vh', height: '100dvh' }}
           >
-            <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 28, stiffness: 260 }}
-              className={`absolute inset-x-0 bottom-0 max-h-[86vh] rounded-t-3xl border-t p-3 overflow-y-auto ${
-                isDayMode ? 'bg-white border-slate-200' : 'bg-[#0f0f0f] border-white/10'
+            <button
+              type="button"
+              aria-label={t('common.close', '关闭')}
+              onClick={() => setIsMobileNewsOpen(false)}
+              className={`absolute top-4 right-4 z-10 p-2 rounded-full border transition-transform hover:rotate-90 ${
+                isDayMode
+                  ? 'bg-white text-slate-700 border-slate-200 shadow-sm'
+                  : 'bg-white/5 text-white border-white/10'
               }`}
-              onClick={(e) => e.stopPropagation()}
             >
-              <div className="sticky top-0 z-10 pb-2 mb-2 flex items-center justify-between">
-                <h3 className={`text-sm font-bold ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
-                  {t('community.news_board', '新闻热榜')}
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => setIsMobileNewsOpen(false)}
-                  className={`p-2 rounded-full border ${isDayMode ? 'bg-white text-slate-700 border-slate-200' : 'bg-white/5 text-white border-white/10'}`}
-                >
-                  <X size={16} />
-                </button>
-              </div>
+              <X size={24} />
+            </button>
+            <div className="p-3 pt-16">
               <CommunityNewsRail />
-            </motion.div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
