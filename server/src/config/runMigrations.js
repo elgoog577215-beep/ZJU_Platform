@@ -138,7 +138,28 @@ async function runMigrations(db) {
       console.warn('Migration warning (notifications):', err.message);
     }
   }
-  
+
+  // Migration: unify notification content to single `content` column.
+  // See openspec/changes/unify-notification-content/ for full context.
+  try {
+    const notifInfo = await db.all('PRAGMA table_info(notifications)');
+    const notifColumns = new Set(notifInfo.map((c) => c.name));
+    if (!notifColumns.has('content')) {
+      await db.exec(`ALTER TABLE notifications ADD COLUMN content TEXT`);
+      console.log('✅ Added notifications.content column');
+    }
+    await db.run(`
+      UPDATE notifications
+      SET content = COALESCE(message, title)
+      WHERE content IS NULL
+    `);
+    console.log('✅ Notifications content column backfilled');
+  } catch (err) {
+    if (!err.message.includes('duplicate column')) {
+      console.warn('Migration warning (notifications.content):', err.message);
+    }
+  }
+
   try {
     await db.exec(`
       CREATE TABLE IF NOT EXISTS tags (
