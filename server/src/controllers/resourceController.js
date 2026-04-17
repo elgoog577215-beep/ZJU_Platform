@@ -625,17 +625,6 @@ const updateStatus = (table) => async (req, res, next) => {
     } catch (error) { next(error); }
 };
 
-const toggleLike = (table) => async (req, res, next) => {
-    try {
-        const db = await getDb();
-        const { id } = req.params;
-        // Simple increment for now, no user tracking
-        await db.run(`UPDATE ${table} SET likes = likes + 1 WHERE id = ?`, [id]);
-        const item = await db.get(`SELECT likes FROM ${table} WHERE id = ?`, [id]);
-        res.json({ likes: item.likes });
-    } catch (error) { next(error); }
-}
-
 // Specific Handlers
 const getCategories = (table) => async (req, res, next) => {
     try {
@@ -825,7 +814,6 @@ module.exports = {
     getRelatedHandler,
     getDistinctValues,
     getEventDistinctOptions,
-    toggleLike,
     updateStatus,
     fields
 };

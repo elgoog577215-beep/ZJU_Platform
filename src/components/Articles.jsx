@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, memo, useRef } from 'react';
 import { useContentPageEvents, useMobileSortLabel, useMobileToolbarSync } from '../hooks/useContentPage';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, ArrowRight, Calendar, X, User, Upload, Clock, AlertCircle, Paperclip } from 'lucide-react';
@@ -137,6 +137,8 @@ const Articles = () => {
   const { settings, uiMode } = useSettings();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [currentPage, setCurrentPage] = useState(1);
   const [sort, setSort] = useState('newest');
   const [selectedTags, setSelectedTags] = useState([]);
@@ -154,7 +156,20 @@ const Articles = () => {
   useContentPageEvents('article', setIsUploadOpen, setIsMobileFilterOpen, setIsMobileSortOpen);
   useMobileToolbarSync(selectedTags.length, mobileSortLabel);
 
-  useBackClose(selectedArticle !== null, () => setSelectedArticle(null));
+  // Capture fromFavorites on mount — useBackClose pushes a hash entry whose state
+  // overwrites location.state, so we cannot read it lazily at click time.
+  const fromFavoritesRef = useRef(location.state?.fromFavorites === true);
+
+  const closeArticle = useCallback(() => {
+    if (fromFavoritesRef.current) {
+      fromFavoritesRef.current = false; // guard against popstate re-entry
+      navigate(-2);
+      return;
+    }
+    setSelectedArticle(null);
+  }, [navigate]);
+
+  useBackClose(selectedArticle !== null, closeArticle);
 
   // Use cached resource hook instead of SWR
   const { 
@@ -528,7 +543,7 @@ const Articles = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className={`fixed inset-0 z-[100] backdrop-blur-md overflow-y-auto ${isDayMode ? 'bg-white/70' : 'bg-black/90'}`}
-              onClick={() => setSelectedArticle(null)}
+              onClick={closeArticle}
             >
               <div className="min-h-full">
                 <motion.div 
@@ -544,8 +559,8 @@ const Articles = () => {
                     style={selectedArticle.cover ? { backgroundImage: `url(${selectedArticle.cover})` } : {}}
                   >
                     {!selectedArticle.cover && <div className="absolute inset-0 bg-gradient-to-br from-orange-900/40 to-black" />}
-                    <button 
-                      onClick={() => setSelectedArticle(null)}
+                    <button
+                      onClick={closeArticle}
                       className={`absolute top-6 right-6 p-2 rounded-full backdrop-blur-md border transition-all z-20 group ${isDayMode ? 'bg-white/82 hover:bg-white text-slate-700 border-slate-200/80' : 'bg-black/40 hover:bg-black/60 text-white border-white/10'}`}
                     >
                       <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />

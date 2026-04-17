@@ -28,7 +28,7 @@ import { useAuth } from "../context/AuthContext";
 import SmartImage from "./SmartImage";
 import api from "../services/api";
 import SortSelector from "./SortSelector";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import TagInput from "./TagInput";
 import TagFilter from "./TagFilter";
 import { GallerySkeleton } from "./SkeletonLoader";
@@ -95,7 +95,8 @@ const PhotoCard = memo(
                       itemId={photo.id}
                       itemType="photo"
                       size={18}
-                      showCount={false}
+                      showCount={true}
+                      count={photo.likes || 0}
                       favorited={photo.favorited}
                       initialFavorited={photo.favorited}
                       className={`p-2 rounded-full backdrop-blur-md 
@@ -138,7 +139,7 @@ const PhotoCard = memo(
             </div>
           </div>
 
-          {photo.likes > 0 && (
+          {typeof photo.likes === "number" && (
             <div
               className="absolute top-3 right-3 flex items-center gap-1 
                    backdrop-blur-md rounded-full px-2 py-1
@@ -165,6 +166,8 @@ const PhotoCard = memo(
 
 const Gallery = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [sort, setSort] = useState("newest");
   const [selectedTags, setSelectedTags] = useState([]);
   const { t } = useTranslation();
@@ -233,10 +236,21 @@ const Gallery = () => {
 
   useMobileToolbarSync(selectedTags.length, mobileSortLabel);
 
-  useBackClose(selectedPhotoIndex !== null || tempPhoto !== null, () => {
+  // Capture on mount — Lightbox internally calls useBackClose which pushes a hash entry
+  // whose state overwrites location.state, so we can't read it lazily at click time.
+  // NOTE: Do NOT also call useBackClose here for the photo modal — Lightbox already does.
+  // Double-stacking two hash entries would break the back-nav math.
+  const fromFavoritesRef = useRef(location.state?.fromFavorites === true);
+  const closePhoto = useCallback(() => {
+    if (fromFavoritesRef.current) {
+      fromFavoritesRef.current = false; // guard against popstate re-entry
+      navigate(-2);
+      return;
+    }
     setSelectedPhotoIndex(null);
     setTempPhoto(null);
-  });
+  }, [navigate]);
+
   useBackClose(isUploadOpen, () => setIsUploadOpen(false));
 
   // FIX: BUG-16 — Use ref to track if deep link was processed; remove displayPhotos dependency
@@ -717,10 +731,7 @@ const Gallery = () => {
                 ? displayPhotos[selectedPhotoIndex]
                 : tempPhoto
             }
-            onClose={() => {
-              setSelectedPhotoIndex(null);
-              setTempPhoto(null);
-            }}
+            onClose={closePhoto}
             onNext={selectedPhotoIndex !== null ? handleNext : undefined}
             onPrev={selectedPhotoIndex !== null ? handlePrev : undefined}
             onSelect={(photo) => {

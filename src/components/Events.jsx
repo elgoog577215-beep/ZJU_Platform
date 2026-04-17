@@ -51,7 +51,7 @@ import DOMPurify from "dompurify";
 import MobileContentToolbar from "./MobileContentToolbar";
 import SEO from "./SEO";
 
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { getThumbnailUrl } from "../utils/imageUtils";
 import { useReducedMotion } from "../utils/animations";
 
@@ -453,7 +453,8 @@ const EventCard = memo(
                 itemId={event.id}
                 itemType="event"
                 size={16}
-                showCount={false}
+                showCount={true}
+                count={event.likes || 0}
                 favorited={event.favorited}
                 initialFavorited={event.favorited}
                 className={`p-1.5 md:p-2 rounded-full transition-colors ${isDayMode ? "hover:bg-indigo-50" : "hover:bg-white/10"}`}
@@ -485,6 +486,8 @@ const Events = () => {
   const prefersReducedMotion = useReducedMotion();
   const isDayMode = uiMode === "day";
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -572,7 +575,18 @@ const Events = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  useBackClose(selectedEvent !== null, () => setSelectedEvent(null));
+  // Capture on mount — useBackClose pushes a hash entry whose state overwrites location.state.
+  const fromFavoritesRef = useRef(location.state?.fromFavorites === true);
+  const closeEvent = useCallback(() => {
+    if (fromFavoritesRef.current) {
+      fromFavoritesRef.current = false; // guard against popstate re-entry
+      navigate(-2);
+      return;
+    }
+    setSelectedEvent(null);
+  }, [navigate]);
+
+  useBackClose(selectedEvent !== null, closeEvent);
   useBackClose(isUploadOpen, () => setIsUploadOpen(false));
 
   useEffect(() => {
@@ -1506,7 +1520,7 @@ END:VCALENDAR`;
                   : { duration: 0.2, ease: [0.22, 1, 0.36, 1] }
               }
               className={`fixed inset-0 z-[140] flex items-end justify-center p-0 md:items-center md:p-4 backdrop-blur-md ${isDayMode ? "bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.15),rgba(255,255,255,0.88)_42%,rgba(241,245,249,0.96)_100%)]" : "bg-black/80"}`}
-              onClick={() => setSelectedEvent(null)}
+              onClick={closeEvent}
             >
               <motion.div
                 initial={prefersReducedMotion ? false : { opacity: 0, y: 28 }}
@@ -1557,7 +1571,7 @@ END:VCALENDAR`;
                     )}
 
                     <button
-                      onClick={() => setSelectedEvent(null)}
+                      onClick={closeEvent}
                       aria-label={t("common.close", "关闭")}
                       className={`absolute right-4 top-4 sm:top-6 sm:right-6 h-11 w-11 sm:h-12 sm:w-12 rounded-full backdrop-blur-xl border transition-all duration-300 z-30 group inline-flex items-center justify-center overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer ${isDayMode ? `bg-white/86 hover:bg-white text-slate-700 border-white/85 shadow-[0_16px_34px_rgba(15,23,42,0.14)] hover:shadow-[0_22px_42px_rgba(15,23,42,0.18)] hover:-translate-y-0.5 focus-visible:ring-slate-400/70 focus-visible:ring-offset-white` : "bg-black/45 hover:bg-black/65 text-white border-white/10 hover:border-white/20 focus-visible:ring-white/60 focus-visible:ring-offset-[#0f0f0f]"}`}
                     >

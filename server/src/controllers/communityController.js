@@ -1,4 +1,5 @@
 const { getDb } = require('../config/db');
+const { createNotification } = require('./notificationController');
 const { normalizeLinkagePayload, serializeLinkageFields, attachLinkedResources } = require('../utils/communityLinks');
 
 const ALLOWED_SECTIONS = new Set(['help', 'tech', 'news', 'team', 'groups']);
@@ -484,7 +485,10 @@ const togglePostLike = async (req, res, next) => {
       return res.status(401).json({ error: 'Login required' });
     }
 
-    const post = await db.get('SELECT id FROM community_posts WHERE id = ? AND status = "approved"', [id]);
+    const post = await db.get(
+      'SELECT id, author_id, section, title FROM community_posts WHERE id = ? AND status = "approved"',
+      [id]
+    );
     if (!post) {
       return res.status(404).json({ error: 'Post not found' });
     }
@@ -600,7 +604,7 @@ const createPostComment = async (req, res, next) => {
       return res.status(401).json({ error: 'Login required' });
     }
 
-    const post = await db.get('SELECT id FROM community_posts WHERE id = ? AND status = "approved"', [id]);
+    const post = await db.get('SELECT id, author_id, title, section FROM community_posts WHERE id = ? AND status = "approved"', [id]);
     if (!post) {
       return res.status(404).json({ error: 'Post not found' });
     }
@@ -620,14 +624,19 @@ const createPostComment = async (req, res, next) => {
     let quoteSnapshot = null;
     const authorName = user?.nickname || user?.username || '匿名用户';
 
+    let replyTargetUserId = null;
+    let replyTargetAuthorName = null;
+
     if (replyToCommentId) {
       const replyTarget = await db.get(
-        'SELECT id, content, author, author_name, parent_id, root_id FROM comments WHERE id = ? AND resource_type = "community_post" AND resource_id = ?',
+        'SELECT id, user_id, content, author, author_name, parent_id, root_id FROM comments WHERE id = ? AND resource_type = "community_post" AND resource_id = ?',
         [replyToCommentId, id]
       );
       if (!replyTarget) {
         return res.status(404).json({ error: 'Reply target not found' });
       }
+      replyTargetUserId = replyTarget.user_id || null;
+      replyTargetAuthorName = replyTarget.author || replyTarget.author_name || '匿名用户';
       quoteSnapshot = JSON.stringify({
         id: replyTarget.id,
         author: replyTarget.author || replyTarget.author_name || '匿名用户',
@@ -686,6 +695,31 @@ const createPostComment = async (req, res, next) => {
     );
 
     const newComment = await db.get('SELECT * FROM comments WHERE id = ?', [result.lastID]);
+
+    if (post.author_id && String(post.author_id) !== String(userId)) {
+      await createNotification(
+        post.author_id,
+        'comment',
+        `${authorName} 评论了你的帖子《${post.title || '社区帖子'}》`,
+        id,
+        `community_post:${post.section || 'help'}`
+      );
+    }
+
+    if (
+      replyTargetUserId &&
+      String(replyTargetUserId) !== String(userId) &&
+      String(replyTargetUserId) !== String(post.author_id)
+    ) {
+      await createNotification(
+        replyTargetUserId,
+        'reply',
+        `${authorName} 回复了你在《${post.title || '社区帖子'}》中的评论`,
+        id,
+        `community_post:${post.section || 'help'}`
+      );
+    }
+
     res.status(201).json(serializeComment(newComment));
   } catch (error) { next(error); }
 };

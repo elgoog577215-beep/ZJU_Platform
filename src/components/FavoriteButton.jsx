@@ -50,10 +50,8 @@ const FavoriteButton = ({
     let mounted = true;
     
     const checkStatus = async () => {
-      // If we have explicit state (controlled or initial), skip check
       if (!user || !itemId || !itemType) return;
       if (favorited !== undefined) return;
-      if (initialFavorited !== undefined) return; // Trust parent if provided
       
       try {
         const res = await api.get(`/favorites/check?itemId=${itemId}&itemType=${itemType}`);
@@ -136,7 +134,7 @@ const FavoriteButton = ({
              />
         )}
       </div>
-      {showCount && likeCount > 0 && (
+      {showCount && (
         <span className="text-xs font-medium">{likeCount}</span>
       )}
     </motion.button>

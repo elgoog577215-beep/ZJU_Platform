@@ -1,4 +1,5 @@
 const { getDb } = require('../config/db');
+const { createNotification } = require('./notificationController');
 
 // FIX: O2 — Extract shared tableMap to module level (was duplicated in toggleFavorite and getFavorites)
 const FAVORITE_TABLE_MAP = {
@@ -7,6 +8,29 @@ const FAVORITE_TABLE_MAP = {
     'video': 'videos',
     'article': 'articles',
     'event': 'events'
+};
+
+const FAVORITE_RESOURCE_META = {
+    photo: { table: 'photos', ownerColumn: 'uploader_id', label: '图片' },
+    music: { table: 'music', ownerColumn: 'uploader_id', label: '音乐' },
+    video: { table: 'videos', ownerColumn: 'uploader_id', label: '视频' },
+    article: { table: 'articles', ownerColumn: 'uploader_id', label: '文章' },
+    event: { table: 'events', ownerColumn: 'uploader_id', label: '活动' },
+};
+
+const resolveActorName = async (db, userId) => {
+    const actor = await db.get('SELECT username, nickname FROM users WHERE id = ?', [userId]);
+    return actor?.nickname || actor?.username || '有用户';
+};
+
+const resolveFavoriteTarget = async (db, itemType, itemId) => {
+    const meta = FAVORITE_RESOURCE_META[itemType];
+    if (!meta) return null;
+
+    return db.get(
+        `SELECT id, ${meta.ownerColumn} AS owner_id, title FROM ${meta.table} WHERE id = ?`,
+        [itemId]
+    );
 };
 
 const toggleFavorite = async (req, res, next) => {
@@ -32,30 +56,50 @@ const toggleFavorite = async (req, res, next) => {
         if (existing) {
             // Remove
             await db.run(
-                'DELETE FROM favorites WHERE id = ?', 
+                'DELETE FROM favorites WHERE id = ?',
                 [existing.id]
             );
-            
-            // Decrement likes count in the item table
+
+            // Recount likes authoritatively from favorites (self-heals NULL / drift)
             if (tableName) {
-                await db.run(`UPDATE ${tableName} SET likes = MAX(0, likes - 1) WHERE id = ?`, [itemId]);
+                await db.run(
+                    `UPDATE ${tableName} SET likes = (SELECT COUNT(*) FROM favorites WHERE item_id = ? AND item_type = ?) WHERE id = ?`,
+                    [itemId, itemType, itemId]
+                );
                 const item = await db.get(`SELECT likes FROM ${tableName} WHERE id = ?`, [itemId]);
-                newLikes = item ? item.likes : 0;
+                newLikes = item && typeof item.likes === 'number' ? item.likes : 0;
             }
 
             res.json({ favorited: false, likes: newLikes });
         } else {
             // Add
             await db.run(
-                'INSERT INTO favorites (user_id, item_id, item_type) VALUES (?, ?, ?)', 
+                'INSERT INTO favorites (user_id, item_id, item_type) VALUES (?, ?, ?)',
                 [userId, itemId, itemType]
             );
-            
-            // Increment likes count in the item table
+
+            // Recount likes authoritatively from favorites (self-heals NULL / drift)
             if (tableName) {
-                await db.run(`UPDATE ${tableName} SET likes = likes + 1 WHERE id = ?`, [itemId]);
+                await db.run(
+                    `UPDATE ${tableName} SET likes = (SELECT COUNT(*) FROM favorites WHERE item_id = ? AND item_type = ?) WHERE id = ?`,
+                    [itemId, itemType, itemId]
+                );
                 const item = await db.get(`SELECT likes FROM ${tableName} WHERE id = ?`, [itemId]);
-                newLikes = item ? item.likes : 0;
+                newLikes = item && typeof item.likes === 'number' ? item.likes : 0;
+            }
+
+            const target = await resolveFavoriteTarget(db, itemType, itemId);
+            if (target?.owner_id && String(target.owner_id) !== String(userId)) {
+                const actorName = await resolveActorName(db, userId);
+                const resourceLabel = FAVORITE_RESOURCE_META[itemType]?.label || '内容';
+                const resourceTitle = target.title || `这条${resourceLabel}`;
+                await createNotification(
+                    target.owner_id,
+                    'favorite',
+                    `${actorName} 收藏了你的${resourceLabel}《${resourceTitle}》`,
+                    itemId,
+                    itemType
+                );
             }
 
             res.json({ favorited: true, likes: newLikes });

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { HelpCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -75,6 +75,10 @@ const CommunityHelp = () => {
     updateParams({ tab: 'help' });
   };
 
+  const handleCommentsCountChange = useCallback((postId, count) => {
+    feed.updateItemById(postId, (item) => ({ ...item, comments_count: count }));
+  }, [feed]);
+
   const renderCard = (post, index, { canAnimate, isDayMode: dm }) => (
     <PostCard key={post.id} post={post} index={index} onClick={handleOpenPost} canAnimate={canAnimate} isDayMode={dm} />
   );
@@ -87,6 +91,7 @@ const CommunityHelp = () => {
       gradientFrom="from-amber-900/30"
       onSolve={handleSolve}
       onRelatedSelect={handleRelatedSelect}
+      onCommentsCountChange={handleCommentsCountChange}
       headerContent={feed.selectedItem && (
         <>
           <div className="flex items-center gap-3 mb-3">

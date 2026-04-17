@@ -576,10 +576,10 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
           confirmState?.mode === "delete"
             ? "这将直接永久删除该内容，无法撤销。"
             : confirmState?.mode === "batch-delete"
-              ? `即将永久删除 ${confirmState.ids?.length || 0} 条内容，无法撤销。`
+              ? `即将永久删除 ${confirmState?.ids?.length || 0} 条内容，无法撤销。`
               : confirmState?.status === "approved"
-                ? `即将通过 ${confirmState.ids?.length || 0} 条内容。`
-                : `即将驳回 ${confirmState.ids?.length || 0} 条内容。`
+                ? `即将通过 ${confirmState?.ids?.length || 0} 条内容。`
+                : `即将驳回 ${confirmState?.ids?.length || 0} 条内容。`
         }
         confirmText={
           confirmState?.mode?.includes("delete")

@@ -1,14 +1,65 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, Check, Trash2, X, CheckCheck } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import api from '../services/api';
-import { useAuth } from '../context/AuthContext';
-import { useSettings } from '../context/SettingsContext';
-import { useNavigate } from 'react-router-dom';
-import toast from 'react-hot-toast';
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Bell, Check, Trash2, X, CheckCheck } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import api from "../services/api";
+import { useAuth } from "../context/AuthContext";
+import { useSettings } from "../context/SettingsContext";
 
-const NotificationCenter = () => {
+const NOTIFICATIONS_UPDATED_EVENT = "notifications:updated";
+
+const isNotificationRead = (notification) => Boolean(notification?.is_read);
+
+const buildNotificationTargetPath = (notification) => {
+  const resourceId = notification?.related_resource_id;
+  const rawType = String(notification?.related_resource_type || "").trim();
+  const resourceType = rawType.toLowerCase();
+
+  if (!resourceId || !resourceType) return null;
+
+  if (resourceType === "user") {
+    return `/user/${resourceId}`;
+  }
+
+  if (resourceType.startsWith("community_post:")) {
+    const [, section = "help"] = resourceType.split(":");
+    return `/articles?tab=${encodeURIComponent(section)}&post=${resourceId}`;
+  }
+
+  const routeMap = {
+    photo: "/gallery",
+    photos: "/gallery",
+    music: "/music",
+    video: "/videos",
+    videos: "/videos",
+    article: "/articles",
+    articles: "/articles",
+    event: "/events",
+    events: "/events",
+  };
+
+  const basePath = routeMap[resourceType];
+  if (!basePath) return null;
+  return `${basePath}?id=${resourceId}`;
+};
+
+const emitNotificationsUpdated = (unreadCount) => {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(
+    new CustomEvent(NOTIFICATIONS_UPDATED_EVENT, {
+      detail: { unreadCount },
+    }),
+  );
+};
+
+const NotificationCenter = ({
+  embedded = false,
+  onUnreadCountChange = null,
+  limit = 20,
+  className = "",
+}) => {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const { uiMode } = useSettings();
@@ -17,139 +68,335 @@ const NotificationCenter = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
-  const isDayMode = uiMode === 'day';
+  const isDayMode = uiMode === "day";
 
-  const fetchNotifications = async () => {
-    if (!user) return;
+  const fetchNotifications = useCallback(async () => {
+    if (!user) {
+      setNotifications([]);
+      setUnreadCount(0);
+      return;
+    }
+
     try {
-      const res = await api.get('/notifications?limit=20');
-      setNotifications(res.data.data);
-      setUnreadCount(res.data.unreadCount);
+      const res = await api.get(`/notifications?limit=${limit}`);
+      setNotifications(Array.isArray(res.data?.data) ? res.data.data : []);
+      setUnreadCount(Number(res.data?.unreadCount || 0));
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-          console.error('Failed to fetch notifications', error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Failed to fetch notifications", error);
       }
     }
-  };
+  }, [limit, user]);
 
   useEffect(() => {
-    if (user) {
-      fetchNotifications();
-      // Poll every minute
-      const interval = setInterval(fetchNotifications, 60000);
-      return () => clearInterval(interval);
+    fetchNotifications();
+    if (!user) return undefined;
+
+    const interval = setInterval(fetchNotifications, 60000);
+    return () => clearInterval(interval);
+  }, [fetchNotifications, user]);
+
+  useEffect(() => {
+    if (typeof onUnreadCountChange === "function") {
+      onUnreadCountChange(unreadCount);
     }
-  }, [user]);
+  }, [onUnreadCountChange, unreadCount]);
 
   useEffect(() => {
+    if (!user || typeof window === "undefined") return undefined;
+
+    const handleNotificationsUpdated = () => {
+      fetchNotifications();
+    };
+
+    window.addEventListener(
+      NOTIFICATIONS_UPDATED_EVENT,
+      handleNotificationsUpdated,
+    );
+    return () =>
+      window.removeEventListener(
+        NOTIFICATIONS_UPDATED_EVENT,
+        handleNotificationsUpdated,
+      );
+  }, [fetchNotifications, user]);
+
+  useEffect(() => {
+    if (embedded) return undefined;
+
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [embedded]);
 
   const handleMarkAsRead = async (id, e) => {
-    e && e.stopPropagation();
+    e?.stopPropagation();
+
+    const target = notifications.find((item) => item.id === id);
+    if (!target || isNotificationRead(target)) return;
+
     try {
       await api.put(`/notifications/${id}/read`);
-      // FIX: BUG-17 — Use boolean true for consistent is_read type
-      setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      const nextUnreadCount = Math.max(0, unreadCount - 1);
+      setNotifications((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, is_read: true } : item,
+        ),
+      );
+      setUnreadCount(nextUnreadCount);
+      emitNotificationsUpdated(nextUnreadCount);
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-          console.error('Failed to mark as read', error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Failed to mark as read", error);
       }
-      toast.error(t('notifications.mark_read_failed'));
+      toast.error(t("notifications.mark_read_failed", "标记已读失败"));
     }
   };
 
   const handleMarkAllRead = async () => {
     try {
-      await api.put('/notifications/all/read');
-      // FIX: BUG-17
-      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+      await api.put("/notifications/all/read");
+      setNotifications((prev) =>
+        prev.map((item) => ({ ...item, is_read: true })),
+      );
       setUnreadCount(0);
+      emitNotificationsUpdated(0);
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-          console.error('Failed to mark all as read', error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Failed to mark all as read", error);
       }
-      toast.error(t('notifications.mark_all_read_failed'));
+      toast.error(
+        t("notifications.mark_all_read_failed", "全部标记已读失败"),
+      );
     }
   };
 
   const handleDelete = async (id, e) => {
-    e.stopPropagation();
+    e?.stopPropagation();
+
+    const target = notifications.find((item) => item.id === id);
+
     try {
       await api.delete(`/notifications/${id}`);
-      setNotifications(prev => prev.filter(n => n.id !== id));
-      // FIX: BUG-17 — Use negation instead of strict equality with 0
-      if (!notifications.find(n => n.id === id)?.is_read) {
-          setUnreadCount(prev => Math.max(0, prev - 1));
-      }
+      const nextUnreadCount =
+        target && !isNotificationRead(target)
+          ? Math.max(0, unreadCount - 1)
+          : unreadCount;
+      setNotifications((prev) => prev.filter((item) => item.id !== id));
+      setUnreadCount(nextUnreadCount);
+      emitNotificationsUpdated(nextUnreadCount);
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-          console.error('Failed to delete notification', error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Failed to delete notification", error);
       }
-      toast.error(t('notifications.delete_failed'));
+      toast.error(t("notifications.delete_failed", "删除失败"));
     }
   };
 
   const handleClearAll = async () => {
     try {
-      await api.delete('/notifications/all');
+      await api.delete("/notifications/all");
       setNotifications([]);
       setUnreadCount(0);
+      emitNotificationsUpdated(0);
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-          console.error('Failed to clear all notifications', error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Failed to clear all notifications", error);
       }
-      toast.error(t('notifications.clear_all_failed'));
+      toast.error(t("notifications.clear_all_failed", "清空失败"));
     }
   };
 
   const handleNotificationClick = async (notification) => {
-    // FIX: BUG-17
-    if (!notification.is_read) {
-        await handleMarkAsRead(notification.id);
+    if (!isNotificationRead(notification)) {
+      await handleMarkAsRead(notification.id);
     }
-    
-    if (notification.related_resource_id && notification.related_resource_type) {
-        if (notification.related_resource_type === 'user') {
-          navigate(`/user/${notification.related_resource_id}`);
-        }
+
+    const targetPath = buildNotificationTargetPath(notification);
+    if (targetPath) {
+      navigate(targetPath);
     }
-    setIsOpen(false);
+
+    if (!embedded) {
+      setIsOpen(false);
+    }
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return '';
+    if (!dateString) return "";
     return new Date(dateString).toLocaleString(i18n.language, {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   if (!user) return null;
 
+  const panel = (
+    <div
+      className={`overflow-hidden border shadow-2xl ${
+        embedded
+          ? `rounded-3xl ${isDayMode ? "bg-white/96 border-slate-200/80 shadow-[0_26px_60px_rgba(148,163,184,0.16)]" : "bg-[#0a0a0a]/90 border-white/10"}`
+          : `absolute right-0 mt-2 w-80 md:w-96 origin-top-right rounded-2xl backdrop-blur-3xl ${isDayMode ? "bg-white/96 border-slate-200/80 shadow-[0_22px_52px_rgba(148,163,184,0.2)]" : "bg-[#0a0a0a]/90 border-white/10"}`
+      } ${className}`}
+    >
+      <div
+        className={`flex items-center justify-between p-4 border-b ${
+          isDayMode
+            ? "border-slate-200/80 bg-slate-50/90"
+            : "border-white/10 bg-white/5"
+        }`}
+      >
+        <div>
+          <h3 className={`font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}>
+            {t("notifications.title", "通知中心")}
+          </h3>
+          <p
+            className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+          >
+            {t("notifications.new_notification", "新通知")} {unreadCount}
+          </p>
+        </div>
+        {notifications.length > 0 && (
+          <div className="flex gap-2">
+            <button
+              onClick={handleMarkAllRead}
+              className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+              title={t("notifications.mark_all_read", "全部已读")}
+            >
+              <CheckCheck size={16} />
+            </button>
+            <button
+              onClick={handleClearAll}
+              className="text-xs text-red-400 hover:text-red-300 transition-colors"
+              title={t("notifications.clear_all", "清空通知")}
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div
+        className={`${embedded ? "max-h-[560px]" : "max-h-[400px]"} overflow-y-auto custom-scrollbar`}
+      >
+        {notifications.length === 0 ? (
+          <div
+            className={`p-8 text-center flex flex-col items-center ${
+              isDayMode ? "text-slate-500" : "text-gray-500"
+            }`}
+          >
+            <div
+              className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 ${
+                isDayMode ? "bg-slate-100" : "bg-white/5"
+              }`}
+            >
+              <Bell size={24} className="opacity-50" />
+            </div>
+            <p>{t("notifications.no_notifications", "暂无通知")}</p>
+          </div>
+        ) : (
+          <div className={`divide-y ${isDayMode ? "divide-slate-200/70" : "divide-white/5"}`}>
+            {notifications.map((notification) => {
+              const unread = !isNotificationRead(notification);
+              return (
+                <div
+                  key={notification.id}
+                  onClick={() => handleNotificationClick(notification)}
+                  className={`p-4 transition-colors cursor-pointer group ${
+                    unread ? "bg-indigo-500/5" : "opacity-70"
+                  } ${isDayMode ? "hover:bg-slate-50" : "hover:bg-white/5"}`}
+                >
+                  <div className="flex gap-3">
+                    <div
+                      className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${
+                        unread ? "bg-indigo-500" : "bg-transparent"
+                      }`}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className={`text-sm leading-relaxed ${
+                          isDayMode ? "text-slate-700" : "text-gray-200"
+                        }`}
+                      >
+                        {notification.content}
+                      </p>
+                      <p
+                        className={`text-[10px] mt-1.5 font-mono ${
+                          isDayMode ? "text-slate-500" : "text-gray-500"
+                        }`}
+                      >
+                        {formatDate(notification.created_at)}
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-1 shrink-0">
+                      {unread && (
+                        <button
+                          onClick={(e) => handleMarkAsRead(notification.id, e)}
+                          className={`p-1.5 rounded-lg transition-colors ${
+                            isDayMode
+                              ? "hover:bg-indigo-50 text-slate-400 hover:text-indigo-500"
+                              : "hover:bg-indigo-500/20 text-gray-400 hover:text-indigo-300"
+                          }`}
+                          title={t("notifications.mark_read", "标记已读")}
+                        >
+                          <Check size={14} />
+                        </button>
+                      )}
+                      <button
+                        onClick={(e) => handleDelete(notification.id, e)}
+                        className={`p-1.5 rounded-lg transition-colors ${
+                          isDayMode
+                            ? "hover:bg-red-50 text-slate-400 hover:text-red-500"
+                            : "hover:bg-red-500/20 text-gray-400 hover:text-red-400"
+                        }`}
+                        title={t("common.delete", "删除")}
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  if (embedded) {
+    return panel;
+  }
+
   return (
     <div className="relative z-50" ref={dropdownRef}>
-      <button 
-        onClick={() => setIsOpen(!isOpen)}
-        className={`relative p-2 transition-colors rounded-full ${isDayMode ? 'text-slate-500 hover:text-slate-900 hover:bg-white/90' : 'text-gray-300 hover:text-white hover:bg-white/10'}`}
+      <button
+        onClick={() => setIsOpen((prev) => !prev)}
+        className={`relative p-2 transition-colors rounded-full ${
+          isDayMode
+            ? "text-slate-500 hover:text-slate-900 hover:bg-white/90"
+            : "text-gray-300 hover:text-white hover:bg-white/10"
+        }`}
       >
         <motion.div
-            animate={unreadCount > 0 ? { rotate: [0, -15, 15, -15, 15, 0] } : {}}
-            transition={{ repeat: Infinity, repeatDelay: 5, duration: 1 }}
+          animate={unreadCount > 0 ? { rotate: [0, -15, 15, -15, 15, 0] } : {}}
+          transition={{ repeat: Infinity, repeatDelay: 5, duration: 1 }}
         >
-            <Bell size={20} />
+          <Bell size={20} />
         </motion.div>
         {unreadCount > 0 && (
-          <span className={`absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ${isDayMode ? 'ring-white' : 'ring-black'}`} />
+          <span
+            className={`absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ${
+              isDayMode ? "ring-white" : "ring-black"
+            }`}
+          />
         )}
       </button>
 
@@ -160,68 +407,8 @@ const NotificationCenter = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className={`absolute right-0 mt-2 w-80 md:w-96 backdrop-blur-3xl border rounded-2xl shadow-2xl overflow-hidden origin-top-right ${isDayMode ? 'bg-white/96 border-slate-200/80 shadow-[0_22px_52px_rgba(148,163,184,0.2)]' : 'bg-[#0a0a0a]/90 border-white/10'}`}
           >
-            <div className={`flex items-center justify-between p-4 border-b ${isDayMode ? 'border-slate-200/80 bg-slate-50/90' : 'border-white/10 bg-white/5'}`}>
-              <h3 className={`font-bold ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{t('notifications.title')}</h3>
-              {notifications.length > 0 && (
-                  <div className="flex gap-2">
-                    <button 
-                        onClick={handleMarkAllRead}
-                        className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
-                        title={t('notifications.mark_all_read')}
-                    >
-                        <CheckCheck size={16} />
-                    </button>
-                    <button 
-                        onClick={handleClearAll}
-                        className="text-xs text-red-400 hover:text-red-300 transition-colors"
-                        title={t('notifications.clear_all')}
-                    >
-                        <Trash2 size={16} />
-                    </button>
-                  </div>
-              )}
-            </div>
-
-            <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
-              {notifications.length === 0 ? (
-                <div className={`p-8 text-center flex flex-col items-center ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>
-                    <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 ${isDayMode ? 'bg-slate-100' : 'bg-white/5'}`}>
-                        <Bell size={24} className="opacity-50" />
-                    </div>
-                    <p>{t('notifications.empty')}</p>
-                </div>
-              ) : (
-                <div className={`divide-y ${isDayMode ? 'divide-slate-200/70' : 'divide-white/5'}`}>
-                  {notifications.map((notification) => (
-                    <div 
-                      key={notification.id}
-                      onClick={() => handleNotificationClick(notification)}
-                      className={`p-4 transition-colors cursor-pointer group relative ${notification.is_read ? 'opacity-60' : 'bg-indigo-500/5'} ${isDayMode ? 'hover:bg-slate-50' : 'hover:bg-white/5'}`}
-                    >
-                      {/* FIX: BUG-17 — Consistent truthy check for is_read */}
-                      <div className="flex gap-3">
-                        <div className={`mt-1.5 w-2 h-2 rounded-full shrink-0 transition-colors ${notification.is_read ? 'bg-transparent' : 'bg-indigo-500'}`} />
-                        <div className="flex-1 pr-6">
-                          <p className={`text-sm leading-relaxed line-clamp-2 ${isDayMode ? 'text-slate-700' : 'text-gray-200'}`}>{notification.content}</p>
-                          <p className={`text-[10px] mt-1.5 font-mono ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>
-                            {formatDate(notification.created_at)}
-                          </p>
-                        </div>
-                        <button 
-                          onClick={(e) => handleDelete(notification.id, e)}
-                          className={`opacity-0 group-hover:opacity-100 p-1.5 rounded-lg transition-all absolute top-2 right-2 ${isDayMode ? 'hover:bg-red-50 text-slate-400 hover:text-red-500' : 'hover:bg-red-500/20 text-gray-400 hover:text-red-400'}`}
-                          title={t('common.delete')}
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            {panel}
           </motion.div>
         )}
       </AnimatePresence>

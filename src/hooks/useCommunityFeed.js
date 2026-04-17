@@ -63,7 +63,7 @@ export function useCommunityFeed({
     refresh,
   } = useCachedResource(endpoint, queryParams, {
     dependencies: [settings.pagination_enabled, statusFilter, selectedTags.join(','), ...extraDependencies],
-    keyPrefix: 'cache:v2:',
+    keyPrefix: 'cache:v3:',
   });
 
   const totalPages = pagination?.totalPages || 1;
@@ -128,6 +128,23 @@ export function useCommunityFeed({
     });
   }, [setItems]);
 
+  const updateItemById = useCallback((itemId, updater) => {
+    const applyUpdate = (item) => {
+      if (!item || item.id !== itemId) return item;
+      return typeof updater === 'function' ? updater(item) : { ...item, ...updater };
+    };
+
+    setItems((prev) => {
+      if (!Array.isArray(prev)) return prev;
+      return prev.map(applyUpdate);
+    });
+    setDisplayItems((prev) => {
+      if (!Array.isArray(prev)) return prev;
+      return prev.map(applyUpdate);
+    });
+    setSelectedItem((prev) => applyUpdate(prev));
+  }, [setItems]);
+
   return {
     // Data
     displayItems,
@@ -158,6 +175,7 @@ export function useCommunityFeed({
     handlePageChange,
     handleRefresh,
     handleToggleFavorite,
+    updateItemById,
     refresh,
     pageSize,
   };

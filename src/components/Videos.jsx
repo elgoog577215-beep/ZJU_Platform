@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, memo } from "react";
+import React, { useState, useEffect, useCallback, memo, useRef } from "react";
 import { useContentPageEvents, useMobileSortLabel, useMobileToolbarSync } from "../hooks/useContentPage";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -20,7 +20,7 @@ import { useSettings } from "../context/SettingsContext";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import SortSelector from "./SortSelector";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { useBackClose } from "../hooks/useBackClose";
 import { useCachedResource } from "../hooks/useCachedResource";
 import TagFilter from "./TagFilter";
@@ -88,7 +88,8 @@ const VideoCard = memo(
                   itemId={video.id}
                   itemType="video"
                   size={18}
-                  showCount={false}
+                  showCount={true}
+                  count={video.likes || 0}
                   favorited={video.favorited}
                   initialFavorited={video.favorited}
                   className={`p-2 hover:bg-pink-500/20 rounded-full backdrop-blur-md transition-colors group/btn border text-white ${isDayMode ? "bg-white/76 border-white/50 shadow-[0_10px_24px_rgba(15,23,42,0.18)]" : "bg-black/50 border-white/10"}`}
@@ -136,6 +137,8 @@ const Videos = () => {
   const { settings, uiMode } = useSettings();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [currentPage, setCurrentPage] = useState(1);
   const [sort, setSort] = useState("newest");
   const [selectedTags, setSelectedTags] = useState([]);
@@ -156,7 +159,19 @@ const Videos = () => {
   useContentPageEvents("video", setIsUploadOpen, setIsMobileFilterOpen, setIsMobileSortOpen);
   useMobileToolbarSync(selectedTags.length, mobileSortLabel);
 
-  useBackClose(selectedVideo !== null, () => setSelectedVideo(null));
+  // Favorites deep-link: close (X) returns to /profile instead of stranding user on /videos.
+  // Capture on mount — useBackClose pushes a hash entry whose state overwrites location.state.
+  const fromFavoritesRef = useRef(location.state?.fromFavorites === true);
+  const closeVideo = useCallback(() => {
+    if (fromFavoritesRef.current) {
+      fromFavoritesRef.current = false; // guard against popstate re-entry
+      navigate(-2);
+      return;
+    }
+    setSelectedVideo(null);
+  }, [navigate]);
+
+  useBackClose(selectedVideo !== null, closeVideo);
   useBackClose(isUploadOpen, () => setIsUploadOpen(false));
 
   const {
@@ -590,7 +605,7 @@ const Videos = () => {
                   : { duration: 0.2, ease: [0.22, 1, 0.36, 1] }
               }
               className={`fixed inset-0 z-[100] backdrop-blur-md overflow-y-auto ${isDayMode ? "bg-white/72" : "bg-black/90"}`}
-              onClick={() => setSelectedVideo(null)}
+              onClick={closeVideo}
             >
               <div className="flex min-h-full items-center justify-center p-4 md:p-8">
                 <motion.div
@@ -613,7 +628,7 @@ const Videos = () => {
                     className={`relative aspect-video ${isDayMode ? "bg-slate-100" : "bg-black"}`}
                   >
                     <button
-                      onClick={() => setSelectedVideo(null)}
+                      onClick={closeVideo}
                       className={`absolute top-6 right-6 p-2 rounded-full backdrop-blur-md border transition-all z-20 group ${isDayMode ? "bg-white/90 hover:bg-white text-slate-700 border-slate-200/80 shadow-[0_14px_32px_rgba(148,163,184,0.18)]" : "bg-black/40 hover:bg-black/60 text-white border-white/10"}`}
                       title={t("common.close_video")}
                     >

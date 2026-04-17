@@ -198,6 +198,10 @@ router.post('/errors', (req, res) => {
                 type: error?.type,
                 message: error?.message || error?.reason || error?.error,
                 path: error?.path || error?.context?.url,
+                filename: error?.filename,
+                lineno: error?.lineno,
+                colno: error?.colno,
+                stack: error?.stack,
                 timestamp: error?.timestamp
             })),
             ip: req.ip
@@ -242,9 +246,6 @@ resources.forEach(resource => {
 
     // Restore
     router.post(`/${resource}/:id/restore`, authenticateToken, isAdmin, resourceController.restoreHandler(resource));
-
-    // Like (requires authentication to prevent abuse)
-    router.post(`/${resource}/:id/like`, authenticateToken, resourceController.toggleLike(resource));
 
     // Update Status
     router.put(`/${resource}/:id/status`, authenticateToken, isAdmin, resourceController.updateStatus(resource));

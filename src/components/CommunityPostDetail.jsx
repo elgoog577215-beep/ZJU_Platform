@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { MessageCircle, Send, User, CheckCircle, Award, Reply, Quote, X, Flag, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
@@ -32,6 +32,7 @@ const CommunityPostDetail = ({
   showComments = true,
   onSolve,
   onRelatedSelect,
+  onCommentsCountChange,
 }) => {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -58,24 +59,57 @@ const CommunityPostDetail = ({
     return best ? [best, ...rest] : comments;
   }, [comments, bestAnswerId]);
 
+  const totalCommentCount = useMemo(
+    () =>
+      comments.reduce(
+        (sum, floor) => sum + 1 + (Array.isArray(floor.replies) ? floor.replies.length : 0),
+        0,
+      ),
+    [comments],
+  );
+
+  const postId = post?.id;
+
+  // FIX: Keep latest callback in a ref so fetchComments doesn't depend on it.
+  // Parents often pass a new function reference each render (useCommunityFeed's
+  // return object is a fresh literal every render), which would otherwise make
+  // fetchComments unstable and re-fetch on every parent render.
+  const onCommentsCountChangeRef = useRef(onCommentsCountChange);
+  useEffect(() => {
+    onCommentsCountChangeRef.current = onCommentsCountChange;
+  });
+
   const fetchComments = useCallback((signal) => {
-    if (!post || !showComments) {
+    if (!postId || !showComments) {
       setComments([]);
+      setLoadingComments(false);
       return Promise.resolve();
     }
     setLoadingComments(true);
     return api
-      .get(`/community/posts/${post.id}/comments`, { params: { sort: commentSort }, signal })
+      .get(`/community/posts/${postId}/comments`, { params: { sort: commentSort }, signal })
       .then((res) => {
-        if (!signal?.aborted) setComments(Array.isArray(res.data) ? res.data : []);
+        if (signal?.aborted) return;
+        const loaded = Array.isArray(res.data) ? res.data : [];
+        setComments(loaded);
+        setLoadingComments(false);
+        // FIX: Only push count to parent AFTER a successful load. Previously a
+        // useEffect fired on mount with comments=[] (total=0), overwriting the
+        // list's real comments_count with 0.
+        const total = loaded.reduce(
+          (sum, floor) => sum + 1 + (Array.isArray(floor.replies) ? floor.replies.length : 0),
+          0,
+        );
+        onCommentsCountChangeRef.current?.(postId, total);
       })
-      .catch(() => {
-        if (!signal?.aborted) setComments([]);
-      })
-      .finally(() => {
-        if (!signal?.aborted) setLoadingComments(false);
+      .catch((err) => {
+        if (signal?.aborted) return;
+        if (err?.name !== 'CanceledError' && err?.code !== 'ERR_CANCELED') {
+          setComments([]);
+        }
+        setLoadingComments(false);
       });
-  }, [post, showComments, commentSort]);
+  }, [postId, showComments, commentSort]);
 
   // Fetch comments
   useEffect(() => {
@@ -308,7 +342,7 @@ const CommunityPostDetail = ({
         <div className={`border-t pt-8 ${th.borderSubtle}`}>
           <h3 className={`text-lg font-bold mb-6 flex items-center gap-2 ${th.textPrimary}`}>
             <MessageCircle size={20} />
-            {comments.length} {t('community.post_replies', '条回复')}
+            {totalCommentCount} {t('community.post_replies', '条回复')}
           </h3>
           <div className="mb-4 flex items-center gap-2">
             <button

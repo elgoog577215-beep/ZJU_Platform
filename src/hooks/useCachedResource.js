@@ -52,31 +52,51 @@ const persistCache = (cacheKey, payload) => {
     }, 0);
 };
 
-// FIX: BUG-09 — Accept signal option for AbortController support
-const fetchAndCacheResource = async (endpoint, requestParams, cacheKey, requestOptions = {}) => {
-    const existingRequest = inflightRequests.get(cacheKey);
-    if (existingRequest) return existingRequest;
-
-    const requestPromise = api.get(endpoint, { params: requestParams, signal: requestOptions.signal, ...requestOptions }).then((res) => {
-        const newData = res.data.data !== undefined ? res.data.data : res.data;
-        const newPagination = res.data.pagination || {};
-        const payload = {
-            data: newData,
-            pagination: newPagination,
-            timestamp: Date.now()
-        };
-        persistCache(cacheKey, payload);
-        return payload;
-    }).finally(() => {
-        inflightRequests.delete(cacheKey);
+// FIX: Do NOT pass caller's signal to the shared request. If one caller unmounts,
+// its signal abort would reject the shared promise and subsequent callers (StrictMode
+// double-mount, fast navigation) would receive the already-rejected promise from the
+// inflight map — revalidation silently fails and stale cache never refreshes.
+// Instead, the shared request runs signal-free (always completes + writes cache),
+// and each caller races it against their own signal.
+const raceWithSignal = (sourcePromise, signal) => {
+    if (!signal) return sourcePromise;
+    if (signal.aborted) {
+        return Promise.reject(new DOMException('Aborted', 'AbortError'));
+    }
+    return new Promise((resolve, reject) => {
+        const onAbort = () => reject(new DOMException('Aborted', 'AbortError'));
+        signal.addEventListener('abort', onAbort, { once: true });
+        sourcePromise.then(
+            (val) => { signal.removeEventListener('abort', onAbort); resolve(val); },
+            (err) => { signal.removeEventListener('abort', onAbort); reject(err); }
+        );
     });
+};
 
-    inflightRequests.set(cacheKey, requestPromise);
-    return requestPromise;
+const fetchAndCacheResource = async (endpoint, requestParams, cacheKey, requestOptions = {}) => {
+    const { signal, ...otherOptions } = requestOptions;
+    let sharedPromise = inflightRequests.get(cacheKey);
+    if (!sharedPromise) {
+        sharedPromise = api.get(endpoint, { params: requestParams, ...otherOptions }).then((res) => {
+            const newData = res.data.data !== undefined ? res.data.data : res.data;
+            const newPagination = res.data.pagination || {};
+            const payload = {
+                data: newData,
+                pagination: newPagination,
+                timestamp: Date.now()
+            };
+            persistCache(cacheKey, payload);
+            return payload;
+        }).finally(() => {
+            inflightRequests.delete(cacheKey);
+        });
+        inflightRequests.set(cacheKey, sharedPromise);
+    }
+    return raceWithSignal(sharedPromise, signal);
 };
 
 export const prefetchCachedResource = async (endpoint, params = {}, options = {}) => {
-    const { keyPrefix = 'cache:', ttl = 24 * 60 * 60 * 1000, silent = false } = options;
+    const { keyPrefix = 'cache:v2:', ttl = 24 * 60 * 60 * 1000, silent = false } = options;
     const { cacheKey, queryString } = buildRequestKey(keyPrefix, endpoint, params);
     const cached = readStoredCache(cacheKey);
 
@@ -96,8 +116,8 @@ export const prefetchCachedResource = async (endpoint, params = {}, options = {}
  * @returns {Object} { data, pagination, loading, error, setData, refresh }
  */
 export const useCachedResource = (endpoint, params = {}, options = {}) => {
-    const { 
-        keyPrefix = 'cache:', 
+    const {
+        keyPrefix = 'cache:v2:',
         ttl = 24 * 60 * 60 * 1000, // 24 hours default
         enabled = true,
         dependencies = [], // Extra dependencies to trigger refresh
@@ -136,10 +156,8 @@ export const useCachedResource = (endpoint, params = {}, options = {}) => {
         const abortController = new AbortController();
 
         const fetchData = async () => {
-            const now = Date.now();
             const cached = readStoredCache(cacheKey);
             let hasCache = false;
-            let isFreshCache = false;
 
             if (cached) {
                 if (cached.data !== undefined) {
@@ -147,7 +165,6 @@ export const useCachedResource = (endpoint, params = {}, options = {}) => {
                     if (cached.pagination) setPagination(cached.pagination);
                     setLoading(false);
                     hasCache = true;
-                    isFreshCache = now - (cached.timestamp || 0) < ttl;
                 }
             }
 
@@ -155,11 +172,8 @@ export const useCachedResource = (endpoint, params = {}, options = {}) => {
                 setLoading(true);
             }
 
-            if (isFreshCache && refreshKey === 0) {
-                setError(null);
-                return;
-            }
-
+            // Always revalidate in background (true SWR) — cache serves instantly,
+            // fresh data swaps in when request resolves.
             try {
                 const requestParams = Object.fromEntries(new URLSearchParams(queryString));
                 const payload = await fetchAndCacheResource(endpoint, requestParams, cacheKey, { silent, signal: abortController.signal });

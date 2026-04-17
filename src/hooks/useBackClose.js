@@ -23,42 +23,46 @@ export const useBackClose = (isOpen, onClose) => {
   }, [onClose]);
 
   useEffect(() => {
-    if (isOpen) {
+    if (!isOpen) return;
+
+    const newHash = `#${hashRef.current}`;
+    const cleanupRef = { current: null };
+
+    // Defer side effects by a macrotask so React.StrictMode's dev-time
+    // unmount/remount cycle cancels out: if the first mount is cancelled
+    // before the timer fires, we never push history at all. Without this,
+    // the strict-mode cleanup's history.back() fires the second mount's
+    // popstate listener and prematurely closes the modal.
+    let timer = setTimeout(() => {
+      timer = null;
       isClosingRef.current = false;
-      
-      // Push hash state
-      // We use a unique hash to ensure we can identify *this* modal's state
-      const newHash = `#${hashRef.current}`;
-      
-      // Check if we are already at this hash (re-renders)
+
       if (window.location.hash !== newHash) {
-          window.history.pushState({ modalOpen: true, id: hashRef.current }, '', newHash);
+        window.history.pushState({ modalOpen: true, id: hashRef.current }, '', newHash);
       }
 
       const handlePopState = () => {
-        // If the hash matches, we are still "open" (forward navigation?), 
-        // but typically popstate means we went BACK or FORWARD.
-        // If the current hash DOES NOT match our hash anymore, it means we navigated away (Back).
         if (window.location.hash !== newHash) {
-            isClosingRef.current = true;
-            if (onCloseRef.current) {
-                onCloseRef.current();
-            }
+          isClosingRef.current = true;
+          if (onCloseRef.current) onCloseRef.current();
         }
       };
-
       window.addEventListener('popstate', handlePopState);
-
-      return () => {
+      cleanupRef.current = () => {
         window.removeEventListener('popstate', handlePopState);
-        
-        // Cleanup: If closing programmatically (not via Back button), we must go back manually
-        // to remove the hash we added.
         if (!isClosingRef.current && window.location.hash === newHash) {
-           window.history.back();
+          window.history.back();
         }
       };
-    }
+    }, 0);
+
+    return () => {
+      if (timer !== null) {
+        clearTimeout(timer);
+        return;
+      }
+      if (cleanupRef.current) cleanupRef.current();
+    };
   }, [isOpen]); // Removed onClose from dependency array
 
   // Compatibility return for existing usage

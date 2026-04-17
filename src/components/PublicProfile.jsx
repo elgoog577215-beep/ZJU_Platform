@@ -11,6 +11,7 @@ import {
   Award,
   Settings,
   Heart,
+  Bell,
   Lock,
   Image,
   Music,
@@ -30,6 +31,7 @@ import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import Dropdown from "./Dropdown";
 import FavoriteButton from "./FavoriteButton";
+import NotificationCenter from "./NotificationCenter";
 import PersonalCenterShell from "./PersonalCenterShell";
 import { useReducedMotion } from "../utils/animations";
 
@@ -64,7 +66,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
   // Favorites State
   const [favorites, setFavorites] = useState([]);
   const [loadingFavorites, setLoadingFavorites] = useState(false);
-  const [favoriteType, setFavoriteType] = useState("photo");
+  const [favoriteType, setFavoriteType] = useState("all");
   const [followLoading, setFollowLoading] = useState(false);
   const [relationTab, setRelationTab] = useState("followers");
   const [relationLoading, setRelationLoading] = useState(false);
@@ -165,7 +167,11 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
   const fetchFavorites = async () => {
     setLoadingFavorites(true);
     try {
-      const res = await api.get(`/favorites?type=${favoriteType}`);
+      const endpoint =
+        favoriteType === "all"
+          ? "/favorites"
+          : `/favorites?type=${favoriteType}`;
+      const res = await api.get(endpoint);
       setFavorites(res.data || []);
     } catch (err) {
       // Silently fail if endpoint not ready
@@ -211,6 +217,27 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
       toast.error(t("user_profile.invite_code_invalid"));
       setIsInviteCodeVerified(false);
     }
+  };
+
+  const buildFavoriteTargetPath = (item) => {
+    const itemType = String(item?.type || favoriteType || "").trim().toLowerCase();
+    const itemId = item?.id;
+    if (!itemId) return null;
+
+    const routeMap = {
+      photo: "/gallery",
+      music: "/music",
+      video: "/videos",
+      // Articles live under the AICommunity "tech" tab — must pin the tab
+      // or AICommunity defaults to the help board and the id is ignored.
+      article: "/articles?tab=tech",
+      event: "/events",
+    };
+
+    const basePath = routeMap[itemType];
+    if (!basePath) return null;
+    const separator = basePath.includes("?") ? "&" : "?";
+    return `${basePath}${separator}id=${itemId}`;
   };
 
   const handlePasswordUpdate = async (e) => {
@@ -348,6 +375,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
   }
 
   const favoriteTypeOptions = [
+    { value: "all", label: t("common.all", "全部"), icon: Grid },
     { value: "photo", label: t("nav.gallery"), icon: Image },
     { value: "music", label: t("nav.music"), icon: Music },
     { value: "video", label: t("nav.videos"), icon: Film },
@@ -548,6 +576,21 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
               >
                 <Heart size={18} />
                 {t("user_profile.tabs.favorites")}
+              </button>
+              <button
+                onClick={() => setActiveTab("messages")}
+                className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
+                  activeTab === "messages"
+                    ? isDayMode
+                      ? "bg-indigo-600 text-white shadow-[0_12px_28px_rgba(99,102,241,0.22)]"
+                      : "bg-white text-black"
+                    : isDayMode
+                      ? "bg-white/85 text-slate-500 border border-slate-200/80 hover:bg-white hover:text-slate-900"
+                      : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <Bell size={18} />
+                {t("user_profile.tabs.messages", "消息")}
               </button>
               <button
                 onClick={() => setActiveTab("settings")}
@@ -818,6 +861,12 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                   {favorites.map((item) => (
                     <div
                       key={item.id}
+                      onClick={() => {
+                        const targetPath = buildFavoriteTargetPath(item);
+                        // Mark so the detail page's close (X) can return here
+                        // instead of stranding the user on the list.
+                        if (targetPath) navigate(targetPath, { state: { fromFavorites: true } });
+                      }}
                       className={`group flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl border backdrop-blur-md transition-all duration-300 ${isDayMode ? "bg-white/82 border-slate-200/80 hover:bg-white hover:border-indigo-200/80 shadow-[0_16px_36px_rgba(148,163,184,0.12)]" : "bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10 hover:shadow-lg hover:shadow-black/20"}`}
                     >
                       <div
@@ -850,10 +899,11 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                       </div>
                       <FavoriteButton
                         itemId={item.id}
-                        itemType={favoriteType}
+                        itemType={item.type || favoriteType}
                         initialFavorited={true}
                         size={18}
-                        showCount={false}
+                        showCount={true}
+                        count={item.likes || 0}
                         className={`p-2.5 rounded-full transition-colors border border-transparent ${isDayMode ? "text-slate-500 hover:text-indigo-500 hover:bg-indigo-50 hover:border-indigo-200/80" : "hover:bg-white/10 text-gray-400 hover:text-white hover:border-white/10"}`}
                         onToggle={(favorited) => {
                           if (!favorited) {
@@ -867,6 +917,19 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {isOwner && activeTab === "messages" && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3
+                  className={`text-xl font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}
+                >
+                  {t("notifications.title", "通知中心")}
+                </h3>
+              </div>
+              <NotificationCenter embedded />
             </div>
           )}
 

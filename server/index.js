@@ -42,6 +42,17 @@ app.disable('x-powered-by');
 const PORT = process.env.PORT || 5181;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
+const isLocalDevRequest = (req) => {
+  if (NODE_ENV === 'production') return false;
+  const ip = String(req.ip || req.connection?.remoteAddress || '').trim();
+  return (
+    ip === '127.0.0.1' ||
+    ip === '::1' ||
+    ip === '::ffff:127.0.0.1' ||
+    ip.endsWith('localhost')
+  );
+};
+
 // ====================
 // Logging Configuration
 // ====================
@@ -113,6 +124,10 @@ const generalLimiter = rateLimit({
   max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 5000, // Increased significantly
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => {
+    const path = req.path || '';
+    return isLocalDevRequest(req) || path === '/api/settings' || path === '/api/auth/me';
+  },
   message: { 
     error: 'Too many requests, please try again later.',
     retryAfter: '900'
@@ -133,6 +148,7 @@ const authLimiter = rateLimit({
   max: parseInt(process.env.AUTH_RATE_LIMIT_MAX) || 20,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => isLocalDevRequest(req) || req.path === '/me',
   skipSuccessfulRequests: true, // Don't count successful logins
   message: { 
     error: 'Too many login attempts, please try again later.',

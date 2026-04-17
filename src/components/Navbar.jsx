@@ -36,6 +36,7 @@ const Portal = ({ children }) => {
 const Navbar = () => {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isThemeOpen, setIsThemeOpen] = useState(false);
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -325,7 +326,9 @@ const Navbar = () => {
           <Palette size={18} aria-hidden="true" />
         </button>
 
-        <NotificationCenter />
+        <NotificationCenter
+          onUnreadCountChange={setUnreadNotificationCount}
+        />
 
         <LanguageSwitcher />
 
@@ -333,7 +336,7 @@ const Navbar = () => {
           <div className="flex items-center gap-3">
             <Link
               to={`/user/${user.id}`}
-              className={`flex items-center gap-2 text-sm font-medium px-3 py-1.5 rounded-full border transition-all active:scale-95 ${isDayMode ? "text-slate-900 border-slate-200/80 bg-white/80 hover:bg-white shadow-[0_8px_18px_rgba(148,163,184,0.12)]" : "text-white border-white/10 bg-white/5 hover:bg-white/10"}`}
+              className={`relative flex items-center gap-2 text-sm font-medium px-3 py-1.5 rounded-full border transition-all active:scale-95 ${isDayMode ? "text-slate-900 border-slate-200/80 bg-white/80 hover:bg-white shadow-[0_8px_18px_rgba(148,163,184,0.12)]" : "text-white border-white/10 bg-white/5 hover:bg-white/10"}`}
               aria-label={`访问 ${user.username} 的个人主页`}
             >
               <div
@@ -343,6 +346,13 @@ const Navbar = () => {
                 {user.username.charAt(0).toUpperCase()}
               </div>
               <span>{user.username}</span>
+              {unreadNotificationCount > 0 && (
+                <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-bold shadow-[0_8px_20px_rgba(239,68,68,0.35)]">
+                  {unreadNotificationCount > 99
+                    ? "99+"
+                    : unreadNotificationCount}
+                </span>
+              )}
             </Link>
             <button
               onClick={logout}

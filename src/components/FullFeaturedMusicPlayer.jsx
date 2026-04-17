@@ -178,7 +178,8 @@ const FullFeaturedMusicPlayer = memo(({ tracks = [] }) => {
                         itemId={displayTrack.id}
                         itemType="music"
                         size={16}
-                        showCount={false}
+                        showCount={true}
+                        count={displayTrack.likes || 0}
                         className="p-2 hover:bg-white/10 rounded-full transition-colors text-white/60 hover:text-white"
                     />
                 </div>

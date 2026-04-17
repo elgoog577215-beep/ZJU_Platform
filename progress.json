@@ -1,0 +1,40 @@
+{
+  "task": "{任务名称}",
+  "started_at": "YYYY-MM-DDTHH:MM:SSZ",
+  "status": "in_progress",
+  "workflow_mode": "full",
+  "phase": "P0-explore",
+  "current_step": "{当前在做什么}",
+
+  "spec": {
+    "path": "openspec/changes/{name}/specs/",
+    "confirmed": false
+  },
+
+  "files_modified": [],
+  "commits": [],
+
+  "tests_passed": false,
+  "diff_reviewed": false,
+  "error_count": 0,
+  "errors": [],
+
+  "blocked": false,
+  "blocked_reason": null,
+
+  "verify": {
+    "layer1": {
+      "typecheck": null,
+      "lint": null,
+      "test": null
+    },
+    "layer2": {
+      "browser": null,
+      "api": null
+    },
+    "total_rounds": 0,
+    "result": null
+  },
+
+  "notes": "{任何断点备注，恢复时读这里}"
+}

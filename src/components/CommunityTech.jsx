@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo, useCallback, useState, memo } from 'react';
+import React, { useEffect, useMemo, useCallback, useState, useRef, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, ArrowRight, Calendar, X, User, Clock, Edit2, RotateCcw, Trash2, AlertCircle, Clock3, Search, Sparkles } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import SmartImage from './SmartImage';
@@ -142,6 +142,8 @@ const CommunityTech = () => {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const isDayMode = uiMode === 'day';
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -244,10 +246,21 @@ const CommunityTech = () => {
     }).catch(() => {});
   }, [feed, updateParams]);
 
+  // Capture on mount — useCommunityFeed internally calls useBackClose which pushes a
+  // hash entry on selectedItem change; that entry's state overwrites location.state.
+  // History stack when arriving from /profile favorite:
+  //   /profile → /articles?tab=tech&id=X (from our navigate) → #modal-feed-xxx (from useBackClose)
+  // So -2 pops both back to /profile.
+  const fromFavoritesRef = useRef(location.state?.fromFavorites === true);
   const handleCloseDetail = useCallback(() => {
+    if (fromFavoritesRef.current) {
+      fromFavoritesRef.current = false;
+      navigate(-2);
+      return;
+    }
     feed.setSelectedItem(null);
     updateParams({ tab: 'tech' });
-  }, [feed, updateParams]);
+  }, [feed, updateParams, navigate]);
 
   const handleOpenEditor = useCallback(async (article) => {
     try {

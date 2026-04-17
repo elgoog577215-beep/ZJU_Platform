@@ -1,12 +1,36 @@
 const { getDb } = require('../config/db');
+const { createNotification } = require('./notificationController');
 
 let commentsColumnCache = null;
+
+const COMMENT_RESOURCE_META = {
+    photo: { table: 'photos', ownerColumn: 'uploader_id', label: '图片' },
+    music: { table: 'music', ownerColumn: 'uploader_id', label: '音乐' },
+    video: { table: 'videos', ownerColumn: 'uploader_id', label: '视频' },
+    article: { table: 'articles', ownerColumn: 'uploader_id', label: '文章' },
+    event: { table: 'events', ownerColumn: 'uploader_id', label: '活动' },
+};
 
 const getCommentsColumns = async (db) => {
     if (commentsColumnCache) return commentsColumnCache;
     const info = await db.all('PRAGMA table_info(comments)');
     commentsColumnCache = new Set(info.map((col) => col.name));
     return commentsColumnCache;
+};
+
+const resolveActorName = async (db, userId) => {
+    const actor = await db.get('SELECT username, nickname FROM users WHERE id = ?', [userId]);
+    return actor?.nickname || actor?.username || '有用户';
+};
+
+const resolveCommentTarget = async (db, resourceType, resourceId) => {
+    const meta = COMMENT_RESOURCE_META[resourceType];
+    if (!meta) return null;
+
+    return db.get(
+        `SELECT id, ${meta.ownerColumn} AS owner_id, title FROM ${meta.table} WHERE id = ?`,
+        [resourceId]
+    );
 };
 
 const createComment = async (req, res, next) => {
@@ -58,6 +82,20 @@ const createComment = async (req, res, next) => {
             avatar: user.avatar || null,
             created_at: new Date().toISOString() // Approximate, DB has the real one
         };
+
+        const target = await resolveCommentTarget(db, resourceType, resourceId);
+        if (target?.owner_id && String(target.owner_id) !== String(userId)) {
+            const actorName = await resolveActorName(db, userId);
+            const resourceLabel = COMMENT_RESOURCE_META[resourceType]?.label || '内容';
+            const resourceTitle = target.title || `这条${resourceLabel}`;
+            await createNotification(
+                target.owner_id,
+                'comment',
+                `${actorName} 评论了你的${resourceLabel}《${resourceTitle}》`,
+                resourceId,
+                resourceType
+            );
+        }
 
         res.json(newComment);
     } catch (error) { next(error); }
