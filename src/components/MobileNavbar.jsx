@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Calendar, FileText, Home, Music, UserCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import { useReducedMotion } from "../utils/animations";
 import { useSettings } from "../context/SettingsContext";
+import api from "../services/api";
 
 const MobileNavbar = () => {
   const { t } = useTranslation();
@@ -14,6 +15,49 @@ const MobileNavbar = () => {
   const { uiMode } = useSettings();
   const prefersReducedMotion = useReducedMotion();
   const isDayMode = uiMode === "day";
+
+  // Unread notification count for the "我的" tab badge. Mobile clients don't
+  // render NotificationCenter (it's desktop-only inside Navbar's hidden
+  // md:flex container), so we poll here directly and also listen for the
+  // 'notifications:updated' event that NotificationCenter emits — if a
+  // desktop-sized viewport also has NotificationCenter mounted, either
+  // source keeps this state fresh.
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!user) {
+      setUnreadCount(0);
+      return undefined;
+    }
+
+    let cancelled = false;
+    const fetchUnread = async () => {
+      try {
+        const res = await api.get("/notifications?limit=1");
+        if (cancelled) return;
+        setUnreadCount(Number(res.data?.unreadCount) || 0);
+      } catch {
+        /* ignore — transient auth/network errors */
+      }
+    };
+    fetchUnread();
+    const pollId = setInterval(fetchUnread, 60_000);
+
+    const onNotificationsUpdated = (event) => {
+      const n = Number(event?.detail?.unreadCount);
+      if (Number.isFinite(n)) setUnreadCount(n);
+    };
+    window.addEventListener("notifications:updated", onNotificationsUpdated);
+
+    return () => {
+      cancelled = true;
+      clearInterval(pollId);
+      window.removeEventListener(
+        "notifications:updated",
+        onNotificationsUpdated,
+      );
+    };
+  }, [user?.id]);
 
   useEffect(() => {
     document.body.style.overflow = "";
@@ -46,15 +90,31 @@ const MobileNavbar = () => {
 
           const sharedClassName = `relative flex flex-col items-center justify-center rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isActive ? (isDayMode ? "text-slate-900" : "text-white") : isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white"}`;
 
+          const showUnreadBadge =
+            item.key === "me" && user && unreadCount > 0;
+          const badgeLabel = unreadCount > 99 ? "99+" : String(unreadCount);
+
           const inner = (
             <motion.div
               whileTap={prefersReducedMotion ? undefined : { scale: 0.88 }}
               className="flex flex-col items-center gap-1"
             >
               <div
-                className={`rounded-xl p-1.5 transition-all duration-300 ${isActive ? "bg-indigo-500/20 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.28)]" : ""}`}
+                className={`relative rounded-xl p-1.5 transition-all duration-300 ${isActive ? "bg-indigo-500/20 text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.28)]" : ""}`}
               >
                 <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+                {showUnreadBadge && (
+                  <span
+                    aria-label={t(
+                      "nav.unread_count",
+                      "{{count}} 条未读通知",
+                      { count: unreadCount },
+                    )}
+                    className={`absolute -top-0.5 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none flex items-center justify-center ring-2 shadow-sm ${isDayMode ? "ring-white" : "ring-[#111827]"}`}
+                  >
+                    {badgeLabel}
+                  </span>
+                )}
               </div>
               <span
                 className={`text-[10px] transition-all ${isActive ? "font-semibold opacity-100" : "font-medium opacity-75"}`}
