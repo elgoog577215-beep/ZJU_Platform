@@ -1,6 +1,7 @@
 const { getDb } = require('../config/db');
 const path = require('path');
 const fs = require('fs');
+const { serializeCommunityPost } = require('../utils/serializeCommunityPost');
 
 // Placeholder for crawler until implemented
 const runCrawler = async (url, source) => {
@@ -23,16 +24,30 @@ const searchContent = async (req, res, next) => {
             db.all('SELECT id, title, "video" as type, thumbnail as image FROM videos WHERE (title LIKE ? OR tags LIKE ?) AND deleted_at IS NULL AND status = "approved" LIMIT 5', [term, term]),
             db.all('SELECT id, title, "article" as type, cover as image FROM articles WHERE (title LIKE ? OR excerpt LIKE ? OR content LIKE ? OR tags LIKE ?) AND deleted_at IS NULL AND status = "approved" LIMIT 5', [term, term, term, term]),
             db.all('SELECT id, title, "event" as type, image FROM events WHERE (title LIKE ? OR description LIKE ? OR content LIKE ? OR tags LIKE ?) AND deleted_at IS NULL AND status = "approved" LIMIT 5', [term, term, term, term]),
-            db.all('SELECT id, title, "community" as type, section FROM community_posts WHERE status = "approved" AND (title LIKE ? OR content LIKE ? OR tags LIKE ? OR author_name LIKE ?) LIMIT 5', [term, term, term, term]).catch(() => [])
+            // Community posts: exclude anonymous help posts entirely from search,
+            // and drop author_name from the WHERE clause — matching by author name
+            // would let an attacker reverse who authored an anonymous post.
+            db.all(
+                `SELECT id, title, "community" as type, section, is_anonymous, author_id
+                 FROM community_posts
+                 WHERE status = "approved"
+                   AND NOT (section = 'help' AND is_anonymous = 1)
+                   AND (title LIKE ? OR content LIKE ? OR tags LIKE ?)
+                 LIMIT 5`,
+                [term, term, term]
+            ).catch(() => [])
         ]);
 
+        const viewer = req.user ? { id: req.user.id, role: req.user.role } : null;
         const results = [
             ...photos.map(i => ({ ...i, link: '/gallery' })),
             ...music.map(i => ({ ...i, link: '/music' })),
             ...videos.map(i => ({ ...i, link: '/videos' })),
             ...articles.map(i => ({ ...i, link: '/articles' })),
             ...events.map(i => ({ ...i, link: '/events' })),
-            ...communityPosts.map(i => ({ ...i, link: `/community/${i.section || 'help'}` }))
+            ...communityPosts
+                .map(p => serializeCommunityPost(p, viewer))
+                .map(i => ({ ...i, link: `/community/${i.section || 'help'}` }))
         ];
 
         res.json(results);
