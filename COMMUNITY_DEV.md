@@ -49,3 +49,15 @@ npm run dev
 ## BREAKING（5.3）
 
 当前新增 **`/community/*`**，未改现有资源路径；若今后调整 slug，需配置重定向并更新发布说明。
+
+## 身份显示与关注通知（change: community-identity-and-follow-notifications）
+
+- **作者显示**：`photos/music/videos/articles/events/news` 六种资源的作者字段统一走 `COALESCE(u.nickname, u.username) AS author_name`，用户没设昵称也会显示 username，不再出现"匿名用户"文案兜底。`getFollowingFeed` 保留现有 `author_nickname` / `author_username` 分字段，前端依赖未破坏。
+- **昵称唯一性**：`users.nickname` 有 partial unique index（`WHERE nickname IS NOT NULL`），历史 NULL 值不参与约束。`PUT /users/:id` 冲突返 `409 { error: "该昵称已被使用" }`（固定文案，不含占用者 id/username）；长度 2-20、只允许中英数下划线；前端在 PublicProfile settings tab 暴露输入框。
+- **匿名求助贴**：`community_posts` 加 `is_anonymous INTEGER DEFAULT 0` 列，**仅 `section='help'` 有效**；组队贴强制实名（后端忽略该字段）。前端 `PostComposer` 在 help section 底部 footer 显示 "匿名发布" checkbox。
+- **脱敏**：所有 `community_posts` 读路径 MUST 经过 `server/src/utils/serializeCommunityPost.js` 的 helper。非作者非 admin 访客看到匿名贴时，`author_name / author_id / uploader_id / author_avatar` 全部置 null。`server/scripts/check-community-post-serializer.sh`（`npm run check:posts-serializer`）做 CI 防御：grep 源码里所有 `FROM community_posts`，不配套 `serializeCommunityPost` 引用即失败。
+- **关注通知 fan-out**：6 种资源（photos/music/videos/articles/events/news）发布成功后，`notificationController.fanOutNewContent()` 同步写每个粉丝一条 `type='new_content'` 通知，content 固定 `"{作者名} 发布了新{类型}《{标题}》"`；`banned` 用户 + `deleted_at` 非空的粉丝跳过。**社区帖（help/team）不 fan-out**（匿名贴防身份泄露，组队贴范围外）。前端零改动——`NotificationCenter` 复用既有 60 秒轮询 + 铃铛红点。
+- **关注关系**：self-follow 禁止，`POST/DELETE /users/:id/follow` 在 `req.user.id === req.params.id` 时返 400 `"不能关注自己"`。前端 PublicProfile `isOwner` 时隐藏关注按钮。
+- **主页内容聚合**：`GET /users/:id/resources` 返回 7 种内容（photos/videos/music/articles/events/news + community_posts 的 help/team），按 `created_at DESC` 混排。访客看不到匿名求助贴（既过滤 SQL 也过 helper 脱敏）。PublicProfile 前端用类型 tabs 展示，卡片保留大图 grid 风格。
+- **详情页头像跳转**：`CommunityDetailModal` 的作者头像可点击 `navigate('/user/:uploader_id')`；匿名贴或 uploader_id null 时灰底 `cursor: not-allowed`。
+- **新通知路由**：`NotificationCenter` 的 `NEW_CONTENT_ROUTE_BUILDERS` 为 `new_content` 类型按 resource_type 映射：article→`/articles?id=X`, photo→`/gallery?id=X`, music→`/music?id=X`, video→`/videos?id=X`, event→`/events?id=X`, news→`/articles?tab=tech&news=X`。news 没独立路由，走 `/articles` 的 news 参数位。
