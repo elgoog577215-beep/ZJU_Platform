@@ -302,6 +302,27 @@ async function runMigrations(db) {
     }
   }
 
+  // Migration: Nickname partial unique index.
+  // See openspec/changes/community-identity-and-follow-notifications/ for context.
+  try {
+    const nicknameCollisions = await db.all(
+      `SELECT nickname, GROUP_CONCAT(id) AS ids, COUNT(*) AS cnt
+       FROM users WHERE nickname IS NOT NULL AND nickname <> ''
+       GROUP BY nickname HAVING cnt > 1`
+    );
+    if (nicknameCollisions.length > 0) {
+      console.warn(
+        '[Migration warning] nickname collisions detected, resolve before UNIQUE enforcement:',
+        nicknameCollisions,
+      );
+    }
+    await db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_nickname
+                   ON users(nickname) WHERE nickname IS NOT NULL`);
+    console.log('✅ users.nickname partial UNIQUE index ready');
+  } catch (err) {
+    console.warn('Migration warning (users.nickname unique):', err.message);
+  }
+
   try {
     await db.exec(`
       CREATE TABLE IF NOT EXISTS site_visit_events (
@@ -512,6 +533,18 @@ async function runMigrations(db) {
     if (!err.message.includes('already exists')) {
       console.warn('Migration warning (community posts):', err.message);
     }
+  }
+
+  // Migration: community_posts.is_anonymous opt-in flag (help posts only).
+  try {
+    const postsInfo = await db.all('PRAGMA table_info(community_posts)');
+    const postsColumns = new Set(postsInfo.map((c) => c.name));
+    if (!postsColumns.has('is_anonymous')) {
+      await db.exec(`ALTER TABLE community_posts ADD COLUMN is_anonymous INTEGER DEFAULT 0`);
+      console.log('✅ Added community_posts.is_anonymous column');
+    }
+  } catch (err) {
+    console.warn('Migration warning (community_posts.is_anonymous):', err.message);
   }
 
   // --- Articles: add category column ---
