@@ -12,10 +12,40 @@ const NOTIFICATIONS_UPDATED_EVENT = "notifications:updated";
 
 const isNotificationRead = (notification) => Boolean(notification?.is_read);
 
+const NEW_CONTENT_ROUTE_MAP = {
+  article: "/articles",
+  photo: "/gallery",
+  music: "/music",
+  video: "/videos",
+  event: "/events",
+  news: "/news",
+};
+
 const buildNotificationTargetPath = (notification) => {
   const resourceId = notification?.related_resource_id;
   const rawType = String(notification?.related_resource_type || "").trim();
   const resourceType = rawType.toLowerCase();
+  const notificationType = String(notification?.type || "").trim();
+
+  // new_content notifications use a fixed whitelist of resource types.
+  // Unknown types warn and return null (no navigation) per spec.
+  if (notificationType === "new_content") {
+    if (!resourceId || !resourceType) {
+      console.warn(
+        "[Notification] Unknown resource type:",
+        resourceType,
+        "id:",
+        resourceId,
+      );
+      return null;
+    }
+    const base = NEW_CONTENT_ROUTE_MAP[resourceType];
+    if (!base) {
+      console.warn("[Notification] Unknown resource type:", resourceType);
+      return null;
+    }
+    return `${base}?id=${resourceId}`;
+  }
 
   if (!resourceId || !resourceType) return null;
 
