@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import SmartImage from "./SmartImage";
 import {
   User,
   Calendar,
@@ -43,16 +44,19 @@ const CONTENT_TYPES = [
   { key: "team", label: "组队" },
 ];
 
-// Visual metadata per content type (badge + gradient placeholder).
+// Visual metadata per content type. `badgeBg` is a solid colour for the
+// top-left category chip (matches the "已发布" cards in the legacy
+// `种子管理员` screenshot). `smartImageType` maps to SmartImage's icon
+// map for the no-cover fallback (help/team reuse article's FileText).
 const TYPE_META = {
-  photo: { label: "图片", color: "from-pink-500 to-rose-400", icon: "📷" },
-  video: { label: "视频", color: "from-emerald-500 to-teal-400", icon: "📹" },
-  music: { label: "音乐", color: "from-purple-500 to-fuchsia-400", icon: "🎵" },
-  article: { label: "文章", color: "from-orange-500 to-amber-400", icon: "📝" },
-  event: { label: "活动", color: "from-blue-500 to-cyan-400", icon: "🎪" },
-  news: { label: "新闻", color: "from-gray-500 to-slate-400", icon: "📰" },
-  help: { label: "求助", color: "from-yellow-500 to-amber-400", icon: "💬" },
-  team: { label: "组队", color: "from-indigo-500 to-violet-400", icon: "👥" },
+  photo:   { label: "图片", badgeBg: "bg-pink-500",    smartImageType: "image"   },
+  video:   { label: "视频", badgeBg: "bg-emerald-500", smartImageType: "video"   },
+  music:   { label: "音乐", badgeBg: "bg-purple-500",  smartImageType: "music"   },
+  article: { label: "文章", badgeBg: "bg-orange-500",  smartImageType: "article" },
+  event:   { label: "活动", badgeBg: "bg-blue-500",    smartImageType: "event"   },
+  news:    { label: "新闻", badgeBg: "bg-slate-500",   smartImageType: "article" },
+  help:    { label: "求助", badgeBg: "bg-amber-500",   smartImageType: "article" },
+  team:    { label: "组队", badgeBg: "bg-indigo-500",  smartImageType: "article" },
 };
 
 // Backend returns `type` as the singular resource kind (photo/video/music/
@@ -75,20 +79,32 @@ const normalizeContentType = (item) => {
 function ProfileContentCard({ item, onClick, isDayMode }) {
   const typeKey = normalizeContentType(item) || "article";
   const meta = TYPE_META[typeKey] || TYPE_META.article;
+
+  // Cover source by resource type:
+  //  - events.image (the event poster)
+  //  - photos.url (the photo itself)
+  //  - videos.thumbnail
+  //  - articles.cover
+  //  - news.cover (if any)
+  //  - help/team posts: no cover column; SmartImage renders FileText icon
+  //    over a hash gradient (same look as article card with no cover).
   const cover =
-    item.cover || item.thumbnail || (typeKey === "photo" ? item.url || item.image : null);
+    item.cover || item.image || item.thumbnail || item.url || null;
   const dateSource = item.created_at || item.createdAt || item.published_at;
   const dateStr = dateSource ? new Date(dateSource).toLocaleDateString() : "";
   const title = item.title || "(无标题)";
-  const likes = Number(item.likes) || 0;
-  const cardBorder = isDayMode
-    ? "border border-slate-200/80 bg-white/82 shadow-[0_16px_36px_rgba(148,163,184,0.12)] hover:border-indigo-300"
-    : "border border-white/10 bg-white/5 hover:border-orange-400/40";
+  const likes = Number(item.likes) || Number(item.likes_count) || 0;
+
+  const cardShell = isDayMode
+    ? "bg-white border border-slate-200/70 shadow-[0_10px_28px_rgba(148,163,184,0.18)] hover:shadow-[0_18px_40px_rgba(99,102,241,0.18)] hover:border-indigo-300"
+    : "bg-[#1a1a1a]/70 border border-white/10 hover:border-orange-400/50";
   const titleColor = isDayMode ? "text-slate-900" : "text-white";
-  const dateColor = isDayMode ? "text-slate-500" : "text-gray-400";
-  const captionBg = isDayMode
-    ? "bg-white/90 backdrop-blur"
-    : "bg-black/50 backdrop-blur";
+  const metaColor = isDayMode ? "text-slate-500" : "text-gray-400";
+  const captionBg = isDayMode ? "bg-white" : "bg-black/40 backdrop-blur";
+  const likeBg = isDayMode
+    ? "bg-white/95 text-rose-500 shadow-sm"
+    : "bg-black/55 text-rose-300 backdrop-blur";
+
   return (
     <div
       role="button"
@@ -100,39 +116,43 @@ function ProfileContentCard({ item, onClick, isDayMode }) {
           onClick?.();
         }
       }}
-      className={`group cursor-pointer rounded-2xl overflow-hidden transition ${cardBorder}`}
+      className={`group cursor-pointer rounded-2xl overflow-hidden transition-all ${cardShell}`}
     >
-      <div className="aspect-[3/4] relative">
-        {cover ? (
-          <img
-            src={cover}
-            alt={title}
-            loading="lazy"
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        ) : (
-          <div
-            className={`absolute inset-0 bg-gradient-to-br ${meta.color} opacity-70 flex items-center justify-center text-5xl`}
-          >
-            <span aria-hidden="true">{meta.icon}</span>
-          </div>
-        )}
-        <div className="absolute top-3 left-3 px-2 py-1 rounded-md text-[10px] font-bold bg-black/60 backdrop-blur text-white tracking-wide uppercase">
+      <div className="aspect-[3/4] relative overflow-hidden">
+        <SmartImage
+          src={cover}
+          alt={title}
+          type={meta.smartImageType}
+          className="absolute inset-0 w-full h-full"
+          imageClassName="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          iconSize={48}
+        />
+        {/* Category chip — solid colour so it reads over any cover. */}
+        <div
+          className={`absolute top-3 left-3 px-2.5 py-1 rounded-md text-[11px] font-semibold text-white ${meta.badgeBg} shadow`}
+        >
           {meta.label}
         </div>
+        {/* Like count overlay — always visible, styled per mode. */}
         {likes > 0 && (
-          <div className="absolute top-3 right-3 px-2 py-1 rounded-md text-[11px] bg-black/60 backdrop-blur text-white flex items-center gap-1">
+          <div
+            className={`absolute top-3 right-3 px-2 py-1 rounded-md text-[11px] font-semibold flex items-center gap-1 ${likeBg}`}
+          >
             <span aria-hidden="true">♥</span>
             <span>{likes}</span>
           </div>
         )}
       </div>
+      {/* Bottom caption — compact, mirrors the screenshot style. */}
       <div className={`px-3 py-2 ${captionBg}`}>
-        <div className={`text-sm font-semibold line-clamp-1 ${titleColor}`}>
+        <div
+          className={`text-sm font-semibold line-clamp-1 ${titleColor}`}
+          title={title}
+        >
           {title}
         </div>
         {dateStr && (
-          <div className={`text-[10px] mt-1 ${dateColor}`}>{dateStr}</div>
+          <div className={`text-[10px] mt-1 ${metaColor}`}>{dateStr}</div>
         )}
       </div>
     </div>

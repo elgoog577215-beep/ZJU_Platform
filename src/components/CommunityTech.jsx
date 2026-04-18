@@ -248,13 +248,19 @@ const CommunityTech = () => {
 
   // Capture on mount — useCommunityFeed internally calls useBackClose which pushes a
   // hash entry on selectedItem change; that entry's state overwrites location.state.
-  // History stack when arriving from /profile favorite:
-  //   /profile → /articles?tab=tech&id=X (from our navigate) → #modal-feed-xxx (from useBackClose)
-  // So -2 pops both back to /profile.
+  // History stack when arriving from /profile favorite OR a user's public profile:
+  //   /profile → /articles?tab=tech&id=X (navigate) → #modal-feed-xxx (useBackClose)
+  // So -2 pops both back to the origin.
   const fromFavoritesRef = useRef(location.state?.fromFavorites === true);
+  const fromUserProfileRef = useRef(Boolean(location.state?.fromUserProfile));
   const handleCloseDetail = useCallback(() => {
     if (fromFavoritesRef.current) {
       fromFavoritesRef.current = false;
+      navigate(-2);
+      return;
+    }
+    if (fromUserProfileRef.current) {
+      fromUserProfileRef.current = false;
       navigate(-2);
       return;
     }

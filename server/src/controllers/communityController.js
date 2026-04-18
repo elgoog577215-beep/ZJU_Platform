@@ -439,7 +439,11 @@ const createPost = async (req, res, next) => {
     }
 
     const authorName = user.nickname || user.username;
-    const status = user.role === 'admin' ? 'approved' : 'pending';
+    // Community posts (help/team/discussion) publish without moderation — the
+    // review queue is only for resources (articles/photos/…). Non-admin users
+    // would otherwise post pending help/team posts that nobody can see until
+    // an admin approves.
+    const status = 'approved';
     const postStatus = normalizePostStatus(section, req.body.post_status);
     const maxMembers = section === 'team' && Number.isInteger(Number(maxMembersRaw))
       ? Math.min(Math.max(parseInt(maxMembersRaw, 10), 2), 100)
