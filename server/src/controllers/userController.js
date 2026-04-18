@@ -2,6 +2,21 @@ const bcrypt = require('bcryptjs');
 const { getDb } = require('../config/db');
 const { createNotification } = require('./notificationController');
 
+const NICKNAME_REGEX = /^[\u4e00-\u9fa5a-zA-Z0-9_]+$/;
+
+function validateNickname(raw) {
+  if (raw === null || raw === undefined) return { ok: true, value: null };
+  const trimmed = String(raw).trim();
+  if (trimmed === '') return { ok: true, value: null };
+  if (trimmed.length < 2 || trimmed.length > 20) {
+    return { ok: false, error: 'nickname 长度需为 2-20 字符' };
+  }
+  if (!NICKNAME_REGEX.test(trimmed)) {
+    return { ok: false, error: 'nickname 仅允许中英文、数字和下划线' };
+  }
+  return { ok: true, value: trimmed };
+}
+
 const getAllUsers = async (req, res, next) => {
   try {
     const db = await getDb();
@@ -72,7 +87,20 @@ const updateUser = async (req, res, next) => {
     if (avatar !== undefined) await db.run('UPDATE users SET avatar = ? WHERE id = ?', [avatar, id]);
     if (gender !== undefined) await db.run('UPDATE users SET gender = ? WHERE id = ?', [gender, id]);
     if (age !== undefined) await db.run('UPDATE users SET age = ? WHERE id = ?', [age, id]);
-    if (nickname !== undefined) await db.run('UPDATE users SET nickname = ? WHERE id = ?', [nickname, id]);
+    if (nickname !== undefined) {
+      const check = validateNickname(nickname);
+      if (!check.ok) {
+        return res.status(400).json({ error: check.error });
+      }
+      try {
+        await db.run('UPDATE users SET nickname = ? WHERE id = ?', [check.value, id]);
+      } catch (err) {
+        if (err && (err.code === 'SQLITE_CONSTRAINT' || /UNIQUE constraint failed/i.test(err.message || ''))) {
+          return res.status(409).json({ error: '该昵称已被使用' });
+        }
+        throw err;
+      }
+    }
 
     if (password) {
       if (password.length < 6) {
@@ -123,12 +151,17 @@ const getPublicProfile = async (req, res, next) => {
 
 const toggleFollowUser = async (req, res, next) => {
   try {
+    // Self-follow guard — MUST be at top to cover both POST and DELETE routes.
+    // See openspec/changes/community-identity-and-follow-notifications Task 6.
+    if (Number(req.params.id) === Number(req.user?.id)) {
+      return res.status(400).json({ error: '不能关注自己' });
+    }
+
     const db = await getDb();
     const followerId = req.user?.id;
     const followingId = Number(req.params.id);
     if (!followerId) return res.status(401).json({ error: 'Login required' });
     if (!Number.isFinite(followingId)) return res.status(400).json({ error: 'Invalid user id' });
-    if (followerId === followingId) return res.status(400).json({ error: 'Cannot follow yourself' });
 
     const targetUser = await db.get('SELECT id, username, nickname FROM users WHERE id = ?', [followingId]);
     if (!targetUser) return res.status(404).json({ error: 'User not found' });
@@ -402,31 +435,75 @@ const getFollowingFeed = async (req, res, next) => {
 
 const getUserResources = async (req, res, next) => {
     try {
+        const { serializeCommunityPost } = require('../utils/serializeCommunityPost');
+
         const db = await getDb();
         const { id } = req.params;
-        const tables = ['photos', 'videos', 'music', 'articles', 'events'];
+        const tables = ['photos', 'videos', 'music', 'articles', 'events', 'news'];
+        const typeSingular = {
+          photos: 'photo',
+          videos: 'video',
+          music: 'music',
+          articles: 'article',
+          events: 'event',
+          news: 'news',
+        };
         let allResources = [];
-        
-        // Check if requester is the owner
+
+        // Check if requester is the owner or admin
         const isOwner = req.user && String(req.user.id) === String(id);
+        const viewerRole = req.user ? req.user.role : null;
+        const isAdmin = viewerRole === 'admin';
 
         for (const table of tables) {
-            let query = `SELECT *, '${table}' as type FROM ${table} WHERE uploader_id = ?`;
-            const params = [id];
+            const typeValue = typeSingular[table];
+            let query = `SELECT *, ? as type FROM ${table} WHERE uploader_id = ?`;
+            const params = [typeValue, id];
 
-            // If not owner, only show approved
-            if (!isOwner) {
+            // If not owner and not admin, only show approved
+            if (!isOwner && !isAdmin) {
                 query += ` AND status = 'approved'`;
             }
-            
+
             query += ` ORDER BY id DESC`;
 
             const resources = await db.all(query, params);
             allResources = [...allResources, ...resources];
         }
 
-        // Sort by id desc (approx time)
-        allResources.sort((a, b) => b.id - a.id);
+        // community_posts: author_id (not uploader_id).
+        // Visitors (non-owner non-admin) see only approved/non-deleted posts AND
+        // MUST NOT see anonymous help posts (is_anonymous = 1 AND section = 'help').
+        let postsQuery = `SELECT cp.*,
+                            COALESCE(u.nickname, u.username) AS author_name,
+                            u.avatar AS author_avatar,
+                            cp.section AS type_section
+                          FROM community_posts cp
+                          LEFT JOIN users u ON u.id = cp.author_id
+                          WHERE cp.author_id = ?`;
+        const postsParams = [id];
+
+        if (!isOwner && !isAdmin) {
+            postsQuery += ` AND cp.status = 'approved' AND cp.deleted_at IS NULL`;
+            postsQuery += ` AND NOT (cp.section = 'help' AND cp.is_anonymous = 1)`;
+        }
+        postsQuery += ` ORDER BY cp.id DESC`;
+
+        const postsRaw = await db.all(postsQuery, postsParams);
+        const viewer = req.user ? { id: req.user.id, role: req.user.role } : null;
+        const posts = postsRaw.map((p) => ({
+          ...serializeCommunityPost(p, viewer),
+          type: p.section, // 'help' or 'team'
+        }));
+        allResources = [...allResources, ...posts];
+
+        // Unified sort by created_at DESC (fallback to id for ties / missing timestamps)
+        allResources.sort((a, b) => {
+          const ta = new Date(a.created_at || 0).getTime();
+          const tb = new Date(b.created_at || 0).getTime();
+          if (tb !== ta) return tb - ta;
+          return (b.id || 0) - (a.id || 0);
+        });
 
         res.json(allResources);
     } catch (error) { next(error); }
