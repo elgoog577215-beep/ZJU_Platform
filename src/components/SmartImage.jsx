@@ -130,8 +130,10 @@ const SmartImage = ({
   const Icon = icons[type] || icons.generic;
   const gradient = getGradient(alt || type);
 
-  // Get actual image source
-  const rawImageSrc = typeof src === 'object' ? (src.url || src.medium?.url || src.small?.url) : src;
+  // Get actual image source. Guard against null because `typeof null === 'object'`.
+  const rawImageSrc = src && typeof src === 'object'
+    ? (src.url || src.medium?.url || src.small?.url)
+    : src;
   const imageSrc = normalizeExternalImageUrl(rawImageSrc);
 
   // Fallback state (error or missing src)
