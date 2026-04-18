@@ -1,5 +1,5 @@
-import React, { useCallback, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import React, { useCallback, useRef, useState } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { HelpCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useSettings } from '../context/SettingsContext';
@@ -23,8 +23,14 @@ const CommunityHelp = () => {
   const { uiMode } = useSettings();
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const isDayMode = uiMode === 'day';
   const [isComposerOpen, setIsComposerOpen] = useState(false);
+  // Capture at mount: if the user arrived from their PublicProfile card,
+  // closing the detail modal should pop back to that profile (two history
+  // entries: our navigate + useBackClose's hash push).
+  const fromUserProfileRef = useRef(Boolean(location.state?.fromUserProfile));
 
   const feed = useCommunityFeed({
     endpoint: '/community/posts',
@@ -71,6 +77,11 @@ const CommunityHelp = () => {
   };
 
   const handleCloseDetail = () => {
+    if (fromUserProfileRef.current) {
+      fromUserProfileRef.current = false;
+      navigate(-2);
+      return;
+    }
     feed.setSelectedItem(null);
     updateParams({ tab: 'help' });
   };

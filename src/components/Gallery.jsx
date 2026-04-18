@@ -241,9 +241,15 @@ const Gallery = () => {
   // NOTE: Do NOT also call useBackClose here for the photo modal — Lightbox already does.
   // Double-stacking two hash entries would break the back-nav math.
   const fromFavoritesRef = useRef(location.state?.fromFavorites === true);
+  const fromUserProfileRef = useRef(Boolean(location.state?.fromUserProfile));
   const closePhoto = useCallback(() => {
     if (fromFavoritesRef.current) {
       fromFavoritesRef.current = false; // guard against popstate re-entry
+      navigate(-2);
+      return;
+    }
+    if (fromUserProfileRef.current) {
+      fromUserProfileRef.current = false;
       navigate(-2);
       return;
     }

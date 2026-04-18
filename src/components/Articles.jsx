@@ -156,13 +156,20 @@ const Articles = () => {
   useContentPageEvents('article', setIsUploadOpen, setIsMobileFilterOpen, setIsMobileSortOpen);
   useMobileToolbarSync(selectedTags.length, mobileSortLabel);
 
-  // Capture fromFavorites on mount — useBackClose pushes a hash entry whose state
-  // overwrites location.state, so we cannot read it lazily at click time.
+  // Capture fromFavorites / fromUserProfile on mount — useBackClose pushes a
+  // hash entry whose state overwrites location.state, so we cannot read it
+  // lazily at click time.
   const fromFavoritesRef = useRef(location.state?.fromFavorites === true);
+  const fromUserProfileRef = useRef(Boolean(location.state?.fromUserProfile));
 
   const closeArticle = useCallback(() => {
     if (fromFavoritesRef.current) {
       fromFavoritesRef.current = false; // guard against popstate re-entry
+      navigate(-2);
+      return;
+    }
+    if (fromUserProfileRef.current) {
+      fromUserProfileRef.current = false;
       navigate(-2);
       return;
     }

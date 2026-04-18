@@ -577,9 +577,15 @@ const Events = () => {
 
   // Capture on mount — useBackClose pushes a hash entry whose state overwrites location.state.
   const fromFavoritesRef = useRef(location.state?.fromFavorites === true);
+  const fromUserProfileRef = useRef(Boolean(location.state?.fromUserProfile));
   const closeEvent = useCallback(() => {
     if (fromFavoritesRef.current) {
       fromFavoritesRef.current = false; // guard against popstate re-entry
+      navigate(-2);
+      return;
+    }
+    if (fromUserProfileRef.current) {
+      fromUserProfileRef.current = false;
       navigate(-2);
       return;
     }
