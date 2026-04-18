@@ -484,7 +484,8 @@ const getUserResources = async (req, res, next) => {
         const postsParams = [id];
 
         if (!isOwner && !isAdmin) {
-            postsQuery += ` AND cp.status = 'approved' AND cp.deleted_at IS NULL`;
+            // community_posts has no deleted_at column; only status filter applies.
+            postsQuery += ` AND cp.status = 'approved'`;
             postsQuery += ` AND NOT (cp.section = 'help' AND cp.is_anonymous = 1)`;
         }
         postsQuery += ` ORDER BY cp.id DESC`;

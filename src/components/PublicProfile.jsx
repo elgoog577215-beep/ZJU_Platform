@@ -342,13 +342,14 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
     e.preventDefault();
     setProfileLoading(true);
     try {
-      // Nickname is handled via PUT /users/:id (backend validates + 409s on
-      // collision). Only send if it has actually changed, so untouched
-      // profiles don't run through unique-index checks unnecessarily.
+      // Nickname goes through PUT /auth/profile (self-profile endpoint; the
+      // backend's updateUser handler validates + 409s on collision). Only
+      // send if changed, so untouched profiles don't run through unique-
+      // index checks unnecessarily.
       const trimmedNickname = (profileData.nickname || "").trim();
       const currentNickname = user?.nickname || "";
       if (trimmedNickname !== currentNickname) {
-        await api.put(`/users/${user.id}`, { nickname: trimmedNickname });
+        await api.put("/auth/profile", { nickname: trimmedNickname });
       }
 
       // Only PUT organization when the invite code has been verified in
