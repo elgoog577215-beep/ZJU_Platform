@@ -113,27 +113,39 @@ function TitleArtPlaceholder({ title, meta, isDayMode }) {
   const gradient = isDayMode ? meta.placeholderDay : meta.placeholderNight;
   const accent = isDayMode ? meta.textDay : meta.textNight;
   const titleColor = isDayMode ? "text-slate-900" : "text-white";
-  // Shorter titles get bigger type; the clamp keeps 多字的标题 readable.
-  const titleSizeClass = !title || title.length <= 8
-    ? "text-3xl md:text-4xl"
-    : title.length <= 20
-      ? "text-2xl md:text-3xl"
-      : "text-xl md:text-2xl";
+  // Shorter titles get bigger type, longer titles scale down so the string
+  // still fits in the aspect-[4/3] slot without being cut mid-word.
+  // line-clamp also scales with size so each tier has matching breathing room.
+  const safeTitle = title || "(无标题)";
+  const len = safeTitle.length;
+  const { sizeClass, clamp } = len <= 8
+    ? { sizeClass: "text-3xl md:text-4xl", clamp: "line-clamp-3" }
+    : len <= 20
+      ? { sizeClass: "text-2xl md:text-3xl", clamp: "line-clamp-4" }
+      : len <= 40
+        ? { sizeClass: "text-xl md:text-2xl", clamp: "line-clamp-5" }
+        : { sizeClass: "text-lg md:text-xl", clamp: "line-clamp-6" };
   return (
-    <div className={`absolute inset-0 bg-gradient-to-br ${gradient} flex flex-col justify-between p-5`}>
+    // overflow-hidden on the outer container guarantees that a runaway
+    // title or a single long CJK word cannot paint past the card edges.
+    <div className={`absolute inset-0 bg-gradient-to-br ${gradient} flex flex-col justify-between p-5 overflow-hidden`}>
       {/* Small accent row at top — a subtle "this is a card" cue. */}
-      <div className={`flex items-center gap-1.5 text-xs font-semibold tracking-wider ${accent} opacity-70`}>
+      <div className={`flex items-center gap-1.5 text-xs font-semibold tracking-wider ${accent} opacity-70 shrink-0`}>
         <span className="w-6 h-[2px] rounded-full bg-current" aria-hidden="true" />
         <span>{meta.label.toUpperCase()}</span>
       </div>
-      {/* Title as hero artwork. Left-aligned, weighty, 小红书-style. */}
-      <div
-        className={`${titleSizeClass} font-bold leading-tight line-clamp-4 ${titleColor}`}
-      >
-        {title || "(无标题)"}
+      {/* Title fills the middle. flex-1 + min-h-0 lets the clamp compute
+          against the real remaining height rather than intrinsic content
+          size. break-words handles long CJK-less tokens (URLs, English). */}
+      <div className="flex-1 min-h-0 flex items-center py-2">
+        <div
+          className={`${sizeClass} ${clamp} font-bold leading-tight break-words ${titleColor} w-full`}
+        >
+          {safeTitle}
+        </div>
       </div>
       {/* Footer dots — pure decoration so the card doesn't feel empty. */}
-      <div className={`flex items-center gap-1 ${accent} opacity-60`} aria-hidden="true">
+      <div className={`flex items-center gap-1 ${accent} opacity-60 shrink-0`} aria-hidden="true">
         <span className="w-1 h-1 rounded-full bg-current" />
         <span className="w-1 h-1 rounded-full bg-current" />
         <span className="w-1 h-1 rounded-full bg-current" />
