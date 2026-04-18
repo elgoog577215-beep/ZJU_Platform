@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Newspaper, Flame, Clock3, Pin, ExternalLink, PlusCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
@@ -29,8 +29,13 @@ const CommunityNewsRail = () => {
   const { uiMode } = useSettings();
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const isDayMode = uiMode === 'day';
   const isAdmin = user?.role === 'admin';
+  // If the user landed here by clicking a news card on their PublicProfile,
+  // closing the detail should pop back to the profile (two entries).
+  const fromUserProfileRef = useRef(Boolean(location.state?.fromUserProfile));
 
   const [activeSort, setActiveSort] = useState('hot');
   const [selectedNews, setSelectedNews] = useState(null);
@@ -148,9 +153,14 @@ const CommunityNewsRail = () => {
   }, [currentTab, updateParams]);
 
   const handleClose = useCallback(() => {
+    if (fromUserProfileRef.current) {
+      fromUserProfileRef.current = false;
+      navigate(-2);
+      return;
+    }
     setSelectedNews(null);
     updateParams({ tab: currentTab });
-  }, [currentTab, updateParams]);
+  }, [currentTab, updateParams, navigate]);
 
   const handleRelatedSelect = useCallback((resource) => {
     if (!resource?.id) return;
