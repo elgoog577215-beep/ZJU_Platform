@@ -1,16 +1,22 @@
 import { test, expect } from "@playwright/test";
 
 /**
- * E2E smoke for community-identity-and-follow-notifications.
+ * E2E smoke for community-identity-and-follow-notifications (archived).
  *
- * Covers the 7 scenarios in openspec change tasks.md Section 11:
+ * Covers the scenarios in that change's tasks.md Section 11. The anonymous
+ * help-post opt-in was later removed (see "撤销匿名功能" commits), so 11.4 was
+ * rewritten to assert that help posts are out of the fan-out whitelist
+ * entirely — same end-user guarantee via a simpler policy.
+ *
  *   11.1 author_name falls back to username, then updates to nickname after set
- *   11.2 nickname collision returns 409 + surfaces toast, state unchanged
+ *   11.2 nickname collision returns 409 (API-only; 11.2b toast is fixme)
  *   11.3 follow triggers new_content notification (fan-out on publish)
- *   11.4 anonymous help post skips fan-out and is hidden from author profile
+ *   11.4 help posts never trigger fan-out (community posts outside the
+ *        whitelist; previously also tested anonymous-specific redaction)
  *   11.5 self-follow rejected with 400 (POST and DELETE)
- *   11.6 detail page avatar click navigates to /user/:id with history restore
- *   11.7 profile tab + scroll memory survives detail navigation and back
+ *   11.6 detail page exposes uploader_id so the frontend can navigate to
+ *        /user/:id (fixme for the full UI round-trip)
+ *   11.7 profile tab + scroll memory (fixme — pure UI, covered manually)
  *
  * Conventions:
  *  - API fixtures handle user registration, nickname, follow, content creation
@@ -21,24 +27,6 @@ import { test, expect } from "@playwright/test";
  *      getByRole > getByText > getByLabel > getByTestId > CSS selector
  *  - No page.waitForTimeout; use expect(...).toBeVisible({ timeout }) or
  *    expect.poll for eventual-consistency paths (notification fan-out).
- *
- * Known dependencies (acceptance-driver semantics):
- *  - 11.2 expects a 409 status from PUT /api/users/:id with body.error matching
- *    /该昵称已被使用/ and a toast in the UI. The current backend silently sets
- *    the new nickname (no uniqueness check) — this test fails until the change
- *    adds the uniqueness validator. That is intentional for spec-first verify.
- *  - 11.3 expects a `new_content` notification delivered within a polling
- *    window after the followee publishes. The fan-out worker is part of this
- *    openspec change and is not yet wired; the test therefore polls up to
- *    ~90s so the real implementation has room to breathe.
- *  - 11.4 expects that an anonymous help post does not trigger fan-out and is
- *    not surfaced on the author's public profile "求助" tab. Tab introduction
- *    (求助/图片/文章) is also part of this change.
- *  - 11.5 the exact reject string — the repo currently returns English
- *    "Cannot follow yourself" while the openspec spec says "不能关注自己".
- *    We accept either to avoid coupling to wording pending the rename PR.
- *  - 11.6 / 11.7 require the avatar-click-to-profile affordance and scroll
- *    memory behavior introduced by this change; tests act as acceptance gates.
  */
 
 const BASE_API = "/api";
@@ -437,10 +425,9 @@ test.describe("identity & follow notifications smoke", () => {
   // 11.7 — profile tab + scroll memory across detail navigation
   // ---------------------------------------------------------------------------
   // 11.7 — tab + scroll memory is inherently UI-driven. The backend contract
-  // (getUserResources returns all types for the author, visitor variant
-  // filters anonymous help posts) is covered by 11.4 already; the tab +
-  // scroll-restore behavior lives entirely in PublicProfile.jsx and is left
-  // as a manual smoke / future E2E enhancement.
+  // (getUserResources returns all content types for the author) is covered
+  // by 11.4 already; the tab + scroll-restore behavior lives entirely in
+  // PublicProfile.jsx and is left as a manual smoke / future E2E enhancement.
   test.fixme(
     "11.7 profile tab + scroll memory (UI-only; future smoke)",
     async () => {},
