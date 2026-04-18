@@ -10,7 +10,8 @@
     "seed": "node seed.js",
     "seed:community": "node scripts/seedAiCommunityDemo.js",
     "backup": "node scripts/backup.js",
-    "optimize-images": "node scripts/optimizeImages.js"
+    "optimize-images": "node scripts/optimizeImages.js",
+    "check:posts-serializer": "bash scripts/check-community-post-serializer.sh"
   },
   "dependencies": {
     "apicache": "^1.6.3",
