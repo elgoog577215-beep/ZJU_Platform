@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, Share2, Copy, ChevronRight, Newspaper, BookOpen, MessageSquare, Users } from 'lucide-react';
 import DOMPurify from 'dompurify';
@@ -32,8 +33,24 @@ const CommunityDetailModal = ({
   onRelatedSelect,
 }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const th = communityTheme(isDayMode);
   const tocItems = useMemo(() => extractTocItems(contentBlocks), [contentBlocks]);
+  const uploaderId = item?.uploader_id ?? item?.author_id ?? null;
+  const canGoProfile = uploaderId != null;
+
+  const handleAuthorNavigate = () => {
+    if (!canGoProfile) return;
+    navigate(`/profile/${uploaderId}`);
+  };
+
+  const handleAuthorKeyDown = (event) => {
+    if (!canGoProfile) return;
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleAuthorNavigate();
+    }
+  };
   const relatedGroups = useMemo(() => flattenLinkedResources(item?.linked_resources), [item?.linked_resources]);
   const relatedGroupCandidates = useMemo(() => (Array.isArray(item?.linked_resources?.groups) ? item.linked_resources.groups : []), [item?.linked_resources?.groups]);
   const primaryJoinGroup = useMemo(
@@ -219,17 +236,43 @@ const CommunityDetailModal = ({
 
               <div className="px-5 sm:px-8 md:px-12 pt-4 pb-12 max-w-5xl mx-auto">
                 <div className={`flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8 pb-6 border-b ${th.borderSubtle}`}>
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center overflow-hidden ${th.avatarBg}`}>
-                      {item.author_avatar ? (
+                  <div
+                    role="button"
+                    tabIndex={canGoProfile ? 0 : -1}
+                    aria-disabled={!canGoProfile}
+                    aria-label={
+                      canGoProfile
+                        ? t('community.view_author_profile', '查看作者主页')
+                        : t('community.anonymous_author_no_profile', '匿名作者无主页')
+                    }
+                    onClick={canGoProfile ? handleAuthorNavigate : undefined}
+                    onKeyDown={canGoProfile ? handleAuthorKeyDown : undefined}
+                    className={`flex items-center gap-3 rounded-2xl -mx-2 px-2 py-1 transition-colors ${
+                      canGoProfile
+                        ? `cursor-pointer ${isDayMode ? 'hover:bg-slate-100 focus:bg-slate-100' : 'hover:bg-white/10 focus:bg-white/10'} focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/60`
+                        : 'cursor-not-allowed opacity-60'
+                    }`}
+                  >
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center overflow-hidden ${
+                        canGoProfile
+                          ? th.avatarBg
+                          : isDayMode
+                            ? 'bg-slate-200 text-slate-400'
+                            : 'bg-white/10 text-gray-500'
+                      }`}
+                    >
+                      {canGoProfile && item.author_avatar ? (
                         <img src={item.author_avatar} alt="" className="w-full h-full object-cover" />
                       ) : (
-                        <User size={20} className={th.textSecondary} />
+                        <User size={20} className={canGoProfile ? th.textSecondary : ''} />
                       )}
                     </div>
                     <div>
                       <div className={`text-sm font-bold ${th.textPrimary}`}>
-                        {item.author_name || t('common.anonymous', '匿名用户')}
+                        {canGoProfile
+                          ? item.author_name || t('common.anonymous', '匿名用户')
+                          : t('common.anonymous', '匿名用户')}
                       </div>
                       <div className={`text-xs ${th.textTertiary}`}>{t('common.author')}</div>
                     </div>
