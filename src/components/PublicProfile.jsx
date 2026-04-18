@@ -45,19 +45,102 @@ const CONTENT_TYPES = [
 ];
 
 // Visual metadata per content type. The badge lives inside the caption
-// (glass chip), so we only need type-coloured text tokens for day / night
-// modes; the chip background is a shared neutral glass. `smartImageType`
-// maps to SmartImage's icon map for the no-cover fallback.
+// (glass chip), so we only need type-coloured text tokens for day / night.
+// `placeholder{Day,Night}` define the soft gradient used by
+// TitleArtPlaceholder when the item has no cover image — 小红书-style
+// text-as-image cards.
 const TYPE_META = {
-  photo:   { label: "图片", textDay: "text-pink-600",    textNight: "text-pink-300",    smartImageType: "image"   },
-  video:   { label: "视频", textDay: "text-emerald-600", textNight: "text-emerald-300", smartImageType: "video"   },
-  music:   { label: "音乐", textDay: "text-purple-600",  textNight: "text-purple-300",  smartImageType: "music"   },
-  article: { label: "文章", textDay: "text-orange-600",  textNight: "text-orange-300",  smartImageType: "article" },
-  event:   { label: "活动", textDay: "text-blue-600",    textNight: "text-blue-300",    smartImageType: "event"   },
-  news:    { label: "新闻", textDay: "text-slate-600",   textNight: "text-slate-300",   smartImageType: "article" },
-  help:    { label: "求助", textDay: "text-amber-600",   textNight: "text-amber-300",   smartImageType: "article" },
-  team:    { label: "组队", textDay: "text-indigo-600",  textNight: "text-indigo-300",  smartImageType: "article" },
+  photo: {
+    label: "图片", textDay: "text-pink-600", textNight: "text-pink-300",
+    smartImageType: "image",
+    placeholderDay:   "from-pink-50 via-rose-50 to-amber-50",
+    placeholderNight: "from-pink-500/20 via-rose-500/15 to-amber-500/20",
+  },
+  video: {
+    label: "视频", textDay: "text-emerald-600", textNight: "text-emerald-300",
+    smartImageType: "video",
+    placeholderDay:   "from-emerald-50 via-teal-50 to-cyan-50",
+    placeholderNight: "from-emerald-500/20 via-teal-500/15 to-cyan-500/20",
+  },
+  music: {
+    label: "音乐", textDay: "text-purple-600", textNight: "text-purple-300",
+    smartImageType: "music",
+    placeholderDay:   "from-purple-50 via-fuchsia-50 to-pink-50",
+    placeholderNight: "from-purple-500/20 via-fuchsia-500/15 to-pink-500/20",
+  },
+  article: {
+    label: "文章", textDay: "text-orange-600", textNight: "text-orange-300",
+    smartImageType: "article",
+    placeholderDay:   "from-orange-50 via-amber-50 to-yellow-50",
+    placeholderNight: "from-orange-500/20 via-amber-500/15 to-yellow-500/20",
+  },
+  event: {
+    label: "活动", textDay: "text-blue-600", textNight: "text-blue-300",
+    smartImageType: "event",
+    placeholderDay:   "from-blue-50 via-sky-50 to-cyan-50",
+    placeholderNight: "from-blue-500/20 via-sky-500/15 to-cyan-500/20",
+  },
+  news: {
+    label: "新闻", textDay: "text-slate-600", textNight: "text-slate-300",
+    smartImageType: "article",
+    placeholderDay:   "from-slate-50 via-gray-50 to-zinc-100",
+    placeholderNight: "from-slate-500/20 via-gray-500/15 to-zinc-500/20",
+  },
+  help: {
+    label: "求助", textDay: "text-amber-600", textNight: "text-amber-300",
+    smartImageType: "article",
+    placeholderDay:   "from-amber-50 via-yellow-50 to-orange-50",
+    placeholderNight: "from-amber-500/20 via-yellow-500/15 to-orange-500/20",
+  },
+  team: {
+    label: "组队", textDay: "text-indigo-600", textNight: "text-indigo-300",
+    smartImageType: "article",
+    placeholderDay:   "from-indigo-50 via-violet-50 to-purple-50",
+    placeholderNight: "from-indigo-500/20 via-violet-500/15 to-purple-500/20",
+  },
 };
+
+/**
+ * Text-as-image placeholder for items that have no cover asset
+ * (help / team posts, the occasional article-without-cover, etc.).
+ * Inspired by 小红书's "纯文字笔记" cards: the title itself becomes the
+ * hero artwork on a gentle, type-coloured gradient.
+ *
+ * Sits inside the cover slot (aspect-[4/3]), so nothing about layout
+ * shifts — cover = image vs cover = TitleArtPlaceholder is a clean swap.
+ */
+function TitleArtPlaceholder({ title, meta, isDayMode }) {
+  const gradient = isDayMode ? meta.placeholderDay : meta.placeholderNight;
+  const accent = isDayMode ? meta.textDay : meta.textNight;
+  const titleColor = isDayMode ? "text-slate-900" : "text-white";
+  // Shorter titles get bigger type; the clamp keeps 多字的标题 readable.
+  const titleSizeClass = !title || title.length <= 8
+    ? "text-3xl md:text-4xl"
+    : title.length <= 20
+      ? "text-2xl md:text-3xl"
+      : "text-xl md:text-2xl";
+  return (
+    <div className={`absolute inset-0 bg-gradient-to-br ${gradient} flex flex-col justify-between p-5`}>
+      {/* Small accent row at top — a subtle "this is a card" cue. */}
+      <div className={`flex items-center gap-1.5 text-xs font-semibold tracking-wider ${accent} opacity-70`}>
+        <span className="w-6 h-[2px] rounded-full bg-current" aria-hidden="true" />
+        <span>{meta.label.toUpperCase()}</span>
+      </div>
+      {/* Title as hero artwork. Left-aligned, weighty, 小红书-style. */}
+      <div
+        className={`${titleSizeClass} font-bold leading-tight line-clamp-4 ${titleColor}`}
+      >
+        {title || "(无标题)"}
+      </div>
+      {/* Footer dots — pure decoration so the card doesn't feel empty. */}
+      <div className={`flex items-center gap-1 ${accent} opacity-60`} aria-hidden="true">
+        <span className="w-1 h-1 rounded-full bg-current" />
+        <span className="w-1 h-1 rounded-full bg-current" />
+        <span className="w-1 h-1 rounded-full bg-current" />
+      </div>
+    </div>
+  );
+}
 
 // Backend returns `type` as the singular resource kind (photo/video/music/
 // article/event/news) for resource tables and `section` (help/team) for
@@ -117,18 +200,24 @@ function ProfileContentCard({ item, onClick, isDayMode }) {
       }}
       className={`group cursor-pointer rounded-3xl overflow-hidden backdrop-blur-xl border transition-all duration-300 ${cardShell}`}
     >
-      {/* Cover — shortened from 3/4 to 4/3 so the caption has more breathing
-          room below. Hash-gradient fallback comes from SmartImage when no
-          cover is present (help/team posts, articles w/o cover). */}
+      {/* Cover (aspect 4/3). When the item has a real cover asset we render
+          it with SmartImage. When it doesn't (help/team posts, articles
+          without a cover uploaded, etc.) we swap in TitleArtPlaceholder so
+          the title itself becomes 小红书-style text-as-image — reads better
+          than a lone FileText icon over a hash-gradient block. */}
       <div className="aspect-[4/3] relative overflow-hidden">
-        <SmartImage
-          src={cover}
-          alt={title}
-          type={meta.smartImageType}
-          className="absolute inset-0 w-full h-full"
-          imageClassName="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          iconSize={56}
-        />
+        {cover ? (
+          <SmartImage
+            src={cover}
+            alt={title}
+            type={meta.smartImageType}
+            className="absolute inset-0 w-full h-full"
+            imageClassName="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            iconSize={56}
+          />
+        ) : (
+          <TitleArtPlaceholder title={title} meta={meta} isDayMode={isDayMode} />
+        )}
       </div>
       {/* Caption — the emphasised half of the card.
           Row 1: type badge (glass chip) + like count with lucide Heart.
