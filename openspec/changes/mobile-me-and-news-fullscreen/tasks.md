@@ -1,7 +1,7 @@
 ## 0. Rollback Checkpoint
 
-- [ ] 0.1 动工前打 tag：`git tag pre-mobile-ux-v1`，作为本轮回滚锚点。
-- [ ] 0.2 工作区干净确认；若有未提交改动，先 commit 或 stash（参照上一轮 `unify-notification-content` 的 Task 0 流程）。
+- [x] 0.1 动工前打 tag：`git tag pre-mobile-ux-v1`，作为本轮回滚锚点。
+- [x] 0.2 工作区干净确认；若有未提交改动，先 commit 或 stash（参照上一轮 `unify-notification-content` 的 Task 0 流程）。
 
 ## 1. AuthModal 接口核实（前置调研 — /plan 阶段已完成）
 
@@ -10,23 +10,23 @@
 
 ## 2. Mobile "我的" 按钮分流
 
-- [ ] 2.1 修改 `src/components/MobileNavbar.jsx:27`：`navItems` 里"我的"条目的 `path` 字段在未登录态设为 `null`（不再硬编码 `/me`）。
-- [ ] 2.2 渲染侧在 `navItems.map` 内对 "me" 做条件分支：已登录渲染 `<Link to={\`/user/${user.id}\`}>`，未登录渲染 `<button type="button" onClick={() => window.dispatchEvent(new Event('open-auth-modal'))}>`，复用同一套视觉样式（icon + label + active 状态）。
-- [ ] 2.3 `isItemActive` 的 "me" 分支更新：去掉对 `/me` 的判断（路径永不匹配），只保留 `location.pathname.startsWith('/user/')`。未登录态下 AuthModal 浮起时不标记 active。
-- [ ] 2.4 确保 `aria-label` 和 `focus-visible:ring-*` 样式在 button/Link 两种分支下一致；`<button>` 不受路径导航影响（no href / no `<a>`）。
+- [x] 2.1 修改 `src/components/MobileNavbar.jsx:27`：`navItems` 里"我的"条目的 `path` 字段在未登录态设为 `null`（不再硬编码 `/me`）。
+- [x] 2.2 渲染侧在 `navItems.map` 内对 "me" 做条件分支：已登录渲染 `<Link to={\`/user/${user.id}\`}>`，未登录渲染 `<button type="button" onClick={() => window.dispatchEvent(new Event('open-auth-modal'))}>`，复用同一套视觉样式（icon + label + active 状态）。
+- [x] 2.3 `isItemActive` 的 "me" 分支更新：去掉对 `/me` 的判断（路径永不匹配），只保留 `location.pathname.startsWith('/user/')`。未登录态下 AuthModal 浮起时不标记 active。
+- [x] 2.4 确保 `aria-label` 和 `focus-visible:ring-*` 样式在 button/Link 两种分支下一致；`<button>` 不受路径导航影响（no href / no `<a>`）。
 
 ## 3. 新闻入口全屏覆盖
 
-- [ ] 3.1 `src/components/AICommunity.jsx:160-194` 外层 `motion.div` 的 className：
+- [x] 3.1 `src/components/AICommunity.jsx:160-194` 外层 `motion.div` 的 className：
   - `inset-x-0 bottom-0` → `inset-0`
   - 去掉 `max-h-[86vh]`、`rounded-t-3xl`
   - 背景 `bg-black/80` / `bg-white/65` → 不透明 `bg-[#0f0f0f]` / `bg-white`
-- [ ] 3.2 入场动画：`y: '100%'` → `opacity + scale 0.98→1`（或纯 `opacity`）。
-- [ ] 3.3 删除外层 `<h3>新闻热榜</h3>` + X 的容器（`AICommunity.jsx:179-190`）。
-- [ ] 3.4 X 按钮改成 `absolute top-4 right-4`，尺寸 40×40，lucide `X` size 24；触摸热区用 `p-2` 以上。
-- [ ] 3.5 集成 `useBackClose` hook：`useBackClose(isMobileNewsOpen, () => setIsMobileNewsOpen(false))`（两参数签名；hook 内部用 `useId()` 生成唯一 hash，无需传 key）。
-- [ ] 3.6 高度兼容：容器再嵌一层 `h-[100dvh]`（或 inline style fallback `min-height: 100vh`），防 iOS Safari addressbar 收起截断。
-- [ ] 3.7 保留原 `searchParams.get('news')` → `setIsMobileNewsOpen(true)` 的副作用（深链可打开），确认关闭时 URL 清理 `news=` 参数（现状应该已处理，走 `updateParams({ tab: currentTab })` 路径）。
+- [x] 3.2 入场动画：`y: '100%'` → `opacity + scale 0.98→1`（或纯 `opacity`）。
+- [x] 3.3 删除外层 `<h3>新闻热榜</h3>` + X 的容器（`AICommunity.jsx:179-190`）。
+- [x] 3.4 X 按钮改成 `absolute top-4 right-4`，尺寸 40×40，lucide `X` size 24；触摸热区用 `p-2` 以上。
+- [x] 3.5 集成 `useBackClose` hook：`useBackClose(isMobileNewsOpen, () => setIsMobileNewsOpen(false))`（两参数签名；hook 内部用 `useId()` 生成唯一 hash，无需传 key）。
+- [x] 3.6 高度兼容：容器再嵌一层 `h-[100dvh]`（或 inline style fallback `min-height: 100vh`），防 iOS Safari addressbar 收起截断。
+- [x] 3.7 保留原 `searchParams.get('news')` → `setIsMobileNewsOpen(true)` 的副作用（深链可打开），确认关闭时 URL 清理 `news=` 参数（现状应该已处理，走 `updateParams({ tab: currentTab })` 路径）。
 
 ## 4. Verification
 
