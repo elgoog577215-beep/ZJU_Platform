@@ -1,14 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import React, { useState, useEffect, useMemo } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   User,
   Calendar,
-  MapPin,
   Grid,
   Briefcase,
-  Clock,
-  Award,
   Settings,
   Heart,
   Lock,
@@ -23,7 +19,6 @@ import {
   Sun,
 } from "lucide-react";
 import api from "../services/api";
-import SmartImage from "./SmartImage";
 import { useAuth } from "../context/AuthContext";
 import { useSettings } from "../context/SettingsContext";
 import toast from "react-hot-toast";
@@ -33,9 +28,119 @@ import FavoriteButton from "./FavoriteButton";
 import PersonalCenterShell from "./PersonalCenterShell";
 import { useReducedMotion } from "../utils/animations";
 
+// Content type tabs shown in the "published" area.
+const CONTENT_TYPES = [
+  { key: "all", label: "所有" },
+  { key: "photo", label: "图片" },
+  { key: "video", label: "视频" },
+  { key: "music", label: "音乐" },
+  { key: "article", label: "文章" },
+  { key: "event", label: "活动" },
+  { key: "news", label: "新闻" },
+  { key: "help", label: "求助" },
+  { key: "team", label: "组队" },
+];
+
+// Visual metadata per content type (badge + gradient placeholder).
+const TYPE_META = {
+  photo: { label: "图片", color: "from-pink-500 to-rose-400", icon: "📷" },
+  video: { label: "视频", color: "from-emerald-500 to-teal-400", icon: "📹" },
+  music: { label: "音乐", color: "from-purple-500 to-fuchsia-400", icon: "🎵" },
+  article: { label: "文章", color: "from-orange-500 to-amber-400", icon: "📝" },
+  event: { label: "活动", color: "from-blue-500 to-cyan-400", icon: "🎪" },
+  news: { label: "新闻", color: "from-gray-500 to-slate-400", icon: "📰" },
+  help: { label: "求助", color: "from-yellow-500 to-amber-400", icon: "💬" },
+  team: { label: "组队", color: "from-indigo-500 to-violet-400", icon: "👥" },
+};
+
+// Backend returns `type` as the singular resource kind (photo/video/music/
+// article/event/news) for resource tables and `section` (help/team) for
+// community posts. This helper normalises to the tab keys above.
+const normalizeContentType = (item) => {
+  if (!item) return null;
+  const raw = item.type;
+  if (!raw) return null;
+  if (raw === "help" || raw === "team") return raw;
+  if (raw === "photos") return "photo";
+  if (raw === "videos") return "video";
+  if (raw === "music") return "music";
+  if (raw === "articles") return "article";
+  if (raw === "events") return "event";
+  if (raw === "news") return "news";
+  return raw;
+};
+
+function ProfileContentCard({ item, onClick, isDayMode }) {
+  const typeKey = normalizeContentType(item) || "article";
+  const meta = TYPE_META[typeKey] || TYPE_META.article;
+  const cover =
+    item.cover || item.thumbnail || (typeKey === "photo" ? item.url || item.image : null);
+  const dateSource = item.created_at || item.createdAt || item.published_at;
+  const dateStr = dateSource ? new Date(dateSource).toLocaleDateString() : "";
+  const title = item.title || "(无标题)";
+  const likes = Number(item.likes) || 0;
+  const cardBorder = isDayMode
+    ? "border border-slate-200/80 bg-white/82 shadow-[0_16px_36px_rgba(148,163,184,0.12)] hover:border-indigo-300"
+    : "border border-white/10 bg-white/5 hover:border-orange-400/40";
+  const titleColor = isDayMode ? "text-slate-900" : "text-white";
+  const dateColor = isDayMode ? "text-slate-500" : "text-gray-400";
+  const captionBg = isDayMode
+    ? "bg-white/90 backdrop-blur"
+    : "bg-black/50 backdrop-blur";
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick?.();
+        }
+      }}
+      className={`group cursor-pointer rounded-2xl overflow-hidden transition ${cardBorder}`}
+    >
+      <div className="aspect-[3/4] relative">
+        {cover ? (
+          <img
+            src={cover}
+            alt={title}
+            loading="lazy"
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <div
+            className={`absolute inset-0 bg-gradient-to-br ${meta.color} opacity-70 flex items-center justify-center text-5xl`}
+          >
+            <span aria-hidden="true">{meta.icon}</span>
+          </div>
+        )}
+        <div className="absolute top-3 left-3 px-2 py-1 rounded-md text-[10px] font-bold bg-black/60 backdrop-blur text-white tracking-wide uppercase">
+          {meta.label}
+        </div>
+        {likes > 0 && (
+          <div className="absolute top-3 right-3 px-2 py-1 rounded-md text-[11px] bg-black/60 backdrop-blur text-white flex items-center gap-1">
+            <span aria-hidden="true">♥</span>
+            <span>{likes}</span>
+          </div>
+        )}
+      </div>
+      <div className={`px-3 py-2 ${captionBg}`}>
+        <div className={`text-sm font-semibold line-clamp-1 ${titleColor}`}>
+          {title}
+        </div>
+        {dateStr && (
+          <div className={`text-[10px] mt-1 ${dateColor}`}>{dateStr}</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
   const { id: routeId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { t, i18n } = useTranslation();
   const { user: currentUser, logout, refreshUser } = useAuth();
   const { settings, uiMode, changeUiMode } = useSettings();
@@ -47,6 +152,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
   const [error, setError] = useState(null);
 
   const [activeTab, setActiveTab] = useState("published");
+  const [activeContentType, setActiveContentType] = useState("all");
   const isOwner =
     currentUser && user && String(currentUser.id) === String(user.id);
   const prefersReducedMotion = useReducedMotion();
@@ -74,6 +180,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
   // Settings State
   const [profileData, setProfileData] = useState({
     organization: "",
+    nickname: "",
     inviteCode: "",
   });
   const [profileLoading, setProfileLoading] = useState(false);
@@ -103,10 +210,14 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
         // Init profile data if owner
         if (currentUser && String(currentUser.id) === String(userRes.data.id)) {
           setProfileData({
-            organization: currentUser.organization || "",
+            organization:
+              userRes.data.organization_cr || currentUser.organization || "",
+            nickname: userRes.data.nickname || currentUser.nickname || "",
             inviteCode: "",
           });
-          setIsInviteCodeVerified(!!currentUser.organization);
+          setIsInviteCodeVerified(
+            !!(userRes.data.organization_cr || currentUser.organization),
+          );
         }
       } catch (err) {
         if (abortController.signal.aborted) return;
@@ -136,6 +247,53 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
       fetchFavorites();
     }
   }, [activeTab, favoriteType, isOwner]);
+
+  // Group resources by normalized content type. Tabs with zero items
+  // (other than "all") are hidden so visitors of a user with no photos
+  // don't see a dead "图片" button. Backend already filters anonymous
+  // help posts for non-owner non-admin viewers, so the count here is
+  // authoritative for visibility.
+  const contentByType = useMemo(() => {
+    const map = { all: resources || [] };
+    for (const ct of CONTENT_TYPES) {
+      if (ct.key === "all") continue;
+      map[ct.key] = (resources || []).filter(
+        (item) => normalizeContentType(item) === ct.key,
+      );
+    }
+    return map;
+  }, [resources]);
+
+  const tabsWithCount = useMemo(
+    () =>
+      CONTENT_TYPES.map((ct) => ({
+        ...ct,
+        count: (contentByType[ct.key] || []).length,
+      })).filter((ct) => ct.key === "all" || ct.count > 0),
+    [contentByType],
+  );
+
+  const visibleContent = contentByType[activeContentType] || [];
+
+  // Restore tab + scroll position when returning from a resource detail.
+  // We only restore when the state belongs to this same user's profile —
+  // otherwise a shared state object from another profile shouldn't leak.
+  useEffect(() => {
+    const state = location.state?.fromUserProfile;
+    if (!state || !user?.id) return;
+    if (String(state.userId) !== String(user.id)) return;
+    if (state.contentTab) {
+      setActiveContentType(state.contentTab);
+    }
+    if (typeof state.scrollY === "number") {
+      const y = state.scrollY;
+      // Delay to next tick so the grid has rendered before we scroll.
+      setTimeout(() => window.scrollTo(0, y), 0);
+    }
+    // Intentionally not clearing location.state here — react-router will
+    // discard it on the next navigate, and leaving it lets a rapid re-render
+    // during tab restoration still see the same snapshot.
+  }, [location.state, user?.id]);
 
   useEffect(() => {
     if (activeTab !== "relations" || !id) return;
@@ -178,12 +336,26 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
     e.preventDefault();
     setProfileLoading(true);
     try {
-      const payload = {
-        organization_cr: profileData.organization,
-        invitation_code: profileData.inviteCode,
-      };
+      // Nickname is handled via PUT /users/:id (backend validates + 409s on
+      // collision). Only send if it has actually changed, so untouched
+      // profiles don't run through unique-index checks unnecessarily.
+      const trimmedNickname = (profileData.nickname || "").trim();
+      const currentNickname = user?.nickname || "";
+      if (trimmedNickname !== currentNickname) {
+        await api.put(`/users/${user.id}`, { nickname: trimmedNickname });
+      }
 
-      await api.put("/auth/profile", payload);
+      // Only PUT organization when the invite code has been verified in
+      // this session — otherwise a nickname-only save would blank out the
+      // user's existing organization_cr on the server.
+      if (isInviteCodeVerified) {
+        const payload = {
+          organization_cr: profileData.organization,
+          invitation_code: profileData.inviteCode,
+        };
+        await api.put("/auth/profile", payload);
+      }
+
       toast.success(t("user_profile.profile_updated"));
       await refreshUser();
 
@@ -191,8 +363,13 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
       setUser((prev) => ({
         ...prev,
         organization_cr: profileData.organization,
+        nickname: trimmedNickname,
       }));
     } catch (err) {
+      // Backend returns fixed "该昵称已被使用" for 409 nickname collisions
+      // (see community-identity-and-follow-notifications spec). Surface the
+      // server message verbatim when present so collision / format errors
+      // read naturally; fall back to generic text otherwise.
       toast.error(err.response?.data?.error || t("admin.toast.update_fail"));
     } finally {
       setProfileLoading(false);
@@ -317,6 +494,34 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
         [targetUserId]: false,
       }));
     }
+  };
+
+  // Navigate to the matching resource detail route, stamping the current
+  // profile context into history.state so the back-navigation effect above
+  // can restore tab + scroll.
+  const handleContentClick = (item) => {
+    const typeKey = normalizeContentType(item);
+    if (!typeKey || item?.id == null) return;
+    const path = {
+      photo: `/gallery?id=${item.id}`,
+      video: `/videos?id=${item.id}`,
+      music: `/music?id=${item.id}`,
+      article: `/articles?id=${item.id}&tab=tech`,
+      event: `/events?id=${item.id}`,
+      news: `/news?id=${item.id}`,
+      help: `/articles?tab=help&post=${item.id}`,
+      team: `/articles?tab=team&post=${item.id}`,
+    }[typeKey];
+    if (!path) return;
+    navigate(path, {
+      state: {
+        fromUserProfile: {
+          userId: user?.id,
+          scrollY: typeof window !== "undefined" ? window.scrollY : 0,
+          contentTab: activeContentType,
+        },
+      },
+    });
   };
 
   if (loading) {
@@ -570,118 +775,61 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
 
         {/* Content */}
         <div className="min-h-[400px]">
-          {activeTab === "published" &&
-            (resources.length === 0 ? (
-              <div
-                className={`text-center py-20 rounded-3xl border border-dashed ${isDayMode ? "bg-white/82 border-slate-200/80" : "bg-white/5 border-white/5"}`}
-              >
-                <p className={isDayMode ? "text-slate-500" : "text-gray-500"}>
-                  {t("user_profile.no_published_works")}
-                </p>
-              </div>
-            ) : (
-              <div className="columns-2 gap-3 space-y-3 md:columns-2 lg:columns-3 md:gap-6 md:space-y-6">
-                {resources.map((item) => (
-                  <motion.div
-                    key={`${item.type}-${item.id}`}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={`break-inside-avoid relative group rounded-xl md:rounded-2xl overflow-hidden border hover:border-indigo-500/30 transition-all duration-300 ${isDayMode ? "bg-white/82 border-slate-200/80 shadow-[0_16px_36px_rgba(148,163,184,0.12)]" : "bg-white/5 border-white/10"}`}
-                  >
-                    <div
-                      className={`aspect-w-16 aspect-h-9 relative ${isDayMode ? "bg-slate-100" : "bg-black/50"}`}
+          {activeTab === "published" && (
+            <div className="space-y-6">
+              {/* Content-type tabs. Always render so users can tell whether
+                  they have any work at all; "all" is never hidden. */}
+              <div className="flex flex-wrap gap-2">
+                {tabsWithCount.map((ct) => {
+                  const active = activeContentType === ct.key;
+                  return (
+                    <button
+                      key={ct.key}
+                      type="button"
+                      onClick={() => setActiveContentType(ct.key)}
+                      className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+                        active
+                          ? isDayMode
+                            ? "bg-indigo-600 text-white shadow-[0_12px_28px_rgba(99,102,241,0.22)]"
+                            : "bg-white text-black"
+                          : isDayMode
+                            ? "bg-white/85 text-slate-600 border border-slate-200/80 hover:bg-white hover:text-slate-900"
+                            : "bg-white/5 text-gray-300 border border-white/10 hover:bg-white/10 hover:text-white"
+                      }`}
                     >
-                      {isOwner && item.status && (
-                        <div className="absolute top-2 right-2 z-20">
-                          <span
-                            className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase backdrop-blur-md shadow-lg ${
-                              item.status === "approved"
-                                ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                                : item.status === "rejected"
-                                  ? "bg-red-500/20 text-red-400 border border-red-500/30"
-                                  : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
-                            }`}
-                          >
-                            {t(`user_profile.uploads.status.${item.status}`) ||
-                              item.status}
-                          </span>
-                        </div>
-                      )}
-                      {(item.type === "photos" || item.type === "events") && (
-                        <SmartImage
-                          src={item.url || item.image}
-                          alt={item.title}
-                          className="w-full h-full object-cover"
-                        />
-                      )}
-                      {item.type === "videos" && (
-                        <SmartImage
-                          src={item.thumbnail}
-                          alt={item.title}
-                          className="w-full h-full object-cover"
-                        />
-                      )}
-                      {item.type === "articles" && (
-                        <SmartImage
-                          src={item.cover}
-                          alt={item.title}
-                          className="w-full h-full object-cover"
-                        />
-                      )}
-                      {item.type === "music" && (
-                        <div
-                          className={`w-full h-full flex items-center justify-center ${isDayMode ? "bg-gradient-to-br from-slate-200 to-slate-100" : "bg-gradient-to-br from-gray-800 to-black"}`}
-                        >
-                          {item.cover ? (
-                            <img
-                              src={item.cover}
-                              alt={item.title}
-                              className="w-full h-full object-cover opacity-50"
-                            />
-                          ) : (
-                            <div
-                              className={
-                                isDayMode ? "text-slate-400" : "text-gray-600"
-                              }
-                            >
-                              <Briefcase />
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                      <span>{ct.label}</span>
+                      <span
+                        className={`ml-1.5 text-xs ${active ? "opacity-90" : "opacity-70"}`}
+                      >
+                        {ct.count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
 
-                    <div
-                      className={`p-3 md:p-4 relative z-10 -mt-10 pt-14 md:-mt-12 md:pt-16 ${isDayMode ? "bg-gradient-to-t from-white via-white/95 to-transparent" : "bg-gradient-to-t from-black/90 to-transparent"}`}
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded-full border border-indigo-500/20">
-                          {t(
-                            `common.${item.type === "music" ? "music" : item.type.slice(0, -1)}`,
-                          )}
-                        </span>
-                        <span
-                          className={`text-[10px] md:text-xs flex items-center gap-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                        >
-                          <Award size={10} className="md:w-3 md:h-3" />{" "}
-                          {item.likes || 0}
-                        </span>
-                      </div>
-                      <h3
-                        className={`text-xs md:text-lg font-bold leading-tight mb-0.5 md:mb-1 line-clamp-1 md:line-clamp-2 ${isDayMode ? "text-slate-900" : "text-white"}`}
-                      >
-                        {item.title}
-                      </h3>
-                      <p
-                        className={`text-[10px] md:text-xs line-clamp-1 md:line-clamp-2 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                      >
-                        {item.description || item.excerpt || item.artist}
-                      </p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            ))}
+              {visibleContent.length === 0 ? (
+                <div
+                  className={`text-center py-20 rounded-3xl border border-dashed ${isDayMode ? "bg-white/82 border-slate-200/80" : "bg-white/5 border-white/5"}`}
+                >
+                  <p className={isDayMode ? "text-slate-500" : "text-gray-500"}>
+                    {t("user_profile.no_published_works")}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+                  {visibleContent.map((item) => (
+                    <ProfileContentCard
+                      key={`${item.type || "unknown"}-${item.id}`}
+                      item={item}
+                      onClick={() => handleContentClick(item)}
+                      isDayMode={isDayMode}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {activeTab === "relations" && (
             <div className="space-y-4">
@@ -886,6 +1034,42 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                     <label
                       className={`block text-sm font-medium mb-2 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
                     >
+                      {t("user_profile.fields.nickname", "显示名称")}
+                    </label>
+                    <input
+                      type="text"
+                      value={profileData.nickname}
+                      onChange={(e) =>
+                        setProfileData({
+                          ...profileData,
+                          nickname: e.target.value,
+                        })
+                      }
+                      placeholder={t(
+                        "user_profile.fields.nickname_placeholder",
+                        "2-20 字符，可选；不填则显示账号名",
+                      )}
+                      maxLength={20}
+                      className={`w-full rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 ${
+                        isDayMode
+                          ? "bg-slate-50 border border-slate-200/80 text-slate-900"
+                          : "bg-black/20 border border-white/10 text-white"
+                      }`}
+                    />
+                    <p
+                      className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
+                    >
+                      {t(
+                        "user_profile.fields.nickname_help",
+                        "允许中英文、数字、下划线；留空则清空。",
+                      )}
+                    </p>
+                  </div>
+
+                  <div className="pt-2">
+                    <label
+                      className={`block text-sm font-medium mb-2 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                    >
                       {t("user_profile.fields.organization")}
                     </label>
 
@@ -944,17 +1128,15 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                     </div>
                   </div>
 
-                  {isInviteCodeVerified && (
-                    <div className="flex justify-end pt-4">
-                      <button
-                        type="submit"
-                        disabled={profileLoading}
-                        className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-colors disabled:opacity-50"
-                      >
-                        {profileLoading ? t("common.saving") : t("common.save")}
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex justify-end pt-4">
+                    <button
+                      type="submit"
+                      disabled={profileLoading}
+                      className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-colors disabled:opacity-50"
+                    >
+                      {profileLoading ? t("common.saving") : t("common.save")}
+                    </button>
+                  </div>
                 </form>
               </div>
 
