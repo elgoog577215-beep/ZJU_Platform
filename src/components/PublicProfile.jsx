@@ -44,19 +44,19 @@ const CONTENT_TYPES = [
   { key: "team", label: "组队" },
 ];
 
-// Visual metadata per content type. `badgeBg` is a solid colour for the
-// top-left category chip (matches the "已发布" cards in the legacy
-// `种子管理员` screenshot). `smartImageType` maps to SmartImage's icon
-// map for the no-cover fallback (help/team reuse article's FileText).
+// Visual metadata per content type. The badge lives inside the caption
+// (glass chip), so we only need type-coloured text tokens for day / night
+// modes; the chip background is a shared neutral glass. `smartImageType`
+// maps to SmartImage's icon map for the no-cover fallback.
 const TYPE_META = {
-  photo:   { label: "图片", badgeBg: "bg-pink-500",    smartImageType: "image"   },
-  video:   { label: "视频", badgeBg: "bg-emerald-500", smartImageType: "video"   },
-  music:   { label: "音乐", badgeBg: "bg-purple-500",  smartImageType: "music"   },
-  article: { label: "文章", badgeBg: "bg-orange-500",  smartImageType: "article" },
-  event:   { label: "活动", badgeBg: "bg-blue-500",    smartImageType: "event"   },
-  news:    { label: "新闻", badgeBg: "bg-slate-500",   smartImageType: "article" },
-  help:    { label: "求助", badgeBg: "bg-amber-500",   smartImageType: "article" },
-  team:    { label: "组队", badgeBg: "bg-indigo-500",  smartImageType: "article" },
+  photo:   { label: "图片", textDay: "text-pink-600",    textNight: "text-pink-300",    smartImageType: "image"   },
+  video:   { label: "视频", textDay: "text-emerald-600", textNight: "text-emerald-300", smartImageType: "video"   },
+  music:   { label: "音乐", textDay: "text-purple-600",  textNight: "text-purple-300",  smartImageType: "music"   },
+  article: { label: "文章", textDay: "text-orange-600",  textNight: "text-orange-300",  smartImageType: "article" },
+  event:   { label: "活动", textDay: "text-blue-600",    textNight: "text-blue-300",    smartImageType: "event"   },
+  news:    { label: "新闻", textDay: "text-slate-600",   textNight: "text-slate-300",   smartImageType: "article" },
+  help:    { label: "求助", textDay: "text-amber-600",   textNight: "text-amber-300",   smartImageType: "article" },
+  team:    { label: "组队", textDay: "text-indigo-600",  textNight: "text-indigo-300",  smartImageType: "article" },
 };
 
 // Backend returns `type` as the singular resource kind (photo/video/music/
@@ -81,11 +81,7 @@ function ProfileContentCard({ item, onClick, isDayMode }) {
   const meta = TYPE_META[typeKey] || TYPE_META.article;
 
   // Cover source by resource type:
-  //  - events.image (the event poster)
-  //  - photos.url (the photo itself)
-  //  - videos.thumbnail
-  //  - articles.cover
-  //  - news.cover (if any)
+  //  - events.image / photos.url / videos.thumbnail / articles.cover
   //  - help/team posts: no cover column; SmartImage renders FileText icon
   //    over a hash gradient (same look as article card with no cover).
   const cover =
@@ -95,15 +91,18 @@ function ProfileContentCard({ item, onClick, isDayMode }) {
   const title = item.title || "(无标题)";
   const likes = Number(item.likes) || Number(item.likes_count) || 0;
 
+  // Project-standard glass shell (matches ArticleCard in Articles.jsx).
   const cardShell = isDayMode
-    ? "bg-white border border-slate-200/70 shadow-[0_10px_28px_rgba(148,163,184,0.18)] hover:shadow-[0_18px_40px_rgba(99,102,241,0.18)] hover:border-indigo-300"
-    : "bg-[#1a1a1a]/70 border border-white/10 hover:border-orange-400/50";
+    ? "bg-white/82 border-slate-200/80 shadow-[0_18px_42px_rgba(148,163,184,0.12)] hover:bg-white hover:border-indigo-300 hover:shadow-[0_24px_50px_rgba(99,102,241,0.18)]"
+    : "bg-[#1a1a1a]/60 border-white/10 hover:bg-[#1a1a1a]/80 hover:border-orange-400/40";
   const titleColor = isDayMode ? "text-slate-900" : "text-white";
   const metaColor = isDayMode ? "text-slate-500" : "text-gray-400";
-  const captionBg = isDayMode ? "bg-white" : "bg-black/40 backdrop-blur";
-  const likeBg = isDayMode
-    ? "bg-white/95 text-rose-500 shadow-sm"
-    : "bg-black/55 text-rose-300 backdrop-blur";
+  // Glass badge inside the caption — shared neutral surface, type-coloured text.
+  const badgeGlass = isDayMode
+    ? "bg-white/70 border-white/60 backdrop-blur-md shadow-[0_4px_12px_rgba(148,163,184,0.12)]"
+    : "bg-white/10 border-white/15 backdrop-blur-md";
+  const badgeText = isDayMode ? meta.textDay : meta.textNight;
+  const heartTint = isDayMode ? "text-rose-500" : "text-rose-300";
 
   return (
     <div
@@ -116,43 +115,47 @@ function ProfileContentCard({ item, onClick, isDayMode }) {
           onClick?.();
         }
       }}
-      className={`group cursor-pointer rounded-2xl overflow-hidden transition-all ${cardShell}`}
+      className={`group cursor-pointer rounded-3xl overflow-hidden backdrop-blur-xl border transition-all duration-300 ${cardShell}`}
     >
-      <div className="aspect-[3/4] relative overflow-hidden">
+      {/* Cover — shortened from 3/4 to 4/3 so the caption has more breathing
+          room below. Hash-gradient fallback comes from SmartImage when no
+          cover is present (help/team posts, articles w/o cover). */}
+      <div className="aspect-[4/3] relative overflow-hidden">
         <SmartImage
           src={cover}
           alt={title}
           type={meta.smartImageType}
           className="absolute inset-0 w-full h-full"
           imageClassName="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          iconSize={48}
+          iconSize={56}
         />
-        {/* Category chip — solid colour so it reads over any cover. */}
-        <div
-          className={`absolute top-3 left-3 px-2.5 py-1 rounded-md text-[11px] font-semibold text-white ${meta.badgeBg} shadow`}
-        >
-          {meta.label}
-        </div>
-        {/* Like count overlay — always visible, styled per mode. */}
-        {likes > 0 && (
-          <div
-            className={`absolute top-3 right-3 px-2 py-1 rounded-md text-[11px] font-semibold flex items-center gap-1 ${likeBg}`}
-          >
-            <span aria-hidden="true">♥</span>
-            <span>{likes}</span>
-          </div>
-        )}
       </div>
-      {/* Bottom caption — compact, mirrors the screenshot style. */}
-      <div className={`px-3 py-2 ${captionBg}`}>
+      {/* Caption — the emphasised half of the card.
+          Row 1: type badge (glass chip) + like count with lucide Heart.
+          Row 2: bold title.
+          Row 3: date meta. */}
+      <div className="px-4 pt-3 pb-4 flex flex-col gap-2">
+        <div className="flex items-center gap-2">
+          <span
+            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${badgeGlass} ${badgeText}`}
+          >
+            {meta.label}
+          </span>
+          {likes > 0 && (
+            <span className={`ml-auto inline-flex items-center gap-1.5 text-sm font-bold ${heartTint}`}>
+              <Heart className="w-4 h-4 fill-current" strokeWidth={0} />
+              <span>{likes}</span>
+            </span>
+          )}
+        </div>
         <div
-          className={`text-sm font-semibold line-clamp-1 ${titleColor}`}
+          className={`text-base font-bold leading-snug line-clamp-2 ${titleColor}`}
           title={title}
         >
           {title}
         </div>
         {dateStr && (
-          <div className={`text-[10px] mt-1 ${metaColor}`}>{dateStr}</div>
+          <div className={`text-xs font-mono ${metaColor}`}>{dateStr}</div>
         )}
       </div>
     </div>
