@@ -535,7 +535,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
       music: `/music?id=${item.id}`,
       article: `/articles?id=${item.id}&tab=tech`,
       event: `/events?id=${item.id}`,
-      news: `/news?id=${item.id}`,
+      news: `/articles?tab=tech&news=${item.id}`,
       help: `/articles?tab=help&post=${item.id}`,
       team: `/articles?tab=team&post=${item.id}`,
     }[typeKey];

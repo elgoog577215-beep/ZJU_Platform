@@ -41,7 +41,7 @@ const CommunityDetailModal = ({
 
   const handleAuthorNavigate = () => {
     if (!canGoProfile) return;
-    navigate(`/profile/${uploaderId}`);
+    navigate(`/user/${uploaderId}`);
   };
 
   const handleAuthorKeyDown = (event) => {

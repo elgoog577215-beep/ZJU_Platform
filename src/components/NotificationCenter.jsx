@@ -12,13 +12,16 @@ const NOTIFICATIONS_UPDATED_EVENT = "notifications:updated";
 
 const isNotificationRead = (notification) => Boolean(notification?.is_read);
 
-const NEW_CONTENT_ROUTE_MAP = {
-  article: "/articles",
-  photo: "/gallery",
-  music: "/music",
-  video: "/videos",
-  event: "/events",
-  news: "/news",
+// news has no standalone route; it is embedded under /articles via ?news={id}.
+// Use a builder per type instead of a flat base map so each URL can be shaped
+// independently.
+const NEW_CONTENT_ROUTE_BUILDERS = {
+  article: (id) => `/articles?id=${id}`,
+  photo: (id) => `/gallery?id=${id}`,
+  music: (id) => `/music?id=${id}`,
+  video: (id) => `/videos?id=${id}`,
+  event: (id) => `/events?id=${id}`,
+  news: (id) => `/articles?tab=tech&news=${id}`,
 };
 
 const buildNotificationTargetPath = (notification) => {
@@ -39,12 +42,12 @@ const buildNotificationTargetPath = (notification) => {
       );
       return null;
     }
-    const base = NEW_CONTENT_ROUTE_MAP[resourceType];
-    if (!base) {
+    const build = NEW_CONTENT_ROUTE_BUILDERS[resourceType];
+    if (!build) {
       console.warn("[Notification] Unknown resource type:", resourceType);
       return null;
     }
-    return `${base}?id=${resourceId}`;
+    return build(resourceId);
   }
 
   if (!resourceId || !resourceType) return null;
