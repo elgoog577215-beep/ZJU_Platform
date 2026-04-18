@@ -160,6 +160,26 @@ async function runMigrations(db) {
     }
   }
 
+  // Migration: ensure rejection_reason column exists on all reviewable resource
+  // tables. resourceController.updateStatus writes this column when an admin
+  // rejects an item, and CommunityTech reads it to display the reason to the
+  // author. The column was missing from ensureCoreSchema, causing 500s on
+  // every approval/rejection in the admin review center.
+  for (const table of ['photos', 'music', 'videos', 'articles', 'events']) {
+    try {
+      const info = await db.all(`PRAGMA table_info(${table})`);
+      const columns = new Set(info.map((c) => c.name));
+      if (!columns.has('rejection_reason')) {
+        await db.exec(`ALTER TABLE ${table} ADD COLUMN rejection_reason TEXT`);
+        console.log(`✅ Added ${table}.rejection_reason column`);
+      }
+    } catch (err) {
+      if (!err.message.includes('duplicate column')) {
+        console.warn(`Migration warning (${table}.rejection_reason):`, err.message);
+      }
+    }
+  }
+
   try {
     await db.exec(`
       CREATE TABLE IF NOT EXISTS tags (
