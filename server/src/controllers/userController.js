@@ -472,8 +472,8 @@ const getUserResources = async (req, res, next) => {
         }
 
         // community_posts: author_id (not uploader_id).
-        // Visitors (non-owner non-admin) see only approved/non-deleted posts AND
-        // MUST NOT see anonymous help posts (is_anonymous = 1 AND section = 'help').
+        // Visitors (non-owner non-admin) see only approved posts. The legacy
+        // anonymous-help filter was removed along with the opt-in feature.
         let postsQuery = `SELECT cp.*,
                             COALESCE(u.nickname, u.username) AS author_name,
                             u.avatar AS author_avatar,
@@ -486,7 +486,6 @@ const getUserResources = async (req, res, next) => {
         if (!isOwner && !isAdmin) {
             // community_posts has no deleted_at column; only status filter applies.
             postsQuery += ` AND cp.status = 'approved'`;
-            postsQuery += ` AND NOT (cp.section = 'help' AND cp.is_anonymous = 1)`;
         }
         postsQuery += ` ORDER BY cp.id DESC`;
 

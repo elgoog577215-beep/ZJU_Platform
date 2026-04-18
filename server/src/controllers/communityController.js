@@ -449,8 +449,8 @@ const createPost = async (req, res, next) => {
       ? Math.min(Math.max(parseInt(maxMembersRaw, 10), 2), 100)
       : null;
     const currentMembers = section === 'team' ? 1 : 0;
-    // Anonymous opt-in: only valid for help posts; team section强制实名，忽略字段
-    const isAnonymous = section === 'help' && Boolean(req.body.is_anonymous) ? 1 : 0;
+    // Anonymous opt-in removed — column kept for schema stability but always 0.
+    const isAnonymous = 0;
 
     const result = await db.run(
       `

@@ -24,17 +24,15 @@ const searchContent = async (req, res, next) => {
             db.all('SELECT id, title, "video" as type, thumbnail as image FROM videos WHERE (title LIKE ? OR tags LIKE ?) AND deleted_at IS NULL AND status = "approved" LIMIT 5', [term, term]),
             db.all('SELECT id, title, "article" as type, cover as image FROM articles WHERE (title LIKE ? OR excerpt LIKE ? OR content LIKE ? OR tags LIKE ?) AND deleted_at IS NULL AND status = "approved" LIMIT 5', [term, term, term, term]),
             db.all('SELECT id, title, "event" as type, image FROM events WHERE (title LIKE ? OR description LIKE ? OR content LIKE ? OR tags LIKE ?) AND deleted_at IS NULL AND status = "approved" LIMIT 5', [term, term, term, term]),
-            // Community posts: exclude anonymous help posts entirely from search,
-            // and drop author_name from the WHERE clause — matching by author name
-            // would let an attacker reverse who authored an anonymous post.
+            // Community posts: search title/content/tags; author_name is also a
+            // legitimate match target now that the anonymous opt-in is gone.
             db.all(
-                `SELECT id, title, "community" as type, section, is_anonymous, author_id
+                `SELECT id, title, "community" as type, section, author_id
                  FROM community_posts
                  WHERE status = "approved"
-                   AND NOT (section = 'help' AND is_anonymous = 1)
-                   AND (title LIKE ? OR content LIKE ? OR tags LIKE ?)
+                   AND (title LIKE ? OR content LIKE ? OR tags LIKE ? OR author_name LIKE ?)
                  LIMIT 5`,
-                [term, term, term]
+                [term, term, term, term]
             ).catch(() => [])
         ]);
 

@@ -104,98 +104,13 @@ TBD - created by archiving change community-identity-and-follow-notifications. U
 - **WHEN** A 点击保存
 - **THEN** 接口返回 409；前端 toast 展示"该昵称已被使用"；输入框保留 A 的输入以便修改
 
-### Requirement: Anonymous Help Post Opt-in
+---
 
-`community_posts` 表 SHALL 新增 `is_anonymous BOOLEAN DEFAULT 0` 列，仅对 `section = 'help'` 的帖子生效；`section = 'team'` 的组队贴强制实名，后端 MUST 忽略提交的 `is_anonymous` 字段。
-
-历史数据 MUST 全部保持 `is_anonymous = 0`（实名）。
-
-#### Scenario: Create anonymous help post
-
-- **GIVEN** 已登录用户 A 提交 `POST /community/posts`，body 包含 `{ section: 'help', is_anonymous: true, title: '...', content: '...' }`
-- **WHEN** 后端持久化
-- **THEN** `community_posts` 行的 `is_anonymous` 列为 1
-
-#### Scenario: Create team post with is_anonymous true is ignored
-
-- **GIVEN** 已登录用户 A 提交 `POST /community/posts`，body 包含 `{ section: 'team', is_anonymous: true, ... }`
-- **WHEN** 后端持久化
-- **THEN** `community_posts` 行的 `is_anonymous` 列为 0（后端忽略了该字段）
-
-### Requirement: Anonymous Help Post Server-side Redaction
-
-后端在序列化 community_posts 输出时 SHALL 对匿名求助贴做字段脱敏，仅当访客既非作者本人、也非 admin 时生效。
-
-被脱敏的字段（设置为 `null`）：
-- `author_name`
-- `author_avatar`
-- `uploader_id` / `author_id`
-- 任何可能泄露作者身份的衍生字段
-
-脱敏逻辑 MUST 在统一的 `serializeCommunityPost(post, viewer)` helper 内实现，所有读路径 MUST 经由该 helper。
-
-#### Scenario: Anonymous visitor views anonymous help post
-
-- **GIVEN** 用户 B 发布了 `is_anonymous = 1` 的求助贴（id=100）
-- **AND** 访客 C（非登录 / 非 B / 非 admin）
-- **WHEN** C 调用 `GET /community/posts/100`
-- **THEN** 响应中的 `author_name` 为 null，`author_avatar` 为 null，`uploader_id` 或 `author_id` 为 null
-
-#### Scenario: Author views own anonymous post
-
-- **GIVEN** 用户 B 发布了 `is_anonymous = 1` 的求助贴（id=100）
-- **WHEN** B 本人调用 `GET /community/posts/100`
-- **THEN** 响应中的 `author_name` / `author_avatar` / `author_id` 均为 B 的真实值
-
-#### Scenario: Admin views anonymous help post
-
-- **GIVEN** 用户 B 发布了 `is_anonymous = 1` 的求助贴（id=100）
-- **AND** 管理员 D（role = 'admin'）
-- **WHEN** D 调用 `GET /community/posts/100`
-- **THEN** 响应中的 `author_name` / `author_avatar` / `author_id` 均为 B 的真实值，以便审核
-
-### Requirement: Single Serializer Coverage Guarantee
-
-任何从 `community_posts` 表读取并返回给客户端的代码路径 MUST 通过 `serializeCommunityPost(post, viewer)` helper；直接返回 raw 行将被视为安全回归。
-
-为保证覆盖：
-
-- 本次 change 实现阶段 MUST 在 `server/src/controllers/communityController.js`（或任何引用 `community_posts` 的 controller）中审计全部读路径
-- 项目 MUST 新增自动化 assertion：
-  - 方案 A（推荐）：添加 pre-commit 或 CI 脚本，grep 源码中出现 `FROM community_posts` 或 `.get/.all('SELECT...community_posts')` 的行，对比白名单（允许列表为 helper 内部的 SQL）；白名单外命中则 CI 失败
-  - 方案 B：添加测试用例遍历所有 `/community/posts*` 响应，断言 is_anonymous=1 的帖对访客脱敏
-- 新增读路径（如管理后台 list、search 返回 posts）MUST 同步经过 helper
-
-#### Scenario: New read path must go through helper
-
-- **GIVEN** 开发者新增 `GET /community/posts/search` 端点，SQL 里有 `FROM community_posts`
-- **AND** 该端点未走 serializeCommunityPost
-- **WHEN** CI 或 pre-commit 运行 assertion 脚本
-- **THEN** 构建失败，明确指出违规文件行号；修复方式：把响应通过 helper 过滤后再返回
-
-#### Scenario: Integration test verifies redaction on all post endpoints
-
-- **GIVEN** 测试数据集中至少有 1 个 is_anonymous=1 的求助贴
-- **WHEN** 集成测试分别调用所有返回 posts 的 endpoint（以匿名访客身份）
-- **THEN** 所有响应中该帖的 `author_name / author_avatar / author_id` 都为 null
-
-### Requirement: PostComposer Anonymous Checkbox
-
-`PostComposer` 组件在 `section === 'help'` 时 SHALL 在表单底部（提交按钮同行左侧）展示"匿名发布" checkbox；`section === 'team'` 时 MUST NOT 显示该 checkbox。
-
-- 默认 unchecked（默认实名发布）
-- checkbox 状态在 submit 时通过 body `is_anonymous` 字段传递
-- 关闭表单时状态重置
-
-#### Scenario: Help composer shows anonymous checkbox
-
-- **GIVEN** 已登录用户打开 PostComposer 且 `section='help'`
-- **WHEN** UI 渲染
-- **THEN** 表单 footer 区域显示"匿名发布" checkbox，位于"取消"/"发布"按钮左侧
-
-#### Scenario: Team composer hides anonymous checkbox
-
-- **GIVEN** 已登录用户打开 PostComposer 且 `section='team'`
-- **WHEN** UI 渲染
-- **THEN** 表单 footer 区域不显示"匿名发布" checkbox
-
+> **Deprecated (removed 2026-04-18)**: The earlier requirements for
+> `Anonymous Help Post Opt-in`, `Anonymous Help Post Server-side
+> Redaction`, `Single Serializer Coverage Guarantee`, and
+> `PostComposer Anonymous Checkbox` were dropped. Rationale: since
+> nicknames are freely editable per user, an explicit anonymous flag
+> provided no meaningful privacy that nickname choice couldn't already
+> deliver. The `community_posts.is_anonymous` column remains in the
+> schema for backwards compatibility but is always written as 0.

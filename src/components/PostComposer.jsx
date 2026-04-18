@@ -38,7 +38,6 @@ const PostComposer = ({ isOpen, onClose, section = 'help', onSuccess }) => {
   const [relatedGroupIds, setRelatedGroupIds] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [uploadingBlockId, setUploadingBlockId] = useState(null);
-  const [isAnonymous, setIsAnonymous] = useState(false);
   const fileInputRefs = useRef({});
 
   const isTeam = section === 'team';
@@ -61,7 +60,6 @@ const PostComposer = ({ isOpen, onClose, section = 'help', onSuccess }) => {
     setRelatedPostIds('');
     setRelatedNewsIds('');
     setRelatedGroupIds('');
-    setIsAnonymous(false);
   }, []);
 
   const handleClose = useCallback(() => {
@@ -153,8 +151,6 @@ const PostComposer = ({ isOpen, onClose, section = 'help', onSuccess }) => {
       related_group_ids: relatedGroupIds.trim(),
     };
 
-    if (isHelp) body.is_anonymous = isAnonymous ? 1 : 0;
-
     if (isTeam) {
       if (deadline) body.deadline = deadline;
       if (maxMembers) body.max_members = parseInt(maxMembers, 10) || undefined;
@@ -174,7 +170,7 @@ const PostComposer = ({ isOpen, onClose, section = 'help', onSuccess }) => {
     } finally {
       setSubmitting(false);
     }
-  }, [user, title, blocks, tags, section, isTeam, isHelp, isAnonymous, deadline, maxMembers, link, t, resetForm, onClose, onSuccess]);
+  }, [user, title, blocks, tags, section, isTeam, deadline, maxMembers, link, t, resetForm, onClose, onSuccess]);
 
   const getAccept = (type) => {
     if (type === 'image') return 'image/*';
@@ -431,21 +427,7 @@ const PostComposer = ({ isOpen, onClose, section = 'help', onSuccess }) => {
             </div>
 
             {/* Footer */}
-            <div className={`flex items-center justify-between gap-3 px-6 py-4 border-t ${isDayMode ? 'border-slate-200/80' : 'border-white/10'}`}>
-              {isHelp ? (
-                <label className={`flex items-center gap-2 text-sm cursor-pointer select-none ${isDayMode ? 'text-slate-600 hover:text-slate-900' : 'text-gray-400 hover:text-gray-200'}`}>
-                  <input
-                    type="checkbox"
-                    checked={isAnonymous}
-                    onChange={(e) => setIsAnonymous(e.target.checked)}
-                    disabled={submitting}
-                    className="w-4 h-4 rounded accent-amber-500 cursor-pointer"
-                  />
-                  {t('community.post_anonymous', '匿名发布')}
-                </label>
-              ) : (
-                <span />
-              )}
+            <div className={`flex items-center justify-end gap-3 px-6 py-4 border-t ${isDayMode ? 'border-slate-200/80' : 'border-white/10'}`}>
               <div className="flex items-center gap-3">
                 <button
                   onClick={handleClose}

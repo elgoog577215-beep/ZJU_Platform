@@ -1,31 +1,15 @@
 /**
- * Redact anonymous help posts for non-owner non-admin viewers.
- *
- * @param {object} post - raw row from community_posts join users
- * @param {object|null} viewer - { id, role } or null for anonymous viewer
- * @returns {object} serialized post safe to return
+ * Identity pass-through. The anonymous help-post opt-in was removed
+ * (see the "撤销匿名功能" commits) — since users can edit their own
+ * nickname freely, an explicit anonymous flag added no real privacy
+ * benefit. The helper is kept as a thin passthrough so existing call
+ * sites in communityController, userController, communityLinks, and
+ * systemController don't have to be re-threaded. `viewer` is retained
+ * in the signature for future redaction use cases.
  */
-function serializeCommunityPost(post, viewer) {
+function serializeCommunityPost(post /* , viewer */) {
   if (!post) return post;
-
-  const isAnonymous = Boolean(post.is_anonymous);
-  if (!isAnonymous) return { ...post };
-
-  const viewerId = viewer && viewer.id != null ? Number(viewer.id) : null;
-  const viewerRole = viewer && viewer.role ? String(viewer.role) : null;
-  const authorId = post.author_id != null ? Number(post.author_id) : null;
-  const isOwner = viewerId !== null && authorId !== null && viewerId === authorId;
-  const isAdmin = viewerRole === 'admin';
-
-  if (isOwner || isAdmin) return { ...post };
-
-  return {
-    ...post,
-    author_id: null,
-    author_name: null,
-    author_avatar: null,
-    uploader_id: null,   // 防御性：某些 join 别名可能带此字段
-  };
+  return { ...post };
 }
 
 module.exports = { serializeCommunityPost };

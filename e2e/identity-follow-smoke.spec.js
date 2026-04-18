@@ -134,13 +134,12 @@ async function createArticle(apiRequest, author, overrides = {}) {
   return { id, title };
 }
 
-/** Create a community post. section/is_anonymous/title/content configurable. */
+/** Create a community post. section/title/content configurable. */
 async function createCommunityPost(apiRequest, author, overrides = {}) {
   const payload = {
     section: overrides.section || "help",
     title: overrides.title || `E2E Post ${ts()}_${rand()}`,
     content: overrides.content || "Help question body.",
-    is_anonymous: overrides.is_anonymous ?? 0,
     ...overrides,
   };
   const resp = await apiRequest.post(`${BASE_API}/community/posts`, {
@@ -336,67 +335,50 @@ test.describe("identity & follow notifications smoke", () => {
   });
 
   // ---------------------------------------------------------------------------
-  // 11.4 — anonymous help post skips fan-out + hidden from author profile
+  // 11.4 — help/team posts never trigger fan-out (community posts are not
+  // part of the new_content notification set, anonymity has been dropped).
   // ---------------------------------------------------------------------------
-  test("11.4 anonymous help post skips fan-out and is hidden from visitor profile (API)", async ({
+  test("11.4 help post does not trigger fan-out notification", async ({
     request: apiRequest,
   }) => {
     const author = await registerUser(apiRequest, "s4_author");
     const fan = await registerUser(apiRequest, "s4_fan");
-    const visitor = await registerUser(apiRequest, "s4_visitor");
 
     // fan follows author.
     const followResp = await toggleFollow(apiRequest, fan, author.id);
     expect(followResp.ok(), await followResp.text()).toBeTruthy();
 
-    // Snapshot fan's notification count BEFORE the anonymous post.
+    // Snapshot fan's notification count BEFORE the post.
     const before = await fetchNotifications(apiRequest, fan);
     const beforeCount = (before?.data || before?.notifications || []).length;
 
-    // Author posts an anonymous help post.
-    const anonTitle = `S4_AnonHelp_${ts()}_${rand()}`;
+    // Author posts a help post.
+    const helpTitle = `S4_Help_${ts()}_${rand()}`;
     const post = await createCommunityPost(apiRequest, author, {
       section: "help",
-      is_anonymous: 1,
-      title: anonTitle,
-      content: "Anon question, should NOT trigger fan-out.",
+      title: helpTitle,
+      content: "Community post body — help section should not fan out.",
     });
     expect(post.id).toBeTruthy();
 
-    // Short window for any (hypothetical) fan-out worker; spec prohibits fan-out.
+    // Short window; community posts are out of the fan-out whitelist.
     await expect
       .poll(
         async () => {
           const payload = await fetchNotifications(apiRequest, fan);
           const list = payload?.data || payload?.notifications || [];
           const match = list.find((n) =>
-            JSON.stringify(n).includes(anonTitle),
+            JSON.stringify(n).includes(helpTitle),
           );
-          return {
-            grew: list.length - beforeCount,
-            mentionsAnon: Boolean(match),
-          };
+          return Boolean(match);
         },
         {
-          message:
-            "anonymous help post must not appear in fan's notifications",
+          message: "help post must not appear in fan's notifications",
           timeout: 10_000,
           intervals: [1_000, 2_000, 3_000],
         },
       )
-      .toEqual(expect.objectContaining({ mentionsAnon: false }));
-
-    // Visitor fetches author's /resources — the anonymous help post must not
-    // appear (server-side redaction + SQL filter).
-    const resResp = await apiRequest.get(
-      `${BASE_API}/users/${author.id}/resources`,
-      { headers: { Authorization: `Bearer ${visitor.token}` } },
-    );
-    expect(resResp.ok(), await resResp.text()).toBeTruthy();
-    const resources = await resResp.json();
-    const titles = (Array.isArray(resources) ? resources : resources.data || [])
-      .map((r) => r.title);
-    expect(titles).not.toContain(anonTitle);
+      .toBe(false);
   });
 
   // ---------------------------------------------------------------------------
