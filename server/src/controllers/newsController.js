@@ -2,6 +2,7 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const { getDb } = require('../config/db');
 const { normalizeLinkagePayload, serializeLinkageFields, attachLinkedResources } = require('../utils/communityLinks');
+const { fanOutNewContent } = require('./notificationController');
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
@@ -101,7 +102,7 @@ const listNews = async (req, res, next) => {
 
     const rows = await db.all(
       `
-      SELECT news.*, users.nickname AS author_name, users.avatar AS author_avatar
+      SELECT news.*, COALESCE(users.nickname, users.username) AS author_name, users.avatar AS author_avatar
       FROM news
       LEFT JOIN users ON users.id = news.uploader_id
       ${whereSQL}
@@ -132,7 +133,7 @@ const getNews = async (req, res, next) => {
     const { id } = req.params;
     const item = await db.get(
       `
-      SELECT news.*, users.nickname AS author_name, users.avatar AS author_avatar
+      SELECT news.*, COALESCE(users.nickname, users.username) AS author_name, users.avatar AS author_avatar
       FROM news
       LEFT JOIN users ON users.id = news.uploader_id
       WHERE news.id = ? AND news.deleted_at IS NULL
@@ -146,7 +147,7 @@ const getNews = async (req, res, next) => {
     await db.run('UPDATE news SET views_count = COALESCE(views_count, 0) + 1, hot_score = COALESCE(hot_score, 0) + 1 WHERE id = ?', [id]);
     const updated = await db.get(
       `
-      SELECT news.*, users.nickname AS author_name, users.avatar AS author_avatar
+      SELECT news.*, COALESCE(users.nickname, users.username) AS author_name, users.avatar AS author_avatar
       FROM news
       LEFT JOIN users ON users.id = news.uploader_id
       WHERE news.id = ?
@@ -281,13 +282,22 @@ const createNews = async (req, res, next) => {
 
     const item = await db.get(
       `
-      SELECT news.*, users.nickname AS author_name, users.avatar AS author_avatar
+      SELECT news.*, COALESCE(users.nickname, users.username) AS author_name, users.avatar AS author_avatar
       FROM news
       LEFT JOIN users ON users.id = news.uploader_id
       WHERE news.id = ?
       `,
       [result.lastID]
     );
+
+    // Fan-out new-content notifications to the author's followers. Helper
+    // swallows its own errors so this will not abort the successful publish.
+    await fanOutNewContent({
+      authorId: userId,
+      resourceType: 'news',
+      resourceId: result.lastID,
+      title: payload.title,
+    });
 
     res.status(201).json(serializeNews(item));
   } catch (error) {
@@ -338,7 +348,7 @@ const updateNews = async (req, res, next) => {
 
     const item = await db.get(
       `
-      SELECT news.*, users.nickname AS author_name, users.avatar AS author_avatar
+      SELECT news.*, COALESCE(users.nickname, users.username) AS author_name, users.avatar AS author_avatar
       FROM news
       LEFT JOIN users ON users.id = news.uploader_id
       WHERE news.id = ?

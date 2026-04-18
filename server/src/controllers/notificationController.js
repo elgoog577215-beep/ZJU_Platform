@@ -37,6 +37,70 @@ const createNotification = async (userId, type, content, resourceId = null, reso
     }
 };
 
+const RESOURCE_TYPE_LABEL = {
+    article: '文章',
+    photo: '图片',
+    music: '音乐',
+    video: '视频',
+    event: '活动',
+    news: '新闻',
+};
+
+/**
+ * Fan out a new_content notification to every follower of `authorId`.
+ *
+ * Filters out banned users and (when the column exists) soft-deleted users.
+ * Any internal error is swallowed — fan-out MUST NOT abort the parent resource
+ * creation flow (see follow-new-content-notifications spec, "Fan-out failure
+ * does not abort resource creation").
+ *
+ * @param {object} args
+ * @param {number} args.authorId - uploader/author id of the new resource
+ * @param {string} args.resourceType - one of article/photo/music/video/event/news
+ * @param {number} args.resourceId - id of the newly inserted resource row
+ * @param {string} args.title - resource title (falls back to "（无标题）")
+ */
+const fanOutNewContent = async ({ authorId, resourceType, resourceId, title }) => {
+    if (!authorId || !resourceType || !resourceId) return;
+    const label = RESOURCE_TYPE_LABEL[resourceType];
+    if (!label) return; // unknown type: skip fan-out
+
+    try {
+        const db = await getDb();
+        // Author display name (nickname || username)
+        const author = await db.get(
+            'SELECT username, nickname FROM users WHERE id = ?',
+            [authorId]
+        );
+        if (!author) return;
+        const authorName = author.nickname || author.username || '某用户';
+
+        // Followers, excluding banned (+ deleted_at when the column exists)
+        const userCols = await db.all('PRAGMA table_info(users)');
+        const hasDeletedAt = userCols.some((c) => c.name === 'deleted_at');
+        const followerQuery = hasDeletedAt
+            ? `SELECT uf.follower_id FROM user_follows uf
+               JOIN users u ON u.id = uf.follower_id
+               WHERE uf.following_id = ?
+                 AND (u.role IS NULL OR u.role != 'banned')
+                 AND u.deleted_at IS NULL`
+            : `SELECT uf.follower_id FROM user_follows uf
+               JOIN users u ON u.id = uf.follower_id
+               WHERE uf.following_id = ?
+                 AND (u.role IS NULL OR u.role != 'banned')`;
+        const rows = await db.all(followerQuery, [authorId]);
+
+        const safeTitle = title && String(title).trim() ? String(title).trim() : '（无标题）';
+        const content = `${authorName} 发布了新${label}《${safeTitle}》`;
+
+        for (const row of rows) {
+            await createNotification(row.follower_id, 'new_content', content, resourceId, resourceType);
+        }
+    } catch (err) {
+        console.error('[fanOutNewContent] error:', err);
+    }
+};
+
 const getNotifications = async (req, res, next) => {
     try {
         const db = await getDb();
@@ -108,6 +172,7 @@ const deleteNotification = async (req, res, next) => {
 
 module.exports = {
     createNotification,
+    fanOutNewContent,
     getNotifications,
     markAsRead,
     deleteNotification

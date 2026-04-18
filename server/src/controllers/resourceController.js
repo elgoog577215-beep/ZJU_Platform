@@ -1,6 +1,6 @@
 const { getDb } = require('../config/db');
 const { deleteFileFromUrl } = require('../utils/fileUtils');
-const { createNotification } = require('./notificationController');
+const { createNotification, fanOutNewContent } = require('./notificationController');
 const { normalizeLinkagePayload, serializeLinkageFields, attachLinkedResources } = require('../utils/communityLinks');
 
 // FIX: O4 — Remove CREATE TABLE from hot path; table should exist from migrations
@@ -109,10 +109,27 @@ const createHandler = (table, fields) => async (req, res, next) => {
     const values = [...fields.map(field => req.body[field]), status, uploader_id];
     
     const result = await db.run(sql, values);
-    
+
     // Process tags to ensure they exist in the centralized tags table
     if (req.body.tags) {
         await processTags(req.body.tags);
+    }
+
+    // Fan-out new-content notifications to the author's followers.
+    // Only for the 5 user-facing resource tables. Community posts are excluded
+    // per spec "No Fan-out for Community Posts". Rejected items are skipped so
+    // admin moderation does not leak pre-review content.
+    //
+    // NOTE: Using getSingularType so 'music' stays 'music' (not table.slice(0,-1)
+    // which would incorrectly produce 'musi').
+    const FANOUT_TABLES = new Set(['photos', 'music', 'videos', 'articles', 'events']);
+    if (FANOUT_TABLES.has(table) && status !== 'rejected') {
+        await fanOutNewContent({
+            authorId: uploader_id,
+            resourceType: getSingularType(table),
+            resourceId: result.lastID,
+            title: req.body.title,
+        });
     }
 
     res.json(serializeResourceItem(table, { id: result.lastID, ...req.body, status, likes: 0 }));
@@ -291,7 +308,7 @@ const getOneHandler = (table) => async (req, res, next) => {
     const userId = req.user ? req.user.id : null;
     const itemType = getSingularType(table);
 
-    let query = `SELECT ${table}.*, u.nickname AS author_name, u.avatar AS author_avatar`;
+    let query = `SELECT ${table}.*, COALESCE(u.nickname, u.username) AS author_name, u.avatar AS author_avatar`;
     let params = [];
 
     if (userId) {
@@ -376,7 +393,7 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
             }
         }
 
-        let query = `SELECT ${table}.*, u.nickname AS author_name, u.avatar AS author_avatar`;
+        let query = `SELECT ${table}.*, COALESCE(u.nickname, u.username) AS author_name, u.avatar AS author_avatar`;
         let params = [];
 
         if (table === 'events') {
