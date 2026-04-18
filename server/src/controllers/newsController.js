@@ -154,7 +154,10 @@ const getNews = async (req, res, next) => {
       [id]
     );
     const serialized = serializeNews(updated);
-    const linked = await attachLinkedResources(db, serialized);
+    const viewer = req.user && req.user.id != null
+      ? { id: req.user.id, role: req.user.role || null }
+      : null;
+    const linked = await attachLinkedResources(db, serialized, { viewer });
     res.json(linked);
   } catch (error) {
     next(error);

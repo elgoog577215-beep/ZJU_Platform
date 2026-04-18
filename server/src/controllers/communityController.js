@@ -1,6 +1,13 @@
 const { getDb } = require('../config/db');
 const { createNotification } = require('./notificationController');
 const { normalizeLinkagePayload, serializeLinkageFields, attachLinkedResources } = require('../utils/communityLinks');
+const { serializeCommunityPost } = require('../utils/serializeCommunityPost');
+
+const viewerFromReq = (req) => (
+  req && req.user && req.user.id != null
+    ? { id: req.user.id, role: req.user.role || null }
+    : null
+);
 
 const ALLOWED_SECTIONS = new Set(['help', 'tech', 'news', 'team', 'groups']);
 const ALLOWED_GROUP_PLATFORMS = new Set(['wechat', 'qq', 'discord', 'telegram', 'other']);
@@ -223,6 +230,7 @@ const serializePost = (row) => {
     author_id: row.author_id,
     author_name: row.author_name,
     author_avatar: row.author_avatar,
+    is_anonymous: row.is_anonymous ? 1 : 0,
     likes_count: row.likes_count || 0,
     comments_count: row.comments_count || 0,
     views_count: row.views_count || 0,
@@ -365,8 +373,9 @@ const listPosts = async (req, res, next) => {
       whereParams
     );
 
+    const viewer = viewerFromReq(req);
     res.json({
-      data: rows.map(serializePost),
+      data: rows.map((row) => serializePost(serializeCommunityPost(row, viewer))),
       pagination: {
         total: total?.count || 0,
         page,
@@ -388,8 +397,9 @@ const getPost = async (req, res, next) => {
 
     await db.run('UPDATE community_posts SET views_count = COALESCE(views_count, 0) + 1 WHERE id = ?', [id]);
     const updated = await db.get('SELECT * FROM community_posts WHERE id = ?', [id]);
-    const serialized = serializePost(updated);
-    const linked = await attachLinkedResources(db, serialized);
+    const viewer = viewerFromReq(req);
+    const serialized = serializePost(serializeCommunityPost(updated, viewer));
+    const linked = await attachLinkedResources(db, serialized, { viewer });
     res.json(linked);
   } catch (error) { next(error); }
 };
@@ -435,12 +445,14 @@ const createPost = async (req, res, next) => {
       ? Math.min(Math.max(parseInt(maxMembersRaw, 10), 2), 100)
       : null;
     const currentMembers = section === 'team' ? 1 : 0;
+    // Anonymous opt-in: only valid for help posts; team section强制实名，忽略字段
+    const isAnonymous = section === 'help' && Boolean(req.body.is_anonymous) ? 1 : 0;
 
     const result = await db.run(
       `
       INSERT INTO community_posts
-      (section, title, content, content_blocks, link, tags, status, post_status, deadline, max_members, current_members, author_id, author_name, author_avatar, related_article_ids, related_post_ids, related_news_ids, related_group_ids, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+      (section, title, content, content_blocks, link, tags, status, post_status, deadline, max_members, current_members, author_id, author_name, author_avatar, is_anonymous, related_article_ids, related_post_ids, related_news_ids, related_group_ids, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
       `,
       [
         section,
@@ -457,6 +469,7 @@ const createPost = async (req, res, next) => {
         userId,
         authorName,
         user.avatar || null,
+        isAnonymous,
         mutableBody.related_article_ids || null,
         mutableBody.related_post_ids || null,
         mutableBody.related_news_ids || null,
@@ -472,7 +485,8 @@ const createPost = async (req, res, next) => {
     }
 
     const post = await db.get('SELECT * FROM community_posts WHERE id = ?', [result.lastID]);
-    res.status(201).json(serializePost(post));
+    const viewer = viewerFromReq(req);
+    res.status(201).json(serializePost(serializeCommunityPost(post, viewer)));
   } catch (error) { next(error); }
 };
 
@@ -732,7 +746,7 @@ const searchPosts = async (req, res, next) => {
     const term = `%${q}%`;
     const rows = await db.all(
       `
-      SELECT id, title, section, tags, author_name, created_at
+      SELECT id, title, section, tags, author_id, author_name, author_avatar, is_anonymous, created_at
       FROM community_posts
       WHERE status = 'approved' AND (title LIKE ? OR content LIKE ? OR tags LIKE ? OR author_name LIKE ?)
       ORDER BY likes_count DESC, id DESC
@@ -740,7 +754,8 @@ const searchPosts = async (req, res, next) => {
       `,
       [term, term, term, term]
     );
-    res.json(rows);
+    const viewer = viewerFromReq(req);
+    res.json(rows.map((row) => serializeCommunityPost(row, viewer)));
   } catch (error) { next(error); }
 };
 
@@ -775,7 +790,8 @@ const updatePostStatus = async (req, res, next) => {
       [status, id]
     );
     const updated = await db.get('SELECT * FROM community_posts WHERE id = ?', [id]);
-    res.json(serializePost(updated));
+    const viewer = viewerFromReq(req);
+    res.json(serializePost(serializeCommunityPost(updated, viewer)));
   } catch (error) { next(error); }
 };
 
@@ -834,7 +850,8 @@ const joinTeamPost = async (req, res, next) => {
     );
 
     const updated = await db.get('SELECT * FROM community_posts WHERE id = ?', [id]);
-    res.json(serializePost(updated));
+    const viewer = viewerFromReq(req);
+    res.json(serializePost(serializeCommunityPost(updated, viewer)));
   } catch (error) { next(error); }
 };
 
@@ -866,7 +883,8 @@ const solvePost = async (req, res, next) => {
       [commentId || null, id]
     );
     const updated = await db.get('SELECT * FROM community_posts WHERE id = ?', [id]);
-    res.json(serializePost(updated));
+    const viewer = viewerFromReq(req);
+    res.json(serializePost(serializeCommunityPost(updated, viewer)));
   } catch (error) { next(error); }
 };
 
@@ -896,7 +914,8 @@ const leaveTeamPost = async (req, res, next) => {
     `, [id]);
 
     const updated = await db.get('SELECT * FROM community_posts WHERE id = ?', [id]);
-    res.json(serializePost(updated));
+    const viewer = viewerFromReq(req);
+    res.json(serializePost(serializeCommunityPost(updated, viewer)));
   } catch (error) { next(error); }
 };
 
@@ -1008,7 +1027,8 @@ const updatePost = async (req, res, next) => {
     );
 
     const updated = await db.get('SELECT * FROM community_posts WHERE id = ?', [id]);
-    res.json(serializePost(updated));
+    const viewer = viewerFromReq(req);
+    res.json(serializePost(serializeCommunityPost(updated, viewer)));
   } catch (error) { next(error); }
 };
 
@@ -1024,7 +1044,8 @@ const getGroup = async (req, res, next) => {
     if (row.review_status !== 'approved' && actor?.role !== 'admin' && row.created_by !== req.user?.id) {
       return res.status(403).json({ error: 'Permission denied' });
     }
-    const linked = await attachLinkedResources(db, serializeGroup(row), { includePrimaryTags: true });
+    const viewer = viewerFromReq(req);
+    const linked = await attachLinkedResources(db, serializeGroup(row), { includePrimaryTags: true, viewer });
     res.json(linked);
   } catch (error) { next(error); }
 };
@@ -1249,7 +1270,8 @@ const reviewPost = async (req, res, next) => {
     console.log(JSON.stringify({ action: 'review', postId: id, reviewAction: action, reason: reason || null, userId, timestamp: new Date().toISOString() }));
 
     const updated = await db.get('SELECT * FROM community_posts WHERE id = ?', [id]);
-    res.json(serializePost(updated));
+    const viewer = viewerFromReq(req);
+    res.json(serializePost(serializeCommunityPost(updated, viewer)));
   } catch (error) { next(error); }
 };
 

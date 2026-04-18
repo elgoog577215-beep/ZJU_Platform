@@ -327,7 +327,10 @@ const getOneHandler = (table) => async (req, res, next) => {
     }
 
     if (table === 'articles') {
-      const linkedItem = await attachLinkedResources(db, item);
+      const viewer = req.user && req.user.id != null
+        ? { id: req.user.id, role: req.user.role || null }
+        : null;
+      const linkedItem = await attachLinkedResources(db, item, { viewer });
       return res.json(linkedItem);
     }
 

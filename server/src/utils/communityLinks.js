@@ -146,7 +146,7 @@ const fetchSummaryRows = async (db, table, ids) => {
   if (table === 'community_posts') {
     return db.all(
       `
-      SELECT id, section, title, content, tags, post_status, author_name, created_at
+      SELECT id, section, title, content, tags, post_status, author_id, author_name, author_avatar, is_anonymous, created_at
       FROM community_posts
       WHERE id IN (${buildInClause(ids)}) AND status = 'approved'
       `,
@@ -208,19 +208,28 @@ const serializeArticleSummary = (row) => ({
   created_at: row.created_at || null,
 });
 
-const serializePostSummary = (row) => ({
-  id: row.id,
-  type: 'post',
-  section: row.section,
-  title: row.title,
-  excerpt: row.content ? String(row.content).slice(0, 120) : '',
-  tags: row.tags
-    ? String(row.tags).split(',').map((tag) => tag.trim()).filter(Boolean)
-    : [],
-  post_status: row.post_status || null,
-  author_name: row.author_name || null,
-  created_at: row.created_at || null,
-});
+// Lazy-require to avoid circular dep risk; helper is pure so require-at-use is fine
+const { serializeCommunityPost } = require('./serializeCommunityPost');
+
+const serializePostSummary = (row, viewer = null) => {
+  const redacted = serializeCommunityPost(row, viewer);
+  return {
+    id: redacted.id,
+    type: 'post',
+    section: redacted.section,
+    title: redacted.title,
+    excerpt: redacted.content ? String(redacted.content).slice(0, 120) : '',
+    tags: redacted.tags
+      ? String(redacted.tags).split(',').map((tag) => tag.trim()).filter(Boolean)
+      : [],
+    post_status: redacted.post_status || null,
+    author_id: redacted.author_id != null ? redacted.author_id : null,
+    author_name: redacted.author_name || null,
+    author_avatar: redacted.author_avatar || null,
+    is_anonymous: redacted.is_anonymous ? 1 : 0,
+    created_at: redacted.created_at || null,
+  };
+};
 
 const serializeNewsSummary = (row) => ({
   id: row.id,
@@ -245,7 +254,7 @@ const serializeGroupSummary = (row) => ({
   primary_tags: parsePrimaryTags(row.primary_tags),
 });
 
-const attachLinkedResources = async (db, item, { includePrimaryTags = false } = {}) => {
+const attachLinkedResources = async (db, item, { includePrimaryTags = false, viewer = null } = {}) => {
   if (!item) return item;
 
   const normalized = serializeLinkageFields(item, { includePrimaryTags });
@@ -265,7 +274,7 @@ const attachLinkedResources = async (db, item, { includePrimaryTags = false } = 
     ...normalized,
     linked_resources: {
       articles: orderRowsByIds(articleRows, articleIds, serializeArticleSummary),
-      posts: orderRowsByIds(postRows, postIds, serializePostSummary),
+      posts: orderRowsByIds(postRows, postIds, (row) => serializePostSummary(row, viewer)),
       news: orderRowsByIds(newsRows, newsIds, serializeNewsSummary),
       groups: orderRowsByIds(groupRows, groupIds, serializeGroupSummary),
     },
