@@ -281,6 +281,41 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
   const [activeContentType, setActiveContentType] = useState("all");
   const isOwner =
     currentUser && user && String(currentUser.id) === String(user.id);
+
+  // Unread-notification count for the "消息" tab dot. NotificationCenter
+  // only mounts when that tab is active, so we poll directly from this
+  // component (mirrors MobileNavbar's approach) and also listen for the
+  // `notifications:updated` event emitted by NotificationCenter / the
+  // mobile navbar fetch so counts stay in sync across UIs.
+  const [unreadCount, setUnreadCount] = useState(0);
+  useEffect(() => {
+    if (!isOwner) {
+      setUnreadCount(0);
+      return undefined;
+    }
+    let cancelled = false;
+    const fetchUnread = async () => {
+      try {
+        const res = await api.get("/notifications?limit=1");
+        if (cancelled) return;
+        setUnreadCount(Number(res.data?.unreadCount) || 0);
+      } catch {
+        /* transient errors — keep last known value */
+      }
+    };
+    fetchUnread();
+    const pollId = setInterval(fetchUnread, 60_000);
+    const onUpdate = (event) => {
+      const n = Number(event?.detail?.unreadCount);
+      if (Number.isFinite(n)) setUnreadCount(n);
+    };
+    window.addEventListener("notifications:updated", onUpdate);
+    return () => {
+      cancelled = true;
+      clearInterval(pollId);
+      window.removeEventListener("notifications:updated", onUpdate);
+    };
+  }, [isOwner]);
   const prefersReducedMotion = useReducedMotion();
   const isDayMode = uiMode === "day";
   const settingsPanelClass = isDayMode
@@ -909,7 +944,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
               </button>
               <button
                 onClick={() => setActiveTab("messages")}
-                className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
+                className={`relative px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
                   activeTab === "messages"
                     ? isDayMode
                       ? "bg-indigo-600 text-white shadow-[0_12px_28px_rgba(99,102,241,0.22)]"
@@ -921,6 +956,18 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
               >
                 <Bell size={18} />
                 {t("user_profile.tabs.messages", "消息")}
+                {isOwner && unreadCount > 0 && (
+                  <span
+                    aria-label={t(
+                      "nav.unread_count",
+                      "{{count}} 条未读通知",
+                      { count: unreadCount },
+                    )}
+                    className={`absolute top-1.5 right-2 w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ${
+                      isDayMode ? "ring-white" : "ring-[#0a0a0a]"
+                    }`}
+                  />
+                )}
               </button>
               <button
                 onClick={() => setActiveTab("settings")}
