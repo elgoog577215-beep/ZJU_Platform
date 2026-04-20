@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import CommunityDetailModal from './CommunityDetailModal';
 import { parseContentBlocks, communityTheme } from './communityUtils';
+import { LinkifiedText } from '../utils/linkify';
 
 /**
  * Full post-detail view with comments, used by Help and Team sections.
@@ -228,7 +229,9 @@ const CommunityPostDetail = ({
     const shown = shouldCollapse && !expanded ? `${text.slice(0, threshold)}...` : text;
     return (
       <div>
-        <p className={`${size === 'small' ? 'text-xs' : 'text-sm'} leading-relaxed ${th.textContent} whitespace-pre-wrap break-words`}>{shown}</p>
+        <p className={`${size === 'small' ? 'text-xs' : 'text-sm'} leading-relaxed ${th.textContent} whitespace-pre-wrap break-words`}>
+          <LinkifiedText text={shown} />
+        </p>
         {shouldCollapse && (
           <button
             type="button"

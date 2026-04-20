@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 import { communityTheme, extractTocItems, flattenLinkedResources } from './communityUtils';
+import { LinkifiedText, linkifyHtml } from '../utils/linkify';
 
 const TYPE_META = {
   article: { label: '文章', icon: BookOpen },
@@ -121,7 +122,7 @@ const CommunityDetailModal = ({
     if (block.style === 'quote') {
       return (
         <blockquote className={`border-l-4 pl-5 italic text-lg leading-8 ${isDayMode ? 'border-orange-300 text-slate-600 bg-orange-50/60' : 'border-orange-400/50 text-gray-200 bg-orange-500/5'} rounded-r-2xl py-3`}>
-          {block.text}
+          <LinkifiedText text={block.text} />
         </blockquote>
       );
     }
@@ -134,7 +135,9 @@ const CommunityDetailModal = ({
       return (
         <ul className={`space-y-2 pl-6 list-disc text-lg leading-8 ${th.textContent}`}>
           {items.map((line, idx) => (
-            <li key={`${blockKey}-li-${idx}`}>{line}</li>
+            <li key={`${blockKey}-li-${idx}`}>
+              <LinkifiedText text={line} />
+            </li>
           ))}
         </ul>
       );
@@ -155,7 +158,7 @@ const CommunityDetailModal = ({
 
     return (
       <p className={`whitespace-pre-wrap break-words leading-8 text-lg ${th.textContent}`}>
-        {block.text}
+        <LinkifiedText text={block.text} />
       </p>
     );
   };
@@ -399,7 +402,14 @@ const CommunityDetailModal = ({
                 ) : htmlContent ? (
                   <div
                     className={`prose prose-lg max-w-none leading-relaxed break-words mb-10 ${th.prose}`}
-                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent) }}
+                    dangerouslySetInnerHTML={{
+                      // linkify first (wraps bare URLs in <a>), then sanitize
+                      // so DOMPurify keeps our added anchors and strips
+                      // anything else unsafe.
+                      __html: DOMPurify.sanitize(linkifyHtml(htmlContent), {
+                        ADD_ATTR: ['target', 'rel'],
+                      }),
+                    }}
                   />
                 ) : null}
 

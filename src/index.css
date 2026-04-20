@@ -1025,3 +1025,26 @@ select:focus-visible {
 :root[data-theme='day'] .hover\:text-white:hover { color: var(--theme-text-primary); }
 :root[data-theme='day'] .hover\:border-white\/10:hover { border-color: rgba(99, 102, 241, 0.18); }
 :root[data-theme='day'] .shadow-\[0_8px_32px_rgba\(0\,0\,0\,0\.4\)\] { box-shadow: 0 18px 40px rgba(148, 163, 184, 0.18); }
+
+/* Auto-linkified URLs (see src/utils/linkify.jsx).
+   Plain state keeps typography intact; hover reveals a subtle underline
+   so the affordance is discoverable without crowding the prose. */
+.linkified-url {
+  color: rgb(165, 180, 252);       /* indigo-300 — default dark theme */
+  font-weight: 500;
+  text-decoration: none;
+  word-break: break-word;
+  transition: color 0.15s ease;
+}
+.linkified-url:hover {
+  color: rgb(199, 210, 254);       /* indigo-200 */
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1.5px;
+}
+:root[data-theme='day'] .linkified-url {
+  color: rgb(99, 102, 241);        /* indigo-500 */
+}
+:root[data-theme='day'] .linkified-url:hover {
+  color: rgb(79, 70, 229);         /* indigo-600 */
+}
