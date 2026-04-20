@@ -35,6 +35,11 @@ Thumbs.db
 server/data/
 server/uploads/
 
+# DB backups from scripts/fix-schema.js (kept out of repo;
+# server/backups/.gitkeep preserves the directory itself)
+server/backups/*.bak.*
+server/backups/*.hotbak.*
+
 # Uploads (user-generated content, not for git)
 server/uploads/
 
