@@ -20,8 +20,8 @@ const panels = {
 };
 
 const TABS = [
-  { key: 'help', icon: HelpCircle, labelKey: 'community.tab_help', fallback: '求助天地' },
   { key: 'tech', icon: BookOpen, labelKey: 'community.tab_tech', fallback: '技术分享' },
+  { key: 'help', icon: HelpCircle, labelKey: 'community.tab_help', fallback: '求助天地' },
   { key: 'groups', icon: QrCode, labelKey: 'community.tab_groups', fallback: '二维码社群' },
 ];
 

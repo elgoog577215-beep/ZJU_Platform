@@ -36,7 +36,7 @@ const Hero = () => {
   }, []);
 
   const overlayClass = isDayMode
-    ? "bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.16),transparent_40%),linear-gradient(180deg,rgba(248,250,252,0.06)_0%,rgba(248,250,252,0.38)_58%,rgba(248,250,252,0.86)_100%)]"
+    ? ""
     : "bg-gradient-to-b from-black/10 via-black/24 to-black/48";
   const imageClass = isDayMode ? "opacity-60 saturate-[0.92]" : "opacity-46";
   const titleClass = isDayMode
