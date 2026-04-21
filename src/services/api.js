@@ -19,6 +19,11 @@ const isCanceledRequest = (error) =>
   error?.name === 'CanceledError' ||
   error?.message === 'canceled';
 
+const isErrorReportingRequest = (config) => {
+  const url = config?.url || '';
+  return typeof url === 'string' && url.includes('/errors');
+};
+
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
@@ -56,7 +61,7 @@ api.interceptors.response.use(
     }
 
     // 报告错误到监控系统
-    if (!config?.silent) {
+    if (!config?.silent && !isErrorReportingRequest(config) && !import.meta.env.DEV) {
       errorMonitor.report(error, {
         url: error.config?.url,
         method: error.config?.method,

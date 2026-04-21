@@ -1,5 +1,5 @@
-﻿import { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import {
   Cloud,
   Clock,
@@ -24,7 +24,6 @@ import { useBackClose } from "../hooks/useBackClose";
 import { useWeather } from "../hooks/useWeather";
 import { useReducedMotion } from "../utils/animations";
 import AuthModal from "./AuthModal";
-import { themeConfig } from "../data/themeConfig";
 import NotificationCenter from "./NotificationCenter";
 import ReactDOM from "react-dom";
 import toast from "react-hot-toast";
@@ -38,16 +37,8 @@ const Navbar = () => {
   const [isThemeOpen, setIsThemeOpen] = useState(false);
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
   const location = useLocation();
-  const navigate = useNavigate();
   const { t } = useTranslation();
-  const {
-    themeScene,
-    changeThemeScene,
-    backgroundEnabled,
-    changeBackgroundEnabled,
-    uiMode,
-    changeUiMode,
-  } = useSettings();
+  const { uiMode, changeUiMode } = useSettings();
   const { user, logout, isAdmin } = useAuth();
   const [time, setTime] = useState(new Date());
   const prefersReducedMotion = useReducedMotion();
@@ -191,7 +182,6 @@ const Navbar = () => {
     : "bg-[#1a1a1a] border border-white/10 shadow-2xl";
   const showMobileUploadAction = showUploadButton;
   const showMobileSearchAction =
-    !showMobileUploadAction &&
     !location.pathname.startsWith("/me") &&
     !location.pathname.startsWith("/user/");
 
@@ -390,7 +380,7 @@ const Navbar = () => {
             <button
               type="button"
               aria-label={t("search.placeholder")}
-              onClick={() => navigate("/search")}
+              onClick={() => window.dispatchEvent(new Event("open-search-palette"))}
               className={`p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-slate-500 hover:text-slate-900 bg-white/82 border border-slate-200/80 shadow-[0_8px_18px_rgba(148,163,184,0.12)]" : "text-gray-200 hover:text-white bg-white/10 border border-white/10"}`}
             >
               <Search size={18} />
@@ -640,66 +630,10 @@ const Navbar = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-2">
-                  <div
-                    className={`px-2 pb-1 text-[11px] ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                  >
-                    背景场景仅影响背景视觉，不改变组件配色
-                  </div>
-                  <button
-                    onClick={() => changeBackgroundEnabled(!backgroundEnabled)}
-                    className={`w-full rounded-xl border px-3 py-2 text-left transition-all ${isDayMode ? "bg-white/90 border-slate-200/80 hover:bg-white" : "bg-white/5 border-white/10 hover:bg-white/10"}`}
-                  >
-                    <div
-                      className={`text-sm font-semibold ${isDayMode ? "text-slate-900" : "text-white"}`}
-                    >
-                      背景渲染
-                    </div>
-                    <div
-                      className={`mt-1 text-[11px] ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                    >
-                      {backgroundEnabled
-                        ? "已开启（显示3D/动态背景）"
-                        : "已关闭（仅保留纯色主题背景）"}
-                    </div>
-                  </button>
-                  {themeConfig.map((s) => {
-                    const Icon = s.icon;
-                    const isActive = themeScene === s.id;
-                    return (
-                      <button
-                        key={s.id}
-                        onClick={() => changeThemeScene(s.id)}
-                        className={`w-full text-left p-3 rounded-xl transition-all duration-300 border group relative overflow-hidden
-                          ${isActive ? `${s.bg} ${s.borderColor}` : isDayMode ? "bg-slate-50/80 border-slate-200/70 hover:bg-white" : "bg-white/5 border-transparent hover:bg-white/10"}`}
-                      >
-                        <div className="relative z-10 flex items-center gap-4">
-                          <div
-                            className={`p-2 rounded-lg ${isActive ? (isDayMode ? "bg-white/80" : "bg-black/20") : isDayMode ? "bg-white/90" : "bg-black/40"} ${s.color}`}
-                          >
-                            <Icon size={20} />
-                          </div>
-                          <div>
-                            <div
-                              className={`font-bold text-sm ${isActive ? (isDayMode ? "text-slate-900" : "text-white") : isDayMode ? "text-slate-700" : "text-gray-300"}`}
-                            >
-                              {t(s.labelKey)}
-                            </div>
-                            <div
-                              className={`text-[10px] font-mono uppercase tracking-wider ${isDayMode ? "text-slate-400" : "text-white/50"}`}
-                            >
-                              {t(s.descKey)}
-                            </div>
-                          </div>
-                          {isActive && (
-                            <span
-                              className={`ml-auto inline-flex h-2 w-2 rounded-full ${s.dotColor}`}
-                            />
-                          )}
-                        </div>
-                      </button>
-                    );
-                  })}
+                <div
+                  className={`rounded-xl border px-3 py-3 text-sm ${isDayMode ? "border-slate-200/80 bg-white/90 text-slate-500" : "border-white/10 bg-white/5 text-gray-400"}`}
+                >
+                  首页背景已固定为静态渐变，白天/夜间模式仍会同步切换整体观感。
                 </div>
               </motion.div>
             </motion.div>

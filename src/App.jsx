@@ -108,34 +108,9 @@ const AppContent = () => {
   const isAdminRoute = location.pathname.startsWith('/admin');
   const { cursorEnabled, settings } = useSettings();
   const shouldMountDeferredUi = useDeferredMount(700);
-  const shouldMountHeavyBackground = useDeferredMount(100);
-  const [canRenderHeavyEffects, setCanRenderHeavyEffects] = useState(false);
-  const allowBackgroundEffects =
-    !isAdminRoute && String(settings?.background_enabled ?? "false") !== "false";
   const shouldUseThreeBackground = location.pathname === '/';
 
   useServiceWorker();
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return undefined;
-
-    const mediaQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)');
-    const updateHeavyEffects = () => {
-      const prefersReducedMotion = mediaQuery?.matches === true;
-      const isSmallScreen = window.innerWidth < 1280;
-      const saveDataEnabled = navigator.connection?.saveData === true;
-      setCanRenderHeavyEffects(!prefersReducedMotion && !isSmallScreen && !saveDataEnabled);
-    };
-
-    updateHeavyEffects();
-    window.addEventListener('resize', updateHeavyEffects);
-    mediaQuery?.addEventListener?.('change', updateHeavyEffects);
-
-    return () => {
-      window.removeEventListener('resize', updateHeavyEffects);
-      mediaQuery?.removeEventListener?.('change', updateHeavyEffects);
-    };
-  }, []);
 
   usePerformanceMonitor({
     enabled: import.meta.env.PROD,

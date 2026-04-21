@@ -7,7 +7,7 @@ import api from '../services/api';
 
 class ErrorMonitor {
   constructor() {
-    this.enabled = process.env.NODE_ENV === 'development';
+    this.enabled = import.meta.env.PROD;
     this.endpoint = '/errors';
     this.queue = [];
     this.maxQueueSize = 10;
@@ -113,11 +113,16 @@ class ErrorMonitor {
    * 手动报告错误
    */
   report(error, context = {}) {
+    const path = context.url || error?.config?.url;
+    if (typeof path === 'string' && path.includes('/errors')) {
+      return;
+    }
+
     this.handleError({
       type: 'manual',
       error: error?.message || error,
       stack: error?.stack,
-      path: context.url || error?.config?.url,
+      path,
       status: context.status || error?.response?.status,
       method: context.method || error?.config?.method,
       context

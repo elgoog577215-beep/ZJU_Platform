@@ -3,7 +3,6 @@ import api from '../services/api';
 
 const DEFAULT_SETTINGS = {
   pagination_enabled: 'false',
-  theme: 'cyber',
   language: 'zh',
   site_title: '拓途浙享 | TUOTUZJU',
   hero_title: '浙江大学信息聚合平台',
@@ -11,8 +10,6 @@ const DEFAULT_SETTINGS = {
   background_brightness: '1.0',
   background_vignette: '0.5',
   background_bloom: '0.8',
-  background_enabled: 'false',
-  background_scene: 'cyber',
   hero_bg_url: '/uploads/1767349451839-56405188.jpg',
   about_title: '浙江大学信息聚合平台',
   about_subtitle: '打破信息差，共建信息网络',
@@ -43,17 +40,12 @@ const writeStorage = (key, value) => {
 
 const normalizeSettings = (nextSettings = {}) => {
   const merged = { ...DEFAULT_SETTINGS, ...nextSettings };
-  const normalizedScene =
-    merged.background_scene || merged.theme || DEFAULT_SETTINGS.background_scene;
-  const normalizedEnabled =
-    merged.background_enabled ??
-    merged.backgroundEnabled ??
-    DEFAULT_SETTINGS.background_enabled;
 
   return {
     ...merged,
-    background_scene: String(normalizedScene),
-    background_enabled: String(normalizedEnabled),
+    background_brightness: String(merged.background_brightness),
+    background_vignette: String(merged.background_vignette),
+    background_bloom: String(merged.background_bloom),
   };
 };
 
@@ -65,12 +57,6 @@ const defaultSettingsValue = {
   toggleCursor: () => {},
   uiMode: 'dark',
   changeUiMode: () => {},
-  backgroundEnabled: false,
-  changeBackgroundEnabled: () => {},
-  themeScene: 'cyber',
-  changeThemeScene: () => {},
-  backgroundScene: 'cyber',
-  changeBackgroundScene: () => {},
   changeBackgroundBrightness: () => {},
 };
 
@@ -84,15 +70,11 @@ export const SettingsProvider = ({ children }) => {
     const saved = readStorage('cursorEnabled', 'false');
     return saved === 'true';
   });
-
-  const [themeScene, setThemeScene] = useState(() =>
-    readStorage('background_scene', DEFAULT_SETTINGS.background_scene),
-  );
-
   const [uiMode, setUiMode] = useState(() => {
     const saved = readStorage('ui_mode', 'dark');
     return saved === 'day' || saved === 'dark' ? saved : 'dark';
   });
+  const [loading, setLoading] = useState(true);
 
   const updateSetting = useCallback((key, value) => {
     return api
@@ -109,42 +91,8 @@ export const SettingsProvider = ({ children }) => {
       });
   }, []);
 
-  const syncThemeScene = useCallback((scene) => {
-    setThemeScene(scene);
-    writeStorage('background_scene', scene);
-    setSettings((prev) => normalizeSettings({ ...prev, background_scene: scene, theme: scene }));
-  }, []);
-
-  const changeThemeScene = useCallback(
-    async (scene) => {
-      syncThemeScene(scene);
-      try {
-        await Promise.all([
-          updateSetting('background_scene', scene),
-          updateSetting('theme', scene),
-        ]);
-      } catch {
-        return;
-      }
-    },
-    [syncThemeScene, updateSetting],
-  );
-
-  const changeBackgroundScene = changeThemeScene;
-
   const changeBackgroundBrightness = useCallback(
     (value) => updateSetting('background_brightness', value),
-    [updateSetting],
-  );
-
-  const backgroundEnabled = String(settings.background_enabled) !== 'false';
-
-  const changeBackgroundEnabled = useCallback(
-    (enabled) => {
-      const nextValue = enabled ? 'true' : 'false';
-      setSettings((prev) => normalizeSettings({ ...prev, background_enabled: nextValue }));
-      updateSetting('background_enabled', nextValue).catch(() => {});
-    },
     [updateSetting],
   );
 
@@ -162,25 +110,18 @@ export const SettingsProvider = ({ children }) => {
     writeStorage('ui_mode', nextMode);
   }, []);
 
-  const [loading, setLoading] = useState(true);
-
   const fetchSettings = useCallback(() => {
     api
       .get('/settings')
       .then((res) => {
-        const normalizedSettings = normalizeSettings(res.data);
-        setSettings(normalizedSettings);
-        const remoteScene = normalizedSettings.background_scene;
-        if (remoteScene) {
-          syncThemeScene(remoteScene);
-        }
+        setSettings(normalizeSettings(res.data));
         setLoading(false);
       })
       .catch((err) => {
         console.error('Failed to fetch settings:', err);
         setLoading(false);
       });
-  }, [syncThemeScene]);
+  }, []);
 
   useEffect(() => {
     fetchSettings();
@@ -203,12 +144,6 @@ export const SettingsProvider = ({ children }) => {
       toggleCursor,
       uiMode,
       changeUiMode,
-      backgroundEnabled,
-      changeBackgroundEnabled,
-      themeScene,
-      changeThemeScene,
-      backgroundScene: themeScene,
-      changeBackgroundScene,
       changeBackgroundBrightness,
     }),
     [
@@ -219,11 +154,6 @@ export const SettingsProvider = ({ children }) => {
       toggleCursor,
       uiMode,
       changeUiMode,
-      backgroundEnabled,
-      changeBackgroundEnabled,
-      themeScene,
-      changeThemeScene,
-      changeBackgroundScene,
       changeBackgroundBrightness,
     ],
   );
