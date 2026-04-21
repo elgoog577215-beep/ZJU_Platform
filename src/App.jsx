@@ -191,16 +191,7 @@ const AppContent = () => {
           <Navbar />
         </ErrorBoundary>
       )}
-      {allowBackgroundEffects &&
-        shouldUseThreeBackground &&
-        canRenderHeavyEffects &&
-        shouldMountHeavyBackground && (
-          <ErrorBoundary variant="inline" silent>
-            <Suspense fallback={null}>
-              <BackgroundSystem quality="lite" />
-            </Suspense>
-          </ErrorBoundary>
-        )}
+      {/* Keep the Hero image background, but disable the fixed page-wide home background. */}
       {!isAdminRoute && cursorEnabled && (
         <div className="hidden md:block">
           <CustomCursor />
