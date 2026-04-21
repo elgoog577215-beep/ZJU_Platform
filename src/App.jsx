@@ -91,7 +91,6 @@ const Home = () => (
       description="浙江大学 SQTP 项目信息聚合平台，聚合活动、作品与 AI 社区内容。"
     />
     <Hero />
-    <HomeCategories />
     <PlatformStats />
   </>
 );

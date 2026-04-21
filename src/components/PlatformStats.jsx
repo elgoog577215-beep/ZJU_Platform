@@ -202,7 +202,7 @@ const PlatformStats = () => {
   const isDayMode = uiMode === "day";
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { data, loading } = useCachedResource(
+  const { loading } = useCachedResource(
     "/site-metrics",
     {},
     { keyPrefix: "site-metrics", ttl: 1000 * 60 * 3, silent: true },
@@ -217,9 +217,6 @@ const PlatformStats = () => {
   const [followLoading, setFollowLoading] = useState(false);
   const [followingIds, setFollowingIds] = useState([]);
 
-  const summary = data?.summary || {};
-  const growth = data?.growth || {};
-  const trend = data?.trend || [];
   const featuredItems = [
     ...(featuredData?.photos || []).slice(0, 2).map((item) => ({
       id: item.id,
@@ -338,143 +335,8 @@ const PlatformStats = () => {
         <motion.div
           initial={false}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className={`hidden md:block relative overflow-hidden rounded-2xl border p-4 sm:p-5 backdrop-blur-2xl ${
-            isDayMode
-              ? "border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(248,250,252,0.78))] shadow-[0_16px_48px_rgba(148,163,184,0.14)]"
-              : "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] shadow-[0_16px_48px_rgba(0,0,0,0.16)]"
-          }`}
-        >
-          {/* 顶部标题栏 */}
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-            <div className="flex items-center gap-2.5">
-              <div
-                className={`flex h-7 w-7 items-center justify-center rounded-lg ${
-                  isDayMode
-                    ? "bg-indigo-50 text-indigo-500"
-                    : "bg-indigo-400/10 text-indigo-300"
-                }`}
-              >
-                <Activity size={14} />
-              </div>
-              <span
-                className={`text-xs font-semibold uppercase tracking-[0.18em] ${
-                  isDayMode ? "text-slate-600" : "text-white/70"
-                }`}
-              >
-                {t("home.stats.eyebrow", "平台热度")}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Sparkles
-                size={12}
-                className={isDayMode ? "text-amber-400" : "text-amber-300"}
-              />
-              <TrendBadge value={growth.viewsChange} isDayMode={isDayMode} />
-            </div>
-          </div>
-
-          {/* 数据网格 - Bento Grid 风格 */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <StatCard
-              icon={Eye}
-              label={t("home.stats.today_views", "今日浏览")}
-              value={summary.todayViews}
-              accentColor={isDayMode ? "bg-violet-200" : "bg-violet-400/20"}
-              isDayMode={isDayMode}
-              delay={0.05}
-            />
-            <StatCard
-              icon={Upload}
-              label={t("home.stats.today_uploads", "今日上传")}
-              value={summary.todayUploads}
-              accentColor={isDayMode ? "bg-emerald-200" : "bg-emerald-400/20"}
-              isDayMode={isDayMode}
-              delay={0.1}
-            />
-            <StatCard
-              icon={Activity}
-              label={t("home.stats.total_views", "累计访问")}
-              value={summary.totalViews}
-              accentColor={isDayMode ? "bg-blue-200" : "bg-blue-400/20"}
-              isDayMode={isDayMode}
-              delay={0.15}
-            />
-            <StatCard
-              icon={Upload}
-              label={t("home.stats.total_uploads", "累计作品")}
-              value={summary.totalUploads}
-              accentColor={isDayMode ? "bg-amber-200" : "bg-amber-400/20"}
-              isDayMode={isDayMode}
-              delay={0.2}
-            />
-          </div>
-
-          {/* 7 天趋势曲线图 */}
-          {trend.length > 0 && (
-            <motion.div
-              initial={false}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.25 }}
-              className={`mt-4 rounded-xl border p-4 backdrop-blur-xl ${
-                isDayMode
-                  ? "border-slate-200/80 bg-slate-50/80"
-                  : "border-white/8 bg-black/20"
-              }`}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <span
-                  className={`text-[11px] font-medium uppercase tracking-[0.2em] ${
-                    isDayMode ? "text-slate-400" : "text-white/40"
-                  }`}
-                >
-                  {t("home.stats.trend_title", "近 7 日访问趋势")}
-                </span>
-                <span
-                  className={`text-xs font-semibold ${
-                    isDayMode ? "text-slate-600" : "text-white/60"
-                  }`}
-                >
-                  {t("home.stats.total_short", "总计")}{" "}
-                  {formatCompactNumber(growth.views7d)}
-                </span>
-              </div>
-              <MiniTrendChart
-                data={trend}
-                color={isDayMode ? "#6366f1" : "#818cf8"}
-                isDayMode={isDayMode}
-                height={50}
-              />
-              <div className="flex justify-between gap-2 mt-2 overflow-x-auto pb-1">
-                {trend.map((item, index) => (
-                  <span
-                    key={index}
-                    className={`text-[10px] shrink-0 ${
-                      index === trend.length - 1
-                        ? isDayMode
-                          ? "text-slate-700 font-semibold"
-                          : "text-white/70 font-semibold"
-                        : isDayMode
-                          ? "text-slate-400"
-                          : "text-white/30"
-                    }`}
-                  >
-                    {t(
-                      `home.stats.weekday_short.${item.label.toLowerCase()}`,
-                      item.label,
-                    )}
-                  </span>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </motion.div>
-
-        <motion.div
-          initial={false}
-          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.08 }}
-          className={`hidden md:block mt-4 rounded-2xl border p-4 sm:p-5 ${
+          className={`mt-4 rounded-2xl border p-4 sm:p-5 ${
             isDayMode
               ? "border-slate-200/80 bg-white/88 shadow-[0_16px_48px_rgba(148,163,184,0.14)]"
               : "border-white/10 bg-white/[0.03] shadow-[0_16px_48px_rgba(0,0,0,0.16)]"
@@ -700,4 +562,3 @@ const PlatformStats = () => {
 };
 
 export default PlatformStats;
-
