@@ -160,6 +160,7 @@ const CommunityGroups = () => {
   const canSubmitGroup = !!user;
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [search, setSearch] = useState('');
   const [platform, setPlatform] = useState('all');
   const [showForm, setShowForm] = useState(false);
@@ -186,12 +187,13 @@ const CommunityGroups = () => {
     const review = isAdmin ? adminReviewFilter : 'approved';
     const res = await api.get('/community/groups', { params: { review_status: review }, signal });
     setGroups(Array.isArray(res.data) ? res.data : []);
+    setLoadError(false);
   };
 
   useEffect(() => {
     const ac = new AbortController();
     loadGroups(ac.signal)
-      .catch(() => {})
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
     return () => ac.abort();
   }, [isAdmin, adminReviewFilter]);
@@ -398,6 +400,28 @@ const CommunityGroups = () => {
               </button>
             )}
           </div>
+          <div className={`mt-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl border px-3 py-2 text-xs ${isDayMode ? 'bg-white/72 border-slate-200/80 text-slate-500' : 'bg-white/[0.03] border-white/10 text-gray-400'}`}>
+            <div className="flex flex-wrap items-center gap-2">
+              <span>{filteredGroups.length} {t('community.groups.results', '个社群')}</span>
+              {(search.trim() || platform !== 'all') ? (
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border ${isDayMode ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-blue-500/10 text-blue-300 border-blue-500/20'}`}>
+                  {t('community.filtered_view', '已应用筛选')}
+                </span>
+              ) : null}
+            </div>
+            {(search.trim() || platform !== 'all') ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch('');
+                  setPlatform('all');
+                }}
+                className={`px-2.5 py-1 rounded-md border ${isDayMode ? 'text-slate-600 border-slate-200 hover:bg-slate-100' : 'text-gray-300 border-white/10 hover:bg-white/10'}`}
+              >
+                {t('community.clear_filters', '清除筛选')}
+              </button>
+            ) : null}
+          </div>
         </div>
         {canSubmitGroup && showForm && (
           <form onSubmit={handleSubmitForm} className={`mb-6 p-4 rounded-2xl border grid grid-cols-1 md:grid-cols-2 gap-3 ${isDayMode ? 'bg-white border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
@@ -435,6 +459,20 @@ const CommunityGroups = () => {
         )}
         {loading ? (
           <div className="flex justify-center py-20"><Loader2 size={32} className="animate-spin text-gray-400" /></div>
+        ) : loadError ? (
+          <div className={`flex flex-col items-center gap-3 py-16 rounded-2xl border ${isDayMode ? 'bg-rose-50 border-rose-200 text-rose-700' : 'bg-rose-500/10 border-rose-500/20 text-rose-300'}`}>
+            <p className="text-sm font-medium">{t('community.groups.load_failed', '社群加载失败，请重试')}</p>
+            <button
+              type="button"
+              onClick={() => {
+                setLoading(true);
+                loadGroups().catch(() => setLoadError(true)).finally(() => setLoading(false));
+              }}
+              className={`px-4 py-1.5 rounded-lg text-xs font-semibold border ${isDayMode ? 'bg-white border-rose-200 hover:bg-rose-50' : 'bg-white/5 border-rose-400/30 hover:bg-white/10'}`}
+            >
+              {t('common.retry', '重试')}
+            </button>
+          </div>
         ) : filteredGroups.length === 0 ? (
           <div className="flex flex-col items-center py-20">
             <QrCode size={64} className="text-gray-500 mb-4 opacity-60" />

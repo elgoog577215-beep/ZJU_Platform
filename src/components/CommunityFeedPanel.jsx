@@ -49,7 +49,8 @@ const CommunityFeedPanel = ({
   const {
     displayItems, isLoading, error, currentPage, totalPages, hasMore,
     isPaginationEnabled, sort, setSort, statusFilter, setStatusFilter,
-    handlePageChange, setCurrentPage, handleRefresh,
+    handlePageChange, setCurrentPage, handleRefresh, hasActiveFilters,
+    resetFilters, searchQuery, selectedTags, isSearchPending,
   } = feed;
 
   const gradientFrom = {
@@ -130,6 +131,49 @@ const CommunityFeedPanel = ({
         {statusTabs && extraControls ? (
           <div>{extraControls}</div>
         ) : null}
+        <div className={`flex flex-wrap items-center justify-between gap-2 rounded-2xl border px-3 py-2.5 text-xs ${isDayMode ? 'bg-white/72 border-slate-200/80 text-slate-500' : 'bg-white/[0.03] border-white/10 text-gray-400'}`}>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span className={th.textSecondary}>
+              {displayItems.length} {t('community.results_count', '条结果')}
+            </span>
+            {hasActiveFilters ? (
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border ${isDayMode ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-amber-500/10 text-amber-300 border-amber-500/20'}`}>
+                {t('community.filtered_view', '已应用筛选')}
+              </span>
+            ) : null}
+            {searchQuery?.trim() ? (
+              <span className="truncate max-w-[220px]">
+                {t('community.searching_for', '搜索')} "{searchQuery.trim()}"
+              </span>
+            ) : null}
+            {selectedTags?.length ? (
+              <span>
+                {t('community.tags_selected', '标签')} {selectedTags.length}
+              </span>
+            ) : null}
+            {isSearchPending ? (
+              <span>{t('common.loading', '加载中')}...</span>
+            ) : null}
+          </div>
+          <div className="flex items-center gap-2">
+            {hasActiveFilters ? (
+              <button
+                type="button"
+                onClick={resetFilters}
+                className={`px-2.5 py-1 rounded-md border transition-colors ${isDayMode ? 'text-slate-600 border-slate-200 hover:bg-slate-100' : 'text-gray-300 border-white/10 hover:bg-white/10'}`}
+              >
+                {t('community.clear_filters', '清除筛选')}
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={handleRefresh}
+              className={`px-2.5 py-1 rounded-md border transition-colors ${isDayMode ? 'text-slate-600 border-slate-200 hover:bg-slate-100' : 'text-gray-300 border-white/10 hover:bg-white/10'}`}
+            >
+              {t('common.refresh', '刷新')}
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Item list */}
@@ -153,8 +197,23 @@ const CommunityFeedPanel = ({
             <div className={`bg-gradient-to-br ${gradientFrom} rounded-3xl p-8 mb-6 border backdrop-blur-xl shadow-xl ${emptyBorder}`}>
               {EmptyIcon && <EmptyIcon size={64} className={`text-${accentColor}-400 opacity-80`} />}
             </div>
-            <h3 className={`text-2xl font-bold mb-2 ${th.textPrimary}`}>{emptyTitle}</h3>
-            <p className={`text-center max-w-md ${th.textSecondary}`}>{emptyDesc}</p>
+            <h3 className={`text-2xl font-bold mb-2 ${th.textPrimary}`}>
+              {hasActiveFilters ? t('community.no_filtered_results', '没有符合当前条件的内容') : emptyTitle}
+            </h3>
+            <p className={`text-center max-w-md ${th.textSecondary}`}>
+              {hasActiveFilters
+                ? t('community.no_filtered_results_desc', '可以清除筛选条件，或调整搜索词和标签后重试。')
+                : emptyDesc}
+            </p>
+            {hasActiveFilters ? (
+              <button
+                type="button"
+                onClick={resetFilters}
+                className={`mt-5 px-6 py-2.5 rounded-full border transition-colors text-sm font-semibold ${th.btnSecondary}`}
+              >
+                {t('community.clear_filters', '清除筛选')}
+              </button>
+            ) : null}
           </div>
         ) : (
           displayItems.map((item, index) =>

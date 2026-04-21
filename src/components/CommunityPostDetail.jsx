@@ -41,6 +41,7 @@ const CommunityPostDetail = ({
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState([]);
   const [loadingComments, setLoadingComments] = useState(false);
+  const [commentError, setCommentError] = useState(false);
   const [submittingComment, setSubmittingComment] = useState(false);
   const [replyContext, setReplyContext] = useState(null);
   const [commentSort, setCommentSort] = useState('oldest');
@@ -83,6 +84,7 @@ const CommunityPostDetail = ({
   const fetchComments = useCallback((signal) => {
     if (!postId || !showComments) {
       setComments([]);
+      setCommentError(false);
       setLoadingComments(false);
       return Promise.resolve();
     }
@@ -93,6 +95,7 @@ const CommunityPostDetail = ({
         if (signal?.aborted) return;
         const loaded = Array.isArray(res.data) ? res.data : [];
         setComments(loaded);
+        setCommentError(false);
         setLoadingComments(false);
         // FIX: Only push count to parent AFTER a successful load. Previously a
         // useEffect fired on mount with comments=[] (total=0), overwriting the
@@ -106,7 +109,7 @@ const CommunityPostDetail = ({
       .catch((err) => {
         if (signal?.aborted) return;
         if (err?.name !== 'CanceledError' && err?.code !== 'ERR_CANCELED') {
-          setComments([]);
+          setCommentError(true);
         }
         setLoadingComments(false);
       });
@@ -124,6 +127,7 @@ const CommunityPostDetail = ({
     setCommentText('');
     setExpandedFloors({});
     setExpandedCommentText({});
+    setCommentError(false);
   }, [post?.id]);
 
   const handleSubmitComment = useCallback(async () => {
@@ -439,6 +443,20 @@ const CommunityPostDetail = ({
                   </div>
                 </div>
               ))}
+            </div>
+          ) : commentError ? (
+            <div className={`rounded-2xl border px-4 py-5 text-center ${isDayMode ? 'bg-rose-50 border-rose-200 text-rose-700' : 'bg-rose-500/10 border-rose-500/20 text-rose-300'}`}>
+              <p className="text-sm font-medium">
+                {t('community.comments_load_failed', '评论加载失败，请稍后重试')}
+              </p>
+              <button
+                type="button"
+                onClick={() => fetchComments()}
+                className={`mt-3 inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold border ${isDayMode ? 'bg-white text-rose-700 border-rose-200 hover:bg-rose-50' : 'bg-white/5 text-rose-200 border-rose-400/30 hover:bg-white/10'}`}
+              >
+                <MessageCircle size={12} />
+                {t('common.retry', '重试')}
+              </button>
             </div>
           ) : sortedComments.length === 0 ? (
             <p className={`text-center py-8 text-sm ${th.textTertiary}`}>

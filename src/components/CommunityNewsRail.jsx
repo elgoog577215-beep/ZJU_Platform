@@ -66,6 +66,8 @@ const CommunityNewsRail = () => {
   const list = Array.isArray(newsItems) ? newsItems : [];
   const contentBlocks = useMemo(() => parseContentBlocks(selectedNews?.content_blocks), [selectedNews?.content_blocks]);
   const currentTab = searchParams.get('tab') || 'help';
+  const hasActiveAdminFilter = isAdmin && adminStatusFilter !== 'all';
+  const isLatestSort = activeSort === 'latest';
 
   const detailItem = useMemo(() => {
     if (!selectedNews) return null;
@@ -434,6 +436,27 @@ const CommunityNewsRail = () => {
           </div>
         </div>
       ) : null}
+
+      <div className={`mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border px-3 py-2 text-xs ${isDayMode ? 'bg-white/72 border-slate-200/80 text-slate-500' : 'bg-white/[0.03] border-white/10 text-gray-400'}`}>
+        <div className="flex flex-wrap items-center gap-2">
+          <span>{list.length} {t('community.results_count', '条结果')}</span>
+          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border ${isDayMode ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-blue-500/10 text-blue-300 border-blue-500/20'}`}>
+            {isLatestSort ? t('community.news_latest', '最新') : t('community.news_hot', '热门')}
+          </span>
+          {hasActiveAdminFilter ? (
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border ${isDayMode ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20'}`}>
+              {t('community.filtered_view', '已应用筛选')}
+            </span>
+          ) : null}
+        </div>
+        <button
+          type="button"
+          onClick={() => refresh({ clearCache: true })}
+          className={`px-2.5 py-1 rounded-md border transition-colors ${isDayMode ? 'text-slate-600 border-slate-200 hover:bg-slate-100' : 'text-gray-300 border-white/10 hover:bg-white/10'}`}
+        >
+          {t('common.refresh', '刷新')}
+        </button>
+      </div>
 
       <div className="space-y-2 max-h-[560px] overflow-y-auto pr-1">
         {loading ? (

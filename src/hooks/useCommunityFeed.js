@@ -30,6 +30,7 @@ export function useCommunityFeed({
   const [sort, setSort] = useState('newest');
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [selectedTags, setSelectedTags] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [displayItems, setDisplayItems] = useState([]);
@@ -39,12 +40,20 @@ export function useCommunityFeed({
 
   useBackClose(selectedItem !== null, () => setSelectedItem(null));
 
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery.trim());
+    }, 220);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [searchQuery]);
+
   const queryParams = useMemo(() => {
     const p = { page: currentPage, limit: pageSize, sort };
     if (section) p.section = section;
     if (category) p.category = category;
     if (statusFilter !== 'all') p.status = statusFilter;
-    if (searchQuery.trim()) p.search = searchQuery.trim();
+    if (debouncedSearchQuery) p.search = debouncedSearchQuery;
     if (selectedTags.length) p.tags = selectedTags.join(',');
     Object.entries(extraQueryParams || {}).forEach(([k, v]) => {
       if (v !== undefined && v !== null && v !== '') {
@@ -52,7 +61,7 @@ export function useCommunityFeed({
       }
     });
     return p;
-  }, [currentPage, pageSize, sort, section, category, statusFilter, searchQuery, selectedTags, extraQueryParams]);
+  }, [currentPage, pageSize, sort, section, category, statusFilter, debouncedSearchQuery, selectedTags, extraQueryParams]);
 
   const {
     data: items,
@@ -68,11 +77,13 @@ export function useCommunityFeed({
 
   const totalPages = pagination?.totalPages || 1;
   const hasMore = !isPaginationEnabled && currentPage < totalPages;
+  const hasActiveFilters = statusFilter !== 'all' || selectedTags.length > 0 || Boolean(searchQuery.trim());
+  const isSearchPending = searchQuery.trim() !== debouncedSearchQuery;
 
   // Reset page on filter / sort change
   useEffect(() => {
     setCurrentPage(1);
-  }, [sort, statusFilter, searchQuery, selectedTags.join(','), settings.pagination_enabled, ...extraDependencies]);
+  }, [sort, statusFilter, debouncedSearchQuery, selectedTags.join(','), settings.pagination_enabled, ...extraDependencies]);
 
   // Accumulate items for infinite-scroll or replace for pagination
   const effectiveItems = useMemo(() => items || [], [items]);
@@ -110,6 +121,15 @@ export function useCommunityFeed({
   }, []);
 
   const handleRefresh = useCallback(() => refresh({ clearCache: true }), [refresh]);
+
+  const resetFilters = useCallback(() => {
+    setSort('newest');
+    setStatusFilter('all');
+    setSearchQuery('');
+    setDebouncedSearchQuery('');
+    setSelectedTags([]);
+    setCurrentPage(1);
+  }, []);
 
   const handleToggleFavorite = useCallback((itemId, favorited, likes) => {
     const updater = (prev) => {
@@ -169,6 +189,9 @@ export function useCommunityFeed({
     setSearchQuery,
     selectedTags,
     setSelectedTags,
+    debouncedSearchQuery,
+    hasActiveFilters,
+    isSearchPending,
 
     // Actions
     handleItemClick,
@@ -176,6 +199,7 @@ export function useCommunityFeed({
     handleRefresh,
     handleToggleFavorite,
     updateItemById,
+    resetFilters,
     refresh,
     pageSize,
   };

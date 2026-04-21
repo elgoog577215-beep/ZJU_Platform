@@ -82,27 +82,22 @@ async function runMigrations(db) {
   }
 
   try {
+    await ensureColumns('comments', {
+      user_id: 'INTEGER',
+      parent_id: 'INTEGER',
+      author: 'TEXT',
+      author_name: 'TEXT',
+      avatar: 'TEXT',
+      root_id: 'INTEGER',
+      reply_to_comment_id: 'INTEGER',
+      floor_number: 'INTEGER',
+      quote_snapshot: 'TEXT',
+      likes: 'INTEGER DEFAULT 0',
+      updated_at: 'DATETIME DEFAULT CURRENT_TIMESTAMP',
+    }, 'comments');
+
     const commentsInfo = await db.all(`PRAGMA table_info(comments)`);
     const commentColumns = commentsInfo.map(col => col.name);
-
-    if (commentColumns.length > 0 && !commentColumns.includes('author')) {
-      await db.exec(`ALTER TABLE comments ADD COLUMN author TEXT`);
-    }
-    if (commentColumns.length > 0 && !commentColumns.includes('avatar')) {
-      await db.exec(`ALTER TABLE comments ADD COLUMN avatar TEXT`);
-    }
-    if (commentColumns.length > 0 && !commentColumns.includes('root_id')) {
-      await db.exec(`ALTER TABLE comments ADD COLUMN root_id INTEGER`);
-    }
-    if (commentColumns.length > 0 && !commentColumns.includes('reply_to_comment_id')) {
-      await db.exec(`ALTER TABLE comments ADD COLUMN reply_to_comment_id INTEGER`);
-    }
-    if (commentColumns.length > 0 && !commentColumns.includes('floor_number')) {
-      await db.exec(`ALTER TABLE comments ADD COLUMN floor_number INTEGER`);
-    }
-    if (commentColumns.length > 0 && !commentColumns.includes('quote_snapshot')) {
-      await db.exec(`ALTER TABLE comments ADD COLUMN quote_snapshot TEXT`);
-    }
     if (commentColumns.length > 0 && commentColumns.includes('author_name')) {
       await db.exec(`
         UPDATE comments
@@ -142,6 +137,13 @@ async function runMigrations(db) {
   // Migration: unify notification content to single `content` column.
   // See openspec/changes/unify-notification-content/ for full context.
   try {
+    await ensureColumns('notifications', {
+      title: 'TEXT',
+      message: 'TEXT',
+      content: 'TEXT',
+      data: 'TEXT',
+    }, 'notifications');
+
     const notifInfo = await db.all('PRAGMA table_info(notifications)');
     const notifColumns = new Set(notifInfo.map((c) => c.name));
     if (!notifColumns.has('content')) {
@@ -150,7 +152,7 @@ async function runMigrations(db) {
     }
     await db.run(`
       UPDATE notifications
-      SET content = COALESCE(message, title)
+      SET content = COALESCE(content, message, title)
       WHERE content IS NULL
     `);
     console.log('✅ Notifications content column backfilled');
