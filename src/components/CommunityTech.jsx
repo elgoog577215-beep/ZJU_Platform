@@ -69,11 +69,11 @@ const ArticleCard = memo(({
       animate={canAnimate ? { opacity: 1, y: 0 } : undefined}
       transition={canAnimate ? { duration: 0.24, delay: Math.min(index, 5) * 0.03 } : undefined}
       onClick={() => onClick(article)}
-      className={`group relative backdrop-blur-xl border rounded-3xl p-6 transition-all duration-300 hover:border-orange-500/30 cursor-pointer overflow-hidden hover:shadow-[0_20px_40px_-15px_rgba(249,115,22,0.15)] hover:-translate-y-1 ${isDayMode ? 'bg-white/82 hover:bg-white border-slate-200/80 shadow-[0_18px_42px_rgba(148,163,184,0.12)]' : 'bg-[#1a1a1a]/60 hover:bg-[#1a1a1a]/80 border-white/10'}`}
+      className={`group relative backdrop-blur-xl border rounded-[1.65rem] md:rounded-3xl p-3.5 md:p-6 transition-all duration-300 hover:border-orange-500/30 cursor-pointer overflow-hidden hover:shadow-[0_20px_40px_-15px_rgba(249,115,22,0.15)] hover:-translate-y-1 ${isDayMode ? 'bg-white/82 hover:bg-white border-slate-200/80 shadow-[0_18px_42px_rgba(148,163,184,0.12)]' : 'bg-[#1a1a1a]/60 hover:bg-[#1a1a1a]/80 border-white/10'}`}
     >
-      <div className="flex flex-col md:flex-row gap-6">
+      <div className="flex gap-3 md:gap-6 items-start">
         {article.cover && (
-          <div className="w-full md:w-48 h-48 md:h-32 rounded-xl overflow-hidden flex-shrink-0">
+          <div className="w-[110px] sm:w-[128px] md:w-48 h-[110px] sm:h-[128px] md:h-32 rounded-2xl md:rounded-xl overflow-hidden flex-shrink-0">
             <SmartImage
               src={article.cover}
               alt={article.title}
@@ -84,7 +84,7 @@ const ArticleCard = memo(({
             />
           </div>
         )}
-        <div className="flex-1 flex flex-col justify-center space-y-3">
+        <div className="flex-1 min-w-0 flex flex-col justify-center space-y-2 md:space-y-3">
           {workflowView && (
             <div className="flex flex-wrap items-center gap-2">
               <span className={`px-2.5 py-1 rounded-full text-[11px] border ${isDayMode ? statusMeta.badge : statusMeta.badgeDark}`}>
@@ -97,10 +97,10 @@ const ArticleCard = memo(({
               ) : null}
             </div>
           )}
-          <div className={`flex items-center gap-3 text-xs font-mono ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+          <div className={`flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] md:text-xs font-mono ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
             {article.author_name ? (
               <>
-                <span className="flex items-center gap-1"><User size={12} />{article.author_name}</span>
+                <span className="flex items-center gap-1 min-w-0 max-w-full truncate"><User size={12} className="shrink-0" />{article.author_name}</span>
                 <span>•</span>
               </>
             ) : null}
@@ -108,24 +108,24 @@ const ArticleCard = memo(({
             <span>•</span>
             <span className="flex items-center gap-1"><Clock size={12} />{calculateReadingTime(article.content, t)}</span>
           </div>
-          <h3 className={`text-2xl font-bold group-hover:text-orange-400 transition-colors ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
+          <h3 className={`text-lg md:text-2xl font-bold leading-tight line-clamp-2 group-hover:text-orange-400 transition-colors ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
             {article.title}
           </h3>
-          <p className={`line-clamp-2 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{article.excerpt}</p>
-          <div className="pt-2 flex items-center justify-end gap-3 mt-auto">
+          <p className={`hidden md:block line-clamp-2 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{article.excerpt}</p>
+          <div className="pt-1 md:pt-2 flex items-center justify-end gap-2 md:gap-3 mt-auto">
             {actionBar}
             <FavoriteButton
               itemId={article.id}
               itemType="article"
-              size={18}
+              size={16}
               showCount
               count={article.likes || 0}
               initialFavorited={article.favorited}
-              className={`p-2 rounded-full transition-colors hover:text-orange-500 ${isDayMode ? 'hover:bg-orange-50 text-slate-500' : 'hover:bg-white/10 text-gray-400'}`}
+              className={`p-1.5 md:p-2 rounded-full transition-colors hover:text-orange-500 ${isDayMode ? 'hover:bg-orange-50 text-slate-500' : 'hover:bg-white/10 text-gray-400'}`}
               onToggle={(favorited, likes) => onToggleFavorite(article.id, favorited, likes)}
             />
-            <div className={`p-2 rounded-full group-hover:bg-orange-500 group-hover:text-black transition-all duration-300 ${isDayMode ? 'bg-orange-50 text-orange-500' : 'bg-white/5'}`}>
-              <ArrowRight size={18} className="-rotate-45 group-hover:rotate-0 transition-transform duration-300" />
+            <div className={`p-1.5 md:p-2 rounded-full group-hover:bg-orange-500 group-hover:text-black transition-all duration-300 ${isDayMode ? 'bg-orange-50 text-orange-500' : 'bg-white/5'}`}>
+              <ArrowRight size={16} className="-rotate-45 group-hover:rotate-0 transition-transform duration-300" />
             </div>
           </div>
         </div>
@@ -436,8 +436,8 @@ const CommunityTech = () => {
   };
 
   const featuredSection = featuredArticle ? (
-    <div className={`mb-5 rounded-[30px] border p-5 md:p-6 ${isDayMode ? 'bg-gradient-to-br from-orange-50 via-white to-amber-50 border-orange-200/80' : 'bg-gradient-to-br from-orange-500/10 via-white/[0.03] to-amber-500/10 border-orange-500/20'}`}>
-      <div className="flex items-center gap-2 mb-4">
+    <div className={`mb-5 rounded-[1.9rem] md:rounded-[30px] border p-3.5 md:p-6 ${isDayMode ? 'bg-gradient-to-br from-orange-50 via-white to-amber-50 border-orange-200/80' : 'bg-gradient-to-br from-orange-500/10 via-white/[0.03] to-amber-500/10 border-orange-500/20'}`}>
+      <div className="flex items-center gap-2 mb-3 md:mb-4">
         <Sparkles size={16} className={isDayMode ? 'text-orange-600' : 'text-orange-300'} />
         <span className={`text-xs uppercase tracking-[0.22em] ${isDayMode ? 'text-orange-700' : 'text-orange-300'}`}>精选文章</span>
       </div>

@@ -34,35 +34,35 @@ const GroupCard = memo(({ group, index, isDayMode, isAdmin, onQuickAction, onEdi
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.08 }}
-      className={`backdrop-blur-xl border rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1 cursor-pointer ${isDayMode ? 'bg-white/82 border-slate-200/80 shadow-[0_18px_42px_rgba(148,163,184,0.12)] hover:shadow-[0_24px_52px_rgba(148,163,184,0.18)]' : 'bg-[#1a1a1a]/60 border-white/10 hover:border-white/20'}`}
+      className={`backdrop-blur-xl border rounded-[1.4rem] md:rounded-3xl p-3 md:p-6 transition-all duration-300 hover:-translate-y-1 cursor-pointer ${isDayMode ? 'bg-white/82 border-slate-200/80 shadow-[0_18px_42px_rgba(148,163,184,0.12)] hover:shadow-[0_24px_52px_rgba(148,163,184,0.18)]' : 'bg-[#1a1a1a]/60 border-white/10 hover:border-white/20'}`}
       onClick={() => onOpen?.(group)}
     >
       {/* QR Code area */}
-      <div className={`w-full aspect-square rounded-2xl mb-5 flex items-center justify-center border-2 border-dashed ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/5 border-white/10'}`}>
+      <div className={`w-full aspect-square rounded-[1.1rem] md:rounded-2xl mb-3 md:mb-5 flex items-center justify-center border-2 border-dashed overflow-hidden ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/5 border-white/10'}`}>
         {group.qr_code_url ? (
-          <img src={group.qr_code_url} alt={group.name} className="w-full h-full object-contain rounded-2xl" />
+          <img src={group.qr_code_url} alt={group.name} className="w-full h-full object-contain rounded-[1.1rem] md:rounded-2xl" />
         ) : (
           <div className="text-center">
-            <QrCode size={48} className={`mx-auto mb-3 ${isDayMode ? 'text-slate-300' : 'text-gray-600'}`} />
-            <p className={`text-xs ${isDayMode ? 'text-slate-400' : 'text-gray-500'}`}>
+            <QrCode size={36} className={`mx-auto mb-2 md:mb-3 ${isDayMode ? 'text-slate-300' : 'text-gray-600'}`} />
+            <p className={`text-[11px] md:text-xs ${isDayMode ? 'text-slate-400' : 'text-gray-500'}`}>
               {t('community.groups.qr_placeholder', '二维码待上传')}
             </p>
           </div>
         )}
       </div>
-      <div className="flex items-center gap-2 mb-2">
-        <h3 className={`text-lg font-bold ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{group.name}</h3>
-        <span className={`text-[10px] px-2 py-0.5 rounded-full border ${isDayMode ? 'bg-slate-100 text-slate-500 border-slate-200' : 'bg-white/5 text-gray-400 border-white/10'}`}>
+      <div className="flex flex-wrap items-center gap-1.5 md:gap-2 mb-1.5 md:mb-2">
+        <h3 className={`text-base md:text-lg font-bold line-clamp-2 ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{group.name}</h3>
+        <span className={`text-[9px] md:text-[10px] px-1.5 md:px-2 py-0.5 rounded-full border shrink-0 ${isDayMode ? 'bg-slate-100 text-slate-500 border-slate-200' : 'bg-white/5 text-gray-400 border-white/10'}`}>
           {PLATFORM_LABELS[group.platform] || group.platform}
         </span>
       </div>
-      <p className={`text-sm leading-relaxed mb-4 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{group.description}</p>
+      <p className={`text-xs md:text-sm leading-relaxed line-clamp-2 mb-2.5 md:mb-4 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{group.description}</p>
       {Array.isArray(group.primary_tags) && group.primary_tags.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mb-3">
-          {group.primary_tags.slice(0, 4).map((tag) => (
+        <div className="flex flex-wrap gap-1 md:gap-1.5 mb-2 md:mb-3">
+          {group.primary_tags.slice(0, 2).map((tag) => (
             <span
               key={`${group.id}-tag-${tag}`}
-              className={`px-2 py-0.5 rounded-full text-[10px] border ${isDayMode ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-blue-500/10 text-blue-300 border-blue-500/30'}`}
+              className={`px-1.5 md:px-2 py-0.5 rounded-full text-[9px] md:text-[10px] border ${isDayMode ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-blue-500/10 text-blue-300 border-blue-500/30'}`}
             >
               #{tag}
             </span>
@@ -70,7 +70,7 @@ const GroupCard = memo(({ group, index, isDayMode, isAdmin, onQuickAction, onEdi
         </div>
       )}
       {group.valid_until && (
-        <p className={`text-[11px] mb-3 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+        <p className={`text-[10px] md:text-[11px] mb-2 md:mb-3 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
           有效期至 {String(group.valid_until).slice(0, 10)}
         </p>
       )}
@@ -81,13 +81,13 @@ const GroupCard = memo(({ group, index, isDayMode, isAdmin, onQuickAction, onEdi
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className={`inline-flex items-center gap-1.5 text-xs font-semibold ${isDayMode ? 'text-orange-600 hover:text-orange-700' : 'text-orange-300 hover:text-orange-200'}`}
+            className={`inline-flex items-center gap-1 text-[11px] md:text-xs font-semibold ${isDayMode ? 'text-orange-600 hover:text-orange-700' : 'text-orange-300 hover:text-orange-200'}`}
           >
             {t('community.groups.join_link', '加入链接')}
-            <ExternalLink size={14} />
+            <ExternalLink size={12} />
           </a>
         ) : <span />}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1 flex-wrap justify-end">
           {group.review_status === 'pending' && <span className={`text-[10px] px-2 py-0.5 rounded-full ${isDayMode ? 'bg-amber-100 text-amber-700' : 'bg-amber-500/15 text-amber-300'}`}>待审核</span>}
           {Number(group.is_expired) === 1 && <span className={`text-[10px] px-2 py-0.5 rounded-full ${isDayMode ? 'bg-slate-200 text-slate-700' : 'bg-white/10 text-gray-300'}`}>已过期</span>}
           {Number(group.is_recommended) === 1 && <span className={`text-[10px] px-2 py-0.5 rounded-full ${isDayMode ? 'bg-emerald-100 text-emerald-700' : 'bg-emerald-500/15 text-emerald-300'}`}>推荐</span>}
@@ -441,7 +441,7 @@ const CommunityGroups = () => {
             <p className={`${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{t('community.groups.empty', '暂无社群')}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
             {filteredGroups.map((group, index) => (
               <GroupCard
                 key={group.id}

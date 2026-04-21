@@ -253,18 +253,6 @@ const EVENT_THEME_VARIANTS = {
   },
 };
 
-const EVENT_THEME_BY_SCENE = {
-  cyber: "cyan",
-  crystal: "cyan",
-  grid: "pink",
-  wave: "pink",
-  embers: "orange",
-  dna: "green",
-  binary: "green",
-  network: "blue",
-  orbit: "rose",
-};
-
 const getOrCreateEventVisitorKey = () => {
   if (typeof window === "undefined") return null;
 
@@ -481,7 +469,7 @@ EventCard.displayName = "EventCard";
 
 const Events = () => {
   const { t, i18n } = useTranslation();
-  const { settings, uiMode, themeScene } = useSettings();
+  const { settings, uiMode } = useSettings();
   const { user } = useAuth();
   const prefersReducedMotion = useReducedMotion();
   const isDayMode = uiMode === "day";
@@ -509,10 +497,10 @@ const Events = () => {
     () => getViewTone(selectedEvent?.views || 0, t),
     [selectedEvent?.views, t],
   );
-  const eventThemeAccent = useMemo(() => {
-    const themeKey = EVENT_THEME_BY_SCENE[themeScene] || "cyan";
-    return EVENT_THEME_VARIANTS[themeKey];
-  }, [themeScene]);
+  const eventThemeAccent = useMemo(
+    () => EVENT_THEME_VARIANTS[isDayMode ? "cyan" : "blue"],
+    [isDayMode],
+  );
 
   // Listen for global events from Navbar
   useEffect(() => {
@@ -1539,22 +1527,52 @@ END:VCALENDAR`;
                     ? undefined
                     : { duration: 0.28, ease: [0.22, 1, 0.36, 1] }
                 }
-                className={`w-full max-w-5xl overflow-hidden overscroll-contain shadow-2xl relative flex flex-col ${isMobileViewport ? "max-h-[90dvh] rounded-t-[2rem] border-x-0 border-b-0" : "min-h-[100dvh] md:min-h-0 max-h-[100dvh] md:max-h-[90vh] rounded-t-[2rem] md:rounded-[2rem] border-x-0 border-b-0 md:border"} ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.98))] border-slate-200/90 shadow-[0_36px_120px_rgba(15,23,42,0.16)] ring-1 ring-white/70" : "bg-[#0f0f0f] border-white/10"}`}
+                className={`w-full max-w-5xl overflow-hidden overscroll-contain shadow-2xl relative flex flex-col ${isMobileViewport ? "min-h-[100dvh] max-h-[100dvh] rounded-none border-0" : "min-h-[100dvh] md:min-h-0 max-h-[100dvh] md:max-h-[90vh] rounded-t-[2rem] md:rounded-[2rem] border-x-0 border-b-0 md:border"} ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.98))] border-slate-200/90 shadow-[0_36px_120px_rgba(15,23,42,0.16)] ring-1 ring-white/70" : "bg-[#0f0f0f] border-white/10"}`}
                 onClick={(e) => e.stopPropagation()}
-              >
-                {isDayMode && (
-                  <div className="pointer-events-none absolute inset-0">
-                    <div
-                      className={`absolute inset-x-0 top-0 h-48 ${eventThemeAccent.backdropGlow}`}
-                    />
-                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/90 to-transparent" />
-                  </div>
-                )}
+                >
+                  {isDayMode && (
+                    <div className="pointer-events-none absolute inset-0">
+                      <div
+                        className={`absolute inset-x-0 top-0 h-48 ${eventThemeAccent.backdropGlow}`}
+                      />
+                      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/90 to-transparent" />
+                    </div>
+                  )}
+                  {!isMobileViewport && (
+                    <button
+                      onClick={closeEvent}
+                      aria-label={t("common.close", "鍏抽棴")}
+                      className={`absolute right-5 top-5 h-12 w-12 rounded-full backdrop-blur-xl border transition-all duration-300 z-40 group inline-flex items-center justify-center overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer ${isDayMode ? `bg-white/90 hover:bg-white text-slate-700 border-white/85 shadow-[0_16px_34px_rgba(15,23,42,0.14)] hover:shadow-[0_22px_42px_rgba(15,23,42,0.18)] hover:-translate-y-0.5 focus-visible:ring-slate-400/70 focus-visible:ring-offset-white` : "bg-black/45 hover:bg-black/65 text-white border-white/10 hover:border-white/20 focus-visible:ring-white/60 focus-visible:ring-offset-[#0f0f0f]"}`}
+                    >
+                      {isDayMode && (
+                        <>
+                          <span
+                            aria-hidden="true"
+                            className="absolute inset-0 rounded-full opacity-90 bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(255,255,255,0.16))]"
+                          />
+                          <span
+                            aria-hidden="true"
+                            className={`absolute inset-[1px] rounded-full opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100 ${eventThemeAccent.heroGlow}`}
+                          />
+                        </>
+                      )}
+                      <span
+                        className={`relative inline-flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 ${isDayMode ? "bg-white/70 border border-slate-200/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] group-hover:bg-white" : "bg-white/10 border border-white/10 group-hover:bg-white/15"}`}
+                      >
+                        <X
+                          size={20}
+                          className="group-hover:rotate-90 group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </span>
+                    </button>
+                  )}
                 <div className="relative flex-1 overflow-y-auto overscroll-contain custom-scrollbar">
-                  {/* Modal Header Image */}
-                  <div
-                    className={`relative shrink-0 overflow-hidden ${isMobileViewport ? "h-72" : "h-80 sm:h-[27rem]"} ${isDayMode ? "border-b border-slate-200/70" : ""}`}
-                  >
+                  {!isMobileViewport && false && (
+                    <>
+                      {/* Modal Header Image */}
+                      <div
+                        className={`relative shrink-0 overflow-hidden h-80 sm:h-[27rem] ${isDayMode ? "border-b border-slate-200/70" : ""}`}
+                      >
                     <SmartImage
                       src={selectedEvent.image}
                       alt={selectedEvent.title}
@@ -1603,7 +1621,6 @@ END:VCALENDAR`;
                       </span>
                     </button>
 
-                    {!isMobileViewport && (
                       <div
                         className={`absolute bottom-0 left-0 w-full px-5 pt-12 pb-5 sm:px-10 sm:pt-16 sm:pb-8 z-10 backdrop-blur-[2px] ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.78)_24%,rgba(255,255,255,0.97)_60%,rgba(255,255,255,1)_100%)]" : "bg-gradient-to-t from-[#0f0f0f] via-[#0f0f0f]/90 to-transparent"}`}
                       >
@@ -1737,13 +1754,40 @@ END:VCALENDAR`;
                           </div>
                         </div>
                       </div>
-                    )}
-                  </div>
+                      </div>
+                    </>
+                  )}
 
                   {isMobileViewport && (
                     <div
                       className={`relative px-4 pt-5 pb-4 border-b ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.98))] border-slate-200/70" : "bg-[#0f0f0f] border-white/10"}`}
                     >
+                      <button
+                        onClick={closeEvent}
+                        aria-label={t("common.close", "鍏抽棴")}
+                        className={`absolute right-4 top-4 h-11 w-11 rounded-full backdrop-blur-xl border transition-all duration-300 z-30 group inline-flex items-center justify-center overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer ${isDayMode ? `bg-white/86 hover:bg-white text-slate-700 border-white/85 shadow-[0_16px_34px_rgba(15,23,42,0.14)] hover:shadow-[0_22px_42px_rgba(15,23,42,0.18)] hover:-translate-y-0.5 focus-visible:ring-slate-400/70 focus-visible:ring-offset-white` : "bg-black/45 hover:bg-black/65 text-white border-white/10 hover:border-white/20 focus-visible:ring-white/60 focus-visible:ring-offset-[#0f0f0f]"}`}
+                      >
+                        {isDayMode && (
+                          <>
+                            <span
+                              aria-hidden="true"
+                              className="absolute inset-0 rounded-full opacity-90 bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(255,255,255,0.16))]"
+                            />
+                            <span
+                              aria-hidden="true"
+                              className={`absolute inset-[1px] rounded-full opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100 ${eventThemeAccent.heroGlow}`}
+                            />
+                          </>
+                        )}
+                        <span
+                          className={`relative inline-flex h-8 w-8 items-center justify-center rounded-full transition-all duration-300 ${isDayMode ? "bg-white/70 border border-slate-200/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] group-hover:bg-white" : "bg-white/10 border border-white/10 group-hover:bg-white/15"}`}
+                        >
+                          <X
+                            size={20}
+                            className="group-hover:rotate-90 group-hover:scale-105 transition-transform duration-300"
+                          />
+                        </span>
+                      </button>
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap mb-3">
@@ -1860,6 +1904,65 @@ END:VCALENDAR`;
                     </div>
                   )}
 
+                  {!isMobileViewport && (
+                    <div
+                      className={`relative px-8 pt-8 pb-6 border-b ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.98))] border-slate-200/70" : "bg-[#0f0f0f] border-white/10"}`}
+                    >
+                      <div className="max-w-4xl pr-20">
+                        <h2
+                          className={`text-4xl xl:text-5xl font-black leading-[1.06] tracking-tight ${isDayMode ? "text-slate-950 [text-wrap:balance]" : "text-white"}`}
+                        >
+                          {selectedEvent.title}
+                        </h2>
+
+                        {selectedEvent.description && (
+                          <p
+                            className={`mt-4 max-w-3xl text-base leading-8 ${isDayMode ? "text-slate-600" : "text-white/75"}`}
+                          >
+                            {selectedEvent.description}
+                          </p>
+                        )}
+
+                        <div className="flex flex-wrap items-center gap-2.5 mt-4">
+                          <div
+                            className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 border ${isDayMode ? "bg-white border-slate-200 text-slate-700 shadow-[0_10px_24px_rgba(15,23,42,0.06)]" : "bg-white/8 border-white/15 text-white/85"}`}
+                          >
+                            <Calendar size={15} className={eventThemeAccent.accentText} />
+                            <span className="text-sm font-semibold tracking-wide">
+                              {formatDateTime(selectedEvent.date)}
+                              {selectedEvent.end_date &&
+                                !isSameDay(selectedEvent.date, selectedEvent.end_date) &&
+                                ` - ${formatDateTime(selectedEvent.end_date)}`}
+                            </span>
+                          </div>
+                          {selectedEvent.location && (
+                            <button
+                              type="button"
+                              onClick={handleCopyLocation}
+                              className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 border text-sm font-semibold transition-colors ${isDayMode ? "bg-white border-slate-200 text-slate-700 hover:bg-slate-50" : "bg-white/8 border-white/15 text-white/85 hover:bg-white/12"}`}
+                            >
+                              <MapPin size={15} className={eventThemeAccent.accentText} />
+                              <span className="truncate max-w-[320px]">
+                                {selectedEvent.location}
+                              </span>
+                              <Copy size={14} />
+                            </button>
+                          )}
+                          <span
+                            className={`inline-flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border ${isDayMode ? "ring-1 ring-white/50" : ""} ${getStatusColor(getEventLifecycle(selectedEvent.date, selectedEvent.end_date, t), t)}`}
+                          >
+                            {getEventLifecycle(
+                              selectedEvent.date,
+                              selectedEvent.end_date,
+                              t,
+                            )}
+                          </span>
+                        </div>
+
+                      </div>
+                    </div>
+                  )}
+
                   {/* Modal Content */}
                   <div
                     className={`p-4 sm:p-8 pt-5 pb-[max(env(safe-area-inset-bottom),24px)] sm:pb-8 ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0),rgba(248,250,252,0.9)_18%,rgba(248,250,252,1)_100%)]" : ""}`}
@@ -1890,7 +1993,7 @@ END:VCALENDAR`;
                               </span>
                             </div>
                             <h3
-                              className={`text-xl sm:text-2xl font-bold mb-4 ${isDayMode ? "text-slate-900" : "text-white"}`}
+                              className={`text-xl sm:text-2xl font-bold mb-4 ${isMobileViewport ? "" : "hidden"} ${isDayMode ? "text-slate-900" : "text-white"}`}
                             >
                               {selectedEvent.title}
                             </h3>
@@ -1909,7 +2012,7 @@ END:VCALENDAR`;
                       </div>
 
                       {/* Sidebar - Details & Link */}
-                      <div className="lg:w-1/2 space-y-4">
+                      <div className="lg:w-[360px] xl:w-[400px] space-y-4">
                         <div
                           className={`rounded-[1.9rem] p-5 sm:p-6 border lg:sticky lg:top-8 space-y-5 relative overflow-hidden ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(248,250,252,0.99))] border-slate-200/80 shadow-[0_22px_54px_rgba(15,23,42,0.08)]" : "bg-white/5 border-white/5"}`}
                         >
