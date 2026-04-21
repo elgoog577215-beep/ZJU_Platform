@@ -19,7 +19,6 @@ import {
   CheckCircle,
   ExternalLink,
   Download,
-  Globe,
   FileText,
   AlertCircle,
   Share2,
@@ -30,7 +29,6 @@ import {
   Tag,
   Search,
   Plus,
-  Eye,
 } from "lucide-react";
 import UploadModal from "./UploadModal";
 import FavoriteButton from "./FavoriteButton";
@@ -131,28 +129,6 @@ const formatDateTime = (dateStr) => {
 };
 
 const VIEW_DEDUPE_WINDOW_MS = 30 * 60 * 1000;
-
-const getViewTone = (views, t) => {
-  if (views >= 1000)
-    return {
-      label: t("events.view_heat.viral", "爆火"),
-      badge: "bg-rose-500/15 text-rose-200 border-rose-400/20",
-    };
-  if (views >= 300)
-    return {
-      label: t("events.view_heat.hot", "热门"),
-      badge: "bg-amber-500/15 text-amber-200 border-amber-400/20",
-    };
-  if (views >= 80)
-    return {
-      label: t("events.view_heat.rising", "升温中"),
-      badge: "bg-emerald-500/15 text-emerald-200 border-emerald-400/20",
-    };
-  return {
-    label: t("events.view_heat.new", "新上架"),
-    badge: "bg-indigo-500/15 text-indigo-200 border-indigo-400/20",
-  };
-};
 
 const EVENT_THEME_VARIANTS = {
   cyan: {
@@ -468,7 +444,7 @@ const EventCard = memo(
 EventCard.displayName = "EventCard";
 
 const Events = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { settings, uiMode } = useSettings();
   const { user } = useAuth();
   const prefersReducedMotion = useReducedMotion();
@@ -486,21 +462,11 @@ const Events = () => {
   );
   const shouldReduceCardMotion = prefersReducedMotion || isMobileViewport;
   const trackedViewTimestamps = useRef(new Map());
-  const numberFormatter = useMemo(
-    () =>
-      new Intl.NumberFormat(
-        i18n.language?.startsWith("zh") ? "zh-CN" : "en-US",
-      ),
-    [i18n.language],
-  );
-  const selectedEventViewTone = useMemo(
-    () => getViewTone(selectedEvent?.views || 0, t),
-    [selectedEvent?.views, t],
-  );
   const eventThemeAccent = useMemo(
     () => EVENT_THEME_VARIANTS[isDayMode ? "cyan" : "blue"],
     [isDayMode],
   );
+  const showLegacyHeaderImage = false;
 
   // Listen for global events from Navbar
   useEffect(() => {
@@ -1567,7 +1533,7 @@ END:VCALENDAR`;
                     </button>
                   )}
                 <div className="relative flex-1 overflow-y-auto overscroll-contain custom-scrollbar">
-                  {!isMobileViewport && false && (
+                  {!isMobileViewport && showLegacyHeaderImage && (
                     <>
                       {/* Modal Header Image */}
                       <div
@@ -1788,8 +1754,8 @@ END:VCALENDAR`;
                           />
                         </span>
                       </button>
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1">
+                      <div className="pr-14">
+                        <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap mb-3">
                             <div
                               className={`px-3 py-1.5 backdrop-blur-xl border rounded-xl shadow-inner flex items-center gap-2 ${isDayMode ? "bg-white/92 border-white/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_10px_25px_rgba(15,23,42,0.08)]" : "bg-white/10 border-white/20"}`}
@@ -1821,8 +1787,21 @@ END:VCALENDAR`;
                           >
                             {selectedEvent.title}
                           </h2>
+                          {selectedEvent.link ? (
+                            <a
+                              href={selectedEvent.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`mt-3 inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-bold transition-all group ${isDayMode ? eventThemeAccent.cta : "bg-indigo-500/90 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 backdrop-blur-md border border-white/10"}`}
+                            >
+                              {t("events.visit_link")}
+                              <ExternalLink
+                                size={16}
+                                className="group-hover:translate-x-0.5 transition-transform"
+                              />
+                            </a>
+                          ) : null}
                         </div>
-                        <div className="w-11 shrink-0" aria-hidden="true" />
                       </div>
 
                       {selectedEvent.description && (
@@ -1908,57 +1887,72 @@ END:VCALENDAR`;
                     <div
                       className={`relative px-8 pt-8 pb-6 border-b ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.98))] border-slate-200/70" : "bg-[#0f0f0f] border-white/10"}`}
                     >
-                      <div className="max-w-4xl pr-20">
-                        <h2
-                          className={`text-4xl xl:text-5xl font-black leading-[1.06] tracking-tight ${isDayMode ? "text-slate-950 [text-wrap:balance]" : "text-white"}`}
-                        >
-                          {selectedEvent.title}
-                        </h2>
-
-                        {selectedEvent.description && (
-                          <p
-                            className={`mt-4 max-w-3xl text-base leading-8 ${isDayMode ? "text-slate-600" : "text-white/75"}`}
+                      <div className="pr-20 flex flex-col xl:flex-row xl:items-start xl:justify-between gap-5">
+                        <div className="min-w-0 max-w-4xl">
+                          <h2
+                            className={`text-4xl xl:text-5xl font-black leading-[1.06] tracking-tight ${isDayMode ? "text-slate-950 [text-wrap:balance]" : "text-white"}`}
                           >
-                            {selectedEvent.description}
-                          </p>
-                        )}
+                            {selectedEvent.title}
+                          </h2>
 
-                        <div className="flex flex-wrap items-center gap-2.5 mt-4">
-                          <div
-                            className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 border ${isDayMode ? "bg-white border-slate-200 text-slate-700 shadow-[0_10px_24px_rgba(15,23,42,0.06)]" : "bg-white/8 border-white/15 text-white/85"}`}
-                          >
-                            <Calendar size={15} className={eventThemeAccent.accentText} />
-                            <span className="text-sm font-semibold tracking-wide">
-                              {formatDateTime(selectedEvent.date)}
-                              {selectedEvent.end_date &&
-                                !isSameDay(selectedEvent.date, selectedEvent.end_date) &&
-                                ` - ${formatDateTime(selectedEvent.end_date)}`}
+                          {selectedEvent.description && (
+                            <p
+                              className={`mt-4 max-w-3xl text-base leading-8 ${isDayMode ? "text-slate-600" : "text-white/75"}`}
+                            >
+                              {selectedEvent.description}
+                            </p>
+                          )}
+
+                          <div className="flex flex-wrap items-center gap-2.5 mt-4">
+                            <div
+                              className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 border ${isDayMode ? "bg-white border-slate-200 text-slate-700 shadow-[0_10px_24px_rgba(15,23,42,0.06)]" : "bg-white/8 border-white/15 text-white/85"}`}
+                            >
+                              <Calendar size={15} className={eventThemeAccent.accentText} />
+                              <span className="text-sm font-semibold tracking-wide">
+                                {formatDateTime(selectedEvent.date)}
+                                {selectedEvent.end_date &&
+                                  !isSameDay(selectedEvent.date, selectedEvent.end_date) &&
+                                  ` - ${formatDateTime(selectedEvent.end_date)}`}
+                              </span>
+                            </div>
+                            {selectedEvent.location && (
+                              <button
+                                type="button"
+                                onClick={handleCopyLocation}
+                                className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 border text-sm font-semibold transition-colors ${isDayMode ? "bg-white border-slate-200 text-slate-700 hover:bg-slate-50" : "bg-white/8 border-white/15 text-white/85 hover:bg-white/12"}`}
+                              >
+                                <MapPin size={15} className={eventThemeAccent.accentText} />
+                                <span className="truncate max-w-[320px]">
+                                  {selectedEvent.location}
+                                </span>
+                                <Copy size={14} />
+                              </button>
+                            )}
+                            <span
+                              className={`inline-flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border ${isDayMode ? "ring-1 ring-white/50" : ""} ${getStatusColor(getEventLifecycle(selectedEvent.date, selectedEvent.end_date, t), t)}`}
+                            >
+                              {getEventLifecycle(
+                                selectedEvent.date,
+                                selectedEvent.end_date,
+                                t,
+                              )}
                             </span>
                           </div>
-                          {selectedEvent.location && (
-                            <button
-                              type="button"
-                              onClick={handleCopyLocation}
-                              className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 border text-sm font-semibold transition-colors ${isDayMode ? "bg-white border-slate-200 text-slate-700 hover:bg-slate-50" : "bg-white/8 border-white/15 text-white/85 hover:bg-white/12"}`}
-                            >
-                              <MapPin size={15} className={eventThemeAccent.accentText} />
-                              <span className="truncate max-w-[320px]">
-                                {selectedEvent.location}
-                              </span>
-                              <Copy size={14} />
-                            </button>
-                          )}
-                          <span
-                            className={`inline-flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border ${isDayMode ? "ring-1 ring-white/50" : ""} ${getStatusColor(getEventLifecycle(selectedEvent.date, selectedEvent.end_date, t), t)}`}
-                          >
-                            {getEventLifecycle(
-                              selectedEvent.date,
-                              selectedEvent.end_date,
-                              t,
-                            )}
-                          </span>
                         </div>
-
+                        {selectedEvent.link ? (
+                          <a
+                            href={selectedEvent.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`shrink-0 inline-flex items-center justify-center gap-2 rounded-2xl px-5 h-12 text-sm font-bold transition-all group ${isDayMode ? eventThemeAccent.cta : "bg-indigo-500/90 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 backdrop-blur-md border border-white/10"}`}
+                          >
+                            {t("events.visit_link")}
+                            <ExternalLink
+                              size={17}
+                              className="group-hover:translate-x-0.5 transition-transform"
+                            />
+                          </a>
+                        ) : null}
                       </div>
                     </div>
                   )}
@@ -2026,103 +2020,6 @@ END:VCALENDAR`;
                               />
                             </>
                           )}
-
-                          {/* Call to Action - Link */}
-                          <div
-                            className={`relative rounded-[1.6rem] p-4 sm:p-5 ${isDayMode ? eventThemeAccent.surface : ""}`}
-                          >
-                            <div
-                              className={`text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                            >
-                              <Globe
-                                size={16}
-                                className={eventThemeAccent.accentText}
-                              />
-                              {t("events.event_link")}
-                            </div>
-                            <p
-                              className={`text-sm mb-4 ${isDayMode ? "text-slate-600" : "text-gray-400"}`}
-                            >
-                              {selectedEvent.link
-                                ? t(
-                                    "events.view_count_hint",
-                                    "仅作活动热度参考",
-                                  ).replace("活动热度参考", "活动详情入口")
-                                : t("events.no_link_available")}
-                            </p>
-                            {selectedEvent.link ? (
-                              <a
-                                href={selectedEvent.link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={`w-full py-3.5 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 group ${isDayMode ? eventThemeAccent.cta : "bg-indigo-500/80 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 backdrop-blur-md border border-white/10"}`}
-                              >
-                                {t("events.visit_link")}
-                                <ExternalLink
-                                  size={18}
-                                  className="group-hover:translate-x-0.5 transition-transform"
-                                />
-                              </a>
-                            ) : (
-                              <div
-                                className={`p-3 rounded-2xl text-sm text-center border backdrop-blur-sm ${isDayMode ? "bg-white/80 text-slate-500 border-slate-200/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]" : "bg-white/5 text-gray-500 border-white/5"}`}
-                              >
-                                {t("events.no_link_available")}
-                              </div>
-                            )}
-                          </div>
-
-                          <div
-                            className={`rounded-[1.6rem] border px-4 py-4 backdrop-blur-sm ${isDayMode ? eventThemeAccent.highlightCard : "border-white/8 bg-[linear-gradient(135deg,rgba(99,102,241,0.12),rgba(255,255,255,0.03))]"}`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div
-                                className={`flex h-10 w-10 items-center justify-center rounded-xl border shrink-0 ${isDayMode ? eventThemeAccent.iconShell : "bg-indigo-500/12 border-indigo-400/15 text-indigo-300"}`}
-                              >
-                                <Eye size={16} />
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <p
-                                    className={`text-[10px] uppercase tracking-[0.22em] ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                                  >
-                                    {t("events.view_count_label", "访问热度")}
-                                  </p>
-                                  <div
-                                    className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold tracking-[0.16em] uppercase ${selectedEventViewTone.badge}`}
-                                  >
-                                    {selectedEventViewTone.label}
-                                  </div>
-                                </div>
-                                <p
-                                  className={`text-xs mt-1 truncate ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
-                                >
-                                  {t(
-                                    "events.view_count_hint",
-                                    "仅作活动热度参考",
-                                  )}
-                                </p>
-                              </div>
-                              <div className="text-right shrink-0">
-                                <div
-                                  className={`text-xl font-black tracking-[-0.04em] leading-none ${isDayMode ? "text-slate-900" : "text-white"}`}
-                                >
-                                  {numberFormatter.format(
-                                    selectedEvent.views || 0,
-                                  )}
-                                </div>
-                                <div
-                                  className={`mt-1 text-[11px] ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
-                                >
-                                  {t("events.view_count", "次访问")}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div
-                            className={`h-px bg-gradient-to-r from-transparent ${isDayMode ? "via-slate-200" : "via-white/10"} to-transparent`}
-                          />
 
                           {/* Key Attributes Grid - Now just Tags */}
                           {selectedEvent.tags && (
