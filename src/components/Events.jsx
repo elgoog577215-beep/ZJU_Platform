@@ -492,7 +492,7 @@ const Events = () => {
     return () => window.removeEventListener("resize", updateViewport);
   }, []);
 
-  const [sort, setSort] = useState("date_desc");
+  const [sort, setSort] = useState("newest");
   const [lifecycle, setLifecycle] = useState("all");
   const [selectedTags, setSelectedTags] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
