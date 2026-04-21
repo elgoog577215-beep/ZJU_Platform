@@ -1,4 +1,4 @@
-﻿import { memo, useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Eye,
@@ -339,7 +339,7 @@ const PlatformStats = () => {
           initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className={`relative overflow-hidden rounded-2xl border p-4 sm:p-5 backdrop-blur-2xl ${
+          className={`hidden md:block relative overflow-hidden rounded-2xl border p-4 sm:p-5 backdrop-blur-2xl ${
             isDayMode
               ? "border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(248,250,252,0.78))] shadow-[0_16px_48px_rgba(148,163,184,0.14)]"
               : "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] shadow-[0_16px_48px_rgba(0,0,0,0.16)]"
@@ -474,7 +474,7 @@ const PlatformStats = () => {
           initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.08 }}
-          className={`mt-4 rounded-2xl border p-4 sm:p-5 ${
+          className={`hidden md:block mt-4 rounded-2xl border p-4 sm:p-5 ${
             isDayMode
               ? "border-slate-200/80 bg-white/88 shadow-[0_16px_48px_rgba(148,163,184,0.14)]"
               : "border-white/10 bg-white/[0.03] shadow-[0_16px_48px_rgba(0,0,0,0.16)]"
