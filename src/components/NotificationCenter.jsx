@@ -92,6 +92,7 @@ const NotificationCenter = ({
   onUnreadCountChange = null,
   limit = 20,
   className = "",
+  enabled = true,
 }) => {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
@@ -104,7 +105,7 @@ const NotificationCenter = ({
   const isDayMode = uiMode === "day";
 
   const fetchNotifications = useCallback(async () => {
-    if (!user) {
+    if (!enabled || !user) {
       setNotifications([]);
       setUnreadCount(0);
       return;
@@ -119,24 +120,32 @@ const NotificationCenter = ({
         console.error("Failed to fetch notifications", error);
       }
     }
-  }, [limit, user]);
+  }, [enabled, limit, user]);
 
   useEffect(() => {
+    if (!enabled) {
+      setNotifications([]);
+      setUnreadCount(0);
+      return undefined;
+    }
+
     fetchNotifications();
     if (!user) return undefined;
 
     const interval = setInterval(fetchNotifications, 60000);
     return () => clearInterval(interval);
-  }, [fetchNotifications, user]);
+  }, [enabled, fetchNotifications, user]);
 
   useEffect(() => {
+    if (!enabled) return undefined;
+
     if (typeof onUnreadCountChange === "function") {
       onUnreadCountChange(unreadCount);
     }
-  }, [onUnreadCountChange, unreadCount]);
+  }, [enabled, onUnreadCountChange, unreadCount]);
 
   useEffect(() => {
-    if (!user || typeof window === "undefined") return undefined;
+    if (!enabled || !user || typeof window === "undefined") return undefined;
 
     const handleNotificationsUpdated = () => {
       fetchNotifications();
@@ -151,10 +160,10 @@ const NotificationCenter = ({
         NOTIFICATIONS_UPDATED_EVENT,
         handleNotificationsUpdated,
       );
-  }, [fetchNotifications, user]);
+  }, [enabled, fetchNotifications, user]);
 
   useEffect(() => {
-    if (embedded) return undefined;
+    if (!enabled || embedded) return undefined;
 
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -164,7 +173,7 @@ const NotificationCenter = ({
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [embedded]);
+  }, [embedded, enabled]);
 
   const handleMarkAsRead = async (id, e) => {
     e?.stopPropagation();
@@ -269,7 +278,7 @@ const NotificationCenter = ({
     });
   };
 
-  if (!user) return null;
+  if (!enabled || !user) return null;
 
   const panel = (
     <div

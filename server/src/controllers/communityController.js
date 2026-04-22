@@ -2,6 +2,8 @@ const { getDb } = require('../config/db');
 const { createNotification } = require('./notificationController');
 const { normalizeLinkagePayload, serializeLinkageFields, attachLinkedResources } = require('../utils/communityLinks');
 const { serializeCommunityPost } = require('../utils/serializeCommunityPost');
+const { cleanupTempFiles } = require('../middleware/upload');
+const { importCommunityDocument } = require('../utils/communityDocumentImport');
 
 const viewerFromReq = (req) => (
   req && req.user && req.user.id != null
@@ -38,6 +40,30 @@ const sanitizeCommunityText = (input) => {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .trim();
+};
+
+const importPostDocument = async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Login required' });
+    }
+    if (!req.file) {
+      return res.status(400).json({ error: 'Document file is required' });
+    }
+
+    const imported = await importCommunityDocument(req.file);
+    res.json({
+      title: imported.title,
+      plain_text: imported.plainText,
+      content_blocks: imported.contentBlocks,
+      meta: imported.meta,
+    });
+  } catch (error) {
+    next(error);
+  } finally {
+    cleanupTempFiles(req.file).catch(() => {});
+  }
 };
 
 const reportPostContent = async (req, res, next) => {
@@ -1364,6 +1390,7 @@ const adminCommunityMetrics = async (req, res, next) => {
 };
 
 module.exports = {
+  importPostDocument,
   listPosts,
   getPost,
   createPost,

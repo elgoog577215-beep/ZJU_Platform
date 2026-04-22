@@ -5,6 +5,7 @@ import {
   Clock,
   CloudRain,
   Sun,
+  Moon,
   CloudLightning,
   CloudSnow,
   CloudFog,
@@ -20,6 +21,7 @@ import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useSettings } from "../context/SettingsContext";
 import { useAuth } from "../context/AuthContext";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useBackClose } from "../hooks/useBackClose";
 import { useWeather } from "../hooks/useWeather";
 import { useReducedMotion } from "../utils/animations";
@@ -40,6 +42,7 @@ const Navbar = () => {
   const { t } = useTranslation();
   const { uiMode, changeUiMode } = useSettings();
   const { user, logout, isAdmin } = useAuth();
+  const isDesktopViewport = useMediaQuery("(min-width: 768px)", true);
   const [time, setTime] = useState(new Date());
   const prefersReducedMotion = useReducedMotion();
   const isDayMode = uiMode === "day";
@@ -55,16 +58,20 @@ const Navbar = () => {
     searchResults,
     handleCitySearch,
     selectCity,
-  } = useWeather();
+  } = useWeather(undefined, undefined, { enabled: isDesktopViewport });
 
   useBackClose(isWeatherModalOpen, () => setIsWeatherModalOpen(false));
   useBackClose(isThemeOpen, () => setIsThemeOpen(false));
 
   // Clock
   useEffect(() => {
+    if (!isDesktopViewport) {
+      return undefined;
+    }
+
     const timer = setInterval(() => setTime(new Date()), 60000);
     return () => clearInterval(timer);
-  }, []);
+  }, [isDesktopViewport]);
 
   const getWeatherIcon = (code) => {
     if (code === 0 || code === 1)
@@ -184,6 +191,11 @@ const Navbar = () => {
   const showMobileSearchAction =
     !location.pathname.startsWith("/me") &&
     !location.pathname.startsWith("/user/");
+  const nextUiMode = isDayMode ? "dark" : "day";
+  const themeToggleLabel = t(
+    nextUiMode === "day" ? "nav.day_mode" : "nav.night_mode",
+  );
+  const themeToggleTitle = `${t("nav.theme_settings")} - ${themeToggleLabel}`;
 
   return (
     <motion.nav
@@ -307,16 +319,20 @@ const Navbar = () => {
         </button>
 
         <button
-          onClick={() => setIsThemeOpen(true)}
-          className={`btn-icon ${isThemeOpen ? (isDayMode ? "text-slate-900 bg-white/90 shadow-[0_8px_20px_rgba(148,163,184,0.12)]" : "text-white bg-white/10") : ""}`}
-          title={t("nav.theme_settings")}
+          onClick={() => changeUiMode(nextUiMode)}
+          className={`btn-icon ${isDayMode ? "text-slate-900 bg-white/90 shadow-[0_8px_20px_rgba(148,163,184,0.12)] hover:text-indigo-600" : "text-white bg-white/10 hover:text-yellow-200"}`}
+          title={themeToggleTitle}
           aria-label={t("nav.theme_settings", "主题设置")}
-          aria-expanded={isThemeOpen}
         >
-          <Palette size={18} aria-hidden="true" />
+          {isDayMode ? (
+            <Moon size={18} aria-hidden="true" />
+          ) : (
+            <Sun size={18} aria-hidden="true" />
+          )}
         </button>
 
         <NotificationCenter
+          enabled={isDesktopViewport}
           onUnreadCountChange={setUnreadNotificationCount}
         />
 

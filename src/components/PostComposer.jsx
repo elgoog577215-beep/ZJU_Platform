@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ImagePlus, Film, Paperclip, Calendar, Users, Loader2, ArrowUp, ArrowDown, Trash2, Link as LinkIcon, Plus, GripVertical, FileText } from 'lucide-react';
+import { X, ImagePlus, Film, Paperclip, Calendar, Users, Loader2, ArrowUp, ArrowDown, Trash2, Link as LinkIcon, Plus, GripVertical, FileText, Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useSettings } from '../context/SettingsContext';
 import { useAuth } from '../context/AuthContext';
@@ -11,14 +11,46 @@ import api, { uploadFile } from '../services/api';
 const createBlock = (type = 'text') => ({
   id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
   type,
+  style: type === 'text' ? 'paragraph' : undefined,
   text: '',
   url: '',
   caption: '',
   name: '',
   size: 0,
   mime: '',
+  language: '',
   file: null,
 });
+
+const IMPORTABLE_DOCUMENT_ACCEPT = '.pdf,.doc,.docx,.md,.markdown';
+
+const normalizeImportedContentBlocks = (rawBlocks = []) => {
+  if (!Array.isArray(rawBlocks)) return [];
+
+  return rawBlocks
+    .filter((block) => block?.type === 'text' && String(block?.text || '').trim())
+    .map((block) => {
+      const next = createBlock('text');
+      next.text = String(block.text || '');
+      next.style = ['paragraph', 'heading', 'quote', 'list', 'code'].includes(block.style)
+        ? block.style
+        : 'paragraph';
+      next.language = next.style === 'code' ? String(block.language || '').trim() : '';
+      return next;
+    });
+};
+
+const getBlockLabel = (block, blockTypesForSection) => {
+  if (block?.type === 'text') {
+    if (block.style === 'heading') return '标题';
+    if (block.style === 'quote') return '引用';
+    if (block.style === 'list') return '列表';
+    if (block.style === 'code') return '代码';
+    return '文字';
+  }
+
+  return blockTypesForSection.find((item) => item.type === block?.type)?.label || block?.type || '内容';
+};
 
 const PostComposer = ({ isOpen, onClose, section = 'help', onSuccess }) => {
   const { t } = useTranslation();
@@ -38,7 +70,9 @@ const PostComposer = ({ isOpen, onClose, section = 'help', onSuccess }) => {
   const [relatedGroupIds, setRelatedGroupIds] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [uploadingBlockId, setUploadingBlockId] = useState(null);
+  const [importingDocument, setImportingDocument] = useState(false);
   const fileInputRefs = useRef({});
+  const documentImportInputRef = useRef(null);
 
   const isTeam = section === 'team';
   const isHelp = section === 'help';
@@ -93,6 +127,57 @@ const PostComposer = ({ isOpen, onClose, section = 'help', onSuccess }) => {
     });
   }, []);
 
+  const hasExistingComposerContent = Boolean(
+    title.trim() ||
+    tags.trim() ||
+    deadline.trim() ||
+    maxMembers.trim() ||
+    link.trim() ||
+    relatedArticleIds.trim() ||
+    relatedPostIds.trim() ||
+    relatedNewsIds.trim() ||
+    relatedGroupIds.trim() ||
+    blocks.some((block) => (block.type === 'text' ? block.text.trim() : block.url)),
+  );
+
+  const handleImportDocument = useCallback(async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      if (hasExistingComposerContent) {
+        const confirmed = window.confirm(
+          t('community.post_import_document_confirm', '导入文档会替换当前正文内容，是否继续？'),
+        );
+        if (!confirmed) return;
+      }
+
+      setImportingDocument(true);
+      const formData = new FormData();
+      formData.append('document', file);
+
+      const res = await uploadFile('/community/posts/import-document', formData);
+      const importedBlocks = normalizeImportedContentBlocks(res.data?.content_blocks);
+
+      if (!importedBlocks.length) {
+        throw new Error(t('community.post_import_empty', '文档没有可导入的正文内容'));
+      }
+
+      setBlocks(importedBlocks);
+      setTitle((prev) => (prev.trim() ? prev : String(res.data?.title || '').trim()));
+      toast.success(t('community.post_import_success', '文档内容已导入正文'));
+    } catch (error) {
+      const message =
+        error?.response?.data?.error ||
+        error?.message ||
+        t('community.post_import_failed', '文档导入失败，请检查文件格式');
+      toast.error(message);
+    } finally {
+      setImportingDocument(false);
+      if (event.target) event.target.value = '';
+    }
+  }, [hasExistingComposerContent, t]);
+
   const handleBlockFileUpload = useCallback(async (blockId, file) => {
     if (!file) return;
     setUploadingBlockId(blockId);
@@ -131,7 +216,16 @@ const PostComposer = ({ isOpen, onClose, section = 'help', onSuccess }) => {
         if (b.type === 'text') return b.text.trim();
         return b.url;
       })
-      .map(({ file: _file, ...rest }) => ({ ...rest, style: rest.type === 'text' ? 'paragraph' : undefined }));
+      .map(({ file: _file, ...rest }) => {
+        if (rest.type === 'text') {
+          return {
+            ...rest,
+            style: rest.style || 'paragraph',
+            language: rest.style === 'code' ? (rest.language || '') : undefined,
+          };
+        }
+        return rest;
+      });
 
     // Plain text content for backward compat
     const plainContent = blocks
@@ -244,6 +338,27 @@ const PostComposer = ({ isOpen, onClose, section = 'help', onSuccess }) => {
                 <label className={labelCls}>
                   {t('community.post_content_label', '内容')} <span className="text-red-400">*</span>
                 </label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    ref={documentImportInputRef}
+                    type="file"
+                    accept={IMPORTABLE_DOCUMENT_ACCEPT}
+                    onChange={handleImportDocument}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => documentImportInputRef.current?.click()}
+                    disabled={importingDocument || submitting}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all disabled:opacity-50 disabled:cursor-not-allowed ${isDayMode ? 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50' : 'bg-white/5 border-white/10 text-gray-200 hover:bg-white/10'}`}
+                  >
+                    {importingDocument ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+                    {t('community.post_import_document', '导入文档')}
+                  </button>
+                  <span className={`text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>
+                    {t('community.post_import_document_hint', '支持 PDF / DOC / DOCX / MD，一键填充正文')}
+                  </span>
+                </div>
                 <div className="space-y-3">
                   {blocks.map((block, index) => (
                     <div key={block.id} className={`relative rounded-xl border p-3 transition-all ${isDayMode ? 'border-slate-200/80 bg-slate-50/50' : 'border-white/10 bg-white/[0.02]'}`}>
@@ -251,7 +366,7 @@ const PostComposer = ({ isOpen, onClose, section = 'help', onSuccess }) => {
                       <div className="flex items-center justify-between gap-2 mb-2">
                         <div className={`flex items-center gap-1.5 text-xs ${isDayMode ? 'text-slate-400' : 'text-gray-500'}`}>
                           <GripVertical size={12} />
-                          <span>{blockTypesForSection.find((bt) => bt.type === block.type)?.label || block.type}</span>
+                          <span>{getBlockLabel(block, blockTypesForSection)}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <button type="button" onClick={() => moveBlock(block.id, 'up')} disabled={index === 0} className={`p-1 rounded-md border transition-colors disabled:opacity-30 ${isDayMode ? 'border-slate-200 text-slate-400 hover:bg-slate-100' : 'border-white/10 text-gray-500 hover:bg-white/5'}`}>

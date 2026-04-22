@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowDown } from "lucide-react";
 
 import { useSettings } from "../context/SettingsContext";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useReducedMotion } from "../utils/animations";
 
 const Hero = () => {
@@ -11,29 +12,14 @@ const Hero = () => {
   const opacity = useTransform(scrollY, [0, 300], [1, 0]);
   const { settings, uiMode } = useSettings();
   const prefersReducedMotion = useReducedMotion();
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== "undefined" ? window.innerWidth < 768 : false,
-  );
+  const isDesktopViewport = useMediaQuery("(min-width: 768px)", true);
 
   const shouldUseMotion = !prefersReducedMotion;
-  const shouldUseParallax = shouldUseMotion && !isMobile;
+  const shouldUseParallax = shouldUseMotion && isDesktopViewport;
+  const shouldAnimateArrow = shouldUseMotion && isDesktopViewport;
   const isDayMode = uiMode === "day";
   const heroImage =
     settings.hero_bg_url || "/uploads/1767349451839-56405188.jpg";
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return undefined;
-    }
-
-    const updateViewport = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    updateViewport();
-    window.addEventListener("resize", updateViewport, { passive: true });
-    return () => window.removeEventListener("resize", updateViewport);
-  }, []);
 
   const overlayClass = isDayMode
     ? ""
@@ -62,7 +48,7 @@ const Hero = () => {
     <section className="relative flex min-h-[100dvh] w-full items-center justify-center overflow-hidden px-4 pt-[max(env(safe-area-inset-top),0px)] pb-[max(env(safe-area-inset-bottom),24px)]">
       <motion.div
         style={shouldUseParallax ? { y } : undefined}
-        className="absolute inset-0 z-0"
+        className={`absolute inset-0 z-0 ${shouldUseParallax ? "will-change-transform" : ""}`}
       >
         <div className={`absolute inset-0 z-10 ${overlayClass}`} />
         <img
@@ -85,7 +71,7 @@ const Hero = () => {
 
       <motion.div
         style={shouldUseParallax ? { opacity } : undefined}
-        className="relative z-20 w-full max-w-6xl px-4 text-center"
+        className={`relative z-20 w-full max-w-6xl px-4 text-center ${shouldUseParallax ? "will-change-transform" : ""}`}
       >
         {isDayMode ? (
           <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-indigo-200/65 bg-white/68 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.32em] text-slate-600 shadow-[0_16px_36px_rgba(148,163,184,0.1)]">
@@ -126,9 +112,9 @@ const Hero = () => {
       <motion.button
         type="button"
         style={shouldUseParallax ? { opacity } : undefined}
-        animate={shouldUseMotion ? { y: [0, 10, 0] } : undefined}
+        animate={shouldAnimateArrow ? { y: [0, 10, 0] } : undefined}
         transition={
-          shouldUseMotion
+          shouldAnimateArrow
             ? { repeat: Infinity, duration: 2, ease: "easeInOut" }
             : undefined
         }

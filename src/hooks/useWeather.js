@@ -50,7 +50,9 @@ const writeWeatherCache = (coords, data) => {
 export const useWeather = (
   initialCity = DEFAULT_CITY,
   initialCoords = DEFAULT_COORDS,
+  options = {},
 ) => {
+  const { enabled = true } = options;
   const [weather, setWeather] = useState(null);
   const [city, setCity] = useState(
     localStorage.getItem("weather_city") || initialCity,
@@ -68,6 +70,10 @@ export const useWeather = (
   const [searchResults, setSearchResults] = useState([]);
 
   useEffect(() => {
+    if (!enabled) {
+      return undefined;
+    }
+
     if (!coords) {
       return undefined;
     }
@@ -104,7 +110,7 @@ export const useWeather = (
       window.clearTimeout(timeoutId);
       abortController.abort();
     };
-  }, [coords]);
+  }, [coords, enabled]);
 
   const handleCitySearch = async (event) => {
     event?.preventDefault();

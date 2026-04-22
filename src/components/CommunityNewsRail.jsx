@@ -24,6 +24,8 @@ const ADMIN_STATUS_FILTERS = [
   { key: 'rejected', label: '驳回' },
 ];
 
+const DEFAULT_COMMUNITY_TAB = 'tech';
+
 const CommunityNewsRail = () => {
   const { t } = useTranslation();
   const { uiMode } = useSettings();
@@ -65,7 +67,7 @@ const CommunityNewsRail = () => {
 
   const list = Array.isArray(newsItems) ? newsItems : [];
   const contentBlocks = useMemo(() => parseContentBlocks(selectedNews?.content_blocks), [selectedNews?.content_blocks]);
-  const currentTab = searchParams.get('tab') || 'help';
+  const currentTab = searchParams.get('tab') || DEFAULT_COMMUNITY_TAB;
   const hasActiveAdminFilter = isAdmin && adminStatusFilter !== 'all';
   const isLatestSort = activeSort === 'latest';
 

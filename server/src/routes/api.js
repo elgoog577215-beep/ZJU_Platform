@@ -53,6 +53,16 @@ const communityCommentCreateLimiter = customRateLimit({
   },
 });
 
+const importCommunityDocumentUpload = (req, res, next) => {
+  upload.single('document')(req, res, (error) => {
+    if (error) {
+      error.statusCode = 400;
+      return next(error);
+    }
+    return next();
+  });
+};
+
 // Auth Routes
 router.post('/auth/register', validate(registerValidation), authController.register);
 // FIX: BUG-04 — Mount bruteForceProtection on login routes
@@ -95,6 +105,7 @@ router.delete('/comments/:id', authenticateToken, commentController.deleteCommen
 // Community Routes
 router.get('/community/posts', optionalAuth, communityController.listPosts);
 router.get('/community/posts/:id', optionalAuth, communityController.getPost);
+router.post('/community/posts/import-document', authenticateToken, importCommunityDocumentUpload, communityController.importPostDocument);
 router.post('/community/posts', authenticateToken, communityPostCreateLimiter, communityController.createPost);
 router.put('/community/posts/:id', authenticateToken, communityController.updatePost);
 router.delete('/community/posts/:id', authenticateToken, communityController.deletePost);

@@ -1,8 +1,16 @@
 import React from 'react';
 import { motion, useScroll } from 'framer-motion';
+import { useMediaQuery } from '../hooks/useMediaQuery';
+import { useReducedMotion } from '../utils/animations';
 
 const ScrollProgress = () => {
+  const prefersReducedMotion = useReducedMotion();
+  const showOnDesktop = useMediaQuery('(min-width: 768px) and (hover: hover) and (pointer: fine)');
   const { scrollYProgress } = useScroll();
+
+  if (prefersReducedMotion || !showOnDesktop) {
+    return null;
+  }
 
   return (
     <motion.div

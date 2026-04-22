@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, useMotionValue, useSpring } from 'framer-motion';
+
+const INTERACTIVE_SELECTOR = 'a, button, input, textarea, select, summary, [role="button"], [data-cursor-hover], .cursor-pointer';
 
 const CustomCursor = () => {
   // Use MotionValues to track mouse position without triggering re-renders
@@ -18,54 +20,80 @@ const CustomCursor = () => {
   const ringY = useSpring(mouseY, ringSpringConfig);
 
   const [isHovering, setIsHovering] = useState(false);
+  const lastHoveringRef = useRef(false);
 
   useEffect(() => {
-    const updateMousePosition = (e) => {
-      // Update MotionValues directly - highly performant
-      mouseX.set(e.clientX);
-      mouseY.set(e.clientY);
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return undefined;
+    }
+
+    const mediaQuery = window.matchMedia('(hover: hover) and (pointer: fine)');
+    if (!mediaQuery.matches) {
+      return undefined;
+    }
+
+    let frameId = null;
+    let pointerX = -100;
+    let pointerY = -100;
+
+    const flushPointer = () => {
+      mouseX.set(pointerX);
+      mouseY.set(pointerY);
+      frameId = null;
     };
 
-    const handleMouseEnter = () => setIsHovering(true);
-    const handleMouseLeave = () => setIsHovering(false);
+    const queuePointerPosition = (event) => {
+      pointerX = event.clientX;
+      pointerY = event.clientY;
 
-    window.addEventListener('mousemove', updateMousePosition);
+      if (frameId == null) {
+        frameId = window.requestAnimationFrame(flushPointer);
+      }
+    };
 
-    // Add event listeners to all interactive elements
-    const interactiveElements = document.querySelectorAll('a, button, input, textarea, .cursor-pointer');
-    interactiveElements.forEach(el => {
-      el.addEventListener('mouseenter', handleMouseEnter);
-      el.addEventListener('mouseleave', handleMouseLeave);
-    });
+    const updateHoverState = (target) => {
+      const element = target instanceof Element ? target : null;
+      const nextHovering = Boolean(element?.closest(INTERACTIVE_SELECTOR));
+      if (lastHoveringRef.current !== nextHovering) {
+        lastHoveringRef.current = nextHovering;
+        setIsHovering(nextHovering);
+      }
+    };
 
-    // MutationObserver to handle dynamic content
-    const observer = new MutationObserver(() => {
-        const newElements = document.querySelectorAll('a, button, input, textarea, .cursor-pointer');
-        newElements.forEach(el => {
-            el.removeEventListener('mouseenter', handleMouseEnter); // clean up duplicates
-            el.removeEventListener('mouseleave', handleMouseLeave);
-            
-            el.addEventListener('mouseenter', handleMouseEnter);
-            el.addEventListener('mouseleave', handleMouseLeave);
-        });
-    });
-    
-    observer.observe(document.body, { childList: true, subtree: true });
+    const handlePointerMove = (event) => {
+      queuePointerPosition(event);
+      updateHoverState(event.target);
+    };
+
+    const handlePointerOver = (event) => updateHoverState(event.target);
+    const handlePointerOut = (event) => updateHoverState(event.relatedTarget);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        mouseX.set(-100);
+        mouseY.set(-100);
+      }
+    };
+
+    window.addEventListener('pointermove', handlePointerMove, { passive: true });
+    document.addEventListener('pointerover', handlePointerOver, { passive: true });
+    document.addEventListener('pointerout', handlePointerOut, { passive: true });
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     // Hide default cursor
     document.body.style.cursor = 'none';
 
     return () => {
-      window.removeEventListener('mousemove', updateMousePosition);
-      interactiveElements.forEach(el => {
-        el.removeEventListener('mouseenter', handleMouseEnter);
-        el.removeEventListener('mouseleave', handleMouseLeave);
-      });
-      observer.disconnect();
+      if (frameId != null) {
+        window.cancelAnimationFrame(frameId);
+      }
+      window.removeEventListener('pointermove', handlePointerMove);
+      document.removeEventListener('pointerover', handlePointerOver);
+      document.removeEventListener('pointerout', handlePointerOut);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       // Restore default cursor
       document.body.style.cursor = 'auto';
     };
-  }, []);
+  }, [mouseX, mouseY]);
 
   return (
     <>

@@ -14,6 +14,7 @@ import { SettingsProvider, useSettings } from './context/SettingsContext';
 import { HelmetProvider } from 'react-helmet-async';
 import ErrorBoundary from './components/ErrorBoundary';
 import { ResourceHints } from './components/ResourceHints';
+import { useMediaQuery } from './hooks/useMediaQuery';
 import { usePerformanceMonitor } from './hooks/usePerformanceMonitor';
 import { useServiceWorker } from './hooks/useServiceWorker';
 import SEO from './components/SEO';
@@ -40,7 +41,6 @@ const About = lazy(() => import('./components/About'));
 const AdminDashboard = lazy(() => import('./components/Admin/AdminDashboard'));
 const NotFound = lazy(() => import('./components/NotFound'));
 const PublicProfile = lazy(() => import('./components/PublicProfile'));
-const BackgroundSystem = lazy(() => import('./components/BackgroundSystem'));
 const SearchPalette = lazy(() => import('./components/SearchPalette'));
 const GlobalPlayer = lazy(() => import('./components/GlobalPlayer'));
 
@@ -106,8 +106,9 @@ const AppContent = () => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
   const { cursorEnabled, settings } = useSettings();
+  const hasDesktopPointer = useMediaQuery('(min-width: 768px) and (hover: hover) and (pointer: fine)');
   const shouldMountDeferredUi = useDeferredMount(700);
-  const shouldUseThreeBackground = location.pathname === '/';
+  const [isLowPowerDevice, setIsLowPowerDevice] = useState(false);
 
   useServiceWorker();
 
@@ -119,6 +120,13 @@ const AppContent = () => {
       }
     },
   });
+
+  useEffect(() => {
+    if (typeof navigator === 'undefined') return;
+    const cores = Number(navigator.hardwareConcurrency || 0);
+    const memory = Number(navigator.deviceMemory || 0);
+    setIsLowPowerDevice((cores > 0 && cores <= 4) || (memory > 0 && memory <= 4));
+  }, []);
 
   useEffect(() => {
     if (settings?.site_title) {
@@ -166,12 +174,8 @@ const AppContent = () => {
         </ErrorBoundary>
       )}
       {/* Keep the Hero image background, but disable the fixed page-wide home background. */}
-      {!isAdminRoute && cursorEnabled && (
-        <div className="hidden md:block">
-          <CustomCursor />
-        </div>
-      )}
-      {!isAdminRoute && <ScrollProgress />}
+      {!isAdminRoute && cursorEnabled && hasDesktopPointer && !isLowPowerDevice && <CustomCursor />}
+      {!isAdminRoute && hasDesktopPointer && !isLowPowerDevice && <ScrollProgress />}
 
       {shouldMountDeferredUi && (
         <ErrorBoundary variant="inline" silent>

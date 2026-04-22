@@ -4,6 +4,7 @@ import { Calendar, FileText, Home, Music, UserCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useReducedMotion } from "../utils/animations";
 import { useSettings } from "../context/SettingsContext";
 import api from "../services/api";
@@ -15,6 +16,7 @@ const MobileNavbar = () => {
   const { uiMode } = useSettings();
   const prefersReducedMotion = useReducedMotion();
   const isDayMode = uiMode === "day";
+  const isMobileViewport = useMediaQuery("(max-width: 767px)");
 
   // Unread notification count for the "我的" tab badge. Mobile clients don't
   // render NotificationCenter (it's desktop-only inside Navbar's hidden
@@ -25,7 +27,7 @@ const MobileNavbar = () => {
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    if (!user) {
+    if (!user || !isMobileViewport) {
       setUnreadCount(0);
       return undefined;
     }
@@ -57,7 +59,7 @@ const MobileNavbar = () => {
         onNotificationsUpdated,
       );
     };
-  }, [user?.id]);
+  }, [isMobileViewport, user?.id]);
 
   useEffect(() => {
     document.body.style.overflow = "";

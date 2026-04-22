@@ -1,27 +1,33 @@
-import React, { useState, useEffect, memo, useCallback } from 'react';
+import React, { useState, useEffect, memo, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Play, Pause, SkipBack, SkipForward, X, Music } from 'lucide-react';
 import { useMusic } from '../context/MusicContext';
 import { useLocation } from 'react-router-dom';
 import { useSettings } from '../context/SettingsContext';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 // Simple Audio Visualizer Component - Memoized
 const Visualizer = memo(({ isPlaying }) => {
+  const barHeights = useMemo(
+    () => Array.from({ length: 10 }, (_, index) => 10 + ((index * 5) % 14)),
+    [],
+  );
+
   return (
     <div className="flex items-end justify-center gap-1 h-8 w-full mb-2 opacity-50">
-      {[...Array(20)].map((_, i) => (
+      {barHeights.map((height, i) => (
         <motion.div
           key={i}
           className="w-1 bg-gradient-to-t from-cyan-500 to-blue-600 rounded-t-full"
           animate={{
-            height: isPlaying ? [4, Math.random() * 24 + 4, 4] : 4,
+            height: isPlaying ? [6, height, 6] : 6,
           }}
           transition={{
-            duration: 0.4,
-            repeat: Infinity,
-            repeatType: "reverse",
+            duration: 0.55,
+            repeat: isPlaying ? Infinity : 0,
+            repeatType: 'reverse',
             delay: i * 0.05,
-            ease: "easeInOut"
+            ease: 'easeInOut'
           }}
         />
       ))}
@@ -121,8 +127,11 @@ const GlobalPlayer = () => {
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const location = useLocation();
+  const isMobile = useMediaQuery('(max-width: 767px)');
 
   useEffect(() => {
+    if (!currentTrack || !isMiniPlayerVisible) return undefined;
+
     const audio = audioRef.current;
     if (!audio) return;
     
@@ -138,7 +147,7 @@ const GlobalPlayer = () => {
       audio.removeEventListener('timeupdate', updateProgress);
       audio.removeEventListener('loadedmetadata', updateProgress);
     };
-  }, [audioRef]);
+  }, [audioRef, currentTrack, isMiniPlayerVisible]);
 
   const handleSeek = useCallback((e) => {
     const newTime = parseFloat(e.target.value);
@@ -151,15 +160,6 @@ const GlobalPlayer = () => {
   const handleClose = useCallback(() => {
     setIsMiniPlayerVisible(false);
   }, [setIsMiniPlayerVisible]);
-
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   // Don't show mini player on Desktop Music page (because full player exists), but show on Mobile Music page (as mini player)
   if (!currentTrack || !isMiniPlayerVisible) return null;
@@ -231,9 +231,11 @@ const GlobalPlayer = () => {
     >
       <div className={`backdrop-blur-3xl border rounded-[2rem] p-5 flex flex-col relative overflow-hidden ring-1 group transition-colors ${isDayMode ? 'bg-white/92 border-slate-200/80 shadow-[0_16px_46px_rgba(148,163,184,0.24)] ring-slate-200/70 hover:border-cyan-200/80' : 'bg-black/60 border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] ring-white/5 hover:border-white/20'}`}>
         {/* Visualizer Background */}
-        <div className="absolute bottom-0 left-0 w-full h-32 opacity-20 pointer-events-none z-0 mask-image-gradient-to-t mix-blend-screen">
-            <Visualizer isPlaying={isPlaying} />
-        </div>
+        {isPlaying && (
+          <div className="absolute bottom-0 left-0 w-full h-32 opacity-20 pointer-events-none z-0 mask-image-gradient-to-t mix-blend-screen">
+              <Visualizer isPlaying={isPlaying} />
+          </div>
+        )}
 
         <PlayerInfo 
             currentTrack={currentTrack} 
