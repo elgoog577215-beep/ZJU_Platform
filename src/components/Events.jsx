@@ -1,4 +1,4 @@
-import React, {
+﻿import React, {
   useState,
   useMemo,
   useEffect,
@@ -1130,6 +1130,9 @@ END:VCALENDAR`;
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.96, y: 16 }}
                   transition={{ type: "spring", damping: 28, stiffness: 320 }}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="events-mobile-filter-title"
                   className={`fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit backdrop-blur-xl border rounded-3xl z-[101] md:hidden flex flex-col max-h-[80vh] max-w-md mx-auto ${isDayMode ? "bg-white/95 border-slate-200/80 shadow-[0_24px_60px_rgba(148,163,184,0.22)]" : "bg-[#1a1a1a]/95 border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.45)]"}`}
                 >
                   <div
@@ -1137,6 +1140,7 @@ END:VCALENDAR`;
                   >
                     <div>
                       <h3
+                        id="events-mobile-filter-title"
                         className={`text-lg font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}
                       >
                         {discoveryMode === "assistant"
@@ -1250,6 +1254,9 @@ END:VCALENDAR`;
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.96, y: 16 }}
                   transition={{ type: "spring", damping: 28, stiffness: 320 }}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="events-mobile-sort-title"
                   className={`fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit backdrop-blur-xl border rounded-3xl z-[101] md:hidden flex flex-col max-w-sm mx-auto ${isDayMode ? "bg-white/95 border-slate-200/80 shadow-[0_24px_60px_rgba(148,163,184,0.22)]" : "bg-[#1a1a1a]/95 border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.45)]"}`}
                 >
                   <div
@@ -1257,6 +1264,7 @@ END:VCALENDAR`;
                   >
                     <div>
                       <h3
+                        id="events-mobile-sort-title"
                         className={`text-lg font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}
                       >
                         {t("common.sort", "排序")}
@@ -1479,6 +1487,9 @@ END:VCALENDAR`;
                   ? undefined
                   : { duration: 0.2, ease: [0.22, 1, 0.36, 1] }
               }
+              role="dialog"
+              aria-modal="true"
+              aria-label={selectedEvent?.title || t("events.title")}
               className={`fixed inset-0 z-[140] flex items-end justify-center p-0 md:items-center md:p-4 backdrop-blur-md ${isDayMode ? "bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.15),rgba(255,255,255,0.88)_42%,rgba(241,245,249,0.96)_100%)]" : "bg-black/80"}`}
               onClick={closeEvent}
             >
@@ -1507,7 +1518,7 @@ END:VCALENDAR`;
                   {!isMobileViewport && (
                     <button
                       onClick={closeEvent}
-                      aria-label={t("common.close", "鍏抽棴")}
+                      aria-label={t("common.close", "关闭")}
                       className={`absolute right-5 top-5 h-12 w-12 rounded-full backdrop-blur-xl border transition-all duration-300 z-40 group inline-flex items-center justify-center overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer ${isDayMode ? `bg-white/90 hover:bg-white text-slate-700 border-white/85 shadow-[0_16px_34px_rgba(15,23,42,0.14)] hover:shadow-[0_22px_42px_rgba(15,23,42,0.18)] hover:-translate-y-0.5 focus-visible:ring-slate-400/70 focus-visible:ring-offset-white` : "bg-black/45 hover:bg-black/65 text-white border-white/10 hover:border-white/20 focus-visible:ring-white/60 focus-visible:ring-offset-[#0f0f0f]"}`}
                     >
                       {isDayMode && (
@@ -1730,7 +1741,7 @@ END:VCALENDAR`;
                     >
                       <button
                         onClick={closeEvent}
-                        aria-label={t("common.close", "鍏抽棴")}
+                        aria-label={t("common.close", "关闭")}
                         className={`absolute right-4 top-4 h-11 w-11 rounded-full backdrop-blur-xl border transition-all duration-300 z-30 group inline-flex items-center justify-center overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer ${isDayMode ? `bg-white/86 hover:bg-white text-slate-700 border-white/85 shadow-[0_16px_34px_rgba(15,23,42,0.14)] hover:shadow-[0_22px_42px_rgba(15,23,42,0.18)] hover:-translate-y-0.5 focus-visible:ring-slate-400/70 focus-visible:ring-offset-white` : "bg-black/45 hover:bg-black/65 text-white border-white/10 hover:border-white/20 focus-visible:ring-white/60 focus-visible:ring-offset-[#0f0f0f]"}`}
                       >
                         {isDayMode && (

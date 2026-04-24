@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { motion } from 'framer-motion';
 import { Upload, AlertCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -90,11 +90,11 @@ const CommunityFeedPanel = ({
   return (
     <div role="tabpanel">
       {/* Controls */}
-      <div className="flex flex-col gap-4 mb-6">
+      <div className={`mb-6 flex flex-col gap-4 rounded-[28px] border p-3.5 md:p-4 ${isDayMode ? 'bg-white/70 border-slate-200/80 shadow-[0_18px_38px_rgba(148,163,184,0.12)]' : 'bg-white/[0.03] border-white/10 shadow-[0_18px_36px_rgba(0,0,0,0.2)]'}`}>
         <div className="flex items-center justify-between gap-3">
           {/* Status tabs */}
           {statusTabs && (
-            <div className="flex items-center gap-2 overflow-x-auto">
+            <div className="flex items-center gap-2 overflow-x-auto rounded-2xl p-1 md:p-1.5">
               {statusTabs.map(({ key, label }) => (
                 <button
                   key={key}
@@ -102,7 +102,7 @@ const CommunityFeedPanel = ({
                   className={`px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all whitespace-nowrap ${
                     statusFilter === key
                       ? accentBtnClass
-                      : (isDayMode ? 'bg-white/80 text-slate-600 border-slate-200/80 hover:bg-slate-50' : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10')
+                      : (isDayMode ? 'bg-white/88 text-slate-600 border-slate-200/80 hover:bg-slate-50' : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10')
                   }`}
                 >
                   {t(label)}
@@ -120,7 +120,7 @@ const CommunityFeedPanel = ({
             {onNewPost && (
               <button
                 onClick={onNewPost}
-                className={`p-2 md:p-3 rounded-full backdrop-blur-md border transition-all ${th.btnSecondary}`}
+                className={`p-2.5 md:p-3 rounded-full backdrop-blur-md border transition-all shadow-sm ${th.btnSecondary}`}
                 title={t('community.post_new', '发帖')}
               >
                 <Upload size={18} className="md:w-5 md:h-5" />
@@ -129,9 +129,9 @@ const CommunityFeedPanel = ({
           </div>
         </div>
         {statusTabs && extraControls ? (
-          <div>{extraControls}</div>
+          <div className="rounded-[24px]">{extraControls}</div>
         ) : null}
-        <div className={`flex flex-wrap items-center justify-between gap-2 rounded-2xl border px-3 py-2.5 text-xs ${isDayMode ? 'bg-white/72 border-slate-200/80 text-slate-500' : 'bg-white/[0.03] border-white/10 text-gray-400'}`}>
+        <div className={`flex flex-wrap items-center justify-between gap-2 rounded-2xl border px-3 py-2.5 text-xs ${isDayMode ? 'bg-slate-50/92 border-slate-200/80 text-slate-500' : 'bg-white/[0.03] border-white/10 text-gray-400'}`}>
           <div className="flex flex-wrap items-center gap-2.5">
             <span className={th.textSecondary}>
               {displayItems.length} {t('community.results_count', '条结果')}
@@ -143,7 +143,7 @@ const CommunityFeedPanel = ({
             ) : null}
             {searchQuery?.trim() ? (
               <span className="truncate max-w-[220px]">
-                {t('community.searching_for', '搜索')} "{searchQuery.trim()}"
+                {t('community.searching_for', '搜索')} &quot;{searchQuery.trim()}&quot;
               </span>
             ) : null}
             {selectedTags?.length ? (

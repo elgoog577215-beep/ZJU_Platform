@@ -1,0 +1,49 @@
+- generic [ref=e3]:
+  - link "跳转到主要内容" [ref=e4] [cursor=pointer]:
+    - /url: "#main-content"
+  - navigation "主导航" [ref=e5]:
+    - link "拓途浙享首页" [ref=e6] [cursor=pointer]:
+      - /url: /
+      - img "拓途浙享 Logo" [ref=e9]
+      - generic [ref=e10]:
+        - generic [ref=e11]: 拓途浙享
+        - generic [ref=e12]: 数字艺术与科技
+    - menubar "导航菜单" [ref=e13]:
+      - menuitem "首页" [ref=e14] [cursor=pointer]
+      - menuitem "活动" [ref=e15] [cursor=pointer]
+      - menuitem "AI社区" [ref=e16] [cursor=pointer]
+      - menuitem "播客" [ref=e17] [cursor=pointer]
+      - menuitem "画廊" [ref=e18] [cursor=pointer]
+      - menuitem "视频" [ref=e19] [cursor=pointer]
+      - menuitem "关于" [ref=e20] [cursor=pointer]: 关于
+      - separator [ref=e22]
+      - button "搜索" [ref=e23] [cursor=pointer]:
+        - img [ref=e24]
+      - button "天气信息：杭州，加载中" [ref=e27] [cursor=pointer]:
+        - generic [ref=e28]:
+          - img [ref=e29]
+          - generic [ref=e32]: 15:52
+        - separator [ref=e33]
+        - generic [ref=e34]:
+          - img [ref=e35]
+          - generic [ref=e37]: ...
+        - separator [ref=e38]
+        - generic [ref=e39]: 杭州
+      - button "主题设置" [ref=e40] [cursor=pointer]:
+        - img [ref=e41]
+      - button "zh" [ref=e48] [cursor=pointer]:
+        - img [ref=e49]
+        - generic [ref=e52]: zh
+      - button "登录" [ref=e53] [cursor=pointer]
+  - main [ref=e55]:
+    - paragraph [ref=e62]: Loading
+  - contentinfo [ref=e63]:
+    - generic [ref=e64]:
+      - generic [ref=e65]:
+        - generic [ref=e66]:
+          - generic [ref=e67]: 拓途浙享
+          - generic [ref=e68]: "|"
+          - generic [ref=e69]: TUOTUZJU
+        - paragraph [ref=e70]: © 2026 浙江大学 SQTP 项目组。All rights reserved.
+      - link "浙ICP备2025221213号" [ref=e71] [cursor=pointer]:
+        - /url: https://beian.miit.gov.cn/

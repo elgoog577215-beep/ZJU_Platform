@@ -143,7 +143,7 @@ async function createCommunityPost(apiRequest, author, overrides = {}) {
 }
 
 /** Create a photo (for scroll memory test). */
-async function createPhoto(apiRequest, author, overrides = {}) {
+async function CreatePhoto(apiRequest, author, overrides = {}) {
   const payload = {
     title: overrides.title || `E2E Photo ${ts()}_${rand()}`,
     url: overrides.url || "/static/placeholder.jpg",
@@ -168,7 +168,7 @@ async function fetchNotifications(apiRequest, user) {
 }
 
 /** Inject JWT + minimal user shell into localStorage so the SPA reads logged-in state. */
-async function primeAuthStorage(page, user) {
+async function PrimeAuthStorage(page, user) {
   // goto a lightweight route first so localStorage has an origin to write to.
   await page.goto("/");
   await page.evaluate(
@@ -267,7 +267,7 @@ test.describe("identity & follow notifications smoke", () => {
   // 11.3 — follow triggers new_content notification
   // ---------------------------------------------------------------------------
   test("11.3 follow triggers new_content notification after publish", async ({
-    page,
+    page: _page,
     request: apiRequest,
   }) => {
     test.slow(); // fan-out window may exceed default timeout
@@ -339,6 +339,7 @@ test.describe("identity & follow notifications smoke", () => {
     // Snapshot fan's notification count BEFORE the post.
     const before = await fetchNotifications(apiRequest, fan);
     const beforeCount = (before?.data || before?.notifications || []).length;
+    void beforeCount;
 
     // Author posts a help post.
     const helpTitle = `S4_Help_${ts()}_${rand()}`;
@@ -398,11 +399,12 @@ test.describe("identity & follow notifications smoke", () => {
   // 11.6 — detail avatar click navigates to /user/:id and back restores
   // ---------------------------------------------------------------------------
   test("11.6 detail page avatar click navigates to /user/:id and back restores", async ({
-    page,
+    page: _page,
     request: apiRequest,
   }) => {
     const author = await registerUser(apiRequest, "s6_author");
-    const viewer = await registerUser(apiRequest, "s6_viewer");
+    const user = await registerUser(apiRequest, "s6_viewer");
+    void user;
 
     const article = await createArticle(apiRequest, author, {
       title: `S6_ArticleTitle_${ts()}`,

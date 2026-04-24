@@ -69,8 +69,9 @@ const ArticleCard = memo(({
       animate={canAnimate ? { opacity: 1, y: 0 } : undefined}
       transition={canAnimate ? { duration: 0.24, delay: Math.min(index, 5) * 0.03 } : undefined}
       onClick={() => onClick(article)}
-      className={`group relative backdrop-blur-xl border rounded-[1.65rem] md:rounded-3xl p-3.5 md:p-6 transition-all duration-300 hover:border-orange-500/30 cursor-pointer overflow-hidden hover:shadow-[0_20px_40px_-15px_rgba(249,115,22,0.15)] hover:-translate-y-1 ${isDayMode ? 'bg-white/82 hover:bg-white border-slate-200/80 shadow-[0_18px_42px_rgba(148,163,184,0.12)]' : 'bg-[#1a1a1a]/60 hover:bg-[#1a1a1a]/80 border-white/10'}`}
+      className={`group relative overflow-hidden rounded-[1.65rem] border p-3.5 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-orange-500/30 hover:shadow-[0_20px_40px_-15px_rgba(249,115,22,0.15)] md:rounded-3xl md:p-6 ${isDayMode ? 'bg-white/84 hover:bg-white border-slate-200/80 shadow-[0_18px_42px_rgba(148,163,184,0.12)]' : 'bg-[#1a1a1a]/60 hover:bg-[#1a1a1a]/80 border-white/10'}`}
     >
+      <div className={`pointer-events-none absolute inset-x-0 top-0 h-px ${isDayMode ? 'bg-gradient-to-r from-transparent via-orange-200/80 to-transparent' : 'bg-gradient-to-r from-transparent via-orange-500/20 to-transparent'}`} />
       <div className="flex gap-3 md:gap-6 items-start">
         {article.cover && (
           <div className="w-[110px] sm:w-[128px] md:w-48 h-[110px] sm:h-[128px] md:h-32 rounded-2xl md:rounded-xl overflow-hidden flex-shrink-0">
@@ -111,7 +112,7 @@ const ArticleCard = memo(({
           <h3 className={`text-lg md:text-2xl font-bold leading-tight line-clamp-2 group-hover:text-orange-400 transition-colors ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
             {article.title}
           </h3>
-          <p className={`hidden md:block line-clamp-2 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{article.excerpt}</p>
+          <p className={`hidden md:block line-clamp-2 text-[15px] leading-7 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{article.excerpt}</p>
           <div className="pt-1 md:pt-2 flex items-center justify-end gap-2 md:gap-3 mt-auto">
             {actionBar}
             <FavoriteButton
@@ -316,7 +317,7 @@ const CommunityTech = () => {
     }
   }, [feed]);
 
-  const handleRelatedSelect = useCallback((resource) => {
+  const handleRelatedSelect = (resource) => {
     if (!resource?.id) return;
     if (resource.type === 'article') {
       updateParams({ tab: 'tech', id: resource.id });
@@ -342,7 +343,7 @@ const CommunityTech = () => {
     if (resource.type === 'news') {
       updateParams({ tab: searchParams.get('tab') || 'tech', news: resource.id });
     }
-  }, [feed.selectedItem?.id, searchParams, updateParams]);
+  };
 
   const renderCard = (article, index, { canAnimate, isDayMode: currentDayMode }) => {
     const workflowView = ['mine', 'draft', 'pending', 'rejected', 'trash'].includes(viewMode);
@@ -436,10 +437,13 @@ const CommunityTech = () => {
   };
 
   const featuredSection = featuredArticle ? (
-    <div className={`mb-5 rounded-[1.9rem] md:rounded-[30px] border p-3.5 md:p-6 ${isDayMode ? 'bg-gradient-to-br from-orange-50 via-white to-amber-50 border-orange-200/80' : 'bg-gradient-to-br from-orange-500/10 via-white/[0.03] to-amber-500/10 border-orange-500/20'}`}>
-      <div className="flex items-center gap-2 mb-3 md:mb-4">
+    <div className={`mb-5 rounded-[1.9rem] md:rounded-[30px] border p-3.5 md:p-6 ${isDayMode ? 'bg-gradient-to-br from-orange-50 via-white to-amber-50 border-orange-200/80 shadow-[0_20px_44px_rgba(251,146,60,0.12)]' : 'bg-gradient-to-br from-orange-500/10 via-white/[0.03] to-amber-500/10 border-orange-500/20'}`}>
+      <div className="mb-3 flex items-center justify-between gap-3 md:mb-4">
+        <div className="flex items-center gap-2">
         <Sparkles size={16} className={isDayMode ? 'text-orange-600' : 'text-orange-300'} />
         <span className={`text-xs uppercase tracking-[0.22em] ${isDayMode ? 'text-orange-700' : 'text-orange-300'}`}>精选文章</span>
+        </div>
+        <span className={`hidden text-[11px] font-medium md:inline ${isDayMode ? 'text-orange-600/80' : 'text-orange-200/70'}`}>Editor's Pick</span>
       </div>
       <ArticleCard
         article={featuredArticle}
@@ -471,7 +475,7 @@ const CommunityTech = () => {
     <div className="flex-1">
       {user ? <div className="md:hidden mb-3">{viewModeSwitch}</div> : null}
       <div className="space-y-3">
-        <div className={`flex items-center gap-2 rounded-2xl border px-3 py-2 ${isDayMode ? 'bg-white border-slate-200' : 'bg-white/5 border-white/10'}`}>
+        <div className={`flex items-center gap-2 rounded-2xl border px-3 py-2.5 ${isDayMode ? 'bg-white border-slate-200 shadow-[0_10px_24px_rgba(148,163,184,0.08)]' : 'bg-white/5 border-white/10'}`}>
           <Search size={16} className={isDayMode ? 'text-slate-400' : 'text-gray-500'} />
           <input
             value={feed.searchQuery}
@@ -489,7 +493,7 @@ const CommunityTech = () => {
             </button>
           ) : null}
         </div>
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-start gap-3">
           <TagFilter selectedTags={feed.selectedTags} onChange={feed.setSelectedTags} type="articles" />
           {viewModeSwitch ? <div className="ml-auto">{viewModeSwitch}</div> : null}
         </div>

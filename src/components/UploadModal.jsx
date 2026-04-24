@@ -1113,6 +1113,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   const stickyFooterClass = isDayMode
     ? "sticky bottom-0 bg-white/88 backdrop-blur-2xl border-t border-slate-200/70 p-5 sm:p-8 mt-auto z-20 pb-[max(env(safe-area-inset-bottom),20px)] sm:pb-8 flex flex-col-reverse sm:flex-row justify-end gap-3 shadow-[0_-18px_36px_rgba(148,163,184,0.16)]"
     : "sticky bottom-0 bg-[#0f0f0f]/95 backdrop-blur-2xl border-t border-white/5 p-5 sm:p-8 mt-auto z-20 pb-[max(env(safe-area-inset-bottom),20px)] sm:pb-8 flex flex-col-reverse sm:flex-row justify-end gap-3 shadow-[0_-20px_40px_rgba(0,0,0,0.8)]";
+  const dialogTitleId = `upload-modal-title-${type}`;
 
   return createPortal(
     <AnimatePresence>
@@ -1124,20 +1125,23 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
           className={`fixed inset-0 z-[100] flex items-center justify-center ${overlayShellClass} backdrop-blur-md`}
           onClick={onClose}
         >
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0, y: 30 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.95, opacity: 0, y: 30 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className={modalPanelClass}
-            onClick={e => e.stopPropagation()}
-          >
+        <motion.div
+          initial={{ scale: 0.95, opacity: 0, y: 30 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.95, opacity: 0, y: 30 }}
+          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={dialogTitleId}
+          className={modalPanelClass}
+          onClick={e => e.stopPropagation()}
+        >
              {/* Gradient Ambience */}
             {type !== 'article' && <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-indigo-500/10 via-purple-500/5 to-transparent opacity-50 pointer-events-none" />}
 
             {/* Header - Fixed at top */}
             <div className={headerClass}>
-              <h3 className={`text-xl sm:text-2xl font-black flex items-center gap-3 tracking-tight ${isDayMode ? 'text-slate-950' : 'text-white'}`}>
+              <h3 id={dialogTitleId} className={`text-xl sm:text-2xl font-black flex items-center gap-3 tracking-tight ${isDayMode ? 'text-slate-950' : 'text-white'}`}>
                 <span className={`p-2 sm:p-2.5 rounded-xl border shadow-inner ${isDayMode ? 'bg-white border-slate-200/80 text-indigo-600' : 'bg-white/5 border-white/10'}`}>
                     {React.cloneElement(getIcon(), { size: 24 })}
                 </span>
@@ -1157,7 +1161,12 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                     清除草稿
                   </button>
                 )}
-                <button onClick={onClose} className={`p-2.5 rounded-full transition-all border ${isDayMode ? 'text-slate-500 hover:text-slate-900 bg-white/88 hover:bg-white border-slate-200/70' : 'text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 border-white/5'}`}>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  aria-label={t('common.close', '关闭')}
+                  className={`p-2.5 rounded-full transition-all border ${isDayMode ? 'text-slate-500 hover:text-slate-900 bg-white/88 hover:bg-white border-slate-200/70' : 'text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 border-white/5'}`}
+                >
                   <X size={20} />
                 </button>
               </div>

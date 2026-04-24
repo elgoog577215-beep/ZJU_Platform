@@ -1,0 +1,46 @@
+- generic [ref=e3]:
+  - link "跳转到主要内容" [ref=e4] [cursor=pointer]:
+    - /url: "#main-content"
+  - navigation "主导航" [ref=e5]:
+    - generic [ref=e6]:
+      - generic: 关于
+      - button "搜索内容..." [ref=e10] [cursor=pointer]:
+        - img [ref=e11]
+  - main [ref=e14]:
+    - paragraph [ref=e21]: Loading
+  - contentinfo [ref=e22]:
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - generic [ref=e25]:
+          - generic [ref=e26]: 拓途浙享
+          - generic [ref=e27]: "|"
+          - generic [ref=e28]: TUOTUZJU
+        - paragraph [ref=e29]: © 2026 浙江大学 SQTP 项目组。All rights reserved.
+      - link "浙ICP备2025221213号" [ref=e30] [cursor=pointer]:
+        - /url: https://beian.miit.gov.cn/
+  - navigation "移动端底部导航" [ref=e31]:
+    - generic [ref=e32]:
+      - link "首页" [ref=e33] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e34]:
+          - img [ref=e36]
+          - generic [ref=e39]: 首页
+      - link "活动" [ref=e40] [cursor=pointer]:
+        - /url: /events
+        - generic [ref=e41]:
+          - img [ref=e43]
+          - generic [ref=e45]: 活动
+      - link "AI社区" [ref=e46] [cursor=pointer]:
+        - /url: /articles
+        - generic [ref=e47]:
+          - img [ref=e49]
+          - generic [ref=e52]: AI社区
+      - link "播客" [ref=e53] [cursor=pointer]:
+        - /url: /music
+        - generic [ref=e54]:
+          - img [ref=e56]
+          - generic [ref=e60]: 播客
+      - button "我的" [ref=e61] [cursor=pointer]:
+        - generic [ref=e62]:
+          - img [ref=e64]
+          - generic [ref=e68]: 我的

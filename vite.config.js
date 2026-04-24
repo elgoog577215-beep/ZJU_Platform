@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   // Keep env override, but default to the local backend dev port.
   // Use 127.0.0.1 to avoid some Windows localhost/IPv6 proxy issues.
-  const apiProxyTarget = env.VITE_API_PROXY_TARGET || 'http://127.0.0.1:3001';
+  const apiProxyTarget = env.VITE_API_PROXY_TARGET || 'http://127.0.0.1:5181';
 
   return {
     plugins: [

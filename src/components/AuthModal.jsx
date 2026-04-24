@@ -10,6 +10,7 @@ import { useBackClose } from '../hooks/useBackClose';
 const AuthModal = ({ isOpen, onClose }) => {
   const { t } = useTranslation();
   useBackClose(isOpen, onClose);
+  const dialogTitleId = 'auth-modal-title';
   
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState('');
@@ -59,19 +60,24 @@ const AuthModal = ({ isOpen, onClose }) => {
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={dialogTitleId}
           className={`relative w-full max-w-md backdrop-blur-3xl border rounded-2xl shadow-2xl overflow-hidden p-8 z-10 ${isDayMode ? 'bg-white/94 border-slate-200/80 shadow-[0_24px_64px_rgba(148,163,184,0.22)]' : 'bg-[#0a0a0a]/80 border-white/10'}`}
         >
           {/* Glass Effect Background */}
           <div className={`absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 opacity-50 pointer-events-none ${isDayMode ? '' : ''}`} />
           <button 
+            type="button"
             onClick={onClose}
+            aria-label={t('common.close', '关闭')}
             className={`absolute top-4 right-4 transition-colors z-20 p-2 min-h-[44px] min-w-[44px] flex items-center justify-center ${isDayMode ? 'text-slate-400 hover:text-slate-900' : 'text-gray-400 hover:text-white'}`}
           >
             <X size={20} />
           </button>
 
           <div className="text-center mb-8 relative z-10">
-            <h2 className={`text-3xl font-bold mb-2 tracking-tight ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
+            <h2 id={dialogTitleId} className={`text-3xl font-bold mb-2 tracking-tight ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
               {isLogin ? t('auth.welcome_back') : t('auth.join_lumos')}
             </h2>
             <p className={`text-sm ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
@@ -140,6 +146,7 @@ const AuthModal = ({ isOpen, onClose }) => {
           <div className={`mt-8 text-center text-sm relative z-10 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
             {isLogin ? t('auth.no_account') : t('auth.has_account')}
             <button 
+              type="button"
               onClick={() => setIsLogin(!isLogin)}
               className={`font-bold ml-1 transition-colors underline decoration-indigo-500/50 hover:decoration-indigo-500 py-2 px-1 ${isDayMode ? 'text-slate-900 hover:text-indigo-500' : 'text-white hover:text-indigo-400'}`}
             >

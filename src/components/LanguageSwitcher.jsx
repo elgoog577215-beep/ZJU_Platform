@@ -29,7 +29,12 @@ const LanguageSwitcher = () => {
   return (
     <div className="relative z-50">
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
+        aria-label={i18n.t('nav.language_switcher', '切换语言')}
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
+        aria-controls="language-switcher-menu"
         className={`flex items-center gap-2 transition-colors p-2 rounded-lg ${isDayMode ? 'text-slate-500 hover:text-slate-900 hover:bg-white/90' : 'text-gray-300 hover:text-white hover:bg-white/10'}`}
       >
         <Globe className="w-5 h-5" />
@@ -39,6 +44,8 @@ const LanguageSwitcher = () => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            id="language-switcher-menu"
+            role="menu"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
@@ -47,6 +54,9 @@ const LanguageSwitcher = () => {
             {languages.map((lang) => (
               <button
                 key={lang.code}
+                type="button"
+                role="menuitemradio"
+                aria-checked={i18n.language === lang.code}
                 onClick={() => changeLanguage(lang.code)}
                 className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center justify-between relative
                   ${i18n.language === lang.code ? (isDayMode ? 'text-slate-900 font-bold' : 'text-white font-bold') : (isDayMode ? 'text-slate-500 hover:bg-slate-50 hover:text-slate-900' : 'text-gray-400 hover:bg-white/10')}`}

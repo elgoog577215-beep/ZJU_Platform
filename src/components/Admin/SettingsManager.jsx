@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Key, Globe, Sun, Save } from "lucide-react";
+import { Key, Globe, Sun, Save, FileText } from "lucide-react";
 import toast from "react-hot-toast";
 import { useSettings } from "../../context/SettingsContext";
 import api from "../../services/api";
@@ -208,6 +208,484 @@ const SettingsManager = () => {
                 </p>
               </div>
               {fieldAction("background_vignette")}
+            </div>
+          </div>
+        </div>
+      </AdminPanel>
+
+      <AdminPanel
+        title="关于页面"
+        description="关于页面的所有内容均可在此编辑，修改后前台实时生效。"
+        action={<FileText size={18} className="text-indigo-300" />}
+      >
+        <div className="grid gap-5">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              团队标题
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <input
+                type="text"
+                value={settings.about_team_title || ""}
+                onChange={(event) => handleChange("about_team_title", event.target.value)}
+                placeholder="浙大 AI 生态团队"
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_team_title")}
+            </div>
+            <p className="mt-2 text-xs text-gray-500">
+              关于页面顶部大标题，建议控制在 10 个字符以内。
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              团队副标题 / 一句话介绍
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <input
+                type="text"
+                value={settings.about_team_subtitle || ""}
+                onChange={(event) => handleChange("about_team_subtitle", event.target.value)}
+                placeholder="连接校园 AI 资源、社群、赛事与实践场景的组织化入口。"
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_team_subtitle")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              团队介绍 - 第一段
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <textarea
+                value={settings.about_team_intro_1 || ""}
+                onChange={(event) => handleChange("about_team_intro_1", event.target.value)}
+                placeholder="我们不是单一社团，也不是只做一场比赛的短期项目组，而是面向浙江大学校园长期运行的 AI 生态整合团队。"
+                rows={3}
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_team_intro_1")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              团队介绍 - 第二段
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <textarea
+                value={settings.about_team_intro_2 || ""}
+                onChange={(event) => handleChange("about_team_intro_2", event.target.value)}
+                placeholder="社区与赛事，是我们推动生态落地的两条主线；真正的主体，是负责把资源、组织与持续运行串联起来的团队本身。"
+                rows={3}
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_team_intro_2")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              支持单位（逗号分隔）
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <input
+                type="text"
+                value={settings.about_support_units || ""}
+                onChange={(event) => handleChange("about_support_units", event.target.value)}
+                placeholder="未来学习中心,ZJUAI,XLab"
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_support_units")}
+            </div>
+            <p className="mt-2 text-xs text-gray-500">
+              用英文逗号分隔多个支持单位名称。
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              数据指标 1 - 数值
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <input
+                type="text"
+                value={settings.about_stat_1_value || ""}
+                onChange={(event) => handleChange("about_stat_1_value", event.target.value)}
+                placeholder="1000+"
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_stat_1_value")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              数据指标 1 - 描述
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <input
+                type="text"
+                value={settings.about_stat_1_label || ""}
+                onChange={(event) => handleChange("about_stat_1_label", event.target.value)}
+                placeholder="活动平台现有用户基础"
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_stat_1_label")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              数据指标 2 - 数值
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <input
+                type="text"
+                value={settings.about_stat_2_value || ""}
+                onChange={(event) => handleChange("about_stat_2_value", event.target.value)}
+                placeholder="3 层"
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_stat_2_value")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              数据指标 2 - 描述
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <input
+                type="text"
+                value={settings.about_stat_2_label || ""}
+                onChange={(event) => handleChange("about_stat_2_label", event.target.value)}
+                placeholder="社区递进式连接结构"
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_stat_2_label")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              数据指标 3 - 数值
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <input
+                type="text"
+                value={settings.about_stat_3_value || ""}
+                onChange={(event) => handleChange("about_stat_3_value", event.target.value)}
+                placeholder="5 小时"
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_stat_3_value")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              数据指标 3 - 描述
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <input
+                type="text"
+                value={settings.about_stat_3_label || ""}
+                onChange={(event) => handleChange("about_stat_3_label", event.target.value)}
+                placeholder="黑客松核心标识"
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_stat_3_label")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              AI 社区 - 标题
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <input
+                type="text"
+                value={settings.about_community_title || ""}
+                onChange={(event) => handleChange("about_community_title", event.target.value)}
+                placeholder="AI 社区"
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_community_title")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              AI 社区 - 标签
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <input
+                type="text"
+                value={settings.about_community_tagline || ""}
+                onChange={(event) => handleChange("about_community_tagline", event.target.value)}
+                placeholder="日常运行层"
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_community_tagline")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              AI 社区 - 描述
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <textarea
+                value={settings.about_community_desc || ""}
+                onChange={(event) => handleChange("about_community_desc", event.target.value)}
+                placeholder="持续搭建公开学习入口、私域社群连接与线下 Meetup，让校园内的 AI 学习、交流与协作形成稳定的日常机制。"
+                rows={3}
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_community_desc")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              AI 社区 - 要点（每行一个）
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <textarea
+                value={settings.about_community_bullets || ""}
+                onChange={(event) => handleChange("about_community_bullets", event.target.value)}
+                placeholder={"公开内容与知识入口\n社群连接与私域沉淀\n线下 Meetup 与人群链接"}
+                rows={4}
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_community_bullets")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              黑客松 - 标题
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <input
+                type="text"
+                value={settings.about_hackathon_title || ""}
+                onChange={(event) => handleChange("about_hackathon_title", event.target.value)}
+                placeholder="AI 全栈极速黑客松"
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_hackathon_title")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              黑客松 - 标签
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <input
+                type="text"
+                value={settings.about_hackathon_tagline || ""}
+                onChange={(event) => handleChange("about_hackathon_tagline", event.target.value)}
+                placeholder="标杆项目层"
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_hackathon_tagline")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              黑客松 - 描述
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <textarea
+                value={settings.about_hackathon_desc || ""}
+                onChange={(event) => handleChange("about_hackathon_desc", event.target.value)}
+                placeholder="以 5 小时、纯个人、零路演、AI 原生开发为识别点，作为生态团队对外最具辨识度的技术品牌项目。"
+                rows={3}
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_hackathon_desc")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              黑客松 - 要点（每行一个）
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <textarea
+                value={settings.about_hackathon_bullets || ""}
+                onChange={(event) => handleChange("about_hackathon_bullets", event.target.value)}
+                placeholder={"5 小时极速开发\n纯个人参赛机制\n零路演与 AI 原生开发"}
+                rows={4}
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_hackathon_bullets")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              社区与比赛 - 大标题
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <input
+                type="text"
+                value={settings.about_flagship_title || ""}
+                onChange={(event) => handleChange("about_flagship_title", event.target.value)}
+                placeholder="社区与比赛，是我们推动生态落地的两条主线"
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_flagship_title")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              社区与比赛 - 补充说明
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <textarea
+                value={settings.about_flagship_note || ""}
+                onChange={(event) => handleChange("about_flagship_note", event.target.value)}
+                placeholder="这两部分不是与团队并列的身份，而是生态团队对内持续运营、对外形成影响力的代表性产品与活动。"
+                rows={3}
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_flagship_note")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              支持网络 - 标题
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <input
+                type="text"
+                value={settings.about_support_title || ""}
+                onChange={(event) => handleChange("about_support_title", event.target.value)}
+                placeholder="让生态持续运行的支持网络"
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_support_title")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              支持网络 - 描述
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <textarea
+                value={settings.about_support_desc || ""}
+                onChange={(event) => handleChange("about_support_desc", event.target.value)}
+                placeholder="我们以组织协同而不是单点活动的方式推进校园 AI 生态，把支持单位、学生组织、技术社群与项目实践连接成一张稳定运转的网络。"
+                rows={3}
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_support_desc")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              支持网络 - 定位 (Positioning)
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <input
+                type="text"
+                value={settings.about_support_positioning || ""}
+                onChange={(event) => handleChange("about_support_positioning", event.target.value)}
+                placeholder="统一校园 AI 资源、信息与协作入口"
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_support_positioning")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              支持网络 - 方法 (Method)
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <input
+                type="text"
+                value={settings.about_support_method || ""}
+                onChange={(event) => handleChange("about_support_method", event.target.value)}
+                placeholder="以社区、赛事与连接机制带动生态落地"
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_support_method")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              支持网络 - 成果 (Result)
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <input
+                type="text"
+                value={settings.about_support_result || ""}
+                onChange={(event) => handleChange("about_support_result", event.target.value)}
+                placeholder="形成可被持续运营与持续扩展的校园网络"
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_support_result")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              结尾 - 标题
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <input
+                type="text"
+                value={settings.about_final_title || ""}
+                onChange={(event) => handleChange("about_final_title", event.target.value)}
+                placeholder="我们在建设的，是一张校园 AI 的连接网络"
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_final_title")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              结尾 - 描述
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <textarea
+                value={settings.about_final_desc || ""}
+                onChange={(event) => handleChange("about_final_desc", event.target.value)}
+                placeholder="如果你关注 AI 学习、校园社群、技术赛事、项目合作或跨组织联动，这里就是浙大 AI 生态团队的官方介绍入口。"
+                rows={3}
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_final_desc")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              结尾 - 备注
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <input
+                type="text"
+                value={settings.about_final_note || ""}
+                onChange={(event) => handleChange("about_final_note", event.target.value)}
+                placeholder="以组织协同、社区运营与标杆赛事，持续推动校园 AI 生态扩展。"
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("about_final_note")}
             </div>
           </div>
         </div>

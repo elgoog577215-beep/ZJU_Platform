@@ -515,6 +515,9 @@ const Music = () => {
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.96, y: 16 }}
                 transition={{ type: "spring", damping: 28, stiffness: 320 }}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="music-mobile-filter-title"
                 className={`fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit backdrop-blur-xl border rounded-3xl z-[101] md:hidden flex flex-col max-h-[80vh] max-w-md mx-auto ${isDayMode ? "bg-white/95 border-slate-200/80 shadow-[0_24px_60px_rgba(148,163,184,0.22)]" : "bg-[#1a1a1a]/95 border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.45)]"}`}
               >
                 <div
@@ -522,6 +525,7 @@ const Music = () => {
                 >
                   <div>
                     <h3
+                      id="music-mobile-filter-title"
                       className={`text-lg font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}
                     >
                       {t("common.filters", "筛选")}
@@ -533,7 +537,9 @@ const Music = () => {
                     </p>
                   </div>
                   <button
+                    type="button"
                     onClick={() => setIsMobileFilterOpen(false)}
+                    aria-label={t("common.close", "关闭")}
                     className={`p-2 rounded-full transition-colors ${isDayMode ? "text-slate-500 hover:text-slate-900 bg-slate-100" : "text-gray-400 hover:text-white bg-white/5"}`}
                   >
                     <X size={20} />
@@ -608,6 +614,9 @@ const Music = () => {
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.96, y: 16 }}
                 transition={{ type: "spring", damping: 28, stiffness: 320 }}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="music-mobile-sort-title"
                 className={`fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit backdrop-blur-xl border rounded-3xl z-[101] md:hidden flex flex-col max-w-sm mx-auto ${isDayMode ? "bg-white/95 border-slate-200/80 shadow-[0_24px_60px_rgba(148,163,184,0.22)]" : "bg-[#1a1a1a]/95 border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.45)]"}`}
               >
                 <div
@@ -615,6 +624,7 @@ const Music = () => {
                 >
                   <div>
                     <h3
+                      id="music-mobile-sort-title"
                       className={`text-lg font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}
                     >
                       {t("common.sort", "排序")}
@@ -626,7 +636,9 @@ const Music = () => {
                     </p>
                   </div>
                   <button
+                    type="button"
                     onClick={() => setIsMobileSortOpen(false)}
+                    aria-label={t("common.close", "关闭")}
                     className={`p-2 rounded-full transition-colors ${isDayMode ? "text-slate-500 hover:text-slate-900 bg-slate-100" : "text-gray-400 hover:text-white bg-white/5"}`}
                   >
                     <X size={20} />
@@ -751,6 +763,7 @@ const Music = () => {
                 max={activeTrack.duration || 100}
                 value={progress}
                 onChange={handleSeek}
+                aria-label={t("music.seek", "播放进度")}
                 className={`w-full h-1 rounded-full appearance-none cursor-pointer transition-colors ${isDayMode ? "bg-slate-200/90 accent-cyan-500 hover:accent-cyan-600" : "bg-white/10 accent-cyan-400 hover:accent-cyan-300"}`}
               />
               <div
@@ -765,14 +778,18 @@ const Music = () => {
             <div className="flex flex-col items-center gap-6 mb-6">
               <div className="flex items-center justify-center gap-8">
                 <button
+                  type="button"
                   onClick={handlePrev}
+                  aria-label={t("common.previous_track", "上一首")}
                   className={`p-3 rounded-full transition-all active:scale-95 ${isDayMode ? "text-slate-500 hover:text-slate-900 hover:bg-white/80" : "text-gray-400 hover:text-white hover:bg-white/10"}`}
                   title={t("common.previous_track")}
                 >
                   <SkipBack size={28} />
                 </button>
                 <button
+                  type="button"
                   onClick={togglePlay}
+                  aria-label={isPlaying ? t("common.pause", "暂停") : t("common.play", "播放")}
                   className="w-20 h-20 bg-gradient-to-br from-cyan-400 to-blue-600 text-white rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] hover:scale-105 active:scale-95 transition-all"
                   title={isPlaying ? t("common.pause") : t("common.play")}
                 >
@@ -783,7 +800,9 @@ const Music = () => {
                   )}
                 </button>
                 <button
+                  type="button"
                   onClick={handleNext}
+                  aria-label={t("common.next_track", "下一首")}
                   className={`p-3 rounded-full transition-all active:scale-95 ${isDayMode ? "text-slate-500 hover:text-slate-900 hover:bg-white/80" : "text-gray-400 hover:text-white hover:bg-white/10"}`}
                   title={t("common.next_track")}
                 >
@@ -793,7 +812,9 @@ const Music = () => {
 
               {/* Speed Control */}
               <button
+                type="button"
                 onClick={handleSpeedChange}
+                aria-label={t("common.playback_speed", "播放速度")}
                 className="text-xs font-bold text-cyan-400 border border-cyan-500/30 bg-cyan-500/5 px-4 py-1.5 rounded-full hover:bg-cyan-500/20 hover:border-cyan-500/50 transition-all active:scale-95 uppercase tracking-wider"
                 title={t("common.playback_speed")}
               >
@@ -806,7 +827,9 @@ const Music = () => {
               className={`flex items-center gap-3 justify-center ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
             >
               <button
+                type="button"
                 onClick={toggleMute}
+                aria-label={isMuted ? t("common.unmute", "取消静音") : t("common.mute", "静音")}
                 className={`p-2 rounded-full transition-colors ${isDayMode ? "hover:bg-white/80 hover:text-slate-900" : "hover:bg-white/10 hover:text-white"}`}
                 title={isMuted ? t("common.unmute") : t("common.mute")}
               >
@@ -819,6 +842,7 @@ const Music = () => {
                 step="0.01"
                 value={volume}
                 onChange={handleVolumeChange}
+                aria-label={t("common.volume", "音量")}
                 className={`w-24 h-1 rounded-full appearance-none cursor-pointer transition-all ${isDayMode ? "bg-slate-200/90 accent-slate-500 hover:accent-slate-700" : "bg-white/10 accent-gray-400 hover:accent-white"}`}
               />
             </div>

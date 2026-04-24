@@ -53,18 +53,18 @@ const CommunityDetailModal = ({
     }
   };
   const relatedGroups = useMemo(() => flattenLinkedResources(item?.linked_resources), [item?.linked_resources]);
-  const relatedGroupCandidates = useMemo(() => (Array.isArray(item?.linked_resources?.groups) ? item.linked_resources.groups : []), [item?.linked_resources?.groups]);
-  const primaryJoinGroup = useMemo(
-    () => relatedGroupCandidates.find((group) => group?.id && String(group.id) !== String(item?.id)) || null,
-    [item?.id, relatedGroupCandidates],
-  );
+  const relatedGroupCandidates = Array.isArray(item?.linked_resources?.groups)
+    ? item.linked_resources.groups
+    : [];
+  const primaryJoinGroup =
+    relatedGroupCandidates.find((group) => group?.id && String(group.id) !== String(item?.id)) || null;
 
-  const shareUrl = useMemo(() => {
+  const shareUrl = (() => {
     if (!item?.id || typeof window === 'undefined') return '';
     const url = new URL(window.location.href);
     url.searchParams.set(shareParam, String(item.id));
     return url.toString();
-  }, [item?.id, shareParam]);
+  })();
 
   const handleShare = async () => {
     if (!item) return;
@@ -86,7 +86,8 @@ const CommunityDetailModal = ({
         }
         return;
       }
-    } catch (_error) {
+    } catch (error) {
+      void error;
       // Fallback to clipboard below.
     }
 

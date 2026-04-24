@@ -330,19 +330,19 @@ const PlatformStats = () => {
   }
 
   return (
-    <section className="px-4 sm:px-6 lg:px-8 py-6">
-      <div className="max-w-5xl mx-auto">
+    <section className="px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
+      <div className="relative z-20 mx-auto -mt-8 max-w-5xl sm:-mt-10">
         <motion.div
           initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.08 }}
-          className={`mt-4 rounded-2xl border p-4 sm:p-5 ${
+          className={`mt-2 rounded-[24px] border p-4 sm:mt-4 sm:rounded-[28px] sm:p-5 ${
             isDayMode
               ? "border-slate-200/80 bg-white/88 shadow-[0_16px_48px_rgba(148,163,184,0.14)]"
               : "border-white/10 bg-white/[0.03] shadow-[0_16px_48px_rgba(0,0,0,0.16)]"
           }`}
         >
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-3 flex items-center justify-between gap-3 sm:mb-4">
             <div className="flex items-center gap-2">
               <div
                 className={`flex h-7 w-7 items-center justify-center rounded-lg ${isDayMode ? "bg-amber-50 text-amber-500" : "bg-amber-400/10 text-amber-300"}`}
@@ -350,7 +350,7 @@ const PlatformStats = () => {
                 <Sparkles size={14} />
               </div>
               <span
-                className={`text-xs font-semibold uppercase tracking-[0.18em] ${isDayMode ? "text-slate-600" : "text-white/70"}`}
+                className={`text-[11px] font-semibold uppercase tracking-[0.14em] sm:text-xs sm:tracking-[0.18em] ${isDayMode ? "text-slate-600" : "text-white/70"}`}
               >
                 精选作品
               </span>
@@ -359,7 +359,7 @@ const PlatformStats = () => {
               type="button"
               aria-label="进入发现"
               onClick={() => navigate("/articles")}
-              className={`inline-flex items-center gap-1 min-h-[36px] px-2 rounded-lg text-xs font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-amber-600 hover:bg-amber-50" : "text-amber-300 hover:bg-white/5"}`}
+              className={`inline-flex min-h-[38px] shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-[11px] font-semibold shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 sm:min-h-[36px] sm:px-3 sm:text-xs ${isDayMode ? "border-amber-200/80 bg-amber-50/90 text-amber-700 hover:bg-amber-100" : "border-amber-400/20 bg-amber-400/10 text-amber-200 hover:bg-amber-400/15"}`}
             >
               进入发现
               <ArrowRight size={12} />
@@ -379,7 +379,7 @@ const PlatformStats = () => {
               暂无精选内容
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="flex snap-x snap-mandatory gap-3.5 overflow-x-auto pb-1.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:grid sm:grid-cols-2 sm:gap-3 sm:overflow-visible sm:pb-0 lg:grid-cols-3">
               {featuredItems.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -388,14 +388,14 @@ const PlatformStats = () => {
                     type="button"
                     aria-label={`${item.subtitle} ${item.title}`}
                     onClick={() => navigate(item.targetPath)}
-                    className={`group text-left rounded-xl overflow-hidden border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+                    className={`group w-[282px] shrink-0 snap-start overflow-hidden rounded-2xl border text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 sm:w-auto sm:rounded-xl ${
                       isDayMode
                         ? "border-slate-200/80 bg-white hover:shadow-[0_12px_28px_rgba(148,163,184,0.18)]"
                         : "border-white/10 bg-black/25 hover:bg-white/[0.06]"
                     }`}
                   >
                     <div
-                      className={`h-28 ${isDayMode ? "bg-slate-100" : "bg-black/40"}`}
+                      className={`h-28 sm:h-28 ${isDayMode ? "bg-slate-100" : "bg-black/40"}`}
                     >
                       {item.image ? (
                         <img
@@ -414,15 +414,15 @@ const PlatformStats = () => {
                         </div>
                       )}
                     </div>
-                    <div className="p-3">
+                    <div className="p-3.5 sm:p-3.5">
                       <div
-                        className={`text-xs mb-1 inline-flex items-center gap-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                        className={`mb-1 inline-flex items-center gap-1 text-[11px] ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
                       >
                         <Icon size={12} />
                         {item.subtitle}
                       </div>
                       <div
-                        className={`text-sm font-semibold line-clamp-1 ${isDayMode ? "text-slate-900" : "text-white"}`}
+                        className={`line-clamp-2 text-[15px] font-semibold leading-6 sm:line-clamp-1 sm:text-sm ${isDayMode ? "text-slate-900" : "text-white"}`}
                       >
                         {item.title}
                       </div>
@@ -439,13 +439,13 @@ const PlatformStats = () => {
             initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.05 }}
-            className={`mt-4 rounded-2xl border p-4 sm:p-5 ${
+            className={`mt-4 rounded-[24px] border p-4 sm:rounded-[28px] sm:p-5 ${
               isDayMode
                 ? "border-slate-200/80 bg-white/88 shadow-[0_16px_48px_rgba(148,163,184,0.14)]"
                 : "border-white/10 bg-white/[0.03] shadow-[0_16px_48px_rgba(0,0,0,0.16)]"
             }`}
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className="mb-3 flex items-center justify-between sm:mb-4">
               <div className="flex items-center gap-2">
                 <div
                   className={`flex h-7 w-7 items-center justify-center rounded-lg ${isDayMode ? "bg-indigo-50 text-indigo-500" : "bg-indigo-400/10 text-indigo-300"}`}
@@ -453,7 +453,7 @@ const PlatformStats = () => {
                   <Users size={14} />
                 </div>
                 <span
-                  className={`text-xs font-semibold uppercase tracking-[0.18em] ${isDayMode ? "text-slate-600" : "text-white/70"}`}
+                  className={`text-[11px] font-semibold uppercase tracking-[0.14em] sm:text-xs sm:tracking-[0.18em] ${isDayMode ? "text-slate-600" : "text-white/70"}`}
                 >
                   关注动态
                 </span>
@@ -461,7 +461,7 @@ const PlatformStats = () => {
               <button
                 type="button"
                 onClick={() => navigate("/articles")}
-                className={`inline-flex items-center gap-1 text-xs font-semibold ${isDayMode ? "text-indigo-600" : "text-indigo-300"}`}
+                className={`inline-flex min-h-[38px] items-center gap-1 rounded-lg px-3 text-[11px] font-semibold sm:min-h-0 sm:px-0 sm:text-xs ${isDayMode ? "text-indigo-600 hover:bg-indigo-50 sm:hover:bg-transparent" : "text-indigo-300 hover:bg-white/5 sm:hover:bg-transparent"}`}
               >
                 查看内容
                 <ArrowRight size={12} />
@@ -475,8 +475,8 @@ const PlatformStats = () => {
                 {t("common.loading")}
               </div>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_280px] gap-4">
-                <div className="space-y-2">
+                <div className="grid grid-cols-1 gap-3.5 lg:grid-cols-[minmax(0,1fr)_280px]">
+                  <div className="space-y-2.5">
                   {followingFeed.length === 0 ? (
                     <div
                       className={`text-sm rounded-xl border px-3 py-4 ${isDayMode ? "border-slate-200/80 bg-slate-50/80 text-slate-500" : "border-white/10 bg-black/20 text-gray-400"}`}
@@ -491,15 +491,15 @@ const PlatformStats = () => {
                         onClick={() =>
                           navigate(item.target_path || "/articles")
                         }
-                        className={`w-full text-left rounded-xl border px-3 py-2.5 transition-colors ${isDayMode ? "border-slate-200/80 bg-slate-50/80 hover:bg-white" : "border-white/10 bg-black/20 hover:bg-white/5"}`}
+                        className={`w-full rounded-2xl border px-3.5 py-3.5 text-left transition-colors sm:rounded-xl ${isDayMode ? "border-slate-200/80 bg-slate-50/80 hover:bg-white" : "border-white/10 bg-black/20 hover:bg-white/5"}`}
                       >
                         <div
-                          className={`text-sm font-semibold truncate ${isDayMode ? "text-slate-900" : "text-white"}`}
+                          className={`truncate text-[15px] font-semibold leading-6 sm:text-sm ${isDayMode ? "text-slate-900" : "text-white"}`}
                         >
                           {item.title}
                         </div>
                         <div
-                          className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                          className={`mt-1 text-[11px] leading-5 sm:text-xs ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
                         >
                           {[item.author_name, item.resource_type]
                             .filter(Boolean)
@@ -510,35 +510,35 @@ const PlatformStats = () => {
                   )}
                 </div>
 
-                <div
-                  className={`rounded-xl border p-3 ${isDayMode ? "border-slate-200/80 bg-slate-50/80" : "border-white/10 bg-black/20"}`}
-                >
                   <div
-                    className={`text-xs font-semibold uppercase tracking-[0.18em] mb-2 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                    className={`rounded-2xl border p-3.5 sm:rounded-xl sm:p-3 ${isDayMode ? "border-slate-200/80 bg-slate-50/80" : "border-white/10 bg-black/20"}`}
                   >
-                    推荐关注
-                  </div>
-                  <div className="space-y-2">
-                    {followRecommendations.slice(0, 4).map((item) => {
-                      const followed = followingIds.includes(Number(item.id));
-                      return (
-                        <div
-                          key={item.id}
-                          className="flex items-center justify-between gap-2"
-                        >
-                          <button
-                            type="button"
-                            className={`text-sm truncate ${isDayMode ? "text-slate-700" : "text-gray-200"}`}
-                            onClick={() => navigate(`/user/${item.id}`)}
+                    <div
+                      className={`mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] sm:text-xs sm:tracking-[0.18em] ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                    >
+                      推荐关注
+                    </div>
+                    <div className="space-y-2 sm:space-y-2">
+                      {followRecommendations.slice(0, 4).map((item) => {
+                        const followed = followingIds.includes(Number(item.id));
+                        return (
+                          <div
+                            key={item.id}
+                            className="flex items-center justify-between gap-2 rounded-xl sm:rounded-none"
                           >
-                            {item.nickname || item.username}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => toggleFollow(item.id, e)}
-                            className={`text-xs px-2.5 py-1 rounded-full border ${followed ? (isDayMode ? "bg-indigo-600 text-white border-indigo-600 shadow-[0_10px_22px_rgba(99,102,241,0.2)]" : "bg-white text-black border-white") : isDayMode ? "bg-white text-slate-700 border-slate-200/80" : "bg-white/5 text-gray-200 border-white/10"}`}
-                          >
-                            {followed ? "已关注" : "关注"}
+                            <button
+                              type="button"
+                              className={`truncate text-[15px] leading-6 sm:text-sm ${isDayMode ? "text-slate-700" : "text-gray-200"}`}
+                              onClick={() => navigate(`/user/${item.id}`)}
+                            >
+                              {item.nickname || item.username}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => toggleFollow(item.id, e)}
+                              className={`min-h-[34px] rounded-full border px-3 py-1.5 text-[11px] font-medium ${followed ? (isDayMode ? "border-indigo-600 bg-indigo-600 text-white shadow-[0_10px_22px_rgba(99,102,241,0.2)]" : "border-white bg-white text-black") : isDayMode ? "border-slate-200/80 bg-white text-slate-700" : "border-white/10 bg-white/5 text-gray-200"}`}
+                            >
+                              {followed ? "已关注" : "关注"}
                           </button>
                         </div>
                       );
