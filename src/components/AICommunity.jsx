@@ -95,7 +95,7 @@ const AICommunity = () => {
   );
 
   return (
-    <section className="relative z-10 min-h-screen overflow-hidden px-4 pt-20 pb-28 md:px-8 md:py-24">
+    <section className="relative z-10 min-h-screen overflow-visible px-4 pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:overflow-hidden md:px-8 md:py-24">
       <SEO title={t("nav.community", "AI社区")} description={subtitle} />
 
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
@@ -127,7 +127,7 @@ const AICommunity = () => {
             </p>
           </div>
 
-          <div className="sticky top-[72px] z-20 -mx-1 mb-4 px-1 md:static md:mx-0 md:mb-5 md:px-0">
+          <div className="-mx-1 mb-4 px-1 md:mx-0 md:mb-5 md:px-0">
             <div
               className={`space-y-2 rounded-[24px] border p-2 backdrop-blur-xl ${
                 isDayMode
