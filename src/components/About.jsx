@@ -59,6 +59,13 @@ const About = () => {
     { value: settings.about_stat_3_value || "5 小时", label: settings.about_stat_3_label || "黑客松核心标识" },
   ];
 
+  const heroSignals = ["CONNECT", "SYNC", "ACTIVATE"];
+  const heroSignalPositions = [
+    "left-[4%] top-[16%]",
+    "right-[6%] top-[18%]",
+    "left-[10%] bottom-[14%]",
+  ];
+
   const parseBullets = (raw, defaults) => {
     if (raw && raw.trim()) {
       return raw.split("\n").map((s) => s.trim()).filter(Boolean);
@@ -101,6 +108,12 @@ const About = () => {
   const finalTitle = settings.about_final_title || "我们在建设的，是一张校园 AI 的连接网络";
   const finalDesc = settings.about_final_desc || "如果你关注 AI 学习、校园社群、技术赛事、项目合作或跨组织联动，这里就是浙大 AI 生态团队的官方介绍入口。";
   const finalNote = settings.about_final_note || "以组织协同、社区运营与标杆赛事，持续推动校园 AI 生态扩展。";
+
+  const supportFrames = [
+    { label: "Positioning", value: supportPositioning },
+    { label: "Method", value: supportMethod },
+    { label: "Result", value: supportResult },
+  ];
 
   const handleMessageFieldChange = (field) => (event) => {
     const value = event.target.value;
@@ -259,43 +272,83 @@ const About = () => {
 
             <div className="relative z-10 grid gap-7 px-4 py-5 sm:gap-10 sm:px-6 sm:py-8 md:px-10 md:py-10 lg:grid-cols-[1.08fr_0.92fr] lg:gap-16 lg:px-14 lg:py-14">
               <div className="flex flex-col justify-between">
-                <div>
-                  <div
-                    className={`inline-flex items-center rounded-full border px-3.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.3em] sm:px-4 sm:py-2 sm:text-[11px] sm:tracking-[0.34em] ${chipClass}`}
-                  >
-                    Zhejiang University AI Ecosystem
+                <div className="relative">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div
+                      className={`inline-flex items-center rounded-full border px-3.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.3em] sm:px-4 sm:py-2 sm:text-[11px] sm:tracking-[0.34em] ${chipClass}`}
+                    >
+                      Zhejiang University AI Ecosystem
+                    </div>
+                    <div
+                      className={`inline-flex items-center rounded-full border px-3.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.28em] sm:px-4 sm:py-2 sm:text-[11px] sm:tracking-[0.34em] ${
+                        isDayMode
+                          ? "border-indigo-200/80 bg-indigo-500/[0.08] text-indigo-700"
+                          : "border-cyan-300/18 bg-cyan-300/[0.08] text-cyan-100"
+                      }`}
+                    >
+                      Experimental Showcase
+                    </div>
                   </div>
 
-                  <div className="mt-6 max-w-3xl sm:mt-10">
+                  <div className="mt-5 flex flex-wrap gap-2.5 sm:mt-7">
+                          {heroSignals.map((signal) => (
+                      <span
+                        key={signal}
+                        className={`inline-flex items-center rounded-full px-3 py-1.5 text-[10px] font-semibold tracking-[0.28em] ${
+                          isDayMode
+                            ? "border border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(238,245,255,0.92))] text-slate-700 shadow-[0_12px_24px_rgba(148,163,184,0.12)]"
+                            : "bg-white/[0.08] text-white/84"
+                        }`}
+                      >
+                        {signal}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="mt-7 max-w-3xl sm:mt-10">
                     <p
                       className={`mb-3 text-[10px] font-semibold uppercase tracking-[0.32em] sm:mb-4 sm:text-[11px] sm:tracking-[0.38em] ${labelClass}`}
                     >
                       About The Team
                     </p>
                     <h1
-                      className={`max-w-[9ch] text-[2.85rem] font-bold leading-[0.94] tracking-tight sm:text-5xl md:max-w-[8.5ch] md:text-7xl xl:text-[5.7rem] ${
+                      className={`max-w-[10ch] text-[3.35rem] font-bold leading-[0.88] tracking-[-0.04em] sm:text-6xl md:max-w-[8.6ch] md:text-[5.2rem] xl:text-[6.3rem] ${
                         isDayMode
-                          ? "bg-gradient-to-r from-slate-950 via-slate-800 to-indigo-600 bg-clip-text text-transparent"
-                          : "bg-gradient-to-r from-white via-slate-100 to-cyan-100 bg-clip-text text-transparent"
+                          ? "bg-[linear-gradient(135deg,#020617_0%,#1e293b_36%,#4f46e5_72%,#38bdf8_100%)] bg-clip-text text-transparent"
+                          : "bg-[linear-gradient(135deg,#ffffff_0%,#e2e8f0_36%,#a5f3fc_72%,#67e8f9_100%)] bg-clip-text text-transparent"
                       }`}
                       style={{ fontFamily: "var(--theme-font-display)" }}
                     >
                       {teamTitle}
                     </h1>
                     <p
-                      className={`mt-4 max-w-none text-[15px] leading-6.5 sm:mt-7 sm:max-w-2xl sm:text-lg sm:leading-8 md:text-[22px] ${quietTextClass}`}
+                      className={`mt-4 max-w-2xl text-[16px] leading-7 sm:mt-7 sm:text-[1.2rem] sm:leading-8 md:text-[1.55rem] ${quietTextClass}`}
                     >
                       {teamSubtitle}
                     </p>
                     <div
-                      className={`mt-5 max-w-none space-y-3 text-[14px] leading-6.5 sm:mt-8 sm:max-w-2xl sm:space-y-4 sm:text-base sm:leading-8 md:text-lg ${quietTextClass}`}
+                      className={`relative mt-6 overflow-hidden rounded-[24px] border px-4 py-4 sm:mt-8 sm:rounded-[28px] sm:px-5 sm:py-5 ${
+                        isDayMode
+                          ? "border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(238,245,255,0.84))] shadow-[0_22px_48px_rgba(148,163,184,0.16)]"
+                          : "border-white/10 bg-white/[0.04]"
+                      }`}
                     >
-                      <p>
-                        {teamIntro1}
+                      <div
+                        className={`absolute inset-x-0 top-0 h-px ${
+                          isDayMode
+                            ? "bg-gradient-to-r from-transparent via-indigo-400/70 to-transparent"
+                            : "bg-gradient-to-r from-transparent via-cyan-300/70 to-transparent"
+                        }`}
+                      />
+                      <p className={`text-[10px] font-semibold uppercase tracking-[0.34em] sm:text-[11px] ${labelClass}`}>
+                        Brand System Narrative
                       </p>
-                      <p>
-                        {teamIntro2}
-                      </p>
+                      <div
+                        className={`mt-4 grid gap-4 text-[14px] leading-6.5 sm:text-base sm:leading-8 ${quietTextClass}`}
+                      >
+                        <p>{teamIntro1}</p>
+                        <p>{teamIntro2}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -344,6 +397,7 @@ const About = () => {
                       </React.Fragment>
                     ))}
                   </div>
+
                 </div>
               </div>
 
@@ -357,10 +411,10 @@ const About = () => {
                 )}
                 <div className="flex items-start justify-between sm:items-center">
                   <div className={`text-[10px] font-semibold uppercase tracking-[0.28em] sm:text-[11px] sm:tracking-[0.34em] ${posterLabelClass}`}>
-                    Organized Campus AI Network
+                    Campus AI Control Room
                   </div>
                   <div className={`hidden text-[11px] uppercase tracking-[0.28em] sm:block ${posterMetaClass}`}>
-                    01 / Poster
+                    01 / Exhibition
                   </div>
                 </div>
 
@@ -379,6 +433,21 @@ const About = () => {
                   <div className={`absolute right-[12%] bottom-[17%] hidden text-[11px] uppercase tracking-[0.32em] sm:block ${posterAccentNodeClass}`}>
                     Network
                   </div>
+
+                  {heroSignals.map((signal, index) => (
+                    <div
+                      key={signal}
+                      className={`absolute hidden rounded-[18px] border px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.28em] shadow-[0_18px_40px_rgba(15,23,42,0.12)] sm:flex ${
+                        heroSignalPositions[index]
+                      } ${
+                        isDayMode
+                          ? "border-slate-200/90 bg-white/92 text-slate-700"
+                          : "border-white/10 bg-slate-950/70 text-white/82"
+                      }`}
+                    >
+                      {signal}
+                    </div>
+                  ))}
 
                   <div className={posterOrbClass}>
                     <div className={`absolute h-[214px] w-[214px] rounded-full border sm:h-[340px] sm:w-[340px] ${posterRingOneClass}`} />
@@ -408,7 +477,14 @@ const About = () => {
 
                 <div className={`grid grid-cols-3 gap-2 border-t pt-4 sm:gap-5 sm:pt-6 ${posterFooterClass}`}>
                   {stats.map((item) => (
-                    <div key={item.label}>
+                    <div
+                      key={item.label}
+                      className={`rounded-[20px] border px-3 py-3 sm:px-4 sm:py-4 ${
+                        isDayMode
+                          ? "border-slate-200/80 bg-white/84 shadow-[0_16px_32px_rgba(148,163,184,0.12)]"
+                          : "border-white/10 bg-white/[0.04]"
+                      }`}
+                    >
                       <div className={`text-xl font-semibold tracking-tight sm:text-3xl md:text-[2.2rem] ${statValueClass}`}>
                         {item.value}
                       </div>
@@ -454,18 +530,35 @@ const About = () => {
                 }`}
               />
               <div className="relative z-10 grid gap-5 px-4 py-4 sm:gap-10 sm:px-6 sm:py-7 md:px-8 md:py-8">
-                <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
+                <div
+                  className={`rounded-[24px] border px-4 py-4 sm:px-5 sm:py-5 ${
+                    isDayMode
+                      ? "border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(240,246,255,0.88))] shadow-[0_18px_40px_rgba(148,163,184,0.14)]"
+                      : "border-white/10 bg-white/[0.04]"
+                  }`}
+                >
+                  <div className={`text-[10px] font-semibold uppercase tracking-[0.32em] sm:text-[11px] ${labelClass}`}>
+                    Network Composition
+                  </div>
+                  <div className="mt-4 grid gap-3 sm:gap-4 md:grid-cols-2">
                   {supportUnitsDisplay.map((item, index) => (
                     <div
                       key={item}
-                      className={`flex items-start gap-3 border-b pb-4 sm:gap-4 ${dividerClass} last:border-b-0 md:last:border-b`}
+                      className={`rounded-[22px] border px-4 py-4 sm:gap-4 ${
+                        isDayMode
+                          ? "border-slate-200/80 bg-white/86 shadow-[0_14px_30px_rgba(148,163,184,0.12)]"
+                          : "border-white/10 bg-white/[0.05]"
+                      }`}
                     >
                       <div className={`pt-0.5 text-xs font-semibold tracking-[0.3em] ${labelClass}`}>
                         {String(index + 1).padStart(2, "0")}
                       </div>
                       <div>
+                        <div className={`text-[10px] font-semibold uppercase tracking-[0.28em] ${labelClass}`}>
+                          Support Node
+                        </div>
                         <div
-                          className={`text-[15px] font-medium leading-7 sm:text-base md:text-lg ${
+                          className={`mt-2 text-[15px] font-medium leading-7 sm:text-base md:text-lg ${
                             isDayMode ? "text-slate-900" : "text-white"
                           }`}
                         >
@@ -475,32 +568,26 @@ const About = () => {
                     </div>
                   ))}
                 </div>
+                </div>
 
-                <div className={`grid gap-4 border-t pt-5 sm:gap-5 sm:pt-6 md:grid-cols-3 ${dividerClass}`}>
-                  <div>
-                    <div className={`text-[11px] uppercase tracking-[0.34em] ${labelClass}`}>
-                      Positioning
+                <div className="grid gap-3 md:grid-cols-3">
+                  {supportFrames.map((item) => (
+                    <div
+                      key={item.label}
+                      className={`rounded-[22px] border px-4 py-4 ${
+                        isDayMode
+                          ? "border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(241,245,255,0.94))] text-slate-900 shadow-[0_18px_36px_rgba(148,163,184,0.14)]"
+                          : "border-white/10 bg-white/[0.05]"
+                      }`}
+                    >
+                      <div className={isDayMode ? "text-[11px] uppercase tracking-[0.34em] text-slate-400" : `text-[11px] uppercase tracking-[0.34em] ${labelClass}`}>
+                        {item.label}
+                      </div>
+                      <p className={isDayMode ? "mt-3 text-[15px] leading-7 text-slate-600 sm:text-sm" : `mt-3 text-[15px] leading-7 sm:text-sm ${quietTextClass}`}>
+                        {item.value}
+                      </p>
                     </div>
-                    <p className={`mt-3 text-[15px] leading-7 sm:text-sm ${quietTextClass}`}>
-                      {supportPositioning}
-                    </p>
-                  </div>
-                  <div>
-                    <div className={`text-[11px] uppercase tracking-[0.34em] ${labelClass}`}>
-                      Method
-                    </div>
-                    <p className={`mt-3 text-[15px] leading-7 sm:text-sm ${quietTextClass}`}>
-                      {supportMethod}
-                    </p>
-                  </div>
-                  <div>
-                    <div className={`text-[11px] uppercase tracking-[0.34em] ${labelClass}`}>
-                      Result
-                    </div>
-                    <p className={`mt-3 text-[15px] leading-7 sm:text-sm ${quietTextClass}`}>
-                      {supportResult}
-                    </p>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -534,62 +621,72 @@ const About = () => {
                 </p>
               </div>
 
-              <div className={`border-t ${dividerClass}`}>
+              <div className="grid gap-4 lg:grid-cols-2">
                 {initiativeItems.map((item) => {
                   const Icon = item.icon;
                   return (
                     <div
                       key={item.title}
-                      className={`grid gap-5 border-b py-6 sm:gap-6 sm:py-8 md:grid-cols-[84px_1.1fr_0.9fr_auto] md:gap-8 ${dividerClass} last:border-b-0`}
+                      className={`group relative overflow-hidden rounded-[28px] border p-5 sm:p-6 ${
+                        isDayMode
+                          ? "border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(239,245,255,0.88))] shadow-[0_22px_50px_rgba(148,163,184,0.16)]"
+                          : "border-white/10 bg-white/[0.045]"
+                      }`}
                     >
-                      <div
-                        className={`inline-flex w-fit items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold tracking-[0.24em] ${
-                          isDayMode
-                            ? "border-slate-200/80 bg-white/72"
-                            : "border-white/10 bg-white/[0.05]"
-                        } md:block md:rounded-none md:border-0 md:bg-transparent md:px-0 md:py-0 md:text-xs md:tracking-[0.32em] ${labelClass}`}
-                      >
-                        {item.index}
-                      </div>
-
-                      <div className="flex items-start gap-3 sm:gap-4">
-                        <span
-                          className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border sm:h-12 sm:w-12 ${
-                            isDayMode
-                              ? "border-slate-200/80 bg-white/84 text-slate-700"
-                              : "border-white/10 bg-white/[0.05] text-white/82"
-                          }`}
-                        >
-                          <Icon className="h-5 w-5" />
-                        </span>
-                        <div>
-                          <h3
-                            className={`text-xl font-semibold tracking-tight sm:text-2xl ${
-                              isDayMode ? "text-slate-950" : "text-white"
-                            }`}
-                          >
-                            {item.title}
-                          </h3>
-                          <p className={`mt-2 text-[11px] uppercase tracking-[0.32em] ${labelClass}`}>
-                            {item.tagline}
-                          </p>
+                      <div className={`absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 ${
+                        isDayMode
+                          ? "bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.12),transparent_42%)]"
+                          : "bg-[radial-gradient(circle_at_top_right,rgba(103,232,249,0.12),transparent_42%)]"
+                      }`} />
+                      <div className="relative z-10 flex h-full flex-col">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-start gap-3 sm:gap-4">
+                            <span
+                              className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border sm:h-12 sm:w-12 ${
+                                isDayMode
+                                  ? "border-indigo-100/90 bg-[linear-gradient(180deg,#eef4ff_0%,#dbeafe_100%)] text-indigo-600 shadow-[0_12px_24px_rgba(148,163,184,0.14)]"
+                                  : "border-white/10 bg-white/[0.08] text-white"
+                              }`}
+                            >
+                              <Icon className="h-5 w-5" />
+                            </span>
+                            <div>
+                              <p className={`text-[11px] font-semibold uppercase tracking-[0.34em] ${labelClass}`}>
+                                {item.index}
+                              </p>
+                              <h3
+                                className={`mt-3 text-2xl font-semibold tracking-tight sm:text-[1.9rem] ${
+                                  isDayMode ? "text-slate-950" : "text-white"
+                                }`}
+                              >
+                                {item.title}
+                              </h3>
+                              <p className={`mt-2 text-[11px] uppercase tracking-[0.32em] ${labelClass}`}>
+                                {item.tagline}
+                              </p>
+                            </div>
+                          </div>
                         </div>
-                      </div>
 
-                      <p className={`max-w-xl text-[15px] leading-7 md:text-base ${quietTextClass}`}>
-                        {item.description}
-                      </p>
+                        <p className={`mt-6 max-w-xl text-[15px] leading-7 md:text-base ${quietTextClass}`}>
+                          {item.description}
+                        </p>
 
-                      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-start sm:justify-start sm:gap-3 md:max-w-xs md:justify-end">
+                        <div className="mt-6 flex flex-wrap gap-2.5">
                         {item.bullets.map((bullet) => (
                           <span
                             key={bullet}
-                            className={`inline-flex min-h-[34px] items-center gap-2 rounded-full border px-2.5 py-1 text-[10px] tracking-[0.08em] sm:min-h-0 sm:px-3 sm:text-xs sm:tracking-[0.16em] ${chipClass}`}
+                            className={`inline-flex min-h-[36px] items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] tracking-[0.08em] sm:min-h-0 sm:text-xs sm:tracking-[0.16em] ${
+                              isDayMode
+                                ? "border-slate-200/80 bg-white text-slate-700 shadow-[0_12px_24px_rgba(148,163,184,0.1)]"
+                                : chipClass
+                            }`}
                           >
                             <ChevronRight className="h-3.5 w-3.5" />
                             <span>{bullet}</span>
                           </span>
                         ))}
+                        </div>
                       </div>
                     </div>
                   );
