@@ -99,7 +99,6 @@ const Navbar = () => {
     { key: "music", path: "/music" },
     { key: "gallery", path: "/gallery" },
     { key: "videos", path: "/videos" },
-    { key: "community", path: "/community" },
     { key: "about", path: "/about" },
     ...(isAdmin ? [{ key: "admin", path: "/admin" }] : []),
   ];
