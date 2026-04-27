@@ -94,6 +94,7 @@ const Navbar = () => {
   const navLinks = [
     { key: "home", path: "/" },
     { key: "events", path: "/events" },
+    { key: "hackathon", path: "/hackathon" },
     { key: "articles", path: "/articles" },
     { key: "music", path: "/music" },
     { key: "gallery", path: "/gallery" },

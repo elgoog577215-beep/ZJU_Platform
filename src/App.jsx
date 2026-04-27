@@ -38,6 +38,7 @@ const Events = lazy(() => import('./components/Events'));
 const HomeCategories = lazy(() => import('./components/HomeCategories'));
 const PlatformStats = lazy(() => import('./components/PlatformStats'));
 const About = lazy(() => import('./components/About'));
+const HackathonRegistration = lazy(() => import('./components/HackathonRegistration'));
 const AdminDashboard = lazy(() => import('./components/Admin/AdminDashboard'));
 const NotFound = lazy(() => import('./components/NotFound'));
 const PublicProfile = lazy(() => import('./components/PublicProfile'));
@@ -196,6 +197,7 @@ const AppContent = () => {
               <Route path="/articles" element={<PageTransition><Articles /></PageTransition>} />
               <Route path="/events" element={<PageTransition><Events /></PageTransition>} />
               <Route path="/about" element={<PageTransition><About /></PageTransition>} />
+              <Route path="/hackathon" element={<PageTransition><HackathonRegistration /></PageTransition>} />
               <Route
                 path="/admin"
                 element={

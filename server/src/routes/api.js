@@ -19,6 +19,7 @@ const notificationController = require('../controllers/notificationController');
 const commentController = require('../controllers/commentController');
 const communityController = require('../controllers/communityController');
 const newsController = require('../controllers/newsController');
+const hackathonController = require('../controllers/hackathonController');
 const { logger } = require('../utils/logger');
 
 const { authenticateToken, isAdmin, optionalAuth } = require('../middleware/auth');
@@ -190,6 +191,11 @@ router.post('/contact', messageController.submitMessage);
 router.get('/admin/messages', authenticateToken, isAdmin, messageController.getMessages);
 router.delete('/admin/messages/:id', authenticateToken, isAdmin, messageController.deleteMessage);
 router.put('/admin/messages/:id/read', authenticateToken, isAdmin, messageController.markAsRead);
+
+// Hackathon Registration Routes
+router.post('/hackathon/register', hackathonController.registerHackathon);
+router.get('/admin/hackathon/registrations', authenticateToken, isAdmin, hackathonController.getRegistrations);
+router.delete('/admin/hackathon/registrations/:id', authenticateToken, isAdmin, hackathonController.deleteRegistration);
 
 // Client-side error reporting
 router.post('/errors', (req, res) => {

@@ -812,6 +812,27 @@ async function runMigrations(db) {
     }
   }
 
+  try {
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS hackathon_registrations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        student_id TEXT NOT NULL UNIQUE,
+        major TEXT NOT NULL,
+        grade TEXT NOT NULL,
+        ai_tools TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await db.exec(`CREATE INDEX IF NOT EXISTS idx_hackathon_registrations_student_id ON hackathon_registrations(student_id)`);
+    await db.exec(`CREATE INDEX IF NOT EXISTS idx_hackathon_registrations_created_at ON hackathon_registrations(created_at DESC)`);
+    console.log('✅ Hackathon registrations table ready');
+  } catch (err) {
+    if (!err.message.includes('already exists')) {
+      console.warn('Migration warning (hackathon registrations):', err.message);
+    }
+  }
+
 }
 
 module.exports = {
