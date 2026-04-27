@@ -31,6 +31,7 @@ import ResourceManager from "./ResourceManager";
 import MessageManager from "./MessageManager";
 import TagManager from "./TagManager";
 import AdminCommunity from "./AdminCommunity";
+import HackathonManager from "./HackathonManager";
 
 const STORAGE_KEY = "admin.activeTab";
 
@@ -115,6 +116,12 @@ const AdminDashboard = () => {
             label: t("admin.tabs.events", "活动"),
             icon: Calendar,
             description: "管理活动和报名数据",
+          },
+          {
+            id: "hackathon",
+            label: "黑客松",
+            icon: Users,
+            description: "管理黑客松报名信息",
           },
           {
             id: "pages",
@@ -238,6 +245,8 @@ const AdminDashboard = () => {
             icon={Calendar}
           />
         );
+      case "hackathon":
+        return <HackathonManager />;
       case "community":
         return <AdminCommunity />;
       default:
