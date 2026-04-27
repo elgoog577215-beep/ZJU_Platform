@@ -1,31 +1,15 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  Calendar,
-  MapPin,
-  Users,
-  Clock,
-  Trophy,
-  Sparkles,
-  Send,
   CheckCircle,
   AlertCircle,
+  Send,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useSettings } from "../context/SettingsContext";
 import { useReducedMotion } from "../utils/animations";
 import api from "../services/api";
 import SEO from "./SEO";
-
-const sectionReveal = (enabled, delay = 0) => {
-  if (!enabled) return {};
-  return {
-    initial: { opacity: 0, y: 24 },
-    whileInView: { opacity: 1, y: 0 },
-    transition: { duration: 0.65, delay, ease: [0.22, 1, 0.36, 1] },
-    viewport: { once: true, margin: "-100px" },
-  };
-};
 
 const HackathonRegistration = () => {
   const { settings, uiMode } = useSettings();
@@ -64,17 +48,6 @@ const HackathonRegistration = () => {
   const chipClass = isDayMode
     ? "border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(241,245,255,0.9))] text-slate-600 shadow-[0_12px_28px_rgba(148,163,184,0.1)]"
     : "border-white/10 bg-white/[0.05] text-white/72";
-
-  const hackathonTitle = settings.hackathon_title || "AI 全栈极速黑客松";
-  const hackathonSubtitle = settings.hackathon_subtitle || "5小时极速开发 · 纯个人参赛 · AI 原生创作";
-  const hackathonDate = settings.hackathon_date || "待定";
-  const hackathonLocation = settings.hackathon_location || "浙江大学";
-  const hackathonFormat = settings.hackathon_format || "个人赛";
-  const hackathonDuration = settings.hackathon_duration || "5小时";
-  const hackathonDesc = settings.hackathon_desc || "AI 全栈极速黑客松是以 AI 原生开发为核心的技术赛事，参赛者需在 5 小时内独立完成一个完整的 AI 应用项目。比赛强调快速原型开发、AI 工具运用与创新思维。";
-
-  const partnersRaw = settings.hackathon_partners || "未来学习中心,ZJUAI,XLab";
-  const partners = partnersRaw.split(",").map((s) => s.trim()).filter(Boolean);
 
   const aiToolOptions = [
     { value: "claude", label: "Claude" },
@@ -146,186 +119,123 @@ const HackathonRegistration = () => {
     }
   };
 
-  const scrollToForm = () => {
-    document.getElementById("registration-form")?.scrollIntoView({ behavior: "smooth" });
-  };
-
   return (
     <div className={`min-h-screen ${pageClass}`}>
       <SEO
-        title="AI 全栈极速黑客松报名"
-        description="AI 全栈极速黑客松 - 5小时极速开发，纯个人参赛，AI 原生创作。立即报名参加！"
+        title="黑客松报名"
+        description="填写报名信息，参与 AI 全栈极速黑客松"
       />
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden px-4 pt-[calc(env(safe-area-inset-top)+64px)] pb-12 md:px-8 md:pb-24">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className={`absolute left-[-12%] top-[4%] h-[520px] w-[520px] rounded-full blur-[140px] ${isDayMode ? "bg-sky-300/24" : "bg-cyan-500/12"}`} />
-          <div className={`absolute right-[-10%] top-[18%] h-[440px] w-[440px] rounded-full blur-[150px] ${isDayMode ? "bg-indigo-300/22" : "bg-indigo-500/12"}`} />
-        </div>
-
-        <div className="mx-auto flex min-h-0 max-w-7xl flex-col justify-center gap-6 sm:min-h-[calc(100svh-128px)] sm:gap-12 lg:gap-16">
-          <motion.div {...sectionReveal(shouldAnimate)} className={`relative overflow-hidden rounded-[32px] border md:rounded-[40px] ${shellClass}`}>
-            <div className="relative z-10 px-6 py-12 sm:px-10 sm:py-16 md:px-16 md:py-20">
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className={`h-5 w-5 ${isDayMode ? "text-indigo-500" : "text-cyan-400"}`} />
-                <span className={`text-sm font-medium ${softTextClass}`}>2026 赛事报名</span>
-              </div>
-              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
-                {hackathonTitle}
-              </h1>
-              <p className={`mt-4 text-lg sm:text-xl ${softTextClass} max-w-2xl`}>
-                {hackathonSubtitle}
-              </p>
-              <button onClick={scrollToForm} className={`mt-8 ${primaryButtonClass}`}>
-                立即报名
-                <Send className="h-4 w-4" />
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Info Section */}
-      <section className="px-4 pb-12 md:px-8 md:pb-24">
-        <div className="mx-auto max-w-7xl">
-          <motion.div {...sectionReveal(shouldAnimate, 0.1)} className={`rounded-[32px] border p-6 sm:p-10 md:rounded-[40px] ${shellClass}`}>
-            <h2 className="text-2xl font-bold sm:text-3xl mb-8">比赛信息</h2>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              <div className={`rounded-2xl border p-5 ${chipClass}`}>
-                <Calendar className={`h-6 w-6 mb-3 ${isDayMode ? "text-indigo-500" : "text-cyan-400"}`} />
-                <p className={`text-sm ${labelClass}`}>比赛时间</p>
-                <p className="mt-1 font-semibold">{hackathonDate}</p>
-              </div>
-              <div className={`rounded-2xl border p-5 ${chipClass}`}>
-                <MapPin className={`h-6 w-6 mb-3 ${isDayMode ? "text-indigo-500" : "text-cyan-400"}`} />
-                <p className={`text-sm ${labelClass}`}>比赛地点</p>
-                <p className="mt-1 font-semibold">{hackathonLocation}</p>
-              </div>
-              <div className={`rounded-2xl border p-5 ${chipClass}`}>
-                <Users className={`h-6 w-6 mb-3 ${isDayMode ? "text-indigo-500" : "text-cyan-400"}`} />
-                <p className={`text-sm ${labelClass}`}>比赛形式</p>
-                <p className="mt-1 font-semibold">{hackathonFormat}</p>
-              </div>
-              <div className={`rounded-2xl border p-5 ${chipClass}`}>
-                <Clock className={`h-6 w-6 mb-3 ${isDayMode ? "text-indigo-500" : "text-cyan-400"}`} />
-                <p className={`text-sm ${labelClass}`}>比赛时长</p>
-                <p className="mt-1 font-semibold">{hackathonDuration}</p>
-              </div>
-            </div>
-            <p className={`mt-8 text-base sm:text-lg ${softTextClass}`}>{hackathonDesc}</p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Partners Section */}
-      <section className="px-4 pb-12 md:px-8 md:pb-24">
-        <div className="mx-auto max-w-7xl">
-          <motion.div {...sectionReveal(shouldAnimate, 0.2)} className={`rounded-[32px] border p-6 sm:p-10 md:rounded-[40px] ${shellClass}`}>
-            <h2 className="text-2xl font-bold sm:text-3xl mb-8 flex items-center gap-2">
-              <Trophy className={`h-6 w-6 ${isDayMode ? "text-indigo-500" : "text-cyan-400"}`} />
-              合作方与支持单位
-            </h2>
-            <div className="flex flex-wrap gap-4">
-              {partners.map((partner, index) => (
-                <div key={index} className={`rounded-xl border px-6 py-4 text-lg font-medium ${chipClass}`}>
-                  {partner}
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
       {/* Registration Form Section */}
-      <section id="registration-form" className="px-4 pb-12 md:px-8 md:pb-24">
+      <section className="px-4 py-12 md:px-8 md:py-24">
         <div className="mx-auto max-w-3xl">
-          <motion.div {...sectionReveal(shouldAnimate, 0.3)} className={`rounded-[32px] border p-6 sm:p-10 md:rounded-[40px] ${shellClass}`}>
-            <h2 className="text-2xl font-bold sm:text-3xl mb-2">报名参赛</h2>
-            <p className={`mb-8 ${softTextClass}`}>填写以下信息完成报名，我们将在比赛前通过邮件通知你具体安排。</p>
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+            className={`rounded-[24px] border p-5 sm:p-8 ${shellClass}`}
+          >
+            <div className="text-center mb-6">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-2">报名参赛</h1>
+              <p className={`text-sm ${softTextClass}`}>填写以下信息完成 AI 全栈极速黑客松报名</p>
+            </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Name */}
-              <div>
-                <label className={`block text-sm font-medium mb-2 ${labelClass}`}>姓名 <span className="text-rose-500">*</span></label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={handleInputChange("name")}
-                  placeholder="请输入你的姓名"
-                  className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all ${inputClass} ${formErrors.name ? "border-rose-500 focus:border-rose-500 focus:ring-rose-100" : ""}`}
-                />
-                {formErrors.name && (
-                  <p className="mt-2 flex items-center gap-1 text-sm text-rose-500">
-                    <AlertCircle className="h-4 w-4" />
-                    {formErrors.name}
-                  </p>
-                )}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className={`block text-xs font-medium mb-1.5 ${labelClass}`}>姓名 <span className="text-rose-500">*</span></label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={handleInputChange("name")}
+                    placeholder="请输入姓名"
+                    className={`w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition-all ${inputClass} ${formErrors.name ? "border-rose-500 focus:border-rose-500 focus:ring-rose-100" : ""}`}
+                  />
+                  {formErrors.name && (
+                    <p className="mt-1 flex items-center gap-1 text-xs text-rose-500">
+                      <AlertCircle className="h-3 w-3" />
+                      {formErrors.name}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className={`block text-xs font-medium mb-1.5 ${labelClass}`}>学号 <span className="text-rose-500">*</span></label>
+                  <input
+                    type="text"
+                    value={formData.studentId}
+                    onChange={handleInputChange("studentId")}
+                    placeholder="请输入学号"
+                    className={`w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition-all ${inputClass} ${formErrors.studentId ? "border-rose-500 focus:border-rose-500 focus:ring-rose-100" : ""}`}
+                  />
+                  {formErrors.studentId && (
+                    <p className="mt-1 flex items-center gap-1 text-xs text-rose-500">
+                      <AlertCircle className="h-3 w-3" />
+                      {formErrors.studentId}
+                    </p>
+                  )}
+                </div>
               </div>
 
-              {/* Student ID */}
-              <div>
-                <label className={`block text-sm font-medium mb-2 ${labelClass}`}>学号 <span className="text-rose-500">*</span></label>
-                <input
-                  type="text"
-                  value={formData.studentId}
-                  onChange={handleInputChange("studentId")}
-                  placeholder="请输入你的学号"
-                  className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all ${inputClass} ${formErrors.studentId ? "border-rose-500 focus:border-rose-500 focus:ring-rose-100" : ""}`}
-                />
-                {formErrors.studentId && (
-                  <p className="mt-2 flex items-center gap-1 text-sm text-rose-500">
-                    <AlertCircle className="h-4 w-4" />
-                    {formErrors.studentId}
-                  </p>
-                )}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className={`block text-xs font-medium mb-1.5 ${labelClass}`}>专业 <span className="text-rose-500">*</span></label>
+                  <input
+                    type="text"
+                    value={formData.major}
+                    onChange={handleInputChange("major")}
+                    placeholder="请输入专业"
+                    className={`w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition-all ${inputClass} ${formErrors.major ? "border-rose-500 focus:border-rose-500 focus:ring-rose-100" : ""}`}
+                  />
+                  {formErrors.major && (
+                    <p className="mt-1 flex items-center gap-1 text-xs text-rose-500">
+                      <AlertCircle className="h-3 w-3" />
+                      {formErrors.major}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className={`block text-xs font-medium mb-1.5 ${labelClass}`}>年级 <span className="text-rose-500">*</span></label>
+                  <select
+                    value={formData.grade}
+                    onChange={handleInputChange("grade")}
+                    className={`w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition-all ${inputClass} ${formErrors.grade ? "border-rose-500 focus:border-rose-500 focus:ring-rose-100" : ""}`}
+                    style={{
+                      backgroundImage: isDayMode
+                        ? `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`
+                        : `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                      backgroundPosition: `right 0.5rem center`,
+                      backgroundRepeat: 'no-repeat',
+                      backgroundSize: '1.5em 1.5em',
+                      paddingRight: '2.5rem',
+                      appearance: 'none',
+                      MozAppearance: 'none',
+                      WebkitAppearance: 'none',
+                      backgroundColor: isDayMode
+                        ? 'linear-gradient(180deg,rgba(255,255,255,0.94),rgba(244,247,255,0.9))'
+                        : 'linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))',
+                    }}
+                  >
+                    <option value="" style={{ backgroundColor: isDayMode ? '#fff' : '#0f172a', color: isDayMode ? '#0f172a' : '#fff' }}>请选择年级</option>
+                    {gradeOptions.map((option) => (
+                      <option key={option.value} value={option.value} style={{ backgroundColor: isDayMode ? '#fff' : '#0f172a', color: isDayMode ? '#0f172a' : '#fff' }}>{option.label}</option>
+                    ))}
+                  </select>
+                  {formErrors.grade && (
+                    <p className="mt-1 flex items-center gap-1 text-xs text-rose-500">
+                      <AlertCircle className="h-3 w-3" />
+                      {formErrors.grade}
+                    </p>
+                  )}
+                </div>
               </div>
 
-              {/* Major */}
               <div>
-                <label className={`block text-sm font-medium mb-2 ${labelClass}`}>专业 <span className="text-rose-500">*</span></label>
-                <input
-                  type="text"
-                  value={formData.major}
-                  onChange={handleInputChange("major")}
-                  placeholder="请输入你的专业"
-                  className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all ${inputClass} ${formErrors.major ? "border-rose-500 focus:border-rose-500 focus:ring-rose-100" : ""}`}
-                />
-                {formErrors.major && (
-                  <p className="mt-2 flex items-center gap-1 text-sm text-rose-500">
-                    <AlertCircle className="h-4 w-4" />
-                    {formErrors.major}
-                  </p>
-                )}
-              </div>
-
-              {/* Grade */}
-              <div>
-                <label className={`block text-sm font-medium mb-2 ${labelClass}`}>年级 <span className="text-rose-500">*</span></label>
-                <select
-                  value={formData.grade}
-                  onChange={handleInputChange("grade")}
-                  className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all ${inputClass} ${formErrors.grade ? "border-rose-500 focus:border-rose-500 focus:ring-rose-100" : ""}`}
-                >
-                  <option value="">请选择年级</option>
-                  {gradeOptions.map((option) => (
-                    <option key={option.value} value={option.value}>{option.label}</option>
-                  ))}
-                </select>
-                {formErrors.grade && (
-                  <p className="mt-2 flex items-center gap-1 text-sm text-rose-500">
-                    <AlertCircle className="h-4 w-4" />
-                    {formErrors.grade}
-                  </p>
-                )}
-              </div>
-
-              {/* AI Tools */}
-              <div>
-                <label className={`block text-sm font-medium mb-3 ${labelClass}`}>
+                <label className={`block text-xs font-medium mb-2 ${labelClass}`}>
                   常用 AI 工具 <span className="text-rose-500">*</span>（可多选）
                 </label>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-2">
                   {aiToolOptions.map((tool) => {
                     const isSelected = formData.aiTools.includes(tool.value);
                     return (
@@ -333,7 +243,7 @@ const HackathonRegistration = () => {
                         key={tool.value}
                         type="button"
                         onClick={() => handleToolToggle(tool.value)}
-                        className={`rounded-xl border px-5 py-2.5 text-sm font-medium transition-all ${
+                        className={`rounded-lg border px-4 py-2 text-xs font-medium transition-all ${
                           isSelected
                             ? isDayMode
                               ? "border-indigo-300 bg-indigo-50 text-indigo-600"
@@ -341,25 +251,24 @@ const HackathonRegistration = () => {
                             : chipClass
                         }`}
                       >
-                        {isSelected && <CheckCircle className="mr-1.5 inline h-4 w-4" />}
+                        {isSelected && <CheckCircle className="mr-1 inline h-3 w-3" />}
                         {tool.label}
                       </button>
                     );
                   })}
                 </div>
                 {formErrors.aiTools && (
-                  <p className="mt-2 flex items-center gap-1 text-sm text-rose-500">
-                    <AlertCircle className="h-4 w-4" />
+                  <p className="mt-1.5 flex items-center gap-1 text-xs text-rose-500">
+                    <AlertCircle className="h-3 w-3" />
                     {formErrors.aiTools}
                   </p>
                 )}
               </div>
 
-              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`w-full ${primaryButtonClass} py-4 text-base`}
+                className={`w-full ${primaryButtonClass} py-3 text-sm mt-2`}
               >
                 {isSubmitting ? (
                   <>
