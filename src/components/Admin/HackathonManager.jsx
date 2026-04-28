@@ -14,6 +14,7 @@ import {
   Cpu,
   ChevronLeft,
   ChevronRight,
+  FileText,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "../../services/api";
@@ -73,13 +74,14 @@ const HackathonManager = () => {
   };
 
   const handleExport = () => {
-    const headers = ["姓名", "学号", "专业", "年级", "AI 工具", "报名时间"];
+    const headers = ["姓名", "学号", "专业", "年级", "AI 工具", "AI 开发经历", "报名时间"];
     const data = registrations.map((r) => [
       r.name,
       r.student_id,
       r.major,
       gradeLabels[r.grade] || r.grade,
       JSON.parse(r.ai_tools || "[]").map((t) => aiToolLabels[t] || t).join(", "),
+      r.experience || "无",
       new Date(r.created_at).toLocaleString("zh-CN"),
     ]);
 
@@ -243,6 +245,7 @@ const HackathonManager = () => {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">专业</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">年级</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">AI 工具</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">AI 开发经历</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">报名时间</th>
                   <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">操作</th>
                 </tr>
@@ -280,6 +283,16 @@ const HackathonManager = () => {
                             </span>
                           ))}
                         </div>
+                      </td>
+                      <td className="px-4 py-3 text-sm max-w-[200px]">
+                        {reg.experience ? (
+                          <div className="flex items-start gap-1.5 group cursor-pointer" title={reg.experience}>
+                            <FileText className="h-3.5 w-3.5 mt-0.5 text-gray-400 flex-shrink-0" />
+                            <p className="text-gray-600 line-clamp-2 group-hover:text-gray-900">{reg.experience}</p>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 italic">未填写</span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-500">
                         <div className="flex items-center gap-1">

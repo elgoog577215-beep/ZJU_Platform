@@ -66,6 +66,7 @@ const HackathonRegistration = () => {
     major: "",
     grade: "",
     aiTools: [],
+    experience: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
@@ -287,7 +288,7 @@ const HackathonRegistration = () => {
     try {
       await api.post("/hackathon/register", formData, { noRetry: true });
       toast.success("报名成功！请等待后续通知");
-      setFormData({ name: "", studentId: "", major: "", grade: "", aiTools: [] });
+      setFormData({ name: "", studentId: "", major: "", grade: "", aiTools: [], experience: "" });
     } catch (error) {
       const message = error?.response?.data?.error || "报名失败，请稍后重试";
       toast.error(message);
@@ -702,6 +703,27 @@ const HackathonRegistration = () => {
                   {formErrors.aiTools}
                 </p>
               )}
+            </div>
+
+            <div>
+              <label className={`block text-sm font-semibold mb-2 ${isDayMode ? "text-slate-700" : "text-white/90"}`}>
+                AI 开发经历 <span className={`text-xs font-normal ${isDayMode ? "text-slate-400" : "text-white/40"}`}>(选填)</span>
+              </label>
+              <textarea
+                value={formData.experience}
+                onChange={(e) => setFormData((prev) => ({ ...prev, experience: e.target.value }))}
+                placeholder="简述你使用 AI 开发项目的经历..."
+                rows={4}
+                maxLength={500}
+                className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all resize-none ${
+                  isDayMode
+                    ? "border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+                    : "border-white/10 bg-white/5 text-white placeholder:text-white/30 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
+                }`}
+              />
+              <p className={`mt-1 text-xs text-right ${isDayMode ? "text-slate-400" : "text-white/30"}`}>
+                {formData.experience.length}/500
+              </p>
             </div>
 
             <button
