@@ -501,9 +501,9 @@ const HackathonRegistration = () => {
               <div className="order-1 flex flex-col lg:min-h-[620px]">
                 <p className="text-sm font-bold uppercase tracking-[0.28em] text-cyan-300">Competition Board</p>
                 <h2 className="mt-5 max-w-3xl text-5xl font-black leading-[0.98] tracking-tight sm:text-7xl xl:text-[70px] 2xl:text-[84px]">
-                  5小时交付。
-                  <span className="block text-cyan-300">0路演。</span>
-                  只看作品。
+                  5小时交付
+                  <span className="block text-cyan-300">0路演</span>
+                  只看作品
                 </h2>
                 <p className={`mt-6 max-w-xl text-base leading-8 xl:text-lg xl:leading-8 ${palette.textSoft}`}>
                   现场把想法变成可运行的 AI 应用。规则足够直接：个人完成、AI 原生、作品优先。
