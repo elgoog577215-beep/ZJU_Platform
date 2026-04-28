@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Tag,
   X,
+  Menu,
   MessageSquare,
   Mail,
 } from "lucide-react";
@@ -257,16 +258,14 @@ const AdminDashboard = () => {
   const shellClass = isDayMode ? "theme-admin-shell" : "bg-black text-white";
   const titleClass = isDayMode ? "text-slate-950" : "text-white";
   const mutedClass = isDayMode ? "text-slate-500" : "text-gray-400";
-  const labelClass = isDayMode
-    ? "text-indigo-500/80"
-    : "text-indigo-300/80";
+  const labelClass = isDayMode ? "text-indigo-500/80" : "text-indigo-300/80";
   const metaLabelClass = isDayMode ? "text-slate-400" : "text-gray-500";
   const topPanelClass = isDayMode
     ? "theme-admin-panel-soft"
     : "rounded-2xl border border-white/10 bg-white/5";
   const mobileToggleClass = isDayMode
     ? "mt-1 rounded-xl border border-slate-200/70 bg-white/92 p-2.5 text-slate-900 shadow-[0_10px_24px_rgba(148,163,184,0.1)] lg:hidden"
-    : "mt-1 rounded-xl bg-white/10 p-2.5 text-white lg:hidden";
+    : "mt-1 rounded-xl border border-white/10 bg-white/10 p-2.5 text-white lg:hidden";
   const logoutClass = isDayMode
     ? "ml-auto inline-flex min-h-[40px] items-center gap-2 rounded-xl border border-slate-200/70 bg-white/88 px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-white hover:text-rose-600"
     : "ml-auto inline-flex min-h-[40px] items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-gray-300 transition-colors hover:bg-white/10 hover:text-red-300";
@@ -305,40 +304,51 @@ const AdminDashboard = () => {
 
   return (
     <div
-      className={`min-h-screen px-3 pt-[calc(env(safe-area-inset-top)+72px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:px-8 md:pt-24 md:pb-12 ${shellClass}`}
+      className={`min-h-screen px-3 pt-[calc(env(safe-area-inset-top)+68px)] pb-[calc(env(safe-area-inset-bottom)+88px)] md:px-6 md:pt-24 md:pb-10 xl:px-8 ${shellClass}`}
     >
       <div className="mx-auto max-w-[1680px]">
-        <div className="mb-6 flex flex-col gap-4 md:mb-8 lg:flex-row lg:items-end lg:justify-between">
+        <div className="mb-5 flex flex-col gap-4 md:mb-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="flex items-start gap-3 md:gap-4">
             <button
+              type="button"
+              aria-label="打开管理导航"
               className={mobileToggleClass}
               onClick={() => setIsMobileMenuOpen((value) => !value)}
             >
-              <LayoutGrid size={22} />
+              <Menu size={22} />
             </button>
-            <div>
-              <p className={`text-xs uppercase tracking-[0.32em] ${labelClass}`}>
+            <div className="min-w-0">
+              <p
+                className={`text-xs font-semibold uppercase tracking-[0.24em] ${labelClass}`}
+              >
                 Operations Console
               </p>
               <h1
-                className={`mt-2 text-2xl font-bold md:text-4xl lg:text-5xl ${titleClass}`}
-                style={isDayMode ? { fontFamily: "var(--theme-font-display)" } : undefined}
+                className={`mt-2 text-2xl font-bold tracking-normal md:text-4xl ${titleClass}`}
+                style={
+                  isDayMode
+                    ? { fontFamily: "var(--theme-font-display)" }
+                    : undefined
+                }
               >
                 {t("admin.dashboard", "管理员后台")}
               </h1>
-              <p className={`mt-2 max-w-2xl text-sm md:text-base ${mutedClass}`}>
+              <p
+                className={`mt-2 max-w-2xl text-sm md:text-base ${mutedClass}`}
+              >
                 {activeItem?.description ||
-                  t(
-                    "admin.subtitle",
-                    "统一管理内容、用户、社区和系统配置。",
-                  )}
+                  t("admin.subtitle", "统一管理内容、用户、社区和系统配置。")}
               </p>
             </div>
           </div>
 
-          <div className={`flex flex-wrap items-center gap-3 rounded-2xl px-4 py-3 ${topPanelClass}`}>
+          <div
+            className={`grid grid-cols-2 items-center gap-3 rounded-2xl px-4 py-3 sm:flex sm:flex-wrap ${topPanelClass}`}
+          >
             <div>
-              <div className={`text-xs uppercase tracking-[0.24em] ${metaLabelClass}`}>
+              <div
+                className={`text-xs font-semibold uppercase tracking-[0.16em] ${metaLabelClass}`}
+              >
                 当前模块
               </div>
               <div className={`mt-1 text-sm font-semibold ${titleClass}`}>
@@ -346,17 +356,23 @@ const AdminDashboard = () => {
               </div>
             </div>
             <div
-              className={`h-10 w-px ${isDayMode ? "bg-[rgba(128,146,167,0.14)]" : "bg-white/10"}`}
+              className={`hidden h-10 w-px sm:block ${isDayMode ? "bg-[rgba(128,146,167,0.14)]" : "bg-white/10"}`}
             />
             <div>
-              <div className={`text-xs uppercase tracking-[0.24em] ${metaLabelClass}`}>
+              <div
+                className={`text-xs font-semibold uppercase tracking-[0.16em] ${metaLabelClass}`}
+              >
                 日期
               </div>
               <div className={`mt-1 text-sm font-semibold ${titleClass}`}>
                 {new Date().toLocaleDateString("zh-CN")}
               </div>
             </div>
-            <button onClick={handleLogout} className={logoutClass}>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className={`col-span-2 sm:col-span-1 ${logoutClass}`}
+            >
               <LogOut size={16} /> {t("admin.logout", "退出管理")}
             </button>
           </div>
@@ -378,18 +394,25 @@ const AdminDashboard = () => {
           <aside
             className={`${
               isMobileMenuOpen
-                ? "fixed inset-x-3 top-[calc(env(safe-area-inset-top)+76px)] bottom-[calc(env(safe-area-inset-bottom)+16px)] z-[100]"
+                ? "fixed inset-x-3 top-[calc(env(safe-area-inset-top)+72px)] bottom-[calc(env(safe-area-inset-bottom)+14px)] z-[100]"
                 : "hidden"
-            } lg:static lg:block lg:w-80 lg:flex-shrink-0`}
+            } lg:static lg:block lg:w-72 lg:flex-shrink-0 xl:w-80`}
           >
             <div
-              className={`h-full overflow-y-auto p-4 lg:sticky lg:top-24 lg:h-auto lg:max-h-[calc(100vh-7.5rem)] ${sidebarClass}`}
+              className={`h-full overflow-y-auto p-3 md:p-4 lg:sticky lg:top-24 lg:h-auto lg:max-h-[calc(100vh-7.5rem)] ${sidebarClass}`}
             >
               <div className="mb-4 flex items-center justify-between px-1 lg:hidden">
-                <div className={`text-xs uppercase tracking-[0.22em] ${metaLabelClass}`}>
+                <div
+                  className={`text-xs font-semibold uppercase tracking-[0.18em] ${metaLabelClass}`}
+                >
                   导航
                 </div>
-                <button className={closeClass} onClick={() => setIsMobileMenuOpen(false)}>
+                <button
+                  type="button"
+                  aria-label="关闭管理导航"
+                  className={closeClass}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
                   <X size={16} />
                 </button>
               </div>
@@ -398,7 +421,7 @@ const AdminDashboard = () => {
                 {menuGroups.map((group) => (
                   <div key={group.title}>
                     <div
-                      className={`px-3 pb-2 text-xs font-bold uppercase tracking-[0.24em] ${metaLabelClass}`}
+                      className={`px-3 pb-2 text-xs font-bold uppercase tracking-[0.18em] ${metaLabelClass}`}
                     >
                       {group.title}
                     </div>
@@ -407,6 +430,7 @@ const AdminDashboard = () => {
                         const isActive = activeTab === tab.id;
                         return (
                           <button
+                            type="button"
                             key={tab.id}
                             onClick={() => {
                               setActiveTab(tab.id);
@@ -420,16 +444,22 @@ const AdminDashboard = () => {
                               <div className="flex items-center gap-3">
                                 <div
                                   className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                                    isActive ? activeIconClass : inactiveIconClass
+                                    isActive
+                                      ? activeIconClass
+                                      : inactiveIconClass
                                   }`}
                                 >
                                   <tab.icon size={18} />
                                 </div>
-                                <div>
-                                  <div className="font-semibold">{tab.label}</div>
+                                <div className="min-w-0">
+                                  <div className="font-semibold">
+                                    {tab.label}
+                                  </div>
                                   <div
-                                    className={`mt-1 text-xs ${
-                                      isActive ? activeDescClass : inactiveDescClass
+                                    className={`mt-1 line-clamp-2 text-xs ${
+                                      isActive
+                                        ? activeDescClass
+                                        : inactiveDescClass
                                     }`}
                                   >
                                     {tab.description}
@@ -455,7 +485,9 @@ const AdminDashboard = () => {
                   </div>
                   <div>
                     <div>{t("nav.home", "首页")}</div>
-                    <div className={`mt-1 text-xs ${metaLabelClass}`}>返回站点前台</div>
+                    <div className={`mt-1 text-xs ${metaLabelClass}`}>
+                      返回站点前台
+                    </div>
                   </div>
                 </div>
               </a>

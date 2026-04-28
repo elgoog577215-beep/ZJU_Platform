@@ -6,6 +6,7 @@ import {
   AdminButton,
   AdminEmptyState,
   AdminLoadingState,
+  AdminMetricCard,
   AdminPageShell,
   AdminPanel,
   AdminToolbar,
@@ -60,9 +61,15 @@ const PendingReviewManager = () => {
       const matchesType = activeType === "all" || item.type === activeType;
       const matchesKeyword =
         !lowerKeyword ||
-        String(item.title || "").toLowerCase().includes(lowerKeyword) ||
-        String(item.description || "").toLowerCase().includes(lowerKeyword) ||
-        String(item.tags || "").toLowerCase().includes(lowerKeyword);
+        String(item.title || "")
+          .toLowerCase()
+          .includes(lowerKeyword) ||
+        String(item.description || "")
+          .toLowerCase()
+          .includes(lowerKeyword) ||
+        String(item.tags || "")
+          .toLowerCase()
+          .includes(lowerKeyword);
       return matchesType && matchesKeyword;
     });
   }, [activeType, items, keyword]);
@@ -128,11 +135,17 @@ const PendingReviewManager = () => {
 
   const toggleSelectAllVisible = () => {
     const visibleKeys = filteredItems.map((item) => `${item.type}-${item.id}`);
-    const allVisibleSelected = visibleKeys.every((key) => selected.includes(key));
+    const allVisibleSelected = visibleKeys.every((key) =>
+      selected.includes(key),
+    );
     if (allVisibleSelected) {
-      setSelected((previous) => previous.filter((key) => !visibleKeys.includes(key)));
+      setSelected((previous) =>
+        previous.filter((key) => !visibleKeys.includes(key)),
+      );
     } else {
-      setSelected((previous) => Array.from(new Set([...previous, ...visibleKeys])));
+      setSelected((previous) =>
+        Array.from(new Set([...previous, ...visibleKeys])),
+      );
     }
   };
 
@@ -157,8 +170,8 @@ const PendingReviewManager = () => {
         }
         toolbar={
           <AdminToolbar>
-            <ToolbarGroup className="flex-1">
-              <div className="relative min-w-[240px] flex-1 max-w-md">
+            <ToolbarGroup className="w-full flex-1">
+              <div className="relative w-full min-w-0 flex-1 md:max-w-md">
                 <Search
                   size={16}
                   className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
@@ -173,24 +186,42 @@ const PendingReviewManager = () => {
               </div>
             </ToolbarGroup>
             <ToolbarGroup>
-              {["all", "photos", "videos", "music", "articles", "events"].map((type) => (
-                <FilterChip
-                  key={type}
-                  active={activeType === type}
-                  onClick={() => setActiveType(type)}
-                >
-                  {type === "all" ? "全部" : TYPE_LABELS[type]} ({countsByType[type] || 0})
-                </FilterChip>
-              ))}
+              {["all", "photos", "videos", "music", "articles", "events"].map(
+                (type) => (
+                  <FilterChip
+                    key={type}
+                    active={activeType === type}
+                    onClick={() => setActiveType(type)}
+                  >
+                    {type === "all" ? "全部" : TYPE_LABELS[type]} (
+                    {countsByType[type] || 0})
+                  </FilterChip>
+                ),
+              )}
             </ToolbarGroup>
           </AdminToolbar>
         }
       >
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
+          {["all", "photos", "videos", "music", "articles", "events"].map(
+            (type) => (
+              <AdminMetricCard
+                key={type}
+                label={type === "all" ? "全部待审" : TYPE_LABELS[type]}
+                value={countsByType[type] || 0}
+                tone={type === "all" ? "amber" : "indigo"}
+              />
+            ),
+          )}
+        </div>
+
         {selectedItems.length > 0 ? (
           <AdminPanel className="border-indigo-500/20 bg-indigo-500/10">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div className="text-sm text-indigo-200">
-                已选择 <span className="font-semibold">{selectedItems.length}</span> 条待审核内容。
+                已选择{" "}
+                <span className="font-semibold">{selectedItems.length}</span>{" "}
+                条待审核内容。
               </div>
               <div className="flex flex-wrap gap-2">
                 <AdminButton
@@ -220,6 +251,7 @@ const PendingReviewManager = () => {
               <label className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-gray-300">
                 <input
                   type="checkbox"
+                  aria-label="全选当前结果"
                   checked={
                     filteredItems.length > 0 &&
                     filteredItems.every((item) =>
@@ -237,7 +269,9 @@ const PendingReviewManager = () => {
           {filteredItems.length === 0 ? (
             <AdminEmptyState
               icon={Inbox}
-              title={items.length === 0 ? "当前没有待审核内容" : "没有匹配的审核项"}
+              title={
+                items.length === 0 ? "当前没有待审核内容" : "没有匹配的审核项"
+              }
               description={
                 items.length === 0
                   ? "所有资源都已经处理完成。"
@@ -261,6 +295,7 @@ const PendingReviewManager = () => {
                     <div className="flex items-start pt-1">
                       <input
                         type="checkbox"
+                        aria-label={`选择 ${item.title || "未命名内容"}`}
                         checked={isSelected}
                         onChange={() => toggleSelected(item)}
                         className="mt-1 rounded border-white/20 bg-transparent"
@@ -300,8 +335,12 @@ const PendingReviewManager = () => {
                         </p>
                       ) : null}
                       <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-500">
-                        {item.uploader_id ? <span>上传者 ID: {item.uploader_id}</span> : null}
-                        {item.category ? <span>分类: {item.category}</span> : null}
+                        {item.uploader_id ? (
+                          <span>上传者 ID: {item.uploader_id}</span>
+                        ) : null}
+                        {item.category ? (
+                          <span>分类: {item.category}</span>
+                        ) : null}
                         {item.tags ? <span>标签: {item.tags}</span> : null}
                       </div>
                     </div>
@@ -334,7 +373,9 @@ const PendingReviewManager = () => {
 
       <ConfirmDialog
         open={Boolean(confirmState)}
-        title={confirmState?.mode === "approve" ? "确认批量通过" : "确认批量驳回"}
+        title={
+          confirmState?.mode === "approve" ? "确认批量通过" : "确认批量驳回"
+        }
         description={
           confirmState
             ? `即将${

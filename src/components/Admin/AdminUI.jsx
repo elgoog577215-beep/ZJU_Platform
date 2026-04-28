@@ -57,6 +57,7 @@ const useAdminTheme = () => {
     softPanelClass: "theme-admin-panel-soft",
     mutedTextClass: isDayMode ? "text-slate-500" : "text-gray-400",
     subtleTextClass: isDayMode ? "text-slate-600" : "text-gray-300",
+    headingTextClass: isDayMode ? "text-slate-950" : "text-white",
     iconWrapClass: isDayMode
       ? "bg-slate-100 text-slate-500"
       : "bg-white/5 text-gray-500",
@@ -64,7 +65,9 @@ const useAdminTheme = () => {
       ? "theme-chip hover:border-indigo-200/80 hover:text-slate-950"
       : "theme-chip hover:border-white/20 hover:text-white",
     dialogBackdropClass: isDayMode ? "theme-overlay-backdrop" : "bg-black/80",
-    dialogPanelClass: isDayMode ? "theme-dialog" : "bg-[#111] border border-white/10 shadow-2xl",
+    dialogPanelClass: isDayMode
+      ? "theme-dialog"
+      : "bg-[#111] border border-white/10 shadow-2xl",
     statusToneMap: {
       success: isDayMode
         ? "border-emerald-500/20 bg-emerald-500/8 text-emerald-700"
@@ -95,20 +98,29 @@ export const AdminPageShell = ({
   toolbar,
   children,
 }) => {
-  const { panelClass, mutedTextClass, subtleTextClass, isDayMode } =
-    useAdminTheme();
+  const {
+    panelClass,
+    mutedTextClass,
+    subtleTextClass,
+    headingTextClass,
+    isDayMode,
+  } = useAdminTheme();
 
   return (
-    <div className="space-y-4 md:space-y-6">
-      <div className={clsx("rounded-[28px] p-4 md:p-6", panelClass)}>
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
+    <div className="space-y-4 md:space-y-5">
+      <div className={clsx("rounded-3xl p-4 md:p-5", panelClass)}>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="min-w-0">
             <h2
               className={clsx(
-                "text-xl font-bold md:text-2xl",
-                isDayMode ? "text-slate-950" : "text-white",
+                "text-xl font-bold tracking-normal md:text-2xl",
+                headingTextClass,
               )}
-              style={isDayMode ? { fontFamily: "var(--theme-font-display)" } : undefined}
+              style={
+                isDayMode
+                  ? { fontFamily: "var(--theme-font-display)" }
+                  : undefined
+              }
             >
               {title}
             </h2>
@@ -119,7 +131,12 @@ export const AdminPageShell = ({
             ) : null}
           </div>
           {actions ? (
-            <div className={clsx("flex flex-wrap items-center gap-2", subtleTextClass)}>
+            <div
+              className={clsx(
+                "flex w-full flex-wrap items-center gap-2 lg:w-auto lg:justify-end",
+                subtleTextClass,
+              )}
+            >
               {actions}
             </div>
           ) : null}
@@ -138,20 +155,18 @@ export const AdminPanel = ({
   children,
   className,
 }) => {
-  const { panelClass, mutedTextClass, isDayMode } = useAdminTheme();
+  const { panelClass, mutedTextClass, headingTextClass } = useAdminTheme();
 
   return (
-    <section
-      className={clsx("rounded-[28px] p-4 md:p-6", panelClass, className)}
-    >
+    <section className={clsx("rounded-3xl p-4 md:p-5", panelClass, className)}>
       {(title || action) && (
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
             {title ? (
               <h3
                 className={clsx(
-                  "text-lg font-bold",
-                  isDayMode ? "text-slate-950" : "text-white",
+                  "text-base font-bold md:text-lg",
+                  headingTextClass,
                 )}
               >
                 {title}
@@ -177,7 +192,7 @@ export const AdminLoadingState = ({ text = "正在加载..." }) => {
   return (
     <div
       className={clsx(
-        "rounded-[28px] p-10 text-center text-sm",
+        "rounded-3xl p-10 text-center text-sm",
         panelClass,
         mutedTextClass,
       )}
@@ -187,19 +202,14 @@ export const AdminLoadingState = ({ text = "正在加载..." }) => {
   );
 };
 
-export const AdminEmptyState = ({
-  icon: Icon,
-  title,
-  description,
-  action,
-}) => {
-  const { panelClass, iconWrapClass, mutedTextClass, isDayMode } =
+export const AdminEmptyState = ({ icon: Icon, title, description, action }) => {
+  const { panelClass, iconWrapClass, mutedTextClass, headingTextClass } =
     useAdminTheme();
 
   return (
     <div
       className={clsx(
-        "rounded-[28px] border border-dashed p-10 text-center",
+        "rounded-3xl border border-dashed p-8 text-center md:p-10",
         panelClass,
       )}
     >
@@ -213,12 +223,7 @@ export const AdminEmptyState = ({
           <Icon size={26} />
         </div>
       ) : null}
-      <h3
-        className={clsx(
-          "text-base font-semibold",
-          isDayMode ? "text-slate-950" : "text-white",
-        )}
-      >
+      <h3 className={clsx("text-base font-semibold", headingTextClass)}>
         {title}
       </h3>
       {description ? (
@@ -236,7 +241,7 @@ export const AdminToolbar = ({ children }) => (
 );
 
 export const ToolbarGroup = ({ children, className }) => (
-  <div className={clsx("flex flex-wrap items-center gap-2", className)}>
+  <div className={clsx("flex min-w-0 flex-wrap items-center gap-2", className)}>
     {children}
   </div>
 );
@@ -248,7 +253,7 @@ export const FilterChip = ({ active, children, ...props }) => {
     <button
       {...props}
       className={clsx(
-        "rounded-xl border px-3 py-2 text-sm font-medium transition-colors",
+        "min-h-[38px] rounded-xl border px-3 py-2 text-sm font-medium transition-colors",
         active ? "theme-chip-active" : filterChipClass,
         props.className,
       )}
@@ -281,13 +286,85 @@ export const AdminButton = ({
     <button
       {...props}
       className={clsx(
-        "inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100",
+        "inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 md:px-4",
         toneClassName,
         className,
       )}
     >
       {children}
     </button>
+  );
+};
+
+export const AdminMetricCard = ({
+  label,
+  value,
+  icon: Icon,
+  helper,
+  tone = "indigo",
+}) => {
+  const { isDayMode, headingTextClass, mutedTextClass } = useAdminTheme();
+  const toneClassName = {
+    indigo: isDayMode
+      ? "bg-indigo-100 text-indigo-600"
+      : "bg-indigo-500/15 text-indigo-300",
+    emerald: isDayMode
+      ? "bg-emerald-500/10 text-emerald-700"
+      : "bg-emerald-500/15 text-emerald-300",
+    amber: isDayMode
+      ? "bg-amber-500/12 text-amber-700"
+      : "bg-amber-500/15 text-amber-300",
+    violet: isDayMode
+      ? "bg-violet-500/10 text-violet-700"
+      : "bg-violet-500/15 text-violet-300",
+    rose: isDayMode
+      ? "bg-rose-500/10 text-rose-700"
+      : "bg-rose-500/15 text-rose-300",
+  }[tone];
+
+  return (
+    <div
+      className={clsx(
+        "rounded-2xl border p-4",
+        isDayMode
+          ? "border-slate-200/70 bg-white/72"
+          : "border-white/10 bg-white/5",
+      )}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p
+            className={clsx(
+              "text-xs font-semibold uppercase tracking-[0.16em]",
+              mutedTextClass,
+            )}
+          >
+            {label}
+          </p>
+          <p
+            className={clsx(
+              "mt-3 text-2xl font-bold tabular-nums",
+              headingTextClass,
+            )}
+          >
+            {value}
+          </p>
+        </div>
+        {Icon ? (
+          <div
+            className={clsx(
+              "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl",
+              toneClassName,
+            )}
+          >
+            <Icon size={16} />
+          </div>
+        ) : null}
+      </div>
+      {helper ? (
+        <p className={clsx("mt-2 text-xs", mutedTextClass)}>{helper}</p>
+      ) : null}
+    </div>
   );
 };
 

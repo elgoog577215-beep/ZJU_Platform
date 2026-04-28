@@ -22,6 +22,7 @@ import {
   AdminButton,
   AdminEmptyState,
   AdminLoadingState,
+  AdminMetricCard,
   AdminPageShell,
   AdminPanel,
   AdminToolbar,
@@ -173,7 +174,21 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
     }
   };
 
-  const selectedItems = filteredItems.filter((item) => selectedIds.includes(item.id));
+  const selectedItems = filteredItems.filter((item) =>
+    selectedIds.includes(item.id),
+  );
+
+  const statusCounts = useMemo(
+    () =>
+      filteredItems.reduce(
+        (accumulator, item) => {
+          accumulator[item.status] = (accumulator[item.status] || 0) + 1;
+          return accumulator;
+        },
+        { total: filteredItems.length },
+      ),
+    [filteredItems],
+  );
 
   const submitConfirmedAction = async () => {
     if (!confirmState) return;
@@ -186,7 +201,9 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
 
       if (confirmState.mode === "batch-delete") {
         await Promise.all(
-          confirmState.ids.map((id) => api.delete(`/${apiEndpoint}/${id}/permanent`)),
+          confirmState.ids.map((id) =>
+            api.delete(`/${apiEndpoint}/${id}/permanent`),
+          ),
         );
         toast.success(`已删除 ${confirmState.ids.length} 条内容`);
       }
@@ -228,11 +245,16 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
   const toggleSelectedVisible = () => {
     const visibleIds = filteredItems.map((item) => item.id);
     const allSelected =
-      visibleIds.length > 0 && visibleIds.every((id) => selectedIds.includes(id));
+      visibleIds.length > 0 &&
+      visibleIds.every((id) => selectedIds.includes(id));
     if (allSelected) {
-      setSelectedIds((previous) => previous.filter((id) => !visibleIds.includes(id)));
+      setSelectedIds((previous) =>
+        previous.filter((id) => !visibleIds.includes(id)),
+      );
     } else {
-      setSelectedIds((previous) => Array.from(new Set([...previous, ...visibleIds])));
+      setSelectedIds((previous) =>
+        Array.from(new Set([...previous, ...visibleIds])),
+      );
     }
   };
 
@@ -244,118 +266,209 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
     event: "查看活动热度、报名情况与审核状态。",
   };
 
-  const renderTable = () => (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[860px] text-left text-sm">
-        <thead>
-          <tr className="theme-admin-table-head border-b text-xs uppercase tracking-[0.2em]">
-            <th className="p-4">
-              <input
-                type="checkbox"
-                checked={
-                  filteredItems.length > 0 &&
-                  filteredItems.every((item) => selectedIds.includes(item.id))
-                }
-                onChange={toggleSelectedVisible}
-                className="rounded border-white/20 bg-transparent"
+  const renderMobileCards = () => (
+    <div className="grid grid-cols-1 gap-3 md:hidden">
+      {filteredItems.map((item) => (
+        <article
+          key={item.id}
+          className="rounded-2xl border border-white/10 bg-white/[0.03] p-4"
+        >
+          <div className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              aria-label={`选择 ${item.title || "未命名内容"}`}
+              checked={selectedIds.includes(item.id)}
+              onChange={() => toggleSelected(item.id)}
+              className="mt-1 rounded border-white/20 bg-transparent"
+            />
+            {type === "image" && item.url ? (
+              <img
+                src={item.url}
+                alt={item.title}
+                className="h-14 w-14 shrink-0 rounded-xl border border-white/10 object-cover"
               />
-            </th>
-            <th className="p-4">标题</th>
-            {isEventResource ? <th className="p-4">活动时间</th> : null}
-            <th className="p-4">状态</th>
-            {isEventResource ? <th className="p-4">访问</th> : null}
-            {isEventResource ? <th className="p-4">报名</th> : null}
-            {type === "image" ? <th className="p-4">预览</th> : null}
-            {type === "audio" ? <th className="p-4">作者</th> : null}
-            <th className="p-4">标签</th>
-            <th className="p-4 text-right">操作</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-white/5">
-          {filteredItems.map((item) => (
-            <tr key={item.id} className="theme-admin-row">
-              <td className="p-4">
+            ) : null}
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <StatusBadge status={item.status} />
+                <span className="rounded-full bg-white/5 px-2 py-1 text-xs text-gray-400">
+                  ID {item.id}
+                </span>
+              </div>
+              <h3 className="mt-2 line-clamp-2 font-semibold text-white">
+                {item.title || "未命名内容"}
+              </h3>
+              {isEventResource ? (
+                <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-gray-400">
+                  <span>时间: {formatDate(item.date)}</span>
+                  <span>访问: {formatNumber(item.views)}</span>
+                  <span>报名: {formatNumber(item.registration_count)}</span>
+                </div>
+              ) : type === "audio" ? (
+                <p className="mt-2 text-xs text-gray-400">
+                  作者: {item.artist || "-"}
+                </p>
+              ) : null}
+              <div className="mt-3 flex flex-wrap gap-1">
+                {String(item.tags || "")
+                  .split(",")
+                  .map((tag) => tag.trim())
+                  .filter(Boolean)
+                  .slice(0, 3)
+                  .map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full bg-white/5 px-2 py-1 text-xs text-gray-400"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <AdminButton tone="subtle" onClick={() => handleEdit(item)}>
+              <Edit2 size={16} />
+              编辑
+            </AdminButton>
+            <AdminButton
+              tone="danger"
+              onClick={() => openConfirm("delete", { id: item.id })}
+            >
+              <Trash2 size={16} />
+              删除
+            </AdminButton>
+          </div>
+        </article>
+      ))}
+    </div>
+  );
+
+  const renderTable = () => (
+    <div className="hidden overflow-hidden rounded-2xl border border-white/10 md:block">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[860px] text-left text-sm">
+          <thead>
+            <tr className="theme-admin-table-head border-b text-xs uppercase tracking-[0.2em]">
+              <th className="p-4">
                 <input
                   type="checkbox"
-                  checked={selectedIds.includes(item.id)}
-                  onChange={() => toggleSelected(item.id)}
+                  aria-label="选择当前页全部结果"
+                  checked={
+                    filteredItems.length > 0 &&
+                    filteredItems.every((item) => selectedIds.includes(item.id))
+                  }
+                  onChange={toggleSelectedVisible}
                   className="rounded border-white/20 bg-transparent"
                 />
-              </td>
-              <td className="p-4">
-                <div className="font-semibold text-white">{item.title || "未命名内容"}</div>
-                <div className="mt-1 text-xs text-gray-500">ID {item.id}</div>
-              </td>
-              {isEventResource ? (
-                <td className="p-4 text-gray-300">{formatDate(item.date)}</td>
-              ) : null}
-              <td className="p-4">
-                <StatusBadge status={item.status} />
-              </td>
-              {isEventResource ? (
-                <td className="p-4 text-indigo-300">{formatNumber(item.views)}</td>
-              ) : null}
-              {isEventResource ? (
-                <td className="p-4 text-emerald-300">
-                  {formatNumber(item.registration_count)}
-                </td>
-              ) : null}
-              {type === "image" ? (
-                <td className="p-4">
-                  {item.url ? (
-                    <img
-                      src={item.url}
-                      alt={item.title}
-                      className="h-12 w-12 rounded-lg border border-white/10 object-cover"
-                    />
-                  ) : (
-                    <div className="text-xs text-gray-500">无预览</div>
-                  )}
-                </td>
-              ) : null}
-              {type === "audio" ? (
-                <td className="p-4 text-gray-300">{item.artist || "-"}</td>
-              ) : null}
-              <td className="p-4">
-                <div className="flex max-w-xs flex-wrap gap-1">
-                  {String(item.tags || "")
-                    .split(",")
-                    .map((tag) => tag.trim())
-                    .filter(Boolean)
-                    .slice(0, 4)
-                    .map((tag) => (
-                      <span
-                        key={tag}
-                        className="rounded-full bg-white/5 px-2 py-1 text-xs text-gray-400"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  {!item.tags ? <span className="text-xs text-gray-500">无标签</span> : null}
-                </div>
-              </td>
-              <td className="p-4">
-                <div className="flex justify-end gap-2">
-                  <button
-                    onClick={() => handleEdit(item)}
-                    className="inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg bg-white/5 text-gray-400 transition-colors hover:bg-white/10 hover:text-indigo-300"
-                    title="编辑"
-                  >
-                    <Edit2 size={16} />
-                  </button>
-                  <button
-                    onClick={() => openConfirm("delete", { id: item.id })}
-                    className="inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg bg-white/5 text-gray-400 transition-colors hover:bg-white/10 hover:text-red-300"
-                    title="删除"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </td>
+              </th>
+              <th className="p-4">标题</th>
+              {isEventResource ? <th className="p-4">活动时间</th> : null}
+              <th className="p-4">状态</th>
+              {isEventResource ? <th className="p-4">访问</th> : null}
+              {isEventResource ? <th className="p-4">报名</th> : null}
+              {type === "image" ? <th className="p-4">预览</th> : null}
+              {type === "audio" ? <th className="p-4">作者</th> : null}
+              <th className="p-4">标签</th>
+              <th className="p-4 text-right">操作</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-white/5">
+            {filteredItems.map((item) => (
+              <tr key={item.id} className="theme-admin-row">
+                <td className="p-4">
+                  <input
+                    type="checkbox"
+                    aria-label={`选择 ${item.title || "未命名内容"}`}
+                    checked={selectedIds.includes(item.id)}
+                    onChange={() => toggleSelected(item.id)}
+                    className="rounded border-white/20 bg-transparent"
+                  />
+                </td>
+                <td className="p-4">
+                  <div className="font-semibold text-white">
+                    {item.title || "未命名内容"}
+                  </div>
+                  <div className="mt-1 text-xs text-gray-500">ID {item.id}</div>
+                </td>
+                {isEventResource ? (
+                  <td className="p-4 text-gray-300">{formatDate(item.date)}</td>
+                ) : null}
+                <td className="p-4">
+                  <StatusBadge status={item.status} />
+                </td>
+                {isEventResource ? (
+                  <td className="p-4 text-indigo-300">
+                    {formatNumber(item.views)}
+                  </td>
+                ) : null}
+                {isEventResource ? (
+                  <td className="p-4 text-emerald-300">
+                    {formatNumber(item.registration_count)}
+                  </td>
+                ) : null}
+                {type === "image" ? (
+                  <td className="p-4">
+                    {item.url ? (
+                      <img
+                        src={item.url}
+                        alt={item.title}
+                        className="h-12 w-12 rounded-lg border border-white/10 object-cover"
+                      />
+                    ) : (
+                      <div className="text-xs text-gray-500">无预览</div>
+                    )}
+                  </td>
+                ) : null}
+                {type === "audio" ? (
+                  <td className="p-4 text-gray-300">{item.artist || "-"}</td>
+                ) : null}
+                <td className="p-4">
+                  <div className="flex max-w-xs flex-wrap gap-1">
+                    {String(item.tags || "")
+                      .split(",")
+                      .map((tag) => tag.trim())
+                      .filter(Boolean)
+                      .slice(0, 4)
+                      .map((tag) => (
+                        <span
+                          key={tag}
+                          className="rounded-full bg-white/5 px-2 py-1 text-xs text-gray-400"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    {!item.tags ? (
+                      <span className="text-xs text-gray-500">无标签</span>
+                    ) : null}
+                  </div>
+                </td>
+                <td className="p-4">
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleEdit(item)}
+                      className="inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg bg-white/5 text-gray-400 transition-colors hover:bg-white/10 hover:text-indigo-300"
+                      title="编辑"
+                    >
+                      <Edit2 size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openConfirm("delete", { id: item.id })}
+                      className="inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg bg-white/5 text-gray-400 transition-colors hover:bg-white/10 hover:text-red-300"
+                      title="删除"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 
@@ -370,7 +483,10 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
         description={descriptionMap[type] || "管理当前资源内容。"}
         actions={
           <>
-            <AdminButton tone="subtle" onClick={() => fetchItems(pagination.page)}>
+            <AdminButton
+              tone="subtle"
+              onClick={() => fetchItems(pagination.page)}
+            >
               <RefreshCw size={16} />
               刷新
             </AdminButton>
@@ -385,7 +501,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
             <ToolbarGroup className="flex-1">
               <form
                 onSubmit={handleSearch}
-                className="flex min-w-[260px] flex-1 max-w-xl items-center gap-2"
+                className="flex w-full min-w-0 flex-1 flex-col gap-2 sm:max-w-xl sm:flex-row sm:items-center"
               >
                 <div className="relative flex-1">
                   <Search
@@ -400,7 +516,11 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
                     className="theme-admin-input w-full rounded-xl py-2.5 pl-10 pr-4 text-sm"
                   />
                 </div>
-                <AdminButton type="submit" tone="subtle">
+                <AdminButton
+                  type="submit"
+                  tone="subtle"
+                  className="w-full sm:w-auto"
+                >
                   搜索
                 </AdminButton>
               </form>
@@ -433,47 +553,54 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
       >
         {isEventResource && eventStats ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <AdminPanel className="p-4">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-xs uppercase tracking-[0.22em] text-gray-500">
-                  累计访问
-                </span>
-                <Eye size={16} className="text-indigo-300" />
-              </div>
-              <div className="mt-3 text-2xl font-bold text-white">
-                {formatNumber(eventStats.totalViews)}
-              </div>
-            </AdminPanel>
-            <AdminPanel className="p-4">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-xs uppercase tracking-[0.22em] text-gray-500">
-                  累计报名
-                </span>
-                <Users size={16} className="text-emerald-300" />
-              </div>
-              <div className="mt-3 text-2xl font-bold text-white">
-                {formatNumber(eventStats.totalRegistrations)}
-              </div>
-            </AdminPanel>
-            <AdminPanel className="p-4">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-xs uppercase tracking-[0.22em] text-gray-500">
-                  待开始活动
-                </span>
-                <CalendarDays size={16} className="text-amber-300" />
-              </div>
-              <div className="mt-3 text-2xl font-bold text-white">
-                {formatNumber(eventStats.upcoming)}
-              </div>
-            </AdminPanel>
+            <AdminMetricCard
+              label="累计访问"
+              value={formatNumber(eventStats.totalViews)}
+              icon={Eye}
+            />
+            <AdminMetricCard
+              label="累计报名"
+              value={formatNumber(eventStats.totalRegistrations)}
+              icon={Users}
+              tone="emerald"
+            />
+            <AdminMetricCard
+              label="待开始活动"
+              value={formatNumber(eventStats.upcoming)}
+              icon={CalendarDays}
+              tone="amber"
+            />
           </div>
         ) : null}
+
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <AdminMetricCard
+            label="当前结果"
+            value={formatNumber(statusCounts.total)}
+          />
+          <AdminMetricCard
+            label="已通过"
+            value={formatNumber(statusCounts.approved || 0)}
+            tone="emerald"
+          />
+          <AdminMetricCard
+            label="待审核"
+            value={formatNumber(statusCounts.pending || 0)}
+            tone="amber"
+          />
+          <AdminMetricCard
+            label="已驳回"
+            value={formatNumber(statusCounts.rejected || 0)}
+            tone="rose"
+          />
+        </div>
 
         {selectedItems.length > 0 ? (
           <AdminPanel className="border-indigo-500/20 bg-indigo-500/10">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="text-sm text-indigo-100">
-                已选择 <span className="font-semibold">{selectedItems.length}</span>{" "}
+                已选择{" "}
+                <span className="font-semibold">{selectedItems.length}</span>{" "}
                 条内容。
               </div>
               <div className="flex flex-wrap gap-2">
@@ -534,7 +661,10 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
               }
             />
           ) : (
-            renderTable()
+            <>
+              {renderMobileCards()}
+              {renderTable()}
+            </>
           )}
 
           {pagination.totalPages > 1 ? (

@@ -70,8 +70,9 @@ const StatCard = ({
 
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={`group relative overflow-hidden rounded-[28px] border p-5 text-left transition-all ${
+      className={`group relative overflow-hidden rounded-3xl border p-4 text-left transition-all md:p-5 ${
         isDayMode
           ? "border-slate-200/70 bg-white/88 shadow-[0_18px_38px_rgba(148,163,184,0.12)] hover:border-indigo-200/80 hover:shadow-[0_24px_48px_rgba(148,163,184,0.16)]"
           : "border-white/10 bg-[#111] hover:border-white/20 hover:bg-[#161616]"
@@ -92,20 +93,24 @@ const StatCard = ({
       <div className="relative mt-5 flex items-end justify-between gap-3">
         <div>
           <div
-            className={`text-3xl font-bold ${
+            className={`text-3xl font-bold tabular-nums ${
               isDayMode ? "text-slate-950" : "text-white"
             }`}
           >
             {value}
           </div>
-          <div className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+          <div
+            className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+          >
             {title}
           </div>
         </div>
         <ArrowRight
           size={16}
           className={`transition-transform group-hover:translate-x-1 ${
-            isDayMode ? "text-slate-400 group-hover:text-slate-950" : "text-gray-600 group-hover:text-white"
+            isDayMode
+              ? "text-slate-400 group-hover:text-slate-950"
+              : "text-gray-600 group-hover:text-white"
           }`}
         />
       </div>
@@ -118,7 +123,10 @@ const StatCard = ({
                 : "bg-emerald-500/10 text-emerald-300"
             }`}
           >
-            在库 {breakdown.active || 0}
+            在库{" "}
+            {new Intl.NumberFormat("zh-CN").format(
+              Number(breakdown.active || 0),
+            )}
           </span>
           <span
             className={`rounded-full px-2 py-1 ${
@@ -127,7 +135,10 @@ const StatCard = ({
                 : "bg-amber-500/10 text-amber-300"
             }`}
           >
-            待审 {breakdown.pending || 0}
+            待审{" "}
+            {new Intl.NumberFormat("zh-CN").format(
+              Number(breakdown.pending || 0),
+            )}
           </span>
           <span
             className={`rounded-full px-2 py-1 ${
@@ -136,7 +147,10 @@ const StatCard = ({
                 : "bg-slate-500/10 text-slate-300"
             }`}
           >
-            回收站 {breakdown.deleted || 0}
+            回收站{" "}
+            {new Intl.NumberFormat("zh-CN").format(
+              Number(breakdown.deleted || 0),
+            )}
           </span>
         </div>
       ) : null}
@@ -144,7 +158,13 @@ const StatCard = ({
   );
 };
 
-const CompactMetric = ({ label, value, icon: Icon, accent = "indigo", isDayMode }) => {
+const CompactMetric = ({
+  label,
+  value,
+  icon: Icon,
+  accent = "indigo",
+  isDayMode,
+}) => {
   const accentMap = {
     indigo: isDayMode
       ? "bg-indigo-100 text-indigo-600"
@@ -169,7 +189,9 @@ const CompactMetric = ({ label, value, icon: Icon, accent = "indigo", isDayMode 
       }`}
     >
       <div className="flex items-center justify-between gap-3">
-        <p className={`text-xs uppercase tracking-[0.22em] ${isDayMode ? "text-slate-400" : "text-gray-500"}`}>
+        <p
+          className={`text-xs uppercase tracking-[0.22em] ${isDayMode ? "text-slate-400" : "text-gray-500"}`}
+        >
           {label}
         </p>
         <div
@@ -362,6 +384,7 @@ const Overview = ({ onChangeTab }) => {
 
           <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2">
             <button
+              type="button"
               onClick={() => onChangeTab("pending")}
               className={`rounded-2xl border p-4 text-left transition-colors ${
                 isDayMode
@@ -376,11 +399,14 @@ const Overview = ({ onChangeTab }) => {
               >
                 处理待审核内容
               </div>
-              <div className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+              <div
+                className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+              >
                 批量处理图片、视频、音频、文章和活动的审核状态。
               </div>
             </button>
             <button
+              type="button"
               onClick={() => onChangeTab("community")}
               className={`rounded-2xl border p-4 text-left transition-colors ${
                 isDayMode
@@ -395,14 +421,19 @@ const Overview = ({ onChangeTab }) => {
               >
                 查看社区运营
               </div>
-              <div className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+              <div
+                className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+              >
                 查看帖子总量、社群入口和已发布内容的运营情况。
               </div>
             </button>
           </div>
         </AdminPanel>
 
-        <AdminPanel title="系统状态" description="确认后台服务和核心环境是否正常。">
+        <AdminPanel
+          title="系统状态"
+          description="确认后台服务和核心环境是否正常。"
+        >
           <div className="space-y-3">
             {[
               {
@@ -420,12 +451,16 @@ const Overview = ({ onChangeTab }) => {
                   isDayMode ? "bg-white/78" : "bg-white/5"
                 }`}
               >
-                <span className={isDayMode ? "text-slate-500" : "text-gray-400"}>
+                <span
+                  className={isDayMode ? "text-slate-500" : "text-gray-400"}
+                >
                   {item.label}
                 </span>
                 <span
                   className={`font-mono ${
-                    isDayMode ? "text-slate-950 capitalize" : "text-white capitalize"
+                    isDayMode
+                      ? "text-slate-950 capitalize"
+                      : "text-white capitalize"
                   }`}
                 >
                   {item.value}
@@ -435,13 +470,15 @@ const Overview = ({ onChangeTab }) => {
 
             <div
               className={`flex flex-col gap-2 rounded-2xl p-4 sm:flex-row sm:items-center sm:justify-between ${
-                  isDayMode ? "bg-white/78" : "bg-white/5"
+                isDayMode ? "bg-white/78" : "bg-white/5"
               }`}
             >
               <span className={isDayMode ? "text-slate-500" : "text-gray-400"}>
                 运行时长
               </span>
-              <div className={`flex items-center gap-2 font-mono ${isDayMode ? "text-emerald-700" : "text-emerald-300"}`}>
+              <div
+                className={`flex items-center gap-2 font-mono text-sm ${isDayMode ? "text-emerald-700" : "text-emerald-300"}`}
+              >
                 <Clock size={14} />
                 {formatUptime(stats.system.uptime)}
               </div>
@@ -455,7 +492,9 @@ const Overview = ({ onChangeTab }) => {
               <span className={isDayMode ? "text-slate-500" : "text-gray-400"}>
                 活动总访问
               </span>
-              <div className={`flex items-center gap-2 font-mono ${isDayMode ? "text-indigo-600" : "text-indigo-300"}`}>
+              <div
+                className={`flex items-center gap-2 font-mono text-sm ${isDayMode ? "text-indigo-600" : "text-indigo-300"}`}
+              >
                 <Eye size={14} />
                 {formatNumber(stats.eventAnalytics?.totalViews)}
               </div>
@@ -526,18 +565,30 @@ const Overview = ({ onChangeTab }) => {
                 }`}
               >
                 <div className="min-w-0">
-                  <p className={`truncate font-semibold ${isDayMode ? "text-slate-950" : "text-white"}`}>
+                  <p
+                    className={`truncate font-semibold ${isDayMode ? "text-slate-950" : "text-white"}`}
+                  >
                     {event.title}
                   </p>
-                  <p className={`mt-1 text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>
+                  <p
+                    className={`mt-1 text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
+                  >
                     {event.date || "未设置活动时间"}
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-4 text-sm">
-                  <span className={isDayMode ? "text-indigo-600" : "text-indigo-300"}>
+                  <span
+                    className={
+                      isDayMode ? "text-indigo-600" : "text-indigo-300"
+                    }
+                  >
                     {formatNumber(event.views)} 访问
                   </span>
-                  <span className={isDayMode ? "text-emerald-700" : "text-emerald-300"}>
+                  <span
+                    className={
+                      isDayMode ? "text-emerald-700" : "text-emerald-300"
+                    }
+                  >
                     {formatNumber(event.registrations)} 报名
                   </span>
                 </div>
@@ -560,11 +611,17 @@ const Overview = ({ onChangeTab }) => {
               className={`text-2xl font-bold ${
                 isDayMode ? "text-slate-950" : "text-white"
               }`}
-              style={isDayMode ? { fontFamily: "var(--theme-font-display)" } : undefined}
+              style={
+                isDayMode
+                  ? { fontFamily: "var(--theme-font-display)" }
+                  : undefined
+              }
             >
               今天先做什么
             </h3>
-            <p className={`mt-2 max-w-2xl text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+            <p
+              className={`mt-2 max-w-2xl text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+            >
               建议先处理审核中心，再检查活动数据，最后看用户与留言。这样能最快把对外可见的问题压下去。
             </p>
           </div>

@@ -6,6 +6,7 @@ import {
   AdminButton,
   AdminEmptyState,
   AdminLoadingState,
+  AdminMetricCard,
   AdminPageShell,
   AdminPanel,
   AdminToolbar,
@@ -53,7 +54,10 @@ const UserManager = () => {
     const lowerQuery = searchQuery.trim().toLowerCase();
     return users.filter((user) => {
       const matchesSearch =
-        !lowerQuery || String(user.username || "").toLowerCase().includes(lowerQuery);
+        !lowerQuery ||
+        String(user.username || "")
+          .toLowerCase()
+          .includes(lowerQuery);
       const matchesRole = roleFilter === "all" || user.role === roleFilter;
       return matchesSearch && matchesRole;
     });
@@ -91,7 +95,9 @@ const UserManager = () => {
       await api.put(`/admin/users/${editingUser.id}`, payload);
       setUsers((previous) =>
         previous.map((user) =>
-          user.id === editingUser.id ? { ...user, role: payload.role || user.role } : user,
+          user.id === editingUser.id
+            ? { ...user, role: payload.role || user.role }
+            : user,
         ),
       );
       toast.success("用户信息已更新");
@@ -108,7 +114,9 @@ const UserManager = () => {
     setSaving(true);
     try {
       await api.delete(`/admin/users/${confirmDeleteId}`);
-      setUsers((previous) => previous.filter((user) => user.id !== confirmDeleteId));
+      setUsers((previous) =>
+        previous.filter((user) => user.id !== confirmDeleteId),
+      );
       toast.success("用户已删除");
       setConfirmDeleteId(null);
     } catch (error) {
@@ -135,8 +143,8 @@ const UserManager = () => {
         }
         toolbar={
           <AdminToolbar>
-            <ToolbarGroup className="flex-1">
-              <div className="relative min-w-[260px] flex-1 max-w-md">
+            <ToolbarGroup className="w-full flex-1">
+              <div className="relative w-full min-w-0 flex-1 md:max-w-md">
                 <Search
                   size={16}
                   className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
@@ -146,12 +154,15 @@ const UserManager = () => {
                   placeholder="搜索用户名"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
-                className="theme-admin-input w-full rounded-xl py-2.5 pl-10 pr-4"
+                  className="theme-admin-input w-full rounded-xl py-2.5 pl-10 pr-4"
                 />
               </div>
             </ToolbarGroup>
             <ToolbarGroup>
-              <FilterChip active={roleFilter === "all"} onClick={() => setRoleFilter("all")}>
+              <FilterChip
+                active={roleFilter === "all"}
+                onClick={() => setRoleFilter("all")}
+              >
                 全部 ({counts.total})
               </FilterChip>
               <FilterChip
@@ -160,7 +171,10 @@ const UserManager = () => {
               >
                 管理员 ({counts.admin})
               </FilterChip>
-              <FilterChip active={roleFilter === "user"} onClick={() => setRoleFilter("user")}>
+              <FilterChip
+                active={roleFilter === "user"}
+                onClick={() => setRoleFilter("user")}
+              >
                 普通用户 ({counts.user})
               </FilterChip>
             </ToolbarGroup>
@@ -168,18 +182,19 @@ const UserManager = () => {
         }
       >
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <AdminPanel className="p-4">
-            <div className="text-xs uppercase tracking-[0.2em] text-gray-500">总用户数</div>
-            <div className="mt-3 text-2xl font-bold text-white">{counts.total}</div>
-          </AdminPanel>
-          <AdminPanel className="p-4">
-            <div className="text-xs uppercase tracking-[0.2em] text-gray-500">管理员</div>
-            <div className="mt-3 text-2xl font-bold text-white">{counts.admin}</div>
-          </AdminPanel>
-          <AdminPanel className="p-4">
-            <div className="text-xs uppercase tracking-[0.2em] text-gray-500">普通用户</div>
-            <div className="mt-3 text-2xl font-bold text-white">{counts.user}</div>
-          </AdminPanel>
+          <AdminMetricCard label="总用户数" value={counts.total} icon={User} />
+          <AdminMetricCard
+            label="管理员"
+            value={counts.admin}
+            icon={Key}
+            tone="violet"
+          />
+          <AdminMetricCard
+            label="普通用户"
+            value={counts.user}
+            icon={User}
+            tone="emerald"
+          />
         </div>
 
         <AdminPanel title={`用户列表 (${filteredUsers.length})`}>
@@ -193,7 +208,7 @@ const UserManager = () => {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[720px] text-left text-sm">
                 <thead>
-          <tr className="theme-admin-table-head border-b text-xs uppercase tracking-[0.2em]">
+                  <tr className="theme-admin-table-head border-b text-xs uppercase tracking-[0.2em]">
                     <th className="p-4">用户</th>
                     <th className="p-4">角色</th>
                     <th className="p-4">创建时间</th>
@@ -202,15 +217,21 @@ const UserManager = () => {
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {filteredUsers.map((user) => (
-                    <tr key={user.id} className="hover:bg-white/[0.03]">
+                    <tr key={user.id} className="theme-admin-row">
                       <td className="p-4">
                         <div className="flex items-center gap-3">
                           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-500/15 text-indigo-300">
-                            {String(user.username || "?").charAt(0).toUpperCase()}
+                            {String(user.username || "?")
+                              .charAt(0)
+                              .toUpperCase()}
                           </div>
                           <div>
-                            <div className="font-semibold text-white">{user.username}</div>
-                            <div className="mt-1 text-xs text-gray-500">ID {user.id}</div>
+                            <div className="font-semibold text-white">
+                              {user.username}
+                            </div>
+                            <div className="mt-1 text-xs text-gray-500">
+                              ID {user.id}
+                            </div>
                           </div>
                         </div>
                       </td>
@@ -227,12 +248,15 @@ const UserManager = () => {
                       </td>
                       <td className="p-4 text-gray-400">
                         {user.created_at
-                          ? new Date(user.created_at).toLocaleDateString("zh-CN")
+                          ? new Date(user.created_at).toLocaleDateString(
+                              "zh-CN",
+                            )
                           : "-"}
                       </td>
                       <td className="p-4">
                         <div className="flex justify-end gap-2">
                           <button
+                            type="button"
                             onClick={() => handleEdit(user)}
                             className="inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg bg-white/5 text-gray-400 transition-colors hover:bg-white/10 hover:text-indigo-300"
                             title="编辑用户"
@@ -240,6 +264,7 @@ const UserManager = () => {
                             <Edit2 size={16} />
                           </button>
                           <button
+                            type="button"
                             onClick={() => setConfirmDeleteId(user.id)}
                             className="inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg bg-white/5 text-gray-400 transition-colors hover:bg-white/10 hover:text-red-300"
                             title="删除用户"
@@ -269,20 +294,24 @@ const UserManager = () => {
       >
         <div className="space-y-4">
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-400">用户名</label>
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              用户名
+            </label>
             <input
               type="text"
               value={editingUser?.username || ""}
               disabled
-                  className="theme-admin-input w-full rounded-xl p-3 text-gray-500"
+              className="theme-admin-input w-full rounded-xl p-3 text-gray-500"
             />
           </div>
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-400">角色</label>
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              角色
+            </label>
             <select
               value={newRole}
               onChange={(event) => setNewRole(event.target.value)}
-                  className="theme-admin-input w-full rounded-xl p-3"
+              className="theme-admin-input w-full rounded-xl p-3"
             >
               <option value="user">普通用户</option>
               <option value="admin">管理员</option>
@@ -298,7 +327,7 @@ const UserManager = () => {
               value={newPassword}
               onChange={(event) => setNewPassword(event.target.value)}
               placeholder="留空则不修改"
-                  className="theme-admin-input w-full rounded-xl p-3"
+              className="theme-admin-input w-full rounded-xl p-3"
             />
             <p className="mt-2 text-xs text-gray-500">密码至少 6 位。</p>
           </div>

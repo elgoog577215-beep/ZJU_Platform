@@ -61,8 +61,8 @@ const About = () => {
 
   const heroSignals = ["CONNECT", "SYNC", "ACTIVATE"];
   const heroSignalPositions = [
-    "left-[4%] top-[16%]",
-    "right-[6%] top-[18%]",
+    "left-[8%] top-[24%]",
+    "right-[8%] top-[24%]",
     "left-[10%] bottom-[14%]",
   ];
 
@@ -187,10 +187,13 @@ const About = () => {
 
   const pageClass = isDayMode
     ? "bg-[radial-gradient(circle_at_14%_8%,rgba(125,211,252,0.24),transparent_24%),radial-gradient(circle_at_84%_10%,rgba(129,140,248,0.2),transparent_22%),linear-gradient(180deg,#f7f9fc_0%,#eef4ff_46%,#f7f9fc_100%)] text-slate-950"
-    : "bg-[radial-gradient(circle_at_top,rgba(56,189,248,0.14),transparent_22%),radial-gradient(circle_at_80%_14%,rgba(129,140,248,0.14),transparent_18%),linear-gradient(180deg,#030712_0%,#020617_42%,#02040c_100%)] text-white";
+    : "bg-[radial-gradient(circle_at_16%_6%,rgba(34,211,238,0.12),transparent_26%),radial-gradient(circle_at_82%_18%,rgba(99,102,241,0.13),transparent_24%),linear-gradient(180deg,#030506_0%,#071011_42%,#020304_100%)] text-white";
   const shellClass = isDayMode
     ? "border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(255,255,255,0.7))] shadow-[0_34px_90px_rgba(148,163,184,0.16)] backdrop-blur-xl"
-    : "border-white/10 bg-white/[0.045] shadow-[0_40px_120px_rgba(2,6,23,0.5)]";
+    : "border-white/10 bg-white/[0.038] shadow-[0_40px_120px_rgba(0,0,0,0.52)]";
+  const heroSurfaceClass = isDayMode
+    ? "border-slate-200/70 bg-white/52 shadow-[0_34px_90px_rgba(148,163,184,0.14)] backdrop-blur-xl"
+    : "border-white/10 bg-[linear-gradient(115deg,rgba(255,255,255,0.045),rgba(34,211,238,0.035)_48%,rgba(255,255,255,0.02))] shadow-[0_44px_140px_rgba(0,0,0,0.55)]";
   const quietTextClass = isDayMode ? "text-slate-600" : "text-white/70";
   const softTextClass = isDayMode ? "text-slate-500" : "text-white/50";
   const labelClass = isDayMode ? "text-slate-500" : "text-white/45";
@@ -199,17 +202,17 @@ const About = () => {
     ? "border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(241,245,255,0.9))] text-slate-600 shadow-[0_12px_28px_rgba(148,163,184,0.1)]"
     : "border-white/10 bg-white/[0.05] text-white/72";
   const primaryButtonClass = isDayMode
-    ? "inline-flex items-center justify-center gap-2 rounded-full border border-indigo-300/20 bg-[linear-gradient(135deg,#6366f1_0%,#4f46e5_100%)] px-6 py-3 text-sm font-medium text-white shadow-[0_18px_34px_rgba(99,102,241,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_42px_rgba(99,102,241,0.32)] active:translate-y-0"
-    : "inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-medium text-slate-950 transition-transform duration-300 hover:-translate-y-0.5 active:translate-y-0";
+    ? "inline-flex items-center justify-center gap-2 border border-slate-950 bg-slate-950 px-7 py-3 text-sm font-black text-white shadow-[0_18px_34px_rgba(15,23,42,0.18)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-800 active:translate-y-0"
+    : "inline-flex items-center justify-center gap-2 border border-cyan-300 bg-cyan-300 px-7 py-3 text-sm font-black text-slate-950 shadow-[0_0_32px_rgba(103,232,249,0.24)] transition-transform duration-300 hover:-translate-y-0.5 hover:bg-white active:translate-y-0";
   const outlineButtonClass = isDayMode
-    ? "border-slate-200/90 bg-white/58 text-slate-700 shadow-[0_12px_28px_rgba(148,163,184,0.1)] hover:border-indigo-200/90 hover:bg-white hover:text-indigo-600 active:bg-slate-50"
-    : "border-white/12 text-white/82 hover:border-white/24 hover:bg-white/[0.06] active:bg-white/[0.08]";
+    ? "border-slate-300 bg-white/58 text-slate-700 shadow-[0_12px_28px_rgba(148,163,184,0.1)] hover:border-slate-950 hover:bg-white hover:text-slate-950 active:bg-slate-50"
+    : "border-white/14 text-white/82 hover:border-cyan-300/60 hover:bg-cyan-300/10 hover:text-cyan-100 active:bg-white/[0.08]";
   const inputClass = isDayMode
     ? "border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(244,247,255,0.9))] text-slate-900 placeholder:text-slate-400 shadow-[0_10px_24px_rgba(148,163,184,0.08)] focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
     : "border-white/10 bg-white/[0.04] text-white placeholder:text-white/26 focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/10";
   const heroPosterClass = isDayMode
-    ? "relative flex min-h-[360px] flex-col justify-between overflow-hidden rounded-[28px] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(236,244,255,0.84))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.88),0_30px_72px_rgba(148,163,184,0.18)] sm:min-h-[520px] sm:rounded-[32px] sm:p-6 md:p-8"
-    : "relative flex min-h-[360px] flex-col justify-between overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.82),rgba(2,6,23,0.96))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] sm:min-h-[520px] sm:rounded-[32px] sm:p-6 md:p-8";
+    ? "relative flex min-h-[420px] flex-col justify-between overflow-hidden border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(236,244,255,0.84))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.88),0_30px_72px_rgba(148,163,184,0.18)] sm:min-h-[600px] sm:p-6 md:p-8"
+    : "relative flex min-h-[420px] flex-col justify-between overflow-hidden border border-white/10 bg-[linear-gradient(180deg,rgba(12,18,20,0.82),rgba(2,4,5,0.96))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_28px_90px_rgba(0,0,0,0.42)] sm:min-h-[600px] sm:p-6 md:p-8";
   const posterLabelClass = isDayMode ? "text-slate-500" : "text-white/54";
   const posterMetaClass = isDayMode ? "text-slate-400" : "text-white/30";
   const posterAxisClass = isDayMode
@@ -221,8 +224,8 @@ const About = () => {
   const posterNodeClass = isDayMode ? "text-slate-400" : "text-white/38";
   const posterAccentNodeClass = isDayMode ? "text-indigo-500/72" : "text-cyan-200/60";
   const posterOrbClass = isDayMode
-    ? "relative flex h-[196px] w-[196px] items-center justify-center overflow-hidden rounded-full border border-indigo-100/90 bg-[radial-gradient(circle,rgba(255,255,255,0.98),rgba(232,240,255,0.84)_64%,rgba(226,232,240,0.4)_100%)] backdrop-blur-2xl shadow-[0_24px_60px_rgba(99,102,241,0.16)] sm:h-[250px] sm:w-[250px]"
-    : "relative flex h-[196px] w-[196px] items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/[0.05] backdrop-blur-2xl sm:h-[250px] sm:w-[250px]";
+    ? "relative flex h-[220px] w-[220px] items-center justify-center overflow-hidden rounded-full border border-indigo-100/90 bg-[radial-gradient(circle,rgba(255,255,255,0.98),rgba(232,240,255,0.84)_64%,rgba(226,232,240,0.4)_100%)] backdrop-blur-2xl shadow-[0_24px_60px_rgba(99,102,241,0.16)] sm:h-[292px] sm:w-[292px]"
+    : "relative flex h-[220px] w-[220px] items-center justify-center overflow-hidden rounded-full border border-cyan-300/14 bg-cyan-300/[0.045] backdrop-blur-2xl shadow-[0_0_90px_rgba(103,232,249,0.12)] sm:h-[292px] sm:w-[292px]";
   const posterRingOneClass = isDayMode ? "border-indigo-100/80" : "border-white/8";
   const posterRingTwoClass = isDayMode ? "border-sky-200/80" : "border-cyan-200/10";
   const posterCoreClass = isDayMode
@@ -242,8 +245,9 @@ const About = () => {
         description="了解浙大 AI 生态团队的定位、支持网络，以及 AI 社区与 AI 全栈极速黑客松等代表性项目。"
       />
 
-      <section className="relative overflow-hidden px-4 pt-[calc(env(safe-area-inset-top)+64px)] pb-12 md:px-8 md:pb-24">
+      <section className="relative overflow-hidden px-4 pt-[calc(env(safe-area-inset-top)+72px)] pb-16 md:px-8 md:pb-28">
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute inset-0 opacity-[0.12] [background-image:linear-gradient(rgba(103,232,249,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(103,232,249,0.11)_1px,transparent_1px)] [background-size:56px_56px]" />
           <div
             className={`absolute left-[-12%] top-[4%] h-[520px] w-[520px] rounded-full blur-[140px] ${
               isDayMode ? "bg-sky-300/24" : "bg-cyan-500/12"
@@ -256,12 +260,15 @@ const About = () => {
           />
         </div>
 
-        <div className="mx-auto flex min-h-0 max-w-7xl flex-col justify-center gap-6 sm:min-h-[calc(100svh-128px)] sm:gap-12 lg:gap-16">
+        <div className="mx-auto flex min-h-0 max-w-[1680px] flex-col justify-center gap-10 sm:min-h-[calc(100svh-128px)] sm:gap-14 lg:gap-20">
           <motion.div
             {...sectionReveal(shouldAnimate)}
-            className={`relative overflow-hidden rounded-[32px] border md:rounded-[40px] ${shellClass}`}
+            className={`relative overflow-hidden border-y lg:border ${heroSurfaceClass}`}
           >
             <div className="absolute inset-0 opacity-[0.07] [background-image:linear-gradient(rgba(148,163,184,0.28)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.28)_1px,transparent_1px)] [background-size:48px_48px]" />
+            <div className="pointer-events-none absolute right-[-5%] top-[-8%] font-black uppercase leading-none tracking-[-0.08em] text-white/[0.035] text-[18vw]">
+              ECOSYSTEM
+            </div>
             <div
               className={`absolute inset-x-0 top-0 h-px ${
                 isDayMode
@@ -270,7 +277,7 @@ const About = () => {
               }`}
             />
 
-            <div className="relative z-10 grid gap-7 px-4 py-5 sm:gap-10 sm:px-6 sm:py-8 md:px-10 md:py-10 lg:grid-cols-[1.08fr_0.92fr] lg:gap-16 lg:px-14 lg:py-14">
+            <div className="relative z-10 grid gap-10 px-4 py-7 sm:gap-12 sm:px-6 sm:py-10 md:px-10 md:py-12 lg:grid-cols-[0.92fr_1.08fr] lg:gap-20 lg:px-14 lg:py-14 xl:px-16 xl:py-16">
               <div className="flex flex-col justify-between">
                 <div className="relative">
                   <div className="flex flex-wrap items-center gap-3">
@@ -290,29 +297,14 @@ const About = () => {
                     </div>
                   </div>
 
-                  <div className="mt-5 flex flex-wrap gap-2.5 sm:mt-7">
-                          {heroSignals.map((signal) => (
-                      <span
-                        key={signal}
-                        className={`inline-flex items-center rounded-full px-3 py-1.5 text-[10px] font-semibold tracking-[0.28em] ${
-                          isDayMode
-                            ? "border border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(238,245,255,0.92))] text-slate-700 shadow-[0_12px_24px_rgba(148,163,184,0.12)]"
-                            : "bg-white/[0.08] text-white/84"
-                        }`}
-                      >
-                        {signal}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="mt-7 max-w-3xl sm:mt-10">
+                  <div className="mt-8 max-w-4xl sm:mt-12">
                     <p
                       className={`mb-3 text-[10px] font-semibold uppercase tracking-[0.32em] sm:mb-4 sm:text-[11px] sm:tracking-[0.38em] ${labelClass}`}
                     >
                       About The Team
                     </p>
                     <h1
-                      className={`max-w-[10ch] text-[3.35rem] font-bold leading-[0.88] tracking-[-0.04em] sm:text-6xl md:max-w-[8.6ch] md:text-[5.2rem] xl:text-[6.3rem] ${
+                      className={`max-w-[8.4ch] text-[3rem] font-black leading-[0.94] tracking-[-0.04em] sm:text-7xl md:max-w-[8.6ch] md:text-[5.8rem] xl:text-[7.4rem] ${
                         isDayMode
                           ? "bg-[linear-gradient(135deg,#020617_0%,#1e293b_36%,#4f46e5_72%,#38bdf8_100%)] bg-clip-text text-transparent"
                           : "bg-[linear-gradient(135deg,#ffffff_0%,#e2e8f0_36%,#a5f3fc_72%,#67e8f9_100%)] bg-clip-text text-transparent"
@@ -322,24 +314,17 @@ const About = () => {
                       {teamTitle}
                     </h1>
                     <p
-                      className={`mt-4 max-w-2xl text-[16px] leading-7 sm:mt-7 sm:text-[1.2rem] sm:leading-8 md:text-[1.55rem] ${quietTextClass}`}
+                      className={`mt-5 max-w-2xl text-[16px] leading-7 sm:mt-8 sm:text-[1.2rem] sm:leading-8 md:text-[1.42rem] ${quietTextClass}`}
                     >
                       {teamSubtitle}
                     </p>
                     <div
-                      className={`relative mt-6 overflow-hidden rounded-[24px] border px-4 py-4 sm:mt-8 sm:rounded-[28px] sm:px-5 sm:py-5 ${
+                      className={`relative mt-8 overflow-hidden border-l-2 px-5 py-1 sm:mt-10 sm:px-6 ${
                         isDayMode
-                          ? "border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(238,245,255,0.84))] shadow-[0_22px_48px_rgba(148,163,184,0.16)]"
-                          : "border-white/10 bg-white/[0.04]"
+                          ? "border-indigo-400"
+                          : "border-cyan-300"
                       }`}
                     >
-                      <div
-                        className={`absolute inset-x-0 top-0 h-px ${
-                          isDayMode
-                            ? "bg-gradient-to-r from-transparent via-indigo-400/70 to-transparent"
-                            : "bg-gradient-to-r from-transparent via-cyan-300/70 to-transparent"
-                        }`}
-                      />
                       <p className={`text-[10px] font-semibold uppercase tracking-[0.34em] sm:text-[11px] ${labelClass}`}>
                         Brand System Narrative
                       </p>
@@ -358,15 +343,15 @@ const About = () => {
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
                     <Link
-                      to="/events"
+                      to="/hackathon"
                       className={`${primaryButtonClass} w-full sm:w-auto`}
                     >
-                      查看赛事项目
+                      查看黑客松
                       <ArrowRight className="h-4 w-4" />
                     </Link>
                     <a
                       href={`mailto:${contactEmail}`}
-                      className={`inline-flex w-full items-center justify-center gap-2 rounded-full border px-6 py-3 text-sm font-medium transition-colors duration-300 sm:w-auto ${outlineButtonClass}`}
+                      className={`inline-flex w-full items-center justify-center gap-2 border px-7 py-3 text-sm font-black transition-colors duration-300 sm:w-auto ${outlineButtonClass}`}
                     >
                       联系合作
                       <Mail className="h-4 w-4" />
@@ -418,7 +403,7 @@ const About = () => {
                   </div>
                 </div>
 
-                <div className="relative flex flex-1 items-center justify-center py-4 sm:py-10">
+              <div className="relative flex flex-1 items-center justify-center py-8 sm:py-12">
                   <div className={`absolute inset-x-5 top-1/2 h-px -translate-y-1/2 sm:inset-x-10 ${posterAxisClass}`} />
                   <div className={`absolute inset-y-5 left-1/2 w-px -translate-x-1/2 sm:inset-y-10 ${posterAxisVerticalClass}`} />
                   <div className={`absolute left-[10%] top-[18%] hidden text-[11px] uppercase tracking-[0.32em] sm:block ${posterNodeClass}`}>
@@ -450,14 +435,14 @@ const About = () => {
                   ))}
 
                   <div className={posterOrbClass}>
-                    <div className={`absolute h-[214px] w-[214px] rounded-full border sm:h-[340px] sm:w-[340px] ${posterRingOneClass}`} />
-                    <div className={`absolute h-[246px] w-[246px] rounded-full border sm:h-[420px] sm:w-[420px] ${posterRingTwoClass}`} />
-                    <div className={`absolute h-[138px] w-[138px] rounded-full sm:h-[210px] sm:w-[210px] ${posterCoreClass}`} />
+                    <div className={`absolute h-[250px] w-[250px] rounded-full border sm:h-[390px] sm:w-[390px] ${posterRingOneClass}`} />
+                    <div className={`absolute h-[292px] w-[292px] rounded-full border sm:h-[486px] sm:w-[486px] ${posterRingTwoClass}`} />
+                    <div className={`absolute h-[156px] w-[156px] rounded-full sm:h-[238px] sm:w-[238px] ${posterCoreClass}`} />
                     <div className="relative z-10 flex flex-col items-center">
                       <img
                         src="/newlogo.png"
                         alt="浙大 AI 生态团队标识"
-                        className="h-20 w-auto object-contain sm:h-28 md:h-36"
+                        className="h-24 w-auto object-contain sm:h-32 md:h-40"
                         style={
                           posterLogoFilter
                             ? { filter: posterLogoFilter }
@@ -465,7 +450,7 @@ const About = () => {
                         }
                       />
                       <div
-                        className={`mt-3 max-w-[7rem] px-2 text-center text-[8px] font-medium uppercase leading-3 tracking-[0.14em] [text-wrap:balance] sm:mt-5 sm:max-w-none sm:px-0 sm:text-[11px] sm:leading-normal sm:tracking-[0.34em] ${
+                        className={`mt-3 max-w-[9rem] px-2 text-center text-[8px] font-medium uppercase leading-3 tracking-[0.14em] [text-wrap:balance] sm:mt-5 sm:max-w-[11rem] sm:px-0 sm:text-[10px] sm:leading-4 sm:tracking-[0.24em] ${
                           isDayMode ? "text-slate-500" : "text-white/78"
                         }`}
                       >
@@ -479,7 +464,7 @@ const About = () => {
                   {stats.map((item) => (
                     <div
                       key={item.label}
-                      className={`rounded-[20px] border px-3 py-3 sm:px-4 sm:py-4 ${
+                      className={`border px-3 py-3 sm:px-4 sm:py-4 ${
                         isDayMode
                           ? "border-slate-200/80 bg-white/84 shadow-[0_16px_32px_rgba(148,163,184,0.12)]"
                           : "border-white/10 bg-white/[0.04]"
@@ -521,7 +506,7 @@ const About = () => {
               </p>
             </div>
 
-            <div className={`relative overflow-hidden rounded-[24px] border sm:rounded-[34px] ${shellClass}`}>
+            <div className={`relative overflow-hidden border ${shellClass}`}>
               <div
                 className={`absolute inset-x-0 top-0 h-px ${
                   isDayMode
@@ -544,7 +529,7 @@ const About = () => {
                   {supportUnitsDisplay.map((item, index) => (
                     <div
                       key={item}
-                      className={`rounded-[22px] border px-4 py-4 sm:gap-4 ${
+                      className={`border px-4 py-4 sm:gap-4 ${
                         isDayMode
                           ? "border-slate-200/80 bg-white/86 shadow-[0_14px_30px_rgba(148,163,184,0.12)]"
                           : "border-white/10 bg-white/[0.05]"
@@ -574,7 +559,7 @@ const About = () => {
                   {supportFrames.map((item) => (
                     <div
                       key={item.label}
-                      className={`rounded-[22px] border px-4 py-4 ${
+                      className={`border px-4 py-4 ${
                         isDayMode
                           ? "border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(241,245,255,0.94))] text-slate-900 shadow-[0_18px_36px_rgba(148,163,184,0.14)]"
                           : "border-white/10 bg-white/[0.05]"
@@ -595,7 +580,7 @@ const About = () => {
 
           <motion.section
             {...sectionReveal(shouldAnimate, 0.08)}
-            className={`overflow-hidden rounded-[26px] border sm:rounded-[38px] ${shellClass}`}
+            className={`overflow-hidden border ${shellClass}`}
           >
             <div className="grid gap-6 px-4 py-5 sm:gap-8 sm:px-6 sm:py-8 md:px-10 md:py-10">
               <div className="grid gap-4 sm:gap-5 lg:grid-cols-[1.1fr_0.9fr] lg:items-end lg:gap-10">
@@ -627,7 +612,7 @@ const About = () => {
                   return (
                     <div
                       key={item.title}
-                      className={`group relative overflow-hidden rounded-[28px] border p-5 sm:p-6 ${
+                      className={`group relative overflow-hidden border p-5 sm:p-7 ${
                         isDayMode
                           ? "border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(239,245,255,0.88))] shadow-[0_22px_50px_rgba(148,163,184,0.16)]"
                           : "border-white/10 bg-white/[0.045]"
@@ -697,7 +682,7 @@ const About = () => {
 
           <motion.section
             {...sectionReveal(shouldAnimate, 0.12)}
-            className={`overflow-hidden rounded-[26px] border sm:rounded-[38px] ${shellClass}`}
+            className={`overflow-hidden border ${shellClass}`}
           >
             <div className="grid gap-5 px-4 py-4 sm:gap-8 sm:px-6 sm:py-8 md:px-10 md:py-10 lg:grid-cols-[0.86fr_1.14fr] lg:gap-12">
               <div>
@@ -862,7 +847,7 @@ const About = () => {
 
           <motion.section
             {...sectionReveal(shouldAnimate, 0.16)}
-            className={`relative overflow-hidden rounded-[24px] border px-4 py-4 sm:rounded-[36px] sm:px-6 sm:py-8 md:px-10 md:py-10 ${shellClass}`}
+            className={`relative overflow-hidden border px-4 py-4 sm:px-6 sm:py-8 md:px-10 md:py-10 ${shellClass}`}
           >
             <div
               className={`absolute inset-y-0 right-0 hidden w-[36%] sm:block ${
