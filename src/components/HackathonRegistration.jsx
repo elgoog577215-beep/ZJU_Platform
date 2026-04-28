@@ -244,20 +244,34 @@ const HackathonRegistration = () => {
 
     const offset = window.innerWidth < 768 ? 76 : 96;
     const scroller = pageRef.current;
+    const container = scroller || window;
+    const getScrollTop = () => (scroller ? scroller.scrollTop : window.scrollY);
+    const setScrollTop = (top) => {
+      if (scroller) scroller.scrollTop = top;
+      else window.scrollTo(0, top);
+    };
 
-    if (!scroller) {
-      const end = target.getBoundingClientRect().top + window.scrollY - offset;
-      window.scrollTo({
-        top: end,
-        behavior: shouldAnimate ? "smooth" : "auto",
-      });
-      return;
-    }
+    const targetTop = target.offsetTop - offset;
+    const startTop = getScrollTop();
+    const distance = targetTop - startTop;
+    const duration = Math.min(Math.abs(distance) * 0.4, 800);
+    const startTime = performance.now();
 
-    scroller.scrollTo({
-      top: Math.max(target.offsetTop - offset, 0),
-      behavior: shouldAnimate ? "smooth" : "auto",
-    });
+    const easeOutQuart = (t) => 1 - Math.pow(1 - t, 4);
+
+    const animate = (currentTime) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const easedProgress = easeOutQuart(progress);
+
+      setScrollTop(startTop + distance * easedProgress);
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+
+    requestAnimationFrame(animate);
   };
 
   const scrollToForm = () => {
