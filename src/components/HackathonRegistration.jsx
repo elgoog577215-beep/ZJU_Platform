@@ -244,34 +244,56 @@ const HackathonRegistration = () => {
 
     const offset = window.innerWidth < 768 ? 76 : 96;
     const scroller = pageRef.current;
-    const container = scroller || window;
-    const getScrollTop = () => (scroller ? scroller.scrollTop : window.scrollY);
-    const setScrollTop = (top) => {
-      if (scroller) scroller.scrollTop = top;
-      else window.scrollTo(0, top);
-    };
 
-    const targetTop = target.offsetTop - offset;
-    const startTop = getScrollTop();
-    const distance = targetTop - startTop;
-    const duration = Math.min(Math.abs(distance) * 0.4, 800);
-    const startTime = performance.now();
+    if (scroller) {
+      const containerRect = scroller.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const currentScrollTop = scroller.scrollTop;
+      const targetAbsoluteTop = targetRect.top - containerRect.top + currentScrollTop;
+      const targetTop = targetAbsoluteTop - offset;
+      const startTop = currentScrollTop;
+      const distance = targetTop - startTop;
+      const duration = Math.min(Math.abs(distance) * 0.5, 900);
+      const startTime = performance.now();
 
-    const easeOutQuart = (t) => 1 - Math.pow(1 - t, 4);
+      const easeOutQuart = (t) => 1 - Math.pow(1 - t, 4);
 
-    const animate = (currentTime) => {
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const easedProgress = easeOutQuart(progress);
+      const animate = (currentTime) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easedProgress = easeOutQuart(progress);
 
-      setScrollTop(startTop + distance * easedProgress);
+        scroller.scrollTop = startTop + distance * easedProgress;
 
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      }
-    };
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        }
+      };
 
-    requestAnimationFrame(animate);
+      requestAnimationFrame(animate);
+    } else {
+      const end = target.getBoundingClientRect().top + window.scrollY - offset;
+      const startTop = window.scrollY;
+      const distance = end - startTop;
+      const duration = Math.min(Math.abs(distance) * 0.5, 900);
+      const startTime = performance.now();
+
+      const easeOutQuart = (t) => 1 - Math.pow(1 - t, 4);
+
+      const animate = (currentTime) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easedProgress = easeOutQuart(progress);
+
+        window.scrollTo(0, startTop + distance * easedProgress);
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        }
+      };
+
+      requestAnimationFrame(animate);
+    }
   };
 
   const scrollToForm = () => {
