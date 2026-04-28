@@ -61,7 +61,7 @@ const HackathonRegistration = () => {
 
   const hackathonTitle = settings.hackathon_title || "AI 全栈极速黑客松";
   const hackathonSubtitle = settings.hackathon_subtitle || "5 小时极速开发 · 纯个人参赛 · AI 原生创作";
-  const hackathonDate = settings.hackathon_date || "5 月 10 号 下午两点";
+  const hackathonDate = settings.hackathon_date || "5 月 10 日 9:00 A.M.";
   const hackathonLocation = settings.hackathon_location || "浙江大学";
   const hackathonFormat = settings.hackathon_format || "个人赛";
   const hackathonDuration = settings.hackathon_duration || "5 小时";
@@ -188,26 +188,27 @@ const HackathonRegistration = () => {
                 
                 {/* AI 生态团队介绍 */}
                 <div className="lg:border-l lg:border-white/10 lg:pl-8">
-                  <h3 className={`text-sm font-semibold mb-3 ${isDayMode ? "text-slate-700" : "text-white/90"}`}>
+                  <h3 className={`text-lg font-bold mb-3 ${isDayMode ? "text-slate-900" : "text-white"} flex items-center gap-2`}>
+                    <div className={`h-2 w-2 rounded-full ${isDayMode ? "bg-indigo-500" : "bg-cyan-400"}`} />
                     AI 生态团队
                   </h3>
-                  <p className={`text-xs mb-4 leading-relaxed ${softTextClass}`}>
+                  <p className={`text-sm mb-5 leading-relaxed ${isDayMode ? "text-slate-600" : "text-white/70"}`}>
                     汇聚学校、社团与企业三方力量，共建 AI 创新生态，为参赛者提供全方位支持
                   </p>
                   
-                  <div className="space-y-4">
+                  <div className="space-y-5">
                     {/* 学校 */}
                     <div>
-                      <h4 className={`text-xs font-semibold mb-2 flex items-center gap-1.5 ${isDayMode ? "text-slate-700" : "text-white/80"}`}>
-                        <div className={`h-1.5 w-1.5 rounded-full ${isDayMode ? "bg-indigo-500" : "bg-cyan-400"}`} />
+                      <h4 className={`text-sm font-bold mb-3 flex items-center gap-2 ${isDayMode ? "text-slate-800" : "text-white/90"}`}>
+                        <div className={`h-2 w-2 rounded-full ${isDayMode ? "bg-indigo-500" : "bg-cyan-400"}`} />
                         学校
                       </h4>
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className="flex flex-wrap gap-2">
                         {["未来学习中心", "AI 联合实验室"].map((partner) => (
-                          <span key={partner} className={`inline-flex items-center rounded-md px-2 py-1 text-[10px] font-medium ${
+                          <span key={partner} className={`inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm ${
                             isDayMode 
-                              ? "bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-200"
-                              : "bg-cyan-400/10 text-cyan-300 ring-1 ring-inset ring-cyan-400/20"
+                              ? "bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-indigo-200"
+                              : "bg-gradient-to-br from-cyan-500/20 to-cyan-600/20 text-cyan-300 shadow-lg shadow-cyan-500/10 ring-1 ring-inset ring-cyan-400/30"
                           }`}>
                             {partner}
                           </span>
@@ -217,16 +218,16 @@ const HackathonRegistration = () => {
                     
                     {/* 社团 */}
                     <div>
-                      <h4 className={`text-xs font-semibold mb-2 flex items-center gap-1.5 ${isDayMode ? "text-slate-700" : "text-white/80"}`}>
-                        <div className={`h-1.5 w-1.5 rounded-full ${isDayMode ? "bg-indigo-500" : "bg-cyan-400"}`} />
+                      <h4 className={`text-sm font-bold mb-3 flex items-center gap-2 ${isDayMode ? "text-slate-800" : "text-white/90"}`}>
+                        <div className={`h-2 w-2 rounded-full ${isDayMode ? "bg-indigo-500" : "bg-cyan-400"}`} />
                         社团
                       </h4>
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className="flex flex-wrap gap-2">
                         {["XLAB", "ZJUAI", "EAI", "AIRA", "KAB"].map((partner) => (
-                          <span key={partner} className={`inline-flex items-center rounded-md px-2 py-1 text-[10px] font-medium ${
+                          <span key={partner} className={`inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm ${
                             isDayMode 
-                              ? "bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-200"
-                              : "bg-cyan-400/10 text-cyan-300 ring-1 ring-inset ring-cyan-400/20"
+                              ? "bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-purple-200"
+                              : "bg-gradient-to-br from-cyan-500/20 to-cyan-600/20 text-cyan-300 shadow-lg shadow-cyan-500/10 ring-1 ring-inset ring-cyan-400/30"
                           }`}>
                             {partner}
                           </span>
@@ -236,16 +237,16 @@ const HackathonRegistration = () => {
                     
                     {/* 企业 */}
                     <div>
-                      <h4 className={`text-xs font-semibold mb-2 flex items-center gap-1.5 ${isDayMode ? "text-slate-700" : "text-white/80"}`}>
-                        <div className={`h-1.5 w-1.5 rounded-full ${isDayMode ? "bg-indigo-500" : "bg-cyan-400"}`} />
+                      <h4 className={`text-sm font-bold mb-3 flex items-center gap-2 ${isDayMode ? "text-slate-800" : "text-white/90"}`}>
+                        <div className={`h-2 w-2 rounded-full ${isDayMode ? "bg-indigo-500" : "bg-cyan-400"}`} />
                         企业
                       </h4>
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className="flex flex-wrap gap-2">
                         {["minimax", "阿里云", "魔搭", "阶跃星辰"].map((partner) => (
-                          <span key={partner} className={`inline-flex items-center rounded-md px-2 py-1 text-[10px] font-medium ${
+                          <span key={partner} className={`inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm ${
                             isDayMode 
-                              ? "bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-200"
-                              : "bg-cyan-400/10 text-cyan-300 ring-1 ring-inset ring-cyan-400/20"
+                              ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-blue-200"
+                              : "bg-gradient-to-br from-cyan-500/20 to-cyan-600/20 text-cyan-300 shadow-lg shadow-cyan-500/10 ring-1 ring-inset ring-cyan-400/30"
                           }`}>
                             {partner}
                           </span>
