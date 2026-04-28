@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Calendar, FileText, Home, Music, UserCircle } from "lucide-react";
+import { Calendar, FileText, Home, Trophy, UserCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
@@ -69,7 +69,7 @@ const MobileNavbar = () => {
     { key: "home", path: "/", icon: Home, label: t("nav.home", "首页") },
     { key: "events", path: "/events", icon: Calendar, label: t("nav.events", "活动") },
     { key: "articles", path: "/articles", icon: FileText, label: t("nav.articles", "AI社区") },
-    { key: "music", path: "/music", icon: Music, label: t("nav.music", "播客") },
+    { key: "hackathon", path: "/hackathon", icon: Trophy, label: t("nav.hackathon", "黑客松") },
     { key: "me", path: user ? `/user/${user.id}` : null, icon: UserCircle, label: t("nav.profile", "我的") },
   ];
 
