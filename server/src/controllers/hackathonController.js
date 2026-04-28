@@ -3,8 +3,8 @@ const { getDb } = require('../config/db');
 const registerHackathon = async (req, res, next) => {
   const { name, studentId, major, grade, aiTools, experience } = req.body;
 
-  if (!name || !studentId || !major || !grade) {
-    return res.status(400).json({ error: '所有必填字段均为必填项' });
+  if (!name || !studentId || !major || !grade || !experience) {
+    return res.status(400).json({ error: '所有字段均为必填项' });
   }
 
   if (name.length > 100) {

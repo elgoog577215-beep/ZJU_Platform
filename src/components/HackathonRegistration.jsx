@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
@@ -51,6 +51,33 @@ const HackathonRegistration = () => {
   const shouldAnimate = !reduceMotion;
   const isDayMode = uiMode === "day";
   const pageRef = useRef(null);
+  const [activeSection, setActiveSection] = useState(0);
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  useEffect(() => {
+    const container = pageRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const scrollTop = container.scrollTop;
+      const scrollHeight = container.scrollHeight - container.clientHeight;
+      setScrollProgress(scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0);
+
+      const sections = ["hackathon-hero", "event-brief", "registration-form"];
+      const sectionElements = sections.map((id) => document.getElementById(id)).filter(Boolean);
+
+      for (let i = sectionElements.length - 1; i >= 0; i--) {
+        const rect = sectionElements[i].getBoundingClientRect();
+        if (rect.top <= window.innerHeight / 2) {
+          setActiveSection(i);
+          break;
+        }
+      }
+    };
+
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -214,6 +241,7 @@ const HackathonRegistration = () => {
     if (!formData.major.trim()) errors.major = "请输入专业";
     if (!formData.grade) errors.grade = "请选择年级";
     if (formData.aiTools.length === 0) errors.aiTools = "请至少选择一个 AI 工具";
+    if (!formData.experience.trim()) errors.experience = "请简述你的 AI 项目经历";
     return errors;
   };
 
@@ -275,22 +303,89 @@ const HackathonRegistration = () => {
         description={`${event.title} - ${event.subtitle}。在限定时间内独立完成一个可运行的 AI 应用。`}
       />
 
-      <div className="fixed right-5 top-1/2 z-20 hidden -translate-y-1/2 flex-col gap-3 2xl:flex">
+      {/* Scroll Progress Bar */}
+      <div className="fixed left-0 right-0 top-[env(safe-area-inset-top)] z-50 h-0.5">
+        <div
+          className="h-full bg-gradient-to-r from-cyan-400 to-indigo-500 transition-all duration-150"
+          style={{ width: `${scrollProgress}%` }}
+        />
+      </div>
+
+      {/* Desktop Navigation Dots */}
+      <div className="fixed right-6 top-1/2 z-20 hidden -translate-y-1/2 flex-col items-center gap-4 lg:flex">
         {[
-          { id: "hackathon-hero", label: "01" },
-          { id: "event-brief", label: "02" },
-          { id: "registration-form", label: "03" },
+          { id: "hackathon-hero", label: "主页", index: 0 },
+          { id: "event-brief", label: "赛制", index: 1 },
+          { id: "registration-form", label: "报名", index: 2 },
         ].map((item) => (
           <button
             key={item.id}
             type="button"
             onClick={() => smoothScrollTo(item.id)}
-            className={`group flex h-11 w-11 items-center justify-center border text-[11px] font-black tracking-[0.18em] transition duration-300 hover:border-cyan-300 hover:text-cyan-300 ${palette.chip}`}
-            aria-label={`跳转到第 ${item.label} 屏`}
+            className={`group relative flex items-center gap-3 transition-all duration-300 ${
+              activeSection === item.index ? "pointer-events-none" : ""
+            }`}
+            aria-label={`跳转到${item.label}`}
           >
-            {item.label}
+            <span
+              className={`absolute right-full mr-3 whitespace-nowrap text-xs font-bold uppercase tracking-wider opacity-0 transition-all duration-300 group-hover:opacity-100 ${
+                isDayMode ? "text-slate-600" : "text-white/60"
+              } ${activeSection === item.index ? "opacity-100" : ""}`}
+            >
+              {item.label}
+            </span>
+            <div className="relative">
+              <div
+                className={`flex h-10 w-10 items-center justify-center rounded-full border text-xs font-black transition-all duration-300 ${
+                  activeSection === item.index
+                    ? isDayMode
+                      ? "border-cyan-500 bg-cyan-500 text-white shadow-lg shadow-cyan-200"
+                      : "border-cyan-400 bg-cyan-400/20 text-cyan-300 shadow-lg shadow-cyan-500/30"
+                    : isDayMode
+                    ? "border-slate-200 bg-white/80 text-slate-400 hover:border-cyan-400 hover:text-cyan-500"
+                    : "border-white/10 bg-white/5 text-white/30 hover:border-cyan-400 hover:text-cyan-300"
+                }`}
+              >
+                {activeSection === item.index ? (
+                  <span className="h-2.5 w-2.5 rounded-full bg-current" />
+                ) : (
+                  <span className="text-[10px]">{String(item.index + 1).padStart(2, "0")}</span>
+                )}
+              </div>
+              {activeSection === item.index && (
+                <span className="absolute inset-0 rounded-full bg-cyan-400/20 animate-ping" />
+              )}
+            </div>
           </button>
         ))}
+      </div>
+
+      {/* Mobile Navigation Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-20 flex items-center justify-center gap-4 border-t bg-black/50 px-4 py-3 backdrop-blur-xl lg:hidden">
+        {[
+          { id: "hackathon-hero", label: "主页", icon: Sparkles, index: 0 },
+          { id: "event-brief", label: "赛制", icon: Trophy, index: 1 },
+          { id: "registration-form", label: "报名", icon: Send, index: 2 },
+        ].map((item) => {
+          const Icon = item.icon;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => smoothScrollTo(item.id)}
+              className={`flex flex-1 max-w-[120px] flex-col items-center gap-1 rounded-xl px-3 py-2 text-xs font-bold transition-all duration-300 ${
+                activeSection === item.index
+                  ? "bg-cyan-500/20 text-cyan-300"
+                  : isDayMode
+                  ? "text-slate-500 hover:text-slate-700"
+                  : "text-white/40 hover:text-white/60"
+              }`}
+            >
+              <Icon className="h-4 w-4" />
+              {item.label}
+            </button>
+          );
+        })}
       </div>
 
       <section
@@ -316,7 +411,7 @@ const HackathonRegistration = () => {
           <div className="absolute bottom-[-22%] right-[-16%] h-[520px] w-[520px] rounded-full bg-cyan-300/12 blur-[110px]" />
         </div>
 
-        <div className="relative mx-auto grid min-h-[calc(100svh-112px)] w-full max-w-[1680px] items-center gap-12 pb-24 lg:grid-cols-[minmax(540px,0.94fr)_minmax(0,1fr)] lg:gap-16 lg:pb-24 xl:gap-24 2xl:grid-cols-[minmax(680px,760px)_minmax(0,820px)] 2xl:justify-between">
+        <div className="relative mx-auto grid min-h-[calc(100svh-112px)] w-full max-w-[1680px] items-center gap-8 pb-24 pt-8 lg:grid-cols-[minmax(540px,0.94fr)_minmax(0,1fr)] lg:gap-16 lg:pb-24 xl:gap-24 2xl:grid-cols-[minmax(680px,760px)_minmax(0,820px)] 2xl:justify-between">
           <MotionDiv
             {...(shouldAnimate
               ? {
@@ -325,7 +420,7 @@ const HackathonRegistration = () => {
                   transition: { duration: 0.72, delay: 0.12, ease: [0.22, 1, 0.36, 1] },
                 }
               : {})}
-            className={`relative w-full justify-self-end overflow-hidden border p-6 backdrop-blur-2xl sm:p-8 xl:p-10 ${palette.panelStrong}`}
+            className={`relative w-full justify-self-end overflow-hidden border p-4 backdrop-blur-2xl sm:p-6 xl:p-10 ${palette.panelStrong}`}
           >
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_22%_22%,rgba(103,232,249,0.14),transparent_34%),linear-gradient(135deg,rgba(103,232,249,0.08),transparent_46%)]" />
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300 to-transparent" />
@@ -546,7 +641,7 @@ const HackathonRegistration = () => {
                     return (
                       <div
                         key={challenge.title}
-                        className={`group relative flex min-h-[176px] overflow-hidden border p-6 transition duration-300 sm:p-8 xl:min-h-[188px] xl:p-9 ${
+                        className={`group relative flex min-h-[140px] overflow-hidden border p-4 transition duration-300 sm:min-h-[176px] sm:p-8 xl:min-h-[188px] xl:p-9 ${
                           isDayMode
                             ? "border-slate-200 bg-white/84 shadow-[0_24px_60px_rgba(15,23,42,0.08)]"
                             : "border-white/10 bg-[#101516]/88 shadow-[0_28px_80px_rgba(0,0,0,0.36)]"
@@ -554,18 +649,18 @@ const HackathonRegistration = () => {
                       >
                         <div className="absolute inset-y-0 left-0 w-1 bg-cyan-300 opacity-80" />
                         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,rgba(103,232,249,0.10),transparent_34%)] opacity-0 transition duration-300 group-hover:opacity-100" />
-                        <div className="relative grid flex-1 gap-7 sm:grid-cols-[124px_1fr] sm:items-center">
+                        <div className="relative flex flex-1 flex-col gap-4 sm:grid sm:grid-cols-[124px_1fr] sm:items-center sm:gap-7">
                           <div className="flex items-center gap-3 sm:block">
-                            <div className="flex h-[72px] w-[72px] items-center justify-center bg-cyan-300 text-slate-950 shadow-[0_0_36px_rgba(103,232,249,0.28)] sm:h-[88px] sm:w-[88px]">
-                              <Icon className="h-8 w-8 sm:h-10 sm:w-10" />
+                            <div className="flex h-[56px] w-[56px] items-center justify-center bg-cyan-300 text-slate-950 shadow-[0_0_36px_rgba(103,232,249,0.28)] sm:h-[88px] sm:w-[88px]">
+                              <Icon className="h-6 w-6 sm:h-10 sm:w-10" />
                             </div>
                             <p className="font-mono text-xs font-black uppercase tracking-[0.24em] text-cyan-300 sm:mt-4">
                               Rule 0{index + 1}
                             </p>
                           </div>
                           <div>
-                            <h3 className="text-4xl font-black tracking-tight sm:text-5xl">{challenge.title}</h3>
-                            <p className={`mt-4 max-w-2xl text-sm leading-7 sm:text-base xl:text-lg xl:leading-8 ${palette.textSoft}`}>
+                            <h3 className="text-2xl font-black tracking-tight sm:text-4xl xl:text-5xl">{challenge.title}</h3>
+                            <p className={`mt-2 max-w-2xl text-xs leading-6 sm:text-sm sm:leading-7 xl:text-lg xl:leading-8 ${palette.textSoft}`}>
                               {challenge.text}
                             </p>
                           </div>
@@ -582,7 +677,7 @@ const HackathonRegistration = () => {
 
       <section
         id="registration-form"
-        className="relative flex min-h-[100svh] snap-start snap-always items-center overflow-hidden px-4 py-[88px] sm:px-6 lg:px-8"
+        className="relative flex min-h-[100svh] snap-start snap-always items-center overflow-hidden px-4 pb-20 pt-[88px] sm:px-6 sm:pb-24 sm:pt-20 lg:px-8 lg:pb-0"
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_24%,rgba(103,232,249,0.12),transparent_28%),radial-gradient(circle_at_84%_70%,rgba(99,102,241,0.12),transparent_24%)]" />
         <div className="pointer-events-none absolute left-[-3%] top-[8%] font-black uppercase leading-none tracking-[-0.08em] text-white/[0.035] text-[18vw]">
@@ -743,8 +838,7 @@ const HackathonRegistration = () => {
 
               <div>
                 <label className={`mb-3 block text-sm font-bold ${palette.textSoft}`}>
-                  AI 项目经历
-                  <span className={`ml-2 font-normal ${palette.textMuted}`}>选填</span>
+                  AI 项目经历 <span className="text-rose-400">*</span>
                 </label>
                 <textarea
                   value={formData.experience}
@@ -757,6 +851,12 @@ const HackathonRegistration = () => {
                       : "border-white/10 bg-white/[0.04] text-white placeholder:text-white/26"
                   }`}
                 />
+                {formErrors.experience && (
+                  <p className="mt-2 flex items-center gap-1 text-xs text-rose-400">
+                    <AlertCircle className="h-3.5 w-3.5" />
+                    {formErrors.experience}
+                  </p>
+                )}
               </div>
 
               <button
