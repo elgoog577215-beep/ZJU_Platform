@@ -58,6 +58,7 @@ const HackathonRegistration = () => {
     major: "",
     grade: "",
     aiTools: [],
+    experience: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
@@ -229,7 +230,7 @@ const HackathonRegistration = () => {
     try {
       await api.post("/hackathon/register", formData, { noRetry: true });
       toast.success("报名成功！请等待后续通知");
-      setFormData({ name: "", studentId: "", major: "", grade: "", aiTools: [] });
+      setFormData({ name: "", studentId: "", major: "", grade: "", aiTools: [], experience: "" });
     } catch (error) {
       const message = error?.response?.data?.error || "报名失败，请稍后重试";
       toast.error(message);
@@ -738,6 +739,24 @@ const HackathonRegistration = () => {
                     {formErrors.aiTools}
                   </p>
                 )}
+              </div>
+
+              <div>
+                <label className={`mb-3 block text-sm font-bold ${palette.textSoft}`}>
+                  AI 项目经历
+                  <span className={`ml-2 font-normal ${palette.textMuted}`}>选填</span>
+                </label>
+                <textarea
+                  value={formData.experience}
+                  onChange={handleInputChange("experience")}
+                  placeholder="简述一下你使用 AI 开发项目的经历..."
+                  rows={4}
+                  className={`w-full resize-none rounded-xl border px-5 py-4 text-sm leading-7 outline-none transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 ${
+                    isDayMode
+                      ? "border-slate-200/80 bg-white/80 text-slate-900 placeholder:text-slate-400"
+                      : "border-white/10 bg-white/[0.04] text-white placeholder:text-white/26"
+                  }`}
+                />
               </div>
 
               <button

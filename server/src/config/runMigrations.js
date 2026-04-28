@@ -821,14 +821,17 @@ async function runMigrations(db) {
         major TEXT NOT NULL,
         grade TEXT NOT NULL,
         ai_tools TEXT NOT NULL,
+        experience TEXT DEFAULT '',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
     await db.exec(`CREATE INDEX IF NOT EXISTS idx_hackathon_registrations_student_id ON hackathon_registrations(student_id)`);
     await db.exec(`CREATE INDEX IF NOT EXISTS idx_hackathon_registrations_created_at ON hackathon_registrations(created_at DESC)`);
+    // Add experience column to existing tables
+    await db.exec(`ALTER TABLE hackathon_registrations ADD COLUMN experience TEXT DEFAULT ''`);
     console.log('✅ Hackathon registrations table ready');
   } catch (err) {
-    if (!err.message.includes('already exists')) {
+    if (!err.message.includes('already exists') && !err.message.includes('duplicate column')) {
       console.warn('Migration warning (hackathon registrations):', err.message);
     }
   }

@@ -1,7 +1,7 @@
 const { getDb } = require('../config/db');
 
 const registerHackathon = async (req, res, next) => {
-  const { name, studentId, major, grade, aiTools } = req.body;
+  const { name, studentId, major, grade, aiTools, experience } = req.body;
 
   if (!name || !studentId || !major || !grade) {
     return res.status(400).json({ error: '所有必填字段均为必填项' });
@@ -15,6 +15,9 @@ const registerHackathon = async (req, res, next) => {
   }
   if (major.length > 100) {
     return res.status(400).json({ error: '专业不能超过 100 个字符' });
+  }
+  if (experience && experience.length > 2000) {
+    return res.status(400).json({ error: '经历描述不能超过 2000 个字符' });
   }
 
   const validGrades = ['freshman', 'sophomore', 'junior', 'senior', 'master', 'phd'];
@@ -42,8 +45,8 @@ const registerHackathon = async (req, res, next) => {
 
     const aiToolsJson = JSON.stringify(aiTools);
     const result = await db.run(
-      'INSERT INTO hackathon_registrations (name, student_id, major, grade, ai_tools, created_at) VALUES (?, ?, ?, ?, ?, ?)',
-      [name.trim(), studentId.trim().toLowerCase(), major.trim(), grade, aiToolsJson, new Date().toISOString()]
+      'INSERT INTO hackathon_registrations (name, student_id, major, grade, ai_tools, experience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [name.trim(), studentId.trim().toLowerCase(), major.trim(), grade, aiToolsJson, (experience || '').trim(), new Date().toISOString()]
     );
 
     res.status(201).json({ id: result.lastID, message: '报名成功' });

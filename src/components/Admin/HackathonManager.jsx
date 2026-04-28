@@ -73,13 +73,14 @@ const HackathonManager = () => {
   };
 
   const handleExport = () => {
-    const headers = ["姓名", "学号", "专业", "年级", "AI 工具", "报名时间"];
+    const headers = ["姓名", "学号", "专业", "年级", "AI 工具", "AI 项目经历", "报名时间"];
     const data = registrations.map((r) => [
       r.name,
       r.student_id,
       r.major,
       gradeLabels[r.grade] || r.grade,
       JSON.parse(r.ai_tools || "[]").map((t) => aiToolLabels[t] || t).join(", "),
+      (r.experience || "").replace(/"/g, '""'),
       new Date(r.created_at).toLocaleString("zh-CN"),
     ]);
 
@@ -243,6 +244,7 @@ const HackathonManager = () => {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">专业</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">年级</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">AI 工具</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">AI 项目经历</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">报名时间</th>
                   <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">操作</th>
                 </tr>
@@ -280,6 +282,9 @@ const HackathonManager = () => {
                             </span>
                           ))}
                         </div>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600 max-w-[240px]">
+                        <p className="line-clamp-2 break-words">{reg.experience || "—"}</p>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-500">
                         <div className="flex items-center gap-1">
