@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
@@ -50,6 +50,7 @@ const HackathonRegistration = () => {
   const reduceMotion = useReducedMotion();
   const shouldAnimate = !reduceMotion;
   const isDayMode = uiMode === "day";
+  const pageRef = useRef(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -66,7 +67,7 @@ const HackathonRegistration = () => {
       title: readableSetting(settings.hackathon_title, "AI 全栈极速黑客松"),
       subtitle: "5小时、1个人、0路演",
       date: readableSetting(settings.hackathon_date, "5月10日 9:00 A.M."),
-      location: readableSetting(settings.hackathon_location, "西 1-114"),
+      location: readableSetting(settings.hackathon_location, "北 1-114"),
       format: readableSetting(settings.hackathon_format, "个人赛"),
       duration: readableSetting(settings.hackathon_duration, "5 小时"),
       description: readableSetting(
@@ -242,10 +243,19 @@ const HackathonRegistration = () => {
     if (!target) return;
 
     const offset = window.innerWidth < 768 ? 76 : 96;
-    const end = target.getBoundingClientRect().top + window.scrollY - offset;
+    const scroller = pageRef.current;
 
-    window.scrollTo({
-      top: end,
+    if (!scroller) {
+      const end = target.getBoundingClientRect().top + window.scrollY - offset;
+      window.scrollTo({
+        top: end,
+        behavior: shouldAnimate ? "smooth" : "auto",
+      });
+      return;
+    }
+
+    scroller.scrollTo({
+      top: Math.max(target.offsetTop - offset, 0),
       behavior: shouldAnimate ? "smooth" : "auto",
     });
   };
@@ -255,13 +265,37 @@ const HackathonRegistration = () => {
   };
 
   return (
-    <div className={`min-h-screen overflow-hidden ${palette.page}`}>
+    <div
+      ref={pageRef}
+      className={`min-h-[100svh] overflow-x-hidden scroll-smooth ${palette.page}`}
+    >
       <SEO
         title={`${event.title}报名`}
         description={`${event.title} - ${event.subtitle}。在限定时间内独立完成一个可运行的 AI 应用。`}
       />
 
-      <section className="relative min-h-[calc(100svh-64px)] px-4 pt-[calc(env(safe-area-inset-top)+72px)] sm:px-6 lg:px-10 2xl:px-16">
+      <div className="fixed right-5 top-1/2 z-20 hidden -translate-y-1/2 flex-col gap-3 2xl:flex">
+        {[
+          { id: "hackathon-hero", label: "01" },
+          { id: "event-brief", label: "02" },
+          { id: "registration-form", label: "03" },
+        ].map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => smoothScrollTo(item.id)}
+            className={`group flex h-11 w-11 items-center justify-center border text-[11px] font-black tracking-[0.18em] transition duration-300 hover:border-cyan-300 hover:text-cyan-300 ${palette.chip}`}
+            aria-label={`跳转到第 ${item.label} 屏`}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+
+      <section
+        id="hackathon-hero"
+        className="relative min-h-[100svh] snap-start snap-always px-4 pt-[calc(env(safe-area-inset-top)+72px)] sm:px-6 lg:px-10 2xl:px-16"
+      >
         <div className="pointer-events-none absolute inset-0">
           <div
             className={`absolute inset-0 ${
@@ -451,7 +485,11 @@ const HackathonRegistration = () => {
         </div>
       </section>
 
-      <MotionSection id="event-brief" {...sectionMotion} className="relative overflow-hidden px-4 py-14 sm:px-6 lg:px-10 lg:py-24 2xl:px-16">
+      <MotionSection
+        id="event-brief"
+        {...sectionMotion}
+        className="relative flex min-h-[100svh] snap-start snap-always items-center overflow-hidden px-4 py-[72px] sm:px-6 sm:py-20 lg:px-12 lg:py-20 2xl:px-20 2xl:py-24"
+      >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(103,232,249,0.14),transparent_28%),radial-gradient(circle_at_76%_26%,rgba(99,102,241,0.14),transparent_26%)]" />
         <div className="mx-auto max-w-[1800px]">
           <div className="relative overflow-hidden">
@@ -459,27 +497,27 @@ const HackathonRegistration = () => {
               SHIP
             </div>
 
-            <div className="relative grid gap-12 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] lg:items-stretch xl:gap-20">
-              <div className="flex flex-col lg:min-h-[690px]">
+            <div className="relative grid gap-16 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] lg:items-stretch xl:gap-36 2xl:gap-44">
+              <div className="order-2 flex flex-col lg:min-h-[620px]">
                 <p className="text-sm font-bold uppercase tracking-[0.28em] text-cyan-300">Competition Board</p>
-                <h2 className="mt-5 max-w-3xl text-5xl font-black leading-[0.92] tracking-tight sm:text-7xl xl:text-8xl 2xl:text-[118px]">
+                <h2 className="mt-5 max-w-3xl text-5xl font-black leading-[0.98] tracking-tight sm:text-7xl xl:text-[70px] 2xl:text-[84px]">
                   5小时交付。
                   <span className="block text-cyan-300">0路演。</span>
                   只看作品。
                 </h2>
-                <p className={`mt-7 max-w-3xl text-base leading-8 xl:text-xl xl:leading-9 ${palette.textSoft}`}>
+                <p className={`mt-6 max-w-xl text-base leading-8 xl:text-lg xl:leading-8 ${palette.textSoft}`}>
                   现场把想法变成可运行的 AI 应用。规则足够直接：个人完成、AI 原生、作品优先。
                 </p>
 
-                <div className={`mt-12 border-t pt-9 lg:mt-auto ${palette.line}`}>
+                <div className={`mt-10 border-t pt-7 lg:mt-auto ${palette.line}`}>
                   <p className="text-sm font-bold uppercase tracking-[0.24em] text-cyan-300">Ecosystem</p>
-                  <h3 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl xl:text-6xl">支持阵容</h3>
+                  <h3 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl xl:text-[44px]">支持阵容</h3>
 
-                  <div className="mt-9 grid gap-4">
+                  <div className="mt-7 grid gap-3">
                     {ecosystemGroups.map((group) => (
                       <div
                         key={group.label}
-                        className={`grid gap-4 border-l-2 px-5 py-4 sm:grid-cols-[96px_1fr] sm:items-center xl:px-6 xl:py-5 ${
+                        className={`grid gap-4 border-l-2 px-6 py-3.5 sm:grid-cols-[104px_1fr] sm:items-center xl:px-6 xl:py-4 ${
                           isDayMode ? "border-cyan-500 bg-white/60" : "border-cyan-300 bg-cyan-300/[0.035]"
                         }`}
                       >
@@ -489,7 +527,7 @@ const HackathonRegistration = () => {
                         </div>
                         <div className="flex flex-wrap gap-3">
                           {group.partners.map((partner) => (
-                            <span key={partner} className={`border px-5 py-3 text-base font-black xl:text-lg ${palette.chip}`}>
+                            <span key={partner} className={`border px-4 py-2.5 text-base font-black ${palette.chip}`}>
                               {partner}
                             </span>
                           ))}
@@ -500,14 +538,14 @@ const HackathonRegistration = () => {
                 </div>
               </div>
 
-              <div className="flex">
-                <div className="grid flex-1 gap-4 lg:grid-rows-3 xl:gap-5">
+              <div className="order-1 flex">
+                <div className="grid flex-1 content-start gap-6 xl:gap-7">
                   {challenges.map((challenge, index) => {
                     const Icon = challenge.icon;
                     return (
                       <div
                         key={challenge.title}
-                        className={`group relative flex min-h-[196px] overflow-hidden border p-6 transition duration-300 sm:p-8 xl:min-h-[214px] xl:p-10 ${
+                        className={`group relative flex min-h-[176px] overflow-hidden border p-6 transition duration-300 sm:p-8 xl:min-h-[188px] xl:p-9 ${
                           isDayMode
                             ? "border-slate-200 bg-white/84 shadow-[0_24px_60px_rgba(15,23,42,0.08)]"
                             : "border-white/10 bg-[#101516]/88 shadow-[0_28px_80px_rgba(0,0,0,0.36)]"
@@ -515,10 +553,10 @@ const HackathonRegistration = () => {
                       >
                         <div className="absolute inset-y-0 left-0 w-1 bg-cyan-300 opacity-80" />
                         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,rgba(103,232,249,0.10),transparent_34%)] opacity-0 transition duration-300 group-hover:opacity-100" />
-                        <div className="relative grid flex-1 gap-6 sm:grid-cols-[128px_1fr] sm:items-center">
+                        <div className="relative grid flex-1 gap-7 sm:grid-cols-[124px_1fr] sm:items-center">
                           <div className="flex items-center gap-3 sm:block">
-                            <div className="flex h-18 w-18 items-center justify-center bg-cyan-300 text-slate-950 shadow-[0_0_36px_rgba(103,232,249,0.28)] sm:h-24 sm:w-24">
-                              <Icon className="h-9 w-9 sm:h-11 sm:w-11" />
+                            <div className="flex h-[72px] w-[72px] items-center justify-center bg-cyan-300 text-slate-950 shadow-[0_0_36px_rgba(103,232,249,0.28)] sm:h-[88px] sm:w-[88px]">
+                              <Icon className="h-8 w-8 sm:h-10 sm:w-10" />
                             </div>
                             <p className="font-mono text-xs font-black uppercase tracking-[0.24em] text-cyan-300 sm:mt-4">
                               Rule 0{index + 1}
@@ -542,9 +580,16 @@ const HackathonRegistration = () => {
         </div>
       </MotionSection>
 
-      <section id="registration-form" className="relative scroll-mt-24 px-4 pb-16 pt-10 sm:px-6 lg:px-8 lg:pb-28">
-        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
-          <div className="lg:sticky lg:top-24">
+      <section
+        id="registration-form"
+        className="relative flex min-h-[100svh] snap-start snap-always items-center overflow-hidden px-4 py-[88px] sm:px-6 lg:px-8"
+      >
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_24%,rgba(103,232,249,0.12),transparent_28%),radial-gradient(circle_at_84%_70%,rgba(99,102,241,0.12),transparent_24%)]" />
+        <div className="pointer-events-none absolute left-[-3%] top-[8%] font-black uppercase leading-none tracking-[-0.08em] text-white/[0.035] text-[18vw]">
+          APPLY
+        </div>
+        <div className="mx-auto grid w-full max-w-7xl gap-8 lg:grid-cols-[0.78fr_1.22fr] lg:items-center">
+          <div>
             <p className="text-sm font-bold uppercase tracking-[0.24em] text-cyan-300">Register</p>
             <h2 className="mt-4 text-4xl font-black tracking-tight sm:text-5xl">参赛登记</h2>
             <p className={`mt-5 max-w-md text-base leading-8 ${palette.textSoft}`}>
