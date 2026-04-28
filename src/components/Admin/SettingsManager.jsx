@@ -817,7 +817,7 @@ const SettingsManager = () => {
               <textarea
                 value={settings.hackathon_partners || ""}
                 onChange={(event) => handleChange("hackathon_partners", event.target.value)}
-                placeholder="未来学习中心，ZJUAI,XLab,minimax，阿里云，魔搭，阶跃星辰"
+                placeholder="Minimax，阿里云，魔搭，阶跃星辰"
                 rows={2}
                 className="theme-admin-input flex-1 rounded-xl p-3"
               />

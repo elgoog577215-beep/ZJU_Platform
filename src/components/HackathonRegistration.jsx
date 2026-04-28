@@ -69,7 +69,7 @@ const HackathonRegistration = () => {
   const hackathonDuration = settings.hackathon_duration || "5 小时";
   const hackathonDesc = settings.hackathon_desc || "AI 全栈极速黑客松是以 AI 原生开发为核心的技术赛事，参赛者需在 5 小时内独立完成一个完整的 AI 应用项目。比赛强调快速原型开发、AI 工具运用与创新思维。";
 
-  const partnersRaw = settings.hackathon_partners || "未来学习中心，ZJUAI,XLab,minimax，阿里云，魔搭，阶跃星辰";
+  const partnersRaw = settings.hackathon_partners || "Minimax，阿里云，魔搭，阶跃星辰";
   const partners = partnersRaw.split(",").map((s) => s.trim()).filter(Boolean);
 
   const aiToolOptions = [
