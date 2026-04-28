@@ -181,12 +181,27 @@ const HackathonRegistration = () => {
     if (!container) return;
 
     const handleTouchStart = (e) => {
+      // Don't handle touch if target is a form element
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT" || e.target.tagName === "BUTTON") {
+        return;
+      }
+      
+      // Don't handle touch if inside a scrollable element that has scrollable content
+      const scrollableParent = e.target.closest('[data-scrollable]');
+      if (scrollableParent) {
+        const { scrollTop, scrollHeight, clientHeight } = scrollableParent;
+        // If the scrollable element can actually scroll, don't intercept touch
+        if (scrollHeight > clientHeight + 10) {
+          return;
+        }
+      }
+      
       touchStartY.current = e.touches[0].clientY;
       touchStartX.current = e.touches[0].clientX;
     };
 
     const handleTouchEnd = (e) => {
-      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") return;
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT" || e.target.tagName === "BUTTON") return;
       if (isTransitioning) return;
 
       const deltaY = touchStartY.current - e.changedTouches[0].clientY;
@@ -283,12 +298,12 @@ const HackathonRegistration = () => {
 
   // Page indicator component
   const PageIndicator = () => (
-    <div className="fixed right-6 top-1/2 z-30 flex -translate-y-1/2 flex-col gap-3">
+    <div className="fixed right-4 sm:right-6 top-1/2 z-30 flex -translate-y-1/2 flex-col gap-2 sm:gap-3">
       {Array.from({ length: totalPages }).map((_, idx) => (
         <button
           key={idx}
           onClick={() => navigateToPage(idx)}
-          className={`group relative flex h-12 w-12 items-center justify-center rounded-full border transition-all duration-300 ${
+          className={`group relative flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-full border transition-all duration-300 ${
             currentPage === idx
               ? isDayMode
                 ? "border-cyan-500 bg-gradient-to-br from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30"
@@ -298,9 +313,9 @@ const HackathonRegistration = () => {
               : "border-white/20 bg-white/5 text-white/50 hover:border-cyan-400 hover:text-cyan-300"
           }`}
         >
-          <span className="text-sm font-bold">{String(idx + 1).padStart(2, "0")}</span>
+          <span className="text-xs sm:text-sm font-bold">{String(idx + 1).padStart(2, "0")}</span>
           {currentPage === idx && (
-            <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-cyan-400 animate-pulse" />
+            <span className="absolute -right-1 -top-1 h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-cyan-400 animate-pulse" />
           )}
         </button>
       ))}
@@ -313,24 +328,24 @@ const HackathonRegistration = () => {
       <button
         onClick={goToPrev}
         disabled={currentPage === 0 || isTransitioning}
-        className={`fixed left-6 top-1/2 z-30 -translate-y-1/2 rounded-full p-3 transition-all duration-300 disabled:opacity-20 disabled:cursor-not-allowed ${
+        className={`fixed left-3 sm:left-6 top-1/2 z-30 -translate-y-1/2 rounded-full p-2.5 sm:p-3 transition-all duration-300 disabled:opacity-20 disabled:cursor-not-allowed hidden md:flex items-center justify-center ${
           isDayMode
             ? "bg-white/80 text-slate-700 hover:bg-white hover:shadow-lg"
             : "bg-white/10 text-white hover:bg-white/20"
         }`}
       >
-        <ChevronLeft className="h-6 w-6" />
+        <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
       </button>
       <button
         onClick={goToNext}
         disabled={currentPage === totalPages - 1 || isTransitioning}
-        className={`fixed right-6 top-1/2 z-30 -translate-y-1/2 rounded-full p-3 transition-all duration-300 disabled:opacity-20 disabled:cursor-not-allowed ${
+        className={`fixed right-3 sm:right-6 top-1/2 z-30 -translate-y-1/2 rounded-full p-2.5 sm:p-3 transition-all duration-300 disabled:opacity-20 disabled:cursor-not-allowed hidden md:flex items-center justify-center ${
           isDayMode
             ? "bg-white/80 text-slate-700 hover:bg-white hover:shadow-lg"
             : "bg-white/10 text-white hover:bg-white/20"
         }`}
       >
-        <ChevronRight className="h-6 w-6" />
+        <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
       </button>
     </>
   );
@@ -404,13 +419,13 @@ const HackathonRegistration = () => {
 
   // Page 2: Info
   const renderInfoPage = () => (
-    <div className="flex h-full w-full items-center justify-center p-6 overflow-y-auto">
-      <div className="relative mx-auto max-w-[1400px] w-full py-12">
+    <div data-scrollable className="flex h-full w-full items-start justify-center p-4 sm:p-6 overflow-y-auto">
+      <div className="relative mx-auto max-w-[1400px] w-full py-8 sm:py-12">
         <MotionDiv
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="grid gap-8 lg:grid-cols-2"
+          className="grid gap-6 lg:gap-8 lg:grid-cols-2"
         >
           {/* Left: Event Info */}
           <div className="space-y-6">
@@ -524,13 +539,13 @@ const HackathonRegistration = () => {
 
   // Page 3: Registration Form
   const renderFormPage = () => (
-    <div className="flex h-full w-full items-center justify-center p-6 overflow-y-auto">
-      <div className="relative mx-auto max-w-[800px] w-full py-12">
+    <div data-scrollable className="flex h-full w-full items-start justify-center p-4 sm:p-6 overflow-y-auto">
+      <div className="relative mx-auto max-w-[800px] w-full py-8 sm:py-12">
         <MotionDiv
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className={`rounded-3xl border p-8 sm:p-10 ${
+          className={`rounded-2xl sm:rounded-3xl border p-6 sm:p-8 md:p-10 ${
             isDayMode
               ? "border-slate-200 bg-white shadow-xl"
               : "border-white/10 bg-white/5"
