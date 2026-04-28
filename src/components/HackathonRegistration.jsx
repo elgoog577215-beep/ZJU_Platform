@@ -1,25 +1,23 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useMemo, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
   AlertCircle,
   ArrowRight,
-  ArrowDown,
-  ArrowUp,
+  Bot,
   Calendar,
+  ChevronDown,
   CheckCircle,
   Code2,
   Cpu,
   MapPin,
   Rocket,
   Send,
+  ShieldCheck,
   Sparkles,
   Trophy,
   Users,
   Zap,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useSettings } from "../context/SettingsContext";
@@ -28,7 +26,7 @@ import api from "../services/api";
 import SEO from "./SEO";
 
 const isLikelyMojibake = (value) =>
-  typeof value === "string" && /[]|鍏||鏋|粦||澗|灏|忔|椂|涓|璺|紨|璇|鎶|瀛|骞|惧|洟||阃|榄/.test(value);
+  typeof value === "string" && /[�]|鍏|爤|鏋|粦|瀹|澗|灏|忔|椂|涓|璺|紨|璇|鎶|瀛|骞|惧|洟|浼|阃|榄/.test(value);
 
 const readableSetting = (value, fallback) => {
   if (typeof value !== "string") return fallback;
@@ -45,20 +43,14 @@ const splitPartners = (value, fallback) => {
 };
 
 const MotionDiv = motion.div;
+const MotionSection = motion.section;
 
 const HackathonRegistration = () => {
   const { settings, uiMode } = useSettings();
   const reduceMotion = useReducedMotion();
   const shouldAnimate = !reduceMotion;
   const isDayMode = uiMode === "day";
-  const [currentPage, setCurrentPage] = useState(0);
-  const [direction, setDirection] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const containerRef = useRef(null);
-  const touchStartY = useRef(0);
-  const touchStartX = useRef(0);
-
-  const totalPages = 3;
+  const pageRef = useRef(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -66,28 +58,75 @@ const HackathonRegistration = () => {
     major: "",
     grade: "",
     aiTools: [],
-    experience: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
 
-  const event = {
-    title: readableSetting(settings.hackathon_title, "AI 全栈极速黑客松"),
-    subtitle: "5小时、1个人、0路演",
-    date: readableSetting(settings.hackathon_date, "5月10日 9:00 A.M."),
-    location: readableSetting(settings.hackathon_location, "北 1-114"),
-    format: readableSetting(settings.hackathon_format, "个人赛"),
-    duration: readableSetting(settings.hackathon_duration, "5 小时"),
-    description: readableSetting(
-      settings.hackathon_desc,
-      "在限定时间内独立完成一个可运行的 AI 应用。允许使用 AI 工具，拒绝概念包装，只看真实作品。",
-    ),
-    partners: splitPartners(settings.hackathon_partners, "MiniMax, 阿里云, 魔搭, 阶跃星辰"),
-  };
+  const event = useMemo(
+    () => ({
+      title: readableSetting(settings.hackathon_title, "AI 全栈极速黑客松"),
+      subtitle: "5小时、1个人、0路演",
+      date: readableSetting(settings.hackathon_date, "5月10日 9:00 A.M."),
+      location: readableSetting(settings.hackathon_location, "北 1-114"),
+      format: readableSetting(settings.hackathon_format, "个人赛"),
+      duration: readableSetting(settings.hackathon_duration, "5 小时"),
+      description: readableSetting(
+        settings.hackathon_desc,
+        "在限定时间内独立完成一个可运行的 AI 应用。允许使用 AI 工具，拒绝概念包装，只看真实作品。",
+      ),
+      partners: splitPartners(settings.hackathon_partners, "MiniMax, 阿里云, 魔搭, 阶跃星辰"),
+    }),
+    [settings],
+  );
+
+  const palette = isDayMode
+    ? {
+        page: "bg-[#f6f8fb] text-slate-950",
+        panel: "border-slate-200/80 bg-white/86 shadow-[0_24px_70px_rgba(15,23,42,0.10)]",
+        panelStrong: "border-slate-200 bg-white shadow-[0_28px_90px_rgba(15,23,42,0.13)]",
+        textSoft: "text-slate-600",
+        textMuted: "text-slate-500",
+        line: "border-slate-200",
+        chip: "border-slate-200 bg-slate-50 text-slate-700",
+        field: "border-slate-200 bg-white text-slate-950 placeholder:text-slate-400 focus:border-cyan-500 focus:ring-cyan-100",
+        primary:
+          "bg-slate-950 text-white shadow-[0_18px_42px_rgba(15,23,42,0.22)] hover:bg-slate-800",
+        secondary: "border-slate-300 bg-white/80 text-slate-800 hover:border-slate-400 hover:bg-white",
+      }
+    : {
+        page: "bg-[#040506] text-white",
+        panel: "border-white/10 bg-white/[0.055] shadow-[0_28px_90px_rgba(0,0,0,0.5)]",
+        panelStrong: "border-cyan-300/22 bg-[#081012]/86 shadow-[0_36px_120px_rgba(0,0,0,0.62)]",
+        textSoft: "text-white/70",
+        textMuted: "text-white/46",
+        line: "border-white/10",
+        chip: "border-white/10 bg-white/[0.06] text-white/78",
+        field: "border-white/12 bg-black/24 text-white placeholder:text-white/32 focus:border-cyan-300/70 focus:ring-cyan-300/12",
+        primary:
+          "bg-cyan-300 text-slate-950 shadow-[0_0_32px_rgba(103,232,249,0.28)] hover:bg-white",
+        secondary: "border-white/14 bg-white/[0.04] text-white hover:border-cyan-300/50 hover:bg-cyan-300/10",
+      };
+
+  const heroMotion = shouldAnimate
+    ? {
+        initial: { opacity: 0, y: 28 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: 0.72, ease: [0.22, 1, 0.36, 1] },
+      }
+    : {};
+
+  const sectionMotion = shouldAnimate
+    ? {
+        initial: { opacity: 0, y: 22 },
+        whileInView: { opacity: 1, y: 0 },
+        viewport: { once: true, amount: 0.22 },
+        transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+      }
+    : {};
 
   const aiToolOptions = [
-    { value: "claude", label: "Claude" },
     { value: "codex", label: "Codex" },
+    { value: "claude", label: "Claude" },
     { value: "cursor", label: "Cursor" },
     { value: "trae", label: "Trae" },
     { value: "other", label: "其他" },
@@ -102,147 +141,42 @@ const HackathonRegistration = () => {
     { value: "phd", label: "博士" },
   ];
 
-  const gradeLabels = {
-    freshman: "大一",
-    sophomore: "大二",
-    junior: "大三",
-    senior: "大四",
-    master: "硕士",
-    phd: "博士",
-  };
+  const eventMeta = [
+    { index: "01", label: "时间", value: event.date, icon: Calendar },
+    { index: "02", label: "地点", value: event.location, icon: MapPin },
+    { index: "03", label: "形式", value: event.format, icon: Users },
+    { index: "04", label: "奖金池", value: "17,500 ￥", icon: Trophy },
+  ];
 
-  const navigateToPage = useCallback(
-    (newPage) => {
-      if (newPage < 0 || newPage >= totalPages || isTransitioning) return;
-      setDirection(newPage > currentPage ? 1 : -1);
-      setCurrentPage(newPage);
-      setIsTransitioning(true);
-      setTimeout(() => setIsTransitioning(false), shouldAnimate ? 500 : 0);
+  const challenges = [
+    {
+      title: "AI 原生开发",
+      text: "允许并鼓励使用 Codex、Claude、Cursor、Trae 等工具完成全栈开发。",
+      icon: Code2,
     },
-    [currentPage, totalPages, isTransitioning, shouldAnimate],
-  );
-
-  const goToNext = useCallback(() => navigateToPage(currentPage + 1), [currentPage, navigateToPage]);
-  const goToPrev = useCallback(() => navigateToPage(currentPage - 1), [currentPage, navigateToPage]);
-
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") return;
-      if (e.key === "ArrowDown" || e.key === "ArrowRight" || e.key === " ") {
-        e.preventDefault();
-        goToNext();
-      } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
-        e.preventDefault();
-        goToPrev();
-      } else if (e.key === "Home") {
-        e.preventDefault();
-        navigateToPage(0);
-      } else if (e.key === "End") {
-        e.preventDefault();
-        navigateToPage(totalPages - 1);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [goToNext, goToPrev, navigateToPage, totalPages]);
-
-  // Mouse wheel navigation
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    let wheelTimeout = null;
-    const handleWheel = (e) => {
-      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") return;
-      if (isTransitioning) return;
-
-      e.preventDefault();
-      clearTimeout(wheelTimeout);
-
-      wheelTimeout = setTimeout(() => {
-        if (e.deltaY > 20) {
-          goToNext();
-        } else if (e.deltaY < -20) {
-          goToPrev();
-        }
-      }, 50);
-    };
-
-    container.addEventListener("wheel", handleWheel, { passive: false });
-    return () => {
-      container.removeEventListener("wheel", handleWheel);
-      clearTimeout(wheelTimeout);
-    };
-  }, [goToNext, goToPrev, isTransitioning]);
-
-  // Touch navigation
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const handleTouchStart = (e) => {
-      // Don't handle touch if target is a form element
-      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT" || e.target.tagName === "BUTTON") {
-        return;
-      }
-      
-      // Don't handle touch if inside a scrollable element that has scrollable content
-      const scrollableParent = e.target.closest('[data-scrollable]');
-      if (scrollableParent) {
-        const { scrollTop, scrollHeight, clientHeight } = scrollableParent;
-        // If the scrollable element can actually scroll, don't intercept touch
-        if (scrollHeight > clientHeight + 10) {
-          return;
-        }
-      }
-      
-      touchStartY.current = e.touches[0].clientY;
-      touchStartX.current = e.touches[0].clientX;
-    };
-
-    const handleTouchEnd = (e) => {
-      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT" || e.target.tagName === "BUTTON") return;
-      if (isTransitioning) return;
-
-      const deltaY = touchStartY.current - e.changedTouches[0].clientY;
-      const deltaX = touchStartX.current - e.changedTouches[0].clientX;
-
-      // Prefer vertical swipe over horizontal
-      if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 50) {
-        if (deltaY > 0) {
-          goToNext();
-        } else {
-          goToPrev();
-        }
-      }
-    };
-
-    container.addEventListener("touchstart", handleTouchStart, { passive: true });
-    container.addEventListener("touchend", handleTouchEnd, { passive: true });
-    return () => {
-      container.removeEventListener("touchstart", handleTouchStart);
-      container.removeEventListener("touchend", handleTouchEnd);
-    };
-  }, [goToNext, goToPrev, isTransitioning]);
-
-  const pageVariants = {
-    enter: (direction) => ({
-      y: direction > 0 ? "100%" : "-100%",
-      opacity: 0,
-      scale: 0.96,
-    }),
-    center: {
-      y: 0,
-      opacity: 1,
-      scale: 1,
+    {
+      title: "5 小时从 0 到 1",
+      text: "现场完成一个可运行、可体验、能说明问题的 AI 应用。",
+      icon: Rocket,
     },
-    exit: (direction) => ({
-      y: direction < 0 ? "100%" : "-100%",
-      opacity: 0,
-      scale: 0.96,
-    }),
-  };
+    {
+      title: "0 路演",
+      text: "不比表达包装，只看作品完成度、真实体验和创新性。",
+      icon: ShieldCheck,
+    },
+  ];
+
+  const ecosystemGroups = [
+    { label: "学校", partners: ["未来学习中心", "AI 联合实验室"] },
+    { label: "社团", partners: ["XLAB", "ZJUAI", "EAI", "AIRA", "KAB"] },
+    { label: "企业", partners: event.partners },
+  ];
+
+  const heroStats = [
+    { value: "5", unit: "小时", code: "HOURS" },
+    { value: "1", unit: "个人", code: "SOLO" },
+    { value: "0", unit: "路演", code: "PITCH" },
+  ];
 
   const handleInputChange = (field) => (e) => {
     const value = e.target.value;
@@ -259,10 +193,17 @@ const HackathonRegistration = () => {
   const handleToolToggle = (tool) => {
     setFormData((prev) => {
       const tools = prev.aiTools.includes(tool)
-        ? prev.aiTools.filter((t) => t !== tool)
+        ? prev.aiTools.filter((item) => item !== tool)
         : [...prev.aiTools, tool];
       return { ...prev, aiTools: tools };
     });
+    if (formErrors.aiTools) {
+      setFormErrors((prev) => {
+        const next = { ...prev };
+        delete next.aiTools;
+        return next;
+      });
+    }
   };
 
   const validateForm = () => {
@@ -280,7 +221,7 @@ const HackathonRegistration = () => {
     const errors = validateForm();
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
-      toast.error("请检查并完善表单信息");
+      toast.error("请检查并完善报名信息");
       return;
     }
 
@@ -288,7 +229,7 @@ const HackathonRegistration = () => {
     try {
       await api.post("/hackathon/register", formData, { noRetry: true });
       toast.success("报名成功！请等待后续通知");
-      setFormData({ name: "", studentId: "", major: "", grade: "", aiTools: [], experience: "" });
+      setFormData({ name: "", studentId: "", major: "", grade: "", aiTools: [] });
     } catch (error) {
       const message = error?.response?.data?.error || "报名失败，请稍后重试";
       toast.error(message);
@@ -297,496 +238,547 @@ const HackathonRegistration = () => {
     }
   };
 
-  // Page indicator component
-  const PageIndicator = () => (
-    <div className="fixed right-4 sm:right-6 top-1/2 z-30 flex -translate-y-1/2 flex-col gap-2 sm:gap-3">
-      {Array.from({ length: totalPages }).map((_, idx) => (
-        <button
-          key={idx}
-          onClick={() => navigateToPage(idx)}
-          className={`group relative flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-full border transition-all duration-300 ${
-            currentPage === idx
-              ? isDayMode
-                ? "border-cyan-500 bg-gradient-to-br from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30"
-                : "border-cyan-400 bg-gradient-to-br from-cyan-400 to-blue-500 text-white shadow-lg shadow-cyan-400/40"
-              : isDayMode
-              ? "border-slate-300 bg-white/80 text-slate-600 hover:border-cyan-400 hover:text-cyan-600"
-              : "border-white/20 bg-white/5 text-white/50 hover:border-cyan-400 hover:text-cyan-300"
-          }`}
-        >
-          <span className="text-xs sm:text-sm font-bold">{String(idx + 1).padStart(2, "0")}</span>
-          {currentPage === idx && (
-            <span className="absolute -right-1 -top-1 h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-cyan-400 animate-pulse" />
-          )}
-        </button>
-      ))}
-    </div>
-  );
+  const smoothScrollTo = (id) => {
+    const target = document.getElementById(id);
+    if (!target) return;
 
-  // Navigation arrows
-  const NavArrows = () => (
-    <>
-      <button
-        onClick={goToPrev}
-        disabled={currentPage === 0 || isTransitioning}
-        className={`fixed left-3 sm:left-6 top-1/2 z-30 -translate-y-1/2 rounded-full p-2.5 sm:p-3 transition-all duration-300 disabled:opacity-20 disabled:cursor-not-allowed hidden md:flex items-center justify-center ${
-          isDayMode
-            ? "bg-white/80 text-slate-700 hover:bg-white hover:shadow-lg"
-            : "bg-white/10 text-white hover:bg-white/20"
-        }`}
-      >
-        <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
-      </button>
-      <button
-        onClick={goToNext}
-        disabled={currentPage === totalPages - 1 || isTransitioning}
-        className={`fixed right-3 sm:right-6 top-1/2 z-30 -translate-y-1/2 rounded-full p-2.5 sm:p-3 transition-all duration-300 disabled:opacity-20 disabled:cursor-not-allowed hidden md:flex items-center justify-center ${
-          isDayMode
-            ? "bg-white/80 text-slate-700 hover:bg-white hover:shadow-lg"
-            : "bg-white/10 text-white hover:bg-white/20"
-        }`}
-      >
-        <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
-      </button>
-    </>
-  );
+    const offset = window.innerWidth < 768 ? 76 : 96;
+    const scroller = pageRef.current;
 
-  // Page 1: Hero
-  const renderHeroPage = () => (
-    <div className="flex h-full w-full items-center justify-center p-6">
-      <div className="relative mx-auto max-w-[1400px] text-center">
-        <MotionDiv
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <div className={`inline-flex items-center gap-2 border rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-widest mb-8 ${
-            isDayMode ? "border-cyan-200 bg-cyan-50 text-cyan-700" : "border-cyan-400/30 bg-cyan-400/10 text-cyan-300"
-          }`}>
-            <Sparkles className="h-3.5 w-3.5" />
-            AI Build Arena 2026
-          </div>
+    if (!scroller) {
+      const end = target.getBoundingClientRect().top + window.scrollY - offset;
+      window.scrollTo({
+        top: end,
+        behavior: shouldAnimate ? "smooth" : "auto",
+      });
+      return;
+    }
 
-          <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-black tracking-tight leading-none mb-6">
-            <span className="block">AI 全栈极速</span>
-            <span className="block bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-              黑客松
-            </span>
-          </h1>
+    scroller.scrollTo({
+      top: Math.max(target.offsetTop - offset, 0),
+      behavior: shouldAnimate ? "smooth" : "auto",
+    });
+  };
 
-          <p className={`text-xl sm:text-2xl md:text-3xl font-medium mb-8 ${isDayMode ? "text-slate-600" : "text-white/70"}`}>
-            {event.subtitle}
-          </p>
-
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mb-12">
-            <div className={`flex items-center gap-2 px-5 py-3 rounded-full ${
-              isDayMode ? "bg-white shadow-md" : "bg-white/10"
-            }`}>
-              <Calendar className={`h-5 w-5 ${isDayMode ? "text-cyan-600" : "text-cyan-400"}`} />
-              <span className="text-sm sm:text-base font-medium">{event.date}</span>
-            </div>
-            <div className={`flex items-center gap-2 px-5 py-3 rounded-full ${
-              isDayMode ? "bg-white shadow-md" : "bg-white/10"
-            }`}>
-              <MapPin className={`h-5 w-5 ${isDayMode ? "text-cyan-600" : "text-cyan-400"}`} />
-              <span className="text-sm sm:text-base font-medium">{event.location}</span>
-            </div>
-          </div>
-
-          <button
-            onClick={goToNext}
-            className={`group inline-flex items-center gap-3 px-8 py-4 rounded-full text-lg font-bold transition-all duration-300 ${
-              isDayMode
-                ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-xl shadow-cyan-500/30 hover:shadow-2xl hover:shadow-cyan-500/40 hover:-translate-y-1"
-                : "bg-gradient-to-r from-cyan-400 to-blue-500 text-white shadow-xl shadow-cyan-500/30 hover:shadow-2xl hover:shadow-cyan-500/40 hover:-translate-y-1"
-            }`}
-          >
-            立即报名
-            <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-          </button>
-        </MotionDiv>
-
-        <MotionDiv
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          className="absolute bottom-12 left-1/2 -translate-x-1/2"
-        >
-          <ArrowDown className={`h-8 w-8 animate-bounce ${isDayMode ? "text-slate-400" : "text-white/40"}`} />
-        </MotionDiv>
-      </div>
-    </div>
-  );
-
-  // Page 2: Info
-  const renderInfoPage = () => (
-    <div data-scrollable className="flex h-full w-full items-start justify-center p-4 sm:p-6 overflow-y-auto">
-      <div className="relative mx-auto max-w-[1400px] w-full py-8 sm:py-12">
-        <MotionDiv
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="grid gap-6 lg:gap-8 lg:grid-cols-2"
-        >
-          {/* Left: Event Info */}
-          <div className="space-y-6">
-            <h2 className="text-4xl sm:text-5xl font-black">
-              比赛<span className="text-cyan-400">信息</span>
-            </h2>
-
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { icon: Calendar, label: "比赛时间", value: event.date },
-                { icon: MapPin, label: "比赛地点", value: event.location },
-                { icon: Users, label: "比赛形式", value: event.format },
-                { icon: Clock, label: "比赛时长", value: event.duration },
-              ].map((item, idx) => (
-                <div
-                  key={idx}
-                  className={`rounded-2xl border p-5 ${
-                    isDayMode
-                      ? "border-slate-200 bg-white shadow-md"
-                      : "border-white/10 bg-white/5"
-                  }`}
-                >
-                  <item.icon className={`h-6 w-6 mb-3 ${isDayMode ? "text-cyan-600" : "text-cyan-400"}`} />
-                  <p className={`text-xs mb-1 ${isDayMode ? "text-slate-500" : "text-white/50"}`}>{item.label}</p>
-                  <p className="text-lg font-bold">{item.value}</p>
-                </div>
-              ))}
-            </div>
-
-            <p className={`text-base leading-relaxed ${isDayMode ? "text-slate-600" : "text-white/70"}`}>
-              {event.description}
-            </p>
-
-            {/* Partners */}
-            <div>
-              <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
-                <Trophy className={`h-5 w-5 ${isDayMode ? "text-cyan-600" : "text-cyan-400"}`} />
-                合作方
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {event.partners.map((partner, idx) => (
-                  <span
-                    key={idx}
-                    className={`inline-flex items-center rounded-lg px-4 py-2 text-sm font-semibold ${
-                      isDayMode
-                        ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white"
-                        : "bg-gradient-to-r from-cyan-400 to-blue-500 text-white"
-                    }`}
-                  >
-                    {partner}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Right: AI Ecosystem */}
-          <div className={`rounded-3xl border p-8 ${
-            isDayMode
-              ? "border-slate-200 bg-white shadow-lg"
-              : "border-white/10 bg-white/5"
-          }`}>
-            <div className="flex items-start justify-between gap-4 mb-6">
-              <div>
-                <h3 className="text-2xl font-bold mb-2 flex items-center gap-2">
-                  <div className="h-2.5 w-2.5 rounded-full bg-cyan-400" />
-                  AI 生态团队
-                </h3>
-                <p className={`text-sm ${isDayMode ? "text-slate-600" : "text-white/70"}`}>
-                  汇聚学校、社团与企业三方力量，共建 AI 创新生态
-                </p>
-              </div>
-              <Link
-                to="/about"
-                className="group inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
-              >
-                了解更多
-                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-              </Link>
-            </div>
-
-            <div className="space-y-5">
-              {[
-                { title: "学校", items: ["未来学习中心", "AI 联合实验室"], color: "from-indigo-500 to-purple-500" },
-                { title: "社团", items: ["XLAB", "ZJUAI", "EAI", "AIRA", "KAB"], color: "from-purple-500 to-pink-500" },
-                { title: "企业", items: ["Minimax", "阿里云", "魔搭", "阶跃星辰"], color: "from-cyan-500 to-blue-500" },
-              ].map((group, idx) => (
-                <div key={idx}>
-                  <h4 className="text-sm font-bold mb-3 flex items-center gap-2">
-                    <div className={`h-2 w-2 rounded-full bg-gradient-to-r ${group.color}`} />
-                    {group.title}
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {group.items.map((item, itemIdx) => (
-                      <span
-                        key={itemIdx}
-                        className={`inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-bold bg-gradient-to-r ${group.color} text-white shadow-md`}
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </MotionDiv>
-      </div>
-    </div>
-  );
-
-  // Page 3: Registration Form
-  const renderFormPage = () => (
-    <div data-scrollable className="flex h-full w-full items-start justify-center p-4 sm:p-6 overflow-y-auto">
-      <div className="relative mx-auto max-w-[800px] w-full py-8 sm:py-12">
-        <MotionDiv
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className={`rounded-2xl sm:rounded-3xl border p-6 sm:p-8 md:p-10 ${
-            isDayMode
-              ? "border-slate-200 bg-white shadow-xl"
-              : "border-white/10 bg-white/5"
-          }`}
-        >
-          <div className="text-center mb-8">
-            <h2 className="text-4xl sm:text-5xl font-black mb-3">
-              报名<span className="text-cyan-400">参赛</span>
-            </h2>
-            <p className={`text-base ${isDayMode ? "text-slate-600" : "text-white/70"}`}>
-              填写以下信息完成报名
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="grid gap-5 sm:grid-cols-2">
-              <div>
-                <label className={`block text-sm font-semibold mb-2 ${isDayMode ? "text-slate-700" : "text-white/90"}`}>
-                  姓名 <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={handleInputChange("name")}
-                  placeholder="请输入姓名"
-                  className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all ${
-                    isDayMode
-                      ? "border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
-                      : "border-white/10 bg-white/5 text-white placeholder:text-white/30 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
-                  } ${formErrors.name ? "border-rose-500" : ""}`}
-                />
-                {formErrors.name && (
-                  <p className="mt-1.5 flex items-center gap-1 text-xs text-rose-500">
-                    <AlertCircle className="h-3.5 w-3.5" />
-                    {formErrors.name}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className={`block text-sm font-semibold mb-2 ${isDayMode ? "text-slate-700" : "text-white/90"}`}>
-                  学号 <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.studentId}
-                  onChange={handleInputChange("studentId")}
-                  placeholder="请输入学号"
-                  className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all ${
-                    isDayMode
-                      ? "border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
-                      : "border-white/10 bg-white/5 text-white placeholder:text-white/30 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
-                  } ${formErrors.studentId ? "border-rose-500" : ""}`}
-                />
-                {formErrors.studentId && (
-                  <p className="mt-1.5 flex items-center gap-1 text-xs text-rose-500">
-                    <AlertCircle className="h-3.5 w-3.5" />
-                    {formErrors.studentId}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="grid gap-5 sm:grid-cols-2">
-              <div>
-                <label className={`block text-sm font-semibold mb-2 ${isDayMode ? "text-slate-700" : "text-white/90"}`}>
-                  专业 <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.major}
-                  onChange={handleInputChange("major")}
-                  placeholder="请输入专业"
-                  className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all ${
-                    isDayMode
-                      ? "border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
-                      : "border-white/10 bg-white/5 text-white placeholder:text-white/30 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
-                  } ${formErrors.major ? "border-rose-500" : ""}`}
-                />
-                {formErrors.major && (
-                  <p className="mt-1.5 flex items-center gap-1 text-xs text-rose-500">
-                    <AlertCircle className="h-3.5 w-3.5" />
-                    {formErrors.major}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className={`block text-sm font-semibold mb-2 ${isDayMode ? "text-slate-700" : "text-white/90"}`}>
-                  年级 <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  value={formData.grade}
-                  onChange={handleInputChange("grade")}
-                  className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all ${
-                    isDayMode
-                      ? "border-slate-200 bg-slate-50 text-slate-900 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
-                      : "border-white/10 bg-white/5 text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
-                  } ${formErrors.grade ? "border-rose-500" : ""}`}
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='${encodeURIComponent(isDayMode ? "#6b7280" : "#94a3b8")}' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                    backgroundPosition: "right 0.75rem center",
-                    backgroundRepeat: "no-repeat",
-                    backgroundSize: "1.25em 1.25em",
-                    paddingRight: "2.5rem",
-                    appearance: "none",
-                  }}
-                >
-                  <option value="" style={{ backgroundColor: isDayMode ? "#fff" : "#0f172a", color: isDayMode ? "#0f172a" : "#fff" }}>请选择年级</option>
-                  {gradeOptions.map((option) => (
-                    <option key={option.value} value={option.value} style={{ backgroundColor: isDayMode ? "#fff" : "#0f172a", color: isDayMode ? "#0f172a" : "#fff" }}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                {formErrors.grade && (
-                  <p className="mt-1.5 flex items-center gap-1 text-xs text-rose-500">
-                    <AlertCircle className="h-3.5 w-3.5" />
-                    {formErrors.grade}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <label className={`block text-sm font-semibold mb-3 ${isDayMode ? "text-slate-700" : "text-white/90"}`}>
-                常用 AI 工具 <span className="text-rose-500">*</span>（可多选）
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {aiToolOptions.map((tool) => {
-                  const isSelected = formData.aiTools.includes(tool.value);
-                  return (
-                    <button
-                      key={tool.value}
-                      type="button"
-                      onClick={() => handleToolToggle(tool.value)}
-                      className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
-                        isSelected
-                          ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md"
-                          : isDayMode
-                          ? "border border-slate-200 bg-slate-50 text-slate-600 hover:border-cyan-300"
-                          : "border border-white/10 bg-white/5 text-white/70 hover:border-cyan-400"
-                      }`}
-                    >
-                      {isSelected && <CheckCircle className="mr-1.5 inline h-4 w-4" />}
-                      {tool.label}
-                    </button>
-                  );
-                })}
-              </div>
-              {formErrors.aiTools && (
-                <p className="mt-2 flex items-center gap-1 text-xs text-rose-500">
-                  <AlertCircle className="h-3.5 w-3.5" />
-                  {formErrors.aiTools}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className={`block text-sm font-semibold mb-2 ${isDayMode ? "text-slate-700" : "text-white/90"}`}>
-                AI 开发经历 <span className={`text-xs font-normal ${isDayMode ? "text-slate-400" : "text-white/40"}`}>(选填)</span>
-              </label>
-              <textarea
-                value={formData.experience}
-                onChange={(e) => setFormData((prev) => ({ ...prev, experience: e.target.value }))}
-                placeholder="简述你使用 AI 开发项目的经历..."
-                rows={4}
-                maxLength={500}
-                className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all resize-none ${
-                  isDayMode
-                    ? "border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
-                    : "border-white/10 bg-white/5 text-white placeholder:text-white/30 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
-                }`}
-              />
-              <p className={`mt-1 text-xs text-right ${isDayMode ? "text-slate-400" : "text-white/30"}`}>
-                {formData.experience.length}/500
-              </p>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white py-4 rounded-xl text-lg font-bold shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 mt-4"
-            >
-              {isSubmitting ? (
-                <span className="inline-flex items-center gap-2">
-                  <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  提交中...
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-2">
-                  提交报名
-                  <Send className="h-5 w-5" />
-                </span>
-              )}
-            </button>
-          </form>
-        </MotionDiv>
-      </div>
-    </div>
-  );
-
-  const pages = [renderHeroPage, renderInfoPage, renderFormPage];
+  const scrollToForm = () => {
+    smoothScrollTo("registration-form");
+  };
 
   return (
     <div
-      ref={containerRef}
-      className={`relative h-[100svh] overflow-hidden ${
-        isDayMode
-          ? "bg-[linear-gradient(135deg,#f6f8fb_0%,#e8f4f8_50%,#f6f8fb_100%)]"
-          : "bg-[radial-gradient(circle_at_50%_0%,rgba(6,182,212,0.15),transparent_50%),radial-gradient(circle_at_80%_80%,rgba(59,130,246,0.12),transparent_50%),#030304]"
-      }`}
+      ref={pageRef}
+      className={`min-h-[100svh] overflow-x-hidden scroll-smooth ${palette.page}`}
     >
       <SEO
         title={`${event.title}报名`}
         description={`${event.title} - ${event.subtitle}。在限定时间内独立完成一个可运行的 AI 应用。`}
       />
 
-      <PageIndicator />
-      <NavArrows />
+      <div className="fixed right-5 top-1/2 z-20 hidden -translate-y-1/2 flex-col gap-3 2xl:flex">
+        {[
+          { id: "hackathon-hero", label: "01" },
+          { id: "event-brief", label: "02" },
+          { id: "registration-form", label: "03" },
+        ].map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => smoothScrollTo(item.id)}
+            className={`group flex h-11 w-11 items-center justify-center border text-[11px] font-black tracking-[0.18em] transition duration-300 hover:border-cyan-300 hover:text-cyan-300 ${palette.chip}`}
+            aria-label={`跳转到第 ${item.label} 屏`}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
 
-      <AnimatePresence mode="wait" custom={direction}>
-        <MotionDiv
-          key={currentPage}
-          custom={direction}
-          variants={shouldAnimate ? pageVariants : undefined}
-          initial={shouldAnimate ? "enter" : false}
-          animate="center"
-          exit={shouldAnimate ? "exit" : false}
-          transition={{
-            duration: shouldAnimate ? 0.4 : 0,
-            ease: [0.22, 1, 0.36, 1],
-          }}
-          className="absolute inset-0"
-        >
-          {pages[currentPage]()}
-        </MotionDiv>
-      </AnimatePresence>
+      <section
+        id="hackathon-hero"
+        className="relative min-h-[100svh] snap-start snap-always px-4 pt-[calc(env(safe-area-inset-top)+72px)] sm:px-6 lg:px-10 2xl:px-16"
+      >
+        <div className="pointer-events-none absolute inset-0">
+          <div
+            className={`absolute inset-0 ${
+              isDayMode
+                ? "bg-[linear-gradient(115deg,rgba(255,255,255,0.86),rgba(236,254,255,0.62)_48%,rgba(248,250,252,0.96))]"
+                : "bg-[radial-gradient(circle_at_70%_22%,rgba(34,211,238,0.18),transparent_26%),radial-gradient(circle_at_16%_12%,rgba(16,185,129,0.12),transparent_24%),linear-gradient(135deg,#030303_0%,#071111_48%,#030405_100%)]"
+            }`}
+          />
+          <div
+            className={`absolute inset-0 opacity-[0.18] ${
+              isDayMode
+                ? "bg-[linear-gradient(rgba(15,23,42,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.12)_1px,transparent_1px)]"
+                : "bg-[linear-gradient(rgba(103,232,249,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(103,232,249,0.12)_1px,transparent_1px)]"
+            } bg-[size:44px_44px]`}
+          />
+          <div className="absolute left-0 top-0 h-px w-full bg-gradient-to-r from-transparent via-cyan-300/70 to-transparent" />
+          <div className="absolute bottom-[-22%] right-[-16%] h-[520px] w-[520px] rounded-full bg-cyan-300/12 blur-[110px]" />
+        </div>
+
+        <div className="relative mx-auto grid min-h-[calc(100svh-112px)] w-full max-w-[1680px] items-center gap-12 pb-24 lg:grid-cols-[minmax(0,1fr)_minmax(540px,0.94fr)] lg:gap-16 lg:pb-24 xl:gap-24 2xl:grid-cols-[minmax(0,820px)_minmax(680px,760px)] 2xl:justify-between">
+          <MotionDiv {...heroMotion} className="max-w-[860px]">
+            <div className={`mb-6 inline-flex items-center gap-2 border px-3.5 py-2 text-xs font-semibold uppercase tracking-[0.22em] ${palette.chip}`}>
+              <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
+              AI Build Arena 2026
+            </div>
+
+            <h1 className="max-w-[900px] text-5xl font-black leading-[0.96] tracking-tight sm:text-7xl lg:text-8xl 2xl:text-[104px]">
+              <span className="block">AI 全栈极速</span>
+              <span className="block">黑客松</span>
+            </h1>
+
+            <MotionDiv
+              {...(shouldAnimate
+                ? {
+                    initial: "hidden",
+                    animate: "show",
+                    variants: {
+                      hidden: {},
+                      show: { transition: { staggerChildren: 0.08, delayChildren: 0.22 } },
+                    },
+                  }
+                : {})}
+              role="group"
+              aria-label={event.subtitle}
+              className="mt-7 grid max-w-[820px] grid-cols-3 gap-2 sm:gap-3 xl:gap-4"
+            >
+              {heroStats.map((stat) => (
+                <motion.div
+                  key={stat.code}
+                  {...(shouldAnimate
+                    ? {
+                        variants: {
+                          hidden: { opacity: 0, y: 18, scale: 0.94 },
+                          show: {
+                            opacity: 1,
+                            y: 0,
+                            scale: 1,
+                            transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+                          },
+                        },
+                      }
+                    : {})}
+                  className={`group relative transform-gpu overflow-hidden border px-3 py-3 text-left transition duration-300 hover:-translate-y-0.5 hover:border-cyan-300/70 sm:px-5 sm:py-5 xl:px-6 xl:py-6 ${
+                    isDayMode
+                      ? "border-cyan-500/24 bg-white/76 shadow-[0_20px_42px_rgba(15,23,42,0.08)]"
+                      : "border-cyan-300/24 bg-cyan-300/[0.045] shadow-[0_20px_55px_rgba(0,0,0,0.34)]"
+                  }`}
+                >
+                  <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300 to-transparent opacity-70" />
+                  <div
+                    aria-hidden="true"
+                    className="absolute inset-y-0 left-[-20%] w-1/3 bg-gradient-to-r from-transparent via-cyan-200/12 to-transparent opacity-0 transition duration-500 group-hover:left-full group-hover:opacity-100"
+                  />
+                  <div className="relative flex items-baseline gap-1.5 sm:gap-2">
+                    <span className="text-5xl font-black leading-none tracking-tight text-cyan-300 sm:text-6xl xl:text-7xl">
+                      {stat.value}
+                    </span>
+                    <span className={`text-lg font-black sm:text-2xl xl:text-3xl ${isDayMode ? "text-slate-950" : "text-white"}`}>
+                      {stat.unit}
+                    </span>
+                  </div>
+                  <div className={`relative mt-3 font-mono text-[10px] font-bold uppercase tracking-[0.2em] xl:text-xs ${palette.textMuted}`}>
+                    {stat.code}
+                  </div>
+                </motion.div>
+              ))}
+            </MotionDiv>
+
+            <p className={`mt-6 max-w-3xl text-base leading-8 sm:text-lg xl:text-xl xl:leading-9 ${palette.textSoft}`}>
+              {event.description}
+            </p>
+
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={scrollToForm}
+                className={`group inline-flex min-h-12 items-center justify-center gap-2 px-7 text-sm font-bold transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 xl:min-h-14 xl:px-9 xl:text-base ${palette.primary}`}
+              >
+                立即报名
+                <Send className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </button>
+              <Link
+                to="/about"
+                className={`inline-flex min-h-12 items-center justify-center gap-2 border px-7 text-sm font-semibold transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 xl:min-h-14 xl:px-9 xl:text-base ${palette.secondary}`}
+              >
+                了解生态团队
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </MotionDiv>
+
+          <MotionDiv
+            {...(shouldAnimate
+              ? {
+                  initial: { opacity: 0, scale: 0.96, y: 24 },
+                  animate: { opacity: 1, scale: 1, y: 0 },
+                  transition: { duration: 0.72, delay: 0.12, ease: [0.22, 1, 0.36, 1] },
+                }
+              : {})}
+            className={`relative w-full justify-self-end overflow-hidden border p-6 backdrop-blur-2xl sm:p-8 xl:p-10 ${palette.panelStrong}`}
+          >
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_22%_22%,rgba(103,232,249,0.14),transparent_34%),linear-gradient(135deg,rgba(103,232,249,0.08),transparent_46%)]" />
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300 to-transparent" />
+            <div className="absolute right-6 top-6 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300 xl:right-8 xl:top-8">
+              <span className="h-2 w-2 rounded-full bg-cyan-300 shadow-[0_0_18px_rgba(103,232,249,0.8)]" />
+              Live Brief
+            </div>
+
+            <div className="relative mt-10 grid gap-6 xl:gap-7">
+              <div>
+                <p className={`text-xs font-semibold uppercase tracking-[0.24em] ${palette.textMuted}`}>Prize pool</p>
+                <div className="mt-3 flex flex-wrap items-end gap-x-4 gap-y-1">
+                  <span className="text-7xl font-black leading-none tracking-tighter text-cyan-300 sm:text-8xl xl:text-9xl">
+                    17,500
+                  </span>
+                  <span className="pb-4 text-4xl font-black leading-none text-cyan-300 sm:text-5xl xl:pb-6 xl:text-6xl">
+                    ￥
+                  </span>
+                  <span className="pb-3 text-2xl font-black tracking-[0.12em] sm:text-3xl xl:pb-4 xl:text-4xl">奖金池</span>
+                </div>
+              </div>
+
+              <div className={`grid gap-px overflow-hidden border-y bg-cyan-300/18 ${palette.line} sm:grid-cols-2`}>
+                {eventMeta.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <div
+                      key={item.label}
+                      className={`${isDayMode ? "bg-white/92" : "bg-[#071011]/92"} group min-h-[112px] p-5 transition duration-200 hover:bg-cyan-300/10 xl:min-h-[128px] xl:p-6`}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="font-mono text-xs font-black uppercase tracking-[0.18em] text-cyan-300">
+                            {item.index} / {item.label}
+                          </p>
+                          <p className="mt-3 text-xl font-black tracking-tight xl:text-2xl">{item.value}</p>
+                        </div>
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center border border-cyan-300/40 bg-cyan-300/10 text-cyan-300 xl:h-14 xl:w-14">
+                          <Icon className="h-6 w-6 xl:h-7 xl:w-7" />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 text-center xl:gap-3">
+                {["AI 原生", "独立完成", "作品优先"].map((item) => (
+                  <div key={item} className={`border px-2 py-3 text-xs font-semibold xl:py-4 xl:text-sm ${palette.chip}`}>
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </MotionDiv>
+
+          <button
+            type="button"
+            onClick={() => smoothScrollTo("event-brief")}
+            className={`group absolute bottom-6 left-1/2 hidden -translate-x-1/2 items-center gap-2 border px-3 py-2 text-xs font-bold uppercase tracking-[0.18em] transition duration-300 hover:border-cyan-300/70 hover:text-cyan-300 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 md:inline-flex ${palette.chip}`}
+          >
+            继续了解
+            <span className="inline-flex transition-transform duration-300 group-hover:translate-y-0.5">
+              <ChevronDown className="h-4 w-4" />
+            </span>
+          </button>
+        </div>
+      </section>
+
+      <MotionSection
+        id="event-brief"
+        {...sectionMotion}
+        className="relative flex min-h-[100svh] snap-start snap-always items-center overflow-hidden px-4 py-[72px] sm:px-6 sm:py-20 lg:px-12 lg:py-20 2xl:px-20 2xl:py-24"
+      >
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(103,232,249,0.14),transparent_28%),radial-gradient(circle_at_76%_26%,rgba(99,102,241,0.14),transparent_26%)]" />
+        <div className="mx-auto max-w-[1800px]">
+          <div className="relative overflow-hidden">
+            <div className="pointer-events-none absolute right-[-4%] top-[-10%] font-black uppercase leading-none tracking-[-0.08em] text-white/[0.04] text-[20vw]">
+              SHIP
+            </div>
+
+            <div className="relative grid gap-16 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] lg:items-stretch xl:gap-36 2xl:gap-44">
+              <div className="order-2 flex flex-col lg:min-h-[620px]">
+                <p className="text-sm font-bold uppercase tracking-[0.28em] text-cyan-300">Competition Board</p>
+                <h2 className="mt-5 max-w-3xl text-5xl font-black leading-[0.98] tracking-tight sm:text-7xl xl:text-[70px] 2xl:text-[84px]">
+                  5小时交付。
+                  <span className="block text-cyan-300">0路演。</span>
+                  只看作品。
+                </h2>
+                <p className={`mt-6 max-w-xl text-base leading-8 xl:text-lg xl:leading-8 ${palette.textSoft}`}>
+                  现场把想法变成可运行的 AI 应用。规则足够直接：个人完成、AI 原生、作品优先。
+                </p>
+
+                <div className={`mt-10 border-t pt-7 lg:mt-auto ${palette.line}`}>
+                  <p className="text-sm font-bold uppercase tracking-[0.24em] text-cyan-300">Ecosystem</p>
+                  <h3 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl xl:text-[44px]">支持阵容</h3>
+
+                  <div className="mt-7 grid gap-3">
+                    {ecosystemGroups.map((group) => (
+                      <div
+                        key={group.label}
+                        className={`grid gap-4 border-l-2 px-6 py-3.5 sm:grid-cols-[104px_1fr] sm:items-center xl:px-6 xl:py-4 ${
+                          isDayMode ? "border-cyan-500 bg-white/60" : "border-cyan-300 bg-cyan-300/[0.035]"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 text-base font-black text-cyan-300">
+                          <span className="h-2.5 w-2.5 bg-cyan-300" />
+                          {group.label}
+                        </div>
+                        <div className="flex flex-wrap gap-3">
+                          {group.partners.map((partner) => (
+                            <span key={partner} className={`border px-4 py-2.5 text-base font-black ${palette.chip}`}>
+                              {partner}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="order-1 flex">
+                <div className="grid flex-1 content-start gap-6 xl:gap-7">
+                  {challenges.map((challenge, index) => {
+                    const Icon = challenge.icon;
+                    return (
+                      <div
+                        key={challenge.title}
+                        className={`group relative flex min-h-[176px] overflow-hidden border p-6 transition duration-300 sm:p-8 xl:min-h-[188px] xl:p-9 ${
+                          isDayMode
+                            ? "border-slate-200 bg-white/84 shadow-[0_24px_60px_rgba(15,23,42,0.08)]"
+                            : "border-white/10 bg-[#101516]/88 shadow-[0_28px_80px_rgba(0,0,0,0.36)]"
+                        }`}
+                      >
+                        <div className="absolute inset-y-0 left-0 w-1 bg-cyan-300 opacity-80" />
+                        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,rgba(103,232,249,0.10),transparent_34%)] opacity-0 transition duration-300 group-hover:opacity-100" />
+                        <div className="relative grid flex-1 gap-7 sm:grid-cols-[124px_1fr] sm:items-center">
+                          <div className="flex items-center gap-3 sm:block">
+                            <div className="flex h-[72px] w-[72px] items-center justify-center bg-cyan-300 text-slate-950 shadow-[0_0_36px_rgba(103,232,249,0.28)] sm:h-[88px] sm:w-[88px]">
+                              <Icon className="h-8 w-8 sm:h-10 sm:w-10" />
+                            </div>
+                            <p className="font-mono text-xs font-black uppercase tracking-[0.24em] text-cyan-300 sm:mt-4">
+                              Rule 0{index + 1}
+                            </p>
+                          </div>
+                          <div>
+                            <h3 className="text-4xl font-black tracking-tight sm:text-5xl">{challenge.title}</h3>
+                            <p className={`mt-4 max-w-2xl text-sm leading-7 sm:text-base xl:text-lg xl:leading-8 ${palette.textSoft}`}>
+                              {challenge.text}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </MotionSection>
+
+      <section
+        id="registration-form"
+        className="relative flex min-h-[100svh] snap-start snap-always items-center overflow-hidden px-4 py-[88px] sm:px-6 lg:px-8"
+      >
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_24%,rgba(103,232,249,0.12),transparent_28%),radial-gradient(circle_at_84%_70%,rgba(99,102,241,0.12),transparent_24%)]" />
+        <div className="pointer-events-none absolute left-[-3%] top-[8%] font-black uppercase leading-none tracking-[-0.08em] text-white/[0.035] text-[18vw]">
+          APPLY
+        </div>
+        <div className="mx-auto grid w-full max-w-7xl gap-8 lg:grid-cols-[0.78fr_1.22fr] lg:items-center">
+          <div>
+            <p className="text-sm font-bold uppercase tracking-[0.24em] text-cyan-300">Register</p>
+            <h2 className="mt-4 text-4xl font-black tracking-tight sm:text-5xl">参赛登记</h2>
+            <p className={`mt-5 max-w-md text-base leading-8 ${palette.textSoft}`}>
+              填写基础信息后提交报名。赛事通知会通过后续渠道同步给入选同学。
+            </p>
+            <div className={`mt-7 border p-4 ${palette.panel}`}>
+              <div className="flex items-start gap-3">
+                <Bot className="mt-0.5 h-5 w-5 shrink-0 text-cyan-300" />
+                <p className={`text-sm leading-7 ${palette.textSoft}`}>
+                  工具选择用于了解参赛者的 AI 开发习惯，不影响报名资格。
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <MotionDiv
+            {...(shouldAnimate
+              ? {
+                  initial: { opacity: 0, y: 24 },
+                  whileInView: { opacity: 1, y: 0 },
+                  viewport: { once: true, margin: "-80px" },
+                  transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
+                }
+              : {})}
+            className={`border p-5 backdrop-blur-2xl sm:p-7 ${palette.panelStrong}`}
+          >
+            <div className="mb-6 flex items-center justify-between gap-4 border-b border-cyan-300/14 pb-5">
+              <div>
+                <h3 className="text-2xl font-black">报名信息</h3>
+                <p className={`mt-1 text-sm ${palette.textMuted}`}>所有带 * 的字段均为必填</p>
+              </div>
+              <Trophy className="h-7 w-7 text-cyan-300" />
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="grid gap-5 sm:grid-cols-2">
+                <Field
+                  label="姓名"
+                  required
+                  error={formErrors.name}
+                  palette={palette}
+                >
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={handleInputChange("name")}
+                    placeholder="请输入姓名"
+                    className={`w-full border px-4 py-3 text-sm outline-none transition ${palette.field} ${
+                      formErrors.name ? "border-rose-500 focus:border-rose-500 focus:ring-rose-100" : ""
+                    }`}
+                  />
+                </Field>
+
+                <Field
+                  label="学号"
+                  required
+                  error={formErrors.studentId}
+                  palette={palette}
+                >
+                  <input
+                    type="text"
+                    value={formData.studentId}
+                    onChange={handleInputChange("studentId")}
+                    placeholder="请输入学号"
+                    className={`w-full border px-4 py-3 text-sm outline-none transition ${palette.field} ${
+                      formErrors.studentId ? "border-rose-500 focus:border-rose-500 focus:ring-rose-100" : ""
+                    }`}
+                  />
+                </Field>
+              </div>
+
+              <div className="grid gap-5 sm:grid-cols-2">
+                <Field
+                  label="专业"
+                  required
+                  error={formErrors.major}
+                  palette={palette}
+                >
+                  <input
+                    type="text"
+                    value={formData.major}
+                    onChange={handleInputChange("major")}
+                    placeholder="请输入专业"
+                    className={`w-full border px-4 py-3 text-sm outline-none transition ${palette.field} ${
+                      formErrors.major ? "border-rose-500 focus:border-rose-500 focus:ring-rose-100" : ""
+                    }`}
+                  />
+                </Field>
+
+                <Field
+                  label="年级"
+                  required
+                  error={formErrors.grade}
+                  palette={palette}
+                >
+                  <select
+                    value={formData.grade}
+                    onChange={handleInputChange("grade")}
+                    className={`w-full appearance-none border px-4 py-3 text-sm outline-none transition ${palette.field} ${
+                      formErrors.grade ? "border-rose-500 focus:border-rose-500 focus:ring-rose-100" : ""
+                    }`}
+                  >
+                    <option value="" className={isDayMode ? "bg-white text-slate-950" : "bg-slate-950 text-white"}>
+                      请选择年级
+                    </option>
+                    {gradeOptions.map((option) => (
+                      <option
+                        key={option.value}
+                        value={option.value}
+                        className={isDayMode ? "bg-white text-slate-950" : "bg-slate-950 text-white"}
+                      >
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
+
+              <div>
+                <label className={`mb-3 block text-sm font-bold ${palette.textSoft}`}>
+                  常用 AI 工具 <span className="text-rose-400">*</span>
+                  <span className={`ml-2 font-normal ${palette.textMuted}`}>可多选</span>
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {aiToolOptions.map((tool) => {
+                    const isSelected = formData.aiTools.includes(tool.value);
+                    return (
+                      <button
+                        key={tool.value}
+                        type="button"
+                        onClick={() => handleToolToggle(tool.value)}
+                        className={`inline-flex min-h-10 items-center gap-2 border px-4 text-sm font-bold transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 ${
+                          isSelected
+                            ? "border-cyan-300 bg-cyan-300 text-slate-950"
+                            : `${palette.chip} hover:border-cyan-300/60 hover:text-cyan-300`
+                        }`}
+                      >
+                        {isSelected && <CheckCircle className="h-4 w-4" />}
+                        {tool.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                {formErrors.aiTools && (
+                  <p className="mt-2 flex items-center gap-1 text-xs text-rose-400">
+                    <AlertCircle className="h-3.5 w-3.5" />
+                    {formErrors.aiTools}
+                  </p>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className={`group inline-flex min-h-12 w-full items-center justify-center gap-2 px-6 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-55 ${palette.primary}`}
+              >
+                {isSubmitting ? (
+                  <>
+                    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    提交中...
+                  </>
+                ) : (
+                  <>
+                    提交报名
+                    <Send className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  </>
+                )}
+              </button>
+            </form>
+          </MotionDiv>
+        </div>
+      </section>
     </div>
   );
 };
+
+const Field = ({ label, required, error, palette, children }) => (
+  <div>
+    <label className={`mb-2 block text-sm font-bold ${palette.textSoft}`}>
+      {label} {required && <span className="text-rose-400">*</span>}
+    </label>
+    {children}
+    {error && (
+      <p className="mt-2 flex items-center gap-1 text-xs text-rose-400">
+        <AlertCircle className="h-3.5 w-3.5" />
+        {error}
+      </p>
+    )}
+  </div>
+);
 
 export default HackathonRegistration;
