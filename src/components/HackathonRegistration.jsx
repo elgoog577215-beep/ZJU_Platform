@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import {
   Calendar,
   MapPin,
@@ -14,6 +15,7 @@ import {
   Cpu,
   Code2,
   Rocket,
+   ArrowRight,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useSettings } from "../context/SettingsContext";
@@ -50,7 +52,7 @@ const HackathonRegistration = () => {
     : "border-white/10 bg-white/[0.04] text-white placeholder:text-white/26 focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/10";
 
   const primaryButtonClass = isDayMode
-    ? "inline-flex items-center justify-center gap-2 rounded-full border border-indigo-300/20 bg-[linear-gradient(135deg,#6366f1_0%,#4f46e5_100%)] px-6 py-3 text-sm font-medium text-white shadow-[0_18px_34px_rgba(99,102,241,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_42px_rgba(99,102,241,0.32)] active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+    ? "inline-flex items-center justify-center gap-2 rounded-full border border-transparent bg-[linear-gradient(135deg,#4f46e5_0%,#6366f1_100%)] px-6 py-3 text-sm font-medium text-white shadow-[0_8px_20px_rgba(99,102,241,0.35)] transition-all duration-300 hover:shadow-[0_12px_28px_rgba(99,102,241,0.45)] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
     : "inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-medium text-slate-950 transition-transform duration-300 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0";
 
   const labelClass = isDayMode ? "text-slate-500" : "text-white/45";
@@ -62,7 +64,7 @@ const HackathonRegistration = () => {
   const hackathonTitle = settings.hackathon_title || "AI 全栈极速黑客松";
   const hackathonSubtitle = settings.hackathon_subtitle || "5 小时极速开发 · 纯个人参赛 · AI 原生创作";
   const hackathonDate = settings.hackathon_date || "5 月 10 日 9:00 A.M.";
-  const hackathonLocation = settings.hackathon_location || "浙江大学";
+  const hackathonLocation = settings.hackathon_location || "北 1-114";
   const hackathonFormat = settings.hackathon_format || "个人赛";
   const hackathonDuration = settings.hackathon_duration || "5 小时";
   const hackathonDesc = settings.hackathon_desc || "AI 全栈极速黑客松是以 AI 原生开发为核心的技术赛事，参赛者需在 5 小时内独立完成一个完整的 AI 应用项目。比赛强调快速原型开发、AI 工具运用与创新思维。";
@@ -188,26 +190,41 @@ const HackathonRegistration = () => {
                 
                 {/* AI 生态团队介绍 */}
                 <div className="lg:border-l lg:border-white/10 lg:pl-8">
-                  <h3 className={`text-lg font-bold mb-3 ${isDayMode ? "text-slate-900" : "text-white"} flex items-center gap-2`}>
-                    <div className={`h-2 w-2 rounded-full ${isDayMode ? "bg-indigo-500" : "bg-cyan-400"}`} />
-                    AI 生态团队
-                  </h3>
-                  <p className={`text-sm mb-5 leading-relaxed ${isDayMode ? "text-slate-600" : "text-white/70"}`}>
-                    汇聚学校、社团与企业三方力量，共建 AI 创新生态，为参赛者提供全方位支持
-                  </p>
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div>
+                      <h3 className={`text-lg font-bold mb-2 ${isDayMode ? "text-slate-900" : "text-white"} flex items-center gap-2`}>
+                        <div className={`h-2 w-2 rounded-full ${isDayMode ? "bg-indigo-600" : "bg-cyan-400"}`} />
+                        AI 生态团队
+                      </h3>
+                      <p className={`text-sm leading-relaxed ${isDayMode ? "text-slate-600" : "text-white/70"}`}>
+                        汇聚学校、社团与企业三方力量，共建 AI 创新生态
+                      </p>
+                    </div>
+                    <Link
+                      to="/about"
+                      className={`group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 ${
+                        isDayMode
+                          ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-200 hover:shadow-xl hover:shadow-indigo-300 hover:-translate-y-0.5"
+                          : "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30 hover:shadow-xl hover:shadow-cyan-500/50 hover:-translate-y-0.5"
+                      }`}
+                    >
+                      了解更多
+                      <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                    </Link>
+                  </div>
                   
                   <div className="space-y-5">
                     {/* 学校 */}
                     <div>
                       <h4 className={`text-sm font-bold mb-3 flex items-center gap-2 ${isDayMode ? "text-slate-800" : "text-white/90"}`}>
-                        <div className={`h-2 w-2 rounded-full ${isDayMode ? "bg-indigo-500" : "bg-cyan-400"}`} />
+                        <div className={`h-2 w-2 rounded-full ${isDayMode ? "bg-indigo-600" : "bg-cyan-400"}`} />
                         学校
                       </h4>
                       <div className="flex flex-wrap gap-2">
                         {["未来学习中心", "AI 联合实验室"].map((partner) => (
                           <span key={partner} className={`inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm ${
                             isDayMode 
-                              ? "bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-indigo-200"
+                              ? "bg-gradient-to-br from-indigo-600 to-indigo-700 text-white shadow-indigo-200"
                               : "bg-gradient-to-br from-cyan-500/20 to-cyan-600/20 text-cyan-300 shadow-lg shadow-cyan-500/10 ring-1 ring-inset ring-cyan-400/30"
                           }`}>
                             {partner}
@@ -219,14 +236,14 @@ const HackathonRegistration = () => {
                     {/* 社团 */}
                     <div>
                       <h4 className={`text-sm font-bold mb-3 flex items-center gap-2 ${isDayMode ? "text-slate-800" : "text-white/90"}`}>
-                        <div className={`h-2 w-2 rounded-full ${isDayMode ? "bg-indigo-500" : "bg-cyan-400"}`} />
+                        <div className={`h-2 w-2 rounded-full ${isDayMode ? "bg-indigo-600" : "bg-cyan-400"}`} />
                         社团
                       </h4>
                       <div className="flex flex-wrap gap-2">
                         {["XLAB", "ZJUAI", "EAI", "AIRA", "KAB"].map((partner) => (
                           <span key={partner} className={`inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm ${
                             isDayMode 
-                              ? "bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-purple-200"
+                              ? "bg-gradient-to-br from-purple-600 to-purple-700 text-white shadow-purple-200"
                               : "bg-gradient-to-br from-cyan-500/20 to-cyan-600/20 text-cyan-300 shadow-lg shadow-cyan-500/10 ring-1 ring-inset ring-cyan-400/30"
                           }`}>
                             {partner}
@@ -238,14 +255,14 @@ const HackathonRegistration = () => {
                     {/* 企业 */}
                     <div>
                       <h4 className={`text-sm font-bold mb-3 flex items-center gap-2 ${isDayMode ? "text-slate-800" : "text-white/90"}`}>
-                        <div className={`h-2 w-2 rounded-full ${isDayMode ? "bg-indigo-500" : "bg-cyan-400"}`} />
+                        <div className={`h-2 w-2 rounded-full ${isDayMode ? "bg-indigo-600" : "bg-cyan-400"}`} />
                         企业
                       </h4>
                       <div className="flex flex-wrap gap-2">
                         {["minimax", "阿里云", "魔搭", "阶跃星辰"].map((partner) => (
                           <span key={partner} className={`inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm ${
                             isDayMode 
-                              ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-blue-200"
+                              ? "bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-blue-200"
                               : "bg-gradient-to-br from-cyan-500/20 to-cyan-600/20 text-cyan-300 shadow-lg shadow-cyan-500/10 ring-1 ring-inset ring-cyan-400/30"
                           }`}>
                             {partner}
@@ -307,12 +324,12 @@ const HackathonRegistration = () => {
               {/* Partners */}
               <div className={`rounded-[24px] border p-5 ${shellClass}`}>
                 <h2 className="text-xl font-bold mb-3 flex items-center gap-2">
-                  <Trophy className={`h-5 w-5 ${isDayMode ? "text-indigo-500" : "text-cyan-400"}`} />
+                  <Trophy className={`h-5 w-5 ${isDayMode ? "text-indigo-600" : "text-cyan-400"}`} />
                   合作方
                 </h2>
                 <div className="flex flex-wrap gap-2">
-                  {partners.map((partner, index) => (
-                    <div key={index} className={`rounded-lg border px-4 py-2 text-sm font-medium ${chipClass}`}>
+                  {["未来学习中心", "ZJUAI", "XLab", "minimax", "阿里云", "魔搭", "阶跃星辰"].map((partner) => (
+                    <div key={partner} className={`rounded-lg border px-4 py-2 text-sm font-medium ${chipClass}`}>
                       {partner}
                     </div>
                   ))}

@@ -690,6 +690,145 @@ const SettingsManager = () => {
           </div>
         </div>
       </AdminPanel>
+
+      <AdminPanel
+        title="黑客松页面设置"
+        description="黑客松报名页面的标题、时间和合作方配置。"
+        action={<FileText size={18} className="text-indigo-300" />}
+      >
+        <div className="grid gap-5">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              黑客松 - 标题
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <input
+                type="text"
+                value={settings.hackathon_title || ""}
+                onChange={(event) => handleChange("hackathon_title", event.target.value)}
+                placeholder="AI 全栈极速黑客松"
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("hackathon_title")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              黑客松 - 副标题
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <input
+                type="text"
+                value={settings.hackathon_subtitle || ""}
+                onChange={(event) => handleChange("hackathon_subtitle", event.target.value)}
+                placeholder="5 小时极速开发 · 纯个人参赛 · AI 原生创作"
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("hackathon_subtitle")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              黑客松 - 比赛时间
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <input
+                type="text"
+                value={settings.hackathon_date || ""}
+                onChange={(event) => handleChange("hackathon_date", event.target.value)}
+                placeholder="5 月 10 日 9:00 A.M."
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("hackathon_date")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              黑客松 - 比赛地点
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <input
+                type="text"
+                value={settings.hackathon_location || ""}
+                onChange={(event) => handleChange("hackathon_location", event.target.value)}
+                placeholder="北 1-114"
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("hackathon_location")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              黑客松 - 比赛形式
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <input
+                type="text"
+                value={settings.hackathon_format || ""}
+                onChange={(event) => handleChange("hackathon_format", event.target.value)}
+                placeholder="个人赛"
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("hackathon_format")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              黑客松 - 比赛时长
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <input
+                type="text"
+                value={settings.hackathon_duration || ""}
+                onChange={(event) => handleChange("hackathon_duration", event.target.value)}
+                placeholder="5 小时"
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("hackathon_duration")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              黑客松 - 描述
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <textarea
+                value={settings.hackathon_desc || ""}
+                onChange={(event) => handleChange("hackathon_desc", event.target.value)}
+                placeholder="AI 全栈极速黑客松是以 AI 原生开发为核心的技术赛事，参赛者需在 5 小时内独立完成一个完整的 AI 应用项目。比赛强调快速原型开发、AI 工具运用与创新思维。"
+                rows={3}
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("hackathon_desc")}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <label className="mb-2 block text-sm font-medium text-gray-400">
+              黑客松 - 合作方（逗号分隔）
+            </label>
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <textarea
+                value={settings.hackathon_partners || ""}
+                onChange={(event) => handleChange("hackathon_partners", event.target.value)}
+                placeholder="未来学习中心，ZJUAI,XLab,minimax，阿里云，魔搭，阶跃星辰"
+                rows={2}
+                className="theme-admin-input flex-1 rounded-xl p-3"
+              />
+              {fieldAction("hackathon_partners")}
+            </div>
+            <p className="mt-2 text-xs text-gray-500">
+              多个合作方使用英文逗号分隔，将同时显示在合作方和 AI 生态团队区域。
+            </p>
+          </div>
+        </div>
+      </AdminPanel>
     </AdminPageShell>
   );
 };
