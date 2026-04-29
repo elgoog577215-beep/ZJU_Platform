@@ -102,7 +102,7 @@ const HackathonRegistration = () => {
       title: readableSetting(settings.hackathon_title, "AI 全栈极速黑客松"),
       subtitle: "5小时、1个人、0路演",
       date: readableSetting(settings.hackathon_date, "5月10日 9:00 A.M."),
-      location: readableSetting(settings.hackathon_location, "北 1-114"),
+      location: readableSetting(settings.hackathon_location, "北2-112"),
       format: readableSetting(settings.hackathon_format, "个人赛"),
       duration: readableSetting(settings.hackathon_duration, "5 小时"),
       description: readableSetting(
@@ -195,7 +195,7 @@ const HackathonRegistration = () => {
     { index: "01", label: "时间", value: event.date, icon: Calendar },
     { index: "02", label: "地点", value: event.location, icon: MapPin },
     { index: "03", label: "形式", value: event.format, icon: Users },
-    { index: "04", label: "奖金池", value: "17,500 ￥", icon: Trophy },
+    { index: "04", label: "奖金池", value: "16,500 ￥", icon: Trophy },
   ];
 
   const challenges = [
@@ -477,7 +477,7 @@ const HackathonRegistration = () => {
                 </p>
                 <div className="mt-3 flex flex-wrap items-end gap-x-4 gap-y-1">
                   <span className={`text-7xl font-black leading-none tracking-tighter ${palette.accent} sm:text-8xl xl:text-9xl`}>
-                    17,500
+                    16,500
                   </span>
                   <span className={`pb-4 text-4xl font-black leading-none ${palette.accent} sm:text-5xl xl:pb-6 xl:text-6xl`}>
                     ￥

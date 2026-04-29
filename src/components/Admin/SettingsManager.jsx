@@ -754,7 +754,7 @@ const SettingsManager = () => {
                 type="text"
                 value={settings.hackathon_location || ""}
                 onChange={(event) => handleChange("hackathon_location", event.target.value)}
-                placeholder="北 1-114"
+                placeholder="北2-112"
                 className="theme-admin-input flex-1 rounded-xl p-3"
               />
               {fieldAction("hackathon_location")}
