@@ -47,6 +47,33 @@ const splitPartners = (value, fallback) => {
 
 const MotionDiv = motion.div;
 const MotionSection = motion.section;
+const officialWechatGroupImage = "/images/wechat-official-group.jpg";
+const partnerLogos = [
+  {
+    src: "/images/partner-logos/modelscope.png",
+    alt: "ModelScope logo",
+    frame: "light",
+    size: "max-w-[78px] sm:max-w-[108px] lg:max-w-[126px]",
+  },
+  {
+    src: "/images/partner-logos/company-2.png",
+    alt: "Partner company logo",
+    frame: "light",
+    size: "max-w-[72px] sm:max-w-[96px] lg:max-w-[112px]",
+  },
+  {
+    src: "/images/partner-logos/company-3.png",
+    alt: "Partner company logo",
+    frame: "light",
+    size: "max-w-[76px] sm:max-w-[104px] lg:max-w-[120px]",
+  },
+  {
+    src: "/images/partner-logos/stepfun-white.png",
+    alt: "StepFun logo",
+    frame: "dark",
+    size: "max-w-[84px] sm:max-w-[118px] lg:max-w-[138px]",
+  },
+];
 
 const HackathonRegistration = () => {
   const { settings, uiMode } = useSettings();
@@ -444,6 +471,46 @@ const HackathonRegistration = () => {
           />
           <div className={`absolute left-0 top-0 h-px w-full ${isDayMode ? "bg-gradient-to-r from-transparent via-cyan-600/50 to-transparent" : "bg-gradient-to-r from-transparent via-cyan-300/70 to-transparent"}`} />
           <div className={`absolute bottom-[-22%] right-[-16%] h-[520px] w-[520px] rounded-full blur-[110px] ${isDayMode ? "bg-cyan-500/8" : "bg-cyan-300/12"}`} />
+        </div>
+
+        <div
+          className={`relative z-10 mx-auto mb-6 flex w-[calc(100%-2rem)] max-w-[720px] flex-wrap items-center justify-center gap-1 border px-1.5 py-1.5 backdrop-blur-2xl sm:absolute sm:right-6 sm:top-[calc(env(safe-area-inset-top)+80px)] sm:mx-0 sm:mb-0 sm:w-auto sm:justify-end sm:gap-1.5 sm:px-2 lg:right-10 lg:top-[calc(env(safe-area-inset-top)+78px)] lg:gap-2 2xl:right-16 ${
+            isDayMode
+              ? "border-white/80 bg-white/72 shadow-[0_20px_52px_rgba(15,23,42,0.13)] ring-1 ring-slate-900/[0.04]"
+              : "border-white/12 bg-slate-950/38 shadow-[0_20px_58px_rgba(0,0,0,0.38)] ring-1 ring-white/[0.04]"
+          }`}
+          aria-label="企业 logo"
+        >
+          <div
+            className={`pointer-events-none absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent ${
+              isDayMode ? "via-cyan-500/45" : "via-cyan-200/60"
+            } to-transparent`}
+          />
+          {partnerLogos.map((logo) => (
+            <span
+              key={logo.src}
+              className={`group relative flex h-7 min-w-[72px] items-center justify-center overflow-hidden border px-2 transition duration-300 hover:-translate-y-0.5 sm:h-8 sm:min-w-[98px] sm:px-3 lg:h-9 lg:min-w-[112px] ${
+                logo.frame === "dark"
+                  ? "border-white/12 bg-slate-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_10px_24px_rgba(2,6,23,0.26)]"
+                  : "border-white bg-white shadow-[inset_0_1px_0_rgba(255,255,255,0.92),0_10px_26px_rgba(15,23,42,0.10)]"
+              }`}
+            >
+              <span
+                aria-hidden="true"
+                className={`pointer-events-none absolute inset-0 opacity-0 transition duration-300 group-hover:opacity-100 ${
+                  logo.frame === "dark"
+                    ? "bg-[radial-gradient(circle_at_50%_0%,rgba(103,232,249,0.20),transparent_58%)]"
+                    : "bg-[radial-gradient(circle_at_50%_0%,rgba(6,182,212,0.10),transparent_58%)]"
+                }`}
+              />
+              <img
+                src={logo.src}
+                alt={logo.alt}
+                className={`relative max-h-4 object-contain sm:max-h-6 lg:max-h-7 ${logo.size}`}
+                loading="eager"
+              />
+            </span>
+          ))}
         </div>
 
         <div className="relative mx-auto grid min-h-[calc(100svh-112px)] w-full max-w-[1680px] items-center gap-8 pb-24 pt-8 lg:grid-cols-[minmax(0,1fr)_minmax(540px,0.94fr)] lg:gap-16 lg:pb-24 xl:gap-24 2xl:grid-cols-[minmax(0,820px)_minmax(680px,760px)] 2xl:justify-between">
@@ -980,6 +1047,31 @@ const HackathonRegistration = () => {
                     {formErrors.experience}
                   </p>
                 )}
+              </div>
+
+              <div>
+                <label
+                  className={`mb-3 block text-sm font-bold ${palette.textSoft}`}
+                >
+                  请加入官方微信群
+                  <span className={`ml-2 font-normal ${palette.textMuted}`}>
+                    可选
+                  </span>
+                </label>
+                <div
+                  className={`inline-flex max-w-full border p-3 ${
+                    isDayMode
+                      ? "border-slate-200 bg-white/80"
+                      : "border-white/10 bg-white/[0.04]"
+                  }`}
+                >
+                  <img
+                    src={officialWechatGroupImage}
+                    alt="官方微信群二维码"
+                    className="h-auto w-full max-w-[240px] object-contain"
+                    loading="lazy"
+                  />
+                </div>
               </div>
 
               <button
