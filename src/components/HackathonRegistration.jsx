@@ -48,33 +48,35 @@ const splitPartners = (value, fallback) => {
 const MotionDiv = motion.div;
 const MotionSection = motion.section;
 const officialWechatGroupImage = "/images/wechat-official-group.jpg";
-const partnerLogos = [
+const partnerLogosTop = [
+  {
+    src: "/images/partner-logos/minimax.png",
+    darkSrc: "/images/partner-logos/minimax-dark.png",
+    alt: "MiniMax logo",
+  },
   {
     src: "/images/partner-logos/modelscope.png",
     darkSrc: "/images/partner-logos/modelscope-dark.png",
-    alt: "ModelScope logo",
-    frame: "light",
-    size: "max-w-[78px] sm:max-w-[108px] lg:max-w-[126px]",
-  },
-  {
-    src: "/images/partner-logos/company-2.png",
-    darkSrc: "/images/partner-logos/company-2-dark.png",
-    alt: "Partner company logo",
-    frame: "light",
-    size: "max-w-[72px] sm:max-w-[96px] lg:max-w-[112px]",
+    alt: "ModelScope 魔搭社区 logo",
   },
   {
     src: "/images/partner-logos/company-3.png",
     darkSrc: "/images/partner-logos/company-3-dark.png",
-    alt: "Partner company logo",
-    frame: "light",
-    size: "max-w-[76px] sm:max-w-[104px] lg:max-w-[120px]",
+    alt: "数字名片 Bonjour logo",
+  },
+];
+
+const partnerLogosBottom = [
+  {
+    src: "/images/partner-logos/company-2.png",
+    darkSrc: "/images/partner-logos/company-2-dark.png",
+    alt: "云江开物 logo",
+    size: "h-4 sm:h-5 lg:h-6",
   },
   {
-    src: "/images/partner-logos/stepfun-white.png",
-    alt: "StepFun logo",
-    frame: "dark",
-    size: "max-w-[84px] sm:max-w-[118px] lg:max-w-[138px]",
+    src: "/images/partner-logos/stepfun.png",
+    darkSrc: "/images/partner-logos/stepfun-white.png",
+    alt: "阶跃 StepFun logo",
   },
 ];
 
@@ -225,7 +227,7 @@ const HackathonRegistration = () => {
     { index: "01", label: "时间", value: event.date, icon: Calendar },
     { index: "02", label: "地点", value: event.location, icon: MapPin },
     { index: "03", label: "形式", value: event.format, icon: Users },
-    { index: "04", label: "奖金池", value: "16,500 ￥", icon: Trophy },
+    { index: "04", label: "奖金池", value: "17,500 ￥", icon: Trophy },
   ];
 
   const challenges = [
@@ -477,48 +479,32 @@ const HackathonRegistration = () => {
         </div>
 
         <div
-          className={`relative z-10 mx-auto mb-6 flex w-[calc(100%-2rem)] max-w-[720px] flex-wrap items-center justify-center gap-1 border px-1.5 py-1.5 backdrop-blur-2xl sm:absolute sm:right-6 sm:top-[calc(env(safe-area-inset-top)+80px)] sm:mx-0 sm:mb-0 sm:w-auto sm:justify-end sm:gap-1.5 sm:px-2 lg:right-10 lg:top-[calc(env(safe-area-inset-top)+78px)] lg:gap-2 2xl:right-16 ${
-            isDayMode
-              ? "border-white/80 bg-white/72 shadow-[0_20px_52px_rgba(15,23,42,0.13)] ring-1 ring-slate-900/[0.04]"
-              : "border-white/12 bg-slate-950/38 shadow-[0_20px_58px_rgba(0,0,0,0.38)] ring-1 ring-white/[0.04]"
-          }`}
+          className="relative z-10 mx-auto mb-6 flex w-[calc(100%-2rem)] max-w-[760px] flex-col items-center gap-1 sm:absolute sm:right-6 sm:top-[calc(env(safe-area-inset-top)+80px)] sm:mx-0 sm:mb-0 sm:w-auto sm:items-end sm:gap-1.5 lg:right-10 lg:top-[calc(env(safe-area-inset-top)+78px)] lg:gap-2 2xl:right-16"
           aria-label="企业 logo"
         >
-          <div
-            className={`pointer-events-none absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent ${
-              isDayMode ? "via-cyan-500/45" : "via-cyan-200/60"
-            } to-transparent`}
-          />
-          {partnerLogos.map((logo) => (
-            <span
-              key={logo.src}
-              className={`group relative flex h-7 min-w-[72px] items-center justify-center overflow-hidden border px-2 transition duration-300 hover:-translate-y-0.5 sm:h-8 sm:min-w-[98px] sm:px-3 lg:h-9 lg:min-w-[112px] ${
-                isDayMode
-                  ? logo.frame === "dark"
-                    ? "border-white/12 bg-slate-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_10px_24px_rgba(2,6,23,0.26)]"
-                    : "border-white bg-white shadow-[inset_0_1px_0_rgba(255,255,255,0.92),0_10px_26px_rgba(15,23,42,0.10)]"
-                  : "border-transparent bg-transparent shadow-none"
-              }`}
+          {[partnerLogosTop, partnerLogosBottom].map((row, rowIndex) => (
+            <div
+              key={rowIndex}
+              className="flex flex-wrap items-center justify-center gap-1.5 sm:flex-nowrap sm:justify-end sm:gap-2 lg:gap-2.5"
             >
-              <span
-                aria-hidden="true"
-                className={`pointer-events-none absolute inset-0 opacity-0 transition duration-300 group-hover:opacity-100 ${
-                  isDayMode
-                    ? logo.frame === "dark"
-                      ? "bg-[radial-gradient(circle_at_50%_0%,rgba(103,232,249,0.20),transparent_58%)]"
-                      : "bg-[radial-gradient(circle_at_50%_0%,rgba(6,182,212,0.10),transparent_58%)]"
-                    : "bg-[radial-gradient(circle_at_50%_50%,rgba(103,232,249,0.12),transparent_62%)]"
-                }`}
-              />
-              <img
-                src={isDayMode ? logo.src : logo.darkSrc || logo.src}
-                alt={logo.alt}
-                className={`relative max-h-4 object-contain sm:max-h-6 lg:max-h-7 ${
-                  isDayMode ? "" : "drop-shadow-[0_1px_10px_rgba(103,232,249,0.18)]"
-                } ${logo.size}`}
-                loading="eager"
-              />
-            </span>
+              {row.map((logo) => (
+                <span
+                  key={logo.src}
+                  className="group relative flex h-9 items-center justify-center px-3 transition duration-300 hover:-translate-y-0.5 sm:h-11 sm:px-4 lg:h-12 lg:px-5"
+                >
+                  <img
+                    src={isDayMode ? logo.src : logo.darkSrc || logo.src}
+                    alt={logo.alt}
+                    className={`relative w-auto object-contain transition duration-300 group-hover:scale-[1.04] ${
+                      logo.size || "h-5 sm:h-7 lg:h-8"
+                    } ${
+                      isDayMode ? "" : "drop-shadow-[0_1px_10px_rgba(103,232,249,0.18)]"
+                    }`}
+                    loading="eager"
+                  />
+                </span>
+              ))}
+            </div>
           ))}
         </div>
 
@@ -553,7 +539,7 @@ const HackathonRegistration = () => {
                 </p>
                 <div className="mt-3 flex flex-wrap items-end gap-x-4 gap-y-1">
                   <span className={`text-7xl font-black leading-none tracking-tighter ${palette.accent} sm:text-8xl xl:text-9xl`}>
-                    16,500
+                    17,500
                   </span>
                   <span className={`pb-4 text-4xl font-black leading-none ${palette.accent} sm:text-5xl xl:pb-6 xl:text-6xl`}>
                     ￥
