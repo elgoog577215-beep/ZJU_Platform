@@ -51,18 +51,21 @@ const officialWechatGroupImage = "/images/wechat-official-group.jpg";
 const partnerLogos = [
   {
     src: "/images/partner-logos/modelscope.png",
+    darkSrc: "/images/partner-logos/modelscope-dark.png",
     alt: "ModelScope logo",
     frame: "light",
     size: "max-w-[78px] sm:max-w-[108px] lg:max-w-[126px]",
   },
   {
     src: "/images/partner-logos/company-2.png",
+    darkSrc: "/images/partner-logos/company-2-dark.png",
     alt: "Partner company logo",
     frame: "light",
     size: "max-w-[72px] sm:max-w-[96px] lg:max-w-[112px]",
   },
   {
     src: "/images/partner-logos/company-3.png",
+    darkSrc: "/images/partner-logos/company-3-dark.png",
     alt: "Partner company logo",
     frame: "light",
     size: "max-w-[76px] sm:max-w-[104px] lg:max-w-[120px]",
@@ -490,23 +493,29 @@ const HackathonRegistration = () => {
             <span
               key={logo.src}
               className={`group relative flex h-7 min-w-[72px] items-center justify-center overflow-hidden border px-2 transition duration-300 hover:-translate-y-0.5 sm:h-8 sm:min-w-[98px] sm:px-3 lg:h-9 lg:min-w-[112px] ${
-                logo.frame === "dark"
-                  ? "border-white/12 bg-slate-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_10px_24px_rgba(2,6,23,0.26)]"
-                  : "border-white bg-white shadow-[inset_0_1px_0_rgba(255,255,255,0.92),0_10px_26px_rgba(15,23,42,0.10)]"
+                isDayMode
+                  ? logo.frame === "dark"
+                    ? "border-white/12 bg-slate-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_10px_24px_rgba(2,6,23,0.26)]"
+                    : "border-white bg-white shadow-[inset_0_1px_0_rgba(255,255,255,0.92),0_10px_26px_rgba(15,23,42,0.10)]"
+                  : "border-transparent bg-transparent shadow-none"
               }`}
             >
               <span
                 aria-hidden="true"
                 className={`pointer-events-none absolute inset-0 opacity-0 transition duration-300 group-hover:opacity-100 ${
-                  logo.frame === "dark"
-                    ? "bg-[radial-gradient(circle_at_50%_0%,rgba(103,232,249,0.20),transparent_58%)]"
-                    : "bg-[radial-gradient(circle_at_50%_0%,rgba(6,182,212,0.10),transparent_58%)]"
+                  isDayMode
+                    ? logo.frame === "dark"
+                      ? "bg-[radial-gradient(circle_at_50%_0%,rgba(103,232,249,0.20),transparent_58%)]"
+                      : "bg-[radial-gradient(circle_at_50%_0%,rgba(6,182,212,0.10),transparent_58%)]"
+                    : "bg-[radial-gradient(circle_at_50%_50%,rgba(103,232,249,0.12),transparent_62%)]"
                 }`}
               />
               <img
-                src={logo.src}
+                src={isDayMode ? logo.src : logo.darkSrc || logo.src}
                 alt={logo.alt}
-                className={`relative max-h-4 object-contain sm:max-h-6 lg:max-h-7 ${logo.size}`}
+                className={`relative max-h-4 object-contain sm:max-h-6 lg:max-h-7 ${
+                  isDayMode ? "" : "drop-shadow-[0_1px_10px_rgba(103,232,249,0.18)]"
+                } ${logo.size}`}
                 loading="eager"
               />
             </span>
