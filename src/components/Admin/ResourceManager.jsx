@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import {
   Search,
@@ -14,22 +14,31 @@ import {
   RefreshCw,
   CheckCircle2,
   RotateCcw,
+  X,
 } from "lucide-react";
 import api from "../../services/api";
+import { getEventCategoryLabel } from "../../data/eventTaxonomy";
 import Dropdown from "../Dropdown";
 import UploadModal from "../UploadModal";
 import {
   AdminButton,
   AdminEmptyState,
+  AdminHelperText,
+  AdminIconButton,
+  AdminInlineNote,
   AdminLoadingState,
   AdminMetricCard,
   AdminPageShell,
   AdminPanel,
+  AdminSelectedBar,
+  AdminTableCellText,
+  AdminTableShell,
   AdminToolbar,
   ConfirmDialog,
   FilterChip,
   StatusBadge,
   ToolbarGroup,
+  useAdminTheme,
 } from "./AdminUI";
 
 const STATUS_FILTERS = [
@@ -40,6 +49,7 @@ const STATUS_FILTERS = [
 ];
 
 const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
+  const { isDayMode, mutedTextClass, headingTextClass } = useAdminTheme();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({
@@ -55,8 +65,16 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
   const [selectedIds, setSelectedIds] = useState([]);
   const [confirmState, setConfirmState] = useState(null);
   const [actionPending, setActionPending] = useState(false);
+  const listRef = useRef(null);
   const isEventResource = apiEndpoint === "events";
   const [sort, setSort] = useState(isEventResource ? "views" : "newest");
+
+  const scrollToList = useCallback((behavior = "smooth") => {
+    if (typeof window === "undefined") return;
+    window.requestAnimationFrame(() => {
+      listRef.current?.scrollIntoView({ behavior, block: "start" });
+    });
+  }, []);
 
   const fetchItems = async (page = 1) => {
     setLoading(true);
@@ -136,9 +154,71 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
   const formatDate = (value) =>
     value ? String(value).replace("T", " ").slice(0, 16) : "未设置";
 
+  const renderTaxonomyPills = (item, maxTags = 4) => {
+    if (isEventResource) {
+      const categoryLabel =
+        getEventCategoryLabel(item.category) || item.category || "未分类";
+
+      return (
+        <div className="flex max-w-xs flex-wrap gap-1">
+          <span
+            className={`rounded-full px-2 py-1 text-xs ${mutedTextClass} ${
+              isDayMode
+                ? "bg-emerald-50 text-emerald-700"
+                : "bg-emerald-500/10 text-emerald-200"
+            }`}
+          >
+            {categoryLabel}
+          </span>
+        </div>
+      );
+    }
+
+    const tags = String(item.tags || "")
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean)
+      .slice(0, maxTags);
+
+    return (
+      <div className="flex max-w-xs flex-wrap gap-1">
+        {tags.map((tag) => (
+          <span
+            key={tag}
+            className={`rounded-full px-2 py-1 text-xs ${mutedTextClass} ${
+              isDayMode ? "bg-slate-100" : "bg-white/5"
+            }`}
+          >
+            {tag}
+          </span>
+        ))}
+        {tags.length === 0 ? (
+          <span className={`text-xs ${mutedTextClass}`}>无标签</span>
+        ) : null}
+      </div>
+    );
+  };
+
   const handleSearch = (event) => {
     event.preventDefault();
     setSearchQuery(searchInput.trim());
+    scrollToList();
+  };
+
+  const clearSearch = () => {
+    setSearchInput("");
+    setSearchQuery("");
+    scrollToList();
+  };
+
+  const updateStatusFilter = (filterId) => {
+    setStatusFilter(filterId);
+    scrollToList();
+  };
+
+  const fetchPage = (page) => {
+    fetchItems(page);
+    scrollToList();
   };
 
   const openConfirm = (mode, payload = {}) => {
@@ -189,6 +269,11 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
       ),
     [filteredItems],
   );
+
+  const serverTotal = Number(pagination.total || 0);
+  const visibleTotal = filteredItems.length;
+  const activeFilterLabel =
+    STATUS_FILTERS.find((filter) => filter.id === statusFilter)?.label || "全部状态";
 
   const submitConfirmedAction = async () => {
     if (!confirmState) return;
@@ -271,7 +356,11 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
       {filteredItems.map((item) => (
         <article
           key={item.id}
-          className="rounded-2xl border border-white/10 bg-white/[0.03] p-4"
+          className={`rounded-2xl border p-4 ${
+            isDayMode
+              ? "border-slate-200/70 bg-white/[0.78]"
+              : "border-white/10 bg-white/[0.03]"
+          }`}
         >
           <div className="flex items-start gap-3">
             <input
@@ -279,7 +368,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
               aria-label={`选择 ${item.title || "未命名内容"}`}
               checked={selectedIds.includes(item.id)}
               onChange={() => toggleSelected(item.id)}
-              className="mt-1 rounded border-white/20 bg-transparent"
+              className="mt-1 rounded border-slate-400/40 bg-transparent"
             />
             {type === "image" && item.url ? (
               <img
@@ -291,39 +380,25 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <StatusBadge status={item.status} />
-                <span className="rounded-full bg-white/5 px-2 py-1 text-xs text-gray-400">
+                <span className={`rounded-full px-2 py-1 text-xs ${mutedTextClass} ${isDayMode ? "bg-slate-100" : "bg-white/5"}`}>
                   ID {item.id}
                 </span>
               </div>
-              <h3 className="mt-2 line-clamp-2 font-semibold text-white">
+              <h3 className={`mt-2 line-clamp-2 font-semibold ${headingTextClass}`}>
                 {item.title || "未命名内容"}
               </h3>
               {isEventResource ? (
-                <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-gray-400">
+                <div className={`mt-2 grid grid-cols-2 gap-2 text-xs ${mutedTextClass}`}>
                   <span>时间: {formatDate(item.date)}</span>
                   <span>访问: {formatNumber(item.views)}</span>
                   <span>报名: {formatNumber(item.registration_count)}</span>
                 </div>
               ) : type === "audio" ? (
-                <p className="mt-2 text-xs text-gray-400">
+                <p className={`mt-2 text-xs ${mutedTextClass}`}>
                   作者: {item.artist || "-"}
                 </p>
               ) : null}
-              <div className="mt-3 flex flex-wrap gap-1">
-                {String(item.tags || "")
-                  .split(",")
-                  .map((tag) => tag.trim())
-                  .filter(Boolean)
-                  .slice(0, 3)
-                  .map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded-full bg-white/5 px-2 py-1 text-xs text-gray-400"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-              </div>
+              <div className="mt-3">{renderTaxonomyPills(item, 3)}</div>
             </div>
           </div>
 
@@ -346,130 +421,111 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
   );
 
   const renderTable = () => (
-    <div className="hidden overflow-hidden rounded-2xl border border-white/10 md:block">
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[860px] text-left text-sm">
-          <thead>
-            <tr className="theme-admin-table-head border-b text-xs uppercase tracking-[0.2em]">
-              <th className="p-4">
-                <input
-                  type="checkbox"
-                  aria-label="选择当前页全部结果"
-                  checked={
-                    filteredItems.length > 0 &&
-                    filteredItems.every((item) => selectedIds.includes(item.id))
-                  }
-                  onChange={toggleSelectedVisible}
-                  className="rounded border-white/20 bg-transparent"
-                />
-              </th>
-              <th className="p-4">标题</th>
-              {isEventResource ? <th className="p-4">活动时间</th> : null}
-              <th className="p-4">状态</th>
-              {isEventResource ? <th className="p-4">访问</th> : null}
-              {isEventResource ? <th className="p-4">报名</th> : null}
-              {type === "image" ? <th className="p-4">预览</th> : null}
-              {type === "audio" ? <th className="p-4">作者</th> : null}
-              <th className="p-4">标签</th>
-              <th className="p-4 text-right">操作</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/5">
-            {filteredItems.map((item) => (
-              <tr key={item.id} className="theme-admin-row">
-                <td className="p-4">
-                  <input
-                    type="checkbox"
-                    aria-label={`选择 ${item.title || "未命名内容"}`}
-                    checked={selectedIds.includes(item.id)}
-                    onChange={() => toggleSelected(item.id)}
-                    className="rounded border-white/20 bg-transparent"
+    <AdminTableShell minWidth={860} maxHeight="62vh">
+      <thead>
+        <tr className="theme-admin-table-head border-b text-xs uppercase tracking-[0.2em]">
+          <th className="p-4">
+            <input
+              type="checkbox"
+              aria-label="选择当前页全部结果"
+              checked={
+                filteredItems.length > 0 &&
+                filteredItems.every((item) => selectedIds.includes(item.id))
+              }
+              onChange={toggleSelectedVisible}
+              className="rounded border-slate-400/40 bg-transparent"
+            />
+          </th>
+          <th className="p-4">标题</th>
+          {isEventResource ? <th className="p-4">活动时间</th> : null}
+          <th className="p-4">状态</th>
+          {isEventResource ? <th className="p-4">访问</th> : null}
+          {isEventResource ? <th className="p-4">报名</th> : null}
+          {type === "image" ? <th className="p-4">预览</th> : null}
+          {type === "audio" ? <th className="p-4">作者</th> : null}
+          <th className="p-4">{isEventResource ? "分类" : "标签"}</th>
+          <th className="p-4 text-right">操作</th>
+        </tr>
+      </thead>
+      <tbody className="theme-admin-table-body divide-y">
+        {filteredItems.map((item) => (
+          <tr key={item.id} className="theme-admin-row">
+            <td className="p-4">
+              <input
+                type="checkbox"
+                aria-label={`选择 ${item.title || "未命名内容"}`}
+                checked={selectedIds.includes(item.id)}
+                onChange={() => toggleSelected(item.id)}
+                className="rounded border-slate-400/40 bg-transparent"
+              />
+            </td>
+            <td className="p-4">
+              <AdminTableCellText strong>
+                {item.title || "未命名内容"}
+              </AdminTableCellText>
+              <div className={`mt-1 text-xs ${mutedTextClass}`}>
+                ID {item.id}
+              </div>
+            </td>
+            {isEventResource ? (
+              <td className="p-4">
+                <AdminTableCellText>{formatDate(item.date)}</AdminTableCellText>
+              </td>
+            ) : null}
+            <td className="p-4">
+              <StatusBadge status={item.status} />
+            </td>
+            {isEventResource ? (
+              <td
+                className={`p-4 ${isDayMode ? "text-indigo-600" : "text-indigo-300"}`}
+              >
+                {formatNumber(item.views)}
+              </td>
+            ) : null}
+            {isEventResource ? (
+              <td
+                className={`p-4 ${isDayMode ? "text-emerald-700" : "text-emerald-300"}`}
+              >
+                {formatNumber(item.registration_count)}
+              </td>
+            ) : null}
+            {type === "image" ? (
+              <td className="p-4">
+                {item.url ? (
+                  <img
+                    src={item.url}
+                    alt={item.title}
+                    className="h-12 w-12 rounded-lg border border-white/10 object-cover"
                   />
-                </td>
-                <td className="p-4">
-                  <div className="font-semibold text-white">
-                    {item.title || "未命名内容"}
-                  </div>
-                  <div className="mt-1 text-xs text-gray-500">ID {item.id}</div>
-                </td>
-                {isEventResource ? (
-                  <td className="p-4 text-gray-300">{formatDate(item.date)}</td>
-                ) : null}
-                <td className="p-4">
-                  <StatusBadge status={item.status} />
-                </td>
-                {isEventResource ? (
-                  <td className="p-4 text-indigo-300">
-                    {formatNumber(item.views)}
-                  </td>
-                ) : null}
-                {isEventResource ? (
-                  <td className="p-4 text-emerald-300">
-                    {formatNumber(item.registration_count)}
-                  </td>
-                ) : null}
-                {type === "image" ? (
-                  <td className="p-4">
-                    {item.url ? (
-                      <img
-                        src={item.url}
-                        alt={item.title}
-                        className="h-12 w-12 rounded-lg border border-white/10 object-cover"
-                      />
-                    ) : (
-                      <div className="text-xs text-gray-500">无预览</div>
-                    )}
-                  </td>
-                ) : null}
-                {type === "audio" ? (
-                  <td className="p-4 text-gray-300">{item.artist || "-"}</td>
-                ) : null}
-                <td className="p-4">
-                  <div className="flex max-w-xs flex-wrap gap-1">
-                    {String(item.tags || "")
-                      .split(",")
-                      .map((tag) => tag.trim())
-                      .filter(Boolean)
-                      .slice(0, 4)
-                      .map((tag) => (
-                        <span
-                          key={tag}
-                          className="rounded-full bg-white/5 px-2 py-1 text-xs text-gray-400"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    {!item.tags ? (
-                      <span className="text-xs text-gray-500">无标签</span>
-                    ) : null}
-                  </div>
-                </td>
-                <td className="p-4">
-                  <div className="flex justify-end gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleEdit(item)}
-                      className="inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg bg-white/5 text-gray-400 transition-colors hover:bg-white/10 hover:text-indigo-300"
-                      title="编辑"
-                    >
-                      <Edit2 size={16} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => openConfirm("delete", { id: item.id })}
-                      className="inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg bg-white/5 text-gray-400 transition-colors hover:bg-white/10 hover:text-red-300"
-                      title="删除"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+                ) : (
+                  <div className="text-xs text-gray-500">无预览</div>
+                )}
+              </td>
+            ) : null}
+            {type === "audio" ? (
+              <td className="p-4">
+                <AdminTableCellText>{item.artist || "-"}</AdminTableCellText>
+              </td>
+            ) : null}
+            <td className="p-4">{renderTaxonomyPills(item, 4)}</td>
+            <td className="p-4">
+              <div className="flex justify-end gap-2">
+                <AdminIconButton onClick={() => handleEdit(item)} label="编辑">
+                  <Edit2 size={16} />
+                </AdminIconButton>
+                <AdminIconButton
+                  onClick={() => openConfirm("delete", { id: item.id })}
+                  label="删除"
+                  tone="danger"
+                >
+                  <Trash2 size={16} />
+                </AdminIconButton>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </AdminTableShell>
   );
 
   if (loading) {
@@ -512,7 +568,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
                     type="text"
                     value={searchInput}
                     onChange={(event) => setSearchInput(event.target.value)}
-                    placeholder="搜索标题或标签"
+                    placeholder={isEventResource ? "搜索标题或分类" : "搜索标题或标签"}
                     className="theme-admin-input w-full rounded-xl py-2.5 pl-10 pr-4 text-sm"
                   />
                 </div>
@@ -523,6 +579,16 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
                 >
                   搜索
                 </AdminButton>
+                {searchInput || searchQuery ? (
+                  <AdminButton
+                    tone="subtle"
+                    className="w-full sm:w-auto"
+                    onClick={clearSearch}
+                  >
+                    <X size={16} />
+                    清空
+                  </AdminButton>
+                ) : null}
               </form>
             </ToolbarGroup>
 
@@ -531,7 +597,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
                 <FilterChip
                   key={filter.id}
                   active={statusFilter === filter.id}
-                  onClick={() => setStatusFilter(filter.id)}
+                  onClick={() => updateStatusFilter(filter.id)}
                 >
                   {filter.label}
                 </FilterChip>
@@ -595,13 +661,36 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
           />
         </div>
 
+        <AdminInlineNote
+          tone={statusFilter === "all" && !searchQuery ? "info" : "warning"}
+          className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <span>
+            列表范围：本页 {items.length} 条，服务器 {formatNumber(serverTotal)} 条；
+            筛选为“{activeFilterLabel}”
+            {searchQuery ? `，搜索“${searchQuery}”` : ""}。
+          </span>
+          <button
+            type="button"
+            className="inline-flex shrink-0 font-semibold underline underline-offset-4"
+            onClick={() => scrollToList()}
+          >
+            查看列表
+          </button>
+        </AdminInlineNote>
+
         {selectedItems.length > 0 ? (
-          <AdminPanel className="border-indigo-500/20 bg-indigo-500/10">
+          <AdminSelectedBar>
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <div className="text-sm text-indigo-100">
+              <div>
+                <div className="text-sm">
                 已选择{" "}
                 <span className="font-semibold">{selectedItems.length}</span>{" "}
-                条内容。
+                  条当前可见内容。
+                </div>
+                <AdminHelperText className="mt-1">
+                  批量操作只会作用于当前已选项目，不会自动包含其它分页或未加载结果。
+                </AdminHelperText>
               </div>
               <div className="flex flex-wrap gap-2">
                 <AdminButton
@@ -641,54 +730,56 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
                 </AdminButton>
               </div>
             </div>
-          </AdminPanel>
+          </AdminSelectedBar>
         ) : null}
 
-        <AdminPanel
-          title={`${title}列表`}
-          description={`当前页共 ${filteredItems.length} 条结果，服务器总计 ${pagination.total} 条。`}
-        >
-          {filteredItems.length === 0 ? (
-            <AdminEmptyState
-              icon={Icon}
-              title="没有匹配的内容"
-              description="尝试切换状态筛选、清空搜索词，或者直接创建新内容。"
-              action={
-                <AdminButton tone="primary" onClick={handleAdd}>
-                  <Plus size={16} />
-                  新增内容
-                </AdminButton>
-              }
-            />
-          ) : (
-            <>
-              {renderMobileCards()}
-              {renderTable()}
-            </>
-          )}
+        <div ref={listRef} className="scroll-mt-28">
+          <AdminPanel
+            title={`${title}列表`}
+            description={`当前可见 ${visibleTotal} 条结果，服务器总计 ${formatNumber(serverTotal)} 条。`}
+          >
+            {filteredItems.length === 0 ? (
+              <AdminEmptyState
+                icon={Icon}
+                title="没有匹配的内容"
+                description="尝试切换状态筛选、清空搜索词，或者直接创建新内容。"
+                action={
+                  <AdminButton tone="primary" onClick={handleAdd}>
+                    <Plus size={16} />
+                    新增内容
+                  </AdminButton>
+                }
+              />
+            ) : (
+              <>
+                {renderMobileCards()}
+                {renderTable()}
+              </>
+            )}
 
-          {pagination.totalPages > 1 ? (
-            <div className="mt-5 flex items-center justify-center gap-3">
-              <AdminButton
-                tone="subtle"
-                disabled={pagination.page === 1}
-                onClick={() => fetchItems(pagination.page - 1)}
-              >
-                <ChevronLeft size={16} />
-              </AdminButton>
-              <span className="text-sm text-gray-400">
-                第 {pagination.page} / {pagination.totalPages} 页
-              </span>
-              <AdminButton
-                tone="subtle"
-                disabled={pagination.page === pagination.totalPages}
-                onClick={() => fetchItems(pagination.page + 1)}
-              >
-                <ChevronRight size={16} />
-              </AdminButton>
-            </div>
-          ) : null}
-        </AdminPanel>
+            {pagination.totalPages > 1 ? (
+              <div className="mt-5 flex items-center justify-center gap-3">
+                <AdminButton
+                  tone="subtle"
+                  disabled={pagination.page === 1}
+                  onClick={() => fetchPage(pagination.page - 1)}
+                >
+                  <ChevronLeft size={16} />
+                </AdminButton>
+                <span className={`text-sm ${mutedTextClass}`}>
+                  第 {pagination.page} / {pagination.totalPages} 页
+                </span>
+                <AdminButton
+                  tone="subtle"
+                  disabled={pagination.page === pagination.totalPages}
+                  onClick={() => fetchPage(pagination.page + 1)}
+                >
+                  <ChevronRight size={16} />
+                </AdminButton>
+              </div>
+            ) : null}
+          </AdminPanel>
+        </div>
       </AdminPageShell>
 
       <ConfirmDialog

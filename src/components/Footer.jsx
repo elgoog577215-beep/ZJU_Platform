@@ -9,14 +9,14 @@ const Footer = () => {
     <footer
       className={`relative z-10 border-t px-4 pt-9 pb-[calc(1.5rem+4.5rem+env(safe-area-inset-bottom))] backdrop-blur-xl sm:px-6 md:pb-12 ${
         isDayMode
-          ? "border-slate-200/80 bg-white/70 text-slate-900"
+          ? "border-slate-200/60 bg-white/42 text-slate-900"
           : "border-white/5 bg-black/40 text-white"
       }`}
     >
       <div
         className={`mx-auto flex max-w-7xl flex-col items-center justify-between gap-5 rounded-[28px] border px-5 py-5 text-center md:flex-row md:px-6 md:text-left ${
           isDayMode
-            ? "border-slate-200/70 bg-white/66"
+            ? "day-fine-surface border"
             : "border-white/6 bg-white/[0.03]"
         }`}
       >
@@ -51,7 +51,7 @@ const Footer = () => {
           rel="noopener noreferrer"
           className={`rounded-full border px-4 py-2.5 text-[11px] font-medium tracking-[0.18em] transition-all sm:text-xs ${
             isDayMode
-              ? "border-slate-200/80 bg-white/88 text-slate-500 hover:bg-white hover:text-slate-900"
+              ? "day-quiet-button border hover:text-slate-900"
               : "border-white/5 bg-white/5 text-gray-500 hover:border-white/10 hover:bg-white/10 hover:text-gray-300"
           }`}
         >

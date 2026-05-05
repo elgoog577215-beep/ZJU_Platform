@@ -9,6 +9,41 @@ const WEATHER_CACHE_TTL = 15 * 60 * 1000;
 const buildWeatherCacheKey = (coords) =>
   `weather_cache:${coords.lat.toFixed(2)}:${coords.lon.toFixed(2)}`;
 
+const normalizeWeatherData = (data) => {
+  if (data?.unavailable === true) {
+    return {
+      temperature: "--",
+      weathercode: 0,
+      windspeed: 0,
+      winddirection: 0,
+      is_day: 1,
+      time: data?.time || new Date().toISOString(),
+      unavailable: true,
+    };
+  }
+
+  const temperature = Number(data?.temperature);
+  if (!Number.isFinite(temperature)) {
+    return null;
+  }
+
+  return {
+    ...data,
+    temperature,
+    weathercode: Number.isFinite(Number(data?.weathercode))
+      ? Number(data.weathercode)
+      : 0,
+    windspeed: Number.isFinite(Number(data?.windspeed))
+      ? Number(data.windspeed)
+      : 0,
+    winddirection: Number.isFinite(Number(data?.winddirection))
+      ? Number(data.winddirection)
+      : 0,
+    is_day: Number.isFinite(Number(data?.is_day)) ? Number(data.is_day) : 1,
+    time: data?.time || new Date().toISOString(),
+  };
+};
+
 const buildFallbackWeather = () => ({
   temperature: "--",
   weathercode: 0,
@@ -16,6 +51,7 @@ const buildFallbackWeather = () => ({
   winddirection: 0,
   is_day: 1,
   time: new Date().toISOString(),
+  unavailable: true,
 });
 
 const readWeatherCache = (coords) => {
@@ -27,19 +63,34 @@ const readWeatherCache = (coords) => {
 
     const parsed = JSON.parse(rawValue);
     const isExpired = Date.now() - parsed.timestamp > WEATHER_CACHE_TTL;
-    return isExpired ? null : parsed.data;
+    if (isExpired) {
+      return null;
+    }
+
+    const normalized = normalizeWeatherData(parsed.data);
+    if (!normalized) {
+      localStorage.removeItem(buildWeatherCacheKey(coords));
+      return null;
+    }
+
+    return normalized;
   } catch {
     return null;
   }
 };
 
 const writeWeatherCache = (coords, data) => {
+  const normalized = normalizeWeatherData(data);
+  if (!normalized) {
+    return;
+  }
+
   try {
     localStorage.setItem(
       buildWeatherCacheKey(coords),
       JSON.stringify({
         timestamp: Date.now(),
-        data,
+        data: normalized,
       }),
     );
   } catch {
@@ -96,12 +147,16 @@ export const useWeather = (
           return;
         }
 
-        const nextWeather = response.data.current_weather;
+        const nextWeather =
+          normalizeWeatherData(response.data?.current_weather) ||
+          buildFallbackWeather();
         setWeather(nextWeather);
         writeWeatherCache(coords, nextWeather);
       } catch {
         if (!abortController.signal.aborted) {
-          setWeather(buildFallbackWeather());
+          const fallbackWeather = buildFallbackWeather();
+          setWeather(fallbackWeather);
+          writeWeatherCache(coords, fallbackWeather);
         }
       }
     }, 250);

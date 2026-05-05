@@ -100,10 +100,10 @@ export const communityTheme = (isDayMode) => ({
 
   // Cards & skeleton
   card: isDayMode
-    ? 'bg-white/82 border-slate-200/80 shadow-[0_18px_42px_rgba(148,163,184,0.12)]'
+    ? 'bg-gradient-to-br from-white/74 via-white/58 to-orange-50/38 border-white/75 shadow-[0_18px_46px_rgba(99,102,241,0.09)] ring-1 ring-slate-900/[0.025]'
     : 'bg-[#1a1a1a]/60 border-white/10',
   cardHover: isDayMode
-    ? 'bg-white/82 hover:bg-white border-slate-200/80 shadow-[0_18px_42px_rgba(148,163,184,0.12)]'
+    ? 'bg-gradient-to-br from-white/74 via-white/58 to-orange-50/38 hover:from-white/88 hover:via-white/72 hover:to-amber-50/52 border-white/75 shadow-[0_18px_46px_rgba(99,102,241,0.09)] ring-1 ring-slate-900/[0.025]'
     : 'bg-[#1a1a1a]/60 hover:bg-[#1a1a1a]/80 border-white/10',
   skeleton: isDayMode ? 'bg-slate-100' : 'bg-white/5',
   skeletonStrong: isDayMode ? 'bg-slate-100' : 'bg-white/10',

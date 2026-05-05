@@ -3,6 +3,10 @@ const cheerio = require('cheerio');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const {
+    buildEventCatalogPromptText,
+    validateParsedEventPayload,
+} = require('../services/eventIntelligenceService');
 
 // Simple In-Memory Cache
 const CACHE_TTL = 1000 * 60 * 60 * 24; // 24 hours
@@ -259,6 +263,7 @@ async function parseWithLLM(data) {
     - 暑假: 2026年7月初开始
     - 春节: 2026年2月17日
     `;
+    const EVENT_CATALOG_CONTEXT = buildEventCatalogPromptText();
 
     const prompt = `
     你是一个专业的活动信息提取助手。请仔细阅读以下微信公众号文章，提取活动关键信息。
@@ -267,13 +272,8 @@ async function parseWithLLM(data) {
     【参考信息】
     当前日期: ${today} (请基于此日期推断文章中的"明天"、"本周五"等相对时间。年份默认为当年，除非文中明确指定跨年)
     ${ACADEMIC_CALENDAR}
-    
-    【文章元数据】
-    - 标题: ${data.title}
-    - 作者: ${data.author}
-    
-    【文章正文】
-    ${data.content}
+
+    ${EVENT_CATALOG_CONTEXT}
     
     【提取要求】
     请提取以下字段并严格按照 JSON 格式返回 (纯 JSON 字符串，不要包含 markdown \`\`\`json 标记):
@@ -287,12 +287,15 @@ async function parseWithLLM(data) {
         "time": "活动具体时间 (如 14:00-16:00)",
         "location": "活动地点 (尽可能详细，包含校区/楼号/室号。例如：'紫金港校区 东六-201'。如果是线上活动，请填'线上'或平台名称)",
         "organizer": "主办方 (优先提取文中提及的具体主办/承办单位，若无则填文章作者)",
-        "target_audience": "面向群体 (如：全校师生、特定学院、本科生、研究生等)",
+        "category": "活动大类。必须直接返回网站标准活动库里的 value 之一，例如 lecture，不要返回中文标签或旧分类",
+        "category_confidence": 0.0到1.0之间的数字，表示你对 category 的信心",
+        "category_reason": "一句话说明为什么选择这个标准大类",
+        "target_audience": "面向群体。必须从网站标准活动库的面向对象标准项中选择；多个对象用英文逗号连接；无法确定填 null",
         "volunteer_time": "志愿时长 (提取具体时长，如 '2.5小时'，无则 null)",
         "score": "综测/素质分 (提取具体分值，如 '0.5分'，无则 null)",
-        "tags": ["标签1", "标签2"] (【严格限制】只能从以下列表中选择最匹配的1-2个标签，严禁使用其他词汇：讲座、志愿活动、竞赛、沙龙、展览、演出、会议、文体活动、招聘、宣讲、学术报告、社会实践、班团活动)
+        "tags": [] (活动标签已停用，必须返回空数组；活动归类只使用 category)
     }
-    
+
     【智能推断指南 (Human-like Reasoning)】
     你的目标不仅仅是“提取”，更是“理解”和“重组”。像一个聪明的人类助理一样思考：
     1. **Description vs Content**: 
@@ -330,7 +333,13 @@ async function parseWithLLM(data) {
                 model: model,
                 messages: [
                     { role: 'system', content: prompt },
-                    { role: 'user', content: `文章标题: ${data.title}\n\n文章内容:\n${data.content.substring(0, 15000)}` } // Truncate to avoid context limit
+                    { role: 'user', content: [
+                        `文章标题: ${data.title}`,
+                        `文章作者: ${data.author}`,
+                        '',
+                        '文章内容:',
+                        data.content.substring(0, 15000)
+                    ].join('\n') } // Truncate to avoid context limit
                 ],
                 stream: false,
                 enable_thinking: false,
@@ -378,6 +387,8 @@ async function parseWithLLM(data) {
             if (result.target_audience) result.target_audience = cleanField(result.target_audience, /^面向群体[：:]\s*/);
             if (result.volunteer_time) result.volunteer_time = cleanField(result.volunteer_time, /^志愿时长[：:]\s*/);
             if (result.score) result.score = cleanField(result.score, /^综测\/素质分[：:]\s*/);
+
+            result = validateParsedEventPayload(result, data);
 
             return result; // Success!
 

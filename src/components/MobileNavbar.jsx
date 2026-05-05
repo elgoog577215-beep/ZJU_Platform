@@ -2,10 +2,15 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Calendar, FileText, Home, Trophy, UserCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { motion } from "framer-motion";
+import { LayoutGroup, motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import { useMediaQuery } from "../hooks/useMediaQuery";
-import { useReducedMotion } from "../utils/animations";
+import {
+  motionTokens,
+  tabbarEntrance,
+  tapPress,
+  useReducedMotion,
+} from "../utils/animations";
 import { useSettings } from "../context/SettingsContext";
 import api from "../services/api";
 
@@ -81,17 +86,33 @@ const MobileNavbar = () => {
   };
 
   return (
-    <nav
-      className={`fixed left-3 right-3 bottom-[max(env(safe-area-inset-bottom),10px)] z-[100] overflow-hidden rounded-[24px] border backdrop-blur-2xl md:hidden sm:left-4 sm:right-4 ${isDayMode ? "border-slate-200/80 bg-white/94 shadow-[0_18px_36px_rgba(148,163,184,0.22)]" : "border-white/10 bg-[#111827]/90 shadow-[0_12px_36px_rgba(0,0,0,0.42)]"}`}
+    <motion.nav
+      variants={tabbarEntrance}
+      initial={prefersReducedMotion ? false : "initial"}
+      animate={prefersReducedMotion ? undefined : "animate"}
+      className={`motion-gpu fixed inset-x-0 bottom-0 z-[100] border-t md:hidden ${isDayMode ? "border-slate-200/90 bg-white shadow-[0_-10px_26px_rgba(15,23,42,0.08)]" : "border-white/10 bg-[#101722] shadow-[0_-12px_30px_rgba(0,0,0,0.36)]"}`}
       aria-label={t("nav.mobile_tabbar", "移动端底部导航")}
     >
-      <div className={`pointer-events-none absolute inset-x-0 top-0 h-px ${isDayMode ? "bg-gradient-to-r from-transparent via-indigo-300/70 to-transparent" : "bg-gradient-to-r from-transparent via-white/25 to-transparent"}`} />
-      <div className="grid h-[72px] grid-cols-5 px-2">
+      <LayoutGroup id="mobile-tabbar">
+      <div className="pb-[env(safe-area-inset-bottom)]">
+      <div className="grid h-[64px] grid-cols-5 px-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = isItemActive(item.path, item.key);
 
-          const sharedClassName = `relative flex flex-col items-center justify-center rounded-2xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isActive ? (isDayMode ? "text-slate-900" : "text-white") : isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white"}`;
+          const sharedClassName = `relative flex flex-col items-center justify-center rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isActive ? (isDayMode ? "text-slate-900" : "text-white") : isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white"}`;
+          const activeIconSurface = isDayMode
+            ? "bg-slate-100 shadow-[0_8px_18px_rgba(99,102,241,0.14)] ring-1 ring-indigo-100"
+            : "bg-[#1d2a44] shadow-[0_0_16px_rgba(99,102,241,0.22)]";
+          const iconClassName = `relative rounded-2xl p-2 transition-colors duration-300 ${
+            isActive
+              ? isDayMode
+                ? "text-indigo-500"
+                : "text-indigo-300"
+              : isDayMode
+                ? "bg-slate-100 text-slate-500"
+                : "bg-[#172033] text-gray-400"
+          }`;
 
           const showUnreadBadge =
             item.key === "me" && user && unreadCount > 0;
@@ -99,13 +120,23 @@ const MobileNavbar = () => {
 
           const inner = (
             <motion.div
-              whileTap={prefersReducedMotion ? undefined : { scale: 0.88 }}
+              whileTap={prefersReducedMotion ? undefined : tapPress}
               className="flex flex-col items-center gap-1.5"
             >
               <div
-                className={`relative rounded-2xl p-2 transition-all duration-300 ${isActive ? "bg-indigo-500/18 text-indigo-400 shadow-[0_0_18px_rgba(99,102,241,0.26)]" : isDayMode ? "bg-slate-100/70" : "bg-white/[0.04]"}`}
+                className={iconClassName}
               >
-                  <Icon size={20} strokeWidth={isActive ? 2.4 : 2} />
+                {isActive &&
+                  (prefersReducedMotion ? (
+                    <span className={`absolute inset-0 rounded-2xl ${activeIconSurface}`} />
+                  ) : (
+                    <motion.span
+                      layoutId="mobile-tab-active-icon"
+                      className={`absolute inset-0 rounded-2xl ${activeIconSurface}`}
+                      transition={motionTokens.spring.tab}
+                    />
+                  ))}
+                  <Icon className="relative z-10" size={20} strokeWidth={isActive ? 2.4 : 2} />
                 {showUnreadBadge && (
                   <span
                     aria-label={t(
@@ -113,7 +144,7 @@ const MobileNavbar = () => {
                       "{{count}} 条未读通知",
                       { count: unreadCount },
                     )}
-                    className={`absolute -top-0.5 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none flex items-center justify-center ring-2 shadow-sm ${isDayMode ? "ring-white" : "ring-[#111827]"}`}
+                    className={`absolute -top-0.5 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none flex items-center justify-center ring-2 shadow-sm ${isDayMode ? "ring-white" : "ring-[#101722]"}`}
                   >
                     {badgeLabel}
                   </span>
@@ -153,7 +184,9 @@ const MobileNavbar = () => {
           );
         })}
       </div>
-    </nav>
+      </div>
+      </LayoutGroup>
+    </motion.nav>
   );
 };
 

@@ -17,6 +17,7 @@ import { ResourceHints } from './components/ResourceHints';
 import { useMediaQuery } from './hooks/useMediaQuery';
 import { usePerformanceMonitor } from './hooks/usePerformanceMonitor';
 import { useServiceWorker } from './hooks/useServiceWorker';
+import { routeTransition, useReducedMotion } from './utils/animations';
 import SEO from './components/SEO';
 
 import Navbar from './components/Navbar';
@@ -66,19 +67,15 @@ const useDeferredMount = (delay = 0) => {
 };
 
 const PageTransition = ({ children }) => {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    setIsMobile(window.innerWidth < 768);
-  }, []);
+  const prefersReducedMotion = useReducedMotion();
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: isMobile ? 0 : 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: isMobile ? 0 : -10 }}
-      transition={{ duration: 0.2, ease: 'easeOut' }}
-      className="w-full"
+      variants={routeTransition}
+      initial={prefersReducedMotion ? false : 'initial'}
+      animate={prefersReducedMotion ? undefined : 'animate'}
+      exit={prefersReducedMotion ? undefined : 'exit'}
+      className="motion-gpu w-full"
     >
       {children}
     </motion.div>
@@ -161,7 +158,7 @@ const AppContent = () => {
   }, [isAdminRoute, location.pathname]);
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="day-ambient-shell flex flex-col min-h-screen">
       <ResourceHints />
       <a
         href="#main-content"
@@ -188,13 +185,17 @@ const AppContent = () => {
 
       <main id="main-content" className="flex-grow pb-32 md:pb-0" role="main">
         <Suspense fallback={<LoadingScreen />}>
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="wait" initial={false}>
             <Routes location={location} key={location.pathname}>
               <Route path="/" element={<PageTransition><Home /></PageTransition>} />
               <Route path="/gallery" element={<PageTransition><Gallery /></PageTransition>} />
               <Route path="/music" element={<PageTransition><Music /></PageTransition>} />
               <Route path="/videos" element={<PageTransition><Videos /></PageTransition>} />
               <Route path="/articles" element={<PageTransition><Articles /></PageTransition>} />
+              <Route path="/community" element={<Navigate to="/articles" replace />} />
+              <Route path="/community/help" element={<Navigate to="/articles?tab=help" replace />} />
+              <Route path="/community/tech" element={<Navigate to="/articles?tab=tech" replace />} />
+              <Route path="/community/groups" element={<Navigate to="/articles?tab=groups" replace />} />
               <Route path="/events" element={<PageTransition><Events /></PageTransition>} />
               <Route path="/about" element={<PageTransition><About /></PageTransition>} />
               <Route path="/hackathon" element={<PageTransition><HackathonRegistration /></PageTransition>} />

@@ -9,6 +9,10 @@ dev-dist/
 test-results/
 playwright-report/
 blob-report/
+tmp/*.png
+tmp/
+.superpowers/
+tmp-*.png
 
 # Logs
 *.log

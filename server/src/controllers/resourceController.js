@@ -2,6 +2,50 @@ const { getDb } = require('../config/db');
 const { deleteFileFromUrl } = require('../utils/fileUtils');
 const { createNotification, fanOutNewContent } = require('./notificationController');
 const { normalizeLinkagePayload, serializeLinkageFields, attachLinkedResources } = require('../utils/communityLinks');
+const { getEventCategoryFilterTerms, normalizeEventCategory } = require('../services/eventIntelligenceService');
+
+const buildCommaSeparatedMatch = (field, value) => ({
+    clause: `("${field}" = ? OR "${field}" LIKE ? OR "${field}" LIKE ? OR "${field}" LIKE ?)`,
+    params: [value, `${value},%`, `%,${value}`, `%,${value},%`],
+});
+
+const buildAllSchoolAudienceMatch = (field) => ({
+    clause: `("${field}" = ? OR "${field}" LIKE ? OR "${field}" LIKE ? OR "${field}" LIKE ? OR "${field}" LIKE ? OR "${field}" LIKE ?)`,
+    params: ['全校', '全校,%', '%,全校', '%,全校,%', '%全校师生%', '%全体师生%'],
+});
+
+const buildEventCategoryFilter = (category) => {
+    const normalized = String(category || '').trim();
+    const terms = getEventCategoryFilterTerms(normalized);
+    if (terms.length === 0) return null;
+
+    const categoryClauses = terms.map(() => 'category = ?');
+    const tagClauses = terms.map(() => '(tags = ? OR tags LIKE ? OR tags LIKE ? OR tags LIKE ?)');
+    const params = [
+        ...terms,
+        ...terms.flatMap(term => [term, `${term},%`, `%,${term}`, `%,${term},%`]),
+    ];
+
+    return {
+        clause: `(${[...categoryClauses, ...tagClauses].join(' OR ')})`,
+        params,
+    };
+};
+
+const buildEventSearchFilter = (searchTerm, rawSearch) => {
+    const category = normalizeEventCategory(rawSearch);
+    if (!category) {
+        return {
+            clause: '(title LIKE ? OR category LIKE ? OR description LIKE ? OR organizer LIKE ? OR target_audience LIKE ?)',
+            params: [searchTerm, searchTerm, searchTerm, searchTerm, searchTerm],
+        };
+    }
+
+    return {
+        clause: '(title LIKE ? OR category LIKE ? OR category = ? OR description LIKE ? OR organizer LIKE ? OR target_audience LIKE ?)',
+        params: [searchTerm, searchTerm, category, searchTerm, searchTerm, searchTerm],
+    };
+};
 
 // FIX: O4 — Remove CREATE TABLE from hot path; table should exist from migrations
 const processTags = async (tagsString) => {
@@ -97,6 +141,9 @@ const createHandler = (table, fields) => async (req, res, next) => {
   try {
     const db = await getDb();
     normalizeArticlePayload(table, req.body);
+    if (table === 'events') {
+        req.body.tags = '';
+    }
     const placeholders = fields.map(() => '?').join(',');
     
     // Determine status based on user role and optional workflow intent.
@@ -140,6 +187,9 @@ const updateHandler = (table, fields) => async (req, res, next) => {
   try {
     const db = await getDb();
     normalizeArticlePayload(table, req.body);
+    if (table === 'events') {
+        req.body.tags = '';
+    }
     const { id } = req.params;
     
     // Check ownership
@@ -428,9 +478,10 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
         if (search && search.trim() !== '') {
             const searchTerm = `%${search}%`;
             if (table === 'events') {
-                whereClauses.push('(title LIKE ? OR tags LIKE ? OR description LIKE ? OR organizer LIKE ? OR target_audience LIKE ?)');
-                params.push(searchTerm, searchTerm, searchTerm, searchTerm, searchTerm);
-                countParams.push(searchTerm, searchTerm, searchTerm, searchTerm, searchTerm);
+                const eventSearch = buildEventSearchFilter(searchTerm, search);
+                whereClauses.push(eventSearch.clause);
+                params.push(...eventSearch.params);
+                countParams.push(...eventSearch.params);
             } else if (table === 'articles') {
                 whereClauses.push('(title LIKE ? OR tags LIKE ? OR excerpt LIKE ? OR content LIKE ?)');
                 params.push(searchTerm, searchTerm, searchTerm, searchTerm);
@@ -455,10 +506,19 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
             countParams.push(effectiveUploaderId);
         }
 
-        if (category && (table === 'articles' || table === 'events')) {
-            whereClauses.push('category = ?');
-            params.push(category);
-            countParams.push(category);
+        if (String(category || '').trim() !== '' && (table === 'articles' || table === 'events')) {
+            if (table === 'events') {
+                const categoryFilter = buildEventCategoryFilter(category);
+                if (categoryFilter) {
+                    whereClauses.push(categoryFilter.clause);
+                    params.push(...categoryFilter.params);
+                    countParams.push(...categoryFilter.params);
+                }
+            } else {
+                whereClauses.push('category = ?');
+                params.push(category);
+                countParams.push(category);
+            }
         }
 
         if (tag && tag !== 'All') {
@@ -472,16 +532,32 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
             const filterableFields = ['location', 'organizer', 'target_audience'];
             filterableFields.forEach(field => {
                 if (req.query[field]) {
-                    whereClauses.push(`"${field}" = ?`);
-                    params.push(req.query[field]);
-                    countParams.push(req.query[field]);
+                    if (field === 'target_audience') {
+                        const audience = String(req.query[field]).trim();
+                        if (audience === '全校') {
+                            const audienceFilter = buildAllSchoolAudienceMatch(field);
+                            whereClauses.push(audienceFilter.clause);
+                            params.push(...audienceFilter.params);
+                            countParams.push(...audienceFilter.params);
+                        } else {
+                            const audienceFilter = buildCommaSeparatedMatch(field, audience);
+                            const allSchoolFilter = buildAllSchoolAudienceMatch(field);
+                            whereClauses.push(`(${audienceFilter.clause} OR ${allSchoolFilter.clause})`);
+                            params.push(...audienceFilter.params, ...allSchoolFilter.params);
+                            countParams.push(...audienceFilter.params, ...allSchoolFilter.params);
+                        }
+                    } else {
+                        whereClauses.push(`"${field}" = ?`);
+                        params.push(req.query[field]);
+                        countParams.push(req.query[field]);
+                    }
                 }
             });
         }
         
         // Tags Search (comma separated for multiple tags OR logic)
         const tagsQuery = req.query.tags;
-        if (tagsQuery && tagsQuery.trim() !== '') {
+        if (table !== 'events' && tagsQuery && tagsQuery.trim() !== '') {
              const tagsList = tagsQuery.split(',').map(t => t.trim()).filter(Boolean);
              if (tagsList.length > 0) {
                  // Optimize tag matching to avoid substring matches (e.g. 'art' matching 'smart')
@@ -789,7 +865,12 @@ const getRelatedHandler = (table) => async (req, res, next) => {
         let whereClauses = [`id != ?`, `status = 'approved'`, `deleted_at IS NULL`];
         let params = [id];
         
-        if (item.tags) {
+        if (table === 'events') {
+            if (item.category) {
+                whereClauses.push('category = ?');
+                params.push(item.category);
+            }
+        } else if (item.tags) {
             const tags = item.tags.split(',').map(t => t.trim()).filter(Boolean);
             if (tags.length > 0) {
                  const tagConditions = tags.map(() => 

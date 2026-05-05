@@ -21,6 +21,9 @@ const DEFAULT_SETTINGS = {
   contact_address: '浙江大学 SQTP 项目：拓途浙享团队',
 };
 
+const DEFAULT_UI_MODE = 'dark';
+const UI_MODE_STORAGE_KEY = 'ui_mode_v2';
+
 const readStorage = (key, fallbackValue) => {
   try {
     const value = localStorage.getItem(key);
@@ -55,7 +58,7 @@ const defaultSettingsValue = {
   loading: false,
   cursorEnabled: false,
   toggleCursor: () => {},
-  uiMode: 'dark',
+  uiMode: DEFAULT_UI_MODE,
   changeUiMode: () => {},
   changeBackgroundBrightness: () => {},
 };
@@ -71,8 +74,8 @@ export const SettingsProvider = ({ children }) => {
     return saved === 'true';
   });
   const [uiMode, setUiMode] = useState(() => {
-    const saved = readStorage('ui_mode', 'dark');
-    return saved === 'day' || saved === 'dark' ? saved : 'dark';
+    const saved = readStorage(UI_MODE_STORAGE_KEY, DEFAULT_UI_MODE);
+    return saved === 'day' || saved === 'dark' ? saved : DEFAULT_UI_MODE;
   });
   const [loading, setLoading] = useState(true);
 
@@ -107,7 +110,7 @@ export const SettingsProvider = ({ children }) => {
   const changeUiMode = useCallback((mode) => {
     const nextMode = mode === 'day' ? 'day' : 'dark';
     setUiMode(nextMode);
-    writeStorage('ui_mode', nextMode);
+    writeStorage(UI_MODE_STORAGE_KEY, nextMode);
   }, []);
 
   const fetchSettings = useCallback(() => {

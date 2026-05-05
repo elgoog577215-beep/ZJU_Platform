@@ -1,31 +1,42 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
-  ChevronRight,
-  Mail,
-  MapPin,
-  Network,
+  CalendarDays,
   Trophy,
-  Waypoints,
+  Users,
 } from "lucide-react";
-import toast from "react-hot-toast";
 import { useSettings } from "../context/SettingsContext";
 import { useReducedMotion } from "../utils/animations";
-import api from "../services/api";
 import SEO from "./SEO";
 
 const sectionReveal = (enabled, delay = 0) => {
   if (!enabled) return {};
 
   return {
-    initial: { opacity: 0, y: 24 },
+    initial: { opacity: 0, y: 26 },
     whileInView: { opacity: 1, y: 0 },
-    transition: { duration: 0.65, delay, ease: [0.22, 1, 0.36, 1] },
-    viewport: { once: true, margin: "-100px" },
+    transition: { duration: 0.58, delay, ease: [0.22, 1, 0.36, 1] },
+    viewport: { once: true, margin: "-12%" },
   };
 };
+
+const heroReveal = (enabled, delay = 0) => {
+  if (!enabled) return {};
+
+  return {
+    initial: { opacity: 0, y: 28, scale: 0.98 },
+    animate: { opacity: 1, y: 0, scale: 1 },
+    transition: { duration: 0.72, delay, ease: [0.22, 1, 0.36, 1] },
+  };
+};
+
+const parseUnits = (raw) =>
+  String(raw || "")
+    .split(/[,，、/]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
 
 const About = () => {
   const { settings, uiMode } = useSettings();
@@ -33,884 +44,577 @@ const About = () => {
   const shouldAnimate = !reduceMotion;
   const isDayMode = uiMode === "day";
 
-  const [messageForm, setMessageForm] = useState({
-    name: "",
-    email: "",
-    message: "",
-  });
-  const [isSubmittingMessage, setIsSubmittingMessage] = useState(false);
-  const [formErrors, setFormErrors] = useState({});
+  const schoolSupport = parseUnits(
+    settings.about_school_support_units || "未来学习中心,AI 联合实验室",
+  );
+  const studentOrganizations = parseUnits(
+    settings.about_student_organizations || "XLAB,ZJUAI,EAI,AIRA,KAB",
+  );
+  const enterprisePartners = parseUnits(
+    settings.hackathon_partners || "MiniMax,阿里云,魔搭,阶跃星辰",
+  );
 
-  const contactEmail = settings.contact_email || "service@tuotuzju.com";
-  const contactAddress =
-    settings.contact_address || "浙江大学未来学习中心 / 浙大 AI 生态团队";
-
-  const teamTitle = settings.about_team_title || "浙大 AI 生态团队";
-  const teamSubtitle = settings.about_team_subtitle || "连接校园 AI 资源、社群、赛事与实践场景的组织化入口。";
-  const teamIntro1 = settings.about_team_intro_1 || "我们不是单一社团，也不是只做一场比赛的短期项目组，而是面向浙江大学校园长期运行的 AI 生态整合团队。";
-  const teamIntro2 = settings.about_team_intro_2 || "社区与赛事，是我们推动生态落地的两条主线；真正的主体，是负责把资源、组织与持续运行串联起来的团队本身。";
-
-  const supportUnitsRaw = settings.about_support_units || "未来学习中心,ZJUAI,XLab";
-  const supportUnitsDisplay = supportUnitsRaw.split(",").map((s) => s.trim()).filter(Boolean);
-
-  const stats = [
-    { value: settings.about_stat_1_value || "1000+", label: settings.about_stat_1_label || "活动平台现有用户基础" },
-    { value: settings.about_stat_2_value || "3 层", label: settings.about_stat_2_label || "社区递进式连接结构" },
-    { value: settings.about_stat_3_value || "5 小时", label: settings.about_stat_3_label || "黑客松核心标识" },
-  ];
-
-  const heroSignals = ["CONNECT", "SYNC", "ACTIVATE"];
-  const heroSignalPositions = [
-    "left-[4%] top-[16%]",
-    "right-[6%] top-[18%]",
-    "left-[10%] bottom-[14%]",
-  ];
-
-  const parseBullets = (raw, defaults) => {
-    if (raw && raw.trim()) {
-      return raw.split("\n").map((s) => s.trim()).filter(Boolean);
-    }
-    return defaults;
-  };
-
-  const initiativeItems = [
+  const operatingHandles = [
     {
       index: "01",
-      icon: Waypoints,
-      title: settings.about_community_title || "AI 社区",
-      tagline: settings.about_community_tagline || "日常运行层",
-      description: settings.about_community_desc || "持续搭建公开学习入口、私域社群连接与线下 Meetup，让校园内的 AI 学习、交流与协作形成稳定的日常机制。",
-      bullets: parseBullets(settings.about_community_bullets, [
-        "公开内容与知识入口",
-        "社群连接与私域沉淀",
-        "线下 Meetup 与人群链接",
-      ]),
+      code: "ENTRY",
+      title: "活动聚合",
+      short: "统一入口",
+      loop: "发现机会",
+      icon: CalendarDays,
+      description:
+        "汇聚活动与机会，建立校内 AI 资源的统一入口。",
+      route: "/events",
     },
     {
       index: "02",
+      code: "LINK",
+      title: "AI 社区",
+      short: "持续关系",
+      loop: "连接人群",
+      icon: Users,
+      description:
+        "连接学习者与建设者，让交流沉淀为持续关系。",
+      route: "/community",
+    },
+    {
+      index: "03",
+      code: "BUILD",
+      title: "极速黑客松",
+      short: "创造爆发",
+      loop: "激发项目",
       icon: Trophy,
-      title: settings.about_hackathon_title || "AI 全栈极速黑客松",
-      tagline: settings.about_hackathon_tagline || "标杆项目层",
-      description: settings.about_hackathon_desc || "以 5 小时、纯个人、零路演、AI 原生开发为识别点，作为生态团队对外最具辨识度的技术品牌项目。",
-      bullets: parseBullets(settings.about_hackathon_bullets, ["5 小时极速开发", "纯个人参赛机制", "零路演与 AI 原生开发"]),
+      description:
+        "以高密度创造验证 AI 原生开发的校园势能。",
+      route: "/hackathon",
     },
   ];
 
-  const flagshipTitle = settings.about_flagship_title || "社区与比赛，是我们推动生态落地的两条主线";
-  const flagshipNote = settings.about_flagship_note || "这两部分不是与团队并列的身份，而是生态团队对内持续运营、对外形成影响力的代表性产品与活动。";
-
-  const supportTitle = settings.about_support_title || "让生态持续运行的支持网络";
-  const supportDesc = settings.about_support_desc || "我们以组织协同而不是单点活动的方式推进校园 AI 生态，把支持单位、学生组织、技术社群与项目实践连接成一张稳定运转的网络。";
-  const supportPositioning = settings.about_support_positioning || "统一校园 AI 资源、信息与协作入口";
-  const supportMethod = settings.about_support_method || "以社区、赛事与连接机制带动生态落地";
-  const supportResult = settings.about_support_result || "形成可被持续运营与持续扩展的校园网络";
-
-  const finalTitle = settings.about_final_title || "我们在建设的，是一张校园 AI 的连接网络";
-  const finalDesc = settings.about_final_desc || "如果你关注 AI 学习、校园社群、技术赛事、项目合作或跨组织联动，这里就是浙大 AI 生态团队的官方介绍入口。";
-  const finalNote = settings.about_final_note || "以组织协同、社区运营与标杆赛事，持续推动校园 AI 生态扩展。";
-
-  const supportFrames = [
-    { label: "Positioning", value: supportPositioning },
-    { label: "Method", value: supportMethod },
-    { label: "Result", value: supportResult },
+  const loopItems = [
+    { index: "01", title: "发现", detail: "活动与机会进入统一入口" },
+    { index: "02", title: "连接", detail: "社区承接人群关系" },
+    { index: "03", title: "创造", detail: "赛事激发真实项目" },
+    { index: "04", title: "沉淀", detail: "成果反哺校园生态" },
   ];
 
-  const handleMessageFieldChange = (field) => (event) => {
-    const value = event.target.value;
-    setMessageForm((prev) => ({ ...prev, [field]: value }));
-    
-    if (formErrors[field]) {
-      setFormErrors((prev) => {
-        const next = { ...prev };
-        delete next[field];
-        return next;
-      });
-    }
-  };
+  const supportLogos = [
+    {
+      src: "/images/partner-logos/minimax.png",
+      darkSrc: "/images/partner-logos/minimax-dark.png",
+      alt: "MiniMax logo",
+    },
+    {
+      src: "/images/partner-logos/modelscope.png",
+      darkSrc: "/images/partner-logos/modelscope-dark.png",
+      alt: "ModelScope 魔搭社区 logo",
+    },
+    {
+      src: "/images/partner-logos/company-2.png",
+      darkSrc: "/images/partner-logos/company-2-dark.png",
+      alt: "云江开物 logo",
+      size: "h-4 sm:h-5 lg:h-6",
+    },
+    {
+      src: "/images/partner-logos/stepfun.png",
+      darkSrc: "/images/partner-logos/stepfun-white.png",
+      alt: "阶跃星辰 logo",
+    },
+  ];
 
-  const validateForm = () => {
-    const errors = {};
-    
-    if (!messageForm.name.trim()) {
-      errors.name = "请输入你的名字";
-    } else if (messageForm.name.trim().length > 100) {
-      errors.name = "名字不能超过 100 个字符";
-    }
+  const proofStats = [
+    {
+      value: settings.about_stat_1_value || "1000+",
+      label: settings.about_stat_1_label || "平台用户基础",
+    },
+    { value: "3", label: "核心运营抓手" },
+    {
+      value: settings.about_stat_3_value || "5 小时",
+      label: settings.about_stat_3_label || "AI 原生赛事标识",
+    },
+  ];
 
-    if (!messageForm.email.trim()) {
-      errors.email = "请输入你的邮箱";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(messageForm.email.trim())) {
-      errors.email = "请输入有效的邮箱地址";
-    } else if (messageForm.email.trim().length > 255) {
-      errors.email = "邮箱地址不能超过 255 个字符";
-    }
-
-    if (!messageForm.message.trim()) {
-      errors.message = "请输入留言内容";
-    } else if (messageForm.message.trim().length > 5000) {
-      errors.message = "留言内容不能超过 5000 个字符";
-    }
-
-    return errors;
-  };
-
-  const handleSubmitMessage = async (event) => {
-    event.preventDefault();
-    setFormErrors({});
-
-    const payload = {
-      name: messageForm.name.trim(),
-      email: messageForm.email.trim(),
-      message: messageForm.message.trim(),
-    };
-
-    const errors = validateForm();
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
-      toast.error("请检查并完善表单信息");
-      return;
-    }
-
-    setIsSubmittingMessage(true);
-    try {
-      await api.post("/contact", payload, { noRetry: true });
-      toast.success("留言已发送，我们会尽快查看");
-      setMessageForm({ name: "", email: "", message: "" });
-    } catch (error) {
-      const message =
-        error?.response?.data?.error || "留言发送失败，请稍后重试";
-      toast.error(message);
-    } finally {
-      setIsSubmittingMessage(false);
-    }
-  };
-
-  const pageClass = isDayMode
-    ? "bg-[radial-gradient(circle_at_14%_8%,rgba(125,211,252,0.24),transparent_24%),radial-gradient(circle_at_84%_10%,rgba(129,140,248,0.2),transparent_22%),linear-gradient(180deg,#f7f9fc_0%,#eef4ff_46%,#f7f9fc_100%)] text-slate-950"
-    : "bg-[radial-gradient(circle_at_top,rgba(56,189,248,0.14),transparent_22%),radial-gradient(circle_at_80%_14%,rgba(129,140,248,0.14),transparent_18%),linear-gradient(180deg,#030712_0%,#020617_42%,#02040c_100%)] text-white";
-  const shellClass = isDayMode
-    ? "border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(255,255,255,0.7))] shadow-[0_34px_90px_rgba(148,163,184,0.16)] backdrop-blur-xl"
-    : "border-white/10 bg-white/[0.045] shadow-[0_40px_120px_rgba(2,6,23,0.5)]";
-  const quietTextClass = isDayMode ? "text-slate-600" : "text-white/70";
-  const softTextClass = isDayMode ? "text-slate-500" : "text-white/50";
-  const labelClass = isDayMode ? "text-slate-500" : "text-white/45";
-  const dividerClass = isDayMode ? "border-slate-200/80" : "border-white/10";
-  const chipClass = isDayMode
-    ? "border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(241,245,255,0.9))] text-slate-600 shadow-[0_12px_28px_rgba(148,163,184,0.1)]"
-    : "border-white/10 bg-white/[0.05] text-white/72";
-  const primaryButtonClass = isDayMode
-    ? "inline-flex items-center justify-center gap-2 rounded-full border border-indigo-300/20 bg-[linear-gradient(135deg,#6366f1_0%,#4f46e5_100%)] px-6 py-3 text-sm font-medium text-white shadow-[0_18px_34px_rgba(99,102,241,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_42px_rgba(99,102,241,0.32)] active:translate-y-0"
-    : "inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-medium text-slate-950 transition-transform duration-300 hover:-translate-y-0.5 active:translate-y-0";
-  const outlineButtonClass = isDayMode
-    ? "border-slate-200/90 bg-white/58 text-slate-700 shadow-[0_12px_28px_rgba(148,163,184,0.1)] hover:border-indigo-200/90 hover:bg-white hover:text-indigo-600 active:bg-slate-50"
-    : "border-white/12 text-white/82 hover:border-white/24 hover:bg-white/[0.06] active:bg-white/[0.08]";
-  const inputClass = isDayMode
-    ? "border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(244,247,255,0.9))] text-slate-900 placeholder:text-slate-400 shadow-[0_10px_24px_rgba(148,163,184,0.08)] focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
-    : "border-white/10 bg-white/[0.04] text-white placeholder:text-white/26 focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/10";
-  const heroPosterClass = isDayMode
-    ? "relative flex min-h-[360px] flex-col justify-between overflow-hidden rounded-[28px] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(236,244,255,0.84))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.88),0_30px_72px_rgba(148,163,184,0.18)] sm:min-h-[520px] sm:rounded-[32px] sm:p-6 md:p-8"
-    : "relative flex min-h-[360px] flex-col justify-between overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.82),rgba(2,6,23,0.96))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] sm:min-h-[520px] sm:rounded-[32px] sm:p-6 md:p-8";
-  const posterLabelClass = isDayMode ? "text-slate-500" : "text-white/54";
-  const posterMetaClass = isDayMode ? "text-slate-400" : "text-white/30";
-  const posterAxisClass = isDayMode
-    ? "bg-gradient-to-r from-transparent via-indigo-200/90 to-transparent"
-    : "bg-gradient-to-r from-transparent via-white/10 to-transparent";
-  const posterAxisVerticalClass = isDayMode
-    ? "bg-gradient-to-b from-transparent via-indigo-200/90 to-transparent"
-    : "bg-gradient-to-b from-transparent via-white/10 to-transparent";
-  const posterNodeClass = isDayMode ? "text-slate-400" : "text-white/38";
-  const posterAccentNodeClass = isDayMode ? "text-indigo-500/72" : "text-cyan-200/60";
-  const posterOrbClass = isDayMode
-    ? "relative flex h-[196px] w-[196px] items-center justify-center overflow-hidden rounded-full border border-indigo-100/90 bg-[radial-gradient(circle,rgba(255,255,255,0.98),rgba(232,240,255,0.84)_64%,rgba(226,232,240,0.4)_100%)] backdrop-blur-2xl shadow-[0_24px_60px_rgba(99,102,241,0.16)] sm:h-[250px] sm:w-[250px]"
-    : "relative flex h-[196px] w-[196px] items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/[0.05] backdrop-blur-2xl sm:h-[250px] sm:w-[250px]";
-  const posterRingOneClass = isDayMode ? "border-indigo-100/80" : "border-white/8";
-  const posterRingTwoClass = isDayMode ? "border-sky-200/80" : "border-cyan-200/10";
-  const posterCoreClass = isDayMode
-    ? "bg-[radial-gradient(circle,rgba(129,140,248,0.18),rgba(191,219,254,0.16)_50%,transparent_72%)]"
-    : "bg-[radial-gradient(circle,rgba(255,255,255,0.12),rgba(255,255,255,0.03)_58%,transparent_74%)]";
-  const posterLogoFilter = isDayMode
-    ? "brightness(0) saturate(100%) invert(27%) sepia(34%) saturate(1263%) hue-rotate(216deg) brightness(99%) contrast(93%)"
-    : undefined;
-  const posterFooterClass = isDayMode ? "border-slate-200/80" : "border-white/10";
-  const statValueClass = isDayMode ? "text-slate-900" : "text-white";
-  const statLabelClass = isDayMode ? "text-slate-500" : "text-white/52";
+  const palette = isDayMode
+    ? {
+        page: "bg-[#f6f8fb] text-slate-950",
+        hero:
+          "bg-[radial-gradient(circle_at_72%_18%,rgba(6,182,212,0.18),transparent_28%),radial-gradient(circle_at_20%_78%,rgba(79,70,229,0.1),transparent_24%),linear-gradient(135deg,#ffffff_0%,#eef8fb_54%,#f8fafc_100%)]",
+        textSoft: "text-slate-600",
+        textMuted: "text-slate-500",
+        label: "text-cyan-700",
+        border: "border-slate-200/80",
+        panel:
+          "border-slate-200 bg-white/88 shadow-[0_28px_90px_rgba(15,23,42,0.12)]",
+        panelStrong:
+          "border-cyan-500/20 bg-white/92 shadow-[0_36px_110px_rgba(15,23,42,0.14)]",
+        card:
+          "border-slate-200 bg-white/88 shadow-[0_24px_70px_rgba(15,23,42,0.1)]",
+        accent: "text-cyan-700",
+        accentBg: "bg-cyan-500",
+        primary:
+          "bg-cyan-500 text-white shadow-[0_18px_42px_rgba(6,182,212,0.28)] hover:bg-cyan-600",
+        secondary:
+          "border-slate-300 bg-white/70 text-slate-800 hover:border-cyan-400 hover:text-cyan-700",
+        divider: "border-slate-200",
+        watermark: "text-slate-900/[0.045]",
+      }
+    : {
+        page: "bg-[#030405] text-white",
+        hero:
+          "bg-[radial-gradient(circle_at_72%_18%,rgba(34,211,238,0.26),transparent_26%),radial-gradient(circle_at_20%_78%,rgba(99,102,241,0.12),transparent_25%),linear-gradient(135deg,#020303_0%,#071111_54%,#020303_100%)]",
+        textSoft: "text-white/72",
+        textMuted: "text-white/48",
+        label: "text-cyan-300",
+        border: "border-white/10",
+        panel:
+          "border-white/10 bg-[#101516]/88 shadow-[0_28px_90px_rgba(0,0,0,0.46)]",
+        panelStrong:
+          "border-cyan-300/24 bg-[#081012]/86 shadow-[0_36px_120px_rgba(0,0,0,0.62)]",
+        card:
+          "border-white/10 bg-[linear-gradient(180deg,rgba(16,21,22,0.92),rgba(16,21,22,0.64))]",
+        accent: "text-cyan-300",
+        accentBg: "bg-cyan-300",
+        primary:
+          "bg-cyan-300 text-slate-950 shadow-[0_0_42px_rgba(103,232,249,0.28)] hover:bg-white",
+        secondary:
+          "border-white/16 bg-white/[0.045] text-white hover:border-cyan-300/70 hover:bg-cyan-300/10",
+        divider: "border-white/10",
+        watermark: "text-white/[0.04]",
+      };
 
   return (
-    <div className={`min-h-screen ${pageClass}`}>
+    <div className={`min-h-screen overflow-x-hidden ${palette.page}`}>
       <SEO
         title="关于我们"
-        description="了解浙大 AI 生态团队的定位、支持网络，以及 AI 社区与 AI 全栈极速黑客松等代表性项目。"
+        description="了解浙大 AI 生态团队如何以活动聚合、AI 社区与极速黑客松构建校园 AI 协同生态。"
       />
 
-      <section className="relative overflow-hidden px-4 pt-[calc(env(safe-area-inset-top)+64px)] pb-12 md:px-8 md:pb-24">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div
-            className={`absolute left-[-12%] top-[4%] h-[520px] w-[520px] rounded-full blur-[140px] ${
-              isDayMode ? "bg-sky-300/24" : "bg-cyan-500/12"
-            }`}
-          />
-          <div
-            className={`absolute right-[-10%] top-[18%] h-[440px] w-[440px] rounded-full blur-[150px] ${
-              isDayMode ? "bg-indigo-300/22" : "bg-indigo-500/12"
-            }`}
-          />
+      <section
+        className={`relative isolate min-h-[100svh] overflow-hidden px-4 pb-14 pt-[calc(env(safe-area-inset-top)+118px)] sm:px-6 md:pt-[calc(env(safe-area-inset-top)+132px)] lg:px-10 2xl:px-16 ${palette.hero}`}
+      >
+        <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:linear-gradient(rgba(103,232,249,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(103,232,249,0.12)_1px,transparent_1px)] [background-size:46px_46px]" />
+        <div className={`pointer-events-none absolute -right-[8vw] bottom-[-1vw] select-none text-[18vw] font-black uppercase leading-[0.8] tracking-[-0.1em] ${palette.watermark}`}>
+          AI ECOSYSTEM
         </div>
 
-        <div className="mx-auto flex min-h-0 max-w-7xl flex-col justify-center gap-6 sm:min-h-[calc(100svh-128px)] sm:gap-12 lg:gap-16">
-          <motion.div
-            {...sectionReveal(shouldAnimate)}
-            className={`relative overflow-hidden rounded-[32px] border md:rounded-[40px] ${shellClass}`}
-          >
-            <div className="absolute inset-0 opacity-[0.07] [background-image:linear-gradient(rgba(148,163,184,0.28)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.28)_1px,transparent_1px)] [background-size:48px_48px]" />
+        <div className="relative z-10 mx-auto grid min-h-[calc(100svh-164px)] w-full max-w-[1680px] items-center gap-10 xl:grid-cols-[minmax(0,1fr)_minmax(360px,430px)] xl:gap-16 2xl:gap-24">
+          <motion.div {...heroReveal(shouldAnimate)} className="max-w-[960px]">
             <div
-              className={`absolute inset-x-0 top-0 h-px ${
+              className={`inline-flex items-center gap-2 border px-3.5 py-2 text-[11px] font-black uppercase tracking-[0.22em] sm:text-xs ${palette.label} ${
                 isDayMode
-                  ? "bg-gradient-to-r from-transparent via-indigo-300/70 to-transparent"
-                  : "bg-gradient-to-r from-transparent via-cyan-300/70 to-transparent"
+                  ? "border-cyan-500/30 bg-cyan-500/8"
+                  : "border-cyan-300/30 bg-cyan-300/[0.07]"
               }`}
-            />
+            >
+              <span className={`h-2 w-2 ${palette.accentBg} shadow-[0_0_22px_rgba(103,232,249,0.72)]`} />
+              ZJU AI Ecosystem
+            </div>
 
-            <div className="relative z-10 grid gap-7 px-4 py-5 sm:gap-10 sm:px-6 sm:py-8 md:px-10 md:py-10 lg:grid-cols-[1.08fr_0.92fr] lg:gap-16 lg:px-14 lg:py-14">
-              <div className="flex flex-col justify-between">
-                <div className="relative">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <div
-                      className={`inline-flex items-center rounded-full border px-3.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.3em] sm:px-4 sm:py-2 sm:text-[11px] sm:tracking-[0.34em] ${chipClass}`}
-                    >
-                      Zhejiang University AI Ecosystem
+            <h1 className="mt-7 max-w-[980px] text-[3.2rem] font-black leading-[0.92] tracking-[-0.075em] sm:text-7xl md:text-[5rem] lg:text-[5.8rem] xl:text-[6.25rem] 2xl:text-[6.8rem]">
+              <span className="block">三大抓手，</span>
+              <span className="block">点亮一张</span>
+              <span className={`block ${palette.accent}`}>校园 AI 网络。</span>
+            </h1>
+
+            <p className={`mt-7 max-w-3xl text-lg font-medium leading-8 sm:text-xl sm:leading-9 ${palette.textSoft}`}>
+              <strong className={isDayMode ? "text-slate-950" : "text-white"}>
+                活动聚合、AI 社区、极速黑客松。
+              </strong>
+              {" "}让机会涌现，让人群相连，让创造落地。
+            </p>
+
+            <div className="mt-9">
+              <a
+                href="#ecosystem-handles"
+                className={`inline-flex min-h-12 items-center justify-center gap-2 px-7 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 sm:min-h-14 sm:px-9 ${palette.primary}`}
+              >
+                进入核心引擎
+                <ArrowRight className="h-4 w-4" />
+              </a>
+            </div>
+
+            <div
+              className={`mt-10 grid max-w-3xl gap-px overflow-hidden border ${
+                isDayMode
+                  ? "border-cyan-500/18 bg-cyan-500/18"
+                  : "border-cyan-300/18 bg-cyan-300/18"
+              } sm:grid-cols-3`}
+            >
+              {proofStats.map((item) => (
+                <div
+                  key={item.label}
+                  className={`p-5 sm:p-6 ${
+                    isDayMode ? "bg-white/80" : "bg-[#071113]/78"
+                  }`}
+                >
+                  <div className={`text-3xl font-black leading-none tracking-tight sm:text-4xl ${palette.accent}`}>
+                    {item.value}
+                  </div>
+                  <p className={`mt-3 text-xs font-bold leading-5 ${palette.textMuted}`}>
+                    {item.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+          </motion.div>
+
+          <motion.aside
+            {...heroReveal(shouldAnimate, 0.12)}
+            className={`relative hidden overflow-hidden border p-5 backdrop-blur-2xl sm:p-6 xl:block ${palette.panelStrong}`}
+          >
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_16%,rgba(103,232,249,0.14),transparent_36%)]" />
+            <div className="relative z-10">
+              <div className={`flex items-center justify-between text-[11px] font-black uppercase tracking-[0.2em] ${palette.label}`}>
+                <span>Ecosystem Brief</span>
+                <span>Live</span>
+              </div>
+              <div className="mt-8">
+                <div className={`text-[8rem] font-black leading-[0.82] tracking-[-0.08em] sm:text-[9rem] ${palette.accent}`}>
+                  3
+                </div>
+                <p className="mt-4 text-2xl font-black leading-tight">
+                  抓手联动
+                  <br />
+                  生态成网
+                </p>
+              </div>
+              <div className={`mt-8 grid gap-px overflow-hidden border ${isDayMode ? "border-cyan-500/18 bg-cyan-500/18" : "border-cyan-300/18 bg-cyan-300/18"}`}>
+                {operatingHandles.map((item) => (
+                  <Link
+                    key={item.code}
+                    to={item.route}
+                    className={`group flex items-center justify-between gap-4 px-4 py-4 transition ${
+                      isDayMode
+                        ? "bg-white/92 hover:bg-cyan-50"
+                        : "bg-[#030a0c]/94 hover:bg-cyan-300/10"
+                    }`}
+                  >
+                    <div>
+                      <div className={`font-mono text-[11px] font-black uppercase tracking-[0.18em] ${palette.accent}`}>
+                        {item.index} / {item.code}
+                      </div>
+                      <div className="mt-2 text-xl font-black">{item.title}</div>
                     </div>
-                    <div
-                      className={`inline-flex items-center rounded-full border px-3.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.28em] sm:px-4 sm:py-2 sm:text-[11px] sm:tracking-[0.34em] ${
-                        isDayMode
-                          ? "border-indigo-200/80 bg-indigo-500/[0.08] text-indigo-700"
-                          : "border-cyan-300/18 bg-cyan-300/[0.08] text-cyan-100"
-                      }`}
-                    >
-                      Experimental Showcase
+                    <ArrowRight className="h-4 w-4 opacity-50 transition group-hover:translate-x-1 group-hover:opacity-100" />
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </motion.aside>
+        </div>
+      </section>
+
+      <main>
+        <motion.section
+          id="ecosystem-handles"
+          {...sectionReveal(shouldAnimate)}
+          className="relative scroll-mt-28 overflow-hidden px-4 py-20 sm:px-6 sm:py-28 lg:scroll-mt-32 lg:px-10 lg:py-32 2xl:px-16"
+        >
+          <div className={`pointer-events-none absolute -right-[4vw] top-8 select-none text-[18vw] font-black uppercase leading-[0.8] tracking-[-0.08em] ${palette.watermark}`}>
+            RUN
+          </div>
+          <div className="relative z-10 mx-auto max-w-[1680px]">
+            <p className={`text-xs font-black uppercase tracking-[0.24em] ${palette.label}`}>
+              Core Engine
+            </p>
+            <h2 className="mt-4 max-w-4xl text-4xl font-black leading-[0.98] tracking-[-0.055em] sm:text-6xl lg:text-7xl">
+              三个引擎位，驱动生态持续运转。
+            </h2>
+            <p className={`mt-6 max-w-2xl text-base leading-8 sm:text-lg ${palette.textSoft}`}>
+              入口负责发现，社区负责连接，黑客松负责爆发。三者联动，才让校园 AI 生态从热度变成机制。
+            </p>
+
+            <div className="mt-14 grid gap-5 lg:grid-cols-3 lg:gap-8">
+              {operatingHandles.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.code}
+                    to={item.route}
+                    className={`group relative min-h-[300px] overflow-hidden border border-l-4 p-7 transition duration-300 hover:-translate-y-1 lg:p-8 ${palette.card} ${
+                      isDayMode ? "border-l-cyan-500" : "border-l-cyan-300"
+                    }`}
+                  >
+                    <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,rgba(103,232,249,0.10),transparent_34%)] opacity-0 transition duration-300 group-hover:opacity-100" />
+                    <div className={`pointer-events-none absolute -bottom-8 -right-5 text-[8rem] font-black uppercase leading-none tracking-[-0.08em] transition duration-300 group-hover:translate-x-1 ${
+                      isDayMode ? "text-slate-900/[0.035]" : "text-white/[0.045]"
+                    }`}>
+                      {item.code}
                     </div>
+                    <div className="relative z-10">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className={`font-mono text-xs font-black uppercase tracking-[0.2em] ${palette.accent}`}>
+                          {item.index} / {item.code}
+                        </div>
+                        <div className={`flex h-12 w-12 items-center justify-center ${palette.accentBg} text-slate-950 shadow-[0_0_34px_rgba(103,232,249,0.24)]`}>
+                          <Icon className="h-6 w-6" />
+                        </div>
+                      </div>
+                      <h3 className="mt-10 text-3xl font-black leading-none tracking-[-0.04em] sm:text-4xl">
+                        {item.title}
+                      </h3>
+                      <p className={`mt-6 text-base leading-7 ${palette.textSoft}`}>
+                        {item.description}
+                      </p>
+                      <div className={`mt-8 flex items-center justify-between border-t pt-5 ${palette.divider}`}>
+                        <div>
+                          <div className={`text-[11px] font-black uppercase tracking-[0.18em] ${palette.textMuted}`}>
+                            Loop Role
+                          </div>
+                          <div className={`mt-2 text-lg font-black ${palette.accent}`}>
+                            {item.loop}
+                          </div>
+                        </div>
+                        <div className={`inline-flex items-center gap-2 text-sm font-black ${palette.accent}`}>
+                          {item.short}
+                          <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+
+            <div className="mt-16 border-t pt-10 sm:mt-20 sm:pt-12 lg:mt-24 lg:pt-14">
+              <div className="grid gap-6 lg:grid-cols-[0.72fr_1.28fr] lg:items-end">
+                <div>
+                  <p className={`text-xs font-black uppercase tracking-[0.24em] ${palette.label}`}>
+                    Operating Loop
+                  </p>
+                  <h3 className="mt-4 max-w-xl text-3xl font-black leading-[0.98] tracking-[-0.045em] sm:text-5xl">
+                    从入口到创造，从热度到沉淀。
+                  </h3>
+                </div>
+                <p className={`max-w-2xl text-base leading-8 sm:text-lg lg:justify-self-end ${palette.textSoft}`}>
+                  每一次活动带来新连接，每一次连接酝酿新项目，每一个项目再反哺下一轮生态。
+                </p>
+              </div>
+
+              <div className={`mt-9 grid gap-px overflow-hidden border ${isDayMode ? "border-cyan-500/18 bg-cyan-500/18" : "border-cyan-300/18 bg-cyan-300/18"} lg:grid-cols-4`}>
+              {loopItems.map((item) => (
+                <div
+                  key={item.index}
+                  className={`min-h-[156px] p-6 lg:p-7 ${
+                    isDayMode ? "bg-white/88" : "bg-[#071113]/94"
+                  }`}
+                >
+                  <div className={`font-mono text-xs font-black ${palette.accent}`}>
+                    {item.index}
+                  </div>
+                  <h3 className="mt-5 text-2xl font-black">{item.title}</h3>
+                  <p className={`mt-3 text-sm leading-6 ${palette.textMuted}`}>
+                    {item.detail}
+                  </p>
+                </div>
+              ))}
+              </div>
+            </div>
+          </div>
+        </motion.section>
+
+        <motion.section
+          {...sectionReveal(shouldAnimate, 0.08)}
+          className={`relative overflow-hidden px-4 py-20 sm:px-6 sm:py-28 lg:px-10 lg:py-32 2xl:px-16 ${
+            isDayMode
+              ? "bg-[radial-gradient(circle_at_75%_22%,rgba(6,182,212,0.14),transparent_30%)]"
+              : "bg-[radial-gradient(circle_at_74%_18%,rgba(34,211,238,0.14),transparent_30%)]"
+          }`}
+        >
+          <div className={`pointer-events-none absolute -right-[8vw] top-4 select-none text-[17vw] font-black uppercase leading-[0.8] tracking-[-0.08em] ${palette.watermark}`}>
+            BACKED
+          </div>
+          <div className={`pointer-events-none absolute left-0 top-0 h-px w-full ${
+            isDayMode
+              ? "bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent"
+              : "bg-gradient-to-r from-transparent via-cyan-300/30 to-transparent"
+          }`} />
+          <div className={`pointer-events-none absolute inset-0 opacity-[0.12] [background-image:linear-gradient(rgba(103,232,249,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(103,232,249,0.12)_1px,transparent_1px)] [background-size:56px_56px]`} />
+          <div className={`pointer-events-none absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[110px] ${
+            isDayMode ? "bg-cyan-200/26" : "bg-cyan-300/10"
+          }`} />
+          <div className={`pointer-events-none absolute left-1/2 top-[58%] h-[1px] w-[72vw] -translate-x-1/2 ${
+            isDayMode
+              ? "bg-gradient-to-r from-transparent via-cyan-500/45 to-transparent"
+              : "bg-gradient-to-r from-transparent via-cyan-300/45 to-transparent"
+          }`} />
+          <div className={`pointer-events-none absolute left-1/2 top-[58%] h-[72vw] max-h-[760px] w-[1px] -translate-x-1/2 -translate-y-1/2 ${
+            isDayMode
+              ? "bg-gradient-to-b from-transparent via-cyan-500/28 to-transparent"
+              : "bg-gradient-to-b from-transparent via-cyan-300/28 to-transparent"
+          }`} />
+
+          <div className="relative z-10 mx-auto max-w-[1680px]">
+            <div className="grid gap-12 lg:grid-cols-[0.74fr_1.26fr] lg:items-end lg:gap-20">
+              <div>
+                <p className={`text-xs font-black uppercase tracking-[0.24em] ${palette.label}`}>
+                  Support Galaxy
+                </p>
+                <h2 className="mt-4 max-w-4xl text-4xl font-black leading-[0.98] tracking-[-0.055em] sm:text-6xl lg:text-7xl">
+                  <span className="block">豪华阵容在场，</span>
+                  <span className="block">生态才有底气。</span>
+                </h2>
+              </div>
+              <p className={`max-w-2xl text-base leading-8 sm:text-lg lg:justify-self-end ${palette.textSoft}`}>
+                学校提供土壤，学生组织连接人群，企业伙伴带来技术与资源。拓途浙享把它们组织成一张持续运转的校园 AI 网络。
+              </p>
+            </div>
+
+            <div className="mt-14 grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:gap-10">
+              <div className={`relative min-h-[560px] overflow-hidden border p-7 sm:p-9 lg:p-10 ${palette.panelStrong}`}>
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(103,232,249,0.18),transparent_38%)]" />
+                <div className={`pointer-events-none absolute -right-16 bottom-8 text-[11rem] font-black uppercase leading-none tracking-[-0.08em] ${palette.watermark}`}>
+                  BASE
+                </div>
+                <div className={`pointer-events-none absolute left-0 top-0 h-full w-1 ${
+                  isDayMode ? "bg-cyan-500" : "bg-cyan-300"
+                }`} />
+                <div className={`pointer-events-none absolute left-10 right-10 top-1/2 h-px ${
+                  isDayMode
+                    ? "bg-gradient-to-r from-cyan-500/45 to-transparent"
+                    : "bg-gradient-to-r from-cyan-300/45 to-transparent"
+                }`} />
+                <div className={`pointer-events-none absolute bottom-10 left-10 h-24 w-24 border-l border-t ${
+                  isDayMode ? "border-cyan-500/30" : "border-cyan-300/28"
+                }`} />
+                <div className={`pointer-events-none absolute right-10 top-10 h-24 w-24 border-r border-t ${
+                  isDayMode ? "border-cyan-500/30" : "border-cyan-300/28"
+                }`} />
+                <div className={`relative z-10 flex min-h-[480px] flex-col justify-between`}>
+                  <div>
+                    <div className={`font-mono text-xs font-black uppercase tracking-[0.2em] ${palette.accent}`}>
+                      01 / Foundation
+                    </div>
+                    <h3 className="mt-8 max-w-lg text-5xl font-black leading-[0.9] tracking-[-0.055em] sm:text-7xl">
+                      学校
+                      <br />
+                      支持
+                    </h3>
+                    <p className={`mt-7 max-w-md text-base leading-8 ${palette.textSoft}`}>
+                      场景、空间、组织协同与长期机制，构成校园 AI 生态最稳定的底座。
+                    </p>
                   </div>
 
-                  <div className="mt-5 flex flex-wrap gap-2.5 sm:mt-7">
-                          {heroSignals.map((signal) => (
-                      <span
-                        key={signal}
-                        className={`inline-flex items-center rounded-full px-3 py-1.5 text-[10px] font-semibold tracking-[0.28em] ${
+                  <div className="grid gap-3">
+                    {schoolSupport.map((item) => (
+                      <div
+                        key={item}
+                        className={`grid gap-2 border-l-4 px-5 py-4 ${
                           isDayMode
-                            ? "border border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(238,245,255,0.92))] text-slate-700 shadow-[0_12px_24px_rgba(148,163,184,0.12)]"
-                            : "bg-white/[0.08] text-white/84"
+                            ? "border-l-cyan-500 bg-white/76"
+                            : "border-l-cyan-300 bg-cyan-300/[0.05]"
                         }`}
                       >
-                        {signal}
+                        <div className={`text-[11px] font-black uppercase tracking-[0.18em] ${palette.textMuted}`}>
+                          School Support
+                        </div>
+                        <div className="text-2xl font-black sm:text-3xl">{item}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-6">
+                <div className={`relative overflow-hidden border p-7 sm:p-8 lg:p-9 ${palette.card}`}>
+                  <div className={`pointer-events-none absolute -right-10 -top-10 text-[8rem] font-black uppercase leading-none tracking-[-0.08em] ${palette.watermark}`}>
+                    FORCE
+                  </div>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                      <div className={`font-mono text-xs font-black uppercase tracking-[0.2em] ${palette.accent}`}>
+                        02 / Campus Force
+                      </div>
+                      <h3 className="mt-4 text-3xl font-black tracking-[-0.045em] sm:text-5xl">
+                        学生组织
+                      </h3>
+                    </div>
+                    <div className={`text-sm font-black uppercase tracking-[0.18em] ${palette.textMuted}`}>
+                      Campus Force
+                    </div>
+                  </div>
+                  <p className={`mt-5 max-w-2xl text-sm font-bold leading-7 ${palette.textMuted}`}>
+                    社群、活动、实践人群从这里被组织起来，形成持续流动的校园动能。
+                  </p>
+                  <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-5">
+                    {studentOrganizations.map((item) => (
+                      <span
+                        key={item}
+                        className={`flex min-h-[78px] items-center justify-center border px-4 py-3 text-xl font-black transition duration-300 hover:-translate-y-0.5 sm:text-2xl ${
+                          isDayMode
+                            ? "border-slate-200 bg-white/78"
+                            : "border-white/10 bg-white/[0.045] shadow-[0_0_28px_rgba(103,232,249,0.03)] hover:border-cyan-300/24"
+                        }`}
+                      >
+                        {item}
                       </span>
                     ))}
                   </div>
-
-                  <div className="mt-7 max-w-3xl sm:mt-10">
-                    <p
-                      className={`mb-3 text-[10px] font-semibold uppercase tracking-[0.32em] sm:mb-4 sm:text-[11px] sm:tracking-[0.38em] ${labelClass}`}
-                    >
-                      About The Team
-                    </p>
-                    <h1
-                      className={`max-w-[10ch] text-[3.35rem] font-bold leading-[0.88] tracking-[-0.04em] sm:text-6xl md:max-w-[8.6ch] md:text-[5.2rem] xl:text-[6.3rem] ${
-                        isDayMode
-                          ? "bg-[linear-gradient(135deg,#020617_0%,#1e293b_36%,#4f46e5_72%,#38bdf8_100%)] bg-clip-text text-transparent"
-                          : "bg-[linear-gradient(135deg,#ffffff_0%,#e2e8f0_36%,#a5f3fc_72%,#67e8f9_100%)] bg-clip-text text-transparent"
-                      }`}
-                      style={{ fontFamily: "var(--theme-font-display)" }}
-                    >
-                      {teamTitle}
-                    </h1>
-                    <p
-                      className={`mt-4 max-w-2xl text-[16px] leading-7 sm:mt-7 sm:text-[1.2rem] sm:leading-8 md:text-[1.55rem] ${quietTextClass}`}
-                    >
-                      {teamSubtitle}
-                    </p>
-                    <div
-                      className={`relative mt-6 overflow-hidden rounded-[24px] border px-4 py-4 sm:mt-8 sm:rounded-[28px] sm:px-5 sm:py-5 ${
-                        isDayMode
-                          ? "border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(238,245,255,0.84))] shadow-[0_22px_48px_rgba(148,163,184,0.16)]"
-                          : "border-white/10 bg-white/[0.04]"
-                      }`}
-                    >
-                      <div
-                        className={`absolute inset-x-0 top-0 h-px ${
-                          isDayMode
-                            ? "bg-gradient-to-r from-transparent via-indigo-400/70 to-transparent"
-                            : "bg-gradient-to-r from-transparent via-cyan-300/70 to-transparent"
-                        }`}
-                      />
-                      <p className={`text-[10px] font-semibold uppercase tracking-[0.34em] sm:text-[11px] ${labelClass}`}>
-                        Brand System Narrative
-                      </p>
-                      <div
-                        className={`mt-4 grid gap-4 text-[14px] leading-6.5 sm:text-base sm:leading-8 ${quietTextClass}`}
-                      >
-                        <p>{teamIntro1}</p>
-                        <p>{teamIntro2}</p>
-                      </div>
-                    </div>
-                  </div>
                 </div>
 
-                <div
-                  className={`mt-7 flex flex-col gap-4 border-t pt-5 sm:mt-10 sm:gap-5 sm:pt-7 ${dividerClass}`}
-                >
-                  <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
-                    <Link
-                      to="/events"
-                      className={`${primaryButtonClass} w-full sm:w-auto`}
-                    >
-                      查看赛事项目
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                    <a
-                      href={`mailto:${contactEmail}`}
-                      className={`inline-flex w-full items-center justify-center gap-2 rounded-full border px-6 py-3 text-sm font-medium transition-colors duration-300 sm:w-auto ${outlineButtonClass}`}
-                    >
-                      联系合作
-                      <Mail className="h-4 w-4" />
-                    </a>
+                <div className={`relative overflow-hidden border p-7 sm:p-8 lg:p-9 ${palette.panelStrong}`}>
+                  <div className={`pointer-events-none absolute -right-14 -bottom-10 text-[8rem] font-black uppercase leading-none tracking-[-0.08em] ${palette.watermark}`}>
+                    TECH
+                  </div>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                      <div className={`font-mono text-xs font-black uppercase tracking-[0.2em] ${palette.accent}`}>
+                        03 / Technical Backing
+                      </div>
+                      <h3 className="mt-4 text-3xl font-black tracking-[-0.045em] sm:text-5xl">
+                        企业伙伴
+                      </h3>
+                    </div>
+                    <div className={`text-sm font-black uppercase tracking-[0.18em] ${palette.textMuted}`}>
+                      Resource Layer
+                    </div>
                   </div>
 
-                  <div
-                    className={`grid gap-2.5 text-[13px] leading-6 sm:flex sm:flex-wrap sm:items-center sm:gap-3 sm:text-sm ${softTextClass}`}
-                  >
-                    <span className="w-full text-[10px] uppercase tracking-[0.24em] sm:w-auto sm:text-inherit sm:tracking-[0.28em]">
-                      Supported By
-                    </span>
-                    <span
-                      className={`hidden h-px w-12 ${isDayMode ? "bg-slate-300/90" : "bg-white/12"} md:block`}
-                    />
-                    {supportUnitsDisplay.map((unit, idx) => (
-                      <React.Fragment key={unit}>
-                        {idx > 0 && <span className="hidden sm:inline">·</span>}
-                        <span
-                          className={`inline-flex items-center rounded-full border px-3 py-1.5 ${
-                            isDayMode
-                              ? "border-slate-200/80 bg-white/72 text-slate-600 shadow-[0_8px_18px_rgba(148,163,184,0.08)]"
-                              : "border-white/10 bg-white/[0.05] text-white/70"
-                          } sm:border-transparent sm:bg-transparent sm:px-0 sm:py-0 sm:shadow-none`}
-                        >
-                          {unit}
-                        </span>
-                      </React.Fragment>
+                  <p className={`mt-5 max-w-2xl text-sm font-bold leading-7 ${palette.textMuted}`}>
+                    模型、云、工具与技术生态进入同一张网络，支撑真实项目从想法走向可运行。
+                  </p>
+
+                  <div className="mt-7 grid gap-3 sm:grid-cols-2">
+                    {supportLogos.map((logo) => (
+                      <div
+                        key={logo.alt}
+                        className={`group flex min-h-[108px] items-center justify-center border px-5 py-4 transition duration-300 hover:-translate-y-0.5 ${
+                          isDayMode
+                            ? "border-slate-200 bg-white/86 shadow-[0_16px_40px_rgba(15,23,42,0.08)]"
+                            : "border-white/10 bg-white/[0.045] shadow-[0_0_0_1px_rgba(103,232,249,0.02)] hover:border-cyan-300/30 hover:bg-cyan-300/[0.065]"
+                        }`}
+                      >
+                        <img
+                          src={isDayMode ? logo.src : logo.darkSrc || logo.src}
+                          alt={logo.alt}
+                          className={`w-auto max-w-full object-contain transition duration-300 group-hover:scale-[1.04] ${
+                            logo.size || "h-6 sm:h-8"
+                          }`}
+                        />
+                      </div>
                     ))}
                   </div>
 
-                </div>
-              </div>
-
-              <div className={heroPosterClass}>
-                {isDayMode && (
-                  <>
-                    <div className="absolute left-[-12%] top-[-10%] h-44 w-44 rounded-full bg-sky-200/50 blur-3xl" />
-                    <div className="absolute right-[-8%] top-[18%] h-52 w-52 rounded-full bg-indigo-200/55 blur-3xl" />
-                    <div className="absolute inset-0 opacity-[0.08] [background-image:linear-gradient(rgba(99,102,241,0.22)_1px,transparent_1px),linear-gradient(90deg,rgba(99,102,241,0.22)_1px,transparent_1px)] [background-size:34px_34px]" />
-                  </>
-                )}
-                <div className="flex items-start justify-between sm:items-center">
-                  <div className={`text-[10px] font-semibold uppercase tracking-[0.28em] sm:text-[11px] sm:tracking-[0.34em] ${posterLabelClass}`}>
-                    Campus AI Control Room
-                  </div>
-                  <div className={`hidden text-[11px] uppercase tracking-[0.28em] sm:block ${posterMetaClass}`}>
-                    01 / Exhibition
-                  </div>
-                </div>
-
-                <div className="relative flex flex-1 items-center justify-center py-4 sm:py-10">
-                  <div className={`absolute inset-x-5 top-1/2 h-px -translate-y-1/2 sm:inset-x-10 ${posterAxisClass}`} />
-                  <div className={`absolute inset-y-5 left-1/2 w-px -translate-x-1/2 sm:inset-y-10 ${posterAxisVerticalClass}`} />
-                  <div className={`absolute left-[10%] top-[18%] hidden text-[11px] uppercase tracking-[0.32em] sm:block ${posterNodeClass}`}>
-                    Community
-                  </div>
-                  <div className={`absolute right-[12%] top-[20%] hidden text-[11px] uppercase tracking-[0.32em] sm:block ${posterNodeClass}`}>
-                    Hackathon
-                  </div>
-                  <div className={`absolute left-[12%] bottom-[19%] hidden text-[11px] uppercase tracking-[0.32em] sm:block ${posterAccentNodeClass}`}>
-                    Knowledge
-                  </div>
-                  <div className={`absolute right-[12%] bottom-[17%] hidden text-[11px] uppercase tracking-[0.32em] sm:block ${posterAccentNodeClass}`}>
-                    Network
-                  </div>
-
-                  {heroSignals.map((signal, index) => (
-                    <div
-                      key={signal}
-                      className={`absolute hidden rounded-[18px] border px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.28em] shadow-[0_18px_40px_rgba(15,23,42,0.12)] sm:flex ${
-                        heroSignalPositions[index]
-                      } ${
-                        isDayMode
-                          ? "border-slate-200/90 bg-white/92 text-slate-700"
-                          : "border-white/10 bg-slate-950/70 text-white/82"
-                      }`}
-                    >
-                      {signal}
-                    </div>
-                  ))}
-
-                  <div className={posterOrbClass}>
-                    <div className={`absolute h-[214px] w-[214px] rounded-full border sm:h-[340px] sm:w-[340px] ${posterRingOneClass}`} />
-                    <div className={`absolute h-[246px] w-[246px] rounded-full border sm:h-[420px] sm:w-[420px] ${posterRingTwoClass}`} />
-                    <div className={`absolute h-[138px] w-[138px] rounded-full sm:h-[210px] sm:w-[210px] ${posterCoreClass}`} />
-                    <div className="relative z-10 flex flex-col items-center">
-                      <img
-                        src="/newlogo.png"
-                        alt="浙大 AI 生态团队标识"
-                        className="h-20 w-auto object-contain sm:h-28 md:h-36"
-                        style={
-                          posterLogoFilter
-                            ? { filter: posterLogoFilter }
-                            : undefined
-                        }
-                      />
-                      <div
-                        className={`mt-3 max-w-[7rem] px-2 text-center text-[8px] font-medium uppercase leading-3 tracking-[0.14em] [text-wrap:balance] sm:mt-5 sm:max-w-none sm:px-0 sm:text-[11px] sm:leading-normal sm:tracking-[0.34em] ${
-                          isDayMode ? "text-slate-500" : "text-white/78"
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    {enterprisePartners.map((item) => (
+                      <span
+                        key={item}
+                        className={`border px-3.5 py-2 text-sm font-black ${
+                          isDayMode
+                            ? "border-cyan-500/20 bg-cyan-50 text-cyan-800"
+                            : "border-cyan-300/18 bg-cyan-300/[0.06] text-cyan-100"
                         }`}
                       >
-                        Organized Campus AI Network
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className={`grid grid-cols-3 gap-2 border-t pt-4 sm:gap-5 sm:pt-6 ${posterFooterClass}`}>
-                  {stats.map((item) => (
-                    <div
-                      key={item.label}
-                      className={`rounded-[20px] border px-3 py-3 sm:px-4 sm:py-4 ${
-                        isDayMode
-                          ? "border-slate-200/80 bg-white/84 shadow-[0_16px_32px_rgba(148,163,184,0.12)]"
-                          : "border-white/10 bg-white/[0.04]"
-                      }`}
-                    >
-                      <div className={`text-xl font-semibold tracking-tight sm:text-3xl md:text-[2.2rem] ${statValueClass}`}>
-                        {item.value}
-                      </div>
-                      <p className={`mt-1 text-[11px] leading-5 sm:mt-2 sm:text-sm sm:leading-6 ${statLabelClass}`}>
-                        {item.label}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.section
-            {...sectionReveal(shouldAnimate, 0.04)}
-            className="grid gap-6 lg:grid-cols-[0.88fr_1.12fr] lg:gap-16"
-          >
-            <div className="pt-0 sm:pt-3">
-              <p className={`text-[11px] font-semibold uppercase tracking-[0.36em] ${labelClass}`}>
-                Support Network
-              </p>
-              <h2
-                className={`mt-4 max-w-[8ch] text-[2rem] font-bold leading-[0.98] tracking-tight sm:text-4xl md:text-6xl ${
-                  isDayMode
-                    ? "text-slate-950"
-                    : "bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent"
-                }`}
-                style={{ fontFamily: "var(--theme-font-display)" }}
-              >
-                {supportTitle}
-              </h2>
-              <p className={`mt-4 max-w-lg text-[15px] leading-7 sm:mt-6 sm:text-base sm:leading-8 md:text-lg ${quietTextClass}`}>
-                {supportDesc}
-              </p>
-            </div>
-
-            <div className={`relative overflow-hidden rounded-[24px] border sm:rounded-[34px] ${shellClass}`}>
-              <div
-                className={`absolute inset-x-0 top-0 h-px ${
-                  isDayMode
-                    ? "bg-gradient-to-r from-transparent via-indigo-300/70 to-transparent"
-                    : "bg-gradient-to-r from-transparent via-cyan-300/70 to-transparent"
-                }`}
-              />
-              <div className="relative z-10 grid gap-5 px-4 py-4 sm:gap-10 sm:px-6 sm:py-7 md:px-8 md:py-8">
-                <div
-                  className={`rounded-[24px] border px-4 py-4 sm:px-5 sm:py-5 ${
-                    isDayMode
-                      ? "border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(240,246,255,0.88))] shadow-[0_18px_40px_rgba(148,163,184,0.14)]"
-                      : "border-white/10 bg-white/[0.04]"
-                  }`}
-                >
-                  <div className={`text-[10px] font-semibold uppercase tracking-[0.32em] sm:text-[11px] ${labelClass}`}>
-                    Network Composition
-                  </div>
-                  <div className="mt-4 grid gap-3 sm:gap-4 md:grid-cols-2">
-                  {supportUnitsDisplay.map((item, index) => (
-                    <div
-                      key={item}
-                      className={`rounded-[22px] border px-4 py-4 sm:gap-4 ${
-                        isDayMode
-                          ? "border-slate-200/80 bg-white/86 shadow-[0_14px_30px_rgba(148,163,184,0.12)]"
-                          : "border-white/10 bg-white/[0.05]"
-                      }`}
-                    >
-                      <div className={`pt-0.5 text-xs font-semibold tracking-[0.3em] ${labelClass}`}>
-                        {String(index + 1).padStart(2, "0")}
-                      </div>
-                      <div>
-                        <div className={`text-[10px] font-semibold uppercase tracking-[0.28em] ${labelClass}`}>
-                          Support Node
-                        </div>
-                        <div
-                          className={`mt-2 text-[15px] font-medium leading-7 sm:text-base md:text-lg ${
-                            isDayMode ? "text-slate-900" : "text-white"
-                          }`}
-                        >
-                          {item}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                </div>
-
-                <div className="grid gap-3 md:grid-cols-3">
-                  {supportFrames.map((item) => (
-                    <div
-                      key={item.label}
-                      className={`rounded-[22px] border px-4 py-4 ${
-                        isDayMode
-                          ? "border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(241,245,255,0.94))] text-slate-900 shadow-[0_18px_36px_rgba(148,163,184,0.14)]"
-                          : "border-white/10 bg-white/[0.05]"
-                      }`}
-                    >
-                      <div className={isDayMode ? "text-[11px] uppercase tracking-[0.34em] text-slate-400" : `text-[11px] uppercase tracking-[0.34em] ${labelClass}`}>
-                        {item.label}
-                      </div>
-                      <p className={isDayMode ? "mt-3 text-[15px] leading-7 text-slate-600 sm:text-sm" : `mt-3 text-[15px] leading-7 sm:text-sm ${quietTextClass}`}>
-                        {item.value}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </motion.section>
-
-          <motion.section
-            {...sectionReveal(shouldAnimate, 0.08)}
-            className={`overflow-hidden rounded-[26px] border sm:rounded-[38px] ${shellClass}`}
-          >
-            <div className="grid gap-6 px-4 py-5 sm:gap-8 sm:px-6 sm:py-8 md:px-10 md:py-10">
-              <div className="grid gap-4 sm:gap-5 lg:grid-cols-[1.1fr_0.9fr] lg:items-end lg:gap-10">
-                <div>
-                  <p className={`text-[11px] font-semibold uppercase tracking-[0.36em] ${labelClass}`}>
-                    Flagship Work
-                  </p>
-                  <h2
-                    className={`mt-4 max-w-[10ch] text-[2rem] font-bold leading-[0.98] tracking-tight sm:text-4xl md:text-6xl ${
-                      isDayMode
-                        ? "text-slate-950"
-                        : "bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent"
-                    }`}
-                    style={{ fontFamily: "var(--theme-font-display)" }}
-                  >
-                    {flagshipTitle}
-                  </h2>
-                </div>
-                <p
-                  className={`max-w-xl text-[15px] leading-7 sm:text-sm md:justify-self-end md:text-base ${quietTextClass}`}
-                >
-                  {flagshipNote}
-                </p>
-              </div>
-
-              <div className="grid gap-4 lg:grid-cols-2">
-                {initiativeItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <div
-                      key={item.title}
-                      className={`group relative overflow-hidden rounded-[28px] border p-5 sm:p-6 ${
-                        isDayMode
-                          ? "border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(239,245,255,0.88))] shadow-[0_22px_50px_rgba(148,163,184,0.16)]"
-                          : "border-white/10 bg-white/[0.045]"
-                      }`}
-                    >
-                      <div className={`absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 ${
-                        isDayMode
-                          ? "bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.12),transparent_42%)]"
-                          : "bg-[radial-gradient(circle_at_top_right,rgba(103,232,249,0.12),transparent_42%)]"
-                      }`} />
-                      <div className="relative z-10 flex h-full flex-col">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex items-start gap-3 sm:gap-4">
-                            <span
-                              className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border sm:h-12 sm:w-12 ${
-                                isDayMode
-                                  ? "border-indigo-100/90 bg-[linear-gradient(180deg,#eef4ff_0%,#dbeafe_100%)] text-indigo-600 shadow-[0_12px_24px_rgba(148,163,184,0.14)]"
-                                  : "border-white/10 bg-white/[0.08] text-white"
-                              }`}
-                            >
-                              <Icon className="h-5 w-5" />
-                            </span>
-                            <div>
-                              <p className={`text-[11px] font-semibold uppercase tracking-[0.34em] ${labelClass}`}>
-                                {item.index}
-                              </p>
-                              <h3
-                                className={`mt-3 text-2xl font-semibold tracking-tight sm:text-[1.9rem] ${
-                                  isDayMode ? "text-slate-950" : "text-white"
-                                }`}
-                              >
-                                {item.title}
-                              </h3>
-                              <p className={`mt-2 text-[11px] uppercase tracking-[0.32em] ${labelClass}`}>
-                                {item.tagline}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <p className={`mt-6 max-w-xl text-[15px] leading-7 md:text-base ${quietTextClass}`}>
-                          {item.description}
-                        </p>
-
-                        <div className="mt-6 flex flex-wrap gap-2.5">
-                        {item.bullets.map((bullet) => (
-                          <span
-                            key={bullet}
-                            className={`inline-flex min-h-[36px] items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] tracking-[0.08em] sm:min-h-0 sm:text-xs sm:tracking-[0.16em] ${
-                              isDayMode
-                                ? "border-slate-200/80 bg-white text-slate-700 shadow-[0_12px_24px_rgba(148,163,184,0.1)]"
-                                : chipClass
-                            }`}
-                          >
-                            <ChevronRight className="h-3.5 w-3.5" />
-                            <span>{bullet}</span>
-                          </span>
-                        ))}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </motion.section>
-
-          <motion.section
-            {...sectionReveal(shouldAnimate, 0.12)}
-            className={`overflow-hidden rounded-[26px] border sm:rounded-[38px] ${shellClass}`}
-          >
-            <div className="grid gap-5 px-4 py-4 sm:gap-8 sm:px-6 sm:py-8 md:px-10 md:py-10 lg:grid-cols-[0.86fr_1.14fr] lg:gap-12">
-              <div>
-                <p
-                  className={`text-[11px] font-semibold uppercase tracking-[0.36em] ${labelClass}`}
-                >
-                  Leave A Message
-                </p>
-                <h2
-                  className={`mt-4 max-w-[8ch] text-[2rem] font-bold leading-[0.98] tracking-tight sm:text-4xl md:text-6xl ${
-                    isDayMode
-                      ? "text-slate-950"
-                      : "bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent"
-                  }`}
-                  style={{ fontFamily: "var(--theme-font-display)" }}
-                >
-                  把你的想法，直接留给我们
-                </h2>
-                <p
-                  className={`mt-5 max-w-lg text-[15px] leading-7 sm:mt-6 sm:text-base sm:leading-8 md:text-lg ${quietTextClass}`}
-                >
-                  如果你想加入社区、发起合作、参与赛事，或者对浙大 AI
-                  生态团队有任何建议，都可以从这里直接留言。消息会进入后台留言中心统一处理。
-                </p>
-
-                <div className={`mt-5 grid gap-2.5 sm:mt-8 sm:gap-4 ${softTextClass}`}>
-                  <div className="flex items-start gap-3 text-[14px] leading-6.5 sm:text-sm">
-                    <Mail className="mt-1 h-4 w-4 shrink-0" />
-                    <span>适合合作咨询、活动联动、资源支持、社群建议</span>
-                  </div>
-                  <div className="flex items-start gap-3 text-[14px] leading-6.5 sm:text-sm">
-                    <MapPin className="mt-1 h-4 w-4 shrink-0" />
-                    <span>也可以直接邮件联系，我们会优先处理完整留言</span>
+                        {item}
+                      </span>
+                    ))}
                   </div>
                 </div>
               </div>
-
-              <form onSubmit={handleSubmitMessage} className="grid gap-3 sm:gap-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <label className="grid gap-2">
-                    <span
-                      className={`text-[11px] font-semibold uppercase tracking-[0.28em] ${labelClass}`}
-                    >
-                      Name
-                    </span>
-                    <input
-                      type="text"
-                      value={messageForm.name}
-                      onChange={handleMessageFieldChange("name")}
-                      maxLength={100}
-                      className={`rounded-[16px] border px-4 py-3 text-sm outline-none transition-all sm:rounded-[18px] ${inputClass} ${
-                        formErrors.name
-                          ? isDayMode
-                            ? "border-red-300 focus:border-red-400 focus:ring-red-100"
-                            : "border-red-400/60 focus:border-red-400 focus:ring-red-400/10"
-                          : ""
-                      }`}
-                      placeholder="你的名字"
-                    />
-                    {formErrors.name && (
-                      <span className="text-xs text-red-500">{formErrors.name}</span>
-                    )}
-                  </label>
-                  <label className="grid gap-2">
-                    <span
-                      className={`text-[11px] font-semibold uppercase tracking-[0.28em] ${labelClass}`}
-                    >
-                      Email
-                    </span>
-                    <input
-                      type="email"
-                      value={messageForm.email}
-                      onChange={handleMessageFieldChange("email")}
-                      maxLength={255}
-                      className={`rounded-[16px] border px-4 py-3 text-sm outline-none transition-all sm:rounded-[18px] ${inputClass} ${
-                        formErrors.email
-                          ? isDayMode
-                            ? "border-red-300 focus:border-red-400 focus:ring-red-100"
-                            : "border-red-400/60 focus:border-red-400 focus:ring-red-400/10"
-                          : ""
-                      }`}
-                      placeholder="你的邮箱"
-                    />
-                    {formErrors.email && (
-                      <span className="text-xs text-red-500">{formErrors.email}</span>
-                    )}
-                  </label>
-                </div>
-
-                <label className="grid gap-2">
-                  <span
-                    className={`text-[11px] font-semibold uppercase tracking-[0.28em] ${labelClass}`}
-                  >
-                    Message
-                  </span>
-                  <textarea
-                    value={messageForm.message}
-                    onChange={handleMessageFieldChange("message")}
-                    maxLength={5000}
-                    rows={7}
-                    className={`min-h-[160px] rounded-[18px] border px-4 py-3.5 text-sm leading-6 outline-none transition-all sm:min-h-[180px] sm:rounded-[22px] sm:py-4 sm:leading-7 ${inputClass} ${
-                      formErrors.message
-                        ? isDayMode
-                          ? "border-red-300 focus:border-red-400 focus:ring-red-100"
-                          : "border-red-400/60 focus:border-red-400 focus:ring-red-400/10"
-                        : ""
-                    }`}
-                    placeholder="告诉我们你想交流的内容"
-                  />
-                  {formErrors.message && (
-                    <span className="text-xs text-red-500">{formErrors.message}</span>
-                  )}
-                  <span className={`text-xs ${softTextClass}`}>
-                    {messageForm.message.length}/5000
-                  </span>
-                </label>
-
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <p className={`text-sm ${softTextClass}`}>
-                    留言提交后会进入后台留言中心，不会公开展示。
-                  </p>
-                  <button
-                    type="submit"
-                    disabled={isSubmittingMessage}
-                    className={`inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-medium transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto ${
-                      isDayMode
-                        ? "border border-indigo-300/20 bg-[linear-gradient(135deg,#6366f1_0%,#4f46e5_100%)] text-white shadow-[0_18px_34px_rgba(99,102,241,0.28)] hover:-translate-y-0.5 hover:shadow-[0_22px_42px_rgba(99,102,241,0.32)] active:translate-y-0"
-                        : "bg-white text-slate-950 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0"
-                    }`}
-                  >
-                    {isSubmittingMessage ? (
-                      <>
-                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                            fill="none"
-                          />
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          />
-                        </svg>
-                        发送中...
-                      </>
-                    ) : (
-                      <>
-                        发送留言
-                        <ArrowRight className="h-4 w-4" />
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
             </div>
-          </motion.section>
-
-          <motion.section
-            {...sectionReveal(shouldAnimate, 0.16)}
-            className={`relative overflow-hidden rounded-[24px] border px-4 py-4 sm:rounded-[36px] sm:px-6 sm:py-8 md:px-10 md:py-10 ${shellClass}`}
-          >
-            <div
-              className={`absolute inset-y-0 right-0 hidden w-[36%] sm:block ${
-                isDayMode
-                  ? "bg-[radial-gradient(circle_at_center,rgba(165,180,252,0.16),transparent_62%)]"
-                  : "bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.12),transparent_62%)]"
-              }`}
-            />
-            <div className="relative z-10 grid gap-6 sm:gap-10 lg:grid-cols-[1fr_auto] lg:items-end">
-              <div>
-                <p className={`text-[11px] font-semibold uppercase tracking-[0.36em] ${labelClass}`}>
-                  Final Note
-                </p>
-                <h2
-                  className={`mt-4 max-w-[10ch] text-[1.95rem] font-bold leading-[0.98] tracking-tight sm:text-4xl md:text-6xl ${
-                    isDayMode
-                      ? "text-slate-950"
-                      : "bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent"
-                  }`}
-                  style={{ fontFamily: "var(--theme-font-display)" }}
-                >
-                  {finalTitle}
-                </h2>
-                <p className={`mt-5 max-w-2xl text-[15px] leading-7 sm:mt-6 sm:text-base sm:leading-8 md:text-lg ${quietTextClass}`}>
-                  {finalDesc}
-                </p>
-              </div>
-
-              <div className={`grid gap-3 border-t pt-5 sm:gap-4 sm:border-t-0 sm:pt-0 ${dividerClass}`}>
-                <div className={`flex items-start gap-3 text-[15px] leading-7 sm:text-sm ${quietTextClass}`}>
-                  <Mail className="mt-1 h-4 w-4 shrink-0" />
-                  <a href={`mailto:${contactEmail}`} className="transition-colors hover:text-current">
-                    {contactEmail}
-                  </a>
-                </div>
-                <div className={`flex items-start gap-3 text-[15px] leading-7 sm:text-sm ${quietTextClass}`}>
-                  <MapPin className="mt-1 h-4 w-4 shrink-0" />
-                  <span>{contactAddress}</span>
-                </div>
-                <div className={`flex items-start gap-3 text-[15px] leading-7 sm:text-sm ${quietTextClass}`}>
-                  <Network className="mt-1 h-4 w-4 shrink-0" />
-                  <span>{finalNote}</span>
-                </div>
-              </div>
-            </div>
-          </motion.section>
-        </div>
-      </section>
+          </div>
+        </motion.section>
+      </main>
     </div>
   );
 };

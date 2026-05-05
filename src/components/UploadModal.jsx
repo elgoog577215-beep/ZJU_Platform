@@ -1,14 +1,19 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Upload, Image, Film, Music, FileText, Plus, Calendar, Tag, Link, Check, Sparkles, RotateCcw, GripVertical, ArrowUp, ArrowDown, Trash2, Paperclip, PenSquare, Eye, Clock3, List, Code2 } from 'lucide-react';
+import { X, Upload, Image, Film, Music, FileText, Plus, Calendar, Tag, Link, Check, Sparkles, RotateCcw, GripVertical, ArrowUp, ArrowDown, Trash2, Paperclip, PenSquare, Eye, Clock3, List, Code2, ChevronDown, Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import api, { uploadFile } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
-import TagInput from './TagInput';
 import { useBackClose } from '../hooks/useBackClose';
+import {
+  EVENT_CATEGORIES,
+  EVENT_AUDIENCE_GROUPS,
+  EVENT_AUDIENCE_OPTIONS,
+  normalizeEventCategoryValue,
+} from '../data/eventTaxonomy';
 
 const createArticleBlock = (blockType = 'text') => ({
   id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -179,6 +184,26 @@ const buildBlocksFromMarkdown = (rawMarkdown = '') => {
   return blocks.length ? blocks : [createArticleBlock('text')];
 };
 
+const splitEventAudience = (value = '') => String(value || '')
+  .split(/[,，、]/)
+  .map((item) => item.trim())
+  .filter(Boolean);
+
+const normalizeEventCategory = (value = '') => {
+  return normalizeEventCategoryValue(value);
+};
+
+const normalizeEventAudience = (value = '') => {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  if (/全校|所有学生|全体学生|师生/.test(raw)) return '全校';
+  const selected = EVENT_AUDIENCE_OPTIONS.filter((item) => raw.includes(item));
+  if (selected.length > 0) return selected.join(',');
+  return splitEventAudience(raw)
+    .filter((item) => EVENT_AUDIENCE_OPTIONS.includes(item))
+    .join(',');
+};
+
 const ARTICLE_BLOCK_META = {
   text: {
     label: '文字',
@@ -275,8 +300,11 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   // Phase 1 New Fields
   const [eventScore, setEventScore] = useState(initialData?.score || '');
   const [eventVolunteerTime, setEventVolunteerTime] = useState(initialData?.volunteer_time || '');
-  const [eventTarget, setEventTarget] = useState(initialData?.target_audience || '');
+  const [eventCategory, setEventCategory] = useState(() => normalizeEventCategory(initialData?.category));
+  const [eventTarget, setEventTarget] = useState(() => normalizeEventAudience(initialData?.target_audience) || initialData?.target_audience || '');
   const [eventOrganizer, setEventOrganizer] = useState(initialData?.organizer || '');
+  const [audienceSearch, setAudienceSearch] = useState('');
+  const [showAllAudiences, setShowAllAudiences] = useState(false);
   const [dateReasoning, setDateReasoning] = useState('');
   const [relatedArticleIds, setRelatedArticleIds] = useState(Array.isArray(initialData?.related_article_ids) ? initialData.related_article_ids.join(',') : (initialData?.related_article_ids || ''));
   const [relatedPostIds, setRelatedPostIds] = useState(Array.isArray(initialData?.related_post_ids) ? initialData.related_post_ids.join(',') : (initialData?.related_post_ids || ''));
@@ -301,6 +329,25 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
     .filter((block) => block.type === 'text')
     .reduce((total, block) => total + (block.text?.trim() ? block.text.trim().split(/\s+/).length : 0), 0), [articleBlocks]);
   const articleReadingMinutes = Math.max(1, Math.ceil(articleWordCount / 240));
+  const selectedAudience = React.useMemo(() => splitEventAudience(eventTarget), [eventTarget]);
+  const audienceQuery = audienceSearch.trim().toLowerCase();
+  const totalAudienceCount = React.useMemo(
+    () => EVENT_AUDIENCE_GROUPS.reduce((total, group) => total + group.items.length, 0),
+    []
+  );
+  const visibleAudienceGroups = React.useMemo(() => {
+    const query = audienceSearch.trim().toLowerCase();
+    const sourceGroups = query || showAllAudiences
+      ? EVENT_AUDIENCE_GROUPS
+      : EVENT_AUDIENCE_GROUPS.slice(0, 1);
+    if (!query) return sourceGroups;
+    return sourceGroups
+      .map((group) => ({
+        ...group,
+        items: group.items.filter((item) => item.toLowerCase().includes(query)),
+      }))
+      .filter((group) => group.items.length > 0);
+  }, [audienceSearch, showAllAudiences]);
   const activeTextStyle = React.useMemo(() => {
     if (!activeTextBlockId) return 'paragraph';
     const activeBlock = articleBlocks.find((block) => block.id === activeTextBlockId);
@@ -319,6 +366,16 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
       percent: Math.round((completed / total) * 100)
     };
   }, [articleBlocks]);
+
+  const toggleEventAudience = React.useCallback((audience) => {
+    setEventTarget((prev) => {
+      const current = splitEventAudience(prev);
+      const next = current.includes(audience)
+        ? current.filter((item) => item !== audience)
+        : [...current, audience];
+      return next.join(',');
+    });
+  }, []);
 
   const restoreArticleDraft = React.useCallback(() => {
     if (type !== 'article' || isEditing) return;
@@ -380,21 +437,20 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             if (data.location) setEventLocation(data.location);
             if (data.content) setContent(data.content); // Store full content for parsing/editing
             if (data.description) setDescription(data.description); // Summary for description
+            if (data.category) {
+                const normalizedCategory = normalizeEventCategory(data.category);
+                if (normalizedCategory) setEventCategory(normalizedCategory);
+            }
             
             // New fields mapping
             if (data.organizer) setEventOrganizer(data.organizer);
-            if (data.target_audience) setEventTarget(data.target_audience);
+            if (data.target_audience) {
+                const normalizedAudience = normalizeEventAudience(data.target_audience);
+                if (normalizedAudience) setEventTarget(normalizedAudience);
+            }
             if (data.volunteer_time) setEventVolunteerTime(data.volunteer_time);
             if (data.score) setEventScore(data.score);
             if (data.date_reasoning) setDateReasoning(data.date_reasoning);
-
-            // Auto-generate tags if available
-            if (data.tags && data.tags.length > 0) {
-                // Merge with existing tags
-                const currentTags = tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [];
-                const newTags = [...new Set([...currentTags, ...data.tags])];
-                setTags(newTags.join(','));
-            }
 
             // Set cover image if available
             if (data.coverImage) {
@@ -423,6 +479,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
       setEventDate('');
       setEventEndDate('');
       setEventLocation('');
+      setEventCategory('');
       setEventOrganizer('');
       setEventTarget('');
       setEventVolunteerTime('');
@@ -488,7 +545,8 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             setEventLink(initialData.link || '');
             setEventScore(initialData.score || '');
             setEventVolunteerTime(initialData.volunteer_time || '');
-            setEventTarget(initialData.target_audience || '');
+            setEventCategory(normalizeEventCategory(initialData.category));
+            setEventTarget(normalizeEventAudience(initialData.target_audience) || initialData.target_audience || '');
             setEventOrganizer(initialData.organizer || '');
             setFeatured(initialData.featured || false);
             setSize(initialData.size || '');
@@ -512,6 +570,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             setEventLocation('');
             setEventLink('');
             setEventScore('');
+            setEventCategory('');
             setEventTarget('');
             setEventOrganizer('');
             setFeatured(false);
@@ -884,6 +943,10 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         toast.error(t('upload.required_end_date'));
         return;
     }
+    if (type === 'event' && !eventCategory) {
+        toast.error('请选择活动分类');
+        return;
+    }
     if (type === 'article') {
       const hasEffectiveContent = articleBlocks.some((block) => {
         if (block.type === 'text') return !!block.text?.trim();
@@ -944,8 +1007,8 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
       const newItem = {
         ...initialData, // Keep existing ID and other fields if editing
         title,
-        tags, // Include tags
-        tag: tags, // For backward compatibility with article 'tag'
+        tags: type === 'event' ? '' : tags,
+        tag: type === 'event' ? '' : tags, // For backward compatibility with article 'tag'
         url: fileUrl, 
         
         // Music specific
@@ -965,6 +1028,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         score: type === 'event' ? eventScore : null,
         target_audience: type === 'event' ? eventTarget : null,
         organizer: type === 'event' ? eventOrganizer : null,
+        category: type === 'event' ? eventCategory : null,
         status: resolvedStatus,
         volunteer_time: type === 'event' ? eventVolunteerTime : null,
         related_article_ids: relatedArticleIds,
@@ -1297,13 +1361,27 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                             />
                         </div>
                         <div>
-                            <label className={labelClasses}>{t('upload.tags')}</label>
-                            <TagInput 
-                              value={tags}
-                              onChange={setTags}
-                              placeholder={t('upload.tags_placeholder')}
-                              type="events"
-                            />
+                            <label className={labelClasses}>活动分类</label>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                              {EVENT_CATEGORIES.map((category) => {
+                                const selected = eventCategory === category.value;
+                                return (
+                                  <button
+                                    key={category.value}
+                                    type="button"
+                                    aria-pressed={selected}
+                                    onClick={() => setEventCategory(category.value)}
+                                    className={`min-h-[44px] rounded-2xl border px-3 py-2.5 text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+                                      selected
+                                        ? (isDayMode ? 'border-indigo-500 bg-indigo-600 text-white shadow-[0_14px_28px_rgba(99,102,241,0.22)]' : 'border-white bg-white text-black shadow-[0_12px_24px_rgba(255,255,255,0.08)]')
+                                        : (isDayMode ? 'border-slate-200/80 bg-white/86 text-slate-600 hover:border-indigo-200 hover:bg-white hover:text-slate-900' : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/25 hover:bg-white/10 hover:text-white')
+                                    }`}
+                                  >
+                                    {category.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
                         </div>
                      </div>
                   </div>
@@ -1411,15 +1489,92 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                        placeholder={t('event_fields.score_placeholder')}
                                    />
                                </div>
-                               <div className="col-span-1">
-                                   <label className={labelClasses}>{t('event_fields.target_audience')}</label>
-                                   <input
-                                       type="text"
-                                       value={eventTarget}
-                                       onChange={e => setEventTarget(e.target.value)}
-                                       className={inputClasses}
-                                       placeholder={t('event_fields.target_placeholder')}
-                                   />
+                               <div className="col-span-1 sm:col-span-2">
+                                   <div className="flex items-center justify-between gap-3">
+                                     <label className={labelClasses}>面向学院/学园</label>
+                                     {selectedAudience.length > 0 && (
+                                       <button
+                                         type="button"
+                                         onClick={() => setEventTarget('')}
+                                         className={`text-xs font-semibold transition-colors ${isDayMode ? 'text-slate-500 hover:text-slate-900' : 'text-gray-400 hover:text-white'}`}
+                                       >
+                                         清空
+                                       </button>
+                                     )}
+                                   </div>
+                                   {selectedAudience.length > 0 && (
+                                     <div className="mb-3 flex flex-wrap gap-2">
+                                       {selectedAudience.map((audience) => (
+                                         <button
+                                           key={audience}
+                                           type="button"
+                                           onClick={() => toggleEventAudience(audience)}
+                                           className={`min-h-[32px] rounded-full border px-3 py-1.5 text-xs font-bold inline-flex items-center gap-1.5 ${isDayMode ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-indigo-500/15 text-indigo-100 border-indigo-400/25'}`}
+                                         >
+                                           {audience}
+                                           <X size={12} />
+                                         </button>
+                                       ))}
+                                     </div>
+                                   )}
+                                   <div className="relative mb-3">
+                                     <Search size={15} className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDayMode ? 'text-slate-400' : 'text-gray-500'}`} />
+                                     <input
+                                       type="search"
+                                       value={audienceSearch}
+                                       onChange={(e) => setAudienceSearch(e.target.value)}
+                                       className={`${inputClasses} pl-9`}
+                                       placeholder="搜索学院、学园或全校"
+                                     />
+                                   </div>
+                                   <div className={`rounded-2xl border p-3 ${isDayMode ? 'border-slate-200/80 bg-slate-50/80' : 'border-white/10 bg-black/20'}`}>
+                                     <div className={`${showAllAudiences || audienceQuery ? 'max-h-60 overflow-y-auto pr-1 custom-scrollbar' : ''}`}>
+                                       <div className="space-y-4">
+                                       {visibleAudienceGroups.map((group) => (
+                                         <div key={group.group}>
+                                           <div className={`mb-2 text-[11px] font-black uppercase tracking-[0.16em] ${isDayMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                                             {group.group}
+                                           </div>
+                                           <div className="flex flex-wrap gap-2">
+                                             {group.items.map((audience) => {
+                                               const selected = selectedAudience.includes(audience);
+                                               return (
+                                                 <button
+                                                   key={audience}
+                                                   type="button"
+                                                   aria-pressed={selected}
+                                                   onClick={() => toggleEventAudience(audience)}
+                                                   className={`min-h-[40px] rounded-xl border px-3 py-2 text-xs font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+                                                     selected
+                                                       ? (isDayMode ? 'border-indigo-500 bg-indigo-50 text-indigo-700 shadow-[0_10px_22px_rgba(99,102,241,0.14)]' : 'border-indigo-400/50 bg-indigo-500/20 text-indigo-100')
+                                                       : (isDayMode ? 'border-slate-200/80 bg-white text-slate-600 hover:border-indigo-200 hover:text-slate-900' : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/20 hover:bg-white/10')
+                                                   }`}
+                                                 >
+                                                   {audience}
+                                                 </button>
+                                               );
+                                             })}
+                                           </div>
+                                         </div>
+                                       ))}
+                                       {visibleAudienceGroups.length === 0 && (
+                                         <div className={`rounded-xl border px-4 py-5 text-center text-sm ${isDayMode ? 'border-slate-200/80 bg-white text-slate-500' : 'border-white/10 bg-white/5 text-gray-400'}`}>
+                                           没有匹配的学院或学园
+                                         </div>
+                                       )}
+                                       </div>
+                                     </div>
+                                     {!audienceQuery && (
+                                       <button
+                                         type="button"
+                                         onClick={() => setShowAllAudiences((value) => !value)}
+                                         className={`mt-3 w-full min-h-[40px] rounded-xl border px-3 py-2 text-xs font-bold inline-flex items-center justify-center gap-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-white text-slate-600 border-slate-200/80 hover:text-slate-900 hover:border-indigo-200' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10 hover:text-white'}`}
+                                       >
+                                         <ChevronDown size={14} className={showAllAudiences ? 'rotate-180 transition-transform' : 'transition-transform'} />
+                                         {showAllAudiences ? '收起到常用对象' : `展开全部学院/学园（${totalAudienceCount}）`}
+                                       </button>
+                                     )}
+                                   </div>
                                </div>
                                <div className="col-span-1 sm:col-span-2">
                                    <label className={labelClasses}>{t('upload.event_link')}</label>
@@ -1455,11 +1610,11 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
 
                         <div className="py-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
                           <div className="flex items-center gap-2">
-                            <button type="button" onClick={() => setArticleEditorMode('edit')} className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5 ${articleEditorMode === 'edit' ? (isDayMode ? 'bg-indigo-600 text-white border-indigo-600 shadow-[0_12px_28px_rgba(99,102,241,0.24)]' : 'bg-white text-black border-white') : (isDayMode ? 'bg-white/88 border-slate-200/80 text-slate-600 hover:bg-white hover:border-indigo-200' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10')}`}>
+                            <button type="button" onClick={() => setArticleEditorMode('edit')} className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5 ${articleEditorMode === 'edit' ? (isDayMode ? 'bg-blue-50 text-blue-700 border-blue-200 shadow-none' : 'bg-white text-black border-white shadow-none') : (isDayMode ? 'bg-white/88 border-slate-200/80 text-slate-600 hover:bg-white hover:border-blue-200' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10')}`}>
                               <PenSquare size={14} />
                               撰写
                             </button>
-                            <button type="button" onClick={() => setArticleEditorMode('preview')} className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5 ${articleEditorMode === 'preview' ? (isDayMode ? 'bg-indigo-600 text-white border-indigo-600 shadow-[0_12px_28px_rgba(99,102,241,0.24)]' : 'bg-white text-black border-white') : (isDayMode ? 'bg-white/88 border-slate-200/80 text-slate-600 hover:bg-white hover:border-indigo-200' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10')}`}>
+                            <button type="button" onClick={() => setArticleEditorMode('preview')} className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5 ${articleEditorMode === 'preview' ? (isDayMode ? 'bg-blue-50 text-blue-700 border-blue-200 shadow-none' : 'bg-white text-black border-white shadow-none') : (isDayMode ? 'bg-white/88 border-slate-200/80 text-slate-600 hover:bg-white hover:border-blue-200' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10')}`}>
                               <Eye size={14} />
                               预览
                             </button>
@@ -1716,10 +1871,6 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                             </div>
                           </div>
                           <div>
-                            <label className={labelClasses}>{t('upload.tags')}</label>
-                            <TagInput value={tags} onChange={setTags} placeholder={t('upload.tags_placeholder')} type="articles" />
-                          </div>
-                          <div>
                             <label className={labelClasses}>文章摘要</label>
                             <textarea
                               value={description}
@@ -1870,37 +2021,14 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
 
                     {/* Image Specific Fields: Size */}
                     {type === 'image' && (
-                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="col-span-1">
-                                <label className={labelClasses}>{t('common.size')}</label>
-                                <input
-                                    type="text"
-                                    value={size}
-                                    onChange={e => setSize(e.target.value)}
-                                    className={inputClasses}
-                                    placeholder={t('upload.size_placeholder')}
-                                />
-                            </div>
-                            <div className="col-span-1">
-                                <label className={labelClasses}>{t('upload.tags')}</label>
-                                <TagInput 
-                                    value={tags}
-                                    onChange={setTags}
-                                    placeholder={t('upload.tags_placeholder')}
-                                    type={type === 'image' ? 'photos' : type === 'audio' ? 'music' : type}
-                                />
-                            </div>
-                         </div>
-                    )}
-                    
-                    {type !== 'image' && (
                         <div>
-                            <label className={labelClasses}>{t('upload.tags')}</label>
-                            <TagInput 
-                                value={tags}
-                                onChange={setTags}
-                                placeholder={t('upload.tags_placeholder')}
-                                type={type === 'image' ? 'photos' : type === 'audio' ? 'music' : type}
+                            <label className={labelClasses}>{t('common.size')}</label>
+                            <input
+                                type="text"
+                                value={size}
+                                onChange={e => setSize(e.target.value)}
+                                className={inputClasses}
+                                placeholder={t('upload.size_placeholder')}
                             />
                         </div>
                     )}

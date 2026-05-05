@@ -7,8 +7,7 @@ const LLM_BASE_URL = process.env.LLM_BASE_URL;
 const LLM_MODEL = process.env.LLM_MODEL;
 
 const EVENT_TAG_OPTIONS = [
-    '讲座', '志愿活动', '竞赛', '沙龙', '展览', '演出', '会议', 
-    '文体活动', '招聘', '宣讲', '学术报告', '社会实践', '班团活动'
+    '讲座', '竞赛', '志愿', '招新', '文体', '交流', '其他'
 ];
 
 async function generateTags(text, type) {

@@ -2,6 +2,7 @@ const { getDb } = require('../config/db');
 const path = require('path');
 const fs = require('fs');
 const { serializeCommunityPost } = require('../utils/serializeCommunityPost');
+const { normalizeEventCategory } = require('../services/eventIntelligenceService');
 
 // Placeholder for crawler until implemented
 const runCrawler = async (url, source) => {
@@ -15,6 +16,7 @@ const searchContent = async (req, res, next) => {
         if (!q || q.length < 2) return res.json([]);
 
         const term = `%${q}%`;
+        const eventCategory = normalizeEventCategory(q);
         
         // Parallel search with enhanced fuzzy matching (Description, Content, Artist, Tags, etc.)
         // Ensure we only show visible items (not deleted, approved)
@@ -23,7 +25,9 @@ const searchContent = async (req, res, next) => {
             db.all('SELECT id, title, "music" as type, cover as image FROM music WHERE (title LIKE ? OR artist LIKE ? OR tags LIKE ?) AND deleted_at IS NULL AND status = "approved" LIMIT 5', [term, term, term]),
             db.all('SELECT id, title, "video" as type, thumbnail as image FROM videos WHERE (title LIKE ? OR tags LIKE ?) AND deleted_at IS NULL AND status = "approved" LIMIT 5', [term, term]),
             db.all('SELECT id, title, "article" as type, cover as image FROM articles WHERE (title LIKE ? OR excerpt LIKE ? OR content LIKE ? OR tags LIKE ?) AND deleted_at IS NULL AND status = "approved" LIMIT 5', [term, term, term, term]),
-            db.all('SELECT id, title, "event" as type, image FROM events WHERE (title LIKE ? OR description LIKE ? OR content LIKE ? OR tags LIKE ?) AND deleted_at IS NULL AND status = "approved" LIMIT 5', [term, term, term, term]),
+            eventCategory
+                ? db.all('SELECT id, title, "event" as type, image FROM events WHERE (title LIKE ? OR description LIKE ? OR content LIKE ? OR category LIKE ? OR category = ? OR organizer LIKE ? OR target_audience LIKE ?) AND deleted_at IS NULL AND status = "approved" LIMIT 5', [term, term, term, term, eventCategory, term, term])
+                : db.all('SELECT id, title, "event" as type, image FROM events WHERE (title LIKE ? OR description LIKE ? OR content LIKE ? OR category LIKE ? OR organizer LIKE ? OR target_audience LIKE ?) AND deleted_at IS NULL AND status = "approved" LIMIT 5', [term, term, term, term, term, term]),
             // Community posts: search title/content/tags; author_name is also a
             // legitimate match target now that the anonymous opt-in is gone.
             db.all(

@@ -11,7 +11,15 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { normalizeExternalImageUrl } from "../utils/imageUtils";
-import { useReducedMotion } from "../utils/animations";
+import {
+  hoverLift,
+  listContainer,
+  listItem,
+  motionTokens,
+  sectionReveal,
+  tapPress,
+  useReducedMotion,
+} from "../utils/animations";
 import { useSettings } from "../context/SettingsContext";
 
 const categories = [
@@ -96,21 +104,14 @@ const CategoryCard = memo(({ item, reduceMotion, isDayMode }) => {
 
   return (
     <motion.div
-      initial={reduceMotion ? false : { opacity: 0, y: 24 }}
-      animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-      transition={
-        reduceMotion
-          ? undefined
-          : {
-              type: "spring",
-              stiffness: 100,
-              damping: 20,
-              delay: item.delay,
-            }
-      }
-      whileHover={reduceMotion ? undefined : { y: -15, scale: 1.02 }}
-      whileTap={reduceMotion ? undefined : { scale: 0.98 }}
-      className={`relative group h-[200px] sm:h-[280px] md:h-[350px] lg:h-[400px] w-full overflow-hidden rounded-2xl sm:rounded-[2rem] cursor-pointer border backdrop-blur-sm transition-all duration-300 ${shellClass}`}
+      variants={listItem}
+      initial={reduceMotion ? false : "initial"}
+      whileInView={reduceMotion ? undefined : "animate"}
+      viewport={motionTokens.viewport}
+      transition={reduceMotion ? undefined : { ...motionTokens.spring.gentle, delay: item.delay }}
+      whileHover={reduceMotion ? undefined : hoverLift}
+      whileTap={reduceMotion ? undefined : tapPress}
+      className={`motion-gpu motion-surface relative group h-[200px] sm:h-[280px] md:h-[350px] lg:h-[400px] w-full overflow-hidden rounded-2xl sm:rounded-[2rem] cursor-pointer border backdrop-blur-sm ${shellClass}`}
     >
       <Link to={item.path} className="block w-full h-full">
         <div className="absolute inset-0">
@@ -144,11 +145,11 @@ const CategoryCard = memo(({ item, reduceMotion, isDayMode }) => {
             className={`${
               reduceMotion
                 ? ""
-                : "transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500"
+                : "transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 ease-out"
             }`}
           >
             <div
-              className={`mb-2 sm:mb-4 inline-block rounded-xl sm:rounded-2xl border p-2.5 sm:p-3 md:p-4 backdrop-blur-xl group-hover:scale-110 transition-all duration-300 ${iconShellClass}`}
+              className={`motion-surface mb-2 sm:mb-4 inline-block rounded-xl sm:rounded-2xl border p-2.5 sm:p-3 md:p-4 backdrop-blur-xl group-hover:scale-105 ${iconShellClass}`}
             >
               <item.icon
                 size={20}
@@ -205,9 +206,10 @@ const HomeCategories = () => {
     >
       <div className="max-w-[1800px] mx-auto">
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-          animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-          transition={prefersReducedMotion ? undefined : { duration: 0.5 }}
+          variants={sectionReveal}
+          initial={prefersReducedMotion ? false : "initial"}
+          whileInView={prefersReducedMotion ? undefined : "animate"}
+          viewport={motionTokens.viewport}
           className="text-center mb-8 sm:mb-12 md:mb-16"
         >
           <h2
@@ -229,9 +231,10 @@ const HomeCategories = () => {
 
         <motion.div
           className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-5"
-          initial={prefersReducedMotion ? false : { opacity: 0 }}
-          animate={prefersReducedMotion ? undefined : { opacity: 1 }}
-          transition={prefersReducedMotion ? undefined : { duration: 0.4 }}
+          variants={listContainer}
+          initial={prefersReducedMotion ? false : "initial"}
+          whileInView={prefersReducedMotion ? undefined : "animate"}
+          viewport={motionTokens.viewport}
         >
           {categories.map((category) => (
             <CategoryCard

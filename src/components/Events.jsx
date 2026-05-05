@@ -45,9 +45,13 @@ import { useCachedResource } from "../hooks/useCachedResource";
 import EventFilterPanel from "./EventFilterPanel";
 import SortSelector from "./SortSelector";
 import EventAssistantPanel from "./EventAssistantPanel";
+import MobileEventAssistantFullscreen, {
+  MobileEventAssistantLauncher,
+} from "./MobileEventAssistantFullscreen";
 import DOMPurify from "dompurify";
 import MobileContentToolbar from "./MobileContentToolbar";
 import SEO from "./SEO";
+import { getEventCategoryLabel } from "../data/eventTaxonomy";
 
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { getThumbnailUrl } from "../utils/imageUtils";
@@ -392,24 +396,29 @@ const EventCard = memo(
             </div>
           )}
 
-          {/* Footer: Tags & Actions */}
+          {/* Footer: Category & Actions */}
           <div
             className={`flex items-center justify-between mt-auto pt-2 md:pt-3 border-t ${isDayMode ? "border-slate-200/80" : "border-white/5"}`}
           >
             <div className="flex flex-wrap gap-1.5 md:gap-2 overflow-hidden min-h-[24px] md:min-h-[32px]">
-              {event.tags &&
-                event.tags
-                  .split(",")
-                  .slice(0, 2)
-                  .map((tag, i) => (
-                    <span
-                      key={i}
-                      className={`px-1.5 py-0.5 md:px-2.5 md:py-1.5 rounded-md md:rounded-lg text-[10px] md:text-xs font-medium border flex items-center gap-1 group-hover:bg-indigo-500/20 transition-colors shrink-0 max-w-[80px] md:max-w-[120px] ${isDayMode ? "bg-indigo-50 text-indigo-500 border-indigo-200/80" : "bg-indigo-500/10 text-indigo-300 border-indigo-500/20"}`}
-                    >
-                      <Tag size={10} className="md:w-3 md:h-3" />
-                      <span className="truncate">{tag.trim()}</span>
-                    </span>
-                  ))}
+              {event.category && (
+                <span
+                  className={`px-1.5 py-0.5 md:px-2.5 md:py-1.5 rounded-md md:rounded-lg text-[10px] md:text-xs font-medium border flex items-center gap-1 group-hover:bg-indigo-500/20 transition-colors shrink-0 max-w-[96px] md:max-w-[140px] ${isDayMode ? "bg-indigo-50 text-indigo-500 border-indigo-200/80" : "bg-indigo-500/10 text-indigo-300 border-indigo-500/20"}`}
+                >
+                  <Tag size={10} className="md:w-3 md:h-3" />
+                  <span className="truncate">
+                    {getEventCategoryLabel(event.category)}
+                  </span>
+                </span>
+              )}
+              {event.target_audience && (
+                <span
+                  className={`px-1.5 py-0.5 md:px-2.5 md:py-1.5 rounded-md md:rounded-lg text-[10px] md:text-xs font-medium border flex items-center gap-1 shrink-0 max-w-[110px] md:max-w-[160px] ${isDayMode ? "bg-slate-50 text-slate-500 border-slate-200/80" : "bg-white/5 text-gray-300 border-white/10"}`}
+                >
+                  <Users size={10} className="md:w-3 md:h-3" />
+                  <span className="truncate">{event.target_audience}</span>
+                </span>
+              )}
             </div>
 
             <div className="flex items-center gap-2 md:gap-3 shrink-0 ml-auto">
@@ -457,6 +466,7 @@ const Events = () => {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
+  const [isMobileAssistantOpen, setIsMobileAssistantOpen] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth < 768 : false,
   );
@@ -493,33 +503,21 @@ const Events = () => {
   }, []);
 
   const [sort, setSort] = useState("newest");
-  const [lifecycle, setLifecycle] = useState("all");
-  const [selectedTags, setSelectedTags] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [filterVersion, setFilterVersion] = useState(0);
   const [discoveryMode, setDiscoveryMode] = useState("filters");
   const [filters, setFilters] = useState({
-    location: null,
-    organizer: null,
+    category: null,
     target_audience: null,
   });
-  const hasActiveMobileFilters =
-    Object.values(filters).some((v) => v) ||
-    selectedTags.length > 0 ||
-    lifecycle !== "all";
+  const hasActiveMobileFilters = Object.values(filters).some((v) => v);
   const mobileSortLabel = useMobileSortLabel(sort, t);
 
   const resetMobileFilters = () => {
-    setFilters({ location: null, organizer: null, target_audience: null });
-    setSelectedTags([]);
-    setLifecycle("all");
+    setFilters({ category: null, target_audience: null });
   };
 
-  const mobileFilterCount =
-    Object.values(filters).filter(Boolean).length +
-    selectedTags.length +
-    (lifecycle !== "all" ? 1 : 0);
+  const mobileFilterCount = Object.values(filters).filter(Boolean).length;
 
   // Debounce search
   useEffect(() => {
@@ -548,9 +546,13 @@ const Events = () => {
 
   useBackClose(selectedEvent !== null, closeEvent);
   useBackClose(isUploadOpen, () => setIsUploadOpen(false));
+  useBackClose(isMobileAssistantOpen, () => setIsMobileAssistantOpen(false));
 
   useEffect(() => {
-    if (!selectedEvent || typeof document === "undefined") {
+    if (
+      (!selectedEvent && !isMobileAssistantOpen) ||
+      typeof document === "undefined"
+    ) {
       return undefined;
     }
 
@@ -560,7 +562,7 @@ const Events = () => {
     return () => {
       document.body.style.overflow = originalOverflow;
     };
-  }, [selectedEvent]);
+  }, [selectedEvent, isMobileAssistantOpen]);
 
   const isPaginationEnabled = settings.pagination_enabled === "true";
   const pageSize = isPaginationEnabled ? 6 : 12;
@@ -580,16 +582,12 @@ const Events = () => {
       limit: pageSize,
       sort,
       status: "approved",
-      lifecycle: lifecycle === "all" ? undefined : lifecycle,
-      tags: selectedTags.join(","),
       search: debouncedSearch,
       ...filters,
     },
     {
       dependencies: [
         settings.pagination_enabled,
-        lifecycle,
-        selectedTags.join(","),
         debouncedSearch,
         JSON.stringify(filters),
       ],
@@ -603,8 +601,6 @@ const Events = () => {
     setCurrentPage(1);
   }, [
     sort,
-    lifecycle,
-    selectedTags.join(","),
     debouncedSearch,
     JSON.stringify(filters),
     settings.pagination_enabled,
@@ -847,7 +843,6 @@ END:VCALENDAR`;
       .post("/events", newItem)
       .then(() => {
         refresh({ clearCache: true });
-        setFilterVersion((prev) => prev + 1);
       })
       .catch((err) => console.error("Failed to save event", err));
   };
@@ -901,6 +896,7 @@ END:VCALENDAR`;
         displayEvents.find((event) => event.id === assistantEvent.id) ||
         events.find((event) => event.id === assistantEvent.id);
 
+      setIsMobileAssistantOpen(false);
       setSelectedEvent(cachedEvent || assistantEvent);
 
       api
@@ -923,91 +919,57 @@ END:VCALENDAR`;
   );
 
   const discoveryToggleClasses = isDayMode
-    ? "bg-white/88 border border-slate-200/80 shadow-[0_14px_32px_rgba(148,163,184,0.12)]"
+    ? "bg-white/88 border border-slate-200/80 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
     : "bg-white/10 border border-white/10 shadow-[0_14px_32px_rgba(0,0,0,0.18)]";
+  const daySegmentActiveClass =
+    "border border-blue-200 bg-blue-50 text-blue-700 shadow-none";
+  const nightSegmentActiveClass = "bg-white text-black shadow-none";
+  const dayPrimaryActionClass =
+    "bg-blue-600 text-white shadow-[0_1px_2px_rgba(15,23,42,0.12)]";
 
   const renderDiscoveryModeToggle = (compact = false) => (
     <div
-      className={`flex ${compact ? "flex-col items-stretch gap-3" : "items-center justify-between gap-4"} w-full`}
+      className={`flex ${compact ? "flex-col items-stretch gap-3" : "items-center justify-end gap-4"} w-full`}
     >
-      {!compact && (
-        <div className="text-left">
-          <p
-            className={`text-xs font-semibold uppercase tracking-[0.24em] ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-          >
-            {t("events.assistant.mode_label", "发现方式")}
-          </p>
-          <p
-            className={`mt-1 text-sm ${isDayMode ? "text-slate-600" : "text-gray-300"}`}
-          >
-            {discoveryMode === "assistant"
-              ? t("events.assistant.beta_hint", "Beta 测试，可能不稳定")
-              : t(
-                  "events.assistant.mode_filters_hint",
-                  "默认使用属性筛选，AI 搜索作为补充入口。",
-                )}
-          </p>
-        </div>
-      )}
-
       <div
-        className={`inline-flex items-center gap-1 p-1 rounded-full ${discoveryToggleClasses} ${compact ? "w-full justify-between" : ""}`}
+        className={`inline-flex items-center gap-1 p-1 rounded-full ${discoveryToggleClasses} ${compact ? "w-full justify-between overflow-hidden" : ""}`}
       >
         <button
           type="button"
           aria-pressed={discoveryMode === "filters"}
           onClick={() => setDiscoveryMode("filters")}
-          className={`inline-flex items-center justify-center rounded-full px-4 py-2.5 min-h-[44px] text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${compact ? "flex-1" : ""} ${
+          className={`inline-flex items-center justify-center rounded-full px-4 py-2.5 min-h-[44px] text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${compact ? "flex-1 min-w-0 whitespace-nowrap" : ""} ${
             discoveryMode === "filters"
               ? isDayMode
-                ? "bg-indigo-600 text-white shadow-[0_12px_28px_rgba(99,102,241,0.24)]"
-                : "bg-white text-black shadow-[0_10px_24px_rgba(255,255,255,0.08)]"
+                ? daySegmentActiveClass
+                : nightSegmentActiveClass
               : isDayMode
                 ? "text-slate-600 hover:text-slate-900"
                 : "text-gray-300 hover:text-white"
           }`}
         >
-          {t("events.assistant.mode_filters", "属性筛选")}
+          筛选
         </button>
         <button
           type="button"
           aria-pressed={discoveryMode === "assistant"}
           onClick={() => setDiscoveryMode("assistant")}
-          className={`inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 min-h-[44px] text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${compact ? "flex-1" : ""} ${
+          className={`inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 min-h-[44px] text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${compact ? "flex-1 min-w-0 whitespace-nowrap px-3" : ""} ${
             discoveryMode === "assistant"
               ? isDayMode
-                ? "bg-indigo-600 text-white shadow-[0_12px_28px_rgba(99,102,241,0.24)]"
-                : "bg-white text-black shadow-[0_10px_24px_rgba(255,255,255,0.08)]"
+                ? daySegmentActiveClass
+                : nightSegmentActiveClass
               : isDayMode
                 ? "text-slate-600 hover:text-slate-900"
                 : "text-gray-300 hover:text-white"
           }`}
         >
-          <Search size={15} />
-          {t("events.assistant.mode_ai", "AI 搜索")}
-          <span
-            className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] ${
-              discoveryMode === "assistant"
-                ? isDayMode
-                  ? "bg-white/15 text-white"
-                  : "bg-black/10 text-black/70"
-                : isDayMode
-                  ? "bg-amber-100 text-amber-700"
-                  : "bg-amber-400/15 text-amber-200"
-            }`}
-          >
-            Beta
+          <Search size={15} className="shrink-0" />
+          <span className="min-w-0 whitespace-nowrap">
+            {compact ? "AI" : t("events.assistant.mode_ai", "AI 搜索")}
           </span>
         </button>
       </div>
-
-      {compact && discoveryMode === "assistant" && (
-        <p
-          className={`text-xs text-left ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-        >
-          {t("events.assistant.beta_hint", "Beta 测试，可能不稳定")}
-        </p>
-      )}
     </div>
   );
 
@@ -1018,7 +980,7 @@ END:VCALENDAR`;
         description="浏览浙江大学校内活动、志愿服务、讲座与报名信息。"
       />
       {/* Ambient Background - Hidden on mobile for performance */}
-      <div className="fixed inset-0 pointer-events-none z-0 hidden md:block">
+      <div className="fixed inset-0 pointer-events-none z-0 hidden overflow-hidden md:block">
         <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-purple-500/10 blur-[120px]" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-500/10 blur-[120px]" />
       </div>
@@ -1057,6 +1019,14 @@ END:VCALENDAR`;
           }}
           onClearFilters={resetMobileFilters}
           clearLabel={t("common.clear_all", "重置")}
+        />
+        <MobileEventAssistantLauncher
+          isDayMode={isDayMode}
+          onOpen={() => {
+            setIsMobileFilterOpen(false);
+            setIsMobileSortOpen(false);
+            setIsMobileAssistantOpen(true);
+          }}
         />
         <div className="hidden md:block mb-8">
           <h2
@@ -1102,13 +1072,8 @@ END:VCALENDAR`;
             <EventFilterPanel
               filters={filters}
               onFiltersChange={setFilters}
-              selectedTags={selectedTags}
-              onTagsChange={setSelectedTags}
-              lifecycle={lifecycle}
-              onLifecycleChange={setLifecycle}
               sort={sort}
               onSortChange={setSort}
-              refreshTrigger={filterVersion}
             />
           )}
         </div>
@@ -1123,117 +1088,96 @@ END:VCALENDAR`;
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   onClick={() => setIsMobileFilterOpen(false)}
-                  className={`fixed inset-0 backdrop-blur-sm z-[100] md:hidden ${isDayMode ? "bg-white/55" : "bg-black/60"}`}
+                  className={`fixed inset-0 backdrop-blur-sm z-[100] md:hidden ${isDayMode ? "bg-white/60" : "bg-black/60"}`}
                 />
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.96, y: 16 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.96, y: 16 }}
+                  initial={{ y: 36 }}
+                  animate={{ y: 0 }}
+                  exit={{ y: 36 }}
                   transition={{ type: "spring", damping: 28, stiffness: 320 }}
                   role="dialog"
                   aria-modal="true"
                   aria-labelledby="events-mobile-filter-title"
-                  className={`fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit backdrop-blur-xl border rounded-3xl z-[101] md:hidden flex flex-col max-h-[80vh] max-w-md mx-auto ${isDayMode ? "bg-white/95 border-slate-200/80 shadow-[0_24px_60px_rgba(148,163,184,0.22)]" : "bg-[#1a1a1a]/95 border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.45)]"}`}
+                  className={`fixed inset-x-0 bottom-0 z-[101] mx-auto flex max-h-[92dvh] w-full max-w-md flex-col overflow-hidden rounded-t-[2rem] border-x border-t transform-gpu md:hidden ${isDayMode ? "border-slate-200/80 bg-white shadow-[0_-24px_70px_rgba(148,163,184,0.24)]" : "border-white/10 bg-neutral-950 shadow-[0_-24px_70px_rgba(0,0,0,0.5)]"}`}
                 >
                   <div
-                    className={`p-4 border-b flex justify-between items-center sticky top-0 z-10 backdrop-blur-xl rounded-t-3xl ${isDayMode ? "border-slate-200/80 bg-white/92" : "border-white/10 bg-[#1a1a1a]/95"}`}
+                    className={`shrink-0 border-b px-5 pb-3 pt-4 ${isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-neutral-950"}`}
                   >
-                    <div>
-                      <h3
-                        id="events-mobile-filter-title"
-                        className={`text-lg font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}
-                      >
-                        {discoveryMode === "assistant"
-                          ? t("events.assistant.mode_ai", "AI 搜索")
-                          : t("common.filters", "筛选")}
-                      </h3>
-                      <p
-                        className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                      >
-                        {discoveryMode === "assistant"
-                          ? t(
-                              "events.assistant.beta_hint",
-                              "Beta 测试，可能不稳定",
-                            )
-                          : t("advanced_filter.title", "筛选活动内容")}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      aria-label={t("common.close", "关闭")}
-                      onClick={() => setIsMobileFilterOpen(false)}
-                      className={`p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-slate-500 hover:text-slate-900 bg-slate-100" : "text-gray-400 hover:text-white bg-white/5"}`}
-                    >
-                      <X size={20} />
-                    </button>
-                  </div>
-                  <div className="p-4 overflow-y-auto custom-scrollbar flex-1 min-h-0">
-                    <div className="mb-4">
-                      {renderDiscoveryModeToggle(true)}
-                    </div>
-
-                    {discoveryMode === "assistant" ? (
-                      <EventAssistantPanel
-                        isDayMode={isDayMode}
-                        onOpenEvent={(event) => {
-                          handleOpenAssistantEvent(event);
-                          setIsMobileFilterOpen(false);
-                        }}
-                      />
-                    ) : (
-                      <EventFilterPanel
-                        filters={filters}
-                        onFiltersChange={setFilters}
-                        selectedTags={selectedTags}
-                        onTagsChange={setSelectedTags}
-                        lifecycle={lifecycle}
-                        onLifecycleChange={setLifecycle}
-                        sort={sort}
-                        onSortChange={setSort}
-                        refreshTrigger={filterVersion}
-                        hideSort={true}
-                        mode="sheet"
-                      />
-                    )}
-                  </div>
-                  <div
-                    className={`p-4 border-t backdrop-blur-xl rounded-b-3xl flex items-center gap-3 shrink-0 ${isDayMode ? "border-slate-200/80 bg-white/92" : "border-white/10 bg-[#1a1a1a]/95"}`}
-                  >
-                    {discoveryMode === "assistant" ? (
+                    <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-slate-400/35" />
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <h3
+                          id="events-mobile-filter-title"
+                          className={`text-[1.35rem] font-black leading-tight ${isDayMode ? "text-slate-950" : "text-white"}`}
+                        >
+                          筛选活动
+                        </h3>
+                        <p
+                          className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                        >
+                          类型和对象会立即生效
+                        </p>
+                      </div>
                       <button
                         type="button"
-                        aria-label={t("common.done", "完成")}
+                        aria-label={t("common.close", "关闭")}
                         onClick={() => setIsMobileFilterOpen(false)}
-                        className={`w-full py-3 min-h-[44px] rounded-2xl font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-indigo-600 text-white shadow-[0_12px_28px_rgba(99,102,241,0.24)]" : "bg-white text-black"}`}
+                        className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-slate-100 text-slate-500 hover:text-slate-900" : "bg-white/10 text-gray-400 hover:text-white"}`}
                       >
-                        {t("common.done", "完成")}
+                        <X size={20} />
                       </button>
-                    ) : (
-                      <>
+                    </div>
+                  </div>
+                  <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 scrollbar-none">
+                    <EventFilterPanel
+                      filters={filters}
+                      onFiltersChange={setFilters}
+                      sort={sort}
+                      onSortChange={setSort}
+                      hideSort={true}
+                      mode="sheet"
+                    />
+                  </div>
+                  <div
+                    className={`shrink-0 border-t px-5 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-4 ${isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-neutral-950"}`}
+                  >
+                    <div
+                      className={`grid items-center gap-3 ${hasActiveMobileFilters ? "grid-cols-[0.82fr_1.18fr]" : "grid-cols-1"}`}
+                    >
+                      {hasActiveMobileFilters && (
                         <button
                           type="button"
                           aria-label={t("common.clear_all", "重置")}
                           onClick={resetMobileFilters}
-                          disabled={!hasActiveMobileFilters}
-                          className={`flex-1 py-3 min-h-[44px] rounded-2xl border disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "border-slate-200/80 bg-slate-100/90 text-slate-600" : "border-white/10 bg-white/5 text-gray-200"}`}
+                          className={`min-h-[52px] rounded-2xl border text-base font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "border-slate-200/80 bg-slate-100/90 text-slate-600" : "border-white/10 bg-white/10 text-gray-200"}`}
                         >
                           {t("common.clear_all", "重置")}
                         </button>
-                        <button
-                          type="button"
-                          aria-label={t("common.done", "完成")}
-                          onClick={() => setIsMobileFilterOpen(false)}
-                          className={`flex-1 py-3 min-h-[44px] rounded-2xl font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-indigo-600 text-white shadow-[0_12px_28px_rgba(99,102,241,0.24)]" : "bg-white text-black"}`}
-                        >
-                          {t("common.done", "完成")}
-                        </button>
-                      </>
-                    )}
+                      )}
+                      <button
+                        type="button"
+                        aria-label={t("common.done", "完成")}
+                        onClick={() => setIsMobileFilterOpen(false)}
+                        className={`min-h-[52px] rounded-2xl text-base font-black focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? dayPrimaryActionClass : nightSegmentActiveClass}`}
+                      >
+                        {t("common.done", "完成")}
+                      </button>
+                    </div>
                   </div>
                 </motion.div>
               </>
             )}
           </AnimatePresence>,
+          document.body,
+        )}
+
+        {createPortal(
+          <MobileEventAssistantFullscreen
+            isOpen={isMobileAssistantOpen}
+            isDayMode={isDayMode}
+            onClose={() => setIsMobileAssistantOpen(false)}
+            onOpenEvent={handleOpenAssistantEvent}
+          />,
           document.body,
         )}
 
@@ -1422,26 +1366,15 @@ END:VCALENDAR`;
           <p
             className={`mb-8 max-w-md text-lg ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
           >
-            {selectedTags.length > 0 ||
-            debouncedSearch ||
-            Object.values(filters).some((v) => v) ||
-            lifecycle !== "all"
+            {debouncedSearch || Object.values(filters).some((v) => v)
               ? `${t("advanced_filter.clear", "清除所有筛选")} ${t("common.or", "或")} ${t("common.search", "搜索...")}`
               : "暂时没有即将开始的活动，稍后再来看看吧"}
           </p>
-          {(selectedTags.length > 0 ||
-            Object.values(filters).some((v) => v) ||
-            lifecycle !== "all") && (
+          {Object.values(filters).some((v) => v) && (
             <button
               type="button"
               onClick={() => {
-                setFilters({
-                  location: null,
-                  organizer: null,
-                  target_audience: null,
-                });
-                setSelectedTags([]);
-                setLifecycle("all");
+                setFilters({ category: null, target_audience: null });
               }}
               className={`mb-4 px-5 py-2 rounded-full border text-sm font-medium ${isDayMode ? "bg-white/90 border-slate-200/80 text-slate-700 hover:bg-white" : "bg-white/10 border-white/15 text-white hover:bg-white/15"}`}
             >
@@ -1506,43 +1439,43 @@ END:VCALENDAR`;
                 }
                 className={`w-full max-w-5xl overflow-hidden overscroll-contain shadow-2xl relative flex flex-col ${isMobileViewport ? "min-h-[100dvh] max-h-[100dvh] rounded-none border-0" : "min-h-[100dvh] md:min-h-0 max-h-[100dvh] md:max-h-[90vh] rounded-t-[2rem] md:rounded-[2rem] border-x-0 border-b-0 md:border"} ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.98))] border-slate-200/90 shadow-[0_36px_120px_rgba(15,23,42,0.16)] ring-1 ring-white/70" : "bg-[#0f0f0f] border-white/10"}`}
                 onClick={(e) => e.stopPropagation()}
-                >
-                  {isDayMode && (
-                    <div className="pointer-events-none absolute inset-0">
-                      <div
-                        className={`absolute inset-x-0 top-0 h-48 ${eventThemeAccent.backdropGlow}`}
-                      />
-                      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/90 to-transparent" />
-                    </div>
-                  )}
-                  {!isMobileViewport && (
-                    <button
-                      onClick={closeEvent}
-                      aria-label={t("common.close", "关闭")}
-                      className={`absolute right-5 top-5 h-12 w-12 rounded-full backdrop-blur-xl border transition-all duration-300 z-40 group inline-flex items-center justify-center overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer ${isDayMode ? `bg-white/90 hover:bg-white text-slate-700 border-white/85 shadow-[0_16px_34px_rgba(15,23,42,0.14)] hover:shadow-[0_22px_42px_rgba(15,23,42,0.18)] hover:-translate-y-0.5 focus-visible:ring-slate-400/70 focus-visible:ring-offset-white` : "bg-black/45 hover:bg-black/65 text-white border-white/10 hover:border-white/20 focus-visible:ring-white/60 focus-visible:ring-offset-[#0f0f0f]"}`}
-                    >
-                      {isDayMode && (
-                        <>
-                          <span
-                            aria-hidden="true"
-                            className="absolute inset-0 rounded-full opacity-90 bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(255,255,255,0.16))]"
-                          />
-                          <span
-                            aria-hidden="true"
-                            className={`absolute inset-[1px] rounded-full opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100 ${eventThemeAccent.heroGlow}`}
-                          />
-                        </>
-                      )}
-                      <span
-                        className={`relative inline-flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 ${isDayMode ? "bg-white/70 border border-slate-200/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] group-hover:bg-white" : "bg-white/10 border border-white/10 group-hover:bg-white/15"}`}
-                      >
-                        <X
-                          size={20}
-                          className="group-hover:rotate-90 group-hover:scale-105 transition-transform duration-300"
+              >
+                {isDayMode && (
+                  <div className="pointer-events-none absolute inset-0">
+                    <div
+                      className={`absolute inset-x-0 top-0 h-48 ${eventThemeAccent.backdropGlow}`}
+                    />
+                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/90 to-transparent" />
+                  </div>
+                )}
+                {!isMobileViewport && (
+                  <button
+                    onClick={closeEvent}
+                    aria-label={t("common.close", "关闭")}
+                    className={`absolute right-5 top-5 h-12 w-12 rounded-full backdrop-blur-xl border transition-all duration-300 z-40 group inline-flex items-center justify-center overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer ${isDayMode ? `bg-white/90 hover:bg-white text-slate-700 border-white/85 shadow-[0_16px_34px_rgba(15,23,42,0.14)] hover:shadow-[0_22px_42px_rgba(15,23,42,0.18)] hover:-translate-y-0.5 focus-visible:ring-slate-400/70 focus-visible:ring-offset-white` : "bg-black/45 hover:bg-black/65 text-white border-white/10 hover:border-white/20 focus-visible:ring-white/60 focus-visible:ring-offset-[#0f0f0f]"}`}
+                  >
+                    {isDayMode && (
+                      <>
+                        <span
+                          aria-hidden="true"
+                          className="absolute inset-0 rounded-full opacity-90 bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(255,255,255,0.16))]"
                         />
-                      </span>
-                    </button>
-                  )}
+                        <span
+                          aria-hidden="true"
+                          className={`absolute inset-[1px] rounded-full opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100 ${eventThemeAccent.heroGlow}`}
+                        />
+                      </>
+                    )}
+                    <span
+                      className={`relative inline-flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 ${isDayMode ? "bg-white/70 border border-slate-200/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] group-hover:bg-white" : "bg-white/10 border border-white/10 group-hover:bg-white/15"}`}
+                    >
+                      <X
+                        size={20}
+                        className="group-hover:rotate-90 group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </span>
+                  </button>
+                )}
                 <div className="relative flex-1 overflow-y-auto overscroll-contain custom-scrollbar">
                   {!isMobileViewport && showLegacyHeaderImage && (
                     <>
@@ -1550,187 +1483,187 @@ END:VCALENDAR`;
                       <div
                         className={`relative shrink-0 overflow-hidden h-80 sm:h-[27rem] ${isDayMode ? "border-b border-slate-200/70" : ""}`}
                       >
-                    <SmartImage
-                      src={selectedEvent.image}
-                      alt={selectedEvent.title}
-                      type="event"
-                      className="w-full h-full"
-                      imageClassName={`w-full h-full object-cover ${isDayMode ? "scale-[1.02] saturate-[1.05] contrast-[1.02]" : ""}`}
-                      iconSize={64}
-                    />
-                    <div
-                      className={`absolute inset-0 ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0)_24%,rgba(255,255,255,0.12)_58%,rgba(255,255,255,0.92)_100%)]" : "bg-gradient-to-t via-transparent to-transparent from-[#0f0f0f] via-[#0f0f0f]/40"}`}
-                    />
-                    {isDayMode && (
-                      <>
-                        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-slate-950/12 via-slate-950/0 to-transparent" />
+                        <SmartImage
+                          src={selectedEvent.image}
+                          alt={selectedEvent.title}
+                          type="event"
+                          className="w-full h-full"
+                          imageClassName={`w-full h-full object-cover ${isDayMode ? "scale-[1.02] saturate-[1.05] contrast-[1.02]" : ""}`}
+                          iconSize={64}
+                        />
                         <div
-                          className={`absolute -bottom-12 right-0 h-44 w-44 rounded-full blur-3xl ${eventThemeAccent.heroGlow}`}
+                          className={`absolute inset-0 ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0)_24%,rgba(255,255,255,0.12)_58%,rgba(255,255,255,0.92)_100%)]" : "bg-gradient-to-t via-transparent to-transparent from-[#0f0f0f] via-[#0f0f0f]/40"}`}
                         />
-                        <div className="absolute left-8 top-10 h-28 w-28 rounded-full bg-white/18 blur-3xl" />
-                      </>
-                    )}
-
-                    <button
-                      onClick={closeEvent}
-                      aria-label={t("common.close", "关闭")}
-                      className={`absolute right-4 top-4 sm:top-6 sm:right-6 h-11 w-11 sm:h-12 sm:w-12 rounded-full backdrop-blur-xl border transition-all duration-300 z-30 group inline-flex items-center justify-center overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer ${isDayMode ? `bg-white/86 hover:bg-white text-slate-700 border-white/85 shadow-[0_16px_34px_rgba(15,23,42,0.14)] hover:shadow-[0_22px_42px_rgba(15,23,42,0.18)] hover:-translate-y-0.5 focus-visible:ring-slate-400/70 focus-visible:ring-offset-white` : "bg-black/45 hover:bg-black/65 text-white border-white/10 hover:border-white/20 focus-visible:ring-white/60 focus-visible:ring-offset-[#0f0f0f]"}`}
-                    >
-                      {isDayMode && (
-                        <>
-                          <span
-                            aria-hidden="true"
-                            className={`absolute inset-0 rounded-full opacity-90 bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(255,255,255,0.16))]`}
-                          />
-                          <span
-                            aria-hidden="true"
-                            className={`absolute inset-[1px] rounded-full opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100 ${eventThemeAccent.heroGlow}`}
-                          />
-                        </>
-                      )}
-                      <span
-                        className={`relative inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full transition-all duration-300 ${isDayMode ? "bg-white/70 border border-slate-200/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] group-hover:bg-white" : "bg-white/10 border border-white/10 group-hover:bg-white/15"}`}
-                      >
-                        <X
-                          size={20}
-                          className="group-hover:rotate-90 group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </span>
-                    </button>
-
-                      <div
-                        className={`absolute bottom-0 left-0 w-full px-5 pt-12 pb-5 sm:px-10 sm:pt-16 sm:pb-8 z-10 backdrop-blur-[2px] ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.78)_24%,rgba(255,255,255,0.97)_60%,rgba(255,255,255,1)_100%)]" : "bg-gradient-to-t from-[#0f0f0f] via-[#0f0f0f]/90 to-transparent"}`}
-                      >
-                        {/* Editorial Eyebrow: Date & Location & Status */}
-                        <div className="flex justify-between items-end w-full mb-3 sm:mb-4">
-                          <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
+                        {isDayMode && (
+                          <>
+                            <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-slate-950/12 via-slate-950/0 to-transparent" />
                             <div
-                              className={`px-3 sm:px-4 py-1.5 sm:py-2 backdrop-blur-xl border rounded-xl shadow-inner flex items-center gap-2 ${isDayMode ? "bg-white/92 border-white/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_10px_25px_rgba(15,23,42,0.08)]" : "bg-white/10 border-white/20"}`}
-                            >
-                              <Calendar
-                                size={14}
-                                className={
-                                  isDayMode
-                                    ? "text-slate-700 sm:w-4 sm:h-4"
-                                    : "text-white sm:w-4 sm:h-4"
-                                }
+                              className={`absolute -bottom-12 right-0 h-44 w-44 rounded-full blur-3xl ${eventThemeAccent.heroGlow}`}
+                            />
+                            <div className="absolute left-8 top-10 h-28 w-28 rounded-full bg-white/18 blur-3xl" />
+                          </>
+                        )}
+
+                        <button
+                          onClick={closeEvent}
+                          aria-label={t("common.close", "关闭")}
+                          className={`absolute right-4 top-4 sm:top-6 sm:right-6 h-11 w-11 sm:h-12 sm:w-12 rounded-full backdrop-blur-xl border transition-all duration-300 z-30 group inline-flex items-center justify-center overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer ${isDayMode ? `bg-white/86 hover:bg-white text-slate-700 border-white/85 shadow-[0_16px_34px_rgba(15,23,42,0.14)] hover:shadow-[0_22px_42px_rgba(15,23,42,0.18)] hover:-translate-y-0.5 focus-visible:ring-slate-400/70 focus-visible:ring-offset-white` : "bg-black/45 hover:bg-black/65 text-white border-white/10 hover:border-white/20 focus-visible:ring-white/60 focus-visible:ring-offset-[#0f0f0f]"}`}
+                        >
+                          {isDayMode && (
+                            <>
+                              <span
+                                aria-hidden="true"
+                                className={`absolute inset-0 rounded-full opacity-90 bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(255,255,255,0.16))]`}
                               />
                               <span
-                                className={`font-bold text-xs sm:text-sm tracking-wide ${isDayMode ? "text-slate-700" : "text-white"}`}
-                              >
-                                {formatDateTime(selectedEvent.date)}
-                              </span>
-                            </div>
-                            {selectedEvent.location && (
+                                aria-hidden="true"
+                                className={`absolute inset-[1px] rounded-full opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100 ${eventThemeAccent.heroGlow}`}
+                              />
+                            </>
+                          )}
+                          <span
+                            className={`relative inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full transition-all duration-300 ${isDayMode ? "bg-white/70 border border-slate-200/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] group-hover:bg-white" : "bg-white/10 border border-white/10 group-hover:bg-white/15"}`}
+                          >
+                            <X
+                              size={20}
+                              className="group-hover:rotate-90 group-hover:scale-105 transition-transform duration-300"
+                            />
+                          </span>
+                        </button>
+
+                        <div
+                          className={`absolute bottom-0 left-0 w-full px-5 pt-12 pb-5 sm:px-10 sm:pt-16 sm:pb-8 z-10 backdrop-blur-[2px] ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.78)_24%,rgba(255,255,255,0.97)_60%,rgba(255,255,255,1)_100%)]" : "bg-gradient-to-t from-[#0f0f0f] via-[#0f0f0f]/90 to-transparent"}`}
+                        >
+                          {/* Editorial Eyebrow: Date & Location & Status */}
+                          <div className="flex justify-between items-end w-full mb-3 sm:mb-4">
+                            <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
                               <div
-                                className={`px-3 sm:px-4 py-1.5 sm:py-2 backdrop-blur-xl border rounded-xl flex items-center gap-2 ${isDayMode ? "bg-white/72 border-slate-200/80 text-slate-600 shadow-[0_10px_24px_rgba(15,23,42,0.06)]" : "bg-white/8 border-white/15 text-white/85"}`}
+                                className={`px-3 sm:px-4 py-1.5 sm:py-2 backdrop-blur-xl border rounded-xl shadow-inner flex items-center gap-2 ${isDayMode ? "bg-white/92 border-white/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_10px_25px_rgba(15,23,42,0.08)]" : "bg-white/10 border-white/20"}`}
                               >
-                                <MapPin
+                                <Calendar
                                   size={14}
-                                  className={`sm:w-4 sm:h-4 ${eventThemeAccent.accentText}`}
+                                  className={
+                                    isDayMode
+                                      ? "text-slate-700 sm:w-4 sm:h-4"
+                                      : "text-white sm:w-4 sm:h-4"
+                                  }
                                 />
-                                <span className="font-semibold text-xs sm:text-sm tracking-wide truncate max-w-[180px] sm:max-w-[240px]">
-                                  {selectedEvent.location}
+                                <span
+                                  className={`font-bold text-xs sm:text-sm tracking-wide ${isDayMode ? "text-slate-700" : "text-white"}`}
+                                >
+                                  {formatDateTime(selectedEvent.date)}
                                 </span>
                               </div>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col gap-4 sm:gap-6 sm:flex-row sm:items-end sm:justify-between">
-                          <div className="max-w-full sm:max-w-[82%]">
-                            <div
-                              className={`inline-flex items-center gap-2 rounded-full px-3 py-1 mb-3 sm:mb-4 border ${isDayMode ? "bg-white/80 border-white/80 text-slate-500 shadow-[0_10px_22px_rgba(15,23,42,0.08)]" : "bg-white/10 border-white/15 text-white/70"}`}
-                            >
-                              <span
-                                className={`h-1.5 w-1.5 rounded-full ${eventThemeAccent.dot}`}
-                              />
-                              <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.24em]">
-                                {t("events.title")}
-                              </span>
+                              {selectedEvent.location && (
+                                <div
+                                  className={`px-3 sm:px-4 py-1.5 sm:py-2 backdrop-blur-xl border rounded-xl flex items-center gap-2 ${isDayMode ? "bg-white/72 border-slate-200/80 text-slate-600 shadow-[0_10px_24px_rgba(15,23,42,0.06)]" : "bg-white/8 border-white/15 text-white/85"}`}
+                                >
+                                  <MapPin
+                                    size={14}
+                                    className={`sm:w-4 sm:h-4 ${eventThemeAccent.accentText}`}
+                                  />
+                                  <span className="font-semibold text-xs sm:text-sm tracking-wide truncate max-w-[180px] sm:max-w-[240px]">
+                                    {selectedEvent.location}
+                                  </span>
+                                </div>
+                              )}
                             </div>
-                            <h2
-                              className={`text-2xl sm:text-4xl md:text-5xl font-black leading-[1.2] sm:leading-[1.08] tracking-tight ${isMobileViewport ? "max-w-[calc(100%-0.5rem)]" : ""} ${isDayMode ? "text-slate-950 [text-wrap:balance]" : "text-white"}`}
-                            >
-                              {selectedEvent.title}
-                              <span
-                                className={`inline-flex items-center justify-center align-middle ml-3 sm:ml-4 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-bold uppercase tracking-wider border backdrop-blur-md font-sans shadow-lg translate-y-[-0.1em] sm:translate-y-[-0.2em] ${isDayMode ? "ring-1 ring-white/50" : ""} ${getStatusColor(getEventLifecycle(selectedEvent.date, selectedEvent.end_date, t), t)}`}
+                          </div>
+
+                          <div className="flex flex-col gap-4 sm:gap-6 sm:flex-row sm:items-end sm:justify-between">
+                            <div className="max-w-full sm:max-w-[82%]">
+                              <div
+                                className={`inline-flex items-center gap-2 rounded-full px-3 py-1 mb-3 sm:mb-4 border ${isDayMode ? "bg-white/80 border-white/80 text-slate-500 shadow-[0_10px_22px_rgba(15,23,42,0.08)]" : "bg-white/10 border-white/15 text-white/70"}`}
                               >
-                                {getEventLifecycle(
-                                  selectedEvent.date,
-                                  selectedEvent.end_date,
-                                  t,
+                                <span
+                                  className={`h-1.5 w-1.5 rounded-full ${eventThemeAccent.dot}`}
+                                />
+                                <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.24em]">
+                                  {t("events.title")}
+                                </span>
+                              </div>
+                              <h2
+                                className={`text-2xl sm:text-4xl md:text-5xl font-black leading-[1.2] sm:leading-[1.08] tracking-tight ${isMobileViewport ? "max-w-[calc(100%-0.5rem)]" : ""} ${isDayMode ? "text-slate-950 [text-wrap:balance]" : "text-white"}`}
+                              >
+                                {selectedEvent.title}
+                                <span
+                                  className={`inline-flex items-center justify-center align-middle ml-3 sm:ml-4 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-bold uppercase tracking-wider border backdrop-blur-md font-sans shadow-lg translate-y-[-0.1em] sm:translate-y-[-0.2em] ${isDayMode ? "ring-1 ring-white/50" : ""} ${getStatusColor(getEventLifecycle(selectedEvent.date, selectedEvent.end_date, t), t)}`}
+                                >
+                                  {getEventLifecycle(
+                                    selectedEvent.date,
+                                    selectedEvent.end_date,
+                                    t,
+                                  )}
+                                </span>
+                              </h2>
+                              {selectedEvent.description && (
+                                <p
+                                  className={`mt-4 max-w-3xl text-sm sm:text-base leading-7 ${isDayMode ? "text-slate-600" : "text-white/75"}`}
+                                >
+                                  {selectedEvent.description}
+                                </p>
+                              )}
+                              <div className="mt-4 flex flex-wrap items-center gap-2.5">
+                                {selectedEvent.organizer && (
+                                  <span
+                                    className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 border text-xs sm:text-sm font-medium ${isDayMode ? "bg-white/82 text-slate-600 border-white/80 shadow-[0_10px_22px_rgba(15,23,42,0.06)]" : "bg-white/10 text-white/80 border-white/15"}`}
+                                  >
+                                    <Building2
+                                      size={14}
+                                      className={eventThemeAccent.accentText}
+                                    />
+                                    {selectedEvent.organizer}
+                                  </span>
                                 )}
-                              </span>
-                            </h2>
-                            {selectedEvent.description && (
-                              <p
-                                className={`mt-4 max-w-3xl text-sm sm:text-base leading-7 ${isDayMode ? "text-slate-600" : "text-white/75"}`}
-                              >
-                                {selectedEvent.description}
-                              </p>
-                            )}
-                            <div className="mt-4 flex flex-wrap items-center gap-2.5">
-                              {selectedEvent.organizer && (
-                                <span
-                                  className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 border text-xs sm:text-sm font-medium ${isDayMode ? "bg-white/82 text-slate-600 border-white/80 shadow-[0_10px_22px_rgba(15,23,42,0.06)]" : "bg-white/10 text-white/80 border-white/15"}`}
-                                >
-                                  <Building2
-                                    size={14}
-                                    className={eventThemeAccent.accentText}
-                                  />
-                                  {selectedEvent.organizer}
-                                </span>
-                              )}
-                              {selectedEvent.target_audience && (
-                                <span
-                                  className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 border text-xs sm:text-sm font-medium ${isDayMode ? "bg-white/82 text-slate-600 border-white/80 shadow-[0_10px_22px_rgba(15,23,42,0.06)]" : "bg-white/10 text-white/80 border-white/15"}`}
-                                >
-                                  <Users
-                                    size={14}
-                                    className={eventThemeAccent.accentText}
-                                  />
-                                  {selectedEvent.target_audience}
-                                </span>
-                              )}
+                                {selectedEvent.target_audience && (
+                                  <span
+                                    className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 border text-xs sm:text-sm font-medium ${isDayMode ? "bg-white/82 text-slate-600 border-white/80 shadow-[0_10px_22px_rgba(15,23,42,0.06)]" : "bg-white/10 text-white/80 border-white/15"}`}
+                                  >
+                                    <Users
+                                      size={14}
+                                      className={eventThemeAccent.accentText}
+                                    />
+                                    {selectedEvent.target_audience}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex flex-row justify-start sm:justify-end sm:flex-col items-start sm:items-end gap-3 shrink-0 mb-1">
+                              <FavoriteButton
+                                itemId={selectedEvent.id}
+                                itemType="event"
+                                size={24}
+                                showCount={true}
+                                count={selectedEvent.likes || 0}
+                                favorited={selectedEvent.favorited}
+                                className={`p-3 rounded-full backdrop-blur-md transition-all shrink-0 border ${isDayMode ? "bg-white/90 hover:bg-white border-white/80 text-slate-700 shadow-[0_14px_28px_rgba(15,23,42,0.1)] hover:shadow-[0_18px_36px_rgba(15,23,42,0.16)]" : "bg-white/10 hover:bg-white/20 border border-white/10"}`}
+                                onToggle={(favorited, likes) => {
+                                  setSelectedEvent((prev) => ({
+                                    ...prev,
+                                    likes:
+                                      likes !== undefined ? likes : prev.likes,
+                                    favorited,
+                                  }));
+                                  setEvents((prev) =>
+                                    prev.map((e) =>
+                                      e.id === selectedEvent.id
+                                        ? {
+                                            ...e,
+                                            likes:
+                                              likes !== undefined
+                                                ? likes
+                                                : e.likes,
+                                            favorited,
+                                          }
+                                        : e,
+                                    ),
+                                  );
+                                }}
+                              />
                             </div>
                           </div>
-
-                          <div className="flex flex-row justify-start sm:justify-end sm:flex-col items-start sm:items-end gap-3 shrink-0 mb-1">
-                            <FavoriteButton
-                              itemId={selectedEvent.id}
-                              itemType="event"
-                              size={24}
-                              showCount={true}
-                              count={selectedEvent.likes || 0}
-                              favorited={selectedEvent.favorited}
-                              className={`p-3 rounded-full backdrop-blur-md transition-all shrink-0 border ${isDayMode ? "bg-white/90 hover:bg-white border-white/80 text-slate-700 shadow-[0_14px_28px_rgba(15,23,42,0.1)] hover:shadow-[0_18px_36px_rgba(15,23,42,0.16)]" : "bg-white/10 hover:bg-white/20 border border-white/10"}`}
-                              onToggle={(favorited, likes) => {
-                                setSelectedEvent((prev) => ({
-                                  ...prev,
-                                  likes:
-                                    likes !== undefined ? likes : prev.likes,
-                                  favorited,
-                                }));
-                                setEvents((prev) =>
-                                  prev.map((e) =>
-                                    e.id === selectedEvent.id
-                                      ? {
-                                          ...e,
-                                          likes:
-                                            likes !== undefined
-                                              ? likes
-                                              : e.likes,
-                                          favorited,
-                                        }
-                                      : e,
-                                  ),
-                                );
-                              }}
-                            />
-                          </div>
                         </div>
-                      </div>
                       </div>
                     </>
                   )}
@@ -1854,11 +1787,17 @@ END:VCALENDAR`;
                             <div
                               className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 border ${isDayMode ? "bg-white border-slate-200 text-slate-700 shadow-[0_10px_24px_rgba(15,23,42,0.06)]" : "bg-white/8 border-white/15 text-white/85"}`}
                             >
-                              <Calendar size={15} className={eventThemeAccent.accentText} />
+                              <Calendar
+                                size={15}
+                                className={eventThemeAccent.accentText}
+                              />
                               <span className="text-sm font-semibold tracking-wide">
                                 {formatDateTime(selectedEvent.date)}
                                 {selectedEvent.end_date &&
-                                  !isSameDay(selectedEvent.date, selectedEvent.end_date) &&
+                                  !isSameDay(
+                                    selectedEvent.date,
+                                    selectedEvent.end_date,
+                                  ) &&
                                   ` - ${formatDateTime(selectedEvent.end_date)}`}
                               </span>
                             </div>
@@ -1868,7 +1807,10 @@ END:VCALENDAR`;
                                 onClick={handleCopyLocation}
                                 className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 border text-sm font-semibold transition-colors ${isDayMode ? "bg-white border-slate-200 text-slate-700 hover:bg-slate-50" : "bg-white/8 border-white/15 text-white/85 hover:bg-white/12"}`}
                               >
-                                <MapPin size={15} className={eventThemeAccent.accentText} />
+                                <MapPin
+                                  size={15}
+                                  className={eventThemeAccent.accentText}
+                                />
                                 <span className="truncate max-w-[320px]">
                                   {selectedEvent.location}
                                 </span>
@@ -1968,8 +1910,8 @@ END:VCALENDAR`;
                             </>
                           )}
 
-                          {/* Key Attributes Grid - Now just Tags */}
-                          {selectedEvent.tags && (
+                          {/* Key Attributes Grid */}
+                          {selectedEvent.category && (
                             <div
                               className={`rounded-[1.6rem] p-4 border backdrop-blur-sm ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(248,250,252,0.98))] border-slate-200/80 shadow-[0_16px_34px_rgba(15,23,42,0.06)]" : "bg-white/[0.03] border-white/5"}`}
                             >
@@ -1978,18 +1920,15 @@ END:VCALENDAR`;
                               >
                                 <Tag size={18} />
                                 <span className="text-sm font-bold uppercase tracking-wider">
-                                  {t("upload.tags")}
+                                  活动分类
                                 </span>
                               </div>
                               <div className="flex flex-wrap gap-2">
-                                {selectedEvent.tags.split(",").map((tag, i) => (
-                                  <span
-                                    key={i}
-                                    className={`px-3 py-1.5 rounded-xl text-sm font-medium border transition-all ${isDayMode ? `bg-white text-slate-600 border-slate-200/80 shadow-[0_8px_20px_rgba(15,23,42,0.05)] hover:-translate-y-0.5 ${eventThemeAccent.tagHover}` : "bg-white/5 text-gray-300 border-white/5 hover:bg-white/10"}`}
-                                  >
-                                    {tag.trim()}
-                                  </span>
-                                ))}
+                                <span
+                                  className={`px-3 py-1.5 rounded-xl text-sm font-medium border transition-all ${isDayMode ? `bg-white text-slate-600 border-slate-200/80 shadow-[0_8px_20px_rgba(15,23,42,0.05)] hover:-translate-y-0.5 ${eventThemeAccent.tagHover}` : "bg-white/5 text-gray-300 border-white/5 hover:bg-white/10"}`}
+                                >
+                                  {getEventCategoryLabel(selectedEvent.category)}
+                                </span>
                               </div>
                             </div>
                           )}
@@ -2051,7 +1990,10 @@ END:VCALENDAR`;
                                 className={`flex items-start gap-2.5 group rounded-[1.35rem] px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:rounded-[1.6rem] sm:px-4 sm:py-4 ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(248,250,252,0.98))] border-slate-200/80 shadow-[0_12px_26px_rgba(15,23,42,0.05)] hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(15,23,42,0.08)]" : "bg-white/[0.03] border-white/5"}`}
                               >
                                 <div className="p-2 bg-green-500/5 border border-green-500/10 rounded-xl text-green-400 shrink-0 group-hover:bg-green-500/10 transition-colors sm:p-2.5">
-                                  <Building2 size={18} className="sm:h-5 sm:w-5" />
+                                  <Building2
+                                    size={18}
+                                    className="sm:h-5 sm:w-5"
+                                  />
                                 </div>
                                 <div className="min-w-0">
                                   <h4

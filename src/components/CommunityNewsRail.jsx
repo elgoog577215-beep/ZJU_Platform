@@ -357,10 +357,10 @@ const CommunityNewsRail = () => {
   })() : null;
 
   return (
-    <div className={`rounded-2xl border backdrop-blur-xl p-4 md:p-5 ${isDayMode ? 'bg-white/82 border-slate-200/80 shadow-[0_18px_42px_rgba(148,163,184,0.12)]' : 'bg-[#141414]/70 border-white/10'}`}>
+    <div className={`rounded-2xl border backdrop-blur-xl p-4 md:p-5 ${isDayMode ? 'bg-gradient-to-br from-white/74 via-white/52 to-sky-50/42 border-white/75 shadow-[0_22px_54px_rgba(59,130,246,0.12)] ring-1 ring-slate-900/[0.025]' : 'bg-[#141414]/70 border-white/10'}`}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDayMode ? 'bg-blue-50 text-blue-600' : 'bg-blue-500/15 text-blue-300'}`}>
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDayMode ? 'bg-white/70 text-blue-600 border border-white/75 shadow-[0_10px_24px_rgba(59,130,246,0.12)]' : 'bg-blue-500/15 text-blue-300'}`}>
             <Newspaper size={16} />
           </div>
           <h3 className={`text-sm md:text-base font-bold ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
@@ -372,7 +372,7 @@ const CommunityNewsRail = () => {
           <button
             type="button"
             onClick={() => setIsUploadOpen(true)}
-            className={`inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border ${isDayMode ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50' : 'bg-white/5 text-gray-200 border-white/10 hover:bg-white/10'}`}
+            className={`inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border ${isDayMode ? 'bg-white/58 text-slate-700 border-white/75 hover:bg-white/82' : 'bg-white/5 text-gray-200 border-white/10 hover:bg-white/10'}`}
           >
             <PlusCircle size={13} />
             {t('common.publish', '发布')}
@@ -389,7 +389,7 @@ const CommunityNewsRail = () => {
             className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs border transition-all ${
               activeSort === key
                 ? (isDayMode ? 'bg-blue-500 text-white border-blue-500' : 'bg-blue-500 text-white border-blue-500')
-                : (isDayMode ? 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10')
+                : (isDayMode ? 'bg-white/48 text-slate-600 border-white/70 hover:bg-white/78 hover:text-slate-950' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10')
             }`}
           >
             <Icon size={13} />
@@ -418,7 +418,7 @@ const CommunityNewsRail = () => {
       ) : null}
 
       {isAdmin ? (
-        <div className={`mb-4 p-2 rounded-xl border ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
+        <div className={`mb-4 p-2 rounded-xl border ${isDayMode ? 'bg-white/48 border-white/70' : 'bg-white/[0.03] border-white/10'}`}>
           <div className="flex gap-2">
             <input
               type="url"
@@ -439,7 +439,7 @@ const CommunityNewsRail = () => {
         </div>
       ) : null}
 
-      <div className={`mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border px-3 py-2 text-xs ${isDayMode ? 'bg-white/72 border-slate-200/80 text-slate-500' : 'bg-white/[0.03] border-white/10 text-gray-400'}`}>
+      <div className={`mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border px-3 py-2 text-xs ${isDayMode ? 'bg-white/48 border-white/70 text-slate-500 shadow-inner shadow-white/50' : 'bg-white/[0.03] border-white/10 text-gray-400'}`}>
         <div className="flex flex-wrap items-center gap-2">
           <span>{list.length} {t('community.results_count', '条结果')}</span>
           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border ${isDayMode ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-blue-500/10 text-blue-300 border-blue-500/20'}`}>
@@ -454,7 +454,7 @@ const CommunityNewsRail = () => {
         <button
           type="button"
           onClick={() => refresh({ clearCache: true })}
-          className={`px-2.5 py-1 rounded-md border transition-colors ${isDayMode ? 'text-slate-600 border-slate-200 hover:bg-slate-100' : 'text-gray-300 border-white/10 hover:bg-white/10'}`}
+          className={`px-2.5 py-1 rounded-md border transition-colors ${isDayMode ? 'text-slate-600 border-white/70 bg-white/38 hover:bg-white/76' : 'text-gray-300 border-white/10 hover:bg-white/10'}`}
         >
           {t('common.refresh', '刷新')}
         </button>
@@ -492,7 +492,7 @@ const CommunityNewsRail = () => {
             type="button"
             onClick={() => handleOpen(item)}
             className={`w-full text-left rounded-xl border p-3 transition-all group ${
-              isDayMode ? 'bg-white border-slate-200 hover:border-blue-300 hover:bg-blue-50/40' : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.06] hover:border-blue-400/40'
+              isDayMode ? 'bg-white/52 border-white/70 hover:border-blue-300/70 hover:bg-white/82 shadow-[0_8px_22px_rgba(59,130,246,0.06)]' : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.06] hover:border-blue-400/40'
             }`}
           >
             <div className="flex items-start gap-2">
@@ -521,7 +521,7 @@ const CommunityNewsRail = () => {
                   ) : null}
                 </div>
                 {isAdmin ? (
-                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <div className="mt-2 flex max-h-0 flex-wrap items-center gap-1.5 overflow-hidden opacity-0 transition-all duration-200 group-hover:max-h-40 group-hover:opacity-100 group-focus-within:max-h-40 group-focus-within:opacity-100">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] border ${isDayMode ? 'text-slate-600 border-slate-200 bg-slate-50' : 'text-gray-300 border-white/15 bg-white/[0.03]'}`}>
                       热度 {Number(item.hot_score || 0)}
                     </span>

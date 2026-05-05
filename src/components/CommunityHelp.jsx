@@ -126,7 +126,7 @@ const CommunityHelp = () => {
       <input
         value={feed.searchQuery}
         onChange={(e) => feed.setSearchQuery(e.target.value)}
-        placeholder="搜索求助帖（标题/标签/正文）"
+        placeholder="搜索求助帖（标题/正文）"
         className={`w-full h-10 px-3 rounded-xl border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`}
       />
     </div>

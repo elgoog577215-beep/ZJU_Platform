@@ -57,18 +57,6 @@ const GroupCard = memo(({ group, index, isDayMode, isAdmin, onQuickAction, onEdi
         </span>
       </div>
       <p className={`text-xs md:text-sm leading-relaxed line-clamp-2 mb-2.5 md:mb-4 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{group.description}</p>
-      {Array.isArray(group.primary_tags) && group.primary_tags.length > 0 && (
-        <div className="flex flex-wrap gap-1 md:gap-1.5 mb-2 md:mb-3">
-          {group.primary_tags.slice(0, 2).map((tag) => (
-            <span
-              key={`${group.id}-tag-${tag}`}
-              className={`px-1.5 md:px-2 py-0.5 rounded-full text-[9px] md:text-[10px] border ${isDayMode ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-blue-500/10 text-blue-300 border-blue-500/30'}`}
-            >
-              #{tag}
-            </span>
-          ))}
-        </div>
-      )}
       {group.valid_until && (
         <p className={`text-[10px] md:text-[11px] mb-2 md:mb-3 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
           有效期至 {String(group.valid_until).slice(0, 10)}
@@ -438,7 +426,6 @@ const CommunityGroups = () => {
             <textarea value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} placeholder="描述" className={`md:col-span-2 min-h-[84px] px-3 py-2 rounded-xl border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`} />
             {isAdmin && (
               <>
-                <input value={form.primary_tags} onChange={(e) => setForm((p) => ({ ...p, primary_tags: e.target.value }))} placeholder="主标签（逗号分隔）" className={`md:col-span-2 h-10 px-3 rounded-xl border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`} />
                 <input value={form.related_article_ids} onChange={(e) => setForm((p) => ({ ...p, related_article_ids: e.target.value }))} placeholder="关联文章ID：1,2,3" className={`h-10 px-3 rounded-xl border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`} />
                 <input value={form.related_post_ids} onChange={(e) => setForm((p) => ({ ...p, related_post_ids: e.target.value }))} placeholder="关联求助ID：11,12" className={`h-10 px-3 rounded-xl border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`} />
                 <input value={form.related_news_ids} onChange={(e) => setForm((p) => ({ ...p, related_news_ids: e.target.value }))} placeholder="关联新闻ID：21,22" className={`h-10 px-3 rounded-xl border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`} />
@@ -526,18 +513,6 @@ const CommunityGroups = () => {
                 </span>
               )}
             </div>
-            {Array.isArray(selectedGroup.primary_tags) && selectedGroup.primary_tags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mb-3">
-                {selectedGroup.primary_tags.map((tag) => (
-                  <span
-                    key={`detail-tag-${tag}`}
-                    className={`px-2.5 py-0.5 rounded-full text-xs border ${isDayMode ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-blue-500/10 text-blue-300 border-blue-500/30'}`}
-                  >
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-            )}
             {selectedGroup.invite_link && (
               <a
                 href={selectedGroup.invite_link}

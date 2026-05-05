@@ -1,7 +1,7 @@
 const { getDb } = require('../config/db');
 
-// Resources that have tags
-const resources = ['photos', 'videos', 'music', 'articles', 'events'];
+// Event tags are retired; events use category as their public/search taxonomy.
+const resources = ['photos', 'videos', 'music', 'articles'];
 
 const ensureTagsTable = async () => {
     const db = await getDb();
@@ -66,27 +66,6 @@ const getTags = async (req, res, next) => {
                  if (hasStatus) whereClause += " AND status = 'approved'";
              } catch (e) {
                  console.warn(`[TagController] Failed to check columns for ${targetTable}:`, e);
-             }
-
-             // For events, support attribute filtering so tag counts reflect current filter context
-             if (targetTable === 'events') {
-                 const filterableFields = ['organizer', 'location', 'target_audience'];
-                 filterableFields.forEach(field => {
-                     if (req.query[field]) {
-                         whereClause += ` AND "${field}" = ?`;
-                         whereParams.push(req.query[field]);
-                     }
-                 });
-
-                 // Lifecycle filter (mirrors resourceController logic)
-                 const lifecycle = req.query.lifecycle;
-                 if (lifecycle === 'upcoming') {
-                     whereClause += ' AND date > date("now", "localtime")';
-                 } else if (lifecycle === 'past') {
-                     whereClause += ' AND date < date("now", "localtime")';
-                 } else if (lifecycle === 'ongoing') {
-                     whereClause += ' AND date = date("now", "localtime")';
-                 }
              }
 
              const items = await db.all(`SELECT tags FROM ${targetTable} ${whereClause}`, whereParams);
@@ -251,6 +230,7 @@ const syncTags = async (req, res, next) => {
         }
         
         // Update DB
+        await db.run('DELETE FROM tags');
         for (const [name, count] of Object.entries(tagCounts)) {
             const existing = await db.get('SELECT id FROM tags WHERE name = ?', name);
             if (existing) {

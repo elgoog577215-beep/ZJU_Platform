@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   LayoutGrid,
@@ -12,6 +12,7 @@ import {
   Inbox,
   MessageSquare,
   ArrowRight,
+  Bot,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -19,138 +20,129 @@ import api from "../../services/api";
 import { useSettings } from "../../context/SettingsContext";
 import {
   AdminButton,
+  AdminInlineNote,
   AdminPageShell,
   AdminPanel,
   AdminLoadingState,
 } from "./AdminUI";
 
-const CARD_META = {
+const DEFAULT_STATS = {
+  counts: { photos: 0, music: 0, videos: 0, articles: 0, events: 0 },
+  breakdown: {},
+  eventAnalytics: {
+    totalViews: 0,
+    totalRegistrations: 0,
+    upcomingCount: 0,
+    views7d: 0,
+    registrations7d: 0,
+    hottestEvents: [],
+  },
+  system: { uptime: 0, nodeVersion: "", platform: "" },
+};
+
+const toneMeta = {
   indigo: {
-    dayIcon: "bg-indigo-100 text-indigo-600",
-    darkIcon: "bg-indigo-500/15 text-indigo-300",
-    dayAccent: "from-indigo-500/20 to-transparent",
-    darkAccent: "from-indigo-500/20 to-indigo-500/0",
+    icon: {
+      day: "bg-indigo-50 text-indigo-600",
+      dark: "bg-indigo-500/10 text-indigo-300",
+    },
+    text: { day: "text-indigo-600", dark: "text-indigo-300" },
   },
-  pink: {
-    dayIcon: "bg-[rgba(190,24,93,0.1)] text-rose-600",
-    darkIcon: "bg-pink-500/15 text-pink-300",
-    dayAccent: "from-[rgba(190,24,93,0.14)] to-transparent",
-    darkAccent: "from-pink-500/20 to-pink-500/0",
+  rose: {
+    icon: {
+      day: "bg-rose-50 text-rose-600",
+      dark: "bg-rose-500/10 text-rose-300",
+    },
+    text: { day: "text-rose-600", dark: "text-rose-300" },
   },
-  red: {
-    dayIcon: "bg-[rgba(225,29,72,0.1)] text-rose-600",
-    darkIcon: "bg-red-500/15 text-red-300",
-    dayAccent: "from-[rgba(225,29,72,0.14)] to-transparent",
-    darkAccent: "from-red-500/20 to-red-500/0",
+  amber: {
+    icon: {
+      day: "bg-amber-50 text-amber-700",
+      dark: "bg-amber-500/10 text-amber-300",
+    },
+    text: { day: "text-amber-700", dark: "text-amber-300" },
   },
-  yellow: {
-    dayIcon: "bg-[rgba(217,119,6,0.12)] text-amber-700",
-    darkIcon: "bg-amber-500/15 text-amber-300",
-    dayAccent: "from-[rgba(217,119,6,0.12)] to-transparent",
-    darkAccent: "from-amber-500/20 to-amber-500/0",
+  emerald: {
+    icon: {
+      day: "bg-emerald-50 text-emerald-700",
+      dark: "bg-emerald-500/10 text-emerald-300",
+    },
+    text: { day: "text-emerald-700", dark: "text-emerald-300" },
   },
-  green: {
-    dayIcon: "bg-[rgba(5,150,105,0.1)] text-emerald-700",
-    darkIcon: "bg-emerald-500/15 text-emerald-300",
-    dayAccent: "from-[rgba(5,150,105,0.14)] to-transparent",
-    darkAccent: "from-emerald-500/20 to-emerald-500/0",
+  sky: {
+    icon: {
+      day: "bg-sky-50 text-sky-700",
+      dark: "bg-sky-500/10 text-sky-300",
+    },
+    text: { day: "text-sky-700", dark: "text-sky-300" },
   },
 };
+
+const getTone = (tone = "indigo") => toneMeta[tone] || toneMeta.indigo;
 
 const StatCard = ({
   title,
   value,
   icon: Icon,
-  color,
+  tone,
   onClick,
   breakdown,
   isDayMode,
+  formatNumber,
 }) => {
-  const meta = CARD_META[color] || CARD_META.indigo;
+  const meta = getTone(tone);
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`group relative overflow-hidden rounded-3xl border p-4 text-left transition-all md:p-5 ${
+      className={`group rounded-2xl border p-4 text-left transition-colors ${
         isDayMode
-          ? "border-slate-200/70 bg-white/88 shadow-[0_18px_38px_rgba(148,163,184,0.12)] hover:border-indigo-200/80 hover:shadow-[0_24px_48px_rgba(148,163,184,0.16)]"
-          : "border-white/10 bg-[#111] hover:border-white/20 hover:bg-[#161616]"
+          ? "border-slate-200/70 bg-white/[0.84] hover:border-slate-300 hover:bg-white"
+          : "border-white/10 bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.07]"
       }`}
     >
-      <div
-        className={`pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-br ${
-          isDayMode ? meta.dayAccent : meta.darkAccent
-        }`}
-      />
-      <div
-        className={`relative flex h-12 w-12 items-center justify-center rounded-2xl ${
-          isDayMode ? meta.dayIcon : meta.darkIcon
-        }`}
-      >
-        <Icon size={20} />
-      </div>
-      <div className="relative mt-5 flex items-end justify-between gap-3">
-        <div>
-          <div
-            className={`text-3xl font-bold tabular-nums ${
-              isDayMode ? "text-slate-950" : "text-white"
-            }`}
-          >
-            {value}
-          </div>
-          <div
-            className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-          >
-            {title}
-          </div>
+      <div className="flex items-start justify-between gap-3">
+        <div
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+            isDayMode ? meta.icon.day : meta.icon.dark
+          }`}
+        >
+          <Icon size={18} />
         </div>
         <ArrowRight
           size={16}
-          className={`transition-transform group-hover:translate-x-1 ${
-            isDayMode
-              ? "text-slate-400 group-hover:text-slate-950"
-              : "text-gray-600 group-hover:text-white"
+          className={`mt-2 transition-transform group-hover:translate-x-0.5 ${
+            isDayMode ? "text-slate-300" : "text-gray-600"
           }`}
         />
       </div>
+      <div
+        className={`mt-4 text-2xl font-bold tabular-nums ${
+          isDayMode ? "text-slate-950" : "text-white"
+        }`}
+      >
+        {formatNumber(value)}
+      </div>
+      <div
+        className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+      >
+        {title}
+      </div>
       {breakdown ? (
-        <div className="relative mt-4 flex flex-wrap gap-2 text-xs">
-          <span
-            className={`rounded-full px-2 py-1 ${
-              isDayMode
-                ? "bg-emerald-500/10 text-emerald-700"
-                : "bg-emerald-500/10 text-emerald-300"
-            }`}
-          >
-            在库{" "}
-            {new Intl.NumberFormat("zh-CN").format(
-              Number(breakdown.active || 0),
-            )}
+        <div
+          className={`mt-4 grid grid-cols-3 gap-2 border-t pt-3 text-xs ${
+            isDayMode ? "border-slate-200/70" : "border-white/10"
+          }`}
+        >
+          <span className={isDayMode ? "text-slate-500" : "text-gray-500"}>
+            在库 {formatNumber(breakdown.active)}
           </span>
-          <span
-            className={`rounded-full px-2 py-1 ${
-              isDayMode
-                ? "bg-amber-500/10 text-amber-700"
-                : "bg-amber-500/10 text-amber-300"
-            }`}
-          >
-            待审{" "}
-            {new Intl.NumberFormat("zh-CN").format(
-              Number(breakdown.pending || 0),
-            )}
+          <span className={isDayMode ? meta.text.day : meta.text.dark}>
+            待审 {formatNumber(breakdown.pending)}
           </span>
-          <span
-            className={`rounded-full px-2 py-1 ${
-              isDayMode
-                ? "bg-slate-500/8 text-slate-600"
-                : "bg-slate-500/10 text-slate-300"
-            }`}
-          >
-            回收站{" "}
-            {new Intl.NumberFormat("zh-CN").format(
-              Number(breakdown.deleted || 0),
-            )}
+          <span className={isDayMode ? "text-slate-400" : "text-gray-500"}>
+            回收 {formatNumber(breakdown.deleted)}
           </span>
         </div>
       ) : null}
@@ -158,84 +150,123 @@ const StatCard = ({
   );
 };
 
-const CompactMetric = ({
-  label,
-  value,
-  icon: Icon,
-  accent = "indigo",
-  isDayMode,
-}) => {
-  const accentMap = {
-    indigo: isDayMode
-      ? "bg-indigo-100 text-indigo-600"
-      : "bg-indigo-500/15 text-indigo-300",
-    emerald: isDayMode
-      ? "bg-emerald-500/10 text-emerald-700"
-      : "bg-emerald-500/15 text-emerald-300",
-    violet: isDayMode
-      ? "bg-violet-500/10 text-violet-700"
-      : "bg-violet-500/15 text-violet-300",
-    amber: isDayMode
-      ? "bg-amber-500/12 text-amber-700"
-      : "bg-amber-500/15 text-amber-300",
-  };
+const MetricItem = ({ label, value, icon: Icon, tone, isDayMode }) => {
+  const meta = getTone(tone);
 
   return (
-    <div
-      className={`rounded-2xl border p-4 ${
-        isDayMode
-          ? "border-slate-200/70 bg-white/72"
-          : "border-white/10 bg-white/5"
-      }`}
-    >
-      <div className="flex items-center justify-between gap-3">
-        <p
-          className={`text-xs uppercase tracking-[0.22em] ${isDayMode ? "text-slate-400" : "text-gray-500"}`}
-        >
-          {label}
-        </p>
-        <div
-          className={`flex h-9 w-9 items-center justify-center rounded-xl ${
-            accentMap[accent] || accentMap.indigo
-          }`}
-        >
-          <Icon size={16} />
-        </div>
-      </div>
-      <p
-        className={`mt-3 text-2xl font-bold ${
-          isDayMode ? "text-slate-950" : "text-white"
+    <div className="flex items-center gap-3">
+      <div
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
+          isDayMode ? meta.icon.day : meta.icon.dark
         }`}
       >
-        {value}
-      </p>
+        <Icon size={16} />
+      </div>
+      <div className="min-w-0">
+        <div
+          className={`text-lg font-bold tabular-nums ${
+            isDayMode ? "text-slate-950" : "text-white"
+          }`}
+        >
+          {value}
+        </div>
+        <div
+          className={`text-xs ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+        >
+          {label}
+        </div>
+      </div>
     </div>
   );
 };
+
+const QuickAction = ({
+  label,
+  description,
+  icon: Icon,
+  tone,
+  isDayMode,
+  onClick,
+}) => {
+  const meta = getTone(tone);
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex min-h-[92px] items-start gap-3 rounded-2xl border p-4 text-left transition-colors ${
+        isDayMode
+          ? "border-slate-200/70 bg-white/[0.82] hover:border-slate-300 hover:bg-white"
+          : "border-white/10 bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.07]"
+      }`}
+    >
+      <div
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+          isDayMode ? meta.icon.day : meta.icon.dark
+        }`}
+      >
+        <Icon size={18} />
+      </div>
+      <div className="min-w-0">
+        <div
+          className={`font-semibold ${isDayMode ? "text-slate-950" : "text-white"}`}
+        >
+          {label}
+        </div>
+        <div
+          className={`mt-1 line-clamp-2 text-sm ${
+            isDayMode ? "text-slate-500" : "text-gray-400"
+          }`}
+        >
+          {description}
+        </div>
+      </div>
+    </button>
+  );
+};
+
+const SystemRow = ({ label, value, isDayMode, icon: Icon }) => (
+  <div
+    className={`flex items-center justify-between gap-3 border-b py-3 last:border-b-0 ${
+      isDayMode ? "border-slate-200/70" : "border-white/10"
+    }`}
+  >
+    <span className={isDayMode ? "text-slate-500" : "text-gray-400"}>
+      {label}
+    </span>
+    <span
+      className={`flex items-center gap-2 text-right font-mono text-sm ${
+        isDayMode ? "text-slate-950" : "text-white"
+      }`}
+    >
+      {Icon ? <Icon size={14} /> : null}
+      {value || "-"}
+    </span>
+  </div>
+);
 
 const Overview = ({ onChangeTab }) => {
   const { t } = useTranslation();
   const { uiMode } = useSettings();
   const isDayMode = uiMode === "day";
-  const [stats, setStats] = useState({
-    counts: { photos: 0, music: 0, videos: 0, articles: 0, events: 0 },
-    breakdown: {},
-    eventAnalytics: {
-      totalViews: 0,
-      totalRegistrations: 0,
-      upcomingCount: 0,
-      views7d: 0,
-      registrations7d: 0,
-      hottestEvents: [],
-    },
-    system: { uptime: 0, nodeVersion: "", platform: "" },
-  });
+  const [stats, setStats] = useState(DEFAULT_STATS);
   const [loading, setLoading] = useState(true);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const response = await api.get("/stats");
-      setStats(response.data || stats);
+      const data = response.data || {};
+      setStats({
+        ...DEFAULT_STATS,
+        ...data,
+        counts: { ...DEFAULT_STATS.counts, ...(data.counts || {}) },
+        breakdown: data.breakdown || {},
+        eventAnalytics: {
+          ...DEFAULT_STATS.eventAnalytics,
+          ...(data.eventAnalytics || {}),
+        },
+        system: { ...DEFAULT_STATS.system, ...(data.system || {}) },
+      });
     } catch (error) {
       const errorMessage =
         error.response?.status === 403
@@ -247,16 +278,18 @@ const Overview = ({ onChangeTab }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [fetchStats]);
 
   const formatUptime = (seconds) => {
-    const days = Math.floor(seconds / (3600 * 24));
-    const hours = Math.floor((seconds % (3600 * 24)) / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
+    const totalSeconds = Number(seconds || 0);
+    if (totalSeconds <= 0) return "刚刚启动";
+    const days = Math.floor(totalSeconds / (3600 * 24));
+    const hours = Math.floor((totalSeconds % (3600 * 24)) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
     return `${days}天 ${hours}小时 ${minutes}分钟`;
   };
 
@@ -266,53 +299,59 @@ const Overview = ({ onChangeTab }) => {
   const resourceCards = useMemo(
     () => [
       {
+        title: t("admin.tabs.articles", "文章"),
+        value: stats.counts.articles,
+        breakdown: stats.breakdown?.articles,
+        icon: BookOpen,
+        tone: "amber",
+        tab: "articles",
+      },
+      {
         title: t("admin.tabs.photos", "图片"),
         value: stats.counts.photos,
         breakdown: stats.breakdown?.photos,
         icon: LayoutGrid,
-        color: "indigo",
+        tone: "indigo",
         tab: "photos",
-      },
-      {
-        title: t("admin.tabs.music", "音频"),
-        value: stats.counts.music,
-        breakdown: stats.breakdown?.music,
-        icon: Music,
-        color: "pink",
-        tab: "music",
       },
       {
         title: t("admin.tabs.videos", "视频"),
         value: stats.counts.videos,
         breakdown: stats.breakdown?.videos,
         icon: Film,
-        color: "red",
+        tone: "rose",
         tab: "videos",
       },
       {
-        title: t("admin.tabs.articles", "文章"),
-        value: stats.counts.articles,
-        breakdown: stats.breakdown?.articles,
-        icon: BookOpen,
-        color: "yellow",
-        tab: "articles",
+        title: t("admin.tabs.music", "音频"),
+        value: stats.counts.music,
+        breakdown: stats.breakdown?.music,
+        icon: Music,
+        tone: "sky",
+        tab: "music",
       },
       {
         title: t("admin.tabs.events", "活动"),
         value: stats.counts.events,
         breakdown: stats.breakdown?.events,
         icon: Calendar,
-        color: "green",
+        tone: "emerald",
         tab: "events",
       },
     ],
     [stats, t],
   );
 
-  const pendingTotal = Object.values(stats.breakdown || {}).reduce(
-    (sum, value) => sum + Number(value?.pending || 0),
-    0,
+  const pendingTotal = useMemo(
+    () =>
+      Object.values(stats.breakdown || {}).reduce(
+        (sum, value) => sum + Number(value?.pending || 0),
+        0,
+      ),
+    [stats.breakdown],
   );
+  const hotEvents = stats.eventAnalytics?.hottestEvents || [];
+  const topEvent = hotEvents[0];
 
   if (loading) {
     return (
@@ -324,8 +363,8 @@ const Overview = ({ onChangeTab }) => {
 
   return (
     <AdminPageShell
-      title="总览"
-      description="这里汇总后台最核心的数据和待办入口。优先处理审核任务，再进入各模块做内容维护。"
+      title={t("admin.tabs.overview", "总览")}
+      description="后台首页只保留最关键的运营判断：先处理待办，再看活动和内容状态。"
       actions={
         <>
           <AdminButton tone="subtle" onClick={fetchStats}>
@@ -333,311 +372,253 @@ const Overview = ({ onChangeTab }) => {
           </AdminButton>
           <AdminButton tone="primary" onClick={() => onChangeTab("pending")}>
             <Inbox size={16} />
-            进入审核中心
+            审核中心
           </AdminButton>
         </>
       }
     >
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-5">
-        {resourceCards.map((card) => (
-          <StatCard
-            key={card.tab}
-            title={card.title}
-            value={card.value}
-            breakdown={card.breakdown}
-            icon={card.icon}
-            color={card.color}
-            onClick={() => onChangeTab(card.tab)}
-            isDayMode={isDayMode}
-          />
-        ))}
-      </div>
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.08fr)_minmax(360px,0.92fr)]">
+        <AdminPanel title="今日待办" description="管理员进入后台后，先看这里。">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <div
+                className={`text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+              >
+                当前待审核内容
+              </div>
+              <div
+                className={`mt-2 text-4xl font-bold tabular-nums ${
+                  isDayMode ? "text-slate-950" : "text-white"
+                }`}
+              >
+                {formatNumber(pendingTotal)}
+              </div>
+              <p
+                className={`mt-2 max-w-xl text-sm ${
+                  isDayMode ? "text-slate-500" : "text-gray-400"
+                }`}
+              >
+                {pendingTotal > 0
+                  ? "建议优先处理审核队列，避免前台内容更新被卡住。"
+                  : "审核队列已清空，可以转向活动运营和内容维护。"}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <AdminButton tone="primary" onClick={() => onChangeTab("pending")}>
+                去审核
+              </AdminButton>
+              <AdminButton tone="subtle" onClick={() => onChangeTab("ai-models")}>
+                AI 助手
+              </AdminButton>
+            </div>
+          </div>
 
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1.15fr_1fr]">
-        <AdminPanel
-          title="运营快照"
-          description="把今天最值得处理的工作集中在一个区域里。"
-        >
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <CompactMetric
-              label="待审核内容"
-              value={formatNumber(pendingTotal)}
-              icon={Inbox}
-              accent="amber"
-              isDayMode={isDayMode}
-            />
-            <CompactMetric
-              label="活动近 7 日访问"
+          <div
+            className={`mt-5 grid gap-4 border-t pt-5 md:grid-cols-3 ${
+              isDayMode ? "border-slate-200/70" : "border-white/10"
+            }`}
+          >
+            <MetricItem
+              label="近 7 日活动访问"
               value={formatNumber(stats.eventAnalytics?.views7d)}
               icon={TrendingUp}
-              accent="violet"
+              tone="indigo"
               isDayMode={isDayMode}
             />
-            <CompactMetric
-              label="活动总报名"
-              value={formatNumber(stats.eventAnalytics?.totalRegistrations)}
+            <MetricItem
+              label="近 7 日报名"
+              value={formatNumber(stats.eventAnalytics?.registrations7d)}
               icon={MessageSquare}
-              accent="emerald"
+              tone="emerald"
               isDayMode={isDayMode}
             />
-          </div>
-
-          <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2">
-            <button
-              type="button"
-              onClick={() => onChangeTab("pending")}
-              className={`rounded-2xl border p-4 text-left transition-colors ${
-                isDayMode
-                  ? "border-slate-200/70 bg-white/78 hover:bg-white"
-                  : "border-white/10 bg-white/5 hover:bg-white/10"
-              }`}
-            >
-              <div
-                className={`text-sm font-semibold ${
-                  isDayMode ? "text-slate-950" : "text-white"
-                }`}
-              >
-                处理待审核内容
-              </div>
-              <div
-                className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-              >
-                批量处理图片、视频、音频、文章和活动的审核状态。
-              </div>
-            </button>
-            <button
-              type="button"
-              onClick={() => onChangeTab("community")}
-              className={`rounded-2xl border p-4 text-left transition-colors ${
-                isDayMode
-                  ? "border-slate-200/70 bg-white/78 hover:bg-white"
-                  : "border-white/10 bg-white/5 hover:bg-white/10"
-              }`}
-            >
-              <div
-                className={`text-sm font-semibold ${
-                  isDayMode ? "text-slate-950" : "text-white"
-                }`}
-              >
-                查看社区运营
-              </div>
-              <div
-                className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-              >
-                查看帖子总量、社群入口和已发布内容的运营情况。
-              </div>
-            </button>
+            <MetricItem
+              label="待开始活动"
+              value={formatNumber(stats.eventAnalytics?.upcomingCount)}
+              icon={Calendar}
+              tone="amber"
+              isDayMode={isDayMode}
+            />
           </div>
         </AdminPanel>
 
-        <AdminPanel
-          title="系统状态"
-          description="确认后台服务和核心环境是否正常。"
-        >
-          <div className="space-y-3">
-            {[
-              {
-                label: "Node 版本",
-                value: stats.system.nodeVersion,
-              },
-              {
-                label: "运行平台",
-                value: stats.system.platform,
-              },
-            ].map((item) => (
-              <div
-                key={item.label}
-                className={`flex flex-col gap-2 rounded-2xl p-4 sm:flex-row sm:items-center sm:justify-between ${
-                  isDayMode ? "bg-white/78" : "bg-white/5"
-                }`}
-              >
-                <span
-                  className={isDayMode ? "text-slate-500" : "text-gray-400"}
-                >
-                  {item.label}
-                </span>
-                <span
-                  className={`font-mono ${
-                    isDayMode
-                      ? "text-slate-950 capitalize"
-                      : "text-white capitalize"
-                  }`}
-                >
-                  {item.value}
-                </span>
-              </div>
-            ))}
-
-            <div
-              className={`flex flex-col gap-2 rounded-2xl p-4 sm:flex-row sm:items-center sm:justify-between ${
-                isDayMode ? "bg-white/78" : "bg-white/5"
-              }`}
-            >
-              <span className={isDayMode ? "text-slate-500" : "text-gray-400"}>
-                运行时长
-              </span>
-              <div
-                className={`flex items-center gap-2 font-mono text-sm ${isDayMode ? "text-emerald-700" : "text-emerald-300"}`}
-              >
-                <Clock size={14} />
-                {formatUptime(stats.system.uptime)}
-              </div>
-            </div>
-
-            <div
-              className={`flex flex-col gap-2 rounded-2xl p-4 sm:flex-row sm:items-center sm:justify-between ${
-                isDayMode ? "bg-white/78" : "bg-white/5"
-              }`}
-            >
-              <span className={isDayMode ? "text-slate-500" : "text-gray-400"}>
-                活动总访问
-              </span>
-              <div
-                className={`flex items-center gap-2 font-mono text-sm ${isDayMode ? "text-indigo-600" : "text-indigo-300"}`}
-              >
-                <Eye size={14} />
-                {formatNumber(stats.eventAnalytics?.totalViews)}
-              </div>
-            </div>
+        <AdminPanel title="快捷入口" description="按运营场景进入，不按技术模块找。">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+            <QuickAction
+              label="AI 助手"
+              description="归类、推荐、解析和模型 Key 管理。"
+              icon={Bot}
+              tone="indigo"
+              isDayMode={isDayMode}
+              onClick={() => onChangeTab("ai-models")}
+            />
+            <QuickAction
+              label="活动运营"
+              description="维护活动信息，跟进报名与热度。"
+              icon={Calendar}
+              tone="emerald"
+              isDayMode={isDayMode}
+              onClick={() => onChangeTab("events")}
+            />
+            <QuickAction
+              label="内容审核"
+              description="集中处理内容发布前的审核状态。"
+              icon={Inbox}
+              tone="amber"
+              isDayMode={isDayMode}
+              onClick={() => onChangeTab("pending")}
+            />
+            <QuickAction
+              label="社区反馈"
+              description="查看社区动态和站内留言。"
+              icon={MessageSquare}
+              tone="sky"
+              isDayMode={isDayMode}
+              onClick={() => onChangeTab("community")}
+            />
           </div>
         </AdminPanel>
       </div>
 
       <AdminPanel
-        title="活动数据概览"
-        description="保留活动模块最常用的运营数据，便于从总览页直接判断近期活动热度。"
-        action={
-          <AdminButton tone="subtle" onClick={() => onChangeTab("events")}>
-            进入活动管理
-          </AdminButton>
-        }
+        title="内容资产"
+        description="文章、图片、视频、音频和活动都放在这里看总量与待审状态。"
       >
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <CompactMetric
-            label="累计访问"
-            value={formatNumber(stats.eventAnalytics?.totalViews)}
-            icon={Eye}
-            accent="indigo"
-            isDayMode={isDayMode}
-          />
-          <CompactMetric
-            label="累计报名"
-            value={formatNumber(stats.eventAnalytics?.totalRegistrations)}
-            icon={MessageSquare}
-            accent="emerald"
-            isDayMode={isDayMode}
-          />
-          <CompactMetric
-            label="近 7 日访问"
-            value={formatNumber(stats.eventAnalytics?.views7d)}
-            icon={TrendingUp}
-            accent="violet"
-            isDayMode={isDayMode}
-          />
-          <CompactMetric
-            label="待开始活动"
-            value={formatNumber(stats.eventAnalytics?.upcomingCount)}
-            icon={Calendar}
-            accent="amber"
-            isDayMode={isDayMode}
-          />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-5">
+          {resourceCards.map((card) => (
+            <StatCard
+              key={card.tab}
+              title={card.title}
+              value={card.value}
+              breakdown={card.breakdown}
+              icon={card.icon}
+              tone={card.tone}
+              onClick={() => onChangeTab(card.tab)}
+              isDayMode={isDayMode}
+              formatNumber={formatNumber}
+            />
+          ))}
         </div>
+      </AdminPanel>
 
-        <div className="mt-6 space-y-3">
-          {(stats.eventAnalytics?.hottestEvents || []).length === 0 ? (
-            <div
-              className={`rounded-2xl border p-4 text-sm ${
-                isDayMode
-                  ? "border-slate-200/70 bg-white/78 text-slate-500"
-                  : "border-white/10 bg-white/5 text-gray-400"
-              }`}
-            >
-              暂无活动统计数据。
-            </div>
-          ) : (
-            stats.eventAnalytics.hottestEvents.map((event) => (
-              <div
-                key={event.id}
-                className={`flex flex-col gap-3 rounded-2xl border px-4 py-3 md:flex-row md:items-center md:justify-between ${
-                  isDayMode
-                    ? "border-slate-200/70 bg-white/78"
-                    : "border-white/10 bg-white/5"
-                }`}
-              >
-                <div className="min-w-0">
-                  <p
-                    className={`truncate font-semibold ${isDayMode ? "text-slate-950" : "text-white"}`}
-                  >
-                    {event.title}
-                  </p>
-                  <p
-                    className={`mt-1 text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
-                  >
-                    {event.date || "未设置活动时间"}
-                  </p>
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)]">
+        <AdminPanel
+          title="活动运营"
+          description="用访问、报名和热门活动判断接下来要推什么。"
+          action={
+            <AdminButton tone="subtle" onClick={() => onChangeTab("events")}>
+              进入活动管理
+            </AdminButton>
+          }
+        >
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            <MetricItem
+              label="累计访问"
+              value={formatNumber(stats.eventAnalytics?.totalViews)}
+              icon={Eye}
+              tone="indigo"
+              isDayMode={isDayMode}
+            />
+            <MetricItem
+              label="累计报名"
+              value={formatNumber(stats.eventAnalytics?.totalRegistrations)}
+              icon={MessageSquare}
+              tone="emerald"
+              isDayMode={isDayMode}
+            />
+            <MetricItem
+              label="近 7 日访问"
+              value={formatNumber(stats.eventAnalytics?.views7d)}
+              icon={TrendingUp}
+              tone="sky"
+              isDayMode={isDayMode}
+            />
+            <MetricItem
+              label="待开始"
+              value={formatNumber(stats.eventAnalytics?.upcomingCount)}
+              icon={Calendar}
+              tone="amber"
+              isDayMode={isDayMode}
+            />
+          </div>
+
+          <div
+            className={`mt-5 border-t pt-4 ${
+              isDayMode ? "border-slate-200/70" : "border-white/10"
+            }`}
+          >
+            {topEvent ? (
+              <div className="space-y-3">
+                <div
+                  className={`text-sm font-semibold ${
+                    isDayMode ? "text-slate-950" : "text-white"
+                  }`}
+                >
+                  当前最热活动
                 </div>
-                <div className="flex flex-wrap items-center gap-4 text-sm">
-                  <span
-                    className={
-                      isDayMode ? "text-indigo-600" : "text-indigo-300"
-                    }
+                {hotEvents.slice(0, 3).map((event) => (
+                  <button
+                    key={event.id}
+                    type="button"
+                    onClick={() => onChangeTab("events")}
+                    className={`flex w-full flex-col gap-2 rounded-xl px-3 py-3 text-left transition-colors md:flex-row md:items-center md:justify-between ${
+                      isDayMode
+                        ? "bg-slate-50 hover:bg-white"
+                        : "bg-white/[0.04] hover:bg-white/[0.07]"
+                    }`}
                   >
-                    {formatNumber(event.views)} 访问
-                  </span>
-                  <span
-                    className={
-                      isDayMode ? "text-emerald-700" : "text-emerald-300"
-                    }
-                  >
-                    {formatNumber(event.registrations)} 报名
-                  </span>
-                </div>
+                    <div className="min-w-0">
+                      <div
+                        className={`truncate text-sm font-semibold ${
+                          isDayMode ? "text-slate-950" : "text-white"
+                        }`}
+                      >
+                        {event.title}
+                      </div>
+                      <div
+                        className={`mt-1 text-xs ${
+                          isDayMode ? "text-slate-500" : "text-gray-500"
+                        }`}
+                      >
+                        {event.date || "未设置活动时间"}
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 gap-4 text-xs">
+                      <span className={isDayMode ? "text-indigo-600" : "text-indigo-300"}>
+                        {formatNumber(event.views)} 访问
+                      </span>
+                      <span className={isDayMode ? "text-emerald-700" : "text-emerald-300"}>
+                        {formatNumber(event.registrations)} 报名
+                      </span>
+                    </div>
+                  </button>
+                ))}
               </div>
-            ))
-          )}
-        </div>
-      </AdminPanel>
+            ) : (
+              <AdminInlineNote>暂无活动热度数据，可先进入活动管理检查活动信息。</AdminInlineNote>
+            )}
+          </div>
+        </AdminPanel>
 
-      <AdminPanel
-        className={
-          isDayMode
-            ? "bg-[linear-gradient(135deg,rgba(99,102,241,0.08),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.92))]"
-            : "bg-gradient-to-br from-indigo-900/20 via-[#111] to-violet-900/20"
-        }
-      >
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <h3
-              className={`text-2xl font-bold ${
-                isDayMode ? "text-slate-950" : "text-white"
-              }`}
-              style={
-                isDayMode
-                  ? { fontFamily: "var(--theme-font-display)" }
-                  : undefined
-              }
-            >
-              今天先做什么
-            </h3>
-            <p
-              className={`mt-2 max-w-2xl text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-            >
-              建议先处理审核中心，再检查活动数据，最后看用户与留言。这样能最快把对外可见的问题压下去。
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <AdminButton tone="primary" onClick={() => onChangeTab("pending")}>
-              审核中心
-            </AdminButton>
-            <AdminButton tone="subtle" onClick={() => onChangeTab("messages")}>
-              查看留言
-            </AdminButton>
-            <AdminButton tone="subtle" onClick={() => onChangeTab("users")}>
-              管理用户
-            </AdminButton>
-          </div>
-        </div>
-      </AdminPanel>
+        <AdminPanel title="系统状态" description="只保留排查后台时真正需要的信息。">
+          <SystemRow
+            label="Node 版本"
+            value={stats.system.nodeVersion}
+            isDayMode={isDayMode}
+          />
+          <SystemRow
+            label="运行平台"
+            value={stats.system.platform}
+            isDayMode={isDayMode}
+          />
+          <SystemRow
+            label="运行时长"
+            value={formatUptime(stats.system.uptime)}
+            icon={Clock}
+            isDayMode={isDayMode}
+          />
+        </AdminPanel>
+      </div>
     </AdminPageShell>
   );
 };

@@ -14,6 +14,7 @@ import api from "../../services/api";
 import {
   AdminButton,
   AdminEmptyState,
+  AdminIconButton,
   AdminLoadingState,
   AdminPageShell,
   AdminPanel,
@@ -21,6 +22,7 @@ import {
   ConfirmDialog,
   FilterChip,
   ToolbarGroup,
+  useAdminTheme,
 } from "./AdminUI";
 
 const SECTION_OPTIONS = [
@@ -29,10 +31,10 @@ const SECTION_OPTIONS = [
   { id: "music", label: "音频" },
   { id: "videos", label: "视频" },
   { id: "articles", label: "文章" },
-  { id: "events", label: "活动" },
 ];
 
 const TagManager = () => {
+  const { isDayMode, headingTextClass, mutedTextClass } = useAdminTheme();
   const [tags, setTags] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -66,7 +68,7 @@ const TagManager = () => {
     try {
       await api.post("/tags/sync");
       toast.success("标签计数已同步");
-      fetchTags();
+      await fetchTags();
     } catch {
       toast.error("同步标签失败");
     } finally {
@@ -140,7 +142,7 @@ const TagManager = () => {
 
   const startEdit = (tag) => {
     setEditingId(tag.id);
-    setEditName(tag.name);
+    setEditName(tag.name || "");
   };
 
   if (loading) {
@@ -167,7 +169,7 @@ const TagManager = () => {
         toolbar={
           <AdminToolbar>
             <ToolbarGroup className="flex-1">
-              <div className="relative min-w-[260px] flex-1 max-w-md">
+              <div className="relative min-w-0 w-full flex-1 sm:min-w-[260px] sm:max-w-md">
                 <Search
                   className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
                   size={16}
@@ -177,7 +179,7 @@ const TagManager = () => {
                   placeholder="搜索标签"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                className="theme-admin-input w-full rounded-xl py-2.5 pl-10 pr-4"
+                  className="theme-admin-input w-full rounded-xl py-2.5 pl-10 pr-4"
                 />
               </div>
             </ToolbarGroup>
@@ -196,14 +198,20 @@ const TagManager = () => {
         }
       >
         {newTagMode ? (
-          <AdminPanel className="border-indigo-500/20 bg-indigo-500/10">
+          <AdminPanel
+            className={
+              isDayMode
+                ? "border-indigo-200/80 bg-indigo-50/75"
+                : "border-indigo-500/20 bg-indigo-500/10"
+            }
+          >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <input
                 type="text"
                 value={newTagName}
                 onChange={(event) => setNewTagName(event.target.value)}
                 placeholder="输入标签名称"
-                    className="theme-admin-input flex-1 rounded-xl p-3"
+                className="theme-admin-input flex-1 rounded-xl p-3"
                 autoFocus
                 onKeyDown={(event) => event.key === "Enter" && handleCreate()}
               />
@@ -239,7 +247,11 @@ const TagManager = () => {
               {filteredTags.map((tag) => (
                 <div
                   key={tag.id}
-                  className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition-colors hover:bg-white/5"
+                  className={`rounded-2xl border p-4 transition-colors ${
+                    isDayMode
+                      ? "border-slate-200/70 bg-white/[0.78] hover:bg-white"
+                      : "border-white/10 bg-white/[0.03] hover:bg-white/5"
+                  }`}
                 >
                   {editingId === tag.id ? (
                     <div className="flex gap-2">
@@ -247,53 +259,56 @@ const TagManager = () => {
                         type="text"
                         value={editName}
                         onChange={(event) => setEditName(event.target.value)}
-                            className="theme-admin-input flex-1 rounded-xl px-3 py-2 text-sm"
+                        className="theme-admin-input flex-1 rounded-xl px-3 py-2 text-sm"
                         autoFocus
                         onKeyDown={(event) =>
                           event.key === "Enter" && handleUpdate(tag.id)
                         }
                       />
-                      <button
+                      <AdminIconButton
+                        label="保存标签"
+                        tone="success"
+                        disabled={submitting}
                         onClick={() => handleUpdate(tag.id)}
-                        className="inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-300 transition-colors hover:bg-emerald-500/20"
                       >
                         <Check size={16} />
-                      </button>
-                      <button
+                      </AdminIconButton>
+                      <AdminIconButton
+                        label="取消编辑"
                         onClick={() => {
                           setEditingId(null);
                           setEditName("");
                         }}
-                        className="inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-xl bg-white/5 text-gray-300 transition-colors hover:bg-white/10"
                       >
                         <X size={16} />
-                      </button>
+                      </AdminIconButton>
                     </div>
                   ) : (
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <div className="truncate text-base font-semibold text-white">
+                        <div className={`truncate text-base font-semibold ${headingTextClass}`}>
                           {tag.name}
                         </div>
-                        <div className="mt-2 text-xs text-gray-500">
+                        <div className={`mt-2 text-xs ${mutedTextClass}`}>
                           引用数 {tag.count || 0}
                         </div>
                       </div>
                       <div className="flex gap-1">
-                        <button
+                        <AdminIconButton
+                          label="编辑标签"
                           onClick={() => startEdit(tag)}
-                          className="inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg bg-white/5 text-gray-400 transition-colors hover:bg-white/10 hover:text-indigo-300"
-                          title="编辑标签"
+                          className="min-h-[38px] min-w-[38px] rounded-lg"
                         >
                           <Edit2 size={15} />
-                        </button>
-                        <button
+                        </AdminIconButton>
+                        <AdminIconButton
+                          label="删除标签"
+                          tone="danger"
                           onClick={() => setDeleteTag(tag)}
-                          className="inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg bg-white/5 text-gray-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
-                          title="删除标签"
+                          className="min-h-[38px] min-w-[38px] rounded-lg"
                         >
                           <Trash2 size={15} />
-                        </button>
+                        </AdminIconButton>
                       </div>
                     </div>
                   )}

@@ -273,16 +273,6 @@ const CommunityPostDetail = ({
   // Tags + comments JSX
   const afterContent = post && (
     <>
-      {/* Tags */}
-      {post.tags && post.tags.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-8">
-          {(Array.isArray(post.tags) ? post.tags : []).map((tag) => (
-            <span key={tag} className={`px-3 py-1 rounded-lg text-xs font-medium ${isDayMode ? 'bg-slate-100 text-slate-600' : 'bg-white/5 text-gray-400'}`}>
-              #{tag}
-            </span>
-          ))}
-        </div>
-      )}
       <div className="mb-6 flex flex-wrap items-center gap-2">
         <button
           type="button"

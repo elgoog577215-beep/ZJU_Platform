@@ -47,7 +47,7 @@ export const statusMeta = {
   },
 };
 
-const useAdminTheme = () => {
+export const useAdminTheme = () => {
   const { uiMode } = useSettings();
   const isDayMode = uiMode === "day";
 
@@ -67,25 +67,25 @@ const useAdminTheme = () => {
     dialogBackdropClass: isDayMode ? "theme-overlay-backdrop" : "bg-black/80",
     dialogPanelClass: isDayMode
       ? "theme-dialog"
-      : "bg-[#111] border border-white/10 shadow-2xl",
+      : "bg-[#111] border border-white/10 shadow-[0_18px_48px_rgba(0,0,0,0.36)]",
     statusToneMap: {
       success: isDayMode
-        ? "border-emerald-500/20 bg-emerald-500/8 text-emerald-700"
+        ? "border-emerald-500/20 bg-emerald-500/[0.08] text-emerald-700"
         : "border-emerald-500/20 bg-emerald-500/10 text-emerald-300",
       warning: isDayMode
         ? "border-amber-500/20 bg-amber-500/10 text-amber-700"
         : "border-amber-500/20 bg-amber-500/10 text-amber-300",
       danger: isDayMode
-        ? "border-rose-500/18 bg-rose-500/10 text-rose-700"
+        ? "border-rose-500/[0.18] bg-rose-500/10 text-rose-700"
         : "border-red-500/20 bg-red-500/10 text-red-300",
       info: isDayMode
-        ? "border-sky-500/18 bg-sky-500/10 text-sky-700"
+        ? "border-sky-500/[0.18] bg-sky-500/10 text-sky-700"
         : "border-sky-500/20 bg-sky-500/10 text-sky-300",
       violet: isDayMode
-        ? "border-violet-500/18 bg-violet-500/10 text-violet-700"
+        ? "border-violet-500/[0.18] bg-violet-500/10 text-violet-700"
         : "border-violet-500/20 bg-violet-500/10 text-violet-300",
       muted: isDayMode
-        ? "border-slate-400/16 bg-slate-500/8 text-slate-600"
+        ? "border-slate-400/[0.16] bg-slate-500/[0.08] text-slate-600"
         : "border-slate-500/20 bg-slate-500/10 text-slate-300",
     },
   };
@@ -107,8 +107,8 @@ export const AdminPageShell = ({
   } = useAdminTheme();
 
   return (
-    <div className="space-y-4 md:space-y-5">
-      <div className={clsx("rounded-3xl p-4 md:p-5", panelClass)}>
+    <div className="space-y-3 md:space-y-4">
+      <div className={clsx("rounded-2xl p-4 md:p-5", panelClass)}>
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0">
             <h2
@@ -141,7 +141,11 @@ export const AdminPageShell = ({
             </div>
           ) : null}
         </div>
-        {toolbar ? <div className="mt-4">{toolbar}</div> : null}
+        {toolbar ? (
+          <div className="mt-4 border-t border-[rgba(128,146,167,0.14)] pt-4">
+            {toolbar}
+          </div>
+        ) : null}
       </div>
       {children}
     </div>
@@ -158,7 +162,7 @@ export const AdminPanel = ({
   const { panelClass, mutedTextClass, headingTextClass } = useAdminTheme();
 
   return (
-    <section className={clsx("rounded-3xl p-4 md:p-5", panelClass, className)}>
+    <section className={clsx("rounded-2xl p-4 md:p-5", panelClass, className)}>
       {(title || action) && (
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
@@ -187,17 +191,27 @@ export const AdminPanel = ({
 };
 
 export const AdminLoadingState = ({ text = "正在加载..." }) => {
-  const { panelClass, mutedTextClass } = useAdminTheme();
+  const { panelClass, mutedTextClass, isDayMode } = useAdminTheme();
 
   return (
     <div
       className={clsx(
-        "rounded-3xl p-10 text-center text-sm",
+        "rounded-2xl p-10 text-center text-sm",
         panelClass,
         mutedTextClass,
       )}
+      role="status"
+      aria-live="polite"
     >
-      {text}
+      <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center">
+        <span
+          className={clsx(
+            "h-7 w-7 animate-spin rounded-full border-2 border-current border-t-transparent",
+            isDayMode ? "text-indigo-500" : "text-indigo-300",
+          )}
+        />
+      </div>
+      <div>{text}</div>
     </div>
   );
 };
@@ -209,7 +223,7 @@ export const AdminEmptyState = ({ icon: Icon, title, description, action }) => {
   return (
     <div
       className={clsx(
-        "rounded-3xl border border-dashed p-8 text-center md:p-10",
+        "rounded-2xl border border-dashed p-8 text-center md:p-10",
         panelClass,
       )}
     >
@@ -246,12 +260,55 @@ export const ToolbarGroup = ({ children, className }) => (
   </div>
 );
 
+export const AdminHelperText = ({ children, className, tone = "default" }) => {
+  const { isDayMode } = useAdminTheme();
+  const toneClassName = {
+    default: isDayMode ? "text-slate-500" : "text-gray-400",
+    info: isDayMode ? "text-sky-700" : "text-sky-300",
+    warning: isDayMode ? "text-amber-700" : "text-amber-300",
+    danger: isDayMode ? "text-rose-700" : "text-rose-300",
+  }[tone];
+
+  return <p className={clsx("text-sm leading-6", toneClassName, className)}>{children}</p>;
+};
+
+export const AdminInlineNote = ({ children, className, tone = "info" }) => {
+  const { isDayMode } = useAdminTheme();
+  const toneClassName = {
+    info: isDayMode
+      ? "border-sky-500/[0.18] bg-sky-500/[0.08] text-sky-800"
+      : "border-sky-500/20 bg-sky-500/10 text-sky-200",
+    warning: isDayMode
+      ? "border-amber-500/20 bg-amber-500/10 text-amber-800"
+      : "border-amber-500/20 bg-amber-500/10 text-amber-200",
+    danger: isDayMode
+      ? "border-rose-500/20 bg-rose-500/10 text-rose-800"
+      : "border-rose-500/20 bg-rose-500/10 text-rose-200",
+    success: isDayMode
+      ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-800"
+      : "border-emerald-500/20 bg-emerald-500/10 text-emerald-200",
+  }[tone];
+
+  return (
+    <div
+      className={clsx(
+        "rounded-2xl border px-4 py-3 text-sm leading-6",
+        toneClassName,
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+};
+
 export const FilterChip = ({ active, children, ...props }) => {
   const { filterChipClass } = useAdminTheme();
 
   return (
     <button
       {...props}
+      type={props.type || "button"}
       className={clsx(
         "min-h-[38px] rounded-xl border px-3 py-2 text-sm font-medium transition-colors",
         active ? "theme-chip-active" : filterChipClass,
@@ -274,9 +331,9 @@ export const AdminButton = ({
     default: "theme-button-secondary",
     primary: "theme-button-primary",
     success:
-      "bg-emerald-600 text-white hover:bg-emerald-500 shadow-lg shadow-emerald-500/20",
+      "border border-transparent bg-emerald-600 text-white hover:bg-emerald-500",
     danger:
-      "bg-rose-600 text-white hover:bg-rose-500 shadow-lg shadow-rose-500/20",
+      "border border-transparent bg-rose-600 text-white hover:bg-rose-500",
     subtle: isDayMode
       ? "theme-button-ghost border border-[rgba(128,146,167,0.14)]"
       : "theme-button-ghost border border-white/10",
@@ -285,6 +342,7 @@ export const AdminButton = ({
   return (
     <button
       {...props}
+      type={props.type || "button"}
       className={clsx(
         "inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 md:px-4",
         toneClassName,
@@ -293,6 +351,120 @@ export const AdminButton = ({
     >
       {children}
     </button>
+  );
+};
+
+export const AdminIconButton = ({
+  label,
+  tone = "default",
+  children,
+  className,
+  ...props
+}) => {
+  const { isDayMode } = useAdminTheme();
+  const toneClassName = {
+    default: isDayMode
+      ? "border-slate-200/70 bg-white/[0.78] text-slate-500 hover:border-indigo-200/80 hover:text-indigo-600"
+      : "border-white/10 bg-white/5 text-gray-400 hover:border-white/20 hover:bg-white/10 hover:text-indigo-300",
+    danger: isDayMode
+      ? "border-rose-500/[0.18] bg-rose-500/[0.08] text-rose-600 hover:bg-rose-500/[0.12]"
+      : "border-red-500/20 bg-red-500/10 text-red-300 hover:bg-red-500/15",
+    success: isDayMode
+      ? "border-emerald-500/[0.18] bg-emerald-500/[0.08] text-emerald-700 hover:bg-emerald-500/[0.12]"
+      : "border-emerald-500/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/15",
+  }[tone];
+
+  return (
+    <button
+      {...props}
+      type={props.type || "button"}
+      aria-label={label}
+      title={label}
+      className={clsx(
+        "inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-xl border transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100",
+        toneClassName,
+        className,
+      )}
+    >
+      {children}
+    </button>
+  );
+};
+
+export const AdminSelectedBar = ({ children, className }) => {
+  const { isDayMode } = useAdminTheme();
+
+  return (
+    <div
+      className={clsx(
+        "rounded-2xl border p-4",
+        isDayMode
+          ? "border-indigo-500/[0.18] bg-indigo-500/[0.08] text-slate-700"
+          : "border-indigo-500/20 bg-indigo-500/10 text-indigo-100",
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+};
+
+export const AdminTableShell = ({
+  children,
+  minWidth = 860,
+  className,
+  maxHeight,
+  stickyHeader = true,
+}) => {
+  const { isDayMode } = useAdminTheme();
+
+  return (
+    <div
+      className={clsx(
+        "hidden overflow-hidden rounded-2xl border md:block",
+        isDayMode ? "border-slate-200/70 bg-white/50" : "border-white/10 bg-white/[0.02]",
+        className,
+      )}
+    >
+      <div
+        className={clsx(
+          "overflow-x-auto",
+          maxHeight ? "theme-admin-scrollbox overflow-y-auto" : null,
+        )}
+        style={maxHeight ? { maxHeight } : undefined}
+      >
+        <table
+          className={clsx(
+            "w-full text-left text-sm",
+            stickyHeader ? "theme-admin-table-sticky" : null,
+          )}
+          style={{ minWidth }}
+        >
+          {children}
+        </table>
+      </div>
+    </div>
+  );
+};
+
+export const AdminTableCellText = ({ children, className, strong = false }) => {
+  const { isDayMode } = useAdminTheme();
+
+  return (
+    <span
+      className={clsx(
+        strong
+          ? isDayMode
+            ? "font-semibold text-slate-950"
+            : "font-semibold text-white"
+          : isDayMode
+            ? "text-slate-600"
+            : "text-gray-300",
+        className,
+      )}
+    >
+      {children}
+    </span>
   );
 };
 
@@ -312,7 +484,7 @@ export const AdminMetricCard = ({
       ? "bg-emerald-500/10 text-emerald-700"
       : "bg-emerald-500/15 text-emerald-300",
     amber: isDayMode
-      ? "bg-amber-500/12 text-amber-700"
+      ? "bg-amber-500/[0.12] text-amber-700"
       : "bg-amber-500/15 text-amber-300",
     violet: isDayMode
       ? "bg-violet-500/10 text-violet-700"
@@ -327,7 +499,7 @@ export const AdminMetricCard = ({
       className={clsx(
         "rounded-2xl border p-4",
         isDayMode
-          ? "border-slate-200/70 bg-white/72"
+          ? "border-slate-200/70 bg-white/[0.72]"
           : "border-white/10 bg-white/5",
       )}
     >
@@ -401,6 +573,16 @@ export const ConfirmDialog = ({
 }) => {
   const { dialogBackdropClass, dialogPanelClass, mutedTextClass, isDayMode } =
     useAdminTheme();
+  const titleId = React.useId();
+
+  React.useEffect(() => {
+    if (!open) return undefined;
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") onCancel?.();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onCancel, open]);
 
   return (
     <AnimatePresence>
@@ -423,9 +605,13 @@ export const ConfirmDialog = ({
               "w-full max-w-md rounded-t-3xl p-6 pb-[calc(env(safe-area-inset-bottom)+24px)] md:rounded-3xl md:pb-6",
               dialogPanelClass,
             )}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
             onClick={(event) => event.stopPropagation()}
           >
             <h3
+              id={titleId}
               className={clsx(
                 "text-xl font-bold",
                 isDayMode ? "text-slate-950" : "text-white",

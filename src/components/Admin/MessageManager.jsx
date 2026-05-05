@@ -5,16 +5,25 @@ import api from "../../services/api";
 import {
   AdminButton,
   AdminEmptyState,
+  AdminIconButton,
   AdminLoadingState,
+  AdminMetricCard,
   AdminPageShell,
   AdminPanel,
   AdminToolbar,
   ConfirmDialog,
   FilterChip,
   ToolbarGroup,
+  useAdminTheme,
 } from "./AdminUI";
 
 const MessageManager = () => {
+  const {
+    isDayMode,
+    headingTextClass,
+    mutedTextClass,
+    subtleTextClass,
+  } = useAdminTheme();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
@@ -25,7 +34,10 @@ const MessageManager = () => {
     setLoading(true);
     try {
       const response = await api.get("/admin/messages");
-      setMessages(response.data || []);
+      const nextMessages = Array.isArray(response.data)
+        ? response.data
+        : response.data?.data || [];
+      setMessages(nextMessages);
     } catch {
       toast.error("加载留言失败");
     } finally {
@@ -51,6 +63,113 @@ const MessageManager = () => {
     }),
     [messages],
   );
+
+  const metricCards = [
+    {
+      label: "总留言",
+      value: counts.total,
+      icon: Mail,
+      tone: "indigo",
+      helper: "全部联系表单",
+    },
+    {
+      label: "未读",
+      value: counts.unread,
+      icon: Mail,
+      tone: "amber",
+      helper: "需要优先处理",
+    },
+    {
+      label: "已读",
+      value: counts.read,
+      icon: Check,
+      tone: "emerald",
+      helper: "已经确认过",
+    },
+  ];
+
+  const renderMessageCard = (message) => {
+    const isUnread = Number(message.read) !== 1;
+
+    return (
+      <div
+        key={message.id}
+        className={`rounded-2xl border p-4 md:p-5 ${
+          isUnread
+            ? isDayMode
+              ? "border-indigo-200/80 bg-indigo-50/75"
+              : "border-indigo-500/20 bg-indigo-500/10"
+            : isDayMode
+              ? "border-slate-200/70 bg-white/[0.78]"
+              : "border-white/10 bg-white/[0.03]"
+        }`}
+      >
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className={`text-lg font-semibold ${headingTextClass}`}>
+                {message.name || "匿名用户"}
+              </h3>
+              {message.email ? (
+                <span
+                  className={`break-all rounded-full px-2.5 py-1 text-xs ${
+                    isDayMode
+                      ? "bg-white/80 text-slate-500"
+                      : "bg-white/5 text-gray-400"
+                  }`}
+                >
+                  {message.email}
+                </span>
+              ) : null}
+              {isUnread ? (
+                <span
+                  className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                    isDayMode
+                      ? "bg-indigo-100 text-indigo-700"
+                      : "bg-indigo-600 text-white"
+                  }`}
+                >
+                  未读
+                </span>
+              ) : null}
+            </div>
+            <p
+              className={`mt-3 whitespace-pre-wrap break-words text-sm leading-6 ${subtleTextClass}`}
+            >
+              {message.message || "暂无留言内容"}
+            </p>
+            <div className={`mt-4 flex items-center gap-2 text-xs ${mutedTextClass}`}>
+              <Clock size={12} />
+              {message.date
+                ? new Date(message.date).toLocaleString("zh-CN")
+                : "未知时间"}
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            {isUnread ? (
+              <AdminIconButton
+                label="标记为已读"
+                tone="success"
+                disabled={pending}
+                onClick={() => handleMarkAsRead(message.id)}
+              >
+                <Check size={18} />
+              </AdminIconButton>
+            ) : null}
+            <AdminIconButton
+              label="删除留言"
+              tone="danger"
+              disabled={pending}
+              onClick={() => setConfirmDeleteId(message.id)}
+            >
+              <Trash2 size={18} />
+            </AdminIconButton>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const handleMarkAsRead = async (id) => {
     try {
@@ -146,18 +265,9 @@ const MessageManager = () => {
         }
       >
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <AdminPanel className="p-4">
-            <div className="text-xs uppercase tracking-[0.2em] text-gray-500">总留言</div>
-            <div className="mt-3 text-2xl font-bold text-white">{counts.total}</div>
-          </AdminPanel>
-          <AdminPanel className="p-4">
-            <div className="text-xs uppercase tracking-[0.2em] text-gray-500">未读</div>
-            <div className="mt-3 text-2xl font-bold text-white">{counts.unread}</div>
-          </AdminPanel>
-          <AdminPanel className="p-4">
-            <div className="text-xs uppercase tracking-[0.2em] text-gray-500">已读</div>
-            <div className="mt-3 text-2xl font-bold text-white">{counts.read}</div>
-          </AdminPanel>
+          {metricCards.map((card) => (
+            <AdminMetricCard key={card.label} {...card} />
+          ))}
         </div>
 
         <AdminPanel title={`留言列表 (${filteredMessages.length})`}>
@@ -169,62 +279,7 @@ const MessageManager = () => {
             />
           ) : (
             <div className="grid gap-4">
-              {filteredMessages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`rounded-3xl border p-4 md:p-5 ${
-                    Number(message.read) === 1
-                      ? "border-white/10 bg-white/[0.03]"
-                      : "border-indigo-500/20 bg-indigo-500/10"
-                  }`}
-                >
-                  <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-lg font-semibold text-white">
-                          {message.name || "匿名用户"}
-                        </h3>
-                        <span className="break-all rounded-full bg-white/5 px-2.5 py-1 text-xs text-gray-400">
-                          {message.email}
-                        </span>
-                        {Number(message.read) !== 1 ? (
-                          <span className="rounded-full bg-indigo-600 px-2.5 py-1 text-xs font-semibold text-white">
-                            未读
-                          </span>
-                        ) : null}
-                      </div>
-                      <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-gray-300">
-                        {message.message}
-                      </p>
-                      <div className="mt-4 flex items-center gap-2 text-xs text-gray-500">
-                        <Clock size={12} />
-                        {message.date
-                          ? new Date(message.date).toLocaleString("zh-CN")
-                          : "未知时间"}
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                      {Number(message.read) !== 1 ? (
-                        <button
-                          onClick={() => handleMarkAsRead(message.id)}
-                          className="inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-xl bg-white/5 text-emerald-300 transition-colors hover:bg-emerald-500/10"
-                          title="标记为已读"
-                        >
-                          <Check size={18} />
-                        </button>
-                      ) : null}
-                      <button
-                        onClick={() => setConfirmDeleteId(message.id)}
-                        className="inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-xl bg-white/5 text-red-300 transition-colors hover:bg-red-500/10"
-                        title="删除留言"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+              {filteredMessages.map(renderMessageCard)}
             </div>
           )}
         </AdminPanel>

@@ -12,12 +12,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import Lightbox from "./Lightbox";
 import Pagination from "./Pagination";
 import {
-  Play,
   Box,
   Upload,
   AlertCircle,
   Maximize2,
-  Tag,
   X,
 } from "lucide-react";
 import FavoriteButton from "./FavoriteButton";
@@ -29,8 +27,7 @@ import SmartImage from "./SmartImage";
 import api from "../services/api";
 import SortSelector from "./SortSelector";
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
-import TagInput from "./TagInput";
-import TagFilter from "./TagFilter";
+import MobileContentToolbar from "./MobileContentToolbar";
 import { GallerySkeleton } from "./SkeletonLoader";
 import toast from "react-hot-toast";
 import SEO from "./SEO";
@@ -63,7 +60,7 @@ const PhotoCard = memo(
           }
           className={`break-inside-avoid relative group overflow-hidden rounded-2xl cursor-pointer 
                  backdrop-blur-sm border transition-all duration-300 w-full inline-block touch-manipulation mb-4 md:mb-6
-                 ${isDayMode ? "bg-white/72 border-slate-200/80 hover:shadow-[0_24px_60px_rgba(148,163,184,0.2)] hover:border-indigo-200/80" : "bg-white/5 border-white/10 hover:shadow-2xl hover:shadow-indigo-500/10 hover:border-white/20"}`}
+                 ${isDayMode ? "day-card-lift" : "bg-white/5 border-white/10 hover:shadow-2xl hover:shadow-indigo-500/10 hover:border-white/20"}`}
           onClick={() => onClick(index)}
         >
           <SmartImage
@@ -76,14 +73,14 @@ const PhotoCard = memo(
           />
 
           <div
-            className={`absolute inset-0 ${isDayMode ? "bg-gradient-to-t from-slate-950/90 via-slate-900/30 to-transparent" : "bg-gradient-to-t from-black/90 via-black/40 to-transparent"} 
+            className={`absolute inset-0 ${isDayMode ? "bg-gradient-to-t from-slate-950/76 via-slate-900/18 to-transparent" : "bg-gradient-to-t from-black/90 via-black/40 to-transparent"}
                    opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300
                    flex flex-col justify-end p-4`}
           >
             <div className="flex flex-col gap-2 md:translate-y-3 md:group-hover:translate-y-0 transition-transform duration-300">
               <div className="flex justify-between items-end gap-2">
                 <h3
-                  className="text-lg font-bold text-white drop-shadow-md line-clamp-2 flex-1 
+                  className="text-lg font-bold text-[rgba(255,255,255,0.96)] drop-shadow-[0_2px_10px_rgba(15,23,42,0.45)] line-clamp-2 flex-1
                                transform transition-transform duration-300"
                 >
                   {photo.title}
@@ -119,23 +116,6 @@ const PhotoCard = memo(
                 </div>
               </div>
 
-              {photo.tags && (
-                <div className="hidden md:flex flex-wrap gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  {photo.tags
-                    .split(",")
-                    .slice(0, 3)
-                    .map((tag, i) => (
-                      <span
-                        key={i}
-                        className="text-[10px] px-2 py-0.5 rounded-lg bg-white/20 text-white/90 
-                               backdrop-blur-sm border border-white/10 flex items-center gap-1
-                               hover:bg-white/30 transition-colors cursor-pointer"
-                      >
-                        <Tag size={10} /> {tag.trim()}
-                      </span>
-                    ))}
-                </div>
-              )}
             </div>
           </div>
 
@@ -169,7 +149,6 @@ const Gallery = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [sort, setSort] = useState("newest");
-  const [selectedTags, setSelectedTags] = useState([]);
   const { t } = useTranslation();
   const { settings, uiMode } = useSettings();
   const { user } = useAuth();
@@ -194,10 +173,9 @@ const Gallery = () => {
       page: currentPage,
       limit: pageSize,
       sort,
-      tags: selectedTags.join(","),
     },
     {
-      dependencies: [settings.pagination_enabled, selectedTags.join(",")],
+      dependencies: [settings.pagination_enabled],
     },
   );
 
@@ -207,19 +185,18 @@ const Gallery = () => {
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
   const [tempPhoto, setTempPhoto] = useState(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
-  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
-  const hasActiveMobileFilters = selectedTags.length > 0;
   const mobileSortLabel = useMobileSortLabel(sort, t);
+  const ignoreMobileFilter = useCallback(() => {}, []);
   const allowAmbientEffects =
     !prefersReducedMotion &&
     (typeof window === "undefined" || window.innerWidth >= 768);
 
-  useContentPageEvents("image", setIsUploadOpen, setIsMobileFilterOpen, setIsMobileSortOpen);
+  useContentPageEvents("image", setIsUploadOpen, ignoreMobileFilter, setIsMobileSortOpen);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [sort, selectedTags.join(","), settings.pagination_enabled]);
+  }, [sort, settings.pagination_enabled]);
 
   useEffect(() => {
     if (isPaginationEnabled) {
@@ -234,7 +211,7 @@ const Gallery = () => {
     });
   }, [photos, currentPage, isPaginationEnabled]);
 
-  useMobileToolbarSync(selectedTags.length, mobileSortLabel);
+  useMobileToolbarSync(0, mobileSortLabel);
 
   // Capture on mount — Lightbox internally calls useBackClose which pushes a hash entry
   // whose state overwrites location.state, so we can't read it lazily at click time.
@@ -364,7 +341,7 @@ const Gallery = () => {
         description="浏览校园摄影、创作影像与精选画廊内容。"
       />
       {/* Enhanced Ambient Background */}
-      <div className="fixed inset-0 pointer-events-none z-0">
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         {allowAmbientEffects ? (
           <>
             <motion.div
@@ -419,6 +396,12 @@ const Gallery = () => {
             {t("gallery.subtitle")}
           </p>
         </div>
+        <MobileContentToolbar
+          isDayMode={isDayMode}
+          resultCount={displayPhotos.length}
+          sortLabel={mobileSortLabel}
+          onOpenSort={() => setIsMobileSortOpen(true)}
+        />
 
         <motion.button
           whileHover={{ scale: 1.05, rotate: 90 }}
@@ -430,9 +413,11 @@ const Gallery = () => {
             }
             setIsUploadOpen(true);
           }}
-          className="hidden md:block absolute right-0 top-0 md:top-2 bg-white/10 hover:bg-white/20 text-white 
-                     p-2 md:p-3 rounded-full backdrop-blur-md border border-white/10 
-                     transition-all hover:shadow-lg hover:shadow-indigo-500/20"
+          className={`hidden md:block absolute right-0 top-0 md:top-2 p-2 md:p-3 rounded-full backdrop-blur-md border transition-all ${
+            isDayMode
+              ? "day-quiet-button text-slate-700 hover:text-indigo-600"
+              : "bg-white/10 hover:bg-white/20 text-white border-white/10 hover:shadow-lg hover:shadow-indigo-500/20"
+          }`}
           title={t("common.upload_photo")}
         >
           <Upload size={18} className="md:w-5 md:h-5" />
@@ -455,106 +440,15 @@ const Gallery = () => {
           {t("gallery.subtitle")}
         </motion.p>
 
-        {/* Filter Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
           className="hidden md:flex flex-col items-center gap-6 relative z-50"
         >
-          <div className="w-full max-w-4xl mx-auto px-4">
-            <TagFilter
-              selectedTags={selectedTags}
-              onChange={setSelectedTags}
-              type="photos"
-            />
-          </div>
           <SortSelector sort={sort} onSortChange={setSort} />
         </motion.div>
       </motion.div>
-
-      {/* Mobile Filter Drawer (Bottom Sheet) */}
-      {createPortal(
-        <AnimatePresence>
-          {isMobileFilterOpen && (
-            <>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setIsMobileFilterOpen(false)}
-                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] md:hidden"
-              />
-              <motion.div
-                initial={{ opacity: 0, scale: 0.96, y: 16 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.96, y: 16 }}
-                transition={{ type: "spring", damping: 28, stiffness: 320 }}
-                className="fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit bg-[#1a1a1a]/95 backdrop-blur-xl border border-white/10 rounded-3xl z-[101] md:hidden flex flex-col max-h-[80vh] max-w-md mx-auto shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
-              >
-                <div className="p-4 border-b border-white/10 flex justify-between items-center sticky top-0 z-10 bg-[#1a1a1a]/95 backdrop-blur-xl rounded-t-3xl">
-                  <div>
-                    <h3 className="text-lg font-bold text-white">
-                      {t("common.filters", "筛选")}
-                    </h3>
-                    <p className="text-xs text-gray-400 mt-1">
-                      {t("common.filter_by_tags", "标签筛选")}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setIsMobileFilterOpen(false)}
-                    className="p-2 text-gray-400 hover:text-white bg-white/5 rounded-full transition-colors"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
-                <div className="p-6 overflow-y-auto custom-scrollbar flex-1 min-h-0 space-y-6">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
-                        {t("common.tags", "标签")}
-                      </h4>
-                      {selectedTags.length > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => setSelectedTags([])}
-                          className="text-xs text-red-300 bg-red-500/10 border border-red-500/20 px-3 py-1.5 rounded-full"
-                        >
-                          {t("common.clear_all", "清除全部")}
-                        </button>
-                      )}
-                    </div>
-                    <TagFilter
-                      selectedTags={selectedTags}
-                      onChange={setSelectedTags}
-                      type="photos"
-                      variant="sheet"
-                    />
-                  </div>
-                </div>
-                <div className="p-4 border-t border-white/10 bg-[#1a1a1a]/95 backdrop-blur-xl rounded-b-3xl flex items-center gap-3 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedTags([])}
-                    disabled={!hasActiveMobileFilters}
-                    className="flex-1 py-3 rounded-2xl border border-white/10 bg-white/5 text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    {t("common.clear_all", "重置")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsMobileFilterOpen(false)}
-                    className="flex-1 py-3 rounded-2xl bg-white text-black font-semibold"
-                  >
-                    {t("common.done", "完成")}
-                  </button>
-                </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>,
-        document.body,
-      )}
 
       {/* Mobile Sort Drawer (Bottom Sheet) */}
       {createPortal(
@@ -566,27 +460,31 @@ const Gallery = () => {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setIsMobileSortOpen(false)}
-                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] md:hidden"
+                className={`fixed inset-0 backdrop-blur-sm z-[100] md:hidden ${isDayMode ? "bg-white/62" : "bg-black/60"}`}
               />
               <motion.div
                 initial={{ opacity: 0, scale: 0.96, y: 16 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.96, y: 16 }}
                 transition={{ type: "spring", damping: 28, stiffness: 320 }}
-                className="fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit bg-[#1a1a1a]/95 backdrop-blur-xl border border-white/10 rounded-3xl z-[101] md:hidden flex flex-col max-w-sm mx-auto shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
+                className={`fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit backdrop-blur-xl border rounded-3xl z-[101] md:hidden flex flex-col max-w-sm mx-auto ${
+                  isDayMode
+                    ? "day-fine-surface"
+                    : "bg-[#1a1a1a]/95 border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
+                }`}
               >
-                <div className="p-4 border-b border-white/10 flex justify-between items-center sticky top-0 z-10 bg-[#1a1a1a]/95 backdrop-blur-xl rounded-t-3xl">
+                <div className={`p-4 border-b flex justify-between items-center sticky top-0 z-10 backdrop-blur-xl rounded-t-3xl ${isDayMode ? "border-slate-200/70 bg-white/72" : "border-white/10 bg-[#1a1a1a]/95"}`}>
                   <div>
-                    <h3 className="text-lg font-bold text-white">
+                    <h3 className={`text-lg font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}>
                       {t("common.sort", "排序")}
                     </h3>
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
                       {t("sort_filter.title", "选择排序方式")}
                     </p>
                   </div>
                   <button
                     onClick={() => setIsMobileSortOpen(false)}
-                    className="p-2 text-gray-400 hover:text-white bg-white/5 rounded-full transition-colors"
+                    className={`p-2 rounded-full transition-colors ${isDayMode ? "day-quiet-button border text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white bg-white/5"}`}
                   >
                     <X size={20} />
                   </button>
@@ -657,19 +555,8 @@ const Gallery = () => {
           <p
             className={`max-w-md ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
           >
-            {t("search.no_results", '没有找到关于 "{{query}}" 的结果', {
-              query: selectedTags.join(" / ") || t("common.filters", "筛选"),
-            })}
+            {t("gallery.subtitle")}
           </p>
-          {selectedTags.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setSelectedTags([])}
-              className={`mt-6 px-5 py-2 rounded-full border text-sm font-medium ${isDayMode ? "bg-white/90 border-slate-200/80 text-slate-700 hover:bg-white" : "bg-white/10 border-white/15 text-white hover:bg-white/15"}`}
-            >
-              {t("common.clear_all", "清除全部")}
-            </button>
-          )}
         </div>
       ) : (
         <motion.div
@@ -708,7 +595,7 @@ const Gallery = () => {
               onClick={() =>
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
               }
-              className="px-6 py-2.5 rounded-full bg-white/10 hover:bg-white/15 text-white border border-white/10 hover:border-white/20 transition-colors text-sm font-semibold"
+              className={`px-6 py-2.5 rounded-full border transition-colors text-sm font-semibold ${isDayMode ? "day-quiet-button hover:text-indigo-600" : "bg-white/10 hover:bg-white/15 text-white border-white/10 hover:border-white/20"}`}
             >
               {t("common.load_more", "加载更多")}
             </motion.button>

@@ -12,7 +12,6 @@ import {
   VolumeX,
   Upload,
   AlertCircle,
-  Tag,
   X,
 } from "lucide-react";
 import UploadModal from "./UploadModal";
@@ -26,7 +25,7 @@ import api from "../services/api";
 import SortSelector from "./SortSelector";
 import { useSearchParams } from "react-router-dom";
 import SmartImage from "./SmartImage";
-import TagFilter from "./TagFilter";
+import MobileContentToolbar from "./MobileContentToolbar";
 import toast from "react-hot-toast";
 import { getThumbnailUrl } from "../utils/imageUtils";
 import { useReducedMotion } from "../utils/animations";
@@ -62,7 +61,7 @@ const TrackItem = memo(
               ? "bg-cyan-50 border-cyan-200/80 shadow-[0_12px_28px_rgba(34,211,238,0.12)]"
               : "bg-cyan-500/10 border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.15)]"
             : isDayMode
-              ? "bg-white/82 border-slate-200/80 hover:bg-white hover:border-cyan-200/80 hover:shadow-[0_16px_36px_rgba(148,163,184,0.14)]"
+              ? "day-card-lift hover:border-cyan-200/80"
               : "bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10 hover:shadow-lg hover:shadow-black/20"
         }`}
         onClick={() => onClick(track)}
@@ -117,24 +116,6 @@ const TrackItem = memo(
           >
             <span className="truncate max-w-[150px]">{track.artist}</span>
 
-            {track.tags && (
-              <>
-                <span className="w-1 h-1 rounded-full bg-gray-600 hidden md:block" />
-                <div className="hidden md:flex flex-wrap gap-1.5">
-                  {track.tags
-                    .split(",")
-                    .slice(0, 3)
-                    .map((tag, i) => (
-                      <span
-                        key={i}
-                        className={`px-1.5 py-0.5 rounded-md text-[10px] flex items-center gap-1 ${isDayMode ? "bg-slate-100 border border-slate-200/80 text-slate-500" : "bg-white/5 border border-white/5 text-gray-400"}`}
-                      >
-                        <Tag size={8} /> {tag.trim()}
-                      </span>
-                    ))}
-                </div>
-              </>
-            )}
           </div>
         </div>
 
@@ -194,7 +175,6 @@ const Music = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [sort, setSort] = useState("newest");
-  const [selectedTags, setSelectedTags] = useState([]); // Added selectedTags state
   const [error, setError] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const isPaginationEnabled = settings.pagination_enabled === "true";
@@ -226,16 +206,15 @@ const Music = () => {
   const [volume, setVolume] = useState(0.5);
   const [isMuted, setIsMuted] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
-  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
-  const hasActiveMobileFilters = selectedTags.length > 0;
   const mobileSortLabel = useMobileSortLabel(sort, t);
-  useContentPageEvents("audio", setIsUploadOpen, setIsMobileFilterOpen, setIsMobileSortOpen);
-  useMobileToolbarSync(selectedTags.length, mobileSortLabel);
+  const ignoreMobileFilter = useCallback(() => {}, []);
+  useContentPageEvents("audio", setIsUploadOpen, ignoreMobileFilter, setIsMobileSortOpen);
+  useMobileToolbarSync(0, mobileSortLabel);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [sort, selectedTags, settings.pagination_enabled]);
+  }, [sort, settings.pagination_enabled]);
 
   // FIX: BUG-15 — Add AbortController to cancel stale requests on rapid sort/filter changes
   useEffect(() => {
@@ -245,7 +224,6 @@ const Music = () => {
       page: currentPage,
       limit: pageSize,
       sort,
-      tags: selectedTags.join(","),
     };
 
     api
@@ -278,7 +256,6 @@ const Music = () => {
   }, [
     currentPage,
     sort,
-    selectedTags,
     settings.pagination_enabled,
     refreshKey,
     pageSize,
@@ -432,10 +409,10 @@ const Music = () => {
         description="收听校园播客、原创音乐与精选音频内容。"
       />
       {/* Ambient Background */}
-      <div className="fixed inset-0 pointer-events-none z-0 hidden md:block">
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-purple-500/10 blur-[120px]" />
-        <div className="absolute top-[40%] right-[-10%] w-[40%] h-[40%] rounded-full bg-cyan-500/10 blur-[100px]" />
-        <div className="absolute bottom-[-10%] left-[20%] w-[60%] h-[40%] rounded-full bg-indigo-500/10 blur-[120px]" />
+      <div className="fixed inset-0 pointer-events-none z-0 hidden overflow-hidden md:block">
+        <div className={`absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] ${isDayMode ? "bg-violet-200/24" : "bg-purple-500/10"}`} />
+        <div className={`absolute top-[40%] right-[-10%] w-[40%] h-[40%] rounded-full blur-[100px] ${isDayMode ? "bg-cyan-200/22" : "bg-cyan-500/10"}`} />
+        <div className={`absolute bottom-[-10%] left-[20%] w-[60%] h-[40%] rounded-full blur-[120px] ${isDayMode ? "bg-indigo-200/18" : "bg-indigo-500/10"}`} />
       </div>
 
       <motion.div
@@ -457,6 +434,12 @@ const Music = () => {
             {t("music.subtitle")}
           </p>
         </div>
+        <MobileContentToolbar
+          isDayMode={isDayMode}
+          resultCount={tracks.length}
+          sortLabel={mobileSortLabel}
+          onOpenSort={() => setIsMobileSortOpen(true)}
+        />
         <div className="hidden md:block">
           <h2
             className={`text-4xl md:text-5xl font-bold font-serif mb-4 md:mb-6 ${isDayMode ? "text-slate-900" : "text-white"}`}
@@ -468,14 +451,6 @@ const Music = () => {
           >
             {t("music.subtitle")}
           </p>
-        </div>
-
-        <div className="hidden md:block w-full max-w-4xl mx-auto px-4 mb-8">
-          <TagFilter
-            selectedTags={selectedTags}
-            onChange={setSelectedTags}
-            type="music"
-          />
         </div>
 
         <div className="hidden md:flex items-center gap-4 w-full md:w-auto justify-center md:absolute md:right-0 md:top-0">
@@ -497,105 +472,6 @@ const Music = () => {
           </button>
         </div>
       </motion.div>
-
-      {/* Mobile Filter Drawer (Bottom Sheet) */}
-      {createPortal(
-        <AnimatePresence>
-          {isMobileFilterOpen && (
-            <>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setIsMobileFilterOpen(false)}
-                className={`fixed inset-0 backdrop-blur-sm z-[100] md:hidden ${isDayMode ? "bg-white/55" : "bg-black/60"}`}
-              />
-              <motion.div
-                initial={{ opacity: 0, scale: 0.96, y: 16 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.96, y: 16 }}
-                transition={{ type: "spring", damping: 28, stiffness: 320 }}
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="music-mobile-filter-title"
-                className={`fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit backdrop-blur-xl border rounded-3xl z-[101] md:hidden flex flex-col max-h-[80vh] max-w-md mx-auto ${isDayMode ? "bg-white/95 border-slate-200/80 shadow-[0_24px_60px_rgba(148,163,184,0.22)]" : "bg-[#1a1a1a]/95 border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.45)]"}`}
-              >
-                <div
-                  className={`p-4 border-b flex justify-between items-center sticky top-0 z-10 backdrop-blur-xl rounded-t-3xl ${isDayMode ? "border-slate-200/80 bg-white/92" : "border-white/10 bg-[#1a1a1a]/95"}`}
-                >
-                  <div>
-                    <h3
-                      id="music-mobile-filter-title"
-                      className={`text-lg font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}
-                    >
-                      {t("common.filters", "筛选")}
-                    </h3>
-                    <p
-                      className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                    >
-                      {t("common.filter_by_tags", "标签筛选")}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsMobileFilterOpen(false)}
-                    aria-label={t("common.close", "关闭")}
-                    className={`p-2 rounded-full transition-colors ${isDayMode ? "text-slate-500 hover:text-slate-900 bg-slate-100" : "text-gray-400 hover:text-white bg-white/5"}`}
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
-                <div className="p-6 overflow-y-auto custom-scrollbar flex-1 min-h-0 space-y-6">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <h4
-                        className={`text-sm font-semibold uppercase tracking-wider ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                      >
-                        {t("common.tags", "标签")}
-                      </h4>
-                      {selectedTags.length > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => setSelectedTags([])}
-                          className="text-xs text-red-300 bg-red-500/10 border border-red-500/20 px-3 py-1.5 rounded-full"
-                        >
-                          {t("common.clear_all", "清除全部")}
-                        </button>
-                      )}
-                    </div>
-                    <TagFilter
-                      selectedTags={selectedTags}
-                      onChange={setSelectedTags}
-                      type="music"
-                      variant="sheet"
-                    />
-                  </div>
-                </div>
-                <div
-                  className={`p-4 border-t backdrop-blur-xl rounded-b-3xl flex items-center gap-3 shrink-0 ${isDayMode ? "border-slate-200/80 bg-white/92" : "border-white/10 bg-[#1a1a1a]/95"}`}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setSelectedTags([])}
-                    disabled={!hasActiveMobileFilters}
-                    className={`flex-1 py-3 rounded-2xl border disabled:opacity-40 disabled:cursor-not-allowed ${isDayMode ? "border-slate-200/80 bg-slate-100/90 text-slate-600" : "border-white/10 bg-white/5 text-gray-200"}`}
-                  >
-                    {t("common.clear_all", "重置")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsMobileFilterOpen(false)}
-                    className="flex-1 py-3 rounded-2xl bg-white text-black font-semibold"
-                  >
-                    {t("common.done", "完成")}
-                  </button>
-                </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>,
-        document.body,
-      )}
 
       {/* Mobile Sort Drawer (Bottom Sheet) */}
       {createPortal(
@@ -670,7 +546,7 @@ const Music = () => {
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
-          className={`hidden md:block backdrop-blur-2xl border rounded-3xl p-6 md:p-12 shadow-2xl relative overflow-hidden ${isDayMode ? "bg-white/72 border-slate-200/80 shadow-[0_28px_80px_rgba(148,163,184,0.18)]" : "bg-[#0a0a0a]/50 border-white/20"}`}
+          className={`hidden md:block backdrop-blur-2xl border rounded-3xl p-6 md:p-12 shadow-2xl relative overflow-hidden ${isDayMode ? "day-fine-surface" : "bg-[#0a0a0a]/50 border-white/20"}`}
         >
           <div
             className={`absolute inset-0 backdrop-blur-3xl z-0 rounded-3xl ${isDayMode ? "bg-slate-100/35" : "bg-white/5"}`}
@@ -688,7 +564,7 @@ const Music = () => {
           <div className="relative z-10">
             {/* Header */}
             <div
-              className={`flex items-center gap-4 mb-6 sticky top-0 backdrop-blur-2xl border p-4 rounded-xl z-10 shadow-lg ${isDayMode ? "bg-white/78 border-slate-200/80 text-slate-900" : "bg-white/5 border-white/20"}`}
+              className={`flex items-center gap-4 mb-6 sticky top-0 backdrop-blur-2xl border p-4 rounded-xl z-10 shadow-lg ${isDayMode ? "day-card-lift text-slate-900" : "bg-white/5 border-white/20"}`}
             >
               <div className="p-3 bg-cyan-500/20 rounded-full text-cyan-400">
                 <MusicIcon size={24} />
@@ -859,7 +735,7 @@ const Music = () => {
             className="overflow-visible md:flex-1 md:overflow-y-auto custom-scrollbar pr-0 md:pr-2"
           >
             <div
-              className={`flex items-center gap-4 mb-4 sticky top-0 backdrop-blur-2xl border p-4 rounded-xl z-10 shadow-lg ${isDayMode ? "bg-white/78 border-slate-200/80 text-slate-900" : "bg-white/5 border-white/20"}`}
+              className={`flex items-center gap-4 mb-4 sticky top-0 backdrop-blur-2xl border p-4 rounded-xl z-10 shadow-lg ${isDayMode ? "day-card-lift text-slate-900" : "bg-white/5 border-white/20"}`}
             >
               <div className="p-3 bg-cyan-500/20 rounded-full text-cyan-400">
                 <MusicIcon size={24} />
@@ -875,7 +751,7 @@ const Music = () => {
                 [...Array(5)].map((_, i) => (
                   <div
                     key={i}
-                    className={`p-4 rounded-xl flex items-center gap-4 animate-pulse ${isDayMode ? "bg-white/82 border border-slate-200/80" : "bg-white/5"}`}
+                    className={`p-4 rounded-xl flex items-center gap-4 animate-pulse ${isDayMode ? "day-card-lift" : "bg-white/5"}`}
                   >
                     <div
                       className={`w-12 h-12 rounded-lg flex-shrink-0 ${isDayMode ? "bg-slate-100" : "bg-white/10"}`}
@@ -903,7 +779,7 @@ const Music = () => {
                   </p>
                   <button
                     onClick={refresh}
-                    className={`px-6 py-2 rounded-full transition-all border ${isDayMode ? "bg-white/85 hover:bg-white text-slate-700 border-slate-200/80 shadow-[0_12px_28px_rgba(148,163,184,0.14)]" : "bg-white/10 hover:bg-white/20 text-white border border-white/10"}`}
+                  className={`px-6 py-2 rounded-full transition-all border ${isDayMode ? "day-quiet-button hover:text-cyan-600" : "bg-white/10 hover:bg-white/20 text-white border border-white/10"}`}
                   >
                     {t("common.retry", "重试")}
                   </button>
@@ -919,15 +795,6 @@ const Music = () => {
                         className="mx-auto mb-4 opacity-20"
                       />
                       <p>{t("music.no_tracks")}</p>
-                      {selectedTags.length > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => setSelectedTags([])}
-                          className={`mt-5 px-5 py-2 rounded-full border text-sm font-medium ${isDayMode ? "bg-white/90 border-slate-200/80 text-slate-700 hover:bg-white" : "bg-white/10 border-white/15 text-white hover:bg-white/15"}`}
-                        >
-                          {t("common.clear_all", "清除全部")}
-                        </button>
-                      )}
                     </div>
                   )}
                   {tracks.map((track, index) => (
@@ -958,7 +825,7 @@ const Music = () => {
                   }
                   whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
                   onClick={() => setCurrentPage((prev) => prev + 1)}
-                  className={`px-6 py-2.5 rounded-full border transition-colors text-sm font-semibold ${isDayMode ? "bg-white/88 hover:bg-white text-slate-700 border-slate-200/80 hover:border-cyan-200/80 shadow-[0_14px_32px_rgba(148,163,184,0.14)]" : "bg-white/10 hover:bg-white/15 text-white border-white/10 hover:border-white/20"}`}
+                  className={`px-6 py-2.5 rounded-full border transition-colors text-sm font-semibold ${isDayMode ? "day-quiet-button hover:text-cyan-600" : "bg-white/10 hover:bg-white/15 text-white border-white/10 hover:border-white/20"}`}
                 >
                   {t("common.load_more", "加载更多")}
                 </motion.button>

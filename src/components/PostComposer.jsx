@@ -478,18 +478,6 @@ const PostComposer = ({ isOpen, onClose, section = 'help', onSuccess }) => {
                 </div>
               </div>
 
-              {/* Tags */}
-              <div className="space-y-2">
-                <label className={labelCls}>{t('community.post_tags_label', '标签')}</label>
-                <input
-                  type="text"
-                  value={tags}
-                  onChange={(e) => setTags(e.target.value)}
-                  placeholder={t('community.post_tags_placeholder', '用逗号分隔，如 PyTorch, CUDA')}
-                  className={`w-full px-4 py-3 rounded-xl border text-sm outline-none transition-all focus:ring-2 ${isDayMode ? 'bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-slate-300/50' : 'bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:ring-white/10'}`}
-                />
-              </div>
-
               {/* Team-specific fields */}
               {isTeam && (
                 <div className={`space-y-4 p-4 rounded-2xl border ${isDayMode ? 'bg-violet-50/50 border-violet-100' : 'bg-violet-500/5 border-violet-500/15'}`}>

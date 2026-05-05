@@ -22,6 +22,7 @@ import {
   AdminLoadingState,
   AdminPageShell,
   AdminPanel,
+  AdminTableShell,
   AdminToolbar,
   ConfirmDialog,
   FilterChip,
@@ -162,6 +163,81 @@ const AdminCommunity = () => {
     }
   };
 
+  const renderPostMobileCards = () => (
+    <div className="mt-4 grid grid-cols-1 gap-3 md:hidden">
+      {filteredPosts.map((post) => {
+        const Icon = SECTION_META[post.section]?.icon || MessageSquare;
+        return (
+          <article
+            key={post.id}
+            className={`rounded-2xl border p-4 ${
+              isDayMode
+                ? "border-slate-200/70 bg-white/[0.78]"
+                : "border-white/10 bg-white/[0.03]"
+            }`}
+          >
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              <span
+                className={`inline-flex items-center gap-2 ${
+                  isDayMode ? "text-slate-600" : "text-gray-300"
+                }`}
+              >
+                <Icon
+                  size={14}
+                  className={isDayMode ? "text-indigo-600" : "text-indigo-300"}
+                />
+                {SECTION_META[post.section]?.label || post.section}
+              </span>
+              <StatusBadge status={post.status} />
+            </div>
+            <h3
+              className={`mt-3 line-clamp-2 font-semibold ${
+                isDayMode ? "text-slate-900" : "text-white"
+              }`}
+            >
+              {post.title}
+            </h3>
+            <p className={`mt-2 line-clamp-2 text-sm ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>
+              {post.excerpt || "暂无摘要"}
+            </p>
+            <div className={`mt-3 text-xs ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+              {post.author_name || "-"} ·{" "}
+              {post.created_at
+                ? new Date(post.created_at).toLocaleDateString("zh-CN")
+                : "-"}
+            </div>
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              <a
+                href={`/community/${post.section}`}
+                className={`inline-flex min-h-[40px] items-center justify-center rounded-xl border text-sm font-semibold transition-colors ${
+                  isDayMode
+                    ? "border-slate-200/80 bg-white text-slate-600 hover:text-slate-900"
+                    : "border-white/10 bg-white/5 text-gray-300 hover:bg-white/10"
+                }`}
+              >
+                查看
+              </a>
+              <AdminButton
+                tone="subtle"
+                disabled={postAction.pendingId === post.id}
+                onClick={() => handleReview(post.id, "reject")}
+              >
+                下架
+              </AdminButton>
+              <AdminButton
+                tone="success"
+                disabled={postAction.pendingId === post.id}
+                onClick={() => handleReview(post.id, "approve")}
+              >
+                通过
+              </AdminButton>
+            </div>
+          </article>
+        );
+      })}
+    </div>
+  );
+
   const handleGroupFieldChange = (key, value) => {
     setGroupForm((previous) => ({ ...previous, [key]: value }));
   };
@@ -274,12 +350,13 @@ const AdminCommunity = () => {
             <div className="grid grid-cols-2 gap-3">
               {sectionCards.map((card) => (
                 <button
+                  type="button"
                   key={card.id}
                   onClick={() => {
                     setActiveTab("posts");
                     setSectionFilter(card.id);
                   }}
-                  className={`rounded-2xl border p-4 text-left transition-colors ${isDayMode ? "border-slate-200/80 bg-white/88 hover:bg-white" : "border-white/10 bg-white/5 hover:bg-white/10"}`}
+                  className={`rounded-2xl border p-4 text-left transition-colors ${isDayMode ? "border-slate-200/80 bg-white/[0.88] hover:bg-white" : "border-white/10 bg-white/5 hover:bg-white/10"}`}
                 >
                   <div className={`flex items-center gap-2 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
                     <card.Icon size={16} className={isDayMode ? "text-indigo-600" : "text-indigo-300"} />
@@ -343,8 +420,10 @@ const AdminCommunity = () => {
                   description="可以切换栏目筛选或稍后刷新。"
                 />
               ) : (
-                <div className="mt-4 overflow-x-auto">
-                  <table className="w-full min-w-[860px] text-left text-sm">
+                <>
+                  {renderPostMobileCards()}
+                  <div className="mt-4">
+                  <AdminTableShell minWidth={860}>
                     <thead>
                       <tr className={`border-b text-xs uppercase tracking-[0.2em] ${isDayMode ? "border-slate-200/80 text-slate-500" : "border-white/10 text-gray-500"}`}>
                         <th className="p-4">标题</th>
@@ -355,7 +434,7 @@ const AdminCommunity = () => {
                         <th className="p-4 text-right">操作</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/5">
+                    <tbody className="theme-admin-table-body divide-y">
                       {filteredPosts.map((post) => {
                         const Icon = SECTION_META[post.section]?.icon || MessageSquare;
                         return (
@@ -391,6 +470,7 @@ const AdminCommunity = () => {
                                   <ExternalLink size={16} />
                                 </a>
                                 <button
+                                  type="button"
                                   onClick={() => handleReview(post.id, "reject")}
                                   disabled={postAction.pendingId === post.id}
                                   className={`inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg transition-colors disabled:opacity-50 ${isDayMode ? "bg-white border border-slate-200/80 text-rose-600 hover:bg-rose-50" : "bg-white/5 text-red-300 hover:bg-red-500/10"}`}
@@ -399,6 +479,7 @@ const AdminCommunity = () => {
                                   <XCircle size={16} />
                                 </button>
                                 <button
+                                  type="button"
                                   onClick={() => handleReview(post.id, "approve")}
                                   disabled={postAction.pendingId === post.id}
                                   className={`inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg transition-colors disabled:opacity-50 ${isDayMode ? "bg-white border border-slate-200/80 text-emerald-600 hover:bg-emerald-50" : "bg-white/5 text-emerald-300 hover:bg-emerald-500/10"}`}
@@ -412,8 +493,9 @@ const AdminCommunity = () => {
                         );
                       })}
                     </tbody>
-                  </table>
-                </div>
+                  </AdminTableShell>
+                  </div>
+                </>
               )}
             </>
           ) : (
@@ -421,7 +503,7 @@ const AdminCommunity = () => {
               <AdminPanel
                 title={groupForm.id ? "编辑社群" : "新增社群"}
                 description="该表单直接调用现有 community groups 接口。"
-                className={isDayMode ? "bg-white/88" : "bg-white/[0.03]"}
+                className={isDayMode ? "bg-white/[0.88]" : "bg-white/[0.03]"}
               >
                 <div className="grid gap-4">
                   <FormField
@@ -512,7 +594,7 @@ const AdminCommunity = () => {
                     {filteredGroups.map((group) => (
                       <div
                         key={group.id}
-                        className={`rounded-3xl border p-4 ${isDayMode ? "border-slate-200/80 bg-white/88" : "border-white/10 bg-white/[0.03]"}`}
+                        className={`rounded-2xl border p-4 ${isDayMode ? "border-slate-200/80 bg-white/[0.88]" : "border-white/10 bg-white/[0.03]"}`}
                       >
                         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                           <div className="min-w-0 flex-1">
@@ -546,6 +628,7 @@ const AdminCommunity = () => {
                           </div>
                           <div className="flex gap-2">
                             <button
+                              type="button"
                               onClick={() => handleEditGroup(group)}
                               className={`inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg transition-colors ${isDayMode ? "bg-white border border-slate-200/80 text-slate-500 hover:bg-slate-50 hover:text-indigo-600" : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-indigo-300"}`}
                               title="编辑社群"
@@ -553,6 +636,7 @@ const AdminCommunity = () => {
                               <Edit2 size={16} />
                             </button>
                             <button
+                              type="button"
                               onClick={() => setDeleteGroupId(group.id)}
                               className={`inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg transition-colors ${isDayMode ? "bg-white border border-slate-200/80 text-rose-600 hover:bg-rose-50" : "bg-white/5 text-red-300 hover:bg-red-500/10"}`}
                               title="删除社群"
@@ -590,7 +674,7 @@ const inputClassName =
 
 const FormField = ({ label, value, onChange, textarea = false }) => (
   <div>
-    <label className="mb-2 block text-sm font-medium text-gray-400">{label}</label>
+    <label className="theme-admin-muted mb-2 block text-sm font-medium">{label}</label>
     {textarea ? (
       <textarea
         value={value}

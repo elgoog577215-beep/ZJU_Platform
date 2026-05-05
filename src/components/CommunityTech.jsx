@@ -9,7 +9,7 @@ import SmartImage from './SmartImage';
 import UploadModal from './UploadModal';
 import FavoriteButton from './FavoriteButton';
 import SortSelector from './SortSelector';
-import TagFilter from './TagFilter';
+import MobileContentToolbar from './MobileContentToolbar';
 import CommunityDetailModal from './CommunityDetailModal';
 import CommunityFeedPanel from './CommunityFeedPanel';
 import { useSettings } from '../context/SettingsContext';
@@ -69,9 +69,15 @@ const ArticleCard = memo(({
       animate={canAnimate ? { opacity: 1, y: 0 } : undefined}
       transition={canAnimate ? { duration: 0.24, delay: Math.min(index, 5) * 0.03 } : undefined}
       onClick={() => onClick(article)}
-      className={`group relative overflow-hidden rounded-[1.65rem] border p-3.5 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-orange-500/30 hover:shadow-[0_20px_40px_-15px_rgba(249,115,22,0.15)] md:rounded-3xl md:p-6 ${isDayMode ? 'bg-white/84 hover:bg-white border-slate-200/80 shadow-[0_18px_42px_rgba(148,163,184,0.12)]' : 'bg-[#1a1a1a]/60 hover:bg-[#1a1a1a]/80 border-white/10'}`}
+      className={`group relative overflow-hidden rounded-[1.65rem] border p-3.5 backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-orange-300/55 md:rounded-3xl md:p-6 ${isDayMode ? 'bg-gradient-to-br from-white/78 via-white/62 to-slate-50/54 hover:from-white/88 hover:via-white/70 hover:to-slate-50/62 border-white/75 shadow-[0_14px_34px_rgba(99,102,241,0.075)] hover:shadow-[0_18px_34px_-26px_rgba(15,23,42,0.22),0_0_0_1px_rgba(251,146,60,0.1)] ring-1 ring-slate-900/[0.025]' : 'bg-[#1a1a1a]/60 hover:bg-[#1a1a1a]/80 border-white/10 hover:shadow-[0_20px_40px_-15px_rgba(249,115,22,0.15)]'}`}
     >
-      <div className={`pointer-events-none absolute inset-x-0 top-0 h-px ${isDayMode ? 'bg-gradient-to-r from-transparent via-orange-200/80 to-transparent' : 'bg-gradient-to-r from-transparent via-orange-500/20 to-transparent'}`} />
+      <div className={`pointer-events-none absolute inset-x-0 top-0 h-px ${isDayMode ? 'bg-gradient-to-r from-transparent via-orange-200/65 to-transparent' : 'bg-gradient-to-r from-transparent via-orange-500/20 to-transparent'}`} />
+      {isDayMode ? (
+        <>
+          <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/90 to-transparent opacity-80" />
+          <div className="pointer-events-none absolute inset-x-5 top-0 h-8 bg-gradient-to-b from-white/28 to-transparent opacity-70 transition-opacity duration-300 group-hover:opacity-95" />
+        </>
+      ) : null}
       <div className="flex gap-3 md:gap-6 items-start">
         {article.cover && (
           <div className="w-[110px] sm:w-[128px] md:w-48 h-[110px] sm:h-[128px] md:h-32 rounded-2xl md:rounded-xl overflow-hidden flex-shrink-0">
@@ -122,10 +128,10 @@ const ArticleCard = memo(({
               showCount
               count={article.likes || 0}
               initialFavorited={article.favorited}
-              className={`p-1.5 md:p-2 rounded-full transition-colors hover:text-orange-500 ${isDayMode ? 'hover:bg-orange-50 text-slate-500' : 'hover:bg-white/10 text-gray-400'}`}
+              className={`min-h-[44px] min-w-[44px] p-1.5 md:min-h-0 md:min-w-0 md:p-2 rounded-full transition-colors hover:text-orange-500 ${isDayMode ? 'hover:bg-white/80 text-slate-500' : 'hover:bg-white/10 text-gray-400'}`}
               onToggle={(favorited, likes) => onToggleFavorite(article.id, favorited, likes)}
             />
-            <div className={`p-1.5 md:p-2 rounded-full group-hover:bg-orange-500 group-hover:text-black transition-all duration-300 ${isDayMode ? 'bg-orange-50 text-orange-500' : 'bg-white/5'}`}>
+            <div className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center p-1.5 md:min-h-0 md:min-w-0 md:p-2 rounded-full group-hover:bg-orange-500 group-hover:text-black transition-all duration-300 ${isDayMode ? 'bg-white/72 text-orange-500 shadow-[0_10px_22px_rgba(249,115,22,0.16)]' : 'bg-white/5'}`}>
               <ArrowRight size={16} className="-rotate-45 group-hover:rotate-0 transition-transform duration-300" />
             </div>
           </div>
@@ -147,7 +153,6 @@ const CommunityTech = () => {
   const location = useLocation();
   const isDayMode = uiMode === 'day';
   const [isUploadOpen, setIsUploadOpen] = useState(false);
-  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
   const [viewMode, setViewMode] = useState('public');
   const [editingArticle, setEditingArticle] = useState(null);
@@ -198,20 +203,13 @@ const CommunityTech = () => {
     const onUpload = (event) => {
       if (event.detail.type === 'article') setIsUploadOpen(true);
     };
-    const onFilter = () => {
-      setIsMobileSortOpen(false);
-      setIsMobileFilterOpen((prev) => !prev);
-    };
     const onSort = () => {
-      setIsMobileFilterOpen(false);
       setIsMobileSortOpen((prev) => !prev);
     };
     window.addEventListener('open-upload-modal', onUpload);
-    window.addEventListener('toggle-mobile-filter', onFilter);
     window.addEventListener('toggle-mobile-sort', onSort);
     return () => {
       window.removeEventListener('open-upload-modal', onUpload);
-      window.removeEventListener('toggle-mobile-filter', onFilter);
       window.removeEventListener('toggle-mobile-sort', onSort);
     };
   }, []);
@@ -219,11 +217,11 @@ const CommunityTech = () => {
   useEffect(() => {
     window.dispatchEvent(new CustomEvent('set-mobile-toolbar-state', {
       detail: {
-        filterCount: feed.selectedTags.length,
+        filterCount: 0,
         sortLabel: mobileSortLabel,
       },
     }));
-  }, [feed.selectedTags.length, mobileSortLabel]);
+  }, [mobileSortLabel]);
 
   const updateParams = useCallback((next) => {
     const params = new URLSearchParams(searchParams);
@@ -437,13 +435,13 @@ const CommunityTech = () => {
   };
 
   const featuredSection = featuredArticle ? (
-    <div className={`mb-5 rounded-[1.9rem] md:rounded-[30px] border p-3.5 md:p-6 ${isDayMode ? 'bg-gradient-to-br from-orange-50 via-white to-amber-50 border-orange-200/80 shadow-[0_20px_44px_rgba(251,146,60,0.12)]' : 'bg-gradient-to-br from-orange-500/10 via-white/[0.03] to-amber-500/10 border-orange-500/20'}`}>
-      <div className="mb-3 flex items-center justify-between gap-3 md:mb-4">
+    <div className={`mb-5 rounded-none border border-transparent bg-transparent p-0 shadow-none ring-0 backdrop-blur-0 md:rounded-[30px] md:border md:p-6 ${isDayMode ? 'md:bg-gradient-to-br md:from-white/76 md:via-white/58 md:to-slate-50/48 md:border-orange-200/45 md:shadow-[0_20px_46px_rgba(99,102,241,0.09)] md:ring-1 md:ring-white/70 md:backdrop-blur-2xl' : 'md:bg-gradient-to-br md:from-orange-500/10 md:via-white/[0.03] md:to-amber-500/10 md:border-orange-500/20'}`}>
+      <div className="mb-3 flex items-center justify-between gap-3 px-1 md:mb-4 md:px-0">
         <div className="flex items-center gap-2">
         <Sparkles size={16} className={isDayMode ? 'text-orange-600' : 'text-orange-300'} />
         <span className={`text-xs uppercase tracking-[0.22em] ${isDayMode ? 'text-orange-700' : 'text-orange-300'}`}>精选文章</span>
         </div>
-        <span className={`hidden text-[11px] font-medium md:inline ${isDayMode ? 'text-orange-600/80' : 'text-orange-200/70'}`}>Editor's Pick</span>
+        <span className={`hidden text-[11px] font-medium md:inline ${isDayMode ? 'text-orange-600/80' : 'text-orange-200/70'}`}>Editor&apos;s Pick</span>
       </div>
       <ArticleCard
         article={featuredArticle}
@@ -457,13 +455,13 @@ const CommunityTech = () => {
   ) : null;
 
   const viewModeSwitch = user ? (
-    <div className={`rounded-xl border p-1 inline-flex gap-1 flex-wrap ${isDayMode ? 'bg-white border-slate-200' : 'bg-white/5 border-white/10'}`}>
+    <div className={`inline-flex max-w-full gap-1 overflow-x-auto rounded-xl border p-1 ${isDayMode ? 'bg-slate-100/70 border-slate-200/80' : 'bg-white/5 border-white/10'}`}>
       {VIEW_MODES.map((mode) => (
         <button
           key={mode.key}
           type="button"
           onClick={() => setViewMode(mode.key)}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${viewMode === mode.key ? (isDayMode ? 'bg-orange-500 text-white' : 'bg-orange-500 text-black') : (isDayMode ? 'text-slate-600' : 'text-gray-300')}`}
+          className={`min-h-[32px] px-3 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${viewMode === mode.key ? (isDayMode ? 'bg-indigo-500 text-white shadow-[0_8px_18px_rgba(99,102,241,0.18)]' : 'bg-white text-slate-950') : (isDayMode ? 'text-slate-600 hover:bg-white hover:text-slate-950' : 'text-gray-300 hover:bg-white/10')}`}
         >
           {mode.label}
         </button>
@@ -475,12 +473,12 @@ const CommunityTech = () => {
     <div className="flex-1">
       {user ? <div className="md:hidden mb-3">{viewModeSwitch}</div> : null}
       <div className="space-y-3">
-        <div className={`flex items-center gap-2 rounded-2xl border px-3 py-2.5 ${isDayMode ? 'bg-white border-slate-200 shadow-[0_10px_24px_rgba(148,163,184,0.08)]' : 'bg-white/5 border-white/10'}`}>
+        <div className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 ${isDayMode ? 'bg-white border-slate-200/80' : 'bg-white/5 border-white/10'}`}>
           <Search size={16} className={isDayMode ? 'text-slate-400' : 'text-gray-500'} />
           <input
             value={feed.searchQuery}
             onChange={(event) => feed.setSearchQuery(event.target.value)}
-            placeholder="搜索文章标题、标签、摘要或正文"
+            placeholder="搜索文章标题、摘要或正文"
             className={`w-full bg-transparent text-sm outline-none ${isDayMode ? 'text-slate-700 placeholder:text-slate-400' : 'text-gray-200 placeholder:text-gray-500'}`}
           />
           {feed.searchQuery ? (
@@ -493,9 +491,24 @@ const CommunityTech = () => {
             </button>
           ) : null}
         </div>
-        <div className="hidden md:flex items-start gap-3">
-          <TagFilter selectedTags={feed.selectedTags} onChange={feed.setSelectedTags} type="articles" />
-          {viewModeSwitch ? <div className="ml-auto">{viewModeSwitch}</div> : null}
+        <MobileContentToolbar
+          isDayMode={isDayMode}
+          resultCount={panelItems.length}
+          sortLabel={mobileSortLabel}
+          onOpenSort={() => setIsMobileSortOpen(true)}
+        />
+        <div className="hidden md:block">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            {viewModeSwitch}
+            <SortSelector
+              sort={feed.sort}
+              onSortChange={feed.setSort}
+              className="w-48"
+              buttonClassName={isDayMode
+                ? "border border-slate-200 bg-white text-slate-700 rounded-full px-4 py-2 min-h-[40px] text-sm font-medium hover:bg-slate-50"
+                : "border border-white/10 bg-white/5 text-white rounded-full px-4 py-2 min-h-[40px] text-sm font-medium hover:bg-white/10"}
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -542,51 +555,6 @@ const CommunityTech = () => {
     <>
       {createPortal(
         <AnimatePresence>
-          {isMobileFilterOpen ? (
-            <>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setIsMobileFilterOpen(false)}
-                className={`fixed inset-0 backdrop-blur-sm z-[100] md:hidden ${isDayMode ? 'bg-white/55' : 'bg-black/60'}`}
-              />
-              <motion.div
-                initial={{ opacity: 0, scale: 0.96, y: 16 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.96, y: 16 }}
-                transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-                className={`fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit backdrop-blur-xl border rounded-3xl z-[101] md:hidden flex flex-col max-h-[80vh] max-w-md mx-auto ${isDayMode ? 'bg-white/95 border-slate-200/80' : 'bg-[#1a1a1a]/95 border-white/10'}`}
-              >
-                <div className={`p-4 border-b flex justify-between items-center ${isDayMode ? 'border-slate-200/80' : 'border-white/10'}`}>
-                  <h3 className={`text-lg font-bold ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{t('common.filters', '筛选')}</h3>
-                  <button onClick={() => setIsMobileFilterOpen(false)} className={`p-2 rounded-full ${isDayMode ? 'text-slate-500 bg-slate-100' : 'text-gray-400 bg-white/5'}`}>
-                    <X size={20} />
-                  </button>
-                </div>
-                <div className="p-6 overflow-y-auto flex-1 min-h-0">
-                  <TagFilter selectedTags={feed.selectedTags} onChange={feed.setSelectedTags} type="articles" variant="sheet" />
-                </div>
-                <div className={`p-4 border-t flex gap-3 ${isDayMode ? 'border-slate-200/80' : 'border-white/10'}`}>
-                  <button
-                    onClick={() => feed.setSelectedTags([])}
-                    disabled={!feed.selectedTags.length}
-                    className={`flex-1 py-3 rounded-2xl border disabled:opacity-40 ${isDayMode ? 'border-slate-200/80 bg-slate-100/90 text-slate-600' : 'border-white/10 bg-white/5 text-gray-200'}`}
-                  >
-                    {t('common.clear_all', '重置')}
-                  </button>
-                  <button onClick={() => setIsMobileFilterOpen(false)} className="flex-1 py-3 rounded-2xl bg-white text-black font-semibold">
-                    {t('common.done', '完成')}
-                  </button>
-                </div>
-              </motion.div>
-            </>
-          ) : null}
-        </AnimatePresence>,
-        document.body
-      )}
-      {createPortal(
-        <AnimatePresence>
           {isMobileSortOpen ? (
             <>
               <motion.div
@@ -594,27 +562,30 @@ const CommunityTech = () => {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setIsMobileSortOpen(false)}
-                className={`fixed inset-0 backdrop-blur-sm z-[100] md:hidden ${isDayMode ? 'bg-white/55' : 'bg-black/60'}`}
+                className={`fixed inset-0 z-[100] backdrop-blur-md md:hidden ${isDayMode ? 'bg-slate-100/58' : 'bg-black/62'}`}
               />
               <motion.div
-                initial={{ opacity: 0, scale: 0.96, y: 16 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.96, y: 16 }}
-                transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-                className={`fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit backdrop-blur-xl border rounded-3xl z-[101] md:hidden flex flex-col max-w-sm mx-auto ${isDayMode ? 'bg-white/95 border-slate-200/80' : 'bg-[#1a1a1a]/95 border-white/10'}`}
+                role="dialog"
+                aria-modal="true"
+                aria-label={t('common.sort', '排序')}
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                transition={{ type: 'spring', damping: 34, stiffness: 360 }}
+                className={`fixed inset-x-0 bottom-0 z-[101] mx-auto flex w-full max-w-md flex-col overflow-hidden rounded-t-[2rem] border-x border-t pb-[env(safe-area-inset-bottom)] shadow-[0_-24px_70px_rgba(0,0,0,0.34)] backdrop-blur-2xl md:hidden ${isDayMode ? 'border-white/80 bg-white/92 text-slate-900' : 'border-white/10 bg-[#171717]/96 text-white'}`}
               >
-                <div className={`p-4 border-b flex justify-between items-center ${isDayMode ? 'border-slate-200/80' : 'border-white/10'}`}>
+                <div className={`border-b px-5 py-4 flex justify-between items-center ${isDayMode ? 'border-slate-200/70' : 'border-white/10'}`}>
                   <h3 className={`text-lg font-bold ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{t('common.sort', '排序')}</h3>
-                  <button onClick={() => setIsMobileSortOpen(false)} className={`p-2 rounded-full ${isDayMode ? 'text-slate-500 bg-slate-100' : 'text-gray-400 bg-white/5'}`}>
-                    <X size={20} />
+                  <button type="button" onClick={() => setIsMobileSortOpen(false)} aria-label={t('common.close', '关闭')} className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full ${isDayMode ? 'text-slate-500 bg-slate-100' : 'text-gray-400 bg-white/8'}`}>
+                    <X size={22} />
                   </button>
                 </div>
-                <div className="p-4">
+                <div className="px-5 pb-5 pt-4">
                   <SortSelector
                     sort={feed.sort}
                     onSortChange={(value) => {
                       feed.setSort(value);
-                      setTimeout(() => setIsMobileSortOpen(false), 300);
+                      setTimeout(() => setIsMobileSortOpen(false), 220);
                     }}
                     className="w-full"
                     renderMode="list"
@@ -642,6 +613,8 @@ const CommunityTech = () => {
         accentColor="orange"
         extraControls={extraControls}
         featuredSection={featuredSection}
+        hideSortSelector
+        hideMobileSummary
         onNewPost={() => {
           if (!user) {
             toast.error(t('auth.signin_required'));
@@ -650,11 +623,11 @@ const CommunityTech = () => {
           setIsUploadOpen(true);
         }}
         renderSkeleton={(index) => (
-          <div key={index} className={`backdrop-blur-xl border rounded-3xl p-6 animate-pulse flex flex-col md:flex-row gap-6 ${isDayMode ? 'bg-white/82 border-slate-200/80' : 'bg-[#1a1a1a]/40 border-white/5'}`}>
-            <div className={`w-full md:w-48 h-48 md:h-32 rounded-xl shrink-0 ${isDayMode ? 'bg-slate-100' : 'bg-white/5'}`} />
+          <div key={index} className={`backdrop-blur-xl border rounded-3xl p-6 animate-pulse flex flex-col md:flex-row gap-6 ${isDayMode ? 'bg-white/60 border-white/75' : 'bg-[#1a1a1a]/40 border-white/5'}`}>
+            <div className={`w-full md:w-48 h-48 md:h-32 rounded-xl shrink-0 ${isDayMode ? 'bg-white/70' : 'bg-white/5'}`} />
             <div className="flex-1 space-y-4 py-2">
-              <div className={`h-8 rounded w-3/4 ${isDayMode ? 'bg-slate-100' : 'bg-white/10'}`} />
-              <div className={`h-4 rounded w-full ${isDayMode ? 'bg-slate-100' : 'bg-white/5'}`} />
+              <div className={`h-8 rounded w-3/4 ${isDayMode ? 'bg-white/70' : 'bg-white/10'}`} />
+              <div className={`h-4 rounded w-full ${isDayMode ? 'bg-white/58' : 'bg-white/5'}`} />
             </div>
           </div>
         )}

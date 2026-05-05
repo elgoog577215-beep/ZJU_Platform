@@ -7,6 +7,7 @@ const { runMigrations } = require('../src/config/runMigrations');
 
 const REQUIRED_COLUMNS = {
   articles: ['category', 'content_blocks', 'related_article_ids', 'related_post_ids', 'related_news_ids', 'related_group_ids', 'views_count'],
+  events: ['category'],
   community_posts: ['content_blocks', 'related_article_ids', 'related_post_ids', 'related_news_ids', 'related_group_ids', 'solved_comment_id', 'is_anonymous'],
   community_groups: ['review_status', 'is_recommended', 'sort_order', 'valid_until', 'primary_tags', 'related_article_ids', 'related_post_ids', 'related_news_ids', 'related_group_ids'],
   news: ['content_blocks', 'featured', 'related_article_ids', 'related_post_ids', 'related_news_ids', 'related_group_ids'],

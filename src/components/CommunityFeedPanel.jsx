@@ -42,6 +42,8 @@ const CommunityFeedPanel = ({
   extraBottom,
   skeletonCount = 5,
   renderSkeleton,
+  hideSortSelector = false,
+  hideMobileSummary = false,
 }) => {
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
@@ -50,7 +52,7 @@ const CommunityFeedPanel = ({
     displayItems, isLoading, error, currentPage, totalPages, hasMore,
     isPaginationEnabled, sort, setSort, statusFilter, setStatusFilter,
     handlePageChange, setCurrentPage, handleRefresh, hasActiveFilters,
-    resetFilters, searchQuery, selectedTags, isSearchPending,
+    resetFilters, searchQuery, isSearchPending,
   } = feed;
 
   const gradientFrom = {
@@ -90,19 +92,19 @@ const CommunityFeedPanel = ({
   return (
     <div role="tabpanel">
       {/* Controls */}
-      <div className={`mb-6 flex flex-col gap-4 rounded-[28px] border p-3.5 md:p-4 ${isDayMode ? 'bg-white/70 border-slate-200/80 shadow-[0_18px_38px_rgba(148,163,184,0.12)]' : 'bg-white/[0.03] border-white/10 shadow-[0_18px_36px_rgba(0,0,0,0.2)]'}`}>
-        <div className="flex items-center justify-between gap-3">
+      <div className={`mb-5 flex flex-col gap-3 rounded-2xl border p-3 md:mb-6 md:p-4 max-md:border-transparent max-md:bg-transparent max-md:p-0 max-md:shadow-none ${isDayMode ? 'bg-white border-slate-200/70 shadow-[0_10px_26px_rgba(15,23,42,0.04)]' : 'bg-white/[0.03] border-white/10'}`}>
+        <div className={`flex flex-col justify-between gap-3 md:flex-row ${statusTabs ? 'md:items-center' : 'md:items-start'}`}>
           {/* Status tabs */}
           {statusTabs && (
-            <div className="flex items-center gap-2 overflow-x-auto rounded-2xl p-1 md:p-1.5">
+            <div className={`scrollbar-none flex items-center gap-1 overflow-x-auto rounded-xl border p-1 ${isDayMode ? 'border-slate-200/70 bg-slate-50' : 'border-white/10 bg-black/10'}`}>
               {statusTabs.map(({ key, label }) => (
                 <button
                   key={key}
                   onClick={() => setStatusFilter(key)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all whitespace-nowrap ${
+                  className={`min-h-[34px] px-3.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
                     statusFilter === key
                       ? accentBtnClass
-                      : (isDayMode ? 'bg-white/88 text-slate-600 border-slate-200/80 hover:bg-slate-50' : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10')
+                      : (isDayMode ? 'text-slate-600 hover:bg-white hover:text-slate-950' : 'text-gray-400 hover:bg-white/10')
                   }`}
                 >
                   {t(label)}
@@ -113,25 +115,28 @@ const CommunityFeedPanel = ({
 
           {!statusTabs && extraControls}
 
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <div className={`${statusTabs ? 'hidden md:block' : ''} w-40 md:w-48`}>
-              <SortSelector sort={sort} onSortChange={setSort} />
-            </div>
+          <div className="flex min-w-0 flex-shrink flex-wrap items-center justify-end gap-2">
+            {!hideSortSelector ? (
+              <div className={`${statusTabs ? 'hidden md:block' : ''} w-40 md:w-48`}>
+                <SortSelector sort={sort} onSortChange={setSort} />
+              </div>
+            ) : null}
             {onNewPost && (
               <button
                 onClick={onNewPost}
-                className={`p-2.5 md:p-3 rounded-full backdrop-blur-md border transition-all shadow-sm ${th.btnSecondary}`}
+                className={`hidden min-h-[40px] items-center gap-2 rounded-full border px-4 text-sm font-semibold transition-all md:inline-flex ${accentBtnClass}`}
                 title={t('community.post_new', '发帖')}
               >
                 <Upload size={18} className="md:w-5 md:h-5" />
+                <span>{t('community.post_new', '发帖')}</span>
               </button>
             )}
           </div>
         </div>
         {statusTabs && extraControls ? (
-          <div className="rounded-[24px]">{extraControls}</div>
+          <div>{extraControls}</div>
         ) : null}
-        <div className={`flex flex-wrap items-center justify-between gap-2 rounded-2xl border px-3 py-2.5 text-xs ${isDayMode ? 'bg-slate-50/92 border-slate-200/80 text-slate-500' : 'bg-white/[0.03] border-white/10 text-gray-400'}`}>
+        <div className={`${hideMobileSummary ? 'hidden md:flex' : 'flex'} flex-wrap items-center justify-between gap-2 border-t pt-3 text-xs max-md:border-transparent max-md:px-1 max-md:pt-0 ${isDayMode ? 'border-slate-200/60 text-slate-500' : 'border-white/10 text-gray-400'}`}>
           <div className="flex flex-wrap items-center gap-2.5">
             <span className={th.textSecondary}>
               {displayItems.length} {t('community.results_count', '条结果')}
@@ -146,11 +151,6 @@ const CommunityFeedPanel = ({
                 {t('community.searching_for', '搜索')} &quot;{searchQuery.trim()}&quot;
               </span>
             ) : null}
-            {selectedTags?.length ? (
-              <span>
-                {t('community.tags_selected', '标签')} {selectedTags.length}
-              </span>
-            ) : null}
             {isSearchPending ? (
               <span>{t('common.loading', '加载中')}...</span>
             ) : null}
@@ -160,7 +160,7 @@ const CommunityFeedPanel = ({
               <button
                 type="button"
                 onClick={resetFilters}
-                className={`px-2.5 py-1 rounded-md border transition-colors ${isDayMode ? 'text-slate-600 border-slate-200 hover:bg-slate-100' : 'text-gray-300 border-white/10 hover:bg-white/10'}`}
+                className={`px-2.5 py-1 rounded-md transition-colors ${isDayMode ? 'text-slate-600 hover:bg-slate-100' : 'text-gray-300 hover:bg-white/10'}`}
               >
                 {t('community.clear_filters', '清除筛选')}
               </button>
@@ -168,7 +168,7 @@ const CommunityFeedPanel = ({
             <button
               type="button"
               onClick={handleRefresh}
-              className={`px-2.5 py-1 rounded-md border transition-colors ${isDayMode ? 'text-slate-600 border-slate-200 hover:bg-slate-100' : 'text-gray-300 border-white/10 hover:bg-white/10'}`}
+              className={`px-2.5 py-1 rounded-md transition-colors ${isDayMode ? 'text-slate-600 hover:bg-slate-100' : 'text-gray-300 hover:bg-white/10'}`}
             >
               {t('common.refresh', '刷新')}
             </button>
@@ -202,7 +202,7 @@ const CommunityFeedPanel = ({
             </h3>
             <p className={`text-center max-w-md ${th.textSecondary}`}>
               {hasActiveFilters
-                ? t('community.no_filtered_results_desc', '可以清除筛选条件，或调整搜索词和标签后重试。')
+                ? t('community.no_filtered_results_desc', '可以清除筛选条件，或调整搜索词后重试。')
                 : emptyDesc}
             </p>
             {hasActiveFilters ? (

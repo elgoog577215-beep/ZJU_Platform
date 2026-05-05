@@ -714,8 +714,8 @@
     "assistant": {
       "badge": "AI 助手",
       "mode_label": "发现方式",
-      "mode_filters": "属性筛选",
-      "mode_filters_hint": "使用属性筛选",
+      "mode_filters": "筛选",
+      "mode_filters_hint": "使用筛选",
       "mode_ai": "AI 搜索",
       "title": "用一句话说出你想找的活动",
       "subtitle": "我会先在公开的未开始活动里帮你找；如果当前没有，你再决定要不要放宽到进行中或历史活动。",

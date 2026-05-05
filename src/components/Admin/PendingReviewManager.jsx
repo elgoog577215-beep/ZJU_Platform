@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Search, Check, X, Clock, Inbox, RefreshCw } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "../../services/api";
+import { getEventCategoryLabel } from "../../data/eventTaxonomy";
 import {
   AdminButton,
   AdminEmptyState,
@@ -59,6 +60,11 @@ const PendingReviewManager = () => {
     const lowerKeyword = keyword.trim().toLowerCase();
     return items.filter((item) => {
       const matchesType = activeType === "all" || item.type === activeType;
+      const eventCategoryText =
+        item.type === "events"
+          ? `${item.category || ""} ${getEventCategoryLabel(item.category) || ""}`
+          : "";
+      const tagText = item.type === "events" ? "" : String(item.tags || "");
       const matchesKeyword =
         !lowerKeyword ||
         String(item.title || "")
@@ -67,9 +73,8 @@ const PendingReviewManager = () => {
         String(item.description || "")
           .toLowerCase()
           .includes(lowerKeyword) ||
-        String(item.tags || "")
-          .toLowerCase()
-          .includes(lowerKeyword);
+        eventCategoryText.toLowerCase().includes(lowerKeyword) ||
+        tagText.toLowerCase().includes(lowerKeyword);
       return matchesType && matchesKeyword;
     });
   }, [activeType, items, keyword]);
@@ -180,7 +185,7 @@ const PendingReviewManager = () => {
                   type="text"
                   value={keyword}
                   onChange={(event) => setKeyword(event.target.value)}
-                  placeholder="搜索标题、描述或标签"
+                  placeholder={activeType === "events" ? "搜索标题、描述或分类" : "搜索标题、描述或标签"}
                   className="theme-admin-input w-full rounded-xl py-2.5 pl-10 pr-4 text-sm"
                 />
               </div>
@@ -286,7 +291,7 @@ const PendingReviewManager = () => {
                 return (
                   <div
                     key={itemKey}
-                    className={`grid gap-4 rounded-3xl border p-4 transition-colors md:grid-cols-[auto_96px_minmax(0,1fr)_auto] ${
+                    className={`grid gap-4 rounded-2xl border p-4 transition-colors md:grid-cols-[auto_96px_minmax(0,1fr)_auto] ${
                       isSelected
                         ? "border-indigo-500/30 bg-indigo-500/10"
                         : "border-white/10 bg-white/[0.03]"
@@ -339,9 +344,13 @@ const PendingReviewManager = () => {
                           <span>上传者 ID: {item.uploader_id}</span>
                         ) : null}
                         {item.category ? (
-                          <span>分类: {item.category}</span>
+                          <span>
+                            分类: {item.type === "events"
+                              ? getEventCategoryLabel(item.category) || item.category
+                              : item.category}
+                          </span>
                         ) : null}
-                        {item.tags ? <span>标签: {item.tags}</span> : null}
+                        {item.type !== "events" && item.tags ? <span>标签: {item.tags}</span> : null}
                       </div>
                     </div>
 

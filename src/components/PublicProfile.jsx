@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import SmartImage from "./SmartImage";
 import {
   User,
+  Users,
   Calendar,
   Grid,
   Briefcase,
@@ -19,6 +20,9 @@ import {
   LogOut,
   Moon,
   Sun,
+  Pencil,
+  UserPlus,
+  UserCheck,
 } from "lucide-react";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
@@ -119,12 +123,12 @@ function TitleArtPlaceholder({ title, meta, isDayMode }) {
   const safeTitle = title || "(无标题)";
   const len = safeTitle.length;
   const { sizeClass, clamp } = len <= 8
-    ? { sizeClass: "text-3xl md:text-4xl", clamp: "line-clamp-3" }
+    ? { sizeClass: "text-2xl md:text-4xl", clamp: "line-clamp-3" }
     : len <= 20
-      ? { sizeClass: "text-2xl md:text-3xl", clamp: "line-clamp-4" }
+      ? { sizeClass: "text-xl md:text-3xl", clamp: "line-clamp-4" }
       : len <= 40
-        ? { sizeClass: "text-xl md:text-2xl", clamp: "line-clamp-5" }
-        : { sizeClass: "text-lg md:text-xl", clamp: "line-clamp-6" };
+        ? { sizeClass: "text-lg md:text-2xl", clamp: "line-clamp-5" }
+        : { sizeClass: "text-base md:text-xl", clamp: "line-clamp-6" };
   return (
     // overflow-hidden on the outer container guarantees that a runaway
     // title or a single long CJK word cannot paint past the card edges.
@@ -321,6 +325,8 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
   const settingsPanelClass = isDayMode
     ? "rounded-2xl p-4 md:p-6 border h-fit bg-white/82 border-slate-200/80 shadow-[0_18px_40px_rgba(148,163,184,0.12)]"
     : "rounded-2xl p-4 md:p-6 border h-fit bg-white/5 border-white/10";
+  const dayActiveSegmentClass = "border border-blue-200 bg-blue-50 text-blue-700 shadow-none";
+  const nightActiveSegmentClass = "bg-white text-black shadow-none";
   const settingsActionClass = isDayMode
     ? "w-full flex items-center gap-3 rounded-2xl border px-4 py-4 transition-colors bg-slate-50/90 border-slate-200/80 text-slate-800 hover:bg-white"
     : "w-full flex items-center gap-3 rounded-2xl border px-4 py-4 transition-colors bg-white/5 border-white/10 text-white hover:bg-white/10";
@@ -435,6 +441,10 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
   );
 
   const visibleContent = contentByType[activeContentType] || [];
+  const totalLikes = useMemo(
+    () => resources.reduce((acc, curr) => acc + (Number(curr.likes) || 0), 0),
+    [resources],
+  );
 
   // Restore tab + scroll position when returning from a resource detail.
   // We only restore when the state belongs to this same user's profile —
@@ -747,16 +757,204 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
     { value: "article", label: t("nav.articles"), icon: FileText },
     { value: "event", label: t("nav.events"), icon: Calendar },
   ];
+  const displayName = user.nickname || user.username || t("user_profile.unknown_user", "用户");
+  const avatarInitial = displayName.charAt(0).toUpperCase();
+  const roleLabel = user.role === "admin" ? "Admin" : user.role || "Member";
+  const primaryFollowLabel = !currentUser
+    ? "登录关注"
+    : followLoading
+      ? "处理中..."
+      : user.is_following
+        ? "已关注"
+        : "关注";
+  const PrimaryFollowIcon = user.is_following ? UserCheck : UserPlus;
+  const profileStats = [
+    {
+      key: "works",
+      label: t("user_profile.stats.works", "作品"),
+      value: resources.length,
+      onClick: () => setActiveTab("published"),
+    },
+    {
+      key: "likes",
+      label: t("user_profile.stats.likes", "获赞"),
+      value: totalLikes,
+    },
+    {
+      key: "followers",
+      label: "粉丝",
+      value: user.followers_count || 0,
+      onClick: () => {
+        setRelationTab("followers");
+        setActiveTab("relations");
+      },
+    },
+    {
+      key: "following",
+      label: "关注",
+      value: user.following_count || 0,
+      onClick: () => {
+        setRelationTab("following");
+        setActiveTab("relations");
+      },
+    },
+  ];
+  const ownerQuickActions = [
+    { key: "edit", label: "编辑", icon: Pencil, tab: "settings" },
+    { key: "favorites", label: t("user_profile.tabs.favorites", "收藏"), icon: Heart, tab: "favorites" },
+    { key: "messages", label: t("user_profile.tabs.messages", "消息"), icon: Bell, tab: "messages", badge: unreadCount },
+    { key: "settings", label: t("user_profile.tabs.settings", "设置"), icon: Settings, tab: "settings" },
+  ];
+  const profileTabItems = isOwner
+    ? [
+        { key: "published", label: t("user_profile.tabs.published", "作品"), icon: Grid },
+        { key: "favorites", label: t("user_profile.tabs.favorites", "收藏"), icon: Heart },
+        { key: "messages", label: t("user_profile.tabs.messages", "消息"), icon: Bell, badge: unreadCount },
+        { key: "settings", label: t("user_profile.tabs.settings", "设置"), icon: Settings },
+      ]
+    : [
+        { key: "published", label: t("user_profile.tabs.published", "作品"), icon: Grid },
+        { key: "relations", label: "关系", icon: Users },
+      ];
 
   return (
     <PersonalCenterShell
       isDayMode={isDayMode}
       maxWidthClass="max-w-7xl"
       showAmbient={!prefersReducedMotion}
+      className="pt-24 md:pt-12"
     >
+        {/* Mobile account hub */}
+        <div className="mb-5 space-y-4 md:hidden">
+          <div
+            className={`relative overflow-hidden rounded-[28px] border p-4 ${isDayMode ? "border-slate-200/80 bg-white/92 shadow-[0_18px_42px_rgba(148,163,184,0.16)]" : "border-white/10 bg-white/[0.04] shadow-[0_18px_42px_rgba(0,0,0,0.28)]"}`}
+          >
+            <div className={`pointer-events-none absolute inset-x-0 top-0 h-24 ${isDayMode ? "bg-gradient-to-br from-indigo-100/90 via-white to-rose-50/70" : "bg-gradient-to-br from-indigo-500/18 via-transparent to-rose-500/10"}`} />
+            <div className="relative flex items-start gap-3">
+              <div className="relative shrink-0">
+                <div
+                  className={`h-[76px] w-[76px] overflow-hidden rounded-3xl border ${isDayMode ? "border-white bg-slate-100 shadow-[0_12px_24px_rgba(99,102,241,0.16)]" : "border-white/10 bg-white/10"}`}
+                >
+                  {user.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt={displayName}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-500 to-rose-500 text-2xl font-bold text-white">
+                      {avatarInitial}
+                    </div>
+                  )}
+                </div>
+                <span
+                  className={`absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${isDayMode ? "border-white bg-white text-indigo-600 shadow-sm" : "border-white/10 bg-[#111827] text-indigo-200"}`}
+                >
+                  {roleLabel}
+                </span>
+              </div>
+
+              <div className="min-w-0 flex-1 pt-1">
+                <div className={`text-[11px] font-semibold uppercase tracking-[0.18em] ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+                  {isOwner ? "我的主页" : "用户主页"}
+                </div>
+                <h1
+                  className={`mt-1 truncate text-2xl font-bold leading-tight ${isDayMode ? "text-slate-950" : "text-white"}`}
+                >
+                  {displayName}
+                </h1>
+                <div className={`mt-1 flex min-h-[22px] items-center gap-1.5 text-xs ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+                  <Briefcase size={13} aria-hidden="true" />
+                  <span className="truncate">
+                    {user.organization_cr || user.username || "拓途浙享成员"}
+                  </span>
+                </div>
+              </div>
+
+              {isOwner ? (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("settings")}
+                  aria-label={t("user_profile.edit_profile", "编辑资料")}
+                  className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-2xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-white text-slate-700 shadow-[0_10px_20px_rgba(148,163,184,0.14)]" : "bg-white/10 text-white"}`}
+                >
+                  <Pencil size={18} aria-hidden="true" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() =>
+                    currentUser
+                      ? handleFollowToggle(user.id, Boolean(user.is_following))
+                      : window.dispatchEvent(new Event("open-auth-modal"))
+                  }
+                  disabled={followLoading}
+                  className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-2xl px-3 text-sm font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 disabled:opacity-60 ${user.is_following ? (isDayMode ? dayActiveSegmentClass : nightActiveSegmentClass) : "bg-indigo-600 text-white"}`}
+                >
+                  <PrimaryFollowIcon size={16} aria-hidden="true" />
+                  {primaryFollowLabel}
+                </button>
+              )}
+            </div>
+
+            <div className={`relative mt-6 grid grid-cols-4 rounded-3xl border p-2 ${isDayMode ? "border-slate-200/80 bg-white/82" : "border-white/10 bg-black/16"}`}>
+              {profileStats.map((stat) => {
+                const content = (
+                  <>
+                    <div className={`text-lg font-bold leading-tight ${isDayMode ? "text-slate-950" : "text-white"}`}>
+                      {stat.value}
+                    </div>
+                    <div className={`mt-1 text-[11px] font-medium ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+                      {stat.label}
+                    </div>
+                  </>
+                );
+
+                if (stat.onClick) {
+                  return (
+                    <button
+                      key={stat.key}
+                      type="button"
+                      onClick={stat.onClick}
+                      className="min-h-[50px] rounded-2xl text-center transition-colors hover:bg-indigo-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70"
+                    >
+                      {content}
+                    </button>
+                  );
+                }
+
+                return (
+                  <div key={stat.key} className="min-h-[50px] rounded-2xl text-center">
+                    {content}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {isOwner ? (
+            <div className="grid grid-cols-4 gap-2">
+              {ownerQuickActions.map(({ key, label, icon: Icon, tab, badge }) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setActiveTab(tab)}
+                  className={`relative flex min-h-[72px] flex-col items-center justify-center gap-1.5 rounded-3xl border text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${activeTab === tab ? (isDayMode ? "border-indigo-200 bg-indigo-50 text-indigo-700" : "border-indigo-400/30 bg-indigo-500/15 text-indigo-200") : isDayMode ? "border-slate-200/80 bg-white/86 text-slate-700" : "border-white/10 bg-white/[0.04] text-gray-200"}`}
+                >
+                  <Icon size={19} aria-hidden="true" />
+                  <span>{label}</span>
+                  {badge > 0 ? (
+                    <span className="absolute right-3 top-3 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
+                  ) : null}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
+
         {/* Profile Header */}
         <div
-          className={`glass-panel rounded-[2rem] p-5 md:p-12 mb-6 md:mb-8 relative overflow-hidden shadow-2xl border group ${isDayMode ? "border-slate-200/80 bg-white/72 shadow-[0_28px_80px_rgba(148,163,184,0.18)]" : "border-white/10"}`}
+          className={`glass-panel hidden rounded-[2rem] p-5 md:block md:p-12 mb-6 md:mb-8 relative overflow-hidden shadow-2xl border group ${isDayMode ? "border-slate-200/80 bg-white/72 shadow-[0_28px_80px_rgba(148,163,184,0.18)]" : "border-white/10"}`}
         >
           <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 opacity-50 blur-3xl -z-10 group-hover:scale-105 transition-transform duration-1000" />
           <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 -z-10" />
@@ -808,10 +1006,12 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                 {!isOwner && (
                   <button
                     onClick={() =>
-                      handleFollowToggle(user.id, Boolean(user.is_following))
+                      currentUser
+                        ? handleFollowToggle(user.id, Boolean(user.is_following))
+                        : window.dispatchEvent(new Event("open-auth-modal"))
                     }
-                    disabled={followLoading || !currentUser}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${user.is_following ? (isDayMode ? "bg-indigo-600 text-white shadow-[0_12px_28px_rgba(99,102,241,0.22)]" : "bg-white text-black") : isDayMode ? "bg-white/90 hover:bg-white text-slate-700 border border-slate-200/80 shadow-[0_12px_28px_rgba(148,163,184,0.14)]" : "bg-white/10 hover:bg-white/20 text-white border border-white/10"} disabled:opacity-60`}
+                    disabled={followLoading}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${user.is_following ? (isDayMode ? dayActiveSegmentClass : nightActiveSegmentClass) : isDayMode ? "bg-white/90 hover:bg-white text-slate-700 border border-slate-200/80 shadow-[0_12px_28px_rgba(148,163,184,0.14)]" : "bg-white/10 hover:bg-white/20 text-white border border-white/10"} disabled:opacity-60`}
                   >
                     {!currentUser
                       ? "登录后关注"
@@ -892,14 +1092,34 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
         </div>
 
         {/* Tabs */}
-        <div className="mb-6 flex overflow-x-auto pb-2 custom-scrollbar gap-2 px-1">
+        <div className={`mb-5 grid gap-1 rounded-3xl border p-1 md:hidden ${profileTabItems.length > 2 ? "grid-cols-4" : "grid-cols-2"} ${isDayMode ? "border-slate-200/80 bg-white/82 shadow-[0_12px_28px_rgba(148,163,184,0.12)]" : "border-white/10 bg-white/[0.04]"}`}>
+          {profileTabItems.map(({ key, label, icon: Icon, badge }) => {
+            const active = activeTab === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setActiveTab(key)}
+                className={`relative flex min-h-[46px] items-center justify-center gap-1.5 rounded-[20px] px-1 text-xs font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${active ? (isDayMode ? dayActiveSegmentClass : nightActiveSegmentClass) : isDayMode ? "text-slate-500 hover:text-slate-950" : "text-gray-400 hover:text-white"}`}
+              >
+                <Icon size={15} aria-hidden="true" />
+                <span className="truncate">{label}</span>
+                {badge > 0 ? (
+                  <span className={`absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500 ring-2 ${active ? (isDayMode ? "ring-blue-50" : "ring-white") : isDayMode ? "ring-white" : "ring-[#111827]"}`} />
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mb-6 hidden overflow-x-auto pb-2 custom-scrollbar gap-2 px-1 md:flex">
           <button
             onClick={() => setActiveTab("relations")}
             className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
               activeTab === "relations"
                 ? isDayMode
-                  ? "bg-indigo-600 text-white shadow-[0_12px_28px_rgba(99,102,241,0.22)]"
-                  : "bg-white text-black"
+                  ? dayActiveSegmentClass
+                  : nightActiveSegmentClass
                 : isDayMode
                   ? "bg-white/85 text-slate-500 border border-slate-200/80 hover:bg-white hover:text-slate-900"
                   : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
@@ -914,8 +1134,8 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
             className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
               activeTab === "published"
                 ? isDayMode
-                  ? "bg-indigo-600 text-white shadow-[0_12px_28px_rgba(99,102,241,0.22)]"
-                  : "bg-white text-black"
+                  ? dayActiveSegmentClass
+                  : nightActiveSegmentClass
                 : isDayMode
                   ? "bg-white/85 text-slate-500 border border-slate-200/80 hover:bg-white hover:text-slate-900"
                   : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
@@ -932,8 +1152,8 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                 className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
                   activeTab === "favorites"
                     ? isDayMode
-                      ? "bg-indigo-600 text-white shadow-[0_12px_28px_rgba(99,102,241,0.22)]"
-                      : "bg-white text-black"
+                      ? dayActiveSegmentClass
+                      : nightActiveSegmentClass
                     : isDayMode
                       ? "bg-white/85 text-slate-500 border border-slate-200/80 hover:bg-white hover:text-slate-900"
                       : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
@@ -947,8 +1167,8 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                 className={`relative px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
                   activeTab === "messages"
                     ? isDayMode
-                      ? "bg-indigo-600 text-white shadow-[0_12px_28px_rgba(99,102,241,0.22)]"
-                      : "bg-white text-black"
+                      ? dayActiveSegmentClass
+                      : nightActiveSegmentClass
                     : isDayMode
                       ? "bg-white/85 text-slate-500 border border-slate-200/80 hover:bg-white hover:text-slate-900"
                       : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
@@ -974,8 +1194,8 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                 className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
                   activeTab === "settings"
                     ? isDayMode
-                      ? "bg-indigo-600 text-white shadow-[0_12px_28px_rgba(99,102,241,0.22)]"
-                      : "bg-white text-black"
+                      ? dayActiveSegmentClass
+                      : nightActiveSegmentClass
                     : isDayMode
                       ? "bg-white/85 text-slate-500 border border-slate-200/80 hover:bg-white hover:text-slate-900"
                       : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
@@ -994,7 +1214,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
             <div className="space-y-6">
               {/* Content-type tabs. Always render so users can tell whether
                   they have any work at all; "all" is never hidden. */}
-              <div className="flex flex-wrap gap-2">
+              <div className="scrollbar-none flex gap-2 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible md:pb-0">
                 {tabsWithCount.map((ct) => {
                   const active = activeContentType === ct.key;
                   return (
@@ -1002,11 +1222,11 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                       key={ct.key}
                       type="button"
                       onClick={() => setActiveContentType(ct.key)}
-                      className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+                      className={`inline-flex min-h-[40px] shrink-0 items-center rounded-full px-4 py-2 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
                         active
                           ? isDayMode
-                            ? "bg-indigo-600 text-white shadow-[0_12px_28px_rgba(99,102,241,0.22)]"
-                            : "bg-white text-black"
+                            ? dayActiveSegmentClass
+                            : nightActiveSegmentClass
                           : isDayMode
                             ? "bg-white/85 text-slate-600 border border-slate-200/80 hover:bg-white hover:text-slate-900"
                             : "bg-white/5 text-gray-300 border border-white/10 hover:bg-white/10 hover:text-white"
@@ -1048,18 +1268,18 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
 
           {activeTab === "relations" && (
             <div className="space-y-4">
-              <div className="flex items-center gap-2">
+              <div className={`grid grid-cols-2 gap-1 rounded-3xl border p-1 md:inline-grid ${isDayMode ? "border-slate-200/80 bg-white/82" : "border-white/10 bg-white/[0.04]"}`}>
                 <button
                   type="button"
                   onClick={() => setRelationTab("followers")}
-                  className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${relationTab === "followers" ? (isDayMode ? "bg-indigo-600 text-white shadow-[0_12px_28px_rgba(99,102,241,0.2)]" : "bg-white text-black") : isDayMode ? "bg-white border border-slate-200/80 text-slate-600" : "bg-white/5 border border-white/10 text-gray-300"}`}
+                  className={`min-h-[42px] rounded-2xl px-4 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${relationTab === "followers" ? (isDayMode ? dayActiveSegmentClass : nightActiveSegmentClass) : isDayMode ? "text-slate-600" : "text-gray-300"}`}
                 >
                   粉丝
                 </button>
                 <button
                   type="button"
                   onClick={() => setRelationTab("following")}
-                  className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${relationTab === "following" ? (isDayMode ? "bg-indigo-600 text-white shadow-[0_12px_28px_rgba(99,102,241,0.2)]" : "bg-white text-black") : isDayMode ? "bg-white border border-slate-200/80 text-slate-600" : "bg-white/5 border border-white/10 text-gray-300"}`}
+                  className={`min-h-[42px] rounded-2xl px-4 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${relationTab === "following" ? (isDayMode ? dayActiveSegmentClass : nightActiveSegmentClass) : isDayMode ? "text-slate-600" : "text-gray-300"}`}
                 >
                   关注
                 </button>

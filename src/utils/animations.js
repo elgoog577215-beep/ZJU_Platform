@@ -1,222 +1,314 @@
 /**
- * Animation Utilities
- * Centralized animation configurations for consistent UI interactions
- * Designed for Glassmorphism style with smooth, elegant transitions
+ * Motion system
+ * Shared animation tokens and variants for fast, consistent UI motion.
  */
 
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useEffect, useRef, useCallback, useState } from "react";
 
-// ============================================
-// Framer Motion Variants
-// ============================================
-
-export const fadeInUp = {
-  initial: { opacity: 0, y: 20 },
-  animate: { 
-    opacity: 1, 
-    y: 0,
-    transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }
-  },
-  exit: { 
-    opacity: 0, 
-    y: -10,
-    transition: { duration: 0.3 }
-  }
+const EASE = {
+  standard: [0.2, 0.8, 0.2, 1],
+  emphasized: [0.16, 1, 0.3, 1],
+  exit: [0.4, 0, 1, 1],
 };
 
-export const fadeIn = {
-  initial: { opacity: 0 },
-  animate: { 
+const DURATION = {
+  micro: 0.12,
+  fast: 0.18,
+  base: 0.24,
+  calm: 0.36,
+  reveal: 0.52,
+};
+
+export const motionTokens = {
+  duration: DURATION,
+  ease: EASE,
+  spring: {
+    press: { type: "spring", stiffness: 520, damping: 34, mass: 0.7 },
+    snappy: { type: "spring", stiffness: 430, damping: 32, mass: 0.75 },
+    gentle: { type: "spring", stiffness: 180, damping: 22, mass: 0.9 },
+    page: { type: "spring", stiffness: 260, damping: 30, mass: 0.85 },
+    tab: { type: "spring", stiffness: 520, damping: 38, mass: 0.7 },
+  },
+  viewport: { once: true, margin: "0px 0px -12% 0px", amount: 0.18 },
+};
+
+export const routeTransition = {
+  initial: { opacity: 0, y: 10, scale: 0.992 },
+  animate: {
     opacity: 1,
-    transition: { duration: 0.4 }
-  },
-  exit: { 
-    opacity: 0,
-    transition: { duration: 0.2 }
-  }
-};
-
-export const scaleIn = {
-  initial: { opacity: 0, scale: 0.9 },
-  animate: { 
-    opacity: 1, 
+    y: 0,
     scale: 1,
-    transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }
+    transition: motionTokens.spring.page,
   },
-  exit: { 
-    opacity: 0, 
-    scale: 0.95,
-    transition: { duration: 0.2 }
-  }
+  exit: {
+    opacity: 0,
+    y: -8,
+    scale: 0.996,
+    transition: { duration: DURATION.fast, ease: EASE.exit },
+  },
 };
 
-export const slideIn = {
-  initial: { opacity: 0, x: -20 },
-  animate: { 
-    opacity: 1, 
-    x: 0,
-    transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }
+export const navEntrance = {
+  initial: { opacity: 0, y: -18 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: DURATION.calm, ease: EASE.emphasized },
   },
-  exit: { 
-    opacity: 0, 
-    x: 20,
-    transition: { duration: 0.3 }
-  }
 };
 
-export const staggerContainer = {
+export const tabbarEntrance = {
+  initial: { opacity: 0, y: 18, scale: 0.98 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: DURATION.calm, ease: EASE.emphasized },
+  },
+};
+
+export const heroStagger = {
   animate: {
     transition: {
-      staggerChildren: 0.05,
-      delayChildren: 0.1
-    }
-  }
-};
-
-export const staggerItem = {
-  initial: { opacity: 0, y: 20 },
-  animate: { 
-    opacity: 1, 
-    y: 0,
-    transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }
+      delayChildren: 0.08,
+      staggerChildren: 0.09,
+    },
   },
-  exit: { 
-    opacity: 0, 
-    scale: 0.95,
-    transition: { duration: 0.2 }
-  }
 };
 
-// ============================================
-// Hover Animations
-// ============================================
+export const heroReveal = {
+  initial: { opacity: 0, y: 28 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.68, ease: EASE.emphasized },
+  },
+};
 
-export const hoverScale = {
-  scale: 1.02,
-  transition: { duration: 0.2, ease: 'easeOut' }
+export const sectionReveal = {
+  initial: { opacity: 0, y: 18, scale: 0.995 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: DURATION.reveal, ease: EASE.emphasized },
+  },
+  exit: {
+    opacity: 0,
+    y: -8,
+    transition: { duration: DURATION.fast, ease: EASE.exit },
+  },
+};
+
+export const listContainer = {
+  animate: {
+    transition: {
+      staggerChildren: 0.045,
+      delayChildren: 0.04,
+    },
+  },
+};
+
+export const listItem = {
+  initial: { opacity: 0, y: 14, scale: 0.99 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: DURATION.calm, ease: EASE.emphasized },
+  },
+  exit: {
+    opacity: 0,
+    y: 6,
+    scale: 0.99,
+    transition: { duration: DURATION.fast, ease: EASE.exit },
+  },
+};
+
+export const modalBackdrop = {
+  initial: { opacity: 0 },
+  animate: {
+    opacity: 1,
+    transition: { duration: DURATION.base, ease: EASE.standard },
+  },
+  exit: {
+    opacity: 0,
+    transition: { duration: DURATION.fast, ease: EASE.exit },
+  },
+};
+
+export const modalContent = {
+  initial: { opacity: 0, y: 16, scale: 0.975 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: motionTokens.spring.snappy,
+  },
+  exit: {
+    opacity: 0,
+    y: 12,
+    scale: 0.98,
+    transition: { duration: DURATION.fast, ease: EASE.exit },
+  },
+};
+
+export const mobileSheet = {
+  initial: { opacity: 0, y: 30 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: motionTokens.spring.snappy,
+  },
+  exit: {
+    opacity: 0,
+    y: 22,
+    transition: { duration: DURATION.fast, ease: EASE.exit },
+  },
 };
 
 export const hoverLift = {
   y: -4,
-  transition: { duration: 0.2, ease: 'easeOut' }
+  scale: 1.01,
+  transition: { duration: DURATION.base, ease: EASE.standard },
+};
+
+export const hoverScale = {
+  scale: 1.015,
+  transition: { duration: DURATION.base, ease: EASE.standard },
 };
 
 export const hoverGlow = {
-  boxShadow: '0 0 30px rgba(99, 102, 241, 0.3)',
-  transition: { duration: 0.3 }
+  boxShadow: "0 18px 42px rgba(99, 102, 241, 0.22)",
+  transition: { duration: DURATION.calm, ease: EASE.standard },
 };
 
-// ============================================
-// Page Transitions
-// ============================================
-
-export const pageTransition = {
-  initial: { opacity: 0, y: 20 },
-  animate: { 
-    opacity: 1, 
-    y: 0,
-    transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }
-  },
-  exit: { 
-    opacity: 0, 
-    y: -20,
-    transition: { duration: 0.3 }
-  }
+export const tapPress = {
+  scale: 0.965,
+  transition: motionTokens.spring.press,
 };
 
-// ============================================
-// Modal Animations
-// ============================================
-
-export const modalBackdrop = {
-  initial: { opacity: 0 },
-  animate: { 
-    opacity: 1,
-    transition: { duration: 0.3 }
-  },
-  exit: { 
-    opacity: 0,
-    transition: { duration: 0.2, delay: 0.1 }
-  }
+export const subtleTapPress = {
+  scale: 0.985,
+  transition: motionTokens.spring.press,
 };
-
-export const modalContent = {
-  initial: { opacity: 0, scale: 0.95, y: 20 },
-  animate: { 
-    opacity: 1, 
-    scale: 1, 
-    y: 0,
-    transition: { 
-      duration: 0.4, 
-      ease: [0.25, 0.46, 0.45, 0.94],
-      delay: 0.1
-    }
-  },
-  exit: { 
-    opacity: 0, 
-    scale: 0.95, 
-    y: 20,
-    transition: { duration: 0.2 }
-  }
-};
-
-// ============================================
-// Card Animations
-// ============================================
 
 export const cardHover = {
   rest: {
     scale: 1,
     y: 0,
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-    transition: { duration: 0.3, ease: 'easeOut' }
+    transition: { duration: DURATION.base, ease: EASE.standard },
   },
   hover: {
-    scale: 1.02,
+    scale: 1.01,
     y: -4,
-    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 0 20px rgba(99, 102, 241, 0.2)',
-    transition: { duration: 0.3, ease: 'easeOut' }
-  }
+    transition: { duration: DURATION.base, ease: EASE.standard },
+  },
 };
 
-// ============================================
-// Button Animations
-// ============================================
-
-export const buttonTap = {
-  scale: 0.95,
-  transition: { duration: 0.1 }
+export const fadeInUp = {
+  initial: { opacity: 0, y: 18 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: DURATION.reveal, ease: EASE.emphasized },
+  },
+  exit: {
+    opacity: 0,
+    y: -8,
+    transition: { duration: DURATION.fast, ease: EASE.exit },
+  },
 };
 
-export const buttonHover = {
-  scale: 1.05,
-  transition: { duration: 0.2 }
+export const fadeIn = {
+  initial: { opacity: 0 },
+  animate: {
+    opacity: 1,
+    transition: { duration: DURATION.base, ease: EASE.standard },
+  },
+  exit: {
+    opacity: 0,
+    transition: { duration: DURATION.fast, ease: EASE.exit },
+  },
 };
 
-// ============================================
-// Loading Animations
-// ============================================
+export const scaleIn = {
+  initial: { opacity: 0, scale: 0.96 },
+  animate: {
+    opacity: 1,
+    scale: 1,
+    transition: motionTokens.spring.snappy,
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.98,
+    transition: { duration: DURATION.fast, ease: EASE.exit },
+  },
+};
+
+export const slideIn = {
+  initial: { opacity: 0, x: -18 },
+  animate: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: DURATION.calm, ease: EASE.emphasized },
+  },
+  exit: {
+    opacity: 0,
+    x: 12,
+    transition: { duration: DURATION.fast, ease: EASE.exit },
+  },
+};
+
+export const staggerContainer = listContainer;
+export const staggerItem = listItem;
+export const pageTransition = routeTransition;
+export const buttonTap = tapPress;
+export const buttonHover = hoverScale;
+export const scrollReveal = {
+  initial: sectionReveal.initial,
+  whileInView: sectionReveal.animate,
+  viewport: motionTokens.viewport,
+};
+export const scrollRevealLeft = {
+  initial: { opacity: 0, x: -18 },
+  whileInView: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: DURATION.reveal, ease: EASE.emphasized },
+  },
+  viewport: motionTokens.viewport,
+};
+export const scrollRevealRight = {
+  initial: { opacity: 0, x: 18 },
+  whileInView: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: DURATION.reveal, ease: EASE.emphasized },
+  },
+  viewport: motionTokens.viewport,
+};
 
 export const pulseAnimation = {
   animate: {
-    opacity: [0.5, 1, 0.5],
+    opacity: [0.55, 1, 0.55],
     transition: {
-      duration: 1.5,
+      duration: 1.6,
       repeat: Infinity,
-      ease: 'easeInOut'
-    }
-  }
+      ease: "easeInOut",
+    },
+  },
 };
 
 export const shimmerAnimation = {
   animate: {
-    x: ['-100%', '100%'],
+    x: ["-100%", "100%"],
     transition: {
-      duration: 1.5,
+      duration: 1.35,
       repeat: Infinity,
-      ease: 'linear'
-    }
-  }
+      ease: "linear",
+    },
+  },
 };
 
 export const spinAnimation = {
@@ -225,63 +317,24 @@ export const spinAnimation = {
     transition: {
       duration: 1,
       repeat: Infinity,
-      ease: 'linear'
-    }
-  }
-};
-
-// ============================================
-// Scroll Animations
-// ============================================
-
-export const scrollReveal = {
-  initial: { opacity: 0, y: 30 },
-  whileInView: { 
-    opacity: 1, 
-    y: 0,
-    transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }
+      ease: "linear",
+    },
   },
-  viewport: { once: true, margin: '-50px' }
 };
 
-export const scrollRevealLeft = {
-  initial: { opacity: 0, x: -30 },
-  whileInView: { 
-    opacity: 1, 
-    x: 0,
-    transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }
-  },
-  viewport: { once: true, margin: '-50px' }
-};
-
-export const scrollRevealRight = {
-  initial: { opacity: 0, x: 30 },
-  whileInView: { 
-    opacity: 1, 
-    x: 0,
-    transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }
-  },
-  viewport: { once: true, margin: '-50px' }
-};
-
-// ============================================
-// Custom Hooks
-// ============================================
-
-/**
- * Hook to detect if element is in viewport
- */
 export const useInView = (options = {}) => {
   const ref = useRef(null);
   const [isInView, setIsInView] = useState(false);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsInView(entry.isIntersecting);
-      },
-      { threshold: 0.1, ...options }
-    );
+    if (typeof IntersectionObserver === "undefined") {
+      setIsInView(true);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(([entry]) => {
+      setIsInView(entry.isIntersecting);
+    }, { threshold: 0.1, ...options });
 
     if (ref.current) {
       observer.observe(ref.current);
@@ -293,142 +346,125 @@ export const useInView = (options = {}) => {
   return [ref, isInView];
 };
 
-/**
- * Hook for smooth scroll to element
- */
 export const useSmoothScroll = () => {
   const scrollTo = useCallback((elementId, offset = 0) => {
     const element = document.getElementById(elementId);
     if (element) {
       const top = element.getBoundingClientRect().top + window.pageYOffset - offset;
-      window.scrollTo({
-        top,
-        behavior: 'smooth'
-      });
+      window.scrollTo({ top, behavior: "smooth" });
     }
   }, []);
 
   return scrollTo;
 };
 
-/**
- * Hook for parallax effect
- */
 export const useParallax = (speed = 0.5) => {
   const ref = useRef(null);
   const [offset, setOffset] = useState(0);
 
   useEffect(() => {
+    let frameId = null;
+
     const handleScroll = () => {
-      if (ref.current) {
-        const rect = ref.current.getBoundingClientRect();
-        const scrolled = window.pageYOffset;
-        const rate = scrolled * speed;
-        setOffset(rate);
-      }
+      if (frameId != null) return;
+      frameId = window.requestAnimationFrame(() => {
+        setOffset(window.pageYOffset * speed);
+        frameId = null;
+      });
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      if (frameId != null) window.cancelAnimationFrame(frameId);
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, [speed]);
 
   return [ref, offset];
 };
 
-/**
- * Hook for reduced motion preference
- */
 export const useReducedMotion = () => {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (typeof window === "undefined" || !window.matchMedia) {
+      return undefined;
+    }
+
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     setPrefersReducedMotion(mediaQuery.matches);
 
-    const handleChange = (e) => {
-      setPrefersReducedMotion(e.matches);
-    };
-
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
+    const handleChange = (event) => setPrefersReducedMotion(event.matches);
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
 
   return prefersReducedMotion;
 };
 
-// ============================================
-// Utility Functions
-// ============================================
+export const useMotionPreference = () => {
+  const prefersReducedMotion = useReducedMotion();
+  const [isLowPowerDevice, setIsLowPowerDevice] = useState(false);
 
-/**
- * Generate stagger delay for list items
- */
-export const getStaggerDelay = (index, baseDelay = 0.05) => {
-  return index * baseDelay;
+  useEffect(() => {
+    if (typeof navigator === "undefined") return;
+    const cores = Number(navigator.hardwareConcurrency || 0);
+    const memory = Number(navigator.deviceMemory || 0);
+    setIsLowPowerDevice((cores > 0 && cores <= 4) || (memory > 0 && memory <= 4));
+  }, []);
+
+  return {
+    prefersReducedMotion,
+    isLowPowerDevice,
+    shouldReduceMotion: prefersReducedMotion || isLowPowerDevice,
+  };
 };
 
-/**
- * Spring physics configuration
- */
+export const getStaggerDelay = (index, baseDelay = 0.045) => index * baseDelay;
+
+export const getRevealTransition = (index = 0, baseDelay = 0.045) => ({
+  duration: DURATION.calm,
+  ease: EASE.emphasized,
+  delay: getStaggerDelay(index, baseDelay),
+});
+
 export const springConfig = {
-  gentle: { type: 'spring', stiffness: 120, damping: 14 },
-  bouncy: { type: 'spring', stiffness: 300, damping: 10 },
-  stiff: { type: 'spring', stiffness: 400, damping: 30 },
-  smooth: { type: 'spring', stiffness: 200, damping: 20 }
+  gentle: motionTokens.spring.gentle,
+  bouncy: { type: "spring", stiffness: 300, damping: 18 },
+  stiff: motionTokens.spring.press,
+  smooth: motionTokens.spring.snappy,
 };
 
-/**
- * Easing functions
- */
 export const easing = {
-  easeOut: [0, 0, 0.2, 1],
-  easeIn: [0.4, 0, 1, 1],
+  easeOut: EASE.standard,
+  easeIn: EASE.exit,
   easeInOut: [0.4, 0, 0.2, 1],
-  spring: { type: 'spring', stiffness: 300, damping: 30 }
+  emphasized: EASE.emphasized,
+  spring: motionTokens.spring.snappy,
 };
-
-// ============================================
-// Animation Presets
-// ============================================
 
 export const animationPresets = {
-  // Subtle entrance
   subtle: {
-    initial: { opacity: 0, y: 10 },
+    initial: { opacity: 0, y: 8 },
     animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.3 }
+    transition: { duration: DURATION.base, ease: EASE.standard },
   },
-  
-  // Dramatic entrance
-  dramatic: {
-    initial: { opacity: 0, scale: 0.8, y: 30 },
-    animate: { opacity: 1, scale: 1, y: 0 },
-    transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }
-  },
-  
-  // Bouncy entrance
-  bouncy: {
-    initial: { opacity: 0, scale: 0 },
-    animate: { opacity: 1, scale: 1 },
-    transition: { type: 'spring', stiffness: 300, damping: 20 }
-  },
-  
-  // Slide up
-  slideUp: {
-    initial: { opacity: 0, y: 40 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }
-  },
-  
-  // Fade in scale
-  fadeScale: {
-    initial: { opacity: 0, scale: 0.95 },
-    animate: { opacity: 1, scale: 1 },
-    transition: { duration: 0.4 }
-  }
+  dramatic: heroReveal,
+  bouncy: scaleIn,
+  slideUp: fadeInUp,
+  fadeScale: scaleIn,
 };
 
 export default {
+  motionTokens,
+  routeTransition,
+  navEntrance,
+  tabbarEntrance,
+  heroStagger,
+  heroReveal,
+  sectionReveal,
+  listContainer,
+  listItem,
   fadeInUp,
   fadeIn,
   scaleIn,
@@ -441,9 +477,12 @@ export default {
   pageTransition,
   modalBackdrop,
   modalContent,
+  mobileSheet,
   cardHover,
   buttonTap,
   buttonHover,
+  tapPress,
+  subtleTapPress,
   pulseAnimation,
   shimmerAnimation,
   spinAnimation,
@@ -453,5 +492,6 @@ export default {
   springConfig,
   easing,
   animationPresets,
-  getStaggerDelay
+  getStaggerDelay,
+  getRevealTransition,
 };

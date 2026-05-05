@@ -24,6 +24,7 @@
     "opencompass:check": "powershell -ExecutionPolicy Bypass -File ./scripts/opencompass.ps1 -Action check",
     "opencompass:demo": "powershell -ExecutionPolicy Bypass -File ./scripts/opencompass.ps1 -Action demo",
     "quality:staged": "lint-staged",
+    "check:ai-assistant": "npm --prefix server run check:ai-assistant",
     "e2e:install": "playwright install chromium",
     "test:e2e": "playwright test",
     "test:e2e:smoke": "playwright test e2e/smoke.spec.js --project=chromium",

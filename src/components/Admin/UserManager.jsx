@@ -9,13 +9,18 @@ import {
   AdminMetricCard,
   AdminPageShell,
   AdminPanel,
+  AdminIconButton,
+  AdminTableCellText,
+  AdminTableShell,
   AdminToolbar,
   ConfirmDialog,
   FilterChip,
   ToolbarGroup,
+  useAdminTheme,
 } from "./AdminUI";
 
 const UserManager = () => {
+  const { isDayMode, mutedTextClass } = useAdminTheme();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -126,6 +131,72 @@ const UserManager = () => {
     }
   };
 
+  const renderMobileCards = () => (
+    <div className="grid grid-cols-1 gap-3 md:hidden">
+      {filteredUsers.map((user) => (
+        <article
+          key={user.id}
+          className={`rounded-2xl border p-4 ${
+            isDayMode
+              ? "border-slate-200/70 bg-white/[0.78]"
+              : "border-white/10 bg-white/[0.03]"
+          }`}
+        >
+          <div className="flex items-start gap-3">
+            <div
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
+                isDayMode
+                  ? "bg-indigo-100 text-indigo-600"
+                  : "bg-indigo-500/15 text-indigo-300"
+              }`}
+            >
+              {String(user.username || "?").charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <AdminTableCellText strong>
+                  {user.username || "未命名用户"}
+                </AdminTableCellText>
+                <span
+                  className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                    user.role === "admin"
+                      ? isDayMode
+                        ? "bg-violet-500/10 text-violet-700"
+                        : "bg-violet-500/15 text-violet-300"
+                      : isDayMode
+                        ? "bg-slate-100 text-slate-600"
+                        : "bg-white/5 text-gray-300"
+                  }`}
+                >
+                  {user.role === "admin" ? "管理员" : "普通用户"}
+                </span>
+              </div>
+              <div className={`mt-2 text-xs ${mutedTextClass}`}>
+                ID {user.id} ·{" "}
+                {user.created_at
+                  ? new Date(user.created_at).toLocaleDateString("zh-CN")
+                  : "未记录创建时间"}
+              </div>
+            </div>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <AdminButton tone="subtle" onClick={() => handleEdit(user)}>
+              <Edit2 size={16} />
+              编辑
+            </AdminButton>
+            <AdminButton
+              tone="danger"
+              onClick={() => setConfirmDeleteId(user.id)}
+            >
+              <Trash2 size={16} />
+              删除
+            </AdminButton>
+          </div>
+        </article>
+      ))}
+    </div>
+  );
+
   if (loading) {
     return <AdminLoadingState text="正在加载用户列表..." />;
   }
@@ -205,8 +276,9 @@ const UserManager = () => {
               description="可以清空搜索词或切换角色筛选。"
             />
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[720px] text-left text-sm">
+            <>
+              {renderMobileCards()}
+              <AdminTableShell minWidth={720}>
                 <thead>
                   <tr className="theme-admin-table-head border-b text-xs uppercase tracking-[0.2em]">
                     <th className="p-4">用户</th>
@@ -215,21 +287,27 @@ const UserManager = () => {
                     <th className="p-4 text-right">操作</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="theme-admin-table-body divide-y">
                   {filteredUsers.map((user) => (
                     <tr key={user.id} className="theme-admin-row">
                       <td className="p-4">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-500/15 text-indigo-300">
+                          <div
+                            className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                              isDayMode
+                                ? "bg-indigo-100 text-indigo-600"
+                                : "bg-indigo-500/15 text-indigo-300"
+                            }`}
+                          >
                             {String(user.username || "?")
                               .charAt(0)
                               .toUpperCase()}
                           </div>
                           <div>
-                            <div className="font-semibold text-white">
+                            <AdminTableCellText strong>
                               {user.username}
-                            </div>
-                            <div className="mt-1 text-xs text-gray-500">
+                            </AdminTableCellText>
+                            <div className={`mt-1 text-xs ${mutedTextClass}`}>
                               ID {user.id}
                             </div>
                           </div>
@@ -239,14 +317,18 @@ const UserManager = () => {
                         <span
                           className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
                             user.role === "admin"
-                              ? "bg-violet-500/15 text-violet-300"
-                              : "bg-white/5 text-gray-300"
+                              ? isDayMode
+                                ? "bg-violet-500/10 text-violet-700"
+                                : "bg-violet-500/15 text-violet-300"
+                              : isDayMode
+                                ? "bg-slate-100 text-slate-600"
+                                : "bg-white/5 text-gray-300"
                           }`}
                         >
                           {user.role === "admin" ? "管理员" : "普通用户"}
                         </span>
                       </td>
-                      <td className="p-4 text-gray-400">
+                      <td className={`p-4 ${mutedTextClass}`}>
                         {user.created_at
                           ? new Date(user.created_at).toLocaleDateString(
                               "zh-CN",
@@ -255,29 +337,26 @@ const UserManager = () => {
                       </td>
                       <td className="p-4">
                         <div className="flex justify-end gap-2">
-                          <button
-                            type="button"
+                          <AdminIconButton
                             onClick={() => handleEdit(user)}
-                            className="inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg bg-white/5 text-gray-400 transition-colors hover:bg-white/10 hover:text-indigo-300"
-                            title="编辑用户"
+                            label="编辑用户"
                           >
                             <Edit2 size={16} />
-                          </button>
-                          <button
-                            type="button"
+                          </AdminIconButton>
+                          <AdminIconButton
                             onClick={() => setConfirmDeleteId(user.id)}
-                            className="inline-flex min-h-[38px] min-w-[38px] items-center justify-center rounded-lg bg-white/5 text-gray-400 transition-colors hover:bg-white/10 hover:text-red-300"
-                            title="删除用户"
+                            label="删除用户"
+                            tone="danger"
                           >
                             <Trash2 size={16} />
-                          </button>
+                          </AdminIconButton>
                         </div>
                       </td>
                     </tr>
                   ))}
                 </tbody>
-              </table>
-            </div>
+              </AdminTableShell>
+            </>
           )}
         </AdminPanel>
       </AdminPageShell>
@@ -294,18 +373,18 @@ const UserManager = () => {
       >
         <div className="space-y-4">
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+            <label className={`mb-2 block text-sm font-medium ${mutedTextClass}`}>
               用户名
             </label>
             <input
               type="text"
               value={editingUser?.username || ""}
               disabled
-              className="theme-admin-input w-full rounded-xl p-3 text-gray-500"
+              className={`theme-admin-input w-full rounded-xl p-3 ${mutedTextClass}`}
             />
           </div>
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+            <label className={`mb-2 block text-sm font-medium ${mutedTextClass}`}>
               角色
             </label>
             <select
@@ -318,7 +397,7 @@ const UserManager = () => {
             </select>
           </div>
           <div>
-            <label className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-400">
+            <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${mutedTextClass}`}>
               <Key size={14} />
               新密码
             </label>
@@ -329,7 +408,7 @@ const UserManager = () => {
               placeholder="留空则不修改"
               className="theme-admin-input w-full rounded-xl p-3"
             />
-            <p className="mt-2 text-xs text-gray-500">密码至少 6 位。</p>
+            <p className={`mt-2 text-xs ${mutedTextClass}`}>密码至少 6 位。</p>
           </div>
         </div>
       </ConfirmDialog>

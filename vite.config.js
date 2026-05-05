@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import fs from 'node:fs'
 import path from 'path'
 import { fileURLToPath } from 'url';
 
@@ -9,6 +10,7 @@ const __dirname = path.dirname(__filename);
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
+  const buildStartedAt = Date.now();
   const env = loadEnv(mode, process.cwd(), '');
   // Keep env override, but default to the local backend dev port.
   // Use 127.0.0.1 to avoid some Windows localhost/IPv6 proxy issues.
@@ -45,7 +47,25 @@ export default defineConfig(({ mode }) => {
         },
         workbox: {
           navigateFallback: '/index.html',
-          globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg,webp}'],
+          // Large media is cached on demand below; keep the install precache lean.
+          globPatterns: ['**/*.{js,css,html,ico,svg}'],
+          manifestTransforms: [
+            async (entries) => {
+              const freshAssetCutoff = buildStartedAt - 1000;
+              const manifest = entries.filter((entry) => {
+                if (!entry.url.startsWith('assets/')) return true;
+
+                try {
+                  const assetPath = path.resolve(__dirname, 'dist', entry.url);
+                  return fs.statSync(assetPath).mtimeMs >= freshAssetCutoff;
+                } catch {
+                  return true;
+                }
+              });
+
+              return { manifest, warnings: [] };
+            }
+          ],
           cleanupOutdatedCaches: true,
           runtimeCaching: [
             {
@@ -87,6 +107,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
+      emptyOutDir: true,
       chunkSizeWarningLimit: 1000,
       rollupOptions: {
         output: {

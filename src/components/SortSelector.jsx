@@ -16,10 +16,10 @@ const SortSelector = ({
   const isDayMode = uiMode === 'day';
 
   const options = [
-    { value: 'newest', label: t('sort_filter.newest') },
-    { value: 'oldest', label: t('sort_filter.oldest') },
-    { value: 'likes', label: t('sort_filter.likes') },
-    { value: 'title', label: t('sort_filter.title') },
+    { value: 'newest', label: t('sort_filter.newest', '最新发布') },
+    { value: 'oldest', label: t('sort_filter.oldest', '最早发布') },
+    { value: 'likes', label: t('sort_filter.likes', '最多喜欢') },
+    { value: 'title', label: t('sort_filter.title_option', '标题排序') },
     ...extraOptions
   ];
 
@@ -38,10 +38,10 @@ const SortSelector = ({
                 className={`w-full min-h-[48px] flex items-center justify-between gap-3 px-4 py-4 rounded-2xl border transition-all text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
                   active
                     ? isDayMode
-                      ? 'bg-indigo-500/10 border-indigo-300/50 text-slate-900 shadow-[0_10px_24px_rgba(99,102,241,0.12)]'
+                      ? 'day-card-lift text-slate-900 border-indigo-200/70 shadow-[0_10px_24px_rgba(99,102,241,0.12)]'
                       : 'bg-indigo-500/15 border-indigo-400/40 text-white shadow-[0_0_20px_rgba(99,102,241,0.15)]'
                     : isDayMode
-                      ? 'bg-white/80 border-slate-200/80 text-slate-600 hover:bg-white hover:border-indigo-200/80'
+                      ? 'day-quiet-button text-slate-600 hover:border-indigo-200/80'
                       : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:border-white/20'
                 }`}
               >
@@ -70,7 +70,7 @@ const SortSelector = ({
         options={options}
         icon={ArrowUpDown}
         buttonClassName={buttonClassName || (isDayMode
-          ? "bg-white/82 border border-slate-200/80 hover:bg-white hover:border-indigo-300/70 rounded-full px-6 py-2.5 min-h-[44px] backdrop-blur-3xl transition-all text-sm font-medium shadow-[0_12px_28px_rgba(148,163,184,0.14)] text-slate-700"
+          ? "day-quiet-button border rounded-full px-6 py-2.5 min-h-[44px] backdrop-blur-3xl transition-all text-sm font-medium text-slate-700 hover:text-indigo-600"
           : "bg-[#0a0a0a]/60 border border-white/10 hover:bg-[#0a0a0a]/80 hover:border-indigo-500/30 rounded-full px-6 py-2.5 min-h-[44px] backdrop-blur-3xl transition-all text-sm font-medium shadow-lg text-white hover:shadow-[0_0_15px_rgba(99,102,241,0.2)]")}
       />
     </div>

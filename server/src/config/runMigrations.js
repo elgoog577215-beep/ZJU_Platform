@@ -39,6 +39,10 @@ async function runMigrations(db) {
       await db.exec(`ALTER TABLE events ADD COLUMN end_date TEXT`);
       console.log('✅ Added end_date to events table');
     }
+    if (!eventsColumns.includes('category')) {
+      await db.exec(`ALTER TABLE events ADD COLUMN category TEXT`);
+      console.log('✅ Added category to events table');
+    }
   } catch (err) {
     if (!err.message.includes('duplicate column')) {
       console.warn('Migration warning (events):', err.message);
@@ -394,6 +398,7 @@ async function runMigrations(db) {
       CREATE INDEX IF NOT EXISTS idx_videos_status_deleted_created_at ON videos(status, deleted_at, created_at DESC);
       CREATE INDEX IF NOT EXISTS idx_articles_status_deleted_created_at ON articles(status, deleted_at, created_at DESC);
       CREATE INDEX IF NOT EXISTS idx_events_status_deleted_date ON events(status, deleted_at, date DESC);
+      CREATE INDEX IF NOT EXISTS idx_events_status_deleted_category ON events(status, deleted_at, category);
       CREATE INDEX IF NOT EXISTS idx_events_status_deleted_views ON events(status, deleted_at, views DESC);
       CREATE INDEX IF NOT EXISTS idx_events_uploader_id ON events(uploader_id);
       CREATE INDEX IF NOT EXISTS idx_articles_uploader_id ON articles(uploader_id);
@@ -833,6 +838,119 @@ async function runMigrations(db) {
   } catch (err) {
     if (!err.message.includes('already exists') && !err.message.includes('duplicate column')) {
       console.warn('Migration warning (hackathon registrations):', err.message);
+    }
+  }
+
+  try {
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS ai_model_configs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        provider TEXT DEFAULT 'openai-compatible',
+        base_url TEXT NOT NULL,
+        model TEXT NOT NULL,
+        encrypted_api_key TEXT NOT NULL,
+        priority INTEGER DEFAULT 100,
+        enabled INTEGER DEFAULT 1,
+        last_status TEXT,
+        last_error TEXT,
+        last_checked_at DATETIME,
+        created_by INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_ai_model_configs_enabled_priority
+        ON ai_model_configs(enabled, priority, id);
+
+      CREATE TABLE IF NOT EXISTS user_event_preferences (
+        user_id INTEGER PRIMARY KEY,
+        college TEXT,
+        division TEXT,
+        grade TEXT,
+        campus TEXT,
+        interest_tags TEXT,
+        preferred_categories TEXT,
+        preferred_benefits TEXT,
+        preferred_format TEXT,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+
+      CREATE TABLE IF NOT EXISTS assistant_memory (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        memory_type TEXT NOT NULL,
+        content TEXT NOT NULL,
+        source TEXT DEFAULT 'event_assistant',
+        weight REAL DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_assistant_memory_user_type
+        ON assistant_memory(user_id, memory_type, updated_at DESC);
+
+      CREATE TABLE IF NOT EXISTS event_recommendation_feedback (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        event_id INTEGER NOT NULL,
+        feedback TEXT NOT NULL,
+        query TEXT,
+        reason TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_event_recommendation_feedback_user
+        ON event_recommendation_feedback(user_id, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_event_recommendation_feedback_event
+        ON event_recommendation_feedback(event_id, created_at DESC);
+
+      CREATE TABLE IF NOT EXISTS ai_assistant_runs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        module TEXT NOT NULL,
+        action TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'completed',
+        requested_by INTEGER,
+        summary_json TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (requested_by) REFERENCES users(id) ON DELETE SET NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_ai_assistant_runs_module_created
+        ON ai_assistant_runs(module, created_at DESC);
+
+      CREATE TABLE IF NOT EXISTS ai_event_governance_suggestions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        run_id INTEGER NOT NULL,
+        event_id INTEGER NOT NULL,
+        field_name TEXT NOT NULL,
+        old_value TEXT,
+        new_value TEXT,
+        confidence REAL DEFAULT 0,
+        reason TEXT,
+        source TEXT,
+        status TEXT DEFAULT 'suggested',
+        applied_by INTEGER,
+        applied_at DATETIME,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (run_id) REFERENCES ai_assistant_runs(id) ON DELETE CASCADE,
+        FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
+        FOREIGN KEY (applied_by) REFERENCES users(id) ON DELETE SET NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_ai_event_governance_suggestions_run
+        ON ai_event_governance_suggestions(run_id, status, confidence DESC);
+      CREATE INDEX IF NOT EXISTS idx_ai_event_governance_suggestions_event
+        ON ai_event_governance_suggestions(event_id, created_at DESC);
+    `);
+    console.log('AI assistant tables ready');
+  } catch (err) {
+    if (!err.message.includes('already exists')) {
+      console.warn('Migration warning (AI assistant tables):', err.message);
     }
   }
 

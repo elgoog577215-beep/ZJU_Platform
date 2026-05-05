@@ -12,6 +12,8 @@ const systemController = require('../controllers/systemController');
 const fsController = require('../controllers/fsController');
 const eventController = require('../controllers/eventController');
 const eventAssistantController = require('../controllers/eventAssistantController');
+const aiAssistantController = require('../controllers/aiAssistantController');
+const aiModelConfigController = require('../controllers/aiModelConfigController');
 const userController = require('../controllers/userController');
 const messageController = require('../controllers/messageController');
 const tagController = require('../controllers/tagController');
@@ -162,6 +164,14 @@ router.get('/featured', systemController.getFeaturedContent);
 router.post('/events/crawl', authenticateToken, isAdmin, systemController.crawlEvents);
 router.get('/audit-logs', authenticateToken, isAdmin, systemController.getAuditLogs);
 router.get('/admin/pending', authenticateToken, isAdmin, systemController.getPendingContent);
+router.get('/admin/ai-model-configs', authenticateToken, isAdmin, aiModelConfigController.listConfigs);
+router.post('/admin/ai-model-configs', authenticateToken, isAdmin, aiModelConfigController.createConfig);
+router.put('/admin/ai-model-configs/:id', authenticateToken, isAdmin, aiModelConfigController.updateConfig);
+router.delete('/admin/ai-model-configs/:id', authenticateToken, isAdmin, aiModelConfigController.deleteConfig);
+router.post('/admin/ai-model-configs/:id/test', authenticateToken, isAdmin, aiModelConfigController.testConfig);
+router.get('/admin/ai-assistant/overview', authenticateToken, isAdmin, aiAssistantController.getOverview);
+router.post('/admin/ai-assistant/event-governance/scan', authenticateToken, isAdmin, aiAssistantController.scanEventGovernance);
+router.post('/admin/ai-assistant/event-governance/apply', authenticateToken, isAdmin, aiAssistantController.applyEventGovernance);
 
 // Settings Routes
 router.get('/settings', settingsController.getSettings);
@@ -181,6 +191,9 @@ router.post('/articles/:id/recover', authenticateToken, resourceController.resto
 // Specific routes that shouldn't be overridden by the loop
 // Event Registration Routes
 router.post('/events/assistant', optionalAuth, eventAssistantController.handleEventAssistant);
+router.post('/events/assistant/feedback', authenticateToken, eventAssistantController.handleEventAssistantFeedback);
+router.get('/events/assistant/preferences', authenticateToken, eventAssistantController.getEventAssistantPreferences);
+router.put('/events/assistant/preferences', authenticateToken, eventAssistantController.updateEventAssistantPreferences);
 router.get('/events/distinct-options', resourceController.getEventDistinctOptions);
 router.post('/events/:id/register', authenticateToken, eventController.registerEvent);
 router.get('/events/:id/registration', authenticateToken, eventController.getRegistrationStatus);

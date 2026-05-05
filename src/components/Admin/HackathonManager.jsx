@@ -1,22 +1,37 @@
-import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import React, { useEffect, useMemo, useState } from "react";
 import {
-  Users,
-  Search,
-  Trash2,
-  Download,
-  Filter,
-  Calendar,
-  Mail,
-  User,
   BookOpen,
-  GraduationCap,
-  Cpu,
+  Calendar,
   ChevronLeft,
   ChevronRight,
+  Cpu,
+  Download,
+  Filter,
+  GraduationCap,
+  RefreshCw,
+  Search,
+  Trash2,
+  User,
+  Users,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "../../services/api";
+import {
+  AdminButton,
+  AdminEmptyState,
+  AdminIconButton,
+  AdminInlineNote,
+  AdminLoadingState,
+  AdminMetricCard,
+  AdminPageShell,
+  AdminPanel,
+  AdminTableCellText,
+  AdminTableShell,
+  AdminToolbar,
+  ConfirmDialog,
+  ToolbarGroup,
+  useAdminTheme,
+} from "./AdminUI";
 
 const gradeLabels = {
   freshman: "大一",
@@ -35,313 +50,487 @@ const aiToolLabels = {
   other: "其他",
 };
 
+const safeParseTools = (value) => {
+  try {
+    const parsed = JSON.parse(value || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
 const HackathonManager = () => {
+  const { isDayMode, headingTextClass, mutedTextClass } = useAdminTheme();
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [gradeFilter, setGradeFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(20);
-
-  useEffect(() => {
-    fetchRegistrations();
-  }, []);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [actionPending, setActionPending] = useState(false);
+  const itemsPerPage = 20;
 
   const fetchRegistrations = async () => {
     try {
       setLoading(true);
       const response = await api.get("/admin/hackathon/registrations");
-      setRegistrations(response.data);
+      setRegistrations(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
-      toast.error("加载报名数据失败");
-      console.error(error);
+      toast.error(error.response?.data?.error || "加载报名数据失败");
+      setRegistrations([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("确定要删除这条报名记录吗？")) return;
+  useEffect(() => {
+    fetchRegistrations();
+  }, []);
 
-    try {
-      await api.delete(`/admin/hackathon/registrations/${id}`);
-      toast.success("已删除");
-      fetchRegistrations();
-    } catch (error) {
-      toast.error("删除失败");
-    }
-  };
+  const filteredRegistrations = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+    return registrations.filter((registration) => {
+      const matchesSearch =
+        !query ||
+        String(registration.name || "")
+          .toLowerCase()
+          .includes(query) ||
+        String(registration.student_id || "")
+          .toLowerCase()
+          .includes(query) ||
+        String(registration.major || "")
+          .toLowerCase()
+          .includes(query);
+
+      const matchesGrade = gradeFilter ? registration.grade === gradeFilter : true;
+      return matchesSearch && matchesGrade;
+    });
+  }, [gradeFilter, registrations, searchTerm]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredRegistrations.length / itemsPerPage),
+  );
+
+  useEffect(() => {
+    setCurrentPage((page) => Math.min(page, totalPages));
+  }, [totalPages]);
+
+  const paginatedData = filteredRegistrations.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
+  );
+
+  const stats = useMemo(() => {
+    const byGrade = registrations.reduce((accumulator, registration) => {
+      accumulator[registration.grade] = (accumulator[registration.grade] || 0) + 1;
+      return accumulator;
+    }, {});
+
+    return {
+      total: registrations.length,
+      filtered: filteredRegistrations.length,
+      lowerGrades: (byGrade.freshman || 0) + (byGrade.sophomore || 0),
+      upperGrades: (byGrade.junior || 0) + (byGrade.senior || 0),
+      graduate: (byGrade.master || 0) + (byGrade.phd || 0),
+    };
+  }, [filteredRegistrations.length, registrations]);
+
+  const formatDateTime = (value) =>
+    value ? new Date(value).toLocaleString("zh-CN") : "未知时间";
+
+  const formatNumber = (value) =>
+    new Intl.NumberFormat("zh-CN").format(Number(value || 0));
 
   const handleExport = () => {
-    const headers = ["姓名", "学号", "专业", "年级", "AI 工具", "AI 项目经历", "报名时间"];
-    const data = registrations.map((r) => [
-      r.name,
-      r.student_id,
-      r.major,
-      gradeLabels[r.grade] || r.grade,
-      JSON.parse(r.ai_tools || "[]").map((t) => aiToolLabels[t] || t).join(", "),
-      (r.experience || "").replace(/"/g, '""'),
-      new Date(r.created_at).toLocaleString("zh-CN"),
+    const headers = [
+      "姓名",
+      "学号",
+      "专业",
+      "年级",
+      "AI 工具",
+      "AI 项目经历",
+      "报名时间",
+    ];
+    const data = registrations.map((registration) => [
+      registration.name,
+      registration.student_id,
+      registration.major,
+      gradeLabels[registration.grade] || registration.grade,
+      safeParseTools(registration.ai_tools)
+        .map((tool) => aiToolLabels[tool] || tool)
+        .join(", "),
+      (registration.experience || "").replace(/"/g, '""'),
+      formatDateTime(registration.created_at),
     ]);
 
     const csvContent =
       "\uFEFF" +
-      [headers, ...data].map((row) => row.map((cell) => `"${cell}"`).join(",")).join("\n");
+      [headers, ...data]
+        .map((row) => row.map((cell) => `"${cell || ""}"`).join(","))
+        .join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `hackathon_registrations_${new Date().toISOString().split("T")[0]}.csv`;
+    link.download = `hackathon_registrations_${new Date()
+      .toISOString()
+      .split("T")[0]}.csv`;
     link.click();
+    URL.revokeObjectURL(link.href);
 
     toast.success("导出成功");
   };
 
-  const filteredRegistrations = registrations.filter((reg) => {
-    const matchesSearch =
-      reg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      reg.student_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      reg.major.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesGrade = gradeFilter ? reg.grade === gradeFilter : true;
-
-    return matchesSearch && matchesGrade;
-  });
-
-  const totalPages = Math.ceil(filteredRegistrations.length / itemsPerPage);
-  const paginatedData = filteredRegistrations.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const stats = {
-    total: registrations.length,
-    filtered: filteredRegistrations.length,
-    byGrade: registrations.reduce((acc, r) => {
-      acc[r.grade] = (acc[r.grade] || 0) + 1;
-      return acc;
-    }, {}),
+  const handleDelete = async () => {
+    if (!confirmDeleteId) return;
+    setActionPending(true);
+    try {
+      await api.delete(`/admin/hackathon/registrations/${confirmDeleteId}`);
+      setRegistrations((previous) =>
+        previous.filter((registration) => registration.id !== confirmDeleteId),
+      );
+      toast.success("报名记录已删除");
+      setConfirmDeleteId(null);
+    } catch (error) {
+      toast.error(error.response?.data?.error || "删除失败");
+    } finally {
+      setActionPending(false);
+    }
   };
 
+  const renderToolTags = (registration) => {
+    const tools = safeParseTools(registration.ai_tools);
+    if (tools.length === 0) {
+      return <span className={`text-xs ${mutedTextClass}`}>未填写</span>;
+    }
+
+    return tools.map((tool) => (
+      <span
+        key={tool}
+        className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs ${
+          isDayMode
+            ? "bg-violet-500/10 text-violet-700"
+            : "bg-violet-500/15 text-violet-200"
+        }`}
+      >
+        <Cpu size={12} />
+        {aiToolLabels[tool] || tool}
+      </span>
+    ));
+  };
+
+  const renderMobileCards = () => (
+    <div className="grid gap-3 md:hidden">
+      {paginatedData.map((registration) => (
+        <article
+          key={registration.id}
+          className={`rounded-2xl border p-4 ${
+            isDayMode
+              ? "border-slate-200/70 bg-white/[0.78]"
+              : "border-white/10 bg-white/[0.03]"
+          }`}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <div
+                  className={`flex h-9 w-9 items-center justify-center rounded-xl ${
+                    isDayMode
+                      ? "bg-indigo-100 text-indigo-600"
+                      : "bg-indigo-500/15 text-indigo-200"
+                  }`}
+                >
+                  <User size={16} />
+                </div>
+                <div>
+                  <h3 className={`font-semibold ${headingTextClass}`}>
+                    {registration.name || "未命名"}
+                  </h3>
+                  <p className={`text-xs ${mutedTextClass}`}>
+                    {registration.student_id || "无学号"}
+                  </p>
+                </div>
+              </div>
+              <p className={`mt-3 text-sm ${mutedTextClass}`}>
+                {registration.major || "未填写专业"} ·{" "}
+                {gradeLabels[registration.grade] || registration.grade || "未填写年级"}
+              </p>
+            </div>
+            <AdminIconButton
+              label="删除报名记录"
+              tone="danger"
+              onClick={() => setConfirmDeleteId(registration.id)}
+            >
+              <Trash2 size={16} />
+            </AdminIconButton>
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            {renderToolTags(registration)}
+          </div>
+          <p className={`mt-3 line-clamp-3 text-sm leading-6 ${mutedTextClass}`}>
+            {registration.experience || "暂无项目经历"}
+          </p>
+          <div className={`mt-3 flex items-center gap-2 text-xs ${mutedTextClass}`}>
+            <Calendar size={12} />
+            {formatDateTime(registration.created_at)}
+          </div>
+        </article>
+      ))}
+    </div>
+  );
+
+  if (loading) {
+    return <AdminLoadingState text="正在加载黑客松报名数据..." />;
+  }
+
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Users className="h-6 w-6" />
-          黑客松报名管理
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">查看和管理所有报名参赛的学生信息</p>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
-        <div className="rounded-xl border bg-white p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500">总报名人数</p>
-              <p className="text-2xl font-bold mt-1">{stats.total}</p>
-            </div>
-            <Users className="h-8 w-8 text-blue-500 opacity-20" />
-          </div>
-        </div>
-
-        <div className="rounded-xl border bg-white p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500">当前显示</p>
-              <p className="text-2xl font-bold mt-1">{stats.filtered}</p>
-            </div>
-            <Filter className="h-8 w-8 text-green-500 opacity-20" />
-          </div>
-        </div>
-
-        <div className="rounded-xl border bg-white p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500">大一 - 大二</p>
-              <p className="text-2xl font-bold mt-1">
-                {(stats.byGrade.freshman || 0) + (stats.byGrade.sophomore || 0)}
-              </p>
-            </div>
-            <GraduationCap className="h-8 w-8 text-purple-500 opacity-20" />
-          </div>
-        </div>
-
-        <div className="rounded-xl border bg-white p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500">大三 - 大四</p>
-              <p className="text-2xl font-bold mt-1">
-                {(stats.byGrade.junior || 0) + (stats.byGrade.senior || 0)}
-              </p>
-            </div>
-            <BookOpen className="h-8 w-8 text-orange-500 opacity-20" />
-          </div>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="搜索姓名、学号、专业..."
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+    <>
+      <AdminPageShell
+        title="黑客松报名管理"
+        description="查看参赛学生报名资料、筛选年级分布，并导出 CSV 用于后续联络和赛务安排。"
+        actions={
+          <>
+            <AdminButton tone="subtle" onClick={fetchRegistrations}>
+              <RefreshCw size={16} />
+              刷新
+            </AdminButton>
+            <AdminButton
+              tone="primary"
+              onClick={handleExport}
+              disabled={registrations.length === 0}
+            >
+              <Download size={16} />
+              导出 CSV
+            </AdminButton>
+          </>
+        }
+        toolbar={
+          <AdminToolbar>
+            <ToolbarGroup className="w-full flex-1">
+              <div className="relative w-full min-w-0 flex-1 md:max-w-lg">
+                <Search
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                  size={16}
+                />
+                <input
+                  type="text"
+                  placeholder="搜索姓名、学号、专业"
+                  value={searchTerm}
+                  onChange={(event) => {
+                    setSearchTerm(event.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="theme-admin-input w-full rounded-xl py-2.5 pl-10 pr-4 text-sm"
+                />
+              </div>
+            </ToolbarGroup>
+            <ToolbarGroup>
+              <select
+                value={gradeFilter}
+                onChange={(event) => {
+                  setGradeFilter(event.target.value);
+                  setCurrentPage(1);
+                }}
+                className="theme-admin-input min-h-[40px] rounded-xl px-3 py-2 text-sm"
+                aria-label="按年级筛选"
+              >
+                <option value="">所有年级</option>
+                {Object.entries(gradeLabels).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </ToolbarGroup>
+          </AdminToolbar>
+        }
+      >
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+          <AdminMetricCard
+            label="总报名"
+            value={formatNumber(stats.total)}
+            icon={Users}
+          />
+          <AdminMetricCard
+            label="当前显示"
+            value={formatNumber(stats.filtered)}
+            icon={Filter}
+            tone="emerald"
+          />
+          <AdminMetricCard
+            label="大一 - 大二"
+            value={formatNumber(stats.lowerGrades)}
+            icon={GraduationCap}
+            tone="violet"
+          />
+          <AdminMetricCard
+            label="大三 - 大四"
+            value={formatNumber(stats.upperGrades)}
+            icon={BookOpen}
+            tone="amber"
+          />
+          <AdminMetricCard
+            label="硕博"
+            value={formatNumber(stats.graduate)}
+            icon={GraduationCap}
+            tone="indigo"
           />
         </div>
 
-        <select
-          value={gradeFilter}
-          onChange={(e) => {
-            setGradeFilter(e.target.value);
-            setCurrentPage(1);
-          }}
-          className="px-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">所有年级</option>
-          <option value="freshman">大一</option>
-          <option value="sophomore">大二</option>
-          <option value="junior">大三</option>
-          <option value="senior">大四</option>
-          <option value="master">硕士</option>
-          <option value="phd">博士</option>
-        </select>
+        <AdminInlineNote tone={searchTerm || gradeFilter ? "warning" : "info"}>
+          当前筛选展示 {formatNumber(stats.filtered)} 条报名记录；CSV 导出会包含全部{" "}
+          {formatNumber(stats.total)} 条报名记录。
+        </AdminInlineNote>
 
-        <button
-          onClick={handleExport}
-          disabled={registrations.length === 0}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+        <AdminPanel
+          title={`报名列表 (${formatNumber(filteredRegistrations.length)})`}
+          description={`当前第 ${currentPage} / ${totalPages} 页，每页最多 ${itemsPerPage} 条。`}
         >
-          <Download className="h-4 w-4" />
-          导出 CSV
-        </button>
-      </div>
-
-      {/* Table */}
-      {loading ? (
-        <div className="text-center py-12">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-        </div>
-      ) : paginatedData.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
-          <Users className="h-12 w-12 mx-auto mb-4 opacity-20" />
-          <p>暂无报名数据</p>
-        </div>
-      ) : (
-        <>
-          <div className="overflow-x-auto rounded-lg border bg-white">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">姓名</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">学号</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">专业</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">年级</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">AI 工具</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">AI 项目经历</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">报名时间</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedData.map((reg, index) => {
-                  const aiTools = JSON.parse(reg.ai_tools || "[]");
-                  return (
-                    <tr
-                      key={reg.id}
-                      className={`border-b hover:bg-gray-50 ${index % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}
-                    >
-                      <td className="px-4 py-3 text-sm font-medium">
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-gray-400" />
-                          {reg.name}
+          {paginatedData.length === 0 ? (
+            <AdminEmptyState
+              icon={Users}
+              title="暂无匹配的报名数据"
+              description="可以清空搜索词、切换年级筛选，或稍后刷新。"
+            />
+          ) : (
+            <>
+              {renderMobileCards()}
+              <AdminTableShell minWidth={1120}>
+                <thead>
+                  <tr className="theme-admin-table-head border-b text-xs uppercase tracking-[0.2em]">
+                    <th className="p-4">姓名</th>
+                    <th className="p-4">学号</th>
+                    <th className="p-4">专业</th>
+                    <th className="p-4">年级</th>
+                    <th className="p-4">AI 工具</th>
+                    <th className="p-4">项目经历</th>
+                    <th className="p-4">报名时间</th>
+                    <th className="p-4 text-right">操作</th>
+                  </tr>
+                </thead>
+                <tbody className="theme-admin-table-body divide-y">
+                  {paginatedData.map((registration) => (
+                    <tr key={registration.id} className="theme-admin-row">
+                      <td className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                              isDayMode
+                                ? "bg-indigo-100 text-indigo-600"
+                                : "bg-indigo-500/15 text-indigo-200"
+                            }`}
+                          >
+                            <User size={16} />
+                          </div>
+                          <AdminTableCellText strong>
+                            {registration.name || "未命名"}
+                          </AdminTableCellText>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-600 font-mono">{reg.student_id}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{reg.major}</td>
-                      <td className="px-4 py-3 text-sm">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          {gradeLabels[reg.grade] || reg.grade}
+                      <td className="p-4">
+                        <AdminTableCellText className="font-mono">
+                          {registration.student_id || "-"}
+                        </AdminTableCellText>
+                      </td>
+                      <td className="p-4">
+                        <AdminTableCellText>
+                          {registration.major || "-"}
+                        </AdminTableCellText>
+                      </td>
+                      <td className="p-4">
+                        <span
+                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
+                            isDayMode
+                              ? "bg-sky-500/10 text-sky-700"
+                              : "bg-sky-500/15 text-sky-200"
+                          }`}
+                        >
+                          {gradeLabels[registration.grade] ||
+                            registration.grade ||
+                            "未填写"}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm">
-                        <div className="flex flex-wrap gap-1">
-                          {aiTools.map((tool) => (
-                            <span
-                              key={tool}
-                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-purple-100 text-purple-700"
-                            >
-                              <Cpu className="h-3 w-3" />
-                              {aiToolLabels[tool] || tool}
-                            </span>
-                          ))}
+                      <td className="p-4">
+                        <div className="flex max-w-[220px] flex-wrap gap-1">
+                          {renderToolTags(registration)}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-600 max-w-[240px]">
-                        <p className="line-clamp-2 break-words">{reg.experience || "—"}</p>
+                      <td className="p-4">
+                        <AdminTableCellText className="line-clamp-2 max-w-[260px] break-words">
+                          {registration.experience || "暂无"}
+                        </AdminTableCellText>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {new Date(reg.created_at).toLocaleString("zh-CN")}
+                      <td className="p-4">
+                        <AdminTableCellText>
+                          {formatDateTime(registration.created_at)}
+                        </AdminTableCellText>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex justify-end">
+                          <AdminIconButton
+                            label="删除报名记录"
+                            tone="danger"
+                            onClick={() => setConfirmDeleteId(registration.id)}
+                          >
+                            <Trash2 size={16} />
+                          </AdminIconButton>
                         </div>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <button
-                          onClick={() => handleDelete(reg.id)}
-                          className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 rounded transition-colors"
-                          title="删除"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
                       </td>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                  ))}
+                </tbody>
+              </AdminTableShell>
+            </>
+          )}
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4">
-              <p className="text-sm text-gray-500">
+          {filteredRegistrations.length > itemsPerPage ? (
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className={`text-sm ${mutedTextClass}`}>
                 第 {(currentPage - 1) * itemsPerPage + 1} -{" "}
-                {Math.min(currentPage * itemsPerPage, filteredRegistrations.length)} 条，共{" "}
-                {filteredRegistrations.length} 条
-              </p>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                {Math.min(currentPage * itemsPerPage, filteredRegistrations.length)} 条，
+                共 {formatNumber(filteredRegistrations.length)} 条
+              </div>
+              <div className="flex items-center gap-2">
+                <AdminButton
+                  tone="subtle"
                   disabled={currentPage === 1}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 border rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft size={16} />
                   上一页
-                </button>
-                <span className="px-4 py-1.5 border rounded-lg text-sm bg-blue-50 text-blue-600 font-medium">
+                </AdminButton>
+                <span className={`text-sm font-semibold ${headingTextClass}`}>
                   {currentPage} / {totalPages}
                 </span>
-                <button
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                <AdminButton
+                  tone="subtle"
                   disabled={currentPage === totalPages}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 border rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  onClick={() =>
+                    setCurrentPage((page) => Math.min(totalPages, page + 1))
+                  }
                 >
                   下一页
-                  <ChevronRight className="h-4 w-4" />
-                </button>
+                  <ChevronRight size={16} />
+                </AdminButton>
               </div>
             </div>
-          )}
-        </>
-      )}
-    </div>
+          ) : null}
+        </AdminPanel>
+      </AdminPageShell>
+
+      <ConfirmDialog
+        open={Boolean(confirmDeleteId)}
+        title="确认删除报名记录"
+        description="该操作会删除这条黑客松报名记录，删除后不可恢复。"
+        confirmText="确认删除"
+        tone="danger"
+        pending={actionPending}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
+    </>
   );
 };
 

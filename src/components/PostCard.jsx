@@ -43,7 +43,6 @@ const PostCard = memo(({ post, index, onClick, canAnimate, isDayMode }) => {
     : 'hover:shadow-[0_20px_40px_-15px_rgba(245,158,11,0.15)]';
   const titleHover = isTeam ? 'group-hover:text-violet-400' : 'group-hover:text-amber-400';
 
-  const tags = Array.isArray(post.tags) ? post.tags : [];
   const progress = isTeam && post.max_members ? Math.min((post.current_members || 0) / post.max_members, 1) : 0;
 
   return (
@@ -100,7 +99,7 @@ const PostCard = memo(({ post, index, onClick, canAnimate, isDayMode }) => {
           </div>
         )}
 
-        {/* Footer: author + replies + tags */}
+        {/* Footer: author + replies */}
         <div className={`flex items-center gap-3 pt-1 text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
           <span className="flex items-center gap-1">
             <User size={12} />
@@ -110,18 +109,6 @@ const PostCard = memo(({ post, index, onClick, canAnimate, isDayMode }) => {
             <MessageCircle size={12} />
             {post.comments_count || 0}{t('community.post_replies_unit', '回复')}
           </span>
-          {tags.length > 0 && (
-            <div className="flex items-center gap-1.5 ml-auto flex-wrap justify-end">
-              {tags.slice(0, 3).map((tag) => (
-                <span
-                  key={tag}
-                  className={`px-2 py-0.5 rounded-md text-[10px] ${isDayMode ? 'bg-slate-100 text-slate-500' : 'bg-white/5 text-gray-500'}`}
-                >
-                  #{tag}
-                </span>
-              ))}
-            </div>
-          )}
         </div>
       </div>
     </motion.div>
