@@ -1,7 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
+  ArrowLeft,
   ArrowRight,
   CalendarDays,
   Trophy,
@@ -30,6 +31,30 @@ const heroReveal = (enabled, delay = 0) => {
     animate: { opacity: 1, y: 0, scale: 1 },
     transition: { duration: 0.72, delay, ease: [0.22, 1, 0.36, 1] },
   };
+};
+
+const briefSlideVariants = {
+  enter: (direction) => ({
+    opacity: 0,
+    x: direction > 0 ? 92 : -92,
+    rotateY: direction > 0 ? -12 : 12,
+    scale: 0.96,
+    filter: "blur(12px)",
+  }),
+  center: {
+    opacity: 1,
+    x: 0,
+    rotateY: 0,
+    scale: 1,
+    filter: "blur(0px)",
+  },
+  exit: (direction) => ({
+    opacity: 0,
+    x: direction > 0 ? -92 : 92,
+    rotateY: direction > 0 ? 12 : -12,
+    scale: 0.96,
+    filter: "blur(12px)",
+  }),
 };
 
 const parseUnits = (raw) =>
@@ -89,6 +114,73 @@ const About = () => {
       route: "/hackathon",
     },
   ];
+
+  const briefSlides = operatingHandles.map((item) => {
+    const slideDetails = {
+      ENTRY: {
+        headline: "把零散机会收束成统一入口",
+        body: "活动、报名、资讯统一露出，学生不用在多个群里寻找下一次 AI 机会。",
+        metrics: [
+          { value: "24/7", label: "机会雷达" },
+          { value: "ONE", label: "统一入口" },
+        ],
+        nodes: ["活动发布", "报名触达", "成果沉淀"],
+      },
+      LINK: {
+        headline: "让一次见面变成持续协作",
+        body: "帖子、作品、问答和组织入口承接活动后的关系，让人群持续在线。",
+        metrics: [
+          { value: "FEED", label: "内容流动" },
+          { value: "TEAM", label: "组织协同" },
+        ],
+        nodes: ["内容流", "组织协同", "成员互助"],
+      },
+      BUILD: {
+        headline: "用高密度赛程点燃真实项目",
+        body: "五小时赛制让灵感快速组队、开发、展示，把学习热度推向可运行作品。",
+        metrics: [
+          { value: "5H", label: "现场冲刺" },
+          { value: "DEMO", label: "作品路演" },
+        ],
+        nodes: ["组队", "开发", "路演"],
+      },
+    };
+
+    return {
+      ...item,
+      ...slideDetails[item.code],
+    };
+  });
+
+  const [briefState, setBriefState] = React.useState({
+    active: 0,
+    direction: 1,
+  });
+  const activeBrief = briefSlides[briefState.active];
+  const ActiveBriefIcon = activeBrief.icon;
+
+  const showBrief = (target) => {
+    setBriefState((current) => {
+      const total = briefSlides.length;
+      const active = (target + total) % total;
+      if (active === current.active) return current;
+
+      return {
+        active,
+        direction: active > current.active ? 1 : -1,
+      };
+    });
+  };
+
+  const shiftBrief = (step) => {
+    setBriefState((current) => {
+      const total = briefSlides.length;
+      return {
+        active: (current.active + step + total) % total,
+        direction: step > 0 ? 1 : -1,
+      };
+    });
+  };
 
   const loopItems = [
     { index: "01", title: "发现", detail: "活动与机会进入统一入口" },
@@ -196,7 +288,7 @@ const About = () => {
           AI ECOSYSTEM
         </div>
 
-        <div className="relative z-10 mx-auto grid min-h-[calc(100svh-164px)] w-full max-w-[1680px] items-center gap-10 xl:grid-cols-[minmax(0,1fr)_minmax(360px,430px)] xl:gap-16 2xl:gap-24">
+        <div className="relative z-10 mx-auto grid min-h-[calc(100svh-164px)] w-full max-w-[1680px] items-center gap-10 xl:grid-cols-[minmax(0,1fr)_minmax(480px,560px)] xl:gap-10 2xl:grid-cols-[minmax(0,0.88fr)_minmax(620px,760px)] 2xl:gap-16">
           <motion.div {...heroReveal(shouldAnimate)} className="max-w-[960px]">
             <div
               className={`inline-flex items-center gap-2 border px-3.5 py-2 text-[11px] font-black uppercase tracking-[0.22em] sm:text-xs ${palette.label} ${
@@ -260,44 +352,233 @@ const About = () => {
 
           <motion.aside
             {...heroReveal(shouldAnimate, 0.12)}
-            className={`relative hidden overflow-hidden border p-5 backdrop-blur-2xl sm:p-6 xl:block ${palette.panelStrong}`}
+            className={`relative hidden min-h-[560px] self-start overflow-hidden border p-5 backdrop-blur-2xl xl:block 2xl:min-h-[700px] 2xl:p-7 ${palette.panelStrong}`}
           >
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_16%,rgba(103,232,249,0.14),transparent_36%)]" />
-            <div className="relative z-10">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_14%,rgba(103,232,249,0.18),transparent_34%),linear-gradient(135deg,rgba(103,232,249,0.08),transparent_42%)]" />
+            <div className={`pointer-events-none absolute inset-x-8 top-24 h-px ${isDayMode ? "bg-cyan-500/30" : "bg-cyan-300/30"}`} />
+            <div className={`pointer-events-none absolute bottom-28 right-8 h-48 w-48 border-r border-t ${isDayMode ? "border-cyan-500/22" : "border-cyan-300/22"}`} />
+            <div className={`pointer-events-none absolute -right-16 -top-12 text-[9rem] font-black uppercase leading-none tracking-[-0.08em] ${palette.watermark}`}>
+              DECK
+            </div>
+
+            <div className="relative z-10 flex min-h-[518px] flex-col 2xl:min-h-[646px]">
               <div className={`flex items-center justify-between text-[11px] font-black uppercase tracking-[0.2em] ${palette.label}`}>
-                <span>Ecosystem Brief</span>
-                <span>Live</span>
+                <span>Ecosystem Deck</span>
+                <span>{String(briefState.active + 1).padStart(2, "0")} / 03</span>
               </div>
-              <div className="mt-8">
-                <div className={`text-[8rem] font-black leading-[0.82] tracking-[-0.08em] sm:text-[9rem] ${palette.accent}`}>
-                  3
-                </div>
-                <p className="mt-4 text-2xl font-black leading-tight">
-                  抓手联动
-                  <br />
-                  生态成网
-                </p>
-              </div>
-              <div className={`mt-8 grid gap-px overflow-hidden border ${isDayMode ? "border-cyan-500/18 bg-cyan-500/18" : "border-cyan-300/18 bg-cyan-300/18"}`}>
-                {operatingHandles.map((item) => (
-                  <Link
-                    key={item.code}
-                    to={item.route}
-                    className={`group flex items-center justify-between gap-4 px-4 py-4 transition ${
+
+              <div className="relative mt-6 flex-1 overflow-hidden 2xl:mt-8" style={{ perspective: "1200px" }}>
+                <AnimatePresence custom={briefState.direction} initial={false} mode="wait">
+                  <motion.div
+                    key={activeBrief.code}
+                    custom={briefState.direction}
+                    variants={shouldAnimate ? briefSlideVariants : undefined}
+                    initial={shouldAnimate ? "enter" : { opacity: 0 }}
+                    animate={shouldAnimate ? "center" : { opacity: 1 }}
+                    exit={shouldAnimate ? "exit" : { opacity: 0 }}
+                    transition={{ duration: 0.62, ease: [0.22, 1, 0.36, 1] }}
+                    drag={shouldAnimate ? "x" : false}
+                    dragConstraints={{ left: 0, right: 0 }}
+                    dragElastic={0.12}
+                    onDragEnd={(_, info) => {
+                      if (info.offset.x < -80) shiftBrief(1);
+                      if (info.offset.x > 80) shiftBrief(-1);
+                    }}
+                    aria-live="polite"
+                    className={`absolute inset-0 cursor-grab overflow-hidden border p-4 active:cursor-grabbing 2xl:p-6 ${
                       isDayMode
-                        ? "bg-white/92 hover:bg-cyan-50"
-                        : "bg-[#030a0c]/94 hover:bg-cyan-300/10"
+                        ? "border-cyan-500/20 bg-white/88"
+                        : "border-cyan-300/18 bg-[#03090b]/82"
                     }`}
                   >
-                    <div>
-                      <div className={`font-mono text-[11px] font-black uppercase tracking-[0.18em] ${palette.accent}`}>
-                        {item.index} / {item.code}
-                      </div>
-                      <div className="mt-2 text-xl font-black">{item.title}</div>
+                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(103,232,249,0.2),transparent_28%)]" />
+                    {shouldAnimate && (
+                      <motion.div
+                        className="pointer-events-none absolute left-0 top-0 h-px w-full bg-gradient-to-r from-transparent via-cyan-200/80 to-transparent"
+                        initial={{ x: "-100%" }}
+                        animate={{ x: "100%" }}
+                        transition={{
+                          duration: 2.8,
+                          ease: "linear",
+                          repeat: Infinity,
+                          repeatDelay: 0.6,
+                        }}
+                      />
+                    )}
+                    <div className={`pointer-events-none absolute -bottom-10 -right-8 text-[9.6rem] font-black uppercase leading-none tracking-[-0.08em] ${palette.watermark}`}>
+                      {activeBrief.code}
                     </div>
-                    <ArrowRight className="h-4 w-4 opacity-50 transition group-hover:translate-x-1 group-hover:opacity-100" />
-                  </Link>
-                ))}
+                    <div className="relative z-10 flex h-full flex-col justify-between">
+                      <div>
+                        <motion.div
+                          initial={shouldAnimate ? { opacity: 0, y: 16 } : false}
+                          animate={shouldAnimate ? { opacity: 1, y: 0 } : undefined}
+                          transition={{ duration: 0.44, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+                          className="flex items-start justify-between gap-6"
+                        >
+                          <div>
+                            <div className={`font-mono text-xs font-black uppercase tracking-[0.22em] ${palette.accent}`}>
+                              {activeBrief.index} / {activeBrief.code}
+                            </div>
+                            <h2 className="mt-3 text-3xl font-black leading-[0.92] tracking-[-0.055em] 2xl:mt-4 2xl:text-4xl">
+                              {activeBrief.title}
+                            </h2>
+                          </div>
+                          <div className={`flex h-12 w-12 shrink-0 items-center justify-center 2xl:h-14 2xl:w-14 ${palette.accentBg} text-slate-950 shadow-[0_0_44px_rgba(103,232,249,0.28)]`}>
+                            <ActiveBriefIcon className="h-6 w-6 2xl:h-7 2xl:w-7" />
+                          </div>
+                        </motion.div>
+
+                        <motion.div
+                          initial={shouldAnimate ? { opacity: 0, x: -18 } : false}
+                          animate={shouldAnimate ? { opacity: 1, x: 0 } : undefined}
+                          transition={{ duration: 0.52, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                          className={`mt-4 text-[4.8rem] font-black leading-[0.78] tracking-[-0.08em] 2xl:mt-6 2xl:text-[6.8rem] ${palette.accent}`}
+                        >
+                          {activeBrief.index}
+                        </motion.div>
+
+                        <motion.p
+                          initial={shouldAnimate ? { opacity: 0, y: 18 } : false}
+                          animate={shouldAnimate ? { opacity: 1, y: 0 } : undefined}
+                          transition={{ duration: 0.52, delay: 0.24, ease: [0.22, 1, 0.36, 1] }}
+                          className="mt-4 max-w-[520px] text-xl font-black leading-[1.08] tracking-[-0.045em] 2xl:mt-5 2xl:text-3xl"
+                        >
+                          {activeBrief.headline}
+                        </motion.p>
+                        <motion.p
+                          initial={shouldAnimate ? { opacity: 0, y: 18 } : false}
+                          animate={shouldAnimate ? { opacity: 1, y: 0 } : undefined}
+                          transition={{ duration: 0.52, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                          className={`mt-3 max-w-[540px] text-sm font-bold leading-6 2xl:mt-4 2xl:text-base 2xl:leading-7 ${palette.textSoft}`}
+                        >
+                          {activeBrief.body}
+                        </motion.p>
+                      </div>
+
+                      <div>
+                        <div className="grid grid-cols-3 gap-2 2xl:gap-3">
+                          {activeBrief.nodes.map((node, nodeIndex) => (
+                            <motion.div
+                              key={node}
+                              initial={shouldAnimate ? { opacity: 0, y: 18 } : false}
+                              animate={shouldAnimate ? { opacity: 1, y: 0 } : undefined}
+                              transition={{
+                                duration: 0.42,
+                                delay: 0.34 + nodeIndex * 0.06,
+                                ease: [0.22, 1, 0.36, 1],
+                              }}
+                              className={`min-h-[52px] border px-3 py-2.5 2xl:min-h-[68px] 2xl:px-4 2xl:py-3 ${
+                                isDayMode
+                                  ? "border-slate-200 bg-white/82"
+                                  : "border-white/10 bg-white/[0.045]"
+                              }`}
+                            >
+                              <div className={`font-mono text-[10px] font-black ${palette.accent}`}>
+                                0{nodeIndex + 1}
+                              </div>
+                              <div className="mt-1 text-sm font-black 2xl:mt-1.5 2xl:text-base">{node}</div>
+                            </motion.div>
+                          ))}
+                        </div>
+
+                        <div className="mt-2.5 grid grid-cols-[1fr_1fr_auto] gap-2 2xl:mt-4 2xl:gap-3">
+                          {activeBrief.metrics.map((metric) => (
+                            <div
+                              key={metric.label}
+                              className={`border px-3 py-2.5 2xl:px-4 2xl:py-4 ${
+                                isDayMode
+                                  ? "border-cyan-500/18 bg-cyan-50/80"
+                                  : "border-cyan-300/16 bg-cyan-300/[0.06]"
+                              }`}
+                            >
+                              <div className={`text-xl font-black leading-none 2xl:text-2xl ${palette.accent}`}>
+                                {metric.value}
+                              </div>
+                              <div className={`mt-2 text-[11px] font-black uppercase tracking-[0.14em] ${palette.textMuted}`}>
+                                {metric.label}
+                              </div>
+                            </div>
+                          ))}
+                          <Link
+                            to={activeBrief.route}
+                            className={`group flex min-h-[62px] items-center justify-center border px-4 transition 2xl:min-h-[86px] 2xl:px-5 ${
+                              isDayMode
+                                ? "border-slate-200 bg-white/88 hover:border-cyan-500/40 hover:bg-cyan-50"
+                                : "border-white/10 bg-white/[0.045] hover:border-cyan-300/36 hover:bg-cyan-300/[0.08]"
+                            }`}
+                            aria-label={`进入${activeBrief.title}`}
+                          >
+                            <ArrowRight className={`h-6 w-6 transition group-hover:translate-x-1 ${palette.accent}`} />
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              <div className="mt-5 flex items-center gap-3 2xl:mt-6 2xl:gap-4">
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => shiftBrief(-1)}
+                    className={`flex h-11 w-11 items-center justify-center border transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/25 ${
+                      isDayMode
+                        ? "border-slate-200 bg-white/80 text-slate-950 hover:border-cyan-500/40 hover:text-cyan-700"
+                        : "border-white/10 bg-white/[0.045] text-white hover:border-cyan-300/50 hover:text-cyan-200"
+                    }`}
+                    aria-label="上一页"
+                    title="上一页"
+                  >
+                    <ArrowLeft className="h-5 w-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => shiftBrief(1)}
+                    className={`flex h-11 w-11 items-center justify-center border transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/25 ${
+                      isDayMode
+                        ? "border-slate-200 bg-white/80 text-slate-950 hover:border-cyan-500/40 hover:text-cyan-700"
+                        : "border-white/10 bg-white/[0.045] text-white hover:border-cyan-300/50 hover:text-cyan-200"
+                    }`}
+                    aria-label="下一页"
+                    title="下一页"
+                  >
+                    <ArrowRight className="h-5 w-5" />
+                  </button>
+                </div>
+
+                <div className="grid flex-1 grid-cols-3 gap-2">
+                  {briefSlides.map((item, index) => (
+                    <button
+                      key={item.code}
+                      type="button"
+                      onClick={() => showBrief(index)}
+                    className={`group h-11 border px-2 text-left transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/25 ${
+                        briefState.active === index
+                          ? isDayMode
+                            ? "border-cyan-500/40 bg-cyan-50"
+                            : "border-cyan-300/40 bg-cyan-300/[0.08]"
+                          : isDayMode
+                            ? "border-slate-200 bg-white/62 hover:border-cyan-500/30"
+                            : "border-white/10 bg-white/[0.03] hover:border-cyan-300/30"
+                      }`}
+                      aria-label={`切换到${item.title}`}
+                      title={item.title}
+                    >
+                      <span className={`block h-1 overflow-hidden ${isDayMode ? "bg-slate-200" : "bg-white/12"}`}>
+                        <motion.span
+                          className={`block h-full ${palette.accentBg}`}
+                          animate={{ width: briefState.active === index ? "100%" : "28%" }}
+                          transition={{ duration: shouldAnimate ? 0.42 : 0 }}
+                        />
+                      </span>
+                      <span className={`mt-2 block truncate text-[10px] font-black uppercase tracking-[0.12em] ${palette.textMuted}`}>
+                        {item.code}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </motion.aside>
