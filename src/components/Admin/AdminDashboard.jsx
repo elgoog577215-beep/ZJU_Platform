@@ -118,11 +118,11 @@ const AdminDashboard = () => {
         items: [
           {
             id: "ai-models",
-            label: t("admin.tabs.aiAssistant", "AI 助手"),
+            label: t("admin.tabs.aiAssistant", "智能治理"),
             icon: Bot,
             description: t(
               "admin.descriptions.aiAssistant",
-              "推荐、治理、解析和模型 Key",
+              "活动治理和模型 Key",
             ),
           },
           {

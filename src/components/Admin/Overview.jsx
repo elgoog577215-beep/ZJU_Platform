@@ -12,7 +12,6 @@ import {
   Inbox,
   MessageSquare,
   ArrowRight,
-  Bot,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -407,8 +406,8 @@ const Overview = ({ onChangeTab }) => {
               <AdminButton tone="primary" onClick={() => onChangeTab("pending")}>
                 去审核
               </AdminButton>
-              <AdminButton tone="subtle" onClick={() => onChangeTab("ai-models")}>
-                AI 助手
+              <AdminButton tone="subtle" onClick={() => onChangeTab("events")}>
+                看活动
               </AdminButton>
             </div>
           </div>
@@ -445,18 +444,10 @@ const Overview = ({ onChangeTab }) => {
         <AdminPanel title="快捷入口" description="按运营场景进入，不按技术模块找。">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
             <QuickAction
-              label="AI 助手"
-              description="归类、推荐、解析和模型 Key 管理。"
-              icon={Bot}
-              tone="indigo"
-              isDayMode={isDayMode}
-              onClick={() => onChangeTab("ai-models")}
-            />
-            <QuickAction
               label="活动运营"
               description="维护活动信息，跟进报名与热度。"
               icon={Calendar}
-              tone="emerald"
+              tone="indigo"
               isDayMode={isDayMode}
               onClick={() => onChangeTab("events")}
             />

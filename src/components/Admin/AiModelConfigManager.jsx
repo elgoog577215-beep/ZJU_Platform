@@ -17,7 +17,6 @@ import {
   AdminButton,
   AdminEmptyState,
   AdminIconButton,
-  AdminInlineNote,
   AdminLoadingState,
   AdminPageShell,
   AdminPanel,
@@ -40,7 +39,7 @@ const statusLabel = {
   failed: "异常",
 };
 
-const AiModelConfigManager = () => {
+const AiModelConfigManager = ({ embedded = false }) => {
   const { isDayMode, mutedTextClass, headingTextClass } = useAdminTheme();
   const [configs, setConfigs] = useState([]);
   const [form, setForm] = useState(emptyForm);
@@ -211,31 +210,21 @@ const AiModelConfigManager = () => {
 
   const fieldClass = "theme-admin-input rounded-xl px-3 py-2.5 text-sm";
   const cardClass = isDayMode
-    ? "border-slate-200/70 bg-white/74"
+    ? "border-slate-200/70 bg-white/[0.74]"
     : "border-white/10 bg-white/[0.04]";
 
-  return (
-    <AdminPageShell
-      title="AI 模型与 Key"
-      description="这里管理活动推荐助手使用的模型 Key。可以添加多个 Key，系统会按优先级自动切换。"
-      actions={
+  const content = (
+    <>
+      {!embedded ? (
         <div className="flex flex-wrap items-center gap-2">
           <span className="inline-flex items-center gap-2 rounded-xl border border-[rgba(128,146,167,0.18)] px-3 py-2 text-sm">
             <ShieldCheck size={16} />
             已启用 {enabledCount} 个
           </span>
         </div>
-      }
-    >
-      <AdminInlineNote tone={enabledCount > 0 ? "success" : "warning"}>
-        Key 不会在读取接口中返回明文。若所有后台 Key 都不可用，后端仍会尝试环境变量中的默认 Key。
-      </AdminInlineNote>
+      ) : null}
 
-      <AdminPanel
-        title="添加模型 Key"
-        description="推荐使用 OpenAI 兼容格式的接口地址，例如 /v1 风格的 chat completions。"
-        action={<KeyRound size={18} className="text-indigo-300" />}
-      >
+      <AdminPanel title="添加 Key">
         <form onSubmit={handleCreate} className="grid gap-4">
           <div className="grid gap-3 md:grid-cols-2">
             <label className="grid gap-2 text-sm font-medium">
@@ -310,16 +299,11 @@ const AiModelConfigManager = () => {
         </form>
       </AdminPanel>
 
-      <AdminPanel
-        title="已配置 Key"
-        description="优先级数字越小越先使用。调用失败时，助手会继续尝试下一条可用配置。"
-        action={<Bot size={18} className="text-indigo-300" />}
-      >
+      <AdminPanel title={`Key 列表 (${configs.length})`}>
         {configs.length === 0 ? (
           <AdminEmptyState
             icon={Zap}
-            title="还没有后台 Key"
-            description="添加一个 Key 后，活动推荐助手就可以使用模型润色解释。"
+            title="暂无 Key"
           />
         ) : (
           <div className="grid gap-3">
@@ -342,11 +326,11 @@ const AiModelConfigManager = () => {
                         {config.enabled ? "启用中" : "已停用"}
                       </span>
                     </div>
-                    <div className={`mt-3 grid gap-2 text-sm ${mutedTextClass}`}>
-                      <div className="truncate">模型：{config.model}</div>
-                      <div className="truncate">地址：{config.base_url}</div>
-                      <div>Key：{config.masked_api_key || "未显示"}</div>
-                      <div>优先级：{config.priority}</div>
+                    <div className={`mt-3 grid gap-2 text-sm md:grid-cols-2 ${mutedTextClass}`}>
+                      <div className="truncate">模型 {config.model}</div>
+                      <div className="truncate">地址 {config.base_url}</div>
+                      <div>Key {config.masked_api_key || "未显示"}</div>
+                      <div>优先级 {config.priority}</div>
                       {config.last_error ? (
                         <div className="text-rose-500">最近错误：{config.last_error}</div>
                       ) : null}
@@ -474,6 +458,26 @@ const AiModelConfigManager = () => {
           </div>
         )}
       </AdminPanel>
+    </>
+  );
+
+  if (embedded) {
+    return <div className="space-y-4">{content}</div>;
+  }
+
+  return (
+    <AdminPageShell
+      title="模型 Key"
+      actions={
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-2 rounded-xl border border-[rgba(128,146,167,0.18)] px-3 py-2 text-sm">
+            <ShieldCheck size={16} />
+            已启用 {enabledCount} 个
+          </span>
+        </div>
+      }
+    >
+      {content}
     </AdminPageShell>
   );
 };

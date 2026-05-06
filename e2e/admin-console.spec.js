@@ -203,9 +203,9 @@ test.describe("admin console refinement", () => {
     await page.goto("/admin");
 
     await expect(page.getByRole("heading", { name: "管理控制台" })).toBeVisible();
-    await expect(page.getByText("今日优先事项")).toBeVisible();
+    await expect(page.getByText("今日待办")).toBeVisible();
     await expect(page.getByText("模块导航")).toBeVisible();
-    await expect(page.getByText("内容概况")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "内容资产" })).toBeVisible();
     const quickJump = page.getByRole("combobox", {
       name: "快速跳转到管理模块",
     });
@@ -285,7 +285,7 @@ test.describe("admin console refinement", () => {
       .poll(() => page.evaluate(() => document.body.style.overflow))
       .toBe("hidden");
 
-    await page.getByRole("button", { name: /黑客松/ }).click();
+    await page.getByRole("button", { name: "黑客松", exact: true }).click();
     await expect(page.getByRole("heading", { name: "黑客松报名管理" })).toBeVisible();
     await expect
       .poll(() => page.evaluate(() => document.body.style.overflow))
