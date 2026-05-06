@@ -127,12 +127,46 @@
     "delete_confirm": "이 항목을 삭제하시겠습니까?",
     "id": "ID",
     "actions": "작업",
+    "menu": {
+      "workspace": "작업 공간",
+      "eventOps": "이벤트 운영",
+      "contentAssets": "콘텐츠 자산",
+      "communityUsers": "커뮤니티와 사용자",
+      "systemConfig": "시스템 설정"
+    },
     "tabs": {
+      "overview": "개요",
+      "pending": "검토 센터",
+      "intelligence": "지능형 관리",
       "photos": "사진",
       "music": "음악",
       "videos": "비디오",
       "articles": "기사",
-      "events": "이벤트"
+      "events": "이벤트",
+      "hackathon": "해커톤",
+      "pages": "페이지",
+      "tags": "태그",
+      "users": "사용자",
+      "community": "커뮤니티",
+      "messages": "메시지",
+      "settings": "설정"
+    },
+    "descriptions": {
+      "overview": "주요 지표, 작업, 자주 쓰는 바로가기",
+      "pending": "대기 중인 콘텐츠를 한곳에서 검토",
+      "intelligence": "이벤트 관리와 모델 인터페이스",
+      "events": "이벤트 콘텐츠, 등록, 기본 정보",
+      "hackathon": "해커톤 등록과 참가자 정보",
+      "articles": "기사, 뉴스, 긴 콘텐츠",
+      "photos": "이미지 자산과 표시 자료",
+      "videos": "비디오 자산과 커버",
+      "music": "오디오 자산과 커버",
+      "pages": "정적 페이지 문구와 설정",
+      "community": "게시글, 그룹, 커뮤니티 데이터",
+      "users": "계정, 역할, 사용자 상태",
+      "messages": "사이트 문의와 피드백",
+      "tags": "사이트 태그와 필터 사전",
+      "settings": "사이트 스위치와 기본 설정"
     },
     "fields": {
       "title": "제목",

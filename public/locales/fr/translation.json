@@ -83,12 +83,46 @@
     "delete_confirm": "Êtes-vous sûr de vouloir supprimer cet élément ?",
     "id": "ID",
     "actions": "Actions",
+    "menu": {
+      "workspace": "Espace de travail",
+      "eventOps": "Opérations événementielles",
+      "contentAssets": "Contenus",
+      "communityUsers": "Communauté et utilisateurs",
+      "systemConfig": "Configuration"
+    },
     "tabs": {
+      "overview": "Vue d'ensemble",
+      "pending": "Centre de révision",
+      "intelligence": "Gouvernance intelligente",
       "photos": "Photos",
       "music": "Musique",
       "videos": "Vidéos",
       "articles": "Articles",
-      "events": "Événements"
+      "events": "Événements",
+      "hackathon": "Hackathon",
+      "pages": "Pages",
+      "tags": "Étiquettes",
+      "users": "Utilisateurs",
+      "community": "Communauté",
+      "messages": "Messages",
+      "settings": "Paramètres"
+    },
+    "descriptions": {
+      "overview": "Indicateurs clés, tâches et raccourcis",
+      "pending": "Réviser les contenus en attente",
+      "intelligence": "Gouvernance des événements et interfaces de modèles",
+      "events": "Contenu, inscriptions et informations d'événement",
+      "hackathon": "Inscriptions hackathon et participants",
+      "articles": "Articles, actualités et contenus longs",
+      "photos": "Images et supports visuels",
+      "videos": "Vidéos et couvertures",
+      "music": "Audios et couvertures",
+      "pages": "Textes statiques et configuration des pages",
+      "community": "Publications, groupes et données communautaires",
+      "users": "Comptes, rôles et statut utilisateur",
+      "messages": "Contacts et retours du site",
+      "tags": "Étiquettes et filtres du site",
+      "settings": "Options et configuration de base"
     },
     "fields": {
       "title": "Titre",

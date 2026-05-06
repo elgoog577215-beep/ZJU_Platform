@@ -71,9 +71,9 @@
     "user_not_found": "用户未找到",
     "go_home": "返回首页",
     "stats": {
-        "works": "作品",
-        "likes": "点赞数"
-      },
+      "works": "作品",
+      "likes": "点赞数"
+    },
     "uploads": {
       "title": "我的上传",
       "no_uploads": "暂无上传",
@@ -904,15 +904,46 @@
       "overview": "概览",
       "content": "内容管理",
       "users": "用户管理",
-      "system": "系统管理"
+      "system": "系统管理",
+      "workspace": "工作台",
+      "eventOps": "活动运营",
+      "contentAssets": "内容资产",
+      "communityUsers": "社区与用户",
+      "systemConfig": "系统配置"
     },
     "tabs": {
+      "overview": "总览",
+      "pending": "审核中心",
+      "intelligence": "智能治理",
       "events": "活动管理",
+      "hackathon": "黑客松",
+      "articles": "文章",
+      "photos": "图片",
+      "videos": "视频",
+      "music": "音频",
       "pages": "页面管理",
       "tags": "标签管理",
       "users": "用户管理",
+      "community": "社区运营",
       "messages": "消息管理",
       "settings": "系统设置"
+    },
+    "descriptions": {
+      "overview": "关键数据、待办和常用入口",
+      "pending": "集中处理待审核内容",
+      "intelligence": "活动治理和模型接口",
+      "events": "活动内容、报名与基础信息",
+      "hackathon": "黑客松报名与参赛信息",
+      "articles": "文章、资讯和长内容",
+      "photos": "图片资源与展示素材",
+      "videos": "视频资源与封面",
+      "music": "音频资源与封面",
+      "pages": "站点静态文案与页面配置",
+      "community": "帖子、社群和社区数据",
+      "users": "账号、角色与用户状态",
+      "messages": "站内联系与反馈消息",
+      "tags": "站内标签和筛选字典",
+      "settings": "站点开关和基础配置"
     },
     "pro_tip": "专业提示",
     "pro_tip_desc": "使用网格/列表视图切换来高效管理内容。",

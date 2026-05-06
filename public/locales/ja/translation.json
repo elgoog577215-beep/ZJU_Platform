@@ -127,12 +127,46 @@
     "delete_confirm": "このアイテムを削除してもよろしいですか？",
     "id": "ID",
     "actions": "アクション",
+    "menu": {
+      "workspace": "ワークスペース",
+      "eventOps": "イベント運用",
+      "contentAssets": "コンテンツ資産",
+      "communityUsers": "コミュニティとユーザー",
+      "systemConfig": "システム設定"
+    },
     "tabs": {
+      "overview": "概要",
+      "pending": "レビューセンター",
+      "intelligence": "スマート管理",
       "photos": "写真",
       "music": "音楽",
       "videos": "動画",
       "articles": "記事",
-      "events": "イベント"
+      "events": "イベント",
+      "hackathon": "ハッカソン",
+      "pages": "ページ",
+      "tags": "タグ",
+      "users": "ユーザー",
+      "community": "コミュニティ",
+      "messages": "メッセージ",
+      "settings": "設定"
+    },
+    "descriptions": {
+      "overview": "主要指標、タスク、よく使う入口",
+      "pending": "保留中のコンテンツをまとめて確認",
+      "intelligence": "イベント管理とモデル接続",
+      "events": "イベント内容、登録、基本情報",
+      "hackathon": "ハッカソン登録と参加者情報",
+      "articles": "記事、ニュース、長文コンテンツ",
+      "photos": "画像素材と表示用アセット",
+      "videos": "動画素材とカバー",
+      "music": "音声素材とカバー",
+      "pages": "静的ページ文言と設定",
+      "community": "投稿、グループ、コミュニティデータ",
+      "users": "アカウント、権限、ユーザー状態",
+      "messages": "問い合わせとフィードバック",
+      "tags": "サイトタグとフィルター辞書",
+      "settings": "サイト設定と基本構成"
     },
     "fields": {
       "title": "タイトル",

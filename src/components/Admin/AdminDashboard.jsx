@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -21,7 +27,7 @@ import {
   Menu,
   MessageSquare,
   Mail,
-  Bot,
+  ShieldCheck,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -40,13 +46,17 @@ import AiAssistantManager from "./AiAssistantManager";
 import { AdminButton } from "./AdminUI";
 
 const STORAGE_KEY = "admin.activeTab";
+const LEGACY_TAB_ALIASES = {
+  "ai-models": "intelligence",
+};
+const normalizeTabId = (tabId) => LEGACY_TAB_ALIASES[tabId] || tabId;
 
 const AdminDashboard = () => {
   const { t } = useTranslation();
   const { uiMode } = useSettings();
   const [activeTab, setActiveTab] = useState(() => {
     if (typeof window === "undefined") return "overview";
-    return sessionStorage.getItem(STORAGE_KEY) || "overview";
+    return normalizeTabId(sessionStorage.getItem(STORAGE_KEY) || "overview");
   });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -106,10 +116,7 @@ const AdminDashboard = () => {
             id: "pending",
             label: t("admin.tabs.pending", "审核中心"),
             icon: Inbox,
-            description: t(
-              "admin.descriptions.pending",
-              "集中处理待审核内容",
-            ),
+            description: t("admin.descriptions.pending", "集中处理待审核内容"),
           },
         ],
       },
@@ -117,12 +124,12 @@ const AdminDashboard = () => {
         title: t("admin.menu.eventOps", "活动运营"),
         items: [
           {
-            id: "ai-models",
-            label: t("admin.tabs.aiAssistant", "智能治理"),
-            icon: Bot,
+            id: "intelligence",
+            label: t("admin.tabs.intelligence", "智能治理"),
+            icon: ShieldCheck,
             description: t(
-              "admin.descriptions.aiAssistant",
-              "活动治理和模型 Key",
+              "admin.descriptions.intelligence",
+              "活动治理和模型接口",
             ),
           },
           {
@@ -152,28 +159,19 @@ const AdminDashboard = () => {
             id: "articles",
             label: t("admin.tabs.articles", "文章"),
             icon: BookOpen,
-            description: t(
-              "admin.descriptions.articles",
-              "文章、资讯和长内容",
-            ),
+            description: t("admin.descriptions.articles", "文章、资讯和长内容"),
           },
           {
             id: "photos",
             label: t("admin.tabs.photos", "图片"),
             icon: LayoutGrid,
-            description: t(
-              "admin.descriptions.photos",
-              "图片资源与展示素材",
-            ),
+            description: t("admin.descriptions.photos", "图片资源与展示素材"),
           },
           {
             id: "videos",
             label: t("admin.tabs.videos", "视频"),
             icon: Film,
-            description: t(
-              "admin.descriptions.videos",
-              "视频资源与封面",
-            ),
+            description: t("admin.descriptions.videos", "视频资源与封面"),
           },
           {
             id: "music",
@@ -214,10 +212,7 @@ const AdminDashboard = () => {
             id: "messages",
             label: t("admin.tabs.messages", "留言"),
             icon: Mail,
-            description: t(
-              "admin.descriptions.messages",
-              "站内联系与反馈消息",
-            ),
+            description: t("admin.descriptions.messages", "站内联系与反馈消息"),
           },
         ],
       },
@@ -234,10 +229,7 @@ const AdminDashboard = () => {
             id: "settings",
             label: t("admin.tabs.settings", "设置"),
             icon: Settings,
-            description: t(
-              "admin.descriptions.settings",
-              "站点开关和基础配置",
-            ),
+            description: t("admin.descriptions.settings", "站点开关和基础配置"),
           },
         ],
       },
@@ -259,16 +251,20 @@ const AdminDashboard = () => {
     if (typeof window === "undefined") return;
     window.requestAnimationFrame(() => {
       contentTopRef.current?.scrollIntoView({ behavior, block: "start" });
-      window.setTimeout(() => {
-        contentTopRef.current?.focus({ preventScroll: true });
-      }, behavior === "auto" ? 0 : 120);
+      window.setTimeout(
+        () => {
+          contentTopRef.current?.focus({ preventScroll: true });
+        },
+        behavior === "auto" ? 0 : 120,
+      );
     });
   }, []);
 
   const selectTab = useCallback(
     (tabId, options = {}) => {
-      if (!flatMenuItems.some((item) => item.id === tabId)) return;
-      setActiveTab(tabId);
+      const nextTabId = normalizeTabId(tabId);
+      if (!flatMenuItems.some((item) => item.id === nextTabId)) return;
+      setActiveTab(nextTabId);
       setIsMobileMenuOpen(false);
       if (options.scroll !== false) {
         scrollToContentStart(options.behavior);
@@ -303,7 +299,7 @@ const AdminDashboard = () => {
         return <TagManager />;
       case "settings":
         return <SettingsManager />;
-      case "ai-models":
+      case "intelligence":
         return <AiAssistantManager />;
       case "users":
         return <UserManager />;
@@ -470,14 +466,19 @@ const AdminDashboard = () => {
           <div className={`rounded-2xl px-4 py-3 ${topPanelClass}`}>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
-                <div className={`text-xs font-semibold uppercase tracking-[0.16em] ${metaLabelClass}`}>
+                <div
+                  className={`text-xs font-semibold uppercase tracking-[0.16em] ${metaLabelClass}`}
+                >
                   模块导航
                 </div>
-                <div className={`mt-1 truncate text-sm font-semibold ${titleClass}`}>
+                <div
+                  className={`mt-1 truncate text-sm font-semibold ${titleClass}`}
+                >
                   {activeGroup?.title || "总览"} / {activeItem?.label || "总览"}
                 </div>
                 <div className={`mt-1 text-xs ${mutedClass}`}>
-                  第 {modulePosition} 个模块 · {new Date().toLocaleDateString("zh-CN")}
+                  第 {modulePosition} 个模块 ·{" "}
+                  {new Date().toLocaleDateString("zh-CN")}
                 </div>
               </div>
               <button
@@ -488,7 +489,9 @@ const AdminDashboard = () => {
                 <LogOut size={16} /> {t("admin.logout", "退出管理")}
               </button>
             </div>
-            <div className={`mt-3 flex flex-col gap-2 pt-3 sm:flex-row sm:items-center sm:justify-between ${quickJumpDividerClass}`}>
+            <div
+              className={`mt-3 flex flex-col gap-2 pt-3 sm:flex-row sm:items-center sm:justify-between ${quickJumpDividerClass}`}
+            >
               <select
                 aria-label="快速跳转到管理模块"
                 value={activeTab}

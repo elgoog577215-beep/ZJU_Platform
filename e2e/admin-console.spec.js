@@ -147,11 +147,11 @@ const installAdminMocks = async (page) => {
 
     if (path === "/settings") {
       return route.fulfill({
-      json: {
-        site_title: "拓途浙享 | TUOTUZJU",
-        pagination_enabled: "false",
-        language: "zh",
-      },
+        json: {
+          site_title: "拓途浙享 | TUOTUZJU",
+          pagination_enabled: "false",
+          language: "zh",
+        },
       });
     }
 
@@ -202,7 +202,9 @@ test.describe("admin console refinement", () => {
 
     await page.goto("/admin");
 
-    await expect(page.getByRole("heading", { name: "管理控制台" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "管理控制台" }),
+    ).toBeVisible();
     await expect(page.getByText("今日待办")).toBeVisible();
     await expect(page.getByText("模块导航")).toBeVisible();
     await expect(page.getByRole("heading", { name: "内容资产" })).toBeVisible();
@@ -223,7 +225,9 @@ test.describe("admin console refinement", () => {
     await page.getByRole("button", { name: "搜索" }).click();
     await expect(page.getByText("搜索“春日”")).toBeVisible();
     await page.getByRole("button", { name: "查看列表" }).click();
-    await expect(page.getByRole("heading", { name: "图片资源列表" })).toBeInViewport();
+    await expect(
+      page.getByRole("heading", { name: "图片资源列表" }),
+    ).toBeInViewport();
     await page.getByRole("button", { name: /清空/ }).click();
     await page.getByRole("checkbox", { name: "选择 紫金港春日影像" }).check();
     await expect(page.getByText("条当前可见内容")).toBeVisible();
@@ -236,14 +240,28 @@ test.describe("admin console refinement", () => {
       .toBeLessThan(160);
 
     await quickJump.selectOption("hackathon");
-    await expect(page.getByRole("heading", { name: "黑客松报名管理" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "黑客松报名管理" }),
+    ).toBeVisible();
     await expect(page.getByRole("button", { name: "导出 CSV" })).toBeVisible();
-    await expect(page.getByRole("combobox", { name: "按年级筛选" })).toBeVisible();
+    await expect(
+      page.getByRole("combobox", { name: "按年级筛选" }),
+    ).toBeVisible();
     await expect(page.getByRole("cell", { name: "张同学" })).toBeVisible();
     await page.getByRole("button", { name: "跳转到上一个管理模块" }).click();
     await expect(
       page.getByRole("heading", { name: "活动管理", exact: true }),
     ).toBeVisible();
+
+    await quickJump.selectOption("intelligence");
+    await expect(page.getByRole("heading", { name: "智能治理" })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "活动治理", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "模型 Key", exact: true }),
+    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "AI 助手" })).toHaveCount(0);
 
     await quickJump.selectOption("tags");
     await expect(page.getByRole("heading", { name: "标签管理" })).toBeVisible();
@@ -252,7 +270,9 @@ test.describe("admin console refinement", () => {
     await expect(page.getByText("引用数 2")).toBeVisible();
     await expect
       .poll(() =>
-        page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+        page.evaluate(
+          () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
       )
       .toBe(true);
 
@@ -260,10 +280,14 @@ test.describe("admin console refinement", () => {
     await expect(page.getByRole("heading", { name: "留言中心" })).toBeVisible();
     await expect(page.getByText("访客 A")).toBeVisible();
     await page.getByRole("button", { name: "标记为已读" }).click();
-    await expect(page.getByRole("button", { name: "标记为已读" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "标记为已读" })).toHaveCount(
+      0,
+    );
     await expect
       .poll(() =>
-        page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+        page.evaluate(
+          () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
       )
       .toBe(true);
   });
@@ -286,13 +310,17 @@ test.describe("admin console refinement", () => {
       .toBe("hidden");
 
     await page.getByRole("button", { name: "黑客松", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "黑客松报名管理" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "黑客松报名管理" }),
+    ).toBeVisible();
     await expect
       .poll(() => page.evaluate(() => document.body.style.overflow))
       .toBe("");
     await expect
       .poll(() =>
-        page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+        page.evaluate(
+          () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
       )
       .toBe(true);
 
@@ -302,7 +330,9 @@ test.describe("admin console refinement", () => {
     await expect(page.getByText("123").first()).toBeVisible();
     await expect
       .poll(() =>
-        page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+        page.evaluate(
+          () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
       )
       .toBe(true);
 

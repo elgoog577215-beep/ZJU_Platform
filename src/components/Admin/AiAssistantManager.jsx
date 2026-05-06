@@ -7,7 +7,6 @@ import {
   Loader2,
   RefreshCw,
   ShieldCheck,
-  Sparkles,
   XCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -30,7 +29,8 @@ const sections = [
 ];
 
 const valueText = (value) => {
-  const text = String(value || "").trim();
+  if (value === null || value === undefined) return "空";
+  const text = String(value).trim();
   return text || "空";
 };
 
@@ -112,9 +112,11 @@ const CompactStat = ({ label, value, icon: Icon }) => {
 
 const SuggestionRow = ({ suggestion, checked, disabled, onToggle }) => {
   const { isDayMode, mutedTextClass, headingTextClass } = useAdminTheme();
+  const suggestionId = suggestion.suggestionId || suggestion.id;
   const confidence = Number(suggestion.confidence || 0);
+  const status = suggestion.status || "suggested";
   const statusMeta =
-    suggestionStatusMeta[suggestion.status] || suggestionStatusMeta.suggested;
+    suggestionStatusMeta[status] || suggestionStatusMeta.suggested;
 
   return (
     <label
@@ -132,12 +134,14 @@ const SuggestionRow = ({ suggestion, checked, disabled, onToggle }) => {
         className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600"
         checked={checked}
         disabled={disabled}
-        onChange={() => onToggle(suggestion.suggestionId)}
+        onChange={() => onToggle(suggestionId)}
       />
 
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
-          <span className={clsx("truncate text-sm font-bold", headingTextClass)}>
+          <span
+            className={clsx("truncate text-sm font-bold", headingTextClass)}
+          >
             {suggestion.eventTitle}
           </span>
           <span
@@ -186,7 +190,7 @@ const SuggestionRow = ({ suggestion, checked, disabled, onToggle }) => {
         <span
           className={clsx(
             "inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold",
-            suggestionStatusClass(suggestion.status, isDayMode),
+            suggestionStatusClass(status, isDayMode),
           )}
         >
           {statusMeta.label}
@@ -222,9 +226,10 @@ const AiAssistantManager = () => {
       suggestions
         .filter(
           (item) =>
-            item.status === "suggested" && Number(item.confidence || 0) >= 0.72,
+            (item.status || "suggested") === "suggested" &&
+            Number(item.confidence || 0) >= 0.72,
         )
-        .map((item) => item.suggestionId)
+        .map((item) => item.suggestionId || item.id)
         .filter(Boolean),
     [suggestions],
   );
@@ -259,7 +264,7 @@ const AiAssistantManager = () => {
       setScanResult(response.data);
       const nextSelected = (response.data?.suggestions || [])
         .filter((item) => Number(item.confidence || 0) >= 0.72)
-        .map((item) => item.suggestionId)
+        .map((item) => item.suggestionId || item.id)
         .filter(Boolean);
       setSelectedIds(nextSelected);
       toast.success(
@@ -300,7 +305,7 @@ const AiAssistantManager = () => {
       );
       const statusMap = new Map(
         (response.data?.details || []).map((detail) => [
-          detail.suggestionId,
+          detail.suggestionId || detail.id,
           {
             status: detail.status,
             reason: detail.reason,
@@ -383,7 +388,7 @@ const AiAssistantManager = () => {
           <CompactStat
             label="待补分类"
             value={health.uncategorizedEventCount || 0}
-            icon={Sparkles}
+            icon={CheckCircle2}
           />
           <CompactStat
             label="可用 Key"
@@ -407,7 +412,7 @@ const AiAssistantManager = () => {
             <CompactStat
               label="建议"
               value={scanResult.summary?.suggestionCount || 0}
-              icon={Sparkles}
+              icon={CheckCircle2}
             />
             <CompactStat
               label="高置信"
@@ -494,8 +499,10 @@ const AiAssistantManager = () => {
               <SuggestionRow
                 key={suggestion.suggestionId || suggestion.id}
                 suggestion={suggestion}
-                checked={selectedSet.has(suggestion.suggestionId)}
-                disabled={suggestion.status !== "suggested"}
+                checked={selectedSet.has(
+                  suggestion.suggestionId || suggestion.id,
+                )}
+                disabled={(suggestion.status || "suggested") !== "suggested"}
                 onToggle={toggleSuggestion}
               />
             ))}
@@ -507,7 +514,7 @@ const AiAssistantManager = () => {
 
   return (
     <AdminPageShell
-      title="AI 助手"
+      title="智能治理"
       actions={
         <AdminButton tone="subtle" onClick={loadOverview} disabled={loading}>
           {loading ? (
