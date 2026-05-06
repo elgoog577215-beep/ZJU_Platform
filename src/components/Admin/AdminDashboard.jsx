@@ -6,6 +6,7 @@ import React, {
   useState,
 } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSearchParams } from "react-router-dom";
 import {
   LayoutDashboard,
   Inbox,
@@ -50,14 +51,42 @@ const LEGACY_TAB_ALIASES = {
   "ai-models": "intelligence",
 };
 const normalizeTabId = (tabId) => LEGACY_TAB_ALIASES[tabId] || tabId;
+const KNOWN_TAB_IDS = new Set([
+  "overview",
+  "pending",
+  "intelligence",
+  "events",
+  "hackathon",
+  "articles",
+  "photos",
+  "videos",
+  "music",
+  "pages",
+  "community",
+  "users",
+  "messages",
+  "tags",
+  "settings",
+]);
+
+const getInitialTabId = () => {
+  if (typeof window === "undefined") return "overview";
+  const queryTab = normalizeTabId(
+    new URLSearchParams(window.location.search).get("tab") || "",
+  );
+  if (KNOWN_TAB_IDS.has(queryTab)) return queryTab;
+
+  const storedTab = normalizeTabId(
+    sessionStorage.getItem(STORAGE_KEY) || "overview",
+  );
+  return KNOWN_TAB_IDS.has(storedTab) ? storedTab : "overview";
+};
 
 const AdminDashboard = () => {
   const { t } = useTranslation();
   const { uiMode } = useSettings();
-  const [activeTab, setActiveTab] = useState(() => {
-    if (typeof window === "undefined") return "overview";
-    return normalizeTabId(sessionStorage.getItem(STORAGE_KEY) || "overview");
-  });
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(getInitialTabId);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const contentTopRef = useRef(null);
@@ -260,17 +289,45 @@ const AdminDashboard = () => {
     });
   }, []);
 
+  const writeTabSearchParam = useCallback(
+    (tabId, options = {}) => {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.set("tab", tabId);
+      setSearchParams(nextParams, { replace: options.replace === true });
+    },
+    [searchParams, setSearchParams],
+  );
+
+  useEffect(() => {
+    const rawTab = searchParams.get("tab");
+    const normalizedTab = normalizeTabId(rawTab || "");
+    const nextTab = KNOWN_TAB_IDS.has(normalizedTab) ? normalizedTab : activeTab;
+
+    if (rawTab !== nextTab) {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.set("tab", nextTab);
+      setSearchParams(nextParams, { replace: true });
+      return;
+    }
+
+    if (nextTab !== activeTab) {
+      setActiveTab(nextTab);
+      scrollToContentStart("auto");
+    }
+  }, [activeTab, scrollToContentStart, searchParams, setSearchParams]);
+
   const selectTab = useCallback(
     (tabId, options = {}) => {
       const nextTabId = normalizeTabId(tabId);
       if (!flatMenuItems.some((item) => item.id === nextTabId)) return;
       setActiveTab(nextTabId);
+      writeTabSearchParam(nextTabId, { replace: options.replace === true });
       setIsMobileMenuOpen(false);
       if (options.scroll !== false) {
         scrollToContentStart(options.behavior);
       }
     },
-    [flatMenuItems, scrollToContentStart],
+    [flatMenuItems, scrollToContentStart, writeTabSearchParam],
   );
 
   const selectAdjacentModule = useCallback(
@@ -378,6 +435,8 @@ const AdminDashboard = () => {
   const logoutClass = isDayMode
     ? "inline-flex min-h-[38px] items-center gap-2 rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-white hover:text-rose-600"
     : "inline-flex min-h-[38px] items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-gray-300 transition-colors hover:bg-white/10 hover:text-red-300";
+  const adjacentNavButtonClass =
+    "min-h-[40px] px-2.5 sm:min-w-[40px] sm:px-2";
   const overlayClass = isDayMode
     ? "fixed inset-0 z-[90] bg-white/70 backdrop-blur-sm lg:hidden"
     : "fixed inset-0 z-[90] bg-black/70 backdrop-blur-sm lg:hidden";
@@ -469,7 +528,7 @@ const AdminDashboard = () => {
                 <div
                   className={`text-xs font-semibold uppercase tracking-[0.16em] ${metaLabelClass}`}
                 >
-                  模块导航
+                  当前模块
                 </div>
                 <div
                   className={`mt-1 truncate text-sm font-semibold ${titleClass}`}
@@ -477,7 +536,7 @@ const AdminDashboard = () => {
                   {activeGroup?.title || "总览"} / {activeItem?.label || "总览"}
                 </div>
                 <div className={`mt-1 text-xs ${mutedClass}`}>
-                  第 {modulePosition} 个模块 ·{" "}
+                  {modulePosition} ·{" "}
                   {new Date().toLocaleDateString("zh-CN")}
                 </div>
               </div>
@@ -511,20 +570,20 @@ const AdminDashboard = () => {
               <div className="grid grid-cols-2 gap-2 sm:flex">
                 <AdminButton
                   tone="subtle"
-                  className="px-3"
+                  className={adjacentNavButtonClass}
                   aria-label="跳转到上一个管理模块"
                   onClick={() => selectAdjacentModule(-1)}
                 >
                   <ChevronLeft size={16} />
-                  <span>上一个</span>
+                  <span className="sm:sr-only">上一个</span>
                 </AdminButton>
                 <AdminButton
                   tone="subtle"
-                  className="px-3"
+                  className={adjacentNavButtonClass}
                   aria-label="跳转到下一个管理模块"
                   onClick={() => selectAdjacentModule(1)}
                 >
-                  <span>下一个</span>
+                  <span className="sm:sr-only">下一个</span>
                   <ChevronRight size={16} />
                 </AdminButton>
               </div>

@@ -18,6 +18,7 @@ import {
   AdminLoadingState,
   AdminPageShell,
   AdminPanel,
+  ConfirmDialog,
   StatusBadge,
   useAdminTheme,
 } from "./AdminUI";
@@ -52,6 +53,8 @@ const AiModelConfigManager = ({ embedded = false }) => {
   const [testingId, setTestingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [editMap, setEditMap] = useState({});
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const enabledCount = useMemo(
     () => configs.filter((config) => config.enabled).length,
@@ -62,7 +65,11 @@ const AiModelConfigManager = ({ embedded = false }) => {
     setLoading(true);
     try {
       const response = await api.get("/admin/ai-model-configs");
-      setConfigs(Array.isArray(response.data) ? response.data : []);
+      const nextConfigs = Array.isArray(response.data) ? response.data : [];
+      setConfigs(nextConfigs);
+      if (nextConfigs.length === 0) {
+        setShowCreateForm(true);
+      }
     } catch {
       toast.error("Key 配置加载失败");
     } finally {
@@ -124,6 +131,7 @@ const AiModelConfigManager = ({ embedded = false }) => {
       });
       setConfigs((previous) => [...previous, response.data]);
       setForm(emptyForm);
+      setShowCreateForm(false);
       toast.success("Key 已添加");
     } catch (error) {
       toast.error(error?.response?.data?.message || "保存失败");
@@ -216,6 +224,7 @@ const AiModelConfigManager = ({ embedded = false }) => {
       toast.error("删除失败");
     } finally {
       setDeletingId(null);
+      setDeleteTarget(null);
     }
   };
 
@@ -230,90 +239,26 @@ const AiModelConfigManager = ({ embedded = false }) => {
 
   const content = (
     <>
-      <AdminPanel title="添加 Key">
-        <form onSubmit={handleCreate} className="grid gap-4">
-          <div className="grid gap-3 md:grid-cols-2">
-            <label className="grid gap-2 text-sm font-medium">
-              <span className={mutedTextClass}>显示名称</span>
-              <input
-                className={fieldClass}
-                value={form.name}
-                onChange={(event) => updateForm("name", event.target.value)}
-                placeholder="默认接口"
-              />
-            </label>
-            <label className="grid gap-2 text-sm font-medium">
-              <span className={mutedTextClass}>模型名称</span>
-              <input
-                className={fieldClass}
-                value={form.model}
-                onChange={(event) => updateForm("model", event.target.value)}
-                placeholder="deepseek-chat"
-              />
-            </label>
-          </div>
-
-          <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_160px]">
-            <label className="grid gap-2 text-sm font-medium">
-              <span className={mutedTextClass}>接口地址</span>
-              <input
-                className={fieldClass}
-                value={form.base_url}
-                onChange={(event) => updateForm("base_url", event.target.value)}
-                placeholder="https://api.deepseek.com/v1"
-              />
-            </label>
-            <label className="grid gap-2 text-sm font-medium">
-              <span className={mutedTextClass}>优先级</span>
-              <input
-                type="number"
-                className={fieldClass}
-                value={form.priority}
-                onChange={(event) => updateForm("priority", event.target.value)}
-                min="1"
-              />
-            </label>
-          </div>
-
-          <label className="grid gap-2 text-sm font-medium">
-            <span className={mutedTextClass}>API Key</span>
-            <input
-              type="password"
-              className={fieldClass}
-              value={form.api_key}
-              onChange={(event) => updateForm("api_key", event.target.value)}
-              placeholder="sk-..."
-              autoComplete="off"
-            />
-          </label>
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <label className="inline-flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={form.enabled}
-                onChange={(event) =>
-                  updateForm("enabled", event.target.checked)
-                }
-                className="h-4 w-4 rounded"
-              />
-              <span className={mutedTextClass}>添加后立即启用</span>
-            </label>
-            <AdminButton tone="primary" type="submit" disabled={saving}>
-              {saving ? (
-                <Loader2 size={16} className="animate-spin" />
-              ) : (
-                <Plus size={16} />
-              )}
-              添加 Key
+      <AdminPanel
+        title={`Key 列表 (${configs.length})`}
+        action={
+          configs.length > 0 ? (
+            <AdminButton
+              tone={showCreateForm ? "subtle" : "primary"}
+              onClick={() => setShowCreateForm((value) => !value)}
+            >
+              <Plus size={16} />
+              {showCreateForm ? "收起添加" : "添加 Key"}
             </AdminButton>
-          </div>
-        </form>
-      </AdminPanel>
-
-      <AdminPanel title={`Key 列表 (${configs.length})`}>
+          ) : null
+        }
+      >
         {configs.length === 0 ? (
-          <AdminEmptyState icon={Zap} title="暂无 Key" />
+          <AdminEmptyState
+            icon={Zap}
+            title="暂无 Key"
+            description="添加一个可用模型 Key 后，活动治理扫描才能调用模型。"
+          />
         ) : (
           <div className="grid gap-3">
             {configs.map((config) => {
@@ -501,7 +446,7 @@ const AiModelConfigManager = ({ embedded = false }) => {
                         label="删除配置"
                         tone="danger"
                         disabled={deletingId === config.id}
-                        onClick={() => handleDelete(config)}
+                        onClick={() => setDeleteTarget(config)}
                       >
                         {deletingId === config.id ? (
                           <Loader2 size={16} className="animate-spin" />
@@ -517,6 +462,114 @@ const AiModelConfigManager = ({ embedded = false }) => {
           </div>
         )}
       </AdminPanel>
+
+      {showCreateForm || configs.length === 0 ? (
+        <AdminPanel title="添加 Key">
+          <form onSubmit={handleCreate} className="grid gap-4">
+            <div className="grid gap-3 md:grid-cols-2">
+              <label className="grid gap-2 text-sm font-medium">
+                <span className={mutedTextClass}>显示名称</span>
+                <input
+                  className={fieldClass}
+                  value={form.name}
+                  onChange={(event) => updateForm("name", event.target.value)}
+                  placeholder="默认接口"
+                />
+              </label>
+              <label className="grid gap-2 text-sm font-medium">
+                <span className={mutedTextClass}>模型名称</span>
+                <input
+                  className={fieldClass}
+                  value={form.model}
+                  onChange={(event) => updateForm("model", event.target.value)}
+                  placeholder="deepseek-chat"
+                />
+              </label>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_160px]">
+              <label className="grid gap-2 text-sm font-medium">
+                <span className={mutedTextClass}>接口地址</span>
+                <input
+                  className={fieldClass}
+                  value={form.base_url}
+                  onChange={(event) =>
+                    updateForm("base_url", event.target.value)
+                  }
+                  placeholder="https://api.deepseek.com/v1"
+                />
+              </label>
+              <label className="grid gap-2 text-sm font-medium">
+                <span className={mutedTextClass}>优先级</span>
+                <input
+                  type="number"
+                  className={fieldClass}
+                  value={form.priority}
+                  onChange={(event) =>
+                    updateForm("priority", event.target.value)
+                  }
+                  min="1"
+                />
+              </label>
+            </div>
+
+            <label className="grid gap-2 text-sm font-medium">
+              <span className={mutedTextClass}>API Key</span>
+              <input
+                type="password"
+                className={fieldClass}
+                value={form.api_key}
+                onChange={(event) => updateForm("api_key", event.target.value)}
+                placeholder="sk-..."
+                autoComplete="off"
+              />
+            </label>
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <label className="inline-flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={form.enabled}
+                  onChange={(event) =>
+                    updateForm("enabled", event.target.checked)
+                  }
+                  className="h-4 w-4 rounded"
+                />
+                <span className={mutedTextClass}>添加后立即启用</span>
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {configs.length > 0 ? (
+                  <AdminButton
+                    tone="subtle"
+                    type="button"
+                    onClick={() => setShowCreateForm(false)}
+                  >
+                    取消
+                  </AdminButton>
+                ) : null}
+                <AdminButton tone="primary" type="submit" disabled={saving}>
+                  {saving ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <Plus size={16} />
+                  )}
+                  添加 Key
+                </AdminButton>
+              </div>
+            </div>
+          </form>
+        </AdminPanel>
+      ) : null}
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title="确认删除 Key 配置"
+        description={`删除“${deleteTarget?.name || "当前 Key"}”后，相关模型调用将不再使用此配置。`}
+        confirmText="确认删除"
+        pending={Boolean(deleteTarget && deletingId === deleteTarget.id)}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => deleteTarget && handleDelete(deleteTarget)}
+      />
     </>
   );
 

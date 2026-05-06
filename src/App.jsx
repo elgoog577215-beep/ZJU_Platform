@@ -41,6 +41,7 @@ const PlatformStats = lazy(() => import('./components/PlatformStats'));
 const About = lazy(() => import('./components/About'));
 const HackathonRegistration = lazy(() => import('./components/HackathonRegistration'));
 const AdminDashboard = lazy(() => import('./components/Admin/AdminDashboard'));
+const AdminAccessGate = lazy(() => import('./components/Admin/AdminAccessGate'));
 const NotFound = lazy(() => import('./components/NotFound'));
 const PublicProfile = lazy(() => import('./components/PublicProfile'));
 const SearchPalette = lazy(() => import('./components/SearchPalette'));
@@ -95,8 +96,7 @@ const Home = () => (
 
 const AdminRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  if (loading) return null;
-  if (!user || user.role !== 'admin') return <Navigate to="/" replace />;
+  if (loading || !user || user.role !== 'admin') return <AdminAccessGate />;
   return children;
 };
 

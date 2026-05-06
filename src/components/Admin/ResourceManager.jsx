@@ -84,7 +84,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
           page,
           limit: 10,
           search: searchQuery,
-          status: "all",
+          status: statusFilter,
           sort,
           _t: Date.now(),
         },
@@ -105,7 +105,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
 
   useEffect(() => {
     fetchItems(1);
-  }, [apiEndpoint, sort, searchQuery]);
+  }, [apiEndpoint, sort, searchQuery, statusFilter]);
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
@@ -273,7 +273,8 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
   const serverTotal = Number(pagination.total || 0);
   const visibleTotal = filteredItems.length;
   const activeFilterLabel =
-    STATUS_FILTERS.find((filter) => filter.id === statusFilter)?.label || "全部状态";
+    STATUS_FILTERS.find((filter) => filter.id === statusFilter)?.label ||
+    "全部状态";
 
   const submitConfirmedAction = async () => {
     if (!confirmState) return;
@@ -421,7 +422,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
   );
 
   const renderTable = () => (
-    <AdminTableShell minWidth={860} maxHeight="62vh">
+    <AdminTableShell minWidth={860}>
       <thead>
         <tr className="theme-admin-table-head border-b text-xs uppercase tracking-[0.2em]">
           <th className="p-4">
@@ -641,7 +642,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
 
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <AdminMetricCard
-            label="当前结果"
+            label="本页内容"
             value={formatNumber(statusCounts.total)}
           />
           <AdminMetricCard
@@ -666,8 +667,8 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
           className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
         >
           <span>
-            列表范围：本页 {items.length} 条，服务器 {formatNumber(serverTotal)} 条；
-            筛选为“{activeFilterLabel}”
+            当前筛选“{activeFilterLabel}”共 {formatNumber(serverTotal)} 条，
+            本页显示 {items.length} 条
             {searchQuery ? `，搜索“${searchQuery}”` : ""}。
           </span>
           <button
@@ -686,10 +687,10 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
                 <div className="text-sm">
                 已选择{" "}
                 <span className="font-semibold">{selectedItems.length}</span>{" "}
-                  条当前可见内容。
+                  条当前页内容。
                 </div>
                 <AdminHelperText className="mt-1">
-                  批量操作只会作用于当前已选项目，不会自动包含其它分页或未加载结果。
+                  批量操作只会作用于当前页已选项目，不会自动包含其它分页或未加载结果。
                 </AdminHelperText>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -736,7 +737,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
         <div ref={listRef} className="scroll-mt-28">
           <AdminPanel
             title={`${title}列表`}
-            description={`当前可见 ${visibleTotal} 条结果，服务器总计 ${formatNumber(serverTotal)} 条。`}
+            description={`本页 ${visibleTotal} 条，当前筛选共 ${formatNumber(serverTotal)} 条。`}
           >
             {filteredItems.length === 0 ? (
               <AdminEmptyState

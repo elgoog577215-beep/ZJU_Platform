@@ -24,8 +24,8 @@ import {
 import AiModelConfigManager from "./AiModelConfigManager";
 
 const sections = [
-  { id: "governance", label: "活动治理", icon: Database },
-  { id: "models", label: "模型 Key", icon: KeyRound },
+  { id: "governance", label: "治理建议", icon: Database },
+  { id: "models", label: "模型配置", icon: KeyRound },
 ];
 
 const valueText = (value) => {
@@ -184,6 +184,19 @@ const SuggestionRow = ({ suggestion, checked, disabled, onToggle }) => {
             {valueText(suggestion.suggestedValue)}
           </div>
         </div>
+
+        {suggestion.reason ? (
+          <div
+            className={clsx(
+              "mt-2 line-clamp-2 rounded-lg px-2.5 py-2 text-xs",
+              isDayMode
+                ? "bg-amber-50 text-amber-800"
+                : "bg-amber-400/10 text-amber-100",
+            )}
+          >
+            原因：{suggestion.reason}
+          </div>
+        ) : null}
       </div>
 
       <div className="flex items-start justify-between gap-2 md:flex-col md:items-end">
@@ -314,15 +327,16 @@ const AiAssistantManager = () => {
       );
       setScanResult((previous) => ({
         ...previous,
-        suggestions: (previous?.suggestions || []).map((item) =>
-          statusMap.has(item.suggestionId)
+        suggestions: (previous?.suggestions || []).map((item) => {
+          const itemId = item.suggestionId || item.id;
+          return statusMap.has(itemId)
             ? {
                 ...item,
-                status: statusMap.get(item.suggestionId).status,
-                reason: statusMap.get(item.suggestionId).reason || item.reason,
+                status: statusMap.get(itemId).status,
+                reason: statusMap.get(itemId).reason || item.reason,
               }
-            : item,
-        ),
+            : item;
+        }),
       }));
       setApplySummary(response.data || null);
       setSelectedIds([]);
@@ -352,7 +366,7 @@ const AiAssistantManager = () => {
 
   const governanceView = (
     <AdminPanel
-      title="活动治理"
+      title="活动治理建议"
       action={
         <div className="flex flex-wrap gap-2">
           <AdminButton tone="subtle" onClick={runScan} disabled={scanning}>
@@ -514,7 +528,8 @@ const AiAssistantManager = () => {
 
   return (
     <AdminPageShell
-      title="智能治理"
+      title="治理与模型配置"
+      description="集中处理活动治理建议和模型接口配置，保留必要的自动化能力，减少无关助手入口。"
       actions={
         <AdminButton tone="subtle" onClick={loadOverview} disabled={loading}>
           {loading ? (

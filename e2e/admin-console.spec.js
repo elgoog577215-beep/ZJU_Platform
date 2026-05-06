@@ -38,24 +38,32 @@ const statsPayload = {
   },
 };
 
-const resourcePayload = {
-  data: [
-    {
-      id: 101,
-      title: "紫金港春日影像",
-      status: "approved",
-      tags: "校园,摄影",
-      url: "/newlogo.png",
-    },
-    {
-      id: 102,
-      title: "待审核活动海报",
-      status: "pending",
-      tags: "活动",
-      url: "/newlogo.png",
-    },
-  ],
-  pagination: { page: 1, total: 2, totalPages: 1 },
+const resourceItems = [
+  {
+    id: 101,
+    title: "紫金港春日影像",
+    status: "approved",
+    tags: "校园,摄影",
+    url: "/newlogo.png",
+  },
+  {
+    id: 102,
+    title: "待审核活动海报",
+    status: "pending",
+    tags: "活动",
+    url: "/newlogo.png",
+  },
+];
+
+const buildResourcePayload = (status = "all") => {
+  const data =
+    status && status !== "all"
+      ? resourceItems.filter((item) => item.status === status)
+      : resourceItems;
+  return {
+    data,
+    pagination: { page: 1, total: data.length, totalPages: 1 },
+  };
 };
 
 const hackathonPayload = [
@@ -130,6 +138,50 @@ const messagesPayload = [
   },
 ];
 
+const aiOverviewPayload = {
+  health: {
+    eventCount: 12,
+    uncategorizedEventCount: 3,
+    enabledModelConfigCount: 1,
+  },
+  recentRuns: [],
+};
+
+const aiScanPayload = {
+  runId: "run-20260506",
+  summary: {
+    scannedEventCount: 12,
+    suggestionCount: 1,
+    highConfidenceCount: 1,
+  },
+  suggestions: [
+    {
+      id: 501,
+      eventId: 11,
+      eventTitle: "AI 全栈极速黑客松",
+      fieldLabel: "分类",
+      currentValue: "",
+      suggestedValue: "创新创业",
+      confidence: 0.86,
+      status: "suggested",
+      reason: "标题和描述包含黑客松、全栈、项目路演等活动治理关键词。",
+    },
+  ],
+};
+
+const aiModelConfigsPayload = [
+  {
+    id: 1,
+    name: "DeepSeek 默认接口",
+    base_url: "https://api.deepseek.com/v1",
+    model: "deepseek-chat",
+    masked_api_key: "sk-***-test",
+    priority: 100,
+    enabled: true,
+    last_status: "ok",
+  },
+];
+
 const installAdminMocks = async (page) => {
   await page.addInitScript(() => {
     localStorage.setItem("token", "mock-admin-token");
@@ -164,7 +216,9 @@ const installAdminMocks = async (page) => {
     }
 
     if (path === "/photos") {
-      return route.fulfill({ json: resourcePayload });
+      return route.fulfill({
+        json: buildResourcePayload(url.searchParams.get("status") || "all"),
+      });
     }
 
     if (path === "/admin/hackathon/registrations") {
@@ -183,6 +237,41 @@ const installAdminMocks = async (page) => {
       return route.fulfill({ json: messagesPayload });
     }
 
+    if (path === "/admin/ai-assistant/overview") {
+      return route.fulfill({ json: aiOverviewPayload });
+    }
+
+    if (
+      path === "/admin/ai-assistant/event-governance/scan" &&
+      request.method() === "POST"
+    ) {
+      return route.fulfill({ json: aiScanPayload });
+    }
+
+    if (
+      path === "/admin/ai-assistant/event-governance/apply" &&
+      request.method() === "POST"
+    ) {
+      return route.fulfill({
+        json: {
+          appliedCount: 1,
+          skippedCount: 0,
+          details: [{ id: 501, status: "applied" }],
+        },
+      });
+    }
+
+    if (path === "/admin/ai-model-configs" && request.method() === "GET") {
+      return route.fulfill({ json: aiModelConfigsPayload });
+    }
+
+    if (
+      path === "/admin/ai-model-configs/1" &&
+      request.method() === "DELETE"
+    ) {
+      return route.fulfill({ json: { success: true } });
+    }
+
     if (request.method() === "GET") {
       return route.fulfill({
         json: { data: [], pagination: { page: 1, total: 0, totalPages: 1 } },
@@ -194,6 +283,31 @@ const installAdminMocks = async (page) => {
 };
 
 test.describe("admin console refinement", () => {
+  test("admin access gate keeps unauthenticated users in admin context", async ({
+    page,
+  }) => {
+    await page.route("**/api/settings", (route) =>
+      route.fulfill({
+        json: {
+          site_title: "拓途浙享 | TUOTUZJU",
+          pagination_enabled: "false",
+          language: "zh",
+        },
+      }),
+    );
+
+    await page.goto("/admin?tab=photos");
+
+    await expect(page).toHaveURL(/\/admin\?tab=photos/);
+    await expect(
+      page.getByRole("heading", { name: "管理员登录" }),
+    ).toBeVisible();
+    await expect(page.getByLabel("账号")).toHaveValue("123");
+    await expect(
+      page.getByRole("button", { name: "进入管理员后台" }),
+    ).toBeVisible();
+  });
+
   test("desktop overview, resource navigation, and hackathon manager render refined controls", async ({
     page,
   }) => {
@@ -201,12 +315,13 @@ test.describe("admin console refinement", () => {
     await installAdminMocks(page);
 
     await page.goto("/admin");
+    await expect(page).toHaveURL(/\/admin\?tab=overview/);
 
     await expect(
       page.getByRole("heading", { name: "管理控制台" }),
     ).toBeVisible();
     await expect(page.getByText("今日待办")).toBeVisible();
-    await expect(page.getByText("模块导航")).toBeVisible();
+    await expect(page.getByText("当前模块")).toBeVisible();
     await expect(page.getByRole("heading", { name: "内容资产" })).toBeVisible();
     const quickJump = page.getByRole("combobox", {
       name: "快速跳转到管理模块",
@@ -214,13 +329,29 @@ test.describe("admin console refinement", () => {
     await expect(quickJump).toHaveValue("overview");
 
     await quickJump.selectOption("photos");
+    await expect(page).toHaveURL(/tab=photos/);
     await expect(
       page.getByRole("heading", { name: "图片资源", exact: true }),
     ).toBeVisible();
     await expect(quickJump).toHaveValue("photos");
-    await expect(page.getByText("列表范围：本页 2 条")).toBeVisible();
+    await expect(
+      page.getByText("当前筛选“全部状态”共 2 条，本页显示 2 条"),
+    ).toBeVisible();
     await expect(page.getByRole("table")).toBeVisible();
     await expect(page.locator("table.theme-admin-table-sticky")).toBeVisible();
+    const pendingRequest = page.waitForRequest((request) => {
+      const url = new URL(request.url());
+      return (
+        url.pathname.endsWith("/api/photos") &&
+        url.searchParams.get("status") === "pending"
+      );
+    });
+    await page.getByRole("button", { name: "待审核" }).click();
+    await pendingRequest;
+    await expect(
+      page.getByText("当前筛选“待审核”共 1 条，本页显示 1 条"),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "全部状态" }).click();
     await page.getByPlaceholder("搜索标题或标签").fill("春日");
     await page.getByRole("button", { name: "搜索" }).click();
     await expect(page.getByText("搜索“春日”")).toBeVisible();
@@ -230,7 +361,7 @@ test.describe("admin console refinement", () => {
     ).toBeInViewport();
     await page.getByRole("button", { name: /清空/ }).click();
     await page.getByRole("checkbox", { name: "选择 紫金港春日影像" }).check();
-    await expect(page.getByText("条当前可见内容")).toBeVisible();
+    await expect(page.getByText("条当前页内容")).toBeVisible();
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     const backToTop = page.getByRole("button", { name: "回到管理员顶部" });
     await expect(backToTop).toBeVisible();
@@ -254,14 +385,36 @@ test.describe("admin console refinement", () => {
     ).toBeVisible();
 
     await quickJump.selectOption("intelligence");
-    await expect(page.getByRole("heading", { name: "智能治理" })).toBeVisible();
+    await expect(page).toHaveURL(/tab=intelligence/);
     await expect(
-      page.getByRole("button", { name: "活动治理", exact: true }),
+      page.getByRole("heading", { name: "治理与模型配置" }),
     ).toBeVisible();
     await expect(
-      page.getByRole("button", { name: "模型 Key", exact: true }),
+      page.getByRole("button", { name: "治理建议", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "模型配置", exact: true }),
     ).toBeVisible();
     await expect(page.getByRole("heading", { name: "AI 助手" })).toHaveCount(0);
+    await page.getByRole("button", { name: "扫描" }).first().click();
+    await expect(page.getByText(/^原因：标题和描述包含黑客松/)).toBeVisible();
+
+    await page.getByRole("button", { name: "模型配置", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Key 列表 (1)" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "添加 Key" })).toHaveCount(0);
+    await page.getByRole("button", { name: "添加 Key" }).click();
+    await expect(page.getByRole("heading", { name: "添加 Key" })).toBeVisible();
+    await page.getByRole("button", { name: "收起添加" }).click();
+    const deleteRequest = page.waitForRequest((request) =>
+      request.url().includes("/api/admin/ai-model-configs/1") &&
+      request.method() === "DELETE",
+    );
+    await page.getByRole("button", { name: "删除配置" }).click();
+    await expect(
+      page.getByRole("heading", { name: "确认删除 Key 配置" }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "确认删除" }).click();
+    await deleteRequest;
 
     await quickJump.selectOption("tags");
     await expect(page.getByRole("heading", { name: "标签管理" })).toBeVisible();
