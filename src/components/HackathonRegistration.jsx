@@ -45,6 +45,14 @@ const splitPartners = (value, fallback) => {
     .filter(Boolean);
 };
 
+const ensurePartners = (partners, requiredPartners) => {
+  const existing = new Set(partners.map((item) => item.toLowerCase()));
+  return [
+    ...partners,
+    ...requiredPartners.filter((item) => !existing.has(item.toLowerCase())),
+  ];
+};
+
 const MotionDiv = motion.div;
 const MotionSection = motion.section;
 const officialWechatGroupImage = "/images/wechat-official-group.jpg";
@@ -63,15 +71,23 @@ const partnerLogosTop = [
     src: "/images/partner-logos/company-3.png",
     darkSrc: "/images/partner-logos/company-3-dark.png",
     alt: "数字名片 Bonjour logo",
+    darkClassName: "brightness-0 invert",
+  },
+  {
+    src: "/images/partner-logos/qoder.png",
+    darkSrc: "/images/partner-logos/qoder-dark.png",
+    alt: "Qoder logo",
+    text: "Qoder",
+    size: "h-5 sm:h-6 lg:h-7",
   },
 ];
 
 const partnerLogosBottom = [
   {
-    src: "/images/partner-logos/company-2.png",
-    darkSrc: "/images/partner-logos/company-2-dark.png",
-    alt: "云江开物 logo",
-    size: "h-4 sm:h-5 lg:h-6",
+    src: "/images/partner-logos/aliyun-cn.svg?v=2",
+    darkSrc: "/images/partner-logos/aliyun-cn-white.svg?v=2",
+    alt: "阿里云 logo",
+    size: "h-5 sm:h-6 lg:h-7",
   },
   {
     src: "/images/partner-logos/stepfun.png",
@@ -141,9 +157,12 @@ const HackathonRegistration = () => {
         settings.hackathon_desc,
         "在限定时间内独立完成一个可运行的 AI 应用。允许使用 AI 工具，拒绝概念包装，只看真实作品。",
       ),
-      partners: splitPartners(
-        settings.hackathon_partners,
-        "MiniMax, 阿里云, 魔搭, 阶跃星辰",
+      partners: ensurePartners(
+        splitPartners(
+          settings.hackathon_partners,
+          "MiniMax, 阿里云, Qoder, Bonjour, 魔搭, 阶跃星辰",
+        ),
+        ["Bonjour"],
       ),
     }),
     [settings],
@@ -498,10 +517,21 @@ const HackathonRegistration = () => {
                     className={`relative w-auto object-contain transition duration-300 group-hover:scale-[1.04] ${
                       logo.size || "h-5 sm:h-7 lg:h-8"
                     } ${
-                      isDayMode ? "" : "drop-shadow-[0_1px_10px_rgba(103,232,249,0.18)]"
+                      isDayMode
+                        ? ""
+                        : `${logo.darkClassName || ""} drop-shadow-[0_1px_10px_rgba(103,232,249,0.18)]`
                     }`}
                     loading="eager"
                   />
+                  {logo.text ? (
+                    <span
+                      className={`ml-2 text-sm font-black leading-none tracking-tight sm:text-base lg:text-lg ${
+                        isDayMode ? "text-slate-950" : "text-white"
+                      }`}
+                    >
+                      {logo.text}
+                    </span>
+                  ) : null}
                 </span>
               ))}
             </div>

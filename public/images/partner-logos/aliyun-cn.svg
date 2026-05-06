@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 310 76" role="img" aria-labelledby="title">
+  <title id="title">阿里云</title>
+  <g fill="#ED6B1E">
+    <rect x="34" y="33.5" width="40" height="9" rx="1"/>
+    <path d="M96 0H70.8l6.1 9.1 18.4 5.9c3.4 1.1 5.6 4.4 5.6 8v30c0 3.6-2.2 6.9-5.6 8L76.9 66.9 70.8 76H96c10.9 0 19.8-9 19.8-20V20C115.8 9 106.9 0 96 0Z"/>
+    <path d="M19.8 0H45l-6.1 9.1L20.5 15c-3.4 1.1-5.6 4.4-5.6 8v30c0 3.6 2.2 6.9 5.6 8l18.4 5.9L45 76H19.8C8.9 76 0 67 0 56V20C0 9 8.9 0 19.8 0Z"/>
+  </g>
+  <text
+    x="139"
+    y="53"
+    fill="#ED6B1E"
+    font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, Arial, sans-serif"
+    font-size="45"
+    font-weight="800"
+    letter-spacing="0"
+  >阿里云</text>
+</svg>
