@@ -103,6 +103,7 @@ const AdminRoute = ({ children }) => {
 const AppContent = () => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const isAboutRoute = location.pathname === '/about';
   const { cursorEnabled, settings } = useSettings();
   const hasDesktopPointer = useMediaQuery('(min-width: 768px) and (hover: hover) and (pointer: fine)');
   const shouldMountDeferredUi = useDeferredMount(700);
@@ -214,7 +215,7 @@ const AppContent = () => {
         </Suspense>
       </main>
 
-      {!isAdminRoute && <Footer />}
+      {!isAdminRoute && !isAboutRoute && <Footer />}
 
       {!isAdminRoute && shouldMountDeferredUi && (
         <ErrorBoundary variant="inline" silent>
