@@ -10,6 +10,7 @@ import {
   Settings,
   Heart,
   Bell,
+  CloudSun,
   Lock,
   Image,
   Music,
@@ -273,7 +274,13 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
   const location = useLocation();
   const { t, i18n } = useTranslation();
   const { user: currentUser, logout, refreshUser } = useAuth();
-  const { settings, uiMode, changeUiMode } = useSettings();
+  const {
+    settings,
+    uiMode,
+    changeUiMode,
+    showWeatherWidget,
+    toggleWeatherWidget,
+  } = useSettings();
   const id = profileId ?? routeId;
 
   const [user, setUser] = useState(null);
@@ -333,6 +340,14 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
   const settingsIconClass = isDayMode
     ? "h-10 w-10 rounded-xl flex items-center justify-center bg-slate-100 text-slate-700"
     : "h-10 w-10 rounded-xl flex items-center justify-center bg-white/10 text-white";
+  const settingsSwitchTrackClass = showWeatherWidget
+    ? "bg-indigo-600"
+    : isDayMode
+      ? "bg-slate-200"
+      : "bg-white/15";
+  const settingsSwitchThumbClass = showWeatherWidget
+    ? "translate-x-5 bg-white"
+    : "translate-x-0 bg-white";
 
   // Favorites State
   const [favorites, setFavorites] = useState([]);
@@ -1692,6 +1707,39 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                           : t("nav.day_mode", "日间模式")}
                       </div>
                     </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={toggleWeatherWidget}
+                    aria-pressed={showWeatherWidget}
+                    className={settingsActionClass}
+                  >
+                    <div
+                      className={`${settingsIconClass} ${isDayMode ? "bg-sky-50 text-sky-500" : "text-sky-300"}`}
+                    >
+                      <CloudSun size={18} />
+                    </div>
+                    <div className="min-w-0 flex-1 text-left">
+                      <div className="text-sm font-semibold">
+                        {t("me.weather_widget", "时间与天气")}
+                      </div>
+                      <div
+                        className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                      >
+                        {showWeatherWidget
+                          ? t("me.weather_widget_on", "右上角显示时间和天气")
+                          : t("me.weather_widget_off", "右上角默认隐藏")}
+                      </div>
+                    </div>
+                    <span
+                      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${settingsSwitchTrackClass}`}
+                      aria-hidden="true"
+                    >
+                      <span
+                        className={`h-5 w-5 rounded-full shadow-sm transition-transform ${settingsSwitchThumbClass}`}
+                      />
+                    </span>
                   </button>
 
                   <button

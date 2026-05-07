@@ -214,16 +214,16 @@ const PlatformStats = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const prefersReducedMotion = useReducedMotion();
-  const { loading } = useCachedResource(
-    "/site-metrics",
-    {},
-    { keyPrefix: "site-metrics", ttl: 1000 * 60 * 3, silent: true },
-  );
-  const { data: featuredData, loading: featuredLoading } = useCachedResource(
-    "/featured",
-    {},
-    { keyPrefix: "home-featured-mix", ttl: 1000 * 60 * 3, silent: true },
-  );
+  const {
+    data: featuredData,
+    loading: featuredLoading,
+    error: featuredError,
+    refresh: refreshFeatured,
+  } = useCachedResource("/featured", {}, {
+    keyPrefix: "home-featured-mix",
+    ttl: 1000 * 60 * 3,
+    silent: true,
+  });
   const [followingFeed, setFollowingFeed] = useState([]);
   const [followRecommendations, setFollowRecommendations] = useState([]);
   const [followLoading, setFollowLoading] = useState(false);
@@ -329,18 +329,6 @@ const PlatformStats = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <section className="px-4 sm:px-6 lg:px-8 py-6">
-        <div className="max-w-5xl mx-auto">
-          <div
-            className={`h-24 rounded-2xl animate-pulse ${isDayMode ? "bg-slate-100" : "bg-white/[0.04]"}`}
-          />
-        </div>
-      </section>
-    );
-  }
-
   return (
       <section className="relative px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
       {isDayMode && (
@@ -385,11 +373,24 @@ const PlatformStats = () => {
             </button>
           </div>
 
-          {featuredLoading ? (
+          {featuredLoading && featuredItems.length === 0 ? (
             <div
-              className={`text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+              className={`min-h-[92px] rounded-xl border px-3 py-4 text-sm ${isDayMode ? "border-slate-200/80 bg-slate-50/80 text-slate-500" : "border-white/10 bg-black/20 text-gray-400"}`}
             >
               {t("common.loading")}
+            </div>
+          ) : featuredError && featuredItems.length === 0 ? (
+            <div
+              className={`rounded-xl border px-3 py-4 text-sm ${isDayMode ? "border-slate-200/80 bg-slate-50/80 text-slate-500" : "border-white/10 bg-black/20 text-gray-400"}`}
+            >
+              <div>精选内容暂时加载失败</div>
+              <button
+                type="button"
+                onClick={() => refreshFeatured()}
+                className={`motion-press mt-3 min-h-[36px] rounded-full border px-3 text-xs font-semibold ${isDayMode ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-50" : "border-white/10 bg-white/5 text-gray-200 hover:bg-white/10"}`}
+              >
+                重新加载
+              </button>
             </div>
           ) : featuredItems.length === 0 ? (
             <div

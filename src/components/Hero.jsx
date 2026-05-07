@@ -74,7 +74,7 @@ const Hero = () => {
     : "";
 
   return (
-    <section className="relative flex min-h-[100dvh] w-full items-center justify-center overflow-hidden px-4 pt-[max(env(safe-area-inset-top),0px)] pb-[max(env(safe-area-inset-bottom),24px)]">
+    <section className="relative flex min-h-[calc(100dvh-8rem)] w-full items-center justify-center overflow-hidden px-4 pt-[max(env(safe-area-inset-top),0px)] pb-[max(env(safe-area-inset-bottom),24px)] md:min-h-[100dvh]">
       <motion.div
         style={shouldUseParallax ? { y } : undefined}
         className="motion-gpu absolute inset-0 z-0"

@@ -23,6 +23,7 @@ const DEFAULT_SETTINGS = {
 
 const DEFAULT_UI_MODE = 'dark';
 const UI_MODE_STORAGE_KEY = 'ui_mode_v2';
+const WEATHER_WIDGET_STORAGE_KEY = 'show_weather_widget_v1';
 
 const readStorage = (key, fallbackValue) => {
   try {
@@ -60,6 +61,9 @@ const defaultSettingsValue = {
   toggleCursor: () => {},
   uiMode: DEFAULT_UI_MODE,
   changeUiMode: () => {},
+  showWeatherWidget: false,
+  toggleWeatherWidget: () => {},
+  changeWeatherWidgetVisibility: () => {},
   changeBackgroundBrightness: () => {},
 };
 
@@ -76,6 +80,10 @@ export const SettingsProvider = ({ children }) => {
   const [uiMode, setUiMode] = useState(() => {
     const saved = readStorage(UI_MODE_STORAGE_KEY, DEFAULT_UI_MODE);
     return saved === 'day' || saved === 'dark' ? saved : DEFAULT_UI_MODE;
+  });
+  const [showWeatherWidget, setShowWeatherWidget] = useState(() => {
+    const saved = readStorage(WEATHER_WIDGET_STORAGE_KEY, 'false');
+    return saved === 'true';
   });
   const [loading, setLoading] = useState(true);
 
@@ -113,6 +121,20 @@ export const SettingsProvider = ({ children }) => {
     writeStorage(UI_MODE_STORAGE_KEY, nextMode);
   }, []);
 
+  const changeWeatherWidgetVisibility = useCallback((enabled) => {
+    const nextValue = Boolean(enabled);
+    setShowWeatherWidget(nextValue);
+    writeStorage(WEATHER_WIDGET_STORAGE_KEY, String(nextValue));
+  }, []);
+
+  const toggleWeatherWidget = useCallback(() => {
+    setShowWeatherWidget((prev) => {
+      const nextValue = !prev;
+      writeStorage(WEATHER_WIDGET_STORAGE_KEY, String(nextValue));
+      return nextValue;
+    });
+  }, []);
+
   const fetchSettings = useCallback(() => {
     api
       .get('/settings')
@@ -147,6 +169,9 @@ export const SettingsProvider = ({ children }) => {
       toggleCursor,
       uiMode,
       changeUiMode,
+      showWeatherWidget,
+      toggleWeatherWidget,
+      changeWeatherWidgetVisibility,
       changeBackgroundBrightness,
     }),
     [
@@ -157,6 +182,9 @@ export const SettingsProvider = ({ children }) => {
       toggleCursor,
       uiMode,
       changeUiMode,
+      showWeatherWidget,
+      toggleWeatherWidget,
+      changeWeatherWidgetVisibility,
       changeBackgroundBrightness,
     ],
   );

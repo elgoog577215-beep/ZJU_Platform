@@ -55,12 +55,13 @@ const Navbar = () => {
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
   const location = useLocation();
   const { t } = useTranslation();
-  const { uiMode, changeUiMode } = useSettings();
+  const { uiMode, changeUiMode, showWeatherWidget } = useSettings();
   const { user, logout, isAdmin } = useAuth();
   const isDesktopViewport = useMediaQuery("(min-width: 768px)", true);
   const [time, setTime] = useState(new Date());
   const prefersReducedMotion = useReducedMotion();
   const isDayMode = uiMode === "day";
+  const weatherWidgetEnabled = showWeatherWidget && isDesktopViewport;
 
   const {
     weather,
@@ -73,21 +74,30 @@ const Navbar = () => {
     searchResults,
     handleCitySearch,
     selectCity,
-  } = useWeather(undefined, undefined, { enabled: isDesktopViewport });
+  } = useWeather(undefined, undefined, { enabled: weatherWidgetEnabled });
 
-  useBackClose(isWeatherModalOpen, () => setIsWeatherModalOpen(false));
+  useBackClose(weatherWidgetEnabled && isWeatherModalOpen, () =>
+    setIsWeatherModalOpen(false),
+  );
   useBackClose(isThemeOpen, () => setIsThemeOpen(false));
   useBackClose(isMobileMoreOpen, () => setIsMobileMoreOpen(false));
 
   // Clock
   useEffect(() => {
-    if (!isDesktopViewport) {
+    if (!weatherWidgetEnabled) {
       return undefined;
     }
 
+    setTime(new Date());
     const timer = setInterval(() => setTime(new Date()), 60000);
     return () => clearInterval(timer);
-  }, [isDesktopViewport]);
+  }, [weatherWidgetEnabled]);
+
+  useEffect(() => {
+    if (!weatherWidgetEnabled && isWeatherModalOpen) {
+      setIsWeatherModalOpen(false);
+    }
+  }, [weatherWidgetEnabled, isWeatherModalOpen, setIsWeatherModalOpen]);
 
   const getWeatherIcon = (code) => {
     if (code === 0 || code === 1)
@@ -302,47 +312,49 @@ const Navbar = () => {
           <Search size={18} aria-hidden="true" />
         </button>
 
-        <button
-          onClick={() => setIsWeatherModalOpen(true)}
-          className={weatherButtonClasses}
-          aria-label={`天气信息：${city}，${weather ? weatherTemperatureLabel : "加载中"}`}
-        >
-          <div className="flex items-center gap-1 group-hover:text-indigo-300 transition-colors">
-            <Clock size={12} aria-hidden="true" />
-            <span>
-              {time.toLocaleTimeString("zh-CN", {
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: false,
-              })}
-            </span>
-          </div>
-          <div
-            className={`w-px h-3 transition-colors ${isDayMode ? "bg-slate-200/80 group-hover:bg-indigo-200/80" : "bg-white/10 group-hover:bg-indigo-500/30"}`}
-            role="separator"
-            aria-hidden="true"
-          />
-          <div className="flex items-center gap-1 group-hover:text-indigo-300 transition-colors">
-            {weather ? (
-              getWeatherIcon(weather.weathercode)
-            ) : (
-              <Cloud size={12} aria-hidden="true" />
-            )}
-            <span>
-              {weather ? weatherTemperatureLabel : "..."}
-            </span>
-          </div>
-          <div
-            className={`w-px h-3 transition-colors ${isDayMode ? "bg-slate-200/80 group-hover:bg-indigo-200/80" : "bg-white/10 group-hover:bg-indigo-500/30"}`}
-            role="separator"
-            aria-hidden="true"
-          />
-          <span
-            className={`truncate max-w-[60px] transition-colors ${isDayMode ? "group-hover:text-slate-900" : "group-hover:text-white"}`}
+        {showWeatherWidget && (
+          <button
+            onClick={() => setIsWeatherModalOpen(true)}
+            className={weatherButtonClasses}
+            aria-label={`天气信息：${city}，${weather ? weatherTemperatureLabel : "加载中"}`}
           >
-            {city}
-          </span>
-        </button>
+            <div className="flex items-center gap-1 group-hover:text-indigo-300 transition-colors">
+              <Clock size={12} aria-hidden="true" />
+              <span>
+                {time.toLocaleTimeString("zh-CN", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false,
+                })}
+              </span>
+            </div>
+            <div
+              className={`w-px h-3 transition-colors ${isDayMode ? "bg-slate-200/80 group-hover:bg-indigo-200/80" : "bg-white/10 group-hover:bg-indigo-500/30"}`}
+              role="separator"
+              aria-hidden="true"
+            />
+            <div className="flex items-center gap-1 group-hover:text-indigo-300 transition-colors">
+              {weather ? (
+                getWeatherIcon(weather.weathercode)
+              ) : (
+                <Cloud size={12} aria-hidden="true" />
+              )}
+              <span>
+                {weather ? weatherTemperatureLabel : "..."}
+              </span>
+            </div>
+            <div
+              className={`w-px h-3 transition-colors ${isDayMode ? "bg-slate-200/80 group-hover:bg-indigo-200/80" : "bg-white/10 group-hover:bg-indigo-500/30"}`}
+              role="separator"
+              aria-hidden="true"
+            />
+            <span
+              className={`truncate max-w-[60px] transition-colors ${isDayMode ? "group-hover:text-slate-900" : "group-hover:text-white"}`}
+            >
+              {city}
+            </span>
+          </button>
+        )}
 
         <button
           onClick={() => changeUiMode(nextUiMode)}
@@ -454,7 +466,7 @@ const Navbar = () => {
       </div>
 
       <AnimatePresence initial={false}>
-        {isWeatherModalOpen && (
+        {showWeatherWidget && isWeatherModalOpen && (
           <Portal>
             <motion.div
               variants={modalBackdrop}
