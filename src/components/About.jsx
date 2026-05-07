@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -43,6 +43,55 @@ const About = () => {
   const reduceMotion = useReducedMotion();
   const shouldAnimate = !reduceMotion;
   const isDayMode = uiMode === "day";
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    let frameId = 0;
+    let timeoutId = 0;
+
+    const scrollToHashTarget = () => {
+      const hash = window.location.hash;
+      if (!hash) return;
+
+      let targetId = hash.slice(1);
+      try {
+        targetId = decodeURIComponent(targetId);
+      } catch {
+        return;
+      }
+
+      const target = document.getElementById(targetId);
+      if (!target) return;
+
+      const root = target.closest("[data-about-scroll-root]");
+      const behavior = reduceMotion ? "auto" : "smooth";
+      const shouldUseDesktopScroller = window.matchMedia("(min-width: 1024px)").matches;
+
+      if (shouldUseDesktopScroller && root instanceof HTMLElement) {
+        root.scrollTo({ top: target.offsetTop, behavior });
+        return;
+      }
+
+      target.scrollIntoView({ block: "start", behavior });
+    };
+
+    const scheduleHashScroll = () => {
+      window.cancelAnimationFrame(frameId);
+      window.clearTimeout(timeoutId);
+      frameId = window.requestAnimationFrame(scrollToHashTarget);
+      timeoutId = window.setTimeout(scrollToHashTarget, 160);
+    };
+
+    scheduleHashScroll();
+    window.addEventListener("hashchange", scheduleHashScroll);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.clearTimeout(timeoutId);
+      window.removeEventListener("hashchange", scheduleHashScroll);
+    };
+  }, [reduceMotion]);
 
   const schoolSupport = parseUnits(
     settings.about_school_support_units || "未来学习中心,AI 联合实验室",
@@ -182,7 +231,10 @@ const About = () => {
       };
 
   return (
-    <div className={`h-screen overflow-x-hidden overflow-y-auto scroll-smooth snap-y snap-mandatory ${palette.page}`}>
+    <div
+      data-about-scroll-root
+      className={`min-h-screen overflow-x-hidden scroll-smooth pb-24 lg:h-screen lg:overflow-y-auto lg:snap-y lg:snap-mandatory lg:pb-0 ${palette.page}`}
+    >
       <SEO
         title="关于我们"
         description="了解浙大 AI 生态团队如何以活动聚合、AI 社区与极速黑客松构建校园 AI 协同生态。"
@@ -213,7 +265,7 @@ const About = () => {
 
       <section
         id="about-hero"
-        className={`relative isolate min-h-[100svh] snap-start snap-always overflow-hidden px-4 pb-14 pt-[calc(env(safe-area-inset-top)+118px)] sm:px-6 md:pt-[calc(env(safe-area-inset-top)+132px)] lg:h-[100svh] lg:px-10 lg:pb-8 lg:pt-[calc(env(safe-area-inset-top)+84px)] 2xl:px-16 ${palette.hero}`}
+        className={`relative isolate min-h-[100svh] overflow-hidden px-4 pb-14 pt-[calc(env(safe-area-inset-top)+118px)] sm:px-6 md:pt-[calc(env(safe-area-inset-top)+132px)] lg:h-[100svh] lg:snap-start lg:snap-always lg:px-10 lg:pb-8 lg:pt-[calc(env(safe-area-inset-top)+84px)] 2xl:px-16 ${palette.hero}`}
       >
         <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:linear-gradient(rgba(103,232,249,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(103,232,249,0.12)_1px,transparent_1px)] [background-size:46px_46px]" />
         <div className={`pointer-events-none absolute -right-[8vw] bottom-0 select-none text-[18vw] font-black uppercase leading-[0.8] tracking-[-0.1em] ${palette.watermark}`}>
@@ -338,7 +390,7 @@ const About = () => {
         <motion.section
           id="ecosystem-handles"
           {...sectionReveal(shouldAnimate)}
-          className="relative min-h-[100svh] snap-start snap-always scroll-mt-0 overflow-hidden px-4 py-20 sm:px-6 sm:py-24 lg:flex lg:h-[100svh] lg:flex-col lg:px-10 lg:pb-[clamp(1rem,3vh,2.5rem)] lg:pt-[calc(env(safe-area-inset-top)+clamp(4.5rem,8.2vh,5.125rem))] 2xl:px-16"
+          className="relative min-h-[100svh] scroll-mt-0 overflow-hidden px-4 py-20 sm:px-6 sm:py-24 lg:flex lg:h-[100svh] lg:snap-start lg:snap-always lg:flex-col lg:px-10 lg:pb-[clamp(1rem,3vh,2.5rem)] lg:pt-[calc(env(safe-area-inset-top)+clamp(4.5rem,8.2vh,5.125rem))] 2xl:px-16"
         >
           <div className={`pointer-events-none absolute -right-[4vw] top-8 select-none text-[18vw] font-black uppercase leading-[0.8] tracking-[-0.08em] ${palette.watermark}`}>
             RUN
@@ -457,7 +509,7 @@ const About = () => {
         <motion.section
           id="support-galaxy"
           {...sectionReveal(shouldAnimate, 0.08)}
-          className={`relative min-h-[100svh] snap-start snap-always overflow-hidden px-4 py-20 sm:px-6 sm:py-24 lg:flex lg:h-[100svh] lg:flex-col lg:px-10 lg:pb-[clamp(1rem,3vh,2.5rem)] lg:pt-[calc(env(safe-area-inset-top)+clamp(4.5rem,8.2vh,5.125rem))] 2xl:px-16 ${
+          className={`relative min-h-[100svh] overflow-hidden px-4 py-20 sm:px-6 sm:py-24 lg:flex lg:h-[100svh] lg:snap-start lg:snap-always lg:flex-col lg:px-10 lg:pb-[clamp(1rem,3vh,2.5rem)] lg:pt-[calc(env(safe-area-inset-top)+clamp(4.5rem,8.2vh,5.125rem))] 2xl:px-16 ${
             isDayMode
               ? "bg-[radial-gradient(circle_at_75%_22%,rgba(6,182,212,0.14),transparent_30%)]"
               : "bg-[radial-gradient(circle_at_74%_18%,rgba(34,211,238,0.14),transparent_30%)]"
