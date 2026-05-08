@@ -73,13 +73,6 @@ const partnerLogosTop = [
     alt: "数字名片 Bonjour logo",
     darkClassName: "brightness-0 invert",
   },
-  {
-    src: "/images/partner-logos/qoder.png",
-    darkSrc: "/images/partner-logos/qoder-dark.png",
-    alt: "Qoder logo",
-    text: "Qoder",
-    size: "h-5 sm:h-6 lg:h-7",
-  },
 ];
 
 const partnerLogosBottom = [
@@ -87,6 +80,13 @@ const partnerLogosBottom = [
     src: "/images/partner-logos/aliyun-cn.svg?v=2",
     darkSrc: "/images/partner-logos/aliyun-cn-white.svg?v=2",
     alt: "阿里云 logo",
+    size: "h-5 sm:h-6 lg:h-7",
+  },
+  {
+    src: "/images/partner-logos/qoder.png",
+    darkSrc: "/images/partner-logos/qoder-dark.png",
+    alt: "Qoder logo",
+    text: "Qoder",
     size: "h-5 sm:h-6 lg:h-7",
   },
   {
