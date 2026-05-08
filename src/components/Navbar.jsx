@@ -21,6 +21,7 @@ import {
   Film,
   Info,
   Shield,
+  Trees,
   UserCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -121,6 +122,7 @@ const Navbar = () => {
     { key: "home", path: "/" },
     { key: "events", path: "/events" },
     { key: "hackathon", path: "/hackathon" },
+    { key: "future_learning", path: "/future-learning" },
     { key: "articles", path: "/articles" },
     { key: "music", path: "/music" },
     { key: "gallery", path: "/gallery" },
@@ -135,6 +137,7 @@ const Navbar = () => {
   const getMobileTitle = (pathname) => {
     if (pathname === "/") return t("nav.home");
     if (pathname.startsWith("/events")) return t("nav.events");
+    if (pathname.startsWith("/future-learning")) return t("nav.future_learning", "未来学习中心");
     if (pathname.startsWith("/articles")) return t("nav.articles");
     if (pathname.startsWith("/music")) return t("nav.music", "播客");
     if (pathname.startsWith("/gallery")) return t("nav.gallery");
@@ -219,6 +222,7 @@ const Navbar = () => {
     !location.pathname.startsWith("/me") &&
     !location.pathname.startsWith("/user/");
   const secondaryMobileLinks = [
+    { key: "future_learning", path: "/future-learning", icon: Trees },
     { key: "gallery", path: "/gallery", icon: ImageIcon },
     { key: "music", path: "/music", icon: MusicIcon },
     { key: "videos", path: "/videos", icon: Film },

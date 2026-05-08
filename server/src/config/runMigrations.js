@@ -843,6 +843,50 @@ async function runMigrations(db) {
 
   try {
     await db.exec(`
+      CREATE TABLE IF NOT EXISTS future_learning_registrations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        topic TEXT NOT NULL,
+        name TEXT NOT NULL,
+        age INTEGER NOT NULL,
+        gender TEXT NOT NULL,
+        organization TEXT NOT NULL,
+        email TEXT,
+        phone TEXT,
+        message TEXT DEFAULT '',
+        status TEXT DEFAULT 'new',
+        admin_note TEXT DEFAULT '',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await ensureColumns('future_learning_registrations', {
+      status: "TEXT DEFAULT 'new'",
+      admin_note: "TEXT DEFAULT ''",
+      updated_at: 'DATETIME',
+    }, 'future_learning_registrations');
+    await db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_future_learning_registrations_created_at
+        ON future_learning_registrations(created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_future_learning_registrations_status
+        ON future_learning_registrations(status, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_future_learning_registrations_contact
+        ON future_learning_registrations(email, phone);
+    `);
+    await db.exec(`
+      UPDATE future_learning_registrations
+      SET status = COALESCE(NULLIF(status, ''), 'new'),
+          admin_note = COALESCE(admin_note, ''),
+          updated_at = COALESCE(updated_at, created_at, datetime('now'))
+    `);
+    console.log('✅ Future learning registrations table ready');
+  } catch (err) {
+    if (!err.message.includes('already exists') && !err.message.includes('duplicate column')) {
+      console.warn('Migration warning (future learning registrations):', err.message);
+    }
+  }
+
+  try {
+    await db.exec(`
       CREATE TABLE IF NOT EXISTS ai_model_configs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,

@@ -11,6 +11,7 @@ import {
   Music2,
   Network,
   Orbit,
+  Trees,
   Trophy,
   Users,
   Zap,
@@ -237,9 +238,9 @@ const PlatformStats = () => {
       hint: "用户与内容持续涌入",
     },
     {
-      value: "3",
+      value: "4",
       label: "核心运营抓手",
-      hint: "活动、社区、赛事同频运转",
+      hint: "活动、社区、学习中心、赛事同频运转",
     },
     {
       value: settings.about_stat_3_value || "5 小时",
@@ -275,6 +276,18 @@ const PlatformStats = () => {
     },
     {
       index: "03",
+      code: "LEARN",
+      title: "未来学习中心",
+      short: "问题揭榜",
+      loop: "沉淀问题",
+      icon: Trees,
+      description: "承接真实学习场景与医学交叉问题，把需求变成可跟进的共创线索。",
+      route: "/future-learning",
+      accent: isDayMode ? "text-teal-700" : "text-teal-300",
+      iconBg: isDayMode ? "bg-teal-500" : "bg-teal-300",
+    },
+    {
+      index: "04",
       code: "BUILD",
       title: "极速黑客松",
       short: "创造爆发",
@@ -448,7 +461,7 @@ const PlatformStats = () => {
             </div>
 
             <h2 className="mt-7 max-w-5xl text-[2.45rem] font-black leading-[0.96] tracking-tight min-[360px]:text-[2.85rem] sm:text-6xl lg:text-[5.35rem] lg:leading-[0.9] xl:text-[6.05rem] 2xl:text-[6.85rem]">
-              <span className="block">三大抓手，</span>
+              <span className="block">四大抓手，</span>
               <span className={`block ${palette.accent}`}>点亮一张</span>
               <span className="block whitespace-nowrap">校园 AI 网络。</span>
             </h2>
@@ -456,7 +469,7 @@ const PlatformStats = () => {
             <p
               className={`mt-7 max-w-3xl text-base font-medium leading-8 sm:text-xl sm:leading-9 ${palette.firstSoft}`}
             >
-              活动聚合负责发现，AI 社区负责连接，极速黑客松负责爆发。学校、社团与企业伙伴在同一张网络里协同，让机会、人群和作品持续流动。
+              活动聚合负责发现，AI 社区负责连接，未来学习中心负责问题沉淀，极速黑客松负责爆发。学校、社团与企业伙伴在同一张网络里协同，让机会、人群和作品持续流动。
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -530,7 +543,7 @@ const PlatformStats = () => {
             </p>
           </div>
 
-          <div className="mt-9 grid gap-5 lg:grid-cols-3">
+          <div className="mt-9 grid gap-5 lg:grid-cols-4">
             {operatingHandles.map((item) => {
               const Icon = item.icon;
               return (

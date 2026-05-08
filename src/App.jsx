@@ -40,6 +40,7 @@ const HomeCategories = lazy(() => import('./components/HomeCategories'));
 const PlatformStats = lazy(() => import('./components/PlatformStats'));
 const About = lazy(() => import('./components/About'));
 const HackathonRegistration = lazy(() => import('./components/HackathonRegistration'));
+const FutureLearningCenter = lazy(() => import('./components/FutureLearningCenter'));
 const AdminDashboard = lazy(() => import('./components/Admin/AdminDashboard'));
 const AdminAccessGate = lazy(() => import('./components/Admin/AdminAccessGate'));
 const NotFound = lazy(() => import('./components/NotFound'));
@@ -200,6 +201,7 @@ const AppContent = () => {
               <Route path="/events" element={<PageTransition><Events /></PageTransition>} />
               <Route path="/about" element={<PageTransition><About /></PageTransition>} />
               <Route path="/hackathon" element={<PageTransition><HackathonRegistration /></PageTransition>} />
+              <Route path="/future-learning" element={<PageTransition><FutureLearningCenter /></PageTransition>} />
               <Route
                 path="/admin"
                 element={

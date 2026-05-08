@@ -29,6 +29,7 @@ import {
   MessageSquare,
   Mail,
   ShieldCheck,
+  Trees,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -43,6 +44,7 @@ import MessageManager from "./MessageManager";
 import TagManager from "./TagManager";
 import AdminCommunity from "./AdminCommunity";
 import HackathonManager from "./HackathonManager";
+import FutureLearningManager from "./FutureLearningManager";
 import AiAssistantManager from "./AiAssistantManager";
 import { AdminButton } from "./AdminUI";
 
@@ -57,6 +59,7 @@ const KNOWN_TAB_IDS = new Set([
   "intelligence",
   "events",
   "hackathon",
+  "future-learning",
   "articles",
   "photos",
   "videos",
@@ -177,6 +180,15 @@ const AdminDashboard = () => {
             description: t(
               "admin.descriptions.hackathon",
               "黑客松报名与参赛信息",
+            ),
+          },
+          {
+            id: "future-learning",
+            label: t("admin.tabs.futureLearning", "未来学习中心"),
+            icon: Trees,
+            description: t(
+              "admin.descriptions.futureLearning",
+              "「智能生命健康」项目报名与问题揭榜",
             ),
           },
         ],
@@ -414,6 +426,8 @@ const AdminDashboard = () => {
         );
       case "hackathon":
         return <HackathonManager />;
+      case "future-learning":
+        return <FutureLearningManager />;
       case "community":
         return <AdminCommunity />;
       default:

@@ -22,6 +22,7 @@ const commentController = require('../controllers/commentController');
 const communityController = require('../controllers/communityController');
 const newsController = require('../controllers/newsController');
 const hackathonController = require('../controllers/hackathonController');
+const futureLearningController = require('../controllers/futureLearningController');
 const { logger } = require('../utils/logger');
 
 const { authenticateToken, isAdmin, optionalAuth } = require('../middleware/auth');
@@ -209,6 +210,12 @@ router.put('/admin/messages/:id/read', authenticateToken, isAdmin, messageContro
 router.post('/hackathon/register', hackathonController.registerHackathon);
 router.get('/admin/hackathon/registrations', authenticateToken, isAdmin, hackathonController.getRegistrations);
 router.delete('/admin/hackathon/registrations/:id', authenticateToken, isAdmin, hackathonController.deleteRegistration);
+
+// Future Learning Center Registration Routes
+router.post('/future-learning/register', futureLearningController.registerFutureLearning);
+router.get('/admin/future-learning/registrations', authenticateToken, isAdmin, futureLearningController.getRegistrations);
+router.put('/admin/future-learning/registrations/:id', authenticateToken, isAdmin, futureLearningController.updateRegistration);
+router.delete('/admin/future-learning/registrations/:id', authenticateToken, isAdmin, futureLearningController.deleteRegistration);
 
 // Client-side error reporting
 router.post('/errors', (req, res) => {
