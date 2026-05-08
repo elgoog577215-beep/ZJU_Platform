@@ -18,8 +18,8 @@ if (!url) {
 
 // Configuration
 const LLM_API_KEY = process.env.LLM_API_KEY;
-const LLM_BASE_URL = process.env.LLM_BASE_URL || 'https://api.deepseek.com/v1'; // Default to DeepSeek or OpenAI
-const LLM_MODEL = process.env.LLM_MODEL || 'deepseek-chat'; // or gpt-3.5-turbo
+const LLM_BASE_URL = process.env.LLM_BASE_URL || 'https://api-inference.modelscope.cn/v1';
+const LLM_MODEL = process.env.LLM_MODEL || 'ZhipuAI/GLM-5.1';
 
 async function scrapeWeChat(url) {
     console.log(`\n🔍 Fetching URL: ${url}...`);

@@ -15,8 +15,8 @@ const wechatCache = new Map();
 // Configuration
 // In a real CommonJS app, process.env is already populated by dotenv in index.js
 const LLM_API_KEY = process.env.LLM_API_KEY;
-const LLM_BASE_URL = process.env.LLM_BASE_URL || 'https://api.deepseek.com/v1'; 
-const LLM_MODEL = process.env.LLM_MODEL || 'deepseek-chat';
+const LLM_BASE_URL = process.env.LLM_BASE_URL || 'https://api-inference.modelscope.cn/v1';
+const LLM_MODEL = process.env.LLM_MODEL || 'ZhipuAI/GLM-5.1';
 
 // Download image from WeChat and save locally
 async function downloadWeChatImage(imageUrl) {

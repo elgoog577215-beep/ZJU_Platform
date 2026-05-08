@@ -2,8 +2,8 @@ const crypto = require('crypto');
 const axios = require('axios');
 
 const DEFAULT_PROVIDER = 'openai-compatible';
-const DEFAULT_BASE_URL = process.env.LLM_BASE_URL || 'https://api.deepseek.com/v1';
-const DEFAULT_MODEL = process.env.LLM_MODEL || 'deepseek-chat';
+const DEFAULT_BASE_URL = process.env.LLM_BASE_URL || 'https://api-inference.modelscope.cn/v1';
+const DEFAULT_MODEL = process.env.LLM_MODEL || 'ZhipuAI/GLM-5.1';
 const TEST_TIMEOUT_MS = 15000;
 const CALL_TIMEOUT_MS = 30000;
 

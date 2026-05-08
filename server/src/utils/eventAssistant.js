@@ -448,6 +448,11 @@ const normalizeModelRunnerOutput = (result) => {
   };
 };
 
+const getChatMessageText = (data) => {
+  const message = data?.choices?.[0]?.message || {};
+  return message.content || message.reasoning_content || '';
+};
+
 const clipForLog = (value) => {
   if (typeof value !== 'string') {
     return '';
@@ -932,7 +937,7 @@ const polishWithModel = async (db, intent, profile, rankedItems) => {
       { timeout: 25000 }
     );
 
-    const rawContent = result.data?.choices?.[0]?.message?.content || '';
+    const rawContent = getChatMessageText(result.data);
     const parsed = JSON.parse(extractJsonObject(rawContent));
     if (!parsed || typeof parsed !== 'object') return null;
 
@@ -1078,7 +1083,7 @@ const callEventAssistantModel = async ({ db, messages, payload }) => {
   }
 
   const result = await callChatCompletionWithFailover(db, payload || { messages });
-  const rawContent = result.data?.choices?.[0]?.message?.content || '';
+  const rawContent = getChatMessageText(result.data);
   return {
     rawContent,
     jsonText: extractJsonObject(rawContent),

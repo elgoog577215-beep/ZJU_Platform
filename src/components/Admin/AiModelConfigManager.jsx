@@ -26,8 +26,8 @@ import {
 const emptyForm = {
   name: "默认接口",
   provider: "openai-compatible",
-  base_url: "https://api.deepseek.com/v1",
-  model: "deepseek-chat",
+  base_url: "https://api-inference.modelscope.cn/v1",
+  model: "ZhipuAI/GLM-5.1",
   api_key: "",
   priority: 100,
   enabled: true,
@@ -482,7 +482,7 @@ const AiModelConfigManager = ({ embedded = false }) => {
                   className={fieldClass}
                   value={form.model}
                   onChange={(event) => updateForm("model", event.target.value)}
-                  placeholder="deepseek-chat"
+                  placeholder="ZhipuAI/GLM-5.1"
                 />
               </label>
             </div>
@@ -496,7 +496,7 @@ const AiModelConfigManager = ({ embedded = false }) => {
                   onChange={(event) =>
                     updateForm("base_url", event.target.value)
                   }
-                  placeholder="https://api.deepseek.com/v1"
+                  placeholder="https://api-inference.modelscope.cn/v1"
                 />
               </label>
               <label className="grid gap-2 text-sm font-medium">
