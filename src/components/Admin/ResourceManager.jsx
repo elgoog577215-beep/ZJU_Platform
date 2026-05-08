@@ -211,6 +211,13 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
     scrollToList();
   };
 
+  const resetFilters = () => {
+    setSearchInput("");
+    setSearchQuery("");
+    setStatusFilter("all");
+    scrollToList();
+  };
+
   const updateStatusFilter = (filterId) => {
     setStatusFilter(filterId);
     scrollToList();
@@ -275,6 +282,9 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
   const activeFilterLabel =
     STATUS_FILTERS.find((filter) => filter.id === statusFilter)?.label ||
     "全部状态";
+  const hasActiveFilters = Boolean(
+    statusFilter !== "all" || searchQuery || searchInput.trim(),
+  );
 
   const submitConfirmedAction = async () => {
     if (!confirmState) return;
@@ -667,17 +677,30 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
           className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
         >
           <span>
-            当前筛选“{activeFilterLabel}”共 {formatNumber(serverTotal)} 条，
-            本页显示 {items.length} 条
-            {searchQuery ? `，搜索“${searchQuery}”` : ""}。
+            {`当前筛选“${activeFilterLabel}”共 ${formatNumber(
+              serverTotal,
+            )} 条，本页显示 ${items.length} 条${
+              searchQuery ? `，搜索“${searchQuery}”` : ""
+            }。`}
           </span>
-          <button
-            type="button"
-            className="inline-flex shrink-0 font-semibold underline underline-offset-4"
-            onClick={() => scrollToList()}
-          >
-            查看列表
-          </button>
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              className="inline-flex shrink-0 font-semibold underline underline-offset-4"
+              onClick={() => scrollToList()}
+            >
+              查看列表
+            </button>
+            {hasActiveFilters ? (
+              <button
+                type="button"
+                className="inline-flex shrink-0 font-semibold underline underline-offset-4"
+                onClick={resetFilters}
+              >
+                重置筛选
+              </button>
+            ) : null}
+          </div>
         </AdminInlineNote>
 
         {selectedItems.length > 0 ? (
@@ -694,6 +717,10 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
                 </AdminHelperText>
               </div>
               <div className="flex flex-wrap gap-2">
+                <AdminButton tone="subtle" onClick={() => setSelectedIds([])}>
+                  <X size={16} />
+                  清除选择
+                </AdminButton>
                 <AdminButton
                   tone="success"
                   onClick={() =>
@@ -743,12 +770,23 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
               <AdminEmptyState
                 icon={Icon}
                 title="没有匹配的内容"
-                description="尝试切换状态筛选、清空搜索词，或者直接创建新内容。"
+                description={
+                  hasActiveFilters
+                    ? "当前条件没有匹配结果，可以一键恢复全部状态和搜索词。"
+                    : "当前还没有内容，可以直接创建新内容。"
+                }
                 action={
-                  <AdminButton tone="primary" onClick={handleAdd}>
-                    <Plus size={16} />
-                    新增内容
-                  </AdminButton>
+                  hasActiveFilters ? (
+                    <AdminButton tone="subtle" onClick={resetFilters}>
+                      <RotateCcw size={16} />
+                      清空筛选
+                    </AdminButton>
+                  ) : (
+                    <AdminButton tone="primary" onClick={handleAdd}>
+                      <Plus size={16} />
+                      新增内容
+                    </AdminButton>
+                  )
                 }
               />
             ) : (

@@ -351,7 +351,11 @@ test.describe("admin console refinement", () => {
     await expect(
       page.getByText("当前筛选“待审核”共 1 条，本页显示 1 条"),
     ).toBeVisible();
-    await page.getByRole("button", { name: "全部状态" }).click();
+    await expect(page.getByRole("button", { name: "重置筛选" })).toBeVisible();
+    await page.getByRole("button", { name: "重置筛选" }).click();
+    await expect(
+      page.getByText("当前筛选“全部状态”共 2 条，本页显示 2 条"),
+    ).toBeVisible();
     await page.getByPlaceholder("搜索标题或标签").fill("春日");
     await page.getByRole("button", { name: "搜索" }).click();
     await expect(page.getByText("搜索“春日”")).toBeVisible();
@@ -359,9 +363,12 @@ test.describe("admin console refinement", () => {
     await expect(
       page.getByRole("heading", { name: "图片资源列表" }),
     ).toBeInViewport();
-    await page.getByRole("button", { name: /清空/ }).click();
+    await page.getByRole("button", { name: "重置筛选" }).click();
     await page.getByRole("checkbox", { name: "选择 紫金港春日影像" }).check();
     await expect(page.getByText("条当前页内容")).toBeVisible();
+    await expect(page.getByRole("button", { name: "清除选择" })).toBeVisible();
+    await page.getByRole("button", { name: "清除选择" }).click();
+    await expect(page.getByText("条当前页内容")).toHaveCount(0);
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     const backToTop = page.getByRole("button", { name: "回到管理员顶部" });
     await expect(backToTop).toBeVisible();
@@ -396,8 +403,14 @@ test.describe("admin console refinement", () => {
       page.getByRole("button", { name: "模型配置", exact: true }),
     ).toBeVisible();
     await expect(page.getByRole("heading", { name: "AI 助手" })).toHaveCount(0);
+    await expect(
+      page.getByText("运行扫描后会列出可应用的活动治理建议。"),
+    ).toBeVisible();
     await page.getByRole("button", { name: "扫描" }).first().click();
     await expect(page.getByText(/^原因：标题和描述包含黑客松/)).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "选择高置信" }),
+    ).toBeVisible();
 
     await page.getByRole("button", { name: "模型配置", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Key 列表 (1)" })).toBeVisible();

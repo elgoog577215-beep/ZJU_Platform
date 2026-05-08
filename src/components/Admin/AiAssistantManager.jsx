@@ -483,7 +483,7 @@ const AiAssistantManager = () => {
                 tone="subtle"
                 onClick={() => setSelectedIds(highConfidenceIds)}
               >
-                高置信
+                选择高置信
               </AdminButton>
               <AdminButton tone="subtle" onClick={() => setSelectedIds([])}>
                 清空
@@ -496,6 +496,11 @@ const AiAssistantManager = () => {
           <AdminEmptyState
             icon={Database}
             title={scanResult ? "暂无建议" : "未扫描"}
+            description={
+              scanResult
+                ? "当前扫描没有发现需要处理的治理建议。"
+                : "运行扫描后会列出可应用的活动治理建议。"
+            }
             action={
               <AdminButton tone="primary" onClick={runScan} disabled={scanning}>
                 {scanning ? (

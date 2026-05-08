@@ -33,3 +33,10 @@
 - [x] 6.3 Replace technical resource scope copy with operator-facing language.
 - [x] 6.4 Rename the intelligence page and tabs around governance/configuration responsibilities instead of generic AI assistant wording.
 - [x] 6.5 Extend admin regression assertions for the second-pass polish and rerun targeted static checks. Browser rerun was attempted but blocked by local port `EACCES`.
+
+## 7. Detail Polish
+
+- [x] 7.1 Add resource-list reset affordances for active status/search filters in the summary note and empty state.
+- [x] 7.2 Add an explicit clear-selection action to the resource batch bar.
+- [x] 7.3 Clarify AI governance selection and empty-state copy so the page reads as a focused workflow instead of a generic assistant surface.
+- [x] 7.4 Run targeted lint, build, and admin browser regression where the local environment allows it.

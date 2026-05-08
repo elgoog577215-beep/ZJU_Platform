@@ -13,6 +13,14 @@ tmp/*.png
 tmp/
 .superpowers/
 tmp-*.png
+.codex-logs/
+.playwright-cli/
+output/playwright/
+output/ui-audit/
+output/*.png
+output/*.pptx
+output/*.log
+output/~$*.pptx
 
 # Logs
 *.log
