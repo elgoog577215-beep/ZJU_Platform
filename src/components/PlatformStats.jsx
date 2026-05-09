@@ -236,17 +236,17 @@ const PlatformStats = () => {
     {
       value: settings.about_stat_1_value || "1000+",
       label: settings.about_stat_1_label || "平台用户基础",
-      hint: "用户与内容持续涌入",
+      hint: "支撑活动触达、社区连接与项目转化",
     },
     {
       value: "4",
-      label: "产学融合节点",
-      hint: "入口、社区、学习中心、赛事同频运转",
+      label: "核心服务链路",
+      hint: "信息发布、社群协作、场景开放、实战验证",
     },
     {
       value: settings.about_stat_3_value || "5 小时",
-      label: settings.about_stat_3_label || "限时实战攻坚",
-      hint: "把真实课题推进到可运行成果",
+      label: settings.about_stat_3_label || "限时实战机制",
+      hint: "推动课题快速形成原型成果",
     },
   ];
 
@@ -258,7 +258,7 @@ const PlatformStats = () => {
       short: "统一入口",
       loop: "汇聚资源",
       icon: CalendarDays,
-      description: "聚合活动、项目、企业课题与学习资源，让全域 AI 机会进入同一入口。",
+      description: "统一发布校园 AI 活动、企业课题、项目招募与学习资源，提升信息触达与参与效率。",
       route: "/events",
       accent: isDayMode ? "text-emerald-700" : "text-emerald-300",
       iconBg: isDayMode ? "bg-emerald-500" : "bg-emerald-300",
@@ -270,7 +270,7 @@ const PlatformStats = () => {
       short: "持续共建",
       loop: "组织人群",
       icon: Users,
-      description: "连接学习者、开发者与社团负责人，把交流转化为长期共建。",
+      description: "连接学习者、开发者、学生组织与项目负责人，形成持续交流、协作与共建机制。",
       route: "/community",
       accent: isDayMode ? "text-cyan-700" : "text-cyan-300",
       iconBg: isDayMode ? "bg-cyan-500" : "bg-cyan-300",
@@ -282,7 +282,7 @@ const PlatformStats = () => {
       short: "场景底座",
       loop: "开放场景",
       icon: Trees,
-      description: "提供场景、空间、组织协同与长期机制，让产学融合有稳定底座。",
+      description: "开放真实学习场景与跨学科议题，提供空间支持、组织协同和长期运营机制。",
       route: "/future-learning",
       accent: isDayMode ? "text-teal-700" : "text-teal-300",
       iconBg: isDayMode ? "bg-teal-500" : "bg-teal-300",
@@ -294,7 +294,7 @@ const PlatformStats = () => {
       short: "成果认定",
       loop: "验证能力",
       icon: Trophy,
-      description: "企业真实命题、限时技术攻坚、零路演评审，让硬核能力被直接验证。",
+      description: "围绕企业命题开展限时开发与成果评审，集中验证团队的 AI 原生开发能力。",
       route: "/hackathon",
       accent: isDayMode ? "text-amber-700" : "text-amber-300",
       iconBg: isDayMode ? "bg-amber-500" : "bg-amber-300",
@@ -302,10 +302,10 @@ const PlatformStats = () => {
   ];
 
   const loopItems = [
-    { index: "01", title: "汇聚", detail: "活动、项目与企业课题进入同一入口" },
-    { index: "02", title: "实战", detail: "学生在赛事与项目中做中学" },
-    { index: "03", title: "认定", detail: "校企共同背书成果能力" },
-    { index: "04", title: "通道", detail: "优秀人才通向实习与内推" },
+    { index: "01", title: "汇聚", detail: "统一承接活动、资源、课题与招募信息" },
+    { index: "02", title: "协作", detail: "社群组织推动组队、共创与项目执行" },
+    { index: "03", title: "验证", detail: "赛事评审沉淀作品与能力证明" },
+    { index: "04", title: "转化", detail: "优秀成果对接实践、实习与推荐通道" },
   ];
 
   const palette = isDayMode
@@ -446,7 +446,7 @@ const PlatformStats = () => {
             <p
               className={`mt-7 max-w-3xl text-base font-medium leading-8 sm:text-xl sm:leading-9 ${palette.firstSoft}`}
             >
-              真实课题、实战项目、校企认定在同一条路径里流动。让学生在做中学，让企业提前看见人才，让校园创新通向产业现场。
+              平台围绕校园 AI 活动、社群共建、真实课题与实战赛事，连接学生、学校支持单位与企业伙伴，提供从信息触达到项目转化的一体化入口。
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -516,7 +516,7 @@ const PlatformStats = () => {
               </h2>
             </div>
             <p className={`max-w-2xl text-base leading-8 sm:text-lg ${palette.textSoft}`}>
-              资源入口聚合机会，AI 社区承接共建，未来学习中心提供场景，技术黑客松完成高密度验证。
+              首页聚焦用户可直接参与的行动入口：发现活动、加入社群、对接课题、进入赛事。完整生态逻辑则在关于页面展开说明。
             </p>
           </div>
 
@@ -625,7 +625,7 @@ const PlatformStats = () => {
                   在这里汇合
                 </h2>
                 <p className={`mt-6 max-w-lg text-sm leading-7 sm:text-base ${palette.textSoft}`}>
-                  学校提供场景与机制，学生组织承接人群与执行，企业伙伴带来真实课题、技术资源和人才通道。
+                  学校支持单位提供场景、空间与组织机制，学生组织承担触达、动员与执行，企业伙伴提供真实课题、技术资源与成果转化通道。
                 </p>
               </div>
 
@@ -667,7 +667,7 @@ const PlatformStats = () => {
                 </div>
               </div>
               <p className={`mt-4 max-w-2xl text-sm font-bold leading-6 ${palette.textMuted}`}>
-                头部科创社团与核心负责人共同承接活动、项目和实践人群，让校园动能持续流动。
+                学生组织承担活动招募、社区运营、项目协作与复盘沉淀，推动校内 AI 实践人群形成稳定协作网络。
               </p>
               <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
                 {studentOrganizations.map((item) => (
@@ -702,7 +702,7 @@ const PlatformStats = () => {
               </div>
 
               <p className={`mt-4 max-w-2xl text-sm font-bold leading-6 ${palette.textMuted}`}>
-                头部 AI 企业把真实课题、模型、云和工具带入校园，支撑项目从想法走向可运行成果。
+                企业伙伴提供真实业务命题、模型能力、云资源与工具支持，帮助项目从创意原型走向可展示、可评估、可持续推进的成果。
               </p>
 
               <div className="mt-5 grid auto-rows-fr grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-6 lg:gap-2 xl:gap-3">
