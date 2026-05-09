@@ -20,6 +20,7 @@ import {
   Zap,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { hackathonPartnerLogoRows } from "../data/partnerLogos";
 import { useSettings } from "../context/SettingsContext";
 import { useReducedMotion } from "../utils/animations";
 import api from "../services/api";
@@ -56,45 +57,6 @@ const ensurePartners = (partners, requiredPartners) => {
 const MotionDiv = motion.div;
 const MotionSection = motion.section;
 const officialWechatGroupImage = "/images/wechat-official-group.jpg";
-const partnerLogosTop = [
-  {
-    src: "/images/partner-logos/minimax.png",
-    darkSrc: "/images/partner-logos/minimax-dark.png",
-    alt: "MiniMax logo",
-  },
-  {
-    src: "/images/partner-logos/modelscope.png",
-    darkSrc: "/images/partner-logos/modelscope-dark.png",
-    alt: "ModelScope 魔搭社区 logo",
-  },
-  {
-    src: "/images/partner-logos/company-3.png",
-    darkSrc: "/images/partner-logos/company-3-dark.png",
-    alt: "数字名片 Bonjour logo",
-    darkClassName: "brightness-0 invert",
-  },
-];
-
-const partnerLogosBottom = [
-  {
-    src: "/images/partner-logos/aliyun-cn.svg?v=2",
-    darkSrc: "/images/partner-logos/aliyun-cn-white.svg?v=2",
-    alt: "阿里云 logo",
-    size: "h-5 sm:h-6 lg:h-7",
-  },
-  {
-    src: "/images/partner-logos/qoder.png",
-    darkSrc: "/images/partner-logos/qoder-dark.png",
-    alt: "Qoder logo",
-    text: "Qoder",
-    size: "h-5 sm:h-6 lg:h-7",
-  },
-  {
-    src: "/images/partner-logos/stepfun.png",
-    darkSrc: "/images/partner-logos/stepfun-white.png",
-    alt: "阶跃 StepFun logo",
-  },
-];
 
 const HackathonRegistration = () => {
   const { settings, uiMode } = useSettings();
@@ -501,7 +463,7 @@ const HackathonRegistration = () => {
           className="relative z-10 mx-auto mb-6 flex w-[calc(100%-2rem)] max-w-[760px] flex-col items-center gap-1 sm:absolute sm:right-6 sm:top-[calc(env(safe-area-inset-top)+80px)] sm:mx-0 sm:mb-0 sm:w-auto sm:items-end sm:gap-1.5 lg:right-10 lg:top-[calc(env(safe-area-inset-top)+78px)] lg:gap-2 2xl:right-16"
           aria-label="企业 logo"
         >
-          {[partnerLogosTop, partnerLogosBottom].map((row, rowIndex) => (
+          {hackathonPartnerLogoRows.map((row, rowIndex) => (
             <div
               key={rowIndex}
               className="flex flex-wrap items-center justify-center gap-1.5 sm:flex-nowrap sm:justify-end sm:gap-2 lg:gap-2.5"

@@ -20,6 +20,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useSettings } from "../context/SettingsContext";
+import { hackathonPartnerLogos } from "../data/partnerLogos";
 import { useCachedResource } from "../hooks/useCachedResource";
 import api from "../services/api";
 import {
@@ -239,13 +240,13 @@ const PlatformStats = () => {
     },
     {
       value: "4",
-      label: "核心运营抓手",
-      hint: "活动、社区、学习中心、赛事同频运转",
+      label: "产学融合节点",
+      hint: "入口、社区、学习中心、赛事同频运转",
     },
     {
       value: settings.about_stat_3_value || "5 小时",
-      label: settings.about_stat_3_label || "AI 原生赛事标识",
-      hint: "把想法推进到可运行作品",
+      label: settings.about_stat_3_label || "限时实战攻坚",
+      hint: "把真实课题推进到可运行成果",
     },
   ];
 
@@ -255,9 +256,9 @@ const PlatformStats = () => {
       code: "ENTRY",
       title: "活动聚合",
       short: "统一入口",
-      loop: "发现机会",
+      loop: "汇聚资源",
       icon: CalendarDays,
-      description: "把校内 AI 活动、机会与资源收拢到一个入口，降低发现成本。",
+      description: "聚合活动、项目、企业课题与学习资源，让全域 AI 机会进入同一入口。",
       route: "/events",
       accent: isDayMode ? "text-emerald-700" : "text-emerald-300",
       iconBg: isDayMode ? "bg-emerald-500" : "bg-emerald-300",
@@ -266,10 +267,10 @@ const PlatformStats = () => {
       index: "02",
       code: "LINK",
       title: "AI 社区",
-      short: "持续关系",
-      loop: "连接人群",
+      short: "持续共建",
+      loop: "组织人群",
       icon: Users,
-      description: "让学习者、建设者和组织者彼此看见，把交流沉淀成关系。",
+      description: "连接学习者、开发者与社团负责人，把交流转化为长期共建。",
       route: "/community",
       accent: isDayMode ? "text-cyan-700" : "text-cyan-300",
       iconBg: isDayMode ? "bg-cyan-500" : "bg-cyan-300",
@@ -278,10 +279,10 @@ const PlatformStats = () => {
       index: "03",
       code: "LEARN",
       title: "未来学习中心",
-      short: "问题揭榜",
-      loop: "沉淀问题",
+      short: "场景底座",
+      loop: "开放场景",
       icon: Trees,
-      description: "承接真实学习场景与医学交叉问题，把需求变成可跟进的共创线索。",
+      description: "提供场景、空间、组织协同与长期机制，让产学融合有稳定底座。",
       route: "/future-learning",
       accent: isDayMode ? "text-teal-700" : "text-teal-300",
       iconBg: isDayMode ? "bg-teal-500" : "bg-teal-300",
@@ -290,10 +291,10 @@ const PlatformStats = () => {
       index: "04",
       code: "BUILD",
       title: "极速黑客松",
-      short: "创造爆发",
-      loop: "激发项目",
+      short: "成果认定",
+      loop: "验证能力",
       icon: Trophy,
-      description: "用高密度创造验证 AI 原生开发的校园势能，让作品真正跑起来。",
+      description: "企业真实命题、限时技术攻坚、零路演评审，让硬核能力被直接验证。",
       route: "/hackathon",
       accent: isDayMode ? "text-amber-700" : "text-amber-300",
       iconBg: isDayMode ? "bg-amber-500" : "bg-amber-300",
@@ -301,34 +302,10 @@ const PlatformStats = () => {
   ];
 
   const loopItems = [
-    { index: "01", title: "发现", detail: "活动与机会进入统一入口" },
-    { index: "02", title: "连接", detail: "社区承接人群关系" },
-    { index: "03", title: "创造", detail: "赛事激发真实项目" },
-    { index: "04", title: "沉淀", detail: "成果反哺校园生态" },
-  ];
-
-  const supportLogos = [
-    {
-      src: "/images/partner-logos/minimax.png",
-      darkSrc: "/images/partner-logos/minimax-dark.png",
-      alt: "MiniMax logo",
-    },
-    {
-      src: "/images/partner-logos/modelscope.png",
-      darkSrc: "/images/partner-logos/modelscope-dark.png",
-      alt: "ModelScope 魔搭社区 logo",
-    },
-    {
-      src: "/images/partner-logos/company-2.png",
-      darkSrc: "/images/partner-logos/company-2-dark.png",
-      alt: "云江开物 logo",
-      size: "h-4 sm:h-5 lg:h-6",
-    },
-    {
-      src: "/images/partner-logos/stepfun.png",
-      darkSrc: "/images/partner-logos/stepfun-white.png",
-      alt: "阶跃星辰 logo",
-    },
+    { index: "01", title: "汇聚", detail: "活动、项目与企业课题进入同一入口" },
+    { index: "02", title: "实战", detail: "学生在赛事与项目中做中学" },
+    { index: "03", title: "认定", detail: "校企共同背书成果能力" },
+    { index: "04", title: "通道", detail: "优秀人才通向实习与内推" },
   ];
 
   const palette = isDayMode
@@ -461,15 +438,15 @@ const PlatformStats = () => {
             </div>
 
             <h2 className="mt-7 max-w-5xl text-[2.45rem] font-black leading-[0.96] tracking-tight min-[360px]:text-[2.85rem] sm:text-6xl lg:text-[5.35rem] lg:leading-[0.9] xl:text-[6.05rem] 2xl:text-[6.85rem]">
-              <span className="block">四大抓手，</span>
-              <span className={`block ${palette.accent}`}>点亮一张</span>
+              <span className="block">把企业真题，</span>
+              <span className={`block ${palette.accent}`}>接入一张</span>
               <span className="block whitespace-nowrap">校园 AI 网络。</span>
             </h2>
 
             <p
               className={`mt-7 max-w-3xl text-base font-medium leading-8 sm:text-xl sm:leading-9 ${palette.firstSoft}`}
             >
-              活动聚合负责发现，AI 社区负责连接，未来学习中心负责问题沉淀，极速黑客松负责爆发。学校、社团与企业伙伴在同一张网络里协同，让机会、人群和作品持续流动。
+              真实课题、实战项目、校企认定在同一条路径里流动。让学生在做中学，让企业提前看见人才，让校园创新通向产业现场。
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -485,7 +462,7 @@ const PlatformStats = () => {
                 variant="secondary"
                 onClick={() => navigate("/about")}
               >
-                了解生态团队
+                了解产学闭环
               </LinkButton>
             </div>
 
@@ -533,13 +510,13 @@ const PlatformStats = () => {
                 Core Engine
               </p>
               <h2 className="mt-3 max-w-5xl text-4xl font-black leading-none tracking-tight text-balance sm:text-6xl lg:text-[clamp(3.5rem,6.6vw,6.5rem)]">
-                不是入口很多，
+                不是活动很多，
                 <br />
-                是路径终于清楚。
+                是产学路径清楚。
               </h2>
             </div>
             <p className={`max-w-2xl text-base leading-8 sm:text-lg ${palette.textSoft}`}>
-              从看到活动，到加入社区，再到组队做出作品，入口、关系和成果在同一条路径里闭环。
+              资源入口聚合机会，AI 社区承接共建，未来学习中心提供场景，技术黑客松完成高密度验证。
             </p>
           </div>
 
@@ -605,7 +582,7 @@ const PlatformStats = () => {
                 Operating Loop
               </p>
               <h3 className="mt-2 text-2xl font-black leading-none tracking-tight">
-                从热度到沉淀
+                从真题到通道
               </h3>
             </div>
             {loopItems.map((item) => (
@@ -627,9 +604,9 @@ const PlatformStats = () => {
           initial={prefersReducedMotion ? false : "initial"}
           whileInView={prefersReducedMotion ? undefined : "animate"}
           viewport={motionTokens.viewport}
-          className="mt-20 grid gap-6 lg:mt-32 lg:grid-cols-[0.82fr_1.18fr]"
+          className="mt-14 grid gap-6 lg:mt-24 lg:grid-cols-[0.82fr_1.18fr]"
         >
-          <div className={`relative min-h-[520px] overflow-hidden border p-7 sm:p-9 ${palette.panelStrong}`}>
+          <div className={`relative min-h-[470px] overflow-hidden border p-6 sm:p-8 lg:p-9 ${palette.panelStrong}`}>
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(103,232,249,0.18),transparent_38%)]" />
             <div
               className={`pointer-events-none absolute -right-16 bottom-8 text-[11rem] font-black uppercase leading-none tracking-tight ${palette.watermark}`}
@@ -637,18 +614,18 @@ const PlatformStats = () => {
               BASE
             </div>
             <div className={`pointer-events-none absolute left-0 top-0 h-full w-1 ${palette.accentBg}`} />
-            <div className="relative z-10 flex min-h-[456px] flex-col justify-between">
+            <div className="relative z-10 flex min-h-[394px] flex-col justify-between gap-7 lg:min-h-[410px]">
               <div>
                 <div className={`font-mono text-xs font-black uppercase tracking-[0.2em] ${palette.accent}`}>
                   01 / Foundation
                 </div>
-                <h2 className="mt-7 max-w-lg text-5xl font-black leading-none tracking-tight sm:text-6xl lg:text-[5.6rem]">
-                  支持网络
+                <h2 className="mt-6 max-w-lg text-[3rem] font-black leading-[0.96] tracking-tight sm:text-[4.25rem] lg:text-[clamp(4.25rem,5.25vw,5.1rem)]">
+                  三方资源
                   <br />
                   在这里汇合
                 </h2>
                 <p className={`mt-6 max-w-lg text-sm leading-7 sm:text-base ${palette.textSoft}`}>
-                  学校提供土壤，学生组织连接人群，企业伙伴带来技术与资源，让学生项目从现场继续生长。
+                  学校提供场景与机制，学生组织承接人群与执行，企业伙伴带来真实课题、技术资源和人才通道。
                 </p>
               </div>
 
@@ -690,7 +667,7 @@ const PlatformStats = () => {
                 </div>
               </div>
               <p className={`mt-4 max-w-2xl text-sm font-bold leading-6 ${palette.textMuted}`}>
-                社群、活动、实践人群从这里被组织起来，形成持续流动的校园动能。
+                头部科创社团与核心负责人共同承接活动、项目和实践人群，让校园动能持续流动。
               </p>
               <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
                 {studentOrganizations.map((item) => (
@@ -725,14 +702,14 @@ const PlatformStats = () => {
               </div>
 
               <p className={`mt-4 max-w-2xl text-sm font-bold leading-6 ${palette.textMuted}`}>
-                模型、云、工具与技术生态进入同一张网络，支撑真实项目从想法走向可运行。
+                头部 AI 企业把真实课题、模型、云和工具带入校园，支撑项目从想法走向可运行成果。
               </p>
 
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                {supportLogos.map((logo) => (
+              <div className="mt-5 grid auto-rows-fr grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-6 lg:gap-2 xl:gap-3">
+                {hackathonPartnerLogos.map((logo) => (
                   <div
-                    key={logo.alt}
-                    className={`group flex min-h-[82px] items-center justify-center border px-5 py-4 transition duration-300 hover:-translate-y-0.5 ${
+                    key={logo.src}
+                    className={`group flex min-h-[58px] min-w-0 items-center justify-center overflow-hidden border px-3 py-3 transition duration-300 hover:-translate-y-0.5 sm:min-h-[70px] sm:px-4 sm:py-4 lg:min-h-[clamp(3rem,5.3vh,4.35rem)] lg:px-2 lg:py-3 xl:px-3 ${
                       isDayMode
                         ? "border-slate-200 bg-white/86 shadow-[0_16px_40px_rgba(15,23,42,0.08)]"
                         : "border-white/10 bg-white/[0.045] hover:border-cyan-300/30 hover:bg-cyan-300/[0.065]"
@@ -742,9 +719,18 @@ const PlatformStats = () => {
                       src={isDayMode ? logo.src : logo.darkSrc || logo.src}
                       alt={logo.alt}
                       className={`w-auto max-w-full object-contain transition duration-300 group-hover:scale-[1.04] ${
-                        logo.size || "h-6 sm:h-8"
-                      }`}
+                        logo.size || "h-5 sm:h-7 lg:h-[clamp(1.35rem,2.7vh,1.9rem)]"
+                      } ${!isDayMode ? logo.darkClassName || "" : ""}`}
                     />
+                    {logo.text ? (
+                      <span
+                        className={`ml-2 whitespace-nowrap text-sm font-black leading-none tracking-tight sm:text-base lg:text-[clamp(0.8rem,1.15vw,1rem)] ${
+                          isDayMode ? "text-slate-950" : "text-white"
+                        }`}
+                      >
+                        {logo.text}
+                      </span>
+                    ) : null}
                   </div>
                 ))}
               </div>

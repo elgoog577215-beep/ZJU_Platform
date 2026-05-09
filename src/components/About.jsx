@@ -7,6 +7,7 @@ import {
   Trophy,
   Users,
 } from "lucide-react";
+import { hackathonPartnerLogos } from "../data/partnerLogos";
 import { useSettings } from "../context/SettingsContext";
 import { useReducedMotion } from "../utils/animations";
 import SEO from "./SEO";
@@ -105,65 +106,41 @@ const About = () => {
       code: "ENTRY",
       title: "活动聚合",
       short: "统一入口",
-      loop: "发现机会",
+      loop: "汇聚资源",
       icon: CalendarDays,
       description:
-        "汇聚活动与机会，建立校内 AI 资源的统一入口。",
+        "聚合活动、项目、企业课题与学习资源，让全域 AI 机会进入同一入口。",
       route: "/events",
     },
     {
       index: "02",
       code: "LINK",
       title: "AI 社区",
-      short: "持续关系",
-      loop: "连接人群",
+      short: "持续共建",
+      loop: "组织人群",
       icon: Users,
       description:
-        "连接学习者与建设者，让交流沉淀为持续关系。",
+        "连接学习者、开发者与社团负责人，把交流转化为长期共建。",
       route: "/community",
     },
     {
       index: "03",
       code: "BUILD",
       title: "极速黑客松",
-      short: "创造爆发",
-      loop: "激发项目",
+      short: "成果认定",
+      loop: "验证能力",
       icon: Trophy,
       description:
-        "以高密度创造验证 AI 原生开发的校园势能。",
+        "企业真实命题、限时技术攻坚、零路演评审，让硬核能力被直接验证。",
       route: "/hackathon",
     },
   ];
 
   const loopItems = [
-    { index: "01", title: "发现", detail: "活动与机会进入统一入口" },
-    { index: "02", title: "连接", detail: "社区承接人群关系" },
-    { index: "03", title: "创造", detail: "赛事激发真实项目" },
-    { index: "04", title: "沉淀", detail: "成果反哺校园生态" },
-  ];
-
-  const supportLogos = [
-    {
-      src: "/images/partner-logos/minimax.png",
-      darkSrc: "/images/partner-logos/minimax-dark.png",
-      alt: "MiniMax logo",
-    },
-    {
-      src: "/images/partner-logos/modelscope.png",
-      darkSrc: "/images/partner-logos/modelscope-dark.png",
-      alt: "ModelScope 魔搭社区 logo",
-    },
-    {
-      src: "/images/partner-logos/company-2.png",
-      darkSrc: "/images/partner-logos/company-2-dark.png",
-      alt: "云江开物 logo",
-      size: "h-4 sm:h-5 lg:h-6",
-    },
-    {
-      src: "/images/partner-logos/stepfun.png",
-      darkSrc: "/images/partner-logos/stepfun-white.png",
-      alt: "阶跃星辰 logo",
-    },
+    { index: "01", title: "汇聚", detail: "活动、项目与企业课题进入同一入口" },
+    { index: "02", title: "实战", detail: "学生在赛事与项目中做中学" },
+    { index: "03", title: "认定", detail: "校企共同背书成果能力" },
+    { index: "04", title: "通道", detail: "优秀人才通向实习与内推" },
   ];
 
   const foundationPillars = [
@@ -177,10 +154,10 @@ const About = () => {
       value: settings.about_stat_1_value || "1000+",
       label: settings.about_stat_1_label || "平台用户基础",
     },
-    { value: "3", label: "核心运营抓手" },
+    { value: "3", label: "三位一体业务" },
     {
       value: settings.about_stat_3_value || "5 小时",
-      label: settings.about_stat_3_label || "AI 原生赛事标识",
+      label: settings.about_stat_3_label || "限时实战攻坚",
     },
   ];
 
@@ -239,7 +216,7 @@ const About = () => {
     >
       <SEO
         title="关于我们"
-        description="了解浙大 AI 生态团队如何以活动聚合、AI 社区与极速黑客松构建校园 AI 协同生态。"
+        description="了解拓途浙享如何以企业真实课题、校园 AI 社区与技术黑客松连接学校、企业和学生，构建产学融合生态。"
       />
 
       <nav
@@ -288,16 +265,16 @@ const About = () => {
             </div>
 
             <h1 className="mt-6 max-w-[1080px] text-[3rem] font-black leading-[0.92] tracking-[-0.075em] sm:text-7xl md:text-[5rem] lg:mt-6 lg:text-[clamp(4.35rem,9.2vh,5.25rem)] xl:text-[clamp(4rem,7.8vh,5.8rem)] 2xl:text-[6.35rem] [@media_(max-height:820px)]:lg:mt-4">
-              <span className="block">三大抓手，</span>
-              <span className="block">点亮一张</span>
+              <span className="block">把企业真题，</span>
+              <span className="block">接入一张</span>
               <span className={`block ${palette.accent}`}>校园 AI 网络。</span>
             </h1>
 
             <p className={`mt-6 max-w-4xl text-lg font-medium leading-8 sm:text-xl sm:leading-9 lg:mt-5 lg:text-[clamp(0.95rem,1.9vh,1.18rem)] lg:leading-8 [@media_(max-height:820px)]:lg:mt-4 ${palette.textSoft}`}>
               <strong className={isDayMode ? "text-slate-950" : "text-white"}>
-                活动聚合、AI 社区、极速黑客松。
+                真实课题、实战项目、校企认定。
               </strong>
-              {" "}让机会涌现，让人群相连，让创造落地。
+              {" "}让学生在做中学，让企业提前看见人才，让校园创新通向产业现场。
             </p>
 
             <div className="mt-8 lg:mt-7 [@media_(max-height:820px)]:lg:mt-5">
@@ -305,7 +282,7 @@ const About = () => {
                 href="#ecosystem-handles"
                 className={`inline-flex min-h-12 items-center justify-center gap-2 px-7 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 sm:min-h-14 sm:px-9 [@media_(max-height:820px)]:lg:min-h-12 [@media_(max-height:820px)]:lg:px-7 ${palette.primary}`}
               >
-                进入核心引擎
+                查看生态闭环
                 <ArrowRight className="h-4 w-4" />
               </a>
             </div>
@@ -354,12 +331,12 @@ const About = () => {
                   3
                 </div>
                 <p className="mt-4 text-[clamp(2.35rem,5.4vh,3rem)] font-black leading-[1.02] tracking-[-0.05em] 2xl:text-[3.35rem]">
-                  抓手联动
+                  三方协同
                   <br />
-                  生态成网
+                  闭环运转
                 </p>
                 <p className={`mt-3 max-w-lg text-base font-bold leading-7 2xl:mt-4 2xl:text-lg 2xl:leading-8 ${palette.textSoft}`}>
-                  活动入口、社区关系、赛事创造同时在线，形成一套持续运转的校园 AI 协作系统。
+                  企业发布真实课题，学生在实战中产出成果，校企共同完成认定与推荐。
                 </p>
               </div>
               <div className={`grid gap-px overflow-hidden border ${isDayMode ? "border-cyan-500/18 bg-cyan-500/18" : "border-cyan-300/18 bg-cyan-300/18"}`}>
@@ -402,10 +379,11 @@ const About = () => {
               Core Engine
             </p>
             <h2 className="mt-3 max-w-5xl text-[2.45rem] font-black leading-[0.98] tracking-[-0.055em] sm:text-6xl lg:text-[clamp(3.45rem,7vh,5.65rem)]">
-              三个引擎位，驱动生态持续运转。
+              <span className="block sm:inline">三位一体，</span>
+              <span className="block sm:inline">打通产学闭环。</span>
             </h2>
             <p className={`mt-4 max-w-3xl text-base leading-8 sm:text-lg lg:text-[clamp(0.95rem,1.45vh,1.125rem)] lg:leading-7 ${palette.textSoft}`}>
-              入口负责发现，社区负责连接，黑客松负责爆发。三者联动，才让校园 AI 生态从热度变成机制。
+              资源入口聚合机会，AI 社区承接共建，技术黑客松完成高密度验证。三者联动，才让 AI 热度变成可运营、可复制的人才培养机制。
             </p>
 
             <div className="mt-7 grid gap-3.5 lg:mt-[clamp(1rem,2.1vh,1.75rem)] lg:h-[clamp(17rem,32vh,24rem)] lg:min-h-0 lg:auto-rows-fr lg:grid-cols-3 lg:gap-5 2xl:gap-7">
@@ -465,7 +443,7 @@ const About = () => {
                 <div className={`px-6 py-[clamp(0.8rem,1.8vh,1.5rem)] 2xl:px-7 ${isDayMode ? "bg-white/70" : "bg-white/[0.035]"}`}>
                   <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${palette.label}`}>Operating Loop</p>
                   <h3 className="mt-2 text-[clamp(1.2rem,2.4vh,1.9rem)] font-black leading-none tracking-[-0.04em]">
-                    从热度到沉淀
+                    从真题到通道
                   </h3>
                 </div>
               {loopItems.map((item) => (
@@ -538,12 +516,12 @@ const About = () => {
                   Support Galaxy
                 </p>
                 <h2 className="mt-3 max-w-[820px] text-[2.45rem] font-black leading-[0.98] tracking-[-0.055em] sm:text-6xl lg:text-[clamp(3rem,5.6vh,4.55rem)]">
-                  <span className="block">豪华阵容在场，</span>
-                  <span className="block">生态才有底气。</span>
+                  <span className="block">三方资源在场，</span>
+                  <span className="block">产学融合有底气。</span>
                 </h2>
               </div>
               <p className={`max-w-3xl text-base leading-8 sm:text-lg lg:justify-self-end lg:pb-[clamp(0.25rem,1vh,0.9rem)] lg:text-[clamp(0.95rem,1.45vh,1.125rem)] lg:leading-7 ${palette.textSoft}`}>
-                学校提供土壤，学生组织连接人群，企业伙伴带来技术与资源。拓途浙享把它们组织成一张持续运转的校园 AI 网络。
+                学校提供场景与机制，学生组织承接人群与执行，企业伙伴带来真实课题、技术资源和人才通道。
               </p>
             </div>
 
@@ -570,7 +548,7 @@ const About = () => {
                       支持
                     </h3>
                     <p className={`mt-4 max-w-lg text-sm leading-6 sm:mt-6 sm:leading-7 lg:mt-[clamp(0.8rem,2vh,1.5rem)] lg:text-[clamp(0.9rem,1.35vh,1.05rem)] lg:leading-6 ${palette.textSoft}`}>
-                      场景、空间、组织协同与长期机制，构成校园 AI 生态最稳定的底座。
+                      未来学习中心与校内创新平台提供场景、空间、组织协同与长期机制，让产学融合有稳定底座。
                     </p>
                   </div>
 
@@ -633,7 +611,7 @@ const About = () => {
                     </div>
                   </div>
                   <p className={`mt-3 max-w-2xl text-sm font-bold leading-6 lg:mt-[clamp(0.6rem,1.8vh,1.5rem)] lg:text-[clamp(0.85rem,1.35vh,1.05rem)] lg:leading-6 ${palette.textMuted}`}>
-                    社群、活动、实践人群从这里被组织起来，形成持续流动的校园动能。
+                    头部科创社团与核心负责人共同承接活动、项目和实践人群，让校园动能持续流动。
                   </p>
                   <div className="relative mt-5 grid grid-cols-3 gap-2 sm:grid-cols-5 sm:gap-3 lg:mt-[clamp(0.85rem,1.7vh,1.35rem)] lg:gap-3 2xl:gap-4">
                     <div className={`pointer-events-none absolute left-3 right-3 top-1/2 hidden h-px -translate-y-1/2 sm:block ${
@@ -675,16 +653,16 @@ const About = () => {
                   </div>
 
                   <p className={`mt-3 max-w-2xl text-sm font-bold leading-6 lg:mt-[clamp(0.6rem,1.8vh,1.5rem)] lg:text-[clamp(0.85rem,1.35vh,1.05rem)] lg:leading-6 ${palette.textMuted}`}>
-                    模型、云、工具与技术生态进入同一张网络，支撑真实项目从想法走向可运行。
+                    头部 AI 企业把真实课题、模型、云和工具带入校园，支撑项目从想法走向可运行成果。
                   </p>
 
-                  <div className={`mt-5 grid grid-cols-2 gap-2 border-t pt-4 sm:gap-3 lg:mt-[clamp(0.85rem,1.8vh,1.5rem)] lg:grid-cols-4 lg:gap-3 lg:pt-[clamp(0.75rem,1.6vh,1.25rem)] 2xl:gap-4 ${
+                  <div className={`mt-5 grid grid-cols-2 gap-2 border-t pt-4 sm:grid-cols-3 sm:gap-3 lg:mt-[clamp(0.85rem,1.8vh,1.5rem)] lg:grid-cols-6 lg:gap-2 lg:pt-[clamp(0.75rem,1.6vh,1.25rem)] xl:gap-3 ${
                     isDayMode ? "border-cyan-500/[0.14]" : "border-cyan-300/[0.12]"
                   }`}>
-                    {supportLogos.map((logo) => (
+                    {hackathonPartnerLogos.map((logo) => (
                       <div
-                        key={logo.alt}
-                        className={`group flex min-h-[62px] items-center justify-center px-3 py-3 transition duration-300 hover:-translate-y-0.5 sm:min-h-[82px] sm:px-5 sm:py-4 lg:min-h-[clamp(3.1rem,6vh,5rem)] lg:px-4 lg:py-4 ${
+                        key={logo.src}
+                        className={`group flex min-h-[58px] items-center justify-center px-3 py-3 transition duration-300 hover:-translate-y-0.5 sm:min-h-[72px] sm:px-5 sm:py-4 lg:min-h-[clamp(3rem,5.3vh,4.35rem)] lg:px-2 lg:py-3 xl:px-3 ${
                           isDayMode
                             ? "bg-white/[0.72] shadow-[inset_0_0_0_1px_rgba(6,182,212,0.12),0_16px_36px_rgba(15,23,42,0.07)]"
                             : "bg-white/[0.035] shadow-[inset_0_0_0_1px_rgba(103,232,249,0.09),0_0_0_1px_rgba(103,232,249,0.015)] hover:bg-cyan-300/[0.055]"
@@ -694,9 +672,18 @@ const About = () => {
                           src={isDayMode ? logo.src : logo.darkSrc || logo.src}
                           alt={logo.alt}
                           className={`w-auto max-w-full object-contain transition duration-300 group-hover:scale-[1.04] ${
-                            logo.size || "h-6 sm:h-8"
-                          }`}
+                            logo.size || "h-5 sm:h-7 lg:h-[clamp(1.35rem,2.7vh,1.9rem)]"
+                          } ${!isDayMode ? logo.darkClassName || "" : ""}`}
                         />
+                        {logo.text ? (
+                          <span
+                            className={`ml-2 whitespace-nowrap text-sm font-black leading-none tracking-tight sm:text-base lg:text-[clamp(0.8rem,1.15vw,1rem)] ${
+                              isDayMode ? "text-slate-950" : "text-white"
+                            }`}
+                          >
+                            {logo.text}
+                          </span>
+                        ) : null}
                       </div>
                     ))}
                   </div>
