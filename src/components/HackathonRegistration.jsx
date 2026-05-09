@@ -324,6 +324,7 @@ const HackathonRegistration = () => {
     }
 
     setCoachQuery(query);
+    setCoachResult(null);
     setIsCoachLoading(true);
     try {
       const response = await api.post(
@@ -1166,9 +1167,19 @@ const HackathonAiCoachPanel = ({
     : result?.modelStatus?.used
       ? "大模型分析"
       : "AI 教练";
+  const statusDetail = isLoading
+    ? "正在调度大模型，若输出不稳定会自动切到备用策略"
+    : result?.modelStatus?.fallbackUsed
+      ? "已启用备用策略，建议可作为参赛方向初稿"
+      : result?.modelStatus?.used
+        ? "已结合赛制画像与大模型完成分析"
+        : "输入你的基础和顾虑，先得到一个可执行方案";
+  const sources = Array.isArray(result?.sources) ? result.sources.slice(0, 5) : [];
+  const warnings = Array.isArray(result?.warnings) ? result.warnings.filter(Boolean).slice(0, 2) : [];
 
   return (
     <div
+      aria-busy={isLoading}
       className={`relative overflow-hidden border p-4 sm:p-6 ${
         isDayMode
           ? "border-cyan-200 bg-white/88 shadow-[0_24px_60px_rgba(15,23,42,0.09)]"
@@ -1193,6 +1204,10 @@ const HackathonAiCoachPanel = ({
           {statusLabel}
         </span>
       </div>
+      <div className={`mt-4 flex items-start gap-2 border px-3 py-2 text-xs leading-5 ${palette.chip}`}>
+        <Cpu className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${palette.accent}`} />
+        <span>{statusDetail}</span>
+      </div>
 
       <div className="mt-5 grid gap-3">
         <textarea
@@ -1209,6 +1224,7 @@ const HackathonAiCoachPanel = ({
                 key={prompt}
                 type="button"
                 onClick={() => onAsk(prompt)}
+                disabled={isLoading}
                 className={`border px-3 py-2 text-xs font-bold transition hover:border-cyan-400 ${palette.chip}`}
               >
                 {prompt}
@@ -1224,7 +1240,7 @@ const HackathonAiCoachPanel = ({
             {isLoading ? (
               <>
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                分析中
+                调度大模型
               </>
             ) : (
               <>
@@ -1300,6 +1316,34 @@ const HackathonAiCoachPanel = ({
               <span className="font-black">风险：</span>
               {result.risks[0].risk}
               {result.risks[0].mitigation ? `，${result.risks[0].mitigation}` : ""}
+            </div>
+          )}
+
+          {(sources.length > 0 || warnings.length > 0) && (
+            <div className={`mt-4 grid gap-3 border-t pt-4 ${palette.line}`}>
+              {sources.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={`text-xs font-black uppercase tracking-[0.18em] ${palette.accent}`}>
+                    依据
+                  </span>
+                  {sources.map((source) => (
+                    <span
+                      key={source.id || source.title}
+                      className={`border px-2.5 py-1.5 text-xs font-bold ${palette.chip}`}
+                    >
+                      {source.title || source.id}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {warnings.map((warning) => (
+                <p
+                  key={warning}
+                  className={`text-xs leading-6 ${isDayMode ? "text-slate-500" : "text-white/48"}`}
+                >
+                  {warning}
+                </p>
+              ))}
             </div>
           )}
         </div>
