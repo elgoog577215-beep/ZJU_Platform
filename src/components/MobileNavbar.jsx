@@ -82,6 +82,9 @@ const MobileNavbar = () => {
     if (key === "me") {
       return location.pathname.startsWith("/user/");
     }
+    if (key === "hackathon") {
+      return location.pathname.startsWith("/hackathon");
+    }
     return location.pathname === path;
   };
 

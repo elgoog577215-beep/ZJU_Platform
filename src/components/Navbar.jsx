@@ -122,6 +122,7 @@ const Navbar = () => {
     { key: "home", path: "/" },
     { key: "events", path: "/events" },
     { key: "hackathon", path: "/hackathon" },
+    { key: "hackathon_showcase", path: "/hackathon/showcase", label: "战报" },
     { key: "future_learning", path: "/future-learning" },
     { key: "articles", path: "/articles" },
     { key: "music", path: "/music" },
@@ -137,6 +138,8 @@ const Navbar = () => {
   const getMobileTitle = (pathname) => {
     if (pathname === "/") return t("nav.home");
     if (pathname.startsWith("/events")) return t("nav.events");
+    if (pathname.startsWith("/hackathon/showcase")) return "赛后回顾";
+    if (pathname.startsWith("/hackathon")) return t("nav.hackathon", "黑客松");
     if (pathname.startsWith("/future-learning")) return t("nav.future_learning", "未来学习中心");
     if (pathname.startsWith("/articles")) return t("nav.articles");
     if (pathname.startsWith("/music")) return t("nav.music", "播客");
@@ -223,6 +226,7 @@ const Navbar = () => {
     !location.pathname.startsWith("/user/");
   const secondaryMobileLinks = [
     { key: "future_learning", path: "/future-learning", icon: Trees },
+    { key: "hackathon_showcase", path: "/hackathon/showcase", icon: Film, label: "赛后回顾" },
     { key: "gallery", path: "/gallery", icon: ImageIcon },
     { key: "music", path: "/music", icon: MusicIcon },
     { key: "videos", path: "/videos", icon: Film },
@@ -288,7 +292,7 @@ const Navbar = () => {
             role="menuitem"
             aria-current={isNavItemActive(item.path) ? "page" : undefined}
           >
-            <span className="relative z-10">{t(`nav.${item.key}`)}</span>
+            <span className="relative z-10">{item.label || t(`nav.${item.key}`)}</span>
             {isNavItemActive(item.path) &&
               (prefersReducedMotion ? (
                 <div className={navIndicatorClasses} />
@@ -640,7 +644,7 @@ const Navbar = () => {
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
-                  {secondaryMobileLinks.map(({ key, path, icon: Icon }) => (
+                  {secondaryMobileLinks.map(({ key, path, icon: Icon, label }) => (
                     <Link
                       key={key}
                       to={path}
@@ -649,7 +653,7 @@ const Navbar = () => {
                     >
                       <Icon size={18} aria-hidden="true" />
                       <span className="text-sm font-semibold">
-                        {t(`nav.${key}`)}
+                        {label || t(`nav.${key}`)}
                       </span>
                     </Link>
                   ))}
