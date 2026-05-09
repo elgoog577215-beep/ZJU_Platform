@@ -352,6 +352,8 @@ test.describe("admin console refinement", () => {
     await expect(
       page.getByText("当前筛选“全部状态”共 2 条，本页显示 2 条"),
     ).toBeVisible();
+    await expect(page.getByRole("search", { name: "搜索图片资源" })).toBeVisible();
+    await expect(page.getByRole("textbox", { name: "搜索图片资源" })).toBeVisible();
     await expect(page.getByRole("table")).toBeVisible();
     await expect(page.locator("table.theme-admin-table-sticky")).toBeVisible();
     const pendingRequest = page.waitForRequest((request) => {
@@ -361,7 +363,7 @@ test.describe("admin console refinement", () => {
         url.searchParams.get("status") === "pending"
       );
     });
-    await page.getByRole("button", { name: "待审核" }).click();
+    await page.getByRole("button", { name: "筛选图片资源待审核" }).click();
     await pendingRequest;
     await expect(
       page.getByText("当前筛选“待审核”共 1 条，本页显示 1 条"),
@@ -371,8 +373,8 @@ test.describe("admin console refinement", () => {
     await expect(
       page.getByText("当前筛选“全部状态”共 2 条，本页显示 2 条"),
     ).toBeVisible();
-    await page.getByPlaceholder("搜索标题或标签").fill("春日");
-    await page.getByRole("button", { name: "搜索" }).click();
+    await page.getByRole("textbox", { name: "搜索图片资源" }).fill("春日");
+    await page.getByRole("button", { name: "执行搜索图片资源" }).click();
     await expect(page.getByText("搜索“春日”")).toBeVisible();
     await page.getByRole("button", { name: "查看列表" }).click();
     await expect(

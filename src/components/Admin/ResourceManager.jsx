@@ -52,6 +52,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
   const { isDayMode, mutedTextClass, headingTextClass } = useAdminTheme();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [pagination, setPagination] = useState({
     page: 1,
     total: 0,
@@ -66,6 +67,8 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
   const [confirmState, setConfirmState] = useState(null);
   const [actionPending, setActionPending] = useState(false);
   const listRef = useRef(null);
+  const requestSequenceRef = useRef(0);
+  const hasLoadedOnceRef = useRef(false);
   const isEventResource = apiEndpoint === "events";
   const [sort, setSort] = useState(isEventResource ? "views" : "newest");
 
@@ -76,8 +79,15 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
     });
   }, []);
 
-  const fetchItems = async (page = 1) => {
-    setLoading(true);
+  const fetchItems = useCallback(async (page = 1) => {
+    const requestId = requestSequenceRef.current + 1;
+    requestSequenceRef.current = requestId;
+    if (hasLoadedOnceRef.current) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
+
     try {
       const response = await api.get(`/${apiEndpoint}`, {
         params: {
@@ -89,23 +99,35 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
           _t: Date.now(),
         },
       });
+      if (requestSequenceRef.current !== requestId) return;
       setItems(response.data?.data || []);
       setPagination(
         response.data?.pagination || { page: 1, total: 0, totalPages: 1 },
       );
       setSelectedIds([]);
+      hasLoadedOnceRef.current = true;
     } catch (error) {
+      if (requestSequenceRef.current !== requestId) return;
       const errorMessage =
         error.response?.data?.error || "获取资源列表失败，请稍后重试";
       toast.error(errorMessage);
     } finally {
-      setLoading(false);
+      if (requestSequenceRef.current === requestId) {
+        hasLoadedOnceRef.current = true;
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
-  };
+  }, [
+    apiEndpoint,
+    searchQuery,
+    sort,
+    statusFilter,
+  ]);
 
   useEffect(() => {
     fetchItems(1);
-  }, [apiEndpoint, sort, searchQuery, statusFilter]);
+  }, [fetchItems]);
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
@@ -285,6 +307,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
   const hasActiveFilters = Boolean(
     statusFilter !== "all" || searchQuery || searchInput.trim(),
   );
+  const searchLabel = `搜索${title}`;
 
   const submitConfirmedAction = async () => {
     if (!confirmState) return;
@@ -364,70 +387,88 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
 
   const renderMobileCards = () => (
     <div className="grid grid-cols-1 gap-3 md:hidden">
-      {filteredItems.map((item) => (
-        <article
-          key={item.id}
-          className={`rounded-2xl border p-4 ${
-            isDayMode
-              ? "border-slate-200/70 bg-white/[0.78]"
-              : "border-white/10 bg-white/[0.03]"
-          }`}
-        >
-          <div className="flex items-start gap-3">
-            <input
-              type="checkbox"
-              aria-label={`选择 ${item.title || "未命名内容"}`}
-              checked={selectedIds.includes(item.id)}
-              onChange={() => toggleSelected(item.id)}
-              className="mt-1 rounded border-slate-400/40 bg-transparent"
-            />
-            {type === "image" && item.url ? (
-              <img
-                src={item.url}
-                alt={item.title}
-                className="h-14 w-14 shrink-0 rounded-xl border border-white/10 object-cover"
+      {filteredItems.map((item) => {
+        const isSelected = selectedIds.includes(item.id);
+        return (
+          <article
+            key={item.id}
+            className={`rounded-2xl border p-4 transition-colors ${
+              isSelected
+                ? isDayMode
+                  ? "border-indigo-300 bg-indigo-50/80"
+                  : "border-indigo-400/40 bg-indigo-500/10"
+                : isDayMode
+                  ? "border-slate-200/70 bg-white/[0.78]"
+                  : "border-white/10 bg-white/[0.03]"
+            }`}
+          >
+            <div className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                aria-label={`选择 ${item.title || "未命名内容"}`}
+                checked={isSelected}
+                onChange={() => toggleSelected(item.id)}
+                className="mt-1 rounded border-slate-400/40 bg-transparent"
               />
-            ) : null}
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <StatusBadge status={item.status} />
-                <span className={`rounded-full px-2 py-1 text-xs ${mutedTextClass} ${isDayMode ? "bg-slate-100" : "bg-white/5"}`}>
-                  ID {item.id}
-                </span>
-              </div>
-              <h3 className={`mt-2 line-clamp-2 font-semibold ${headingTextClass}`}>
-                {item.title || "未命名内容"}
-              </h3>
-              {isEventResource ? (
-                <div className={`mt-2 grid grid-cols-2 gap-2 text-xs ${mutedTextClass}`}>
-                  <span>时间: {formatDate(item.date)}</span>
-                  <span>访问: {formatNumber(item.views)}</span>
-                  <span>报名: {formatNumber(item.registration_count)}</span>
-                </div>
-              ) : type === "audio" ? (
-                <p className={`mt-2 text-xs ${mutedTextClass}`}>
-                  作者: {item.artist || "-"}
-                </p>
+              {type === "image" && item.url ? (
+                <img
+                  src={item.url}
+                  alt={item.title}
+                  className="h-14 w-14 shrink-0 rounded-xl border border-white/10 object-cover"
+                />
               ) : null}
-              <div className="mt-3">{renderTaxonomyPills(item, 3)}</div>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusBadge status={item.status} />
+                  <span className={`rounded-full px-2 py-1 text-xs ${mutedTextClass} ${isDayMode ? "bg-slate-100" : "bg-white/5"}`}>
+                    ID {item.id}
+                  </span>
+                  {isSelected ? (
+                    <span
+                      className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                        isDayMode
+                          ? "bg-indigo-100 text-indigo-700"
+                          : "bg-indigo-500/15 text-indigo-200"
+                      }`}
+                    >
+                      已选择
+                    </span>
+                  ) : null}
+                </div>
+                <h3 className={`mt-2 line-clamp-2 font-semibold ${headingTextClass}`}>
+                  {item.title || "未命名内容"}
+                </h3>
+                {isEventResource ? (
+                  <div className={`mt-2 grid grid-cols-2 gap-2 text-xs ${mutedTextClass}`}>
+                    <span>时间: {formatDate(item.date)}</span>
+                    <span>访问: {formatNumber(item.views)}</span>
+                    <span>报名: {formatNumber(item.registration_count)}</span>
+                  </div>
+                ) : type === "audio" ? (
+                  <p className={`mt-2 text-xs ${mutedTextClass}`}>
+                    作者: {item.artist || "-"}
+                  </p>
+                ) : null}
+                <div className="mt-3">{renderTaxonomyPills(item, 3)}</div>
+              </div>
             </div>
-          </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            <AdminButton tone="subtle" onClick={() => handleEdit(item)}>
-              <Edit2 size={16} />
-              编辑
-            </AdminButton>
-            <AdminButton
-              tone="danger"
-              onClick={() => openConfirm("delete", { id: item.id })}
-            >
-              <Trash2 size={16} />
-              删除
-            </AdminButton>
-          </div>
-        </article>
-      ))}
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <AdminButton tone="subtle" onClick={() => handleEdit(item)}>
+                <Edit2 size={16} />
+                编辑
+              </AdminButton>
+              <AdminButton
+                tone="danger"
+                onClick={() => openConfirm("delete", { id: item.id })}
+              >
+                <Trash2 size={16} />
+                删除
+              </AdminButton>
+            </div>
+          </article>
+        );
+      })}
     </div>
   );
 
@@ -568,6 +609,8 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
             <ToolbarGroup className="flex-1">
               <form
                 onSubmit={handleSearch}
+                role="search"
+                aria-label={searchLabel}
                 className="flex w-full min-w-0 flex-1 flex-col gap-2 sm:max-w-xl sm:flex-row sm:items-center"
               >
                 <div className="relative flex-1">
@@ -577,6 +620,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
                   />
                   <input
                     type="text"
+                    aria-label={searchLabel}
                     value={searchInput}
                     onChange={(event) => setSearchInput(event.target.value)}
                     placeholder={isEventResource ? "搜索标题或分类" : "搜索标题或标签"}
@@ -587,6 +631,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
                   type="submit"
                   tone="subtle"
                   className="w-full sm:w-auto"
+                  aria-label={`执行${searchLabel}`}
                 >
                   搜索
                 </AdminButton>
@@ -595,6 +640,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
                     tone="subtle"
                     className="w-full sm:w-auto"
                     onClick={clearSearch}
+                    aria-label={`清空${title}搜索`}
                   >
                     <X size={16} />
                     清空
@@ -609,6 +655,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
                   key={filter.id}
                   active={statusFilter === filter.id}
                   onClick={() => updateStatusFilter(filter.id)}
+                  aria-label={`筛选${title}${filter.label}`}
                 >
                   {filter.label}
                 </FilterChip>
@@ -677,7 +724,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
           className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
         >
           <span>
-            {`当前筛选“${activeFilterLabel}”共 ${formatNumber(
+            {`${refreshing ? "正在更新，" : ""}当前筛选“${activeFilterLabel}”共 ${formatNumber(
               serverTotal,
             )} 条，本页显示 ${items.length} 条${
               searchQuery ? `，搜索“${searchQuery}”` : ""
@@ -702,6 +749,12 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
             ) : null}
           </div>
         </AdminInlineNote>
+
+        {refreshing ? (
+          <AdminInlineNote tone="info" className="py-2 text-xs">
+            正在刷新列表，当前结果会保留到新数据返回。
+          </AdminInlineNote>
+        ) : null}
 
         {selectedItems.length > 0 ? (
           <AdminSelectedBar>
