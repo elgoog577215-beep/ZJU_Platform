@@ -3,6 +3,8 @@ const cheerio = require('cheerio');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const { getDb } = require('../config/db');
+const aiRuntime = require('../services/unifiedAiRuntimeService');
 const {
     buildEventCatalogPromptText,
     validateParsedEventPayload,
@@ -12,11 +14,6 @@ const {
 const CACHE_TTL = 1000 * 60 * 60 * 24; // 24 hours
 const wechatCache = new Map();
 
-// Configuration
-// In a real CommonJS app, process.env is already populated by dotenv in index.js
-const LLM_API_KEY = process.env.LLM_API_KEY;
-const LLM_BASE_URL = process.env.LLM_BASE_URL || 'https://api-inference.modelscope.cn/v1';
-const LLM_MODEL = process.env.LLM_MODEL || 'ZhipuAI/GLM-5.1';
 
 // Download image from WeChat and save locally
 async function downloadWeChatImage(imageUrl) {
@@ -246,183 +243,94 @@ async function scrapeWeChat(url) {
 }
 
 async function parseWithLLM(data) {
-    if (!process.env.LLM_API_KEY) {
-        console.warn('⚠️  No LLM_API_KEY found. Skipping LLM parsing.');
-        return null;
-    }
+    const db = await getDb();
 
-    console.log(`\n🧠 Sending to LLM (${process.env.LLM_MODEL})...`);
-    
+    console.log(`\n🧠 Sending WeChat article to unified AI runtime...`);
+
     const today = new Date().toISOString().split('T')[0];
     const ACADEMIC_CALENDAR = `
-    【浙江大学校历参考 (2025-2026学年)】
-    - 冬学期: 2025年11月中旬 - 2026年1月中旬
-    - 寒假: 2026年1月26日开始 - 2026年2月27日结束 (预计)
-    - 春学期: 2026年2月底/3月初开学
-    - 夏学期: 2026年4月底 - 2026年6月底
-    - 暑假: 2026年7月初开始
-    - 春节: 2026年2月17日
+    【浙江大学校历参考（2025-2026学年）】
+    - 当前日期: ${today}
+    - 寒假大致在 2026 年 1 月中下旬至 2 月中下旬
+    - 春学期大致在 2026 年 2 月底/3 月初开始
+    - 暑假大致在 2026 年 7 月初开始
     `;
     const EVENT_CATALOG_CONTEXT = buildEventCatalogPromptText();
 
-    const prompt = `
-    你是一个专业的活动信息提取助手。请仔细阅读以下微信公众号文章，提取活动关键信息。
-    你的核心能力是【像人类一样思考】，能够结合上下文、常识和提供的参考信息，从模糊的描述中推断出具体的信息，而不仅仅是机械地复制粘贴。
-
-    【参考信息】
-    当前日期: ${today} (请基于此日期推断文章中的"明天"、"本周五"等相对时间。年份默认为当年，除非文中明确指定跨年)
-    ${ACADEMIC_CALENDAR}
-
-    ${EVENT_CATALOG_CONTEXT}
-    
-    【提取要求】
-    请提取以下字段并严格按照 JSON 格式返回 (纯 JSON 字符串，不要包含 markdown \`\`\`json 标记):
-    {
-        "title": "活动名称 (优先提取具体活动名，若无则使用文章标题)",
-        "description": "活动详情摘要 (字数严格控制在50-80字以内。这是展示在活动卡片上的关键信息，必须包含：1. 活动核心内容/亮点；2. 参与收益(如有)。语气要吸引人，避免流水账。例如：'知名校友分享职场经验，揭秘互联网大厂面试技巧，现场提供简历修改服务，助你斩获心仪Offer！')",
-        "content": "活动详细内容 (HTML格式)。请对原文进行【重组和精简】，去除广告、关注引导、无关图片占位符等噪音，只保留活动介绍、嘉宾、议程、报名方式等核心信息。使用 <h3>, <p>, <ul>, <li> 等标签排版，保持美观易读。不要包含 <html> 或 <body> 标签。",
-        "date_reasoning": "【关键步骤】请在此字段详细描述你对活动日期的推断逻辑。例如：'文中未明确写日期，但提到了寒假，结合校历寒假从1月26日开始，推断活动开始日期为2026-01-26'。",
-        "date": "活动开始日期时间 (格式 YYYY-MM-DDTHH:MM，例如 2026-03-15T14:00。若无法确定具体时间，使用 T00:00)",
-        "end_date": "活动结束日期时间 (格式 YYYY-MM-DDTHH:MM，例如 2026-03-15T16:00。注意：如果是单日活动，结束日期必须与开始日期相同，不能为 null。若无法确定具体结束时间，使用与开始日期相同的日期加 T23:59)",
-        "time": "活动具体时间 (如 14:00-16:00)",
-        "location": "活动地点 (尽可能详细，包含校区/楼号/室号。例如：'紫金港校区 东六-201'。如果是线上活动，请填'线上'或平台名称)",
-        "organizer": "主办方 (优先提取文中提及的具体主办/承办单位，若无则填文章作者)",
-        "category": "活动大类。必须直接返回网站标准活动库里的 value 之一，例如 lecture，不要返回中文标签或旧分类",
-        "category_confidence": 0.0到1.0之间的数字，表示你对 category 的信心",
-        "category_reason": "一句话说明为什么选择这个标准大类",
-        "target_audience": "面向群体。必须从网站标准活动库的面向对象标准项中选择；多个对象用英文逗号连接；无法确定填 null",
-        "volunteer_time": "志愿时长 (提取具体时长，如 '2.5小时'，无则 null)",
-        "score": "综测/素质分 (提取具体分值，如 '0.5分'，无则 null)",
-        "tags": [] (活动标签已停用，必须返回空数组；活动归类只使用 category)
-    }
-
-    【智能推断指南 (Human-like Reasoning)】
-    你的目标不仅仅是“提取”，更是“理解”和“重组”。像一个聪明的人类助理一样思考：
-    1. **Description vs Content**: 
-       - Description 是简短的摘要，用于列表展示。
-       - Content 是详情页内容，需要保留原文的核心结构和信息，但要清洗掉噪音。
-    2. **结合语境与常识**: 如果文中说“寒假期间”，你需要结合提供的【校历】推断出具体的大致日期范围（如寒假开始日期）。
-    3. **处理模糊时间**：
-       - "本周五" -> 结合【当前日期】计算具体日期。
-       - "下个月初" -> 推断为下个月的1号。
-       - "2025-2026秋冬学期" -> 结合校历推断大致范围。
-    4. **日期时间优先**：我们需要完整的日期时间 (YYYY-MM-DDTHH:MM)。如果文中有具体时间（如"14:00-16:00"），请合并进 date 和 end_date 字段，不要单独返回 time 字段。
-    5. **单日活动**：Start Date 和 End Date 必须一致。
-    6. **缺失处理**：如果经过深思熟虑仍无法推断，请填 null。
-    `;
-
-    const MAX_RETRIES = 3;
-    let lastError = null;
-
-    // Debug: Log environment variables (masked)
-    const apiKey = process.env.LLM_API_KEY;
-    const baseUrl = process.env.LLM_BASE_URL;
-    const model = process.env.LLM_MODEL;
-    
-    console.log('\n🔧 LLM Configuration:');
-    console.log(`   Base URL: ${baseUrl}`);
-    console.log(`   Model: ${model}`);
-    console.log(`   API Key: ${apiKey ? apiKey.substring(0, 10) + '...' + apiKey.substring(apiKey.length - 4) : 'NOT SET'}`);
-    console.log(`   API Key Length: ${apiKey ? apiKey.length : 0}`);
-
-    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-        try {
-            console.log(`\n🔄 LLM Attempt ${attempt}/${MAX_RETRIES}...`);
-            
-            const response = await axios.post(`${baseUrl}/chat/completions`, {
-                model: model,
-                messages: [
-                    { role: 'system', content: prompt },
-                    { role: 'user', content: [
-                        `文章标题: ${data.title}`,
-                        `文章作者: ${data.author}`,
-                        '',
-                        '文章内容:',
-                        data.content.substring(0, 15000)
-                    ].join('\n') } // Truncate to avoid context limit
-                ],
-                stream: false,
-                enable_thinking: false,
-                max_tokens: 4096
-            }, {
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json'
-                },
-                timeout: 60000 // 60s timeout
-            });
-
-            const content = response.data.choices[0].message.content;
-            
-            // Extract JSON from code blocks or raw text
-            let jsonStr = content;
-            const jsonMatch = content.match(/```json\n?([\s\S]*?)\n?```/) || content.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-                jsonStr = jsonMatch[1] || jsonMatch[0];
+    const result = await aiRuntime.callJson(db, {
+        task: 'wechat_event_parse',
+        temperature: 0.1,
+        maxTokens: 4096,
+        timeout: 60000,
+        messages: [
+            {
+                role: 'system',
+                content: [
+                    '你是浙江大学活动平台的微信图文解析助手。',
+                    '你必须调用语义理解能力，从文章上下文中提取、推断并重组活动信息。',
+                    '必须结合当前日期、校历参考和网站标准活动库输出结构化 JSON。',
+                    '不要返回 markdown，不要解释过程，只输出 JSON 对象。'
+                ].join('\n')
+            },
+            {
+                role: 'user',
+                content: JSON.stringify({
+                    task: 'parse_wechat_article_to_event',
+                    today,
+                    academicCalendar: ACADEMIC_CALENDAR,
+                    standardCatalog: EVENT_CATALOG_CONTEXT,
+                    article: {
+                        title: data.title,
+                        author: data.author,
+                        content: String(data.content || '').slice(0, 15000)
+                    },
+                    outputContract: {
+                        title: '活动名称；无具体活动名时用文章标题',
+                        description: '0-80 字活动摘要，包含核心内容和参与收益',
+                        content: '活动详情 HTML 片段，只用 h3/p/ul/li 等正文标签',
+                        date_reasoning: '说明如何从文章和当前日期推断活动日期',
+                        date: 'YYYY-MM-DDTHH:MM；无具体时间用 T00:00',
+                        end_date: 'YYYY-MM-DDTHH:MM；单日活动需与 date 同日',
+                        time: '例如 14:00-16:00，不能确定填 null',
+                        location: '尽量包含校区/楼号/房间；线上活动填线上或平台名',
+                        organizer: '主办/承办单位；无则用文章作者',
+                        category: '必须是网站标准活动库里的 value',
+                        category_confidence: '0-1 number',
+                        category_reason: '一句话解释分类依据',
+                        target_audience: '从标准面向对象中选择；多个用英文逗号连接；无法确定填 null',
+                        volunteer_time: '志愿时长；无则 null',
+                        score: '综测/素质分；无则 null',
+                        tags: []
+                    }
+                }, null, 2)
             }
-            
-            // Clean up common JSON syntax errors
-            jsonStr = jsonStr.trim()
-                .replace(/,\s*}/g, '}')
-                .replace(/,\s*]/g, ']');
+        ]
+    });
 
-            let result;
-            try {
-                result = JSON.parse(jsonStr);
-            } catch (e) {
-                console.warn(`⚠️ JSON Parse failed on attempt ${attempt}. Content:`, jsonStr.substring(0, 100) + '...');
-                throw new Error('Invalid JSON response');
-            }
+    const cleanField = (str, prefixRegex) => {
+        if (!str) return null;
+        return String(str).replace(prefixRegex, '').trim();
+    };
 
-            // Sanitize fields
-            const cleanField = (str, prefixRegex) => {
-                if (!str) return null;
-                return str.replace(prefixRegex, '').trim();
-            };
+    let parsed = result.parsed;
+    if (parsed.description) parsed.description = cleanField(parsed.description, /^活动详情摘要[：:]\s*/);
+    if (parsed.content) parsed.content = cleanField(parsed.content, /^活动详细内容[：:]\s*/);
+    if (parsed.location) parsed.location = cleanField(parsed.location, /^活动地点[：:]\s*/);
+    if (parsed.organizer) parsed.organizer = cleanField(parsed.organizer, /^主办方[：:]\s*/);
+    if (parsed.target_audience) parsed.target_audience = cleanField(parsed.target_audience, /^面向群体[：:]\s*/);
+    if (parsed.volunteer_time) parsed.volunteer_time = cleanField(parsed.volunteer_time, /^志愿时长[：:]\s*/);
+    if (parsed.score) parsed.score = cleanField(parsed.score, /^综测\/素质分[：:]\s*/);
 
-            if (result.description) result.description = cleanField(result.description, /^活动详情摘要[：:]\s*/);
-            if (result.content) result.content = cleanField(result.content, /^活动详细内容[：:]\s*/);
-            if (result.location) result.location = cleanField(result.location, /^活动地点[：:]\s*/);
-            if (result.organizer) result.organizer = cleanField(result.organizer, /^主办方[：:]\s*/);
-            if (result.target_audience) result.target_audience = cleanField(result.target_audience, /^面向群体[：:]\s*/);
-            if (result.volunteer_time) result.volunteer_time = cleanField(result.volunteer_time, /^志愿时长[：:]\s*/);
-            if (result.score) result.score = cleanField(result.score, /^综测\/素质分[：:]\s*/);
+    parsed = validateParsedEventPayload(parsed, data);
+    parsed.ai_runtime = {
+        task: result.modelStatus?.task || 'wechat_event_parse',
+        provider: result.modelStatus?.provider || null,
+        model: result.modelStatus?.model || null
+    };
 
-            result = validateParsedEventPayload(result, data);
-
-            return result; // Success!
-
-        } catch (error) {
-            lastError = error;
-            
-            // Handle specific error codes
-            if (error.response) {
-                const status = error.response.status;
-                const errorData = error.response.data;
-                
-                if (status === 401) {
-                    console.error(`❌ LLM Authentication failed (401): API Key无效或已过期`);
-                    throw new Error('LLM_API_KEY_INVALID: API密钥无效或已过期，请检查server/.env文件中的LLM_API_KEY配置');
-                } else if (status === 429) {
-                    console.error(`❌ LLM Rate limit exceeded (429)`);
-                    throw new Error('LLM_RATE_LIMIT: 请求过于频繁，请稍后再试');
-                } else if (status >= 500) {
-                    console.error(`❌ LLM Server error (${status}):`, errorData);
-                } else {
-                    console.error(`❌ LLM Attempt ${attempt} failed (${status}):`, errorData || error.message);
-                }
-            } else {
-                console.error(`❌ LLM Attempt ${attempt} failed:`, error.message);
-            }
-            
-            if (attempt === MAX_RETRIES) break;
-            // Wait 1s before retry
-            await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-    }
-
-    throw new Error(`LLM parsing failed after ${MAX_RETRIES} attempts: ${lastError?.message}`);
+    return parsed;
 }
+
 
 module.exports = {
     scrapeWeChat,

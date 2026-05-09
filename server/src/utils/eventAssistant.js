@@ -1,10 +1,14 @@
+const aiRuntime = require('../services/unifiedAiRuntimeService');
 const {
-  callChatCompletionWithFailover
-} = require('../services/aiModelConfigService');
+  ensureEventProfiles
+} = require('../services/eventAiProfileService');
 const {
+  EVENT_CATEGORIES,
   EVENT_CATEGORY_LABELS: CATEGORY_LABELS,
   EVENT_CAMPUS_OPTIONS,
+  EVENT_AUDIENCE_OPTIONS,
   EVENT_AUDIENCE_ALIASES,
+  buildEventCatalogPromptText,
   detectCategories,
   normalizeEventCategory,
 } = require('../services/eventIntelligenceService');
@@ -33,6 +37,7 @@ const EVENT_ASSISTANT_PUBLIC_FIELDS = [
 
 const CAMPUS_ALIASES = EVENT_CAMPUS_OPTIONS;
 const AUDIENCE_ALIASES = EVENT_AUDIENCE_ALIASES;
+const AI_RECALL_LIMIT = 24;
 const BENEFIT_ALIASES = {
   score: ['综测', '加分', '综合评价', '第二课堂', '学分'],
   volunteer_time: ['志愿', '时长', '工时', '小时', '公益']
@@ -64,6 +69,17 @@ const safeJsonParse = (value, fallback) => {
 };
 
 const unique = (items) => [...new Set(items.filter(Boolean))];
+
+const uniqueTextArray = (value, maxItems = 12, itemMaxLength = 80) => {
+  const list = Array.isArray(value)
+    ? value
+    : sanitizeText(value, 1000).split(/[,，、;；\s\/|]+/);
+  return unique(
+    list
+      .map((item) => sanitizeText(String(item || ''), itemMaxLength))
+      .filter(Boolean)
+  ).slice(0, maxItems);
+};
 
 const splitTokens = (value) => sanitizeText(value, 500)
   .split(/[,，、;；\s/|]+/)
@@ -448,6 +464,108 @@ const normalizeModelRunnerOutput = (result) => {
   };
 };
 
+const normalizeAiIntent = (rawIntent = {}, fallbackIntent) => {
+  const categories = uniqueTextArray(rawIntent.categories || rawIntent.category)
+    .map(normalizeEventCategory)
+    .filter(Boolean);
+  const benefits = uniqueTextArray(rawIntent.benefits, 8);
+  const format = ['online', 'offline', 'hybrid'].includes(rawIntent.format)
+    ? rawIntent.format
+    : fallbackIntent.format;
+
+  return {
+    ...fallbackIntent,
+    ai: true,
+    querySummary: sanitizeText(rawIntent.query_summary || rawIntent.summary, 180),
+    categories: categories.length ? unique(categories) : fallbackIntent.categories,
+    topics: unique([
+      ...uniqueTextArray(rawIntent.topics, 12),
+      ...fallbackIntent.topics,
+    ]).slice(0, 12),
+    benefits: benefits.length ? benefits : fallbackIntent.benefits,
+    format,
+    campuses: unique([
+      ...uniqueTextArray(rawIntent.campuses, 8),
+      ...fallbackIntent.campuses,
+    ]).slice(0, 8),
+    organizers: uniqueTextArray(rawIntent.organizers || rawIntent.colleges, 8),
+    audiences: unique([
+      ...uniqueTextArray(rawIntent.audiences, 8),
+      ...fallbackIntent.audiences,
+    ]).slice(0, 8),
+    dateConstraints: uniqueTextArray(rawIntent.date_constraints || rawIntent.time_constraints, 8),
+    allowHistorical: Boolean(rawIntent.allow_historical),
+    needsClarification: Boolean(rawIntent.needs_clarification),
+    clarificationQuestion: sanitizeText(rawIntent.clarification_question, 160),
+    confidence: Math.min(Math.max(Number(rawIntent.confidence) || 0.55, 0), 1),
+  };
+};
+
+const parseAssistantIntentWithModel = async ({
+  db,
+  query,
+  clarificationAnswer,
+  profile,
+  clarificationUsed,
+  modelRunner,
+}) => {
+  const fallbackIntent = parseAssistantIntent({ query, clarificationAnswer });
+
+  const result = await aiRuntime.callJson(db, {
+    task: 'event_recommendation_intent',
+    modelRunner,
+    temperature: 0.1,
+    maxTokens: 900,
+    messages: [
+      {
+        role: 'system',
+        content: [
+          '你是浙江大学活动推荐助手的需求理解层。',
+          '你的任务不是直接推荐活动，而是把用户自然语言解析成结构化检索意图。',
+          '必须结合标准活动库、用户画像和补充说明，输出 JSON 对象。',
+          '如果问题非常模糊且还没有问过澄清问题，可以设置 needs_clarification=true。',
+          '只输出 JSON。'
+        ].join('\n')
+      },
+      {
+        role: 'user',
+        content: JSON.stringify({
+          task: 'parse_event_recommendation_intent',
+          query: fallbackIntent.query,
+          clarificationAnswer: fallbackIntent.clarificationAnswer,
+          clarificationAlreadyUsed: Boolean(clarificationUsed),
+          standardCatalog: buildEventCatalogPromptText(),
+          allowedCategories: EVENT_CATEGORIES.map((item) => item.value),
+          allowedCampuses: EVENT_CAMPUS_OPTIONS,
+          allowedAudiences: EVENT_AUDIENCE_OPTIONS,
+          profile: buildProfileSummary(profile),
+          outputContract: {
+            query_summary: 'short Chinese sentence',
+            topics: ['semantic topic terms'],
+            campuses: ['campus/location terms'],
+            organizers: ['college/organization terms'],
+            audiences: ['audience terms'],
+            benefits: ['综测/志愿时长/证书/就业/技能/社交等'],
+            categories: ['allowed category values'],
+            date_constraints: ['today/tomorrow/this_week/weekend/specific date terms'],
+            format: 'online/offline/hybrid/empty string',
+            allow_historical: 'boolean',
+            needs_clarification: 'boolean',
+            clarification_question: 'one concise question or empty string',
+            confidence: '0-1 number'
+          }
+        }, null, 2)
+      }
+    ]
+  });
+
+  return {
+    intent: normalizeAiIntent(result.parsed, fallbackIntent),
+    modelStatus: result.modelStatus,
+    rawIntent: result.parsed
+  };
+};
+
 const getChatMessageText = (data) => {
   const message = data?.choices?.[0]?.message || {};
   return message.content || message.reasoning_content || '';
@@ -816,6 +934,146 @@ const rankCandidates = (candidates, intent, profile, scope, now = new Date()) =>
   .map((event) => scoreEvent(event, intent, profile, scope, now))
   .sort((left, right) => right.score - left.score || compareByAscendingDate(left.event, right.event));
 
+const includesProfileSignal = (profile, terms) => {
+  if (!profile || !Array.isArray(terms) || terms.length === 0) return false;
+  const text = normalizeSearchText(
+    profile.summary,
+    profile.category,
+    ...(profile.topics || []),
+    ...(profile.benefits || []),
+    ...(profile.campuses || []),
+    ...(profile.audiences || []),
+    ...(profile.organizers || [])
+  );
+  return terms.some((term) => {
+    const normalized = sanitizeText(term, 80).toLowerCase();
+    return normalized && text.includes(normalized);
+  });
+};
+
+const scoreAiProfileCandidate = (rankedItem, intent, aiProfile) => {
+  let score = rankedItem.score;
+  const signals = [...rankedItem.signals];
+
+  if (aiProfile) {
+    if (intent.categories.includes(aiProfile.category)) {
+      score += 26;
+      signals.push(`AI画像类型匹配 ${CATEGORY_LABELS[aiProfile.category] || aiProfile.category}`);
+    }
+    if (includesProfileSignal(aiProfile, intent.topics)) {
+      score += 22;
+      signals.push('AI画像主题贴合');
+    }
+    if (includesProfileSignal(aiProfile, intent.benefits)) {
+      score += 20;
+      signals.push('AI画像收益匹配');
+    }
+    if (includesProfileSignal(aiProfile, intent.campuses)) {
+      score += 16;
+      signals.push('AI画像地点匹配');
+    }
+    if (includesProfileSignal(aiProfile, intent.organizers)) {
+      score += 16;
+      signals.push('AI画像组织/学院匹配');
+    }
+    if (includesProfileSignal(aiProfile, intent.audiences)) {
+      score += 10;
+      signals.push('AI画像面向对象匹配');
+    }
+    score += Math.round((aiProfile.confidence || 0) * 8);
+  }
+
+  if (intent.dateConstraints?.length) {
+    const dateText = normalizeSearchText(
+      rankedItem.event.date,
+      rankedItem.event.end_date,
+      aiProfile?.raw?.time_preference_terms?.join(' ')
+    );
+    if (intent.dateConstraints.some((term) => dateText.includes(String(term).toLowerCase()))) {
+      score += 8;
+      signals.push('时间偏好有匹配信号');
+    }
+  }
+
+  return {
+    ...rankedItem,
+    aiScore: score,
+    aiProfile,
+    signals: unique(signals).slice(0, 8)
+  };
+};
+
+const buildAiCandidatePool = async ({
+  db,
+  grouped,
+  intent,
+  profile,
+  allowScopeExpansion,
+  allowHistoricalFallback,
+  now,
+  modelRunner
+}) => {
+  const futureEvents = [...grouped.ongoing, ...grouped.upcoming];
+  let scopedEvents = futureEvents;
+  let scope = futureEvents.some((event) => classifyEventScope(event, now) === 'ongoing')
+    ? 'mixed_future'
+    : 'upcoming';
+  let usedHistoricalFallback = false;
+  let canExpandScope = false;
+
+  if (scopedEvents.length === 0 && (allowHistoricalFallback || allowScopeExpansion || intent.allowHistorical)) {
+    scopedEvents = grouped.past;
+    scope = 'past';
+    usedHistoricalFallback = true;
+  } else if (scopedEvents.length === 0) {
+    canExpandScope = grouped.past.length > 0;
+  }
+
+  if (scopedEvents.length === 0) {
+    return {
+      scope: 'upcoming',
+      usedHistoricalFallback,
+      canExpandScope,
+      candidates: [],
+      profileStats: { requested: 0, generated: 0, cached: 0, fallback: 0, failed: 0 },
+      modelStatuses: []
+    };
+  }
+
+  const preRanked = [
+    ...rankCandidates(scopedEvents, intent, profile, scope === 'past' ? 'past' : 'upcoming', now),
+  ]
+    .sort((left, right) => right.score - left.score || compareByAscendingDate(left.event, right.event))
+    .slice(0, AI_RECALL_LIMIT);
+
+  const profileResult = await ensureEventProfiles(
+    db,
+    preRanked.map((item) => item.event),
+    {
+      limit: AI_RECALL_LIMIT,
+      modelRunner,
+    }
+  );
+
+  const candidates = preRanked
+    .map((item) => scoreAiProfileCandidate(
+      item,
+      intent,
+      profileResult.profilesByEventId.get(Number(item.event.id))
+    ))
+    .sort((left, right) => right.aiScore - left.aiScore || compareByAscendingDate(left.event, right.event))
+    .slice(0, MAX_MODEL_CANDIDATES);
+
+  return {
+    scope,
+    usedHistoricalFallback,
+    canExpandScope,
+    candidates,
+    profileStats: profileResult.stats,
+    modelStatuses: profileResult.modelStatuses
+  };
+};
+
 const getRankThreshold = (intent, scope) => {
   if (scope === 'past') return -5;
   if (intent.categories.length === 0 && intent.topics.length <= 2 && intent.benefits.length === 0) return 6;
@@ -918,7 +1176,7 @@ const polishWithModel = async (db, intent, profile, rankedItems) => {
   if (rankedItems.length === 0) return null;
 
   try {
-    const result = await callChatCompletionWithFailover(
+    const result = await aiRuntime.callJson(
       db,
       {
         messages: [
@@ -931,14 +1189,15 @@ const polishWithModel = async (db, intent, profile, rankedItems) => {
             content: JSON.stringify(buildModelPrompt({ intent, profile, rankedItems }), null, 2)
           }
         ],
+        task: 'event_recommendation_rerank_legacy',
         temperature: 0.2,
-        max_tokens: 900
-      },
-      { timeout: 25000 }
+        maxTokens: 900,
+        timeout: 25000
+      }
     );
 
-    const rawContent = getChatMessageText(result.data);
-    const parsed = JSON.parse(extractJsonObject(rawContent));
+    const rawContent = result.rawContent;
+    const parsed = result.parsed;
     if (!parsed || typeof parsed !== 'object') return null;
 
     const reasonById = new Map();
@@ -1073,7 +1332,224 @@ const runInjectedModelTurn = async ({
   };
 };
 
-const callEventAssistantModel = async ({ db, messages, payload }) => {
+const buildAiRerankPrompt = ({ intent, profile, candidates, recommendationCount }) => ({
+  modelRequest: 'event_recommendation_rerank',
+  instruction: [
+    'Rank only the provided candidate events.',
+    'Use the user intent, user profile, event AI profiles, deterministic recall signals, and event facts together.',
+    'Do not invent activities, links, rewards, registration status, locations, or dates.',
+    'Prefer future and ongoing events. Historical events are only fallback clues.'
+  ],
+  userIntent: {
+    query: intent.query,
+    querySummary: intent.querySummary,
+    categories: intent.categories,
+    benefits: intent.benefits,
+    format: intent.format,
+    campuses: intent.campuses,
+    organizers: intent.organizers,
+    audiences: intent.audiences,
+    topics: intent.topics,
+    dateConstraints: intent.dateConstraints
+  },
+  profile: buildProfileSummary(profile),
+  candidates: candidates.map((item) => ({
+    id: item.event.id,
+    title: item.event.title,
+    description: sanitizeText(item.event.description, 240),
+    date: item.event.date,
+    end_date: item.event.end_date,
+    location: item.event.location,
+    organizer: item.event.organizer,
+    target_audience: item.event.target_audience,
+    score: item.event.score,
+    volunteer_time: item.event.volunteer_time,
+    category: item.category,
+    recallScore: item.aiScore ?? item.score,
+    deterministicSignals: item.signals,
+    deterministicReason: buildReason(item),
+    aiProfile: item.aiProfile ? {
+      summary: item.aiProfile.summary,
+      category: item.aiProfile.category,
+      topics: item.aiProfile.topics,
+      benefits: item.aiProfile.benefits,
+      campuses: item.aiProfile.campuses,
+      organizers: item.aiProfile.organizers,
+      audiences: item.aiProfile.audiences,
+      confidence: item.aiProfile.confidence,
+      status: item.aiProfile.status
+    } : null
+  })),
+  outputContract: {
+    summary: 'short Chinese sentence explaining how you ranked the results',
+    recommendations: [
+      {
+        id: 'candidate event id',
+        rank: '1-based rank',
+        confidence: '0-1 number',
+        reason: 'one concrete Chinese sentence grounded in event facts and user intent',
+        matched_signals: ['short Chinese match labels']
+      }
+    ],
+    minimumCount: Math.min(IDEAL_MIN_RECOMMENDATIONS, recommendationCount),
+    maximumCount: recommendationCount
+  }
+});
+
+const normalizeRerankResult = (rawResult, candidateMap) => {
+  if (!rawResult || typeof rawResult !== 'object' || Array.isArray(rawResult)) {
+    throw createAssistantError('EVENT_ASSISTANT_MODEL_INVALID', 'Model returned an invalid rerank object.', 502);
+  }
+
+  if (!Array.isArray(rawResult.recommendations)) {
+    throw createAssistantError('EVENT_ASSISTANT_MODEL_INVALID', 'Model rerank did not include recommendations.', 502);
+  }
+
+  const recommendations = [];
+  const seenIds = new Set();
+
+  for (const item of rawResult.recommendations) {
+    const id = Number(item?.id ?? item?.eventId);
+    if (!Number.isInteger(id) || !candidateMap.has(id) || seenIds.has(id)) {
+      continue;
+    }
+
+    seenIds.add(id);
+    recommendations.push({
+      id,
+      rank: Number(item?.rank) || recommendations.length + 1,
+      confidence: Math.min(Math.max(Number(item?.confidence) || 0.65, 0), 1),
+      reason: sanitizeText(item?.reason, 180),
+      matchedSignals: uniqueTextArray(item?.matched_signals || item?.matchedSignals, 5, 60)
+    });
+  }
+
+  const { min, max } = getRecommendationCountBounds(candidateMap.size);
+  if (recommendations.length < min) {
+    throw createAssistantError('EVENT_ASSISTANT_MODEL_INVALID', 'Model rerank did not include enough valid candidate IDs.', 502);
+  }
+
+  return {
+    summary: sanitizeText(rawResult.summary, 180),
+    recommendations: recommendations
+      .sort((left, right) => left.rank - right.rank)
+      .slice(0, max)
+  };
+};
+
+const rerankCandidatesWithModel = async ({
+  db,
+  intent,
+  profile,
+  candidates,
+  modelRunner
+}) => {
+  const recommendationCount = Math.min(MAX_RECOMMENDATIONS, candidates.length);
+  const candidateMap = new Map(candidates.map((item) => [Number(item.event.id), item]));
+
+  const result = await aiRuntime.callJson(db, {
+    task: 'event_recommendation_rerank',
+    modelRunner,
+    temperature: 0.2,
+    maxTokens: 1300,
+    timeout: 45000,
+    messages: [
+      {
+        role: 'system',
+        content: [
+          'You are the reasoning and ranking layer for a Zhejiang University activity recommendation assistant.',
+          'You must use semantic understanding from the large model to rerank provided candidates.',
+          'Return strict JSON only. Never recommend an event id outside the candidate list.'
+        ].join('\n')
+      },
+      {
+        role: 'user',
+        content: JSON.stringify(buildAiRerankPrompt({
+          intent,
+          profile,
+          candidates,
+          recommendationCount
+        }), null, 2)
+      }
+    ]
+  });
+
+  const normalized = normalizeRerankResult(result.parsed, candidateMap);
+  return {
+    ...normalized,
+    modelStatus: result.modelStatus,
+    rawRerank: result.parsed
+  };
+};
+
+const buildAiRecommendationResponse = ({
+  rerank,
+  candidates,
+  intent,
+  profile,
+  scope,
+  canExpandScope,
+  usedHistoricalFallback,
+  remembered,
+  coverage,
+  profileStats,
+  modelStatuses
+}) => {
+  const candidateMap = new Map(candidates.map((item) => [Number(item.event.id), item]));
+  const selected = rerank.recommendations
+    .map((item) => ({
+      ...item,
+      candidate: candidateMap.get(Number(item.id))
+    }))
+    .filter((item) => item.candidate);
+
+  return {
+    type: 'recommend',
+    scope,
+    recommendationMode: usedHistoricalFallback ? 'historical_fallback' : 'future',
+    coverage,
+    summary: rerank.summary || (usedHistoricalFallback
+      ? 'AI 先检索未来活动，匹配不足后按语义相似度给出历史线索。'
+      : 'AI 已结合你的需求、活动画像和候选活动完成重排。'),
+    understoodIntent: buildIntentSummary(intent, profile),
+    canExpandScope,
+    remembered,
+    warnings: usedHistoricalFallback
+      ? ['以下包含历史活动，不代表仍可报名；建议关注后续同类活动。']
+      : [],
+    modelStatus: {
+      ...rerank.modelStatus,
+      used: true,
+      tasks: [
+        'event_recommendation_intent',
+        'event_profile_index',
+        'event_recommendation_rerank'
+      ],
+      profileStats,
+      profileModelStatuses: modelStatuses || []
+    },
+    recommendations: selected.map((item) => ({
+      id: item.candidate.event.id,
+      reason: item.reason || buildReason(item.candidate),
+      confidence: item.confidence,
+      matchSignals: unique([
+        ...item.matchedSignals,
+        ...item.candidate.signals
+      ]).slice(0, 6),
+      score: Math.round(item.candidate.aiScore ?? item.candidate.score),
+      isHistorical: item.candidate.scope === 'past',
+      aiProfile: item.candidate.aiProfile ? {
+        summary: item.candidate.aiProfile.summary,
+        category: item.candidate.aiProfile.category,
+        confidence: item.candidate.aiProfile.confidence,
+        status: item.candidate.aiProfile.status
+      } : null,
+      event: serializeEventForClient(item.candidate.event)
+    }))
+  };
+};
+
+const callUnifiedEventAssistantModel = async ({ db, messages, payload, modelRunner }) => {
   if (!db) {
     throw createAssistantError(
       'EVENT_ASSISTANT_UNAVAILABLE',
@@ -1082,15 +1558,25 @@ const callEventAssistantModel = async ({ db, messages, payload }) => {
     );
   }
 
-  const result = await callChatCompletionWithFailover(db, payload || { messages });
-  const rawContent = getChatMessageText(result.data);
+  const result = await aiRuntime.callJson(db, {
+    task: 'event_assistant_custom',
+    modelRunner,
+    messages: payload?.messages || messages,
+    temperature: payload?.temperature ?? 0.2,
+    maxTokens: payload?.max_tokens || payload?.maxTokens || 1200,
+    timeout: payload?.timeout || 45000
+  });
+
   return {
-    rawContent,
-    jsonText: extractJsonObject(rawContent),
+    rawContent: result.rawContent,
+    jsonText: result.jsonText,
     config: result.config,
-    attempts: result.attempts
+    attempts: result.attempts,
+    parsed: result.parsed
   };
 };
+
+const callEventAssistantModel = callUnifiedEventAssistantModel;
 
 const buildRecommendationResponse = async ({
   db,
@@ -1262,6 +1748,185 @@ const runEventAssistantTurn = async ({
   };
 };
 
+const runUnifiedEventAssistantTurn = async ({
+  db,
+  query,
+  clarificationAnswer,
+  clarificationUsed = false,
+  allowScopeExpansion = false,
+  allowHistoricalFallback = true,
+  rememberPreference = false,
+  userId = null,
+  modelRunner,
+  now = new Date()
+}) => {
+  const profile = await loadUserEventProfile(db, userId);
+  const grouped = await loadAllCandidates(db, now);
+  const coverage = buildCoverageSummary(grouped);
+  const futurePool = [...grouped.upcoming, ...grouped.ongoing].slice(0, MAX_CANDIDATES);
+
+  let parsedIntent;
+  try {
+    parsedIntent = await parseAssistantIntentWithModel({
+      db,
+      query,
+      clarificationAnswer,
+      profile,
+      clarificationUsed,
+      modelRunner
+    });
+  } catch (error) {
+    logInvalidModelOutput({
+      error,
+      scope: 'intent',
+      candidateCount: coverage.total,
+      rawContent: error.rawContent || '',
+      jsonText: error.extractedJson || '',
+      parsedResult: null
+    });
+
+    const fallbackIntent = parseAssistantIntent({ query, clarificationAnswer });
+    return {
+      type: 'empty',
+      scope: futurePool.length === 0 ? 'upcoming' : 'mixed_future',
+      emptyReason: 'assistant_unreliable',
+      canExpandScope: false,
+      recommendationMode: 'ai_unavailable',
+      coverage,
+      understoodIntent: buildIntentSummary(fallbackIntent, profile),
+      remembered: false,
+      modelStatus: {
+        used: false,
+        task: 'event_recommendation_intent',
+        message: 'AI intent analysis failed; no rule-only recommendation was shown.',
+        attempts: error.attempts || []
+      }
+    };
+  }
+
+  const intent = parsedIntent.intent;
+  const remembered = await maybeRememberPreference(db, userId, intent, rememberPreference);
+
+  if (futurePool.length === 0 && !allowScopeExpansion && !allowHistoricalFallback) {
+    return {
+      type: 'empty',
+      scope: 'upcoming',
+      emptyReason: 'no_upcoming',
+      canExpandScope: true,
+      recommendationMode: 'empty',
+      coverage,
+      understoodIntent: buildIntentSummary(intent, profile),
+      remembered,
+      modelStatus: parsedIntent.modelStatus
+    };
+  }
+
+  if (
+    (intent.needsClarification || intent.shouldClarify)
+    && !clarificationUsed
+    && futurePool.length >= IDEAL_MIN_RECOMMENDATIONS
+  ) {
+    return {
+      type: 'clarify',
+      scope: 'upcoming',
+      question: intent.clarificationQuestion || buildClarificationQuestion(profile),
+      clarificationUsed: true,
+      recommendationMode: 'clarify',
+      coverage,
+      understoodIntent: buildIntentSummary(intent, profile),
+      remembered,
+      modelStatus: parsedIntent.modelStatus
+    };
+  }
+
+  const pool = await buildAiCandidatePool({
+    db,
+    grouped,
+    intent,
+    profile,
+    allowScopeExpansion,
+    allowHistoricalFallback,
+    now,
+    modelRunner
+  });
+
+  if (pool.candidates.length === 0) {
+    return {
+      type: 'empty',
+      scope: pool.scope,
+      emptyReason: futurePool.length === 0 ? 'no_upcoming' : 'no_matches',
+      canExpandScope: pool.canExpandScope,
+      recommendationMode: 'empty',
+      coverage,
+      understoodIntent: buildIntentSummary(intent, profile),
+      remembered,
+      modelStatus: {
+        ...parsedIntent.modelStatus,
+        used: true,
+        tasks: ['event_recommendation_intent'],
+        profileStats: pool.profileStats,
+        message: 'AI understood the request, but no candidate events were available for reranking.'
+      }
+    };
+  }
+
+  let rerank;
+  try {
+    rerank = await rerankCandidatesWithModel({
+      db,
+      intent,
+      profile,
+      candidates: pool.candidates,
+      modelRunner
+    });
+  } catch (error) {
+    logInvalidModelOutput({
+      error,
+      scope: pool.scope,
+      candidateCount: pool.candidates.length,
+      rawContent: error.rawContent || '',
+      jsonText: error.extractedJson || '',
+      parsedResult: null
+    });
+
+    return {
+      type: 'empty',
+      scope: pool.scope,
+      emptyReason: 'assistant_unreliable',
+      canExpandScope: pool.canExpandScope,
+      recommendationMode: 'ai_unavailable',
+      coverage,
+      understoodIntent: buildIntentSummary(intent, profile),
+      remembered,
+      modelStatus: {
+        used: false,
+        task: 'event_recommendation_rerank',
+        message: 'AI rerank failed; no rule-only recommendation was shown.',
+        attempts: error.attempts || [],
+        profileStats: pool.profileStats,
+        profileModelStatuses: pool.modelStatuses
+      }
+    };
+  }
+
+  return buildAiRecommendationResponse({
+    rerank,
+    candidates: pool.candidates,
+    intent,
+    profile,
+    scope: pool.scope,
+    canExpandScope: pool.canExpandScope,
+    usedHistoricalFallback: pool.usedHistoricalFallback,
+    remembered,
+    coverage,
+    profileStats: pool.profileStats,
+    modelStatuses: [
+      parsedIntent.modelStatus,
+      ...pool.modelStatuses
+    ]
+  });
+};
+
 const recordEventAssistantFeedback = async ({
   db,
   userId,
@@ -1308,7 +1973,7 @@ module.exports = {
   serializeEventForAssistant,
   serializeEventForClient,
   loadScopedCandidates,
-  runEventAssistantTurn,
+  runEventAssistantTurn: runUnifiedEventAssistantTurn,
   callEventAssistantModel,
   createAssistantError,
   parseAssistantIntent,

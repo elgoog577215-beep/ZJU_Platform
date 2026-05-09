@@ -411,7 +411,7 @@ const EventAssistantPanel = ({
                     </span>
                     <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-medium ${isDayMode ? "bg-emerald-50 text-emerald-700 border-emerald-200/80" : "bg-emerald-400/10 text-emerald-200 border-emerald-300/15"}`}>
                       <Brain size={13} />
-                      先读活动库，再推荐
+                      AI 理解后排序
                     </span>
                   </div>
 
@@ -728,7 +728,7 @@ const EventAssistantPanel = ({
                     {hasModelStatus ? (
                       <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs ${chipClass}`}>
                         <Brain size={13} />
-                        {assistantState.modelStatus?.used ? "模型已参与解释" : "规则推荐"}
+                        {assistantState.modelStatus?.used ? "大模型已参与排序" : "模型未完成排序"}
                       </span>
                     ) : null}
                     {coverageText ? (

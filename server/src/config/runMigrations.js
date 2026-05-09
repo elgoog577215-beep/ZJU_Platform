@@ -990,6 +990,36 @@ async function runMigrations(db) {
         ON ai_event_governance_suggestions(run_id, status, confidence DESC);
       CREATE INDEX IF NOT EXISTS idx_ai_event_governance_suggestions_event
         ON ai_event_governance_suggestions(event_id, created_at DESC);
+
+      CREATE TABLE IF NOT EXISTS event_ai_profiles (
+        event_id INTEGER PRIMARY KEY,
+        profile_version INTEGER DEFAULT 1,
+        source_hash TEXT NOT NULL,
+        profile_json TEXT NOT NULL,
+        summary TEXT,
+        category TEXT,
+        topic_terms TEXT,
+        benefit_terms TEXT,
+        campus_terms TEXT,
+        audience_terms TEXT,
+        organizer_terms TEXT,
+        confidence REAL DEFAULT 0,
+        status TEXT DEFAULT 'ready',
+        last_error TEXT,
+        model_name TEXT,
+        model_provider TEXT,
+        refreshed_at DATETIME,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_event_ai_profiles_status
+        ON event_ai_profiles(status, refreshed_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_event_ai_profiles_category
+        ON event_ai_profiles(category);
+      CREATE INDEX IF NOT EXISTS idx_event_ai_profiles_source_hash
+        ON event_ai_profiles(source_hash);
     `);
     console.log('AI assistant tables ready');
   } catch (err) {

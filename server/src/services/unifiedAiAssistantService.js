@@ -4,6 +4,7 @@ const {
   normalizeEventAudience,
 } = require('./eventIntelligenceService');
 const aiModelConfigService = require('./aiModelConfigService');
+const eventAiProfileService = require('./eventAiProfileService');
 
 const GOVERNANCE_FIELDS = new Set(['category', 'target_audience']);
 const MAX_SCAN_LIMIT = 500;
@@ -183,12 +184,20 @@ const getAssistantOverview = async (db) => {
     feedbackCount,
     memoryCount,
     governanceRunCount,
+    profileCoverage,
   ] = await Promise.all([
     safeCount(db, 'SELECT COUNT(*) AS count FROM events WHERE deleted_at IS NULL'),
     safeCount(db, "SELECT COUNT(*) AS count FROM events WHERE deleted_at IS NULL AND (category IS NULL OR TRIM(category) = '')"),
     safeCount(db, 'SELECT COUNT(*) AS count FROM event_recommendation_feedback'),
     safeCount(db, 'SELECT COUNT(*) AS count FROM assistant_memory'),
     safeCount(db, "SELECT COUNT(*) AS count FROM ai_assistant_runs WHERE module = 'event_governance'"),
+    eventAiProfileService.getProfileCoverage(db).catch(() => ({
+      totalProfiles: 0,
+      readyProfiles: 0,
+      fallbackProfiles: 0,
+      failedProfiles: 0,
+      coverageRatio: 0,
+    })),
   ]);
 
   let configs = [];
@@ -211,6 +220,10 @@ const getAssistantOverview = async (db) => {
       feedbackCount,
       memoryCount,
       governanceRunCount,
+      eventAiProfileCount: profileCoverage.totalProfiles,
+      readyEventAiProfileCount: profileCoverage.readyProfiles,
+      fallbackEventAiProfileCount: profileCoverage.fallbackProfiles,
+      eventAiProfileCoverageRatio: profileCoverage.coverageRatio,
     },
     modules: [
       {
@@ -221,6 +234,8 @@ const getAssistantOverview = async (db) => {
         description: '面向用户做活动推荐，读取活动库、用户画像、偏好记忆和反馈。',
         metrics: [
           { label: '活动库', value: eventCount },
+          { label: 'AI 画像', value: profileCoverage.totalProfiles },
+          { label: 'AI 覆盖', value: `${Math.round((profileCoverage.coverageRatio || 0) * 100)}%` },
           { label: '偏好记忆', value: memoryCount },
           { label: '反馈', value: feedbackCount },
         ],
