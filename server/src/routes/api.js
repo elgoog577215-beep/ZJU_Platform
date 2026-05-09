@@ -207,6 +207,7 @@ router.delete('/admin/messages/:id', authenticateToken, isAdmin, messageControll
 router.put('/admin/messages/:id/read', authenticateToken, isAdmin, messageController.markAsRead);
 
 // Hackathon Registration Routes
+router.post('/hackathon/assistant', optionalAuth, hackathonController.handleHackathonAssistant);
 router.post('/hackathon/register', hackathonController.registerHackathon);
 router.get('/admin/hackathon/registrations', authenticateToken, isAdmin, hackathonController.getRegistrations);
 router.delete('/admin/hackathon/registrations/:id', authenticateToken, isAdmin, hackathonController.deleteRegistration);

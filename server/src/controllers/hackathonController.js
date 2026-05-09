@@ -1,4 +1,13 @@
 const { getDb } = require('../config/db');
+const {
+  MAX_QUERY_LENGTH,
+  runHackathonAssistant,
+} = require('../services/hackathonAssistantService');
+
+const sanitizeText = (value, maxLength = 200) => {
+  if (typeof value !== 'string') return '';
+  return value.replace(/\s+/g, ' ').trim().slice(0, maxLength);
+};
 
 const registerHackathon = async (req, res, next) => {
   const { name, studentId, major, grade, aiTools, experience } = req.body;
@@ -75,8 +84,50 @@ const deleteRegistration = async (req, res, next) => {
   }
 };
 
+const handleHackathonAssistant = async (req, res) => {
+  try {
+    const query = req.body?.query;
+    if (typeof query !== 'string' || query.trim() === '') {
+      return res.status(400).json({
+        error: 'HACKATHON_ASSISTANT_BAD_REQUEST',
+        message: 'Query is required.',
+      });
+    }
+
+    if (query.trim().length > MAX_QUERY_LENGTH) {
+      return res.status(400).json({
+        error: 'HACKATHON_ASSISTANT_BAD_REQUEST',
+        message: 'Query is too long.',
+      });
+    }
+
+    const db = await getDb();
+    const result = await runHackathonAssistant({
+      db,
+      query,
+      userId: req.user?.id || null,
+      participantProfile: {
+        major: sanitizeText(req.body?.major, 120),
+        grade: sanitizeText(req.body?.grade, 60),
+        aiTools: Array.isArray(req.body?.aiTools)
+          ? req.body.aiTools.map((item) => sanitizeText(String(item), 40)).filter(Boolean).slice(0, 8)
+          : [],
+        experience: sanitizeText(req.body?.experience, 600),
+      },
+    });
+
+    res.json(result);
+  } catch (error) {
+    res.status(error.statusCode || 500).json({
+      error: error.code || 'HACKATHON_ASSISTANT_FAILED',
+      message: error.message || 'The hackathon AI assistant failed to respond.',
+    });
+  }
+};
+
 module.exports = {
   registerHackathon,
   getRegistrations,
   deleteRegistration,
+  handleHackathonAssistant,
 };

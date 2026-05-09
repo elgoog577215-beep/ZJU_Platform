@@ -14,6 +14,7 @@
     "optimize-images": "node scripts/optimizeImages.js",
     "check:ai-assistant": "node scripts/check-unified-ai-assistant.js",
     "check:ai-runtime": "node scripts/check-unified-ai-runtime.js",
+    "check:hackathon-ai": "node scripts/check-hackathon-ai-assistant.js",
     "events:classify": "node scripts/classify-event-categories.js --dry-run",
     "events:classify:apply": "node scripts/classify-event-categories.js --apply",
     "events:retire-tags": "node scripts/retire-event-tags.js --dry-run",

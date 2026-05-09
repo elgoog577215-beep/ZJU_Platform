@@ -106,6 +106,11 @@ const HackathonRegistration = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
+  const [coachQuery, setCoachQuery] = useState(
+    "我不会前端但会用 Codex，适合参加吗？",
+  );
+  const [coachResult, setCoachResult] = useState(null);
+  const [isCoachLoading, setIsCoachLoading] = useState(false);
 
   const event = useMemo(
     () => ({
@@ -308,6 +313,37 @@ const HackathonRegistration = () => {
       toast.error(message);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const askHackathonCoach = async (prompt = coachQuery) => {
+    const query = prompt.trim();
+    if (!query) {
+      toast.error("先告诉 AI 你想判断什么");
+      return;
+    }
+
+    setCoachQuery(query);
+    setIsCoachLoading(true);
+    try {
+      const response = await api.post(
+        "/hackathon/assistant",
+        {
+          query,
+          major: formData.major,
+          grade: formData.grade,
+          aiTools: formData.aiTools,
+          experience: formData.experience,
+        },
+        { noRetry: true },
+      );
+      setCoachResult(response.data);
+    } catch (error) {
+      const message =
+        error?.response?.data?.message || "AI 教练暂时没有回应，请稍后再试";
+      toast.error(message);
+    } finally {
+      setIsCoachLoading(false);
     }
   };
 
@@ -774,6 +810,15 @@ const HackathonRegistration = () => {
 
               <div className="order-2 flex">
                 <div className="grid flex-1 content-start gap-6 xl:gap-7">
+                  <HackathonAiCoachPanel
+                    isDayMode={isDayMode}
+                    palette={palette}
+                    query={coachQuery}
+                    setQuery={setCoachQuery}
+                    result={coachResult}
+                    isLoading={isCoachLoading}
+                    onAsk={askHackathonCoach}
+                  />
                   {challenges.map((challenge, index) => {
                     const Icon = challenge.icon;
                     return (
@@ -1100,5 +1145,167 @@ const Field = ({ label, required, error, palette, children }) => (
     )}
   </div>
 );
+
+const HackathonAiCoachPanel = ({
+  isDayMode,
+  palette,
+  query,
+  setQuery,
+  result,
+  isLoading,
+  onAsk,
+}) => {
+  const quickPrompts = [
+    "我不会前端但会用 Codex，适合参加吗？",
+    "我会一点 Python，5 小时做什么最稳？",
+    "现场当天时间应该怎么分配？",
+  ];
+
+  const statusLabel = result?.modelStatus?.fallbackUsed
+    ? "备用策略"
+    : result?.modelStatus?.used
+      ? "大模型分析"
+      : "AI 教练";
+
+  return (
+    <div
+      className={`relative overflow-hidden border p-4 sm:p-6 ${
+        isDayMode
+          ? "border-cyan-200 bg-white/88 shadow-[0_24px_60px_rgba(15,23,42,0.09)]"
+          : "border-cyan-300/18 bg-[#081214]/90 shadow-[0_28px_80px_rgba(0,0,0,0.42)]"
+      }`}
+    >
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <div className={`inline-flex items-center gap-2 border px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em] ${palette.chip}`}>
+            <Bot className="h-3.5 w-3.5" />
+            AI Coach
+          </div>
+          <h3 className="mt-4 text-2xl font-black tracking-tight sm:text-3xl">
+            黑客松 AI 教练
+          </h3>
+          <p className={`mt-2 text-sm leading-7 ${palette.textSoft}`}>
+            告诉它你的基础、工具和顾虑，它会结合赛制给你选方向、拆计划和提醒风险。
+          </p>
+        </div>
+        <span className={`inline-flex shrink-0 items-center gap-2 border px-3 py-1.5 text-xs font-bold ${palette.chip}`}>
+          <Sparkles className="h-3.5 w-3.5" />
+          {statusLabel}
+        </span>
+      </div>
+
+      <div className="mt-5 grid gap-3">
+        <textarea
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          rows={3}
+          className={`w-full resize-none border px-4 py-3 text-sm leading-6 outline-none transition focus:outline-none focus:ring-4 focus:ring-cyan-300/20 ${palette.field}`}
+          placeholder="比如：我不会前端但会用 Codex，适合参加吗？"
+        />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap gap-2">
+            {quickPrompts.map((prompt) => (
+              <button
+                key={prompt}
+                type="button"
+                onClick={() => onAsk(prompt)}
+                className={`border px-3 py-2 text-xs font-bold transition hover:border-cyan-400 ${palette.chip}`}
+              >
+                {prompt}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => onAsk()}
+            disabled={isLoading}
+            className={`inline-flex min-h-10 shrink-0 items-center justify-center gap-2 px-4 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-60 ${palette.primary}`}
+          >
+            {isLoading ? (
+              <>
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                分析中
+              </>
+            ) : (
+              <>
+                开始分析
+                <Send className="h-4 w-4" />
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {result && (
+        <div className={`mt-5 border-t pt-5 ${palette.line}`}>
+          <p className="text-base font-black leading-7">
+            {result.summary}
+          </p>
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-[0.9fr_1.1fr]">
+            <div className={`border p-4 ${palette.chip}`}>
+              <p className={`text-xs font-black uppercase tracking-[0.18em] ${palette.accent}`}>
+                推荐方向
+              </p>
+              <h4 className="mt-2 text-lg font-black">
+                {result.recommendation?.track || "小而完整的 AI 应用"}
+              </h4>
+              <p className={`mt-2 text-sm leading-6 ${palette.textSoft}`}>
+                {result.recommendation?.focus}
+              </p>
+              <div className="mt-3 flex items-center gap-2 text-xs font-bold">
+                <span className={palette.accent}>
+                  匹配 {Math.round(result.recommendation?.fitScore || 0)}
+                </span>
+                <span className={palette.textMuted}>
+                  置信 {Math.round((result.confidence || 0) * 100)}%
+                </span>
+              </div>
+            </div>
+
+            <div className={`border p-4 ${palette.chip}`}>
+              <p className={`text-xs font-black uppercase tracking-[0.18em] ${palette.accent}`}>
+                下一步
+              </p>
+              <p className="mt-2 text-sm font-bold leading-6">
+                {result.recommendation?.nextAction}
+              </p>
+              <p className={`mt-2 text-xs leading-6 ${palette.textMuted}`}>
+                {result.recommendation?.rationale}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-2">
+            {(result.prepPlan || []).slice(0, 4).map((item) => (
+              <div
+                key={`${item.step}-${item.title}`}
+                className={`grid gap-3 border px-3 py-3 sm:grid-cols-[42px_1fr] ${palette.chip}`}
+              >
+                <span className={`font-mono text-xs font-black ${palette.accent}`}>
+                  {String(item.step).padStart(2, "0")}
+                </span>
+                <div>
+                  <p className="text-sm font-black">{item.title}</p>
+                  <p className={`mt-1 text-xs leading-6 ${palette.textSoft}`}>
+                    {item.detail}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {result.risks?.[0] && (
+            <div className={`mt-4 border px-4 py-3 text-sm leading-6 ${isDayMode ? "border-amber-200 bg-amber-50 text-amber-900" : "border-amber-300/20 bg-amber-300/8 text-amber-100"}`}>
+              <span className="font-black">风险：</span>
+              {result.risks[0].risk}
+              {result.risks[0].mitigation ? `，${result.risks[0].mitigation}` : ""}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default HackathonRegistration;
