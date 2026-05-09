@@ -417,13 +417,13 @@ const PlatformStats = () => {
         HOME
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-[2140px] px-4 pb-24 pt-16 sm:px-6 sm:pt-24 lg:px-10 lg:pb-28 lg:pt-28 2xl:px-16">
+      <div className="relative z-10 mx-auto w-full max-w-[2140px] px-4 pb-[calc(7.5rem+env(safe-area-inset-bottom))] pt-14 sm:px-6 sm:pb-24 sm:pt-24 lg:px-10 lg:pb-28 lg:pt-28 2xl:px-16">
         <motion.div
           variants={sectionReveal}
           initial={prefersReducedMotion ? false : "initial"}
           whileInView={prefersReducedMotion ? undefined : "animate"}
           viewport={motionTokens.viewport}
-          className="grid items-center gap-8 md:min-h-[64svh] lg:min-h-[72svh] lg:grid-cols-[minmax(0,0.94fr)_minmax(440px,0.76fr)] lg:gap-14"
+          className="grid items-center gap-7 md:min-h-[64svh] lg:min-h-[72svh] lg:grid-cols-[minmax(0,0.94fr)_minmax(440px,0.76fr)] lg:gap-14"
         >
           <div className={palette.firstText}>
             <div
@@ -437,19 +437,19 @@ const PlatformStats = () => {
               ZJU AI Ecosystem
             </div>
 
-            <h2 className="mt-7 max-w-5xl text-[2.45rem] font-black leading-[0.96] tracking-tight min-[360px]:text-[2.85rem] sm:text-6xl lg:text-[5.35rem] lg:leading-[0.9] xl:text-[6.05rem] 2xl:text-[6.85rem]">
+            <h2 className="mt-6 max-w-5xl text-[2.35rem] font-black leading-[0.96] tracking-tight min-[360px]:text-[2.7rem] sm:text-6xl lg:text-[5.35rem] lg:leading-[0.9] xl:text-[6.05rem] 2xl:text-[6.85rem]">
               <span className="block">把企业真题，</span>
               <span className={`block ${palette.accent}`}>接入一张</span>
               <span className="block whitespace-nowrap">校园 AI 网络。</span>
             </h2>
 
             <p
-              className={`mt-7 max-w-3xl text-base font-medium leading-8 sm:text-xl sm:leading-9 ${palette.firstSoft}`}
+              className={`mt-5 max-w-3xl text-sm font-medium leading-7 sm:mt-7 sm:text-xl sm:leading-9 ${palette.firstSoft}`}
             >
               平台围绕校园 AI 活动、社群共建、真实课题与实战赛事，连接学生、学校支持单位与企业伙伴，提供从信息触达到项目转化的一体化入口。
             </p>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row">
               <LinkButton
                 isDayMode={isDayMode}
                 onClick={() => navigate("/events")}
@@ -466,9 +466,9 @@ const PlatformStats = () => {
               </LinkButton>
             </div>
 
-            <div className={`mt-8 grid grid-cols-3 gap-px border ${palette.grid} sm:mt-10`}>
+            <div className={`mt-6 grid grid-cols-3 gap-px border ${palette.grid} sm:mt-10`}>
               {proofStats.map((item) => (
-                <div key={item.label} className={`min-h-[108px] p-3 sm:min-h-0 sm:p-6 ${palette.cell}`}>
+                <div key={item.label} className={`min-h-[88px] p-3 sm:min-h-0 sm:p-6 ${palette.cell}`}>
                   <div className={`text-2xl font-black leading-none tracking-tight min-[360px]:text-3xl sm:text-4xl ${palette.accent}`}>
                     {item.value}
                   </div>
@@ -502,32 +502,32 @@ const PlatformStats = () => {
           initial={prefersReducedMotion ? false : "initial"}
           whileInView={prefersReducedMotion ? undefined : "animate"}
           viewport={motionTokens.viewport}
-          className="mt-16 sm:mt-20 lg:mt-32"
+          className="mt-10 sm:mt-20 lg:mt-32"
         >
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className={`text-xs font-black uppercase tracking-[0.24em] ${palette.label}`}>
                 Core Engine
               </p>
-              <h2 className="mt-3 max-w-5xl text-4xl font-black leading-none tracking-tight text-balance sm:text-6xl lg:text-[clamp(3.5rem,6.6vw,6.5rem)]">
+              <h2 className="mt-3 max-w-5xl text-[2.15rem] font-black leading-none tracking-tight text-balance sm:text-6xl lg:text-[clamp(3.5rem,6.6vw,6.5rem)]">
                 不是活动很多，
                 <br />
                 是产学路径清楚。
               </h2>
             </div>
-            <p className={`max-w-2xl text-base leading-8 sm:text-lg ${palette.textSoft}`}>
+            <p className={`max-w-2xl text-sm leading-7 sm:text-lg sm:leading-8 ${palette.textSoft}`}>
               首页聚焦用户可直接参与的行动入口：发现活动、加入社群、对接课题、进入赛事。完整生态逻辑则在关于页面展开说明。
             </p>
           </div>
 
-          <div className="mt-9 grid gap-5 lg:grid-cols-4">
+          <div className="mt-6 grid gap-3 sm:mt-9 sm:gap-5 lg:grid-cols-4">
             {operatingHandles.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
                   key={item.code}
                   to={item.route}
-                  className={`group relative min-h-[320px] overflow-hidden border border-l-4 p-7 transition duration-300 hover:-translate-y-1 lg:min-h-[420px] ${palette.card} ${
+                  className={`group relative min-h-[180px] overflow-hidden border border-l-4 p-4 transition duration-300 hover:-translate-y-1 sm:min-h-[320px] sm:p-7 lg:min-h-[420px] ${palette.card} ${
                     isDayMode ? "border-l-cyan-500" : "border-l-cyan-300"
                   }`}
                 >
@@ -546,22 +546,22 @@ const PlatformStats = () => {
                       <div className={`font-mono text-xs font-black uppercase tracking-[0.2em] ${item.accent}`}>
                         {item.index} / {item.code}
                       </div>
-                      <div className={`flex h-12 w-12 items-center justify-center ${item.iconBg} text-slate-950 shadow-[0_0_34px_rgba(103,232,249,0.24)]`}>
-                        <Icon className="h-6 w-6" />
+                      <div className={`flex h-10 w-10 items-center justify-center sm:h-12 sm:w-12 ${item.iconBg} text-slate-950 shadow-[0_0_34px_rgba(103,232,249,0.24)]`}>
+                        <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
                       </div>
                     </div>
-                    <h3 className="mt-10 text-4xl font-black leading-none tracking-tight sm:text-5xl">
+                    <h3 className="mt-4 text-2xl font-black leading-none tracking-tight sm:mt-10 sm:text-5xl">
                       {item.title}
                     </h3>
-                    <p className={`mt-6 text-sm leading-7 sm:text-base ${palette.textSoft}`}>
+                    <p className={`mt-3 line-clamp-2 text-xs leading-5 sm:mt-6 sm:text-base sm:leading-7 ${palette.textSoft}`}>
                       {item.description}
                     </p>
-                    <div className={`mt-auto flex items-end justify-between border-t pt-6 ${palette.divider}`}>
+                    <div className={`mt-auto flex items-end justify-between border-t pt-4 sm:pt-6 ${palette.divider}`}>
                       <div>
                         <div className={`text-[11px] font-black uppercase tracking-[0.18em] ${palette.textMuted}`}>
                           Loop Role
                         </div>
-                        <div className={`mt-2 text-xl font-black ${item.accent}`}>
+                        <div className={`mt-1.5 text-lg font-black sm:mt-2 sm:text-xl ${item.accent}`}>
                           {item.loop}
                         </div>
                       </div>
@@ -576,22 +576,22 @@ const PlatformStats = () => {
             })}
           </div>
 
-          <div className={`mt-6 grid gap-px overflow-hidden border ${palette.grid} lg:grid-cols-[0.9fr_repeat(4,1fr)]`}>
+          <div className={`mt-4 grid grid-cols-2 gap-px overflow-hidden border sm:mt-6 lg:grid-cols-[0.9fr_repeat(4,1fr)] ${palette.grid}`}>
             <div className={`p-5 ${isDayMode ? "bg-white/76" : "bg-white/[0.035]"}`}>
               <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${palette.label}`}>
                 Operating Loop
               </p>
-              <h3 className="mt-2 text-2xl font-black leading-none tracking-tight">
+              <h3 className="mt-2 text-xl font-black leading-none tracking-tight sm:text-2xl">
                 从真题到通道
               </h3>
             </div>
             {loopItems.map((item) => (
-              <div key={item.index} className={`p-5 ${palette.cell}`}>
+              <div key={item.index} className={`p-4 sm:p-5 ${palette.cell}`}>
                 <div className={`font-mono text-xs font-black ${palette.accent}`}>
                   {item.index}
                 </div>
-                <h3 className="mt-2 text-2xl font-black">{item.title}</h3>
-                <p className={`mt-2 text-xs leading-5 ${palette.textMuted}`}>
+                <h3 className="mt-2 text-xl font-black sm:text-2xl">{item.title}</h3>
+                <p className={`mt-1.5 text-[11px] leading-4 sm:mt-2 sm:text-xs sm:leading-5 ${palette.textMuted}`}>
                   {item.detail}
                 </p>
               </div>
@@ -604,9 +604,9 @@ const PlatformStats = () => {
           initial={prefersReducedMotion ? false : "initial"}
           whileInView={prefersReducedMotion ? undefined : "animate"}
           viewport={motionTokens.viewport}
-          className="mt-14 grid gap-6 lg:mt-24 lg:grid-cols-[0.82fr_1.18fr]"
+          className="mt-12 grid gap-4 lg:mt-24 lg:grid-cols-[0.82fr_1.18fr] lg:gap-6"
         >
-          <div className={`relative min-h-[470px] overflow-hidden border p-6 sm:p-8 lg:p-9 ${palette.panelStrong}`}>
+          <div className={`relative overflow-hidden border p-5 sm:min-h-[470px] sm:p-8 lg:p-9 ${palette.panelStrong}`}>
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(103,232,249,0.18),transparent_38%)]" />
             <div
               className={`pointer-events-none absolute -right-16 bottom-8 text-[11rem] font-black uppercase leading-none tracking-tight ${palette.watermark}`}
@@ -614,36 +614,36 @@ const PlatformStats = () => {
               BASE
             </div>
             <div className={`pointer-events-none absolute left-0 top-0 h-full w-1 ${palette.accentBg}`} />
-            <div className="relative z-10 flex min-h-[394px] flex-col justify-between gap-7 lg:min-h-[410px]">
+            <div className="relative z-10 flex flex-col justify-between gap-6 sm:min-h-[394px] lg:min-h-[410px]">
               <div>
                 <div className={`font-mono text-xs font-black uppercase tracking-[0.2em] ${palette.accent}`}>
                   01 / Foundation
                 </div>
-                <h2 className="mt-6 max-w-lg text-[3rem] font-black leading-[0.96] tracking-tight sm:text-[4.25rem] lg:text-[clamp(4.25rem,5.25vw,5.1rem)]">
+                <h2 className="mt-5 max-w-lg text-[2.65rem] font-black leading-[0.96] tracking-tight sm:mt-6 sm:text-[4.25rem] lg:text-[clamp(4.25rem,5.25vw,5.1rem)]">
                   三方资源
                   <br />
                   在这里汇合
                 </h2>
-                <p className={`mt-6 max-w-lg text-sm leading-7 sm:text-base ${palette.textSoft}`}>
+                <p className={`mt-4 max-w-lg text-sm leading-6 sm:mt-6 sm:text-base sm:leading-7 ${palette.textSoft}`}>
                   学校支持单位提供场景、空间与组织机制，学生组织承担触达、动员与执行，企业伙伴提供真实课题、技术资源与成果转化通道。
                 </p>
               </div>
 
-              <div className="grid gap-3">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-1 sm:gap-3">
                 {schoolSupport.map((item) => (
                   <div
                     key={item}
-                    className={`grid gap-2 border-l-4 px-5 py-4 ${
+                    className={`grid gap-1.5 border-l-4 px-3.5 py-3 sm:gap-2 sm:px-5 sm:py-4 ${
                       isDayMode
                         ? "border-l-cyan-500 bg-white/76"
                         : "border-l-cyan-300 bg-cyan-300/[0.05]"
                     }`}
                   >
-                    <div className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] ${palette.textMuted}`}>
+                    <div className={`flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.15em] sm:gap-2 sm:text-[11px] sm:tracking-[0.18em] ${palette.textMuted}`}>
                       <Building2 className="h-3.5 w-3.5" />
                       School Support
                     </div>
-                    <div className="text-2xl font-black">{item}</div>
+                    <div className="text-lg font-black leading-tight sm:text-2xl">{item}</div>
                   </div>
                 ))}
               </div>
@@ -651,7 +651,7 @@ const PlatformStats = () => {
           </div>
 
           <div className="grid gap-6">
-            <div className={`relative overflow-hidden border p-7 sm:p-8 ${palette.card}`}>
+            <div className={`relative overflow-hidden border p-5 sm:p-8 ${palette.card}`}>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <div className={`flex items-center gap-2 font-mono text-xs font-black uppercase tracking-[0.2em] ${palette.accent}`}>
@@ -685,7 +685,7 @@ const PlatformStats = () => {
               </div>
             </div>
 
-            <div className={`relative overflow-hidden border p-7 sm:p-8 ${palette.panelStrong}`}>
+            <div className={`relative overflow-hidden border p-5 sm:p-8 ${palette.panelStrong}`}>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <div className={`flex items-center gap-2 font-mono text-xs font-black uppercase tracking-[0.2em] ${palette.accent}`}>

@@ -200,8 +200,8 @@ const Navbar = () => {
     ? "bg-white/42 border-white/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.82),0_8px_24px_rgba(100,116,139,0.1)]"
     : "bg-white/5 border-white/5";
   const navLinkClasses = isDayMode
-    ? "motion-link px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-900 relative group rounded-full hover:bg-slate-200/70"
-    : "motion-link px-4 py-2 text-sm font-medium text-gray-400 hover:text-white relative group rounded-full hover:bg-white/10";
+    ? "motion-link relative group whitespace-nowrap rounded-full px-2.5 py-2 text-xs font-medium text-slate-500 hover:bg-slate-200/70 hover:text-slate-900 xl:px-4 xl:text-sm"
+    : "motion-link relative group whitespace-nowrap rounded-full px-2.5 py-2 text-xs font-medium text-gray-400 hover:bg-white/10 hover:text-white xl:px-4 xl:text-sm";
   const navIndicatorClasses = isDayMode
     ? "absolute inset-0 rounded-full border border-indigo-200/90 bg-white/90 shadow-[0_10px_24px_rgba(99,102,241,0.14)]"
     : "absolute inset-0 bg-white/10 rounded-full border border-white/10";
@@ -280,7 +280,7 @@ const Navbar = () => {
       </Link>
 
       <div
-        className={`hidden md:flex items-center gap-1 px-2 py-1 rounded-full border backdrop-blur-sm ${desktopPillClasses}`}
+        className={`hidden min-w-0 items-center gap-0.5 rounded-full border px-1.5 py-1 backdrop-blur-sm md:flex xl:gap-1 xl:px-2 ${desktopPillClasses}`}
         role="menubar"
         aria-label="导航菜单"
       >

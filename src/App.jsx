@@ -186,7 +186,7 @@ const AppContent = () => {
         </ErrorBoundary>
       )}
 
-      <main id="main-content" className="flex-grow pb-32 md:pb-0" role="main">
+      <main id="main-content" className={`flex-grow ${isAboutRoute ? 'pb-0' : 'pb-32 md:pb-0'}`} role="main">
         <Suspense fallback={<LoadingScreen />}>
           <AnimatePresence mode="wait" initial={false}>
             <Routes location={location} key={location.pathname}>
