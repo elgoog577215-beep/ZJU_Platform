@@ -193,7 +193,7 @@ const HackathonShowcase = () => {
   return (
     <div className={`min-h-screen overflow-hidden ${theme.page}`}>
       <SEO
-        title="AI 全栈极速黑客松赛后回顾"
+        title="AI 全栈极速黑客松比赛成果"
         description="AI 全栈极速黑客松赛后展示页，集中呈现宣传片、赛场照片、优秀作品和活动成果。"
         image={HERO_IMAGE}
       />
@@ -202,7 +202,7 @@ const HackathonShowcase = () => {
         <div className="absolute inset-0">
           <img
             src={HERO_IMAGE}
-            alt="浙江大学校园与黑客松赛后回顾主视觉"
+            alt="浙江大学校园与黑客松比赛成果主视觉"
             className="h-full w-full object-cover"
           />
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.88)_0%,rgba(0,0,0,0.58)_42%,rgba(0,0,0,0.18)_100%)]" />
@@ -218,7 +218,7 @@ const HackathonShowcase = () => {
             </div>
             <h1 className="max-w-5xl text-5xl font-black leading-[0.92] tracking-tight text-white sm:text-7xl lg:text-8xl 2xl:text-[112px]">
               AI 全栈极速
-              <span className="block text-cyan-200">黑客松回顾</span>
+              <span className="block text-cyan-200">比赛成果</span>
             </h1>
             <p className="mt-7 max-w-2xl text-base font-medium leading-8 text-white/76 sm:text-lg lg:text-xl lg:leading-9">
               一场 5 小时的 AI 原生开发冲刺。这里集中呈现宣传片、赛场影像、获奖作品与赛后传播素材。
@@ -392,7 +392,7 @@ const HackathonShowcase = () => {
               Event Timeline
             </p>
             <h2 className="mt-5 text-4xl font-black leading-tight tracking-tight sm:text-6xl">
-              一天的节奏，要像战报一样清楚
+              一天的节奏，要像比赛成果一样清楚
             </h2>
             <p className={`mt-6 max-w-md text-base leading-8 ${theme.muted}`}>
               时间线把照片、短视频、作品提交和颁奖串成完整叙事，方便媒体和合作方快速转述。

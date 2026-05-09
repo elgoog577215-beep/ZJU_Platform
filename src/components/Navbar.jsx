@@ -122,7 +122,7 @@ const Navbar = () => {
     { key: "home", path: "/" },
     { key: "events", path: "/events" },
     { key: "hackathon", path: "/hackathon" },
-    { key: "hackathon_showcase", path: "/hackathon/showcase", label: "战报" },
+    { key: "hackathon_showcase", path: "/hackathon/showcase", label: "比赛成果" },
     { key: "future_learning", path: "/future-learning" },
     { key: "articles", path: "/articles" },
     { key: "music", path: "/music" },
@@ -138,7 +138,7 @@ const Navbar = () => {
   const getMobileTitle = (pathname) => {
     if (pathname === "/") return t("nav.home");
     if (pathname.startsWith("/events")) return t("nav.events");
-    if (pathname.startsWith("/hackathon/showcase")) return "赛后回顾";
+    if (pathname.startsWith("/hackathon/showcase")) return "比赛成果";
     if (pathname.startsWith("/hackathon")) return t("nav.hackathon", "黑客松");
     if (pathname.startsWith("/future-learning")) return t("nav.future_learning", "未来学习中心");
     if (pathname.startsWith("/articles")) return t("nav.articles");
@@ -226,7 +226,7 @@ const Navbar = () => {
     !location.pathname.startsWith("/user/");
   const secondaryMobileLinks = [
     { key: "future_learning", path: "/future-learning", icon: Trees },
-    { key: "hackathon_showcase", path: "/hackathon/showcase", icon: Film, label: "赛后回顾" },
+    { key: "hackathon_showcase", path: "/hackathon/showcase", icon: Film, label: "比赛成果" },
     { key: "gallery", path: "/gallery", icon: ImageIcon },
     { key: "music", path: "/music", icon: MusicIcon },
     { key: "videos", path: "/videos", icon: Film },
