@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -77,14 +77,6 @@ const mediaMoments = [
   },
 ];
 
-const timeline = [
-  { time: "09:00", title: "开幕与规则确认", text: "确认命题边界、交付口径和 AI 工具使用规则。" },
-  { time: "09:30", title: "开发冲刺开始", text: "选手进入独立开发，围绕真实问题完成产品雏形。" },
-  { time: "13:30", title: "作品提交", text: "提交可运行链接、核心截图、代码仓库或演示录屏。" },
-  { time: "14:00", title: "评审与交流", text: "评委从完成度、创新性、可用性和 AI 原生程度进行评审。" },
-  { time: "15:30", title: "颁奖与合影", text: "公布获奖作品，沉淀赛后影像、作品链接和传播素材。" },
-];
-
 const featuredWorks = [
   {
     award: "冠军作品",
@@ -134,49 +126,13 @@ const releaseModules = [
   "PRESS KIT ONLINE",
 ];
 
-const exhibitionRoute = [
-  {
-    id: "gate",
-    no: "01",
-    label: "SIGNAL GATE",
-    title: "入场",
-    text: "先进入成果发布主视觉，建立赛事规模、交付强度和赛后传播基调。",
-  },
-  {
-    id: "film",
-    no: "02",
-    label: "AFTERMOVIE",
-    title: "观影",
-    text: "用宣传片压缩赛事气势，让观众在最短时间理解这场比赛为什么值得记住。",
-  },
-  {
-    id: "gallery",
-    no: "03",
-    label: "FIELD GALLERY",
-    title: "赛场",
-    text: "进入现场照片矩阵，开幕、开发、讲话、颁奖和交流形成连续影像证据。",
-  },
-  {
-    id: "timeline",
-    no: "04",
-    label: "MISSION LOG",
-    title: "进程",
-    text: "沿时间线复盘从命题到提交的关键节点，让成果不是散点，而是完整叙事。",
-  },
-  {
-    id: "works",
-    no: "05",
-    label: "WORKS INDEX",
-    title: "作品",
-    text: "把优秀作品作为展览核心，链接可运行成果、获奖信息和后续传播材料。",
-  },
-  {
-    id: "partners",
-    no: "06",
-    label: "ECOSYSTEM",
-    title: "共创",
-    text: "收束到主办方、合作方和后续社群，承接下一轮 AI 共创行动。",
-  },
+const showcaseSections = [
+  { id: "gate", no: "01", label: "SIGNAL GATE", title: "首页" },
+  { id: "film", no: "02", label: "OFFICIAL FILM", title: "宣传片" },
+  { id: "gallery", no: "03", label: "FIELD GALLERY", title: "赛场" },
+  { id: "works", no: "04", label: "WORKS INDEX", title: "作品" },
+  { id: "partners", no: "05", label: "ECOSYSTEM", title: "共创" },
+  { id: "next", no: "06", label: "KEEP BUILDING", title: "行动" },
 ];
 
 const partnerDisplayName = (logo) => {
@@ -192,6 +148,65 @@ const HackathonShowcase = () => {
   const reduceMotion = useReducedMotion();
   const shouldAnimate = !reduceMotion;
   const isDayMode = uiMode === "day";
+  const pageRef = useRef(null);
+  const [activeSection, setActiveSection] = useState(0);
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  useEffect(() => {
+    const container = pageRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const scrollHeight = container.scrollHeight - container.clientHeight;
+      setScrollProgress(scrollHeight > 0 ? (container.scrollTop / scrollHeight) * 100 : 0);
+
+      const containerRect = container.getBoundingClientRect();
+      const viewportCenter = containerRect.top + container.clientHeight / 2;
+      let currentIndex = 0;
+      let closestDistance = Number.POSITIVE_INFINITY;
+
+      showcaseSections.forEach((section, index) => {
+        const element = document.getElementById(section.id);
+        if (!element) return;
+
+        const rect = element.getBoundingClientRect();
+        const sectionCenter = rect.top + rect.height / 2;
+        const distance = Math.abs(sectionCenter - viewportCenter);
+
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          currentIndex = index;
+        }
+      });
+
+      setActiveSection(currentIndex);
+    };
+
+    handleScroll();
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll);
+
+    return () => {
+      container.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
+  }, []);
+
+  const smoothScrollTo = (id) => {
+    const target = document.getElementById(id);
+    const scroller = pageRef.current;
+    if (!target || !scroller) return;
+
+    const targetTop =
+      target.getBoundingClientRect().top -
+      scroller.getBoundingClientRect().top +
+      scroller.scrollTop;
+
+    scroller.scrollTo({
+      top: targetTop,
+      behavior: shouldAnimate ? "smooth" : "auto",
+    });
+  };
 
   const theme = isDayMode
     ? {
@@ -249,18 +264,23 @@ const HackathonShowcase = () => {
           >
             <div className="pointer-events-none absolute bottom-3 left-1/2 top-3 w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-cyan-300/50 to-transparent" />
             <div className="relative grid gap-2">
-              {exhibitionRoute.map((step) => (
-                <a
+              {showcaseSections.map((step, index) => (
+                <button
                   key={step.id}
-                  href={`#${step.id}`}
-                  className="group relative flex h-10 w-10 items-center justify-center border border-cyan-300/16 bg-black/28 text-[11px] font-black text-cyan-100 transition duration-200 hover:border-cyan-200 hover:bg-cyan-300 hover:text-slate-950"
+                  type="button"
+                  onClick={() => smoothScrollTo(step.id)}
+                  className={`group relative flex h-10 w-10 items-center justify-center border text-[11px] font-black transition duration-200 hover:border-cyan-200 hover:bg-cyan-300 hover:text-slate-950 ${
+                    activeSection === index
+                      ? "border-cyan-200 bg-cyan-300 text-slate-950 shadow-[0_0_22px_rgba(103,232,249,0.42)]"
+                      : "border-cyan-300/16 bg-black/28 text-cyan-100"
+                  }`}
                   aria-label={`跳转到${step.title}章节`}
                 >
                   {step.no}
                   <span className="pointer-events-none absolute right-full mr-3 min-w-[132px] border border-cyan-300/24 bg-[#031014]/92 px-3 py-2 text-left text-[11px] font-black uppercase text-cyan-100 opacity-0 shadow-[0_0_34px_rgba(34,211,238,0.14)] backdrop-blur transition duration-200 group-hover:opacity-100">
                     {step.title} / {step.label}
                   </span>
-                </a>
+                </button>
               ))}
             </div>
           </nav>,
@@ -270,7 +290,8 @@ const HackathonShowcase = () => {
 
   return (
     <div
-      className={`min-h-screen overflow-hidden ${theme.page}`}
+      ref={pageRef}
+      className={`h-[100svh] snap-y snap-mandatory overflow-y-auto overflow-x-hidden scroll-smooth overscroll-y-contain ${theme.page}`}
       style={{
         fontFamily:
           '"Inter", "HarmonyOS Sans SC", "MiSans", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif',
@@ -283,117 +304,86 @@ const HackathonShowcase = () => {
       />
       <style>
         {`
-          .hackathon-route-shell {
+          .showcase-gallery-grid {
             display: grid;
-            gap: 2rem;
+            gap: 0.75rem;
+            grid-auto-rows: 180px;
           }
 
-          .hackathon-route-progress {
-            display: grid;
-            grid-template-columns: repeat(6, minmax(0, 1fr));
-            gap: 0.25rem;
-          }
-
-          .hackathon-route-card {
-            display: grid;
-            gap: 1rem;
-          }
-
-          .hackathon-route-section {
-            background:
-              linear-gradient(180deg, rgba(2, 4, 5, 0.98), rgba(2, 10, 18, 0.92) 46%, rgba(2, 4, 5, 0.98)),
-              repeating-linear-gradient(90deg, rgba(103, 232, 249, 0.08) 0 1px, transparent 1px 96px);
-          }
-
-          .hackathon-depth-rails {
-            position: absolute;
-            inset: 4rem 2.5rem 3rem;
-            pointer-events: none;
-            opacity: 0.5;
-            transform: perspective(960px) rotateX(62deg);
-            transform-origin: top center;
-            border-left: 1px solid rgba(103, 232, 249, 0.25);
-            border-right: 1px solid rgba(103, 232, 249, 0.25);
-            background:
-              linear-gradient(90deg, transparent 0%, rgba(103, 232, 249, 0.16) 50%, transparent 100%),
-              repeating-linear-gradient(90deg, transparent 0 8%, rgba(103, 232, 249, 0.18) 8.1% 8.25%, transparent 8.35% 16%);
-          }
-
-          .hackathon-depth-rails::before,
-          .hackathon-depth-rails::after {
-            content: "";
-            position: absolute;
-            inset: 12% 10%;
-            border-left: 1px solid rgba(103, 232, 249, 0.22);
-            border-right: 1px solid rgba(103, 232, 249, 0.22);
-          }
-
-          .hackathon-depth-rails::after {
-            inset: 28% 23%;
-            opacity: 0.72;
-          }
-
-          .hackathon-scan-beam {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 50%;
-            width: min(48rem, 48vw);
-            pointer-events: none;
-            transform: translateX(-50%) skewX(-17deg);
-            background: linear-gradient(90deg, transparent, rgba(103, 232, 249, 0.18), transparent);
-            mix-blend-mode: screen;
-            opacity: 0.55;
-          }
-
-          @media (prefers-reduced-motion: no-preference) {
-            .hackathon-scan-beam {
-              animation: hackathonScan 5.6s ease-in-out infinite;
-            }
-          }
-
-          @keyframes hackathonScan {
-            0%, 100% {
-              transform: translateX(-72%) skewX(-17deg);
-              opacity: 0.18;
-            }
-            48% {
-              transform: translateX(-18%) skewX(-17deg);
-              opacity: 0.62;
-            }
+          .showcase-gallery-card {
+            min-height: 0;
           }
 
           @media (min-width: 768px) {
-            .hackathon-route-card {
-              grid-template-columns: 96px minmax(0, 1fr) auto;
-              gap: 1.25rem;
+            .showcase-gallery-grid {
+              grid-template-columns: repeat(12, minmax(0, 1fr));
+              grid-auto-rows: minmax(145px, 17vh);
             }
-          }
 
-          @media (min-width: 1024px) {
-            .hackathon-route-shell {
-              grid-template-columns: 390px minmax(0, 1fr);
+            .showcase-gallery-card:nth-child(1) {
+              grid-column: span 5 / span 5;
+              grid-row: span 2 / span 2;
+            }
+
+            .showcase-gallery-card:nth-child(2) {
+              grid-column: span 7 / span 7;
+            }
+
+            .showcase-gallery-card:nth-child(n + 3) {
+              grid-column: span 4 / span 4;
             }
           }
 
           @media (min-width: 1280px) {
-            .hackathon-route-shell {
-              grid-template-columns: 460px minmax(0, 1fr);
+            .showcase-gallery-grid {
+              grid-auto-rows: minmax(166px, 19vh);
             }
           }
 
-          @media (max-width: 420px) {
-            .hackathon-route-progress {
-              grid-template-columns: repeat(3, minmax(0, 1fr));
+          @media (max-height: 820px) and (min-width: 768px) {
+            .showcase-gallery-grid {
+              grid-auto-rows: 136px;
             }
           }
         `}
       </style>
+      <div className="fixed left-0 right-0 top-[env(safe-area-inset-top)] z-[130] h-0.5">
+        <div
+          className="h-full bg-gradient-to-r from-cyan-300 via-indigo-400 to-fuchsia-400 transition-all duration-150"
+          style={{ width: `${scrollProgress}%` }}
+        />
+      </div>
       {chapterNav}
+      <div
+        className={`fixed bottom-0 left-0 right-0 z-[120] border-t px-3 py-2 backdrop-blur-2xl lg:hidden ${
+          isDayMode ? "border-slate-200 bg-white/90" : "border-white/10 bg-black/62"
+        }`}
+      >
+        <div className="mx-auto flex max-w-xl gap-2 overflow-x-auto">
+          {showcaseSections.map((step, index) => (
+            <button
+              key={step.id}
+              type="button"
+              onClick={() => smoothScrollTo(step.id)}
+              className={`min-w-[64px] flex-1 border px-2 py-2 text-[11px] font-black transition duration-200 ${
+                activeSection === index
+                  ? "border-cyan-300 bg-cyan-300 text-slate-950"
+                  : isDayMode
+                    ? "border-slate-200 bg-white/70 text-slate-600"
+                    : "border-cyan-300/14 bg-cyan-300/[0.055] text-cyan-100/72"
+              }`}
+              aria-label={`跳转到${step.title}章节`}
+            >
+              <span className="block font-mono">{step.no}</span>
+              <span className="mt-0.5 block whitespace-nowrap">{step.title}</span>
+            </button>
+          ))}
+        </div>
+      </div>
 
       <section
         id="gate"
-        className="relative flex min-h-[100svh] scroll-mt-28 items-end overflow-hidden px-4 pb-28 pt-24 sm:px-6 sm:pb-12 md:pt-28 lg:items-center lg:px-10 lg:pb-10 2xl:px-16"
+        className="relative flex min-h-[100svh] snap-start snap-always items-end overflow-hidden px-4 pb-28 pt-24 sm:px-6 sm:pb-12 md:pt-28 lg:items-center lg:px-10 lg:pb-10 2xl:px-16"
       >
         <div className="absolute inset-0">
           <img
@@ -450,31 +440,34 @@ const HackathonShowcase = () => {
             </div>
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <a
-                href="#film"
+              <button
+                type="button"
+                onClick={() => smoothScrollTo("film")}
                 className="group inline-flex min-h-12 items-center justify-center gap-2 bg-cyan-300 px-6 text-sm font-black text-slate-950 shadow-[0_0_34px_rgba(103,232,249,0.32)] transition duration-200 hover:bg-white focus:outline-none focus:ring-4 focus:ring-cyan-300/30"
               >
                 <Play className="h-4 w-4 fill-current" />
                 观看宣传片
-              </a>
-              <a
-                href="#works"
+              </button>
+              <button
+                type="button"
+                onClick={() => smoothScrollTo("works")}
                 className="inline-flex min-h-12 items-center justify-center gap-2 border border-white/16 bg-white/[0.08] px-6 text-sm font-bold text-white transition duration-200 hover:border-cyan-300/60 hover:bg-cyan-300/10 focus:outline-none focus:ring-4 focus:ring-cyan-300/20"
               >
                 查看优秀作品
                 <ArrowRight className="h-4 w-4" />
-              </a>
+              </button>
             </div>
             <div className="mt-8 hidden max-w-2xl items-center gap-2 text-[11px] font-black uppercase text-white/62 lg:flex">
-              {exhibitionRoute.slice(0, 4).map((step, index) => (
+              {showcaseSections.slice(0, 4).map((step, index) => (
                 <React.Fragment key={step.id}>
-                  <a
-                    href={`#${step.id}`}
+                  <button
+                    type="button"
+                    onClick={() => smoothScrollTo(step.id)}
                     className="group inline-flex items-center gap-2 border border-cyan-300/20 bg-cyan-300/[0.055] px-2.5 py-2 backdrop-blur transition duration-200 hover:border-cyan-200 hover:bg-cyan-300/14 hover:text-cyan-100"
                   >
                     <span className="text-cyan-200">{step.no}</span>
                     <span>{step.title}</span>
-                  </a>
+                  </button>
                   {index < 3 && <span className="h-px w-7 bg-cyan-300/30" />}
                 </React.Fragment>
               ))}
@@ -558,99 +551,29 @@ const HackathonShowcase = () => {
         </div>
         <div className="absolute bottom-5 left-1/2 z-10 hidden -translate-x-1/2 flex-col items-center gap-2 text-[11px] font-black uppercase text-cyan-100/72 lg:flex">
           <span>Enter Exhibition</span>
-          <motion.span
-            className="h-12 w-px bg-gradient-to-b from-cyan-200 via-cyan-200/55 to-transparent"
-            animate={shouldAnimate ? { scaleY: [0.45, 1, 0.45], opacity: [0.45, 1, 0.45] } : undefined}
-            transition={shouldAnimate ? { duration: 1.8, repeat: Infinity, ease: "easeInOut" } : undefined}
-          />
+          <button
+            type="button"
+            onClick={() => smoothScrollTo("film")}
+            className="group flex h-12 w-8 items-start justify-center pt-1 focus:outline-none focus:ring-4 focus:ring-cyan-300/20"
+            aria-label="进入宣传片章节"
+          >
+            <motion.span
+              className="h-12 w-px bg-gradient-to-b from-cyan-200 via-cyan-200/55 to-transparent"
+              animate={shouldAnimate ? { scaleY: [0.45, 1, 0.45], opacity: [0.45, 1, 0.45] } : undefined}
+              transition={shouldAnimate ? { duration: 1.8, repeat: Infinity, ease: "easeInOut" } : undefined}
+            />
+          </button>
         </div>
       </section>
 
       <MotionSection
-        id="route"
-        {...reveal}
-        className="hackathon-route-section relative scroll-mt-28 overflow-hidden px-4 py-16 sm:px-6 lg:px-10 lg:py-24 2xl:px-16"
-      >
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/50 to-transparent" />
-        <div className="pointer-events-none absolute left-1/2 top-0 hidden h-full w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-cyan-300/18 to-transparent lg:block" />
-        <div className="hackathon-depth-rails hidden lg:block" />
-        <div className="hackathon-scan-beam hidden lg:block" />
-        <div className="hackathon-route-shell relative mx-auto max-w-[1680px]">
-          <div className="lg:sticky lg:top-28 lg:self-start">
-            <p className={`inline-flex items-center gap-2 border px-3 py-2 text-sm font-black uppercase ${theme.chip}`}>
-              <Radar className="h-4 w-4" />
-              Exhibition Route
-            </p>
-            <h2 className="mt-5 text-4xl font-black leading-tight sm:text-6xl">
-              沿着展线往前走
-            </h2>
-            <p className={`mt-6 max-w-md text-base leading-8 ${theme.muted}`}>
-              把赛后成果页做成一个有入口、有章节、有高潮、有收束的数字展馆。观众不是随便翻页面，而是从入场到作品，一步一步被推进。
-            </p>
-            <div className={`mt-8 border ${theme.panel} p-4`}>
-              <div className="flex items-center justify-between border-b border-cyan-300/16 pb-3">
-                <span className={`text-xs font-black uppercase ${theme.accent}`}>Route Progress</span>
-                <Activity className={`h-4 w-4 ${theme.accent}`} />
-              </div>
-              <div className="hackathon-route-progress mt-4">
-                {exhibitionRoute.map((step) => (
-                  <a
-                    key={step.id}
-                    href={`#${step.id}`}
-                    className={`flex h-14 items-center justify-center border text-xs font-black transition duration-200 ${theme.chip} hover:border-cyan-300/70 hover:text-cyan-300`}
-                    aria-label={`进入${step.title}章节`}
-                  >
-                    {step.no}
-                  </a>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="relative">
-            <div className="absolute bottom-8 left-6 top-8 hidden w-px bg-gradient-to-b from-cyan-300/10 via-cyan-300/60 to-cyan-300/10 md:block" />
-            <div className="grid gap-3">
-              {exhibitionRoute.map((step, index) => (
-                <a
-                  key={step.id}
-                  href={`#${step.id}`}
-                  className={`hackathon-route-card group relative overflow-hidden border ${theme.panelStrong} p-5 transition duration-300 hover:-translate-y-0.5 hover:border-cyan-300/70 hover:shadow-[0_0_70px_rgba(34,211,238,0.16)] md:p-6 ${index % 2 === 1 ? "md:ml-8" : "md:mr-8"}`}
-                >
-                  <div className="absolute inset-0 opacity-0 transition duration-300 group-hover:opacity-100">
-                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-200 to-transparent" />
-                    <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_0%,rgba(103,232,249,0.10)_48%,transparent_60%)]" />
-                  </div>
-                  <div className="absolute bottom-0 left-0 top-0 w-1 bg-gradient-to-b from-transparent via-cyan-200 to-transparent opacity-0 transition duration-300 group-hover:opacity-100" />
-                  <div className="relative flex items-center gap-3 md:block">
-                    <span className={`font-mono text-4xl font-black leading-none ${index === 0 ? theme.amber : theme.accent}`}>
-                      {step.no}
-                    </span>
-                    <span className="text-xl font-black md:mt-5 md:block">{step.title}</span>
-                  </div>
-                  <div className="relative mt-4 md:mt-0">
-                    <p className={`text-xs font-black uppercase ${theme.accent}`}>{step.label}</p>
-                    <p className={`mt-3 max-w-3xl text-base leading-8 ${theme.muted}`}>{step.text}</p>
-                  </div>
-                  <div className="relative mt-4 flex items-center md:mt-0">
-                    <span className={`inline-flex h-11 w-11 items-center justify-center border ${theme.chip} transition duration-200 group-hover:border-cyan-300/70 group-hover:bg-cyan-300 group-hover:text-slate-950`}>
-                      <ArrowRight className="h-4 w-4" />
-                    </span>
-                  </div>
-                </a>
-              ))}
-            </div>
-          </div>
-        </div>
-      </MotionSection>
-
-      <MotionSection
         id="film"
         {...reveal}
-        className="relative scroll-mt-28 px-4 py-20 sm:px-6 lg:px-10 lg:py-28 2xl:px-16"
+        className="relative flex min-h-[100svh] snap-start snap-always items-center px-4 pb-28 pt-20 sm:px-6 sm:py-20 lg:px-10 lg:py-24 2xl:px-16"
       >
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/40 to-transparent" />
         <div className="pointer-events-none absolute right-0 top-24 h-72 w-72 bg-cyan-300/10 blur-3xl" />
-        <div className="mx-auto grid max-w-[1680px] gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-stretch">
+        <div className="mx-auto grid w-full max-w-[1680px] gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-stretch">
           <div className="flex flex-col justify-between">
             <div>
               <p className={`inline-flex items-center gap-2 border px-3 py-2 text-sm font-black uppercase ${theme.chip}`}>
@@ -709,10 +632,10 @@ const HackathonShowcase = () => {
       <MotionSection
         id="gallery"
         {...reveal}
-        className="relative scroll-mt-28 px-4 py-16 sm:px-6 lg:px-10 lg:py-24 2xl:px-16"
+        className="relative flex min-h-[100svh] snap-start snap-always items-center px-4 pb-28 pt-20 sm:px-6 sm:py-20 lg:px-10 lg:py-24 2xl:px-16"
       >
         <div className="pointer-events-none absolute left-0 top-1/4 h-80 w-80 bg-indigo-500/10 blur-3xl" />
-        <div className="mx-auto max-w-[1680px]">
+        <div className="mx-auto w-full max-w-[1680px]">
           <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
             <div>
               <p className={`inline-flex items-center gap-2 border px-3 py-2 text-sm font-black uppercase ${theme.chip}`}>
@@ -728,17 +651,11 @@ const HackathonShowcase = () => {
             </p>
           </div>
 
-          <div className="mt-10 grid auto-rows-[220px] gap-3 md:grid-cols-6 md:auto-rows-[180px] xl:auto-rows-[220px]">
+          <div className="showcase-gallery-grid mt-8">
             {mediaMoments.map((moment, index) => (
               <article
                 key={moment.id}
-                className={`group relative overflow-hidden border border-cyan-300/[0.18] bg-black/20 shadow-[0_0_42px_rgba(34,211,238,0.08)] ${
-                  index === 0
-                    ? "md:col-span-3 md:row-span-2"
-                    : index === 1
-                      ? "md:col-span-3"
-                      : "md:col-span-2"
-                }`}
+                className="showcase-gallery-card group relative overflow-hidden border border-cyan-300/[0.18] bg-black/20 shadow-[0_0_42px_rgba(34,211,238,0.08)]"
               >
                 <img
                   src={moment.image}
@@ -748,15 +665,15 @@ const HackathonShowcase = () => {
                 />
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.03),rgba(0,0,0,0.84))]" />
                 <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-200/70 to-transparent opacity-0 transition duration-500 group-hover:opacity-100" />
-                <div className="absolute inset-x-0 bottom-0 p-5">
-                  <div className="mb-3 inline-flex items-center gap-2 border border-cyan-200/40 bg-cyan-300 px-2.5 py-1.5 text-[11px] font-black uppercase text-slate-950">
+                <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
+                  <div className="mb-2 inline-flex items-center gap-2 border border-cyan-200/40 bg-cyan-300 px-2.5 py-1.5 text-[11px] font-black uppercase text-slate-950">
                     <Camera className="h-3.5 w-3.5" />
                     {moment.label}
                   </div>
-                  <h3 className="text-2xl font-black text-white sm:text-3xl">
+                  <h3 className="text-xl font-black text-white sm:text-2xl xl:text-3xl">
                     {moment.title}
                   </h3>
-                  <p className="mt-2 max-w-lg text-sm leading-6 text-white/70">{moment.caption}</p>
+                  <p className="mt-2 max-w-lg text-xs leading-5 text-white/70 sm:text-sm sm:leading-6">{moment.caption}</p>
                 </div>
               </article>
             ))}
@@ -765,62 +682,17 @@ const HackathonShowcase = () => {
       </MotionSection>
 
       <MotionSection
-        id="timeline"
-        {...reveal}
-        className="relative scroll-mt-28 px-4 py-16 sm:px-6 lg:px-10 lg:py-24 2xl:px-16"
-      >
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/30 to-transparent" />
-        <div className="mx-auto grid max-w-[1680px] gap-10 lg:grid-cols-[420px_1fr] xl:grid-cols-[520px_1fr]">
-          <div className="lg:sticky lg:top-28 lg:self-start">
-            <p className={`inline-flex items-center gap-2 border px-3 py-2 text-sm font-black uppercase ${theme.chip}`}>
-              <Activity className="h-4 w-4" />
-              Chapter 04 / Event Timeline
-            </p>
-            <h2 className="mt-5 text-4xl font-black leading-tight sm:text-6xl">
-              一天的节奏，要像比赛成果一样清楚
-            </h2>
-            <p className={`mt-6 max-w-md text-base leading-8 ${theme.muted}`}>
-              时间线把照片、短视频、作品提交和颁奖串成完整叙事，方便媒体和合作方快速转述。
-            </p>
-          </div>
-
-          <div className={`border-l ${theme.border}`}>
-            {timeline.map((item, index) => (
-              <div
-                key={item.time}
-                className="relative grid gap-5 border-b border-inherit py-7 pl-8 transition duration-300 hover:bg-cyan-300/[0.04] md:grid-cols-[140px_1fr] md:gap-8 md:py-9"
-              >
-                <span className={`absolute -left-[5px] top-9 h-2.5 w-2.5 ${theme.accentBg} shadow-[0_0_20px_rgba(103,232,249,0.7)]`} />
-                <div>
-                  <p className={`font-mono text-4xl font-black leading-none ${index === 0 ? theme.amber : theme.accent}`}>
-                    {item.time}
-                  </p>
-                  <p className={`mt-2 text-xs font-black uppercase ${theme.soft}`}>
-                    Stage {String(index + 1).padStart(2, "0")}
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-2xl font-black sm:text-4xl">{item.title}</h3>
-                  <p className={`mt-3 max-w-2xl text-base leading-8 ${theme.muted}`}>{item.text}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </MotionSection>
-
-      <MotionSection
         id="works"
         {...reveal}
-        className="relative scroll-mt-28 px-4 py-16 sm:px-6 lg:px-10 lg:py-24 2xl:px-16"
+        className="relative flex min-h-[100svh] snap-start snap-always items-center px-4 pb-28 pt-20 sm:px-6 sm:py-20 lg:px-10 lg:py-24 2xl:px-16"
       >
         <div className="pointer-events-none absolute right-0 top-20 h-96 w-96 bg-cyan-300/10 blur-3xl" />
-        <div className="mx-auto max-w-[1680px]">
+        <div className="mx-auto w-full max-w-[1680px]">
           <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
             <div>
               <p className={`inline-flex items-center gap-2 border px-3 py-2 text-sm font-black uppercase ${theme.chip}`}>
                 <CircuitBoard className="h-4 w-4" />
-                Chapter 05 / Winning Works
+                Chapter 04 / Winning Works
               </p>
               <h2 className="mt-5 text-4xl font-black sm:text-6xl">
                 优秀作品展示
@@ -831,13 +703,13 @@ const HackathonShowcase = () => {
             </p>
           </div>
 
-          <div className="mt-10 grid gap-4 lg:grid-cols-3">
+          <div className="mt-8 grid gap-4 lg:grid-cols-3">
             {featuredWorks.map((work, index) => (
               <article
                 key={work.award}
-                className={`group flex min-h-[520px] flex-col overflow-hidden border ${theme.panelStrong} transition duration-300 hover:-translate-y-1 hover:border-cyan-300/50 hover:shadow-[0_34px_120px_rgba(34,211,238,0.14)]`}
+                className={`group flex min-h-[450px] flex-col overflow-hidden border ${theme.panelStrong} transition duration-300 hover:-translate-y-1 hover:border-cyan-300/50 hover:shadow-[0_34px_120px_rgba(34,211,238,0.14)]`}
               >
-                <div className="relative min-h-[220px] overflow-hidden bg-[#061113]">
+                <div className="relative min-h-[190px] overflow-hidden bg-[#061113]">
                   <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(103,232,249,0.32),rgba(99,102,241,0.18)_48%,rgba(244,63,94,0.12))]" />
                   <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.07)_1px,transparent_1px)] bg-[size:34px_34px] opacity-28" />
                   <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-200 to-transparent" />
@@ -883,15 +755,15 @@ const HackathonShowcase = () => {
       <MotionSection
         id="partners"
         {...reveal}
-        className="relative scroll-mt-28 px-4 py-16 sm:px-6 lg:px-10 lg:py-24 2xl:px-16"
+        className="relative flex min-h-[100svh] snap-start snap-always items-center px-4 pb-28 pt-20 sm:px-6 sm:py-20 lg:px-10 lg:py-24 2xl:px-16"
       >
         <div className="pointer-events-none absolute inset-x-0 top-1/2 h-px bg-gradient-to-r from-transparent via-cyan-300/30 to-transparent" />
-        <div className={`mx-auto max-w-[1680px] border ${theme.panel}`}>
+        <div className={`mx-auto w-full max-w-[1680px] border ${theme.panel}`}>
           <div className={`grid gap-8 border-b p-6 ${theme.border} lg:grid-cols-[0.82fr_1.18fr] lg:p-10`}>
             <div>
               <p className={`inline-flex items-center gap-2 border px-3 py-2 text-sm font-black uppercase ${theme.chip}`}>
                 <RadioTower className="h-4 w-4" />
-                Chapter 06 / Witnessed By
+                Chapter 05 / Witnessed By
               </p>
               <h2 className="mt-5 text-4xl font-black sm:text-6xl">
                 共同见证
@@ -939,13 +811,16 @@ const HackathonShowcase = () => {
         </div>
       </MotionSection>
 
-      <section className="relative overflow-hidden px-4 pb-24 pt-10 sm:px-6 lg:px-10 lg:pb-32 2xl:px-16">
+      <section
+        id="next"
+        className="relative flex min-h-[100svh] snap-start snap-always items-center overflow-hidden px-4 pb-28 pt-24 sm:px-6 sm:py-24 lg:px-10 2xl:px-16"
+      >
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-cyan-300/10 to-transparent" />
-        <div className="mx-auto grid max-w-[1680px] gap-8 border-t border-cyan-300/24 pt-10 lg:grid-cols-[1fr_auto] lg:items-center">
+        <div className="mx-auto grid w-full max-w-[1680px] gap-8 border-t border-cyan-300/24 pt-10 lg:grid-cols-[1fr_auto] lg:items-center">
           <div>
             <p className={`inline-flex items-center gap-2 border px-3 py-2 text-sm font-black uppercase ${theme.chip}`}>
               <Zap className="h-4 w-4" />
-              Keep Building
+              Chapter 06 / Keep Building
             </p>
             <h2 className="mt-4 max-w-4xl text-4xl font-black sm:text-6xl">
               把一次比赛，沉淀成下一轮 AI 共创的入口
