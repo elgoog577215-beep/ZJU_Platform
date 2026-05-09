@@ -1,16 +1,40 @@
 const { callChatCompletionWithFailover } = require('./aiModelConfigService');
 
 const DEFAULT_JSON_TIMEOUT_MS = 45000;
+const MAX_RAW_RESPONSE_LOG_LENGTH = 6000;
 
 const toText = (value, maxLength = 4000) => {
   if (value === null || value === undefined) return '';
   return String(value).replace(/\s+/g, ' ').trim().slice(0, maxLength);
 };
 
+const contentToText = (value) => {
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'string') return value;
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => {
+        if (typeof item === 'string') return item;
+        return item?.text || item?.content || item?.value || '';
+      })
+      .join('');
+  }
+  if (typeof value === 'object') {
+    return value.text || value.content || value.value || '';
+  }
+  return String(value);
+};
+
 const getChatMessageText = (data) => {
   const choice = data?.choices?.[0] || {};
   const message = choice.message || choice.delta || {};
-  return message.content || message.reasoning_content || choice.text || '';
+  return [
+    contentToText(message.content),
+    contentToText(message.reasoning_content),
+    contentToText(choice.text),
+    contentToText(data?.output_text),
+    contentToText(data?.content),
+  ].find((item) => item && item.trim()) || '';
 };
 
 const extractJsonObject = (content) => {
@@ -56,6 +80,33 @@ const parseJsonFromText = (content) => {
     throw nextError;
   }
 };
+
+const attachModelDebug = (error, result) => {
+  error.attempts = result?.attempts || error.attempts || [];
+  error.config = result?.config || error.config || null;
+  if (!error.rawContent) {
+    error.rawContent = toText(JSON.stringify(result?.data || {}), MAX_RAW_RESPONSE_LOG_LENGTH);
+  }
+  return error;
+};
+
+const parseJsonFromModelResult = (result) => {
+  const rawContent = getChatMessageText(result.data);
+  try {
+    const { parsed, jsonText } = parseJsonFromText(rawContent);
+    return {
+      parsed,
+      jsonText,
+      rawContent
+    };
+  } catch (error) {
+    throw attachModelDebug(error, result);
+  }
+};
+
+const mergeAttemptLists = (...lists) => lists
+  .flat()
+  .filter(Boolean);
 
 const normalizeRunnerOutput = (output) => {
   if (output && typeof output === 'object' && !Array.isArray(output) && output.parsed !== undefined) {
@@ -135,13 +186,129 @@ const callJson = async (db, {
     { timeout }
   );
 
-  const rawContent = getChatMessageText(result.data);
-  const { parsed, jsonText } = parseJsonFromText(rawContent);
+  let normalized;
+  try {
+    normalized = parseJsonFromModelResult(result);
+  } catch (error) {
+    if (!['AI_RUNTIME_EMPTY_CONTENT', 'AI_RUNTIME_INVALID_JSON'].includes(error.code)) {
+      throw error;
+    }
+
+    if (error.code === 'AI_RUNTIME_EMPTY_CONTENT') {
+      try {
+        const streamResult = await callChatCompletionWithFailover(
+          db,
+          {
+            messages,
+            temperature,
+            max_tokens: maxTokens
+          },
+          {
+            timeout: Math.min(timeout, 30000),
+            stream: true
+          }
+        );
+        normalized = parseJsonFromModelResult(streamResult);
+        result.attempts = mergeAttemptLists(
+          result.attempts,
+          {
+            id: result.config?.id,
+            name: result.config?.name,
+            status: 'stream_retry',
+            message: error.code
+          },
+          streamResult.attempts
+        );
+        result.config = streamResult.config || result.config;
+      } catch (streamError) {
+        error.attempts = mergeAttemptLists(
+          error.attempts,
+          {
+            id: result.config?.id,
+            name: result.config?.name,
+            status: 'stream_retry_failed',
+            message: streamError.code || streamError.message
+          },
+          streamError.attempts
+        );
+      }
+    }
+
+    if (normalized) {
+      return {
+        parsed: normalized.parsed,
+        rawContent: normalized.rawContent,
+        jsonText: normalized.jsonText,
+        config: result.config,
+        attempts: result.attempts || [],
+        modelStatus: {
+          used: true,
+          task,
+          provider: result.config?.name || result.config?.provider || null,
+          model: result.config?.model || null,
+          fallbackAttempts: result.attempts || []
+        }
+      };
+    }
+
+    const repair = await callChatCompletionWithFailover(
+      db,
+      {
+        messages: [
+          {
+            role: 'system',
+            content: 'Return one valid JSON object only. No markdown, no explanations.'
+          },
+          {
+            role: 'user',
+            content: JSON.stringify({
+              task,
+              instruction: 'Regenerate the requested result as strict JSON only.',
+              original_messages: messages.map((message) => ({
+                role: message.role,
+                content: toText(message.content, 1800)
+              }))
+            }, null, 2)
+          }
+        ],
+        temperature: 0,
+        max_tokens: Math.min(Math.max(maxTokens, 400), 1200)
+      },
+      { timeout: Math.min(timeout, 30000) }
+    );
+
+    try {
+      normalized = parseJsonFromModelResult(repair);
+      result.attempts = mergeAttemptLists(
+        result.attempts,
+        {
+          id: result.config?.id,
+          name: result.config?.name,
+          status: 'json_repair',
+          message: error.code
+        },
+        repair.attempts
+      );
+      result.config = repair.config || result.config;
+    } catch (repairError) {
+      repairError.attempts = mergeAttemptLists(
+        error.attempts,
+        {
+          id: result.config?.id,
+          name: result.config?.name,
+          status: 'json_repair_failed',
+          message: repairError.code || repairError.message
+        },
+        repairError.attempts
+      );
+      throw repairError;
+    }
+  }
 
   return {
-    parsed,
-    rawContent,
-    jsonText,
+    parsed: normalized.parsed,
+    rawContent: normalized.rawContent,
+    jsonText: normalized.jsonText,
     config: result.config,
     attempts: result.attempts || [],
     modelStatus: {

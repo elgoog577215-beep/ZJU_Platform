@@ -273,13 +273,115 @@ const callChatCompletion = async (config, payload, timeout = CALL_TIMEOUT_MS) =>
   return response.data;
 };
 
+const streamContentToText = (value) => {
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'string') return value;
+  if (Array.isArray(value)) {
+    return value.map(streamContentToText).join('');
+  }
+  if (typeof value === 'object') {
+    return streamContentToText(value.text || value.content || value.value || '');
+  }
+  return String(value);
+};
+
+const parseStreamEvent = (line) => {
+  const trimmed = line.trim();
+  if (!trimmed.startsWith('data:')) return null;
+  const payload = trimmed.slice(5).trim();
+  if (!payload || payload === '[DONE]') return null;
+
+  try {
+    return JSON.parse(payload);
+  } catch {
+    return null;
+  }
+};
+
+const callChatCompletionStream = async (config, payload, timeout = CALL_TIMEOUT_MS) => {
+  const apiKey = decryptApiKey(config.encrypted_api_key);
+  if (!apiKey) {
+    const error = new Error('API key cannot be decrypted.');
+    error.code = 'AI_MODEL_KEY_DECRYPT_FAILED';
+    throw error;
+  }
+
+  const response = await axios.post(
+    `${normalizeBaseUrl(config.base_url)}/chat/completions`,
+    {
+      model: config.model || DEFAULT_MODEL,
+      temperature: 0.2,
+      max_tokens: 900,
+      ...payload,
+      stream: true
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      responseType: 'stream',
+      timeout
+    }
+  );
+
+  return new Promise((resolve, reject) => {
+    let buffer = '';
+    let content = '';
+    let reasoningContent = '';
+    let lastChunk = null;
+    let usage = null;
+
+    response.data.on('data', (chunk) => {
+      buffer += chunk.toString('utf8');
+      const lines = buffer.split(/\r?\n/);
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        const event = parseStreamEvent(line);
+        if (!event) continue;
+
+        lastChunk = event;
+        if (event.usage) usage = event.usage;
+        const choice = event.choices?.[0] || {};
+        const delta = choice.delta || choice.message || {};
+        content += streamContentToText(delta.content || choice.text || '');
+        reasoningContent += streamContentToText(delta.reasoning_content || '');
+      }
+    });
+
+    response.data.on('end', () => {
+      resolve({
+        id: lastChunk?.id || '',
+        object: lastChunk?.object || 'chat.completion',
+        created: lastChunk?.created || 0,
+        model: lastChunk?.model || config.model || DEFAULT_MODEL,
+        choices: [
+          {
+            message: {
+              role: 'assistant',
+              content,
+              reasoning_content: reasoningContent
+            }
+          }
+        ],
+        usage: usage || null
+      });
+    });
+
+    response.data.on('error', reject);
+  });
+};
+
 const callChatCompletionWithFailover = async (db, payload, options = {}) => {
   const configs = await getEnabledConfigs(db, true);
   const attempts = [];
 
   for (const config of configs) {
     try {
-      const data = await callChatCompletion(config, payload, options.timeout || CALL_TIMEOUT_MS);
+      const data = options.stream === true
+        ? await callChatCompletionStream(config, payload, options.timeout || CALL_TIMEOUT_MS)
+        : await callChatCompletion(config, payload, options.timeout || CALL_TIMEOUT_MS);
       await updateStatus(db, config, 'ok', '');
       return {
         data,

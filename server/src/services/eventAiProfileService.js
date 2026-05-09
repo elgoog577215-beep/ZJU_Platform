@@ -286,13 +286,30 @@ const ensureEventProfile = async (db, event, options = {}) => {
   if (
     existing
     && existing.source_hash === sourceHash
-    && existing.status === 'ready'
+    && (existing.status === 'ready' || (options.useModel === false && existing.status === 'fallback'))
     && !options.force
   ) {
     return {
       profile: serializeProfileRow(existing),
       created: false,
       modelStatus: { used: false, task: 'event_profile_cache' }
+    };
+  }
+
+  if (options.useModel === false) {
+    const fallback = buildRuleProfile(event);
+    const saved = await upsertProfile(db, event, fallback, {
+      status: 'fallback',
+      lastError: 'Skipped synchronous profile model call for request latency.',
+    });
+    return {
+      profile: serializeProfileRow(saved),
+      created: true,
+      modelStatus: {
+        used: false,
+        task: 'event_profile_fast_fallback',
+        message: 'Used a fast fallback profile for this request.'
+      }
     };
   }
 

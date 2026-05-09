@@ -39,9 +39,24 @@ const CAMPUS_ALIASES = EVENT_CAMPUS_OPTIONS;
 const AUDIENCE_ALIASES = EVENT_AUDIENCE_ALIASES;
 const AI_RECALL_LIMIT = 24;
 const BENEFIT_ALIASES = {
-  score: ['综测', '加分', '综合评价', '第二课堂', '学分'],
-  volunteer_time: ['志愿', '时长', '工时', '小时', '公益']
+  score: ['综测', '加分', '综合评价', '第二课堂', '学分', '素质分', '成长记实'],
+  volunteer_time: ['志愿', '时长', '工时', '小时', '公益', '志愿时长']
 };
+const AI_TOPIC_ALIASES = [
+  'ai',
+  'aigc',
+  'llm',
+  'glm',
+  'chatgpt',
+  '人工智能',
+  '大模型',
+  '生成式人工智能',
+  '智能体',
+  '机器学习',
+  '深度学习',
+  'prompt',
+  '提示词'
+];
 
 const createAssistantError = (code, message, statusCode = 500) => {
   const error = new Error(message);
@@ -91,6 +106,20 @@ const includesAny = (haystack, needles) => needles.some((needle) => haystack.inc
 const normalizeSearchText = (...values) => values
   .map((value) => sanitizeText(value, 1000).toLowerCase())
   .join(' ');
+
+const includesPhrase = (haystack, phrase) => {
+  const normalizedPhrase = sanitizeText(String(phrase || ''), 80).toLowerCase();
+  if (!normalizedPhrase) return false;
+
+  if (/^[a-z0-9+#.-]+$/i.test(normalizedPhrase)) {
+    const escaped = normalizedPhrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`(^|[^a-z0-9+#.-])${escaped}([^a-z0-9+#.-]|$)`, 'i').test(haystack);
+  }
+
+  return haystack.includes(normalizedPhrase);
+};
+
+const includesAnyPhrase = (haystack, needles) => needles.some((needle) => includesPhrase(haystack, needle));
 
 const isNumericRatingText = (value) => {
   const text = sanitizeText(value, 40);
@@ -245,6 +274,63 @@ const detectBenefits = (text) => {
     .map(([benefit]) => benefit);
 };
 
+const normalizeBenefitValue = (value) => {
+  const text = sanitizeText(value, 80);
+  const lowered = text.toLowerCase();
+  if (!lowered) return '';
+  if (lowered === 'score' || includesAnyPhrase(lowered, BENEFIT_ALIASES.score)) return 'score';
+  if (
+    lowered === 'volunteer_time'
+    || lowered === 'volunteer'
+    || includesAnyPhrase(lowered, BENEFIT_ALIASES.volunteer_time)
+  ) {
+    return 'volunteer_time';
+  }
+  return text;
+};
+
+const detectSemanticTopics = (text) => {
+  const lowered = normalizeSearchText(text);
+  const topics = [];
+
+  if (includesAnyPhrase(lowered, AI_TOPIC_ALIASES)) {
+    topics.push('AI', '人工智能');
+    if (includesAnyPhrase(lowered, ['大模型', 'llm', 'glm', 'chatgpt'])) {
+      topics.push('大模型');
+    }
+    if (includesAnyPhrase(lowered, ['智能体', 'agent'])) {
+      topics.push('智能体');
+    }
+  }
+
+  if (includesAny(lowered, ['创业', '创新创业', '项目路演'])) topics.push('创新创业');
+  if (includesAny(lowered, ['科研', '论文', '实验室'])) topics.push('科研');
+  if (includesAny(lowered, ['就业', '实习', '招聘', '简历', 'offer'])) topics.push('就业实习');
+  if (includesAny(lowered, ['讲座', '分享', '沙龙', '报告'])) topics.push('讲座分享');
+
+  return unique(topics);
+};
+
+const cleanTopicTerms = (topics, { campuses = [], audiences = [] } = {}) => {
+  const blocked = new Set([
+    ...campuses,
+    ...audiences,
+    ...Object.values(BENEFIT_ALIASES).flat(),
+    '活动',
+    '推荐',
+    '帮我',
+    '想找',
+    '一个',
+    '一些',
+    '有没有'
+  ].map((item) => sanitizeText(item, 80).toLowerCase()).filter(Boolean));
+
+  return unique(topics)
+    .map((topic) => sanitizeText(topic, 80))
+    .filter(Boolean)
+    .filter((topic) => !blocked.has(topic.toLowerCase()));
+};
+
 const detectFormat = (text) => {
   const lowered = text.toLowerCase();
   if (includesAny(lowered, ['线上', '在线', '直播', 'online'])) return 'online';
@@ -271,15 +357,16 @@ const parseAssistantIntent = ({ query, clarificationAnswer }) => {
   const timePreference = detectTimePreference(combined);
   const campuses = CAMPUS_ALIASES.filter((item) => lowered.includes(item.toLowerCase()));
   const audiences = AUDIENCE_ALIASES.filter((item) => lowered.includes(item.toLowerCase()));
+  const semanticTopics = detectSemanticTopics(combined);
   const rawTokens = splitTokens(combined)
     .filter((token) => token.length >= 2 && token.length <= 20)
     .filter((token) => !['活动', '推荐', '帮我', '想找', '一个', '一些', '有没有'].includes(token));
   const topics = unique([
     ...categories.map((category) => CATEGORY_LABELS[category] || category),
-    ...campuses,
-    ...audiences,
+    ...semanticTopics,
     ...rawTokens.slice(0, 8)
-  ]).slice(0, 12);
+  ]);
+  const cleanedTopics = cleanTopicTerms(topics, { campuses, audiences }).slice(0, 12);
 
   const wantsMemory = /(记住|以后|下次|长期|偏好|多给我|少给我)/.test(combined);
 
@@ -293,7 +380,7 @@ const parseAssistantIntent = ({ query, clarificationAnswer }) => {
     timePreference,
     campuses,
     audiences,
-    topics,
+    topics: cleanedTopics,
     wantsMemory,
     shouldClarify: combined.length <= 14
       && categories.length === 0
@@ -468,7 +555,9 @@ const normalizeAiIntent = (rawIntent = {}, fallbackIntent) => {
   const categories = uniqueTextArray(rawIntent.categories || rawIntent.category)
     .map(normalizeEventCategory)
     .filter(Boolean);
-  const benefits = uniqueTextArray(rawIntent.benefits, 8);
+  const benefits = uniqueTextArray(rawIntent.benefits, 8)
+    .map(normalizeBenefitValue)
+    .filter(Boolean);
   const format = ['online', 'offline', 'hybrid'].includes(rawIntent.format)
     ? rawIntent.format
     : fallbackIntent.format;
@@ -478,10 +567,19 @@ const normalizeAiIntent = (rawIntent = {}, fallbackIntent) => {
     ai: true,
     querySummary: sanitizeText(rawIntent.query_summary || rawIntent.summary, 180),
     categories: categories.length ? unique(categories) : fallbackIntent.categories,
-    topics: unique([
+    topics: cleanTopicTerms([
       ...uniqueTextArray(rawIntent.topics, 12),
       ...fallbackIntent.topics,
-    ]).slice(0, 12),
+    ], {
+      campuses: [
+        ...uniqueTextArray(rawIntent.campuses, 8),
+        ...fallbackIntent.campuses,
+      ],
+      audiences: [
+        ...uniqueTextArray(rawIntent.audiences, 8),
+        ...fallbackIntent.audiences,
+      ]
+    }).slice(0, 12),
     benefits: benefits.length ? benefits : fallbackIntent.benefits,
     format,
     campuses: unique([
@@ -795,7 +893,7 @@ const scoreTextMatch = (eventText, values, score, signalBuilder) => {
   for (const value of values) {
     const normalized = sanitizeText(String(value), 80).toLowerCase();
     if (!normalized) continue;
-    if (eventText.includes(normalized)) {
+    if (includesPhrase(eventText, normalized)) {
       total += score;
       const signal = signalBuilder(value);
       if (signal) signals.push(signal);
@@ -1003,6 +1101,82 @@ const scoreAiProfileCandidate = (rankedItem, intent, aiProfile) => {
   };
 };
 
+const buildCandidateSemanticText = (item) => normalizeSearchText(
+  item.event?.title,
+  item.event?.description,
+  item.event?.content,
+  item.event?.location,
+  item.event?.target_audience,
+  item.event?.organizer,
+  item.event?.score,
+  item.event?.volunteer_time,
+  item.event?.category,
+  item.aiProfile?.summary,
+  item.aiProfile?.category,
+  ...(item.aiProfile?.topics || []),
+  ...(item.aiProfile?.benefits || []),
+  ...(item.aiProfile?.campuses || []),
+  ...(item.aiProfile?.audiences || []),
+  ...(item.aiProfile?.organizers || [])
+);
+
+const getIntentAiTopicStrength = (intent = {}) => {
+  const text = normalizeSearchText(intent.raw, intent.query, ...(intent.topics || []));
+  if (!includesAnyPhrase(text, AI_TOPIC_ALIASES)) return 0;
+  if (includesAnyPhrase(text, ['大模型', 'llm', 'glm', 'chatgpt', '智能体', 'agent'])) return 2;
+  return 1;
+};
+
+const getFallbackIntentBoost = (item, intent = {}) => {
+  const text = buildCandidateSemanticText(item);
+  let boost = 0;
+  const signals = [];
+
+  if (getIntentAiTopicStrength(intent) > 0 && includesAnyPhrase(text, AI_TOPIC_ALIASES)) {
+    boost += 64;
+    signals.push('备用排序：AI 主题强匹配');
+  }
+
+  const topicMatch = scoreTextMatch(text, intent.topics || [], 12, (value) => `备用排序：主题匹配「${value}」`);
+  boost += topicMatch.total;
+  signals.push(...topicMatch.signals.slice(0, 3));
+
+  const campusMatch = scoreTextMatch(text, intent.campuses || [], 14, (value) => `备用排序：地点匹配 ${value}`);
+  boost += campusMatch.total;
+  signals.push(...campusMatch.signals.slice(0, 2));
+
+  const benefitTerms = intent.benefits || [];
+  if (benefitTerms.includes('score')) {
+    const comprehensiveSignal = getComprehensiveEvaluationSignal(item.event);
+    if (comprehensiveSignal || includesAnyPhrase(text, BENEFIT_ALIASES.score)) {
+      boost += 24;
+      signals.push('备用排序：综测/加分信息匹配');
+    }
+  }
+  if (benefitTerms.includes('volunteer_time') && sanitizeText(item.event?.volunteer_time, 80)) {
+    boost += 24;
+    signals.push(`备用排序：含志愿时长 ${sanitizeText(item.event.volunteer_time, 36)}`);
+  }
+
+  if ((intent.categories || []).includes(item.category || inferEventCategory(item.event))) {
+    boost += 20;
+    signals.push('备用排序：活动类型匹配');
+  }
+
+  if (intent.format === 'online' && includesAny(text, ['线上', '在线', '直播', '腾讯会议'])) {
+    boost += 12;
+    signals.push('备用排序：符合线上偏好');
+  } else if (intent.format === 'offline' && !includesAny(text, ['线上', '在线', '直播'])) {
+    boost += 8;
+    signals.push('备用排序：更偏线下参与');
+  }
+
+  return {
+    boost,
+    signals
+  };
+};
+
 const buildAiCandidatePool = async ({
   db,
   grouped,
@@ -1011,7 +1185,8 @@ const buildAiCandidatePool = async ({
   allowScopeExpansion,
   allowHistoricalFallback,
   now,
-  modelRunner
+  modelRunner,
+  useProfileModel = true
 }) => {
   const futureEvents = [...grouped.ongoing, ...grouped.upcoming];
   let scopedEvents = futureEvents;
@@ -1052,6 +1227,7 @@ const buildAiCandidatePool = async ({
     {
       limit: AI_RECALL_LIMIT,
       modelRunner,
+      useModel: useProfileModel,
     }
   );
 
@@ -1536,7 +1712,7 @@ const buildAiRecommendationResponse = ({
         ...item.matchedSignals,
         ...item.candidate.signals
       ]).slice(0, 6),
-      score: Math.round(item.candidate.aiScore ?? item.candidate.score),
+      score: Math.round(item.score ?? item.candidate.aiScore ?? item.candidate.score),
       isHistorical: item.candidate.scope === 'past',
       aiProfile: item.candidate.aiProfile ? {
         summary: item.candidate.aiProfile.summary,
@@ -1546,6 +1722,98 @@ const buildAiRecommendationResponse = ({
       } : null,
       event: serializeEventForClient(item.candidate.event)
     }))
+  };
+};
+
+const buildFallbackRerank = (candidates, intent, summary) => {
+  const ranked = candidates
+    .map((item) => {
+      const fallback = getFallbackIntentBoost(item, intent);
+      return {
+        ...item,
+        aiScore: (item.aiScore ?? item.score ?? 0) + fallback.boost,
+        signals: unique([
+          ...fallback.signals,
+          ...(item.signals || [])
+        ]).slice(0, 8)
+      };
+    })
+    .sort((left, right) => right.aiScore - left.aiScore || compareByAscendingDate(left.event, right.event));
+
+  return {
+    summary,
+    modelStatus: {
+      used: false,
+      fallbackUsed: true,
+      task: 'event_recommendation_fallback',
+    },
+    recommendations: ranked.slice(0, MAX_RECOMMENDATIONS).map((item, index) => ({
+      id: item.event.id,
+      rank: index + 1,
+      score: Math.round(item.aiScore ?? item.score),
+      confidence: Math.max(0.45, Math.min(0.78, ((item.aiScore ?? item.score) / 120) + 0.38)),
+      reason: buildReason(item),
+      matchedSignals: item.signals || []
+    }))
+  };
+};
+
+const buildFallbackRecommendationResponse = ({
+  candidates,
+  intent,
+  profile,
+  scope,
+  canExpandScope,
+  usedHistoricalFallback,
+  remembered,
+  coverage,
+  profileStats,
+  modelStatuses,
+  failedTask,
+  failureMessage
+}) => {
+  const rerank = buildFallbackRerank(
+    candidates,
+    intent,
+    usedHistoricalFallback
+      ? '大模型本轮没有完成排序，我先用活动画像和匹配信号给出历史活动线索。'
+      : '大模型本轮没有完成排序，我先用活动画像和匹配信号给出可参考活动。'
+  );
+  const response = buildAiRecommendationResponse({
+    rerank,
+    candidates,
+    intent,
+    profile,
+    scope,
+    canExpandScope,
+    usedHistoricalFallback,
+    remembered,
+    coverage,
+    profileStats,
+    modelStatuses
+  });
+
+  return {
+    ...response,
+    recommendationMode: usedHistoricalFallback ? 'historical_fallback_ai_attempted' : 'fallback_ai_attempted',
+    warnings: unique([
+      ...(response.warnings || []),
+      '本轮已尝试调用大模型，但模型输出不稳定；当前结果来自活动画像索引和匹配信号，建议作为候选参考。'
+    ]),
+    modelStatus: {
+      ...response.modelStatus,
+      used: false,
+      fallbackUsed: true,
+      failedTask,
+      message: failureMessage || 'AI model did not return a reliable JSON result.',
+      tasks: [
+        'event_recommendation_intent_attempted',
+        'event_profile_index',
+        'fallback_candidate_ranking'
+      ],
+      profileStats,
+      profileModelStatuses: modelStatuses || []
+    }
   };
 };
 
@@ -1764,6 +2032,8 @@ const runUnifiedEventAssistantTurn = async ({
   const grouped = await loadAllCandidates(db, now);
   const coverage = buildCoverageSummary(grouped);
   const futurePool = [...grouped.upcoming, ...grouped.ongoing].slice(0, MAX_CANDIDATES);
+  let intentModelStatus = null;
+  let intentFailure = null;
 
   let parsedIntent;
   try {
@@ -1776,6 +2046,7 @@ const runUnifiedEventAssistantTurn = async ({
       modelRunner
     });
   } catch (error) {
+    intentFailure = error;
     logInvalidModelOutput({
       error,
       scope: 'intent',
@@ -1786,25 +2057,20 @@ const runUnifiedEventAssistantTurn = async ({
     });
 
     const fallbackIntent = parseAssistantIntent({ query, clarificationAnswer });
-    return {
-      type: 'empty',
-      scope: futurePool.length === 0 ? 'upcoming' : 'mixed_future',
-      emptyReason: 'assistant_unreliable',
-      canExpandScope: false,
-      recommendationMode: 'ai_unavailable',
-      coverage,
-      understoodIntent: buildIntentSummary(fallbackIntent, profile),
-      remembered: false,
+    parsedIntent = {
+      intent: fallbackIntent,
       modelStatus: {
         used: false,
         task: 'event_recommendation_intent',
-        message: 'AI intent analysis failed; no rule-only recommendation was shown.',
+        message: error.message || 'AI intent analysis failed.',
         attempts: error.attempts || []
-      }
+      },
+      rawIntent: null
     };
   }
 
   const intent = parsedIntent.intent;
+  intentModelStatus = parsedIntent.modelStatus;
   const remembered = await maybeRememberPreference(db, userId, intent, rememberPreference);
 
   if (futurePool.length === 0 && !allowScopeExpansion && !allowHistoricalFallback) {
@@ -1817,7 +2083,7 @@ const runUnifiedEventAssistantTurn = async ({
       coverage,
       understoodIntent: buildIntentSummary(intent, profile),
       remembered,
-      modelStatus: parsedIntent.modelStatus
+      modelStatus: intentModelStatus
     };
   }
 
@@ -1835,7 +2101,7 @@ const runUnifiedEventAssistantTurn = async ({
       coverage,
       understoodIntent: buildIntentSummary(intent, profile),
       remembered,
-      modelStatus: parsedIntent.modelStatus
+      modelStatus: intentModelStatus
     };
   }
 
@@ -1847,8 +2113,29 @@ const runUnifiedEventAssistantTurn = async ({
     allowScopeExpansion,
     allowHistoricalFallback,
     now,
-    modelRunner
+    modelRunner,
+    useProfileModel: Boolean(modelRunner) && !intentFailure
   });
+
+  if (intentFailure && pool.candidates.length > 0) {
+    return buildFallbackRecommendationResponse({
+      candidates: pool.candidates,
+      intent,
+      profile,
+      scope: pool.scope,
+      canExpandScope: pool.canExpandScope,
+      usedHistoricalFallback: pool.usedHistoricalFallback,
+      remembered,
+      coverage,
+      profileStats: pool.profileStats,
+      modelStatuses: [
+        intentModelStatus,
+        ...pool.modelStatuses
+      ],
+      failedTask: 'event_recommendation_intent',
+      failureMessage: intentFailure.message
+    });
+  }
 
   if (pool.candidates.length === 0) {
     return {
@@ -1861,7 +2148,7 @@ const runUnifiedEventAssistantTurn = async ({
       understoodIntent: buildIntentSummary(intent, profile),
       remembered,
       modelStatus: {
-        ...parsedIntent.modelStatus,
+        ...intentModelStatus,
         used: true,
         tasks: ['event_recommendation_intent'],
         profileStats: pool.profileStats,
@@ -1889,24 +2176,23 @@ const runUnifiedEventAssistantTurn = async ({
       parsedResult: null
     });
 
-    return {
-      type: 'empty',
+    return buildFallbackRecommendationResponse({
+      candidates: pool.candidates,
+      intent,
+      profile,
       scope: pool.scope,
-      emptyReason: 'assistant_unreliable',
       canExpandScope: pool.canExpandScope,
-      recommendationMode: 'ai_unavailable',
-      coverage,
-      understoodIntent: buildIntentSummary(intent, profile),
+      usedHistoricalFallback: pool.usedHistoricalFallback,
       remembered,
-      modelStatus: {
-        used: false,
-        task: 'event_recommendation_rerank',
-        message: 'AI rerank failed; no rule-only recommendation was shown.',
-        attempts: error.attempts || [],
-        profileStats: pool.profileStats,
-        profileModelStatuses: pool.modelStatuses
-      }
-    };
+      coverage,
+      profileStats: pool.profileStats,
+      modelStatuses: [
+        intentModelStatus,
+        ...pool.modelStatuses
+      ],
+      failedTask: 'event_recommendation_rerank',
+      failureMessage: error.message
+    });
   }
 
   return buildAiRecommendationResponse({
@@ -1921,7 +2207,7 @@ const runUnifiedEventAssistantTurn = async ({
     coverage,
     profileStats: pool.profileStats,
     modelStatuses: [
-      parsedIntent.modelStatus,
+      intentModelStatus,
       ...pool.modelStatuses
     ]
   });

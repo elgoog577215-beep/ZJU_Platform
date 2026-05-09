@@ -289,7 +289,6 @@ const main = async () => {
       result.modelStatus.tasks?.includes('event_recommendation_rerank'),
       'Expected rerank task in model status.'
     );
-    assert(result.modelStatus.profileStats.generated >= 1, 'Expected AI profiles to be generated.');
     assert(
       result.recommendations[0]?.event?.title === 'AI 创新应用工作坊',
       'Expected model rerank to place the AI workshop first.'
@@ -298,9 +297,61 @@ const main = async () => {
       result.recommendations[0]?.confidence >= 0.9,
       'Expected model confidence to be carried to the client response.'
     );
+    assert(
+      result.modelStatus.profileStats.generated >= 1,
+      'Injected model runner should still exercise profile generation in tests.'
+    );
 
     const storedProfiles = await db.get('SELECT COUNT(*) AS count FROM event_ai_profiles');
     assert(Number(storedProfiles.count) >= 1, 'Expected event AI profiles to be stored.');
+
+    const fallbackDb = await openMemoryDb();
+    try {
+      await setupSchema(fallbackDb);
+      await seedEvents(fallbackDb);
+      const fallback = await runEventAssistantTurn({
+        db: fallbackDb,
+        query: '我想在紫金港参加 AI 相关活动，最好有综测',
+        allowHistoricalFallback: false,
+        modelRunner: async ({ task }) => {
+          if (task === 'event_recommendation_intent') {
+            const error = new Error('simulated empty model output');
+            error.code = 'AI_RUNTIME_EMPTY_CONTENT';
+            throw error;
+          }
+          if (task === 'event_profile') {
+            return {
+              summary: '活动画像备用测试',
+              category: 'workshop',
+              topics: ['AI'],
+              campuses: ['紫金港'],
+              organizers: [],
+              audiences: ['全校学生'],
+              benefits: ['score'],
+              confidence: 0.7,
+              rationale: 'test'
+            };
+          }
+          throw new Error(`Unexpected fallback task: ${task}`);
+        },
+        now: new Date()
+      });
+
+      assert(fallback.type === 'recommend', 'Expected fallback recommendation when intent model fails.');
+      assert(fallback.modelStatus?.fallbackUsed === true, 'Expected fallback status to be explicit.');
+      assert(fallback.modelStatus?.used === false, 'Fallback recommendation must not pretend model rerank succeeded.');
+      assert(fallback.recommendations.length >= 1, 'Expected fallback recommendations to be visible.');
+      assert(
+        fallback.recommendations[0]?.event?.title === 'AI 创新应用工作坊',
+        'Expected fallback semantic ranking to still put the AI workshop first.'
+      );
+      assert(
+        fallback.modelStatus.profileStats.fallback >= 1,
+        'Expected fallback path to use lightweight local profile indexing.'
+      );
+    } finally {
+      await fallbackDb.close();
+    }
 
     console.log('Unified AI runtime check passed.');
   } finally {
