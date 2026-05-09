@@ -322,10 +322,25 @@ test.describe("admin console refinement", () => {
     ).toBeVisible();
     await expect(page.getByText("今日待办")).toBeVisible();
     await expect(page.getByText("当前模块")).toBeVisible();
+    await expect(page.getByText("最近访问", { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "运营指挥台" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /待处理/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /资产总量/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /近 7 日访问/ })).toBeVisible();
     await expect(page.getByRole("heading", { name: "内容资产" })).toBeVisible();
     const quickJump = page.getByRole("combobox", {
       name: "快速跳转到管理模块",
     });
+    await expect(quickJump).toHaveValue("overview");
+
+    const navSearch = page.getByRole("searchbox", { name: "搜索管理模块" });
+    await navSearch.fill("标签");
+    await page.getByRole("button", { name: /打开.*标签.*模块/ }).click();
+    await expect(page).toHaveURL(/tab=tags/);
+    await expect(page.getByRole("heading", { name: "标签管理" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "最近访问 总览" })).toBeVisible();
+    await page.getByRole("button", { name: "最近访问 总览" }).click();
+    await expect(page).toHaveURL(/tab=overview/);
     await expect(quickJump).toHaveValue("overview");
 
     await quickJump.selectOption("photos");
@@ -475,7 +490,7 @@ test.describe("admin console refinement", () => {
       .poll(() => page.evaluate(() => document.body.style.overflow))
       .toBe("hidden");
 
-    await page.getByRole("button", { name: "黑客松", exact: true }).click();
+    await page.getByRole("button", { name: "打开黑客松模块" }).click();
     await expect(
       page.getByRole("heading", { name: "黑客松报名管理" }),
     ).toBeVisible();
@@ -491,7 +506,8 @@ test.describe("admin console refinement", () => {
       .toBe(true);
 
     await menuButton.click();
-    await page.getByRole("button", { name: /用户/ }).click();
+    await page.getByRole("searchbox", { name: "搜索管理模块" }).fill("用户");
+    await page.getByRole("button", { name: /打开.*用户.*模块/ }).click();
     await expect(page.getByRole("heading", { name: "用户管理" })).toBeVisible();
     await expect(page.getByText("123").first()).toBeVisible();
     await expect

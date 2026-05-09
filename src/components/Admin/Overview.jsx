@@ -224,6 +224,67 @@ const QuickAction = ({
   );
 };
 
+const CommandMetricCard = ({
+  label,
+  value,
+  helper,
+  icon: Icon,
+  tone,
+  isDayMode,
+  onClick,
+}) => {
+  const meta = getTone(tone);
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`group flex min-h-[126px] flex-col justify-between rounded-2xl border p-4 text-left transition-colors ${
+        isDayMode
+          ? "border-slate-200/70 bg-white/[0.84] hover:border-slate-300 hover:bg-white"
+          : "border-white/10 bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.07]"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+            isDayMode ? meta.icon.day : meta.icon.dark
+          }`}
+        >
+          <Icon size={18} />
+        </div>
+        <ArrowRight
+          size={16}
+          className={`mt-2 transition-transform group-hover:translate-x-0.5 ${
+            isDayMode ? "text-slate-300" : "text-gray-600"
+          }`}
+        />
+      </div>
+      <div>
+        <div
+          className={`mt-5 text-3xl font-bold tabular-nums ${
+            isDayMode ? "text-slate-950" : "text-white"
+          }`}
+        >
+          {value}
+        </div>
+        <div
+          className={`mt-1 text-sm font-semibold ${
+            isDayMode ? "text-slate-700" : "text-gray-200"
+          }`}
+        >
+          {label}
+        </div>
+        <div
+          className={`mt-1 text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
+        >
+          {helper}
+        </div>
+      </div>
+    </button>
+  );
+};
+
 const SystemRow = ({ label, value, isDayMode, icon: Icon }) => (
   <div
     className={`flex items-center justify-between gap-3 border-b py-3 last:border-b-0 ${
@@ -349,6 +410,14 @@ const Overview = ({ onChangeTab }) => {
       ),
     [stats.breakdown],
   );
+  const assetTotal = useMemo(
+    () =>
+      Object.values(stats.counts || {}).reduce(
+        (sum, value) => sum + Number(value || 0),
+        0,
+      ),
+    [stats.counts],
+  );
   const hotEvents = stats.eventAnalytics?.hottestEvents || [];
   const topEvent = hotEvents[0];
 
@@ -376,6 +445,50 @@ const Overview = ({ onChangeTab }) => {
         </>
       }
     >
+      <AdminPanel
+        title="运营指挥台"
+        description="先看待办、资产、活动和近 7 日走势，再进入具体模块。"
+      >
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <CommandMetricCard
+            label="待处理"
+            value={formatNumber(pendingTotal)}
+            helper="审核队列"
+            icon={Inbox}
+            tone="amber"
+            isDayMode={isDayMode}
+            onClick={() => onChangeTab("pending")}
+          />
+          <CommandMetricCard
+            label="资产总量"
+            value={formatNumber(assetTotal)}
+            helper="内容与活动"
+            icon={LayoutGrid}
+            tone="indigo"
+            isDayMode={isDayMode}
+            onClick={() => onChangeTab("articles")}
+          />
+          <CommandMetricCard
+            label="待开始活动"
+            value={formatNumber(stats.eventAnalytics?.upcomingCount)}
+            helper="活动排期"
+            icon={Calendar}
+            tone="emerald"
+            isDayMode={isDayMode}
+            onClick={() => onChangeTab("events")}
+          />
+          <CommandMetricCard
+            label="近 7 日访问"
+            value={formatNumber(stats.eventAnalytics?.views7d)}
+            helper="活动热度"
+            icon={TrendingUp}
+            tone="sky"
+            isDayMode={isDayMode}
+            onClick={() => onChangeTab("events")}
+          />
+        </div>
+      </AdminPanel>
+
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.08fr)_minmax(360px,0.92fr)]">
         <AdminPanel title="今日待办" description="管理员进入后台后，先看这里。">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">

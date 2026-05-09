@@ -26,6 +26,8 @@ import {
   Tag,
   X,
   Menu,
+  Search,
+  History,
   MessageSquare,
   Mail,
   ShieldCheck,
@@ -49,6 +51,8 @@ import AiAssistantManager from "./AiAssistantManager";
 import { AdminButton } from "./AdminUI";
 
 const STORAGE_KEY = "admin.activeTab";
+const RECENT_STORAGE_KEY = "admin.recentTabs";
+const MAX_RECENT_TABS = 4;
 const LEGACY_TAB_ALIASES = {
   "ai-models": "intelligence",
 };
@@ -85,6 +89,28 @@ const getInitialTabId = () => {
   return KNOWN_TAB_IDS.has(storedTab) ? storedTab : "overview";
 };
 
+const readRecentTabs = () => {
+  if (typeof window === "undefined") return [];
+  try {
+    const parsed = JSON.parse(sessionStorage.getItem(RECENT_STORAGE_KEY) || "[]");
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((tabId) => normalizeTabId(tabId))
+      .filter((tabId) => KNOWN_TAB_IDS.has(tabId));
+  } catch {
+    return [];
+  }
+};
+
+const persistRecentTabs = (tabIds) => {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(RECENT_STORAGE_KEY, JSON.stringify(tabIds));
+  } catch {
+    // Recent navigation is a convenience only; storage failures should not block admin work.
+  }
+};
+
 const AdminDashboard = () => {
   const { t } = useTranslation();
   const { uiMode } = useSettings();
@@ -92,6 +118,8 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState(getInitialTabId);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [navQuery, setNavQuery] = useState("");
+  const [recentTabIds, setRecentTabIds] = useState(readRecentTabs);
   const contentTopRef = useRef(null);
   const isDayMode = uiMode === "day";
 
@@ -127,6 +155,7 @@ const AdminDashboard = () => {
     sessionStorage.removeItem("token");
     localStorage.removeItem("token");
     sessionStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem(RECENT_STORAGE_KEY);
     window.location.href = "/";
   };
 
@@ -282,11 +311,41 @@ const AdminDashboard = () => {
     () => menuGroups.flatMap((group) => group.items),
     [menuGroups],
   );
+  const moduleById = useMemo(
+    () => new Map(flatMenuItems.map((item) => [item.id, item])),
+    [flatMenuItems],
+  );
+  const normalizedNavQuery = navQuery.trim().toLowerCase();
+  const filteredMenuGroups = useMemo(() => {
+    if (!normalizedNavQuery) return menuGroups;
+
+    return menuGroups
+      .map((group) => {
+        const groupMatches = group.title.toLowerCase().includes(normalizedNavQuery);
+        const items = group.items.filter(
+          (item) =>
+            groupMatches ||
+            item.label.toLowerCase().includes(normalizedNavQuery) ||
+            item.description.toLowerCase().includes(normalizedNavQuery),
+        );
+        return { ...group, items };
+      })
+      .filter((group) => group.items.length > 0);
+  }, [menuGroups, normalizedNavQuery]);
   const activeItem = flatMenuItems.find((item) => item.id === activeTab);
   const activeGroup = menuGroups.find((group) =>
     group.items.some((item) => item.id === activeTab),
   );
   const activeIndex = flatMenuItems.findIndex((item) => item.id === activeTab);
+  const recentItems = useMemo(
+    () =>
+      recentTabIds
+        .map((tabId) => moduleById.get(tabId))
+        .filter(Boolean)
+        .filter((item) => item.id !== activeTab)
+        .slice(0, 3),
+    [activeTab, moduleById, recentTabIds],
+  );
 
   const scrollToContentStart = useCallback((behavior = "smooth") => {
     if (typeof window === "undefined") return;
@@ -328,10 +387,23 @@ const AdminDashboard = () => {
     }
   }, [activeTab, scrollToContentStart, searchParams, setSearchParams]);
 
+  useEffect(() => {
+    setRecentTabIds((previous) => {
+      const knownIds = new Set(flatMenuItems.map((item) => item.id));
+      const next = [
+        activeTab,
+        ...previous.filter((tabId) => tabId !== activeTab && knownIds.has(tabId)),
+      ].slice(0, MAX_RECENT_TABS);
+      persistRecentTabs(next);
+      return next;
+    });
+  }, [activeTab, flatMenuItems]);
+
   const selectTab = useCallback(
     (tabId, options = {}) => {
       const nextTabId = normalizeTabId(tabId);
       if (!flatMenuItems.some((item) => item.id === nextTabId)) return;
+      setNavQuery("");
       setActiveTab(nextTabId);
       writeTabSearchParam(nextTabId, { replace: options.replace === true });
       setIsMobileMenuOpen(false);
@@ -460,6 +532,13 @@ const AdminDashboard = () => {
   const closeClass = isDayMode
     ? "rounded-lg bg-slate-100 p-2 text-slate-500 hover:text-slate-950"
     : "rounded-lg bg-white/5 p-2 text-gray-300 hover:text-white";
+  const searchIconClass = isDayMode ? "text-slate-400" : "text-gray-500";
+  const searchClearClass = isDayMode
+    ? "absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+    : "absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-white/10 hover:text-white";
+  const emptySearchClass = isDayMode
+    ? "rounded-xl border border-dashed border-slate-200/80 bg-white/70 p-4 text-sm text-slate-500"
+    : "rounded-xl border border-dashed border-white/10 bg-white/[0.03] p-4 text-sm text-gray-400";
   const activeItemClass = isDayMode
     ? "border-indigo-200/80 bg-indigo-50 text-slate-950"
     : "border-indigo-500/30 bg-indigo-600 text-white";
@@ -486,6 +565,12 @@ const AdminDashboard = () => {
   const quickJumpDividerClass = isDayMode
     ? "border-t border-slate-200/70"
     : "border-t border-white/10";
+  const recentChipClass = isDayMode
+    ? "inline-flex min-h-[34px] items-center gap-2 rounded-xl border border-slate-200/80 bg-white/75 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
+    : "inline-flex min-h-[34px] items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-gray-300 transition-colors hover:border-indigo-400/40 hover:bg-indigo-500/10 hover:text-indigo-200";
+  const recentEmptyClass = isDayMode
+    ? "text-xs text-slate-400"
+    : "text-xs text-gray-500";
   const backToTopClass = isDayMode
     ? "fixed bottom-[calc(env(safe-area-inset-bottom)+96px)] right-4 z-[80] inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-200/80 bg-white/[0.94] px-3 py-2 text-sm font-semibold text-slate-700 backdrop-blur transition-colors hover:text-indigo-600 md:bottom-6 md:right-6"
     : "fixed bottom-[calc(env(safe-area-inset-bottom)+96px)] right-4 z-[80] inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-white/10 bg-black/80 px-3 py-2 text-sm font-semibold text-white backdrop-blur transition-colors hover:text-indigo-200 md:bottom-6 md:right-6";
@@ -602,6 +687,32 @@ const AdminDashboard = () => {
                 </AdminButton>
               </div>
             </div>
+            <div className={`mt-3 pt-3 ${quickJumpDividerClass}`}>
+              <div
+                className={`flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] ${metaLabelClass}`}
+              >
+                <History size={14} />
+                最近访问
+              </div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {recentItems.length > 0 ? (
+                  recentItems.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      aria-label={`最近访问 ${item.label}`}
+                      className={recentChipClass}
+                      onClick={() => selectTab(item.id)}
+                    >
+                      <item.icon size={14} />
+                      <span>{item.label}</span>
+                    </button>
+                  ))
+                ) : (
+                  <span className={recentEmptyClass}>暂无最近访问</span>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -646,63 +757,106 @@ const AdminDashboard = () => {
                 </button>
               </div>
 
-              <div className="space-y-4">
-                {menuGroups.map((group) => (
-                  <div key={group.title}>
-                    <div
-                      className={`px-2 pb-2 text-xs font-bold uppercase tracking-[0.18em] ${metaLabelClass}`}
+              <div className="mb-4 px-1">
+                <div className="relative">
+                  <Search
+                    size={16}
+                    className={`pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 ${searchIconClass}`}
+                  />
+                  <input
+                    type="search"
+                    aria-label="搜索管理模块"
+                    value={navQuery}
+                    onChange={(event) => setNavQuery(event.target.value)}
+                    placeholder="搜索模块或任务"
+                    className="theme-admin-input min-h-[42px] w-full rounded-xl py-2 pl-9 pr-9 text-sm font-semibold"
+                  />
+                  {navQuery ? (
+                    <button
+                      type="button"
+                      aria-label="清空模块搜索"
+                      className={searchClearClass}
+                      onClick={() => setNavQuery("")}
                     >
-                      {group.title}
-                    </div>
-                    <div className="space-y-1">
-                      {group.items.map((tab) => {
-                        const isActive = activeTab === tab.id;
-                        return (
-                          <button
-                            type="button"
-                            key={tab.id}
-                            aria-current={isActive ? "page" : undefined}
-                            onClick={() => selectTab(tab.id)}
-                            className={`w-full rounded-xl border p-2.5 text-left transition-all ${
-                              isActive ? activeItemClass : inactiveItemClass
-                            }`}
-                          >
-                            <div className="flex items-center justify-between gap-3">
-                              <div className="flex items-center gap-3">
-                                <div
-                                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-                                    isActive
-                                      ? activeIconClass
-                                      : inactiveIconClass
-                                  }`}
-                                >
-                                  <tab.icon size={18} />
-                                </div>
-                                <div className="min-w-0">
-                                  <div className="font-semibold">
-                                    {tab.label}
+                      <X size={14} />
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {filteredMenuGroups.length > 0 ? (
+                  filteredMenuGroups.map((group) => (
+                    <div key={group.title}>
+                      <div
+                        className={`px-2 pb-2 text-xs font-bold uppercase tracking-[0.18em] ${metaLabelClass}`}
+                      >
+                        {group.title}
+                      </div>
+                      <div className="space-y-1">
+                        {group.items.map((tab) => {
+                          const isActive = activeTab === tab.id;
+                          return (
+                            <button
+                              type="button"
+                              key={tab.id}
+                              aria-label={`打开${tab.label}模块`}
+                              aria-current={isActive ? "page" : undefined}
+                              onClick={() => selectTab(tab.id)}
+                              className={`w-full rounded-xl border p-2.5 text-left transition-all ${
+                                isActive ? activeItemClass : inactiveItemClass
+                              }`}
+                            >
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="flex min-w-0 items-center gap-3">
+                                  <div
+                                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+                                      isActive
+                                        ? activeIconClass
+                                        : inactiveIconClass
+                                    }`}
+                                  >
+                                    <tab.icon size={18} />
                                   </div>
-                                  {isActive ? (
-                                    <div
-                                      className={`mt-1 line-clamp-2 text-xs ${
-                                        isActive
-                                          ? activeDescClass
-                                          : inactiveDescClass
-                                      }`}
-                                    >
-                                      {tab.description}
+                                  <div className="min-w-0">
+                                    <div className="truncate font-semibold">
+                                      {tab.label}
                                     </div>
-                                  ) : null}
+                                    {isActive ? (
+                                      <div
+                                        className={`mt-1 line-clamp-2 text-xs ${
+                                          isActive
+                                            ? activeDescClass
+                                            : inactiveDescClass
+                                        }`}
+                                      >
+                                        {tab.description}
+                                      </div>
+                                    ) : null}
+                                  </div>
                                 </div>
+                                {isActive ? <ChevronRight size={16} /> : null}
                               </div>
-                              {isActive ? <ChevronRight size={16} /> : null}
-                            </div>
-                          </button>
-                        );
-                      })}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
+                  ))
+                ) : (
+                  <div className={emptySearchClass}>
+                    <div className="font-semibold">没有匹配的模块</div>
+                    <button
+                      type="button"
+                      className={`mt-2 text-xs font-semibold ${
+                        isDayMode ? "text-indigo-600" : "text-indigo-300"
+                      }`}
+                      onClick={() => setNavQuery("")}
+                    >
+                      清空搜索
+                    </button>
                   </div>
-                ))}
+                )}
               </div>
 
               <div className={dividerClass} />
