@@ -1,6 +1,6 @@
 {
   "nav": {
-    "gallery": "ギャラリー",
+    "gallery": "写真ライブ",
     "music": "音楽",
     "videos": "動画",
     "articles": "記事",
@@ -85,8 +85,8 @@
     "all": "すべて"
   },
   "gallery": {
-    "title": "光と影のギャラリー",
-    "subtitle": "光と影の視覚的物語を探求する",
+    "title": "写真ライブ",
+    "subtitle": "イベント現場、キャンパス写真、厳選画像をチェック",
     "play": "プレイ",
     "view_3d": "3Dビュー",
     "categories": {

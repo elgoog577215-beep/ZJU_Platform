@@ -1,6 +1,6 @@
 {
   "nav": {
-    "gallery": "Galería",
+    "gallery": "Fotos en vivo",
     "about": "Sobre mí",
     "contact": "Contacto",
     "community": "Comunidad",
@@ -16,8 +16,8 @@
     "subtitle": "Congelando momentos en el tiempo, creando eternidad a través de la lente."
   },
   "gallery": {
-    "title": "Obras Seleccionadas",
-    "subtitle": "Una colección de momentos capturados en todo el mundo.",
+    "title": "Fotos en vivo",
+    "subtitle": "Explora fotos de eventos, campus e imágenes destacadas.",
     "play": "Jugar",
     "categories": {
       "All": "Todo",

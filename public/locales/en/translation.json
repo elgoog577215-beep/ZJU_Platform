@@ -108,7 +108,7 @@
   },
   "nav": {
     "home": "Home",
-    "gallery": "Gallery",
+    "gallery": "Live Photos",
     "music": "AI Podcast",
     "tags": "Tags",
     "videos": "Videos",
@@ -409,7 +409,7 @@
     },
     "categories": {
       "events_desc": "Discover the latest workshops, exhibitions, and meetups.",
-      "gallery_desc": "Browse selected photography capturing light and emotion.",
+      "gallery_desc": "Browse live event photos, campus photography, and curated image highlights.",
       "music_desc": "Immerse yourself in our curated audio journeys and soundscapes.",
       "videos_desc": "Experience boundary-pushing cinematic storytelling and visual art.",
       "articles_desc": "Join the AI community — share tech, get help, and team up."
@@ -500,8 +500,8 @@
     "or": "or"
   },
   "gallery": {
-    "title": "Selected Works",
-    "subtitle": "A collection of moments captured across the globe.",
+    "title": "Live Photos",
+    "subtitle": "Browse live event photos, campus photography, and curated image highlights.",
     "play": "Play",
     "view_3d": "3D Preview",
     "categories": {

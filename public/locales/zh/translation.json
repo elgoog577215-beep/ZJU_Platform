@@ -157,7 +157,7 @@
   },
   "nav": {
     "home": "首页",
-    "gallery": "画廊",
+    "gallery": "图片直播",
     "music": "播客",
     "tags": "标签",
     "videos": "视频",
@@ -454,7 +454,7 @@
     },
     "categories": {
       "events_desc": "加入我们的最新活动与研讨会",
-      "gallery_desc": "探索我们的数字艺术作品集",
+      "gallery_desc": "查看现场照片、校园摄影与精选图片内容",
       "music_desc": "聆听我们的原创音乐作品",
       "videos_desc": "观看我们的精选视频内容",
       "articles_desc": "加入 AI 社区，分享技术、获取帮助、组队协作"
@@ -602,8 +602,8 @@
     "all_target_audiences": "所有目标人群"
   },
   "gallery": {
-    "title": "光影画廊",
-    "subtitle": "探索光与影的视觉叙事",
+    "title": "图片直播",
+    "subtitle": "查看现场照片、校园摄影与精选图片内容",
     "play": "游玩",
     "view_3d": "3D 预览",
     "categories": {

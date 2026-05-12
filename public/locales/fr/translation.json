@@ -1,6 +1,6 @@
 {
   "nav": {
-    "gallery": "Galerie",
+    "gallery": "Photos en direct",
     "about": "À propos",
     "contact": "Contact",
     "community": "Communauté",
@@ -16,8 +16,8 @@
     "subtitle": "Figer des moments dans le temps, créer l'éternité à travers l'objectif."
   },
   "gallery": {
-    "title": "Œuvres Choisies",
-    "subtitle": "Une collection de moments capturés à travers le monde.",
+    "title": "Photos en direct",
+    "subtitle": "Parcourez les photos d'événements, du campus et les images sélectionnées.",
     "play": "Jouer",
     "categories": {
       "All": "Tout",

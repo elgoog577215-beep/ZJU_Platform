@@ -41,6 +41,7 @@ const PlatformStats = lazy(() => import('./components/PlatformStats'));
 const About = lazy(() => import('./components/About'));
 const HackathonRegistration = lazy(() => import('./components/HackathonRegistration'));
 const HackathonShowcase = lazy(() => import('./components/HackathonShowcase'));
+const HackathonWorks = lazy(() => import('./components/HackathonWorks'));
 const FutureLearningCenter = lazy(() => import('./components/FutureLearningCenter'));
 const AdminDashboard = lazy(() => import('./components/Admin/AdminDashboard'));
 const AdminAccessGate = lazy(() => import('./components/Admin/AdminAccessGate'));
@@ -106,6 +107,7 @@ const AppContent = () => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isAboutRoute = location.pathname === '/about';
+  const isImmersiveRoute = isAboutRoute || location.pathname === '/hackathon/showcase';
   const { cursorEnabled, settings } = useSettings();
   const hasDesktopPointer = useMediaQuery('(min-width: 768px) and (hover: hover) and (pointer: fine)');
   const shouldMountDeferredUi = useDeferredMount(700);
@@ -186,7 +188,7 @@ const AppContent = () => {
         </ErrorBoundary>
       )}
 
-      <main id="main-content" className={`flex-grow ${isAboutRoute ? 'pb-0' : 'pb-32 md:pb-0'}`} role="main">
+      <main id="main-content" className={`flex-grow ${isImmersiveRoute ? 'pb-0' : 'pb-32 md:pb-0'}`} role="main">
         <Suspense fallback={<LoadingScreen />}>
           <AnimatePresence mode="wait" initial={false}>
             <Routes location={location} key={location.pathname}>
@@ -203,6 +205,7 @@ const AppContent = () => {
               <Route path="/about" element={<PageTransition><About /></PageTransition>} />
               <Route path="/hackathon" element={<PageTransition><HackathonRegistration /></PageTransition>} />
               <Route path="/hackathon/showcase" element={<PageTransition><HackathonShowcase /></PageTransition>} />
+              <Route path="/hackathon/works" element={<PageTransition><HackathonWorks /></PageTransition>} />
               <Route path="/future-learning" element={<PageTransition><FutureLearningCenter /></PageTransition>} />
               <Route
                 path="/admin"
@@ -219,7 +222,7 @@ const AppContent = () => {
         </Suspense>
       </main>
 
-      {!isAdminRoute && !isAboutRoute && <Footer />}
+      {!isAdminRoute && !isImmersiveRoute && <Footer />}
 
       {!isAdminRoute && shouldMountDeferredUi && (
         <ErrorBoundary variant="inline" silent>
