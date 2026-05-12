@@ -232,15 +232,17 @@ const ARTICLE_BLOCK_META = {
   }
 };
 
-const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = null }) => {
+const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = null, allowBatch = false }) => {
   const { t } = useTranslation();
   useBackClose(isOpen, onClose);
   const { user, isAdmin } = useAuth();
   const { uiMode } = useSettings();
   const isDayMode = uiMode === 'day';
   const isEditing = !!initialData;
+  const isImageBatchEnabled = allowBatch && type === 'image' && !isEditing;
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(initialData?.url || initialData?.audio || initialData?.video || null);
+  const [batchImages, setBatchImages] = useState([]);
   
   // Secondary file (Cover image for Music/Video/Event)
   const [coverFile, setCoverFile] = useState(null);
@@ -552,6 +554,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             setSize(initialData.size || '');
             setPreview(initialData.url || initialData.audio || initialData.video || null);
             setCoverPreview(initialData.cover || initialData.thumbnail || initialData.image || null);
+            setBatchImages([]);
             setRelatedArticleIds(Array.isArray(initialData.related_article_ids) ? initialData.related_article_ids.join(',') : (initialData.related_article_ids || ''));
             setRelatedPostIds(Array.isArray(initialData.related_post_ids) ? initialData.related_post_ids.join(',') : (initialData.related_post_ids || ''));
             setRelatedNewsIds(Array.isArray(initialData.related_news_ids) ? initialData.related_news_ids.join(',') : (initialData.related_news_ids || ''));
@@ -577,6 +580,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             setSize('');
             setPreview(null);
             setCoverPreview(null);
+            setBatchImages([]);
             setRelatedArticleIds('');
             setRelatedPostIds('');
             setRelatedNewsIds('');
@@ -655,6 +659,31 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
     .replace(/\.[^.]+$/, '')
     .replace(/[_-]+/g, ' ')
     .trim();
+
+  const batchUploadCount = isImageBatchEnabled ? batchImages.length : 0;
+  const hasBatchImages = batchUploadCount > 0;
+
+  const createImageBatchEntry = async (sourceFile) => ({
+    id: `${sourceFile.name}-${sourceFile.size}-${sourceFile.lastModified}-${Math.random().toString(36).slice(2, 8)}`,
+    file: sourceFile,
+    preview: await readFileAsDataUrl(sourceFile),
+  });
+
+  const normalizeImageSelection = async (fileList) => {
+    const selectedFiles = Array.from(fileList || []).filter(Boolean);
+    if (!selectedFiles.length) return [];
+    const imageFiles = selectedFiles.filter((item) => item.type?.startsWith('image/'));
+    if (imageFiles.length !== selectedFiles.length) {
+      toast.error('仅支持上传图片文件');
+    }
+    return Promise.all(imageFiles.map(createImageBatchEntry));
+  };
+
+  const buildBatchImageTitle = (sourceFile, index, total) => {
+    const baseTitle = title.trim();
+    if (baseTitle) return total > 1 ? `${baseTitle} ${index + 1}` : baseTitle;
+    return deriveTitleFromFileName(sourceFile?.name) || `现场照片 ${index + 1}`;
+  };
 
   const applyImportedDocumentBlocks = (rawContent, sourceType, fileName) => {
     const parsedBlocks = sourceType === 'markdown'
@@ -907,21 +936,37 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
     });
   };
 
-  const handleFileChange = (e, isCover = false) => {
+  const handleFileChange = async (e, isCover = false) => {
     const selectedFile = e.target.files[0];
-    if (selectedFile) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (isCover) {
-            setCoverFile(selectedFile);
-            setCoverPreview(reader.result);
-        } else {
-            setFile(selectedFile);
-            setPreview(reader.result);
-        }
-      };
-      reader.readAsDataURL(selectedFile);
+    if (!selectedFile) return;
+
+    if (!isCover && isImageBatchEnabled) {
+      const selectedImages = await normalizeImageSelection(e.target.files);
+      if (!selectedImages.length) return;
+      if (selectedImages.length === 1) {
+        setBatchImages([]);
+        setFile(selectedImages[0].file);
+        setPreview(selectedImages[0].preview);
+        return;
+      }
+      setBatchImages(selectedImages);
+      setFile(selectedImages[0].file);
+      setPreview(selectedImages[0].preview);
+      return;
     }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (isCover) {
+          setCoverFile(selectedFile);
+          setCoverPreview(reader.result);
+      } else {
+          setFile(selectedFile);
+          setPreview(reader.result);
+          setBatchImages([]);
+      }
+    };
+    reader.readAsDataURL(selectedFile);
   };
 
   const [isUploading, setIsUploading] = useState(false);
@@ -930,13 +975,72 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title) {
+    if (!title && !hasBatchImages) {
         toast.error(t('upload.title_required'));
         return;
     }
-    if (!isEditing && type !== 'event' && type !== 'article' && !file) {
+    if (!isEditing && type !== 'event' && type !== 'article' && !file && !hasBatchImages) {
         toast.error(t('upload.file_required'));
         return;
+    }
+
+    if (hasBatchImages) {
+      setIsUploading(true);
+      try {
+        const batchItems = [];
+
+        for (const [index, image] of batchImages.entries()) {
+          const formData = new FormData();
+          formData.append('file', image.file);
+          const uploadRes = await uploadFile('/upload', formData);
+          const fileUrl = uploadRes.data.fileUrl;
+          batchItems.push({
+            ...initialData,
+            title: buildBatchImageTitle(image.file, index, batchImages.length),
+            tags,
+            tag: tags,
+            url: fileUrl,
+            audio: null,
+            artist: null,
+            video: null,
+            image: null,
+            date: new Date().toLocaleDateString(),
+            end_date: null,
+            time: null,
+            location: null,
+            link: null,
+            score: null,
+            target_audience: null,
+            organizer: null,
+            category: null,
+            status: isAdmin ? 'approved' : 'pending',
+            volunteer_time: null,
+            related_article_ids: '',
+            related_post_ids: '',
+            related_news_ids: '',
+            related_group_ids: '',
+            cover: fileUrl,
+            thumbnail: fileUrl,
+            excerpt: description,
+            content: content || `<p>${description}</p>`,
+            content_blocks: null,
+            description,
+            featured: featured ? 1 : 0,
+            size: size || null,
+            duration: 0,
+          });
+        }
+
+        await onUpload(batchItems, { intent: submitIntent, batch: true });
+        toast.success(isAdmin ? `已上传 ${batchItems.length} 张图片` : `已提交 ${batchItems.length} 张图片，等待审核`);
+        onClose();
+      } catch (err) {
+        console.error("Batch upload failed:", err);
+        toast.error(t('upload.upload_failed'));
+      } finally {
+        setIsUploading(false);
+      }
+      return;
     }
 
     if (type === 'event' && !eventEndDate) {
@@ -1121,10 +1225,25 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
     setDragTarget(target);
   };
 
-  const handleDrop = (e, isCover = false) => {
+  const handleDrop = async (e, isCover = false) => {
     e.preventDefault();
     e.stopPropagation();
     setDragTarget(null);
+
+    if (!isCover && isImageBatchEnabled) {
+      const selectedImages = await normalizeImageSelection(e.dataTransfer.files);
+      if (!selectedImages.length) return;
+      if (selectedImages.length === 1) {
+        setBatchImages([]);
+        setFile(selectedImages[0].file);
+        setPreview(selectedImages[0].preview);
+        return;
+      }
+      setBatchImages(selectedImages);
+      setFile(selectedImages[0].file);
+      setPreview(selectedImages[0].preview);
+      return;
+    }
     
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile) {
@@ -1186,7 +1305,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className={`fixed inset-0 z-[100] flex items-center justify-center ${overlayShellClass} backdrop-blur-md`}
+          className={`fixed inset-0 z-[150] flex items-center justify-center ${overlayShellClass} backdrop-blur-md`}
           onClick={onClose}
         >
         <motion.div
@@ -1927,11 +2046,37 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                         <input
                         type="file"
                         accept={getAcceptType()}
+                        multiple={isImageBatchEnabled}
                         onChange={(e) => handleFileChange(e, false)}
                         className="absolute inset-0 opacity-0 cursor-pointer z-10"
                         />
                         
-                        {preview ? (
+                        {hasBatchImages ? (
+                            <div className="relative z-20 pointer-events-none w-full px-1 sm:px-2">
+                                <div className="flex items-center justify-between gap-3 mb-3">
+                                    <div className={`text-left ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
+                                        <p className="text-sm sm:text-base font-bold">{batchUploadCount} 张图片待上传</p>
+                                        <p className={`text-xs mt-1 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>点击或拖拽可重新选择</p>
+                                    </div>
+                                    <span className={`shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-bold ${isDayMode ? 'border-indigo-200 bg-indigo-50 text-indigo-600' : 'border-indigo-400/30 bg-indigo-500/15 text-indigo-200'}`}>
+                                        批量
+                                    </span>
+                                </div>
+                                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-56 overflow-hidden">
+                                    {batchImages.slice(0, 8).map((item, index) => (
+                                        <div key={item.id} className={`relative aspect-square overflow-hidden rounded-xl border ${isDayMode ? 'border-slate-200 bg-white' : 'border-white/10 bg-white/5'}`}>
+                                            <img src={item.preview} alt={item.file.name} className="h-full w-full object-cover" />
+                                            <span className="absolute left-1.5 top-1.5 rounded-full bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">{index + 1}</span>
+                                        </div>
+                                    ))}
+                                    {batchImages.length > 8 && (
+                                        <div className={`aspect-square rounded-xl border flex items-center justify-center text-sm font-bold ${isDayMode ? 'border-slate-200 bg-slate-50 text-slate-600' : 'border-white/10 bg-white/5 text-gray-200'}`}>
+                                            +{batchImages.length - 8}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ) : preview ? (
                             type === 'audio' ? (
                                 <div className="text-center relative z-20 pointer-events-none px-4">
                                     <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-2 sm:mb-3">
@@ -1955,10 +2100,10 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                {dragTarget === 'main' ? <Upload size={24} className="sm:w-8 sm:h-8" /> : React.cloneElement(getIcon(), { size: 24, className: 'sm:w-8 sm:h-8' })}
                             </div>
                             <p className={`font-medium text-base sm:text-lg ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
-                            {dragTarget === 'main' ? t('upload.drop_file') : `${t('common.upload')} ${t(`common.${type}`)}`}
+                            {dragTarget === 'main' ? t('upload.drop_file') : (isImageBatchEnabled ? '批量上传图片' : `${t('common.upload')} ${t(`common.${type}`)}`)}
                             </p>
                             <p className={`text-xs sm:text-sm mt-1 sm:mt-2 max-w-xs mx-auto ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>
-                                {t('upload.drag_drop_browse')}
+                                {isImageBatchEnabled ? '支持一次选择多张图片，拖到这里也可以' : t('upload.drag_drop_browse')}
                             </p>
                         </div>
                         )}
@@ -2011,11 +2156,11 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                       <label className={labelClasses}>{t('common.title')}</label>
                       <input
                         type="text"
-                        required
+                        required={!hasBatchImages}
                         value={title}
                         onChange={e => setTitle(e.target.value)}
                         className={`${inputClasses} text-lg font-medium`}
-                        placeholder={t('upload.title_placeholder')}
+                        placeholder={hasBatchImages ? '可选：填写后会自动生成 标题 1、标题 2...' : t('upload.title_placeholder')}
                       />
                     </div>
 

@@ -272,17 +272,19 @@ const Gallery = () => {
     return () => abortController.abort();
   }, [searchParams]);
 
-  const addPhoto = (newItem) => {
-    api
-      .post("/photos", newItem)
-      .then(() => {
+  const addPhoto = async (newItem, { refreshAfterSave = true } = {}) => {
+    try {
+      const response = await api.post("/photos", newItem);
+      if (refreshAfterSave) {
         refresh({ clearCache: true });
-      })
-      .catch((err) => {
-        if (process.env.NODE_ENV === "development") {
-          console.error("Failed to save photo", err);
-        }
-      });
+      }
+      return response.data;
+    } catch (err) {
+      if (process.env.NODE_ENV === "development") {
+        console.error("Failed to save photo", err);
+      }
+      throw err;
+    }
   };
 
   // FIX: BUG-29 — Guard against empty displayPhotos to prevent division by zero
@@ -298,8 +300,15 @@ const Gallery = () => {
     );
   };
 
-  const handleUpload = (newItem) => {
-    addPhoto(newItem);
+  const handleUpload = async (newItem) => {
+    if (Array.isArray(newItem)) {
+      for (const item of newItem) {
+        await addPhoto(item, { refreshAfterSave: false });
+      }
+      refresh({ clearCache: true });
+      return;
+    }
+    await addPhoto(newItem);
   };
 
   const handleToggleFavorite = useCallback(
@@ -647,6 +656,7 @@ const Gallery = () => {
         onClose={() => setIsUploadOpen(false)}
         onUpload={handleUpload}
         type="image"
+        allowBatch
       />
     </section>
   );
