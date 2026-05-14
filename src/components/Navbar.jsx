@@ -19,10 +19,13 @@ import {
   Image as ImageIcon,
   Music as MusicIcon,
   Film,
-  Info,
+  Calendar,
+  Trophy,
+  MessagesSquare,
   Shield,
   Trees,
   UserCircle,
+  ChevronDown,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
@@ -53,6 +56,7 @@ const Navbar = () => {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isThemeOpen, setIsThemeOpen] = useState(false);
   const [isMobileMoreOpen, setIsMobileMoreOpen] = useState(false);
+  const [openNavGroupKey, setOpenNavGroupKey] = useState(null);
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
   const location = useLocation();
   const { t } = useTranslation();
@@ -118,23 +122,66 @@ const Navbar = () => {
     return <Cloud size={14} />;
   };
 
-  const navLinks = [
-    { key: "home", path: "/" },
-    { key: "events", path: "/events" },
-    { key: "hackathon", path: "/hackathon" },
-    { key: "hackathon_showcase", path: "/hackathon/showcase", label: "比赛成果" },
-    { key: "future_learning", path: "/future-learning" },
-    { key: "articles", path: "/articles" },
-    { key: "music", path: "/music" },
-    { key: "gallery", path: "/gallery" },
-    { key: "videos", path: "/videos" },
-    { key: "about", path: "/about" },
-    ...(isAdmin ? [{ key: "admin", path: "/admin" }] : []),
+  const navGroups = [
+    {
+      key: "activity",
+      label: "活动",
+      path: "/events",
+      items: [{ key: "events", path: "/events", label: t("nav.events", "活动聚合") }],
+    },
+    {
+      key: "competition",
+      label: "比赛",
+      path: "/hackathon",
+      items: [
+        { key: "hackathon", path: "/hackathon", label: t("nav.hackathon", "黑客松") },
+        {
+          key: "future_learning",
+          path: "/future-learning",
+          label: t("nav.future_learning", "未来学习中心"),
+        },
+        { key: "hackathon_showcase", path: "/hackathon/showcase", label: "比赛成果" },
+        { key: "gallery", path: "/gallery", label: t("nav.gallery", "图片直播") },
+        { key: "videos", path: "/videos", label: t("nav.videos", "视频") },
+      ],
+    },
+    {
+      key: "community",
+      label: "社区",
+      path: "/articles",
+      items: [
+        { key: "articles", path: "/articles", label: t("nav.articles", "AI 社区") },
+        { key: "music", path: "/music", label: t("nav.music", "播客") },
+      ],
+    },
   ];
+
+  const navLinks = navGroups.flatMap((group) => group.items);
   const isNavItemActive = (path) => {
+    if (path === "/hackathon") {
+      return location.pathname === path || location.pathname === "/hackathon/works";
+    }
     return location.pathname === path;
   };
   const currentNavLink = navLinks.find((link) => isNavItemActive(link.path));
+  const getNavGroupKey = (pathname) => {
+    if (pathname.startsWith("/events")) return "activity";
+    if (
+      pathname.startsWith("/hackathon") ||
+      pathname.startsWith("/future-learning") ||
+      pathname.startsWith("/gallery") ||
+      pathname.startsWith("/videos")
+    ) {
+      return "competition";
+    }
+    if (pathname.startsWith("/articles") || pathname.startsWith("/music")) {
+      return "community";
+    }
+    return null;
+  };
+  const currentNavGroupKey = getNavGroupKey(location.pathname);
+  const highlightedNavGroupKey = openNavGroupKey || currentNavGroupKey;
+  const isNavPanelOpen = Boolean(openNavGroupKey);
   const getMobileTitle = (pathname) => {
     if (pathname === "/") return t("nav.home");
     if (pathname.startsWith("/events")) return t("nav.events");
@@ -200,11 +247,26 @@ const Navbar = () => {
     ? "bg-white/42 border-white/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.82),0_8px_24px_rgba(100,116,139,0.1)]"
     : "bg-white/5 border-white/5";
   const navLinkClasses = isDayMode
-    ? "motion-link relative group whitespace-nowrap rounded-full px-2.5 py-2 text-xs font-medium text-slate-500 hover:bg-slate-200/70 hover:text-slate-900 xl:px-4 xl:text-sm"
-    : "motion-link relative group whitespace-nowrap rounded-full px-2.5 py-2 text-xs font-medium text-gray-400 hover:bg-white/10 hover:text-white xl:px-4 xl:text-sm";
+    ? "motion-link relative group inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-200/70 hover:text-slate-900 xl:px-5"
+    : "motion-link relative group inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold text-gray-400 hover:bg-white/10 hover:text-white xl:px-5";
   const navIndicatorClasses = isDayMode
     ? "absolute inset-0 rounded-full border border-indigo-200/90 bg-white/90 shadow-[0_10px_24px_rgba(99,102,241,0.14)]"
     : "absolute inset-0 bg-white/10 rounded-full border border-white/10";
+  const navPanelClasses = isDayMode
+    ? "border-slate-200/80 bg-white/98 text-slate-900 shadow-[0_28px_70px_rgba(15,23,42,0.16)]"
+    : "border-white/10 bg-[#0d1320]/98 text-white shadow-[0_28px_70px_rgba(0,0,0,0.42)]";
+  const navPanelColumnClasses = isDayMode
+    ? "border-slate-200/80"
+    : "border-white/10";
+  const navPanelActiveColumnClasses = isDayMode
+    ? "border-indigo-200 bg-indigo-50/80 shadow-[0_18px_40px_rgba(99,102,241,0.1)]"
+    : "border-indigo-300/25 bg-indigo-500/12 shadow-[0_18px_40px_rgba(99,102,241,0.14)]";
+  const navPanelItemClasses = isDayMode
+    ? "text-slate-600 hover:bg-white hover:text-slate-950"
+    : "text-gray-300 hover:bg-white/10 hover:text-white";
+  const navPanelActiveItemClasses = isDayMode
+    ? "bg-white text-indigo-700 shadow-[0_10px_24px_rgba(99,102,241,0.12)]"
+    : "bg-white/10 text-indigo-100";
   const weatherButtonClasses = isDayMode
     ? "motion-press day-quiet-button flex items-center gap-3 text-xs border px-3 py-1.5 rounded-full hover:text-slate-900 cursor-pointer group"
     : "motion-press flex items-center gap-3 text-xs text-gray-400 border border-white/5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 hover:text-white hover:border-indigo-500/20 cursor-pointer group";
@@ -224,14 +286,36 @@ const Navbar = () => {
   const showMobileSearchAction =
     !location.pathname.startsWith("/me") &&
     !location.pathname.startsWith("/user/");
-  const secondaryMobileLinks = [
-    { key: "future_learning", path: "/future-learning", icon: Trees },
-    { key: "hackathon_showcase", path: "/hackathon/showcase", icon: Film, label: "比赛成果" },
-    { key: "gallery", path: "/gallery", icon: ImageIcon },
-    { key: "music", path: "/music", icon: MusicIcon },
-    { key: "videos", path: "/videos", icon: Film },
-    { key: "about", path: "/about", icon: Info },
-    ...(isAdmin ? [{ key: "admin", path: "/admin", icon: Shield }] : []),
+  const mobileNavGroups = [
+    {
+      key: "activity",
+      label: "活动",
+      items: [{ key: "events", path: "/events", icon: Calendar, label: t("nav.events", "活动聚合") }],
+    },
+    {
+      key: "competition",
+      label: "比赛",
+      items: [
+        { key: "hackathon", path: "/hackathon", icon: Trophy, label: t("nav.hackathon", "黑客松") },
+        {
+          key: "future_learning",
+          path: "/future-learning",
+          icon: Trees,
+          label: t("nav.future_learning", "未来学习中心"),
+        },
+        { key: "hackathon_showcase", path: "/hackathon/showcase", icon: Film, label: "比赛成果" },
+        { key: "gallery", path: "/gallery", icon: ImageIcon, label: t("nav.gallery", "图片直播") },
+        { key: "videos", path: "/videos", icon: Film, label: t("nav.videos", "视频") },
+      ],
+    },
+    {
+      key: "community",
+      label: "社区",
+      items: [
+        { key: "articles", path: "/articles", icon: MessagesSquare, label: t("nav.articles", "AI 社区") },
+        { key: "music", path: "/music", icon: MusicIcon, label: t("nav.music", "播客") },
+      ],
+    },
   ];
   const nextUiMode = isDayMode ? "dark" : "day";
   const themeToggleLabel = t(
@@ -248,6 +332,17 @@ const Navbar = () => {
       variants={navEntrance}
       initial={prefersReducedMotion ? false : "initial"}
       animate={prefersReducedMotion ? undefined : "animate"}
+      onMouseLeave={() => setOpenNavGroupKey(null)}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) {
+          setOpenNavGroupKey(null);
+        }
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          setOpenNavGroupKey(null);
+        }
+      }}
       className={`motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 py-2.5 md:py-3 backdrop-blur-lg border-b ${shellClasses}`}
       role="navigation"
       aria-label="主导航"
@@ -284,16 +379,25 @@ const Navbar = () => {
         role="menubar"
         aria-label="导航菜单"
       >
-        {navLinks.map((item) => (
+        {navGroups.map((group) => (
           <Link
-            key={item.key}
-            to={item.path}
+            key={group.key}
+            to={group.path}
+            onMouseEnter={() => setOpenNavGroupKey(group.key)}
+            onFocus={() => setOpenNavGroupKey(group.key)}
             className={navLinkClasses}
             role="menuitem"
-            aria-current={isNavItemActive(item.path) ? "page" : undefined}
+            aria-haspopup="true"
+            aria-expanded={isNavPanelOpen}
+            aria-current={currentNavGroupKey === group.key ? "page" : undefined}
           >
-            <span className="relative z-10">{item.label || t(`nav.${item.key}`)}</span>
-            {isNavItemActive(item.path) &&
+            <span className="relative z-10">{group.label}</span>
+            <ChevronDown
+              size={14}
+              className={`relative z-10 transition-transform ${openNavGroupKey === group.key ? "rotate-180" : ""}`}
+              aria-hidden="true"
+            />
+            {currentNavGroupKey === group.key &&
               (prefersReducedMotion ? (
                 <div className={navIndicatorClasses} />
               ) : (
@@ -384,6 +488,17 @@ const Navbar = () => {
 
         <LanguageSwitcher />
 
+        {isAdmin && (
+          <Link
+            to="/admin"
+            className={`btn-icon ${isDayMode ? "day-quiet-button border text-slate-700 hover:text-indigo-600" : "text-white bg-white/10 hover:text-indigo-200"}`}
+            title={t("nav.admin", "管理")}
+            aria-label={t("nav.admin", "管理")}
+          >
+            <Shield size={18} aria-hidden="true" />
+          </Link>
+        )}
+
         {user ? (
           <div className="flex items-center gap-3">
             <Link
@@ -425,6 +540,77 @@ const Navbar = () => {
           </button>
         )}
       </div>
+
+      <AnimatePresence initial={false}>
+        {isNavPanelOpen && (
+          <motion.div
+            initial={prefersReducedMotion ? false : { opacity: 0, y: -8 }}
+            animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+            exit={prefersReducedMotion ? undefined : { opacity: 0, y: -8 }}
+            transition={motionTokens.spring.gentle}
+            className={`absolute left-0 right-0 top-full hidden border-b backdrop-blur-xl md:block ${navPanelClasses}`}
+          >
+            <div className="mx-auto max-w-5xl px-8 py-5">
+              <div
+                className={`grid min-h-[220px] grid-cols-3 overflow-hidden rounded-3xl border ${
+                  isDayMode
+                    ? "border-slate-200/80 bg-white/96"
+                    : "border-white/10 bg-[#111827]/96"
+                }`}
+              >
+                {navGroups.map((group) => {
+                  const isHighlighted = highlightedNavGroupKey === group.key;
+                  return (
+                    <div
+                      key={group.key}
+                      className={`border-l p-5 transition-all first:border-l-0 ${
+                        isHighlighted
+                          ? navPanelActiveColumnClasses
+                          : navPanelColumnClasses
+                      }`}
+                    >
+                      <Link
+                        to={group.path}
+                        onClick={() => setOpenNavGroupKey(null)}
+                        className={`mb-2 block rounded-xl px-3 py-2 text-sm font-bold transition-colors ${
+                          isDayMode
+                            ? isHighlighted
+                              ? "text-indigo-700"
+                              : "text-slate-900"
+                            : isHighlighted
+                              ? "text-indigo-100"
+                              : "text-white"
+                        }`}
+                      >
+                        {group.label}
+                      </Link>
+                      <div className="space-y-1">
+                        {group.items.map((item) => {
+                          const isActive = isNavItemActive(item.path);
+                          return (
+                            <Link
+                              key={item.key}
+                              to={item.path}
+                              onClick={() => setOpenNavGroupKey(null)}
+                              className={`block rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
+                                isActive
+                                  ? navPanelActiveItemClasses
+                                  : navPanelItemClasses
+                              }`}
+                            >
+                              {item.label}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="md:hidden flex items-center justify-between w-full z-50 px-1">
         <div
@@ -643,20 +829,51 @@ const Navbar = () => {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  {secondaryMobileLinks.map(({ key, path, icon: Icon, label }) => (
-                    <Link
-                      key={key}
-                      to={path}
-                      onClick={() => setIsMobileMoreOpen(false)}
-                      className={`motion-press flex min-h-[56px] items-center gap-3 rounded-2xl border px-3 ${location.pathname === path ? (isDayMode ? "border-indigo-200 bg-indigo-50 text-indigo-700" : "border-indigo-400/30 bg-indigo-500/15 text-indigo-200") : isDayMode ? "border-slate-200/80 bg-slate-50/90 text-slate-700 hover:bg-white" : "border-white/10 bg-white/[0.04] text-gray-200 hover:bg-white/10"}`}
-                    >
-                      <Icon size={18} aria-hidden="true" />
-                      <span className="text-sm font-semibold">
-                        {label || t(`nav.${key}`)}
-                      </span>
-                    </Link>
+                <div className="space-y-4">
+                  {mobileNavGroups.map((group) => (
+                    <div key={group.key}>
+                      <div
+                        className={`mb-2 px-1 text-xs font-semibold tracking-[0.18em] ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                      >
+                        {group.label}
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {group.items.map(({ key, path, icon: Icon, label }) => (
+                          <Link
+                            key={key}
+                            to={path}
+                            onClick={() => setIsMobileMoreOpen(false)}
+                            className={`motion-press flex min-h-[56px] items-center gap-3 rounded-2xl border px-3 ${isNavItemActive(path) ? (isDayMode ? "border-indigo-200 bg-indigo-50 text-indigo-700" : "border-indigo-400/30 bg-indigo-500/15 text-indigo-200") : isDayMode ? "border-slate-200/80 bg-slate-50/90 text-slate-700 hover:bg-white" : "border-white/10 bg-white/[0.04] text-gray-200 hover:bg-white/10"}`}
+                          >
+                            <Icon size={18} aria-hidden="true" />
+                            <span className="text-sm font-semibold">
+                              {label || t(`nav.${key}`)}
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
                   ))}
+
+                  {isAdmin && (
+                    <div>
+                      <div
+                        className={`mb-2 px-1 text-xs font-semibold tracking-[0.18em] ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                      >
+                        工具
+                      </div>
+                      <Link
+                        to="/admin"
+                        onClick={() => setIsMobileMoreOpen(false)}
+                        className={`motion-press flex min-h-[56px] items-center gap-3 rounded-2xl border px-3 ${location.pathname.startsWith("/admin") ? (isDayMode ? "border-indigo-200 bg-indigo-50 text-indigo-700" : "border-indigo-400/30 bg-indigo-500/15 text-indigo-200") : isDayMode ? "border-slate-200/80 bg-slate-50/90 text-slate-700 hover:bg-white" : "border-white/10 bg-white/[0.04] text-gray-200 hover:bg-white/10"}`}
+                      >
+                        <Shield size={18} aria-hidden="true" />
+                        <span className="text-sm font-semibold">
+                          {t("nav.admin", "管理")}
+                        </span>
+                      </Link>
+                    </div>
+                  )}
                 </div>
 
                 <div
