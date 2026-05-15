@@ -18,7 +18,7 @@ const DEFAULT_SETTINGS = {
     '欢迎加入我们。在这里，你可以参与优质活动，并分享相关影像、文章、音乐与视频，一起建设有温度的校园社区。',
   contact_email: 'service@tuotuzju.com',
   contact_phone: '0571-87950000',
-  contact_address: '浙江大学 SQTP 项目：拓途浙享团队',
+  contact_address: 'AI生态团队',
 };
 
 const DEFAULT_UI_MODE = 'dark';

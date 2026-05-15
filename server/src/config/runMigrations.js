@@ -886,6 +886,95 @@ async function runMigrations(db) {
   }
 
   try {
+    await ensureColumns('competitions', {
+      slug: 'TEXT',
+      title: 'TEXT NOT NULL DEFAULT ""',
+      subtitle: 'TEXT',
+      description: 'TEXT',
+      event_date: 'TEXT',
+      cover_image: 'TEXT',
+      is_featured: 'INTEGER DEFAULT 0',
+      status: "TEXT DEFAULT 'active'",
+      created_at: 'TEXT DEFAULT CURRENT_TIMESTAMP',
+      updated_at: 'TEXT DEFAULT CURRENT_TIMESTAMP',
+      deleted_at: 'DATETIME',
+    }, 'competitions');
+
+    await ensureColumns('competition_media', {
+      competition_id: 'INTEGER',
+      type: 'TEXT',
+      title: 'TEXT NOT NULL DEFAULT ""',
+      description: 'TEXT',
+      url: 'TEXT NOT NULL DEFAULT ""',
+      cover_url: 'TEXT',
+      sort_order: 'INTEGER DEFAULT 0',
+      status: "TEXT DEFAULT 'pending'",
+      uploader_id: 'INTEGER',
+      reviewed_by: 'INTEGER',
+      review_note: 'TEXT',
+      reviewed_at: 'TEXT',
+      created_at: 'TEXT DEFAULT CURRENT_TIMESTAMP',
+      updated_at: 'TEXT DEFAULT CURRENT_TIMESTAMP',
+      deleted_at: 'DATETIME',
+    }, 'competition_media');
+
+    await ensureColumns('competition_works', {
+      competition_id: 'INTEGER',
+      title: 'TEXT NOT NULL DEFAULT ""',
+      author: 'TEXT NOT NULL DEFAULT ""',
+      summary: 'TEXT NOT NULL DEFAULT ""',
+      git_url: 'TEXT',
+      award: 'TEXT',
+      rank: 'TEXT',
+      cover_url: 'TEXT',
+      sort_order: 'INTEGER DEFAULT 0',
+      status: "TEXT DEFAULT 'pending'",
+      uploader_id: 'INTEGER',
+      reviewed_by: 'INTEGER',
+      review_note: 'TEXT',
+      reviewed_at: 'TEXT',
+      created_at: 'TEXT DEFAULT CURRENT_TIMESTAMP',
+      updated_at: 'TEXT DEFAULT CURRENT_TIMESTAMP',
+      deleted_at: 'DATETIME',
+    }, 'competition_works');
+
+    await db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_competitions_featured
+        ON competitions(is_featured, status, deleted_at);
+      CREATE INDEX IF NOT EXISTS idx_competition_media_comp_status_type
+        ON competition_media(competition_id, status, type, sort_order, id);
+      CREATE INDEX IF NOT EXISTS idx_competition_media_status_created
+        ON competition_media(status, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_competition_works_comp_status
+        ON competition_works(competition_id, status, sort_order, id);
+      CREATE INDEX IF NOT EXISTS idx_competition_works_status_created
+        ON competition_works(status, created_at DESC);
+    `);
+    const activeCompetitionCount = await db.get(
+      "SELECT COUNT(*) AS count FROM competitions WHERE deleted_at IS NULL",
+    );
+    if ((activeCompetitionCount?.count || 0) === 0) {
+      await db.run(
+        `INSERT INTO competitions (
+          slug, title, subtitle, description, event_date, is_featured, status, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, 1, 'active', datetime('now'), datetime('now'))`,
+        [
+          'ai-full-stack-hackathon-outcome',
+          'AI 全栈极速黑客松',
+          '比赛成果展示',
+          '赛事宣传片、赛场照片和优秀作品会在审核通过后展示在这里。',
+          '2026',
+        ],
+      );
+    }
+    console.log('Competition outcome tables ready');
+  } catch (err) {
+    if (!err.message.includes('already exists') && !err.message.includes('duplicate column')) {
+      console.warn('Migration warning (competition outcomes):', err.message);
+    }
+  }
+
+  try {
     await db.exec(`
       CREATE TABLE IF NOT EXISTS ai_model_configs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

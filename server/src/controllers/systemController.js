@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const { serializeCommunityPost } = require('../utils/serializeCommunityPost');
 const { normalizeEventCategory } = require('../services/eventIntelligenceService');
+const { listPendingCompetitionItems } = require('./competitionController');
 
 // Placeholder for crawler until implemented
 const runCrawler = async (url, source) => {
@@ -559,12 +560,13 @@ const getPendingContent = async (req, res, next) => {
         const db = await getDb();
         
         // Fetch pending items from all tables (only active ones)
-        const [photos, music, videos, articles, events] = await Promise.all([
+        const [photos, music, videos, articles, events, competitionItems] = await Promise.all([
             db.all("SELECT *, 'photos' as resource_type, url as preview_image FROM photos WHERE status = 'pending' AND deleted_at IS NULL"),
             db.all("SELECT *, 'music' as resource_type, cover as preview_image FROM music WHERE status = 'pending' AND deleted_at IS NULL"),
             db.all("SELECT *, 'videos' as resource_type, thumbnail as preview_image FROM videos WHERE status = 'pending' AND deleted_at IS NULL"),
             db.all("SELECT *, 'articles' as resource_type, cover as preview_image FROM articles WHERE status = 'pending' AND deleted_at IS NULL"),
-            db.all("SELECT *, 'events' as resource_type, image as preview_image FROM events WHERE status = 'pending' AND deleted_at IS NULL")
+            db.all("SELECT *, 'events' as resource_type, image as preview_image FROM events WHERE status = 'pending' AND deleted_at IS NULL"),
+            listPendingCompetitionItems(db).catch(() => [])
         ]);
 
         // Combine and sort (newest first based on ID as proxy)
@@ -573,11 +575,17 @@ const getPendingContent = async (req, res, next) => {
             ...music.map(i => ({ ...i, type: 'music' })),
             ...videos.map(i => ({ ...i, type: 'videos' })),
             ...articles.map(i => ({ ...i, type: 'articles' })),
-            ...events.map(i => ({ ...i, type: 'events' }))
+            ...events.map(i => ({ ...i, type: 'events' })),
+            ...competitionItems
         ];
         
-        // Sort by ID descending (proxy for recency)
-        allPending.sort((a, b) => b.id - a.id);
+        // Sort by creation time first, then ID as a fallback.
+        allPending.sort((a, b) => {
+            const rightTime = new Date(b.created_at || 0).getTime();
+            const leftTime = new Date(a.created_at || 0).getTime();
+            if (rightTime !== leftTime) return rightTime - leftTime;
+            return b.id - a.id;
+        });
 
         res.json(allPending);
     } catch (error) { next(error); }

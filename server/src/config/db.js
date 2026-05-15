@@ -134,7 +134,7 @@ class DatabasePool {
       'CREATE INDEX IF NOT EXISTS idx_events_uploader ON events(uploader_id)',
       'CREATE INDEX IF NOT EXISTS idx_events_featured ON events(featured)',
       'CREATE INDEX IF NOT EXISTS idx_events_date ON events(date)',
-      
+
       // Comments
       'CREATE INDEX IF NOT EXISTS idx_comments_resource ON comments(resource_id, resource_type)',
       'CREATE INDEX IF NOT EXISTS idx_comments_user ON comments(user_id)',

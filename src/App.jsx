@@ -41,7 +41,6 @@ const PlatformStats = lazy(() => import('./components/PlatformStats'));
 const About = lazy(() => import('./components/About'));
 const HackathonRegistration = lazy(() => import('./components/HackathonRegistration'));
 const HackathonShowcase = lazy(() => import('./components/HackathonShowcase'));
-const HackathonWorks = lazy(() => import('./components/HackathonWorks'));
 const FutureLearningCenter = lazy(() => import('./components/FutureLearningCenter'));
 const AdminDashboard = lazy(() => import('./components/Admin/AdminDashboard'));
 const AdminAccessGate = lazy(() => import('./components/Admin/AdminAccessGate'));
@@ -90,7 +89,7 @@ const Home = () => (
   <>
     <SEO
       title="首页"
-      description="浙江大学 SQTP 项目信息聚合平台，聚合活动、作品与 AI 社区内容。"
+      description="AI生态团队信息聚合平台，聚合活动、作品与 AI 社区内容。"
     />
     <Hero />
     <PlatformStats />
@@ -205,7 +204,7 @@ const AppContent = () => {
               <Route path="/about" element={<PageTransition><About /></PageTransition>} />
               <Route path="/hackathon" element={<PageTransition><HackathonRegistration /></PageTransition>} />
               <Route path="/hackathon/showcase" element={<PageTransition><HackathonShowcase /></PageTransition>} />
-              <Route path="/hackathon/works" element={<PageTransition><HackathonWorks /></PageTransition>} />
+              <Route path="/hackathon/works" element={<Navigate to="/hackathon/showcase" replace />} />
               <Route path="/future-learning" element={<PageTransition><FutureLearningCenter /></PageTransition>} />
               <Route
                 path="/admin"

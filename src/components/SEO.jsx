@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 const SITE_NAME = '拓途浙享';
 const SITE_ALT_NAME = 'TUOTUZJU';
 const DEFAULT_DESCRIPTION =
-  '浙江大学 SQTP 项目组信息聚合平台，聚合活动、图片直播、播客、视频与 AI 社区内容。';
+  'AI生态团队信息聚合平台，聚合活动、图片直播、播客、视频与 AI 社区内容。';
 
 const toAbsoluteUrl = (siteUrl, value) => {
   if (!value) return `${siteUrl}/pwa-icon.svg`;
@@ -35,10 +35,10 @@ const SEO = ({
       <title>{seoTitle}</title>
       <meta name="title" content={seoTitle} />
       <meta name="description" content={seoDescription} />
-      <meta name="author" content="浙江大学 SQTP 项目组" />
+      <meta name="author" content="AI生态团队" />
       <meta
         name="keywords"
-        content="拓途浙享, 浙江大学, SQTP, 活动, 图片直播, 播客, 视频, AI社区, 校园平台"
+        content="拓途浙享, 浙江大学, AI生态团队, 活动, 图片直播, 播客, 视频, AI社区, 校园平台"
       />
       <meta name="robots" content="index, follow" />
       <meta name="theme-color" content="#0a0a0a" />
@@ -81,7 +81,7 @@ const SEO = ({
           description: DEFAULT_DESCRIPTION,
           founder: {
             '@type': 'Organization',
-            name: '浙江大学 SQTP 项目组',
+            name: 'AI生态团队',
           },
           contactPoint: {
             '@type': 'ContactPoint',

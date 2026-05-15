@@ -41,7 +41,7 @@ const Footer = () => {
               isDayMode ? "text-slate-500" : "text-gray-500"
             }`}
           >
-            © {currentYear} 浙江大学 SQTP 项目组. All rights reserved.
+            © {currentYear} AI生态团队. All rights reserved.
           </p>
         </div>
 

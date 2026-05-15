@@ -409,6 +409,13 @@ app.get('/api/health', async (req, res) => {
 // ====================
 app.use('/api', apiRoutes);
 
+app.use('/api', (req, res) => {
+  res.status(404).json({
+    error: 'API endpoint not found',
+    message: `No API route matches ${req.method} ${req.originalUrl}`,
+  });
+});
+
 // ====================
 // SPA Fallback (Production)
 // ====================

@@ -20,7 +20,7 @@ const settingsSeed = {
   about_detail: '欢迎加入我们！在这里，你可以参与优质活动，并分享活动有关的影像、文章、音乐，共建一个有温度、有情怀的优质社区！',
   contact_email: 'service@tuotuzju.com',
   contact_phone: '0571-87950000',
-  contact_address: '浙江大学 SQTP 项目：拓途浙享团队'
+  contact_address: 'AI生态团队'
 };
 
 const usersSeed = [
@@ -539,7 +539,7 @@ const eventsSeed = [
     featured: 1,
     score: '4.8',
     target_audience: '本科生,研究生',
-    organizer: '拓途浙享团队',
+    organizer: 'AI生态团队',
     volunteer_time: '8 小时',
     category: '志愿服务',
     views: 18,

@@ -22,6 +22,7 @@ const commentController = require('../controllers/commentController');
 const communityController = require('../controllers/communityController');
 const newsController = require('../controllers/newsController');
 const hackathonController = require('../controllers/hackathonController');
+const competitionController = require('../controllers/competitionController');
 const futureLearningController = require('../controllers/futureLearningController');
 const { logger } = require('../utils/logger');
 
@@ -182,6 +183,29 @@ router.post('/settings', authenticateToken, isAdmin, validate(settingsValidation
 router.get('/fs/list', authenticateToken, isAdmin, fsController.listFiles);
 router.get('/fs/content', authenticateToken, isAdmin, fsController.getFileContent);
 router.post('/fs/content', authenticateToken, isAdmin, fsController.saveFileContent);
+
+// Competition Outcome Routes
+router.get('/competitions/current/outcome', optionalAuth, competitionController.getCurrentOutcome);
+router.post('/competitions/current/media', authenticateToken, competitionController.submitCurrentMedia);
+router.post('/competitions/current/works', authenticateToken, competitionController.submitCurrentWork);
+
+router.get('/admin/competitions', authenticateToken, isAdmin, competitionController.listCompetitions);
+router.post('/admin/competitions', authenticateToken, isAdmin, competitionController.createCompetition);
+router.put('/admin/competitions/:id', authenticateToken, isAdmin, competitionController.updateCompetition);
+router.delete('/admin/competitions/:id', authenticateToken, isAdmin, competitionController.deleteCompetition);
+router.put('/admin/competitions/:id/feature', authenticateToken, isAdmin, competitionController.featureCompetition);
+
+router.get('/admin/competition-media', authenticateToken, isAdmin, competitionController.listAdminMedia);
+router.post('/admin/competition-media', authenticateToken, isAdmin, competitionController.createAdminMedia);
+router.put('/admin/competition-media/:id', authenticateToken, isAdmin, competitionController.updateAdminMedia);
+router.delete('/admin/competition-media/:id', authenticateToken, isAdmin, competitionController.deleteAdminMedia);
+router.put('/admin/competition-media/:id/review', authenticateToken, isAdmin, competitionController.reviewAdminMedia);
+
+router.get('/admin/competition-works', authenticateToken, isAdmin, competitionController.listAdminWorks);
+router.post('/admin/competition-works', authenticateToken, isAdmin, competitionController.createAdminWork);
+router.put('/admin/competition-works/:id', authenticateToken, isAdmin, competitionController.updateAdminWork);
+router.delete('/admin/competition-works/:id', authenticateToken, isAdmin, competitionController.deleteAdminWork);
+router.put('/admin/competition-works/:id/review', authenticateToken, isAdmin, competitionController.reviewAdminWork);
 
 // Resource Routes (Generic)
 const resources = ['photos', 'music', 'videos', 'articles', 'events'];

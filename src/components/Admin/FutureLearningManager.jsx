@@ -333,7 +333,7 @@ const FutureLearningManager = () => {
     <>
       <AdminPageShell
         title="未来学习中心报名管理"
-        description="收集「智能生命健康」项目问题揭榜报名信息，跟进联络状态，并导出 CSV 用于项目组处理。"
+        description="收集「智能生命健康」项目问题揭榜报名信息，跟进联络状态，并导出 CSV 用于AI生态团队处理。"
         actions={
           <>
             <AdminButton tone="subtle" onClick={fetchRegistrations}>

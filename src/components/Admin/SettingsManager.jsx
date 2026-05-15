@@ -262,7 +262,7 @@ const SettingsManager = () => {
               <textarea
                 value={settings.about_team_intro_1 || ""}
                 onChange={(event) => handleChange("about_team_intro_1", event.target.value)}
-                placeholder="我们不是单一社团，也不是只做一场比赛的短期项目组，而是面向浙江大学校园长期运行的 AI 生态整合团队。"
+                placeholder="我们不是单一社团，也不是只围绕一场比赛临时运转，而是面向浙江大学校园长期运行的 AI 生态团队。"
                 rows={3}
                 className="theme-admin-input flex-1 rounded-xl p-3"
               />

@@ -23,6 +23,21 @@ const TYPE_LABELS = {
   music: "音频",
   articles: "文章",
   events: "活动",
+  competition_media: "比赛素材",
+  competition_works: "优秀作品",
+};
+
+const REVIEW_ENDPOINTS = {
+  competition_media: (id) => `/admin/competition-media/${id}/review`,
+  competition_works: (id) => `/admin/competition-works/${id}/review`,
+};
+
+const reviewPendingItem = (item, status, reason) => {
+  const endpointFactory = REVIEW_ENDPOINTS[item.type];
+  if (endpointFactory) {
+    return api.put(endpointFactory(item.id), { status, reason });
+  }
+  return api.put(`/${item.type}/${item.id}/status`, { status, reason });
 };
 
 const PendingReviewManager = () => {
@@ -104,7 +119,7 @@ const PendingReviewManager = () => {
     try {
       await Promise.all(
         confirmState.items.map((item) =>
-          api.put(`/${item.type}/${item.id}/status`, { status, reason }),
+          reviewPendingItem(item, status, reason),
         ),
       );
       const acceptedKeys = new Set(
@@ -191,7 +206,7 @@ const PendingReviewManager = () => {
               </div>
             </ToolbarGroup>
             <ToolbarGroup>
-              {["all", "photos", "videos", "music", "articles", "events"].map(
+              {["all", "photos", "videos", "music", "articles", "events", "competition_media", "competition_works"].map(
                 (type) => (
                   <FilterChip
                     key={type}
@@ -208,7 +223,7 @@ const PendingReviewManager = () => {
         }
       >
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
-          {["all", "photos", "videos", "music", "articles", "events"].map(
+          {["all", "photos", "videos", "music", "articles", "events", "competition_media", "competition_works"].map(
             (type) => (
               <AdminMetricCard
                 key={type}
@@ -350,6 +365,7 @@ const PendingReviewManager = () => {
                               : item.category}
                           </span>
                         ) : null}
+                        {item.competition_title ? <span>比赛: {item.competition_title}</span> : null}
                         {item.type !== "events" && item.tags ? <span>标签: {item.tags}</span> : null}
                       </div>
                     </div>
