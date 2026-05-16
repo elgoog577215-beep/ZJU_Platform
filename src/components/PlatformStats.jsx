@@ -509,7 +509,7 @@ const PlatformStats = () => {
 
       <section
         id="home-ecosystem"
-        className="relative z-10 flex min-h-[100svh] snap-start snap-always items-center px-4 py-[calc(4.75rem+env(safe-area-inset-top))] sm:px-6 lg:px-10 2xl:px-16"
+        className="relative z-10 flex min-h-[100svh] snap-start snap-always items-start px-4 py-[calc(4.75rem+env(safe-area-inset-top))] sm:px-6 lg:items-center lg:px-10 2xl:px-16"
       >
         <motion.div
           variants={sectionReveal}
@@ -593,7 +593,7 @@ const PlatformStats = () => {
 
       <section
         id="home-engine"
-        className="relative z-10 flex min-h-[100svh] snap-start snap-always items-center px-4 py-[calc(4.75rem+env(safe-area-inset-top))] sm:px-6 lg:px-10 2xl:px-16"
+        className="relative z-10 flex min-h-[100svh] snap-start snap-always items-start px-4 py-[calc(4.75rem+env(safe-area-inset-top))] sm:px-6 lg:items-center lg:px-10 2xl:px-16"
       >
         <motion.div
           variants={sectionReveal}
@@ -607,7 +607,7 @@ const PlatformStats = () => {
               <p className={`text-xs font-black uppercase tracking-[0.24em] ${palette.label}`}>
                 Core Engine
               </p>
-              <h2 className="mt-3 max-w-5xl text-[2rem] font-black leading-none tracking-tight text-balance sm:text-5xl lg:text-[clamp(2.9rem,4.9vw,5.05rem)]">
+              <h2 className="mt-3 max-w-5xl text-[1.9rem] font-black leading-none tracking-tight text-balance sm:text-5xl lg:text-[clamp(2.9rem,4.9vw,5.05rem)]">
                 不是活动很多，
                 <br />
                 是产学路径清楚。
@@ -618,14 +618,14 @@ const PlatformStats = () => {
             </p>
           </div>
 
-          <div className="mt-5 grid gap-3 sm:mt-7 sm:gap-4 lg:grid-cols-4">
+          <div className="mt-4 grid gap-3 sm:mt-7 sm:gap-4 lg:grid-cols-4">
             {operatingHandles.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
                   key={item.code}
                   to={item.route}
-                  className={`group relative min-h-[160px] overflow-hidden border border-l-4 p-4 transition duration-300 hover:-translate-y-1 sm:min-h-[260px] sm:p-6 lg:min-h-[300px] ${palette.card} ${
+                  className={`group relative min-h-[142px] overflow-hidden border border-l-4 p-4 transition duration-300 hover:-translate-y-1 sm:min-h-[260px] sm:p-6 lg:min-h-[300px] ${palette.card} ${
                     isDayMode ? "border-l-cyan-500" : "border-l-cyan-300"
                   }`}
                 >
@@ -679,7 +679,7 @@ const PlatformStats = () => {
 
       <section
         id="home-resources"
-        className="relative z-10 flex min-h-[100svh] snap-start snap-always items-center px-4 py-[calc(4.75rem+env(safe-area-inset-top))] sm:px-6 lg:px-10 2xl:px-16"
+        className="relative z-10 flex min-h-[100svh] snap-start snap-always items-start px-4 py-[calc(4.75rem+env(safe-area-inset-top))] sm:px-6 lg:items-center lg:px-10 2xl:px-16"
       >
         <motion.div
           variants={sectionReveal}
@@ -823,7 +823,7 @@ const PlatformStats = () => {
 
       <section
         id="home-live"
-        className="relative z-10 flex min-h-[100svh] snap-start snap-always items-center px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-[calc(4.75rem+env(safe-area-inset-top))] sm:px-6 lg:px-10 lg:pb-20 2xl:px-16"
+        className="relative z-10 flex min-h-[100svh] snap-start snap-always items-start px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-[calc(4.75rem+env(safe-area-inset-top))] sm:px-6 lg:items-center lg:px-10 lg:pb-20 2xl:px-16"
       >
         <motion.div
           variants={sectionReveal}
@@ -862,7 +862,7 @@ const PlatformStats = () => {
             </div>
           </div>
 
-          <div className="mt-7">
+          <div className="mt-5 lg:mt-7">
             {featuredLoading && featuredPreviewItems.length === 0 ? (
               <div className={`min-h-[160px] border px-5 py-6 text-sm ${palette.card}`}>
                 {t("common.loading")}
@@ -892,7 +892,7 @@ const PlatformStats = () => {
                 initial={prefersReducedMotion ? false : "initial"}
                 whileInView={prefersReducedMotion ? undefined : "animate"}
                 viewport={motionTokens.viewport}
-                className="grid gap-4 md:grid-cols-[minmax(0,1.35fr)_minmax(0,0.9fr)_minmax(0,0.9fr)]"
+                className="grid gap-3 sm:gap-4 md:grid-cols-[minmax(0,1.35fr)_minmax(0,0.9fr)_minmax(0,0.9fr)]"
               >
                 {featuredPreviewItems.map((item, index) => {
                   const Icon = item.icon;
@@ -904,9 +904,9 @@ const PlatformStats = () => {
                       type="button"
                       aria-label={`${item.subtitle} ${item.title}`}
                       onClick={() => navigate(item.targetPath)}
-                      className={`motion-gpu motion-lift group min-h-[270px] overflow-hidden border text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${palette.card}`}
+                      className={`motion-gpu motion-lift group min-h-[230px] overflow-hidden border text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 lg:min-h-[270px] ${palette.card}`}
                     >
-                      <div className={`${index === 0 ? "h-40 lg:h-48" : "h-36 lg:h-40"} ${isDayMode ? "bg-slate-100" : "bg-black/40"}`}>
+                      <div className={`${index === 0 ? "h-32 lg:h-48" : "h-32 lg:h-40"} ${isDayMode ? "bg-slate-100" : "bg-black/40"}`}>
                         {item.image ? (
                           <img
                             src={item.image}
