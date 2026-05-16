@@ -108,7 +108,7 @@
   },
   "nav": {
     "home": "Home",
-    "gallery": "Live Photos",
+    "gallery": "Gallery",
     "music": "AI Podcast",
     "tags": "Tags",
     "videos": "Videos",
@@ -500,7 +500,7 @@
     "or": "or"
   },
   "gallery": {
-    "title": "Live Photos",
+    "title": "Gallery",
     "subtitle": "Browse live event photos, campus photography, and curated image highlights.",
     "play": "Play",
     "view_3d": "3D Preview",

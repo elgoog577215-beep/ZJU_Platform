@@ -121,8 +121,7 @@ const Navbar = () => {
   const navLinks = [
     { key: "home", path: "/" },
     { key: "events", path: "/events" },
-    { key: "hackathon", path: "/hackathon" },
-    { key: "hackathon_showcase", path: "/hackathon/showcase", label: "比赛成果" },
+    { key: "hackathon", path: "/hackathon", label: "浙客松" },
     { key: "future_learning", path: "/future-learning" },
     { key: "articles", path: "/articles" },
     { key: "music", path: "/music" },
@@ -132,14 +131,14 @@ const Navbar = () => {
     ...(isAdmin ? [{ key: "admin", path: "/admin" }] : []),
   ];
   const isNavItemActive = (path) => {
+    if (path === "/hackathon") return location.pathname.startsWith("/hackathon");
     return location.pathname === path;
   };
   const currentNavLink = navLinks.find((link) => isNavItemActive(link.path));
   const getMobileTitle = (pathname) => {
     if (pathname === "/") return t("nav.home");
+    if (pathname.startsWith("/hackathon")) return "浙客松";
     if (pathname.startsWith("/events")) return t("nav.events");
-    if (pathname.startsWith("/hackathon/showcase")) return "比赛成果";
-    if (pathname.startsWith("/hackathon")) return t("nav.hackathon", "黑客松");
     if (pathname.startsWith("/future-learning")) return t("nav.future_learning", "未来学习中心");
     if (pathname.startsWith("/articles")) return t("nav.articles");
     if (pathname.startsWith("/music")) return t("nav.music", "播客");
@@ -226,7 +225,6 @@ const Navbar = () => {
     !location.pathname.startsWith("/user/");
   const secondaryMobileLinks = [
     { key: "future_learning", path: "/future-learning", icon: Trees },
-    { key: "hackathon_showcase", path: "/hackathon/showcase", icon: Film, label: "比赛成果" },
     { key: "gallery", path: "/gallery", icon: ImageIcon },
     { key: "music", path: "/music", icon: MusicIcon },
     { key: "videos", path: "/videos", icon: Film },

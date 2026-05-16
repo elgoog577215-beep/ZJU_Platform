@@ -845,7 +845,7 @@ const getEventDistinctOptions = async (req, res, next) => {
 const fields = {
     photos: ['url', 'title', 'tags', 'size', 'gameType', 'gameDescription', 'featured'],
     music: ['title', 'artist', 'duration', 'cover', 'audio', 'featured', 'tags'],
-    videos: ['title', 'tags', 'thumbnail', 'video', 'featured'],
+    videos: ['title', 'tags', 'thumbnail', 'video', 'gameType', 'gameDescription', 'featured'],
     articles: ['title', 'date', 'excerpt', 'tags', 'content', 'content_blocks', 'cover', 'featured', 'category', 'related_article_ids', 'related_post_ids', 'related_news_ids', 'related_group_ids'],
     events: ['title', 'date', 'end_date', 'location', 'tags', 'image', 'description', 'content', 'link', 'featured', 'score', 'target_audience', 'organizer', 'volunteer_time', 'category']
 };

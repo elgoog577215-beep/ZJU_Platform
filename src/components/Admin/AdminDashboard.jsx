@@ -208,7 +208,7 @@ const AdminDashboard = () => {
             icon: Users,
             description: t(
               "admin.descriptions.hackathon",
-              "黑客松报名与参赛信息",
+              "黑客松报名、作品与经验审核",
             ),
           },
           {

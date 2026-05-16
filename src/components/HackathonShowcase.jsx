@@ -15,13 +15,16 @@ import {
   Radar,
   Sparkles,
   Trophy,
+  Upload,
   Users,
 } from "lucide-react";
 
-import { podiumWorks } from "../data/hackathonWorks";
+import { podiumWorks as fallbackPodiumWorks } from "../data/hackathonWorks";
 import { hackathonPartnerLogos } from "../data/partnerLogos";
 import { useSettings } from "../context/SettingsContext";
 import { useReducedMotion } from "../utils/animations";
+import api from "../services/api";
+import CompetitionOutcomeUploadModal from "./CompetitionOutcomeUploadModal";
 import SEO from "./SEO";
 
 const HERO_IMAGE = "/images/hero-campus-day-4k.jpg";
@@ -105,15 +108,19 @@ const supportLineup = [
 
 const showcaseSections = [
   { id: "gate", no: "01", label: "SIGNAL GATE", title: "首页" },
-  { id: "film", no: "02", label: "OFFICIAL FILM", title: "宣传片" },
-  { id: "gallery", no: "03", label: "LIVE PHOTOS", title: "赛场" },
-  { id: "works", no: "04", label: "WORKS INDEX", title: "作品" },
-  { id: "partners", no: "05", label: "ECOSYSTEM", title: "共创" },
+  { id: "gallery", no: "02", label: "GALLERY", title: "赛场" },
+  { id: "works", no: "03", label: "WORKS INDEX", title: "作品" },
+  { id: "partners", no: "04", label: "ECOSYSTEM", title: "共创" },
 ];
 
 const partnerDisplayName = (logo) => {
   if (logo.text) return logo.text;
   return logo.alt.replace(/\s*logo$/i, "").trim();
+};
+
+const normalizeShowcaseRank = (rank, index) => {
+  const value = String(rank || index + 1).trim();
+  return /^\d+$/.test(value) ? value.padStart(2, "0") : value;
 };
 
 const MotionSection = motion.section;
@@ -139,6 +146,21 @@ const HackathonShowcase = () => {
   const snapRestoreTimerRef = useRef(null);
   const [activeSection, setActiveSection] = useState(0);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [uploadType, setUploadType] = useState(null);
+  const [outcome, setOutcome] = useState(null);
+
+  const fetchOutcome = async () => {
+    try {
+      const response = await api.get("/competitions/current/outcome");
+      setOutcome(response.data || null);
+    } catch {
+      setOutcome(null);
+    }
+  };
+
+  useEffect(() => {
+    fetchOutcome();
+  }, []);
 
   useEffect(() => {
     const container = pageRef.current;
@@ -213,6 +235,46 @@ const HackathonShowcase = () => {
       shouldAnimate ? 700 : 120,
     );
   };
+
+  const openOutcomeUpload = (type = "stage_photo") => {
+    setUploadType(type);
+  };
+
+  const officialVideo = outcome?.media?.promo_videos?.[0] || null;
+  const galleryMoments = useMemo(() => {
+    const stagePhotos = Array.isArray(outcome?.media?.stage_photos)
+      ? outcome.media.stage_photos
+      : [];
+    if (stagePhotos.length === 0) return mediaMoments;
+
+    const dynamicMoments = stagePhotos.slice(0, 5).map((item, index) => ({
+      id: `${item.source_table || "stage"}-${item.source_id || item.id || index}`,
+      label: item.type_label || item.category || "赛场照片",
+      title: item.title || mediaMoments[index % mediaMoments.length].title,
+      caption: item.description || item.gameDescription || "来自画廊的黑客松成果照片，审核通过后自动同步到这里。",
+      image: item.cover_url || item.url || mediaMoments[index % mediaMoments.length].image,
+    }));
+
+    return [
+      ...dynamicMoments,
+      ...mediaMoments.slice(dynamicMoments.length),
+    ].slice(0, 5);
+  }, [outcome]);
+
+  const showcaseWorks = useMemo(() => {
+    const works = Array.isArray(outcome?.works) ? outcome.works : [];
+    if (works.length === 0) return fallbackPodiumWorks;
+    return works.slice(0, 3).map((work, index) => ({
+      id: work.id,
+      rank: normalizeShowcaseRank(work.rank, index),
+      award: work.award || work.honor_title || "优秀作品",
+      title: work.title || "未命名作品",
+      author: work.author || work.uploader_name || "获奖成员",
+      gitUrl: work.git_url || work.gitUrl || "",
+    }));
+  }, [outcome]);
+
+  const publishedWorksCount = outcome?.stats?.works || showcaseWorks.length;
 
   const theme = isDayMode
     ? {
@@ -707,6 +769,46 @@ const HackathonShowcase = () => {
             }
           }
 
+          .showcase-hero-composition {
+            display: grid;
+            gap: clamp(1.25rem, 3vw, 2.75rem);
+            align-items: center;
+          }
+
+          .showcase-hero-copy {
+            min-width: 0;
+          }
+
+          .showcase-hero-film {
+            min-height: clamp(18rem, 38vh, 32rem);
+          }
+
+          .showcase-hero-film .showcase-cinema-frame::before {
+            inset: 0.75rem;
+          }
+
+          @media (min-width: 1024px) {
+            .showcase-hero-composition {
+              grid-template-columns: minmax(30rem, 0.96fr) minmax(26rem, 1.04fr);
+            }
+          }
+
+          @media (min-width: 1536px) {
+            .showcase-hero-composition {
+              grid-template-columns: minmax(38rem, 0.92fr) minmax(34rem, 1.08fr);
+            }
+
+            .showcase-hero-film {
+              min-height: clamp(24rem, 52vh, 43rem);
+            }
+          }
+
+          @media (max-width: 640px) {
+            .showcase-hero-film {
+              min-height: 15.5rem;
+            }
+          }
+
           .showcase-film-layout,
           .showcase-partner-layout {
             display: grid;
@@ -1091,7 +1193,7 @@ const HackathonShowcase = () => {
 
       <section
         id="gate"
-        className="showcase-snap-section relative isolate flex min-h-[100svh] snap-start snap-always items-center overflow-hidden px-4 pb-32 pt-20 sm:px-6 sm:items-end sm:pb-28 md:pt-28 lg:items-center lg:px-10 lg:pb-28 2xl:px-16"
+        className="showcase-snap-section relative isolate flex min-h-[100svh] snap-start snap-always items-start overflow-hidden px-4 pb-28 pt-20 sm:px-6 sm:pb-32 md:pt-28 lg:items-center lg:px-10 lg:pb-28 2xl:px-16"
       >
         <div className="showcase-tech-bg absolute inset-0 overflow-hidden" aria-hidden="true">
           <div className="showcase-tech-grid" />
@@ -1112,8 +1214,12 @@ const HackathonShowcase = () => {
           2026
         </div>
 
-        <div className="relative z-10 mx-auto w-full max-w-[1680px]">
-          <MotionDiv {...heroReveal} className="max-w-[1080px] -translate-y-[3vh] sm:translate-y-0 lg:translate-y-[-3vh]">
+        <div className="showcase-hero-composition relative z-10 mx-auto w-full max-w-[1680px]">
+          <MotionDiv {...heroReveal} className="showcase-hero-copy lg:-translate-y-[2vh]">
+            <p className={`mb-4 inline-flex items-center gap-2 border px-3 py-2 text-xs font-black uppercase ${theme.chip}`}>
+              <Film className="h-4 w-4" />
+              Official Film Inside
+            </p>
             <h1 className={`showcase-hero-wordmark max-w-[1020px] font-black ${theme.heroTitle}`}>
               <span className="hidden whitespace-nowrap sm:block">AI 全栈极速</span>
               <span className="block sm:hidden">AI 全栈</span>
@@ -1126,12 +1232,19 @@ const HackathonShowcase = () => {
             <div className="mt-7 flex flex-wrap gap-3 sm:mt-8">
               <button
                 type="button"
-                onClick={() => smoothScrollTo("film")}
-                className={`group inline-flex min-h-12 items-center justify-center gap-2 px-6 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 ${theme.primaryButton}`}
+                onClick={() => openOutcomeUpload("stage_photo")}
+                className={`inline-flex min-h-12 items-center justify-center gap-2 px-6 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 ${theme.primaryButton}`}
+              >
+                <Upload className="h-4 w-4" />
+                提交成果
+              </button>
+              <a
+                href="#showcase-official-film"
+                className={`group inline-flex min-h-12 items-center justify-center gap-2 border px-6 text-sm font-bold transition duration-200 focus:outline-none focus:ring-4 ${theme.secondaryButton}`}
               >
                 <Play className="h-4 w-4 fill-current" />
                 观看宣传片
-              </button>
+              </a>
               <button
                 type="button"
                 onClick={() => smoothScrollTo("works")}
@@ -1141,6 +1254,54 @@ const HackathonShowcase = () => {
                 <ArrowRight className="h-4 w-4" />
               </button>
             </div>
+          </MotionDiv>
+
+          <MotionDiv
+            {...heroReveal}
+            transition={{ duration: 0.76, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+            className={`showcase-hero-film showcase-cinema-frame group relative overflow-hidden border ${theme.border} shadow-[0_0_90px_rgba(34,211,238,0.13)]`}
+            id="showcase-official-film"
+          >
+            {officialVideo?.url ? (
+              <video
+                className="h-full w-full object-cover"
+                controls
+                preload="metadata"
+                poster={officialVideo.cover_url || SECONDARY_IMAGE}
+              >
+                <source src={officialVideo.url} />
+              </video>
+            ) : (
+              <img
+                src={SECONDARY_IMAGE}
+                alt="黑客松宣传片封面"
+                className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.025]"
+                style={{ filter: "brightness(0.72) saturate(1.18) contrast(1.08)" }}
+              />
+            )}
+            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(103,232,249,0.10)_1px,transparent_1px),linear-gradient(90deg,rgba(103,232,249,0.08)_1px,transparent_1px)] bg-[size:38px_38px] opacity-25" />
+            <div className={`absolute left-4 top-4 z-10 border px-3 py-2 text-xs font-black uppercase backdrop-blur sm:left-6 sm:top-6 ${theme.cinemaBadge}`}>
+              {officialVideo?.title || "Trailer slot"}
+            </div>
+            {!officialVideo?.url ? (
+              <button
+                type="button"
+                className={`absolute left-1/2 top-1/2 z-10 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border backdrop-blur-xl transition duration-300 hover:scale-105 focus:outline-none focus:ring-4 sm:h-24 sm:w-24 lg:h-28 lg:w-28 ${theme.playButton}`}
+                aria-label="播放宣传片"
+              >
+                <Play className="ml-1 h-8 w-8 fill-current sm:h-9 sm:w-9 lg:h-10 lg:w-10" />
+              </button>
+            ) : null}
+            {!officialVideo?.url ? (
+              <div className="absolute bottom-0 left-0 right-0 z-10 p-5 sm:p-7 lg:p-9">
+                <p className="text-xs font-black uppercase text-cyan-200 sm:text-sm">
+                  5 HOURS / 1 BUILDER / REAL PRODUCT
+                </p>
+                <h2 className="mt-2 max-w-3xl text-2xl font-black leading-none text-white sm:text-4xl lg:text-5xl 2xl:text-6xl">
+                  从赛场声浪到作品上线
+                </h2>
+              </div>
+            ) : null}
           </MotionDiv>
         </div>
         <MotionDiv
@@ -1165,76 +1326,12 @@ const HackathonShowcase = () => {
       </section>
 
       <MotionSection
-        id="film"
-        {...reveal}
-        className="showcase-snap-section relative flex min-h-[100svh] snap-start snap-always items-start overflow-hidden px-4 pb-28 pt-28 sm:px-6 sm:py-16 lg:items-center lg:px-10 lg:py-14 2xl:px-16"
-      >
-        <StageAtmosphere word="FILM" align="right" />
-        <div className="showcase-section-mark">02</div>
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/40 to-transparent" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_70%_50%,rgba(34,211,238,0.18),transparent_42%)]" />
-        <div className="showcase-film-layout relative mx-auto w-full max-w-[1760px]">
-          <div className="flex flex-col justify-center">
-            <div>
-              <p className={`inline-flex items-center gap-2 border px-3 py-2 text-xs font-black uppercase ${theme.chip}`}>
-                <Film className="h-4 w-4" />
-                Chapter 02 / Official Film
-              </p>
-              <h2 className="mt-4 max-w-2xl text-4xl font-black leading-[0.92] sm:text-6xl sm:leading-[0.9] xl:text-[82px] 2xl:text-[88px]">
-                让宣传片成为第一传播入口
-              </h2>
-              <p className={`mt-5 max-w-xl text-base leading-8 ${theme.muted}`}>
-                第一支视频承载整场活动的气势：赛制、冲刺、作品、颁奖和合影在 90 秒内完成记忆点。
-              </p>
-            </div>
-
-            <div className={`mt-8 grid gap-2.5 border-t pt-5 ${theme.border}`}>
-              {["主视频：90 秒官方宣传片", "短视频：15 秒社媒切条", "封面：获奖合影或开发现场大景"].map((item) => (
-                <div key={item} className={`flex items-center gap-3 border px-3 py-2.5 ${theme.mediaItem}`}>
-                  <span className={`h-2.5 w-2.5 ${theme.accentBg} shadow-[0_0_18px_rgba(103,232,249,0.5)]`} />
-                  <span className={`text-sm font-bold ${theme.muted}`}>{item}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className={`showcase-cinema-frame group relative min-h-[440px] overflow-hidden border ${theme.border} shadow-[0_0_90px_rgba(34,211,238,0.13)] lg:min-h-[72vh] xl:min-h-[76vh]`}>
-            <img
-              src={SECONDARY_IMAGE}
-              alt="黑客松宣传片封面"
-              className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.025]"
-              style={{ filter: "brightness(0.72) saturate(1.18) contrast(1.08)" }}
-            />
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(103,232,249,0.10)_1px,transparent_1px),linear-gradient(90deg,rgba(103,232,249,0.08)_1px,transparent_1px)] bg-[size:38px_38px] opacity-25" />
-            <div className={`absolute left-6 top-6 z-10 border px-3 py-2 text-xs font-black uppercase backdrop-blur ${theme.cinemaBadge}`}>
-              Trailer slot
-            </div>
-            <button
-              type="button"
-              className={`absolute left-1/2 top-1/2 z-10 flex h-28 w-28 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border backdrop-blur-xl transition duration-300 hover:scale-105 focus:outline-none focus:ring-4 ${theme.playButton}`}
-              aria-label="播放宣传片"
-            >
-              <Play className="ml-1 h-10 w-10 fill-current" />
-            </button>
-            <div className="absolute bottom-0 left-0 right-0 z-10 p-6 sm:p-10">
-              <p className="text-sm font-black uppercase text-cyan-200">
-                5 HOURS / 1 BUILDER / REAL PRODUCT
-              </p>
-              <h3 className="mt-3 max-w-3xl text-4xl font-black leading-none text-white sm:text-6xl">
-                从赛场声浪到作品上线
-              </h3>
-            </div>
-          </div>
-        </div>
-      </MotionSection>
-
-      <MotionSection
         id="gallery"
         {...reveal}
         className="showcase-snap-section relative flex min-h-[100svh] snap-start snap-always items-start overflow-hidden px-4 pb-28 pt-28 sm:px-6 sm:py-20 lg:items-center lg:px-10 lg:py-20 2xl:px-16"
       >
         <StageAtmosphere word="FIELD" align="left" />
-        <div className="showcase-section-mark">03</div>
+        <div className="showcase-section-mark">02</div>
         <div className="pointer-events-none absolute left-0 top-1/4 h-80 w-80 bg-indigo-500/10 blur-3xl" />
         <div className="pointer-events-none absolute inset-x-0 top-24 h-px bg-gradient-to-r from-transparent via-cyan-300/22 to-transparent" />
         <div className="relative mx-auto w-full max-w-[1740px]">
@@ -1242,7 +1339,7 @@ const HackathonShowcase = () => {
             <div>
               <p className={`inline-flex items-center gap-2 border px-3 py-2 text-sm font-black uppercase ${theme.chip}`}>
                 <Radar className="h-4 w-4" />
-                Chapter 03 / Live Photos
+                Chapter 02 / Gallery
               </p>
               <h2 className="mt-5 text-5xl font-black leading-none sm:text-7xl">
                 赛场照片集锦
@@ -1252,19 +1349,29 @@ const HackathonShowcase = () => {
               <p className={`max-w-xl text-base leading-8 ${theme.muted}`}>
                 用精选大图讲清楚事件规模、人物状态、组织质量和颁奖成果。
               </p>
-              <Link
-                to="/gallery"
-                className={`inline-flex min-h-12 w-full items-center justify-center gap-2 border px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 sm:w-auto ${theme.secondaryButton}`}
-              >
-                <ImageIcon className="h-4 w-4" />
-                查看所有照片
-                <ArrowRight className="h-4 w-4" />
-              </Link>
+              <div className="flex flex-wrap gap-3 md:justify-end">
+                <Link
+                  to="/gallery"
+                  className={`inline-flex min-h-12 w-full items-center justify-center gap-2 border px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 sm:w-auto ${theme.secondaryButton}`}
+                >
+                  <ImageIcon className="h-4 w-4" />
+                  查看所有照片
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => openOutcomeUpload("stage_photo")}
+                  className={`inline-flex min-h-12 w-full items-center justify-center gap-2 px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 sm:w-auto ${theme.primaryButton}`}
+                >
+                  <Upload className="h-4 w-4" />
+                  上传赛场照片
+                </button>
+              </div>
             </div>
           </div>
 
           <div className="showcase-gallery-grid mt-10">
-            {mediaMoments.map((moment, index) => (
+            {galleryMoments.map((moment, index) => (
               <article
                 key={moment.id}
                 className={`showcase-gallery-card group relative overflow-hidden border ${isDayMode ? "border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.12)]" : "border-cyan-300/[0.18] bg-black/20 shadow-[0_0_42px_rgba(34,211,238,0.08)]"}`}
@@ -1299,14 +1406,14 @@ const HackathonShowcase = () => {
         className="showcase-snap-section showcase-mobile-tight relative flex min-h-[100svh] snap-start snap-always items-start overflow-hidden px-4 pb-28 pt-28 sm:px-6 sm:py-20 lg:items-center lg:px-10 lg:py-20 2xl:px-16"
       >
         <StageAtmosphere word="WORKS" align="right" />
-        <div className="showcase-section-mark">04</div>
+        <div className="showcase-section-mark">03</div>
         <div className="pointer-events-none absolute right-0 top-20 h-96 w-96 bg-cyan-300/10 blur-3xl" />
         <div className="relative mx-auto w-full max-w-[1740px]">
           <div>
             <div>
               <p className={`inline-flex items-center gap-2 border px-3 py-2 text-sm font-black uppercase ${theme.chip}`}>
                 <CircuitBoard className="h-4 w-4" />
-                Chapter 04 / Winning Works
+                Chapter 03 / Winning Works
               </p>
               <h2 className="mt-5 text-5xl font-black leading-none sm:text-7xl">
                 优秀作品展示
@@ -1317,14 +1424,22 @@ const HackathonShowcase = () => {
                 to="/hackathon/works"
                 className={`inline-flex min-h-12 items-center justify-center gap-2 border px-5 text-sm font-black transition duration-200 ${theme.chip} hover:border-cyan-300/60 hover:text-cyan-300`}
               >
-                查看全部 20 个获奖作品
+                查看全部 {publishedWorksCount} 个获奖作品
                 <ArrowRight className="h-4 w-4" />
               </Link>
+              <button
+                type="button"
+                onClick={() => openOutcomeUpload("work")}
+                className={`inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 ${theme.primaryButton}`}
+              >
+                <Upload className="h-4 w-4" />
+                提交作品/经验
+              </button>
             </div>
           </div>
 
           <div className="mt-10 grid gap-4 lg:grid-cols-3">
-            {podiumWorks.map((work, index) => (
+            {showcaseWorks.map((work, index) => (
               <article
                 key={work.id}
                 className={`showcase-work-card group flex min-h-[520px] flex-col overflow-hidden border ${theme.panelStrong} transition duration-300 hover:-translate-y-1 hover:border-cyan-300/50 hover:shadow-[0_34px_120px_rgba(34,211,238,0.14)]`}
@@ -1351,15 +1466,25 @@ const HackathonShowcase = () => {
                 <div className="showcase-work-body flex flex-1 flex-col p-6">
                   <h3 className="showcase-work-title text-3xl font-black">{work.title}</h3>
                   <p className={`mt-3 flex-1 text-sm font-bold ${theme.accent}`}>{work.author}</p>
-                  <a
-                    href={work.gitUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={`mt-7 inline-flex min-h-11 items-center justify-center gap-2 border px-4 text-sm font-black transition duration-200 ${theme.chip} hover:border-cyan-300/60 hover:text-cyan-300`}
-                  >
-                    Git 链接
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
+                  {work.gitUrl ? (
+                    <a
+                      href={work.gitUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={`mt-7 inline-flex min-h-11 items-center justify-center gap-2 border px-4 text-sm font-black transition duration-200 ${theme.chip} hover:border-cyan-300/60 hover:text-cyan-300`}
+                    >
+                      Git 链接
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  ) : (
+                    <Link
+                      to="/hackathon/works"
+                      className={`mt-7 inline-flex min-h-11 items-center justify-center gap-2 border px-4 text-sm font-black transition duration-200 ${theme.chip} hover:border-cyan-300/60 hover:text-cyan-300`}
+                    >
+                      查看详情
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  )}
                 </div>
               </article>
             ))}
@@ -1373,7 +1498,7 @@ const HackathonShowcase = () => {
         className="showcase-snap-section showcase-mobile-tight relative flex min-h-[100svh] snap-start snap-always items-start overflow-hidden px-4 pb-40 pt-28 sm:px-6 sm:py-16 lg:items-center lg:px-10 lg:py-14 2xl:px-16"
       >
         <StageAtmosphere word="WITNESS" align="left" />
-        <div className="showcase-section-mark">05</div>
+        <div className="showcase-section-mark">04</div>
         <div className="pointer-events-none absolute inset-x-0 top-1/2 h-px bg-gradient-to-r from-transparent via-cyan-300/30 to-transparent" />
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_70%,rgba(103,232,249,0.12),transparent_34%),radial-gradient(circle_at_86%_20%,rgba(129,140,248,0.10),transparent_34%)]" />
         <div className={`relative mx-auto w-full max-w-[1740px] border-y ${theme.border} ${theme.partnerShell} backdrop-blur-sm`}>
@@ -1494,6 +1619,12 @@ const HackathonShowcase = () => {
           </div>
         </div>
       </MotionSection>
+      <CompetitionOutcomeUploadModal
+        open={Boolean(uploadType)}
+        initialType={uploadType || "stage_photo"}
+        onClose={() => setUploadType(null)}
+        onSubmitted={fetchOutcome}
+      />
     </div>
   );
 };

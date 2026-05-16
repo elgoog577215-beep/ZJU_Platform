@@ -23,14 +23,14 @@ const TYPE_LABELS = {
   music: "音频",
   articles: "文章",
   events: "活动",
-  competition_media: "比赛素材",
   competition_works: "优秀作品",
 };
 
 const REVIEW_ENDPOINTS = {
-  competition_media: (id) => `/admin/competition-media/${id}/review`,
   competition_works: (id) => `/admin/competition-works/${id}/review`,
 };
+
+const REVIEW_TYPES = ["all", "photos", "videos", "music", "articles", "events", "competition_works"];
 
 const reviewPendingItem = (item, status, reason) => {
   const endpointFactory = REVIEW_ENDPOINTS[item.type];
@@ -206,7 +206,7 @@ const PendingReviewManager = () => {
               </div>
             </ToolbarGroup>
             <ToolbarGroup>
-              {["all", "photos", "videos", "music", "articles", "events", "competition_media", "competition_works"].map(
+              {REVIEW_TYPES.map(
                 (type) => (
                   <FilterChip
                     key={type}
@@ -223,7 +223,7 @@ const PendingReviewManager = () => {
         }
       >
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
-          {["all", "photos", "videos", "music", "articles", "events", "competition_media", "competition_works"].map(
+          {REVIEW_TYPES.map(
             (type) => (
               <AdminMetricCard
                 key={type}

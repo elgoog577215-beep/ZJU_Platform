@@ -1,6 +1,6 @@
 {
   "nav": {
-    "gallery": "사진 라이브",
+    "gallery": "갤러리",
     "music": "음악",
     "videos": "비디오",
     "articles": "기사",
@@ -85,7 +85,7 @@
     "all": "전체"
   },
   "gallery": {
-    "title": "사진 라이브",
+    "title": "갤러리",
     "subtitle": "행사 현장 사진, 캠퍼스 사진, 엄선 이미지 보기",
     "play": "플레이",
     "view_3d": "3D 보기",

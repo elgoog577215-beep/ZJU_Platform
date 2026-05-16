@@ -89,10 +89,97 @@ const serializeMedia = (row) => ({
   type_label: MEDIA_LABELS[row.type] || row.type,
 });
 
+const serializePhotoOutcome = (row) => ({
+  id: `photo-${row.id}`,
+  source_table: 'photos',
+  source_id: row.id,
+  type: 'stage_photo',
+  type_label: MEDIA_LABELS.stage_photo,
+  title: row.title,
+  description: row.gameDescription || '',
+  url: row.url,
+  cover_url: row.url,
+  tags: row.tags,
+  status: row.status,
+  sort_order: 0,
+  uploader_name: row.uploader_name,
+  created_at: row.created_at,
+});
+
+const serializeVideoOutcome = (row) => ({
+  id: `video-${row.id}`,
+  source_table: 'videos',
+  source_id: row.id,
+  type: 'promo_video',
+  type_label: MEDIA_LABELS.promo_video,
+  title: row.title,
+  description: row.gameDescription || '',
+  url: row.video,
+  cover_url: row.thumbnail,
+  tags: row.tags,
+  status: row.status,
+  sort_order: 0,
+  uploader_name: row.uploader_name,
+  created_at: row.created_at,
+});
+
+const dedupeOutcomeMedia = (items) => {
+  const seen = new Set();
+  return items.filter((item) => {
+    const key = `${item.type}:${item.url || item.source_table}:${item.source_id || item.id}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
+
 const serializeWork = (row) => ({
   ...row,
   sort_order: toInteger(row.sort_order, 0),
+  public_consent: row.public_consent === undefined ? true : Boolean(row.public_consent),
 });
+
+const serializePublicWork = (row) => ({
+  id: row.id,
+  competition_id: row.competition_id,
+  title: row.title,
+  author: row.author,
+  summary: row.summary,
+  git_url: row.git_url,
+  award: row.award,
+  rank: row.rank,
+  cover_url: row.cover_url,
+  sort_order: toInteger(row.sort_order, 0),
+  honor_title: row.honor_title || row.award || (row.rank ? `Top ${row.rank}` : null),
+  grade: row.grade,
+  major: row.major,
+  highlight: row.highlight,
+  experience: row.experience,
+  story_file_url: row.story_file_url,
+  uploader_name: row.uploader_name,
+});
+
+const extractWorkStoryFields = (body, options = {}) => {
+  const allowExternalStoryFile = Boolean(options.allowExternalStoryFile);
+  const storyFileUrl = nullableText(body.story_file_url || body.storyFileUrl, 1000);
+  if (storyFileUrl && !isSafeAssetUrl(storyFileUrl, { allowExternal: allowExternalStoryFile })) {
+    const error = new Error('经验分享附件地址无效');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  return {
+    honorTitle: nullableText(body.honor_title || body.honorTitle, 120),
+    grade: nullableText(body.grade, 80),
+    major: nullableText(body.major, 160),
+    highlight: nullableText(body.highlight, 220),
+    experience: nullableText(body.experience, 8000),
+    storyFileUrl,
+    publicConsent: body.public_consent === undefined && body.publicConsent === undefined
+      ? 1
+      : toBooleanInt(body.public_consent ?? body.publicConsent),
+  };
+};
 
 const createAuditLog = async (db, adminId, resourceType, resourceId, action, reason = null) => {
   if (!adminId) return;
@@ -121,7 +208,7 @@ const notifyReviewResult = async ({ resource, status, reason, adminId, resourceT
 };
 
 const getFeaturedCompetition = async (db) => {
-  return db.get(`
+  const featured = await db.get(`
     SELECT *
     FROM competitions
     WHERE is_featured = 1
@@ -130,6 +217,32 @@ const getFeaturedCompetition = async (db) => {
     ORDER BY updated_at DESC, id DESC
     LIMIT 1
   `);
+  if (featured) return featured;
+
+  const active = await db.get(`
+    SELECT *
+    FROM competitions
+    WHERE status = 'active'
+      AND deleted_at IS NULL
+    ORDER BY updated_at DESC, id DESC
+    LIMIT 1
+  `);
+  if (active) return active;
+
+  const result = await db.run(
+    `INSERT INTO competitions (
+      slug, title, subtitle, description, event_date, is_featured, status, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, 1, 'active', datetime('now'), datetime('now'))`,
+    [
+      'ai-full-stack-hackathon-outcome',
+      'AI 全栈极速黑客松',
+      '比赛成果展示',
+      '赛事宣传片、赛场照片和优秀作品会在审核通过后展示在这里。',
+      '2026',
+    ],
+  );
+
+  return getCompetitionById(db, result.lastID);
 };
 
 const getCompetitionById = async (db, id) => {
@@ -168,16 +281,26 @@ const getCurrentOutcome = async (_req, res, next) => {
       });
     }
 
-    const [mediaRows, workRows] = await Promise.all([
+    const [photoRows, videoRows, workRows] = await Promise.all([
       db.all(
-        `SELECT cm.*, COALESCE(u.nickname, u.username) AS uploader_name
-         FROM competition_media cm
-         LEFT JOIN users u ON u.id = cm.uploader_id
-         WHERE cm.competition_id = ?
-           AND cm.status = 'approved'
-           AND cm.deleted_at IS NULL
-         ORDER BY cm.sort_order ASC, cm.id DESC`,
-        [competition.id],
+        `SELECT p.*, COALESCE(u.nickname, u.username) AS uploader_name
+         FROM photos p
+         LEFT JOIN users u ON u.id = p.uploader_id
+         WHERE p.status = 'approved'
+           AND p.deleted_at IS NULL
+           AND p.gameType = 'hackathon'
+          ORDER BY p.featured DESC, p.id DESC
+          LIMIT 18`,
+      ),
+      db.all(
+        `SELECT v.*, COALESCE(u.nickname, u.username) AS uploader_name
+         FROM videos v
+         LEFT JOIN users u ON u.id = v.uploader_id
+         WHERE v.status = 'approved'
+           AND v.deleted_at IS NULL
+           AND v.gameType = 'hackathon'
+          ORDER BY v.featured DESC, v.id DESC
+          LIMIT 8`,
       ),
       db.all(
         `SELECT cw.*, COALESCE(u.nickname, u.username) AS uploader_name
@@ -185,16 +308,20 @@ const getCurrentOutcome = async (_req, res, next) => {
          LEFT JOIN users u ON u.id = cw.uploader_id
          WHERE cw.competition_id = ?
            AND cw.status = 'approved'
+           AND COALESCE(cw.public_consent, 1) = 1
            AND cw.deleted_at IS NULL
          ORDER BY cw.sort_order ASC, cw.id DESC`,
         [competition.id],
       ),
     ]);
 
-    const media = mediaRows.map(serializeMedia);
-    const promoVideos = media.filter((item) => item.type === 'promo_video');
-    const stagePhotos = media.filter((item) => item.type === 'stage_photo');
-    const works = workRows.map(serializeWork);
+    const media = [
+      ...photoRows.map(serializePhotoOutcome),
+      ...videoRows.map(serializeVideoOutcome),
+    ];
+    const promoVideos = dedupeOutcomeMedia(media.filter((item) => item.type === 'promo_video'));
+    const stagePhotos = dedupeOutcomeMedia(media.filter((item) => item.type === 'stage_photo'));
+    const works = workRows.map(serializePublicWork);
 
     res.setHeader('Cache-Control', 'no-store');
     return res.json({
@@ -281,6 +408,7 @@ const submitCurrentWork = async (req, res, next) => {
     const award = nullableText(req.body.award, 140);
     const rank = nullableText(req.body.rank, 40);
     const coverUrl = nullableText(req.body.cover_url || req.body.coverUrl, 1000);
+    const story = extractWorkStoryFields(req.body);
 
     if (!title) return sendBadRequest(res, '请填写作品名称');
     if (!author) return sendBadRequest(res, '请填写作者');
@@ -296,8 +424,9 @@ const submitCurrentWork = async (req, res, next) => {
     const result = await db.run(
       `INSERT INTO competition_works (
         competition_id, title, author, summary, git_url, award, rank, cover_url,
+        honor_title, grade, major, highlight, experience, story_file_url, public_consent,
         sort_order, status, uploader_id, reviewed_by, reviewed_at, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
       [
         competition.id,
         title,
@@ -307,6 +436,13 @@ const submitCurrentWork = async (req, res, next) => {
         award,
         rank,
         coverUrl,
+        story.honorTitle,
+        story.grade,
+        story.major,
+        story.highlight,
+        story.experience,
+        story.storyFileUrl,
+        story.publicConsent,
         toInteger(req.body.sort_order, 0),
         status,
         req.user.id,
@@ -759,6 +895,7 @@ const createAdminWork = async (req, res, next) => {
     const gitUrl = nullableText(req.body.git_url || req.body.gitUrl, 1000);
     const coverUrl = nullableText(req.body.cover_url || req.body.coverUrl, 1000);
     const status = normalizeStatus(req.body.status, 'approved');
+    const story = extractWorkStoryFields(req.body, { allowExternalStoryFile: true });
 
     if (!title) return sendBadRequest(res, '请填写作品名称');
     if (!author) return sendBadRequest(res, '请填写作者');
@@ -771,8 +908,9 @@ const createAdminWork = async (req, res, next) => {
     const result = await db.run(
       `INSERT INTO competition_works (
         competition_id, title, author, summary, git_url, award, rank, cover_url,
+        honor_title, grade, major, highlight, experience, story_file_url, public_consent,
         sort_order, status, uploader_id, reviewed_by, reviewed_at, review_note, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
       [
         competitionId,
         title,
@@ -782,6 +920,13 @@ const createAdminWork = async (req, res, next) => {
         nullableText(req.body.award, 140),
         nullableText(req.body.rank, 40),
         coverUrl,
+        story.honorTitle,
+        story.grade,
+        story.major,
+        story.highlight,
+        story.experience,
+        story.storyFileUrl,
+        story.publicConsent,
         toInteger(req.body.sort_order, 0),
         status,
         req.user.id,
@@ -822,6 +967,7 @@ const updateAdminWork = async (req, res, next) => {
       ? nullableText(req.body.cover_url || req.body.coverUrl, 1000)
       : existing.cover_url;
     const status = req.body.status !== undefined ? normalizeStatus(req.body.status, existing.status) : existing.status;
+    const story = extractWorkStoryFields(req.body, { allowExternalStoryFile: true });
 
     if (!title) return sendBadRequest(res, '请填写作品名称');
     if (!author) return sendBadRequest(res, '请填写作者');
@@ -846,6 +992,13 @@ const updateAdminWork = async (req, res, next) => {
            award = ?,
            rank = ?,
            cover_url = ?,
+           honor_title = ?,
+           grade = ?,
+           major = ?,
+           highlight = ?,
+           experience = ?,
+           story_file_url = ?,
+           public_consent = ?,
            sort_order = ?,
            status = ?,
            reviewed_by = ?,
@@ -862,6 +1015,13 @@ const updateAdminWork = async (req, res, next) => {
         req.body.award !== undefined ? nullableText(req.body.award, 140) : existing.award,
         req.body.rank !== undefined ? nullableText(req.body.rank, 40) : existing.rank,
         coverUrl,
+        req.body.honor_title !== undefined || req.body.honorTitle !== undefined ? story.honorTitle : existing.honor_title,
+        req.body.grade !== undefined ? story.grade : existing.grade,
+        req.body.major !== undefined ? story.major : existing.major,
+        req.body.highlight !== undefined ? story.highlight : existing.highlight,
+        req.body.experience !== undefined ? story.experience : existing.experience,
+        req.body.story_file_url !== undefined || req.body.storyFileUrl !== undefined ? story.storyFileUrl : existing.story_file_url,
+        req.body.public_consent !== undefined || req.body.publicConsent !== undefined ? story.publicConsent : existing.public_consent,
         req.body.sort_order !== undefined ? toInteger(req.body.sort_order, 0) : existing.sort_order,
         status,
         reviewedBy,
@@ -927,40 +1087,16 @@ const reviewAdminWork = async (req, res, next) => {
 };
 
 const listPendingCompetitionItems = async (db) => {
-  const [mediaRows, workRows] = await Promise.all([
-    db.all(`
-      SELECT cm.*, c.title AS competition_title, COALESCE(u.nickname, u.username) AS uploader_name
-      FROM competition_media cm
-      LEFT JOIN competitions c ON c.id = cm.competition_id
-      LEFT JOIN users u ON u.id = cm.uploader_id
-      WHERE cm.status = 'pending'
-        AND cm.deleted_at IS NULL
-        AND c.deleted_at IS NULL
-      ORDER BY cm.created_at DESC, cm.id DESC
-    `),
-    db.all(`
-      SELECT cw.*, c.title AS competition_title, COALESCE(u.nickname, u.username) AS uploader_name
-      FROM competition_works cw
-      LEFT JOIN competitions c ON c.id = cw.competition_id
-      LEFT JOIN users u ON u.id = cw.uploader_id
-      WHERE cw.status = 'pending'
-        AND cw.deleted_at IS NULL
-        AND c.deleted_at IS NULL
-      ORDER BY cw.created_at DESC, cw.id DESC
-    `),
-  ]);
-
-  const media = mediaRows.map((row) => ({
-    ...row,
-    type: 'competition_media',
-    resource_type: 'competition_media',
-    content_type: row.type,
-    title: row.title,
-    description: row.description || row.competition_title || '',
-    preview_image: row.cover_url || (row.type === 'stage_photo' ? row.url : null),
-    category: MEDIA_LABELS[row.type] || '比赛素材',
-    tags: row.competition_title || '',
-  }));
+  const workRows = await db.all(`
+    SELECT cw.*, c.title AS competition_title, COALESCE(u.nickname, u.username) AS uploader_name
+    FROM competition_works cw
+    LEFT JOIN competitions c ON c.id = cw.competition_id
+    LEFT JOIN users u ON u.id = cw.uploader_id
+    WHERE cw.status = 'pending'
+      AND cw.deleted_at IS NULL
+      AND c.deleted_at IS NULL
+    ORDER BY cw.created_at DESC, cw.id DESC
+  `);
 
   const works = workRows.map((row) => ({
     ...row,
@@ -973,7 +1109,7 @@ const listPendingCompetitionItems = async (db) => {
     tags: [row.competition_title, row.author].filter(Boolean).join(', '),
   }));
 
-  return [...media, ...works].sort((left, right) => {
+  return works.sort((left, right) => {
     const leftTime = new Date(left.created_at || 0).getTime();
     const rightTime = new Date(right.created_at || 0).getTime();
     if (rightTime !== leftTime) return rightTime - leftTime;

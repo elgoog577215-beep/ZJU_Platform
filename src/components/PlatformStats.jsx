@@ -1,4 +1,4 @@
-import { memo, useEffect, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -67,7 +67,7 @@ const EcosystemRadar = memo(({ isDayMode, shouldAnimate }) => {
     : "border-cyan-300/24 bg-[#061013]/88 text-white shadow-[0_0_48px_rgba(103,232,249,0.12)]";
 
   return (
-    <div className="relative mx-auto aspect-square w-full max-w-[560px] overflow-hidden">
+    <div className="relative mx-auto aspect-square w-full max-w-[500px] overflow-hidden">
       <motion.div
         animate={shouldAnimate ? { rotate: 360 } : undefined}
         transition={
@@ -153,6 +153,13 @@ const EcosystemRadar = memo(({ isDayMode, shouldAnimate }) => {
 
 EcosystemRadar.displayName = "EcosystemRadar";
 
+const homeSnapSections = [
+  { id: "home-ecosystem", label: "生态", icon: Network },
+  { id: "home-engine", label: "引擎", icon: Orbit },
+  { id: "home-resources", label: "资源", icon: Handshake },
+  { id: "home-live", label: "动态", icon: Zap },
+];
+
 const PlatformStats = () => {
   const { t } = useTranslation();
   const { settings, uiMode } = useSettings();
@@ -179,6 +186,9 @@ const PlatformStats = () => {
   const [followRecommendations, setFollowRecommendations] = useState([]);
   const [followLoading, setFollowLoading] = useState(false);
   const [followingIds, setFollowingIds] = useState([]);
+  const pageRef = useRef(null);
+  const [activeSection, setActiveSection] = useState(0);
+  const [scrollProgress, setScrollProgress] = useState(0);
 
   const featuredItems = [
     ...(featuredData?.photos || []).slice(0, 2).map((item) => ({
@@ -224,6 +234,7 @@ const PlatformStats = () => {
   ]
     .filter((item) => item?.id)
     .slice(0, 7);
+  const featuredPreviewItems = featuredItems.slice(0, 3);
 
   const schoolSupport = parseUnits(
     settings.about_school_support_units || "未来学习中心,AI 联合实验室",
@@ -301,13 +312,6 @@ const PlatformStats = () => {
     },
   ];
 
-  const loopItems = [
-    { index: "01", title: "汇聚", detail: "统一承接活动、资源、课题与招募信息" },
-    { index: "02", title: "协作", detail: "社群组织推动组队、共创与项目执行" },
-    { index: "03", title: "验证", detail: "赛事评审沉淀作品与能力证明" },
-    { index: "04", title: "转化", detail: "优秀成果对接实践、实习与推荐通道" },
-  ];
-
   const palette = isDayMode
     ? {
         page: "bg-[linear-gradient(180deg,#020617_0%,#06131d_4rem,#f6f8fb_13rem,#f7fafc_100%)] text-slate-950",
@@ -351,6 +355,41 @@ const PlatformStats = () => {
         firstText: "text-white",
         firstSoft: "text-white/72",
       };
+
+  useEffect(() => {
+    const container = pageRef.current;
+    if (!container) return undefined;
+
+    const handleScroll = () => {
+      const scrollHeight = container.scrollHeight - container.clientHeight;
+      setScrollProgress(
+        scrollHeight > 0 ? (container.scrollTop / scrollHeight) * 100 : 0,
+      );
+
+      const viewportAnchor = container.scrollTop + container.clientHeight * 0.45;
+      const currentIndex = homeSnapSections.reduce((activeIndex, item, index) => {
+        const section = document.getElementById(item.id);
+        if (!section) return activeIndex;
+        return section.offsetTop <= viewportAnchor ? index : activeIndex;
+      }, 0);
+      setActiveSection(currentIndex);
+    };
+
+    handleScroll();
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const smoothScrollTo = (id) => {
+    const container = pageRef.current;
+    const target = document.getElementById(id);
+    if (!container || !target) return;
+
+    container.scrollTo({
+      top: target.offsetTop,
+      behavior: shouldAnimate ? "smooth" : "auto",
+    });
+  };
 
   useEffect(() => {
     if (!user) {
@@ -409,7 +448,58 @@ const PlatformStats = () => {
   };
 
   return (
-    <section className={`relative overflow-hidden ${palette.page}`}>
+    <section
+      ref={pageRef}
+      className={`relative h-[100svh] snap-y snap-mandatory overflow-y-auto overflow-x-hidden scroll-smooth overscroll-y-contain ${palette.page}`}
+    >
+      <div className="sticky top-0 z-30 h-0">
+        <div className="h-0.5 bg-transparent">
+          <div
+            className="h-full bg-gradient-to-r from-cyan-400 via-teal-300 to-indigo-500 transition-all duration-150"
+            style={{ width: `${scrollProgress}%` }}
+          />
+        </div>
+      </div>
+
+      <div className="pointer-events-none sticky top-1/2 z-30 hidden h-0 -translate-y-1/2 lg:block">
+        <div className="absolute right-6 flex -translate-y-1/2 flex-col items-center gap-4">
+          {homeSnapSections.map((item, index) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => smoothScrollTo(item.id)}
+              className="pointer-events-auto group relative flex items-center gap-3"
+              aria-label={`跳转到${item.label}`}
+            >
+              <span
+                className={`absolute right-full mr-3 whitespace-nowrap text-xs font-black uppercase tracking-[0.18em] opacity-0 transition group-hover:opacity-100 ${
+                  activeSection === index ? "opacity-100" : ""
+                } ${isDayMode ? "text-slate-600" : "text-white/60"}`}
+              >
+                {item.label}
+              </span>
+              <span
+                className={`flex h-10 w-10 items-center justify-center rounded-full border text-[10px] font-black transition ${
+                  activeSection === index
+                    ? isDayMode
+                      ? "border-cyan-500 bg-cyan-500 text-white shadow-lg shadow-cyan-200"
+                      : "border-cyan-300 bg-cyan-300 text-slate-950 shadow-[0_0_30px_rgba(103,232,249,0.26)]"
+                    : isDayMode
+                      ? "border-slate-200 bg-white/82 text-slate-400 hover:border-cyan-400 hover:text-cyan-600"
+                      : "border-white/10 bg-white/[0.05] text-white/34 hover:border-cyan-300/60 hover:text-cyan-200"
+                }`}
+              >
+                {activeSection === index ? (
+                  <span className="h-2.5 w-2.5 rounded-full bg-current" />
+                ) : (
+                  String(index + 1).padStart(2, "0")
+                )}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="pointer-events-none absolute inset-0 opacity-[0.12] [background-image:linear-gradient(rgba(103,232,249,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(103,232,249,0.12)_1px,transparent_1px)] [background-size:52px_52px]" />
       <div
         className={`pointer-events-none absolute -right-[9vw] top-28 select-none text-[16vw] font-black uppercase leading-[0.8] tracking-tight ${palette.watermark}`}
@@ -417,13 +507,16 @@ const PlatformStats = () => {
         HOME
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-[2140px] px-4 pb-[calc(7.5rem+env(safe-area-inset-bottom))] pt-14 sm:px-6 sm:pb-24 sm:pt-24 lg:px-10 lg:pb-28 lg:pt-28 2xl:px-16">
+      <section
+        id="home-ecosystem"
+        className="relative z-10 flex min-h-[100svh] snap-start snap-always items-center px-4 py-[calc(4.75rem+env(safe-area-inset-top))] sm:px-6 lg:px-10 2xl:px-16"
+      >
         <motion.div
           variants={sectionReveal}
           initial={prefersReducedMotion ? false : "initial"}
           whileInView={prefersReducedMotion ? undefined : "animate"}
           viewport={motionTokens.viewport}
-          className="grid items-center gap-7 md:min-h-[64svh] lg:min-h-[72svh] lg:grid-cols-[minmax(0,0.94fr)_minmax(440px,0.76fr)] lg:gap-14"
+          className="mx-auto grid w-full max-w-[1880px] items-center gap-7 lg:grid-cols-[minmax(0,0.94fr)_minmax(390px,0.72fr)] lg:gap-12"
         >
           <div className={palette.firstText}>
             <div
@@ -437,19 +530,19 @@ const PlatformStats = () => {
               ZJU AI Ecosystem
             </div>
 
-            <h2 className="mt-6 max-w-5xl text-[2.35rem] font-black leading-[0.96] tracking-tight min-[360px]:text-[2.7rem] sm:text-6xl lg:text-[5.35rem] lg:leading-[0.9] xl:text-[6.05rem] 2xl:text-[6.85rem]">
+            <h2 className="mt-6 max-w-5xl text-[2.15rem] font-black leading-[0.96] tracking-tight min-[360px]:text-[2.45rem] sm:text-5xl lg:text-[4.7rem] lg:leading-[0.9] xl:text-[5.35rem] 2xl:text-[6rem]">
               <span className="block">把企业真题，</span>
               <span className={`block ${palette.accent}`}>接入一张</span>
               <span className="block whitespace-nowrap">校园 AI 网络。</span>
             </h2>
 
             <p
-              className={`mt-5 max-w-3xl text-sm font-medium leading-7 sm:mt-7 sm:text-xl sm:leading-9 ${palette.firstSoft}`}
+              className={`mt-5 max-w-3xl text-sm font-medium leading-7 sm:mt-6 sm:text-lg sm:leading-8 ${palette.firstSoft}`}
             >
               平台围绕校园 AI 活动、社群共建、真实课题与实战赛事，连接学生、学校支持单位与企业伙伴，提供从信息触达到项目转化的一体化入口。
             </p>
 
-            <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row">
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <LinkButton
                 isDayMode={isDayMode}
                 onClick={() => navigate("/events")}
@@ -466,10 +559,10 @@ const PlatformStats = () => {
               </LinkButton>
             </div>
 
-            <div className={`mt-6 grid grid-cols-3 gap-px border ${palette.grid} sm:mt-10`}>
+            <div className={`mt-6 grid grid-cols-3 gap-px border ${palette.grid} sm:mt-8`}>
               {proofStats.map((item) => (
-                <div key={item.label} className={`min-h-[88px] p-3 sm:min-h-0 sm:p-6 ${palette.cell}`}>
-                  <div className={`text-2xl font-black leading-none tracking-tight min-[360px]:text-3xl sm:text-4xl ${palette.accent}`}>
+                <div key={item.label} className={`min-h-[82px] p-3 sm:min-h-0 sm:p-5 ${palette.cell}`}>
+                  <div className={`text-2xl font-black leading-none tracking-tight min-[360px]:text-3xl sm:text-[2rem] ${palette.accent}`}>
                     {item.value}
                   </div>
                   <div className="mt-2 text-[11px] font-black leading-4 sm:mt-3 sm:text-sm">
@@ -483,7 +576,7 @@ const PlatformStats = () => {
             </div>
           </div>
 
-          <div className={`relative hidden border p-4 sm:p-7 md:block ${palette.panelStrong}`}>
+          <div className={`relative hidden border p-4 sm:p-6 md:block ${palette.panelStrong}`}>
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_16%,rgba(103,232,249,0.18),transparent_36%),linear-gradient(135deg,rgba(103,232,249,0.08),transparent_46%)]" />
             <div
               className={`pointer-events-none absolute -right-8 -top-8 text-[7rem] font-black uppercase leading-none tracking-tight ${palette.watermark}`}
@@ -496,38 +589,43 @@ const PlatformStats = () => {
             />
           </div>
         </motion.div>
+      </section>
 
+      <section
+        id="home-engine"
+        className="relative z-10 flex min-h-[100svh] snap-start snap-always items-center px-4 py-[calc(4.75rem+env(safe-area-inset-top))] sm:px-6 lg:px-10 2xl:px-16"
+      >
         <motion.div
           variants={sectionReveal}
           initial={prefersReducedMotion ? false : "initial"}
           whileInView={prefersReducedMotion ? undefined : "animate"}
           viewport={motionTokens.viewport}
-          className="mt-10 sm:mt-20 lg:mt-32"
+          className="mx-auto w-full max-w-[1880px]"
         >
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className={`text-xs font-black uppercase tracking-[0.24em] ${palette.label}`}>
                 Core Engine
               </p>
-              <h2 className="mt-3 max-w-5xl text-[2.15rem] font-black leading-none tracking-tight text-balance sm:text-6xl lg:text-[clamp(3.5rem,6.6vw,6.5rem)]">
+              <h2 className="mt-3 max-w-5xl text-[2rem] font-black leading-none tracking-tight text-balance sm:text-5xl lg:text-[clamp(2.9rem,4.9vw,5.05rem)]">
                 不是活动很多，
                 <br />
                 是产学路径清楚。
               </h2>
             </div>
-            <p className={`max-w-2xl text-sm leading-7 sm:text-lg sm:leading-8 ${palette.textSoft}`}>
+            <p className={`max-w-2xl text-sm leading-7 sm:text-base sm:leading-8 ${palette.textSoft}`}>
               首页聚焦用户可直接参与的行动入口：发现活动、加入社群、对接课题、进入赛事。完整生态逻辑则在关于页面展开说明。
             </p>
           </div>
 
-          <div className="mt-6 grid gap-3 sm:mt-9 sm:gap-5 lg:grid-cols-4">
+          <div className="mt-5 grid gap-3 sm:mt-7 sm:gap-4 lg:grid-cols-4">
             {operatingHandles.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
                   key={item.code}
                   to={item.route}
-                  className={`group relative min-h-[180px] overflow-hidden border border-l-4 p-4 transition duration-300 hover:-translate-y-1 sm:min-h-[320px] sm:p-7 lg:min-h-[420px] ${palette.card} ${
+                  className={`group relative min-h-[160px] overflow-hidden border border-l-4 p-4 transition duration-300 hover:-translate-y-1 sm:min-h-[260px] sm:p-6 lg:min-h-[300px] ${palette.card} ${
                     isDayMode ? "border-l-cyan-500" : "border-l-cyan-300"
                   }`}
                 >
@@ -550,10 +648,10 @@ const PlatformStats = () => {
                         <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
                       </div>
                     </div>
-                    <h3 className="mt-4 text-2xl font-black leading-none tracking-tight sm:mt-10 sm:text-5xl">
+                    <h3 className="mt-4 text-2xl font-black leading-none tracking-tight sm:mt-7 sm:text-[2.35rem]">
                       {item.title}
                     </h3>
-                    <p className={`mt-3 line-clamp-2 text-xs leading-5 sm:mt-6 sm:text-base sm:leading-7 ${palette.textSoft}`}>
+                    <p className={`mt-3 line-clamp-2 text-xs leading-5 sm:mt-4 sm:text-sm sm:leading-6 ${palette.textSoft}`}>
                       {item.description}
                     </p>
                     <div className={`mt-auto flex items-end justify-between border-t pt-4 sm:pt-6 ${palette.divider}`}>
@@ -576,37 +674,21 @@ const PlatformStats = () => {
             })}
           </div>
 
-          <div className={`mt-4 grid grid-cols-2 gap-px overflow-hidden border sm:mt-6 lg:grid-cols-[0.9fr_repeat(4,1fr)] ${palette.grid}`}>
-            <div className={`p-5 ${isDayMode ? "bg-white/76" : "bg-white/[0.035]"}`}>
-              <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${palette.label}`}>
-                Operating Loop
-              </p>
-              <h3 className="mt-2 text-xl font-black leading-none tracking-tight sm:text-2xl">
-                从真题到通道
-              </h3>
-            </div>
-            {loopItems.map((item) => (
-              <div key={item.index} className={`p-4 sm:p-5 ${palette.cell}`}>
-                <div className={`font-mono text-xs font-black ${palette.accent}`}>
-                  {item.index}
-                </div>
-                <h3 className="mt-2 text-xl font-black sm:text-2xl">{item.title}</h3>
-                <p className={`mt-1.5 text-[11px] leading-4 sm:mt-2 sm:text-xs sm:leading-5 ${palette.textMuted}`}>
-                  {item.detail}
-                </p>
-              </div>
-            ))}
-          </div>
         </motion.div>
+      </section>
 
+      <section
+        id="home-resources"
+        className="relative z-10 flex min-h-[100svh] snap-start snap-always items-center px-4 py-[calc(4.75rem+env(safe-area-inset-top))] sm:px-6 lg:px-10 2xl:px-16"
+      >
         <motion.div
           variants={sectionReveal}
           initial={prefersReducedMotion ? false : "initial"}
           whileInView={prefersReducedMotion ? undefined : "animate"}
           viewport={motionTokens.viewport}
-          className="mt-12 grid gap-4 lg:mt-24 lg:grid-cols-[0.82fr_1.18fr] lg:gap-6"
+          className="mx-auto grid w-full max-w-[1880px] gap-4 lg:grid-cols-[0.78fr_1.22fr] lg:gap-5"
         >
-          <div className={`relative overflow-hidden border p-5 sm:min-h-[470px] sm:p-8 lg:p-9 ${palette.panelStrong}`}>
+          <div className={`relative overflow-hidden border p-5 sm:min-h-[390px] sm:p-7 lg:p-8 ${palette.panelStrong}`}>
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(103,232,249,0.18),transparent_38%)]" />
             <div
               className={`pointer-events-none absolute -right-16 bottom-8 text-[11rem] font-black uppercase leading-none tracking-tight ${palette.watermark}`}
@@ -614,17 +696,17 @@ const PlatformStats = () => {
               BASE
             </div>
             <div className={`pointer-events-none absolute left-0 top-0 h-full w-1 ${palette.accentBg}`} />
-            <div className="relative z-10 flex flex-col justify-between gap-6 sm:min-h-[394px] lg:min-h-[410px]">
+            <div className="relative z-10 flex flex-col justify-between gap-6 sm:min-h-[330px] lg:min-h-[370px]">
               <div>
                 <div className={`font-mono text-xs font-black uppercase tracking-[0.2em] ${palette.accent}`}>
                   01 / Foundation
                 </div>
-                <h2 className="mt-5 max-w-lg text-[2.65rem] font-black leading-[0.96] tracking-tight sm:mt-6 sm:text-[4.25rem] lg:text-[clamp(4.25rem,5.25vw,5.1rem)]">
+                <h2 className="mt-5 max-w-lg text-[2.35rem] font-black leading-[0.96] tracking-tight sm:mt-6 sm:text-[3.65rem] lg:text-[clamp(3.7rem,4.6vw,4.65rem)]">
                   三方资源
                   <br />
                   在这里汇合
                 </h2>
-                <p className={`mt-4 max-w-lg text-sm leading-6 sm:mt-6 sm:text-base sm:leading-7 ${palette.textSoft}`}>
+                <p className={`mt-4 max-w-lg text-sm leading-6 sm:mt-5 sm:text-[0.95rem] sm:leading-7 ${palette.textSoft}`}>
                   学校支持单位提供场景、空间与组织机制，学生组织承担触达、动员与执行，企业伙伴提供真实课题、技术资源与成果转化通道。
                 </p>
               </div>
@@ -633,7 +715,7 @@ const PlatformStats = () => {
                 {schoolSupport.map((item) => (
                   <div
                     key={item}
-                    className={`grid gap-1.5 border-l-4 px-3.5 py-3 sm:gap-2 sm:px-5 sm:py-4 ${
+                    className={`grid gap-1.5 border-l-4 px-3.5 py-3 sm:gap-2 sm:px-4 sm:py-3.5 ${
                       isDayMode
                         ? "border-l-cyan-500 bg-white/76"
                         : "border-l-cyan-300 bg-cyan-300/[0.05]"
@@ -643,22 +725,22 @@ const PlatformStats = () => {
                       <Building2 className="h-3.5 w-3.5" />
                       School Support
                     </div>
-                    <div className="text-lg font-black leading-tight sm:text-2xl">{item}</div>
+                    <div className="text-lg font-black leading-tight sm:text-xl">{item}</div>
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
-          <div className="grid gap-6">
-            <div className={`relative overflow-hidden border p-5 sm:p-8 ${palette.card}`}>
+          <div className="grid gap-4">
+            <div className={`relative overflow-hidden border p-5 sm:p-7 ${palette.card}`}>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <div className={`flex items-center gap-2 font-mono text-xs font-black uppercase tracking-[0.2em] ${palette.accent}`}>
                     <Users className="h-3.5 w-3.5" />
                     Campus Force
                   </div>
-                  <h3 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
+                  <h3 className="mt-3 text-3xl font-black tracking-tight sm:text-[2.35rem]">
                     学生组织
                   </h3>
                 </div>
@@ -666,14 +748,14 @@ const PlatformStats = () => {
                   People Layer
                 </div>
               </div>
-              <p className={`mt-4 max-w-2xl text-sm font-bold leading-6 ${palette.textMuted}`}>
+              <p className={`mt-3 max-w-2xl text-sm font-bold leading-6 ${palette.textMuted}`}>
                 学生组织承担活动招募、社区运营、项目协作与复盘沉淀，推动校内 AI 实践人群形成稳定协作网络。
               </p>
-              <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
+              <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
                 {studentOrganizations.map((item) => (
                   <span
                     key={item}
-                    className={`flex min-h-[64px] items-center justify-center border px-4 py-3 text-xl font-black transition duration-300 hover:-translate-y-0.5 ${
+                    className={`flex min-h-[54px] items-center justify-center border px-4 py-3 text-lg font-black transition duration-300 hover:-translate-y-0.5 ${
                       isDayMode
                         ? "border-slate-200 bg-white/78"
                         : "border-white/10 bg-white/[0.045] hover:border-cyan-300/24"
@@ -685,14 +767,14 @@ const PlatformStats = () => {
               </div>
             </div>
 
-            <div className={`relative overflow-hidden border p-5 sm:p-8 ${palette.panelStrong}`}>
+            <div className={`relative overflow-hidden border p-5 sm:p-7 ${palette.panelStrong}`}>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <div className={`flex items-center gap-2 font-mono text-xs font-black uppercase tracking-[0.2em] ${palette.accent}`}>
                     <Handshake className="h-3.5 w-3.5" />
                     Technical Backing
                   </div>
-                  <h3 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
+                  <h3 className="mt-3 text-3xl font-black tracking-tight sm:text-[2.35rem]">
                     企业伙伴
                   </h3>
                 </div>
@@ -701,15 +783,15 @@ const PlatformStats = () => {
                 </div>
               </div>
 
-              <p className={`mt-4 max-w-2xl text-sm font-bold leading-6 ${palette.textMuted}`}>
+              <p className={`mt-3 max-w-2xl text-sm font-bold leading-6 ${palette.textMuted}`}>
                 企业伙伴提供真实业务命题、模型能力、云资源与工具支持，帮助项目从创意原型走向可展示、可评估、可持续推进的成果。
               </p>
 
-              <div className="mt-5 grid auto-rows-fr grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-6 lg:gap-2 xl:gap-3">
+              <div className="mt-4 grid auto-rows-fr grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-2 lg:grid-cols-6 xl:gap-3">
                 {hackathonPartnerLogos.map((logo) => (
                   <div
                     key={logo.src}
-                    className={`group flex min-h-[58px] min-w-0 items-center justify-center overflow-hidden border px-3 py-3 transition duration-300 hover:-translate-y-0.5 sm:min-h-[70px] sm:px-4 sm:py-4 lg:min-h-[clamp(3rem,5.3vh,4.35rem)] lg:px-2 lg:py-3 xl:px-3 ${
+                    className={`group flex min-h-[52px] min-w-0 items-center justify-center overflow-hidden border px-3 py-3 transition duration-300 hover:-translate-y-0.5 sm:min-h-[60px] sm:px-4 sm:py-3 lg:min-h-[clamp(2.75rem,4.8vh,3.8rem)] lg:px-2 lg:py-2.5 xl:px-3 ${
                       isDayMode
                         ? "border-slate-200 bg-white/86 shadow-[0_16px_40px_rgba(15,23,42,0.08)]"
                         : "border-white/10 bg-white/[0.045] hover:border-cyan-300/30 hover:bg-cyan-300/[0.065]"
@@ -737,13 +819,18 @@ const PlatformStats = () => {
             </div>
           </div>
         </motion.div>
+      </section>
 
+      <section
+        id="home-live"
+        className="relative z-10 flex min-h-[100svh] snap-start snap-always items-center px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-[calc(4.75rem+env(safe-area-inset-top))] sm:px-6 lg:px-10 lg:pb-20 2xl:px-16"
+      >
         <motion.div
           variants={sectionReveal}
           initial={prefersReducedMotion ? false : "initial"}
           whileInView={prefersReducedMotion ? undefined : "animate"}
           viewport={motionTokens.viewport}
-          className="mt-20 lg:mt-32"
+          className="mx-auto w-full max-w-[1880px]"
         >
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -751,7 +838,7 @@ const PlatformStats = () => {
                 <Zap className="h-3.5 w-3.5" />
                 Now Live
               </p>
-              <h2 className="mt-3 max-w-5xl text-4xl font-black leading-none tracking-tight text-balance sm:text-6xl lg:text-[clamp(3.5rem,6.4vw,6rem)]">
+              <h2 className="mt-3 max-w-5xl text-[2.15rem] font-black leading-none tracking-tight text-balance sm:text-5xl lg:text-[clamp(3.1rem,5.4vw,5.45rem)]">
                 正在发生的作品、
                 <br />
                 活动与观点。
@@ -775,12 +862,12 @@ const PlatformStats = () => {
             </div>
           </div>
 
-          <div className="mt-9">
-            {featuredLoading && featuredItems.length === 0 ? (
+          <div className="mt-7">
+            {featuredLoading && featuredPreviewItems.length === 0 ? (
               <div className={`min-h-[160px] border px-5 py-6 text-sm ${palette.card}`}>
                 {t("common.loading")}
               </div>
-            ) : featuredError && featuredItems.length === 0 ? (
+            ) : featuredError && featuredPreviewItems.length === 0 ? (
               <div className={`border px-5 py-6 text-sm ${palette.card}`}>
                 <div>精选内容暂时加载失败</div>
                 <button
@@ -795,7 +882,7 @@ const PlatformStats = () => {
                   重新加载
                 </button>
               </div>
-            ) : featuredItems.length === 0 ? (
+            ) : featuredPreviewItems.length === 0 ? (
               <div className={`border px-5 py-6 text-sm ${palette.card}`}>
                 暂无精选内容
               </div>
@@ -805,9 +892,9 @@ const PlatformStats = () => {
                 initial={prefersReducedMotion ? false : "initial"}
                 whileInView={prefersReducedMotion ? undefined : "animate"}
                 viewport={motionTokens.viewport}
-                className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:grid md:grid-cols-2 md:overflow-visible md:pb-0 xl:grid-cols-4"
+                className="grid gap-4 md:grid-cols-[minmax(0,1.35fr)_minmax(0,0.9fr)_minmax(0,0.9fr)]"
               >
-                {featuredItems.map((item, index) => {
+                {featuredPreviewItems.map((item, index) => {
                   const Icon = item.icon;
                   return (
                     <motion.button
@@ -817,11 +904,9 @@ const PlatformStats = () => {
                       type="button"
                       aria-label={`${item.subtitle} ${item.title}`}
                       onClick={() => navigate(item.targetPath)}
-                      className={`motion-gpu motion-lift group min-h-[340px] w-[286px] shrink-0 snap-start overflow-hidden border text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 md:w-auto ${
-                        index === 0 ? "xl:col-span-2" : ""
-                      } ${palette.card}`}
+                      className={`motion-gpu motion-lift group min-h-[270px] overflow-hidden border text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${palette.card}`}
                     >
-                      <div className={`h-44 ${index === 0 ? "xl:h-56" : ""} ${isDayMode ? "bg-slate-100" : "bg-black/40"}`}>
+                      <div className={`${index === 0 ? "h-40 lg:h-48" : "h-36 lg:h-40"} ${isDayMode ? "bg-slate-100" : "bg-black/40"}`}>
                         {item.image ? (
                           <img
                             src={item.image}
@@ -837,7 +922,7 @@ const PlatformStats = () => {
                           </div>
                         )}
                       </div>
-                      <div className="p-5">
+                      <div className="p-4 lg:p-5">
                         <div className={`mb-3 inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] ${palette.textMuted}`}>
                           <Icon size={13} />
                           {item.subtitle}
@@ -863,7 +948,7 @@ const PlatformStats = () => {
               initial={prefersReducedMotion ? false : "initial"}
               whileInView={prefersReducedMotion ? undefined : "animate"}
               viewport={motionTokens.viewport}
-              className={`mt-8 grid gap-5 border p-5 lg:grid-cols-[minmax(0,1fr)_320px] ${palette.panel}`}
+              className={`mt-6 grid gap-5 border p-5 lg:grid-cols-[minmax(0,1fr)_300px] ${palette.panel}`}
             >
               <div>
                 <div className="mb-4 flex items-center justify-between gap-3">
@@ -970,7 +1055,7 @@ const PlatformStats = () => {
             </motion.div>
           )}
         </motion.div>
-      </div>
+      </section>
     </section>
   );
 };

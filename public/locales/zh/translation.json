@@ -157,7 +157,7 @@
   },
   "nav": {
     "home": "首页",
-    "gallery": "图片直播",
+    "gallery": "画廊",
     "music": "播客",
     "tags": "标签",
     "videos": "视频",
@@ -165,7 +165,7 @@
     "about": "关于",
     "contact": "联系",
     "events": "活动聚合",
-    "hackathon": "黑客松",
+    "hackathon": "浙客松",
     "future_learning": "未来学习中心",
     "admin": "管理",
     "community": "AI社区",
@@ -602,7 +602,7 @@
     "all_target_audiences": "所有目标人群"
   },
   "gallery": {
-    "title": "图片直播",
+    "title": "画廊",
     "subtitle": "查看现场照片、校园摄影与精选图片内容",
     "play": "游玩",
     "view_3d": "3D 预览",

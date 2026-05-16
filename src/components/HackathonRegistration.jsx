@@ -811,15 +811,6 @@ const HackathonRegistration = () => {
 
               <div className="order-2 flex">
                 <div className="grid flex-1 content-start gap-6 xl:gap-7">
-                  <HackathonAiCoachPanel
-                    isDayMode={isDayMode}
-                    palette={palette}
-                    query={coachQuery}
-                    setQuery={setCoachQuery}
-                    result={coachResult}
-                    isLoading={isCoachLoading}
-                    onAsk={askHackathonCoach}
-                  />
                   {challenges.map((challenge, index) => {
                     const Icon = challenge.icon;
                     return (
@@ -891,6 +882,17 @@ const HackathonRegistration = () => {
                   工具选择用于了解参赛者的 AI 开发习惯，不影响报名资格。
                 </p>
               </div>
+            </div>
+            <div className="mt-7">
+              <HackathonAiCoachPanel
+                isDayMode={isDayMode}
+                palette={palette}
+                query={coachQuery}
+                setQuery={setCoachQuery}
+                result={coachResult}
+                isLoading={isCoachLoading}
+                onAsk={askHackathonCoach}
+              />
             </div>
           </div>
 

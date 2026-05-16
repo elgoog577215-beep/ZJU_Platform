@@ -39,8 +39,8 @@ const Events = lazy(() => import('./components/Events'));
 const HomeCategories = lazy(() => import('./components/HomeCategories'));
 const PlatformStats = lazy(() => import('./components/PlatformStats'));
 const About = lazy(() => import('./components/About'));
-const HackathonRegistration = lazy(() => import('./components/HackathonRegistration'));
-const HackathonShowcase = lazy(() => import('./components/HackathonShowcase'));
+const HackathonSeasonOne = lazy(() => import('./components/HackathonSeasonOne'));
+const HackathonWorks = lazy(() => import('./components/HackathonWorks'));
 const FutureLearningCenter = lazy(() => import('./components/FutureLearningCenter'));
 const AdminDashboard = lazy(() => import('./components/Admin/AdminDashboard'));
 const AdminAccessGate = lazy(() => import('./components/Admin/AdminAccessGate'));
@@ -106,7 +106,7 @@ const AppContent = () => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isAboutRoute = location.pathname === '/about';
-  const isImmersiveRoute = isAboutRoute || location.pathname === '/hackathon/showcase';
+  const isImmersiveRoute = isAboutRoute || location.pathname.startsWith('/hackathon');
   const { cursorEnabled, settings } = useSettings();
   const hasDesktopPointer = useMediaQuery('(min-width: 768px) and (hover: hover) and (pointer: fine)');
   const shouldMountDeferredUi = useDeferredMount(700);
@@ -202,9 +202,9 @@ const AppContent = () => {
               <Route path="/community/groups" element={<Navigate to="/articles?tab=groups" replace />} />
               <Route path="/events" element={<PageTransition><Events /></PageTransition>} />
               <Route path="/about" element={<PageTransition><About /></PageTransition>} />
-              <Route path="/hackathon" element={<PageTransition><HackathonRegistration /></PageTransition>} />
-              <Route path="/hackathon/showcase" element={<PageTransition><HackathonShowcase /></PageTransition>} />
-              <Route path="/hackathon/works" element={<Navigate to="/hackathon/showcase" replace />} />
+              <Route path="/hackathon" element={<PageTransition><HackathonSeasonOne /></PageTransition>} />
+              <Route path="/hackathon/showcase" element={<PageTransition><HackathonSeasonOne /></PageTransition>} />
+              <Route path="/hackathon/works" element={<PageTransition><HackathonWorks /></PageTransition>} />
               <Route path="/future-learning" element={<PageTransition><FutureLearningCenter /></PageTransition>} />
               <Route
                 path="/admin"

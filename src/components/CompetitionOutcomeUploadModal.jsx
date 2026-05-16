@@ -30,12 +30,18 @@ const createInitialForm = (type = "stage_photo") => ({
   gitUrl: "",
   award: "",
   rank: "",
+  honorTitle: "",
+  grade: "",
+  major: "",
+  highlight: "",
+  experience: "",
+  publicConsent: true,
 });
 
 const typeOptions = [
-  { value: "stage_photo", label: "赛场照片", icon: ImageIcon },
-  { value: "promo_video", label: "赛事宣传片", icon: Film },
-  { value: "work", label: "优秀作品", icon: PackagePlus },
+  { value: "stage_photo", label: "赛场照片", destination: "进入画廊", icon: ImageIcon },
+  { value: "promo_video", label: "赛事宣传片", destination: "进入视频栏目", icon: Film },
+  { value: "work", label: "优秀作品", destination: "进入荣誉与经验分享", icon: PackagePlus },
 ];
 
 const uploadAsset = async (file, fieldName = "file") => {
@@ -53,6 +59,8 @@ const uploadAsset = async (file, fieldName = "file") => {
     throw new Error(`${fieldName === "cover" ? "封面" : "文件"}上传失败：${serverMessage}`);
   }
 };
+
+const outcomeTags = "黑客松,比赛成果,AI全栈极速黑客松";
 
 const extractApiError = (error) => {
   const data = error.response?.data;
@@ -113,6 +121,7 @@ const CompetitionOutcomeUploadModal = ({ open, onClose, onSubmitted, initialType
       if (!form.author.trim()) return "作者不能为空";
       if (!form.summary.trim()) return "作品简介不能为空";
       if (!form.gitUrl.trim()) return "Git 链接不能为空";
+      if (!form.publicConsent) return "请确认同意公开展示作品与经验分享";
       try {
         const parsed = new URL(form.gitUrl.trim());
         if (!["http:", "https:"].includes(parsed.protocol)) {
@@ -158,6 +167,12 @@ const CompetitionOutcomeUploadModal = ({ open, onClose, onSubmitted, initialType
           git_url: form.gitUrl,
           award: form.award,
           rank: form.rank,
+          honor_title: form.honorTitle,
+          grade: form.grade,
+          major: form.major,
+          highlight: form.highlight,
+          experience: form.experience,
+          public_consent: form.publicConsent,
           cover_url: coverUrl,
         });
       } else {
@@ -168,17 +183,35 @@ const CompetitionOutcomeUploadModal = ({ open, onClose, onSubmitted, initialType
           setSubmitLabel("正在上传宣传片封面");
           coverUrl = await uploadAsset(form.coverFile, "cover");
         }
-        setSubmitLabel("正在保存成果信息");
-        await api.post("/competitions/current/media", {
-          type: form.type,
-          title: form.title,
-          description: form.description,
-          url: fileUrl,
-          cover_url: coverUrl,
-        });
+        setSubmitLabel(isPromoVideo ? "正在保存到视频栏目" : "正在保存到画廊");
+        if (isPromoVideo) {
+          await api.post("/videos", {
+            title: form.title,
+            tags: outcomeTags,
+            video: fileUrl,
+            thumbnail: coverUrl || "",
+            gameType: "hackathon",
+            gameDescription: form.description,
+            featured: 0,
+          });
+        } else {
+          await api.post("/photos", {
+            title: form.title,
+            tags: outcomeTags,
+            url: fileUrl,
+            size: "",
+            gameType: "hackathon",
+            gameDescription: form.description,
+            featured: 0,
+          });
+        }
       }
 
-      toast.success(isAdmin ? "已发布到比赛成果页" : "已提交，等待管理员审核");
+      toast.success(
+        form.type === "work"
+          ? (isAdmin ? "作品信息已发布" : "作品信息已提交，等待管理员审核")
+          : (isPromoVideo ? "已提交到视频栏目" : "已提交到画廊"),
+      );
       onSubmitted?.();
       resetAndClose();
     } catch (error) {
@@ -198,7 +231,10 @@ const CompetitionOutcomeUploadModal = ({ open, onClose, onSubmitted, initialType
             <p className={`text-xs font-black uppercase tracking-[0.18em] ${mutedClass}`}>
               Competition Outcome Upload
             </p>
-            <h2 className="mt-1 text-xl font-black">上传比赛成果</h2>
+            <h2 className="mt-1 text-xl font-black">提交黑客松成果</h2>
+            <p className={`mt-1 text-xs leading-5 ${mutedClass}`}>
+              照片进入画廊，视频进入视频栏目，作品进入优秀作品与经验分享。
+            </p>
           </div>
           <button
             type="button"
@@ -229,7 +265,12 @@ const CompetitionOutcomeUploadModal = ({ open, onClose, onSubmitted, initialType
                   }`}
                 >
                   <Icon className="h-4 w-4" />
-                  {option.label}
+                  <span className="grid text-left leading-tight">
+                    <span>{option.label}</span>
+                    <span className={`text-[10px] font-bold ${active ? "text-slate-700" : mutedClass}`}>
+                      {option.destination}
+                    </span>
+                  </span>
                 </button>
               );
             })}
@@ -239,6 +280,7 @@ const CompetitionOutcomeUploadModal = ({ open, onClose, onSubmitted, initialType
             <div className="mb-4 flex items-center gap-2">
               <SelectedIcon className="h-5 w-5 text-cyan-300" />
               <span className="text-sm font-black">{selectedType.label}</span>
+              <span className={`text-xs ${mutedClass}`}>{selectedType.destination}</span>
               {!isAdmin ? <span className={`text-xs ${mutedClass}`}>提交后进入待审核</span> : null}
             </div>
 
@@ -311,6 +353,63 @@ const CompetitionOutcomeUploadModal = ({ open, onClose, onSubmitted, initialType
                     />
                   </label>
                 </div>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <label className="grid gap-2 text-sm font-semibold">
+                    荣誉称号
+                    <input
+                      value={form.honorTitle}
+                      onChange={(event) => updateField("honorTitle", event.target.value)}
+                      placeholder="如 Top 20 获奖成员"
+                      className={`min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
+                    />
+                  </label>
+                  <label className="grid gap-2 text-sm font-semibold">
+                    年级
+                    <input
+                      value={form.grade}
+                      onChange={(event) => updateField("grade", event.target.value)}
+                      placeholder="如 大一 / 研二"
+                      className={`min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
+                    />
+                  </label>
+                  <label className="grid gap-2 text-sm font-semibold">
+                    专业
+                    <input
+                      value={form.major}
+                      onChange={(event) => updateField("major", event.target.value)}
+                      placeholder="如 计算机科学与技术"
+                      className={`min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
+                    />
+                  </label>
+                </div>
+                <label className="grid gap-2 text-sm font-semibold">
+                  精选感悟
+                  <input
+                    value={form.highlight}
+                    onChange={(event) => updateField("highlight", event.target.value)}
+                    placeholder="一句最想展示在卡片上的经验或感受"
+                    className={`min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-semibold">
+                  经验分享
+                  <textarea
+                    rows={5}
+                    value={form.experience}
+                    onChange={(event) => updateField("experience", event.target.value)}
+                    placeholder="可以写作品创新点、技术点、卡壳点、五小时极限开发的时间分配与迭代心得"
+                    className={`rounded-xl border px-3 py-3 outline-none ${inputClass}`}
+                  />
+                </label>
+                <label className="flex items-start gap-3 text-sm font-semibold">
+                  <input
+                    type="checkbox"
+                    checked={form.publicConsent}
+                    onChange={(event) => updateField("publicConsent", event.target.checked)}
+                    className="mt-1"
+                  />
+                  <span>同意公开展示作品信息、项目链接、荣誉称号与经验分享</span>
+                </label>
               </div>
             ) : (
               <div className="grid gap-4">

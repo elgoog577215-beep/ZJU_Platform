@@ -927,6 +927,13 @@ async function runMigrations(db) {
       award: 'TEXT',
       rank: 'TEXT',
       cover_url: 'TEXT',
+      honor_title: 'TEXT',
+      grade: 'TEXT',
+      major: 'TEXT',
+      highlight: 'TEXT',
+      experience: 'TEXT',
+      story_file_url: 'TEXT',
+      public_consent: 'INTEGER DEFAULT 1',
       sort_order: 'INTEGER DEFAULT 0',
       status: "TEXT DEFAULT 'pending'",
       uploader_id: 'INTEGER',
@@ -937,6 +944,16 @@ async function runMigrations(db) {
       updated_at: 'TEXT DEFAULT CURRENT_TIMESTAMP',
       deleted_at: 'DATETIME',
     }, 'competition_works');
+
+    await ensureColumns('photos', {
+      gameType: 'TEXT',
+      gameDescription: 'TEXT',
+    }, 'photos');
+
+    await ensureColumns('videos', {
+      gameType: 'TEXT',
+      gameDescription: 'TEXT',
+    }, 'videos');
 
     await db.exec(`
       CREATE INDEX IF NOT EXISTS idx_competitions_featured
@@ -949,6 +966,10 @@ async function runMigrations(db) {
         ON competition_works(competition_id, status, sort_order, id);
       CREATE INDEX IF NOT EXISTS idx_competition_works_status_created
         ON competition_works(status, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_videos_game_type_status
+        ON videos(gameType, status, deleted_at, id DESC);
+      CREATE INDEX IF NOT EXISTS idx_photos_game_type_status
+        ON photos(gameType, status, deleted_at, id DESC);
     `);
     const activeCompetitionCount = await db.get(
       "SELECT COUNT(*) AS count FROM competitions WHERE deleted_at IS NULL",
