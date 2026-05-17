@@ -105,6 +105,7 @@ const AdminRoute = ({ children }) => {
 const AppContent = () => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const isHomeRoute = location.pathname === '/';
   const isAboutRoute = location.pathname === '/about';
   const isImmersiveRoute = isAboutRoute || location.pathname.startsWith('/hackathon');
   const { cursorEnabled, settings } = useSettings();
@@ -231,7 +232,7 @@ const AppContent = () => {
         </ErrorBoundary>
       )}
       {!isAdminRoute && <MobileNavbar />}
-      <ScrollToTop />
+      {!isHomeRoute && <ScrollToTop />}
       <PWAInstallPrompt />
       {import.meta.env.DEV && <PerformancePanel />}
     </div>

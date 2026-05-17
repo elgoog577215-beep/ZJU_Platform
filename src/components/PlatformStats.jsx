@@ -450,7 +450,7 @@ const PlatformStats = () => {
   return (
     <section
       ref={pageRef}
-      className={`relative h-[100svh] snap-y snap-mandatory overflow-y-auto overflow-x-hidden scroll-smooth overscroll-y-contain ${palette.page}`}
+      className={`scrollbar-none relative h-[100svh] snap-y snap-mandatory overflow-y-auto overflow-x-hidden scroll-smooth overscroll-y-contain ${palette.page}`}
     >
       <div className="sticky top-0 z-30 h-0">
         <div className="h-0.5 bg-transparent">
@@ -461,7 +461,7 @@ const PlatformStats = () => {
         </div>
       </div>
 
-      <div className="pointer-events-none sticky top-1/2 z-30 hidden h-0 -translate-y-1/2 lg:block">
+      <div className="pointer-events-none sticky top-1/2 z-30 hidden h-0 -translate-y-1/2 xl:block">
         <div className="absolute right-6 flex -translate-y-1/2 flex-col items-center gap-4">
           {homeSnapSections.map((item, index) => (
             <button
@@ -509,14 +509,14 @@ const PlatformStats = () => {
 
       <section
         id="home-ecosystem"
-        className="relative z-10 flex min-h-[100svh] snap-start snap-always items-start px-4 py-[calc(4.75rem+env(safe-area-inset-top))] sm:px-6 lg:items-center lg:px-10 2xl:px-16"
+        className="relative z-10 flex min-h-[100svh] snap-start snap-always items-start px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(4.75rem+env(safe-area-inset-top))] sm:px-6 lg:items-center lg:px-10 lg:pb-[calc(4.75rem+env(safe-area-inset-bottom))] 2xl:px-16"
       >
         <motion.div
           variants={sectionReveal}
           initial={prefersReducedMotion ? false : "initial"}
           whileInView={prefersReducedMotion ? undefined : "animate"}
           viewport={motionTokens.viewport}
-          className="mx-auto grid w-full max-w-[1880px] items-center gap-7 lg:grid-cols-[minmax(0,0.94fr)_minmax(390px,0.72fr)] lg:gap-12"
+          className="mx-auto grid w-full max-w-[1880px] items-center gap-7 lg:grid-cols-[minmax(0,0.94fr)_minmax(390px,0.72fr)] lg:gap-12 xl:pr-20 2xl:pr-24"
         >
           <div className={palette.firstText}>
             <div
@@ -593,14 +593,14 @@ const PlatformStats = () => {
 
       <section
         id="home-engine"
-        className="relative z-10 flex min-h-[100svh] snap-start snap-always items-start px-4 py-[calc(4.75rem+env(safe-area-inset-top))] sm:px-6 lg:items-center lg:px-10 2xl:px-16"
+        className="relative z-10 flex min-h-[100svh] snap-start snap-always items-start px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(4.75rem+env(safe-area-inset-top))] sm:px-6 lg:items-center lg:px-10 lg:pb-[calc(4.75rem+env(safe-area-inset-bottom))] 2xl:px-16"
       >
         <motion.div
           variants={sectionReveal}
           initial={prefersReducedMotion ? false : "initial"}
           whileInView={prefersReducedMotion ? undefined : "animate"}
           viewport={motionTokens.viewport}
-          className="mx-auto w-full max-w-[1880px]"
+          className="mx-auto w-full max-w-[1880px] xl:pr-20 2xl:pr-24"
         >
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -618,14 +618,14 @@ const PlatformStats = () => {
             </p>
           </div>
 
-          <div className="mt-4 grid gap-3 sm:mt-7 sm:gap-4 lg:grid-cols-4">
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-7 sm:gap-4 lg:grid-cols-4">
             {operatingHandles.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
                   key={item.code}
                   to={item.route}
-                  className={`group relative min-h-[142px] overflow-hidden border border-l-4 p-4 transition duration-300 hover:-translate-y-1 sm:min-h-[260px] sm:p-6 lg:min-h-[300px] ${palette.card} ${
+                  className={`group relative min-h-[158px] overflow-hidden border border-l-4 p-3 transition duration-300 hover:-translate-y-1 sm:min-h-[260px] sm:p-6 lg:min-h-[300px] ${palette.card} ${
                     isDayMode ? "border-l-cyan-500" : "border-l-cyan-300"
                   }`}
                 >
@@ -644,27 +644,27 @@ const PlatformStats = () => {
                       <div className={`font-mono text-xs font-black uppercase tracking-[0.2em] ${item.accent}`}>
                         {item.index} / {item.code}
                       </div>
-                      <div className={`flex h-10 w-10 items-center justify-center sm:h-12 sm:w-12 ${item.iconBg} text-slate-950 shadow-[0_0_34px_rgba(103,232,249,0.24)]`}>
-                        <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
+                      <div className={`flex h-9 w-9 items-center justify-center sm:h-12 sm:w-12 ${item.iconBg} text-slate-950 shadow-[0_0_34px_rgba(103,232,249,0.24)]`}>
+                        <Icon className="h-[18px] w-[18px] sm:h-6 sm:w-6" />
                       </div>
                     </div>
-                    <h3 className="mt-4 text-2xl font-black leading-none tracking-tight sm:mt-7 sm:text-[2.35rem]">
+                    <h3 className="mt-3 text-xl font-black leading-none tracking-tight sm:mt-7 sm:text-[2.35rem]">
                       {item.title}
                     </h3>
-                    <p className={`mt-3 line-clamp-2 text-xs leading-5 sm:mt-4 sm:text-sm sm:leading-6 ${palette.textSoft}`}>
+                    <p className={`mt-2 hidden text-xs leading-5 min-[430px]:line-clamp-2 min-[430px]:block sm:mt-4 sm:line-clamp-2 sm:block sm:text-sm sm:leading-6 ${palette.textSoft}`}>
                       {item.description}
                     </p>
-                    <div className={`mt-auto flex items-end justify-between border-t pt-4 sm:pt-6 ${palette.divider}`}>
+                    <div className={`mt-auto flex items-end justify-between border-t pt-3 sm:pt-6 ${palette.divider}`}>
                       <div>
-                        <div className={`text-[11px] font-black uppercase tracking-[0.18em] ${palette.textMuted}`}>
+                        <div className={`hidden text-[11px] font-black uppercase tracking-[0.18em] sm:block ${palette.textMuted}`}>
                           Loop Role
                         </div>
-                        <div className={`mt-1.5 text-lg font-black sm:mt-2 sm:text-xl ${item.accent}`}>
+                        <div className={`text-sm font-black leading-tight sm:mt-2 sm:text-xl ${item.accent}`}>
                           {item.loop}
                         </div>
                       </div>
-                      <div className={`inline-flex items-center gap-2 text-sm font-black ${item.accent}`}>
-                        {item.short}
+                      <div className={`inline-flex items-center gap-1.5 text-xs font-black sm:gap-2 sm:text-sm ${item.accent}`}>
+                        <span className="hidden min-[430px]:inline">{item.short}</span>
                         <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
                       </div>
                     </div>
@@ -679,16 +679,16 @@ const PlatformStats = () => {
 
       <section
         id="home-resources"
-        className="relative z-10 flex min-h-[100svh] snap-start snap-always items-start px-4 py-[calc(4.75rem+env(safe-area-inset-top))] sm:px-6 lg:items-center lg:px-10 2xl:px-16"
+        className="relative z-10 flex min-h-[100svh] snap-start snap-always items-start px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(4.75rem+env(safe-area-inset-top))] sm:px-6 lg:items-center lg:px-10 lg:pb-[calc(4.75rem+env(safe-area-inset-bottom))] 2xl:px-16"
       >
         <motion.div
           variants={sectionReveal}
           initial={prefersReducedMotion ? false : "initial"}
           whileInView={prefersReducedMotion ? undefined : "animate"}
           viewport={motionTokens.viewport}
-          className="mx-auto grid w-full max-w-[1880px] gap-4 lg:grid-cols-[0.78fr_1.22fr] lg:gap-5"
+          className="mx-auto grid w-full max-w-[1880px] gap-3 lg:grid-cols-[0.78fr_1.22fr] lg:gap-5 xl:pr-20 2xl:pr-24"
         >
-          <div className={`relative overflow-hidden border p-5 sm:min-h-[390px] sm:p-7 lg:p-8 ${palette.panelStrong}`}>
+          <div className={`relative overflow-hidden border p-4 sm:min-h-[390px] sm:p-7 lg:p-8 ${palette.panelStrong}`}>
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(103,232,249,0.18),transparent_38%)]" />
             <div
               className={`pointer-events-none absolute -right-16 bottom-8 text-[11rem] font-black uppercase leading-none tracking-tight ${palette.watermark}`}
@@ -696,17 +696,17 @@ const PlatformStats = () => {
               BASE
             </div>
             <div className={`pointer-events-none absolute left-0 top-0 h-full w-1 ${palette.accentBg}`} />
-            <div className="relative z-10 flex flex-col justify-between gap-6 sm:min-h-[330px] lg:min-h-[370px]">
+            <div className="relative z-10 flex flex-col justify-between gap-3 sm:min-h-[330px] sm:gap-6 lg:min-h-[370px]">
               <div>
                 <div className={`font-mono text-xs font-black uppercase tracking-[0.2em] ${palette.accent}`}>
                   01 / Foundation
                 </div>
-                <h2 className="mt-5 max-w-lg text-[2.35rem] font-black leading-[0.96] tracking-tight sm:mt-6 sm:text-[3.65rem] lg:text-[clamp(3.7rem,4.6vw,4.65rem)]">
+                <h2 className="mt-3 max-w-lg text-[1.9rem] font-black leading-[0.96] tracking-tight min-[360px]:text-[2.1rem] sm:mt-6 sm:text-[3.65rem] lg:text-[clamp(3.7rem,4.6vw,4.65rem)]">
                   三方资源
                   <br />
                   在这里汇合
                 </h2>
-                <p className={`mt-4 max-w-lg text-sm leading-6 sm:mt-5 sm:text-[0.95rem] sm:leading-7 ${palette.textSoft}`}>
+                <p className={`mt-2 line-clamp-2 max-w-lg text-xs leading-5 sm:mt-5 sm:line-clamp-none sm:text-[0.95rem] sm:leading-7 ${palette.textSoft}`}>
                   学校支持单位提供场景、空间与组织机制，学生组织承担触达、动员与执行，企业伙伴提供真实课题、技术资源与成果转化通道。
                 </p>
               </div>
@@ -715,32 +715,32 @@ const PlatformStats = () => {
                 {schoolSupport.map((item) => (
                   <div
                     key={item}
-                    className={`grid gap-1.5 border-l-4 px-3.5 py-3 sm:gap-2 sm:px-4 sm:py-3.5 ${
+                    className={`grid gap-0.5 border-l-4 px-3 py-2 sm:gap-2 sm:px-4 sm:py-3.5 ${
                       isDayMode
                         ? "border-l-cyan-500 bg-white/76"
                         : "border-l-cyan-300 bg-cyan-300/[0.05]"
                     }`}
                   >
-                    <div className={`flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.15em] sm:gap-2 sm:text-[11px] sm:tracking-[0.18em] ${palette.textMuted}`}>
+                    <div className={`flex items-center gap-1.5 text-[7px] font-black uppercase tracking-[0.1em] sm:gap-2 sm:text-[11px] sm:tracking-[0.18em] ${palette.textMuted}`}>
                       <Building2 className="h-3.5 w-3.5" />
                       School Support
                     </div>
-                    <div className="text-lg font-black leading-tight sm:text-xl">{item}</div>
+                    <div className="text-sm font-black leading-tight sm:text-xl">{item}</div>
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
-          <div className="grid gap-4">
-            <div className={`relative overflow-hidden border p-5 sm:p-7 ${palette.card}`}>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="grid gap-3 sm:gap-4">
+            <div className={`relative overflow-hidden border p-4 sm:p-7 ${palette.card}`}>
+              <div className="flex items-end justify-between gap-3">
                 <div>
                   <div className={`flex items-center gap-2 font-mono text-xs font-black uppercase tracking-[0.2em] ${palette.accent}`}>
                     <Users className="h-3.5 w-3.5" />
                     Campus Force
                   </div>
-                  <h3 className="mt-3 text-3xl font-black tracking-tight sm:text-[2.35rem]">
+                  <h3 className="mt-2 text-2xl font-black tracking-tight sm:mt-3 sm:text-[2.35rem]">
                     学生组织
                   </h3>
                 </div>
@@ -748,14 +748,14 @@ const PlatformStats = () => {
                   People Layer
                 </div>
               </div>
-              <p className={`mt-3 max-w-2xl text-sm font-bold leading-6 ${palette.textMuted}`}>
+              <p className={`mt-2 hidden max-w-2xl text-sm font-bold leading-6 sm:block ${palette.textMuted}`}>
                 学生组织承担活动招募、社区运营、项目协作与复盘沉淀，推动校内 AI 实践人群形成稳定协作网络。
               </p>
-              <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
+              <div className="mt-3 grid grid-cols-5 gap-1.5 sm:mt-4 sm:grid-cols-5 sm:gap-2">
                 {studentOrganizations.map((item) => (
                   <span
                     key={item}
-                    className={`flex min-h-[54px] items-center justify-center border px-4 py-3 text-lg font-black transition duration-300 hover:-translate-y-0.5 ${
+                    className={`flex min-h-[44px] items-center justify-center border px-2 py-2 text-sm font-black transition duration-300 hover:-translate-y-0.5 sm:min-h-[54px] sm:px-4 sm:py-3 sm:text-lg ${
                       isDayMode
                         ? "border-slate-200 bg-white/78"
                         : "border-white/10 bg-white/[0.045] hover:border-cyan-300/24"
@@ -767,14 +767,14 @@ const PlatformStats = () => {
               </div>
             </div>
 
-            <div className={`relative overflow-hidden border p-5 sm:p-7 ${palette.panelStrong}`}>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div className={`relative overflow-hidden border p-4 sm:p-7 ${palette.panelStrong}`}>
+              <div className="flex items-end justify-between gap-3">
                 <div>
                   <div className={`flex items-center gap-2 font-mono text-xs font-black uppercase tracking-[0.2em] ${palette.accent}`}>
                     <Handshake className="h-3.5 w-3.5" />
                     Technical Backing
                   </div>
-                  <h3 className="mt-3 text-3xl font-black tracking-tight sm:text-[2.35rem]">
+                  <h3 className="mt-2 text-2xl font-black tracking-tight sm:mt-3 sm:text-[2.35rem]">
                     企业伙伴
                   </h3>
                 </div>
@@ -783,15 +783,15 @@ const PlatformStats = () => {
                 </div>
               </div>
 
-              <p className={`mt-3 max-w-2xl text-sm font-bold leading-6 ${palette.textMuted}`}>
+              <p className={`mt-2 hidden max-w-2xl text-sm font-bold leading-6 sm:block ${palette.textMuted}`}>
                 企业伙伴提供真实业务命题、模型能力、云资源与工具支持，帮助项目从创意原型走向可展示、可评估、可持续推进的成果。
               </p>
 
-              <div className="mt-4 grid auto-rows-fr grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-2 lg:grid-cols-6 xl:gap-3">
+              <div className="scrollbar-none mt-3 flex snap-x gap-2 overflow-x-auto pb-1 sm:mt-4 sm:grid sm:auto-rows-fr sm:grid-cols-3 sm:overflow-visible sm:pb-0 lg:grid-cols-6 xl:gap-3">
                 {hackathonPartnerLogos.map((logo) => (
                   <div
                     key={logo.src}
-                    className={`group flex min-h-[52px] min-w-0 items-center justify-center overflow-hidden border px-3 py-3 transition duration-300 hover:-translate-y-0.5 sm:min-h-[60px] sm:px-4 sm:py-3 lg:min-h-[clamp(2.75rem,4.8vh,3.8rem)] lg:px-2 lg:py-2.5 xl:px-3 ${
+                    className={`group flex min-h-[52px] min-w-[45%] snap-start items-center justify-center overflow-hidden border px-3 py-3 transition duration-300 hover:-translate-y-0.5 sm:min-h-[60px] sm:min-w-0 sm:px-4 sm:py-3 lg:min-h-[clamp(2.75rem,4.8vh,3.8rem)] lg:px-2 lg:py-2.5 xl:px-3 ${
                       isDayMode
                         ? "border-slate-200 bg-white/86 shadow-[0_16px_40px_rgba(15,23,42,0.08)]"
                         : "border-white/10 bg-white/[0.045] hover:border-cyan-300/30 hover:bg-cyan-300/[0.065]"
@@ -830,7 +830,7 @@ const PlatformStats = () => {
           initial={prefersReducedMotion ? false : "initial"}
           whileInView={prefersReducedMotion ? undefined : "animate"}
           viewport={motionTokens.viewport}
-          className="mx-auto w-full max-w-[1880px]"
+          className="mx-auto w-full max-w-[1880px] xl:pr-20 2xl:pr-24"
         >
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -864,9 +864,61 @@ const PlatformStats = () => {
 
           <div className="mt-5 lg:mt-7">
             {featuredLoading && featuredPreviewItems.length === 0 ? (
-              <div className={`min-h-[160px] border px-5 py-6 text-sm ${palette.card}`}>
-                {t("common.loading")}
-              </div>
+              <motion.div
+                variants={listContainer}
+                initial={prefersReducedMotion ? false : "initial"}
+                whileInView={prefersReducedMotion ? undefined : "animate"}
+                viewport={motionTokens.viewport}
+                className="grid gap-3 sm:gap-4 md:grid-cols-[minmax(0,1.35fr)_minmax(0,0.9fr)_minmax(0,0.9fr)]"
+                aria-busy="true"
+                aria-label={t("common.loading")}
+              >
+                {[0, 1, 2].map((item, index) => (
+                  <motion.div
+                    key={item}
+                    variants={listItem}
+                    className={`min-h-[230px] overflow-hidden border lg:min-h-[270px] ${
+                      index > 0 ? "hidden sm:block" : ""
+                    } ${palette.card}`}
+                  >
+                    <div
+                      className={`relative overflow-hidden ${
+                        index === 0 ? "h-32 lg:h-48" : "h-32 lg:h-40"
+                      } ${isDayMode ? "bg-slate-100" : "bg-black/40"}`}
+                    >
+                      <div
+                        className={`absolute inset-y-0 w-1/2 animate-skeleton bg-gradient-to-r from-transparent ${
+                          isDayMode ? "via-white/80" : "via-white/10"
+                        } to-transparent`}
+                      />
+                    </div>
+                    <div className="space-y-4 p-4 lg:p-5">
+                      <div
+                        className={`h-3 w-28 ${
+                          isDayMode ? "bg-slate-200" : "bg-white/10"
+                        }`}
+                      />
+                      <div className="space-y-2">
+                        <div
+                          className={`h-6 w-full ${
+                            isDayMode ? "bg-slate-200" : "bg-white/10"
+                          }`}
+                        />
+                        <div
+                          className={`h-6 w-2/3 ${
+                            isDayMode ? "bg-slate-200" : "bg-white/10"
+                          }`}
+                        />
+                      </div>
+                      <div
+                        className={`h-4 w-24 ${
+                          isDayMode ? "bg-cyan-100" : "bg-cyan-300/15"
+                        }`}
+                      />
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
             ) : featuredError && featuredPreviewItems.length === 0 ? (
               <div className={`border px-5 py-6 text-sm ${palette.card}`}>
                 <div>精选内容暂时加载失败</div>
@@ -904,7 +956,9 @@ const PlatformStats = () => {
                       type="button"
                       aria-label={`${item.subtitle} ${item.title}`}
                       onClick={() => navigate(item.targetPath)}
-                      className={`motion-gpu motion-lift group min-h-[230px] overflow-hidden border text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 lg:min-h-[270px] ${palette.card}`}
+                      className={`motion-gpu motion-lift group min-h-[230px] overflow-hidden border text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 lg:min-h-[270px] ${
+                        index > 0 ? "hidden sm:block" : ""
+                      } ${palette.card}`}
                     >
                       <div className={`${index === 0 ? "h-32 lg:h-48" : "h-32 lg:h-40"} ${isDayMode ? "bg-slate-100" : "bg-black/40"}`}>
                         {item.image ? (
