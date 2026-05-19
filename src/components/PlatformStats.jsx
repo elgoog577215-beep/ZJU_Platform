@@ -153,14 +153,117 @@ const EcosystemRadar = memo(({ isDayMode, shouldAnimate }) => {
 
 EcosystemRadar.displayName = "EcosystemRadar";
 
+const EnginePathVisual = memo(({ items, isDayMode, shouldAnimate }) => {
+  return (
+    <div className="relative mx-auto aspect-[1.45] w-full max-w-[920px] overflow-hidden px-3 py-6 sm:px-8 sm:py-10 lg:aspect-[1.34] lg:px-10 lg:py-12">
+      <div
+        className={`pointer-events-none absolute inset-x-[5%] top-1/2 h-px -translate-y-1/2 ${
+          isDayMode
+            ? "bg-gradient-to-r from-transparent via-cyan-500/42 to-transparent"
+            : "bg-gradient-to-r from-transparent via-cyan-300/46 to-transparent"
+        }`}
+      />
+      <div
+        className={`pointer-events-none absolute inset-y-[14%] left-1/2 w-px -translate-x-1/2 ${
+          isDayMode
+            ? "bg-gradient-to-b from-transparent via-cyan-500/26 to-transparent"
+            : "bg-gradient-to-b from-transparent via-cyan-300/32 to-transparent"
+        }`}
+      />
+      <motion.div
+        animate={shouldAnimate ? { rotate: 360 } : undefined}
+        transition={
+          shouldAnimate
+            ? { duration: 58, ease: "linear", repeat: Infinity }
+            : undefined
+        }
+        className={`pointer-events-none absolute left-1/2 top-1/2 h-[78%] w-[56%] -translate-x-1/2 -translate-y-1/2 rounded-full border ${
+          isDayMode ? "border-cyan-500/20" : "border-cyan-300/20"
+        }`}
+      />
+      <motion.div
+        animate={
+          shouldAnimate
+            ? { scale: [1, 1.06, 1], opacity: [0.58, 0.86, 0.58] }
+            : undefined
+        }
+        transition={
+          shouldAnimate
+            ? { duration: 5.4, ease: "easeInOut", repeat: Infinity }
+            : undefined
+        }
+        className={`pointer-events-none absolute left-1/2 top-1/2 h-[42%] w-[32%] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[70px] ${
+          isDayMode ? "bg-cyan-200/42" : "bg-cyan-300/16"
+        }`}
+      />
+      <div
+        className={`pointer-events-none absolute left-1/2 top-1/2 flex h-[34%] w-[26%] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center border text-center ${
+          isDayMode
+            ? "border-cyan-500/24 bg-white/82 text-slate-950 shadow-[0_24px_80px_rgba(6,182,212,0.16)]"
+            : "border-cyan-300/22 bg-[#061013]/88 text-white shadow-[0_0_70px_rgba(103,232,249,0.14)]"
+        }`}
+      >
+        <Orbit className={isDayMode ? "h-7 w-7 text-cyan-700" : "h-7 w-7 text-cyan-200"} />
+        <div className="mt-2 text-[10px] font-black uppercase tracking-[0.2em] opacity-55">
+          Operating Loop
+        </div>
+        <div className="mt-1 text-xl font-black leading-none sm:text-2xl">闭环</div>
+      </div>
+
+      {items.map((item, index) => {
+        const Icon = item.icon;
+        const positions = [
+          "left-[3%] top-[9%]",
+          "right-[3%] top-[9%]",
+          "left-[3%] bottom-[9%]",
+          "right-[3%] bottom-[9%]",
+        ];
+        return (
+          <Link
+            key={item.code}
+            to={item.route}
+            className={`group absolute ${positions[index]} w-[39%] border border-l-4 p-4 transition duration-300 hover:-translate-y-1 sm:p-5 ${
+              isDayMode
+                ? "border-slate-200/80 bg-white/86 shadow-[0_22px_70px_rgba(15,23,42,0.1)] hover:bg-white"
+                : "border-white/10 bg-white/[0.045] hover:border-cyan-300/28 hover:bg-cyan-300/[0.07]"
+            } ${index === 3 ? (isDayMode ? "border-l-amber-500" : "border-l-amber-300") : isDayMode ? "border-l-cyan-500" : "border-l-cyan-300"}`}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className={`font-mono text-[10px] font-black uppercase tracking-[0.2em] ${item.accent}`}>
+                {item.index} / {item.code}
+              </div>
+              <div className={`flex h-8 w-8 items-center justify-center ${item.iconBg} text-slate-950 shadow-[0_0_30px_rgba(103,232,249,0.18)]`}>
+                <Icon className="h-4 w-4" />
+              </div>
+            </div>
+            <h3 className="mt-4 text-xl font-black leading-none tracking-tight sm:text-3xl">
+              {item.title}
+            </h3>
+            <div className={`mt-4 flex items-center justify-between border-t pt-3 text-sm font-black ${paletteSafeDivider(isDayMode)} ${item.accent}`}>
+              <span>{item.loop}</span>
+              <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+            </div>
+          </Link>
+        );
+      })}
+    </div>
+  );
+});
+
+EnginePathVisual.displayName = "EnginePathVisual";
+
+const paletteSafeDivider = (isDayMode) =>
+  isDayMode ? "border-slate-200/80" : "border-white/10";
+
 const homeSnapSections = [
+  { id: "home-hero", label: "首页", icon: Zap },
   { id: "home-ecosystem", label: "生态", icon: Network },
   { id: "home-engine", label: "引擎", icon: Orbit },
   { id: "home-resources", label: "资源", icon: Handshake },
   { id: "home-live", label: "动态", icon: Zap },
 ];
 
-const PlatformStats = () => {
+const PlatformStats = ({ hero } = {}) => {
   const { t } = useTranslation();
   const { settings, uiMode } = useSettings();
   const isDayMode = uiMode === "day";
@@ -314,7 +417,7 @@ const PlatformStats = () => {
 
   const palette = isDayMode
     ? {
-        page: "bg-[linear-gradient(180deg,#020617_0%,#06131d_4rem,#f6f8fb_13rem,#f7fafc_100%)] text-slate-950",
+        page: "bg-[linear-gradient(180deg,#f6f8fb_0%,#f7fafc_100%)] text-slate-950",
         textSoft: "text-slate-600",
         textMuted: "text-slate-500",
         label: "text-cyan-700",
@@ -507,6 +610,12 @@ const PlatformStats = () => {
         HOME
       </div>
 
+      {hero ? (
+        <div className="relative z-10">
+          {hero({ onScrollNext: () => smoothScrollTo("home-ecosystem") })}
+        </div>
+      ) : null}
+
       <section
         id="home-ecosystem"
         className="relative z-10 flex min-h-[100svh] snap-start snap-always items-start px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(4.75rem+env(safe-area-inset-top))] sm:px-6 lg:items-center lg:px-10 lg:pb-[calc(4.75rem+env(safe-area-inset-bottom))] 2xl:px-16"
@@ -600,7 +709,7 @@ const PlatformStats = () => {
           initial={prefersReducedMotion ? false : "initial"}
           whileInView={prefersReducedMotion ? undefined : "animate"}
           viewport={motionTokens.viewport}
-          className="mx-auto grid w-full max-w-[1880px] gap-6 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] lg:items-center lg:gap-12 xl:pr-20 2xl:pr-24"
+          className="mx-auto grid w-full max-w-[1880px] gap-8 lg:grid-cols-[minmax(0,0.66fr)_minmax(0,1.34fr)] lg:items-center lg:gap-16 xl:pr-20 2xl:pr-24"
         >
           <div className="relative">
             <div className={`pointer-events-none absolute -left-4 -top-20 hidden text-[12vw] font-black uppercase leading-none tracking-tight lg:block ${palette.watermark}`}>
@@ -609,21 +718,51 @@ const PlatformStats = () => {
             <p className={`text-xs font-black uppercase tracking-[0.24em] ${palette.label}`}>
               Core Engine
             </p>
-            <h2 className="relative mt-3 max-w-4xl text-[1.9rem] font-black leading-none tracking-tight text-balance sm:text-5xl lg:text-[clamp(3.5rem,5.15vw,6rem)]">
-              不是活动很多，
-              <br />
-              是路径清楚。
+            <h2 className="relative mt-3 max-w-4xl text-[1.9rem] font-black leading-none tracking-tight text-balance sm:text-5xl lg:text-[clamp(3.15rem,4.25vw,5rem)]">
+              <span className="block whitespace-nowrap">不是活动很多，</span>
+              <span className="block whitespace-nowrap">是路径清楚。</span>
             </h2>
             <p className={`relative mt-5 max-w-2xl text-sm font-bold leading-7 sm:text-base sm:leading-8 ${palette.textSoft}`}>
               首页只保留用户能立刻行动的四个入口：先发现，再连接，再进入真实场景，最后用限时实战验证成果。
             </p>
-            <div className={`relative mt-6 grid max-w-2xl grid-cols-2 gap-px border ${palette.grid}`}>
+
+            <div className={`relative mt-7 overflow-hidden border px-4 py-5 md:hidden ${palette.panelStrong}`}>
+              <div className={`pointer-events-none absolute left-7 top-8 bottom-8 w-px ${isDayMode ? "bg-cyan-500/24" : "bg-cyan-300/28"}`} />
+              <div className="relative z-10 grid gap-4">
+                {operatingHandles.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.code}
+                      type="button"
+                      onClick={() => navigate(item.route)}
+                      className="group grid grid-cols-[2.75rem_1fr_auto] items-center gap-3 text-left"
+                    >
+                      <span className={`relative flex h-9 w-9 items-center justify-center ${item.iconBg} text-slate-950 shadow-[0_0_26px_rgba(103,232,249,0.2)]`}>
+                        <Icon className="h-4 w-4" />
+                      </span>
+                      <span>
+                        <span className={`block font-mono text-[10px] font-black uppercase tracking-[0.18em] ${item.accent}`}>
+                          {item.index} / {item.code}
+                        </span>
+                        <span className="mt-1 block text-lg font-black leading-tight">
+                          {item.title}
+                        </span>
+                      </span>
+                      <ArrowRight className={`h-4 w-4 transition group-hover:translate-x-1 ${item.accent}`} />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className={`relative mt-8 hidden max-w-2xl grid-cols-4 gap-5 border-t pt-5 sm:grid lg:grid-cols-2 ${palette.divider}`}>
               {operatingHandles.map((item) => (
                 <button
                   key={item.code}
                   type="button"
                   onClick={() => navigate(item.route)}
-                  className={`group min-h-[76px] p-3 text-left transition hover:-translate-y-0.5 sm:p-4 ${palette.cell}`}
+                  className="group text-left transition hover:-translate-y-0.5"
                 >
                   <div className={`font-mono text-[10px] font-black uppercase tracking-[0.18em] ${item.accent}`}>
                     {item.index} / {item.code}
@@ -636,80 +775,16 @@ const PlatformStats = () => {
             </div>
           </div>
 
-          <div className={`relative hidden overflow-hidden border p-3 sm:p-4 md:block lg:min-h-[560px] lg:p-5 ${palette.panelStrong}`}>
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(103,232,249,0.15),transparent_34%),linear-gradient(135deg,rgba(103,232,249,0.08),transparent_48%)]" />
+          <div className={`relative hidden overflow-hidden md:block lg:min-h-[600px] ${isDayMode ? "bg-white/58 shadow-[0_34px_110px_rgba(15,23,42,0.1)]" : "bg-white/[0.025] shadow-[0_36px_120px_rgba(0,0,0,0.32)]"}`}>
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(103,232,249,0.18),transparent_34%),radial-gradient(circle_at_78%_76%,rgba(251,191,36,0.08),transparent_28%),linear-gradient(135deg,rgba(103,232,249,0.06),transparent_48%)]" />
             <div className={`pointer-events-none absolute right-4 top-2 text-[18vw] font-black uppercase leading-none tracking-tight lg:text-[9rem] ${palette.watermark}`}>
               LOOP
             </div>
-            <div
-              className={`pointer-events-none absolute left-[12%] right-[12%] top-1/2 hidden h-px lg:block ${
-                isDayMode
-                  ? "bg-gradient-to-r from-cyan-500/0 via-cyan-500/35 to-cyan-500/0"
-                  : "bg-gradient-to-r from-cyan-300/0 via-cyan-300/40 to-cyan-300/0"
-              }`}
+            <EnginePathVisual
+              items={operatingHandles}
+              isDayMode={isDayMode}
+              shouldAnimate={shouldAnimate}
             />
-            <div
-              className={`pointer-events-none absolute bottom-[12%] left-1/2 top-[12%] hidden w-px lg:block ${
-                isDayMode
-                  ? "bg-gradient-to-b from-cyan-500/0 via-cyan-500/28 to-cyan-500/0"
-                  : "bg-gradient-to-b from-cyan-300/0 via-cyan-300/32 to-cyan-300/0"
-              }`}
-            />
-            <div className="relative z-10 grid gap-3 sm:grid-cols-2 lg:h-full lg:grid-rows-2 lg:gap-4">
-            {operatingHandles.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.code}
-                  to={item.route}
-                  className={`group relative min-h-[172px] overflow-hidden border border-l-4 p-4 transition duration-300 hover:-translate-y-1 sm:min-h-[214px] sm:p-5 lg:min-h-0 lg:p-6 ${palette.card} ${
-                    isDayMode ? "border-l-cyan-500" : "border-l-cyan-300"
-                  }`}
-                >
-                  <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,rgba(103,232,249,0.10),transparent_34%)] opacity-0 transition duration-300 group-hover:opacity-100" />
-                  <div
-                    className={`pointer-events-none absolute -bottom-8 -right-5 text-[8rem] font-black uppercase leading-none tracking-tight transition duration-300 group-hover:translate-x-1 ${
-                      isDayMode
-                        ? "text-slate-900/[0.035]"
-                        : "text-white/[0.045]"
-                    }`}
-                  >
-                    {item.code}
-                  </div>
-                  <div className="relative z-10 flex h-full flex-col">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className={`font-mono text-xs font-black uppercase tracking-[0.2em] ${item.accent}`}>
-                        {item.index} / {item.code}
-                      </div>
-                      <div className={`flex h-9 w-9 items-center justify-center sm:h-12 sm:w-12 ${item.iconBg} text-slate-950 shadow-[0_0_34px_rgba(103,232,249,0.24)]`}>
-                        <Icon className="h-[18px] w-[18px] sm:h-6 sm:w-6" />
-                      </div>
-                    </div>
-                    <h3 className="mt-4 text-2xl font-black leading-none tracking-tight sm:text-[2.3rem] lg:text-[clamp(2rem,2.2vw,2.85rem)]">
-                      {item.title}
-                    </h3>
-                    <p className={`mt-3 hidden text-xs leading-5 min-[430px]:line-clamp-2 min-[430px]:block sm:line-clamp-2 sm:block sm:text-sm sm:leading-6 lg:line-clamp-3 ${palette.textSoft}`}>
-                      {item.description}
-                    </p>
-                    <div className={`mt-auto flex items-end justify-between border-t pt-3 sm:pt-5 ${palette.divider}`}>
-                      <div>
-                        <div className={`hidden text-[11px] font-black uppercase tracking-[0.18em] sm:block ${palette.textMuted}`}>
-                          Loop Role
-                        </div>
-                        <div className={`text-sm font-black leading-tight sm:mt-2 sm:text-xl ${item.accent}`}>
-                          {item.loop}
-                        </div>
-                      </div>
-                      <div className={`inline-flex items-center gap-1.5 text-xs font-black sm:gap-2 sm:text-sm ${item.accent}`}>
-                        <span className="hidden min-[430px]:inline">{item.short}</span>
-                        <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
-            </div>
           </div>
         </motion.div>
       </section>
@@ -723,17 +798,17 @@ const PlatformStats = () => {
           initial={prefersReducedMotion ? false : "initial"}
           whileInView={prefersReducedMotion ? undefined : "animate"}
           viewport={motionTokens.viewport}
-          className="mx-auto grid w-full max-w-[1880px] gap-4 lg:grid-cols-[minmax(0,0.74fr)_minmax(0,1.26fr)] lg:items-center lg:gap-8 xl:pr-20 2xl:pr-24"
+          className="mx-auto grid w-full max-w-[1880px] gap-8 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:items-center lg:gap-14 xl:pr-20 2xl:pr-24"
         >
-          <div className={`relative overflow-hidden border p-4 sm:p-7 lg:min-h-[620px] lg:p-8 ${palette.panelStrong}`}>
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(103,232,249,0.18),transparent_38%)]" />
+          <div className={`relative overflow-hidden p-4 sm:p-7 lg:min-h-[620px] lg:p-10 ${isDayMode ? "bg-white/64 shadow-[0_34px_110px_rgba(15,23,42,0.1)]" : "bg-white/[0.025] shadow-[0_36px_120px_rgba(0,0,0,0.3)]"}`}>
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(103,232,249,0.18),transparent_38%),radial-gradient(circle_at_78%_78%,rgba(45,212,191,0.1),transparent_30%)]" />
             <div
               className={`pointer-events-none absolute -right-16 bottom-8 text-[11rem] font-black uppercase leading-none tracking-tight ${palette.watermark}`}
             >
               BASE
             </div>
             <div className={`pointer-events-none absolute left-0 top-0 h-full w-1 ${palette.accentBg}`} />
-            <div className="relative z-10 flex h-full flex-col justify-between gap-5 lg:min-h-[556px]">
+            <div className="relative z-10 flex h-full flex-col justify-between gap-7 lg:min-h-[540px]">
               <div>
                 <div className={`font-mono text-xs font-black uppercase tracking-[0.2em] ${palette.accent}`}>
                   01 / Foundation
@@ -743,9 +818,37 @@ const PlatformStats = () => {
                   <br />
                   在这里汇合
                 </h2>
-                <p className={`mt-2 line-clamp-2 max-w-lg text-xs leading-5 sm:mt-5 sm:line-clamp-none sm:text-[0.95rem] sm:leading-7 ${palette.textSoft}`}>
+                <p className={`mt-3 max-w-lg text-xs leading-5 sm:mt-5 sm:text-[0.95rem] sm:leading-7 ${palette.textSoft}`}>
                   学校支持单位提供场景、空间与组织机制，学生组织承担触达、动员与执行，企业伙伴提供真实课题、技术资源与成果转化通道。
                 </p>
+              </div>
+
+              <div className="relative hidden min-h-[170px] md:block">
+                <div className={`absolute left-1/2 top-1/2 h-px w-[78%] -translate-x-1/2 ${isDayMode ? "bg-cyan-500/26" : "bg-cyan-300/28"}`} />
+                <div className={`absolute left-1/2 top-1/2 h-[76%] w-px -translate-y-1/2 ${isDayMode ? "bg-cyan-500/18" : "bg-cyan-300/22"}`} />
+                {[
+                  { label: "学校场景", className: "left-0 top-0" },
+                  { label: "学生组织", className: "right-0 top-1/2 -translate-y-1/2" },
+                  { label: "企业命题", className: "left-[18%] bottom-0" },
+                ].map((node) => (
+                  <div
+                    key={node.label}
+                    className={`absolute ${node.className} min-w-[128px] border px-4 py-3 text-sm font-black ${
+                      isDayMode
+                        ? "border-cyan-500/18 bg-white/78 text-slate-950"
+                        : "border-cyan-300/16 bg-[#061013]/78 text-white"
+                    }`}
+                  >
+                    {node.label}
+                  </div>
+                ))}
+                <div className={`absolute left-1/2 top-1/2 flex h-24 w-24 -translate-x-1/2 -translate-y-1/2 items-center justify-center border text-center text-xs font-black uppercase tracking-[0.16em] ${
+                  isDayMode
+                    ? "border-cyan-500/24 bg-cyan-50 text-cyan-700"
+                    : "border-cyan-300/22 bg-cyan-300/[0.08] text-cyan-200"
+                }`}>
+                  Resource<br />Flow
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-1 sm:gap-3">
@@ -769,9 +872,9 @@ const PlatformStats = () => {
             </div>
           </div>
 
-          <div className="grid gap-4 lg:min-h-[620px] lg:grid-rows-[minmax(0,0.88fr)_minmax(0,1.12fr)]">
-            <div className={`relative overflow-hidden border p-4 sm:p-7 lg:p-8 ${palette.card}`}>
-              <div className="grid gap-5 lg:grid-cols-[minmax(0,0.38fr)_minmax(0,0.62fr)] lg:items-end">
+          <div className="grid gap-7 lg:min-h-[620px] lg:grid-rows-[minmax(0,0.78fr)_minmax(0,1.22fr)]">
+            <div className={`relative overflow-hidden border-t px-0 py-2 sm:py-0 lg:flex lg:items-center ${palette.divider}`}>
+              <div className="grid w-full gap-6 lg:grid-cols-[minmax(0,0.36fr)_minmax(0,0.64fr)] lg:items-center">
                 <div>
                   <div className={`flex items-center gap-2 font-mono text-xs font-black uppercase tracking-[0.2em] ${palette.accent}`}>
                     <Users className="h-3.5 w-3.5" />
@@ -784,14 +887,14 @@ const PlatformStats = () => {
                     负责触达、运营、协作和复盘，让 AI 实践人群持续聚集。
                   </p>
                 </div>
-                <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
+                <div className="grid grid-cols-5 gap-2 sm:gap-3">
                   {studentOrganizations.map((item) => (
                     <span
                       key={item}
-                      className={`flex min-h-[46px] items-center justify-center border px-2 py-2 text-sm font-black transition duration-300 hover:-translate-y-0.5 sm:min-h-[56px] sm:px-4 sm:py-3 sm:text-lg lg:min-h-[68px] ${
+                      className={`flex min-h-[52px] items-center justify-center border px-2 py-2 text-sm font-black transition duration-300 hover:-translate-y-0.5 sm:min-h-[68px] sm:px-4 sm:py-3 sm:text-xl lg:min-h-[86px] ${
                         isDayMode
-                          ? "border-slate-200 bg-white/78"
-                          : "border-white/10 bg-white/[0.045] hover:border-cyan-300/24"
+                          ? "border-slate-200/80 bg-white/72 shadow-[0_18px_48px_rgba(15,23,42,0.08)]"
+                          : "border-white/10 bg-white/[0.035] hover:border-cyan-300/24 hover:bg-cyan-300/[0.055]"
                       }`}
                     >
                       {item}
@@ -801,8 +904,9 @@ const PlatformStats = () => {
               </div>
             </div>
 
-            <div className={`relative overflow-hidden border p-4 sm:p-7 lg:p-8 ${palette.panelStrong}`}>
-              <div className="grid gap-5 lg:grid-cols-[minmax(0,0.34fr)_minmax(0,0.66fr)]">
+            <div className={`relative overflow-hidden p-4 sm:p-7 lg:p-8 ${isDayMode ? "bg-white/58 shadow-[0_26px_80px_rgba(15,23,42,0.1)]" : "bg-white/[0.025] shadow-[0_30px_100px_rgba(0,0,0,0.28)]"}`}>
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_88%_10%,rgba(103,232,249,0.14),transparent_36%)]" />
+              <div className="relative z-10 grid gap-6 lg:grid-cols-[minmax(0,0.34fr)_minmax(0,0.66fr)]">
                 <div className="flex flex-col justify-between gap-5">
                   <div>
                   <div className={`flex items-center gap-2 font-mono text-xs font-black uppercase tracking-[0.2em] ${palette.accent}`}>
@@ -821,14 +925,14 @@ const PlatformStats = () => {
                   </div>
                 </div>
 
-              <div className="scrollbar-none flex snap-x gap-2 overflow-x-auto pb-1 sm:grid sm:auto-rows-fr sm:grid-cols-3 sm:overflow-visible sm:pb-0 lg:grid-cols-4 xl:gap-3">
+              <div className="scrollbar-none flex snap-x gap-3 overflow-x-auto pb-1 sm:grid sm:auto-rows-fr sm:grid-cols-3 sm:overflow-visible sm:pb-0 lg:grid-cols-4 xl:gap-4">
                 {hackathonPartnerLogos.map((logo) => (
                   <div
                     key={logo.src}
-                    className={`group flex min-h-[52px] min-w-[45%] snap-start items-center justify-center overflow-hidden border px-3 py-3 transition duration-300 hover:-translate-y-0.5 sm:min-h-[60px] sm:min-w-0 sm:px-4 sm:py-3 lg:min-h-[70px] lg:px-3 lg:py-3 xl:px-4 ${
+                    className={`group flex min-h-[58px] min-w-[48%] snap-start items-center justify-center overflow-hidden border px-3 py-3 transition duration-300 hover:-translate-y-0.5 sm:min-h-[72px] sm:min-w-0 sm:px-4 sm:py-4 lg:min-h-[88px] lg:px-3 lg:py-4 xl:px-4 ${
                       isDayMode
-                        ? "border-slate-200 bg-white/86 shadow-[0_16px_40px_rgba(15,23,42,0.08)]"
-                        : "border-white/10 bg-white/[0.045] hover:border-cyan-300/30 hover:bg-cyan-300/[0.065]"
+                        ? "border-slate-200/80 bg-white/80 shadow-[0_16px_44px_rgba(15,23,42,0.08)]"
+                        : "border-white/10 bg-white/[0.04] hover:border-cyan-300/30 hover:bg-cyan-300/[0.065]"
                     }`}
                   >
                     <img

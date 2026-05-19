@@ -475,7 +475,7 @@ const HackathonRegistration = () => {
 
       <section
         id="hackathon-hero"
-        className="relative min-h-[100svh] snap-start snap-always px-4 pt-[calc(env(safe-area-inset-top)+72px)] sm:px-6 lg:px-10 2xl:px-16"
+        className="relative min-h-[100svh] snap-start snap-always px-4 pt-[calc(env(safe-area-inset-top)+124px)] sm:px-6 xl:px-10 xl:pt-[calc(env(safe-area-inset-top)+72px)] 2xl:px-16"
       >
         <div className="pointer-events-none absolute inset-0">
           <div
@@ -497,18 +497,18 @@ const HackathonRegistration = () => {
         </div>
 
         <div
-          className="relative z-10 mx-auto mb-6 flex w-[calc(100%-2rem)] max-w-[760px] flex-col items-center gap-1 sm:absolute sm:right-6 sm:top-[calc(env(safe-area-inset-top)+80px)] sm:mx-0 sm:mb-0 sm:w-auto sm:items-end sm:gap-1.5 lg:right-10 lg:top-[calc(env(safe-area-inset-top)+78px)] lg:gap-2 2xl:right-16"
+          className="relative z-10 mx-auto mb-5 flex w-full max-w-[330px] flex-col items-center gap-0.5 min-[380px]:max-w-[360px] min-[380px]:gap-1 sm:max-w-[640px] sm:gap-1.5 xl:absolute xl:right-10 xl:top-[calc(env(safe-area-inset-top)+78px)] xl:mx-0 xl:mb-0 xl:w-auto xl:max-w-[760px] xl:items-end xl:gap-2 2xl:right-16"
           aria-label="企业 logo"
         >
           {hackathonPartnerLogoRows.map((row, rowIndex) => (
             <div
               key={rowIndex}
-              className="flex flex-wrap items-center justify-center gap-1.5 sm:flex-nowrap sm:justify-end sm:gap-2 lg:gap-2.5"
+              className="flex flex-wrap items-center justify-center gap-x-1 gap-y-0.5 min-[380px]:gap-x-1.5 min-[380px]:gap-y-1 sm:flex-nowrap sm:gap-2 xl:justify-end xl:gap-2.5"
             >
               {row.map((logo) => (
                 <span
                   key={logo.src}
-                  className="group relative flex h-9 items-center justify-center px-3 transition duration-300 hover:-translate-y-0.5 sm:h-11 sm:px-4 lg:h-12 lg:px-5"
+                  className="group relative flex h-7 items-center justify-center px-1.5 transition duration-300 hover:-translate-y-0.5 min-[380px]:h-8 min-[380px]:px-2 sm:h-11 sm:px-4 lg:h-12 lg:px-5"
                 >
                   <img
                     src={isDayMode ? logo.src : logo.darkSrc || logo.src}
@@ -524,7 +524,7 @@ const HackathonRegistration = () => {
                   />
                   {logo.text ? (
                     <span
-                      className={`ml-2 text-sm font-black leading-none tracking-tight sm:text-base lg:text-lg ${
+                      className={`ml-1.5 text-xs font-black leading-none tracking-tight min-[380px]:text-sm sm:ml-2 sm:text-base lg:text-lg ${
                         isDayMode ? "text-slate-950" : "text-white"
                       }`}
                     >
@@ -856,34 +856,57 @@ const HackathonRegistration = () => {
 
       <section
         id="registration-form"
-        className="relative flex min-h-[100svh] snap-start snap-always items-center overflow-hidden px-4 pb-20 pt-[88px] sm:px-6 sm:pb-24 sm:pt-20 lg:px-8 lg:pb-0"
+        className="relative flex min-h-[100svh] snap-start snap-always items-start overflow-hidden px-4 pb-28 pt-[104px] sm:px-6 sm:pb-28 sm:pt-24 lg:items-center lg:px-10 lg:pb-10 lg:pt-[96px] 2xl:px-16"
       >
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_24%,rgba(103,232,249,0.12),transparent_28%),radial-gradient(circle_at_84%_70%,rgba(99,102,241,0.12),transparent_24%)]" />
-        <div className="pointer-events-none absolute left-[-3%] top-[8%] font-black uppercase leading-none tracking-[-0.08em] text-white/[0.035] text-[18vw]">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_17%_18%,rgba(103,232,249,0.14),transparent_30%),radial-gradient(circle_at_86%_72%,rgba(99,102,241,0.14),transparent_28%)]" />
+        <div className="pointer-events-none absolute left-[-3%] top-[7%] font-black uppercase leading-none tracking-[-0.08em] text-white/[0.04] text-[18vw]">
           APPLY
         </div>
-        <div className="mx-auto grid w-full max-w-7xl gap-8 lg:grid-cols-[0.78fr_1.22fr] lg:items-center">
-          <div>
-            <p className={`text-sm font-bold uppercase tracking-[0.24em] ${palette.accent}`}>
-              Register
-            </p>
-            <h2 className="mt-4 text-4xl font-black tracking-tight sm:text-5xl">
-              参赛登记
-            </h2>
-            <p
-              className={`mt-5 max-w-md text-base leading-8 ${palette.textSoft}`}
-            >
-              填写基础信息后提交报名。赛事通知会通过后续渠道同步给入选同学。
-            </p>
-            <div className={`mt-7 border p-4 ${palette.panel}`}>
-              <div className="flex items-start gap-3">
-                <Bot className={`mt-0.5 h-5 w-5 shrink-0 ${palette.accent}`} />
-                <p className={`text-sm leading-7 ${palette.textSoft}`}>
-                  工具选择用于了解参赛者的 AI 开发习惯，不影响报名资格。
-                </p>
+        <div className="mx-auto grid w-full max-w-[1760px] gap-7 lg:grid-cols-[minmax(390px,0.86fr)_minmax(720px,1.24fr)] lg:items-center lg:gap-10 xl:grid-cols-[minmax(460px,0.82fr)_minmax(820px,1.28fr)] xl:gap-14 2xl:grid-cols-[minmax(520px,0.82fr)_minmax(920px,1.28fr)] 2xl:gap-20">
+          <div className="relative z-10">
+            <div className="max-w-[680px]">
+              <p className={`text-sm font-black uppercase tracking-[0.28em] ${palette.accent}`}>
+                Register
+              </p>
+              <h2 className="mt-4 text-5xl font-black leading-[0.96] tracking-tight sm:text-6xl xl:text-7xl">
+                参赛登记
+              </h2>
+              <p
+                className={`mt-5 max-w-xl text-lg leading-9 xl:text-xl xl:leading-9 ${palette.textSoft}`}
+              >
+                填写基础信息后提交报名。赛事通知会通过后续渠道同步给入选同学。
+              </p>
+
+              <div className={`mt-7 grid gap-px overflow-hidden border ${palette.line} ${isDayMode ? "bg-slate-200/80" : "bg-cyan-300/16"}`}>
+                {[
+                  ["形式", event.format],
+                  ["时长", event.duration],
+                  ["地点", event.location],
+                ].map(([label, value]) => (
+                  <div
+                    key={label}
+                    className={`flex items-center justify-between gap-4 px-5 py-4 ${
+                      isDayMode ? "bg-white/82" : "bg-white/[0.055]"
+                    }`}
+                  >
+                    <span className={`text-sm font-black uppercase tracking-[0.18em] ${palette.accent}`}>
+                      {label}
+                    </span>
+                    <span className="text-lg font-black tracking-tight">{value}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className={`mt-5 border p-5 ${palette.panel}`}>
+                <div className="flex items-start gap-3">
+                  <Bot className={`mt-1 h-5 w-5 shrink-0 ${palette.accent}`} />
+                  <p className={`text-base leading-8 ${palette.textSoft}`}>
+                    工具选择用于了解参赛者的 AI 开发习惯，不影响报名资格。
+                  </p>
+                </div>
               </div>
             </div>
-            <div className="mt-7">
+            <div className="mt-6 hidden max-w-[680px] lg:block">
               <HackathonAiCoachPanel
                 isDayMode={isDayMode}
                 palette={palette}
@@ -905,20 +928,24 @@ const HackathonRegistration = () => {
                   transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
                 }
               : {})}
-            className={`border p-5 backdrop-blur-2xl sm:p-7 ${palette.panelStrong}`}
+            className={`relative z-10 border p-5 backdrop-blur-2xl sm:p-7 lg:p-7 2xl:p-10 ${palette.panelStrong}`}
           >
-            <div className={`mb-6 flex items-center justify-between gap-4 border-b pb-5 ${isDayMode ? "border-cyan-200" : "border-cyan-300/14"}`}>
+            <div className={`mb-6 flex items-center justify-between gap-5 border-b pb-5 ${isDayMode ? "border-cyan-200" : "border-cyan-300/14"}`}>
               <div>
-                <h3 className="text-2xl font-black">报名信息</h3>
-                <p className={`mt-1 text-sm ${palette.textMuted}`}>
+                <h3 className="text-3xl font-black tracking-tight xl:text-4xl">
+                  报名信息
+                </h3>
+                <p className={`mt-2 text-base ${palette.textMuted}`}>
                   所有带 * 的字段均为必填
                 </p>
               </div>
-              <Trophy className={`h-7 w-7 ${palette.accent}`} />
+              <div className={`flex h-14 w-14 shrink-0 items-center justify-center border ${isDayMode ? "border-cyan-200 bg-cyan-50" : "border-cyan-300/20 bg-cyan-300/10"}`}>
+                <Trophy className={`h-7 w-7 ${palette.accent}`} />
+              </div>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="grid gap-5 sm:grid-cols-2">
+              <div className="grid gap-5 md:grid-cols-2 xl:gap-6">
                 <Field
                   label="姓名"
                   required
@@ -930,7 +957,7 @@ const HackathonRegistration = () => {
                     value={formData.name}
                     onChange={handleInputChange("name")}
                     placeholder="请输入姓名"
-                    className={`w-full border px-4 py-3 text-sm outline-none transition ${palette.field} ${
+                    className={`w-full border px-5 py-4 text-base font-semibold outline-none transition focus:ring-4 ${palette.field} ${
                       formErrors.name
                         ? "border-rose-500 focus:border-rose-500 focus:ring-rose-100"
                         : ""
@@ -949,7 +976,7 @@ const HackathonRegistration = () => {
                     value={formData.studentId}
                     onChange={handleInputChange("studentId")}
                     placeholder="请输入学号"
-                    className={`w-full border px-4 py-3 text-sm outline-none transition ${palette.field} ${
+                    className={`w-full border px-5 py-4 text-base font-semibold outline-none transition focus:ring-4 ${palette.field} ${
                       formErrors.studentId
                         ? "border-rose-500 focus:border-rose-500 focus:ring-rose-100"
                         : ""
@@ -958,7 +985,7 @@ const HackathonRegistration = () => {
                 </Field>
               </div>
 
-              <div className="grid gap-5 sm:grid-cols-2">
+              <div className="grid gap-5 md:grid-cols-2 xl:gap-6">
                 <Field
                   label="专业"
                   required
@@ -970,7 +997,7 @@ const HackathonRegistration = () => {
                     value={formData.major}
                     onChange={handleInputChange("major")}
                     placeholder="请输入专业"
-                    className={`w-full border px-4 py-3 text-sm outline-none transition ${palette.field} ${
+                    className={`w-full border px-5 py-4 text-base font-semibold outline-none transition focus:ring-4 ${palette.field} ${
                       formErrors.major
                         ? "border-rose-500 focus:border-rose-500 focus:ring-rose-100"
                         : ""
@@ -987,7 +1014,7 @@ const HackathonRegistration = () => {
                   <select
                     value={formData.grade}
                     onChange={handleInputChange("grade")}
-                    className={`w-full appearance-none border px-4 py-3 text-sm outline-none transition ${palette.field} ${
+                    className={`w-full appearance-none border px-5 py-4 text-base font-semibold outline-none transition focus:ring-4 ${palette.field} ${
                       formErrors.grade
                         ? "border-rose-500 focus:border-rose-500 focus:ring-rose-100"
                         : ""
@@ -1022,14 +1049,14 @@ const HackathonRegistration = () => {
 
               <div>
                 <label
-                  className={`mb-3 block text-sm font-bold ${palette.textSoft}`}
+                  className={`mb-3 block text-base font-black ${palette.textSoft}`}
                 >
                   常用 AI 工具 <span className="text-rose-400">*</span>
                   <span className={`ml-2 font-normal ${palette.textMuted}`}>
                     可多选
                   </span>
                 </label>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2.5">
                   {aiToolOptions.map((tool) => {
                     const isSelected = formData.aiTools.includes(tool.value);
                     return (
@@ -1037,7 +1064,7 @@ const HackathonRegistration = () => {
                         key={tool.value}
                         type="button"
                         onClick={() => handleToolToggle(tool.value)}
-                        className={`inline-flex min-h-10 items-center gap-2 border px-4 text-sm font-bold transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 ${
+                        className={`inline-flex min-h-12 items-center gap-2 border px-5 text-base font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 ${
                           isSelected
                             ? isDayMode
                               ? "border-cyan-600 bg-cyan-600 text-white"
@@ -1059,75 +1086,101 @@ const HackathonRegistration = () => {
                 )}
               </div>
 
-              <div>
-                <label
-                  className={`mb-3 block text-sm font-bold ${palette.textSoft}`}
-                >
-                  AI 项目经历 <span className="text-rose-400">*</span>
-                </label>
-                <textarea
-                  value={formData.experience}
-                  onChange={handleInputChange("experience")}
-                  placeholder="简述一下你使用 AI 开发项目的经历..."
-                  rows={4}
-                  className={`w-full resize-none rounded-xl border px-5 py-4 text-sm leading-7 outline-none transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 ${
-                    isDayMode
-                      ? "border-slate-200/80 bg-white/80 text-slate-900 placeholder:text-slate-400"
-                      : "border-white/10 bg-white/[0.04] text-white placeholder:text-white/26"
-                  }`}
-                />
-                {formErrors.experience && (
-                  <p className="mt-2 flex items-center gap-1 text-xs text-rose-400">
-                    <AlertCircle className="h-3.5 w-3.5" />
-                    {formErrors.experience}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label
-                  className={`mb-3 block text-sm font-bold ${palette.textSoft}`}
-                >
-                  请加入官方微信群
-                  <span className={`ml-2 font-normal ${palette.textMuted}`}>
-                    可选
-                  </span>
-                </label>
-                <div
-                  className={`inline-flex max-w-full border p-3 ${
-                    isDayMode
-                      ? "border-slate-200 bg-white/80"
-                      : "border-white/10 bg-white/[0.04]"
-                  }`}
-                >
-                  <img
-                    src={officialWechatGroupImage}
-                    alt="官方微信群二维码"
-                    className="h-auto w-full max-w-[240px] object-contain"
-                    loading="lazy"
+              <div className={`grid gap-5 border-t pt-5 ${palette.line} lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.42fr)] xl:grid-cols-[minmax(0,1fr)_minmax(300px,0.44fr)]`}>
+                <div>
+                  <label
+                    className={`mb-3 block text-base font-black ${palette.textSoft}`}
+                  >
+                    AI 项目经历 <span className="text-rose-400">*</span>
+                  </label>
+                  <textarea
+                    value={formData.experience}
+                    onChange={handleInputChange("experience")}
+                    placeholder="简述一下你使用 AI 开发项目的经历..."
+                    rows={5}
+                    className={`min-h-[180px] w-full resize-none rounded-xl border px-5 py-4 text-base font-semibold leading-8 outline-none transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 lg:min-h-[232px] 2xl:min-h-[264px] ${
+                      isDayMode
+                        ? "border-slate-200/80 bg-white/80 text-slate-900 placeholder:text-slate-400"
+                        : "border-white/10 bg-white/[0.04] text-white placeholder:text-white/26"
+                    }`}
                   />
+                  {formErrors.experience && (
+                    <p className="mt-2 flex items-center gap-1 text-xs text-rose-400">
+                      <AlertCircle className="h-3.5 w-3.5" />
+                      {formErrors.experience}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  <div className={`border px-5 py-4 ${palette.chip}`}>
+                    <p className="text-base font-black">提交前确认</p>
+                    <p className={`mt-2 text-sm leading-6 ${palette.textMuted}`}>
+                      姓名、学号和项目经历会用于报名核验；AI 工具只帮助赛事组了解现场支持需求。
+                    </p>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className={`group inline-flex min-h-14 w-full items-center justify-center gap-2 px-7 text-base font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-55 2xl:min-h-16 2xl:text-lg ${palette.primary}`}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        提交中...
+                      </>
+                    ) : (
+                      <>
+                        提交报名
+                        <Send className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
+                      </>
+                    )}
+                  </button>
+
+                  <div>
+                    <label
+                      className={`mb-3 block text-base font-black ${palette.textSoft}`}
+                    >
+                      官方微信群
+                      <span className={`ml-2 font-normal ${palette.textMuted}`}>
+                        可选
+                      </span>
+                    </label>
+                    <div
+                      className={`flex items-center gap-4 border p-3 ${
+                        isDayMode
+                          ? "border-slate-200 bg-white/80"
+                          : "border-white/10 bg-white/[0.04]"
+                      }`}
+                    >
+                      <img
+                        src={officialWechatGroupImage}
+                        alt="官方微信群二维码"
+                        className="h-auto w-full max-w-[112px] object-contain xl:max-w-[128px] 2xl:max-w-[154px]"
+                        loading="lazy"
+                      />
+                      <p className={`hidden text-sm font-semibold leading-6 ${palette.textMuted} xl:block`}>
+                        扫码加入群聊，后续通知和现场信息会在群内同步。
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
-
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className={`group inline-flex min-h-12 w-full items-center justify-center gap-2 px-6 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 disabled:cursor-not-allowed disabled:opacity-55 ${palette.primary}`}
-              >
-                {isSubmitting ? (
-                  <>
-                    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                    提交中...
-                  </>
-                ) : (
-                  <>
-                    提交报名
-                    <Send className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                  </>
-                )}
-              </button>
             </form>
           </MotionDiv>
+
+          <div className="relative z-10 lg:hidden">
+            <HackathonAiCoachPanel
+              isDayMode={isDayMode}
+              palette={palette}
+              query={coachQuery}
+              setQuery={setCoachQuery}
+              result={coachResult}
+              isLoading={isCoachLoading}
+              onAsk={askHackathonCoach}
+            />
+          </div>
         </div>
       </section>
     </div>
@@ -1136,12 +1189,12 @@ const HackathonRegistration = () => {
 
 const Field = ({ label, required, error, palette, children }) => (
   <div>
-    <label className={`mb-2 block text-sm font-bold ${palette.textSoft}`}>
+    <label className={`mb-2.5 block text-base font-black ${palette.textSoft}`}>
       {label} {required && <span className="text-rose-400">*</span>}
     </label>
     {children}
     {error && (
-      <p className="mt-2 flex items-center gap-1 text-xs text-rose-400">
+      <p className="mt-2 flex items-center gap-1.5 text-sm font-semibold text-rose-400">
         <AlertCircle className="h-3.5 w-3.5" />
         {error}
       </p>
@@ -1182,7 +1235,7 @@ const HackathonAiCoachPanel = ({
   return (
     <div
       aria-busy={isLoading}
-      className={`relative overflow-hidden border p-4 sm:p-6 ${
+      className={`relative overflow-hidden border p-5 sm:p-6 ${
         isDayMode
           ? "border-cyan-200 bg-white/88 shadow-[0_24px_60px_rgba(15,23,42,0.09)]"
           : "border-cyan-300/18 bg-[#081214]/90 shadow-[0_28px_80px_rgba(0,0,0,0.42)]"
@@ -1194,19 +1247,19 @@ const HackathonAiCoachPanel = ({
             <Bot className="h-3.5 w-3.5" />
             AI Coach
           </div>
-          <h3 className="mt-4 text-2xl font-black tracking-tight sm:text-3xl">
+          <h3 className="mt-4 text-3xl font-black tracking-tight">
             黑客松 AI 教练
           </h3>
-          <p className={`mt-2 text-sm leading-7 ${palette.textSoft}`}>
+          <p className={`mt-2 text-base leading-8 ${palette.textSoft}`}>
             告诉它你的基础、工具和顾虑，它会结合赛制给你选方向、拆计划和提醒风险。
           </p>
         </div>
-        <span className={`inline-flex shrink-0 items-center gap-2 border px-3 py-1.5 text-xs font-bold ${palette.chip}`}>
+        <span className={`inline-flex shrink-0 items-center gap-2 border px-3 py-1.5 text-sm font-bold ${palette.chip}`}>
           <Sparkles className="h-3.5 w-3.5" />
           {statusLabel}
         </span>
       </div>
-      <div className={`mt-4 flex items-start gap-2 border px-3 py-2 text-xs leading-5 ${palette.chip}`}>
+      <div className={`mt-4 flex items-start gap-2 border px-3 py-2 text-sm leading-6 ${palette.chip}`}>
         <Cpu className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${palette.accent}`} />
         <span>{statusDetail}</span>
       </div>
@@ -1216,7 +1269,7 @@ const HackathonAiCoachPanel = ({
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           rows={3}
-          className={`w-full resize-none border px-4 py-3 text-sm leading-6 outline-none transition focus:outline-none focus:ring-4 focus:ring-cyan-300/20 ${palette.field}`}
+          className={`w-full resize-none border px-4 py-3 text-base font-semibold leading-7 outline-none transition focus:outline-none focus:ring-4 focus:ring-cyan-300/20 ${palette.field}`}
           placeholder="比如：我不会前端但会用 Codex，适合参加吗？"
         />
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -1227,7 +1280,7 @@ const HackathonAiCoachPanel = ({
                 type="button"
                 onClick={() => onAsk(prompt)}
                 disabled={isLoading}
-                className={`border px-3 py-2 text-xs font-bold transition hover:border-cyan-400 ${palette.chip}`}
+                className={`border px-3 py-2 text-sm font-bold transition hover:border-cyan-400 ${palette.chip}`}
               >
                 {prompt}
               </button>
@@ -1237,7 +1290,7 @@ const HackathonAiCoachPanel = ({
             type="button"
             onClick={() => onAsk()}
             disabled={isLoading}
-            className={`inline-flex min-h-10 shrink-0 items-center justify-center gap-2 px-4 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-60 ${palette.primary}`}
+            className={`inline-flex min-h-12 shrink-0 items-center justify-center gap-2 px-5 text-base font-black transition disabled:cursor-not-allowed disabled:opacity-60 ${palette.primary}`}
           >
             {isLoading ? (
               <>

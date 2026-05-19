@@ -91,8 +91,7 @@ const Home = () => (
       title="首页"
       description="AI生态团队信息聚合平台，聚合活动、作品与 AI 社区内容。"
     />
-    <Hero />
-    <PlatformStats />
+    <PlatformStats hero={({ onScrollNext }) => <Hero id="home-hero" onScrollNext={onScrollNext} />} />
   </>
 );
 
@@ -107,7 +106,7 @@ const AppContent = () => {
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isHomeRoute = location.pathname === '/';
   const isAboutRoute = location.pathname === '/about';
-  const isImmersiveRoute = isAboutRoute || location.pathname.startsWith('/hackathon');
+  const isImmersiveRoute = isHomeRoute || isAboutRoute || location.pathname.startsWith('/hackathon');
   const { cursorEnabled, settings } = useSettings();
   const hasDesktopPointer = useMediaQuery('(min-width: 768px) and (hover: hover) and (pointer: fine)');
   const shouldMountDeferredUi = useDeferredMount(700);
@@ -178,7 +177,7 @@ const AppContent = () => {
       )}
       {/* Keep the Hero image background, but disable the fixed page-wide home background. */}
       {!isAdminRoute && cursorEnabled && hasDesktopPointer && !isLowPowerDevice && <CustomCursor />}
-      {!isAdminRoute && hasDesktopPointer && !isLowPowerDevice && <ScrollProgress />}
+      {!isAdminRoute && !isImmersiveRoute && hasDesktopPointer && !isLowPowerDevice && <ScrollProgress />}
 
       {shouldMountDeferredUi && (
         <ErrorBoundary variant="inline" silent>
@@ -232,7 +231,7 @@ const AppContent = () => {
         </ErrorBoundary>
       )}
       {!isAdminRoute && <MobileNavbar />}
-      {!isHomeRoute && <ScrollToTop />}
+      {!isImmersiveRoute && <ScrollToTop />}
       <PWAInstallPrompt />
       {import.meta.env.DEV && <PerformancePanel />}
     </div>

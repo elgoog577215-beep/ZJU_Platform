@@ -814,12 +814,6 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
       },
     },
   ];
-  const ownerQuickActions = [
-    { key: "edit", label: "编辑", icon: Pencil, tab: "settings" },
-    { key: "favorites", label: t("user_profile.tabs.favorites", "收藏"), icon: Heart, tab: "favorites" },
-    { key: "messages", label: t("user_profile.tabs.messages", "消息"), icon: Bell, tab: "messages", badge: unreadCount },
-    { key: "settings", label: t("user_profile.tabs.settings", "设置"), icon: Settings, tab: "settings" },
-  ];
   const profileTabItems = isOwner
     ? [
         { key: "published", label: t("user_profile.tabs.published", "作品"), icon: Grid },
@@ -947,24 +941,6 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
             </div>
           </div>
 
-          {isOwner ? (
-            <div className="grid grid-cols-4 gap-2">
-              {ownerQuickActions.map(({ key, label, icon: Icon, tab, badge }) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setActiveTab(tab)}
-                  className={`relative flex min-h-[72px] flex-col items-center justify-center gap-1.5 rounded-3xl border text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${activeTab === tab ? (isDayMode ? "border-indigo-200 bg-indigo-50 text-indigo-700" : "border-indigo-400/30 bg-indigo-500/15 text-indigo-200") : isDayMode ? "border-slate-200/80 bg-white/86 text-slate-700" : "border-white/10 bg-white/[0.04] text-gray-200"}`}
-                >
-                  <Icon size={19} aria-hidden="true" />
-                  <span>{label}</span>
-                  {badge > 0 ? (
-                    <span className="absolute right-3 top-3 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
-                  ) : null}
-                </button>
-              ))}
-            </div>
-          ) : null}
         </div>
 
         {/* Profile Header */}

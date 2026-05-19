@@ -60,7 +60,7 @@ const HackathonSeasonOne = () => {
   const titleClass = isDayMode ? "text-slate-950" : "text-white";
   const mutedClass = isDayMode ? "text-slate-500" : "text-cyan-100/68";
   const activeClass = isDayMode
-    ? "bg-slate-950 text-white shadow-[0_12px_28px_rgba(15,23,42,0.18)]"
+    ? "border border-cyan-200/80 bg-cyan-50 text-cyan-700 shadow-[0_10px_24px_rgba(14,165,233,0.16)]"
     : "bg-cyan-300 text-slate-950 shadow-[0_0_22px_rgba(103,232,249,0.34)]";
   const idleClass = isDayMode
     ? "text-slate-600 hover:bg-slate-100 hover:text-slate-950"

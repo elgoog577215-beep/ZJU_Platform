@@ -764,6 +764,59 @@ select:focus-visible {
   text-wrap: balance;
 }
 
+.home-hero {
+  background:
+    linear-gradient(180deg, #020617 0%, #07111f 46%, #020617 100%);
+}
+
+.home-hero-title {
+  text-rendering: geometricPrecision;
+  text-shadow:
+    0 2px 0 rgba(255, 255, 255, 0.08),
+    0 18px 48px rgba(2, 6, 23, 0.7),
+    0 0 58px rgba(125, 211, 252, 0.18);
+}
+
+.home-hero-title-night {
+  color: #eef5ff;
+  -webkit-text-fill-color: #eef5ff;
+}
+
+.home-hero-title-day {
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+}
+
+.home-hero-beam {
+  background:
+    linear-gradient(90deg, transparent 0%, rgba(125, 211, 252, 0.12) 49%, rgba(255, 255, 255, 0.2) 50%, rgba(125, 211, 252, 0.1) 51%, transparent 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, transparent 34%, rgba(14, 116, 144, 0.12) 67%, transparent 100%);
+  mix-blend-mode: screen;
+  opacity: 0.62;
+}
+
+.home-hero-network {
+  background-image:
+    linear-gradient(115deg, transparent 0 17%, rgba(125, 211, 252, 0.11) 17.1% 17.24%, transparent 17.34% 100%),
+    linear-gradient(64deg, transparent 0 38%, rgba(167, 243, 208, 0.08) 38.1% 38.22%, transparent 38.32% 100%),
+    linear-gradient(150deg, transparent 0 70%, rgba(196, 181, 253, 0.08) 70.1% 70.24%, transparent 70.34% 100%);
+  opacity: 0.72;
+  -webkit-mask-image: radial-gradient(ellipse at center, black 0%, black 42%, transparent 78%);
+  mask-image: radial-gradient(ellipse at center, black 0%, black 42%, transparent 78%);
+}
+
+.home-hero-constellation {
+  background-image:
+    radial-gradient(circle at 16% 27%, rgba(255, 255, 255, 0.84) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 28% 42%, rgba(125, 211, 252, 0.76) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 72% 25%, rgba(255, 255, 255, 0.72) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 83% 48%, rgba(167, 243, 208, 0.7) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 52% 18%, rgba(196, 181, 253, 0.72) 0 1px, transparent 1.5px);
+  opacity: 0.56;
+  -webkit-mask-image: linear-gradient(180deg, black 0%, black 68%, transparent 100%);
+  mask-image: linear-gradient(180deg, black 0%, black 68%, transparent 100%);
+}
+
 .motion-surface {
   transition:
     transform var(--motion-duration-base) var(--motion-ease-standard),

@@ -28,6 +28,7 @@ import {
   Building2,
   Tag,
   Search,
+  SlidersHorizontal,
   Plus,
 } from "lucide-react";
 import UploadModal from "./UploadModal";
@@ -919,12 +920,12 @@ END:VCALENDAR`;
   );
 
   const discoveryToggleClasses = isDayMode
-    ? "bg-white/88 border border-slate-200/80 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
-    : "bg-[#11131c]/88 border border-white/[0.12] shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_10px_26px_rgba(0,0,0,0.28)]";
+    ? "bg-white/72 border border-white/80 shadow-[0_18px_42px_rgba(30,64,175,0.10),inset_0_1px_0_rgba(255,255,255,0.86)] ring-1 ring-slate-200/50"
+    : "bg-[#10131d]/78 border border-white/[0.11] shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_18px_42px_rgba(0,0,0,0.32)] ring-1 ring-white/[0.04]";
   const daySegmentActiveClass =
-    "border border-blue-200 bg-blue-50 text-blue-700 shadow-none";
+    "border border-white bg-white text-blue-700 shadow-[0_10px_24px_rgba(37,99,235,0.13)]";
   const nightSegmentActiveClass =
-    "bg-[#f6f7fb] text-slate-950 shadow-[inset_0_-1px_0_rgba(15,23,42,0.08),0_1px_2px_rgba(0,0,0,0.24)]";
+    "border border-white/90 bg-[#f6f7fb] text-slate-950 shadow-[0_10px_24px_rgba(0,0,0,0.28),inset_0_-1px_0_rgba(15,23,42,0.08)]";
   const dayPrimaryActionClass =
     "bg-blue-600 text-white shadow-[0_1px_2px_rgba(15,23,42,0.12)]";
 
@@ -933,36 +934,37 @@ END:VCALENDAR`;
       className={`flex ${compact ? "flex-col items-stretch gap-3" : "items-center justify-end gap-4"} w-full`}
     >
       <div
-        className={`inline-flex items-center gap-1 p-1 rounded-full ${discoveryToggleClasses} ${compact ? "w-full justify-between overflow-hidden" : ""}`}
+        className={`inline-flex items-center gap-1.5 rounded-full p-1.5 backdrop-blur-2xl ${discoveryToggleClasses} ${compact ? "w-full justify-between overflow-hidden" : ""}`}
       >
         <button
           type="button"
           aria-pressed={discoveryMode === "filters"}
           onClick={() => setDiscoveryMode("filters")}
-          className={`inline-flex items-center justify-center rounded-full px-4 py-2.5 min-h-[44px] text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${compact ? "flex-1 min-w-0 whitespace-nowrap" : ""} ${
+          className={`inline-flex min-h-[42px] items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${compact ? "flex-1 min-w-0 whitespace-nowrap" : ""} ${
             discoveryMode === "filters"
               ? isDayMode
                 ? daySegmentActiveClass
                 : nightSegmentActiveClass
               : isDayMode
-                ? "text-slate-600 hover:text-slate-900"
-                : "text-slate-300 hover:bg-white/[0.045] hover:text-white"
+                ? "text-slate-500 hover:bg-white/62 hover:text-slate-900"
+                : "text-slate-300 hover:bg-white/[0.055] hover:text-white"
           }`}
         >
+          <SlidersHorizontal size={15} className="shrink-0" />
           筛选
         </button>
         <button
           type="button"
           aria-pressed={discoveryMode === "assistant"}
           onClick={() => setDiscoveryMode("assistant")}
-          className={`inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 min-h-[44px] text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${compact ? "flex-1 min-w-0 whitespace-nowrap px-3" : ""} ${
+          className={`inline-flex min-h-[42px] items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${compact ? "flex-1 min-w-0 whitespace-nowrap px-3" : ""} ${
             discoveryMode === "assistant"
               ? isDayMode
                 ? daySegmentActiveClass
                 : nightSegmentActiveClass
               : isDayMode
-                ? "text-slate-600 hover:text-slate-900"
-                : "text-slate-300 hover:bg-white/[0.045] hover:text-white"
+                ? "text-slate-500 hover:bg-white/62 hover:text-slate-900"
+                : "text-slate-300 hover:bg-white/[0.055] hover:text-white"
           }`}
         >
           <Search size={15} className="shrink-0" />

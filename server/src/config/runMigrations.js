@@ -886,6 +886,69 @@ async function runMigrations(db) {
   }
 
   try {
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS ecosystem_partners (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        category TEXT NOT NULL,
+        name TEXT NOT NULL,
+        description TEXT,
+        logo_url TEXT,
+        dark_logo_url TEXT,
+        link_url TEXT,
+        sort_order INTEGER DEFAULT 0,
+        enabled INTEGER DEFAULT 1,
+        featured INTEGER DEFAULT 1,
+        created_at TEXT DEFAULT (datetime('now')),
+        updated_at TEXT DEFAULT (datetime('now')),
+        deleted_at DATETIME
+      )
+    `);
+
+    await db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_ecosystem_partners_public
+        ON ecosystem_partners(enabled, featured, category, sort_order, id);
+      CREATE INDEX IF NOT EXISTS idx_ecosystem_partners_admin
+        ON ecosystem_partners(category, sort_order, id);
+    `);
+
+    const partnerCount = await db.get('SELECT COUNT(*) AS count FROM ecosystem_partners');
+    if ((partnerCount?.count || 0) === 0) {
+      const defaults = [
+        ['school', '未来学习中心', '提供场景、空间、组织协同与长期机制支持。', null, null, null, 10],
+        ['school', 'AI 联合实验室', '提供校内 AI 实践与联合探索支持。', null, null, null, 20],
+        ['organization', 'XLAB', '协同选手招募、志愿执行与赛后社群承接。', null, null, null, 10],
+        ['organization', 'ZJUAI', '协同校园 AI 学习者与开发者社群连接。', null, null, null, 20],
+        ['organization', 'EAI', '协同活动运营、现场执行与实践人群组织。', null, null, null, 30],
+        ['organization', 'AIRA', '协同 AI 实践社群共建与项目交流。', null, null, null, 40],
+        ['organization', 'KAB', '协同创新创业人群组织与活动承接。', null, null, null, 50],
+        ['enterprise', 'MiniMax', '提供模型能力、技术资源与生态支持。', '/images/partner-logos/minimax.png', '/images/partner-logos/minimax-dark.png', null, 10],
+        ['enterprise', 'ModelScope 魔搭社区', '提供模型社区、技术资源与开发者生态支持。', '/images/partner-logos/modelscope.png', '/images/partner-logos/modelscope-dark.png', null, 20],
+        ['enterprise', 'Bonjour', '提供数字名片与合作传播支持。', '/images/partner-logos/company-3.png', '/images/partner-logos/company-3-dark.png', null, 30],
+        ['enterprise', '阿里云', '提供云资源与技术基础设施支持。', '/images/partner-logos/aliyun-cn.svg?v=2', '/images/partner-logos/aliyun-cn-white.svg?v=2', null, 40],
+        ['enterprise', 'Qoder', '提供 AI 开发工具与工程实践支持。', '/images/partner-logos/qoder.png', '/images/partner-logos/qoder-dark.png', null, 50],
+        ['enterprise', '阶跃 StepFun', '提供模型、平台与技术生态支持。', '/images/partner-logos/stepfun.png', '/images/partner-logos/stepfun-white.png', null, 60],
+      ];
+
+      for (const partner of defaults) {
+        await db.run(
+          `INSERT INTO ecosystem_partners (
+            category, name, description, logo_url, dark_logo_url, link_url,
+            sort_order, enabled, featured, created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 1, datetime('now'), datetime('now'))`,
+          partner,
+        );
+      }
+      console.log('✅ Ecosystem partners seeded');
+    }
+
+    console.log('✅ Ecosystem partners table ready');
+  } catch (err) {
+    if (!err.message.includes('already exists')) {
+      console.warn('Migration warning (ecosystem partners):', err.message);
+    }
+  }
+
+  try {
     await ensureColumns('competitions', {
       slug: 'TEXT',
       title: 'TEXT NOT NULL DEFAULT ""',

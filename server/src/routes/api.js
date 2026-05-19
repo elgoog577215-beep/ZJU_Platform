@@ -25,6 +25,7 @@ const hackathonController = require('../controllers/hackathonController');
 const competitionController = require('../controllers/competitionController');
 const futureLearningController = require('../controllers/futureLearningController');
 const wechatParseController = require('../controllers/wechatParseController');
+const ecosystemPartnerController = require('../controllers/ecosystemPartnerController');
 const { logger } = require('../utils/logger');
 
 const { authenticateToken, isAdmin, optionalAuth } = require('../middleware/auth');
@@ -180,6 +181,13 @@ router.post('/admin/ai-assistant/event-governance/apply', authenticateToken, isA
 // Settings Routes
 router.get('/settings', settingsController.getSettings);
 router.post('/settings', authenticateToken, isAdmin, validate(settingsValidation), settingsController.updateSetting);
+
+// Ecosystem Partner Routes
+router.get('/ecosystem-partners', ecosystemPartnerController.listPublicPartners);
+router.get('/admin/ecosystem-partners', authenticateToken, isAdmin, ecosystemPartnerController.listAdminPartners);
+router.post('/admin/ecosystem-partners', authenticateToken, isAdmin, ecosystemPartnerController.createPartner);
+router.put('/admin/ecosystem-partners/:id', authenticateToken, isAdmin, ecosystemPartnerController.updatePartner);
+router.delete('/admin/ecosystem-partners/:id', authenticateToken, isAdmin, ecosystemPartnerController.deletePartner);
 
 // File System Routes
 router.get('/fs/list', authenticateToken, isAdmin, fsController.listFiles);
