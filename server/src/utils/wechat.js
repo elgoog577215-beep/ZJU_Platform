@@ -242,8 +242,8 @@ async function scrapeWeChat(url) {
     }
 }
 
-async function parseWithLLM(data) {
-    const db = await getDb();
+async function parseWithLLM(data, options = {}) {
+    const db = options.db || await getDb();
 
     console.log(`\n🧠 Sending WeChat article to unified AI runtime...`);
 
@@ -259,6 +259,7 @@ async function parseWithLLM(data) {
 
     const result = await aiRuntime.callJson(db, {
         task: 'wechat_event_parse',
+        modelRunner: options.modelRunner,
         temperature: 0.1,
         maxTokens: 4096,
         timeout: 60000,
@@ -322,10 +323,18 @@ async function parseWithLLM(data) {
     if (parsed.score) parsed.score = cleanField(parsed.score, /^综测\/素质分[：:]\s*/);
 
     parsed = validateParsedEventPayload(parsed, data);
-    parsed.ai_runtime = {
+    const runtimeTelemetry = aiRuntime.summarizeModelStatusTelemetry(result.modelStatus);
+    parsed.aiMeta = {
         task: result.modelStatus?.task || 'wechat_event_parse',
         provider: result.modelStatus?.provider || null,
-        model: result.modelStatus?.model || null
+        model: result.modelStatus?.model || null,
+        runtimeTelemetry
+    };
+    parsed.ai_runtime = {
+        task: parsed.aiMeta.task,
+        provider: parsed.aiMeta.provider,
+        model: parsed.aiMeta.model,
+        runtimeTelemetry
     };
 
     return parsed;

@@ -20,6 +20,15 @@ const setupSchema = async (db) => {
       key TEXT PRIMARY KEY,
       value TEXT
     );
+    CREATE TABLE ai_assistant_runs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      module TEXT NOT NULL,
+      action TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'completed',
+      requested_by INTEGER,
+      summary_json TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 
   await db.run('INSERT INTO settings (key, value) VALUES (?, ?)', [
@@ -103,6 +112,25 @@ const main = async () => {
     assert(fallback.modelStatus.fallbackUsed === true, 'Expected fallback to be explicit.');
     assert(fallback.prepPlan.length >= 3, 'Expected fallback preparation plan.');
     assert(fallback.recommendation.track, 'Expected fallback track.');
+
+    const runRows = await db.all(
+      "SELECT module, action, summary_json FROM ai_assistant_runs WHERE module = 'hackathon_coach' ORDER BY id ASC"
+    );
+    assert(runRows.length === 2, 'Expected hackathon runs to be recorded for success and fallback.');
+    const summaries = runRows.map((row) => JSON.parse(row.summary_json));
+    assert(summaries[0].modelUsed === true, 'Expected success run to record model usage.');
+    assert(summaries[0].runtimeTelemetry.taskCount === 1, 'Expected success run to record runtime telemetry.');
+    assert(
+      summaries[0].runtimeTelemetry.tasks.includes('hackathon_ai_coach'),
+      'Expected hackathon runtime telemetry to include coach task.'
+    );
+    assert(
+      summaries[0].runtimeTelemetry.totalBudgetTokensEstimate > 0,
+      'Expected hackathon runtime telemetry to include token budget estimates.'
+    );
+    assert(summaries[1].fallbackUsed === true, 'Expected fallback run to record fallback usage.');
+    assert(summaries[1].runtimeTelemetry.taskCount === 0, 'Fallback run without model result should have empty telemetry.');
+    assert(!runRows[0].summary_json.includes('Codex'), 'Run summaries must not store raw user query text.');
 
     console.log('Hackathon AI assistant check passed.');
   } finally {

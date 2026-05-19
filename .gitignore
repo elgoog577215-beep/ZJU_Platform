@@ -17,6 +17,7 @@ tmp-*.png
 .playwright-cli/
 output/playwright/
 output/ui-audit/
+output/
 output/*.png
 output/*.pptx
 output/*.log

@@ -5,6 +5,7 @@ import {
   Database,
   KeyRound,
   Loader2,
+  Network,
   RefreshCw,
   ShieldCheck,
   XCircle,
@@ -24,6 +25,7 @@ import {
 import AiModelConfigManager from "./AiModelConfigManager";
 
 const sections = [
+  { id: "agents", label: "Agent 体系", icon: Network },
   { id: "governance", label: "治理建议", icon: Database },
   { id: "models", label: "模型配置", icon: KeyRound },
 ];
@@ -107,6 +109,209 @@ const CompactStat = ({ label, value, icon: Icon }) => {
         ) : null}
       </div>
     </div>
+  );
+};
+
+const AgentSystemView = ({ overview }) => {
+  const { isDayMode, mutedTextClass, headingTextClass } = useAdminTheme();
+  const agentSystem = overview?.agentSystem || {};
+  const summary = agentSystem.summary || {};
+  const modules = agentSystem.modules || overview?.modules || [];
+  const gaps = agentSystem.highPriorityGaps || [];
+  const partialGaps = agentSystem.partialGaps || [];
+  const nextPlan =
+    (agentSystem.nextIterationPlan || []).length > 0
+      ? agentSystem.nextIterationPlan
+      : agentSystem.continuousImprovementPlan || [];
+
+  return (
+    <AdminPanel title="Agent 体系完成度">
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+          <CompactStat
+            label="Agent"
+            value={summary.agentCount ?? modules.length}
+            icon={Network}
+          />
+          <CompactStat
+            label="平均成熟度"
+            value={`${Math.round((summary.averageMaturity || 0) * 100)}%`}
+            icon={ShieldCheck}
+          />
+          <CompactStat
+            label="高优先缺口"
+            value={summary.highPriorityGapCount ?? gaps.length}
+            icon={XCircle}
+          />
+          <CompactStat
+            label="在线模块"
+            value={summary.liveAgentCount || 0}
+            icon={CheckCircle2}
+          />
+        </div>
+
+        <div className="grid gap-3 xl:grid-cols-2">
+          {modules.map((module) => (
+            <div
+              key={module.id}
+              className={clsx(
+                "rounded-xl border p-4",
+                isDayMode
+                  ? "border-slate-200/70 bg-white/[0.82]"
+                  : "border-white/10 bg-white/[0.04]",
+              )}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className={clsx("truncate text-sm font-bold", headingTextClass)}>
+                    {module.title}
+                  </div>
+                  <div className={clsx("mt-1 text-xs", mutedTextClass)}>
+                    {module.entrance}
+                  </div>
+                </div>
+                <span
+                  className={clsx(
+                    "shrink-0 rounded-full border px-2.5 py-1 text-xs font-semibold",
+                    module.status === "live" || module.status === "ready"
+                      ? suggestionStatusClass("applied", isDayMode)
+                      : suggestionStatusClass("skipped", isDayMode),
+                  )}
+                >
+                  {module.status}
+                </span>
+              </div>
+
+              <p className={clsx("mt-3 line-clamp-2 text-sm leading-6", mutedTextClass)}>
+                {module.description}
+              </p>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                {(module.metrics || []).slice(0, 5).map((metric) => (
+                  <span
+                    key={`${module.id}-${metric.label}`}
+                    className={clsx(
+                      "rounded-full border px-2.5 py-1 text-xs font-semibold",
+                      isDayMode
+                        ? "border-slate-200 bg-slate-50 text-slate-600"
+                        : "border-white/10 bg-white/[0.04] text-gray-300",
+                    )}
+                  >
+                    {metric.label}: {metric.value}
+                  </span>
+                ))}
+              </div>
+
+              {(module.nextImprovements || []).length > 0 ? (
+                <div
+                  className={clsx(
+                    "mt-3 rounded-lg px-3 py-2 text-xs leading-5",
+                    isDayMode
+                      ? "bg-indigo-50 text-indigo-800"
+                      : "bg-indigo-400/10 text-indigo-100",
+                  )}
+                >
+                  下一步：{module.nextImprovements[0]}
+                </div>
+              ) : null}
+            </div>
+          ))}
+        </div>
+
+        {partialGaps.length > 0 ? (
+          <div
+            className={clsx(
+              "rounded-xl border p-4",
+              isDayMode
+                ? "border-sky-500/20 bg-sky-500/[0.06]"
+                : "border-sky-400/20 bg-sky-400/10",
+            )}
+          >
+            <div className={clsx("text-sm font-bold", headingTextClass)}>
+              继续打磨：{summary.partialGapCount ?? partialGaps.length} 个半成熟环节
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {partialGaps.slice(0, 8).map((gap) => (
+                <span
+                  key={`${gap.agentId}-${gap.dimensionId}`}
+                  className={clsx(
+                    "rounded-full border px-2.5 py-1 text-xs font-semibold",
+                    isDayMode
+                      ? "border-sky-500/20 bg-white/70 text-sky-800"
+                      : "border-sky-300/20 bg-white/[0.04] text-sky-100",
+                  )}
+                >
+                  {gap.agentTitle} / {gap.dimensionLabel}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {gaps.length > 0 ? (
+          <div
+            className={clsx(
+              "rounded-xl border p-4",
+              isDayMode
+                ? "border-amber-500/20 bg-amber-500/[0.06]"
+                : "border-amber-400/20 bg-amber-400/10",
+            )}
+          >
+            <div className={clsx("text-sm font-bold", headingTextClass)}>
+              当前优先补齐
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {gaps.slice(0, 6).map((gap) => (
+                <span
+                  key={`${gap.agentId}-${gap.dimensionId}`}
+                  className={clsx(
+                    "rounded-full border px-2.5 py-1 text-xs font-semibold",
+                    suggestionStatusClass("skipped", isDayMode),
+                  )}
+                >
+                  {gap.agentTitle} / {gap.dimensionLabel}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {nextPlan.length > 0 ? (
+          <div
+            className={clsx(
+              "rounded-xl border p-4",
+              isDayMode
+                ? "border-slate-200/70 bg-white/[0.82]"
+                : "border-white/10 bg-white/[0.04]",
+            )}
+          >
+            <div className={clsx("text-sm font-bold", headingTextClass)}>
+              下一轮任务
+            </div>
+            <div className="mt-3 grid gap-2">
+              {nextPlan.slice(0, 4).map((item) => (
+                <div
+                  key={`${item.order}-${item.target}-${item.dimension}`}
+                  className={clsx(
+                    "rounded-lg px-3 py-2 text-xs leading-5",
+                    isDayMode
+                      ? "bg-slate-50 text-slate-700"
+                      : "bg-white/[0.04] text-gray-300",
+                  )}
+                >
+                  <span className="font-bold">
+                    {item.order}. {item.target} / {item.dimension}
+                  </span>
+                  <span className={clsx("ml-2", mutedTextClass)}>
+                    {item.task}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </AdminPanel>
   );
 };
 
@@ -223,7 +428,7 @@ const SuggestionRow = ({ suggestion, checked, disabled, onToggle }) => {
 
 const AiAssistantManager = () => {
   const { isDayMode, mutedTextClass, headingTextClass } = useAdminTheme();
-  const [activeSection, setActiveSection] = useState("governance");
+  const [activeSection, setActiveSection] = useState("agents");
   const [overview, setOverview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
@@ -566,6 +771,7 @@ const AiAssistantManager = () => {
       }
     >
       <div className="space-y-4">
+        {activeSection === "agents" ? <AgentSystemView overview={overview} /> : null}
         {activeSection === "governance" ? governanceView : null}
         {activeSection === "models" ? <AiModelConfigManager embedded /> : null}
       </div>

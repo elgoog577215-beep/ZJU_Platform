@@ -94,23 +94,26 @@ const Dropdown = ({
   const selectedOption = options.find(opt => opt.value === value);
   const isSheet = variant === 'sheet';
   const hasSelection = selectedOption && selectedOption.value !== 'all';
+  const focusClass = isDayMode
+    ? 'focus-visible:ring-2 focus-visible:ring-indigo-400/50 focus-visible:shadow-[0_0_0_4px_rgba(99,102,241,0.12)]'
+    : 'focus-visible:border-white/[0.22] focus-visible:ring-2 focus-visible:ring-slate-300/35 focus-visible:shadow-[0_0_0_4px_rgba(148,163,184,0.12)]';
 
   return (
     <div className={`relative ${className}`} ref={containerRef} style={{ zIndex: isOpen && !isSheet ? 50 : 1 }}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center justify-between gap-2 w-full backdrop-blur-sm border rounded-2xl px-4 py-3.5 sm:py-3 focus:outline-none transition-all duration-300 group min-h-[44px] sm:min-h-0 ${isSheet ? (hasSelection ? (isDayMode ? 'border-indigo-300/50 bg-indigo-500/10 text-slate-900' : 'border-indigo-500/40 bg-indigo-500/10 text-white') : isOpen ? (isDayMode ? 'border-indigo-300/60 bg-white text-slate-900' : 'border-indigo-500/50 bg-white/10 text-white') : (isDayMode ? 'bg-white/82 border-slate-200/80 text-slate-600 hover:bg-white' : 'border-white/10 text-gray-300 hover:bg-white/5')) : (isDayMode ? 'bg-white/82 border-slate-200/80 text-slate-800 hover:bg-white hover:border-indigo-300/70 focus:border-indigo-400/60' : 'bg-black/40 border-white/10 text-white hover:bg-white/5 hover:border-indigo-500/30 focus:border-indigo-500/50')} ${buttonClassName}`}
+        className={`flex items-center justify-between gap-2 w-full backdrop-blur-sm border rounded-2xl px-4 py-3.5 sm:py-3 focus:outline-none focus-visible:outline-none transition-all duration-300 group min-h-[44px] sm:min-h-0 ${focusClass} ${isSheet ? (hasSelection ? (isDayMode ? 'border-indigo-300/50 bg-indigo-500/10 text-slate-900' : 'border-[#8b93ff]/45 bg-[#252849] text-white') : isOpen ? (isDayMode ? 'border-indigo-300/60 bg-white text-slate-900' : 'border-white/[0.16] bg-[#1d2130] text-white') : (isDayMode ? 'bg-white/82 border-slate-200/80 text-slate-600 hover:bg-white' : 'border-white/[0.11] text-slate-300 hover:bg-white/[0.06]')) : (isDayMode ? 'bg-white/82 border-slate-200/80 text-slate-800 hover:bg-white hover:border-indigo-300/70 focus:border-indigo-400/60' : 'bg-[#171a26] border-white/[0.11] text-white hover:bg-[#1d2130] hover:border-white/[0.18]')} ${buttonClassName}`}
       >
         <div className="flex items-center gap-3 min-w-0">
-          {Icon && <Icon size={18} className={`shrink-0 transition-colors ${hasSelection ? (isDayMode ? 'text-indigo-600' : 'text-indigo-400') : (isDayMode ? 'text-slate-500 group-hover:text-indigo-500' : 'text-gray-400 group-hover:text-indigo-400')}`} />}
+          {Icon && <Icon size={18} className={`shrink-0 transition-colors ${hasSelection ? (isDayMode ? 'text-indigo-600' : 'text-[#aab0ff]') : (isDayMode ? 'text-slate-500 group-hover:text-indigo-500' : 'text-slate-400 group-hover:text-[#c5c9ff]')}`} />}
           <span className={`text-sm font-medium truncate min-w-0 flex-1 text-left ${hasSelection ? (isDayMode ? "text-slate-900" : "text-white") : (isDayMode ? "text-slate-500" : "text-gray-400")}`}>
             {selectedOption ? selectedOption.label : placeholder}
           </span>
         </div>
-        <ChevronDown 
-          size={16} 
-          className={`transition-transform duration-300 ${hasSelection ? (isDayMode ? 'text-indigo-600' : 'text-indigo-400') : (isDayMode ? 'text-slate-500 group-hover:text-slate-900' : 'text-gray-500 group-hover:text-white')} ${isOpen ? 'rotate-180' : ''}`} 
+        <ChevronDown
+          size={16}
+          className={`transition-transform duration-300 ${hasSelection ? (isDayMode ? 'text-indigo-600' : 'text-[#aab0ff]') : (isDayMode ? 'text-slate-500 group-hover:text-slate-900' : 'text-slate-500 group-hover:text-white')} ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
 
@@ -121,9 +124,9 @@ const Dropdown = ({
             animate={isSheet ? { height: 'auto', opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
             exit={isSheet ? { height: 0, opacity: 0 } : { opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className={isSheet 
-              ? `overflow-hidden mt-2 rounded-2xl border ${isDayMode ? 'border-slate-200/80 bg-white/80' : 'border-white/5 bg-white/5'} ${menuClassName}` 
-              : `absolute top-full left-0 mt-2 min-w-full w-max max-w-[320px] backdrop-blur-xl border rounded-2xl shadow-2xl overflow-hidden z-[100] ${isDayMode ? 'bg-white/94 border-slate-200/80 ring-1 ring-slate-200/60' : 'bg-[#0a0a0a]/90 border-white/10 ring-1 ring-white/5'} ${menuClassName}`
+            className={isSheet
+              ? `overflow-hidden mt-2 rounded-2xl border ${isDayMode ? 'border-slate-200/80 bg-white/80' : 'border-white/[0.1] bg-[#10131d]'} ${menuClassName}`
+              : `absolute top-full left-0 mt-2 min-w-full w-max max-w-[320px] backdrop-blur-xl border rounded-2xl shadow-2xl overflow-hidden z-[100] ${isDayMode ? 'bg-white/94 border-slate-200/80 ring-1 ring-slate-200/60' : 'bg-[#0d1018] border-white/[0.12] ring-1 ring-white/[0.06] shadow-[0_18px_44px_rgba(0,0,0,0.34)]'} ${menuClassName}`
             }
           >
             <div className={`${isSheet ? 'max-h-48' : 'max-h-60'} overflow-y-auto custom-scrollbar p-1.5 space-y-1`}>
@@ -135,12 +138,14 @@ const Dropdown = ({
                     onChange(option.value);
                     setIsOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between px-4 py-3.5 sm:py-3 text-sm rounded-xl transition-all min-h-[44px] sm:min-h-0 ${
+                  className={`w-full flex items-center justify-between px-4 py-3.5 sm:py-3 text-sm rounded-xl transition-all min-h-[44px] sm:min-h-0 focus:outline-none focus-visible:outline-none ${focusClass} ${
                     value === option.value 
-                      ? 'bg-gradient-to-r from-indigo-600/80 to-violet-600/80 text-white shadow-lg shadow-indigo-500/20 font-bold' 
+                      ? isDayMode
+                        ? 'bg-gradient-to-r from-indigo-600/80 to-violet-600/80 text-white shadow-lg shadow-indigo-500/20 font-bold'
+                        : 'border border-[#8b93ff]/45 bg-[#252849] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] font-bold'
                       : isDayMode
                         ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 active:bg-slate-50 active:scale-[0.98]'
-                        : 'text-gray-400 hover:bg-white/10 hover:text-white active:bg-white/5 active:scale-[0.98]'
+                        : 'text-slate-300 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.05] active:scale-[0.98]'
                   }`}
                 >
                   <TruncatedLabel text={option.label} />

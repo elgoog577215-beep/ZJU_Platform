@@ -24,6 +24,7 @@ const newsController = require('../controllers/newsController');
 const hackathonController = require('../controllers/hackathonController');
 const competitionController = require('../controllers/competitionController');
 const futureLearningController = require('../controllers/futureLearningController');
+const wechatParseController = require('../controllers/wechatParseController');
 const { logger } = require('../utils/logger');
 
 const { authenticateToken, isAdmin, optionalAuth } = require('../middleware/auth');
@@ -161,6 +162,7 @@ router.get('/stats', authenticateToken, isAdmin, systemController.getStats);
 router.get('/site-metrics', systemController.getSiteMetrics);
 router.post('/site-metrics/visit', optionalAuth, systemController.trackVisit);
 router.post('/upload', authenticateToken, upload.fields([{ name: 'file', maxCount: 1 }, { name: 'cover', maxCount: 1 }]), systemController.handleUpload);
+router.post('/resources/parse-wechat', authenticateToken, wechatParseController.parseWeChatResource);
 router.get('/db/backup', authenticateToken, isAdmin, systemController.downloadDbBackup);
 router.get('/featured', systemController.getFeaturedContent);
 router.post('/events/crawl', authenticateToken, isAdmin, systemController.crawlEvents);

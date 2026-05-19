@@ -150,6 +150,16 @@ const sampleEvents = [
     location: '\u7ebf\u4e0a',
     target_audience: '\u5168\u6821',
   },
+  {
+    title: '\u672a\u6765\u79d1\u6280\u4e0e\u6821\u56ed\u751f\u6d3b\u5206\u4eab\u4f1a',
+    category: '',
+    tags: '',
+    description: '\u56f4\u7ed5\u672a\u6765\u5b66\u4e60\u3001\u6821\u56ed\u5de5\u5177\u548c AI \u521b\u610f\u8fdb\u884c\u4ea4\u6d41\u5206\u4eab\u3002',
+    content: '\u542b\u5c0f\u7ec4\u8ba8\u8bba\u548c\u7ecf\u9a8c\u5206\u4eab\uff0c\u4e0d\u6d89\u53ca\u6bd4\u8d5b\u6216\u5fd7\u613f\u670d\u52a1\u3002',
+    organizer: '\u5b66\u751f\u793e\u56e2',
+    location: '\u7d2b\u91d1\u6e2f',
+    target_audience: '\u5168\u6821\u5e08\u751f',
+  },
 ];
 
 const createDb = async () => {
@@ -189,6 +199,37 @@ const fetchEvents = (db) =>
 const runMainFlowCheck = async () => {
   const db = await createDb();
   await seedEvents(db);
+  let governanceReviewCalls = 0;
+  const governanceReviewRunner = async ({ task, messages }) => {
+    if (task !== 'event_governance_review') {
+      throw new Error(`Unexpected governance task: ${task}`);
+    }
+    governanceReviewCalls += 1;
+    const payload = JSON.parse(messages[1].content);
+    assert(payload.candidates.length > 0, 'Expected model review candidates.');
+    return {
+      reviews: payload.candidates.map((candidate) => {
+        const isAmbiguousFutureShare = candidate.event.title.includes('\u672a\u6765\u79d1\u6280');
+        return {
+          eventId: candidate.event.id,
+          field: candidate.ruleSuggestion.field,
+          accepted: true,
+          suggestedValue: isAmbiguousFutureShare ? 'other' : candidate.ruleSuggestion.suggestedValue,
+          confidence: isAmbiguousFutureShare ? 0.82 : 0.84,
+          reason: isAmbiguousFutureShare
+            ? 'The evidence is a broad sharing session without a strong standard category signal, so keep it conservative.'
+            : 'Model review confirms this category from the event evidence and standard catalog.',
+        };
+      }),
+      memorySignals: [
+        {
+          pattern: 'AI lecture content with LLM and research sharing is usually lecture.',
+          weight: 0.8,
+        },
+      ],
+      warnings: [],
+    };
+  };
 
   const before = await fetchEvents(db);
   const overview = await assistantService.getAssistantOverview(db);
@@ -196,16 +237,47 @@ const runMainFlowCheck = async () => {
     limit: 20,
     minConfidence: 0.45,
     userId: 1,
+    modelRunner: governanceReviewRunner,
   });
   const afterScan = await fetchEvents(db);
 
-  assert(overview.modules.length === 4, 'Overview should expose four assistant modules.');
-  assert(overview.health.eventCount === 4, 'Overview should count seeded events.');
+  const moduleIds = new Set((overview.modules || []).map((module) => module.id));
+  [
+    'event_recommendation',
+    'hackathon_coach',
+    'wechat_event_parser',
+    'event_governance',
+    'model_config_runtime',
+    'event_profile_index',
+  ].forEach((id) => {
+    assert(moduleIds.has(id), `Overview should expose registered AI agent module: ${id}`);
+  });
+  assert(overview.agentSystem?.summary?.agentCount === 6, 'Overview should expose agent system summary.');
+  assert(
+    overview.agentSystem.summary.averageMaturity > 0.7,
+    'Agent system maturity should stay above the first rollout floor.'
+  );
+  assert(overview.health.eventCount === 5, 'Overview should count seeded events.');
   assert(overview.health.eventAiProfileCount === 0, 'Overview should expose event AI profile coverage.');
   assert(JSON.stringify(before) === JSON.stringify(afterScan), 'Scan must not mutate events.');
-  assert(scan.summary.scannedEventCount === 4, 'Scan should read all seeded events.');
+  assert(scan.summary.scannedEventCount === 5, 'Scan should read all seeded events.');
   assert(scan.summary.suggestionCount >= 3, 'Scan should find governance suggestions.');
   assert(scan.summary.highConfidenceCount >= 3, 'Seeded data should produce high confidence suggestions.');
+  assert(governanceReviewCalls === 1, 'Governance scan should invoke model review for ambiguous candidates.');
+  assert(scan.modelStatus?.used === true, 'Governance scan should expose model review status.');
+  assert(
+    scan.summary.modelReview.runtimeTelemetry.taskCount === 1,
+    'Governance scan should expose model runtime telemetry.'
+  );
+  assert(
+    scan.summary.modelReview.runtimeTelemetry.totalBudgetTokensEstimate > 0,
+    'Governance runtime telemetry should include token budget estimates.'
+  );
+  assert(scan.memorySignals.length === 1, 'Governance scan should expose model memory signals.');
+  assert(
+    scan.suggestions.some((suggestion) => suggestion.source.includes('model_review')),
+    'Expected at least one governance suggestion to be model-reviewed.'
+  );
 
   const selectedIds = scan.suggestions
     .filter((suggestion) => suggestion.confidence >= 0.72)
@@ -223,12 +295,15 @@ const runMainFlowCheck = async () => {
   assert(afterApply[1].category === 'volunteer', 'Volunteer event should be normalized.');
   assert(afterApply[2].category === 'competition', 'Competition event should be normalized.');
   assert(afterApply[3].category === 'exchange', 'Canonical exchange category should stay stable.');
+  assert(afterApply[4].category === 'other', 'Model-reviewed ambiguous event should be normalized conservatively.');
 
   const runs = await assistantService.getRecentRuns(db, 5);
   const stored = await assistantService.listRecentGovernanceSuggestions(db, 20);
+  const memory = await assistantService.summarizeGovernanceMemory(db);
   assert(runs.some((run) => run.action === 'scan'), 'Scan run should be recorded.');
   assert(runs.some((run) => run.action === 'apply'), 'Apply run should be recorded.');
   assert(stored.some((suggestion) => suggestion.status === 'applied'), 'Applied suggestions should be recorded.');
+  assert(memory.decisionCount >= 1, 'Applied admin decisions should be available as governance memory.');
 
   await db.close();
 
@@ -236,6 +311,8 @@ const runMainFlowCheck = async () => {
     suggestionCount: scan.summary.suggestionCount,
     highConfidenceCount: scan.summary.highConfidenceCount,
     appliedCount: apply.appliedCount,
+    governanceReviewCalls,
+    governanceMemoryCount: memory.decisionCount,
     finalEvents: afterApply.map((event) => ({
       id: event.id,
       category: event.category,

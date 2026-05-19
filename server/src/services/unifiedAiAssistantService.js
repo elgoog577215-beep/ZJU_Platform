@@ -1,13 +1,20 @@
 const {
+  buildEventCatalogPromptContext,
   classifyEventCategory,
   getCategoryLabel,
   normalizeEventAudience,
+  normalizeEventCategory,
 } = require('./eventIntelligenceService');
+const { runStructuredTask } = require('./assistantOrchestratorService');
+const aiRuntime = require('./unifiedAiRuntimeService');
 const aiModelConfigService = require('./aiModelConfigService');
+const aiAgentRegistryService = require('./aiAgentRegistryService');
 const eventAiProfileService = require('./eventAiProfileService');
 
 const GOVERNANCE_FIELDS = new Set(['category', 'target_audience']);
 const MAX_SCAN_LIMIT = 500;
+const GOVERNANCE_MODEL_REVIEW_LIMIT = 12;
+const GOVERNANCE_MODEL_REVIEW_THRESHOLD = 0.72;
 
 const toText = (value, maxLength = 600) => {
   if (value === null || value === undefined) return '';
@@ -42,6 +49,90 @@ const safeCount = async (db, sql, params = []) => {
     return Number(row?.count || 0);
   } catch {
     return 0;
+  }
+};
+
+const emptyRuntimeTelemetryOverview = () => ({
+  runCount: 0,
+  taskCount: 0,
+  tasks: [],
+  totalDurationMs: 0,
+  avgDurationMs: 0,
+  totalBudgetTokensEstimate: 0,
+  reportedTotalTokens: 0,
+  retryCount: 0,
+  taskStats: [],
+});
+
+const addRuntimeTelemetry = (aggregate, telemetry) => {
+  if (!telemetry || typeof telemetry !== 'object' || Number(telemetry.taskCount || 0) <= 0) {
+    return;
+  }
+
+  aggregate.runCount += 1;
+  aggregate.taskCount += Number(telemetry.taskCount || 0);
+  aggregate.totalDurationMs += Number(telemetry.totalDurationMs || 0);
+  aggregate.totalBudgetTokensEstimate += Number(telemetry.totalBudgetTokensEstimate || 0);
+  aggregate.reportedTotalTokens += Number(telemetry.reportedTotalTokens || 0);
+  aggregate.retryCount += Number(telemetry.retryCount || 0);
+
+  for (const taskStat of telemetry.taskStats || []) {
+    const task = taskStat.task || 'unknown';
+    const existing = aggregate.taskMap.get(task) || {
+      task,
+      count: 0,
+      durationMs: 0,
+      budgetTokensEstimate: 0,
+      reportedTotalTokens: 0,
+      retryCount: 0,
+    };
+    existing.count += Number(taskStat.count || 0);
+    existing.durationMs += Number(taskStat.durationMs || 0);
+    existing.budgetTokensEstimate += Number(taskStat.budgetTokensEstimate || 0);
+    existing.reportedTotalTokens += Number(taskStat.reportedTotalTokens || 0);
+    existing.retryCount += Number(taskStat.retryCount || 0);
+    aggregate.taskMap.set(task, existing);
+  }
+};
+
+const getRuntimeTelemetryOverview = async (db) => {
+  try {
+    const rows = await db.all(`
+      SELECT summary_json
+      FROM ai_assistant_runs
+      ORDER BY created_at DESC, id DESC
+      LIMIT 80
+    `);
+    const aggregate = {
+      ...emptyRuntimeTelemetryOverview(),
+      taskMap: new Map(),
+    };
+
+    for (const row of rows) {
+      const summary = parseJson(row.summary_json, {});
+      addRuntimeTelemetry(aggregate, summary.runtimeTelemetry);
+      addRuntimeTelemetry(aggregate, summary.modelReview?.runtimeTelemetry);
+    }
+
+    const taskStats = [...aggregate.taskMap.values()]
+      .sort((left, right) => right.durationMs - left.durationMs || left.task.localeCompare(right.task))
+      .slice(0, 12);
+
+    return {
+      runCount: aggregate.runCount,
+      taskCount: aggregate.taskCount,
+      tasks: taskStats.map((item) => item.task),
+      totalDurationMs: aggregate.totalDurationMs,
+      avgDurationMs: aggregate.taskCount > 0
+        ? Math.round(aggregate.totalDurationMs / aggregate.taskCount)
+        : 0,
+      totalBudgetTokensEstimate: aggregate.totalBudgetTokensEstimate,
+      reportedTotalTokens: aggregate.reportedTotalTokens,
+      retryCount: aggregate.retryCount,
+      taskStats,
+    };
+  } catch {
+    return emptyRuntimeTelemetryOverview();
   }
 };
 
@@ -157,6 +248,213 @@ const buildEventSuggestions = (event, minConfidence) => {
   return suggestions.filter((item) => item.confidence >= minConfidence);
 };
 
+const buildGovernanceEventSnapshot = (event = {}) => ({
+  id: event.id,
+  title: toText(event.title, 180),
+  category: toText(event.category, 80),
+  tags: toText(event.tags, 160),
+  description: toText(event.description, 500),
+  content: toText(event.content, 900),
+  organizer: toText(event.organizer, 120),
+  location: toText(event.location, 120),
+  targetAudience: toText(event.target_audience, 160),
+  score: toText(event.score, 80),
+  volunteerTime: toText(event.volunteer_time, 80),
+});
+
+const buildGovernanceReviewContract = () => ({
+  reviews: [
+    {
+      eventId: 'number',
+      field: 'category | target_audience',
+      accepted: 'boolean',
+      suggestedValue: 'canonical category value or normalized audience string',
+      confidence: '0..1',
+      reason: 'short grounded reason',
+    },
+  ],
+  memorySignals: [
+    {
+      pattern: 'short reusable admin preference or correction pattern',
+      weight: '0..1',
+    },
+  ],
+  warnings: ['string'],
+});
+
+const loadGovernanceMemory = async (db, limit = 8) => {
+  try {
+    const rows = await db.all(
+      `
+        SELECT
+          suggestion.field_name,
+          suggestion.old_value,
+          suggestion.new_value,
+          suggestion.confidence,
+          suggestion.source,
+          suggestion.status,
+          suggestion.applied_at,
+          event.title
+        FROM ai_event_governance_suggestions suggestion
+        LEFT JOIN events event ON event.id = suggestion.event_id
+        WHERE suggestion.status IN ('applied', 'skipped', 'skipped_conflict')
+        ORDER BY COALESCE(suggestion.applied_at, suggestion.created_at) DESC, suggestion.id DESC
+        LIMIT ?
+      `,
+      [normalizeLimit(limit, 8)]
+    );
+
+    return rows.map((row) => ({
+      field: row.field_name,
+      from: toText(row.old_value, 100),
+      to: toText(row.new_value, 100),
+      status: row.status,
+      source: row.source,
+      confidence: Number(Number(row.confidence || 0).toFixed(2)),
+      eventTitle: toText(row.title, 120),
+    }));
+  } catch {
+    return [];
+  }
+};
+
+const shouldReviewSuggestionWithModel = (suggestion) => (
+  suggestion.field === 'category'
+  && suggestion.confidence <= GOVERNANCE_MODEL_REVIEW_THRESHOLD
+  && suggestion.confidence >= 0.45
+);
+
+const selectModelReviewCandidates = (events, suggestions) => {
+  const eventsById = new Map(events.map((event) => [event.id, event]));
+  return suggestions
+    .filter(shouldReviewSuggestionWithModel)
+    .slice(0, GOVERNANCE_MODEL_REVIEW_LIMIT)
+    .map((suggestion) => ({
+      suggestion,
+      event: eventsById.get(suggestion.eventId),
+    }))
+    .filter((item) => item.event);
+};
+
+const normalizeModelGovernanceReview = (review = {}, fallbackSuggestion) => {
+  const field = GOVERNANCE_FIELDS.has(review.field) ? review.field : fallbackSuggestion.field;
+  const rawSuggestedValue = toText(review.suggestedValue, 500);
+  const suggestedValue = field === 'category'
+    ? normalizeEventCategory(rawSuggestedValue)
+    : normalizeEventAudience(rawSuggestedValue);
+  const confidence = normalizeConfidence(review.confidence, fallbackSuggestion.confidence);
+
+  if (!suggestedValue) {
+    return null;
+  }
+
+  return {
+    field,
+    accepted: review.accepted !== false,
+    suggestedValue,
+    confidence,
+    reason: toText(review.reason, 500) || fallbackSuggestion.reason,
+  };
+};
+
+const reviewGovernanceSuggestionsWithModel = async (db, {
+  events,
+  suggestions,
+  memory,
+  modelRunner,
+}) => {
+  const candidates = selectModelReviewCandidates(events, suggestions);
+  if (candidates.length === 0) {
+    return {
+      suggestions,
+      modelStatus: { used: false, fallbackUsed: false },
+      memorySignals: [],
+      warnings: [],
+    };
+  }
+
+  try {
+    const result = await runStructuredTask(db, {
+      task: 'event_governance_review',
+      modelRunner,
+      temperature: 0.1,
+      maxTokens: 1400,
+      timeout: 35000,
+      systemPrompt: [
+        'You are the admin governance reviewer for a campus event platform.',
+        'Use the standard event catalog and recent admin decisions to review only the provided candidate suggestions.',
+        'Do not invent categories. Accept only standard category values or normalized audience strings.',
+        'Prefer conservative decisions: reject a suggestion when the event evidence is ambiguous.',
+      ].join('\n'),
+      payload: {
+        task: 'event_governance_review',
+        standardCatalog: buildEventCatalogPromptContext(),
+        recentAdminDecisionMemory: memory,
+        candidates: candidates.map(({ event, suggestion }) => ({
+          event: buildGovernanceEventSnapshot(event),
+          ruleSuggestion: {
+            id: suggestion.id,
+            field: suggestion.field,
+            currentValue: suggestion.currentValue,
+            suggestedValue: suggestion.suggestedValue,
+            confidence: suggestion.confidence,
+            reason: suggestion.reason,
+            source: suggestion.source,
+          },
+        })),
+      },
+      outputContract: buildGovernanceReviewContract(),
+    });
+
+    const reviews = Array.isArray(result.parsed.reviews) ? result.parsed.reviews : [];
+    const reviewByKey = new Map(reviews.map((review) => [
+      `${review.eventId}:${review.field}`,
+      review,
+    ]));
+
+    const reviewed = suggestions.map((suggestion) => {
+      if (!shouldReviewSuggestionWithModel(suggestion)) return suggestion;
+      const rawReview = reviewByKey.get(`${suggestion.eventId}:${suggestion.field}`);
+      if (!rawReview) return suggestion;
+      const normalizedReview = normalizeModelGovernanceReview(rawReview, suggestion);
+      if (!normalizedReview || normalizedReview.accepted === false) {
+        return {
+          ...suggestion,
+          confidence: Math.min(suggestion.confidence, 0.44),
+          reason: normalizedReview?.reason || `${suggestion.reason} Model review did not accept this change.`,
+          source: `${suggestion.source}+model_rejected`,
+        };
+      }
+      return {
+        ...suggestion,
+        field: normalizedReview.field,
+        suggestedValue: normalizedReview.suggestedValue,
+        confidence: Number(Math.max(suggestion.confidence, normalizedReview.confidence).toFixed(2)),
+        reason: normalizedReview.reason,
+        source: `${suggestion.source}+model_review`,
+      };
+    });
+
+    return {
+      suggestions: reviewed,
+      modelStatus: result.modelStatus,
+      memorySignals: Array.isArray(result.parsed.memorySignals) ? result.parsed.memorySignals : [],
+      warnings: Array.isArray(result.parsed.warnings) ? result.parsed.warnings.map((item) => toText(item, 160)) : [],
+    };
+  } catch (error) {
+    return {
+      suggestions,
+      modelStatus: {
+        used: false,
+        fallbackUsed: true,
+        errorCode: error.code || 'EVENT_GOVERNANCE_REVIEW_FAILED',
+      },
+      memorySignals: [],
+      warnings: ['Model governance review failed; deterministic governance suggestions were used.'],
+    };
+  }
+};
+
 const serializeStoredSuggestion = (row) => ({
   suggestionId: row.id,
   id: buildSuggestionId(row.event_id, row.field_name, row.new_value),
@@ -184,20 +482,34 @@ const getAssistantOverview = async (db) => {
     feedbackCount,
     memoryCount,
     governanceRunCount,
+    recommendationRunCount,
+    hackathonRunCount,
+    wechatParseRunCount,
+    profileRefreshRunCount,
     profileCoverage,
+    runtimeTelemetryOverview,
   ] = await Promise.all([
     safeCount(db, 'SELECT COUNT(*) AS count FROM events WHERE deleted_at IS NULL'),
     safeCount(db, "SELECT COUNT(*) AS count FROM events WHERE deleted_at IS NULL AND (category IS NULL OR TRIM(category) = '')"),
     safeCount(db, 'SELECT COUNT(*) AS count FROM event_recommendation_feedback'),
     safeCount(db, 'SELECT COUNT(*) AS count FROM assistant_memory'),
     safeCount(db, "SELECT COUNT(*) AS count FROM ai_assistant_runs WHERE module = 'event_governance'"),
+    safeCount(db, "SELECT COUNT(*) AS count FROM ai_assistant_runs WHERE module = 'event_recommendation'"),
+    safeCount(db, "SELECT COUNT(*) AS count FROM ai_assistant_runs WHERE module = 'hackathon_coach'"),
+    safeCount(db, "SELECT COUNT(*) AS count FROM ai_assistant_runs WHERE module = 'wechat_event_parser'"),
+    safeCount(db, "SELECT COUNT(*) AS count FROM ai_assistant_runs WHERE module = 'event_profile_index'"),
     eventAiProfileService.getProfileCoverage(db).catch(() => ({
       totalProfiles: 0,
       readyProfiles: 0,
       fallbackProfiles: 0,
+      staleProfiles: 0,
+      missingProfiles: 0,
+      reasonCounts: {},
       failedProfiles: 0,
       coverageRatio: 0,
+      staleRatio: 0,
     })),
+    getRuntimeTelemetryOverview(db),
   ]);
 
   let configs = [];
@@ -209,71 +521,42 @@ const getAssistantOverview = async (db) => {
   const enabledConfigs = configs.filter((config) => config.enabled);
   const healthyConfigs = configs.filter((config) => config.last_status === 'ok');
 
+  const health = {
+    eventCount,
+    uncategorizedEventCount,
+    modelConfigCount: configs.length,
+    enabledModelConfigCount: enabledConfigs.length,
+    healthyModelConfigCount: healthyConfigs.length,
+    feedbackCount,
+    memoryCount,
+    governanceRunCount,
+    recommendationRunCount,
+    hackathonRunCount,
+    wechatParseRunCount,
+    profileRefreshRunCount,
+    eventAiProfileCount: profileCoverage.totalProfiles,
+    readyEventAiProfileCount: profileCoverage.readyProfiles,
+    fallbackEventAiProfileCount: profileCoverage.fallbackProfiles,
+    staleEventAiProfileCount: profileCoverage.staleProfiles,
+    missingEventAiProfileCount: profileCoverage.missingProfiles,
+    eventAiProfileIssueCounts: profileCoverage.reasonCounts || {},
+    eventAiProfileCoverageRatio: profileCoverage.coverageRatio,
+    eventAiProfileStaleRatio: profileCoverage.staleRatio,
+    runtimeTelemetryRunCount: runtimeTelemetryOverview.runCount,
+    runtimeTelemetryTaskCount: runtimeTelemetryOverview.taskCount,
+    runtimeTelemetryTasks: runtimeTelemetryOverview.tasks,
+    runtimeTelemetryAvgDurationMs: runtimeTelemetryOverview.avgDurationMs,
+    runtimeTelemetryBudgetTokensEstimate: runtimeTelemetryOverview.totalBudgetTokensEstimate,
+    runtimeTelemetryReportedTotalTokens: runtimeTelemetryOverview.reportedTotalTokens,
+    runtimeTelemetryRetryCount: runtimeTelemetryOverview.retryCount,
+    runtimeTelemetryTaskStats: runtimeTelemetryOverview.taskStats,
+  };
+
   return {
     generatedAt: new Date().toISOString(),
-    health: {
-      eventCount,
-      uncategorizedEventCount,
-      modelConfigCount: configs.length,
-      enabledModelConfigCount: enabledConfigs.length,
-      healthyModelConfigCount: healthyConfigs.length,
-      feedbackCount,
-      memoryCount,
-      governanceRunCount,
-      eventAiProfileCount: profileCoverage.totalProfiles,
-      readyEventAiProfileCount: profileCoverage.readyProfiles,
-      fallbackEventAiProfileCount: profileCoverage.fallbackProfiles,
-      eventAiProfileCoverageRatio: profileCoverage.coverageRatio,
-    },
-    modules: [
-      {
-        id: 'event_recommendation',
-        title: '活动推荐',
-        status: eventCount > 0 ? 'live' : 'attention',
-        entrance: '活动页 AI 助手',
-        description: '面向用户做活动推荐，读取活动库、用户画像、偏好记忆和反馈。',
-        metrics: [
-          { label: '活动库', value: eventCount },
-          { label: 'AI 画像', value: profileCoverage.totalProfiles },
-          { label: 'AI 覆盖', value: `${Math.round((profileCoverage.coverageRatio || 0) * 100)}%` },
-          { label: '偏好记忆', value: memoryCount },
-          { label: '反馈', value: feedbackCount },
-        ],
-      },
-      {
-        id: 'event_governance',
-        title: '活动治理',
-        status: uncategorizedEventCount > 0 ? 'attention' : 'ready',
-        entrance: '后台 AI 助手 / 活动治理',
-        description: '扫描活动分类和面向对象，先给建议，再由管理员应用。',
-        metrics: [
-          { label: '待补分类', value: uncategorizedEventCount },
-          { label: '扫描记录', value: governanceRunCount },
-        ],
-      },
-      {
-        id: 'content_parsing',
-        title: '微信解析',
-        status: 'planned',
-        entrance: '后台 AI 助手 / 解析入口',
-        description: '作为同一个助手的内容导入技能，后续接入微信图文、海报和活动链接解析。',
-        metrics: [
-          { label: '当前状态', value: '待接入' },
-        ],
-      },
-      {
-        id: 'model_config',
-        title: '模型 Key',
-        status: enabledConfigs.length > 0 ? 'ready' : 'attention',
-        entrance: '后台 AI 助手 / 模型 Key',
-        description: '管理多个兼容 OpenAI 接口的 Key，推荐和解析失败时按优先级自动切换。',
-        metrics: [
-          { label: '总 Key', value: configs.length },
-          { label: '启用', value: enabledConfigs.length },
-          { label: '已测通', value: healthyConfigs.length },
-        ],
-      },
-    ],
+    health,
+    agentSystem: aiAgentRegistryService.getAgentSystemOverview(health),
+    modules: aiAgentRegistryService.buildOverviewModules(health),
   };
 };
 
@@ -281,6 +564,7 @@ const scanEventGovernance = async (db, options = {}) => {
   const limit = normalizeLimit(options.limit);
   const minConfidence = normalizeConfidence(options.minConfidence);
   const userId = options.userId || null;
+  const modelRunner = options.modelRunner;
 
   const events = await db.all(
     `
@@ -305,12 +589,32 @@ const scanEventGovernance = async (db, options = {}) => {
     [limit]
   );
 
-  const suggestions = events.flatMap((event) => buildEventSuggestions(event, minConfidence));
+  const ruleSuggestions = events.flatMap((event) => buildEventSuggestions(
+    event,
+    Math.min(minConfidence, GOVERNANCE_MODEL_REVIEW_THRESHOLD)
+  ));
+  const governanceMemory = await loadGovernanceMemory(db);
+  const modelReview = await reviewGovernanceSuggestionsWithModel(db, {
+    events,
+    suggestions: ruleSuggestions,
+    memory: governanceMemory,
+    modelRunner,
+  });
+  const suggestions = modelReview.suggestions.filter((item) => item.confidence >= minConfidence);
   const summary = {
     scannedEventCount: events.length,
     suggestionCount: suggestions.length,
     highConfidenceCount: suggestions.filter((item) => item.confidence >= 0.72).length,
     minConfidence,
+    modelReview: {
+      used: Boolean(modelReview.modelStatus?.used),
+      fallbackUsed: Boolean(modelReview.modelStatus?.fallbackUsed),
+      task: modelReview.modelStatus?.task || null,
+      reviewedCandidateCount: selectModelReviewCandidates(events, ruleSuggestions).length,
+      memorySignalCount: modelReview.memorySignals.length,
+      warningCount: modelReview.warnings.length,
+      runtimeTelemetry: aiRuntime.summarizeModelStatusTelemetry(modelReview.modelStatus),
+    },
     fieldCounts: suggestions.reduce((accumulator, item) => {
       accumulator[item.field] = (accumulator[item.field] || 0) + 1;
       return accumulator;
@@ -334,6 +638,9 @@ const scanEventGovernance = async (db, options = {}) => {
     runId,
     summary,
     suggestions,
+    modelStatus: modelReview.modelStatus,
+    memorySignals: modelReview.memorySignals,
+    warnings: modelReview.warnings,
   };
 };
 
@@ -468,6 +775,21 @@ const applyEventGovernanceSuggestions = async (db, payload = {}, userId = null) 
   return summary;
 };
 
+const summarizeGovernanceMemory = async (db) => {
+  const rows = await loadGovernanceMemory(db, 20);
+  const fieldCounts = rows.reduce((accumulator, row) => {
+    const key = `${row.field}:${row.status}`;
+    accumulator[key] = (accumulator[key] || 0) + 1;
+    return accumulator;
+  }, {});
+
+  return {
+    decisionCount: rows.length,
+    fieldCounts,
+    examples: rows.slice(0, 5),
+  };
+};
+
 const listRecentGovernanceSuggestions = async (db, limit = 40) => {
   const rows = await db.all(
     `
@@ -508,9 +830,11 @@ const getRecentRuns = async (db, limit = 10) => {
 };
 
 module.exports = {
+  buildGovernanceReviewContract,
   getAssistantOverview,
   scanEventGovernance,
   applyEventGovernanceSuggestions,
+  summarizeGovernanceMemory,
   listRecentGovernanceSuggestions,
   getRecentRuns,
 };

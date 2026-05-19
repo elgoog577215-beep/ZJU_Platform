@@ -920,10 +920,11 @@ END:VCALENDAR`;
 
   const discoveryToggleClasses = isDayMode
     ? "bg-white/88 border border-slate-200/80 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
-    : "bg-white/10 border border-white/10 shadow-[0_14px_32px_rgba(0,0,0,0.18)]";
+    : "bg-[#11131c]/88 border border-white/[0.12] shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_10px_26px_rgba(0,0,0,0.28)]";
   const daySegmentActiveClass =
     "border border-blue-200 bg-blue-50 text-blue-700 shadow-none";
-  const nightSegmentActiveClass = "bg-white text-black shadow-none";
+  const nightSegmentActiveClass =
+    "bg-[#f6f7fb] text-slate-950 shadow-[inset_0_-1px_0_rgba(15,23,42,0.08),0_1px_2px_rgba(0,0,0,0.24)]";
   const dayPrimaryActionClass =
     "bg-blue-600 text-white shadow-[0_1px_2px_rgba(15,23,42,0.12)]";
 
@@ -945,7 +946,7 @@ END:VCALENDAR`;
                 : nightSegmentActiveClass
               : isDayMode
                 ? "text-slate-600 hover:text-slate-900"
-                : "text-gray-300 hover:text-white"
+                : "text-slate-300 hover:bg-white/[0.045] hover:text-white"
           }`}
         >
           筛选
@@ -961,7 +962,7 @@ END:VCALENDAR`;
                 : nightSegmentActiveClass
               : isDayMode
                 ? "text-slate-600 hover:text-slate-900"
-                : "text-gray-300 hover:text-white"
+                : "text-slate-300 hover:bg-white/[0.045] hover:text-white"
           }`}
         >
           <Search size={15} className="shrink-0" />
@@ -981,8 +982,7 @@ END:VCALENDAR`;
       />
       {/* Ambient Background - Hidden on mobile for performance */}
       <div className="fixed inset-0 pointer-events-none z-0 hidden overflow-hidden md:block">
-        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-purple-500/10 blur-[120px]" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-500/10 blur-[120px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.12),rgba(2,6,23,0)_36%),linear-gradient(90deg,rgba(2,6,23,0),rgba(67,56,202,0.045),rgba(2,6,23,0))]" />
       </div>
 
       <motion.div

@@ -1,4 +1,5 @@
 const { runStructuredTask, toText } = require('./assistantOrchestratorService');
+const aiRuntime = require('./unifiedAiRuntimeService');
 
 const MAX_QUERY_LENGTH = 600;
 
@@ -456,6 +457,40 @@ const buildOutputContract = () => ({
   warnings: ['only include if needed'],
 });
 
+const recordHackathonRun = async (db, result) => {
+  if (!db || !result) return;
+  try {
+    await db.run(
+      `
+        INSERT INTO ai_assistant_runs (
+          module,
+          action,
+          status,
+          requested_by,
+          summary_json
+        ) VALUES (?, ?, ?, ?, ?)
+      `,
+      [
+        'hackathon_coach',
+        'coach',
+        'completed',
+        null,
+        JSON.stringify({
+          queryLength: result.query?.length || 0,
+          modelUsed: Boolean(result.modelStatus?.used),
+          fallbackUsed: Boolean(result.modelStatus?.fallbackUsed),
+          confidence: result.confidence,
+          primaryGoal: result.intent?.primaryGoal || null,
+          sourceCount: result.sources?.length || 0,
+          runtimeTelemetry: aiRuntime.summarizeModelStatusTelemetry(result.modelStatus),
+        }),
+      ]
+    );
+  } catch {
+    // Older local test databases may not include assistant run tables; coaching should still work.
+  }
+};
+
 const runHackathonAssistant = async ({
   db,
   query,
@@ -509,7 +544,7 @@ const runHackathonAssistant = async ({
       outputContract: buildOutputContract(),
     });
 
-    return normalizeModelResponse({
+    const response = normalizeModelResponse({
       raw: result.parsed,
       fallback,
       fallbackIntent: intent,
@@ -518,8 +553,10 @@ const runHackathonAssistant = async ({
       query: normalizedQuery,
       modelStatus: result.modelStatus,
     });
+    await recordHackathonRun(db, response);
+    return response;
   } catch (error) {
-    return buildFallbackResponse({
+    const response = buildFallbackResponse({
       query: normalizedQuery,
       profile,
       intent,
@@ -527,6 +564,8 @@ const runHackathonAssistant = async ({
       failedTask: 'hackathon_ai_coach',
       failureMessage: error.message,
     });
+    await recordHackathonRun(db, response);
+    return response;
   }
 };
 

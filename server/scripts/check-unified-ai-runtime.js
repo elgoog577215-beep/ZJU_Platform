@@ -2,6 +2,13 @@ const sqlite3 = require('sqlite3');
 const { open } = require('sqlite');
 
 const { runEventAssistantTurn } = require('../src/utils/eventAssistant');
+const {
+  resolveTaskRuntimePolicy,
+} = require('../src/services/unifiedAiRuntimeService');
+const {
+  getProfileCoverage,
+  refreshEventProfileIndex,
+} = require('../src/services/eventAiProfileService');
 
 const assert = (condition, message) => {
   if (!condition) {
@@ -79,6 +86,16 @@ const setupSchema = async (db) => {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE ai_assistant_runs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      module TEXT NOT NULL,
+      action TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'completed',
+      requested_by INTEGER,
+      summary_json TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE events (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT,
@@ -139,12 +156,12 @@ const seedEvents = async (db) => {
       daysFromNow(3, 21),
       '紫金港校区 创意空间',
       '面向对 AI 应用和项目实践感兴趣的学生，现场完成小组实践。',
-      '<p>AI workshop</p>',
+      '<p>AI practice</p>',
       '综测 0.5',
       '全校学生',
       '计算机学院',
       '',
-      'workshop',
+      'lecture',
       12,
       0,
       2
@@ -204,7 +221,8 @@ const seedEvents = async (db) => {
   );
 };
 
-const buildModelRunner = () => async ({ task, messages }) => {
+const buildModelRunner = (runtimePolicyChecks = []) => async ({ task, messages, runtimePolicy }) => {
+  runtimePolicyChecks.push({ task, runtimePolicy });
   if (task === 'event_recommendation_intent') {
     return {
       query_summary: '用户想在紫金港参加 AI 相关且有综测收益的活动',
@@ -213,7 +231,7 @@ const buildModelRunner = () => async ({ task, messages }) => {
       organizers: ['计算机学院'],
       audiences: ['全校学生'],
       benefits: ['score'],
-      categories: ['workshop'],
+      categories: ['lecture'],
       date_constraints: [],
       format: 'offline',
       allow_historical: false,
@@ -229,7 +247,7 @@ const buildModelRunner = () => async ({ task, messages }) => {
     const isAi = String(event.title || '').includes('AI');
     return {
       summary: isAi ? 'AI 应用实践活动，适合想做项目并获得综测的学生。' : '普通校园活动。',
-      category: isAi ? 'workshop' : event.category || 'other',
+      category: isAi ? 'lecture' : event.category || 'other',
       topics: isAi ? ['AI', '人工智能', '实践'] : [event.title],
       campuses: String(event.location || '').includes('紫金港') ? ['紫金港'] : [],
       organizers: event.organizer ? [event.organizer] : [],
@@ -274,12 +292,13 @@ const main = async () => {
   try {
     await setupSchema(db);
     await seedEvents(db);
+    const runtimePolicyChecks = [];
 
     const result = await runEventAssistantTurn({
       db,
       query: '我想在紫金港参加 AI 相关活动，最好有综测',
       allowHistoricalFallback: false,
-      modelRunner: buildModelRunner(),
+      modelRunner: buildModelRunner(runtimePolicyChecks),
       now: new Date()
     });
 
@@ -291,7 +310,7 @@ const main = async () => {
     );
     assert(
       result.recommendations[0]?.event?.title === 'AI 创新应用工作坊',
-      'Expected model rerank to place the AI workshop first.'
+      'Expected model rerank to place the AI practice activity first.'
     );
     assert(
       result.recommendations[0]?.confidence >= 0.9,
@@ -304,6 +323,108 @@ const main = async () => {
 
     const storedProfiles = await db.get('SELECT COUNT(*) AS count FROM event_ai_profiles');
     assert(Number(storedProfiles.count) >= 1, 'Expected event AI profiles to be stored.');
+    const eventRuns = await db.all(
+      "SELECT summary_json FROM ai_assistant_runs WHERE module = 'event_recommendation' ORDER BY id ASC"
+    );
+    assert(eventRuns.length >= 1, 'Expected event recommendation runs to be recorded.');
+    const eventRunSummary = JSON.parse(eventRuns[0].summary_json);
+    assert(eventRunSummary.modelUsed === true, 'Expected event run summary to record model usage.');
+    assert(eventRunSummary.recommendationCount >= 1, 'Expected event run summary to record recommendation count.');
+    assert(eventRunSummary.runtimeTelemetry.taskCount >= 2, 'Expected event run summary to record runtime telemetry.');
+    assert(
+      eventRunSummary.runtimeTelemetry.totalBudgetTokensEstimate > 0,
+      'Expected event runtime telemetry to include token budget estimates.'
+    );
+    assert(
+      eventRunSummary.runtimeTelemetry.tasks.includes('event_recommendation_rerank'),
+      'Expected event runtime telemetry to include rerank task.'
+    );
+    assert(!eventRuns[0].summary_json.includes('紫金港'), 'Run summaries must not store raw user query text.');
+    const intentPolicy = runtimePolicyChecks.find((item) => item.task === 'event_recommendation_intent')?.runtimePolicy;
+    const profilePolicy = runtimePolicyChecks.find((item) => item.task === 'event_profile')?.runtimePolicy;
+    const rerankPolicy = runtimePolicyChecks.find((item) => item.task === 'event_recommendation_rerank')?.runtimePolicy;
+    assert(
+      JSON.stringify(intentPolicy) === JSON.stringify(resolveTaskRuntimePolicy('event_recommendation_intent')),
+      'Intent task should use central runtime policy defaults.'
+    );
+    assert(profilePolicy?.timeout === 45000 && profilePolicy?.maxTokens === 900, 'Event profile policy should be applied.');
+    assert(rerankPolicy?.maxTokens === 1400, 'Rerank policy should be applied.');
+
+    const refreshDb = await openMemoryDb();
+    try {
+      await setupSchema(refreshDb);
+      await seedEvents(refreshDb);
+      const refreshChecks = [];
+      const refresh = await refreshEventProfileIndex(refreshDb, {
+        limit: 3,
+        force: true,
+        modelRunner: buildModelRunner(refreshChecks),
+      });
+      assert(refresh.summary.generated === 3, 'Refresh command should generate profiles proactively.');
+      assert(refresh.summary.modelUsedCount === 3, 'Refresh command should use the model when enabled.');
+      assert(refresh.coverage.coverageRatio === 1, 'Refresh command should report full profile coverage.');
+      assert(refresh.coverage.staleCount === 0, 'Freshly rebuilt profile coverage should not be stale.');
+      assert(refresh.coverage.missingCount === 0, 'Freshly rebuilt profile coverage should not be missing profiles.');
+      assert(refresh.summary.staleCount === 0, 'Refresh summary should expose stale profile count.');
+      assert(refresh.summary.missingCount === 0, 'Refresh summary should expose missing profile count.');
+      const run = await refreshDb.get(
+        "SELECT summary_json FROM ai_assistant_runs WHERE module = 'event_profile_index' AND action = 'refresh'"
+      );
+      assert(run, 'Refresh command should record an assistant run summary.');
+      const refreshRunSummary = JSON.parse(run.summary_json);
+      assert(
+        Object.prototype.hasOwnProperty.call(refreshRunSummary, 'staleCount'),
+        'Refresh run summary should persist stale profile count.'
+      );
+      assert(
+        Object.prototype.hasOwnProperty.call(refreshRunSummary, 'missingCount'),
+        'Refresh run summary should persist missing profile count.'
+      );
+      assert(
+        refreshRunSummary.runtimeTelemetry.taskCount === 3,
+        'Refresh run summary should include per-profile runtime telemetry.'
+      );
+      assert(
+        refreshRunSummary.runtimeTelemetry.totalBudgetTokensEstimate > 0,
+        'Refresh runtime telemetry should include token budget estimates.'
+      );
+      assert(!run.summary_json.includes('AI practice'), 'Refresh run summary must not store raw event content.');
+    } finally {
+      await refreshDb.close();
+    }
+
+    const staleDb = await openMemoryDb();
+    try {
+      await setupSchema(staleDb);
+      await seedEvents(staleDb);
+      await staleDb.run(
+        `
+          INSERT INTO event_ai_profiles (
+            event_id,
+            source_hash,
+            profile_json,
+            summary,
+            category,
+            status,
+            refreshed_at
+          ) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        `,
+        [1, 'stale-source-hash', '{}', 'old profile', 'other', 'ready']
+      );
+      const staleCoverage = await getProfileCoverage(staleDb);
+      assert(staleCoverage.staleCount === 1, 'Coverage should count source-changed stale profiles.');
+      assert(staleCoverage.missingCount === 2, 'Coverage should count missing AI profiles.');
+      assert(
+        staleCoverage.reasonCounts.source_changed === 1,
+        'Coverage should explain stale profile reasons.'
+      );
+      assert(
+        staleCoverage.reasonCounts.missing_profile === 2,
+        'Coverage should explain missing profile reasons.'
+      );
+    } finally {
+      await staleDb.close();
+    }
 
     const fallbackDb = await openMemoryDb();
     try {
@@ -322,7 +443,7 @@ const main = async () => {
           if (task === 'event_profile') {
             return {
               summary: '活动画像备用测试',
-              category: 'workshop',
+              category: 'lecture',
               topics: ['AI'],
               campuses: ['紫金港'],
               organizers: [],
@@ -343,7 +464,7 @@ const main = async () => {
       assert(fallback.recommendations.length >= 1, 'Expected fallback recommendations to be visible.');
       assert(
         fallback.recommendations[0]?.event?.title === 'AI 创新应用工作坊',
-        'Expected fallback semantic ranking to still put the AI workshop first.'
+        'Expected fallback semantic ranking to still put the AI practice activity first.'
       );
       assert(
         fallback.modelStatus.profileStats.fallback >= 1,

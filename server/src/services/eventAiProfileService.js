@@ -1,9 +1,9 @@
 const crypto = require('crypto');
 const {
   EVENT_CATEGORIES,
-  EVENT_CAMPUS_OPTIONS,
-  EVENT_AUDIENCE_OPTIONS,
   buildEventCatalogPromptText,
+  detectAudienceTerms,
+  detectCampusTerms,
   normalizeEventCategory,
 } = require('./eventIntelligenceService');
 const aiRuntime = require('./unifiedAiRuntimeService');
@@ -109,13 +109,13 @@ const normalizeProfile = (profile = {}, event = {}) => {
 
 const buildRuleProfile = (event = {}) => {
   const text = buildEventSourceText(event);
-  const campusTerms = EVENT_CAMPUS_OPTIONS.filter((item) => text.includes(item));
-  const audienceTerms = EVENT_AUDIENCE_OPTIONS.filter((item) => text.includes(item));
+  const campusTerms = detectCampusTerms(text);
+  const audienceTerms = detectAudienceTerms(text);
   const benefitTerms = [
-    /综测|综合评价|加分|素质分/.test(text) ? '综测' : '',
-    /志愿|时长|工时|公益/.test(text) ? '志愿时长' : '',
-    /证书|证明/.test(text) ? '证书' : '',
-    /实习|就业|简历|offer|招聘/.test(text) ? '就业/实习' : '',
+    /综测|综合评价|加分|素质分|comprehensive\s+score|score|credit/i.test(text) ? '综测' : '',
+    /志愿|时长|工时|公益|volunteer|service\s+hours?|hours/i.test(text) ? '志愿时长' : '',
+    /证书|证明|certificate|certification/i.test(text) ? '证书' : '',
+    /实习|就业|简历|offer|招聘|internship|career|recruitment|resume/i.test(text) ? '就业/实习' : '',
   ].filter(Boolean);
 
   return normalizeProfile({
@@ -165,9 +165,32 @@ const profilePrompt = (event) => [
   }
 ];
 
-const upsertProfile = async (db, event, profile, meta = {}) => {
+const buildProfileRow = (event, profile, meta = {}) => {
   const normalized = normalizeProfile(profile, event);
+  const sourceHash = meta.sourceHash || buildSourceHash(event);
+
+  return {
+    event_id: event.id,
+    source_hash: sourceHash,
+    profile_json: JSON.stringify(normalized),
+    summary: normalized.summary,
+    category: normalized.category,
+    topic_terms: jsonArrayText(normalized.topics),
+    benefit_terms: jsonArrayText(normalized.benefits),
+    campus_terms: jsonArrayText(normalized.campuses),
+    audience_terms: jsonArrayText(normalized.audiences),
+    organizer_terms: jsonArrayText(normalized.organizers),
+    confidence: normalized.confidence,
+    status: meta.status || 'ready',
+    last_error: toText(meta.lastError, 500),
+    model_name: toText(meta.modelName, 120),
+    model_provider: toText(meta.modelProvider, 120),
+  };
+};
+
+const upsertProfile = async (db, event, profile, meta = {}) => {
   const sourceHash = buildSourceHash(event);
+  const row = buildProfileRow(event, profile, { sourceHash, ...meta });
   await db.run(
     `
       INSERT INTO event_ai_profiles (
@@ -213,38 +236,23 @@ const upsertProfile = async (db, event, profile, meta = {}) => {
       event.id,
       PROFILE_VERSION,
       sourceHash,
-      JSON.stringify(normalized),
-      normalized.summary,
-      normalized.category,
-      jsonArrayText(normalized.topics),
-      jsonArrayText(normalized.benefits),
-      jsonArrayText(normalized.campuses),
-      jsonArrayText(normalized.audiences),
-      jsonArrayText(normalized.organizers),
-      normalized.confidence,
-      meta.status || 'ready',
-      toText(meta.lastError, 500),
-      toText(meta.modelName, 120),
-      toText(meta.modelProvider, 120),
+      row.profile_json,
+      row.summary,
+      row.category,
+      row.topic_terms,
+      row.benefit_terms,
+      row.campus_terms,
+      row.audience_terms,
+      row.organizer_terms,
+      row.confidence,
+      row.status,
+      row.last_error,
+      row.model_name,
+      row.model_provider,
     ]
   );
 
-  return {
-    event_id: event.id,
-    source_hash: sourceHash,
-    profile_json: JSON.stringify(normalized),
-    summary: normalized.summary,
-    category: normalized.category,
-    topic_terms: jsonArrayText(normalized.topics),
-    benefit_terms: jsonArrayText(normalized.benefits),
-    campus_terms: jsonArrayText(normalized.campuses),
-    audience_terms: jsonArrayText(normalized.audiences),
-    organizer_terms: jsonArrayText(normalized.organizers),
-    confidence: normalized.confidence,
-    status: meta.status || 'ready',
-    model_name: toText(meta.modelName, 120),
-    model_provider: toText(meta.modelProvider, 120),
-  };
+  return row;
 };
 
 const serializeProfileRow = (row) => {
@@ -298,6 +306,21 @@ const ensureEventProfile = async (db, event, options = {}) => {
 
   if (options.useModel === false) {
     const fallback = buildRuleProfile(event);
+    if (options.persistFallback === false) {
+      return {
+        profile: serializeProfileRow(buildProfileRow(event, fallback, {
+          status: 'fallback',
+          lastError: 'Skipped synchronous profile model call for request latency.',
+        })),
+        created: false,
+        transient: true,
+        modelStatus: {
+          used: false,
+          task: 'event_profile_transient_fallback',
+          message: 'Used a transient fallback profile without writing to the index.'
+        }
+      };
+    }
     const saved = await upsertProfile(db, event, fallback, {
       status: 'fallback',
       lastError: 'Skipped synchronous profile model call for request latency.',
@@ -317,9 +340,7 @@ const ensureEventProfile = async (db, event, options = {}) => {
     const result = await aiRuntime.callJson(db, {
       task: 'event_profile',
       messages: profilePrompt(event),
-      temperature: 0.1,
-      maxTokens: 900,
-      timeout: options.timeout || 45000,
+      timeout: options.timeout,
       modelRunner: options.modelRunner
     });
     const saved = await upsertProfile(db, event, result.parsed, {
@@ -359,6 +380,7 @@ const ensureEventProfiles = async (db, events, options = {}) => {
     requested: limitedEvents.length,
     generated: 0,
     cached: 0,
+    transient: 0,
     fallback: 0,
     failed: 0,
   };
@@ -368,6 +390,7 @@ const ensureEventProfiles = async (db, events, options = {}) => {
     const result = await ensureEventProfile(db, event, options);
     if (result.profile) profilesByEventId.set(Number(event.id), result.profile);
     if (result.created) stats.generated += 1;
+    else if (result.transient) stats.transient += 1;
     else stats.cached += 1;
     if (result.profile?.status === 'fallback') stats.fallback += 1;
     if (result.error) stats.failed += 1;
@@ -382,34 +405,169 @@ const ensureEventProfiles = async (db, events, options = {}) => {
 };
 
 const getProfileCoverage = async (db) => {
-  const row = await db.get(`
+  const rows = await db.all(`
     SELECT
-      COUNT(events.id) AS event_count,
-      SUM(CASE WHEN profiles.event_id IS NOT NULL THEN 1 ELSE 0 END) AS profile_count,
-      SUM(CASE WHEN profiles.status = 'ready' THEN 1 ELSE 0 END) AS ready_count,
-      SUM(CASE WHEN profiles.status = 'fallback' THEN 1 ELSE 0 END) AS fallback_count
+      events.*,
+      profiles.event_id AS profile_event_id,
+      profiles.source_hash AS profile_source_hash,
+      profiles.status AS profile_status,
+      profiles.last_error AS profile_last_error
     FROM events
     LEFT JOIN event_ai_profiles profiles ON profiles.event_id = events.id
     WHERE events.deleted_at IS NULL
       AND events.status = 'approved'
   `);
 
-  const eventCount = Number(row?.event_count || 0);
-  const profileCount = Number(row?.profile_count || 0);
-  const readyCount = Number(row?.ready_count || 0);
-  const fallbackCount = Number(row?.fallback_count || 0);
+  const reasonCounts = {};
+  const countReason = (reason) => {
+    if (!reason) return;
+    reasonCounts[reason] = (reasonCounts[reason] || 0) + 1;
+  };
+
+  let profileCount = 0;
+  let readyCount = 0;
+  let fallbackCount = 0;
+  let staleCount = 0;
+  let missingCount = 0;
+
+  for (const row of rows) {
+    if (!row.profile_event_id) {
+      missingCount += 1;
+      countReason('missing_profile');
+      continue;
+    }
+    profileCount += 1;
+    if (row.profile_status === 'ready') readyCount += 1;
+    if (row.profile_status === 'fallback') {
+      fallbackCount += 1;
+      countReason('fallback_profile');
+    }
+    if (row.profile_source_hash !== buildSourceHash(row)) {
+      staleCount += 1;
+      countReason('source_changed');
+    }
+    if (row.profile_last_error) {
+      countReason('last_error');
+    }
+  }
+
+  const eventCount = rows.length;
   const coverageRatio = eventCount > 0 ? profileCount / eventCount : 0;
+  const staleRatio = eventCount > 0 ? staleCount / eventCount : 0;
 
   return {
     eventCount,
     profileCount,
     readyCount,
     fallbackCount,
+    staleCount,
+    missingCount,
+    reasonCounts,
     totalProfiles: profileCount,
     readyProfiles: readyCount,
     fallbackProfiles: fallbackCount,
+    staleProfiles: staleCount,
+    missingProfiles: missingCount,
     failedProfiles: 0,
     coverageRatio,
+    staleRatio,
+  };
+};
+
+const recordProfileRefreshRun = async (db, summary = {}) => {
+  try {
+    const result = await db.run(
+      `
+        INSERT INTO ai_assistant_runs (
+          module,
+          action,
+          status,
+          requested_by,
+          summary_json
+        ) VALUES (?, ?, ?, ?, ?)
+      `,
+      [
+        'event_profile_index',
+        'refresh',
+        summary.status || 'completed',
+        summary.userId || null,
+        JSON.stringify({
+          requested: summary.requested || 0,
+          generated: summary.generated || 0,
+          cached: summary.cached || 0,
+          transient: summary.transient || 0,
+          fallback: summary.fallback || 0,
+          failed: summary.failed || 0,
+          modelUsedCount: summary.modelUsedCount || 0,
+          coverageRatio: summary.coverageRatio || 0,
+          staleCount: summary.staleCount || 0,
+          missingCount: summary.missingCount || 0,
+          runtimeTelemetry: summary.runtimeTelemetry || { taskCount: 0, tasks: [] },
+        }),
+      ]
+    );
+    return result.lastID;
+  } catch {
+    return null;
+  }
+};
+
+const refreshEventProfileIndex = async (db, options = {}) => {
+  const limit = Math.min(Math.max(Number(options.limit) || MAX_PROFILE_EVENTS_PER_TURN, 1), 200);
+  const useModel = options.useModel !== false;
+  const force = Boolean(options.force);
+  const rows = await db.all(
+    `
+      SELECT
+        events.*,
+        profiles.source_hash AS profile_source_hash,
+        profiles.status AS profile_status
+      FROM events
+      LEFT JOIN event_ai_profiles profiles ON profiles.event_id = events.id
+      WHERE events.deleted_at IS NULL
+        AND events.status = 'approved'
+      ORDER BY
+        CASE WHEN profiles.event_id IS NULL THEN 0 ELSE 1 END,
+        COALESCE(profiles.refreshed_at, '1970-01-01') ASC,
+        events.id DESC
+      LIMIT ?
+    `,
+    [Math.max(limit * 3, limit)]
+  );
+
+  const staleEvents = rows.filter((event) => {
+    if (force) return true;
+    return !event.profile_source_hash
+      || event.profile_source_hash !== buildSourceHash(event)
+      || event.profile_status === 'fallback';
+  }).slice(0, limit);
+  const result = await ensureEventProfiles(db, staleEvents, {
+    useModel,
+    force,
+    modelRunner: options.modelRunner,
+    timeout: options.timeout,
+    limit,
+  });
+  const coverage = await getProfileCoverage(db);
+  const modelUsedCount = result.modelStatuses.filter((status) => status.used).length;
+  const runtimeTelemetry = aiRuntime.summarizeModelStatusTelemetry(result.modelStatuses);
+  const summary = {
+    ...result.stats,
+    modelUsedCount,
+    coverageRatio: coverage.coverageRatio,
+    staleCount: coverage.staleCount,
+    missingCount: coverage.missingCount,
+    runtimeTelemetry,
+    userId: options.userId,
+    status: 'completed',
+  };
+  const runId = await recordProfileRefreshRun(db, summary);
+
+  return {
+    runId,
+    summary,
+    coverage,
+    modelStatuses: result.modelStatuses,
   };
 };
 
@@ -419,5 +577,7 @@ module.exports = {
   ensureEventProfile,
   ensureEventProfiles,
   getProfileCoverage,
+  refreshEventProfileIndex,
+  recordProfileRefreshRun,
   serializeProfileRow,
 };

@@ -10,6 +10,8 @@ const {
   EVENT_AUDIENCE_ALIASES,
   buildEventCatalogPromptText,
   detectCategories,
+  detectAudienceTerms,
+  detectCampusTerms,
   normalizeEventCategory,
 } = require('../services/eventIntelligenceService');
 
@@ -35,7 +37,6 @@ const EVENT_ASSISTANT_PUBLIC_FIELDS = [
   'category'
 ];
 
-const CAMPUS_ALIASES = EVENT_CAMPUS_OPTIONS;
 const AUDIENCE_ALIASES = EVENT_AUDIENCE_ALIASES;
 const AI_RECALL_LIMIT = 24;
 const BENEFIT_ALIASES = {
@@ -355,8 +356,11 @@ const parseAssistantIntent = ({ query, clarificationAnswer }) => {
   const benefits = detectBenefits(combined);
   const format = detectFormat(combined);
   const timePreference = detectTimePreference(combined);
-  const campuses = CAMPUS_ALIASES.filter((item) => lowered.includes(item.toLowerCase()));
-  const audiences = AUDIENCE_ALIASES.filter((item) => lowered.includes(item.toLowerCase()));
+  const campuses = detectCampusTerms(combined);
+  const audiences = unique([
+    ...AUDIENCE_ALIASES.filter((item) => lowered.includes(item.toLowerCase())),
+    ...detectAudienceTerms(combined)
+  ]);
   const semanticTopics = detectSemanticTopics(combined);
   const rawTokens = splitTokens(combined)
     .filter((token) => token.length >= 2 && token.length <= 20)
@@ -612,8 +616,6 @@ const parseAssistantIntentWithModel = async ({
   const result = await aiRuntime.callJson(db, {
     task: 'event_recommendation_intent',
     modelRunner,
-    temperature: 0.1,
-    maxTokens: 900,
     messages: [
       {
         role: 'system',
@@ -1228,6 +1230,7 @@ const buildAiCandidatePool = async ({
       limit: AI_RECALL_LIMIT,
       modelRunner,
       useModel: useProfileModel,
+      persistFallback: useProfileModel,
     }
   );
 
@@ -1626,9 +1629,6 @@ const rerankCandidatesWithModel = async ({
   const result = await aiRuntime.callJson(db, {
     task: 'event_recommendation_rerank',
     modelRunner,
-    temperature: 0.2,
-    maxTokens: 1300,
-    timeout: 45000,
     messages: [
       {
         role: 'system',
@@ -2213,6 +2213,52 @@ const runUnifiedEventAssistantTurn = async ({
   });
 };
 
+const recordEventAssistantRun = async (db, response = {}, userId = null) => {
+  if (!db || !response) return;
+  try {
+    const recommendations = Array.isArray(response.recommendations) ? response.recommendations : [];
+    const modelStatus = response.modelStatus || {};
+    const runtimeTelemetry = aiRuntime.summarizeModelStatusTelemetry(modelStatus);
+    await db.run(
+      `
+        INSERT INTO ai_assistant_runs (
+          module,
+          action,
+          status,
+          requested_by,
+          summary_json
+        ) VALUES (?, ?, ?, ?, ?)
+      `,
+      [
+        'event_recommendation',
+        'turn',
+        'completed',
+        userId || null,
+        JSON.stringify({
+          responseType: response.type || null,
+          recommendationCount: recommendations.length,
+          scope: response.scope || null,
+          modelUsed: Boolean(modelStatus.used),
+          fallbackUsed: Boolean(modelStatus.fallbackUsed),
+          tasks: Array.isArray(modelStatus.tasks) ? modelStatus.tasks.slice(0, 8) : [],
+          profileGenerated: Number(modelStatus.profileStats?.generated || 0),
+          profileFallback: Number(modelStatus.profileStats?.fallback || 0),
+          runtimeTelemetry,
+          warningCount: Array.isArray(response.warnings) ? response.warnings.length : 0,
+        }),
+      ]
+    );
+  } catch {
+    // Recommendation should remain available even on older databases without AI run tables.
+  }
+};
+
+const runObservedEventAssistantTurn = async (options = {}) => {
+  const response = await runUnifiedEventAssistantTurn(options);
+  await recordEventAssistantRun(options.db, response, options.userId);
+  return response;
+};
+
 const recordEventAssistantFeedback = async ({
   db,
   userId,
@@ -2259,7 +2305,7 @@ module.exports = {
   serializeEventForAssistant,
   serializeEventForClient,
   loadScopedCandidates,
-  runEventAssistantTurn: runUnifiedEventAssistantTurn,
+  runEventAssistantTurn: runObservedEventAssistantTurn,
   callEventAssistantModel,
   createAssistantError,
   parseAssistantIntent,

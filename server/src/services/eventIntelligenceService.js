@@ -19,6 +19,50 @@ const normalizeLookupText = (value = '') => normalizeText(value).toLowerCase();
 
 const unique = (items) => [...new Set(items.filter(Boolean))];
 
+const getStandardOption = (options, hints, fallback) => (
+  options.find((item) => hints.some((hint) => String(item).includes(hint))) || fallback
+);
+
+const STANDARD_AUDIENCES = {
+  all: getStandardOption(EVENT_AUDIENCE_OPTIONS, ['全校'], '全校'),
+  undergraduate: getStandardOption(EVENT_AUDIENCE_OPTIONS, ['本科'], '本科生'),
+  graduate: getStandardOption(EVENT_AUDIENCE_OPTIONS, ['研究生'], '研究生'),
+  master: getStandardOption(EVENT_AUDIENCE_OPTIONS, ['硕士'], '硕士生'),
+  doctor: getStandardOption(EVENT_AUDIENCE_OPTIONS, ['博士'], '博士生'),
+  freshman: getStandardOption(EVENT_AUDIENCE_OPTIONS, ['新生'], '新生'),
+};
+
+const STANDARD_CAMPUSES = {
+  zijingang: getStandardOption(EVENT_CAMPUS_OPTIONS, ['紫金港'], '紫金港'),
+  yuquan: getStandardOption(EVENT_CAMPUS_OPTIONS, ['玉泉'], '玉泉'),
+  xixi: getStandardOption(EVENT_CAMPUS_OPTIONS, ['西溪'], '西溪'),
+  huajiachi: getStandardOption(EVENT_CAMPUS_OPTIONS, ['华家池'], '华家池'),
+  zhijiang: getStandardOption(EVENT_CAMPUS_OPTIONS, ['之江'], '之江'),
+  zhoushan: getStandardOption(EVENT_CAMPUS_OPTIONS, ['舟山'], '舟山'),
+  haining: getStandardOption(EVENT_CAMPUS_OPTIONS, ['海宁'], '海宁'),
+  online: getStandardOption(EVENT_CAMPUS_OPTIONS, ['线上'], '线上'),
+};
+
+const CAMPUS_ALIAS_RULES = [
+  { value: STANDARD_CAMPUSES.zijingang, pattern: /\b(zi\s*jin\s*gang|zijingang|zjg)\b/i },
+  { value: STANDARD_CAMPUSES.yuquan, pattern: /\b(yu\s*quan|yuquan|yq)\b/i },
+  { value: STANDARD_CAMPUSES.xixi, pattern: /\b(xi\s*xi|xixi)\b/i },
+  { value: STANDARD_CAMPUSES.huajiachi, pattern: /\b(hua\s*jia\s*chi|huajiachi|hjc)\b/i },
+  { value: STANDARD_CAMPUSES.zhijiang, pattern: /\b(zhi\s*jiang|zhijiang)\b/i },
+  { value: STANDARD_CAMPUSES.zhoushan, pattern: /\b(zhou\s*shan|zhoushan)\b/i },
+  { value: STANDARD_CAMPUSES.haining, pattern: /\b(hai\s*ning|haining|hn)\b/i },
+  { value: STANDARD_CAMPUSES.online, pattern: /\b(online|live\s*stream|livestream|remote)\b/i },
+];
+
+const ENGLISH_AUDIENCE_RULES = [
+  { value: STANDARD_AUDIENCES.all, pattern: /\b(all\s+(students|zju)|all\s+participants|everyone|whole\s+school|open\s+to\s+all)\b/i },
+  { value: STANDARD_AUDIENCES.undergraduate, pattern: /\b(undergraduates?|undergrads?|bachelors?)\b/i },
+  { value: STANDARD_AUDIENCES.graduate, pattern: /\b(graduate\s+students?|postgraduates?)\b/i },
+  { value: STANDARD_AUDIENCES.master, pattern: /\b(masters?|master'?s)\b/i },
+  { value: STANDARD_AUDIENCES.doctor, pattern: /\b(phd|doctoral|doctorate)\b/i },
+  { value: STANDARD_AUDIENCES.freshman, pattern: /\b(freshmen|freshman|first[-\s]?year)\b/i },
+];
+
 const splitList = (value) => {
   if (Array.isArray(value)) return value;
   return normalizeText(value)
@@ -165,8 +209,9 @@ const normalizeEventAudience = (value) => {
   const raw = normalizeText(Array.isArray(value) ? value.join(' ') : value);
   if (!raw && rawItems.length === 0) return '';
 
-  if (/全校|所有学生|全体学生|全体师生|全校师生|师生/.test(raw)) {
-    return '全校';
+  if (/全校|所有学生|全体学生|全体师生|全校师生|师生/.test(raw)
+    || ENGLISH_AUDIENCE_RULES[0].pattern.test(raw)) {
+    return STANDARD_AUDIENCES.all;
   }
 
   const exact = rawItems.filter((item) => EVENT_AUDIENCE_OPTIONS.includes(item));
@@ -180,8 +225,30 @@ const normalizeEventAudience = (value) => {
       return item;
     })
     .filter((item) => EVENT_AUDIENCE_OPTIONS.includes(item) || item === '全校');
+  const english = ENGLISH_AUDIENCE_RULES
+    .filter((rule) => rule.pattern.test(raw))
+    .map((rule) => rule.value)
+    .filter((item) => EVENT_AUDIENCE_OPTIONS.includes(item));
 
-  return unique([...exact, ...included, ...broad]).join(',');
+  return unique([...exact, ...included, ...broad, ...english]).join(',');
+};
+
+const detectCampusTerms = (value) => {
+  const raw = normalizeText(Array.isArray(value) ? value.join(' ') : value);
+  if (!raw) return [];
+  const direct = EVENT_CAMPUS_OPTIONS.filter((item) => raw.includes(item));
+  const aliasMatches = CAMPUS_ALIAS_RULES
+    .filter((rule) => rule.pattern.test(raw))
+    .map((rule) => rule.value)
+    .filter((item) => EVENT_CAMPUS_OPTIONS.includes(item));
+  return unique([...direct, ...aliasMatches]);
+};
+
+const detectAudienceTerms = (value) => {
+  const normalized = normalizeEventAudience(value);
+  return splitList(normalized).filter((item) => (
+    EVENT_AUDIENCE_OPTIONS.includes(item) || item === STANDARD_AUDIENCES.all
+  ));
 };
 
 const buildEventCatalogPromptContext = () => ({
@@ -270,6 +337,8 @@ module.exports = {
   buildEventCatalogPromptText,
   classifyEventCategory,
   detectCategories,
+  detectAudienceTerms,
+  detectCampusTerms,
   getEventCategoryFilterTerms,
   getCategoryLabel,
   normalizeEventAudience,

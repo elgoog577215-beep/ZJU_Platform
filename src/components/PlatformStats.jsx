@@ -516,7 +516,7 @@ const PlatformStats = () => {
           initial={prefersReducedMotion ? false : "initial"}
           whileInView={prefersReducedMotion ? undefined : "animate"}
           viewport={motionTokens.viewport}
-          className="mx-auto grid w-full max-w-[1880px] items-center gap-7 lg:grid-cols-[minmax(0,0.94fr)_minmax(390px,0.72fr)] lg:gap-12 xl:pr-20 2xl:pr-24"
+          className="mx-auto grid w-full max-w-[1880px] items-center gap-7 lg:min-h-[calc(100svh-10rem)] lg:grid-cols-[minmax(0,0.92fr)_minmax(390px,0.68fr)] lg:gap-12 xl:pr-20 2xl:pr-24"
         >
           <div className={palette.firstText}>
             <div
@@ -576,7 +576,7 @@ const PlatformStats = () => {
             </div>
           </div>
 
-          <div className={`relative hidden border p-4 sm:p-6 md:block ${palette.panelStrong}`}>
+          <div className={`relative hidden min-h-[430px] border p-4 sm:p-6 md:block lg:flex lg:min-h-[560px] lg:items-center ${palette.panelStrong}`}>
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_16%,rgba(103,232,249,0.18),transparent_36%),linear-gradient(135deg,rgba(103,232,249,0.08),transparent_46%)]" />
             <div
               className={`pointer-events-none absolute -right-8 -top-8 text-[7rem] font-black uppercase leading-none tracking-tight ${palette.watermark}`}
@@ -593,39 +593,76 @@ const PlatformStats = () => {
 
       <section
         id="home-engine"
-        className="relative z-10 flex min-h-[100svh] snap-start snap-always items-start px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(4.75rem+env(safe-area-inset-top))] sm:px-6 lg:items-center lg:px-10 lg:pb-[calc(4.75rem+env(safe-area-inset-bottom))] 2xl:px-16"
+        className="relative z-10 flex min-h-[100svh] snap-start snap-always items-center px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(4.75rem+env(safe-area-inset-top))] sm:px-6 lg:px-10 lg:pb-[calc(4.75rem+env(safe-area-inset-bottom))] 2xl:px-16"
       >
         <motion.div
           variants={sectionReveal}
           initial={prefersReducedMotion ? false : "initial"}
           whileInView={prefersReducedMotion ? undefined : "animate"}
           viewport={motionTokens.viewport}
-          className="mx-auto w-full max-w-[1880px] xl:pr-20 2xl:pr-24"
+          className="mx-auto grid w-full max-w-[1880px] gap-6 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] lg:items-center lg:gap-12 xl:pr-20 2xl:pr-24"
         >
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <p className={`text-xs font-black uppercase tracking-[0.24em] ${palette.label}`}>
-                Core Engine
-              </p>
-              <h2 className="mt-3 max-w-5xl text-[1.9rem] font-black leading-none tracking-tight text-balance sm:text-5xl lg:text-[clamp(2.9rem,4.9vw,5.05rem)]">
-                不是活动很多，
-                <br />
-                是产学路径清楚。
-              </h2>
+          <div className="relative">
+            <div className={`pointer-events-none absolute -left-4 -top-20 hidden text-[12vw] font-black uppercase leading-none tracking-tight lg:block ${palette.watermark}`}>
+              PATH
             </div>
-            <p className={`max-w-2xl text-sm leading-7 sm:text-base sm:leading-8 ${palette.textSoft}`}>
-              首页聚焦用户可直接参与的行动入口：发现活动、加入社群、对接课题、进入赛事。完整生态逻辑则在关于页面展开说明。
+            <p className={`text-xs font-black uppercase tracking-[0.24em] ${palette.label}`}>
+              Core Engine
             </p>
+            <h2 className="relative mt-3 max-w-4xl text-[1.9rem] font-black leading-none tracking-tight text-balance sm:text-5xl lg:text-[clamp(3.5rem,5.15vw,6rem)]">
+              不是活动很多，
+              <br />
+              是路径清楚。
+            </h2>
+            <p className={`relative mt-5 max-w-2xl text-sm font-bold leading-7 sm:text-base sm:leading-8 ${palette.textSoft}`}>
+              首页只保留用户能立刻行动的四个入口：先发现，再连接，再进入真实场景，最后用限时实战验证成果。
+            </p>
+            <div className={`relative mt-6 grid max-w-2xl grid-cols-2 gap-px border ${palette.grid}`}>
+              {operatingHandles.map((item) => (
+                <button
+                  key={item.code}
+                  type="button"
+                  onClick={() => navigate(item.route)}
+                  className={`group min-h-[76px] p-3 text-left transition hover:-translate-y-0.5 sm:p-4 ${palette.cell}`}
+                >
+                  <div className={`font-mono text-[10px] font-black uppercase tracking-[0.18em] ${item.accent}`}>
+                    {item.index} / {item.code}
+                  </div>
+                  <div className="mt-1 text-base font-black sm:text-lg">
+                    {item.loop}
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-7 sm:gap-4 lg:grid-cols-4">
+          <div className={`relative hidden overflow-hidden border p-3 sm:p-4 md:block lg:min-h-[560px] lg:p-5 ${palette.panelStrong}`}>
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(103,232,249,0.15),transparent_34%),linear-gradient(135deg,rgba(103,232,249,0.08),transparent_48%)]" />
+            <div className={`pointer-events-none absolute right-4 top-2 text-[18vw] font-black uppercase leading-none tracking-tight lg:text-[9rem] ${palette.watermark}`}>
+              LOOP
+            </div>
+            <div
+              className={`pointer-events-none absolute left-[12%] right-[12%] top-1/2 hidden h-px lg:block ${
+                isDayMode
+                  ? "bg-gradient-to-r from-cyan-500/0 via-cyan-500/35 to-cyan-500/0"
+                  : "bg-gradient-to-r from-cyan-300/0 via-cyan-300/40 to-cyan-300/0"
+              }`}
+            />
+            <div
+              className={`pointer-events-none absolute bottom-[12%] left-1/2 top-[12%] hidden w-px lg:block ${
+                isDayMode
+                  ? "bg-gradient-to-b from-cyan-500/0 via-cyan-500/28 to-cyan-500/0"
+                  : "bg-gradient-to-b from-cyan-300/0 via-cyan-300/32 to-cyan-300/0"
+              }`}
+            />
+            <div className="relative z-10 grid gap-3 sm:grid-cols-2 lg:h-full lg:grid-rows-2 lg:gap-4">
             {operatingHandles.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
                   key={item.code}
                   to={item.route}
-                  className={`group relative min-h-[158px] overflow-hidden border border-l-4 p-3 transition duration-300 hover:-translate-y-1 sm:min-h-[260px] sm:p-6 lg:min-h-[300px] ${palette.card} ${
+                  className={`group relative min-h-[172px] overflow-hidden border border-l-4 p-4 transition duration-300 hover:-translate-y-1 sm:min-h-[214px] sm:p-5 lg:min-h-0 lg:p-6 ${palette.card} ${
                     isDayMode ? "border-l-cyan-500" : "border-l-cyan-300"
                   }`}
                 >
@@ -648,13 +685,13 @@ const PlatformStats = () => {
                         <Icon className="h-[18px] w-[18px] sm:h-6 sm:w-6" />
                       </div>
                     </div>
-                    <h3 className="mt-3 text-xl font-black leading-none tracking-tight sm:mt-7 sm:text-[2.35rem]">
+                    <h3 className="mt-4 text-2xl font-black leading-none tracking-tight sm:text-[2.3rem] lg:text-[clamp(2rem,2.2vw,2.85rem)]">
                       {item.title}
                     </h3>
-                    <p className={`mt-2 hidden text-xs leading-5 min-[430px]:line-clamp-2 min-[430px]:block sm:mt-4 sm:line-clamp-2 sm:block sm:text-sm sm:leading-6 ${palette.textSoft}`}>
+                    <p className={`mt-3 hidden text-xs leading-5 min-[430px]:line-clamp-2 min-[430px]:block sm:line-clamp-2 sm:block sm:text-sm sm:leading-6 lg:line-clamp-3 ${palette.textSoft}`}>
                       {item.description}
                     </p>
-                    <div className={`mt-auto flex items-end justify-between border-t pt-3 sm:pt-6 ${palette.divider}`}>
+                    <div className={`mt-auto flex items-end justify-between border-t pt-3 sm:pt-5 ${palette.divider}`}>
                       <div>
                         <div className={`hidden text-[11px] font-black uppercase tracking-[0.18em] sm:block ${palette.textMuted}`}>
                           Loop Role
@@ -672,8 +709,8 @@ const PlatformStats = () => {
                 </Link>
               );
             })}
+            </div>
           </div>
-
         </motion.div>
       </section>
 
@@ -686,9 +723,9 @@ const PlatformStats = () => {
           initial={prefersReducedMotion ? false : "initial"}
           whileInView={prefersReducedMotion ? undefined : "animate"}
           viewport={motionTokens.viewport}
-          className="mx-auto grid w-full max-w-[1880px] gap-3 lg:grid-cols-[0.78fr_1.22fr] lg:gap-5 xl:pr-20 2xl:pr-24"
+          className="mx-auto grid w-full max-w-[1880px] gap-4 lg:grid-cols-[minmax(0,0.74fr)_minmax(0,1.26fr)] lg:items-center lg:gap-8 xl:pr-20 2xl:pr-24"
         >
-          <div className={`relative overflow-hidden border p-4 sm:min-h-[390px] sm:p-7 lg:p-8 ${palette.panelStrong}`}>
+          <div className={`relative overflow-hidden border p-4 sm:p-7 lg:min-h-[620px] lg:p-8 ${palette.panelStrong}`}>
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(103,232,249,0.18),transparent_38%)]" />
             <div
               className={`pointer-events-none absolute -right-16 bottom-8 text-[11rem] font-black uppercase leading-none tracking-tight ${palette.watermark}`}
@@ -696,12 +733,12 @@ const PlatformStats = () => {
               BASE
             </div>
             <div className={`pointer-events-none absolute left-0 top-0 h-full w-1 ${palette.accentBg}`} />
-            <div className="relative z-10 flex flex-col justify-between gap-3 sm:min-h-[330px] sm:gap-6 lg:min-h-[370px]">
+            <div className="relative z-10 flex h-full flex-col justify-between gap-5 lg:min-h-[556px]">
               <div>
                 <div className={`font-mono text-xs font-black uppercase tracking-[0.2em] ${palette.accent}`}>
                   01 / Foundation
                 </div>
-                <h2 className="mt-3 max-w-lg text-[1.9rem] font-black leading-[0.96] tracking-tight min-[360px]:text-[2.1rem] sm:mt-6 sm:text-[3.65rem] lg:text-[clamp(3.7rem,4.6vw,4.65rem)]">
+                <h2 className="mt-3 max-w-lg text-[1.9rem] font-black leading-[0.96] tracking-tight min-[360px]:text-[2.1rem] sm:mt-6 sm:text-[3.65rem] lg:text-[clamp(3.45rem,4.2vw,4.6rem)]">
                   三方资源
                   <br />
                   在这里汇合
@@ -732,66 +769,63 @@ const PlatformStats = () => {
             </div>
           </div>
 
-          <div className="grid gap-3 sm:gap-4">
-            <div className={`relative overflow-hidden border p-4 sm:p-7 ${palette.card}`}>
-              <div className="flex items-end justify-between gap-3">
+          <div className="grid gap-4 lg:min-h-[620px] lg:grid-rows-[minmax(0,0.88fr)_minmax(0,1.12fr)]">
+            <div className={`relative overflow-hidden border p-4 sm:p-7 lg:p-8 ${palette.card}`}>
+              <div className="grid gap-5 lg:grid-cols-[minmax(0,0.38fr)_minmax(0,0.62fr)] lg:items-end">
                 <div>
                   <div className={`flex items-center gap-2 font-mono text-xs font-black uppercase tracking-[0.2em] ${palette.accent}`}>
                     <Users className="h-3.5 w-3.5" />
                     Campus Force
                   </div>
-                  <h3 className="mt-2 text-2xl font-black tracking-tight sm:mt-3 sm:text-[2.35rem]">
+                  <h3 className="mt-2 text-2xl font-black tracking-tight sm:mt-3 sm:text-[2.35rem] lg:text-[clamp(2.3rem,3vw,3.25rem)]">
                     学生组织
                   </h3>
+                  <p className={`mt-2 hidden max-w-md text-sm font-bold leading-6 sm:block ${palette.textMuted}`}>
+                    负责触达、运营、协作和复盘，让 AI 实践人群持续聚集。
+                  </p>
                 </div>
-                <div className={`text-sm font-black uppercase tracking-[0.18em] ${palette.textMuted}`}>
-                  People Layer
+                <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
+                  {studentOrganizations.map((item) => (
+                    <span
+                      key={item}
+                      className={`flex min-h-[46px] items-center justify-center border px-2 py-2 text-sm font-black transition duration-300 hover:-translate-y-0.5 sm:min-h-[56px] sm:px-4 sm:py-3 sm:text-lg lg:min-h-[68px] ${
+                        isDayMode
+                          ? "border-slate-200 bg-white/78"
+                          : "border-white/10 bg-white/[0.045] hover:border-cyan-300/24"
+                      }`}
+                    >
+                      {item}
+                    </span>
+                  ))}
                 </div>
-              </div>
-              <p className={`mt-2 hidden max-w-2xl text-sm font-bold leading-6 sm:block ${palette.textMuted}`}>
-                学生组织承担活动招募、社区运营、项目协作与复盘沉淀，推动校内 AI 实践人群形成稳定协作网络。
-              </p>
-              <div className="mt-3 grid grid-cols-5 gap-1.5 sm:mt-4 sm:grid-cols-5 sm:gap-2">
-                {studentOrganizations.map((item) => (
-                  <span
-                    key={item}
-                    className={`flex min-h-[44px] items-center justify-center border px-2 py-2 text-sm font-black transition duration-300 hover:-translate-y-0.5 sm:min-h-[54px] sm:px-4 sm:py-3 sm:text-lg ${
-                      isDayMode
-                        ? "border-slate-200 bg-white/78"
-                        : "border-white/10 bg-white/[0.045] hover:border-cyan-300/24"
-                    }`}
-                  >
-                    {item}
-                  </span>
-                ))}
               </div>
             </div>
 
-            <div className={`relative overflow-hidden border p-4 sm:p-7 ${palette.panelStrong}`}>
-              <div className="flex items-end justify-between gap-3">
-                <div>
+            <div className={`relative overflow-hidden border p-4 sm:p-7 lg:p-8 ${palette.panelStrong}`}>
+              <div className="grid gap-5 lg:grid-cols-[minmax(0,0.34fr)_minmax(0,0.66fr)]">
+                <div className="flex flex-col justify-between gap-5">
+                  <div>
                   <div className={`flex items-center gap-2 font-mono text-xs font-black uppercase tracking-[0.2em] ${palette.accent}`}>
                     <Handshake className="h-3.5 w-3.5" />
                     Technical Backing
                   </div>
-                  <h3 className="mt-2 text-2xl font-black tracking-tight sm:mt-3 sm:text-[2.35rem]">
+                  <h3 className="mt-2 text-2xl font-black tracking-tight sm:mt-3 sm:text-[2.35rem] lg:text-[clamp(2.3rem,3vw,3.25rem)]">
                     企业伙伴
                   </h3>
+                  <p className={`mt-2 hidden max-w-md text-sm font-bold leading-6 sm:block ${palette.textMuted}`}>
+                    提供真实命题、模型能力、云资源与成果评估，让原型可以被检验。
+                  </p>
+                  </div>
+                  <div className={`hidden border-l-4 px-4 py-3 text-sm font-black leading-6 lg:block ${isDayMode ? "border-l-cyan-500 bg-white/70 text-slate-600" : "border-l-cyan-300 bg-cyan-300/[0.05] text-white/64"}`}>
+                    资源不是陈列赞助方，而是形成“场景 - 人群 - 技术 - 赛事”的转化链路。
+                  </div>
                 </div>
-                <div className={`text-sm font-black uppercase tracking-[0.18em] ${palette.textMuted}`}>
-                  Resource Layer
-                </div>
-              </div>
 
-              <p className={`mt-2 hidden max-w-2xl text-sm font-bold leading-6 sm:block ${palette.textMuted}`}>
-                企业伙伴提供真实业务命题、模型能力、云资源与工具支持，帮助项目从创意原型走向可展示、可评估、可持续推进的成果。
-              </p>
-
-              <div className="scrollbar-none mt-3 flex snap-x gap-2 overflow-x-auto pb-1 sm:mt-4 sm:grid sm:auto-rows-fr sm:grid-cols-3 sm:overflow-visible sm:pb-0 lg:grid-cols-6 xl:gap-3">
+              <div className="scrollbar-none flex snap-x gap-2 overflow-x-auto pb-1 sm:grid sm:auto-rows-fr sm:grid-cols-3 sm:overflow-visible sm:pb-0 lg:grid-cols-4 xl:gap-3">
                 {hackathonPartnerLogos.map((logo) => (
                   <div
                     key={logo.src}
-                    className={`group flex min-h-[52px] min-w-[45%] snap-start items-center justify-center overflow-hidden border px-3 py-3 transition duration-300 hover:-translate-y-0.5 sm:min-h-[60px] sm:min-w-0 sm:px-4 sm:py-3 lg:min-h-[clamp(2.75rem,4.8vh,3.8rem)] lg:px-2 lg:py-2.5 xl:px-3 ${
+                    className={`group flex min-h-[52px] min-w-[45%] snap-start items-center justify-center overflow-hidden border px-3 py-3 transition duration-300 hover:-translate-y-0.5 sm:min-h-[60px] sm:min-w-0 sm:px-4 sm:py-3 lg:min-h-[70px] lg:px-3 lg:py-3 xl:px-4 ${
                       isDayMode
                         ? "border-slate-200 bg-white/86 shadow-[0_16px_40px_rgba(15,23,42,0.08)]"
                         : "border-white/10 bg-white/[0.045] hover:border-cyan-300/30 hover:bg-cyan-300/[0.065]"
@@ -816,6 +850,7 @@ const PlatformStats = () => {
                   </div>
                 ))}
               </div>
+              </div>
             </div>
           </div>
         </motion.div>
@@ -823,17 +858,22 @@ const PlatformStats = () => {
 
       <section
         id="home-live"
-        className="relative z-10 flex min-h-[100svh] snap-start snap-always items-start px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-[calc(4.75rem+env(safe-area-inset-top))] sm:px-6 lg:items-center lg:px-10 lg:pb-20 2xl:px-16"
+        className="relative z-10 flex min-h-[100svh] snap-start snap-always items-center px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-[calc(4.75rem+env(safe-area-inset-top))] sm:px-6 lg:px-10 lg:pb-20 2xl:px-16"
       >
         <motion.div
           variants={sectionReveal}
           initial={prefersReducedMotion ? false : "initial"}
           whileInView={prefersReducedMotion ? undefined : "animate"}
           viewport={motionTokens.viewport}
-          className="mx-auto w-full max-w-[1880px] xl:pr-20 2xl:pr-24"
+          className="mx-auto grid w-full max-w-[1880px] gap-6 lg:grid-cols-[minmax(0,0.68fr)_minmax(0,1.32fr)] lg:items-center lg:gap-10 xl:pr-20 2xl:pr-24"
         >
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div>
+          <div className="relative">
+            <div
+              className={`pointer-events-none absolute -left-6 -top-16 hidden text-[11vw] font-black uppercase leading-none tracking-tight lg:block ${palette.watermark}`}
+            >
+              LIVE
+            </div>
+            <div className="relative">
               <p className={`flex items-center gap-2 text-xs font-black uppercase tracking-[0.24em] ${palette.label}`}>
                 <Zap className="h-3.5 w-3.5" />
                 Now Live
@@ -843,8 +883,11 @@ const PlatformStats = () => {
                 <br />
                 活动与观点。
               </h2>
+              <p className={`mt-5 max-w-xl text-sm font-bold leading-7 sm:text-base sm:leading-8 ${palette.textSoft}`}>
+                首页最后一屏只展示最新动向，让用户从平台叙事回到可点击、可参与、可跟进的真实内容。
+              </p>
             </div>
-            <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="relative mt-6 flex flex-col gap-3 sm:flex-row lg:flex-col lg:items-start">
               <LinkButton
                 isDayMode={isDayMode}
                 onClick={() => navigate("/articles")}
@@ -860,16 +903,33 @@ const PlatformStats = () => {
                 极速黑客松
               </LinkButton>
             </div>
+            <div className={`relative mt-6 hidden max-w-xl grid-cols-3 gap-px border sm:grid ${palette.grid}`}>
+              {[
+                { label: "内容", value: featuredPreviewItems.length || 0 },
+                { label: "入口", value: "3+" },
+                { label: "关注", value: user ? followingFeed.length : "登录" },
+              ].map((item) => (
+                <div key={item.label} className={`p-3 sm:p-4 ${palette.cell}`}>
+                  <div className={`text-2xl font-black leading-none ${palette.accent}`}>
+                    {item.value}
+                  </div>
+                  <div className={`mt-2 text-[11px] font-black uppercase tracking-[0.16em] ${palette.textMuted}`}>
+                    {item.label}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div className="mt-5 lg:mt-7">
+          <div className="grid gap-4 lg:min-h-[620px] lg:grid-rows-[minmax(0,1fr)_auto]">
+          <div>
             {featuredLoading && featuredPreviewItems.length === 0 ? (
               <motion.div
                 variants={listContainer}
                 initial={prefersReducedMotion ? false : "initial"}
                 whileInView={prefersReducedMotion ? undefined : "animate"}
                 viewport={motionTokens.viewport}
-                className="grid gap-3 sm:gap-4 md:grid-cols-[minmax(0,1.35fr)_minmax(0,0.9fr)_minmax(0,0.9fr)]"
+                className="grid gap-3 sm:gap-4 lg:h-full lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.82fr)]"
                 aria-busy="true"
                 aria-label={t("common.loading")}
               >
@@ -877,8 +937,8 @@ const PlatformStats = () => {
                   <motion.div
                     key={item}
                     variants={listItem}
-                    className={`min-h-[230px] overflow-hidden border lg:min-h-[270px] ${
-                      index > 0 ? "hidden sm:block" : ""
+                    className={`min-h-[230px] overflow-hidden border lg:min-h-0 ${
+                      index > 1 ? "hidden" : index > 0 ? "hidden sm:block" : ""
                     } ${palette.card}`}
                   >
                     <div
@@ -944,7 +1004,7 @@ const PlatformStats = () => {
                 initial={prefersReducedMotion ? false : "initial"}
                 whileInView={prefersReducedMotion ? undefined : "animate"}
                 viewport={motionTokens.viewport}
-                className="grid gap-3 sm:gap-4 md:grid-cols-[minmax(0,1.35fr)_minmax(0,0.9fr)_minmax(0,0.9fr)]"
+                className="grid gap-3 sm:gap-4 lg:h-full lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.82fr)]"
               >
                 {featuredPreviewItems.map((item, index) => {
                   const Icon = item.icon;
@@ -956,11 +1016,11 @@ const PlatformStats = () => {
                       type="button"
                       aria-label={`${item.subtitle} ${item.title}`}
                       onClick={() => navigate(item.targetPath)}
-                      className={`motion-gpu motion-lift group min-h-[230px] overflow-hidden border text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 lg:min-h-[270px] ${
-                        index > 0 ? "hidden sm:block" : ""
+                      className={`motion-gpu motion-lift group min-h-[230px] overflow-hidden border text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 lg:min-h-0 ${
+                        index > 1 ? "hidden" : index > 0 ? "hidden sm:block" : ""
                       } ${palette.card}`}
                     >
-                      <div className={`${index === 0 ? "h-32 lg:h-48" : "h-32 lg:h-40"} ${isDayMode ? "bg-slate-100" : "bg-black/40"}`}>
+                      <div className={`${index === 0 ? "h-32 lg:h-[360px]" : "h-32 lg:h-[210px]"} ${isDayMode ? "bg-slate-100" : "bg-black/40"}`}>
                         {item.image ? (
                           <img
                             src={item.image}
@@ -976,12 +1036,12 @@ const PlatformStats = () => {
                           </div>
                         )}
                       </div>
-                      <div className="p-4 lg:p-5">
+                      <div className="p-4 lg:p-6">
                         <div className={`mb-3 inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] ${palette.textMuted}`}>
                           <Icon size={13} />
                           {item.subtitle}
                         </div>
-                        <div className={`line-clamp-2 text-xl font-black leading-7 ${isDayMode ? "text-slate-950" : "text-white"}`}>
+                        <div className={`line-clamp-2 text-xl font-black leading-7 ${index === 0 ? "lg:text-[2.1rem] lg:leading-tight" : ""} ${isDayMode ? "text-slate-950" : "text-white"}`}>
                           {item.title}
                         </div>
                         <div className={`mt-5 inline-flex items-center gap-2 text-sm font-black ${palette.accent}`}>
@@ -1002,7 +1062,7 @@ const PlatformStats = () => {
               initial={prefersReducedMotion ? false : "initial"}
               whileInView={prefersReducedMotion ? undefined : "animate"}
               viewport={motionTokens.viewport}
-              className={`mt-6 grid gap-5 border p-5 lg:grid-cols-[minmax(0,1fr)_300px] ${palette.panel}`}
+              className={`grid gap-5 border p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_300px] ${palette.panel}`}
             >
               <div>
                 <div className="mb-4 flex items-center justify-between gap-3">
@@ -1108,6 +1168,30 @@ const PlatformStats = () => {
               </div>
             </motion.div>
           )}
+          {!user && (
+            <div className={`hidden border p-4 sm:block sm:p-5 ${palette.panel}`}>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <div className={`text-xs font-black uppercase tracking-[0.18em] ${palette.textMuted}`}>
+                    Personalized Feed
+                  </div>
+                  <div className="mt-1 text-lg font-black">登录后查看关注动态</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate("/login")}
+                  className={`motion-press min-h-10 border px-4 text-xs font-black ${
+                    isDayMode
+                      ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                      : "border-white/10 bg-white/5 text-gray-200 hover:bg-white/10"
+                  }`}
+                >
+                  登录
+                </button>
+              </div>
+            </div>
+          )}
+          </div>
         </motion.div>
       </section>
     </section>
