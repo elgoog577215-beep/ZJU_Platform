@@ -5,6 +5,7 @@ import { useSettings } from "../../context/SettingsContext";
 import api from "../../services/api";
 import {
   AdminButton,
+  AdminInlineNote,
   AdminLoadingState,
   AdminPageShell,
   AdminPanel,
@@ -809,24 +810,15 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
-              黑客松 - 合作方（逗号分隔）
-            </label>
-            <div className="flex flex-col gap-3 lg:flex-row">
-              <textarea
-                value={settings.hackathon_partners || ""}
-                onChange={(event) => handleChange("hackathon_partners", event.target.value)}
-                placeholder="Minimax，阿里云，魔搭，阶跃星辰"
-                rows={2}
-                className="theme-admin-input flex-1 rounded-xl p-3"
-              />
-              {fieldAction("hackathon_partners")}
-            </div>
-            <p className="mt-2 text-xs text-gray-500">
-              多个合作方使用英文逗号分隔，将同时显示在合作方和 AI 生态团队区域。
-            </p>
-          </div>
+          <AdminInlineNote tone="info">
+            黑客松合作方已经迁移到「生态伙伴」统一维护。现在修改学校、社团和企业伙伴，会同步影响首页、关于页、黑客松报名页和成果展示页。
+            <a
+              href="/admin?tab=partners"
+              className="ml-2 inline-flex font-semibold underline underline-offset-4"
+            >
+              打开生态伙伴管理
+            </a>
+          </AdminInlineNote>
         </div>
       </AdminPanel>
     </AdminPageShell>

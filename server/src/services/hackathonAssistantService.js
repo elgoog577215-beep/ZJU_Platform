@@ -10,6 +10,14 @@ const QUICK_CONTEXT_CARD_IDS = [
   'deliverables',
 ];
 
+const DEFAULT_HACKATHON_PARTNERS = [
+  'MiniMax',
+  '阿里云 Qoder',
+  'Bonjour',
+  '魔搭',
+  '阶跃星辰',
+];
+
 const clampNumber = (value, min, max, fallback) => {
   const number = Number(value);
   if (!Number.isFinite(number)) return fallback;
@@ -48,7 +56,40 @@ const getSettingsMap = async (db) => {
   }
 };
 
-const buildHackathonProfile = (settings = {}) => ({
+const getEcosystemPartnerNames = async (db) => {
+  if (!db) return null;
+  try {
+    const rows = await db.all(`
+      SELECT name
+      FROM ecosystem_partners
+      WHERE deleted_at IS NULL
+        AND enabled = 1
+        AND featured = 1
+      ORDER BY
+        CASE category
+          WHEN 'school' THEN 1
+          WHEN 'organization' THEN 2
+          WHEN 'enterprise' THEN 3
+          ELSE 4
+        END,
+        sort_order ASC,
+        id ASC
+    `);
+    return rows.map((row) => toText(row.name, 80)).filter(Boolean);
+  } catch {
+    return null;
+  }
+};
+
+const buildHackathonProfile = (settings = {}, ecosystemPartnerNames = null) => {
+  const partnerNames = Array.isArray(ecosystemPartnerNames)
+    ? ecosystemPartnerNames
+    : [
+      ...parsePartnerList(settings.hackathon_partners),
+      ...DEFAULT_HACKATHON_PARTNERS,
+    ];
+
+  return {
   title: toText(settings.hackathon_title, 120) || 'AI 全栈极速黑客松',
   subtitle: '5小时、个人赛、0路演',
   date: toText(settings.hackathon_date, 120) || '5月10日 9:00 A.M.',
@@ -57,23 +98,25 @@ const buildHackathonProfile = (settings = {}) => ({
   duration: toText(settings.hackathon_duration, 80) || '5 小时',
   description: toText(settings.hackathon_desc, 500)
     || '在限定时间内独立完成一个可运行的 AI 应用，允许使用 AI 开发工具，作品完成度优先。',
-  partners: unique([
-    ...parsePartnerList(settings.hackathon_partners),
-    'MiniMax',
-    '阿里云 Qoder',
-    'Bonjour',
-    '魔搭',
-    '阶跃星辰',
-  ]).slice(0, 10),
+  partners: unique(partnerNames).slice(0, 16),
   rules: [
     '个人独立完成',
     '允许并鼓励使用 Codex、Claude、Cursor、Trae 等 AI 工具',
     '现场完成一个可运行、可体验、能说明问题的 AI 应用',
     '不以路演包装为主，作品完成度和真实体验优先',
   ],
-});
+  };
+};
 
 const buildContextCards = (profile) => [
+  {
+    id: 'partners',
+    title: '支持阵容',
+    keywords: ['合作方', '赞助', '支持', '学校', '社团', '企业', '伙伴', '生态'],
+    content: profile.partners.length
+      ? `当前支持阵容包括：${profile.partners.join('、')}。`
+      : '当前支持阵容暂未公开，以页面最新发布信息为准。',
+  },
   {
     id: 'format',
     title: '赛制',
@@ -506,8 +549,11 @@ const runHackathonAssistant = async ({
     throw error;
   }
 
-  const settings = await getSettingsMap(db);
-  const profile = buildHackathonProfile(settings);
+  const [settings, ecosystemPartnerNames] = await Promise.all([
+    getSettingsMap(db),
+    getEcosystemPartnerNames(db),
+  ]);
+  const profile = buildHackathonProfile(settings, ecosystemPartnerNames);
   const allCards = buildContextCards(profile);
   const intent = detectIntent(normalizedQuery);
   const contextCards = selectContextCards(allCards, normalizedQuery, intent);
@@ -574,5 +620,6 @@ module.exports = {
   buildHackathonProfile,
   buildContextCards,
   detectIntent,
+  getEcosystemPartnerNames,
   runHackathonAssistant,
 };

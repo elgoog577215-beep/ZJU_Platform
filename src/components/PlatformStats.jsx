@@ -20,8 +20,8 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useSettings } from "../context/SettingsContext";
-import { hackathonPartnerLogos } from "../data/partnerLogos";
 import { useCachedResource } from "../hooks/useCachedResource";
+import { useEcosystemPartners } from "../hooks/useEcosystemPartners";
 import api from "../services/api";
 import {
   listContainer,
@@ -31,12 +31,6 @@ import {
   tapPress,
   useReducedMotion,
 } from "../utils/animations";
-
-const parseUnits = (raw) =>
-  String(raw || "")
-    .split(/[,，、/]/)
-    .map((item) => item.trim())
-    .filter(Boolean);
 
 const LinkButton = ({ children, onClick, isDayMode, variant = "primary" }) => {
   const isPrimary = variant === "primary";
@@ -267,6 +261,7 @@ const PlatformStats = ({ hero } = {}) => {
   const { t } = useTranslation();
   const { settings, uiMode } = useSettings();
   const isDayMode = uiMode === "day";
+  const { schoolPartners, organizationPartners, enterpriseLogos } = useEcosystemPartners();
   const { user } = useAuth();
   const navigate = useNavigate();
   const prefersReducedMotion = useReducedMotion();
@@ -339,12 +334,8 @@ const PlatformStats = ({ hero } = {}) => {
     .slice(0, 7);
   const featuredPreviewItems = featuredItems.slice(0, 3);
 
-  const schoolSupport = parseUnits(
-    settings.about_school_support_units || "未来学习中心,AI 联合实验室",
-  );
-  const studentOrganizations = parseUnits(
-    settings.about_student_organizations || "XLAB,ZJUAI,EAI,AIRA,KAB",
-  );
+  const schoolSupport = schoolPartners.map((partner) => partner.name);
+  const studentOrganizations = organizationPartners.map((partner) => partner.name);
 
   const proofStats = [
     {
@@ -926,9 +917,9 @@ const PlatformStats = ({ hero } = {}) => {
                 </div>
 
               <div className="scrollbar-none flex snap-x gap-3 overflow-x-auto pb-1 sm:grid sm:auto-rows-fr sm:grid-cols-3 sm:overflow-visible sm:pb-0 lg:grid-cols-4 xl:gap-4">
-                {hackathonPartnerLogos.map((logo) => (
+                {enterpriseLogos.map((logo) => (
                   <div
-                    key={logo.src}
+                    key={logo.id || logo.src || logo.name}
                     className={`group flex min-h-[58px] min-w-[48%] snap-start items-center justify-center overflow-hidden border px-3 py-3 transition duration-300 hover:-translate-y-0.5 sm:min-h-[72px] sm:min-w-0 sm:px-4 sm:py-4 lg:min-h-[88px] lg:px-3 lg:py-4 xl:px-4 ${
                       isDayMode
                         ? "border-slate-200/80 bg-white/80 shadow-[0_16px_44px_rgba(15,23,42,0.08)]"

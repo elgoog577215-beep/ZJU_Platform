@@ -32,6 +32,7 @@ import {
   Mail,
   ShieldCheck,
   Trees,
+  Handshake,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -48,6 +49,7 @@ import AdminCommunity from "./AdminCommunity";
 import HackathonManager from "./HackathonManager";
 import FutureLearningManager from "./FutureLearningManager";
 import AiAssistantManager from "./AiAssistantManager";
+import EcosystemPartnerManager from "./EcosystemPartnerManager";
 import { AdminButton } from "./AdminUI";
 
 const STORAGE_KEY = "admin.activeTab";
@@ -72,6 +74,7 @@ const KNOWN_TAB_IDS = new Set([
   "community",
   "users",
   "messages",
+  "partners",
   "tags",
   "settings",
 ]);
@@ -290,6 +293,15 @@ const AdminDashboard = () => {
         title: t("admin.menu.systemConfig", "系统配置"),
         items: [
           {
+            id: "partners",
+            label: t("admin.tabs.partners", "生态伙伴"),
+            icon: Handshake,
+            description: t(
+              "admin.descriptions.partners",
+              "学校、社团与企业合作方统一维护",
+            ),
+          },
+          {
             id: "tags",
             label: t("admin.tabs.tags", "标签"),
             icon: Tag,
@@ -436,6 +448,8 @@ const AdminDashboard = () => {
         return <PendingReviewManager />;
       case "messages":
         return <MessageManager />;
+      case "partners":
+        return <EcosystemPartnerManager />;
       case "tags":
         return <TagManager />;
       case "settings":

@@ -20,8 +20,8 @@ import {
   Zap,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { hackathonPartnerLogoRows } from "../data/partnerLogos";
 import { useSettings } from "../context/SettingsContext";
+import { useEcosystemPartners } from "../hooks/useEcosystemPartners";
 import { useReducedMotion } from "../utils/animations";
 import api from "../services/api";
 import SEO from "./SEO";
@@ -38,22 +38,6 @@ const readableSetting = (value, fallback) => {
   return trimmed && !isLikelyMojibake(trimmed) ? trimmed : fallback;
 };
 
-const splitPartners = (value, fallback) => {
-  const source = readableSetting(value, fallback);
-  return source
-    .split(/[,，、]/)
-    .map((item) => item.trim())
-    .filter(Boolean);
-};
-
-const ensurePartners = (partners, requiredPartners) => {
-  const existing = new Set(partners.map((item) => item.toLowerCase()));
-  return [
-    ...partners,
-    ...requiredPartners.filter((item) => !existing.has(item.toLowerCase())),
-  ];
-};
-
 const MotionDiv = motion.div;
 const MotionSection = motion.section;
 const officialWechatGroupImage = "/images/wechat-official-group.jpg";
@@ -63,6 +47,10 @@ const HackathonRegistration = () => {
   const reduceMotion = useReducedMotion();
   const shouldAnimate = !reduceMotion;
   const isDayMode = uiMode === "day";
+  const {
+    groups: ecosystemPartnerGroups,
+    enterpriseLogoRows,
+  } = useEcosystemPartners();
   const pageRef = useRef(null);
   const [activeSection, setActiveSection] = useState(0);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -123,13 +111,6 @@ const HackathonRegistration = () => {
       description: readableSetting(
         settings.hackathon_desc,
         "在限定时间内独立完成一个可运行的 AI 应用。允许使用 AI 工具，拒绝概念包装，只看真实作品。",
-      ),
-      partners: ensurePartners(
-        splitPartners(
-          settings.hackathon_partners,
-          "MiniMax, 阿里云, Qoder, Bonjour, 魔搭, 阶跃星辰",
-        ),
-        ["Bonjour"],
       ),
     }),
     [settings],
@@ -234,11 +215,10 @@ const HackathonRegistration = () => {
     },
   ];
 
-  const ecosystemGroups = [
-    { label: "学校", partners: ["未来学习中心", "AI 联合实验室"] },
-    { label: "社团", partners: ["XLAB", "ZJUAI", "EAI", "AIRA", "KAB"] },
-    { label: "企业", partners: event.partners },
-  ];
+  const ecosystemGroups = ecosystemPartnerGroups.map((group) => ({
+    label: group.shortLabel,
+    partners: group.partners.map((partner) => partner.name),
+  }));
 
   const heroStats = [
     { value: "5", unit: "小时", code: "HOURS" },
@@ -500,14 +480,14 @@ const HackathonRegistration = () => {
           className="relative z-10 mx-auto mb-5 flex w-full max-w-[330px] flex-col items-center gap-0.5 min-[380px]:max-w-[360px] min-[380px]:gap-1 sm:max-w-[640px] sm:gap-1.5 xl:absolute xl:right-10 xl:top-[calc(env(safe-area-inset-top)+78px)] xl:mx-0 xl:mb-0 xl:w-auto xl:max-w-[760px] xl:items-end xl:gap-2 2xl:right-16"
           aria-label="企业 logo"
         >
-          {hackathonPartnerLogoRows.map((row, rowIndex) => (
+          {enterpriseLogoRows.map((row, rowIndex) => (
             <div
               key={rowIndex}
               className="flex flex-wrap items-center justify-center gap-x-1 gap-y-0.5 min-[380px]:gap-x-1.5 min-[380px]:gap-y-1 sm:flex-nowrap sm:gap-2 xl:justify-end xl:gap-2.5"
             >
               {row.map((logo) => (
                 <span
-                  key={logo.src}
+                  key={logo.id || logo.src || logo.name}
                   className="group relative flex h-7 items-center justify-center px-1.5 transition duration-300 hover:-translate-y-0.5 min-[380px]:h-8 min-[380px]:px-2 sm:h-11 sm:px-4 lg:h-12 lg:px-5"
                 >
                   <img

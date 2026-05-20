@@ -20,8 +20,8 @@ import {
 } from "lucide-react";
 
 import { podiumWorks as fallbackPodiumWorks } from "../data/hackathonWorks";
-import { hackathonPartnerLogos } from "../data/partnerLogos";
 import { useSettings } from "../context/SettingsContext";
+import { useEcosystemPartners } from "../hooks/useEcosystemPartners";
 import { useReducedMotion } from "../utils/animations";
 import api from "../services/api";
 import CompetitionOutcomeUploadModal from "./CompetitionOutcomeUploadModal";
@@ -81,31 +81,6 @@ const actionLinks = [
   { label: "后续活动", detail: "加入社群，继续参与 AI 共创", icon: Sparkles },
 ];
 
-const supportLineup = [
-  {
-    label: "学校支持",
-    code: "School Support",
-    detail: "场地资源、导师评审、校园传播与长期机制支持。",
-    partners: ["未来学习中心", "AI 联合实验室"],
-    columns: "grid-cols-1 sm:grid-cols-2",
-  },
-  {
-    label: "社团协作",
-    code: "Campus Force",
-    detail: "选手招募、志愿执行、现场协同与赛后社群承接。",
-    partners: ["XLAB", "ZJUAI", "EAI", "AIRA", "KAB"],
-    columns: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5",
-  },
-  {
-    label: "企业生态",
-    code: "Enterprise Partners",
-    detail: "模型、云资源、AI 工具、技术支持与合作方传播露出。",
-    partners: hackathonPartnerLogos,
-    logo: true,
-    columns: "grid-cols-2 sm:grid-cols-3",
-  },
-];
-
 const showcaseSections = [
   { id: "gate", no: "01", label: "SIGNAL GATE", title: "首页" },
   { id: "gallery", no: "02", label: "GALLERY", title: "赛场" },
@@ -115,7 +90,8 @@ const showcaseSections = [
 
 const partnerDisplayName = (logo) => {
   if (logo.text) return logo.text;
-  return logo.alt.replace(/\s*logo$/i, "").trim();
+  if (logo.name) return logo.name;
+  return String(logo.alt || "").replace(/\s*logo$/i, "").trim();
 };
 
 const normalizeShowcaseRank = (rank, index) => {
@@ -139,6 +115,7 @@ const StageAtmosphere = ({ word, align = "right" }) => (
 
 const HackathonShowcase = () => {
   const { uiMode } = useSettings();
+  const { groups: ecosystemPartnerGroups } = useEcosystemPartners();
   const reduceMotion = useReducedMotion();
   const shouldAnimate = !reduceMotion;
   const isDayMode = uiMode === "day";
@@ -275,6 +252,23 @@ const HackathonShowcase = () => {
   }, [outcome]);
 
   const publishedWorksCount = outcome?.stats?.works || showcaseWorks.length;
+  const supportLineup = useMemo(() => {
+    const detailByCategory = {
+      school: "场地资源、导师评审、校园传播与长期机制支持。",
+      organization: "选手招募、志愿执行、现场协同与赛后社群承接。",
+      enterprise: "模型、云资源、AI 工具、技术支持与合作方传播露出。",
+    };
+
+    return ecosystemPartnerGroups.map((group) => ({
+      ...group,
+      detail: detailByCategory[group.id] || "",
+      logo: group.id === "enterprise",
+    }));
+  }, [ecosystemPartnerGroups]);
+  const supportPartnerCount = supportLineup.reduce(
+    (total, group) => total + group.partners.length,
+    0,
+  );
 
   const theme = isDayMode
     ? {
@@ -1514,7 +1508,9 @@ const HackathonShowcase = () => {
                 <p className={`text-xs font-black uppercase tracking-[0.22em] ${theme.accent}`}>
                   支持阵容
                 </p>
-                <p className="mt-2 text-3xl font-black tracking-tight">3 类 / 13 个支持方</p>
+                <p className="mt-2 text-3xl font-black tracking-tight">
+                  {supportLineup.length} 类 / {supportPartnerCount} 个支持方
+                </p>
                 <p className={`mt-2 text-sm font-semibold leading-7 ${theme.muted}`}>
                   学校、社团与企业伙伴共同构成完整赛事背书。
                 </p>
@@ -1553,25 +1549,29 @@ const HackathonShowcase = () => {
                     {group.partners.map((partner) => (
                       group.logo ? (
                         <div
-                          key={`${partner.src}-${partner.alt}`}
+                          key={partner.id || partner.logo_url || partner.name}
                           className={`showcase-support-tile group flex flex-col items-center justify-center gap-2 border px-3 py-3 text-center transition duration-300 hover:-translate-y-0.5 hover:border-cyan-300/50 hover:bg-cyan-300/[0.08] sm:min-h-[5.25rem] lg:min-h-[5.7rem] ${theme.chip}`}
                         >
-                          <img
-                            src={isDayMode ? partner.src : partner.darkSrc || partner.src}
-                            alt={partner.alt}
-                            className={`max-h-8 w-auto max-w-full object-contain opacity-95 transition duration-300 group-hover:scale-[1.04] ${partner.size || ""} ${!isDayMode ? partner.darkClassName || "" : ""}`}
-                            loading="lazy"
-                          />
+                          {partner.logo_url || partner.dark_logo_url ? (
+                            <img
+                              src={isDayMode ? partner.logo_url || partner.dark_logo_url : partner.dark_logo_url || partner.logo_url}
+                              alt={`${partner.name} logo`}
+                              className={`max-h-8 w-auto max-w-full object-contain opacity-95 transition duration-300 group-hover:scale-[1.04] ${partner.size || ""} ${!isDayMode ? partner.darkClassName || "" : ""}`}
+                              loading="lazy"
+                            />
+                          ) : (
+                            <span className="text-base font-black">{partner.name}</span>
+                          )}
                           <span className={`text-[10px] font-black uppercase leading-tight ${theme.soft}`}>
                             {partnerDisplayName(partner)}
                           </span>
                         </div>
                       ) : (
                         <div
-                          key={partner}
+                          key={partner.id || partner.name}
                           className={`showcase-support-tile flex items-center justify-center border px-3 py-3 text-center text-base font-black tracking-tight transition duration-300 hover:-translate-y-0.5 hover:border-cyan-300/50 hover:bg-cyan-300/[0.08] sm:min-h-[5.25rem] sm:text-lg ${theme.chip}`}
                         >
-                          {partner}
+                          {partner.name}
                         </div>
                       )
                     ))}

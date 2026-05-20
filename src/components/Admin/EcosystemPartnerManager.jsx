@@ -19,6 +19,7 @@ import toast from "react-hot-toast";
 
 import api from "../../services/api";
 import { ECOSYSTEM_PARTNER_CATEGORIES } from "../../data/partnerLogos";
+import { notifyEcosystemPartnersUpdated } from "../../hooks/useEcosystemPartners";
 import {
   AdminButton,
   AdminEmptyState,
@@ -67,6 +68,10 @@ const emptyForm = {
   sort_order: 0,
   enabled: true,
   featured: true,
+};
+
+const syncPublicPartnerViews = () => {
+  notifyEcosystemPartnersUpdated();
 };
 
 const normalizeForm = (partner = emptyForm) => ({
@@ -184,10 +189,12 @@ const EcosystemPartnerManager = () => {
             partner.id === editingPartner.id ? response.data : partner,
           ),
         );
+        syncPublicPartnerViews();
         toast.success("合作方已更新");
       } else {
         const response = await api.post("/admin/ecosystem-partners", payload);
         setPartners((previous) => [...previous, response.data]);
+        syncPublicPartnerViews();
         toast.success("合作方已创建");
       }
       closeEditor();
@@ -207,6 +214,7 @@ const EcosystemPartnerManager = () => {
       setPartners((previous) =>
         previous.map((item) => (item.id === partner.id ? response.data : item)),
       );
+      syncPublicPartnerViews();
       toast.success("状态已更新");
     } catch (error) {
       toast.error(error.response?.data?.error || "更新状态失败");
@@ -221,6 +229,7 @@ const EcosystemPartnerManager = () => {
       setPartners((previous) =>
         previous.filter((partner) => partner.id !== deletePartner.id),
       );
+      syncPublicPartnerViews();
       toast.success("合作方已删除");
       setDeletePartner(null);
     } catch (error) {
@@ -363,6 +372,19 @@ const EcosystemPartnerManager = () => {
             <AdminButton tone="subtle" onClick={fetchPartners}>
               <RefreshCw size={16} />
               刷新
+            </AdminButton>
+            <AdminButton
+              tone="subtle"
+              onClick={() =>
+                window.open(
+                  "/hackathon/showcase#partners",
+                  "_blank",
+                  "noopener,noreferrer",
+                )
+              }
+            >
+              <Eye size={16} />
+              预览前台
             </AdminButton>
             <AdminButton tone="primary" onClick={openCreate}>
               <Plus size={16} />

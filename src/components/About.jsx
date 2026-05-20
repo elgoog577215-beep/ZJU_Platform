@@ -7,8 +7,8 @@ import {
   Trophy,
   Users,
 } from "lucide-react";
-import { hackathonPartnerLogos } from "../data/partnerLogos";
 import { useSettings } from "../context/SettingsContext";
+import { useEcosystemPartners } from "../hooks/useEcosystemPartners";
 import { useReducedMotion } from "../utils/animations";
 import SEO from "./SEO";
 
@@ -33,14 +33,9 @@ const heroReveal = (enabled, delay = 0) => {
   };
 };
 
-const parseUnits = (raw) =>
-  String(raw || "")
-    .split(/[,，、/]/)
-    .map((item) => item.trim())
-    .filter(Boolean);
-
 const About = () => {
   const { settings, uiMode } = useSettings();
+  const { schoolPartners, organizationPartners, enterpriseLogos } = useEcosystemPartners();
   const reduceMotion = useReducedMotion();
   const shouldAnimate = !reduceMotion;
   const isDayMode = uiMode === "day";
@@ -94,12 +89,8 @@ const About = () => {
     };
   }, [reduceMotion]);
 
-  const schoolSupport = parseUnits(
-    settings.about_school_support_units || "未来学习中心,AI 联合实验室",
-  );
-  const studentOrganizations = parseUnits(
-    settings.about_student_organizations || "XLAB,ZJUAI,EAI,AIRA,KAB",
-  );
+  const schoolSupport = schoolPartners.map((partner) => partner.name);
+  const studentOrganizations = organizationPartners.map((partner) => partner.name);
   const operatingHandles = [
     {
       index: "01",
@@ -659,9 +650,9 @@ const About = () => {
                   <div className={`mt-3 grid grid-cols-3 gap-1.5 border-t pt-3 sm:mt-5 sm:gap-3 sm:pt-4 lg:mt-[clamp(0.85rem,1.8vh,1.5rem)] lg:grid-cols-6 lg:gap-2 lg:pt-[clamp(0.75rem,1.6vh,1.25rem)] xl:gap-3 ${
                     isDayMode ? "border-cyan-500/[0.14]" : "border-cyan-300/[0.12]"
                   }`}>
-                    {hackathonPartnerLogos.map((logo) => (
+                    {enterpriseLogos.map((logo) => (
                       <div
-                        key={logo.src}
+                        key={logo.id || logo.src || logo.name}
                         className={`group flex min-h-[46px] items-center justify-center px-2 py-2 transition duration-300 hover:-translate-y-0.5 sm:min-h-[72px] sm:px-5 sm:py-4 lg:min-h-[clamp(3rem,5.3vh,4.35rem)] lg:px-2 lg:py-3 xl:px-3 ${
                           isDayMode
                             ? "bg-white/[0.72] shadow-[inset_0_0_0_1px_rgba(6,182,212,0.12),0_16px_36px_rgba(15,23,42,0.07)]"

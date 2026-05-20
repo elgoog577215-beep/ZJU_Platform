@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 
 import { useCachedResource } from "./useCachedResource";
 import {
@@ -11,8 +11,33 @@ import {
   toLegacyLogo,
 } from "../data/partnerLogos";
 
-const normalizePartnerList = (data) => {
-  if (!Array.isArray(data) || data.length === 0) {
+export const ECOSYSTEM_PARTNERS_UPDATED_EVENT = "ecosystem-partners:updated";
+const ECOSYSTEM_PARTNERS_CACHE_PREFIX = "ecosystem-partners:v1:";
+
+export const clearEcosystemPartnersCache = () => {
+  if (typeof window === "undefined") return;
+  try {
+    const keys = [];
+    for (let index = 0; index < window.localStorage.length; index += 1) {
+      const key = window.localStorage.key(index);
+      if (key && key.startsWith(ECOSYSTEM_PARTNERS_CACHE_PREFIX)) {
+        keys.push(key);
+      }
+    }
+    keys.forEach((key) => window.localStorage.removeItem(key));
+  } catch {
+    // Cache invalidation is a convenience; failed storage access should not block saving.
+  }
+};
+
+export const notifyEcosystemPartnersUpdated = () => {
+  if (typeof window === "undefined") return;
+  clearEcosystemPartnersCache();
+  window.dispatchEvent(new Event(ECOSYSTEM_PARTNERS_UPDATED_EVENT));
+};
+
+const normalizePartnerList = (data, shouldUseFallback) => {
+  if (!Array.isArray(data) || shouldUseFallback) {
     return defaultEcosystemPartners;
   }
   return sortEcosystemPartners(data.map(normalizeEcosystemPartner));
@@ -29,7 +54,12 @@ export const useEcosystemPartners = () => {
     },
   );
 
-  const partners = useMemo(() => normalizePartnerList(data), [data]);
+  const shouldUseFallback =
+    Boolean(error) || (loading && (!Array.isArray(data) || data.length === 0));
+  const partners = useMemo(
+    () => normalizePartnerList(data, shouldUseFallback),
+    [data, shouldUseFallback],
+  );
   const groups = useMemo(() => groupEcosystemPartners(partners), [partners]);
   const schoolPartners = useMemo(
     () => getPartnersByCategory(partners, "school"),
@@ -51,6 +81,22 @@ export const useEcosystemPartners = () => {
     () => chunkPartners(enterpriseLogos, 3),
     [enterpriseLogos],
   );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const handlePartnersUpdated = () => refresh({ clearCache: true });
+    const handleStorage = (event) => {
+      if (!event.key || event.key.startsWith(ECOSYSTEM_PARTNERS_CACHE_PREFIX)) {
+        refresh({ clearCache: true });
+      }
+    };
+    window.addEventListener(ECOSYSTEM_PARTNERS_UPDATED_EVENT, handlePartnersUpdated);
+    window.addEventListener("storage", handleStorage);
+    return () => {
+      window.removeEventListener(ECOSYSTEM_PARTNERS_UPDATED_EVENT, handlePartnersUpdated);
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, [refresh]);
 
   return {
     partners,
