@@ -7,6 +7,7 @@ import {
   Trophy,
   Users,
 } from "lucide-react";
+import { getPartnerDisplayName, getPartnerLogoSrc } from "../data/partnerLogos";
 import { useSettings } from "../context/SettingsContext";
 import { useEcosystemPartners } from "../hooks/useEcosystemPartners";
 import { useReducedMotion } from "../utils/animations";
@@ -659,13 +660,23 @@ const About = () => {
                             : "bg-white/[0.035] shadow-[inset_0_0_0_1px_rgba(103,232,249,0.09),0_0_0_1px_rgba(103,232,249,0.015)] hover:bg-cyan-300/[0.055]"
                         }`}
                       >
-                        <img
-                          src={isDayMode ? logo.src : logo.darkSrc || logo.src}
-                          alt={logo.alt}
-                          className={`w-auto max-w-full object-contain transition duration-300 group-hover:scale-[1.04] ${
-                            logo.size || "h-4 sm:h-7 lg:h-[clamp(1.35rem,2.7vh,1.9rem)]"
-                          } ${!isDayMode ? logo.darkClassName || "" : ""}`}
-                        />
+                        {getPartnerLogoSrc(logo, isDayMode) ? (
+                          <img
+                            src={getPartnerLogoSrc(logo, isDayMode)}
+                            alt={logo.alt}
+                            className={`w-auto max-w-full object-contain transition duration-300 group-hover:scale-[1.04] ${
+                              logo.size || "h-4 sm:h-7 lg:h-[clamp(1.35rem,2.7vh,1.9rem)]"
+                            } ${!isDayMode ? logo.darkClassName || "" : ""}`}
+                          />
+                        ) : (
+                          <span
+                            className={`text-center text-xs font-black leading-tight sm:text-sm ${
+                              isDayMode ? "text-slate-950" : "text-white"
+                            }`}
+                          >
+                            {getPartnerDisplayName(logo)}
+                          </span>
+                        )}
                         {logo.text ? (
                           <span
                             className={`ml-1.5 whitespace-nowrap text-xs font-black leading-none tracking-tight sm:ml-2 sm:text-base lg:text-[clamp(0.8rem,1.15vw,1rem)] ${

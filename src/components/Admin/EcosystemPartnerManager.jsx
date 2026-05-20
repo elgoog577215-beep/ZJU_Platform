@@ -18,7 +18,10 @@ import {
 import toast from "react-hot-toast";
 
 import api from "../../services/api";
-import { ECOSYSTEM_PARTNER_CATEGORIES } from "../../data/partnerLogos";
+import {
+  ECOSYSTEM_PARTNER_CATEGORIES,
+  sortEcosystemPartners,
+} from "../../data/partnerLogos";
 import { notifyEcosystemPartnersUpdated } from "../../hooks/useEcosystemPartners";
 import {
   AdminButton,
@@ -74,6 +77,8 @@ const syncPublicPartnerViews = () => {
   notifyEcosystemPartnersUpdated();
 };
 
+const sortAdminPartners = (items = []) => sortEcosystemPartners(items);
+
 const normalizeForm = (partner = emptyForm) => ({
   category: partner.category || "enterprise",
   name: partner.name || "",
@@ -101,7 +106,7 @@ const EcosystemPartnerManager = () => {
     setLoading(true);
     try {
       const response = await api.get("/admin/ecosystem-partners");
-      setPartners(Array.isArray(response.data) ? response.data : []);
+      setPartners(sortAdminPartners(Array.isArray(response.data) ? response.data : []));
     } catch (error) {
       toast.error(error.response?.data?.error || "加载生态伙伴失败");
       setPartners([]);
@@ -185,15 +190,17 @@ const EcosystemPartnerManager = () => {
           payload,
         );
         setPartners((previous) =>
-          previous.map((partner) =>
-            partner.id === editingPartner.id ? response.data : partner,
+          sortAdminPartners(
+            previous.map((partner) =>
+              partner.id === editingPartner.id ? response.data : partner,
+            ),
           ),
         );
         syncPublicPartnerViews();
         toast.success("合作方已更新");
       } else {
         const response = await api.post("/admin/ecosystem-partners", payload);
-        setPartners((previous) => [...previous, response.data]);
+        setPartners((previous) => sortAdminPartners([...previous, response.data]));
         syncPublicPartnerViews();
         toast.success("合作方已创建");
       }
@@ -212,7 +219,9 @@ const EcosystemPartnerManager = () => {
         [key]: !partner[key],
       });
       setPartners((previous) =>
-        previous.map((item) => (item.id === partner.id ? response.data : item)),
+        sortAdminPartners(
+          previous.map((item) => (item.id === partner.id ? response.data : item)),
+        ),
       );
       syncPublicPartnerViews();
       toast.success("状态已更新");
@@ -227,7 +236,7 @@ const EcosystemPartnerManager = () => {
     try {
       await api.delete(`/admin/ecosystem-partners/${deletePartner.id}`);
       setPartners((previous) =>
-        previous.filter((partner) => partner.id !== deletePartner.id),
+        sortAdminPartners(previous.filter((partner) => partner.id !== deletePartner.id)),
       );
       syncPublicPartnerViews();
       toast.success("合作方已删除");

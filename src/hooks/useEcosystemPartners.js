@@ -13,6 +13,7 @@ import {
 
 export const ECOSYSTEM_PARTNERS_UPDATED_EVENT = "ecosystem-partners:updated";
 const ECOSYSTEM_PARTNERS_CACHE_PREFIX = "ecosystem-partners:v1:";
+const ECOSYSTEM_PARTNERS_CHANNEL = "ecosystem-partners";
 
 export const clearEcosystemPartnersCache = () => {
   if (typeof window === "undefined") return;
@@ -34,6 +35,11 @@ export const notifyEcosystemPartnersUpdated = () => {
   if (typeof window === "undefined") return;
   clearEcosystemPartnersCache();
   window.dispatchEvent(new Event(ECOSYSTEM_PARTNERS_UPDATED_EVENT));
+  if ("BroadcastChannel" in window) {
+    const channel = new BroadcastChannel(ECOSYSTEM_PARTNERS_CHANNEL);
+    channel.postMessage({ type: ECOSYSTEM_PARTNERS_UPDATED_EVENT });
+    channel.close();
+  }
 };
 
 const normalizePartnerList = (data, shouldUseFallback) => {
@@ -60,7 +66,10 @@ export const useEcosystemPartners = () => {
     () => normalizePartnerList(data, shouldUseFallback),
     [data, shouldUseFallback],
   );
-  const groups = useMemo(() => groupEcosystemPartners(partners), [partners]);
+  const groups = useMemo(
+    () => groupEcosystemPartners(partners).filter((group) => group.partners.length > 0),
+    [partners],
+  );
   const schoolPartners = useMemo(
     () => getPartnersByCategory(partners, "school"),
     [partners],
@@ -90,9 +99,21 @@ export const useEcosystemPartners = () => {
         refresh({ clearCache: true });
       }
     };
+    const channel =
+      "BroadcastChannel" in window
+        ? new BroadcastChannel(ECOSYSTEM_PARTNERS_CHANNEL)
+        : null;
+    const handleBroadcast = (event) => {
+      if (event.data?.type === ECOSYSTEM_PARTNERS_UPDATED_EVENT) {
+        refresh({ clearCache: true });
+      }
+    };
+    channel?.addEventListener("message", handleBroadcast);
     window.addEventListener(ECOSYSTEM_PARTNERS_UPDATED_EVENT, handlePartnersUpdated);
     window.addEventListener("storage", handleStorage);
     return () => {
+      channel?.removeEventListener("message", handleBroadcast);
+      channel?.close();
       window.removeEventListener(ECOSYSTEM_PARTNERS_UPDATED_EVENT, handlePartnersUpdated);
       window.removeEventListener("storage", handleStorage);
     };

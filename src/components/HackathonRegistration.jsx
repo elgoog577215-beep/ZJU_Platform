@@ -20,6 +20,7 @@ import {
   Zap,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { getPartnerDisplayName, getPartnerLogoSrc } from "../data/partnerLogos";
 import { useSettings } from "../context/SettingsContext";
 import { useEcosystemPartners } from "../hooks/useEcosystemPartners";
 import { useReducedMotion } from "../utils/animations";
@@ -490,18 +491,28 @@ const HackathonRegistration = () => {
                   key={logo.id || logo.src || logo.name}
                   className="group relative flex h-7 items-center justify-center px-1.5 transition duration-300 hover:-translate-y-0.5 min-[380px]:h-8 min-[380px]:px-2 sm:h-11 sm:px-4 lg:h-12 lg:px-5"
                 >
-                  <img
-                    src={isDayMode ? logo.src : logo.darkSrc || logo.src}
-                    alt={logo.alt}
-                    className={`relative w-auto object-contain transition duration-300 group-hover:scale-[1.04] ${
-                      logo.size || "h-5 sm:h-7 lg:h-8"
-                    } ${
-                      isDayMode
-                        ? ""
-                        : `${logo.darkClassName || ""} drop-shadow-[0_1px_10px_rgba(103,232,249,0.18)]`
-                    }`}
-                    loading="eager"
-                  />
+                  {getPartnerLogoSrc(logo, isDayMode) ? (
+                    <img
+                      src={getPartnerLogoSrc(logo, isDayMode)}
+                      alt={logo.alt}
+                      className={`relative w-auto object-contain transition duration-300 group-hover:scale-[1.04] ${
+                        logo.size || "h-5 sm:h-7 lg:h-8"
+                      } ${
+                        isDayMode
+                          ? ""
+                          : `${logo.darkClassName || ""} drop-shadow-[0_1px_10px_rgba(103,232,249,0.18)]`
+                      }`}
+                      loading="eager"
+                    />
+                  ) : (
+                    <span
+                      className={`text-center text-[10px] font-black leading-tight min-[380px]:text-xs sm:text-sm ${
+                        isDayMode ? "text-slate-950" : "text-white"
+                      }`}
+                    >
+                      {getPartnerDisplayName(logo)}
+                    </span>
+                  )}
                   {logo.text ? (
                     <span
                       className={`ml-1.5 text-xs font-black leading-none tracking-tight min-[380px]:text-sm sm:ml-2 sm:text-base lg:text-lg ${

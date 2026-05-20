@@ -183,6 +183,18 @@ export const groupEcosystemPartners = (partners = []) => {
   }));
 };
 
+export const getPartnerDisplayName = (partner = {}) => {
+  if (partner.text) return partner.text;
+  if (partner.name) return partner.name;
+  return String(partner.alt || "").replace(/\s*logo$/i, "").trim() || "合作方";
+};
+
+export const getPartnerLogoSrc = (partner = {}, isDayMode = true) => {
+  const lightLogo = partner.logo_url || partner.logoUrl || partner.src || "";
+  const darkLogo = partner.dark_logo_url || partner.darkLogoUrl || partner.darkSrc || "";
+  return isDayMode ? lightLogo || darkLogo : darkLogo || lightLogo;
+};
+
 export const toLegacyLogo = (partner = {}) => ({
   ...partner,
   src: partner.logo_url || partner.src || "",

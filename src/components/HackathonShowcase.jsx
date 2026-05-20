@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 
 import { podiumWorks as fallbackPodiumWorks } from "../data/hackathonWorks";
+import { getPartnerDisplayName, getPartnerLogoSrc } from "../data/partnerLogos";
 import { useSettings } from "../context/SettingsContext";
 import { useEcosystemPartners } from "../hooks/useEcosystemPartners";
 import { useReducedMotion } from "../utils/animations";
@@ -87,12 +88,6 @@ const showcaseSections = [
   { id: "works", no: "03", label: "WORKS INDEX", title: "作品" },
   { id: "partners", no: "04", label: "ECOSYSTEM", title: "共创" },
 ];
-
-const partnerDisplayName = (logo) => {
-  if (logo.text) return logo.text;
-  if (logo.name) return logo.name;
-  return String(logo.alt || "").replace(/\s*logo$/i, "").trim();
-};
 
 const normalizeShowcaseRank = (rank, index) => {
   const value = String(rank || index + 1).trim();
@@ -1552,18 +1547,20 @@ const HackathonShowcase = () => {
                           key={partner.id || partner.logo_url || partner.name}
                           className={`showcase-support-tile group flex flex-col items-center justify-center gap-2 border px-3 py-3 text-center transition duration-300 hover:-translate-y-0.5 hover:border-cyan-300/50 hover:bg-cyan-300/[0.08] sm:min-h-[5.25rem] lg:min-h-[5.7rem] ${theme.chip}`}
                         >
-                          {partner.logo_url || partner.dark_logo_url ? (
+                          {getPartnerLogoSrc(partner, isDayMode) ? (
                             <img
-                              src={isDayMode ? partner.logo_url || partner.dark_logo_url : partner.dark_logo_url || partner.logo_url}
+                              src={getPartnerLogoSrc(partner, isDayMode)}
                               alt={`${partner.name} logo`}
                               className={`max-h-8 w-auto max-w-full object-contain opacity-95 transition duration-300 group-hover:scale-[1.04] ${partner.size || ""} ${!isDayMode ? partner.darkClassName || "" : ""}`}
                               loading="lazy"
                             />
                           ) : (
-                            <span className="text-base font-black">{partner.name}</span>
+                            <span className="text-base font-black leading-tight">
+                              {getPartnerDisplayName(partner)}
+                            </span>
                           )}
                           <span className={`text-[10px] font-black uppercase leading-tight ${theme.soft}`}>
-                            {partnerDisplayName(partner)}
+                            {getPartnerDisplayName(partner)}
                           </span>
                         </div>
                       ) : (
