@@ -9,8 +9,6 @@ import {
   Plus,
   RefreshCw,
   Search,
-  ToggleLeft,
-  ToggleRight,
   Trash2,
   Users,
   X,
@@ -79,6 +77,9 @@ const syncPublicPartnerViews = () => {
 
 const sortAdminPartners = (items = []) => sortEcosystemPartners(items);
 
+const isPublicVisible = (partner) =>
+  partner.enabled !== false && partner.featured !== false;
+
 const normalizeForm = (partner = emptyForm) => ({
   category: partner.category || "enterprise",
   name: partner.name || "",
@@ -87,8 +88,8 @@ const normalizeForm = (partner = emptyForm) => ({
   dark_logo_url: partner.dark_logo_url || "",
   link_url: partner.link_url || "",
   sort_order: Number.parseInt(partner.sort_order ?? 0, 10) || 0,
-  enabled: partner.enabled !== false,
-  featured: partner.featured !== false,
+  enabled: isPublicVisible(partner),
+  featured: isPublicVisible(partner),
 });
 
 const EcosystemPartnerManager = () => {
@@ -120,10 +121,10 @@ const EcosystemPartnerManager = () => {
   }, []);
 
   const stats = useMemo(() => {
-    const base = { total: partners.length, enabled: 0, featured: 0 };
+    const base = { total: partners.length, visible: 0, hidden: 0 };
     for (const partner of partners) {
-      if (partner.enabled) base.enabled += 1;
-      if (partner.featured) base.featured += 1;
+      if (isPublicVisible(partner)) base.visible += 1;
+      else base.hidden += 1;
       base[partner.category] = (base[partner.category] || 0) + 1;
     }
     return base;
@@ -150,6 +151,10 @@ const EcosystemPartnerManager = () => {
 
   const updateForm = (key, value) => {
     setForm((previous) => ({ ...previous, [key]: value }));
+  };
+
+  const updateFormVisibility = (visible) => {
+    setForm((previous) => ({ ...previous, enabled: visible, featured: visible }));
   };
 
   const openCreate = () => {
@@ -181,6 +186,8 @@ const EcosystemPartnerManager = () => {
       dark_logo_url: form.dark_logo_url.trim(),
       link_url: form.link_url.trim(),
       sort_order: Number.parseInt(form.sort_order, 10) || 0,
+      enabled: isPublicVisible(form),
+      featured: isPublicVisible(form),
     };
 
     try {
@@ -212,11 +219,13 @@ const EcosystemPartnerManager = () => {
     }
   };
 
-  const handleToggle = async (partner, key) => {
+  const handleVisibilityToggle = async (partner) => {
+    const nextVisible = !isPublicVisible(partner);
     try {
       const response = await api.put(`/admin/ecosystem-partners/${partner.id}`, {
         ...normalizeForm(partner),
-        [key]: !partner[key],
+        enabled: nextVisible,
+        featured: nextVisible,
       });
       setPartners((previous) =>
         sortAdminPartners(
@@ -224,7 +233,7 @@ const EcosystemPartnerManager = () => {
         ),
       );
       syncPublicPartnerViews();
-      toast.success("状态已更新");
+      toast.success(nextVisible ? "已展示到前台" : "已转为后台保留");
     } catch (error) {
       toast.error(error.response?.data?.error || "更新状态失败");
     }
@@ -298,15 +307,15 @@ const EcosystemPartnerManager = () => {
     );
   };
 
-  const renderSwitch = (partner, key, enabledLabel, disabledLabel) => {
-    const enabled = Boolean(partner[key]);
-    const Icon = enabled ? ToggleRight : ToggleLeft;
+  const renderVisibilitySwitch = (partner) => {
+    const visible = isPublicVisible(partner);
+    const Icon = visible ? Eye : EyeOff;
     return (
       <button
         type="button"
-        onClick={() => handleToggle(partner, key)}
+        onClick={() => handleVisibilityToggle(partner)}
         className={`inline-flex min-h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold transition ${
-          enabled
+          visible
             ? isDayMode
               ? "bg-emerald-500/10 text-emerald-700"
               : "bg-emerald-500/15 text-emerald-200"
@@ -316,7 +325,7 @@ const EcosystemPartnerManager = () => {
         }`}
       >
         <Icon size={16} />
-        {enabled ? enabledLabel : disabledLabel}
+        {visible ? "前台展示" : "后台保留"}
       </button>
     );
   };
@@ -352,8 +361,7 @@ const EcosystemPartnerManager = () => {
             </p>
           ) : null}
           <div className="mt-4 flex flex-wrap gap-2">
-            {renderSwitch(partner, "enabled", "启用", "停用")}
-            {renderSwitch(partner, "featured", "全站展示", "隐藏")}
+            {renderVisibilitySwitch(partner)}
             <AdminIconButton
               label="删除合作方"
               tone="danger"
@@ -441,14 +449,14 @@ const EcosystemPartnerManager = () => {
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
           <AdminMetricCard label="合作方" value={stats.total} icon={Handshake} />
           <AdminMetricCard
-            label="启用中"
-            value={stats.enabled}
+            label="前台展示"
+            value={stats.visible}
             icon={Eye}
             tone="emerald"
           />
           <AdminMetricCard
-            label="全站展示"
-            value={stats.featured}
+            label="后台保留"
+            value={stats.hidden}
             icon={EyeOff}
             tone="violet"
           />
@@ -468,7 +476,7 @@ const EcosystemPartnerManager = () => {
 
         <AdminPanel
           title={`合作方列表 (${filteredPartners.length})`}
-          description="排序数值越小越靠前；关闭“全站展示”会保留数据但不进入前台背书模块。"
+          description="排序数值越小越靠前；关闭“前台展示”会保留资料，但不会出现在公开页面。"
         >
           {filteredPartners.length === 0 ? (
             <AdminEmptyState
@@ -486,7 +494,7 @@ const EcosystemPartnerManager = () => {
                     <th className="p-4">分类</th>
                     <th className="p-4">说明</th>
                     <th className="p-4">排序</th>
-                    <th className="p-4">状态</th>
+                    <th className="p-4">前台状态</th>
                     <th className="p-4 text-right">操作</th>
                   </tr>
                 </thead>
@@ -519,8 +527,7 @@ const EcosystemPartnerManager = () => {
                       </td>
                       <td className="p-4">
                         <div className="flex flex-wrap gap-2">
-                          {renderSwitch(partner, "enabled", "启用", "停用")}
-                          {renderSwitch(partner, "featured", "展示", "隐藏")}
+                          {renderVisibilitySwitch(partner)}
                         </div>
                       </td>
                       <td className="p-4">
@@ -641,12 +648,12 @@ const EcosystemPartnerManager = () => {
             </label>
           </div>
 
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-2">
             <button
               type="button"
-              onClick={() => updateForm("enabled", !form.enabled)}
+              onClick={() => updateFormVisibility(!isPublicVisible(form))}
               className={`flex min-h-11 items-center justify-between rounded-xl border px-3 text-sm font-semibold ${
-                form.enabled
+                isPublicVisible(form)
                   ? isDayMode
                     ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-700"
                     : "border-emerald-500/20 bg-emerald-500/10 text-emerald-200"
@@ -655,24 +662,8 @@ const EcosystemPartnerManager = () => {
                     : "border-white/10 bg-white/5 text-gray-400"
               }`}
             >
-              启用合作方
-              {form.enabled ? <Check size={16} /> : <X size={16} />}
-            </button>
-            <button
-              type="button"
-              onClick={() => updateForm("featured", !form.featured)}
-              className={`flex min-h-11 items-center justify-between rounded-xl border px-3 text-sm font-semibold ${
-                form.featured
-                  ? isDayMode
-                    ? "border-indigo-500/20 bg-indigo-500/10 text-indigo-700"
-                    : "border-indigo-500/20 bg-indigo-500/10 text-indigo-200"
-                  : isDayMode
-                    ? "border-slate-200 bg-slate-50 text-slate-500"
-                    : "border-white/10 bg-white/5 text-gray-400"
-              }`}
-            >
-              进入全站背书
-              {form.featured ? <Check size={16} /> : <X size={16} />}
+              {isPublicVisible(form) ? "前台展示" : "后台保留"}
+              {isPublicVisible(form) ? <Check size={16} /> : <X size={16} />}
             </button>
           </div>
         </div>
