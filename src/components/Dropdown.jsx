@@ -127,8 +127,8 @@ const Dropdown = ({
             exit={isSheet ? { height: 0, opacity: 0 } : { opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
             className={isSheet
-              ? `overflow-hidden mt-2 rounded-2xl border ${isDayMode ? 'border-slate-200/80 bg-white/80' : 'border-white/[0.1] bg-[#10131d]'} ${menuClassName}`
-              : `absolute top-full left-0 mt-2 min-w-full w-max max-w-[320px] backdrop-blur-xl border rounded-[18px] shadow-2xl overflow-hidden z-[100] ${isDayMode ? 'bg-white/96 border-slate-200/80 ring-1 ring-slate-200/60 shadow-[0_20px_54px_rgba(15,23,42,0.12)]' : 'bg-[#0b0f1a]/96 border-white/[0.12] ring-1 ring-cyan-200/[0.06] shadow-[0_22px_60px_rgba(0,0,0,0.46)]'} ${menuClassName}`
+              ? `overflow-hidden mt-2 rounded-2xl border ${isDayMode ? 'border-slate-200/80 bg-white' : 'border-white/[0.12] bg-[#10131d]'} ${menuClassName}`
+              : `absolute top-full left-0 mt-2 min-w-full w-max max-w-[320px] border rounded-[18px] shadow-2xl overflow-hidden z-[100] ${isDayMode ? 'bg-white border-slate-200/80 ring-1 ring-slate-200/60 shadow-[0_20px_54px_rgba(15,23,42,0.12)]' : 'bg-[#080c16] border-white/[0.14] ring-1 ring-cyan-200/[0.08] shadow-[0_22px_60px_rgba(0,0,0,0.58)]'} ${menuClassName}`
             }
           >
             <div role="listbox" className={`${isSheet ? 'max-h-48' : 'max-h-72'} overflow-y-auto dropdown-scrollbar p-1.5 space-y-0.5`}>
@@ -145,11 +145,11 @@ const Dropdown = ({
                   className={`w-full flex items-center justify-between gap-4 px-3.5 py-3 text-sm rounded-xl transition-all min-h-[40px] focus:outline-none focus-visible:outline-none ${focusClass} ${
                     value === option.value 
                       ? isDayMode
-                        ? 'border border-cyan-500/25 bg-cyan-500/10 text-slate-950 shadow-[inset_3px_0_0_rgba(6,182,212,0.85)] font-black'
-                        : 'border border-cyan-200/20 bg-white/[0.055] text-white shadow-[inset_3px_0_0_rgba(103,232,249,0.82)] font-black'
+                        ? 'border border-cyan-500/25 bg-cyan-50 text-slate-950 shadow-[inset_3px_0_0_rgba(6,182,212,0.85)] font-black'
+                        : 'border border-cyan-200/24 bg-[#111827] text-white shadow-[inset_3px_0_0_rgba(103,232,249,0.82)] font-black'
                       : isDayMode
-                        ? 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-950 active:bg-slate-50 active:scale-[0.99]'
-                        : 'text-slate-300 hover:bg-white/[0.06] hover:text-white active:bg-white/[0.05] active:scale-[0.99]'
+                        ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-950 active:bg-slate-50 active:scale-[0.99]'
+                        : 'text-slate-300 hover:bg-[#111827] hover:text-white active:bg-[#101827] active:scale-[0.99]'
                   }`}
                 >
                   <TruncatedLabel text={option.label} />
