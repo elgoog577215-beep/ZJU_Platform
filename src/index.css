@@ -644,6 +644,38 @@ select:focus-visible {
   display: none;
 }
 
+.dropdown-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(103, 232, 249, 0.26) transparent;
+}
+
+.dropdown-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.dropdown-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dropdown-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(103, 232, 249, 0.24);
+  border: 0;
+  border-radius: 999px;
+}
+
+.dropdown-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(103, 232, 249, 0.38);
+}
+
+:root[data-theme='day'] .dropdown-scrollbar {
+  scrollbar-color: rgba(14, 165, 233, 0.28) transparent;
+}
+
+:root[data-theme='day'] .dropdown-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(14, 165, 233, 0.26);
+}
+
 /* Print Styles - 打印样式 */
 @media print {
   /* 隐藏不必要的元素 */
@@ -1334,6 +1366,20 @@ img.motion-image-zoom {
 :root[data-theme='day'] .hero-day-badge {
   color: rgba(255, 255, 255, 0.94);
   -webkit-text-fill-color: rgba(255, 255, 255, 0.94);
+}
+
+.theme-on-dark,
+:root[data-theme='day'] .theme-on-dark,
+.theme-on-dark:hover,
+:root[data-theme='day'] .theme-on-dark:hover {
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+}
+
+.theme-on-dark-muted,
+:root[data-theme='day'] .theme-on-dark-muted {
+  color: rgba(255, 255, 255, 0.72);
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.72);
 }
 
 /* Auto-linkified URLs (see src/utils/linkify.jsx).

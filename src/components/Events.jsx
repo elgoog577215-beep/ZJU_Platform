@@ -280,14 +280,14 @@ const EventCard = memo(
     return (
       <motion.div
         {...motionProps}
-        className={`group relative backdrop-blur-xl border rounded-3xl overflow-hidden shadow-lg hover:shadow-[0_20px_50px_-12px_rgba(79,70,229,0.3)] hover:border-indigo-500/30 cursor-pointer flex flex-row md:flex-col h-full transform-gpu will-change-transform ${isDayMode ? "bg-white/82 border-slate-200/80 ring-1 ring-slate-200/60 shadow-[0_18px_42px_rgba(148,163,184,0.12)]" : "bg-[#1a1a1a]/60 border-white/10 ring-1 ring-white/5 hover:ring-indigo-500/50"}`}
+        className={`group relative backdrop-blur-xl border rounded-lg overflow-hidden hover:border-indigo-500/30 cursor-pointer flex flex-row md:flex-col h-full transform-gpu will-change-transform ${isDayMode ? "bg-white/84 border-slate-200/80 ring-1 ring-white/60 shadow-[0_12px_30px_rgba(15,23,42,0.08)] hover:shadow-[0_18px_42px_rgba(15,23,42,0.12)]" : "bg-white/[0.045] border-white/10 ring-1 ring-white/5 hover:bg-white/[0.07] hover:ring-indigo-500/40 hover:shadow-[0_20px_50px_-18px_rgba(79,70,229,0.28)]"}`}
         onClick={() => onClick(event)}
       >
         {/* Glass Shine Effect */}
         <div className="absolute inset-0 z-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
         {/* Image Section */}
-        <div className="w-[120px] sm:w-1/3 md:w-full aspect-square md:h-64 overflow-hidden relative shrink-0 z-10 m-3 md:m-0 rounded-2xl md:rounded-none">
+        <div className="w-[112px] sm:w-1/3 md:w-full aspect-square md:h-56 overflow-hidden relative shrink-0 z-10 m-3 md:m-0 rounded-md md:rounded-none">
           <SmartImage
             src={getThumbnailUrl(event.image)}
             alt={event.title}
@@ -325,17 +325,17 @@ const EventCard = memo(
         </div>
 
         {/* Content Section */}
-        <div className="p-3 md:p-6 relative flex-1 flex flex-col min-w-0 h-full justify-center md:justify-start">
+        <div className="p-3 md:p-5 relative flex-1 flex flex-col min-w-0 h-full justify-center md:justify-start">
           {/* Title */}
           <h3
-            className={`text-base sm:text-lg md:text-2xl font-bold mb-1.5 md:mb-2 line-clamp-2 group-hover:text-indigo-400 transition-colors leading-tight tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}
+            className={`text-base sm:text-lg md:text-xl font-bold mb-1.5 md:mb-2 line-clamp-2 group-hover:text-indigo-400 transition-colors leading-tight tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}
           >
             {event.title}
           </h3>
 
           {/* Date & Location - Clean Text Row */}
           <div
-            className={`flex flex-col md:flex-row md:items-center gap-1 md:gap-3 text-xs sm:text-sm md:text-base mb-2 md:mb-4 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+            className={`flex flex-col md:flex-row md:items-center gap-1 md:gap-3 text-xs sm:text-sm mb-2 md:mb-3 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
           >
             <div className="flex items-center gap-1.5 shrink-0">
               <Calendar size={14} className="text-indigo-400 md:w-4 md:h-4" />
@@ -369,7 +369,7 @@ const EventCard = memo(
           {/* Description - Max 3 lines (Hidden on Mobile) */}
           {event.description && (
             <p
-              className={`hidden md:block text-base mb-4 line-clamp-3 leading-relaxed ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+              className={`hidden md:block text-sm mb-4 line-clamp-3 leading-6 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
             >
               {event.description}
             </p>
@@ -437,7 +437,7 @@ const EventCard = memo(
                 }
               />
               <div
-                className={`p-1.5 md:p-2 rounded-full group-hover:bg-indigo-500 group-hover:text-white transition-all duration-300 ${isDayMode ? "bg-indigo-50 text-indigo-500" : "bg-white/5"}`}
+                className={`p-1.5 md:p-2 rounded-md group-hover:bg-indigo-500 group-hover:text-white transition-all duration-300 ${isDayMode ? "bg-indigo-50 text-indigo-500" : "bg-white/5"}`}
               >
                 <ArrowRight
                   size={16}
@@ -920,8 +920,8 @@ END:VCALENDAR`;
   );
 
   const discoveryToggleClasses = isDayMode
-    ? "bg-white/72 border border-white/80 shadow-[0_18px_42px_rgba(30,64,175,0.10),inset_0_1px_0_rgba(255,255,255,0.86)] ring-1 ring-slate-200/50"
-    : "bg-[#10131d]/78 border border-white/[0.11] shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_18px_42px_rgba(0,0,0,0.32)] ring-1 ring-white/[0.04]";
+    ? "bg-white/78 border border-slate-200/80 shadow-[0_12px_28px_rgba(15,23,42,0.08),inset_0_1px_0_rgba(255,255,255,0.86)] ring-1 ring-white/60"
+    : "bg-white/[0.045] border border-white/[0.11] shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_14px_34px_rgba(0,0,0,0.24)] ring-1 ring-white/[0.04]";
   const daySegmentActiveClass =
     "border border-white bg-white text-blue-700 shadow-[0_10px_24px_rgba(37,99,235,0.13)]";
   const nightSegmentActiveClass =
@@ -934,13 +934,13 @@ END:VCALENDAR`;
       className={`flex ${compact ? "flex-col items-stretch gap-3" : "items-center justify-end gap-4"} w-full`}
     >
       <div
-        className={`inline-flex items-center gap-1.5 rounded-full p-1.5 backdrop-blur-2xl ${discoveryToggleClasses} ${compact ? "w-full justify-between overflow-hidden" : ""}`}
+        className={`inline-flex items-center gap-1.5 rounded-lg p-1.5 backdrop-blur-2xl ${discoveryToggleClasses} ${compact ? "w-full justify-between overflow-hidden" : ""}`}
       >
         <button
           type="button"
           aria-pressed={discoveryMode === "filters"}
           onClick={() => setDiscoveryMode("filters")}
-          className={`inline-flex min-h-[42px] items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${compact ? "flex-1 min-w-0 whitespace-nowrap" : ""} ${
+          className={`inline-flex min-h-[42px] items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${compact ? "flex-1 min-w-0 whitespace-nowrap" : ""} ${
             discoveryMode === "filters"
               ? isDayMode
                 ? daySegmentActiveClass
@@ -957,7 +957,7 @@ END:VCALENDAR`;
           type="button"
           aria-pressed={discoveryMode === "assistant"}
           onClick={() => setDiscoveryMode("assistant")}
-          className={`inline-flex min-h-[42px] items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${compact ? "flex-1 min-w-0 whitespace-nowrap px-3" : ""} ${
+          className={`inline-flex min-h-[42px] items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${compact ? "flex-1 min-w-0 whitespace-nowrap px-3" : ""} ${
             discoveryMode === "assistant"
               ? isDayMode
                 ? daySegmentActiveClass
@@ -977,7 +977,7 @@ END:VCALENDAR`;
   );
 
   return (
-    <section className="pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:py-20 px-4 md:px-8 relative overflow-hidden flex-grow">
+    <section className="pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:pb-20 md:pt-24 px-4 md:px-8 relative overflow-hidden flex-grow">
       <SEO
         title="活动"
         description="浏览浙江大学校内活动、志愿服务、讲座与报名信息。"
@@ -992,7 +992,7 @@ END:VCALENDAR`;
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
-        className="mb-6 md:mb-12 relative z-40 md:pt-0 text-center"
+        className="mb-6 md:mb-9 relative z-40 md:pt-0 text-center"
       >
         <div className="md:hidden mb-4 text-left">
           <h1
@@ -1030,9 +1030,9 @@ END:VCALENDAR`;
             setIsMobileAssistantOpen(true);
           }}
         />
-        <div className="hidden md:block mb-8">
+        <div className="hidden md:block mb-6">
           <h2
-            className={`text-3xl md:text-5xl lg:text-6xl font-bold font-serif mb-3 md:mb-8 ${isDayMode ? "text-slate-900" : "text-white"}`}
+            className={`text-3xl md:text-4xl lg:text-5xl font-bold font-serif mb-3 md:mb-5 ${isDayMode ? "text-slate-900" : "text-white"}`}
           >
             {t("events.title")}
           </h2>
@@ -1054,7 +1054,7 @@ END:VCALENDAR`;
               }
               setIsUploadOpen(true);
             }}
-            className={`flex items-center gap-2 px-4 py-2 md:px-6 md:py-3 rounded-full backdrop-blur-md border transition-all font-bold text-sm md:text-base shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-white/88 hover:bg-white text-slate-700 border-slate-200/80 shadow-[0_14px_32px_rgba(148,163,184,0.14)]" : "bg-white/10 hover:bg-white/20 text-white border border-white/10"}`}
+            className={`flex items-center gap-2 px-4 py-2 md:px-5 md:py-2.5 rounded-lg backdrop-blur-md border transition-all font-bold text-sm shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-white/88 hover:bg-white text-slate-700 border-slate-200/80 shadow-[0_12px_28px_rgba(15,23,42,0.08)]" : "bg-white/10 hover:bg-white/20 text-white border border-white/10"}`}
           >
             <Upload size={18} className="md:w-5 md:h-5" />{" "}
             {t("common.create_event")}
@@ -1062,7 +1062,7 @@ END:VCALENDAR`;
         </div>
 
         {/* Desktop Filter Section */}
-        <div className="hidden md:block w-full max-w-5xl mx-auto mb-8">
+        <div className="hidden md:block w-full max-w-5xl mx-auto mb-7">
           <div className="mb-4">{renderDiscoveryModeToggle()}</div>
 
           {discoveryMode === "assistant" ? (
@@ -1278,11 +1278,11 @@ END:VCALENDAR`;
           </button>
         </div>
       ) : loading && displayEvents.length === 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-14 lg:gap-16 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-7 lg:gap-8 max-w-7xl mx-auto">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div
               key={i}
-              className={`backdrop-blur-xl border rounded-3xl overflow-hidden h-full flex flex-row md:flex-col relative group ${isDayMode ? "bg-white/82 border-slate-200/80 shadow-[0_18px_42px_rgba(148,163,184,0.12)]" : "bg-[#1a1a1a]/40 border-white/5"}`}
+              className={`backdrop-blur-xl border rounded-lg overflow-hidden h-full flex flex-row md:flex-col relative group ${isDayMode ? "bg-white/82 border-slate-200/80 shadow-[0_12px_30px_rgba(15,23,42,0.08)]" : "bg-white/[0.04] border-white/5"}`}
             >
               {/* Shimmer Effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-skeleton" />
@@ -1315,7 +1315,7 @@ END:VCALENDAR`;
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-14 lg:gap-16 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-7 lg:gap-8 max-w-7xl mx-auto">
           {displayEvents.map((event, index) => (
             <EventCard
               key={event.id}

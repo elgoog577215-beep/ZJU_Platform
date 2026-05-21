@@ -43,7 +43,7 @@ const LinkButton = ({ children, onClick, isDayMode, variant = "primary" }) => {
       className={`motion-press inline-flex min-h-11 items-center justify-center gap-2 border px-5 text-sm font-black transition focus:outline-none focus-visible:ring-4 focus-visible:ring-cyan-300/30 ${
         isPrimary
           ? isDayMode
-            ? "border-cyan-500 bg-cyan-500 text-white shadow-[0_18px_42px_rgba(6,182,212,0.28)] hover:bg-cyan-600"
+            ? "border-cyan-500 bg-cyan-500 theme-on-dark shadow-[0_18px_42px_rgba(6,182,212,0.28)] hover:bg-cyan-600"
             : "border-cyan-300 bg-cyan-300 text-slate-950 shadow-[0_0_42px_rgba(103,232,249,0.28)] hover:bg-white"
           : isDayMode
             ? "border-slate-300 bg-white/72 text-slate-800 hover:border-cyan-400 hover:text-cyan-700"
@@ -577,7 +577,7 @@ const PlatformStats = ({ hero } = {}) => {
                 className={`flex h-10 w-10 items-center justify-center rounded-full border text-[10px] font-black transition ${
                   activeSection === index
                     ? isDayMode
-                      ? "border-cyan-500 bg-cyan-500 text-white shadow-lg shadow-cyan-200"
+                      ? "border-cyan-500 bg-cyan-500 theme-on-dark shadow-lg shadow-cyan-200"
                       : "border-cyan-300 bg-cyan-300 text-slate-950 shadow-[0_0_30px_rgba(103,232,249,0.26)]"
                     : isDayMode
                       ? "border-slate-200 bg-white/82 text-slate-400 hover:border-cyan-400 hover:text-cyan-600"
@@ -643,7 +643,7 @@ const PlatformStats = ({ hero } = {}) => {
               平台围绕校园 AI 活动、社群共建、真实课题与实战赛事，连接学生、学校支持单位与企业伙伴，提供从信息触达到项目转化的一体化入口。
             </p>
 
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-5 grid grid-cols-2 gap-2 sm:mt-6 sm:flex sm:flex-row sm:gap-3">
               <LinkButton
                 isDayMode={isDayMode}
                 onClick={() => navigate("/events")}
@@ -660,9 +660,9 @@ const PlatformStats = ({ hero } = {}) => {
               </LinkButton>
             </div>
 
-            <div className={`mt-6 grid grid-cols-3 gap-px border ${palette.grid} sm:mt-8`}>
+            <div className={`mt-4 grid grid-cols-3 gap-px border ${palette.grid} sm:mt-8`}>
               {proofStats.map((item) => (
-                <div key={item.label} className={`min-h-[82px] p-3 sm:min-h-0 sm:p-5 ${palette.cell}`}>
+                <div key={item.label} className={`min-h-[76px] p-3 sm:min-h-0 sm:p-5 ${palette.cell}`}>
                   <div className={`text-2xl font-black leading-none tracking-tight min-[360px]:text-3xl sm:text-[2rem] ${palette.accent}`}>
                     {item.value}
                   </div>
@@ -674,6 +674,41 @@ const PlatformStats = ({ hero } = {}) => {
                   </p>
                 </div>
               ))}
+            </div>
+
+            <div className={`mt-4 grid gap-px overflow-hidden border md:hidden ${
+              isDayMode
+                ? "border-slate-200/80 bg-slate-200/80 shadow-[0_16px_46px_rgba(15,23,42,0.05)]"
+                : "border-white/10 bg-white/10"
+            }`}>
+              {operatingHandles.slice(0, 3).map((item) => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.code}
+                    type="button"
+                    onClick={() => navigate(item.route)}
+                    className={`group grid grid-cols-[2.25rem_1fr_auto] items-center gap-3 px-4 py-2.5 text-left transition ${
+                      isDayMode
+                        ? "bg-white/78 hover:bg-cyan-50"
+                        : "bg-[#071113]/86 hover:bg-cyan-300/10"
+                    }`}
+                  >
+                    <span className={`flex h-8 w-8 items-center justify-center ${item.iconBg} text-slate-950 shadow-[0_0_24px_rgba(103,232,249,0.18)]`}>
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className={`block font-mono text-[10px] font-black uppercase tracking-[0.18em] ${item.accent}`}>
+                        {item.code}
+                      </span>
+                      <span className="mt-0.5 block text-[0.95rem] font-black leading-tight">
+                        {item.loop}
+                      </span>
+                    </span>
+                    <ArrowRight className={`h-4 w-4 transition group-hover:translate-x-0.5 ${palette.textMuted}`} />
+                  </button>
+                );
+              })}
             </div>
           </div>
 

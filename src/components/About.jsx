@@ -171,7 +171,7 @@ const About = () => {
         accent: "text-cyan-700",
         accentBg: "bg-cyan-500",
         primary:
-          "bg-cyan-500 text-white shadow-[0_18px_42px_rgba(6,182,212,0.28)] hover:bg-cyan-600",
+          "bg-cyan-500 theme-on-dark shadow-[0_18px_42px_rgba(6,182,212,0.28)] hover:bg-cyan-600",
         secondary:
           "border-slate-300 bg-white/70 text-slate-800 hover:border-cyan-400 hover:text-cyan-700",
         divider: "border-slate-200",
@@ -236,14 +236,14 @@ const About = () => {
 
       <section
         id="about-hero"
-        className={`relative isolate min-h-[100svh] overflow-hidden px-4 pb-8 pt-[calc(env(safe-area-inset-top)+92px)] sm:px-6 md:pt-[calc(env(safe-area-inset-top)+132px)] lg:h-[100svh] lg:snap-start lg:snap-always lg:pb-8 lg:pl-10 lg:pr-28 lg:pt-[calc(env(safe-area-inset-top)+84px)] 2xl:pl-16 2xl:pr-36 ${palette.hero}`}
+        className={`relative isolate min-h-[100svh] overflow-hidden px-4 pb-8 pt-[calc(env(safe-area-inset-top)+78px)] sm:px-6 md:pt-[calc(env(safe-area-inset-top)+112px)] lg:h-[100svh] lg:snap-start lg:snap-always lg:pb-8 lg:pl-10 lg:pr-28 lg:pt-[calc(env(safe-area-inset-top)+84px)] 2xl:pl-16 2xl:pr-36 ${palette.hero}`}
       >
         <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:linear-gradient(rgba(103,232,249,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(103,232,249,0.12)_1px,transparent_1px)] [background-size:46px_46px]" />
         <div className={`pointer-events-none absolute -right-[8vw] bottom-0 select-none text-[18vw] font-black uppercase leading-[0.8] tracking-[-0.1em] ${palette.watermark}`}>
           AI ECOSYSTEM
         </div>
 
-        <div className="relative z-10 mx-auto grid min-h-[calc(100svh-112px)] w-full max-w-[2140px] content-center gap-8 lg:min-h-[calc(100svh-118px)] lg:items-center xl:grid-cols-[minmax(0,0.96fr)_minmax(560px,700px)] xl:gap-12 2xl:grid-cols-[minmax(0,0.9fr)_minmax(660px,780px)] 2xl:gap-14">
+        <div className="relative z-10 mx-auto grid min-h-[calc(100svh-88px)] w-full max-w-[2140px] content-start gap-6 pt-7 sm:pt-9 lg:min-h-[calc(100svh-118px)] lg:content-center lg:items-center lg:gap-8 lg:pt-0 xl:grid-cols-[minmax(0,0.96fr)_minmax(560px,700px)] xl:gap-12 2xl:grid-cols-[minmax(0,0.9fr)_minmax(660px,780px)] 2xl:gap-14">
           <motion.div {...heroReveal(shouldAnimate)} className="max-w-[960px]">
             <div
               className={`inline-flex items-center gap-2 border px-3.5 py-2 text-[11px] font-black uppercase tracking-[0.22em] sm:text-xs ${palette.label} ${
@@ -256,20 +256,20 @@ const About = () => {
               ZJU AI Ecosystem
             </div>
 
-            <h1 className="mt-5 max-w-[1080px] text-[2.85rem] font-black leading-[0.92] tracking-[-0.075em] sm:mt-6 sm:text-7xl md:text-[5rem] lg:mt-6 lg:text-[clamp(4.35rem,9.2vh,5.25rem)] xl:text-[clamp(4rem,7.8vh,5.8rem)] 2xl:text-[6.35rem] [@media_(max-height:820px)]:lg:mt-4">
+            <h1 className="mt-4 max-w-[1080px] text-[2.28rem] font-black leading-[0.98] tracking-[-0.045em] min-[380px]:text-[2.45rem] sm:mt-6 sm:text-6xl md:text-[5rem] lg:mt-6 lg:text-[clamp(4.35rem,9.2vh,5.25rem)] lg:leading-[0.92] lg:tracking-[-0.075em] xl:text-[clamp(4rem,7.8vh,5.8rem)] 2xl:text-[6.35rem] [@media_(max-height:820px)]:lg:mt-4">
               <span className="block">把企业真题，</span>
               <span className="block">接入一张</span>
               <span className={`block ${palette.accent}`}>校园 AI 网络。</span>
             </h1>
 
-            <p className={`mt-5 max-w-4xl text-base font-medium leading-7 sm:mt-6 sm:text-xl sm:leading-9 lg:mt-5 lg:text-[clamp(0.95rem,1.9vh,1.18rem)] lg:leading-8 [@media_(max-height:820px)]:lg:mt-4 ${palette.textSoft}`}>
+            <p className={`mt-4 max-w-4xl text-sm font-medium leading-6 sm:mt-6 sm:text-xl sm:leading-9 lg:mt-5 lg:text-[clamp(0.95rem,1.9vh,1.18rem)] lg:leading-8 [@media_(max-height:820px)]:lg:mt-4 ${palette.textSoft}`}>
               <strong className={isDayMode ? "text-slate-950" : "text-white"}>
                 真实课题、实战项目、校企认定。
               </strong>
               {" "}让学生在做中学，让企业提前看见人才，让校园创新通向产业现场。
             </p>
 
-            <div className="mt-6 lg:mt-7 [@media_(max-height:820px)]:lg:mt-5">
+            <div className="mt-5 lg:mt-7 [@media_(max-height:820px)]:lg:mt-5">
               <a
                 href="#ecosystem-handles"
                 className={`inline-flex min-h-12 items-center justify-center gap-2 px-7 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 sm:min-h-14 sm:px-9 [@media_(max-height:820px)]:lg:min-h-12 [@media_(max-height:820px)]:lg:px-7 ${palette.primary}`}
@@ -280,7 +280,7 @@ const About = () => {
             </div>
 
             <div
-              className={`mt-6 grid max-w-4xl grid-cols-3 gap-px overflow-hidden border lg:mt-7 [@media_(max-height:820px)]:lg:mt-5 ${
+              className={`mt-5 grid max-w-4xl grid-cols-3 gap-px overflow-hidden border sm:mt-6 lg:mt-7 [@media_(max-height:820px)]:lg:mt-5 ${
                 isDayMode
                   ? "border-cyan-500/18 bg-cyan-500/18"
                   : "border-cyan-300/18 bg-cyan-300/18"
@@ -301,6 +301,40 @@ const About = () => {
                   </p>
                 </div>
               ))}
+            </div>
+
+            <div className={`mt-4 grid gap-px overflow-hidden border xl:hidden ${
+              isDayMode
+                ? "border-slate-200/80 bg-slate-200/80 shadow-[0_16px_46px_rgba(15,23,42,0.05)]"
+                : "border-white/10 bg-white/10"
+            }`}>
+              {operatingHandles.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.code}
+                    to={item.route}
+                    className={`group grid grid-cols-[2.4rem_1fr_auto] items-center gap-3 px-4 py-3 transition ${
+                      isDayMode
+                        ? "bg-white/78 hover:bg-cyan-50"
+                        : "bg-[#071113]/86 hover:bg-cyan-300/10"
+                    }`}
+                  >
+                    <span className={`flex h-9 w-9 items-center justify-center ${palette.accentBg} text-slate-950 shadow-[0_0_24px_rgba(103,232,249,0.18)]`}>
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className={`block font-mono text-[10px] font-black uppercase tracking-[0.18em] ${palette.accent}`}>
+                        {item.code}
+                      </span>
+                      <span className="mt-0.5 block text-[0.95rem] font-black leading-tight">
+                        {item.title}
+                      </span>
+                    </span>
+                    <ArrowRight className={`h-4 w-4 transition group-hover:translate-x-0.5 ${palette.textMuted}`} />
+                  </Link>
+                );
+              })}
             </div>
 
           </motion.div>

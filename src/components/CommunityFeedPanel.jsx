@@ -77,7 +77,7 @@ const CommunityFeedPanel = ({
   }[accentColor];
 
   const defaultSkeleton = (i) => (
-    <div key={i} className={`backdrop-blur-xl border rounded-3xl p-5 md:p-6 animate-pulse ${th.card}`}>
+    <div key={i} className={`border rounded-lg p-5 md:p-6 animate-pulse ${th.card}`}>
       <div className="space-y-3">
         <div className="flex gap-2">
           <div className={`h-5 rounded-full w-14 ${th.skeleton}`} />
@@ -92,16 +92,16 @@ const CommunityFeedPanel = ({
   return (
     <div role="tabpanel">
       {/* Controls */}
-      <div className={`mb-5 flex flex-col gap-3 rounded-2xl border p-3 md:mb-6 md:p-4 max-md:border-transparent max-md:bg-transparent max-md:p-0 max-md:shadow-none ${isDayMode ? 'bg-white border-slate-200/70 shadow-[0_10px_26px_rgba(15,23,42,0.04)]' : 'bg-white/[0.03] border-white/10'}`}>
+      <div className={`mb-5 flex flex-col gap-3 rounded-lg border p-3 md:mb-6 md:p-4 max-md:border-transparent max-md:bg-transparent max-md:p-0 max-md:shadow-none ${isDayMode ? 'bg-white/82 border-slate-200/70 shadow-[0_10px_26px_rgba(15,23,42,0.04)]' : 'bg-white/[0.035] border-white/10'}`}>
         <div className={`flex flex-col justify-between gap-3 md:flex-row ${statusTabs ? 'md:items-center' : 'md:items-start'}`}>
           {/* Status tabs */}
           {statusTabs && (
-            <div className={`scrollbar-none flex items-center gap-1 overflow-x-auto rounded-xl border p-1 ${isDayMode ? 'border-slate-200/70 bg-slate-50' : 'border-white/10 bg-black/10'}`}>
+            <div className={`scrollbar-none flex items-center gap-1 overflow-x-auto rounded-lg border p-1 ${isDayMode ? 'border-slate-200/70 bg-slate-50' : 'border-white/10 bg-black/10'}`}>
               {statusTabs.map(({ key, label }) => (
                 <button
                   key={key}
                   onClick={() => setStatusFilter(key)}
-                  className={`min-h-[34px] px-3.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+                  className={`min-h-[34px] px-3.5 rounded-md text-xs font-semibold transition-all whitespace-nowrap ${
                     statusFilter === key
                       ? accentBtnClass
                       : (isDayMode ? 'text-slate-600 hover:bg-white hover:text-slate-950' : 'text-gray-400 hover:bg-white/10')
@@ -194,7 +194,7 @@ const CommunityFeedPanel = ({
           </div>
         ) : displayItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 px-4">
-            <div className={`bg-gradient-to-br ${gradientFrom} rounded-3xl p-8 mb-6 border backdrop-blur-xl shadow-xl ${emptyBorder}`}>
+            <div className={`bg-gradient-to-br ${gradientFrom} rounded-lg p-8 mb-6 border backdrop-blur-xl shadow-xl ${emptyBorder}`}>
               {EmptyIcon && <EmptyIcon size={64} className={`text-${accentColor}-400 opacity-80`} />}
             </div>
             <h3 className={`text-2xl font-bold mb-2 ${th.textPrimary}`}>

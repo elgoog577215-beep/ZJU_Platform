@@ -95,25 +95,27 @@ const Dropdown = ({
   const isSheet = variant === 'sheet';
   const hasSelection = selectedOption && selectedOption.value !== 'all';
   const focusClass = isDayMode
-    ? 'focus-visible:ring-2 focus-visible:ring-indigo-400/50 focus-visible:shadow-[0_0_0_4px_rgba(99,102,241,0.12)]'
-    : 'focus-visible:border-white/[0.22] focus-visible:ring-2 focus-visible:ring-slate-300/35 focus-visible:shadow-[0_0_0_4px_rgba(148,163,184,0.12)]';
+    ? 'focus-visible:ring-2 focus-visible:ring-cyan-500/45 focus-visible:shadow-[0_0_0_4px_rgba(6,182,212,0.1)]'
+    : 'focus-visible:border-white/[0.22] focus-visible:ring-2 focus-visible:ring-cyan-200/30 focus-visible:shadow-[0_0_0_4px_rgba(103,232,249,0.1)]';
 
   return (
     <div className={`relative ${className}`} ref={containerRef} style={{ zIndex: isOpen && !isSheet ? 50 : 1 }}>
       <button
         type="button"
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center justify-between gap-2 w-full backdrop-blur-sm border rounded-2xl px-4 py-3.5 sm:py-3 focus:outline-none focus-visible:outline-none transition-all duration-300 group min-h-[44px] sm:min-h-0 ${focusClass} ${isSheet ? (hasSelection ? (isDayMode ? 'border-indigo-300/50 bg-indigo-500/10 text-slate-900' : 'border-[#8b93ff]/45 bg-[#252849] text-white') : isOpen ? (isDayMode ? 'border-indigo-300/60 bg-white text-slate-900' : 'border-white/[0.16] bg-[#1d2130] text-white') : (isDayMode ? 'bg-white/82 border-slate-200/80 text-slate-600 hover:bg-white' : 'border-white/[0.11] text-slate-300 hover:bg-white/[0.06]')) : (isDayMode ? 'bg-white/82 border-slate-200/80 text-slate-800 hover:bg-white hover:border-indigo-300/70 focus:border-indigo-400/60' : 'bg-[#171a26] border-white/[0.11] text-white hover:bg-[#1d2130] hover:border-white/[0.18]')} ${buttonClassName}`}
+        className={`flex items-center justify-between gap-2 w-full backdrop-blur-sm border rounded-2xl px-4 py-3.5 sm:py-3 focus:outline-none focus-visible:outline-none transition-all duration-300 group min-h-[44px] sm:min-h-0 ${focusClass} ${isSheet ? (hasSelection ? (isDayMode ? 'border-cyan-300/50 bg-cyan-500/10 text-slate-900' : 'border-cyan-300/35 bg-cyan-300/10 text-white') : isOpen ? (isDayMode ? 'border-cyan-300/60 bg-white text-slate-900' : 'border-white/[0.16] bg-[#141926] text-white') : (isDayMode ? 'bg-white/82 border-slate-200/80 text-slate-600 hover:bg-white' : 'border-white/[0.11] text-slate-300 hover:bg-white/[0.06]')) : (isDayMode ? 'bg-white/82 border-slate-200/80 text-slate-800 hover:bg-white hover:border-cyan-300/70 focus:border-cyan-400/60' : 'bg-[#171a26] border-white/[0.11] text-white hover:bg-[#1d2130] hover:border-white/[0.18]')} ${buttonClassName}`}
       >
         <div className="flex items-center gap-3 min-w-0">
-          {Icon && <Icon size={18} className={`shrink-0 transition-colors ${hasSelection ? (isDayMode ? 'text-indigo-600' : 'text-[#aab0ff]') : (isDayMode ? 'text-slate-500 group-hover:text-indigo-500' : 'text-slate-400 group-hover:text-[#c5c9ff]')}`} />}
+          {Icon && <Icon size={18} className={`shrink-0 transition-colors ${hasSelection ? (isDayMode ? 'text-cyan-700' : 'text-cyan-200') : (isDayMode ? 'text-slate-500 group-hover:text-cyan-600' : 'text-slate-400 group-hover:text-cyan-100')}`} />}
           <span className={`text-sm font-medium truncate min-w-0 flex-1 text-left ${hasSelection ? (isDayMode ? "text-slate-900" : "text-white") : (isDayMode ? "text-slate-500" : "text-gray-400")}`}>
             {selectedOption ? selectedOption.label : placeholder}
           </span>
         </div>
         <ChevronDown
           size={16}
-          className={`transition-transform duration-300 ${hasSelection ? (isDayMode ? 'text-indigo-600' : 'text-[#aab0ff]') : (isDayMode ? 'text-slate-500 group-hover:text-slate-900' : 'text-slate-500 group-hover:text-white')} ${isOpen ? 'rotate-180' : ''}`}
+          className={`transition-transform duration-300 ${hasSelection ? (isDayMode ? 'text-cyan-700' : 'text-cyan-200') : (isDayMode ? 'text-slate-500 group-hover:text-slate-900' : 'text-slate-500 group-hover:text-white')} ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
 
@@ -126,26 +128,28 @@ const Dropdown = ({
             transition={{ duration: 0.2, ease: "easeOut" }}
             className={isSheet
               ? `overflow-hidden mt-2 rounded-2xl border ${isDayMode ? 'border-slate-200/80 bg-white/80' : 'border-white/[0.1] bg-[#10131d]'} ${menuClassName}`
-              : `absolute top-full left-0 mt-2 min-w-full w-max max-w-[320px] backdrop-blur-xl border rounded-2xl shadow-2xl overflow-hidden z-[100] ${isDayMode ? 'bg-white/94 border-slate-200/80 ring-1 ring-slate-200/60' : 'bg-[#0d1018] border-white/[0.12] ring-1 ring-white/[0.06] shadow-[0_18px_44px_rgba(0,0,0,0.34)]'} ${menuClassName}`
+              : `absolute top-full left-0 mt-2 min-w-full w-max max-w-[320px] backdrop-blur-xl border rounded-[18px] shadow-2xl overflow-hidden z-[100] ${isDayMode ? 'bg-white/96 border-slate-200/80 ring-1 ring-slate-200/60 shadow-[0_20px_54px_rgba(15,23,42,0.12)]' : 'bg-[#0b0f1a]/96 border-white/[0.12] ring-1 ring-cyan-200/[0.06] shadow-[0_22px_60px_rgba(0,0,0,0.46)]'} ${menuClassName}`
             }
           >
-            <div className={`${isSheet ? 'max-h-48' : 'max-h-60'} overflow-y-auto custom-scrollbar p-1.5 space-y-1`}>
+            <div role="listbox" className={`${isSheet ? 'max-h-48' : 'max-h-72'} overflow-y-auto dropdown-scrollbar p-1.5 space-y-0.5`}>
               {options.map((option) => (
                 <button
                   key={option.value}
                   type="button"
+                  role="option"
+                  aria-selected={value === option.value}
                   onClick={() => {
                     onChange(option.value);
                     setIsOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between px-4 py-3.5 sm:py-3 text-sm rounded-xl transition-all min-h-[44px] sm:min-h-0 focus:outline-none focus-visible:outline-none ${focusClass} ${
+                  className={`w-full flex items-center justify-between gap-4 px-3.5 py-3 text-sm rounded-xl transition-all min-h-[40px] focus:outline-none focus-visible:outline-none ${focusClass} ${
                     value === option.value 
                       ? isDayMode
-                        ? 'bg-gradient-to-r from-indigo-600/80 to-violet-600/80 text-white shadow-lg shadow-indigo-500/20 font-bold'
-                        : 'border border-[#8b93ff]/45 bg-[#252849] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] font-bold'
+                        ? 'border border-cyan-500/25 bg-cyan-500/10 text-slate-950 shadow-[inset_3px_0_0_rgba(6,182,212,0.85)] font-black'
+                        : 'border border-cyan-200/20 bg-white/[0.055] text-white shadow-[inset_3px_0_0_rgba(103,232,249,0.82)] font-black'
                       : isDayMode
-                        ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 active:bg-slate-50 active:scale-[0.98]'
-                        : 'text-slate-300 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.05] active:scale-[0.98]'
+                        ? 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-950 active:bg-slate-50 active:scale-[0.99]'
+                        : 'text-slate-300 hover:bg-white/[0.06] hover:text-white active:bg-white/[0.05] active:scale-[0.99]'
                   }`}
                 >
                   <TruncatedLabel text={option.label} />
@@ -153,9 +157,9 @@ const Dropdown = ({
                     <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className="shrink-0"
+                        className={`shrink-0 ${isDayMode ? 'text-cyan-700' : 'text-cyan-100'}`}
                     >
-                        <Check size={16} strokeWidth={3} className="text-white" />
+                        <Check size={16} strokeWidth={3} />
                     </motion.div>
                   )}
                 </button>

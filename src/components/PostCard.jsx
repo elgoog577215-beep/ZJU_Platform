@@ -51,7 +51,7 @@ const PostCard = memo(({ post, index, onClick, canAnimate, isDayMode }) => {
       animate={canAnimate ? { opacity: 1, y: 0 } : undefined}
       transition={canAnimate ? { duration: 0.24, delay: Math.min(index, 5) * 0.03 } : undefined}
       onClick={() => onClick(post)}
-      className={`group relative backdrop-blur-xl border rounded-3xl p-5 md:p-6 transition-all duration-300 ${accentHover} cursor-pointer overflow-hidden ${accentShadow} hover:-translate-y-1 ${isDayMode ? 'bg-white/82 hover:bg-white border-slate-200/80 shadow-[0_18px_42px_rgba(148,163,184,0.12)]' : 'bg-[#1a1a1a]/60 hover:bg-[#1a1a1a]/80 border-white/10'}`}
+      className={`group relative backdrop-blur-xl border rounded-lg p-5 transition-all duration-300 ${accentHover} cursor-pointer overflow-hidden ${accentShadow} hover:-translate-y-0.5 ${isDayMode ? 'bg-white/82 hover:bg-white border-slate-200/80 shadow-[0_12px_30px_rgba(15,23,42,0.07)]' : 'bg-white/[0.045] hover:bg-white/[0.07] border-white/10'}`}
     >
       <div className="flex-1 space-y-2.5">
         {/* Status + Time */}

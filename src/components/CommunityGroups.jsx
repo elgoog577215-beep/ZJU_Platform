@@ -34,13 +34,13 @@ const GroupCard = memo(({ group, index, isDayMode, isAdmin, onQuickAction, onEdi
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.08 }}
-      className={`backdrop-blur-xl border rounded-[1.4rem] md:rounded-3xl p-3 md:p-6 transition-all duration-300 hover:-translate-y-1 cursor-pointer ${isDayMode ? 'bg-white/82 border-slate-200/80 shadow-[0_18px_42px_rgba(148,163,184,0.12)] hover:shadow-[0_24px_52px_rgba(148,163,184,0.18)]' : 'bg-[#1a1a1a]/60 border-white/10 hover:border-white/20'}`}
+      className={`backdrop-blur-xl border rounded-lg p-3 md:p-5 transition-all duration-300 hover:-translate-y-0.5 cursor-pointer ${isDayMode ? 'bg-white/82 border-slate-200/80 shadow-[0_12px_30px_rgba(15,23,42,0.07)] hover:shadow-[0_18px_36px_rgba(15,23,42,0.1)]' : 'bg-white/[0.045] border-white/10 hover:border-white/20 hover:bg-white/[0.07]'}`}
       onClick={() => onOpen?.(group)}
     >
       {/* QR Code area */}
-      <div className={`w-full aspect-square rounded-[1.1rem] md:rounded-2xl mb-3 md:mb-5 flex items-center justify-center border-2 border-dashed overflow-hidden ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/5 border-white/10'}`}>
+      <div className={`w-full aspect-square rounded-md mb-3 md:mb-4 flex items-center justify-center border border-dashed overflow-hidden ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/5 border-white/10'}`}>
         {group.qr_code_url ? (
-          <img src={group.qr_code_url} alt={group.name} className="w-full h-full object-contain rounded-[1.1rem] md:rounded-2xl" />
+          <img src={group.qr_code_url} alt={group.name} className="w-full h-full object-contain rounded-md" />
         ) : (
           <div className="text-center">
             <QrCode size={36} className={`mx-auto mb-2 md:mb-3 ${isDayMode ? 'text-slate-300' : 'text-gray-600'}`} />
@@ -412,7 +412,7 @@ const CommunityGroups = () => {
           </div>
         </div>
         {canSubmitGroup && showForm && (
-          <form onSubmit={handleSubmitForm} className={`mb-6 p-4 rounded-2xl border grid grid-cols-1 md:grid-cols-2 gap-3 ${isDayMode ? 'bg-white border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
+          <form onSubmit={handleSubmitForm} className={`mb-6 p-4 rounded-lg border grid grid-cols-1 md:grid-cols-2 gap-3 ${isDayMode ? 'bg-white border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
             <input required value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} placeholder="社群名称" className={`h-10 px-3 rounded-xl border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`} />
             <select value={form.platform} onChange={(e) => setForm((p) => ({ ...p, platform: e.target.value }))} className={`h-10 px-3 rounded-xl border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`}>
               {Object.entries(PLATFORM_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}

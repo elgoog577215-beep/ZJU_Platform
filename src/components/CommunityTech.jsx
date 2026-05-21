@@ -69,7 +69,7 @@ const ArticleCard = memo(({
       animate={canAnimate ? { opacity: 1, y: 0 } : undefined}
       transition={canAnimate ? { duration: 0.24, delay: Math.min(index, 5) * 0.03 } : undefined}
       onClick={() => onClick(article)}
-      className={`group relative overflow-hidden rounded-[1.65rem] border p-3.5 backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-orange-300/55 md:rounded-3xl md:p-6 ${isDayMode ? 'bg-gradient-to-br from-white/78 via-white/62 to-slate-50/54 hover:from-white/88 hover:via-white/70 hover:to-slate-50/62 border-white/75 shadow-[0_14px_34px_rgba(99,102,241,0.075)] hover:shadow-[0_18px_34px_-26px_rgba(15,23,42,0.22),0_0_0_1px_rgba(251,146,60,0.1)] ring-1 ring-slate-900/[0.025]' : 'bg-[#1a1a1a]/60 hover:bg-[#1a1a1a]/80 border-white/10 hover:shadow-[0_20px_40px_-15px_rgba(249,115,22,0.15)]'}`}
+      className={`group relative overflow-hidden rounded-lg border p-3.5 backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-orange-300/55 md:p-5 ${isDayMode ? 'bg-gradient-to-br from-white/82 via-white/70 to-slate-50/56 hover:from-white hover:via-white/84 hover:to-slate-50/70 border-slate-200/80 shadow-[0_12px_30px_rgba(15,23,42,0.07)] hover:shadow-[0_18px_34px_-26px_rgba(15,23,42,0.22),0_0_0_1px_rgba(251,146,60,0.1)] ring-1 ring-white/60' : 'bg-white/[0.045] hover:bg-white/[0.07] border-white/10 hover:shadow-[0_20px_40px_-15px_rgba(249,115,22,0.15)]'}`}
     >
       <div className={`pointer-events-none absolute inset-x-0 top-0 h-px ${isDayMode ? 'bg-gradient-to-r from-transparent via-orange-200/65 to-transparent' : 'bg-gradient-to-r from-transparent via-orange-500/20 to-transparent'}`} />
       {isDayMode ? (
@@ -80,7 +80,7 @@ const ArticleCard = memo(({
       ) : null}
       <div className="flex gap-3 md:gap-6 items-start">
         {article.cover && (
-          <div className="w-[110px] sm:w-[128px] md:w-48 h-[110px] sm:h-[128px] md:h-32 rounded-2xl md:rounded-xl overflow-hidden flex-shrink-0">
+          <div className="w-[110px] sm:w-[128px] md:w-48 h-[110px] sm:h-[128px] md:h-32 rounded-md overflow-hidden flex-shrink-0">
             <SmartImage
               src={article.cover}
               alt={article.title}
@@ -435,7 +435,7 @@ const CommunityTech = () => {
   };
 
   const featuredSection = featuredArticle ? (
-    <div className={`mb-5 rounded-none border border-transparent bg-transparent p-0 shadow-none ring-0 backdrop-blur-0 md:rounded-[30px] md:border md:p-6 ${isDayMode ? 'md:bg-gradient-to-br md:from-white/76 md:via-white/58 md:to-slate-50/48 md:border-orange-200/45 md:shadow-[0_20px_46px_rgba(99,102,241,0.09)] md:ring-1 md:ring-white/70 md:backdrop-blur-2xl' : 'md:bg-gradient-to-br md:from-orange-500/10 md:via-white/[0.03] md:to-amber-500/10 md:border-orange-500/20'}`}>
+    <div className={`mb-5 rounded-none border border-transparent bg-transparent p-0 shadow-none ring-0 backdrop-blur-0 md:rounded-lg md:border md:p-5 ${isDayMode ? 'md:bg-gradient-to-br md:from-white/78 md:via-white/62 md:to-slate-50/48 md:border-orange-200/45 md:shadow-[0_16px_38px_rgba(15,23,42,0.08)] md:ring-1 md:ring-white/70 md:backdrop-blur-2xl' : 'md:bg-gradient-to-br md:from-orange-500/10 md:via-white/[0.03] md:to-amber-500/10 md:border-orange-500/20'}`}>
       <div className="mb-3 flex items-center justify-between gap-3 px-1 md:mb-4 md:px-0">
         <div className="flex items-center gap-2">
         <Sparkles size={16} className={isDayMode ? 'text-orange-600' : 'text-orange-300'} />
@@ -455,13 +455,13 @@ const CommunityTech = () => {
   ) : null;
 
   const viewModeSwitch = user ? (
-    <div className={`inline-flex max-w-full gap-1 overflow-x-auto rounded-xl border p-1 ${isDayMode ? 'bg-slate-100/70 border-slate-200/80' : 'bg-white/5 border-white/10'}`}>
+    <div className={`inline-flex max-w-full gap-1 overflow-x-auto rounded-lg border p-1 ${isDayMode ? 'bg-slate-100/70 border-slate-200/80' : 'bg-white/5 border-white/10'}`}>
       {VIEW_MODES.map((mode) => (
         <button
           key={mode.key}
           type="button"
           onClick={() => setViewMode(mode.key)}
-          className={`min-h-[32px] px-3 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${viewMode === mode.key ? (isDayMode ? 'bg-indigo-500 text-white shadow-[0_8px_18px_rgba(99,102,241,0.18)]' : 'bg-white text-slate-950') : (isDayMode ? 'text-slate-600 hover:bg-white hover:text-slate-950' : 'text-gray-300 hover:bg-white/10')}`}
+          className={`min-h-[32px] px-3 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${viewMode === mode.key ? (isDayMode ? 'bg-indigo-500 text-white shadow-[0_8px_18px_rgba(99,102,241,0.18)]' : 'bg-white text-slate-950') : (isDayMode ? 'text-slate-600 hover:bg-white hover:text-slate-950' : 'text-gray-300 hover:bg-white/10')}`}
         >
           {mode.label}
         </button>
@@ -473,7 +473,7 @@ const CommunityTech = () => {
     <div className="flex-1">
       {user ? <div className="md:hidden mb-3">{viewModeSwitch}</div> : null}
       <div className="space-y-3">
-        <div className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 ${isDayMode ? 'bg-white border-slate-200/80' : 'bg-white/5 border-white/10'}`}>
+        <div className={`flex items-center gap-2 rounded-lg border px-3 py-2.5 ${isDayMode ? 'bg-white border-slate-200/80' : 'bg-white/5 border-white/10'}`}>
           <Search size={16} className={isDayMode ? 'text-slate-400' : 'text-gray-500'} />
           <input
             value={feed.searchQuery}
@@ -623,7 +623,7 @@ const CommunityTech = () => {
           setIsUploadOpen(true);
         }}
         renderSkeleton={(index) => (
-          <div key={index} className={`backdrop-blur-xl border rounded-3xl p-6 animate-pulse flex flex-col md:flex-row gap-6 ${isDayMode ? 'bg-white/60 border-white/75' : 'bg-[#1a1a1a]/40 border-white/5'}`}>
+          <div key={index} className={`backdrop-blur-xl border rounded-lg p-5 animate-pulse flex flex-col md:flex-row gap-6 ${isDayMode ? 'bg-white/60 border-white/75' : 'bg-white/[0.04] border-white/5'}`}>
             <div className={`w-full md:w-48 h-48 md:h-32 rounded-xl shrink-0 ${isDayMode ? 'bg-white/70' : 'bg-white/5'}`} />
             <div className="flex-1 space-y-4 py-2">
               <div className={`h-8 rounded w-3/4 ${isDayMode ? 'bg-white/70' : 'bg-white/10'}`} />
