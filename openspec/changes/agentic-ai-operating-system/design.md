@@ -65,6 +65,32 @@ Live recommendation turns keep the two-stage AI design, but the request path mus
 - leave durable profile generation to the background refresh command,
 - prove the behavior through golden samples that check ranking quality, fallback quality, and profile-index write avoidance.
 
+## Action Evidence Loop
+
+Borrowing from the education-agent pattern, an AI recommendation is not considered mature just because it produced plausible text. The system should keep a light process signal:
+
+```text
+AI recommendation -> user feedback/favorite/registration -> action evidence -> next ranking adjustment
+```
+
+For the event recommendation agent, action evidence is observational, not causal:
+
+- recommended event IDs are stored only in anonymous run summaries,
+- positive evidence includes thumbs-up feedback, favorites, and event registrations,
+- negative evidence includes thumbs-down feedback,
+- status uses `OBSERVED`, `PARTIALLY_OBSERVED`, `NOT_OBSERVED`, or `CONTRADICTED`,
+- the admin AI overview summarizes action rate and the next adjustment direction.
+
+The same signal also feeds the next recommendation turn in a bounded way:
+
+- user-level favorites, registrations, and feedback are summarized into weighted category and event evidence,
+- positive evidence can lift similar candidates and add an explicit action-evidence match signal,
+- negative evidence can lower similar candidates unless the user explicitly asks for that activity type,
+- the model rerank prompt receives `actionEvidence` per candidate so the large model can reason over personalization instead of guessing from text alone,
+- action evidence remains secondary to the current query's explicit date, campus, organizer, benefit, and activity-type intent.
+
+This keeps the agent from optimizing for "sounds smart" only. The product signal becomes whether recommendations led to observable user action while still respecting privacy and avoiding new database tables in this slice.
+
 ## Auto-Update Spec
 
 `npm run agents:spec` generates `docs/ai-agent-operating-system.generated.md` from the registry. Generated docs become the readable spec, while the registry remains the source of truth.

@@ -773,6 +773,17 @@ const summarizeCounts = (items) => Object.entries(
   .map(([value]) => value)
   .slice(0, 8);
 
+const addWeightedCount = (counts, key, weight = 1) => {
+  if (!key) return;
+  counts[key] = Number((counts[key] || 0) + weight);
+};
+
+const summarizeWeightedCounts = (counts, limit = 8) => Object.entries(counts)
+  .filter(([, weight]) => Number(weight) > 0)
+  .sort((left, right) => Number(right[1]) - Number(left[1]) || left[0].localeCompare(right[0]))
+  .map(([value, weight]) => ({ value, weight: Number(weight.toFixed(2)) }))
+  .slice(0, limit);
+
 const inferEventCategory = (event) => {
   const explicit = sanitizeText(event.category, 80);
   const categoryMatch = normalizeEventCategory(explicit);
@@ -782,6 +793,63 @@ const inferEventCategory = (event) => {
   return detectCategories(text)[0] || 'other';
 };
 
+const buildEmptyActionEvidence = () => ({
+  positiveEventIds: [],
+  favoriteEventIds: [],
+  registeredEventIds: [],
+  positiveFeedbackEventIds: [],
+  negativeEventIds: [],
+  positiveCategories: [],
+  negativeCategories: []
+});
+
+const buildActionEvidence = (historyRows = [], feedbackRows = []) => {
+  const positiveCategoryCounts = {};
+  const negativeCategoryCounts = {};
+  const favoriteEventIds = [];
+  const registeredEventIds = [];
+  const positiveFeedbackEventIds = [];
+  const negativeEventIds = [];
+
+  for (const row of historyRows) {
+    const eventId = Number(row.id || row.event_id);
+    const category = inferEventCategory(row);
+    if (row.action_type === 'registration') {
+      if (Number.isInteger(eventId)) registeredEventIds.push(eventId);
+      addWeightedCount(positiveCategoryCounts, category, 2);
+    } else {
+      if (Number.isInteger(eventId)) favoriteEventIds.push(eventId);
+      addWeightedCount(positiveCategoryCounts, category, 1);
+    }
+  }
+
+  for (const row of feedbackRows) {
+    const eventId = Number(row.event_id);
+    const category = inferEventCategory(row);
+    if (row.feedback === 'up') {
+      if (Number.isInteger(eventId)) positiveFeedbackEventIds.push(eventId);
+      addWeightedCount(positiveCategoryCounts, category, 1.5);
+    } else if (row.feedback === 'down') {
+      if (Number.isInteger(eventId)) negativeEventIds.push(eventId);
+      addWeightedCount(negativeCategoryCounts, category, 2);
+    }
+  }
+
+  return {
+    positiveEventIds: unique([
+      ...favoriteEventIds,
+      ...registeredEventIds,
+      ...positiveFeedbackEventIds
+    ]).slice(0, 60),
+    favoriteEventIds: unique(favoriteEventIds).slice(0, 40),
+    registeredEventIds: unique(registeredEventIds).slice(0, 40),
+    positiveFeedbackEventIds: unique(positiveFeedbackEventIds).slice(0, 40),
+    negativeEventIds: unique(negativeEventIds).slice(0, 40),
+    positiveCategories: summarizeWeightedCounts(positiveCategoryCounts),
+    negativeCategories: summarizeWeightedCounts(negativeCategoryCounts)
+  };
+};
+
 const loadUserEventProfile = async (db, userId) => {
   if (!userId) {
     return {
@@ -789,7 +857,8 @@ const loadUserEventProfile = async (db, userId) => {
       explicit: {},
       learned: {},
       memory: [],
-      negativeEventIds: []
+      negativeEventIds: [],
+      actionEvidence: buildEmptyActionEvidence()
     };
   }
 
@@ -811,12 +880,12 @@ const loadUserEventProfile = async (db, userId) => {
   );
   const historyRows = await db.all(
     `
-      SELECT e.*
+      SELECT e.*, h.action_type, h.created_at AS action_created_at
       FROM events e
       JOIN (
-        SELECT item_id AS event_id, created_at FROM favorites WHERE user_id = ? AND item_type = 'event'
+        SELECT item_id AS event_id, 'favorite' AS action_type, created_at FROM favorites WHERE user_id = ? AND item_type = 'event'
         UNION ALL
-        SELECT event_id, created_at FROM event_registrations WHERE user_id = ?
+        SELECT event_id, 'registration' AS action_type, created_at FROM event_registrations WHERE user_id = ?
       ) h ON h.event_id = e.id
       WHERE e.deleted_at IS NULL
       ORDER BY h.created_at DESC
@@ -826,20 +895,29 @@ const loadUserEventProfile = async (db, userId) => {
   );
   const feedbackRows = await db.all(
     `
-      SELECT event_id, feedback
-      FROM event_recommendation_feedback
-      WHERE user_id = ?
-      ORDER BY created_at DESC
+      SELECT
+        f.event_id,
+        f.feedback,
+        f.created_at AS feedback_created_at,
+        e.title,
+        e.description,
+        e.category,
+        e.location,
+        e.organizer,
+        e.target_audience,
+        e.score,
+        e.volunteer_time
+      FROM event_recommendation_feedback f
+      LEFT JOIN events e ON e.id = f.event_id
+      WHERE f.user_id = ?
+      ORDER BY f.created_at DESC
       LIMIT 40
     `,
     [userId]
   );
 
   const learnedCategories = summarizeCounts(historyRows.map(inferEventCategory));
-  const negativeEventIds = feedbackRows
-    .filter((row) => row.feedback === 'down')
-    .map((row) => Number(row.event_id))
-    .filter(Number.isInteger);
+  const actionEvidence = buildActionEvidence(historyRows, feedbackRows);
 
   return {
     isAnonymous: false,
@@ -862,7 +940,8 @@ const loadUserEventProfile = async (db, userId) => {
       content: row.content,
       weight: Number(row.weight || 1)
     })),
-    negativeEventIds
+    negativeEventIds: actionEvidence.negativeEventIds,
+    actionEvidence
   };
 };
 
@@ -880,6 +959,12 @@ const buildProfileSummary = (profile) => {
   if (profile.explicit.campus) signals.push(`常用校区：${profile.explicit.campus}`);
   if (profile.explicit.interestTags?.length) signals.push(`显式兴趣：${profile.explicit.interestTags.slice(0, 4).join('、')}`);
   if (profile.learned.categories?.length) signals.push(`历史偏好：${profile.learned.categories.slice(0, 3).map((item) => CATEGORY_LABELS[item] || item).join('、')}`);
+  if (profile.actionEvidence?.positiveCategories?.length) {
+    signals.push(`行动证据偏好：${profile.actionEvidence.positiveCategories.slice(0, 3).map((item) => CATEGORY_LABELS[item.value] || item.value).join('、')}`);
+  }
+  if (profile.actionEvidence?.negativeCategories?.length) {
+    signals.push(`近期负反馈：${profile.actionEvidence.negativeCategories.slice(0, 2).map((item) => CATEGORY_LABELS[item.value] || item.value).join('、')}`);
+  }
   if (profile.memory?.length) signals.push(`助手记忆：${profile.memory.slice(0, 2).map((item) => item.content).join('；')}`);
 
   return {
@@ -904,6 +989,10 @@ const scoreTextMatch = (eventText, values, score, signalBuilder) => {
 
   return { total, signals };
 };
+
+const getActionEvidenceCategory = (profile, eventCategory, type) => (
+  profile.actionEvidence?.[type]?.find((item) => item.value === eventCategory) || null
+);
 
 const scoreEvent = (event, intent, profile, scope, now = new Date()) => {
   const text = normalizeSearchText(
@@ -967,6 +1056,20 @@ const scoreEvent = (event, intent, profile, scope, now = new Date()) => {
     signals.push('与你收藏/报名过的活动类型相近');
   }
 
+  const positiveEvidence = getActionEvidenceCategory(profile, eventCategory, 'positiveCategories');
+  if (positiveEvidence) {
+    const boost = Math.min(14, 5 + positiveEvidence.weight * 2);
+    score += boost;
+    signals.unshift(`行动证据显示你更常选择 ${CATEGORY_LABELS[eventCategory] || eventCategory}`);
+  }
+
+  const negativeEvidence = getActionEvidenceCategory(profile, eventCategory, 'negativeCategories');
+  if (negativeEvidence && !intent.categories.includes(eventCategory)) {
+    const penalty = Math.min(16, 5 + negativeEvidence.weight * 2);
+    score -= penalty;
+    signals.unshift(`近期负反馈降低了同类活动优先级`);
+  }
+
   const profileTagMatch = scoreTextMatch(
     text,
     unique([
@@ -993,6 +1096,12 @@ const scoreEvent = (event, intent, profile, scope, now = new Date()) => {
 
   if (profile.negativeEventIds.includes(Number(event.id))) {
     score -= 45;
+    signals.unshift('你曾对这个活动给过负反馈');
+  }
+
+  if (profile.actionEvidence?.positiveEventIds?.includes(Number(event.id))) {
+    score += 6;
+    signals.unshift('你曾对这个活动有过收藏、报名或正反馈');
   }
 
   const start = parseLocalDateTime(event.date);
@@ -1516,6 +1625,7 @@ const buildAiRerankPrompt = ({ intent, profile, candidates, recommendationCount 
   instruction: [
     'Rank only the provided candidate events.',
     'Use the user intent, user profile, event AI profiles, deterministic recall signals, and event facts together.',
+    'Use actionEvidence as a personalization signal only; it must not override explicit date, campus, organizer, benefit, or activity-type intent.',
     'Do not invent activities, links, rewards, registration status, locations, or dates.',
     'Prefer future and ongoing events. Historical events are only fallback clues.'
   ],
@@ -1545,6 +1655,12 @@ const buildAiRerankPrompt = ({ intent, profile, candidates, recommendationCount 
     volunteer_time: item.event.volunteer_time,
     category: item.category,
     recallScore: item.aiScore ?? item.score,
+    actionEvidence: {
+      positiveCategoryWeight: getActionEvidenceCategory(profile, item.category, 'positiveCategories')?.weight || 0,
+      negativeCategoryWeight: getActionEvidenceCategory(profile, item.category, 'negativeCategories')?.weight || 0,
+      priorPositiveAction: Boolean(profile.actionEvidence?.positiveEventIds?.includes(Number(item.event.id))),
+      priorNegativeFeedback: Boolean(profile.actionEvidence?.negativeEventIds?.includes(Number(item.event.id)))
+    },
     deterministicSignals: item.signals,
     deterministicReason: buildReason(item),
     aiProfile: item.aiProfile ? {
@@ -2219,6 +2335,21 @@ const recordEventAssistantRun = async (db, response = {}, userId = null) => {
     const recommendations = Array.isArray(response.recommendations) ? response.recommendations : [];
     const modelStatus = response.modelStatus || {};
     const runtimeTelemetry = aiRuntime.summarizeModelStatusTelemetry(modelStatus);
+    const recommendedEventIds = recommendations
+      .map((item) => Number(item?.event?.id || item?.id))
+      .filter((id) => Number.isInteger(id))
+      .slice(0, MAX_RECOMMENDATIONS);
+    const recommendedCategories = unique(recommendations
+      .map((item) => item?.event?.category || item?.aiProfile?.category || '')
+      .filter(Boolean))
+      .slice(0, 8);
+    const profileStatuses = unique(recommendations
+      .map((item) => item?.aiProfile?.status || '')
+      .filter(Boolean))
+      .slice(0, 6);
+    const averageConfidence = recommendations.length > 0
+      ? Number((recommendations.reduce((sum, item) => sum + Number(item.confidence || 0), 0) / recommendations.length).toFixed(3))
+      : 0;
     await db.run(
       `
         INSERT INTO ai_assistant_runs (
@@ -2241,6 +2372,10 @@ const recordEventAssistantRun = async (db, response = {}, userId = null) => {
           modelUsed: Boolean(modelStatus.used),
           fallbackUsed: Boolean(modelStatus.fallbackUsed),
           tasks: Array.isArray(modelStatus.tasks) ? modelStatus.tasks.slice(0, 8) : [],
+          recommendedEventIds,
+          recommendedCategories,
+          profileStatuses,
+          averageConfidence,
           profileGenerated: Number(modelStatus.profileStats?.generated || 0),
           profileFallback: Number(modelStatus.profileStats?.fallback || 0),
           runtimeTelemetry,

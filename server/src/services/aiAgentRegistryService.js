@@ -122,6 +122,8 @@ const AGENT_DEFINITIONS = [
       'Use model rerank over the bounded candidate list.',
       'Validate returned IDs against the candidate pool.',
       'Return recommendations, confidence, source signals, warnings, and model status.',
+      'Record recommended event IDs so later favorites, registrations, and feedback can be observed as action evidence.',
+      'Feed bounded action evidence back into recall scoring and model rerank prompts as a personalization signal.',
       'Record feedback and optional preference memory.',
     ],
     standardLibraries: [
@@ -133,6 +135,7 @@ const AGENT_DEFINITIONS = [
       'assistant_memory',
       'user_event_preferences',
       'event_recommendation_feedback',
+      'favorites and event_registrations as post-recommendation action evidence',
     ],
     outputContracts: [
       'clarify',
@@ -158,6 +161,9 @@ const AGENT_DEFINITIONS = [
       'warnings',
       'coverage',
       'feedback rows',
+      'recommendation action evidence status',
+      'action-evidence ranking signals',
+      'post-recommendation favorites and registrations',
       'anonymous ai_assistant_runs turn summaries',
     ],
     evaluation: [
@@ -165,6 +171,8 @@ const AGENT_DEFINITIONS = [
       'server/scripts/verify_event_assistant.js',
       'server/scripts/stress-ai-assistants.js',
       'server/scripts/evaluate-ai-golden.js, including model-failure transient-profile performance coverage',
+      'golden telemetry check for recommendation action evidence fields',
+      'golden ranking check that action evidence can influence top recommendations',
     ],
     autoUpdateTriggers: [
       'Event catalog changes',
@@ -805,6 +813,8 @@ const buildAgentMetrics = (agent, health = {}) => {
       { label: 'Profiles', value: health.eventAiProfileCount || 0 },
       { label: 'Memory', value: health.memoryCount || 0 },
       { label: 'Runs', value: health.recommendationRunCount || 0 },
+      { label: 'Action evidence', value: health.recommendationActionEvidenceStatus || 'NO_RECOMMENDATION' },
+      { label: 'Action rate', value: `${Math.round((health.recommendationActionRate || 0) * 100)}%` },
       ...base,
     ];
   }

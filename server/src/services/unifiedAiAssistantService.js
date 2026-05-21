@@ -10,6 +10,7 @@ const aiRuntime = require('./unifiedAiRuntimeService');
 const aiModelConfigService = require('./aiModelConfigService');
 const aiAgentRegistryService = require('./aiAgentRegistryService');
 const eventAiProfileService = require('./eventAiProfileService');
+const eventRecommendationEvidenceService = require('./eventRecommendationEvidenceService');
 
 const GOVERNANCE_FIELDS = new Set(['category', 'target_audience']);
 const MAX_SCAN_LIMIT = 500;
@@ -487,6 +488,7 @@ const getAssistantOverview = async (db) => {
     wechatParseRunCount,
     profileRefreshRunCount,
     profileCoverage,
+    recommendationActionEvidence,
     runtimeTelemetryOverview,
   ] = await Promise.all([
     safeCount(db, 'SELECT COUNT(*) AS count FROM events WHERE deleted_at IS NULL'),
@@ -508,6 +510,14 @@ const getAssistantOverview = async (db) => {
       failedProfiles: 0,
       coverageRatio: 0,
       staleRatio: 0,
+    })),
+    eventRecommendationEvidenceService.getRecommendationActionEvidence(db).catch(() => ({
+      status: 'NO_RECOMMENDATION',
+      confidence: 0,
+      actionRate: 0,
+      observedActions: 0,
+      contradictedActions: 0,
+      recommendationCount: 0,
     })),
     getRuntimeTelemetryOverview(db),
   ]);
@@ -531,6 +541,14 @@ const getAssistantOverview = async (db) => {
     memoryCount,
     governanceRunCount,
     recommendationRunCount,
+    recommendationActionEvidenceStatus: recommendationActionEvidence.status,
+    recommendationActionEvidenceConfidence: recommendationActionEvidence.confidence,
+    recommendationActionRate: recommendationActionEvidence.actionRate,
+    recommendationObservedActionCount: recommendationActionEvidence.observedActions,
+    recommendationContradictedActionCount: recommendationActionEvidence.contradictedActions,
+    recommendationEvidenceWindowDays: recommendationActionEvidence.windowDays,
+    recommendationEvidenceSummary: recommendationActionEvidence.observedEvidence,
+    recommendationEvidenceNextAdjustment: recommendationActionEvidence.nextAdjustment,
     hackathonRunCount,
     wechatParseRunCount,
     profileRefreshRunCount,

@@ -5,6 +5,7 @@ const { runEventAssistantTurn } = require('../src/utils/eventAssistant');
 const { runHackathonAssistant } = require('../src/services/hackathonAssistantService');
 const { parseWithLLM } = require('../src/utils/wechat');
 const assistantService = require('../src/services/unifiedAiAssistantService');
+const eventRecommendationEvidenceService = require('../src/services/eventRecommendationEvidenceService');
 const { EVENT_CATEGORIES } = require('../src/services/eventIntelligenceService');
 const { pool } = require('../src/config/db');
 
@@ -347,15 +348,27 @@ const goldenModelRunner = async ({ task, messages }) => {
   if (task === 'event_recommendation_rerank') {
     const payload = extractPayload(messages);
     const candidates = payload.candidates || [];
+    assert(
+      candidates.some((candidate) => candidate.actionEvidence && typeof candidate.actionEvidence.positiveCategoryWeight === 'number'),
+      'Rerank prompt should include action evidence telemetry for candidate personalization.'
+    );
     const scored = candidates.map((candidate) => {
       const text = `${candidate.title || ''} ${candidate.description || ''} ${candidate.score || ''}`;
       const isHackathon = /hackathon|challenge|competition/i.test(text);
       const isWorkshop = /AI Agent|workshop|agent/i.test(text);
       const hasScore = /score/i.test(text);
       const isZijingang = /Zijingang/i.test(candidate.location || '');
+      const actionEvidence = candidate.actionEvidence || {};
       return {
         candidate,
-        score: (isHackathon ? 10 : 0) + (isWorkshop ? 8 : 0) + (hasScore ? 4 : 0) + (isZijingang ? 3 : 0),
+        score: (isHackathon ? 10 : 0)
+          + (isWorkshop ? 8 : 0)
+          + (hasScore ? 4 : 0)
+          + (isZijingang ? 3 : 0)
+          + Number(actionEvidence.positiveCategoryWeight || 0)
+          + (actionEvidence.priorPositiveAction ? 12 : 0)
+          - Number(actionEvidence.negativeCategoryWeight || 0)
+          - (actionEvidence.priorNegativeFeedback ? 30 : 0),
       };
     }).sort((left, right) => right.score - left.score || Number(left.candidate.id) - Number(right.candidate.id));
 
@@ -495,10 +508,82 @@ const evaluateEventRecommendation = async (db) => {
   assert(result.modelStatus.profileStats.generated >= 1, 'Recommendation should use event profile generation.');
   assert(result.remembered === true, 'Recommendation should persist opt-in preference memory.');
 
+  const run = await db.get(
+    "SELECT summary_json FROM ai_assistant_runs WHERE module = 'event_recommendation' ORDER BY id DESC"
+  );
+  const runSummary = JSON.parse(run.summary_json || '{}');
+  assert(Array.isArray(runSummary.recommendedEventIds) && runSummary.recommendedEventIds.length >= 1, 'Recommendation run should store bounded event evidence anchors.');
+  assert(runSummary.averageConfidence >= 0.7, 'Recommendation run should store average confidence.');
+  assert(!run.summary_json.includes('Find me a Zijingang AI activity'), 'Recommendation run should avoid raw query text.');
+
   return {
     topEvent: result.recommendations[0].event.title,
     recommendationCount: result.recommendations.length,
     topConfidence: result.recommendations[0].confidence,
+  };
+};
+
+const evaluateRecommendationActionEvidence = async (db) => {
+  await db.run(
+    'INSERT INTO favorites (user_id, item_id, item_type) VALUES (?, ?, ?)',
+    [1, 2, 'event']
+  );
+  await db.run(
+    'INSERT INTO event_registrations (user_id, event_id) VALUES (?, ?)',
+    [1, 2]
+  );
+  await db.run(
+    'INSERT INTO event_recommendation_feedback (user_id, event_id, feedback, query, reason) VALUES (?, ?, ?, ?, ?)',
+    [1, 2, 'up', 'redacted golden query', 'AI topic fit']
+  );
+
+  const evidence = await eventRecommendationEvidenceService.getRecommendationActionEvidence(db);
+  assert(['OBSERVED', 'PARTIALLY_OBSERVED'].includes(evidence.status), 'Recommendation evidence should observe positive action.');
+  assert(evidence.observedActions >= 1, 'Recommendation evidence should count observed actions.');
+  assert(evidence.actionRate > 0, 'Recommendation evidence should expose action rate.');
+  assertUsefulText(evidence.nextAdjustment, 'Recommendation evidence next adjustment', 20);
+
+  return {
+    status: evidence.status,
+    actionRate: evidence.actionRate,
+    observedActions: evidence.observedActions,
+  };
+};
+
+const evaluateRecommendationActionEvidenceRanking = async (db) => {
+  await db.run(
+    'INSERT INTO event_recommendation_feedback (user_id, event_id, feedback, query, reason) VALUES (?, ?, ?, ?, ?)',
+    [1, 2, 'down', 'redacted golden query', 'too competition-heavy']
+  );
+  await db.run(
+    'INSERT INTO event_registrations (user_id, event_id) VALUES (?, ?)',
+    [1, 1]
+  );
+  await db.run(
+    'INSERT INTO favorites (user_id, item_id, item_type) VALUES (?, ?, ?)',
+    [1, 1, 'event']
+  );
+
+  const result = await runEventAssistantTurn({
+    db,
+    userId: 1,
+    query: 'Find me a Zijingang AI activity this week. I want a practical project and comprehensive score.',
+    rememberPreference: false,
+    allowHistoricalFallback: false,
+    modelRunner: goldenModelRunner,
+    now: new Date(),
+  });
+
+  assert(result.type === 'recommend', 'Action evidence ranking should still return recommendations.');
+  assert(result.recommendations[0].event.id === 1, 'Positive action evidence should lift the matching AI workshop above a downvoted competition.');
+  assert(
+    result.recommendations[0].matchSignals.some((signal) => signal.includes('行动证据')),
+    'Top recommendation should expose action-evidence personalization signal.'
+  );
+
+  return {
+    topEvent: result.recommendations[0].event.title,
+    topSignals: result.recommendations[0].matchSignals,
   };
 };
 
@@ -626,6 +711,8 @@ const main = async () => {
   const db = await createDb();
   try {
     const eventRecommendation = await evaluateEventRecommendation(db);
+    const recommendationActionEvidence = await evaluateRecommendationActionEvidence(db);
+    const recommendationActionEvidenceRanking = await evaluateRecommendationActionEvidenceRanking(db);
     const eventRecommendationFallbackPerformance = await evaluateEventRecommendationFallbackPerformance(db);
     const hackathonCoach = await evaluateHackathonCoach(db);
     const wechatParser = await evaluateWechatParser(db);
@@ -640,6 +727,8 @@ const main = async () => {
       ok: true,
       goldenSuites: {
         eventRecommendation,
+        recommendationActionEvidence,
+        recommendationActionEvidenceRanking,
         eventRecommendationFallbackPerformance,
         hackathonCoach,
         wechatParser,

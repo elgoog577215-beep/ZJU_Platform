@@ -37,3 +37,18 @@
 - [x] Keep live request fallback profiles transient so AI search does not write avoidable index rows.
 - [x] Add golden coverage for model-failure fallback ranking and transient profile behavior.
 - [x] Re-run the full AI and build validation suite after the performance/accuracy slice.
+
+## 7. Action Evidence Loop
+
+- [x] Read the prior education-agent round and extract the process-evidence pattern.
+- [x] Store bounded recommended event IDs and ranking metadata in recommendation run summaries.
+- [x] Add a recommendation action evidence service over feedback, favorites, and registrations.
+- [x] Surface action evidence status and action rate in the AI agent overview.
+- [x] Add golden and registry checks for recommendation action evidence telemetry.
+
+## 8. Action Evidence Ranking Loop
+
+- [x] Summarize logged-in user favorites, registrations, and feedback into bounded action-evidence signals.
+- [x] Feed action evidence into deterministic candidate scoring and model rerank prompts.
+- [x] Keep action evidence secondary to explicit query intent.
+- [x] Add golden coverage proving action evidence can affect top recommendations.

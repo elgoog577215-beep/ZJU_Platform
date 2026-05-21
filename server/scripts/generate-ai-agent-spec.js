@@ -18,7 +18,7 @@ const main = async () => {
 
   const outputPath = path.join(rootDir, GENERATED_SPEC_PATH);
   await fs.mkdir(path.dirname(outputPath), { recursive: true });
-  await fs.writeFile(outputPath, buildAgentSpecMarkdown(), 'utf8');
+  await fs.writeFile(outputPath, buildAgentSpecMarkdown().replace(/\n{2,}$/u, '\n'), 'utf8');
 
   console.log(JSON.stringify({
     ok: true,

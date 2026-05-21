@@ -49,6 +49,14 @@ const main = () => {
     eventAgent.contextIndexes.includes('event_ai_profiles'),
     'Event recommendation agent must use the event profile index.'
   );
+  assert(
+    eventAgent.contextIndexes.some((item) => String(item).includes('favorites') || String(item).includes('event_registrations')),
+    'Event recommendation agent must declare post-recommendation action evidence sources.'
+  );
+  assert(
+    eventAgent.observability.some((item) => String(item).includes('action evidence')),
+    'Event recommendation agent must expose recommendation action evidence observability.'
+  );
 
   const hackathonAgent = agents.find((agent) => agent.id === 'hackathon_coach');
   assert(

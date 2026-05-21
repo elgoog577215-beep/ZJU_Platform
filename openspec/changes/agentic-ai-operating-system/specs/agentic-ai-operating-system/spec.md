@@ -62,3 +62,28 @@ Live AI activity search SHALL use the shared standard library for alias normaliz
 - **THEN** the system SHALL still return useful ranked candidates when local signals are sufficient
 - **AND** request-time fallback profiles SHALL be transient
 - **AND** the durable `event_ai_profiles` index SHALL not receive new rows from that live fallback path.
+
+### Requirement: Recommendation Action Evidence
+
+The event recommendation agent SHALL expose an observational action-evidence loop so operators can see whether AI recommendations led to user action.
+
+#### Scenario: Recommendation run records bounded evidence anchors
+
+- **WHEN** the event recommendation agent returns ranked events
+- **THEN** the run summary SHALL store bounded recommended event IDs, categories, profile status, and average confidence
+- **AND** it SHALL NOT store the raw user query in `ai_assistant_runs`.
+
+#### Scenario: Admin overview summarizes action evidence
+
+- **WHEN** the admin AI overview loads
+- **THEN** it SHALL summarize recommendation action evidence from recent feedback, favorites, and event registrations
+- **AND** it SHALL classify the evidence as `OBSERVED`, `PARTIALLY_OBSERVED`, `NOT_OBSERVED`, `CONTRADICTED`, or `NO_RECOMMENDATION`
+- **AND** it SHALL include a next-adjustment hint without claiming causality.
+
+#### Scenario: Action evidence influences the next recommendation turn
+
+- **WHEN** a logged-in user has prior favorites, registrations, positive feedback, or negative feedback
+- **THEN** the event recommendation agent SHALL summarize that history into bounded action-evidence signals
+- **AND** those signals SHALL be available to deterministic candidate scoring and model reranking
+- **AND** positive evidence MAY lift similar candidates while negative evidence MAY lower similar candidates
+- **AND** action evidence SHALL remain secondary to explicit user intent such as date, campus, organizer, benefit, or activity type.

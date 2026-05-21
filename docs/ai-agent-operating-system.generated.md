@@ -2,7 +2,7 @@
 
 > Generated from `server/src/services/aiAgentRegistryService.js`. Do not hand-edit generated sections; update the registry and rerun `npm --prefix server run agents:spec`.
 
-Generated at: 2026-05-19T03:45:53.323Z
+Generated at: 2026-05-21T14:59:56.507Z
 
 ## Goal
 
@@ -92,6 +92,8 @@ Understand a campus activity request, retrieve a safe candidate pool, use model 
 - Use model rerank over the bounded candidate list.
 - Validate returned IDs against the candidate pool.
 - Return recommendations, confidence, source signals, warnings, and model status.
+- Record recommended event IDs so later favorites, registrations, and feedback can be observed as action evidence.
+- Feed bounded action evidence back into recall scoring and model rerank prompts as a personalization signal.
 - Record feedback and optional preference memory.
 
 #### Standard Libraries
@@ -105,6 +107,7 @@ Understand a campus activity request, retrieve a safe candidate pool, use model 
 - assistant_memory
 - user_event_preferences
 - event_recommendation_feedback
+- favorites and event_registrations as post-recommendation action evidence
 
 #### Validation And Fallback
 
@@ -124,6 +127,8 @@ Understand a campus activity request, retrieve a safe candidate pool, use model 
 - server/scripts/verify_event_assistant.js
 - server/scripts/stress-ai-assistants.js
 - server/scripts/evaluate-ai-golden.js, including model-failure transient-profile performance coverage
+- golden telemetry check for recommendation action evidence fields
+- golden ranking check that action evidence can influence top recommendations
 
 #### Next Improvements
 
