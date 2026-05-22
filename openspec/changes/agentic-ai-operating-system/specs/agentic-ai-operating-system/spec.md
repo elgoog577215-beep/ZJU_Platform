@@ -87,3 +87,22 @@ The event recommendation agent SHALL expose an observational action-evidence loo
 - **AND** those signals SHALL be available to deterministic candidate scoring and model reranking
 - **AND** positive evidence MAY lift similar candidates while negative evidence MAY lower similar candidates
 - **AND** action evidence SHALL remain secondary to explicit user intent such as date, campus, organizer, benefit, or activity type.
+
+### Requirement: Recommendation Reasoning Trace
+
+The event recommendation agent SHALL return user-facing reasoning traces without exposing hidden chain-of-thought.
+
+#### Scenario: Recommendation includes trace
+
+- **WHEN** the event recommendation agent returns recommendations
+- **THEN** the response SHALL include `reasoningTrace`
+- **AND** the trace SHALL include intent confidence, candidate count, ranking basis, weak or missing signals, action-evidence usage, fallback usage, and historical fallback usage
+- **AND** the trace SHALL be derived from validated candidate facts and match signals rather than raw private model reasoning.
+
+#### Scenario: Clarification remains useful
+
+- **WHEN** the event recommendation agent needs clarification
+- **THEN** the response SHALL include a concise question
+- **AND** it SHALL include bounded `clarificationOptions`
+- **AND** it SHALL include bounded `provisionalRecommendations` when candidates are available
+- **AND** it SHALL include a reasoning trace explaining why clarification is useful.

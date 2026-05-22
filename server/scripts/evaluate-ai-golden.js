@@ -296,6 +296,27 @@ const goldenModelRunner = async ({ task, messages }) => {
   );
 
   if (task === 'event_recommendation_intent') {
+    const payload = extractPayload(messages);
+    const query = String(payload.query || '');
+    if (/活动推荐|推荐活动|找活动|some events/i.test(query)) {
+      return {
+        query_summary: 'User broadly asks for activity recommendations but has not specified topic, campus, benefit, or time.',
+        topics: [],
+        campuses: [],
+        organizers: [],
+        audiences: ['All students'],
+        benefits: [],
+        categories: [],
+        date_constraints: [],
+        format: '',
+        allow_historical: false,
+        needs_clarification: true,
+        clarification_question: '你更想按主题、校区，还是综测/志愿时长来筛选？',
+        clarification_options: ['按 AI/科创方向', '只看紫金港', '优先有综测', '先给我最值得参加的 3 个'],
+        confidence: 0.42,
+      };
+    }
+
     return {
       query_summary: 'User wants a Zijingang AI event with comprehensive score and practical project value.',
       topics: ['AI', 'agent', 'product demo'],
@@ -374,6 +395,11 @@ const goldenModelRunner = async ({ task, messages }) => {
 
     return {
       summary: 'Ranked by AI topic fit, practical project value, Zijingang offline access, and score benefit.',
+      reasoning_trace: {
+        ranking_basis: ['AI topic fit', 'Zijingang offline access', 'score benefit'],
+        uncertainty: ['exact date flexibility is inferred'],
+        action_evidence_used: scored.some(({ candidate }) => Boolean(candidate.actionEvidence?.priorPositiveAction)),
+      },
       recommendations: scored.slice(0, 3).map(({ candidate }, index) => ({
         id: candidate.id,
         rank: index + 1,
@@ -504,6 +530,10 @@ const evaluateEventRecommendation = async (db) => {
   assert(result.recommendations[0].confidence >= 0.85, 'Top event should have strong confidence.');
   assert(result.recommendations[0].matchSignals.length >= 2, 'Top event should expose matched signals.');
   assertUsefulText(result.recommendations[0].reason, 'Top recommendation reason');
+  assert(result.reasoningTrace?.intentConfidence > 0, 'Recommendation should expose intent confidence in reasoning trace.');
+  assert(result.reasoningTrace?.candidateCount >= result.recommendations.length, 'Recommendation trace should expose candidate count.');
+  assert(Array.isArray(result.reasoningTrace?.rankingBasis) && result.reasoningTrace.rankingBasis.length >= 1, 'Recommendation trace should expose ranking basis.');
+  assert(Array.isArray(result.reasoningTrace?.uncertainty), 'Recommendation trace should expose uncertainty signals.');
   assert(result.modelStatus.tasks.includes('event_recommendation_rerank'), 'Recommendation should use rerank task.');
   assert(result.modelStatus.profileStats.generated >= 1, 'Recommendation should use event profile generation.');
   assert(result.remembered === true, 'Recommendation should persist opt-in preference memory.');
@@ -547,6 +577,31 @@ const evaluateRecommendationActionEvidence = async (db) => {
     status: evidence.status,
     actionRate: evidence.actionRate,
     observedActions: evidence.observedActions,
+  };
+};
+
+const evaluateSmartClarification = async (db) => {
+  const result = await runEventAssistantTurn({
+    db,
+    userId: 1,
+    query: '推荐活动',
+    rememberPreference: false,
+    allowHistoricalFallback: false,
+    modelRunner: goldenModelRunner,
+    now: new Date(),
+  });
+
+  assert(result.type === 'clarify', 'Broad recommendation query should trigger smart clarification.');
+  assertUsefulText(result.question, 'Clarification question', 10);
+  assert(Array.isArray(result.clarificationOptions) && result.clarificationOptions.length >= 2, 'Clarification should expose bounded options.');
+  assert(Array.isArray(result.provisionalRecommendations) && result.provisionalRecommendations.length >= 1, 'Clarification should expose provisional recommendations.');
+  assert(result.reasoningTrace?.clarificationSuggested === true, 'Clarification should expose trace flag.');
+  assert(result.reasoningTrace?.candidateCount >= result.provisionalRecommendations.length, 'Clarification trace should expose candidate count.');
+
+  return {
+    optionCount: result.clarificationOptions.length,
+    provisionalCount: result.provisionalRecommendations.length,
+    intentConfidence: result.reasoningTrace.intentConfidence,
   };
 };
 
@@ -712,6 +767,7 @@ const main = async () => {
   try {
     const eventRecommendation = await evaluateEventRecommendation(db);
     const recommendationActionEvidence = await evaluateRecommendationActionEvidence(db);
+    const smartClarification = await evaluateSmartClarification(db);
     const recommendationActionEvidenceRanking = await evaluateRecommendationActionEvidenceRanking(db);
     const eventRecommendationFallbackPerformance = await evaluateEventRecommendationFallbackPerformance(db);
     const hackathonCoach = await evaluateHackathonCoach(db);
@@ -728,6 +784,7 @@ const main = async () => {
       goldenSuites: {
         eventRecommendation,
         recommendationActionEvidence,
+        smartClarification,
         recommendationActionEvidenceRanking,
         eventRecommendationFallbackPerformance,
         hackathonCoach,

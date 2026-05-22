@@ -91,6 +91,26 @@ The same signal also feeds the next recommendation turn in a bounded way:
 
 This keeps the agent from optimizing for "sounds smart" only. The product signal becomes whether recommendations led to observable user action while still respecting privacy and avoiding new database tables in this slice.
 
+## Reasoning Trace And Smart Clarification
+
+The recommendation agent should make the model's useful judgment visible without exposing hidden chain-of-thought. Responses include a user-facing `reasoningTrace`:
+
+- intent confidence,
+- candidate count,
+- top ranking signals,
+- weak or missing preference signals,
+- whether action evidence influenced ranking,
+- whether fallback or historical expansion was used.
+
+When the request is ambiguous, the agent should not stop at a single generic question. It should return:
+
+- a concise clarification question,
+- up to four `clarificationOptions`,
+- up to three `provisionalRecommendations`,
+- a reasoning trace explaining why clarification is useful.
+
+This keeps the conversation moving: the user can answer the question, pick an option, or still inspect temporary recommendations.
+
 ## Auto-Update Spec
 
 `npm run agents:spec` generates `docs/ai-agent-operating-system.generated.md` from the registry. Generated docs become the readable spec, while the registry remains the source of truth.

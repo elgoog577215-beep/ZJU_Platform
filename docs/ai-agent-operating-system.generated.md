@@ -2,7 +2,7 @@
 
 > Generated from `server/src/services/aiAgentRegistryService.js`. Do not hand-edit generated sections; update the registry and rerun `npm --prefix server run agents:spec`.
 
-Generated at: 2026-05-21T14:59:56.507Z
+Generated at: 2026-05-22T02:34:07.699Z
 
 ## Goal
 
@@ -91,6 +91,8 @@ Understand a campus activity request, retrieve a safe candidate pool, use model 
 - Ensure event AI profiles from cache, model, or transient request fallback when the model is skipped.
 - Use model rerank over the bounded candidate list.
 - Validate returned IDs against the candidate pool.
+- Expose user-facing reasoningTrace with ranking basis, uncertainty, and action-evidence usage without leaking hidden chain-of-thought.
+- For ambiguous requests, return clarification options plus provisional recommendations instead of a dead-end question.
 - Return recommendations, confidence, source signals, warnings, and model status.
 - Record recommended event IDs so later favorites, registrations, and feedback can be observed as action evidence.
 - Feed bounded action evidence back into recall scoring and model rerank prompts as a personalization signal.
@@ -129,6 +131,7 @@ Understand a campus activity request, retrieve a safe candidate pool, use model 
 - server/scripts/evaluate-ai-golden.js, including model-failure transient-profile performance coverage
 - golden telemetry check for recommendation action evidence fields
 - golden ranking check that action evidence can influence top recommendations
+- golden clarification check for reasoning trace, options, and provisional recommendations
 
 #### Next Improvements
 

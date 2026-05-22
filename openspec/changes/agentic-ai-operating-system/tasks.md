@@ -52,3 +52,11 @@
 - [x] Feed action evidence into deterministic candidate scoring and model rerank prompts.
 - [x] Keep action evidence secondary to explicit query intent.
 - [x] Add golden coverage proving action evidence can affect top recommendations.
+
+## 9. Reasoning Trace And Smart Clarification
+
+- [x] Add user-facing reasoningTrace to recommendation responses.
+- [x] Add clarificationOptions and provisionalRecommendations to clarification responses.
+- [x] Keep trace output derived from validated facts rather than hidden chain-of-thought.
+- [x] Record trace and clarification telemetry in anonymous run summaries.
+- [x] Add golden coverage for recommendation trace and smart clarification.

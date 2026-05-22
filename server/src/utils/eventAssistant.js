@@ -523,6 +523,12 @@ const getRecommendationCountBounds = (candidateCount) => ({
   max: Math.min(MAX_RECOMMENDATIONS, candidateCount)
 });
 
+const clampNumber = (value, min, max, fallback = 0) => {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return fallback;
+  return Math.min(Math.max(number, min), max);
+};
+
 const extractJsonObject = (content) => {
   if (typeof content !== 'string' || content.trim() === '') {
     throw createAssistantError('EVENT_ASSISTANT_MODEL_EMPTY', 'Model returned empty content.', 502);
@@ -599,6 +605,7 @@ const normalizeAiIntent = (rawIntent = {}, fallbackIntent) => {
     allowHistorical: Boolean(rawIntent.allow_historical),
     needsClarification: Boolean(rawIntent.needs_clarification),
     clarificationQuestion: sanitizeText(rawIntent.clarification_question, 160),
+    clarificationOptions: uniqueTextArray(rawIntent.clarification_options || rawIntent.options, 4, 80),
     confidence: Math.min(Math.max(Number(rawIntent.confidence) || 0.55, 0), 1),
   };
 };
@@ -1377,9 +1384,83 @@ const buildReason = (rankedItem) => {
     : '时间和公开信息较适合作为备选活动。';
 };
 
+const buildClarificationOptions = (intent, profile) => {
+  const modelOptions = Array.isArray(intent.clarificationOptions)
+    ? intent.clarificationOptions
+    : [];
+  const options = [
+    ...modelOptions,
+    intent.topics.length ? `优先找 ${intent.topics.slice(0, 2).join('、')} 相关活动` : '',
+    intent.campuses.length ? `只看 ${intent.campuses[0]} 附近` : '',
+    intent.benefits.includes('score') ? '优先有综测/加分信息' : '',
+    intent.benefits.includes('volunteer_time') ? '优先有志愿时长' : '',
+    profile.actionEvidence?.positiveCategories?.length
+      ? `按你最近更常选择的 ${CATEGORY_LABELS[profile.actionEvidence.positiveCategories[0].value] || profile.actionEvidence.positiveCategories[0].value} 方向`
+      : '',
+    '先给我最值得参加的 3 个'
+  ];
+
+  return unique(options.map((item) => sanitizeText(item, 80))).slice(0, 4);
+};
+
 const buildClarificationQuestion = (profile) => {
   const profileHint = profile.isAnonymous ? '' : '我也会参考你的画像，';
   return `${profileHint}你更想按主题、校区，还是综测/志愿时长来筛选？`;
+};
+
+const buildIntentConfidence = (intent) => {
+  let score = 0;
+  if (intent.categories?.length) score += 0.18;
+  if (intent.topics?.length) score += Math.min(0.24, intent.topics.length * 0.06);
+  if (intent.campuses?.length) score += 0.16;
+  if (intent.audiences?.length) score += 0.1;
+  if (intent.benefits?.length) score += 0.14;
+  if (intent.format) score += 0.08;
+  if (intent.dateConstraints?.length || intent.timePreference) score += 0.1;
+  if (intent.ai) score += clampNumber(intent.confidence, 0, 1, 0.55) * 0.1;
+  return Number(Math.min(0.96, Math.max(0.28, score)).toFixed(2));
+};
+
+const buildReasoningTrace = ({
+  intent,
+  profile,
+  recommendations = [],
+  candidateCount = 0,
+  usedHistoricalFallback = false,
+  fallbackUsed = false,
+  clarification = false
+}) => {
+  const topSignals = unique(
+    recommendations
+      .flatMap((item) => item.matchSignals || item.candidate?.signals || [])
+      .filter(Boolean)
+  ).slice(0, 8);
+  const actionEvidenceUsed = recommendations.some((item) => (
+    (item.matchSignals || item.candidate?.signals || [])
+      .some((signal) => String(signal).includes('行动证据') || String(signal).includes('收藏') || String(signal).includes('报名') || String(signal).includes('负反馈'))
+  ));
+  const weakOrMissing = [];
+
+  if (!intent.campuses?.length) weakOrMissing.push('未指定校区');
+  if (!intent.benefits?.length) weakOrMissing.push('未指定希望获得的收益');
+  if (!intent.dateConstraints?.length && !intent.timePreference) weakOrMissing.push('时间偏好不明确');
+  if (!intent.categories?.length && !intent.topics?.length) weakOrMissing.push('主题/类型较宽泛');
+
+  return {
+    intentConfidence: buildIntentConfidence(intent),
+    candidateCount,
+    topSignals,
+    weakOrMissing: weakOrMissing.slice(0, 4),
+    actionEvidenceUsed,
+    fallbackUsed: Boolean(fallbackUsed),
+    usedHistoricalFallback: Boolean(usedHistoricalFallback),
+    clarificationSuggested: Boolean(clarification),
+    rationale: clarification
+      ? '问题仍有多种可行解释，因此先给出可选方向，并保留临时推荐。'
+      : actionEvidenceUsed
+        ? '排序同时参考了本次需求、活动画像和你近期的收藏/报名/反馈行为。'
+        : '排序主要参考本次需求、活动画像、时间状态和公开活动信息。'
+  };
 };
 
 const buildIntentSummary = (intent, profile) => {
@@ -1605,7 +1686,31 @@ const runInjectedModelTurn = async ({
       type: 'clarify',
       scope: scopeInfo.scope,
       question: validated.question,
-      clarificationUsed: true
+      clarificationOptions: [],
+      provisionalRecommendations: scopeInfo.candidates
+        .slice(0, Math.min(3, MAX_RECOMMENDATIONS))
+        .map((event) => ({
+          id: event.id,
+          reason: '这是可先参考的候选活动，回答澄清问题后我会重新排序。',
+          matchSignals: [],
+          score: 0,
+          isHistorical: false,
+          event: serializeEventForClient(event)
+        })),
+      clarificationUsed: true,
+      reasoningTrace: {
+        intentConfidence: 0.35,
+        candidateCount: scopeInfo.candidates.length,
+        topSignals: [],
+        weakOrMissing: ['需要更多偏好信息'],
+        actionEvidenceUsed: false,
+        fallbackUsed: false,
+        usedHistoricalFallback: false,
+        clarificationSuggested: true,
+        rankingBasis: [],
+        uncertainty: ['需要更多偏好信息'],
+        rationale: '模型要求先澄清用户偏好。'
+      }
     };
   }
 
@@ -1626,6 +1731,7 @@ const buildAiRerankPrompt = ({ intent, profile, candidates, recommendationCount 
     'Rank only the provided candidate events.',
     'Use the user intent, user profile, event AI profiles, deterministic recall signals, and event facts together.',
     'Use actionEvidence as a personalization signal only; it must not override explicit date, campus, organizer, benefit, or activity-type intent.',
+    'Return user-facing reasons and matched signals only; do not expose hidden chain-of-thought.',
     'Do not invent activities, links, rewards, registration status, locations, or dates.',
     'Prefer future and ongoing events. Historical events are only fallback clues.'
   ],
@@ -1686,6 +1792,11 @@ const buildAiRerankPrompt = ({ intent, profile, candidates, recommendationCount 
         matched_signals: ['short Chinese match labels']
       }
     ],
+    reasoning_trace: {
+      ranking_basis: ['short user-facing ranking factors'],
+      uncertainty: ['missing or weak preference signals'],
+      action_evidence_used: 'boolean'
+    },
     minimumCount: Math.min(IDEAL_MIN_RECOMMENDATIONS, recommendationCount),
     maximumCount: recommendationCount
   }
@@ -1726,6 +1837,13 @@ const normalizeRerankResult = (rawResult, candidateMap) => {
 
   return {
     summary: sanitizeText(rawResult.summary, 180),
+    reasoningTrace: rawResult.reasoning_trace && typeof rawResult.reasoning_trace === 'object'
+      ? {
+        rankingBasis: uniqueTextArray(rawResult.reasoning_trace.ranking_basis || rawResult.reasoning_trace.rankingBasis, 6, 80),
+        uncertainty: uniqueTextArray(rawResult.reasoning_trace.uncertainty, 4, 80),
+        actionEvidenceUsed: Boolean(rawResult.reasoning_trace.action_evidence_used || rawResult.reasoning_trace.actionEvidenceUsed)
+      }
+      : null,
     recommendations: recommendations
       .sort((left, right) => left.rank - right.rank)
       .slice(0, max)
@@ -1794,6 +1912,32 @@ const buildAiRecommendationResponse = ({
       candidate: candidateMap.get(Number(item.id))
     }))
     .filter((item) => item.candidate);
+  const recommendations = selected.map((item) => ({
+    id: item.candidate.event.id,
+    reason: item.reason || buildReason(item.candidate),
+    confidence: item.confidence,
+    matchSignals: unique([
+      ...item.matchedSignals,
+      ...item.candidate.signals
+    ]).slice(0, 6),
+    score: Math.round(item.score ?? item.candidate.aiScore ?? item.candidate.score),
+    isHistorical: item.candidate.scope === 'past',
+    aiProfile: item.candidate.aiProfile ? {
+      summary: item.candidate.aiProfile.summary,
+      category: item.candidate.aiProfile.category,
+      confidence: item.candidate.aiProfile.confidence,
+      status: item.candidate.aiProfile.status
+    } : null,
+    event: serializeEventForClient(item.candidate.event)
+  }));
+  const reasoningTrace = buildReasoningTrace({
+    intent,
+    profile,
+    recommendations,
+    candidateCount: candidates.length,
+    usedHistoricalFallback,
+    fallbackUsed: Boolean(rerank.modelStatus?.fallbackUsed)
+  });
 
   return {
     type: 'recommend',
@@ -1804,6 +1948,16 @@ const buildAiRecommendationResponse = ({
       ? 'AI 先检索未来活动，匹配不足后按语义相似度给出历史线索。'
       : 'AI 已结合你的需求、活动画像和候选活动完成重排。'),
     understoodIntent: buildIntentSummary(intent, profile),
+    reasoningTrace: {
+      ...reasoningTrace,
+      rankingBasis: rerank.reasoningTrace?.rankingBasis?.length
+        ? rerank.reasoningTrace.rankingBasis
+        : reasoningTrace.topSignals.slice(0, 5),
+      uncertainty: rerank.reasoningTrace?.uncertainty?.length
+        ? rerank.reasoningTrace.uncertainty
+        : reasoningTrace.weakOrMissing,
+      actionEvidenceUsed: Boolean(rerank.reasoningTrace?.actionEvidenceUsed || reasoningTrace.actionEvidenceUsed)
+    },
     canExpandScope,
     remembered,
     warnings: usedHistoricalFallback
@@ -1820,24 +1974,7 @@ const buildAiRecommendationResponse = ({
       profileStats,
       profileModelStatuses: modelStatuses || []
     },
-    recommendations: selected.map((item) => ({
-      id: item.candidate.event.id,
-      reason: item.reason || buildReason(item.candidate),
-      confidence: item.confidence,
-      matchSignals: unique([
-        ...item.matchedSignals,
-        ...item.candidate.signals
-      ]).slice(0, 6),
-      score: Math.round(item.score ?? item.candidate.aiScore ?? item.candidate.score),
-      isHistorical: item.candidate.scope === 'past',
-      aiProfile: item.candidate.aiProfile ? {
-        summary: item.candidate.aiProfile.summary,
-        category: item.candidate.aiProfile.category,
-        confidence: item.candidate.aiProfile.confidence,
-        status: item.candidate.aiProfile.status
-      } : null,
-      event: serializeEventForClient(item.candidate.event)
-    }))
+    recommendations
   };
 };
 
@@ -1862,6 +1999,13 @@ const buildFallbackRerank = (candidates, intent, summary) => {
       used: false,
       fallbackUsed: true,
       task: 'event_recommendation_fallback',
+    },
+    reasoningTrace: {
+      rankingBasis: unique(ranked.flatMap((item) => item.signals || [])).slice(0, 5),
+      uncertainty: [],
+      actionEvidenceUsed: ranked.some((item) => (
+        (item.signals || []).some((signal) => String(signal).includes('行动证据') || String(signal).includes('负反馈'))
+      ))
     },
     recommendations: ranked.slice(0, MAX_RECOMMENDATIONS).map((item, index) => ({
       id: item.event.id,
@@ -1976,6 +2120,14 @@ const buildRecommendationResponse = async ({
   const selected = rankedItems.slice(0, MAX_RECOMMENDATIONS);
   const polish = await polishWithModel(db, intent, profile, selected.slice(0, MAX_MODEL_CANDIDATES));
   const reasonById = polish?.reasonById || new Map();
+  const recommendations = selected.map((item) => ({
+    id: item.event.id,
+    reason: reasonById.get(item.event.id) || buildReason(item),
+    matchSignals: item.signals,
+    score: item.score,
+    isHistorical: item.scope === 'past',
+    event: serializeEventForClient(item.event)
+  }));
 
   return {
     type: 'recommend',
@@ -1986,6 +2138,14 @@ const buildRecommendationResponse = async ({
       ? '没有找到足够合适的未来活动，先给你几条历史活动线索。'
       : '我按你的提问和可用画像筛了一组更贴近的活动。'),
     understoodIntent: buildIntentSummary(intent, profile),
+    reasoningTrace: buildReasoningTrace({
+      intent,
+      profile,
+      recommendations,
+      candidateCount: rankedItems.length,
+      usedHistoricalFallback,
+      fallbackUsed: polish?.modelStatus?.fallbackUsed
+    }),
     canExpandScope,
     remembered,
     warnings: usedHistoricalFallback
@@ -1995,14 +2155,55 @@ const buildRecommendationResponse = async ({
       used: false,
       message: '未启用模型润色，使用规则推荐结果。'
     },
-    recommendations: selected.map((item) => ({
-      id: item.event.id,
-      reason: reasonById.get(item.event.id) || buildReason(item),
-      matchSignals: item.signals,
-      score: item.score,
-      isHistorical: item.scope === 'past',
-      event: serializeEventForClient(item.event)
-    }))
+    recommendations
+  };
+};
+
+const buildProvisionalClarificationRecommendations = (grouped, intent, profile, now) => [
+  ...rankCandidates(grouped.ongoing, intent, profile, 'ongoing', now),
+  ...rankCandidates(grouped.upcoming, intent, profile, 'upcoming', now)
+]
+  .sort((left, right) => right.score - left.score || compareByAscendingDate(left.event, right.event))
+  .slice(0, Math.min(3, MAX_RECOMMENDATIONS))
+  .map((item) => ({
+    id: item.event.id,
+    reason: buildReason(item),
+    matchSignals: item.signals,
+    score: item.score,
+    isHistorical: false,
+    event: serializeEventForClient(item.event)
+  }));
+
+const buildClarificationResponse = ({
+  intent,
+  profile,
+  grouped,
+  coverage,
+  remembered,
+  modelStatus,
+  now,
+  question
+}) => {
+  const provisionalRecommendations = buildProvisionalClarificationRecommendations(grouped, intent, profile, now);
+  return {
+    type: 'clarify',
+    scope: 'upcoming',
+    question: question || intent.clarificationQuestion || buildClarificationQuestion(profile),
+    clarificationOptions: buildClarificationOptions(intent, profile),
+    provisionalRecommendations,
+    clarificationUsed: true,
+    recommendationMode: 'clarify',
+    coverage,
+    understoodIntent: buildIntentSummary(intent, profile),
+    reasoningTrace: buildReasoningTrace({
+      intent,
+      profile,
+      recommendations: provisionalRecommendations,
+      candidateCount: grouped.upcoming.length + grouped.ongoing.length,
+      clarification: true
+    }),
+    remembered,
+    modelStatus
   };
 };
 
@@ -2052,16 +2253,15 @@ const runEventAssistantTurn = async ({
   }
 
   if (intent.shouldClarify && !clarificationUsed && futurePool.length >= IDEAL_MIN_RECOMMENDATIONS) {
-    return {
-      type: 'clarify',
-      scope: 'upcoming',
-      question: buildClarificationQuestion(profile),
-      clarificationUsed: true,
-      recommendationMode: 'clarify',
+    return buildClarificationResponse({
+      intent,
+      profile,
+      grouped,
       coverage,
-      understoodIntent: buildIntentSummary(intent, profile),
-      remembered
-    };
+      remembered,
+      now,
+      question: buildClarificationQuestion(profile)
+    });
   }
 
   const rankedFuture = [
@@ -2208,17 +2408,16 @@ const runUnifiedEventAssistantTurn = async ({
     && !clarificationUsed
     && futurePool.length >= IDEAL_MIN_RECOMMENDATIONS
   ) {
-    return {
-      type: 'clarify',
-      scope: 'upcoming',
-      question: intent.clarificationQuestion || buildClarificationQuestion(profile),
-      clarificationUsed: true,
-      recommendationMode: 'clarify',
+    return buildClarificationResponse({
+      intent,
+      profile,
+      grouped,
       coverage,
-      understoodIntent: buildIntentSummary(intent, profile),
       remembered,
-      modelStatus: intentModelStatus
-    };
+      modelStatus: intentModelStatus,
+      now,
+      question: intent.clarificationQuestion || buildClarificationQuestion(profile)
+    });
   }
 
   const pool = await buildAiCandidatePool({
@@ -2333,7 +2532,11 @@ const recordEventAssistantRun = async (db, response = {}, userId = null) => {
   if (!db || !response) return;
   try {
     const recommendations = Array.isArray(response.recommendations) ? response.recommendations : [];
+    const provisionalRecommendations = Array.isArray(response.provisionalRecommendations)
+      ? response.provisionalRecommendations
+      : [];
     const modelStatus = response.modelStatus || {};
+    const reasoningTrace = response.reasoningTrace || {};
     const runtimeTelemetry = aiRuntime.summarizeModelStatusTelemetry(modelStatus);
     const recommendedEventIds = recommendations
       .map((item) => Number(item?.event?.id || item?.id))
@@ -2376,6 +2579,11 @@ const recordEventAssistantRun = async (db, response = {}, userId = null) => {
           recommendedCategories,
           profileStatuses,
           averageConfidence,
+          intentConfidence: Number(reasoningTrace.intentConfidence || 0),
+          actionEvidenceUsed: Boolean(reasoningTrace.actionEvidenceUsed),
+          clarificationOptionCount: Array.isArray(response.clarificationOptions) ? response.clarificationOptions.length : 0,
+          provisionalRecommendationCount: provisionalRecommendations.length,
+          weakSignalCount: Array.isArray(reasoningTrace.weakOrMissing) ? reasoningTrace.weakOrMissing.length : 0,
           profileGenerated: Number(modelStatus.profileStats?.generated || 0),
           profileFallback: Number(modelStatus.profileStats?.fallback || 0),
           runtimeTelemetry,
