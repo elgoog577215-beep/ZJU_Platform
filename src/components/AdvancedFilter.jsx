@@ -131,17 +131,17 @@ const AdvancedFilter = ({
 
     const isSheetVariant = variant === 'sheet';
     const dropdownButtonClassName = isSheetVariant
-        ? 'w-full py-3.5 rounded-2xl text-sm transition-all shadow-sm'
-        : 'w-full py-2.5 rounded-xl text-sm transition-all';
+        ? 'w-full py-3.5 rounded-lg text-sm transition-all shadow-sm'
+        : 'w-full py-2.5 rounded-lg text-sm transition-all';
     const containerClasses = variant === 'card'
-        ? `${isDayMode ? 'bg-white/82 border border-slate-200/80 shadow-[0_18px_44px_rgba(148,163,184,0.14)]' : 'bg-black/20 border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.2)]'} rounded-3xl p-4 md:p-6`
+        ? `${isDayMode ? 'bg-white/82 border border-slate-200/80 shadow-[0_18px_44px_rgba(148,163,184,0.14)]' : 'bg-black/20 border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.2)]'} rounded-lg p-4 md:p-6`
         : "";
 
     return (
         <div className={`w-full relative z-20 ${className}`}>
             {/* Backdrop blur as a separate non-clipping layer */}
             {variant === 'card' && (
-                <div className="absolute inset-0 rounded-3xl backdrop-blur-2xl pointer-events-none" />
+                <div className="absolute inset-0 rounded-lg backdrop-blur-2xl pointer-events-none" />
             )}
             <div className={`relative ${containerClasses} ${isFetching ? 'opacity-90 transition-opacity duration-150' : ''}`}>
                 {!isSheetVariant && (
@@ -150,7 +150,7 @@ const AdvancedFilter = ({
                           type="button"
                           aria-expanded={!isCollapsed}
                           aria-label={t('advanced_filter.title')}
-                          className={`flex items-center gap-3 ${isMobile ? 'cursor-pointer' : 'cursor-default'} focus:outline-none rounded-xl focus-visible:ring-2 focus-visible:ring-indigo-400/70`}
+                          className={`flex items-center gap-3 ${isMobile ? 'cursor-pointer' : 'cursor-default'} focus:outline-none rounded-md focus-visible:ring-2 focus-visible:ring-indigo-400/70`}
                           onClick={() => {
                               if (isMobile) {
                                   setOverflowVisible(false);
@@ -158,14 +158,14 @@ const AdvancedFilter = ({
                               }
                           }}
                       >
-                          <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 shadow-[0_0_15px_-5px_rgba(99,102,241,0.3)]">
+                          <div className="p-2.5 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 shadow-[0_0_15px_-5px_rgba(99,102,241,0.3)]">
                               <SlidersHorizontal size={20} />
                           </div>
                           <h3 className={`text-lg font-bold tracking-wide ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
                               {t('advanced_filter.title')}
                           </h3>
                           {activeFilterCount > 0 && (
-                              <span className={`text-xs px-2 py-0.5 rounded-full border ${isDayMode ? 'bg-indigo-50 text-indigo-600 border-indigo-200/80' : 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30'}`}>
+                              <span className={`text-xs px-2 py-0.5 rounded-md border ${isDayMode ? 'bg-indigo-50 text-indigo-600 border-indigo-200/80' : 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30'}`}>
                                   {t('common.selected_count', '已选 {{count}} 项', { count: activeFilterCount })}
                               </span>
                           )}
@@ -186,7 +186,7 @@ const AdvancedFilter = ({
                               animate={{ opacity: 1, scale: 1 }}
                               type="button"
                               onClick={clearFilters}
-                              className={`text-xs flex items-center gap-1.5 px-3 py-2 rounded-full min-h-[44px] transition-all border focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-red-50 text-red-500 hover:bg-red-100 border-red-200/80' : 'bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 border-red-500/10'}`}
+                              className={`text-xs flex items-center gap-1.5 px-3 py-2 rounded-md min-h-[44px] transition-all border focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-red-50 text-red-500 hover:bg-red-100 border-red-200/80' : 'bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 border-red-500/10'}`}
                           >
                               <X size={12} />
                               {t('advanced_filter.clear')}

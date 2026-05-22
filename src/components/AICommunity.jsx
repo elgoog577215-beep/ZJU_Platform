@@ -111,7 +111,7 @@ const AICommunity = () => {
       }
     : {
         page:
-          "bg-[radial-gradient(900px_520px_at_18%_0%,rgba(34,211,238,0.13),transparent_60%),radial-gradient(820px_480px_at_84%_6%,rgba(249,115,22,0.1),transparent_58%),linear-gradient(180deg,#05070b_0%,#0b0e14_46%,#05070b_100%)] text-white",
+          "text-white",
         hero:
           "border-white/10 bg-white/[0.045] shadow-[0_28px_90px_rgba(0,0,0,0.42)]",
         rail:
@@ -133,7 +133,9 @@ const AICommunity = () => {
       <SEO title={t("nav.community", "AI社区")} description={subtitle} />
 
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 opacity-[0.13] [background-image:linear-gradient(rgba(103,232,249,0.18)_1px,transparent_1px),linear-gradient(90deg,rgba(103,232,249,0.12)_1px,transparent_1px)] [background-size:58px_58px]" />
+        {isDayMode ? null : (
+          <div className="absolute inset-x-0 top-0 h-80 bg-[linear-gradient(180deg,rgba(6,182,212,0.08),transparent)]" />
+        )}
         {isDayMode ? (
           <div className="absolute inset-x-0 top-0 h-px bg-slate-200/80" />
         ) : null}
@@ -167,7 +169,7 @@ const AICommunity = () => {
                     <button
                       type="button"
                       onClick={() => handleTabChange(activeTab)}
-                      className={`inline-flex min-h-11 items-center gap-2 px-5 text-sm font-black transition ${palette.action}`}
+                      className={`inline-flex min-h-11 items-center gap-2 rounded-md px-5 text-sm font-black transition ${palette.action}`}
                     >
                       <ActiveIcon size={16} />
                       进入{t(activeTabMeta.labelKey, activeTabMeta.fallback)}
@@ -176,7 +178,7 @@ const AICommunity = () => {
                     <button
                       type="button"
                       onClick={() => setIsNewsOpen(true)}
-                      className={`inline-flex min-h-11 items-center gap-2 border px-4 text-sm font-bold transition-all 2xl:hidden ${isDayMode ? "border-slate-200/80 bg-white/70 text-slate-700 hover:bg-white" : "border-white/10 bg-white/[0.04] text-gray-200 hover:bg-white/10"}`}
+                      className={`inline-flex min-h-11 items-center gap-2 rounded-md border px-4 text-sm font-bold transition-all 2xl:hidden ${isDayMode ? "border-slate-200/80 bg-white/70 text-slate-700 hover:bg-white" : "border-white/10 bg-white/[0.04] text-gray-200 hover:bg-white/10"}`}
                     >
                       <Newspaper size={16} />
                       {t("community.news_board", "新闻热榜")}
@@ -227,7 +229,7 @@ const AICommunity = () => {
             <div
               role="tablist"
               aria-label={t("nav.community", "AI社区")}
-              className={`scrollbar-none mt-3 flex w-full items-center gap-1 overflow-x-auto border p-1 ${palette.tabShell}`}
+              className={`scrollbar-none mt-3 flex w-full items-center gap-1 overflow-x-auto rounded-lg border p-1 ${palette.tabShell}`}
             >
               {TABS.map(({ key, icon: Icon, labelKey, fallback }) => (
                 <button
@@ -236,7 +238,7 @@ const AICommunity = () => {
                   role="tab"
                   aria-selected={activeTab === key}
                   onClick={() => handleTabChange(key)}
-                  className={`inline-flex min-h-[42px] flex-1 items-center justify-center gap-2 border px-3 text-sm font-bold whitespace-nowrap transition-all ${
+                  className={`inline-flex min-h-[42px] flex-1 items-center justify-center gap-2 rounded-md border px-3 text-sm font-bold whitespace-nowrap transition-all ${
                     activeTab === key ? palette.tabActive : palette.tabIdle
                   }`}
                 >
@@ -254,7 +256,7 @@ const AICommunity = () => {
               ].map((item) => {
                 const Icon = item.icon;
                 return (
-                  <div key={item.label} className={`flex items-center justify-between border px-4 py-3 ${palette.stat}`}>
+                  <div key={item.label} className={`flex items-center justify-between rounded-lg border px-4 py-3 ${palette.stat}`}>
                     <div>
                       <div className={`text-[10px] font-black uppercase tracking-[0.18em] ${palette.soft}`}>{item.label}</div>
                       <div className="mt-1 text-lg font-black leading-none">{item.value}</div>
@@ -293,7 +295,7 @@ const AICommunity = () => {
                 top: "max(env(safe-area-inset-top), 1rem)",
                 right: "1rem",
               }}
-              className={`absolute z-20 rounded-full border p-2 transition-transform hover:rotate-90 ${
+              className={`absolute z-20 rounded-lg border p-2 transition-transform hover:rotate-90 ${
                 isDayMode
                   ? "border-slate-200/80 bg-white text-slate-700 shadow-[0_10px_24px_rgba(15,23,42,0.08)] hover:bg-slate-50 hover:text-slate-950"
                   : "border-white bg-white text-slate-900 shadow-lg hover:bg-slate-100"

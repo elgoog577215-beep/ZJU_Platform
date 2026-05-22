@@ -11,7 +11,6 @@ import {
   CloudFog,
   Search,
   LogOut,
-  Palette,
   X,
   MapPin,
   Plus,
@@ -23,10 +22,12 @@ import {
   Shield,
   Trees,
   UserCircle,
+  Wallpaper,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "./LanguageSwitcher";
+import { BACKGROUND_SCENES } from "../constants/backgroundScenes";
 import { useSettings } from "../context/SettingsContext";
 import { useAuth } from "../context/AuthContext";
 import { useMediaQuery } from "../hooks/useMediaQuery";
@@ -56,7 +57,13 @@ const Navbar = () => {
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
   const location = useLocation();
   const { t } = useTranslation();
-  const { uiMode, changeUiMode, showWeatherWidget } = useSettings();
+  const {
+    uiMode,
+    changeUiMode,
+    backgroundScene,
+    changeBackgroundScene,
+    showWeatherWidget,
+  } = useSettings();
   const { user, logout, isAdmin } = useAuth();
   const isDesktopViewport = useMediaQuery("(min-width: 768px)", true);
   const [time, setTime] = useState(new Date());
@@ -199,23 +206,23 @@ const Navbar = () => {
     ? "bg-white/42 border-white/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.82),0_8px_24px_rgba(100,116,139,0.1)]"
     : "bg-white/5 border-white/5";
   const navLinkClasses = isDayMode
-    ? "motion-link relative group whitespace-nowrap rounded-full px-2.5 py-2 text-xs font-medium text-slate-500 hover:bg-slate-200/70 hover:text-slate-900 xl:px-4 xl:text-sm"
-    : "motion-link relative group whitespace-nowrap rounded-full px-2.5 py-2 text-xs font-medium text-gray-400 hover:bg-white/10 hover:text-white xl:px-4 xl:text-sm";
+    ? "motion-link relative group whitespace-nowrap rounded-md px-2.5 py-2 text-xs font-medium text-slate-500 hover:bg-slate-200/70 hover:text-slate-900 xl:px-4 xl:text-sm"
+    : "motion-link relative group whitespace-nowrap rounded-md px-2.5 py-2 text-xs font-medium text-gray-400 hover:bg-white/10 hover:text-white xl:px-4 xl:text-sm";
   const navIndicatorClasses = isDayMode
-    ? "absolute inset-0 rounded-full border border-indigo-200/90 bg-white/90 shadow-[0_10px_24px_rgba(99,102,241,0.14)]"
-    : "absolute inset-0 bg-white/10 rounded-full border border-white/10";
+    ? "absolute inset-0 rounded-md border border-indigo-200/90 bg-white/90 shadow-[0_10px_24px_rgba(99,102,241,0.14)]"
+    : "absolute inset-0 rounded-md bg-white/10 border border-white/10";
   const weatherButtonClasses = isDayMode
-    ? "motion-press day-quiet-button flex items-center gap-3 text-xs border px-3 py-1.5 rounded-full hover:text-slate-900 cursor-pointer group"
-    : "motion-press flex items-center gap-3 text-xs text-gray-400 border border-white/5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 hover:text-white hover:border-indigo-500/20 cursor-pointer group";
+    ? "motion-press day-quiet-button flex items-center gap-3 text-xs border px-3 py-1.5 rounded-md hover:text-slate-900 cursor-pointer group"
+    : "motion-press flex items-center gap-3 text-xs text-gray-400 border border-white/5 px-3 py-1.5 rounded-md bg-white/5 hover:bg-white/10 hover:text-white hover:border-indigo-500/20 cursor-pointer group";
   const authButtonClasses = isDayMode
-    ? "motion-press text-sm font-medium bg-white/88 text-slate-700 border border-slate-200/80 px-4 py-1.5 rounded-full hover:border-indigo-200 hover:bg-white hover:text-slate-950 shadow-[0_10px_24px_rgba(99,102,241,0.08)]"
-    : "motion-press text-sm font-medium bg-white text-black px-4 py-1.5 rounded-full hover:bg-gray-200";
-  const themeModalClasses = isDayMode
+    ? "motion-press text-sm font-medium bg-white/88 text-slate-700 border border-slate-200/80 px-4 py-1.5 rounded-md hover:border-indigo-200 hover:bg-white hover:text-slate-950 shadow-[0_10px_24px_rgba(99,102,241,0.08)]"
+    : "motion-press text-sm font-medium bg-white text-black px-4 py-1.5 rounded-md hover:bg-gray-200";
+  const wallpaperModalClasses = isDayMode
     ? "theme-dialog text-slate-900"
-    : "bg-[#0f172a]/92 backdrop-blur-lg border border-white/10";
-  const themeModalHeaderClasses = isDayMode
-    ? "text-slate-700 bg-white/90 border border-slate-200/70"
-    : "text-white/80 bg-[#0f172a]/95";
+    : "bg-[#08111f]/96 backdrop-blur-2xl border border-cyan-300/10 text-white";
+  const wallpaperHeaderClasses = isDayMode
+    ? "text-slate-700 bg-white/92 border border-slate-200/70"
+    : "text-white/84 bg-[#08111f]/92 border border-white/10";
   const weatherModalClasses = isDayMode
     ? "theme-dialog text-slate-900"
     : "bg-[#1a1a1a] border border-white/10 shadow-2xl";
@@ -236,6 +243,9 @@ const Navbar = () => {
     nextUiMode === "day" ? "nav.day_mode" : "nav.night_mode",
   );
   const themeToggleTitle = `${t("nav.theme_settings")} - ${themeToggleLabel}`;
+  const activeBackgroundScene =
+    BACKGROUND_SCENES.find((scene) => scene.id === backgroundScene) ||
+    BACKGROUND_SCENES[0];
   const weatherTemperature = Number(weather?.temperature);
   const weatherTemperatureLabel = Number.isFinite(weatherTemperature)
     ? `${Math.round(weatherTemperature)}°C`
@@ -278,7 +288,7 @@ const Navbar = () => {
       </Link>
 
       <div
-        className={`hidden min-w-0 items-center gap-0.5 rounded-full border px-1.5 py-1 backdrop-blur-sm md:flex xl:gap-1 xl:px-2 ${desktopPillClasses}`}
+        className={`hidden min-w-0 items-center gap-0.5 rounded-lg border px-1.5 py-1 backdrop-blur-sm md:flex xl:gap-1 xl:px-2 ${desktopPillClasses}`}
         role="menubar"
         aria-label="导航菜单"
       >
@@ -375,6 +385,16 @@ const Navbar = () => {
           )}
         </button>
 
+        <button
+          type="button"
+          onClick={() => setIsThemeOpen(true)}
+          className={`btn-icon ${isDayMode ? "day-quiet-button border text-slate-700 hover:text-indigo-600" : "text-cyan-100 bg-cyan-300/10 hover:text-cyan-50 hover:bg-cyan-300/15"}`}
+          title="动态壁纸"
+          aria-label="动态壁纸设置"
+        >
+          <Wallpaper size={18} aria-hidden="true" />
+        </button>
+
         <NotificationCenter
           enabled={isDesktopViewport}
           onUnreadCountChange={setUnreadNotificationCount}
@@ -386,7 +406,7 @@ const Navbar = () => {
           <div className="flex items-center gap-3">
             <Link
               to={`/user/${user.id}`}
-              className={`motion-press relative flex items-center gap-2 text-sm font-medium px-3 py-1.5 rounded-full border ${isDayMode ? "day-quiet-button text-slate-800 hover:text-indigo-600" : "text-white border-white/10 bg-white/5 hover:bg-white/10"}`}
+              className={`motion-press relative flex items-center gap-2 text-sm font-medium px-3 py-1.5 rounded-md border ${isDayMode ? "day-quiet-button text-slate-800 hover:text-indigo-600" : "text-white border-white/10 bg-white/5 hover:bg-white/10"}`}
               aria-label={`访问 ${user.username} 的个人主页`}
             >
               <div
@@ -437,7 +457,7 @@ const Navbar = () => {
             aria-label={t("nav.more", "更多")}
             aria-expanded={isMobileMoreOpen}
             onClick={() => setIsMobileMoreOpen(true)}
-            className={`motion-press p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "day-quiet-button border text-slate-500 hover:text-slate-900" : "text-gray-200 hover:text-white bg-white/10 border border-white/10"}`}
+            className={`motion-press p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "day-quiet-button border text-slate-500 hover:text-slate-900" : "text-gray-200 hover:text-white bg-white/10 border border-white/10"}`}
           >
             <Menu size={18} aria-hidden="true" />
           </button>
@@ -449,7 +469,7 @@ const Navbar = () => {
               type="button"
               aria-label={t("search.placeholder")}
               onClick={() => window.dispatchEvent(new Event("open-search-palette"))}
-              className={`motion-press p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "day-quiet-button border text-slate-500 hover:text-slate-900" : "text-gray-200 hover:text-white bg-white/10 border border-white/10"}`}
+              className={`motion-press p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "day-quiet-button border text-slate-500 hover:text-slate-900" : "text-gray-200 hover:text-white bg-white/10 border border-white/10"}`}
             >
               <Search size={18} />
             </button>
@@ -460,7 +480,7 @@ const Navbar = () => {
               type="button"
               aria-label={t("common.upload", "上传")}
               onClick={handleUploadClick}
-              className="motion-press p-1.5 min-h-[44px] min-w-[44px] inline-flex items-center justify-center bg-indigo-500 hover:bg-indigo-400 text-white rounded-full shadow-[0_0_15px_rgba(99,102,241,0.3)] ml-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300/80"
+              className="motion-press p-1.5 min-h-[44px] min-w-[44px] inline-flex items-center justify-center bg-indigo-500 hover:bg-indigo-400 text-white rounded-lg shadow-[0_0_15px_rgba(99,102,241,0.3)] ml-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300/80"
             >
               <Plus size={16} strokeWidth={3} />
             </button>
@@ -487,7 +507,7 @@ const Navbar = () => {
                 initial={prefersReducedMotion ? false : "initial"}
                 animate={prefersReducedMotion ? undefined : "animate"}
                 exit={prefersReducedMotion ? undefined : "exit"}
-                className={`rounded-t-2xl md:rounded-2xl w-full max-w-sm overflow-hidden p-6 pb-[calc(env(safe-area-inset-bottom)+24px)] md:pb-6 relative z-10 ${weatherModalClasses}`}
+                className={`rounded-t-lg md:rounded-lg w-full max-w-sm overflow-hidden p-6 pb-[calc(env(safe-area-inset-bottom)+24px)] md:pb-6 relative z-10 ${weatherModalClasses}`}
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 opacity-50 pointer-events-none" />
@@ -523,7 +543,7 @@ const Navbar = () => {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder={t("weather.placeholder")}
-                        className={`w-full border rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-indigo-500 transition-all ${isDayMode ? "bg-white/80 border-slate-200/80 text-slate-900 focus:bg-white" : "bg-black/20 border-white/10 text-white focus:bg-black/40"}`}
+                        className={`w-full border rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:border-indigo-500 transition-all ${isDayMode ? "bg-white/80 border-slate-200/80 text-slate-900 focus:bg-white" : "bg-black/20 border-white/10 text-white focus:bg-black/40"}`}
                         autoFocus
                       />
                       <Search
@@ -541,7 +561,7 @@ const Navbar = () => {
                   <button
                     type="submit"
                     disabled={isSearching}
-                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 rounded-xl transition-all disabled:opacity-50 shadow-lg shadow-indigo-500/25"
+                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 rounded-lg transition-all disabled:opacity-50 shadow-lg shadow-indigo-500/25"
                   >
                     {isSearching
                       ? t("weather.searching")
@@ -562,7 +582,7 @@ const Navbar = () => {
                       <button
                         key={result.id}
                         onClick={() => selectCity(result)}
-                        className={`motion-press w-full text-left p-3 rounded-lg flex flex-col group border ${result.isLocal ? (isDayMode ? "bg-indigo-50 border-indigo-200/80" : "bg-indigo-900/20 border-indigo-500/30") : isDayMode ? "bg-white/70 border-slate-200/70 hover:bg-white" : "bg-black/20 border-transparent hover:bg-white/10"}`}
+                        className={`motion-press w-full text-left p-3 rounded-md flex flex-col group border ${result.isLocal ? (isDayMode ? "bg-indigo-50 border-indigo-200/80" : "bg-indigo-900/20 border-indigo-500/30") : isDayMode ? "bg-white/70 border-slate-200/70 hover:bg-white" : "bg-black/20 border-transparent hover:bg-white/10"}`}
                       >
                         <div className="flex justify-between items-center">
                           <span
@@ -617,7 +637,7 @@ const Navbar = () => {
                 role="dialog"
                 aria-modal="true"
                 aria-label={t("nav.more", "更多")}
-                className={`w-full rounded-t-3xl border-t p-4 pb-[calc(env(safe-area-inset-bottom)+20px)] shadow-2xl ${isDayMode ? "border-slate-200/80 bg-white/96 text-slate-900" : "border-white/10 bg-[#111827]/96 text-white"}`}
+                className={`w-full rounded-t-lg border-t p-4 pb-[calc(env(safe-area-inset-bottom)+20px)] shadow-2xl ${isDayMode ? "border-slate-200/80 bg-white/96 text-slate-900" : "border-white/10 bg-[#111827]/96 text-white"}`}
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="mb-4 flex items-center justify-between">
@@ -635,7 +655,7 @@ const Navbar = () => {
                     type="button"
                     aria-label={t("common.close", "关闭")}
                     onClick={() => setIsMobileMoreOpen(false)}
-                    className={`motion-press min-h-[44px] min-w-[44px] rounded-full p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900" : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"}`}
+                    className={`motion-press min-h-[44px] min-w-[44px] rounded-lg p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900" : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"}`}
                   >
                     <X size={20} aria-hidden="true" />
                   </button>
@@ -647,7 +667,7 @@ const Navbar = () => {
                       key={key}
                       to={path}
                       onClick={() => setIsMobileMoreOpen(false)}
-                      className={`motion-press flex min-h-[56px] items-center gap-3 rounded-2xl border px-3 ${location.pathname === path ? (isDayMode ? "border-indigo-200 bg-indigo-50 text-indigo-700" : "border-indigo-400/30 bg-indigo-500/15 text-indigo-200") : isDayMode ? "border-slate-200/80 bg-slate-50/90 text-slate-700 hover:bg-white" : "border-white/10 bg-white/[0.04] text-gray-200 hover:bg-white/10"}`}
+                      className={`motion-press flex min-h-[56px] items-center gap-3 rounded-lg border px-3 ${location.pathname === path ? (isDayMode ? "border-indigo-200 bg-indigo-50 text-indigo-700" : "border-indigo-400/30 bg-indigo-500/15 text-indigo-200") : isDayMode ? "border-slate-200/80 bg-slate-50/90 text-slate-700 hover:bg-white" : "border-white/10 bg-white/[0.04] text-gray-200 hover:bg-white/10"}`}
                     >
                       <Icon size={18} aria-hidden="true" />
                       <span className="text-sm font-semibold">
@@ -665,7 +685,7 @@ const Navbar = () => {
                   <button
                     type="button"
                     onClick={() => changeUiMode(nextUiMode)}
-                    className={`motion-press flex min-h-[52px] items-center gap-3 rounded-2xl border px-3 text-left ${isDayMode ? "border-slate-200/80 bg-slate-50/90 text-slate-700 hover:bg-white" : "border-white/10 bg-white/[0.04] text-gray-200 hover:bg-white/10"}`}
+                    className={`motion-press flex min-h-[52px] items-center gap-3 rounded-lg border px-3 text-left ${isDayMode ? "border-slate-200/80 bg-slate-50/90 text-slate-700 hover:bg-white" : "border-white/10 bg-white/[0.04] text-gray-200 hover:bg-white/10"}`}
                   >
                     {isDayMode ? (
                       <Moon size={18} aria-hidden="true" />
@@ -677,8 +697,20 @@ const Navbar = () => {
                     </span>
                   </button>
 
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMobileMoreOpen(false);
+                      setIsThemeOpen(true);
+                    }}
+                    className={`motion-press flex min-h-[52px] items-center gap-3 rounded-lg border px-3 text-left ${isDayMode ? "border-slate-200/80 bg-slate-50/90 text-slate-700 hover:bg-white" : "border-cyan-300/15 bg-cyan-300/[0.06] text-cyan-100 hover:bg-cyan-300/[0.1]"}`}
+                  >
+                    <Wallpaper size={18} aria-hidden="true" />
+                    <span className="text-sm font-semibold">动态壁纸</span>
+                  </button>
+
                   <div
-                    className={`flex min-h-[52px] items-center justify-center rounded-2xl border px-2 ${isDayMode ? "border-slate-200/80 bg-slate-50/90" : "border-white/10 bg-white/[0.04]"}`}
+                    className={`col-span-2 flex min-h-[52px] items-center justify-center rounded-lg border px-2 ${isDayMode ? "border-slate-200/80 bg-slate-50/90" : "border-white/10 bg-white/[0.04]"}`}
                   >
                     <LanguageSwitcher />
                   </div>
@@ -690,7 +722,7 @@ const Navbar = () => {
                       <Link
                         to={`/user/${user.id}`}
                         onClick={() => setIsMobileMoreOpen(false)}
-                        className={`motion-press flex min-h-[52px] items-center gap-3 rounded-2xl border px-3 ${isDayMode ? "border-slate-200/80 bg-slate-50/90 text-slate-700 hover:bg-white" : "border-white/10 bg-white/[0.04] text-gray-200 hover:bg-white/10"}`}
+                        className={`motion-press flex min-h-[52px] items-center gap-3 rounded-lg border px-3 ${isDayMode ? "border-slate-200/80 bg-slate-50/90 text-slate-700 hover:bg-white" : "border-white/10 bg-white/[0.04] text-gray-200 hover:bg-white/10"}`}
                       >
                         <UserCircle size={18} aria-hidden="true" />
                         <span className="text-sm font-semibold">
@@ -703,7 +735,7 @@ const Navbar = () => {
                           setIsMobileMoreOpen(false);
                           logout();
                         }}
-                        className={`motion-press flex min-h-[52px] items-center gap-3 rounded-2xl border px-3 text-left ${isDayMode ? "border-red-200/80 bg-red-50/80 text-red-600 hover:bg-red-50" : "border-red-500/20 bg-red-500/10 text-red-300 hover:bg-red-500/15"}`}
+                        className={`motion-press flex min-h-[52px] items-center gap-3 rounded-lg border px-3 text-left ${isDayMode ? "border-red-200/80 bg-red-50/80 text-red-600 hover:bg-red-50" : "border-red-500/20 bg-red-500/10 text-red-300 hover:bg-red-500/15"}`}
                       >
                         <LogOut size={18} aria-hidden="true" />
                         <span className="text-sm font-semibold">
@@ -718,7 +750,7 @@ const Navbar = () => {
                         setIsMobileMoreOpen(false);
                         setIsAuthOpen(true);
                       }}
-                      className="motion-press flex min-h-[52px] items-center justify-center rounded-2xl bg-indigo-600 px-3 text-sm font-bold text-white hover:bg-indigo-500"
+                      className="motion-press flex min-h-[52px] items-center justify-center rounded-lg bg-indigo-600 px-3 text-sm font-bold text-white hover:bg-indigo-500"
                     >
                       {t("auth.log_in")}
                     </button>
@@ -743,16 +775,16 @@ const Navbar = () => {
                 initial={prefersReducedMotion ? false : "initial"}
                 animate={prefersReducedMotion ? undefined : "animate"}
                 exit={prefersReducedMotion ? undefined : "exit"}
-                className={`p-4 rounded-t-2xl md:rounded-2xl shadow-2xl w-full max-w-sm max-h-[82vh] overflow-y-auto custom-scrollbar relative z-10 pb-[calc(env(safe-area-inset-bottom)+20px)] md:pb-4 ${themeModalClasses}`}
+                className={`p-4 rounded-t-lg md:rounded-lg shadow-2xl w-full max-w-2xl max-h-[86vh] overflow-y-auto custom-scrollbar relative z-10 pb-[calc(env(safe-area-inset-bottom)+20px)] md:pb-5 ${wallpaperModalClasses}`}
                 onClick={(e) => e.stopPropagation()}
               >
                 <div
-                  className={`flex items-center justify-between mb-4 sticky top-0 p-2 rounded-lg z-10 backdrop-blur-md ${themeModalHeaderClasses}`}
+                  className={`mb-4 flex items-center justify-between rounded-lg p-2 backdrop-blur-md ${wallpaperHeaderClasses}`}
                 >
                   <div className="flex items-center gap-2">
-                    <Palette size={16} />
+                    <Wallpaper size={16} />
                     <h3 className="text-sm font-bold uppercase tracking-widest">
-                      {t("nav.theme_settings")}
+                      动态壁纸
                     </h3>
                   </div>
                   <button
@@ -767,8 +799,87 @@ const Navbar = () => {
                   </button>
                 </div>
 
+                {isDayMode ? (
+                  <div className="mb-4 rounded-lg border border-slate-200/80 bg-white/90 p-4 text-sm text-slate-600">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5 rounded-md bg-slate-950 p-2 text-white">
+                        <Moon size={16} />
+                      </div>
+                      <div>
+                        <div className="font-bold text-slate-900">
+                          动态壁纸仅夜间模式可用
+                        </div>
+                        <p className="mt-1 leading-6">
+                          白天模式保持轻量静态背景，切到夜间后可以更换网站动态背景。
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => changeUiMode("dark")}
+                          className="motion-press mt-3 inline-flex min-h-10 items-center gap-2 rounded-md bg-slate-950 px-4 text-sm font-bold text-white hover:bg-slate-800"
+                        >
+                          <Moon size={16} />
+                          切到夜间模式
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="mb-3 flex items-center justify-between gap-4 rounded-lg border border-cyan-300/10 bg-cyan-300/[0.055] px-4 py-3">
+                      <div>
+                        <div className="text-xs font-black uppercase tracking-[0.22em] text-cyan-200/70">
+                          Website Background
+                        </div>
+                        <div className="mt-1 text-sm font-bold text-white">
+                          当前：{activeBackgroundScene.name}
+                        </div>
+                      </div>
+                      <div className="hidden text-right text-xs leading-5 text-white/50 sm:block">
+                        立即生效
+                        <br />
+                        已保存到本机
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      {BACKGROUND_SCENES.map((scene) => {
+                        const isActiveScene = scene.id === backgroundScene;
+
+                        return (
+                          <button
+                            key={scene.id}
+                            type="button"
+                            onClick={() => changeBackgroundScene(scene.id)}
+                            className={`motion-press group flex min-h-[108px] items-stretch overflow-hidden rounded-lg border text-left transition-all ${isActiveScene ? "border-cyan-300/50 bg-cyan-300/[0.12] shadow-[0_18px_44px_rgba(34,211,238,0.12)]" : "border-white/10 bg-white/[0.045] hover:border-cyan-300/30 hover:bg-white/[0.07]"}`}
+                            aria-pressed={isActiveScene}
+                          >
+                            <div className={`w-24 shrink-0 ${scene.preview}`}>
+                              <div className="h-full w-full bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(0,0,0,0.26))]" />
+                            </div>
+                            <div className="flex min-w-0 flex-1 flex-col justify-center px-4 py-3">
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="truncate text-sm font-black text-white">
+                                  {scene.name}
+                                </div>
+                                {isActiveScene ? (
+                                  <span className="shrink-0 rounded-md bg-cyan-300 px-2 py-0.5 text-[10px] font-black text-slate-950">
+                                    已启用
+                                  </span>
+                                ) : null}
+                              </div>
+                              <p className="mt-1 line-clamp-2 text-xs leading-5 text-white/58">
+                                {scene.desc}
+                              </p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+
                 <div
-                  className={`mb-4 rounded-2xl border p-1.5 ${isDayMode ? "border-slate-200/80 bg-slate-50/90" : "border-white/10 bg-white/5"}`}
+                  className={`mb-4 rounded-lg border p-1.5 ${isDayMode ? "border-slate-200/80 bg-slate-50/90" : "border-white/10 bg-white/5"}`}
                 >
                   <div
                     className={`mb-2 px-2 pt-1 text-[10px] font-semibold uppercase tracking-[0.24em] ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
@@ -787,7 +898,7 @@ const Navbar = () => {
                         <button
                           key={mode}
                           onClick={() => changeUiMode(mode)}
-                          className={`rounded-xl px-3 py-3 text-left transition-all border ${isActiveMode ? "bg-indigo-500/15 border-indigo-400/30 shadow-[0_10px_22px_rgba(99,102,241,0.14)]" : isDayMode ? "bg-transparent border-transparent hover:bg-white/90" : "bg-transparent border-transparent hover:bg-white/10"}`}
+                          className={`rounded-md px-3 py-3 text-left transition-all border ${isActiveMode ? "bg-indigo-500/15 border-indigo-400/30 shadow-[0_10px_22px_rgba(99,102,241,0.14)]" : isDayMode ? "bg-transparent border-transparent hover:bg-white/90" : "bg-transparent border-transparent hover:bg-white/10"}`}
                         >
                           <div
                             className={`text-sm font-semibold ${isDayMode ? "text-slate-900" : "text-white"}`}
@@ -814,7 +925,7 @@ const Navbar = () => {
                 </div>
 
                 <div
-                  className={`rounded-xl border px-3 py-3 text-sm ${isDayMode ? "border-slate-200/80 bg-white/90 text-slate-500" : "border-white/10 bg-white/5 text-gray-400"}`}
+                  className="hidden"
                 >
                   首页背景已固定为静态渐变，白天/夜间模式仍会同步切换整体观感。
                 </div>

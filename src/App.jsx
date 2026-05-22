@@ -48,6 +48,7 @@ const NotFound = lazy(() => import('./components/NotFound'));
 const PublicProfile = lazy(() => import('./components/PublicProfile'));
 const SearchPalette = lazy(() => import('./components/SearchPalette'));
 const GlobalPlayer = lazy(() => import('./components/GlobalPlayer'));
+const BackgroundSystem = lazy(() => import('./components/BackgroundSystem'));
 
 const useDeferredMount = (delay = 0) => {
   const [mounted, setMounted] = useState(false);
@@ -107,10 +108,11 @@ const AppContent = () => {
   const isHomeRoute = location.pathname === '/';
   const isAboutRoute = location.pathname === '/about';
   const isImmersiveRoute = isHomeRoute || isAboutRoute || location.pathname.startsWith('/hackathon');
-  const { cursorEnabled, settings } = useSettings();
+  const { cursorEnabled, settings, uiMode } = useSettings();
   const hasDesktopPointer = useMediaQuery('(min-width: 768px) and (hover: hover) and (pointer: fine)');
   const shouldMountDeferredUi = useDeferredMount(700);
   const [isLowPowerDevice, setIsLowPowerDevice] = useState(false);
+  const shouldRenderDarkBackground = uiMode !== 'day' && !isAdminRoute && !isImmersiveRoute;
 
   useServiceWorker();
 
@@ -175,7 +177,13 @@ const AppContent = () => {
           <Navbar />
         </ErrorBoundary>
       )}
-      {/* Keep the Hero image background, but disable the fixed page-wide home background. */}
+      {shouldRenderDarkBackground && (
+        <ErrorBoundary variant="inline" silent>
+          <Suspense fallback={null}>
+            <BackgroundSystem />
+          </Suspense>
+        </ErrorBoundary>
+      )}
       {!isAdminRoute && cursorEnabled && hasDesktopPointer && !isLowPowerDevice && <CustomCursor />}
       {!isAdminRoute && !isImmersiveRoute && hasDesktopPointer && !isLowPowerDevice && <ScrollProgress />}
 

@@ -51,7 +51,7 @@ const TruncatedLabel = ({ text }) => {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
               style={{ position: 'fixed', left: tooltipPos.x, top: tooltipPos.y, zIndex: 9999 }}
-              className={`px-3 py-1.5 rounded-lg border text-xs shadow-xl pointer-events-none max-w-xs whitespace-normal ${isDayMode ? 'bg-white/95 border-slate-200/80 text-slate-800' : 'bg-[#1a1a2e] border-white/15 text-white'}`}
+              className={`px-3 py-1.5 rounded-md border text-xs shadow-xl pointer-events-none max-w-xs whitespace-normal ${isDayMode ? 'bg-white/95 border-slate-200/80 text-slate-800' : 'bg-[#1a1a2e] border-white/15 text-white'}`}
             >
               {text}
             </motion.div>
@@ -105,7 +105,7 @@ const Dropdown = ({
         aria-expanded={isOpen}
         aria-haspopup="listbox"
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center justify-between gap-2 w-full backdrop-blur-sm border rounded-2xl px-4 py-3.5 sm:py-3 focus:outline-none focus-visible:outline-none transition-all duration-300 group min-h-[44px] sm:min-h-0 ${focusClass} ${isSheet ? (hasSelection ? (isDayMode ? 'border-cyan-300/50 bg-cyan-500/10 text-slate-900' : 'border-cyan-300/35 bg-cyan-300/10 text-white') : isOpen ? (isDayMode ? 'border-cyan-300/60 bg-white text-slate-900' : 'border-white/[0.16] bg-[#141926] text-white') : (isDayMode ? 'bg-white/82 border-slate-200/80 text-slate-600 hover:bg-white' : 'border-white/[0.11] text-slate-300 hover:bg-white/[0.06]')) : (isDayMode ? 'bg-white/82 border-slate-200/80 text-slate-800 hover:bg-white hover:border-cyan-300/70 focus:border-cyan-400/60' : 'bg-[#171a26] border-white/[0.11] text-white hover:bg-[#1d2130] hover:border-white/[0.18]')} ${buttonClassName}`}
+        className={`flex items-center justify-between gap-2 w-full backdrop-blur-sm border rounded-lg px-4 py-3.5 sm:py-3 focus:outline-none focus-visible:outline-none transition-all duration-300 group min-h-[44px] sm:min-h-0 ${focusClass} ${isSheet ? (hasSelection ? (isDayMode ? 'border-cyan-300/50 bg-cyan-500/10 text-slate-900' : 'border-cyan-300/35 bg-cyan-300/10 text-white') : isOpen ? (isDayMode ? 'border-cyan-300/60 bg-white text-slate-900' : 'border-white/[0.16] bg-[#141926] text-white') : (isDayMode ? 'bg-white/82 border-slate-200/80 text-slate-600 hover:bg-white' : 'border-white/[0.11] text-slate-300 hover:bg-white/[0.06]')) : (isDayMode ? 'bg-white/82 border-slate-200/80 text-slate-800 hover:bg-white hover:border-cyan-300/70 focus:border-cyan-400/60' : 'bg-[#171a26] border-white/[0.11] text-white hover:bg-[#1d2130] hover:border-white/[0.18]')} ${buttonClassName}`}
       >
         <div className="flex items-center gap-3 min-w-0">
           {Icon && <Icon size={18} className={`shrink-0 transition-colors ${hasSelection ? (isDayMode ? 'text-cyan-700' : 'text-cyan-200') : (isDayMode ? 'text-slate-500 group-hover:text-cyan-600' : 'text-slate-400 group-hover:text-cyan-100')}`} />}
@@ -127,8 +127,8 @@ const Dropdown = ({
             exit={isSheet ? { height: 0, opacity: 0 } : { opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
             className={isSheet
-              ? `overflow-hidden mt-2 rounded-2xl border ${isDayMode ? 'border-slate-200/80 bg-white' : 'border-white/[0.12] bg-[#10131d]'} ${menuClassName}`
-              : `absolute top-full left-0 mt-2 min-w-full w-max max-w-[320px] border rounded-[18px] shadow-2xl overflow-hidden z-[100] ${isDayMode ? 'bg-white border-slate-200/80 ring-1 ring-slate-200/60 shadow-[0_20px_54px_rgba(15,23,42,0.12)]' : 'bg-[#080c16] border-white/[0.14] ring-1 ring-cyan-200/[0.08] shadow-[0_22px_60px_rgba(0,0,0,0.58)]'} ${menuClassName}`
+              ? `overflow-hidden mt-2 rounded-lg border ${isDayMode ? 'border-slate-200/80 bg-white' : 'border-white/[0.12] bg-[#10131d]'} ${menuClassName}`
+              : `absolute top-full left-0 mt-2 min-w-full w-max max-w-[320px] border rounded-lg shadow-2xl overflow-hidden z-[100] ${isDayMode ? 'bg-white border-slate-200/80 ring-1 ring-slate-200/60 shadow-[0_20px_54px_rgba(15,23,42,0.12)]' : 'bg-[#080c16] border-white/[0.14] ring-1 ring-cyan-200/[0.08] shadow-[0_22px_60px_rgba(0,0,0,0.58)]'} ${menuClassName}`
             }
           >
             <div role="listbox" className={`${isSheet ? 'max-h-48' : 'max-h-72'} overflow-y-auto dropdown-scrollbar p-1.5 space-y-0.5`}>
@@ -142,7 +142,7 @@ const Dropdown = ({
                     onChange(option.value);
                     setIsOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between gap-4 px-3.5 py-3 text-sm rounded-xl transition-all min-h-[40px] focus:outline-none focus-visible:outline-none ${focusClass} ${
+                  className={`w-full flex items-center justify-between gap-4 px-3.5 py-3 text-sm rounded-md transition-all min-h-[40px] focus:outline-none focus-visible:outline-none ${focusClass} ${
                     value === option.value 
                       ? isDayMode
                         ? 'border border-cyan-500/25 bg-cyan-50 text-slate-950 shadow-[inset_3px_0_0_rgba(6,182,212,0.85)] font-black'

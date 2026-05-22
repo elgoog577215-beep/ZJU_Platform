@@ -301,7 +301,7 @@ const EventCard = memo(
 
           {/* Status Badge - Adjusted for mobile */}
           <div
-            className={`absolute top-2 right-2 md:top-4 md:right-4 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider shadow-lg backdrop-blur-xl flex items-center gap-1.5 z-40 border border-white/10 ${getStatusColor(status, t)} bg-opacity-80`}
+            className={`absolute top-2 right-2 md:top-4 md:right-4 px-2.5 py-1 md:px-3 md:py-1.5 rounded-md text-[10px] md:text-xs font-bold uppercase tracking-wider shadow-lg backdrop-blur-xl flex items-center gap-1.5 z-40 border border-white/10 ${getStatusColor(status, t)} bg-opacity-80`}
           >
             {status === t("events.status.upcoming") && (
               <Clock size={12} className="md:w-3.5 md:h-3.5" />
@@ -431,7 +431,7 @@ const EventCard = memo(
                 count={event.likes || 0}
                 favorited={event.favorited}
                 initialFavorited={event.favorited}
-                className={`p-1.5 md:p-2 rounded-full transition-colors ${isDayMode ? "hover:bg-indigo-50" : "hover:bg-white/10"}`}
+                className={`p-1.5 md:p-2 rounded-md transition-colors ${isDayMode ? "hover:bg-indigo-50" : "hover:bg-white/10"}`}
                 onToggle={(favorited, likes) =>
                   onToggleFavorite(event.id, favorited, likes)
                 }
@@ -1100,7 +1100,7 @@ END:VCALENDAR`;
                   role="dialog"
                   aria-modal="true"
                   aria-labelledby="events-mobile-filter-title"
-                  className={`fixed inset-x-0 bottom-0 z-[101] mx-auto flex max-h-[92dvh] w-full max-w-md flex-col overflow-hidden rounded-t-[2rem] border-x border-t transform-gpu md:hidden ${isDayMode ? "border-slate-200/80 bg-white shadow-[0_-24px_70px_rgba(148,163,184,0.24)]" : "border-white/10 bg-neutral-950 shadow-[0_-24px_70px_rgba(0,0,0,0.5)]"}`}
+                  className={`fixed inset-x-0 bottom-0 z-[101] mx-auto flex max-h-[92dvh] w-full max-w-md flex-col overflow-hidden rounded-t-lg border-x border-t transform-gpu md:hidden ${isDayMode ? "border-slate-200/80 bg-white shadow-[0_-24px_70px_rgba(148,163,184,0.24)]" : "border-white/10 bg-neutral-950 shadow-[0_-24px_70px_rgba(0,0,0,0.5)]"}`}
                 >
                   <div
                     className={`shrink-0 border-b px-5 pb-3 pt-4 ${isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-neutral-950"}`}
@@ -1124,7 +1124,7 @@ END:VCALENDAR`;
                         type="button"
                         aria-label={t("common.close", "关闭")}
                         onClick={() => setIsMobileFilterOpen(false)}
-                        className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-slate-100 text-slate-500 hover:text-slate-900" : "bg-white/10 text-gray-400 hover:text-white"}`}
+                        className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-slate-100 text-slate-500 hover:text-slate-900" : "bg-white/10 text-gray-400 hover:text-white"}`}
                       >
                         <X size={20} />
                       </button>
@@ -1151,7 +1151,7 @@ END:VCALENDAR`;
                           type="button"
                           aria-label={t("common.clear_all", "重置")}
                           onClick={resetMobileFilters}
-                          className={`min-h-[52px] rounded-2xl border text-base font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "border-slate-200/80 bg-slate-100/90 text-slate-600" : "border-white/10 bg-white/10 text-gray-200"}`}
+                          className={`min-h-[52px] rounded-lg border text-base font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "border-slate-200/80 bg-slate-100/90 text-slate-600" : "border-white/10 bg-white/10 text-gray-200"}`}
                         >
                           {t("common.clear_all", "重置")}
                         </button>
@@ -1160,7 +1160,7 @@ END:VCALENDAR`;
                         type="button"
                         aria-label={t("common.done", "完成")}
                         onClick={() => setIsMobileFilterOpen(false)}
-                        className={`min-h-[52px] rounded-2xl text-base font-black focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? dayPrimaryActionClass : nightSegmentActiveClass}`}
+                        className={`min-h-[52px] rounded-lg text-base font-black focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? dayPrimaryActionClass : nightSegmentActiveClass}`}
                       >
                         {t("common.done", "完成")}
                       </button>
@@ -1203,10 +1203,10 @@ END:VCALENDAR`;
                   role="dialog"
                   aria-modal="true"
                   aria-labelledby="events-mobile-sort-title"
-                  className={`fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit backdrop-blur-xl border rounded-3xl z-[101] md:hidden flex flex-col max-w-sm mx-auto ${isDayMode ? "bg-white/95 border-slate-200/80 shadow-[0_24px_60px_rgba(148,163,184,0.22)]" : "bg-[#1a1a1a]/95 border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.45)]"}`}
+                  className={`fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit backdrop-blur-xl border rounded-lg z-[101] md:hidden flex flex-col max-w-sm mx-auto ${isDayMode ? "bg-white/95 border-slate-200/80 shadow-[0_24px_60px_rgba(148,163,184,0.22)]" : "bg-[#1a1a1a]/95 border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.45)]"}`}
                 >
                   <div
-                    className={`p-4 border-b flex justify-between items-center sticky top-0 z-10 backdrop-blur-xl rounded-t-3xl ${isDayMode ? "border-slate-200/80 bg-white/92" : "border-white/10 bg-[#1a1a1a]/95"}`}
+                    className={`p-4 border-b flex justify-between items-center sticky top-0 z-10 backdrop-blur-xl rounded-t-lg ${isDayMode ? "border-slate-200/80 bg-white/92" : "border-white/10 bg-[#1a1a1a]/95"}`}
                   >
                     <div>
                       <h3
@@ -1225,7 +1225,7 @@ END:VCALENDAR`;
                       type="button"
                       aria-label={t("common.close", "关闭")}
                       onClick={() => setIsMobileSortOpen(false)}
-                      className={`p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-slate-500 hover:text-slate-900 bg-slate-100" : "text-gray-400 hover:text-white bg-white/5"}`}
+                      className={`p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-slate-500 hover:text-slate-900 bg-slate-100" : "text-gray-400 hover:text-white bg-white/5"}`}
                     >
                       <X size={20} />
                     </button>
@@ -1272,7 +1272,7 @@ END:VCALENDAR`;
           </p>
           <button
             onClick={refresh}
-            className={`px-6 py-2 rounded-full transition-all border ${isDayMode ? "bg-white/88 hover:bg-white text-slate-700 border-slate-200/80 shadow-[0_14px_32px_rgba(148,163,184,0.14)]" : "bg-white/10 hover:bg-white/20 text-white border border-white/10"}`}
+            className={`px-6 py-2 rounded-lg transition-all border ${isDayMode ? "bg-white/88 hover:bg-white text-slate-700 border-slate-200/80 shadow-[0_14px_32px_rgba(148,163,184,0.14)]" : "bg-white/10 hover:bg-white/20 text-white border border-white/10"}`}
           >
             {t("common.retry", "重试")}
           </button>
@@ -1342,7 +1342,7 @@ END:VCALENDAR`;
               onClick={() =>
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
               }
-              className={`px-6 py-2.5 rounded-full border transition-colors text-sm font-semibold ${isDayMode ? "bg-white/88 hover:bg-white text-slate-700 border-slate-200/80 hover:border-indigo-200/80 shadow-[0_14px_32px_rgba(148,163,184,0.14)]" : "bg-white/10 hover:bg-white/15 text-white border-white/10 hover:border-white/20"}`}
+              className={`px-6 py-2.5 rounded-lg border transition-colors text-sm font-semibold ${isDayMode ? "bg-white/88 hover:bg-white text-slate-700 border-slate-200/80 hover:border-indigo-200/80 shadow-[0_14px_32px_rgba(148,163,184,0.14)]" : "bg-white/10 hover:bg-white/15 text-white border-white/10 hover:border-white/20"}`}
             >
               {t("common.load_more", "加载更多")}
             </motion.button>
@@ -1352,7 +1352,7 @@ END:VCALENDAR`;
       {!loading && displayEvents.length === 0 && (
         <div className="flex min-h-[52vh] flex-col items-center justify-center px-4 py-20 text-center md:min-h-[48vh] md:py-32">
           <div
-            className={`rounded-full p-8 mb-6 border backdrop-blur-xl shadow-2xl relative group ${isDayMode ? "bg-white/82 border-slate-200/80" : "bg-white/5 border-white/5"}`}
+            className={`rounded-lg p-8 mb-6 border backdrop-blur-xl shadow-2xl relative group ${isDayMode ? "bg-white/82 border-slate-200/80" : "bg-white/5 border-white/5"}`}
           >
             <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <Calendar
@@ -1378,7 +1378,7 @@ END:VCALENDAR`;
               onClick={() => {
                 setFilters({ category: null, target_audience: null });
               }}
-              className={`mb-4 px-5 py-2 rounded-full border text-sm font-medium ${isDayMode ? "bg-white/90 border-slate-200/80 text-slate-700 hover:bg-white" : "bg-white/10 border-white/15 text-white hover:bg-white/15"}`}
+                className={`mb-4 px-5 py-2 rounded-lg border text-sm font-medium ${isDayMode ? "bg-white/90 border-slate-200/80 text-slate-700 hover:bg-white" : "bg-white/10 border-white/15 text-white hover:bg-white/15"}`}
             >
               {t("advanced_filter.clear", "清除所有筛选")}
             </button>
@@ -1393,7 +1393,7 @@ END:VCALENDAR`;
               }
               setIsUploadOpen(true);
             }}
-            className="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full font-bold transition-all shadow-lg shadow-indigo-500/25 flex items-center gap-3 border border-indigo-400/20"
+            className="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition-all shadow-lg shadow-indigo-500/25 flex items-center gap-3 border border-indigo-400/20"
           >
             <Plus size={20} />
             {t("common.create_event")}
@@ -1439,7 +1439,7 @@ END:VCALENDAR`;
                     ? undefined
                     : { duration: 0.28, ease: [0.22, 1, 0.36, 1] }
                 }
-                className={`w-full max-w-5xl overflow-hidden overscroll-contain shadow-2xl relative flex flex-col ${isMobileViewport ? "min-h-[100dvh] max-h-[100dvh] rounded-none border-0" : "min-h-[100dvh] md:min-h-0 max-h-[100dvh] md:max-h-[90vh] rounded-t-[2rem] md:rounded-[2rem] border-x-0 border-b-0 md:border"} ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.98))] border-slate-200/90 shadow-[0_36px_120px_rgba(15,23,42,0.16)] ring-1 ring-white/70" : "bg-[#0f0f0f] border-white/10"}`}
+                className={`w-full max-w-5xl overflow-hidden overscroll-contain shadow-2xl relative flex flex-col ${isMobileViewport ? "min-h-[100dvh] max-h-[100dvh] rounded-none border-0" : "min-h-[100dvh] md:min-h-0 max-h-[100dvh] md:max-h-[90vh] rounded-t-lg md:rounded-lg border-x-0 border-b-0 md:border"} ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.98))] border-slate-200/90 shadow-[0_36px_120px_rgba(15,23,42,0.16)] ring-1 ring-white/70" : "bg-[#0f0f0f] border-white/10"}`}
                 onClick={(e) => e.stopPropagation()}
               >
                 {isDayMode && (
@@ -1454,22 +1454,22 @@ END:VCALENDAR`;
                   <button
                     onClick={closeEvent}
                     aria-label={t("common.close", "关闭")}
-                    className={`absolute right-5 top-5 h-12 w-12 rounded-full backdrop-blur-xl border transition-all duration-300 z-40 group inline-flex items-center justify-center overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer ${isDayMode ? `bg-white/90 hover:bg-white text-slate-700 border-white/85 shadow-[0_16px_34px_rgba(15,23,42,0.14)] hover:shadow-[0_22px_42px_rgba(15,23,42,0.18)] hover:-translate-y-0.5 focus-visible:ring-slate-400/70 focus-visible:ring-offset-white` : "bg-black/45 hover:bg-black/65 text-white border-white/10 hover:border-white/20 focus-visible:ring-white/60 focus-visible:ring-offset-[#0f0f0f]"}`}
+                    className={`absolute right-5 top-5 h-12 w-12 rounded-lg backdrop-blur-xl border transition-all duration-300 z-40 group inline-flex items-center justify-center overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer ${isDayMode ? `bg-white/90 hover:bg-white text-slate-700 border-white/85 shadow-[0_16px_34px_rgba(15,23,42,0.14)] hover:shadow-[0_22px_42px_rgba(15,23,42,0.18)] hover:-translate-y-0.5 focus-visible:ring-slate-400/70 focus-visible:ring-offset-white` : "bg-black/45 hover:bg-black/65 text-white border-white/10 hover:border-white/20 focus-visible:ring-white/60 focus-visible:ring-offset-[#0f0f0f]"}`}
                   >
                     {isDayMode && (
                       <>
                         <span
                           aria-hidden="true"
-                          className="absolute inset-0 rounded-full opacity-90 bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(255,255,255,0.16))]"
+                          className="absolute inset-0 rounded-lg opacity-90 bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(255,255,255,0.16))]"
                         />
                         <span
                           aria-hidden="true"
-                          className={`absolute inset-[1px] rounded-full opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100 ${eventThemeAccent.heroGlow}`}
+                          className={`absolute inset-[1px] rounded-lg opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100 ${eventThemeAccent.heroGlow}`}
                         />
                       </>
                     )}
                     <span
-                      className={`relative inline-flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 ${isDayMode ? "bg-white/70 border border-slate-200/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] group-hover:bg-white" : "bg-white/10 border border-white/10 group-hover:bg-white/15"}`}
+                      className={`relative inline-flex h-9 w-9 items-center justify-center rounded-md transition-all duration-300 ${isDayMode ? "bg-white/70 border border-slate-200/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] group-hover:bg-white" : "bg-white/10 border border-white/10 group-hover:bg-white/15"}`}
                     >
                       <X
                         size={20}
@@ -1509,22 +1509,22 @@ END:VCALENDAR`;
                         <button
                           onClick={closeEvent}
                           aria-label={t("common.close", "关闭")}
-                          className={`absolute right-4 top-4 sm:top-6 sm:right-6 h-11 w-11 sm:h-12 sm:w-12 rounded-full backdrop-blur-xl border transition-all duration-300 z-30 group inline-flex items-center justify-center overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer ${isDayMode ? `bg-white/86 hover:bg-white text-slate-700 border-white/85 shadow-[0_16px_34px_rgba(15,23,42,0.14)] hover:shadow-[0_22px_42px_rgba(15,23,42,0.18)] hover:-translate-y-0.5 focus-visible:ring-slate-400/70 focus-visible:ring-offset-white` : "bg-black/45 hover:bg-black/65 text-white border-white/10 hover:border-white/20 focus-visible:ring-white/60 focus-visible:ring-offset-[#0f0f0f]"}`}
+                          className={`absolute right-4 top-4 sm:top-6 sm:right-6 h-11 w-11 sm:h-12 sm:w-12 rounded-lg backdrop-blur-xl border transition-all duration-300 z-30 group inline-flex items-center justify-center overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer ${isDayMode ? `bg-white/86 hover:bg-white text-slate-700 border-white/85 shadow-[0_16px_34px_rgba(15,23,42,0.14)] hover:shadow-[0_22px_42px_rgba(15,23,42,0.18)] hover:-translate-y-0.5 focus-visible:ring-slate-400/70 focus-visible:ring-offset-white` : "bg-black/45 hover:bg-black/65 text-white border-white/10 hover:border-white/20 focus-visible:ring-white/60 focus-visible:ring-offset-[#0f0f0f]"}`}
                         >
                           {isDayMode && (
                             <>
                               <span
                                 aria-hidden="true"
-                                className={`absolute inset-0 rounded-full opacity-90 bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(255,255,255,0.16))]`}
+                                className={`absolute inset-0 rounded-lg opacity-90 bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(255,255,255,0.16))]`}
                               />
                               <span
                                 aria-hidden="true"
-                                className={`absolute inset-[1px] rounded-full opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100 ${eventThemeAccent.heroGlow}`}
+                                className={`absolute inset-[1px] rounded-lg opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100 ${eventThemeAccent.heroGlow}`}
                               />
                             </>
                           )}
                           <span
-                            className={`relative inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full transition-all duration-300 ${isDayMode ? "bg-white/70 border border-slate-200/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] group-hover:bg-white" : "bg-white/10 border border-white/10 group-hover:bg-white/15"}`}
+                            className={`relative inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-md transition-all duration-300 ${isDayMode ? "bg-white/70 border border-slate-200/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] group-hover:bg-white" : "bg-white/10 border border-white/10 group-hover:bg-white/15"}`}
                           >
                             <X
                               size={20}
@@ -1575,7 +1575,7 @@ END:VCALENDAR`;
                           <div className="flex flex-col gap-4 sm:gap-6 sm:flex-row sm:items-end sm:justify-between">
                             <div className="max-w-full sm:max-w-[82%]">
                               <div
-                                className={`inline-flex items-center gap-2 rounded-full px-3 py-1 mb-3 sm:mb-4 border ${isDayMode ? "bg-white/80 border-white/80 text-slate-500 shadow-[0_10px_22px_rgba(15,23,42,0.08)]" : "bg-white/10 border-white/15 text-white/70"}`}
+                                className={`inline-flex items-center gap-2 rounded-md px-3 py-1 mb-3 sm:mb-4 border ${isDayMode ? "bg-white/80 border-white/80 text-slate-500 shadow-[0_10px_22px_rgba(15,23,42,0.08)]" : "bg-white/10 border-white/15 text-white/70"}`}
                               >
                                 <span
                                   className={`h-1.5 w-1.5 rounded-full ${eventThemeAccent.dot}`}
@@ -1608,7 +1608,7 @@ END:VCALENDAR`;
                               <div className="mt-4 flex flex-wrap items-center gap-2.5">
                                 {selectedEvent.organizer && (
                                   <span
-                                    className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 border text-xs sm:text-sm font-medium ${isDayMode ? "bg-white/82 text-slate-600 border-white/80 shadow-[0_10px_22px_rgba(15,23,42,0.06)]" : "bg-white/10 text-white/80 border-white/15"}`}
+                                    className={`inline-flex items-center gap-2 rounded-md px-3.5 py-2 border text-xs sm:text-sm font-medium ${isDayMode ? "bg-white/82 text-slate-600 border-white/80 shadow-[0_10px_22px_rgba(15,23,42,0.06)]" : "bg-white/10 text-white/80 border-white/15"}`}
                                   >
                                     <Building2
                                       size={14}
@@ -1619,7 +1619,7 @@ END:VCALENDAR`;
                                 )}
                                 {selectedEvent.target_audience && (
                                   <span
-                                    className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 border text-xs sm:text-sm font-medium ${isDayMode ? "bg-white/82 text-slate-600 border-white/80 shadow-[0_10px_22px_rgba(15,23,42,0.06)]" : "bg-white/10 text-white/80 border-white/15"}`}
+                                    className={`inline-flex items-center gap-2 rounded-md px-3.5 py-2 border text-xs sm:text-sm font-medium ${isDayMode ? "bg-white/82 text-slate-600 border-white/80 shadow-[0_10px_22px_rgba(15,23,42,0.06)]" : "bg-white/10 text-white/80 border-white/15"}`}
                                   >
                                     <Users
                                       size={14}
@@ -1639,7 +1639,7 @@ END:VCALENDAR`;
                                 showCount={true}
                                 count={selectedEvent.likes || 0}
                                 favorited={selectedEvent.favorited}
-                                className={`p-3 rounded-full backdrop-blur-md transition-all shrink-0 border ${isDayMode ? "bg-white/90 hover:bg-white border-white/80 text-slate-700 shadow-[0_14px_28px_rgba(15,23,42,0.1)] hover:shadow-[0_18px_36px_rgba(15,23,42,0.16)]" : "bg-white/10 hover:bg-white/20 border border-white/10"}`}
+                                className={`p-3 rounded-md backdrop-blur-md transition-all shrink-0 border ${isDayMode ? "bg-white/90 hover:bg-white border-white/80 text-slate-700 shadow-[0_14px_28px_rgba(15,23,42,0.1)] hover:shadow-[0_18px_36px_rgba(15,23,42,0.16)]" : "bg-white/10 hover:bg-white/20 border border-white/10"}`}
                                 onToggle={(favorited, likes) => {
                                   setSelectedEvent((prev) => ({
                                     ...prev,
@@ -1677,22 +1677,22 @@ END:VCALENDAR`;
                       <button
                         onClick={closeEvent}
                         aria-label={t("common.close", "关闭")}
-                        className={`absolute right-4 top-4 h-11 w-11 rounded-full backdrop-blur-xl border transition-all duration-300 z-30 group inline-flex items-center justify-center overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer ${isDayMode ? `bg-white/86 hover:bg-white text-slate-700 border-white/85 shadow-[0_16px_34px_rgba(15,23,42,0.14)] hover:shadow-[0_22px_42px_rgba(15,23,42,0.18)] hover:-translate-y-0.5 focus-visible:ring-slate-400/70 focus-visible:ring-offset-white` : "bg-black/45 hover:bg-black/65 text-white border-white/10 hover:border-white/20 focus-visible:ring-white/60 focus-visible:ring-offset-[#0f0f0f]"}`}
+                        className={`absolute right-4 top-4 h-11 w-11 rounded-lg backdrop-blur-xl border transition-all duration-300 z-30 group inline-flex items-center justify-center overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer ${isDayMode ? `bg-white/86 hover:bg-white text-slate-700 border-white/85 shadow-[0_16px_34px_rgba(15,23,42,0.14)] hover:shadow-[0_22px_42px_rgba(15,23,42,0.18)] hover:-translate-y-0.5 focus-visible:ring-slate-400/70 focus-visible:ring-offset-white` : "bg-black/45 hover:bg-black/65 text-white border-white/10 hover:border-white/20 focus-visible:ring-white/60 focus-visible:ring-offset-[#0f0f0f]"}`}
                       >
                         {isDayMode && (
                           <>
                             <span
                               aria-hidden="true"
-                              className="absolute inset-0 rounded-full opacity-90 bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(255,255,255,0.16))]"
+                              className="absolute inset-0 rounded-lg opacity-90 bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(255,255,255,0.16))]"
                             />
                             <span
                               aria-hidden="true"
-                              className={`absolute inset-[1px] rounded-full opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100 ${eventThemeAccent.heroGlow}`}
+                              className={`absolute inset-[1px] rounded-lg opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100 ${eventThemeAccent.heroGlow}`}
                             />
                           </>
                         )}
                         <span
-                          className={`relative inline-flex h-8 w-8 items-center justify-center rounded-full transition-all duration-300 ${isDayMode ? "bg-white/70 border border-slate-200/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] group-hover:bg-white" : "bg-white/10 border border-white/10 group-hover:bg-white/15"}`}
+                          className={`relative inline-flex h-8 w-8 items-center justify-center rounded-md transition-all duration-300 ${isDayMode ? "bg-white/70 border border-slate-200/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] group-hover:bg-white" : "bg-white/10 border border-white/10 group-hover:bg-white/15"}`}
                         >
                           <X
                             size={20}
@@ -1712,7 +1712,7 @@ END:VCALENDAR`;
                               href={selectedEvent.link}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className={`mt-3 inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-bold transition-all group ${isDayMode ? eventThemeAccent.cta : "bg-indigo-500/90 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 backdrop-blur-md border border-white/10"}`}
+                              className={`mt-3 inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold transition-all group ${isDayMode ? eventThemeAccent.cta : "bg-indigo-500/90 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 backdrop-blur-md border border-white/10"}`}
                             >
                               {t("events.visit_link")}
                               <ExternalLink
@@ -1740,7 +1740,7 @@ END:VCALENDAR`;
                           showCount={true}
                           count={selectedEvent.likes || 0}
                           favorited={selectedEvent.favorited}
-                          className={`p-3 rounded-full backdrop-blur-md transition-all shrink-0 border ${isDayMode ? "bg-white/90 hover:bg-white border-white/80 text-slate-700 shadow-[0_14px_28px_rgba(15,23,42,0.1)] hover:shadow-[0_18px_36px_rgba(15,23,42,0.16)]" : "bg-white/10 hover:bg-white/20 border border-white/10"}`}
+                          className={`p-3 rounded-md backdrop-blur-md transition-all shrink-0 border ${isDayMode ? "bg-white/90 hover:bg-white border-white/80 text-slate-700 shadow-[0_14px_28px_rgba(15,23,42,0.1)] hover:shadow-[0_18px_36px_rgba(15,23,42,0.16)]" : "bg-white/10 hover:bg-white/20 border border-white/10"}`}
                           onToggle={(favorited, likes) => {
                             setSelectedEvent((prev) => ({
                               ...prev,
@@ -1835,7 +1835,7 @@ END:VCALENDAR`;
                             href={selectedEvent.link}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={`shrink-0 inline-flex items-center justify-center gap-2 rounded-2xl px-5 h-12 text-sm font-bold transition-all group ${isDayMode ? eventThemeAccent.cta : "bg-indigo-500/90 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 backdrop-blur-md border border-white/10"}`}
+                            className={`shrink-0 inline-flex items-center justify-center gap-2 rounded-lg px-5 h-12 text-sm font-bold transition-all group ${isDayMode ? eventThemeAccent.cta : "bg-indigo-500/90 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 backdrop-blur-md border border-white/10"}`}
                           >
                             {t("events.visit_link")}
                             <ExternalLink
@@ -1855,7 +1855,7 @@ END:VCALENDAR`;
                     <div className="flex flex-col-reverse lg:flex-row gap-6">
                       <div className="flex-1 space-y-4">
                         <div
-                          className={`rounded-[1.9rem] p-5 sm:p-7 border h-full relative overflow-hidden ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.99))] border-slate-200/80 shadow-[0_22px_50px_rgba(15,23,42,0.08)]" : "bg-white/5 border-white/5"}`}
+                          className={`rounded-lg p-5 sm:p-7 border h-full relative overflow-hidden ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.99))] border-slate-200/80 shadow-[0_22px_50px_rgba(15,23,42,0.08)]" : "bg-white/5 border-white/5"}`}
                         >
                           {isDayMode && (
                             <>
@@ -1867,7 +1867,7 @@ END:VCALENDAR`;
                           )}
                           <div className="relative">
                             <div
-                              className={`inline-flex items-center gap-2 rounded-full px-3 py-1 mb-4 border ${isDayMode ? "bg-slate-50/90 text-slate-500 border-slate-200/80" : "bg-white/10 text-white/70 border-white/10"}`}
+                              className={`inline-flex items-center gap-2 rounded-md px-3 py-1 mb-4 border ${isDayMode ? "bg-slate-50/90 text-slate-500 border-slate-200/80" : "bg-white/10 text-white/70 border-white/10"}`}
                             >
                               <FileText
                                 size={16}
@@ -1899,7 +1899,7 @@ END:VCALENDAR`;
                       {/* Sidebar - Details & Link */}
                       <div className="lg:w-[360px] xl:w-[400px] space-y-4">
                         <div
-                          className={`rounded-[1.9rem] p-5 sm:p-6 border lg:sticky lg:top-8 space-y-5 relative overflow-hidden ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(248,250,252,0.99))] border-slate-200/80 shadow-[0_22px_54px_rgba(15,23,42,0.08)]" : "bg-white/5 border-white/5"}`}
+                          className={`rounded-lg p-5 sm:p-6 border lg:sticky lg:top-8 space-y-5 relative overflow-hidden ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(248,250,252,0.99))] border-slate-200/80 shadow-[0_22px_54px_rgba(15,23,42,0.08)]" : "bg-white/5 border-white/5"}`}
                         >
                           {isDayMode && (
                             <>
@@ -1915,7 +1915,7 @@ END:VCALENDAR`;
                           {/* Key Attributes Grid */}
                           {selectedEvent.category && (
                             <div
-                              className={`rounded-[1.6rem] p-4 border backdrop-blur-sm ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(248,250,252,0.98))] border-slate-200/80 shadow-[0_16px_34px_rgba(15,23,42,0.06)]" : "bg-white/[0.03] border-white/5"}`}
+                              className={`rounded-lg p-4 border backdrop-blur-sm ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(248,250,252,0.98))] border-slate-200/80 shadow-[0_16px_34px_rgba(15,23,42,0.06)]" : "bg-white/[0.03] border-white/5"}`}
                             >
                               <div
                                 className={`flex items-center gap-2 mb-3 ${eventThemeAccent.accentText}`}
@@ -1927,7 +1927,7 @@ END:VCALENDAR`;
                               </div>
                               <div className="flex flex-wrap gap-2">
                                 <span
-                                  className={`px-3 py-1.5 rounded-xl text-sm font-medium border transition-all ${isDayMode ? `bg-white text-slate-600 border-slate-200/80 shadow-[0_8px_20px_rgba(15,23,42,0.05)] hover:-translate-y-0.5 ${eventThemeAccent.tagHover}` : "bg-white/5 text-gray-300 border-white/5 hover:bg-white/10"}`}
+                                  className={`px-3 py-1.5 rounded-md text-sm font-medium border transition-all ${isDayMode ? `bg-white text-slate-600 border-slate-200/80 shadow-[0_8px_20px_rgba(15,23,42,0.05)] hover:-translate-y-0.5 ${eventThemeAccent.tagHover}` : "bg-white/5 text-gray-300 border-white/5 hover:bg-white/10"}`}
                                 >
                                   {getEventCategoryLabel(selectedEvent.category)}
                                 </span>
@@ -1942,7 +1942,7 @@ END:VCALENDAR`;
                           {/* Detailed Info List */}
                           <div className="grid grid-cols-2 gap-3 sm:gap-4">
                             <div
-                              className={`flex items-start gap-2.5 group rounded-[1.35rem] px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:rounded-[1.6rem] sm:px-4 sm:py-4 ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(248,250,252,0.98))] border-slate-200/80 shadow-[0_12px_26px_rgba(15,23,42,0.05)] hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(15,23,42,0.08)]" : "bg-white/[0.03] border-white/5"}`}
+                              className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(248,250,252,0.98))] border-slate-200/80 shadow-[0_12px_26px_rgba(15,23,42,0.05)] hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(15,23,42,0.08)]" : "bg-white/[0.03] border-white/5"}`}
                             >
                               <div className="p-2 bg-orange-500/5 border border-orange-500/10 rounded-xl text-orange-400 shrink-0 group-hover:bg-orange-500/10 transition-colors sm:p-2.5">
                                 <Calendar size={18} className="sm:h-5 sm:w-5" />
@@ -1968,7 +1968,7 @@ END:VCALENDAR`;
                             </div>
 
                             <div
-                              className={`flex items-start gap-2.5 group rounded-[1.35rem] px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:rounded-[1.6rem] sm:px-4 sm:py-4 ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(248,250,252,0.98))] border-slate-200/80 shadow-[0_12px_26px_rgba(15,23,42,0.05)] hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(15,23,42,0.08)]" : "bg-white/[0.03] border-white/5"}`}
+                              className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(248,250,252,0.98))] border-slate-200/80 shadow-[0_12px_26px_rgba(15,23,42,0.05)] hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(15,23,42,0.08)]" : "bg-white/[0.03] border-white/5"}`}
                             >
                               <div className="p-2 bg-indigo-500/5 border border-indigo-500/10 rounded-xl text-indigo-400 shrink-0 group-hover:bg-indigo-500/10 transition-colors sm:p-2.5">
                                 <MapPin size={18} className="sm:h-5 sm:w-5" />
@@ -1989,7 +1989,7 @@ END:VCALENDAR`;
 
                             {selectedEvent.organizer && (
                               <div
-                                className={`flex items-start gap-2.5 group rounded-[1.35rem] px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:rounded-[1.6rem] sm:px-4 sm:py-4 ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(248,250,252,0.98))] border-slate-200/80 shadow-[0_12px_26px_rgba(15,23,42,0.05)] hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(15,23,42,0.08)]" : "bg-white/[0.03] border-white/5"}`}
+                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(248,250,252,0.98))] border-slate-200/80 shadow-[0_12px_26px_rgba(15,23,42,0.05)] hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(15,23,42,0.08)]" : "bg-white/[0.03] border-white/5"}`}
                               >
                                 <div className="p-2 bg-green-500/5 border border-green-500/10 rounded-xl text-green-400 shrink-0 group-hover:bg-green-500/10 transition-colors sm:p-2.5">
                                   <Building2
@@ -2014,7 +2014,7 @@ END:VCALENDAR`;
 
                             {selectedEvent.target_audience && (
                               <div
-                                className={`flex items-start gap-2.5 group rounded-[1.35rem] px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:rounded-[1.6rem] sm:px-4 sm:py-4 ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(248,250,252,0.98))] border-slate-200/80 shadow-[0_12px_26px_rgba(15,23,42,0.05)] hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(15,23,42,0.08)]" : "bg-white/[0.03] border-white/5"}`}
+                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(248,250,252,0.98))] border-slate-200/80 shadow-[0_12px_26px_rgba(15,23,42,0.05)] hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(15,23,42,0.08)]" : "bg-white/[0.03] border-white/5"}`}
                               >
                                 <div className="p-2 bg-blue-500/5 border border-blue-500/10 rounded-xl text-blue-400 shrink-0 group-hover:bg-blue-500/10 transition-colors sm:p-2.5">
                                   <Users size={18} className="sm:h-5 sm:w-5" />
@@ -2036,7 +2036,7 @@ END:VCALENDAR`;
 
                             {selectedEvent.volunteer_time && (
                               <div
-                                className={`flex items-start gap-2.5 group rounded-[1.35rem] px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:rounded-[1.6rem] sm:px-4 sm:py-4 ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(248,250,252,0.98))] border-slate-200/80 shadow-[0_12px_26px_rgba(15,23,42,0.05)] hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(15,23,42,0.08)]" : "bg-white/[0.03] border-white/5"}`}
+                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(248,250,252,0.98))] border-slate-200/80 shadow-[0_12px_26px_rgba(15,23,42,0.05)] hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(15,23,42,0.08)]" : "bg-white/[0.03] border-white/5"}`}
                               >
                                 <div className="p-2 bg-emerald-500/5 border border-emerald-500/10 rounded-xl text-emerald-400 shrink-0 group-hover:bg-emerald-500/10 transition-colors sm:p-2.5">
                                   <Clock size={18} className="sm:h-5 sm:w-5" />
@@ -2058,7 +2058,7 @@ END:VCALENDAR`;
 
                             {selectedEvent.score && (
                               <div
-                                className={`flex items-start gap-2.5 group rounded-[1.35rem] px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:rounded-[1.6rem] sm:px-4 sm:py-4 ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(248,250,252,0.98))] border-slate-200/80 shadow-[0_12px_26px_rgba(15,23,42,0.05)] hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(15,23,42,0.08)]" : "bg-white/[0.03] border-white/5"}`}
+                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(248,250,252,0.98))] border-slate-200/80 shadow-[0_12px_26px_rgba(15,23,42,0.05)] hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(15,23,42,0.08)]" : "bg-white/[0.03] border-white/5"}`}
                               >
                                 <div className="p-2 bg-purple-500/5 border border-purple-500/10 rounded-xl text-purple-400 shrink-0 group-hover:bg-purple-500/10 transition-colors sm:p-2.5">
                                   <Award size={18} className="sm:h-5 sm:w-5" />

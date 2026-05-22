@@ -35,7 +35,7 @@ const SortSelector = ({
                 type="button"
                 aria-pressed={active}
                 onClick={() => onSortChange(option.value)}
-                className={`w-full min-h-[48px] flex items-center justify-between gap-3 px-4 py-4 rounded-2xl border transition-all text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+                className={`w-full min-h-[48px] flex items-center justify-between gap-3 px-4 py-4 rounded-lg border transition-all text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
                   active
                     ? isDayMode
                       ? 'day-card-lift text-slate-900 border-indigo-200/70 shadow-[0_10px_24px_rgba(99,102,241,0.12)]'
@@ -46,7 +46,7 @@ const SortSelector = ({
                 }`}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className={`p-2 rounded-xl ${active ? (isDayMode ? 'bg-indigo-500/12 text-indigo-600' : 'bg-indigo-500/20 text-indigo-300') : (isDayMode ? 'bg-slate-100 text-slate-500' : 'bg-white/5 text-gray-400')}`}>
+                  <div className={`p-2 rounded-md ${active ? (isDayMode ? 'bg-indigo-500/12 text-indigo-600' : 'bg-indigo-500/20 text-indigo-300') : (isDayMode ? 'bg-slate-100 text-slate-500' : 'bg-white/5 text-gray-400')}`}>
                     <ArrowUpDown size={16} />
                   </div>
                   <span className="font-medium truncate">{option.label}</span>
@@ -70,8 +70,8 @@ const SortSelector = ({
         options={options}
         icon={ArrowUpDown}
         buttonClassName={buttonClassName || (isDayMode
-          ? "day-quiet-button border rounded-full px-6 py-2.5 min-h-[44px] backdrop-blur-3xl transition-all text-sm font-medium text-slate-700 hover:text-indigo-600"
-          : "bg-[#0a0a0a]/60 border border-white/10 hover:bg-[#0a0a0a]/80 hover:border-indigo-500/30 rounded-full px-6 py-2.5 min-h-[44px] backdrop-blur-3xl transition-all text-sm font-medium shadow-lg text-white hover:shadow-[0_0_15px_rgba(99,102,241,0.2)]")}
+          ? "day-quiet-button border rounded-lg px-6 py-2.5 min-h-[44px] backdrop-blur-3xl transition-all text-sm font-medium text-slate-700 hover:text-indigo-600"
+          : "bg-[#0a0a0a]/60 border border-white/10 hover:bg-[#0a0a0a]/80 hover:border-indigo-500/30 rounded-lg px-6 py-2.5 min-h-[44px] backdrop-blur-3xl transition-all text-sm font-medium shadow-lg text-white hover:shadow-[0_0_15px_rgba(99,102,241,0.2)]")}
       />
     </div>
   );

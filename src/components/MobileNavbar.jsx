@@ -107,7 +107,7 @@ const MobileNavbar = () => {
           const activeIconSurface = isDayMode
             ? "bg-slate-100 shadow-[0_8px_18px_rgba(99,102,241,0.14)] ring-1 ring-indigo-100"
             : "bg-[#1d2a44] shadow-[0_0_16px_rgba(99,102,241,0.22)]";
-          const iconClassName = `relative rounded-2xl p-2 transition-colors duration-300 ${
+          const iconClassName = `relative rounded-md p-2 transition-colors duration-300 ${
             isActive
               ? isDayMode
                 ? "text-indigo-500"
@@ -131,11 +131,11 @@ const MobileNavbar = () => {
               >
                 {isActive &&
                   (prefersReducedMotion ? (
-                    <span className={`absolute inset-0 rounded-2xl ${activeIconSurface}`} />
+                    <span className={`absolute inset-0 rounded-md ${activeIconSurface}`} />
                   ) : (
                     <motion.span
                       layoutId="mobile-tab-active-icon"
-                      className={`absolute inset-0 rounded-2xl ${activeIconSurface}`}
+                      className={`absolute inset-0 rounded-md ${activeIconSurface}`}
                       transition={motionTokens.spring.tab}
                     />
                   ))}
@@ -147,7 +147,7 @@ const MobileNavbar = () => {
                       "{{count}} 条未读通知",
                       { count: unreadCount },
                     )}
-                    className={`absolute -top-0.5 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none flex items-center justify-center ring-2 shadow-sm ${isDayMode ? "ring-white" : "ring-[#101722]"}`}
+                    className={`absolute -top-0.5 -right-1 min-w-[18px] h-[18px] px-1 rounded-md bg-red-500 text-white text-[10px] font-bold leading-none flex items-center justify-center ring-2 shadow-sm ${isDayMode ? "ring-white" : "ring-[#101722]"}`}
                   >
                     {badgeLabel}
                   </span>

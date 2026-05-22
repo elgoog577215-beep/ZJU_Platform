@@ -7,7 +7,7 @@ const MobileEventAssistantLauncher = ({ isDayMode, onOpen }) => (
   <button
     type="button"
     onClick={onOpen}
-    className={`group mb-4 flex w-full items-center justify-between rounded-[1.5rem] border px-4 py-3.5 text-left transition-all active:scale-[0.99] md:hidden ${
+    className={`group mb-4 flex w-full items-center justify-between rounded-lg border px-4 py-3.5 text-left transition-all active:scale-[0.99] md:hidden ${
       isDayMode
         ? "border-slate-200 bg-white text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
         : "border-white/10 bg-white/[0.06] text-white shadow-none"
@@ -15,7 +15,7 @@ const MobileEventAssistantLauncher = ({ isDayMode, onOpen }) => (
   >
     <span className="flex min-w-0 items-center gap-3">
       <span
-        className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition-transform group-active:scale-95 ${
+        className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md transition-transform group-active:scale-95 ${
           isDayMode
             ? "bg-blue-50 text-blue-600"
             : "bg-white/10 text-blue-200"
@@ -31,7 +31,7 @@ const MobileEventAssistantLauncher = ({ isDayMode, onOpen }) => (
       </span>
     </span>
     <span
-      className={`ml-3 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-transform group-active:translate-x-0.5 ${
+      className={`ml-3 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md border transition-transform group-active:translate-x-0.5 ${
         isDayMode ? "border-slate-200 bg-white/80 text-slate-500" : "border-white/10 bg-white/5 text-gray-300"
       }`}
     >
@@ -72,7 +72,7 @@ const MobileEventAssistantFullscreen = ({
               type="button"
               aria-label="返回活动列表"
               onClick={onClose}
-              className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border transition-colors ${
+              className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md border transition-colors ${
                 isDayMode
                   ? "border-slate-200 bg-white text-slate-600 hover:text-slate-900"
                   : "border-white/10 bg-white/5 text-gray-300 hover:text-white"
@@ -86,7 +86,7 @@ const MobileEventAssistantFullscreen = ({
               </h2>
             </div>
             <span
-              className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${
+              className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md ${
                 isDayMode ? "bg-blue-50 text-blue-600" : "bg-white/10 text-blue-200"
               }`}
             >

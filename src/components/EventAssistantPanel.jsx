@@ -398,18 +398,18 @@ const EventAssistantPanel = ({
 
   return (
     <div className={`w-full ${className}`}>
-      <div className={`relative overflow-hidden border backdrop-blur-2xl ${isFullscreenVariant ? "rounded-none" : "rounded-3xl"} ${shellClass}`}>
+      <div className={`relative overflow-hidden border backdrop-blur-2xl ${isFullscreenVariant ? "rounded-none" : "rounded-lg"} ${shellClass}`}>
         <div className={`relative ${isFullscreenVariant ? "px-0 pb-6 pt-0" : "p-4 sm:p-5 lg:p-6"}`}>
           {!isFullscreenVariant ? (
             <>
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div className="max-w-2xl text-left">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] ${chipClass}`}>
+                    <span className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] ${chipClass}`}>
                       <Sparkles size={13} className={isDayMode ? "text-cyan-500" : "text-cyan-300"} />
                       AI 活动推荐
                     </span>
-                    <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-medium ${isDayMode ? "bg-emerald-50 text-emerald-700 border-emerald-200/80" : "bg-emerald-400/10 text-emerald-200 border-emerald-300/15"}`}>
+                    <span className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-[11px] font-medium ${isDayMode ? "bg-emerald-50 text-emerald-700 border-emerald-200/80" : "bg-emerald-400/10 text-emerald-200 border-emerald-300/15"}`}>
                       <Brain size={13} />
                       AI 理解后排序
                     </span>
@@ -427,7 +427,7 @@ const EventAssistantPanel = ({
                   <button
                     type="button"
                     onClick={resetAssistant}
-                    className={`inline-flex items-center gap-2 self-start rounded-full border px-4 py-2 text-sm font-semibold transition-all ${chipClass}`}
+                    className={`inline-flex items-center gap-2 self-start rounded-lg border px-4 py-2 text-sm font-semibold transition-all ${chipClass}`}
                   >
                     <RotateCcw size={15} />
                     重新提问
@@ -439,7 +439,7 @@ const EventAssistantPanel = ({
                 <button
                   type="button"
                   onClick={toggleProfile}
-                  className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-all ${chipClass}`}
+                  className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition-all ${chipClass}`}
                 >
                   <Settings2 size={15} />
                   我的推荐偏好
@@ -456,7 +456,7 @@ const EventAssistantPanel = ({
                 exit={{ opacity: 0, height: 0 }}
                 className="overflow-hidden"
               >
-                <div className={`mt-4 rounded-2xl border p-4 ${softPanelClass}`}>
+                <div className={`mt-4 rounded-lg border p-4 ${softPanelClass}`}>
                   {profileLoading ? (
                     <div className={`flex items-center gap-2 text-sm ${faintClass}`}>
                       <Loader2 size={16} className="animate-spin" />
@@ -465,7 +465,7 @@ const EventAssistantPanel = ({
                   ) : (
                     <div className="grid gap-4">
                       {profileAuthRequired ? (
-                        <div className={`rounded-2xl border px-4 py-3 text-sm leading-6 ${isDayMode ? "border-amber-200/80 bg-amber-50 text-amber-800" : "border-amber-300/20 bg-amber-400/10 text-amber-100"}`}>
+                        <div className={`rounded-lg border px-4 py-3 text-sm leading-6 ${isDayMode ? "border-amber-200/80 bg-amber-50 text-amber-800" : "border-amber-300/20 bg-amber-400/10 text-amber-100"}`}>
                           登录后可以保存长期画像；现在也可以直接在提问里写清楚偏好，我会按本次内容推荐。
                         </div>
                       ) : null}
@@ -481,7 +481,7 @@ const EventAssistantPanel = ({
                                 college: event.target.value,
                               }))
                             }
-                            className={`rounded-xl border px-3 py-2.5 outline-none ${isDayMode ? "bg-white text-slate-900 border-slate-200" : "bg-white/5 text-white border-white/10"}`}
+                            className={`rounded-lg border px-3 py-2.5 outline-none ${isDayMode ? "bg-white text-slate-900 border-slate-200" : "bg-white/5 text-white border-white/10"}`}
                             placeholder="计算机学院"
                           />
                         </label>
@@ -495,7 +495,7 @@ const EventAssistantPanel = ({
                                 grade: event.target.value,
                               }))
                             }
-                            className={`rounded-xl border px-3 py-2.5 outline-none ${isDayMode ? "bg-white text-slate-900 border-slate-200" : "bg-white/5 text-white border-white/10"}`}
+                            className={`rounded-lg border px-3 py-2.5 outline-none ${isDayMode ? "bg-white text-slate-900 border-slate-200" : "bg-white/5 text-white border-white/10"}`}
                             placeholder="本科新生 / 研一"
                           />
                         </label>
@@ -509,7 +509,7 @@ const EventAssistantPanel = ({
                                 campus: event.target.value,
                               }))
                             }
-                            className={`rounded-xl border px-3 py-2.5 outline-none ${isDayMode ? "bg-white text-slate-900 border-slate-200" : "bg-white/5 text-white border-white/10"}`}
+                            className={`rounded-lg border px-3 py-2.5 outline-none ${isDayMode ? "bg-white text-slate-900 border-slate-200" : "bg-white/5 text-white border-white/10"}`}
                             placeholder="紫金港"
                           />
                         </label>
@@ -525,7 +525,7 @@ const EventAssistantPanel = ({
                               interestTagsText: event.target.value,
                             }))
                           }
-                          className={`rounded-xl border px-3 py-2.5 outline-none ${isDayMode ? "bg-white text-slate-900 border-slate-200" : "bg-white/5 text-white border-white/10"}`}
+                          className={`rounded-lg border px-3 py-2.5 outline-none ${isDayMode ? "bg-white text-slate-900 border-slate-200" : "bg-white/5 text-white border-white/10"}`}
                           placeholder="AI、创业、志愿、摄影"
                         />
                       </label>
@@ -539,7 +539,7 @@ const EventAssistantPanel = ({
                                 key={option.value}
                                 type="button"
                                 onClick={() => toggleProfileArrayValue("preferredCategories", option.value)}
-                                className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${profileForm.preferredCategories.includes(option.value) ? selectedPillClass : chipClass}`}
+                                className={`rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${profileForm.preferredCategories.includes(option.value) ? selectedPillClass : chipClass}`}
                               >
                                 {option.label}
                               </button>
@@ -554,7 +554,7 @@ const EventAssistantPanel = ({
                                 key={option.value}
                                 type="button"
                                 onClick={() => toggleProfileArrayValue("preferredBenefits", option.value)}
-                                className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${profileForm.preferredBenefits.includes(option.value) ? selectedPillClass : chipClass}`}
+                                className={`rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${profileForm.preferredBenefits.includes(option.value) ? selectedPillClass : chipClass}`}
                               >
                                 {option.label}
                               </button>
@@ -580,7 +580,7 @@ const EventAssistantPanel = ({
                                   preferredFormat: value,
                                 }))
                               }
-                              className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${profileForm.preferredFormat === value ? selectedPillClass : chipClass}`}
+                              className={`rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${profileForm.preferredFormat === value ? selectedPillClass : chipClass}`}
                             >
                               {label}
                             </button>
@@ -590,7 +590,7 @@ const EventAssistantPanel = ({
                           type="button"
                           onClick={saveProfile}
                           disabled={profileSaving || profileAuthRequired}
-                          className={`inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold disabled:opacity-50 ${actionClass}`}
+                          className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold disabled:opacity-50 ${actionClass}`}
                         >
                           {profileSaving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
                           保存偏好
@@ -604,7 +604,7 @@ const EventAssistantPanel = ({
           </AnimatePresence>
 
           {originalQuery && (
-            <div className={`mt-4 inline-flex max-w-full items-center gap-2 rounded-full border px-4 py-2 text-sm ${chipClass}`}>
+            <div className={`mt-4 inline-flex max-w-full items-center gap-2 rounded-lg border px-4 py-2 text-sm ${chipClass}`}>
               <MessageSquareText size={14} />
               <span className="truncate">{originalQuery}</span>
             </div>
@@ -618,7 +618,7 @@ const EventAssistantPanel = ({
                   type="button"
                   onClick={() => handleQuickPrompt(item.prompt)}
                   disabled={loading}
-                  className={`inline-flex min-h-[48px] items-center justify-center gap-2 rounded-2xl border px-3 py-2 text-xs font-bold transition-colors disabled:opacity-50 ${quickPromptClass}`}
+                  className={`inline-flex min-h-[48px] items-center justify-center gap-2 rounded-lg border px-3 py-2 text-xs font-bold transition-colors disabled:opacity-50 ${quickPromptClass}`}
                 >
                   <Sparkles size={13} className={isDayMode ? "text-blue-500" : "text-blue-200"} />
                   {item.label}
@@ -628,7 +628,7 @@ const EventAssistantPanel = ({
           ) : null}
 
           <form onSubmit={handleSubmit} className={isFullscreenVariant ? "mt-3" : "mt-4"}>
-            <div className={`relative overflow-hidden rounded-3xl border p-4 ${promptCardClass}`}>
+            <div className={`relative overflow-hidden rounded-lg border p-4 ${promptCardClass}`}>
               <textarea
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
@@ -649,7 +649,7 @@ const EventAssistantPanel = ({
 
               <div className={`mt-4 flex flex-col gap-4 border-t pt-4 sm:flex-row sm:items-center sm:justify-between ${isDayMode ? "border-slate-200/70" : "border-white/10"}`}>
                 <div className="flex flex-wrap items-center gap-2">
-                  <label className={`inline-flex min-h-[36px] items-center gap-2 rounded-full border px-3 text-sm ${controlChipClass}`}>
+                  <label className={`inline-flex min-h-[36px] items-center gap-2 rounded-md border px-3 text-sm ${controlChipClass}`}>
                     <input
                       type="checkbox"
                       checked={rememberPreference}
@@ -663,7 +663,7 @@ const EventAssistantPanel = ({
                       <button
                         type="button"
                         onClick={toggleProfile}
-                        className={`inline-flex min-h-[36px] items-center gap-2 rounded-full border px-3 text-sm font-semibold transition-all ${controlChipClass}`}
+                        className={`inline-flex min-h-[36px] items-center gap-2 rounded-md border px-3 text-sm font-semibold transition-all ${controlChipClass}`}
                       >
                         <Settings2 size={14} />
                         偏好
@@ -672,7 +672,7 @@ const EventAssistantPanel = ({
                         <button
                           type="button"
                           onClick={resetAssistant}
-                          className={`inline-flex min-h-[36px] items-center gap-2 rounded-full border px-3 text-sm font-semibold transition-all ${controlChipClass}`}
+                          className={`inline-flex min-h-[36px] items-center gap-2 rounded-md border px-3 text-sm font-semibold transition-all ${controlChipClass}`}
                         >
                           <RotateCcw size={14} />
                           重来
@@ -685,7 +685,7 @@ const EventAssistantPanel = ({
                 <button
                   type="submit"
                   disabled={loading || input.trim() === ""}
-                  className={`inline-flex min-w-[148px] items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold transition-all active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 ${actionClass}`}
+                  className={`inline-flex min-w-[148px] items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-bold transition-all active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 ${actionClass}`}
                 >
                   {loading ? (
                     <>
@@ -713,26 +713,26 @@ const EventAssistantPanel = ({
                 transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
                 className="mt-4"
               >
-                <div className={`rounded-3xl border p-4 sm:p-5 ${resultPanelClass}`}>
+                <div className={`rounded-lg border p-4 sm:p-5 ${resultPanelClass}`}>
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] ${chipClass}`}>
+                    <span className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] ${chipClass}`}>
                       <Sparkles size={13} />
                       {scopeLabel}
                     </span>
                     {assistantState.remembered ? (
-                      <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs ${isDayMode ? "bg-emerald-50 text-emerald-700 border-emerald-200/80" : "bg-emerald-400/10 text-emerald-200 border-emerald-300/15"}`}>
+                      <span className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs ${isDayMode ? "bg-emerald-50 text-emerald-700 border-emerald-200/80" : "bg-emerald-400/10 text-emerald-200 border-emerald-300/15"}`}>
                         <Check size={13} />
                         已记住这次偏好
                       </span>
                     ) : null}
                     {hasModelStatus ? (
-                      <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs ${chipClass}`}>
+                      <span className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs ${chipClass}`}>
                         <Brain size={13} />
                         {assistantState.modelStatus?.used ? "大模型已参与排序" : "模型未完成排序"}
                       </span>
                     ) : null}
                     {coverageText ? (
-                      <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs ${chipClass}`}>
+                      <span className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs ${chipClass}`}>
                         <Calendar size={13} />
                         {coverageText}
                       </span>
@@ -754,14 +754,14 @@ const EventAssistantPanel = ({
                   {(understoodItems.length > 0 || profileSignals.length > 0) && (
                     <div className="mt-4 grid gap-3 lg:grid-cols-2">
                       {understoodItems.length > 0 ? (
-                        <div className={`rounded-2xl border p-4 ${chipClass}`}>
+                        <div className={`rounded-lg border p-4 ${chipClass}`}>
                           <div className={`mb-2 flex items-center gap-2 text-sm font-semibold ${textClass}`}>
                             <Brain size={15} />
                             我理解到
                           </div>
                           <div className="flex flex-wrap gap-2">
                             {understoodItems.map((item) => (
-                              <span key={item} className={`rounded-full border px-3 py-1 text-xs ${chipClass}`}>
+                              <span key={item} className={`rounded-md border px-3 py-1 text-xs ${chipClass}`}>
                                 {item}
                               </span>
                             ))}
@@ -770,7 +770,7 @@ const EventAssistantPanel = ({
                       ) : null}
 
                       {profileSignals.length > 0 ? (
-                        <div className={`rounded-2xl border p-4 ${chipClass}`}>
+                        <div className={`rounded-lg border p-4 ${chipClass}`}>
                           <div className={`mb-2 flex items-center gap-2 text-sm font-semibold ${textClass}`}>
                             <UserRound size={15} />
                             参考画像
@@ -786,7 +786,7 @@ const EventAssistantPanel = ({
                   )}
 
                   {(assistantState.warnings || []).length > 0 && (
-                    <div className={`mt-4 rounded-2xl border px-4 py-3 text-sm leading-6 ${isDayMode ? "bg-amber-50 text-amber-800 border-amber-200/80" : "bg-amber-400/10 text-amber-100 border-amber-300/20"}`}>
+                    <div className={`mt-4 rounded-lg border px-4 py-3 text-sm leading-6 ${isDayMode ? "bg-amber-50 text-amber-800 border-amber-200/80" : "bg-amber-400/10 text-amber-100 border-amber-300/20"}`}>
                       <div className="flex items-start gap-2">
                         <AlertTriangle size={16} className="mt-0.5 shrink-0" />
                         <span>{assistantState.warnings[0]}</span>
@@ -806,7 +806,7 @@ const EventAssistantPanel = ({
                   )}
 
                   {assistantState.type === "empty" && (
-                    <div className={`mt-4 rounded-2xl border px-5 py-6 text-center ${softPanelClass}`}>
+                    <div className={`mt-4 rounded-lg border px-5 py-6 text-center ${softPanelClass}`}>
                       <p className={`text-base font-semibold leading-8 sm:text-lg ${textClass}`}>
                         {emptyStateText}
                       </p>
@@ -821,7 +821,7 @@ const EventAssistantPanel = ({
                           type="button"
                           onClick={handleExpandScope}
                           disabled={loading}
-                          className={`mt-4 inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all ${actionClass}`}
+                          className={`mt-4 inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all ${actionClass}`}
                         >
                           <ArrowRight size={15} />
                           看看进行中或历史活动
@@ -835,7 +835,7 @@ const EventAssistantPanel = ({
                       {(assistantState.recommendations || []).map((item) => (
                         <div
                           key={item.id}
-                          className={`rounded-2xl border p-4 transition-colors sm:p-5 ${isDayMode ? "bg-white border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.035)]" : "bg-white/[0.045] border-white/10"}`}
+                          className={`rounded-lg border p-4 transition-colors sm:p-5 ${isDayMode ? "bg-white border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.035)]" : "bg-white/[0.045] border-white/10"}`}
                         >
                           <button
                             type="button"
@@ -846,13 +846,13 @@ const EventAssistantPanel = ({
                               <div className="min-w-0">
                                 <div className="mb-2 flex flex-wrap items-center gap-2">
                                   {item.isHistorical ? (
-                                    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${isDayMode ? "bg-amber-50 text-amber-700 border-amber-200/80" : "bg-amber-400/10 text-amber-200 border-amber-300/15"}`}>
+                                    <span className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${isDayMode ? "bg-amber-50 text-amber-700 border-amber-200/80" : "bg-amber-400/10 text-amber-200 border-amber-300/15"}`}>
                                       <Clock3 size={12} />
                                       历史活动
                                     </span>
                                   ) : null}
                                   {Number.isFinite(Number(item.score)) ? (
-                                    <span className={`rounded-full border px-2.5 py-1 text-xs ${chipClass}`}>
+                                    <span className={`rounded-md border px-2.5 py-1 text-xs ${chipClass}`}>
                                       匹配 {Math.max(0, Math.round(item.score))}
                                     </span>
                                   ) : null}
@@ -864,7 +864,7 @@ const EventAssistantPanel = ({
                                   {item.reason}
                                 </p>
                               </div>
-                              <span className={`mt-1 inline-flex h-10 shrink-0 items-center justify-center gap-1 rounded-full border px-3 text-xs font-semibold transition-transform group-hover:translate-x-1 ${chipClass}`}>
+                              <span className={`mt-1 inline-flex h-10 shrink-0 items-center justify-center gap-1 rounded-md border px-3 text-xs font-semibold transition-transform group-hover:translate-x-1 ${chipClass}`}>
                                 <span className="sm:hidden">详情</span>
                                 <span className="hidden sm:inline">看详情</span>
                                 <ArrowRight size={16} />
@@ -875,7 +875,7 @@ const EventAssistantPanel = ({
                           {(item.matchSignals || []).length > 0 && (
                             <div className="mt-4 flex flex-wrap gap-2">
                               {item.matchSignals.slice(0, 4).map((signal) => (
-                                <span key={signal} className={`rounded-full border px-3 py-1.5 text-xs ${chipClass}`}>
+                                <span key={signal} className={`rounded-md border px-3 py-1.5 text-xs ${chipClass}`}>
                                   {signal}
                                 </span>
                               ))}
@@ -884,19 +884,19 @@ const EventAssistantPanel = ({
 
                           <div className={`mt-5 flex flex-wrap items-center gap-2 text-xs ${faintClass}`}>
                             {item.event.date && (
-                              <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 ${chipClass}`}>
+                              <span className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 ${chipClass}`}>
                                 <Calendar size={13} />
                                 {formatEventDate(item.event.date)}
                               </span>
                             )}
                             {item.event.location && (
-                              <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 ${chipClass}`}>
+                              <span className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 ${chipClass}`}>
                                 <MapPin size={13} />
                                 <span className="max-w-[180px] truncate">{item.event.location}</span>
                               </span>
                             )}
                             {item.event.target_audience && (
-                              <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 ${chipClass}`}>
+                              <span className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 ${chipClass}`}>
                                 {item.event.target_audience}
                               </span>
                             )}
@@ -910,7 +910,7 @@ const EventAssistantPanel = ({
                                 aria-label="推荐适合我"
                                 title="适合我"
                                 onClick={() => submitFeedback(item, "up")}
-                                className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition-colors ${feedbackMap[item.id] === "up" ? "bg-emerald-500 text-white border-emerald-500" : chipClass}`}
+                                className={`inline-flex h-9 w-9 items-center justify-center rounded-md border transition-colors ${feedbackMap[item.id] === "up" ? "bg-emerald-500 text-white border-emerald-500" : chipClass}`}
                               >
                                 <ThumbsUp size={15} />
                               </button>
@@ -919,7 +919,7 @@ const EventAssistantPanel = ({
                                 aria-label="推荐不适合我"
                                 title="不适合我"
                                 onClick={() => submitFeedback(item, "down")}
-                                className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition-colors ${feedbackMap[item.id] === "down" ? "bg-rose-500 text-white border-rose-500" : chipClass}`}
+                                className={`inline-flex h-9 w-9 items-center justify-center rounded-md border transition-colors ${feedbackMap[item.id] === "down" ? "bg-rose-500 text-white border-rose-500" : chipClass}`}
                               >
                                 <ThumbsDown size={15} />
                               </button>
@@ -931,7 +931,7 @@ const EventAssistantPanel = ({
                   )}
 
                   {assistantState.type === "recommend" ? (
-                    <div className={`mt-4 rounded-2xl border px-4 py-3 ${isDayMode ? "border-slate-200/80 bg-slate-50/80" : "border-white/10 bg-white/[0.04]"}`}>
+                    <div className={`mt-4 rounded-lg border px-4 py-3 ${isDayMode ? "border-slate-200/80 bg-slate-50/80" : "border-white/10 bg-white/[0.04]"}`}>
                       <p className={`text-xs leading-5 ${faintClass}`}>
                         还不够贴近？直接在上方补一句，比如“只看紫金港”“不要历史活动”“更适合新生”，我会继续收窄。
                       </p>
