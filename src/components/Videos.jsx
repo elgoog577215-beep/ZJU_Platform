@@ -40,7 +40,7 @@ const VideoCard = memo(
             : undefined
         }
         onClick={() => onClick(video)}
-        className={`group relative aspect-video rounded-3xl overflow-hidden backdrop-blur-xl border cursor-pointer transition-all duration-300 hover:-translate-y-1 ${isDayMode ? "day-card-lift hover:border-pink-300/50" : "bg-[#1a1a1a]/60 border-white/10 hover:shadow-[0_0_30px_rgba(236,72,153,0.3)] hover:border-pink-500/30"}`}
+        className={`group rect-media-card relative aspect-video overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 ${isDayMode ? "bg-white/88 border-slate-200/80 hover:border-pink-300/50" : "bg-[#111111]/84 border-white/10 hover:border-pink-500/30"}`}
       >
         <SmartImage
           src={getThumbnailUrl(video.thumbnail)}
@@ -54,23 +54,23 @@ const VideoCard = memo(
         {/* New Badge */}
         {video.date &&
           new Date() - new Date(video.date) < 7 * 24 * 60 * 60 * 1000 && (
-            <div className="absolute top-4 left-4 px-2 py-0.5 rounded-md bg-pink-500 text-white text-[10px] font-bold uppercase tracking-wider shadow-lg z-20">
+            <div className="absolute top-4 left-4 px-2 py-0.5 rounded-[4px] bg-pink-500 text-white text-[10px] font-bold uppercase tracking-wider shadow-none z-20">
               New
             </div>
           )}
 
         <div
-          className={`absolute inset-0 ${isDayMode ? "bg-gradient-to-t from-slate-950/72 via-slate-950/10 to-transparent" : "bg-gradient-to-t from-black/80 via-black/20 to-transparent"} opacity-70 group-hover:opacity-48 transition-opacity duration-300`}
+          className={`absolute inset-0 ${isDayMode ? "bg-gradient-to-t from-slate-950/60 via-slate-950/10 to-transparent" : "bg-gradient-to-t from-black/70 via-black/15 to-transparent"} opacity-60 group-hover:opacity-50 transition-opacity duration-300`}
         />
 
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <div
-            className={`w-20 h-20 backdrop-blur-md rounded-full flex items-center justify-center border group-hover:scale-110 transition-transform duration-300 relative ${isDayMode ? "bg-white/80 border-white/60 shadow-[0_20px_40px_rgba(148,163,184,0.24)]" : "bg-white/20 border-white/30 shadow-[0_0_30px_rgba(255,255,255,0.2)]"}`}
+            className={`rect-icon-button flex h-16 w-16 items-center justify-center border group-hover:scale-105 transition-transform duration-300 relative ${isDayMode ? "bg-white/84 text-slate-950 border-white/70" : "bg-black/45 text-white border-white/20"}`}
           >
             <Play
-              size={40}
-              fill="white"
-              className="text-white ml-2 relative z-10"
+              size={34}
+              fill={isDayMode ? "#0f172a" : "white"}
+              className={`${isDayMode ? "text-slate-950" : "text-white"} ml-2 relative z-10`}
             />
           </div>
         </div>
@@ -91,13 +91,13 @@ const VideoCard = memo(
                   count={video.likes || 0}
                   favorited={video.favorited}
                   initialFavorited={video.favorited}
-                  className={`p-2 hover:bg-pink-500/20 rounded-full backdrop-blur-md transition-colors group/btn border text-white ${isDayMode ? "bg-white/76 border-white/50 shadow-[0_10px_24px_rgba(15,23,42,0.18)]" : "bg-black/50 border-white/10"}`}
+                  className={`rect-icon-button p-2 transition-colors group/btn text-white ${isDayMode ? "bg-white/76 border-white/50" : "bg-black/50 border-white/10"}`}
                   onToggle={(favorited, likes) =>
                     onToggleFavorite(video.id, favorited, likes)
                   }
                 />
                 <div
-                  className={`p-2 rounded-full backdrop-blur-md border group-hover:bg-pink-500 group-hover:text-white transition-all duration-300 ${isDayMode ? "bg-white/76 border-white/50 shadow-[0_10px_24px_rgba(15,23,42,0.18)]" : "bg-white/20 border-white/10"}`}
+                  className={`rect-icon-button p-2 border group-hover:bg-pink-500 group-hover:text-white transition-all duration-300 ${isDayMode ? "bg-white/76 border-white/50" : "bg-white/20 border-white/10"}`}
                 >
                   <ArrowRight
                     size={18}
@@ -279,18 +279,11 @@ const Videos = () => {
         title="视频"
         description="查看校园视频、活动回顾与精选影像内容。"
       />
-      {/* Ambient Background */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        {allowAmbientEffects ? (
-          <>
-            <div className={`absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full blur-[130px] ${isDayMode ? "bg-pink-200/24" : "bg-pink-500/10"}`} />
-            <div className={`absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] ${isDayMode ? "bg-rose-200/20" : "bg-rose-500/10"}`} />
-          </>
-        ) : (
-          <>
-            <div className={`absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full blur-[90px] hidden md:block ${isDayMode ? "bg-pink-200/22" : "bg-pink-500/10"}`} />
-            <div className={`absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full blur-[80px] hidden md:block ${isDayMode ? "bg-rose-200/18" : "bg-rose-500/10"}`} />
-          </>
+        <div className={`absolute inset-x-0 top-24 h-px ${isDayMode ? "bg-slate-200/80" : "bg-white/10"}`} />
+        <div className={`absolute inset-x-0 top-52 h-px ${isDayMode ? "bg-slate-200/50" : "bg-cyan-300/10"}`} />
+        {allowAmbientEffects && (
+          <div className={`absolute left-0 top-0 h-full w-px ${isDayMode ? "bg-slate-200/50" : "bg-white/10"}`} />
         )}
       </div>
 
@@ -304,7 +297,7 @@ const Videos = () => {
               }
               setIsUploadOpen(true);
             }}
-            className={`p-2 md:p-3 rounded-full backdrop-blur-md border transition-all ${isDayMode ? "day-quiet-button text-slate-700 hover:text-pink-600" : "bg-white/10 hover:bg-white/20 text-white border-white/10"}`}
+            className={`rect-icon-button p-2 md:p-3 transition-all ${isDayMode ? "text-slate-700 hover:text-pink-600" : "text-white"}`}
             title={t("common.upload_video")}
           >
             <Upload size={18} className="md:w-5 md:h-5" />
@@ -361,9 +354,9 @@ const Videos = () => {
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.96, y: 16 }}
                   transition={{ type: "spring", damping: 28, stiffness: 320 }}
-                  className={`fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit backdrop-blur-xl border rounded-3xl z-[101] md:hidden flex flex-col max-w-sm mx-auto ${isDayMode ? "bg-white/96 border-slate-200/80 shadow-[0_24px_64px_rgba(148,163,184,0.24)]" : "bg-[#1a1a1a]/95 border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.45)]"}`}
+                  className={`fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit border z-[101] md:hidden flex flex-col max-w-sm mx-auto ${isDayMode ? "bg-white/96 border-slate-200/80 shadow-[0_20px_48px_rgba(148,163,184,0.18)]" : "bg-[#1a1a1a]/95 border-white/10 shadow-[0_18px_48px_rgba(0,0,0,0.42)]"}`}
                 >
-                  <div className={`p-4 border-b flex justify-between items-center sticky top-0 z-10 backdrop-blur-xl rounded-t-3xl ${isDayMode ? "bg-white/96 border-slate-200/80" : "bg-[#1a1a1a]/95 border-white/10"}`}>
+                  <div className={`p-4 border-b flex justify-between items-center sticky top-0 z-10 ${isDayMode ? "bg-white/96 border-slate-200/80" : "bg-[#1a1a1a]/95 border-white/10"}`}>
                     <div>
                       <h3 className={`text-lg font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}>
                         {t("common.sort", "排序")}
@@ -374,7 +367,7 @@ const Videos = () => {
                     </div>
                     <button
                       onClick={() => setIsMobileSortOpen(false)}
-                      className={`p-2 rounded-full transition-colors ${isDayMode ? "text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-white border border-slate-200/80" : "text-gray-400 hover:text-white bg-white/5"}`}
+                      className={`rect-icon-button p-2 transition-colors ${isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white"}`}
                     >
                       <X size={20} />
                     </button>
@@ -403,7 +396,7 @@ const Videos = () => {
             [...Array(6)].map((_, i) => (
               <div
                 key={i}
-                className={`aspect-video rounded-3xl backdrop-blur-xl border animate-pulse relative overflow-hidden ${isDayMode ? "day-card-lift" : "bg-[#1a1a1a]/40 border-white/5"}`}
+                className={`rect-media-card aspect-video animate-pulse relative overflow-hidden ${isDayMode ? "bg-white/84 border-slate-200/80" : "bg-[#1a1a1a]/40 border-white/5"}`}
               >
                 <div className={`absolute inset-0 ${isDayMode ? "bg-gradient-to-t from-slate-200/70 to-transparent" : "bg-gradient-to-t from-black/50 to-transparent"}`} />
                 <div className="absolute bottom-6 left-6 right-6 space-y-3">
@@ -414,7 +407,7 @@ const Videos = () => {
             ))
           ) : error ? (
             <div className="col-span-full flex flex-col items-center justify-center py-20 px-4">
-              <div className="bg-red-500/10 rounded-full p-6 mb-6 border border-red-500/20 backdrop-blur-xl">
+              <div className="rect-panel bg-red-500/10 p-6 mb-6 border border-red-500/20">
                 <AlertCircle size={48} className="text-red-400 opacity-80" />
               </div>
               <p className="text-gray-300 mb-6 text-lg">
@@ -422,14 +415,14 @@ const Videos = () => {
               </p>
               <button
                 onClick={refresh}
-                className={`px-8 py-3 rounded-full transition-all border font-medium hover:scale-105 active:scale-95 ${isDayMode ? "day-quiet-button hover:text-pink-600" : "bg-white/10 hover:bg-white/20 text-white border-white/10"}`}
+                className={`rect-button-secondary px-8 py-3 transition-all font-medium ${isDayMode ? "hover:text-pink-600" : "text-white"}`}
               >
                 {t("common.retry")}
               </button>
             </div>
           ) : displayVideos.length === 0 ? (
             <div className="col-span-full flex flex-col items-center justify-center py-20 px-4">
-              <div className="bg-gradient-to-br from-pink-500/10 to-rose-500/10 rounded-3xl p-8 mb-6 border border-white/5 backdrop-blur-xl shadow-xl">
+              <div className="rect-panel bg-pink-500/10 p-8 mb-6 border border-white/5">
                 <Film size={64} className="text-pink-400 opacity-80" />
               </div>
               <h3 className={`text-2xl font-bold mb-2 ${isDayMode ? "text-slate-900" : "text-white"}`}>
@@ -466,7 +459,7 @@ const Videos = () => {
                 onClick={() =>
                   setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                 }
-                className={`px-6 py-2.5 rounded-full border transition-colors text-sm font-semibold ${isDayMode ? "day-quiet-button hover:text-pink-600" : "bg-white/10 hover:bg-white/15 text-white border-white/10 hover:border-white/20"}`}
+                className={`rect-button-secondary px-6 py-2.5 transition-colors text-sm font-semibold ${isDayMode ? "hover:text-pink-600" : "text-white hover:border-white/20"}`}
               >
                 {t("common.load_more", "加载更多")}
               </motion.button>
@@ -511,7 +504,7 @@ const Videos = () => {
                       ? undefined
                       : { duration: 0.28, ease: [0.22, 1, 0.36, 1] }
                   }
-                  className={`relative w-full max-w-5xl border rounded-3xl shadow-2xl overflow-hidden flex flex-col ${isDayMode ? "day-fine-surface" : "bg-[#0a0a0a] border-white/10"}`}
+                  className={`relative w-full max-w-5xl border shadow-2xl overflow-hidden flex flex-col ${isDayMode ? "day-fine-surface" : "bg-[#0a0a0a] border-white/10"}`}
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div
@@ -519,7 +512,7 @@ const Videos = () => {
                   >
                     <button
                       onClick={closeVideo}
-                      className={`absolute top-6 right-6 p-2 rounded-full backdrop-blur-md border transition-all z-20 group ${isDayMode ? "bg-white/90 hover:bg-white text-slate-700 border-slate-200/80 shadow-[0_14px_32px_rgba(148,163,184,0.18)]" : "bg-black/40 hover:bg-black/60 text-white border-white/10"}`}
+                      className={`rect-icon-button absolute top-6 right-6 p-2 transition-all z-20 group ${isDayMode ? "bg-white/90 hover:bg-white text-slate-700 border-slate-200/80" : "bg-black/40 hover:bg-black/60 text-white border-white/10"}`}
                       title={t("common.close_video")}
                     >
                       <X
@@ -554,7 +547,7 @@ const Videos = () => {
                       >
                         {selectedVideo.created_at && (
                           <p
-                            className={`px-3 py-1 rounded-full border ${isDayMode ? "bg-slate-100 border-slate-200/80 text-slate-600" : "bg-white/5 border-white/5"}`}
+                             className={`rect-chip px-3 py-1 ${isDayMode ? "bg-slate-100 border-slate-200/80 text-slate-600" : "bg-white/5 border-white/5"}`}
                           >
                             {new Date(
                               selectedVideo.created_at,
@@ -570,7 +563,7 @@ const Videos = () => {
                       showCount={true}
                       count={selectedVideo.likes || 0}
                       favorited={selectedVideo.favorited}
-                      className={`p-3 rounded-full transition-colors border shrink-0 ${isDayMode ? "bg-white/90 hover:bg-pink-50 text-slate-700 border-slate-200/80 shadow-[0_14px_32px_rgba(148,163,184,0.16)]" : "bg-white/5 hover:bg-pink-500/20 border-white/10"}`}
+                       className={`rect-icon-button p-3 transition-colors shrink-0 ${isDayMode ? "bg-white/90 hover:bg-pink-50 text-slate-700 border-slate-200/80" : "bg-white/5 hover:bg-pink-500/20 border-white/10"}`}
                       onToggle={(favorited, likes) =>
                         handleToggleFavorite(selectedVideo.id, favorited, likes)
                       }

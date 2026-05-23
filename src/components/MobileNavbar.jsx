@@ -93,28 +93,28 @@ const MobileNavbar = () => {
       variants={tabbarEntrance}
       initial={prefersReducedMotion ? false : "initial"}
       animate={prefersReducedMotion ? undefined : "animate"}
-      className={`motion-gpu fixed inset-x-0 bottom-0 z-[100] border-t md:hidden ${isDayMode ? "border-slate-200/90 bg-white shadow-[0_-10px_26px_rgba(15,23,42,0.08)]" : "border-white/10 bg-[#101722] shadow-[0_-12px_30px_rgba(0,0,0,0.36)]"}`}
+      className={`motion-gpu fixed inset-x-0 bottom-0 z-[100] border-t md:hidden ${isDayMode ? "border-slate-200/90 bg-white/96 shadow-[0_-8px_20px_rgba(15,23,42,0.06)]" : "border-white/10 bg-[#0b111c]/96 shadow-[0_-10px_24px_rgba(0,0,0,0.28)]"}`}
       aria-label={t("nav.mobile_tabbar", "移动端底部导航")}
     >
       <LayoutGroup id="mobile-tabbar">
       <div className="pb-[env(safe-area-inset-bottom)]">
-      <div className="grid h-[64px] grid-cols-5 px-2">
+      <div className="grid h-[58px] grid-cols-5 px-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = isItemActive(item.path, item.key);
 
-          const sharedClassName = `relative flex flex-col items-center justify-center rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isActive ? (isDayMode ? "text-slate-900" : "text-white") : isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white"}`;
+          const sharedClassName = `relative flex flex-col items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isActive ? (isDayMode ? "text-slate-900" : "text-white") : isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white"}`;
           const activeIconSurface = isDayMode
-            ? "bg-slate-100 shadow-[0_8px_18px_rgba(99,102,241,0.14)] ring-1 ring-indigo-100"
-            : "bg-[#1d2a44] shadow-[0_0_16px_rgba(99,102,241,0.22)]";
-          const iconClassName = `relative rounded-md p-2 transition-colors duration-300 ${
+            ? "bg-slate-100 ring-1 ring-slate-300"
+            : "bg-[#172033] ring-1 ring-white/10";
+          const iconClassName = `relative p-1.5 transition-colors duration-300 ${
             isActive
               ? isDayMode
-                ? "text-indigo-500"
-                : "text-indigo-300"
+                ? "text-indigo-600"
+                : "text-indigo-200"
               : isDayMode
-                ? "bg-slate-100 text-slate-500"
-                : "bg-[#172033] text-gray-400"
+                ? "text-slate-500"
+                : "text-gray-400"
           }`;
 
           const showUnreadBadge =
@@ -124,18 +124,18 @@ const MobileNavbar = () => {
           const inner = (
             <motion.div
               whileTap={prefersReducedMotion ? undefined : tapPress}
-              className="flex flex-col items-center gap-1.5"
+              className="flex flex-col items-center gap-1"
             >
               <div
                 className={iconClassName}
               >
                 {isActive &&
                   (prefersReducedMotion ? (
-                    <span className={`absolute inset-0 rounded-md ${activeIconSurface}`} />
+                    <span className={`absolute inset-0 ${activeIconSurface}`} />
                   ) : (
                     <motion.span
                       layoutId="mobile-tab-active-icon"
-                      className={`absolute inset-0 rounded-md ${activeIconSurface}`}
+                      className={`absolute inset-0 ${activeIconSurface}`}
                       transition={motionTokens.spring.tab}
                     />
                   ))}

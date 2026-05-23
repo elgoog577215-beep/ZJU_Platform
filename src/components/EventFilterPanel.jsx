@@ -88,15 +88,15 @@ const EventFilterPanel = ({
 
   const shellClass = isSheetMode ? "space-y-3" : "relative z-10 space-y-3";
   const glassClass = isDayMode
-    ? "border-white/80 bg-white/62 shadow-[0_24px_70px_rgba(30,64,175,0.10),0_8px_24px_rgba(148,163,184,0.10),inset_0_1px_0_rgba(255,255,255,0.86)] ring-1 ring-slate-200/45"
-    : "border-white/[0.10] bg-[#10131d]/74 shadow-[inset_0_1px_0_rgba(255,255,255,0.055),0_24px_58px_rgba(0,0,0,0.34)] ring-1 ring-white/[0.04]";
+    ? "border-slate-200/80 bg-white/78 shadow-none"
+    : "border-white/[0.12] bg-[#070a14]/92 shadow-none";
   const subtleGlassClass = isDayMode
-    ? "border-white/80 bg-white/82 shadow-[0_20px_52px_rgba(30,64,175,0.10),0_6px_18px_rgba(148,163,184,0.10)] ring-1 ring-slate-200/45"
-    : "border-white/[0.11] bg-[#0d1018]/92 shadow-[inset_0_1px_0_rgba(255,255,255,0.045),0_14px_34px_rgba(0,0,0,0.32)]";
+    ? "border-slate-200/80 bg-white/88 shadow-none"
+    : "border-white/[0.12] bg-[#080b14]/92 shadow-none";
   const mutedTextClass = isDayMode ? "text-slate-500" : "text-gray-400";
   const strongTextClass = isDayMode ? "text-slate-900" : "text-white";
   const nightControlClass =
-    "border-white/[0.11] bg-[#171a26]/88 text-slate-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] hover:border-white/[0.18] hover:bg-[#1d2130] hover:text-white";
+    "border-white/[0.11] bg-[#101421]/62 text-slate-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] hover:border-white/[0.18] hover:bg-[#171c2b]/74 hover:text-white";
   const nightControlActiveClass =
     "border-[#8b93ff]/45 bg-[#252849] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]";
   const nightFocusClass = isDayMode
@@ -105,11 +105,11 @@ const EventFilterPanel = ({
   const activeLayoutId = `event-channel-active-${isSheetMode ? "sheet" : "desktop"}`;
 
   const channelButtonClass = (active) =>
-    `relative h-10 shrink-0 rounded-md px-4 text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${
+    `rect-button relative h-10 shrink-0 px-4 text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${
         active
           ? isDayMode
           ? "text-white"
-          : "text-slate-950"
+          : "text-indigo-100"
         : isDayMode
           ? "text-slate-500 hover:bg-white/70 hover:text-slate-900"
           : "text-slate-300 hover:bg-white/[0.055] hover:text-white"
@@ -118,10 +118,10 @@ const EventFilterPanel = ({
   const renderActivePill = () => (
     <motion.span
       layoutId={activeLayoutId}
-      className={`absolute inset-0 rounded-md ${
+      className={`absolute inset-0 ${
         isDayMode
-          ? "bg-[linear-gradient(135deg,#2563eb,#7c3aed)] shadow-[0_14px_28px_rgba(37,99,235,0.24),inset_0_1px_0_rgba(255,255,255,0.30)]"
-          : "bg-[#f6f7fb] shadow-[0_10px_24px_rgba(0,0,0,0.28),inset_0_-1px_0_rgba(15,23,42,0.08)]"
+          ? "bg-blue-600 shadow-none"
+          : "border border-indigo-400/35 bg-indigo-500/20 shadow-none"
       }`}
       transition={{ type: "spring", bounce: 0.12, duration: 0.42 }}
     />
@@ -143,7 +143,7 @@ const EventFilterPanel = ({
         active
           ? isDayMode
             ? "text-white"
-            : "text-slate-950"
+            : "text-indigo-100"
           : isDayMode
             ? "bg-slate-100/80 text-slate-600"
             : "bg-white/[0.06] text-slate-300"
@@ -275,7 +275,7 @@ const EventFilterPanel = ({
 
             {visibleAudienceGroups.length === 0 && (
               <div
-                className={`rounded-lg border px-4 py-8 text-center text-sm ${isDayMode ? "border-slate-200/80 bg-white/80 text-slate-500" : "border-white/[0.11] bg-[#171a26] text-slate-400"}`}
+              className={`border px-4 py-8 text-center text-sm ${isDayMode ? "border-slate-200/80 bg-white/80 text-slate-500" : "border-white/[0.11] bg-[#171a26] text-slate-400"}`}
               >
                 没有匹配的学院或学园
               </div>
@@ -289,18 +289,18 @@ const EventFilterPanel = ({
   return (
     <div className={shellClass}>
       <div
-        className={`relative overflow-visible rounded-lg border p-2 backdrop-blur-2xl ${glassClass}`}
+        className={`relative overflow-visible border p-2 ${glassClass}`}
       >
         <div
           className={`pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent to-transparent ${isDayMode ? "via-white/80" : "via-white/18"}`}
         />
         <div
-          className={`pointer-events-none absolute inset-y-3 left-3 w-24 rounded-full blur-2xl ${isDayMode ? "bg-blue-200/22" : "bg-indigo-400/8"}`}
+          className={`pointer-events-none absolute inset-y-3 left-3 w-px ${isDayMode ? "bg-blue-200/40" : "bg-indigo-400/20"}`}
         />
 
         <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
           <div
-            className={`relative min-w-0 overflow-hidden rounded-lg lg:flex-1 lg:max-w-[690px] xl:max-w-[760px] ${isDayMode ? "border border-white/70 bg-slate-100/58 shadow-[inset_0_1px_2px_rgba(148,163,184,0.12)]" : "bg-[#0a0d14]/70 ring-1 ring-white/[0.08]"}`}
+          className={`relative min-w-0 overflow-hidden border lg:flex-1 lg:max-w-[690px] xl:max-w-[760px] ${isDayMode ? "border-slate-200/80 bg-slate-100/70" : "border-white/[0.09] bg-[#050712]/88"}`}
           >
             <div className="scrollbar-none flex min-w-0 items-center gap-1 overflow-x-auto p-1 pr-10 md:pr-1">
               <button
@@ -332,7 +332,7 @@ const EventFilterPanel = ({
               })}
             </div>
             <div
-              className={`pointer-events-none absolute inset-y-1 right-1 w-10 rounded-r-full ${isDayMode ? "bg-gradient-to-l from-slate-100 via-slate-100/88 to-transparent" : "bg-gradient-to-l from-[#0a0d14] via-[#0a0d14]/88 to-transparent"}`}
+              className={`pointer-events-none absolute inset-y-1 right-1 w-10 ${isDayMode ? "bg-gradient-to-l from-slate-100 via-slate-100/88 to-transparent" : "bg-gradient-to-l from-[#0a0d14] via-[#0a0d14]/88 to-transparent"}`}
             />
           </div>
 
@@ -341,7 +341,7 @@ const EventFilterPanel = ({
               type="button"
               aria-expanded={isAudienceOpen}
               onClick={() => setIsAudienceOpen((value) => !value)}
-              className={`inline-flex min-h-[44px] items-center justify-between gap-2 rounded-lg border px-4 text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 ${nightFocusClass} sm:min-w-[184px] ${isDayMode ? "border-white/80 bg-white/76 text-slate-700 shadow-[0_10px_24px_rgba(148,163,184,0.12)] hover:border-blue-200 hover:bg-white hover:text-slate-950" : nightControlClass}`}
+              className={`rect-button-secondary inline-flex min-h-[44px] items-center justify-between gap-2 px-4 text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 ${nightFocusClass} sm:min-w-[184px] ${isDayMode ? "text-slate-700 hover:border-blue-200 hover:text-slate-950" : nightControlClass}`}
             >
               <span className="inline-flex min-w-0 items-center gap-2">
                 <GraduationCap
@@ -362,7 +362,7 @@ const EventFilterPanel = ({
               <button
                 type="button"
                 onClick={clearAll}
-                className={`inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-lg border px-3 text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${isDayMode ? "border-white/80 bg-white/62 text-slate-500 hover:border-rose-200 hover:bg-white hover:text-rose-600" : nightControlClass}`}
+                className={`rect-button-secondary inline-flex min-h-[44px] items-center justify-center gap-1.5 px-3 text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${isDayMode ? "text-slate-500 hover:border-rose-200 hover:text-rose-600" : nightControlClass}`}
               >
                 <X size={13} />
                 重置
@@ -380,8 +380,8 @@ const EventFilterPanel = ({
                   className="w-full"
                   buttonClassName={
                     isDayMode
-                      ? "bg-white/76 border border-white/80 hover:bg-white hover:border-blue-200 w-full py-3 rounded-lg text-slate-700 backdrop-blur-3xl transition-all shadow-[0_10px_24px_rgba(148,163,184,0.12)] hover:text-slate-950"
-                      : `${nightControlClass} w-full py-3 rounded-lg backdrop-blur-3xl transition-all`
+                      ? "rect-button-secondary bg-white/76 hover:bg-white hover:border-blue-200 w-full py-3 text-slate-700 transition-all hover:text-slate-950"
+                      : `rect-button-secondary ${nightControlClass} w-full py-3 transition-all`
                   }
                   extraOptions={sortExtraOptions}
                   renderMode={isSheetMode ? "list" : "dropdown"}
@@ -399,7 +399,7 @@ const EventFilterPanel = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.16 }}
-            className={`rounded-lg border p-3 backdrop-blur-2xl ${subtleGlassClass}`}
+            className={`border p-3 ${subtleGlassClass}`}
           >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -422,7 +422,7 @@ const EventFilterPanel = ({
                 <input
                   value={audienceSearch}
                   onChange={(event) => setAudienceSearch(event.target.value)}
-                  className={`h-11 w-full rounded-lg border pl-9 pr-3 text-sm outline-none transition-all focus-visible:ring-2 ${nightFocusClass} ${isDayMode ? "border-white/80 bg-white/82 text-slate-700 shadow-[inset_0_1px_2px_rgba(148,163,184,0.10)] placeholder:text-slate-400 hover:bg-white" : "border-white/[0.11] bg-[#171a26] text-white placeholder:text-slate-500"}`}
+                  className={`rect-field h-11 w-full pl-9 pr-3 text-sm outline-none transition-all focus-visible:ring-2 ${nightFocusClass} ${isDayMode ? "text-slate-700 placeholder:text-slate-400 hover:bg-white" : "text-white placeholder:text-slate-500"}`}
                   placeholder="搜索学院/学园"
                 />
               </div>
@@ -433,7 +433,7 @@ const EventFilterPanel = ({
                 <button
                   type="button"
                   onClick={() => setAudience(selectedAudience)}
-                  className={`inline-flex min-h-[32px] items-center gap-1.5 rounded-md border px-3 text-xs font-bold ${isDayMode ? "border-indigo-200 bg-indigo-50 text-indigo-700" : nightControlActiveClass}`}
+                  className={`rect-chip inline-flex min-h-[32px] items-center gap-1.5 px-3 text-xs font-bold ${isDayMode ? "border-indigo-200 bg-indigo-50 text-indigo-700" : nightControlActiveClass}`}
                 >
                   {selectedAudience}
                   <X size={12} />
@@ -456,13 +456,13 @@ const EventFilterPanel = ({
                             type="button"
                             aria-pressed={selected}
                             onClick={() => setAudience(audience)}
-                            className={`min-h-[38px] rounded-md border px-3 text-xs font-semibold transition-all focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${
+                            className={`rect-button min-h-[38px] border px-3 text-xs font-semibold transition-all focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${
                               selected
                                 ? isDayMode
-                                  ? "border-blue-300 bg-blue-50 text-blue-700 shadow-[0_10px_22px_rgba(37,99,235,0.14)]"
+                                    ? "border-blue-300 bg-blue-50 text-blue-700 shadow-none"
                                   : nightControlActiveClass
                                 : isDayMode
-                                  ? "border-white/80 bg-white/72 text-slate-600 shadow-[0_4px_14px_rgba(148,163,184,0.08)] hover:border-blue-200 hover:bg-white hover:text-slate-900"
+                                  ? "border-slate-200/80 bg-white/72 text-slate-600 shadow-none hover:border-blue-200 hover:bg-white hover:text-slate-900"
                                   : nightControlClass
                             }`}
                           >
@@ -476,7 +476,7 @@ const EventFilterPanel = ({
 
                 {visibleAudienceGroups.length === 0 && (
                   <div
-                    className={`rounded-lg border px-4 py-6 text-center text-sm ${isDayMode ? "border-white/80 bg-white/70 text-slate-500" : "border-white/[0.11] bg-[#171a26] text-slate-400"}`}
+                    className={`border px-4 py-6 text-center text-sm ${isDayMode ? "border-slate-200/80 bg-white/70 text-slate-500" : "border-white/[0.11] bg-[#171a26] text-slate-400"}`}
                   >
                     没有匹配的学院或学园
                   </div>
@@ -488,7 +488,7 @@ const EventFilterPanel = ({
               <button
                 type="button"
                 onClick={() => setShowAllAudiences((value) => !value)}
-                className={`mt-3 inline-flex min-h-[38px] w-full items-center justify-center gap-1.5 rounded-lg border px-3 text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${isDayMode ? "border-white/80 bg-white/72 text-slate-600 hover:border-blue-200 hover:bg-white hover:text-slate-900" : nightControlClass}`}
+                className={`rect-button-secondary mt-3 inline-flex min-h-[38px] w-full items-center justify-center gap-1.5 px-3 text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${isDayMode ? "text-slate-600 hover:border-blue-200 hover:text-slate-900" : nightControlClass}`}
               >
                 <ChevronDown
                   size={14}

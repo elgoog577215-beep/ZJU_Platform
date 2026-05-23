@@ -1270,32 +1270,32 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
 
   // UI Constants
   const inputClasses = isDayMode
-    ? "w-full rounded-2xl px-4 py-3.5 sm:py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-indigo-400/70 transition-all duration-300 text-base min-h-[48px] sm:min-h-[44px] border border-slate-200/80 bg-white/92 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] focus:bg-white focus:shadow-[0_0_0_4px_rgba(99,102,241,0.08)]"
-    : "w-full bg-black/35 border border-white/10 rounded-2xl px-4 py-3.5 sm:py-3 text-white placeholder:text-gray-500 focus:outline-none focus:border-indigo-400/70 focus:bg-white/10 transition-all duration-300 text-base min-h-[48px] sm:min-h-[44px] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]";
+    ? "rect-field w-full px-4 py-3.5 sm:py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-indigo-400/70 transition-all duration-300 text-base min-h-[48px] sm:min-h-[44px] bg-white/95 focus:bg-white"
+    : "rect-field w-full bg-black/35 px-4 py-3.5 sm:py-3 text-white placeholder:text-gray-500 focus:outline-none focus:border-indigo-400/70 focus:bg-white/10 transition-all duration-300 text-base min-h-[48px] sm:min-h-[44px]";
   const labelClasses = isDayMode
     ? "block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider pl-1"
     : "block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider pl-1";
   const cardClasses = isDayMode
-    ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.88))] backdrop-blur-xl border border-slate-200/80 rounded-3xl p-5 sm:p-6 space-y-5 sm:space-y-6 shadow-[0_24px_48px_rgba(148,163,184,0.18)]"
-    : "bg-gradient-to-br from-[#1a1a1a]/80 to-[#111111]/70 backdrop-blur-xl border border-white/10 rounded-3xl p-5 sm:p-6 space-y-5 sm:space-y-6 shadow-[0_24px_48px_rgba(0,0,0,0.45)]";
+    ? "rect-panel p-5 sm:p-6 space-y-5 sm:space-y-6 bg-white/95"
+    : "rect-panel p-5 sm:p-6 space-y-5 sm:space-y-6 bg-[#121212]";
   const uploadBoxClasses = (isActive) =>
-    `relative border-2 border-dashed rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center group transition-all duration-300 ${
+    `relative border-2 border-dashed rounded-[7px] p-6 sm:p-8 flex flex-col items-center justify-center group transition-all duration-300 ${
       isDayMode
-        ? `${isActive ? 'border-indigo-400 bg-indigo-50 scale-[1.02] shadow-[0_0_30px_rgba(99,102,241,0.12)]' : 'border-slate-200/80 bg-white/78 hover:border-indigo-200 hover:bg-white'}`
-        : `bg-black/20 ${isActive ? 'border-indigo-500 bg-indigo-500/10 scale-[1.02] shadow-[0_0_30px_rgba(99,102,241,0.2)]' : 'border-white/10 hover:border-white/30 hover:bg-white/5'}`
+        ? `${isActive ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200/80 bg-white/82 hover:border-indigo-300 hover:bg-white'}`
+        : `bg-black/20 ${isActive ? 'border-indigo-500 bg-indigo-500/10' : 'border-white/10 hover:border-white/30 hover:bg-white/5'}`
     }`;
   const overlayShellClass = type === 'article'
     ? (isDayMode ? 'p-0 bg-white/78' : 'p-0 bg-black/90')
     : (isDayMode ? 'p-0 sm:p-4 bg-white/68' : 'p-0 sm:p-4 bg-black/80');
   const modalPanelClass = isDayMode
-    ? `relative bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.94))] w-full h-[100dvh] overflow-hidden flex flex-col z-10 ${type === 'article' ? 'max-w-none border-0 rounded-none shadow-none' : `border-0 sm:border border-slate-200/80 rounded-none sm:rounded-[2rem] ${type === 'event' ? 'sm:max-w-5xl' : 'sm:max-w-2xl'} shadow-[0_28px_80px_rgba(148,163,184,0.28)] sm:max-h-[90vh]`}`
-    : `relative bg-[#0f0f0f] w-full h-[100dvh] overflow-hidden flex flex-col z-10 ${type === 'article' ? 'max-w-none border-0 rounded-none shadow-none' : `border-0 sm:border border-white/10 rounded-none sm:rounded-[2rem] ${type === 'event' ? 'sm:max-w-5xl' : 'sm:max-w-2xl'} shadow-2xl sm:max-h-[90vh]`}`;
+    ? `relative bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] w-full h-[100dvh] overflow-hidden flex flex-col z-10 ${type === 'article' ? 'max-w-none border-0 rounded-none shadow-none' : `border-0 sm:border border-slate-200/90 rounded-none sm:rounded-[7px] ${type === 'event' ? 'sm:max-w-5xl' : 'sm:max-w-2xl'} shadow-[0_18px_42px_rgba(15,23,42,0.16)] sm:max-h-[90vh]`}`
+    : `relative bg-[#0f0f0f] w-full h-[100dvh] overflow-hidden flex flex-col z-10 ${type === 'article' ? 'max-w-none border-0 rounded-none shadow-none' : `border-0 sm:border border-white/10 rounded-none sm:rounded-[7px] ${type === 'event' ? 'sm:max-w-5xl' : 'sm:max-w-2xl'} shadow-[0_18px_48px_rgba(0,0,0,0.55)] sm:max-h-[90vh]`}`;
   const headerClass = isDayMode
-    ? `px-5 ${type === 'article' ? 'sm:px-6 py-3 sm:py-4 border-slate-200/80' : 'sm:px-8 py-4 sm:py-6 border-slate-200/70'} border-b flex justify-between items-center bg-white/82 backdrop-blur-xl z-20 flex-shrink-0 pt-[max(env(safe-area-inset-top),16px)]`
-    : `px-5 ${type === 'article' ? 'sm:px-6 py-3 sm:py-4 border-white/10' : 'sm:px-8 py-4 sm:py-6 border-white/5'} border-b flex justify-between items-center bg-[#0f0f0f]/95 backdrop-blur-xl z-20 flex-shrink-0 pt-[max(env(safe-area-inset-top),16px)]`;
+    ? `px-5 ${type === 'article' ? 'sm:px-6 py-3 sm:py-4 border-slate-200/80' : 'sm:px-8 py-4 sm:py-6 border-slate-200/80'} border-b flex justify-between items-center bg-white/95 z-20 flex-shrink-0 pt-[max(env(safe-area-inset-top),16px)]`
+    : `px-5 ${type === 'article' ? 'sm:px-6 py-3 sm:py-4 border-white/10' : 'sm:px-8 py-4 sm:py-6 border-white/10'} border-b flex justify-between items-center bg-[#0f0f0f] z-20 flex-shrink-0 pt-[max(env(safe-area-inset-top),16px)]`;
   const stickyFooterClass = isDayMode
-    ? "sticky bottom-0 bg-white/88 backdrop-blur-2xl border-t border-slate-200/70 p-5 sm:p-8 mt-auto z-20 pb-[max(env(safe-area-inset-bottom),20px)] sm:pb-8 flex flex-col-reverse sm:flex-row justify-end gap-3 shadow-[0_-18px_36px_rgba(148,163,184,0.16)]"
-    : "sticky bottom-0 bg-[#0f0f0f]/95 backdrop-blur-2xl border-t border-white/5 p-5 sm:p-8 mt-auto z-20 pb-[max(env(safe-area-inset-bottom),20px)] sm:pb-8 flex flex-col-reverse sm:flex-row justify-end gap-3 shadow-[0_-20px_40px_rgba(0,0,0,0.8)]";
+    ? "sticky bottom-0 bg-white/96 border-t border-slate-200/80 p-5 sm:p-8 mt-auto z-20 pb-[max(env(safe-area-inset-bottom),20px)] sm:pb-8 flex flex-col-reverse sm:flex-row justify-end gap-3 shadow-[0_-10px_24px_rgba(15,23,42,0.08)]"
+    : "sticky bottom-0 bg-[#0f0f0f] border-t border-white/10 p-5 sm:p-8 mt-auto z-20 pb-[max(env(safe-area-inset-bottom),20px)] sm:pb-8 flex flex-col-reverse sm:flex-row justify-end gap-3 shadow-[0_-12px_28px_rgba(0,0,0,0.5)]";
   const dialogTitleId = `upload-modal-title-${type}`;
 
   return createPortal(
@@ -1305,7 +1305,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className={`fixed inset-0 z-[150] flex items-center justify-center ${overlayShellClass} backdrop-blur-md`}
+          className={`fixed inset-0 z-[150] flex items-center justify-center ${overlayShellClass}`}
           onClick={onClose}
         >
         <motion.div
@@ -1319,13 +1319,13 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
           className={modalPanelClass}
           onClick={e => e.stopPropagation()}
         >
-             {/* Gradient Ambience */}
-            {type !== 'article' && <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-indigo-500/10 via-purple-500/5 to-transparent opacity-50 pointer-events-none" />}
+             {/* Rectilinear ambience */}
+            {type !== 'article' && <div className={`absolute left-0 top-0 h-px w-full ${isDayMode ? 'bg-indigo-200/70' : 'bg-indigo-400/25'} pointer-events-none`} />}
 
             {/* Header - Fixed at top */}
             <div className={headerClass}>
               <h3 id={dialogTitleId} className={`text-xl sm:text-2xl font-black flex items-center gap-3 tracking-tight ${isDayMode ? 'text-slate-950' : 'text-white'}`}>
-                <span className={`p-2 sm:p-2.5 rounded-xl border shadow-inner ${isDayMode ? 'bg-white border-slate-200/80 text-indigo-600' : 'bg-white/5 border-white/10'}`}>
+                <span className={`p-2 sm:p-2.5 rounded-[5px] border ${isDayMode ? 'bg-white border-slate-200/80 text-indigo-600' : 'bg-white/5 border-white/10'}`}>
                     {React.cloneElement(getIcon(), { size: 24 })}
                 </span>
                 <span className="truncate">
@@ -1335,12 +1335,12 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
               </h3>
               <div className="flex items-center gap-2">
                 {type === 'article' && hasLocalDraft && !isEditing && (
-                  <button type="button" onClick={restoreArticleDraft} className={`hidden sm:inline-flex px-3 py-2 rounded-xl border text-xs transition-colors ${isDayMode ? 'border-slate-200/80 bg-white/88 text-slate-600 hover:text-slate-900 hover:border-indigo-200 hover:bg-white' : 'border-white/10 bg-white/5 text-gray-300 hover:text-white hover:bg-white/10'}`}>
+                  <button type="button" onClick={restoreArticleDraft} className={`rect-button-secondary hidden sm:inline-flex px-3 py-2 text-xs ${isDayMode ? 'bg-white/90 text-slate-600 hover:text-slate-900' : ''}`}>
                     恢复草稿
                   </button>
                 )}
                 {type === 'article' && hasLocalDraft && !isEditing && (
-                  <button type="button" onClick={clearArticleDraft} className="hidden sm:inline-flex px-3 py-2 rounded-xl border border-red-500/30 bg-red-500/10 text-xs text-red-300 hover:bg-red-500/20 transition-colors">
+                  <button type="button" onClick={clearArticleDraft} className="hidden sm:inline-flex px-3 py-2 rounded-[5px] border border-red-500/35 bg-red-500/10 text-xs text-red-300 hover:bg-red-500/20 transition-colors">
                     清除草稿
                   </button>
                 )}
@@ -1348,7 +1348,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                   type="button"
                   onClick={onClose}
                   aria-label={t('common.close', '关闭')}
-                  className={`p-2.5 rounded-full transition-all border ${isDayMode ? 'text-slate-500 hover:text-slate-900 bg-white/88 hover:bg-white border-slate-200/70' : 'text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 border-white/5'}`}
+                  className={`rect-icon-button ${isDayMode ? 'text-slate-500 hover:text-slate-900 bg-white/90' : 'text-gray-400 hover:text-white'}`}
                 >
                   <X size={20} />
                 </button>
@@ -1361,8 +1361,8 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
               {type === 'event' ? (
                 <>
                 {/* Event Specific Fields */}
-                <div className="p-5 sm:p-6 bg-gradient-to-br from-green-500/10 to-emerald-500/5 border border-green-500/20 rounded-3xl relative overflow-hidden group shadow-lg">
-                    <div className="absolute -right-4 -top-4 p-4 opacity-10 group-hover:opacity-20 transition-opacity group-hover:scale-110 duration-500">
+                <div className={`p-5 sm:p-6 border relative overflow-hidden group ${isDayMode ? 'bg-emerald-50/70 border-emerald-200/70' : 'bg-green-500/10 border-green-500/20'}`}>
+                    <div className="absolute right-0 top-0 h-full w-px opacity-40 transition-opacity duration-300">
                         <Link size={100} className="text-green-500 transform rotate-12" />
                     </div>
                     <div className="relative z-10">
@@ -1381,14 +1381,14 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                     value={wechatUrl}
                                     onChange={(e) => setWechatUrl(e.target.value)}
                                     placeholder="https://mp.weixin.qq.com/s/..."
-                                    className={`w-full rounded-2xl pl-11 pr-4 py-3.5 sm:py-3 focus:outline-none transition-all text-sm shadow-inner ${isDayMode ? 'bg-white/92 border border-emerald-200/80 text-slate-900 placeholder:text-emerald-400/60 focus:border-emerald-400 focus:bg-white' : 'bg-black/40 border border-green-500/30 text-white placeholder:text-green-500/30 focus:border-green-500 focus:bg-black/60'}`}
+                                    className={`rect-field w-full pl-11 pr-4 py-3.5 sm:py-3 focus:outline-none transition-all text-sm ${isDayMode ? 'bg-white/95 border-emerald-200/80 text-slate-900 placeholder:text-emerald-400/60 focus:border-emerald-400 focus:bg-white' : 'bg-black/40 border-green-500/30 text-white placeholder:text-green-500/30 focus:border-green-500 focus:bg-black/60'}`}
                                 />
                             </div>
                             <button
                                 type="button"
                                 onClick={handleParseWeChat}
                                 disabled={!wechatUrl || isParsing}
-                                className="w-full sm:w-auto px-6 py-3.5 sm:py-3 bg-green-500 hover:bg-green-400 text-black font-bold rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-green-500/20 whitespace-nowrap"
+                                className="rect-button-primary w-full sm:w-auto px-6 py-3.5 sm:py-3 bg-green-500 hover:bg-green-400 text-black font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
                             >
                                 {isParsing ? (
                                     <>
@@ -1407,7 +1407,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                 <button 
                                     type="button"
                                     onClick={handleClearParsedData}
-                                    className={`w-full sm:w-auto px-6 py-3.5 sm:px-4 sm:py-3 rounded-2xl transition-all border flex items-center justify-center gap-2 ${isDayMode ? 'bg-white/90 hover:bg-white text-slate-500 hover:text-slate-900 border-slate-200/80 shadow-[0_12px_24px_rgba(148,163,184,0.14)]' : 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white border-white/5'}`}
+                                    className={`rect-button-secondary w-full sm:w-auto px-6 py-3.5 sm:px-4 sm:py-3 flex items-center justify-center gap-2 ${isDayMode ? 'bg-white/90 text-slate-500 hover:text-slate-900' : 'text-gray-400 hover:text-white'}`}
                                     title={t('common.clear')}
                                 >
                                     <RotateCcw size={18} />
@@ -1439,14 +1439,14 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                             />
                             {coverPreview ? (
                                 <div className="relative h-full w-full flex justify-center items-center pointer-events-none">
-                                    <img src={coverPreview} alt="Cover Preview" className="h-full rounded-2xl object-contain shadow-lg" />
-                                    <div className={`absolute inset-0 flex items-center justify-center rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm ${isDayMode ? 'bg-white/70' : 'bg-black/60'} ${dragTarget === 'cover' ? 'opacity-100' : ''}`}>
-                                        <p className={`text-sm font-medium flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-md border ${isDayMode ? 'text-slate-900 bg-white/92 border-slate-200/80 shadow-[0_10px_24px_rgba(148,163,184,0.18)]' : 'text-white bg-white/10 border-white/20'}`}><Upload size={16} /> {t('upload.replace')}</p>
+                                    <img src={coverPreview} alt="Cover Preview" className="h-full rounded-[5px] object-contain" />
+                                    <div className={`absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity ${isDayMode ? 'bg-white/76' : 'bg-black/62'} ${dragTarget === 'cover' ? 'opacity-100' : ''}`}>
+                                        <p className={`text-sm font-medium flex items-center gap-2 px-4 py-2 rounded-[5px] border ${isDayMode ? 'text-slate-900 bg-white/95 border-slate-200/80' : 'text-white bg-white/10 border-white/20'}`}><Upload size={16} /> {t('upload.replace')}</p>
                                     </div>
                                 </div>
                             ) : (
                                 <div className="flex flex-col items-center pointer-events-none text-center">
-                                    <div className={`p-4 rounded-full mb-4 transition-transform duration-300 ${dragTarget === 'cover' ? 'bg-indigo-500/20 text-indigo-400 scale-110' : (isDayMode ? 'bg-white/90 text-slate-400 group-hover:bg-white group-hover:text-slate-900 group-hover:scale-110 shadow-[0_12px_24px_rgba(148,163,184,0.14)]' : 'bg-white/5 text-gray-400 group-hover:bg-white/10 group-hover:text-white group-hover:scale-110')}`}>
+                                    <div className={`p-4 rounded-[5px] mb-4 transition-colors duration-300 ${dragTarget === 'cover' ? 'bg-indigo-500/20 text-indigo-400' : (isDayMode ? 'bg-white/90 text-slate-400 group-hover:bg-white group-hover:text-slate-900 border border-slate-200/80' : 'bg-white/5 text-gray-400 group-hover:bg-white/10 group-hover:text-white border border-white/10')}`}>
                                         <Plus size={28} />
                                     </div>
                                     <span className={`text-base font-bold transition-colors ${dragTarget === 'cover' ? (isDayMode ? 'text-indigo-600' : 'text-indigo-300') : (isDayMode ? 'text-slate-500 group-hover:text-slate-900' : 'text-gray-400 group-hover:text-white')}`}>
@@ -1492,7 +1492,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                     onClick={() => setEventCategory(category.value)}
                                     className={`min-h-[44px] rounded-2xl border px-3 py-2.5 text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
                                       selected
-                                        ? (isDayMode ? 'border-indigo-500 bg-indigo-600 text-white shadow-[0_14px_28px_rgba(99,102,241,0.22)]' : 'border-white bg-white text-black shadow-[0_12px_24px_rgba(255,255,255,0.08)]')
+                                        ? (isDayMode ? 'border-indigo-500 bg-indigo-600 text-white shadow-[0_14px_28px_rgba(99,102,241,0.22)]' : 'border-indigo-400/35 bg-indigo-500/20 text-indigo-100 shadow-none')
                                         : (isDayMode ? 'border-slate-200/80 bg-white/86 text-slate-600 hover:border-indigo-200 hover:bg-white hover:text-slate-900' : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/25 hover:bg-white/10 hover:text-white')
                                     }`}
                                   >
@@ -1729,11 +1729,11 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
 
                         <div className="py-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
                           <div className="flex items-center gap-2">
-                            <button type="button" onClick={() => setArticleEditorMode('edit')} className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5 ${articleEditorMode === 'edit' ? (isDayMode ? 'bg-blue-50 text-blue-700 border-blue-200 shadow-none' : 'bg-white text-black border-white shadow-none') : (isDayMode ? 'bg-white/88 border-slate-200/80 text-slate-600 hover:bg-white hover:border-blue-200' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10')}`}>
+                            <button type="button" onClick={() => setArticleEditorMode('edit')} className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5 ${articleEditorMode === 'edit' ? (isDayMode ? 'bg-blue-50 text-blue-700 border-blue-200 shadow-none' : 'bg-indigo-500/20 text-indigo-100 border-indigo-400/35 shadow-none') : (isDayMode ? 'bg-white/88 border-slate-200/80 text-slate-600 hover:bg-white hover:border-blue-200' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10')}`}>
                               <PenSquare size={14} />
                               撰写
                             </button>
-                            <button type="button" onClick={() => setArticleEditorMode('preview')} className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5 ${articleEditorMode === 'preview' ? (isDayMode ? 'bg-blue-50 text-blue-700 border-blue-200 shadow-none' : 'bg-white text-black border-white shadow-none') : (isDayMode ? 'bg-white/88 border-slate-200/80 text-slate-600 hover:bg-white hover:border-blue-200' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10')}`}>
+                            <button type="button" onClick={() => setArticleEditorMode('preview')} className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5 ${articleEditorMode === 'preview' ? (isDayMode ? 'bg-blue-50 text-blue-700 border-blue-200 shadow-none' : 'bg-indigo-500/20 text-indigo-100 border-indigo-400/35 shadow-none') : (isDayMode ? 'bg-white/88 border-slate-200/80 text-slate-600 hover:bg-white hover:border-blue-200' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10')}`}>
                               <Eye size={14} />
                               预览
                             </button>
@@ -1768,10 +1768,10 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                             <div className={`sticky top-0 z-20 py-2 border-b ${isDayMode ? 'bg-white/92 border-slate-200/80' : 'bg-[#0f0f0f]/95 border-white/10'}`}>
                               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                 <div className="flex flex-wrap gap-2">
-                                <button type="button" onClick={() => updateActiveTextStyle('paragraph')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors ${activeTextStyle === 'paragraph' ? (isDayMode ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-black border-white') : (isDayMode ? 'border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 hover:border-indigo-200' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10')}`}>正文</button>
-                                <button type="button" onClick={() => updateActiveTextStyle('heading')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors ${activeTextStyle === 'heading' ? (isDayMode ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-black border-white') : (isDayMode ? 'border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 hover:border-indigo-200' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10')}`}>标题</button>
-                                <button type="button" onClick={() => updateActiveTextStyle('quote')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors ${activeTextStyle === 'quote' ? (isDayMode ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-black border-white') : (isDayMode ? 'border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 hover:border-indigo-200' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10')}`}>引用</button>
-                                <button type="button" onClick={() => updateActiveTextStyle('list')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors inline-flex items-center gap-1.5 ${activeTextStyle === 'list' ? (isDayMode ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-black border-white') : (isDayMode ? 'border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 hover:border-indigo-200' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10')}`}><List size={12} />列表</button>
+                                <button type="button" onClick={() => updateActiveTextStyle('paragraph')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors ${activeTextStyle === 'paragraph' ? (isDayMode ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-indigo-500/20 text-indigo-100 border-indigo-400/35') : (isDayMode ? 'border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 hover:border-indigo-200' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10')}`}>正文</button>
+                                <button type="button" onClick={() => updateActiveTextStyle('heading')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors ${activeTextStyle === 'heading' ? (isDayMode ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-indigo-500/20 text-indigo-100 border-indigo-400/35') : (isDayMode ? 'border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 hover:border-indigo-200' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10')}`}>标题</button>
+                                <button type="button" onClick={() => updateActiveTextStyle('quote')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors ${activeTextStyle === 'quote' ? (isDayMode ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-indigo-500/20 text-indigo-100 border-indigo-400/35') : (isDayMode ? 'border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 hover:border-indigo-200' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10')}`}>引用</button>
+                                <button type="button" onClick={() => updateActiveTextStyle('list')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors inline-flex items-center gap-1.5 ${activeTextStyle === 'list' ? (isDayMode ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-indigo-500/20 text-indigo-100 border-indigo-400/35') : (isDayMode ? 'border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 hover:border-indigo-200' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10')}`}><List size={12} />列表</button>
                                 </div>
                                 <div className="flex flex-wrap gap-2 sm:justify-end sm:ml-3">
                                 {Object.entries(ARTICLE_BLOCK_META).map(([blockType, meta]) => {
@@ -2135,7 +2135,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                     <div className={`absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm ${dragTarget === 'cover' ? 'opacity-100' : ''} ${isDayMode ? 'bg-white/68' : 'bg-black/50'}`}>
                                         <p className={`text-xs flex items-center gap-1 ${isDayMode ? 'text-slate-900' : 'text-white'}`}><Upload size={14}/> {t('upload.replace')}</p>
                                     </div>
-                                <button type="button" onClick={() => updateActiveTextStyle('code')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors inline-flex items-center gap-1.5 ${activeTextStyle === 'code' ? (isDayMode ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-black border-white') : (isDayMode ? 'border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 hover:border-indigo-200' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10')}`}><Code2 size={12} />代码</button>
+                                <button type="button" onClick={() => updateActiveTextStyle('code')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors inline-flex items-center gap-1.5 ${activeTextStyle === 'code' ? (isDayMode ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-indigo-500/20 text-indigo-100 border-indigo-400/35') : (isDayMode ? 'border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 hover:border-indigo-200' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10')}`}><Code2 size={12} />代码</button>
                                 </div>
                             ) : (
                                 <div className="flex flex-col items-center pointer-events-none">
@@ -2229,7 +2229,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                 <button
                   type="button"
                   onClick={onClose}
-                  className={`w-full sm:w-auto px-6 py-4 sm:py-3.5 rounded-2xl transition-all font-bold text-sm ${isDayMode ? 'text-slate-600 hover:text-slate-900 hover:bg-white border border-slate-200/80 bg-white/88' : 'text-gray-400 hover:text-white hover:bg-white/5 border border-white/5 sm:border-none bg-white/5 sm:bg-transparent'}`}
+                  className={`rect-button-secondary w-full sm:w-auto px-6 py-4 sm:py-3.5 font-bold text-sm ${isDayMode ? 'text-slate-600 hover:text-slate-900 bg-white/90' : 'text-gray-400 hover:text-white'}`}
                 >
                   {t('common.cancel')}
                 </button>
@@ -2242,7 +2242,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                     }
                   }}
                   disabled={isUploading}
-                  className={`w-full sm:w-auto px-8 py-4 sm:py-3.5 rounded-2xl hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 font-black text-sm ${isDayMode ? 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-[0_18px_36px_rgba(99,102,241,0.26)]' : 'bg-white text-black hover:bg-gray-100 shadow-xl shadow-white/10'}`}
+                  className={`rect-button-primary w-full sm:w-auto px-8 py-4 sm:py-3.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 font-black text-sm ${isDayMode ? 'bg-indigo-600 text-white hover:bg-indigo-500' : 'bg-indigo-500 text-white hover:bg-indigo-400'}`}
                 >
                   {isUploading ? (
                     <>
@@ -2264,7 +2264,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                       formRef.current?.requestSubmit();
                     }}
                     disabled={isUploading}
-                    className={`w-full sm:w-auto px-6 py-4 sm:py-3.5 rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm border ${isDayMode ? 'border-slate-200/80 bg-white/88 text-slate-700 hover:bg-white hover:border-indigo-200' : 'border-white/15 bg-white/5 text-gray-200 hover:bg-white/10'}`}
+                    className={`rect-button-secondary w-full sm:w-auto px-6 py-4 sm:py-3.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm ${isDayMode ? 'bg-white/90 text-slate-700 hover:border-indigo-200' : 'text-gray-200 hover:bg-white/10'}`}
                   >
                     <PenSquare size={18} />
                     <span>保存草稿</span>

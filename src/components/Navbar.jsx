@@ -200,23 +200,23 @@ const Navbar = () => {
   }, []);
 
   const shellClasses = isDayMode
-    ? "day-chrome-surface"
-    : "bg-black/20 border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.12)]";
+    ? "bg-white/88 border-slate-200/80 shadow-[0_10px_28px_rgba(15,23,42,0.08)]"
+    : "bg-black/62 border-white/10 shadow-none";
   const desktopPillClasses = isDayMode
-    ? "bg-white/42 border-white/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.82),0_8px_24px_rgba(100,116,139,0.1)]"
-    : "bg-white/5 border-white/5";
+    ? "rounded-[6px] bg-white/72 border-slate-200/70 shadow-none"
+    : "rounded-[6px] bg-white/[0.035] border-white/10 shadow-none";
   const navLinkClasses = isDayMode
-    ? "motion-link relative group whitespace-nowrap rounded-md px-2.5 py-2 text-xs font-medium text-slate-500 hover:bg-slate-200/70 hover:text-slate-900 xl:px-4 xl:text-sm"
-    : "motion-link relative group whitespace-nowrap rounded-md px-2.5 py-2 text-xs font-medium text-gray-400 hover:bg-white/10 hover:text-white xl:px-4 xl:text-sm";
+    ? "motion-link relative group whitespace-nowrap rounded-[5px] px-2.5 py-2 text-xs font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-900 xl:px-4 xl:text-sm"
+    : "motion-link relative group whitespace-nowrap rounded-[5px] px-2.5 py-2 text-xs font-medium text-gray-400 hover:bg-white/[0.075] hover:text-white xl:px-4 xl:text-sm";
   const navIndicatorClasses = isDayMode
-    ? "absolute inset-0 rounded-md border border-indigo-200/90 bg-white/90 shadow-[0_10px_24px_rgba(99,102,241,0.14)]"
-    : "absolute inset-0 rounded-md bg-white/10 border border-white/10";
+    ? "absolute inset-0 rounded-[5px] border border-slate-300/80 bg-white shadow-none"
+    : "absolute inset-0 rounded-[5px] bg-white/[0.095] border border-white/14";
   const weatherButtonClasses = isDayMode
-    ? "motion-press day-quiet-button flex items-center gap-3 text-xs border px-3 py-1.5 rounded-md hover:text-slate-900 cursor-pointer group"
-    : "motion-press flex items-center gap-3 text-xs text-gray-400 border border-white/5 px-3 py-1.5 rounded-md bg-white/5 hover:bg-white/10 hover:text-white hover:border-indigo-500/20 cursor-pointer group";
+    ? "motion-press rect-button-secondary flex items-center gap-3 text-xs px-3 py-1.5 hover:text-slate-900 cursor-pointer group"
+    : "motion-press rect-button-secondary flex items-center gap-3 text-xs px-3 py-1.5 cursor-pointer group";
   const authButtonClasses = isDayMode
-    ? "motion-press text-sm font-medium bg-white/88 text-slate-700 border border-slate-200/80 px-4 py-1.5 rounded-md hover:border-indigo-200 hover:bg-white hover:text-slate-950 shadow-[0_10px_24px_rgba(99,102,241,0.08)]"
-    : "motion-press text-sm font-medium bg-white text-black px-4 py-1.5 rounded-md hover:bg-gray-200";
+    ? "motion-press rect-button-secondary text-sm font-medium px-4 py-1.5 hover:text-slate-950"
+    : "motion-press rect-button-secondary text-sm font-medium px-4 py-1.5";
   const wallpaperModalClasses = isDayMode
     ? "theme-dialog text-slate-900"
     : "bg-[#08111f]/96 backdrop-blur-2xl border border-cyan-300/10 text-white";
@@ -256,7 +256,7 @@ const Navbar = () => {
       variants={navEntrance}
       initial={prefersReducedMotion ? false : "initial"}
       animate={prefersReducedMotion ? undefined : "animate"}
-      className={`motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 py-2.5 md:py-3 backdrop-blur-lg border-b ${shellClasses}`}
+      className={`motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 py-2.5 md:py-3 border-b backdrop-blur-sm ${shellClasses}`}
       role="navigation"
       aria-label="主导航"
     >
@@ -266,7 +266,7 @@ const Navbar = () => {
         aria-label="拓途浙享首页"
       >
         <div className="relative">
-          <div className="absolute inset-0 bg-indigo-500/35 blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full" />
+          <div className="absolute inset-x-0 bottom-0 h-px bg-indigo-400/0 transition-colors duration-300 group-hover:bg-indigo-400/60" />
           <img
             src="/newlogo.png"
             alt="拓途浙享 Logo"
@@ -275,7 +275,7 @@ const Navbar = () => {
         </div>
         <div className="flex flex-col items-start leading-none">
           <span
-            className={`text-lg font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r transition-all duration-300 ${isDayMode ? "from-slate-900 to-slate-500 group-hover:to-indigo-500" : "from-white to-white/70 group-hover:to-indigo-300"}`}
+            className={`text-lg font-bold tracking-tighter transition-colors duration-300 ${isDayMode ? "text-slate-950 group-hover:text-indigo-600" : "text-white group-hover:text-indigo-200"}`}
           >
             拓途浙享
           </span>
@@ -288,7 +288,7 @@ const Navbar = () => {
       </Link>
 
       <div
-        className={`hidden min-w-0 items-center gap-0.5 rounded-lg border px-1.5 py-1 backdrop-blur-sm md:flex xl:gap-1 xl:px-2 ${desktopPillClasses}`}
+        className={`hidden min-w-0 items-center gap-0.5 border px-1.5 py-1 md:flex xl:gap-1 xl:px-2 ${desktopPillClasses}`}
         role="menubar"
         aria-label="导航菜单"
       >
@@ -321,7 +321,7 @@ const Navbar = () => {
 
         <button
           onClick={() => window.dispatchEvent(new Event("open-search-palette"))}
-          className="btn-icon"
+          className="btn-icon rect-icon-button"
           title={t("nav.search_title")}
           aria-label={t("nav.search_title", "搜索")}
         >
@@ -374,7 +374,7 @@ const Navbar = () => {
 
         <button
           onClick={() => changeUiMode(nextUiMode)}
-          className={`btn-icon ${isDayMode ? "day-quiet-button border text-slate-700 hover:text-indigo-600" : "text-white bg-white/10 hover:text-yellow-200"}`}
+          className={`btn-icon rect-icon-button ${isDayMode ? "text-slate-700 hover:text-indigo-600" : "text-white hover:text-yellow-200"}`}
           title={themeToggleTitle}
           aria-label={t("nav.theme_settings", "主题设置")}
         >
@@ -388,7 +388,7 @@ const Navbar = () => {
         <button
           type="button"
           onClick={() => setIsThemeOpen(true)}
-          className={`btn-icon ${isDayMode ? "day-quiet-button border text-slate-700 hover:text-indigo-600" : "text-cyan-100 bg-cyan-300/10 hover:text-cyan-50 hover:bg-cyan-300/15"}`}
+          className={`btn-icon rect-icon-button ${isDayMode ? "text-slate-700 hover:text-indigo-600" : "text-cyan-100 hover:text-cyan-50"}`}
           title="动态壁纸"
           aria-label="动态壁纸设置"
         >
@@ -406,7 +406,7 @@ const Navbar = () => {
           <div className="flex items-center gap-3">
             <Link
               to={`/user/${user.id}`}
-              className={`motion-press relative flex items-center gap-2 text-sm font-medium px-3 py-1.5 rounded-md border ${isDayMode ? "day-quiet-button text-slate-800 hover:text-indigo-600" : "text-white border-white/10 bg-white/5 hover:bg-white/10"}`}
+              className={`motion-press rect-button-secondary relative flex items-center gap-2 px-3 py-1.5 text-sm font-medium ${isDayMode ? "text-slate-800 hover:text-indigo-600" : "text-white"}`}
               aria-label={`访问 ${user.username} 的个人主页`}
             >
               <div
@@ -426,7 +426,7 @@ const Navbar = () => {
             </Link>
             <button
               onClick={logout}
-              className="btn-icon"
+              className="btn-icon rect-icon-button"
               title={t("auth.log_out")}
               aria-label={t("auth.log_out", "退出登录")}
             >
@@ -436,7 +436,7 @@ const Navbar = () => {
         ) : (
           <button
             onClick={() => setIsAuthOpen(true)}
-            className={authButtonClasses}
+              className={authButtonClasses}
             aria-label={t("auth.log_in", "登录")}
           >
             {t("auth.log_in")}
@@ -457,7 +457,7 @@ const Navbar = () => {
             aria-label={t("nav.more", "更多")}
             aria-expanded={isMobileMoreOpen}
             onClick={() => setIsMobileMoreOpen(true)}
-            className={`motion-press p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "day-quiet-button border text-slate-500 hover:text-slate-900" : "text-gray-200 hover:text-white bg-white/10 border border-white/10"}`}
+             className={`motion-press rect-icon-button p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-200 hover:text-white"}`}
           >
             <Menu size={18} aria-hidden="true" />
           </button>
@@ -469,7 +469,7 @@ const Navbar = () => {
               type="button"
               aria-label={t("search.placeholder")}
               onClick={() => window.dispatchEvent(new Event("open-search-palette"))}
-              className={`motion-press p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "day-quiet-button border text-slate-500 hover:text-slate-900" : "text-gray-200 hover:text-white bg-white/10 border border-white/10"}`}
+              className={`motion-press rect-icon-button p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-200 hover:text-white"}`}
             >
               <Search size={18} />
             </button>
@@ -480,7 +480,7 @@ const Navbar = () => {
               type="button"
               aria-label={t("common.upload", "上传")}
               onClick={handleUploadClick}
-              className="motion-press p-1.5 min-h-[44px] min-w-[44px] inline-flex items-center justify-center bg-indigo-500 hover:bg-indigo-400 text-white rounded-lg shadow-[0_0_15px_rgba(99,102,241,0.3)] ml-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300/80"
+              className="motion-press rect-button-primary p-1.5 min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-white ml-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300/80"
             >
               <Plus size={16} strokeWidth={3} />
             </button>

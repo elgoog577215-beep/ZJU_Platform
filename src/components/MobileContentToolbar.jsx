@@ -39,7 +39,7 @@ const MobileContentToolbar = ({
         <button
           type="button"
           onClick={onOpenSort}
-          className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border px-3.5 py-2 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "day-quiet-button hover:text-indigo-600" : "border-white/10 bg-white/5 hover:bg-white/10"}`}
+          className={`rect-button-secondary inline-flex min-h-[44px] items-center gap-1.5 px-3.5 py-2 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "hover:text-indigo-600" : "text-gray-300"}`}
         >
           <ArrowUpDown size={14} aria-hidden="true" />
           {sortText}
@@ -50,7 +50,7 @@ const MobileContentToolbar = ({
         <button
           type="button"
           onClick={onOpenFilter}
-          className={`relative inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border px-3.5 py-2 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "day-quiet-button hover:text-indigo-600" : "border-white/10 bg-white/5 hover:bg-white/10"}`}
+          className={`rect-button-secondary relative inline-flex min-h-[44px] items-center gap-1.5 px-3.5 py-2 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "hover:text-indigo-600" : "text-gray-300"}`}
         >
           <SlidersHorizontal size={14} aria-hidden="true" />
           {filterText}
@@ -66,7 +66,7 @@ const MobileContentToolbar = ({
         <button
           type="button"
           onClick={onClearFilters}
-          className="inline-flex min-h-[44px] items-center gap-1 rounded-lg border border-red-500/20 bg-red-500/10 px-2.5 py-2 text-xs font-semibold text-red-400 transition-colors hover:bg-red-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400/60"
+          className="rect-button inline-flex min-h-[44px] items-center gap-1 border border-red-500/20 bg-red-500/10 px-2.5 py-2 text-xs font-semibold text-red-400 transition-colors hover:bg-red-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400/60"
         >
           <X size={12} aria-hidden="true" />
           {resetText}
