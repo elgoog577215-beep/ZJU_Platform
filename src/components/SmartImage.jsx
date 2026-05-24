@@ -143,8 +143,8 @@ const SmartImage = ({
         ref={containerRef}
         className={`${className} bg-gradient-to-br ${gradient} flex items-center justify-center relative overflow-hidden`}
       >
-        <div className="absolute inset-0 bg-black/10" />
-        <Icon size={iconSize} className="text-white/70 relative z-10" />
+        <div className="absolute inset-0 bg-slate-950/45" />
+        <Icon size={iconSize} className="text-white/55 relative z-10" />
       </div>
     );
   }
@@ -161,7 +161,7 @@ const SmartImage = ({
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="absolute inset-0 bg-white/5"
+            className="absolute inset-0 bg-slate-950/35"
           >
             {blurPlaceholder ? (
               <img

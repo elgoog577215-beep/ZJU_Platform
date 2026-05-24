@@ -286,6 +286,7 @@ const EventCard = memo(
             src={getThumbnailUrl(event.image)}
             alt={event.title}
             loading="lazy"
+            priority={index < 6}
             className="absolute inset-0 w-full h-full"
             imageClassName="w-full h-full object-cover"
           />
@@ -907,9 +908,9 @@ END:VCALENDAR`;
     ? "rect-surface-soft"
     : "rect-surface-soft";
   const daySegmentActiveClass =
-    "border border-slate-300 bg-white text-blue-700 shadow-none";
+    "border border-slate-300/70 bg-white/92 text-blue-700 shadow-none";
   const nightSegmentActiveClass =
-    "border border-indigo-400/35 bg-indigo-500/22 text-indigo-100 shadow-none";
+    "border border-indigo-400/28 bg-indigo-500/16 text-indigo-100 shadow-none";
   const dayPrimaryActionClass =
     "rect-button-primary bg-blue-600 text-white";
 

@@ -46,6 +46,7 @@ const VideoCard = memo(
           src={getThumbnailUrl(video.thumbnail)}
           alt={video.title}
           type="video"
+          priority={index < 4}
           className="w-full h-full"
           imageClassName="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100"
           iconSize={48}
