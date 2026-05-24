@@ -320,11 +320,10 @@ test.describe("admin console refinement", () => {
     await expect(
       page.getByRole("heading", { name: "管理控制台" }),
     ).toBeVisible();
-    await expect(page.getByText("今日待办")).toBeVisible();
     await expect(page.getByText("当前模块")).toBeVisible();
     await expect(page.getByText("最近访问", { exact: true })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "运营指挥台" })).toBeVisible();
-    await expect(page.getByRole("button", { name: /待处理/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "运营总览" })).toBeVisible();
+    await expect(page.getByText("当前待审核内容")).toBeVisible();
     await expect(page.getByRole("button", { name: /资产总量/ })).toBeVisible();
     await expect(page.getByRole("button", { name: /近 7 日访问/ })).toBeVisible();
     await expect(page.getByRole("heading", { name: "内容资产" })).toBeVisible();
@@ -396,9 +395,9 @@ test.describe("admin console refinement", () => {
 
     await quickJump.selectOption("hackathon");
     await expect(
-      page.getByRole("heading", { name: "黑客松报名管理" }),
+      page.getByRole("heading", { name: "黑客松运营管理" }),
     ).toBeVisible();
-    await expect(page.getByRole("button", { name: "导出 CSV" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "导出报名" })).toBeVisible();
     await expect(
       page.getByRole("combobox", { name: "按年级筛选" }),
     ).toBeVisible();
@@ -421,8 +420,9 @@ test.describe("admin console refinement", () => {
     ).toBeVisible();
     await expect(page.getByRole("heading", { name: "AI 助手" })).toHaveCount(0);
     await expect(
-      page.getByText("运行扫描后会列出可应用的活动治理建议。"),
+      page.getByRole("heading", { name: "Agent 体系完成度" }),
     ).toBeVisible();
+    await page.getByRole("button", { name: "治理建议", exact: true }).click();
     await page.getByRole("button", { name: "扫描" }).first().click();
     await expect(page.getByText(/^原因：标题和描述包含黑客松/)).toBeVisible();
     await expect(
@@ -494,7 +494,7 @@ test.describe("admin console refinement", () => {
 
     await page.getByRole("button", { name: "打开黑客松模块" }).click();
     await expect(
-      page.getByRole("heading", { name: "黑客松报名管理" }),
+      page.getByRole("heading", { name: "黑客松运营管理" }),
     ).toBeVisible();
     await expect
       .poll(() => page.evaluate(() => document.body.style.overflow))

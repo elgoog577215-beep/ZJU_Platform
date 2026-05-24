@@ -108,7 +108,7 @@ export const AdminPageShell = ({
 
   return (
     <div className="space-y-3 md:space-y-4">
-      <div className={clsx("rounded-2xl p-4 md:p-5", panelClass)}>
+      <div className={clsx("rect-surface p-4 md:p-5", panelClass)}>
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0">
             <h2
@@ -162,7 +162,7 @@ export const AdminPanel = ({
   const { panelClass, mutedTextClass, headingTextClass } = useAdminTheme();
 
   return (
-    <section className={clsx("rounded-2xl p-4 md:p-5", panelClass, className)}>
+    <section className={clsx("rect-surface p-4 md:p-5", panelClass, className)}>
       {(title || action) && (
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
@@ -196,7 +196,7 @@ export const AdminLoadingState = ({ text = "正在加载..." }) => {
   return (
     <div
       className={clsx(
-        "rounded-2xl p-10 text-center text-sm",
+        "rect-surface p-10 text-center text-sm",
         panelClass,
         mutedTextClass,
       )}
@@ -223,14 +223,14 @@ export const AdminEmptyState = ({ icon: Icon, title, description, action }) => {
   return (
     <div
       className={clsx(
-        "rounded-2xl border border-dashed p-8 text-center md:p-10",
+        "rect-surface border-dashed p-8 text-center md:p-10",
         panelClass,
       )}
     >
       {Icon ? (
         <div
           className={clsx(
-            "mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl",
+            "mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-md",
             iconWrapClass,
           )}
         >
@@ -292,7 +292,7 @@ export const AdminInlineNote = ({ children, className, tone = "info" }) => {
   return (
     <div
       className={clsx(
-        "rounded-2xl border px-4 py-3 text-sm leading-6",
+        "rect-surface-soft border px-4 py-3 text-sm leading-6",
         toneClassName,
         className,
       )}
@@ -310,7 +310,7 @@ export const FilterChip = ({ active, children, ...props }) => {
       {...props}
       type={props.type || "button"}
       className={clsx(
-        "min-h-[38px] rounded-xl border px-3 py-2 text-sm font-medium transition-colors",
+        "min-h-[38px] rounded-[5px] border px-3 py-2 text-sm font-medium transition-colors",
         active ? "theme-chip-active" : filterChipClass,
         props.className,
       )}
@@ -344,7 +344,7 @@ export const AdminButton = ({
       {...props}
       type={props.type || "button"}
       className={clsx(
-        "inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 md:px-4",
+        "rect-button inline-flex min-h-[40px] items-center justify-center gap-2 px-3.5 py-2 text-sm font-semibold transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 md:px-4",
         toneClassName,
         className,
       )}
@@ -381,7 +381,7 @@ export const AdminIconButton = ({
       aria-label={label}
       title={label}
       className={clsx(
-        "inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-xl border transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100",
+        "rect-icon-button inline-flex min-h-[40px] min-w-[40px] items-center justify-center border transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100",
         toneClassName,
         className,
       )}
@@ -397,7 +397,7 @@ export const AdminSelectedBar = ({ children, className }) => {
   return (
     <div
       className={clsx(
-        "rounded-2xl border p-4",
+        "rect-surface-soft border p-4",
         isDayMode
           ? "border-indigo-500/[0.18] bg-indigo-500/[0.08] text-slate-700"
           : "border-indigo-500/20 bg-indigo-500/10 text-indigo-100",
@@ -421,7 +421,7 @@ export const AdminTableShell = ({
   return (
     <div
       className={clsx(
-        "hidden overflow-hidden rounded-2xl border md:block",
+        "rect-surface-soft hidden overflow-hidden border md:block",
         isDayMode ? "border-slate-200/70 bg-white/50" : "border-white/10 bg-white/[0.02]",
         className,
       )}
@@ -497,7 +497,7 @@ export const AdminMetricCard = ({
   return (
     <div
       className={clsx(
-        "rounded-2xl border p-4",
+        "rect-surface-soft border p-4",
         isDayMode
           ? "border-slate-200/70 bg-white/[0.72]"
           : "border-white/10 bg-white/5",
@@ -525,7 +525,7 @@ export const AdminMetricCard = ({
         {Icon ? (
           <div
             className={clsx(
-              "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl",
+              "flex h-9 w-9 shrink-0 items-center justify-center rounded-md",
               toneClassName,
             )}
           >
@@ -602,7 +602,7 @@ export const ConfirmDialog = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 12 }}
             className={clsx(
-              "w-full max-w-md rounded-t-3xl p-6 pb-[calc(env(safe-area-inset-bottom)+24px)] md:rounded-3xl md:pb-6",
+              "w-full max-w-md rounded-t-[10px] p-6 pb-[calc(env(safe-area-inset-bottom)+24px)] md:rounded-[10px] md:pb-6",
               dialogPanelClass,
             )}
             role="dialog"

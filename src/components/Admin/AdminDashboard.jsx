@@ -528,13 +528,13 @@ const AdminDashboard = () => {
   const metaLabelClass = isDayMode ? "text-slate-400" : "text-gray-500";
   const topPanelClass = isDayMode
     ? "theme-admin-panel-soft"
-    : "rounded-2xl border border-white/10 bg-white/5";
+    : "border border-white/10 bg-white/5";
   const mobileToggleClass = isDayMode
-    ? "mt-1 rounded-xl border border-slate-200/70 bg-white/[0.92] p-2.5 text-slate-900 lg:hidden"
-    : "mt-1 rounded-xl border border-white/10 bg-white/10 p-2.5 text-white lg:hidden";
+    ? "rect-icon-button mt-1 border-slate-200/70 bg-white/[0.92] p-2.5 text-slate-900 lg:hidden"
+    : "rect-icon-button mt-1 border-white/10 bg-white/10 p-2.5 text-white lg:hidden";
   const logoutClass = isDayMode
-    ? "inline-flex min-h-[38px] items-center gap-2 rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-white hover:text-rose-600"
-    : "inline-flex min-h-[38px] items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-gray-300 transition-colors hover:bg-white/10 hover:text-red-300";
+    ? "rect-button inline-flex min-h-[38px] items-center gap-2 border border-slate-200/70 bg-white/80 px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-white hover:text-rose-600"
+    : "rect-button inline-flex min-h-[38px] items-center gap-2 border border-white/10 bg-white/5 px-3 py-2 text-sm text-gray-300 transition-colors hover:bg-white/10 hover:text-red-300";
   const adjacentNavButtonClass =
     "min-h-[40px] px-2.5 sm:min-w-[40px] sm:px-2";
   const overlayClass = isDayMode
@@ -542,17 +542,17 @@ const AdminDashboard = () => {
     : "fixed inset-0 z-[90] bg-black/70 backdrop-blur-sm lg:hidden";
   const sidebarClass = isDayMode
     ? "theme-admin-sidebar"
-    : "rounded-2xl border border-white/10 bg-[#0d0d0d]";
+    : "border border-white/10 bg-[#0d0d0d]";
   const closeClass = isDayMode
-    ? "rounded-lg bg-slate-100 p-2 text-slate-500 hover:text-slate-950"
-    : "rounded-lg bg-white/5 p-2 text-gray-300 hover:text-white";
+    ? "rect-icon-button bg-slate-100 p-2 text-slate-500 hover:text-slate-950"
+    : "rect-icon-button bg-white/5 p-2 text-gray-300 hover:text-white";
   const searchIconClass = isDayMode ? "text-slate-400" : "text-gray-500";
   const searchClearClass = isDayMode
-    ? "absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
-    : "absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-white/10 hover:text-white";
+    ? "absolute right-2 top-1/2 -translate-y-1/2 rounded-[5px] p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+    : "absolute right-2 top-1/2 -translate-y-1/2 rounded-[5px] p-1.5 text-gray-500 transition-colors hover:bg-white/10 hover:text-white";
   const emptySearchClass = isDayMode
-    ? "rounded-xl border border-dashed border-slate-200/80 bg-white/70 p-4 text-sm text-slate-500"
-    : "rounded-xl border border-dashed border-white/10 bg-white/[0.03] p-4 text-sm text-gray-400";
+    ? "rect-surface-soft border-dashed border-slate-200/80 p-4 text-sm text-slate-500"
+    : "rect-surface-soft border-dashed border-white/10 p-4 text-sm text-gray-400";
   const activeItemClass = isDayMode
     ? "border-indigo-200/80 bg-indigo-50 text-slate-950"
     : "border-indigo-500/30 bg-indigo-600 text-white";
@@ -571,23 +571,23 @@ const AdminDashboard = () => {
     ? "my-5 border-t border-[rgba(128,146,167,0.14)]"
     : "my-5 border-t border-white/10";
   const homeLinkClass = isDayMode
-    ? "flex w-full items-center justify-between rounded-2xl border border-transparent bg-transparent p-3 text-sm font-semibold text-slate-600 transition-all hover:border-slate-200/70 hover:bg-white/80 hover:text-slate-950"
-    : "flex w-full items-center justify-between rounded-2xl border border-transparent bg-white/[0.03] p-3 text-sm font-semibold text-gray-300 transition-all hover:border-white/10 hover:bg-white/5 hover:text-white";
+    ? "flex w-full items-center justify-between rounded-[6px] border border-transparent bg-transparent p-3 text-sm font-semibold text-slate-600 transition-all hover:border-slate-200/70 hover:bg-white/80 hover:text-slate-950"
+    : "flex w-full items-center justify-between rounded-[6px] border border-transparent bg-white/[0.03] p-3 text-sm font-semibold text-gray-300 transition-all hover:border-white/10 hover:bg-white/5 hover:text-white";
   const homeIconClass = isDayMode
-    ? "flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-500"
-    : "flex h-10 w-10 items-center justify-center rounded-xl bg-white/5";
+    ? "flex h-10 w-10 items-center justify-center rounded-md bg-slate-100 text-slate-500"
+    : "flex h-10 w-10 items-center justify-center rounded-md bg-white/5";
   const quickJumpDividerClass = isDayMode
     ? "border-t border-slate-200/70"
     : "border-t border-white/10";
   const recentChipClass = isDayMode
-    ? "inline-flex min-h-[34px] items-center gap-2 rounded-xl border border-slate-200/80 bg-white/75 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
-    : "inline-flex min-h-[34px] items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-gray-300 transition-colors hover:border-indigo-400/40 hover:bg-indigo-500/10 hover:text-indigo-200";
+    ? "rect-chip inline-flex min-h-[34px] items-center gap-2 border border-slate-200/80 bg-white/75 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
+    : "rect-chip inline-flex min-h-[34px] items-center gap-2 border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-gray-300 transition-colors hover:border-indigo-400/40 hover:bg-indigo-500/10 hover:text-indigo-200";
   const recentEmptyClass = isDayMode
     ? "text-xs text-slate-400"
     : "text-xs text-gray-500";
   const backToTopClass = isDayMode
-    ? "fixed bottom-[calc(env(safe-area-inset-bottom)+96px)] right-4 z-[80] inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-200/80 bg-white/[0.94] px-3 py-2 text-sm font-semibold text-slate-700 backdrop-blur transition-colors hover:text-indigo-600 md:bottom-6 md:right-6"
-    : "fixed bottom-[calc(env(safe-area-inset-bottom)+96px)] right-4 z-[80] inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-white/10 bg-black/80 px-3 py-2 text-sm font-semibold text-white backdrop-blur transition-colors hover:text-indigo-200 md:bottom-6 md:right-6";
+    ? "rect-button fixed bottom-[calc(env(safe-area-inset-bottom)+96px)] right-4 z-[80] inline-flex min-h-[44px] items-center gap-2 border border-slate-200/80 bg-white/[0.94] px-3 py-2 text-sm font-semibold text-slate-700 backdrop-blur transition-colors hover:text-indigo-600 md:bottom-6 md:right-6"
+    : "rect-button fixed bottom-[calc(env(safe-area-inset-bottom)+96px)] right-4 z-[80] inline-flex min-h-[44px] items-center gap-2 border border-white/10 bg-black/80 px-3 py-2 text-sm font-semibold text-white backdrop-blur transition-colors hover:text-indigo-200 md:bottom-6 md:right-6";
 
   return (
     <div
@@ -598,7 +598,7 @@ const AdminDashboard = () => {
         tabIndex={-1}
         className="mx-auto max-w-[1680px] scroll-mt-24 focus:outline-none"
       >
-        <div className="mb-5 grid gap-4 md:mb-6 xl:grid-cols-[minmax(0,1fr)_minmax(380px,520px)] xl:items-center">
+        <div className="mb-5 grid gap-4 md:mb-6 xl:grid-cols-[minmax(0,1fr)_minmax(540px,700px)] xl:items-center">
           <div className="flex items-start gap-3 md:gap-4">
             <button
               type="button"
@@ -635,8 +635,8 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          <div className={`rounded-2xl px-4 py-3 ${topPanelClass}`}>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className={`rect-surface-soft px-3 py-3 ${topPanelClass}`}>
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="min-w-0">
                 <div
                   className={`text-xs font-semibold uppercase tracking-[0.16em] ${metaLabelClass}`}
@@ -653,34 +653,23 @@ const AdminDashboard = () => {
                   {new Date().toLocaleDateString("zh-CN")}
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={handleLogout}
-                className={logoutClass}
-              >
-                <LogOut size={16} /> {t("admin.logout", "退出管理")}
-              </button>
-            </div>
-            <div
-              className={`mt-3 flex flex-col gap-2 pt-3 sm:flex-row sm:items-center sm:justify-between ${quickJumpDividerClass}`}
-            >
-              <select
-                aria-label="快速跳转到管理模块"
-                value={activeTab}
-                onChange={(event) => selectTab(event.target.value)}
-                className="theme-admin-input min-h-[40px] min-w-0 flex-1 rounded-xl px-3 py-2 text-sm font-semibold sm:max-w-xs"
-              >
-                {menuGroups.map((group) => (
-                  <optgroup key={group.title} label={group.title}>
-                    {group.items.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.label}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
-              <div className="grid grid-cols-2 gap-2 sm:flex">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <select
+                  aria-label="快速跳转到管理模块"
+                  value={activeTab}
+                  onChange={(event) => selectTab(event.target.value)}
+                  className="theme-admin-input rect-field min-h-[40px] min-w-0 px-3 py-2 text-sm font-semibold sm:w-56"
+                >
+                  {menuGroups.map((group) => (
+                    <optgroup key={group.title} label={group.title}>
+                      {group.items.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.label}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
                 <AdminButton
                   tone="subtle"
                   className={adjacentNavButtonClass}
@@ -699,16 +688,23 @@ const AdminDashboard = () => {
                   <span className="sm:sr-only">下一个</span>
                   <ChevronRight size={16} />
                 </AdminButton>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className={logoutClass}
+                >
+                  <LogOut size={16} /> {t("admin.logout", "退出管理")}
+                </button>
               </div>
             </div>
-            <div className={`mt-3 pt-3 ${quickJumpDividerClass}`}>
+            <div className={`mt-3 flex flex-col gap-2 border-t pt-3 sm:flex-row sm:items-center ${quickJumpDividerClass}`}>
               <div
-                className={`flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] ${metaLabelClass}`}
+                className={`flex shrink-0 items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] ${metaLabelClass}`}
               >
                 <History size={14} />
                 最近访问
               </div>
-              <div className="mt-2 flex flex-wrap gap-2">
+              <div className="flex min-w-0 flex-wrap gap-2">
                 {recentItems.length > 0 ? (
                   recentItems.map((item) => (
                     <button
@@ -753,7 +749,7 @@ const AdminDashboard = () => {
             } lg:static lg:block lg:w-72 lg:flex-shrink-0 xl:w-80`}
           >
             <div
-              className={`h-full overflow-y-auto p-3 md:p-4 lg:sticky lg:top-24 lg:h-auto lg:max-h-[calc(100vh-7.5rem)] ${sidebarClass}`}
+                className={`rect-surface h-full overflow-y-auto p-3 md:p-4 lg:sticky lg:top-24 lg:h-auto lg:max-h-[calc(100vh-7.5rem)] ${sidebarClass}`}
             >
               <div className="mb-4 flex items-center justify-between px-1 lg:hidden">
                 <div
@@ -783,7 +779,7 @@ const AdminDashboard = () => {
                     value={navQuery}
                     onChange={(event) => setNavQuery(event.target.value)}
                     placeholder="搜索模块或任务"
-                    className="theme-admin-input min-h-[42px] w-full rounded-xl py-2 pl-9 pr-9 text-sm font-semibold"
+                    className="theme-admin-input rect-field min-h-[42px] w-full py-2 pl-9 pr-9 text-sm font-semibold"
                   />
                   {navQuery ? (
                     <button
@@ -817,14 +813,14 @@ const AdminDashboard = () => {
                               aria-label={`打开${tab.label}模块`}
                               aria-current={isActive ? "page" : undefined}
                               onClick={() => selectTab(tab.id)}
-                              className={`w-full rounded-xl border p-2.5 text-left transition-all ${
+                              className={`w-full rounded-[6px] border p-2.5 text-left transition-all ${
                                 isActive ? activeItemClass : inactiveItemClass
                               }`}
                             >
                               <div className="flex items-center justify-between gap-3">
                                 <div className="flex min-w-0 items-center gap-3">
                                   <div
-                                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+                                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${
                                       isActive
                                         ? activeIconClass
                                         : inactiveIconClass

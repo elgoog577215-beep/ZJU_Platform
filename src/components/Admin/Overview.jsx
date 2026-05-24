@@ -95,7 +95,7 @@ const StatCard = ({
     <button
       type="button"
       onClick={onClick}
-      className={`group rounded-2xl border p-4 text-left transition-colors ${
+      className={`group rect-surface-soft border p-4 text-left transition-colors ${
         isDayMode
           ? "border-slate-200/70 bg-white/[0.84] hover:border-slate-300 hover:bg-white"
           : "border-white/10 bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.07]"
@@ -155,7 +155,7 @@ const MetricItem = ({ label, value, icon: Icon, tone, isDayMode }) => {
   return (
     <div className="flex items-center gap-3">
       <div
-        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${
           isDayMode ? meta.icon.day : meta.icon.dark
         }`}
       >
@@ -193,14 +193,14 @@ const QuickAction = ({
     <button
       type="button"
       onClick={onClick}
-      className={`flex min-h-[92px] items-start gap-3 rounded-2xl border p-4 text-left transition-colors ${
+      className={`rect-surface-soft flex min-h-[92px] items-start gap-3 border p-4 text-left transition-colors ${
         isDayMode
           ? "border-slate-200/70 bg-white/[0.82] hover:border-slate-300 hover:bg-white"
           : "border-white/10 bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.07]"
       }`}
     >
       <div
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md ${
           isDayMode ? meta.icon.day : meta.icon.dark
         }`}
       >
@@ -239,7 +239,7 @@ const CommandMetricCard = ({
     <button
       type="button"
       onClick={onClick}
-      className={`group flex min-h-[126px] flex-col justify-between rounded-2xl border p-4 text-left transition-colors ${
+      className={`group rect-surface-soft flex min-h-[110px] flex-col justify-between border p-4 text-left transition-colors ${
         isDayMode
           ? "border-slate-200/70 bg-white/[0.84] hover:border-slate-300 hover:bg-white"
           : "border-white/10 bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.07]"
@@ -247,7 +247,7 @@ const CommandMetricCard = ({
     >
       <div className="flex items-start justify-between gap-3">
         <div
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md ${
             isDayMode ? meta.icon.day : meta.icon.dark
           }`}
         >
@@ -432,7 +432,7 @@ const Overview = ({ onChangeTab }) => {
   return (
     <AdminPageShell
       title={t("admin.tabs.overview", "总览")}
-      description="后台首页只保留最关键的运营判断：先处理待办，再看活动和内容状态。"
+      description="后台首页按真实运营顺序组织：先处理风险与待办，再进入内容、活动和社区模块。"
       actions={
         <>
           <AdminButton tone="subtle" onClick={fetchStats}>
@@ -446,52 +446,20 @@ const Overview = ({ onChangeTab }) => {
       }
     >
       <AdminPanel
-        title="运营指挥台"
-        description="先看待办、资产、活动和近 7 日走势，再进入具体模块。"
+        title="运营总览"
+        description="把后台第一屏收束成一个判断面板，避免在多个重复模块之间来回扫。"
       >
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <CommandMetricCard
-            label="待处理"
-            value={formatNumber(pendingTotal)}
-            helper="审核队列"
-            icon={Inbox}
-            tone="amber"
-            isDayMode={isDayMode}
-            onClick={() => onChangeTab("pending")}
-          />
-          <CommandMetricCard
-            label="资产总量"
-            value={formatNumber(assetTotal)}
-            helper="内容与活动"
-            icon={LayoutGrid}
-            tone="indigo"
-            isDayMode={isDayMode}
-            onClick={() => onChangeTab("articles")}
-          />
-          <CommandMetricCard
-            label="待开始活动"
-            value={formatNumber(stats.eventAnalytics?.upcomingCount)}
-            helper="活动排期"
-            icon={Calendar}
-            tone="emerald"
-            isDayMode={isDayMode}
-            onClick={() => onChangeTab("events")}
-          />
-          <CommandMetricCard
-            label="近 7 日访问"
-            value={formatNumber(stats.eventAnalytics?.views7d)}
-            helper="活动热度"
-            icon={TrendingUp}
-            tone="sky"
-            isDayMode={isDayMode}
-            onClick={() => onChangeTab("events")}
-          />
-        </div>
-      </AdminPanel>
-
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.08fr)_minmax(360px,0.92fr)]">
-        <AdminPanel title="今日待办" description="管理员进入后台后，先看这里。">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+        <div className="grid grid-cols-1 gap-4 2xl:grid-cols-[minmax(300px,0.85fr)_minmax(0,1.4fr)_minmax(280px,0.75fr)]">
+          <div
+            className={`rect-surface-soft border p-4 ${
+              pendingTotal > 0
+                ? isDayMode
+                  ? "border-amber-200/80 bg-amber-50/70"
+                  : "border-amber-500/20 bg-amber-500/10"
+                : ""
+            }`}
+          >
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between 2xl:flex-col 2xl:items-start">
             <div>
               <div
                 className={`text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
@@ -524,38 +492,56 @@ const Overview = ({ onChangeTab }) => {
               </AdminButton>
             </div>
           </div>
+          </div>
 
-          <div
-            className={`mt-5 grid gap-4 border-t pt-5 md:grid-cols-3 ${
-              isDayMode ? "border-slate-200/70" : "border-white/10"
-            }`}
-          >
-            <MetricItem
-              label="近 7 日活动访问"
-              value={formatNumber(stats.eventAnalytics?.views7d)}
-              icon={TrendingUp}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-2">
+            <CommandMetricCard
+              label="资产总量"
+              value={formatNumber(assetTotal)}
+              helper="内容与活动"
+              icon={LayoutGrid}
               tone="indigo"
               isDayMode={isDayMode}
+              onClick={() => onChangeTab("articles")}
             />
-            <MetricItem
-              label="近 7 日报名"
-              value={formatNumber(stats.eventAnalytics?.registrations7d)}
-              icon={MessageSquare}
-              tone="emerald"
-              isDayMode={isDayMode}
-            />
-            <MetricItem
+            <CommandMetricCard
               label="待开始活动"
               value={formatNumber(stats.eventAnalytics?.upcomingCount)}
+              helper="活动排期"
               icon={Calendar}
+              tone="emerald"
+              isDayMode={isDayMode}
+              onClick={() => onChangeTab("events")}
+            />
+            <CommandMetricCard
+              label="近 7 日访问"
+              value={formatNumber(stats.eventAnalytics?.views7d)}
+              helper="活动热度"
+              icon={TrendingUp}
+              tone="sky"
+              isDayMode={isDayMode}
+              onClick={() => onChangeTab("events")}
+            />
+            <CommandMetricCard
+              label="近 7 日报名"
+              value={formatNumber(stats.eventAnalytics?.registrations7d)}
+              helper="活动转化"
+              icon={MessageSquare}
               tone="amber"
               isDayMode={isDayMode}
+              onClick={() => onChangeTab("events")}
             />
           </div>
-        </AdminPanel>
 
-        <AdminPanel title="快捷入口" description="按运营场景进入，不按技术模块找。">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+          <div>
+            <div
+              className={`mb-2 text-xs font-semibold uppercase tracking-[0.16em] ${
+                isDayMode ? "text-slate-400" : "text-gray-500"
+              }`}
+            >
+              快捷入口
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 2xl:grid-cols-1">
             <QuickAction
               label="活动运营"
               description="维护活动信息，跟进报名与热度。"
@@ -580,9 +566,10 @@ const Overview = ({ onChangeTab }) => {
               isDayMode={isDayMode}
               onClick={() => onChangeTab("community")}
             />
+            </div>
           </div>
-        </AdminPanel>
-      </div>
+        </div>
+      </AdminPanel>
 
       <AdminPanel
         title="内容资产"
@@ -665,10 +652,10 @@ const Overview = ({ onChangeTab }) => {
                     key={event.id}
                     type="button"
                     onClick={() => onChangeTab("events")}
-                    className={`flex w-full flex-col gap-2 rounded-xl px-3 py-3 text-left transition-colors md:flex-row md:items-center md:justify-between ${
+                    className={`flex w-full flex-col gap-2 rounded-[6px] border px-3 py-3 text-left transition-colors md:flex-row md:items-center md:justify-between ${
                       isDayMode
-                        ? "bg-slate-50 hover:bg-white"
-                        : "bg-white/[0.04] hover:bg-white/[0.07]"
+                        ? "border-slate-200/70 bg-slate-50 hover:bg-white"
+                        : "border-white/10 bg-white/[0.04] hover:bg-white/[0.07]"
                     }`}
                   >
                     <div className="min-w-0">
