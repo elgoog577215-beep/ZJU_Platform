@@ -18,16 +18,12 @@ import {
   LayoutTemplate,
   Settings,
   Users,
-  Home,
-  LogOut,
   ArrowUp,
-  ChevronLeft,
   ChevronRight,
   Tag,
   X,
   Menu,
   Search,
-  History,
   MessageSquare,
   Mail,
   ShieldCheck,
@@ -153,14 +149,6 @@ const AdminDashboard = () => {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  const handleLogout = () => {
-    sessionStorage.removeItem("token");
-    localStorage.removeItem("token");
-    sessionStorage.removeItem(STORAGE_KEY);
-    sessionStorage.removeItem(RECENT_STORAGE_KEY);
-    window.location.href = "/";
-  };
 
   const menuGroups = useMemo(
     () => [
@@ -348,16 +336,6 @@ const AdminDashboard = () => {
   const activeGroup = menuGroups.find((group) =>
     group.items.some((item) => item.id === activeTab),
   );
-  const activeIndex = flatMenuItems.findIndex((item) => item.id === activeTab);
-  const recentItems = useMemo(
-    () =>
-      recentTabIds
-        .map((tabId) => moduleById.get(tabId))
-        .filter(Boolean)
-        .filter((item) => item.id !== activeTab)
-        .slice(0, 3),
-    [activeTab, moduleById, recentTabIds],
-  );
 
   const scrollToContentStart = useCallback((behavior = "smooth") => {
     if (typeof window === "undefined") return;
@@ -425,20 +403,6 @@ const AdminDashboard = () => {
     },
     [flatMenuItems, scrollToContentStart, writeTabSearchParam],
   );
-
-  const selectAdjacentModule = useCallback(
-    (direction) => {
-      if (flatMenuItems.length === 0) return;
-      const currentIndex = activeIndex >= 0 ? activeIndex : 0;
-      const nextIndex =
-        (currentIndex + direction + flatMenuItems.length) %
-        flatMenuItems.length;
-      selectTab(flatMenuItems[nextIndex].id);
-    },
-    [activeIndex, flatMenuItems, selectTab],
-  );
-
-  const modulePosition = `${activeIndex >= 0 ? activeIndex + 1 : 1}/${flatMenuItems.length}`;
 
   const renderContent = () => {
     switch (activeTab) {
@@ -524,19 +488,10 @@ const AdminDashboard = () => {
   const shellClass = isDayMode ? "theme-admin-shell" : "bg-black text-white";
   const titleClass = isDayMode ? "text-slate-950" : "text-white";
   const mutedClass = isDayMode ? "text-slate-500" : "text-gray-400";
-  const labelClass = isDayMode ? "text-indigo-500/80" : "text-indigo-300/80";
   const metaLabelClass = isDayMode ? "text-slate-400" : "text-gray-500";
-  const topPanelClass = isDayMode
-    ? "theme-admin-panel-soft"
-    : "border border-white/10 bg-white/5";
   const mobileToggleClass = isDayMode
-    ? "rect-icon-button mt-1 border-slate-200/70 bg-white/[0.92] p-2.5 text-slate-900 lg:hidden"
-    : "rect-icon-button mt-1 border-white/10 bg-white/10 p-2.5 text-white lg:hidden";
-  const logoutClass = isDayMode
-    ? "rect-button inline-flex min-h-[38px] items-center gap-2 border border-slate-200/70 bg-white/80 px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-white hover:text-rose-600"
-    : "rect-button inline-flex min-h-[38px] items-center gap-2 border border-white/10 bg-white/5 px-3 py-2 text-sm text-gray-300 transition-colors hover:bg-white/10 hover:text-red-300";
-  const adjacentNavButtonClass =
-    "min-h-[40px] px-2.5 sm:min-w-[40px] sm:px-2";
+    ? "rect-icon-button border-slate-200/70 bg-white/[0.92] p-2.5 text-slate-900 lg:hidden"
+    : "rect-icon-button border-white/10 bg-white/10 p-2.5 text-white lg:hidden";
   const overlayClass = isDayMode
     ? "fixed inset-0 z-[90] bg-white/70 backdrop-blur-sm lg:hidden"
     : "fixed inset-0 z-[90] bg-black/70 backdrop-blur-sm lg:hidden";
@@ -565,41 +520,21 @@ const AdminDashboard = () => {
   const inactiveIconClass = isDayMode
     ? "bg-slate-100 text-slate-500"
     : "bg-white/5";
-  const activeDescClass = isDayMode ? "text-slate-500" : "text-indigo-100/80";
-  const inactiveDescClass = isDayMode ? "text-slate-400" : "text-gray-500";
-  const dividerClass = isDayMode
-    ? "my-5 border-t border-[rgba(128,146,167,0.14)]"
-    : "my-5 border-t border-white/10";
-  const homeLinkClass = isDayMode
-    ? "flex w-full items-center justify-between rounded-[6px] border border-transparent bg-transparent p-3 text-sm font-semibold text-slate-600 transition-all hover:border-slate-200/70 hover:bg-white/80 hover:text-slate-950"
-    : "flex w-full items-center justify-between rounded-[6px] border border-transparent bg-white/[0.03] p-3 text-sm font-semibold text-gray-300 transition-all hover:border-white/10 hover:bg-white/5 hover:text-white";
-  const homeIconClass = isDayMode
-    ? "flex h-10 w-10 items-center justify-center rounded-md bg-slate-100 text-slate-500"
-    : "flex h-10 w-10 items-center justify-center rounded-md bg-white/5";
-  const quickJumpDividerClass = isDayMode
-    ? "border-t border-slate-200/70"
-    : "border-t border-white/10";
-  const recentChipClass = isDayMode
-    ? "rect-chip inline-flex min-h-[34px] items-center gap-2 border border-slate-200/80 bg-white/75 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
-    : "rect-chip inline-flex min-h-[34px] items-center gap-2 border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-gray-300 transition-colors hover:border-indigo-400/40 hover:bg-indigo-500/10 hover:text-indigo-200";
-  const recentEmptyClass = isDayMode
-    ? "text-xs text-slate-400"
-    : "text-xs text-gray-500";
   const backToTopClass = isDayMode
     ? "rect-button fixed bottom-[calc(env(safe-area-inset-bottom)+96px)] right-4 z-[80] inline-flex min-h-[44px] items-center gap-2 border border-slate-200/80 bg-white/[0.94] px-3 py-2 text-sm font-semibold text-slate-700 backdrop-blur transition-colors hover:text-indigo-600 md:bottom-6 md:right-6"
     : "rect-button fixed bottom-[calc(env(safe-area-inset-bottom)+96px)] right-4 z-[80] inline-flex min-h-[44px] items-center gap-2 border border-white/10 bg-black/80 px-3 py-2 text-sm font-semibold text-white backdrop-blur transition-colors hover:text-indigo-200 md:bottom-6 md:right-6";
 
   return (
     <div
-      className={`min-h-screen px-3 pt-[calc(env(safe-area-inset-top)+68px)] pb-[calc(env(safe-area-inset-bottom)+88px)] md:px-6 md:pt-24 md:pb-10 xl:px-8 ${shellClass}`}
+      className={`min-h-screen px-3 pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+88px)] md:px-6 md:pt-24 md:pb-10 xl:px-8 ${shellClass}`}
     >
       <div
         ref={contentTopRef}
         tabIndex={-1}
         className="mx-auto max-w-[1680px] scroll-mt-24 focus:outline-none"
       >
-        <div className="mb-5 grid gap-4 md:mb-6 xl:grid-cols-[minmax(0,1fr)_minmax(540px,700px)] xl:items-center">
-          <div className="flex items-start gap-3 md:gap-4">
+        <div className="mb-4 flex flex-col gap-3 md:mb-5 xl:flex-row xl:items-end xl:justify-between">
+          <div className="flex items-center gap-3 md:gap-4">
             <button
               type="button"
               aria-label="打开管理导航"
@@ -611,13 +546,8 @@ const AdminDashboard = () => {
               <Menu size={22} />
             </button>
             <div className="min-w-0">
-              <p
-                className={`text-xs font-semibold uppercase tracking-[0.24em] ${labelClass}`}
-              >
-                Operations Console
-              </p>
               <h1
-                className={`mt-2 text-2xl font-bold tracking-normal md:text-4xl ${titleClass}`}
+                className={`text-xl font-bold tracking-normal md:text-3xl ${titleClass}`}
                 style={
                   isDayMode
                     ? { fontFamily: "var(--theme-font-display)" }
@@ -627,102 +557,33 @@ const AdminDashboard = () => {
                 {t("admin.dashboard", "管理员后台")}
               </h1>
               <p
-                className={`mt-2 max-w-2xl text-sm md:text-base ${mutedClass}`}
+                className={`mt-1 max-w-2xl text-sm ${mutedClass}`}
               >
                 {activeItem?.description ||
                   t("admin.subtitle", "统一管理内容、用户、社区和系统配置。")}
               </p>
             </div>
           </div>
-
-          <div className={`rect-surface-soft px-3 py-3 ${topPanelClass}`}>
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <div className="min-w-0">
-                <div
-                  className={`text-xs font-semibold uppercase tracking-[0.16em] ${metaLabelClass}`}
-                >
-                  当前模块
-                </div>
-                <div
-                  className={`mt-1 truncate text-sm font-semibold ${titleClass}`}
-                >
-                  {activeGroup?.title || "总览"} / {activeItem?.label || "总览"}
-                </div>
-                <div className={`mt-1 text-xs ${mutedClass}`}>
-                  {modulePosition} ·{" "}
-                  {new Date().toLocaleDateString("zh-CN")}
-                </div>
-              </div>
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <select
-                  aria-label="快速跳转到管理模块"
-                  value={activeTab}
-                  onChange={(event) => selectTab(event.target.value)}
-                  className="theme-admin-input rect-field min-h-[40px] min-w-0 px-3 py-2 text-sm font-semibold sm:w-56"
-                >
-                  {menuGroups.map((group) => (
-                    <optgroup key={group.title} label={group.title}>
-                      {group.items.map((item) => (
-                        <option key={item.id} value={item.id}>
-                          {item.label}
-                        </option>
-                      ))}
-                    </optgroup>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <div className={`text-xs font-semibold uppercase tracking-[0.16em] ${metaLabelClass}`}>
+              {activeGroup?.title || "总览"}
+            </div>
+            <select
+              aria-label="快速跳转到管理模块"
+              value={activeTab}
+              onChange={(event) => selectTab(event.target.value)}
+              className="theme-admin-input rect-field min-h-[40px] min-w-0 px-3 py-2 text-sm font-semibold sm:w-56"
+            >
+              {menuGroups.map((group) => (
+                <optgroup key={group.title} label={group.title}>
+                  {group.items.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.label}
+                    </option>
                   ))}
-                </select>
-                <AdminButton
-                  tone="subtle"
-                  className={adjacentNavButtonClass}
-                  aria-label="跳转到上一个管理模块"
-                  onClick={() => selectAdjacentModule(-1)}
-                >
-                  <ChevronLeft size={16} />
-                  <span className="sm:sr-only">上一个</span>
-                </AdminButton>
-                <AdminButton
-                  tone="subtle"
-                  className={adjacentNavButtonClass}
-                  aria-label="跳转到下一个管理模块"
-                  onClick={() => selectAdjacentModule(1)}
-                >
-                  <span className="sm:sr-only">下一个</span>
-                  <ChevronRight size={16} />
-                </AdminButton>
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className={logoutClass}
-                >
-                  <LogOut size={16} /> {t("admin.logout", "退出管理")}
-                </button>
-              </div>
-            </div>
-            <div className={`mt-3 flex flex-col gap-2 border-t pt-3 sm:flex-row sm:items-center ${quickJumpDividerClass}`}>
-              <div
-                className={`flex shrink-0 items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] ${metaLabelClass}`}
-              >
-                <History size={14} />
-                最近访问
-              </div>
-              <div className="flex min-w-0 flex-wrap gap-2">
-                {recentItems.length > 0 ? (
-                  recentItems.map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      aria-label={`最近访问 ${item.label}`}
-                      className={recentChipClass}
-                      onClick={() => selectTab(item.id)}
-                    >
-                      <item.icon size={14} />
-                      <span>{item.label}</span>
-                    </button>
-                  ))
-                ) : (
-                  <span className={recentEmptyClass}>暂无最近访问</span>
-                )}
-              </div>
-            </div>
+                </optgroup>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -738,7 +599,7 @@ const AdminDashboard = () => {
           )}
         </AnimatePresence>
 
-        <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
+        <div className="flex flex-col gap-4 lg:flex-row lg:gap-5">
           <aside
             id="admin-navigation"
             aria-label="管理员导航"
@@ -749,7 +610,7 @@ const AdminDashboard = () => {
             } lg:static lg:block lg:w-72 lg:flex-shrink-0 xl:w-80`}
           >
             <div
-                className={`rect-surface h-full overflow-y-auto p-3 md:p-4 lg:sticky lg:top-24 lg:h-auto lg:max-h-[calc(100vh-7.5rem)] ${sidebarClass}`}
+              className={`rect-surface h-full p-3 md:p-4 lg:sticky lg:top-24 lg:h-auto lg:max-h-none ${sidebarClass}`}
             >
               <div className="mb-4 flex items-center justify-between px-1 lg:hidden">
                 <div
@@ -767,7 +628,7 @@ const AdminDashboard = () => {
                 </button>
               </div>
 
-              <div className="mb-4 px-1">
+              <div className="mb-3 px-1">
                 <div className="relative">
                   <Search
                     size={16}
@@ -779,7 +640,7 @@ const AdminDashboard = () => {
                     value={navQuery}
                     onChange={(event) => setNavQuery(event.target.value)}
                     placeholder="搜索模块或任务"
-                    className="theme-admin-input rect-field min-h-[42px] w-full py-2 pl-9 pr-9 text-sm font-semibold"
+                    className="theme-admin-input rect-field min-h-[38px] w-full py-2 pl-9 pr-9 text-sm font-semibold"
                   />
                   {navQuery ? (
                     <button
@@ -794,16 +655,16 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {filteredMenuGroups.length > 0 ? (
                   filteredMenuGroups.map((group) => (
                     <div key={group.title}>
                       <div
-                        className={`px-2 pb-2 text-xs font-bold uppercase tracking-[0.18em] ${metaLabelClass}`}
+                        className={`px-1 pb-1.5 text-[11px] font-bold uppercase tracking-[0.16em] ${metaLabelClass}`}
                       >
                         {group.title}
                       </div>
-                      <div className="space-y-1">
+                      <div className="grid grid-cols-2 gap-1.5">
                         {group.items.map((tab) => {
                           const isActive = activeTab === tab.id;
                           return (
@@ -813,39 +674,21 @@ const AdminDashboard = () => {
                               aria-label={`打开${tab.label}模块`}
                               aria-current={isActive ? "page" : undefined}
                               onClick={() => selectTab(tab.id)}
-                              className={`w-full rounded-[6px] border p-2.5 text-left transition-all ${
+                              className={`w-full rounded-[6px] border px-2 py-2 text-left transition-all ${
                                 isActive ? activeItemClass : inactiveItemClass
                               }`}
                             >
-                              <div className="flex items-center justify-between gap-3">
-                                <div className="flex min-w-0 items-center gap-3">
-                                  <div
-                                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${
-                                      isActive
-                                        ? activeIconClass
-                                        : inactiveIconClass
-                                    }`}
-                                  >
-                                    <tab.icon size={18} />
-                                  </div>
-                                  <div className="min-w-0">
-                                    <div className="truncate font-semibold">
-                                      {tab.label}
-                                    </div>
-                                    {isActive ? (
-                                      <div
-                                        className={`mt-1 line-clamp-2 text-xs ${
-                                          isActive
-                                            ? activeDescClass
-                                            : inactiveDescClass
-                                        }`}
-                                      >
-                                        {tab.description}
-                                      </div>
-                                    ) : null}
-                                  </div>
+                              <div className="flex min-w-0 items-center gap-2">
+                                <div
+                                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${
+                                    isActive ? activeIconClass : inactiveIconClass
+                                  }`}
+                                >
+                                  <tab.icon size={15} />
                                 </div>
-                                {isActive ? <ChevronRight size={16} /> : null}
+                                <div className="min-w-0 truncate text-sm font-semibold">
+                                  {tab.label}
+                                </div>
                               </div>
                             </button>
                           );
@@ -868,22 +711,6 @@ const AdminDashboard = () => {
                   </div>
                 )}
               </div>
-
-              <div className={dividerClass} />
-
-              <a href="/" className={homeLinkClass}>
-                <div className="flex items-center gap-3">
-                  <div className={homeIconClass}>
-                    <Home size={18} />
-                  </div>
-                  <div>
-                    <div>{t("nav.home", "首页")}</div>
-                    <div className={`mt-1 text-xs ${metaLabelClass}`}>
-                      返回站点前台
-                    </div>
-                  </div>
-                </div>
-              </a>
             </div>
           </aside>
 

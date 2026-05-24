@@ -172,7 +172,7 @@ const AppContent = () => {
       >
         跳转到主要内容
       </a>
-      {!isAdminRoute && (
+      {(
         <ErrorBoundary variant="inline" silent>
           <Navbar />
         </ErrorBoundary>

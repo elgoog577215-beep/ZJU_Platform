@@ -320,8 +320,10 @@ test.describe("admin console refinement", () => {
     await expect(
       page.getByRole("heading", { name: "管理控制台" }),
     ).toBeVisible();
-    await expect(page.getByText("当前模块")).toBeVisible();
-    await expect(page.getByText("最近访问", { exact: true })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "主导航" })).toBeVisible();
+    await expect(
+      page.getByRole("menuitem", { name: "首页" }),
+    ).toBeVisible();
     await expect(page.getByRole("heading", { name: "运营总览" })).toBeVisible();
     await expect(page.getByText("当前待审核内容")).toBeVisible();
     await expect(page.getByRole("button", { name: /资产总量/ })).toBeVisible();
@@ -337,8 +339,7 @@ test.describe("admin console refinement", () => {
     await page.getByRole("button", { name: /打开.*标签.*模块/ }).click();
     await expect(page).toHaveURL(/tab=tags/);
     await expect(page.getByRole("heading", { name: "标签管理" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "最近访问 总览" })).toBeVisible();
-    await page.getByRole("button", { name: "最近访问 总览" }).click();
+    await quickJump.selectOption("overview");
     await expect(page).toHaveURL(/tab=overview/);
     await expect(quickJump).toHaveValue("overview");
 
@@ -385,13 +386,13 @@ test.describe("admin console refinement", () => {
     await expect(page.getByRole("button", { name: "清除选择" })).toBeVisible();
     await page.getByRole("button", { name: "清除选择" }).click();
     await expect(page.getByText("条当前页内容")).toHaveCount(0);
-    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    const backToTop = page.getByRole("button", { name: "回到管理员顶部" });
-    await expect(backToTop).toBeVisible();
-    await backToTop.click();
     await expect
-      .poll(() => page.evaluate(() => window.scrollY))
-      .toBeLessThan(160);
+      .poll(() =>
+        page.evaluate(
+          () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
+      )
+      .toBe(true);
 
     await quickJump.selectOption("hackathon");
     await expect(
@@ -402,7 +403,7 @@ test.describe("admin console refinement", () => {
       page.getByRole("combobox", { name: "按年级筛选" }),
     ).toBeVisible();
     await expect(page.getByRole("cell", { name: "张同学" })).toBeVisible();
-    await page.getByRole("button", { name: "跳转到上一个管理模块" }).click();
+    await quickJump.selectOption("events");
     await expect(
       page.getByRole("heading", { name: "活动管理", exact: true }),
     ).toBeVisible();
