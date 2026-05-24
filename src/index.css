@@ -45,28 +45,28 @@
 
 :root[data-theme='day'] {
   color-scheme: light;
-  background-color: #f8fafc;
+  background-color: #fbfdff;
   color: #0f172a;
-  --theme-bg: #f8fafc;
-  --theme-bg-soft: rgba(255, 255, 255, 0.74);
-  --theme-surface: rgba(255, 255, 255, 0.78);
-  --theme-surface-strong: rgba(255, 255, 255, 0.92);
-  --theme-surface-muted: rgba(241, 245, 249, 0.82);
-  --theme-surface-hover: rgba(148, 163, 184, 0.14);
-  --theme-border: rgba(148, 163, 184, 0.22);
-  --theme-border-strong: rgba(99, 102, 241, 0.2);
+  --theme-bg: #fbfdff;
+  --theme-bg-soft: rgba(255, 255, 255, 0.7);
+  --theme-surface: rgba(255, 255, 255, 0.76);
+  --theme-surface-strong: rgba(255, 255, 255, 0.9);
+  --theme-surface-muted: rgba(247, 252, 255, 0.78);
+  --theme-surface-hover: rgba(224, 242, 254, 0.42);
+  --theme-border: rgba(125, 211, 252, 0.22);
+  --theme-border-strong: rgba(129, 140, 248, 0.3);
   --theme-text-primary: #0f172a;
   --theme-text-secondary: rgba(30, 41, 59, 0.82);
   --theme-text-muted: #475569;
   --theme-text-soft: rgba(71, 85, 105, 0.68);
-  --theme-overlay-soft: rgba(255, 255, 255, 0.56);
-  --theme-overlay-strong: rgba(248, 250, 252, 0.86);
-  --theme-shadow-sm: 0 16px 34px rgba(148, 163, 184, 0.12);
-  --theme-shadow: 0 24px 60px rgba(148, 163, 184, 0.18);
-  --theme-shadow-lg: 0 42px 100px rgba(148, 163, 184, 0.2);
+  --theme-overlay-soft: rgba(255, 255, 255, 0.5);
+  --theme-overlay-strong: rgba(252, 253, 255, 0.88);
+  --theme-shadow-sm: 0 16px 34px rgba(59, 130, 246, 0.08);
+  --theme-shadow: 0 24px 60px rgba(59, 130, 246, 0.1), 0 8px 26px rgba(168, 85, 247, 0.045);
+  --theme-shadow-lg: 0 42px 100px rgba(59, 130, 246, 0.12), 0 14px 42px rgba(236, 72, 153, 0.055);
   --theme-accent: #6366f1;
   --theme-accent-strong: #4f46e5;
-  --theme-accent-soft: rgba(99, 102, 241, 0.12);
+  --theme-accent-soft: rgba(129, 140, 248, 0.13);
   --theme-selection: rgba(99, 102, 241, 0.2);
 }
 
@@ -94,12 +94,11 @@ body {
 }
 
 body[data-theme='day'] {
-  background-color: #f8fbff;
+  background-color: #fbfdff;
   background-image:
-    radial-gradient(circle at 14% 8%, rgba(125, 211, 252, 0.18), transparent 28%),
-    radial-gradient(circle at 84% 10%, rgba(251, 207, 232, 0.16), transparent 24%),
-    radial-gradient(circle at 50% 42%, rgba(199, 210, 254, 0.13), transparent 32%),
-    linear-gradient(180deg, #fbfdff 0%, #f4f8ff 38%, #fffaf6 100%);
+    linear-gradient(135deg, rgba(224, 242, 254, 0.58) 0%, rgba(255, 255, 255, 0) 42%),
+    linear-gradient(225deg, rgba(253, 242, 248, 0.5) 0%, rgba(255, 255, 255, 0) 38%),
+    linear-gradient(180deg, #fdfeff 0%, #f7fbff 44%, #fffafb 74%, #f8fffc 100%);
   background-attachment: fixed;
 }
 
@@ -457,9 +456,13 @@ img {
 
   :root[data-theme='day'] .rect-surface,
   :root[data-theme='day'] .rect-panel {
-    background: rgba(255, 255, 255, 0.92);
-    border-color: rgba(148, 163, 184, 0.32);
-    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 252, 255, 0.86));
+    border-color: rgba(129, 140, 248, 0.22);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.86),
+      0 10px 24px rgba(14, 165, 233, 0.055),
+      0 3px 12px rgba(129, 140, 248, 0.035);
   }
 
   :root[data-theme='day'] .rect-surface-soft,
@@ -467,15 +470,15 @@ img {
   :root[data-theme='day'] .rect-icon-button,
   :root[data-theme='day'] .rect-chip,
   :root[data-theme='day'] .rect-field {
-    background: rgba(248, 250, 252, 0.9);
-    border-color: rgba(148, 163, 184, 0.3);
+    background: rgba(247, 252, 255, 0.78);
+    border-color: rgba(125, 211, 252, 0.24);
     color: #334155;
   }
 
   :root[data-theme='day'] .rect-button-secondary:hover,
   :root[data-theme='day'] .rect-icon-button:hover {
-    background: #ffffff;
-    border-color: rgba(99, 102, 241, 0.32);
+    background: rgba(255, 255, 255, 0.94);
+    border-color: rgba(129, 140, 248, 0.34);
     color: #0f172a;
   }
 
@@ -491,10 +494,9 @@ img {
     pointer-events: none;
     z-index: -1;
     background:
-      radial-gradient(circle at 16% 18%, rgba(125, 211, 252, 0.16), transparent 28%),
-      radial-gradient(circle at 80% 14%, rgba(251, 207, 232, 0.14), transparent 24%),
-      radial-gradient(circle at 62% 70%, rgba(254, 215, 170, 0.12), transparent 28%),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(248, 250, 252, 0.5));
+      linear-gradient(135deg, rgba(186, 230, 253, 0.22), rgba(255, 255, 255, 0) 38%),
+      linear-gradient(225deg, rgba(251, 207, 232, 0.18), rgba(255, 255, 255, 0) 34%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.66), rgba(248, 253, 255, 0.42));
   }
 
   :root[data-theme='day'] .day-ambient-shell::after {
@@ -503,56 +505,56 @@ img {
     inset: 0;
     pointer-events: none;
     z-index: -1;
-    opacity: 0.16;
+    opacity: 0.1;
     background-image:
-      linear-gradient(rgba(15, 23, 42, 0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(15, 23, 42, 0.03) 1px, transparent 1px);
+      linear-gradient(rgba(14, 165, 233, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(129, 140, 248, 0.03) 1px, transparent 1px);
     background-size: 72px 72px;
     mask-image: linear-gradient(180deg, black, transparent 82%);
   }
 
   :root[data-theme='day'] .day-fine-surface {
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(255, 255, 255, 0.58)),
-      radial-gradient(circle at 12% 0%, rgba(125, 211, 252, 0.12), transparent 36%),
-      radial-gradient(circle at 88% 0%, rgba(251, 207, 232, 0.1), transparent 34%);
-    border-color: rgba(203, 213, 225, 0.68);
+      linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(249, 253, 255, 0.6)),
+      linear-gradient(135deg, rgba(224, 242, 254, 0.18), rgba(255, 255, 255, 0) 45%),
+      linear-gradient(225deg, rgba(253, 242, 248, 0.14), rgba(255, 255, 255, 0) 42%);
+    border-color: rgba(125, 211, 252, 0.34);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.86),
-      0 18px 44px rgba(100, 116, 139, 0.12);
+      0 18px 44px rgba(14, 165, 233, 0.06);
   }
 
   :root[data-theme='day'] .day-chrome-surface {
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.62)),
-      radial-gradient(circle at 20% 0%, rgba(125, 211, 252, 0.12), transparent 40%),
-      radial-gradient(circle at 80% 0%, rgba(254, 215, 170, 0.1), transparent 38%);
-    border-color: rgba(203, 213, 225, 0.62);
+      linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(249, 253, 255, 0.66)),
+      linear-gradient(135deg, rgba(224, 242, 254, 0.18), rgba(255, 255, 255, 0) 48%),
+      linear-gradient(225deg, rgba(254, 226, 226, 0.1), rgba(255, 255, 255, 0) 44%);
+    border-color: rgba(125, 211, 252, 0.3);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.9),
-      0 16px 40px rgba(100, 116, 139, 0.14);
+      0 16px 40px rgba(14, 165, 233, 0.065);
   }
 
   :root[data-theme='day'] .day-card-lift {
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(248, 250, 252, 0.68));
-    border-color: rgba(203, 213, 225, 0.66);
+      linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(248, 253, 255, 0.68));
+    border-color: rgba(125, 211, 252, 0.28);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.82),
-      0 8px 22px rgba(100, 116, 139, 0.08);
+      0 8px 22px rgba(14, 165, 233, 0.045);
   }
 
   :root[data-theme='day'] .day-card-lift:hover {
     border-color: rgba(129, 140, 248, 0.28);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.9),
-      0 12px 28px rgba(100, 116, 139, 0.1),
+      0 12px 28px rgba(14, 165, 233, 0.06),
       0 0 0 1px rgba(255, 255, 255, 0.52);
   }
 
   :root[data-theme='day'] .day-quiet-button {
     background: rgba(255, 255, 255, 0.68);
-    border-color: rgba(203, 213, 225, 0.7);
+    border-color: rgba(125, 211, 252, 0.32);
     color: #475569;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.76);
   }
@@ -1483,22 +1485,22 @@ img.motion-image-zoom {
 
 :root[data-theme='day'] .bg-white\/5 { background-color: rgba(255, 255, 255, 0.68); }
 :root[data-theme='day'] .bg-white\/10 { background-color: rgba(255, 255, 255, 0.84); }
-:root[data-theme='day'] .bg-white\/15 { background-color: rgba(241, 245, 249, 0.92); }
-:root[data-theme='day'] .bg-white\/20 { background-color: rgba(226, 232, 240, 0.88); }
+:root[data-theme='day'] .bg-white\/15 { background-color: rgba(240, 249, 255, 0.84); }
+:root[data-theme='day'] .bg-white\/20 { background-color: rgba(224, 242, 254, 0.68); }
 :root[data-theme='day'] .bg-black\/20 { background-color: rgba(255, 255, 255, 0.56); }
-:root[data-theme='day'] .bg-black\/40 { background-color: rgba(248, 250, 252, 0.88); }
-:root[data-theme='day'] .bg-black\/50 { background-color: rgba(241, 245, 249, 0.92); }
+:root[data-theme='day'] .bg-black\/40 { background-color: rgba(249, 253, 255, 0.86); }
+:root[data-theme='day'] .bg-black\/50 { background-color: rgba(240, 249, 255, 0.9); }
 
-:root[data-theme='day'] .border-white\/5 { border-color: rgba(148, 163, 184, 0.16); }
-:root[data-theme='day'] .border-white\/10 { border-color: rgba(148, 163, 184, 0.22); }
-:root[data-theme='day'] .border-white\/15 { border-color: rgba(148, 163, 184, 0.28); }
+:root[data-theme='day'] .border-white\/5 { border-color: rgba(125, 211, 252, 0.16); }
+:root[data-theme='day'] .border-white\/10 { border-color: rgba(125, 211, 252, 0.22); }
+:root[data-theme='day'] .border-white\/15 { border-color: rgba(129, 140, 248, 0.24); }
 :root[data-theme='day'] .border-white\/20 { border-color: rgba(99, 102, 241, 0.16); }
 
-:root[data-theme='day'] .hover\:bg-white\/10:hover { background-color: rgba(226, 232, 240, 0.72); }
-:root[data-theme='day'] .hover\:bg-white\/15:hover { background-color: rgba(226, 232, 240, 0.82); }
+:root[data-theme='day'] .hover\:bg-white\/10:hover { background-color: rgba(224, 242, 254, 0.52); }
+:root[data-theme='day'] .hover\:bg-white\/15:hover { background-color: rgba(224, 242, 254, 0.66); }
 :root[data-theme='day'] .hover\:text-white:hover { color: var(--theme-text-primary); }
 :root[data-theme='day'] .hover\:border-white\/10:hover { border-color: rgba(99, 102, 241, 0.18); }
-:root[data-theme='day'] .shadow-\[0_8px_32px_rgba\(0\,0\,0\,0\.4\)\] { box-shadow: 0 18px 40px rgba(148, 163, 184, 0.18); }
+:root[data-theme='day'] .shadow-\[0_8px_32px_rgba\(0\,0\,0\,0\.4\)\] { box-shadow: 0 18px 40px rgba(59, 130, 246, 0.12); }
 
 :root[data-theme='day'] .hero-day-ink {
   color: #ffffff;
