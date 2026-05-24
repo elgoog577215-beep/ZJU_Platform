@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -36,6 +37,8 @@ const normalizeWork = (work, index) => ({
   honorTitle: work.honor_title || work.honorTitle || work.award || "Top 20 获奖成员",
   gitUrl: work.git_url || work.gitUrl || "",
   cover: work.cover_url || work.cover || fallbackCover,
+  author: work.author || work.uploader_name || "获奖成员",
+  summary: work.summary || work.description || work.gameDescription || "",
   grade: work.grade || "",
   major: work.major || "",
   highlight: work.highlight || "",
@@ -43,24 +46,43 @@ const normalizeWork = (work, index) => ({
   storyFileUrl: work.story_file_url || work.storyFileUrl || "",
 });
 
-const WorkCover = ({ work, featured = false }) => (
-  <div className={`relative overflow-hidden bg-[#061113] ${featured ? "min-h-[310px]" : "min-h-[210px]"}`}>
+const WorkCover = ({ work, featured = false, isDayMode = false, onOpen }) => (
+  <button
+    type="button"
+    onClick={() => onOpen?.(work)}
+    className={`relative block w-full overflow-hidden bg-[#061113] text-left ${featured ? "aspect-[16/10]" : "aspect-[16/11]"}`}
+    aria-label={`查看${work.title}详情`}
+  >
     <img
       src={work.cover}
       alt={`${work.title} 封面`}
-      className="h-full w-full object-cover opacity-80 transition duration-700 group-hover:scale-[1.035]"
-      style={{ filter: "brightness(0.62) saturate(1.16) contrast(1.08)" }}
+      className="absolute inset-0 h-full w-full object-cover opacity-90 transition duration-700 group-hover:scale-[1.035]"
+      style={{ filter: isDayMode ? "brightness(0.88) saturate(1.08) contrast(1.02)" : "brightness(0.66) saturate(1.16) contrast(1.08)" }}
       loading={featured ? "eager" : "lazy"}
     />
-    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.02),rgba(0,0,0,0.74)),radial-gradient(circle_at_18%_0%,rgba(103,232,249,0.28),transparent_34%)]" />
-    <span className="absolute right-4 top-2 font-mono text-[96px] font-black leading-none text-white/[0.08]">
+    <div
+      className={`absolute inset-0 ${
+        isDayMode
+          ? "bg-[linear-gradient(180deg,rgba(248,251,255,0.02),rgba(15,23,42,0.50)),radial-gradient(circle_at_18%_0%,rgba(8,145,178,0.20),transparent_34%)]"
+          : "bg-[linear-gradient(180deg,rgba(0,0,0,0.02),rgba(0,0,0,0.76)),radial-gradient(circle_at_18%_0%,rgba(103,232,249,0.28),transparent_34%)]"
+      }`}
+    />
+    <span className="absolute right-4 top-2 font-mono text-[clamp(4rem,8vw,7.25rem)] font-black leading-none text-white/[0.10]">
       {work.rank}
     </span>
-    <div className="absolute left-5 top-5 inline-flex items-center gap-2 border border-cyan-200/32 bg-black/36 px-3 py-2 text-xs font-black uppercase text-cyan-100 backdrop-blur">
+    <div className="absolute left-4 top-4 inline-flex max-w-[calc(100%-2rem)] items-center gap-2 border border-cyan-200/32 bg-black/42 px-3 py-2 text-xs font-black uppercase text-cyan-100 backdrop-blur">
       <Trophy className="h-4 w-4" />
-      {work.award}
+      <span className="truncate">{work.award}</span>
     </div>
-  </div>
+    <div className="absolute bottom-4 left-4 right-4">
+      <p className="line-clamp-2 max-w-[85%] text-xl font-black leading-tight text-white drop-shadow-[0_4px_18px_rgba(0,0,0,0.55)]">
+        {work.title}
+      </p>
+      <span className="mt-3 inline-flex min-h-9 items-center border border-white/18 bg-white/12 px-3 text-xs font-black text-white opacity-0 backdrop-blur transition duration-300 group-hover:opacity-100">
+        查看详情
+      </span>
+    </div>
+  </button>
 );
 
 const WorkCard = ({ work, featured = false, isDayMode = false, onOpen }) => {
@@ -72,18 +94,21 @@ const WorkCard = ({ work, featured = false, isDayMode = false, onOpen }) => {
     ? "border-cyan-200 bg-cyan-50 text-cyan-800 hover:border-cyan-600 hover:bg-cyan-600 hover:text-white"
     : "border-cyan-300/24 bg-cyan-300/[0.08] text-cyan-100 hover:border-cyan-200 hover:bg-cyan-300 hover:text-slate-950";
   const rankClass = rankTone[work.rank] || "from-cyan-200 to-white";
+  const honorClass = isDayMode
+    ? "border-cyan-200 bg-cyan-50 text-cyan-800"
+    : "border-cyan-300/24 bg-cyan-300/[0.10] text-cyan-100";
 
   return (
-    <article className={`group overflow-hidden border ${panelClass} transition duration-300 hover:-translate-y-1 hover:border-cyan-300/60`}>
-      <WorkCover work={work} featured={featured} />
-      <div className={featured ? "p-6 lg:p-7" : "p-5"}>
+    <article className={`group flex h-full flex-col overflow-hidden border ${panelClass} transition duration-300 hover:-translate-y-1 hover:border-cyan-300/60`}>
+      <WorkCover work={work} featured={featured} isDayMode={isDayMode} onOpen={onOpen} />
+      <div className={`flex flex-1 flex-col ${featured ? "p-6 lg:p-7" : "p-5"}`}>
         <div className={`mb-4 h-1 w-full bg-gradient-to-r ${rankClass}`} />
-        <h2 className={featured ? "text-3xl font-black leading-tight lg:text-4xl" : "text-2xl font-black leading-tight"}>
+        <h2 className={featured ? "text-3xl font-black leading-tight lg:text-4xl" : "line-clamp-2 min-h-[4rem] text-2xl font-black leading-tight"}>
           {work.title}
         </h2>
         <p className={`mt-3 text-sm font-bold ${mutedClass}`}>{work.author}</p>
         <div className="mt-3 flex flex-wrap gap-2">
-          <span className="border border-cyan-300/24 bg-cyan-300/[0.10] px-2.5 py-1 text-xs font-black text-cyan-100">
+          <span className={`border px-2.5 py-1 text-xs font-black ${honorClass}`}>
             {work.honorTitle}
           </span>
           {[work.grade, work.major].filter(Boolean).map((item) => (
@@ -103,7 +128,7 @@ const WorkCard = ({ work, featured = false, isDayMode = false, onOpen }) => {
         {work.summary ? (
           <p className={`mt-3 line-clamp-3 text-sm leading-6 ${mutedClass}`}>{work.summary}</p>
         ) : null}
-        <div className="mt-6 grid gap-2 sm:grid-cols-2">
+        <div className="mt-auto grid gap-2 pt-6 sm:grid-cols-2">
           <button
             type="button"
             onClick={() => onOpen?.(work)}
@@ -131,67 +156,132 @@ const WorkCard = ({ work, featured = false, isDayMode = false, onOpen }) => {
 };
 
 const WorkDetailModal = ({ work, isDayMode, onClose }) => {
+  useEffect(() => {
+    if (!work || typeof document === "undefined") return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") onClose();
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [work, onClose]);
+
   if (!work) return null;
 
   const shellClass = isDayMode
-    ? "bg-white text-slate-950 shadow-[0_30px_100px_rgba(15,23,42,0.24)]"
-    : "bg-[#061014] text-white shadow-[0_30px_100px_rgba(0,0,0,0.64)]";
+    ? "border-cyan-200 bg-white text-slate-950 shadow-[0_30px_100px_rgba(15,23,42,0.24)]"
+    : "border-cyan-300/18 bg-[#061014] text-white shadow-[0_30px_100px_rgba(0,0,0,0.64)]";
   const mutedClass = isDayMode ? "text-slate-600" : "text-white/64";
   const paragraphClass = isDayMode ? "text-slate-700" : "text-white/76";
+  const detailStats = [
+    ["名次", work.rank ? `#${work.rank}` : "未标注"],
+    ["荣誉", work.honorTitle || work.award || "优秀作品"],
+    ["选手", work.author || "获奖成员"],
+    ["专业", [work.grade, work.major].filter(Boolean).join(" / ") || "未填写"],
+  ];
 
-  return (
-    <div className="fixed inset-0 z-[170] flex items-end justify-center bg-black/70 p-0 backdrop-blur-sm sm:items-center sm:p-4">
-      <article className={`max-h-[92vh] w-full max-w-4xl overflow-hidden border border-cyan-300/18 ${shellClass} sm:rounded-2xl`}>
-        <div className="flex items-start justify-between gap-4 border-b border-white/10 px-5 py-4 sm:px-6">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">Winner Story</p>
-            <h2 className="mt-2 text-2xl font-black leading-tight sm:text-4xl">{work.title}</h2>
-            <p className={`mt-2 text-sm font-bold ${mutedClass}`}>
-              {[work.author, work.grade, work.major].filter(Boolean).join(" / ")}
-            </p>
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[170] flex items-end justify-center bg-black/72 p-0 backdrop-blur-md sm:items-center sm:p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${work.title} 作品详情`}
+      onMouseDown={onClose}
+    >
+      <article
+        className={`grid h-[100svh] w-full overflow-hidden border ${shellClass} sm:h-[88svh] sm:max-h-[820px] sm:max-w-6xl sm:rounded-2xl lg:grid-cols-[minmax(0,1.08fr)_minmax(420px,0.92fr)]`}
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <div className="relative min-h-[34svh] overflow-hidden bg-[#061113] sm:min-h-[420px] lg:min-h-0">
+          <img
+            src={work.cover}
+            alt={`${work.title} 作品预览`}
+            className="absolute inset-0 h-full w-full object-cover"
+            style={{ filter: isDayMode ? "brightness(0.9) saturate(1.06)" : "brightness(0.72) saturate(1.14) contrast(1.04)" }}
+          />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.02),rgba(0,0,0,0.72)),radial-gradient(circle_at_18%_0%,rgba(103,232,249,0.24),transparent_34%)]" />
+          <span className="absolute right-5 top-4 font-mono text-[clamp(5rem,12vw,10rem)] font-black leading-none text-white/[0.10]">
+            {work.rank}
+          </span>
+          <div className="absolute bottom-5 left-5 right-5">
+            <div className="mb-4 flex flex-wrap gap-2">
+              <span className="border border-cyan-300/24 bg-cyan-300 px-3 py-1.5 text-xs font-black text-slate-950">
+                {work.honorTitle}
+              </span>
+              {work.award ? <span className="border border-cyan-300/24 bg-black/36 px-3 py-1.5 text-xs font-bold text-cyan-100 backdrop-blur">{work.award}</span> : null}
+            </div>
+            <h2 className="max-w-3xl text-3xl font-black leading-tight text-white drop-shadow-[0_5px_24px_rgba(0,0,0,0.5)] sm:text-5xl">
+              {work.title}
+            </h2>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center border border-white/10 bg-white/5 transition hover:bg-white/10"
-            aria-label="关闭"
-          >
-            <X className="h-5 w-5" />
-          </button>
         </div>
-        <div className="max-h-[calc(92vh-104px)] overflow-y-auto px-5 py-5 sm:px-6">
-          <div className="flex flex-wrap gap-2">
-            <span className="border border-cyan-300/24 bg-cyan-300 px-3 py-1.5 text-xs font-black text-slate-950">
-              {work.honorTitle}
-            </span>
-            {work.award ? <span className="border border-cyan-300/18 px-3 py-1.5 text-xs font-bold">{work.award}</span> : null}
-            {work.rank ? <span className="border border-cyan-300/18 px-3 py-1.5 text-xs font-bold">Rank {work.rank}</span> : null}
+
+        <div className="flex min-h-0 flex-col">
+          <div className="flex items-start justify-between gap-4 border-b border-cyan-300/16 px-5 py-4 sm:px-6">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">Winner Story</p>
+              <p className={`mt-2 text-sm font-bold ${mutedClass}`}>
+                {[work.author, work.grade, work.major].filter(Boolean).join(" / ")}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className={`inline-flex h-10 w-10 shrink-0 items-center justify-center border transition ${
+                isDayMode ? "border-slate-200 bg-slate-50 text-slate-800 hover:bg-slate-100" : "border-white/10 bg-white/5 text-white hover:bg-white/10"
+              }`}
+              aria-label="关闭"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
-          {work.highlight ? (
-            <blockquote className="mt-5 border-l-4 border-cyan-300 pl-4 text-lg font-black leading-8">
-              {work.highlight}
-            </blockquote>
-          ) : null}
-          <section className="mt-6 grid gap-3">
-            <h3 className="text-lg font-black">作品介绍</h3>
-            <p className={`whitespace-pre-line text-sm leading-7 ${paragraphClass}`}>{work.summary || "暂无作品介绍"}</p>
-          </section>
-          <section className="mt-6 grid gap-3">
-            <h3 className="text-lg font-black">经验分享</h3>
-            <p className={`whitespace-pre-line text-sm leading-7 ${paragraphClass}`}>
-              {work.experience || "暂无经验分享，后续可由获奖成员补充。"}
-            </p>
-          </section>
-          <div className="mt-7 flex flex-wrap gap-3">
+          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+            <div className="grid grid-cols-2 gap-2">
+              {detailStats.map(([label, value]) => (
+                <div
+                  key={label}
+                  className={`border px-3 py-3 ${isDayMode ? "border-slate-200 bg-slate-50/80" : "border-white/10 bg-white/[0.045]"}`}
+                >
+                  <p className={`text-[11px] font-black uppercase ${isDayMode ? "text-slate-500" : "text-white/42"}`}>{label}</p>
+                  <p className="mt-1 line-clamp-2 text-sm font-black leading-5">{value}</p>
+                </div>
+              ))}
+            </div>
+            {work.highlight ? (
+              <blockquote className="mt-6 border-l-4 border-cyan-300 pl-4 text-lg font-black leading-8">
+                {work.highlight}
+              </blockquote>
+            ) : null}
+            <section className="mt-6 grid gap-3">
+              <h3 className="text-lg font-black">作品介绍</h3>
+              <p className={`whitespace-pre-line text-sm leading-7 ${paragraphClass}`}>{work.summary || "暂无作品介绍"}</p>
+            </section>
+            <section className="mt-6 grid gap-3">
+              <h3 className="text-lg font-black">经验分享</h3>
+              <p className={`whitespace-pre-line text-sm leading-7 ${paragraphClass}`}>
+                {work.experience || "暂无经验分享，后续可由获奖成员补充。"}
+              </p>
+            </section>
+          </div>
+          <div className="flex flex-wrap gap-3 border-t border-cyan-300/16 px-5 py-4 sm:px-6">
             {work.gitUrl ? (
-              <a href={work.gitUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center justify-center gap-2 bg-cyan-300 px-4 text-sm font-black text-slate-950 transition hover:bg-white">
+              <a href={work.gitUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-11 w-full items-center justify-center gap-2 bg-cyan-300 px-4 text-sm font-black text-slate-950 transition hover:bg-white sm:w-auto">
                 <Github className="h-4 w-4" />
                 项目链接
                 <ExternalLink className="h-4 w-4" />
               </a>
             ) : null}
             {work.storyFileUrl ? (
-              <a href={work.storyFileUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center justify-center gap-2 border border-cyan-300/24 px-4 text-sm font-black transition hover:border-cyan-300">
+              <a href={work.storyFileUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-11 w-full items-center justify-center gap-2 border border-cyan-300/24 px-4 text-sm font-black transition hover:border-cyan-300 sm:w-auto">
                 <BookOpen className="h-4 w-4" />
                 原文附件
               </a>
@@ -199,7 +289,8 @@ const WorkDetailModal = ({ work, isDayMode, onClose }) => {
           </div>
         </div>
       </article>
-    </div>
+    </div>,
+    document.body,
   );
 };
 

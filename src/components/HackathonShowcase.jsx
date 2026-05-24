@@ -243,6 +243,9 @@ const HackathonShowcase = () => {
       title: work.title || "未命名作品",
       author: work.author || work.uploader_name || "获奖成员",
       gitUrl: work.git_url || work.gitUrl || "",
+      cover: work.cover_url || work.cover || (index % 2 === 0 ? HERO_IMAGE : SECONDARY_IMAGE),
+      summary: work.summary || work.description || "",
+      honorTitle: work.honor_title || work.honorTitle || work.award || "Top 20 获奖成员",
     }));
   }, [outcome]);
 
@@ -1433,7 +1436,25 @@ const HackathonShowcase = () => {
                 key={work.id}
                 className={`showcase-work-card group flex min-h-[520px] flex-col overflow-hidden border ${theme.panelStrong} transition duration-300 hover:-translate-y-1 hover:border-cyan-300/50 hover:shadow-[0_34px_120px_rgba(34,211,238,0.14)]`}
               >
-                <div className="showcase-project-surface relative min-h-[250px] overflow-hidden">
+                <Link
+                  to="/hackathon/works"
+                  className="showcase-project-surface relative block min-h-[270px] overflow-hidden"
+                  aria-label={`查看${work.title}详情`}
+                >
+                  <img
+                    src={work.cover || (index % 2 === 0 ? HERO_IMAGE : SECONDARY_IMAGE)}
+                    alt={`${work.title} 作品封面`}
+                    className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]"
+                    style={{ filter: isDayMode ? "brightness(0.88) saturate(1.08) contrast(1.02)" : "brightness(0.68) saturate(1.16) contrast(1.08)" }}
+                    loading={index === 0 ? "eager" : "lazy"}
+                  />
+                  <div
+                    className={`absolute inset-0 ${
+                      isDayMode
+                        ? "bg-[linear-gradient(180deg,rgba(248,251,255,0.04),rgba(15,23,42,0.58)),radial-gradient(circle_at_18%_0%,rgba(8,145,178,0.20),transparent_34%)]"
+                        : "bg-[linear-gradient(180deg,rgba(0,0,0,0.04),rgba(0,0,0,0.78)),radial-gradient(circle_at_18%_0%,rgba(103,232,249,0.28),transparent_34%)]"
+                    }`}
+                  />
                   <span className={`showcase-work-rank absolute right-4 top-2 z-10 font-mono text-[112px] font-black leading-none ${isDayMode ? "text-slate-900/[0.075]" : "text-white/[0.055]"}`}>
                     {work.rank}
                   </span>
@@ -1444,17 +1465,28 @@ const HackathonShowcase = () => {
                   <div className="absolute bottom-5 left-5 right-5 z-10">
                     <div className={`flex items-center gap-2 ${theme.accent}`}>
                       <Trophy className="h-5 w-5" />
-                      <span className="text-sm font-black uppercase">{work.award}</span>
+                      <span className="line-clamp-1 text-sm font-black uppercase">{work.honorTitle || work.award}</span>
                     </div>
+                    <h3 className="mt-3 line-clamp-2 max-w-[84%] text-3xl font-black leading-tight text-white drop-shadow-[0_5px_24px_rgba(0,0,0,0.5)]">
+                      {work.title}
+                    </h3>
                     <div className={`mt-4 h-1 w-full ${isDayMode ? "bg-slate-200" : "bg-white/12"}`}>
                       <div className={`h-full shadow-[0_0_18px_currentColor] ${index === 0 ? "w-full bg-amber-300 text-amber-300" : "w-3/4 bg-cyan-300 text-cyan-300"}`} />
                     </div>
+                    <span className="mt-4 inline-flex min-h-9 items-center border border-white/18 bg-white/12 px-3 text-xs font-black text-white opacity-0 backdrop-blur transition duration-300 group-hover:opacity-100">
+                      查看完整作品
+                    </span>
                   </div>
-                </div>
+                </Link>
 
                 <div className="showcase-work-body flex flex-1 flex-col p-6">
-                  <h3 className="showcase-work-title text-3xl font-black">{work.title}</h3>
-                  <p className={`mt-3 flex-1 text-sm font-bold ${theme.accent}`}>{work.author}</p>
+                  <div className="flex flex-wrap gap-2">
+                    <span className={`border px-2.5 py-1 text-xs font-black ${theme.chip}`}>{work.award}</span>
+                    <span className={`border px-2.5 py-1 text-xs font-black ${theme.chip}`}>{work.author}</span>
+                  </div>
+                  {work.summary ? (
+                    <p className={`mt-4 line-clamp-3 text-sm leading-6 ${theme.muted}`}>{work.summary}</p>
+                  ) : null}
                   {work.gitUrl ? (
                     <a
                       href={work.gitUrl}
