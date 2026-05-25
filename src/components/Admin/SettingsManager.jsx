@@ -9,10 +9,12 @@ import {
   AdminLoadingState,
   AdminPageShell,
   AdminPanel,
+  useAdminTheme,
 } from "./AdminUI";
 
 const SettingsManager = () => {
   const { updateSetting: updateGlobalSetting } = useSettings();
+  const { isDayMode } = useAdminTheme();
   const [settings, setSettings] = useState({});
   const [initialSettings, setInitialSettings] = useState({});
   const [loading, setLoading] = useState(true);
@@ -61,6 +63,12 @@ const SettingsManager = () => {
     return result;
   }, [initialSettings, settings]);
 
+  const fieldClassName = `rect-surface-soft border p-3 ${isDayMode ? "border-slate-200/70 bg-white/[0.7]" : "border-white/10 bg-white/[0.03]"}`;
+  const labelClassName = `mb-2 block text-sm font-medium ${isDayMode ? "text-slate-600" : "text-gray-400"}`;
+  const helpClassName = `mt-2 text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`;
+  const sectionGridClassName = "grid gap-3 lg:grid-cols-2";
+  const wideFieldClassName = "lg:col-span-2";
+
   const fieldAction = (key) => (
     <AdminButton
       tone={dirtyMap[key] ? "primary" : "subtle"}
@@ -86,9 +94,9 @@ const SettingsManager = () => {
         description="邀请码不会通过读取接口返回，所以这里只支持重新设置，不显示旧值。"
         action={<Key size={18} className="text-indigo-300" />}
       >
-        <div className="grid gap-5">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+        <div className={sectionGridClassName}>
+          <div className={fieldClassName}>
+            <label className={labelClassName}>
               组织邀请码
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -101,7 +109,7 @@ const SettingsManager = () => {
               />
               {fieldAction("invite_code")}
             </div>
-            <p className="mt-2 text-xs text-gray-500">
+            <p className={helpClassName}>
               仅当你主动输入新邀请码时才会覆盖当前配置。
             </p>
           </div>
@@ -113,9 +121,9 @@ const SettingsManager = () => {
         description="面向全站的基础文字和品牌配置。"
         action={<Globe size={18} className="text-indigo-300" />}
       >
-        <div className="grid gap-5">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+        <div className={sectionGridClassName}>
+          <div className={fieldClassName}>
+            <label className={labelClassName}>
               站点名称
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -136,8 +144,8 @@ const SettingsManager = () => {
         description="背景参数会实时影响站点公共视觉。建议改动后回前台检查实际效果。"
         action={<Sun size={18} className="text-indigo-300" />}
       >
-        <div className="grid gap-5">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+        <div className={sectionGridClassName}>
+          <div className={fieldClassName}>
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-400">
@@ -154,7 +162,7 @@ const SettingsManager = () => {
                   }
                   className="mt-3 w-full"
                 />
-                <p className="mt-2 text-xs text-gray-500">
+                <p className={helpClassName}>
                   控制背景整体亮度，适合在视觉偏暗或偏亮时微调。
                 </p>
               </div>
@@ -162,7 +170,7 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div className={fieldClassName}>
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-400">
@@ -179,7 +187,7 @@ const SettingsManager = () => {
                   }
                   className="mt-3 w-full"
                 />
-                <p className="mt-2 text-xs text-gray-500">
+                <p className={helpClassName}>
                   控制发光程度，数值过高会明显影响可读性。
                 </p>
               </div>
@@ -187,7 +195,7 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div className={fieldClassName}>
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-400">
@@ -204,7 +212,7 @@ const SettingsManager = () => {
                   }
                   className="mt-3 w-full"
                 />
-                <p className="mt-2 text-xs text-gray-500">
+                <p className={helpClassName}>
                   控制边缘暗角，适合突出中心主体但不宜过重。
                 </p>
               </div>
@@ -219,9 +227,9 @@ const SettingsManager = () => {
         description="关于页面的所有内容均可在此编辑，修改后前台实时生效。"
         action={<FileText size={18} className="text-indigo-300" />}
       >
-        <div className="grid gap-5">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+        <div className={sectionGridClassName}>
+          <div className={fieldClassName}>
+            <label className={labelClassName}>
               团队标题
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -234,13 +242,13 @@ const SettingsManager = () => {
               />
               {fieldAction("about_team_title")}
             </div>
-            <p className="mt-2 text-xs text-gray-500">
+            <p className={helpClassName}>
               关于页面顶部大标题，建议控制在 10 个字符以内。
             </p>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={fieldClassName}>
+            <label className={labelClassName}>
               团队副标题 / 一句话介绍
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -255,8 +263,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={`${fieldClassName} ${wideFieldClassName}`}>
+            <label className={labelClassName}>
               团队介绍 - 第一段
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -271,8 +279,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={`${fieldClassName} ${wideFieldClassName}`}>
+            <label className={labelClassName}>
               团队介绍 - 第二段
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -287,8 +295,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={fieldClassName}>
+            <label className={labelClassName}>
               支持单位（逗号分隔）
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -301,13 +309,13 @@ const SettingsManager = () => {
               />
               {fieldAction("about_support_units")}
             </div>
-            <p className="mt-2 text-xs text-gray-500">
+            <p className={helpClassName}>
               用英文逗号分隔多个支持单位名称。
             </p>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={fieldClassName}>
+            <label className={labelClassName}>
               数据指标 1 - 数值
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -322,8 +330,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={fieldClassName}>
+            <label className={labelClassName}>
               数据指标 1 - 描述
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -338,8 +346,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={fieldClassName}>
+            <label className={labelClassName}>
               数据指标 2 - 数值
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -354,8 +362,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={fieldClassName}>
+            <label className={labelClassName}>
               数据指标 2 - 描述
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -370,8 +378,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={fieldClassName}>
+            <label className={labelClassName}>
               数据指标 3 - 数值
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -386,8 +394,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={fieldClassName}>
+            <label className={labelClassName}>
               数据指标 3 - 描述
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -402,8 +410,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={fieldClassName}>
+            <label className={labelClassName}>
               AI 社区 - 标题
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -418,8 +426,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={fieldClassName}>
+            <label className={labelClassName}>
               AI 社区 - 标签
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -434,8 +442,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={`${fieldClassName} ${wideFieldClassName}`}>
+            <label className={labelClassName}>
               AI 社区 - 描述
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -450,8 +458,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={`${fieldClassName} ${wideFieldClassName}`}>
+            <label className={labelClassName}>
               AI 社区 - 要点（每行一个）
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -466,8 +474,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={fieldClassName}>
+            <label className={labelClassName}>
               黑客松 - 标题
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -482,8 +490,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={fieldClassName}>
+            <label className={labelClassName}>
               黑客松 - 标签
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -498,8 +506,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={`${fieldClassName} ${wideFieldClassName}`}>
+            <label className={labelClassName}>
               黑客松 - 描述
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -514,8 +522,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={`${fieldClassName} ${wideFieldClassName}`}>
+            <label className={labelClassName}>
               黑客松 - 要点（每行一个）
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -530,8 +538,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={`${fieldClassName} ${wideFieldClassName}`}>
+            <label className={labelClassName}>
               社区与比赛 - 大标题
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -546,8 +554,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={`${fieldClassName} ${wideFieldClassName}`}>
+            <label className={labelClassName}>
               社区与比赛 - 补充说明
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -562,8 +570,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={fieldClassName}>
+            <label className={labelClassName}>
               支持网络 - 标题
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -578,8 +586,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={`${fieldClassName} ${wideFieldClassName}`}>
+            <label className={labelClassName}>
               支持网络 - 描述
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -594,8 +602,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={fieldClassName}>
+            <label className={labelClassName}>
               支持网络 - 定位 (Positioning)
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -610,8 +618,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={fieldClassName}>
+            <label className={labelClassName}>
               支持网络 - 方法 (Method)
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -626,8 +634,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={fieldClassName}>
+            <label className={labelClassName}>
               支持网络 - 成果 (Result)
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -642,8 +650,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={fieldClassName}>
+            <label className={labelClassName}>
               结尾 - 标题
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -658,8 +666,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={`${fieldClassName} ${wideFieldClassName}`}>
+            <label className={labelClassName}>
               结尾 - 描述
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -674,8 +682,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={fieldClassName}>
+            <label className={labelClassName}>
               结尾 - 备注
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -697,9 +705,9 @@ const SettingsManager = () => {
         description="黑客松报名页面的标题、时间和合作方配置。"
         action={<FileText size={18} className="text-indigo-300" />}
       >
-        <div className="grid gap-5">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+        <div className={sectionGridClassName}>
+          <div className={fieldClassName}>
+            <label className={labelClassName}>
               黑客松 - 标题
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -714,8 +722,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={fieldClassName}>
+            <label className={labelClassName}>
               黑客松 - 副标题
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -730,8 +738,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={fieldClassName}>
+            <label className={labelClassName}>
               黑客松 - 比赛时间
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -746,8 +754,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={fieldClassName}>
+            <label className={labelClassName}>
               黑客松 - 比赛地点
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -762,8 +770,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={fieldClassName}>
+            <label className={labelClassName}>
               黑客松 - 比赛形式
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -778,8 +786,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={fieldClassName}>
+            <label className={labelClassName}>
               黑客松 - 比赛时长
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">
@@ -794,8 +802,8 @@ const SettingsManager = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <label className="mb-2 block text-sm font-medium text-gray-400">
+          <div className={`${fieldClassName} ${wideFieldClassName}`}>
+            <label className={labelClassName}>
               黑客松 - 描述
             </label>
             <div className="flex flex-col gap-3 lg:flex-row">

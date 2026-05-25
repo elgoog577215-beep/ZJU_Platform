@@ -107,13 +107,13 @@ export const AdminPageShell = ({
   } = useAdminTheme();
 
   return (
-    <div className="space-y-3 md:space-y-4">
-      <div className={clsx("rect-surface p-4 md:p-5", panelClass)}>
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div className="space-y-3">
+      <div className={clsx("rect-surface px-4 py-3 md:px-5", panelClass)}>
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0">
             <h2
               className={clsx(
-                "text-xl font-bold tracking-normal md:text-2xl",
+                "text-lg font-bold tracking-normal md:text-xl",
                 headingTextClass,
               )}
               style={
@@ -125,7 +125,7 @@ export const AdminPageShell = ({
               {title}
             </h2>
             {description ? (
-              <p className={clsx("mt-2 max-w-3xl text-sm", mutedTextClass)}>
+              <p className={clsx("mt-1 max-w-3xl text-xs leading-5 md:text-sm", mutedTextClass)}>
                 {description}
               </p>
             ) : null}
@@ -142,7 +142,7 @@ export const AdminPageShell = ({
           ) : null}
         </div>
         {toolbar ? (
-          <div className="mt-4 border-t border-[rgba(128,146,167,0.14)] pt-4">
+          <div className="mt-3 border-t border-[rgba(128,146,167,0.14)] pt-3">
             {toolbar}
           </div>
         ) : null}
@@ -162,14 +162,14 @@ export const AdminPanel = ({
   const { panelClass, mutedTextClass, headingTextClass } = useAdminTheme();
 
   return (
-    <section className={clsx("rect-surface p-4 md:p-5", panelClass, className)}>
+    <section className={clsx("rect-surface p-4", panelClass, className)}>
       {(title || action) && (
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             {title ? (
               <h3
                 className={clsx(
-                  "text-base font-bold md:text-lg",
+                  "text-base font-bold",
                   headingTextClass,
                 )}
               >
@@ -177,7 +177,7 @@ export const AdminPanel = ({
               </h3>
             ) : null}
             {description ? (
-              <p className={clsx("mt-1 text-sm", mutedTextClass)}>
+              <p className={clsx("mt-1 text-xs leading-5 md:text-sm", mutedTextClass)}>
                 {description}
               </p>
             ) : null}
@@ -249,7 +249,7 @@ export const AdminEmptyState = ({ icon: Icon, title, description, action }) => {
 };
 
 export const AdminToolbar = ({ children }) => (
-  <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+  <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
     {children}
   </div>
 );
@@ -397,7 +397,7 @@ export const AdminSelectedBar = ({ children, className }) => {
   return (
     <div
       className={clsx(
-        "rect-surface-soft border p-4",
+    "rect-surface-soft border p-3",
         isDayMode
           ? "border-indigo-500/[0.18] bg-indigo-500/[0.08] text-slate-700"
           : "border-indigo-500/20 bg-indigo-500/10 text-indigo-100",
@@ -497,7 +497,7 @@ export const AdminMetricCard = ({
   return (
     <div
       className={clsx(
-        "rect-surface-soft border p-4",
+        "rect-surface-soft border p-3",
         isDayMode
           ? "border-slate-200/70 bg-white/[0.72]"
           : "border-white/10 bg-white/5",
@@ -505,17 +505,12 @@ export const AdminMetricCard = ({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p
-            className={clsx(
-              "text-xs font-semibold uppercase tracking-[0.16em]",
-              mutedTextClass,
-            )}
-          >
+          <p className={clsx("text-xs font-semibold", mutedTextClass)}>
             {label}
           </p>
           <p
             className={clsx(
-              "mt-3 text-2xl font-bold tabular-nums",
+              "mt-2 text-xl font-bold tabular-nums",
               headingTextClass,
             )}
           >

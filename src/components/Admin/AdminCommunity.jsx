@@ -329,20 +329,20 @@ const AdminCommunity = () => {
         {loadingStats ? (
           <AdminLoadingState text="正在加载社区统计..." />
         ) : (
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
             {statCards.map((card) => (
-              <AdminPanel key={card.label} className="p-5">
+              <AdminPanel key={card.label} className="p-3">
                 <div className="flex items-center gap-2 text-xs text-gray-500">
                   <card.icon size={16} className={isDayMode ? "text-indigo-600" : "text-indigo-300"} />
                   {card.label}
                 </div>
-                <div className={`mt-3 text-2xl font-bold ${isDayMode ? "text-slate-950" : "text-white"}`}>{card.value}</div>
+                <div className={`mt-2 text-xl font-bold ${isDayMode ? "text-slate-950" : "text-white"}`}>{card.value}</div>
               </AdminPanel>
             ))}
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.1fr_1fr]">
+        <div className="grid grid-cols-1 gap-3">
           <AdminPanel
             title="栏目分布"
             description="这里展示目前社区各栏目帖子数量。"
@@ -362,18 +362,13 @@ const AdminCommunity = () => {
                     <card.Icon size={16} className={isDayMode ? "text-indigo-600" : "text-indigo-300"} />
                     {card.label}
                   </div>
-                  <div className={`mt-3 text-2xl font-bold ${isDayMode ? "text-slate-950" : "text-white"}`}>{card.value}</div>
+                  <div className={`mt-2 text-xl font-bold ${isDayMode ? "text-slate-950" : "text-white"}`}>{card.value}</div>
                 </button>
               ))}
             </div>
           </AdminPanel>
 
-          <AdminPanel title="接口说明" description="社区后台当前受现有 API 能力约束。">
-            <div className={`rounded-2xl border p-4 text-sm ${isDayMode ? "border-amber-200/80 bg-amber-50 text-amber-800" : "border-amber-500/20 bg-amber-500/10 text-amber-100"}`}>
-              现有后端没有提供管理员专用的帖子列表接口，因此这里展示的是已发布帖子列表，
-              可以用于运营巡检和下架处理。待审核数量仍会显示在统计卡中。
-            </div>
-          </AdminPanel>
+
         </div>
 
         <AdminPanel

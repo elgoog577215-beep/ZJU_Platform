@@ -349,9 +349,7 @@ test.describe("admin console refinement", () => {
       page.getByRole("heading", { name: "图片资源", exact: true }),
     ).toBeVisible();
     await expect(quickJump).toHaveValue("photos");
-    await expect(
-      page.getByText("当前筛选“全部状态”共 2 条，本页显示 2 条"),
-    ).toBeVisible();
+    await expect(page.getByText("2 条内容，全部状态")).toBeVisible();
     await expect(page.getByRole("search", { name: "搜索图片资源" })).toBeVisible();
     await expect(page.getByRole("textbox", { name: "搜索图片资源" })).toBeVisible();
     await expect(page.getByRole("table")).toBeVisible();
@@ -365,20 +363,15 @@ test.describe("admin console refinement", () => {
     });
     await page.getByRole("button", { name: "筛选图片资源待审核" }).click();
     await pendingRequest;
-    await expect(
-      page.getByText("当前筛选“待审核”共 1 条，本页显示 1 条"),
-    ).toBeVisible();
+    await expect(page.getByText("1 条内容，待审核")).toBeVisible();
     await expect(page.getByRole("button", { name: "重置筛选" })).toBeVisible();
     await page.getByRole("button", { name: "重置筛选" }).click();
-    await expect(
-      page.getByText("当前筛选“全部状态”共 2 条，本页显示 2 条"),
-    ).toBeVisible();
+    await expect(page.getByText("2 条内容，全部状态")).toBeVisible();
     await page.getByRole("textbox", { name: "搜索图片资源" }).fill("春日");
     await page.getByRole("button", { name: "执行搜索图片资源" }).click();
-    await expect(page.getByText("搜索“春日”")).toBeVisible();
-    await page.getByRole("button", { name: "查看列表" }).click();
+    await expect(page.getByText("2 条内容，全部状态，搜索“春日”")).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "图片资源列表" }),
+      page.getByRole("heading", { name: "图片资源列表 (2)" }),
     ).toBeInViewport();
     await page.getByRole("button", { name: "重置筛选" }).click();
     await page.getByRole("checkbox", { name: "选择 紫金港春日影像" }).check();

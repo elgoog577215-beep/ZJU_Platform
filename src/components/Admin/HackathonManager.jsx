@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   Award,
-  BookOpen,
   Calendar,
   CheckCircle,
   ChevronLeft,
@@ -24,7 +23,6 @@ import {
   AdminButton,
   AdminEmptyState,
   AdminIconButton,
-  AdminInlineNote,
   AdminLoadingState,
   AdminMetricCard,
   AdminPageShell,
@@ -427,7 +425,7 @@ const HackathonManager = () => {
     <>
       <AdminPageShell
         title="黑客松运营管理"
-        description="报名在这里集中处理，作品/经验在这里审核；图片和视频成果继续在对应内容栏目审核。"
+        description={`报名 ${formatNumber(registrationStats.total)} 条，待审作品 ${formatNumber(workStats.pending)} 条。`}
         actions={
           <>
             <AdminButton tone="subtle" onClick={refreshAll}>
@@ -441,18 +439,11 @@ const HackathonManager = () => {
           </>
         }
       >
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
           <AdminMetricCard label="总报名" value={formatNumber(registrationStats.total)} icon={Users} />
           <AdminMetricCard label="当前显示" value={formatNumber(registrationStats.filtered)} icon={Filter} tone="emerald" />
-          <AdminMetricCard label="本科生" value={formatNumber(registrationStats.undergraduate)} icon={GraduationCap} tone="indigo" />
-          <AdminMetricCard label="研究生" value={formatNumber(registrationStats.graduate)} icon={BookOpen} tone="violet" />
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <AdminMetricCard label="作品总数" value={formatNumber(workStats.total)} icon={Award} tone="indigo" />
           <AdminMetricCard label="待审作品" value={formatNumber(workStats.pending)} icon={RefreshCw} tone="amber" />
-          <AdminMetricCard label="已发布作品" value={formatNumber(workStats.approved)} icon={CheckCircle} tone="emerald" />
-          <AdminMetricCard label="已驳回作品" value={formatNumber(workStats.rejected)} icon={XCircle} tone="rose" />
         </div>
 
         <AdminToolbar>
@@ -494,14 +485,9 @@ const HackathonManager = () => {
           </ToolbarGroup>
         </AdminToolbar>
 
-        <AdminInlineNote tone={searchTerm || gradeFilter ? "warning" : "info"}>
-          当前筛选展示 {formatNumber(registrationStats.filtered)} 条报名记录；CSV 导出会包含全部{" "}
-          {formatNumber(registrationStats.total)} 条报名记录。
-        </AdminInlineNote>
-
         <AdminPanel
           title={`报名列表 (${formatNumber(filteredRegistrations.length)})`}
-          description={`当前第 ${currentPage} / ${totalPages} 页，每页最多 ${itemsPerPage} 条。`}
+          description={`第 ${currentPage} / ${totalPages} 页，CSV 导出包含全部 ${formatNumber(registrationStats.total)} 条。`}
         >
           {paginatedRegistrations.length === 0 ? (
             <AdminEmptyState icon={Users} title="暂无匹配的报名数据" description="可以清空搜索词、切换年级筛选，或稍后刷新。" />
@@ -604,7 +590,7 @@ const HackathonManager = () => {
 
         <AdminPanel
           title={`作品与经验审核 (${formatNumber(filteredWorks.length)})`}
-          description="这里只处理获奖作品、荣誉称号和经验分享；照片/视频请去画廊、视频或审核中心处理。"
+          description={`待审 ${formatNumber(workStats.pending)} 条，已发布 ${formatNumber(workStats.approved)} 条。`}
         >
           <AdminToolbar>
             <ToolbarGroup className="w-full flex-1">
@@ -637,10 +623,6 @@ const HackathonManager = () => {
               </select>
             </ToolbarGroup>
           </AdminToolbar>
-
-          <AdminInlineNote tone={workStats.pending > 0 ? "warning" : "info"}>
-            待审核作品 {formatNumber(workStats.pending)} 条；审核通过后会自动进入前台优秀作品与比赛成果页。
-          </AdminInlineNote>
 
           {filteredWorks.length === 0 ? (
             <AdminEmptyState icon={Award} title="暂无匹配的作品/经验" description="外部提交作品后会进入这里；也可以在审核中心批量处理。" />

@@ -7,9 +7,6 @@ import {
   Edit2,
   ChevronLeft,
   ChevronRight,
-  Eye,
-  Users,
-  CalendarDays,
   BarChart3,
   RefreshCw,
   CheckCircle2,
@@ -25,7 +22,6 @@ import {
   AdminEmptyState,
   AdminHelperText,
   AdminIconButton,
-  AdminInlineNote,
   AdminLoadingState,
   AdminMetricCard,
   AdminPageShell,
@@ -146,29 +142,6 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
     ],
     [],
   );
-
-  const eventStats = useMemo(() => {
-    if (!isEventResource) return null;
-
-    return items.reduce(
-      (accumulator, item) => ({
-        totalViews: accumulator.totalViews + Number(item.views || 0),
-        totalRegistrations:
-          accumulator.totalRegistrations + Number(item.registration_count || 0),
-        upcoming:
-          accumulator.upcoming +
-          (item.date &&
-          new Date(item.date) >= new Date(new Date().toDateString())
-            ? 1
-            : 0),
-      }),
-      {
-        totalViews: 0,
-        totalRegistrations: 0,
-        upcoming: 0,
-      },
-    );
-  }, [isEventResource, items]);
 
   const formatNumber = (value) =>
     new Intl.NumberFormat("zh-CN").format(Number(value || 0));
@@ -377,14 +350,6 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
     }
   };
 
-  const descriptionMap = {
-    image: "统一管理图片资源，可查看状态、标签和封面预览。",
-    video: "集中处理视频内容，支持搜索、状态筛选和快速编辑。",
-    audio: "管理音频内容、作者信息和资源状态。",
-    article: "维护文章内容与发布状态。",
-    event: "查看活动热度、报名情况与审核状态。",
-  };
-
   const renderMobileCards = () => (
     <div className="grid grid-cols-1 gap-3 md:hidden">
       {filteredItems.map((item) => {
@@ -588,7 +553,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
     <>
       <AdminPageShell
         title={title}
-        description={descriptionMap[type] || "管理当前资源内容。"}
+        description={`${formatNumber(serverTotal)} 条内容，${refreshing ? "正在刷新" : activeFilterLabel}${searchQuery ? `，搜索“${searchQuery}”` : ""}`}
         actions={
           <>
             <AdminButton
@@ -675,29 +640,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
           </AdminToolbar>
         }
       >
-        {isEventResource && eventStats ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <AdminMetricCard
-              label="累计访问"
-              value={formatNumber(eventStats.totalViews)}
-              icon={Eye}
-            />
-            <AdminMetricCard
-              label="累计报名"
-              value={formatNumber(eventStats.totalRegistrations)}
-              icon={Users}
-              tone="emerald"
-            />
-            <AdminMetricCard
-              label="待开始活动"
-              value={formatNumber(eventStats.upcoming)}
-              icon={CalendarDays}
-              tone="amber"
-            />
-          </div>
-        ) : null}
-
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
           <AdminMetricCard
             label="本页内容"
             value={formatNumber(statusCounts.total)}
@@ -718,43 +661,6 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
             tone="rose"
           />
         </div>
-
-        <AdminInlineNote
-          tone={statusFilter === "all" && !searchQuery ? "info" : "warning"}
-          className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
-        >
-          <span>
-            {`${refreshing ? "正在更新，" : ""}当前筛选“${activeFilterLabel}”共 ${formatNumber(
-              serverTotal,
-            )} 条，本页显示 ${items.length} 条${
-              searchQuery ? `，搜索“${searchQuery}”` : ""
-            }。`}
-          </span>
-          <div className="flex flex-wrap gap-3">
-            <button
-              type="button"
-              className="inline-flex shrink-0 font-semibold underline underline-offset-4"
-              onClick={() => scrollToList()}
-            >
-              查看列表
-            </button>
-            {hasActiveFilters ? (
-              <button
-                type="button"
-                className="inline-flex shrink-0 font-semibold underline underline-offset-4"
-                onClick={resetFilters}
-              >
-                重置筛选
-              </button>
-            ) : null}
-          </div>
-        </AdminInlineNote>
-
-        {refreshing ? (
-          <AdminInlineNote tone="info" className="py-2 text-xs">
-            正在刷新列表，当前结果会保留到新数据返回。
-          </AdminInlineNote>
-        ) : null}
 
         {selectedItems.length > 0 ? (
           <AdminSelectedBar>
@@ -816,8 +722,15 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
 
         <div ref={listRef} className="scroll-mt-28">
           <AdminPanel
-            title={`${title}列表`}
-            description={`本页 ${visibleTotal} 条，当前筛选共 ${formatNumber(serverTotal)} 条。`}
+            title={`${title}列表 (${visibleTotal})`}
+            action={
+              hasActiveFilters ? (
+                <AdminButton tone="subtle" onClick={resetFilters}>
+                  <RotateCcw size={16} />
+                  重置筛选
+                </AdminButton>
+              ) : null
+            }
           >
             {filteredItems.length === 0 ? (
               <AdminEmptyState
