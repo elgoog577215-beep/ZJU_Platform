@@ -93,6 +93,29 @@ const quickPrompts = [
   { label: "本周可去", prompt: "这周能参加、时间比较近的活动有哪些" },
 ];
 
+const feedbackReasonOptions = [
+  { value: "not_relevant", label: "不相关" },
+  { value: "time_mismatch", label: "时间不合适" },
+  { value: "location_mismatch", label: "地点不合适" },
+  { value: "benefit_mismatch", label: "收益不符合" },
+  { value: "already_joined", label: "已参加过" },
+];
+
+const getDiagnosticsSummary = (diagnostics) => {
+  if (!diagnostics) return [];
+  const items = [];
+  if (Number.isFinite(Number(diagnostics.hardConstraintScore))) {
+    items.push(`硬约束 ${Math.round(Number(diagnostics.hardConstraintScore))}/${Math.round(Number(diagnostics.hardConstraintPossible || 0))}`);
+  }
+  if (Number.isFinite(Number(diagnostics.deterministicScore))) {
+    items.push(`规则分 ${Math.round(Number(diagnostics.deterministicScore))}`);
+  }
+  if (Number.isFinite(Number(diagnostics.semanticScore))) {
+    items.push(`语义分 ${Math.round(Number(diagnostics.semanticScore))}`);
+  }
+  return items.slice(0, 3);
+};
+
 const getCoverageText = (coverage) => {
   if (!coverage || !Number.isFinite(Number(coverage.total))) return "";
   const futureCount = Number(coverage.upcoming || 0) + Number(coverage.ongoing || 0);
@@ -118,6 +141,7 @@ const EventAssistantPanel = ({
   const [clarificationAsked, setClarificationAsked] = useState(false);
   const [rememberPreference, setRememberPreference] = useState(false);
   const [feedbackMap, setFeedbackMap] = useState({});
+  const [feedbackReasonMap, setFeedbackReasonMap] = useState({});
   const [profileOpen, setProfileOpen] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
@@ -225,20 +249,31 @@ const EventAssistantPanel = ({
     await sendAssistantRequest({ query: prompt }, prompt, false);
   };
 
-  const submitFeedback = async (item, feedback) => {
+  const submitFeedback = async (item, feedback, reasonValue = "") => {
     if (!item?.event?.id) return;
 
     setFeedbackMap((previous) => ({ ...previous, [item.id]: feedback }));
+    if (feedback === "down" && reasonValue) {
+      setFeedbackReasonMap((previous) => ({ ...previous, [item.id]: reasonValue }));
+    }
     try {
+      const reasonLabel = feedbackReasonOptions.find((option) => option.value === reasonValue)?.label;
       await api.post("/events/assistant/feedback", {
         eventId: item.event.id,
         feedback,
         query: originalQuery,
-        reason: item.reason,
+        reason: feedback === "down" && reasonLabel
+          ? `${reasonLabel}：${item.reason}`
+          : item.reason,
       });
       toast.success(feedback === "up" ? "已记录：这条推荐适合你" : "已记录：后续会减少类似推荐");
     } catch (error) {
       setFeedbackMap((previous) => {
+        const next = { ...previous };
+        delete next[item.id];
+        return next;
+      });
+      setFeedbackReasonMap((previous) => {
         const next = { ...previous };
         delete next[item.id];
         return next;
@@ -347,6 +382,7 @@ const EventAssistantPanel = ({
     setOriginalQuery("");
     setClarificationAsked(false);
     setFeedbackMap({});
+    setFeedbackReasonMap({});
   };
 
   const isFullscreenVariant = variant === "fullscreen";
@@ -922,6 +958,16 @@ const EventAssistantPanel = ({
                             </div>
                           )}
 
+                          {getDiagnosticsSummary(item.diagnostics).length > 0 && (
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {getDiagnosticsSummary(item.diagnostics).map((summary) => (
+                                <span key={summary} className={`rounded-md border px-2.5 py-1 text-[11px] ${faintClass} ${isDayMode ? "border-slate-200 bg-slate-50" : "border-white/10 bg-white/[0.035]"}`}>
+                                  {summary}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
                           <div className={`mt-5 flex flex-wrap items-center gap-2 text-xs ${faintClass}`}>
                             {item.event.date && (
                               <span className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 ${chipClass}`}>
@@ -958,13 +1004,44 @@ const EventAssistantPanel = ({
                                 type="button"
                                 aria-label="推荐不适合我"
                                 title="不适合我"
-                                onClick={() => submitFeedback(item, "down")}
+                                onClick={() => {
+                                  if (feedbackMap[item.id] === "down") {
+                                    submitFeedback(item, "down", feedbackReasonMap[item.id] || "not_relevant");
+                                  } else {
+                                    setFeedbackMap((previous) => ({ ...previous, [item.id]: "down" }));
+                                    setFeedbackReasonMap((previous) => ({ ...previous, [item.id]: "not_relevant" }));
+                                  }
+                                }}
                                 className={`inline-flex h-9 w-9 items-center justify-center rounded-md border transition-colors ${feedbackMap[item.id] === "down" ? "bg-rose-500 text-white border-rose-500" : chipClass}`}
                               >
                                 <ThumbsDown size={15} />
                               </button>
                             </div>
                           </div>
+
+                          {feedbackMap[item.id] === "down" && (
+                            <div className={`mt-3 rounded-lg border p-3 ${isDayMode ? "border-rose-100 bg-rose-50/60" : "border-rose-300/15 bg-rose-400/10"}`}>
+                              <div className="flex flex-wrap gap-2">
+                                {feedbackReasonOptions.map((option) => (
+                                  <button
+                                    key={option.value}
+                                    type="button"
+                                    onClick={() => {
+                                      setFeedbackReasonMap((previous) => ({ ...previous, [item.id]: option.value }));
+                                      submitFeedback(item, "down", option.value);
+                                    }}
+                                    className={`rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                                      feedbackReasonMap[item.id] === option.value
+                                        ? "border-rose-500 bg-rose-500 text-white"
+                                        : chipClass
+                                    }`}
+                                  >
+                                    {option.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>

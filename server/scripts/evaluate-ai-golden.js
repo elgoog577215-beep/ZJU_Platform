@@ -534,6 +534,11 @@ const evaluateEventRecommendation = async (db) => {
   assert(result.reasoningTrace?.candidateCount >= result.recommendations.length, 'Recommendation trace should expose candidate count.');
   assert(Array.isArray(result.reasoningTrace?.rankingBasis) && result.reasoningTrace.rankingBasis.length >= 1, 'Recommendation trace should expose ranking basis.');
   assert(Array.isArray(result.reasoningTrace?.uncertainty), 'Recommendation trace should expose uncertainty signals.');
+  assert(result.reasoningTrace?.scoringFactors?.hardConstraints === true, 'Recommendation trace should expose structured hard-constraint scoring factors.');
+  assert(result.reasoningTrace?.scoringFactors?.topicCategory === true, 'Recommendation trace should expose structured topic/category scoring factors.');
+  assert(typeof result.recommendations[0].diagnostics?.deterministicScore === 'number', 'Recommendation should expose deterministic score diagnostics.');
+  assert(typeof result.recommendations[0].diagnostics?.semanticScore === 'number', 'Recommendation should expose semantic score diagnostics.');
+  assert(typeof result.recommendations[0].diagnostics?.hardConstraintRatio === 'number', 'Recommendation should expose hard-constraint ratio diagnostics.');
   assert(result.modelStatus.tasks.includes('event_recommendation_rerank'), 'Recommendation should use rerank task.');
   assert(result.modelStatus.profileStats.generated >= 1, 'Recommendation should use event profile generation.');
   assert(result.remembered === true, 'Recommendation should persist opt-in preference memory.');
@@ -550,6 +555,68 @@ const evaluateEventRecommendation = async (db) => {
     topEvent: result.recommendations[0].event.title,
     recommendationCount: result.recommendations.length,
     topConfidence: result.recommendations[0].confidence,
+  };
+};
+
+const evaluateEventRecommendationQueryMatrix = async (db) => {
+  const queries = [
+    'Find me a Zijingang AI activity this week with comprehensive score.',
+    'I want an offline AI project workshop at Zijingang with score credit.',
+    'Recommend an AI agent event for all students near Zijingang.',
+    'Any practical AI demo activity this week with comprehensive score?',
+    'Find a College of Computer Science AI activity at Zijingang.',
+    'I need a hands-on agent workshop, preferably offline and score-bearing.',
+    'Show me AI activities that help build a project demo.',
+    'What Zijingang activity combines AI, product practice, and score value?',
+    'Recommend a near-term AI lecture for students who want to build demos.',
+    'Find an AI campus event with score recognition and offline participation.',
+    'I want a practical AI activity at Zijingang Innovation Space.',
+    'Recommend an AI workshop from the computer science college.',
+    'Which AI activity this week is most useful for project practice?',
+    'Find score-bearing AI events for all students at Zijingang.',
+    'I want an agent or LLM activity, not a generic campus sharing session.',
+    'Recommend a future AI event with clear project value.',
+    'Find me a Zijingang offline AI event suitable for student builders.',
+    'Which AI activity should I attend if I care about demos and score?',
+    'Show AI-related events with strong location and benefit match.',
+    'Recommend the best practical AI campus activity this week.',
+  ];
+
+  const failures = [];
+  for (const query of queries) {
+    const result = await runEventAssistantTurn({
+      db,
+      userId: 1,
+      query,
+      allowHistoricalFallback: false,
+      modelRunner: goldenModelRunner,
+      now: new Date(),
+    });
+    const top = result.recommendations?.[0];
+    const ok = result.type === 'recommend'
+      && top
+      && /AI|Hackathon|Agent/i.test(top.event?.title || '')
+      && Array.isArray(result.reasoningTrace?.rankingBasis)
+      && result.reasoningTrace.rankingBasis.length >= 1
+      && typeof top.diagnostics?.hardConstraintRatio === 'number'
+      && top.diagnostics.hardConstraintScore > 0
+      && !top.isHistorical;
+
+    if (!ok) {
+      failures.push({
+        query,
+        responseType: result.type,
+        topTitle: top?.event?.title || '',
+        diagnostics: top?.diagnostics || null,
+      });
+    }
+  }
+
+  assert(failures.length === 0, `Recommendation query matrix failed: ${JSON.stringify(failures, null, 2)}`);
+
+  return {
+    queryCount: queries.length,
+    failedCount: failures.length,
   };
 };
 
@@ -766,6 +833,7 @@ const main = async () => {
   const db = await createDb();
   try {
     const eventRecommendation = await evaluateEventRecommendation(db);
+    const eventRecommendationQueryMatrix = await evaluateEventRecommendationQueryMatrix(db);
     const recommendationActionEvidence = await evaluateRecommendationActionEvidence(db);
     const smartClarification = await evaluateSmartClarification(db);
     const recommendationActionEvidenceRanking = await evaluateRecommendationActionEvidenceRanking(db);
@@ -783,6 +851,7 @@ const main = async () => {
       ok: true,
       goldenSuites: {
         eventRecommendation,
+        eventRecommendationQueryMatrix,
         recommendationActionEvidence,
         smartClarification,
         recommendationActionEvidenceRanking,

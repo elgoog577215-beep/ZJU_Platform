@@ -3,6 +3,9 @@ const {
   ensureEventProfiles
 } = require('../services/eventAiProfileService');
 const {
+  createEventRecommendationServices
+} = require('../services/eventRecommendation');
+const {
   EVENT_CATEGORIES,
   EVENT_CATEGORY_LABELS: CATEGORY_LABELS,
   EVENT_CAMPUS_OPTIONS,
@@ -1609,6 +1612,16 @@ const buildReasoningTrace = ({
     intentConfidence: buildIntentConfidence(intent),
     candidateCount,
     topSignals,
+    rankingBasis: topSignals.slice(0, 5),
+    uncertainty: weakOrMissing.slice(0, 4),
+    scoringFactors: {
+      lifecycle: true,
+      hardConstraints: topSignals.some((signal) => /匹配|硬约束|校区|地点|面向对象|主办方|学院|收益|形式/.test(String(signal))),
+      topicCategory: topSignals.some((signal) => /主题|类型|关键词|AI画像/.test(String(signal))),
+      userProfile: topSignals.some((signal) => /你|画像|兴趣|收藏|报名|行动证据/.test(String(signal))),
+      negativeFeedback: topSignals.some((signal) => /负反馈|降低/.test(String(signal))),
+      historicalFallback: Boolean(usedHistoricalFallback)
+    },
     weakOrMissing: weakOrMissing.slice(0, 4),
     actionEvidenceUsed,
     fallbackUsed: Boolean(fallbackUsed),
@@ -2188,6 +2201,15 @@ const buildAiRecommendationResponse = ({
     }),
     score: Math.round(item.score ?? item.candidate.aiScore ?? item.candidate.score),
     isHistorical: item.candidate.scope === 'past',
+    diagnostics: {
+      deterministicScore: Math.round(item.candidate.score || 0),
+      semanticScore: Math.round(item.candidate.aiScore ?? item.candidate.score ?? 0),
+      hardConstraintScore: Math.round(item.candidate.hardConstraint?.score || 0),
+      hardConstraintPossible: Math.round(item.candidate.hardConstraint?.possible || 0),
+      hardConstraintRatio: Number((item.candidate.hardConstraint?.ratio ?? 1).toFixed(3)),
+      hardConstraintMisses: item.candidate.hardConstraint?.misses || [],
+      scope: item.candidate.scope
+    },
     aiProfile: item.candidate.aiProfile ? {
       summary: item.candidate.aiProfile.summary,
       category: item.candidate.aiProfile.category,
@@ -2518,16 +2540,38 @@ const runUnifiedEventAssistantTurn = async ({
   modelRunner,
   now = new Date()
 }) => {
-  const profile = await loadUserEventProfile(db, userId);
-  const grouped = await loadAllCandidates(db, now);
-  const coverage = buildCoverageSummary(grouped);
+  const services = createEventRecommendationServices({
+    parseAssistantIntent,
+    parseAssistantIntentWithModel,
+    loadAllCandidates,
+    loadScopedCandidates,
+    buildCoverageSummary,
+    buildAiCandidatePool,
+    scoreEvent,
+    rankCandidates,
+    rerankCandidatesWithModel,
+    buildFallbackRerank,
+    loadUserEventProfile,
+    maybeRememberPreference,
+    buildProfileSummary,
+    buildClarificationResponse,
+    buildFallbackRecommendationResponse,
+    buildAiRecommendationResponse,
+    buildReasoningTrace,
+    buildIntentSummary,
+    recordEventAssistantRun,
+    logInvalidModelOutput,
+  });
+  const profile = await services.profile.load(db, userId);
+  const grouped = await services.retrieval.loadAll(db, now);
+  const coverage = services.retrieval.summarizeCoverage(grouped);
   const futurePool = [...grouped.upcoming, ...grouped.ongoing].slice(0, MAX_CANDIDATES);
   let intentModelStatus = null;
   let intentFailure = null;
 
   let parsedIntent;
   try {
-    parsedIntent = await parseAssistantIntentWithModel({
+    parsedIntent = await services.intent.parseWithModel({
       db,
       query,
       clarificationAnswer,
@@ -2537,7 +2581,7 @@ const runUnifiedEventAssistantTurn = async ({
     });
   } catch (error) {
     intentFailure = error;
-    logInvalidModelOutput({
+    services.telemetry.logInvalidModelOutput({
       error,
       scope: 'intent',
       candidateCount: coverage.total,
@@ -2546,7 +2590,7 @@ const runUnifiedEventAssistantTurn = async ({
       parsedResult: null
     });
 
-    const fallbackIntent = parseAssistantIntent({ query, clarificationAnswer });
+    const fallbackIntent = services.intent.parseLocal({ query, clarificationAnswer });
     parsedIntent = {
       intent: fallbackIntent,
       modelStatus: {
@@ -2561,7 +2605,7 @@ const runUnifiedEventAssistantTurn = async ({
 
   const intent = parsedIntent.intent;
   intentModelStatus = parsedIntent.modelStatus;
-  const remembered = await maybeRememberPreference(db, userId, intent, rememberPreference);
+  const remembered = await services.profile.rememberPreference(db, userId, intent, rememberPreference);
 
   if (futurePool.length === 0 && !allowScopeExpansion && !allowHistoricalFallback) {
     return {
@@ -2571,7 +2615,7 @@ const runUnifiedEventAssistantTurn = async ({
       canExpandScope: true,
       recommendationMode: 'empty',
       coverage,
-      understoodIntent: buildIntentSummary(intent, profile),
+      understoodIntent: services.explanation.buildIntentSummary(intent, profile),
       remembered,
       modelStatus: intentModelStatus
     };
@@ -2582,7 +2626,7 @@ const runUnifiedEventAssistantTurn = async ({
     && !clarificationUsed
     && futurePool.length >= IDEAL_MIN_RECOMMENDATIONS
   ) {
-    return buildClarificationResponse({
+    return services.response.clarification({
       intent,
       profile,
       grouped,
@@ -2594,7 +2638,7 @@ const runUnifiedEventAssistantTurn = async ({
     });
   }
 
-  const pool = await buildAiCandidatePool({
+  const pool = await services.retrieval.buildCandidatePool({
     db,
     grouped,
     intent,
@@ -2607,7 +2651,7 @@ const runUnifiedEventAssistantTurn = async ({
   });
 
   if (intentFailure && pool.candidates.length > 0) {
-    return buildFallbackRecommendationResponse({
+    return services.response.fallbackRecommendation({
       candidates: pool.candidates,
       intent,
       profile,
@@ -2634,7 +2678,7 @@ const runUnifiedEventAssistantTurn = async ({
       canExpandScope: pool.canExpandScope,
       recommendationMode: 'empty',
       coverage,
-      understoodIntent: buildIntentSummary(intent, profile),
+      understoodIntent: services.explanation.buildIntentSummary(intent, profile),
       remembered,
       modelStatus: {
         ...intentModelStatus,
@@ -2648,7 +2692,7 @@ const runUnifiedEventAssistantTurn = async ({
 
   let rerank;
   try {
-    rerank = await rerankCandidatesWithModel({
+    rerank = await services.ranking.rerankWithModel({
       db,
       intent,
       profile,
@@ -2656,7 +2700,7 @@ const runUnifiedEventAssistantTurn = async ({
       modelRunner
     });
   } catch (error) {
-    logInvalidModelOutput({
+    services.telemetry.logInvalidModelOutput({
       error,
       scope: pool.scope,
       candidateCount: pool.candidates.length,
@@ -2665,7 +2709,7 @@ const runUnifiedEventAssistantTurn = async ({
       parsedResult: null
     });
 
-    return buildFallbackRecommendationResponse({
+    return services.response.fallbackRecommendation({
       candidates: pool.candidates,
       intent,
       profile,
@@ -2684,7 +2728,7 @@ const runUnifiedEventAssistantTurn = async ({
     });
   }
 
-  return buildAiRecommendationResponse({
+  return services.response.aiRecommendation({
     rerank,
     candidates: pool.candidates,
     intent,
