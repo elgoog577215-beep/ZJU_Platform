@@ -332,6 +332,27 @@ const cleanTopicTerms = (topics, { campuses = [], audiences = [] } = {}) => {
     .filter((topic) => !blocked.has(topic.toLowerCase()));
 };
 
+const detectOrganizerTerms = (text) => {
+  const normalized = normalizeSearchText(text);
+  const terms = [
+    ...EVENT_AUDIENCE_OPTIONS,
+    '计算机学院',
+    '计算机科学与技术学院',
+    '创新创业学院',
+    '青年志愿者协会',
+    '学生社团',
+    '艺术社'
+  ];
+  const detected = terms.filter((item) => {
+    const value = sanitizeText(item, 80).toLowerCase();
+    if (!value) return false;
+    if (normalized.includes(value)) return true;
+    if (value.includes('科学与技术') && normalized.includes(value.replace('科学与技术', ''))) return true;
+    return false;
+  });
+  return unique(detected);
+};
+
 const detectFormat = (text) => {
   const lowered = text.toLowerCase();
   if (includesAny(lowered, ['线上', '在线', '直播', 'online'])) return 'online';
@@ -357,6 +378,7 @@ const parseAssistantIntent = ({ query, clarificationAnswer }) => {
   const format = detectFormat(combined);
   const timePreference = detectTimePreference(combined);
   const campuses = detectCampusTerms(combined);
+  const organizers = detectOrganizerTerms(combined);
   const audiences = unique([
     ...AUDIENCE_ALIASES.filter((item) => lowered.includes(item.toLowerCase())),
     ...detectAudienceTerms(combined)
@@ -383,6 +405,7 @@ const parseAssistantIntent = ({ query, clarificationAnswer }) => {
     format,
     timePreference,
     campuses,
+    organizers,
     audiences,
     topics: cleanedTopics,
     wantsMemory,
@@ -413,6 +436,7 @@ const loadScopedCandidates = async (db, scope, now = new Date()) => {
         status,
         deleted_at,
         category,
+        tags,
         views,
         featured,
         likes
@@ -450,6 +474,7 @@ const loadAllCandidates = async (db, now = new Date()) => {
         status,
         deleted_at,
         category,
+        tags,
         views,
         featured,
         likes
@@ -619,6 +644,28 @@ const parseAssistantIntentWithModel = async ({
   modelRunner,
 }) => {
   const fallbackIntent = parseAssistantIntent({ query, clarificationAnswer });
+  if (!modelRunner && !fallbackIntent.shouldClarify && (
+    fallbackIntent.topics.length
+    || fallbackIntent.campuses.length
+    || fallbackIntent.organizers.length
+    || fallbackIntent.benefits.length
+    || fallbackIntent.categories.length
+  )) {
+    return {
+      intent: {
+        ...fallbackIntent,
+        ai: false,
+        querySummary: fallbackIntent.raw,
+        confidence: Math.max(0.72, fallbackIntent.confidence || 0.64)
+      },
+      modelStatus: {
+        used: false,
+        task: 'event_recommendation_intent_local',
+        message: 'Used deterministic standard-library intent extraction before model rerank.'
+      },
+      rawIntent: null
+    };
+  }
 
   const result = await aiRuntime.callJson(db, {
     task: 'event_recommendation_intent',
@@ -1295,6 +1342,62 @@ const getFallbackIntentBoost = (item, intent = {}) => {
   };
 };
 
+const getHardConstraintScore = (item, intent = {}) => {
+  const text = buildCandidateSemanticText(item);
+  let score = 0;
+  let possible = 0;
+  const signals = [];
+  const misses = [];
+
+  const addGroup = (label, terms, weight) => {
+    const values = uniqueTextArray(terms || [], 10);
+    if (!values.length) return;
+    possible += weight;
+    const matched = values.find((term) => text.includes(sanitizeText(term, 80).toLowerCase()));
+    if (matched) {
+      score += weight;
+      signals.push(`${label}匹配：${matched}`);
+    } else {
+      misses.push(label);
+    }
+  };
+
+  addGroup('主办方/学院', intent.organizers, 36);
+  addGroup('日期', intent.dateConstraints, 20);
+  addGroup('校区/地点', intent.campuses, 18);
+  addGroup('面向对象', intent.audiences, 12);
+
+  if (intent.benefits?.includes('score')) {
+    possible += 14;
+    if (getComprehensiveEvaluationSignal(item.event) || includesAnyPhrase(text, BENEFIT_ALIASES.score)) {
+      score += 14;
+      signals.push('收益匹配：综测/加分');
+    } else {
+      misses.push('综测/加分');
+    }
+  }
+
+  if (intent.format) {
+    possible += 8;
+    const onlineLike = includesAny(text, ['线上', '在线', '直播', '腾讯会议']);
+    const formatMatched = intent.format === 'online' ? onlineLike : !onlineLike;
+    if (formatMatched) {
+      score += 8;
+      signals.push(`形式匹配：${intent.format}`);
+    } else {
+      misses.push('参与形式');
+    }
+  }
+
+  return {
+    score,
+    possible,
+    ratio: possible > 0 ? score / possible : 1,
+    signals,
+    misses
+  };
+};
+
 const buildAiCandidatePool = async ({
   db,
   grouped,
@@ -1356,7 +1459,20 @@ const buildAiCandidatePool = async ({
       intent,
       profileResult.profilesByEventId.get(Number(item.event.id))
     ))
-    .sort((left, right) => right.aiScore - left.aiScore || compareByAscendingDate(left.event, right.event))
+    .map((item) => {
+      const hardConstraint = getHardConstraintScore(item, intent);
+      return {
+        ...item,
+        hardConstraint,
+        aiScore: item.aiScore + Math.round(hardConstraint.score * 1.2),
+        signals: unique([...hardConstraint.signals, ...item.signals]).slice(0, 8)
+      };
+    })
+    .sort((left, right) => (
+      (right.hardConstraint?.score || 0) - (left.hardConstraint?.score || 0)
+      || right.aiScore - left.aiScore
+      || compareByAscendingDate(left.event, right.event)
+    ))
     .slice(0, MAX_MODEL_CANDIDATES);
 
   return {
@@ -1731,6 +1847,9 @@ const buildAiRerankPrompt = ({ intent, profile, candidates, recommendationCount 
     'Rank only the provided candidate events.',
     'Use the user intent, user profile, event AI profiles, deterministic recall signals, and event facts together.',
     'Use actionEvidence as a personalization signal only; it must not override explicit date, campus, organizer, benefit, or activity-type intent.',
+    'Treat explicit organizer/college, date, campus, benefit, and format as hard constraints. If two candidates both match the topic, rank the candidate satisfying more hard constraints first even when another candidate has a softer category or popularity advantage.',
+    'When the user names a college/organizer, candidates from that organizer should outrank candidates from other organizers unless the organizer-matched candidate clearly lacks the requested topic or benefit.',
+    'Return compact JSON only. No long explanations.',
     'Return user-facing reasons and matched signals only; do not expose hidden chain-of-thought.',
     'Do not invent activities, links, rewards, registration status, locations, or dates.',
     'Prefer future and ongoing events. Historical events are only fallback clues.'
@@ -1751,7 +1870,7 @@ const buildAiRerankPrompt = ({ intent, profile, candidates, recommendationCount 
   candidates: candidates.map((item) => ({
     id: item.event.id,
     title: item.event.title,
-    description: sanitizeText(item.event.description, 240),
+    description: sanitizeText(item.event.description, 120),
     date: item.event.date,
     end_date: item.event.end_date,
     location: item.event.location,
@@ -1768,15 +1887,19 @@ const buildAiRerankPrompt = ({ intent, profile, candidates, recommendationCount 
       priorNegativeFeedback: Boolean(profile.actionEvidence?.negativeEventIds?.includes(Number(item.event.id)))
     },
     deterministicSignals: item.signals,
+    hardConstraintScore: item.hardConstraint?.score || 0,
+    hardConstraintPossible: item.hardConstraint?.possible || 0,
+    hardConstraintMatched: item.hardConstraint?.signals || [],
+    hardConstraintMisses: item.hardConstraint?.misses || [],
     deterministicReason: buildReason(item),
     aiProfile: item.aiProfile ? {
-      summary: item.aiProfile.summary,
+      summary: sanitizeText(item.aiProfile.summary, 120),
       category: item.aiProfile.category,
-      topics: item.aiProfile.topics,
-      benefits: item.aiProfile.benefits,
+      topics: (item.aiProfile.topics || []).slice(0, 6),
+      benefits: (item.aiProfile.benefits || []).slice(0, 5),
       campuses: item.aiProfile.campuses,
       organizers: item.aiProfile.organizers,
-      audiences: item.aiProfile.audiences,
+      audiences: (item.aiProfile.audiences || []).slice(0, 5),
       confidence: item.aiProfile.confidence,
       status: item.aiProfile.status
     } : null
@@ -1797,6 +1920,7 @@ const buildAiRerankPrompt = ({ intent, profile, candidates, recommendationCount 
       uncertainty: ['missing or weak preference signals'],
       action_evidence_used: 'boolean'
     },
+    style: 'Keep summary under 50 Chinese characters, each reason under 45 Chinese characters, and matched_signals under 3 items.',
     minimumCount: Math.min(IDEAL_MIN_RECOMMENDATIONS, recommendationCount),
     maximumCount: recommendationCount
   }
@@ -1860,7 +1984,7 @@ const rerankCandidatesWithModel = async ({
   const recommendationCount = Math.min(MAX_RECOMMENDATIONS, candidates.length);
   const candidateMap = new Map(candidates.map((item) => [Number(item.event.id), item]));
 
-  const result = await aiRuntime.callJson(db, {
+  const modelRequest = {
     task: 'event_recommendation_rerank',
     modelRunner,
     messages: [
@@ -1882,7 +2006,46 @@ const rerankCandidatesWithModel = async ({
         }), null, 2)
       }
     ]
+  };
+  const compactPrompt = buildAiRerankPrompt({
+    intent,
+    profile,
+    candidates,
+    recommendationCount
   });
+
+  let result;
+  try {
+    result = await aiRuntime.callJson(db, modelRequest);
+  } catch (error) {
+    if (!['AI_RUNTIME_EMPTY_CONTENT', 'AI_RUNTIME_INVALID_JSON'].includes(error.code)) throw error;
+    result = await aiRuntime.callJson(db, {
+      ...modelRequest,
+      maxTokens: 360,
+      timeout: 20000,
+      messages: [
+        modelRequest.messages[0],
+        {
+          role: 'user',
+          content: JSON.stringify({
+            instruction: 'Retry. Return compact valid JSON only. Rank by hardConstraintScore first, then semantic relevance.',
+            userIntent: compactPrompt.userIntent,
+            candidates: candidates.map((item) => ({
+              id: item.event.id,
+              title: item.event.title,
+              organizer: item.event.organizer,
+              category: item.category,
+              hardConstraintScore: item.hardConstraint?.score || 0,
+              hardConstraintPossible: item.hardConstraint?.possible || 0,
+              signals: item.signals.slice(0, 5),
+              summary: item.aiProfile?.summary || sanitizeText(item.event.description, 120)
+            })),
+            outputContract: compactPrompt.outputContract
+          })
+        }
+      ]
+    });
+  }
 
   const normalized = normalizeRerankResult(result.parsed, candidateMap);
   return {
@@ -1906,12 +2069,44 @@ const buildAiRecommendationResponse = ({
   modelStatuses
 }) => {
   const candidateMap = new Map(candidates.map((item) => [Number(item.event.id), item]));
+  const sortedByHardConstraints = [...candidates].sort((left, right) => (
+    (right.hardConstraint?.score || 0) - (left.hardConstraint?.score || 0)
+    || right.aiScore - left.aiScore
+    || compareByAscendingDate(left.event, right.event)
+  ));
+  const bestHardConstraintScore = sortedByHardConstraints[0]?.hardConstraint?.score || 0;
   const selected = rerank.recommendations
     .map((item) => ({
       ...item,
       candidate: candidateMap.get(Number(item.id))
     }))
     .filter((item) => item.candidate);
+  if (
+    bestHardConstraintScore > 0
+    && selected.length > 0
+    && (selected[0].candidate?.hardConstraint?.score || 0) < bestHardConstraintScore
+  ) {
+    const best = sortedByHardConstraints[0];
+    const existingIndex = selected.findIndex((item) => Number(item.id) === Number(best.event.id));
+    const promoted = existingIndex >= 0
+      ? selected.splice(existingIndex, 1)[0]
+      : {
+        id: best.event.id,
+        rank: 1,
+        confidence: Math.max(0.68, Math.min(0.92, (best.aiScore / 160) + 0.45)),
+        reason: buildReason(best),
+        matchedSignals: [],
+        candidate: best
+      };
+    selected.unshift({
+      ...promoted,
+      confidence: Math.max(Number(promoted.confidence || 0), 0.68),
+      matchedSignals: unique([
+        ...(best.hardConstraint?.signals || []),
+        ...(promoted.matchedSignals || [])
+      ]).slice(0, 4)
+    });
+  }
   const recommendations = selected.map((item) => ({
     id: item.candidate.event.id,
     reason: item.reason || buildReason(item.candidate),

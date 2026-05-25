@@ -112,6 +112,7 @@ const setupSchema = async (db) => {
       status TEXT DEFAULT 'approved',
       deleted_at DATETIME,
       category TEXT,
+      tags TEXT,
       views INTEGER DEFAULT 0,
       featured INTEGER DEFAULT 0,
       likes INTEGER DEFAULT 0
@@ -347,8 +348,14 @@ const main = async () => {
       JSON.stringify(intentPolicy) === JSON.stringify(resolveTaskRuntimePolicy('event_recommendation_intent')),
       'Intent task should use central runtime policy defaults.'
     );
-    assert(profilePolicy?.timeout === 45000 && profilePolicy?.maxTokens === 900, 'Event profile policy should be applied.');
-    assert(rerankPolicy?.maxTokens === 1400, 'Rerank policy should be applied.');
+    assert(
+      JSON.stringify(profilePolicy) === JSON.stringify(resolveTaskRuntimePolicy('event_profile')),
+      'Event profile policy should be applied.'
+    );
+    assert(
+      JSON.stringify(rerankPolicy) === JSON.stringify(resolveTaskRuntimePolicy('event_recommendation_rerank')),
+      'Rerank policy should be applied.'
+    );
 
     const refreshDb = await openMemoryDb();
     try {

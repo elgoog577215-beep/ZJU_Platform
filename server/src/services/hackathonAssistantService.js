@@ -242,8 +242,20 @@ const scoreCard = (card, query, intent) => {
 const selectContextCards = (cards, query, intent) => cards
   .map((card) => ({ ...card, score: scoreCard(card, query, intent) }))
   .sort((left, right) => right.score - left.score || left.id.localeCompare(right.id))
-  .slice(0, 7)
+  .slice(0, 5)
   .map(({ score, ...card }) => card);
+
+const compactContextCards = (cards) => cards.map((card) => ({
+  id: card.id,
+  title: card.title,
+  content: toText(card.content, 90),
+}));
+
+const compactParticipantProfile = (profile = {}) => ({
+  skills: normalizeArray(profile.skills, 5).map((item) => toText(item, 60)),
+  concerns: normalizeArray(profile.concerns, 5).map((item) => toText(item, 60)),
+  goals: normalizeArray(profile.goals, 4).map((item) => toText(item, 60)),
+});
 
 const inferFallbackTrack = (intent) => {
   if (intent.profileSignals.includes('engineering')) return 'AI 工具型全栈应用';
@@ -467,37 +479,18 @@ const normalizeModelResponse = ({
 });
 
 const buildOutputContract = () => ({
-  summary: 'Chinese answer in 1-2 concise sentences',
-  intent: {
-    primaryGoal: 'suitability | preparation | tooling | judging | deliverable | general_advice',
-    goals: ['short normalized goals'],
-    profileSignals: ['skills or constraints inferred from user text'],
-    confidence: '0-1 number',
-  },
+  summary: 'Chinese answer under 50 characters',
   recommendation: {
     track: 'recommended project/participation track',
     focus: 'what to optimize for',
     fitScore: '0-100 number',
-    rationale: 'why this fits the user and event',
-    nextAction: 'one concrete next action',
+    rationale: 'why this fits, under 70 Chinese characters',
+    nextAction: 'one concrete next action under 50 Chinese characters',
   },
-  prepPlan: [
-    { step: 1, title: 'short title', detail: 'concrete action' },
-  ],
-  strategy: {
-    eventDay: 'time allocation strategy',
-    tooling: 'AI tool strategy',
-    delivery: 'demo/submission strategy',
-  },
-  risks: [
-    { risk: 'risk name', mitigation: 'mitigation', severity: 'low | medium | high' },
-  ],
   sources: [
     { id: 'one of provided context card ids' },
   ],
-  suggestedQuestions: ['follow-up question'],
   confidence: '0-1 number',
-  warnings: ['only include if needed'],
 });
 
 const recordHackathonRun = async (db, result) => {
@@ -565,30 +558,58 @@ const runHackathonAssistant = async ({
   });
 
   try {
-    const result = await runStructuredTask(db, {
+    const taskPayload = {
       task: 'hackathon_ai_coach',
       modelRunner,
       temperature: 0.25,
-      maxTokens: 1500,
+      maxTokens: 320,
       timeout: 45000,
       systemPrompt: [
         'You are the AI coach for a Zhejiang University AI full-stack hackathon.',
-        'You must reason with the large model, but every answer must stay grounded in the provided event profile and context cards.',
+        'Make only the high-level strategy decision. The server will attach standard prep steps and risks.',
         'Be specific, practical, and honest about risk. Do not invent rules, dates, prizes, sponsors, or judging policies that are not present in context.',
         'If the user is deciding whether/how to participate, act like a senior builder helping them choose a small shippable scope.',
+        'Return compact JSON only. Do not include prepPlan, strategy, risks, or markdown.',
       ].join('\n'),
       payload: {
         task: 'hackathon_ai_coach',
         query: normalizedQuery,
         userId,
-        participantProfile,
+        participantProfile: compactParticipantProfile(participantProfile),
         detectedIntent: intent,
-        eventProfile: profile,
-        contextCards,
-        allAvailableCardIds: allCards.map((card) => card.id),
+        eventProfile: {
+          title: profile.title,
+          duration: profile.duration,
+          format: profile.format,
+          location: profile.location,
+        },
+        contextCards: compactContextCards(contextCards),
       },
       outputContract: buildOutputContract(),
-    });
+      userPrompt: 'Return only summary, recommendation, sources, and confidence. Keep the answer compact.',
+    };
+    let result;
+    try {
+      result = await runStructuredTask(db, taskPayload);
+    } catch (error) {
+      if (!['AI_RUNTIME_EMPTY_CONTENT', 'AI_RUNTIME_INVALID_JSON'].includes(error.code)) throw error;
+      result = await runStructuredTask(db, {
+        ...taskPayload,
+        maxTokens: 240,
+        timeout: 30000,
+        userPrompt: 'Retry once. Return only compact valid JSON with summary, recommendation, sources, confidence.',
+      });
+      result.modelStatus = {
+        ...(result.modelStatus || {}),
+        fallbackAttempts: [
+          ...(result.modelStatus?.fallbackAttempts || []),
+          {
+            status: 'compact_retry_after_empty_or_invalid',
+            message: error.code || error.message,
+          },
+        ],
+      };
+    }
 
     const response = normalizeModelResponse({
       raw: result.parsed,

@@ -6,33 +6,39 @@ const MAX_RAW_RESPONSE_LOG_LENGTH = 6000;
 const TASK_RUNTIME_POLICIES = {
   event_recommendation_intent: {
     temperature: 0.15,
-    maxTokens: 900,
+    maxTokens: 520,
     timeout: 35000,
+    streamFirst: false,
   },
   event_recommendation_rerank: {
     temperature: 0.2,
-    maxTokens: 1400,
+    maxTokens: 760,
     timeout: 45000,
+    streamFirst: false,
   },
   event_profile: {
     temperature: 0.1,
-    maxTokens: 900,
-    timeout: 45000,
+    maxTokens: 700,
+    timeout: 30000,
+    streamFirst: false,
   },
   hackathon_ai_coach: {
     temperature: 0.25,
-    maxTokens: 1500,
+    maxTokens: 900,
     timeout: 45000,
+    streamFirst: false,
   },
   event_governance_review: {
     temperature: 0.1,
-    maxTokens: 1400,
-    timeout: 35000,
+    maxTokens: 700,
+    timeout: 25000,
+    streamFirst: false,
   },
   json_repair: {
     temperature: 0,
-    maxTokens: 1200,
-    timeout: 30000,
+    maxTokens: 500,
+    timeout: 20000,
+    streamFirst: false,
   },
 };
 
@@ -42,6 +48,7 @@ const resolveTaskRuntimePolicy = (task, overrides = {}) => {
     temperature: overrides.temperature ?? defaults.temperature ?? 0.2,
     maxTokens: overrides.maxTokens ?? defaults.maxTokens ?? 1200,
     timeout: overrides.timeout ?? defaults.timeout ?? DEFAULT_JSON_TIMEOUT_MS,
+    streamFirst: overrides.streamFirst ?? defaults.streamFirst ?? true,
   };
 };
 
@@ -369,6 +376,94 @@ const normalizeRunnerOutput = (output) => {
   return { parsed, rawContent, jsonText };
 };
 
+const callModelStreamFirst = async (db, payload, timeout) => {
+  try {
+    return {
+      result: await callChatCompletionWithFailover(
+        db,
+        payload,
+        { timeout, stream: true, includeEnvFallback: false }
+      ),
+      mode: 'stream'
+    };
+  } catch (streamError) {
+    try {
+      const result = await callChatCompletionWithFailover(
+        db,
+        payload,
+        { timeout, includeEnvFallback: false }
+      );
+      result.attempts = mergeAttemptLists(
+        streamError.attempts,
+        {
+          id: 'stream-first',
+          name: 'Stream-first runtime path',
+          status: 'non_stream_after_stream_failed',
+          message: streamError.code || streamError.message
+        },
+        result.attempts
+      );
+      return { result, mode: 'non_stream' };
+    } catch (nonStreamError) {
+      nonStreamError.attempts = mergeAttemptLists(
+        streamError.attempts,
+        {
+          id: 'stream-first',
+          name: 'Stream-first runtime path',
+          status: 'non_stream_after_stream_failed',
+          message: nonStreamError.code || nonStreamError.message
+        },
+        nonStreamError.attempts
+      );
+      throw nonStreamError;
+    }
+  }
+};
+
+const callModelNonStreamFirst = async (db, payload, timeout) => {
+  try {
+    return {
+      result: await callChatCompletionWithFailover(
+        db,
+        payload,
+        { timeout, includeEnvFallback: false }
+      ),
+      mode: 'non_stream'
+    };
+  } catch (nonStreamError) {
+    try {
+      const result = await callChatCompletionWithFailover(
+        db,
+        payload,
+        { timeout, stream: true, includeEnvFallback: false }
+      );
+      result.attempts = mergeAttemptLists(
+        nonStreamError.attempts,
+        {
+          id: 'non-stream-first',
+          name: 'Non-stream-first runtime path',
+          status: 'stream_after_non_stream_failed',
+          message: nonStreamError.code || nonStreamError.message
+        },
+        result.attempts
+      );
+      return { result, mode: 'stream' };
+    } catch (streamError) {
+      streamError.attempts = mergeAttemptLists(
+        nonStreamError.attempts,
+        {
+          id: 'non-stream-first',
+          name: 'Non-stream-first runtime path',
+          status: 'stream_after_non_stream_failed',
+          message: streamError.code || streamError.message
+        },
+        streamError.attempts
+      );
+      throw streamError;
+    }
+  }
+};
+
 const callJson = async (db, {
   task,
   messages,
@@ -428,15 +523,16 @@ const callJson = async (db, {
   }
 
   const startedAt = Date.now();
-  const result = await callChatCompletionWithFailover(
-    db,
-    {
-      messages: qualityMessages,
-      temperature: runtimePolicy.temperature,
-      max_tokens: runtimePolicy.maxTokens
-    },
-    { timeout: runtimePolicy.timeout }
-  );
+  const modelPayload = {
+    messages: qualityMessages,
+    temperature: runtimePolicy.temperature,
+    max_tokens: runtimePolicy.maxTokens
+  };
+  const initialCall = runtimePolicy.streamFirst === false
+    ? await callModelNonStreamFirst(db, modelPayload, runtimePolicy.timeout)
+    : await callModelStreamFirst(db, modelPayload, runtimePolicy.timeout);
+  let result = initialCall.result;
+  let resultMode = initialCall.mode;
   let responseData = result.data;
 
   let normalized;
@@ -448,43 +544,38 @@ const callJson = async (db, {
     }
 
     if (error.code === 'AI_RUNTIME_EMPTY_CONTENT') {
+      const retryWithStream = resultMode !== 'stream';
       try {
-        const streamResult = await callChatCompletionWithFailover(
+        const alternateResult = await callChatCompletionWithFailover(
           db,
-          {
-            messages: qualityMessages,
-            temperature: runtimePolicy.temperature,
-            max_tokens: runtimePolicy.maxTokens
-          },
-          {
-            timeout: Math.min(runtimePolicy.timeout, 30000),
-            stream: true
-          }
+          modelPayload,
+          { timeout: Math.min(runtimePolicy.timeout, 20000), stream: retryWithStream, includeEnvFallback: false }
         );
-        normalized = parseJsonFromModelResult(streamResult);
-        responseData = streamResult.data;
-        result.data = streamResult.data;
+        normalized = parseJsonFromModelResult(alternateResult);
+        responseData = alternateResult.data;
+        result.data = alternateResult.data;
         result.attempts = mergeAttemptLists(
           result.attempts,
           {
             id: result.config?.id,
             name: result.config?.name,
-            status: 'stream_retry',
+            status: retryWithStream ? 'stream_retry' : 'non_stream_retry',
             message: error.code
           },
-          streamResult.attempts
+          alternateResult.attempts
         );
-        result.config = streamResult.config || result.config;
-      } catch (streamError) {
+        result.config = alternateResult.config || result.config;
+        resultMode = retryWithStream ? 'stream' : 'non_stream';
+      } catch (alternateError) {
         error.attempts = mergeAttemptLists(
           error.attempts,
           {
             id: result.config?.id,
             name: result.config?.name,
-            status: 'stream_retry_failed',
-            message: streamError.code || streamError.message
+            status: retryWithStream ? 'stream_retry_failed' : 'non_stream_retry_failed',
+            message: alternateError.code || alternateError.message
           },
-          streamError.attempts
+          alternateError.attempts
         );
       }
     }
@@ -533,15 +624,16 @@ const callJson = async (db, {
       }
     ]);
 
-    const repair = await callChatCompletionWithFailover(
+    const repairCall = await callModelStreamFirst(
       db,
       {
         messages: repairMessages,
         temperature: 0,
         max_tokens: Math.min(Math.max(runtimePolicy.maxTokens, 400), 1200)
       },
-      { timeout: Math.min(runtimePolicy.timeout, 30000) }
+      Math.min(runtimePolicy.timeout, 30000)
     );
+    const repair = repairCall.result;
 
     try {
       normalized = parseJsonFromModelResult(repair);

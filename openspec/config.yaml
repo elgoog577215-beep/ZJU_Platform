@@ -14,14 +14,6 @@ context: |
     - npm run test:e2e:smoke
 rules:
   proposal:
-    - Define user-visible impact and non-goals clearly.
-    - Include API and data model impact when backend changes are involved.
-    - Include rollback strategy for risky changes.
-  design:
-    - Specify frontend and backend responsibilities separately.
-    - Prefer reuse of existing components and utilities before adding new files.
-    - Include accessibility and performance considerations for UI changes.
-  tasks:
-    - Keep tasks small, independently testable, and ordered by dependency.
-    - Include verification tasks for lint and build at minimum.
-    - Include data safety checks for any delete, migration, or destructive operation.
+    - 榛樿浣跨敤涓枃鎾板啓姝ｆ枃锛涚洰褰曞悕銆乧hange id銆乻pec id銆佷唬鐮佹爣璇嗐€佸懡浠ゅ拰瀛楁鍚嶅彲浠ヤ繚鐣欒嫳鏂囥€?    - 娓呮璇存槑鐢ㄦ埛鍙褰卞搷鍜屼笉鍋氳寖鍥淬€?    - 娑夊強鍚庣鏃惰鏄?API 鍜屾暟鎹ā鍨嬪奖鍝嶃€?    - 楂橀闄╁彉鏇村繀椤诲寘鍚洖婊氱瓥鐣ャ€?  design:
+    - 鍓嶅悗绔亴璐ｅ垎寮€璇存槑銆?    - 鏂板鏂囦欢鍓嶄紭鍏堝鐢ㄧ幇鏈夌粍浠跺拰宸ュ叿鍑芥暟銆?    - UI 鍙樻洿闇€瑕佽鏄庡彲璁块棶鎬у拰鎬ц兘褰卞搷銆?  tasks:
+    - 浠诲姟浣跨敤涓枃鎻忚堪锛屼繚鎸佸皬鑰屽彲鐙珛楠岃瘉锛屽苟鎸変緷璧栭『搴忔帓鍒椼€?    - 鑷冲皯鍖呭惈 lint銆佹瀯寤烘垨绛変环妫€鏌ヤ换鍔°€?    - 娑夊強鍒犻櫎銆佽縼绉绘垨鐮村潖鎬ф搷浣滄椂蹇呴』鍖呭惈鏁版嵁瀹夊叏妫€鏌ャ€

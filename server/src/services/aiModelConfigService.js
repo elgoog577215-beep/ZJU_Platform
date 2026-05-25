@@ -6,6 +6,7 @@ const DEFAULT_BASE_URL = process.env.LLM_BASE_URL || 'https://api-inference.mode
 const DEFAULT_MODEL = process.env.LLM_MODEL || 'ZhipuAI/GLM-5.1';
 const TEST_TIMEOUT_MS = 15000;
 const CALL_TIMEOUT_MS = 30000;
+const PROVIDER_STOP_STATUSES = new Set([401, 403, 429]);
 
 const toText = (value, maxLength = 500) => {
   if (typeof value !== 'string') return '';
@@ -285,6 +286,18 @@ const streamContentToText = (value) => {
   return String(value);
 };
 
+const getChatResponseText = (data) => {
+  const choice = data?.choices?.[0] || {};
+  const message = choice.message || choice.delta || {};
+  return [
+    streamContentToText(message.content),
+    streamContentToText(message.reasoning_content),
+    streamContentToText(choice.text),
+    streamContentToText(data?.output_text),
+    streamContentToText(data?.content)
+  ].find((item) => item && item.trim()) || '';
+};
+
 const parseStreamEvent = (line) => {
   const trimmed = line.trim();
   if (!trimmed.startsWith('data:')) return null;
@@ -332,25 +345,33 @@ const callChatCompletionStream = async (config, payload, timeout = CALL_TIMEOUT_
     let lastChunk = null;
     let usage = null;
 
+    const consumeLine = (line) => {
+      const event = parseStreamEvent(line);
+      if (!event) return;
+
+      lastChunk = event;
+      if (event.usage) usage = event.usage;
+      const choice = event.choices?.[0] || {};
+      const delta = choice.delta || choice.message || {};
+      content += streamContentToText(delta.content || choice.text || '');
+      reasoningContent += streamContentToText(delta.reasoning_content || '');
+    };
+
     response.data.on('data', (chunk) => {
       buffer += chunk.toString('utf8');
       const lines = buffer.split(/\r?\n/);
       buffer = lines.pop() || '';
 
       for (const line of lines) {
-        const event = parseStreamEvent(line);
-        if (!event) continue;
-
-        lastChunk = event;
-        if (event.usage) usage = event.usage;
-        const choice = event.choices?.[0] || {};
-        const delta = choice.delta || choice.message || {};
-        content += streamContentToText(delta.content || choice.text || '');
-        reasoningContent += streamContentToText(delta.reasoning_content || '');
+        consumeLine(line);
       }
     });
 
     response.data.on('end', () => {
+      if (buffer.trim()) {
+        buffer.split(/\r?\n/).forEach(consumeLine);
+      }
+
       resolve({
         id: lastChunk?.id || '',
         object: lastChunk?.object || 'chat.completion',
@@ -374,10 +395,13 @@ const callChatCompletionStream = async (config, payload, timeout = CALL_TIMEOUT_
 };
 
 const callChatCompletionWithFailover = async (db, payload, options = {}) => {
-  const configs = await getEnabledConfigs(db, true);
+  const configs = await getEnabledConfigs(db, options.includeEnvFallback !== false);
+  const primaryConfigs = options.skipEnvWhenDbConfigs !== false && configs.some((config) => !config.fromEnv)
+    ? configs.filter((config) => !config.fromEnv)
+    : configs;
   const attempts = [];
 
-  for (const config of configs) {
+  for (const config of primaryConfigs) {
     try {
       const data = options.stream === true
         ? await callChatCompletionStream(config, payload, options.timeout || CALL_TIMEOUT_MS)
@@ -398,6 +422,9 @@ const callChatCompletionWithFailover = async (db, payload, options = {}) => {
         message: toText(message, 240)
       });
       await updateStatus(db, config, 'failed', message);
+      if (PROVIDER_STOP_STATUSES.has(Number(status))) {
+        break;
+      }
     }
   }
 
@@ -418,17 +445,40 @@ const testConfig = async (db, id) => {
   }
 
   try {
-    await callChatCompletion(
-      config,
-      {
-        messages: [
-          { role: 'system', content: 'Reply with a short JSON object only.' },
-          { role: 'user', content: '{"ping":"ok"}' }
-        ],
-        max_tokens: 80
-      },
-      TEST_TIMEOUT_MS
-    );
+    const testPayload = {
+      messages: [
+        { role: 'system', content: 'Reply with a short JSON object only.' },
+        { role: 'user', content: '{"ping":"ok"}' }
+      ],
+      max_tokens: 80
+    };
+
+    let data = null;
+    let firstError = null;
+
+    try {
+      data = await callChatCompletionStream(config, testPayload, TEST_TIMEOUT_MS);
+    } catch (error) {
+      firstError = error;
+    }
+
+    if (!getChatResponseText(data)) {
+      try {
+        data = await callChatCompletion(config, testPayload, TEST_TIMEOUT_MS);
+      } catch (error) {
+        if (firstError) {
+          error.message = `${firstError.message}; fallback: ${error.message}`;
+        }
+        throw error;
+      }
+    }
+
+    if (!getChatResponseText(data)) {
+      const error = new Error('Model test returned empty content.');
+      error.code = 'AI_MODEL_EMPTY_CONTENT';
+      throw error;
+    }
+
     await updateStatus(db, config, 'ok', '');
     return serializeConfig(await getConfigById(db, id));
   } catch (error) {
