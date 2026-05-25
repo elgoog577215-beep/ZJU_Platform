@@ -37,7 +37,38 @@ const main = () => {
     assert(agent.validation.length >= 1, `${agent.id} needs validation guardrails.`);
     assert(agent.fallback.length >= 1, `${agent.id} needs fallback recovery.`);
     assert(agent.evaluation.length >= 1, `${agent.id} needs repeatable checks.`);
+    assert(
+      Array.isArray(agent.qualityProfile) && agent.qualityProfile.length === MATURITY_DIMENSIONS.length,
+      `${agent.id} needs a complete quality profile.`
+    );
+    assert(
+      Array.isArray(agent.relatedAgents) && agent.relatedAgents.length >= 1,
+      `${agent.id} needs explicit related agent context.`
+    );
+    for (const dimension of agent.qualityProfile) {
+      assert(dimension.id, `${agent.id} quality profile dimension is missing id.`);
+      assert(dimension.status, `${agent.id} quality profile ${dimension.id} is missing status.`);
+      assert(dimension.nextStep, `${agent.id} quality profile ${dimension.id} is missing nextStep.`);
+    }
     assert(agent.maturityScore.score >= 0.55, `${agent.id} maturity is too low for production tracking.`);
+  }
+
+  const agentIds = new Set(agents.map((agent) => agent.id));
+  for (const agent of agents) {
+    for (const relatedAgent of agent.relatedAgents) {
+      assert(
+        agentIds.has(relatedAgent.id),
+        `${agent.id} references unknown related agent ${relatedAgent.id}.`
+      );
+      assert(
+        relatedAgent.id !== agent.id,
+        `${agent.id} must not reference itself as a related agent.`
+      );
+      assert(
+        relatedAgent.relationship && relatedAgent.reason,
+        `${agent.id} related agent ${relatedAgent.id} needs relationship and reason.`
+      );
+    }
   }
 
   const eventAgent = agents.find((agent) => agent.id === 'event_recommendation');
@@ -75,6 +106,46 @@ const main = () => {
     runtimeTelemetryTaskCount: 4,
     runtimeTelemetryAvgDurationMs: 123,
     runtimeTelemetryRetryCount: 1,
+    modelHealth: {
+      status: 'watch',
+      enabledCount: 1,
+      healthyCount: 1,
+      errorCount: 0,
+      retryCount: 1,
+      circuitBreakerRecommendation: {
+        status: 'watch',
+        automaticAction: false,
+        suggestedAction: 'Watch retry and latency trend before changing provider priority.',
+      },
+    },
+    agentRuntimeHealth: {
+      event_recommendation: {
+        status: 'degraded',
+        sampleSize: 4,
+        runCount: 4,
+        modelUsedRate: 0.75,
+        fallbackRate: 0.5,
+        errorCount: 1,
+        warningCount: 2,
+        avgDurationMs: 6800,
+        retryCount: 2,
+        recentError: 'simulated runtime error',
+        suggestedAction: 'Reduce fallback rate by improving prompt contract, model reliability, or context index coverage.',
+      },
+      model_config_runtime: {
+        status: 'watch',
+        sampleSize: 2,
+        runCount: 2,
+        modelUsedRate: 1,
+        fallbackRate: 0,
+        errorCount: 0,
+        warningCount: 0,
+        avgDurationMs: 6400,
+        retryCount: 1,
+        recentError: null,
+        suggestedAction: 'Watch retry and latency trend before changing provider priority.',
+      },
+    },
   });
   assert(overview.summary.agentCount === requiredAgents.length, 'Overview should expose all registered agents.');
   assert(overview.summary.averageMaturity > 0.7, 'Average agent maturity should stay above the first rollout floor.');
@@ -102,11 +173,50 @@ const main = () => {
   );
   assert(overview.continuousImprovementPlan.length > 0, 'Overview should expose partial-gap improvement plan.');
   assert(
+    overview.qualityProfiles && overview.qualityProfiles.event_recommendation,
+    'Overview should expose per-agent quality profiles.'
+  );
+  assert(
+    overview.collaborationMap?.some((item) => (
+      item.agentId === 'event_recommendation'
+      && item.relatedAgents.some((relatedAgent) => relatedAgent.id === 'event_profile_index')
+    )),
+    'Overview should expose the event recommendation to profile index collaboration.'
+  );
+  assert(
     overview.modules.some((module) => module.nextImprovements.length > 0),
     'Overview should still expose continuous improvement suggestions.'
   );
+  assert(
+    overview.runtimeHealth?.event_recommendation?.status === 'degraded',
+    'Overview should expose per-agent runtime health.'
+  );
+  assert(
+    overview.modelHealth?.circuitBreakerRecommendation?.automaticAction === false,
+    'Model health should expose read-only circuit breaker recommendations.'
+  );
+  assert(
+    overview.modules.some((module) => (
+      module.id === 'event_recommendation'
+      && module.runtimeHealth?.fallbackRate === 0.5
+    )),
+    'Overview modules should include runtime health.'
+  );
+  assert(
+    overview.continuousImprovementPlan[0]?.runtimeStatus === 'degraded',
+    'Runtime issues should be able to influence continuous improvement priority.'
+  );
 
   const spec = buildAgentSpecMarkdown();
+  assert(spec.includes('#### Quality Profile'), 'Generated spec should include quality profile sections.');
+  assert(spec.includes('#### Related Agents'), 'Generated spec should include related agent sections.');
+  assert(spec.includes('## Runtime Health'), 'Generated spec should include runtime health section.');
+  assert(spec.includes('#### Runtime Observability'), 'Generated spec should include per-agent runtime observability sections.');
+  assert(spec.includes('Circuit breaker recommendation'), 'Generated spec should include circuit breaker recommendation.');
+  assert(
+    spec.includes('event_profile_index (context_profile_dependency)'),
+    'Generated spec should include explicit related agent reasons.'
+  );
   for (const id of requiredAgents) {
     assert(spec.includes(id), `Generated spec should mention ${id}.`);
   }

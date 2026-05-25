@@ -333,7 +333,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
     ? "rounded-2xl p-4 md:p-6 border h-fit bg-white/82 border-slate-200/80 shadow-[0_18px_40px_rgba(148,163,184,0.12)]"
     : "rounded-2xl p-4 md:p-6 border h-fit bg-white/5 border-white/10";
   const dayActiveSegmentClass = "border border-blue-200 bg-blue-50 text-blue-700 shadow-none";
-  const nightActiveSegmentClass = "bg-white text-black shadow-none";
+  const nightActiveSegmentClass = "border border-indigo-400/35 bg-indigo-500/20 text-indigo-100 shadow-none";
   const settingsActionClass = isDayMode
     ? "w-full flex items-center gap-3 rounded-2xl border px-4 py-4 transition-colors bg-slate-50/90 border-slate-200/80 text-slate-800 hover:bg-white"
     : "w-full flex items-center gap-3 rounded-2xl border px-4 py-4 transition-colors bg-white/5 border-white/10 text-white hover:bg-white/10";
@@ -1338,7 +1338,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                             disabled={Boolean(
                               relationFollowLoadingIds[item.id],
                             )}
-                            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${item.is_following ? (isDayMode ? "bg-indigo-600 text-white border-indigo-600 shadow-[0_10px_22px_rgba(99,102,241,0.2)]" : "bg-white text-black border-white") : isDayMode ? "bg-white text-slate-700 border-slate-200/80" : "bg-white/5 text-gray-300 border-white/10"} disabled:opacity-60`}
+                            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${item.is_following ? (isDayMode ? "bg-indigo-600 text-white border-indigo-600 shadow-[0_10px_22px_rgba(99,102,241,0.2)]" : nightActiveSegmentClass) : isDayMode ? "bg-white text-slate-700 border-slate-200/80" : "bg-white/5 text-gray-300 border-white/10"} disabled:opacity-60`}
                           >
                             {relationFollowLoadingIds[item.id]
                               ? "处理中..."

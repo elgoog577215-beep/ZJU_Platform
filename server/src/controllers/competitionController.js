@@ -310,7 +310,16 @@ const getCurrentOutcome = async (_req, res, next) => {
            AND cw.status = 'approved'
            AND COALESCE(cw.public_consent, 1) = 1
            AND cw.deleted_at IS NULL
-         ORDER BY cw.sort_order ASC, cw.id DESC`,
+         ORDER BY
+           CASE WHEN COALESCE(cw.sort_order, 0) > 0 THEN 0 ELSE 1 END ASC,
+           CASE WHEN COALESCE(cw.sort_order, 0) > 0 THEN cw.sort_order ELSE NULL END ASC,
+           CASE
+             WHEN TRIM(COALESCE(cw.rank, '')) <> ''
+              AND TRIM(cw.rank) NOT GLOB '*[^0-9]*'
+             THEN CAST(TRIM(cw.rank) AS INTEGER)
+             ELSE NULL
+           END ASC,
+           cw.id ASC`,
         [competition.id],
       ),
     ]);

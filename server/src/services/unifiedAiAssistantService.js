@@ -137,6 +137,175 @@ const getRuntimeTelemetryOverview = async (db) => {
   }
 };
 
+const emptyAgentRuntimeHealth = (agentId) => ({
+  agentId,
+  status: 'NO_DATA',
+  sampleSize: 0,
+  runCount: 0,
+  modelUsedRate: 0,
+  fallbackRate: 0,
+  errorCount: 0,
+  warningCount: 0,
+  avgDurationMs: 0,
+  retryCount: 0,
+  recentError: null,
+  suggestedAction: 'Collect runtime samples before making optimization decisions.',
+});
+
+const resolveRuntimeHealthStatus = ({ runCount, fallbackRate, errorCount, avgDurationMs, retryCount }) => {
+  if (runCount <= 0) return 'NO_DATA';
+  if (errorCount >= 3 || fallbackRate >= 0.6) return 'blocked';
+  if (errorCount >= 1 || fallbackRate >= 0.3 || avgDurationMs >= 12000) return 'degraded';
+  if (retryCount >= 2 || fallbackRate > 0 || avgDurationMs >= 6000) return 'watch';
+  return 'healthy';
+};
+
+const buildRuntimeSuggestedAction = (status, { fallbackRate, errorCount, avgDurationMs, retryCount }) => {
+  if (status === 'NO_DATA') return 'Collect runtime samples before making optimization decisions.';
+  if (status === 'blocked') return 'Inspect provider health, model key status, and fallback path before increasing traffic.';
+  if (errorCount > 0) return 'Review recent errors and add a focused golden case for this Agent.';
+  if (fallbackRate >= 0.3) return 'Reduce fallback rate by improving prompt contract, model reliability, or context index coverage.';
+  if (avgDurationMs >= 6000) return 'Review token budget, candidate size, and timeout policy for this Agent.';
+  if (retryCount >= 2) return 'Check JSON repair or stream retry frequency for this Agent.';
+  return 'Maintain current runtime checks and monitor trend changes.';
+};
+
+const finalizeRuntimeAggregate = (agentId, aggregate) => {
+  if (!aggregate || aggregate.runCount <= 0) return emptyAgentRuntimeHealth(agentId);
+
+  const modelUsedRate = aggregate.runCount > 0 ? aggregate.modelUsedCount / aggregate.runCount : 0;
+  const fallbackRate = aggregate.runCount > 0 ? aggregate.fallbackCount / aggregate.runCount : 0;
+  const avgDurationMs = aggregate.telemetryTaskCount > 0
+    ? Math.round(aggregate.totalDurationMs / aggregate.telemetryTaskCount)
+    : 0;
+  const status = resolveRuntimeHealthStatus({
+    runCount: aggregate.runCount,
+    fallbackRate,
+    errorCount: aggregate.errorCount,
+    avgDurationMs,
+    retryCount: aggregate.retryCount,
+  });
+
+  return {
+    agentId,
+    status,
+    sampleSize: aggregate.runCount,
+    runCount: aggregate.runCount,
+    modelUsedRate: Number(modelUsedRate.toFixed(2)),
+    fallbackRate: Number(fallbackRate.toFixed(2)),
+    errorCount: aggregate.errorCount,
+    warningCount: aggregate.warningCount,
+    avgDurationMs,
+    retryCount: aggregate.retryCount,
+    recentError: aggregate.recentError || null,
+    suggestedAction: buildRuntimeSuggestedAction(status, {
+      fallbackRate,
+      errorCount: aggregate.errorCount,
+      avgDurationMs,
+      retryCount: aggregate.retryCount,
+    }),
+  };
+};
+
+const getAgentRuntimeHealthOverview = async (db, agentIds = []) => {
+  const aggregates = new Map(agentIds.map((agentId) => [agentId, {
+    runCount: 0,
+    modelUsedCount: 0,
+    fallbackCount: 0,
+    errorCount: 0,
+    warningCount: 0,
+    telemetryTaskCount: 0,
+    totalDurationMs: 0,
+    retryCount: 0,
+    recentError: null,
+  }]));
+
+  try {
+    const rows = await db.all(`
+      SELECT module, status, summary_json
+      FROM ai_assistant_runs
+      ORDER BY created_at DESC, id DESC
+      LIMIT 120
+    `);
+
+    for (const row of rows) {
+      const agentId = row.module;
+      if (!aggregates.has(agentId)) continue;
+      const summary = parseJson(row.summary_json, {});
+      const aggregate = aggregates.get(agentId);
+      const runtimeTelemetry = summary.runtimeTelemetry || summary.modelReview?.runtimeTelemetry || {};
+
+      aggregate.runCount += 1;
+      if (summary.modelUsed === true || summary.modelReview?.used === true) aggregate.modelUsedCount += 1;
+      if (summary.fallbackUsed === true || summary.modelReview?.fallbackUsed === true) aggregate.fallbackCount += 1;
+      if (row.status === 'failed' || summary.status === 'failed' || summary.errorCode || summary.error) {
+        aggregate.errorCount += 1;
+        aggregate.recentError = aggregate.recentError || toText(summary.errorCode || summary.error || row.status, 180);
+      }
+      aggregate.warningCount += Number(summary.warningCount || 0);
+      aggregate.telemetryTaskCount += Number(runtimeTelemetry.taskCount || 0);
+      aggregate.totalDurationMs += Number(runtimeTelemetry.totalDurationMs || 0);
+      aggregate.retryCount += Number(runtimeTelemetry.retryCount || 0);
+    }
+  } catch {
+    return Object.fromEntries(agentIds.map((agentId) => [agentId, emptyAgentRuntimeHealth(agentId)]));
+  }
+
+  return Object.fromEntries(
+    agentIds.map((agentId) => [agentId, finalizeRuntimeAggregate(agentId, aggregates.get(agentId))])
+  );
+};
+
+const buildModelHealthOverview = (configs = [], runtimeTelemetryOverview = emptyRuntimeTelemetryOverview(), agentRuntimeHealth = {}) => {
+  const enabledConfigs = configs.filter((config) => config.enabled);
+  const healthyConfigs = configs.filter((config) => config.last_status === 'ok');
+  const errorConfigs = configs.filter((config) => config.last_status && config.last_status !== 'ok');
+  const agentHealthValues = Object.values(agentRuntimeHealth || {});
+  const blockedAgents = agentHealthValues.filter((item) => item.status === 'blocked').length;
+  const degradedAgents = agentHealthValues.filter((item) => item.status === 'degraded').length;
+  const retryCount = Number(runtimeTelemetryOverview.retryCount || 0);
+  const avgDurationMs = Number(runtimeTelemetryOverview.avgDurationMs || 0);
+
+  let status = 'healthy';
+  let suggestedAction = 'Maintain current model routing and runtime policy.';
+  if (enabledConfigs.length === 0) {
+    status = 'blocked';
+    suggestedAction = 'Add and test at least one enabled model config.';
+  } else if (healthyConfigs.length === 0 || blockedAgents > 0) {
+    status = 'blocked';
+    suggestedAction = 'Test model keys, inspect provider errors, and keep deterministic fallbacks available.';
+  } else if (errorConfigs.length > 0 || degradedAgents > 0 || retryCount >= 3) {
+    status = 'degraded';
+    suggestedAction = 'Inspect failing configs, lower priority for unstable providers, or rotate keys.';
+  } else if (retryCount > 0 || avgDurationMs >= 6000) {
+    status = 'watch';
+    suggestedAction = 'Watch retry and latency trend before changing provider priority.';
+  }
+
+  return {
+    status,
+    enabledCount: enabledConfigs.length,
+    healthyCount: healthyConfigs.length,
+    errorCount: errorConfigs.length,
+    retryCount,
+    avgDurationMs,
+    recentErrors: errorConfigs.slice(0, 3).map((config) => ({
+      id: config.id,
+      name: config.name,
+      provider: config.provider,
+      model: config.model,
+      lastStatus: config.last_status,
+      lastError: toText(config.last_error, 180),
+      lastCheckedAt: config.last_checked_at || null,
+    })),
+    circuitBreakerRecommendation: {
+      status,
+      automaticAction: false,
+      suggestedAction,
+    },
+  };
+};
+
 const createRun = async (db, { module, action, status = 'completed', userId, summary }) => {
   const result = await db.run(
     `
@@ -490,6 +659,7 @@ const getAssistantOverview = async (db) => {
     profileCoverage,
     recommendationActionEvidence,
     runtimeTelemetryOverview,
+    agentRuntimeHealth,
   ] = await Promise.all([
     safeCount(db, 'SELECT COUNT(*) AS count FROM events WHERE deleted_at IS NULL'),
     safeCount(db, "SELECT COUNT(*) AS count FROM events WHERE deleted_at IS NULL AND (category IS NULL OR TRIM(category) = '')"),
@@ -520,6 +690,7 @@ const getAssistantOverview = async (db) => {
       recommendationCount: 0,
     })),
     getRuntimeTelemetryOverview(db),
+    getAgentRuntimeHealthOverview(db, aiAgentRegistryService.getAgentDefinitions().map((agent) => agent.id)),
   ]);
 
   let configs = [];
@@ -530,6 +701,7 @@ const getAssistantOverview = async (db) => {
   }
   const enabledConfigs = configs.filter((config) => config.enabled);
   const healthyConfigs = configs.filter((config) => config.last_status === 'ok');
+  const modelHealth = buildModelHealthOverview(configs, runtimeTelemetryOverview, agentRuntimeHealth);
 
   const health = {
     eventCount,
@@ -568,6 +740,15 @@ const getAssistantOverview = async (db) => {
     runtimeTelemetryReportedTotalTokens: runtimeTelemetryOverview.reportedTotalTokens,
     runtimeTelemetryRetryCount: runtimeTelemetryOverview.retryCount,
     runtimeTelemetryTaskStats: runtimeTelemetryOverview.taskStats,
+    agentRuntimeHealth,
+    modelHealth,
+    runtimeHealthSummary: {
+      agentCount: Object.keys(agentRuntimeHealth || {}).length,
+      noDataCount: Object.values(agentRuntimeHealth || {}).filter((item) => item.status === 'NO_DATA').length,
+      watchCount: Object.values(agentRuntimeHealth || {}).filter((item) => item.status === 'watch').length,
+      degradedCount: Object.values(agentRuntimeHealth || {}).filter((item) => item.status === 'degraded').length,
+      blockedCount: Object.values(agentRuntimeHealth || {}).filter((item) => item.status === 'blocked').length,
+    },
   };
 
   return {

@@ -201,7 +201,7 @@ const HomeFeed = () => {
                    <div className="prose prose-invert prose-lg max-w-none text-gray-300" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(activeEvent.content || activeEvent.description) }} />
                    
                    <div className="mt-8 pt-8 border-t border-white/10 flex flex-wrap gap-4">
-                     <Link to={`/events?id=${activeEvent.id}`} className="px-6 py-3 bg-white text-black rounded-full font-bold hover:bg-gray-200 transition-colors flex items-center gap-2">
+                     <Link to={`/events?id=${activeEvent.id}`} className="px-6 py-3 bg-indigo-500 text-white rounded-lg font-bold hover:bg-indigo-400 transition-colors flex items-center gap-2">
                         {t('common.view_details')} <ArrowRight size={18}/>
                      </Link>
                    </div>

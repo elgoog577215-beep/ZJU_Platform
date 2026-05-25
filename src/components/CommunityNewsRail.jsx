@@ -319,7 +319,7 @@ const CommunityNewsRail = () => {
     const groups = Array.isArray(selectedNews.linked_resources.groups) ? selectedNews.linked_resources.groups : [];
     if (articles.length === 0 && posts.length === 0 && groups.length === 0) return null;
     return (
-      <div className={`mt-6 rounded-xl border p-3 ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
+      <div className={`mt-6 rounded-lg border p-3 ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
         <p className={`text-xs font-semibold mb-2 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
           {t('community.next_actions', '下一步')}
         </p>
@@ -357,7 +357,7 @@ const CommunityNewsRail = () => {
   })() : null;
 
   return (
-    <div className={`rounded-2xl border backdrop-blur-xl p-4 md:p-5 ${isDayMode ? 'bg-gradient-to-br from-white/74 via-white/52 to-sky-50/42 border-white/75 shadow-[0_22px_54px_rgba(59,130,246,0.12)] ring-1 ring-slate-900/[0.025]' : 'bg-[#141414]/70 border-white/10'}`}>
+    <div className={`rounded-lg border backdrop-blur-xl p-4 md:p-5 ${isDayMode ? 'bg-gradient-to-br from-white/74 via-white/52 to-sky-50/42 border-white/75 shadow-[0_22px_54px_rgba(59,130,246,0.12)] ring-1 ring-slate-900/[0.025]' : 'bg-white/[0.045] border-white/10'}`}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDayMode ? 'bg-white/70 text-blue-600 border border-white/75 shadow-[0_10px_24px_rgba(59,130,246,0.12)]' : 'bg-blue-500/15 text-blue-300'}`}>
@@ -418,14 +418,14 @@ const CommunityNewsRail = () => {
       ) : null}
 
       {isAdmin ? (
-        <div className={`mb-4 p-2 rounded-xl border ${isDayMode ? 'bg-white/48 border-white/70' : 'bg-white/[0.03] border-white/10'}`}>
+        <div className={`mb-4 p-2 rounded-lg border ${isDayMode ? 'bg-white/48 border-white/70' : 'bg-white/[0.03] border-white/10'}`}>
           <div className="flex gap-2">
             <input
               type="url"
               value={importUrl}
               onChange={(e) => setImportUrl(e.target.value)}
               placeholder={t('community.news_import_placeholder', '粘贴新闻链接进行导入')}
-              className={`flex-1 h-9 px-3 rounded-lg text-xs border ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-black/20 border-white/10 text-gray-200'}`}
+              className={`flex-1 h-9 px-3 rounded-lg text-xs border ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/[0.045] border-white/10 text-gray-200'}`}
             />
             <button
               type="button"
@@ -439,14 +439,14 @@ const CommunityNewsRail = () => {
         </div>
       ) : null}
 
-      <div className={`mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border px-3 py-2 text-xs ${isDayMode ? 'bg-white/48 border-white/70 text-slate-500 shadow-inner shadow-white/50' : 'bg-white/[0.03] border-white/10 text-gray-400'}`}>
+      <div className={`mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs ${isDayMode ? 'bg-white/48 border-white/70 text-slate-500 shadow-inner shadow-white/50' : 'bg-white/[0.03] border-white/10 text-gray-400'}`}>
         <div className="flex flex-wrap items-center gap-2">
           <span>{list.length} {t('community.results_count', '条结果')}</span>
-          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border ${isDayMode ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-blue-500/10 text-blue-300 border-blue-500/20'}`}>
+          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${isDayMode ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-blue-500/10 text-blue-300 border-blue-500/20'}`}>
             {isLatestSort ? t('community.news_latest', '最新') : t('community.news_hot', '热门')}
           </span>
           {hasActiveAdminFilter ? (
-            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border ${isDayMode ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20'}`}>
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${isDayMode ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20'}`}>
               {t('community.filtered_view', '已应用筛选')}
             </span>
           ) : null}
@@ -463,7 +463,7 @@ const CommunityNewsRail = () => {
       <div className="space-y-2 max-h-[560px] overflow-y-auto pr-1">
         {loading ? (
           [...Array(6)].map((_, i) => (
-            <div key={i} className={`rounded-xl border p-3 animate-pulse ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
+            <div key={i} className={`rounded-lg border p-3 animate-pulse ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
               <div className={`h-3 rounded w-4/5 mb-2 ${isDayMode ? 'bg-slate-200' : 'bg-white/10'}`} />
               <div className={`h-3 rounded w-1/2 ${isDayMode ? 'bg-slate-200' : 'bg-white/10'}`} />
             </div>
@@ -474,14 +474,14 @@ const CommunityNewsRail = () => {
           <button
             type="button"
             onClick={() => refresh({ clearCache: true })}
-            className={`w-full rounded-xl border p-3 text-sm ${isDayMode ? 'bg-red-50 text-red-600 border-red-200' : 'bg-red-500/10 text-red-300 border-red-500/20'}`}
+            className={`w-full rounded-lg border p-3 text-sm ${isDayMode ? 'bg-red-50 text-red-600 border-red-200' : 'bg-red-500/10 text-red-300 border-red-500/20'}`}
           >
             {t('common.retry', '重试')}
           </button>
         ) : null}
 
         {!loading && !error && list.length === 0 ? (
-          <div className={`rounded-xl border p-4 text-sm text-center ${isDayMode ? 'bg-slate-50 text-slate-500 border-slate-200' : 'bg-white/[0.03] text-gray-400 border-white/10'}`}>
+          <div className={`rounded-lg border p-4 text-sm text-center ${isDayMode ? 'bg-slate-50 text-slate-500 border-slate-200' : 'bg-white/[0.03] text-gray-400 border-white/10'}`}>
             {t('community.news_empty', '暂无新闻')}
           </div>
         ) : null}
@@ -491,7 +491,7 @@ const CommunityNewsRail = () => {
             key={item.id}
             type="button"
             onClick={() => handleOpen(item)}
-            className={`w-full text-left rounded-xl border p-3 transition-all group ${
+            className={`w-full text-left rounded-lg border p-3 transition-all group ${
               isDayMode ? 'bg-white/52 border-white/70 hover:border-blue-300/70 hover:bg-white/82 shadow-[0_8px_22px_rgba(59,130,246,0.06)]' : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.06] hover:border-blue-400/40'
             }`}
           >
@@ -507,7 +507,7 @@ const CommunityNewsRail = () => {
                   {item.is_pinned ? <span className="inline-flex items-center gap-1"><Pin size={10} />{t('common.pinned', '置顶')}</span> : null}
                   <span>{item.source_name || t('community.news_source_internal', '站内')}</span>
                   {isAdmin && item.status ? (
-                    <span className={`px-1.5 py-0.5 rounded-full border text-[10px] ${
+                    <span className={`px-1.5 py-0.5 rounded-md border text-[10px] ${
                       item.status === 'approved'
                         ? (isDayMode ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30')
                         : item.status === 'draft'

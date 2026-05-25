@@ -216,12 +216,12 @@ const TagFilter = ({ selectedTags = [], onChange, className, variant = 'card', t
                                 onClick={() => toggleTag(tag.name)}
                                 className={`${isInlineVariant ? 'min-h-[32px] rounded-full px-3 py-1.5 text-xs' : 'min-h-[44px] rounded-2xl px-4 py-2.5 text-sm sm:min-h-0 sm:py-2 hover:-translate-y-0.5'} font-medium transition-all border flex items-center gap-2 ${
                                     selectedTags.includes(tag.name)
-                                        ? (isDayMode ? 'bg-blue-50 text-blue-700 border-blue-200/80 shadow-none' : 'bg-white text-black border-white shadow-none')
+                                        ? (isDayMode ? 'bg-blue-50 text-blue-700 border-blue-200/80 shadow-none' : 'bg-indigo-500/20 text-indigo-100 border-indigo-400/35 shadow-none')
                                         : (isDayMode ? 'bg-white/70 text-slate-500 border-slate-200/80 hover:bg-white hover:text-slate-900 hover:border-blue-200/80' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/20')
                                 }`}
                             >
                                 {selectedTags.includes(tag.name) && (
-                                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className={isDayMode ? "rounded-full bg-blue-600 p-0.5" : "rounded-full bg-black p-0.5"}>
+                                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className={isDayMode ? "rounded-full bg-blue-600 p-0.5" : "rounded-full bg-indigo-300/20 p-0.5"}>
                                         <CheckCircle size={12} className="text-white" />
                                     </motion.div>
                                 )}

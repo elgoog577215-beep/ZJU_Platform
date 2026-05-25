@@ -204,6 +204,7 @@ const AppContent = () => {
               <Route path="/music" element={<PageTransition><Music /></PageTransition>} />
               <Route path="/videos" element={<PageTransition><Videos /></PageTransition>} />
               <Route path="/articles" element={<PageTransition><Articles /></PageTransition>} />
+              <Route path="/ai-community" element={<Navigate to="/articles" replace />} />
               <Route path="/community" element={<Navigate to="/articles" replace />} />
               <Route path="/community/help" element={<Navigate to="/articles?tab=help" replace />} />
               <Route path="/community/tech" element={<Navigate to="/articles?tab=tech" replace />} />

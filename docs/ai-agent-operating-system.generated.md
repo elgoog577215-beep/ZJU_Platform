@@ -2,7 +2,7 @@
 
 > Generated from `server/src/services/aiAgentRegistryService.js`. Do not hand-edit generated sections; update the registry and rerun `npm --prefix server run agents:spec`.
 
-Generated at: 2026-05-22T02:34:07.699Z
+Generated at: 2026-05-22T13:15:50.184Z
 
 ## Goal
 
@@ -65,6 +65,12 @@ The agent has clear permissions, data boundaries, timeout/cost controls, and pro
 - High-priority gaps: 0
 - Partial maturity gaps: 22
 
+## Runtime Health
+
+- Runtime health is available from admin overview when run data exists.
+- Model health is reported without exposing API keys.
+- Circuit breaker recommendation is read-only and never disables model configs automatically.
+
 ## Agents
 
 ### Event Recommendation Agent
@@ -110,6 +116,31 @@ Understand a campus activity request, retrieve a safe candidate pool, use model 
 - user_event_preferences
 - event_recommendation_feedback
 - favorites and event_registrations as post-recommendation action evidence
+
+#### Quality Profile
+
+- Prompt templates: complete; next: Maintain with repeatable checks.
+- Logic chain: complete; next: Maintain with repeatable checks.
+- Standard libraries: complete; next: Maintain with repeatable checks.
+- Context index: complete; next: Maintain with repeatable checks.
+- Memory and feedback: complete; next: Maintain with repeatable checks.
+- Structured contract: complete; next: Maintain with repeatable checks.
+- Validation guardrails: complete; next: Maintain with repeatable checks.
+- Fallback recovery: complete; next: Maintain with repeatable checks.
+- Evaluation checks: complete; next: Maintain with repeatable checks.
+- Observability: complete; next: Maintain with repeatable checks.
+- Auto-update spec: partial; next: Schedule generated spec/profile refresh after event catalog, prompt contract, or profile-version changes.
+- Safety and cost: partial; next: Expose per-agent latency, failure rate, and token-budget trend signals in the admin console.
+
+#### Related Agents
+
+- event_profile_index (context_profile_dependency): Uses event AI profiles for fast candidate recall and explanation signals.
+- model_config_runtime (model_runtime_dependency): Uses the shared runtime for intent parsing, profile generation, reranking, JSON repair, and failover.
+- event_governance (data_quality_feedback): Depends on the same event catalog and benefits when admin governance improves event metadata quality.
+
+#### Runtime Observability
+
+- Runtime health is reported in admin overview when run data exists.
 
 #### Validation And Fallback
 
@@ -175,6 +206,30 @@ Coach a participant toward a small, shippable AI-native hackathon scope using ev
 - Participant profile payload
 - ai_assistant_runs aggregate run summaries
 
+#### Quality Profile
+
+- Prompt templates: complete; next: Maintain with repeatable checks.
+- Logic chain: complete; next: Maintain with repeatable checks.
+- Standard libraries: partial; next: Move hackathon rules, event-day strategy cards, and track vocabulary into a versioned standard library.
+- Context index: complete; next: Maintain with repeatable checks.
+- Memory and feedback: partial; next: Summarize anonymous question categories and coaching outcomes for product tuning without storing raw prompts.
+- Structured contract: complete; next: Maintain with repeatable checks.
+- Validation guardrails: complete; next: Maintain with repeatable checks.
+- Fallback recovery: complete; next: Maintain with repeatable checks.
+- Evaluation checks: complete; next: Maintain with repeatable checks.
+- Observability: partial; next: Expose aggregate coaching intent categories, confidence buckets, and fallback rate in the admin overview.
+- Auto-update spec: partial; next: Version the hackathon context-card index separately from code and show the active version in generated specs.
+- Safety and cost: partial; next: Add task-level timeout and token ceilings for hackathon coaching calls in the runtime policy registry.
+
+#### Related Agents
+
+- model_config_runtime (model_runtime_dependency): Uses the shared assistant orchestrator and model runtime for structured coaching output.
+- event_recommendation (user_assistant_pattern): Shares the bounded-context user assistant pattern and confidence/fallback response contract.
+
+#### Runtime Observability
+
+- Runtime health is reported in admin overview when run data exists.
+
 #### Validation And Fallback
 
 - Limits query and participant profile length.
@@ -230,6 +285,32 @@ Extract structured event fields from a WeChat article and normalize them against
 - WeChat URL cache
 - Standard event catalog prompt context
 - ai_assistant_runs parse summaries
+
+#### Quality Profile
+
+- Prompt templates: complete; next: Maintain with repeatable checks.
+- Logic chain: complete; next: Maintain with repeatable checks.
+- Standard libraries: complete; next: Maintain with repeatable checks.
+- Context index: partial; next: Persist bounded parse-cache metadata and confidence summaries so repeated URLs do not require full re-analysis.
+- Memory and feedback: partial; next: Aggregate parse failure categories and admin corrections for prompt and scraper tuning.
+- Structured contract: complete; next: Maintain with repeatable checks.
+- Validation guardrails: complete; next: Maintain with repeatable checks.
+- Fallback recovery: complete; next: Maintain with repeatable checks.
+- Evaluation checks: complete; next: Maintain with repeatable checks.
+- Observability: partial; next: Show parser confidence, warnings, provider, and model status directly in the admin form.
+- Auto-update spec: partial; next: Refresh parser prompt context automatically when event catalog or academic-calendar context changes.
+- Safety and cost: partial; next: Expose parser timeout, scrape failure, model failure, and fallback rates in the admin overview.
+
+#### Related Agents
+
+- model_config_runtime (model_runtime_dependency): Uses the shared runtime for structured article extraction, provider status, and JSON repair.
+- event_governance (metadata_quality_handoff): Parser confidence and normalized fields feed the same event metadata quality surface used by governance.
+- event_recommendation (shared_event_catalog): Parsed categories, audience, campus, and benefits must match the same catalog used for recommendation intent.
+- event_profile_index (profile_source_quality): Cleaner parsed event fields improve downstream event AI profile quality and recommendation recall.
+
+#### Runtime Observability
+
+- Runtime health is reported in admin overview when run data exists.
 
 #### Validation And Fallback
 
@@ -291,6 +372,31 @@ Help admins improve event metadata through safe scan, review, and apply workflow
 - ai_event_governance_suggestions
 - recent applied/skipped governance decisions
 
+#### Quality Profile
+
+- Prompt templates: complete; next: Maintain with repeatable checks.
+- Logic chain: complete; next: Maintain with repeatable checks.
+- Standard libraries: complete; next: Maintain with repeatable checks.
+- Context index: partial; next: Expose changed-field coverage and recent ambiguous-case distribution in the governance workspace.
+- Memory and feedback: partial; next: Use recent applied and skipped admin decisions to adjust deterministic confidence before model review.
+- Structured contract: complete; next: Maintain with repeatable checks.
+- Validation guardrails: complete; next: Maintain with repeatable checks.
+- Fallback recovery: complete; next: Maintain with repeatable checks.
+- Evaluation checks: complete; next: Maintain with repeatable checks.
+- Observability: complete; next: Maintain with repeatable checks.
+- Auto-update spec: partial; next: Regenerate governance guidance when catalog aliases, whitelist fields, or confidence policy changes.
+- Safety and cost: complete; next: Maintain with repeatable checks.
+
+#### Related Agents
+
+- event_recommendation (metadata_quality_provider): Improves category and audience quality that recommendation uses for candidate ranking.
+- wechat_event_parser (admin_review_continuation): Reviews and repairs metadata originally produced by parsing or manual admin entry.
+- model_config_runtime (model_runtime_dependency): Uses shared model review, JSON parsing, and failover for ambiguous governance suggestions.
+
+#### Runtime Observability
+
+- Runtime health is reported in admin overview when run data exists.
+
 #### Validation And Fallback
 
 - Dry scan does not mutate event data.
@@ -351,6 +457,33 @@ Provide a shared OpenAI-compatible model configuration, failover, JSON parsing, 
 - ai_model_configs
 - task runtime policy registry
 
+#### Quality Profile
+
+- Prompt templates: partial; next: Version shared quality and JSON repair prompt templates with explicit task owners.
+- Logic chain: complete; next: Maintain with repeatable checks.
+- Standard libraries: partial; next: Move runtime provider rules, task ceilings, and repair policy into a documented standard library.
+- Context index: complete; next: Maintain with repeatable checks.
+- Memory and feedback: partial; next: Persist longer-term runtime telemetry trend windows and provider health history.
+- Structured contract: complete; next: Maintain with repeatable checks.
+- Validation guardrails: complete; next: Maintain with repeatable checks.
+- Fallback recovery: complete; next: Maintain with repeatable checks.
+- Evaluation checks: complete; next: Maintain with repeatable checks.
+- Observability: complete; next: Maintain with repeatable checks.
+- Auto-update spec: partial; next: Regenerate runtime policy documentation when task policy or provider priority changes.
+- Safety and cost: complete; next: Maintain with repeatable checks.
+
+#### Related Agents
+
+- event_recommendation (runtime_provider): Provides model calls, JSON repair, failover, and task policy for event recommendation.
+- hackathon_coach (runtime_provider): Provides structured coaching calls and fallback metadata for the hackathon assistant.
+- wechat_event_parser (runtime_provider): Provides structured parse calls, provider status, and repair for content extraction.
+- event_governance (runtime_provider): Provides bounded model review for ambiguous governance suggestions.
+- event_profile_index (runtime_provider): Provides profile generation calls and fallback status for index refreshes.
+
+#### Runtime Observability
+
+- Runtime health is reported in admin overview when run data exists.
+
 #### Validation And Fallback
 
 - Requires database-backed config or injected model runner.
@@ -410,6 +543,31 @@ Precompute or cache compact activity profiles so recommendation agents can reaso
 - event_ai_profiles
 - ai_assistant_runs refresh summaries
 
+#### Quality Profile
+
+- Prompt templates: complete; next: Maintain with repeatable checks.
+- Logic chain: complete; next: Maintain with repeatable checks.
+- Standard libraries: complete; next: Maintain with repeatable checks.
+- Context index: complete; next: Maintain with repeatable checks.
+- Memory and feedback: partial; next: Track which profile issue reasons later correlate with poor recommendation feedback.
+- Structured contract: complete; next: Maintain with repeatable checks.
+- Validation guardrails: complete; next: Maintain with repeatable checks.
+- Fallback recovery: complete; next: Maintain with repeatable checks.
+- Evaluation checks: complete; next: Maintain with repeatable checks.
+- Observability: complete; next: Maintain with repeatable checks.
+- Auto-update spec: partial; next: Schedule profile refresh after large event imports and catalog/profile-version changes.
+- Safety and cost: partial; next: Add embedding-compatible profile fields without changing current consumers or increasing live request latency.
+
+#### Related Agents
+
+- event_recommendation (context_index_provider): Supplies compact event profiles used by recommendation recall, reranking, and explanation.
+- model_config_runtime (model_runtime_dependency): Uses the shared runtime for profile generation and fallback-aware refreshes.
+- wechat_event_parser (source_quality_consumer): Profile quality depends on parsed event fields and standard catalog normalization.
+
+#### Runtime Observability
+
+- Runtime health is reported in admin overview when run data exists.
+
 #### Validation And Fallback
 
 - Normalizes profile categories.
@@ -448,59 +606,59 @@ Precompute or cache compact activity profiles so recommendation agents can reaso
 ### 1. Hackathon AI Coach / Observability
 
 - Current: partial
-- Task: Version the context-card index separately from code.
+- Task: Expose aggregate coaching intent categories, confidence buckets, and fallback rate in the admin overview.
 - Acceptance: Hackathon AI Coach marks Observability as complete or exposes a measurable production signal.
 
 ### 2. WeChat Event Parser / Observability
 
 - Current: partial
-- Task: Show parser confidence and warnings in the admin form.
+- Task: Show parser confidence, warnings, provider, and model status directly in the admin form.
 - Acceptance: WeChat Event Parser marks Observability as complete or exposes a measurable production signal.
 
 ### 3. Event AI Profile Index / Safety and cost
 
 - Current: partial
-- Task: Add embedding-compatible output shape later without changing consumers.
+- Task: Add embedding-compatible profile fields without changing current consumers or increasing live request latency.
 - Acceptance: Event AI Profile Index marks Safety and cost as complete or exposes a measurable production signal.
 
 ### 4. Event Recommendation Agent / Safety and cost
 
 - Current: partial
-- Task: Expose per-agent latency and failure rate in the admin console.
+- Task: Expose per-agent latency, failure rate, and token-budget trend signals in the admin console.
 - Acceptance: Event Recommendation Agent marks Safety and cost as complete or exposes a measurable production signal.
 
 ### 5. Hackathon AI Coach / Safety and cost
 
 - Current: partial
-- Task: Version the context-card index separately from code.
+- Task: Add task-level timeout and token ceilings for hackathon coaching calls in the runtime policy registry.
 - Acceptance: Hackathon AI Coach marks Safety and cost as complete or exposes a measurable production signal.
 
 ### 6. WeChat Event Parser / Safety and cost
 
 - Current: partial
-- Task: Show parser confidence and warnings in the admin form.
+- Task: Expose parser timeout, scrape failure, model failure, and fallback rates in the admin overview.
 - Acceptance: WeChat Event Parser marks Safety and cost as complete or exposes a measurable production signal.
 
 ### 7. Admin Event Governance Agent / Memory and feedback
 
 - Current: partial
-- Task: Display changed dimension coverage in the admin console.
+- Task: Use recent applied and skipped admin decisions to adjust deterministic confidence before model review.
 - Acceptance: Admin Event Governance Agent marks Memory and feedback as complete or exposes a measurable production signal.
 
 ### 8. Event AI Profile Index / Memory and feedback
 
 - Current: partial
-- Task: Add embedding-compatible output shape later without changing consumers.
+- Task: Track which profile issue reasons later correlate with poor recommendation feedback.
 - Acceptance: Event AI Profile Index marks Memory and feedback as complete or exposes a measurable production signal.
 
 ### 9. Hackathon AI Coach / Memory and feedback
 
 - Current: partial
-- Task: Version the context-card index separately from code.
+- Task: Summarize anonymous question categories and coaching outcomes for product tuning without storing raw prompts.
 - Acceptance: Hackathon AI Coach marks Memory and feedback as complete or exposes a measurable production signal.
 
 ### 10. Model Config and Runtime / Memory and feedback
 
 - Current: partial
-- Task: Add circuit breaker status to admin overview.
+- Task: Persist longer-term runtime telemetry trend windows and provider health history.
 - Acceptance: Model Config and Runtime marks Memory and feedback as complete or exposes a measurable production signal.

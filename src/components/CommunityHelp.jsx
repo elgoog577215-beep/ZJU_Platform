@@ -106,7 +106,7 @@ const CommunityHelp = () => {
       headerContent={feed.selectedItem && (
         <>
           <div className="flex items-center gap-3 mb-3">
-            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${feed.selectedItem.status === 'solved' ? (isDayMode ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20') : (isDayMode ? 'bg-amber-50 text-amber-600 border border-amber-200' : 'bg-amber-500/15 text-amber-400 border border-amber-500/20')}`}>
+            <span className={`inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold ${feed.selectedItem.status === 'solved' ? (isDayMode ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20') : (isDayMode ? 'bg-amber-50 text-amber-600 border border-amber-200' : 'bg-amber-500/15 text-amber-400 border border-amber-500/20')}`}>
               {feed.selectedItem.status === 'solved' ? t('community.post_status_solved', '已解决') : t('community.post_status_open', '待答')}
             </span>
             <span className={`text-sm font-mono ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
@@ -127,7 +127,7 @@ const CommunityHelp = () => {
         value={feed.searchQuery}
         onChange={(e) => feed.setSearchQuery(e.target.value)}
         placeholder="搜索求助帖（标题/正文）"
-        className={`w-full h-10 px-3 rounded-xl border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`}
+        className={`w-full h-10 px-3 rounded-lg border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`}
       />
     </div>
   );

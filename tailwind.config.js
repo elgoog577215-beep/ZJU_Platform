@@ -23,6 +23,15 @@ export default {
         sans: ['Inter', 'sans-serif'],
         serif: ['Playfair Display', 'serif'],
       },
+      borderRadius: {
+        DEFAULT: '2px',
+        sm: '2px',
+        md: '3px',
+        lg: '4px',
+        xl: '4px',
+        '2xl': '6px',
+        '3xl': '8px',
+      },
       animation: {
         'fade-in': 'fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
         'slide-up': 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',

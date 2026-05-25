@@ -578,6 +578,22 @@ const main = async () => {
 
     const overview = await assistantService.getAssistantOverview(db);
     assert(overview.health.runtimeTelemetryTaskCount >= 6, 'Overview should aggregate runtime telemetry after stress.');
+    assert(
+      overview.health.agentRuntimeHealth?.event_recommendation?.sampleSize >= 1,
+      'Overview should expose event recommendation runtime health after stress.'
+    );
+    assert(
+      typeof overview.health.agentRuntimeHealth.event_recommendation.fallbackRate === 'number',
+      'Agent runtime health should expose fallback rate.'
+    );
+    assert(
+      overview.health.modelHealth?.circuitBreakerRecommendation?.automaticAction === false,
+      'Model health should expose read-only circuit breaker recommendations.'
+    );
+    assert(
+      overview.agentSystem.modules.some((module) => module.runtimeHealth),
+      'Agent system modules should include runtime health.'
+    );
 
     console.log(JSON.stringify({
       ok: true,
@@ -591,6 +607,8 @@ const main = async () => {
       ],
       runCount: runs.length,
       runtimeTelemetryTaskCount: overview.health.runtimeTelemetryTaskCount,
+      runtimeHealthSummary: overview.health.runtimeHealthSummary,
+      modelHealthStatus: overview.health.modelHealth.status,
       eventAiProfileCoverageRatio: overview.health.eventAiProfileCoverageRatio,
     }, null, 2));
   } finally {

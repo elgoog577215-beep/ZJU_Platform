@@ -52,7 +52,7 @@ const GroupCard = memo(({ group, index, isDayMode, isAdmin, onQuickAction, onEdi
       </div>
       <div className="flex flex-wrap items-center gap-1.5 md:gap-2 mb-1.5 md:mb-2">
         <h3 className={`text-base md:text-lg font-bold line-clamp-2 ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{group.name}</h3>
-        <span className={`text-[9px] md:text-[10px] px-1.5 md:px-2 py-0.5 rounded-full border shrink-0 ${isDayMode ? 'bg-slate-100 text-slate-500 border-slate-200' : 'bg-white/5 text-gray-400 border-white/10'}`}>
+        <span className={`text-[9px] md:text-[10px] px-1.5 md:px-2 py-0.5 rounded-md border shrink-0 ${isDayMode ? 'bg-slate-100 text-slate-500 border-slate-200' : 'bg-white/5 text-gray-400 border-white/10'}`}>
           {PLATFORM_LABELS[group.platform] || group.platform}
         </span>
       </div>
@@ -76,9 +76,9 @@ const GroupCard = memo(({ group, index, isDayMode, isAdmin, onQuickAction, onEdi
           </a>
         ) : <span />}
         <div className="flex items-center gap-1 flex-wrap justify-end">
-          {group.review_status === 'pending' && <span className={`text-[10px] px-2 py-0.5 rounded-full ${isDayMode ? 'bg-amber-100 text-amber-700' : 'bg-amber-500/15 text-amber-300'}`}>待审核</span>}
-          {Number(group.is_expired) === 1 && <span className={`text-[10px] px-2 py-0.5 rounded-full ${isDayMode ? 'bg-slate-200 text-slate-700' : 'bg-white/10 text-gray-300'}`}>已过期</span>}
-          {Number(group.is_recommended) === 1 && <span className={`text-[10px] px-2 py-0.5 rounded-full ${isDayMode ? 'bg-emerald-100 text-emerald-700' : 'bg-emerald-500/15 text-emerald-300'}`}>推荐</span>}
+          {group.review_status === 'pending' && <span className={`text-[10px] px-2 py-0.5 rounded-md ${isDayMode ? 'bg-amber-100 text-amber-700' : 'bg-amber-500/15 text-amber-300'}`}>待审核</span>}
+          {Number(group.is_expired) === 1 && <span className={`text-[10px] px-2 py-0.5 rounded-md ${isDayMode ? 'bg-slate-200 text-slate-700' : 'bg-white/10 text-gray-300'}`}>已过期</span>}
+          {Number(group.is_recommended) === 1 && <span className={`text-[10px] px-2 py-0.5 rounded-md ${isDayMode ? 'bg-emerald-100 text-emerald-700' : 'bg-emerald-500/15 text-emerald-300'}`}>推荐</span>}
         </div>
       </div>
       {group.review_status === 'rejected' && group.review_note && (
@@ -345,12 +345,12 @@ const CommunityGroups = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="搜索社群"
-              className={`h-10 px-3 rounded-xl border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`}
+              className={`h-10 px-3 rounded-lg border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`}
             />
             <select
               value={platform}
               onChange={(e) => setPlatform(e.target.value)}
-              className={`h-10 px-3 rounded-xl border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`}
+              className={`h-10 px-3 rounded-lg border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`}
             >
               <option value="all">全部平台</option>
               {Object.entries(PLATFORM_LABELS).map(([k, v]) => (
@@ -364,7 +364,7 @@ const CommunityGroups = () => {
                     key={item.key}
                     type="button"
                     onClick={() => setAdminReviewFilter(item.key)}
-                    className={`h-10 px-3 rounded-xl border text-xs ${adminReviewFilter === item.key
+                    className={`h-10 px-3 rounded-lg border text-xs ${adminReviewFilter === item.key
                       ? (isDayMode ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-indigo-500 text-white border-indigo-500')
                       : (isDayMode ? 'bg-white text-slate-600 border-slate-200' : 'bg-white/5 text-gray-300 border-white/10')
                     }`}
@@ -381,18 +381,18 @@ const CommunityGroups = () => {
                   if (showForm) resetForm();
                   setShowForm((v) => !v);
                 }}
-                className={`h-10 px-3 rounded-xl border text-sm inline-flex items-center gap-1.5 ${isDayMode ? 'bg-orange-500 text-white border-orange-500' : 'bg-orange-500 text-black border-orange-500'}`}
+                className={`h-10 px-3 rounded-lg border text-sm inline-flex items-center gap-1.5 ${isDayMode ? 'bg-orange-500 text-white border-orange-500' : 'bg-orange-500 text-black border-orange-500'}`}
               >
                 <Plus size={14} />
                 {showForm ? '收起表单' : (isAdmin ? '新建社群' : '投稿社群')}
               </button>
             )}
           </div>
-          <div className={`mt-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl border px-3 py-2 text-xs ${isDayMode ? 'bg-white/72 border-slate-200/80 text-slate-500' : 'bg-white/[0.03] border-white/10 text-gray-400'}`}>
+          <div className={`mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs ${isDayMode ? 'bg-white/72 border-slate-200/80 text-slate-500' : 'bg-white/[0.03] border-white/10 text-gray-400'}`}>
             <div className="flex flex-wrap items-center gap-2">
               <span>{filteredGroups.length} {t('community.groups.results', '个社群')}</span>
               {(search.trim() || platform !== 'all') ? (
-                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border ${isDayMode ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-blue-500/10 text-blue-300 border-blue-500/20'}`}>
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${isDayMode ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-blue-500/10 text-blue-300 border-blue-500/20'}`}>
                   {t('community.filtered_view', '已应用筛选')}
                 </span>
               ) : null}
@@ -413,23 +413,23 @@ const CommunityGroups = () => {
         </div>
         {canSubmitGroup && showForm && (
           <form onSubmit={handleSubmitForm} className={`mb-6 p-4 rounded-lg border grid grid-cols-1 md:grid-cols-2 gap-3 ${isDayMode ? 'bg-white border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
-            <input required value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} placeholder="社群名称" className={`h-10 px-3 rounded-xl border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`} />
-            <select value={form.platform} onChange={(e) => setForm((p) => ({ ...p, platform: e.target.value }))} className={`h-10 px-3 rounded-xl border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`}>
+            <input required value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} placeholder="社群名称" className={`h-10 px-3 rounded-lg border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`} />
+            <select value={form.platform} onChange={(e) => setForm((p) => ({ ...p, platform: e.target.value }))} className={`h-10 px-3 rounded-lg border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`}>
               {Object.entries(PLATFORM_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
-            <input value={form.qr_code_url} onChange={(e) => setForm((p) => ({ ...p, qr_code_url: e.target.value }))} placeholder="二维码 URL" className={`h-10 px-3 rounded-xl border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`} />
-            <input value={form.invite_link} onChange={(e) => setForm((p) => ({ ...p, invite_link: e.target.value }))} placeholder="加入链接" className={`h-10 px-3 rounded-xl border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`} />
-            <input value={form.valid_until} onChange={(e) => setForm((p) => ({ ...p, valid_until: e.target.value }))} type="date" className={`h-10 px-3 rounded-xl border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`} />
+            <input value={form.qr_code_url} onChange={(e) => setForm((p) => ({ ...p, qr_code_url: e.target.value }))} placeholder="二维码 URL" className={`h-10 px-3 rounded-lg border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`} />
+            <input value={form.invite_link} onChange={(e) => setForm((p) => ({ ...p, invite_link: e.target.value }))} placeholder="加入链接" className={`h-10 px-3 rounded-lg border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`} />
+            <input value={form.valid_until} onChange={(e) => setForm((p) => ({ ...p, valid_until: e.target.value }))} type="date" className={`h-10 px-3 rounded-lg border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`} />
             {isAdmin && (
-              <input value={form.sort_order} onChange={(e) => setForm((p) => ({ ...p, sort_order: e.target.value }))} type="number" placeholder="排序值" className={`h-10 px-3 rounded-xl border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`} />
+              <input value={form.sort_order} onChange={(e) => setForm((p) => ({ ...p, sort_order: e.target.value }))} type="number" placeholder="排序值" className={`h-10 px-3 rounded-lg border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`} />
             )}
-            <textarea value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} placeholder="描述" className={`md:col-span-2 min-h-[84px] px-3 py-2 rounded-xl border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`} />
+            <textarea value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} placeholder="描述" className={`md:col-span-2 min-h-[84px] px-3 py-2 rounded-lg border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`} />
             {isAdmin && (
               <>
-                <input value={form.related_article_ids} onChange={(e) => setForm((p) => ({ ...p, related_article_ids: e.target.value }))} placeholder="关联文章ID：1,2,3" className={`h-10 px-3 rounded-xl border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`} />
-                <input value={form.related_post_ids} onChange={(e) => setForm((p) => ({ ...p, related_post_ids: e.target.value }))} placeholder="关联求助ID：11,12" className={`h-10 px-3 rounded-xl border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`} />
-                <input value={form.related_news_ids} onChange={(e) => setForm((p) => ({ ...p, related_news_ids: e.target.value }))} placeholder="关联新闻ID：21,22" className={`h-10 px-3 rounded-xl border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`} />
-                <input value={form.related_group_ids} onChange={(e) => setForm((p) => ({ ...p, related_group_ids: e.target.value }))} placeholder="关联社群ID：31,32" className={`h-10 px-3 rounded-xl border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`} />
+                <input value={form.related_article_ids} onChange={(e) => setForm((p) => ({ ...p, related_article_ids: e.target.value }))} placeholder="关联文章ID：1,2,3" className={`h-10 px-3 rounded-lg border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`} />
+                <input value={form.related_post_ids} onChange={(e) => setForm((p) => ({ ...p, related_post_ids: e.target.value }))} placeholder="关联求助ID：11,12" className={`h-10 px-3 rounded-lg border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`} />
+                <input value={form.related_news_ids} onChange={(e) => setForm((p) => ({ ...p, related_news_ids: e.target.value }))} placeholder="关联新闻ID：21,22" className={`h-10 px-3 rounded-lg border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`} />
+                <input value={form.related_group_ids} onChange={(e) => setForm((p) => ({ ...p, related_group_ids: e.target.value }))} placeholder="关联社群ID：31,32" className={`h-10 px-3 rounded-lg border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`} />
               </>
             )}
             {isAdmin && (
@@ -447,7 +447,7 @@ const CommunityGroups = () => {
         {loading ? (
           <div className="flex justify-center py-20"><Loader2 size={32} className="animate-spin text-gray-400" /></div>
         ) : loadError ? (
-          <div className={`flex flex-col items-center gap-3 py-16 rounded-2xl border ${isDayMode ? 'bg-rose-50 border-rose-200 text-rose-700' : 'bg-rose-500/10 border-rose-500/20 text-rose-300'}`}>
+          <div className={`flex flex-col items-center gap-3 py-16 rounded-lg border ${isDayMode ? 'bg-rose-50 border-rose-200 text-rose-700' : 'bg-rose-500/10 border-rose-500/20 text-rose-300'}`}>
             <p className="text-sm font-medium">{t('community.groups.load_failed', '社群加载失败，请重试')}</p>
             <button
               type="button"
@@ -502,13 +502,13 @@ const CommunityGroups = () => {
         )}
         htmlContent={selectedGroup?.description}
         beforeContent={selectedGroup ? (
-          <div className={`mb-6 rounded-2xl border p-4 ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
+          <div className={`mb-6 rounded-lg border p-4 ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
             <div className="flex flex-wrap items-center gap-2 mb-3">
-              <span className={`px-2.5 py-1 rounded-full text-xs border ${isDayMode ? 'bg-white text-slate-700 border-slate-200' : 'bg-white/10 text-gray-200 border-white/20'}`}>
+              <span className={`px-2.5 py-1 rounded-md text-xs border ${isDayMode ? 'bg-white text-slate-700 border-slate-200' : 'bg-white/10 text-gray-200 border-white/20'}`}>
                 平台：{PLATFORM_LABELS[selectedGroup.platform] || selectedGroup.platform}
               </span>
               {selectedGroup.valid_until && (
-                <span className={`px-2.5 py-1 rounded-full text-xs border ${isDayMode ? 'bg-white text-slate-700 border-slate-200' : 'bg-white/10 text-gray-200 border-white/20'}`}>
+                <span className={`px-2.5 py-1 rounded-md text-xs border ${isDayMode ? 'bg-white text-slate-700 border-slate-200' : 'bg-white/10 text-gray-200 border-white/20'}`}>
                   有效期至：{String(selectedGroup.valid_until).slice(0, 10)}
                 </span>
               )}

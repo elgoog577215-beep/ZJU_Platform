@@ -14,7 +14,7 @@ const Footer = () => {
       }`}
     >
       <div
-        className={`mx-auto flex max-w-7xl flex-col items-center justify-between gap-5 rounded-[28px] border px-5 py-5 text-center md:flex-row md:px-6 md:text-left ${
+        className={`mx-auto flex max-w-7xl flex-col items-center justify-between gap-5 rounded-lg border px-5 py-5 text-center md:flex-row md:px-6 md:text-left ${
           isDayMode
             ? "day-fine-surface border"
             : "border-white/6 bg-white/[0.03]"
@@ -49,7 +49,7 @@ const Footer = () => {
           href="https://beian.miit.gov.cn/"
           target="_blank"
           rel="noopener noreferrer"
-          className={`rounded-full border px-4 py-2.5 text-[11px] font-medium tracking-[0.18em] transition-all sm:text-xs ${
+          className={`rounded-lg border px-4 py-2.5 text-[11px] font-medium tracking-[0.18em] transition-all sm:text-xs ${
             isDayMode
               ? "day-quiet-button border hover:text-slate-900"
               : "border-white/5 bg-white/5 text-gray-500 hover:border-white/10 hover:bg-white/10 hover:text-gray-300"

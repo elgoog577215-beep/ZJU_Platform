@@ -4,7 +4,6 @@ import {
   Box,
   Cloud,
   Float,
-  Icosahedron,
   Line,
   PerformanceMonitor,
   PointMaterial,
@@ -29,10 +28,88 @@ const readNumericSetting = (value, fallbackValue) => {
   return Number.isFinite(parsed) ? parsed : fallbackValue;
 };
 
+const SCENE_RENDER_TUNING = {
+  cyber: { brightness: 1.18, bloom: 0.52, saturation: 1.22, contrast: 1 },
+  space: { brightness: 1.14, bloom: 0.62, saturation: 1.16, contrast: 0.98 },
+  grid: { brightness: 1.28, bloom: 0.54, saturation: 1.3, contrast: 1.02 },
+  embers: { brightness: 1.16, bloom: 0.5, saturation: 1.18, contrast: 1 },
+  crystal: { brightness: 1.12, bloom: 0.48, saturation: 1.2, contrast: 1 },
+  clouds: { brightness: 1.08, bloom: 0.54, saturation: 1.08, contrast: 0.96 },
+  dna: { brightness: 1.18, bloom: 0.36, saturation: 1.2, contrast: 1.02 },
+  binary: { brightness: 1.18, bloom: 0.34, saturation: 1.22, contrast: 1.02 },
+  network: { brightness: 1.08, bloom: 0.5, saturation: 1.12, contrast: 0.98 },
+  wave: { brightness: 1.28, bloom: 0.52, saturation: 1.32, contrast: 1.02 },
+  orbit: { brightness: 1.24, bloom: 0.56, saturation: 1.26, contrast: 1 },
+};
+
+const getHighQualityDpr = () => {
+  if (typeof window === "undefined") return 1.75;
+  return clamp(window.devicePixelRatio || 1.75, 1.5, 2);
+};
+
+const FaintGrid = ({
+  size = 80,
+  divisions = 32,
+  gridColor = "#0b4f58",
+  centerColor = "#175f6a",
+  opacity = 0.14,
+  centerOpacity = 0.07,
+}) => {
+  const { centerLines, gridLines } = useMemo(() => {
+    const half = size / 2;
+    const step = size / divisions;
+    const centerIndex = Math.floor(divisions / 2);
+    const nextCenterLines = [];
+    const nextGridLines = [];
+
+    for (let index = 0; index <= divisions; index += 1) {
+      const value = -half + index * step;
+      const target = index === centerIndex ? nextCenterLines : nextGridLines;
+
+      target.push(-half, 0, value, half, 0, value);
+      target.push(value, 0, -half, value, 0, half);
+    }
+
+    return {
+      centerLines: new Float32Array(nextCenterLines),
+      gridLines: new Float32Array(nextGridLines),
+    };
+  }, [divisions, size]);
+
+  return (
+    <group>
+      <lineSegments>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[gridLines, 3]} />
+        </bufferGeometry>
+        <lineBasicMaterial
+          color={gridColor}
+          depthWrite={false}
+          opacity={opacity}
+          toneMapped={false}
+          transparent
+        />
+      </lineSegments>
+      <lineSegments>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[centerLines, 3]} />
+        </bufferGeometry>
+        <lineBasicMaterial
+          color={centerColor}
+          depthWrite={false}
+          opacity={centerOpacity}
+          toneMapped={false}
+          transparent
+        />
+      </lineSegments>
+    </group>
+  );
+};
+
 const DeepSpaceScene = () => (
   <>
-    <color attach="background" args={["#00000a"]} />
-    <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={0.5} />
+    <color attach="background" args={["#000000"]} />
+    <Stars radius={100} depth={50} count={4600} factor={4.1} saturation={0} fade speed={0.42} />
     <Float speed={1} rotationIntensity={0.2} floatIntensity={0.2}>
       <Cloud
         texture={CLOUD_URL}
@@ -42,17 +119,27 @@ const DeepSpaceScene = () => (
         depth={1.5}
         segments={20}
         position={[0, 0, -20]}
-        color="#4c1d95"
+        color="#6d28d9"
       />
       <Cloud
         texture={CLOUD_URL}
-        opacity={0.32}
+        opacity={0.3}
         speed={0.2}
         width={10}
         depth={1.5}
         segments={20}
         position={[10, 5, -25]}
-        color="#1e40af"
+        color="#2563eb"
+      />
+      <Cloud
+        texture={CLOUD_URL}
+        opacity={0.2}
+        speed={0.16}
+        width={16}
+        depth={1.8}
+        segments={18}
+        position={[-6, -2.5, -24]}
+        color="#38bdf8"
       />
     </Float>
   </>
@@ -71,81 +158,159 @@ const RetroGridScene = () => {
     <>
       <color attach="background" args={["#000000"]} />
       <fog attach="fog" args={["#000000", 5, 40]} />
-      <group rotation={[Math.PI / 2.5, 0, 0]} position={[0, -2, -10]}>
-        <gridHelper ref={gridRef} args={[100, 50, 0xff00ff, 0x220044]} />
+      <group ref={gridRef} rotation={[Math.PI / 2.5, 0, 0]} position={[0, -3.4, -14]}>
+        <FaintGrid
+          centerColor="#dc47ff"
+          centerOpacity={0.16}
+          divisions={42}
+          gridColor="#8b2cc4"
+          opacity={0.22}
+          size={110}
+        />
       </group>
-      <Stars radius={50} count={1000} factor={4} fade speed={1} />
+      <Cloud
+        texture={CLOUD_URL}
+        opacity={0.16}
+        speed={0.08}
+        width={18}
+        depth={1.4}
+        segments={18}
+        position={[0, -1.8, -22]}
+        color="#c084fc"
+      />
+      <Sparkles count={90} scale={[18, 4, 10]} size={1.35} speed={0.18} opacity={0.2} color="#f0abfc" />
+      <Stars radius={58} count={620} factor={2.6} fade speed={0.42} />
     </>
   );
 };
 
 const FireEmbersScene = () => (
   <>
-    <color attach="background" args={["#080100"]} />
-    <fog attach="fog" args={["#1a0500", 5, 20]} />
+    <color attach="background" args={["#000000"]} />
+    <fog attach="fog" args={["#000000", 5, 20]} />
     <Sparkles
-      count={500}
-      scale={[20, 10, 10]}
-      size={6}
-      speed={0.4}
-      opacity={0.8}
-      color="#ffaa00"
-      position={[0, -5, 0]}
+      count={360}
+      scale={[22, 6.4, 12]}
+      size={3.7}
+      speed={0.32}
+      opacity={0.48}
+      color="#ffc04a"
+      position={[0, -6.1, -2.2]}
     />
-    <pointLight position={[0, -5, 0]} intensity={2} color="#ff4400" distance={15} />
+    <pointLight position={[0, -5.6, -1]} intensity={0.95} color="#ff6a1a" distance={12} />
+    <Cloud
+      texture={CLOUD_URL}
+      opacity={0.14}
+      speed={0.1}
+      width={16}
+      depth={1.2}
+      segments={16}
+      position={[0, -6.7, -10]}
+      color="#ff7a1a"
+    />
   </>
 );
 
+const SmoothWireIcosahedron = ({
+  radius,
+  position = [0, 0, 0],
+  color,
+  lineWidth = 1,
+  opacity = 0.72,
+}) => {
+  const { geometry, edgePoints } = useMemo(() => {
+    const nextGeometry = new THREE.IcosahedronGeometry(radius, 0);
+    const edges = new THREE.EdgesGeometry(nextGeometry, 1);
+    const edgePosition = edges.getAttribute("position");
+    const nextEdgePoints = [];
+
+    for (let index = 0; index < edgePosition.count; index += 1) {
+      nextEdgePoints.push([
+        edgePosition.getX(index),
+        edgePosition.getY(index),
+        edgePosition.getZ(index),
+      ]);
+    }
+
+    edges.dispose();
+    return { geometry: nextGeometry, edgePoints: nextEdgePoints };
+  }, [radius]);
+
+  return (
+    <group position={position}>
+      <mesh geometry={geometry}>
+        <meshBasicMaterial
+          blending={THREE.AdditiveBlending}
+          color={color}
+          depthWrite={false}
+          opacity={0.014}
+          transparent
+        />
+      </mesh>
+      <Line
+        blending={THREE.AdditiveBlending}
+        color={color}
+        depthWrite={false}
+        lineWidth={lineWidth * 2.4}
+        opacity={0.045}
+        points={edgePoints}
+        segments
+        toneMapped={false}
+        transparent
+      />
+      <Line
+        blending={THREE.AdditiveBlending}
+        color={color}
+        depthWrite={false}
+        lineWidth={lineWidth}
+        opacity={opacity}
+        points={edgePoints}
+        segments
+        toneMapped={false}
+        transparent
+      />
+    </group>
+  );
+};
+
 const CrystalCaveScene = () => (
   <>
-    <color attach="background" args={["#000910"]} />
+    <color attach="background" args={["#000000"]} />
     <Float speed={2} rotationIntensity={1} floatIntensity={2}>
-      <Icosahedron args={[2, 0]} position={[0, 0, -5]}>
-        <meshPhysicalMaterial
-          roughness={0}
-          metalness={0.1}
-          transmission={0.9}
-          thickness={2}
-          color="#00ffff"
-          emissive="#004444"
-          wireframe
-        />
-      </Icosahedron>
-      <Icosahedron args={[1.5, 0]} position={[4, 2, -8]}>
-        <meshPhysicalMaterial
-          roughness={0}
-          metalness={0.1}
-          transmission={0.9}
-          thickness={2}
-          color="#ff00ff"
-          emissive="#440044"
-          wireframe
-        />
-      </Icosahedron>
-      <Icosahedron args={[1, 0]} position={[-4, -2, -6]}>
-        <meshPhysicalMaterial
-          roughness={0}
-          metalness={0.1}
-          transmission={0.9}
-          thickness={2}
-          color="#ffff00"
-          emissive="#444400"
-          wireframe
-        />
-      </Icosahedron>
+      <SmoothWireIcosahedron
+        color="#33f6ff"
+        lineWidth={0.82}
+        opacity={0.36}
+        position={[0.2, 1.1, -10.5]}
+        radius={1.05}
+      />
+      <SmoothWireIcosahedron
+        color="#ff4dff"
+        lineWidth={0.72}
+        opacity={0.34}
+        position={[5.7, 2.6, -12]}
+        radius={0.9}
+      />
+      <SmoothWireIcosahedron
+        color="#fff36a"
+        lineWidth={0.58}
+        opacity={0.3}
+        position={[-5.4, -2.8, -11.8]}
+        radius={0.66}
+      />
     </Float>
-    <Sparkles count={100} scale={15} size={3} speed={0.5} opacity={0.5} color="white" />
+    <Sparkles count={76} scale={18} size={1.55} speed={0.28} opacity={0.28} color="white" />
   </>
 );
 
 const EtherealCloudsScene = () => (
   <>
-    <color attach="background" args={["#071426"]} />
-    <fog attach="fog" args={["#071426", 8, 32]} />
+    <color attach="background" args={["#000000"]} />
+    <fog attach="fog" args={["#000000", 8, 32]} />
     <Float speed={0.5} rotationIntensity={0.1} floatIntensity={0.5}>
       <Cloud
         texture={CLOUD_URL}
-        opacity={0.24}
+        opacity={0.27}
         speed={0.1}
         width={22}
         depth={2}
@@ -155,7 +320,7 @@ const EtherealCloudsScene = () => (
       />
       <Cloud
         texture={CLOUD_URL}
-        opacity={0.2}
+        opacity={0.22}
         speed={0.1}
         width={12}
         depth={1}
@@ -164,8 +329,8 @@ const EtherealCloudsScene = () => (
         color="#b7c7ff"
       />
     </Float>
-    <Stars radius={70} depth={40} count={900} factor={2.4} saturation={0} fade speed={0.18} />
-    <ambientLight intensity={0.7} />
+    <Stars radius={70} depth={40} count={900} factor={2.3} saturation={0} fade speed={0.16} />
+    <ambientLight intensity={0.76} />
   </>
 );
 
@@ -183,10 +348,17 @@ const CyberCircuitScene = () => {
     <>
       <color attach="background" args={["#000000"]} />
       <fog attach="fog" args={["#000000", 2, 25]} />
-      <group rotation={[Math.PI / 3, 0, 0]} position={[0, -2, -10]}>
-        <gridHelper ref={gridRef} args={[60, 30, 0x00ffff, 0x003333]} />
+      <group ref={gridRef} rotation={[Math.PI / 3, 0, 0]} position={[0, -3.2, -13]}>
+        <FaintGrid
+          centerColor="#13c7dc"
+          centerOpacity={0.1}
+          divisions={26}
+          gridColor="#0c6d79"
+          opacity={0.17}
+          size={70}
+        />
       </group>
-      <Stars radius={40} count={500} factor={3} fade speed={0.5} color="#00ffff" />
+      <Stars radius={44} count={460} factor={2.5} fade speed={0.28} color="#8eeeff" />
     </>
   );
 };
@@ -213,35 +385,36 @@ const DNAScene = () => {
 
   return (
     <>
-      <color attach="background" args={["#000804"]} />
-      <group ref={groupRef} rotation={[0, 0, Math.PI / 4]}>
+      <color attach="background" args={["#000000"]} />
+      <group ref={groupRef} rotation={[0, 0, Math.PI / 4]} position={[3.8, -0.2, -9.6]} scale={0.42}>
         <points geometry={geometry}>
-          <PointMaterial transparent size={0.15} sizeAttenuation depthWrite={false} color="#00ff88" />
+          <PointMaterial transparent size={0.09} opacity={0.52} sizeAttenuation depthWrite={false} color="#20ff9d" />
         </points>
       </group>
-      <Stars radius={50} count={1000} factor={2} fade speed={0.2} />
+      <Stars radius={58} count={600} factor={1.55} fade speed={0.1} color="#80ffc9" />
+      <Sparkles count={100} scale={13} size={1.1} speed={0.12} opacity={0.18} color="#00ff99" />
     </>
   );
 };
 
 const BinaryStreamScene = () => (
   <>
-    <color attach="background" args={["#000900"]} />
+    <color attach="background" args={["#000000"]} />
     <Sparkles
-      count={300}
-      scale={[20, 10, 0]}
-      size={4}
-      speed={2}
-      opacity={0.5}
-      color="#00ff00"
+      count={210}
+      scale={[22, 8, 0]}
+      size={1.7}
+      speed={0.75}
+      opacity={0.3}
+      color="#22f58b"
       noise={1}
     />
     <Float speed={5} rotationIntensity={0} floatIntensity={0}>
-      <Box args={[0.1, 20, 0.1]} position={[-5, 0, -5]}>
-        <meshBasicMaterial color="#003300" transparent opacity={0.5} />
+      <Box args={[0.08, 20, 0.08]} position={[-5.8, 0, -7]}>
+        <meshBasicMaterial color="#0a8f45" transparent opacity={0.18} />
       </Box>
-      <Box args={[0.1, 20, 0.1]} position={[5, 0, -5]}>
-        <meshBasicMaterial color="#003300" transparent opacity={0.5} />
+      <Box args={[0.08, 20, 0.08]} position={[5.8, 0, -7]}>
+        <meshBasicMaterial color="#0a8f45" transparent opacity={0.18} />
       </Box>
     </Float>
   </>
@@ -261,8 +434,8 @@ const NetworkScene = () => {
 
   return (
     <>
-      <color attach="background" args={["#010715"]} />
-      <Stars radius={30} count={200} factor={6} fade speed={0.5} color="#4488ff" />
+      <color attach="background" args={["#000000"]} />
+      <Stars radius={30} count={300} factor={5.4} fade speed={0.4} color="#8bb8ff" />
       <group position={[0, 0, -1]}>
         {nodePositions.map((position, index) => (
           <Float
@@ -272,21 +445,24 @@ const NetworkScene = () => {
             floatIntensity={2}
             position={position}
           >
-            <Icosahedron args={[0.2, 0]}>
-              <meshBasicMaterial color="#4488ff" wireframe />
-            </Icosahedron>
+            <SmoothWireIcosahedron
+              color="#7db2ff"
+              lineWidth={0.68}
+              opacity={0.58}
+              radius={0.22}
+            />
             {index > 0 ? (
               <Line
                 points={[[0, 0, 0], nodePositions[index - 1].map((value, axis) => value - position[axis])]}
-                color="#4488ff"
-                lineWidth={0.75}
+                color="#6aa5ff"
+                lineWidth={0.74}
                 transparent
-                opacity={0.32}
+                opacity={0.42}
               />
             ) : null}
           </Float>
         ))}
-        <Sparkles count={50} scale={15} size={2} speed={0.2} opacity={0.3} color="#4488ff" />
+        <Sparkles count={70} scale={15} size={1.45} speed={0.14} opacity={0.3} color="#6aa5ff" />
       </group>
     </>
   );
@@ -323,12 +499,25 @@ const ParticleWaveScene = () => {
 
   return (
     <>
-      <color attach="background" args={["#050014"]} />
-      <group rotation={[Math.PI / 6, 0, 0]} position={[0, -2, -5]}>
+      <color attach="background" args={["#000000"]} />
+      <group rotation={[Math.PI / 6, 0, 0]} position={[0, -4.4, -10.8]}>
         <points ref={ref} geometry={geometry}>
-          <PointMaterial transparent size={0.1} color="#ff00aa" />
+          <PointMaterial transparent size={0.068} opacity={0.55} depthWrite={false} color="#ff65cf" />
+        </points>
+        <points geometry={geometry}>
+          <PointMaterial transparent size={0.11} opacity={0.16} depthWrite={false} color="#ffd1f4" />
         </points>
       </group>
+      <Cloud
+        texture={CLOUD_URL}
+        opacity={0.12}
+        speed={0.08}
+        width={18}
+        depth={1.2}
+        segments={16}
+        position={[0, -3.8, -16]}
+        color="#fb71d7"
+      />
     </>
   );
 };
@@ -347,27 +536,44 @@ const OrbitalScene = () => {
 
   return (
     <>
-      <color attach="background" args={["#080006"]} />
-      <group>
-        <Sphere args={[0.5, 32, 32]}>
-          <meshStandardMaterial color="#ff3366" emissive="#aa0033" emissiveIntensity={2} />
+      <color attach="background" args={["#000000"]} />
+      <pointLight position={[1.8, -0.4, -7.4]} intensity={0.9} color="#ff6f9a" distance={10} />
+      <Cloud
+        texture={CLOUD_URL}
+        opacity={0.16}
+        speed={0.08}
+        width={12}
+        depth={1.2}
+        segments={16}
+        position={[1.8, -0.4, -10.5]}
+        color="#ff6f9a"
+      />
+      <group position={[1.8, -0.4, -7.4]} scale={0.48}>
+        <Sphere args={[0.45, 32, 32]}>
+          <meshStandardMaterial
+            color="#ff5b8a"
+            emissive="#b51646"
+            emissiveIntensity={1.08}
+            opacity={0.82}
+            transparent
+          />
         </Sphere>
         <group ref={ringARef}>
-          <Torus args={[3, 0.02, 16, 100]}>
-            <meshBasicMaterial color="#ff3366" />
+          <Torus args={[3, 0.012, 16, 100]}>
+            <meshBasicMaterial color="#ff6f9a" opacity={0.42} transparent />
           </Torus>
         </group>
         <group ref={ringBRef}>
-          <Torus args={[4, 0.02, 16, 100]}>
-            <meshBasicMaterial color="#ff3366" />
+          <Torus args={[4, 0.012, 16, 100]}>
+            <meshBasicMaterial color="#ff6f9a" opacity={0.32} transparent />
           </Torus>
         </group>
         <group ref={ringCRef}>
-          <Torus args={[5, 0.02, 16, 100]}>
-            <meshBasicMaterial color="#ff3366" />
+          <Torus args={[5, 0.012, 16, 100]}>
+            <meshBasicMaterial color="#ff6f9a" opacity={0.24} transparent />
           </Torus>
         </group>
-        <Stars radius={50} count={500} factor={2} fade />
+        <Stars radius={50} count={420} factor={1.7} fade />
       </group>
     </>
   );
@@ -390,27 +596,27 @@ const sceneComponents = {
 const StaticDarkFallback = ({ sceneId }) => {
   const backgroundImage = {
     cyber:
-      "radial-gradient(ellipse at 50% 78%, rgba(0,255,255,0.26), transparent 42%), linear-gradient(180deg, #000 0%, #00131a 58%, #000 100%)",
+      "radial-gradient(ellipse at 50% 78%, rgba(0,255,255,0.42), transparent 42%), #000000",
     space:
-      "radial-gradient(ellipse at 28% 20%, rgba(76,29,149,0.5), transparent 40%), radial-gradient(ellipse at 76% 28%, rgba(30,64,175,0.44), transparent 42%), #00000a",
+      "radial-gradient(ellipse at 28% 20%, rgba(109,40,217,0.62), transparent 40%), radial-gradient(ellipse at 76% 28%, rgba(37,99,235,0.55), transparent 42%), #000000",
     grid:
-      "radial-gradient(ellipse at 50% 78%, rgba(255,0,255,0.36), transparent 44%), linear-gradient(180deg, #000 0%, #120020 100%)",
+      "radial-gradient(ellipse at 50% 78%, rgba(255,0,255,0.5), transparent 44%), #000000",
     embers:
-      "radial-gradient(ellipse at 50% 90%, rgba(255,170,0,0.52), transparent 44%), linear-gradient(180deg, #080100 0%, #1a0500 100%)",
+      "radial-gradient(ellipse at 50% 90%, rgba(255,192,74,0.66), transparent 44%), #000000",
     crystal:
-      "radial-gradient(ellipse at 32% 26%, rgba(0,255,255,0.34), transparent 38%), radial-gradient(ellipse at 74% 62%, rgba(255,0,255,0.3), transparent 34%), #000910",
+      "radial-gradient(ellipse at 32% 26%, rgba(51,246,255,0.5), transparent 38%), radial-gradient(ellipse at 74% 62%, rgba(255,77,255,0.44), transparent 34%), #000000",
     clouds:
-      "radial-gradient(ellipse at 48% 36%, rgba(223,247,255,0.26), transparent 48%), radial-gradient(ellipse at 35% 56%, rgba(96,165,250,0.2), transparent 42%), linear-gradient(180deg, #071426 0%, #020617 100%)",
+      "radial-gradient(ellipse at 48% 36%, rgba(223,247,255,0.4), transparent 48%), radial-gradient(ellipse at 35% 56%, rgba(96,165,250,0.32), transparent 42%), #000000",
     dna:
-      "radial-gradient(ellipse at 50% 50%, rgba(0,255,136,0.34), transparent 38%), linear-gradient(180deg, #000804 0%, #000 100%)",
+      "radial-gradient(ellipse at 50% 50%, rgba(32,255,157,0.52), transparent 38%), #000000",
     binary:
-      "radial-gradient(ellipse at 50% 52%, rgba(0,255,0,0.28), transparent 42%), linear-gradient(180deg, #000900 0%, #000 100%)",
+      "radial-gradient(ellipse at 50% 52%, rgba(34,245,139,0.46), transparent 42%), #000000",
     network:
-      "radial-gradient(ellipse at 52% 40%, rgba(68,136,255,0.34), transparent 42%), linear-gradient(180deg, #010715 0%, #000 100%)",
+      "radial-gradient(ellipse at 52% 40%, rgba(106,165,255,0.52), transparent 42%), #000000",
     wave:
-      "radial-gradient(ellipse at 54% 54%, rgba(255,0,170,0.34), transparent 42%), linear-gradient(180deg, #050014 0%, #000 100%)",
+      "radial-gradient(ellipse at 54% 54%, rgba(255,101,207,0.52), transparent 42%), #000000",
     orbit:
-      "radial-gradient(ellipse at 50% 50%, rgba(255,51,102,0.38), transparent 40%), linear-gradient(180deg, #080006 0%, #000 100%)",
+      "radial-gradient(ellipse at 50% 50%, rgba(255,111,154,0.58), transparent 40%), #000000",
   }[sceneId];
 
   return <div className="absolute inset-0" style={{ backgroundImage }} />;
@@ -419,7 +625,7 @@ const StaticDarkFallback = ({ sceneId }) => {
 const BackgroundSystem = ({ forcedTheme = null }) => {
   const { settings, uiMode, backgroundScene } = useSettings();
   const prefersReducedMotion = useReducedMotion();
-  const [dpr, setDpr] = useState(1.5);
+  const [dpr, setDpr] = useState(getHighQualityDpr);
   const [effectsEnabled, setEffectsEnabled] = useState(true);
 
   if (uiMode === "day") {
@@ -429,14 +635,17 @@ const BackgroundSystem = ({ forcedTheme = null }) => {
   const requestedSceneId = forcedTheme || backgroundScene;
   const sceneId = sceneComponents[requestedSceneId] ? requestedSceneId : DEFAULT_BACKGROUND_SCENE;
   const CurrentScene = sceneComponents[sceneId];
-  const brightness = clamp(readNumericSetting(settings.background_brightness, 1) * 1.24, 0.95, 1.85);
-  const bloom = clamp(readNumericSetting(settings.background_bloom, 0.8) * 1.15, 0.35, 1.4);
+  const sceneTuning = SCENE_RENDER_TUNING[sceneId] || SCENE_RENDER_TUNING[DEFAULT_BACKGROUND_SCENE];
+  const brightness = clamp(readNumericSetting(settings.background_brightness, 1) * sceneTuning.brightness, 0.5, 1.34);
+  const bloom = clamp(readNumericSetting(settings.background_bloom, 0.8) * sceneTuning.bloom, 0.06, 0.74);
+  const saturation = sceneTuning.saturation || 1;
+  const contrast = sceneTuning.contrast || 1;
 
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-transparent"
-      style={{ filter: `brightness(${brightness})` }}
+      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-black"
+      style={{ filter: `brightness(${brightness}) saturate(${saturation}) contrast(${contrast})` }}
     >
       {prefersReducedMotion ? (
         <StaticDarkFallback sceneId={sceneId} />
@@ -445,22 +654,22 @@ const BackgroundSystem = ({ forcedTheme = null }) => {
           camera={{ fov: 60, position: [0, 0, 10] }}
           className="absolute inset-0"
           dpr={dpr}
-          gl={{ antialias: false, powerPreference: "high-performance" }}
+          gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
         >
           <PerformanceMonitor
             onDecline={() => {
-              setDpr(1);
+              setDpr(1.25);
               setEffectsEnabled(false);
             }}
             onIncline={() => {
-              setDpr(1.5);
+              setDpr(getHighQualityDpr());
               setEffectsEnabled(true);
             }}
           />
           <Suspense fallback={null}>
             <CurrentScene />
             {effectsEnabled ? (
-              <EffectComposer disableNormalPass multisampling={0}>
+              <EffectComposer disableNormalPass multisampling={dpr >= 1.5 ? 4 : 0}>
                 <Bloom
                   intensity={bloom}
                   luminanceSmoothing={0.35}
@@ -474,6 +683,7 @@ const BackgroundSystem = ({ forcedTheme = null }) => {
           </Suspense>
         </Canvas>
       )}
+      <div className="absolute inset-0 bg-black/55 md:hidden" />
     </div>
   );
 };

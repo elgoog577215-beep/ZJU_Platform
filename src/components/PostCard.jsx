@@ -56,7 +56,7 @@ const PostCard = memo(({ post, index, onClick, canAnimate, isDayMode }) => {
       <div className="flex-1 space-y-2.5">
         {/* Status + Time */}
         <div className="flex items-center gap-2.5">
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${isDayMode ? `${statusCfg.dayBg} ${statusCfg.dayText} ${statusCfg.dayBorder}` : `${statusCfg.bg} ${statusCfg.text} ${statusCfg.border}`}`}>
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-semibold border ${isDayMode ? `${statusCfg.dayBg} ${statusCfg.dayText} ${statusCfg.dayBorder}` : `${statusCfg.bg} ${statusCfg.text} ${statusCfg.border}`}`}>
             {t(statusCfg.label)}
           </span>
           <span className={`text-xs font-mono ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>
@@ -90,9 +90,9 @@ const PostCard = memo(({ post, index, onClick, canAnimate, isDayMode }) => {
               </span>
             </div>
             {/* Progress bar */}
-            <div className={`w-full h-1.5 rounded-full overflow-hidden ${isDayMode ? 'bg-slate-100' : 'bg-white/10'}`}>
+            <div className={`w-full h-1.5 rounded-sm overflow-hidden ${isDayMode ? 'bg-slate-100' : 'bg-white/10'}`}>
               <div
-                className={`h-full rounded-full transition-all duration-500 ${progress >= 1 ? (isDayMode ? 'bg-blue-500' : 'bg-blue-400') : (isDayMode ? 'bg-violet-500' : 'bg-violet-400')}`}
+                className={`h-full rounded-sm transition-all duration-500 ${progress >= 1 ? (isDayMode ? 'bg-blue-500' : 'bg-blue-400') : (isDayMode ? 'bg-violet-500' : 'bg-violet-400')}`}
                 style={{ width: `${progress * 100}%` }}
               />
             </div>

@@ -94,7 +94,7 @@ const ArticleCard = memo(({
         <div className="flex-1 min-w-0 flex flex-col justify-center space-y-2 md:space-y-3">
           {workflowView && (
             <div className="flex flex-wrap items-center gap-2">
-              <span className={`px-2.5 py-1 rounded-full text-[11px] border ${isDayMode ? statusMeta.badge : statusMeta.badgeDark}`}>
+              <span className={`px-2.5 py-1 rounded-md text-[11px] border ${isDayMode ? statusMeta.badge : statusMeta.badgeDark}`}>
                 {statusMeta.label}
               </span>
               {article.status === 'rejected' && article.rejection_reason ? (
@@ -128,10 +128,10 @@ const ArticleCard = memo(({
               showCount
               count={article.likes || 0}
               initialFavorited={article.favorited}
-              className={`min-h-[44px] min-w-[44px] p-1.5 md:min-h-0 md:min-w-0 md:p-2 rounded-full transition-colors hover:text-orange-500 ${isDayMode ? 'hover:bg-white/80 text-slate-500' : 'hover:bg-white/10 text-gray-400'}`}
+              className={`min-h-[44px] min-w-[44px] p-1.5 md:min-h-0 md:min-w-0 md:p-2 rounded-md transition-colors hover:text-orange-500 ${isDayMode ? 'hover:bg-white/80 text-slate-500' : 'hover:bg-white/10 text-gray-400'}`}
               onToggle={(favorited, likes) => onToggleFavorite(article.id, favorited, likes)}
             />
-            <div className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center p-1.5 md:min-h-0 md:min-w-0 md:p-2 rounded-full group-hover:bg-orange-500 group-hover:text-black transition-all duration-300 ${isDayMode ? 'bg-white/72 text-orange-500 shadow-[0_10px_22px_rgba(249,115,22,0.16)]' : 'bg-white/5'}`}>
+            <div className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center p-1.5 md:min-h-0 md:min-w-0 md:p-2 rounded-md group-hover:bg-orange-500 group-hover:text-black transition-all duration-300 ${isDayMode ? 'bg-white/72 text-orange-500 shadow-[0_10px_22px_rgba(249,115,22,0.16)]' : 'bg-white/5'}`}>
               <ArrowRight size={16} className="-rotate-45 group-hover:rotate-0 transition-transform duration-300" />
             </div>
           </div>
@@ -461,7 +461,7 @@ const CommunityTech = () => {
           key={mode.key}
           type="button"
           onClick={() => setViewMode(mode.key)}
-          className={`min-h-[32px] px-3 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${viewMode === mode.key ? (isDayMode ? 'bg-indigo-500 text-white shadow-[0_8px_18px_rgba(99,102,241,0.18)]' : 'bg-white text-slate-950') : (isDayMode ? 'text-slate-600 hover:bg-white hover:text-slate-950' : 'text-gray-300 hover:bg-white/10')}`}
+          className={`min-h-[32px] px-3 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${viewMode === mode.key ? (isDayMode ? 'bg-indigo-500 text-white shadow-[0_8px_18px_rgba(99,102,241,0.18)]' : 'bg-indigo-500/20 text-indigo-100 shadow-[inset_0_0_0_1px_rgba(129,140,248,0.35)]') : (isDayMode ? 'text-slate-600 hover:bg-white hover:text-slate-950' : 'text-gray-300 hover:bg-white/10')}`}
         >
           {mode.label}
         </button>
@@ -505,8 +505,8 @@ const CommunityTech = () => {
               onSortChange={feed.setSort}
               className="w-48"
               buttonClassName={isDayMode
-                ? "border border-slate-200 bg-white text-slate-700 rounded-full px-4 py-2 min-h-[40px] text-sm font-medium hover:bg-slate-50"
-                : "border border-white/10 bg-white/5 text-white rounded-full px-4 py-2 min-h-[40px] text-sm font-medium hover:bg-white/10"}
+                ? "border border-slate-200 bg-white text-slate-700 rounded-lg px-4 py-2 min-h-[40px] text-sm font-medium hover:bg-slate-50"
+                : "border border-white/10 bg-white/5 text-white rounded-lg px-4 py-2 min-h-[40px] text-sm font-medium hover:bg-white/10"}
             />
           </div>
         </div>
@@ -542,7 +542,7 @@ const CommunityTech = () => {
           showCount
           count={feed.selectedItem.likes || 0}
           initialFavorited={feed.selectedItem.favorited}
-          className={`p-3 rounded-full transition-all border ${isDayMode ? 'bg-white/85 hover:bg-red-50 text-slate-700 border-slate-200/80' : 'bg-white/5 hover:bg-red-500/20 text-white border-white/10'}`}
+          className={`p-3 rounded-md transition-all border ${isDayMode ? 'bg-white/85 hover:bg-red-50 text-slate-700 border-slate-200/80' : 'bg-white/5 hover:bg-red-500/20 text-white border-white/10'}`}
           onToggle={(favorited, likes) => feed.handleToggleFavorite(feed.selectedItem.id, favorited, likes)}
         />
       ) : null}
@@ -572,11 +572,11 @@ const CommunityTech = () => {
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
                 transition={{ type: 'spring', damping: 34, stiffness: 360 }}
-                className={`fixed inset-x-0 bottom-0 z-[101] mx-auto flex w-full max-w-md flex-col overflow-hidden rounded-t-[2rem] border-x border-t pb-[env(safe-area-inset-bottom)] shadow-[0_-24px_70px_rgba(0,0,0,0.34)] backdrop-blur-2xl md:hidden ${isDayMode ? 'border-white/80 bg-white/92 text-slate-900' : 'border-white/10 bg-[#171717]/96 text-white'}`}
+                className={`fixed inset-x-0 bottom-0 z-[101] mx-auto flex w-full max-w-md flex-col overflow-hidden rounded-t-lg border-x border-t pb-[env(safe-area-inset-bottom)] shadow-[0_-24px_70px_rgba(0,0,0,0.34)] backdrop-blur-2xl md:hidden ${isDayMode ? 'border-white/80 bg-white/92 text-slate-900' : 'border-white/10 bg-neutral-950/96 text-white'}`}
               >
                 <div className={`border-b px-5 py-4 flex justify-between items-center ${isDayMode ? 'border-slate-200/70' : 'border-white/10'}`}>
                   <h3 className={`text-lg font-bold ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{t('common.sort', '排序')}</h3>
-                  <button type="button" onClick={() => setIsMobileSortOpen(false)} aria-label={t('common.close', '关闭')} className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full ${isDayMode ? 'text-slate-500 bg-slate-100' : 'text-gray-400 bg-white/8'}`}>
+                  <button type="button" onClick={() => setIsMobileSortOpen(false)} aria-label={t('common.close', '关闭')} className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg ${isDayMode ? 'text-slate-500 bg-slate-100' : 'text-gray-400 bg-white/8'}`}>
                     <X size={22} />
                   </button>
                 </div>
@@ -624,7 +624,7 @@ const CommunityTech = () => {
         }}
         renderSkeleton={(index) => (
           <div key={index} className={`backdrop-blur-xl border rounded-lg p-5 animate-pulse flex flex-col md:flex-row gap-6 ${isDayMode ? 'bg-white/60 border-white/75' : 'bg-white/[0.04] border-white/5'}`}>
-            <div className={`w-full md:w-48 h-48 md:h-32 rounded-xl shrink-0 ${isDayMode ? 'bg-white/70' : 'bg-white/5'}`} />
+            <div className={`w-full md:w-48 h-48 md:h-32 rounded-md shrink-0 ${isDayMode ? 'bg-white/70' : 'bg-white/5'}`} />
             <div className="flex-1 space-y-4 py-2">
               <div className={`h-8 rounded w-3/4 ${isDayMode ? 'bg-white/70' : 'bg-white/10'}`} />
               <div className={`h-4 rounded w-full ${isDayMode ? 'bg-white/58' : 'bg-white/5'}`} />

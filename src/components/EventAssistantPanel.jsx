@@ -386,15 +386,15 @@ const EventAssistantPanel = ({
   const selectedPillClass = isFullscreenVariant
     ? isDayMode
       ? "bg-blue-600 text-white border-blue-600"
-      : "bg-white text-slate-950 border-white"
+      : "bg-indigo-500/20 text-indigo-100 border-indigo-400/35"
     : "bg-blue-600 text-white border-blue-600";
   const actionClass = isDayMode
     ? isFullscreenVariant
       ? "bg-blue-600 text-white hover:bg-blue-500 shadow-[0_1px_2px_rgba(15,23,42,0.12)]"
       : "bg-blue-600 text-white hover:bg-blue-500 shadow-[0_1px_2px_rgba(15,23,42,0.12)]"
     : isFullscreenVariant
-      ? "bg-white text-slate-950 hover:bg-gray-100 shadow-none"
-      : "bg-white text-black hover:bg-gray-200 shadow-none";
+      ? "bg-blue-600 text-white hover:bg-blue-500 shadow-[0_1px_2px_rgba(0,0,0,0.22)]"
+      : "bg-blue-600 text-white hover:bg-blue-500 shadow-[0_1px_2px_rgba(0,0,0,0.22)]";
 
   return (
     <div className={`w-full ${className}`}>

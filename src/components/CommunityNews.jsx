@@ -21,11 +21,11 @@ const NewsCard = memo(({ article, index, onClick, onToggleFavorite, canAnimate, 
       animate={canAnimate ? { opacity: 1, y: 0 } : undefined}
       transition={canAnimate ? { duration: 0.24, delay: Math.min(index, 5) * 0.03 } : undefined}
       onClick={() => onClick(article)}
-      className={`group relative backdrop-blur-xl border rounded-3xl p-6 transition-all duration-300 hover:border-blue-500/30 cursor-pointer overflow-hidden hover:shadow-[0_20px_40px_-15px_rgba(59,130,246,0.15)] hover:-translate-y-1 ${isDayMode ? 'bg-white/82 hover:bg-white border-slate-200/80 shadow-[0_18px_42px_rgba(148,163,184,0.12)]' : 'bg-[#1a1a1a]/60 hover:bg-[#1a1a1a]/80 border-white/10'}`}
+      className={`group relative backdrop-blur-xl border rounded-lg p-6 transition-all duration-300 hover:border-blue-500/30 cursor-pointer overflow-hidden hover:shadow-[0_20px_40px_-15px_rgba(59,130,246,0.15)] hover:-translate-y-1 ${isDayMode ? 'bg-white/82 hover:bg-white border-slate-200/80 shadow-[0_18px_42px_rgba(148,163,184,0.12)]' : 'bg-white/[0.045] hover:bg-white/[0.07] border-white/10'}`}
     >
       <div className="flex flex-col md:flex-row gap-6">
         {article.cover && (
-          <div className="w-full md:w-48 h-48 md:h-32 rounded-xl overflow-hidden flex-shrink-0">
+          <div className="w-full md:w-48 h-48 md:h-32 rounded-md overflow-hidden flex-shrink-0">
             <SmartImage src={article.cover} alt={article.title} type="article" className="w-full h-full" imageClassName="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" iconSize={32} />
           </div>
         )}
@@ -38,8 +38,8 @@ const NewsCard = memo(({ article, index, onClick, onToggleFavorite, canAnimate, 
           <h3 className={`text-2xl font-bold group-hover:text-blue-400 transition-colors ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{article.title}</h3>
           <p className={`line-clamp-2 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{article.excerpt}</p>
           <div className="pt-2 flex items-center justify-end gap-3 mt-auto">
-            <FavoriteButton itemId={article.id} itemType="article" size={18} showCount count={article.likes || 0} initialFavorited={article.favorited} className={`p-2 rounded-full transition-colors hover:text-blue-500 ${isDayMode ? 'hover:bg-blue-50 text-slate-500' : 'hover:bg-white/10 text-gray-400'}`} onToggle={(f, l) => onToggleFavorite(article.id, f, l)} />
-            <div className={`p-2 rounded-full group-hover:bg-blue-500 group-hover:text-white transition-all duration-300 ${isDayMode ? 'bg-blue-50 text-blue-500' : 'bg-white/5'}`}>
+            <FavoriteButton itemId={article.id} itemType="article" size={18} showCount count={article.likes || 0} initialFavorited={article.favorited} className={`p-2 rounded-md transition-colors hover:text-blue-500 ${isDayMode ? 'hover:bg-blue-50 text-slate-500' : 'hover:bg-white/10 text-gray-400'}`} onToggle={(f, l) => onToggleFavorite(article.id, f, l)} />
+            <div className={`p-2 rounded-md group-hover:bg-blue-500 group-hover:text-white transition-all duration-300 ${isDayMode ? 'bg-blue-50 text-blue-500' : 'bg-white/5'}`}>
               <ArrowRight size={18} className="-rotate-45 group-hover:rotate-0 transition-transform duration-300" />
             </div>
           </div>
@@ -88,7 +88,7 @@ const CommunityNews = () => {
         </>
       )}
       authorBar={feed.selectedItem && (
-        <FavoriteButton itemId={feed.selectedItem.id} itemType="article" size={24} showCount count={feed.selectedItem.likes || 0} initialFavorited={feed.selectedItem.favorited} className={`p-3 rounded-full transition-all border ${isDayMode ? 'bg-white/85 hover:bg-red-50 text-slate-700 border-slate-200/80' : 'bg-white/5 hover:bg-red-500/20 text-white border border-white/10'}`} onToggle={(f, l) => feed.handleToggleFavorite(feed.selectedItem.id, f, l)} />
+        <FavoriteButton itemId={feed.selectedItem.id} itemType="article" size={24} showCount count={feed.selectedItem.likes || 0} initialFavorited={feed.selectedItem.favorited} className={`p-3 rounded-md transition-all border ${isDayMode ? 'bg-white/85 hover:bg-red-50 text-slate-700 border-slate-200/80' : 'bg-white/5 hover:bg-red-500/20 text-white border border-white/10'}`} onToggle={(f, l) => feed.handleToggleFavorite(feed.selectedItem.id, f, l)} />
       )}
       contentBlocks={contentBlocks}
       htmlContent={feed.selectedItem?.content}
@@ -107,8 +107,8 @@ const CommunityNews = () => {
       accentColor="blue"
       onNewPost={isAdmin ? () => setIsUploadOpen(true) : undefined}
       renderSkeleton={(i) => (
-        <div key={i} className={`backdrop-blur-xl border rounded-3xl p-6 animate-pulse flex flex-col md:flex-row gap-6 ${isDayMode ? 'bg-white/82 border-slate-200/80' : 'bg-[#1a1a1a]/40 border-white/5'}`}>
-          <div className={`w-full md:w-48 h-48 md:h-32 rounded-xl shrink-0 ${isDayMode ? 'bg-slate-100' : 'bg-white/5'}`} />
+        <div key={i} className={`backdrop-blur-xl border rounded-lg p-6 animate-pulse flex flex-col md:flex-row gap-6 ${isDayMode ? 'bg-white/82 border-slate-200/80' : 'bg-white/[0.04] border-white/5'}`}>
+          <div className={`w-full md:w-48 h-48 md:h-32 rounded-md shrink-0 ${isDayMode ? 'bg-slate-100' : 'bg-white/5'}`} />
           <div className="flex-1 space-y-4 py-2">
             <div className={`h-8 rounded w-3/4 ${isDayMode ? 'bg-slate-100' : 'bg-white/10'}`} />
             <div className={`h-4 rounded w-full ${isDayMode ? 'bg-slate-100' : 'bg-white/5'}`} />

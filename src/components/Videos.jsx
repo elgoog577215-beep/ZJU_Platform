@@ -280,9 +280,9 @@ const Videos = () => {
         title="视频"
         description="查看校园视频、活动回顾与精选影像内容。"
       />
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+      <div className="fixed inset-0 pointer-events-none z-0 hidden overflow-hidden md:block">
         <div className={`absolute inset-x-0 top-24 h-px ${isDayMode ? "bg-slate-200/80" : "bg-white/10"}`} />
-        <div className={`absolute inset-x-0 top-52 h-px ${isDayMode ? "bg-slate-200/50" : "bg-cyan-300/10"}`} />
+        <div className={`absolute inset-x-0 top-52 h-px ${isDayMode ? "bg-slate-200/50" : "bg-white/10"}`} />
         {allowAmbientEffects && (
           <div className={`absolute left-0 top-0 h-full w-px ${isDayMode ? "bg-slate-200/50" : "bg-white/10"}`} />
         )}

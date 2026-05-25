@@ -146,7 +146,7 @@ const CommunityDetailModal = ({
 
     if (block.style === 'code' || block.type === 'code') {
       return (
-        <div className={`rounded-2xl border overflow-hidden ${isDayMode ? 'bg-white border-slate-200/80 shadow-[0_16px_34px_rgba(148,163,184,0.14)]' : 'bg-black border-white/10'}`}>
+        <div className={`rounded-lg border overflow-hidden ${isDayMode ? 'bg-white border-slate-200/80 shadow-[0_16px_34px_rgba(148,163,184,0.14)]' : 'bg-white/[0.035] border-white/10'}`}>
           <div className={`px-4 py-2 text-xs uppercase tracking-[0.2em] ${isDayMode ? 'bg-slate-50 text-slate-500' : 'bg-white/5 text-gray-400'}`}>
             {block.language || 'code'}
           </div>
@@ -177,10 +177,10 @@ const CommunityDetailModal = ({
         type="button"
         onClick={() => clickable && onRelatedSelect(resource)}
         disabled={!clickable}
-        className={`w-full text-left rounded-2xl border p-4 transition-colors ${isDayMode ? 'bg-white border-slate-200 hover:bg-slate-50' : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.06]'} ${!clickable ? 'cursor-default' : ''}`}
+        className={`w-full text-left rounded-lg border p-4 transition-colors ${isDayMode ? 'bg-white border-slate-200 hover:bg-slate-50' : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.06]'} ${!clickable ? 'cursor-default' : ''}`}
       >
         <div className="flex items-start gap-3">
-          <div className={`mt-0.5 w-10 h-10 rounded-xl flex items-center justify-center ${isDayMode ? 'bg-slate-100 text-slate-600' : 'bg-white/10 text-gray-300'}`}>
+          <div className={`mt-0.5 w-10 h-10 rounded-md flex items-center justify-center ${isDayMode ? 'bg-slate-100 text-slate-600' : 'bg-white/10 text-gray-300'}`}>
             <Icon size={18} />
           </div>
           <div className="min-w-0 flex-1">
@@ -226,7 +226,7 @@ const CommunityDetailModal = ({
 
                 <button
                   onClick={onClose}
-                  className={`absolute top-6 right-6 p-2 rounded-full backdrop-blur-md border transition-all z-20 group ${th.closeBtn}`}
+                  className={`absolute top-6 right-6 p-2 rounded-lg backdrop-blur-md border transition-all z-20 group ${th.closeBtn}`}
                 >
                   <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />
                 </button>
@@ -251,7 +251,7 @@ const CommunityDetailModal = ({
                     }
                     onClick={canGoProfile ? handleAuthorNavigate : undefined}
                     onKeyDown={canGoProfile ? handleAuthorKeyDown : undefined}
-                    className={`flex items-center gap-3 rounded-2xl -mx-2 px-2 py-1 transition-colors ${
+                    className={`flex items-center gap-3 rounded-lg -mx-2 px-2 py-1 transition-colors ${
                       canGoProfile
                         ? `cursor-pointer ${isDayMode ? 'hover:bg-slate-100 focus:bg-slate-100' : 'hover:bg-white/10 focus:bg-white/10'} focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/60`
                         : 'cursor-not-allowed opacity-60'
@@ -285,7 +285,7 @@ const CommunityDetailModal = ({
                     <button
                       type="button"
                       onClick={handleShare}
-                      className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl border text-sm ${isDayMode ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50' : 'bg-white/5 text-gray-200 border-white/10 hover:bg-white/10'}`}
+                      className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-sm ${isDayMode ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50' : 'bg-white/5 text-gray-200 border-white/10 hover:bg-white/10'}`}
                     >
                       <Share2 size={16} />
                       分享
@@ -294,7 +294,7 @@ const CommunityDetailModal = ({
                       <button
                         type="button"
                         onClick={() => navigator.clipboard?.writeText(shareUrl)}
-                        className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl border text-sm ${isDayMode ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50' : 'bg-white/5 text-gray-200 border-white/10 hover:bg-white/10'}`}
+                        className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-sm ${isDayMode ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50' : 'bg-white/5 text-gray-200 border-white/10 hover:bg-white/10'}`}
                       >
                         <Copy size={16} />
                         复制链接
@@ -305,7 +305,7 @@ const CommunityDetailModal = ({
                 </div>
 
                 {tocItems.length >= 2 ? (
-                  <div className={`mb-8 rounded-3xl border p-5 ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
+                  <div className={`mb-8 rounded-lg border p-5 ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
                     <div className={`text-xs uppercase tracking-[0.22em] mb-3 ${th.textTertiary}`}>目录</div>
                     <div className="grid gap-2 sm:grid-cols-2">
                       {tocItems.map((entry) => (
@@ -313,7 +313,7 @@ const CommunityDetailModal = ({
                           key={entry.id}
                           type="button"
                           onClick={() => scrollToSection(entry.id)}
-                          className={`text-left rounded-xl px-3 py-2 text-sm transition-colors ${isDayMode ? 'text-slate-700 hover:bg-white' : 'text-gray-300 hover:bg-white/5'}`}
+                          className={`text-left rounded-md px-3 py-2 text-sm transition-colors ${isDayMode ? 'text-slate-700 hover:bg-white' : 'text-gray-300 hover:bg-white/5'}`}
                         >
                           {entry.title}
                         </button>
@@ -325,7 +325,7 @@ const CommunityDetailModal = ({
                 {beforeContent}
 
                 {primaryJoinGroup ? (
-                  <div className={`mb-8 rounded-2xl border p-4 ${isDayMode ? 'bg-blue-50 border-blue-200' : 'bg-blue-500/10 border-blue-500/30'}`}>
+                  <div className={`mb-8 rounded-lg border p-4 ${isDayMode ? 'bg-blue-50 border-blue-200' : 'bg-blue-500/10 border-blue-500/30'}`}>
                     <div className={`text-xs uppercase tracking-[0.2em] mb-2 ${isDayMode ? 'text-blue-700' : 'text-blue-300'}`}>
                       社群入口
                     </div>
@@ -355,7 +355,7 @@ const CommunityDetailModal = ({
                             : null}
                           {block.type === 'image' && block.url ? (
                             <figure className="space-y-2">
-                              <div className={`rounded-2xl overflow-hidden border ${isDayMode ? 'border-slate-200 bg-white' : 'border-white/10 bg-black/20'}`}>
+                              <div className={`rounded-lg overflow-hidden border ${isDayMode ? 'border-slate-200 bg-white' : 'border-white/10 bg-white/[0.035]'}`}>
                                 <img src={block.url} alt={block.caption || ''} className="w-full object-cover" />
                               </div>
                               {block.caption ? (
@@ -365,7 +365,7 @@ const CommunityDetailModal = ({
                           ) : null}
                           {block.type === 'video' && block.url ? (
                             <figure className="space-y-2">
-                              <div className={`rounded-2xl overflow-hidden border ${isDayMode ? 'border-slate-200 bg-white' : 'border-white/10 bg-black/20'}`}>
+                              <div className={`rounded-lg overflow-hidden border ${isDayMode ? 'border-slate-200 bg-white' : 'border-white/10 bg-white/[0.035]'}`}>
                                 <video src={block.url} controls className="w-full" preload="metadata">
                                   {t('community.video_not_supported', '您的浏览器不支持视频播放')}
                                 </video>
@@ -381,9 +381,9 @@ const CommunityDetailModal = ({
                               download={block.name || true}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className={`flex items-center gap-3 p-4 rounded-2xl border transition-colors ${isDayMode ? 'bg-slate-50 border-slate-200 hover:bg-slate-100' : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.06]'}`}
+                              className={`flex items-center gap-3 p-4 rounded-lg border transition-colors ${isDayMode ? 'bg-slate-50 border-slate-200 hover:bg-slate-100' : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.06]'}`}
                             >
-                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isDayMode ? 'bg-amber-100 text-amber-600' : 'bg-amber-500/15 text-amber-400'}`}>
+                              <div className={`w-10 h-10 rounded-md flex items-center justify-center flex-shrink-0 ${isDayMode ? 'bg-amber-100 text-amber-600' : 'bg-amber-500/15 text-amber-400'}`}>
                                 <Copy size={18} />
                               </div>
                               <div className="flex-1 min-w-0">

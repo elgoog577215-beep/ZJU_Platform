@@ -285,7 +285,7 @@ const PostComposer = ({ isOpen, onClose, section = 'help', onSuccess }) => {
         { type: 'file', icon: Paperclip, label: '附件' },
       ];
 
-  const inputCls = `w-full px-4 py-3 rounded-xl border text-sm outline-none transition-all focus:ring-2 ${isDayMode ? `bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 ${accentInputClass}` : `bg-white/5 border-white/10 text-white placeholder:text-gray-500 ${accentInputClass}`}`;
+  const inputCls = `w-full px-4 py-3 rounded-lg border text-sm outline-none transition-all focus:ring-2 ${isDayMode ? `bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 ${accentInputClass}` : `bg-white/5 border-white/10 text-white placeholder:text-gray-500 ${accentInputClass}`}`;
   const labelCls = `text-sm font-medium ${isDayMode ? 'text-slate-700' : 'text-gray-300'}`;
 
   return createPortal(
@@ -304,14 +304,14 @@ const PostComposer = ({ isOpen, onClose, section = 'help', onSuccess }) => {
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
             transition={{ type: 'spring', damping: 28, stiffness: 320 }}
             onClick={(e) => e.stopPropagation()}
-            className={`w-full max-w-2xl max-h-[90vh] flex flex-col rounded-3xl border shadow-2xl ${isDayMode ? 'bg-white border-slate-200/80' : 'bg-[#141414] border-white/10'}`}
+            className={`w-full max-w-2xl max-h-[90vh] flex flex-col rounded-lg border shadow-2xl ${isDayMode ? 'bg-white border-slate-200/80' : 'bg-neutral-950/96 border-white/10'}`}
           >
             {/* Header */}
             <div className={`flex items-center justify-between px-6 py-4 border-b ${isDayMode ? 'border-slate-200/80' : 'border-white/10'}`}>
               <h3 className={`text-lg font-bold ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
                 {isTeam ? t('community.post_new_team', '发布组队帖') : t('community.post_new_help', '发布求助帖')}
               </h3>
-              <button onClick={handleClose} className={`p-2 rounded-full transition-colors ${isDayMode ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}>
+              <button onClick={handleClose} className={`p-2 rounded-lg transition-colors ${isDayMode ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}>
                 <X size={20} />
               </button>
             </div>
@@ -361,7 +361,7 @@ const PostComposer = ({ isOpen, onClose, section = 'help', onSuccess }) => {
                 </div>
                 <div className="space-y-3">
                   {blocks.map((block, index) => (
-                    <div key={block.id} className={`relative rounded-xl border p-3 transition-all ${isDayMode ? 'border-slate-200/80 bg-slate-50/50' : 'border-white/10 bg-white/[0.02]'}`}>
+                    <div key={block.id} className={`relative rounded-lg border p-3 transition-all ${isDayMode ? 'border-slate-200/80 bg-slate-50/50' : 'border-white/10 bg-white/[0.02]'}`}>
                       {/* Block header */}
                       <div className="flex items-center justify-between gap-2 mb-2">
                         <div className={`flex items-center gap-1.5 text-xs ${isDayMode ? 'text-slate-400' : 'text-gray-500'}`}>
@@ -480,7 +480,7 @@ const PostComposer = ({ isOpen, onClose, section = 'help', onSuccess }) => {
 
               {/* Team-specific fields */}
               {isTeam && (
-                <div className={`space-y-4 p-4 rounded-2xl border ${isDayMode ? 'bg-violet-50/50 border-violet-100' : 'bg-violet-500/5 border-violet-500/15'}`}>
+                <div className={`space-y-4 p-4 rounded-lg border ${isDayMode ? 'bg-violet-50/50 border-violet-100' : 'bg-violet-500/5 border-violet-500/15'}`}>
                   {/* Activity link */}
                   <div className="space-y-2">
                     <label className={`text-sm font-medium flex items-center gap-1.5 ${isDayMode ? 'text-slate-700' : 'text-gray-300'}`}>
@@ -492,7 +492,7 @@ const PostComposer = ({ isOpen, onClose, section = 'help', onSuccess }) => {
                       value={link}
                       onChange={(e) => setLink(e.target.value)}
                       placeholder="https://example.com/event"
-                      className={`w-full px-3 py-2.5 rounded-xl border text-sm outline-none transition-all focus:ring-2 ${isDayMode ? 'bg-white border-violet-200 text-slate-900 focus:ring-violet-300/50' : 'bg-white/5 border-white/10 text-white focus:ring-violet-500/30'}`}
+                      className={`w-full px-3 py-2.5 rounded-lg border text-sm outline-none transition-all focus:ring-2 ${isDayMode ? 'bg-white border-violet-200 text-slate-900 focus:ring-violet-300/50' : 'bg-white/5 border-white/10 text-white focus:ring-violet-500/30'}`}
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -506,7 +506,7 @@ const PostComposer = ({ isOpen, onClose, section = 'help', onSuccess }) => {
                         value={deadline}
                         onChange={(e) => setDeadline(e.target.value)}
                         min={new Date().toISOString().split('T')[0]}
-                        className={`w-full px-3 py-2.5 rounded-xl border text-sm outline-none transition-all focus:ring-2 ${isDayMode ? 'bg-white border-violet-200 text-slate-900 focus:ring-violet-300/50' : 'bg-white/5 border-white/10 text-white focus:ring-violet-500/30'}`}
+                        className={`w-full px-3 py-2.5 rounded-lg border text-sm outline-none transition-all focus:ring-2 ${isDayMode ? 'bg-white border-violet-200 text-slate-900 focus:ring-violet-300/50' : 'bg-white/5 border-white/10 text-white focus:ring-violet-500/30'}`}
                       />
                     </div>
                     <div className="space-y-2">
@@ -521,7 +521,7 @@ const PostComposer = ({ isOpen, onClose, section = 'help', onSuccess }) => {
                         min={2}
                         max={50}
                         placeholder="5"
-                        className={`w-full px-3 py-2.5 rounded-xl border text-sm outline-none transition-all focus:ring-2 ${isDayMode ? 'bg-white border-violet-200 text-slate-900 focus:ring-violet-300/50' : 'bg-white/5 border-white/10 text-white focus:ring-violet-500/30'}`}
+                        className={`w-full px-3 py-2.5 rounded-lg border text-sm outline-none transition-all focus:ring-2 ${isDayMode ? 'bg-white border-violet-200 text-slate-900 focus:ring-violet-300/50' : 'bg-white/5 border-white/10 text-white focus:ring-violet-500/30'}`}
                       />
                     </div>
                   </div>
@@ -535,14 +535,14 @@ const PostComposer = ({ isOpen, onClose, section = 'help', onSuccess }) => {
                 <button
                   onClick={handleClose}
                   disabled={submitting}
-                  className={`px-5 py-2.5 rounded-xl text-sm font-medium border transition-all ${isDayMode ? 'border-slate-200 text-slate-600 hover:bg-slate-50' : 'border-white/10 text-gray-400 hover:bg-white/5'}`}
+                  className={`px-5 py-2.5 rounded-lg text-sm font-medium border transition-all ${isDayMode ? 'border-slate-200 text-slate-600 hover:bg-slate-50' : 'border-white/10 text-gray-400 hover:bg-white/5'}`}
                 >
                   {t('common.cancel', '取消')}
                 </button>
                 <button
                   onClick={handleSubmit}
                   disabled={submitting || !title.trim()}
-                  className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${isTeam ? (isDayMode ? 'bg-violet-600 text-white hover:bg-violet-700' : 'bg-violet-600 text-white hover:bg-violet-500') : (isDayMode ? 'bg-amber-500 text-white hover:bg-amber-600' : 'bg-amber-600 text-white hover:bg-amber-500')}`}
+                  className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${isTeam ? (isDayMode ? 'bg-violet-600 text-white hover:bg-violet-700' : 'bg-violet-600 text-white hover:bg-violet-500') : (isDayMode ? 'bg-amber-500 text-white hover:bg-amber-600' : 'bg-amber-600 text-white hover:bg-amber-500')}`}
                 >
                   {submitting ? (
                     <span className="flex items-center gap-2">

@@ -193,6 +193,27 @@ const AGENT_DEFINITIONS = [
       'Add async profile refresh for large event pools.',
       'Grow the golden ranking set with real anonymized user queries.',
     ],
+    relatedAgents: [
+      {
+        id: 'event_profile_index',
+        relationship: 'context_profile_dependency',
+        reason: 'Uses event AI profiles for fast candidate recall and explanation signals.',
+      },
+      {
+        id: 'model_config_runtime',
+        relationship: 'model_runtime_dependency',
+        reason: 'Uses the shared runtime for intent parsing, profile generation, reranking, JSON repair, and failover.',
+      },
+      {
+        id: 'event_governance',
+        relationship: 'data_quality_feedback',
+        reason: 'Depends on the same event catalog and benefits when admin governance improves event metadata quality.',
+      },
+    ],
+    qualityBacklog: {
+      auto_update: 'Schedule generated spec/profile refresh after event catalog, prompt contract, or profile-version changes.',
+      safety_cost: 'Expose per-agent latency, failure rate, and token-budget trend signals in the admin console.',
+    },
     maturity: {
       prompt_templates: 'complete',
       reasoning_chain: 'complete',
@@ -285,6 +306,25 @@ const AGENT_DEFINITIONS = [
       'Expose anonymous aggregate question categories for product tuning.',
       'Grow the golden coaching set with beginner, engineer, and product-user variants.',
     ],
+    relatedAgents: [
+      {
+        id: 'model_config_runtime',
+        relationship: 'model_runtime_dependency',
+        reason: 'Uses the shared assistant orchestrator and model runtime for structured coaching output.',
+      },
+      {
+        id: 'event_recommendation',
+        relationship: 'user_assistant_pattern',
+        reason: 'Shares the bounded-context user assistant pattern and confidence/fallback response contract.',
+      },
+    ],
+    qualityBacklog: {
+      standard_libraries: 'Move hackathon rules, event-day strategy cards, and track vocabulary into a versioned standard library.',
+      memory_feedback: 'Summarize anonymous question categories and coaching outcomes for product tuning without storing raw prompts.',
+      observability: 'Expose aggregate coaching intent categories, confidence buckets, and fallback rate in the admin overview.',
+      auto_update: 'Version the hackathon context-card index separately from code and show the active version in generated specs.',
+      safety_cost: 'Add task-level timeout and token ceilings for hackathon coaching calls in the runtime policy registry.',
+    },
     maturity: {
       prompt_templates: 'complete',
       reasoning_chain: 'complete',
@@ -376,6 +416,35 @@ const AGENT_DEFINITIONS = [
       'Aggregate parse failure categories for prompt and scraper tuning.',
       'Grow parser golden samples for lecture, volunteer, recruitment, and exchange events.',
     ],
+    relatedAgents: [
+      {
+        id: 'model_config_runtime',
+        relationship: 'model_runtime_dependency',
+        reason: 'Uses the shared runtime for structured article extraction, provider status, and JSON repair.',
+      },
+      {
+        id: 'event_governance',
+        relationship: 'metadata_quality_handoff',
+        reason: 'Parser confidence and normalized fields feed the same event metadata quality surface used by governance.',
+      },
+      {
+        id: 'event_recommendation',
+        relationship: 'shared_event_catalog',
+        reason: 'Parsed categories, audience, campus, and benefits must match the same catalog used for recommendation intent.',
+      },
+      {
+        id: 'event_profile_index',
+        relationship: 'profile_source_quality',
+        reason: 'Cleaner parsed event fields improve downstream event AI profile quality and recommendation recall.',
+      },
+    ],
+    qualityBacklog: {
+      context_index: 'Persist bounded parse-cache metadata and confidence summaries so repeated URLs do not require full re-analysis.',
+      memory_feedback: 'Aggregate parse failure categories and admin corrections for prompt and scraper tuning.',
+      observability: 'Show parser confidence, warnings, provider, and model status directly in the admin form.',
+      auto_update: 'Refresh parser prompt context automatically when event catalog or academic-calendar context changes.',
+      safety_cost: 'Expose parser timeout, scrape failure, model failure, and fallback rates in the admin overview.',
+    },
     maturity: {
       prompt_templates: 'complete',
       reasoning_chain: 'complete',
@@ -475,6 +544,28 @@ const AGENT_DEFINITIONS = [
       'Use admin decision memory to adjust deterministic confidence before model review.',
       'Grow golden ambiguous governance cases from real admin review decisions.',
     ],
+    relatedAgents: [
+      {
+        id: 'event_recommendation',
+        relationship: 'metadata_quality_provider',
+        reason: 'Improves category and audience quality that recommendation uses for candidate ranking.',
+      },
+      {
+        id: 'wechat_event_parser',
+        relationship: 'admin_review_continuation',
+        reason: 'Reviews and repairs metadata originally produced by parsing or manual admin entry.',
+      },
+      {
+        id: 'model_config_runtime',
+        relationship: 'model_runtime_dependency',
+        reason: 'Uses shared model review, JSON parsing, and failover for ambiguous governance suggestions.',
+      },
+    ],
+    qualityBacklog: {
+      context_index: 'Expose changed-field coverage and recent ambiguous-case distribution in the governance workspace.',
+      memory_feedback: 'Use recent applied and skipped admin decisions to adjust deterministic confidence before model review.',
+      auto_update: 'Regenerate governance guidance when catalog aliases, whitelist fields, or confidence policy changes.',
+    },
     maturity: {
       prompt_templates: 'complete',
       reasoning_chain: 'complete',
@@ -579,6 +670,39 @@ const AGENT_DEFINITIONS = [
       'Let admin tune safe runtime policy ceilings without code changes.',
       'Persist longer-term runtime telemetry trend windows.',
     ],
+    relatedAgents: [
+      {
+        id: 'event_recommendation',
+        relationship: 'runtime_provider',
+        reason: 'Provides model calls, JSON repair, failover, and task policy for event recommendation.',
+      },
+      {
+        id: 'hackathon_coach',
+        relationship: 'runtime_provider',
+        reason: 'Provides structured coaching calls and fallback metadata for the hackathon assistant.',
+      },
+      {
+        id: 'wechat_event_parser',
+        relationship: 'runtime_provider',
+        reason: 'Provides structured parse calls, provider status, and repair for content extraction.',
+      },
+      {
+        id: 'event_governance',
+        relationship: 'runtime_provider',
+        reason: 'Provides bounded model review for ambiguous governance suggestions.',
+      },
+      {
+        id: 'event_profile_index',
+        relationship: 'runtime_provider',
+        reason: 'Provides profile generation calls and fallback status for index refreshes.',
+      },
+    ],
+    qualityBacklog: {
+      prompt_templates: 'Version shared quality and JSON repair prompt templates with explicit task owners.',
+      standard_libraries: 'Move runtime provider rules, task ceilings, and repair policy into a documented standard library.',
+      memory_feedback: 'Persist longer-term runtime telemetry trend windows and provider health history.',
+      auto_update: 'Regenerate runtime policy documentation when task policy or provider priority changes.',
+    },
     maturity: {
       prompt_templates: 'partial',
       reasoning_chain: 'complete',
@@ -675,6 +799,28 @@ const AGENT_DEFINITIONS = [
       'Schedule refresh runs after large event imports.',
       'Show stale and missing profile issue trends over time.',
     ],
+    relatedAgents: [
+      {
+        id: 'event_recommendation',
+        relationship: 'context_index_provider',
+        reason: 'Supplies compact event profiles used by recommendation recall, reranking, and explanation.',
+      },
+      {
+        id: 'model_config_runtime',
+        relationship: 'model_runtime_dependency',
+        reason: 'Uses the shared runtime for profile generation and fallback-aware refreshes.',
+      },
+      {
+        id: 'wechat_event_parser',
+        relationship: 'source_quality_consumer',
+        reason: 'Profile quality depends on parsed event fields and standard catalog normalization.',
+      },
+    ],
+    qualityBacklog: {
+      memory_feedback: 'Track which profile issue reasons later correlate with poor recommendation feedback.',
+      auto_update: 'Schedule profile refresh after large event imports and catalog/profile-version changes.',
+      safety_cost: 'Add embedding-compatible profile fields without changing current consumers or increasing live request latency.',
+    },
     maturity: {
       prompt_templates: 'complete',
       reasoning_chain: 'complete',
@@ -708,11 +854,28 @@ const scoreMaturity = (maturity = {}) => {
   };
 };
 
+const buildQualityProfile = (agent) => MATURITY_DIMENSIONS.map((dimension) => {
+  const status = agent.maturity?.[dimension.id] || 'missing';
+  const backlog = agent.qualityBacklog?.[dimension.id] || '';
+  const defaultTask = status === 'complete'
+    ? 'Maintain with repeatable checks.'
+    : agent.nextImprovements?.[0] || `Upgrade ${dimension.label}.`;
+
+  return {
+    id: dimension.id,
+    label: dimension.label,
+    status,
+    goal: dimension.goal,
+    nextStep: backlog || defaultTask,
+  };
+});
+
 const decorateAgent = (agent) => {
   const maturityScore = scoreMaturity(agent.maturity);
   return {
     ...agent,
     maturityScore,
+    qualityProfile: buildQualityProfile(agent),
   };
 };
 
@@ -760,6 +923,14 @@ const partialPriority = {
   prompt_templates: 7,
 };
 
+const runtimeIssuePriority = {
+  blocked: 0,
+  degraded: 0.5,
+  watch: 0.8,
+  healthy: 5,
+  NO_DATA: 6,
+};
+
 const getPartialMaturityGaps = (agents) => agents.flatMap((agent) => {
   const gaps = [];
   for (const dimension of MATURITY_DIMENSIONS) {
@@ -782,16 +953,35 @@ const getPartialMaturityGaps = (agents) => agents.flatMap((agent) => {
   || left.dimensionLabel.localeCompare(right.dimensionLabel)
 ));
 
-const buildContinuousImprovementPlan = (agents) => getPartialMaturityGaps(agents)
+const buildContinuousImprovementPlan = (agents, health = {}) => getPartialMaturityGaps(agents)
+  .sort((left, right) => {
+    const leftRuntime = health.agentRuntimeHealth?.[left.agentId]?.status || 'NO_DATA';
+    const rightRuntime = health.agentRuntimeHealth?.[right.agentId]?.status || 'NO_DATA';
+    return (
+      (runtimeIssuePriority[leftRuntime] ?? 10) - (runtimeIssuePriority[rightRuntime] ?? 10)
+      || left.priority - right.priority
+      || left.agentTitle.localeCompare(right.agentTitle)
+      || left.dimensionLabel.localeCompare(right.dimensionLabel)
+    );
+  })
   .slice(0, 10)
   .map((gap, index) => {
     const agent = agents.find((item) => item.id === gap.agentId);
-    const firstImprovement = agent?.nextImprovements?.[0] || `Upgrade ${gap.dimensionLabel} from partial to complete.`;
+    const runtimeHealth = health.agentRuntimeHealth?.[gap.agentId] || null;
+    const firstImprovement = (
+      (runtimeHealth && ['blocked', 'degraded', 'watch'].includes(runtimeHealth.status)
+        ? runtimeHealth.suggestedAction
+        : '')
+      || agent?.qualityBacklog?.[gap.dimensionId]
+      || agent?.nextImprovements?.[0]
+      || `Upgrade ${gap.dimensionLabel} from partial to complete.`
+    );
     return {
       order: index + 1,
       target: gap.agentTitle,
       dimension: gap.dimensionLabel,
       currentStatus: gap.status,
+      runtimeStatus: runtimeHealth?.status || 'NO_DATA',
       task: firstImprovement,
       acceptance: `${gap.agentTitle} marks ${gap.dimensionLabel} as complete or exposes a measurable production signal.`,
     };
@@ -881,6 +1071,10 @@ const buildOverviewModules = (health = {}) => getAgentDefinitions().map((agent) 
   standardLibraries: agent.standardLibraries,
   contextIndexes: agent.contextIndexes,
   outputContracts: agent.outputContracts,
+  qualityProfile: agent.qualityProfile,
+  relatedAgents: agent.relatedAgents || [],
+  qualityBacklog: agent.qualityBacklog || {},
+  runtimeHealth: health.agentRuntimeHealth?.[agent.id] || null,
   nextImprovements: agent.nextImprovements.slice(0, 3),
 }));
 
@@ -904,10 +1098,18 @@ const getAgentSystemOverview = (health = {}) => {
       liveAgentCount: buildOverviewModules(health).filter((agent) => agent.status === 'live').length,
     },
     modules: buildOverviewModules(health),
+    runtimeHealth: health.agentRuntimeHealth || {},
+    modelHealth: health.modelHealth || null,
+    qualityProfiles: Object.fromEntries(agents.map((agent) => [agent.id, agent.qualityProfile])),
+    collaborationMap: agents.map((agent) => ({
+      agentId: agent.id,
+      agentTitle: agent.title,
+      relatedAgents: agent.relatedAgents || [],
+    })),
     highPriorityGaps,
     partialGaps,
     nextIterationPlan: buildNextIterationPlan(agents),
-    continuousImprovementPlan: buildContinuousImprovementPlan(agents),
+    continuousImprovementPlan: buildContinuousImprovementPlan(agents, health),
   };
 };
 
@@ -934,10 +1136,19 @@ const validateAgentRegistry = () => {
       'observability',
       'evaluation',
       'nextImprovements',
+      'relatedAgents',
     ]) {
       if (!Array.isArray(agent[listField])) {
         errors.push(`${agent.id}.${listField} must be an array.`);
       }
+    }
+
+    if (agent.standalone !== true && (!Array.isArray(agent.relatedAgents) || agent.relatedAgents.length === 0)) {
+      errors.push(`${agent.id} must declare relatedAgents or standalone=true.`);
+    }
+
+    if (!agent.qualityBacklog || typeof agent.qualityBacklog !== 'object') {
+      errors.push(`${agent.id} must declare qualityBacklog.`);
     }
 
     for (const key of Object.keys(agent.maturity || {})) {
@@ -947,6 +1158,29 @@ const validateAgentRegistry = () => {
     for (const dimension of MATURITY_DIMENSIONS) {
       if (!agent.maturity || !agent.maturity[dimension.id]) {
         errors.push(`${agent.id} is missing maturity for ${dimension.id}.`);
+      }
+      const status = agent.maturity?.[dimension.id] || 'missing';
+      if (status !== 'complete' && !agent.qualityBacklog?.[dimension.id]) {
+        errors.push(`${agent.id} needs qualityBacklog for ${dimension.id}.`);
+      }
+    }
+  }
+
+  for (const agent of AGENT_DEFINITIONS) {
+    for (const relatedAgent of agent.relatedAgents || []) {
+      if (!relatedAgent.id) {
+        errors.push(`${agent.id}.relatedAgents entry is missing id.`);
+      } else if (!ids.has(relatedAgent.id)) {
+        errors.push(`${agent.id}.relatedAgents references unknown agent: ${relatedAgent.id}`);
+      }
+      if (relatedAgent.id === agent.id) {
+        errors.push(`${agent.id}.relatedAgents must not reference itself.`);
+      }
+      if (!relatedAgent.relationship) {
+        errors.push(`${agent.id}.relatedAgents.${relatedAgent.id} is missing relationship.`);
+      }
+      if (!relatedAgent.reason) {
+        errors.push(`${agent.id}.relatedAgents.${relatedAgent.id} is missing reason.`);
       }
     }
   }
@@ -992,6 +1226,22 @@ const buildAgentSpecMarkdown = (health = {}) => {
     `- High-priority gaps: ${overview.summary.highPriorityGapCount}`,
     `- Partial maturity gaps: ${overview.summary.partialGapCount}`,
     '',
+    '## Runtime Health',
+    '',
+    overview.modelHealth
+      ? markdownList([
+        `Model health: ${overview.modelHealth.status}`,
+        `Enabled configs: ${overview.modelHealth.enabledCount}`,
+        `Healthy configs: ${overview.modelHealth.healthyCount}`,
+        `Retry count: ${overview.modelHealth.retryCount}`,
+        `Circuit breaker recommendation: ${overview.modelHealth.circuitBreakerRecommendation?.suggestedAction || 'None'}`,
+      ])
+      : markdownList([
+        'Runtime health is available from admin overview when run data exists.',
+        'Model health is reported without exposing API keys.',
+        'Circuit breaker recommendation is read-only and never disables model configs automatically.',
+      ]),
+    '',
     '## Agents',
     '',
   ];
@@ -1024,6 +1274,35 @@ const buildAgentSpecMarkdown = (health = {}) => {
       '#### Context / Index / Memory',
       '',
       markdownList(agent.contextIndexes),
+      '',
+      '#### Quality Profile',
+      '',
+      markdownList(agent.qualityProfile.map((dimension) => (
+        `${dimension.label}: ${dimension.status}; next: ${dimension.nextStep}`
+      ))),
+      '',
+      '#### Related Agents',
+      '',
+      markdownList((agent.relatedAgents || []).map((relatedAgent) => (
+        `${relatedAgent.id} (${relatedAgent.relationship}): ${relatedAgent.reason}`
+      ))),
+      '',
+      '#### Runtime Observability',
+      '',
+      (() => {
+        const runtimeHealth = overview.runtimeHealth?.[agent.id];
+        return runtimeHealth
+          ? markdownList([
+            `Status: ${runtimeHealth.status}`,
+            `Sample size: ${runtimeHealth.sampleSize}`,
+            `Model used rate: ${runtimeHealth.modelUsedRate}`,
+            `Fallback rate: ${runtimeHealth.fallbackRate}`,
+            `Average duration ms: ${runtimeHealth.avgDurationMs}`,
+            `Retry count: ${runtimeHealth.retryCount}`,
+            `Suggested action: ${runtimeHealth.suggestedAction}`,
+          ])
+          : '- Runtime health is reported in admin overview when run data exists.';
+      })(),
       '',
       '#### Validation And Fallback',
       '',

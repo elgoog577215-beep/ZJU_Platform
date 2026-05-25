@@ -1291,7 +1291,7 @@ const PlatformStats = ({ hero } = {}) => {
                             followed
                               ? isDayMode
                                 ? "border-indigo-600 bg-indigo-600 text-white"
-                                : "border-white bg-white text-black"
+                                : "border-indigo-400/35 bg-indigo-500/20 text-indigo-100"
                               : isDayMode
                                 ? "border-slate-200/80 bg-white text-slate-700"
                                 : "border-white/10 bg-white/5 text-gray-200"

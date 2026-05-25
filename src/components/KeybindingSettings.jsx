@@ -152,7 +152,7 @@ const KeybindingSettings = ({ isOpen, onClose, onSave }) => {
                 </button>
                 <button 
                   onClick={handleClose}
-                  className="px-6 py-2 rounded bg-white text-black font-bold hover:bg-gray-200 transition-colors"
+                  className="px-6 py-2 rounded bg-indigo-500 text-white font-bold hover:bg-indigo-400 transition-colors"
                 >
                   Save & Close
                 </button>

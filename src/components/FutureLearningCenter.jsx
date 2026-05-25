@@ -268,7 +268,7 @@ const FutureLearningCenter = () => {
         description="浙江大学未来学习中心 · 「智能生命健康」项目 · 问题揭榜报名"
       />
 
-      <div className="pointer-events-none fixed inset-0">
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className={`absolute inset-0 ${theme.ambient}`} />
         <div className={`absolute inset-0 ${theme.grid}`} />
         <motion.div

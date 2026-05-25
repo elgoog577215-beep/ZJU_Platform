@@ -95,7 +95,7 @@ const AICommunity = () => {
   const palette = isDayMode
     ? {
         page:
-          "bg-[radial-gradient(1100px_520px_at_16%_0%,rgba(14,165,233,0.14),transparent_58%),radial-gradient(900px_500px_at_86%_8%,rgba(249,115,22,0.1),transparent_56%),linear-gradient(180deg,#f8fafc_0%,#eef4f8_44%,#f8fafc_100%)] text-slate-950",
+          "bg-[radial-gradient(1100px_520px_at_16%_-4%,rgba(14,165,233,0.16),transparent_58%),radial-gradient(900px_500px_at_86%_6%,rgba(249,115,22,0.12),transparent_58%),radial-gradient(620px_360px_at_54%_48%,rgba(129,140,248,0.08),transparent_62%),linear-gradient(180deg,#fbfeff_0%,#f7fbff_48%,#fffaf7_100%)] text-slate-950",
         hero:
           "border-slate-200/80 bg-white/78 shadow-[0_24px_70px_rgba(15,23,42,0.1)]",
         rail:
@@ -104,10 +104,10 @@ const AICommunity = () => {
         soft: "text-slate-500",
         label: "text-cyan-700",
         tabShell: "border-slate-200/80 bg-white/72",
-        tabActive: "border-slate-900 bg-slate-950 theme-on-dark shadow-[0_14px_30px_rgba(15,23,42,0.18)]",
+        tabActive: "border-blue-600 bg-blue-600 text-white shadow-[0_12px_26px_rgba(37,99,235,0.18)]",
         tabIdle: "border-transparent text-slate-600 hover:bg-white hover:text-slate-950",
         stat: "border-slate-200/80 bg-white/72",
-        action: "bg-slate-950 theme-on-dark hover:bg-slate-800",
+        action: "bg-blue-600 text-white shadow-[0_12px_26px_rgba(37,99,235,0.18)] hover:bg-blue-500",
       }
     : {
         page:
@@ -123,7 +123,7 @@ const AICommunity = () => {
         tabActive: "border-orange-300 bg-orange-400 text-slate-950 shadow-[0_0_32px_rgba(251,146,60,0.22)]",
         tabIdle: "border-transparent text-white/58 hover:bg-white/[0.06] hover:text-white",
         stat: "border-white/10 bg-white/[0.045]",
-        action: "bg-white text-slate-950 hover:bg-orange-100",
+        action: "bg-orange-300 text-slate-950 shadow-[0_0_26px_rgba(251,146,60,0.18)] hover:bg-orange-200",
       };
 
   return (
@@ -149,7 +149,7 @@ const AICommunity = () => {
         <div className="mx-auto w-full min-w-0 max-w-[1100px] 2xl:max-w-none">
           <header className="mb-5 md:mb-7">
             <div className={`relative overflow-hidden border p-4 backdrop-blur-2xl md:p-6 lg:p-7 ${palette.hero}`}>
-              <div className="pointer-events-none absolute -right-10 -top-12 text-[8rem] font-black uppercase leading-none tracking-[-0.08em] opacity-[0.045] md:text-[12rem]">
+              <div className="pointer-events-none absolute -right-10 -top-12 hidden text-[8rem] font-black uppercase leading-none tracking-normal opacity-[0.045] md:block md:text-[12rem]">
                 COMMUNITY
               </div>
               <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-stretch">
@@ -186,7 +186,7 @@ const AICommunity = () => {
                   </div>
                 </div>
 
-                <div className={`grid gap-px overflow-hidden border ${isDayMode ? "border-slate-200/80 bg-slate-200/80" : "border-white/10 bg-white/10"}`}>
+                <div className={`hidden gap-px overflow-hidden border md:grid ${isDayMode ? "border-slate-200/80 bg-slate-200/80" : "border-white/10 bg-white/10"}`}>
                   {TABS.map(({ key, icon: Icon, labelKey, fallback, code, desc }) => {
                     const isActive = activeTab === key;
                     return (
@@ -197,7 +197,7 @@ const AICommunity = () => {
                         className={`group grid grid-cols-[2.75rem_1fr_auto] items-center gap-3 px-4 py-4 text-left transition ${
                           isActive
                             ? isDayMode
-                              ? "bg-slate-950 theme-on-dark"
+                              ? "bg-blue-600 text-white"
                               : "bg-orange-300 text-slate-950"
                             : isDayMode
                               ? "bg-white/76 text-slate-700 hover:bg-white"
@@ -248,7 +248,7 @@ const AICommunity = () => {
               ))}
             </div>
 
-            <div className="mt-3 grid gap-2 sm:grid-cols-3">
+            <div className="mt-3 hidden gap-2 md:grid md:grid-cols-3">
               {[
                 { label: "当前分区", value: t(activeTabMeta.labelKey, activeTabMeta.fallback), icon: ActiveIcon },
                 { label: "协作方式", value: activeTabMeta.code, icon: Users },

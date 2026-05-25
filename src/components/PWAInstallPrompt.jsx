@@ -77,7 +77,7 @@ const PWAInstallPrompt = () => {
             </button>
             <button
               onClick={handleInstallClick}
-              className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors ${isDayMode ? "bg-indigo-600 text-white hover:bg-indigo-500 shadow-[0_12px_28px_rgba(99,102,241,0.24)]" : "bg-white text-black hover:bg-gray-200"}`}
+              className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors ${isDayMode ? "bg-indigo-600 text-white hover:bg-indigo-500 shadow-[0_12px_28px_rgba(99,102,241,0.24)]" : "bg-indigo-500 text-white hover:bg-indigo-400"}`}
             >
               Install
             </button>

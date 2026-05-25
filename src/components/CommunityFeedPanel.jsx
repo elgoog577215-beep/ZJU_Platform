@@ -80,7 +80,7 @@ const CommunityFeedPanel = ({
     <div key={i} className={`border rounded-lg p-5 md:p-6 animate-pulse ${th.card}`}>
       <div className="space-y-3">
         <div className="flex gap-2">
-          <div className={`h-5 rounded-full w-14 ${th.skeleton}`} />
+          <div className={`h-5 rounded-md w-14 ${th.skeleton}`} />
           <div className={`h-5 rounded w-20 ${th.skeleton}`} />
         </div>
         <div className={`h-6 rounded w-3/4 ${th.skeletonStrong}`} />
@@ -124,7 +124,7 @@ const CommunityFeedPanel = ({
             {onNewPost && (
               <button
                 onClick={onNewPost}
-                className={`hidden min-h-[40px] items-center gap-2 rounded-full border px-4 text-sm font-semibold transition-all md:inline-flex ${accentBtnClass}`}
+                className={`hidden min-h-[40px] items-center gap-2 rounded-lg border px-4 text-sm font-semibold transition-all md:inline-flex ${accentBtnClass}`}
                 title={t('community.post_new', '发帖')}
               >
                 <Upload size={18} className="md:w-5 md:h-5" />
@@ -142,7 +142,7 @@ const CommunityFeedPanel = ({
               {displayItems.length} {t('community.results_count', '条结果')}
             </span>
             {hasActiveFilters ? (
-              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border ${isDayMode ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-amber-500/10 text-amber-300 border-amber-500/20'}`}>
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${isDayMode ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-amber-500/10 text-amber-300 border-amber-500/20'}`}>
                 {t('community.filtered_view', '已应用筛选')}
               </span>
             ) : null}
@@ -184,11 +184,11 @@ const CommunityFeedPanel = ({
           [...Array(skeletonCount)].map((_, i) => renderSkeleton ? renderSkeleton(i) : defaultSkeleton(i))
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-20 px-4">
-            <div className="bg-red-500/10 rounded-full p-6 mb-6 border border-red-500/20 backdrop-blur-xl">
+            <div className="bg-red-500/10 rounded-lg p-6 mb-6 border border-red-500/20 backdrop-blur-xl">
               <AlertCircle size={48} className="text-red-400 opacity-80" />
             </div>
             <p className={`mb-6 text-lg ${th.textContent}`}>{t('common.error_fetching_data')}</p>
-            <button onClick={handleRefresh} className={`px-8 py-3 rounded-full transition-all border font-medium hover:scale-105 active:scale-95 ${th.btnSecondary}`}>
+            <button onClick={handleRefresh} className={`px-8 py-3 rounded-lg transition-all border font-medium hover:scale-105 active:scale-95 ${th.btnSecondary}`}>
               {t('common.retry')}
             </button>
           </div>
@@ -209,7 +209,7 @@ const CommunityFeedPanel = ({
               <button
                 type="button"
                 onClick={resetFilters}
-                className={`mt-5 px-6 py-2.5 rounded-full border transition-colors text-sm font-semibold ${th.btnSecondary}`}
+                className={`mt-5 px-6 py-2.5 rounded-lg border transition-colors text-sm font-semibold ${th.btnSecondary}`}
               >
                 {t('community.clear_filters', '清除筛选')}
               </button>
@@ -229,7 +229,7 @@ const CommunityFeedPanel = ({
             whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
             whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-            className={`px-6 py-2.5 rounded-full border transition-colors text-sm font-semibold ${th.btnLoadMore}`}
+            className={`px-6 py-2.5 rounded-lg border transition-colors text-sm font-semibold ${th.btnLoadMore}`}
           >
             {t('common.load_more', '加载更多')}
           </motion.button>

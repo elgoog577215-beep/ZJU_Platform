@@ -294,7 +294,7 @@ const CommunityPostDetail = ({
         )}
       </div>
       {post.status === 'solved' && Array.isArray(post.linked_resources?.articles) && post.linked_resources.articles.length > 0 && (
-        <div className={`mb-8 rounded-2xl border p-4 ${isDayMode ? 'bg-emerald-50/70 border-emerald-200' : 'bg-emerald-500/10 border-emerald-500/30'}`}>
+        <div className={`mb-8 rounded-lg border p-4 ${isDayMode ? 'bg-emerald-50/70 border-emerald-200' : 'bg-emerald-500/10 border-emerald-500/30'}`}>
           <div className={`text-xs font-semibold uppercase tracking-[0.2em] mb-2 ${isDayMode ? 'text-emerald-700' : 'text-emerald-300'}`}>
             {t('community.solved_recommend', '已解决推荐阅读')}
           </div>
@@ -307,7 +307,7 @@ const CommunityPostDetail = ({
                 key={`solved-article-${article.id}`}
                 type="button"
                 onClick={() => onRelatedSelect?.({ ...article, type: 'article' })}
-                className={`w-full text-left rounded-xl border p-3 transition-colors ${isDayMode ? 'bg-white border-emerald-200 hover:bg-emerald-50' : 'bg-black/20 border-emerald-500/20 hover:bg-emerald-500/10'}`}
+                className={`w-full text-left rounded-lg border p-3 transition-colors ${isDayMode ? 'bg-white border-emerald-200 hover:bg-emerald-50' : 'bg-white/[0.035] border-emerald-500/20 hover:bg-emerald-500/10'}`}
               >
                 <p className={`text-sm font-semibold line-clamp-1 ${isDayMode ? 'text-slate-800' : 'text-white'}`}>{article.title}</p>
                 <p className={`mt-1 text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{t('community.read_article', '查看文章详情')}</p>
@@ -317,7 +317,7 @@ const CommunityPostDetail = ({
         </div>
       )}
       {Array.isArray(post.linked_resources?.groups) && post.linked_resources.groups.length > 0 && (
-        <div className={`mb-8 rounded-2xl border p-4 ${isDayMode ? 'bg-blue-50/70 border-blue-200' : 'bg-blue-500/10 border-blue-500/30'}`}>
+        <div className={`mb-8 rounded-lg border p-4 ${isDayMode ? 'bg-blue-50/70 border-blue-200' : 'bg-blue-500/10 border-blue-500/30'}`}>
           <div className={`text-xs font-semibold uppercase tracking-[0.2em] mb-2 ${isDayMode ? 'text-blue-700' : 'text-blue-300'}`}>
             {t('community.group_entry', '社群入口')}
           </div>
@@ -377,7 +377,7 @@ const CommunityPostDetail = ({
           </div>
 
           {/* Input */}
-          <div className={`flex gap-3 mb-8 p-4 rounded-2xl border ${th.commentBg}`}>
+          <div className={`flex gap-3 mb-8 p-4 rounded-lg border ${th.commentBg}`}>
             <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${isDayMode ? 'bg-slate-200' : 'bg-gray-700'}`}>
               <User size={16} className={th.textSecondary} />
             </div>
@@ -406,7 +406,7 @@ const CommunityPostDetail = ({
                 onChange={(e) => setCommentText(e.target.value)}
                 placeholder={t('community.post_write_reply', '写回复...')}
                 rows={2}
-                className={`w-full px-3 py-2 rounded-xl border text-sm outline-none resize-none transition-all focus:ring-2 ${th.inputBg} focus:ring-amber-300/50`}
+                className={`w-full px-3 py-2 rounded-lg border text-sm outline-none resize-none transition-all focus:ring-2 ${th.inputBg} focus:ring-amber-300/50`}
               />
               <div className="flex justify-end mt-2">
                 <button
@@ -425,7 +425,7 @@ const CommunityPostDetail = ({
           {loadingComments ? (
             <div className="space-y-4">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className={`flex gap-3 p-4 rounded-2xl animate-pulse ${isDayMode ? 'bg-slate-50' : 'bg-white/[0.02]'}`}>
+                <div key={i} className={`flex gap-3 p-4 rounded-lg animate-pulse ${isDayMode ? 'bg-slate-50' : 'bg-white/[0.02]'}`}>
                   <div className={`w-8 h-8 rounded-full flex-shrink-0 ${isDayMode ? 'bg-slate-200' : 'bg-white/10'}`} />
                   <div className="flex-1 space-y-2">
                     <div className={`h-3 w-24 rounded ${isDayMode ? 'bg-slate-200' : 'bg-white/10'}`} />
@@ -435,7 +435,7 @@ const CommunityPostDetail = ({
               ))}
             </div>
           ) : commentError ? (
-            <div className={`rounded-2xl border px-4 py-5 text-center ${isDayMode ? 'bg-rose-50 border-rose-200 text-rose-700' : 'bg-rose-500/10 border-rose-500/20 text-rose-300'}`}>
+            <div className={`rounded-lg border px-4 py-5 text-center ${isDayMode ? 'bg-rose-50 border-rose-200 text-rose-700' : 'bg-rose-500/10 border-rose-500/20 text-rose-300'}`}>
               <p className="text-sm font-medium">
                 {t('community.comments_load_failed', '评论加载失败，请稍后重试')}
               </p>
@@ -459,7 +459,7 @@ const CommunityPostDetail = ({
                 return (
                   <div
                     key={c.id}
-                    className={`flex gap-3 p-4 rounded-2xl border transition-all ${
+                    className={`flex gap-3 p-4 rounded-lg border transition-all ${
                       isBest
                         ? (isDayMode
                           ? 'border-l-4 border-l-emerald-500 border-emerald-200 bg-emerald-50/60'
@@ -475,7 +475,7 @@ const CommunityPostDetail = ({
                         <span className={`text-sm font-semibold ${th.textPrimary}`}>{c.author || c.author_name || t('common.anonymous', '匿名用户')}</span>
                         <span className={`text-xs ${th.textTertiary}`}>{c.created_at && new Date(c.created_at).toLocaleDateString('zh-CN')}</span>
                         {isBest && (
-                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${isDayMode ? 'bg-emerald-100 text-emerald-700' : 'bg-emerald-500/20 text-emerald-400'}`}>
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold ${isDayMode ? 'bg-emerald-100 text-emerald-700' : 'bg-emerald-500/20 text-emerald-400'}`}>
                             <Award size={12} />
                             {t('community.best_answer', '最佳答案')}
                           </span>
@@ -542,7 +542,7 @@ const CommunityPostDetail = ({
                             return (
                               <div
                                 key={reply.id}
-                                className={`rounded-xl border px-3 py-2 ${replyIsBest
+                                className={`rounded-lg border px-3 py-2 ${replyIsBest
                                   ? (isDayMode ? 'bg-emerald-50/70 border-emerald-200' : 'bg-emerald-500/10 border-emerald-500/25')
                                   : (isDayMode ? 'bg-white border-slate-200' : 'bg-white/[0.02] border-white/10')
                                 }`}
@@ -551,7 +551,7 @@ const CommunityPostDetail = ({
                                   <span className={`text-xs font-semibold ${th.textPrimary}`}>{reply.author || reply.author_name || t('common.anonymous', '匿名用户')}</span>
                                   <span className={`text-[11px] ${th.textTertiary}`}>{reply.created_at && new Date(reply.created_at).toLocaleDateString('zh-CN')}</span>
                                   {replyIsBest && (
-                                    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${isDayMode ? 'bg-emerald-100 text-emerald-700' : 'bg-emerald-500/20 text-emerald-300'}`}>
+                                    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold ${isDayMode ? 'bg-emerald-100 text-emerald-700' : 'bg-emerald-500/20 text-emerald-300'}`}>
                                       <Award size={10} />
                                       {t('community.best_answer', '最佳答案')}
                                     </span>
