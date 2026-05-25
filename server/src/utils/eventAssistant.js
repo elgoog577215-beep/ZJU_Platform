@@ -627,6 +627,14 @@ const normalizeAiIntent = (rawIntent = {}, fallbackIntent) => {
       ...fallbackIntent.audiences,
     ]).slice(0, 8),
     dateConstraints: uniqueTextArray(rawIntent.date_constraints || rawIntent.time_constraints, 8),
+    hardConstraints: uniqueTextArray(
+      rawIntent.hard_constraints
+      || rawIntent.hardConstraints
+      || rawIntent.must_have
+      || rawIntent.mustHave,
+      10,
+      80
+    ),
     allowHistorical: Boolean(rawIntent.allow_historical),
     needsClarification: Boolean(rawIntent.needs_clarification),
     clarificationQuestion: sanitizeText(rawIntent.clarification_question, 160),
@@ -644,28 +652,6 @@ const parseAssistantIntentWithModel = async ({
   modelRunner,
 }) => {
   const fallbackIntent = parseAssistantIntent({ query, clarificationAnswer });
-  if (!modelRunner && !fallbackIntent.shouldClarify && (
-    fallbackIntent.topics.length
-    || fallbackIntent.campuses.length
-    || fallbackIntent.organizers.length
-    || fallbackIntent.benefits.length
-    || fallbackIntent.categories.length
-  )) {
-    return {
-      intent: {
-        ...fallbackIntent,
-        ai: false,
-        querySummary: fallbackIntent.raw,
-        confidence: Math.max(0.72, fallbackIntent.confidence || 0.64)
-      },
-      modelStatus: {
-        used: false,
-        task: 'event_recommendation_intent_local',
-        message: 'Used deterministic standard-library intent extraction before model rerank.'
-      },
-      rawIntent: null
-    };
-  }
 
   const result = await aiRuntime.callJson(db, {
     task: 'event_recommendation_intent',
@@ -677,6 +663,8 @@ const parseAssistantIntentWithModel = async ({
           '你是浙江大学活动推荐助手的需求理解层。',
           '你的任务不是直接推荐活动，而是把用户自然语言解析成结构化检索意图。',
           '必须结合标准活动库、用户画像和补充说明，输出 JSON 对象。',
+          '必须识别用户显式提出的日期、校区、学院/组织、面向对象、收益和参与形式，这些属于 hard_constraints。',
+          '不要把用户没有说的条件补成硬约束；不确定时放进 topics 或 uncertainty，而不是伪造。',
           '如果问题非常模糊且还没有问过澄清问题，可以设置 needs_clarification=true。',
           '只输出 JSON。'
         ].join('\n')
@@ -703,6 +691,7 @@ const parseAssistantIntentWithModel = async ({
             categories: ['allowed category values'],
             date_constraints: ['today/tomorrow/this_week/weekend/specific date terms'],
             format: 'online/offline/hybrid/empty string',
+            hard_constraints: ['explicit must-have constraints from the user, Chinese short phrases'],
             allow_historical: 'boolean',
             needs_clarification: 'boolean',
             clarification_question: 'one concise question or empty string',
@@ -1342,7 +1331,56 @@ const getFallbackIntentBoost = (item, intent = {}) => {
   };
 };
 
-const getHardConstraintScore = (item, intent = {}) => {
+const getEventTimeConstraintMatch = (item, dateConstraints = [], now = new Date()) => {
+  const terms = uniqueTextArray(dateConstraints || [], 10);
+  if (terms.length === 0) return { score: 0, possible: 0, signals: [], misses: [] };
+
+  const start = parseLocalDateTime(item.event?.date);
+  if (!start) return {
+    score: 0,
+    possible: 20,
+    signals: [],
+    misses: ['日期']
+  };
+
+  const normalizedTerms = terms.map((term) => sanitizeText(term, 80).toLowerCase()).filter(Boolean);
+  const dateText = normalizeSearchText(
+    item.event?.date,
+    item.event?.end_date,
+    item.aiProfile?.raw?.time_preference_terms?.join(' '),
+    ...(item.aiProfile?.time_preference_terms || [])
+  );
+  const hasTextMatch = normalizedTerms.some((term) => dateText.includes(term));
+  const nowStart = getStartOfDay(now);
+  const tomorrowStart = new Date(nowStart);
+  tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+  const tomorrowEnd = getEndOfDay(tomorrowStart);
+  const weekEnd = new Date(nowStart);
+  weekEnd.setDate(weekEnd.getDate() + 7);
+  const day = start.getDay();
+
+  const matched = normalizedTerms.some((term) => {
+    if (hasTextMatch) return true;
+    if (['today', '今天', '今晚'].includes(term)) return isSameLocalDay(start, now);
+    if (['tomorrow', '明天'].includes(term)) return start >= tomorrowStart && start <= tomorrowEnd;
+    if (['this_week', '本周', '这周', '近几天'].includes(term)) return start >= nowStart && start <= weekEnd;
+    if (['weekend', '周末', '星期六', '星期日'].includes(term)) return day === 0 || day === 6;
+    const dateMatch = term.match(/(\d{1,2})[./月-](\d{1,2})/);
+    if (dateMatch) {
+      return start.getMonth() + 1 === Number(dateMatch[1]) && start.getDate() === Number(dateMatch[2]);
+    }
+    return false;
+  });
+
+  return {
+    score: matched ? 20 : 0,
+    possible: 20,
+    signals: matched ? [`日期匹配：${terms[0]}`] : [],
+    misses: matched ? [] : ['日期']
+  };
+};
+
+const getHardConstraintScore = (item, intent = {}, now = new Date()) => {
   const text = buildCandidateSemanticText(item);
   let score = 0;
   let possible = 0;
@@ -1363,9 +1401,14 @@ const getHardConstraintScore = (item, intent = {}) => {
   };
 
   addGroup('主办方/学院', intent.organizers, 36);
-  addGroup('日期', intent.dateConstraints, 20);
   addGroup('校区/地点', intent.campuses, 18);
   addGroup('面向对象', intent.audiences, 12);
+
+  const timeMatch = getEventTimeConstraintMatch(item, intent.dateConstraints, now);
+  score += timeMatch.score;
+  possible += timeMatch.possible;
+  signals.push(...timeMatch.signals);
+  misses.push(...timeMatch.misses);
 
   if (intent.benefits?.includes('score')) {
     possible += 14;
@@ -1460,7 +1503,7 @@ const buildAiCandidatePool = async ({
       profileResult.profilesByEventId.get(Number(item.event.id))
     ))
     .map((item) => {
-      const hardConstraint = getHardConstraintScore(item, intent);
+      const hardConstraint = getHardConstraintScore(item, intent, now);
       return {
         ...item,
         hardConstraint,
@@ -1854,18 +1897,19 @@ const buildAiRerankPrompt = ({ intent, profile, candidates, recommendationCount 
     'Do not invent activities, links, rewards, registration status, locations, or dates.',
     'Prefer future and ongoing events. Historical events are only fallback clues.'
   ],
-  userIntent: {
-    query: intent.query,
-    querySummary: intent.querySummary,
-    categories: intent.categories,
-    benefits: intent.benefits,
-    format: intent.format,
-    campuses: intent.campuses,
-    organizers: intent.organizers,
-    audiences: intent.audiences,
-    topics: intent.topics,
-    dateConstraints: intent.dateConstraints
-  },
+    userIntent: {
+      query: intent.query,
+      querySummary: intent.querySummary,
+      categories: intent.categories,
+      benefits: intent.benefits,
+      format: intent.format,
+      campuses: intent.campuses,
+      organizers: intent.organizers,
+      audiences: intent.audiences,
+      topics: intent.topics,
+      dateConstraints: intent.dateConstraints,
+      hardConstraints: intent.hardConstraints || []
+    },
   profile: buildProfileSummary(profile),
   candidates: candidates.map((item) => ({
     id: item.event.id,
@@ -1920,7 +1964,7 @@ const buildAiRerankPrompt = ({ intent, profile, candidates, recommendationCount 
       uncertainty: ['missing or weak preference signals'],
       action_evidence_used: 'boolean'
     },
-    style: 'Keep summary under 50 Chinese characters, each reason under 45 Chinese characters, and matched_signals under 3 items.',
+    style: 'Keep summary under 60 Chinese characters, each reason under 60 Chinese characters, and matched_signals under 4 items.',
     minimumCount: Math.min(IDEAL_MIN_RECOMMENDATIONS, recommendationCount),
     maximumCount: recommendationCount
   }
@@ -1974,6 +2018,25 @@ const normalizeRerankResult = (rawResult, candidateMap) => {
   };
 };
 
+const isPersonalizationSignal = (signal) => (
+  /行动证据|收藏|报名|正反馈|负反馈/.test(String(signal || ''))
+);
+
+const mergeRecommendationSignals = ({
+  modelSignals = [],
+  candidateSignals = [],
+  hardConstraintSignals = [],
+  limit = 6
+} = {}) => {
+  const personalized = candidateSignals.filter(isPersonalizationSignal);
+  return unique([
+    ...personalized,
+    ...hardConstraintSignals,
+    ...modelSignals,
+    ...candidateSignals
+  ]).slice(0, limit);
+};
+
 const rerankCandidatesWithModel = async ({
   db,
   intent,
@@ -1991,9 +2054,11 @@ const rerankCandidatesWithModel = async ({
       {
         role: 'system',
         content: [
-          'You are the reasoning and ranking layer for a Zhejiang University activity recommendation assistant.',
-          'You must use semantic understanding from the large model to rerank provided candidates.',
-          'Return strict JSON only. Never recommend an event id outside the candidate list.'
+          '你是浙江大学活动推荐助手的推理排序层。',
+          '你必须使用大模型语义理解对候选活动重排，但只能在候选列表内选择 event id。',
+          '显式日期、校区、学院/组织、收益和参与形式优先于泛兴趣、热度和画像偏好。',
+          '如果候选同时满足主题，满足更多 hardConstraint 的候选必须排在前面。',
+          '只返回严格 JSON，不要输出 Markdown，不要输出隐藏思考过程。'
         ].join('\n')
       },
       {
@@ -2100,21 +2165,27 @@ const buildAiRecommendationResponse = ({
       };
     selected.unshift({
       ...promoted,
-      confidence: Math.max(Number(promoted.confidence || 0), 0.68),
+      confidence: Math.max(Number(promoted.confidence || 0), 0.86),
       matchedSignals: unique([
-        ...(best.hardConstraint?.signals || []),
-        ...(promoted.matchedSignals || [])
-      ]).slice(0, 4)
+        ...mergeRecommendationSignals({
+          modelSignals: promoted.matchedSignals || [],
+          candidateSignals: best.signals || [],
+          hardConstraintSignals: best.hardConstraint?.signals || [],
+          limit: 4
+        })
+      ])
     });
   }
   const recommendations = selected.map((item) => ({
     id: item.candidate.event.id,
     reason: item.reason || buildReason(item.candidate),
     confidence: item.confidence,
-    matchSignals: unique([
-      ...item.matchedSignals,
-      ...item.candidate.signals
-    ]).slice(0, 6),
+    matchSignals: mergeRecommendationSignals({
+      modelSignals: item.matchedSignals || [],
+      candidateSignals: item.candidate.signals || [],
+      hardConstraintSignals: item.candidate.hardConstraint?.signals || [],
+      limit: 6
+    }),
     score: Math.round(item.score ?? item.candidate.aiScore ?? item.candidate.score),
     isHistorical: item.candidate.scope === 'past',
     aiProfile: item.candidate.aiProfile ? {
@@ -2186,7 +2257,11 @@ const buildFallbackRerank = (candidates, intent, summary) => {
         ]).slice(0, 8)
       };
     })
-    .sort((left, right) => right.aiScore - left.aiScore || compareByAscendingDate(left.event, right.event));
+    .sort((left, right) => (
+      (right.hardConstraint?.score || 0) - (left.hardConstraint?.score || 0)
+      || right.aiScore - left.aiScore
+      || compareByAscendingDate(left.event, right.event)
+    ));
 
   return {
     summary,
@@ -2208,7 +2283,10 @@ const buildFallbackRerank = (candidates, intent, summary) => {
       score: Math.round(item.aiScore ?? item.score),
       confidence: Math.max(0.45, Math.min(0.78, ((item.aiScore ?? item.score) / 120) + 0.38)),
       reason: buildReason(item),
-      matchedSignals: item.signals || []
+      matchedSignals: unique([
+        ...(item.hardConstraint?.signals || []),
+        ...(item.signals || [])
+      ]).slice(0, 6)
     }))
   };
 };
@@ -2414,117 +2492,18 @@ const runEventAssistantTurn = async ({
   modelRunner,
   now = new Date()
 }) => {
-  if (modelRunner) {
-    return runInjectedModelTurn({
-      db,
-      query,
-      clarificationAnswer,
-      clarificationUsed,
-      allowScopeExpansion,
-      modelRunner,
-      now
-    });
-  }
-
-  const intent = parseAssistantIntent({ query, clarificationAnswer });
-  const profile = await loadUserEventProfile(db, userId);
-  const remembered = await maybeRememberPreference(db, userId, intent, rememberPreference);
-
-  const grouped = await loadAllCandidates(db, now);
-  const coverage = buildCoverageSummary(grouped);
-  const futurePool = [...grouped.upcoming, ...grouped.ongoing].slice(0, MAX_CANDIDATES);
-
-  if (futurePool.length === 0 && !allowScopeExpansion && !allowHistoricalFallback) {
-    return {
-      type: 'empty',
-      scope: 'upcoming',
-      emptyReason: 'no_upcoming',
-      canExpandScope: true,
-      recommendationMode: 'empty',
-      coverage,
-      understoodIntent: buildIntentSummary(intent, profile),
-      remembered
-    };
-  }
-
-  if (intent.shouldClarify && !clarificationUsed && futurePool.length >= IDEAL_MIN_RECOMMENDATIONS) {
-    return buildClarificationResponse({
-      intent,
-      profile,
-      grouped,
-      coverage,
-      remembered,
-      now,
-      question: buildClarificationQuestion(profile)
-    });
-  }
-
-  const rankedFuture = [
-    ...rankCandidates(grouped.ongoing, intent, profile, 'ongoing', now),
-    ...rankCandidates(grouped.upcoming, intent, profile, 'upcoming', now)
-  ].sort((left, right) => right.score - left.score || compareByAscendingDate(left.event, right.event));
-
-  const futureThreshold = getRankThreshold(intent, 'upcoming');
-  const futureMatches = rankedFuture.filter((item) => item.score >= futureThreshold);
-
-  if (futureMatches.length > 0) {
-    return buildRecommendationResponse({
-      db,
-      rankedItems: futureMatches,
-      intent,
-      profile,
-      scope: futureMatches.some((item) => item.scope === 'ongoing') ? 'mixed_future' : 'upcoming',
-      canExpandScope: false,
-      usedHistoricalFallback: false,
-      remembered,
-      coverage
-    });
-  }
-
-  if (!allowHistoricalFallback && !allowScopeExpansion) {
-    return {
-      type: 'empty',
-      scope: 'upcoming',
-      emptyReason: futurePool.length === 0 ? 'no_upcoming' : 'no_matches',
-      canExpandScope: true,
-      recommendationMode: 'empty',
-      coverage,
-      understoodIntent: buildIntentSummary(intent, profile),
-      remembered
-    };
-  }
-
-  const rankedPast = rankCandidates(grouped.past, intent, profile, 'past', now)
-    .filter((item) => item.score >= getRankThreshold(intent, 'past'));
-
-  if (rankedPast.length > 0) {
-    return buildRecommendationResponse({
-      db,
-      rankedItems: rankedPast,
-      intent,
-      profile,
-      scope: 'past',
-      canExpandScope: false,
-      usedHistoricalFallback: true,
-      remembered,
-      coverage
-    });
-  }
-
-  return {
-    type: 'empty',
-    scope: futurePool.length === 0 ? 'upcoming' : 'mixed_future',
-    emptyReason: futurePool.length === 0 ? 'no_upcoming' : 'no_matches',
-    canExpandScope: futurePool.length === 0 || grouped.past.length > 0,
-    recommendationMode: 'empty',
-    coverage,
-    understoodIntent: buildIntentSummary(intent, profile),
-    remembered,
-    modelStatus: {
-      used: false,
-      message: '没有足够匹配的候选活动。'
-    }
-  };
+  return runUnifiedEventAssistantTurn({
+    db,
+    query,
+    clarificationAnswer,
+    clarificationUsed,
+    allowScopeExpansion,
+    allowHistoricalFallback,
+    rememberPreference,
+    userId,
+    modelRunner,
+    now
+  });
 };
 
 const runUnifiedEventAssistantTurn = async ({

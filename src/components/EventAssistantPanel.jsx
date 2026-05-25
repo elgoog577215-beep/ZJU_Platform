@@ -140,6 +140,8 @@ const EventAssistantPanel = ({
 
   const understoodItems = assistantState?.understoodIntent?.understood || [];
   const profileSignals = assistantState?.understoodIntent?.profile?.signals || [];
+  const rankingBasis = assistantState?.reasoningTrace?.rankingBasis || [];
+  const uncertaintyItems = assistantState?.reasoningTrace?.uncertainty || [];
   const hasModelStatus = Boolean(assistantState?.modelStatus);
   const coverageText = useMemo(
     () => getCoverageText(assistantState?.coverage),
@@ -728,7 +730,11 @@ const EventAssistantPanel = ({
                     {hasModelStatus ? (
                       <span className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs ${chipClass}`}>
                         <Brain size={13} />
-                        {assistantState.modelStatus?.used ? "大模型已参与排序" : "模型未完成排序"}
+                        {assistantState.modelStatus?.fallbackUsed
+                          ? "模型已降级兜底"
+                          : assistantState.modelStatus?.used
+                            ? "大模型已参与排序"
+                            : "模型未完成排序"}
                       </span>
                     ) : null}
                     {coverageText ? (
@@ -791,6 +797,40 @@ const EventAssistantPanel = ({
                         <AlertTriangle size={16} className="mt-0.5 shrink-0" />
                         <span>{assistantState.warnings[0]}</span>
                       </div>
+                    </div>
+                  )}
+
+                  {(rankingBasis.length > 0 || uncertaintyItems.length > 0) && (
+                    <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                      {rankingBasis.length > 0 ? (
+                        <div className={`rounded-lg border p-4 ${chipClass}`}>
+                          <div className={`mb-2 flex items-center gap-2 text-sm font-semibold ${textClass}`}>
+                            <Sparkles size={15} />
+                            排序依据
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {rankingBasis.slice(0, 5).map((item) => (
+                              <span key={item} className={`rounded-md border px-3 py-1 text-xs ${chipClass}`}>
+                                {item}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {uncertaintyItems.length > 0 ? (
+                        <div className={`rounded-lg border p-4 ${chipClass}`}>
+                          <div className={`mb-2 flex items-center gap-2 text-sm font-semibold ${textClass}`}>
+                            <AlertTriangle size={15} />
+                            还不确定
+                          </div>
+                          <div className={`space-y-1 text-xs leading-5 ${faintClass}`}>
+                            {uncertaintyItems.slice(0, 4).map((item) => (
+                              <div key={item}>{item}</div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
                   )}
 

@@ -235,6 +235,7 @@ const buildModelRunner = (runtimePolicyChecks = []) => async ({ task, messages, 
       categories: ['lecture'],
       date_constraints: [],
       format: 'offline',
+      hard_constraints: ['紫金港', '计算机学院', '综测'],
       allow_historical: false,
       needs_clarification: false,
       clarification_question: '',
@@ -282,6 +283,12 @@ const buildModelRunner = (runtimePolicyChecks = []) => async ({ task, messages, 
           matched_signals: ['校园活动']
         }))
       ]
+      ,
+      reasoning_trace: {
+        ranking_basis: ['硬约束优先', 'AI 主题匹配', '综测收益匹配'],
+        uncertainty: ['未指定具体日期'],
+        action_evidence_used: false
+      }
     };
   }
 
@@ -306,6 +313,10 @@ const main = async () => {
     assert(result.type === 'recommend', 'Expected AI recommendation response.');
     assert(result.modelStatus?.used === true, 'Expected modelStatus.used to be true.');
     assert(
+      result.modelStatus.tasks?.includes('event_recommendation_intent'),
+      'Expected intent task in model status.'
+    );
+    assert(
       result.modelStatus.tasks?.includes('event_recommendation_rerank'),
       'Expected rerank task in model status.'
     );
@@ -316,6 +327,14 @@ const main = async () => {
     assert(
       result.recommendations[0]?.confidence >= 0.9,
       'Expected model confidence to be carried to the client response.'
+    );
+    assert(
+      result.reasoningTrace?.rankingBasis?.includes('硬约束优先'),
+      'Expected ranking basis from model reasoning trace.'
+    );
+    assert(
+      result.reasoningTrace?.uncertainty?.includes('未指定具体日期'),
+      'Expected uncertainty from model reasoning trace.'
     );
     assert(
       result.modelStatus.profileStats.generated >= 1,

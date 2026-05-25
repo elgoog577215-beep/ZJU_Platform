@@ -292,6 +292,7 @@ const stressModelRunner = async ({ task, messages }) => {
       categories: ['lecture', 'competition'],
       date_constraints: ['this_week'],
       format: 'offline',
+      hard_constraints: ['紫金港', '计算机学院', '综测', '本周'],
       allow_historical: false,
       needs_clarification: false,
       clarification_question: '',
@@ -348,6 +349,11 @@ const stressModelRunner = async ({ task, messages }) => {
           String(candidate.score || '').includes('综测') ? '综测收益' : '部分匹配',
         ],
       })),
+      reasoning_trace: {
+        ranking_basis: ['优先满足显式硬约束', 'AI 主题相关', '活动画像匹配'],
+        uncertainty: ['未指定具体学院年级'],
+        action_evidence_used: false,
+      },
     };
   }
 
@@ -467,7 +473,19 @@ const stressEventRecommendation = async (db) => {
     assertUsefulText(item.reason, 'Recommendation reason');
     assert(Array.isArray(item.matchSignals) && item.matchSignals.length > 0, 'Recommendation should expose match signals.');
   }
+  assert(
+    result.modelStatus.tasks.includes('event_recommendation_intent'),
+    'Recommendation should use model intent parsing.'
+  );
   assert(result.modelStatus.tasks.includes('event_recommendation_rerank'), 'Recommendation should use model rerank.');
+  assert(
+    result.reasoningTrace.rankingBasis.includes('优先满足显式硬约束'),
+    'Recommendation should expose model ranking basis.'
+  );
+  assert(
+    result.reasoningTrace.uncertainty.includes('未指定具体学院年级'),
+    'Recommendation should expose model uncertainty.'
+  );
   assert(result.modelStatus.profileStats.generated >= 1, 'Recommendation should exercise profile indexing.');
   assert(result.remembered === true, 'Recommendation should write opt-in preference memory.');
 };
