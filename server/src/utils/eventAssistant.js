@@ -61,6 +61,18 @@ const AI_TOPIC_ALIASES = [
   'prompt',
   '提示词'
 ];
+const SEARCH_TERM_ALIASES = {
+  紫金港: ['zijingang'],
+  玉泉: ['yuquan'],
+  西溪: ['xixi'],
+  华家池: ['huajiachi'],
+  舟山: ['zhoushan'],
+  海宁: ['haining'],
+  计算机学院: ['college of computer science', 'computer science college', '计算机科学与技术学院'],
+  计算机科学与技术学院: ['college of computer science', 'computer science college', '计算机学院'],
+  创新创业学院: ['innovation college', 'college of innovation and entrepreneurship'],
+  青年志愿者协会: ['youth volunteer association']
+};
 
 const createAssistantError = (code, message, statusCode = 500) => {
   const error = new Error(message);
@@ -124,6 +136,21 @@ const includesPhrase = (haystack, phrase) => {
 };
 
 const includesAnyPhrase = (haystack, needles) => needles.some((needle) => includesPhrase(haystack, needle));
+
+const expandSearchAliases = (value) => {
+  const text = sanitizeText(value, 80);
+  const lowered = text.toLowerCase();
+  return unique([
+    text,
+    lowered,
+    ...(SEARCH_TERM_ALIASES[text] || []),
+    ...(SEARCH_TERM_ALIASES[lowered] || [])
+  ]).filter(Boolean);
+};
+
+const includesTermOrAlias = (haystack, value) => (
+  expandSearchAliases(value).some((term) => includesPhrase(haystack, term))
+);
 
 const isNumericRatingText = (value) => {
   const text = sanitizeText(value, 40);
@@ -557,6 +584,46 @@ const clampNumber = (value, min, max, fallback = 0) => {
   return Math.min(Math.max(number, min), max);
 };
 
+const mergeUniqueText = (...groups) => uniqueTextArray(groups.flat(), 16, 80);
+
+const deriveHardConstraintsFromIntent = (intent = {}) => {
+  const constraints = [];
+  if (intent.dateConstraints?.length) {
+    constraints.push(...intent.dateConstraints.map((item) => `时间：${item}`));
+  }
+  if (intent.campuses?.length) {
+    constraints.push(...intent.campuses.map((item) => `校区/地点：${item}`));
+  }
+  if (intent.organizers?.length) {
+    constraints.push(...intent.organizers.map((item) => `主办方/学院：${item}`));
+  }
+  if (intent.audiences?.length) {
+    constraints.push(...intent.audiences.map((item) => `面向对象：${item}`));
+  }
+  if (intent.benefits?.includes('score')) constraints.push('收益：综测/加分');
+  if (intent.benefits?.includes('volunteer_time')) constraints.push('收益：志愿时长');
+  if (intent.format) constraints.push(`参与形式：${intent.format}`);
+  return uniqueTextArray(constraints, 10, 80);
+};
+
+const getHardConstraintDiagnostics = (recommendations = []) => {
+  const ratios = recommendations
+    .map((item) => Number(item.diagnostics?.hardConstraintRatio))
+    .filter(Number.isFinite);
+  const averageRatio = ratios.length
+    ? ratios.reduce((sum, value) => sum + value, 0) / ratios.length
+    : 1;
+  const missed = unique(
+    recommendations.flatMap((item) => item.diagnostics?.hardConstraintMisses || [])
+  ).slice(0, 6);
+
+  return {
+    averageRatio: Number(averageRatio.toFixed(3)),
+    missed,
+    complete: missed.length === 0 && averageRatio >= 0.98
+  };
+};
+
 const extractJsonObject = (content) => {
   if (typeof content !== 'string' || content.trim() === '') {
     throw createAssistantError('EVENT_ASSISTANT_MODEL_EMPTY', 'Model returned empty content.', 502);
@@ -600,7 +667,7 @@ const normalizeAiIntent = (rawIntent = {}, fallbackIntent) => {
     ? rawIntent.format
     : fallbackIntent.format;
 
-  return {
+  const normalized = {
     ...fallbackIntent,
     ai: true,
     querySummary: sanitizeText(rawIntent.query_summary || rawIntent.summary, 180),
@@ -624,26 +691,39 @@ const normalizeAiIntent = (rawIntent = {}, fallbackIntent) => {
       ...uniqueTextArray(rawIntent.campuses, 8),
       ...fallbackIntent.campuses,
     ]).slice(0, 8),
-    organizers: uniqueTextArray(rawIntent.organizers || rawIntent.colleges, 8),
+    organizers: mergeUniqueText(
+      rawIntent.organizers || rawIntent.colleges,
+      fallbackIntent.organizers
+    ).slice(0, 8),
     audiences: unique([
       ...uniqueTextArray(rawIntent.audiences, 8),
       ...fallbackIntent.audiences,
     ]).slice(0, 8),
-    dateConstraints: uniqueTextArray(rawIntent.date_constraints || rawIntent.time_constraints, 8),
-    hardConstraints: uniqueTextArray(
+    dateConstraints: mergeUniqueText(
+      rawIntent.date_constraints || rawIntent.time_constraints,
+      fallbackIntent.dateConstraints,
+      fallbackIntent.timePreference ? [fallbackIntent.timePreference] : []
+    ).slice(0, 8),
+    hardConstraints: mergeUniqueText(
       rawIntent.hard_constraints
       || rawIntent.hardConstraints
       || rawIntent.must_have
       || rawIntent.mustHave,
-      10,
-      80
-    ),
-    allowHistorical: Boolean(rawIntent.allow_historical),
-    needsClarification: Boolean(rawIntent.needs_clarification),
+      fallbackIntent.hardConstraints,
+      deriveHardConstraintsFromIntent(fallbackIntent)
+    ).slice(0, 10),
+    allowHistorical: Boolean(rawIntent.allow_historical || fallbackIntent.allowHistorical),
+    needsClarification: Boolean(rawIntent.needs_clarification || fallbackIntent.shouldClarify),
     clarificationQuestion: sanitizeText(rawIntent.clarification_question, 160),
     clarificationOptions: uniqueTextArray(rawIntent.clarification_options || rawIntent.options, 4, 80),
     confidence: Math.min(Math.max(Number(rawIntent.confidence) || 0.55, 0), 1),
   };
+
+  normalized.hardConstraints = mergeUniqueText(
+    normalized.hardConstraints,
+    deriveHardConstraintsFromIntent(normalized)
+  ).slice(0, 10);
+  return normalized;
 };
 
 const parseAssistantIntentWithModel = async ({
@@ -667,6 +747,7 @@ const parseAssistantIntentWithModel = async ({
           '你的任务不是直接推荐活动，而是把用户自然语言解析成结构化检索意图。',
           '必须结合标准活动库、用户画像和补充说明，输出 JSON 对象。',
           '必须识别用户显式提出的日期、校区、学院/组织、面向对象、收益和参与形式，这些属于 hard_constraints。',
+          '如果本地初步解析已经给出 explicitIntent，除非用户明确否定，否则必须保留其中的校区、主办方、日期、收益、形式和硬约束。',
           '不要把用户没有说的条件补成硬约束；不确定时放进 topics 或 uncertainty，而不是伪造。',
           '如果问题非常模糊且还没有问过澄清问题，可以设置 needs_clarification=true。',
           '只输出 JSON。'
@@ -679,6 +760,18 @@ const parseAssistantIntentWithModel = async ({
           query: fallbackIntent.query,
           clarificationAnswer: fallbackIntent.clarificationAnswer,
           clarificationAlreadyUsed: Boolean(clarificationUsed),
+          explicitIntent: {
+            topics: fallbackIntent.topics,
+            categories: fallbackIntent.categories,
+            campuses: fallbackIntent.campuses,
+            organizers: fallbackIntent.organizers,
+            audiences: fallbackIntent.audiences,
+            benefits: fallbackIntent.benefits,
+            format: fallbackIntent.format,
+            dateConstraints: fallbackIntent.dateConstraints || [],
+            timePreference: fallbackIntent.timePreference || '',
+            hardConstraints: deriveHardConstraintsFromIntent(fallbackIntent)
+          },
           standardCatalog: buildEventCatalogPromptText(),
           allowedCategories: EVENT_CATEGORIES.map((item) => item.value),
           allowedCampuses: EVENT_CAMPUS_OPTIONS,
@@ -1026,7 +1119,7 @@ const scoreTextMatch = (eventText, values, score, signalBuilder) => {
   for (const value of values) {
     const normalized = sanitizeText(String(value), 80).toLowerCase();
     if (!normalized) continue;
-    if (includesPhrase(eventText, normalized)) {
+    if (includesTermOrAlias(eventText, normalized)) {
       total += score;
       const signal = signalBuilder(value);
       if (signal) signals.push(signal);
@@ -1394,7 +1487,7 @@ const getHardConstraintScore = (item, intent = {}, now = new Date()) => {
     const values = uniqueTextArray(terms || [], 10);
     if (!values.length) return;
     possible += weight;
-    const matched = values.find((term) => text.includes(sanitizeText(term, 80).toLowerCase()));
+    const matched = values.find((term) => includesTermOrAlias(text, term));
     if (matched) {
       score += weight;
       signals.push(`${label}匹配：${matched}`);
@@ -2011,9 +2104,9 @@ const normalizeRerankResult = (rawResult, candidateMap) => {
     });
   }
 
-  const { min, max } = getRecommendationCountBounds(candidateMap.size);
-  if (recommendations.length < min) {
-    throw createAssistantError('EVENT_ASSISTANT_MODEL_INVALID', 'Model rerank did not include enough valid candidate IDs.', 502);
+  const { max } = getRecommendationCountBounds(candidateMap.size);
+  if (recommendations.length === 0) {
+    throw createAssistantError('EVENT_ASSISTANT_MODEL_INVALID', 'Model rerank did not include any valid candidate IDs.', 502);
   }
 
   return {
@@ -2029,6 +2122,44 @@ const normalizeRerankResult = (rawResult, candidateMap) => {
       .sort((left, right) => left.rank - right.rank)
       .slice(0, max)
   };
+};
+
+const completeRerankRecommendations = ({ recommendations = [], candidates = [] }) => {
+  const { min, max } = getRecommendationCountBounds(candidates.length);
+  const next = recommendations.slice(0, max);
+  const seenIds = new Set(next.map((item) => Number(item.id)));
+
+  if (next.length >= min) return next;
+
+  const fallbackCandidates = [...candidates]
+    .sort((left, right) => (
+      (right.hardConstraint?.score || 0) - (left.hardConstraint?.score || 0)
+      || (right.aiScore ?? right.score ?? 0) - (left.aiScore ?? left.score ?? 0)
+      || compareByAscendingDate(left.event, right.event)
+    ));
+
+  for (const candidate of fallbackCandidates) {
+    const id = Number(candidate.event.id);
+    if (seenIds.has(id)) continue;
+    seenIds.add(id);
+    next.push({
+      id,
+      rank: next.length + 1,
+      confidence: Math.max(0.52, Math.min(0.82, ((candidate.aiScore ?? candidate.score ?? 0) / 150) + 0.42)),
+      reason: buildReason(candidate),
+      matchedSignals: unique([
+        ...(candidate.hardConstraint?.signals || []),
+        ...(candidate.signals || [])
+      ]).slice(0, 5),
+      completedByBackend: true
+    });
+    if (next.length >= min) break;
+  }
+
+  return next.slice(0, max).map((item, index) => ({
+    ...item,
+    rank: index + 1
+  }));
 };
 
 const isPersonalizationSignal = (signal) => (
@@ -2189,7 +2320,14 @@ const buildAiRecommendationResponse = ({
       ])
     });
   }
-  const recommendations = selected.map((item) => ({
+  const completedSelected = completeRerankRecommendations({
+    recommendations: selected,
+    candidates
+  }).map((item) => ({
+    ...item,
+    candidate: item.candidate || candidateMap.get(Number(item.id))
+  })).filter((item) => item.candidate);
+  const recommendations = completedSelected.map((item) => ({
     id: item.candidate.event.id,
     reason: item.reason || buildReason(item.candidate),
     confidence: item.confidence,
@@ -2208,7 +2346,8 @@ const buildAiRecommendationResponse = ({
       hardConstraintPossible: Math.round(item.candidate.hardConstraint?.possible || 0),
       hardConstraintRatio: Number((item.candidate.hardConstraint?.ratio ?? 1).toFixed(3)),
       hardConstraintMisses: item.candidate.hardConstraint?.misses || [],
-      scope: item.candidate.scope
+      scope: item.candidate.scope,
+      backendCompleted: Boolean(item.completedByBackend)
     },
     aiProfile: item.candidate.aiProfile ? {
       summary: item.candidate.aiProfile.summary,
@@ -2226,6 +2365,7 @@ const buildAiRecommendationResponse = ({
     usedHistoricalFallback,
     fallbackUsed: Boolean(rerank.modelStatus?.fallbackUsed)
   });
+  const hardConstraintDiagnostics = getHardConstraintDiagnostics(recommendations);
 
   return {
     type: 'recommend',
@@ -2244,7 +2384,9 @@ const buildAiRecommendationResponse = ({
       uncertainty: rerank.reasoningTrace?.uncertainty?.length
         ? rerank.reasoningTrace.uncertainty
         : reasoningTrace.weakOrMissing,
-      actionEvidenceUsed: Boolean(rerank.reasoningTrace?.actionEvidenceUsed || reasoningTrace.actionEvidenceUsed)
+      actionEvidenceUsed: Boolean(rerank.reasoningTrace?.actionEvidenceUsed || reasoningTrace.actionEvidenceUsed),
+      hardConstraintDiagnostics,
+      backendCompletedRecommendationCount: recommendations.filter((item) => item.diagnostics?.backendCompleted).length
     },
     canExpandScope,
     remembered,

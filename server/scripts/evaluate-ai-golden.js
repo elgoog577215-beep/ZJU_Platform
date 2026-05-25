@@ -620,6 +620,103 @@ const evaluateEventRecommendationQueryMatrix = async (db) => {
   };
 };
 
+const evaluateIntentLocalConstraintRetention = async (db) => {
+  const sparseIntentRunner = async ({ task, messages }) => {
+    if (task === 'event_recommendation_intent') {
+      return {
+        query_summary: '用户想找计算机学院的 AI 线下活动，但模型省略了部分结构字段。',
+        topics: ['AI'],
+        categories: ['lecture'],
+        benefits: [],
+        confidence: 0.78,
+      };
+    }
+    return goldenModelRunner({ task, messages });
+  };
+
+  const result = await runEventAssistantTurn({
+    db,
+    userId: 1,
+    query: '帮我找计算机学院在紫金港的线下 AI 活动，最好本周有综测',
+    rememberPreference: false,
+    allowHistoricalFallback: false,
+    modelRunner: sparseIntentRunner,
+    now: new Date(),
+  });
+
+  const top = result.recommendations?.[0];
+  assert(result.type === 'recommend', 'Sparse intent output should still return recommendations.');
+  assert(top?.event?.organizer === 'College of Computer Science', 'Local organizer constraint should survive sparse model intent output.');
+  assert(top.diagnostics?.hardConstraintScore > 0, 'Retained local constraints should contribute to hard-constraint score.');
+  assert(
+    top.matchSignals.some((signal) => signal.includes('紫金港') || signal.includes('Zijingang') || signal.includes('地点')),
+    'Local campus constraint should survive sparse model intent output.'
+  );
+
+  return {
+    topEvent: top.event.title,
+    topOrganizer: top.event.organizer,
+    hardConstraintScore: top.diagnostics.hardConstraintScore,
+  };
+};
+
+const evaluateRerankBackendCompletionAndGuardrail = async (db) => {
+  const underReturningRunner = async ({ task, messages }) => {
+    if (task === 'event_recommendation_rerank') {
+      const payload = extractPayload(messages);
+      const candidates = payload.candidates || [];
+      const weak = candidates.find((candidate) => /Music|Campus Life/i.test(candidate.title || '')) || candidates[candidates.length - 1];
+      return {
+        summary: 'The model returned too few candidates and placed a weaker candidate first.',
+        reasoning_trace: {
+          ranking_basis: ['model semantic guess'],
+          uncertainty: ['model returned a partial list'],
+          action_evidence_used: false,
+        },
+        recommendations: [
+          {
+            id: weak.id,
+            rank: 1,
+            confidence: 0.8,
+            reason: 'Partial model result.',
+            matched_signals: ['partial model signal'],
+          },
+        ],
+      };
+    }
+    return goldenModelRunner({ task, messages });
+  };
+
+  const result = await runEventAssistantTurn({
+    db,
+    userId: 1,
+    query: 'Find a College of Computer Science AI activity at Zijingang with comprehensive score.',
+    rememberPreference: false,
+    allowHistoricalFallback: false,
+    modelRunner: underReturningRunner,
+    now: new Date(),
+  });
+
+  const top = result.recommendations?.[0];
+  assert(result.type === 'recommend', 'Partial rerank output should still return recommendations.');
+  assert(result.recommendations.length >= 3, 'Backend should complete partial model rerank results.');
+  assert(top?.event?.organizer === 'College of Computer Science', 'Hard-constraint guardrail should promote the best constrained candidate.');
+  assert(
+    result.recommendations.some((item) => item.diagnostics?.backendCompleted === true),
+    'Completed recommendations should be marked in diagnostics.'
+  );
+  assert(
+    result.reasoningTrace?.backendCompletedRecommendationCount >= 1,
+    'Reasoning trace should expose backend completion count.'
+  );
+
+  return {
+    topEvent: top.event.title,
+    recommendationCount: result.recommendations.length,
+    completedCount: result.reasoningTrace.backendCompletedRecommendationCount,
+  };
+};
+
 const evaluateRecommendationActionEvidence = async (db) => {
   await db.run(
     'INSERT INTO favorites (user_id, item_id, item_type) VALUES (?, ?, ?)',
@@ -834,6 +931,8 @@ const main = async () => {
   try {
     const eventRecommendation = await evaluateEventRecommendation(db);
     const eventRecommendationQueryMatrix = await evaluateEventRecommendationQueryMatrix(db);
+    const intentLocalConstraintRetention = await evaluateIntentLocalConstraintRetention(db);
+    const rerankBackendCompletionAndGuardrail = await evaluateRerankBackendCompletionAndGuardrail(db);
     const recommendationActionEvidence = await evaluateRecommendationActionEvidence(db);
     const smartClarification = await evaluateSmartClarification(db);
     const recommendationActionEvidenceRanking = await evaluateRecommendationActionEvidenceRanking(db);
@@ -852,6 +951,8 @@ const main = async () => {
       goldenSuites: {
         eventRecommendation,
         eventRecommendationQueryMatrix,
+        intentLocalConstraintRetention,
+        rerankBackendCompletionAndGuardrail,
         recommendationActionEvidence,
         smartClarification,
         recommendationActionEvidenceRanking,

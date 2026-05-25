@@ -113,6 +113,9 @@ const getDiagnosticsSummary = (diagnostics) => {
   if (Number.isFinite(Number(diagnostics.semanticScore))) {
     items.push(`语义分 ${Math.round(Number(diagnostics.semanticScore))}`);
   }
+  if (diagnostics.backendCompleted) {
+    items.push("规则补齐");
+  }
   return items.slice(0, 3);
 };
 
