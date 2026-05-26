@@ -181,7 +181,7 @@ const AICommunity = () => {
                       className={`inline-flex min-h-11 items-center gap-2 rounded-md border px-4 text-sm font-bold transition-all 2xl:hidden ${isDayMode ? "border-slate-200/80 bg-white/70 text-slate-700 hover:bg-white" : "border-white/10 bg-white/[0.04] text-gray-200 hover:bg-white/10"}`}
                     >
                       <Newspaper size={16} />
-                      {t("community.news_board", "新闻热榜")}
+                      {t("community.news_board", "AI资讯")}
                     </button>
                   </div>
                 </div>

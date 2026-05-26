@@ -364,7 +364,7 @@ const CommunityNewsRail = () => {
             <Newspaper size={16} />
           </div>
           <h3 className={`text-sm md:text-base font-bold ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
-            {t('community.news_board', '新闻热榜')}
+            {t('community.news_board', 'AI资讯')}
           </h3>
         </div>
 
