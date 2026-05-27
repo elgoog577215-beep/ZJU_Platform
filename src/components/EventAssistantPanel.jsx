@@ -119,6 +119,27 @@ const getDiagnosticsSummary = (diagnostics) => {
   return items.slice(0, 3);
 };
 
+const getOpportunityMatchPreview = (opportunityMatch) => {
+  if (!opportunityMatch) return null;
+  const normalize = (value) => String(value || "").replace(/[：:].*$/, "").trim();
+  const matched = Array.isArray(opportunityMatch.matched)
+    ? opportunityMatch.matched.map(normalize).filter(Boolean).slice(0, 2)
+    : [];
+  const missing = Array.isArray(opportunityMatch.missing)
+    ? opportunityMatch.missing.map(normalize).filter(Boolean).slice(0, 2)
+    : [];
+  const uncertainty = Array.isArray(opportunityMatch.uncertainty)
+    ? opportunityMatch.uncertainty.map(normalize).filter(Boolean).slice(0, 1)
+    : [];
+  return {
+    matched,
+    missing,
+    uncertainty,
+    decisionHint: opportunityMatch.decisionHint || "",
+    feedbackLearningUsed: Boolean(opportunityMatch.feedbackLearning?.used),
+  };
+};
+
 const getCoverageText = (coverage) => {
   if (!coverage || !Number.isFinite(Number(coverage.total))) return "";
   const futureCount = Number(coverage.upcoming || 0) + Number(coverage.ongoing || 0);
@@ -911,11 +932,13 @@ const EventAssistantPanel = ({
 
                   {assistantState.type === "recommend" && (
                     <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-2">
-                      {(assistantState.recommendations || []).map((item) => (
-                        <div
-                          key={item.id}
-                          className={`rounded-lg border p-4 transition-colors sm:p-5 ${isDayMode ? "bg-white border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.035)]" : "bg-white/[0.045] border-white/10"}`}
-                        >
+                      {(assistantState.recommendations || []).map((item) => {
+                        const opportunityPreview = getOpportunityMatchPreview(item.opportunityMatch);
+                        return (
+                          <div
+                            key={item.id}
+                            className={`rounded-lg border p-4 transition-colors sm:p-5 ${isDayMode ? "bg-white border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.035)]" : "bg-white/[0.045] border-white/10"}`}
+                          >
                           <button
                             type="button"
                             onClick={() => onOpenEvent(item.event)}
@@ -958,6 +981,30 @@ const EventAssistantPanel = ({
                                   {signal}
                                 </span>
                               ))}
+                            </div>
+                          )}
+
+                          {opportunityPreview && (
+                            <div className={`mt-4 rounded-lg border p-3 text-xs leading-6 ${isDayMode ? "border-sky-100 bg-sky-50/70 text-slate-700" : "border-sky-300/15 bg-sky-400/10 text-slate-200"}`}>
+                              {opportunityPreview.decisionHint && (
+                                <p className={`font-semibold ${textClass}`}>{opportunityPreview.decisionHint}</p>
+                              )}
+                              {(opportunityPreview.matched.length > 0 || opportunityPreview.missing.length > 0 || opportunityPreview.uncertainty.length > 0) && (
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                  {opportunityPreview.matched.map((value) => (
+                                    <span key={`matched-${value}`} className={`rounded-md border px-2 py-1 ${chipClass}`}>匹配：{value}</span>
+                                  ))}
+                                  {opportunityPreview.missing.map((value) => (
+                                    <span key={`missing-${value}`} className={`rounded-md border px-2 py-1 ${isDayMode ? "border-amber-200 bg-amber-50 text-amber-700" : "border-amber-300/20 bg-amber-400/10 text-amber-200"}`}>缺失：{value}</span>
+                                  ))}
+                                  {opportunityPreview.uncertainty.map((value) => (
+                                    <span key={`uncertainty-${value}`} className={`rounded-md border px-2 py-1 ${chipClass}`}>不确定：{value}</span>
+                                  ))}
+                                  {opportunityPreview.feedbackLearningUsed && (
+                                    <span className={`rounded-md border px-2 py-1 ${isDayMode ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-emerald-300/20 bg-emerald-400/10 text-emerald-200"}`}>已参考反馈</span>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           )}
 
@@ -1045,8 +1092,9 @@ const EventAssistantPanel = ({
                               </div>
                             </div>
                           )}
-                        </div>
-                      ))}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
 

@@ -512,6 +512,13 @@ const assertNoInventedIds = (recommendations) => {
   }
 };
 
+const assertOpportunityMatch = (item, label = 'Recommendation') => {
+  assert(Array.isArray(item.opportunityMatch?.matched), `${label} should expose opportunity matched signals.`);
+  assert(Array.isArray(item.opportunityMatch?.missing), `${label} should expose opportunity missing signals.`);
+  assert(Array.isArray(item.opportunityMatch?.uncertainty), `${label} should expose opportunity uncertainty signals.`);
+  assertUsefulText(item.opportunityMatch?.decisionHint, `${label} decision hint`, 12);
+};
+
 const evaluateEventRecommendation = async (db) => {
   const result = await runEventAssistantTurn({
     db,
@@ -539,6 +546,8 @@ const evaluateEventRecommendation = async (db) => {
   assert(typeof result.recommendations[0].diagnostics?.deterministicScore === 'number', 'Recommendation should expose deterministic score diagnostics.');
   assert(typeof result.recommendations[0].diagnostics?.semanticScore === 'number', 'Recommendation should expose semantic score diagnostics.');
   assert(typeof result.recommendations[0].diagnostics?.hardConstraintRatio === 'number', 'Recommendation should expose hard-constraint ratio diagnostics.');
+  assertOpportunityMatch(result.recommendations[0], 'Top recommendation');
+  assert(result.reasoningTrace?.opportunityStage === 'trusted_decision_loop_v1', 'Recommendation trace should expose opportunity matching stage.');
   assert(result.modelStatus.tasks.includes('event_recommendation_rerank'), 'Recommendation should use rerank task.');
   assert(result.modelStatus.profileStats.generated >= 1, 'Recommendation should use event profile generation.');
   assert(result.remembered === true, 'Recommendation should persist opt-in preference memory.');
@@ -549,6 +558,9 @@ const evaluateEventRecommendation = async (db) => {
   const runSummary = JSON.parse(run.summary_json || '{}');
   assert(Array.isArray(runSummary.recommendedEventIds) && runSummary.recommendedEventIds.length >= 1, 'Recommendation run should store bounded event evidence anchors.');
   assert(runSummary.averageConfidence >= 0.7, 'Recommendation run should store average confidence.');
+  assert(runSummary.opportunityStage === 'trusted_decision_loop_v1', 'Recommendation run should store opportunity stage.');
+  assert(typeof runSummary.averageHardConstraintRatio === 'number', 'Recommendation run should store hard-constraint ratio.');
+  assert(typeof runSummary.opportunityMissingCount === 'number', 'Recommendation run should store opportunity missing count.');
   assert(!run.summary_json.includes('Find me a Zijingang AI activity'), 'Recommendation run should avoid raw query text.');
 
   return {
@@ -648,6 +660,7 @@ const evaluateIntentLocalConstraintRetention = async (db) => {
   assert(result.type === 'recommend', 'Sparse intent output should still return recommendations.');
   assert(top?.event?.organizer === 'College of Computer Science', 'Local organizer constraint should survive sparse model intent output.');
   assert(top.diagnostics?.hardConstraintScore > 0, 'Retained local constraints should contribute to hard-constraint score.');
+  assertOpportunityMatch(top, 'Chinese sparse-intent recommendation');
   assert(
     top.matchSignals.some((signal) => signal.includes('紫金港') || signal.includes('Zijingang') || signal.includes('地点')),
     'Local campus constraint should survive sparse model intent output.'
@@ -657,6 +670,42 @@ const evaluateIntentLocalConstraintRetention = async (db) => {
     topEvent: top.event.title,
     topOrganizer: top.event.organizer,
     hardConstraintScore: top.diagnostics.hardConstraintScore,
+  };
+};
+
+const evaluateNegativeFeedbackReasonLearning = async (db) => {
+  await db.run(
+    'INSERT INTO event_recommendation_feedback (user_id, event_id, feedback, query, reason) VALUES (?, ?, ?, ?, ?)',
+    [1, 2, 'down', 'redacted golden query', '时间不合适：AI Hackathon Challenge Briefing']
+  );
+
+  const result = await runEventAssistantTurn({
+    db,
+    userId: 1,
+    query: 'Find me a Zijingang AI activity this week with comprehensive score.',
+    rememberPreference: false,
+    allowHistoricalFallback: false,
+    modelRunner: goldenModelRunner,
+    now: new Date(),
+  });
+
+  assert(result.type === 'recommend', 'Negative feedback reason learning should still return recommendations.');
+  assert(
+    result.reasoningTrace?.feedbackLearning?.negativeReasons?.some((item) => item.value === 'time_mismatch'),
+    'Reasoning trace should expose parsed negative feedback reason.'
+  );
+  assert(
+    result.recommendations[0].event.id !== 2,
+    'Event-specific time mismatch feedback should lower the previously downvoted event.'
+  );
+  assert(
+    !result.recommendations[0].matchSignals.some((signal) => signal.includes('时间不合适')),
+    'Time mismatch feedback should not penalize a different top event that otherwise matches the request.'
+  );
+
+  return {
+    topEvent: result.recommendations[0].event.title,
+    negativeReasons: result.reasoningTrace.feedbackLearning.negativeReasons,
   };
 };
 
@@ -933,6 +982,7 @@ const main = async () => {
     const eventRecommendationQueryMatrix = await evaluateEventRecommendationQueryMatrix(db);
     const intentLocalConstraintRetention = await evaluateIntentLocalConstraintRetention(db);
     const rerankBackendCompletionAndGuardrail = await evaluateRerankBackendCompletionAndGuardrail(db);
+    const negativeFeedbackReasonLearning = await evaluateNegativeFeedbackReasonLearning(db);
     const recommendationActionEvidence = await evaluateRecommendationActionEvidence(db);
     const smartClarification = await evaluateSmartClarification(db);
     const recommendationActionEvidenceRanking = await evaluateRecommendationActionEvidenceRanking(db);
@@ -953,6 +1003,7 @@ const main = async () => {
         eventRecommendationQueryMatrix,
         intentLocalConstraintRetention,
         rerankBackendCompletionAndGuardrail,
+        negativeFeedbackReasonLearning,
         recommendationActionEvidence,
         smartClarification,
         recommendationActionEvidenceRanking,

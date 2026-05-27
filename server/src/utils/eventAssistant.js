@@ -73,6 +73,14 @@ const SEARCH_TERM_ALIASES = {
   创新创业学院: ['innovation college', 'college of innovation and entrepreneurship'],
   青年志愿者协会: ['youth volunteer association']
 };
+const OPPORTUNITY_MATCH_STAGE = 'trusted_decision_loop_v1';
+const FEEDBACK_REASON_DEFINITIONS = [
+  { value: 'not_relevant', label: '不相关', patterns: [/不相关/, /不适合/, /irrelevant/i, /not relevant/i] },
+  { value: 'time_mismatch', label: '时间不合适', patterns: [/时间不合适/, /时间冲突/, /没时间/, /time mismatch/i, /wrong time/i] },
+  { value: 'location_mismatch', label: '地点不合适', patterns: [/地点不合适/, /校区不合适/, /太远/, /location mismatch/i, /wrong location/i] },
+  { value: 'benefit_mismatch', label: '收益不符合', patterns: [/收益不符合/, /收益不匹配/, /没有综测/, /没有加分/, /没有志愿/, /benefit mismatch/i] },
+  { value: 'already_joined', label: '已参加过', patterns: [/已参加过/, /参加过/, /already/i] }
+];
 
 const createAssistantError = (code, message, statusCode = 500) => {
   const error = new Error(message);
@@ -624,6 +632,19 @@ const getHardConstraintDiagnostics = (recommendations = []) => {
   };
 };
 
+const normalizeFeedbackReason = (reason) => {
+  const text = sanitizeText(reason, 240);
+  if (!text) return '';
+  const match = FEEDBACK_REASON_DEFINITIONS.find((definition) => (
+    definition.patterns.some((pattern) => pattern.test(text))
+  ));
+  return match?.value || '';
+};
+
+const getFeedbackReasonLabel = (value) => (
+  FEEDBACK_REASON_DEFINITIONS.find((definition) => definition.value === value)?.label || ''
+);
+
 const extractJsonObject = (content) => {
   if (typeof content !== 'string' || content.trim() === '') {
     throw createAssistantError('EVENT_ASSISTANT_MODEL_EMPTY', 'Model returned empty content.', 502);
@@ -939,7 +960,9 @@ const buildEmptyActionEvidence = () => ({
   positiveFeedbackEventIds: [],
   negativeEventIds: [],
   positiveCategories: [],
-  negativeCategories: []
+  negativeCategories: [],
+  negativeReasons: [],
+  negativeReasonByEventId: {}
 });
 
 const buildActionEvidence = (historyRows = [], feedbackRows = []) => {
@@ -949,6 +972,8 @@ const buildActionEvidence = (historyRows = [], feedbackRows = []) => {
   const registeredEventIds = [];
   const positiveFeedbackEventIds = [];
   const negativeEventIds = [];
+  const negativeReasonCounts = {};
+  const negativeReasonByEventId = {};
 
   for (const row of historyRows) {
     const eventId = Number(row.id || row.event_id);
@@ -971,6 +996,11 @@ const buildActionEvidence = (historyRows = [], feedbackRows = []) => {
     } else if (row.feedback === 'down') {
       if (Number.isInteger(eventId)) negativeEventIds.push(eventId);
       addWeightedCount(negativeCategoryCounts, category, 2);
+      const reasonValue = normalizeFeedbackReason(row.reason);
+      if (reasonValue) {
+        addWeightedCount(negativeReasonCounts, reasonValue, 2);
+        if (Number.isInteger(eventId)) negativeReasonByEventId[eventId] = reasonValue;
+      }
     }
   }
 
@@ -985,7 +1015,9 @@ const buildActionEvidence = (historyRows = [], feedbackRows = []) => {
     positiveFeedbackEventIds: unique(positiveFeedbackEventIds).slice(0, 40),
     negativeEventIds: unique(negativeEventIds).slice(0, 40),
     positiveCategories: summarizeWeightedCounts(positiveCategoryCounts),
-    negativeCategories: summarizeWeightedCounts(negativeCategoryCounts)
+    negativeCategories: summarizeWeightedCounts(negativeCategoryCounts),
+    negativeReasons: summarizeWeightedCounts(negativeReasonCounts),
+    negativeReasonByEventId
   };
 };
 
@@ -1045,7 +1077,8 @@ const loadUserEventProfile = async (db, userId) => {
         e.organizer,
         e.target_audience,
         e.score,
-        e.volunteer_time
+        e.volunteer_time,
+        f.reason
       FROM event_recommendation_feedback f
       LEFT JOIN events e ON e.id = f.event_id
       WHERE f.user_id = ?
@@ -1104,6 +1137,9 @@ const buildProfileSummary = (profile) => {
   if (profile.actionEvidence?.negativeCategories?.length) {
     signals.push(`近期负反馈：${profile.actionEvidence.negativeCategories.slice(0, 2).map((item) => CATEGORY_LABELS[item.value] || item.value).join('、')}`);
   }
+  if (profile.actionEvidence?.negativeReasons?.length) {
+    signals.push(`负反馈原因：${profile.actionEvidence.negativeReasons.slice(0, 2).map((item) => getFeedbackReasonLabel(item.value) || item.value).join('、')}`);
+  }
   if (profile.memory?.length) signals.push(`助手记忆：${profile.memory.slice(0, 2).map((item) => item.content).join('；')}`);
 
   return {
@@ -1132,6 +1168,59 @@ const scoreTextMatch = (eventText, values, score, signalBuilder) => {
 const getActionEvidenceCategory = (profile, eventCategory, type) => (
   profile.actionEvidence?.[type]?.find((item) => item.value === eventCategory) || null
 );
+
+const getActionEvidenceReason = (profile, reasonValue) => (
+  profile.actionEvidence?.negativeReasons?.find((item) => item.value === reasonValue) || null
+);
+
+const getFeedbackReasonPenalty = ({ event, text, profile, intent }) => {
+  let penalty = 0;
+  const signals = [];
+  const eventReason = profile.actionEvidence?.negativeReasonByEventId?.[Number(event.id)];
+  const hasEventSpecificReason = Boolean(eventReason);
+
+  if (eventReason) {
+    penalty += 12;
+    signals.push(`负反馈学习：你曾标记${getFeedbackReasonLabel(eventReason) || '不适合'}`);
+  }
+
+  const addReasonPenalty = (reasonValue, condition, amount, label) => {
+    if (!condition) return;
+    const evidence = getActionEvidenceReason(profile, reasonValue);
+    if (!evidence) return;
+    const boost = Math.min(amount + 8, amount + Number(evidence.weight || 0) * 2);
+    penalty += boost;
+    signals.push(`负反馈原因降低优先级：${label}`);
+  };
+
+  addReasonPenalty('time_mismatch', hasEventSpecificReason && eventReason === 'time_mismatch', 8, '时间不合适');
+  addReasonPenalty('location_mismatch', Boolean(intent.campuses?.length) && !scoreTextMatch(text, intent.campuses, 1, () => '').total, 8, '地点不合适');
+  addReasonPenalty(
+    'benefit_mismatch',
+    Boolean(intent.benefits?.length)
+      && !intent.benefits.some((benefit) => {
+        if (benefit === 'score') return Boolean(getComprehensiveEvaluationSignal(event));
+        if (benefit === 'volunteer_time') return Boolean(sanitizeText(event.volunteer_time, 80));
+        return includesTermOrAlias(text, benefit);
+      }),
+    8,
+    '收益不符合'
+  );
+  addReasonPenalty(
+    'not_relevant',
+    Boolean(intent.categories?.length || intent.topics?.length)
+      && !intent.categories.includes(inferEventCategory(event))
+      && !scoreTextMatch(text, intent.topics || [], 1, () => '').total,
+    6,
+    '相关性不足'
+  );
+  addReasonPenalty('already_joined', profile.actionEvidence?.registeredEventIds?.includes(Number(event.id)), 16, '已参加过');
+
+  return {
+    penalty: Math.round(penalty),
+    signals: unique(signals).slice(0, 3)
+  };
+};
 
 const scoreEvent = (event, intent, profile, scope, now = new Date()) => {
   const text = normalizeSearchText(
@@ -1207,6 +1296,17 @@ const scoreEvent = (event, intent, profile, scope, now = new Date()) => {
     const penalty = Math.min(16, 5 + negativeEvidence.weight * 2);
     score -= penalty;
     signals.unshift(`近期负反馈降低了同类活动优先级`);
+  }
+
+  const reasonPenalty = getFeedbackReasonPenalty({
+    event,
+    text,
+    profile,
+    intent
+  });
+  if (reasonPenalty.penalty > 0) {
+    score -= reasonPenalty.penalty;
+    signals.unshift(...reasonPenalty.signals);
   }
 
   const profileTagMatch = scoreTextMatch(
@@ -1727,6 +1827,59 @@ const buildReasoningTrace = ({
         : '排序主要参考本次需求、活动画像、时间状态和公开活动信息。'
   };
 };
+
+const buildDecisionHint = ({ item, index, recommendations }) => {
+  const title = sanitizeText(item.event?.title, 60);
+  if (index === 0 && recommendations.length > 1) {
+    const next = recommendations[1];
+    const betterHardConstraints = Number(item.diagnostics?.hardConstraintScore || 0) >= Number(next.diagnostics?.hardConstraintScore || 0);
+    const betterConfidence = Number(item.confidence || 0) >= Number(next.confidence || 0);
+    if (betterHardConstraints && betterConfidence) {
+      return `优先推荐「${title}」，因为它在硬条件和整体匹配上都更稳。`;
+    }
+    if (betterHardConstraints) {
+      return `优先推荐「${title}」，因为它更完整满足你明确提出的条件。`;
+    }
+    return `优先推荐「${title}」，因为它和本次主题及活动画像更接近。`;
+  }
+
+  if (item.isHistorical) return '这是历史线索，适合作为后续关注同类机会的参考。';
+  if (item.diagnostics?.backendCompleted) return '这是后端按硬约束和匹配信号补齐的候选。';
+  return '可作为备选，对比时间、地点和收益后再决定是否参加。';
+};
+
+const buildOpportunityMatch = ({ item, index, recommendations, reasoningTrace }) => {
+  const matched = unique(item.matchSignals || []).slice(0, 4);
+  const missing = unique(item.diagnostics?.hardConstraintMisses || []).slice(0, 4);
+  const uncertainty = unique([
+    ...(reasoningTrace?.uncertainty || []),
+    ...(item.isHistorical ? ['历史活动不代表仍可报名'] : []),
+    ...(item.aiProfile?.status && item.aiProfile.status !== 'ready' ? ['活动画像可能不完整'] : [])
+  ]).slice(0, 4);
+  const feedbackSignals = matched.filter((signal) => /负反馈|行动证据|收藏|报名/.test(String(signal)));
+
+  return {
+    stage: OPPORTUNITY_MATCH_STAGE,
+    matched,
+    missing,
+    uncertainty,
+    decisionHint: buildDecisionHint({ item, index, recommendations }),
+    feedbackLearning: {
+      used: feedbackSignals.length > 0,
+      signals: feedbackSignals.slice(0, 3)
+    }
+  };
+};
+
+const attachOpportunityMatches = ({ recommendations, reasoningTrace }) => recommendations.map((item, index, list) => ({
+  ...item,
+  opportunityMatch: buildOpportunityMatch({
+    item,
+    index,
+    recommendations: list,
+    reasoningTrace
+  })
+}));
 
 const buildIntentSummary = (intent, profile) => {
   const parts = [];
@@ -2327,7 +2480,7 @@ const buildAiRecommendationResponse = ({
     ...item,
     candidate: item.candidate || candidateMap.get(Number(item.id))
   })).filter((item) => item.candidate);
-  const recommendations = completedSelected.map((item) => ({
+  const baseRecommendations = completedSelected.map((item) => ({
     id: item.candidate.event.id,
     reason: item.reason || buildReason(item.candidate),
     confidence: item.confidence,
@@ -2360,12 +2513,23 @@ const buildAiRecommendationResponse = ({
   const reasoningTrace = buildReasoningTrace({
     intent,
     profile,
-    recommendations,
+    recommendations: baseRecommendations,
     candidateCount: candidates.length,
     usedHistoricalFallback,
     fallbackUsed: Boolean(rerank.modelStatus?.fallbackUsed)
   });
+  const recommendations = attachOpportunityMatches({
+    recommendations: baseRecommendations,
+    reasoningTrace: {
+      ...reasoningTrace,
+      uncertainty: rerank.reasoningTrace?.uncertainty?.length
+        ? rerank.reasoningTrace.uncertainty
+        : reasoningTrace.weakOrMissing
+    }
+  });
   const hardConstraintDiagnostics = getHardConstraintDiagnostics(recommendations);
+  const backendCompletedRecommendationCount = recommendations.filter((item) => item.diagnostics?.backendCompleted).length;
+  const feedbackLearningUsed = recommendations.some((item) => item.opportunityMatch?.feedbackLearning?.used);
 
   return {
     type: 'recommend',
@@ -2385,8 +2549,13 @@ const buildAiRecommendationResponse = ({
         ? rerank.reasoningTrace.uncertainty
         : reasoningTrace.weakOrMissing,
       actionEvidenceUsed: Boolean(rerank.reasoningTrace?.actionEvidenceUsed || reasoningTrace.actionEvidenceUsed),
+      opportunityStage: OPPORTUNITY_MATCH_STAGE,
       hardConstraintDiagnostics,
-      backendCompletedRecommendationCount: recommendations.filter((item) => item.diagnostics?.backendCompleted).length
+      backendCompletedRecommendationCount,
+      feedbackLearning: {
+        used: feedbackLearningUsed,
+        negativeReasons: profile.actionEvidence?.negativeReasons || []
+      }
     },
     canExpandScope,
     remembered,
@@ -2913,6 +3082,17 @@ const recordEventAssistantRun = async (db, response = {}, userId = null) => {
     const averageConfidence = recommendations.length > 0
       ? Number((recommendations.reduce((sum, item) => sum + Number(item.confidence || 0), 0) / recommendations.length).toFixed(3))
       : 0;
+    const hardConstraintRatios = recommendations
+      .map((item) => Number(item.diagnostics?.hardConstraintRatio))
+      .filter(Number.isFinite);
+    const averageHardConstraintRatio = hardConstraintRatios.length
+      ? Number((hardConstraintRatios.reduce((sum, value) => sum + value, 0) / hardConstraintRatios.length).toFixed(3))
+      : 1;
+    const opportunityMissingCount = recommendations.reduce((sum, item) => (
+      sum + Number(item.opportunityMatch?.missing?.length || 0)
+    ), 0);
+    const backendCompletedRecommendationCount = recommendations.filter((item) => item.diagnostics?.backendCompleted).length;
+    const opportunityFeedbackLearningUsed = recommendations.some((item) => item.opportunityMatch?.feedbackLearning?.used);
     await db.run(
       `
         INSERT INTO ai_assistant_runs (
@@ -2941,6 +3121,12 @@ const recordEventAssistantRun = async (db, response = {}, userId = null) => {
           averageConfidence,
           intentConfidence: Number(reasoningTrace.intentConfidence || 0),
           actionEvidenceUsed: Boolean(reasoningTrace.actionEvidenceUsed),
+          opportunityStage: reasoningTrace.opportunityStage || OPPORTUNITY_MATCH_STAGE,
+          averageHardConstraintRatio,
+          opportunityMissingCount,
+          backendCompletedRecommendationCount,
+          opportunityFeedbackLearningUsed,
+          hardConstraintMisses: reasoningTrace.hardConstraintDiagnostics?.missed || [],
           clarificationOptionCount: Array.isArray(response.clarificationOptions) ? response.clarificationOptions.length : 0,
           provisionalRecommendationCount: provisionalRecommendations.length,
           weakSignalCount: Array.isArray(reasoningTrace.weakOrMissing) ? reasoningTrace.weakOrMissing.length : 0,
