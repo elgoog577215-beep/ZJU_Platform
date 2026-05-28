@@ -74,6 +74,7 @@ const MobileNavbar = () => {
     { key: "home", path: "/", icon: Home, label: t("nav.home", "首页") },
     { key: "events", path: "/events", icon: Calendar, label: t("nav.events", "活动") },
     { key: "hackathon", path: "/hackathon", icon: Trophy, label: "浙客松" },
+    { key: "articles", path: "/articles", icon: Trees, label: t("nav.community", "AI社区") },
     { key: "me", path: user ? `/user/${user.id}` : null, icon: UserCircle, label: t("nav.profile", "我的") },
   ];
 
@@ -83,6 +84,9 @@ const MobileNavbar = () => {
     }
     if (key === "hackathon") {
       return location.pathname.startsWith("/hackathon");
+    }
+    if (key === "articles") {
+      return location.pathname.startsWith("/articles");
     }
     return location.pathname === path;
   };
