@@ -43,6 +43,19 @@
 - **THEN** `ai_assistant_runs.summary_json` SHALL 记录机会匹配阶段
 - **AND** 推荐结果 SHALL 记录硬约束均值、缺失项数量、规则补齐数量和反馈学习是否使用
 
+### Requirement: 活动推荐速度目标必须可观测且可回归检查
+系统 SHALL 将活动推荐速度作为机会匹配系统的质量目标，记录端到端耗时和关键阶段耗时，并用自动化脚本防止画像准备链路退化为串行慢路径。
+
+#### Scenario: 推荐运行摘要记录性能拆分
+- **WHEN** 活动推荐助手完成一次推荐、澄清或兜底响应
+- **THEN** `ai_assistant_runs.summary_json` SHALL 记录 `durationMs`
+- **AND** `ai_assistant_runs.summary_json.performance` SHALL 至少记录候选加载、候选池构建和重排阶段耗时
+
+#### Scenario: 活动画像准备速度回归检查
+- **WHEN** 运行活动画像准备基准脚本
+- **THEN** 系统 SHALL 用固定数量候选和固定模型延迟验证画像准备不会退回串行处理
+- **AND** 基准结果 SHOULD 明显低于同等模型延迟下的串行总耗时
+
 ### Requirement: 机会匹配目标必须有自动化评测
 系统 SHALL 使用自动化评测覆盖中文真实问法、硬约束、负反馈原因、决策解释、运行摘要和模型异常兜底。
 

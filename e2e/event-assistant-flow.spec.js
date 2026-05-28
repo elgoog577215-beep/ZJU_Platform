@@ -95,6 +95,19 @@ const setupRoutes = async (page) => {
   await page.route("**/api/events/assistant", (route) =>
     route.fulfill({ json: assistantResponse }),
   );
+  await page.route("**/api/events/assistant/preferences", (route) =>
+    route.fulfill({
+      json: {
+        college: "",
+        grade: "",
+        campus: "",
+        interestTags: [],
+        preferredCategories: [],
+        preferredBenefits: [],
+        preferredFormat: "",
+      },
+    }),
+  );
   await page.route("**/api/events/assistant/feedback", (route) =>
     route.fulfill({ json: { success: true } }),
   );

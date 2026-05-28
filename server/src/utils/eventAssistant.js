@@ -2900,6 +2900,36 @@ const runEventAssistantTurn = async ({
   });
 };
 
+const timeEventAssistantStep = async (timings, key, operation) => {
+  const startedAt = Date.now();
+  try {
+    return await operation();
+  } finally {
+    timings[key] = Date.now() - startedAt;
+  }
+};
+
+const attachEventAssistantPerformance = (response = {}, timings = {}, startedAt = Date.now()) => {
+  const performance = {
+    durationMs: Date.now() - startedAt,
+    ...Object.fromEntries(
+      Object.entries(timings)
+        .filter(([, value]) => Number.isFinite(Number(value)))
+        .map(([key, value]) => [key, Number(value)])
+    )
+  };
+  return {
+    ...response,
+    modelStatus: {
+      ...(response.modelStatus || {}),
+      performance: {
+        ...(response.modelStatus?.performance || {}),
+        ...performance
+      }
+    }
+  };
+};
+
 const runUnifiedEventAssistantTurn = async ({
   db,
   query,
@@ -2912,6 +2942,9 @@ const runUnifiedEventAssistantTurn = async ({
   modelRunner,
   now = new Date()
 }) => {
+  const turnStartedAt = Date.now();
+  const timings = {};
+  const withPerformance = (response) => attachEventAssistantPerformance(response, timings, turnStartedAt);
   const services = createEventRecommendationServices({
     parseAssistantIntent,
     parseAssistantIntentWithModel,
@@ -2934,8 +2967,8 @@ const runUnifiedEventAssistantTurn = async ({
     recordEventAssistantRun,
     logInvalidModelOutput,
   });
-  const profile = await services.profile.load(db, userId);
-  const grouped = await services.retrieval.loadAll(db, now);
+  const profile = await timeEventAssistantStep(timings, 'profileLoadMs', () => services.profile.load(db, userId));
+  const grouped = await timeEventAssistantStep(timings, 'candidateLoadMs', () => services.retrieval.loadAll(db, now));
   const coverage = services.retrieval.summarizeCoverage(grouped);
   const futurePool = [...grouped.upcoming, ...grouped.ongoing].slice(0, MAX_CANDIDATES);
   let intentModelStatus = null;
@@ -2943,14 +2976,14 @@ const runUnifiedEventAssistantTurn = async ({
 
   let parsedIntent;
   try {
-    parsedIntent = await services.intent.parseWithModel({
+    parsedIntent = await timeEventAssistantStep(timings, 'intentMs', () => services.intent.parseWithModel({
       db,
       query,
       clarificationAnswer,
       profile,
       clarificationUsed,
       modelRunner
-    });
+    }));
   } catch (error) {
     intentFailure = error;
     services.telemetry.logInvalidModelOutput({
@@ -2977,10 +3010,14 @@ const runUnifiedEventAssistantTurn = async ({
 
   const intent = parsedIntent.intent;
   intentModelStatus = parsedIntent.modelStatus;
-  const remembered = await services.profile.rememberPreference(db, userId, intent, rememberPreference);
+  const remembered = await timeEventAssistantStep(
+    timings,
+    'preferenceMemoryMs',
+    () => services.profile.rememberPreference(db, userId, intent, rememberPreference)
+  );
 
   if (futurePool.length === 0 && !allowScopeExpansion && !allowHistoricalFallback) {
-    return {
+    return withPerformance({
       type: 'empty',
       scope: 'upcoming',
       emptyReason: 'no_upcoming',
@@ -2990,7 +3027,7 @@ const runUnifiedEventAssistantTurn = async ({
       understoodIntent: services.explanation.buildIntentSummary(intent, profile),
       remembered,
       modelStatus: intentModelStatus
-    };
+    });
   }
 
   if (
@@ -2998,7 +3035,7 @@ const runUnifiedEventAssistantTurn = async ({
     && !clarificationUsed
     && futurePool.length >= IDEAL_MIN_RECOMMENDATIONS
   ) {
-    return services.response.clarification({
+    return withPerformance(services.response.clarification({
       intent,
       profile,
       grouped,
@@ -3007,10 +3044,10 @@ const runUnifiedEventAssistantTurn = async ({
       modelStatus: intentModelStatus,
       now,
       question: intent.clarificationQuestion || buildClarificationQuestion(profile)
-    });
+    }));
   }
 
-  const pool = await services.retrieval.buildCandidatePool({
+  const pool = await timeEventAssistantStep(timings, 'candidatePoolMs', () => services.retrieval.buildCandidatePool({
     db,
     grouped,
     intent,
@@ -3020,10 +3057,10 @@ const runUnifiedEventAssistantTurn = async ({
     now,
     modelRunner,
     useProfileModel: Boolean(modelRunner) && !intentFailure
-  });
+  }));
 
   if (intentFailure && pool.candidates.length > 0) {
-    return services.response.fallbackRecommendation({
+    return withPerformance(services.response.fallbackRecommendation({
       candidates: pool.candidates,
       intent,
       profile,
@@ -3039,11 +3076,11 @@ const runUnifiedEventAssistantTurn = async ({
       ],
       failedTask: 'event_recommendation_intent',
       failureMessage: intentFailure.message
-    });
+    }));
   }
 
   if (pool.candidates.length === 0) {
-    return {
+    return withPerformance({
       type: 'empty',
       scope: pool.scope,
       emptyReason: futurePool.length === 0 ? 'no_upcoming' : 'no_matches',
@@ -3059,18 +3096,18 @@ const runUnifiedEventAssistantTurn = async ({
         profileStats: pool.profileStats,
         message: 'AI understood the request, but no candidate events were available for reranking.'
       }
-    };
+    });
   }
 
   let rerank;
   try {
-    rerank = await services.ranking.rerankWithModel({
+    rerank = await timeEventAssistantStep(timings, 'rerankMs', () => services.ranking.rerankWithModel({
       db,
       intent,
       profile,
       candidates: pool.candidates,
       modelRunner
-    });
+    }));
   } catch (error) {
     services.telemetry.logInvalidModelOutput({
       error,
@@ -3081,7 +3118,7 @@ const runUnifiedEventAssistantTurn = async ({
       parsedResult: null
     });
 
-    return services.response.fallbackRecommendation({
+    return withPerformance(services.response.fallbackRecommendation({
       candidates: pool.candidates,
       intent,
       profile,
@@ -3097,10 +3134,10 @@ const runUnifiedEventAssistantTurn = async ({
       ],
       failedTask: 'event_recommendation_rerank',
       failureMessage: error.message
-    });
+    }));
   }
 
-  return services.response.aiRecommendation({
+  return withPerformance(services.response.aiRecommendation({
     rerank,
     candidates: pool.candidates,
     intent,
@@ -3115,7 +3152,7 @@ const runUnifiedEventAssistantTurn = async ({
       intentModelStatus,
       ...pool.modelStatuses
     ]
-  });
+  }));
 };
 
 const recordEventAssistantRun = async (db, response = {}, userId = null) => {
@@ -3128,6 +3165,11 @@ const recordEventAssistantRun = async (db, response = {}, userId = null) => {
     const modelStatus = response.modelStatus || {};
     const reasoningTrace = response.reasoningTrace || {};
     const runtimeTelemetry = aiRuntime.summarizeModelStatusTelemetry(modelStatus);
+    const performanceTelemetry = Object.fromEntries(
+      Object.entries(modelStatus.performance || {})
+        .filter(([, value]) => Number.isFinite(Number(value)))
+        .map(([key, value]) => [key, Number(value)])
+    );
     const recommendedEventIds = recommendations
       .map((item) => Number(item?.event?.id || item?.id))
       .filter((id) => Number.isInteger(id))
@@ -3179,6 +3221,8 @@ const recordEventAssistantRun = async (db, response = {}, userId = null) => {
           modelUsed: Boolean(modelStatus.used),
           fallbackUsed: Boolean(modelStatus.fallbackUsed),
           tasks: Array.isArray(modelStatus.tasks) ? modelStatus.tasks.slice(0, 8) : [],
+          durationMs: Number(performanceTelemetry.durationMs || 0),
+          performance: performanceTelemetry,
           recommendedEventIds,
           recommendedCategories,
           profileStatuses,

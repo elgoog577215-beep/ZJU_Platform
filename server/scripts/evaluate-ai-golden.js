@@ -641,6 +641,10 @@ const evaluateEventRecommendation = async (db) => {
   assert(typeof runSummary.averageHardConstraintRatio === 'number', 'Recommendation run should store hard-constraint ratio.');
   assert(typeof runSummary.opportunityMatchedCount === 'number' && runSummary.opportunityMatchedCount >= 1, 'Recommendation run should store opportunity matched count.');
   assert(typeof runSummary.opportunityMissingCount === 'number', 'Recommendation run should store opportunity missing count.');
+  assert(typeof runSummary.durationMs === 'number' && runSummary.durationMs >= 0, 'Recommendation run should store total assistant duration.');
+  assert(typeof runSummary.performance?.candidateLoadMs === 'number', 'Recommendation run should store candidate load duration.');
+  assert(typeof runSummary.performance?.candidatePoolMs === 'number', 'Recommendation run should store candidate pool duration.');
+  assert(typeof runSummary.performance?.rerankMs === 'number', 'Recommendation run should store rerank duration.');
   assert(!run.summary_json.includes('Find me a Zijingang AI activity'), 'Recommendation run should avoid raw query text.');
 
   return {
