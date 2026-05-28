@@ -74,7 +74,6 @@ const MobileNavbar = () => {
     { key: "home", path: "/", icon: Home, label: t("nav.home", "首页") },
     { key: "events", path: "/events", icon: Calendar, label: t("nav.events", "活动") },
     { key: "hackathon", path: "/hackathon", icon: Trophy, label: "浙客松" },
-    { key: "future_learning", path: "/future-learning", icon: Trees, label: t("nav.future_learning", "未来学习中心") },
     { key: "me", path: user ? `/user/${user.id}` : null, icon: UserCircle, label: t("nav.profile", "我的") },
   ];
 

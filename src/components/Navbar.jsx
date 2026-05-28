@@ -129,7 +129,6 @@ const Navbar = () => {
     { key: "home", path: "/" },
     { key: "events", path: "/events" },
     { key: "hackathon", path: "/hackathon", label: "浙客松" },
-    { key: "future_learning", path: "/future-learning" },
     { key: "articles", path: "/articles" },
     { key: "music", path: "/music" },
     { key: "gallery", path: "/gallery" },
@@ -231,7 +230,6 @@ const Navbar = () => {
     !location.pathname.startsWith("/me") &&
     !location.pathname.startsWith("/user/");
   const secondaryMobileLinks = [
-    { key: "future_learning", path: "/future-learning", icon: Trees },
     { key: "gallery", path: "/gallery", icon: ImageIcon },
     { key: "music", path: "/music", icon: MusicIcon },
     { key: "videos", path: "/videos", icon: Film },
