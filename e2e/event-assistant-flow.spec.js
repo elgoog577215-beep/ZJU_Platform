@@ -68,6 +68,13 @@ const assistantResponse = {
         missing: ["面向对象", "收益：志愿时长"],
         uncertainty: ["未指定具体学院年级", "时间偏好不明确"],
         decisionHint: "优先推荐「AI Agent Product Workshop」，因为它更完整满足你明确提出的条件。",
+        decisionSupport: {
+          nextAction: "优先查看「AI Agent Product Workshop」详情",
+          tradeoffs: ["当前排序最靠前，优先对比它的时间、地点和收益是否都能接受。"],
+          fitFor: ["适合把活动收益也纳入选择标准。"],
+          watchouts: ["仍不确定：时间偏好不明确。"],
+          preferencePrompt: "如果要更准，可以补充时间偏好。",
+        },
         feedbackLearning: { used: true, signals: ["行动证据显示你更常选择讲座"] },
       },
     },
@@ -131,6 +138,9 @@ test.describe("event assistant flow", () => {
     await expect(page.getByText("硬约束优先")).toBeVisible();
     await expect(page.getByText("硬约束 54/68")).toBeVisible();
     await expect(page.getByText(/优先推荐/)).toBeVisible();
+    await expect(page.getByText("下一步")).toBeVisible();
+    await expect(page.getByText("优先查看「AI Agent Product Workshop」详情")).toBeVisible();
+    await expect(page.getByText(/取舍：当前排序最靠前/)).toBeVisible();
     await expect(page.getByText("匹配：行动证据显示你更常选择讲座")).toBeVisible();
     await expect(page.getByText("匹配：收益匹配：综测/加分")).toBeVisible();
     await expect(page.getByText("缺失：面向对象")).toBeVisible();
@@ -164,6 +174,7 @@ test.describe("event assistant flow", () => {
     await expect(page.getByRole("button", { name: new RegExp(event.title) })).toBeVisible();
     await expect(page.getByText("硬约束 54/68")).toBeVisible();
     await expect(page.getByText(/优先推荐/)).toBeVisible();
+    await expect(page.getByText("优先查看「AI Agent Product Workshop」详情")).toBeVisible();
     await expect(page.getByText("匹配：收益匹配：综测/加分")).toBeVisible();
 
     await page.getByRole("button", { name: "推荐不适合我" }).click();

@@ -1908,6 +1908,61 @@ const buildDecisionHint = ({ item, index, recommendations }) => {
   return '可作为备选，对比时间、地点和收益后再决定是否参加。';
 };
 
+const buildDecisionSupport = ({ item, index, recommendations, matched, missing, uncertainty }) => {
+  const title = sanitizeText(item.event?.title, 60);
+  const tradeoffs = [];
+  const fitFor = [];
+  const watchouts = [];
+
+  if (index === 0) {
+    tradeoffs.push(recommendations.length > 1
+      ? '当前排序最靠前，优先对比它的时间、地点和收益是否都能接受。'
+      : '当前候选较少，建议先确认活动详情再决定。');
+  } else {
+    tradeoffs.push('适合作为备选，建议和第一项比较硬条件、时间安排和收益匹配。');
+  }
+
+  if (Number(item.diagnostics?.hardConstraintRatio || 0) >= 0.8) {
+    fitFor.push('更适合想优先满足明确条件的选择。');
+  }
+  if (matched.some((signal) => /行动证据|收藏|报名|反馈/.test(String(signal)))) {
+    fitFor.push('和你近期的收藏、报名或反馈行为有相关信号。');
+  }
+  if (matched.some((signal) => /收益|综测|志愿|skill|score|volunteer/i.test(String(signal)))) {
+    fitFor.push('适合把活动收益也纳入选择标准。');
+  }
+  if (fitFor.length === 0) {
+    fitFor.push('适合先查看详情，再判断主题、地点和时间是否合适。');
+  }
+
+  if (missing.length) {
+    watchouts.push(`还缺少确认：${missing.slice(0, 2).join('、')}。`);
+  }
+  if (uncertainty.length) {
+    watchouts.push(`仍不确定：${uncertainty.slice(0, 2).join('、')}。`);
+  }
+  if (item.isHistorical) {
+    watchouts.push('这是历史活动，只适合作为后续同类机会参考。');
+  }
+
+  const preferencePrompt = missing.length || uncertainty.length
+    ? `如果要更准，可以补充${unique([...missing, ...uncertainty]).slice(0, 2).join('、')}。`
+    : '';
+  const nextAction = item.isHistorical
+    ? `把「${title}」作为同类机会参考`
+    : missing.length || uncertainty.length
+      ? `查看「${title}」详情并确认关键条件`
+      : `优先查看「${title}」详情`;
+
+  return {
+    nextAction,
+    tradeoffs: unique(tradeoffs).slice(0, 3),
+    fitFor: unique(fitFor).slice(0, 3),
+    watchouts: unique(watchouts).slice(0, 3),
+    preferencePrompt
+  };
+};
+
 const buildOpportunityMatch = ({ item, index, recommendations, reasoningTrace }) => {
   const matchedSignals = unique(item.matchSignals || []);
   const priorityMatched = [
@@ -1930,6 +1985,14 @@ const buildOpportunityMatch = ({ item, index, recommendations, reasoningTrace })
     missing,
     uncertainty,
     decisionHint: buildDecisionHint({ item, index, recommendations }),
+    decisionSupport: buildDecisionSupport({
+      item,
+      index,
+      recommendations,
+      matched,
+      missing,
+      uncertainty
+    }),
     feedbackLearning: {
       used: feedbackSignals.length > 0,
       signals: feedbackSignals.slice(0, 3)
@@ -3201,6 +3264,16 @@ const recordEventAssistantRun = async (db, response = {}, userId = null) => {
     ), 0);
     const backendCompletedRecommendationCount = recommendations.filter((item) => item.diagnostics?.backendCompleted).length;
     const opportunityFeedbackLearningUsed = recommendations.some((item) => item.opportunityMatch?.feedbackLearning?.used);
+    const decisionSupportNextActionCount = recommendations.filter((item) => item.opportunityMatch?.decisionSupport?.nextAction).length;
+    const decisionSupportTradeoffCount = recommendations.reduce((sum, item) => (
+      sum + Number(item.opportunityMatch?.decisionSupport?.tradeoffs?.length || 0)
+    ), 0);
+    const decisionSupportWatchoutCount = recommendations.reduce((sum, item) => (
+      sum + Number(item.opportunityMatch?.decisionSupport?.watchouts?.length || 0)
+    ), 0);
+    const decisionSupportPreferencePromptCount = recommendations.filter((item) => (
+      item.opportunityMatch?.decisionSupport?.preferencePrompt
+    )).length;
     await db.run(
       `
         INSERT INTO ai_assistant_runs (
@@ -3237,6 +3310,10 @@ const recordEventAssistantRun = async (db, response = {}, userId = null) => {
           opportunityMissingCount,
           backendCompletedRecommendationCount,
           opportunityFeedbackLearningUsed,
+          decisionSupportNextActionCount,
+          decisionSupportTradeoffCount,
+          decisionSupportWatchoutCount,
+          decisionSupportPreferencePromptCount,
           hardConstraintMisses: reasoningTrace.hardConstraintDiagnostics?.missed || [],
           clarificationOptionCount: Array.isArray(response.clarificationOptions) ? response.clarificationOptions.length : 0,
           provisionalRecommendationCount: provisionalRecommendations.length,

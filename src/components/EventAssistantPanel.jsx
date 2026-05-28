@@ -149,6 +149,7 @@ const getOpportunityMatchPreview = (opportunityMatch) => {
     missing,
     uncertainty,
     decisionHint: opportunityMatch.decisionHint || "",
+    decisionSupport: opportunityMatch.decisionSupport || null,
     feedbackLearningUsed: Boolean(opportunityMatch.feedbackLearning?.used),
   };
 };
@@ -1001,6 +1002,22 @@ const EventAssistantPanel = ({
                             <div className={`mt-4 rounded-lg border p-3 text-xs leading-6 ${isDayMode ? "border-sky-100 bg-sky-50/70 text-slate-700" : "border-sky-300/15 bg-sky-400/10 text-slate-200"}`}>
                               {opportunityPreview.decisionHint && (
                                 <p className={`font-semibold ${textClass}`}>{opportunityPreview.decisionHint}</p>
+                              )}
+                              {opportunityPreview.decisionSupport?.nextAction && (
+                                <div className={`mt-2 rounded-md border px-3 py-2 ${isDayMode ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-emerald-300/20 bg-emerald-400/10 text-emerald-100"}`}>
+                                  <div className="text-[11px] font-semibold uppercase tracking-[0.08em] opacity-75">下一步</div>
+                                  <div className="mt-1 font-semibold">{opportunityPreview.decisionSupport.nextAction}</div>
+                                </div>
+                              )}
+                              {(opportunityPreview.decisionSupport?.tradeoffs?.length > 0 || opportunityPreview.decisionSupport?.fitFor?.length > 0) && (
+                                <div className="mt-2 grid gap-1.5">
+                                  {(opportunityPreview.decisionSupport.tradeoffs || []).slice(0, 2).map((value) => (
+                                    <div key={`tradeoff-${value}`} className={mutedClass}>取舍：{value}</div>
+                                  ))}
+                                  {(opportunityPreview.decisionSupport.fitFor || []).slice(0, 2).map((value) => (
+                                    <div key={`fit-${value}`} className={mutedClass}>适合：{value}</div>
+                                  ))}
+                                </div>
                               )}
                               {(opportunityPreview.matched.length > 0 || opportunityPreview.missing.length > 0 || opportunityPreview.uncertainty.length > 0) && (
                                 <div className="mt-2 flex flex-wrap gap-2">

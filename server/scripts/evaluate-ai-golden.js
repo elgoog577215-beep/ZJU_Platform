@@ -596,6 +596,10 @@ const assertOpportunityMatch = (item, label = 'Recommendation') => {
   assert(Array.isArray(item.opportunityMatch?.missing), `${label} should expose opportunity missing signals.`);
   assert(Array.isArray(item.opportunityMatch?.uncertainty), `${label} should expose opportunity uncertainty signals.`);
   assertUsefulText(item.opportunityMatch?.decisionHint, `${label} decision hint`, 12);
+  assertUsefulText(item.opportunityMatch?.decisionSupport?.nextAction, `${label} next action`, 12);
+  assert(Array.isArray(item.opportunityMatch?.decisionSupport?.tradeoffs), `${label} should expose decision tradeoffs.`);
+  assert(Array.isArray(item.opportunityMatch?.decisionSupport?.fitFor), `${label} should expose decision fit reasons.`);
+  assert(Array.isArray(item.opportunityMatch?.decisionSupport?.watchouts), `${label} should expose decision watchouts.`);
 };
 
 const evaluateEventRecommendation = async (db) => {
@@ -645,6 +649,9 @@ const evaluateEventRecommendation = async (db) => {
   assert(typeof runSummary.performance?.candidateLoadMs === 'number', 'Recommendation run should store candidate load duration.');
   assert(typeof runSummary.performance?.candidatePoolMs === 'number', 'Recommendation run should store candidate pool duration.');
   assert(typeof runSummary.performance?.rerankMs === 'number', 'Recommendation run should store rerank duration.');
+  assert(typeof runSummary.decisionSupportNextActionCount === 'number' && runSummary.decisionSupportNextActionCount >= 1, 'Recommendation run should store decision-support next-action count.');
+  assert(typeof runSummary.decisionSupportTradeoffCount === 'number' && runSummary.decisionSupportTradeoffCount >= 1, 'Recommendation run should store decision-support tradeoff count.');
+  assert(typeof runSummary.decisionSupportWatchoutCount === 'number', 'Recommendation run should store decision-support watchout count.');
   assert(!run.summary_json.includes('Find me a Zijingang AI activity'), 'Recommendation run should avoid raw query text.');
 
   return {
