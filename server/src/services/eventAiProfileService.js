@@ -10,6 +10,7 @@ const aiRuntime = require('./unifiedAiRuntimeService');
 
 const PROFILE_VERSION = 1;
 const MAX_PROFILE_EVENTS_PER_TURN = 24;
+const DEFAULT_PROFILE_CONCURRENCY = 4;
 
 const toText = (value, maxLength = 600) => {
   if (value === null || value === undefined) return '';
@@ -385,9 +386,13 @@ const ensureEventProfiles = async (db, events, options = {}) => {
     failed: 0,
   };
   const modelStatuses = [];
+  const concurrency = Math.min(
+    Math.max(Number(options.concurrency) || DEFAULT_PROFILE_CONCURRENCY, 1),
+    limitedEvents.length || 1
+  );
+  let nextIndex = 0;
 
-  for (const event of limitedEvents) {
-    const result = await ensureEventProfile(db, event, options);
+  const handleResult = (event, result) => {
     if (result.profile) profilesByEventId.set(Number(event.id), result.profile);
     if (result.created) stats.generated += 1;
     else if (result.transient) stats.transient += 1;
@@ -395,7 +400,18 @@ const ensureEventProfiles = async (db, events, options = {}) => {
     if (result.profile?.status === 'fallback') stats.fallback += 1;
     if (result.error) stats.failed += 1;
     if (result.modelStatus) modelStatuses.push(result.modelStatus);
-  }
+  };
+
+  const worker = async () => {
+    while (nextIndex < limitedEvents.length) {
+      const event = limitedEvents[nextIndex];
+      nextIndex += 1;
+      const result = await ensureEventProfile(db, event, options);
+      handleResult(event, result);
+    }
+  };
+
+  await Promise.all(Array.from({ length: concurrency }, () => worker()));
 
   return {
     profilesByEventId,
