@@ -317,6 +317,78 @@ const goldenModelRunner = async ({ task, messages }) => {
       };
     }
 
+    if (/志愿|公益|volunteer|时长/i.test(query)) {
+      return {
+        query_summary: '用户想找有志愿时长或公益服务价值的活动。',
+        topics: ['志愿', '公益服务'],
+        campuses: /紫金港|zijingang/i.test(query) ? ['Zijingang'] : [],
+        organizers: ['Youth Volunteer Association'],
+        audiences: ['Undergraduates'],
+        benefits: ['volunteer_time'],
+        categories: ['volunteer'],
+        date_constraints: /周末|weekend/i.test(query) ? ['weekend'] : ['this_week'],
+        format: /线上|online/i.test(query) ? 'online' : 'offline',
+        allow_historical: false,
+        needs_clarification: false,
+        clarification_question: '',
+        confidence: 0.92,
+      };
+    }
+
+    if (/创业|路演|startup|roadshow|pitch/i.test(query)) {
+      return {
+        query_summary: '用户想找 AI 创业、路演或挑战赛类机会。',
+        topics: ['AI', '创业', '路演', '挑战赛'],
+        campuses: /紫金港|zijingang/i.test(query) ? ['Zijingang'] : [],
+        organizers: ['Innovation Hub'],
+        audiences: ['Student teams'],
+        benefits: /加分|综测|score/i.test(query) ? ['score', 'skill'] : ['skill'],
+        categories: ['competition'],
+        date_constraints: /这周|本周|this week/i.test(query) ? ['this_week'] : [],
+        format: /线上|online/i.test(query) ? 'online' : 'offline',
+        allow_historical: false,
+        needs_clarification: false,
+        clarification_question: '',
+        confidence: 0.93,
+      };
+    }
+
+    if (/音乐|文体|艺术|\bmusic\b|\bart\b|放松|社交/i.test(query)) {
+      return {
+        query_summary: '用户想找音乐、艺术或轻社交类校园活动。',
+        topics: ['音乐', '艺术', '社交'],
+        campuses: /玉泉|yuquan/i.test(query) ? ['Yuquan'] : [],
+        organizers: ['Art Club'],
+        audiences: ['All students'],
+        benefits: ['social'],
+        categories: ['culture_sports'],
+        date_constraints: /周末|weekend/i.test(query) ? ['weekend'] : [],
+        format: 'offline',
+        allow_historical: false,
+        needs_clarification: false,
+        clarification_question: '',
+        confidence: 0.9,
+      };
+    }
+
+    if (/新生|fresh/i.test(query)) {
+      return {
+        query_summary: '用户想找适合新生的线下活动。',
+        topics: ['新生', '校园生活'],
+        campuses: /紫金港|zijingang/i.test(query) ? ['Zijingang'] : [],
+        organizers: [],
+        audiences: ['Freshmen'],
+        benefits: ['social'],
+        categories: ['other'],
+        date_constraints: ['this_week'],
+        format: 'offline',
+        allow_historical: false,
+        needs_clarification: false,
+        clarification_question: '',
+        confidence: 0.88,
+      };
+    }
+
     return {
       query_summary: 'User wants a Zijingang AI event with comprehensive score and practical project value.',
       topics: ['AI', 'agent', 'product demo'],
@@ -377,6 +449,9 @@ const goldenModelRunner = async ({ task, messages }) => {
       const text = `${candidate.title || ''} ${candidate.description || ''} ${candidate.score || ''}`;
       const isHackathon = /hackathon|challenge|competition/i.test(text);
       const isWorkshop = /AI Agent|workshop|agent/i.test(text);
+      const isVolunteer = /volunteer|service|hour/i.test(text);
+      const isMusic = /music|art|sharing/i.test(text);
+      const isFreshman = /freshmen|freshman/i.test(text);
       const hasScore = /score/i.test(text);
       const isZijingang = /Zijingang/i.test(candidate.location || '');
       const actionEvidence = candidate.actionEvidence || {};
@@ -384,8 +459,12 @@ const goldenModelRunner = async ({ task, messages }) => {
         candidate,
         score: (isHackathon ? 10 : 0)
           + (isWorkshop ? 8 : 0)
+          + (isVolunteer ? 14 : 0)
+          + (isMusic ? 12 : 0)
+          + (isFreshman ? 5 : 0)
           + (hasScore ? 4 : 0)
           + (isZijingang ? 3 : 0)
+          + Number(candidate.hardConstraintScore || 0) * 0.4
           + Number(actionEvidence.positiveCategoryWeight || 0)
           + (actionEvidence.priorPositiveAction ? 12 : 0)
           - Number(actionEvidence.negativeCategoryWeight || 0)
@@ -560,6 +639,7 @@ const evaluateEventRecommendation = async (db) => {
   assert(runSummary.averageConfidence >= 0.7, 'Recommendation run should store average confidence.');
   assert(runSummary.opportunityStage === 'trusted_decision_loop_v1', 'Recommendation run should store opportunity stage.');
   assert(typeof runSummary.averageHardConstraintRatio === 'number', 'Recommendation run should store hard-constraint ratio.');
+  assert(typeof runSummary.opportunityMatchedCount === 'number' && runSummary.opportunityMatchedCount >= 1, 'Recommendation run should store opportunity matched count.');
   assert(typeof runSummary.opportunityMissingCount === 'number', 'Recommendation run should store opportunity missing count.');
   assert(!run.summary_json.includes('Find me a Zijingang AI activity'), 'Recommendation run should avoid raw query text.');
 
@@ -571,35 +651,40 @@ const evaluateEventRecommendation = async (db) => {
 };
 
 const evaluateEventRecommendationQueryMatrix = async (db) => {
-  const queries = [
-    'Find me a Zijingang AI activity this week with comprehensive score.',
-    'I want an offline AI project workshop at Zijingang with score credit.',
-    'Recommend an AI agent event for all students near Zijingang.',
-    'Any practical AI demo activity this week with comprehensive score?',
-    'Find a College of Computer Science AI activity at Zijingang.',
-    'I need a hands-on agent workshop, preferably offline and score-bearing.',
-    'Show me AI activities that help build a project demo.',
-    'What Zijingang activity combines AI, product practice, and score value?',
-    'Recommend a near-term AI lecture for students who want to build demos.',
-    'Find an AI campus event with score recognition and offline participation.',
-    'I want a practical AI activity at Zijingang Innovation Space.',
-    'Recommend an AI workshop from the computer science college.',
-    'Which AI activity this week is most useful for project practice?',
-    'Find score-bearing AI events for all students at Zijingang.',
-    'I want an agent or LLM activity, not a generic campus sharing session.',
-    'Recommend a future AI event with clear project value.',
-    'Find me a Zijingang offline AI event suitable for student builders.',
-    'Which AI activity should I attend if I care about demos and score?',
-    'Show AI-related events with strong location and benefit match.',
-    'Recommend the best practical AI campus activity this week.',
+  const cases = [
+    { query: 'Find me a Zijingang AI activity this week with comprehensive score.', expected: /AI Agent|AI Hackathon|AI Startup/i, matched: /综测|score/i },
+    { query: 'I want an offline AI project workshop at Zijingang with score credit.', expected: /AI Agent|AI Hackathon|AI Startup/i, matched: /skill|AI topic|综测|score/i },
+    { query: 'Recommend an AI agent event for all students near Zijingang.', expected: /AI Agent|AI Hackathon|AI Startup/i },
+    { query: 'Any practical AI demo activity this week with comprehensive score?', expected: /AI Agent|AI Hackathon|AI Startup/i },
+    { query: 'Find a College of Computer Science AI activity at Zijingang.', expected: /AI Agent/i },
+    { query: 'I need a hands-on agent workshop, preferably offline and score-bearing.', expected: /AI Agent|AI Hackathon|AI Startup/i },
+    { query: 'Show me AI activities that help build a project demo.', expected: /AI Agent|AI Hackathon|AI Startup/i },
+    { query: 'What Zijingang activity combines AI, product practice, and score value?', expected: /AI Agent|AI Hackathon|AI Startup/i },
+    { query: 'Recommend a near-term AI lecture for students who want to build demos.', expected: /AI Agent/i },
+    { query: 'Find an AI campus event with score recognition and offline participation.', expected: /AI Agent|AI Hackathon|AI Startup/i },
+    { query: '我想找紫金港这周有综测的 AI 活动。', expected: /AI Agent|AI Hackathon|AI Startup/i, matched: /综测|加分|score/i },
+    { query: '有没有计算机学院办的智能体线下活动？', expected: /AI Agent/i },
+    { query: '帮我找能做项目 demo 的大模型活动。', expected: /AI Agent|AI Hackathon|AI Startup/i },
+    { query: '我想参加 AI 创业或路演类活动，最好有加分。', expected: /AI Hackathon|AI Startup/i },
+    { query: '推荐一个适合做作品集的 AI 实践活动。', expected: /AI Agent|AI Startup/i, matched: /技能成长/, intentSummary: /收益：.*技能成长/ },
+    { query: '想找有志愿时长的公益服务活动。', expected: /Volunteer Service Orientation/i, matched: /志愿时长|volunteer/i },
+    { query: '紫金港附近有没有志愿时长活动？', expected: /Volunteer Service Orientation/i, matched: /志愿时长|volunteer/i },
+    { query: '推荐本科生可以参加的志愿服务。', expected: /Volunteer Service Orientation/i },
+    { query: '我想做公益，最好有服务小时。', expected: /Volunteer Service Orientation/i },
+    { query: '有没有青年志愿者协会相关活动？', expected: /Volunteer Service Orientation/i },
+    { query: '想找玉泉的音乐或艺术活动放松一下。', expected: /Classical Music Sharing Session/i, matched: /social|音乐|艺术|partial topic/i },
+    { query: '推荐一个轻松社交的文体活动。', expected: /Classical Music Sharing Session/i, matched: /社交放松|音乐|艺术|partial topic/i, intentSummary: /收益：.*社交放松/ },
+    { query: '有没有音乐分享类校园活动？', expected: /Classical Music Sharing Session/i },
+    { query: '我想参加艺术社相关活动。', expected: /Classical Music Sharing Session/i },
+    { query: '推荐适合新生参加的线下活动，最好在紫金港。', expected: /AI Hackathon|Future Campus|AI Agent/i },
   ];
 
   const failures = [];
-  for (const query of queries) {
+  for (const item of cases) {
     const result = await runEventAssistantTurn({
       db,
       userId: 1,
-      query,
+      query: item.query,
       allowHistoricalFallback: false,
       modelRunner: goldenModelRunner,
       now: new Date(),
@@ -607,19 +692,29 @@ const evaluateEventRecommendationQueryMatrix = async (db) => {
     const top = result.recommendations?.[0];
     const ok = result.type === 'recommend'
       && top
-      && /AI|Hackathon|Agent/i.test(top.event?.title || '')
+      && item.expected.test(top.event?.title || '')
       && Array.isArray(result.reasoningTrace?.rankingBasis)
       && result.reasoningTrace.rankingBasis.length >= 1
       && typeof top.diagnostics?.hardConstraintRatio === 'number'
       && top.diagnostics.hardConstraintScore > 0
+      && Array.isArray(top.opportunityMatch?.matched)
+      && (!item.matched || item.matched.test(top.opportunityMatch.matched.join(' ')))
+      && (!item.intentSummary || item.intentSummary.test((result.understoodIntent?.understood || []).join(' ')))
+      && typeof top.opportunityMatch?.decisionHint === 'string'
+      && top.opportunityMatch.decisionHint.length >= 12
       && !top.isHistorical;
 
     if (!ok) {
       failures.push({
-        query,
+        query: item.query,
         responseType: result.type,
         topTitle: top?.event?.title || '',
+        expected: String(item.expected),
+        expectedMatched: item.matched ? String(item.matched) : '',
+        expectedIntentSummary: item.intentSummary ? String(item.intentSummary) : '',
+        understoodIntent: result.understoodIntent || null,
         diagnostics: top?.diagnostics || null,
+        opportunityMatch: top?.opportunityMatch || null,
       });
     }
   }
@@ -627,7 +722,7 @@ const evaluateEventRecommendationQueryMatrix = async (db) => {
   assert(failures.length === 0, `Recommendation query matrix failed: ${JSON.stringify(failures, null, 2)}`);
 
   return {
-    queryCount: queries.length,
+    queryCount: cases.length,
     failedCount: failures.length,
   };
 };
@@ -706,6 +801,45 @@ const evaluateNegativeFeedbackReasonLearning = async (db) => {
   return {
     topEvent: result.recommendations[0].event.title,
     negativeReasons: result.reasoningTrace.feedbackLearning.negativeReasons,
+  };
+};
+
+const evaluateLocalBenefitAliasBoundaries = async (db) => {
+  const result = await runEventAssistantTurn({
+    db,
+    userId: 1,
+    query: 'Find an AI campus event with offline participation near Zijingang.',
+    rememberPreference: false,
+    allowHistoricalFallback: false,
+    modelRunner: async ({ task, messages }) => {
+      if (task === 'event_recommendation_intent') {
+        return {
+          query_summary: 'Local parser boundary check for participation wording.',
+          topics: ['AI'],
+          campuses: ['Zijingang'],
+          audiences: ['All students'],
+          benefits: [],
+          categories: ['lecture'],
+          format: 'offline',
+          confidence: 0.84,
+        };
+      }
+      return goldenModelRunner({ task, messages });
+    },
+    now: new Date(),
+  });
+
+  const top = result.recommendations?.[0];
+  assert(result.type === 'recommend', 'Benefit alias boundary check should return recommendations.');
+  assert(/AI Agent|AI Hackathon|AI Startup/i.test(top?.event?.title || ''), 'Participation wording should not redirect to art/social events.');
+  assert(
+    !top.opportunityMatch?.matched?.some((signal) => /收益匹配：social|social/i.test(String(signal))),
+    'Participation wording should not be misclassified as social benefit through art substring.'
+  );
+
+  return {
+    topEvent: top.event.title,
+    matched: top.opportunityMatch?.matched || [],
   };
 };
 
@@ -981,6 +1115,7 @@ const main = async () => {
     const eventRecommendation = await evaluateEventRecommendation(db);
     const eventRecommendationQueryMatrix = await evaluateEventRecommendationQueryMatrix(db);
     const intentLocalConstraintRetention = await evaluateIntentLocalConstraintRetention(db);
+    const localBenefitAliasBoundaries = await evaluateLocalBenefitAliasBoundaries(db);
     const rerankBackendCompletionAndGuardrail = await evaluateRerankBackendCompletionAndGuardrail(db);
     const negativeFeedbackReasonLearning = await evaluateNegativeFeedbackReasonLearning(db);
     const recommendationActionEvidence = await evaluateRecommendationActionEvidence(db);
@@ -1002,6 +1137,7 @@ const main = async () => {
         eventRecommendation,
         eventRecommendationQueryMatrix,
         intentLocalConstraintRetention,
+        localBenefitAliasBoundaries,
         rerankBackendCompletionAndGuardrail,
         negativeFeedbackReasonLearning,
         recommendationActionEvidence,

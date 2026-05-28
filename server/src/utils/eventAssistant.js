@@ -43,8 +43,16 @@ const EVENT_ASSISTANT_PUBLIC_FIELDS = [
 const AUDIENCE_ALIASES = EVENT_AUDIENCE_ALIASES;
 const AI_RECALL_LIMIT = 24;
 const BENEFIT_ALIASES = {
-  score: ['综测', '加分', '综合评价', '第二课堂', '学分', '素质分', '成长记实'],
-  volunteer_time: ['志愿', '时长', '工时', '小时', '公益', '志愿时长']
+  score: ['综测', '加分', '综合评价', '第二课堂', '学分', '素质分', '成长记实', 'score', 'score credit', 'comprehensive score', 'recognition'],
+  volunteer_time: ['志愿', '时长', '工时', '小时', '公益', '志愿时长', 'volunteer', 'volunteer time', 'volunteer hour', 'service hour'],
+  skill: ['技能', '实践', '实战', '项目', '作品集', 'demo', 'workshop', 'hands-on', 'hands on', 'project practice', 'portfolio'],
+  social: ['社交', '交流', '放松', '分享', '同伴', 'music', 'art', 'social', 'exchange']
+};
+const BENEFIT_LABELS = {
+  score: '综测/加分',
+  volunteer_time: '志愿时长',
+  skill: '技能成长',
+  social: '社交放松'
 };
 const AI_TOPIC_ALIASES = [
   'ai',
@@ -144,6 +152,29 @@ const includesPhrase = (haystack, phrase) => {
 };
 
 const includesAnyPhrase = (haystack, needles) => needles.some((needle) => includesPhrase(haystack, needle));
+
+const isPersonalizationSignal = (signal) => (
+  /行动证据|收藏|报名|正反馈|负反馈/.test(String(signal || ''))
+);
+
+const getBenefitMatch = (item, benefit) => {
+  const text = buildCandidateSemanticText(item);
+  if (benefit === 'score') {
+    return getComprehensiveEvaluationSignal(item.event) || includesAnyPhrase(text, BENEFIT_ALIASES.score)
+      ? '综测/加分'
+      : '';
+  }
+  if (benefit === 'volunteer_time') {
+    const volunteerTime = sanitizeText(item.event?.volunteer_time, 80);
+    return volunteerTime || includesAnyPhrase(text, BENEFIT_ALIASES.volunteer_time)
+      ? `志愿时长${volunteerTime ? ` ${volunteerTime}` : ''}`
+      : '';
+  }
+  if (BENEFIT_ALIASES[benefit]?.length && includesAnyPhrase(text, BENEFIT_ALIASES[benefit])) {
+    return getBenefitLabel(benefit);
+  }
+  return includesTermOrAlias(text, benefit) ? getBenefitLabel(benefit) : '';
+};
 
 const expandSearchAliases = (value) => {
   const text = sanitizeText(value, 80);
@@ -309,7 +340,7 @@ const buildAssistantIntent = ({ query, clarificationAnswer }) => {
 const detectBenefits = (text) => {
   const lowered = text.toLowerCase();
   return Object.entries(BENEFIT_ALIASES)
-    .filter(([, aliases]) => includesAny(lowered, aliases))
+    .filter(([, aliases]) => includesAnyPhrase(lowered, aliases))
     .map(([benefit]) => benefit);
 };
 
@@ -594,6 +625,8 @@ const clampNumber = (value, min, max, fallback = 0) => {
 
 const mergeUniqueText = (...groups) => uniqueTextArray(groups.flat(), 16, 80);
 
+const getBenefitLabel = (benefit) => BENEFIT_LABELS[benefit] || sanitizeText(benefit, 40);
+
 const deriveHardConstraintsFromIntent = (intent = {}) => {
   const constraints = [];
   if (intent.dateConstraints?.length) {
@@ -608,8 +641,9 @@ const deriveHardConstraintsFromIntent = (intent = {}) => {
   if (intent.audiences?.length) {
     constraints.push(...intent.audiences.map((item) => `面向对象：${item}`));
   }
-  if (intent.benefits?.includes('score')) constraints.push('收益：综测/加分');
-  if (intent.benefits?.includes('volunteer_time')) constraints.push('收益：志愿时长');
+  if (intent.benefits?.length) {
+    constraints.push(...intent.benefits.map((item) => `收益：${getBenefitLabel(item)}`));
+  }
   if (intent.format) constraints.push(`参与形式：${intent.format}`);
   return uniqueTextArray(constraints, 10, 80);
 };
@@ -1606,15 +1640,16 @@ const getHardConstraintScore = (item, intent = {}, now = new Date()) => {
   signals.push(...timeMatch.signals);
   misses.push(...timeMatch.misses);
 
-  if (intent.benefits?.includes('score')) {
+  uniqueTextArray(intent.benefits || [], 8).forEach((benefit) => {
     possible += 14;
-    if (getComprehensiveEvaluationSignal(item.event) || includesAnyPhrase(text, BENEFIT_ALIASES.score)) {
+    const matched = getBenefitMatch(item, benefit);
+    if (matched) {
       score += 14;
-      signals.push('收益匹配：综测/加分');
+      signals.push(`收益匹配：${matched}`);
     } else {
-      misses.push('综测/加分');
+      misses.push(`收益：${benefit}`);
     }
-  }
+  });
 
   if (intent.format) {
     possible += 8;
@@ -1704,7 +1739,11 @@ const buildAiCandidatePool = async ({
         ...item,
         hardConstraint,
         aiScore: item.aiScore + Math.round(hardConstraint.score * 1.2),
-        signals: unique([...hardConstraint.signals, ...item.signals]).slice(0, 8)
+        signals: unique([
+          ...item.signals.filter(isPersonalizationSignal),
+          ...hardConstraint.signals,
+          ...item.signals
+        ]).slice(0, 8)
       };
     })
     .sort((left, right) => (
@@ -1749,6 +1788,8 @@ const buildClarificationOptions = (intent, profile) => {
     intent.campuses.length ? `只看 ${intent.campuses[0]} 附近` : '',
     intent.benefits.includes('score') ? '优先有综测/加分信息' : '',
     intent.benefits.includes('volunteer_time') ? '优先有志愿时长' : '',
+    intent.benefits.includes('skill') ? '优先能提升技能或作品集' : '',
+    intent.benefits.includes('social') ? '优先轻松交流和社交' : '',
     profile.actionEvidence?.positiveCategories?.length
       ? `按你最近更常选择的 ${CATEGORY_LABELS[profile.actionEvidence.positiveCategories[0].value] || profile.actionEvidence.positiveCategories[0].value} 方向`
       : '',
@@ -1794,6 +1835,22 @@ const buildReasoningTrace = ({
     (item.matchSignals || item.candidate?.signals || [])
       .some((signal) => String(signal).includes('行动证据') || String(signal).includes('收藏') || String(signal).includes('报名') || String(signal).includes('负反馈'))
   ));
+  const signalText = topSignals.join(' ');
+  const hasIntentTopicCategory = Boolean(intent.categories?.length || intent.topics?.length);
+  const hasIntentHardConstraint = Boolean(
+    intent.campuses?.length
+    || intent.organizers?.length
+    || intent.audiences?.length
+    || intent.benefits?.length
+    || intent.format
+    || intent.dateConstraints?.length
+    || intent.timePreference
+  );
+  const hasHardConstraintDiagnostics = recommendations.some((item) => (
+    Number(item.diagnostics?.hardConstraintPossible || 0) > 0
+    || Number(item.diagnostics?.hardConstraintScore || 0) > 0
+    || Array.isArray(item.diagnostics?.hardConstraintMatched)
+  ));
   const weakOrMissing = [];
 
   if (!intent.campuses?.length) weakOrMissing.push('未指定校区');
@@ -1809,10 +1866,13 @@ const buildReasoningTrace = ({
     uncertainty: weakOrMissing.slice(0, 4),
     scoringFactors: {
       lifecycle: true,
-      hardConstraints: topSignals.some((signal) => /匹配|硬约束|校区|地点|面向对象|主办方|学院|收益|形式/.test(String(signal))),
-      topicCategory: topSignals.some((signal) => /主题|类型|关键词|AI画像/.test(String(signal))),
-      userProfile: topSignals.some((signal) => /你|画像|兴趣|收藏|报名|行动证据/.test(String(signal))),
-      negativeFeedback: topSignals.some((signal) => /负反馈|降低/.test(String(signal))),
+      hardConstraints: hasIntentHardConstraint
+        || hasHardConstraintDiagnostics
+        || /匹配|硬约束|校区|地点|面向对象|主办方|学院|收益|形式|constraint|campus|organizer|audience|benefit|format/i.test(signalText),
+      topicCategory: hasIntentTopicCategory
+        || /主题|类型|关键词|AI画像|topic|category|keyword|profile/i.test(signalText),
+      userProfile: /你|画像|兴趣|收藏|报名|行动证据|profile|interest|favorite|registration|action evidence/i.test(signalText),
+      negativeFeedback: /负反馈|降低|negative|downrank|feedback/i.test(signalText),
       historicalFallback: Boolean(usedHistoricalFallback)
     },
     weakOrMissing: weakOrMissing.slice(0, 4),
@@ -1849,7 +1909,13 @@ const buildDecisionHint = ({ item, index, recommendations }) => {
 };
 
 const buildOpportunityMatch = ({ item, index, recommendations, reasoningTrace }) => {
-  const matched = unique(item.matchSignals || []).slice(0, 4);
+  const matchedSignals = unique(item.matchSignals || []);
+  const priorityMatched = [
+    ...matchedSignals.filter((signal) => /行动证据|收藏|报名|负反馈|profile|favorite|registration|feedback/i.test(String(signal))),
+    ...matchedSignals.filter((signal) => /收益|主题|关键词|类型|AI topic|topic|skill|social|volunteer/i.test(String(signal))),
+    ...matchedSignals
+  ];
+  const matched = unique(priorityMatched).slice(0, 5);
   const missing = unique(item.diagnostics?.hardConstraintMisses || []).slice(0, 4);
   const uncertainty = unique([
     ...(reasoningTrace?.uncertainty || []),
@@ -1886,8 +1952,7 @@ const buildIntentSummary = (intent, profile) => {
   if (intent.categories.length) parts.push(`类型：${intent.categories.map((item) => CATEGORY_LABELS[item] || item).join('、')}`);
   if (intent.campuses.length) parts.push(`地点：${intent.campuses.join('、')}`);
   if (intent.audiences.length) parts.push(`对象：${intent.audiences.join('、')}`);
-  if (intent.benefits.includes('score')) parts.push('希望有综测信息');
-  if (intent.benefits.includes('volunteer_time')) parts.push('希望有志愿时长');
+  if (intent.benefits.length) parts.push(`收益：${intent.benefits.map(getBenefitLabel).join('、')}`);
   if (intent.format) parts.push(intent.format === 'online' ? '偏线上' : '偏线下');
 
   const profileSummary = buildProfileSummary(profile);
@@ -1905,7 +1970,7 @@ const maybeRememberPreference = async (db, userId, intent, rememberPreference) =
   const content = sanitizeText(
     [
       intent.categories.length ? `类型偏好：${intent.categories.map((item) => CATEGORY_LABELS[item] || item).join('、')}` : '',
-      intent.benefits.length ? `收益偏好：${intent.benefits.join('、')}` : '',
+      intent.benefits.length ? `收益偏好：${intent.benefits.map(getBenefitLabel).join('、')}` : '',
       intent.format ? `参与方式：${intent.format === 'online' ? '线上' : '线下'}` : '',
       intent.campuses.length ? `校区：${intent.campuses.join('、')}` : '',
       intent.topics.length ? `关键词：${intent.topics.slice(0, 5).join('、')}` : ''
@@ -2315,10 +2380,6 @@ const completeRerankRecommendations = ({ recommendations = [], candidates = [] }
   }));
 };
 
-const isPersonalizationSignal = (signal) => (
-  /行动证据|收藏|报名|正反馈|负反馈/.test(String(signal || ''))
-);
-
 const mergeRecommendationSignals = ({
   modelSignals = [],
   candidateSignals = [],
@@ -2468,7 +2529,7 @@ const buildAiRecommendationResponse = ({
           modelSignals: promoted.matchedSignals || [],
           candidateSignals: best.signals || [],
           hardConstraintSignals: best.hardConstraint?.signals || [],
-          limit: 4
+          limit: 8
         })
       ])
     });
@@ -3091,6 +3152,9 @@ const recordEventAssistantRun = async (db, response = {}, userId = null) => {
     const opportunityMissingCount = recommendations.reduce((sum, item) => (
       sum + Number(item.opportunityMatch?.missing?.length || 0)
     ), 0);
+    const opportunityMatchedCount = recommendations.reduce((sum, item) => (
+      sum + Number(item.opportunityMatch?.matched?.length || 0)
+    ), 0);
     const backendCompletedRecommendationCount = recommendations.filter((item) => item.diagnostics?.backendCompleted).length;
     const opportunityFeedbackLearningUsed = recommendations.some((item) => item.opportunityMatch?.feedbackLearning?.used);
     await db.run(
@@ -3123,6 +3187,7 @@ const recordEventAssistantRun = async (db, response = {}, userId = null) => {
           actionEvidenceUsed: Boolean(reasoningTrace.actionEvidenceUsed),
           opportunityStage: reasoningTrace.opportunityStage || OPPORTUNITY_MATCH_STAGE,
           averageHardConstraintRatio,
+          opportunityMatchedCount,
           opportunityMissingCount,
           backendCompletedRecommendationCount,
           opportunityFeedbackLearningUsed,

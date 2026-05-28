@@ -84,11 +84,14 @@ const categoryOptions = [
 const benefitOptions = [
   { value: "score", label: "综测" },
   { value: "volunteer_time", label: "志愿时长" },
+  { value: "skill", label: "技能成长" },
+  { value: "social", label: "社交放松" },
 ];
 
 const quickPrompts = [
   { label: "新生线下", prompt: "适合新生参加的线下活动，最好在紫金港附近" },
   { label: "综测/志愿", prompt: "推荐有综测信息或者志愿时长的活动" },
+  { label: "技能作品集", prompt: "推荐能提升技能、适合做作品集的实践活动" },
   { label: "AI 讲座", prompt: "我想参加 AI、科技或创新创业相关的讲座" },
   { label: "本周可去", prompt: "这周能参加、时间比较近的活动有哪些" },
 ];
@@ -121,15 +124,25 @@ const getDiagnosticsSummary = (diagnostics) => {
 
 const getOpportunityMatchPreview = (opportunityMatch) => {
   if (!opportunityMatch) return null;
-  const normalize = (value) => String(value || "").replace(/[：:].*$/, "").trim();
+  const normalize = (value) => String(value || "").trim();
+  const uniqueValues = (values) => Array.from(new Set(values.map(normalize).filter(Boolean)));
+  const prioritize = (values, patterns, max) => {
+    const normalized = uniqueValues(values);
+    const priority = patterns.flatMap((pattern) => normalized.filter((value) => pattern.test(value)));
+    return uniqueValues([...priority, ...normalized]).slice(0, max);
+  };
   const matched = Array.isArray(opportunityMatch.matched)
-    ? opportunityMatch.matched.map(normalize).filter(Boolean).slice(0, 2)
+    ? prioritize(
+      opportunityMatch.matched,
+      [/行动证据|收藏|报名|反馈/, /收益|综测|志愿|skill|social|score|volunteer/i, /主题|关键词|类型|topic|AI/i],
+      4,
+    )
     : [];
   const missing = Array.isArray(opportunityMatch.missing)
-    ? opportunityMatch.missing.map(normalize).filter(Boolean).slice(0, 2)
+    ? prioritize(opportunityMatch.missing, [/收益|综测|志愿|地点|时间|对象|形式/], 3)
     : [];
   const uncertainty = Array.isArray(opportunityMatch.uncertainty)
-    ? opportunityMatch.uncertainty.map(normalize).filter(Boolean).slice(0, 1)
+    ? uniqueValues(opportunityMatch.uncertainty).slice(0, 2)
     : [];
   return {
     matched,

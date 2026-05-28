@@ -59,9 +59,14 @@ const assistantResponse = {
       },
       opportunityMatch: {
         stage: "trusted_decision_loop_v1",
-        matched: ["主办方/学院匹配", "校区/地点匹配"],
-        missing: ["面向对象"],
-        uncertainty: ["未指定具体学院年级"],
+        matched: [
+          "主办方/学院匹配：College of Computer Science",
+          "校区/地点匹配：Zijingang",
+          "收益匹配：综测/加分",
+          "行动证据显示你更常选择讲座",
+        ],
+        missing: ["面向对象", "收益：志愿时长"],
+        uncertainty: ["未指定具体学院年级", "时间偏好不明确"],
         decisionHint: "优先推荐「AI Agent Product Workshop」，因为它更完整满足你明确提出的条件。",
         feedbackLearning: { used: true, signals: ["行动证据显示你更常选择讲座"] },
       },
@@ -102,6 +107,10 @@ test.describe("event assistant flow", () => {
     await page.goto("/events");
 
     await page.getByRole("button", { name: /AI/ }).click();
+    await expect(page.getByRole("button", { name: "技能作品集" })).toBeVisible();
+    await page.getByRole("button", { name: "我的推荐偏好" }).click();
+    await expect(page.getByRole("button", { name: "技能成长" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "社交放松" })).toBeVisible();
     await page.getByPlaceholder(/比如/).fill("AI project at Zijingang with score");
     await page.getByRole("button", { name: "开始推荐" }).click();
 
@@ -109,8 +118,11 @@ test.describe("event assistant flow", () => {
     await expect(page.getByText("硬约束优先")).toBeVisible();
     await expect(page.getByText("硬约束 54/68")).toBeVisible();
     await expect(page.getByText(/优先推荐/)).toBeVisible();
-    await expect(page.getByText("匹配：主办方/学院匹配")).toBeVisible();
+    await expect(page.getByText("匹配：行动证据显示你更常选择讲座")).toBeVisible();
+    await expect(page.getByText("匹配：收益匹配：综测/加分")).toBeVisible();
     await expect(page.getByText("缺失：面向对象")).toBeVisible();
+    await expect(page.getByText("缺失：收益：志愿时长")).toBeVisible();
+    await expect(page.getByText("不确定：时间偏好不明确")).toBeVisible();
     await expect(page.getByText("已参考反馈")).toBeVisible();
 
     await page.getByRole("button", { name: "推荐不适合我" }).click();
@@ -131,6 +143,7 @@ test.describe("event assistant flow", () => {
     await page.goto("/events");
 
     await page.getByRole("button", { name: /AI 活动助手/ }).click();
+    await expect(page.getByRole("button", { name: "技能作品集" })).toBeVisible();
     await page.getByPlaceholder(/比如/).fill("AI project at Zijingang with score");
     await page.getByRole("button", { name: "开始推荐" }).click();
 
@@ -138,6 +151,7 @@ test.describe("event assistant flow", () => {
     await expect(page.getByRole("button", { name: new RegExp(event.title) })).toBeVisible();
     await expect(page.getByText("硬约束 54/68")).toBeVisible();
     await expect(page.getByText(/优先推荐/)).toBeVisible();
+    await expect(page.getByText("匹配：收益匹配：综测/加分")).toBeVisible();
 
     await page.getByRole("button", { name: "推荐不适合我" }).click();
     await expect(page.getByRole("button", { name: "地点不合适" })).toBeVisible();
