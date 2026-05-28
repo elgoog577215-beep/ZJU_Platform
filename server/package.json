@@ -19,6 +19,7 @@
     "check:ai-agents": "node scripts/check-ai-agent-registry.js",
     "eval:ai-golden": "node scripts/evaluate-ai-golden.js",
     "bench:event-profiles": "node scripts/benchmark-event-profile-speed.js",
+    "bench:event-assistant-startup": "node scripts/benchmark-event-assistant-startup.js",
     "stress:ai": "node scripts/stress-ai-assistants.js",
     "eval:ai-live": "node scripts/live-evaluate-ai-assistants.js",
     "agents:spec": "node scripts/generate-ai-agent-spec.js",

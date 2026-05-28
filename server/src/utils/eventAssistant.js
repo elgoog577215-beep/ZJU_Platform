@@ -2967,8 +2967,10 @@ const runUnifiedEventAssistantTurn = async ({
     recordEventAssistantRun,
     logInvalidModelOutput,
   });
-  const profile = await timeEventAssistantStep(timings, 'profileLoadMs', () => services.profile.load(db, userId));
-  const grouped = await timeEventAssistantStep(timings, 'candidateLoadMs', () => services.retrieval.loadAll(db, now));
+  const [profile, grouped] = await Promise.all([
+    timeEventAssistantStep(timings, 'profileLoadMs', () => services.profile.load(db, userId)),
+    timeEventAssistantStep(timings, 'candidateLoadMs', () => services.retrieval.loadAll(db, now))
+  ]);
   const coverage = services.retrieval.summarizeCoverage(grouped);
   const futurePool = [...grouped.upcoming, ...grouped.ongoing].slice(0, MAX_CANDIDATES);
   let intentModelStatus = null;
