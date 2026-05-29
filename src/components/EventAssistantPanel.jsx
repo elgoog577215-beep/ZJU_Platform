@@ -287,6 +287,22 @@ const EventAssistantPanel = ({
     await sendAssistantRequest({ query: prompt }, prompt, false);
   };
 
+  const recordDecisionAction = async (item, actionType, metadata = {}) => {
+    if (!item?.event?.id || !assistantState?.assistantRunId) return;
+    try {
+      await api.post("/events/assistant/action", {
+        eventId: item.event.id,
+        actionType,
+        assistantRunId: assistantState.assistantRunId,
+        recommendationRank: item.rank || null,
+        source: variant === "fullscreen" ? "event_assistant_mobile" : "event_assistant_card",
+        metadata,
+      }, { silent: true });
+    } catch {
+      // Decision telemetry should never block the user's action.
+    }
+  };
+
   const submitFeedback = async (item, feedback, reasonValue = "") => {
     if (!item?.event?.id) return;
 
@@ -300,6 +316,9 @@ const EventAssistantPanel = ({
         eventId: item.event.id,
         feedback,
         query: originalQuery,
+        assistantRunId: assistantState?.assistantRunId,
+        recommendationRank: item.rank || null,
+        source: variant === "fullscreen" ? "event_assistant_mobile" : "event_assistant_card",
         reason: feedback === "down" && reasonLabel
           ? `${reasonLabel}：${item.reason}`
           : item.reason,
@@ -955,7 +974,13 @@ const EventAssistantPanel = ({
                           >
                           <button
                             type="button"
-                            onClick={() => onOpenEvent(item.event)}
+                            onClick={() => {
+                              recordDecisionAction(item, "view_detail", {
+                                surface: "recommendation_card",
+                                nextAction: item.opportunityMatch?.decisionSupport?.nextAction || "",
+                              });
+                              onOpenEvent(item.event);
+                            }}
                             className="group w-full text-left"
                           >
                             <div className="flex items-start justify-between gap-3">

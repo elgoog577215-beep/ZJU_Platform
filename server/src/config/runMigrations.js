@@ -1140,6 +1140,29 @@ async function runMigrations(db) {
       CREATE INDEX IF NOT EXISTS idx_ai_assistant_runs_module_created
         ON ai_assistant_runs(module, created_at DESC);
 
+      CREATE TABLE IF NOT EXISTS event_recommendation_actions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        run_id INTEGER,
+        user_id INTEGER,
+        visitor_key TEXT,
+        event_id INTEGER NOT NULL,
+        action_type TEXT NOT NULL,
+        source TEXT,
+        recommendation_rank INTEGER,
+        metadata_json TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (run_id) REFERENCES ai_assistant_runs(id) ON DELETE SET NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+        FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_event_recommendation_actions_run
+        ON event_recommendation_actions(run_id, event_id, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_event_recommendation_actions_user
+        ON event_recommendation_actions(user_id, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_event_recommendation_actions_event
+        ON event_recommendation_actions(event_id, action_type, created_at DESC);
+
       CREATE TABLE IF NOT EXISTS ai_event_governance_suggestions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         run_id INTEGER NOT NULL,

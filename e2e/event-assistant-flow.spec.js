@@ -17,6 +17,7 @@ const event = {
 
 const assistantResponse = {
   type: "recommend",
+  assistantRunId: 501,
   scope: "mixed_future",
   recommendationMode: "future",
   coverage: { upcoming: 2, ongoing: 0, past: 1, unknown: 0, total: 3 },
@@ -118,11 +119,19 @@ const setupRoutes = async (page) => {
   await page.route("**/api/events/assistant/feedback", (route) =>
     route.fulfill({ json: { success: true } }),
   );
+  await page.route("**/api/events/assistant/action", (route) =>
+    route.fulfill({ json: { recorded: true } }),
+  );
 };
 
 test.describe("event assistant flow", () => {
   test("desktop assistant shows recommendation, diagnostics, feedback reasons, and opens detail", async ({ page }) => {
+    const actionRequests = [];
     await setupRoutes(page);
+    await page.route("**/api/events/assistant/action", async (route) => {
+      actionRequests.push(route.request().postDataJSON());
+      await route.fulfill({ json: { recorded: true } });
+    });
     await page.setViewportSize({ width: 1440, height: 1100 });
     await page.goto("/events");
 
@@ -153,6 +162,13 @@ test.describe("event assistant flow", () => {
     await page.getByRole("button", { name: "时间不合适" }).click();
 
     await page.getByRole("button", { name: new RegExp(event.title) }).click();
+    await expect.poll(() => actionRequests.length).toBeGreaterThanOrEqual(1);
+    expect(actionRequests[0]).toMatchObject({
+      eventId: event.id,
+      actionType: "view_detail",
+      assistantRunId: 501,
+      source: "event_assistant_card",
+    });
     await expect(
       page.getByRole("dialog", { name: event.title }).getByRole("heading", {
         name: event.title,

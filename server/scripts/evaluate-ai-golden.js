@@ -1,7 +1,11 @@
 const sqlite3 = require('sqlite3');
 const { open } = require('sqlite');
 
-const { runEventAssistantTurn } = require('../src/utils/eventAssistant');
+const {
+  runEventAssistantTurn,
+  recordEventAssistantDecisionAction,
+  recordEventAssistantFeedback
+} = require('../src/utils/eventAssistant');
 const { runHackathonAssistant } = require('../src/services/hackathonAssistantService');
 const { parseWithLLM } = require('../src/utils/wechat');
 const assistantService = require('../src/services/unifiedAiAssistantService');
@@ -88,6 +92,18 @@ const setupSchema = async (db) => {
       status TEXT NOT NULL DEFAULT 'completed',
       requested_by INTEGER,
       summary_json TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE event_recommendation_actions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      run_id INTEGER,
+      user_id INTEGER,
+      visitor_key TEXT,
+      event_id INTEGER NOT NULL,
+      action_type TEXT NOT NULL,
+      source TEXT,
+      recommendation_rank INTEGER,
+      metadata_json TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
     CREATE TABLE ai_event_governance_suggestions (
@@ -626,6 +642,7 @@ const evaluateEventRecommendation = async (db) => {
   assert(Array.isArray(result.reasoningTrace?.uncertainty), 'Recommendation trace should expose uncertainty signals.');
   assert(result.reasoningTrace?.scoringFactors?.hardConstraints === true, 'Recommendation trace should expose structured hard-constraint scoring factors.');
   assert(result.reasoningTrace?.scoringFactors?.topicCategory === true, 'Recommendation trace should expose structured topic/category scoring factors.');
+  assert(Number.isInteger(Number(result.assistantRunId)), 'Recommendation should expose assistant run id for decision-action attribution.');
   assert(typeof result.recommendations[0].diagnostics?.deterministicScore === 'number', 'Recommendation should expose deterministic score diagnostics.');
   assert(typeof result.recommendations[0].diagnostics?.semanticScore === 'number', 'Recommendation should expose semantic score diagnostics.');
   assert(typeof result.recommendations[0].diagnostics?.hardConstraintRatio === 'number', 'Recommendation should expose hard-constraint ratio diagnostics.');
@@ -653,6 +670,36 @@ const evaluateEventRecommendation = async (db) => {
   assert(typeof runSummary.decisionSupportTradeoffCount === 'number' && runSummary.decisionSupportTradeoffCount >= 1, 'Recommendation run should store decision-support tradeoff count.');
   assert(typeof runSummary.decisionSupportWatchoutCount === 'number', 'Recommendation run should store decision-support watchout count.');
   assert(!run.summary_json.includes('Find me a Zijingang AI activity'), 'Recommendation run should avoid raw query text.');
+
+  await recordEventAssistantDecisionAction({
+    db,
+    userId: 1,
+    eventId: result.recommendations[0].event.id,
+    actionType: 'view_detail',
+    assistantRunId: result.assistantRunId,
+    recommendationRank: result.recommendations[0].rank,
+    source: 'golden_eval',
+    metadata: {
+      nextAction: result.recommendations[0].opportunityMatch?.decisionSupport?.nextAction || ''
+    }
+  });
+  await recordEventAssistantFeedback({
+    db,
+    userId: 1,
+    eventId: result.recommendations[0].event.id,
+    feedback: 'up',
+    query: 'Find me a Zijingang AI activity this week.',
+    reason: 'golden positive action',
+    assistantRunId: result.assistantRunId,
+    recommendationRank: result.recommendations[0].rank,
+    source: 'golden_eval'
+  });
+  const actionRows = await db.all(
+    'SELECT action_type, run_id, event_id, source FROM event_recommendation_actions WHERE run_id = ? ORDER BY id ASC',
+    [result.assistantRunId]
+  );
+  assert(actionRows.some((row) => row.action_type === 'view_detail'), 'Decision action log should store view_detail.');
+  assert(actionRows.some((row) => row.action_type === 'feedback_up'), 'Decision action log should store feedback action.');
 
   return {
     topEvent: result.recommendations[0].event.title,

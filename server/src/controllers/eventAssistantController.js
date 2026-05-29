@@ -4,6 +4,7 @@ const {
   MAX_CLARIFICATION_LENGTH,
   runEventAssistantTurn,
   recordEventAssistantFeedback,
+  recordEventAssistantDecisionAction,
   createAssistantError
 } = require('../utils/eventAssistant');
 
@@ -116,7 +117,10 @@ const handleEventAssistantFeedback = async (req, res) => {
       eventId: req.body?.eventId,
       feedback: req.body?.feedback,
       query: req.body?.query,
-      reason: req.body?.reason
+      reason: req.body?.reason,
+      assistantRunId: req.body?.assistantRunId,
+      recommendationRank: req.body?.recommendationRank,
+      source: req.body?.source
     });
 
     res.json(result);
@@ -124,6 +128,34 @@ const handleEventAssistantFeedback = async (req, res) => {
     const statusCode = error.statusCode || 500;
     const code = error.code || 'EVENT_ASSISTANT_FEEDBACK_FAILED';
     const message = error.message || 'Failed to record assistant feedback.';
+
+    res.status(statusCode).json({
+      error: code,
+      message
+    });
+  }
+};
+
+const handleEventAssistantAction = async (req, res) => {
+  try {
+    const db = await getDb();
+    const result = await recordEventAssistantDecisionAction({
+      db,
+      userId: req.user?.id || null,
+      visitorKey: req.body?.visitorKey,
+      eventId: req.body?.eventId,
+      actionType: req.body?.actionType || req.body?.action,
+      assistantRunId: req.body?.assistantRunId,
+      source: req.body?.source,
+      recommendationRank: req.body?.recommendationRank,
+      metadata: req.body?.metadata
+    });
+
+    res.json(result);
+  } catch (error) {
+    const statusCode = error.statusCode || 500;
+    const code = error.code || 'EVENT_ASSISTANT_ACTION_FAILED';
+    const message = error.message || 'Failed to record assistant decision action.';
 
     res.status(statusCode).json({
       error: code,
@@ -216,6 +248,7 @@ const updateEventAssistantPreferences = async (req, res) => {
 module.exports = {
   handleEventAssistant,
   handleEventAssistantFeedback,
+  handleEventAssistantAction,
   getEventAssistantPreferences,
   updateEventAssistantPreferences
 };

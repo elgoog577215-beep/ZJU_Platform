@@ -170,6 +170,19 @@ const getBenefitMatch = (item, benefit) => {
       ? `志愿时长${volunteerTime ? ` ${volunteerTime}` : ''}`
       : '';
   }
+  if (benefit === 'skill') {
+    const explicitSkillText = normalizeSearchText(
+      item.event?.title,
+      item.event?.description,
+      item.event?.content,
+      item.event?.tags,
+      item.aiProfile?.summary,
+      ...(item.aiProfile?.benefits || [])
+    );
+    return includesAnyPhrase(explicitSkillText, BENEFIT_ALIASES.skill)
+      ? getBenefitLabel(benefit)
+      : '';
+  }
   if (BENEFIT_ALIASES[benefit]?.length && includesAnyPhrase(text, BENEFIT_ALIASES[benefit])) {
     return getBenefitLabel(benefit);
   }
@@ -1374,7 +1387,7 @@ const scoreEvent = (event, intent, profile, scope, now = new Date()) => {
 
   if (profile.actionEvidence?.positiveEventIds?.includes(Number(event.id))) {
     score += 6;
-    signals.unshift('你曾对这个活动有过收藏、报名或正反馈');
+    signals.unshift('行动证据显示你曾对这个活动有过收藏、报名或正反馈');
   }
 
   const start = parseLocalDateTime(event.date);
@@ -1403,10 +1416,23 @@ const scoreEvent = (event, intent, profile, scope, now = new Date()) => {
     score += Math.min(6, Number(event.views || 0) / 20);
   }
 
+  const prioritizedSignals = [
+    ...signals.filter((signal) => /综测|加分|志愿|收益|技能|作品集|主题|关键词|AI topic|score|skill|volunteer/i.test(String(signal))),
+    ...signals.filter((signal) => /校区|地点|主办方|学院|面向对象|形式|日期|时间|campus|organizer|audience|format|date/i.test(String(signal))),
+    ...signals.filter((signal) => /行动证据|收藏|报名|负反馈|profile|favorite|registration|feedback/i.test(String(signal))),
+    ...signals
+  ];
+  const uniqueSignals = unique(prioritizedSignals);
+  const limitedSignals = uniqueSignals.slice(0, 8);
+  const personalizedSignal = uniqueSignals.find(isPersonalizationSignal);
+  const visibleSignals = personalizedSignal && !limitedSignals.some(isPersonalizationSignal)
+    ? unique([...limitedSignals.slice(0, 7), personalizedSignal]).slice(0, 8)
+    : limitedSignals;
+
   return {
     event,
     score: Math.round(score),
-    signals: unique(signals).slice(0, 5),
+    signals: visibleSignals,
     category: eventCategory,
     scope
   };
@@ -1495,6 +1521,7 @@ const buildCandidateSemanticText = (item) => normalizeSearchText(
   item.event?.score,
   item.event?.volunteer_time,
   item.event?.category,
+  item.event?.tags,
   item.aiProfile?.summary,
   item.aiProfile?.category,
   ...(item.aiProfile?.topics || []),
@@ -1966,11 +1993,12 @@ const buildDecisionSupport = ({ item, index, recommendations, matched, missing, 
 const buildOpportunityMatch = ({ item, index, recommendations, reasoningTrace }) => {
   const matchedSignals = unique(item.matchSignals || []);
   const priorityMatched = [
-    ...matchedSignals.filter((signal) => /行动证据|收藏|报名|负反馈|profile|favorite|registration|feedback/i.test(String(signal))),
     ...matchedSignals.filter((signal) => /收益|主题|关键词|类型|AI topic|topic|skill|social|volunteer/i.test(String(signal))),
+    ...matchedSignals.filter((signal) => /校区|地点|主办方|学院|面向对象|形式|日期|时间|campus|organizer|audience|format|date/i.test(String(signal))),
+    ...matchedSignals.filter((signal) => /行动证据|收藏|报名|负反馈|profile|favorite|registration|feedback/i.test(String(signal))),
     ...matchedSignals
   ];
-  const matched = unique(priorityMatched).slice(0, 5);
+  const matched = unique(priorityMatched).slice(0, 6);
   const missing = unique(item.diagnostics?.hardConstraintMisses || []).slice(0, 4);
   const uncertainty = unique([
     ...(reasoningTrace?.uncertainty || []),
@@ -2450,12 +2478,21 @@ const mergeRecommendationSignals = ({
   limit = 6
 } = {}) => {
   const personalized = candidateSignals.filter(isPersonalizationSignal);
-  return unique([
-    ...personalized,
+  const merged = unique([
     ...hardConstraintSignals,
     ...modelSignals,
+    ...candidateSignals.filter((signal) => !isPersonalizationSignal(signal)),
+    ...personalized,
     ...candidateSignals
-  ]).slice(0, limit);
+  ]);
+  const limited = merged.slice(0, limit);
+  if (personalized.length && !limited.some(isPersonalizationSignal)) {
+    return unique([
+      ...limited.slice(0, Math.max(0, limit - 1)),
+      personalized[0]
+    ]).slice(0, limit);
+  }
+  return limited;
 };
 
 const rerankCandidatesWithModel = async ({
@@ -2612,7 +2649,7 @@ const buildAiRecommendationResponse = ({
       modelSignals: item.matchedSignals || [],
       candidateSignals: item.candidate.signals || [],
       hardConstraintSignals: item.candidate.hardConstraint?.signals || [],
-      limit: 6
+      limit: 8
     }),
     score: Math.round(item.score ?? item.candidate.aiScore ?? item.candidate.score),
     isHistorical: item.candidate.scope === 'past',
@@ -3221,7 +3258,7 @@ const runUnifiedEventAssistantTurn = async ({
 };
 
 const recordEventAssistantRun = async (db, response = {}, userId = null) => {
-  if (!db || !response) return;
+  if (!db || !response) return null;
   try {
     const recommendations = Array.isArray(response.recommendations) ? response.recommendations : [];
     const provisionalRecommendations = Array.isArray(response.provisionalRecommendations)
@@ -3274,7 +3311,7 @@ const recordEventAssistantRun = async (db, response = {}, userId = null) => {
     const decisionSupportPreferencePromptCount = recommendations.filter((item) => (
       item.opportunityMatch?.decisionSupport?.preferencePrompt
     )).length;
-    await db.run(
+    const result = await db.run(
       `
         INSERT INTO ai_assistant_runs (
           module,
@@ -3325,15 +3362,95 @@ const recordEventAssistantRun = async (db, response = {}, userId = null) => {
         }),
       ]
     );
+    return result?.lastID || result?.lastId || null;
   } catch {
     // Recommendation should remain available even on older databases without AI run tables.
+    return null;
   }
 };
 
 const runObservedEventAssistantTurn = async (options = {}) => {
   const response = await runUnifiedEventAssistantTurn(options);
-  await recordEventAssistantRun(options.db, response, options.userId);
-  return response;
+  const assistantRunId = await recordEventAssistantRun(options.db, response, options.userId);
+  return assistantRunId
+    ? { ...response, assistantRunId }
+    : response;
+};
+
+const EVENT_ASSISTANT_DECISION_ACTION_TYPES = new Set([
+  'view_detail',
+  'favorite',
+  'unfavorite',
+  'register',
+  'unregister',
+  'feedback_up',
+  'feedback_down'
+]);
+
+const recordEventAssistantDecisionAction = async ({
+  db,
+  userId = null,
+  visitorKey = '',
+  eventId,
+  actionType,
+  assistantRunId = null,
+  source = 'event_assistant',
+  recommendationRank = null,
+  metadata = {}
+}) => {
+  if (!db) return { recorded: false };
+  const normalizedEventId = Number(eventId);
+  const normalizedRunId = Number(assistantRunId);
+  const normalizedRank = Number(recommendationRank);
+  const normalizedActionType = sanitizeText(actionType, 40);
+
+  if (!Number.isInteger(normalizedEventId)) {
+    throw createAssistantError('EVENT_ASSISTANT_BAD_REQUEST', 'Valid event id is required.', 400);
+  }
+  if (!EVENT_ASSISTANT_DECISION_ACTION_TYPES.has(normalizedActionType)) {
+    throw createAssistantError('EVENT_ASSISTANT_BAD_REQUEST', 'Valid decision action is required.', 400);
+  }
+
+  const safeMetadata = {};
+  if (metadata && typeof metadata === 'object' && !Array.isArray(metadata)) {
+    for (const [key, value] of Object.entries(metadata).slice(0, 12)) {
+      const safeKey = sanitizeText(key, 40);
+      if (!safeKey) continue;
+      safeMetadata[safeKey] = typeof value === 'number' || typeof value === 'boolean'
+        ? value
+        : sanitizeText(String(value || ''), 180);
+    }
+  }
+
+  try {
+    await db.run(
+      `
+        INSERT INTO event_recommendation_actions (
+          run_id,
+          user_id,
+          visitor_key,
+          event_id,
+          action_type,
+          source,
+          recommendation_rank,
+          metadata_json
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `,
+      [
+        Number.isInteger(normalizedRunId) ? normalizedRunId : null,
+        userId || null,
+        sanitizeText(visitorKey, 120) || null,
+        normalizedEventId,
+        normalizedActionType,
+        sanitizeText(source, 80) || 'event_assistant',
+        Number.isInteger(normalizedRank) ? normalizedRank : null,
+        JSON.stringify(safeMetadata)
+      ]
+    );
+    return { recorded: true };
+  } catch {
+    return { recorded: false };
+  }
 };
 
 const recordEventAssistantFeedback = async ({
@@ -3342,7 +3459,10 @@ const recordEventAssistantFeedback = async ({
   eventId,
   feedback,
   query,
-  reason
+  reason,
+  assistantRunId = null,
+  recommendationRank = null,
+  source = 'event_assistant'
 }) => {
   const normalizedFeedback = feedback === 'up' ? 'up' : feedback === 'down' ? 'down' : '';
   const normalizedEventId = Number(eventId);
@@ -3371,6 +3491,20 @@ const recordEventAssistantFeedback = async ({
     ]
   );
 
+  await recordEventAssistantDecisionAction({
+    db,
+    userId,
+    eventId: normalizedEventId,
+    actionType: normalizedFeedback === 'up' ? 'feedback_up' : 'feedback_down',
+    assistantRunId,
+    recommendationRank,
+    source,
+    metadata: {
+      feedback: normalizedFeedback,
+      reason
+    }
+  });
+
   return { success: true };
 };
 
@@ -3387,5 +3521,6 @@ module.exports = {
   createAssistantError,
   parseAssistantIntent,
   loadUserEventProfile,
-  recordEventAssistantFeedback
+  recordEventAssistantFeedback,
+  recordEventAssistantDecisionAction
 };

@@ -227,6 +227,7 @@ router.post('/articles/:id/recover', authenticateToken, resourceController.resto
 // Event Registration Routes
 router.post('/events/assistant', optionalAuth, eventAssistantController.handleEventAssistant);
 router.post('/events/assistant/feedback', authenticateToken, eventAssistantController.handleEventAssistantFeedback);
+router.post('/events/assistant/action', optionalAuth, eventAssistantController.handleEventAssistantAction);
 router.get('/events/assistant/preferences', authenticateToken, eventAssistantController.getEventAssistantPreferences);
 router.put('/events/assistant/preferences', authenticateToken, eventAssistantController.updateEventAssistantPreferences);
 router.get('/events/distinct-options', resourceController.getEventDistinctOptions);

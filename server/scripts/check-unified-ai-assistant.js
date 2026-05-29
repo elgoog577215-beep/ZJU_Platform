@@ -54,6 +54,18 @@ const schemaSql = `
     summary_json TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+  CREATE TABLE event_recommendation_actions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id INTEGER,
+    user_id INTEGER,
+    visitor_key TEXT,
+    event_id INTEGER NOT NULL,
+    action_type TEXT NOT NULL,
+    source TEXT,
+    recommendation_rank INTEGER,
+    metadata_json TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
   CREATE TABLE ai_event_governance_suggestions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     run_id INTEGER NOT NULL,
