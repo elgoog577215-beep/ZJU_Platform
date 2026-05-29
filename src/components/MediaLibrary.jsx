@@ -1,14 +1,17 @@
-import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
+import React, { forwardRef, memo, useCallback, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   AlertCircle,
+  ArrowRight,
+  Box,
   Film,
   Image as ImageIcon,
+  Maximize2,
   Play,
   Upload,
   X,
 } from "lucide-react";
-import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
 import FavoriteButton from "./FavoriteButton";
 import Lightbox from "./Lightbox";
@@ -25,119 +28,199 @@ import api from "../services/api";
 import { getThumbnailUrl } from "../utils/imageUtils";
 import { useReducedMotion } from "../utils/animations";
 
-const PhotoTile = memo(({ photo, index, onClick, onToggleFavorite, isDayMode }) => (
-  <motion.article
-    initial={{ opacity: 0, y: 12 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.24, delay: Math.min(index, 8) * 0.025 }}
-    className={`group relative aspect-[4/3] overflow-hidden border ${isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-white/[0.04]"}`}
+const PhotoCard = memo(forwardRef(({ photo, index, onClick, onToggleFavorite, canAnimate, isDayMode }, ref) => (
+  <motion.div
+    ref={ref}
+    initial={canAnimate ? { opacity: 0, y: 16 } : false}
+    animate={canAnimate ? { opacity: 1, y: 0 } : undefined}
+    exit={canAnimate ? { opacity: 0, scale: 0.98 } : undefined}
+    transition={{
+      duration: 0.28,
+      delay: Math.min(index, 5) * 0.03,
+      ease: [0.25, 0.46, 0.45, 0.94],
+    }}
+    whileHover={canAnimate ? { y: -4, transition: { duration: 0.18 } } : undefined}
+    className={`break-inside-avoid relative group overflow-hidden rounded-2xl cursor-pointer backdrop-blur-sm border transition-all duration-300 w-full inline-block touch-manipulation mb-4 md:mb-6 ${
+      isDayMode
+        ? "day-card-lift"
+        : "bg-white/5 border-white/10 hover:shadow-2xl hover:shadow-indigo-500/10 hover:border-white/20"
+    }`}
+    onClick={() => onClick(index)}
   >
-    <button type="button" onClick={() => onClick(index)} className="block h-full w-full text-left">
-      <SmartImage
-        src={getThumbnailUrl(photo.url)}
-        alt={photo.title}
-        type="image"
-        className="h-full w-full"
-        imageClassName="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-      />
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/76 via-black/20 to-transparent p-3">
-        <h3 className="line-clamp-1 text-sm font-bold text-white">{photo.title || "未命名照片"}</h3>
-        {photo.category_name ? (
-          <p className="mt-1 text-xs text-white/70">{photo.category_name}</p>
-        ) : null}
-      </div>
-    </button>
-    <div className="absolute right-2 top-2" onClick={(event) => event.stopPropagation()}>
-      <FavoriteButton
-        itemId={photo.id}
-        itemType="photo"
-        size={16}
-        showCount
-        count={photo.likes || 0}
-        favorited={photo.favorited}
-        initialFavorited={photo.favorited}
-        className="rect-icon-button bg-black/38 p-2 text-white"
-        onToggle={(favorited, likes) => onToggleFavorite(photo.id, favorited, likes)}
-      />
-    </div>
-  </motion.article>
-));
+    <SmartImage
+      src={getThumbnailUrl(photo.url)}
+      alt={photo.title}
+      type="image"
+      className="w-full h-auto"
+      imageClassName="h-auto object-cover transform transition-transform duration-700 ease-out group-hover:scale-105"
+      blurPlaceholder={photo.blurPlaceholder}
+    />
 
-PhotoTile.displayName = "PhotoTile";
-
-const VideoListItem = memo(({ video, index, onClick, onToggleFavorite, isDayMode }) => (
-  <motion.article
-    initial={{ opacity: 0, x: 10 }}
-    animate={{ opacity: 1, x: 0 }}
-    transition={{ duration: 0.22, delay: Math.min(index, 8) * 0.025 }}
-    className={`group overflow-hidden border ${isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-white/[0.04]"}`}
-  >
     <div
-      role="button"
-      tabIndex={0}
-      onClick={() => onClick(video)}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onClick(video);
-        }
-      }}
-      className="block w-full cursor-pointer text-left"
+      className={`absolute inset-0 ${
+        isDayMode
+          ? "bg-gradient-to-t from-slate-950/76 via-slate-900/18 to-transparent"
+          : "bg-gradient-to-t from-black/90 via-black/40 to-transparent"
+      } opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4`}
     >
-      <div className="relative aspect-video overflow-hidden">
-        <SmartImage
-          src={getThumbnailUrl(video.thumbnail)}
-          alt={video.title}
-          type="video"
-          className="h-full w-full"
-          imageClassName="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-          iconSize={34}
-        />
-        <div className="absolute inset-0 flex items-center justify-center bg-black/18 opacity-90 transition-opacity group-hover:opacity-100">
-          <span className="rect-icon-button flex h-12 w-12 items-center justify-center bg-black/48 text-white">
-            <Play size={24} fill="white" className="ml-1" />
-          </span>
-        </div>
-      </div>
-      <div className="p-3">
-        <h3 className={`line-clamp-2 text-sm font-bold ${isDayMode ? "text-slate-950" : "text-white"}`}>
-          {video.title || "未命名视频"}
-        </h3>
-        <div className="mt-2 flex items-center justify-between gap-2">
-          <span className={`truncate text-xs ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-            {video.category_name || "未分类"}
-          </span>
-          <div
-            onClick={(event) => event.stopPropagation()}
-            onKeyDown={(event) => event.stopPropagation()}
-          >
-            <FavoriteButton
-              itemId={video.id}
-              itemType="video"
-              size={15}
-              showCount
-              count={video.likes || 0}
-              favorited={video.favorited}
-              initialFavorited={video.favorited}
-              className={`rect-icon-button p-1.5 ${isDayMode ? "bg-slate-50 text-slate-700" : "bg-white/5 text-white"}`}
-              onToggle={(favorited, likes) => onToggleFavorite(video.id, favorited, likes)}
-            />
+      <div className="flex flex-col gap-2 md:translate-y-3 md:group-hover:translate-y-0 transition-transform duration-300">
+        <div className="flex justify-between items-end gap-2">
+          <div className="min-w-0 flex-1">
+            <h3 className="text-lg font-bold text-[rgba(255,255,255,0.96)] drop-shadow-[0_2px_10px_rgba(15,23,42,0.45)] line-clamp-2">
+              {photo.title || "未命名照片"}
+            </h3>
+            {photo.category_name ? (
+              <p className="mt-1 text-xs font-medium text-white/72 line-clamp-1">
+                {photo.category_name}
+              </p>
+            ) : null}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div onClick={(event) => event.stopPropagation()}>
+              <FavoriteButton
+                itemId={photo.id}
+                itemType="photo"
+                size={18}
+                showCount
+                count={photo.likes || 0}
+                favorited={photo.favorited}
+                initialFavorited={photo.favorited}
+                className={`p-2 rounded-full backdrop-blur-md transition-all duration-200 text-white border ${
+                  isDayMode
+                    ? "bg-white/70 hover:bg-pink-500/30 border-white/40 shadow-[0_12px_24px_rgba(15,23,42,0.18)]"
+                    : "bg-white/10 border-white/10"
+                } hover:border-pink-500/50 hover:shadow-lg hover:shadow-pink-500/20`}
+                onToggle={(favorited, likes) => onToggleFavorite(photo.id, favorited, likes)}
+              />
+            </div>
+            <div
+              className={`p-2 rounded-full backdrop-blur-md border ${
+                isDayMode ? "bg-white/72 border-white/40 shadow-[0_12px_24px_rgba(15,23,42,0.18)]" : "bg-white/20 border-white/10"
+              } group-hover:bg-indigo-500 group-hover:text-white transition-all duration-300`}
+            >
+              <Maximize2 size={18} />
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </motion.article>
+
+    {typeof photo.likes === "number" && (
+      <div
+        className="absolute top-3 right-3 flex items-center gap-1 backdrop-blur-md rounded-full px-2 py-1 border border-white/10"
+        style={{ backgroundColor: isDayMode ? "rgba(255,255,255,0.82)" : "rgba(0,0,0,0.4)" }}
+      >
+        <span className="text-pink-400 text-xs">♥</span>
+        <span className={`text-xs font-medium ${isDayMode ? "text-slate-900" : "text-white"}`}>
+          {photo.likes}
+        </span>
+      </div>
+    )}
+  </motion.div>
+)));
+
+PhotoCard.displayName = "PhotoCard";
+
+const VideoCard = memo(({ video, index, onClick, onToggleFavorite, canAnimate, isDayMode }) => (
+  <motion.div
+    initial={canAnimate ? { opacity: 0, y: 14 } : false}
+    animate={canAnimate ? { opacity: 1, y: 0 } : undefined}
+    transition={canAnimate ? { duration: 0.24, delay: Math.min(index, 5) * 0.03 } : undefined}
+    onClick={() => onClick(video)}
+    className={`group rect-media-card relative aspect-video overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 ${
+      isDayMode
+        ? "bg-white/88 border-slate-200/80 hover:border-pink-300/50"
+        : "bg-[#111111]/84 border-white/10 hover:border-pink-500/30"
+    }`}
+  >
+    <SmartImage
+      src={getThumbnailUrl(video.thumbnail)}
+      alt={video.title}
+      type="video"
+      priority={index < 3}
+      className="w-full h-full"
+      imageClassName="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100"
+      iconSize={44}
+    />
+
+    {video.date && new Date() - new Date(video.date) < 7 * 24 * 60 * 60 * 1000 && (
+      <div className="absolute top-4 left-4 px-2 py-0.5 rounded-[4px] bg-pink-500 text-white text-[10px] font-bold uppercase tracking-wider shadow-none z-20">
+        New
+      </div>
+    )}
+
+    <div
+      className={`absolute inset-0 ${
+        isDayMode
+          ? "bg-gradient-to-t from-slate-950/60 via-slate-950/10 to-transparent"
+          : "bg-gradient-to-t from-black/70 via-black/15 to-transparent"
+      } opacity-60 group-hover:opacity-50 transition-opacity duration-300`}
+    />
+
+    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+      <div
+        className={`rect-icon-button flex h-14 w-14 items-center justify-center border group-hover:scale-105 transition-transform duration-300 relative ${
+          isDayMode ? "bg-white/84 text-slate-950 border-white/70" : "bg-black/45 text-white border-white/20"
+        }`}
+      >
+        <Play size={30} fill={isDayMode ? "#0f172a" : "white"} className={`${isDayMode ? "text-slate-950" : "text-white"} ml-1 relative z-10`} />
+      </div>
+    </div>
+
+    <div className="absolute bottom-0 left-0 w-full p-4 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+      <div className="flex justify-between items-end gap-3">
+        <div className="min-w-0 flex-1">
+          <h3 className="text-base md:text-lg font-bold text-[rgba(255,255,255,0.96)] drop-shadow-[0_2px_10px_rgba(15,23,42,0.5)] line-clamp-1">
+            {video.title || "未命名视频"}
+          </h3>
+          <p className="mt-1 text-xs font-medium text-white/68 line-clamp-1">
+            {video.category_name || "未分类"}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div onClick={(event) => event.stopPropagation()}>
+            <FavoriteButton
+              itemId={video.id}
+              itemType="video"
+              size={18}
+              showCount
+              count={video.likes || 0}
+              favorited={video.favorited}
+              initialFavorited={video.favorited}
+              className={`rect-icon-button p-2 transition-colors group/btn text-white ${
+                isDayMode ? "bg-white/76 border-white/50" : "bg-black/50 border-white/10"
+              }`}
+              onToggle={(favorited, likes) => onToggleFavorite(video.id, favorited, likes)}
+            />
+          </div>
+          <div
+            className={`rect-icon-button p-2 border group-hover:bg-pink-500 group-hover:text-white transition-all duration-300 ${
+              isDayMode ? "bg-white/76 border-white/50" : "bg-white/20 border-white/10"
+            }`}
+          >
+            <ArrowRight size={18} className="-rotate-45 group-hover:rotate-0 transition-transform duration-300" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </motion.div>
 ));
 
-VideoListItem.displayName = "VideoListItem";
+VideoCard.displayName = "VideoCard";
 
-const MediaEmptyState = ({ icon: Icon, title, description, isDayMode }) => (
-  <div
-    className={`flex min-h-[220px] flex-col items-center justify-center border border-dashed p-8 text-center ${isDayMode ? "border-slate-200 bg-white/70" : "border-white/10 bg-white/[0.03]"}`}
-  >
-    <Icon size={36} className={isDayMode ? "text-slate-400" : "text-gray-500"} />
-    <h3 className={`mt-4 text-base font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}>{title}</h3>
-    <p className={`mt-2 max-w-xs text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>{description}</p>
+const EmptyState = ({ icon: Icon, title, description, accent = "indigo", isDayMode }) => (
+  <div className="flex min-h-[260px] flex-col items-center justify-center px-4 py-16 text-center">
+    <div
+      className={`rounded-3xl p-8 mb-6 border backdrop-blur-xl ${
+        isDayMode ? "bg-white/88 border-slate-200/80" : "bg-white/5 border-white/10"
+      }`}
+    >
+      <Icon size={56} className={accent === "pink" ? "text-pink-400 opacity-80" : isDayMode ? "text-slate-400" : "text-gray-500"} />
+    </div>
+    <h3 className={`text-2xl font-bold mb-2 ${isDayMode ? "text-slate-900" : "text-white"}`}>{title}</h3>
+    <p className={`max-w-md ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>{description}</p>
   </div>
 );
 
@@ -152,8 +235,12 @@ const MediaLibrary = () => {
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [isMobileUploadOpen, setIsMobileUploadOpen] = useState(false);
   const { categories } = useMediaCategories();
-  const pageSize = settings.pagination_enabled === "true" ? 24 : 100;
+  const photoLimit = settings.pagination_enabled === "true" ? 18 : 48;
+  const videoLimit = settings.pagination_enabled === "true" ? 12 : 24;
   const categoryParam = categoryId ? Number(categoryId) : undefined;
+  const allowAmbientEffects =
+    !prefersReducedMotion &&
+    (typeof window === "undefined" || window.innerWidth >= 768);
 
   const {
     data: photos,
@@ -163,7 +250,7 @@ const MediaLibrary = () => {
     refresh: refreshPhotos,
   } = useCachedResource(
     "/photos",
-    { limit: pageSize, sort: "newest", category_id: categoryParam },
+    { limit: photoLimit, sort: "newest", category_id: categoryParam },
     { dependencies: [categoryParam, settings.pagination_enabled] },
   );
 
@@ -175,7 +262,7 @@ const MediaLibrary = () => {
     refresh: refreshVideos,
   } = useCachedResource(
     "/videos",
-    { limit: pageSize, sort: "newest", category_id: categoryParam },
+    { limit: videoLimit, sort: "newest", category_id: categoryParam },
     { dependencies: [categoryParam, settings.pagination_enabled] },
   );
 
@@ -203,24 +290,22 @@ const MediaLibrary = () => {
 
   useBackClose(Boolean(uploadType), () => setUploadType(null));
   useBackClose(isMobileUploadOpen, () => setIsMobileUploadOpen(false));
+  useBackClose(selectedVideo !== null, () => setSelectedVideo(null));
 
   const handlePhotoUpload = async (newItem) => {
     if (Array.isArray(newItem)) {
       for (const item of newItem) {
-        const payload = { ...item, category_id: item.category_id || categoryParam || null };
-        await api.post("/photos", payload);
+        await api.post("/photos", { ...item, category_id: item.category_id || categoryParam || null });
       }
       refreshPhotos({ clearCache: true });
       return;
     }
-    const payload = { ...newItem, category_id: newItem.category_id || categoryParam || null };
-    await api.post("/photos", payload);
+    await api.post("/photos", { ...newItem, category_id: newItem.category_id || categoryParam || null });
     refreshPhotos({ clearCache: true });
   };
 
   const handleVideoUpload = async (newItem) => {
-    const payload = { ...newItem, category_id: newItem.category_id || categoryParam || null };
-    await api.post("/videos", payload);
+    await api.post("/videos", { ...newItem, category_id: newItem.category_id || categoryParam || null });
     refreshVideos({ clearCache: true });
   };
 
@@ -254,32 +339,90 @@ const MediaLibrary = () => {
   const error = photosError || videosError;
 
   return (
-    <section className="relative z-10 min-h-screen overflow-hidden px-4 pb-[calc(env(safe-area-inset-bottom)+96px)] pt-[calc(env(safe-area-inset-top)+76px)] md:px-8 md:py-24">
+    <section className="pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:py-20 px-4 md:px-8 relative overflow-hidden flex-grow">
       <SEO title="影像库" description="按分类浏览现场照片与视频记录。" />
 
-      <div className="pointer-events-none fixed inset-0 z-0 hidden overflow-hidden md:block">
-        <div className={`absolute inset-x-0 top-24 h-px ${isDayMode ? "bg-slate-200/80" : "bg-white/10"}`} />
-        <div className={`absolute inset-x-0 top-52 h-px ${isDayMode ? "bg-slate-200/50" : "bg-white/10"}`} />
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        {allowAmbientEffects ? (
+          <>
+            <motion.div
+              animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.15, 0.1] }}
+              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-blue-500/10 blur-[130px]"
+            />
+            <motion.div
+              animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.12, 0.1] }}
+              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+              className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-cyan-500/10 blur-[120px]"
+            />
+          </>
+        ) : (
+          <>
+            <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-blue-500/10 blur-[90px] hidden md:block" />
+            <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-cyan-500/10 blur-[80px] hidden md:block" />
+          </>
+        )}
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-7xl">
-        <div className="mb-5 flex flex-col gap-4 md:mb-8 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className={`text-xs font-black uppercase tracking-[0.28em] ${isDayMode ? "text-indigo-600" : "text-indigo-300"}`}>
-              Media Library
-            </p>
-            <h1 className={`mt-2 text-3xl font-black tracking-tight md:text-5xl ${isDayMode ? "text-slate-950" : "text-white"}`}>
+      <div className="max-w-7xl w-full mx-auto relative z-10">
+        <motion.div
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+          animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="mb-6 md:mb-12 text-center"
+        >
+          <div className="md:hidden text-left mb-4">
+            <h1 className={`text-2xl font-bold tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}>
               影像库
             </h1>
-            <p className={`mt-3 max-w-2xl text-sm leading-6 md:text-base ${isDayMode ? "text-slate-600" : "text-gray-400"}`}>
-              按分类归档现场照片与视频记录。当前分类：{activeCategoryName}。
+            <p className={`text-sm mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+              当前分类：{activeCategoryName}
             </p>
           </div>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+
+          <motion.button
+            whileHover={prefersReducedMotion ? undefined : { scale: 1.05, rotate: 90 }}
+            whileTap={prefersReducedMotion ? undefined : { scale: 0.95 }}
+            onClick={() => openUpload()}
+            className={`hidden md:block absolute right-0 top-0 md:top-2 p-2 md:p-3 rounded-full backdrop-blur-md border transition-all ${
+              isDayMode
+                ? "day-quiet-button text-slate-700 hover:text-indigo-600"
+                : "bg-white/10 hover:bg-white/20 text-white border-white/10 hover:shadow-lg hover:shadow-indigo-500/20"
+            }`}
+            title="上传影像"
+          >
+            <Upload size={18} className="md:w-5 md:h-5" />
+          </motion.button>
+
+          <motion.h2
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+            animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="hidden md:block text-4xl md:text-5xl font-bold font-serif mb-4 md:mb-6"
+          >
+            影像库
+          </motion.h2>
+          <motion.p
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+            animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="hidden md:block text-gray-400 max-w-xl mx-auto mb-6 md:mb-8 text-sm md:text-base"
+          >
+            按分类归档现场照片与视频记录。当前分类：{activeCategoryName}。
+          </motion.p>
+
+          <motion.div
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+            animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="flex flex-col items-stretch justify-center gap-3 md:flex-row md:items-center md:gap-4 relative z-50"
+          >
             <select
               value={categoryId}
               onChange={(event) => setCategoryId(event.target.value)}
-              className={`rect-field min-h-[44px] min-w-[220px] px-3 py-2 text-sm ${isDayMode ? "bg-white text-slate-900" : "bg-black/40 text-white"}`}
+              className={`rect-field min-h-[44px] w-full px-3 py-2 text-sm md:w-[240px] ${
+                isDayMode ? "bg-white/92 text-slate-900 border-slate-200/80" : "bg-black/32 text-white border-white/10"
+              }`}
               aria-label="影像分类筛选"
             >
               <option value="">全部分类</option>
@@ -292,109 +435,151 @@ const MediaLibrary = () => {
             <button
               type="button"
               onClick={() => openUpload()}
-              className="rect-button-primary inline-flex min-h-[44px] items-center justify-center gap-2 px-4 py-2 text-sm font-bold text-white"
+              className={`rect-button-secondary inline-flex min-h-[44px] items-center justify-center gap-2 px-4 py-2 text-sm font-semibold md:hidden ${
+                isDayMode ? "text-slate-700" : "text-white"
+              }`}
             >
               <Upload size={17} />
               上传影像
             </button>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {error ? (
-          <div className="rect-panel flex items-center gap-3 border-red-500/25 bg-red-500/10 p-4 text-red-300">
-            <AlertCircle size={20} />
-            影像内容加载失败，请稍后重试。
-          </div>
+          <motion.div
+            initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.95 }}
+            animate={prefersReducedMotion ? undefined : { opacity: 1, scale: 1 }}
+            className="mb-8 flex flex-col items-center justify-center py-12 text-center"
+          >
+            <AlertCircle size={48} className="text-red-400 mb-4 opacity-50 mx-auto" />
+            <p className="text-gray-300 mb-6">影像内容加载失败，请稍后重试。</p>
+            <button
+              type="button"
+              onClick={() => {
+                refreshPhotos({ clearCache: true });
+                refreshVideos({ clearCache: true });
+              }}
+              className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all border border-white/10 hover:border-white/30"
+            >
+              重试
+            </button>
+          </motion.div>
         ) : null}
 
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)] lg:items-start">
-          <section className="order-1">
-            <div className="mb-3 flex items-center justify-between">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)] lg:items-start">
+          <section className="order-1 min-w-0">
+            <div className="mb-4 flex items-center justify-between gap-4">
               <div>
-                <h2 className={`text-xl font-black ${isDayMode ? "text-slate-950" : "text-white"}`}>现场照片</h2>
-                <p className={`mt-1 text-xs ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+                <h2 className={`text-2xl font-bold font-serif ${isDayMode ? "text-slate-900" : "text-white"}`}>
+                  现场照片
+                </h2>
+                <p className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
                   {photos.length} 张照片
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => openUpload("image")}
-                className={`rect-button-secondary hidden items-center gap-2 px-3 py-2 text-sm font-semibold md:inline-flex ${isDayMode ? "text-slate-700" : "text-white"}`}
+                className={`rect-icon-button hidden p-2.5 transition-all md:inline-flex ${
+                  isDayMode ? "text-slate-700 hover:text-indigo-600" : "text-white"
+                }`}
+                title="上传照片"
               >
-                <ImageIcon size={16} />
-                上传照片
+                <Upload size={18} />
               </button>
             </div>
 
-            {loading && photos.length === 0 ? (
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-                {[...Array(9)].map((_, index) => (
-                  <div key={index} className={`aspect-[4/3] animate-pulse border ${isDayMode ? "border-slate-200 bg-slate-100" : "border-white/10 bg-white/5"}`} />
+            {photosLoading && photos.length === 0 ? (
+              <div className="columns-1 sm:columns-2 gap-4 md:gap-6">
+                {[...Array(6)].map((_, index) => (
+                  <div
+                    key={index}
+                    className={`mb-4 break-inside-avoid rounded-2xl animate-pulse ${
+                      index % 3 === 0 ? "h-72" : "h-52"
+                    } ${isDayMode ? "bg-slate-100 border border-slate-200/80" : "bg-white/5 border border-white/10"}`}
+                  />
                 ))}
               </div>
             ) : photos.length === 0 ? (
-              <MediaEmptyState
-                icon={ImageIcon}
+              <EmptyState
+                icon={Box}
                 title="暂无现场照片"
                 description="这个分类下还没有图片，上传时选择该分类即可出现在这里。"
                 isDayMode={isDayMode}
               />
             ) : (
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-                {photos.map((photo, index) => (
-                  <PhotoTile
-                    key={photo.id}
-                    photo={photo}
-                    index={prefersReducedMotion ? 0 : index}
-                    onClick={setSelectedPhotoIndex}
-                    onToggleFavorite={handleTogglePhotoFavorite}
-                    isDayMode={isDayMode}
-                  />
-                ))}
-              </div>
+              <motion.div
+                layout={!prefersReducedMotion && typeof window !== "undefined" && window.innerWidth >= 768}
+                className="columns-1 sm:columns-2 gap-4 md:gap-6 pb-4 md:pb-0"
+              >
+                <AnimatePresence mode="popLayout">
+                  {photos.map((photo, index) => (
+                    <PhotoCard
+                      key={photo.id}
+                      photo={photo}
+                      index={index}
+                      onClick={setSelectedPhotoIndex}
+                      onToggleFavorite={handleTogglePhotoFavorite}
+                      canAnimate={!prefersReducedMotion && index < 8}
+                      isDayMode={isDayMode}
+                    />
+                  ))}
+                </AnimatePresence>
+              </motion.div>
             )}
           </section>
 
-          <aside className="order-2">
-            <div className="mb-3 flex items-center justify-between">
+          <aside className="order-2 min-w-0">
+            <div className="mb-4 flex items-center justify-between gap-4">
               <div>
-                <h2 className={`text-xl font-black ${isDayMode ? "text-slate-950" : "text-white"}`}>视频记录</h2>
-                <p className={`mt-1 text-xs ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+                <h2 className={`text-2xl font-bold font-serif ${isDayMode ? "text-slate-900" : "text-white"}`}>
+                  视频记录
+                </h2>
+                <p className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
                   {videos.length} 条视频
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => openUpload("video")}
-                className={`rect-button-secondary hidden items-center gap-2 px-3 py-2 text-sm font-semibold md:inline-flex ${isDayMode ? "text-slate-700" : "text-white"}`}
+                className={`rect-icon-button hidden p-2.5 transition-all md:inline-flex ${
+                  isDayMode ? "text-slate-700 hover:text-pink-600" : "text-white"
+                }`}
+                title="上传视频"
               >
-                <Film size={16} />
-                上传视频
+                <Upload size={18} />
               </button>
             </div>
 
-            {loading && videos.length === 0 ? (
-              <div className="space-y-3">
-                {[...Array(3)].map((_, index) => (
-                  <div key={index} className={`aspect-video animate-pulse border ${isDayMode ? "border-slate-200 bg-slate-100" : "border-white/10 bg-white/5"}`} />
+            {videosLoading && videos.length === 0 ? (
+              <div className="space-y-4">
+                {[...Array(4)].map((_, index) => (
+                  <div
+                    key={index}
+                    className={`rect-media-card aspect-video animate-pulse relative overflow-hidden ${
+                      isDayMode ? "bg-white/84 border-slate-200/80" : "bg-[#1a1a1a]/40 border-white/5"
+                    }`}
+                  />
                 ))}
               </div>
             ) : videos.length === 0 ? (
-              <MediaEmptyState
+              <EmptyState
                 icon={Film}
                 title="暂无视频记录"
                 description="这个分类下还没有视频，上传时选择该分类即可出现在这里。"
+                accent="pink"
                 isDayMode={isDayMode}
               />
             ) : (
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 gap-4 md:gap-5">
                 {videos.map((video, index) => (
-                  <VideoListItem
+                  <VideoCard
                     key={video.id}
                     video={video}
-                    index={prefersReducedMotion ? 0 : index}
+                    index={index}
                     onClick={setSelectedVideo}
                     onToggleFavorite={handleToggleVideoFavorite}
+                    canAnimate={!prefersReducedMotion && index < 8}
                     isDayMode={isDayMode}
                   />
                 ))}
@@ -404,70 +589,96 @@ const MediaLibrary = () => {
         </div>
       </div>
 
-      {selectedPhoto ? (
-        <Lightbox
-          photo={selectedPhoto}
-          onClose={() => setSelectedPhotoIndex(null)}
-          onNext={handleNextPhoto}
-          onPrev={handlePrevPhoto}
-          onLikeToggle={(favorited, likes) => handleTogglePhotoFavorite(selectedPhoto.id, favorited, likes)}
-          onSelect={(photo) => {
-            const nextIndex = photos.findIndex((item) => item.id === photo.id);
-            if (nextIndex >= 0) setSelectedPhotoIndex(nextIndex);
-          }}
-        />
-      ) : null}
+      <AnimatePresence>
+        {selectedPhoto ? (
+          <Lightbox
+            photo={selectedPhoto}
+            onClose={() => setSelectedPhotoIndex(null)}
+            onNext={handleNextPhoto}
+            onPrev={handlePrevPhoto}
+            onLikeToggle={(favorited, likes) => handleTogglePhotoFavorite(selectedPhoto.id, favorited, likes)}
+            onSelect={(photo) => {
+              const nextIndex = photos.findIndex((item) => item.id === photo.id);
+              if (nextIndex >= 0) setSelectedPhotoIndex(nextIndex);
+            }}
+          />
+        ) : null}
+      </AnimatePresence>
 
       {createPortal(
         <AnimatePresence>
           {selectedVideo && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className={`fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md ${isDayMode ? "bg-white/72" : "bg-black/90"}`}
+              initial={prefersReducedMotion ? false : { opacity: 0 }}
+              animate={prefersReducedMotion ? undefined : { opacity: 1 }}
+              exit={prefersReducedMotion ? undefined : { opacity: 0 }}
+              transition={prefersReducedMotion ? undefined : { duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              className={`fixed inset-0 z-[100] backdrop-blur-md overflow-y-auto ${isDayMode ? "bg-white/72" : "bg-black/90"}`}
               onClick={() => setSelectedVideo(null)}
             >
-              <motion.div
-                initial={{ opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 12 }}
-                className={`relative w-full max-w-5xl overflow-hidden border ${isDayMode ? "bg-white border-slate-200" : "bg-[#0a0a0a] border-white/10"}`}
-                onClick={(event) => event.stopPropagation()}
-              >
-                <button
-                  type="button"
-                  onClick={() => setSelectedVideo(null)}
-                  className={`rect-icon-button absolute right-4 top-4 z-20 p-2 ${isDayMode ? "bg-white/90 text-slate-700" : "bg-black/50 text-white"}`}
-                  aria-label="关闭视频"
+              <div className="flex min-h-full items-center justify-center p-4 md:p-8">
+                <motion.div
+                  initial={prefersReducedMotion ? false : { opacity: 0, y: 24 }}
+                  animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+                  exit={prefersReducedMotion ? undefined : { opacity: 0, y: 16 }}
+                  transition={prefersReducedMotion ? undefined : { duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                  className={`relative w-full max-w-5xl border shadow-2xl overflow-hidden flex flex-col ${
+                    isDayMode ? "day-fine-surface" : "bg-[#0a0a0a] border-white/10"
+                  }`}
+                  onClick={(event) => event.stopPropagation()}
                 >
-                  <X size={22} />
-                </button>
-                <div className="aspect-video bg-black">
-                  <video src={selectedVideo.video} controls autoPlay className="h-full w-full" />
-                </div>
-                <div className="flex items-start justify-between gap-4 p-5">
-                  <div>
-                    <h3 className={`text-2xl font-black ${isDayMode ? "text-slate-950" : "text-white"}`}>
-                      {selectedVideo.title}
-                    </h3>
-                    <p className={`mt-2 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-                      {selectedVideo.category_name || "未分类"}
-                    </p>
+                  <div className={`relative aspect-video ${isDayMode ? "bg-slate-100" : "bg-black"}`}>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedVideo(null)}
+                      className={`rect-icon-button absolute top-6 right-6 p-2 transition-all z-20 group ${
+                        isDayMode
+                          ? "bg-white/90 hover:bg-white text-slate-700 border-slate-200/80"
+                          : "bg-black/40 hover:bg-black/60 text-white border-white/10"
+                      }`}
+                      title="关闭视频"
+                    >
+                      <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />
+                    </button>
+                    <video src={selectedVideo.video} controls autoPlay className="w-full h-full" />
                   </div>
-                  <FavoriteButton
-                    itemId={selectedVideo.id}
-                    itemType="video"
-                    size={22}
-                    showCount
-                    count={selectedVideo.likes || 0}
-                    favorited={selectedVideo.favorited}
-                    initialFavorited={selectedVideo.favorited}
-                    className={`rect-icon-button p-3 ${isDayMode ? "bg-white text-slate-700" : "bg-white/5 text-white"}`}
-                    onToggle={(favorited, likes) => handleToggleVideoFavorite(selectedVideo.id, favorited, likes)}
-                  />
-                </div>
-              </motion.div>
+
+                  <div
+                    className={`p-8 md:p-10 pt-6 border-t flex justify-between items-start gap-6 ${
+                      isDayMode ? "border-slate-200/80 bg-white/94" : "border-white/5 bg-[#0a0a0a]"
+                    }`}
+                  >
+                    <div className="flex-1">
+                      <h3 className={`text-2xl md:text-3xl font-bold mb-2 font-serif ${isDayMode ? "text-slate-900" : "text-white"}`}>
+                        {selectedVideo.title}
+                      </h3>
+                      <div className={`flex flex-wrap items-center gap-3 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+                        <p className={`rect-chip px-3 py-1 ${isDayMode ? "bg-slate-100 border-slate-200/80 text-slate-600" : "bg-white/5 border-white/5"}`}>
+                          {selectedVideo.category_name || "未分类"}
+                        </p>
+                        {selectedVideo.created_at ? (
+                          <p className={`rect-chip px-3 py-1 ${isDayMode ? "bg-slate-100 border-slate-200/80 text-slate-600" : "bg-white/5 border-white/5"}`}>
+                            {new Date(selectedVideo.created_at).toLocaleDateString()}
+                          </p>
+                        ) : null}
+                      </div>
+                    </div>
+                    <FavoriteButton
+                      itemId={selectedVideo.id}
+                      itemType="video"
+                      size={24}
+                      showCount
+                      count={selectedVideo.likes || 0}
+                      favorited={selectedVideo.favorited}
+                      initialFavorited={selectedVideo.favorited}
+                      className={`rect-icon-button p-3 transition-colors shrink-0 ${
+                        isDayMode ? "bg-white/90 hover:bg-pink-50 text-slate-700 border-slate-200/80" : "bg-white/5 hover:bg-pink-500/20 border-white/10"
+                      }`}
+                      onToggle={(favorited, likes) => handleToggleVideoFavorite(selectedVideo.id, favorited, likes)}
+                    />
+                  </div>
+                </motion.div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>,
