@@ -32,6 +32,7 @@ import PerformancePanel from './components/PerformancePanel';
 
 const Hero = lazy(() => import('./components/Hero'));
 const Gallery = lazy(() => import('./components/Gallery'));
+const MediaLibrary = lazy(() => import('./components/MediaLibrary'));
 const Music = lazy(() => import('./components/Music'));
 const Videos = lazy(() => import('./components/Videos'));
 const Articles = lazy(() => import('./components/AICommunity'));
@@ -200,6 +201,7 @@ const AppContent = () => {
           <AnimatePresence mode="wait" initial={false}>
             <Routes location={location} key={location.pathname}>
               <Route path="/" element={<PageTransition><Home /></PageTransition>} />
+              <Route path="/media" element={<PageTransition><MediaLibrary /></PageTransition>} />
               <Route path="/gallery" element={<PageTransition><Gallery /></PageTransition>} />
               <Route path="/music" element={<PageTransition><Music /></PageTransition>} />
               <Route path="/videos" element={<PageTransition><Videos /></PageTransition>} />

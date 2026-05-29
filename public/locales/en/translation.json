@@ -109,6 +109,7 @@
   "nav": {
     "home": "Home",
     "gallery": "Gallery",
+    "media": "Media Library",
     "music": "AI Podcast",
     "tags": "Tags",
     "videos": "Videos",
@@ -410,6 +411,7 @@
     "categories": {
       "events_desc": "Discover the latest workshops, exhibitions, and meetups.",
       "gallery_desc": "Browse live event photos, campus photography, and curated image highlights.",
+      "media_desc": "Browse event photos and video records by category.",
       "music_desc": "Immerse yourself in our curated audio journeys and soundscapes.",
       "videos_desc": "Experience boundary-pushing cinematic storytelling and visual art.",
       "articles_desc": "Join the AI community — share tech, get help, and team up."

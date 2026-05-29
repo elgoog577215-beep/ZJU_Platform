@@ -8,6 +8,7 @@ import api, { uploadFile } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 import { useBackClose } from '../hooks/useBackClose';
+import useMediaCategories from '../hooks/useMediaCategories';
 import {
   EVENT_CATEGORIES,
   EVENT_AUDIENCE_GROUPS,
@@ -250,6 +251,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
 
   const [title, setTitle] = useState(initialData?.title || '');
   const [tags, setTags] = useState(initialData?.tags || ''); // Tags state
+  const [mediaCategoryId, setMediaCategoryId] = useState(initialData?.category_id || '');
   const [description, setDescription] = useState(initialData?.excerpt || initialData?.description || '');
   const [content, setContent] = useState(initialData?.content || ''); // Full content
   const [articleBlocks, setArticleBlocks] = useState(() => {
@@ -290,6 +292,10 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   const [featured, setFeatured] = useState(initialData?.featured || false);
   const [size, setSize] = useState(initialData?.size || '');
   const [dragTarget, setDragTarget] = useState(null);
+  const usesMediaCategory = type === 'image' || type === 'video';
+  const { categories: mediaCategories } = useMediaCategories({
+    enabled: usesMediaCategory && isOpen,
+  });
 
   // Photo specific
   
@@ -505,6 +511,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         if (initialData) {
             setTitle(initialData.title || '');
             setTags(initialData.tags || '');
+            setMediaCategoryId(initialData.category_id || '');
             setDescription(initialData.excerpt || initialData.description || '');
             setContent(initialData.content || '');
             if (type === 'article') {
@@ -562,6 +569,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         } else {
             setTitle('');
             setTags('');
+            setMediaCategoryId('');
             setDescription('');
             setContent('');
             if (type === 'article') {
@@ -999,6 +1007,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             title: buildBatchImageTitle(image.file, index, batchImages.length),
             tags,
             tag: tags,
+            category_id: mediaCategoryId ? Number(mediaCategoryId) : null,
             url: fileUrl,
             audio: null,
             artist: null,
@@ -1113,6 +1122,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         title,
         tags: type === 'event' ? '' : tags,
         tag: type === 'event' ? '' : tags, // For backward compatibility with article 'tag'
+        category_id: usesMediaCategory && mediaCategoryId ? Number(mediaCategoryId) : null,
         url: fileUrl, 
         
         // Music specific
@@ -2175,6 +2185,27 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                 className={inputClasses}
                                 placeholder={t('upload.size_placeholder')}
                             />
+                        </div>
+                    )}
+
+                    {usesMediaCategory && (
+                        <div>
+                            <label className={labelClasses}>影像分类</label>
+                            <select
+                                value={mediaCategoryId}
+                                onChange={e => setMediaCategoryId(e.target.value)}
+                                className={inputClasses}
+                            >
+                                <option value="">未分类</option>
+                                {mediaCategories.map((category) => (
+                                    <option key={category.id} value={category.id}>
+                                        {category.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <p className={`mt-2 text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+                                选择后会在影像库对应分类中展示。
+                            </p>
                         </div>
                     )}
 

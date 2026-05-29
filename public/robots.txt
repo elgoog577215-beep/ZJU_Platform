@@ -6,6 +6,7 @@ Allow: /
 
 # 允许所有搜索引擎爬取
 Allow: /gallery
+Allow: /media
 Allow: /music
 Allow: /videos
 Allow: /articles

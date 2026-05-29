@@ -66,6 +66,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
   const requestSequenceRef = useRef(0);
   const hasLoadedOnceRef = useRef(false);
   const isEventResource = apiEndpoint === "events";
+  const isMediaResource = apiEndpoint === "photos" || apiEndpoint === "videos";
   const [sort, setSort] = useState(isEventResource ? "views" : "newest");
 
   const scrollToList = useCallback((behavior = "smooth") => {
@@ -164,6 +165,20 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
             }`}
           >
             {categoryLabel}
+          </span>
+        </div>
+      );
+    }
+
+    if (isMediaResource && item.category_name) {
+      return (
+        <div className="flex max-w-xs flex-wrap gap-1">
+          <span
+            className={`rounded-full px-2 py-1 text-xs ${mutedTextClass} ${
+              isDayMode ? "bg-indigo-50 text-indigo-700" : "bg-indigo-500/10 text-indigo-200"
+            }`}
+          >
+            {item.category_name}
           </span>
         </div>
       );
@@ -460,7 +475,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
           {isEventResource ? <th className="p-4">报名</th> : null}
           {type === "image" ? <th className="p-4">预览</th> : null}
           {type === "audio" ? <th className="p-4">作者</th> : null}
-          <th className="p-4">{isEventResource ? "分类" : "标签"}</th>
+          <th className="p-4">{isEventResource || isMediaResource ? "分类" : "标签"}</th>
           <th className="p-4 text-right">操作</th>
         </tr>
       </thead>

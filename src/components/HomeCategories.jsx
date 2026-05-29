@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 import {
   Camera,
   Music,
-  Film,
   BookOpen,
   Calendar,
   ArrowRight,
@@ -51,22 +50,15 @@ const categories = [
     delay: 0.15,
   },
   {
-    id: "gallery",
-    path: "/gallery",
+    id: "media",
+    path: "/media",
     icon: Camera,
+    label: "影像库",
+    description: "按分类浏览现场照片与视频记录。",
     image:
       "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&auto=format&fit=crop&q=80",
     color: "from-purple-500/80 to-indigo-600/80",
     delay: 0.2,
-  },
-  {
-    id: "videos",
-    path: "/videos",
-    icon: Film,
-    image:
-      "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=800&auto=format&fit=crop&q=80",
-    color: "from-pink-500/80 to-rose-600/80",
-    delay: 0.25,
   },
 ];
 
@@ -117,7 +109,7 @@ const CategoryCard = memo(({ item, reduceMotion, isDayMode }) => {
         <div className="absolute inset-0">
           <img
             src={optimizedImage}
-            alt={t(`nav.${item.id}`)}
+            alt={t(`nav.${item.id}`, item.label || item.id)}
             loading="lazy"
             decoding="async"
             sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 20vw"
@@ -162,7 +154,7 @@ const CategoryCard = memo(({ item, reduceMotion, isDayMode }) => {
               className={titleClass}
               style={isDayMode ? { fontFamily: "var(--theme-font-display)" } : undefined}
             >
-              {t(`nav.${item.id}`)}
+              {t(`nav.${item.id}`, item.label || item.id)}
             </h3>
 
             <p
@@ -170,7 +162,7 @@ const CategoryCard = memo(({ item, reduceMotion, isDayMode }) => {
                 descClass
               }`}
             >
-              {t(`home.categories.${item.id}_desc`)}
+              {t(`home.categories.${item.id}_desc`, item.description || "")}
             </p>
 
             <div className={ctaClass}>
@@ -230,7 +222,7 @@ const HomeCategories = () => {
         </motion.div>
 
         <motion.div
-          className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-5"
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4"
           variants={listContainer}
           initial={prefersReducedMotion ? false : "initial"}
           whileInView={prefersReducedMotion ? undefined : "animate"}

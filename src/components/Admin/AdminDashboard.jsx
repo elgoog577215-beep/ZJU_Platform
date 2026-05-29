@@ -13,6 +13,7 @@ import {
   LayoutGrid,
   Music,
   Film,
+  Image as ImageIcon,
   BookOpen,
   Calendar,
   LayoutTemplate,
@@ -46,6 +47,7 @@ import HackathonManager from "./HackathonManager";
 import FutureLearningManager from "./FutureLearningManager";
 import AiAssistantManager from "./AiAssistantManager";
 import EcosystemPartnerManager from "./EcosystemPartnerManager";
+import MediaCategoryManager from "./MediaCategoryManager";
 import { AdminButton } from "./AdminUI";
 
 const STORAGE_KEY = "admin.activeTab";
@@ -65,6 +67,7 @@ const KNOWN_TAB_IDS = new Set([
   "articles",
   "photos",
   "videos",
+  "media-categories",
   "music",
   "pages",
   "community",
@@ -233,6 +236,12 @@ const AdminDashboard = () => {
             label: t("admin.tabs.videos", "视频"),
             icon: Film,
             description: t("admin.descriptions.videos", "视频资源与封面"),
+          },
+          {
+            id: "media-categories",
+            label: t("admin.tabs.mediaCategories", "影像分类"),
+            icon: ImageIcon,
+            description: t("admin.descriptions.mediaCategories", "图片与视频共享分类"),
           },
           {
             id: "music",
@@ -454,6 +463,8 @@ const AdminDashboard = () => {
             icon={Film}
           />
         );
+      case "media-categories":
+        return <MediaCategoryManager />;
       case "articles":
         return (
           <ResourceManager

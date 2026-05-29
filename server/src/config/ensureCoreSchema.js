@@ -19,6 +19,7 @@ async function ensureCoreSchema(db) {
       url TEXT,
       title TEXT,
       tags TEXT,
+      category_id INTEGER,
       size TEXT,
       gameType TEXT,
       gameDescription TEXT,
@@ -50,6 +51,7 @@ async function ensureCoreSchema(db) {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT,
       tags TEXT,
+      category_id INTEGER,
       thumbnail TEXT,
       video TEXT,
       gameType TEXT,
@@ -59,6 +61,17 @@ async function ensureCoreSchema(db) {
       status TEXT DEFAULT 'approved',
       uploader_id INTEGER,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      deleted_at DATETIME
+    );
+
+    CREATE TABLE IF NOT EXISTS media_categories (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      description TEXT,
+      sort_order INTEGER DEFAULT 0,
+      status TEXT DEFAULT 'active',
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
       deleted_at DATETIME
     );
 

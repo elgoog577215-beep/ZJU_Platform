@@ -158,6 +158,7 @@
   "nav": {
     "home": "首页",
     "gallery": "画廊",
+    "media": "影像库",
     "music": "播客",
     "tags": "标签",
     "videos": "视频",
@@ -455,6 +456,7 @@
     "categories": {
       "events_desc": "加入我们的最新活动与研讨会",
       "gallery_desc": "查看现场照片、校园摄影与精选图片内容",
+      "media_desc": "按分类浏览现场照片与视频记录",
       "music_desc": "聆听我们的原创音乐作品",
       "videos_desc": "观看我们的精选视频内容",
       "articles_desc": "加入 AI 社区，分享技术、获取帮助、组队协作"

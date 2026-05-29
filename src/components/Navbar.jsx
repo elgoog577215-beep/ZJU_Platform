@@ -131,13 +131,19 @@ const Navbar = () => {
     { key: "hackathon", path: "/hackathon", label: "浙客松" },
     { key: "articles", path: "/articles" },
     { key: "music", path: "/music" },
-    { key: "gallery", path: "/gallery" },
-    { key: "videos", path: "/videos" },
+    { key: "media", path: "/media", label: "影像库" },
     { key: "about", path: "/about" },
     ...(isAdmin ? [{ key: "admin", path: "/admin" }] : []),
   ];
   const isNavItemActive = (path) => {
     if (path === "/hackathon") return location.pathname.startsWith("/hackathon");
+    if (path === "/media") {
+      return (
+        location.pathname.startsWith("/media") ||
+        location.pathname.startsWith("/gallery") ||
+        location.pathname.startsWith("/videos")
+      );
+    }
     return location.pathname === path;
   };
   const currentNavLink = navLinks.find((link) => isNavItemActive(link.path));
@@ -150,7 +156,7 @@ const Navbar = () => {
     if (pathname.startsWith("/music")) return t("nav.music", "播客");
     if (pathname.startsWith("/gallery")) return t("nav.gallery");
     if (pathname.startsWith("/videos")) return t("nav.videos");
-    if (pathname.startsWith("/media")) return t("nav.media", "媒体");
+    if (pathname.startsWith("/media")) return t("nav.media", "影像库");
     if (pathname.startsWith("/me") || pathname.startsWith("/user/")) {
       return t("nav.me", "我的");
     }
@@ -171,6 +177,7 @@ const Navbar = () => {
     let type = "";
     if (location.pathname === "/events") type = "event";
     else if (location.pathname === "/gallery") type = "image";
+    else if (location.pathname === "/media") type = "media";
     else if (location.pathname === "/music") type = "audio";
     else if (location.pathname === "/videos") type = "video";
     else if (location.pathname === "/articles") type = "article";
@@ -185,6 +192,7 @@ const Navbar = () => {
   const uploadablePaths = [
     "/events",
     "/gallery",
+    "/media",
     "/music",
     "/videos",
     "/articles",
@@ -230,9 +238,8 @@ const Navbar = () => {
     !location.pathname.startsWith("/me") &&
     !location.pathname.startsWith("/user/");
   const secondaryMobileLinks = [
-    { key: "gallery", path: "/gallery", icon: ImageIcon },
+    { key: "media", path: "/media", icon: Film, label: "影像库" },
     { key: "music", path: "/music", icon: MusicIcon },
-    { key: "videos", path: "/videos", icon: Film },
     { key: "about", path: "/about", icon: Info },
     ...(isAdmin ? [{ key: "admin", path: "/admin", icon: Shield }] : []),
   ];

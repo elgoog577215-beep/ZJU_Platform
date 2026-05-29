@@ -949,6 +949,54 @@ async function runMigrations(db) {
   }
 
   try {
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS media_categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        description TEXT,
+        sort_order INTEGER DEFAULT 0,
+        status TEXT DEFAULT 'active',
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        deleted_at DATETIME
+      );
+    `);
+
+    await ensureColumns('media_categories', {
+      name: 'TEXT NOT NULL DEFAULT ""',
+      description: 'TEXT',
+      sort_order: 'INTEGER DEFAULT 0',
+      status: "TEXT DEFAULT 'active'",
+      created_at: 'TEXT DEFAULT CURRENT_TIMESTAMP',
+      updated_at: 'TEXT DEFAULT CURRENT_TIMESTAMP',
+      deleted_at: 'DATETIME',
+    }, 'media_categories');
+
+    await ensureColumns('photos', {
+      category_id: 'INTEGER',
+    }, 'photos');
+
+    await ensureColumns('videos', {
+      category_id: 'INTEGER',
+    }, 'videos');
+
+    await db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_media_categories_public
+        ON media_categories(status, deleted_at, sort_order, id);
+      CREATE INDEX IF NOT EXISTS idx_photos_category_status
+        ON photos(category_id, status, deleted_at, id DESC);
+      CREATE INDEX IF NOT EXISTS idx_videos_category_status
+        ON videos(category_id, status, deleted_at, id DESC);
+    `);
+
+    console.log('Media categories ready');
+  } catch (err) {
+    if (!err.message.includes('already exists') && !err.message.includes('duplicate column')) {
+      console.warn('Migration warning (media categories):', err.message);
+    }
+  }
+
+  try {
     await ensureColumns('competitions', {
       slug: 'TEXT',
       title: 'TEXT NOT NULL DEFAULT ""',
@@ -1009,11 +1057,13 @@ async function runMigrations(db) {
     }, 'competition_works');
 
     await ensureColumns('photos', {
+      category_id: 'INTEGER',
       gameType: 'TEXT',
       gameDescription: 'TEXT',
     }, 'photos');
 
     await ensureColumns('videos', {
+      category_id: 'INTEGER',
       gameType: 'TEXT',
       gameDescription: 'TEXT',
     }, 'videos');

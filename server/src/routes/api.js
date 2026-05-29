@@ -26,6 +26,7 @@ const competitionController = require('../controllers/competitionController');
 const futureLearningController = require('../controllers/futureLearningController');
 const wechatParseController = require('../controllers/wechatParseController');
 const ecosystemPartnerController = require('../controllers/ecosystemPartnerController');
+const mediaCategoryController = require('../controllers/mediaCategoryController');
 const { logger } = require('../utils/logger');
 
 const { authenticateToken, isAdmin, optionalAuth } = require('../middleware/auth');
@@ -216,6 +217,12 @@ router.post('/admin/competition-works', authenticateToken, isAdmin, competitionC
 router.put('/admin/competition-works/:id', authenticateToken, isAdmin, competitionController.updateAdminWork);
 router.delete('/admin/competition-works/:id', authenticateToken, isAdmin, competitionController.deleteAdminWork);
 router.put('/admin/competition-works/:id/review', authenticateToken, isAdmin, competitionController.reviewAdminWork);
+
+router.get('/media-categories', mediaCategoryController.listPublicCategories);
+router.get('/admin/media-categories', authenticateToken, isAdmin, mediaCategoryController.listAdminCategories);
+router.post('/admin/media-categories', authenticateToken, isAdmin, mediaCategoryController.createCategory);
+router.put('/admin/media-categories/:id', authenticateToken, isAdmin, mediaCategoryController.updateCategory);
+router.delete('/admin/media-categories/:id', authenticateToken, isAdmin, mediaCategoryController.deleteCategory);
 
 // Resource Routes (Generic)
 const resources = ['photos', 'music', 'videos', 'articles', 'events'];

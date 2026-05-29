@@ -92,6 +92,8 @@ const serializeResourceItem = (table, item) => {
   return serializeLinkageFields(item);
 };
 
+const supportsMediaCategory = (table) => table === 'photos' || table === 'videos';
+
 const normalizeArticleWorkflowStatus = (table, requestedStatus, userRole = 'user') => {
   if (table !== 'articles') return null;
   const normalized = String(requestedStatus || '').trim().toLowerCase();
@@ -359,6 +361,9 @@ const getOneHandler = (table) => async (req, res, next) => {
     const itemType = getSingularType(table);
 
     let query = `SELECT ${table}.*, COALESCE(u.nickname, u.username) AS author_name, u.avatar AS author_avatar`;
+    if (supportsMediaCategory(table)) {
+        query += `, (SELECT name FROM media_categories WHERE id = ${table}.category_id AND deleted_at IS NULL) AS category_name`;
+    }
     let params = [];
 
     if (userId) {
@@ -412,6 +417,7 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
         // Limit max limit to 100 to prevent DoS
         const limit = Math.min(parseInt(req.query.limit) || defaultLimit, 100);
         const category = req.query.category;
+        const rawCategoryId = req.query.category_id || req.query.categoryId;
         const tag = req.query.tag; // For articles
         const requestedStatus = String(req.query.status || 'approved').trim().toLowerCase();
         const requestedUploaderId = req.query.uploader_id ? Number.parseInt(req.query.uploader_id, 10) : null;
@@ -445,6 +451,10 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
 
         let query = `SELECT ${table}.*, COALESCE(u.nickname, u.username) AS author_name, u.avatar AS author_avatar`;
         let params = [];
+
+        if (supportsMediaCategory(table)) {
+             query += `, (SELECT name FROM media_categories WHERE id = ${table}.category_id AND deleted_at IS NULL) AS category_name`;
+        }
 
         if (table === 'events') {
              query += `, (SELECT COUNT(*) FROM event_registrations WHERE event_registrations.event_id = events.id) as registration_count`;
@@ -504,6 +514,15 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
             whereClauses.push('uploader_id = ?');
             params.push(effectiveUploaderId);
             countParams.push(effectiveUploaderId);
+        }
+
+        if (supportsMediaCategory(table) && String(rawCategoryId || '').trim() !== '') {
+            const categoryId = Number.parseInt(rawCategoryId, 10);
+            if (Number.isFinite(categoryId) && categoryId > 0) {
+                whereClauses.push('category_id = ?');
+                params.push(categoryId);
+                countParams.push(categoryId);
+            }
         }
 
         if (String(category || '').trim() !== '' && (table === 'articles' || table === 'events')) {
@@ -843,9 +862,9 @@ const getEventDistinctOptions = async (req, res, next) => {
 
 // Fields Definitions
 const fields = {
-    photos: ['url', 'title', 'tags', 'size', 'gameType', 'gameDescription', 'featured'],
+    photos: ['url', 'title', 'tags', 'category_id', 'size', 'gameType', 'gameDescription', 'featured'],
     music: ['title', 'artist', 'duration', 'cover', 'audio', 'featured', 'tags'],
-    videos: ['title', 'tags', 'thumbnail', 'video', 'gameType', 'gameDescription', 'featured'],
+    videos: ['title', 'tags', 'category_id', 'thumbnail', 'video', 'gameType', 'gameDescription', 'featured'],
     articles: ['title', 'date', 'excerpt', 'tags', 'content', 'content_blocks', 'cover', 'featured', 'category', 'related_article_ids', 'related_post_ids', 'related_news_ids', 'related_group_ids'],
     events: ['title', 'date', 'end_date', 'location', 'tags', 'image', 'description', 'content', 'link', 'featured', 'score', 'target_audience', 'organizer', 'volunteer_time', 'category']
 };
