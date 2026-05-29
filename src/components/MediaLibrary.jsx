@@ -224,6 +224,101 @@ const EmptyState = ({ icon: Icon, title, description, accent = "indigo", isDayMo
   </div>
 );
 
+const MediaCategoryRail = memo(({ categories, activeCategoryId, onChange, isDayMode }) => {
+  const nightFocusClass = isDayMode
+    ? "focus-visible:ring-indigo-400/70"
+    : "focus-visible:border-white/[0.22] focus-visible:ring-slate-300/35 focus-visible:shadow-[0_0_0_4px_rgba(148,163,184,0.12)]";
+  const channelButtonClass = (active) =>
+    `rect-button relative h-10 shrink-0 px-4 text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${
+      active
+        ? isDayMode
+          ? "text-white"
+          : "text-indigo-100"
+        : isDayMode
+          ? "text-slate-500 hover:bg-white/70 hover:text-slate-900"
+          : "text-slate-300 hover:bg-white/[0.055] hover:text-white"
+    }`;
+
+  const renderActivePill = () => (
+    <motion.span
+      layoutId="media-category-active"
+      className={`absolute inset-0 ${
+        isDayMode
+          ? "bg-blue-600 shadow-none"
+          : "border border-indigo-400/35 bg-indigo-500/20 shadow-none"
+      }`}
+      transition={{ type: "spring", bounce: 0.12, duration: 0.42 }}
+    />
+  );
+
+  return (
+    <div className="relative z-10 mx-auto w-full max-w-[760px]">
+      <div
+        className={`relative overflow-visible border p-2 ${
+          isDayMode
+            ? "border-slate-200/80 bg-white/78 shadow-none"
+            : "border-white/[0.12] bg-[#070a14]/92 shadow-none"
+        }`}
+      >
+        <div
+          className={`pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent to-transparent ${
+            isDayMode ? "via-white/80" : "via-white/18"
+          }`}
+        />
+        <div
+          className={`pointer-events-none absolute inset-y-3 left-3 w-px ${
+            isDayMode ? "bg-blue-200/40" : "bg-indigo-400/20"
+          }`}
+        />
+        <div
+          className={`relative min-w-0 overflow-hidden border ${
+            isDayMode
+              ? "border-slate-200/80 bg-slate-100/70"
+              : "border-white/[0.09] bg-[#050712]/88"
+          }`}
+        >
+          <div className="scrollbar-none flex min-w-0 items-center gap-1 overflow-x-auto p-1 pr-10 md:pr-1">
+            <button
+              type="button"
+              aria-pressed={!activeCategoryId}
+              onClick={() => onChange("")}
+              className={channelButtonClass(!activeCategoryId)}
+            >
+              {!activeCategoryId && renderActivePill()}
+              <span className="relative z-10 whitespace-nowrap">全部</span>
+            </button>
+
+            {categories.map((category) => {
+              const active = String(activeCategoryId) === String(category.id);
+              return (
+                <button
+                  key={category.id}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => onChange(String(category.id))}
+                  className={channelButtonClass(active)}
+                >
+                  {active && renderActivePill()}
+                  <span className="relative z-10 whitespace-nowrap">{category.name}</span>
+                </button>
+              );
+            })}
+          </div>
+          <div
+            className={`pointer-events-none absolute inset-y-1 right-1 w-10 ${
+              isDayMode
+                ? "bg-gradient-to-l from-slate-100 via-slate-100/88 to-transparent"
+                : "bg-gradient-to-l from-[#0a0d14] via-[#0a0d14]/88 to-transparent"
+            }`}
+          />
+        </div>
+      </div>
+    </div>
+  );
+});
+
+MediaCategoryRail.displayName = "MediaCategoryRail";
+
 const MediaLibrary = () => {
   const { user } = useAuth();
   const { settings, uiMode } = useSettings();
@@ -417,21 +512,12 @@ const MediaLibrary = () => {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="flex flex-col items-stretch justify-center gap-3 md:flex-row md:items-center md:gap-4 relative z-50"
           >
-            <select
-              value={categoryId}
-              onChange={(event) => setCategoryId(event.target.value)}
-              className={`rect-field min-h-[44px] w-full px-3 py-2 text-sm md:w-[240px] ${
-                isDayMode ? "bg-white/92 text-slate-900 border-slate-200/80" : "bg-black/32 text-white border-white/10"
-              }`}
-              aria-label="影像分类筛选"
-            >
-              <option value="">全部分类</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
+            <MediaCategoryRail
+              categories={categories}
+              activeCategoryId={categoryId}
+              onChange={setCategoryId}
+              isDayMode={isDayMode}
+            />
             <button
               type="button"
               onClick={() => openUpload()}
