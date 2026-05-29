@@ -461,6 +461,10 @@ const goldenModelRunner = async ({ task, messages }) => {
       candidates.some((candidate) => candidate.actionEvidence && typeof candidate.actionEvidence.positiveCategoryWeight === 'number'),
       'Rerank prompt should include action evidence telemetry for candidate personalization.'
     );
+    assert(
+      candidates.every((candidate) => candidate.actionEvidence && typeof candidate.actionEvidence.priorViewDetail === 'boolean'),
+      'Rerank prompt should include recommendation action learning details.'
+    );
     const scored = candidates.map((candidate) => {
       const text = `${candidate.title || ''} ${candidate.description || ''} ${candidate.score || ''}`;
       const isHackathon = /hackathon|challenge|competition/i.test(text);
@@ -483,8 +487,12 @@ const goldenModelRunner = async ({ task, messages }) => {
           + Number(candidate.hardConstraintScore || 0) * 0.4
           + Number(actionEvidence.positiveCategoryWeight || 0)
           + (actionEvidence.priorPositiveAction ? 12 : 0)
+          + (actionEvidence.priorFavoriteAction ? 5 : 0)
+          + (actionEvidence.priorRegisterAction ? 8 : 0)
+          + (actionEvidence.priorViewDetail ? 1 : 0)
           - Number(actionEvidence.negativeCategoryWeight || 0)
-          - (actionEvidence.priorNegativeFeedback ? 30 : 0),
+          - (actionEvidence.priorNegativeFeedback ? 30 : 0)
+          - (actionEvidence.priorNegativeAction ? 12 : 0),
       };
     }).sort((left, right) => right.score - left.score || Number(left.candidate.id) - Number(right.candidate.id));
 
@@ -493,7 +501,13 @@ const goldenModelRunner = async ({ task, messages }) => {
       reasoning_trace: {
         ranking_basis: ['AI topic fit', 'Zijingang offline access', 'score benefit'],
         uncertainty: ['exact date flexibility is inferred'],
-        action_evidence_used: scored.some(({ candidate }) => Boolean(candidate.actionEvidence?.priorPositiveAction)),
+        action_evidence_used: scored.some(({ candidate }) => (
+          Boolean(candidate.actionEvidence?.priorPositiveAction)
+          || Boolean(candidate.actionEvidence?.priorViewDetail)
+          || Boolean(candidate.actionEvidence?.priorFavoriteAction)
+          || Boolean(candidate.actionEvidence?.priorRegisterAction)
+          || Boolean(candidate.actionEvidence?.priorNegativeAction)
+        )),
       },
       recommendations: scored.slice(0, 3).map(({ candidate }, index) => ({
         id: candidate.id,
@@ -1047,6 +1061,79 @@ const evaluateRecommendationActionEvidenceRanking = async (db) => {
   };
 };
 
+const evaluateRecommendationActionLearning = async (db) => {
+  const staleRun = await db.run(
+    `INSERT INTO ai_assistant_runs (module, action, status, requested_by, summary_json)
+     VALUES (?, ?, ?, ?, ?)`,
+    ['event_recommendation', 'turn', 'completed', 1, JSON.stringify({ seed: 'action-learning' })]
+  );
+  await recordEventAssistantDecisionAction({
+    db,
+    userId: 1,
+    eventId: 1,
+    actionType: 'view_detail',
+    assistantRunId: staleRun.lastID,
+    recommendationRank: 1,
+    source: 'golden_action_learning',
+    metadata: {
+      longPrivateNote: 'PRIVATE_METADATA_SHOULD_NOT_APPEAR_IN_SUMMARY'
+    }
+  });
+  await recordEventAssistantDecisionAction({
+    db,
+    userId: 1,
+    eventId: 1,
+    actionType: 'favorite',
+    assistantRunId: staleRun.lastID,
+    recommendationRank: 1,
+    source: 'golden_action_learning'
+  });
+  await recordEventAssistantDecisionAction({
+    db,
+    userId: 1,
+    eventId: 2,
+    actionType: 'unregister',
+    assistantRunId: staleRun.lastID,
+    recommendationRank: 2,
+    source: 'golden_action_learning'
+  });
+
+  const result = await runEventAssistantTurn({
+    db,
+    userId: 1,
+    query: 'Find me a practical AI project workshop with score credit at Zijingang.',
+    rememberPreference: false,
+    allowHistoricalFallback: false,
+    modelRunner: goldenModelRunner,
+    now: new Date(),
+  });
+
+  assert(result.type === 'recommend', 'Recommendation action learning should still return recommendations.');
+  assert(result.reasoningTrace?.actionEvidenceUsed === true, 'Recommendation should mark action learning evidence as used.');
+  assert(
+    result.recommendations[0].matchSignals.some((signal) => signal.includes('行动证据')),
+    'Recommendation action learning should expose action evidence in match signals.'
+  );
+
+  const run = await db.get(
+    "SELECT summary_json FROM ai_assistant_runs WHERE module = 'event_recommendation' ORDER BY id DESC"
+  );
+  const runSummary = JSON.parse(run.summary_json || '{}');
+  assert(runSummary.actionEvidenceUsed === true, 'Run summary should record action evidence usage.');
+  assert(runSummary.actionEvidenceSourceCount >= 3, 'Run summary should count recommendation action evidence sources.');
+  assert(runSummary.viewDetailEvidenceCount >= 1, 'Run summary should count view detail evidence.');
+  assert(runSummary.favoriteActionEvidenceCount >= 1, 'Run summary should count favorite action evidence.');
+  assert(runSummary.negativeActionEvidenceCount >= 1, 'Run summary should count negative action evidence.');
+  assert(!run.summary_json.includes('PRIVATE_METADATA_SHOULD_NOT_APPEAR_IN_SUMMARY'), 'Run summary should avoid raw action metadata.');
+  assert(!run.summary_json.includes('Find me a practical AI project workshop'), 'Run summary should avoid raw query text.');
+
+  return {
+    topEvent: result.recommendations[0].event.title,
+    actionEvidenceSourceCount: runSummary.actionEvidenceSourceCount,
+    topSignals: result.recommendations[0].matchSignals,
+  };
+};
+
 const evaluateEventRecommendationFallbackPerformance = async (db) => {
   await db.run('DELETE FROM event_ai_profiles');
   const failingIntentRunner = async ({ task, messages }) => {
@@ -1179,6 +1266,7 @@ const main = async () => {
     const recommendationActionEvidence = await evaluateRecommendationActionEvidence(db);
     const smartClarification = await evaluateSmartClarification(db);
     const recommendationActionEvidenceRanking = await evaluateRecommendationActionEvidenceRanking(db);
+    const recommendationActionLearning = await evaluateRecommendationActionLearning(db);
     const eventRecommendationFallbackPerformance = await evaluateEventRecommendationFallbackPerformance(db);
     const hackathonCoach = await evaluateHackathonCoach(db);
     const wechatParser = await evaluateWechatParser(db);
@@ -1201,6 +1289,7 @@ const main = async () => {
         recommendationActionEvidence,
         smartClarification,
         recommendationActionEvidenceRanking,
+        recommendationActionLearning,
         eventRecommendationFallbackPerformance,
         hackathonCoach,
         wechatParser,

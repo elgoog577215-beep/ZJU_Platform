@@ -1005,22 +1005,50 @@ const buildEmptyActionEvidence = () => ({
   favoriteEventIds: [],
   registeredEventIds: [],
   positiveFeedbackEventIds: [],
+  viewedEventIds: [],
+  recommendationFavoriteEventIds: [],
+  recommendationRegisterEventIds: [],
+  negativeActionEventIds: [],
   negativeEventIds: [],
   positiveCategories: [],
   negativeCategories: [],
   negativeReasons: [],
-  negativeReasonByEventId: {}
+  negativeReasonByEventId: {},
+  actionTypeCounts: {},
+  recentRecommendationActionCount: 0
 });
 
-const buildActionEvidence = (historyRows = [], feedbackRows = []) => {
+const RECOMMENDATION_ACTION_WEIGHTS = {
+  view_detail: 0.35,
+  favorite: 1.2,
+  register: 2,
+  feedback_up: 1.5,
+  unfavorite: -1,
+  unregister: -1.6,
+  feedback_down: -2
+};
+
+const incrementActionTypeCount = (counts, actionType) => {
+  const key = sanitizeText(actionType, 40);
+  if (!key) return;
+  counts[key] = (counts[key] || 0) + 1;
+};
+
+const buildActionEvidence = (historyRows = [], feedbackRows = [], recommendationActionRows = []) => {
   const positiveCategoryCounts = {};
   const negativeCategoryCounts = {};
   const favoriteEventIds = [];
   const registeredEventIds = [];
   const positiveFeedbackEventIds = [];
+  const viewedEventIds = [];
+  const recommendationFavoriteEventIds = [];
+  const recommendationRegisterEventIds = [];
+  const negativeActionEventIds = [];
   const negativeEventIds = [];
   const negativeReasonCounts = {};
   const negativeReasonByEventId = {};
+  const actionTypeCounts = {};
+  const seenRecommendationActions = new Set();
 
   for (const row of historyRows) {
     const eventId = Number(row.id || row.event_id);
@@ -1051,21 +1079,97 @@ const buildActionEvidence = (historyRows = [], feedbackRows = []) => {
     }
   }
 
+  for (const row of recommendationActionRows) {
+    const eventId = Number(row.event_id);
+    const actionType = sanitizeText(row.action_type, 40);
+    if (!Number.isInteger(eventId) || !actionType) continue;
+
+    const dedupeKey = `${eventId}:${actionType}`;
+    if (seenRecommendationActions.has(dedupeKey)) continue;
+    seenRecommendationActions.add(dedupeKey);
+    incrementActionTypeCount(actionTypeCounts, actionType);
+
+    const category = inferEventCategory(row);
+    const weight = Number(RECOMMENDATION_ACTION_WEIGHTS[actionType] || 0);
+
+    if (actionType === 'view_detail') {
+      viewedEventIds.push(eventId);
+    } else if (actionType === 'favorite') {
+      recommendationFavoriteEventIds.push(eventId);
+    } else if (actionType === 'register') {
+      recommendationRegisterEventIds.push(eventId);
+    }
+
+    if (weight > 0) {
+      if (!['feedback_up'].includes(actionType)) {
+        addWeightedCount(positiveCategoryCounts, category, weight);
+      }
+    } else if (weight < 0) {
+      negativeActionEventIds.push(eventId);
+      if (!['feedback_down'].includes(actionType)) {
+        addWeightedCount(negativeCategoryCounts, category, Math.abs(weight));
+      }
+    }
+  }
+
   return {
     positiveEventIds: unique([
       ...favoriteEventIds,
       ...registeredEventIds,
-      ...positiveFeedbackEventIds
+      ...positiveFeedbackEventIds,
+      ...recommendationFavoriteEventIds,
+      ...recommendationRegisterEventIds
     ]).slice(0, 60),
     favoriteEventIds: unique(favoriteEventIds).slice(0, 40),
     registeredEventIds: unique(registeredEventIds).slice(0, 40),
     positiveFeedbackEventIds: unique(positiveFeedbackEventIds).slice(0, 40),
-    negativeEventIds: unique(negativeEventIds).slice(0, 40),
+    viewedEventIds: unique(viewedEventIds).slice(0, 40),
+    recommendationFavoriteEventIds: unique(recommendationFavoriteEventIds).slice(0, 40),
+    recommendationRegisterEventIds: unique(recommendationRegisterEventIds).slice(0, 40),
+    negativeActionEventIds: unique(negativeActionEventIds).slice(0, 40),
+    negativeEventIds: unique([
+      ...negativeEventIds,
+      ...negativeActionEventIds
+    ]).slice(0, 40),
     positiveCategories: summarizeWeightedCounts(positiveCategoryCounts),
     negativeCategories: summarizeWeightedCounts(negativeCategoryCounts),
     negativeReasons: summarizeWeightedCounts(negativeReasonCounts),
-    negativeReasonByEventId
+    negativeReasonByEventId,
+    actionTypeCounts,
+    recentRecommendationActionCount: seenRecommendationActions.size
   };
+};
+
+const loadRecommendationActionRows = async (db, userId) => {
+  try {
+    return await db.all(
+      `
+        SELECT
+          a.event_id,
+          a.action_type,
+          a.source,
+          a.recommendation_rank,
+          a.created_at AS action_created_at,
+          e.title,
+          e.description,
+          e.category,
+          e.location,
+          e.organizer,
+          e.target_audience,
+          e.score,
+          e.volunteer_time
+        FROM event_recommendation_actions a
+        LEFT JOIN events e ON e.id = a.event_id
+        WHERE a.user_id = ?
+          AND a.created_at >= datetime('now', '-60 days')
+        ORDER BY a.created_at DESC, a.id DESC
+        LIMIT 80
+      `,
+      [userId]
+    );
+  } catch {
+    return [];
+  }
 };
 
 const loadUserEventProfile = async (db, userId) => {
@@ -1134,9 +1238,10 @@ const loadUserEventProfile = async (db, userId) => {
     `,
     [userId]
   );
+  const recommendationActionRows = await loadRecommendationActionRows(db, userId);
 
   const learnedCategories = summarizeCounts(historyRows.map(inferEventCategory));
-  const actionEvidence = buildActionEvidence(historyRows, feedbackRows);
+  const actionEvidence = buildActionEvidence(historyRows, feedbackRows, recommendationActionRows);
 
   return {
     isAnonymous: false,
@@ -1180,6 +1285,9 @@ const buildProfileSummary = (profile) => {
   if (profile.learned.categories?.length) signals.push(`历史偏好：${profile.learned.categories.slice(0, 3).map((item) => CATEGORY_LABELS[item] || item).join('、')}`);
   if (profile.actionEvidence?.positiveCategories?.length) {
     signals.push(`行动证据偏好：${profile.actionEvidence.positiveCategories.slice(0, 3).map((item) => CATEGORY_LABELS[item.value] || item.value).join('、')}`);
+  }
+  if (profile.actionEvidence?.recentRecommendationActionCount > 0) {
+    signals.push(`推荐动作证据：${profile.actionEvidence.recentRecommendationActionCount} 条`);
   }
   if (profile.actionEvidence?.negativeCategories?.length) {
     signals.push(`近期负反馈：${profile.actionEvidence.negativeCategories.slice(0, 2).map((item) => CATEGORY_LABELS[item.value] || item.value).join('、')}`);
@@ -1383,6 +1491,26 @@ const scoreEvent = (event, intent, profile, scope, now = new Date()) => {
   if (profile.negativeEventIds.includes(Number(event.id))) {
     score -= 45;
     signals.unshift('你曾对这个活动给过负反馈');
+  }
+
+  if (profile.actionEvidence?.negativeActionEventIds?.includes(Number(event.id))) {
+    score -= 18;
+    signals.unshift('行动证据显示你曾取消或负反馈过这个推荐活动');
+  }
+
+  if (profile.actionEvidence?.viewedEventIds?.includes(Number(event.id))) {
+    score += 3;
+    signals.push('行动证据显示你曾从推荐中查看过详情');
+  }
+
+  if (profile.actionEvidence?.recommendationFavoriteEventIds?.includes(Number(event.id))) {
+    score += 8;
+    signals.unshift('行动证据显示你曾从推荐中收藏过这个活动');
+  }
+
+  if (profile.actionEvidence?.recommendationRegisterEventIds?.includes(Number(event.id))) {
+    score += 10;
+    signals.unshift('行动证据显示你曾从推荐中报名过这个活动');
   }
 
   if (profile.actionEvidence?.positiveEventIds?.includes(Number(event.id))) {
@@ -1853,6 +1981,16 @@ const buildReasoningTrace = ({
   fallbackUsed = false,
   clarification = false
 }) => {
+  const actionTypeCounts = profile.actionEvidence?.actionTypeCounts || {};
+  const actionEvidenceSummary = {
+    sourceCount: Number(profile.actionEvidence?.recentRecommendationActionCount || 0),
+    viewDetailCount: Number(actionTypeCounts.view_detail || 0),
+    favoriteActionCount: Number(actionTypeCounts.favorite || 0),
+    registerActionCount: Number(actionTypeCounts.register || 0),
+    negativeActionCount: Number(actionTypeCounts.unfavorite || 0)
+      + Number(actionTypeCounts.unregister || 0)
+      + Number(actionTypeCounts.feedback_down || 0)
+  };
   const topSignals = unique(
     recommendations
       .flatMap((item) => item.matchSignals || item.candidate?.signals || [])
@@ -1903,7 +2041,8 @@ const buildReasoningTrace = ({
       historicalFallback: Boolean(usedHistoricalFallback)
     },
     weakOrMissing: weakOrMissing.slice(0, 4),
-    actionEvidenceUsed,
+    actionEvidenceUsed: actionEvidenceUsed || actionEvidenceSummary.sourceCount > 0,
+    actionEvidenceSummary,
     fallbackUsed: Boolean(fallbackUsed),
     usedHistoricalFallback: Boolean(usedHistoricalFallback),
     clarificationSuggested: Boolean(clarification),
@@ -2342,6 +2481,11 @@ const buildAiRerankPrompt = ({ intent, profile, candidates, recommendationCount 
     actionEvidence: {
       positiveCategoryWeight: getActionEvidenceCategory(profile, item.category, 'positiveCategories')?.weight || 0,
       negativeCategoryWeight: getActionEvidenceCategory(profile, item.category, 'negativeCategories')?.weight || 0,
+      categoryActionWeight: getActionEvidenceCategory(profile, item.category, 'positiveCategories')?.weight || 0,
+      priorViewDetail: Boolean(profile.actionEvidence?.viewedEventIds?.includes(Number(item.event.id))),
+      priorFavoriteAction: Boolean(profile.actionEvidence?.recommendationFavoriteEventIds?.includes(Number(item.event.id))),
+      priorRegisterAction: Boolean(profile.actionEvidence?.recommendationRegisterEventIds?.includes(Number(item.event.id))),
+      priorNegativeAction: Boolean(profile.actionEvidence?.negativeActionEventIds?.includes(Number(item.event.id))),
       priorPositiveAction: Boolean(profile.actionEvidence?.positiveEventIds?.includes(Number(item.event.id))),
       priorNegativeFeedback: Boolean(profile.actionEvidence?.negativeEventIds?.includes(Number(item.event.id)))
     },
@@ -3341,6 +3485,11 @@ const recordEventAssistantRun = async (db, response = {}, userId = null) => {
           averageConfidence,
           intentConfidence: Number(reasoningTrace.intentConfidence || 0),
           actionEvidenceUsed: Boolean(reasoningTrace.actionEvidenceUsed),
+          actionEvidenceSourceCount: Number(reasoningTrace.actionEvidenceSummary?.sourceCount || 0),
+          viewDetailEvidenceCount: Number(reasoningTrace.actionEvidenceSummary?.viewDetailCount || 0),
+          favoriteActionEvidenceCount: Number(reasoningTrace.actionEvidenceSummary?.favoriteActionCount || 0),
+          registerActionEvidenceCount: Number(reasoningTrace.actionEvidenceSummary?.registerActionCount || 0),
+          negativeActionEvidenceCount: Number(reasoningTrace.actionEvidenceSummary?.negativeActionCount || 0),
           opportunityStage: reasoningTrace.opportunityStage || OPPORTUNITY_MATCH_STAGE,
           averageHardConstraintRatio,
           opportunityMatchedCount,
