@@ -1,4 +1,6 @@
 const { getDb } = require('../config/db');
+const { QueryParser, SearchEngineV2 } = require('../utils/searchEngine');
+
 
 const registerEvent = async (req, res, next) => {
     try {
@@ -99,4 +101,41 @@ const trackEventView = async (req, res, next) => {
     } catch (error) { next(error); }
 };
 
-module.exports = { registerEvent, getRegistrationStatus, trackEventView };
+const searchEvents = async (req, res, next) => {
+    try {
+        const { query } = req.body;
+        if (!query || typeof query !== 'string') {
+            return res.status(400).json({ error: 'Query parameter is required' });
+        }
+
+        const parser = new QueryParser(query);
+        const parsed = parser.parse();
+        
+        const engine = new SearchEngineV2();
+        const result = await engine.search(parsed);
+        
+        // Build top-level match_reasons map
+        const matchReasonsMap = {};
+        if (result.events && Array.isArray(result.events)) {
+            result.events.forEach(ev => {
+                matchReasonsMap[ev.id] = ev.match_reasons || [];
+            });
+        }
+
+        res.json({
+            query: query,
+            parsed_query: parsed,
+            total: result.total,
+            search_time_ms: result.search_time_ms,
+            relaxed_match: result.relaxed_match,
+            deduped: result.deduped,
+            events: result.events,
+            match_reasons: matchReasonsMap
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+module.exports = { registerEvent, getRegistrationStatus, trackEventView, searchEvents };
+

@@ -19,9 +19,9 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import api from "../services/api";
-import { EventCard } from "./Events";
+import { EventCard } from "./EventsPremium";
 
-const EventAssistantPanel = ({
+const EventAssistantPanelPremium = ({
   isDayMode,
   onOpenEvent,
   className = "",
@@ -272,7 +272,7 @@ const EventAssistantPanel = ({
             }`}>
               {activeTab === "recommend" 
                 ? "说出你想参加什么，我来按画像和活动库筛" 
-                : "浙大 AI 学术问答系统，即时解答活动规则"}
+                : "浙大 AI 学术问答 system，即时解答活动规则"}
             </h3>
             <p className={`text-xs md:text-sm leading-relaxed max-w-2xl transition-colors duration-300 ${
               isDayMode ? "text-slate-500" : "text-gray-400"
@@ -726,5 +726,4 @@ const EventAssistantPanel = ({
   );
 };
 
-export default EventAssistantPanel;
-
+export default EventAssistantPanelPremium;

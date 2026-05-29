@@ -233,6 +233,7 @@ router.get('/events/distinct-options', resourceController.getEventDistinctOption
 router.post('/events/:id/register', authenticateToken, eventController.registerEvent);
 router.get('/events/:id/registration', authenticateToken, eventController.getRegistrationStatus);
 router.post('/events/:id/view', optionalAuth, eventController.trackEventView);
+router.post('/events/search', optionalAuth, eventController.searchEvents);
 
 // Contact / Messages Routes
 router.post('/contact', messageController.submitMessage);

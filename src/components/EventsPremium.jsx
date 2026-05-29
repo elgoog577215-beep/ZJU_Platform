@@ -44,7 +44,7 @@ import { useBackClose } from "../hooks/useBackClose";
 import { useCachedResource } from "../hooks/useCachedResource";
 import EventFilterPanel from "./EventFilterPanel";
 import SortSelector from "./SortSelector";
-import EventAssistantPanel from "./EventAssistantPanel";
+import EventAssistantPanelPremium from "./EventAssistantPanelPremium";
 import MobileEventAssistantFullscreen, {
   MobileEventAssistantLauncher,
 } from "./MobileEventAssistantFullscreen";
@@ -453,7 +453,7 @@ export const EventCard = memo(
 );
 EventCard.displayName = "EventCard";
 
-const Events = () => {
+const EventsPremium = () => {
   const { t } = useTranslation();
   const { settings, uiMode } = useSettings();
   const { user } = useAuth();
@@ -1116,7 +1116,7 @@ END:VCALENDAR`;
           <div className="mb-4">{renderDiscoveryModeToggle()}</div>
 
           {discoveryMode === "assistant" ? (
-            <EventAssistantPanel
+            <EventAssistantPanelPremium
               isDayMode={isDayMode}
               onOpenEvent={handleOpenAssistantEvent}
             />
@@ -2160,4 +2160,4 @@ END:VCALENDAR`;
   );
 };
 
-export default Events;
+export default EventsPremium;
