@@ -362,7 +362,7 @@ const getOneHandler = (table) => async (req, res, next) => {
 
     let query = `SELECT ${table}.*, COALESCE(u.nickname, u.username) AS author_name, u.avatar AS author_avatar`;
     if (supportsMediaCategory(table)) {
-        query += `, (SELECT name FROM media_categories WHERE id = ${table}.category_id AND deleted_at IS NULL) AS category_name`;
+        query += `, (SELECT name FROM media_categories WHERE id = ${table}.category_id) AS category_name`;
     }
     let params = [];
 
@@ -453,7 +453,7 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
         let params = [];
 
         if (supportsMediaCategory(table)) {
-             query += `, (SELECT name FROM media_categories WHERE id = ${table}.category_id AND deleted_at IS NULL) AS category_name`;
+             query += `, (SELECT name FROM media_categories WHERE id = ${table}.category_id) AS category_name`;
         }
 
         if (table === 'events') {
@@ -496,6 +496,10 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
                 whereClauses.push('(title LIKE ? OR tags LIKE ? OR excerpt LIKE ? OR content LIKE ?)');
                 params.push(searchTerm, searchTerm, searchTerm, searchTerm);
                 countParams.push(searchTerm, searchTerm, searchTerm, searchTerm);
+            } else if (supportsMediaCategory(table)) {
+                whereClauses.push(`(title LIKE ? OR tags LIKE ? OR EXISTS (SELECT 1 FROM media_categories mc WHERE mc.id = ${table}.category_id AND mc.name LIKE ?))`);
+                params.push(searchTerm, searchTerm, searchTerm);
+                countParams.push(searchTerm, searchTerm, searchTerm);
             } else {
                 whereClauses.push('(title LIKE ? OR tags LIKE ?)');
                 params.push(searchTerm, searchTerm);

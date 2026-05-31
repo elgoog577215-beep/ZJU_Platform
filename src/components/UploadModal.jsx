@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Upload, Image, Film, Music, FileText, Plus, Calendar, Tag, Link, Check, Sparkles, RotateCcw, GripVertical, ArrowUp, ArrowDown, Trash2, Paperclip, PenSquare, Eye, Clock3, List, Code2, ChevronDown, Search } from 'lucide-react';
@@ -15,19 +15,6 @@ import {
   EVENT_AUDIENCE_OPTIONS,
   normalizeEventCategoryValue,
 } from '../data/eventTaxonomy';
-
-const MEDIA_UPLOAD_TYPE_META = {
-  image: {
-    label: '图片',
-    description: '上传现场照片',
-    icon: Image,
-  },
-  video: {
-    label: '视频',
-    description: '上传视频记录',
-    icon: Film,
-  },
-};
 
 const createArticleBlock = (blockType = 'text') => ({
   id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -246,23 +233,20 @@ const ARTICLE_BLOCK_META = {
   }
 };
 
-const UploadModal = ({
-  isOpen,
-  onClose,
-  onUpload,
-  type = 'image',
-  initialData = null,
-  allowBatch = false,
-  switchableTypes = null,
-  onTypeChange,
-}) => {
+const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = null, allowBatch = false }) => {
   const { t } = useTranslation();
-  useBackClose(isOpen, onClose);
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+  const handleClose = useCallback(() => {
+    onCloseRef.current?.();
+  }, []);
+  useBackClose(isOpen, handleClose);
   const { user, isAdmin } = useAuth();
   const { uiMode } = useSettings();
   const isDayMode = uiMode === 'day';
   const isEditing = !!initialData;
-  const canSwitchMediaType = Array.isArray(switchableTypes) && switchableTypes.length > 1 && !isEditing;
   const isImageBatchEnabled = allowBatch && type === 'image' && !isEditing;
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(initialData?.url || initialData?.audio || initialData?.video || null);
@@ -316,7 +300,12 @@ const UploadModal = ({
   const [size, setSize] = useState(initialData?.size || '');
   const [dragTarget, setDragTarget] = useState(null);
   const usesMediaCategory = type === 'image' || type === 'video';
-  const { categories: mediaCategories } = useMediaCategories({
+  const {
+    categories: mediaCategories,
+    loading: mediaCategoriesLoading,
+    error: mediaCategoriesError,
+    refresh: refreshMediaCategories,
+  } = useMediaCategories({
     enabled: usesMediaCategory && isOpen,
   });
 
@@ -527,7 +516,7 @@ const UploadModal = ({
         setSubmitIntent('publish');
         if (!user) {
             toast.error(t('auth.signin_desc'));
-            onClose();
+            handleClose();
             return;
         }
 
@@ -625,7 +614,7 @@ const UploadModal = ({
         setActiveTextBlockId(null);
         setSlashMenuBlockId(null);
     }
-  }, [isOpen, initialData, user, t, onClose, type]);
+  }, [isOpen, initialData, user, t, handleClose, type]);
 
   React.useEffect(() => {
     if (!isOpen || type !== 'article' || isEditing) return;
@@ -1004,11 +993,6 @@ const UploadModal = ({
   const [submitIntent, setSubmitIntent] = useState('publish');
   const formRef = React.useRef(null);
 
-  const handleSwitchMediaType = (nextType) => {
-    if (!canSwitchMediaType || nextType === type || isUploading) return;
-    onTypeChange?.(nextType);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title && !hasBatchImages) {
@@ -1070,7 +1054,7 @@ const UploadModal = ({
 
         await onUpload(batchItems, { intent: submitIntent, batch: true });
         toast.success(isAdmin ? `已上传 ${batchItems.length} 张图片` : `已提交 ${batchItems.length} 张图片，等待审核`);
-        onClose();
+        handleClose();
       } catch (err) {
         console.error("Batch upload failed:", err);
         toast.error(t('upload.upload_failed'));
@@ -1214,7 +1198,7 @@ const UploadModal = ({
           : (isAdmin ? t('upload.upload_success') : t('upload.upload_pending_review')));
       
       toast.success(successMessage);
-      onClose();
+      handleClose();
 
     } catch (err) {
       console.error("Upload failed:", err);
@@ -1344,7 +1328,7 @@ const UploadModal = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className={`fixed inset-0 z-[150] flex items-center justify-center ${overlayShellClass}`}
-          onClick={onClose}
+          onClick={handleClose}
         >
         <motion.div
           initial={{ scale: 0.95, opacity: 0, y: 30 }}
@@ -1367,14 +1351,8 @@ const UploadModal = ({
                     {React.cloneElement(getIcon(), { size: 24 })}
                 </span>
                 <span className="truncate">
-                    {canSwitchMediaType ? (
-                      '上传影像'
-                    ) : (
-                      <>
-                        {type === 'article' ? '文章撰写' : `${isEditing ? t('admin.edit_item') : t('common.upload')} `}
-                        {type !== 'article' && <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">{t(`common.${type}`)}</span>}
-                      </>
-                    )}
+                    {type === 'article' ? '文章撰写' : `${isEditing ? t('admin.edit_item') : t('common.upload')} `}
+                    {type !== 'article' && <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">{t(`common.${type}`)}</span>}
                 </span>
               </h3>
               <div className="flex items-center gap-2">
@@ -1390,7 +1368,7 @@ const UploadModal = ({
                 )}
                 <button
                   type="button"
-                  onClick={onClose}
+                  onClick={handleClose}
                   aria-label={t('common.close', '关闭')}
                   className={`rect-icon-button ${isDayMode ? 'text-slate-500 hover:text-slate-900 bg-white/90' : 'text-gray-400 hover:text-white'}`}
                 >
@@ -1402,43 +1380,6 @@ const UploadModal = ({
             {/* Form Content - Scrollable */}
             <form ref={formRef} onSubmit={handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar relative z-10 flex flex-col">
               <div className={`${type === 'article' ? 'p-4 sm:p-6' : 'p-5 sm:p-8'} flex-1 ${type === 'article' ? 'space-y-4 sm:space-y-5' : 'space-y-6 sm:space-y-8'}`}>
-              {canSwitchMediaType && (
-                <div
-                  className={`grid grid-cols-2 gap-1 rounded-[7px] border p-1 ${
-                    isDayMode ? 'border-slate-200/80 bg-slate-100/80' : 'border-white/10 bg-black/28'
-                  }`}
-                >
-                  {switchableTypes.map((switchType) => {
-                    const option = MEDIA_UPLOAD_TYPE_META[switchType] || {
-                      label: t(`common.${switchType}`, switchType),
-                      icon: Upload,
-                    };
-                    const Icon = option.icon;
-                    const active = switchType === type;
-                    return (
-                      <button
-                        key={switchType}
-                        type="button"
-                        onClick={() => handleSwitchMediaType(switchType)}
-                        disabled={isUploading}
-                        aria-pressed={active}
-                        className={`rect-button relative flex min-h-[48px] items-center justify-center gap-2 px-3 text-sm font-black transition-all disabled:cursor-not-allowed disabled:opacity-60 ${
-                          active
-                            ? isDayMode
-                              ? 'bg-white text-indigo-600 shadow-[0_10px_22px_rgba(15,23,42,0.08)]'
-                              : 'bg-white/12 text-white border-white/14'
-                            : isDayMode
-                              ? 'text-slate-500 hover:bg-white/70 hover:text-slate-900'
-                              : 'text-gray-400 hover:bg-white/6 hover:text-white'
-                        }`}
-                      >
-                        <Icon size={17} />
-                        <span>{option.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
               {type === 'event' ? (
                 <>
                 {/* Event Specific Fields */}
@@ -2216,7 +2157,6 @@ const UploadModal = ({
                                     <div className={`absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm ${dragTarget === 'cover' ? 'opacity-100' : ''} ${isDayMode ? 'bg-white/68' : 'bg-black/50'}`}>
                                         <p className={`text-xs flex items-center gap-1 ${isDayMode ? 'text-slate-900' : 'text-white'}`}><Upload size={14}/> {t('upload.replace')}</p>
                                     </div>
-                                <button type="button" onClick={() => updateActiveTextStyle('code')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors inline-flex items-center gap-1.5 ${activeTextStyle === 'code' ? (isDayMode ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-indigo-500/20 text-indigo-100 border-indigo-400/35') : (isDayMode ? 'border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 hover:border-indigo-200' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10')}`}><Code2 size={12} />代码</button>
                                 </div>
                             ) : (
                                 <div className="flex flex-col items-center pointer-events-none">
@@ -2274,9 +2214,26 @@ const UploadModal = ({
                                     </option>
                                 ))}
                             </select>
-                            <p className={`mt-2 text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
-                                选择后会在影像库对应分类中展示。
-                            </p>
+                            {mediaCategoriesError ? (
+                                <div className={`mt-2 flex items-center justify-between gap-3 rounded-[5px] border px-3 py-2 text-xs ${isDayMode ? 'border-red-200 bg-red-50 text-red-700' : 'border-red-400/25 bg-red-500/10 text-red-200'}`}>
+                                    <span>分类加载失败，当前只能上传为未分类。</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => refreshMediaCategories({ clearCache: true })}
+                                        className={`shrink-0 font-bold ${isDayMode ? 'text-red-700 hover:text-red-900' : 'text-red-100 hover:text-white'}`}
+                                    >
+                                        重试
+                                    </button>
+                                </div>
+                            ) : (
+                                <p className={`mt-2 text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+                                    {mediaCategoriesLoading
+                                        ? '正在加载影像分类...'
+                                        : mediaCategories.length === 0
+                                          ? '暂无可用分类，内容会先归入未分类。'
+                                          : '选择后会在影像库对应分类中展示。'}
+                                </p>
+                            )}
                         </div>
                     )}
 
@@ -2330,7 +2287,7 @@ const UploadModal = ({
               <div className={stickyFooterClass}>
                 <button
                   type="button"
-                  onClick={onClose}
+                  onClick={handleClose}
                   className={`rect-button-secondary w-full sm:w-auto px-6 py-4 sm:py-3.5 font-bold text-sm ${isDayMode ? 'text-slate-600 hover:text-slate-900 bg-white/90' : 'text-gray-400 hover:text-white'}`}
                 >
                   {t('common.cancel')}

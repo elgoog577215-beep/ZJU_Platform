@@ -1,4 +1,4 @@
-import React, { forwardRef, memo, useCallback, useMemo, useState } from "react";
+import React, { forwardRef, memo, useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -144,7 +144,7 @@ const VideoCard = memo(({ video, index, onClick, onToggleFavorite, canAnimate, i
       iconSize={44}
     />
 
-    {video.date && new Date() - new Date(video.date) < 7 * 24 * 60 * 60 * 1000 && (
+    {(video.created_at || video.date) && new Date() - new Date(video.created_at || video.date) < 7 * 24 * 60 * 60 * 1000 && (
       <div className="absolute top-4 left-4 px-2 py-0.5 rounded-[4px] bg-pink-500 text-white text-[10px] font-bold uppercase tracking-wider shadow-none z-20">
         New
       </div>
@@ -221,6 +221,27 @@ const EmptyState = ({ icon: Icon, title, description, accent = "indigo", isDayMo
     </div>
     <h3 className={`text-2xl font-bold mb-2 ${isDayMode ? "text-slate-900" : "text-white"}`}>{title}</h3>
     <p className={`max-w-md ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>{description}</p>
+  </div>
+);
+
+const LoadMoreButton = ({ onClick, loading, disabled, tone = "indigo", isDayMode, children }) => (
+  <div className="flex items-center justify-center py-8">
+    <motion.button
+      type="button"
+      whileHover={!disabled ? { scale: 1.02 } : undefined}
+      whileTap={!disabled ? { scale: 0.98 } : undefined}
+      onClick={onClick}
+      disabled={disabled}
+      className={`rect-button-secondary min-h-[44px] px-6 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+        isDayMode
+          ? tone === "pink"
+            ? "hover:text-pink-600"
+            : "hover:text-indigo-600"
+          : "text-white hover:border-white/20"
+      }`}
+    >
+      {loading ? "正在加载..." : children}
+    </motion.button>
   </div>
 );
 
@@ -324,13 +345,24 @@ const MediaLibrary = () => {
   const { settings, uiMode } = useSettings();
   const isDayMode = uiMode === "day";
   const prefersReducedMotion = useReducedMotion();
+  const isPaginationEnabled = settings.pagination_enabled === "true";
   const [categoryId, setCategoryId] = useState("");
   const [uploadType, setUploadType] = useState(null);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
   const [selectedVideo, setSelectedVideo] = useState(null);
-  const { categories } = useMediaCategories();
-  const photoLimit = settings.pagination_enabled === "true" ? 18 : 48;
-  const videoLimit = settings.pagination_enabled === "true" ? 12 : 24;
+  const [isMobileUploadOpen, setIsMobileUploadOpen] = useState(false);
+  const [photoPage, setPhotoPage] = useState(1);
+  const [videoPage, setVideoPage] = useState(1);
+  const [displayPhotos, setDisplayPhotos] = useState([]);
+  const [displayVideos, setDisplayVideos] = useState([]);
+  const {
+    categories,
+    loading: categoriesLoading,
+    error: categoriesError,
+    refresh: refreshCategories,
+  } = useMediaCategories();
+  const photoLimit = isPaginationEnabled ? 18 : 48;
+  const videoLimit = isPaginationEnabled ? 12 : 24;
   const categoryParam = categoryId ? Number(categoryId) : undefined;
   const allowAmbientEffects =
     !prefersReducedMotion &&
@@ -338,48 +370,95 @@ const MediaLibrary = () => {
 
   const {
     data: photos,
+    pagination: photoPagination,
     loading: photosLoading,
     error: photosError,
     setData: setPhotos,
     refresh: refreshPhotos,
   } = useCachedResource(
     "/photos",
-    { limit: photoLimit, sort: "newest", category_id: categoryParam },
+    { page: photoPage, limit: photoLimit, sort: "newest", category_id: categoryParam },
     { dependencies: [categoryParam, settings.pagination_enabled] },
   );
 
   const {
     data: videos,
+    pagination: videoPagination,
     loading: videosLoading,
     error: videosError,
     setData: setVideos,
     refresh: refreshVideos,
   } = useCachedResource(
     "/videos",
-    { limit: videoLimit, sort: "newest", category_id: categoryParam },
+    { page: videoPage, limit: videoLimit, sort: "newest", category_id: categoryParam },
     { dependencies: [categoryParam, settings.pagination_enabled] },
   );
+
+  const photoTotalPages = photoPagination?.totalPages || 1;
+  const videoTotalPages = videoPagination?.totalPages || 1;
+  const canLoadMorePhotos = photoPage < photoTotalPages;
+  const canLoadMoreVideos = videoPage < videoTotalPages;
+
+  useEffect(() => {
+    setPhotoPage(1);
+    setVideoPage(1);
+    setDisplayPhotos([]);
+    setDisplayVideos([]);
+    setSelectedPhotoIndex(null);
+    setSelectedVideo(null);
+  }, [categoryParam, settings.pagination_enabled]);
+
+  useEffect(() => {
+    setDisplayPhotos((prev) => {
+      if (photoPage === 1) return photos;
+      const seen = new Set(prev.map((item) => item.id));
+      const next = photos.filter((item) => !seen.has(item.id));
+      return next.length === 0 ? prev : [...prev, ...next];
+    });
+  }, [photos, photoPage]);
+
+  useEffect(() => {
+    setDisplayVideos((prev) => {
+      if (videoPage === 1) return videos;
+      const seen = new Set(prev.map((item) => item.id));
+      const next = videos.filter((item) => !seen.has(item.id));
+      return next.length === 0 ? prev : [...prev, ...next];
+    });
+  }, [videos, videoPage]);
 
   const activeCategoryName = useMemo(() => {
     if (!categoryId) return "全部";
     return categories.find((category) => String(category.id) === String(categoryId))?.name || "当前分类";
   }, [categories, categoryId]);
 
-  const openUpload = useCallback((type = "image") => {
+  const openUpload = useCallback((type = null) => {
     if (!user) {
       toast.error("请先登录后再上传");
       window.dispatchEvent(new Event("open-auth-modal"));
       return;
     }
-    setUploadType(type === "video" ? "video" : "image");
+    if (type) {
+      setUploadType(type);
+      return;
+    }
+    setIsMobileUploadOpen(true);
   }, [user]);
 
-  const ignoreMobileFilter = useCallback(() => {}, []);
-  const ignoreMobileSort = useCallback(() => {}, []);
-  useContentPageEvents("media", () => openUpload("image"), ignoreMobileFilter, ignoreMobileSort);
+  const ignoreMobileFilter = useCallback((next) => {
+    if (typeof next === "function") next(false);
+  }, []);
+  const ignoreMobileSort = useCallback((next) => {
+    if (typeof next === "function") next(false);
+  }, []);
+  useContentPageEvents("media", () => openUpload(), ignoreMobileFilter, ignoreMobileSort);
 
-  useBackClose(Boolean(uploadType), () => setUploadType(null));
-  useBackClose(selectedVideo !== null, () => setSelectedVideo(null));
+  const closeUpload = useCallback(() => setUploadType(null), []);
+  const closeUploadPicker = useCallback(() => setIsMobileUploadOpen(false), []);
+  const closeSelectedVideo = useCallback(() => setSelectedVideo(null), []);
+
+  useBackClose(Boolean(uploadType), closeUpload);
+  useBackClose(isMobileUploadOpen, closeUploadPicker);
+  useBackClose(selectedVideo !== null, closeSelectedVideo);
 
   const handlePhotoUpload = async (newItem) => {
     if (Array.isArray(newItem)) {
@@ -402,10 +481,16 @@ const MediaLibrary = () => {
     setPhotos((prev) => prev.map((photo) => (
       photo.id === photoId ? { ...photo, favorited, likes: likes ?? photo.likes } : photo
     )));
+    setDisplayPhotos((prev) => prev.map((photo) => (
+      photo.id === photoId ? { ...photo, favorited, likes: likes ?? photo.likes } : photo
+    )));
   }, [setPhotos]);
 
   const handleToggleVideoFavorite = useCallback((videoId, favorited, likes) => {
     setVideos((prev) => prev.map((video) => (
+      video.id === videoId ? { ...video, favorited, likes: likes ?? video.likes } : video
+    )));
+    setDisplayVideos((prev) => prev.map((video) => (
       video.id === videoId ? { ...video, favorited, likes: likes ?? video.likes } : video
     )));
     setSelectedVideo((prev) => (
@@ -414,18 +499,21 @@ const MediaLibrary = () => {
   }, [setVideos]);
 
   const handleNextPhoto = () => {
-    if (!photos.length) return;
-    setSelectedPhotoIndex((prev) => (prev + 1) % photos.length);
+    if (!displayPhotos.length) return;
+    setSelectedPhotoIndex((prev) => (prev + 1) % displayPhotos.length);
   };
 
   const handlePrevPhoto = () => {
-    if (!photos.length) return;
-    setSelectedPhotoIndex((prev) => (prev - 1 + photos.length) % photos.length);
+    if (!displayPhotos.length) return;
+    setSelectedPhotoIndex((prev) => (prev - 1 + displayPhotos.length) % displayPhotos.length);
   };
 
-  const selectedPhoto = selectedPhotoIndex !== null ? photos[selectedPhotoIndex] : null;
-  const loading = photosLoading || videosLoading;
+  const selectedPhoto = selectedPhotoIndex !== null ? displayPhotos[selectedPhotoIndex] : null;
   const error = photosError || videosError;
+  const visiblePhotoCount = displayPhotos.length;
+  const totalPhotoCount = Number(photoPagination?.total || visiblePhotoCount);
+  const visibleVideoCount = displayVideos.length;
+  const totalVideoCount = Number(videoPagination?.total || visibleVideoCount);
 
   return (
     <section className="pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:py-20 px-4 md:px-8 relative overflow-hidden flex-grow">
@@ -472,7 +560,7 @@ const MediaLibrary = () => {
           <motion.button
             whileHover={prefersReducedMotion ? undefined : { scale: 1.05, rotate: 90 }}
             whileTap={prefersReducedMotion ? undefined : { scale: 0.95 }}
-            onClick={() => openUpload("image")}
+            onClick={() => openUpload()}
             className={`hidden md:block absolute right-0 top-0 md:top-2 p-2 md:p-3 rounded-full backdrop-blur-md border transition-all ${
               isDayMode
                 ? "day-quiet-button text-slate-700 hover:text-indigo-600"
@@ -514,7 +602,7 @@ const MediaLibrary = () => {
             />
             <button
               type="button"
-              onClick={() => openUpload("image")}
+              onClick={() => openUpload()}
               className={`rect-button-secondary inline-flex min-h-[44px] items-center justify-center gap-2 px-4 py-2 text-sm font-semibold md:hidden ${
                 isDayMode ? "text-slate-700" : "text-white"
               }`}
@@ -523,6 +611,33 @@ const MediaLibrary = () => {
               上传影像
             </button>
           </motion.div>
+
+          {categoriesError ? (
+            <div
+              className={`mx-auto mt-3 flex max-w-[760px] items-center justify-between gap-3 border px-3 py-2 text-left text-xs ${
+                isDayMode
+                  ? "border-red-200 bg-red-50 text-red-700"
+                  : "border-red-400/25 bg-red-500/10 text-red-200"
+              }`}
+            >
+              <span>影像分类加载失败，当前仅展示全部内容。</span>
+              <button
+                type="button"
+                onClick={() => refreshCategories({ clearCache: true })}
+                className={`shrink-0 font-bold ${isDayMode ? "text-red-700 hover:text-red-900" : "text-red-100 hover:text-white"}`}
+              >
+                重试
+              </button>
+            </div>
+          ) : categoriesLoading ? (
+            <p className={`mt-3 text-xs ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+              正在加载影像分类...
+            </p>
+          ) : categories.length === 0 ? (
+            <p className={`mt-3 text-xs ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+              暂无影像分类，内容会显示在全部与未分类中。
+            </p>
+          ) : null}
         </motion.div>
 
         {error ? (
@@ -532,14 +647,18 @@ const MediaLibrary = () => {
             className="mb-8 flex flex-col items-center justify-center py-12 text-center"
           >
             <AlertCircle size={48} className="text-red-400 mb-4 opacity-50 mx-auto" />
-            <p className="text-gray-300 mb-6">影像内容加载失败，请稍后重试。</p>
+            <p className={`mb-6 ${isDayMode ? "text-slate-600" : "text-gray-300"}`}>影像内容加载失败，请稍后重试。</p>
             <button
               type="button"
               onClick={() => {
                 refreshPhotos({ clearCache: true });
                 refreshVideos({ clearCache: true });
               }}
-              className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all border border-white/10 hover:border-white/30"
+              className={`px-6 py-2 rounded-full transition-all border ${
+                isDayMode
+                  ? "bg-white hover:bg-slate-50 text-slate-700 border-slate-200/80"
+                  : "bg-white/10 hover:bg-white/20 text-white border-white/10 hover:border-white/30"
+              }`}
             >
               重试
             </button>
@@ -547,14 +666,14 @@ const MediaLibrary = () => {
         ) : null}
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)] lg:items-start">
-          <section className="order-1 min-w-0">
+          <section className="order-2 min-w-0 lg:order-1">
             <div className="mb-4 flex items-center justify-between gap-4">
               <div>
                 <h2 className={`text-2xl font-bold font-serif ${isDayMode ? "text-slate-900" : "text-white"}`}>
                   现场照片
                 </h2>
                 <p className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-                  {photos.length} 张照片
+                  {visiblePhotoCount} / {totalPhotoCount} 张照片
                 </p>
               </div>
               <button
@@ -569,7 +688,7 @@ const MediaLibrary = () => {
               </button>
             </div>
 
-            {photosLoading && photos.length === 0 ? (
+            {photosLoading && displayPhotos.length === 0 ? (
               <div className="columns-1 sm:columns-2 gap-4 md:gap-6">
                 {[...Array(6)].map((_, index) => (
                   <div
@@ -580,7 +699,7 @@ const MediaLibrary = () => {
                   />
                 ))}
               </div>
-            ) : photos.length === 0 ? (
+            ) : displayPhotos.length === 0 ? (
               <EmptyState
                 icon={Box}
                 title="暂无现场照片"
@@ -593,7 +712,7 @@ const MediaLibrary = () => {
                 className="columns-1 sm:columns-2 gap-4 md:gap-6 pb-4 md:pb-0"
               >
                 <AnimatePresence mode="popLayout">
-                  {photos.map((photo, index) => (
+                  {displayPhotos.map((photo, index) => (
                     <PhotoCard
                       key={photo.id}
                       photo={photo}
@@ -607,16 +726,26 @@ const MediaLibrary = () => {
                 </AnimatePresence>
               </motion.div>
             )}
+            {!error && displayPhotos.length > 0 && canLoadMorePhotos ? (
+              <LoadMoreButton
+                onClick={() => setPhotoPage((prev) => Math.min(prev + 1, photoTotalPages))}
+                loading={photosLoading}
+                disabled={photosLoading}
+                isDayMode={isDayMode}
+              >
+                加载更多照片
+              </LoadMoreButton>
+            ) : null}
           </section>
 
-          <aside className="order-2 min-w-0">
+          <aside className="order-1 min-w-0 lg:order-2">
             <div className="mb-4 flex items-center justify-between gap-4">
               <div>
                 <h2 className={`text-2xl font-bold font-serif ${isDayMode ? "text-slate-900" : "text-white"}`}>
                   视频记录
                 </h2>
                 <p className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-                  {videos.length} 条视频
+                  {visibleVideoCount} / {totalVideoCount} 条视频
                 </p>
               </div>
               <button
@@ -631,7 +760,7 @@ const MediaLibrary = () => {
               </button>
             </div>
 
-            {videosLoading && videos.length === 0 ? (
+            {videosLoading && displayVideos.length === 0 ? (
               <div className="space-y-4">
                 {[...Array(4)].map((_, index) => (
                   <div
@@ -642,7 +771,7 @@ const MediaLibrary = () => {
                   />
                 ))}
               </div>
-            ) : videos.length === 0 ? (
+            ) : displayVideos.length === 0 ? (
               <EmptyState
                 icon={Film}
                 title="暂无视频记录"
@@ -652,7 +781,7 @@ const MediaLibrary = () => {
               />
             ) : (
               <div className="grid grid-cols-1 gap-4 md:gap-5">
-                {videos.map((video, index) => (
+                {displayVideos.map((video, index) => (
                   <VideoCard
                     key={video.id}
                     video={video}
@@ -665,6 +794,17 @@ const MediaLibrary = () => {
                 ))}
               </div>
             )}
+            {!error && displayVideos.length > 0 && canLoadMoreVideos ? (
+              <LoadMoreButton
+                onClick={() => setVideoPage((prev) => Math.min(prev + 1, videoTotalPages))}
+                loading={videosLoading}
+                disabled={videosLoading}
+                tone="pink"
+                isDayMode={isDayMode}
+              >
+                加载更多视频
+              </LoadMoreButton>
+            ) : null}
           </aside>
         </div>
       </div>
@@ -678,7 +818,7 @@ const MediaLibrary = () => {
             onPrev={handlePrevPhoto}
             onLikeToggle={(favorited, likes) => handleTogglePhotoFavorite(selectedPhoto.id, favorited, likes)}
             onSelect={(photo) => {
-              const nextIndex = photos.findIndex((item) => item.id === photo.id);
+              const nextIndex = displayPhotos.findIndex((item) => item.id === photo.id);
               if (nextIndex >= 0) setSelectedPhotoIndex(nextIndex);
             }}
           />
@@ -694,7 +834,7 @@ const MediaLibrary = () => {
               exit={prefersReducedMotion ? undefined : { opacity: 0 }}
               transition={prefersReducedMotion ? undefined : { duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
               className={`fixed inset-0 z-[100] backdrop-blur-md overflow-y-auto ${isDayMode ? "bg-white/72" : "bg-black/90"}`}
-              onClick={() => setSelectedVideo(null)}
+              onClick={closeSelectedVideo}
             >
               <div className="flex min-h-full items-center justify-center p-4 md:p-8">
                 <motion.div
@@ -710,7 +850,7 @@ const MediaLibrary = () => {
                   <div className={`relative aspect-video ${isDayMode ? "bg-slate-100" : "bg-black"}`}>
                     <button
                       type="button"
-                      onClick={() => setSelectedVideo(null)}
+                      onClick={closeSelectedVideo}
                       className={`rect-icon-button absolute top-6 right-6 p-2 transition-all z-20 group ${
                         isDayMode
                           ? "bg-white/90 hover:bg-white text-slate-700 border-slate-200/80"
@@ -765,18 +905,48 @@ const MediaLibrary = () => {
         document.body,
       )}
 
-      {uploadType ? (
-        <UploadModal
-          key={`media-upload-${uploadType}`}
-          isOpen
-          onClose={() => setUploadType(null)}
-          onUpload={uploadType === "video" ? handleVideoUpload : handlePhotoUpload}
-          type={uploadType}
-          allowBatch={uploadType === "image"}
-          switchableTypes={["image", "video"]}
-          onTypeChange={(nextType) => setUploadType(nextType === "video" ? "video" : "image")}
-        />
+      {isMobileUploadOpen ? createPortal(
+        <div
+          className={`fixed inset-0 z-[110] flex items-end justify-center p-4 md:items-center ${isDayMode ? "bg-white/70" : "bg-black/70"}`}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="media-upload-picker-title"
+          onClick={closeUploadPicker}
+        >
+          <div
+            className={`w-full max-w-sm border p-4 shadow-2xl ${isDayMode ? "bg-white border-slate-200" : "bg-[#111] border-white/10"}`}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h3 className={`text-lg font-bold ${isDayMode ? "text-slate-950" : "text-white"}`}>上传影像</h3>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <button type="button" onClick={() => { setIsMobileUploadOpen(false); setUploadType("image"); }} className="rect-button-secondary min-h-[48px]">
+                上传照片
+              </button>
+              <button type="button" onClick={() => { setIsMobileUploadOpen(false); setUploadType("video"); }} className="rect-button-primary min-h-[48px] text-white">
+                上传视频
+              </button>
+            </div>
+            <button type="button" onClick={() => setIsMobileUploadOpen(false)} className={`mt-3 w-full py-2 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+              取消
+            </button>
+          </div>
+        </div>,
+        document.body,
       ) : null}
+
+      <UploadModal
+        isOpen={uploadType === "image"}
+        onClose={closeUpload}
+        onUpload={handlePhotoUpload}
+        type="image"
+        allowBatch
+      />
+      <UploadModal
+        isOpen={uploadType === "video"}
+        onClose={closeUpload}
+        onUpload={handleVideoUpload}
+        type="video"
+      />
     </section>
   );
 };

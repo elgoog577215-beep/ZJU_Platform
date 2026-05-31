@@ -24,8 +24,8 @@ const serializeCategory = (row) => ({
 
 const categorySelect = `
   SELECT mc.*,
-    (SELECT COUNT(*) FROM photos p WHERE p.category_id = mc.id AND p.deleted_at IS NULL) AS photo_count,
-    (SELECT COUNT(*) FROM videos v WHERE v.category_id = mc.id AND v.deleted_at IS NULL) AS video_count
+    (SELECT COUNT(*) FROM photos p WHERE p.category_id = mc.id AND p.deleted_at IS NULL AND p.status = 'approved') AS photo_count,
+    (SELECT COUNT(*) FROM videos v WHERE v.category_id = mc.id AND v.deleted_at IS NULL AND v.status = 'approved') AS video_count
   FROM media_categories mc
 `;
 

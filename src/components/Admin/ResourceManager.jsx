@@ -170,15 +170,21 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
       );
     }
 
-    if (isMediaResource && item.category_name) {
+    if (isMediaResource) {
       return (
         <div className="flex max-w-xs flex-wrap gap-1">
           <span
             className={`rounded-full px-2 py-1 text-xs ${mutedTextClass} ${
-              isDayMode ? "bg-indigo-50 text-indigo-700" : "bg-indigo-500/10 text-indigo-200"
+              item.category_name
+                ? isDayMode
+                  ? "bg-indigo-50 text-indigo-700"
+                  : "bg-indigo-500/10 text-indigo-200"
+                : isDayMode
+                  ? "bg-slate-100 text-slate-500"
+                  : "bg-white/5 text-gray-400"
             }`}
           >
-            {item.category_name}
+            {item.category_name || "未分类"}
           </span>
         </div>
       );
@@ -603,7 +609,7 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
                     aria-label={searchLabel}
                     value={searchInput}
                     onChange={(event) => setSearchInput(event.target.value)}
-                    placeholder={isEventResource ? "搜索标题或分类" : "搜索标题或标签"}
+                    placeholder={isEventResource || isMediaResource ? "搜索标题或分类" : "搜索标题或标签"}
                     className="theme-admin-input w-full rounded-xl py-2.5 pl-10 pr-4 text-sm"
                   />
                 </div>
