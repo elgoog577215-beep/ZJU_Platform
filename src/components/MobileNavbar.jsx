@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Calendar, Film, Home, Trees, UserCircle } from "lucide-react";
+import { Calendar, Home, Sparkles, Trees, UserCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { LayoutGroup, motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
@@ -73,7 +73,7 @@ const MobileNavbar = () => {
   const navItems = [
     { key: "home", path: "/", icon: Home, label: t("nav.home", "首页") },
     { key: "events", path: "/events", icon: Calendar, label: t("nav.events", "活动") },
-    { key: "media", path: "/media", icon: Film, label: t("nav.media", "影像库") },
+    { key: "hackathon", path: "/hackathon", icon: Sparkles, label: "黑客松" },
     { key: "articles", path: "/articles", icon: Trees, label: t("nav.community", "AI社区") },
     { key: "me", path: user ? `/user/${user.id}` : null, icon: UserCircle, label: t("nav.profile", "我的") },
   ];
@@ -82,13 +82,7 @@ const MobileNavbar = () => {
     if (key === "me") {
       return location.pathname.startsWith("/user/");
     }
-    if (key === "media") {
-      return (
-        location.pathname.startsWith("/media") ||
-        location.pathname.startsWith("/gallery") ||
-        location.pathname.startsWith("/videos")
-      );
-    }
+    if (key === "hackathon") return location.pathname.startsWith("/hackathon");
     if (key === "articles") {
       return location.pathname.startsWith("/articles");
     }
