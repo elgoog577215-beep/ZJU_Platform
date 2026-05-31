@@ -16,6 +16,19 @@ import {
   normalizeEventCategoryValue,
 } from '../data/eventTaxonomy';
 
+const MEDIA_UPLOAD_TYPE_META = {
+  image: {
+    label: '图片',
+    description: '上传现场照片',
+    icon: Image,
+  },
+  video: {
+    label: '视频',
+    description: '上传视频记录',
+    icon: Film,
+  },
+};
+
 const createArticleBlock = (blockType = 'text') => ({
   id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
   type: blockType === 'code' ? 'text' : blockType,
@@ -233,13 +246,23 @@ const ARTICLE_BLOCK_META = {
   }
 };
 
-const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = null, allowBatch = false }) => {
+const UploadModal = ({
+  isOpen,
+  onClose,
+  onUpload,
+  type = 'image',
+  initialData = null,
+  allowBatch = false,
+  switchableTypes = null,
+  onTypeChange,
+}) => {
   const { t } = useTranslation();
   useBackClose(isOpen, onClose);
   const { user, isAdmin } = useAuth();
   const { uiMode } = useSettings();
   const isDayMode = uiMode === 'day';
   const isEditing = !!initialData;
+  const canSwitchMediaType = Array.isArray(switchableTypes) && switchableTypes.length > 1 && !isEditing;
   const isImageBatchEnabled = allowBatch && type === 'image' && !isEditing;
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(initialData?.url || initialData?.audio || initialData?.video || null);
@@ -981,6 +1004,11 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   const [submitIntent, setSubmitIntent] = useState('publish');
   const formRef = React.useRef(null);
 
+  const handleSwitchMediaType = (nextType) => {
+    if (!canSwitchMediaType || nextType === type || isUploading) return;
+    onTypeChange?.(nextType);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title && !hasBatchImages) {
@@ -1339,8 +1367,14 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                     {React.cloneElement(getIcon(), { size: 24 })}
                 </span>
                 <span className="truncate">
-                    {type === 'article' ? '文章撰写' : `${isEditing ? t('admin.edit_item') : t('common.upload')} `}
-                    {type !== 'article' && <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">{t(`common.${type}`)}</span>}
+                    {canSwitchMediaType ? (
+                      '上传影像'
+                    ) : (
+                      <>
+                        {type === 'article' ? '文章撰写' : `${isEditing ? t('admin.edit_item') : t('common.upload')} `}
+                        {type !== 'article' && <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">{t(`common.${type}`)}</span>}
+                      </>
+                    )}
                 </span>
               </h3>
               <div className="flex items-center gap-2">
@@ -1368,6 +1402,43 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             {/* Form Content - Scrollable */}
             <form ref={formRef} onSubmit={handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar relative z-10 flex flex-col">
               <div className={`${type === 'article' ? 'p-4 sm:p-6' : 'p-5 sm:p-8'} flex-1 ${type === 'article' ? 'space-y-4 sm:space-y-5' : 'space-y-6 sm:space-y-8'}`}>
+              {canSwitchMediaType && (
+                <div
+                  className={`grid grid-cols-2 gap-1 rounded-[7px] border p-1 ${
+                    isDayMode ? 'border-slate-200/80 bg-slate-100/80' : 'border-white/10 bg-black/28'
+                  }`}
+                >
+                  {switchableTypes.map((switchType) => {
+                    const option = MEDIA_UPLOAD_TYPE_META[switchType] || {
+                      label: t(`common.${switchType}`, switchType),
+                      icon: Upload,
+                    };
+                    const Icon = option.icon;
+                    const active = switchType === type;
+                    return (
+                      <button
+                        key={switchType}
+                        type="button"
+                        onClick={() => handleSwitchMediaType(switchType)}
+                        disabled={isUploading}
+                        aria-pressed={active}
+                        className={`rect-button relative flex min-h-[48px] items-center justify-center gap-2 px-3 text-sm font-black transition-all disabled:cursor-not-allowed disabled:opacity-60 ${
+                          active
+                            ? isDayMode
+                              ? 'bg-white text-indigo-600 shadow-[0_10px_22px_rgba(15,23,42,0.08)]'
+                              : 'bg-white/12 text-white border-white/14'
+                            : isDayMode
+                              ? 'text-slate-500 hover:bg-white/70 hover:text-slate-900'
+                              : 'text-gray-400 hover:bg-white/6 hover:text-white'
+                        }`}
+                      >
+                        <Icon size={17} />
+                        <span>{option.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
               {type === 'event' ? (
                 <>
                 {/* Event Specific Fields */}

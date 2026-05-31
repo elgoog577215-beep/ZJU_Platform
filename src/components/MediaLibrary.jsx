@@ -328,7 +328,6 @@ const MediaLibrary = () => {
   const [uploadType, setUploadType] = useState(null);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
   const [selectedVideo, setSelectedVideo] = useState(null);
-  const [isMobileUploadOpen, setIsMobileUploadOpen] = useState(false);
   const { categories } = useMediaCategories();
   const photoLimit = settings.pagination_enabled === "true" ? 18 : 48;
   const videoLimit = settings.pagination_enabled === "true" ? 12 : 24;
@@ -366,25 +365,20 @@ const MediaLibrary = () => {
     return categories.find((category) => String(category.id) === String(categoryId))?.name || "当前分类";
   }, [categories, categoryId]);
 
-  const openUpload = useCallback((type = null) => {
+  const openUpload = useCallback((type = "image") => {
     if (!user) {
       toast.error("请先登录后再上传");
       window.dispatchEvent(new Event("open-auth-modal"));
       return;
     }
-    if (type) {
-      setUploadType(type);
-      return;
-    }
-    setIsMobileUploadOpen(true);
+    setUploadType(type === "video" ? "video" : "image");
   }, [user]);
 
   const ignoreMobileFilter = useCallback(() => {}, []);
   const ignoreMobileSort = useCallback(() => {}, []);
-  useContentPageEvents("media", () => openUpload(), ignoreMobileFilter, ignoreMobileSort);
+  useContentPageEvents("media", () => openUpload("image"), ignoreMobileFilter, ignoreMobileSort);
 
   useBackClose(Boolean(uploadType), () => setUploadType(null));
-  useBackClose(isMobileUploadOpen, () => setIsMobileUploadOpen(false));
   useBackClose(selectedVideo !== null, () => setSelectedVideo(null));
 
   const handlePhotoUpload = async (newItem) => {
@@ -478,7 +472,7 @@ const MediaLibrary = () => {
           <motion.button
             whileHover={prefersReducedMotion ? undefined : { scale: 1.05, rotate: 90 }}
             whileTap={prefersReducedMotion ? undefined : { scale: 0.95 }}
-            onClick={() => openUpload()}
+            onClick={() => openUpload("image")}
             className={`hidden md:block absolute right-0 top-0 md:top-2 p-2 md:p-3 rounded-full backdrop-blur-md border transition-all ${
               isDayMode
                 ? "day-quiet-button text-slate-700 hover:text-indigo-600"
@@ -520,7 +514,7 @@ const MediaLibrary = () => {
             />
             <button
               type="button"
-              onClick={() => openUpload()}
+              onClick={() => openUpload("image")}
               className={`rect-button-secondary inline-flex min-h-[44px] items-center justify-center gap-2 px-4 py-2 text-sm font-semibold md:hidden ${
                 isDayMode ? "text-slate-700" : "text-white"
               }`}
@@ -771,38 +765,18 @@ const MediaLibrary = () => {
         document.body,
       )}
 
-      {isMobileUploadOpen ? (
-        <div className={`fixed inset-0 z-[110] flex items-end justify-center p-4 md:items-center ${isDayMode ? "bg-white/70" : "bg-black/70"}`}>
-          <div className={`w-full max-w-sm border p-4 shadow-2xl ${isDayMode ? "bg-white border-slate-200" : "bg-[#111] border-white/10"}`}>
-            <h3 className={`text-lg font-bold ${isDayMode ? "text-slate-950" : "text-white"}`}>上传影像</h3>
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              <button type="button" onClick={() => { setIsMobileUploadOpen(false); setUploadType("image"); }} className="rect-button-secondary min-h-[48px]">
-                上传照片
-              </button>
-              <button type="button" onClick={() => { setIsMobileUploadOpen(false); setUploadType("video"); }} className="rect-button-primary min-h-[48px] text-white">
-                上传视频
-              </button>
-            </div>
-            <button type="button" onClick={() => setIsMobileUploadOpen(false)} className={`mt-3 w-full py-2 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-              取消
-            </button>
-          </div>
-        </div>
+      {uploadType ? (
+        <UploadModal
+          key={`media-upload-${uploadType}`}
+          isOpen
+          onClose={() => setUploadType(null)}
+          onUpload={uploadType === "video" ? handleVideoUpload : handlePhotoUpload}
+          type={uploadType}
+          allowBatch={uploadType === "image"}
+          switchableTypes={["image", "video"]}
+          onTypeChange={(nextType) => setUploadType(nextType === "video" ? "video" : "image")}
+        />
       ) : null}
-
-      <UploadModal
-        isOpen={uploadType === "image"}
-        onClose={() => setUploadType(null)}
-        onUpload={handlePhotoUpload}
-        type="image"
-        allowBatch
-      />
-      <UploadModal
-        isOpen={uploadType === "video"}
-        onClose={() => setUploadType(null)}
-        onUpload={handleVideoUpload}
-        type="video"
-      />
     </section>
   );
 };
