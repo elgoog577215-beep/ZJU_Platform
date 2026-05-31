@@ -3421,6 +3421,13 @@ const recordEventAssistantRun = async (db, response = {}, userId = null) => {
       .map((item) => Number(item?.event?.id || item?.id))
       .filter((id) => Number.isInteger(id))
       .slice(0, MAX_RECOMMENDATIONS);
+    const recommendedEventRanks = recommendations
+      .map((item, index) => ({
+        eventId: Number(item?.event?.id || item?.id),
+        rank: Number.isInteger(Number(item?.rank)) ? Number(item.rank) : index + 1
+      }))
+      .filter((item) => Number.isInteger(item.eventId) && Number.isInteger(item.rank))
+      .slice(0, MAX_RECOMMENDATIONS);
     const recommendedCategories = unique(recommendations
       .map((item) => item?.event?.category || item?.aiProfile?.category || '')
       .filter(Boolean))
@@ -3481,6 +3488,7 @@ const recordEventAssistantRun = async (db, response = {}, userId = null) => {
           durationMs: Number(performanceTelemetry.durationMs || 0),
           performance: performanceTelemetry,
           recommendedEventIds,
+          recommendedEventRanks,
           recommendedCategories,
           profileStatuses,
           averageConfidence,
@@ -3537,6 +3545,62 @@ const EVENT_ASSISTANT_DECISION_ACTION_TYPES = new Set([
   'feedback_down'
 ]);
 
+const validateRecommendationActionAttribution = async ({
+  db,
+  runId,
+  eventId,
+  recommendationRank
+}) => {
+  if (!Number.isInteger(runId)) return;
+
+  const row = await db.get(
+    `
+      SELECT module, summary_json
+      FROM ai_assistant_runs
+      WHERE id = ?
+    `,
+    [runId]
+  );
+
+  if (!row) {
+    throw createAssistantError('EVENT_ASSISTANT_BAD_REQUEST', 'Assistant run does not exist.', 400);
+  }
+  if (row.module && row.module !== 'event_recommendation') {
+    throw createAssistantError('EVENT_ASSISTANT_BAD_REQUEST', 'Assistant run does not belong to event recommendations.', 400);
+  }
+
+  const summary = safeJsonParse(row.summary_json, {});
+  const recommendedEventIds = Array.isArray(summary.recommendedEventIds)
+    ? summary.recommendedEventIds.map((id) => Number(id)).filter(Number.isInteger)
+    : [];
+  const recommendedEventRanks = Array.isArray(summary.recommendedEventRanks)
+    ? summary.recommendedEventRanks
+      .map((item) => ({
+        eventId: Number(item?.eventId),
+        rank: Number(item?.rank)
+      }))
+      .filter((item) => Number.isInteger(item.eventId) && Number.isInteger(item.rank))
+    : [];
+
+  if (recommendedEventIds.length > 0 && !recommendedEventIds.includes(eventId)) {
+    throw createAssistantError('EVENT_ASSISTANT_BAD_REQUEST', 'Event was not recommended by this assistant run.', 400);
+  }
+
+  if (!Number.isInteger(recommendationRank)) return;
+
+  const rankRecord = recommendedEventRanks.find((item) => item.eventId === eventId);
+  if (rankRecord && rankRecord.rank !== recommendationRank) {
+    throw createAssistantError('EVENT_ASSISTANT_BAD_REQUEST', 'Recommendation rank does not match this assistant run.', 400);
+  }
+  if (
+    !rankRecord
+    && recommendedEventIds.length > 0
+    && (recommendationRank < 1 || recommendationRank > recommendedEventIds.length)
+  ) {
+    throw createAssistantError('EVENT_ASSISTANT_BAD_REQUEST', 'Recommendation rank is outside this assistant run.', 400);
+  }
+};
+
 const recordEventAssistantDecisionAction = async ({
   db,
   userId = null,
@@ -3559,6 +3623,15 @@ const recordEventAssistantDecisionAction = async ({
   }
   if (!EVENT_ASSISTANT_DECISION_ACTION_TYPES.has(normalizedActionType)) {
     throw createAssistantError('EVENT_ASSISTANT_BAD_REQUEST', 'Valid decision action is required.', 400);
+  }
+
+  if (Number.isInteger(normalizedRunId)) {
+    await validateRecommendationActionAttribution({
+      db,
+      runId: normalizedRunId,
+      eventId: normalizedEventId,
+      recommendationRank: Number.isInteger(normalizedRank) ? normalizedRank : null
+    });
   }
 
   const safeMetadata = {};

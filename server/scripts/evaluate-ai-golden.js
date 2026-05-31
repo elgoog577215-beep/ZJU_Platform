@@ -674,6 +674,9 @@ const evaluateEventRecommendation = async (db) => {
   assert(runSummary.averageConfidence >= 0.7, 'Recommendation run should store average confidence.');
   assert(runSummary.opportunityStage === 'trusted_decision_loop_v1', 'Recommendation run should store opportunity stage.');
   assert(typeof runSummary.averageHardConstraintRatio === 'number', 'Recommendation run should store hard-constraint ratio.');
+  assert(Array.isArray(runSummary.recommendedEventRanks) && runSummary.recommendedEventRanks.length >= 1, 'Recommendation run should store event-rank attribution anchors.');
+  assert(runSummary.recommendedEventRanks[0].eventId === result.recommendations[0].event.id, 'Recommendation run should store the top event-rank anchor.');
+  assert(runSummary.recommendedEventRanks[0].rank === result.recommendations[0].rank, 'Recommendation run should store the top recommendation rank.');
   assert(typeof runSummary.opportunityMatchedCount === 'number' && runSummary.opportunityMatchedCount >= 1, 'Recommendation run should store opportunity matched count.');
   assert(typeof runSummary.opportunityMissingCount === 'number', 'Recommendation run should store opportunity missing count.');
   assert(typeof runSummary.durationMs === 'number' && runSummary.durationMs >= 0, 'Recommendation run should store total assistant duration.');
@@ -714,6 +717,38 @@ const evaluateEventRecommendation = async (db) => {
   );
   assert(actionRows.some((row) => row.action_type === 'view_detail'), 'Decision action log should store view_detail.');
   assert(actionRows.some((row) => row.action_type === 'feedback_up'), 'Decision action log should store feedback action.');
+
+  let invalidEventRejected = false;
+  try {
+    await recordEventAssistantDecisionAction({
+      db,
+      userId: 1,
+      eventId: 999999,
+      actionType: 'view_detail',
+      assistantRunId: result.assistantRunId,
+      recommendationRank: 1,
+      source: 'golden_eval_invalid'
+    });
+  } catch (error) {
+    invalidEventRejected = error?.code === 'EVENT_ASSISTANT_BAD_REQUEST';
+  }
+  assert(invalidEventRejected, 'Decision action attribution should reject events outside the assistant run.');
+
+  let invalidRankRejected = false;
+  try {
+    await recordEventAssistantDecisionAction({
+      db,
+      userId: 1,
+      eventId: result.recommendations[0].event.id,
+      actionType: 'view_detail',
+      assistantRunId: result.assistantRunId,
+      recommendationRank: 99,
+      source: 'golden_eval_invalid'
+    });
+  } catch (error) {
+    invalidRankRejected = error?.code === 'EVENT_ASSISTANT_BAD_REQUEST';
+  }
+  assert(invalidRankRejected, 'Decision action attribution should reject impossible recommendation rank.');
 
   return {
     topEvent: result.recommendations[0].event.title,
