@@ -18,6 +18,7 @@ import { useMediaQuery } from './hooks/useMediaQuery';
 import { usePerformanceMonitor } from './hooks/usePerformanceMonitor';
 import { useServiceWorker } from './hooks/useServiceWorker';
 import { routeTransition, useReducedMotion } from './utils/animations';
+import { getOrCreateSiteVisitorKey } from './utils/visitorKey';
 import SEO from './components/SEO';
 
 import Navbar from './components/Navbar';
@@ -153,13 +154,7 @@ const AppContent = () => {
       return;
     }
 
-    let visitorKey = window.localStorage.getItem('site-visitor-key');
-    if (!visitorKey) {
-      visitorKey =
-        window.crypto?.randomUUID?.() ||
-        `visitor-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-      window.localStorage.setItem('site-visitor-key', visitorKey);
-    }
+    getOrCreateSiteVisitorKey();
 
     window.sessionStorage.setItem(sessionVisitKey, '1');
   }, [isAdminRoute, location.pathname]);

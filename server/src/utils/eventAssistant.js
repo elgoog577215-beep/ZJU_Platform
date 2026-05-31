@@ -2785,8 +2785,9 @@ const buildAiRecommendationResponse = ({
     ...item,
     candidate: item.candidate || candidateMap.get(Number(item.id))
   })).filter((item) => item.candidate);
-  const baseRecommendations = completedSelected.map((item) => ({
+  const baseRecommendations = completedSelected.map((item, index) => ({
     id: item.candidate.event.id,
+    rank: index + 1,
     reason: item.reason || buildReason(item.candidate),
     confidence: item.confidence,
     matchSignals: mergeRecommendationSignals({

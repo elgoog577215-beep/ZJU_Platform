@@ -56,6 +56,7 @@ import { getEventCategoryLabel } from "../data/eventTaxonomy";
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { getThumbnailUrl } from "../utils/imageUtils";
 import { useReducedMotion } from "../utils/animations";
+import { getOrCreateSiteVisitorKey } from "../utils/visitorKey";
 
 const getEventLifecycle = (date, endDate, t) => {
   if (!date) return t("events.status.unknown");
@@ -231,20 +232,6 @@ const EVENT_THEME_VARIANTS = {
       "bg-white border-rose-200/80 text-rose-500 shadow-[0_8px_18px_rgba(244,63,94,0.12)]",
     tagHover: "hover:border-rose-200/80 hover:text-rose-600",
   },
-};
-
-const getOrCreateEventVisitorKey = () => {
-  if (typeof window === "undefined") return null;
-
-  let visitorKey = window.localStorage.getItem("site-visitor-key");
-  if (!visitorKey) {
-    visitorKey =
-      window.crypto?.randomUUID?.() ||
-      `visitor-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-    window.localStorage.setItem("site-visitor-key", visitorKey);
-  }
-
-  return visitorKey;
 };
 
 const EventCard = memo(
@@ -678,7 +665,7 @@ const Events = () => {
             source:
               selectedEventRecommendationContext.source ||
               "event_assistant_detail",
-            visitorKey: getOrCreateEventVisitorKey(),
+            visitorKey: getOrCreateSiteVisitorKey(),
             metadata: {
               surface: metadata.surface || "event_detail",
               nextAction: selectedEventRecommendationContext.nextAction || "",
@@ -704,7 +691,7 @@ const Events = () => {
     }
 
     const eventId = selectedEvent.id;
-    const visitorKey = getOrCreateEventVisitorKey();
+    const visitorKey = getOrCreateSiteVisitorKey();
     if (!visitorKey) {
       return undefined;
     }

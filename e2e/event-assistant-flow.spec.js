@@ -146,7 +146,12 @@ const setupRoutes = async (page) => {
 test.describe("event assistant flow", () => {
   test("desktop assistant shows recommendation, diagnostics, feedback reasons, and opens detail", async ({ page }) => {
     const actionRequests = [];
+    const feedbackRequests = [];
     await setupRoutes(page);
+    await page.route("**/api/events/assistant/feedback", async (route) => {
+      feedbackRequests.push(route.request().postDataJSON());
+      await route.fulfill({ json: { success: true } });
+    });
     await page.route("**/api/events/assistant/action", async (route) => {
       actionRequests.push(route.request().postDataJSON());
       await route.fulfill({ json: { recorded: true } });
@@ -179,6 +184,14 @@ test.describe("event assistant flow", () => {
     await page.getByRole("button", { name: "推荐不适合我" }).click();
     await expect(page.getByRole("button", { name: "时间不合适" })).toBeVisible();
     await page.getByRole("button", { name: "时间不合适" }).click();
+    await expect.poll(() => feedbackRequests.length).toBeGreaterThanOrEqual(1);
+    expect(feedbackRequests[0]).toMatchObject({
+      eventId: event.id,
+      feedback: "down",
+      assistantRunId: 501,
+      recommendationRank: 1,
+      source: "event_assistant_card",
+    });
 
     await page.getByRole("button", { name: new RegExp(event.title) }).click();
     await expect.poll(() => actionRequests.length).toBeGreaterThanOrEqual(1);
@@ -188,6 +201,7 @@ test.describe("event assistant flow", () => {
       assistantRunId: 501,
       source: "event_assistant_card",
     });
+    expect(actionRequests[0].visitorKey).toEqual(expect.any(String));
     await expect(
       page.getByRole("dialog", { name: event.title }).getByRole("heading", {
         name: event.title,
@@ -208,12 +222,17 @@ test.describe("event assistant flow", () => {
       recommendationRank: 1,
       source: "event_assistant_card",
     });
-    expect(favoriteRequest.visitorKey).toEqual(expect.any(String));
+    expect(favoriteRequest.visitorKey).toBe(actionRequests[0].visitorKey);
   });
 
   test("mobile assistant keeps the same recommendation and feedback flow", async ({ page }) => {
     const actionRequests = [];
+    const feedbackRequests = [];
     await setupRoutes(page);
+    await page.route("**/api/events/assistant/feedback", async (route) => {
+      feedbackRequests.push(route.request().postDataJSON());
+      await route.fulfill({ json: { success: true } });
+    });
     await page.route("**/api/events/assistant/action", async (route) => {
       actionRequests.push(route.request().postDataJSON());
       await route.fulfill({ json: { recorded: true } });
@@ -235,8 +254,23 @@ test.describe("event assistant flow", () => {
 
     await page.getByRole("button", { name: "推荐不适合我" }).click();
     await expect(page.getByRole("button", { name: "地点不合适" })).toBeVisible();
+    await page.getByRole("button", { name: "地点不合适" }).click();
+    await expect.poll(() => feedbackRequests.length).toBeGreaterThanOrEqual(1);
+    expect(feedbackRequests[0]).toMatchObject({
+      eventId: event.id,
+      feedback: "down",
+      assistantRunId: 501,
+      recommendationRank: 1,
+      source: "event_assistant_mobile",
+    });
 
     await page.getByRole("button", { name: new RegExp(event.title) }).click();
+    await expect
+      .poll(() => actionRequests.some((request) => request.actionType === "view_detail"))
+      .toBeTruthy();
+    const mobileViewDetailRequest = actionRequests.find(
+      (request) => request.actionType === "view_detail",
+    );
     await expect(
       page.getByRole("dialog", { name: event.title }).getByRole("heading", {
         name: event.title,
@@ -256,6 +290,13 @@ test.describe("event assistant flow", () => {
       recommendationRank: 1,
       source: "event_assistant_mobile",
     });
-    expect(favoriteRequest.visitorKey).toEqual(expect.any(String));
+    expect(mobileViewDetailRequest).toMatchObject({
+      eventId: event.id,
+      actionType: "view_detail",
+      assistantRunId: 501,
+      source: "event_assistant_mobile",
+      visitorKey: expect.any(String),
+    });
+    expect(favoriteRequest.visitorKey).toBe(mobileViewDetailRequest.visitorKey);
   });
 });

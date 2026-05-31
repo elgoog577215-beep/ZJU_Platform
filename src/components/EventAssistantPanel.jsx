@@ -22,6 +22,7 @@ import {
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 import api from "../services/api";
+import { getOrCreateSiteVisitorKey } from "../utils/visitorKey";
 
 const formatEventDate = (value) => {
   if (!value || typeof value !== "string") return "";
@@ -304,6 +305,7 @@ const EventAssistantPanel = ({
         assistantRunId: assistantState.assistantRunId,
         recommendationRank: metadata.recommendationRank || getRecommendationRank(item),
         source: variant === "fullscreen" ? "event_assistant_mobile" : "event_assistant_card",
+        visitorKey: getOrCreateSiteVisitorKey(),
         metadata,
       }, { silent: true });
     } catch {
@@ -311,7 +313,7 @@ const EventAssistantPanel = ({
     }
   };
 
-  const submitFeedback = async (item, feedback, reasonValue = "") => {
+  const submitFeedback = async (item, feedback, reasonValue = "", recommendationRank = null) => {
     if (!item?.event?.id) return;
 
     setFeedbackMap((previous) => ({ ...previous, [item.id]: feedback }));
@@ -325,7 +327,7 @@ const EventAssistantPanel = ({
         feedback,
         query: originalQuery,
         assistantRunId: assistantState?.assistantRunId,
-        recommendationRank: item.rank || null,
+        recommendationRank: recommendationRank || getRecommendationRank(item),
         source: variant === "fullscreen" ? "event_assistant_mobile" : "event_assistant_card",
         reason: feedback === "down" && reasonLabel
           ? `${reasonLabel}：${item.reason}`
@@ -1116,7 +1118,7 @@ const EventAssistantPanel = ({
                                 type="button"
                                 aria-label="推荐适合我"
                                 title="适合我"
-                                onClick={() => submitFeedback(item, "up")}
+                                onClick={() => submitFeedback(item, "up", "", recommendationRank)}
                                 className={`inline-flex h-9 w-9 items-center justify-center rounded-md border transition-colors ${feedbackMap[item.id] === "up" ? "bg-emerald-500 text-white border-emerald-500" : chipClass}`}
                               >
                                 <ThumbsUp size={15} />
@@ -1127,7 +1129,7 @@ const EventAssistantPanel = ({
                                 title="不适合我"
                                 onClick={() => {
                                   if (feedbackMap[item.id] === "down") {
-                                    submitFeedback(item, "down", feedbackReasonMap[item.id] || "not_relevant");
+                                    submitFeedback(item, "down", feedbackReasonMap[item.id] || "not_relevant", recommendationRank);
                                   } else {
                                     setFeedbackMap((previous) => ({ ...previous, [item.id]: "down" }));
                                     setFeedbackReasonMap((previous) => ({ ...previous, [item.id]: "not_relevant" }));
@@ -1149,7 +1151,7 @@ const EventAssistantPanel = ({
                                     type="button"
                                     onClick={() => {
                                       setFeedbackReasonMap((previous) => ({ ...previous, [item.id]: option.value }));
-                                      submitFeedback(item, "down", option.value);
+                                      submitFeedback(item, "down", option.value, recommendationRank);
                                     }}
                                     className={`rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${
                                       feedbackReasonMap[item.id] === option.value
