@@ -287,6 +287,14 @@ const EventAssistantPanel = ({
     await sendAssistantRequest({ query: prompt }, prompt, false);
   };
 
+  const getRecommendationRank = (item, index = 0) => {
+    const explicitRank = Number(item?.rank);
+    if (Number.isFinite(explicitRank) && explicitRank > 0) {
+      return explicitRank;
+    }
+    return index + 1;
+  };
+
   const recordDecisionAction = async (item, actionType, metadata = {}) => {
     if (!item?.event?.id || !assistantState?.assistantRunId) return;
     try {
@@ -294,7 +302,7 @@ const EventAssistantPanel = ({
         eventId: item.event.id,
         actionType,
         assistantRunId: assistantState.assistantRunId,
-        recommendationRank: item.rank || null,
+        recommendationRank: metadata.recommendationRank || getRecommendationRank(item),
         source: variant === "fullscreen" ? "event_assistant_mobile" : "event_assistant_card",
         metadata,
       }, { silent: true });
@@ -965,8 +973,9 @@ const EventAssistantPanel = ({
 
                   {assistantState.type === "recommend" && (
                     <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-2">
-                      {(assistantState.recommendations || []).map((item) => {
+                      {(assistantState.recommendations || []).map((item, index) => {
                         const opportunityPreview = getOpportunityMatchPreview(item.opportunityMatch);
+                        const recommendationRank = getRecommendationRank(item, index);
                         return (
                           <div
                             key={item.id}
@@ -977,9 +986,16 @@ const EventAssistantPanel = ({
                             onClick={() => {
                               recordDecisionAction(item, "view_detail", {
                                 surface: "recommendation_card",
+                                recommendationRank,
                                 nextAction: item.opportunityMatch?.decisionSupport?.nextAction || "",
                               });
-                              onOpenEvent(item.event);
+                              onOpenEvent(item.event, {
+                                assistantRunId: assistantState.assistantRunId,
+                                recommendationRank,
+                                source: variant === "fullscreen" ? "event_assistant_mobile" : "event_assistant_card",
+                                surface: "recommendation_card",
+                                nextAction: item.opportunityMatch?.decisionSupport?.nextAction || "",
+                              });
                             }}
                             className="group w-full text-left"
                           >

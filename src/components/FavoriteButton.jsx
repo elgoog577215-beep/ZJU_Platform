@@ -15,7 +15,8 @@ const FavoriteButton = ({
   size = 20, 
   showCount = false,
   count = 0,
-  onToggle
+  onToggle,
+  testId
 }) => {
   const [isFavorited, setIsFavorited] = useState(() => {
     if (favorited !== undefined) return favorited;
@@ -25,6 +26,9 @@ const FavoriteButton = ({
   const [likeCount, setLikeCount] = useState(typeof count === 'number' ? count : 0);
   const { user } = useAuth();
   const { t } = useTranslation();
+  const favoriteLabel = isFavorited
+    ? t('common.unfavorite', '取消收藏')
+    : t('common.favorite', '收藏');
   
   // Sync with controlled prop if provided
   useEffect(() => {
@@ -116,10 +120,13 @@ const FavoriteButton = ({
     <motion.button
       whileTap={{ scale: 0.8 }}
       whileHover={{ scale: 1.1 }}
-      onClick={handleToggle}
-      className={`flex items-center justify-center gap-1.5 group ${className}`}
-      disabled={loading}
-    >
+    onClick={handleToggle}
+    aria-label={favoriteLabel}
+    aria-pressed={isFavorited}
+    data-testid={testId}
+    className={`flex items-center justify-center gap-1.5 group ${className}`}
+    disabled={loading}
+  >
       <div className="relative">
         <Heart 
           size={size} 

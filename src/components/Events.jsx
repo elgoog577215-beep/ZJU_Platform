@@ -449,6 +449,8 @@ const Events = () => {
   const location = useLocation();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [selectedEventRecommendationContext, setSelectedEventRecommendationContext] =
+    useState(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
@@ -528,6 +530,7 @@ const Events = () => {
       return;
     }
     setSelectedEvent(null);
+    setSelectedEventRecommendationContext(null);
   }, [navigate]);
 
   useBackClose(selectedEvent !== null, closeEvent);
@@ -613,7 +616,10 @@ const Events = () => {
       api
         .get(`/events/${id}`)
         .then((res) => {
-          if (res.data) setSelectedEvent(res.data);
+          if (res.data) {
+            setSelectedEventRecommendationContext(null);
+            setSelectedEvent(res.data);
+          }
         })
         .catch((err) => {
           if (process.env.NODE_ENV === "development") {
@@ -642,6 +648,50 @@ const Events = () => {
       );
     },
     [setEvents, setDisplayEvents],
+  );
+
+  const recordSelectedEventAssistantAction = useCallback(
+    async (actionType, metadata = {}) => {
+      const selectedEventId = selectedEvent?.id;
+      if (!selectedEventId || !selectedEventRecommendationContext?.assistantRunId) {
+        return;
+      }
+
+      let hrefHost = "";
+      if (metadata.href && typeof window !== "undefined") {
+        try {
+          hrefHost = new URL(metadata.href, window.location.origin).host;
+        } catch {
+          hrefHost = "";
+        }
+      }
+
+      try {
+        await api.post(
+          "/events/assistant/action",
+          {
+            eventId: selectedEventId,
+            actionType,
+            assistantRunId: selectedEventRecommendationContext.assistantRunId,
+            recommendationRank:
+              selectedEventRecommendationContext.recommendationRank || null,
+            source:
+              selectedEventRecommendationContext.source ||
+              "event_assistant_detail",
+            visitorKey: getOrCreateEventVisitorKey(),
+            metadata: {
+              surface: metadata.surface || "event_detail",
+              nextAction: selectedEventRecommendationContext.nextAction || "",
+              hrefHost,
+            },
+          },
+          { silent: true },
+        );
+      } catch {
+        // Recommendation attribution should never block the user's action.
+      }
+    },
+    [selectedEvent?.id, selectedEventRecommendationContext],
   );
 
   useEffect(() => {
@@ -875,7 +925,7 @@ END:VCALENDAR`;
   );
 
   const handleOpenAssistantEvent = useCallback(
-    (assistantEvent) => {
+    (assistantEvent, recommendationContext = null) => {
       if (!assistantEvent?.id) return;
 
       const cachedEvent =
@@ -883,6 +933,7 @@ END:VCALENDAR`;
         events.find((event) => event.id === assistantEvent.id);
 
       setIsMobileAssistantOpen(false);
+      setSelectedEventRecommendationContext(recommendationContext);
       setSelectedEvent(cachedEvent || assistantEvent);
 
       api
@@ -1307,7 +1358,10 @@ END:VCALENDAR`;
               key={event.id}
               event={event}
               index={index}
-              onClick={setSelectedEvent}
+              onClick={(nextEvent) => {
+                setSelectedEventRecommendationContext(null);
+                setSelectedEvent(nextEvent);
+              }}
               onToggleFavorite={handleToggleFavorite}
               reduceMotion={shouldReduceCardMotion}
               isDayMode={isDayMode}
@@ -1625,8 +1679,13 @@ END:VCALENDAR`;
                                 showCount={true}
                                 count={selectedEvent.likes || 0}
                                 favorited={selectedEvent.favorited}
+                                testId="event-detail-favorite-desktop"
                                 className={`p-3 rounded-md backdrop-blur-md transition-all shrink-0 border ${isDayMode ? "bg-white/90 hover:bg-white border-white/80 text-slate-700 shadow-[0_14px_28px_rgba(15,23,42,0.1)] hover:shadow-[0_18px_36px_rgba(15,23,42,0.16)]" : "bg-white/10 hover:bg-white/20 border border-white/10"}`}
                                 onToggle={(favorited, likes) => {
+                                  recordSelectedEventAssistantAction(
+                                    favorited ? "favorite" : "unfavorite",
+                                    { surface: "event_detail_desktop" },
+                                  );
                                   setSelectedEvent((prev) => ({
                                     ...prev,
                                     likes:
@@ -1698,6 +1757,12 @@ END:VCALENDAR`;
                               href={selectedEvent.link}
                               target="_blank"
                               rel="noopener noreferrer"
+                              onClick={() =>
+                                recordSelectedEventAssistantAction("register", {
+                                  surface: "detail_link_mobile",
+                                  href: selectedEvent.link,
+                                })
+                              }
                               className={`mt-3 inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold transition-all group ${isDayMode ? eventThemeAccent.cta : "bg-indigo-500/90 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 backdrop-blur-md border border-white/10"}`}
                             >
                               {t("events.visit_link")}
@@ -1726,8 +1791,13 @@ END:VCALENDAR`;
                           showCount={true}
                           count={selectedEvent.likes || 0}
                           favorited={selectedEvent.favorited}
+                          testId="event-detail-favorite-mobile"
                           className={`p-3 rounded-md backdrop-blur-md transition-all shrink-0 border ${isDayMode ? "bg-white/90 hover:bg-white border-white/80 text-slate-700 shadow-[0_14px_28px_rgba(15,23,42,0.1)] hover:shadow-[0_18px_36px_rgba(15,23,42,0.16)]" : "bg-white/10 hover:bg-white/20 border border-white/10"}`}
                           onToggle={(favorited, likes) => {
+                            recordSelectedEventAssistantAction(
+                              favorited ? "favorite" : "unfavorite",
+                              { surface: "event_detail_mobile" },
+                            );
                             setSelectedEvent((prev) => ({
                               ...prev,
                               likes: likes !== undefined ? likes : prev.likes,
@@ -1816,20 +1886,61 @@ END:VCALENDAR`;
                             </span>
                           </div>
                         </div>
-                        {selectedEvent.link ? (
-                          <a
-                            href={selectedEvent.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={`shrink-0 inline-flex items-center justify-center gap-2 rounded-lg px-5 h-12 text-sm font-bold transition-all group ${isDayMode ? eventThemeAccent.cta : "bg-indigo-500/90 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 backdrop-blur-md border border-white/10"}`}
-                          >
-                            {t("events.visit_link")}
-                            <ExternalLink
-                              size={17}
-                              className="group-hover:translate-x-0.5 transition-transform"
-                            />
-                          </a>
-                        ) : null}
+                        <div className="flex shrink-0 flex-wrap items-center gap-3">
+                          <FavoriteButton
+                            itemId={selectedEvent.id}
+                            itemType="event"
+                            size={22}
+                            showCount={true}
+                            count={selectedEvent.likes || 0}
+                            favorited={selectedEvent.favorited}
+                            testId="event-detail-favorite-desktop"
+                            className={`h-12 px-4 rounded-lg backdrop-blur-md transition-all border ${isDayMode ? "bg-white hover:bg-slate-50 border-slate-200 text-slate-700 shadow-[0_10px_24px_rgba(15,23,42,0.08)]" : "bg-white/10 hover:bg-white/20 border border-white/10 text-white"}`}
+                            onToggle={(favorited, likes) => {
+                              recordSelectedEventAssistantAction(
+                                favorited ? "favorite" : "unfavorite",
+                                { surface: "event_detail_desktop" },
+                              );
+                              setSelectedEvent((prev) => ({
+                                ...prev,
+                                likes: likes !== undefined ? likes : prev.likes,
+                                favorited,
+                              }));
+                              setEvents((prev) =>
+                                prev.map((e) =>
+                                  e.id === selectedEvent.id
+                                    ? {
+                                        ...e,
+                                        likes:
+                                          likes !== undefined ? likes : e.likes,
+                                        favorited,
+                                      }
+                                    : e,
+                                ),
+                              );
+                            }}
+                          />
+                          {selectedEvent.link ? (
+                            <a
+                              href={selectedEvent.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={() =>
+                                recordSelectedEventAssistantAction("register", {
+                                  surface: "detail_link_desktop",
+                                  href: selectedEvent.link,
+                                })
+                              }
+                              className={`inline-flex h-12 items-center justify-center gap-2 rounded-lg px-5 text-sm font-bold transition-all group ${isDayMode ? eventThemeAccent.cta : "bg-indigo-500/90 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 backdrop-blur-md border border-white/10"}`}
+                            >
+                              {t("events.visit_link")}
+                              <ExternalLink
+                                size={17}
+                                className="group-hover:translate-x-0.5 transition-transform"
+                              />
+                            </a>
+                          ) : null}
+                        </div>
                       </div>
                     </div>
                   )}

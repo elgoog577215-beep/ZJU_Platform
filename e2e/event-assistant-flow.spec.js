@@ -83,8 +83,21 @@ const assistantResponse = {
 };
 
 const setupRoutes = async (page) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("token", "mock-event-user-token");
+  });
   await page.route("**/api/settings/public", (route) =>
     route.fulfill({ json: { pagination_enabled: "true" } }),
+  );
+  await page.route("**/api/auth/me", (route) =>
+    route.fulfill({
+      json: {
+        id: 1,
+        username: "event_assistant_user",
+        nickname: "Event Assistant User",
+        role: "user",
+      },
+    }),
   );
   await page.route("**/api/events?**", (route) =>
     route.fulfill({
@@ -99,6 +112,12 @@ const setupRoutes = async (page) => {
   );
   await page.route("**/api/events/*/view", (route) =>
     route.fulfill({ json: { views: 12 } }),
+  );
+  await page.route("**/api/favorites/check?**", (route) =>
+    route.fulfill({ json: { favorited: false } }),
+  );
+  await page.route("**/api/favorites/toggle", (route) =>
+    route.fulfill({ json: { favorited: true, likes: 1 } }),
   );
   await page.route("**/api/events/assistant", (route) =>
     route.fulfill({ json: assistantResponse }),
@@ -172,12 +191,33 @@ test.describe("event assistant flow", () => {
     await expect(
       page.getByRole("dialog", { name: event.title }).getByRole("heading", {
         name: event.title,
+        level: 2,
       }),
     ).toBeVisible();
+
+    await page.getByTestId("event-detail-favorite-desktop").click();
+    await expect
+      .poll(() => actionRequests.some((request) => request.actionType === "favorite"))
+      .toBeTruthy();
+    const favoriteRequest = actionRequests.find(
+      (request) => request.actionType === "favorite",
+    );
+    expect(favoriteRequest).toMatchObject({
+      eventId: event.id,
+      assistantRunId: 501,
+      recommendationRank: 1,
+      source: "event_assistant_card",
+    });
+    expect(favoriteRequest.visitorKey).toEqual(expect.any(String));
   });
 
   test("mobile assistant keeps the same recommendation and feedback flow", async ({ page }) => {
+    const actionRequests = [];
     await setupRoutes(page);
+    await page.route("**/api/events/assistant/action", async (route) => {
+      actionRequests.push(route.request().postDataJSON());
+      await route.fulfill({ json: { recorded: true } });
+    });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/events");
 
@@ -195,5 +235,27 @@ test.describe("event assistant flow", () => {
 
     await page.getByRole("button", { name: "推荐不适合我" }).click();
     await expect(page.getByRole("button", { name: "地点不合适" })).toBeVisible();
+
+    await page.getByRole("button", { name: new RegExp(event.title) }).click();
+    await expect(
+      page.getByRole("dialog", { name: event.title }).getByRole("heading", {
+        name: event.title,
+        level: 2,
+      }),
+    ).toBeVisible();
+    await page.getByTestId("event-detail-favorite-mobile").click();
+    await expect
+      .poll(() => actionRequests.some((request) => request.actionType === "favorite"))
+      .toBeTruthy();
+    const favoriteRequest = actionRequests.find(
+      (request) => request.actionType === "favorite",
+    );
+    expect(favoriteRequest).toMatchObject({
+      eventId: event.id,
+      assistantRunId: 501,
+      recommendationRank: 1,
+      source: "event_assistant_mobile",
+    });
+    expect(favoriteRequest.visitorKey).toEqual(expect.any(String));
   });
 });
