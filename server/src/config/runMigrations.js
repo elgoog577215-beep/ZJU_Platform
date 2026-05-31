@@ -264,6 +264,56 @@ async function runMigrations(db) {
   }
 
   try {
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS user_identity_claims (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        type TEXT NOT NULL CHECK (type IN ('person', 'team', 'club')),
+        display_name TEXT NOT NULL,
+        normalized_name TEXT NOT NULL,
+        status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'verified', 'rejected')),
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+
+      CREATE TABLE IF NOT EXISTS competition_work_identity_links (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        work_id INTEGER NOT NULL,
+        claim_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        matched_text TEXT,
+        match_source TEXT DEFAULT 'auto' CHECK (match_source IN ('auto', 'manual_user', 'manual_admin')),
+        status TEXT DEFAULT 'candidate' CHECK (status IN ('candidate', 'confirmed', 'rejected', 'revoked')),
+        confidence REAL DEFAULT 1,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        confirmed_at TEXT,
+        UNIQUE(work_id, claim_id),
+        FOREIGN KEY (work_id) REFERENCES competition_works(id) ON DELETE CASCADE,
+        FOREIGN KEY (claim_id) REFERENCES user_identity_claims(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_user_identity_claims_user_status
+        ON user_identity_claims(user_id, status, type);
+      CREATE INDEX IF NOT EXISTS idx_user_identity_claims_match
+        ON user_identity_claims(normalized_name, type, status);
+      CREATE INDEX IF NOT EXISTS idx_competition_work_identity_links_user_status
+        ON competition_work_identity_links(user_id, status, work_id);
+      CREATE INDEX IF NOT EXISTS idx_competition_work_identity_links_work_status
+        ON competition_work_identity_links(work_id, status, user_id);
+      CREATE INDEX IF NOT EXISTS idx_competition_work_identity_links_claim
+        ON competition_work_identity_links(claim_id, status);
+    `);
+    console.log('User identity claim and outcome binding tables ready');
+  } catch (err) {
+    if (!err.message.includes('already exists')) {
+      console.warn('Migration warning (identity claims/outcome links):', err.message);
+    }
+  }
+
+  try {
     const usersInfo = await db.all(`PRAGMA table_info(users)`);
     const userColumns = usersInfo.map(col => col.name);
 
@@ -293,6 +343,16 @@ async function runMigrations(db) {
         console.log('✅ Added nickname to users table');
       }
 
+      if (!userColumns.includes('profile_slogan')) {
+        await db.exec(`ALTER TABLE users ADD COLUMN profile_slogan TEXT`);
+        console.log('Added profile_slogan to users table');
+      }
+
+      if (!userColumns.includes('profile_status')) {
+        await db.exec(`ALTER TABLE users ADD COLUMN profile_status TEXT`);
+        console.log('Added profile_status to users table');
+      }
+
       if (userColumns.includes('organization') && !userColumns.includes('organization_cr')) {
         await db.exec(`
           UPDATE users
@@ -305,6 +365,91 @@ async function runMigrations(db) {
   } catch (err) {
     if (!err.message.includes('duplicate column')) {
       console.warn('Migration warning (users):', err.message);
+    }
+  }
+
+  try {
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS user_profile_tags (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        label TEXT NOT NULL,
+        sort_order INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+
+      CREATE TABLE IF NOT EXISTS user_social_links (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        platform TEXT NOT NULL,
+        label TEXT,
+        url TEXT NOT NULL,
+        sort_order INTEGER DEFAULT 0,
+        is_visible INTEGER DEFAULT 1,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+
+      CREATE TABLE IF NOT EXISTS user_profile_cards (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        title TEXT,
+        body TEXT,
+        note TEXT,
+        card_type TEXT DEFAULT 'other',
+        custom_type TEXT,
+        cover_url TEXT,
+        description TEXT,
+        link_url TEXT,
+        crop_x REAL DEFAULT 0,
+        crop_y REAL DEFAULT 0,
+        crop_width REAL DEFAULT 1,
+        crop_height REAL DEFAULT 1,
+        aspect_ratio TEXT DEFAULT 'wide',
+        tags_json TEXT,
+        images_json TEXT,
+        links_json TEXT,
+        sort_order INTEGER DEFAULT 0,
+        is_visible INTEGER DEFAULT 1,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_user_profile_tags_user_sort
+        ON user_profile_tags(user_id, sort_order, id);
+      CREATE INDEX IF NOT EXISTS idx_user_social_links_user_sort
+        ON user_social_links(user_id, sort_order, id);
+      CREATE INDEX IF NOT EXISTS idx_user_profile_cards_user_sort
+        ON user_profile_cards(user_id, sort_order, id);
+    `);
+
+    const profileCardColumns = await db.all(`PRAGMA table_info(user_profile_cards)`);
+    const profileCardColumnNames = profileCardColumns.map((column) => column.name);
+    const profileCardColumnAdds = [
+      ['card_type', `ALTER TABLE user_profile_cards ADD COLUMN card_type TEXT DEFAULT 'other'`],
+      ['custom_type', `ALTER TABLE user_profile_cards ADD COLUMN custom_type TEXT`],
+      ['cover_url', `ALTER TABLE user_profile_cards ADD COLUMN cover_url TEXT`],
+      ['description', `ALTER TABLE user_profile_cards ADD COLUMN description TEXT`],
+      ['link_url', `ALTER TABLE user_profile_cards ADD COLUMN link_url TEXT`],
+      ['crop_x', `ALTER TABLE user_profile_cards ADD COLUMN crop_x REAL DEFAULT 0`],
+      ['crop_y', `ALTER TABLE user_profile_cards ADD COLUMN crop_y REAL DEFAULT 0`],
+      ['crop_width', `ALTER TABLE user_profile_cards ADD COLUMN crop_width REAL DEFAULT 1`],
+      ['crop_height', `ALTER TABLE user_profile_cards ADD COLUMN crop_height REAL DEFAULT 1`],
+      ['aspect_ratio', `ALTER TABLE user_profile_cards ADD COLUMN aspect_ratio TEXT DEFAULT 'wide'`],
+    ];
+    for (const [columnName, sql] of profileCardColumnAdds) {
+      if (!profileCardColumnNames.includes(columnName)) {
+        await db.exec(sql);
+      }
+    }
+    console.log('User profile card tables ready');
+  } catch (err) {
+    if (!err.message.includes('already exists')) {
+      console.warn('Migration warning (profile card tables):', err.message);
     }
   }
 
@@ -1029,6 +1174,8 @@ async function runMigrations(db) {
         ON competition_works(competition_id, status, sort_order, id);
       CREATE INDEX IF NOT EXISTS idx_competition_works_status_created
         ON competition_works(status, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_competition_works_uploader_status
+        ON competition_works(uploader_id, status, deleted_at, public_consent, created_at DESC);
       CREATE INDEX IF NOT EXISTS idx_videos_game_type_status
         ON videos(gameType, status, deleted_at, id DESC);
       CREATE INDEX IF NOT EXISTS idx_photos_game_type_status

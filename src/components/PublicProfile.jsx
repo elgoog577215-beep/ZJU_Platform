@@ -24,8 +24,16 @@ import {
   Pencil,
   UserPlus,
   UserCheck,
+  Upload,
 } from "lucide-react";
-import api from "../services/api";
+import api, {
+  createIdentityClaim,
+  getProfileCard,
+  listIdentityClaims,
+  listOutcomeLinks,
+  updateOutcomeLink,
+  uploadAvatar,
+} from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useSettings } from "../context/SettingsContext";
 import toast from "react-hot-toast";
@@ -34,6 +42,9 @@ import Dropdown from "./Dropdown";
 import FavoriteButton from "./FavoriteButton";
 import NotificationCenter from "./NotificationCenter";
 import PersonalCenterShell from "./PersonalCenterShell";
+import ProfileCardEditor from "./profile/ProfileCardEditor";
+import ProfileCustomCards from "./profile/ProfileCustomCards";
+import ProfileSocialLinks from "./profile/ProfileSocialLinks";
 import { useReducedMotion } from "../utils/animations";
 
 // Content type tabs shown in the "published" area.
@@ -47,6 +58,7 @@ const CONTENT_TYPES = [
   { key: "news", label: "新闻" },
   { key: "help", label: "求助" },
   { key: "team", label: "组队" },
+  { key: "competition_work", label: "成果" },
 ];
 
 // Visual metadata per content type. The badge lives inside the caption
@@ -102,6 +114,12 @@ const TYPE_META = {
     smartImageType: "article",
     placeholderDay:   "from-indigo-50 via-violet-50 to-purple-50",
     placeholderNight: "from-indigo-500/20 via-violet-500/15 to-purple-500/20",
+  },
+  competition_work: {
+    label: "成果", textDay: "text-amber-700", textNight: "text-amber-200",
+    smartImageType: "article",
+    placeholderDay:   "from-amber-50 via-sky-50 to-indigo-50",
+    placeholderNight: "from-amber-500/20 via-sky-500/15 to-indigo-500/20",
   },
 };
 
@@ -173,8 +191,38 @@ const normalizeContentType = (item) => {
   if (raw === "articles") return "article";
   if (raw === "events") return "event";
   if (raw === "news") return "news";
+  if (raw === "competition_works") return "competition_work";
   return raw;
 };
+
+const identityTypeLabel = (type) => ({
+  person: "个人",
+  team: "团队",
+  club: "组织/社团",
+  organization: "组织/社团",
+}[type] || "身份");
+
+const identityStatusLabel = (status) => ({
+  pending: "待确认",
+  verified: "已认证",
+  rejected: "已拒绝",
+}[status] || "未知状态");
+
+const outcomeStatusLabel = (status) => ({
+  candidate: "待认领",
+  confirmed: "已确认",
+  rejected: "已拒绝",
+  revoked: "已撤销",
+}[status] || "未知状态");
+
+const profileStatusLabel = (status) => ({
+  open_chat: "开放交流",
+  seeking_collab: "寻求合作",
+  coffee_chat: "Coffee Chat",
+  team_up: "组队开发",
+  joining_events: "活动参与",
+  busy: "暂时忙碌",
+}[status] || "");
 
 function ProfileContentCard({ item, onClick, isDayMode }) {
   const typeKey = normalizeContentType(item) || "article";
@@ -190,6 +238,17 @@ function ProfileContentCard({ item, onClick, isDayMode }) {
   const dateStr = dateSource ? new Date(dateSource).toLocaleDateString() : "";
   const title = item.title || "(无标题)";
   const likes = Number(item.likes) || Number(item.likes_count) || 0;
+  const isCompetitionWork = typeKey === "competition_work";
+  const competitionMeta = [
+    item.competition_title,
+    item.award ? `奖项：${item.award}` : null,
+    item.rank ? `排名：${item.rank}` : null,
+  ].filter(Boolean).join(" · ");
+  const boundIdentityMeta = item.bound_identity_name
+    ? `归属：${item.bound_identity_name}`
+    : item.author
+      ? `获奖者：${item.author}`
+      : "";
 
   // Project-standard glass shell (matches ArticleCard in Articles.jsx).
   const cardShell = isDayMode
@@ -263,6 +322,12 @@ function ProfileContentCard({ item, onClick, isDayMode }) {
         {dateStr && (
           <div className={`text-xs font-mono ${metaColor}`}>{dateStr}</div>
         )}
+        {isCompetitionWork && (competitionMeta || boundIdentityMeta) && (
+          <div className={`space-y-1 text-xs leading-relaxed ${metaColor}`}>
+            {competitionMeta && <div className="line-clamp-1">{competitionMeta}</div>}
+            {boundIdentityMeta && <div className="line-clamp-1">{boundIdentityMeta}</div>}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -285,6 +350,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
 
   const [user, setUser] = useState(null);
   const [resources, setResources] = useState([]);
+  const [profileCard, setProfileCard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -366,7 +432,21 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
     inviteCode: "",
   });
   const [profileLoading, setProfileLoading] = useState(false);
-  const [isInviteCodeVerified, setIsInviteCodeVerified] = useState(false);
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState("");
+  const [avatarLoading, setAvatarLoading] = useState(false);
+  const [avatarSaveState, setAvatarSaveState] = useState("saved");
+  const [avatarCrop, setAvatarCrop] = useState({ x: 0, y: 0, size: 1 });
+  const avatarCropDragRef = React.useRef(null);
+  const [identityClaims, setIdentityClaims] = useState([]);
+  const [identityType, setIdentityType] = useState("person");
+  const [identityName, setIdentityName] = useState("");
+  const [identityInviteCode, setIdentityInviteCode] = useState("");
+  const [identityLoading, setIdentityLoading] = useState(false);
+  const [outcomeLinks, setOutcomeLinks] = useState([]);
+  const [outcomeLinksLoading, setOutcomeLinksLoading] = useState(false);
+  const [outcomeActionId, setOutcomeActionId] = useState(null);
+  const [activeSettingsTab, setActiveSettingsTab] = useState("profile-card");
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -381,13 +461,15 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [userRes, resourcesRes] = await Promise.all([
+        const [userRes, resourcesRes, profileCardRes] = await Promise.all([
           api.get(`/users/${id}/profile`, { signal: abortController.signal }),
           api.get(`/users/${id}/resources`, { signal: abortController.signal }),
+          getProfileCard(id),
         ]);
         if (abortController.signal.aborted) return;
         setUser(userRes.data);
         setResources(resourcesRes.data);
+        setProfileCard(profileCardRes.data);
 
         // Init profile data if owner
         if (currentUser && String(currentUser.id) === String(userRes.data.id)) {
@@ -397,9 +479,6 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
             nickname: userRes.data.nickname || currentUser.nickname || "",
             inviteCode: "",
           });
-          setIsInviteCodeVerified(
-            !!(userRes.data.organization_cr || currentUser.organization),
-          );
         }
       } catch (err) {
         if (abortController.signal.aborted) return;
@@ -430,6 +509,12 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
     }
   }, [activeTab, favoriteType, isOwner]);
 
+  useEffect(() => {
+    if (!isOwner || activeTab !== "settings") return;
+    fetchIdentityClaims();
+    fetchOutcomeLinks();
+  }, [isOwner, activeTab]);
+
   // Group resources by normalized content type. Tabs with zero items
   // (other than "all") are hidden so visitors of a user with no photos
   // don't see a dead "图片" button. Backend already filters anonymous
@@ -456,6 +541,11 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
   );
 
   const visibleContent = contentByType[activeContentType] || [];
+  useEffect(() => {
+    if (tabsWithCount.some((ct) => ct.key === activeContentType)) return;
+    setActiveContentType("all");
+  }, [activeContentType, tabsWithCount]);
+
   const totalLikes = useMemo(
     () => resources.reduce((acc, curr) => acc + (Number(curr.likes) || 0), 0),
     [resources],
@@ -522,6 +612,159 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
     }
   };
 
+  const handleAvatarSelect = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      toast.error("头像必须是 JPG、PNG 或 WebP 图片");
+      event.target.value = "";
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("头像文件不能超过 5MB");
+      event.target.value = "";
+      return;
+    }
+    if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+    setAvatarCrop({ x: 0, y: 0, size: 1 });
+    setAvatarSaveState("dirty");
+  };
+
+  useEffect(() => {
+    return () => {
+      if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+    };
+  }, [avatarPreview]);
+
+  const handleAvatarUpload = async () => {
+    if (!avatarFile) return;
+    setAvatarLoading(true);
+    setAvatarSaveState("saving");
+    try {
+      const res = await uploadAvatar(avatarFile, {
+        crop_x: avatarCrop.x,
+        crop_y: avatarCrop.y,
+        crop_size: avatarCrop.size,
+      });
+      const nextAvatar = res.data?.avatar || res.data?.user?.avatar;
+      if (!nextAvatar) throw new Error("缺少头像地址");
+      setUser((prev) => (prev ? { ...prev, avatar: nextAvatar } : prev));
+      setAvatarFile(null);
+      setAvatarPreview("");
+      setAvatarSaveState("saved");
+      await refreshUser();
+      toast.success("头像已更新");
+    } catch (err) {
+      setAvatarSaveState("error");
+      toast.error(err.response?.data?.error || err.response?.data?.message || "头像上传失败");
+    } finally {
+      setAvatarLoading(false);
+    }
+  };
+
+  const handleAvatarCropStart = (event) => {
+    event.preventDefault();
+    const box = event.currentTarget.closest("[data-avatar-crop-box]")?.getBoundingClientRect();
+    if (!box) return;
+    avatarCropDragRef.current = {
+      box,
+      startX: event.clientX,
+      startY: event.clientY,
+      crop: { ...avatarCrop },
+    };
+    window.addEventListener("pointermove", handleAvatarCropMove);
+    window.addEventListener("pointerup", handleAvatarCropEnd, { once: true });
+  };
+
+  const handleAvatarCropMove = (event) => {
+    const drag = avatarCropDragRef.current;
+    if (!drag) return;
+    const dx = (event.clientX - drag.startX) / drag.box.width;
+    const dy = (event.clientY - drag.startY) / drag.box.height;
+    const nextX = Math.min(1 - drag.crop.size, Math.max(0, drag.crop.x + dx));
+    const nextY = Math.min(1 - drag.crop.size, Math.max(0, drag.crop.y + dy));
+    setAvatarCrop((prev) => ({ ...prev, x: nextX, y: nextY }));
+    setAvatarSaveState("dirty");
+  };
+
+  const handleAvatarCropEnd = () => {
+    window.removeEventListener("pointermove", handleAvatarCropMove);
+    avatarCropDragRef.current = null;
+  };
+
+  const fetchIdentityClaims = async () => {
+    setIdentityLoading(true);
+    try {
+      const res = await listIdentityClaims();
+      setIdentityClaims(Array.isArray(res.data) ? res.data : []);
+    } catch {
+      setIdentityClaims([]);
+    } finally {
+      setIdentityLoading(false);
+    }
+  };
+
+  const fetchOutcomeLinks = async () => {
+    setOutcomeLinksLoading(true);
+    try {
+      const res = await listOutcomeLinks("all");
+      setOutcomeLinks(Array.isArray(res.data) ? res.data : []);
+    } catch {
+      setOutcomeLinks([]);
+    } finally {
+      setOutcomeLinksLoading(false);
+    }
+  };
+
+  const handleCreateIdentityClaim = async () => {
+    const displayName = identityName.trim();
+    if (displayName.length < 2) {
+      toast.error("认证名称至少需要 2 个字符");
+      return;
+    }
+    if (identityType === "club" && identityInviteCode.trim().length === 0) {
+      toast.error("请填写组织/社团邀请码");
+      return;
+    }
+    setIdentityLoading(true);
+    try {
+      await createIdentityClaim({
+        type: identityType,
+        displayName,
+        invitationCode: identityType === "club" ? identityInviteCode.trim() : undefined,
+      });
+      setIdentityName("");
+      setIdentityInviteCode("");
+      await Promise.all([fetchIdentityClaims(), fetchOutcomeLinks()]);
+      await refreshUser();
+      setUser((prev) =>
+        prev && identityType === "club"
+          ? { ...prev, organization_cr: displayName }
+          : prev,
+      );
+      toast.success(identityType === "club" ? "组织/社团认证已通过" : "身份已添加");
+    } catch (err) {
+      toast.error(err.response?.data?.error || "添加身份失败");
+    } finally {
+      setIdentityLoading(false);
+    }
+  };
+
+  const handleOutcomeAction = async (linkId, action) => {
+    setOutcomeActionId(linkId);
+    try {
+      await updateOutcomeLink(linkId, action);
+      await Promise.all([fetchOutcomeLinks(), api.get(`/users/${id}/resources`).then((res) => setResources(res.data || []))]);
+      toast.success("成果认领状态已更新");
+    } catch (err) {
+      toast.error(err.response?.data?.error || "更新成果认领失败");
+    } finally {
+      setOutcomeActionId(null);
+    }
+  };
+
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
     setProfileLoading(true);
@@ -539,21 +782,12 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
       // Only PUT organization when the invite code has been verified in
       // this session — otherwise a nickname-only save would blank out the
       // user's existing organization_cr on the server.
-      if (isInviteCodeVerified) {
-        const payload = {
-          organization_cr: profileData.organization,
-          invitation_code: profileData.inviteCode,
-        };
-        await api.put("/auth/profile", payload);
-      }
-
       toast.success(t("user_profile.profile_updated"));
       await refreshUser();
 
       // Update local user state to reflect changes immediately
       setUser((prev) => ({
         ...prev,
-        organization_cr: profileData.organization,
         nickname: trimmedNickname,
       }));
     } catch (err) {
@@ -564,20 +798,6 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
       toast.error(err.response?.data?.error || t("admin.toast.update_fail"));
     } finally {
       setProfileLoading(false);
-    }
-  };
-
-  const handleVerifyInviteCode = () => {
-    if (!profileData.inviteCode) {
-      toast.error(t("user_profile.invite_code_required"));
-      return;
-    }
-    if (profileData.inviteCode === settings.invite_code) {
-      setIsInviteCodeVerified(true);
-      toast.success(t("user_profile.invite_code_verified"));
-    } else {
-      toast.error(t("user_profile.invite_code_invalid"));
-      setIsInviteCodeVerified(false);
     }
   };
 
@@ -723,6 +943,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
       news: `/articles?tab=tech&news=${item.id}`,
       help: `/articles?tab=help&post=${item.id}`,
       team: `/articles?tab=team&post=${item.id}`,
+      competition_work: item.target_path || `/hackathon?view=showcase&work=${item.id}`,
     }[typeKey];
     if (!path) return;
     navigate(path, {
@@ -825,6 +1046,19 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
         { key: "published", label: t("user_profile.tabs.published", "作品"), icon: Grid },
         { key: "relations", label: "关系", icon: Users },
       ];
+  const settingsTabItems = [
+    { key: "profile-card", label: "个人名片设置", icon: User },
+    { key: "security", label: "安全相关", icon: Lock },
+    { key: "identity", label: "个人认证", icon: Briefcase },
+  ];
+
+  const hasProfileCardContent = Boolean(
+    profileCard?.slogan ||
+    profileCard?.status ||
+    profileCard?.tags?.length ||
+    profileCard?.social_links?.length ||
+    profileCard?.cards?.length
+  );
 
   return (
     <PersonalCenterShell
@@ -939,6 +1173,31 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                 );
               })}
             </div>
+            {hasProfileCardContent && (
+              <div className="relative mt-5 space-y-3">
+                {profileCard.status && (
+                  <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${isDayMode ? "bg-emerald-50 text-emerald-700" : "bg-emerald-500/15 text-emerald-200"}`}>
+                    {profileStatusLabel(profileCard.status)}
+                  </span>
+                )}
+                {profileCard.slogan && (
+                  <p className={`text-sm leading-relaxed ${isDayMode ? "text-slate-700" : "text-gray-200"}`}>
+                    {profileCard.slogan}
+                  </p>
+                )}
+                {profileCard.tags?.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {profileCard.tags.map((tag) => (
+                      <span key={tag.id || tag.label} className={`rounded-full px-2.5 py-1 text-xs font-semibold ${isDayMode ? "bg-indigo-50 text-indigo-600" : "bg-indigo-500/15 text-indigo-200"}`}>
+                        {tag.label}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <ProfileSocialLinks links={profileCard.social_links || []} isDayMode={isDayMode} />
+                <ProfileCustomCards cards={profileCard.cards || []} isDayMode={isDayMode} />
+              </div>
+            )}
           </div>
 
         </div>
@@ -1078,6 +1337,29 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                   </div>
                 </div>
               </div>
+              {hasProfileCardContent && (
+                <div className={`mt-8 space-y-4 border-t pt-6 ${isDayMode ? "border-slate-200/80" : "border-white/5"}`}>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {profileCard.status && (
+                      <span className={`inline-flex rounded-full px-3 py-1.5 text-xs font-bold ${isDayMode ? "bg-emerald-50 text-emerald-700" : "bg-emerald-500/15 text-emerald-200"}`}>
+                        {profileStatusLabel(profileCard.status)}
+                      </span>
+                    )}
+                    {profileCard.tags?.map((tag) => (
+                      <span key={tag.id || tag.label} className={`rounded-full px-3 py-1.5 text-xs font-semibold ${isDayMode ? "bg-indigo-50 text-indigo-600" : "bg-indigo-500/15 text-indigo-200"}`}>
+                        {tag.label}
+                      </span>
+                    ))}
+                  </div>
+                  {profileCard.slogan && (
+                    <p className={`max-w-3xl text-base leading-relaxed ${isDayMode ? "text-slate-700" : "text-gray-200"}`}>
+                      {profileCard.slogan}
+                    </p>
+                  )}
+                  <ProfileSocialLinks links={profileCard.social_links || []} isDayMode={isDayMode} />
+                  <ProfileCustomCards cards={profileCard.cards || []} isDayMode={isDayMode} />
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1465,17 +1747,101 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
           )}
 
           {isOwner && activeTab === "settings" && (
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-              {/* Profile Settings */}
+            <div className="space-y-6">
+              <div className={`flex gap-2 overflow-x-auto rounded-2xl border p-2 ${isDayMode ? "border-slate-200/80 bg-white/80" : "border-white/10 bg-white/[0.04]"}`}>
+                {settingsTabItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeSettingsTab === item.key;
+                  return (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => setActiveSettingsTab(item.key)}
+                      className={`inline-flex min-h-[42px] shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-colors ${
+                        isActive
+                          ? isDayMode
+                            ? "bg-indigo-50 text-indigo-700"
+                            : "bg-indigo-500/20 text-indigo-100"
+                          : isDayMode
+                            ? "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                            : "text-gray-400 hover:bg-white/10 hover:text-white"
+                      }`}
+                    >
+                      <Icon size={16} />
+                      {item.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {activeSettingsTab === "profile-card" && (
+                <div className="space-y-8">
               <div className={settingsPanelClass}>
                 <h3
                   className={`text-xl font-bold mb-6 flex items-center gap-2 ${isDayMode ? "text-slate-900" : "text-white"}`}
                 >
                   <User size={20} className="text-indigo-500" />
-                  {t("user_profile.tabs.profile")}
+                  头像与显示名称
                 </h3>
 
                 <form onSubmit={handleProfileUpdate} className="space-y-4">
+                  <div className="pt-2">
+                    <label className={`block text-sm font-medium mb-2 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+                      头像
+                    </label>
+                    <div className={`flex items-center gap-4 rounded-2xl border p-4 ${isDayMode ? "bg-slate-50/80 border-slate-200/80" : "bg-black/20 border-white/10"}`}>
+                      <div className={`h-28 w-28 shrink-0 overflow-hidden rounded-2xl border ${isDayMode ? "border-white bg-slate-100" : "border-white/10 bg-white/10"}`}>
+                        {avatarPreview ? (
+                          <div data-avatar-crop-box className="relative h-full w-full select-none overflow-hidden">
+                            <img src={avatarPreview} alt={displayName} className="absolute inset-0 h-full w-full object-cover opacity-55" draggable={false} />
+                            <div
+                              className="absolute cursor-move border-2 border-white bg-white/10 shadow-[0_0_0_999px_rgba(0,0,0,0.28)]"
+                              style={{
+                                left: `${avatarCrop.x * 100}%`,
+                                top: `${avatarCrop.y * 100}%`,
+                                width: `${avatarCrop.size * 100}%`,
+                                height: `${avatarCrop.size * 100}%`,
+                              }}
+                              onPointerDown={handleAvatarCropStart}
+                            >
+                              <div className="absolute bottom-1 right-1 rounded bg-black/45 px-1 py-0.5 text-[9px] font-bold text-white">1:1</div>
+                            </div>
+                          </div>
+                        ) : user.avatar ? (
+                          <img src={user.avatar} alt={displayName} className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-500 to-rose-500 text-2xl font-bold text-white">
+                            {avatarInitial}
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1 space-y-3">
+                        <label className={`inline-flex min-h-[40px] cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-colors ${isDayMode ? "bg-white text-slate-700 border border-slate-200/80 hover:bg-slate-50" : "bg-white/10 text-white border border-white/10 hover:bg-white/15"}`}>
+                          <Upload size={16} />
+                          选择图片
+                          <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={handleAvatarSelect} />
+                        </label>
+                        <button type="button" onClick={handleAvatarUpload} disabled={!avatarFile || avatarLoading} className="inline-flex min-h-[40px] items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50">
+                          {avatarLoading ? "上传中..." : "保存头像"}
+                        </button>
+                        <p className={`text-xs font-bold ${
+                          avatarSaveState === "dirty"
+                            ? "text-amber-500"
+                            : avatarSaveState === "error"
+                              ? "text-rose-500"
+                              : isDayMode
+                                ? "text-slate-500"
+                                : "text-gray-500"
+                        }`}>
+                          {avatarSaveState === "dirty" ? "头像未保存" : avatarSaveState === "saving" ? "头像保存中..." : avatarSaveState === "error" ? "头像保存失败" : "头像已保存"}
+                        </p>
+                        <p className={`text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>
+                          支持 JPG、PNG 或 WebP，最大 5MB。选择图片后拖动 1:1 方框选择头像区域。
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="pt-2">
                     <label
                       className={`block text-sm font-medium mb-2 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
@@ -1512,68 +1878,6 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                     </p>
                   </div>
 
-                  <div className="pt-2">
-                    <label
-                      className={`block text-sm font-medium mb-2 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                    >
-                      {t("user_profile.fields.organization")}
-                    </label>
-
-                    {!isInviteCodeVerified && (
-                      <div className="mb-4 space-y-2">
-                        <label
-                          className={`text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
-                        >
-                          {t("user_profile.fields.invite_code_label")}
-                        </label>
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={profileData.inviteCode}
-                            onChange={(e) =>
-                              setProfileData({
-                                ...profileData,
-                                inviteCode: e.target.value,
-                              })
-                            }
-                            placeholder={t(
-                              "user_profile.fields.invite_code_hint",
-                            )}
-                            className={`flex-1 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 ${isDayMode ? "bg-slate-50 border border-slate-200/80 text-slate-900" : "bg-black/20 border border-white/10 text-white"}`}
-                          />
-                          <button
-                            type="button"
-                            onClick={handleVerifyInviteCode}
-                            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold transition-colors"
-                          >
-                            {t("common.verify")}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="space-y-2">
-                      <input
-                        type="text"
-                        value={profileData.organization}
-                        onChange={(e) =>
-                          setProfileData({
-                            ...profileData,
-                            organization: e.target.value,
-                          })
-                        }
-                        placeholder={t("user_profile.fields.org_placeholder")}
-                        disabled={!isInviteCodeVerified}
-                        className={`w-full rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 ${isDayMode ? "bg-slate-50 border border-slate-200/80 text-slate-900" : "bg-black/20 border border-white/10 text-white"} ${!isInviteCodeVerified ? "opacity-50 cursor-not-allowed" : ""}`}
-                      />
-                      <p
-                        className={`text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
-                      >
-                        {t("user_profile.fields.org_help")}
-                      </p>
-                    </div>
-                  </div>
-
                   <div className="flex justify-end pt-4">
                     <button
                       type="submit"
@@ -1586,7 +1890,25 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                 </form>
               </div>
 
+              <div className={settingsPanelClass}>
+                <h3
+                  className={`text-xl font-bold mb-6 flex items-center gap-2 ${isDayMode ? "text-slate-900" : "text-white"}`}
+                >
+                  <User size={20} className="text-indigo-500" />
+                  个人名片
+                </h3>
+                <ProfileCardEditor
+                  profileCard={profileCard}
+                  isDayMode={isDayMode}
+                  onSaved={(nextProfileCard) => setProfileCard(nextProfileCard)}
+                />
+              </div>
+                </div>
+              )}
+
               {/* Security Settings */}
+              {activeSettingsTab === "security" && (
+                <div className="space-y-8">
               <div className={settingsPanelClass}>
                 <h3
                   className={`text-xl font-bold mb-6 flex items-center gap-2 ${isDayMode ? "text-slate-900" : "text-white"}`}
@@ -1778,6 +2100,111 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                   </button>
                 </div>
               </div>
+                </div>
+              )}
+
+              {activeSettingsTab === "identity" && (
+              <div className={settingsPanelClass}>
+                <h3
+                  className={`text-xl font-bold mb-6 flex items-center gap-2 ${isDayMode ? "text-slate-900" : "text-white"}`}
+                >
+                  <Briefcase size={20} className="text-indigo-500" />
+                  成果认领
+                </h3>
+
+                <div className="space-y-5">
+                  <div className={`rounded-2xl border p-4 ${isDayMode ? "bg-slate-50/80 border-slate-200/80" : "bg-black/20 border-white/10"}`}>
+                    <div className={`text-sm font-bold mb-3 ${isDayMode ? "text-slate-800" : "text-white"}`}>当前组织/社团</div>
+                    <div className={`rounded-xl border px-3 py-2 text-sm font-bold ${isDayMode ? "bg-white border-slate-200 text-slate-700" : "bg-white/5 border-white/10 text-gray-200"}`}>
+                      {user?.organization_cr || profileData.organization || "暂未认证组织/社团"}
+                    </div>
+                    <p className={`mt-2 text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>
+                      组织/社团认证请使用下方认证入口，并填写对应邀请码。
+                    </p>
+                  </div>
+
+                  <div className={`rounded-2xl border p-4 ${isDayMode ? "bg-slate-50/80 border-slate-200/80" : "bg-black/20 border-white/10"}`}>
+                    <div className={`text-sm font-bold mb-3 ${isDayMode ? "text-slate-800" : "text-white"}`}>身份认证</div>
+                    <div className="grid grid-cols-1 sm:grid-cols-[120px_1fr] gap-2">
+                      <select
+                        value={identityType}
+                        onChange={(event) => setIdentityType(event.target.value)}
+                        className={`rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 ${isDayMode ? "bg-white border border-slate-200 text-slate-900" : "bg-black/30 border border-white/10 text-white"}`}
+                      >
+                        <option value="person">个人</option>
+                        <option value="team">团队</option>
+                        <option value="club">组织/社团</option>
+                      </select>
+                      <input
+                        type="text"
+                        value={identityName}
+                        onChange={(event) => setIdentityName(event.target.value)}
+                        placeholder={identityType === "club" ? "填写组织或社团名称" : "填写用于匹配成果的名称"}
+                        className={`rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 ${isDayMode ? "bg-white border border-slate-200 text-slate-900" : "bg-black/30 border border-white/10 text-white"}`}
+                      />
+                    </div>
+                    {identityType === "club" && (
+                      <input
+                        type="text"
+                        value={identityInviteCode}
+                        onChange={(event) => setIdentityInviteCode(event.target.value)}
+                        placeholder="填写组织/社团邀请码"
+                        className={`mt-2 w-full rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 ${isDayMode ? "bg-white border border-slate-200 text-slate-900" : "bg-black/30 border border-white/10 text-white"}`}
+                      />
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleCreateIdentityClaim}
+                      disabled={identityLoading}
+                      className="mt-3 inline-flex min-h-[38px] items-center rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
+                    >
+                      {identityLoading ? "提交中..." : identityType === "club" ? "认证组织/社团" : "添加身份"}
+                    </button>
+                    <div className="mt-4 space-y-2">
+                      {identityClaims.length === 0 ? (
+                        <p className={`text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>暂无认证身份。</p>
+                      ) : identityClaims.map((claim) => (
+                        <div key={claim.id} className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm ${isDayMode ? "bg-white border-slate-200 text-slate-700" : "bg-white/5 border-white/10 text-gray-200"}`}>
+                          <span className="font-bold">{claim.display_name}</span>
+                          <span className={`ml-auto text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>{identityTypeLabel(claim.type)} · {identityStatusLabel(claim.status)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className={`rounded-2xl border p-4 ${isDayMode ? "bg-slate-50/80 border-slate-200/80" : "bg-black/20 border-white/10"}`}>
+                    <div className={`text-sm font-bold mb-3 ${isDayMode ? "text-slate-800" : "text-white"}`}>可能属于你的成果</div>
+                    {outcomeLinksLoading ? (
+                      <p className={`text-sm ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>加载中...</p>
+                    ) : outcomeLinks.length === 0 ? (
+                      <p className={`text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>暂未匹配到可认领成果。</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {outcomeLinks.slice(0, 8).map((link) => (
+                          <div key={link.link_id || `${link.id}-${link.identity_claim_id}`} className={`rounded-xl border p-3 ${isDayMode ? "bg-white border-slate-200" : "bg-white/5 border-white/10"}`}>
+                            <div className={`text-sm font-bold line-clamp-1 ${isDayMode ? "text-slate-900" : "text-white"}`}>{link.title}</div>
+                            <div className={`mt-1 text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>
+                              {link.bound_identity_name || link.matched_text || link.author} · {outcomeStatusLabel(link.binding_status)}
+                            </div>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {link.binding_status !== "confirmed" && (
+                                <button type="button" disabled={outcomeActionId === link.link_id} onClick={() => handleOutcomeAction(link.link_id, "confirm")} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50">确认</button>
+                              )}
+                              {link.binding_status === "candidate" && (
+                                <button type="button" disabled={outcomeActionId === link.link_id} onClick={() => handleOutcomeAction(link.link_id, "reject")} className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50">拒绝</button>
+                              )}
+                              {link.binding_status === "confirmed" && (
+                                <button type="button" disabled={outcomeActionId === link.link_id} onClick={() => handleOutcomeAction(link.link_id, "revoke")} className="rounded-lg bg-slate-600 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50">撤销</button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              )}
             </div>
           )}
         </div>

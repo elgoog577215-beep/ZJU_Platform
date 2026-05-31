@@ -242,6 +242,7 @@ const HackathonShowcase = () => {
       award: work.award || work.honor_title || "优秀作品",
       title: work.title || "未命名作品",
       author: work.author || work.uploader_name || "获奖成员",
+      boundIdentityName: work.bound_identity_name || work.boundIdentityName || "",
       gitUrl: work.git_url || work.gitUrl || "",
       cover: work.cover_url || work.cover || (index % 2 === 0 ? HERO_IMAGE : SECONDARY_IMAGE),
       summary: work.summary || work.description || "",
@@ -1482,7 +1483,9 @@ const HackathonShowcase = () => {
                 <div className="showcase-work-body flex flex-1 flex-col p-6">
                   <div className="flex flex-wrap gap-2">
                     <span className={`border px-2.5 py-1 text-xs font-black ${theme.chip}`}>{work.award}</span>
-                    <span className={`border px-2.5 py-1 text-xs font-black ${theme.chip}`}>{work.author}</span>
+                    <span className={`border px-2.5 py-1 text-xs font-black ${theme.chip}`}>
+                      {work.author}{work.boundIdentityName ? ` · ${work.boundIdentityName}` : ""}
+                    </span>
                   </div>
                   {work.summary ? (
                     <p className={`mt-4 line-clamp-3 text-sm leading-6 ${theme.muted}`}>{work.summary}</p>

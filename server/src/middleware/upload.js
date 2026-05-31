@@ -38,7 +38,7 @@ if (!fs.existsSync(UPLOAD_CONFIG.uploadDir)) {
 }
 
 // Create subdirectories for different file types
-const subdirs = ['images', 'videos', 'audio', 'documents', 'temp'];
+const subdirs = ['images', 'videos', 'audio', 'documents', 'avatars', 'temp'];
 subdirs.forEach(dir => {
   const dirPath = path.join(UPLOAD_CONFIG.uploadDir, dir);
   if (!fs.existsSync(dirPath)) {
@@ -134,6 +134,32 @@ const upload = multer({
     fields: 20 // Max 20 form fields
   },
   fileFilter: fileFilter
+});
+
+const avatarUpload = multer({
+  storage: multer.diskStorage({
+    destination: function (_req, _file, cb) {
+      cb(null, path.join(UPLOAD_CONFIG.uploadDir, 'avatars'));
+    },
+    filename: function (_req, file, cb) {
+      cb(null, generateFilename(file.originalname));
+    }
+  }),
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+    files: 1,
+    fields: 4
+  },
+  fileFilter: (_req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedExtensions.includes(ext) || !allowedMimeTypes.includes(file.mimetype)) {
+      cb(new Error('Avatar must be a JPG, PNG, or WebP image'), false);
+      return;
+    }
+    cb(null, true);
+  }
 });
 
 /**
@@ -254,6 +280,7 @@ const moveToPermanent = async (tempPath, filename, fileType) => {
 
 module.exports = {
   upload,
+  avatarUpload,
   handleUploadError,
   scanFile,
   cleanupTempFiles,

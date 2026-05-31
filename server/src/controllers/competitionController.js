@@ -1,5 +1,6 @@
 const { getDb } = require('../config/db');
 const { createNotification } = require('./notificationController');
+const { createCandidateLinksForWork } = require('./userController');
 
 const MEDIA_TYPES = new Set(['promo_video', 'stage_photo']);
 const REVIEW_STATUSES = new Set(['pending', 'approved', 'rejected']);
@@ -157,6 +158,8 @@ const serializePublicWork = (row) => ({
   experience: row.experience,
   story_file_url: row.story_file_url,
   uploader_name: row.uploader_name,
+  bound_identity_name: row.bound_identity_name,
+  bound_identity_type: row.bound_identity_type,
 });
 
 const extractWorkStoryFields = (body, options = {}) => {
@@ -303,13 +306,19 @@ const getCurrentOutcome = async (_req, res, next) => {
           LIMIT 8`,
       ),
       db.all(
-        `SELECT cw.*, COALESCE(u.nickname, u.username) AS uploader_name
+        `SELECT cw.*, COALESCE(u.nickname, u.username) AS uploader_name,
+                GROUP_CONCAT(DISTINCT ic.display_name) AS bound_identity_name,
+                GROUP_CONCAT(DISTINCT ic.type) AS bound_identity_type
          FROM competition_works cw
          LEFT JOIN users u ON u.id = cw.uploader_id
+         LEFT JOIN competition_work_identity_links l
+           ON l.work_id = cw.id AND l.status = 'confirmed'
+         LEFT JOIN user_identity_claims ic ON ic.id = l.claim_id
          WHERE cw.competition_id = ?
            AND cw.status = 'approved'
            AND COALESCE(cw.public_consent, 1) = 1
            AND cw.deleted_at IS NULL
+         GROUP BY cw.id
          ORDER BY
            CASE WHEN COALESCE(cw.sort_order, 0) > 0 THEN 0 ELSE 1 END ASC,
            CASE WHEN COALESCE(cw.sort_order, 0) > 0 THEN cw.sort_order ELSE NULL END ASC,
@@ -461,6 +470,7 @@ const submitCurrentWork = async (req, res, next) => {
     );
 
     const row = await db.get('SELECT * FROM competition_works WHERE id = ?', [result.lastID]);
+    await createCandidateLinksForWork(db, row);
     return res.status(201).json(serializeWork(row));
   } catch (error) {
     return next(error);
@@ -947,6 +957,7 @@ const createAdminWork = async (req, res, next) => {
 
     await createAuditLog(db, req.user?.id, 'competition_works', result.lastID, 'create', null);
     const row = await db.get('SELECT * FROM competition_works WHERE id = ?', [result.lastID]);
+    await createCandidateLinksForWork(db, row);
     return res.status(201).json(serializeWork(row));
   } catch (error) {
     return next(error);
@@ -1044,6 +1055,7 @@ const updateAdminWork = async (req, res, next) => {
 
     await createAuditLog(db, req.user?.id, 'competition_works', id, 'update', null);
     const row = await db.get('SELECT * FROM competition_works WHERE id = ?', [id]);
+    await createCandidateLinksForWork(db, row);
     return res.json(serializeWork(row));
   } catch (error) {
     return next(error);

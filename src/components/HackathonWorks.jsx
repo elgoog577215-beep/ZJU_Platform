@@ -38,6 +38,8 @@ const normalizeWork = (work, index) => ({
   gitUrl: work.git_url || work.gitUrl || "",
   cover: work.cover_url || work.cover || fallbackCover,
   author: work.author || work.uploader_name || "获奖成员",
+  boundIdentityName: work.bound_identity_name || work.boundIdentityName || "",
+  boundIdentityType: work.bound_identity_type || work.boundIdentityType || "",
   summary: work.summary || work.description || work.gameDescription || "",
   grade: work.grade || "",
   major: work.major || "",
@@ -106,7 +108,10 @@ const WorkCard = ({ work, featured = false, isDayMode = false, onOpen }) => {
         <h2 className={featured ? "text-3xl font-black leading-tight lg:text-4xl" : "line-clamp-2 min-h-[4rem] text-2xl font-black leading-tight"}>
           {work.title}
         </h2>
-        <p className={`mt-3 text-sm font-bold ${mutedClass}`}>{work.author}</p>
+        <p className={`mt-3 text-sm font-bold ${mutedClass}`}>
+          {work.author}
+          {work.boundIdentityName ? ` · ${work.boundIdentityName}` : ""}
+        </p>
         <div className="mt-3 flex flex-wrap gap-2">
           <span className={`border px-2.5 py-1 text-xs font-black ${honorClass}`}>
             {work.honorTitle}
