@@ -147,7 +147,12 @@ test.describe("event assistant flow", () => {
   test("desktop assistant shows recommendation, diagnostics, feedback reasons, and opens detail", async ({ page }) => {
     const actionRequests = [];
     const feedbackRequests = [];
+    const assistantRequests = [];
     await setupRoutes(page);
+    await page.route("**/api/events/assistant", async (route) => {
+      assistantRequests.push(route.request().postDataJSON());
+      await route.fulfill({ json: assistantResponse });
+    });
     await page.route("**/api/events/assistant/feedback", async (route) => {
       feedbackRequests.push(route.request().postDataJSON());
       await route.fulfill({ json: { success: true } });
@@ -166,6 +171,8 @@ test.describe("event assistant flow", () => {
     await expect(page.getByRole("button", { name: "社交放松" })).toBeVisible();
     await page.getByPlaceholder(/比如/).fill("AI project at Zijingang with score");
     await page.getByRole("button", { name: "开始推荐" }).click();
+    await expect.poll(() => assistantRequests.length).toBeGreaterThanOrEqual(1);
+    expect(assistantRequests[0].visitorKey).toEqual(expect.any(String));
 
     await expect(page.getByText("已按 AI、紫金港和综测优先排序。")).toBeVisible();
     await expect(page.getByText("硬约束优先")).toBeVisible();
@@ -228,7 +235,12 @@ test.describe("event assistant flow", () => {
   test("mobile assistant keeps the same recommendation and feedback flow", async ({ page }) => {
     const actionRequests = [];
     const feedbackRequests = [];
+    const assistantRequests = [];
     await setupRoutes(page);
+    await page.route("**/api/events/assistant", async (route) => {
+      assistantRequests.push(route.request().postDataJSON());
+      await route.fulfill({ json: assistantResponse });
+    });
     await page.route("**/api/events/assistant/feedback", async (route) => {
       feedbackRequests.push(route.request().postDataJSON());
       await route.fulfill({ json: { success: true } });
@@ -244,6 +256,8 @@ test.describe("event assistant flow", () => {
     await expect(page.getByRole("button", { name: "技能作品集" })).toBeVisible();
     await page.getByPlaceholder(/比如/).fill("AI project at Zijingang with score");
     await page.getByRole("button", { name: "开始推荐" }).click();
+    await expect.poll(() => assistantRequests.length).toBeGreaterThanOrEqual(1);
+    expect(assistantRequests[0].visitorKey).toEqual(expect.any(String));
 
     await expect(page.getByRole("dialog", { name: "AI 活动助手" })).toBeVisible();
     await expect(page.getByRole("button", { name: new RegExp(event.title) })).toBeVisible();

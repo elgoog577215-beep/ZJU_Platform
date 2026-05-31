@@ -232,6 +232,7 @@ const EventAssistantPanel = ({
       const response = await api.post("/events/assistant", {
         allowHistoricalFallback: true,
         rememberPreference,
+        visitorKey: getOrCreateSiteVisitorKey(),
         ...payload,
       });
       setAssistantState(response.data);

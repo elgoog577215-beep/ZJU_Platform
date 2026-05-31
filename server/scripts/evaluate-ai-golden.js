@@ -1169,6 +1169,69 @@ const evaluateRecommendationActionLearning = async (db) => {
   };
 };
 
+const evaluateAnonymousRecommendationActionLearning = async (db) => {
+  const anonymousVisitorKey = 'golden-anonymous-visitor-key';
+  const anonymousRun = await db.run(
+    `INSERT INTO ai_assistant_runs (module, action, status, requested_by, summary_json)
+     VALUES (?, ?, ?, ?, ?)`,
+    [
+      'event_recommendation',
+      'turn',
+      'completed',
+      null,
+      JSON.stringify({
+        recommendedEventIds: [1],
+        recommendedEventRanks: [{ eventId: 1, rank: 1 }]
+      })
+    ]
+  );
+
+  await recordEventAssistantDecisionAction({
+    db,
+    visitorKey: anonymousVisitorKey,
+    eventId: 1,
+    actionType: 'view_detail',
+    assistantRunId: anonymousRun.lastID,
+    recommendationRank: 1,
+    source: 'golden_anonymous_action_learning'
+  });
+  await recordEventAssistantDecisionAction({
+    db,
+    visitorKey: anonymousVisitorKey,
+    eventId: 1,
+    actionType: 'favorite',
+    assistantRunId: anonymousRun.lastID,
+    recommendationRank: 1,
+    source: 'golden_anonymous_action_learning'
+  });
+
+  const result = await runEventAssistantTurn({
+    db,
+    userId: null,
+    visitorKey: anonymousVisitorKey,
+    query: 'Find me a practical AI project workshop with score credit at Zijingang.',
+    rememberPreference: false,
+    allowHistoricalFallback: false,
+    modelRunner: goldenModelRunner,
+    now: new Date(),
+  });
+
+  assert(result.type === 'recommend', 'Anonymous action learning should still return recommendations.');
+  assert(result.reasoningTrace?.actionEvidenceUsed === true, 'Anonymous visitor action evidence should be used for recommendations.');
+  assert(result.reasoningTrace?.actionEvidenceSummary?.sourceCount >= 2, 'Anonymous visitor action evidence should count recent actions.');
+  assert(
+    result.recommendations[0].matchSignals.some((signal) => (
+      /\u884c\u52a8\u8bc1\u636e|\u6536\u85cf|\u62a5\u540d|action evidence/i.test(String(signal))
+    )),
+    'Anonymous recommendation should expose action evidence in match signals.'
+  );
+
+  return {
+    topEvent: result.recommendations[0].event.title,
+    actionEvidenceSourceCount: result.reasoningTrace.actionEvidenceSummary.sourceCount,
+  };
+};
+
 const evaluateEventRecommendationFallbackPerformance = async (db) => {
   await db.run('DELETE FROM event_ai_profiles');
   const failingIntentRunner = async ({ task, messages }) => {
@@ -1302,6 +1365,7 @@ const main = async () => {
     const smartClarification = await evaluateSmartClarification(db);
     const recommendationActionEvidenceRanking = await evaluateRecommendationActionEvidenceRanking(db);
     const recommendationActionLearning = await evaluateRecommendationActionLearning(db);
+    const anonymousRecommendationActionLearning = await evaluateAnonymousRecommendationActionLearning(db);
     const eventRecommendationFallbackPerformance = await evaluateEventRecommendationFallbackPerformance(db);
     const hackathonCoach = await evaluateHackathonCoach(db);
     const wechatParser = await evaluateWechatParser(db);
@@ -1325,6 +1389,7 @@ const main = async () => {
         smartClarification,
         recommendationActionEvidenceRanking,
         recommendationActionLearning,
+        anonymousRecommendationActionLearning,
         eventRecommendationFallbackPerformance,
         hackathonCoach,
         wechatParser,

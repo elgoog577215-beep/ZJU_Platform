@@ -50,7 +50,8 @@ const handleEventAssistant = async (req, res) => {
     clarificationUsed = false,
     allowScopeExpansion = false,
     allowHistoricalFallback = true,
-    rememberPreference = false
+    rememberPreference = false,
+    visitorKey = ''
   } = req.body || {};
 
   try {
@@ -88,7 +89,8 @@ const handleEventAssistant = async (req, res) => {
       allowScopeExpansion,
       allowHistoricalFallback,
       rememberPreference,
-      userId: req.user?.id || null
+      userId: req.user?.id || null,
+      visitorKey: sanitizeText(visitorKey, 120)
     });
 
     res.json(result);

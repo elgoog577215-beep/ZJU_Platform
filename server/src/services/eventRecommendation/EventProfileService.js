@@ -3,8 +3,8 @@ const createEventProfileService = ({
   maybeRememberPreference,
   buildProfileSummary,
 }) => ({
-  load(db, userId) {
-    return loadUserEventProfile(db, userId);
+  load(db, userId, visitorKey = '') {
+    return loadUserEventProfile(db, userId, visitorKey);
   },
 
   rememberPreference(db, userId, intent, rememberPreference) {

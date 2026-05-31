@@ -157,6 +157,10 @@ const isPersonalizationSignal = (signal) => (
   /行动证据|收藏|报名|正反馈|负反馈/.test(String(signal || ''))
 );
 
+const pickPersonalizationSignals = (signals = []) => (
+  signals.filter(isPersonalizationSignal)
+);
+
 const getBenefitMatch = (item, benefit) => {
   const text = buildCandidateSemanticText(item);
   if (benefit === 'score') {
@@ -1140,7 +1144,21 @@ const buildActionEvidence = (historyRows = [], feedbackRows = [], recommendation
   };
 };
 
-const loadRecommendationActionRows = async (db, userId) => {
+const loadRecommendationActionRows = async (db, userId, visitorKey = '') => {
+  const normalizedVisitorKey = sanitizeText(visitorKey, 120);
+  const filters = [];
+  const params = [];
+
+  if (userId) {
+    filters.push('a.user_id = ?');
+    params.push(userId);
+  }
+  if (!userId && normalizedVisitorKey) {
+    filters.push('a.visitor_key = ?');
+    params.push(normalizedVisitorKey);
+  }
+  if (!filters.length) return [];
+
   try {
     return await db.all(
       `
@@ -1160,27 +1178,29 @@ const loadRecommendationActionRows = async (db, userId) => {
           e.volunteer_time
         FROM event_recommendation_actions a
         LEFT JOIN events e ON e.id = a.event_id
-        WHERE a.user_id = ?
+        WHERE ${filters.join(' OR ')}
           AND a.created_at >= datetime('now', '-60 days')
         ORDER BY a.created_at DESC, a.id DESC
         LIMIT 80
       `,
-      [userId]
+      params
     );
   } catch {
     return [];
   }
 };
 
-const loadUserEventProfile = async (db, userId) => {
+const loadUserEventProfile = async (db, userId, visitorKey = '') => {
+  const recommendationActionRows = await loadRecommendationActionRows(db, userId, visitorKey);
   if (!userId) {
+    const actionEvidence = buildActionEvidence([], [], recommendationActionRows);
     return {
       isAnonymous: true,
       explicit: {},
       learned: {},
       memory: [],
-      negativeEventIds: [],
-      actionEvidence: buildEmptyActionEvidence()
+      negativeEventIds: actionEvidence.negativeEventIds,
+      actionEvidence
     };
   }
 
@@ -1238,8 +1258,6 @@ const loadUserEventProfile = async (db, userId) => {
     `,
     [userId]
   );
-  const recommendationActionRows = await loadRecommendationActionRows(db, userId);
-
   const learnedCategories = summarizeCounts(historyRows.map(inferEventCategory));
   const actionEvidence = buildActionEvidence(historyRows, feedbackRows, recommendationActionRows);
 
@@ -2621,7 +2639,11 @@ const mergeRecommendationSignals = ({
   hardConstraintSignals = [],
   limit = 6
 } = {}) => {
-  const personalized = candidateSignals.filter(isPersonalizationSignal);
+  const personalized = unique([
+    ...pickPersonalizationSignals(modelSignals),
+    ...pickPersonalizationSignals(candidateSignals),
+    ...pickPersonalizationSignals(hardConstraintSignals)
+  ]);
   const merged = unique([
     ...hardConstraintSignals,
     ...modelSignals,
@@ -3184,6 +3206,7 @@ const runUnifiedEventAssistantTurn = async ({
   allowHistoricalFallback = true,
   rememberPreference = false,
   userId = null,
+  visitorKey = '',
   modelRunner,
   now = new Date()
 }) => {
@@ -3213,7 +3236,7 @@ const runUnifiedEventAssistantTurn = async ({
     logInvalidModelOutput,
   });
   const [profile, grouped] = await Promise.all([
-    timeEventAssistantStep(timings, 'profileLoadMs', () => services.profile.load(db, userId)),
+    timeEventAssistantStep(timings, 'profileLoadMs', () => services.profile.load(db, userId, visitorKey)),
     timeEventAssistantStep(timings, 'candidateLoadMs', () => services.retrieval.loadAll(db, now))
   ]);
   const coverage = services.retrieval.summarizeCoverage(grouped);
