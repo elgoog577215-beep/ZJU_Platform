@@ -35,6 +35,7 @@ pnpm-debug.log*
 .env
 .env.*
 server/.env
+server-access.local.txt
 
 # OS junk
 .DS_Store
