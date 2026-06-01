@@ -1,5 +1,6 @@
 import React, { forwardRef, memo, useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import { useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   AlertCircle,
@@ -341,6 +342,7 @@ const MediaCategoryRail = memo(({ categories, activeCategoryId, onChange, isDayM
 MediaCategoryRail.displayName = "MediaCategoryRail";
 
 const MediaLibrary = () => {
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { settings, uiMode } = useSettings();
   const isDayMode = uiMode === "day";
@@ -349,10 +351,13 @@ const MediaLibrary = () => {
   const [categoryId, setCategoryId] = useState("");
   const [uploadType, setUploadType] = useState(null);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
+  const [externalPhoto, setExternalPhoto] = useState(null);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [isMobileUploadOpen, setIsMobileUploadOpen] = useState(false);
   const [photoPage, setPhotoPage] = useState(1);
   const [videoPage, setVideoPage] = useState(1);
+  const photoDeepLinkId = searchParams.get("photo");
+  const videoDeepLinkId = searchParams.get("video");
   const [displayPhotos, setDisplayPhotos] = useState([]);
   const [displayVideos, setDisplayVideos] = useState([]);
   const {
@@ -508,7 +513,53 @@ const MediaLibrary = () => {
     setSelectedPhotoIndex((prev) => (prev - 1 + displayPhotos.length) % displayPhotos.length);
   };
 
-  const selectedPhoto = selectedPhotoIndex !== null ? displayPhotos[selectedPhotoIndex] : null;
+  const deepLinkedPhotoIndex = useMemo(() => {
+    if (!photoDeepLinkId) return -1;
+    return displayPhotos.findIndex((photo) => String(photo.id) === String(photoDeepLinkId));
+  }, [displayPhotos, photoDeepLinkId]);
+
+  useEffect(() => {
+    if (!photoDeepLinkId) return undefined;
+    if (deepLinkedPhotoIndex >= 0) {
+      setExternalPhoto(null);
+      setSelectedPhotoIndex(deepLinkedPhotoIndex);
+      return undefined;
+    }
+    const abortController = new AbortController();
+    api
+      .get(`/photos/${photoDeepLinkId}`, { signal: abortController.signal })
+      .then((res) => {
+        if (abortController.signal.aborted || !res.data) return;
+        setSelectedPhotoIndex(null);
+        setExternalPhoto(res.data);
+      })
+      .catch((err) => {
+        if (!abortController.signal.aborted && process.env.NODE_ENV === "development") {
+          console.error("Failed to fetch deep linked media photo", err);
+        }
+      });
+    return () => abortController.abort();
+  }, [photoDeepLinkId, deepLinkedPhotoIndex]);
+
+  useEffect(() => {
+    if (!videoDeepLinkId) return undefined;
+    const abortController = new AbortController();
+    api
+      .get(`/videos/${videoDeepLinkId}`, { signal: abortController.signal })
+      .then((res) => {
+        if (!abortController.signal.aborted && res.data) {
+          setSelectedVideo(res.data);
+        }
+      })
+      .catch((err) => {
+        if (!abortController.signal.aborted && process.env.NODE_ENV === "development") {
+          console.error("Failed to fetch deep linked media video", err);
+        }
+      });
+    return () => abortController.abort();
+  }, [videoDeepLinkId]);
+
+  const selectedPhoto = selectedPhotoIndex !== null ? displayPhotos[selectedPhotoIndex] : externalPhoto;
   const error = photosError || videosError;
   const visiblePhotoCount = displayPhotos.length;
   const totalPhotoCount = Number(photoPagination?.total || visiblePhotoCount);
@@ -813,13 +864,22 @@ const MediaLibrary = () => {
         {selectedPhoto ? (
           <Lightbox
             photo={selectedPhoto}
-            onClose={() => setSelectedPhotoIndex(null)}
-            onNext={handleNextPhoto}
-            onPrev={handlePrevPhoto}
+            onClose={() => {
+              setSelectedPhotoIndex(null);
+              setExternalPhoto(null);
+            }}
+            onNext={selectedPhotoIndex !== null ? handleNextPhoto : undefined}
+            onPrev={selectedPhotoIndex !== null ? handlePrevPhoto : undefined}
             onLikeToggle={(favorited, likes) => handleTogglePhotoFavorite(selectedPhoto.id, favorited, likes)}
             onSelect={(photo) => {
               const nextIndex = displayPhotos.findIndex((item) => item.id === photo.id);
-              if (nextIndex >= 0) setSelectedPhotoIndex(nextIndex);
+              if (nextIndex >= 0) {
+                setExternalPhoto(null);
+                setSelectedPhotoIndex(nextIndex);
+              } else {
+                setSelectedPhotoIndex(null);
+                setExternalPhoto(photo);
+              }
             }}
           />
         ) : null}

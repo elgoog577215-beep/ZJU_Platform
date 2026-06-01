@@ -17,6 +17,7 @@ const requiredAgents = [
   'hackathon_coach',
   'wechat_event_parser',
   'event_governance',
+  'global_ai_search',
   'model_config_runtime',
   'event_profile_index',
 ];

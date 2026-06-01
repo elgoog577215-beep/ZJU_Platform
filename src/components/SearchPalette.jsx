@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, Command, X, ArrowRight, Image as ImageIcon, Music, Film, FileText, Calendar } from 'lucide-react';
+import { Search, Command, X, ArrowRight, Image as ImageIcon, Music, Film, FileText, Calendar, MessageSquare, Users, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
@@ -17,6 +17,8 @@ const SearchPalette = () => {
   useBackClose(isOpen, () => setIsOpen(false));
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
+  const [resultGroups, setResultGroups] = useState([]);
+  const [searchMeta, setSearchMeta] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef(null);
@@ -56,6 +58,8 @@ const SearchPalette = () => {
     } else {
       setQuery('');
       setResults([]);
+      setResultGroups([]);
+      setSearchMeta(null);
     }
   }, [isOpen]);
 
@@ -67,9 +71,16 @@ const SearchPalette = () => {
     const timer = setTimeout(() => {
       if (normalizedQuery.length >= 2) {
         setLoading(true);
-        api.get(`/search?q=${normalizedQuery}`, { signal: controller.signal })
+        api.get('/search', { params: { q: normalizedQuery }, signal: controller.signal })
           .then(res => {
-            setResults((res.data || []).filter((item) => item.type !== 'community'));
+            const payload = res.data;
+            const nextResults = Array.isArray(payload)
+              ? payload
+              : (payload?.results || payload?.legacy || []);
+            const nextGroups = Array.isArray(payload?.groups) ? payload.groups : [];
+            setResults(nextResults);
+            setResultGroups(nextGroups);
+            setSearchMeta(Array.isArray(payload) ? null : payload);
             setSelectedIndex(0);
             setLoading(false);
           })
@@ -80,6 +91,8 @@ const SearchPalette = () => {
           });
       } else {
         setResults([]);
+        setResultGroups([]);
+        setSearchMeta(null);
         setLoading(false);
       }
     }, 300);
@@ -108,7 +121,12 @@ const SearchPalette = () => {
   };
 
   const handleSelect = (item) => {
-    navigate(`${item.link}?id=${item.id}`);
+    const target = item.deepLink || item.link || '/';
+    if (item.deepLink || target.includes('?')) {
+      navigate(target);
+    } else {
+      navigate(`${target}?id=${item.id}`);
+    }
     setIsOpen(false);
   };
 
@@ -119,8 +137,75 @@ const SearchPalette = () => {
       case 'video': return <Film size={16} className="text-blue-400" />;
       case 'article': return <FileText size={16} className="text-yellow-400" />;
       case 'event': return <Calendar size={16} className="text-green-400" />;
+      case 'post': return <MessageSquare size={16} className="text-orange-400" />;
+      case 'group': return <Users size={16} className="text-cyan-400" />;
+      case 'news': return <FileText size={16} className="text-sky-400" />;
       default: return <Search size={16} />;
     }
+  };
+
+  const resolveResultIndex = (item) => results.findIndex(
+    (candidate) => candidate.type === item.type && String(candidate.id) === String(item.id),
+  );
+
+  const renderResultItem = (item) => {
+    const index = resolveResultIndex(item);
+    const isSelected = index === selectedIndex;
+
+    return (
+      <button
+        key={`${item.type}-${item.id}`}
+        type="button"
+        aria-label={`${item.typeLabel || t(`common.${item.type}`, item.type)} ${item.title}`}
+        onClick={() => handleSelect(item)}
+        onMouseEnter={() => setSelectedIndex(Math.max(0, index))}
+        className={`w-full min-h-[60px] flex items-center gap-4 px-4 py-3 rounded-[5px] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+          isSelected
+            ? (isDayMode ? 'bg-indigo-50 border border-indigo-100/80' : 'bg-white/10')
+            : (isDayMode ? 'hover:bg-slate-50' : 'hover:bg-white/5')
+        }`}
+      >
+        <div className={`w-10 h-10 rounded-[5px] overflow-hidden flex-shrink-0 border ${isDayMode ? 'bg-white border-slate-200/80' : 'bg-black/50 border-white/10'}`}>
+          {item.image ? (
+            <img src={getThumbnailUrl(item.image)} alt={item.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-500">
+              {getIcon(item.type)}
+            </div>
+          )}
+        </div>
+        <div className="min-w-0 flex-1 text-left">
+          <div className="flex min-w-0 items-center gap-2">
+            <h4 className={`truncate text-sm font-medium ${isSelected ? (isDayMode ? 'text-slate-900' : 'text-white') : (isDayMode ? 'text-slate-700' : 'text-gray-300')}`}>
+              {highlightTitle(item.title)}
+            </h4>
+            <span className={`shrink-0 rounded-[4px] px-1.5 py-0.5 text-[10px] font-semibold ${isDayMode ? 'bg-slate-100 text-slate-500' : 'bg-white/5 text-gray-400'}`}>
+              {item.typeLabel || t(`common.${item.type}`, item.type)}
+            </span>
+          </div>
+          {item.meta || item.summary ? (
+            <p className={`mt-1 line-clamp-1 text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>
+              {item.meta || item.summary}
+            </p>
+          ) : null}
+          {Array.isArray(item.match_reasons) && item.match_reasons.length ? (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {item.match_reasons.slice(0, 2).map((reason) => (
+                <span
+                  key={reason}
+                  className={`rounded-[4px] px-1.5 py-0.5 text-[10px] ${isDayMode ? 'bg-blue-50 text-blue-700' : 'bg-blue-500/10 text-blue-200'}`}
+                >
+                  {reason}
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </div>
+        {isSelected && (
+          <ArrowRight size={16} className={isDayMode ? 'text-slate-400' : 'text-gray-400'} />
+        )}
+      </button>
+    );
   };
 
   const highlightTitle = (title) => {
@@ -179,40 +264,32 @@ const SearchPalette = () => {
                 {loading ? (
                     <div className={`p-8 text-center ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>{t('common.searching')}</div>
                 ) : results.length > 0 ? (
-                    <div className="space-y-1">
-                        {results.map((item, index) => (
-                            <button
-                                key={`${item.type}-${item.id}`}
-                                type="button"
-                                aria-label={`${t(`common.${item.type}`, item.type)} ${item.title}`}
-                                onClick={() => handleSelect(item)}
-                                onMouseEnter={() => setSelectedIndex(index)}
-                                className={`w-full min-h-[52px] flex items-center gap-4 px-4 py-3 rounded-[5px] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
-                                    index === selectedIndex 
-                                      ? (isDayMode ? 'bg-indigo-50 border border-indigo-100/80' : 'bg-white/10')
-                                      : (isDayMode ? 'hover:bg-slate-50' : 'hover:bg-white/5')
-                                }`}
-                            >
-                                <div className={`w-10 h-10 rounded-[5px] overflow-hidden flex-shrink-0 border ${isDayMode ? 'bg-white border-slate-200/80' : 'bg-black/50 border-white/10'}`}>
-                                    {item.image ? (
-                                        <img src={getThumbnailUrl(item.image)} alt={item.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-gray-500">
-                                            {getIcon(item.type)}
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="flex-1 text-left">
-                                    <h4 className={`text-sm font-medium ${index === selectedIndex ? (isDayMode ? 'text-slate-900' : 'text-white') : (isDayMode ? 'text-slate-700' : 'text-gray-300')}`}>
-                                        {highlightTitle(item.title)}
-                                    </h4>
-                                    <span className={`text-xs capitalize ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>{t(`common.${item.type}`, item.type)}</span>
-                                </div>
-                                {index === selectedIndex && (
-                                    <ArrowRight size={16} className={isDayMode ? 'text-slate-400' : 'text-gray-400'} />
-                                )}
-                            </button>
-                        ))}
+                    <div className="space-y-3">
+                        {searchMeta?.parsed_query ? (
+                          <div className={`flex items-center justify-between gap-3 rounded-[5px] border px-3 py-2 text-xs ${isDayMode ? 'border-slate-200 bg-slate-50 text-slate-500' : 'border-white/10 bg-white/[0.03] text-gray-400'}`}>
+                            <span className="inline-flex items-center gap-1">
+                              <Sparkles size={13} />
+                              全站 AI 搜索
+                            </span>
+                            <span>{searchMeta.search_time_ms || 0}ms · {searchMeta.total || results.length} 条结果</span>
+                          </div>
+                        ) : null}
+
+                        {resultGroups.length > 0 ? (
+                          resultGroups.map((group) => (
+                            <section key={group.key} className="space-y-1">
+                              <div className={`flex items-center justify-between px-2 text-[11px] font-bold uppercase tracking-normal ${isDayMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                                <span>{group.label}</span>
+                                <span>{group.count}</span>
+                              </div>
+                              {(group.results || []).map(renderResultItem)}
+                            </section>
+                          ))
+                        ) : (
+                          <div className="space-y-1">
+                            {results.map(renderResultItem)}
+                          </div>
+                        )}
                     </div>
                 ) : normalizedQuery.length >= 2 ? (
                     <div className={`p-8 text-center ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>{t('search.no_results', { query: normalizedQuery })}</div>
