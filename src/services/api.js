@@ -95,6 +95,44 @@ export const uploadFile = (endpoint, formData) => {
     });
 };
 
+export const uploadAvatar = (file, crop = {}) => {
+  const formData = new FormData();
+  formData.append('avatar', file);
+  if (crop.crop_x !== undefined) formData.append('crop_x', crop.crop_x);
+  if (crop.crop_y !== undefined) formData.append('crop_y', crop.crop_y);
+  if (crop.crop_size !== undefined) formData.append('crop_size', crop.crop_size);
+  return api.post('/users/me/avatar', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+};
+
+export const uploadProfileCardCover = (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return uploadFile('/upload', formData);
+};
+
+export const listIdentityClaims = () => api.get('/users/me/identity-claims');
+
+export const createIdentityClaim = ({ type, displayName, invitationCode }) =>
+  api.post('/users/me/identity-claims', {
+    type,
+    display_name: displayName,
+    invitation_code: invitationCode,
+  });
+
+export const listOutcomeLinks = (status = 'all') =>
+  api.get('/users/me/outcome-links', { params: { status } });
+
+export const updateOutcomeLink = (linkId, action) =>
+  api.put(`/users/me/outcome-links/${linkId}`, { action });
+
+export const getProfileCard = (userId) => api.get(`/users/${userId}/profile-card`);
+
+export const updateProfileCard = (payload) => api.put('/users/me/profile-card', payload);
+
 if (useCommunityMock) {
   const originalGet = api.get.bind(api);
   const originalPost = api.post.bind(api);

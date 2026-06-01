@@ -304,6 +304,9 @@ const CompetitionOutcomeUploadModal = ({ open, onClose, onSubmitted, initialType
                       onChange={(event) => updateField("author", event.target.value)}
                       className={`min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
                     />
+                    <span className="text-xs font-medium opacity-70">
+                      填写获奖者、团队或社团名称后，相关用户可在个人主页中确认认领。
+                    </span>
                   </label>
                   <label className="grid gap-2 text-sm font-semibold">
                     Git 链接

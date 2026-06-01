@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 // Middleware
-const { upload } = require('../middleware/upload');
+const { upload, avatarUpload } = require('../middleware/upload');
 
 // Controllers
 const resourceController = require('../controllers/resourceController');
@@ -15,6 +15,7 @@ const eventAssistantController = require('../controllers/eventAssistantControlle
 const aiAssistantController = require('../controllers/aiAssistantController');
 const aiModelConfigController = require('../controllers/aiModelConfigController');
 const userController = require('../controllers/userController');
+const profileCardController = require('../controllers/profileCardController');
 const messageController = require('../controllers/messageController');
 const tagController = require('../controllers/tagController');
 const notificationController = require('../controllers/notificationController');
@@ -83,15 +84,26 @@ router.put('/auth/profile', authenticateToken, (req, res) => {
     req.params.id = req.user.id;
     userController.updateUser(req, res);
 });
+router.post('/users/me/avatar', authenticateToken, avatarUpload.single('avatar'), userController.uploadOwnAvatar);
+router.get('/users/me/identity-claims', authenticateToken, userController.listOwnIdentityClaims);
+router.post('/users/me/identity-claims', authenticateToken, userController.createOwnIdentityClaim);
+router.put('/users/me/identity-claims/:claimId', authenticateToken, userController.updateOwnIdentityClaim);
+router.get('/users/me/outcome-links', authenticateToken, userController.listOwnOutcomeLinks);
+router.put('/users/me/outcome-links/:linkId', authenticateToken, userController.updateOwnOutcomeLink);
+router.put('/users/me/profile-card', authenticateToken, profileCardController.updateOwnProfileCard);
 
 // User Management Routes (Admin)
 router.get('/admin/users', authenticateToken, isAdmin, userController.getAllUsers);
 router.put('/admin/users/:id', authenticateToken, isAdmin, userController.updateUser);
 router.delete('/admin/users/:id', authenticateToken, isAdmin, userController.deleteUser);
+router.post('/admin/outcome-links', authenticateToken, isAdmin, userController.adminCreateOutcomeLink);
+router.put('/admin/outcome-links/:linkId', authenticateToken, isAdmin, userController.adminUpdateOutcomeLink);
 
 // Public Profile Routes
 router.get('/users/:id/profile', optionalAuth, userController.getPublicProfile);
+router.get('/users/:id/profile-card', optionalAuth, profileCardController.getUserProfileCard);
 router.get('/users/:id/resources', optionalAuth, userController.getUserResources);
+router.get('/users/:id/competition-works', optionalAuth, userController.getUserCompetitionWorks);
 router.post('/users/:id/follow', authenticateToken, userController.toggleFollowUser);
 router.delete('/users/:id/follow', authenticateToken, userController.toggleFollowUser);
 router.get('/users/:id/followers', optionalAuth, userController.listFollowers);
