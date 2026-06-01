@@ -67,8 +67,8 @@ const PhotoCard = memo(
             src={getThumbnailUrl(photo.url)}
             alt={photo.title}
             type="image"
-            className="w-full h-auto"
-            imageClassName="h-auto object-cover transform transition-transform duration-700 ease-out group-hover:scale-105"
+            className="w-full min-h-[220px] sm:min-h-[240px]"
+            imageClassName="h-auto min-h-[220px] w-full object-cover transform transition-transform duration-700 ease-out group-hover:scale-105 sm:min-h-[240px]"
             blurPlaceholder={photo.blurPlaceholder}
           />
 

@@ -267,7 +267,7 @@ const Navbar = () => {
     >
       <Link
         to="/"
-        className="hidden md:flex items-center gap-3 text-white group z-50"
+        className="hidden lg:flex items-center gap-3 text-white group z-50"
         aria-label="拓途浙享首页"
       >
         <div className="relative">
@@ -293,7 +293,7 @@ const Navbar = () => {
       </Link>
 
       <div
-        className={`hidden min-w-0 items-center gap-0.5 border px-1.5 py-1 md:flex xl:gap-1 xl:px-2 ${desktopPillClasses}`}
+        className={`hidden min-w-0 items-center gap-0.5 border px-1.5 py-1 lg:flex xl:gap-1 xl:px-2 ${desktopPillClasses}`}
         role="menubar"
         aria-label="导航菜单"
       >
@@ -449,7 +449,7 @@ const Navbar = () => {
         )}
       </div>
 
-      <div className="md:hidden flex items-center justify-between w-full z-50 px-1">
+      <div className="flex w-full items-center justify-between px-1 lg:hidden z-50">
         <div
           className={`text-base font-bold tracking-wide absolute left-1/2 -translate-x-1/2 pointer-events-none max-w-[42vw] truncate ${isDayMode ? "text-slate-800" : "text-white/90"}`}
         >

@@ -358,7 +358,7 @@ const HackathonRegistration = () => {
   return (
     <div
       ref={pageRef}
-      className={`h-[100svh] snap-y snap-mandatory overflow-y-auto overflow-x-hidden scroll-smooth overscroll-y-contain ${palette.page}`}
+      className={`h-[100svh] overflow-y-auto overflow-x-hidden scroll-smooth overscroll-y-contain min-[1720px]:snap-y min-[1720px]:snap-mandatory ${palette.page}`}
     >
       <SEO
         title={`${event.title}报名`}
@@ -374,7 +374,7 @@ const HackathonRegistration = () => {
       </div>
 
       {/* Desktop Navigation Dots */}
-      <div className="fixed right-6 top-1/2 z-20 hidden -translate-y-1/2 flex-col items-center gap-4 lg:flex">
+      <div className="fixed right-6 top-1/2 z-20 hidden -translate-y-1/2 flex-col items-center gap-4 min-[1720px]:flex">
         {[
           { id: "hackathon-hero", label: "主页", index: 0 },
           { id: "event-brief", label: "赛制", index: 1 },
@@ -456,7 +456,7 @@ const HackathonRegistration = () => {
 
       <section
         id="hackathon-hero"
-        className="relative min-h-[100svh] snap-start snap-always px-4 pt-[calc(env(safe-area-inset-top)+124px)] sm:px-6 xl:px-10 xl:pt-[calc(env(safe-area-inset-top)+72px)] 2xl:px-16"
+        className="relative min-h-[100svh] px-4 pt-[calc(env(safe-area-inset-top)+124px)] sm:px-6 xl:px-10 min-[1720px]:snap-start min-[1720px]:snap-always min-[1720px]:pt-[calc(env(safe-area-inset-top)+72px)] 2xl:px-16"
       >
         <div className="pointer-events-none absolute inset-0">
           <div
@@ -478,13 +478,13 @@ const HackathonRegistration = () => {
         </div>
 
         <div
-          className="relative z-10 mx-auto mb-5 flex w-full max-w-[330px] flex-col items-center gap-0.5 min-[380px]:max-w-[360px] min-[380px]:gap-1 sm:max-w-[640px] sm:gap-1.5 xl:absolute xl:right-10 xl:top-[calc(env(safe-area-inset-top)+78px)] xl:mx-0 xl:mb-0 xl:w-auto xl:max-w-[760px] xl:items-end xl:gap-2 2xl:right-16"
+          className="relative z-10 mx-auto mb-5 flex w-full max-w-[330px] flex-col items-center gap-0.5 min-[380px]:max-w-[360px] min-[380px]:gap-1 sm:max-w-[640px] sm:gap-1.5 min-[1720px]:absolute min-[1720px]:right-10 min-[1720px]:top-[calc(env(safe-area-inset-top)+78px)] min-[1720px]:mx-0 min-[1720px]:mb-0 min-[1720px]:w-auto min-[1720px]:max-w-[760px] min-[1720px]:items-end min-[1720px]:gap-2 2xl:right-16"
           aria-label="企业 logo"
         >
           {enterpriseLogoRows.map((row, rowIndex) => (
             <div
               key={rowIndex}
-              className="flex flex-wrap items-center justify-center gap-x-1 gap-y-0.5 min-[380px]:gap-x-1.5 min-[380px]:gap-y-1 sm:flex-nowrap sm:gap-2 xl:justify-end xl:gap-2.5"
+              className="flex flex-wrap items-center justify-center gap-x-1 gap-y-0.5 min-[380px]:gap-x-1.5 min-[380px]:gap-y-1 sm:flex-nowrap sm:gap-2 min-[1720px]:justify-end min-[1720px]:gap-2.5"
             >
               {row.map((logo) => (
                 <span
@@ -528,7 +528,7 @@ const HackathonRegistration = () => {
           ))}
         </div>
 
-        <div className="relative mx-auto grid min-h-[calc(100svh-112px)] w-full max-w-[1680px] items-center gap-8 pb-24 pt-8 lg:grid-cols-[minmax(0,1fr)_minmax(540px,0.94fr)] lg:gap-16 lg:pb-24 xl:gap-24 2xl:grid-cols-[minmax(0,820px)_minmax(680px,760px)] 2xl:justify-between">
+        <div className="relative mx-auto grid min-h-[calc(100svh-140px)] w-full max-w-[1680px] items-center gap-10 pb-24 pt-8 lg:pb-24 xl:grid-cols-[minmax(0,0.98fr)_minmax(500px,0.82fr)] xl:gap-8 xl:pb-20 min-[1720px]:min-h-[calc(100svh-112px)] min-[1720px]:grid-cols-[minmax(0,780px)_minmax(620px,720px)] min-[1720px]:gap-20 min-[1720px]:justify-between min-[1920px]:grid-cols-[minmax(0,820px)_minmax(680px,760px)] min-[1920px]:gap-24">
           <MotionDiv
             {...(shouldAnimate
               ? {
@@ -541,16 +541,16 @@ const HackathonRegistration = () => {
                   },
                 }
               : {})}
-            className={`relative order-2 w-full justify-self-start overflow-hidden border p-4 backdrop-blur-2xl sm:p-6 lg:justify-self-end xl:p-10 ${palette.panelStrong}`}
+            className={`relative order-2 w-full justify-self-start overflow-hidden border p-4 backdrop-blur-2xl sm:p-6 xl:justify-self-end xl:p-6 min-[1720px]:p-10 ${palette.panelStrong}`}
           >
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_22%_22%,rgba(103,232,249,0.14),transparent_34%),linear-gradient(135deg,rgba(103,232,249,0.08),transparent_46%)]" />
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
-            <div className={`absolute right-6 top-6 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] ${palette.accent} xl:right-8 xl:top-8`}>
+            <div className={`absolute right-6 top-6 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] ${palette.accent} min-[1720px]:right-8 min-[1720px]:top-8`}>
               <span className={`h-2 w-2 rounded-full ${isDayMode ? "bg-cyan-600" : "bg-cyan-300"}`} />
               Live Brief
             </div>
 
-            <div className="relative mt-10 grid gap-6 xl:gap-7">
+            <div className="relative mt-10 grid gap-6 xl:gap-5 min-[1720px]:gap-7">
               <div>
                 <p
                   className={`text-xs font-semibold uppercase tracking-[0.24em] ${palette.textMuted}`}
@@ -558,13 +558,13 @@ const HackathonRegistration = () => {
                   Prize pool
                 </p>
                 <div className="mt-3 flex flex-wrap items-end gap-x-4 gap-y-1">
-                  <span className={`text-7xl font-black leading-none tracking-tighter ${palette.accent} sm:text-8xl xl:text-9xl`}>
+                  <span className={`text-7xl font-black leading-none tracking-tighter ${palette.accent} sm:text-8xl xl:text-[5.5rem] min-[1720px]:text-9xl`}>
                     17,500
                   </span>
-                  <span className={`pb-4 text-4xl font-black leading-none ${palette.accent} sm:text-5xl xl:pb-6 xl:text-6xl`}>
+                  <span className={`pb-4 text-4xl font-black leading-none ${palette.accent} sm:text-5xl xl:pb-5 xl:text-5xl min-[1720px]:pb-6 min-[1720px]:text-6xl`}>
                     ￥
                   </span>
-                  <span className={`pb-3 text-2xl font-black tracking-[0.12em] ${palette.accent} sm:text-3xl xl:pb-4 xl:text-4xl`}>
+                  <span className={`pb-3 text-2xl font-black tracking-[0.12em] ${palette.accent} sm:text-3xl xl:pb-3 xl:text-3xl min-[1720px]:pb-4 min-[1720px]:text-4xl`}>
                     奖金池
                   </span>
                 </div>
@@ -578,19 +578,19 @@ const HackathonRegistration = () => {
                   return (
                     <div
                       key={item.label}
-                      className={`${isDayMode ? "bg-white/92 hover:bg-cyan-50" : "bg-[#071011]/92 hover:bg-cyan-300/10"} group min-h-[112px] p-5 transition duration-200 xl:min-h-[128px] xl:p-6`}
+                      className={`${isDayMode ? "bg-white/92 hover:bg-cyan-50" : "bg-[#071011]/92 hover:bg-cyan-300/10"} group min-h-[112px] p-5 transition duration-200 xl:min-h-[104px] xl:p-4 min-[1720px]:min-h-[128px] min-[1720px]:p-6`}
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div>
                           <p className={`font-mono text-xs font-black uppercase tracking-[0.18em] ${palette.accent}`}>
                             {item.index} / {item.label}
                           </p>
-                          <p className="mt-3 text-xl font-black tracking-tight xl:text-2xl">
+                          <p className="mt-3 text-xl font-black tracking-tight xl:text-lg min-[1720px]:text-2xl">
                             {item.value}
                           </p>
                         </div>
-                        <div className={`flex h-12 w-12 shrink-0 items-center justify-center border ${isDayMode ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-600" : "border-cyan-300/40 bg-cyan-300/10 text-cyan-300"} xl:h-14 xl:w-14`}>
-                          <Icon className="h-6 w-6 xl:h-7 xl:w-7" />
+                        <div className={`flex h-12 w-12 shrink-0 items-center justify-center border ${isDayMode ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-600" : "border-cyan-300/40 bg-cyan-300/10 text-cyan-300"} xl:h-11 xl:w-11 min-[1720px]:h-14 min-[1720px]:w-14`}>
+                          <Icon className="h-6 w-6 xl:h-5 xl:w-5 min-[1720px]:h-7 min-[1720px]:w-7" />
                         </div>
                       </div>
                     </div>
@@ -598,11 +598,11 @@ const HackathonRegistration = () => {
                 })}
               </div>
 
-              <div className="grid grid-cols-3 gap-2 text-center xl:gap-3">
+              <div className="grid grid-cols-3 gap-2 text-center min-[1720px]:gap-3">
                 {["AI 原生", "独立完成", "作品优先"].map((item) => (
                   <div
                     key={item}
-                    className={`border px-2 py-3 text-xs font-semibold xl:py-4 xl:text-sm ${palette.chip}`}
+                    className={`border px-2 py-3 text-xs font-semibold xl:py-3 min-[1720px]:py-4 min-[1720px]:text-sm ${palette.chip}`}
                   >
                     {item}
                   </div>
@@ -619,7 +619,7 @@ const HackathonRegistration = () => {
               AI Build Arena 2026
             </div>
 
-            <h1 className="max-w-[900px] text-5xl font-black leading-[0.96] tracking-tight sm:text-7xl lg:text-8xl 2xl:text-[104px]">
+            <h1 className="max-w-[900px] text-5xl font-black leading-[0.96] tracking-tight sm:text-7xl lg:text-[5.5rem] xl:text-[5rem] min-[1720px]:text-8xl 2xl:text-[104px]">
               <span className="block">AI 全栈极速</span>
               <span className="block">黑客松</span>
             </h1>
@@ -642,7 +642,7 @@ const HackathonRegistration = () => {
                 : {})}
               role="group"
               aria-label={event.subtitle}
-              className="mt-7 grid max-w-[820px] grid-cols-3 gap-2 sm:gap-3 xl:gap-4"
+              className="mt-7 grid max-w-[820px] grid-cols-3 gap-2 sm:gap-3 min-[1720px]:gap-4"
             >
               {heroStats.map((stat) => (
                 <motion.div
@@ -667,7 +667,7 @@ const HackathonRegistration = () => {
                     isDayMode
                       ? "border-cyan-600/30 bg-white/76 shadow-[0_20px_42px_rgba(15,23,42,0.08)] hover:border-cyan-600/50"
                       : "border-cyan-300/24 bg-cyan-300/[0.045] shadow-[0_20px_55px_rgba(0,0,0,0.34)] hover:border-cyan-300/70"
-                  } sm:px-5 sm:py-5 xl:px-6 xl:py-6`}
+                  } sm:px-5 sm:py-5 xl:px-5 xl:py-4 min-[1720px]:px-6 min-[1720px]:py-6`}
                 >
                   <div className={`absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent to-transparent opacity-70 ${isDayMode ? "via-cyan-500/50" : "via-cyan-300"}`} />
                   <div
@@ -675,17 +675,17 @@ const HackathonRegistration = () => {
                     className="absolute inset-y-0 left-[-20%] w-1/3 bg-gradient-to-r from-transparent via-cyan-200/12 to-transparent opacity-0 transition duration-500 group-hover:left-full group-hover:opacity-100"
                   />
                   <div className="relative flex items-baseline gap-1.5 sm:gap-2">
-                    <span className={`text-5xl font-black leading-none tracking-tight ${palette.accent} sm:text-6xl xl:text-7xl`}>
+                    <span className={`text-5xl font-black leading-none tracking-tight ${palette.accent} sm:text-6xl xl:text-5xl min-[1720px]:text-7xl`}>
                       {stat.value}
                     </span>
                     <span
-                      className={`text-lg font-black sm:text-2xl xl:text-3xl ${isDayMode ? "text-slate-950" : "text-white"}`}
+                      className={`text-lg font-black sm:text-2xl xl:text-xl min-[1720px]:text-3xl ${isDayMode ? "text-slate-950" : "text-white"}`}
                     >
                       {stat.unit}
                     </span>
                   </div>
                   <div
-                    className={`relative mt-3 font-mono text-[10px] font-bold uppercase tracking-[0.2em] xl:text-xs ${palette.textMuted}`}
+                    className={`relative mt-3 font-mono text-[10px] font-bold uppercase tracking-[0.2em] min-[1720px]:text-xs ${palette.textMuted}`}
                   >
                     {stat.code}
                   </div>
@@ -694,7 +694,7 @@ const HackathonRegistration = () => {
             </MotionDiv>
 
             <p
-              className={`mt-6 max-w-3xl text-base leading-8 sm:text-lg xl:text-xl xl:leading-9 ${palette.textSoft}`}
+              className={`mt-6 max-w-3xl text-base leading-8 sm:text-lg min-[1720px]:text-xl min-[1720px]:leading-9 ${palette.textSoft}`}
             >
               {event.description}
             </p>
@@ -703,14 +703,14 @@ const HackathonRegistration = () => {
               <button
                 type="button"
                 onClick={scrollToForm}
-                className={`group inline-flex min-h-12 items-center justify-center gap-2 px-7 text-sm font-bold transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 xl:min-h-14 xl:px-9 xl:text-base ${palette.primary}`}
+                className={`group inline-flex min-h-12 items-center justify-center gap-2 px-7 text-sm font-bold transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 min-[1720px]:min-h-14 min-[1720px]:px-9 min-[1720px]:text-base ${palette.primary}`}
               >
                 立即报名
                 <Send className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </button>
               <Link
                 to="/about"
-                className={`inline-flex min-h-12 items-center justify-center gap-2 border px-7 text-sm font-semibold transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 xl:min-h-14 xl:px-9 xl:text-base ${palette.secondary}`}
+                className={`inline-flex min-h-12 items-center justify-center gap-2 border px-7 text-sm font-semibold transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 min-[1720px]:min-h-14 min-[1720px]:px-9 min-[1720px]:text-base ${palette.secondary}`}
               >
                 了解生态团队
                 <ArrowRight className="h-4 w-4" />
@@ -721,7 +721,7 @@ const HackathonRegistration = () => {
           <button
             type="button"
             onClick={() => smoothScrollTo("event-brief")}
-            className={`group absolute bottom-6 left-1/2 hidden -translate-x-1/2 items-center gap-2 border px-3 py-2 text-xs font-bold uppercase tracking-[0.18em] transition duration-300 hover:border-cyan-300/70 hover:text-cyan-300 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 md:inline-flex ${palette.chip}`}
+            className={`group absolute bottom-6 left-1/2 hidden -translate-x-1/2 items-center gap-2 border px-3 py-2 text-xs font-bold uppercase tracking-[0.18em] transition duration-300 hover:border-cyan-300/70 hover:text-cyan-300 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 min-[1720px]:inline-flex ${palette.chip}`}
           >
             继续了解
             <span className="inline-flex transition-transform duration-300 group-hover:translate-y-0.5">
@@ -734,7 +734,7 @@ const HackathonRegistration = () => {
       <MotionSection
         id="event-brief"
         {...sectionMotion}
-        className="relative flex min-h-[100svh] snap-start snap-always items-center overflow-hidden px-4 py-[72px] sm:px-6 sm:py-20 lg:px-12 lg:py-20 2xl:px-20 2xl:py-24"
+        className="relative flex min-h-[100svh] items-center overflow-hidden px-4 py-[72px] sm:px-6 sm:py-20 lg:px-12 lg:py-20 min-[1720px]:snap-start min-[1720px]:snap-always 2xl:px-20 2xl:py-24"
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(103,232,249,0.14),transparent_28%),radial-gradient(circle_at_76%_26%,rgba(99,102,241,0.14),transparent_26%)]" />
         <div className="mx-auto max-w-[1800px]">
@@ -743,8 +743,8 @@ const HackathonRegistration = () => {
               SHIP
             </div>
 
-            <div className="relative grid gap-16 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] lg:items-stretch xl:gap-36 2xl:gap-44">
-              <div className="order-1 flex flex-col lg:min-h-[620px]">
+            <div className="relative grid gap-16 xl:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] xl:items-stretch xl:gap-24 2xl:gap-44">
+              <div className="order-1 flex flex-col xl:min-h-[620px]">
                 <p className={`text-sm font-bold uppercase tracking-[0.28em] ${palette.accent}`}>
                   Competition Board
                 </p>
@@ -761,7 +761,7 @@ const HackathonRegistration = () => {
                 </p>
 
                 <div
-                  className={`mt-10 border-t pt-7 lg:mt-auto ${palette.line}`}
+                  className={`mt-10 border-t pt-7 xl:mt-auto ${palette.line}`}
                 >
                   <p className={`text-sm font-bold uppercase tracking-[0.24em] ${palette.accent}`}>
                     Ecosystem
@@ -847,13 +847,13 @@ const HackathonRegistration = () => {
 
       <section
         id="registration-form"
-        className="relative flex min-h-[100svh] snap-start snap-always items-start overflow-hidden px-4 pb-28 pt-[104px] sm:px-6 sm:pb-28 sm:pt-24 lg:items-center lg:px-10 lg:pb-10 lg:pt-[96px] 2xl:px-16"
+        className="relative flex min-h-[100svh] items-start overflow-hidden px-4 pb-28 pt-[104px] sm:px-6 sm:pb-28 sm:pt-24 lg:px-10 lg:pb-10 lg:pt-[96px] xl:items-center min-[1720px]:snap-start min-[1720px]:snap-always 2xl:px-16"
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_17%_18%,rgba(103,232,249,0.14),transparent_30%),radial-gradient(circle_at_86%_72%,rgba(99,102,241,0.14),transparent_28%)]" />
         <div className="pointer-events-none absolute left-[-3%] top-[7%] font-black uppercase leading-none tracking-[-0.08em] text-white/[0.04] text-[18vw]">
           APPLY
         </div>
-        <div className="mx-auto grid w-full max-w-[1760px] gap-7 lg:grid-cols-[minmax(390px,0.86fr)_minmax(720px,1.24fr)] lg:items-center lg:gap-10 xl:grid-cols-[minmax(460px,0.82fr)_minmax(820px,1.28fr)] xl:gap-14 2xl:grid-cols-[minmax(520px,0.82fr)_minmax(920px,1.28fr)] 2xl:gap-20">
+        <div className="mx-auto grid w-full max-w-[1760px] gap-7 xl:grid-cols-[minmax(380px,0.86fr)_minmax(680px,1.24fr)] xl:items-center xl:gap-10 2xl:grid-cols-[minmax(520px,0.82fr)_minmax(920px,1.28fr)] 2xl:gap-20">
           <div className="relative z-10">
             <div className="max-w-[680px]">
               <p className={`text-sm font-black uppercase tracking-[0.28em] ${palette.accent}`}>

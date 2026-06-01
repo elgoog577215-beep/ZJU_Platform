@@ -68,7 +68,7 @@ const HackathonSeasonOne = () => {
 
   return (
     <div className="relative min-h-[100svh]">
-      <div className="pointer-events-none fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+72px)] z-[45] sm:left-5 sm:right-auto sm:top-[calc(env(safe-area-inset-top)+76px)] sm:w-[min(420px,calc(100vw-2.5rem))] lg:left-7 lg:top-[calc(env(safe-area-inset-top)+78px)]">
+      <div className="pointer-events-none fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+72px)] z-[45] sm:left-5 sm:right-auto sm:top-[calc(env(safe-area-inset-top)+76px)] sm:w-[min(420px,calc(100vw-2.5rem))] min-[1720px]:left-7 min-[1720px]:top-[calc(env(safe-area-inset-top)+78px)]">
         <div
           className={`pointer-events-auto flex items-center gap-1 rounded-[8px] border px-1.5 py-1 backdrop-blur-2xl ${shellClass}`}
           role="tablist"
