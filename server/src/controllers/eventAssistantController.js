@@ -166,6 +166,7 @@ const updateEventAssistantPreferences = async (req, res) => {
       division: sanitizeText(req.body?.division, 80),
       grade: sanitizeText(req.body?.grade, 40),
       campus: sanitizeText(req.body?.campus, 60),
+      availability: sanitizeText(req.body?.availability, 160),
       interestTags: sanitizeArray(req.body?.interestTags, 16, 50),
       preferredCategories: sanitizeArray(req.body?.preferredCategories, 8, 40),
       preferredBenefits: sanitizeArray(req.body?.preferredBenefits, 4, 40),

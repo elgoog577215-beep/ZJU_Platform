@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
   AlertTriangle,
   ArrowRight,
@@ -10,9 +11,7 @@ import {
   Loader2,
   MapPin,
   MessageSquareText,
-  Settings2,
   RotateCcw,
-  Save,
   SendHorizontal,
   Sparkles,
   ThumbsDown,
@@ -22,6 +21,7 @@ import {
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 import api from "../services/api";
+import { useAuth } from "../context/AuthContext";
 import { getOrCreateSiteVisitorKey } from "../utils/visitorKey";
 
 const formatEventDate = (value) => {
@@ -73,21 +73,27 @@ const getErrorMessage = (error, t) => {
   }
 };
 
-const categoryOptions = [
-  { value: "lecture", label: "讲座" },
-  { value: "competition", label: "竞赛" },
-  { value: "volunteer", label: "志愿" },
-  { value: "recruitment", label: "招新/职业" },
-  { value: "culture_sports", label: "文体" },
-  { value: "exchange", label: "交流" },
-];
+const categoryLabelMap = {
+  lecture: "讲座",
+  competition: "竞赛",
+  volunteer: "志愿",
+  recruitment: "招新/职业",
+  culture_sports: "文体",
+  exchange: "交流",
+};
 
-const benefitOptions = [
-  { value: "score", label: "综测" },
-  { value: "volunteer_time", label: "志愿时长" },
-  { value: "skill", label: "技能成长" },
-  { value: "social", label: "社交放松" },
-];
+const benefitLabelMap = {
+  score: "综测",
+  volunteer_time: "志愿时长",
+  skill: "技能成长",
+  social: "社交放松",
+};
+
+const formatLabelMap = {
+  online: "偏线上",
+  offline: "偏线下",
+  hybrid: "线上线下都可以",
+};
 
 const quickPrompts = [
   { label: "新生线下", prompt: "适合新生参加的线下活动，最好在紫金港附近" },
@@ -173,6 +179,8 @@ const EventAssistantPanel = ({
   variant = "panel",
 }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [assistantState, setAssistantState] = useState(null);
@@ -183,18 +191,9 @@ const EventAssistantPanel = ({
   const [feedbackReasonMap, setFeedbackReasonMap] = useState({});
   const [profileOpen, setProfileOpen] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
-  const [profileSaving, setProfileSaving] = useState(false);
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [profileAuthRequired, setProfileAuthRequired] = useState(false);
-  const [profileForm, setProfileForm] = useState({
-    college: "",
-    grade: "",
-    campus: "",
-    interestTagsText: "",
-    preferredCategories: [],
-    preferredBenefits: [],
-    preferredFormat: "",
-  });
+  const [profilePreference, setProfilePreference] = useState(null);
 
   const scopeLabel = useMemo(
     () => getScopeText(assistantState?.scope),
@@ -210,6 +209,9 @@ const EventAssistantPanel = ({
     () => getCoverageText(assistantState?.coverage),
     [assistantState?.coverage],
   );
+  const profileSettingsPath = user?.id
+    ? `/user/${user.id}?tab=settings&settings=activity-profile`
+    : "/events";
 
   const emptyStateText = useMemo(() => {
     switch (assistantState?.emptyReason) {
@@ -359,16 +361,7 @@ const EventAssistantPanel = ({
     setProfileLoading(true);
     try {
       const response = await api.get("/events/assistant/preferences");
-      const data = response.data || {};
-      setProfileForm({
-        college: data.college || "",
-        grade: data.grade || "",
-        campus: data.campus || "",
-        interestTagsText: (data.interestTags || []).join("、"),
-        preferredCategories: data.preferredCategories || [],
-        preferredBenefits: data.preferredBenefits || [],
-        preferredFormat: data.preferredFormat || "",
-      });
+      setProfilePreference(response.data || {});
       setProfileLoaded(true);
       setProfileAuthRequired(false);
     } catch (error) {
@@ -391,57 +384,12 @@ const EventAssistantPanel = ({
     }
   };
 
-  const toggleProfileArrayValue = (key, value) => {
-    setProfileForm((previous) => {
-      const current = previous[key] || [];
-      return {
-        ...previous,
-        [key]: current.includes(value)
-          ? current.filter((item) => item !== value)
-          : [...current, value],
-      };
-    });
-  };
-
-  const saveProfile = async () => {
-    if (profileAuthRequired) {
-      toast.error("登录后可以保存长期推荐偏好");
+  const openProfileSettings = () => {
+    if (!user?.id) {
+      toast.error("登录后可以在用户系统维护长期活动画像");
       return;
     }
-
-    setProfileSaving(true);
-    try {
-      const interestTags = profileForm.interestTagsText
-        .split(/[,，、;；\s]+/)
-        .map((item) => item.trim())
-        .filter(Boolean)
-        .slice(0, 16);
-
-      const response = await api.put("/events/assistant/preferences", {
-        college: profileForm.college,
-        grade: profileForm.grade,
-        campus: profileForm.campus,
-        interestTags,
-        preferredCategories: profileForm.preferredCategories,
-        preferredBenefits: profileForm.preferredBenefits,
-        preferredFormat: profileForm.preferredFormat,
-      });
-      const data = response.data || {};
-      setProfileForm((previous) => ({
-        ...previous,
-        interestTagsText: (data.interestTags || interestTags).join("、"),
-      }));
-      setProfileLoaded(true);
-      toast.success("推荐偏好已保存");
-    } catch (error) {
-      if (error?.response?.status === 401) {
-        toast.error("登录后可以保存推荐偏好");
-      } else {
-        toast.error("推荐偏好保存失败");
-      }
-    } finally {
-      setProfileSaving(false);
-    }
+    navigate(profileSettingsPath);
   };
 
   const resetAssistant = () => {
@@ -452,6 +400,26 @@ const EventAssistantPanel = ({
     setFeedbackMap({});
     setFeedbackReasonMap({});
   };
+
+  const profileChips = useMemo(() => {
+    if (!profilePreference || profileAuthRequired) return [];
+    const chips = [
+      profilePreference.college ? `学院/组织：${profilePreference.college}` : "",
+      profilePreference.division ? `方向：${profilePreference.division}` : "",
+      profilePreference.grade ? `年级：${profilePreference.grade}` : "",
+      profilePreference.campus ? `常用校区：${profilePreference.campus}` : "",
+      profilePreference.availability ? `空闲时间：${profilePreference.availability}` : "",
+      ...(profilePreference.interestTags || []).slice(0, 5).map((item) => `兴趣：${item}`),
+      ...(profilePreference.preferredCategories || [])
+        .slice(0, 4)
+        .map((item) => `类型：${categoryLabelMap[item] || item}`),
+      ...(profilePreference.preferredBenefits || [])
+        .slice(0, 3)
+        .map((item) => `收益：${benefitLabelMap[item] || item}`),
+      profilePreference.preferredFormat ? `形式：${formatLabelMap[profilePreference.preferredFormat] || profilePreference.preferredFormat}` : "",
+    ].filter(Boolean);
+    return chips.slice(0, 12);
+  }, [profileAuthRequired, profilePreference]);
 
   const isFullscreenVariant = variant === "fullscreen";
   const quickPromptGridClass = isFullscreenVariant
@@ -489,11 +457,6 @@ const EventAssistantPanel = ({
       ? "bg-white text-slate-600 border-slate-200"
       : "bg-white/[0.06] text-white/76 border-white/10"
     : chipClass;
-  const selectedPillClass = isFullscreenVariant
-    ? isDayMode
-      ? "bg-blue-600 text-white border-blue-600"
-      : "bg-indigo-500/20 text-indigo-100 border-indigo-400/35"
-    : "bg-blue-600 text-white border-blue-600";
   const actionClass = isDayMode
     ? isFullscreenVariant
       ? "bg-blue-600 text-white hover:bg-blue-500 shadow-[0_1px_2px_rgba(15,23,42,0.12)]"
@@ -547,8 +510,8 @@ const EventAssistantPanel = ({
                   onClick={toggleProfile}
                   className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition-all ${chipClass}`}
                 >
-                  <Settings2 size={15} />
-                  我的推荐偏好
+                  <UserRound size={15} />
+                  用户系统画像
                 </button>
               </div>
             </>
@@ -566,140 +529,47 @@ const EventAssistantPanel = ({
                   {profileLoading ? (
                     <div className={`flex items-center gap-2 text-sm ${faintClass}`}>
                       <Loader2 size={16} className="animate-spin" />
-                      正在读取推荐偏好...
+                      正在读取用户系统画像...
                     </div>
                   ) : (
                     <div className="grid gap-4">
                       {profileAuthRequired ? (
                         <div className={`rounded-lg border px-4 py-3 text-sm leading-6 ${isDayMode ? "border-amber-200/80 bg-amber-50 text-amber-800" : "border-amber-300/20 bg-amber-400/10 text-amber-100"}`}>
-                          登录后可以保存长期画像；现在也可以直接在提问里写清楚偏好，我会按本次内容推荐。
+                          登录后可以在用户系统维护长期活动画像。未登录时，也可以直接在提问里写清楚本次偏好。
                         </div>
                       ) : null}
 
-                      <div className="grid gap-3 md:grid-cols-3">
-                        <label className={`grid gap-2 text-sm ${faintClass}`}>
-                          学院/组织
-                          <input
-                            value={profileForm.college}
-                            onChange={(event) =>
-                              setProfileForm((previous) => ({
-                                ...previous,
-                                college: event.target.value,
-                              }))
-                            }
-                            className={`rounded-lg border px-3 py-2.5 outline-none ${isDayMode ? "bg-white text-slate-900 border-slate-200" : "bg-white/5 text-white border-white/10"}`}
-                            placeholder="计算机学院"
-                          />
-                        </label>
-                        <label className={`grid gap-2 text-sm ${faintClass}`}>
-                          年级
-                          <input
-                            value={profileForm.grade}
-                            onChange={(event) =>
-                              setProfileForm((previous) => ({
-                                ...previous,
-                                grade: event.target.value,
-                              }))
-                            }
-                            className={`rounded-lg border px-3 py-2.5 outline-none ${isDayMode ? "bg-white text-slate-900 border-slate-200" : "bg-white/5 text-white border-white/10"}`}
-                            placeholder="本科新生 / 研一"
-                          />
-                        </label>
-                        <label className={`grid gap-2 text-sm ${faintClass}`}>
-                          常用校区
-                          <input
-                            value={profileForm.campus}
-                            onChange={(event) =>
-                              setProfileForm((previous) => ({
-                                ...previous,
-                                campus: event.target.value,
-                              }))
-                            }
-                            className={`rounded-lg border px-3 py-2.5 outline-none ${isDayMode ? "bg-white text-slate-900 border-slate-200" : "bg-white/5 text-white border-white/10"}`}
-                            placeholder="紫金港"
-                          />
-                        </label>
-                      </div>
-
-                      <label className={`grid gap-2 text-sm ${faintClass}`}>
-                        兴趣关键词
-                        <input
-                          value={profileForm.interestTagsText}
-                          onChange={(event) =>
-                            setProfileForm((previous) => ({
-                              ...previous,
-                              interestTagsText: event.target.value,
-                            }))
-                          }
-                          className={`rounded-lg border px-3 py-2.5 outline-none ${isDayMode ? "bg-white text-slate-900 border-slate-200" : "bg-white/5 text-white border-white/10"}`}
-                          placeholder="AI、创业、志愿、摄影"
-                        />
-                      </label>
-
-                      <div className="grid gap-3 md:grid-cols-2">
-                        <div>
-                          <div className={`mb-2 text-sm ${faintClass}`}>偏好类型</div>
+                      <div>
+                        <div className={`mb-3 text-sm font-semibold ${textClass}`}>
+                          推荐助手将读取以下长期画像
+                        </div>
+                        {profileChips.length ? (
                           <div className="flex flex-wrap gap-2">
-                            {categoryOptions.map((option) => (
-                              <button
-                                key={option.value}
-                                type="button"
-                                onClick={() => toggleProfileArrayValue("preferredCategories", option.value)}
-                                className={`rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${profileForm.preferredCategories.includes(option.value) ? selectedPillClass : chipClass}`}
-                              >
-                                {option.label}
-                              </button>
+                            {profileChips.map((item) => (
+                              <span key={item} className={`rounded-md border px-3 py-1.5 text-xs font-semibold ${chipClass}`}>
+                                {item}
+                              </span>
                             ))}
                           </div>
-                        </div>
-                        <div>
-                          <div className={`mb-2 text-sm ${faintClass}`}>偏好收益</div>
-                          <div className="flex flex-wrap gap-2">
-                            {benefitOptions.map((option) => (
-                              <button
-                                key={option.value}
-                                type="button"
-                                onClick={() => toggleProfileArrayValue("preferredBenefits", option.value)}
-                                className={`rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${profileForm.preferredBenefits.includes(option.value) ? selectedPillClass : chipClass}`}
-                              >
-                                {option.label}
-                              </button>
-                            ))}
+                        ) : (
+                          <div className={`rounded-lg border px-4 py-3 text-sm leading-6 ${chipClass}`}>
+                            暂未维护活动画像。完善后，助手会更稳定地理解你的学院、兴趣、空闲时间和活动收益偏好。
                           </div>
-                        </div>
+                        )}
                       </div>
 
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex flex-wrap gap-2">
-                          {[
-                            ["", "不限方式"],
-                            ["offline", "偏线下"],
-                            ["online", "偏线上"],
-                            ["hybrid", "都可以"],
-                          ].map(([value, label]) => (
-                            <button
-                              key={value}
-                              type="button"
-                              onClick={() =>
-                                setProfileForm((previous) => ({
-                                  ...previous,
-                                  preferredFormat: value,
-                                }))
-                              }
-                              className={`rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${profileForm.preferredFormat === value ? selectedPillClass : chipClass}`}
-                            >
-                              {label}
-                            </button>
-                          ))}
-                        </div>
+                        <p className={`text-xs leading-5 ${faintClass}`}>
+                          本次提问里的临时需求仍会优先参与排序，长期画像只负责补充默认偏好。
+                        </p>
                         <button
                           type="button"
-                          onClick={saveProfile}
-                          disabled={profileSaving || profileAuthRequired}
+                          onClick={openProfileSettings}
+                          disabled={profileAuthRequired}
                           className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold disabled:opacity-50 ${actionClass}`}
                         >
-                          {profileSaving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
-                          保存偏好
+                          <ArrowRight size={15} />
+                          去用户系统完善
                         </button>
                       </div>
                     </div>
@@ -771,7 +641,7 @@ const EventAssistantPanel = ({
                         onClick={toggleProfile}
                         className={`inline-flex min-h-[36px] items-center gap-2 rounded-md border px-3 text-sm font-semibold transition-all ${controlChipClass}`}
                       >
-                        <Settings2 size={14} />
+                        <UserRound size={14} />
                         偏好
                       </button>
                       {(assistantState || originalQuery) && (

@@ -1271,6 +1271,7 @@ const loadUserEventProfile = async (db, userId, visitorKey = '') => {
       division: explicitProfile.division || '',
       grade: explicitProfile.grade || '',
       campus: explicitProfile.campus || '',
+      availability: explicitProfile.availability || '',
       interestTags: explicitProfile.interestTags || [],
       preferredCategories: explicitProfile.preferredCategories || [],
       preferredBenefits: explicitProfile.preferredBenefits || [],
@@ -1302,6 +1303,7 @@ const buildProfileSummary = (profile) => {
   if (profile.explicit.college) signals.push(`组织/学院：${profile.explicit.college}`);
   if (profile.explicit.grade) signals.push(`年级：${profile.explicit.grade}`);
   if (profile.explicit.campus) signals.push(`常用校区：${profile.explicit.campus}`);
+  if (profile.explicit.availability) signals.push(`空闲时间：${profile.explicit.availability}`);
   if (profile.explicit.interestTags?.length) signals.push(`显式兴趣：${profile.explicit.interestTags.slice(0, 4).join('、')}`);
   if (profile.userSystem?.profileStatusLabel) signals.push(`个人状态：${profile.userSystem.profileStatusLabel}`);
   if (profile.userSystem?.tags?.length) signals.push(`个人名片标签：${profile.userSystem.tags.slice(0, 3).join('、')}`);

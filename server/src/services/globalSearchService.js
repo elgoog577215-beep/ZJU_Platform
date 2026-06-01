@@ -29,7 +29,7 @@ const RESULT_TYPE_LABELS = {
 };
 
 const CATEGORY_KEYWORDS = {
-  lecture: ['讲座', '报告', '论坛', '沙龙', '分享会', '学术', '科研', '宣讲'],
+  lecture: ['讲座', '报告', '论坛', '沙龙', '分享会', '学术', '科研', '宣讲', '研讨', '讲堂', '圆桌'],
   competition: ['竞赛', '比赛', '大赛', '挑战赛', '黑客松', 'hackathon', '路演'],
   volunteer: ['志愿', '公益', '支教', '义工', '社会实践', '志愿者'],
   recruitment: ['招新', '纳新', '招聘', '实习', '招募', '求职', '职业'],
@@ -104,6 +104,20 @@ const safeAll = async (db, sql, params = []) => {
   } catch {
     return [];
   }
+};
+
+const firstSuccessfulAll = async (db, candidates = []) => {
+  let lastRows = [];
+  for (const candidate of candidates) {
+    try {
+      const rows = await db.all(candidate.sql, candidate.params || []);
+      lastRows = rows;
+      if (rows.length > 0) return rows;
+    } catch {
+      // Older production databases may still use legacy category tables.
+    }
+  }
+  return lastRows;
 };
 
 const getWeekRange = (now, offset = 0) => {
@@ -223,6 +237,11 @@ const addKeywordConditions = (fields, keywords, params, { requireAll = false } =
   return `(${clauses.join(requireAll ? ' AND ' : ' OR ')})`;
 };
 
+const getExpandedEventKeywords = (parsed) => unique([
+  ...parsed.keywords,
+  ...parsed.categories.flatMap((category) => CATEGORY_KEYWORDS[category] || []),
+]).slice(0, 12);
+
 const compactReasons = (reasons) => unique(reasons).slice(0, 4);
 
 const createResult = (item) => ({
@@ -234,12 +253,7 @@ const createResult = (item) => ({
 const searchEvents = async (db, parsed, limit = DEFAULT_LIMITS.events) => {
   const params = [];
   const where = ['e.deleted_at IS NULL', 'e.status = "approved"'];
-
-  if (parsed.categories.length) {
-    const placeholders = parsed.categories.map(() => '?').join(',');
-    where.push(`(e.category IN (${placeholders}) OR ${parsed.categories.map(() => 'e.tags LIKE ?').join(' OR ')})`);
-    params.push(...parsed.categories, ...parsed.categories.map(buildLike));
-  }
+  const eventKeywords = getExpandedEventKeywords(parsed);
 
   if (parsed.campuses.length) {
     const campusClauses = parsed.campuses.flatMap(() => ['e.location LIKE ?', 'e.description LIKE ?', 'e.content LIKE ?']);
@@ -259,6 +273,14 @@ const searchEvents = async (db, parsed, limit = DEFAULT_LIMITS.events) => {
   if (parsed.benefits.includes('volunteer_time')) {
     where.push('(e.volunteer_time IS NOT NULL AND e.volunteer_time != "")');
   }
+  if (parsed.benefits.includes('certificate')) {
+    where.push('(e.description LIKE ? OR e.content LIKE ? OR e.score LIKE ? OR e.tags LIKE ?)');
+    params.push(...Array(4).fill(buildLike('证书')));
+  }
+  if (parsed.benefits.includes('prize')) {
+    where.push('(e.description LIKE ? OR e.content LIKE ? OR e.score LIKE ? OR e.tags LIKE ?)');
+    params.push(buildLike('奖金'), buildLike('奖'), buildLike('奖'), buildLike('奖'));
+  }
 
   if (parsed.timeRange) {
     where.push('(date(e.date) >= date(?) AND date(e.date) <= date(?))');
@@ -276,7 +298,7 @@ const searchEvents = async (db, parsed, limit = DEFAULT_LIMITS.events) => {
     'e.volunteer_time',
     'e.category',
     'e.tags',
-  ], parsed.keywords, params);
+  ], eventKeywords, params);
   if (keywordClause) where.push(keywordClause);
 
   const orderBy = parsed.sortBy === 'hot'
@@ -313,7 +335,22 @@ const searchEvents = async (db, parsed, limit = DEFAULT_LIMITS.events) => {
 
   return rows.map((row) => {
     const reasons = [];
+    const rowText = [
+      row.title,
+      row.description,
+      row.location,
+      row.organizer,
+      row.target_audience,
+      row.category,
+    ].join(' ');
     if (parsed.categories.includes(row.category)) reasons.push(`活动类型：${getCategoryLabel(row.category) || row.category}`);
+    if (!reasons.length) {
+      parsed.categories.forEach((category) => {
+        if (includesAny(rowText, CATEGORY_KEYWORDS[category] || [])) {
+          reasons.push(`活动线索：${getCategoryLabel(category) || category}`);
+        }
+      });
+    }
     parsed.campuses.forEach((campus) => {
       if (includesAny(`${row.location} ${row.description}`, [campus])) reasons.push(`校区：${campus}`);
     });
@@ -323,7 +360,7 @@ const searchEvents = async (db, parsed, limit = DEFAULT_LIMITS.events) => {
     if (parsed.benefits.includes('score') && row.score) reasons.push(`含综测/加分：${sanitizeText(row.score, 32)}`);
     if (parsed.benefits.includes('volunteer_time') && row.volunteer_time) reasons.push(`含志愿时长：${sanitizeText(row.volunteer_time, 32)}`);
     if (parsed.timeRange) reasons.push(`时间：${parsed.timeRange.label}`);
-    if (!reasons.length && parsed.keywords.length) reasons.push(`关键词匹配：${parsed.keywords.slice(0, 2).join('、')}`);
+    if (!reasons.length && eventKeywords.length) reasons.push(`关键词匹配：${eventKeywords.slice(0, 2).join('、')}`);
 
     return createResult({
       id: row.id,
@@ -502,56 +539,100 @@ const searchMedia = async (db, parsed, limit = DEFAULT_LIMITS.media) => {
   const keywords = parsed.keywords;
   const perTypeLimit = Math.ceil(limit / (includePhotos && includeVideos ? 2 : 1));
 
-  const photoParams = [];
-  const photoWhere = ['p.deleted_at IS NULL', 'p.status = "approved"'];
-  const photoKeywordClause = addKeywordConditions([
-    'p.title',
-    'p.tags',
-    'p.gameType',
-    'p.gameDescription',
-    'mc.name',
-  ], keywords, photoParams);
-  if (photoKeywordClause) photoWhere.push(photoKeywordClause);
+  const buildMediaWhere = (alias, categoryField = '') => {
+    const params = [];
+    const where = [`${alias}.deleted_at IS NULL`, `${alias}.status = "approved"`];
+    const fields = [
+      `${alias}.title`,
+      `${alias}.tags`,
+      `${alias}.gameType`,
+      `${alias}.gameDescription`,
+      categoryField,
+    ].filter(Boolean);
+    const keywordClause = addKeywordConditions(fields, keywords, params);
+    if (keywordClause) where.push(keywordClause);
+    return { where, params };
+  };
 
-  const videoParams = [];
-  const videoWhere = ['v.deleted_at IS NULL', 'v.status = "approved"'];
-  const videoKeywordClause = addKeywordConditions([
-    'v.title',
-    'v.tags',
-    'v.gameType',
-    'v.gameDescription',
-    'mc.name',
-  ], keywords, videoParams);
-  if (videoKeywordClause) videoWhere.push(videoKeywordClause);
+  const photoMedia = buildMediaWhere('p', 'mc.name');
+  const photoLegacy = buildMediaWhere('p', 'pc.name');
+  const photoPlain = buildMediaWhere('p');
+  const videoMedia = buildMediaWhere('v', 'mc.name');
+  const videoLegacy = buildMediaWhere('v', 'vc.name');
+  const videoPlain = buildMediaWhere('v');
 
   const [photos, videos] = await Promise.all([
     includePhotos
-      ? safeAll(
-        db,
-        `
-          SELECT p.id, p.title, p.url, p.tags, p.likes, p.created_at, mc.name AS category_name
-          FROM photos p
-          LEFT JOIN media_categories mc ON p.category_id = mc.id
-          WHERE ${photoWhere.join(' AND ')}
-          ORDER BY COALESCE(p.featured, 0) DESC, COALESCE(p.likes, 0) DESC, p.id DESC
-          LIMIT ?
-        `,
-        [...photoParams, perTypeLimit]
-      )
+      ? firstSuccessfulAll(db, [
+        {
+          sql: `
+            SELECT p.id, p.title, p.url, p.tags, p.gameType, p.gameDescription, p.likes, p.created_at, mc.name AS category_name
+            FROM photos p
+            LEFT JOIN media_categories mc ON p.category_id = mc.id
+            WHERE ${photoMedia.where.join(' AND ')}
+            ORDER BY COALESCE(p.featured, 0) DESC, COALESCE(p.likes, 0) DESC, p.id DESC
+            LIMIT ?
+          `,
+          params: [...photoMedia.params, perTypeLimit],
+        },
+        {
+          sql: `
+            SELECT p.id, p.title, p.url, p.tags, p.gameType, p.gameDescription, p.likes, p.created_at, pc.name AS category_name
+            FROM photos p
+            LEFT JOIN photo_categories pc ON p.category_id = pc.id
+            WHERE ${photoLegacy.where.join(' AND ')}
+            ORDER BY COALESCE(p.featured, 0) DESC, COALESCE(p.likes, 0) DESC, p.id DESC
+            LIMIT ?
+          `,
+          params: [...photoLegacy.params, perTypeLimit],
+        },
+        {
+          sql: `
+            SELECT p.id, p.title, p.url, p.tags, p.gameType, p.gameDescription, p.likes, p.created_at, NULL AS category_name
+            FROM photos p
+            WHERE ${photoPlain.where.join(' AND ')}
+            ORDER BY COALESCE(p.featured, 0) DESC, COALESCE(p.likes, 0) DESC, p.id DESC
+            LIMIT ?
+          `,
+          params: [...photoPlain.params, perTypeLimit],
+        },
+      ])
       : [],
     includeVideos
-      ? safeAll(
-        db,
-        `
-          SELECT v.id, v.title, v.thumbnail, v.tags, v.likes, v.created_at, mc.name AS category_name
-          FROM videos v
-          LEFT JOIN media_categories mc ON v.category_id = mc.id
-          WHERE ${videoWhere.join(' AND ')}
-          ORDER BY COALESCE(v.featured, 0) DESC, COALESCE(v.likes, 0) DESC, v.id DESC
-          LIMIT ?
-        `,
-        [...videoParams, perTypeLimit]
-      )
+      ? firstSuccessfulAll(db, [
+        {
+          sql: `
+            SELECT v.id, v.title, v.thumbnail, v.tags, v.gameType, v.gameDescription, v.likes, v.created_at, mc.name AS category_name
+            FROM videos v
+            LEFT JOIN media_categories mc ON v.category_id = mc.id
+            WHERE ${videoMedia.where.join(' AND ')}
+            ORDER BY COALESCE(v.featured, 0) DESC, COALESCE(v.likes, 0) DESC, v.id DESC
+            LIMIT ?
+          `,
+          params: [...videoMedia.params, perTypeLimit],
+        },
+        {
+          sql: `
+            SELECT v.id, v.title, v.thumbnail, v.tags, v.gameType, v.gameDescription, v.likes, v.created_at, vc.name AS category_name
+            FROM videos v
+            LEFT JOIN video_categories vc ON v.category_id = vc.id
+            WHERE ${videoLegacy.where.join(' AND ')}
+            ORDER BY COALESCE(v.featured, 0) DESC, COALESCE(v.likes, 0) DESC, v.id DESC
+            LIMIT ?
+          `,
+          params: [...videoLegacy.params, perTypeLimit],
+        },
+        {
+          sql: `
+            SELECT v.id, v.title, v.thumbnail, v.tags, v.gameType, v.gameDescription, v.likes, v.created_at, NULL AS category_name
+            FROM videos v
+            WHERE ${videoPlain.where.join(' AND ')}
+            ORDER BY COALESCE(v.featured, 0) DESC, COALESCE(v.likes, 0) DESC, v.id DESC
+            LIMIT ?
+          `,
+          params: [...videoPlain.params, perTypeLimit],
+        },
+      ])
       : [],
   ]);
 
@@ -560,11 +641,11 @@ const searchMedia = async (db, parsed, limit = DEFAULT_LIMITS.media) => {
     type: 'photo',
     group: 'media',
     title: row.title || '未命名照片',
-    summary: row.tags || row.category_name || '',
+    summary: row.tags || row.gameDescription || row.category_name || '',
     image: row.url,
     link: `/media?photo=${row.id}`,
     date: row.created_at,
-    meta: ['照片', row.category_name].filter(Boolean).join(' · '),
+    meta: ['照片', row.category_name, row.gameType].filter(Boolean).join(' · '),
     score: Number(row.likes || 0),
     match_reasons: ['影像库照片', parsed.keywords.length ? `关键词匹配：${parsed.keywords.slice(0, 2).join('、')}` : '内容匹配'],
   }));
@@ -574,11 +655,11 @@ const searchMedia = async (db, parsed, limit = DEFAULT_LIMITS.media) => {
     type: 'video',
     group: 'media',
     title: row.title || '未命名视频',
-    summary: row.tags || row.category_name || '',
+    summary: row.tags || row.gameDescription || row.category_name || '',
     image: row.thumbnail,
     link: `/media?video=${row.id}`,
     date: row.created_at,
-    meta: ['视频', row.category_name].filter(Boolean).join(' · '),
+    meta: ['视频', row.category_name, row.gameType].filter(Boolean).join(' · '),
     score: Number(row.likes || 0),
     match_reasons: ['影像库视频', parsed.keywords.length ? `关键词匹配：${parsed.keywords.slice(0, 2).join('、')}` : '内容匹配'],
   }));

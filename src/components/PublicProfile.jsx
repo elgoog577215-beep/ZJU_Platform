@@ -12,6 +12,7 @@ import {
   Bell,
   CloudSun,
   Lock,
+  Loader2,
   Image,
   Music,
   Film,
@@ -25,6 +26,9 @@ import {
   UserPlus,
   UserCheck,
   Upload,
+  Sparkles,
+  MapPin,
+  Clock3,
 } from "lucide-react";
 import api, {
   createIdentityClaim,
@@ -60,6 +64,49 @@ const CONTENT_TYPES = [
   { key: "team", label: "组队" },
   { key: "competition_work", label: "成果" },
 ];
+
+const EVENT_CATEGORY_OPTIONS = [
+  { value: "lecture", label: "讲座" },
+  { value: "competition", label: "竞赛" },
+  { value: "volunteer", label: "志愿" },
+  { value: "recruitment", label: "招新/职业" },
+  { value: "culture_sports", label: "文体" },
+  { value: "exchange", label: "交流" },
+];
+
+const EVENT_BENEFIT_OPTIONS = [
+  { value: "score", label: "综测" },
+  { value: "volunteer_time", label: "志愿时长" },
+  { value: "skill", label: "技能成长" },
+  { value: "social", label: "社交放松" },
+];
+
+const EVENT_FORMAT_OPTIONS = [
+  { value: "", label: "不限方式" },
+  { value: "offline", label: "偏线下" },
+  { value: "online", label: "偏线上" },
+  { value: "hybrid", label: "都可以" },
+];
+
+const PROFILE_TAB_KEYS = new Set(["published", "favorites", "messages", "settings"]);
+const SETTINGS_TAB_KEYS = new Set(["profile-card", "activity-profile", "security", "identity"]);
+
+const splitPreferenceText = (value) => String(value || "")
+  .split(/[,，、;；\s]+/)
+  .map((item) => item.trim())
+  .filter(Boolean);
+
+const EMPTY_EVENT_PREFERENCE_FORM = {
+  college: "",
+  division: "",
+  grade: "",
+  campus: "",
+  availability: "",
+  interestTagsText: "",
+  preferredCategories: [],
+  preferredBenefits: [],
+  preferredFormat: "",
+};
 
 // Visual metadata per content type. The badge lives inside the caption
 // (glass chip), so we only need type-coloured text tokens for day / night.
@@ -447,6 +494,10 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
   const [outcomeLinksLoading, setOutcomeLinksLoading] = useState(false);
   const [outcomeActionId, setOutcomeActionId] = useState(null);
   const [activeSettingsTab, setActiveSettingsTab] = useState("profile-card");
+  const [eventPreferenceForm, setEventPreferenceForm] = useState(EMPTY_EVENT_PREFERENCE_FORM);
+  const [eventPreferenceLoading, setEventPreferenceLoading] = useState(false);
+  const [eventPreferenceSaving, setEventPreferenceSaving] = useState(false);
+  const [eventPreferenceLoaded, setEventPreferenceLoaded] = useState(false);
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -514,6 +565,58 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
     fetchIdentityClaims();
     fetchOutcomeLinks();
   }, [isOwner, activeTab]);
+
+  useEffect(() => {
+    if (!isOwner) return;
+    const params = new URLSearchParams(location.search);
+    const requestedTab = params.get("tab");
+    const requestedSettingsTab = params.get("settings");
+    if (requestedTab && PROFILE_TAB_KEYS.has(requestedTab)) {
+      setActiveTab(requestedTab);
+    }
+    if (requestedSettingsTab && SETTINGS_TAB_KEYS.has(requestedSettingsTab)) {
+      setActiveSettingsTab(requestedSettingsTab);
+    }
+  }, [isOwner, location.search]);
+
+  useEffect(() => {
+    if (!isOwner || activeTab !== "settings" || activeSettingsTab !== "activity-profile" || eventPreferenceLoaded || eventPreferenceLoading) {
+      return;
+    }
+
+    let cancelled = false;
+    const loadEventPreference = async () => {
+      setEventPreferenceLoading(true);
+      try {
+        const response = await api.get("/events/assistant/preferences");
+        if (cancelled) return;
+        const data = response.data || {};
+        setEventPreferenceForm({
+          college: data.college || "",
+          division: data.division || "",
+          grade: data.grade || "",
+          campus: data.campus || "",
+          availability: data.availability || "",
+          interestTagsText: (data.interestTags || []).join("、"),
+          preferredCategories: data.preferredCategories || [],
+          preferredBenefits: data.preferredBenefits || [],
+          preferredFormat: data.preferredFormat || "",
+        });
+        setEventPreferenceLoaded(true);
+      } catch (error) {
+        if (!cancelled) {
+          toast.error(error?.response?.status === 401 ? "登录后可以维护活动画像" : "活动画像加载失败");
+        }
+      } finally {
+        if (!cancelled) setEventPreferenceLoading(false);
+      }
+    };
+    loadEventPreference();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOwner, activeTab, activeSettingsTab, eventPreferenceLoaded, eventPreferenceLoading]);
 
   // Group resources by normalized content type. Tabs with zero items
   // (other than "all") are hidden so visitors of a user with no photos
@@ -762,6 +865,61 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
       toast.error(err.response?.data?.error || "更新成果认领失败");
     } finally {
       setOutcomeActionId(null);
+    }
+  };
+
+  const updateEventPreferenceField = (key, value) => {
+    setEventPreferenceForm((previous) => ({
+      ...previous,
+      [key]: value,
+    }));
+  };
+
+  const toggleEventPreferenceArrayValue = (key, value) => {
+    setEventPreferenceForm((previous) => {
+      const current = previous[key] || [];
+      return {
+        ...previous,
+        [key]: current.includes(value)
+          ? current.filter((item) => item !== value)
+          : [...current, value],
+      };
+    });
+  };
+
+  const handleEventPreferenceSave = async () => {
+    setEventPreferenceSaving(true);
+    try {
+      const interestTags = splitPreferenceText(eventPreferenceForm.interestTagsText).slice(0, 16);
+      const response = await api.put("/events/assistant/preferences", {
+        college: eventPreferenceForm.college,
+        division: eventPreferenceForm.division,
+        grade: eventPreferenceForm.grade,
+        campus: eventPreferenceForm.campus,
+        availability: eventPreferenceForm.availability,
+        interestTags,
+        preferredCategories: eventPreferenceForm.preferredCategories,
+        preferredBenefits: eventPreferenceForm.preferredBenefits,
+        preferredFormat: eventPreferenceForm.preferredFormat,
+      });
+      const data = response.data || {};
+      setEventPreferenceForm({
+        college: data.college || "",
+        division: data.division || "",
+        grade: data.grade || "",
+        campus: data.campus || "",
+        availability: data.availability || "",
+        interestTagsText: (data.interestTags || interestTags).join("、"),
+        preferredCategories: data.preferredCategories || [],
+        preferredBenefits: data.preferredBenefits || [],
+        preferredFormat: data.preferredFormat || "",
+      });
+      setEventPreferenceLoaded(true);
+      toast.success("活动画像已保存");
+    } catch (error) {
+      toast.error(error?.response?.status === 401 ? "登录后可以保存活动画像" : "活动画像保存失败");
+    } finally {
+      setEventPreferenceSaving(false);
     }
   };
 
@@ -1048,6 +1206,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
       ];
   const settingsTabItems = [
     { key: "profile-card", label: "个人名片设置", icon: User },
+    { key: "activity-profile", label: "活动画像", icon: Sparkles },
     { key: "security", label: "安全相关", icon: Lock },
     { key: "identity", label: "个人认证", icon: Briefcase },
   ];
@@ -1117,7 +1276,10 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
               {isOwner ? (
                 <button
                   type="button"
-                  onClick={() => setActiveTab("settings")}
+                  onClick={() => {
+                    setActiveTab("settings");
+                    navigate(`${location.pathname}?tab=settings&settings=${activeSettingsTab}`, { replace: true });
+                  }}
                   aria-label={t("user_profile.edit_profile", "编辑资料")}
                   className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-2xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-white text-slate-700 shadow-[0_10px_20px_rgba(148,163,184,0.14)]" : "bg-white/10 text-white"}`}
                 >
@@ -1246,7 +1408,10 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                 </h1>
                 {isOwner && (
                   <button
-                    onClick={() => setActiveTab("settings")}
+                    onClick={() => {
+                      setActiveTab("settings");
+                      navigate(`${location.pathname}?tab=settings&settings=${activeSettingsTab}`, { replace: true });
+                    }}
                     className={`px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${isDayMode ? "bg-white/90 hover:bg-white text-slate-700 border border-slate-200/80 shadow-[0_12px_28px_rgba(148,163,184,0.14)]" : "bg-white/10 hover:bg-white/20 text-white"}`}
                   >
                     <Settings size={16} />
@@ -1372,7 +1537,12 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
               <button
                 key={key}
                 type="button"
-                onClick={() => setActiveTab(key)}
+                onClick={() => {
+                  setActiveTab(key);
+                  if (key !== "settings") {
+                    navigate(location.pathname, { replace: true });
+                  }
+                }}
                 className={`relative flex min-h-[46px] items-center justify-center gap-1.5 rounded-[20px] px-1 text-xs font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${active ? (isDayMode ? dayActiveSegmentClass : nightActiveSegmentClass) : isDayMode ? "text-slate-500 hover:text-slate-950" : "text-gray-400 hover:text-white"}`}
               >
                 <Icon size={15} aria-hidden="true" />
@@ -1387,7 +1557,10 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
 
         <div className="mb-6 hidden overflow-x-auto pb-2 custom-scrollbar gap-2 px-1 md:flex">
           <button
-            onClick={() => setActiveTab("relations")}
+            onClick={() => {
+              setActiveTab("relations");
+              navigate(location.pathname, { replace: true });
+            }}
             className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
               activeTab === "relations"
                 ? isDayMode
@@ -1403,7 +1576,10 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
           </button>
 
           <button
-            onClick={() => setActiveTab("published")}
+            onClick={() => {
+              setActiveTab("published");
+              navigate(location.pathname, { replace: true });
+            }}
             className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
               activeTab === "published"
                 ? isDayMode
@@ -1421,7 +1597,10 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
           {isOwner && (
             <>
               <button
-                onClick={() => setActiveTab("favorites")}
+                onClick={() => {
+                  setActiveTab("favorites");
+                  navigate(location.pathname, { replace: true });
+                }}
                 className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
                   activeTab === "favorites"
                     ? isDayMode
@@ -1436,7 +1615,10 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                 {t("user_profile.tabs.favorites")}
               </button>
               <button
-                onClick={() => setActiveTab("messages")}
+                onClick={() => {
+                  setActiveTab("messages");
+                  navigate(location.pathname, { replace: true });
+                }}
                 className={`relative px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
                   activeTab === "messages"
                     ? isDayMode
@@ -1463,7 +1645,10 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                 )}
               </button>
               <button
-                onClick={() => setActiveTab("settings")}
+                onClick={() => {
+                  setActiveTab("settings");
+                  navigate(`${location.pathname}?tab=settings&settings=${activeSettingsTab}`, { replace: true });
+                }}
                 className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
                   activeTab === "settings"
                     ? isDayMode
@@ -1756,7 +1941,10 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                     <button
                       key={item.key}
                       type="button"
-                      onClick={() => setActiveSettingsTab(item.key)}
+                      onClick={() => {
+                        setActiveSettingsTab(item.key);
+                        navigate(`${location.pathname}?tab=settings&settings=${item.key}`, { replace: true });
+                      }}
                       className={`inline-flex min-h-[42px] shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-colors ${
                         isActive
                           ? isDayMode
@@ -1903,6 +2091,151 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                   onSaved={(nextProfileCard) => setProfileCard(nextProfileCard)}
                 />
               </div>
+                </div>
+              )}
+
+              {activeSettingsTab === "activity-profile" && (
+                <div className="space-y-6">
+                  <div className={settingsPanelClass}>
+                    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <h3 className={`flex items-center gap-2 text-xl font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}>
+                          <Sparkles size={20} className="text-indigo-500" />
+                          活动推荐画像
+                        </h3>
+                        <p className={`mt-2 max-w-2xl text-sm leading-6 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+                          这里维护长期资料，活动推荐助手会自动读取这些信息，再结合收藏、报名和反馈做个性化排序。
+                        </p>
+                      </div>
+                      <div className={`inline-flex items-center gap-2 rounded-2xl border px-3 py-2 text-xs font-bold ${isDayMode ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"}`}>
+                        <UserCheck size={15} />
+                        用户系统资料源
+                      </div>
+                    </div>
+
+                    {eventPreferenceLoading ? (
+                      <div className={`flex min-h-[180px] items-center justify-center gap-2 rounded-2xl border ${isDayMode ? "border-slate-200/80 bg-slate-50/80 text-slate-500" : "border-white/10 bg-black/20 text-gray-400"}`}>
+                        <Loader2 size={18} className="animate-spin" />
+                        正在读取活动画像...
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        <div className="grid gap-4 md:grid-cols-2">
+                          {[
+                            ["college", "学院/组织", "计算机学院 / AI 社团", User],
+                            ["division", "方向/专业", "人工智能 / 产品设计", Briefcase],
+                            ["grade", "年级身份", "本科新生 / 研一", Calendar],
+                            ["campus", "常用校区", "紫金港 / 玉泉", MapPin],
+                          ].map(([key, label, placeholder, Icon]) => (
+                            <label key={key} className={`grid gap-2 text-sm font-semibold ${isDayMode ? "text-slate-600" : "text-gray-300"}`}>
+                              <span className="flex items-center gap-2">
+                                <Icon size={15} />
+                                {label}
+                              </span>
+                              <input
+                                type="text"
+                                value={eventPreferenceForm[key]}
+                                onChange={(event) => updateEventPreferenceField(key, event.target.value)}
+                                placeholder={placeholder}
+                                className={`w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500 ${isDayMode ? "border border-slate-200/80 bg-slate-50 text-slate-900 placeholder:text-slate-400" : "border border-white/10 bg-black/20 text-white placeholder:text-gray-500"}`}
+                              />
+                            </label>
+                          ))}
+                        </div>
+
+                        <label className={`grid gap-2 text-sm font-semibold ${isDayMode ? "text-slate-600" : "text-gray-300"}`}>
+                          <span className="flex items-center gap-2">
+                            <Clock3 size={15} />
+                            空闲时间
+                          </span>
+                          <input
+                            type="text"
+                            value={eventPreferenceForm.availability}
+                            onChange={(event) => updateEventPreferenceField("availability", event.target.value)}
+                            placeholder="周三晚上、周末下午、考试周前不推荐"
+                            className={`w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500 ${isDayMode ? "border border-slate-200/80 bg-slate-50 text-slate-900 placeholder:text-slate-400" : "border border-white/10 bg-black/20 text-white placeholder:text-gray-500"}`}
+                          />
+                        </label>
+
+                        <label className={`grid gap-2 text-sm font-semibold ${isDayMode ? "text-slate-600" : "text-gray-300"}`}>
+                          兴趣关键词
+                          <input
+                            type="text"
+                            value={eventPreferenceForm.interestTagsText}
+                            onChange={(event) => updateEventPreferenceField("interestTagsText", event.target.value)}
+                            placeholder="AI、创业、志愿、摄影，用顿号或空格分隔"
+                            className={`w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500 ${isDayMode ? "border border-slate-200/80 bg-slate-50 text-slate-900 placeholder:text-slate-400" : "border border-white/10 bg-black/20 text-white placeholder:text-gray-500"}`}
+                          />
+                        </label>
+
+                        <div className="grid gap-5 lg:grid-cols-2">
+                          <div>
+                            <div className={`mb-3 text-sm font-bold ${isDayMode ? "text-slate-700" : "text-white"}`}>偏好活动类型</div>
+                            <div className="flex flex-wrap gap-2">
+                              {EVENT_CATEGORY_OPTIONS.map((option) => {
+                                const active = eventPreferenceForm.preferredCategories.includes(option.value);
+                                return (
+                                  <button
+                                    key={option.value}
+                                    type="button"
+                                    onClick={() => toggleEventPreferenceArrayValue("preferredCategories", option.value)}
+                                    className={`rounded-xl border px-3 py-2 text-xs font-bold transition-colors ${active ? "border-indigo-500 bg-indigo-600 text-white" : isDayMode ? "border-slate-200 bg-white text-slate-600 hover:border-indigo-200 hover:text-indigo-700" : "border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"}`}
+                                  >
+                                    {option.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                          <div>
+                            <div className={`mb-3 text-sm font-bold ${isDayMode ? "text-slate-700" : "text-white"}`}>偏好收益</div>
+                            <div className="flex flex-wrap gap-2">
+                              {EVENT_BENEFIT_OPTIONS.map((option) => {
+                                const active = eventPreferenceForm.preferredBenefits.includes(option.value);
+                                return (
+                                  <button
+                                    key={option.value}
+                                    type="button"
+                                    onClick={() => toggleEventPreferenceArrayValue("preferredBenefits", option.value)}
+                                    className={`rounded-xl border px-3 py-2 text-xs font-bold transition-colors ${active ? "border-emerald-500 bg-emerald-600 text-white" : isDayMode ? "border-slate-200 bg-white text-slate-600 hover:border-emerald-200 hover:text-emerald-700" : "border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"}`}
+                                  >
+                                    {option.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-4 border-t pt-5 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex flex-wrap gap-2">
+                            {EVENT_FORMAT_OPTIONS.map((option) => {
+                              const active = eventPreferenceForm.preferredFormat === option.value;
+                              return (
+                                <button
+                                  key={option.value || "any"}
+                                  type="button"
+                                  onClick={() => updateEventPreferenceField("preferredFormat", option.value)}
+                                  className={`rounded-xl border px-3 py-2 text-xs font-bold transition-colors ${active ? "border-sky-500 bg-sky-600 text-white" : isDayMode ? "border-slate-200 bg-white text-slate-600 hover:border-sky-200 hover:text-sky-700" : "border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"}`}
+                                >
+                                  {option.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleEventPreferenceSave}
+                            disabled={eventPreferenceSaving}
+                            className="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
+                          >
+                            {eventPreferenceSaving ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                            保存活动画像
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 

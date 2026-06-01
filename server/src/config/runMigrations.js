@@ -1283,6 +1283,7 @@ async function runMigrations(db) {
         division TEXT,
         grade TEXT,
         campus TEXT,
+        availability TEXT,
         interest_tags TEXT,
         preferred_categories TEXT,
         preferred_benefits TEXT,
@@ -1414,6 +1415,9 @@ async function runMigrations(db) {
       CREATE INDEX IF NOT EXISTS idx_event_ai_profiles_source_hash
         ON event_ai_profiles(source_hash);
     `);
+    await ensureColumns('user_event_preferences', {
+      availability: 'TEXT',
+    }, 'user_event_preferences');
     console.log('AI assistant tables ready');
   } catch (err) {
     if (!err.message.includes('already exists')) {
