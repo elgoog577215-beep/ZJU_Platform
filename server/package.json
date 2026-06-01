@@ -24,6 +24,7 @@
     "eval:ai-live": "node scripts/live-evaluate-ai-assistants.js",
     "agents:spec": "node scripts/generate-ai-agent-spec.js",
     "profiles:refresh": "node scripts/refresh-event-ai-profiles.js",
+    "search:index:refresh": "node scripts/refresh-resource-search-index.js",
     "events:classify": "node scripts/classify-event-categories.js --dry-run",
     "events:classify:apply": "node scripts/classify-event-categories.js --apply",
     "events:retire-tags": "node scripts/retire-event-tags.js --dry-run",

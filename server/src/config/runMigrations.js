@@ -1414,10 +1414,49 @@ async function runMigrations(db) {
         ON event_ai_profiles(category);
       CREATE INDEX IF NOT EXISTS idx_event_ai_profiles_source_hash
         ON event_ai_profiles(source_hash);
+
+      CREATE TABLE IF NOT EXISTS resource_search_index (
+        resource_type TEXT NOT NULL,
+        resource_id INTEGER NOT NULL,
+        group_key TEXT NOT NULL,
+        source_hash TEXT NOT NULL,
+        title TEXT,
+        summary TEXT,
+        content_text TEXT,
+        image_url TEXT,
+        resource_date TEXT,
+        keyword_terms TEXT,
+        facet_json TEXT,
+        embedding_text TEXT,
+        vector_json TEXT,
+        quality_score REAL DEFAULT 0,
+        popularity_score REAL DEFAULT 0,
+        status TEXT DEFAULT 'ready',
+        last_error TEXT,
+        source_updated_at TEXT,
+        indexed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (resource_type, resource_id)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_resource_search_index_group
+        ON resource_search_index(group_key, status, indexed_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_resource_search_index_source_hash
+        ON resource_search_index(source_hash);
+      CREATE INDEX IF NOT EXISTS idx_resource_search_index_updated
+        ON resource_search_index(status, updated_at DESC);
     `);
     await ensureColumns('user_event_preferences', {
       availability: 'TEXT',
     }, 'user_event_preferences');
+    await ensureColumns('resource_search_index', {
+      image_url: 'TEXT',
+      resource_date: 'TEXT',
+      popularity_score: 'REAL DEFAULT 0',
+      last_error: 'TEXT',
+      source_updated_at: 'TEXT',
+    }, 'resource_search_index');
     console.log('AI assistant tables ready');
   } catch (err) {
     if (!err.message.includes('already exists')) {

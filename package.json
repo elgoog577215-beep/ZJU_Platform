@@ -29,6 +29,7 @@
     "eval:ai-live": "npm --prefix server run eval:ai-live",
     "agents:spec": "npm --prefix server run agents:spec",
     "profiles:refresh": "npm --prefix server run profiles:refresh",
+    "search:index:refresh": "npm --prefix server run search:index:refresh",
     "bench:event-profiles": "npm --prefix server run bench:event-profiles",
     "bench:event-assistant-startup": "npm --prefix server run bench:event-assistant-startup",
     "e2e:install": "playwright install chromium",

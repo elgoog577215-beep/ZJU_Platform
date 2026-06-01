@@ -11,6 +11,7 @@ const aiModelConfigService = require('./aiModelConfigService');
 const aiAgentRegistryService = require('./aiAgentRegistryService');
 const eventAiProfileService = require('./eventAiProfileService');
 const eventRecommendationEvidenceService = require('./eventRecommendationEvidenceService');
+const resourceSearchIndexService = require('./resourceSearchIndexService');
 
 const GOVERNANCE_FIELDS = new Set(['category', 'target_audience']);
 const MAX_SCAN_LIMIT = 500;
@@ -656,7 +657,9 @@ const getAssistantOverview = async (db) => {
     hackathonRunCount,
     wechatParseRunCount,
     profileRefreshRunCount,
+    globalSearchIndexRunCount,
     profileCoverage,
+    globalSearchIndexCoverage,
     recommendationActionEvidence,
     runtimeTelemetryOverview,
     agentRuntimeHealth,
@@ -670,6 +673,7 @@ const getAssistantOverview = async (db) => {
     safeCount(db, "SELECT COUNT(*) AS count FROM ai_assistant_runs WHERE module = 'hackathon_coach'"),
     safeCount(db, "SELECT COUNT(*) AS count FROM ai_assistant_runs WHERE module = 'wechat_event_parser'"),
     safeCount(db, "SELECT COUNT(*) AS count FROM ai_assistant_runs WHERE module = 'event_profile_index'"),
+    safeCount(db, "SELECT COUNT(*) AS count FROM ai_assistant_runs WHERE module = 'global_search_index'"),
     eventAiProfileService.getProfileCoverage(db).catch(() => ({
       totalProfiles: 0,
       readyProfiles: 0,
@@ -680,6 +684,15 @@ const getAssistantOverview = async (db) => {
       failedProfiles: 0,
       coverageRatio: 0,
       staleRatio: 0,
+    })),
+    resourceSearchIndexService.getResourceSearchIndexCoverage(db).catch(() => ({
+      publicResourceCount: 0,
+      indexedCount: 0,
+      readyCount: 0,
+      missingCount: 0,
+      coverageRatio: 0,
+      byType: {},
+      byGroup: {},
     })),
     eventRecommendationEvidenceService.getRecommendationActionEvidence(db).catch(() => ({
       status: 'NO_RECOMMENDATION',
@@ -724,6 +737,7 @@ const getAssistantOverview = async (db) => {
     hackathonRunCount,
     wechatParseRunCount,
     profileRefreshRunCount,
+    globalSearchIndexRunCount,
     eventAiProfileCount: profileCoverage.totalProfiles,
     readyEventAiProfileCount: profileCoverage.readyProfiles,
     fallbackEventAiProfileCount: profileCoverage.fallbackProfiles,
@@ -732,6 +746,13 @@ const getAssistantOverview = async (db) => {
     eventAiProfileIssueCounts: profileCoverage.reasonCounts || {},
     eventAiProfileCoverageRatio: profileCoverage.coverageRatio,
     eventAiProfileStaleRatio: profileCoverage.staleRatio,
+    globalSearchPublicResourceCount: globalSearchIndexCoverage.publicResourceCount,
+    globalSearchIndexedResourceCount: globalSearchIndexCoverage.indexedCount,
+    globalSearchReadyIndexCount: globalSearchIndexCoverage.readyCount,
+    globalSearchMissingIndexCount: globalSearchIndexCoverage.missingCount,
+    globalSearchIndexCoverageRatio: globalSearchIndexCoverage.coverageRatio,
+    globalSearchIndexByType: globalSearchIndexCoverage.byType,
+    globalSearchIndexByGroup: globalSearchIndexCoverage.byGroup,
     runtimeTelemetryRunCount: runtimeTelemetryOverview.runCount,
     runtimeTelemetryTaskCount: runtimeTelemetryOverview.taskCount,
     runtimeTelemetryTasks: runtimeTelemetryOverview.tasks,

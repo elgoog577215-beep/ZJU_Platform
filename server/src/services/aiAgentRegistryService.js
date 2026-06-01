@@ -594,6 +594,8 @@ const AGENT_DEFINITIONS = [
     backend: [
       'server/src/controllers/systemController.js',
       'server/src/services/globalSearchService.js',
+      'server/src/services/resourceSearchIndexService.js',
+      'server/scripts/refresh-resource-search-index.js',
     ],
     goal: 'Parse natural-language site search requests, retrieve public content across events, AI community, and media library, and return grouped results with match reasons.',
     promptTemplates: [
@@ -608,6 +610,8 @@ const AGENT_DEFINITIONS = [
       'Parse module intent, time range, event category, campus, audience, benefits, media type, and keywords.',
       'Search only approved and non-deleted public content.',
       'Retrieve events, AI community articles/posts/groups, and media-library photos/videos in parallel.',
+      'Use resource_search_index as a governance-generated supplemental recall index.',
+      'Merge duplicate SQL and index hits by resource type and id.',
       'Attach match reasons and direct deep links for each result.',
       'Group results by product area while keeping a flat compatibility list.',
       'Keep event recommendation assistant separate for profile-driven recommendations.',
@@ -621,13 +625,14 @@ const AGENT_DEFINITIONS = [
       'articles and community_posts public text',
       'community_groups public metadata',
       'photos and videos media metadata',
-      'future governance-generated structured and vector indexes',
+      'resource_search_index structured summaries, facets, keywords, and vector_json',
     ],
     outputContracts: [
       'parsed_query',
       'groups',
       'results',
       'legacy',
+      'index',
       'match_reasons',
     ],
     validation: [
@@ -635,9 +640,11 @@ const AGENT_DEFINITIONS = [
       'Restricts all result queries to approved, non-deleted public resources.',
       'Returns deterministic deep links scoped to the owning module.',
       'Does not perform side-effect actions such as favorite, registration, review, or delete.',
+      'Index refresh only writes rows for public approved resources and prunes unavailable rows.',
     ],
     fallback: [
       'Rule and SQL matching without model dependency.',
+      'Search remains usable when resource_search_index is empty or unavailable.',
       'Empty grouped response when no public match exists.',
       'Legacy flat result list for older UI assumptions.',
     ],
@@ -646,9 +653,12 @@ const AGENT_DEFINITIONS = [
       'parsed_query',
       'group counts',
       'match reasons',
+      'global_search_index refresh runs',
+      'resource_search_index coverage',
     ],
     evaluation: [
       'server/scripts/check-ai-agent-registry.js',
+      'server/scripts/refresh-resource-search-index.js',
       'manual /api/search smoke checks',
       'frontend build for SearchPalette integration',
     ],
@@ -658,8 +668,8 @@ const AGENT_DEFINITIONS = [
       'Governance index output changes',
     ],
     nextImprovements: [
-      'Let governance jobs write structured resource summaries consumed by global search.',
-      'Add embedding-backed recall behind the same service contract.',
+      'Replace local vector_json with model embeddings or an external vector store behind the same contract.',
+      'Let governance jobs upgrade summaries with model-generated resource quality notes.',
       'Collect anonymous aggregate search failure categories for index tuning.',
     ],
     relatedAgents: [
@@ -671,17 +681,17 @@ const AGENT_DEFINITIONS = [
       {
         id: 'event_governance',
         relationship: 'index_quality_provider',
-        reason: 'Governance can improve structured event metadata and future site-wide search indexes.',
+        reason: 'Governance refresh jobs maintain structured resource summaries and index coverage for global search.',
       },
       {
         id: 'event_profile_index',
-        relationship: 'future_context_index_provider',
-        reason: 'The same profile/index pattern can extend from events to global resource search.',
+        relationship: 'event_context_index_provider',
+        reason: 'Event profiles enrich the event rows that are folded into the global resource search index.',
       },
     ],
     qualityBacklog: {
       prompt_templates: 'Replace rule-only parser with a bounded structured model parser when evaluation cases are available.',
-      context_index: 'Consume governance-generated summaries and future vector indexes without changing the API contract.',
+      context_index: 'Improve resource_search_index recall with model embeddings and scheduled refresh cadence.',
       memory_feedback: 'Aggregate anonymous no-result and click-through signals for search quality tuning.',
       evaluation_checks: 'Add deterministic fixture checks for events, community, media, no-result, and module-only queries.',
       observability: 'Expose search group counts and no-result rates in the admin AI overview.',
@@ -691,13 +701,13 @@ const AGENT_DEFINITIONS = [
       prompt_templates: 'partial',
       reasoning_chain: 'complete',
       standard_libraries: 'complete',
-      context_index: 'partial',
+      context_index: 'complete',
       memory_feedback: 'partial',
       structured_contract: 'complete',
       validation_guardrails: 'complete',
       fallback_recovery: 'complete',
       evaluation_checks: 'partial',
-      observability: 'partial',
+      observability: 'complete',
       auto_update: 'partial',
       safety_cost: 'complete',
     },
@@ -1141,6 +1151,15 @@ const buildAgentMetrics = (agent, health = {}) => {
     return [
       { label: 'Uncategorized', value: health.uncategorizedEventCount || 0 },
       { label: 'Runs', value: health.governanceRunCount || 0 },
+      ...base,
+    ];
+  }
+  if (agent.id === 'global_ai_search') {
+    return [
+      { label: 'Indexed', value: health.globalSearchReadyIndexCount || 0 },
+      { label: 'Coverage', value: `${Math.round((health.globalSearchIndexCoverageRatio || 0) * 100)}%` },
+      { label: 'Missing', value: health.globalSearchMissingIndexCount || 0 },
+      { label: 'Index runs', value: health.globalSearchIndexRunCount || 0 },
       ...base,
     ];
   }

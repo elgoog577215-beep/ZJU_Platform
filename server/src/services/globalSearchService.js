@@ -2,12 +2,14 @@ const {
   normalizeEventCategory,
   getCategoryLabel,
 } = require('./eventIntelligenceService');
+const resourceSearchIndexService = require('./resourceSearchIndexService');
 
 const MAX_QUERY_LENGTH = 160;
 const DEFAULT_LIMITS = {
   events: 8,
   community: 8,
   media: 8,
+  index: 12,
 };
 
 const SECTION_LABELS = {
@@ -249,6 +251,97 @@ const createResult = (item) => ({
   typeLabel: RESULT_TYPE_LABELS[item.type] || item.type,
   match_reasons: compactReasons(item.match_reasons || []),
 });
+
+const safeJsonParse = (value, fallback = null) => {
+  if (!value) return fallback;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return fallback;
+  }
+};
+
+const buildIndexedResultLink = (row) => {
+  const facets = row.facets || safeJsonParse(row.facet_json, {}) || {};
+  if (row.resource_type === 'event') return `/events?id=${row.resource_id}`;
+  if (row.resource_type === 'article') return `/articles?tab=tech&id=${row.resource_id}`;
+  if (row.resource_type === 'post') {
+    const section = Array.isArray(facets.sections) && facets.sections[0] ? facets.sections[0] : 'help';
+    return `/articles?tab=${section}&post=${row.resource_id}`;
+  }
+  if (row.resource_type === 'group') return `/articles?tab=groups&group=${row.resource_id}`;
+  if (row.resource_type === 'news') return `/articles?tab=tech&news=${row.resource_id}`;
+  if (row.resource_type === 'photo') return `/media?photo=${row.resource_id}`;
+  if (row.resource_type === 'video') return `/media?video=${row.resource_id}`;
+  return '/';
+};
+
+const buildIndexedResultMeta = (row) => {
+  const facets = row.facets || safeJsonParse(row.facet_json, {}) || {};
+  const resourceLabel = RESULT_TYPE_LABELS[row.resource_type] || row.resource_type;
+  const parts = [resourceLabel];
+  if (row.resource_type === 'event') {
+    const category = unique([
+      ...(facets.categoryLabels || []),
+      ...(facets.categories || []).map((category) => getCategoryLabel(category) || category),
+    ])[0];
+    parts.push(category);
+    parts.push((facets.campuses || [])[0]);
+    parts.push((facets.organizers || [])[0]);
+  } else if (row.group_key === 'community') {
+    parts.push((facets.sections || []).find((item) => SECTION_LABELS[item]) || (facets.sections || [])[0]);
+    parts.push((facets.authors || [])[0] || (facets.platforms || [])[0]);
+  } else if (row.group_key === 'media') {
+    parts.push((facets.categories || [])[0]);
+    parts.push((facets.topics || [])[0]);
+  }
+  return parts.filter(Boolean).join(' · ');
+};
+
+const createIndexedResult = (row) => createResult({
+  id: row.resource_id,
+  type: row.resource_type,
+  group: row.group_key,
+  title: row.title,
+  summary: row.summary || '',
+  image: row.image_url || null,
+  link: buildIndexedResultLink(row),
+  date: row.resource_date || row.source_updated_at || row.indexed_at,
+  meta: buildIndexedResultMeta(row),
+  score: Number(row.searchScore || 0) + Number(row.popularity_score || 0),
+  match_reasons: row.matchReasons || ['结构化索引补充'],
+  source: 'resource_search_index',
+});
+
+const mergeSearchResults = (directResults, indexedResults) => {
+  const byKey = new Map();
+  const merged = [];
+
+  for (const result of directResults) {
+    const key = `${result.type}:${result.id}`;
+    byKey.set(key, result);
+    merged.push(result);
+  }
+
+  for (const indexedResult of indexedResults) {
+    const key = `${indexedResult.type}:${indexedResult.id}`;
+    const existing = byKey.get(key);
+    if (!existing) {
+      byKey.set(key, indexedResult);
+      merged.push(indexedResult);
+      continue;
+    }
+    existing.score = Math.max(Number(existing.score || 0), Number(indexedResult.score || 0));
+    existing.match_reasons = compactReasons([
+      ...(existing.match_reasons || []),
+      ...(indexedResult.match_reasons || []),
+    ]);
+    if (!existing.summary && indexedResult.summary) existing.summary = indexedResult.summary;
+    if (!existing.image && indexedResult.image) existing.image = indexedResult.image;
+  }
+
+  return merged;
+};
 
 const searchEvents = async (db, parsed, limit = DEFAULT_LIMITS.events) => {
   const params = [];
@@ -720,9 +813,14 @@ const searchGlobalContent = async (db, query, options = {}) => {
     !selectedModules || selectedModules.has('media')
       ? searchMedia(db, parsed, options.limits?.media || DEFAULT_LIMITS.media)
       : [],
+    resourceSearchIndexService.searchResourceIndex(db, parsed, {
+      limit: options.limits?.index || DEFAULT_LIMITS.index,
+    }).catch(() => []),
   ]);
 
-  const results = searches.flat();
+  const directResults = searches.slice(0, 3).flat();
+  const indexedResults = searches[3].map(createIndexedResult);
+  const results = mergeSearchResults(directResults, indexedResults);
   const groups = groupResults(results);
 
   return {
@@ -733,6 +831,10 @@ const searchGlobalContent = async (db, query, options = {}) => {
     groups,
     results,
     legacy: buildLegacyResults(results),
+    index: {
+      used: indexedResults.length > 0,
+      result_count: indexedResults.length,
+    },
   };
 };
 

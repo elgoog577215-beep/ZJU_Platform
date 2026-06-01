@@ -2,7 +2,7 @@
 
 > Generated from `server/src/services/aiAgentRegistryService.js`. Do not hand-edit generated sections; update the registry and rerun `npm --prefix server run agents:spec`.
 
-Generated at: 2026-05-22T13:15:50.184Z
+Generated at: 2026-06-01T16:30:01.504Z
 
 ## Goal
 
@@ -60,10 +60,10 @@ The agent has clear permissions, data boundaries, timeout/cost controls, and pro
 
 ## System Summary
 
-- Agent count: 6
+- Agent count: 7
 - Average maturity: 85%
 - High-priority gaps: 0
-- Partial maturity gaps: 22
+- Partial maturity gaps: 26
 
 ## Runtime Health
 
@@ -80,7 +80,7 @@ The agent has clear permissions, data boundaries, timeout/cost controls, and pro
 - Entrance: Events page AI search
 - Maturity: 92%
 
-Understand a campus activity request, retrieve a safe candidate pool, use model reasoning to rerank, and return explainable recommendations.
+Understand a campus activity request, read the unified user-system profile, retrieve a safe candidate pool, use model reasoning to rerank, and return explainable recommendations.
 
 #### Prompt Templates
 
@@ -92,6 +92,7 @@ Understand a campus activity request, retrieve a safe candidate pool, use model 
 
 - Sanitize query and optional clarification.
 - Parse intent with the model and standard fallback intent parser.
+- Load durable profile signals from the user system before applying event-specific preference and action evidence.
 - Normalize Chinese, English, and pinyin campus/audience terms through the shared standard library.
 - Build a candidate pool from approved, non-deleted events.
 - Ensure event AI profiles from cache, model, or transient request fallback when the model is skipped.
@@ -111,6 +112,7 @@ Understand a campus activity request, retrieve a safe candidate pool, use model 
 
 #### Context / Index / Memory
 
+- users, user_profile_tags, user_profile_cards, user_social_links, and user_identity_claims as the durable user profile foundation
 - event_ai_profiles
 - assistant_memory
 - user_event_preferences
@@ -420,6 +422,94 @@ Help admins improve event metadata through safe scan, review, and apply workflow
 - Use admin decision memory to adjust deterministic confidence before model review.
 - Grow golden ambiguous governance cases from real admin review decisions.
 
+### Global AI Search Agent
+
+- ID: global_ai_search
+- Class: search_retrieval
+- Entrance: Global search palette
+- Maturity: 83%
+
+Parse natural-language site search requests, retrieve public content across events, AI community, and media library, and return grouped results with match reasons.
+
+#### Prompt Templates
+
+- global_search_query_parser (v1-rule): Map query terms to modules, event categories, campuses, audiences, benefits, media type, and time range without model dependency.
+
+#### Logic Chain
+
+- Sanitize and cap the query.
+- Parse module intent, time range, event category, campus, audience, benefits, media type, and keywords.
+- Search only approved and non-deleted public content.
+- Retrieve events, AI community articles/posts/groups, and media-library photos/videos in parallel.
+- Use resource_search_index as a governance-generated supplemental recall index.
+- Merge duplicate SQL and index hits by resource type and id.
+- Attach match reasons and direct deep links for each result.
+- Group results by product area while keeping a flat compatibility list.
+- Keep event recommendation assistant separate for profile-driven recommendations.
+
+#### Standard Libraries
+
+- server/src/services/eventIntelligenceService.js
+- server/src/constants/eventCatalog.js
+
+#### Context / Index / Memory
+
+- events public metadata
+- articles and community_posts public text
+- community_groups public metadata
+- photos and videos media metadata
+- resource_search_index structured summaries, facets, keywords, and vector_json
+
+#### Quality Profile
+
+- Prompt templates: partial; next: Replace rule-only parser with a bounded structured model parser when evaluation cases are available.
+- Logic chain: complete; next: Maintain with repeatable checks.
+- Standard libraries: complete; next: Maintain with repeatable checks.
+- Context index: complete; next: Improve resource_search_index recall with model embeddings and scheduled refresh cadence.
+- Memory and feedback: partial; next: Aggregate anonymous no-result and click-through signals for search quality tuning.
+- Structured contract: complete; next: Maintain with repeatable checks.
+- Validation guardrails: complete; next: Maintain with repeatable checks.
+- Fallback recovery: complete; next: Maintain with repeatable checks.
+- Evaluation checks: partial; next: Add deterministic fixture checks for events, community, media, no-result, and module-only queries.
+- Observability: complete; next: Expose search group counts and no-result rates in the admin AI overview.
+- Auto-update spec: partial; next: Regenerate search guidance when searchable modules or index schemas change.
+- Safety and cost: complete; next: Maintain with repeatable checks.
+
+#### Related Agents
+
+- event_recommendation (parallel_user_assistant): Global search finds resources across the site; event recommendation uses user profiles and action evidence for personalized activity suggestions.
+- event_governance (index_quality_provider): Governance refresh jobs maintain structured resource summaries and index coverage for global search.
+- event_profile_index (event_context_index_provider): Event profiles enrich the event rows that are folded into the global resource search index.
+
+#### Runtime Observability
+
+- Runtime health is reported in admin overview when run data exists.
+
+#### Validation And Fallback
+
+- Requires query length >= 2.
+- Restricts all result queries to approved, non-deleted public resources.
+- Returns deterministic deep links scoped to the owning module.
+- Does not perform side-effect actions such as favorite, registration, review, or delete.
+- Index refresh only writes rows for public approved resources and prunes unavailable rows.
+- Rule and SQL matching without model dependency.
+- Search remains usable when resource_search_index is empty or unavailable.
+- Empty grouped response when no public match exists.
+- Legacy flat result list for older UI assumptions.
+
+#### Evaluation
+
+- server/scripts/check-ai-agent-registry.js
+- server/scripts/refresh-resource-search-index.js
+- manual /api/search smoke checks
+- frontend build for SearchPalette integration
+
+#### Next Improvements
+
+- Replace local vector_json with model embeddings or an external vector store behind the same contract.
+- Let governance jobs upgrade summaries with model-generated resource quality notes.
+- Collect anonymous aggregate search failure categories for index tuning.
+
 ### Model Config and Runtime
 
 - ID: model_config_runtime
@@ -651,14 +741,14 @@ Precompute or cache compact activity profiles so recommendation agents can reaso
 - Task: Track which profile issue reasons later correlate with poor recommendation feedback.
 - Acceptance: Event AI Profile Index marks Memory and feedback as complete or exposes a measurable production signal.
 
-### 9. Hackathon AI Coach / Memory and feedback
+### 9. Global AI Search Agent / Memory and feedback
+
+- Current: partial
+- Task: Aggregate anonymous no-result and click-through signals for search quality tuning.
+- Acceptance: Global AI Search Agent marks Memory and feedback as complete or exposes a measurable production signal.
+
+### 10. Hackathon AI Coach / Memory and feedback
 
 - Current: partial
 - Task: Summarize anonymous question categories and coaching outcomes for product tuning without storing raw prompts.
 - Acceptance: Hackathon AI Coach marks Memory and feedback as complete or exposes a measurable production signal.
-
-### 10. Model Config and Runtime / Memory and feedback
-
-- Current: partial
-- Task: Persist longer-term runtime telemetry trend windows and provider health history.
-- Acceptance: Model Config and Runtime marks Memory and feedback as complete or exposes a measurable production signal.

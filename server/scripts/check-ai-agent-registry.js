@@ -90,6 +90,16 @@ const main = () => {
     'Event recommendation agent must expose recommendation action evidence observability.'
   );
 
+  const globalSearchAgent = agents.find((agent) => agent.id === 'global_ai_search');
+  assert(
+    globalSearchAgent.contextIndexes.includes('resource_search_index structured summaries, facets, keywords, and vector_json'),
+    'Global AI search must declare the resource search index.'
+  );
+  assert(
+    globalSearchAgent.backend.includes('server/src/services/resourceSearchIndexService.js'),
+    'Global AI search must declare the resource index service.'
+  );
+
   const hackathonAgent = agents.find((agent) => agent.id === 'hackathon_coach');
   assert(
     hackathonAgent.promptTemplates.some((template) => template.id === 'hackathon_ai_coach'),
@@ -104,6 +114,10 @@ const main = () => {
     eventAiProfileCount: 8,
     readyEventAiProfileCount: 7,
     eventAiProfileCoverageRatio: 0.8,
+    globalSearchReadyIndexCount: 22,
+    globalSearchMissingIndexCount: 3,
+    globalSearchIndexRunCount: 2,
+    globalSearchIndexCoverageRatio: 0.88,
     runtimeTelemetryTaskCount: 4,
     runtimeTelemetryAvgDurationMs: 123,
     runtimeTelemetryRetryCount: 1,
@@ -171,6 +185,11 @@ const main = () => {
   assert(
     runtimeModule.metrics.some((metric) => metric.label === 'AI tasks' && metric.value === 4),
     'Runtime module metrics should expose recent AI task telemetry.'
+  );
+  const globalSearchModule = overview.modules.find((module) => module.id === 'global_ai_search');
+  assert(
+    globalSearchModule.metrics.some((metric) => metric.label === 'Indexed' && metric.value === 22),
+    'Global AI search metrics should expose resource index coverage.'
   );
   assert(overview.continuousImprovementPlan.length > 0, 'Overview should expose partial-gap improvement plan.');
   assert(
