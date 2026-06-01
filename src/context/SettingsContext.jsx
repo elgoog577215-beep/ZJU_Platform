@@ -14,7 +14,7 @@ const DEFAULT_SETTINGS = {
   background_brightness: '1.0',
   background_vignette: '0.5',
   background_bloom: '0.8',
-  hero_bg_url: '/uploads/1767349451839-56405188.jpg',
+  hero_bg_url: '/images/hero-landscape-day-4k.jpg',
   about_title: '浙江大学信息聚合平台',
   about_subtitle: '打破信息差，共建信息网络',
   about_intro: '我们致力于消除信息差，提供一个高质量的信息共享平台。',

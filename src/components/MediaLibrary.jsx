@@ -415,18 +415,20 @@ const MediaLibrary = () => {
 
   useEffect(() => {
     setDisplayPhotos((prev) => {
-      if (photoPage === 1) return photos;
+      if (photoPage === 1) return Array.isArray(photos) ? photos : [];
+      const safePhotos = Array.isArray(photos) ? photos : [];
       const seen = new Set(prev.map((item) => item.id));
-      const next = photos.filter((item) => !seen.has(item.id));
+      const next = safePhotos.filter((item) => !seen.has(item.id));
       return next.length === 0 ? prev : [...prev, ...next];
     });
   }, [photos, photoPage]);
 
   useEffect(() => {
     setDisplayVideos((prev) => {
-      if (videoPage === 1) return videos;
+      if (videoPage === 1) return Array.isArray(videos) ? videos : [];
+      const safeVideos = Array.isArray(videos) ? videos : [];
       const seen = new Set(prev.map((item) => item.id));
-      const next = videos.filter((item) => !seen.has(item.id));
+      const next = safeVideos.filter((item) => !seen.has(item.id));
       return next.length === 0 ? prev : [...prev, ...next];
     });
   }, [videos, videoPage]);
@@ -483,21 +485,21 @@ const MediaLibrary = () => {
   };
 
   const handleTogglePhotoFavorite = useCallback((photoId, favorited, likes) => {
-    setPhotos((prev) => prev.map((photo) => (
+    setPhotos((prev) => (Array.isArray(prev) ? prev.map((photo) => (
       photo.id === photoId ? { ...photo, favorited, likes: likes ?? photo.likes } : photo
-    )));
-    setDisplayPhotos((prev) => prev.map((photo) => (
+    )) : prev));
+    setDisplayPhotos((prev) => (Array.isArray(prev) ? prev.map((photo) => (
       photo.id === photoId ? { ...photo, favorited, likes: likes ?? photo.likes } : photo
-    )));
+    )) : prev));
   }, [setPhotos]);
 
   const handleToggleVideoFavorite = useCallback((videoId, favorited, likes) => {
-    setVideos((prev) => prev.map((video) => (
+    setVideos((prev) => (Array.isArray(prev) ? prev.map((video) => (
       video.id === videoId ? { ...video, favorited, likes: likes ?? video.likes } : video
-    )));
-    setDisplayVideos((prev) => prev.map((video) => (
+    )) : prev));
+    setDisplayVideos((prev) => (Array.isArray(prev) ? prev.map((video) => (
       video.id === videoId ? { ...video, favorited, likes: likes ?? video.likes } : video
-    )));
+    )) : prev));
     setSelectedVideo((prev) => (
       prev?.id === videoId ? { ...prev, favorited, likes: likes ?? prev.likes } : prev
     ));

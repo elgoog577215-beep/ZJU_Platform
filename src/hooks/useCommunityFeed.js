@@ -86,7 +86,7 @@ export function useCommunityFeed({
   }, [sort, statusFilter, debouncedSearchQuery, selectedTags.join(','), settings.pagination_enabled, ...extraDependencies]);
 
   // Accumulate items for infinite-scroll or replace for pagination
-  const effectiveItems = useMemo(() => items || [], [items]);
+  const effectiveItems = useMemo(() => (Array.isArray(items) ? items : []), [items]);
   useEffect(() => {
     if (isPaginationEnabled) {
       setDisplayItems(effectiveItems);

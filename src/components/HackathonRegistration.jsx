@@ -424,8 +424,8 @@ const HackathonRegistration = () => {
         ))}
       </div>
 
-      {/* Mobile Navigation Bar */}
-      <div className={`fixed bottom-0 left-0 right-0 z-20 flex items-center justify-center gap-4 border-t px-4 py-3 backdrop-blur-xl lg:hidden ${isDayMode ? "border-slate-200 bg-white/90" : "border-white/10 bg-black/50"}`}>
+      {/* Tablet in-page anchor bar. Phones use the global bottom tab bar. */}
+      <div className={`sticky top-[calc(env(safe-area-inset-top)+128px)] z-30 mx-auto mt-4 hidden w-[calc(100%_-_2rem)] max-w-[520px] items-center justify-center gap-2 border px-2 py-2 backdrop-blur-xl md:flex lg:hidden ${isDayMode ? "border-slate-200 bg-white/90" : "border-white/10 bg-black/50"}`}>
         {[
           { id: "hackathon-hero", label: "主页", icon: Sparkles, index: 0 },
           { id: "event-brief", label: "赛制", icon: Trophy, index: 1 },
@@ -437,7 +437,7 @@ const HackathonRegistration = () => {
               key={item.id}
               type="button"
               onClick={() => smoothScrollTo(item.id)}
-              className={`flex flex-1 max-w-[120px] flex-col items-center gap-1 rounded-xl px-3 py-2 text-xs font-bold transition-all duration-300 ${
+              className={`flex min-h-11 flex-1 items-center justify-center gap-2 rounded-[6px] px-3 py-2 text-xs font-bold transition-all duration-300 ${
                 activeSection === item.index
                   ? isDayMode
                     ? "bg-cyan-100 text-cyan-700"

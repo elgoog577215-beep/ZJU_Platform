@@ -583,15 +583,17 @@ const Events = () => {
   ]);
 
   useEffect(() => {
+    const safeEvents = Array.isArray(events) ? events : [];
+
     if (isPaginationEnabled) {
-      setDisplayEvents(events);
+      setDisplayEvents(safeEvents);
       return;
     }
 
     setDisplayEvents((prev) => {
-      if (currentPage === 1) return events;
+      if (currentPage === 1) return safeEvents;
       const seen = new Set(prev.map((item) => item.id));
-      const next = events.filter((item) => !seen.has(item.id));
+      const next = safeEvents.filter((item) => !seen.has(item.id));
       return next.length === 0 ? prev : [...prev, ...next];
     });
   }, [events, currentPage, isPaginationEnabled]);
@@ -917,7 +919,9 @@ END:VCALENDAR`;
 
       const cachedEvent =
         displayEvents.find((event) => event.id === assistantEvent.id) ||
-        events.find((event) => event.id === assistantEvent.id);
+        (Array.isArray(events)
+          ? events.find((event) => event.id === assistantEvent.id)
+          : null);
 
       setIsMobileAssistantOpen(false);
       setSelectedEventRecommendationContext(recommendationContext);

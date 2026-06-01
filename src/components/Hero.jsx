@@ -22,10 +22,11 @@ const Hero = ({ id, onScrollNext } = {}) => {
 
   const shouldUseMotion = !prefersReducedMotion;
   const shouldUseParallax = shouldUseMotion && !isMobile && !onScrollNext;
-  const nightHeroImage =
-    settings.hero_bg_url || "/uploads/1767349451839-56405188.jpg";
+  const fallbackHeroImage = "/images/hero-landscape-day-4k.jpg";
+  const nightHeroImage = settings.hero_bg_url || fallbackHeroImage;
   const dayHeroImage = "/images/hero-landscape-day-4k.jpg";
   const heroImage = uiMode === "day" ? dayHeroImage : nightHeroImage;
+  const [resolvedHeroImage, setResolvedHeroImage] = useState(heroImage);
   const heroTitle = settings.hero_title || "浙江大学信息聚合平台";
   const defaultTitleSegments =
     heroTitle === "浙江大学信息聚合平台"
@@ -46,6 +47,16 @@ const Hero = ({ id, onScrollNext } = {}) => {
     return () => window.removeEventListener("resize", updateViewport);
   }, []);
 
+  useEffect(() => {
+    setResolvedHeroImage(heroImage);
+  }, [heroImage]);
+
+  const handleHeroImageError = () => {
+    setResolvedHeroImage((current) =>
+      current === fallbackHeroImage ? current : fallbackHeroImage,
+    );
+  };
+
   const isDayMode = uiMode === "day";
   const overlayClass = isDayMode
     ? "bg-[linear-gradient(180deg,rgba(248,250,252,0.08)_0%,rgba(15,23,42,0.06)_38%,rgba(15,23,42,0.18)_100%)]"
@@ -54,8 +65,8 @@ const Hero = ({ id, onScrollNext } = {}) => {
     ? "opacity-100 saturate-[1.12] contrast-[1.04]"
     : "opacity-52 saturate-[1.18] contrast-[1.08]";
   const titleClass = isDayMode
-    ? "home-hero-title home-hero-title-day mx-auto mb-4 max-w-[12ch] text-balance text-[2.55rem] font-black leading-[0.96] tracking-normal sm:text-[4.4rem] md:mb-6 md:max-w-none md:whitespace-nowrap md:text-[5.55rem] lg:text-[6.45rem] xl:text-[7rem]"
-    : "home-hero-title home-hero-title-night mx-auto mb-4 max-w-[12ch] text-balance text-[2.45rem] font-black leading-[0.98] tracking-normal sm:text-[4.4rem] md:mb-6 md:max-w-none md:whitespace-nowrap md:text-[5.55rem] lg:text-[6.45rem] xl:text-[7rem]";
+    ? "home-hero-title home-hero-title-day mx-auto mb-4 max-w-[12ch] text-balance text-[2.55rem] font-black leading-[0.96] tracking-normal sm:text-[4.4rem] md:mb-6 md:max-w-[14ch] md:text-[5.15rem] lg:max-w-none lg:whitespace-nowrap lg:text-[6.45rem] xl:text-[7rem]"
+    : "home-hero-title home-hero-title-night mx-auto mb-4 max-w-[12ch] text-balance text-[2.45rem] font-black leading-[0.98] tracking-normal sm:text-[4.4rem] md:mb-6 md:max-w-[14ch] md:text-[5.15rem] lg:max-w-none lg:whitespace-nowrap lg:text-[6.45rem] xl:text-[7rem]";
   const subtitleClass = isDayMode
     ? "hero-day-ink mx-auto max-w-2xl px-2 text-base font-semibold tracking-wide opacity-95 drop-shadow-[0_4px_20px_rgba(15,23,42,0.58)] sm:px-4 sm:text-xl md:text-[1.7rem]"
     : "mx-auto max-w-2xl px-2 text-base font-semibold tracking-wide text-white/[0.92] drop-shadow-[0_6px_24px_rgba(2,6,23,0.84)] sm:px-4 sm:text-xl md:text-[1.7rem]";
@@ -103,13 +114,15 @@ const Hero = ({ id, onScrollNext } = {}) => {
         <div className={`absolute inset-0 z-10 ${overlayClass}`} />
         <div className="home-hero-beam absolute inset-0 z-[11]" aria-hidden="true" />
         <img
-          src={heroImage}
-          srcSet={`${heroImage} 800w, ${heroImage} 1600w`}
+          src={resolvedHeroImage}
+          srcSet={`${resolvedHeroImage} 800w, ${resolvedHeroImage} 1600w`}
           sizes="(max-width: 768px) 800px, 1600px"
-          alt="Hero background"
+          alt=""
+          aria-hidden="true"
           className={`motion-gpu h-full w-full object-cover ${imageClass}`}
           loading="eager"
           decoding="async"
+          onError={handleHeroImageError}
         />
       </motion.div>
       <div className="home-hero-network absolute inset-0 z-[12]" aria-hidden="true" />
@@ -137,8 +150,8 @@ const Hero = ({ id, onScrollNext } = {}) => {
           >
             {defaultTitleSegments ? (
               <>
-                <span className="block md:inline">{defaultTitleSegments[0]}</span>
-                <span className="block md:inline">{defaultTitleSegments[1]}</span>
+                <span className="block lg:inline">{defaultTitleSegments[0]}</span>
+                <span className="block lg:inline">{defaultTitleSegments[1]}</span>
               </>
             ) : (
               heroTitle

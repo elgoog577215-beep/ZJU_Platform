@@ -4,6 +4,24 @@ import api, { isCanceledRequest } from '../services/api';
 const memoryCache = new Map();
 const inflightRequests = new Map();
 
+const LIST_ENDPOINT_PATTERN = /^\/(events|photos|videos|articles|community\/posts|news|ecosystem-partners)(\/)?$/;
+const LIST_RESPONSE_KEYS = ['items', 'results', 'rows', 'list', 'events', 'photos', 'videos', 'articles', 'posts', 'news'];
+
+const normalizeListPayload = (value) => {
+    if (Array.isArray(value)) return value;
+    if (!value || typeof value !== 'object') return [];
+    for (const key of LIST_RESPONSE_KEYS) {
+        if (Array.isArray(value[key])) return value[key];
+    }
+    return [];
+};
+
+const shouldNormalizeAsList = (endpoint) => LIST_ENDPOINT_PATTERN.test(endpoint);
+
+const normalizePayloadData = (endpoint, value) => (
+    shouldNormalizeAsList(endpoint) ? normalizeListPayload(value) : value
+);
+
 const buildRequestKey = (keyPrefix, endpoint, params = {}) => {
     const sortedParams = Object.keys(params).sort().reduce((acc, key) => {
         const value = params[key];
@@ -78,7 +96,8 @@ const fetchAndCacheResource = async (endpoint, requestParams, cacheKey, requestO
     let sharedPromise = inflightRequests.get(cacheKey);
     if (!sharedPromise) {
         sharedPromise = api.get(endpoint, { params: requestParams, ...otherOptions }).then((res) => {
-            const newData = res.data.data !== undefined ? res.data.data : res.data;
+            const responseData = res.data.data !== undefined ? res.data.data : res.data;
+            const newData = normalizePayloadData(endpoint, responseData);
             const newPagination = res.data.pagination || {};
             const payload = {
                 data: newData,
@@ -161,7 +180,11 @@ export const useCachedResource = (endpoint, params = {}, options = {}) => {
 
             if (cached) {
                 if (cached.data !== undefined) {
-                    setData(cached.data);
+                    const cachedData = normalizePayloadData(endpoint, cached.data);
+                    if (shouldNormalizeAsList(endpoint) && cachedData !== cached.data) {
+                        persistCache(cacheKey, { ...cached, data: cachedData });
+                    }
+                    setData(cachedData);
                     if (cached.pagination) setPagination(cached.pagination);
                     setLoading(false);
                     hasCache = true;
