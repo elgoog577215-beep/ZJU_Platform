@@ -1,4 +1,5 @@
 const { getDb } = require('../config/db');
+const userProfileService = require('../services/userProfileService');
 const {
   MAX_QUERY_LENGTH,
   MAX_CLARIFICATION_LENGTH,
@@ -19,28 +20,6 @@ const sanitizeArray = (value, maxItems = 12, itemMaxLength = 60) => {
     .map((item) => sanitizeText(String(item || ''), itemMaxLength))
     .filter(Boolean)
     .slice(0, maxItems);
-};
-
-const serializePreferenceRow = (row, user) => {
-  const parseJson = (value) => {
-    try {
-      const parsed = JSON.parse(value || '[]');
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  };
-
-  return {
-    college: row?.college || user?.organization_cr || user?.organization || '',
-    division: row?.division || '',
-    grade: row?.grade || '',
-    campus: row?.campus || '',
-    interestTags: parseJson(row?.interest_tags),
-    preferredCategories: parseJson(row?.preferred_categories),
-    preferredBenefits: parseJson(row?.preferred_benefits),
-    preferredFormat: row?.preferred_format || ''
-  };
 };
 
 const handleEventAssistant = async (req, res) => {
@@ -169,13 +148,8 @@ const handleEventAssistantAction = async (req, res) => {
 const getEventAssistantPreferences = async (req, res) => {
   try {
     const db = await getDb();
-    const row = await db.get('SELECT * FROM user_event_preferences WHERE user_id = ?', [req.user.id]);
-    const user = await db.get(
-      'SELECT organization, organization_cr FROM users WHERE id = ?',
-      [req.user.id]
-    );
-
-    res.json(serializePreferenceRow(row, user));
+    const preference = await userProfileService.getEventAssistantPreference(db, req.user.id);
+    res.json(preference);
   } catch (error) {
     res.status(500).json({
       error: 'EVENT_ASSISTANT_PREFERENCES_FAILED',
@@ -187,7 +161,7 @@ const getEventAssistantPreferences = async (req, res) => {
 const updateEventAssistantPreferences = async (req, res) => {
   try {
     const db = await getDb();
-    const preference = {
+    const preference = userProfileService.normalizePreferencePayload({
       college: sanitizeText(req.body?.college, 120),
       division: sanitizeText(req.body?.division, 80),
       grade: sanitizeText(req.body?.grade, 40),
@@ -198,47 +172,9 @@ const updateEventAssistantPreferences = async (req, res) => {
       preferredFormat: ['online', 'offline', 'hybrid', ''].includes(req.body?.preferredFormat)
         ? req.body.preferredFormat
         : ''
-    };
-
-    await db.run(
-      `
-        INSERT INTO user_event_preferences (
-          user_id,
-          college,
-          division,
-          grade,
-          campus,
-          interest_tags,
-          preferred_categories,
-          preferred_benefits,
-          preferred_format,
-          updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
-        ON CONFLICT(user_id) DO UPDATE SET
-          college = excluded.college,
-          division = excluded.division,
-          grade = excluded.grade,
-          campus = excluded.campus,
-          interest_tags = excluded.interest_tags,
-          preferred_categories = excluded.preferred_categories,
-          preferred_benefits = excluded.preferred_benefits,
-          preferred_format = excluded.preferred_format,
-          updated_at = datetime('now')
-      `,
-      [
-        req.user.id,
-        preference.college,
-        preference.division,
-        preference.grade,
-        preference.campus,
-        JSON.stringify(preference.interestTags),
-        JSON.stringify(preference.preferredCategories),
-        JSON.stringify(preference.preferredBenefits),
-        preference.preferredFormat
-      ]
-    );
-
-    res.json(preference);
+    });
+    const savedPreference = await userProfileService.updateEventAssistantPreference(db, req.user.id, preference);
+    res.json(savedPreference);
   } catch (error) {
     res.status(500).json({
       error: 'EVENT_ASSISTANT_PREFERENCES_FAILED',

@@ -5,6 +5,7 @@ const {
 const {
   createEventRecommendationServices
 } = require('../services/eventRecommendation');
+const userProfileService = require('../services/userProfileService');
 const {
   EVENT_CATEGORIES,
   EVENT_CATEGORY_LABELS: CATEGORY_LABELS,
@@ -1204,11 +1205,12 @@ const loadUserEventProfile = async (db, userId, visitorKey = '') => {
     };
   }
 
-  const user = await db.get(
+  const profileFoundation = await userProfileService.loadRecommendationProfileFoundation(db, userId);
+  const user = profileFoundation?.user || await db.get(
     'SELECT id, username, nickname, organization, organization_cr, gender, age FROM users WHERE id = ?',
     [userId]
   );
-  const explicitPreference = await db.get('SELECT * FROM user_event_preferences WHERE user_id = ?', [userId]);
+  const explicitProfile = profileFoundation?.explicit || {};
   const memoryRows = await db.all(
     `
       SELECT memory_type, content, weight, updated_at
@@ -1265,15 +1267,16 @@ const loadUserEventProfile = async (db, userId, visitorKey = '') => {
     isAnonymous: false,
     user: user || null,
     explicit: {
-      college: explicitPreference?.college || user?.organization_cr || user?.organization || '',
-      division: explicitPreference?.division || '',
-      grade: explicitPreference?.grade || '',
-      campus: explicitPreference?.campus || '',
-      interestTags: safeJsonParse(explicitPreference?.interest_tags, []),
-      preferredCategories: safeJsonParse(explicitPreference?.preferred_categories, []),
-      preferredBenefits: safeJsonParse(explicitPreference?.preferred_benefits, []),
-      preferredFormat: explicitPreference?.preferred_format || ''
+      college: explicitProfile.college || user?.organization_cr || user?.organization || '',
+      division: explicitProfile.division || '',
+      grade: explicitProfile.grade || '',
+      campus: explicitProfile.campus || '',
+      interestTags: explicitProfile.interestTags || [],
+      preferredCategories: explicitProfile.preferredCategories || [],
+      preferredBenefits: explicitProfile.preferredBenefits || [],
+      preferredFormat: explicitProfile.preferredFormat || ''
     },
+    userSystem: profileFoundation?.userSystem || null,
     learned: {
       categories: learnedCategories
     },
@@ -1300,6 +1303,8 @@ const buildProfileSummary = (profile) => {
   if (profile.explicit.grade) signals.push(`年级：${profile.explicit.grade}`);
   if (profile.explicit.campus) signals.push(`常用校区：${profile.explicit.campus}`);
   if (profile.explicit.interestTags?.length) signals.push(`显式兴趣：${profile.explicit.interestTags.slice(0, 4).join('、')}`);
+  if (profile.userSystem?.profileStatusLabel) signals.push(`个人状态：${profile.userSystem.profileStatusLabel}`);
+  if (profile.userSystem?.tags?.length) signals.push(`个人名片标签：${profile.userSystem.tags.slice(0, 3).join('、')}`);
   if (profile.learned.categories?.length) signals.push(`历史偏好：${profile.learned.categories.slice(0, 3).map((item) => CATEGORY_LABELS[item] || item).join('、')}`);
   if (profile.actionEvidence?.positiveCategories?.length) {
     signals.push(`行动证据偏好：${profile.actionEvidence.positiveCategories.slice(0, 3).map((item) => CATEGORY_LABELS[item.value] || item.value).join('、')}`);

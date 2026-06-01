@@ -92,10 +92,11 @@ const AGENT_DEFINITIONS = [
     backend: [
       'server/src/controllers/eventAssistantController.js',
       'server/src/utils/eventAssistant.js',
+      'server/src/services/userProfileService.js',
       'server/src/services/eventAiProfileService.js',
       'server/src/services/unifiedAiRuntimeService.js',
     ],
-    goal: 'Understand a campus activity request, retrieve a safe candidate pool, use model reasoning to rerank, and return explainable recommendations.',
+    goal: 'Understand a campus activity request, read the unified user-system profile, retrieve a safe candidate pool, use model reasoning to rerank, and return explainable recommendations.',
     promptTemplates: [
       {
         id: 'event_recommendation_intent',
@@ -116,6 +117,7 @@ const AGENT_DEFINITIONS = [
     reasoningChain: [
       'Sanitize query and optional clarification.',
       'Parse intent with the model and standard fallback intent parser.',
+      'Load durable profile signals from the user system before applying event-specific preference and action evidence.',
       'Normalize Chinese, English, and pinyin campus/audience terms through the shared standard library.',
       'Build a candidate pool from approved, non-deleted events.',
       'Ensure event AI profiles from cache, model, or transient request fallback when the model is skipped.',
@@ -133,6 +135,7 @@ const AGENT_DEFINITIONS = [
       'server/src/services/eventIntelligenceService.js',
     ],
     contextIndexes: [
+      'users, user_profile_tags, user_profile_cards, user_social_links, and user_identity_claims as the durable user profile foundation',
       'event_ai_profiles',
       'assistant_memory',
       'user_event_preferences',
