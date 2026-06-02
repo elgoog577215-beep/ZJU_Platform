@@ -7,11 +7,12 @@ import {
   useLocation,
 } from 'react-router-dom';
 import { useAuth, AuthProvider } from './context/AuthContext';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Toaster } from 'react-hot-toast';
 import { MusicProvider } from './context/MusicContext';
 import { SettingsProvider, useSettings } from './context/SettingsContext';
 import { HelmetProvider } from 'react-helmet-async';
+import { useTranslation } from 'react-i18next';
 import ErrorBoundary from './components/ErrorBoundary';
 import { ResourceHints } from './components/ResourceHints';
 import { useMediaQuery } from './hooks/useMediaQuery';
@@ -31,26 +32,67 @@ import Footer from './components/Footer';
 import LoadingScreen from './components/LoadingScreen';
 import PerformancePanel from './components/PerformancePanel';
 
-const Hero = lazy(() => import('./components/Hero'));
-const Gallery = lazy(() => import('./components/Gallery'));
-const MediaLibrary = lazy(() => import('./components/MediaLibrary'));
-const Music = lazy(() => import('./components/Music'));
-const Videos = lazy(() => import('./components/Videos'));
-const Articles = lazy(() => import('./components/AICommunity'));
-const Events = lazy(() => import('./components/Events'));
-const HomeCategories = lazy(() => import('./components/HomeCategories'));
-const PlatformStats = lazy(() => import('./components/PlatformStats'));
-const About = lazy(() => import('./components/About'));
-const HackathonSeasonOne = lazy(() => import('./components/HackathonSeasonOne'));
-const HackathonWorks = lazy(() => import('./components/HackathonWorks'));
-const FutureLearningCenter = lazy(() => import('./components/FutureLearningCenter'));
-const AdminDashboard = lazy(() => import('./components/Admin/AdminDashboard'));
-const AdminAccessGate = lazy(() => import('./components/Admin/AdminAccessGate'));
-const NotFound = lazy(() => import('./components/NotFound'));
-const PublicProfile = lazy(() => import('./components/PublicProfile'));
-const SearchPalette = lazy(() => import('./components/SearchPalette'));
-const GlobalPlayer = lazy(() => import('./components/GlobalPlayer'));
-const BackgroundSystem = lazy(() => import('./components/BackgroundSystem'));
+const CHUNK_RELOAD_KEY = 'zju-platform:chunk-reload-attempted';
+
+const isChunkLoadError = (error) => {
+  const message = String(error?.message || error || '');
+  return /ChunkLoadError|Loading chunk|Failed to fetch dynamically imported module|Importing a module script failed|dynamically imported module/i.test(message);
+};
+
+const clearClientCaches = async () => {
+  if (typeof window === 'undefined') return;
+
+  try {
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map((registration) => registration.unregister()));
+    }
+
+    if ('caches' in window) {
+      const cacheNames = await window.caches.keys();
+      await Promise.all(cacheNames.map((cacheName) => window.caches.delete(cacheName)));
+    }
+  } catch {
+    // Cache cleanup is best-effort; reloading still gives the browser a fresh route request.
+  }
+};
+
+const lazyWithRecovery = (loader) =>
+  lazy(() =>
+    loader().catch(async (error) => {
+      if (isChunkLoadError(error) && typeof window !== 'undefined') {
+        const alreadyRetried = window.sessionStorage.getItem(CHUNK_RELOAD_KEY) === '1';
+        if (!alreadyRetried) {
+          window.sessionStorage.setItem(CHUNK_RELOAD_KEY, '1');
+          await clearClientCaches();
+          window.location.reload();
+          return new Promise(() => {});
+        }
+      }
+      throw error;
+    }),
+  );
+
+const Hero = lazyWithRecovery(() => import('./components/Hero'));
+const Gallery = lazyWithRecovery(() => import('./components/Gallery'));
+const MediaLibrary = lazyWithRecovery(() => import('./components/MediaLibrary'));
+const Music = lazyWithRecovery(() => import('./components/Music'));
+const Videos = lazyWithRecovery(() => import('./components/Videos'));
+const Articles = lazyWithRecovery(() => import('./components/AICommunity'));
+const Events = lazyWithRecovery(() => import('./components/Events'));
+const HomeCategories = lazyWithRecovery(() => import('./components/HomeCategories'));
+const PlatformStats = lazyWithRecovery(() => import('./components/PlatformStats'));
+const About = lazyWithRecovery(() => import('./components/About'));
+const HackathonSeasonOne = lazyWithRecovery(() => import('./components/HackathonSeasonOne'));
+const HackathonWorks = lazyWithRecovery(() => import('./components/HackathonWorks'));
+const FutureLearningCenter = lazyWithRecovery(() => import('./components/FutureLearningCenter'));
+const AdminDashboard = lazyWithRecovery(() => import('./components/Admin/AdminDashboard'));
+const AdminAccessGate = lazyWithRecovery(() => import('./components/Admin/AdminAccessGate'));
+const NotFound = lazyWithRecovery(() => import('./components/NotFound'));
+const PublicProfile = lazyWithRecovery(() => import('./components/PublicProfile'));
+const SearchPalette = lazyWithRecovery(() => import('./components/SearchPalette'));
+const GlobalPlayer = lazyWithRecovery(() => import('./components/GlobalPlayer'));
+const BackgroundSystem = lazyWithRecovery(() => import('./components/BackgroundSystem'));
 
 const useDeferredMount = (delay = 0) => {
   const [mounted, setMounted] = useState(false);
@@ -105,6 +147,7 @@ const AdminRoute = ({ children }) => {
 };
 
 const AppContent = () => {
+  const { t } = useTranslation();
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isHomeRoute = location.pathname === '/';
@@ -166,7 +209,7 @@ const AppContent = () => {
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-6 focus:py-3 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
       >
-        跳转到主要内容
+        {t('common.skip_to_main', '跳转到主要内容')}
       </a>
       {(
         <ErrorBoundary variant="inline" silent>
@@ -193,37 +236,35 @@ const AppContent = () => {
 
       <main id="main-content" className={`flex-grow ${isImmersiveRoute ? 'pb-0' : 'pb-32 md:pb-0'}`} role="main">
         <Suspense fallback={<LoadingScreen />}>
-          <AnimatePresence mode="wait" initial={false}>
-            <Routes location={location} key={location.pathname}>
-              <Route path="/" element={<PageTransition><Home /></PageTransition>} />
-              <Route path="/media" element={<PageTransition><MediaLibrary /></PageTransition>} />
-              <Route path="/gallery" element={<PageTransition><Gallery /></PageTransition>} />
-              <Route path="/music" element={<PageTransition><Music /></PageTransition>} />
-              <Route path="/videos" element={<PageTransition><Videos /></PageTransition>} />
-              <Route path="/articles" element={<PageTransition><Articles /></PageTransition>} />
-              <Route path="/ai-community" element={<Navigate to="/articles" replace />} />
-              <Route path="/community" element={<Navigate to="/articles" replace />} />
-              <Route path="/community/help" element={<Navigate to="/articles?tab=help" replace />} />
-              <Route path="/community/tech" element={<Navigate to="/articles?tab=tech" replace />} />
-              <Route path="/community/groups" element={<Navigate to="/articles?tab=groups" replace />} />
-              <Route path="/events" element={<PageTransition><Events /></PageTransition>} />
-              <Route path="/about" element={<PageTransition><About /></PageTransition>} />
-              <Route path="/hackathon" element={<PageTransition><HackathonSeasonOne /></PageTransition>} />
-              <Route path="/hackathon/showcase" element={<PageTransition><HackathonSeasonOne /></PageTransition>} />
-              <Route path="/hackathon/works" element={<PageTransition><HackathonWorks /></PageTransition>} />
-              <Route path="/future-learning" element={<PageTransition><FutureLearningCenter /></PageTransition>} />
-              <Route
-                path="/admin"
-                element={
-                  <AdminRoute>
-                    <AdminDashboard />
-                  </AdminRoute>
-                }
-              />
-              <Route path="/user/:id" element={<PageTransition><PublicProfile /></PageTransition>} />
-              <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
-            </Routes>
-          </AnimatePresence>
+          <Routes location={location} key={location.pathname}>
+            <Route path="/" element={<PageTransition><Home /></PageTransition>} />
+            <Route path="/media" element={<PageTransition><MediaLibrary /></PageTransition>} />
+            <Route path="/gallery" element={<PageTransition><Gallery /></PageTransition>} />
+            <Route path="/music" element={<PageTransition><Music /></PageTransition>} />
+            <Route path="/videos" element={<PageTransition><Videos /></PageTransition>} />
+            <Route path="/articles" element={<PageTransition><Articles /></PageTransition>} />
+            <Route path="/ai-community" element={<Navigate to="/articles" replace />} />
+            <Route path="/community" element={<Navigate to="/articles" replace />} />
+            <Route path="/community/help" element={<Navigate to="/articles?tab=help" replace />} />
+            <Route path="/community/tech" element={<Navigate to="/articles?tab=tech" replace />} />
+            <Route path="/community/groups" element={<Navigate to="/articles?tab=groups" replace />} />
+            <Route path="/events" element={<PageTransition><Events /></PageTransition>} />
+            <Route path="/about" element={<PageTransition><About /></PageTransition>} />
+            <Route path="/hackathon" element={<PageTransition><HackathonSeasonOne /></PageTransition>} />
+            <Route path="/hackathon/showcase" element={<PageTransition><HackathonSeasonOne /></PageTransition>} />
+            <Route path="/hackathon/works" element={<PageTransition><HackathonWorks /></PageTransition>} />
+            <Route path="/future-learning" element={<PageTransition><FutureLearningCenter /></PageTransition>} />
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
+              }
+            />
+            <Route path="/user/:id" element={<PageTransition><PublicProfile /></PageTransition>} />
+            <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
+          </Routes>
         </Suspense>
       </main>
 

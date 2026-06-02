@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   ArrowRight,
   CalendarDays,
@@ -31,11 +32,31 @@ import SEO from "./SEO";
 const HERO_IMAGE = "/images/hero-campus-day-4k.jpg";
 const SECONDARY_IMAGE = "/images/hero-landscape-day-4k.jpg";
 
+const partnerEnglishNameMap = {
+  未来学习中心: "Future Learning Center",
+  "AI 联合实验室": "AI Joint Lab",
+  "ModelScope 魔搭社区": "ModelScope",
+  阿里云: "Alibaba Cloud",
+  "阶跃 StepFun": "StepFun",
+};
+
+const localizeFallbackWork = (work, index, t) => ({
+  ...work,
+  award: t(`hackathon.showcase.fallback_works.${index}.award`, work.award),
+  title: t(`hackathon.showcase.fallback_works.${index}.title`, work.title),
+  author: t(`hackathon.showcase.fallback_works.${index}.author`, work.author),
+});
+
+const getLocalizedPartnerName = (partner = {}, isEnglish = false) => {
+  const displayName = getPartnerDisplayName(partner);
+  return isEnglish ? partnerEnglishNameMap[displayName] || displayName : displayName;
+};
+
 const eventStats = [
-  { value: "5", unit: "小时", label: "极速交付" },
-  { value: "1", unit: "个人", label: "独立完成" },
-  { value: "0", unit: "路演", label: "只看作品" },
-  { value: "17,500", shortValue: "1.75万", unit: "¥", label: "奖金池" },
+  { key: "hours", value: "5", unit: "小时", label: "极速交付" },
+  { key: "solo", value: "1", unit: "个人", label: "独立完成" },
+  { key: "pitch", value: "0", unit: "路演", label: "只看作品" },
+  { key: "prize", value: "17,500", shortValue: "1.75万", unit: "¥", label: "奖金池" },
 ];
 
 const mediaMoments = [
@@ -82,11 +103,11 @@ const actionLinks = [
   { label: "后续活动", detail: "加入社群，继续参与 AI 共创", icon: Sparkles },
 ];
 
-const showcaseSections = [
-  { id: "gate", no: "01", label: "SIGNAL GATE", title: "首页" },
-  { id: "gallery", no: "02", label: "GALLERY", title: "赛场" },
-  { id: "works", no: "03", label: "WORKS INDEX", title: "作品" },
-  { id: "partners", no: "04", label: "ECOSYSTEM", title: "共创" },
+const showcaseSectionBase = [
+  { id: "gate", no: "01", label: "SIGNAL GATE", titleKey: "hackathon.showcase.sections.gate", title: "首页" },
+  { id: "gallery", no: "02", label: "GALLERY", titleKey: "hackathon.showcase.sections.gallery", title: "赛场" },
+  { id: "works", no: "03", label: "WORKS INDEX", titleKey: "hackathon.showcase.sections.works", title: "作品" },
+  { id: "partners", no: "04", label: "ECOSYSTEM", titleKey: "hackathon.showcase.sections.partners", title: "共创" },
 ];
 
 const normalizeShowcaseRank = (rank, index) => {
@@ -109,17 +130,51 @@ const StageAtmosphere = ({ word, align = "right" }) => (
 );
 
 const HackathonShowcase = () => {
+  const { t, i18n } = useTranslation();
   const { uiMode } = useSettings();
   const { groups: ecosystemPartnerGroups } = useEcosystemPartners();
   const reduceMotion = useReducedMotion();
   const shouldAnimate = !reduceMotion;
   const isDayMode = uiMode === "day";
+  const isEnglish = String(i18n.resolvedLanguage || i18n.language || "").startsWith("en");
   const pageRef = useRef(null);
   const snapRestoreTimerRef = useRef(null);
   const [activeSection, setActiveSection] = useState(0);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [uploadType, setUploadType] = useState(null);
   const [outcome, setOutcome] = useState(null);
+  const showcaseSections = useMemo(
+    () => showcaseSectionBase.map((section) => ({
+      ...section,
+      title: t(section.titleKey, section.title),
+    })),
+    [t],
+  );
+  const localizedEventStats = useMemo(
+    () => eventStats.map((stat) => ({
+      ...stat,
+      unit: t(`hackathon.showcase.stats.${stat.key}.unit`, stat.unit),
+      label: t(`hackathon.showcase.stats.${stat.key}.label`, stat.label),
+    })),
+    [t],
+  );
+  const localizedMediaMoments = useMemo(
+    () => mediaMoments.map((item) => ({
+      ...item,
+      label: t(`hackathon.showcase.media.${item.id}.label`, item.label),
+      title: t(`hackathon.showcase.media.${item.id}.title`, item.title),
+      caption: t(`hackathon.showcase.media.${item.id}.caption`, item.caption),
+    })),
+    [t],
+  );
+  const localizedActionLinks = useMemo(
+    () => actionLinks.map((item, index) => ({
+      ...item,
+      label: t(`hackathon.showcase.actions.${index}.label`, item.label),
+      detail: t(`hackathon.showcase.actions.${index}.detail`, item.detail),
+    })),
+    [t],
+  );
 
   const fetchOutcome = async () => {
     try {
@@ -132,7 +187,7 @@ const HackathonShowcase = () => {
 
   useEffect(() => {
     fetchOutcome();
-  }, []);
+  }, [showcaseSections]);
 
   useEffect(() => {
     const container = pageRef.current;
@@ -217,52 +272,57 @@ const HackathonShowcase = () => {
     const stagePhotos = Array.isArray(outcome?.media?.stage_photos)
       ? outcome.media.stage_photos
       : [];
-    if (stagePhotos.length === 0) return mediaMoments;
+    if (stagePhotos.length === 0) return localizedMediaMoments;
 
     const dynamicMoments = stagePhotos.slice(0, 5).map((item, index) => ({
       id: `${item.source_table || "stage"}-${item.source_id || item.id || index}`,
-      label: item.type_label || item.category || "赛场照片",
-      title: item.title || mediaMoments[index % mediaMoments.length].title,
-      caption: item.description || item.gameDescription || "来自画廊的黑客松成果照片，审核通过后自动同步到这里。",
-      image: item.cover_url || item.url || mediaMoments[index % mediaMoments.length].image,
+      label: item.type_label || item.category || t("hackathon.showcase.gallery.stage_photo", "赛场照片"),
+      title: item.title || localizedMediaMoments[index % localizedMediaMoments.length].title,
+      caption: item.description || item.gameDescription || t("hackathon.showcase.gallery.dynamic_caption", "来自画廊的黑客松成果照片，审核通过后自动同步到这里。"),
+      image: item.cover_url || item.url || localizedMediaMoments[index % localizedMediaMoments.length].image,
     }));
 
     return [
       ...dynamicMoments,
-      ...mediaMoments.slice(dynamicMoments.length),
+      ...localizedMediaMoments.slice(dynamicMoments.length),
     ].slice(0, 5);
-  }, [outcome]);
+  }, [localizedMediaMoments, outcome, t]);
 
   const showcaseWorks = useMemo(() => {
     const works = Array.isArray(outcome?.works) ? outcome.works : [];
-    if (works.length === 0) return fallbackPodiumWorks;
+    if (works.length === 0) return fallbackPodiumWorks.map((work, index) => localizeFallbackWork(work, index, t));
     return works.slice(0, 3).map((work, index) => ({
       id: work.id,
       rank: normalizeShowcaseRank(work.rank, index),
-      award: work.award || work.honor_title || "优秀作品",
-      title: work.title || "未命名作品",
-      author: work.author || work.uploader_name || "获奖成员",
+      award: work.award || work.honor_title || t("hackathon.showcase.works.fallback_award", "优秀作品"),
+      title: work.title || t("hackathon.showcase.works.fallback_title", "未命名作品"),
+      author: work.author || work.uploader_name || t("hackathon.showcase.works.fallback_author", "获奖成员"),
       gitUrl: work.git_url || work.gitUrl || "",
       cover: work.cover_url || work.cover || (index % 2 === 0 ? HERO_IMAGE : SECONDARY_IMAGE),
       summary: work.summary || work.description || "",
-      honorTitle: work.honor_title || work.honorTitle || work.award || "Top 20 获奖成员",
+      honorTitle: work.honor_title || work.honorTitle || work.award || t("hackathon.showcase.works.fallback_honor", "Top 20 获奖成员"),
     }));
-  }, [outcome]);
+  }, [outcome, t]);
 
   const publishedWorksCount = outcome?.stats?.works || showcaseWorks.length;
   const supportLineup = useMemo(() => {
     const detailByCategory = {
-      school: "场地资源、导师评审、校园传播与长期机制支持。",
-      organization: "选手招募、志愿执行、现场协同与赛后社群承接。",
-      enterprise: "模型、云资源、AI 工具、技术支持与合作方传播露出。",
+      school: t("hackathon.showcase.partners.detail.school", "场地资源、导师评审、校园传播与长期机制支持。"),
+      organization: t("hackathon.showcase.partners.detail.organization", "选手招募、志愿执行、现场协同与赛后社群承接。"),
+      enterprise: t("hackathon.showcase.partners.detail.enterprise", "模型、云资源、AI 工具、技术支持与合作方传播露出。"),
     };
 
     return ecosystemPartnerGroups.map((group) => ({
       ...group,
+      label: isEnglish ? group.code || group.label : group.shortLabel || group.label,
       detail: detailByCategory[group.id] || "",
       logo: group.id === "enterprise",
+      partners: group.partners.map((partner) => ({
+        ...partner,
+        displayName: getLocalizedPartnerName(partner, isEnglish),
+      })),
     }));
-  }, [ecosystemPartnerGroups]);
+  }, [ecosystemPartnerGroups, isEnglish, t]);
   const supportPartnerCount = supportLineup.reduce(
     (total, group) => total + group.partners.length,
     0,
@@ -375,7 +435,7 @@ const HackathonShowcase = () => {
     typeof document !== "undefined"
       ? createPortal(
           <nav
-            aria-label="比赛成果展览章节"
+            aria-label={t("hackathon.showcase.nav_aria", "比赛成果展览章节")}
             className={`fixed right-4 top-1/2 z-[120] hidden -translate-y-1/2 border p-2 backdrop-blur-2xl lg:block ${theme.chapterShell}`}
           >
             <div className={`pointer-events-none absolute bottom-3 left-1/2 top-3 w-px -translate-x-1/2 bg-gradient-to-b ${theme.chapterLine}`} />
@@ -388,7 +448,7 @@ const HackathonShowcase = () => {
                   className={`group relative flex h-10 w-10 items-center justify-center border text-[11px] font-black transition duration-200 ${
                     activeSection === index ? theme.chapterActive : theme.chapterIdle
                   }`}
-                  aria-label={`跳转到${step.title}章节`}
+                  aria-label={t("hackathon.showcase.jump_to_section", "跳转到{{title}}章节", { title: step.title })}
                 >
                   {step.no}
                   <span className={`pointer-events-none absolute right-full mr-3 min-w-[132px] border px-3 py-2 text-left text-[11px] font-black uppercase opacity-0 backdrop-blur transition duration-200 group-hover:opacity-100 ${theme.chapterTip}`}>
@@ -412,8 +472,8 @@ const HackathonShowcase = () => {
       }}
     >
       <SEO
-        title="AI 全栈极速黑客松比赛成果"
-        description="AI 全栈极速黑客松比赛成果页，集中呈现宣传片、赛场照片、优秀作品和活动成果。"
+        title={t("hackathon.showcase.meta_title", "AI 全栈极速黑客松比赛成果")}
+        description={t("hackathon.showcase.meta_desc", "AI 全栈极速黑客松比赛成果页，集中呈现宣传片、赛场照片、优秀作品和活动成果。")}
         image={HERO_IMAGE}
       />
       <style>
@@ -1174,7 +1234,7 @@ const HackathonShowcase = () => {
               className={`min-w-[64px] flex-1 border px-2 py-2 text-[11px] font-black transition duration-200 ${
                 activeSection === index ? theme.chapterActive : theme.chapterIdle
               }`}
-              aria-label={`跳转到${step.title}章节`}
+              aria-label={t("hackathon.showcase.jump_to_section", "跳转到{{title}}章节", { title: step.title })}
             >
               <span className="block font-mono">{step.no}</span>
               <span className="mt-0.5 block whitespace-nowrap">{step.title}</span>
@@ -1213,13 +1273,13 @@ const HackathonShowcase = () => {
               Official Film Inside
             </p>
             <h1 className={`showcase-hero-wordmark max-w-[1020px] font-black ${theme.heroTitle}`}>
-              <span className="hidden whitespace-nowrap sm:block">AI 全栈极速</span>
-              <span className="block sm:hidden">AI 全栈</span>
-              <span className="block sm:hidden">极速</span>
-              <span className="showcase-hero-line--result block text-cyan-200 drop-shadow-[0_0_34px_rgba(103,232,249,0.62)]">比赛成果</span>
+              <span className="hidden whitespace-nowrap sm:block">{t("hackathon.showcase.hero.title_desktop", "AI 全栈极速")}</span>
+              <span className="block sm:hidden">{t("hackathon.showcase.hero.title_mobile_1", "AI 全栈")}</span>
+              <span className="block sm:hidden">{t("hackathon.showcase.hero.title_mobile_2", "极速")}</span>
+              <span className="showcase-hero-line--result block text-cyan-200 drop-shadow-[0_0_34px_rgba(103,232,249,0.62)]">{t("hackathon.showcase.hero.result", "比赛成果")}</span>
             </h1>
             <p className={`mt-5 max-w-[46rem] text-base font-semibold leading-7 sm:mt-6 sm:text-lg sm:leading-8 lg:text-xl lg:leading-9 ${theme.heroCopy}`}>
-              5 小时 AI 原生开发冲刺的赛后成果展。宣传片、现场影像、获奖作品与传播素材在这里完成一次集中发布。
+              {t("hackathon.showcase.hero.desc", "5 小时 AI 原生开发冲刺的赛后成果展。宣传片、现场影像、获奖作品与传播素材在这里完成一次集中发布。")}
             </p>
             <div className="mt-7 flex flex-wrap gap-3 sm:mt-8">
               <button
@@ -1228,21 +1288,21 @@ const HackathonShowcase = () => {
                 className={`inline-flex min-h-12 items-center justify-center gap-2 px-6 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 ${theme.primaryButton}`}
               >
                 <Upload className="h-4 w-4" />
-                提交成果
+                {t("hackathon.showcase.hero.submit", "提交成果")}
               </button>
               <a
                 href="#showcase-official-film"
                 className={`group inline-flex min-h-12 items-center justify-center gap-2 border px-6 text-sm font-bold transition duration-200 focus:outline-none focus:ring-4 ${theme.secondaryButton}`}
               >
                 <Play className="h-4 w-4 fill-current" />
-                观看宣传片
+                {t("hackathon.showcase.hero.watch_film", "观看宣传片")}
               </a>
               <button
                 type="button"
                 onClick={() => smoothScrollTo("works")}
                 className={`inline-flex min-h-12 items-center justify-center gap-2 border px-6 text-sm font-bold transition duration-200 focus:outline-none focus:ring-4 ${theme.secondaryButton}`}
               >
-                查看优秀作品
+                {t("hackathon.showcase.hero.view_works", "查看优秀作品")}
                 <ArrowRight className="h-4 w-4" />
               </button>
             </div>
@@ -1266,7 +1326,7 @@ const HackathonShowcase = () => {
             ) : (
               <img
                 src={SECONDARY_IMAGE}
-                alt="黑客松宣传片封面"
+                alt={t("hackathon.showcase.hero.poster_alt", "黑客松宣传片封面")}
                 className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.025]"
                 style={{ filter: "brightness(0.72) saturate(1.18) contrast(1.08)" }}
               />
@@ -1279,7 +1339,7 @@ const HackathonShowcase = () => {
               <button
                 type="button"
                 className={`absolute left-1/2 top-1/2 z-10 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border backdrop-blur-xl transition duration-300 hover:scale-105 focus:outline-none focus:ring-4 sm:h-24 sm:w-24 lg:h-28 lg:w-28 ${theme.playButton}`}
-                aria-label="播放宣传片"
+                aria-label={t("hackathon.showcase.hero.play_film", "播放宣传片")}
               >
                 <Play className="ml-1 h-8 w-8 fill-current sm:h-9 sm:w-9 lg:h-10 lg:w-10" />
               </button>
@@ -1290,7 +1350,7 @@ const HackathonShowcase = () => {
                   5 HOURS / 1 BUILDER / REAL PRODUCT
                 </p>
                 <h2 className="mt-2 max-w-3xl text-2xl font-black leading-none text-white sm:text-4xl lg:text-5xl 2xl:text-6xl">
-                  从赛场声浪到作品上线
+                  {t("hackathon.showcase.hero.fallback_title", "从赛场声浪到作品上线")}
                 </h2>
               </div>
             ) : null}
@@ -1302,7 +1362,7 @@ const HackathonShowcase = () => {
           className={`showcase-hero-stat-dock absolute bottom-11 z-10 hidden overflow-hidden border-y backdrop-blur-xl sm:block ${theme.statPanel}`}
         >
           <div className={`showcase-stat-rail divide-x ${theme.statDivider}`}>
-            {eventStats.map((stat) => (
+            {localizedEventStats.map((stat) => (
               <div key={stat.label} className="px-5 py-4 lg:px-7 lg:py-4">
                 <div className="flex items-end gap-2">
                   <span className={`font-mono text-4xl font-black leading-none lg:text-5xl 2xl:text-6xl ${theme.statValue}`}>
@@ -1334,12 +1394,12 @@ const HackathonShowcase = () => {
                 Chapter 02 / Gallery
               </p>
               <h2 className="mt-5 text-5xl font-black leading-none sm:text-7xl">
-                赛场照片集锦
+                {t("hackathon.showcase.gallery.title", "赛场照片集锦")}
               </h2>
             </div>
             <div className="flex flex-col gap-4 md:items-end">
               <p className={`max-w-xl text-base leading-8 ${theme.muted}`}>
-                用精选大图讲清楚事件规模、人物状态、组织质量和颁奖成果。
+                {t("hackathon.showcase.gallery.desc", "用精选大图讲清楚事件规模、人物状态、组织质量和颁奖成果。")}
               </p>
               <div className="flex flex-wrap gap-3 md:justify-end">
                 <Link
@@ -1347,7 +1407,7 @@ const HackathonShowcase = () => {
                   className={`inline-flex min-h-12 w-full items-center justify-center gap-2 border px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 sm:w-auto ${theme.secondaryButton}`}
                 >
                   <ImageIcon className="h-4 w-4" />
-                  查看所有照片
+                  {t("hackathon.showcase.gallery.view_all", "查看所有照片")}
                   <ArrowRight className="h-4 w-4" />
                 </Link>
                 <button
@@ -1356,7 +1416,7 @@ const HackathonShowcase = () => {
                   className={`inline-flex min-h-12 w-full items-center justify-center gap-2 px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 sm:w-auto ${theme.primaryButton}`}
                 >
                   <Upload className="h-4 w-4" />
-                  上传赛场照片
+                  {t("hackathon.showcase.gallery.upload", "上传赛场照片")}
                 </button>
               </div>
             </div>
@@ -1408,7 +1468,7 @@ const HackathonShowcase = () => {
                 Chapter 03 / Winning Works
               </p>
               <h2 className="mt-5 text-5xl font-black leading-none sm:text-7xl">
-                优秀作品展示
+                {t("hackathon.showcase.works.title", "优秀作品展示")}
               </h2>
             </div>
             <div className="mt-6 flex flex-wrap gap-3">
@@ -1416,7 +1476,7 @@ const HackathonShowcase = () => {
                 to="/hackathon/works"
                 className={`inline-flex min-h-12 items-center justify-center gap-2 border px-5 text-sm font-black transition duration-200 ${theme.chip} hover:border-cyan-300/60 hover:text-cyan-300`}
               >
-                查看全部 {publishedWorksCount} 个获奖作品
+                {t("hackathon.showcase.works.view_all", "查看全部 {{count}} 个获奖作品", { count: publishedWorksCount })}
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <button
@@ -1425,7 +1485,7 @@ const HackathonShowcase = () => {
                 className={`inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 ${theme.primaryButton}`}
               >
                 <Upload className="h-4 w-4" />
-                提交作品/经验
+                {t("hackathon.showcase.works.submit", "提交作品/经验")}
               </button>
             </div>
           </div>
@@ -1439,11 +1499,11 @@ const HackathonShowcase = () => {
                 <Link
                   to="/hackathon/works"
                   className="showcase-project-surface relative block min-h-[270px] overflow-hidden"
-                  aria-label={`查看${work.title}详情`}
+                  aria-label={t("hackathon.showcase.works.project_aria", "查看{{title}}详情", { title: work.title })}
                 >
                   <img
                     src={work.cover || (index % 2 === 0 ? HERO_IMAGE : SECONDARY_IMAGE)}
-                    alt={`${work.title} 作品封面`}
+                    alt={t("hackathon.showcase.works.cover_alt", "{{title}} 作品封面", { title: work.title })}
                     className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]"
                     style={{ filter: isDayMode ? "brightness(0.88) saturate(1.08) contrast(1.02)" : "brightness(0.68) saturate(1.16) contrast(1.08)" }}
                     loading={index === 0 ? "eager" : "lazy"}
@@ -1474,7 +1534,7 @@ const HackathonShowcase = () => {
                       <div className={`h-full shadow-[0_0_18px_currentColor] ${index === 0 ? "w-full bg-amber-300 text-amber-300" : "w-3/4 bg-cyan-300 text-cyan-300"}`} />
                     </div>
                     <span className="mt-4 inline-flex min-h-9 items-center border border-white/18 bg-white/12 px-3 text-xs font-black text-white opacity-0 backdrop-blur transition duration-300 group-hover:opacity-100">
-                      查看完整作品
+                      {t("hackathon.showcase.works.view_full", "查看完整作品")}
                     </span>
                   </div>
                 </Link>
@@ -1494,7 +1554,7 @@ const HackathonShowcase = () => {
                       rel="noreferrer"
                       className={`mt-7 inline-flex min-h-11 items-center justify-center gap-2 border px-4 text-sm font-black transition duration-200 ${theme.chip} hover:border-cyan-300/60 hover:text-cyan-300`}
                     >
-                      Git 链接
+                      {t("hackathon.showcase.works.git_link", "Git 链接")}
                       <ExternalLink className="h-4 w-4" />
                     </a>
                   ) : (
@@ -1502,7 +1562,7 @@ const HackathonShowcase = () => {
                       to="/hackathon/works"
                       className={`mt-7 inline-flex min-h-11 items-center justify-center gap-2 border px-4 text-sm font-black transition duration-200 ${theme.chip} hover:border-cyan-300/60 hover:text-cyan-300`}
                     >
-                      查看详情
+                      {t("common.details", "查看详情")}
                       <ArrowRight className="h-4 w-4" />
                     </Link>
                   )}
@@ -1526,20 +1586,20 @@ const HackathonShowcase = () => {
           <div className={`showcase-partner-layout border-b p-5 ${theme.border} lg:p-8`}>
             <aside className={`flex flex-col border-b pb-6 ${theme.border} lg:border-b-0 lg:border-r lg:pb-0 lg:pr-8`}>
               <h2 className="text-4xl font-black leading-none sm:text-7xl">
-                共同见证
+                {t("hackathon.showcase.partners.title", "共同见证")}
               </h2>
               <p className={`mt-6 max-w-lg text-base leading-8 ${theme.muted}`}>
-                学校支持、社团协作与企业生态共同在场，让赛后传播有清晰背书。
+                {t("hackathon.showcase.partners.desc", "学校支持、社团协作与企业生态共同在场，让赛后传播有清晰背书。")}
               </p>
               <div className={`mt-8 border-t pt-6 ${theme.border} lg:mt-auto`}>
                 <p className={`text-xs font-black uppercase tracking-[0.22em] ${theme.accent}`}>
-                  支持阵容
+                  {t("hackathon.showcase.partners.lineup", "支持阵容")}
                 </p>
                 <p className="mt-2 text-3xl font-black tracking-tight">
-                  {supportLineup.length} 类 / {supportPartnerCount} 个支持方
+                  {t("hackathon.showcase.partners.counts", "{{groups}} 类 / {{partners}} 个支持方", { groups: supportLineup.length, partners: supportPartnerCount })}
                 </p>
                 <p className={`mt-2 text-sm font-semibold leading-7 ${theme.muted}`}>
-                  学校、社团与企业伙伴共同构成完整赛事背书。
+                  {t("hackathon.showcase.partners.summary", "学校、社团与企业伙伴共同构成完整赛事背书。")}
                 </p>
               </div>
             </aside>
@@ -1582,17 +1642,17 @@ const HackathonShowcase = () => {
                           {getPartnerLogoSrc(partner, isDayMode) ? (
                             <img
                               src={getPartnerLogoSrc(partner, isDayMode)}
-                              alt={`${partner.name} logo`}
+                              alt={`${partner.displayName} logo`}
                               className={`max-h-8 w-auto max-w-full object-contain opacity-95 transition duration-300 group-hover:scale-[1.04] ${partner.size || ""} ${!isDayMode ? partner.darkClassName || "" : ""}`}
                               loading="lazy"
                             />
                           ) : (
                             <span className="text-base font-black leading-tight">
-                              {getPartnerDisplayName(partner)}
+                              {partner.displayName}
                             </span>
                           )}
                           <span className={`text-[10px] font-black uppercase leading-tight ${theme.soft}`}>
-                            {getPartnerDisplayName(partner)}
+                            {partner.displayName}
                           </span>
                         </div>
                       ) : (
@@ -1600,7 +1660,7 @@ const HackathonShowcase = () => {
                           key={partner.id || partner.name}
                           className={`showcase-support-tile flex items-center justify-center border px-3 py-3 text-center text-base font-black tracking-tight transition duration-300 hover:-translate-y-0.5 hover:border-cyan-300/50 hover:bg-cyan-300/[0.08] sm:min-h-[5.25rem] sm:text-lg ${theme.chip}`}
                         >
-                          {partner.name}
+                          {partner.displayName}
                         </div>
                       )
                     ))}
@@ -1612,7 +1672,7 @@ const HackathonShowcase = () => {
 
           <div className={`flex flex-col gap-5 p-5 ${theme.border} lg:flex-row lg:items-center lg:justify-between lg:p-6`}>
             <div className="showcase-action-tool-grid flex-1">
-              {actionLinks.map((action) => {
+              {localizedActionLinks.map((action) => {
                 const Icon = action.icon;
                 return (
                   <button
@@ -1634,14 +1694,14 @@ const HackathonShowcase = () => {
                 to="/articles"
                 className={`inline-flex min-h-12 items-center justify-center gap-2 px-6 text-sm font-black transition ${theme.ctaPrimary}`}
               >
-                加入 AI 社区
+                {t("hackathon.showcase.partners.join", "加入 AI 社区")}
                 <Users className="h-4 w-4" />
               </Link>
               <Link
                 to="/hackathon"
                 className={`inline-flex min-h-12 items-center justify-center gap-2 border px-6 text-sm font-bold transition ${theme.chip} hover:border-cyan-300/60`}
               >
-                返回赛事页
+                {t("hackathon.showcase.partners.back", "返回赛事页")}
                 <CalendarDays className="h-4 w-4" />
               </Link>
             </div>

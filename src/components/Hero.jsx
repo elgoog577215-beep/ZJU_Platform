@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useSettings } from "../context/SettingsContext";
 import {
@@ -11,6 +12,7 @@ import {
 } from "../utils/animations";
 
 const Hero = ({ id, onScrollNext } = {}) => {
+  const { t, i18n } = useTranslation();
   const { scrollY } = useScroll();
   const y = useTransform(scrollY, [0, 500], [0, 200]);
   const opacity = useTransform(scrollY, [0, 300], [1, 0]);
@@ -26,10 +28,16 @@ const Hero = ({ id, onScrollNext } = {}) => {
     settings.hero_bg_url || "/uploads/1767349451839-56405188.jpg";
   const dayHeroImage = "/images/hero-landscape-day-4k.jpg";
   const heroImage = uiMode === "day" ? dayHeroImage : nightHeroImage;
-  const heroTitle = settings.hero_title || "浙江大学信息聚合平台";
+  const configuredHeroTitle = settings.hero_title;
+  const configuredHeroSubtitle = settings.hero_subtitle;
+  const shouldUseLocalizedDefaults = i18n.resolvedLanguage === "en";
+  const isEnglish = i18n.resolvedLanguage === "en";
+  const heroTitle = shouldUseLocalizedDefaults
+    ? t("hero.zju_title", "Zhejiang University Information Hub")
+    : configuredHeroTitle || t("hero.zju_title", "Zhejiang University Information Hub");
   const defaultTitleSegments =
-    heroTitle === "浙江大学信息聚合平台"
-      ? ["浙江大学", "信息聚合平台"]
+    isEnglish && heroTitle === t("hero.zju_title", "Zhejiang University Information Hub")
+      ? [t("hero.zju_title_line_1", "Zhejiang University"), t("hero.zju_title_line_2", "Information Hub")]
       : null;
 
   useEffect(() => {
@@ -54,8 +62,8 @@ const Hero = ({ id, onScrollNext } = {}) => {
     ? "opacity-100 saturate-[1.12] contrast-[1.04]"
     : "opacity-52 saturate-[1.18] contrast-[1.08]";
   const titleClass = isDayMode
-    ? "home-hero-title home-hero-title-day mx-auto mb-4 max-w-[12ch] text-balance text-[2.55rem] font-black leading-[0.96] tracking-normal sm:text-[4.4rem] md:mb-6 md:max-w-none md:whitespace-nowrap md:text-[5.55rem] lg:text-[6.45rem] xl:text-[7rem]"
-    : "home-hero-title home-hero-title-night mx-auto mb-4 max-w-[12ch] text-balance text-[2.45rem] font-black leading-[0.98] tracking-normal sm:text-[4.4rem] md:mb-6 md:max-w-none md:whitespace-nowrap md:text-[5.55rem] lg:text-[6.45rem] xl:text-[7rem]";
+    ? `home-hero-title home-hero-title-day mx-auto mb-4 text-balance text-[2.55rem] font-black leading-[0.96] tracking-normal sm:text-[4.4rem] md:mb-6 md:text-[5.2rem] lg:text-[6.1rem] xl:text-[6.7rem] ${isEnglish ? "max-w-[13ch]" : "max-w-[min(96vw,max-content)] md:whitespace-nowrap"}`
+    : `home-hero-title home-hero-title-night mx-auto mb-4 text-balance text-[2.45rem] font-black leading-[0.98] tracking-normal sm:text-[4.4rem] md:mb-6 md:text-[5.2rem] lg:text-[6.1rem] xl:text-[6.7rem] ${isEnglish ? "max-w-[13ch]" : "max-w-[min(96vw,max-content)] md:whitespace-nowrap"}`;
   const subtitleClass = isDayMode
     ? "hero-day-ink mx-auto max-w-2xl px-2 text-base font-semibold tracking-wide opacity-95 drop-shadow-[0_4px_20px_rgba(15,23,42,0.58)] sm:px-4 sm:text-xl md:text-[1.7rem]"
     : "mx-auto max-w-2xl px-2 text-base font-semibold tracking-wide text-white/[0.92] drop-shadow-[0_6px_24px_rgba(2,6,23,0.84)] sm:px-4 sm:text-xl md:text-[1.7rem]";
@@ -137,8 +145,8 @@ const Hero = ({ id, onScrollNext } = {}) => {
           >
             {defaultTitleSegments ? (
               <>
-                <span className="block md:inline">{defaultTitleSegments[0]}</span>
-                <span className="block md:inline">{defaultTitleSegments[1]}</span>
+                <span className="block">{defaultTitleSegments[0]}</span>
+                <span className="block">{defaultTitleSegments[1]}</span>
               </>
             ) : (
               heroTitle
@@ -146,11 +154,13 @@ const Hero = ({ id, onScrollNext } = {}) => {
           </motion.h1>
 
           <motion.p variants={heroReveal} className={subtitleClass}>
-            {settings.hero_subtitle || "打破信息差，共建信息网络"}
+            {shouldUseLocalizedDefaults
+              ? t("hero.zju_subtitle", "Bridge information gaps and build a shared campus network")
+              : configuredHeroSubtitle || t("hero.zju_subtitle", "Bridge information gaps and build a shared campus network")}
           </motion.p>
 
           <motion.div variants={heroReveal} className={badgeClass}>
-            数字艺术 · 科技社群 · 校园共创
+            {t("hero.zju_badge", "Digital Art / Tech Community / Campus Co-Creation")}
           </motion.div>
         </div>
       </motion.div>

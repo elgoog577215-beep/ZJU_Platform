@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Calendar, Home, Sparkles, Trees, UserCircle } from "lucide-react";
+import { Calendar, Home, Trees, Trophy, UserCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { LayoutGroup, motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
@@ -73,18 +73,17 @@ const MobileNavbar = () => {
   const navItems = [
     { key: "home", path: "/", icon: Home, label: t("nav.home", "首页") },
     { key: "events", path: "/events", icon: Calendar, label: t("nav.events", "活动") },
-    { key: "hackathon", path: "/hackathon", icon: Sparkles, label: "黑客松" },
-    { key: "articles", path: "/articles", icon: Trees, label: t("nav.community", "AI社区") },
-    { key: "me", path: user ? `/user/${user.id}` : null, icon: UserCircle, label: t("nav.profile", "我的") },
+    { key: "hackathon", path: "/hackathon", icon: Trophy, label: t("nav.hackathon", "浙客松") },
+    { key: "future_learning", path: "/future-learning", icon: Trees, label: t("nav.future_learning", "未来学习中心") },
+    { key: "me", path: user ? `/user/${user.id}` : null, icon: UserCircle, label: t("nav.me", t("nav.profile", "我的")) },
   ];
 
   const isItemActive = (path, key) => {
     if (key === "me") {
       return location.pathname.startsWith("/user/");
     }
-    if (key === "hackathon") return location.pathname.startsWith("/hackathon");
-    if (key === "articles") {
-      return location.pathname.startsWith("/articles");
+    if (key === "hackathon") {
+      return location.pathname.startsWith("/hackathon");
     }
     return location.pathname === path;
   };
@@ -99,12 +98,12 @@ const MobileNavbar = () => {
     >
       <LayoutGroup id="mobile-tabbar">
       <div className="pb-[env(safe-area-inset-bottom)]">
-      <div className="grid h-[58px] grid-cols-5 px-2">
+      <div className="grid h-[64px] grid-cols-5 px-1">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = isItemActive(item.path, item.key);
 
-          const sharedClassName = `relative flex flex-col items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isActive ? (isDayMode ? "text-slate-900" : "text-white") : isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white"}`;
+          const sharedClassName = `relative flex min-w-0 flex-col items-center justify-center px-0.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isActive ? (isDayMode ? "text-slate-900" : "text-white") : isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white"}`;
           const activeIconSurface = isDayMode
             ? "rounded-[5px] bg-sky-50/90 ring-1 ring-indigo-200/70"
             : "rounded-[5px] bg-[#172033] ring-1 ring-white/10";
@@ -125,7 +124,7 @@ const MobileNavbar = () => {
           const inner = (
             <motion.div
               whileTap={prefersReducedMotion ? undefined : tapPress}
-              className="flex flex-col items-center gap-1"
+              className="flex min-w-0 max-w-full flex-col items-center gap-1"
             >
               <div
                 className={iconClassName}
@@ -155,7 +154,7 @@ const MobileNavbar = () => {
                 )}
               </div>
               <span
-                className={`text-[11px] leading-none transition-all ${isActive ? "font-semibold opacity-100" : "font-medium opacity-85"}`}
+                className={`block w-full max-w-[4.2rem] break-words text-center text-[10px] leading-[1.05] transition-all ${isActive ? "font-semibold opacity-100" : "font-medium opacity-85"}`}
               >
                 {item.label}
               </span>

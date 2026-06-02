@@ -55,7 +55,7 @@ const LinkButton = ({ children, onClick, isDayMode, variant = "primary" }) => {
   );
 };
 
-const EcosystemRadar = memo(({ isDayMode, shouldAnimate }) => {
+const EcosystemRadar = memo(({ isDayMode, shouldAnimate, labels }) => {
   const ringClass = isDayMode ? "border-cyan-500/24" : "border-cyan-300/22";
   const nodeClass = isDayMode
     ? "border-cyan-500/28 bg-white/92 text-slate-950 shadow-[0_16px_48px_rgba(6,182,212,0.16)]"
@@ -123,15 +123,15 @@ const EcosystemRadar = memo(({ isDayMode, shouldAnimate }) => {
           ZJU AI
         </div>
         <div className="mt-1 text-center text-2xl font-black leading-none tracking-tight sm:text-3xl">
-          生态中枢
+          {labels.center}
         </div>
       </motion.div>
 
       {[
-        { title: "活动入口", className: "left-[2%] top-[17%]" },
-        { title: "社区关系", className: "right-[2%] top-[17%]" },
+        { title: labels.entry, className: "left-[2%] top-[17%]" },
+        { title: labels.community, className: "right-[2%] top-[17%]" },
         {
-          title: "项目爆发",
+          title: labels.projects,
           className: "bottom-[8%] left-1/2 -translate-x-1/2",
         },
       ].map((item) => (
@@ -148,7 +148,7 @@ const EcosystemRadar = memo(({ isDayMode, shouldAnimate }) => {
 
 EcosystemRadar.displayName = "EcosystemRadar";
 
-const EnginePathVisual = memo(({ items, isDayMode, shouldAnimate }) => {
+const EnginePathVisual = memo(({ items, isDayMode, shouldAnimate, loopLabel }) => {
   return (
     <div className="relative mx-auto aspect-[1.45] w-full max-w-[920px] overflow-hidden px-3 py-6 sm:px-8 sm:py-10 lg:aspect-[1.34] lg:px-10 lg:py-12">
       <div
@@ -202,7 +202,7 @@ const EnginePathVisual = memo(({ items, isDayMode, shouldAnimate }) => {
         <div className="mt-2 text-[10px] font-black uppercase tracking-[0.2em] opacity-55">
           Operating Loop
         </div>
-        <div className="mt-1 text-xl font-black leading-none sm:text-2xl">闭环</div>
+        <div className="mt-1 text-xl font-black leading-none sm:text-2xl">{loopLabel}</div>
       </div>
 
       {items.map((item, index) => {
@@ -251,11 +251,11 @@ const paletteSafeDivider = (isDayMode) =>
   isDayMode ? "border-slate-200/80" : "border-white/10";
 
 const homeSnapSections = [
-  { id: "home-hero", label: "首页", icon: Zap },
-  { id: "home-ecosystem", label: "生态", icon: Network },
-  { id: "home-engine", label: "引擎", icon: Orbit },
-  { id: "home-resources", label: "资源", icon: Handshake },
-  { id: "home-live", label: "动态", icon: Zap },
+  { id: "home-hero", labelKey: "home.platform.nav_home", fallback: "Home", icon: Zap },
+  { id: "home-ecosystem", labelKey: "home.platform.nav_ecosystem", fallback: "Ecosystem", icon: Network },
+  { id: "home-engine", labelKey: "home.platform.nav_engine", fallback: "Engine", icon: Orbit },
+  { id: "home-resources", labelKey: "home.platform.nav_resources", fallback: "Resources", icon: Handshake },
+  { id: "home-live", labelKey: "home.platform.nav_live", fallback: "Live", icon: Zap },
 ];
 
 const PlatformStats = ({ hero } = {}) => {
@@ -292,40 +292,40 @@ const PlatformStats = ({ hero } = {}) => {
   const featuredItems = [
     ...(featuredData?.photos || []).slice(0, 2).map((item) => ({
       id: item.id,
-      title: item.title || "精选图片",
-      subtitle: "摄影",
+      title: item.title || t("home.platform.featured_photo", "Featured Photo"),
+      subtitle: t("home.platform.media_photo", "Photo"),
       image: item.url,
       targetPath: `/gallery?id=${item.id}`,
       icon: Camera,
     })),
     ...(featuredData?.articles || []).slice(0, 2).map((item) => ({
       id: item.id,
-      title: item.title || "精选文章",
-      subtitle: "文章",
+      title: item.title || t("home.platform.featured_article", "Featured Article"),
+      subtitle: t("home.platform.media_article", "Article"),
       image: item.cover,
       targetPath: `/articles?id=${item.id}`,
       icon: BookOpen,
     })),
     ...(featuredData?.videos || []).slice(0, 1).map((item) => ({
       id: item.id,
-      title: item.title || "精选视频",
-      subtitle: "视频",
+      title: item.title || t("home.platform.featured_video", "Featured Video"),
+      subtitle: t("home.platform.media_video", "Video"),
       image: item.thumbnail,
       targetPath: `/videos?id=${item.id}`,
       icon: Film,
     })),
     ...(featuredData?.music || []).slice(0, 1).map((item) => ({
       id: item.id,
-      title: item.title || "精选音频",
-      subtitle: "音频",
+      title: item.title || t("home.platform.featured_audio", "Featured Audio"),
+      subtitle: t("home.platform.media_audio", "Audio"),
       image: item.cover,
       targetPath: `/music?id=${item.id}`,
       icon: Music2,
     })),
     ...(featuredData?.events || []).slice(0, 1).map((item) => ({
       id: item.id,
-      title: item.title || "精选活动",
-      subtitle: "活动",
+      title: item.title || t("home.platform.featured_event", "Featured Event"),
+      subtitle: t("home.platform.media_event", "Event"),
       image: item.image,
       targetPath: `/events?id=${item.id}`,
       icon: CalendarDays,
@@ -341,30 +341,37 @@ const PlatformStats = ({ hero } = {}) => {
   const proofStats = [
     {
       value: settings.about_stat_1_value || "1000+",
-      label: settings.about_stat_1_label || "平台用户基础",
-      hint: "支撑活动触达、社区连接与项目转化",
+      label: settings.about_stat_1_label || t("home.platform.stat_user_base", "Platform User Base"),
+      hint: t("home.platform.stat_user_base_hint", "Supports event reach, community connections, and project conversion"),
     },
     {
       value: "4",
-      label: "核心服务链路",
-      hint: "信息发布、社群协作、场景开放、实战验证",
+      label: t("home.platform.stat_service_chain", "Core Service Chain"),
+      hint: t("home.platform.stat_service_chain_hint", "Information publishing, community collaboration, scenario access, and practice validation"),
     },
     {
-      value: settings.about_stat_3_value || "5 小时",
-      label: settings.about_stat_3_label || "限时实战机制",
-      hint: "推动课题快速形成原型成果",
+      value: settings.about_stat_3_value || t("home.platform.stat_sprint_value", "5 Hours"),
+      label: settings.about_stat_3_label || t("home.platform.stat_sprint_label", "Timed Practice Mechanism"),
+      hint: t("home.platform.stat_sprint_hint", "Helps topics become prototype outcomes quickly"),
     },
   ];
+
+  const radarLabels = {
+    center: t("home.platform.radar_center", "Ecosystem Hub"),
+    entry: t("home.platform.radar_entry", "Event Entry"),
+    community: t("home.platform.radar_community", "Community Ties"),
+    projects: t("home.platform.radar_projects", "Project Momentum"),
+  };
 
   const operatingHandles = [
     {
       index: "01",
       code: "ENTRY",
-      title: "活动聚合",
-      short: "统一入口",
-      loop: "汇聚资源",
+      title: t("home.platform.handle_events_title", "Events Hub"),
+      short: t("home.platform.handle_events_short", "Unified Entry"),
+      loop: t("home.platform.handle_events_loop", "Gather Resources"),
       icon: CalendarDays,
-      description: "统一发布校园 AI 活动、企业课题、项目招募与学习资源，提升信息触达与参与效率。",
+      description: t("home.platform.handle_events_desc", "Publish campus AI events, enterprise topics, project calls, and learning resources from one entry point."),
       route: "/events",
       accent: isDayMode ? "text-emerald-700" : "text-emerald-300",
       iconBg: isDayMode ? "bg-emerald-500" : "bg-emerald-300",
@@ -372,11 +379,11 @@ const PlatformStats = ({ hero } = {}) => {
     {
       index: "02",
       code: "LINK",
-      title: "AI 社区",
-      short: "持续共建",
-      loop: "组织人群",
+      title: t("home.platform.handle_community_title", "AI Community"),
+      short: t("home.platform.handle_community_short", "Sustained Co-Creation"),
+      loop: t("home.platform.handle_community_loop", "Organize People"),
       icon: Users,
-      description: "连接学习者、开发者、学生组织与项目负责人，形成持续交流、协作与共建机制。",
+      description: t("home.platform.handle_community_desc", "Connect learners, developers, student organizations, and project leads for ongoing exchange and collaboration."),
       route: "/community",
       accent: isDayMode ? "text-cyan-700" : "text-cyan-300",
       iconBg: isDayMode ? "bg-cyan-500" : "bg-cyan-300",
@@ -384,11 +391,11 @@ const PlatformStats = ({ hero } = {}) => {
     {
       index: "03",
       code: "LEARN",
-      title: "未来学习中心",
-      short: "场景底座",
-      loop: "开放场景",
+      title: t("home.platform.handle_learning_title", "Future Learning Center"),
+      short: t("home.platform.handle_learning_short", "Scenario Base"),
+      loop: t("home.platform.handle_learning_loop", "Open Scenarios"),
       icon: Trees,
-      description: "开放真实学习场景与跨学科议题，提供空间支持、组织协同和长期运营机制。",
+      description: t("home.platform.handle_learning_desc", "Open real learning scenarios and interdisciplinary topics with space, coordination, and long-term operations."),
       route: "/future-learning",
       accent: isDayMode ? "text-teal-700" : "text-teal-300",
       iconBg: isDayMode ? "bg-teal-500" : "bg-teal-300",
@@ -396,11 +403,11 @@ const PlatformStats = ({ hero } = {}) => {
     {
       index: "04",
       code: "BUILD",
-      title: "极速黑客松",
-      short: "成果认定",
-      loop: "验证能力",
+      title: t("home.platform.handle_hackathon_title", "Rapid Hackathon"),
+      short: t("home.platform.handle_hackathon_short", "Outcome Recognition"),
+      loop: t("home.platform.handle_hackathon_loop", "Validate Capability"),
       icon: Trophy,
-      description: "围绕企业命题开展限时开发与成果评审，集中验证团队的 AI 原生开发能力。",
+      description: t("home.platform.handle_hackathon_desc", "Run timed builds and reviews around enterprise topics to validate AI-native development capability."),
       route: "/hackathon",
       accent: isDayMode ? "text-amber-700" : "text-amber-300",
       iconBg: isDayMode ? "bg-amber-500" : "bg-amber-300",
@@ -564,14 +571,16 @@ const PlatformStats = ({ hero } = {}) => {
               type="button"
               onClick={() => smoothScrollTo(item.id)}
               className="pointer-events-auto group relative flex items-center gap-3"
-              aria-label={`跳转到${item.label}`}
+              aria-label={t("home.platform.jump_to_section", "Jump to {{section}}", {
+                section: t(item.labelKey, item.fallback),
+              })}
             >
               <span
                 className={`absolute right-full mr-3 whitespace-nowrap text-xs font-black uppercase tracking-[0.18em] opacity-0 transition group-hover:opacity-100 ${
                   activeSection === index ? "opacity-100" : ""
                 } ${isDayMode ? "text-slate-600" : "text-white/60"}`}
               >
-                {item.label}
+                {t(item.labelKey, item.fallback)}
               </span>
               <span
                 className={`flex h-10 w-10 items-center justify-center rounded-full border text-[10px] font-black transition ${
@@ -631,16 +640,16 @@ const PlatformStats = ({ hero } = {}) => {
               ZJU AI Ecosystem
             </div>
 
-            <h2 className="mt-6 max-w-5xl text-[2.15rem] font-black leading-[0.96] tracking-tight min-[360px]:text-[2.45rem] sm:text-5xl lg:text-[4.7rem] lg:leading-[0.9] xl:text-[5.35rem] 2xl:text-[6rem]">
-              <span className="block">把企业真题，</span>
-              <span className={`block ${palette.accent}`}>接入一张</span>
-              <span className="block whitespace-nowrap">校园 AI 网络。</span>
+            <h2 className="mt-6 max-w-[min(100%,48rem)] text-[2.15rem] font-black leading-[0.96] tracking-tight text-balance min-[360px]:text-[2.45rem] sm:text-5xl lg:text-[clamp(3.25rem,3.75vw,4.45rem)] lg:leading-[0.96] 2xl:text-[4.9rem]">
+              <span className="block">{t("home.platform.ecosystem_title_1", "Connect real")}</span>
+              <span className={`block ${palette.accent}`}>{t("home.platform.ecosystem_title_2", "enterprise briefs")}</span>
+              <span className="block">{t("home.platform.ecosystem_title_3", "to a campus AI network.")}</span>
             </h2>
 
             <p
               className={`mt-5 max-w-3xl text-sm font-medium leading-7 sm:mt-6 sm:text-lg sm:leading-8 ${palette.firstSoft}`}
             >
-              平台围绕校园 AI 活动、社群共建、真实课题与实战赛事，连接学生、学校支持单位与企业伙伴，提供从信息触达到项目转化的一体化入口。
+              {t("home.platform.ecosystem_desc", "The platform connects students, campus support units, and enterprise partners around AI events, community co-creation, real briefs, and practice competitions.")}
             </p>
 
             <div className="mt-5 grid grid-cols-2 gap-2 sm:mt-6 sm:flex sm:flex-row sm:gap-3">
@@ -648,7 +657,7 @@ const PlatformStats = ({ hero } = {}) => {
                 isDayMode={isDayMode}
                 onClick={() => navigate("/events")}
               >
-                看近期活动
+                {t("home.platform.cta_events", "View Recent Events")}
                 <ArrowRight className="h-4 w-4" />
               </LinkButton>
               <LinkButton
@@ -656,7 +665,7 @@ const PlatformStats = ({ hero } = {}) => {
                 variant="secondary"
                 onClick={() => navigate("/about")}
               >
-                了解产学闭环
+                {t("home.platform.cta_loop", "Understand the Loop")}
               </LinkButton>
             </div>
 
@@ -722,6 +731,7 @@ const PlatformStats = ({ hero } = {}) => {
             <EcosystemRadar
               isDayMode={isDayMode}
               shouldAnimate={shouldAnimate}
+              labels={radarLabels}
             />
           </div>
         </motion.div>
@@ -743,14 +753,14 @@ const PlatformStats = ({ hero } = {}) => {
               PATH
             </div>
             <p className={`text-xs font-black uppercase tracking-[0.24em] ${palette.label}`}>
-              Core Engine
+              {t("home.platform.engine_kicker", "Core Engine")}
             </p>
-            <h2 className="relative mt-3 max-w-4xl text-[1.9rem] font-black leading-none tracking-tight text-balance sm:text-5xl lg:text-[clamp(3.15rem,4.25vw,5rem)]">
-              <span className="block whitespace-nowrap">不是活动很多，</span>
-              <span className="block whitespace-nowrap">是路径清楚。</span>
+            <h2 className="relative mt-3 max-w-[min(100%,37rem)] text-[1.9rem] font-black leading-none tracking-tight text-balance sm:text-5xl lg:text-[clamp(2.45rem,2.85vw,3.55rem)]">
+              <span className="block">{t("home.platform.engine_title_1", "Not just more events.")}</span>
+              <span className="block">{t("home.platform.engine_title_2", "A clearer path.")}</span>
             </h2>
             <p className={`relative mt-5 max-w-2xl text-sm font-bold leading-7 sm:text-base sm:leading-8 ${palette.textSoft}`}>
-              首页只保留用户能立刻行动的四个入口：先发现，再连接，再进入真实场景，最后用限时实战验证成果。
+              {t("home.platform.engine_desc", "The homepage keeps four actionable entries: discover first, connect next, enter real scenarios, then validate outcomes through timed practice.")}
             </p>
 
             <div className={`relative mt-7 overflow-hidden border px-4 py-5 md:hidden ${palette.panelStrong}`}>
@@ -811,6 +821,7 @@ const PlatformStats = ({ hero } = {}) => {
               items={operatingHandles}
               isDayMode={isDayMode}
               shouldAnimate={shouldAnimate}
+              loopLabel={t("home.platform.loop_label", "Loop")}
             />
           </div>
         </motion.div>
@@ -841,12 +852,12 @@ const PlatformStats = ({ hero } = {}) => {
                   01 / Foundation
                 </div>
                 <h2 className="mt-3 max-w-lg text-[1.9rem] font-black leading-[0.96] tracking-tight min-[360px]:text-[2.1rem] sm:mt-6 sm:text-[3.65rem] lg:text-[clamp(3.45rem,4.2vw,4.6rem)]">
-                  三方资源
+                  {t("home.platform.resources_title_1", "Three-way")}
                   <br />
-                  在这里汇合
+                  {t("home.platform.resources_title_2", "resources meet here")}
                 </h2>
                 <p className={`mt-3 max-w-lg text-xs leading-5 sm:mt-5 sm:text-[0.95rem] sm:leading-7 ${palette.textSoft}`}>
-                  学校支持单位提供场景、空间与组织机制，学生组织承担触达、动员与执行，企业伙伴提供真实课题、技术资源与成果转化通道。
+                  {t("home.platform.resources_desc", "Campus support units provide scenarios, spaces, and organization. Student groups drive reach and execution. Enterprise partners bring real briefs, technology, and outcome pathways.")}
                 </p>
               </div>
 
@@ -854,9 +865,9 @@ const PlatformStats = ({ hero } = {}) => {
                 <div className={`absolute left-1/2 top-1/2 h-px w-[78%] -translate-x-1/2 ${isDayMode ? "bg-cyan-500/26" : "bg-cyan-300/28"}`} />
                 <div className={`absolute left-1/2 top-1/2 h-[76%] w-px -translate-y-1/2 ${isDayMode ? "bg-cyan-500/18" : "bg-cyan-300/22"}`} />
                 {[
-                  { label: "学校场景", className: "left-0 top-0" },
-                  { label: "学生组织", className: "right-0 top-1/2 -translate-y-1/2" },
-                  { label: "企业命题", className: "left-[18%] bottom-0" },
+                  { label: t("home.platform.node_school", "Campus Scenarios"), className: "left-0 top-0" },
+                  { label: t("home.platform.node_students", "Student Groups"), className: "right-0 top-1/2 -translate-y-1/2" },
+                  { label: t("home.platform.node_enterprise", "Enterprise Briefs"), className: "left-[18%] bottom-0" },
                 ].map((node) => (
                   <div
                     key={node.label}
@@ -908,10 +919,10 @@ const PlatformStats = ({ hero } = {}) => {
                     Campus Force
                   </div>
                   <h3 className="mt-2 text-2xl font-black tracking-tight sm:mt-3 sm:text-[2.35rem] lg:text-[clamp(2.3rem,3vw,3.25rem)]">
-                    学生组织
+                    {t("home.platform.student_orgs_title", "Student Organizations")}
                   </h3>
                   <p className={`mt-2 hidden max-w-md text-sm font-bold leading-6 sm:block ${palette.textMuted}`}>
-                    负责触达、运营、协作和复盘，让 AI 实践人群持续聚集。
+                    {t("home.platform.student_orgs_desc", "Responsible for reach, operations, collaboration, and review so AI practice communities keep gathering.")}
                   </p>
                 </div>
                 <div className="grid grid-cols-5 gap-2 sm:gap-3">
@@ -941,14 +952,14 @@ const PlatformStats = ({ hero } = {}) => {
                     Technical Backing
                   </div>
                   <h3 className="mt-2 text-2xl font-black tracking-tight sm:mt-3 sm:text-[2.35rem] lg:text-[clamp(2.3rem,3vw,3.25rem)]">
-                    企业伙伴
+                    {t("home.platform.enterprise_title", "Enterprise Partners")}
                   </h3>
                   <p className={`mt-2 hidden max-w-md text-sm font-bold leading-6 sm:block ${palette.textMuted}`}>
-                    提供真实命题、模型能力、云资源与成果评估，让原型可以被检验。
+                    {t("home.platform.enterprise_desc", "Provide real briefs, model capabilities, cloud resources, and outcome evaluation so prototypes can be tested.")}
                   </p>
                   </div>
                   <div className={`hidden border-l-4 px-4 py-3 text-sm font-black leading-6 lg:block ${isDayMode ? "border-l-cyan-500 bg-white/70 text-slate-600" : "border-l-cyan-300 bg-cyan-300/[0.05] text-white/64"}`}>
-                    资源不是陈列赞助方，而是形成“场景 - 人群 - 技术 - 赛事”的转化链路。
+                    {t("home.platform.resource_chain", "Resources are not a sponsor wall; they form a scenario - people - technology - competition conversion chain.")}
                   </div>
                 </div>
 
@@ -1020,12 +1031,12 @@ const PlatformStats = ({ hero } = {}) => {
                 Now Live
               </p>
               <h2 className="mt-3 max-w-5xl text-[2.15rem] font-black leading-none tracking-tight text-balance sm:text-5xl lg:text-[clamp(3.1rem,5.4vw,5.45rem)]">
-                正在发生的作品、
+                {t("home.platform.live_title_1", "Works, events,")}
                 <br />
-                活动与观点。
+                {t("home.platform.live_title_2", "and ideas in motion.")}
               </h2>
               <p className={`mt-5 max-w-xl text-sm font-bold leading-7 sm:text-base sm:leading-8 ${palette.textSoft}`}>
-                首页最后一屏只展示最新动向，让用户从平台叙事回到可点击、可参与、可跟进的真实内容。
+                {t("home.platform.live_desc", "The last homepage section returns from platform narrative to real content users can click, join, and follow.")}
               </p>
             </div>
             <div className="relative mt-6 flex flex-col gap-3 sm:flex-row lg:flex-col lg:items-start">
@@ -1033,7 +1044,7 @@ const PlatformStats = ({ hero } = {}) => {
                 isDayMode={isDayMode}
                 onClick={() => navigate("/articles")}
               >
-                进入发现
+                {t("home.platform.cta_discover", "Enter Discovery")}
                 <ArrowRight className="h-4 w-4" />
               </LinkButton>
               <LinkButton
@@ -1041,14 +1052,14 @@ const PlatformStats = ({ hero } = {}) => {
                 variant="secondary"
                 onClick={() => navigate("/hackathon")}
               >
-                极速黑客松
+                {t("home.platform.handle_hackathon_title", "Rapid Hackathon")}
               </LinkButton>
             </div>
             <div className={`relative mt-6 hidden max-w-xl grid-cols-3 gap-px border sm:grid ${palette.grid}`}>
               {[
-                { label: "内容", value: featuredPreviewItems.length || 0 },
-                { label: "入口", value: "3+" },
-                { label: "关注", value: user ? followingFeed.length : "登录" },
+                { label: t("home.platform.metric_content", "Content"), value: featuredPreviewItems.length || 0 },
+                { label: t("home.platform.metric_entries", "Entries"), value: "3+" },
+                { label: t("home.platform.metric_following", "Following"), value: user ? followingFeed.length : t("auth.log_in", "Log In") },
               ].map((item) => (
                 <div key={item.label} className={`p-3 sm:p-4 ${palette.cell}`}>
                   <div className={`text-2xl font-black leading-none ${palette.accent}`}>
@@ -1122,7 +1133,7 @@ const PlatformStats = ({ hero } = {}) => {
               </motion.div>
             ) : featuredError && featuredPreviewItems.length === 0 ? (
               <div className={`border px-5 py-6 text-sm ${palette.card}`}>
-                <div>精选内容暂时加载失败</div>
+                <div>{t("home.platform.featured_load_failed", "Featured content failed to load")}</div>
                 <button
                   type="button"
                   onClick={() => refreshFeatured()}
@@ -1132,12 +1143,12 @@ const PlatformStats = ({ hero } = {}) => {
                       : "border-white/10 bg-white/5 text-gray-200 hover:bg-white/10"
                   }`}
                 >
-                  重新加载
+                  {t("common.refresh", "Refresh")}
                 </button>
               </div>
             ) : featuredPreviewItems.length === 0 ? (
               <div className={`border px-5 py-6 text-sm ${palette.card}`}>
-                暂无精选内容
+                {t("home.platform.featured_empty", "No featured content yet")}
               </div>
             ) : (
               <motion.div
@@ -1186,7 +1197,7 @@ const PlatformStats = ({ hero } = {}) => {
                           {item.title}
                         </div>
                         <div className={`mt-5 inline-flex items-center gap-2 text-sm font-black ${palette.accent}`}>
-                          查看内容
+                          {t("common.view_details", "View Details")}
                           <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
                         </div>
                       </div>
@@ -1212,7 +1223,7 @@ const PlatformStats = ({ hero } = {}) => {
                       <Users size={16} />
                     </div>
                     <span className={`text-xs font-black uppercase tracking-[0.18em] ${palette.textMuted}`}>
-                      关注动态
+                      {t("home.platform.following_feed", "Following Feed")}
                     </span>
                   </div>
                   <button
@@ -1224,7 +1235,7 @@ const PlatformStats = ({ hero } = {}) => {
                         : "text-indigo-300 hover:bg-white/5"
                     }`}
                   >
-                    查看内容
+                    {t("common.view_details", "View Details")}
                     <ArrowRight size={12} />
                   </button>
                 </div>
@@ -1235,7 +1246,7 @@ const PlatformStats = ({ hero } = {}) => {
                   </div>
                 ) : followingFeed.length === 0 ? (
                   <div className={`border px-4 py-5 text-sm ${isDayMode ? "border-slate-200/80 bg-slate-50/80 text-slate-500" : "border-white/10 bg-black/20 text-gray-400"}`}>
-                    你关注的作者还没有发布新内容
+                    {t("home.platform.following_empty", "Authors you follow have not posted new content yet")}
                   </div>
                 ) : (
                   <motion.div
@@ -1270,7 +1281,7 @@ const PlatformStats = ({ hero } = {}) => {
 
               <div className={`border p-4 ${isDayMode ? "border-slate-200 bg-white/72" : "border-white/10 bg-black/20"}`}>
                 <div className={`mb-3 text-xs font-black uppercase tracking-[0.18em] ${palette.textMuted}`}>
-                  推荐关注
+                  {t("home.platform.recommended_follows", "Recommended Follows")}
                 </div>
                 <div className="space-y-2">
                   {followRecommendations.slice(0, 4).map((item) => {
@@ -1297,13 +1308,13 @@ const PlatformStats = ({ hero } = {}) => {
                                 : "border-white/10 bg-white/5 text-gray-200"
                           }`}
                         >
-                          {followed ? "已关注" : "关注"}
+                          {followed ? t("home.platform.followed", "Following") : t("home.platform.follow", "Follow")}
                         </button>
                       </div>
                     );
                   })}
                   {followRecommendations.length === 0 && (
-                    <div className={`text-xs ${palette.textMuted}`}>暂无推荐</div>
+                    <div className={`text-xs ${palette.textMuted}`}>{t("home.platform.no_recommendations", "No recommendations")}</div>
                   )}
                 </div>
               </div>
@@ -1316,7 +1327,7 @@ const PlatformStats = ({ hero } = {}) => {
                   <div className={`text-xs font-black uppercase tracking-[0.18em] ${palette.textMuted}`}>
                     Personalized Feed
                   </div>
-                  <div className="mt-1 text-lg font-black">登录后查看关注动态</div>
+                  <div className="mt-1 text-lg font-black">{t("home.platform.login_to_view_feed", "Log in to view your following feed")}</div>
                 </div>
                 <button
                   type="button"
@@ -1327,7 +1338,7 @@ const PlatformStats = ({ hero } = {}) => {
                       : "border-white/10 bg-white/5 text-gray-200 hover:bg-white/10"
                   }`}
                 >
-                  登录
+                  {t("auth.log_in", "Log In")}
                 </button>
               </div>
             </div>

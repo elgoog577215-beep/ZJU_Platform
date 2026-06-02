@@ -1,6 +1,8 @@
+import { useTranslation } from "react-i18next";
 import { useSettings } from "../context/SettingsContext";
 
 const Footer = () => {
+  const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
   const { uiMode } = useSettings();
   const isDayMode = uiMode === "day";
@@ -23,7 +25,7 @@ const Footer = () => {
         <div className="flex flex-col items-center gap-2.5 md:items-start">
           <div className="flex items-center gap-2">
             <span className="text-[1.05rem] font-bold tracking-tight">
-              拓途浙享
+              {t("footer.brand", "拓途浙享")}
             </span>
             <span className={isDayMode ? "text-slate-300" : "text-white/20"}>
               |
@@ -41,7 +43,7 @@ const Footer = () => {
               isDayMode ? "text-slate-500" : "text-gray-500"
             }`}
           >
-            © {currentYear} AI生态团队. All rights reserved.
+            {t("footer.copyright", "© {{year}} AI生态团队. All rights reserved.", { year: currentYear })}
           </p>
         </div>
 

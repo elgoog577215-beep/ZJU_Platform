@@ -31,25 +31,25 @@ const TABS = [
     key: "tech",
     icon: BookOpen,
     labelKey: "community.tab_tech",
-    fallback: "技术分享",
+    fallback: "Tech Sharing",
     code: "BUILD",
-    desc: "复盘工具、方法和校内项目经验",
+    descKey: "community.tab_tech_desc",
   },
   {
     key: "help",
     icon: HelpCircle,
     labelKey: "community.tab_help",
-    fallback: "求助",
+    fallback: "Help",
     code: "ASK",
-    desc: "把问题抛出来，等同学和组织接住",
+    descKey: "community.tab_help_desc",
   },
   {
     key: "groups",
     icon: QrCode,
     labelKey: "community.tab_groups",
-    fallback: "二维码社群",
+    fallback: "Groups",
     code: "LINK",
-    desc: "进入长期协作群，沉淀真实关系",
+    descKey: "community.tab_groups_desc",
   },
 ];
 
@@ -72,7 +72,7 @@ const AICommunity = () => {
     () =>
       t(
         "community.seo_description",
-        "浙江大学 AI 社区：求助、技术分享、新闻与协作。",
+        "ZJU AI community: help, tech sharing, news, and collaboration.",
       ),
     [t],
   );
@@ -128,9 +128,9 @@ const AICommunity = () => {
 
   return (
     <section
-      className={`relative z-10 min-h-screen overflow-hidden px-4 pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:px-6 md:pb-20 md:pt-28 lg:pt-32 ${palette.page}`}
+      className={`relative z-10 min-h-screen overflow-hidden px-4 pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+136px)] md:px-6 md:pb-20 md:pt-28 lg:pt-32 ${palette.page}`}
     >
-      <SEO title={t("nav.community", "AI社区")} description={subtitle} />
+      <SEO title={t("nav.community", "AI Community")} description={subtitle} />
 
       <div className="fixed inset-0 z-0 pointer-events-none">
         {isDayMode ? null : (
@@ -159,11 +159,11 @@ const AICommunity = () => {
                     ZJU AI Collaboration Hub
                   </div>
                   <h1 className="mt-3 max-w-3xl text-[1.85rem] font-black leading-[0.98] tracking-[-0.035em] sm:text-5xl lg:text-[3.75rem]">
-                    AI 社区
-                    <span className="block">让问题、经验和人群持续流动。</span>
+                    {t("community.hero_title", "AI Community")}
+                    <span className="block">{t("community.hero_line", "Keep questions, experience, and people moving.")}</span>
                   </h1>
                   <p className={`mt-4 max-w-2xl text-sm font-medium leading-7 md:text-base md:leading-8 ${palette.muted}`}>
-                    {subtitle} 从一次活动后的讨论，到下一次项目协作，都在这里接上。
+                    {t("community.hero_body", "From discussion after one event to collaboration on the next project, everything connects here.")}
                   </p>
                   <div className="mt-5 flex flex-wrap items-center gap-2">
                     <button
@@ -172,7 +172,7 @@ const AICommunity = () => {
                       className={`inline-flex min-h-11 items-center gap-2 rounded-md px-5 text-sm font-black transition ${palette.action}`}
                     >
                       <ActiveIcon size={16} />
-                      进入{t(activeTabMeta.labelKey, activeTabMeta.fallback)}
+                      {t("community.enter_section", "Enter {{section}}", { section: t(activeTabMeta.labelKey, activeTabMeta.fallback) })}
                       <ArrowRight size={16} />
                     </button>
                     <button
@@ -181,13 +181,13 @@ const AICommunity = () => {
                       className={`inline-flex min-h-11 items-center gap-2 rounded-md border px-4 text-sm font-bold transition-all 2xl:hidden ${isDayMode ? "border-slate-200/80 bg-white/70 text-slate-700 hover:bg-white" : "border-white/10 bg-white/[0.04] text-gray-200 hover:bg-white/10"}`}
                     >
                       <Newspaper size={16} />
-                      {t("community.news_board", "新闻热榜")}
+                      {t("community.news_board", "News Board")}
                     </button>
                   </div>
                 </div>
 
                 <div className={`hidden gap-px overflow-hidden border md:grid ${isDayMode ? "border-slate-200/80 bg-slate-200/80" : "border-white/10 bg-white/10"}`}>
-                  {TABS.map(({ key, icon: Icon, labelKey, fallback, code, desc }) => {
+                  {TABS.map(({ key, icon: Icon, labelKey, fallback, code, descKey }) => {
                     const isActive = activeTab === key;
                     return (
                       <button
@@ -215,7 +215,7 @@ const AICommunity = () => {
                             {t(labelKey, fallback)}
                           </span>
                           <span className="mt-1 block text-xs leading-5 opacity-68">
-                            {desc}
+                            {t(descKey, fallback)}
                           </span>
                         </span>
                         <ArrowRight size={16} className="opacity-40 transition group-hover:translate-x-0.5 group-hover:opacity-80" />
@@ -228,7 +228,7 @@ const AICommunity = () => {
 
             <div
               role="tablist"
-              aria-label={t("nav.community", "AI社区")}
+              aria-label={t("nav.community", "AI Community")}
               className={`scrollbar-none mt-3 flex w-full items-center gap-1 overflow-x-auto rounded-lg border p-1 ${palette.tabShell}`}
             >
               {TABS.map(({ key, icon: Icon, labelKey, fallback }) => (
@@ -238,21 +238,21 @@ const AICommunity = () => {
                   role="tab"
                   aria-selected={activeTab === key}
                   onClick={() => handleTabChange(key)}
-                  className={`inline-flex min-h-[42px] flex-1 items-center justify-center gap-2 rounded-md border px-3 text-sm font-bold whitespace-nowrap transition-all ${
+                  className={`inline-flex min-h-[42px] min-w-[8.5rem] flex-1 items-center justify-center gap-2 rounded-md border px-3 text-center text-sm font-bold leading-tight transition-all sm:min-w-0 ${
                     activeTab === key ? palette.tabActive : palette.tabIdle
                   }`}
                 >
-                  <Icon size={16} />
-                  <span>{t(labelKey, fallback)}</span>
+                  <Icon size={16} className="shrink-0" />
+                  <span className="min-w-0 break-words">{t(labelKey, fallback)}</span>
                 </button>
               ))}
             </div>
 
             <div className="mt-3 hidden gap-2 md:grid md:grid-cols-3">
               {[
-                { label: "当前分区", value: t(activeTabMeta.labelKey, activeTabMeta.fallback), icon: ActiveIcon },
-                { label: "协作方式", value: activeTabMeta.code, icon: Users },
-                { label: "内容状态", value: "Live", icon: Sparkles },
+                { label: t("community.current_section", "Current Section"), value: t(activeTabMeta.labelKey, activeTabMeta.fallback), icon: ActiveIcon },
+                { label: t("community.collaboration_mode", "Collaboration Mode"), value: activeTabMeta.code, icon: Users },
+                { label: t("community.content_status", "Content Status"), value: "Live", icon: Sparkles },
               ].map((item) => {
                 const Icon = item.icon;
                 return (
@@ -289,7 +289,7 @@ const AICommunity = () => {
             </div>
             <button
               type="button"
-              aria-label={t("common.close", "关闭")}
+              aria-label={t("common.close", "Close")}
               onClick={() => setIsNewsOpen(false)}
               style={{
                 top: "max(env(safe-area-inset-top), 1rem)",

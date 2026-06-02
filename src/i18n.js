@@ -9,7 +9,9 @@ i18n
   .use(initReactI18next)
   .init({
     fallbackLng: 'zh',
-    lng: 'zh', // Force default language to Chinese
+    supportedLngs: ['zh', 'en'],
+    nonExplicitSupportedLngs: true,
+    load: 'languageOnly',
     debug: false,
     interpolation: {
       escapeValue: false, // not needed for react as it escapes by default
@@ -18,8 +20,9 @@ i18n
       loadPath: '/locales/{{lng}}/translation.json',
     },
     detection: {
-        order: ['localStorage', 'navigator'],
-        caches: ['localStorage'],
+      order: ['localStorage', 'htmlTag', 'navigator'],
+      caches: ['localStorage'],
+      lookupLocalStorage: 'i18nextLng',
     }
   });
 

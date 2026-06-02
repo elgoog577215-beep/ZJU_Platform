@@ -15,6 +15,7 @@ import {
   UserRound,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 import { useReducedMotion } from "../utils/animations";
 import { useSettings } from "../context/SettingsContext";
@@ -32,27 +33,30 @@ const initialForm = {
   message: "",
 };
 
-const genderOptions = ["男", "女"];
+const genderOptions = [
+  { value: "男", key: "male" },
+  { value: "女", key: "female" },
+];
 
-const validateForm = (formData) => {
+const validateForm = (formData, t) => {
   const errors = {};
   const age = Number(formData.age);
 
-  if (!formData.topic.trim()) errors.topic = "请填写揭榜问题。";
-  if (!formData.name.trim()) errors.name = "请填写姓名。";
+  if (!formData.topic.trim()) errors.topic = t("future_learning.errors.topic", "请填写揭榜问题。");
+  if (!formData.name.trim()) errors.name = t("future_learning.errors.name", "请填写姓名。");
   if (!Number.isInteger(age) || age < 1 || age > 120) {
-    errors.age = "请填写有效年龄。";
+    errors.age = t("future_learning.errors.age", "请填写有效年龄。");
   }
-  if (!formData.gender) errors.gender = "请选择性别。";
-  if (!formData.organization.trim()) errors.organization = "请填写学校或组织。";
+  if (!formData.gender) errors.gender = t("future_learning.errors.gender", "请选择性别。");
+  if (!formData.organization.trim()) errors.organization = t("future_learning.errors.organization", "请填写学校或组织。");
   if (!formData.email.trim() && !formData.phone.trim()) {
-    errors.contact = "请至少填写邮箱或电话号码中的一项。";
+    errors.contact = t("future_learning.errors.contact", "请至少填写邮箱或电话号码中的一项。");
   }
   if (
     formData.email.trim() &&
     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())
   ) {
-    errors.email = "邮箱格式不正确。";
+    errors.email = t("future_learning.errors.email", "邮箱格式不正确。");
   }
 
   return errors;
@@ -77,6 +81,7 @@ const Field = ({ label, required, error, children }) => (
 );
 
 const FutureLearningCenter = () => {
+  const { t } = useTranslation();
   const { uiMode } = useSettings();
   const isDayMode = uiMode === "day";
   const prefersReducedMotion = useReducedMotion();
@@ -229,10 +234,10 @@ const FutureLearningCenter = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const errors = validateForm(formData);
+    const errors = validateForm(formData, t);
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
-      toast.error("请检查并完善报名信息");
+      toast.error(t("future_learning.toast.check_form", "请检查并完善报名信息"));
       return;
     }
 
@@ -242,9 +247,9 @@ const FutureLearningCenter = () => {
       setSubmitted(true);
       setFormData(initialForm);
       setFormErrors({});
-      toast.success("提交成功，AI生态团队将与您联络");
+      toast.success(t("future_learning.toast.success", "提交成功，AI生态团队将与您联络"));
     } catch (error) {
-      toast.error(error?.response?.data?.error || "提交失败，请稍后再试");
+      toast.error(error?.response?.data?.error || t("future_learning.toast.failed", "提交失败，请稍后再试"));
     } finally {
       setIsSubmitting(false);
     }
@@ -264,8 +269,8 @@ const FutureLearningCenter = () => {
       }}
     >
       <SEO
-        title="未来学习中心"
-        description="浙江大学未来学习中心 · 「智能生命健康」项目 · 问题揭榜报名"
+        title={t("future_learning.meta_title", "未来学习中心")}
+        description={t("future_learning.meta_desc", "浙江大学未来学习中心 · 「智能生命健康」项目 · 问题揭榜报名")}
       />
 
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
@@ -305,23 +310,25 @@ const FutureLearningCenter = () => {
           >
             <div className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-[11px] font-extrabold leading-none sm:text-xs ${theme.eyebrow}`}>
               <Sparkles className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${theme.eyebrowIcon}`} />
-              Future Learning · Med Tech
+              {t("future_learning.eyebrow", "Future Learning · Med Tech")}
             </div>
             <h1 className={`mt-6 max-w-5xl text-[2.1rem] font-extrabold leading-[1.06] min-[420px]:text-[2.35rem] sm:text-5xl md:text-6xl lg:text-7xl xl:text-[5.2rem] ${theme.heroTitle}`}>
-              浙江大学未来学习中心
+              {t("future_learning.hero.title_1", "浙江大学未来学习中心")}
               <span className={`mt-2 block bg-gradient-to-r bg-clip-text text-transparent sm:mt-3 ${theme.heroGradient}`}>
-                「智能生命健康」项目
+                {t("future_learning.hero.title_2", "「智能生命健康」项目")}
               </span>
-              <span className={`mt-2 block sm:mt-3 ${theme.heroAccent}`}>问题揭榜报名</span>
+              <span className={`mt-2 block sm:mt-3 ${theme.heroAccent}`}>
+                {t("future_learning.hero.title_3", "问题揭榜报名")}
+              </span>
             </h1>
             <p className={`mt-5 max-w-2xl text-[15px] leading-7 sm:mt-7 sm:text-lg sm:leading-8 ${theme.copy}`}>
-              面向未来的学习场景与医学交叉探索。提交你希望揭榜或深入探讨的问题方向，AI生态团队将根据内容进一步联络确认。
+              {t("future_learning.hero.desc", "面向未来的学习场景与医学交叉探索。提交你希望揭榜或深入探讨的问题方向，AI生态团队将根据内容进一步联络确认。")}
             </p>
             <div className="mt-7 grid grid-cols-3 gap-2 sm:mt-9 sm:gap-3">
               {[
-                { label: "问题驱动", value: "揭榜", icon: Trees },
-                { label: "学习场景", value: "未来", icon: GraduationCap },
-                { label: "医学交叉", value: "共创", icon: HeartPulse },
+                { label: t("future_learning.stats.problem_label", "问题驱动"), value: t("future_learning.stats.problem_value", "揭榜"), icon: Trees },
+                { label: t("future_learning.stats.future_label", "学习场景"), value: t("future_learning.stats.future_value", "未来"), icon: GraduationCap },
+                { label: t("future_learning.stats.co_create_label", "医学交叉"), value: t("future_learning.stats.co_create_value", "共创"), icon: HeartPulse },
               ].map((item) => {
                 const Icon = item.icon;
                 return (
@@ -355,20 +362,22 @@ const FutureLearningCenter = () => {
                   <p className={`text-xs font-extrabold ${theme.kicker}`}>
                     Challenge Brief
                   </p>
-                  <h2 className="mt-2 text-2xl font-extrabold sm:text-3xl">揭榜说明</h2>
+                  <h2 className="mt-2 text-2xl font-extrabold sm:text-3xl">
+                    {t("future_learning.brief.title", "揭榜说明")}
+                  </h2>
                 </div>
                 <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border sm:h-14 sm:w-14 ${theme.iconTile}`}>
                   <HeartPulse className="h-5 w-5 sm:h-7 sm:w-7" />
                 </div>
               </div>
               <p className={`mt-4 text-[15px] leading-7 sm:mt-6 sm:text-base sm:leading-8 ${theme.copy}`}>
-                提交您希望探讨或揭榜的问题方向，填写联系方式便于AI生态团队与您确认细节。信息仅用于本项目联络。
+                {t("future_learning.brief.desc", "提交您希望探讨或揭榜的问题方向，填写联系方式便于AI生态团队与您确认细节。信息仅用于本项目联络。")}
               </p>
               <div className={`mt-6 grid gap-2 sm:mt-8 sm:gap-px sm:overflow-hidden sm:rounded-lg sm:border ${theme.stepGrid}`}>
                 {[
-                  ["01", "提出问题", "描述具体场景、痛点或研究方向"],
-                  ["02", "AI生态团队联络", "根据联系方式确认细节与参与方式"],
-                  ["03", "进入共创", "形成可讨论、可推进、可沉淀的问题清单"],
+                  ["01", t("future_learning.steps.problem", "提出问题"), t("future_learning.steps.problem_desc", "描述具体场景、痛点或研究方向")],
+                  ["02", t("future_learning.steps.contact", "AI生态团队联络"), t("future_learning.steps.contact_desc", "根据联系方式确认细节与参与方式")],
+                  ["03", t("future_learning.steps.co_create", "进入共创"), t("future_learning.steps.co_create_desc", "形成可讨论、可推进、可沉淀的问题清单")],
                 ].map(([index, title, text]) => (
                   <div key={index} className={`rounded-lg border p-3 sm:rounded-none sm:border-0 sm:p-4 ${theme.stepCard}`}>
                     <div className={`font-mono text-xs font-extrabold ${theme.stepIndex}`}>
@@ -397,10 +406,10 @@ const FutureLearningCenter = () => {
                 Register
               </p>
               <h2 className={`mt-4 text-4xl font-black tracking-tight sm:text-5xl ${theme.heroTitle}`}>
-                报名信息
+                {t("future_learning.form.section_title", "报名信息")}
               </h2>
               <p className={`mt-5 max-w-md text-base leading-8 ${theme.copy}`}>
-                填写问题方向与基础联系方式后提交报名。AI生态团队会根据内容进一步联络确认。
+                {t("future_learning.form.section_desc", "填写问题方向与基础联系方式后提交报名。AI生态团队会根据内容进一步联络确认。")}
               </p>
             </div>
 
@@ -414,22 +423,24 @@ const FutureLearningCenter = () => {
               <div className={`pointer-events-none absolute inset-0 ${theme.formWash}`} />
               <div className={`relative mb-6 flex items-center justify-between gap-4 border-b pb-5 ${theme.formHeader}`}>
                 <div>
-                  <h3 className="text-2xl font-black">报名信息</h3>
+                  <h3 className="text-2xl font-black">
+                    {t("future_learning.form.title", "报名信息")}
+                  </h3>
                   <p className={`mt-1 text-sm ${theme.helperText}`}>
-                    所有带 * 的字段均为必填
+                    {t("future_learning.form.required_hint", "所有带 * 的字段均为必填")}
                   </p>
                 </div>
                 <HeartPulse className={`h-7 w-7 ${theme.formIcon}`} />
               </div>
 
               <form onSubmit={handleSubmit} className="relative space-y-5">
-                <Field label="揭榜问题" required error={formErrors.topic}>
+                <Field label={t("future_learning.form.topic", "揭榜问题")} required error={formErrors.topic}>
                   <textarea
                     value={formData.topic}
                     onChange={updateField("topic")}
                     maxLength={2000}
                     rows={4}
-                    placeholder="简要描述您希望揭榜或深入探讨的问题方向..."
+                    placeholder={t("future_learning.form.topic_placeholder", "简要描述您希望揭榜或深入探讨的问题方向...")}
                     className={`${inputClass} resize-none rounded-xl px-5 py-4 leading-7 ${
                       formErrors.topic ? inputErrorClass : ""
                     }`}
@@ -437,7 +448,7 @@ const FutureLearningCenter = () => {
                 </Field>
 
                 <div className="grid gap-5 sm:grid-cols-2">
-                  <Field label="姓名" required error={formErrors.name}>
+                  <Field label={t("future_learning.form.name", "姓名")} required error={formErrors.name}>
                     <div className="relative">
                       <UserRound className={`pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 ${theme.inputIcon}`} />
                       <input
@@ -445,14 +456,14 @@ const FutureLearningCenter = () => {
                         onChange={updateField("name")}
                         maxLength={64}
                         autoComplete="name"
-                        placeholder="真实姓名或常用称呼"
+                        placeholder={t("future_learning.form.name_placeholder", "真实姓名或常用称呼")}
                         className={`${inputClass} pl-11 ${
                           formErrors.name ? inputErrorClass : ""
                         }`}
                       />
                     </div>
                   </Field>
-                  <Field label="年龄" required error={formErrors.age}>
+                  <Field label={t("future_learning.form.age", "年龄")} required error={formErrors.age}>
                     <input
                       type="number"
                       inputMode="numeric"
@@ -460,7 +471,7 @@ const FutureLearningCenter = () => {
                       max="120"
                       value={formData.age}
                       onChange={updateField("age")}
-                      placeholder="周岁"
+                      placeholder={t("future_learning.form.age_placeholder", "周岁")}
                       className={`${inputClass} ${
                         formErrors.age ? inputErrorClass : ""
                       }`}
@@ -469,7 +480,7 @@ const FutureLearningCenter = () => {
                 </div>
 
                 <div className="grid gap-5 sm:grid-cols-2">
-                  <Field label="性别" required error={formErrors.gender}>
+                  <Field label={t("future_learning.form.gender", "性别")} required error={formErrors.gender}>
                     <select
                       value={formData.gender}
                       onChange={updateField("gender")}
@@ -478,21 +489,21 @@ const FutureLearningCenter = () => {
                       }`}
                     >
                       <option value="" className={theme.option}>
-                        请选择
+                        {t("common.select", "请选择")}
                       </option>
                       {genderOptions.map((option) => (
                         <option
-                          key={option}
-                          value={option}
+                          key={option.value}
+                          value={option.value}
                           className={theme.option}
                         >
-                          {option}
+                          {t(`future_learning.form.gender_${option.key}`, option.value)}
                         </option>
                       ))}
                     </select>
                   </Field>
                   <Field
-                    label="学校或组织"
+                    label={t("future_learning.form.organization", "学校或组织")}
                     required
                     error={formErrors.organization}
                   >
@@ -500,7 +511,7 @@ const FutureLearningCenter = () => {
                       value={formData.organization}
                       onChange={updateField("organization")}
                       maxLength={128}
-                      placeholder="所在院校、院系或单位名称"
+                      placeholder={t("future_learning.form.organization_placeholder", "所在院校、院系或单位名称")}
                       className={`${inputClass} ${
                         formErrors.organization ? inputErrorClass : ""
                       }`}
@@ -509,7 +520,7 @@ const FutureLearningCenter = () => {
                 </div>
 
                 <div className="grid gap-5 sm:grid-cols-2">
-                  <Field label="邮箱" error={formErrors.email || formErrors.contact}>
+                  <Field label={t("future_learning.form.email", "邮箱")} error={formErrors.email || formErrors.contact}>
                     <div className="relative">
                       <Mail className={`pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 ${theme.inputIcon}`} />
                       <input
@@ -528,7 +539,7 @@ const FutureLearningCenter = () => {
                       />
                     </div>
                   </Field>
-                  <Field label="电话号码" error={formErrors.contact}>
+                  <Field label={t("future_learning.form.phone", "电话号码")} error={formErrors.contact}>
                     <div className="relative">
                       <Phone className={`pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 ${theme.inputIcon}`} />
                       <input
@@ -538,7 +549,7 @@ const FutureLearningCenter = () => {
                         value={formData.phone}
                         onChange={updateField("phone")}
                         maxLength={20}
-                        placeholder="11 位手机号或其他可接通号码"
+                        placeholder={t("future_learning.form.phone_placeholder", "11 位手机号或其他可接通号码")}
                         className={`${inputClass} pl-11 ${
                           formErrors.contact ? inputErrorClass : ""
                         }`}
@@ -547,13 +558,13 @@ const FutureLearningCenter = () => {
                   </Field>
                 </div>
 
-                <Field label="留言">
+                <Field label={t("future_learning.form.message", "留言")}>
                   <textarea
                     value={formData.message}
                     onChange={updateField("message")}
                     maxLength={2000}
                     rows={3}
-                    placeholder="补充说明、可参与时段、合作意向等（选填）"
+                    placeholder={t("future_learning.form.message_placeholder", "补充说明、可参与时段、合作意向等（选填）")}
                     className={`${inputClass} resize-none rounded-xl px-5 py-4 leading-7`}
                   />
                 </Field>
@@ -566,11 +577,11 @@ const FutureLearningCenter = () => {
                   {isSubmitting ? (
                     <>
                       <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                      提交中...
+                      {t("future_learning.form.submitting", "提交中...")}
                     </>
                   ) : (
                     <>
-                      提交报名
+                      {t("future_learning.form.submit", "提交报名")}
                       <Send className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                     </>
                   )}
@@ -583,15 +594,15 @@ const FutureLearningCenter = () => {
         <section className={`mx-auto mt-12 max-w-7xl border-t py-8 text-sm leading-7 lg:mt-16 ${theme.footer}`}>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              浙江大学未来学习中心 · 「智能生命健康」项目
+              {t("future_learning.footer.project", "浙江大学未来学习中心 · 「智能生命健康」项目")}
               <br />
-              本页面仅供项目联络使用，请勿转发至公开渠道。
+              {t("future_learning.footer.note", "本页面仅供项目联络使用，请勿转发至公开渠道。")}
             </div>
             <a
               href="#main-content"
               className={`inline-flex items-center gap-2 transition ${theme.footerLink}`}
             >
-              返回顶部
+              {t("future_learning.footer.back_to_top", "返回顶部")}
               <ArrowRight className="h-4 w-4 -rotate-90" />
             </a>
           </div>
@@ -615,17 +626,17 @@ const FutureLearningCenter = () => {
               id="future-learning-success-title"
               className="mt-4 text-xl font-black"
             >
-              提交成功
+              {t("future_learning.success.title", "提交成功")}
             </h3>
             <p className={`mt-3 text-sm leading-7 ${theme.successText}`}>
-              我们已收到您的揭榜报名信息。AI生态团队将通过您预留的联系方式与您联络，请保持畅通。
+              {t("future_learning.success.desc", "我们已收到您的揭榜报名信息。AI生态团队将通过您预留的联系方式与您联络，请保持畅通。")}
             </p>
             <button
               type="button"
               onClick={() => setSubmitted(false)}
               className={`mt-6 inline-flex min-h-11 items-center justify-center rounded-full border px-8 text-sm font-bold transition ${theme.successButton}`}
             >
-              关闭
+              {t("common.close", "关闭")}
             </button>
           </motion.div>
         </div>

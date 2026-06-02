@@ -128,10 +128,11 @@ const Navbar = () => {
   const navLinks = [
     { key: "home", path: "/" },
     { key: "events", path: "/events" },
-    { key: "hackathon", path: "/hackathon", label: "浙客松" },
+    { key: "hackathon", path: "/hackathon" },
+    { key: "future_learning", path: "/future-learning" },
     { key: "articles", path: "/articles" },
     { key: "music", path: "/music" },
-    { key: "media", path: "/media", label: "影像库" },
+    { key: "media", path: "/media" },
     { key: "about", path: "/about" },
     ...(isAdmin ? [{ key: "admin", path: "/admin" }] : []),
   ];
@@ -149,7 +150,7 @@ const Navbar = () => {
   const currentNavLink = navLinks.find((link) => isNavItemActive(link.path));
   const getMobileTitle = (pathname) => {
     if (pathname === "/") return t("nav.home");
-    if (pathname.startsWith("/hackathon")) return "浙客松";
+    if (pathname.startsWith("/hackathon")) return t("nav.hackathon", "浙客松");
     if (pathname.startsWith("/events")) return t("nav.events");
     if (pathname.startsWith("/future-learning")) return t("nav.future_learning", "未来学习中心");
     if (pathname.startsWith("/articles")) return t("nav.articles");
@@ -158,7 +159,7 @@ const Navbar = () => {
     if (pathname.startsWith("/videos")) return t("nav.videos");
     if (pathname.startsWith("/media")) return t("nav.media", "影像库");
     if (pathname.startsWith("/me") || pathname.startsWith("/user/")) {
-      return t("nav.me", "我的");
+      return t("nav.me", t("nav.profile", "我的"));
     }
     if (pathname.startsWith("/about")) return t("nav.about");
     if (pathname.startsWith("/admin")) return t("nav.admin");
@@ -238,8 +239,11 @@ const Navbar = () => {
     !location.pathname.startsWith("/me") &&
     !location.pathname.startsWith("/user/");
   const secondaryMobileLinks = [
-    { key: "media", path: "/media", icon: Film, label: "影像库" },
+    { key: "future_learning", path: "/future-learning", icon: Trees },
+    { key: "media", path: "/media", icon: Film },
+    { key: "gallery", path: "/gallery", icon: ImageIcon },
     { key: "music", path: "/music", icon: MusicIcon },
+    { key: "videos", path: "/videos", icon: Film },
     { key: "about", path: "/about", icon: Info },
     ...(isAdmin ? [{ key: "admin", path: "/admin", icon: Shield }] : []),
   ];
@@ -263,18 +267,18 @@ const Navbar = () => {
       animate={prefersReducedMotion ? undefined : "animate"}
       className={`motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 py-2.5 md:py-3 border-b backdrop-blur-sm ${shellClasses}`}
       role="navigation"
-      aria-label="主导航"
+      aria-label={t("nav.main_aria", "主导航")}
     >
       <Link
         to="/"
         className="hidden md:flex items-center gap-3 text-white group z-50"
-        aria-label="拓途浙享首页"
+        aria-label={t("nav.home_aria", "拓途浙享首页")}
       >
         <div className="relative">
           <div className="absolute inset-x-0 bottom-0 h-px bg-indigo-400/0 transition-colors duration-300 group-hover:bg-indigo-400/60" />
           <img
             src="/newlogo.png"
-            alt="拓途浙享 Logo"
+            alt={t("nav.logo_alt", "拓途浙享 Logo")}
             className="relative h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
           />
         </div>
@@ -282,12 +286,12 @@ const Navbar = () => {
           <span
             className={`text-lg font-bold tracking-tighter transition-colors duration-300 ${isDayMode ? "text-slate-950 group-hover:text-indigo-600" : "text-white group-hover:text-indigo-200"}`}
           >
-            拓途浙享
+            {t("footer.brand", "拓途浙享")}
           </span>
           <span
             className={`text-[10px] font-medium tracking-widest mt-0.5 transition-colors ${isDayMode ? "text-slate-500 group-hover:text-indigo-500" : "text-gray-400 group-hover:text-indigo-400"}`}
           >
-            数字艺术与科技
+            {t("footer.tagline", "数字艺术与科技")}
           </span>
         </div>
       </Link>
@@ -295,7 +299,7 @@ const Navbar = () => {
       <div
         className={`hidden min-w-0 items-center gap-0.5 border px-1.5 py-1 md:flex xl:gap-1 xl:px-2 ${desktopPillClasses}`}
         role="menubar"
-        aria-label="导航菜单"
+        aria-label={t("nav.menu_aria", "导航菜单")}
       >
         {navLinks.map((item) => (
           <Link
@@ -451,7 +455,7 @@ const Navbar = () => {
 
       <div className="md:hidden flex items-center justify-between w-full z-50 px-1">
         <div
-          className={`text-base font-bold tracking-wide absolute left-1/2 -translate-x-1/2 pointer-events-none max-w-[42vw] truncate ${isDayMode ? "text-slate-800" : "text-white/90"}`}
+          className={`absolute left-[4.25rem] right-[4.25rem] text-center text-sm font-bold leading-tight tracking-wide pointer-events-none sm:text-base ${isDayMode ? "text-slate-800" : "text-white/90"}`}
         >
           {mobileTitle}
         </div>

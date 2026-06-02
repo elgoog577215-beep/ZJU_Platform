@@ -12,6 +12,7 @@ import {
   Upload,
   X,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 import FavoriteButton from "./FavoriteButton";
 import Lightbox from "./Lightbox";
@@ -28,7 +29,23 @@ import api from "../services/api";
 import { getThumbnailUrl } from "../utils/imageUtils";
 import { useReducedMotion } from "../utils/animations";
 
-const PhotoCard = memo(forwardRef(({ photo, index, onClick, onToggleFavorite, canAnimate, isDayMode }, ref) => (
+const mediaCategoryNameMap = {
+  全部: "All",
+  未分类: "Uncategorized",
+  现场照片: "Live Photos",
+  视频记录: "Video Records",
+  黑客松: "Hackathon",
+  活动: "Events",
+  校园: "Campus",
+  作品: "Works",
+};
+
+const getLocalizedMediaCategoryName = (name, isEnglish) => {
+  if (!name) return "";
+  return isEnglish ? mediaCategoryNameMap[name] || name : name;
+};
+
+const PhotoCard = memo(forwardRef(({ photo, index, onClick, onToggleFavorite, canAnimate, isDayMode, t, isEnglish }, ref) => (
   <motion.div
     ref={ref}
     initial={canAnimate ? { opacity: 0, y: 16 } : false}
@@ -67,11 +84,11 @@ const PhotoCard = memo(forwardRef(({ photo, index, onClick, onToggleFavorite, ca
         <div className="flex justify-between items-end gap-2">
           <div className="min-w-0 flex-1">
             <h3 className="text-lg font-bold text-[rgba(255,255,255,0.96)] drop-shadow-[0_2px_10px_rgba(15,23,42,0.45)] line-clamp-2">
-              {photo.title || "未命名照片"}
+              {photo.title || t("media_library.untitled_photo", "未命名照片")}
             </h3>
             {photo.category_name ? (
               <p className="mt-1 text-xs font-medium text-white/72 line-clamp-1">
-                {photo.category_name}
+                {getLocalizedMediaCategoryName(photo.category_name, isEnglish)}
               </p>
             ) : null}
           </div>
@@ -122,7 +139,7 @@ const PhotoCard = memo(forwardRef(({ photo, index, onClick, onToggleFavorite, ca
 
 PhotoCard.displayName = "PhotoCard";
 
-const VideoCard = memo(({ video, index, onClick, onToggleFavorite, canAnimate, isDayMode }) => (
+const VideoCard = memo(({ video, index, onClick, onToggleFavorite, canAnimate, isDayMode, t, isEnglish }) => (
   <motion.div
     initial={canAnimate ? { opacity: 0, y: 14 } : false}
     animate={canAnimate ? { opacity: 1, y: 0 } : undefined}
@@ -172,10 +189,10 @@ const VideoCard = memo(({ video, index, onClick, onToggleFavorite, canAnimate, i
       <div className="flex justify-between items-end gap-3">
         <div className="min-w-0 flex-1">
           <h3 className="text-base md:text-lg font-bold text-[rgba(255,255,255,0.96)] drop-shadow-[0_2px_10px_rgba(15,23,42,0.5)] line-clamp-1">
-            {video.title || "未命名视频"}
+            {video.title || t("media_library.untitled_video", "未命名视频")}
           </h3>
           <p className="mt-1 text-xs font-medium text-white/68 line-clamp-1">
-            {video.category_name || "未分类"}
+            {getLocalizedMediaCategoryName(video.category_name, isEnglish) || t("media_library.uncategorized", "未分类")}
           </p>
         </div>
 
@@ -224,7 +241,7 @@ const EmptyState = ({ icon: Icon, title, description, accent = "indigo", isDayMo
   </div>
 );
 
-const LoadMoreButton = ({ onClick, loading, disabled, tone = "indigo", isDayMode, children }) => (
+const LoadMoreButton = ({ onClick, loading, disabled, tone = "indigo", isDayMode, t, children }) => (
   <div className="flex items-center justify-center py-8">
     <motion.button
       type="button"
@@ -240,12 +257,12 @@ const LoadMoreButton = ({ onClick, loading, disabled, tone = "indigo", isDayMode
           : "text-white hover:border-white/20"
       }`}
     >
-      {loading ? "正在加载..." : children}
+      {loading ? t("common.loading", "正在加载...") : children}
     </motion.button>
   </div>
 );
 
-const MediaCategoryRail = memo(({ categories, activeCategoryId, onChange, isDayMode }) => {
+const MediaCategoryRail = memo(({ categories, activeCategoryId, onChange, isDayMode, t, isEnglish }) => {
   const nightFocusClass = isDayMode
     ? "focus-visible:ring-indigo-400/70"
     : "focus-visible:border-white/[0.22] focus-visible:ring-slate-300/35 focus-visible:shadow-[0_0_0_4px_rgba(148,163,184,0.12)]";
@@ -306,7 +323,7 @@ const MediaCategoryRail = memo(({ categories, activeCategoryId, onChange, isDayM
               className={channelButtonClass(!activeCategoryId)}
             >
               {!activeCategoryId && renderActivePill()}
-              <span className="relative z-10 whitespace-nowrap">全部</span>
+              <span className="relative z-10 whitespace-nowrap">{t("common.all", "全部")}</span>
             </button>
 
             {categories.map((category) => {
@@ -320,7 +337,7 @@ const MediaCategoryRail = memo(({ categories, activeCategoryId, onChange, isDayM
                   className={channelButtonClass(active)}
                 >
                   {active && renderActivePill()}
-                  <span className="relative z-10 whitespace-nowrap">{category.name}</span>
+                  <span className="relative z-10 whitespace-nowrap">{getLocalizedMediaCategoryName(category.name, isEnglish)}</span>
                 </button>
               );
             })}
@@ -341,9 +358,11 @@ const MediaCategoryRail = memo(({ categories, activeCategoryId, onChange, isDayM
 MediaCategoryRail.displayName = "MediaCategoryRail";
 
 const MediaLibrary = () => {
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const { settings, uiMode } = useSettings();
   const isDayMode = uiMode === "day";
+  const isEnglish = String(i18n.resolvedLanguage || i18n.language || "").startsWith("en");
   const prefersReducedMotion = useReducedMotion();
   const isPaginationEnabled = settings.pagination_enabled === "true";
   const [categoryId, setCategoryId] = useState("");
@@ -427,13 +446,14 @@ const MediaLibrary = () => {
   }, [videos, videoPage]);
 
   const activeCategoryName = useMemo(() => {
-    if (!categoryId) return "全部";
-    return categories.find((category) => String(category.id) === String(categoryId))?.name || "当前分类";
-  }, [categories, categoryId]);
+    if (!categoryId) return t("common.all", "全部");
+    const name = categories.find((category) => String(category.id) === String(categoryId))?.name;
+    return getLocalizedMediaCategoryName(name, isEnglish) || t("media_library.current_category", "当前分类");
+  }, [categories, categoryId, isEnglish, t]);
 
   const openUpload = useCallback((type = null) => {
     if (!user) {
-      toast.error("请先登录后再上传");
+      toast.error(t("media_library.login_required", "请先登录后再上传"));
       window.dispatchEvent(new Event("open-auth-modal"));
       return;
     }
@@ -517,7 +537,10 @@ const MediaLibrary = () => {
 
   return (
     <section className="pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:py-20 px-4 md:px-8 relative overflow-hidden flex-grow">
-      <SEO title="影像库" description="按分类浏览现场照片与视频记录。" />
+      <SEO
+        title={t("media_library.title", "影像库")}
+        description={t("media_library.meta_desc", "按分类浏览现场照片与视频记录。")}
+      />
 
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         {allowAmbientEffects ? (
@@ -550,10 +573,10 @@ const MediaLibrary = () => {
         >
           <div className="md:hidden text-left mb-4">
             <h1 className={`text-2xl font-bold tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}>
-              影像库
+              {t("media_library.title", "影像库")}
             </h1>
             <p className={`text-sm mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-              当前分类：{activeCategoryName}
+              {t("media_library.current_category_label", "当前分类：{{category}}", { category: activeCategoryName })}
             </p>
           </div>
 
@@ -566,7 +589,7 @@ const MediaLibrary = () => {
                 ? "day-quiet-button text-slate-700 hover:text-indigo-600"
                 : "bg-white/10 hover:bg-white/20 text-white border-white/10 hover:shadow-lg hover:shadow-indigo-500/20"
             }`}
-            title="上传影像"
+            title={t("media_library.upload_media", "上传影像")}
           >
             <Upload size={18} className="md:w-5 md:h-5" />
           </motion.button>
@@ -577,7 +600,7 @@ const MediaLibrary = () => {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="hidden md:block text-4xl md:text-5xl font-bold font-serif mb-4 md:mb-6"
           >
-            影像库
+            {t("media_library.title", "影像库")}
           </motion.h2>
           <motion.p
             initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
@@ -585,7 +608,7 @@ const MediaLibrary = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="hidden md:block text-gray-400 max-w-xl mx-auto mb-6 md:mb-8 text-sm md:text-base"
           >
-            按分类归档现场照片与视频记录。当前分类：{activeCategoryName}。
+            {t("media_library.description", "按分类归档现场照片与视频记录。当前分类：{{category}}。", { category: activeCategoryName })}
           </motion.p>
 
           <motion.div
@@ -599,6 +622,8 @@ const MediaLibrary = () => {
               activeCategoryId={categoryId}
               onChange={setCategoryId}
               isDayMode={isDayMode}
+              t={t}
+              isEnglish={isEnglish}
             />
             <button
               type="button"
@@ -608,7 +633,7 @@ const MediaLibrary = () => {
               }`}
             >
               <Upload size={17} />
-              上传影像
+              {t("media_library.upload_media", "上传影像")}
             </button>
           </motion.div>
 
@@ -620,22 +645,22 @@ const MediaLibrary = () => {
                   : "border-red-400/25 bg-red-500/10 text-red-200"
               }`}
             >
-              <span>影像分类加载失败，当前仅展示全部内容。</span>
+              <span>{t("media_library.category_error", "影像分类加载失败，当前仅展示全部内容。")}</span>
               <button
                 type="button"
                 onClick={() => refreshCategories({ clearCache: true })}
                 className={`shrink-0 font-bold ${isDayMode ? "text-red-700 hover:text-red-900" : "text-red-100 hover:text-white"}`}
               >
-                重试
+                {t("common.retry", "重试")}
               </button>
             </div>
           ) : categoriesLoading ? (
             <p className={`mt-3 text-xs ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-              正在加载影像分类...
+              {t("media_library.category_loading", "正在加载影像分类...")}
             </p>
           ) : categories.length === 0 ? (
             <p className={`mt-3 text-xs ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-              暂无影像分类，内容会显示在全部与未分类中。
+              {t("media_library.no_categories", "暂无影像分类，内容会显示在全部与未分类中。")}
             </p>
           ) : null}
         </motion.div>
@@ -647,7 +672,7 @@ const MediaLibrary = () => {
             className="mb-8 flex flex-col items-center justify-center py-12 text-center"
           >
             <AlertCircle size={48} className="text-red-400 mb-4 opacity-50 mx-auto" />
-            <p className={`mb-6 ${isDayMode ? "text-slate-600" : "text-gray-300"}`}>影像内容加载失败，请稍后重试。</p>
+            <p className={`mb-6 ${isDayMode ? "text-slate-600" : "text-gray-300"}`}>{t("media_library.content_error", "影像内容加载失败，请稍后重试。")}</p>
             <button
               type="button"
               onClick={() => {
@@ -660,7 +685,7 @@ const MediaLibrary = () => {
                   : "bg-white/10 hover:bg-white/20 text-white border-white/10 hover:border-white/30"
               }`}
             >
-              重试
+              {t("common.retry", "重试")}
             </button>
           </motion.div>
         ) : null}
@@ -670,10 +695,10 @@ const MediaLibrary = () => {
             <div className="mb-4 flex items-center justify-between gap-4">
               <div>
                 <h2 className={`text-2xl font-bold font-serif ${isDayMode ? "text-slate-900" : "text-white"}`}>
-                  现场照片
+                  {t("media_library.photos_title", "现场照片")}
                 </h2>
                 <p className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-                  {visiblePhotoCount} / {totalPhotoCount} 张照片
+                  {t("media_library.photos_count", "{{visible}} / {{total}} 张照片", { visible: visiblePhotoCount, total: totalPhotoCount })}
                 </p>
               </div>
               <button
@@ -682,7 +707,7 @@ const MediaLibrary = () => {
                 className={`rect-icon-button hidden p-2.5 transition-all md:inline-flex ${
                   isDayMode ? "text-slate-700 hover:text-indigo-600" : "text-white"
                 }`}
-                title="上传照片"
+                title={t("media_library.upload_photos", "上传照片")}
               >
                 <Upload size={18} />
               </button>
@@ -702,8 +727,8 @@ const MediaLibrary = () => {
             ) : displayPhotos.length === 0 ? (
               <EmptyState
                 icon={Box}
-                title="暂无现场照片"
-                description="这个分类下还没有图片，上传时选择该分类即可出现在这里。"
+                title={t("media_library.empty_photos_title", "暂无现场照片")}
+                description={t("media_library.empty_photos_desc", "这个分类下还没有图片，上传时选择该分类即可出现在这里。")}
                 isDayMode={isDayMode}
               />
             ) : (
@@ -721,6 +746,8 @@ const MediaLibrary = () => {
                       onToggleFavorite={handleTogglePhotoFavorite}
                       canAnimate={!prefersReducedMotion && index < 8}
                       isDayMode={isDayMode}
+                      t={t}
+                      isEnglish={isEnglish}
                     />
                   ))}
                 </AnimatePresence>
@@ -732,8 +759,9 @@ const MediaLibrary = () => {
                 loading={photosLoading}
                 disabled={photosLoading}
                 isDayMode={isDayMode}
+                t={t}
               >
-                加载更多照片
+                {t("media_library.load_more_photos", "加载更多照片")}
               </LoadMoreButton>
             ) : null}
           </section>
@@ -742,10 +770,10 @@ const MediaLibrary = () => {
             <div className="mb-4 flex items-center justify-between gap-4">
               <div>
                 <h2 className={`text-2xl font-bold font-serif ${isDayMode ? "text-slate-900" : "text-white"}`}>
-                  视频记录
+                  {t("media_library.videos_title", "视频记录")}
                 </h2>
                 <p className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-                  {visibleVideoCount} / {totalVideoCount} 条视频
+                  {t("media_library.videos_count", "{{visible}} / {{total}} 条视频", { visible: visibleVideoCount, total: totalVideoCount })}
                 </p>
               </div>
               <button
@@ -754,7 +782,7 @@ const MediaLibrary = () => {
                 className={`rect-icon-button hidden p-2.5 transition-all md:inline-flex ${
                   isDayMode ? "text-slate-700 hover:text-pink-600" : "text-white"
                 }`}
-                title="上传视频"
+                title={t("media_library.upload_videos", "上传视频")}
               >
                 <Upload size={18} />
               </button>
@@ -774,8 +802,8 @@ const MediaLibrary = () => {
             ) : displayVideos.length === 0 ? (
               <EmptyState
                 icon={Film}
-                title="暂无视频记录"
-                description="这个分类下还没有视频，上传时选择该分类即可出现在这里。"
+                title={t("media_library.empty_videos_title", "暂无视频记录")}
+                description={t("media_library.empty_videos_desc", "这个分类下还没有视频，上传时选择该分类即可出现在这里。")}
                 accent="pink"
                 isDayMode={isDayMode}
               />
@@ -790,6 +818,8 @@ const MediaLibrary = () => {
                     onToggleFavorite={handleToggleVideoFavorite}
                     canAnimate={!prefersReducedMotion && index < 8}
                     isDayMode={isDayMode}
+                    t={t}
+                    isEnglish={isEnglish}
                   />
                 ))}
               </div>
@@ -801,8 +831,9 @@ const MediaLibrary = () => {
                 disabled={videosLoading}
                 tone="pink"
                 isDayMode={isDayMode}
+                t={t}
               >
-                加载更多视频
+                {t("media_library.load_more_videos", "加载更多视频")}
               </LoadMoreButton>
             ) : null}
           </aside>
@@ -856,7 +887,7 @@ const MediaLibrary = () => {
                           ? "bg-white/90 hover:bg-white text-slate-700 border-slate-200/80"
                           : "bg-black/40 hover:bg-black/60 text-white border-white/10"
                       }`}
-                      title="关闭视频"
+                      title={t("media_library.close_video", "关闭视频")}
                     >
                       <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />
                     </button>
@@ -874,7 +905,7 @@ const MediaLibrary = () => {
                       </h3>
                       <div className={`flex flex-wrap items-center gap-3 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
                         <p className={`rect-chip px-3 py-1 ${isDayMode ? "bg-slate-100 border-slate-200/80 text-slate-600" : "bg-white/5 border-white/5"}`}>
-                          {selectedVideo.category_name || "未分类"}
+                          {getLocalizedMediaCategoryName(selectedVideo.category_name, isEnglish) || t("media_library.uncategorized", "未分类")}
                         </p>
                         {selectedVideo.created_at ? (
                           <p className={`rect-chip px-3 py-1 ${isDayMode ? "bg-slate-100 border-slate-200/80 text-slate-600" : "bg-white/5 border-white/5"}`}>
@@ -917,17 +948,17 @@ const MediaLibrary = () => {
             className={`w-full max-w-sm border p-4 shadow-2xl ${isDayMode ? "bg-white border-slate-200" : "bg-[#111] border-white/10"}`}
             onClick={(event) => event.stopPropagation()}
           >
-            <h3 className={`text-lg font-bold ${isDayMode ? "text-slate-950" : "text-white"}`}>上传影像</h3>
+            <h3 className={`text-lg font-bold ${isDayMode ? "text-slate-950" : "text-white"}`}>{t("media_library.upload_media", "上传影像")}</h3>
             <div className="mt-4 grid grid-cols-2 gap-2">
               <button type="button" onClick={() => { setIsMobileUploadOpen(false); setUploadType("image"); }} className="rect-button-secondary min-h-[48px]">
-                上传照片
+                {t("media_library.upload_photos", "上传照片")}
               </button>
               <button type="button" onClick={() => { setIsMobileUploadOpen(false); setUploadType("video"); }} className="rect-button-primary min-h-[48px] text-white">
-                上传视频
+                {t("media_library.upload_videos", "上传视频")}
               </button>
             </div>
             <button type="button" onClick={() => setIsMobileUploadOpen(false)} className={`mt-3 w-full py-2 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-              取消
+              {t("common.cancel", "取消")}
             </button>
           </div>
         </div>,

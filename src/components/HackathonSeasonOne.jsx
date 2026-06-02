@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { CalendarDays, Film, Trophy } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useSettings } from "../context/SettingsContext";
@@ -18,6 +19,7 @@ const viewFromLocation = (location) => {
 };
 
 const HackathonSeasonOne = () => {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const { uiMode } = useSettings();
@@ -32,20 +34,20 @@ const HackathonSeasonOne = () => {
     () => [
       {
         id: "register",
-        label: "赛事报名",
-        title: "浙客松",
+        label: t("hackathon.tabs.register", "赛事报名"),
+        title: t("hackathon.brand", "浙客松"),
         icon: CalendarDays,
         path: "/hackathon?view=register",
       },
       {
         id: "showcase",
-        label: "比赛成果",
-        title: "成果",
+        label: t("hackathon.tabs.showcase", "比赛成果"),
+        title: t("hackathon.tabs.showcase_short", "成果"),
         icon: Film,
         path: "/hackathon?view=showcase",
       },
     ],
-    [],
+    [t],
   );
 
   const switchView = (view) => {
@@ -72,12 +74,14 @@ const HackathonSeasonOne = () => {
         <div
           className={`pointer-events-auto flex items-center gap-1 rounded-[8px] border px-1.5 py-1 backdrop-blur-2xl ${shellClass}`}
           role="tablist"
-          aria-label="浙客松页面切换"
+          aria-label={t("hackathon.tabs.aria", "浙客松页面切换")}
         >
           <div className="hidden min-w-[86px] items-center gap-2 border-r border-current/10 px-2.5 sm:flex">
             <Trophy className="h-3.5 w-3.5 text-cyan-400" />
             <div className="min-w-0">
-              <p className={`truncate text-xs font-black leading-none ${titleClass}`}>浙客松</p>
+              <p className={`truncate text-xs font-black leading-none ${titleClass}`}>
+                {t("hackathon.brand", "浙客松")}
+              </p>
               <p className={`text-[10px] font-bold uppercase tracking-[0.16em] ${mutedClass}`}>ZHEKESONG</p>
             </div>
           </div>

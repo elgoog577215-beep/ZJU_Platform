@@ -236,7 +236,8 @@ const EVENT_THEME_VARIANTS = {
 
 const EventCard = memo(
   ({ event, index, onClick, onToggleFavorite, reduceMotion, isDayMode }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const language = i18n.resolvedLanguage || i18n.language || "zh";
 
     const status = getEventLifecycle(event.date, event.end_date, t);
     const motionProps = reduceMotion
@@ -380,7 +381,7 @@ const EventCard = memo(
                 >
                   <Tag size={10} className="md:w-3 md:h-3" />
                   <span className="truncate">
-                    {getEventCategoryLabel(event.category)}
+                    {getEventCategoryLabel(event.category, language)}
                   </span>
                 </span>
               )}
@@ -974,7 +975,7 @@ END:VCALENDAR`;
           }`}
         >
           <SlidersHorizontal size={15} className="shrink-0" />
-          筛选
+          {t("events.assistant.mode_filters", "筛选")}
         </button>
         <button
           type="button"
@@ -1002,8 +1003,11 @@ END:VCALENDAR`;
   return (
     <section className="pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:pb-20 md:pt-24 px-4 md:px-8 relative overflow-hidden flex-grow">
       <SEO
-        title="活动"
-        description="浏览浙江大学校内活动、志愿服务、讲座与报名信息。"
+        title={t("events.meta_title", t("events.title", "活动"))}
+        description={t(
+          "events.meta_desc",
+          "浏览浙江大学校内活动、志愿服务、讲座与报名信息。",
+        )}
       />
       {isDayMode ? (
         <div className="fixed inset-0 pointer-events-none z-0 hidden overflow-hidden md:block">
@@ -1136,12 +1140,12 @@ END:VCALENDAR`;
                           id="events-mobile-filter-title"
                           className={`text-[1.35rem] font-black leading-tight ${isDayMode ? "text-slate-950" : "text-white"}`}
                         >
-                          筛选活动
+                          {t("events.filter.sheet_title", "筛选活动")}
                         </h3>
                         <p
                           className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
                         >
-                          类型和对象会立即生效
+                          {t("events.filter.sheet_hint", "类型和对象会立即生效")}
                         </p>
                       </div>
                       <button
@@ -1397,7 +1401,7 @@ END:VCALENDAR`;
           >
             {debouncedSearch || Object.values(filters).some((v) => v)
               ? `${t("advanced_filter.clear", "清除所有筛选")} ${t("common.or", "或")} ${t("common.search", "搜索...")}`
-              : "暂时没有即将开始的活动，稍后再来看看吧"}
+              : t("events.no_upcoming_desc", "暂时没有即将开始的活动，稍后再来看看吧")}
           </p>
           {Object.values(filters).some((v) => v) && (
             <button
@@ -2006,14 +2010,17 @@ END:VCALENDAR`;
                               >
                                 <Tag size={18} />
                                 <span className="text-sm font-bold uppercase tracking-wider">
-                                  活动分类
+                                  {t("events.category_label", "活动分类")}
                                 </span>
                               </div>
                               <div className="flex flex-wrap gap-2">
                                 <span
                                   className={`px-3 py-1.5 rounded-md text-sm font-medium border transition-all ${isDayMode ? `bg-white text-slate-600 border-slate-200/80 shadow-[0_8px_20px_rgba(15,23,42,0.05)] hover:-translate-y-0.5 ${eventThemeAccent.tagHover}` : "bg-white/5 text-gray-300 border-white/5 hover:bg-white/10"}`}
                                 >
-                                  {getEventCategoryLabel(selectedEvent.category)}
+                                  {getEventCategoryLabel(
+                                    selectedEvent.category,
+                                    i18n.resolvedLanguage || i18n.language || "zh",
+                                  )}
                                 </span>
                               </div>
                             </div>

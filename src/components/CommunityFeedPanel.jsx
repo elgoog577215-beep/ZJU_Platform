@@ -90,7 +90,7 @@ const CommunityFeedPanel = ({
   );
 
   return (
-    <div role="tabpanel">
+    <div role="tabpanel" className="pb-[calc(env(safe-area-inset-bottom)+96px)] md:pb-0">
       {/* Controls */}
       <div className={`mb-5 flex flex-col gap-3 rounded-lg border p-3 md:mb-6 md:p-4 max-md:border-transparent max-md:bg-transparent max-md:p-0 max-md:shadow-none ${isDayMode ? 'bg-white/82 border-slate-200/70 shadow-[0_10px_26px_rgba(15,23,42,0.04)]' : 'bg-white/[0.035] border-white/10'}`}>
         <div className={`flex flex-col justify-between gap-3 md:flex-row ${statusTabs ? 'md:items-center' : 'md:items-start'}`}>
@@ -183,7 +183,7 @@ const CommunityFeedPanel = ({
         {isLoading && displayItems.length === 0 ? (
           [...Array(skeletonCount)].map((_, i) => renderSkeleton ? renderSkeleton(i) : defaultSkeleton(i))
         ) : error ? (
-          <div className="flex flex-col items-center justify-center py-20 px-4">
+          <div className="flex flex-col items-center justify-center px-4 py-14 md:py-20">
             <div className="bg-red-500/10 rounded-lg p-6 mb-6 border border-red-500/20 backdrop-blur-xl">
               <AlertCircle size={48} className="text-red-400 opacity-80" />
             </div>
@@ -193,7 +193,7 @@ const CommunityFeedPanel = ({
             </button>
           </div>
         ) : displayItems.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 px-4">
+          <div className="flex flex-col items-center justify-center px-4 py-12 md:py-20">
             <div className={`bg-gradient-to-br ${gradientFrom} rounded-lg p-8 mb-6 border backdrop-blur-xl shadow-xl ${emptyBorder}`}>
               {EmptyIcon && <EmptyIcon size={64} className={`text-${accentColor}-400 opacity-80`} />}
             </div>

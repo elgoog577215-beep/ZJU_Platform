@@ -184,7 +184,16 @@
     "day_mode_hint": "明亮、柔和、通透",
     "night_mode_hint": "深邃、沉浸、克制",
     "cursor_enable": "启用自定义光标",
-    "cursor_disable": "禁用自定义光标"
+    "cursor_disable": "禁用自定义光标",
+    "language_switcher": "切换语言",
+    "mobile_more_title": "更多",
+    "me": "我的",
+    "profile": "我的",
+    "mobile_tabbar": "移动端底部导航",
+    "main_aria": "???",
+    "home_aria": "??????",
+    "logo_alt": "???? Logo",
+    "menu_aria": "????"
   },
   "community": {
     "seo_description": "浙江大学 AI 社区：求助、技术分享、新闻与协作。",
@@ -354,7 +363,27 @@
     "help_empty": "暂无帖子",
     "help_empty_desc": "成为第一个发帖的人吧！",
     "team_empty": "暂无组队帖",
-    "team_empty_desc": "发布第一个组队帖吧！"
+    "team_empty_desc": "发布第一个组队帖吧！",
+    "hero_title": "AI 社区",
+    "hero_line": "让问题、经验和人持续流动。",
+    "hero_body": "从一次活动后的讨论，到下一次项目的协作，这里把它们接起来。",
+    "enter_section": "进入{{section}}",
+    "news_board": "新闻看板",
+    "tab_tech": "技术分享",
+    "tab_tech_desc": "复盘工具、方法和校园项目经验",
+    "tab_help_desc": "提出问题，让同学和组织接住它",
+    "tab_groups_desc": "加入长期协作社群，建立真实连接",
+    "tech_search_placeholder": "搜索文章标题、摘要或正文",
+    "current_section": "当前版块",
+    "collaboration_mode": "协作模式",
+    "content_status": "内容状态",
+    "results_count": "条结果",
+    "filtered_view": "已应用筛选",
+    "searching_for": "搜索",
+    "clear_filters": "清除筛选",
+    "no_filtered_results": "没有内容匹配当前筛选",
+    "no_filtered_results_desc": "清除筛选或调整搜索词后再试。",
+    "post_new": "发帖"
   },
   "search": {
     "placeholder": "搜索内容...",
@@ -366,7 +395,12 @@
   },
   "hero": {
     "title": "捕捉",
-    "subtitle": "定格瞬间，透过镜头创造永恒。"
+    "subtitle": "定格瞬间，透过镜头创造永恒。",
+    "zju_title": "浙江大学信息中枢",
+    "zju_title_line_1": "浙江大学",
+    "zju_title_line_2": "信息中枢",
+    "zju_subtitle": "弥合信息差，共建校园网络",
+    "zju_badge": "数字艺术 / 技术社区 / 校园共创"
   },
   "about": {
     "title": "捕捉瞬间，",
@@ -375,7 +409,80 @@
     "p2": "无论是城市街道的原始能量还是自然景观的宁静，我的目标是创造出能引起深刻情感共鸣的视觉叙事。",
     "exp": "年经验",
     "exhibitions": "次展览",
-    "projects": "个完成项目"
+    "projects": "个完成项目",
+    "ecosystem": {
+      "meta_title": "关于我们",
+      "meta_desc": "了解拓途浙享如何以企业真实课题、校园 AI 社区与技术黑客松连接学校、企业和学生，构建产学融合生态。",
+      "pagination_aria": "关于页面分页",
+      "hero": {
+        "title_1": "把企业真题，",
+        "title_2": "接入一张",
+        "title_3": "校园 AI 网络。",
+        "strong": "真实课题、实战项目、校企认定。",
+        "desc": "让学生在做中学，让企业提前看见人才，让校园创新通向产业现场。",
+        "cta": "查看生态闭环"
+      },
+      "stats": {
+        "user_base": "平台用户基础",
+        "core_chain": "三位一体业务",
+        "sprint_value": "5 小时",
+        "sprint_label": "限时实战攻坚"
+      },
+      "brief": {
+        "title_1": "三方协同",
+        "title_2": "闭环运转",
+        "desc": "企业发布真实课题，学生在实战中产出成果，校企共同完成认定与推荐。"
+      },
+      "handles": {
+        "events_title": "活动聚合",
+        "events_short": "统一入口",
+        "events_loop": "汇聚资源",
+        "events_desc": "聚合活动、项目、企业课题与学习资源，让全域 AI 机会进入同一入口。",
+        "community_title": "AI 社区",
+        "community_short": "持续共建",
+        "community_loop": "组织人群",
+        "community_desc": "连接学习者、开发者与社团负责人，把交流转化为长期共建。",
+        "hackathon_title": "极速黑客松",
+        "hackathon_short": "成果认定",
+        "hackathon_loop": "验证能力",
+        "hackathon_desc": "企业真实命题、限时技术攻坚、零路演评审，让硬核能力被直接验证。"
+      },
+      "engine": {
+        "title_1": "三位一体，",
+        "title_2": "打通产学闭环。",
+        "desc": "资源入口聚合机会，AI 社区承接共建，技术黑客松完成高密度验证。三者联动，才让 AI 热度变成可运营、可复制的人才培养机制。",
+        "loop_title": "从真题到通道"
+      },
+      "loop": {
+        "gather": "汇聚",
+        "gather_desc": "活动、项目与企业课题进入同一入口",
+        "practice": "实战",
+        "practice_desc": "学生在赛事与项目中做中学",
+        "recognize": "认定",
+        "recognize_desc": "校企共同背书成果能力",
+        "channel": "通道",
+        "channel_desc": "优秀人才通向实习与内推"
+      },
+      "support": {
+        "title_1": "三方资源在场，",
+        "title_2": "产学融合有底气。",
+        "desc": "学校提供场景与机制，学生组织承接人群与执行，企业伙伴带来真实课题、技术资源和人才通道。",
+        "school_title": "学校支持",
+        "school_desc": "未来学习中心与校内创新平台把场景、空间和组织机制先搭好，让企业课题能稳定进入校园实践。",
+        "student_title": "学生组织",
+        "student_desc": "头部科创社团与核心负责人共同承接活动、项目和实践人群，让校园动能持续流动。",
+        "enterprise_title": "企业伙伴",
+        "enterprise_desc": "头部 AI 企业把真实课题、模型、云和工具带入校园，支撑项目从想法走向可运行成果。"
+      },
+      "foundation": {
+        "scenario": "场景开放",
+        "scenario_desc": "真实任务进入校园现场",
+        "coordination": "组织协同",
+        "coordination_desc": "空间、人群与执行联动",
+        "mechanism": "长期机制",
+        "mechanism_desc": "活动沉淀为持续通道"
+      }
+    }
   },
   "contact": {
     "title": "联系我们",
@@ -412,7 +519,10 @@
     "get_in_touch": "取得联系",
     "explore": "探索",
     "made_with": "制作",
-    "by_trae": "由 Trae"
+    "by_trae": "由 Trae",
+    "brand": "拓途浙享",
+    "copyright": "© {{year}} AI生态团队. All rights reserved.",
+    "tagline": "???????"
   },
   "home": {
     "meta_title": "TUOTU ZHEXIANG",
@@ -460,6 +570,89 @@
       "music_desc": "聆听我们的原创音乐作品",
       "videos_desc": "观看我们的精选视频内容",
       "articles_desc": "加入 AI 社区，分享技术、获取帮助、组队协作"
+    },
+    "platform": {
+      "nav_home": "首页",
+      "nav_ecosystem": "生态",
+      "nav_engine": "引擎",
+      "nav_resources": "资源",
+      "nav_live": "动态",
+      "jump_to_section": "跳转到{{section}}",
+      "featured_photo": "精选图片",
+      "featured_article": "精选文章",
+      "featured_video": "精选视频",
+      "featured_audio": "精选音频",
+      "featured_event": "精选活动",
+      "media_photo": "摄影",
+      "media_article": "文章",
+      "media_video": "视频",
+      "media_audio": "音频",
+      "media_event": "活动",
+      "stat_user_base": "平台用户基础",
+      "stat_user_base_hint": "支撑活动触达、社区连接与项目转化",
+      "stat_service_chain": "核心服务链路",
+      "stat_service_chain_hint": "信息发布、社群协作、场景开放、实战验证",
+      "stat_sprint_value": "5 小时",
+      "stat_sprint_label": "限时实战机制",
+      "stat_sprint_hint": "推动课题快速形成原型成果",
+      "radar_center": "生态中枢",
+      "radar_entry": "活动入口",
+      "radar_community": "社区关系",
+      "radar_projects": "项目爆发",
+      "handle_events_title": "活动聚合",
+      "handle_events_short": "统一入口",
+      "handle_events_loop": "汇聚资源",
+      "handle_events_desc": "统一发布校园 AI 活动、企业课题、项目招募与学习资源，提升信息触达与参与效率。",
+      "handle_community_title": "AI 社区",
+      "handle_community_short": "持续共建",
+      "handle_community_loop": "组织人群",
+      "handle_community_desc": "连接学习者、开发者、学生组织与项目负责人，形成持续交流、协作与共建机制。",
+      "handle_learning_title": "未来学习中心",
+      "handle_learning_short": "场景底座",
+      "handle_learning_loop": "开放场景",
+      "handle_learning_desc": "开放真实学习场景与跨学科议题，提供空间支持、组织协同和长期运营机制。",
+      "handle_hackathon_title": "极速黑客松",
+      "handle_hackathon_short": "成果认定",
+      "handle_hackathon_loop": "验证能力",
+      "handle_hackathon_desc": "围绕企业命题开展限时开发与成果评审，集中验证团队的 AI 原生开发能力。",
+      "ecosystem_title_1": "把企业真题，",
+      "ecosystem_title_2": "接入一张",
+      "ecosystem_title_3": "校园 AI 网络。",
+      "ecosystem_desc": "平台围绕校园 AI 活动、社群共建、真实课题与实战赛事，连接学生、学校支持单位与企业伙伴，提供从信息触达到项目转化的一体化入口。",
+      "cta_events": "看近期活动",
+      "cta_loop": "了解产学闭环",
+      "engine_kicker": "核心引擎",
+      "engine_title_1": "不是活动很多，",
+      "engine_title_2": "是路径清楚。",
+      "engine_desc": "首页只保留用户能立刻行动的四个入口：先发现，再连接，再进入真实场景，最后用限时实战验证成果。",
+      "loop_label": "闭环",
+      "resources_title_1": "三方资源",
+      "resources_title_2": "在这里汇合",
+      "resources_desc": "学校支持单位提供场景、空间与组织机制，学生组织承担触达、动员与执行，企业伙伴提供真实课题、技术资源与成果转化通道。",
+      "node_school": "学校场景",
+      "node_students": "学生组织",
+      "node_enterprise": "企业命题",
+      "student_orgs_title": "学生组织",
+      "student_orgs_desc": "负责触达、运营、协作和复盘，让 AI 实践人群持续聚集。",
+      "enterprise_title": "企业伙伴",
+      "enterprise_desc": "提供真实命题、模型能力、云资源与成果评估，让原型可以被检验。",
+      "resource_chain": "资源不是陈列赞助方，而是形成“场景 - 人群 - 技术 - 赛事”的转化链路。",
+      "live_title_1": "正在发生的作品、",
+      "live_title_2": "活动与观点。",
+      "live_desc": "首页最后一屏只展示最新动向，让用户从平台叙事回到可点击、可参与、可跟进的真实内容。",
+      "cta_discover": "进入发现",
+      "metric_content": "内容",
+      "metric_entries": "入口",
+      "metric_following": "关注",
+      "featured_load_failed": "精选内容暂时加载失败",
+      "featured_empty": "暂无精选内容",
+      "following_feed": "关注动态",
+      "following_empty": "你关注的作者还没有发布新内容",
+      "recommended_follows": "推荐关注",
+      "followed": "已关注",
+      "follow": "关注",
+      "no_recommendations": "暂无推荐",
+      "login_to_view_feed": "登录后查看关注动态"
     }
   },
   "weather": {
@@ -523,9 +716,9 @@
     "search": "搜索...",
     "search_placeholder": "搜索活动...",
     "link_copied": "链接已复制到剪贴板！",
-    "loading": "加载中",
+    "loading": "????...",
     "uploading": "上传中",
-    "cancel": "取消",
+    "cancel": "??",
     "delete": "删除",
     "event": "活动",
     "article": "AI专栏",
@@ -538,7 +731,7 @@
     "show_less": "收起",
     "copied_to_clipboard": "已复制到剪贴板",
     "copy_failed": "复制失败",
-    "retry": "重试",
+    "retry": "??",
     "size": "尺寸",
     "featured": "精选",
     "try_again": "重试",
@@ -548,7 +741,13 @@
     "done": "完成",
     "sort": "排序",
     "filters": "筛选",
-    "or": "或"
+    "or": "或",
+    "close": "关闭",
+    "load_more": "加载更多",
+    "refresh": "刷新",
+    "other": "??",
+    "skip_to_main": "???????",
+    "details": "????"
   },
   "upload": {
     "title_required": "标题不能为空",
@@ -594,14 +793,16 @@
     "date_desc": "日期 (最晚)"
   },
   "advanced_filter": {
-    "title": "筛选活动内容",
-    "clear": "清除所有筛选",
+    "title": "筛选属性",
+    "nature": "活动性质",
     "organizer": "主办方",
-    "all_organizers": "所有主办方",
     "location": "地点",
+    "target_audience": "目标人群",
+    "all_natures": "所有性质",
+    "all_organizers": "所有主办方",
     "all_locations": "所有地点",
-    "target_audience": "面向对象",
-    "all_target_audiences": "所有目标人群"
+    "all_target_audiences": "所有目标人群",
+    "clear": "清空筛选"
   },
   "gallery": {
     "title": "画廊",
@@ -672,9 +873,264 @@
     "post_btn": "发表",
     "no_comments": "暂无评论，抢占沙发！"
   },
+  "hackathon": {
+    "brand": "浙客松",
+    "meta_title": "{{title}}报名",
+    "meta_desc": "{{title}} - {{subtitle}}。在限定时间内独立完成一个可运行的 AI 应用。",
+    "tabs": {
+      "aria": "浙客松页面切换",
+      "register": "赛事报名",
+      "showcase": "比赛成果",
+      "showcase_short": "成果"
+    },
+    "nav": {
+      "home": "主页",
+      "rules": "赛制",
+      "register": "报名",
+      "jump_to": "跳转到{{label}}"
+    },
+    "hero": {
+      "full_title": "AI 全栈极速黑客松",
+      "subtitle": "5小时、1个人、0路演",
+      "title_line_1": "AI 全栈极速",
+      "title_line_2": "黑客松",
+      "description": "在限定时间内独立完成一个可运行的 AI 应用。允许使用 AI 工具，拒绝概念包装，只看真实作品。",
+      "hours_unit": "小时",
+      "solo_unit": "个人",
+      "pitch_unit": "路演"
+    },
+    "event": {
+      "date": "5月10日 9:00 A.M.",
+      "location": "北2-112",
+      "format": "个人赛",
+      "duration": "5 小时",
+      "format_label": "形式",
+      "duration_label": "时长",
+      "prize_pool": "奖金池",
+      "prize_amount": "17,500 ￥",
+      "currency": "￥"
+    },
+    "chips": {
+      "ai_native": "AI 原生",
+      "solo": "独立完成",
+      "work_first": "作品优先"
+    },
+    "cta": {
+      "register_now": "立即报名",
+      "learn_ecosystem": "了解生态团队",
+      "keep_reading": "继续了解"
+    },
+    "board": {
+      "title_line_1": "5小时交付",
+      "title_line_2": "0路演",
+      "title_line_3": "只看作品",
+      "description": "现场把想法变成可运行的 AI 应用。规则足够直接：个人完成、AI 原生、作品优先。",
+      "support_lineup": "支持阵容"
+    },
+    "partners": {
+      "group_school": "学校",
+      "group_organization": "社团",
+      "group_enterprise": "企业"
+    },
+    "rules": {
+      "ai_native_title": "AI 原生开发",
+      "ai_native_text": "允许并鼓励使用 Codex、Claude、Cursor、Trae 等工具完成全栈开发。",
+      "five_hours_title": "5 小时从 0 到 1",
+      "five_hours_text": "现场完成一个可运行、可体验、能说明问题的 AI 应用。",
+      "no_pitch_title": "0 路演",
+      "no_pitch_text": "不比表达包装，只看作品完成度、真实体验和创新性。"
+    },
+    "form": {
+      "section_title": "参赛登记",
+      "section_desc": "填写基础信息后提交报名。赛事通知会通过后续渠道同步给入选同学。",
+      "tool_hint": "工具选择用于了解参赛者的 AI 开发习惯，不影响报名资格。",
+      "title": "报名信息",
+      "required_hint": "所有带 * 的字段均为必填",
+      "name": "姓名",
+      "name_placeholder": "请输入姓名",
+      "student_id": "学号",
+      "student_id_placeholder": "请输入学号",
+      "major": "专业",
+      "major_placeholder": "请输入专业",
+      "grade": "年级",
+      "grade_placeholder": "请选择年级",
+      "grade_freshman": "大一",
+      "grade_sophomore": "大二",
+      "grade_junior": "大三",
+      "grade_senior": "大四",
+      "grade_master": "硕士",
+      "grade_phd": "博士",
+      "ai_tools": "常用 AI 工具",
+      "multi_select": "可多选",
+      "experience": "AI 项目经历",
+      "experience_placeholder": "简述一下你使用 AI 开发项目的经历...",
+      "before_submit": "提交前确认",
+      "before_submit_desc": "姓名、学号和项目经历会用于报名核验；AI 工具只帮助赛事组了解现场支持需求。",
+      "submit": "提交报名",
+      "official_group": "官方微信群",
+      "optional": "可选",
+      "official_group_qr": "官方微信群二维码",
+      "official_group_desc": "扫码加入群聊，后续通知和现场信息会在群内同步。"
+    },
+    "errors": {
+      "name": "请输入姓名",
+      "student_id": "请输入学号",
+      "major": "请输入专业",
+      "grade": "请选择年级",
+      "ai_tools": "请至少选择一个 AI 工具",
+      "experience": "请简述你的 AI 项目经历"
+    },
+    "toast": {
+      "check_form": "请检查并完善报名信息",
+      "success": "报名成功！请等待后续通知",
+      "failed": "报名失败，请稍后重试"
+    },
+    "coach": {
+      "default_query": "我不会前端但会用 Codex，适合参加吗？",
+      "empty_query": "先告诉 AI 你想判断什么",
+      "failed": "AI 教练暂时没有回应，请稍后再试",
+      "prompt_1": "我不会前端但会用 Codex，适合参加吗？",
+      "prompt_2": "我会一点 Python，5 小时做什么最稳？",
+      "prompt_3": "现场当天时间应该怎么分配？",
+      "status_fallback": "备用策略",
+      "status_model": "大模型分析",
+      "status_idle": "AI 教练",
+      "status_loading": "正在调度大模型，若输出不稳定会自动切到备用策略",
+      "status_fallback_detail": "已启用备用策略，建议可作为参赛方向初稿",
+      "status_model_detail": "已结合赛制画像与大模型完成分析",
+      "status_idle_detail": "输入你的基础和顾虑，先得到一个可执行方案",
+      "title": "黑客松 AI 教练",
+      "desc": "告诉它你的基础、工具和顾虑，它会结合赛制给你选方向、拆计划和提醒风险。",
+      "placeholder": "比如：我不会前端但会用 Codex，适合参加吗？",
+      "loading_button": "调度大模型",
+      "submit": "开始分析",
+      "recommendation": "推荐方向",
+      "default_track": "小而完整的 AI 应用",
+      "fit": "匹配",
+      "confidence": "置信",
+      "next_step": "下一步",
+      "risk": "风险：",
+      "sources": "依据"
+    },
+    "showcase": {
+      "fallback_works": [
+        {
+          "award": "????",
+          "title": "???????",
+          "author": "???? / ??"
+        },
+        {
+          "award": "????",
+          "title": "???????",
+          "author": "???? / ??"
+        },
+        {
+          "award": "????",
+          "title": "???????",
+          "author": "???? / ??"
+        }
+      ]
+    }
+  },
+  "future_learning": {
+    "meta_title": "未来学习中心",
+    "meta_desc": "浙江大学未来学习中心 · 「智能生命健康」项目 · 问题揭榜报名",
+    "eyebrow": "Future Learning · Med Tech",
+    "hero": {
+      "title_1": "浙江大学未来学习中心",
+      "title_2": "「智能生命健康」项目",
+      "title_3": "问题揭榜报名",
+      "desc": "面向未来的学习场景与医学交叉探索。提交你希望揭榜或深入探讨的问题方向，AI生态团队将根据内容进一步联络确认。"
+    },
+    "stats": {
+      "problem_label": "问题驱动",
+      "problem_value": "揭榜",
+      "future_label": "学习场景",
+      "future_value": "未来",
+      "co_create_label": "医学交叉",
+      "co_create_value": "共创"
+    },
+    "brief": {
+      "title": "揭榜说明",
+      "desc": "提交您希望探讨或揭榜的问题方向，填写联系方式便于AI生态团队与您确认细节。信息仅用于本项目联络。"
+    },
+    "steps": {
+      "problem": "提出问题",
+      "problem_desc": "描述具体场景、痛点或研究方向",
+      "contact": "AI生态团队联络",
+      "contact_desc": "根据联系方式确认细节与参与方式",
+      "co_create": "进入共创",
+      "co_create_desc": "形成可讨论、可推进、可沉淀的问题清单"
+    },
+    "form": {
+      "section_title": "报名信息",
+      "section_desc": "填写问题方向与基础联系方式后提交报名。AI生态团队会根据内容进一步联络确认。",
+      "title": "报名信息",
+      "required_hint": "所有带 * 的字段均为必填",
+      "topic": "揭榜问题",
+      "topic_placeholder": "简要描述您希望揭榜或深入探讨的问题方向...",
+      "name": "姓名",
+      "name_placeholder": "真实姓名或常用称呼",
+      "age": "年龄",
+      "age_placeholder": "周岁",
+      "gender": "性别",
+      "gender_male": "男",
+      "gender_female": "女",
+      "organization": "学校或组织",
+      "organization_placeholder": "所在院校、院系或单位名称",
+      "email": "邮箱",
+      "phone": "电话号码",
+      "phone_placeholder": "11 位手机号或其他可接通号码",
+      "message": "留言",
+      "message_placeholder": "补充说明、可参与时段、合作意向等（选填）",
+      "submitting": "提交中...",
+      "submit": "提交报名"
+    },
+    "footer": {
+      "project": "浙江大学未来学习中心 · 「智能生命健康」项目",
+      "note": "本页面仅供项目联络使用，请勿转发至公开渠道。",
+      "back_to_top": "返回顶部"
+    },
+    "success": {
+      "title": "提交成功",
+      "desc": "我们已收到您的揭榜报名信息。AI生态团队将通过您预留的联系方式与您联络，请保持畅通。"
+    },
+    "errors": {
+      "topic": "请填写揭榜问题。",
+      "name": "请填写姓名。",
+      "age": "请填写有效年龄。",
+      "gender": "请选择性别。",
+      "organization": "请填写学校或组织。",
+      "contact": "请至少填写邮箱或电话号码中的一项。",
+      "email": "邮箱格式不正确。"
+    },
+    "toast": {
+      "check_form": "请检查并完善报名信息",
+      "success": "提交成功，AI生态团队将与您联络",
+      "failed": "提交失败，请稍后再试"
+    }
+  },
   "events": {
+    "meta_title": "活动聚合",
+    "meta_desc": "浏览浙江大学校内活动、志愿服务、讲座与报名信息。",
     "title": "社区活动",
     "subtitle": "加入我们的最新活动与研讨会",
+    "no_upcoming_desc": "暂时没有即将开始的活动，稍后再来看看吧",
+    "category_label": "活动分类",
+    "filter": {
+      "sheet_title": "筛选活动",
+      "sheet_hint": "类型和对象会立即生效",
+      "category_title": "活动类型",
+      "category_hint": "先选类型，再按对象收窄结果。",
+      "audience_prefix": "面向：",
+      "audience_title": "面向对象",
+      "audience_hint": "选择学院、学园或保持全校",
+      "search_audience": "搜索学院或学园",
+      "search_audience_placeholder": "搜索学院 / 学园",
+      "no_audience_matches": "没有匹配的学院或学园",
+      "collapse_common_audiences": "收起到常用对象",
+      "expand_all_audiences": "展开全部学院/学园（{{count}}）"
+    },
     "status": {
       "upcoming": "即将开始",
       "ongoing": "进行中",
@@ -748,7 +1204,123 @@
       "expand_hint": "如果你愿意，我可以继续帮你看看进行中或历史活动。",
       "empty_hint": "你可以换个说法，或者放宽一些条件再试试。",
       "expand_button": "看看进行中或历史活动",
-      "detail_error": "活动详情加载失败，请稍后再试。"
+      "detail_error": "活动详情加载失败，请稍后再试。",
+      "card_badge": "AI ????",
+      "rank_badge": "AI ?????",
+      "panel_title": "???????????????????",
+      "panel_subtitle": "?????????????????????????????????????????",
+      "mobile_title": "AI ????",
+      "mobile_subtitle": "??????",
+      "back_to_events": "??????",
+      "preferences": "??????",
+      "preferences_short": "??",
+      "profile_loading": "????????...",
+      "profile_auth_hint": "???????????????????????????????????????",
+      "profile": {
+        "college": "??/??",
+        "college_placeholder": "?????",
+        "grade": "??",
+        "grade_placeholder": "???? / ??",
+        "campus": "????",
+        "campus_placeholder": "???",
+        "interests": "?????",
+        "interests_placeholder": "AI?????????",
+        "preferred_categories": "????",
+        "preferred_benefits": "????"
+      },
+      "preference": {
+        "categories": {
+          "lecture": "??",
+          "competition": "??",
+          "volunteer": "??",
+          "recruitment": "??/??",
+          "culture_sports": "??",
+          "exchange": "??"
+        },
+        "benefits": {
+          "score": "??",
+          "volunteer_time": "????",
+          "skill": "????",
+          "social": "????"
+        },
+        "formats": {
+          "any": "????",
+          "offline": "???",
+          "online": "???",
+          "hybrid": "???"
+        }
+      },
+      "quick": {
+        "freshman_offline": {
+          "label": "????",
+          "prompt": "????????????????????"
+        },
+        "credit_volunteer": {
+          "label": "??/??",
+          "prompt": "????????????????"
+        },
+        "portfolio": {
+          "label": "?????",
+          "prompt": "???????????????????"
+        },
+        "ai_lecture": {
+          "label": "AI ??",
+          "prompt": "???? AI?????????????"
+        },
+        "this_week": {
+          "label": "????",
+          "prompt": "?????????????????"
+        }
+      },
+      "remember": "??",
+      "restart": "??",
+      "save_preferences": "????",
+      "scope_mixed_future": "??/?????",
+      "historical_fallback_note": "??????????????????????????????????????????????",
+      "understood": "????",
+      "profile_signals": "????",
+      "ranking_basis": "????",
+      "uncertain": "????",
+      "clarify_label": "???????",
+      "historical_event": "????",
+      "match_score": "?? {{score}}",
+      "view_details": "???",
+      "next_step": "???",
+      "tradeoff": "???{{value}}",
+      "fit_for": "???{{value}}",
+      "matched": "???{{value}}",
+      "missing": "???{{value}}",
+      "uncertainty": "????{{value}}",
+      "feedback_used": "?????",
+      "feedback_question": "??????????",
+      "feedback_up_aria": "?????",
+      "feedback_up_title": "???",
+      "feedback_down_aria": "??????",
+      "feedback_down_title": "????",
+      "narrow_hint": "???????????????????????????????????????????????",
+      "feedback": {
+        "not_relevant": "???",
+        "time_mismatch": "?????",
+        "location_mismatch": "?????",
+        "benefit_mismatch": "?????",
+        "already_joined": "????"
+      },
+      "toast": {
+        "feedback_up": "???????????",
+        "feedback_down": "?????????????",
+        "feedback_login_required": "????????????",
+        "feedback_failed": "????????????",
+        "profile_load_failed": "????????",
+        "profile_login_required": "???????????",
+        "profile_saved": "???????",
+        "profile_save_failed": "????????"
+      },
+      "coverage_historical": "???????????{{count}} ?????",
+      "coverage_mixed": "????{{future}} ???/????{{past}} ???",
+      "preference_remembered": "???????",
+      "model_fallback": "???????",
+      "model_used": "????????",
+      "model_unfinished": "???????"
     },
     "processing": "处理中...",
     "signed_up": "已报名",
@@ -775,21 +1347,21 @@
     "id": "ID",
     "actions": "操作",
     "tabs": {
-      "overview": "概览",
-      "pending": "待审核",
-      "photos": "照片",
-      "music": "播客",
+      "overview": "总览",
+      "pending": "审核中心",
+      "intelligence": "智能治理",
+      "events": "活动管理",
+      "hackathon": "黑客松",
+      "articles": "文章",
+      "photos": "图片",
       "videos": "视频",
-      "articles": "AI 专栏",
-      "events": "活动聚合",
-      "audit": "审核日志",
-      "settings": "设置",
-      "files": "文件管理",
-      "database": "数据库",
-      "pages": "页面内容",
+      "music": "音频",
+      "pages": "页面管理",
+      "tags": "标签管理",
       "users": "用户管理",
-      "messages": "消息",
-      "tags": "标签管理"
+      "community": "社区运营",
+      "messages": "消息管理",
+      "settings": "系统设置"
     },
     "audit_logs": {
       "title": "审核日志",
@@ -913,23 +1485,6 @@
       "contentAssets": "内容资产",
       "communityUsers": "社区与用户",
       "systemConfig": "系统配置"
-    },
-    "tabs": {
-      "overview": "总览",
-      "pending": "审核中心",
-      "intelligence": "智能治理",
-      "events": "活动管理",
-      "hackathon": "黑客松",
-      "articles": "文章",
-      "photos": "图片",
-      "videos": "视频",
-      "music": "音频",
-      "pages": "页面管理",
-      "tags": "标签管理",
-      "users": "用户管理",
-      "community": "社区运营",
-      "messages": "消息管理",
-      "settings": "系统设置"
     },
     "descriptions": {
       "overview": "关键数据、待办和常用入口",
@@ -1190,27 +1745,42 @@
     "go_home": "返回首页"
   },
   "themes": {
-    "grid": { "name": "复古网格", "desc": "合成波" },
-    "embers": { "name": "火焰余烬", "desc": "飞溅火花" },
-    "crystal": { "name": "水晶洞穴", "desc": "折射" },
-    "cyber": { "name": "赛博电路", "desc": "主机" },
-    "dna": { "name": "数字 DNA", "desc": "生命代码" },
-    "binary": { "name": "二进制流", "desc": "数据流" },
-    "network": { "name": "网络节点", "desc": "连接" },
-    "wave": { "name": "粒子波", "desc": "振荡" },
-    "orbit": { "name": "轨道环", "desc": "引力" }
-  },
-  "advanced_filter": {
-    "title": "筛选属性",
-    "nature": "活动性质",
-    "organizer": "主办方",
-    "location": "地点",
-    "target_audience": "目标人群",
-    "all_natures": "所有性质",
-    "all_organizers": "所有主办方",
-    "all_locations": "所有地点",
-    "all_target_audiences": "所有目标人群",
-    "clear": "清空筛选"
+    "grid": {
+      "name": "复古网格",
+      "desc": "合成波"
+    },
+    "embers": {
+      "name": "火焰余烬",
+      "desc": "飞溅火花"
+    },
+    "crystal": {
+      "name": "水晶洞穴",
+      "desc": "折射"
+    },
+    "cyber": {
+      "name": "赛博电路",
+      "desc": "主机"
+    },
+    "dna": {
+      "name": "数字 DNA",
+      "desc": "生命代码"
+    },
+    "binary": {
+      "name": "二进制流",
+      "desc": "数据流"
+    },
+    "network": {
+      "name": "网络节点",
+      "desc": "连接"
+    },
+    "wave": {
+      "name": "粒子波",
+      "desc": "振荡"
+    },
+    "orbit": {
+      "name": "轨道环",
+      "desc": "引力"
+    }
   },
   "event_fields": {
     "basic_info": "基本信息",
@@ -1227,5 +1797,34 @@
     "score_placeholder": "+1.5",
     "volunteer_time_placeholder": "例如: 2小时",
     "target_placeholder": "例如：全体师生"
+  },
+  "media_library": {
+    "title": "???",
+    "meta_desc": "???????????????",
+    "current_category": "????",
+    "current_category_label": "?????{{category}}",
+    "description": "????????????????????{{category}}?",
+    "upload_media": "????",
+    "login_required": "????????",
+    "category_error": "???????????????????",
+    "category_loading": "????????...",
+    "no_categories": "?????????????????????",
+    "content_error": "???????????????",
+    "photos_title": "????",
+    "photos_count": "{{visible}} / {{total}} ???",
+    "upload_photos": "????",
+    "empty_photos_title": "??????",
+    "empty_photos_desc": "???????????????????????????",
+    "load_more_photos": "??????",
+    "videos_title": "????",
+    "videos_count": "{{visible}} / {{total}} ???",
+    "upload_videos": "????",
+    "empty_videos_title": "??????",
+    "empty_videos_desc": "???????????????????????????",
+    "load_more_videos": "??????",
+    "untitled_photo": "?????",
+    "untitled_video": "?????",
+    "uncategorized": "???",
+    "close_video": "????"
   }
 }

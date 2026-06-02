@@ -478,7 +478,7 @@ const CommunityTech = () => {
           <input
             value={feed.searchQuery}
             onChange={(event) => feed.setSearchQuery(event.target.value)}
-            placeholder="搜索文章标题、摘要或正文"
+            placeholder={t('community.tech_search_placeholder', 'Search article titles, summaries, or body text')}
             className={`w-full bg-transparent text-sm outline-none ${isDayMode ? 'text-slate-700 placeholder:text-slate-400' : 'text-gray-200 placeholder:text-gray-500'}`}
           />
           {feed.searchQuery ? (
@@ -487,7 +487,7 @@ const CommunityTech = () => {
               onClick={() => feed.setSearchQuery('')}
               className={`text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}
             >
-              清空
+              {t('common.clear', 'Clear')}
             </button>
           ) : null}
         </div>

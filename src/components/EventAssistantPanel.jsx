@@ -43,17 +43,17 @@ const formatEventDate = (value) => {
   return `${Number(month)}.${Number(day)}`;
 };
 
-const getScopeText = (scope) => {
+const getScopeText = (scope, t) => {
   switch (scope) {
     case "ongoing":
-      return "进行中活动";
+      return t("events.assistant.scope_ongoing", "进行中活动");
     case "mixed_future":
-      return "未来/进行中活动";
+      return t("events.assistant.scope_mixed_future", "未来/进行中活动");
     case "past":
-      return "历史活动";
+      return t("events.assistant.scope_past", "历史活动");
     case "upcoming":
     default:
-      return "未开始活动";
+      return t("events.assistant.scope_upcoming", "未开始活动");
   }
 };
 
@@ -74,35 +74,35 @@ const getErrorMessage = (error, t) => {
 };
 
 const categoryOptions = [
-  { value: "lecture", label: "讲座" },
-  { value: "competition", label: "竞赛" },
-  { value: "volunteer", label: "志愿" },
-  { value: "recruitment", label: "招新/职业" },
-  { value: "culture_sports", label: "文体" },
-  { value: "exchange", label: "交流" },
+  { value: "lecture", labelKey: "events.assistant.preference.categories.lecture", label: "讲座" },
+  { value: "competition", labelKey: "events.assistant.preference.categories.competition", label: "竞赛" },
+  { value: "volunteer", labelKey: "events.assistant.preference.categories.volunteer", label: "志愿" },
+  { value: "recruitment", labelKey: "events.assistant.preference.categories.recruitment", label: "招新/职业" },
+  { value: "culture_sports", labelKey: "events.assistant.preference.categories.culture_sports", label: "文体" },
+  { value: "exchange", labelKey: "events.assistant.preference.categories.exchange", label: "交流" },
 ];
 
 const benefitOptions = [
-  { value: "score", label: "综测" },
-  { value: "volunteer_time", label: "志愿时长" },
-  { value: "skill", label: "技能成长" },
-  { value: "social", label: "社交放松" },
+  { value: "score", labelKey: "events.assistant.preference.benefits.score", label: "综测" },
+  { value: "volunteer_time", labelKey: "events.assistant.preference.benefits.volunteer_time", label: "志愿时长" },
+  { value: "skill", labelKey: "events.assistant.preference.benefits.skill", label: "技能成长" },
+  { value: "social", labelKey: "events.assistant.preference.benefits.social", label: "社交放松" },
 ];
 
 const quickPrompts = [
-  { label: "新生线下", prompt: "适合新生参加的线下活动，最好在紫金港附近" },
-  { label: "综测/志愿", prompt: "推荐有综测信息或者志愿时长的活动" },
-  { label: "技能作品集", prompt: "推荐能提升技能、适合做作品集的实践活动" },
-  { label: "AI 讲座", prompt: "我想参加 AI、科技或创新创业相关的讲座" },
-  { label: "本周可去", prompt: "这周能参加、时间比较近的活动有哪些" },
+  { labelKey: "events.assistant.quick.freshman_offline.label", promptKey: "events.assistant.quick.freshman_offline.prompt", label: "新生线下", prompt: "适合新生参加的线下活动，最好在紫金港附近" },
+  { labelKey: "events.assistant.quick.credit_volunteer.label", promptKey: "events.assistant.quick.credit_volunteer.prompt", label: "综测/志愿", prompt: "推荐有综测信息或者志愿时长的活动" },
+  { labelKey: "events.assistant.quick.portfolio.label", promptKey: "events.assistant.quick.portfolio.prompt", label: "技能作品集", prompt: "推荐能提升技能、适合做作品集的实践活动" },
+  { labelKey: "events.assistant.quick.ai_lecture.label", promptKey: "events.assistant.quick.ai_lecture.prompt", label: "AI 讲座", prompt: "我想参加 AI、科技或创新创业相关的讲座" },
+  { labelKey: "events.assistant.quick.this_week.label", promptKey: "events.assistant.quick.this_week.prompt", label: "本周可去", prompt: "这周能参加、时间比较近的活动有哪些" },
 ];
 
 const feedbackReasonOptions = [
-  { value: "not_relevant", label: "不相关" },
-  { value: "time_mismatch", label: "时间不合适" },
-  { value: "location_mismatch", label: "地点不合适" },
-  { value: "benefit_mismatch", label: "收益不符合" },
-  { value: "already_joined", label: "已参加过" },
+  { value: "not_relevant", labelKey: "events.assistant.feedback.not_relevant", label: "不相关" },
+  { value: "time_mismatch", labelKey: "events.assistant.feedback.time_mismatch", label: "时间不合适" },
+  { value: "location_mismatch", labelKey: "events.assistant.feedback.location_mismatch", label: "地点不合适" },
+  { value: "benefit_mismatch", labelKey: "events.assistant.feedback.benefit_mismatch", label: "收益不符合" },
+  { value: "already_joined", labelKey: "events.assistant.feedback.already_joined", label: "已参加过" },
 ];
 
 const getDiagnosticsSummary = (diagnostics) => {
@@ -155,15 +155,18 @@ const getOpportunityMatchPreview = (opportunityMatch) => {
   };
 };
 
-const getCoverageText = (coverage) => {
+const getCoverageText = (coverage, t) => {
   if (!coverage || !Number.isFinite(Number(coverage.total))) return "";
   const futureCount = Number(coverage.upcoming || 0) + Number(coverage.ongoing || 0);
   const pastCount = Number(coverage.past || 0);
 
   if (futureCount === 0 && pastCount > 0) {
-    return `活动库：暂无未来活动，${pastCount} 个历史线索`;
+    return t("events.assistant.coverage_historical", "活动库：暂无未来活动，{{count}} 个历史线索", { count: pastCount });
   }
-  return `活动库：${futureCount} 个未来/进行中，${pastCount} 个历史`;
+  return t("events.assistant.coverage_mixed", "活动库：{{future}} 个未来/进行中，{{past}} 个历史", {
+    future: futureCount,
+    past: pastCount,
+  });
 };
 
 const EventAssistantPanel = ({
@@ -197,9 +200,15 @@ const EventAssistantPanel = ({
   });
 
   const scopeLabel = useMemo(
-    () => getScopeText(assistantState?.scope),
-    [assistantState?.scope],
+    () => getScopeText(assistantState?.scope, t),
+    [assistantState?.scope, t],
   );
+  const formatOptions = useMemo(() => [
+    ["", t("events.assistant.preference.formats.any", "不限方式")],
+    ["offline", t("events.assistant.preference.formats.offline", "偏线下")],
+    ["online", t("events.assistant.preference.formats.online", "偏线上")],
+    ["hybrid", t("events.assistant.preference.formats.hybrid", "都可以")],
+  ], [t]);
 
   const understoodItems = assistantState?.understoodIntent?.understood || [];
   const profileSignals = assistantState?.understoodIntent?.profile?.signals || [];
@@ -207,23 +216,23 @@ const EventAssistantPanel = ({
   const uncertaintyItems = assistantState?.reasoningTrace?.uncertainty || [];
   const hasModelStatus = Boolean(assistantState?.modelStatus);
   const coverageText = useMemo(
-    () => getCoverageText(assistantState?.coverage),
-    [assistantState?.coverage],
+    () => getCoverageText(assistantState?.coverage, t),
+    [assistantState?.coverage, t],
   );
 
   const emptyStateText = useMemo(() => {
     switch (assistantState?.emptyReason) {
       case "assistant_unreliable":
-        return "这次模型输出不够可靠，我没有把它直接展示给你。";
+        return t("events.assistant.empty_unreliable", "这次模型输出不够可靠，我没有把它直接展示给你。");
       case "clarification_limit_reached":
-        return "这次补充后仍然没有稳定结果，可以换个说法再试。";
+        return t("events.assistant.empty_after_clarify", "这次补充后仍然没有稳定结果，可以换个说法再试。");
       case "no_matches":
-        return "目前没有特别贴近这些条件的活动。";
+        return t("events.assistant.empty_no_matches", "目前没有特别贴近这些条件的活动。");
       case "no_upcoming":
       default:
-        return "当前暂时没有未开始的活动。";
+        return t("events.assistant.empty_no_upcoming", "当前暂时没有未开始的活动。");
     }
-  }, [assistantState?.emptyReason]);
+  }, [assistantState?.emptyReason, t]);
 
   const sendAssistantRequest = async (payload, nextOriginalQuery, nextClarificationAsked) => {
     setLoading(true);
@@ -322,7 +331,8 @@ const EventAssistantPanel = ({
       setFeedbackReasonMap((previous) => ({ ...previous, [item.id]: reasonValue }));
     }
     try {
-      const reasonLabel = feedbackReasonOptions.find((option) => option.value === reasonValue)?.label;
+      const reasonOption = feedbackReasonOptions.find((option) => option.value === reasonValue);
+      const reasonLabel = reasonOption ? t(reasonOption.labelKey, reasonOption.label) : "";
       await api.post("/events/assistant/feedback", {
         eventId: item.event.id,
         feedback,
@@ -334,7 +344,9 @@ const EventAssistantPanel = ({
           ? `${reasonLabel}：${item.reason}`
           : item.reason,
       });
-      toast.success(feedback === "up" ? "已记录：这条推荐适合你" : "已记录：后续会减少类似推荐");
+      toast.success(feedback === "up"
+        ? t("events.assistant.toast.feedback_up", "已记录：这条推荐适合你")
+        : t("events.assistant.toast.feedback_down", "已记录：后续会减少类似推荐"));
     } catch (error) {
       setFeedbackMap((previous) => {
         const next = { ...previous };
@@ -347,9 +359,9 @@ const EventAssistantPanel = ({
         return next;
       });
       if (error?.response?.status === 401) {
-        toast.error("登录后可以让助手记住反馈");
+        toast.error(t("events.assistant.toast.feedback_login_required", "登录后可以让助手记住反馈"));
       } else {
-        toast.error("反馈记录失败，请稍后再试");
+        toast.error(t("events.assistant.toast.feedback_failed", "反馈记录失败，请稍后再试"));
       }
     }
   };
@@ -376,7 +388,7 @@ const EventAssistantPanel = ({
         setProfileAuthRequired(true);
         setProfileLoaded(true);
       } else {
-        toast.error("推荐偏好加载失败");
+        toast.error(t("events.assistant.toast.profile_load_failed", "推荐偏好加载失败"));
       }
     } finally {
       setProfileLoading(false);
@@ -405,7 +417,7 @@ const EventAssistantPanel = ({
 
   const saveProfile = async () => {
     if (profileAuthRequired) {
-      toast.error("登录后可以保存长期推荐偏好");
+      toast.error(t("events.assistant.toast.profile_login_required", "登录后可以保存长期推荐偏好"));
       return;
     }
 
@@ -432,12 +444,12 @@ const EventAssistantPanel = ({
         interestTagsText: (data.interestTags || interestTags).join("、"),
       }));
       setProfileLoaded(true);
-      toast.success("推荐偏好已保存");
+      toast.success(t("events.assistant.toast.profile_saved", "推荐偏好已保存"));
     } catch (error) {
       if (error?.response?.status === 401) {
-        toast.error("登录后可以保存推荐偏好");
+        toast.error(t("events.assistant.toast.profile_login_required", "登录后可以保存推荐偏好"));
       } else {
-        toast.error("推荐偏好保存失败");
+        toast.error(t("events.assistant.toast.profile_save_failed", "推荐偏好保存失败"));
       }
     } finally {
       setProfileSaving(false);
@@ -513,19 +525,19 @@ const EventAssistantPanel = ({
                   <div className="flex flex-wrap items-center gap-2">
                     <span className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] ${chipClass}`}>
                       <Sparkles size={13} className={isDayMode ? "text-cyan-500" : "text-cyan-300"} />
-                      AI 活动推荐
+                      {t("events.assistant.card_badge", "AI 活动推荐")}
                     </span>
                     <span className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-[11px] font-medium ${isDayMode ? "bg-emerald-50 text-emerald-700 border-emerald-200/80" : "bg-emerald-400/10 text-emerald-200 border-emerald-300/15"}`}>
                       <Brain size={13} />
-                      AI 理解后排序
+                      {t("events.assistant.rank_badge", "AI 理解后排序")}
                     </span>
                   </div>
 
                   <h3 className={`mt-3 text-xl font-bold tracking-normal sm:text-2xl ${textClass}`}>
-                    说出你想参加什么，我来按画像和活动库筛
+                    {t("events.assistant.panel_title", "说出你想参加什么，我来按画像和活动库筛")}
                   </h3>
                   <p className={`mt-2 text-sm leading-7 sm:text-base ${mutedClass}`}>
-                    可以说主题、校区、面向对象、综测或志愿时长。登录后会参考你的组织、收藏报名和反馈。
+                    {t("events.assistant.panel_subtitle", "可以说主题、校区、面向对象、综测或志愿时长。登录后会参考你的组织、收藏报名和反馈。")}
                   </p>
                 </div>
 
@@ -536,7 +548,7 @@ const EventAssistantPanel = ({
                     className={`inline-flex items-center gap-2 self-start rounded-lg border px-4 py-2 text-sm font-semibold transition-all ${chipClass}`}
                   >
                     <RotateCcw size={15} />
-                    重新提问
+                    {t("events.assistant.reset", "重新提问")}
                   </button>
                 )}
               </div>
@@ -548,7 +560,7 @@ const EventAssistantPanel = ({
                   className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition-all ${chipClass}`}
                 >
                   <Settings2 size={15} />
-                  我的推荐偏好
+                  {t("events.assistant.preferences", "我的推荐偏好")}
                 </button>
               </div>
             </>
@@ -566,19 +578,19 @@ const EventAssistantPanel = ({
                   {profileLoading ? (
                     <div className={`flex items-center gap-2 text-sm ${faintClass}`}>
                       <Loader2 size={16} className="animate-spin" />
-                      正在读取推荐偏好...
+                      {t("events.assistant.profile_loading", "正在读取推荐偏好...")}
                     </div>
                   ) : (
                     <div className="grid gap-4">
                       {profileAuthRequired ? (
                         <div className={`rounded-lg border px-4 py-3 text-sm leading-6 ${isDayMode ? "border-amber-200/80 bg-amber-50 text-amber-800" : "border-amber-300/20 bg-amber-400/10 text-amber-100"}`}>
-                          登录后可以保存长期画像；现在也可以直接在提问里写清楚偏好，我会按本次内容推荐。
+                          {t("events.assistant.profile_auth_hint", "登录后可以保存长期画像；现在也可以直接在提问里写清楚偏好，我会按本次内容推荐。")}
                         </div>
                       ) : null}
 
                       <div className="grid gap-3 md:grid-cols-3">
                         <label className={`grid gap-2 text-sm ${faintClass}`}>
-                          学院/组织
+                          {t("events.assistant.profile.college", "学院/组织")}
                           <input
                             value={profileForm.college}
                             onChange={(event) =>
@@ -588,11 +600,11 @@ const EventAssistantPanel = ({
                               }))
                             }
                             className={`rounded-lg border px-3 py-2.5 outline-none ${isDayMode ? "bg-white text-slate-900 border-slate-200" : "bg-white/5 text-white border-white/10"}`}
-                            placeholder="计算机学院"
+                            placeholder={t("events.assistant.profile.college_placeholder", "计算机学院")}
                           />
                         </label>
                         <label className={`grid gap-2 text-sm ${faintClass}`}>
-                          年级
+                          {t("events.assistant.profile.grade", "年级")}
                           <input
                             value={profileForm.grade}
                             onChange={(event) =>
@@ -602,11 +614,11 @@ const EventAssistantPanel = ({
                               }))
                             }
                             className={`rounded-lg border px-3 py-2.5 outline-none ${isDayMode ? "bg-white text-slate-900 border-slate-200" : "bg-white/5 text-white border-white/10"}`}
-                            placeholder="本科新生 / 研一"
+                            placeholder={t("events.assistant.profile.grade_placeholder", "本科新生 / 研一")}
                           />
                         </label>
                         <label className={`grid gap-2 text-sm ${faintClass}`}>
-                          常用校区
+                          {t("events.assistant.profile.campus", "常用校区")}
                           <input
                             value={profileForm.campus}
                             onChange={(event) =>
@@ -616,13 +628,13 @@ const EventAssistantPanel = ({
                               }))
                             }
                             className={`rounded-lg border px-3 py-2.5 outline-none ${isDayMode ? "bg-white text-slate-900 border-slate-200" : "bg-white/5 text-white border-white/10"}`}
-                            placeholder="紫金港"
+                            placeholder={t("events.assistant.profile.campus_placeholder", "紫金港")}
                           />
                         </label>
                       </div>
 
                       <label className={`grid gap-2 text-sm ${faintClass}`}>
-                        兴趣关键词
+                        {t("events.assistant.profile.interests", "兴趣关键词")}
                         <input
                           value={profileForm.interestTagsText}
                           onChange={(event) =>
@@ -632,13 +644,13 @@ const EventAssistantPanel = ({
                             }))
                           }
                           className={`rounded-lg border px-3 py-2.5 outline-none ${isDayMode ? "bg-white text-slate-900 border-slate-200" : "bg-white/5 text-white border-white/10"}`}
-                          placeholder="AI、创业、志愿、摄影"
+                          placeholder={t("events.assistant.profile.interests_placeholder", "AI、创业、志愿、摄影")}
                         />
                       </label>
 
                       <div className="grid gap-3 md:grid-cols-2">
                         <div>
-                          <div className={`mb-2 text-sm ${faintClass}`}>偏好类型</div>
+                          <div className={`mb-2 text-sm ${faintClass}`}>{t("events.assistant.profile.preferred_categories", "偏好类型")}</div>
                           <div className="flex flex-wrap gap-2">
                             {categoryOptions.map((option) => (
                               <button
@@ -647,13 +659,13 @@ const EventAssistantPanel = ({
                                 onClick={() => toggleProfileArrayValue("preferredCategories", option.value)}
                                 className={`rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${profileForm.preferredCategories.includes(option.value) ? selectedPillClass : chipClass}`}
                               >
-                                {option.label}
+                                {t(option.labelKey, option.label)}
                               </button>
                             ))}
                           </div>
                         </div>
                         <div>
-                          <div className={`mb-2 text-sm ${faintClass}`}>偏好收益</div>
+                          <div className={`mb-2 text-sm ${faintClass}`}>{t("events.assistant.profile.preferred_benefits", "偏好收益")}</div>
                           <div className="flex flex-wrap gap-2">
                             {benefitOptions.map((option) => (
                               <button
@@ -662,7 +674,7 @@ const EventAssistantPanel = ({
                                 onClick={() => toggleProfileArrayValue("preferredBenefits", option.value)}
                                 className={`rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${profileForm.preferredBenefits.includes(option.value) ? selectedPillClass : chipClass}`}
                               >
-                                {option.label}
+                                {t(option.labelKey, option.label)}
                               </button>
                             ))}
                           </div>
@@ -671,12 +683,7 @@ const EventAssistantPanel = ({
 
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex flex-wrap gap-2">
-                          {[
-                            ["", "不限方式"],
-                            ["offline", "偏线下"],
-                            ["online", "偏线上"],
-                            ["hybrid", "都可以"],
-                          ].map(([value, label]) => (
+                          {formatOptions.map(([value, label]) => (
                             <button
                               key={value}
                               type="button"
@@ -699,7 +706,7 @@ const EventAssistantPanel = ({
                           className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold disabled:opacity-50 ${actionClass}`}
                         >
                           {profileSaving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
-                          保存偏好
+                          {t("events.assistant.save_preferences", "保存偏好")}
                         </button>
                       </div>
                     </div>
@@ -720,14 +727,14 @@ const EventAssistantPanel = ({
             <div className={quickPromptGridClass}>
               {quickPrompts.map((item) => (
                 <button
-                  key={item.label}
+                  key={item.labelKey}
                   type="button"
-                  onClick={() => handleQuickPrompt(item.prompt)}
+                  onClick={() => handleQuickPrompt(t(item.promptKey, item.prompt))}
                   disabled={loading}
                   className={`inline-flex min-h-[48px] items-center justify-center gap-2 rounded-lg border px-3 py-2 text-xs font-bold transition-colors disabled:opacity-50 ${quickPromptClass}`}
                 >
                   <Sparkles size={13} className={isDayMode ? "text-blue-500" : "text-blue-200"} />
-                  {item.label}
+                  {t(item.labelKey, item.label)}
                 </button>
               ))}
             </div>
@@ -747,8 +754,8 @@ const EventAssistantPanel = ({
                 rows={2}
                 placeholder={
                   assistantState?.type === "clarify"
-                    ? "补充一点偏好，我下一轮会直接给结果"
-                    : "比如：这周末线下，适合新生，最好有综测或志愿时长的活动"
+                    ? t("events.assistant.clarification_placeholder", "补充一点偏好，我下一轮会直接给结果")
+                    : t("events.assistant.input_placeholder", "比如：这周末线下，适合新生，最好有综测或志愿时长的活动")
                 }
                 className={`w-full resize-none bg-transparent px-1 py-1 text-sm leading-7 outline-none sm:text-base ${isFullscreenVariant ? "min-h-[108px]" : "min-h-[96px]"} ${isDayMode ? "text-slate-900 placeholder:text-slate-400" : "text-white placeholder:text-gray-500"}`}
               />
@@ -762,7 +769,7 @@ const EventAssistantPanel = ({
                       onChange={(event) => setRememberPreference(event.target.checked)}
                       className="h-4 w-4 rounded"
                     />
-                    记住
+                    {t("events.assistant.remember", "记住")}
                   </label>
                   {isFullscreenVariant ? (
                     <>
@@ -772,7 +779,7 @@ const EventAssistantPanel = ({
                         className={`inline-flex min-h-[36px] items-center gap-2 rounded-md border px-3 text-sm font-semibold transition-all ${controlChipClass}`}
                       >
                         <Settings2 size={14} />
-                        偏好
+                         {t("events.assistant.preferences_short", "偏好")}
                       </button>
                       {(assistantState || originalQuery) && (
                         <button
@@ -781,7 +788,7 @@ const EventAssistantPanel = ({
                           className={`inline-flex min-h-[36px] items-center gap-2 rounded-md border px-3 text-sm font-semibold transition-all ${controlChipClass}`}
                         >
                           <RotateCcw size={14} />
-                          重来
+                           {t("events.assistant.restart", "重来")}
                         </button>
                       )}
                     </>
@@ -796,12 +803,14 @@ const EventAssistantPanel = ({
                   {loading ? (
                     <>
                       <Loader2 size={16} className="animate-spin" />
-                      思考中...
+                       {t("events.assistant.loading", "思考中...")}
                     </>
                   ) : (
                     <>
                       <SendHorizontal size={16} />
-                      {assistantState?.type === "clarify" ? "继续推荐" : "开始推荐"}
+                       {assistantState?.type === "clarify"
+                         ? t("events.assistant.submit_clarification", "继续推荐")
+                         : t("events.assistant.submit", "开始推荐")}
                     </>
                   )}
                 </button>
@@ -828,17 +837,17 @@ const EventAssistantPanel = ({
                     {assistantState.remembered ? (
                       <span className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs ${isDayMode ? "bg-emerald-50 text-emerald-700 border-emerald-200/80" : "bg-emerald-400/10 text-emerald-200 border-emerald-300/15"}`}>
                         <Check size={13} />
-                        已记住这次偏好
+                        {t("events.assistant.preference_remembered", "已记住这次偏好")}
                       </span>
                     ) : null}
                     {hasModelStatus ? (
                       <span className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs ${chipClass}`}>
                         <Brain size={13} />
                         {assistantState.modelStatus?.fallbackUsed
-                          ? "模型已降级兜底"
+                          ? t("events.assistant.model_fallback", "模型已降级兜底")
                           : assistantState.modelStatus?.used
-                            ? "大模型已参与排序"
-                            : "模型未完成排序"}
+                            ? t("events.assistant.model_used", "大模型已参与排序")
+                            : t("events.assistant.model_unfinished", "模型未完成排序")}
                       </span>
                     ) : null}
                     {coverageText ? (
@@ -857,7 +866,7 @@ const EventAssistantPanel = ({
 
                   {assistantState.recommendationMode === "historical_fallback" && assistantState.coverage ? (
                     <p className={`mt-2 text-sm leading-6 ${faintClass}`}>
-                      我先查未来和进行中的活动，没有足够匹配项后才退到历史活动；这部分更适合用来关注后续同类机会。
+                      {t("events.assistant.historical_fallback_note", "我先查未来和进行中的活动，没有足够匹配项后才退到历史活动；这部分更适合用来关注后续同类机会。")}
                     </p>
                   ) : null}
 
@@ -867,7 +876,7 @@ const EventAssistantPanel = ({
                         <div className={`rounded-lg border p-4 ${chipClass}`}>
                           <div className={`mb-2 flex items-center gap-2 text-sm font-semibold ${textClass}`}>
                             <Brain size={15} />
-                            我理解到
+                            {t("events.assistant.understood", "我理解到")}
                           </div>
                           <div className="flex flex-wrap gap-2">
                             {understoodItems.map((item) => (
@@ -883,7 +892,7 @@ const EventAssistantPanel = ({
                         <div className={`rounded-lg border p-4 ${chipClass}`}>
                           <div className={`mb-2 flex items-center gap-2 text-sm font-semibold ${textClass}`}>
                             <UserRound size={15} />
-                            参考画像
+                            {t("events.assistant.profile_signals", "参考画像")}
                           </div>
                           <div className={`space-y-1 text-xs leading-5 ${faintClass}`}>
                             {profileSignals.slice(0, 4).map((item) => (
@@ -910,7 +919,7 @@ const EventAssistantPanel = ({
                         <div className={`rounded-lg border p-4 ${chipClass}`}>
                           <div className={`mb-2 flex items-center gap-2 text-sm font-semibold ${textClass}`}>
                             <Sparkles size={15} />
-                            排序依据
+                            {t("events.assistant.ranking_basis", "排序依据")}
                           </div>
                           <div className="flex flex-wrap gap-2">
                             {rankingBasis.slice(0, 5).map((item) => (
@@ -926,7 +935,7 @@ const EventAssistantPanel = ({
                         <div className={`rounded-lg border p-4 ${chipClass}`}>
                           <div className={`mb-2 flex items-center gap-2 text-sm font-semibold ${textClass}`}>
                             <AlertTriangle size={15} />
-                            还不确定
+                            {t("events.assistant.uncertain", "还不确定")}
                           </div>
                           <div className={`space-y-1 text-xs leading-5 ${faintClass}`}>
                             {uncertaintyItems.slice(0, 4).map((item) => (
@@ -941,7 +950,7 @@ const EventAssistantPanel = ({
                   {assistantState.type === "clarify" && (
                     <div className="mt-4 max-w-2xl">
                       <p className={`text-sm uppercase tracking-[0.18em] ${faintClass}`}>
-                        我还想确认一点
+                        {t("events.assistant.clarify_label", "我还想确认一点")}
                       </p>
                       <p className={`mt-3 text-lg font-semibold leading-8 ${textClass}`}>
                         {assistantState.question}
@@ -956,8 +965,8 @@ const EventAssistantPanel = ({
                       </p>
                       <p className={`mt-2 text-sm leading-7 ${mutedClass}`}>
                         {assistantState.canExpandScope
-                          ? "可以放宽到进行中或历史活动，看有没有后续可关注的线索。"
-                          : "你可以换一个主题、校区或收益条件再试。"}
+                          ? t("events.assistant.expand_hint", "可以放宽到进行中或历史活动，看有没有后续可关注的线索。")
+                          : t("events.assistant.empty_hint", "你可以换一个主题、校区或收益条件再试。")}
                       </p>
 
                       {assistantState.canExpandScope && (
@@ -968,7 +977,7 @@ const EventAssistantPanel = ({
                           className={`mt-4 inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all ${actionClass}`}
                         >
                           <ArrowRight size={15} />
-                          看看进行中或历史活动
+                          {t("events.assistant.expand_button", "看看进行中或历史活动")}
                         </button>
                       )}
                     </div>
@@ -1008,12 +1017,12 @@ const EventAssistantPanel = ({
                                   {item.isHistorical ? (
                                     <span className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${isDayMode ? "bg-amber-50 text-amber-700 border-amber-200/80" : "bg-amber-400/10 text-amber-200 border-amber-300/15"}`}>
                                       <Clock3 size={12} />
-                                      历史活动
+                                      {t("events.assistant.historical_event", "历史活动")}
                                     </span>
                                   ) : null}
                                   {Number.isFinite(Number(item.score)) ? (
                                     <span className={`rounded-md border px-2.5 py-1 text-xs ${chipClass}`}>
-                                      匹配 {Math.max(0, Math.round(item.score))}
+                                      {t("events.assistant.match_score", "匹配 {{score}}", { score: Math.max(0, Math.round(item.score)) })}
                                     </span>
                                   ) : null}
                                 </div>
@@ -1025,8 +1034,8 @@ const EventAssistantPanel = ({
                                 </p>
                               </div>
                               <span className={`mt-1 inline-flex h-10 shrink-0 items-center justify-center gap-1 rounded-md border px-3 text-xs font-semibold transition-transform group-hover:translate-x-1 ${chipClass}`}>
-                                <span className="sm:hidden">详情</span>
-                                <span className="hidden sm:inline">看详情</span>
+                                <span className="sm:hidden">{t("common.details", "详情")}</span>
+                                <span className="hidden sm:inline">{t("events.assistant.view_details", "看详情")}</span>
                                 <ArrowRight size={16} />
                               </span>
                             </div>
@@ -1049,33 +1058,33 @@ const EventAssistantPanel = ({
                               )}
                               {opportunityPreview.decisionSupport?.nextAction && (
                                 <div className={`mt-2 rounded-md border px-3 py-2 ${isDayMode ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-emerald-300/20 bg-emerald-400/10 text-emerald-100"}`}>
-                                  <div className="text-[11px] font-semibold uppercase tracking-[0.08em] opacity-75">下一步</div>
+                                  <div className="text-[11px] font-semibold uppercase tracking-[0.08em] opacity-75">{t("events.assistant.next_step", "下一步")}</div>
                                   <div className="mt-1 font-semibold">{opportunityPreview.decisionSupport.nextAction}</div>
                                 </div>
                               )}
                               {(opportunityPreview.decisionSupport?.tradeoffs?.length > 0 || opportunityPreview.decisionSupport?.fitFor?.length > 0) && (
                                 <div className="mt-2 grid gap-1.5">
                                   {(opportunityPreview.decisionSupport.tradeoffs || []).slice(0, 2).map((value) => (
-                                    <div key={`tradeoff-${value}`} className={mutedClass}>取舍：{value}</div>
+                                    <div key={`tradeoff-${value}`} className={mutedClass}>{t("events.assistant.tradeoff", "取舍：{{value}}", { value })}</div>
                                   ))}
                                   {(opportunityPreview.decisionSupport.fitFor || []).slice(0, 2).map((value) => (
-                                    <div key={`fit-${value}`} className={mutedClass}>适合：{value}</div>
+                                    <div key={`fit-${value}`} className={mutedClass}>{t("events.assistant.fit_for", "适合：{{value}}", { value })}</div>
                                   ))}
                                 </div>
                               )}
                               {(opportunityPreview.matched.length > 0 || opportunityPreview.missing.length > 0 || opportunityPreview.uncertainty.length > 0) && (
                                 <div className="mt-2 flex flex-wrap gap-2">
                                   {opportunityPreview.matched.map((value) => (
-                                    <span key={`matched-${value}`} className={`rounded-md border px-2 py-1 ${chipClass}`}>匹配：{value}</span>
+                                    <span key={`matched-${value}`} className={`rounded-md border px-2 py-1 ${chipClass}`}>{t("events.assistant.matched", "匹配：{{value}}", { value })}</span>
                                   ))}
                                   {opportunityPreview.missing.map((value) => (
-                                    <span key={`missing-${value}`} className={`rounded-md border px-2 py-1 ${isDayMode ? "border-amber-200 bg-amber-50 text-amber-700" : "border-amber-300/20 bg-amber-400/10 text-amber-200"}`}>缺失：{value}</span>
+                                    <span key={`missing-${value}`} className={`rounded-md border px-2 py-1 ${isDayMode ? "border-amber-200 bg-amber-50 text-amber-700" : "border-amber-300/20 bg-amber-400/10 text-amber-200"}`}>{t("events.assistant.missing", "缺失：{{value}}", { value })}</span>
                                   ))}
                                   {opportunityPreview.uncertainty.map((value) => (
-                                    <span key={`uncertainty-${value}`} className={`rounded-md border px-2 py-1 ${chipClass}`}>不确定：{value}</span>
+                                    <span key={`uncertainty-${value}`} className={`rounded-md border px-2 py-1 ${chipClass}`}>{t("events.assistant.uncertainty", "不确定：{{value}}", { value })}</span>
                                   ))}
                                   {opportunityPreview.feedbackLearningUsed && (
-                                    <span className={`rounded-md border px-2 py-1 ${isDayMode ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-emerald-300/20 bg-emerald-400/10 text-emerald-200"}`}>已参考反馈</span>
+                                     <span className={`rounded-md border px-2 py-1 ${isDayMode ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-emerald-300/20 bg-emerald-400/10 text-emerald-200"}`}>{t("events.assistant.feedback_used", "已参考反馈")}</span>
                                   )}
                                 </div>
                               )}
@@ -1113,12 +1122,12 @@ const EventAssistantPanel = ({
                           </div>
 
                           <div className={`mt-4 flex items-center justify-between border-t pt-3 ${isDayMode ? "border-slate-200/70" : "border-white/10"}`}>
-                            <span className={`text-xs ${faintClass}`}>这条推荐对你有用吗？</span>
+                            <span className={`text-xs ${faintClass}`}>{t("events.assistant.feedback_question", "这条推荐对你有用吗？")}</span>
                             <div className="flex items-center gap-2">
                               <button
                                 type="button"
-                                aria-label="推荐适合我"
-                                title="适合我"
+                                aria-label={t("events.assistant.feedback_up_aria", "推荐适合我")}
+                                title={t("events.assistant.feedback_up_title", "适合我")}
                                 onClick={() => submitFeedback(item, "up", "", recommendationRank)}
                                 className={`inline-flex h-9 w-9 items-center justify-center rounded-md border transition-colors ${feedbackMap[item.id] === "up" ? "bg-emerald-500 text-white border-emerald-500" : chipClass}`}
                               >
@@ -1126,8 +1135,8 @@ const EventAssistantPanel = ({
                               </button>
                               <button
                                 type="button"
-                                aria-label="推荐不适合我"
-                                title="不适合我"
+                                aria-label={t("events.assistant.feedback_down_aria", "推荐不适合我")}
+                                title={t("events.assistant.feedback_down_title", "不适合我")}
                                 onClick={() => {
                                   if (feedbackMap[item.id] === "down") {
                                     submitFeedback(item, "down", feedbackReasonMap[item.id] || "not_relevant", recommendationRank);
@@ -1160,7 +1169,7 @@ const EventAssistantPanel = ({
                                         : chipClass
                                     }`}
                                   >
-                                    {option.label}
+                                    {t(option.labelKey, option.label)}
                                   </button>
                                 ))}
                               </div>
@@ -1175,7 +1184,7 @@ const EventAssistantPanel = ({
                   {assistantState.type === "recommend" ? (
                     <div className={`mt-4 rounded-lg border px-4 py-3 ${isDayMode ? "border-slate-200/80 bg-slate-50/80" : "border-white/10 bg-white/[0.04]"}`}>
                       <p className={`text-xs leading-5 ${faintClass}`}>
-                        还不够贴近？直接在上方补一句，比如“只看紫金港”“不要历史活动”“更适合新生”，我会继续收窄。
+                        {t("events.assistant.narrow_hint", "还不够贴近？直接在上方补一句，比如“只看紫金港”“不要历史活动”“更适合新生”，我会继续收窄。")}
                       </p>
                     </div>
                   ) : null}
