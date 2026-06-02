@@ -150,15 +150,15 @@ const VIEW_DEDUPE_WINDOW_MS = 30 * 60 * 1000;
 const EVENT_THEME_VARIANTS = {
   cyan: {
     backdropGlow: "",
-    heroGlow: "bg-slate-100",
-    softGlow: "bg-slate-50",
-    accentText: "text-blue-700",
-    dot: "bg-blue-500",
-    surface: "bg-white border border-slate-200/80",
-    cta: "bg-slate-950 text-white shadow-[0_8px_18px_rgba(15,23,42,0.16)] hover:bg-blue-700 hover:-translate-y-0.5 border border-slate-950 hover:border-blue-700",
-    highlightCard: "border-slate-200/80 bg-white shadow-[0_8px_22px_rgba(15,23,42,0.045)]",
-    iconShell: "bg-slate-100 border-slate-200 text-blue-700",
-    tagHover: "hover:border-blue-200/80 hover:text-blue-700",
+    heroGlow: "bg-blue-100",
+    softGlow: "bg-violet-50",
+    accentText: "text-indigo-700",
+    dot: "bg-violet-500",
+    surface: "bg-[linear-gradient(135deg,rgba(239,246,255,0.94),rgba(245,243,255,0.9),rgba(255,255,255,0.94))] border border-indigo-100/80",
+    cta: "bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 text-white shadow-[0_14px_32px_rgba(79,70,229,0.22)] hover:shadow-[0_18px_42px_rgba(79,70,229,0.28)] hover:-translate-y-0.5 border border-white/30",
+    highlightCard: "border-indigo-100/90 bg-[linear-gradient(135deg,rgba(239,246,255,0.94),rgba(250,245,255,0.96))] shadow-[0_16px_34px_rgba(79,70,229,0.1)]",
+    iconShell: "bg-white border-indigo-200/80 text-indigo-600 shadow-[0_8px_18px_rgba(79,70,229,0.12)]",
+    tagHover: "hover:border-indigo-200/80 hover:text-indigo-700",
   },
   pink: {
     backdropGlow: "",
@@ -167,7 +167,7 @@ const EVENT_THEME_VARIANTS = {
     accentText: "text-rose-600",
     dot: "bg-rose-400",
     surface: "bg-white border border-slate-200/80",
-    cta: "bg-slate-950 text-white shadow-[0_8px_18px_rgba(15,23,42,0.16)] hover:bg-blue-700 hover:-translate-y-0.5 border border-slate-950 hover:border-blue-700",
+    cta: "bg-slate-950 text-white shadow-[0_8px_18px_rgba(15,23,42,0.16)] hover:bg-violet-700 hover:-translate-y-0.5 border border-slate-950 hover:border-violet-700",
     highlightCard: "border-slate-200/80 bg-white shadow-[0_8px_22px_rgba(15,23,42,0.045)]",
     iconShell: "bg-slate-100 border-slate-200 text-rose-600",
     tagHover: "hover:border-pink-200/80 hover:text-pink-600",
@@ -179,7 +179,7 @@ const EVENT_THEME_VARIANTS = {
     accentText: "text-amber-700",
     dot: "bg-amber-500",
     surface: "bg-white border border-slate-200/80",
-    cta: "bg-slate-950 text-white shadow-[0_8px_18px_rgba(15,23,42,0.16)] hover:bg-blue-700 hover:-translate-y-0.5 border border-slate-950 hover:border-blue-700",
+    cta: "bg-slate-950 text-white shadow-[0_8px_18px_rgba(15,23,42,0.16)] hover:bg-violet-700 hover:-translate-y-0.5 border border-slate-950 hover:border-violet-700",
     highlightCard: "border-slate-200/80 bg-white shadow-[0_8px_22px_rgba(15,23,42,0.045)]",
     iconShell: "bg-slate-100 border-slate-200 text-amber-700",
     tagHover: "hover:border-orange-200/80 hover:text-orange-600",
@@ -191,7 +191,7 @@ const EVENT_THEME_VARIANTS = {
     accentText: "text-emerald-600",
     dot: "bg-emerald-400",
     surface: "bg-white border border-slate-200/80",
-    cta: "bg-slate-950 text-white shadow-[0_8px_18px_rgba(15,23,42,0.16)] hover:bg-blue-700 hover:-translate-y-0.5 border border-slate-950 hover:border-blue-700",
+    cta: "bg-slate-950 text-white shadow-[0_8px_18px_rgba(15,23,42,0.16)] hover:bg-violet-700 hover:-translate-y-0.5 border border-slate-950 hover:border-violet-700",
     highlightCard: "border-slate-200/80 bg-white shadow-[0_8px_22px_rgba(15,23,42,0.045)]",
     iconShell: "bg-slate-100 border-slate-200 text-emerald-600",
     tagHover: "hover:border-emerald-200/80 hover:text-emerald-600",
@@ -203,7 +203,7 @@ const EVENT_THEME_VARIANTS = {
     accentText: "text-blue-700",
     dot: "bg-blue-500",
     surface: "bg-white border border-slate-200/80",
-    cta: "bg-slate-950 text-white shadow-[0_8px_18px_rgba(15,23,42,0.16)] hover:bg-blue-700 hover:-translate-y-0.5 border border-slate-950 hover:border-blue-700",
+    cta: "bg-slate-950 text-white shadow-[0_8px_18px_rgba(15,23,42,0.16)] hover:bg-violet-700 hover:-translate-y-0.5 border border-slate-950 hover:border-violet-700",
     highlightCard: "border-slate-200/80 bg-white shadow-[0_8px_22px_rgba(15,23,42,0.045)]",
     iconShell: "bg-slate-100 border-slate-200 text-blue-700",
     tagHover: "hover:border-blue-200/80 hover:text-blue-600",
@@ -215,7 +215,7 @@ const EVENT_THEME_VARIANTS = {
     accentText: "text-rose-600",
     dot: "bg-rose-400",
     surface: "bg-white border border-slate-200/80",
-    cta: "bg-slate-950 text-white shadow-[0_8px_18px_rgba(15,23,42,0.16)] hover:bg-blue-700 hover:-translate-y-0.5 border border-slate-950 hover:border-blue-700",
+    cta: "bg-slate-950 text-white shadow-[0_8px_18px_rgba(15,23,42,0.16)] hover:bg-violet-700 hover:-translate-y-0.5 border border-slate-950 hover:border-violet-700",
     highlightCard: "border-slate-200/80 bg-white shadow-[0_8px_22px_rgba(15,23,42,0.045)]",
     iconShell: "bg-slate-100 border-slate-200 text-rose-600",
     tagHover: "hover:border-rose-200/80 hover:text-rose-600",
@@ -252,7 +252,7 @@ const EventCard = memo(
     return (
       <motion.div
         {...motionProps}
-        className={`group rect-media-card relative overflow-hidden cursor-pointer flex flex-row md:flex-col h-full transform-gpu will-change-transform transition-[background-color,border-color,box-shadow] duration-200 ${isDayMode ? "bg-white border-slate-200/80 hover:border-slate-300 hover:shadow-[0_12px_28px_rgba(15,23,42,0.065)]" : "bg-[#050712]/94 border-white/15 hover:border-indigo-300/30 hover:bg-[#070914]"}`}
+        className={`group rect-media-card relative overflow-hidden cursor-pointer flex flex-row md:flex-col h-full transform-gpu will-change-transform transition-[background-color,border-color,box-shadow] duration-200 ${isDayMode ? "border-indigo-100/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,255,0.88))] hover:border-indigo-300/70 hover:shadow-[0_18px_42px_rgba(79,70,229,0.12)]" : "bg-[#050712]/94 border-white/15 hover:border-indigo-300/30 hover:bg-[#070914]"}`}
         onClick={() => onClick(event)}
       >
         {/* Image Section */}
@@ -298,7 +298,7 @@ const EventCard = memo(
             className={`flex flex-col md:flex-row md:items-center gap-1 md:gap-3 text-xs sm:text-sm mb-2 md:mb-3 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
           >
             <div className="flex items-center gap-1.5 shrink-0">
-              <Calendar size={14} className={isDayMode ? "text-blue-600 md:w-4 md:h-4" : "text-indigo-400 md:w-4 md:h-4"} />
+              <Calendar size={14} className={isDayMode ? "text-indigo-600 md:w-4 md:h-4" : "text-indigo-400 md:w-4 md:h-4"} />
               <span
                 className={`font-medium whitespace-nowrap ${isDayMode ? "text-slate-700" : "text-gray-200"}`}
               >
@@ -391,13 +391,13 @@ const EventCard = memo(
                 count={event.likes || 0}
                 favorited={event.favorited}
                 initialFavorited={event.favorited}
-                className={`rect-icon-button p-1.5 md:p-2 transition-colors ${isDayMode ? "hover:bg-slate-100 hover:text-blue-700" : "hover:bg-white/10"}`}
+                className={`rect-icon-button p-1.5 md:p-2 transition-colors ${isDayMode ? "hover:bg-indigo-50 hover:text-indigo-700" : "hover:bg-white/10"}`}
                 onToggle={(favorited, likes) =>
                   onToggleFavorite(event.id, favorited, likes)
                 }
               />
               <div
-                className={`rect-icon-button p-1.5 md:p-2 transition-[background-color,color,transform] duration-200 group-hover:translate-x-0.5 ${isDayMode ? "bg-slate-100 text-slate-600 group-hover:bg-slate-950 group-hover:text-white" : "bg-white/5 group-hover:bg-white/10 group-hover:text-white"}`}
+                className={`rect-icon-button p-1.5 md:p-2 transition-[background-color,color,transform] duration-200 group-hover:translate-x-0.5 ${isDayMode ? "bg-indigo-50 text-indigo-700 group-hover:bg-indigo-600 group-hover:text-white" : "bg-white/5 group-hover:bg-white/10 group-hover:text-white"}`}
               >
                 <ArrowRight
                   size={16}
@@ -947,10 +947,10 @@ END:VCALENDAR`;
   const nightSegmentActiveClass =
     "border border-indigo-400/28 bg-indigo-500/16 text-indigo-100 shadow-none";
   const dayPrimaryActionClass =
-    "rect-button-primary bg-slate-950 text-white border-slate-950 hover:bg-blue-700 hover:border-blue-700";
+    "rect-button-primary bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 text-white border-white/30 hover:from-blue-700 hover:via-indigo-700 hover:to-violet-700";
 
   return (
-    <section className="pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:pb-20 md:pt-24 px-4 md:px-8 relative overflow-hidden flex-grow">
+    <section className={`day-page-theme day-page-theme-events pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:pb-20 md:pt-24 px-4 md:px-8 relative overflow-hidden flex-grow`}>
       <SEO
         title="活动"
         description="浏览浙江大学校内活动、志愿服务、讲座与报名信息。"
@@ -966,12 +966,12 @@ END:VCALENDAR`;
       >
         <div className="md:hidden mb-4 text-left">
           <h1
-            className={`text-2xl font-bold tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}
+            className={`text-2xl font-bold tracking-tight ${isDayMode ? "text-indigo-950" : "text-white"}`}
           >
             {t("events.title")}
           </h1>
           <p
-            className={`text-sm mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+            className={`text-sm mt-1 ${isDayMode ? "text-indigo-700/64" : "text-gray-400"}`}
           >
             {t("events.subtitle")}
           </p>
@@ -1002,12 +1002,12 @@ END:VCALENDAR`;
         />
         <div className="hidden md:block mb-6">
           <h2
-            className={`text-3xl md:text-4xl lg:text-5xl font-bold font-serif mb-3 md:mb-5 ${isDayMode ? "text-slate-900" : "text-white"}`}
+            className={`text-3xl md:text-4xl lg:text-5xl font-bold font-serif mb-3 md:mb-5 ${isDayMode ? "bg-gradient-to-r from-slate-950 via-indigo-900 to-violet-800 bg-clip-text text-transparent" : "text-white"}`}
           >
             {t("events.title")}
           </h2>
           <p
-            className={`max-w-xl mx-auto text-sm md:text-base ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+            className={`max-w-xl mx-auto text-sm md:text-base ${isDayMode ? "text-indigo-900/58" : "text-gray-400"}`}
           >
             {t("events.subtitle")}
           </p>
@@ -1163,7 +1163,7 @@ END:VCALENDAR`;
               aria-label="打开 AI 活动助手"
               className={`pointer-events-auto absolute right-4 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-lg border shadow-[0_14px_34px_rgba(15,23,42,0.12)] transition-all hover:-translate-x-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 md:inline-flex 2xl:hidden ${
                 isDayMode
-                  ? "border-teal-700/14 bg-white text-teal-700 hover:border-teal-700/24"
+                  ? "border-indigo-700/14 bg-white text-indigo-700 hover:border-indigo-700/24 hover:bg-indigo-50"
                   : "border-white/10 bg-[#10121d]/92 text-blue-200 hover:border-white/20"
               }`}
             >
@@ -1367,7 +1367,7 @@ END:VCALENDAR`;
               onClick={() =>
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
               }
-               className={`rect-button-secondary px-6 py-2.5 transition-colors text-sm font-semibold ${isDayMode ? "text-slate-700 hover:border-blue-200/80 hover:text-blue-700" : "text-white"}`}
+               className={`rect-button-secondary px-6 py-2.5 transition-colors text-sm font-semibold ${isDayMode ? "text-slate-700 hover:border-indigo-200/80 hover:text-indigo-700" : "text-white"}`}
             >
               {t("common.load_more", "加载更多")}
             </motion.button>

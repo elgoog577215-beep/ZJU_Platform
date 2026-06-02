@@ -557,7 +557,7 @@ const MediaLibrary = () => {
   const totalVideoCount = Number(videoPagination?.total || visibleVideoCount);
 
   return (
-    <section className="pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:py-16 px-4 md:px-6 relative overflow-hidden flex-grow">
+    <section className="day-page-theme day-page-theme-tech pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:py-16 px-4 md:px-6 relative overflow-hidden flex-grow">
       <SEO title="影像库" description="按分类浏览现场照片与视频记录。" />
 
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
@@ -604,7 +604,7 @@ const MediaLibrary = () => {
             onClick={() => openUpload()}
             className={`hidden md:mx-auto md:mb-4 md:inline-flex xl:absolute xl:right-0 xl:top-1 xl:mb-0 p-2.5 rounded-lg border transition-all ${
               isDayMode
-                ? "day-quiet-button text-slate-700 hover:text-blue-700"
+                ? "day-quiet-button text-slate-700 hover:text-emerald-700"
                 : "bg-white/10 hover:bg-white/20 text-white border-white/10 hover:shadow-lg hover:shadow-indigo-500/20"
             }`}
             title="上传影像"
@@ -725,7 +725,7 @@ const MediaLibrary = () => {
                 type="button"
                 onClick={() => openUpload("image")}
                 className={`rect-icon-button hidden p-2.5 transition-all md:inline-flex ${
-                  isDayMode ? "text-slate-700 hover:text-blue-700" : "text-white"
+                  isDayMode ? "text-slate-700 hover:text-emerald-700" : "text-white"
                 }`}
                 title="上传照片"
               >
@@ -797,7 +797,7 @@ const MediaLibrary = () => {
                 type="button"
                 onClick={() => openUpload("video")}
                 className={`rect-icon-button hidden p-2.5 transition-all md:inline-flex ${
-                  isDayMode ? "text-slate-700 hover:text-blue-700" : "text-white"
+                  isDayMode ? "text-slate-700 hover:text-emerald-700" : "text-white"
                 }`}
                 title="上传视频"
               >

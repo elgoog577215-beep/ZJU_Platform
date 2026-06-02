@@ -332,17 +332,17 @@ const HackathonWorks = () => {
   const podiumWorks = useMemo(() => works.slice(0, 3), [works]);
   const otherWorks = useMemo(() => works.slice(3), [works]);
   const chromeClass = isDayMode
-    ? "border-cyan-200 bg-white/72 text-cyan-800 hover:border-cyan-500 hover:bg-cyan-600 hover:text-white"
+    ? "border-emerald-200 bg-white/72 text-emerald-800 hover:border-emerald-500 hover:bg-emerald-600 hover:text-white"
     : "border-cyan-300/20 bg-cyan-300/[0.06] text-cyan-100 hover:border-cyan-300/60 hover:bg-cyan-300 hover:text-slate-950";
   const chipClass = isDayMode
-    ? "border-cyan-200 bg-white/72 text-cyan-700"
+    ? "border-emerald-200 bg-white/72 text-emerald-700"
     : "border-cyan-300/24 bg-cyan-300/[0.06] text-cyan-100";
   const statLabelClass = isDayMode ? "text-slate-600" : "text-white/58";
 
   return (
     <div
-      className={`min-h-screen overflow-hidden ${
-        isDayMode ? "bg-[#f5f8fb] text-slate-950" : "bg-[#020405] text-white"
+      className={`day-page-theme day-page-theme-tech min-h-screen overflow-hidden ${
+        isDayMode ? "bg-[#f4fbf7] text-slate-950" : "bg-[#020405] text-white"
       }`}
       style={{
         fontFamily:
@@ -355,7 +355,11 @@ const HackathonWorks = () => {
         image="/images/hero-landscape-day-4k.jpg"
       />
       <div className="pointer-events-none fixed inset-0">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(103,232,249,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(103,232,249,0.055)_1px,transparent_1px)] bg-[size:72px_72px] opacity-50" />
+        <div className={`absolute inset-0 bg-[size:72px_72px] opacity-50 ${
+          isDayMode
+            ? "bg-[linear-gradient(rgba(16,185,129,0.09)_1px,transparent_1px),linear-gradient(90deg,rgba(20,184,166,0.06)_1px,transparent_1px)]"
+            : "bg-[linear-gradient(rgba(103,232,249,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(103,232,249,0.055)_1px,transparent_1px)]"
+        }`} />
         <div className="absolute right-[4vw] top-28 font-mono text-[18vw] font-black leading-none text-white/[0.035]">
           {String(works.length || 0).padStart(2, "0")}
         </div>
@@ -377,7 +381,7 @@ const HackathonWorks = () => {
                 onClick={() => setUploadOpen(true)}
                 className={`inline-flex min-h-11 items-center gap-2 px-4 text-sm font-black transition ${
                   isDayMode
-                    ? "bg-cyan-600 text-white hover:bg-slate-950"
+                    ? "bg-emerald-600 text-white hover:bg-slate-950"
                     : "bg-cyan-300 text-slate-950 hover:bg-white"
                 }`}
               >
