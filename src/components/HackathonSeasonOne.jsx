@@ -10,11 +10,15 @@ const viewFromLocation = (location) => {
   const params = new URLSearchParams(location.search);
   const requestedView = params.get("view");
 
+  if (requestedView === "register") {
+    return "register";
+  }
+
   if (location.pathname.includes("/showcase") || requestedView === "showcase") {
     return "showcase";
   }
 
-  return "register";
+  return "showcase";
 };
 
 const HackathonSeasonOne = () => {
