@@ -456,7 +456,7 @@ const HackathonRegistration = () => {
 
       <section
         id="hackathon-hero"
-        className="relative min-h-[100svh] px-4 pt-[calc(env(safe-area-inset-top)+124px)] sm:px-6 xl:px-10 min-[1720px]:snap-start min-[1720px]:snap-always min-[1720px]:pt-[calc(env(safe-area-inset-top)+72px)] 2xl:px-16"
+        className="relative min-h-[100svh] px-4 pt-[calc(env(safe-area-inset-top)+246px)] sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+220px)] lg:pt-[calc(env(safe-area-inset-top)+124px)] xl:px-10 min-[1720px]:snap-start min-[1720px]:snap-always min-[1720px]:pt-[calc(env(safe-area-inset-top)+72px)] 2xl:px-16"
       >
         <div className="pointer-events-none absolute inset-0">
           <div
@@ -478,25 +478,25 @@ const HackathonRegistration = () => {
         </div>
 
         <div
-          className="relative z-10 mx-auto mb-5 flex w-full max-w-[330px] flex-col items-center gap-0.5 min-[380px]:max-w-[360px] min-[380px]:gap-1 sm:max-w-[640px] sm:gap-1.5 min-[1720px]:absolute min-[1720px]:right-10 min-[1720px]:top-[calc(env(safe-area-inset-top)+78px)] min-[1720px]:mx-0 min-[1720px]:mb-0 min-[1720px]:w-auto min-[1720px]:max-w-[760px] min-[1720px]:items-end min-[1720px]:gap-2 2xl:right-16"
+          className="absolute right-3 top-[calc(env(safe-area-inset-top)+128px)] z-20 flex w-[min(62vw,720px)] flex-col items-end gap-1 sm:right-5 sm:w-[min(52vw,760px)] sm:gap-1.5 lg:right-8 lg:top-[calc(env(safe-area-inset-top)+86px)] lg:w-[min(48vw,780px)] xl:right-10 xl:top-[calc(env(safe-area-inset-top)+76px)] xl:w-[min(50vw,820px)] 2xl:right-16"
           aria-label="企业 logo"
         >
           {enterpriseLogoRows.map((row, rowIndex) => (
             <div
               key={rowIndex}
-              className="flex flex-wrap items-center justify-center gap-x-1 gap-y-0.5 min-[380px]:gap-x-1.5 min-[380px]:gap-y-1 sm:flex-nowrap sm:gap-2 min-[1720px]:justify-end min-[1720px]:gap-2.5"
+              className="flex max-w-full flex-wrap items-center justify-end gap-x-1 gap-y-0.5 min-[380px]:gap-x-1.5 min-[380px]:gap-y-1 sm:gap-2 lg:gap-2.5"
             >
               {row.map((logo) => (
                 <span
                   key={logo.id || logo.src || logo.name}
-                  className="group relative flex h-7 items-center justify-center px-1.5 transition duration-300 hover:-translate-y-0.5 min-[380px]:h-8 min-[380px]:px-2 sm:h-11 sm:px-4 lg:h-12 lg:px-5"
+                  className="group relative flex h-7 max-w-[34vw] items-center justify-center px-1 transition duration-300 hover:-translate-y-0.5 min-[380px]:h-8 min-[380px]:px-1.5 sm:h-10 sm:max-w-[26vw] sm:px-3 lg:h-11 lg:max-w-[18vw] lg:px-4 xl:h-12 xl:max-w-[16vw] xl:px-5"
                 >
                   {getPartnerLogoSrc(logo, isDayMode) ? (
                     <img
                       src={getPartnerLogoSrc(logo, isDayMode)}
                       alt={logo.alt}
                       className={`relative w-auto object-contain transition duration-300 group-hover:scale-[1.04] ${
-                        logo.size || "h-5 sm:h-7 lg:h-8"
+                        logo.size || "h-[clamp(1.05rem,2.2vw,2rem)]"
                       } ${
                         isDayMode
                           ? ""
@@ -515,7 +515,7 @@ const HackathonRegistration = () => {
                   )}
                   {logo.text ? (
                     <span
-                      className={`ml-1.5 text-xs font-black leading-none tracking-tight min-[380px]:text-sm sm:ml-2 sm:text-base lg:text-lg ${
+                      className={`ml-1 text-[clamp(0.68rem,1.25vw,1.08rem)] font-black leading-none tracking-tight sm:ml-1.5 lg:ml-2 ${
                         isDayMode ? "text-slate-950" : "text-white"
                       }`}
                     >

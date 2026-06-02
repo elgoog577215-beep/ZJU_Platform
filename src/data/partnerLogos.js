@@ -200,7 +200,9 @@ export const toLegacyLogo = (partner = {}) => ({
   src: partner.logo_url || partner.src || "",
   darkSrc: partner.dark_logo_url || partner.darkSrc || partner.logo_url || partner.src || "",
   alt: partner.alt || `${partner.name || "合作方"} logo`,
-  text: partner.text,
+  text:
+    partner.text ||
+    (String(partner.name || "").trim().toLowerCase() === "qoder" ? "Qoder" : ""),
   size: partner.size,
   darkClassName: partner.darkClassName,
 });
