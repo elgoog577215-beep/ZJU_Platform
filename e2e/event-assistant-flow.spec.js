@@ -161,14 +161,19 @@ test.describe("event assistant flow", () => {
       actionRequests.push(route.request().postDataJSON());
       await route.fulfill({ json: { recorded: true } });
     });
-    await page.setViewportSize({ width: 1440, height: 1100 });
+    await page.setViewportSize({ width: 1920, height: 1080 });
     await page.goto("/events");
 
-    await page.getByRole("button", { name: /AI/ }).click();
     await expect(page.getByRole("button", { name: "技能作品集" })).toBeVisible();
-    await page.getByRole("button", { name: "我的推荐偏好" }).click();
-    await expect(page.getByRole("button", { name: "技能成长" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "社交放松" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "筛选" })).toHaveCount(0);
+    await expect(
+      page.getByRole("button", { name: "全部", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "讲座", exact: true }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "偏好" }).click();
+    await expect(page.getByText("暂未维护活动画像")).toBeVisible();
     await page.getByPlaceholder(/比如/).fill("AI project at Zijingang with score");
     await page.getByRole("button", { name: "开始推荐" }).click();
     await expect.poll(() => assistantRequests.length).toBeGreaterThanOrEqual(1);
@@ -188,7 +193,11 @@ test.describe("event assistant flow", () => {
     await expect(page.getByText("不确定：时间偏好不明确")).toBeVisible();
     await expect(page.getByText("已参考反馈")).toBeVisible();
 
-    await page.getByRole("button", { name: "推荐不适合我" }).click();
+    const desktopRejectButton = page.getByRole("button", {
+      name: "推荐不适合我",
+    });
+    await desktopRejectButton.scrollIntoViewIfNeeded();
+    await desktopRejectButton.click();
     await expect(page.getByRole("button", { name: "时间不合适" })).toBeVisible();
     await page.getByRole("button", { name: "时间不合适" }).click();
     await expect.poll(() => feedbackRequests.length).toBeGreaterThanOrEqual(1);
@@ -200,7 +209,11 @@ test.describe("event assistant flow", () => {
       source: "event_assistant_card",
     });
 
-    await page.getByRole("button", { name: new RegExp(event.title) }).click();
+    const desktopRecommendationButton = page.getByRole("button", {
+      name: new RegExp(event.title),
+    });
+    await desktopRecommendationButton.scrollIntoViewIfNeeded();
+    await desktopRecommendationButton.click();
     await expect.poll(() => actionRequests.length).toBeGreaterThanOrEqual(1);
     expect(actionRequests[0]).toMatchObject({
       eventId: event.id,

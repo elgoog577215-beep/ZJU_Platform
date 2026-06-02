@@ -27,9 +27,8 @@ import {
   Users,
   Building2,
   Tag,
-  Search,
-  SlidersHorizontal,
   Plus,
+  Sparkles,
 } from "lucide-react";
 import UploadModal from "./UploadModal";
 import FavoriteButton from "./FavoriteButton";
@@ -431,8 +430,12 @@ const Events = () => {
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
   const [isMobileAssistantOpen, setIsMobileAssistantOpen] = useState(false);
+  const [isDesktopAssistantOpen, setIsDesktopAssistantOpen] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth < 768 : false,
+  );
+  const [canRenderDesktopAssistant, setCanRenderDesktopAssistant] = useState(
+    () => (typeof window !== "undefined" ? window.innerWidth >= 768 : false),
   );
   const shouldReduceCardMotion = prefersReducedMotion || isMobileViewport;
   const trackedViewTimestamps = useRef(new Map());
@@ -458,7 +461,12 @@ const Events = () => {
     if (typeof window === "undefined") return undefined;
 
     const updateViewport = () => {
-      setIsMobileViewport(window.innerWidth < 768);
+      const isMobile = window.innerWidth < 768;
+      setIsMobileViewport(isMobile);
+      setCanRenderDesktopAssistant(!isMobile);
+      if (isMobile) {
+        setIsDesktopAssistantOpen(false);
+      }
     };
 
     updateViewport();
@@ -469,7 +477,6 @@ const Events = () => {
   const [sort, setSort] = useState("newest");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [discoveryMode, setDiscoveryMode] = useState("filters");
   const [filters, setFilters] = useState({
     category: null,
     target_audience: null,
@@ -512,6 +519,7 @@ const Events = () => {
   useBackClose(selectedEvent !== null, closeEvent);
   useBackClose(isUploadOpen, () => setIsUploadOpen(false));
   useBackClose(isMobileAssistantOpen, () => setIsMobileAssistantOpen(false));
+  useBackClose(isDesktopAssistantOpen, () => setIsDesktopAssistantOpen(false));
 
   useEffect(() => {
     if (
@@ -913,6 +921,7 @@ END:VCALENDAR`;
           : null);
 
       setIsMobileAssistantOpen(false);
+      setIsDesktopAssistantOpen(false);
       setSelectedEventRecommendationContext(recommendationContext);
       setSelectedEvent(cachedEvent || assistantEvent);
 
@@ -935,62 +944,10 @@ END:VCALENDAR`;
     [displayEvents, events, t],
   );
 
-  const discoveryToggleClasses = isDayMode
-    ? "rect-surface-soft"
-    : "rect-surface-soft";
-  const daySegmentActiveClass =
-    "border border-slate-300 bg-white text-slate-950 shadow-[0_4px_12px_rgba(15,23,42,0.06)]";
   const nightSegmentActiveClass =
     "border border-indigo-400/28 bg-indigo-500/16 text-indigo-100 shadow-none";
   const dayPrimaryActionClass =
     "rect-button-primary bg-slate-950 text-white border-slate-950 hover:bg-blue-700 hover:border-blue-700";
-
-  const renderDiscoveryModeToggle = (compact = false) => (
-    <div
-      className={`flex ${compact ? "flex-col items-stretch gap-3" : "items-center justify-end gap-4"} w-full`}
-    >
-      <div
-        className={`inline-flex items-center gap-1.5 p-1.5 ${discoveryToggleClasses} ${compact ? "w-full justify-between overflow-hidden" : ""}`}
-      >
-        <button
-          type="button"
-          aria-pressed={discoveryMode === "filters"}
-          onClick={() => setDiscoveryMode("filters")}
-          className={`rect-button inline-flex min-h-[42px] items-center justify-center gap-2 px-4 py-2 text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${compact ? "flex-1 min-w-0 whitespace-nowrap" : ""} ${
-            discoveryMode === "filters"
-              ? isDayMode
-                ? daySegmentActiveClass
-                : nightSegmentActiveClass
-              : isDayMode
-                ? "text-slate-500 hover:bg-white/62 hover:text-slate-900"
-                : "text-slate-300 hover:bg-white/[0.055] hover:text-white"
-          }`}
-        >
-          <SlidersHorizontal size={15} className="shrink-0" />
-          筛选
-        </button>
-        <button
-          type="button"
-          aria-pressed={discoveryMode === "assistant"}
-          onClick={() => setDiscoveryMode("assistant")}
-          className={`rect-button inline-flex min-h-[42px] items-center justify-center gap-2 px-4 py-2 text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${compact ? "flex-1 min-w-0 whitespace-nowrap px-3" : ""} ${
-            discoveryMode === "assistant"
-              ? isDayMode
-                ? daySegmentActiveClass
-                : nightSegmentActiveClass
-              : isDayMode
-                ? "text-slate-500 hover:bg-white/62 hover:text-slate-900"
-                : "text-slate-300 hover:bg-white/[0.055] hover:text-white"
-          }`}
-        >
-          <Search size={15} className="shrink-0" />
-          <span className="min-w-0 whitespace-nowrap">
-            {compact ? "AI" : t("events.assistant.mode_ai", "AI 搜索")}
-          </span>
-        </button>
-      </div>
-    </div>
-  );
 
   return (
     <section className="pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:pb-20 md:pt-24 px-4 md:px-8 relative overflow-hidden flex-grow">
@@ -1076,21 +1033,12 @@ END:VCALENDAR`;
 
         {/* Desktop Filter Section */}
         <div className="hidden md:block w-full max-w-5xl mx-auto mb-7">
-          <div className="mb-4">{renderDiscoveryModeToggle()}</div>
-
-          {discoveryMode === "assistant" ? (
-            <EventAssistantPanel
-              isDayMode={isDayMode}
-              onOpenEvent={handleOpenAssistantEvent}
-            />
-          ) : (
-            <EventFilterPanel
-              filters={filters}
-              onFiltersChange={setFilters}
-              sort={sort}
-              onSortChange={setSort}
-            />
-          )}
+          <EventFilterPanel
+            filters={filters}
+            onFiltersChange={setFilters}
+            sort={sort}
+            onSortChange={setSort}
+          />
         </div>
 
         {/* Mobile Filter Drawer (Bottom Sheet) */}
@@ -1193,6 +1141,67 @@ END:VCALENDAR`;
             onClose={() => setIsMobileAssistantOpen(false)}
             onOpenEvent={handleOpenAssistantEvent}
           />,
+          document.body,
+        )}
+
+        {canRenderDesktopAssistant && createPortal(
+          <div className="pointer-events-none fixed inset-y-0 right-0 z-[90] hidden md:block">
+            <div className="pointer-events-none absolute right-4 top-[calc(env(safe-area-inset-top)+104px)] hidden 2xl:block">
+              <div className="pointer-events-auto flex h-[calc(100vh-136px)] w-[min(400px,calc(100vw-2rem))] flex-col">
+                <EventAssistantPanel
+                  isDayMode={isDayMode}
+                  onOpenEvent={handleOpenAssistantEvent}
+                  variant="rail"
+                  className="h-full"
+                />
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsDesktopAssistantOpen(true)}
+              aria-label="打开 AI 活动助手"
+              className={`pointer-events-auto absolute right-4 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-lg border shadow-[0_14px_34px_rgba(15,23,42,0.12)] transition-all hover:-translate-x-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 md:inline-flex 2xl:hidden ${
+                isDayMode
+                  ? "border-slate-200 bg-white text-blue-700 hover:border-blue-200"
+                  : "border-white/10 bg-[#10121d]/92 text-blue-200 hover:border-white/20"
+              }`}
+            >
+              <Sparkles size={20} />
+            </button>
+
+            <AnimatePresence>
+              {isDesktopAssistantOpen && (
+                <>
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setIsDesktopAssistantOpen(false)}
+                    className={`pointer-events-auto fixed inset-0 z-[91] hidden md:block 2xl:hidden ${isDayMode ? "bg-white/50" : "bg-black/45"}`}
+                  />
+                  <motion.aside
+                    initial={{ opacity: 0, x: 28 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ type: "spring", damping: 30, stiffness: 340 }}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="AI 活动助手"
+                    className="pointer-events-auto fixed right-4 top-[calc(env(safe-area-inset-top)+96px)] z-[92] hidden h-[calc(100vh-128px)] w-[min(400px,calc(100vw-2rem))] md:block 2xl:hidden"
+                  >
+                    <EventAssistantPanel
+                      isDayMode={isDayMode}
+                      onOpenEvent={handleOpenAssistantEvent}
+                      onClose={() => setIsDesktopAssistantOpen(false)}
+                      variant="rail"
+                      className="h-full"
+                    />
+                  </motion.aside>
+                </>
+              )}
+            </AnimatePresence>
+          </div>,
           document.body,
         )}
 

@@ -17,6 +17,7 @@ import {
   ThumbsDown,
   ThumbsUp,
   UserRound,
+  X,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
@@ -175,6 +176,7 @@ const getCoverageText = (coverage) => {
 const EventAssistantPanel = ({
   isDayMode,
   onOpenEvent,
+  onClose,
   className = "",
   variant = "panel",
 }) => {
@@ -422,13 +424,21 @@ const EventAssistantPanel = ({
   }, [profileAuthRequired, profilePreference]);
 
   const isFullscreenVariant = variant === "fullscreen";
+  const isRailVariant = variant === "rail";
+  const isCompactVariant = isFullscreenVariant || isRailVariant;
   const quickPromptGridClass = isFullscreenVariant
     ? "mt-0 grid grid-cols-2 gap-2.5"
+    : isRailVariant
+      ? "mt-3 grid grid-cols-2 gap-2"
     : "mt-4 flex flex-wrap gap-2";
   const shellClass = isFullscreenVariant
     ? isDayMode
       ? "bg-transparent border-transparent shadow-none"
       : "bg-transparent border-transparent shadow-none"
+    : isRailVariant
+      ? isDayMode
+        ? "bg-white/96 border-slate-200/90 shadow-[0_18px_48px_rgba(15,23,42,0.12)]"
+        : "bg-[#10121d]/94 border-white/10 shadow-[0_18px_48px_rgba(0,0,0,0.32)]"
     : isDayMode
     ? "bg-white/95 border-slate-200/85 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
     : "bg-[#10121d]/88 border-white/10 shadow-none";
@@ -437,9 +447,13 @@ const EventAssistantPanel = ({
     : "bg-white/[0.05] border-white/10";
   const promptCardClass = isFullscreenVariant
     ? `${isDayMode ? "border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]" : "border-white/10 bg-white/[0.055] shadow-none"}`
+    : isRailVariant
+      ? `${isDayMode ? "border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]" : "border-white/10 bg-white/[0.055] shadow-none"}`
     : softPanelClass;
   const resultPanelClass = isFullscreenVariant
     ? `${isDayMode ? "border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]" : "border-white/10 bg-white/[0.055] shadow-none"}`
+    : isRailVariant
+      ? `${isDayMode ? "border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]" : "border-white/10 bg-white/[0.055] shadow-none"}`
     : softPanelClass;
   const textClass = isDayMode ? "text-slate-900" : "text-white";
   const mutedClass = isDayMode ? "text-slate-600" : "text-gray-300";
@@ -451,25 +465,78 @@ const EventAssistantPanel = ({
     ? isDayMode
       ? "bg-white text-slate-700 border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.035)] active:bg-blue-50"
       : "bg-white/[0.055] text-white/82 border-white/10 shadow-none active:bg-white/[0.09]"
+    : isRailVariant
+      ? isDayMode
+        ? "bg-white text-slate-700 border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.035)] active:bg-blue-50"
+        : "bg-white/[0.055] text-white/82 border-white/10 shadow-none active:bg-white/[0.09]"
     : chipClass;
   const controlChipClass = isFullscreenVariant
     ? isDayMode
       ? "bg-white text-slate-600 border-slate-200"
       : "bg-white/[0.06] text-white/76 border-white/10"
+    : isRailVariant
+      ? isDayMode
+        ? "bg-white text-slate-600 border-slate-200"
+        : "bg-white/[0.06] text-white/76 border-white/10"
     : chipClass;
   const actionClass = isDayMode
-    ? isFullscreenVariant
+    ? isCompactVariant
       ? "bg-blue-600 text-white hover:bg-blue-500 shadow-[0_1px_2px_rgba(15,23,42,0.12)]"
       : "bg-blue-600 text-white hover:bg-blue-500 shadow-[0_1px_2px_rgba(15,23,42,0.12)]"
-    : isFullscreenVariant
+    : isCompactVariant
       ? "bg-blue-600 text-white hover:bg-blue-500 shadow-[0_1px_2px_rgba(0,0,0,0.22)]"
       : "bg-blue-600 text-white hover:bg-blue-500 shadow-[0_1px_2px_rgba(0,0,0,0.22)]";
+  const panelPaddingClass = isRailVariant
+    ? "min-h-0 flex-1 overflow-y-auto p-3 custom-scrollbar"
+    : isFullscreenVariant
+      ? "px-0 pb-6 pt-0"
+      : "p-4 sm:p-5 lg:p-6";
+  const insightGridClass = isRailVariant
+    ? "mt-4 grid gap-3"
+    : "mt-4 grid gap-3 lg:grid-cols-2";
+  const recommendationGridClass = isRailVariant
+    ? "mt-4 grid grid-cols-1 gap-3"
+    : "mt-4 grid grid-cols-1 gap-4 xl:grid-cols-2";
+  const resultPaddingClass = isRailVariant ? "p-3.5" : "p-4 sm:p-5";
+  const recommendationCardClass = isRailVariant ? "p-3.5" : "p-4 sm:p-5";
+  const recommendationTitleClass = isRailVariant
+    ? "text-base font-bold leading-7"
+    : "text-lg font-bold leading-8 sm:text-xl";
+  const recommendationReasonClass = isRailVariant
+    ? "mt-2 text-sm leading-6"
+    : "mt-3 text-sm leading-7 sm:text-base";
 
   return (
-    <div className={`w-full ${className}`}>
-      <div className={`relative overflow-hidden border backdrop-blur-2xl ${isFullscreenVariant ? "rounded-none" : "rounded-lg"} ${shellClass}`}>
-        <div className={`relative ${isFullscreenVariant ? "px-0 pb-6 pt-0" : "p-4 sm:p-5 lg:p-6"}`}>
-          {!isFullscreenVariant ? (
+    <div className={`w-full ${isRailVariant ? "h-full min-h-0" : ""} ${className}`}>
+      <div className={`relative overflow-hidden border backdrop-blur-2xl ${isFullscreenVariant ? "rounded-none" : "rounded-lg"} ${isRailVariant ? "flex h-full min-h-0 flex-col" : ""} ${shellClass}`}>
+        <div className={`relative ${panelPaddingClass}`}>
+          {isRailVariant ? (
+            <div className={`sticky top-0 z-10 -mx-3 -mt-3 border-b px-3 py-3 backdrop-blur-xl ${isDayMode ? "border-slate-200/80 bg-white/92" : "border-white/10 bg-[#10121d]/92"}`}>
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0 text-left">
+                  <div className="flex items-center gap-2">
+                    <span className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border ${isDayMode ? "border-blue-100 bg-blue-50 text-blue-700" : "border-blue-300/15 bg-blue-400/10 text-blue-200"}`}>
+                      <Sparkles size={17} />
+                    </span>
+                    <div className="min-w-0">
+                      <h3 className={`truncate text-sm font-black ${textClass}`}>AI 活动助手</h3>
+                      <p className={`mt-0.5 truncate text-xs ${faintClass}`}>提问后结果在这里显示</p>
+                    </div>
+                  </div>
+                </div>
+                {onClose ? (
+                  <button
+                    type="button"
+                    aria-label="关闭 AI 活动助手"
+                    onClick={onClose}
+                    className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border transition-colors ${controlChipClass}`}
+                  >
+                    <X size={16} />
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          ) : !isFullscreenVariant ? (
             <>
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div className="max-w-2xl text-left">
@@ -634,7 +701,7 @@ const EventAssistantPanel = ({
                     />
                     记住
                   </label>
-                  {isFullscreenVariant ? (
+                  {isCompactVariant ? (
                     <>
                       <button
                         type="button"
@@ -661,7 +728,7 @@ const EventAssistantPanel = ({
                 <button
                   type="submit"
                   disabled={loading || input.trim() === ""}
-                  className={`inline-flex min-w-[148px] items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-bold transition-all active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 ${actionClass}`}
+                  className={`inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-bold transition-all active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 ${isRailVariant ? "w-full sm:w-full" : "min-w-[148px]"} ${actionClass}`}
                 >
                   {loading ? (
                     <>
@@ -689,7 +756,7 @@ const EventAssistantPanel = ({
                 transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
                 className="mt-4"
               >
-                <div className={`rounded-lg border p-4 sm:p-5 ${resultPanelClass}`}>
+                <div className={`rounded-lg border ${resultPaddingClass} ${resultPanelClass}`}>
                   <div className="flex flex-wrap items-center gap-2">
                     <span className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] ${chipClass}`}>
                       <Sparkles size={13} />
@@ -732,7 +799,7 @@ const EventAssistantPanel = ({
                   ) : null}
 
                   {(understoodItems.length > 0 || profileSignals.length > 0) && (
-                    <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                    <div className={insightGridClass}>
                       {understoodItems.length > 0 ? (
                         <div className={`rounded-lg border p-4 ${chipClass}`}>
                           <div className={`mb-2 flex items-center gap-2 text-sm font-semibold ${textClass}`}>
@@ -775,7 +842,7 @@ const EventAssistantPanel = ({
                   )}
 
                   {(rankingBasis.length > 0 || uncertaintyItems.length > 0) && (
-                    <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                    <div className={insightGridClass}>
                       {rankingBasis.length > 0 ? (
                         <div className={`rounded-lg border p-4 ${chipClass}`}>
                           <div className={`mb-2 flex items-center gap-2 text-sm font-semibold ${textClass}`}>
@@ -845,14 +912,14 @@ const EventAssistantPanel = ({
                   )}
 
                   {assistantState.type === "recommend" && (
-                    <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-2">
+                    <div className={recommendationGridClass}>
                       {(assistantState.recommendations || []).map((item, index) => {
                         const opportunityPreview = getOpportunityMatchPreview(item.opportunityMatch);
                         const recommendationRank = getRecommendationRank(item, index);
                         return (
                           <div
                             key={item.id}
-                            className={`rounded-lg border p-4 transition-colors sm:p-5 ${isDayMode ? "bg-white border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.035)]" : "bg-white/[0.045] border-white/10"}`}
+                            className={`rounded-lg border transition-colors ${recommendationCardClass} ${isDayMode ? "bg-white border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.035)]" : "bg-white/[0.045] border-white/10"}`}
                           >
                           <button
                             type="button"
@@ -887,10 +954,10 @@ const EventAssistantPanel = ({
                                     </span>
                                   ) : null}
                                 </div>
-                                <p className={`text-lg font-bold leading-8 sm:text-xl ${textClass}`}>
+                                <p className={`${recommendationTitleClass} ${textClass}`}>
                                   {item.event.title}
                                 </p>
-                                <p className={`mt-3 text-sm leading-7 sm:text-base ${mutedClass}`}>
+                                <p className={`${recommendationReasonClass} ${mutedClass}`}>
                                   {item.reason}
                                 </p>
                               </div>
