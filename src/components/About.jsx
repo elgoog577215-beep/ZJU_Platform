@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import {
   ArrowRight,
   CalendarDays,
@@ -34,12 +35,28 @@ const heroReveal = (enabled, delay = 0) => {
   };
 };
 
+const partnerNameTranslations = {
+  1: "Future Learning Center",
+  2: "AI Joint Lab",
+  9: "ModelScope Community",
+  11: "Alibaba Cloud",
+  13: "StepFun",
+  "未来学习中心": "Future Learning Center",
+  "AI 联合实验室": "AI Joint Lab",
+  "ModelScope 魔搭社区": "ModelScope Community",
+  "阿里云": "Alibaba Cloud",
+  "阶跃 StepFun": "StepFun",
+};
+
 const About = () => {
+  const { t, i18n } = useTranslation();
   const { settings, uiMode } = useSettings();
   const { schoolPartners, organizationPartners, enterpriseLogos } = useEcosystemPartners();
   const reduceMotion = useReducedMotion();
   const shouldAnimate = !reduceMotion;
   const isDayMode = uiMode === "day";
+  const language = i18n.resolvedLanguage || i18n.language || "zh";
+  const isEnglish = String(language).startsWith("en");
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
@@ -90,66 +107,73 @@ const About = () => {
     };
   }, [reduceMotion]);
 
-  const schoolSupport = schoolPartners.map((partner) => partner.name);
-  const studentOrganizations = organizationPartners.map((partner) => partner.name);
+  const getPartnerName = (partner) =>
+    isEnglish
+      ? partnerNameTranslations[partner.id] || partnerNameTranslations[partner.name] || partner.name
+      : partner.name;
+  const schoolSupport = schoolPartners.map(getPartnerName);
+  const studentOrganizations = organizationPartners.map(getPartnerName);
   const operatingHandles = [
     {
       index: "01",
       code: "ENTRY",
-      title: "活动聚合",
-      short: "统一入口",
-      loop: "汇聚资源",
+      title: t("about.ecosystem.handles.events_title", "活动聚合"),
+      short: t("about.ecosystem.handles.events_short", "统一入口"),
+      loop: t("about.ecosystem.handles.events_loop", "汇聚资源"),
       icon: CalendarDays,
-      description:
-        "聚合活动、项目、企业课题与学习资源，让全域 AI 机会进入同一入口。",
+      description: t("about.ecosystem.handles.events_desc", "聚合活动、项目、企业课题与学习资源，让全域 AI 机会进入同一入口。"),
       route: "/events",
     },
     {
       index: "02",
       code: "LINK",
-      title: "AI 社区",
-      short: "持续共建",
-      loop: "组织人群",
+      title: t("about.ecosystem.handles.community_title", "AI 社区"),
+      short: t("about.ecosystem.handles.community_short", "持续共建"),
+      loop: t("about.ecosystem.handles.community_loop", "组织人群"),
       icon: Users,
-      description:
-        "连接学习者、开发者与社团负责人，把交流转化为长期共建。",
+      description: t("about.ecosystem.handles.community_desc", "连接学习者、开发者与社团负责人，把交流转化为长期共建。"),
       route: "/community",
     },
     {
       index: "03",
       code: "BUILD",
-      title: "极速黑客松",
-      short: "成果认定",
-      loop: "验证能力",
+      title: t("about.ecosystem.handles.hackathon_title", "极速黑客松"),
+      short: t("about.ecosystem.handles.hackathon_short", "成果认定"),
+      loop: t("about.ecosystem.handles.hackathon_loop", "验证能力"),
       icon: Trophy,
-      description:
-        "企业真实命题、限时技术攻坚、零路演评审，让硬核能力被直接验证。",
+      description: t("about.ecosystem.handles.hackathon_desc", "企业真实命题、限时技术攻坚、零路演评审，让硬核能力被直接验证。"),
       route: "/hackathon",
     },
   ];
 
   const loopItems = [
-    { index: "01", title: "汇聚", detail: "活动、项目与企业课题进入同一入口" },
-    { index: "02", title: "实战", detail: "学生在赛事与项目中做中学" },
-    { index: "03", title: "认定", detail: "校企共同背书成果能力" },
-    { index: "04", title: "通道", detail: "优秀人才通向实习与内推" },
+    { index: "01", title: t("about.ecosystem.loop.gather", "汇聚"), detail: t("about.ecosystem.loop.gather_desc", "活动、项目与企业课题进入同一入口") },
+    { index: "02", title: t("about.ecosystem.loop.practice", "实战"), detail: t("about.ecosystem.loop.practice_desc", "学生在赛事与项目中做中学") },
+    { index: "03", title: t("about.ecosystem.loop.recognize", "认定"), detail: t("about.ecosystem.loop.recognize_desc", "校企共同背书成果能力") },
+    { index: "04", title: t("about.ecosystem.loop.channel", "通道"), detail: t("about.ecosystem.loop.channel_desc", "优秀人才通向实习与内推") },
   ];
 
   const foundationPillars = [
-    { index: "A", title: "场景开放", detail: "真实任务进入校园现场" },
-    { index: "B", title: "组织协同", detail: "空间、人群与执行联动" },
-    { index: "C", title: "长期机制", detail: "活动沉淀为持续通道" },
+    { index: "A", title: t("about.ecosystem.foundation.scenario", "场景开放"), detail: t("about.ecosystem.foundation.scenario_desc", "真实任务进入校园现场") },
+    { index: "B", title: t("about.ecosystem.foundation.coordination", "组织协同"), detail: t("about.ecosystem.foundation.coordination_desc", "空间、人群与执行联动") },
+    { index: "C", title: t("about.ecosystem.foundation.mechanism", "长期机制"), detail: t("about.ecosystem.foundation.mechanism_desc", "活动沉淀为持续通道") },
   ];
 
   const proofStats = [
     {
       value: settings.about_stat_1_value || "1000+",
-      label: settings.about_stat_1_label || "平台用户基础",
+      label: !isEnglish && settings.about_stat_1_label
+        ? settings.about_stat_1_label
+        : t("about.ecosystem.stats.user_base", "平台用户基础"),
     },
-    { value: "3", label: "三位一体业务" },
+    { value: "3", label: t("about.ecosystem.stats.core_chain", "三位一体业务") },
     {
-      value: settings.about_stat_3_value || "5 小时",
-      label: settings.about_stat_3_label || "限时实战攻坚",
+      value: !isEnglish && settings.about_stat_3_value
+        ? settings.about_stat_3_value
+        : t("about.ecosystem.stats.sprint_value", "5 小时"),
+      label: !isEnglish && settings.about_stat_3_label
+        ? settings.about_stat_3_label
+        : t("about.ecosystem.stats.sprint_label", "限时实战攻坚"),
     },
   ];
 
@@ -207,12 +231,12 @@ const About = () => {
       className={`min-h-screen overflow-x-hidden scroll-smooth pb-0 lg:h-screen lg:overflow-y-auto lg:snap-y lg:snap-mandatory ${palette.page}`}
     >
       <SEO
-        title="关于我们"
-        description="了解拓途浙享如何以企业真实课题、校园 AI 社区与技术黑客松连接学校、企业和学生，构建产学融合生态。"
+        title={t("about.ecosystem.meta_title", "关于我们")}
+        description={t("about.ecosystem.meta_desc", "了解拓途浙享如何以企业真实课题、校园 AI 社区与技术黑客松连接学校、企业和学生，构建产学融合生态。")}
       />
 
       <nav
-        aria-label="关于页面分页"
+        aria-label={t("about.ecosystem.pagination_aria", "关于页面分页")}
         className="fixed right-5 top-1/2 z-30 hidden -translate-y-1/2 flex-col gap-3 lg:flex"
       >
         {[
@@ -257,16 +281,18 @@ const About = () => {
             </div>
 
             <h1 className="mt-4 max-w-[1080px] text-[2.28rem] font-black leading-[0.98] tracking-[-0.045em] min-[380px]:text-[2.45rem] sm:mt-6 sm:text-6xl md:text-[5rem] lg:mt-6 lg:text-[clamp(4.35rem,9.2vh,5.25rem)] lg:leading-[0.92] lg:tracking-[-0.075em] xl:text-[clamp(4rem,7.8vh,5.8rem)] 2xl:text-[6.35rem] [@media_(max-height:820px)]:lg:mt-4">
-              <span className="block">把企业真题，</span>
-              <span className="block">接入一张</span>
-              <span className={`block ${palette.accent}`}>校园 AI 网络。</span>
+              <span className="block">{t("about.ecosystem.hero.title_1", "把企业真题，")}</span>
+              <span className="block">{t("about.ecosystem.hero.title_2", "接入一张")}</span>
+              <span className={`block ${palette.accent}`}>
+                {t("about.ecosystem.hero.title_3", "校园 AI 网络。")}
+              </span>
             </h1>
 
             <p className={`mt-4 max-w-4xl text-sm font-medium leading-6 sm:mt-6 sm:text-xl sm:leading-9 lg:mt-5 lg:text-[clamp(0.95rem,1.9vh,1.18rem)] lg:leading-8 [@media_(max-height:820px)]:lg:mt-4 ${palette.textSoft}`}>
               <strong className={isDayMode ? "text-slate-950" : "text-white"}>
-                真实课题、实战项目、校企认定。
+                {t("about.ecosystem.hero.strong", "真实课题、实战项目、校企认定。")}
               </strong>
-              {" "}让学生在做中学，让企业提前看见人才，让校园创新通向产业现场。
+              {" "}{t("about.ecosystem.hero.desc", "让学生在做中学，让企业提前看见人才，让校园创新通向产业现场。")}
             </p>
 
             <div className="mt-5 lg:mt-7 [@media_(max-height:820px)]:lg:mt-5">
@@ -274,7 +300,7 @@ const About = () => {
                 href="#ecosystem-handles"
                 className={`inline-flex min-h-12 items-center justify-center gap-2 px-7 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 sm:min-h-14 sm:px-9 [@media_(max-height:820px)]:lg:min-h-12 [@media_(max-height:820px)]:lg:px-7 ${palette.primary}`}
               >
-                查看生态闭环
+                {t("about.ecosystem.hero.cta", "查看生态闭环")}
                 <ArrowRight className="h-4 w-4" />
               </a>
             </div>
@@ -357,12 +383,12 @@ const About = () => {
                   3
                 </div>
                 <p className="mt-4 text-[clamp(2.35rem,5.4vh,3rem)] font-black leading-[1.02] tracking-[-0.05em] 2xl:text-[3.35rem]">
-                  三方协同
+                  {t("about.ecosystem.brief.title_1", "三方协同")}
                   <br />
-                  闭环运转
+                  {t("about.ecosystem.brief.title_2", "闭环运转")}
                 </p>
                 <p className={`mt-3 max-w-lg text-base font-bold leading-7 2xl:mt-4 2xl:text-lg 2xl:leading-8 ${palette.textSoft}`}>
-                  企业发布真实课题，学生在实战中产出成果，校企共同完成认定与推荐。
+                  {t("about.ecosystem.brief.desc", "企业发布真实课题，学生在实战中产出成果，校企共同完成认定与推荐。")}
                 </p>
               </div>
               <div className={`grid gap-px overflow-hidden border ${isDayMode ? "border-cyan-500/18 bg-cyan-500/18" : "border-cyan-300/18 bg-cyan-300/18"}`}>
@@ -405,11 +431,11 @@ const About = () => {
               Core Engine
             </p>
             <h2 className="mt-3 max-w-5xl text-[1.9rem] font-black leading-[0.98] tracking-[-0.055em] sm:text-6xl lg:text-[clamp(3.45rem,7vh,5.65rem)]">
-              <span className="block sm:inline">三位一体，</span>
-              <span className="block sm:inline">打通产学闭环。</span>
+              <span className="block sm:inline">{t("about.ecosystem.engine.title_1", "三位一体，")}</span>
+              <span className="block sm:inline">{t("about.ecosystem.engine.title_2", "打通产学闭环。")}</span>
             </h2>
             <p className={`mt-3 max-w-3xl text-sm leading-6 sm:mt-4 sm:text-lg sm:leading-8 lg:text-[clamp(0.95rem,1.45vh,1.125rem)] lg:leading-7 ${palette.textSoft}`}>
-              资源入口聚合机会，AI 社区承接共建，技术黑客松完成高密度验证。三者联动，才让 AI 热度变成可运营、可复制的人才培养机制。
+              {t("about.ecosystem.engine.desc", "资源入口聚合机会，AI 社区承接共建，技术黑客松完成高密度验证。三者联动，才让 AI 热度变成可运营、可复制的人才培养机制。")}
             </p>
 
             <div className="-mx-4 mt-4 grid auto-cols-[86%] grid-flow-col gap-3 overflow-x-auto px-4 pb-1 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:mt-5 sm:grid-flow-row sm:grid-cols-1 sm:overflow-visible sm:px-0 sm:pb-0 sm:[scrollbar-width:auto] lg:mt-[clamp(1rem,2.1vh,1.75rem)] lg:h-[clamp(17rem,32vh,24rem)] lg:min-h-0 lg:auto-cols-auto lg:auto-rows-fr lg:grid-cols-3 lg:gap-5 2xl:gap-7 [&::-webkit-scrollbar]:hidden sm:[&::-webkit-scrollbar]:block">
@@ -469,7 +495,7 @@ const About = () => {
                 <div className={`px-6 py-[clamp(0.8rem,1.8vh,1.5rem)] 2xl:px-7 ${isDayMode ? "bg-white/70" : "bg-white/[0.035]"}`}>
                   <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${palette.label}`}>Operating Loop</p>
                   <h3 className="mt-2 text-[clamp(1.2rem,2.4vh,1.9rem)] font-black leading-none tracking-[-0.04em]">
-                    从真题到通道
+                    {t("about.ecosystem.engine.loop_title", "从真题到通道")}
                   </h3>
                 </div>
               {loopItems.map((item) => (
@@ -542,12 +568,12 @@ const About = () => {
                   Support Galaxy
                 </p>
                 <h2 className="mt-3 max-w-[820px] text-[1.85rem] font-black leading-[0.98] tracking-[-0.055em] sm:text-6xl lg:text-[clamp(3rem,5.6vh,4.55rem)]">
-                  <span className="block">三方资源在场，</span>
-                  <span className="block">产学融合有底气。</span>
+                  <span className="block">{t("about.ecosystem.support.title_1", "三方资源在场，")}</span>
+                  <span className="block">{t("about.ecosystem.support.title_2", "产学融合有底气。")}</span>
                 </h2>
               </div>
               <p className={`max-w-3xl text-xs leading-5 sm:text-lg sm:leading-8 lg:justify-self-end lg:pb-[clamp(0.25rem,1vh,0.9rem)] lg:text-[clamp(0.95rem,1.45vh,1.125rem)] lg:leading-7 ${palette.textSoft}`}>
-                学校提供场景与机制，学生组织承接人群与执行，企业伙伴带来真实课题、技术资源和人才通道。
+                {t("about.ecosystem.support.desc", "学校提供场景与机制，学生组织承接人群与执行，企业伙伴带来真实课题、技术资源和人才通道。")}
               </p>
             </div>
 
@@ -579,10 +605,10 @@ const About = () => {
                       </div>
                     </div>
                     <h3 className="mt-3 max-w-lg text-[2.15rem] font-black leading-[0.88] tracking-[-0.055em] sm:mt-6 sm:text-6xl lg:mt-[clamp(0.9rem,2vh,1.45rem)] lg:text-[clamp(2.8rem,5.2vh,4.15rem)]">
-                      学校支持
+                      {t("about.ecosystem.support.school_title", "学校支持")}
                     </h3>
                     <p className={`mt-3 max-w-lg text-xs leading-5 sm:mt-5 sm:text-sm sm:leading-7 lg:mt-[clamp(0.75rem,1.75vh,1.25rem)] lg:text-[clamp(0.86rem,1.28vh,1rem)] lg:leading-6 ${palette.textSoft}`}>
-                      未来学习中心与校内创新平台把场景、空间和组织机制先搭好，让企业课题能稳定进入校园实践。
+                      {t("about.ecosystem.support.school_desc", "未来学习中心与校内创新平台把场景、空间和组织机制先搭好，让企业课题能稳定进入校园实践。")}
                     </p>
                   </div>
 
@@ -674,7 +700,7 @@ const About = () => {
                         02 / Campus Force
                       </div>
                   <h3 className="mt-2 text-2xl font-black tracking-[-0.045em] sm:mt-3 sm:text-4xl lg:mt-[clamp(0.5rem,1.5vh,0.9rem)] lg:text-[clamp(1.9rem,4.2vh,3.2rem)]">
-                        学生组织
+                        {t("about.ecosystem.support.student_title", "学生组织")}
                       </h3>
                     </div>
                     <div className={`text-sm font-black uppercase tracking-[0.18em] ${palette.textMuted}`}>
@@ -682,7 +708,7 @@ const About = () => {
                     </div>
                   </div>
                   <p className={`mt-2 max-w-2xl text-xs font-bold leading-5 sm:mt-3 sm:text-sm sm:leading-6 lg:mt-[clamp(0.6rem,1.8vh,1.5rem)] lg:text-[clamp(0.85rem,1.35vh,1.05rem)] lg:leading-6 ${palette.textMuted}`}>
-                    头部科创社团与核心负责人共同承接活动、项目和实践人群，让校园动能持续流动。
+                    {t("about.ecosystem.support.student_desc", "头部科创社团与核心负责人共同承接活动、项目和实践人群，让校园动能持续流动。")}
                   </p>
                   <div className="relative mt-3 grid grid-cols-5 gap-1.5 sm:mt-5 sm:gap-3 lg:mt-[clamp(0.85rem,1.7vh,1.35rem)] lg:gap-3 2xl:gap-4">
                     <div className={`pointer-events-none absolute left-3 right-3 top-1/2 hidden h-px -translate-y-1/2 sm:block ${
@@ -715,7 +741,7 @@ const About = () => {
                         03 / Technical Backing
                       </div>
                       <h3 className="mt-2 text-2xl font-black tracking-[-0.045em] sm:mt-3 sm:text-4xl lg:mt-[clamp(0.5rem,1.5vh,0.9rem)] lg:text-[clamp(1.9rem,4.2vh,3.2rem)]">
-                        企业伙伴
+                        {t("about.ecosystem.support.enterprise_title", "企业伙伴")}
                       </h3>
                     </div>
                     <div className={`text-sm font-black uppercase tracking-[0.18em] ${palette.textMuted}`}>
@@ -724,7 +750,7 @@ const About = () => {
                   </div>
 
                   <p className={`mt-2 max-w-2xl text-xs font-bold leading-5 sm:mt-3 sm:text-sm sm:leading-6 lg:mt-[clamp(0.6rem,1.8vh,1.5rem)] lg:text-[clamp(0.85rem,1.35vh,1.05rem)] lg:leading-6 ${palette.textMuted}`}>
-                    头部 AI 企业把真实课题、模型、云和工具带入校园，支撑项目从想法走向可运行成果。
+                    {t("about.ecosystem.support.enterprise_desc", "头部 AI 企业把真实课题、模型、云和工具带入校园，支撑项目从想法走向可运行成果。")}
                   </p>
 
                   <div className={`mt-3 grid grid-cols-3 gap-1.5 border-t pt-3 sm:mt-5 sm:gap-3 sm:pt-4 lg:mt-[clamp(0.85rem,1.8vh,1.5rem)] lg:grid-cols-6 lg:gap-2 lg:pt-[clamp(0.75rem,1.6vh,1.25rem)] xl:gap-3 ${

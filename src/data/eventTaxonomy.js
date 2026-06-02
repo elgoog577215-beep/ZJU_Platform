@@ -8,6 +8,27 @@ export const EVENT_CATEGORIES = [
   { value: "other", label: "其他" },
 ];
 
+export const EVENT_CATEGORY_LABELS = {
+  zh: {
+    lecture: "讲座",
+    competition: "竞赛",
+    volunteer: "志愿",
+    recruitment: "招新",
+    culture_sports: "文体",
+    exchange: "交流",
+    other: "其他",
+  },
+  en: {
+    lecture: "Lectures",
+    competition: "Competitions",
+    volunteer: "Volunteer",
+    recruitment: "Recruiting",
+    culture_sports: "Culture & Sports",
+    exchange: "Exchange",
+    other: "Other",
+  },
+};
+
 export const EVENT_CATEGORY_ALIASES = {
   lecture: [
     "academic_research",
@@ -216,9 +237,86 @@ export const EVENT_AUDIENCE_OPTIONS = EVENT_AUDIENCE_GROUPS.flatMap(
   ({ items }) => items,
 );
 
-export const getEventCategoryLabel = (value) =>
-  EVENT_CATEGORIES.find(
-    (item) => item.value === normalizeEventCategoryValue(value),
-  )?.label ||
-  value ||
-  "";
+export const EVENT_AUDIENCE_LABELS_EN = {
+  全校: "All Campus",
+  求是学院: "Qiushi College",
+  丹青学园: "Danqing College",
+  云峰学园: "Yunfeng College",
+  蓝田学园: "Lantian College",
+  竺可桢学院: "Chu Kochen Honors College",
+  工程师学院: "Polytechnic Institute",
+  国际联合学院: "International Campus",
+  国际教育学院: "International College",
+  文学院: "School of Chinese Language and Literature",
+  历史学院: "School of History",
+  哲学学院: "School of Philosophy",
+  外国语学院: "School of International Studies",
+  传媒与国际文化学院: "College of Media and International Culture",
+  艺术与考古学院: "School of Art and Archaeology",
+  经济学院: "School of Economics",
+  光华法学院: "Guanghua Law School",
+  教育学院: "College of Education",
+  管理学院: "School of Management",
+  公共管理学院: "School of Public Affairs",
+  马克思主义学院: "School of Marxism",
+  数学科学学院: "School of Mathematical Sciences",
+  物理学院: "School of Physics",
+  化学系: "Department of Chemistry",
+  地球科学学院: "School of Earth Sciences",
+  心理与行为科学系: "Department of Psychology and Behavioral Sciences",
+  机械工程学院: "School of Mechanical Engineering",
+  材料科学与工程学院: "School of Materials Science and Engineering",
+  能源工程学院: "College of Energy Engineering",
+  电气工程学院: "College of Electrical Engineering",
+  建筑工程学院: "College of Civil Engineering and Architecture",
+  化学工程与生物工程学院: "College of Chemical and Biological Engineering",
+  海洋学院: "Ocean College",
+  航空航天学院: "School of Aeronautics and Astronautics",
+  高分子科学与工程学系: "Department of Polymer Science and Engineering",
+  光电科学与工程学院: "College of Optical Science and Engineering",
+  信息与电子工程学院: "College of Information Science and Electronic Engineering",
+  控制科学与工程学院: "College of Control Science and Engineering",
+  计算机科学与技术学院: "College of Computer Science and Technology",
+  软件学院: "School of Software Technology",
+  生物医学工程与仪器科学学院: "College of Biomedical Engineering and Instrument Science",
+  集成电路学院: "School of Integrated Circuits",
+  生命科学学院: "College of Life Sciences",
+  生物系统工程与食品科学学院: "College of Biosystems Engineering and Food Science",
+  环境与资源学院: "College of Environmental and Resource Sciences",
+  农业与生物技术学院: "College of Agriculture and Biotechnology",
+  动物科学学院: "College of Animal Sciences",
+  医学院: "School of Medicine",
+  药学院: "College of Pharmaceutical Sciences",
+  浙江大学伊利诺伊大学厄巴纳香槟校区联合学院: "ZJU-UIUC Institute",
+  浙江大学爱丁堡大学联合学院: "ZJU-UoE Institute",
+};
+
+export const EVENT_AUDIENCE_GROUP_LABELS_EN = {
+  学园与特殊培养单位: "Residential Colleges & Special Programs",
+  人文与社科: "Humanities & Social Sciences",
+  理学与工学: "Science & Engineering",
+  信息学部: "Information Science",
+  农生环与医学: "Agriculture, Life, Environment & Medicine",
+  中外合作办学: "International Joint Institutes",
+};
+
+export const getEventCategoryLabel = (value, language = "zh") => {
+  const normalized = normalizeEventCategoryValue(value);
+  const lang = String(language || "zh").startsWith("en") ? "en" : "zh";
+  return (
+    EVENT_CATEGORY_LABELS[lang]?.[normalized] ||
+    EVENT_CATEGORIES.find((item) => item.value === normalized)?.label ||
+    value ||
+    ""
+  );
+};
+
+export const getEventAudienceLabel = (value, language = "zh") =>
+  String(language || "zh").startsWith("en")
+    ? EVENT_AUDIENCE_LABELS_EN[value] || value || ""
+    : value || "";
+
+export const getEventAudienceGroupLabel = (value, language = "zh") =>
+  String(language || "zh").startsWith("en")
+    ? EVENT_AUDIENCE_GROUP_LABELS_EN[value] || value || ""
+    : value || "";

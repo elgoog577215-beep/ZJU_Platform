@@ -26,6 +26,7 @@ export const useBackClose = (isOpen, onClose) => {
     if (!isOpen) return;
 
     const newHash = `#${hashRef.current}`;
+    const openedPath = `${window.location.pathname}${window.location.search}`;
     const cleanupRef = { current: null };
 
     // Defer side effects by a macrotask so React.StrictMode's dev-time
@@ -51,7 +52,12 @@ export const useBackClose = (isOpen, onClose) => {
       cleanupRef.current = () => {
         window.removeEventListener('popstate', handlePopState);
         if (!isClosingRef.current && window.location.hash === newHash) {
-          window.history.back();
+          window.setTimeout(() => {
+            const currentPath = `${window.location.pathname}${window.location.search}`;
+            if (currentPath === openedPath && window.location.hash === newHash) {
+              window.history.back();
+            }
+          }, 0);
         }
       };
     }, 0);

@@ -1,9 +1,16 @@
 import React, { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, GraduationCap, Search, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import SortSelector from "./SortSelector";
 import { useSettings } from "../context/SettingsContext";
-import { EVENT_AUDIENCE_GROUPS, EVENT_CATEGORIES } from "../data/eventTaxonomy";
+import {
+  EVENT_AUDIENCE_GROUPS,
+  EVENT_CATEGORIES,
+  getEventAudienceGroupLabel,
+  getEventAudienceLabel,
+  getEventCategoryLabel,
+} from "../data/eventTaxonomy";
 
 const EventFilterPanel = ({
   filters,
@@ -13,7 +20,9 @@ const EventFilterPanel = ({
   hideSort = false,
   mode = "default",
 }) => {
+  const { t, i18n } = useTranslation();
   const { uiMode } = useSettings();
+  const language = i18n.resolvedLanguage || i18n.language || "zh";
   const isDayMode = uiMode === "day";
   const isSheetMode = mode === "sheet";
   const [audienceSearch, setAudienceSearch] = useState("");
@@ -24,9 +33,10 @@ const EventFilterPanel = ({
   const selectedAudience = filters?.target_audience || null;
   const hasActiveFilters = Boolean(selectedCategory || selectedAudience);
   const sortExtraOptions = [
-    { value: "date_asc", label: "日期（最早）" },
-    { value: "date_desc", label: "日期（最晚）" },
+    { value: "date_asc", label: t("sort_filter.date_asc", "日期（最早）") },
+    { value: "date_desc", label: t("sort_filter.date_desc", "日期（最晚）") },
   ];
+  const allAudienceValue = "全校";
 
   const audienceQuery = audienceSearch.trim().toLowerCase();
   const totalAudienceCount = EVENT_AUDIENCE_GROUPS.reduce(
@@ -51,10 +61,14 @@ const EventFilterPanel = ({
     return sourceGroups
       .map((group) => ({
         ...group,
-        items: group.items.filter((item) => item.toLowerCase().includes(query)),
+        items: group.items.filter((item) => {
+          const rawLabel = item.toLowerCase();
+          const displayLabel = getEventAudienceLabel(item, language).toLowerCase();
+          return rawLabel.includes(query) || displayLabel.includes(query);
+        }),
       }))
       .filter((group) => group.items.length > 0);
-  }, [audienceSearch, isSheetMode, showAllAudiences]);
+  }, [audienceSearch, isSheetMode, language, showAllAudiences]);
 
   const setCategory = (value) => {
     onFiltersChange({
@@ -65,7 +79,7 @@ const EventFilterPanel = ({
 
   const setAudience = (value) => {
     const nextAudience =
-      value === "全校" || selectedAudience === value ? null : value;
+      value === allAudienceValue || selectedAudience === value ? null : value;
 
     onFiltersChange({
       ...filters,
@@ -128,7 +142,9 @@ const EventFilterPanel = ({
   );
 
   const isAudienceSelected = (audience) =>
-    (!selectedAudience && audience === "全校") || selectedAudience === audience;
+    (!selectedAudience && audience === allAudienceValue) || selectedAudience === audience;
+  const audienceLabel = (value) => getEventAudienceLabel(value, language);
+  const categoryLabel = (value) => getEventCategoryLabel(value, language);
   const isCompactAudiencePreview =
     isSheetMode && !audienceQuery && !showAllAudiences;
 
@@ -164,8 +180,12 @@ const EventFilterPanel = ({
         <section className="space-y-3">
           <div className="flex items-end justify-between gap-3">
             <div>
-              <div className={sheetSectionTitleClass}>活动类型</div>
-              <p className={sheetHintClass}>先选类型，再按对象收窄结果。</p>
+              <div className={sheetSectionTitleClass}>
+                {t("events.filter.category_title", "活动类型")}
+              </div>
+              <p className={sheetHintClass}>
+                {t("events.filter.category_hint", "先选类型，再按对象收窄结果。")}
+              </p>
             </div>
           </div>
 
@@ -177,7 +197,9 @@ const EventFilterPanel = ({
               className={sheetCategoryClass(!selectedCategory)}
             >
               {!selectedCategory && renderActivePill()}
-              <span className="relative z-10 whitespace-nowrap">全部</span>
+              <span className="relative z-10 whitespace-nowrap">
+                {t("common.all", "全部")}
+              </span>
             </button>
 
             {EVENT_CATEGORIES.map((category) => {
@@ -192,7 +214,7 @@ const EventFilterPanel = ({
                 >
                   {active && renderActivePill()}
                   <span className="relative z-10 whitespace-nowrap">
-                    {category.label}
+                    {categoryLabel(category.value)}
                   </span>
                 </button>
               );
@@ -208,7 +230,7 @@ const EventFilterPanel = ({
                 onClick={() => setAudience(selectedAudience)}
                 className={`min-h-[44px] rounded-md border px-3.5 text-xs font-bold ${isDayMode ? "border-violet-200 bg-violet-50 text-violet-700" : nightControlActiveClass}`}
               >
-                取消
+                {t("common.cancel", "取消")}
               </button>
             )}
             {!selectedAudience && !audienceQuery && (
@@ -222,7 +244,9 @@ const EventFilterPanel = ({
                   size={14}
                   className={`transition-transform ${showAllAudiences ? "rotate-180" : ""}`}
                 />
-                {showAllAudiences ? "收起" : `全部 ${totalAudienceCount}`}
+                {showAllAudiences
+                  ? t("common.show_less", "收起")
+                  : `${t("common.all", "全部")} ${totalAudienceCount}`}
               </button>
             )}
           </div>
@@ -235,14 +259,14 @@ const EventFilterPanel = ({
             <input
               value={audienceSearch}
               onChange={(event) => setAudienceSearch(event.target.value)}
-              aria-label="搜索学院或学园"
+              aria-label={t("events.filter.search_audience", "搜索学院或学园")}
               className={`h-12 w-full rounded-lg border pl-11 pr-12 text-base outline-none transition-colors focus-visible:ring-2 ${nightFocusClass} ${isDayMode ? "border-slate-200/80 bg-white/90 text-slate-800 placeholder:text-slate-400" : "border-white/[0.11] bg-[#171a26] text-white placeholder:text-slate-500"}`}
-              placeholder="搜索学院 / 学园"
+              placeholder={t("events.filter.search_audience_placeholder", "搜索学院 / 学园")}
             />
             {audienceSearch && (
               <button
                 type="button"
-                aria-label="清空搜索"
+                aria-label={t("common.clear", "清除")}
                 onClick={() => setAudienceSearch("")}
                 className={`absolute right-1 top-1/2 inline-flex min-h-[44px] min-w-[44px] -translate-y-1/2 items-center justify-center rounded-md ${isDayMode ? "text-slate-400 hover:bg-slate-100 hover:text-slate-700" : "text-slate-500 hover:bg-white/[0.07] hover:text-white"}`}
               >
@@ -265,7 +289,7 @@ const EventFilterPanel = ({
                         onClick={() => setAudience(audience)}
                         className={sheetAudienceChipClass(selected)}
                       >
-                        {audience}
+                        {audienceLabel(audience)}
                       </button>
                     );
                   })}
@@ -277,7 +301,7 @@ const EventFilterPanel = ({
               <div
               className={`border px-4 py-8 text-center text-sm ${isDayMode ? "border-slate-200/80 bg-white/80 text-slate-500" : "border-white/[0.11] bg-[#171a26] text-slate-400"}`}
               >
-                没有匹配的学院或学园
+                {t("events.filter.no_audience_matches", "没有匹配的学院或学园")}
               </div>
             )}
           </div>
@@ -310,7 +334,9 @@ const EventFilterPanel = ({
                 className={channelButtonClass(!selectedCategory)}
               >
                 {!selectedCategory && renderActivePill()}
-                <span className="relative z-10 whitespace-nowrap">全部</span>
+                <span className="relative z-10 whitespace-nowrap">
+                  {t("common.all", "全部")}
+                </span>
               </button>
 
               {EVENT_CATEGORIES.map((category) => {
@@ -325,7 +351,7 @@ const EventFilterPanel = ({
                   >
                     {active && renderActivePill()}
                     <span className="relative z-10 whitespace-nowrap">
-                      {category.label}
+                      {categoryLabel(category.value)}
                     </span>
                   </button>
                 );
@@ -349,7 +375,8 @@ const EventFilterPanel = ({
                   className={isDayMode ? "text-violet-600" : "text-[#aab0ff]"}
                 />
                 <span className="truncate">
-                  面向：{selectedAudience || "全校"}
+                  {t("events.filter.audience_prefix", "面向：")}
+                  {audienceLabel(selectedAudience || allAudienceValue)}
                 </span>
               </span>
               <ChevronDown
@@ -365,7 +392,7 @@ const EventFilterPanel = ({
                 className={`rect-button-secondary inline-flex min-h-[44px] items-center justify-center gap-1.5 px-3 text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${isDayMode ? "text-slate-500 hover:border-rose-200 hover:text-rose-600" : nightControlClass}`}
               >
                 <X size={13} />
-                重置
+                {t("common.clear_all", "重置")}
               </button>
             )}
 
@@ -406,12 +433,12 @@ const EventFilterPanel = ({
                 <div
                   className={`text-xs font-bold ${isDayMode ? "text-slate-700" : "text-slate-200"}`}
                 >
-                  面向对象
+                  {t("events.filter.audience_title", "面向对象")}
                 </div>
                 <p
                   className={`mt-0.5 text-xs ${isDayMode ? "text-slate-500" : "text-slate-500"}`}
                 >
-                  选择学院、学园或保持全校
+                  {t("events.filter.audience_hint", "选择学院、学园或保持全校")}
                 </p>
               </div>
               <div className="relative w-full sm:w-72">
@@ -423,7 +450,7 @@ const EventFilterPanel = ({
                   value={audienceSearch}
                   onChange={(event) => setAudienceSearch(event.target.value)}
                   className={`rect-field h-11 w-full pl-9 pr-3 text-sm outline-none transition-all focus-visible:ring-2 ${nightFocusClass} ${isDayMode ? "text-slate-700 placeholder:text-slate-400 hover:bg-white" : "text-white placeholder:text-slate-500"}`}
-                  placeholder="搜索学院/学园"
+                  placeholder={t("events.filter.search_audience_placeholder", "搜索学院/学园")}
                 />
               </div>
             </div>
@@ -435,7 +462,7 @@ const EventFilterPanel = ({
                   onClick={() => setAudience(selectedAudience)}
                   className={`rect-chip inline-flex min-h-[32px] items-center gap-1.5 px-3 text-xs font-bold ${isDayMode ? "border-violet-200 bg-violet-50 text-violet-700" : nightControlActiveClass}`}
                 >
-                  {selectedAudience}
+                  {audienceLabel(selectedAudience)}
                   <X size={12} />
                 </button>
               </div>
@@ -447,6 +474,11 @@ const EventFilterPanel = ({
               <div className="space-y-4">
                 {visibleAudienceGroups.map((group) => (
                   <div key={group.group}>
+                    {(showAllAudiences || audienceQuery) && (
+                      <div className={`mb-2 text-[11px] font-black uppercase tracking-[0.16em] ${mutedTextClass}`}>
+                        {getEventAudienceGroupLabel(group.group, language)}
+                      </div>
+                    )}
                     <div className="flex flex-wrap gap-2">
                       {group.items.map((audience) => {
                         const selected = selectedAudience === audience;
@@ -466,7 +498,7 @@ const EventFilterPanel = ({
                                   : nightControlClass
                             }`}
                           >
-                            {audience}
+                            {audienceLabel(audience)}
                           </button>
                         );
                       })}
@@ -478,7 +510,7 @@ const EventFilterPanel = ({
                   <div
                     className={`border px-4 py-6 text-center text-sm ${isDayMode ? "border-slate-200/80 bg-white/70 text-slate-500" : "border-white/[0.11] bg-[#171a26] text-slate-400"}`}
                   >
-                    没有匹配的学院或学园
+                    {t("events.filter.no_audience_matches", "没有匹配的学院或学园")}
                   </div>
                 )}
               </div>
@@ -499,8 +531,8 @@ const EventFilterPanel = ({
                   }
                 />
                 {showAllAudiences
-                  ? "收起到常用对象"
-                  : `展开全部学院/学园（${totalAudienceCount}）`}
+                  ? t("events.filter.collapse_common_audiences", "收起到常用对象")
+                  : t("events.filter.expand_all_audiences", "展开全部学院/学园（{{count}}）", { count: totalAudienceCount })}
               </button>
             )}
           </motion.div>

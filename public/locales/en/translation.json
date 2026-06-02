@@ -135,7 +135,16 @@
     "day_mode_hint": "Bright, airy, refined",
     "night_mode_hint": "Deep, immersive, restrained",
     "cursor_enable": "Enable Custom Cursor",
-    "cursor_disable": "Disable Custom Cursor"
+    "cursor_disable": "Disable Custom Cursor",
+    "language_switcher": "Switch language",
+    "mobile_more_title": "More",
+    "me": "Me",
+    "profile": "Me",
+    "mobile_tabbar": "Mobile bottom navigation",
+    "main_aria": "Main navigation",
+    "home_aria": "TUOTU ZJU home",
+    "logo_alt": "TUOTU ZJU Logo",
+    "menu_aria": "Navigation menu"
   },
   "community": {
     "seo_description": "ZJU AI community: help, tech sharing, news, and collaboration.",
@@ -305,14 +314,39 @@
     "help_empty": "No posts yet",
     "help_empty_desc": "Be the first to post!",
     "team_empty": "No team posts yet",
-    "team_empty_desc": "Create the first team post!"
+    "team_empty_desc": "Create the first team post!",
+    "hero_title": "AI Community",
+    "hero_line": "Keep questions, experience, and people moving.",
+    "hero_body": "From discussion after one event to collaboration on the next project, everything connects here.",
+    "enter_section": "Enter {{section}}",
+    "news_board": "News Board",
+    "tab_tech": "Tech Sharing",
+    "tab_tech_desc": "Review tools, methods, and campus project experience",
+    "tab_help_desc": "Raise a question and let classmates and organizations pick it up",
+    "tab_groups_desc": "Join long-running collaboration groups and build real connections",
+    "tech_search_placeholder": "Search article titles, summaries, or body text",
+    "current_section": "Current Section",
+    "collaboration_mode": "Collaboration Mode",
+    "content_status": "Content Status",
+    "results_count": "results",
+    "filtered_view": "Filters applied",
+    "searching_for": "Searching for",
+    "clear_filters": "Clear filters",
+    "no_filtered_results": "No content matches the current filters",
+    "no_filtered_results_desc": "Clear filters or adjust the search terms and try again.",
+    "post_new": "New Post"
   },
   "search": {
     "placeholder": "Search content..."
   },
   "hero": {
     "title": "CAPTURE",
-    "subtitle": "Freezing moments in time, creating eternity through the lens."
+    "subtitle": "Freezing moments in time, creating eternity through the lens.",
+    "zju_title": "Zhejiang University Information Hub",
+    "zju_title_line_1": "Zhejiang University",
+    "zju_title_line_2": "Information Hub",
+    "zju_subtitle": "Bridge information gaps and build a shared campus network",
+    "zju_badge": "Digital Art / Tech Community / Campus Co-Creation"
   },
   "about": {
     "title": "Capturing life's",
@@ -321,7 +355,80 @@
     "p2": "Whether it's the neon-lit streets of a metropolis or the serene silence of a mountain peak, I bring a unique perspective to every shot.",
     "exp": "Years Experience",
     "exhibitions": "Exhibitions",
-    "projects": "Projects"
+    "projects": "Projects",
+    "ecosystem": {
+      "meta_title": "About",
+      "meta_desc": "Learn how TUOTU ZJU connects universities, companies, and students through real enterprise briefs, campus AI community, and technical hackathons.",
+      "pagination_aria": "About page sections",
+      "hero": {
+        "title_1": "Connect real",
+        "title_2": "enterprise briefs to",
+        "title_3": "a campus AI network.",
+        "strong": "Real briefs, practical projects, shared recognition.",
+        "desc": "Students learn by building, companies see talent earlier, and campus innovation gains a path into real industry scenarios.",
+        "cta": "View the Ecosystem Loop"
+      },
+      "stats": {
+        "user_base": "Platform User Base",
+        "core_chain": "Three-Part Service Chain",
+        "sprint_value": "5 Hours",
+        "sprint_label": "Timed Practice Sprint"
+      },
+      "brief": {
+        "title_1": "Three-way",
+        "title_2": "closed loop",
+        "desc": "Companies release real briefs, students produce outcomes through practice, and campus plus enterprise partners complete recognition and recommendation."
+      },
+      "handles": {
+        "events_title": "Events Hub",
+        "events_short": "Unified Entry",
+        "events_loop": "Gather Resources",
+        "events_desc": "Gather events, projects, enterprise briefs, and learning resources into one AI opportunity entry point.",
+        "community_title": "AI Community",
+        "community_short": "Continuous Co-creation",
+        "community_loop": "Organize People",
+        "community_desc": "Connect learners, developers, and student organization leads, turning discussion into long-term co-creation.",
+        "hackathon_title": "Rapid Hackathon",
+        "hackathon_short": "Outcome Recognition",
+        "hackathon_loop": "Validate Capability",
+        "hackathon_desc": "Real enterprise briefs, timed technical sprints, and no-pitch judging directly validate hard skills."
+      },
+      "engine": {
+        "title_1": "One operating loop,",
+        "title_2": "not just more events.",
+        "desc": "The resource entry gathers opportunities, the AI community carries collaboration, and the technical hackathon validates capability at high density. Together, they turn AI momentum into an operable and repeatable talent development mechanism.",
+        "loop_title": "From Briefs to Pathways"
+      },
+      "loop": {
+        "gather": "Gather",
+        "gather_desc": "Events, projects, and enterprise briefs enter one hub",
+        "practice": "Practice",
+        "practice_desc": "Students learn by doing in competitions and projects",
+        "recognize": "Recognize",
+        "recognize_desc": "Campus and companies endorse proven capability",
+        "channel": "Pathway",
+        "channel_desc": "Strong talent moves toward internships and referrals"
+      },
+      "support": {
+        "title_1": "Three resource layers",
+        "title_2": "make co-creation credible.",
+        "desc": "Campus units provide scenarios and mechanisms, student organizations carry people and execution, and enterprise partners bring real briefs, technical resources, and talent pathways.",
+        "school_title": "Campus Support",
+        "school_desc": "The Future Learning Center and campus innovation platforms prepare scenarios, spaces, and operating mechanisms so enterprise briefs can steadily enter campus practice.",
+        "student_title": "Student Organizations",
+        "student_desc": "Leading tech clubs and core organizers carry activities, projects, and practice communities so campus momentum keeps moving.",
+        "enterprise_title": "Enterprise Partners",
+        "enterprise_desc": "Leading AI companies bring real briefs, models, cloud, and tools into campus, helping ideas become runnable outcomes."
+      },
+      "foundation": {
+        "scenario": "Open Scenarios",
+        "scenario_desc": "Real tasks enter the campus site",
+        "coordination": "Coordinated Operation",
+        "coordination_desc": "Space, people, and execution move together",
+        "mechanism": "Long-term Mechanism",
+        "mechanism_desc": "Activities become a continuous pathway"
+      }
+    }
   },
   "contact": {
     "title": "Get in Touch",
@@ -365,7 +472,10 @@
     "get_in_touch": "Get in Touch",
     "explore": "Explore",
     "made_with": "Made with",
-    "by_trae": "by Trae"
+    "by_trae": "by Trae",
+    "brand": "TUOTU ZJU",
+    "copyright": "© {{year}} AI Ecosystem Team. All rights reserved.",
+    "tagline": "Digital Art & Technology"
   },
   "home": {
     "meta_title": "Home",
@@ -415,6 +525,89 @@
       "music_desc": "Immerse yourself in our curated audio journeys and soundscapes.",
       "videos_desc": "Experience boundary-pushing cinematic storytelling and visual art.",
       "articles_desc": "Join the AI community — share tech, get help, and team up."
+    },
+    "platform": {
+      "nav_home": "Home",
+      "nav_ecosystem": "Ecosystem",
+      "nav_engine": "Engine",
+      "nav_resources": "Resources",
+      "nav_live": "Live",
+      "jump_to_section": "Jump to {{section}}",
+      "featured_photo": "Featured Photo",
+      "featured_article": "Featured Article",
+      "featured_video": "Featured Video",
+      "featured_audio": "Featured Audio",
+      "featured_event": "Featured Event",
+      "media_photo": "Photo",
+      "media_article": "Article",
+      "media_video": "Video",
+      "media_audio": "Audio",
+      "media_event": "Event",
+      "stat_user_base": "Platform User Base",
+      "stat_user_base_hint": "Supports event reach, community connections, and project conversion",
+      "stat_service_chain": "Core Service Chain",
+      "stat_service_chain_hint": "Information publishing, community collaboration, scenario access, and practice validation",
+      "stat_sprint_value": "5 Hours",
+      "stat_sprint_label": "Timed Practice Mechanism",
+      "stat_sprint_hint": "Helps topics become prototype outcomes quickly",
+      "radar_center": "Ecosystem Hub",
+      "radar_entry": "Event Entry",
+      "radar_community": "Community Ties",
+      "radar_projects": "Project Momentum",
+      "handle_events_title": "Events Hub",
+      "handle_events_short": "Unified Entry",
+      "handle_events_loop": "Gather Resources",
+      "handle_events_desc": "Publish campus AI events, enterprise topics, project calls, and learning resources from one entry point.",
+      "handle_community_title": "AI Community",
+      "handle_community_short": "Sustained Co-Creation",
+      "handle_community_loop": "Organize People",
+      "handle_community_desc": "Connect learners, developers, student organizations, and project leads for ongoing exchange and collaboration.",
+      "handle_learning_title": "Future Learning Center",
+      "handle_learning_short": "Scenario Base",
+      "handle_learning_loop": "Open Scenarios",
+      "handle_learning_desc": "Open real learning scenarios and interdisciplinary topics with space, coordination, and long-term operations.",
+      "handle_hackathon_title": "Rapid Hackathon",
+      "handle_hackathon_short": "Outcome Recognition",
+      "handle_hackathon_loop": "Validate Capability",
+      "handle_hackathon_desc": "Run timed builds and reviews around enterprise topics to validate AI-native development capability.",
+      "ecosystem_title_1": "Connect real",
+      "ecosystem_title_2": "enterprise briefs",
+      "ecosystem_title_3": "to a campus AI network.",
+      "ecosystem_desc": "The platform connects students, campus support units, and enterprise partners around AI events, community co-creation, real briefs, and practice competitions.",
+      "cta_events": "View Recent Events",
+      "cta_loop": "Understand the Loop",
+      "engine_kicker": "Core Engine",
+      "engine_title_1": "Not just more events.",
+      "engine_title_2": "A clearer path.",
+      "engine_desc": "The homepage keeps four actionable entries: discover first, connect next, enter real scenarios, then validate outcomes through timed practice.",
+      "loop_label": "Loop",
+      "resources_title_1": "Three-way",
+      "resources_title_2": "resources meet here",
+      "resources_desc": "Campus support units provide scenarios, spaces, and organization. Student groups drive reach and execution. Enterprise partners bring real briefs, technology, and outcome pathways.",
+      "node_school": "Campus Scenarios",
+      "node_students": "Student Groups",
+      "node_enterprise": "Enterprise Briefs",
+      "student_orgs_title": "Student Organizations",
+      "student_orgs_desc": "Responsible for reach, operations, collaboration, and review so AI practice communities keep gathering.",
+      "enterprise_title": "Enterprise Partners",
+      "enterprise_desc": "Provide real briefs, model capabilities, cloud resources, and outcome evaluation so prototypes can be tested.",
+      "resource_chain": "Resources are not a sponsor wall; they form a scenario - people - technology - competition conversion chain.",
+      "live_title_1": "Works, events,",
+      "live_title_2": "and ideas in motion.",
+      "live_desc": "The last homepage section returns from platform narrative to real content users can click, join, and follow.",
+      "cta_discover": "Enter Discovery",
+      "metric_content": "Content",
+      "metric_entries": "Entries",
+      "metric_following": "Following",
+      "featured_load_failed": "Featured content failed to load",
+      "featured_empty": "No featured content yet",
+      "following_feed": "Following Feed",
+      "following_empty": "Authors you follow have not posted new content yet",
+      "recommended_follows": "Recommended Follows",
+      "followed": "Following",
+      "follow": "Follow",
+      "no_recommendations": "No recommendations",
+      "login_to_view_feed": "Log in to view your following feed"
     }
   },
   "weather": {
@@ -465,7 +658,6 @@
     "read_full_story": "Read Full Story",
     "read_article": "Read Article",
     "register_now": "Register Now",
-    "share": "Share",
     "time": "Time",
     "all": "All",
     "select": "Select",
@@ -474,7 +666,7 @@
     "search": "Search...",
     "search_placeholder": "Search events...",
     "link_copied": "Link copied to clipboard!",
-    "loading": "Loading",
+    "loading": "Loading...",
     "uploading": "Uploading",
     "cancel": "Cancel",
     "delete": "Delete",
@@ -499,7 +691,13 @@
     "done": "Done",
     "sort": "Sort",
     "filters": "Filters",
-    "or": "or"
+    "or": "or",
+    "close": "Close",
+    "load_more": "Load More",
+    "refresh": "Refresh",
+    "other": "Other",
+    "skip_to_main": "Skip to main content",
+    "details": "View Details"
   },
   "gallery": {
     "title": "Gallery",
@@ -570,9 +768,382 @@
     "post_btn": "Post",
     "no_comments": "No comments yet. Be the first to share your thoughts!"
   },
+  "hackathon": {
+    "brand": "Zhekesong",
+    "meta_title": "{{title}} Registration",
+    "meta_desc": "{{title}} - {{subtitle}}. Build a runnable AI app independently within the time limit.",
+    "tabs": {
+      "aria": "Zhekesong page switcher",
+      "register": "Registration",
+      "showcase": "Showcase",
+      "showcase_short": "Results"
+    },
+    "nav": {
+      "home": "Home",
+      "rules": "Rules",
+      "register": "Register",
+      "jump_to": "Jump to {{label}}"
+    },
+    "hero": {
+      "full_title": "AI Full-Stack Sprint Hackathon",
+      "subtitle": "5 hours · solo · no pitch deck",
+      "title_line_1": "AI Full-Stack",
+      "title_line_2": "Sprint Hackathon",
+      "description": "Build a runnable AI application independently within a limited time. AI tools are allowed; no concept packaging, only real working products.",
+      "hours_unit": "Hours",
+      "solo_unit": "Solo",
+      "pitch_unit": "Pitch"
+    },
+    "event": {
+      "date": "May 10, 9:00 A.M.",
+      "location": "North 2-112",
+      "format": "Solo Track",
+      "duration": "5 Hours",
+      "format_label": "Format",
+      "duration_label": "Duration",
+      "prize_pool": "Prize Pool",
+      "prize_amount": "17,500 ¥",
+      "currency": "¥"
+    },
+    "chips": {
+      "ai_native": "AI Native",
+      "solo": "Solo Build",
+      "work_first": "Work First"
+    },
+    "cta": {
+      "register_now": "Register Now",
+      "learn_ecosystem": "Meet the Ecosystem Team",
+      "keep_reading": "Keep Reading"
+    },
+    "board": {
+      "title_line_1": "Ship in 5 Hours",
+      "title_line_2": "No Pitch Deck",
+      "title_line_3": "Products Only",
+      "description": "Turn an idea into a runnable AI app on site. The rules are direct: solo build, AI native, product first.",
+      "support_lineup": "Support Lineup"
+    },
+    "partners": {
+      "group_school": "Campus",
+      "group_organization": "Clubs",
+      "group_enterprise": "Enterprise"
+    },
+    "rules": {
+      "ai_native_title": "AI-Native Development",
+      "ai_native_text": "Codex, Claude, Cursor, Trae, and similar tools are encouraged for full-stack development.",
+      "five_hours_title": "From 0 to 1 in 5 Hours",
+      "five_hours_text": "Build an AI app that runs, can be experienced, and explains a real problem.",
+      "no_pitch_title": "No Pitch Deck",
+      "no_pitch_text": "No presentation packaging. Judging focuses on completion, real experience, and originality."
+    },
+    "form": {
+      "section_title": "Participant Registration",
+      "section_desc": "Submit your basic information. Event updates will be sent through follow-up channels.",
+      "tool_hint": "Tool choices help the event team understand AI development habits; they do not affect eligibility.",
+      "title": "Registration Info",
+      "required_hint": "All fields marked * are required",
+      "name": "Name",
+      "name_placeholder": "Enter your name",
+      "student_id": "Student ID",
+      "student_id_placeholder": "Enter your student ID",
+      "major": "Major",
+      "major_placeholder": "Enter your major",
+      "grade": "Grade",
+      "grade_placeholder": "Select grade",
+      "grade_freshman": "Freshman",
+      "grade_sophomore": "Sophomore",
+      "grade_junior": "Junior",
+      "grade_senior": "Senior",
+      "grade_master": "Master",
+      "grade_phd": "PhD",
+      "ai_tools": "AI Tools You Use",
+      "multi_select": "Multiple choices",
+      "experience": "AI Project Experience",
+      "experience_placeholder": "Briefly describe your experience building with AI...",
+      "before_submit": "Before You Submit",
+      "before_submit_desc": "Name, student ID, and project experience are used for registration review. AI tools only help the team plan on-site support.",
+      "submit": "Submit Registration",
+      "official_group": "Official WeChat Group",
+      "optional": "Optional",
+      "official_group_qr": "Official WeChat group QR code",
+      "official_group_desc": "Scan to join the group. Follow-up notices and on-site updates will be shared there."
+    },
+    "errors": {
+      "name": "Please enter your name",
+      "student_id": "Please enter your student ID",
+      "major": "Please enter your major",
+      "grade": "Please select your grade",
+      "ai_tools": "Please select at least one AI tool",
+      "experience": "Please briefly describe your AI project experience"
+    },
+    "toast": {
+      "check_form": "Please check and complete the registration form",
+      "success": "Registration submitted. Please wait for follow-up notices.",
+      "failed": "Registration failed. Please try again later."
+    },
+    "coach": {
+      "default_query": "I know Codex but not much frontend. Should I join?",
+      "empty_query": "Tell the AI what you want to evaluate first",
+      "failed": "The AI coach is unavailable right now. Please try again later.",
+      "prompt_1": "I know Codex but not much frontend. Should I join?",
+      "prompt_2": "I know some Python. What is the safest 5-hour build?",
+      "prompt_3": "How should I split my time on competition day?",
+      "status_fallback": "Fallback Plan",
+      "status_model": "Model Analysis",
+      "status_idle": "AI Coach",
+      "status_loading": "Calling the model. If output is unstable, a fallback plan will be used.",
+      "status_fallback_detail": "Fallback plan enabled; use it as a first draft for your direction.",
+      "status_model_detail": "Analysis completed with event context and model reasoning.",
+      "status_idle_detail": "Describe your background and concerns to get an actionable plan.",
+      "title": "Hackathon AI Coach",
+      "desc": "Tell it your background, tools, and concerns. It will suggest a direction, plan, and risks based on the rules.",
+      "placeholder": "For example: I know Codex but not much frontend. Should I join?",
+      "loading_button": "Calling Model",
+      "submit": "Analyze",
+      "recommendation": "Recommended Direction",
+      "default_track": "A small but complete AI app",
+      "fit": "Fit",
+      "confidence": "Confidence",
+      "next_step": "Next Step",
+      "risk": "Risk: ",
+      "sources": "Sources"
+    },
+    "showcase": {
+      "meta_title": "AI Full-Stack Hackathon Showcase",
+      "meta_desc": "The AI Full-Stack Hackathon showcase page for the official film, field photos, winning works, and outcome materials.",
+      "nav_aria": "Hackathon showcase sections",
+      "jump_to_section": "Jump to {{title}} section",
+      "sections": {
+        "gate": "Home",
+        "gallery": "Field",
+        "works": "Works",
+        "partners": "Co-create"
+      },
+      "stats": {
+        "hours": {
+          "unit": "Hours",
+          "label": "Rapid Delivery"
+        },
+        "solo": {
+          "unit": "Builder",
+          "label": "Solo Build"
+        },
+        "pitch": {
+          "unit": "Pitch",
+          "label": "Product First"
+        },
+        "prize": {
+          "unit": "?",
+          "label": "Prize Pool"
+        }
+      },
+      "media": {
+        "opening": {
+          "label": "Opening",
+          "title": "Rules released, arena launched",
+          "caption": "Organizers aligned the format, schedule, and delivery standards before every builder entered the same five-hour sprint."
+        },
+        "builders": {
+          "label": "Builder Close-up",
+          "title": "From prompt to product launch",
+          "caption": "AI toolchains supported architecture, coding, debugging, and demo assets as the room moved into sprint mode."
+        },
+        "speech": {
+          "label": "Keynote",
+          "title": "Campus AI innovation in action",
+          "caption": "A live view of campus AI practice across talent development, tool ecosystems, and real-world questions."
+        },
+        "awards": {
+          "label": "Awards",
+          "title": "Products first, outcomes speak",
+          "caption": "Winning works, judge comments, and group photos formed the core evidence for post-event communication."
+        },
+        "exchange": {
+          "label": "Exchange",
+          "title": "Keep ideas growing after the contest",
+          "caption": "Builders, judges, communities, and partners connected after the event for the next round of co-creation."
+        }
+      },
+      "actions": [
+        {
+          "label": "Full Album",
+          "detail": "Opening, build floor, awards, and exchange groups"
+        },
+        {
+          "label": "Media Kit",
+          "detail": "Press copy, curated photos, and partner exposure"
+        },
+        {
+          "label": "Follow-up Events",
+          "detail": "Join the community and keep co-creating with AI"
+        }
+      ],
+      "hero": {
+        "title_desktop": "AI Full-Stack Sprint",
+        "title_mobile_1": "AI Full-Stack",
+        "title_mobile_2": "Sprint",
+        "result": "Showcase",
+        "desc": "A post-event showcase from a five-hour AI-native build sprint. The official film, field media, winning works, and communication assets are gathered here for release.",
+        "submit": "Submit Outcome",
+        "watch_film": "Watch Film",
+        "view_works": "View Winning Works",
+        "poster_alt": "Hackathon official film cover",
+        "play_film": "Play official film",
+        "fallback_title": "From arena signal to product launch"
+      },
+      "gallery": {
+        "title": "Field Photo Highlights",
+        "desc": "Use curated large images to show event scale, participant energy, organization quality, and award outcomes.",
+        "view_all": "View All Photos",
+        "upload": "Upload Field Photos",
+        "stage_photo": "Field Photo",
+        "dynamic_caption": "A hackathon outcome photo from the gallery, automatically synced here after approval."
+      },
+      "works": {
+        "title": "Winning Works",
+        "view_all": "View all {{count}} winning works",
+        "submit": "Submit Work / Story",
+        "project_aria": "View details for {{title}}",
+        "cover_alt": "{{title}} project cover",
+        "view_full": "View Full Work",
+        "git_link": "Git Link",
+        "fallback_award": "Winning Work",
+        "fallback_title": "Untitled Work",
+        "fallback_author": "Awarded Builder",
+        "fallback_honor": "Top 20 Awarded Builder"
+      },
+      "partners": {
+        "title": "Witnessed Together",
+        "desc": "School support, campus organizations, and enterprise partners are all present, giving the post-event story clear endorsement.",
+        "lineup": "Support Lineup",
+        "counts": "{{groups}} groups / {{partners}} supporters",
+        "summary": "School, campus, and enterprise partners together form the full event endorsement.",
+        "join": "Join AI Community",
+        "back": "Back to Event Page",
+        "detail": {
+          "school": "Venue resources, mentor review, campus communication, and long-term mechanism support.",
+          "organization": "Builder recruitment, volunteer execution, on-site coordination, and post-event community handoff.",
+          "enterprise": "Models, cloud resources, AI tools, technical support, and partner visibility."
+        }
+      },
+      "fallback_works": [
+        {
+          "award": "Champion Work",
+          "title": "Champion Work Coming Soon",
+          "author": "Champion Builder / Team"
+        },
+        {
+          "award": "Runner-up Work",
+          "title": "Runner-up Work Coming Soon",
+          "author": "Runner-up Builder / Team"
+        },
+        {
+          "award": "Third-place Work",
+          "title": "Third-place Work Coming Soon",
+          "author": "Third-place Builder / Team"
+        }
+      ]
+    }
+  },
+  "future_learning": {
+    "meta_title": "Future Learning Center",
+    "meta_desc": "Zhejiang University Future Learning Center · Intelligent Life & Health Project · Challenge brief registration",
+    "eyebrow": "Future Learning · Med Tech",
+    "hero": {
+      "title_1": "Zhejiang University Future Learning Center",
+      "title_2": "\"Intelligent Life & Health\" Project",
+      "title_3": "Challenge Brief Registration",
+      "desc": "Explore future learning scenarios and medical intersections. Submit the challenge or research direction you want to explore, and the AI ecosystem team will follow up."
+    },
+    "stats": {
+      "problem_label": "Problem Driven",
+      "problem_value": "Brief",
+      "future_label": "Learning Scenario",
+      "future_value": "Future",
+      "co_create_label": "Medical Intersection",
+      "co_create_value": "Co-create"
+    },
+    "brief": {
+      "title": "Brief Guide",
+      "desc": "Submit the issue or direction you want to explore, and leave contact information so the AI ecosystem team can confirm details. Information is only used for this project."
+    },
+    "steps": {
+      "problem": "Raise a Question",
+      "problem_desc": "Describe a concrete scenario, pain point, or research direction",
+      "contact": "AI Ecosystem Follow-up",
+      "contact_desc": "Confirm details and participation mode through your contact information",
+      "co_create": "Enter Co-creation",
+      "co_create_desc": "Form a list of discussable, actionable, and reusable problem directions"
+    },
+    "form": {
+      "section_title": "Registration Info",
+      "section_desc": "Submit your challenge direction and basic contact details. The AI ecosystem team will follow up based on the content.",
+      "title": "Registration Info",
+      "required_hint": "All fields marked * are required",
+      "topic": "Challenge Topic",
+      "topic_placeholder": "Briefly describe the issue or direction you want to explore...",
+      "name": "Name",
+      "name_placeholder": "Real name or preferred name",
+      "age": "Age",
+      "age_placeholder": "Age",
+      "gender": "Gender",
+      "gender_male": "Male",
+      "gender_female": "Female",
+      "organization": "School or Organization",
+      "organization_placeholder": "College, department, or organization",
+      "email": "Email",
+      "phone": "Phone",
+      "phone_placeholder": "Mobile number or reachable phone",
+      "message": "Message",
+      "message_placeholder": "Additional notes, available time, or collaboration intent (optional)",
+      "submitting": "Submitting...",
+      "submit": "Submit Registration"
+    },
+    "footer": {
+      "project": "Zhejiang University Future Learning Center · Intelligent Life & Health Project",
+      "note": "This page is only for project contact. Please do not share it publicly.",
+      "back_to_top": "Back to Top"
+    },
+    "success": {
+      "title": "Submitted",
+      "desc": "We have received your registration. The AI ecosystem team will contact you through the information you provided."
+    },
+    "errors": {
+      "topic": "Please enter a challenge topic.",
+      "name": "Please enter your name.",
+      "age": "Please enter a valid age.",
+      "gender": "Please select gender.",
+      "organization": "Please enter your school or organization.",
+      "contact": "Please provide at least an email or phone number.",
+      "email": "Invalid email format."
+    },
+    "toast": {
+      "check_form": "Please check and complete the registration form",
+      "success": "Submitted. The AI ecosystem team will contact you.",
+      "failed": "Submission failed. Please try again later."
+    }
+  },
   "events": {
+    "meta_title": "Events Hub",
+    "meta_desc": "Browse campus events, volunteer opportunities, talks, and registration information at Zhejiang University.",
     "title": "Community Events",
     "subtitle": "Join our latest activities and workshops",
+    "no_upcoming_desc": "No upcoming events for now. Please check back later.",
+    "no_events": "No matching events found",
+    "category_label": "Event Category",
+    "filter": {
+      "sheet_title": "Filter Events",
+      "sheet_hint": "Type and audience filters apply immediately.",
+      "category_title": "Event Type",
+      "category_hint": "Choose a type first, then narrow by audience.",
+      "audience_prefix": "For: ",
+      "audience_title": "Target Audience",
+      "audience_hint": "Choose a college/program or keep All Campus.",
+      "search_audience": "Search colleges or programs",
+      "search_audience_placeholder": "Search college / program",
+      "no_audience_matches": "No matching college or program",
+      "collapse_common_audiences": "Show common audiences",
+      "expand_all_audiences": "Show all colleges/programs ({{count}})"
+    },
     "status": {
       "upcoming": "Upcoming",
       "ongoing": "Ongoing",
@@ -632,7 +1203,123 @@
       "expand_hint": "If you want, I can keep looking through ongoing or past events.",
       "empty_hint": "Try rephrasing your request or loosening a few constraints.",
       "expand_button": "Look through ongoing or past events",
-      "detail_error": "Failed to load event details. Please try again."
+      "detail_error": "Failed to load event details. Please try again.",
+      "card_badge": "AI Event Match",
+      "rank_badge": "AI-ranked",
+      "panel_title": "Tell me what you want to join, and I will match it against your profile and the event pool",
+      "panel_subtitle": "Mention topic, campus, audience, credits, or volunteer hours. After login, I can also learn from your organization, saved events, registrations, and feedback.",
+      "mobile_title": "AI Event Assistant",
+      "mobile_subtitle": "Find events in one sentence",
+      "back_to_events": "Back to Events",
+      "preferences": "Recommendation Preferences",
+      "preferences_short": "Preferences",
+      "profile_loading": "Loading recommendation preferences...",
+      "profile_auth_hint": "Log in to save a long-term profile. For now, you can still describe your preferences in this request.",
+      "profile": {
+        "college": "School / Organization",
+        "college_placeholder": "College of Computer Science",
+        "grade": "Year",
+        "grade_placeholder": "Freshman / First-year graduate",
+        "campus": "Main Campus",
+        "campus_placeholder": "Zijingang",
+        "interests": "Interest Keywords",
+        "interests_placeholder": "AI, entrepreneurship, volunteering, photography",
+        "preferred_categories": "Preferred Types",
+        "preferred_benefits": "Preferred Benefits"
+      },
+      "preference": {
+        "categories": {
+          "lecture": "Lecture",
+          "competition": "Competition",
+          "volunteer": "Volunteer",
+          "recruitment": "Recruitment / Career",
+          "culture_sports": "Culture & Sports",
+          "exchange": "Exchange"
+        },
+        "benefits": {
+          "score": "Credits",
+          "volunteer_time": "Volunteer Hours",
+          "skill": "Skill Growth",
+          "social": "Social / Relaxed"
+        },
+        "formats": {
+          "any": "Any Format",
+          "offline": "Offline Preferred",
+          "online": "Online Preferred",
+          "hybrid": "Either Works"
+        }
+      },
+      "quick": {
+        "freshman_offline": {
+          "label": "Freshman Offline",
+          "prompt": "Recommend offline events suitable for freshmen, ideally near Zijingang campus"
+        },
+        "credit_volunteer": {
+          "label": "Credits / Volunteer",
+          "prompt": "Recommend events that mention credits or volunteer hours"
+        },
+        "portfolio": {
+          "label": "Skill Portfolio",
+          "prompt": "Recommend hands-on events that improve skills and can become portfolio work"
+        },
+        "ai_lecture": {
+          "label": "AI Lectures",
+          "prompt": "I want AI, technology, innovation, or entrepreneurship lectures"
+        },
+        "this_week": {
+          "label": "This Week",
+          "prompt": "What events can I join this week or very soon?"
+        }
+      },
+      "remember": "Remember",
+      "restart": "Restart",
+      "save_preferences": "Save Preferences",
+      "scope_mixed_future": "Upcoming / Ongoing events",
+      "historical_fallback_note": "I checked upcoming and ongoing events first, then fell back to past events when there were not enough close matches. These are better as leads for similar future opportunities.",
+      "understood": "What I Understood",
+      "profile_signals": "Profile Signals",
+      "ranking_basis": "Ranking Basis",
+      "uncertain": "Still Unclear",
+      "clarify_label": "One more thing to confirm",
+      "historical_event": "Past Event",
+      "match_score": "Match {{score}}",
+      "view_details": "View Details",
+      "next_step": "Next Step",
+      "tradeoff": "Tradeoff: {{value}}",
+      "fit_for": "Good for: {{value}}",
+      "matched": "Matched: {{value}}",
+      "missing": "Missing: {{value}}",
+      "uncertainty": "Unclear: {{value}}",
+      "feedback_used": "Feedback used",
+      "feedback_question": "Was this recommendation useful?",
+      "feedback_up_aria": "Recommendation fits me",
+      "feedback_up_title": "Fits me",
+      "feedback_down_aria": "Recommendation does not fit me",
+      "feedback_down_title": "Not for me",
+      "narrow_hint": "Still not close enough? Add a sentence above, such as ?Zijingang only?, ?no past events?, or ?better for freshmen?, and I will narrow it down.",
+      "feedback": {
+        "not_relevant": "Not relevant",
+        "time_mismatch": "Time mismatch",
+        "location_mismatch": "Location mismatch",
+        "benefit_mismatch": "Benefit mismatch",
+        "already_joined": "Already joined"
+      },
+      "toast": {
+        "feedback_up": "Saved: this recommendation fits you",
+        "feedback_down": "Saved: I will reduce similar recommendations",
+        "feedback_login_required": "Log in to let the assistant remember feedback",
+        "feedback_failed": "Failed to save feedback. Please try again later.",
+        "profile_load_failed": "Failed to load recommendation preferences",
+        "profile_login_required": "Log in to save recommendation preferences",
+        "profile_saved": "Recommendation preferences saved",
+        "profile_save_failed": "Failed to save recommendation preferences"
+      },
+      "coverage_historical": "Event pool: no future events, {{count}} past leads",
+      "coverage_mixed": "Event pool: {{future}} upcoming/ongoing, {{past}} past",
+      "preference_remembered": "Preference remembered",
+      "model_fallback": "Model fallback used",
+      "model_used": "LLM joined ranking",
+      "model_unfinished": "Model ranking unfinished"
     },
     "countdown": {
       "days": "Days",
@@ -659,36 +1346,20 @@
     "actions": "Actions",
     "tabs": {
       "overview": "Overview",
-      "pending": "Pending",
-      "photos": "Photos",
-      "music": "AI Podcast",
-      "videos": "Videos",
-      "articles": "AI Columns",
+      "pending": "Review Center",
+      "intelligence": "Intelligence Governance",
       "events": "Events Hub",
-      "audit": "Audit Logs",
-      "audit_logs": {
-        "title": "Audit Logs",
-        "time": "Time",
-        "admin": "Admin",
-        "action": "Action",
-        "resource": "Resource",
-        "details": "Details",
-        "no_logs": "No logs found",
-        "actions": {
-          "login": "Login",
-          "approved": "Approved",
-          "rejected": "Rejected",
-          "create": "Create",
-          "update": "Update",
-          "delete": "Delete"
-        }
-      },
-      "settings": "Settings",
-      "files": "File Manager",
-      "database": "Database",
-      "pages": "Page Content",
-      "users": "User Management",
-      "messages": "Messages"
+      "hackathon": "Hackathon",
+      "articles": "Articles",
+      "photos": "Photos",
+      "videos": "Videos",
+      "music": "Audio",
+      "pages": "Pages",
+      "tags": "Tags",
+      "users": "Users",
+      "community": "Community",
+      "messages": "Messages",
+      "settings": "Settings"
     },
     "messages": {
       "title": "Messages",
@@ -752,23 +1423,6 @@
       "contentAssets": "Content Assets",
       "communityUsers": "Community & Users",
       "systemConfig": "System Config"
-    },
-    "tabs": {
-      "overview": "Overview",
-      "pending": "Review Center",
-      "intelligence": "Intelligence Governance",
-      "events": "Events Hub",
-      "hackathon": "Hackathon",
-      "articles": "Articles",
-      "photos": "Photos",
-      "videos": "Videos",
-      "music": "Audio",
-      "pages": "Pages",
-      "tags": "Tags",
-      "users": "Users",
-      "community": "Community",
-      "messages": "Messages",
-      "settings": "Settings"
     },
     "descriptions": {
       "overview": "Key metrics, tasks, and common shortcuts",
@@ -1033,17 +1687,50 @@
     "go_home": "Go Home"
   },
   "themes": {
-    "space": { "name": "Deep Space", "desc": "Stellar Nebula" },
-    "grid": { "name": "Retro Grid", "desc": "Synthwave" },
-    "embers": { "name": "Fire Embers", "desc": "Rising Sparks" },
-    "crystal": { "name": "Crystal Cave", "desc": "Refraction" },
-    "clouds": { "name": "Ethereal", "desc": "Soft Sky" },
-    "cyber": { "name": "Cyber Circuit", "desc": "Mainframe" },
-    "dna": { "name": "Digital DNA", "desc": "Code of Life" },
-    "binary": { "name": "Binary Stream", "desc": "Data Flow" },
-    "network": { "name": "Network Nodes", "desc": "Connectivity" },
-    "wave": { "name": "Particle Wave", "desc": "Oscillation" },
-    "orbit": { "name": "Orbital Rings", "desc": "Gravity" }
+    "space": {
+      "name": "Deep Space",
+      "desc": "Stellar Nebula"
+    },
+    "grid": {
+      "name": "Retro Grid",
+      "desc": "Synthwave"
+    },
+    "embers": {
+      "name": "Fire Embers",
+      "desc": "Rising Sparks"
+    },
+    "crystal": {
+      "name": "Crystal Cave",
+      "desc": "Refraction"
+    },
+    "clouds": {
+      "name": "Ethereal",
+      "desc": "Soft Sky"
+    },
+    "cyber": {
+      "name": "Cyber Circuit",
+      "desc": "Mainframe"
+    },
+    "dna": {
+      "name": "Digital DNA",
+      "desc": "Code of Life"
+    },
+    "binary": {
+      "name": "Binary Stream",
+      "desc": "Data Flow"
+    },
+    "network": {
+      "name": "Network Nodes",
+      "desc": "Connectivity"
+    },
+    "wave": {
+      "name": "Particle Wave",
+      "desc": "Oscillation"
+    },
+    "orbit": {
+      "name": "Orbital Rings",
+      "desc": "Gravity"
+    }
   },
   "sort_filter": {
     "newest": "Newest First",
@@ -1078,5 +1765,34 @@
     "score_placeholder": "+1.5",
     "volunteer_time_placeholder": "e.g. 2 hours",
     "target_placeholder": "e.g. All Students"
+  },
+  "media_library": {
+    "title": "Media Library",
+    "meta_desc": "Browse live event photos and video records by category.",
+    "current_category": "Current Category",
+    "current_category_label": "Current Category: {{category}}",
+    "description": "Browse live event photos and video records by category. Current category: {{category}}.",
+    "upload_media": "Upload Media",
+    "login_required": "Please log in before uploading",
+    "category_error": "Failed to load media categories. Showing all content for now.",
+    "category_loading": "Loading media categories...",
+    "no_categories": "No media categories yet. Content will appear under All and Uncategorized.",
+    "content_error": "Failed to load media content. Please try again later.",
+    "photos_title": "Live Photos",
+    "photos_count": "{{visible}} / {{total}} photos",
+    "upload_photos": "Upload Photos",
+    "empty_photos_title": "No Live Photos Yet",
+    "empty_photos_desc": "There are no images in this category yet. Choose this category when uploading and they will appear here.",
+    "load_more_photos": "Load More Photos",
+    "videos_title": "Video Records",
+    "videos_count": "{{visible}} / {{total}} videos",
+    "upload_videos": "Upload Videos",
+    "empty_videos_title": "No Video Records Yet",
+    "empty_videos_desc": "There are no videos in this category yet. Choose this category when uploading and they will appear here.",
+    "load_more_videos": "Load More Videos",
+    "untitled_photo": "Untitled Photo",
+    "untitled_video": "Untitled Video",
+    "uncategorized": "Uncategorized",
+    "close_video": "Close Video"
   }
 }
