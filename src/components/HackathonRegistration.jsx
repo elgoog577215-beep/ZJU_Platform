@@ -52,6 +52,10 @@ const HackathonRegistration = () => {
     groups: ecosystemPartnerGroups,
     enterpriseLogoRows,
   } = useEcosystemPartners();
+  const enterpriseLogos = useMemo(
+    () => enterpriseLogoRows.flat(),
+    [enterpriseLogoRows],
+  );
   const pageRef = useRef(null);
   const [activeSection, setActiveSection] = useState(0);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -456,7 +460,7 @@ const HackathonRegistration = () => {
 
       <section
         id="hackathon-hero"
-        className="relative min-h-[100svh] px-4 pt-[calc(env(safe-area-inset-top)+246px)] sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+220px)] lg:pt-[calc(env(safe-area-inset-top)+124px)] xl:px-10 min-[1720px]:snap-start min-[1720px]:snap-always min-[1720px]:pt-[calc(env(safe-area-inset-top)+72px)] 2xl:px-16"
+        className="relative min-h-[100svh] px-4 pt-[calc(env(safe-area-inset-top)+132px)] sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+136px)] lg:pt-[calc(env(safe-area-inset-top)+124px)] xl:px-10 min-[1720px]:snap-start min-[1720px]:snap-always min-[1720px]:pt-[calc(env(safe-area-inset-top)+72px)] 2xl:px-16"
       >
         <div className="pointer-events-none absolute inset-0">
           <div
@@ -477,56 +481,65 @@ const HackathonRegistration = () => {
           <div className={`absolute bottom-[-22%] right-[-16%] h-[520px] w-[520px] rounded-full blur-[110px] ${isDayMode ? "bg-cyan-500/8" : "bg-cyan-300/12"}`} />
         </div>
 
-        <div
-          className="absolute right-3 top-[calc(env(safe-area-inset-top)+128px)] z-20 flex w-[min(62vw,720px)] flex-col items-end gap-1 sm:right-5 sm:w-[min(52vw,760px)] sm:gap-1.5 lg:right-8 lg:top-[calc(env(safe-area-inset-top)+86px)] lg:w-[min(48vw,780px)] xl:right-10 xl:top-[calc(env(safe-area-inset-top)+76px)] xl:w-[min(50vw,820px)] 2xl:right-16"
-          aria-label="企业 logo"
-        >
-          {enterpriseLogoRows.map((row, rowIndex) => (
-            <div
-              key={rowIndex}
-              className="flex max-w-full flex-wrap items-center justify-end gap-x-1 gap-y-0.5 min-[380px]:gap-x-1.5 min-[380px]:gap-y-1 sm:gap-2 lg:gap-2.5"
-            >
-              {row.map((logo) => (
-                <span
-                  key={logo.id || logo.src || logo.name}
-                  className="group relative flex h-7 max-w-[34vw] items-center justify-center px-1 transition duration-300 hover:-translate-y-0.5 min-[380px]:h-8 min-[380px]:px-1.5 sm:h-10 sm:max-w-[26vw] sm:px-3 lg:h-11 lg:max-w-[18vw] lg:px-4 xl:h-12 xl:max-w-[16vw] xl:px-5"
-                >
-                  {getPartnerLogoSrc(logo, isDayMode) ? (
-                    <img
-                      src={getPartnerLogoSrc(logo, isDayMode)}
-                      alt={logo.alt}
-                      className={`relative w-auto object-contain transition duration-300 group-hover:scale-[1.04] ${
-                        logo.size || "h-[clamp(1.05rem,2.2vw,2rem)]"
-                      } ${
-                        isDayMode
-                          ? ""
-                          : `${logo.darkClassName || ""} drop-shadow-[0_1px_10px_rgba(103,232,249,0.18)]`
-                      }`}
-                      loading="eager"
-                    />
-                  ) : (
-                    <span
-                      className={`text-center text-[10px] font-black leading-tight min-[380px]:text-xs sm:text-sm ${
-                        isDayMode ? "text-slate-950" : "text-white"
-                      }`}
-                    >
-                      {getPartnerDisplayName(logo)}
-                    </span>
-                  )}
-                  {logo.text ? (
-                    <span
-                      className={`ml-1 text-[clamp(0.68rem,1.25vw,1.08rem)] font-black leading-none tracking-tight sm:ml-1.5 lg:ml-2 ${
-                        isDayMode ? "text-slate-950" : "text-white"
-                      }`}
-                    >
-                      {logo.text}
-                    </span>
-                  ) : null}
-                </span>
-              ))}
+        {enterpriseLogos.length > 0 ? (
+          <div
+            data-registration-logo-panel
+            className={`relative z-20 mx-auto mb-8 w-full max-w-[calc(100vw-2rem)] border p-2 backdrop-blur-2xl sm:max-w-[720px] lg:absolute lg:right-8 lg:top-[calc(env(safe-area-inset-top)+84px)] lg:mb-0 lg:w-[min(40vw,640px)] lg:max-w-none xl:right-10 xl:top-[calc(env(safe-area-inset-top)+80px)] 2xl:right-16 ${
+              isDayMode
+                ? "border-slate-200/80 bg-white/76 shadow-[0_18px_58px_rgba(15,23,42,0.10)]"
+                : "border-cyan-300/16 bg-black/18 shadow-[0_0_44px_rgba(34,211,238,0.10)]"
+            }`}
+            aria-label="企业 logo"
+          >
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-2 lg:gap-1.5">
+              {enterpriseLogos.map((logo) => {
+                const logoSrc = getPartnerLogoSrc(logo, isDayMode);
+                return (
+                  <span
+                    key={logo.id || logo.src || logo.name}
+                    className={`group flex min-h-12 min-w-0 items-center justify-center gap-1.5 border px-2 py-2 transition duration-300 hover:-translate-y-0.5 sm:min-h-14 sm:px-3 lg:min-h-10 lg:px-2 lg:py-1.5 ${
+                      isDayMode
+                        ? "border-slate-200/80 bg-white/70"
+                        : "border-white/10 bg-white/[0.045]"
+                    }`}
+                  >
+                    {logoSrc ? (
+                      <img
+                        src={logoSrc}
+                        alt={logo.alt}
+                        className={`max-h-7 max-w-full object-contain transition duration-300 group-hover:scale-[1.035] sm:max-h-8 lg:max-h-7 ${
+                          logo.size || ""
+                        } ${
+                          isDayMode
+                            ? ""
+                            : `${logo.darkClassName || ""} drop-shadow-[0_1px_10px_rgba(103,232,249,0.18)]`
+                        }`}
+                        loading="eager"
+                      />
+                    ) : (
+                      <span
+                        className={`truncate text-center text-xs font-black leading-tight sm:text-sm ${
+                          isDayMode ? "text-slate-950" : "text-white"
+                        }`}
+                      >
+                        {getPartnerDisplayName(logo)}
+                      </span>
+                    )}
+                    {logo.text ? (
+                      <span
+                        className={`truncate text-xs font-black leading-none tracking-normal sm:text-sm ${
+                          isDayMode ? "text-slate-950" : "text-white"
+                        }`}
+                      >
+                        {logo.text}
+                      </span>
+                    ) : null}
+                  </span>
+                );
+              })}
             </div>
-          ))}
-        </div>
+          </div>
+        ) : null}
 
         <div className="relative mx-auto grid min-h-[calc(100svh-140px)] w-full max-w-[1680px] items-center gap-10 pb-24 pt-8 lg:pb-24 xl:grid-cols-[minmax(0,0.98fr)_minmax(500px,0.82fr)] xl:gap-8 xl:pb-20 min-[1720px]:min-h-[calc(100svh-112px)] min-[1720px]:grid-cols-[minmax(0,780px)_minmax(620px,720px)] min-[1720px]:gap-20 min-[1720px]:justify-between min-[1920px]:grid-cols-[minmax(0,820px)_minmax(680px,760px)] min-[1920px]:gap-24">
           <MotionDiv

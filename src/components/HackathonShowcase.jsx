@@ -94,16 +94,14 @@ const normalizeShowcaseRank = (rank, index) => {
 const MotionSection = motion.section;
 const MotionDiv = motion.div;
 
-const PartnerLogoMark = ({ partner, isDayMode, compact = false }) => {
+const PartnerLogoMark = ({ partner, isDayMode }) => {
   const src = getPartnerLogoSrc(partner, isDayMode);
   const name = getPartnerDisplayName(partner);
   const shouldShowName = !src || partner.text || /qoder/i.test(name);
 
   return (
     <div
-      className={`showcase-logo-tile group flex min-w-0 items-center justify-center gap-2 border px-2 transition duration-300 ${
-        compact ? "min-h-[3rem]" : "min-h-[3.35rem] sm:min-h-[3.8rem]"
-      }`}
+      className="showcase-logo-tile group flex min-h-[3rem] min-w-0 items-center justify-center gap-2 border px-2 transition duration-300"
       title={name}
     >
       {src ? (
@@ -125,39 +123,10 @@ const PartnerLogoMark = ({ partner, isDayMode, compact = false }) => {
   );
 };
 
-const PartnerLogoStrip = ({ logos, isDayMode, theme }) => {
-  if (!logos.length) return null;
-
-  return (
-    <div
-      data-showcase-logo-strip
-      className={`showcase-logo-strip relative z-20 w-full border p-2 backdrop-blur-2xl lg:absolute lg:right-8 lg:top-[calc(env(safe-area-inset-top)+6.25rem)] lg:w-[min(47vw,760px)] xl:right-12 ${
-        theme.logoShell
-      }`}
-    >
-      <div className="mb-2 flex items-center justify-between gap-3 px-1 lg:hidden">
-        <span className={`text-[10px] font-black uppercase tracking-[0.24em] ${theme.soft}`}>
-          Enterprise Partners
-        </span>
-        <span className={`h-px flex-1 ${isDayMode ? "bg-slate-200" : "bg-white/14"}`} />
-      </div>
-      <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6 lg:grid-cols-3 xl:grid-cols-6">
-        {logos.map((partner) => (
-          <PartnerLogoMark
-            key={partner.id || partner.name || partner.src}
-            partner={partner}
-            isDayMode={isDayMode}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};
-
 const SectionHeader = ({ eyebrow, title, copy, icon: Icon, theme, align = "left" }) => (
   <div
     className={`flex flex-col gap-5 ${
-      align === "split" ? "lg:flex-row lg:items-end lg:justify-between" : ""
+      align === "split" ? "xl:flex-row xl:items-end xl:justify-between" : ""
     }`}
   >
     <div>
@@ -165,7 +134,7 @@ const SectionHeader = ({ eyebrow, title, copy, icon: Icon, theme, align = "left"
         {Icon ? <Icon className="h-4 w-4" /> : null}
         {eyebrow}
       </p>
-      <h2 className="mt-5 max-w-4xl text-4xl font-black leading-[0.96] sm:text-6xl lg:text-7xl">
+      <h2 className="mt-5 max-w-4xl text-[clamp(2.5rem,8vw,4.8rem)] font-black leading-[0.96] sm:text-6xl xl:text-7xl">
         {title}
       </h2>
     </div>
@@ -179,7 +148,7 @@ const SectionHeader = ({ eyebrow, title, copy, icon: Icon, theme, align = "left"
 
 const HackathonShowcase = () => {
   const { uiMode } = useSettings();
-  const { groups: ecosystemPartnerGroups, enterpriseLogos } = useEcosystemPartners();
+  const { groups: ecosystemPartnerGroups } = useEcosystemPartners();
   const reduceMotion = useReducedMotion();
   const shouldAnimate = !reduceMotion;
   const isDayMode = uiMode === "day";
@@ -333,7 +302,6 @@ const HackathonShowcase = () => {
         chip: "border-slate-200 bg-white/78 text-slate-700",
         accent: "text-cyan-700",
         progress: "from-cyan-500 via-amber-400 to-lime-500",
-        logoShell: "border-slate-200 bg-white/86 text-slate-900 shadow-[0_20px_70px_rgba(15,23,42,0.12)]",
         primaryButton:
           "bg-slate-950 text-white shadow-[0_18px_42px_rgba(15,23,42,0.20)] hover:bg-cyan-700 focus:ring-cyan-500/24",
         secondaryButton:
@@ -353,7 +321,6 @@ const HackathonShowcase = () => {
         chip: "border-white/12 bg-white/[0.055] text-white/78",
         accent: "text-cyan-300",
         progress: "from-cyan-300 via-amber-300 to-lime-300",
-        logoShell: "border-white/12 bg-[#08100f]/78 text-white shadow-[0_0_48px_rgba(103,232,249,0.12)]",
         primaryButton:
           "bg-cyan-300 text-slate-950 shadow-[0_0_34px_rgba(103,232,249,0.26)] hover:bg-white focus:ring-cyan-300/28",
         secondaryButton:
@@ -390,7 +357,7 @@ const HackathonShowcase = () => {
       ? createPortal(
           <nav
             aria-label="比赛成果展览章节"
-            className={`fixed right-4 top-1/2 z-[120] hidden -translate-y-1/2 border p-2 backdrop-blur-2xl lg:block ${theme.navShell}`}
+            className={`fixed right-4 top-1/2 z-[120] hidden -translate-y-1/2 border p-2 backdrop-blur-2xl min-[1536px]:block ${theme.navShell}`}
           >
             <div className="grid gap-2">
               {showcaseSections.map((step, index) => (
@@ -419,7 +386,7 @@ const HackathonShowcase = () => {
     <div
       ref={pageRef}
       data-showcase-page
-      className={`showcase-page ${isDayMode ? "showcase-theme-day" : "showcase-theme-dark"} h-[100svh] overflow-y-auto overflow-x-hidden scroll-smooth overscroll-y-contain ${theme.page}`}
+      className={`showcase-page ${isDayMode ? "showcase-theme-day" : "showcase-theme-dark"} min-h-[100svh] overflow-y-auto overflow-x-hidden scroll-smooth overscroll-y-contain min-[1536px]:h-[100svh] ${theme.page}`}
       style={{
         fontFamily:
           '"HarmonyOS Sans SC", "MiSans", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif',
@@ -560,20 +527,10 @@ const HackathonShowcase = () => {
           }
 
           @media (max-width: 520px) {
-            .showcase-logo-strip {
-              margin-left: -0.25rem;
-              margin-right: -0.25rem;
-              width: calc(100% + 0.5rem);
-            }
-
             .showcase-logo-tile {
               min-height: 3rem;
               padding-left: 0.35rem;
               padding-right: 0.35rem;
-            }
-
-            .showcase-logo-image {
-              max-height: 1.42rem;
             }
           }
         `}
@@ -588,7 +545,7 @@ const HackathonShowcase = () => {
 
       <section
         id="gate"
-        className="relative isolate min-h-[100svh] overflow-hidden px-4 pb-20 pt-[calc(env(safe-area-inset-top)+7.7rem)] sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+8.4rem)] lg:px-10 lg:pb-24 lg:pt-[calc(env(safe-area-inset-top)+8rem)] xl:px-14"
+        className="relative isolate min-h-[100svh] overflow-hidden px-4 pb-20 pt-[calc(env(safe-area-inset-top)+7.7rem)] sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+8.4rem)] lg:px-10 lg:pb-24 xl:px-14 min-[1536px]:pt-[calc(env(safe-area-inset-top)+8rem)]"
       >
         <div className="showcase-stage-bg absolute inset-0 opacity-80" aria-hidden="true" />
         <div
@@ -604,15 +561,13 @@ const HackathonShowcase = () => {
           aria-hidden="true"
         />
         <div
-          className="pointer-events-none absolute right-[-8vw] top-[18vh] hidden font-mono text-[12rem] font-black leading-none text-white/[0.035] lg:block"
+          className="pointer-events-none absolute right-[-8vw] top-[18vh] hidden font-mono text-[12rem] font-black leading-none text-white/[0.035] min-[1536px]:block"
           aria-hidden="true"
         >
           2026
         </div>
 
-        <PartnerLogoStrip logos={enterpriseLogos} isDayMode={isDayMode} theme={theme} />
-
-        <div className="relative z-10 mx-auto grid w-full max-w-[1660px] gap-7 lg:grid-cols-[minmax(0,0.92fr)_minmax(420px,0.76fr)] lg:items-end lg:gap-9 lg:pt-28 xl:gap-12 2xl:pt-32">
+        <div className="relative z-10 mx-auto grid w-full max-w-[1660px] gap-7 xl:grid-cols-[minmax(0,0.92fr)_minmax(420px,0.76fr)] xl:items-end xl:gap-10 xl:pt-24 2xl:gap-12 2xl:pt-32">
           <MotionDiv {...heroReveal} className="min-w-0">
             <p className={`inline-flex items-center gap-2 border px-3 py-2 text-xs font-black uppercase ${theme.chip}`}>
               <Film className="h-4 w-4" />
@@ -912,7 +867,6 @@ const HackathonShowcase = () => {
                           key={partner.id || partner.logo_url || partner.name}
                           partner={partner}
                           isDayMode={isDayMode}
-                          compact
                         />
                       ) : (
                         <div
