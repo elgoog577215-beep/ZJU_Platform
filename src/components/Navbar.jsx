@@ -207,22 +207,22 @@ const Navbar = () => {
   }, []);
 
   const shellClasses = isDayMode
-    ? "bg-white/[0.9] border-slate-200/70 shadow-[0_10px_28px_rgba(15,23,42,0.045)]"
+    ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.88),rgba(247,251,249,0.74))] border-slate-900/[0.08] shadow-[0_10px_30px_rgba(31,45,61,0.055)]"
     : "bg-black/62 border-white/10 shadow-none";
   const desktopPillClasses = isDayMode
-    ? "rounded-[6px] bg-white/[0.72] border-slate-200/70 shadow-none"
+    ? "rounded-[6px] bg-white/[0.62] border-slate-900/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.78)]"
     : "rounded-[6px] bg-white/[0.035] border-white/10 shadow-none";
   const navLinkClasses = isDayMode
-    ? "motion-link relative group whitespace-nowrap rounded-[5px] px-2.5 py-2 text-xs font-medium text-slate-500 hover:bg-white/88 hover:text-slate-950 xl:px-4 xl:text-sm"
+    ? "motion-link relative group whitespace-nowrap rounded-[5px] px-2.5 py-2 text-xs font-medium text-slate-500 hover:bg-white/82 hover:text-slate-950 xl:px-4 xl:text-sm"
     : "motion-link relative group whitespace-nowrap rounded-[5px] px-2.5 py-2 text-xs font-medium text-gray-400 hover:bg-white/[0.075] hover:text-white xl:px-4 xl:text-sm";
   const navIndicatorClasses = isDayMode
-    ? "absolute inset-0 rounded-[5px] border border-slate-300 bg-white shadow-none"
+    ? "absolute inset-0 rounded-[5px] border border-teal-700/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(232,245,242,0.9))] shadow-[0_8px_18px_rgba(15,118,110,0.08),inset_0_1px_0_rgba(255,255,255,0.92)]"
     : "absolute inset-0 rounded-[5px] bg-white/[0.095] border border-white/14";
   const weatherButtonClasses = isDayMode
     ? "motion-press rect-button-secondary flex items-center gap-3 text-xs px-3 py-1.5 hover:text-slate-900 cursor-pointer group"
     : "motion-press rect-button-secondary flex items-center gap-3 text-xs px-3 py-1.5 cursor-pointer group";
   const authButtonClasses = isDayMode
-    ? "motion-press rect-button-secondary text-sm font-medium px-4 py-1.5 hover:text-slate-950"
+    ? "motion-press rect-button-secondary text-sm font-medium px-4 py-1.5 hover:text-teal-800"
     : "motion-press rect-button-secondary text-sm font-medium px-4 py-1.5";
   const wallpaperModalClasses = isDayMode
     ? "theme-dialog text-slate-900"
@@ -261,7 +261,7 @@ const Navbar = () => {
       variants={navEntrance}
       initial={prefersReducedMotion ? false : "initial"}
       animate={prefersReducedMotion ? undefined : "animate"}
-      className={`motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 py-2.5 md:py-3 border-b backdrop-blur-sm ${shellClasses}`}
+      className={`motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 py-2.5 md:py-3 border-b backdrop-blur-xl ${shellClasses}`}
       role="navigation"
       aria-label="主导航"
     >
@@ -280,12 +280,12 @@ const Navbar = () => {
         </div>
         <div className="flex flex-col items-start leading-none">
           <span
-            className={`text-lg font-bold tracking-tighter transition-colors duration-300 ${isDayMode ? "text-slate-950 group-hover:text-blue-700" : "text-white group-hover:text-indigo-200"}`}
+            className={`text-lg font-bold tracking-tighter transition-colors duration-300 ${isDayMode ? "text-slate-950 group-hover:text-teal-800" : "text-white group-hover:text-indigo-200"}`}
           >
             拓途浙享
           </span>
           <span
-            className={`text-[10px] font-medium tracking-widest mt-0.5 transition-colors ${isDayMode ? "text-slate-500 group-hover:text-blue-600" : "text-gray-400 group-hover:text-indigo-400"}`}
+            className={`text-[10px] font-medium tracking-widest mt-0.5 transition-colors ${isDayMode ? "text-slate-500 group-hover:text-teal-700" : "text-gray-400 group-hover:text-indigo-400"}`}
           >
             数字艺术与科技
           </span>
@@ -379,7 +379,7 @@ const Navbar = () => {
 
         <button
           onClick={() => changeUiMode(nextUiMode)}
-          className={`btn-icon rect-icon-button ${isDayMode ? "text-slate-700 hover:text-blue-700" : "text-white hover:text-yellow-200"}`}
+          className={`btn-icon rect-icon-button ${isDayMode ? "text-slate-700 hover:text-teal-800" : "text-white hover:text-yellow-200"}`}
           title={themeToggleTitle}
           aria-label={t("nav.theme_settings", "主题设置")}
         >
@@ -393,7 +393,7 @@ const Navbar = () => {
         <button
           type="button"
           onClick={() => setIsThemeOpen(true)}
-          className={`btn-icon rect-icon-button ${isDayMode ? "text-slate-700 hover:text-blue-700" : "text-cyan-100 hover:text-cyan-50"}`}
+          className={`btn-icon rect-icon-button ${isDayMode ? "text-slate-700 hover:text-teal-800" : "text-cyan-100 hover:text-cyan-50"}`}
           title="动态壁纸"
           aria-label="动态壁纸设置"
         >

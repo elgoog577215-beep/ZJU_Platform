@@ -1163,7 +1163,7 @@ END:VCALENDAR`;
               aria-label="打开 AI 活动助手"
               className={`pointer-events-auto absolute right-4 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-lg border shadow-[0_14px_34px_rgba(15,23,42,0.12)] transition-all hover:-translate-x-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 md:inline-flex 2xl:hidden ${
                 isDayMode
-                  ? "border-slate-200 bg-white text-blue-700 hover:border-blue-200"
+                  ? "border-teal-700/14 bg-white text-teal-700 hover:border-teal-700/24"
                   : "border-white/10 bg-[#10121d]/92 text-blue-200 hover:border-white/20"
               }`}
             >
@@ -1304,33 +1304,33 @@ END:VCALENDAR`;
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div
               key={i}
-              className={`rect-media-card overflow-hidden h-full flex flex-row md:flex-col relative group ${isDayMode ? "bg-white/82 border-slate-200/80" : "bg-white/[0.04] border-white/5"}`}
+              className={`rect-media-card overflow-hidden h-full flex flex-row md:flex-col relative group ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(249,253,251,0.9))] border-slate-900/[0.08] shadow-[0_14px_34px_rgba(31,45,61,0.07)]" : "bg-white/[0.04] border-white/5"}`}
             >
               {/* Shimmer Effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-skeleton" />
 
               {/* Image Skeleton */}
               <div
-                className={`w-1/3 md:w-full aspect-square md:h-64 ${isDayMode ? "bg-slate-100" : "bg-white/5"}`}
+                className={`w-1/3 md:w-full aspect-square md:h-64 ${isDayMode ? "bg-[linear-gradient(135deg,#eef4f2,#e9f0f4)]" : "bg-white/5"}`}
               />
               {/* Content Skeleton */}
               <div className="p-4 md:p-6 flex-1 flex flex-col w-2/3 md:w-full">
                 <div
-                  className={`h-6 rounded-[2px] w-3/4 mb-4 ${isDayMode ? "bg-slate-100" : "bg-white/10"}`}
+                  className={`h-6 rounded-[2px] w-3/4 mb-4 ${isDayMode ? "bg-slate-100/80" : "bg-white/10"}`}
                 />
                 <div className="flex gap-2 mb-4">
                   <div
-                    className={`h-6 rounded-[2px] w-20 ${isDayMode ? "bg-slate-100" : "bg-white/5"}`}
+                    className={`h-6 rounded-[2px] w-20 ${isDayMode ? "bg-slate-100/80" : "bg-white/5"}`}
                   />
                   <div
-                    className={`h-6 rounded-[2px] w-24 ${isDayMode ? "bg-slate-100" : "bg-white/5"}`}
+                    className={`h-6 rounded-[2px] w-24 ${isDayMode ? "bg-slate-100/80" : "bg-white/5"}`}
                   />
                 </div>
                 <div
-                  className={`h-4 rounded-[2px] w-full mb-2 ${isDayMode ? "bg-slate-100" : "bg-white/5"}`}
+                  className={`h-4 rounded-[2px] w-full mb-2 ${isDayMode ? "bg-slate-100/80" : "bg-white/5"}`}
                 />
                 <div
-                  className={`h-4 rounded-[2px] w-2/3 ${isDayMode ? "bg-slate-100" : "bg-white/5"}`}
+                  className={`h-4 rounded-[2px] w-2/3 ${isDayMode ? "bg-slate-100/80" : "bg-white/5"}`}
                 />
               </div>
             </div>

@@ -59,19 +59,19 @@ const Hero = ({ id, onScrollNext, showScrollCue = true } = {}) => {
 
   const isDayMode = uiMode === "day";
   const overlayClass = isDayMode
-    ? "bg-[linear-gradient(180deg,rgba(248,250,252,0.08)_0%,rgba(15,23,42,0.06)_38%,rgba(15,23,42,0.18)_100%)]"
+    ? "bg-[linear-gradient(180deg,rgba(251,253,250,0.24)_0%,rgba(16,32,51,0.08)_44%,rgba(16,32,51,0.16)_100%)]"
     : "bg-[linear-gradient(180deg,rgba(2,6,23,0.24)_0%,rgba(2,6,23,0.12)_38%,rgba(2,6,23,0.24)_100%)]";
   const imageClass = isDayMode
-    ? "opacity-100 saturate-[1.12] contrast-[1.04]"
+    ? "opacity-95 saturate-[1.08] contrast-[1.03] brightness-[1.03]"
     : "opacity-52 saturate-[1.18] contrast-[1.08]";
   const titleClass = isDayMode
     ? "home-hero-title home-hero-title-day mx-auto mb-4 max-w-[12ch] text-balance text-[2.55rem] font-black leading-[0.96] tracking-normal sm:text-[4.4rem] md:mb-6 md:max-w-[14ch] md:text-[5.15rem] lg:max-w-none lg:whitespace-nowrap lg:text-[6.45rem] xl:text-[7rem]"
     : "home-hero-title home-hero-title-night mx-auto mb-4 max-w-[12ch] text-balance text-[2.45rem] font-black leading-[0.98] tracking-normal sm:text-[4.4rem] md:mb-6 md:max-w-[14ch] md:text-[5.15rem] lg:max-w-none lg:whitespace-nowrap lg:text-[6.45rem] xl:text-[7rem]";
   const subtitleClass = isDayMode
-    ? "hero-day-ink mx-auto max-w-2xl px-2 text-base font-semibold tracking-wide opacity-95 drop-shadow-[0_4px_20px_rgba(15,23,42,0.58)] sm:px-4 sm:text-xl md:text-[1.7rem]"
+    ? "hero-day-ink mx-auto max-w-2xl px-2 text-base font-semibold tracking-wide opacity-95 sm:px-4 sm:text-xl md:text-[1.7rem]"
     : "mx-auto max-w-2xl px-2 text-base font-semibold tracking-wide text-white/[0.92] drop-shadow-[0_6px_24px_rgba(2,6,23,0.84)] sm:px-4 sm:text-xl md:text-[1.7rem]";
   const badgeClass = isDayMode
-    ? "hero-day-badge mt-7 inline-flex max-w-full flex-wrap items-center justify-center gap-2 rounded-full border border-white/40 bg-white/20 px-5 py-2.5 text-center text-[11px] font-black uppercase tracking-[0.22em] shadow-[0_18px_42px_rgba(15,23,42,0.24)] backdrop-blur-md sm:text-xs"
+    ? "hero-day-badge mt-7 inline-flex max-w-full flex-wrap items-center justify-center gap-2 rounded-full border border-white/35 bg-slate-950/18 px-5 py-2.5 text-center text-[11px] font-black uppercase tracking-[0.22em] shadow-[0_18px_42px_rgba(16,32,51,0.18)] backdrop-blur-md sm:text-xs"
     : "mt-7 inline-flex max-w-full flex-wrap items-center justify-center gap-2 rounded-full border border-cyan-200/20 bg-slate-950/22 px-5 py-2.5 text-center text-[11px] font-black uppercase tracking-[0.22em] text-cyan-50/92 shadow-[0_0_42px_rgba(56,189,248,0.12)] backdrop-blur-md sm:text-xs";
   const kickerClass = isDayMode
     ? "hero-day-badge mx-auto mb-5 inline-flex max-w-full items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.34em] sm:text-xs"
@@ -84,10 +84,10 @@ const Hero = ({ id, onScrollNext, showScrollCue = true } = {}) => {
   const heroCopyShellClass =
     "relative isolate mx-auto max-w-[min(100%,82rem)] px-3 py-6 sm:px-6 sm:py-7 md:px-8 md:py-9";
   const heroReadabilityPlateClass = isDayMode
-    ? "pointer-events-none absolute inset-x-[-5%] -top-8 -bottom-8 -z-10 mx-auto max-w-[min(96vw,72rem)] rounded-[4rem] bg-[radial-gradient(ellipse_at_center,rgba(15,23,42,0.50)_0%,rgba(15,23,42,0.24)_44%,rgba(15,23,42,0.08)_72%,transparent_100%)] blur-xl md:inset-x-[-8%] md:-top-10 md:-bottom-10 md:max-w-[78rem] md:blur-2xl"
+    ? "pointer-events-none absolute inset-x-[-5%] -top-8 -bottom-8 -z-10 mx-auto max-w-[min(96vw,72rem)] rounded-[4rem] bg-[radial-gradient(ellipse_at_center,rgba(16,32,51,0.42)_0%,rgba(16,32,51,0.2)_44%,rgba(16,32,51,0.06)_72%,transparent_100%)] blur-xl md:inset-x-[-8%] md:-top-10 md:-bottom-10 md:max-w-[78rem] md:blur-2xl"
     : "pointer-events-none absolute inset-x-[-5%] -top-8 -bottom-8 -z-10 mx-auto max-w-[min(96vw,74rem)] rounded-[4rem] bg-[radial-gradient(ellipse_at_center,rgba(2,6,23,0.62)_0%,rgba(2,6,23,0.38)_38%,rgba(2,6,23,0.14)_70%,transparent_100%)] blur-xl md:inset-x-[-8%] md:-top-12 md:-bottom-12 md:max-w-[80rem] md:blur-2xl";
   const heroContentGlowClass = isDayMode
-    ? "pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[21rem] w-[min(94vw,40rem)] -translate-x-1/2 -translate-y-1/2 rounded-full bg-slate-950/30 blur-3xl md:h-[27rem] md:w-[54rem]"
+    ? "pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[21rem] w-[min(94vw,40rem)] -translate-x-1/2 -translate-y-1/2 rounded-full bg-teal-950/18 blur-3xl md:h-[27rem] md:w-[54rem]"
     : "pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[20rem] w-[min(94vw,42rem)] -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-300/12 blur-3xl md:h-[29rem] md:w-[60rem]";
 
   const handleScrollNext = () => {

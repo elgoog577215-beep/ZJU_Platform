@@ -9,7 +9,7 @@ const MobileEventAssistantLauncher = ({ isDayMode, onOpen }) => (
     onClick={onOpen}
     className={`group mb-4 flex w-full items-center justify-between rounded-lg border px-4 py-3.5 text-left transition-all active:scale-[0.99] md:hidden ${
       isDayMode
-        ? "border-slate-200 bg-white text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
+        ? "border-slate-900/[0.08] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(249,253,251,0.9))] text-slate-900 shadow-[0_10px_24px_rgba(31,45,61,0.055)]"
         : "border-white/10 bg-white/[0.06] text-white shadow-none"
     }`}
   >
@@ -17,7 +17,7 @@ const MobileEventAssistantLauncher = ({ isDayMode, onOpen }) => (
       <span
         className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md transition-transform group-active:scale-95 ${
           isDayMode
-            ? "bg-[linear-gradient(135deg,rgba(245,243,255,0.96),rgba(253,242,248,0.76))] text-violet-700"
+            ? "bg-[linear-gradient(135deg,rgba(232,245,242,0.98),rgba(238,247,255,0.76))] text-teal-700"
             : "bg-white/10 text-blue-200"
         }`}
       >
@@ -32,7 +32,7 @@ const MobileEventAssistantLauncher = ({ isDayMode, onOpen }) => (
     </span>
     <span
       className={`ml-3 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md border transition-transform group-active:translate-x-0.5 ${
-        isDayMode ? "border-slate-200 bg-white/80 text-slate-500" : "border-white/10 bg-white/5 text-gray-300"
+        isDayMode ? "border-slate-900/[0.08] bg-white/80 text-slate-500" : "border-white/10 bg-white/5 text-gray-300"
       }`}
     >
       <ChevronRight size={18} />
@@ -87,7 +87,7 @@ const MobileEventAssistantFullscreen = ({
             </div>
             <span
               className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md ${
-                isDayMode ? "bg-[linear-gradient(135deg,rgba(245,243,255,0.96),rgba(253,242,248,0.76))] text-violet-700" : "bg-white/10 text-blue-200"
+            isDayMode ? "bg-[linear-gradient(135deg,rgba(232,245,242,0.98),rgba(238,247,255,0.76))] text-teal-700" : "bg-white/10 text-blue-200"
               }`}
             >
               <Sparkles size={18} />

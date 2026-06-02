@@ -102,10 +102,10 @@ const EventFilterPanel = ({
 
   const shellClass = isSheetMode ? "space-y-3" : "relative z-10 space-y-3";
   const glassClass = isDayMode
-    ? "border-violet-100/70 bg-[linear-gradient(135deg,rgba(255,255,255,0.88),rgba(250,245,255,0.62)_54%,rgba(239,246,255,0.58))] shadow-[0_14px_34px_rgba(124,58,237,0.055)]"
+    ? "border-teal-900/[0.08] bg-[linear-gradient(135deg,rgba(255,255,255,0.88),rgba(232,245,242,0.58)_54%,rgba(238,247,255,0.56))] shadow-[0_14px_34px_rgba(15,118,110,0.055)]"
     : "border-white/[0.12] bg-[#070a14]/92 shadow-none";
   const subtleGlassClass = isDayMode
-    ? "border-violet-100/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(250,245,255,0.78))] shadow-[0_12px_30px_rgba(124,58,237,0.055)]"
+    ? "border-teal-900/[0.08] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(239,248,245,0.78))] shadow-[0_12px_30px_rgba(15,118,110,0.055)]"
     : "border-white/[0.12] bg-[#080b14]/92 shadow-none";
   const mutedTextClass = isDayMode ? "text-slate-500" : "text-gray-400";
   const strongTextClass = isDayMode ? "text-slate-900" : "text-white";
@@ -122,10 +122,10 @@ const EventFilterPanel = ({
     `rect-button relative h-10 shrink-0 px-4 text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${
         active
           ? isDayMode
-          ? "text-violet-900"
+          ? "text-teal-900"
           : "text-indigo-100"
         : isDayMode
-          ? "text-slate-500 hover:bg-white/70 hover:text-violet-900"
+          ? "text-slate-500 hover:bg-white/70 hover:text-teal-900"
           : "text-slate-300 hover:bg-white/[0.055] hover:text-white"
     }`;
 
@@ -134,7 +134,7 @@ const EventFilterPanel = ({
       layoutId={activeLayoutId}
       className={`absolute inset-0 ${
         isDayMode
-          ? "border border-violet-200/80 bg-[linear-gradient(135deg,rgba(245,243,255,0.96),rgba(253,242,248,0.76)_54%,rgba(224,242,254,0.74))] shadow-[0_10px_22px_rgba(124,58,237,0.09)]"
+          ? "border border-teal-700/18 bg-[linear-gradient(135deg,rgba(232,245,242,0.98),rgba(238,247,255,0.76)_54%,rgba(250,253,251,0.86))] shadow-[0_10px_22px_rgba(15,118,110,0.09)]"
           : "border border-indigo-400/35 bg-indigo-500/20 shadow-none"
       }`}
       transition={{ type: "spring", bounce: 0.12, duration: 0.42 }}
@@ -158,7 +158,7 @@ const EventFilterPanel = ({
       `relative min-h-[44px] rounded-md px-3 text-sm font-bold transition-colors focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${
         active
             ? isDayMode
-            ? "text-violet-900"
+            ? "text-teal-900"
             : "text-indigo-100"
             : isDayMode
             ? "bg-white/70 text-slate-600"
@@ -168,7 +168,7 @@ const EventFilterPanel = ({
       `min-h-[44px] rounded-md border px-3.5 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${
         active
             ? isDayMode
-            ? "border-violet-200 bg-[linear-gradient(135deg,rgba(245,243,255,0.96),rgba(253,242,248,0.72))] text-violet-800 shadow-[0_10px_22px_rgba(124,58,237,0.08)]"
+            ? "border-teal-700/18 bg-[linear-gradient(135deg,rgba(232,245,242,0.98),rgba(238,247,255,0.72))] text-teal-800 shadow-[0_10px_22px_rgba(15,118,110,0.08)]"
             : nightControlActiveClass
           : isDayMode
             ? "border-slate-200/80 bg-white/80 text-slate-600"
@@ -228,7 +228,7 @@ const EventFilterPanel = ({
               <button
                 type="button"
                 onClick={() => setAudience(selectedAudience)}
-                className={`min-h-[44px] rounded-md border px-3.5 text-xs font-bold ${isDayMode ? "border-violet-200 bg-violet-50 text-violet-700" : nightControlActiveClass}`}
+                className={`min-h-[44px] rounded-md border px-3.5 text-xs font-bold ${isDayMode ? "border-teal-700/18 bg-teal-50 text-teal-700" : nightControlActiveClass}`}
               >
                 {t("common.cancel", "取消")}
               </button>
