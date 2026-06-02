@@ -19,7 +19,6 @@ import Lightbox from "./Lightbox";
 import SEO from "./SEO";
 import SmartImage from "./SmartImage";
 import UploadModal from "./UploadModal";
-import ResourceSearchBar from "./ResourceSearchBar";
 import useMediaCategories from "../hooks/useMediaCategories";
 import { useAuth } from "../context/AuthContext";
 import { useCachedResource } from "../hooks/useCachedResource";
@@ -44,7 +43,7 @@ const PhotoCard = memo(forwardRef(({ photo, index, onClick, onToggleFavorite, ca
     whileHover={canAnimate ? { y: -4, transition: { duration: 0.18 } } : undefined}
     className={`break-inside-avoid relative group overflow-hidden rounded-2xl cursor-pointer backdrop-blur-sm border transition-all duration-300 w-full inline-block touch-manipulation mb-4 md:mb-6 ${
       isDayMode
-        ? "day-card-lift"
+        ? "day-card-lift rounded-xl"
         : "bg-white/5 border-white/10 hover:shadow-2xl hover:shadow-indigo-500/10 hover:border-white/20"
     }`}
     onClick={() => onClick(index)}
@@ -90,16 +89,16 @@ const PhotoCard = memo(forwardRef(({ photo, index, onClick, onToggleFavorite, ca
                 initialFavorited={photo.favorited}
                 className={`p-2 rounded-full backdrop-blur-md transition-all duration-200 text-white border ${
                   isDayMode
-                    ? "bg-white/70 hover:bg-pink-500/30 border-white/40 shadow-[0_12px_24px_rgba(15,23,42,0.18)]"
+                    ? "bg-white/82 hover:bg-white border-white/60 shadow-[0_10px_20px_rgba(15,23,42,0.16)]"
                     : "bg-white/10 border-white/10"
-                } hover:border-pink-500/50 hover:shadow-lg hover:shadow-pink-500/20`}
+                } hover:border-white/70 hover:shadow-lg`}
                 onToggle={(favorited, likes) => onToggleFavorite(photo.id, favorited, likes)}
               />
             </div>
             <div
               className={`p-2 rounded-full backdrop-blur-md border ${
                 isDayMode ? "bg-white/72 border-white/40 shadow-[0_12px_24px_rgba(15,23,42,0.18)]" : "bg-white/20 border-white/10"
-              } group-hover:bg-indigo-500 group-hover:text-white transition-all duration-300`}
+              } ${isDayMode ? "group-hover:bg-slate-950" : "group-hover:bg-indigo-500"} group-hover:text-white transition-all duration-300`}
             >
               <Maximize2 size={18} />
             </div>
@@ -132,7 +131,7 @@ const VideoCard = memo(({ video, index, onClick, onToggleFavorite, canAnimate, i
     onClick={() => onClick(video)}
     className={`group rect-media-card relative aspect-video overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 ${
       isDayMode
-        ? "bg-white/88 border-slate-200/80 hover:border-pink-300/50"
+        ? "bg-white border-slate-200/80 hover:border-slate-300"
         : "bg-[#111111]/84 border-white/10 hover:border-pink-500/30"
     }`}
   >
@@ -215,18 +214,18 @@ VideoCard.displayName = "VideoCard";
 const EmptyState = ({ icon: Icon, title, description, accent = "indigo", isDayMode }) => (
   <div className="flex min-h-[260px] flex-col items-center justify-center px-4 py-16 text-center">
     <div
-      className={`rounded-3xl p-8 mb-6 border backdrop-blur-xl ${
-        isDayMode ? "bg-white/88 border-slate-200/80" : "bg-white/5 border-white/10"
+      className={`rounded-xl p-8 mb-6 border ${
+        isDayMode ? "bg-white border-slate-200/80" : "bg-white/5 border-white/10"
       }`}
     >
-      <Icon size={56} className={accent === "pink" ? "text-pink-400 opacity-80" : isDayMode ? "text-slate-400" : "text-gray-500"} />
+      <Icon size={56} className={isDayMode ? "text-slate-400" : accent === "pink" ? "text-pink-400 opacity-80" : "text-gray-500"} />
     </div>
     <h3 className={`text-2xl font-bold mb-2 ${isDayMode ? "text-slate-900" : "text-white"}`}>{title}</h3>
     <p className={`max-w-md ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>{description}</p>
   </div>
 );
 
-const LoadMoreButton = ({ onClick, loading, disabled, tone = "indigo", isDayMode, children }) => (
+const LoadMoreButton = ({ onClick, loading, disabled, isDayMode, children }) => (
   <div className="flex items-center justify-center py-8">
     <motion.button
       type="button"
@@ -236,9 +235,7 @@ const LoadMoreButton = ({ onClick, loading, disabled, tone = "indigo", isDayMode
       disabled={disabled}
       className={`rect-button-secondary min-h-[44px] px-6 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
         isDayMode
-          ? tone === "pink"
-            ? "hover:text-pink-600"
-            : "hover:text-indigo-600"
+          ? "hover:text-blue-700"
           : "text-white hover:border-white/20"
       }`}
     >
@@ -249,13 +246,13 @@ const LoadMoreButton = ({ onClick, loading, disabled, tone = "indigo", isDayMode
 
 const MediaCategoryRail = memo(({ categories, activeCategoryId, onChange, isDayMode }) => {
   const nightFocusClass = isDayMode
-    ? "focus-visible:ring-indigo-400/70"
+    ? "focus-visible:ring-blue-400/55"
     : "focus-visible:border-white/[0.22] focus-visible:ring-slate-300/35 focus-visible:shadow-[0_0_0_4px_rgba(148,163,184,0.12)]";
   const channelButtonClass = (active) =>
     `rect-button relative h-10 shrink-0 px-4 text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${
       active
         ? isDayMode
-          ? "text-white"
+          ? "text-slate-950"
           : "text-indigo-100"
         : isDayMode
           ? "text-slate-500 hover:bg-white/70 hover:text-slate-900"
@@ -265,9 +262,9 @@ const MediaCategoryRail = memo(({ categories, activeCategoryId, onChange, isDayM
   const renderActivePill = () => (
     <motion.span
       layoutId="media-category-active"
-      className={`absolute inset-0 ${
+    className={`absolute inset-0 ${
         isDayMode
-          ? "bg-blue-600 shadow-none"
+          ? "border border-slate-300 bg-white shadow-[0_4px_12px_rgba(15,23,42,0.06)]"
           : "border border-indigo-400/35 bg-indigo-500/20 shadow-none"
       }`}
       transition={{ type: "spring", bounce: 0.12, duration: 0.42 }}
@@ -277,30 +274,20 @@ const MediaCategoryRail = memo(({ categories, activeCategoryId, onChange, isDayM
   return (
     <div className="relative z-10 mx-auto w-full max-w-[760px]">
       <div
-        className={`relative overflow-visible border p-2 ${
+        className={`relative overflow-visible border p-1 ${
           isDayMode
-            ? "border-slate-200/80 bg-white/78 shadow-none"
+            ? "border-slate-200/80 bg-white shadow-none"
             : "border-white/[0.12] bg-[#070a14]/92 shadow-none"
         }`}
       >
         <div
-          className={`pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent to-transparent ${
-            isDayMode ? "via-white/80" : "via-white/18"
-          }`}
-        />
-        <div
-          className={`pointer-events-none absolute inset-y-3 left-3 w-px ${
-            isDayMode ? "bg-blue-200/40" : "bg-indigo-400/20"
-          }`}
-        />
-        <div
           className={`relative min-w-0 overflow-hidden border ${
             isDayMode
-              ? "border-slate-200/80 bg-slate-100/70"
+              ? "border-slate-200/80 bg-slate-50"
               : "border-white/[0.09] bg-[#050712]/88"
           }`}
         >
-          <div className="scrollbar-none flex min-w-0 items-center gap-1 overflow-x-auto p-1 pr-10 md:pr-1">
+          <div className="scrollbar-none flex min-w-0 items-center gap-1 overflow-x-auto p-0.5 pr-10 md:pr-0.5">
             <button
               type="button"
               aria-pressed={!activeCategoryId}
@@ -330,7 +317,7 @@ const MediaCategoryRail = memo(({ categories, activeCategoryId, onChange, isDayM
           <div
             className={`pointer-events-none absolute inset-y-1 right-1 w-10 ${
               isDayMode
-                ? "bg-gradient-to-l from-slate-100 via-slate-100/88 to-transparent"
+                ? "bg-gradient-to-l from-slate-50 via-slate-50/88 to-transparent"
                 : "bg-gradient-to-l from-[#0a0d14] via-[#0a0d14]/88 to-transparent"
             }`}
           />
@@ -570,37 +557,37 @@ const MediaLibrary = () => {
   const totalVideoCount = Number(videoPagination?.total || visibleVideoCount);
 
   return (
-    <section className="pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:py-20 px-4 md:px-8 relative overflow-hidden flex-grow">
+    <section className="pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:py-16 px-4 md:px-6 relative overflow-hidden flex-grow">
       <SEO title="影像库" description="按分类浏览现场照片与视频记录。" />
 
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        {allowAmbientEffects ? (
+        {!isDayMode && allowAmbientEffects ? (
           <>
             <motion.div
               animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.15, 0.1] }}
               transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-              className={`absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full blur-[130px] ${isDayMode ? "bg-violet-200/10" : "bg-blue-500/10"}`}
+              className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full blur-[130px] bg-blue-500/10"
             />
             <motion.div
               animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.12, 0.1] }}
               transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-              className={`absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] ${isDayMode ? "bg-rose-100/12" : "bg-cyan-500/10"}`}
+              className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] bg-cyan-500/10"
             />
           </>
-        ) : (
+        ) : !isDayMode ? (
           <>
-            <div className={`absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full blur-[90px] hidden md:block ${isDayMode ? "bg-violet-200/10" : "bg-blue-500/10"}`} />
-            <div className={`absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[80px] hidden md:block ${isDayMode ? "bg-rose-100/12" : "bg-cyan-500/10"}`} />
+            <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full blur-[90px] hidden md:block bg-blue-500/10" />
+            <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[80px] hidden md:block bg-cyan-500/10" />
           </>
-        )}
+        ) : null}
       </div>
 
-      <div className="max-w-7xl w-full mx-auto relative z-10">
+      <div className="max-w-[1180px] 2xl:max-w-[1440px] w-full mx-auto relative z-10">
         <motion.div
           initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
           animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mb-6 md:mb-12 text-center"
+          className="mb-6 md:mb-9 text-center"
         >
           <div className="md:hidden text-left mb-4">
             <h1 className={`text-2xl font-bold tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}>
@@ -612,12 +599,12 @@ const MediaLibrary = () => {
           </div>
 
           <motion.button
-            whileHover={prefersReducedMotion ? undefined : { scale: 1.05, rotate: 90 }}
+            whileHover={prefersReducedMotion ? undefined : { scale: 1.03 }}
             whileTap={prefersReducedMotion ? undefined : { scale: 0.95 }}
             onClick={() => openUpload()}
-            className={`hidden md:mx-auto md:mb-4 md:block xl:absolute xl:right-0 xl:top-2 xl:mb-0 p-2 md:p-3 rounded-full backdrop-blur-md border transition-all ${
+            className={`hidden md:mx-auto md:mb-4 md:inline-flex xl:absolute xl:right-0 xl:top-1 xl:mb-0 p-2.5 rounded-lg border transition-all ${
               isDayMode
-                ? "day-quiet-button text-slate-700 hover:text-violet-700"
+                ? "day-quiet-button text-slate-700 hover:text-blue-700"
                 : "bg-white/10 hover:bg-white/20 text-white border-white/10 hover:shadow-lg hover:shadow-indigo-500/20"
             }`}
             title="上传影像"
@@ -629,7 +616,9 @@ const MediaLibrary = () => {
             initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
             animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="hidden md:block text-4xl md:text-5xl font-bold font-serif mb-4 md:mb-6"
+            className={`hidden md:block text-3xl md:text-4xl font-semibold tracking-tight mb-3 ${
+              isDayMode ? "text-slate-950" : "text-white"
+            }`}
           >
             影像库
           </motion.h2>
@@ -637,15 +626,12 @@ const MediaLibrary = () => {
             initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
             animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="hidden md:block text-gray-400 max-w-xl mx-auto mb-6 md:mb-8 text-sm md:text-base"
+            className={`hidden md:block max-w-xl mx-auto mb-5 md:mb-6 text-sm ${
+              isDayMode ? "text-slate-500" : "text-gray-400"
+            }`}
           >
             按分类归档现场照片与视频记录。当前分类：{activeCategoryName}。
           </motion.p>
-
-          <ResourceSearchBar
-            placeholder="搜索活动、AI 社区、影像库与校园资源"
-            hint="影像记录 · 活动现场 · 社区内容"
-          />
 
           <motion.div
             initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
@@ -724,11 +710,11 @@ const MediaLibrary = () => {
           </motion.div>
         ) : null}
 
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)] lg:items-start">
-          <section className="order-2 min-w-0 lg:order-1">
+        <div className="grid gap-8 2xl:grid-cols-[minmax(0,1fr)_minmax(320px,0.42fr)] 2xl:items-start">
+          <section className="order-1 min-w-0">
             <div className="mb-4 flex items-center justify-between gap-4">
               <div>
-                <h2 className={`text-2xl font-bold font-serif ${isDayMode ? "text-slate-900" : "text-white"}`}>
+                <h2 className={`text-xl md:text-2xl font-semibold tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}>
                   现场照片
                 </h2>
                 <p className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
@@ -739,7 +725,7 @@ const MediaLibrary = () => {
                 type="button"
                 onClick={() => openUpload("image")}
                 className={`rect-icon-button hidden p-2.5 transition-all md:inline-flex ${
-                  isDayMode ? "text-slate-700 hover:text-indigo-600" : "text-white"
+                  isDayMode ? "text-slate-700 hover:text-blue-700" : "text-white"
                 }`}
                 title="上传照片"
               >
@@ -797,10 +783,10 @@ const MediaLibrary = () => {
             ) : null}
           </section>
 
-          <aside className="order-1 min-w-0 lg:order-2">
+          <aside className="order-2 min-w-0">
             <div className="mb-4 flex items-center justify-between gap-4">
               <div>
-                <h2 className={`text-2xl font-bold font-serif ${isDayMode ? "text-slate-900" : "text-white"}`}>
+                <h2 className={`text-xl md:text-2xl font-semibold tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}>
                   视频记录
                 </h2>
                 <p className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
@@ -811,7 +797,7 @@ const MediaLibrary = () => {
                 type="button"
                 onClick={() => openUpload("video")}
                 className={`rect-icon-button hidden p-2.5 transition-all md:inline-flex ${
-                  isDayMode ? "text-slate-700 hover:text-pink-600" : "text-white"
+                  isDayMode ? "text-slate-700 hover:text-blue-700" : "text-white"
                 }`}
                 title="上传视频"
               >
@@ -839,7 +825,7 @@ const MediaLibrary = () => {
                 isDayMode={isDayMode}
               />
             ) : (
-              <div className="grid grid-cols-1 gap-4 md:gap-5">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5 2xl:grid-cols-1">
                 {displayVideos.map((video, index) => (
                   <VideoCard
                     key={video.id}
@@ -960,7 +946,7 @@ const MediaLibrary = () => {
                       favorited={selectedVideo.favorited}
                       initialFavorited={selectedVideo.favorited}
                       className={`rect-icon-button p-3 transition-colors shrink-0 ${
-                        isDayMode ? "bg-white/90 hover:bg-pink-50 text-slate-700 border-slate-200/80" : "bg-white/5 hover:bg-pink-500/20 border-white/10"
+                        isDayMode ? "bg-white/90 hover:bg-slate-50 text-slate-700 border-slate-200/80" : "bg-white/5 hover:bg-pink-500/20 border-white/10"
                       }`}
                       onToggle={(favorited, likes) => handleToggleVideoFavorite(selectedVideo.id, favorited, likes)}
                     />

@@ -51,7 +51,6 @@ import MobileEventAssistantFullscreen, {
 import DOMPurify from "dompurify";
 import MobileContentToolbar from "./MobileContentToolbar";
 import SEO from "./SEO";
-import ResourceSearchBar from "./ResourceSearchBar";
 import { getEventCategoryLabel } from "../data/eventTaxonomy";
 
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
@@ -94,16 +93,29 @@ const getEventLifecycle = (date, endDate, t) => {
   }
 };
 
-const getStatusColor = (status, t) => {
+const getStatusColor = (status, t, isDayMode = false) => {
+  if (isDayMode) {
+    switch (status) {
+      case t("events.status.upcoming"):
+        return "bg-emerald-50 text-emerald-700 border-emerald-200/80";
+      case t("events.status.ongoing"):
+        return "bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200/80 animate-pulse";
+      case t("events.status.past"):
+        return "bg-slate-100 text-slate-500 border-slate-200/80";
+      default:
+        return "bg-slate-100 text-slate-600 border-slate-200/80";
+    }
+  }
+
   switch (status) {
     case t("events.status.upcoming"):
-      return "bg-emerald-50 text-emerald-700 border-emerald-200/80";
+      return "bg-emerald-500 text-white border-white/10";
     case t("events.status.ongoing"):
-      return "bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200/80 animate-pulse";
+      return "bg-blue-500 text-white border-white/10 animate-pulse";
     case t("events.status.past"):
-      return "bg-slate-100 text-slate-500 border-slate-200/80";
+      return "bg-gray-500 text-gray-200 border-white/10";
     default:
-      return "bg-slate-100 text-slate-600 border-slate-200/80";
+      return "bg-gray-500 text-white border-white/10";
   }
 };
 
@@ -138,99 +150,75 @@ const VIEW_DEDUPE_WINDOW_MS = 30 * 60 * 1000;
 
 const EVENT_THEME_VARIANTS = {
   cyan: {
-    backdropGlow:
-      "bg-[radial-gradient(circle_at_top,rgba(14,165,233,0.12),transparent_70%),radial-gradient(circle_at_80%_10%,rgba(217,70,239,0.09),transparent_58%)]",
-    heroGlow: "bg-sky-200/24",
-    softGlow: "bg-sky-50/80",
-    accentText: "text-sky-600",
-    dot: "bg-sky-400",
-    surface:
-      "bg-[linear-gradient(135deg,rgba(248,250,252,0.94),rgba(255,255,255,0.96))] border border-sky-100/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.78)]",
-    cta: "bg-[linear-gradient(135deg,#7dd3fc,#c4b5fd_56%,#f0abfc)] text-slate-950 shadow-[0_16px_34px_rgba(124,58,237,0.13)] hover:shadow-[0_20px_42px_rgba(14,165,233,0.16)] hover:-translate-y-0.5 border border-white/55",
-    highlightCard:
-      "border-sky-100/90 bg-[linear-gradient(135deg,rgba(240,249,255,0.78),rgba(255,255,255,0.96))] shadow-[0_14px_32px_rgba(15,23,42,0.055)]",
-    iconShell:
-      "bg-white border-sky-200/80 text-sky-600 shadow-[0_8px_18px_rgba(14,165,233,0.08)]",
-    tagHover: "hover:border-cyan-200/80 hover:text-cyan-600",
+    backdropGlow: "",
+    heroGlow: "bg-slate-100",
+    softGlow: "bg-slate-50",
+    accentText: "text-blue-700",
+    dot: "bg-blue-500",
+    surface: "bg-white border border-slate-200/80",
+    cta: "bg-slate-950 text-white shadow-[0_8px_18px_rgba(15,23,42,0.16)] hover:bg-blue-700 hover:-translate-y-0.5 border border-slate-950 hover:border-blue-700",
+    highlightCard: "border-slate-200/80 bg-white shadow-[0_8px_22px_rgba(15,23,42,0.045)]",
+    iconShell: "bg-slate-100 border-slate-200 text-blue-700",
+    tagHover: "hover:border-blue-200/80 hover:text-blue-700",
   },
   pink: {
-    backdropGlow:
-      "bg-[radial-gradient(circle_at_top,rgba(244,114,182,0.18),transparent_68%)]",
-    heroGlow: "bg-pink-300/20",
-    softGlow: "bg-pink-100/70",
-    accentText: "text-pink-500",
-    dot: "bg-pink-400",
-    surface:
-      "bg-[linear-gradient(135deg,rgba(253,242,248,0.88),rgba(255,255,255,0.92))] border border-pink-100/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]",
-    cta: "bg-gradient-to-r from-pink-500 via-fuchsia-500 to-violet-500 text-white shadow-[0_18px_40px_rgba(236,72,153,0.24)] hover:shadow-[0_24px_54px_rgba(236,72,153,0.32)] hover:-translate-y-0.5 border border-white/20",
-    highlightCard:
-      "border-pink-100/90 bg-[linear-gradient(135deg,rgba(253,242,248,0.92),rgba(255,255,255,0.96))] shadow-[0_18px_38px_rgba(236,72,153,0.12)]",
-    iconShell:
-      "bg-white border-pink-200/80 text-pink-500 shadow-[0_8px_18px_rgba(236,72,153,0.12)]",
+    backdropGlow: "",
+    heroGlow: "bg-slate-100",
+    softGlow: "bg-slate-50",
+    accentText: "text-rose-600",
+    dot: "bg-rose-400",
+    surface: "bg-white border border-slate-200/80",
+    cta: "bg-slate-950 text-white shadow-[0_8px_18px_rgba(15,23,42,0.16)] hover:bg-blue-700 hover:-translate-y-0.5 border border-slate-950 hover:border-blue-700",
+    highlightCard: "border-slate-200/80 bg-white shadow-[0_8px_22px_rgba(15,23,42,0.045)]",
+    iconShell: "bg-slate-100 border-slate-200 text-rose-600",
     tagHover: "hover:border-pink-200/80 hover:text-pink-600",
   },
   orange: {
-    backdropGlow:
-      "bg-[radial-gradient(circle_at_top,rgba(251,146,60,0.18),transparent_68%)]",
-    heroGlow: "bg-orange-300/20",
-    softGlow: "bg-orange-100/70",
-    accentText: "text-orange-500",
-    dot: "bg-orange-400",
-    surface:
-      "bg-[linear-gradient(135deg,rgba(255,247,237,0.88),rgba(255,255,255,0.92))] border border-orange-100/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]",
-    cta: "bg-gradient-to-r from-orange-500 via-amber-500 to-rose-500 text-white shadow-[0_18px_40px_rgba(249,115,22,0.24)] hover:shadow-[0_24px_54px_rgba(249,115,22,0.32)] hover:-translate-y-0.5 border border-white/20",
-    highlightCard:
-      "border-orange-100/90 bg-[linear-gradient(135deg,rgba(255,247,237,0.92),rgba(255,255,255,0.96))] shadow-[0_18px_38px_rgba(249,115,22,0.12)]",
-    iconShell:
-      "bg-white border-orange-200/80 text-orange-500 shadow-[0_8px_18px_rgba(249,115,22,0.12)]",
+    backdropGlow: "",
+    heroGlow: "bg-slate-100",
+    softGlow: "bg-slate-50",
+    accentText: "text-amber-700",
+    dot: "bg-amber-500",
+    surface: "bg-white border border-slate-200/80",
+    cta: "bg-slate-950 text-white shadow-[0_8px_18px_rgba(15,23,42,0.16)] hover:bg-blue-700 hover:-translate-y-0.5 border border-slate-950 hover:border-blue-700",
+    highlightCard: "border-slate-200/80 bg-white shadow-[0_8px_22px_rgba(15,23,42,0.045)]",
+    iconShell: "bg-slate-100 border-slate-200 text-amber-700",
     tagHover: "hover:border-orange-200/80 hover:text-orange-600",
   },
   green: {
-    backdropGlow:
-      "bg-[radial-gradient(circle_at_top,rgba(74,222,128,0.18),transparent_68%)]",
-    heroGlow: "bg-emerald-300/20",
-    softGlow: "bg-emerald-100/70",
-    accentText: "text-emerald-500",
+    backdropGlow: "",
+    heroGlow: "bg-slate-100",
+    softGlow: "bg-slate-50",
+    accentText: "text-emerald-600",
     dot: "bg-emerald-400",
-    surface:
-      "bg-[linear-gradient(135deg,rgba(236,253,245,0.88),rgba(255,255,255,0.92))] border border-emerald-100/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]",
-    cta: "bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 text-white shadow-[0_18px_40px_rgba(16,185,129,0.24)] hover:shadow-[0_24px_54px_rgba(16,185,129,0.32)] hover:-translate-y-0.5 border border-white/20",
-    highlightCard:
-      "border-emerald-100/90 bg-[linear-gradient(135deg,rgba(236,253,245,0.92),rgba(255,255,255,0.96))] shadow-[0_18px_38px_rgba(16,185,129,0.12)]",
-    iconShell:
-      "bg-white border-emerald-200/80 text-emerald-500 shadow-[0_8px_18px_rgba(16,185,129,0.12)]",
+    surface: "bg-white border border-slate-200/80",
+    cta: "bg-slate-950 text-white shadow-[0_8px_18px_rgba(15,23,42,0.16)] hover:bg-blue-700 hover:-translate-y-0.5 border border-slate-950 hover:border-blue-700",
+    highlightCard: "border-slate-200/80 bg-white shadow-[0_8px_22px_rgba(15,23,42,0.045)]",
+    iconShell: "bg-slate-100 border-slate-200 text-emerald-600",
     tagHover: "hover:border-emerald-200/80 hover:text-emerald-600",
   },
   blue: {
-    backdropGlow:
-      "bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.14),transparent_68%),radial-gradient(circle_at_20%_16%,rgba(244,114,182,0.09),transparent_58%)]",
-    heroGlow: "bg-indigo-200/24",
-    softGlow: "bg-indigo-50/80",
-    accentText: "text-indigo-600",
-    dot: "bg-indigo-400",
-    surface:
-      "bg-[linear-gradient(135deg,rgba(238,242,255,0.82),rgba(255,255,255,0.94))] border border-indigo-100/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.74)]",
-    cta: "bg-[linear-gradient(135deg,#818cf8,#c084fc_54%,#f9a8d4)] text-white shadow-[0_16px_34px_rgba(124,58,237,0.16)] hover:shadow-[0_20px_42px_rgba(124,58,237,0.2)] hover:-translate-y-0.5 border border-white/35",
-    highlightCard:
-      "border-indigo-100/90 bg-[linear-gradient(135deg,rgba(238,242,255,0.82),rgba(255,255,255,0.96))] shadow-[0_14px_32px_rgba(15,23,42,0.055)]",
-    iconShell:
-      "bg-white border-indigo-200/80 text-indigo-600 shadow-[0_8px_18px_rgba(99,102,241,0.08)]",
+    backdropGlow: "",
+    heroGlow: "bg-slate-100",
+    softGlow: "bg-slate-50",
+    accentText: "text-blue-700",
+    dot: "bg-blue-500",
+    surface: "bg-white border border-slate-200/80",
+    cta: "bg-slate-950 text-white shadow-[0_8px_18px_rgba(15,23,42,0.16)] hover:bg-blue-700 hover:-translate-y-0.5 border border-slate-950 hover:border-blue-700",
+    highlightCard: "border-slate-200/80 bg-white shadow-[0_8px_22px_rgba(15,23,42,0.045)]",
+    iconShell: "bg-slate-100 border-slate-200 text-blue-700",
     tagHover: "hover:border-blue-200/80 hover:text-blue-600",
   },
   rose: {
-    backdropGlow:
-      "bg-[radial-gradient(circle_at_top,rgba(251,113,133,0.18),transparent_68%)]",
-    heroGlow: "bg-rose-300/20",
-    softGlow: "bg-rose-100/70",
-    accentText: "text-rose-500",
+    backdropGlow: "",
+    heroGlow: "bg-slate-100",
+    softGlow: "bg-slate-50",
+    accentText: "text-rose-600",
     dot: "bg-rose-400",
-    surface:
-      "bg-[linear-gradient(135deg,rgba(255,241,242,0.88),rgba(255,255,255,0.92))] border border-rose-100/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]",
-    cta: "bg-gradient-to-r from-rose-500 via-pink-500 to-orange-500 text-white shadow-[0_18px_40px_rgba(244,63,94,0.24)] hover:shadow-[0_24px_54px_rgba(244,63,94,0.32)] hover:-translate-y-0.5 border border-white/20",
-    highlightCard:
-      "border-rose-100/90 bg-[linear-gradient(135deg,rgba(255,241,242,0.92),rgba(255,255,255,0.96))] shadow-[0_18px_38px_rgba(244,63,94,0.12)]",
-    iconShell:
-      "bg-white border-rose-200/80 text-rose-500 shadow-[0_8px_18px_rgba(244,63,94,0.12)]",
+    surface: "bg-white border border-slate-200/80",
+    cta: "bg-slate-950 text-white shadow-[0_8px_18px_rgba(15,23,42,0.16)] hover:bg-blue-700 hover:-translate-y-0.5 border border-slate-950 hover:border-blue-700",
+    highlightCard: "border-slate-200/80 bg-white shadow-[0_8px_22px_rgba(15,23,42,0.045)]",
+    iconShell: "bg-slate-100 border-slate-200 text-rose-600",
     tagHover: "hover:border-rose-200/80 hover:text-rose-600",
   },
 };
@@ -265,12 +253,9 @@ const EventCard = memo(
     return (
       <motion.div
         {...motionProps}
-        className={`group rect-media-card relative overflow-hidden cursor-pointer flex flex-row md:flex-col h-full transform-gpu will-change-transform transition-[background-color,border-color,box-shadow] duration-200 ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(250,250,255,0.84))] border-slate-200/80 hover:border-fuchsia-200/80 hover:shadow-[0_18px_38px_rgba(124,58,237,0.08)]" : "bg-[#050712]/94 border-white/15 hover:border-indigo-300/30 hover:bg-[#070914]"}`}
+        className={`group rect-media-card relative overflow-hidden cursor-pointer flex flex-row md:flex-col h-full transform-gpu will-change-transform transition-[background-color,border-color,box-shadow] duration-200 ${isDayMode ? "bg-white border-slate-200/80 hover:border-slate-300 hover:shadow-[0_12px_28px_rgba(15,23,42,0.065)]" : "bg-[#050712]/94 border-white/15 hover:border-indigo-300/30 hover:bg-[#070914]"}`}
         onClick={() => onClick(event)}
       >
-        {isDayMode && (
-          <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-fuchsia-200/70 to-transparent opacity-70" />
-        )}
         {/* Image Section */}
         <div className="w-[112px] sm:w-1/3 md:w-full aspect-square md:h-56 overflow-hidden relative shrink-0 z-10 m-3 rounded-[5px] md:m-0 md:rounded-t-[6px] md:rounded-b-none">
           <SmartImage
@@ -287,7 +272,7 @@ const EventCard = memo(
 
           {/* Status Badge - Adjusted for mobile */}
           <div
-            className={`absolute top-2 right-2 md:top-4 md:right-4 px-2.5 py-1 md:px-3 md:py-1.5 rounded-[4px] text-[10px] md:text-xs font-bold uppercase tracking-wider shadow-none flex items-center gap-1.5 z-40 border ${getStatusColor(status, t)}`}
+            className={`absolute top-2 right-2 md:top-4 md:right-4 px-2.5 py-1 md:px-3 md:py-1.5 rounded-[4px] text-[10px] md:text-xs font-bold uppercase tracking-wider shadow-none flex items-center gap-1.5 z-40 border ${getStatusColor(status, t, isDayMode)}`}
           >
             {status === t("events.status.upcoming") && (
               <Clock size={12} className="md:w-3.5 md:h-3.5" />
@@ -314,7 +299,7 @@ const EventCard = memo(
             className={`flex flex-col md:flex-row md:items-center gap-1 md:gap-3 text-xs sm:text-sm mb-2 md:mb-3 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
           >
             <div className="flex items-center gap-1.5 shrink-0">
-              <Calendar size={14} className="text-indigo-400 md:w-4 md:h-4" />
+              <Calendar size={14} className={isDayMode ? "text-blue-600 md:w-4 md:h-4" : "text-indigo-400 md:w-4 md:h-4"} />
               <span
                 className={`font-medium whitespace-nowrap ${isDayMode ? "text-slate-700" : "text-gray-200"}`}
               >
@@ -334,7 +319,7 @@ const EventCard = memo(
             <div className="flex items-center gap-1.5 min-w-0">
               <MapPin
                 size={14}
-                className="text-indigo-400 shrink-0 md:w-4 md:h-4"
+                className={isDayMode ? "text-slate-400 shrink-0 md:w-4 md:h-4" : "text-indigo-400 shrink-0 md:w-4 md:h-4"}
               />
               <span className="truncate">
                 {event.location || t("common.online", "线上")}
@@ -380,7 +365,7 @@ const EventCard = memo(
             <div className="flex flex-wrap gap-1.5 md:gap-2 overflow-hidden min-h-[24px] md:min-h-[32px]">
               {event.category && (
                 <span
-                  className={`rect-chip px-1.5 py-0.5 md:px-2.5 md:py-1.5 text-[10px] md:text-xs font-medium flex items-center gap-1 shrink-0 max-w-[96px] md:max-w-[140px] ${isDayMode ? "bg-[linear-gradient(135deg,rgba(245,243,255,0.9),rgba(253,242,248,0.74))] text-violet-700 border-violet-200/80" : "bg-indigo-500/10 text-indigo-300 border-indigo-500/20"}`}
+                  className={`rect-chip px-1.5 py-0.5 md:px-2.5 md:py-1.5 text-[10px] md:text-xs font-medium flex items-center gap-1 shrink-0 max-w-[96px] md:max-w-[140px] ${isDayMode ? "bg-slate-50 text-slate-700 border-slate-200/80" : "bg-indigo-500/10 text-indigo-300 border-indigo-500/20"}`}
                 >
                   <Tag size={10} className="md:w-3 md:h-3" />
                   <span className="truncate">
@@ -407,13 +392,13 @@ const EventCard = memo(
                 count={event.likes || 0}
                 favorited={event.favorited}
                 initialFavorited={event.favorited}
-                className={`rect-icon-button p-1.5 md:p-2 transition-colors ${isDayMode ? "hover:bg-fuchsia-50 hover:text-fuchsia-600" : "hover:bg-white/10"}`}
+                className={`rect-icon-button p-1.5 md:p-2 transition-colors ${isDayMode ? "hover:bg-slate-100 hover:text-blue-700" : "hover:bg-white/10"}`}
                 onToggle={(favorited, likes) =>
                   onToggleFavorite(event.id, favorited, likes)
                 }
               />
               <div
-                className={`rect-icon-button p-1.5 md:p-2 transition-[background-color,color,transform] duration-200 group-hover:translate-x-0.5 ${isDayMode ? "bg-[linear-gradient(135deg,rgba(238,242,255,0.92),rgba(252,231,243,0.82))] text-violet-700 group-hover:bg-fuchsia-50" : "bg-white/5 group-hover:bg-white/10 group-hover:text-white"}`}
+                className={`rect-icon-button p-1.5 md:p-2 transition-[background-color,color,transform] duration-200 group-hover:translate-x-0.5 ${isDayMode ? "bg-slate-100 text-slate-600 group-hover:bg-slate-950 group-hover:text-white" : "bg-white/5 group-hover:bg-white/10 group-hover:text-white"}`}
               >
                 <ArrowRight
                   size={16}
@@ -954,11 +939,11 @@ END:VCALENDAR`;
     ? "rect-surface-soft"
     : "rect-surface-soft";
   const daySegmentActiveClass =
-    "border border-violet-200/80 bg-[linear-gradient(135deg,rgba(245,243,255,0.94),rgba(253,242,248,0.74)_52%,rgba(239,246,255,0.76))] text-violet-800 shadow-[0_10px_22px_rgba(124,58,237,0.08)]";
+    "border border-slate-300 bg-white text-slate-950 shadow-[0_4px_12px_rgba(15,23,42,0.06)]";
   const nightSegmentActiveClass =
     "border border-indigo-400/28 bg-indigo-500/16 text-indigo-100 shadow-none";
   const dayPrimaryActionClass =
-    "rect-button-primary bg-[linear-gradient(135deg,#818cf8,#c084fc_54%,#f9a8d4)] text-white border-white/40";
+    "rect-button-primary bg-slate-950 text-white border-slate-950 hover:bg-blue-700 hover:border-blue-700";
 
   const renderDiscoveryModeToggle = (compact = false) => (
     <div
@@ -1013,11 +998,7 @@ END:VCALENDAR`;
         title="活动"
         description="浏览浙江大学校内活动、志愿服务、讲座与报名信息。"
       />
-      {isDayMode ? (
-        <div className="fixed inset-0 pointer-events-none z-0 hidden overflow-hidden md:block">
-          <div className="absolute inset-0 bg-[radial-gradient(720px_300px_at_18%_8%,rgba(216,180,254,0.13),transparent_62%),radial-gradient(820px_360px_at_82%_4%,rgba(244,114,182,0.11),transparent_60%),radial-gradient(620px_320px_at_48%_0%,rgba(125,211,252,0.1),transparent_64%)]" />
-        </div>
-      ) : null}
+      {null}
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -1074,11 +1055,6 @@ END:VCALENDAR`;
             {t("events.subtitle")}
           </p>
         </div>
-
-        <ResourceSearchBar
-          placeholder="搜索活动、AI 社区、影像库与校园资源"
-          hint="搜索找资源 · 推荐助手做个性化建议"
-        />
 
         <div className="hidden md:flex items-center gap-2 w-full justify-center mb-4 xl:absolute xl:right-0 xl:top-0 xl:mb-0 xl:w-auto">
           <button
@@ -1382,7 +1358,7 @@ END:VCALENDAR`;
               onClick={() =>
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
               }
-               className={`rect-button-secondary px-6 py-2.5 transition-colors text-sm font-semibold ${isDayMode ? "text-slate-700 hover:border-indigo-200/80" : "text-white"}`}
+               className={`rect-button-secondary px-6 py-2.5 transition-colors text-sm font-semibold ${isDayMode ? "text-slate-700 hover:border-blue-200/80 hover:text-blue-700" : "text-white"}`}
             >
               {t("common.load_more", "加载更多")}
             </motion.button>
@@ -1394,7 +1370,7 @@ END:VCALENDAR`;
           <div
              className={`rect-panel p-8 mb-6 relative group ${isDayMode ? "bg-white/82 border-slate-200/80" : "bg-white/5 border-white/5"}`}
           >
-             <div className="absolute inset-x-6 bottom-0 h-px bg-indigo-400/0 opacity-0 group-hover:opacity-100 group-hover:bg-indigo-400/60 transition-opacity duration-300" />
+             <div className={`absolute inset-x-6 bottom-0 h-px opacity-0 transition-opacity duration-300 group-hover:opacity-100 ${isDayMode ? "bg-slate-200" : "bg-indigo-400/0 group-hover:bg-indigo-400/60"}`} />
             <Calendar
               size={64}
               className={`relative z-10 ${isDayMode ? "text-slate-400" : "text-white/40"}`}
@@ -1465,7 +1441,7 @@ END:VCALENDAR`;
               role="dialog"
               aria-modal="true"
               aria-label={selectedEvent?.title || t("events.title")}
-              className={`fixed inset-0 z-[140] flex items-end justify-center p-0 md:items-center md:p-4 backdrop-blur-md ${isDayMode ? "bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.15),rgba(255,255,255,0.88)_42%,rgba(241,245,249,0.96)_100%)]" : "bg-black/80"}`}
+              className={`fixed inset-0 z-[140] flex items-end justify-center p-0 md:items-center md:p-4 backdrop-blur-md ${isDayMode ? "bg-white/82" : "bg-black/80"}`}
               onClick={closeEvent}
             >
               <motion.div
@@ -1479,7 +1455,7 @@ END:VCALENDAR`;
                     ? undefined
                     : { duration: 0.28, ease: [0.22, 1, 0.36, 1] }
                 }
-                className={`w-full max-w-5xl overflow-hidden overscroll-contain shadow-2xl relative flex flex-col ${isMobileViewport ? "min-h-[100dvh] max-h-[100dvh] rounded-none border-0" : "min-h-[100dvh] md:min-h-0 max-h-[100dvh] md:max-h-[90vh] rounded-t-[7px] md:rounded-[7px] border-x-0 border-b-0 md:border"} ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.98))] border-slate-200/90 shadow-[0_36px_120px_rgba(15,23,42,0.16)] ring-1 ring-white/70" : "bg-[#0f0f0f] border-white/10"}`}
+                className={`w-full max-w-5xl overflow-hidden overscroll-contain shadow-2xl relative flex flex-col ${isMobileViewport ? "min-h-[100dvh] max-h-[100dvh] rounded-none border-0" : "min-h-[100dvh] md:min-h-0 max-h-[100dvh] md:max-h-[90vh] rounded-t-[7px] md:rounded-[7px] border-x-0 border-b-0 md:border"} ${isDayMode ? "bg-white border-slate-200/90 shadow-[0_28px_80px_rgba(15,23,42,0.14)]" : "bg-[#0f0f0f] border-white/10"}`}
                 onClick={(e) => e.stopPropagation()}
               >
                 {isDayMode && (
@@ -1629,7 +1605,7 @@ END:VCALENDAR`;
                               >
                                 {selectedEvent.title}
                                 <span
-                                  className={`inline-flex items-center justify-center align-middle ml-3 sm:ml-4 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-bold uppercase tracking-wider border backdrop-blur-md font-sans shadow-lg translate-y-[-0.1em] sm:translate-y-[-0.2em] ${isDayMode ? "ring-1 ring-white/50" : ""} ${getStatusColor(getEventLifecycle(selectedEvent.date, selectedEvent.end_date, t), t)}`}
+                                  className={`inline-flex items-center justify-center align-middle ml-3 sm:ml-4 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-bold uppercase tracking-wider border backdrop-blur-md font-sans shadow-lg translate-y-[-0.1em] sm:translate-y-[-0.2em] ${isDayMode ? "ring-1 ring-white/50" : ""} ${getStatusColor(getEventLifecycle(selectedEvent.date, selectedEvent.end_date, t), t, isDayMode)}`}
                                 >
                                   {getEventLifecycle(
                                     selectedEvent.date,
@@ -1717,7 +1693,7 @@ END:VCALENDAR`;
 
                   {isMobileViewport && (
                     <div
-                      className={`relative px-4 pt-5 pb-4 border-b ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.98))] border-slate-200/70" : "bg-[#0f0f0f] border-white/10"}`}
+                      className={`relative px-4 pt-5 pb-4 border-b ${isDayMode ? "bg-white border-slate-200/70" : "bg-[#0f0f0f] border-white/10"}`}
                     >
                       <button
                         onClick={closeEvent}
@@ -1823,7 +1799,7 @@ END:VCALENDAR`;
 
                   {!isMobileViewport && (
                     <div
-                      className={`relative px-8 pt-8 pb-6 border-b ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.98))] border-slate-200/70" : "bg-[#0f0f0f] border-white/10"}`}
+                      className={`relative px-8 pt-8 pb-6 border-b ${isDayMode ? "bg-white border-slate-200/70" : "bg-[#0f0f0f] border-white/10"}`}
                     >
                       <div className="pr-20 flex flex-col xl:flex-row xl:items-start xl:justify-between gap-5">
                         <div className="min-w-0 max-w-4xl">
@@ -1876,7 +1852,7 @@ END:VCALENDAR`;
                               </button>
                             )}
                             <span
-                              className={`inline-flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border ${isDayMode ? "ring-1 ring-white/50" : ""} ${getStatusColor(getEventLifecycle(selectedEvent.date, selectedEvent.end_date, t), t)}`}
+                              className={`inline-flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border ${isDayMode ? "ring-1 ring-white/50" : ""} ${getStatusColor(getEventLifecycle(selectedEvent.date, selectedEvent.end_date, t), t, isDayMode)}`}
                             >
                               {getEventLifecycle(
                                 selectedEvent.date,
@@ -1946,22 +1922,12 @@ END:VCALENDAR`;
                   )}
 
                   {/* Modal Content */}
-                  <div
-                    className={`p-4 sm:p-8 pt-5 pb-[max(env(safe-area-inset-bottom),24px)] sm:pb-8 ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0),rgba(248,250,252,0.9)_18%,rgba(248,250,252,1)_100%)]" : ""}`}
-                  >
+                  <div className="p-4 sm:p-8 pt-5 pb-[max(env(safe-area-inset-bottom),24px)] sm:pb-8">
                     <div className="flex flex-col-reverse lg:flex-row gap-6">
                       <div className="flex-1 space-y-4">
                         <div
-                          className={`rounded-lg p-5 sm:p-7 border h-full relative overflow-hidden ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.99))] border-slate-200/80 shadow-[0_22px_50px_rgba(15,23,42,0.08)]" : "bg-white/5 border-white/5"}`}
+                          className={`rounded-lg p-5 sm:p-7 border h-full relative overflow-hidden ${isDayMode ? "bg-white border-slate-200/80 shadow-[0_8px_22px_rgba(15,23,42,0.045)]" : "bg-white/5 border-white/5"}`}
                         >
-                          {isDayMode && (
-                            <>
-                              <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-[linear-gradient(180deg,rgba(255,255,255,0.55),rgba(255,255,255,0))]" />
-                              <div
-                                className={`pointer-events-none absolute -right-8 top-10 h-28 w-28 rounded-full blur-3xl ${eventThemeAccent.softGlow}`}
-                              />
-                            </>
-                          )}
                           <div className="relative">
                             <div
                               className={`inline-flex items-center gap-2 rounded-md px-3 py-1 mb-4 border ${isDayMode ? "bg-slate-50/90 text-slate-500 border-slate-200/80" : "bg-white/10 text-white/70 border-white/10"}`}
@@ -1981,7 +1947,7 @@ END:VCALENDAR`;
                             </h3>
                             {/* Render HTML content safely */}
                             <div
-                              className={`prose prose-lg max-w-none leading-relaxed ${isDayMode ? "prose-slate prose-headings:text-slate-900 prose-p:text-slate-600 prose-strong:text-slate-800 prose-a:text-indigo-600 prose-li:text-slate-600 text-slate-700" : "prose-invert text-gray-300"}`}
+                              className={`prose prose-lg max-w-none leading-relaxed ${isDayMode ? "prose-slate prose-headings:text-slate-900 prose-p:text-slate-600 prose-strong:text-slate-800 prose-a:text-blue-700 prose-li:text-slate-600 text-slate-700" : "prose-invert text-gray-300"}`}
                               dangerouslySetInnerHTML={{
                                 __html: DOMPurify.sanitize(
                                   selectedEvent.content ||
@@ -1996,23 +1962,13 @@ END:VCALENDAR`;
                       {/* Sidebar - Details & Link */}
                       <div className="lg:w-[360px] xl:w-[400px] space-y-4">
                         <div
-                          className={`rounded-lg p-5 sm:p-6 border lg:sticky lg:top-8 space-y-5 relative overflow-hidden ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(248,250,252,0.99))] border-slate-200/80 shadow-[0_22px_54px_rgba(15,23,42,0.08)]" : "bg-white/5 border-white/5"}`}
+                          className={`rounded-lg p-5 sm:p-6 border lg:sticky lg:top-8 space-y-5 relative overflow-hidden ${isDayMode ? "bg-white border-slate-200/80 shadow-[0_8px_22px_rgba(15,23,42,0.045)]" : "bg-white/5 border-white/5"}`}
                         >
-                          {isDayMode && (
-                            <>
-                              <div
-                                className={`pointer-events-none absolute inset-x-0 top-0 h-24 ${eventThemeAccent.backdropGlow}`}
-                              />
-                              <div
-                                className={`pointer-events-none absolute right-0 top-16 h-28 w-28 rounded-full blur-3xl ${eventThemeAccent.heroGlow}`}
-                              />
-                            </>
-                          )}
 
                           {/* Key Attributes Grid */}
                           {selectedEvent.category && (
                             <div
-                              className={`rounded-lg p-4 border backdrop-blur-sm ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(248,250,252,0.98))] border-slate-200/80 shadow-[0_16px_34px_rgba(15,23,42,0.06)]" : "bg-white/[0.03] border-white/5"}`}
+                              className={`rounded-lg p-4 border backdrop-blur-sm ${isDayMode ? "bg-slate-50 border-slate-200/80" : "bg-white/[0.03] border-white/5"}`}
                             >
                               <div
                                 className={`flex items-center gap-2 mb-3 ${eventThemeAccent.accentText}`}
@@ -2039,9 +1995,9 @@ END:VCALENDAR`;
                           {/* Detailed Info List */}
                           <div className="grid grid-cols-2 gap-3 sm:gap-4">
                             <div
-                              className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(248,250,252,0.98))] border-slate-200/80 shadow-[0_12px_26px_rgba(15,23,42,0.05)] hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(15,23,42,0.08)]" : "bg-white/[0.03] border-white/5"}`}
+                              className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-slate-50 border-slate-200/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
                             >
-                              <div className="p-2 bg-orange-500/5 border border-orange-500/10 rounded-xl text-orange-400 shrink-0 group-hover:bg-orange-500/10 transition-colors sm:p-2.5">
+                              <div className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border border-slate-200 text-blue-700" : "bg-orange-500/5 border border-orange-500/10 text-orange-400 group-hover:bg-orange-500/10"}`}>
                                 <Calendar size={18} className="sm:h-5 sm:w-5" />
                               </div>
                               <div className="min-w-0">
@@ -2065,9 +2021,9 @@ END:VCALENDAR`;
                             </div>
 
                             <div
-                              className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(248,250,252,0.98))] border-slate-200/80 shadow-[0_12px_26px_rgba(15,23,42,0.05)] hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(15,23,42,0.08)]" : "bg-white/[0.03] border-white/5"}`}
+                              className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-slate-50 border-slate-200/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
                             >
-                              <div className="p-2 bg-indigo-500/5 border border-indigo-500/10 rounded-xl text-indigo-400 shrink-0 group-hover:bg-indigo-500/10 transition-colors sm:p-2.5">
+                              <div className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border border-slate-200 text-blue-700" : "bg-indigo-500/5 border border-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/10"}`}>
                                 <MapPin size={18} className="sm:h-5 sm:w-5" />
                               </div>
                               <div className="min-w-0">
@@ -2086,7 +2042,7 @@ END:VCALENDAR`;
 
                             {selectedEvent.organizer && (
                               <div
-                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(248,250,252,0.98))] border-slate-200/80 shadow-[0_12px_26px_rgba(15,23,42,0.05)] hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(15,23,42,0.08)]" : "bg-white/[0.03] border-white/5"}`}
+                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-slate-50 border-slate-200/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
                               >
                                 <div className="p-2 bg-green-500/5 border border-green-500/10 rounded-xl text-green-400 shrink-0 group-hover:bg-green-500/10 transition-colors sm:p-2.5">
                                   <Building2
@@ -2111,9 +2067,9 @@ END:VCALENDAR`;
 
                             {selectedEvent.target_audience && (
                               <div
-                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(248,250,252,0.98))] border-slate-200/80 shadow-[0_12px_26px_rgba(15,23,42,0.05)] hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(15,23,42,0.08)]" : "bg-white/[0.03] border-white/5"}`}
+                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-slate-50 border-slate-200/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
                               >
-                                <div className="p-2 bg-blue-500/5 border border-blue-500/10 rounded-xl text-blue-400 shrink-0 group-hover:bg-blue-500/10 transition-colors sm:p-2.5">
+                                <div className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-fuchsia-50/80 border border-fuchsia-100 text-fuchsia-500 group-hover:bg-fuchsia-100/70" : "bg-blue-500/5 border border-blue-500/10 text-blue-400 group-hover:bg-blue-500/10"}`}>
                                   <Users size={18} className="sm:h-5 sm:w-5" />
                                 </div>
                                 <div className="min-w-0">
@@ -2133,7 +2089,7 @@ END:VCALENDAR`;
 
                             {selectedEvent.volunteer_time && (
                               <div
-                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(248,250,252,0.98))] border-slate-200/80 shadow-[0_12px_26px_rgba(15,23,42,0.05)] hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(15,23,42,0.08)]" : "bg-white/[0.03] border-white/5"}`}
+                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-slate-50 border-slate-200/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
                               >
                                 <div className="p-2 bg-emerald-500/5 border border-emerald-500/10 rounded-xl text-emerald-400 shrink-0 group-hover:bg-emerald-500/10 transition-colors sm:p-2.5">
                                   <Clock size={18} className="sm:h-5 sm:w-5" />
@@ -2155,7 +2111,7 @@ END:VCALENDAR`;
 
                             {selectedEvent.score && (
                               <div
-                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(248,250,252,0.98))] border-slate-200/80 shadow-[0_12px_26px_rgba(15,23,42,0.05)] hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(15,23,42,0.08)]" : "bg-white/[0.03] border-white/5"}`}
+                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-slate-50 border-slate-200/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
                               >
                                 <div className="p-2 bg-purple-500/5 border border-purple-500/10 rounded-xl text-purple-400 shrink-0 group-hover:bg-purple-500/10 transition-colors sm:p-2.5">
                                   <Award size={18} className="sm:h-5 sm:w-5" />

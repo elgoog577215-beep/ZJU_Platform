@@ -288,7 +288,7 @@ const CommunityNewsRail = () => {
           href={selectedNews.source_url}
           target="_blank"
           rel="noopener noreferrer"
-          className={`inline-flex items-center gap-1.5 text-sm font-semibold ${isDayMode ? 'text-blue-600 hover:text-blue-700' : 'text-blue-300 hover:text-blue-200'}`}
+          className={`inline-flex items-center gap-1.5 text-sm font-semibold ${isDayMode ? 'text-blue-700 hover:text-blue-800' : 'text-blue-300 hover:text-blue-200'}`}
         >
           {t('community.open_original', '查看原文')}
           <ExternalLink size={14} />
@@ -328,7 +328,7 @@ const CommunityNewsRail = () => {
             <button
               type="button"
               onClick={() => handleRelatedSelect({ ...articles[0], type: 'article' })}
-              className={`px-2.5 py-1.5 rounded-lg text-xs border ${isDayMode ? 'text-orange-700 border-orange-200 hover:bg-orange-50' : 'text-orange-300 border-orange-500/30 hover:bg-orange-500/10'}`}
+              className={`px-2.5 py-1.5 rounded-lg text-xs border ${isDayMode ? 'text-blue-700 border-blue-200 hover:bg-blue-50' : 'text-orange-300 border-orange-500/30 hover:bg-orange-500/10'}`}
             >
               {t('community.read_related_article', '去看相关文章')}
             </button>
@@ -357,10 +357,10 @@ const CommunityNewsRail = () => {
   })() : null;
 
   return (
-    <div className={`rounded-lg border backdrop-blur-xl p-4 md:p-5 ${isDayMode ? 'bg-gradient-to-br from-white/74 via-white/52 to-sky-50/42 border-white/75 shadow-[0_22px_54px_rgba(59,130,246,0.12)] ring-1 ring-slate-900/[0.025]' : 'bg-white/[0.045] border-white/10'}`}>
+    <div className={`rounded-lg border p-4 md:p-5 ${isDayMode ? 'bg-white border-slate-200/80 shadow-[0_8px_22px_rgba(15,23,42,0.045)]' : 'backdrop-blur-xl bg-white/[0.045] border-white/10'}`}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDayMode ? 'bg-white/70 text-blue-600 border border-white/75 shadow-[0_10px_24px_rgba(59,130,246,0.12)]' : 'bg-blue-500/15 text-blue-300'}`}>
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDayMode ? 'bg-slate-100 text-blue-700 border border-slate-200' : 'bg-blue-500/15 text-blue-300'}`}>
             <Newspaper size={16} />
           </div>
           <h3 className={`text-sm md:text-base font-bold ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
@@ -372,7 +372,7 @@ const CommunityNewsRail = () => {
           <button
             type="button"
             onClick={() => setIsUploadOpen(true)}
-            className={`inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border ${isDayMode ? 'bg-white/58 text-slate-700 border-white/75 hover:bg-white/82' : 'bg-white/5 text-gray-200 border-white/10 hover:bg-white/10'}`}
+            className={`inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border ${isDayMode ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50' : 'bg-white/5 text-gray-200 border-white/10 hover:bg-white/10'}`}
           >
             <PlusCircle size={13} />
             {t('common.publish', '发布')}
@@ -388,8 +388,8 @@ const CommunityNewsRail = () => {
             onClick={() => setActiveSort(key)}
             className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs border transition-all ${
               activeSort === key
-                ? (isDayMode ? 'bg-blue-500 text-white border-blue-500' : 'bg-blue-500 text-white border-blue-500')
-                : (isDayMode ? 'bg-white/48 text-slate-600 border-white/70 hover:bg-white/78 hover:text-slate-950' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10')
+                ? (isDayMode ? 'bg-slate-950 text-white border-slate-950 shadow-[0_6px_16px_rgba(15,23,42,0.14)]' : 'bg-blue-500 text-white border-blue-500')
+                : (isDayMode ? 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-950' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10')
             }`}
           >
             <Icon size={13} />
@@ -407,8 +407,8 @@ const CommunityNewsRail = () => {
               onClick={() => setAdminStatusFilter(item.key)}
               className={`px-2.5 py-1 rounded-md text-[11px] border transition-all ${
                 adminStatusFilter === item.key
-                  ? (isDayMode ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-indigo-500 text-white border-indigo-500')
-                  : (isDayMode ? 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10')
+                  ? (isDayMode ? 'bg-white text-slate-950 border-slate-300' : 'bg-indigo-500 text-white border-indigo-500')
+                  : (isDayMode ? 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-white hover:text-slate-950' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10')
               }`}
             >
               {item.label}
@@ -418,7 +418,7 @@ const CommunityNewsRail = () => {
       ) : null}
 
       {isAdmin ? (
-        <div className={`mb-4 p-2 rounded-lg border ${isDayMode ? 'bg-white/48 border-white/70' : 'bg-white/[0.03] border-white/10'}`}>
+        <div className={`mb-4 p-2 rounded-lg border ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
           <div className="flex gap-2">
             <input
               type="url"
@@ -431,7 +431,7 @@ const CommunityNewsRail = () => {
               type="button"
               onClick={handleImportNews}
               disabled={isImporting}
-              className="px-3 h-9 rounded-lg text-xs font-semibold bg-blue-500 text-white disabled:opacity-60"
+              className={`px-3 h-9 rounded-lg text-xs font-semibold disabled:opacity-60 ${isDayMode ? 'bg-slate-950 text-white' : 'bg-blue-500 text-white'}`}
             >
               {isImporting ? t('common.loading', '加载中') : t('community.import', '导入')}
             </button>
@@ -439,14 +439,14 @@ const CommunityNewsRail = () => {
         </div>
       ) : null}
 
-      <div className={`mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs ${isDayMode ? 'bg-white/48 border-white/70 text-slate-500 shadow-inner shadow-white/50' : 'bg-white/[0.03] border-white/10 text-gray-400'}`}>
+      <div className={`mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs ${isDayMode ? 'bg-slate-50 border-slate-200 text-slate-500' : 'bg-white/[0.03] border-white/10 text-gray-400'}`}>
         <div className="flex flex-wrap items-center gap-2">
           <span>{list.length} {t('community.results_count', '条结果')}</span>
-          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${isDayMode ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-blue-500/10 text-blue-300 border-blue-500/20'}`}>
+          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${isDayMode ? 'bg-white text-slate-600 border-slate-200' : 'bg-blue-500/10 text-blue-300 border-blue-500/20'}`}>
             {isLatestSort ? t('community.news_latest', '最新') : t('community.news_hot', '热门')}
           </span>
           {hasActiveAdminFilter ? (
-            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${isDayMode ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20'}`}>
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${isDayMode ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20'}`}>
               {t('community.filtered_view', '已应用筛选')}
             </span>
           ) : null}
@@ -492,11 +492,11 @@ const CommunityNewsRail = () => {
             type="button"
             onClick={() => handleOpen(item)}
             className={`w-full text-left rounded-lg border p-3 transition-all group ${
-              isDayMode ? 'bg-white/52 border-white/70 hover:border-blue-300/70 hover:bg-white/82 shadow-[0_8px_22px_rgba(59,130,246,0.06)]' : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.06] hover:border-blue-400/40'
+              isDayMode ? 'bg-white border-slate-200/80 hover:border-slate-300 hover:bg-slate-50 shadow-none' : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.06] hover:border-blue-400/40'
             }`}
           >
             <div className="flex items-start gap-2">
-              <span className={`text-xs font-black mt-0.5 ${index < 3 ? 'text-orange-500' : (isDayMode ? 'text-slate-400' : 'text-gray-500')}`}>
+              <span className={`text-xs font-black mt-0.5 ${index < 3 ? (isDayMode ? 'text-blue-700' : 'text-orange-500') : (isDayMode ? 'text-slate-400' : 'text-gray-500')}`}>
                 {String(index + 1).padStart(2, '0')}
               </span>
               <div className="min-w-0 flex-1">
@@ -542,7 +542,7 @@ const CommunityNewsRail = () => {
                       tabIndex={0}
                       onClick={(e) => { e.stopPropagation(); handleTuneScore(item, 'pin_weight', 1); }}
                       onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); handleTuneScore(item, 'pin_weight', 1); } }}
-                      className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] border ${isDayMode ? 'text-indigo-700 border-indigo-200 hover:bg-indigo-50' : 'text-indigo-300 border-indigo-500/30 hover:bg-indigo-500/10'}`}
+                      className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] border ${isDayMode ? 'text-amber-700 border-amber-200 hover:bg-amber-50' : 'text-indigo-300 border-indigo-500/30 hover:bg-indigo-500/10'}`}
                     >
                       权重+1
                     </span>
@@ -627,13 +627,13 @@ const CommunityNewsRail = () => {
         item={detailItem}
         onClose={handleClose}
         isDayMode={isDayMode}
-        gradientFrom="from-sky-900/35"
+        gradientFrom={isDayMode ? "from-slate-100" : "from-sky-900/35"}
         coverImage={selectedNews?.cover}
         shareParam="news"
         onRelatedSelect={handleRelatedSelect}
         headerContent={selectedNews ? (
           <>
-            <div className={`text-xs md:text-sm flex flex-wrap items-center gap-3 mb-4 ${isDayMode ? 'text-sky-700' : 'text-sky-200'}`}>
+            <div className={`text-xs md:text-sm flex flex-wrap items-center gap-3 mb-4 ${isDayMode ? 'text-blue-700' : 'text-sky-200'}`}>
               <span>{selectedNews.source_name || t('community.news_source_internal', '站内')}</span>
               <span>•</span>
               <span>{selectedNews.created_at ? new Date(selectedNews.created_at).toLocaleDateString('zh-CN') : ''}</span>

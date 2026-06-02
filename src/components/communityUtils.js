@@ -100,17 +100,17 @@ export const communityTheme = (isDayMode) => ({
 
   // Cards & skeleton
   card: isDayMode
-    ? 'bg-gradient-to-br from-white/80 via-white/66 to-orange-50/30 border-slate-200/80 shadow-[0_12px_30px_rgba(15,23,42,0.07)] ring-1 ring-white/60'
+    ? 'bg-white border-slate-200/80 shadow-[0_8px_22px_rgba(15,23,42,0.045)]'
     : 'bg-white/[0.045] border-white/10',
   cardHover: isDayMode
-    ? 'bg-gradient-to-br from-white/80 via-white/66 to-orange-50/30 hover:from-white hover:via-white/82 hover:to-amber-50/42 border-slate-200/80 shadow-[0_12px_30px_rgba(15,23,42,0.07)] ring-1 ring-white/60'
+    ? 'bg-white hover:bg-white border-slate-200/80 hover:border-slate-300 shadow-[0_8px_22px_rgba(15,23,42,0.045)] hover:shadow-[0_12px_28px_rgba(15,23,42,0.065)]'
     : 'bg-white/[0.045] hover:bg-white/[0.07] border-white/10',
   skeleton: isDayMode ? 'bg-slate-100' : 'bg-white/5',
   skeletonStrong: isDayMode ? 'bg-slate-100' : 'bg-white/10',
 
   // Buttons
   btnSecondary: isDayMode
-    ? 'bg-white/85 hover:bg-white text-slate-700 border-slate-200/80 shadow-[0_12px_28px_rgba(148,163,184,0.14)]'
+    ? 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200/80 shadow-none'
     : 'bg-white/10 hover:bg-white/20 text-white border-white/10',
   btnLoadMore: isDayMode
     ? 'bg-white/88 hover:bg-white text-slate-700 border-slate-200/80'

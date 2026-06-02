@@ -65,7 +65,7 @@ const TrackItem = memo(
               ? "bg-cyan-50 border-cyan-200/80 shadow-[0_12px_28px_rgba(34,211,238,0.12)]"
               : "bg-cyan-500/10 border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.15)]"
             : isDayMode
-              ? "day-card-lift hover:border-cyan-200/80"
+              ? "day-card-lift hover:border-blue-200/80"
               : "bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10 hover:shadow-lg hover:shadow-black/20"
         }`}
         onClick={() => onClick(track)}
@@ -109,7 +109,7 @@ const TrackItem = memo(
         <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
           <div className="flex items-center gap-2">
             <h4
-              className={`font-bold truncate text-base md:text-lg ${isActive ? "text-cyan-500" : isDayMode ? "text-slate-900 group-hover:text-cyan-500" : "text-white group-hover:text-cyan-400"} transition-colors`}
+              className={`font-bold truncate text-base md:text-lg ${isActive ? (isDayMode ? "text-blue-700" : "text-cyan-500") : isDayMode ? "text-slate-900 group-hover:text-blue-700" : "text-white group-hover:text-cyan-400"} transition-colors`}
             >
               {track.title}
             </h4>
@@ -414,9 +414,13 @@ const Music = () => {
       />
       {/* Ambient Background */}
       <div className="fixed inset-0 pointer-events-none z-0 hidden overflow-hidden md:block">
-        <div className={`absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] ${isDayMode ? "bg-violet-200/24" : "bg-purple-500/10"}`} />
-        <div className={`absolute top-[40%] right-[-10%] w-[40%] h-[40%] rounded-full blur-[100px] ${isDayMode ? "bg-cyan-200/22" : "bg-cyan-500/10"}`} />
-        <div className={`absolute bottom-[-10%] left-[20%] w-[60%] h-[40%] rounded-full blur-[120px] ${isDayMode ? "bg-indigo-200/18" : "bg-indigo-500/10"}`} />
+        {!isDayMode && (
+          <>
+            <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] bg-purple-500/10" />
+            <div className="absolute top-[40%] right-[-10%] w-[40%] h-[40%] rounded-full blur-[100px] bg-cyan-500/10" />
+          </>
+        )}
+        <div className={`absolute bottom-[-10%] left-[20%] w-[60%] h-[40%] rounded-full blur-[120px] ${isDayMode ? "bg-slate-200/18" : "bg-indigo-500/10"}`} />
       </div>
 
       <motion.div
@@ -628,7 +632,7 @@ const Music = () => {
                     count={activeTrack.likes}
                     favorited={activeTrack.favorited}
                     initialFavorited={activeTrack.favorited}
-                    className={`p-2 rounded-full transition-colors border ${isDayMode ? "bg-white/85 hover:bg-cyan-50 border-slate-200/80 text-slate-700" : "bg-white/5 hover:bg-cyan-500/20 border-white/10"}`}
+                    className={`p-2 rounded-full transition-colors border ${isDayMode ? "bg-white hover:bg-slate-50 border-slate-200/80 text-slate-700" : "bg-white/5 hover:bg-cyan-500/20 border-white/10"}`}
                     onToggle={handleTrackToggleFavorite}
                   />
                 </div>
@@ -644,7 +648,7 @@ const Music = () => {
                 value={progress}
                 onChange={handleSeek}
                 aria-label={t("music.seek", "播放进度")}
-                className={`w-full h-1 rounded-full appearance-none cursor-pointer transition-colors ${isDayMode ? "bg-slate-200/90 accent-cyan-500 hover:accent-cyan-600" : "bg-white/10 accent-cyan-400 hover:accent-cyan-300"}`}
+                className={`w-full h-1 rounded-full appearance-none cursor-pointer transition-colors ${isDayMode ? "bg-slate-200/90 accent-blue-600 hover:accent-blue-700" : "bg-white/10 accent-cyan-400 hover:accent-cyan-300"}`}
               />
               <div
                 className={`flex justify-between text-xs font-mono mt-2 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
@@ -783,7 +787,7 @@ const Music = () => {
                   </p>
                   <button
                     onClick={refresh}
-                  className={`px-6 py-2 rounded-full transition-all border ${isDayMode ? "day-quiet-button hover:text-cyan-600" : "bg-white/10 hover:bg-white/20 text-white border border-white/10"}`}
+                  className={`px-6 py-2 rounded-full transition-all border ${isDayMode ? "day-quiet-button hover:text-blue-700" : "bg-white/10 hover:bg-white/20 text-white border border-white/10"}`}
                   >
                     {t("common.retry", "重试")}
                   </button>
@@ -829,7 +833,7 @@ const Music = () => {
                   }
                   whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
                   onClick={() => setCurrentPage((prev) => prev + 1)}
-                  className={`px-6 py-2.5 rounded-full border transition-colors text-sm font-semibold ${isDayMode ? "day-quiet-button hover:text-cyan-600" : "bg-white/10 hover:bg-white/15 text-white border-white/10 hover:border-white/20"}`}
+                  className={`px-6 py-2.5 rounded-full border transition-colors text-sm font-semibold ${isDayMode ? "day-quiet-button hover:text-blue-700" : "bg-white/10 hover:bg-white/15 text-white border-white/10 hover:border-white/20"}`}
                 >
                   {t("common.load_more", "加载更多")}
                 </motion.button>

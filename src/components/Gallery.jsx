@@ -98,8 +98,8 @@ const PhotoCard = memo(
                       initialFavorited={photo.favorited}
                       className={`p-2 rounded-full backdrop-blur-md 
                                        transition-all duration-200 text-white border
-                                       ${isDayMode ? "bg-white/70 hover:bg-pink-500/30 border-white/40 shadow-[0_12px_24px_rgba(15,23,42,0.18)]" : "bg-white/10 border-white/10"}
-                                       hover:border-pink-500/50 hover:shadow-lg hover:shadow-pink-500/20`}
+                                       ${isDayMode ? "bg-white/82 hover:bg-white border-white/60 shadow-[0_10px_20px_rgba(15,23,42,0.16)]" : "bg-white/10 border-white/10"}
+                                       hover:border-white/70 hover:shadow-lg`}
                       onToggle={(favorited, likes) =>
                         onToggleFavorite(photo.id, favorited, likes)
                       }
@@ -108,7 +108,7 @@ const PhotoCard = memo(
                   <div
                     className={`p-2 rounded-full backdrop-blur-md border 
                                   ${isDayMode ? "bg-white/72 border-white/40 shadow-[0_12px_24px_rgba(15,23,42,0.18)]" : "bg-white/20 border-white/10"} 
-                                  group-hover:bg-indigo-500 group-hover:text-white 
+                                  ${isDayMode ? "group-hover:bg-slate-950" : "group-hover:bg-indigo-500"} group-hover:text-white
                                   transition-all duration-300`}
                   >
                     <Maximize2 size={18} />
@@ -351,7 +351,7 @@ const Gallery = () => {
       />
       {/* Enhanced Ambient Background */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        {allowAmbientEffects ? (
+        {!isDayMode && allowAmbientEffects ? (
           <>
             <motion.div
               animate={{
@@ -363,7 +363,7 @@ const Gallery = () => {
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
-              className={`absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full blur-[130px] ${isDayMode ? "bg-violet-200/10" : "bg-blue-500/10"}`}
+              className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full blur-[130px] bg-blue-500/10"
             />
             <motion.div
               animate={{
@@ -376,15 +376,15 @@ const Gallery = () => {
                 ease: "easeInOut",
                 delay: 1,
               }}
-              className={`absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] ${isDayMode ? "bg-rose-100/12" : "bg-cyan-500/10"}`}
+              className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] bg-cyan-500/10"
             />
           </>
-        ) : (
+        ) : !isDayMode ? (
           <>
-            <div className={`absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full blur-[90px] hidden md:block ${isDayMode ? "bg-violet-200/10" : "bg-blue-500/10"}`} />
-            <div className={`absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[80px] hidden md:block ${isDayMode ? "bg-rose-100/12" : "bg-cyan-500/10"}`} />
+            <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full blur-[90px] hidden md:block bg-blue-500/10" />
+            <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[80px] hidden md:block bg-cyan-500/10" />
           </>
-        )}
+        ) : null}
       </div>
 
       <motion.div
@@ -424,7 +424,7 @@ const Gallery = () => {
           }}
           className={`hidden md:mx-auto md:mb-4 md:block xl:absolute xl:right-0 xl:top-2 xl:mb-0 p-2 md:p-3 rounded-full backdrop-blur-md border transition-all ${
             isDayMode
-              ? "day-quiet-button text-slate-700 hover:text-violet-700"
+              ? "day-quiet-button text-slate-700 hover:text-blue-700"
               : "bg-white/10 hover:bg-white/20 text-white border-white/10 hover:shadow-lg hover:shadow-indigo-500/20"
           }`}
           title={t("common.upload_photo")}
@@ -604,7 +604,7 @@ const Gallery = () => {
               onClick={() =>
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
               }
-              className={`px-6 py-2.5 rounded-full border transition-colors text-sm font-semibold ${isDayMode ? "day-quiet-button hover:text-violet-700" : "bg-white/10 hover:bg-white/15 text-white border-white/10 hover:border-white/20"}`}
+              className={`px-6 py-2.5 rounded-full border transition-colors text-sm font-semibold ${isDayMode ? "day-quiet-button hover:text-blue-700" : "bg-white/10 hover:bg-white/15 text-white border-white/10 hover:border-white/20"}`}
             >
               {t("common.load_more", "加载更多")}
             </motion.button>

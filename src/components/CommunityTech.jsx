@@ -69,14 +69,11 @@ const ArticleCard = memo(({
       animate={canAnimate ? { opacity: 1, y: 0 } : undefined}
       transition={canAnimate ? { duration: 0.24, delay: Math.min(index, 5) * 0.03 } : undefined}
       onClick={() => onClick(article)}
-      className={`group relative overflow-hidden rounded-lg border p-3.5 backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-orange-300/55 md:p-5 ${isDayMode ? 'bg-gradient-to-br from-white/82 via-white/70 to-slate-50/56 hover:from-white hover:via-white/84 hover:to-slate-50/70 border-slate-200/80 shadow-[0_12px_30px_rgba(15,23,42,0.07)] hover:shadow-[0_18px_34px_-26px_rgba(15,23,42,0.22),0_0_0_1px_rgba(251,146,60,0.1)] ring-1 ring-white/60' : 'bg-white/[0.045] hover:bg-white/[0.07] border-white/10 hover:shadow-[0_20px_40px_-15px_rgba(249,115,22,0.15)]'}`}
+      className={`group relative overflow-hidden rounded-lg border p-3.5 transition-all duration-300 hover:-translate-y-0.5 md:p-5 ${isDayMode ? 'bg-white border-slate-200/80 shadow-[0_8px_22px_rgba(15,23,42,0.045)] hover:border-slate-300 hover:shadow-[0_12px_28px_rgba(15,23,42,0.065)]' : 'bg-white/[0.045] hover:bg-white/[0.07] border-white/10 hover:shadow-[0_20px_40px_-15px_rgba(249,115,22,0.15)]'}`}
     >
-      <div className={`pointer-events-none absolute inset-x-0 top-0 h-px ${isDayMode ? 'bg-gradient-to-r from-transparent via-orange-200/65 to-transparent' : 'bg-gradient-to-r from-transparent via-orange-500/20 to-transparent'}`} />
+      <div className={`pointer-events-none absolute inset-x-0 top-0 h-px ${isDayMode ? 'bg-slate-200/80' : 'bg-gradient-to-r from-transparent via-orange-500/20 to-transparent'}`} />
       {isDayMode ? (
-        <>
-          <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/90 to-transparent opacity-80" />
-          <div className="pointer-events-none absolute inset-x-5 top-0 h-8 bg-gradient-to-b from-white/28 to-transparent opacity-70 transition-opacity duration-300 group-hover:opacity-95" />
-        </>
+        null
       ) : null}
       <div className="flex gap-3 md:gap-6 items-start">
         {article.cover && (
@@ -115,7 +112,7 @@ const ArticleCard = memo(({
             <span>•</span>
             <span className="flex items-center gap-1"><Clock size={12} />{calculateReadingTime(article.content, t)}</span>
           </div>
-          <h3 className={`text-lg md:text-2xl font-bold leading-tight line-clamp-2 group-hover:text-orange-400 transition-colors ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
+          <h3 className={`text-lg md:text-2xl font-bold leading-tight line-clamp-2 transition-colors ${isDayMode ? 'text-slate-900 group-hover:text-blue-700' : 'text-white group-hover:text-orange-400'}`}>
             {article.title}
           </h3>
           <p className={`hidden md:block line-clamp-2 text-[15px] leading-7 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{article.excerpt}</p>
@@ -128,10 +125,10 @@ const ArticleCard = memo(({
               showCount
               count={article.likes || 0}
               initialFavorited={article.favorited}
-              className={`min-h-[44px] min-w-[44px] p-1.5 md:min-h-0 md:min-w-0 md:p-2 rounded-md transition-colors hover:text-orange-500 ${isDayMode ? 'hover:bg-white/80 text-slate-500' : 'hover:bg-white/10 text-gray-400'}`}
+              className={`min-h-[44px] min-w-[44px] p-1.5 md:min-h-0 md:min-w-0 md:p-2 rounded-md transition-colors ${isDayMode ? 'hover:bg-slate-100 hover:text-blue-700 text-slate-500' : 'hover:bg-white/10 hover:text-orange-500 text-gray-400'}`}
               onToggle={(favorited, likes) => onToggleFavorite(article.id, favorited, likes)}
             />
-            <div className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center p-1.5 md:min-h-0 md:min-w-0 md:p-2 rounded-md group-hover:bg-orange-500 group-hover:text-black transition-all duration-300 ${isDayMode ? 'bg-white/72 text-orange-500 shadow-[0_10px_22px_rgba(249,115,22,0.16)]' : 'bg-white/5'}`}>
+            <div className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center p-1.5 md:min-h-0 md:min-w-0 md:p-2 rounded-md transition-all duration-300 ${isDayMode ? 'bg-slate-100 text-slate-500 group-hover:bg-slate-950 group-hover:text-white' : 'bg-white/5 group-hover:bg-orange-500 group-hover:text-black'}`}>
               <ArrowRight size={16} className="-rotate-45 group-hover:rotate-0 transition-transform duration-300" />
             </div>
           </div>
@@ -435,13 +432,13 @@ const CommunityTech = () => {
   };
 
   const featuredSection = featuredArticle ? (
-    <div className={`mb-5 rounded-none border border-transparent bg-transparent p-0 shadow-none ring-0 backdrop-blur-0 md:rounded-lg md:border md:p-5 ${isDayMode ? 'md:bg-gradient-to-br md:from-white/78 md:via-white/62 md:to-slate-50/48 md:border-orange-200/45 md:shadow-[0_16px_38px_rgba(15,23,42,0.08)] md:ring-1 md:ring-white/70 md:backdrop-blur-2xl' : 'md:bg-gradient-to-br md:from-orange-500/10 md:via-white/[0.03] md:to-amber-500/10 md:border-orange-500/20'}`}>
+    <div className={`mb-5 rounded-none border border-transparent bg-transparent p-0 shadow-none ring-0 backdrop-blur-0 md:rounded-lg md:border md:p-5 ${isDayMode ? 'md:bg-white md:border-slate-200/80 md:shadow-[0_8px_22px_rgba(15,23,42,0.045)]' : 'md:bg-gradient-to-br md:from-orange-500/10 md:via-white/[0.03] md:to-amber-500/10 md:border-orange-500/20'}`}>
       <div className="mb-3 flex items-center justify-between gap-3 px-1 md:mb-4 md:px-0">
         <div className="flex items-center gap-2">
-        <Sparkles size={16} className={isDayMode ? 'text-orange-600' : 'text-orange-300'} />
-        <span className={`text-xs uppercase tracking-[0.22em] ${isDayMode ? 'text-orange-700' : 'text-orange-300'}`}>精选文章</span>
+        <Sparkles size={16} className={isDayMode ? 'text-blue-700' : 'text-orange-300'} />
+        <span className={`text-xs uppercase tracking-[0.22em] ${isDayMode ? 'text-blue-700' : 'text-orange-300'}`}>精选文章</span>
         </div>
-        <span className={`hidden text-[11px] font-medium md:inline ${isDayMode ? 'text-orange-600/80' : 'text-orange-200/70'}`}>Editor&apos;s Pick</span>
+        <span className={`hidden text-[11px] font-medium md:inline ${isDayMode ? 'text-slate-500' : 'text-orange-200/70'}`}>Editor&apos;s Pick</span>
       </div>
       <ArticleCard
         article={featuredArticle}
@@ -461,7 +458,7 @@ const CommunityTech = () => {
           key={mode.key}
           type="button"
           onClick={() => setViewMode(mode.key)}
-          className={`min-h-[32px] px-3 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${viewMode === mode.key ? (isDayMode ? 'bg-indigo-500 text-white shadow-[0_8px_18px_rgba(99,102,241,0.18)]' : 'bg-indigo-500/20 text-indigo-100 shadow-[inset_0_0_0_1px_rgba(129,140,248,0.35)]') : (isDayMode ? 'text-slate-600 hover:bg-white hover:text-slate-950' : 'text-gray-300 hover:bg-white/10')}`}
+          className={`min-h-[32px] px-3 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${viewMode === mode.key ? (isDayMode ? 'bg-white text-slate-950 border border-slate-300 shadow-[0_4px_12px_rgba(15,23,42,0.06)]' : 'bg-indigo-500/20 text-indigo-100 shadow-[inset_0_0_0_1px_rgba(129,140,248,0.35)]') : (isDayMode ? 'text-slate-600 hover:bg-white hover:text-slate-950' : 'text-gray-300 hover:bg-white/10')}`}
         >
           {mode.label}
         </button>
@@ -519,14 +516,14 @@ const CommunityTech = () => {
       item={feed.selectedItem}
       onClose={handleCloseDetail}
       isDayMode={isDayMode}
-      gradientFrom="from-orange-900/40"
+      gradientFrom={isDayMode ? "from-slate-100" : "from-orange-900/40"}
       headerHeight="h-72 sm:h-96"
       coverImage={feed.selectedItem?.cover}
       shareParam="id"
       onRelatedSelect={handleRelatedSelect}
       headerContent={feed.selectedItem ? (
         <>
-          <div className={`flex items-center gap-3 font-bold text-lg md:text-xl uppercase tracking-[0.2em] mb-4 ${isDayMode ? 'text-orange-500' : 'text-orange-300 drop-shadow-lg'}`}>
+          <div className={`flex items-center gap-3 font-bold text-lg md:text-xl uppercase tracking-[0.2em] mb-4 ${isDayMode ? 'text-blue-700' : 'text-orange-300 drop-shadow-lg'}`}>
             <span>{feed.selectedItem.date}</span>
           </div>
           <h2 className={`text-4xl md:text-6xl font-black leading-[0.95] tracking-tight font-serif ${isDayMode ? 'text-slate-900' : 'text-white drop-shadow-2xl'}`}>

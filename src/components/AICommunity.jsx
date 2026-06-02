@@ -19,7 +19,6 @@ import CommunityTech from "./CommunityTech";
 import CommunityHelp from "./CommunityHelp";
 import CommunityGroups from "./CommunityGroups";
 import CommunityNewsRail from "./CommunityNewsRail";
-import ResourceSearchBar from "./ResourceSearchBar";
 
 const panels = {
   help: CommunityHelp,
@@ -94,24 +93,20 @@ const AICommunity = () => {
   const activeTabMeta = TABS.find((tab) => tab.key === activeTab) || TABS[0];
   const ActiveIcon = activeTabMeta.icon;
   const dayCommunityPalette = {
-    page:
-      "bg-[radial-gradient(900px_420px_at_78%_3%,rgba(251,146,60,0.16),transparent_60%),radial-gradient(760px_360px_at_18%_0%,rgba(253,186,116,0.11),transparent_60%),radial-gradient(620px_320px_at_56%_30%,rgba(14,165,233,0.055),transparent_64%),linear-gradient(180deg,#fcfbf8_0%,#f8faf9_48%,#fffaf5_100%)] text-slate-950",
+    page: "bg-transparent text-slate-950",
     hero:
-      "border-orange-100/75 bg-[linear-gradient(135deg,rgba(255,255,255,0.9),rgba(255,247,237,0.72)_58%,rgba(248,250,252,0.78))] shadow-[0_24px_70px_rgba(154,52,18,0.075)] ring-1 ring-white/70",
+      "border-slate-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.045)]",
     rail:
-      "border-orange-100/70 bg-white/74 shadow-[0_18px_46px_rgba(154,52,18,0.055)]",
+      "border-slate-200/80 bg-white shadow-[0_8px_22px_rgba(15,23,42,0.045)]",
     muted: "text-slate-600",
     soft: "text-slate-500",
-    label: "text-orange-700",
-    tabShell:
-      "border-orange-100/80 bg-[linear-gradient(135deg,rgba(255,255,255,0.82),rgba(255,247,237,0.62))]",
+    label: "text-blue-700",
+    tabShell: "border-slate-200/80 bg-slate-100/80",
     tabActive:
-      "border-orange-300/80 bg-[linear-gradient(135deg,rgba(255,237,213,0.96),rgba(254,215,170,0.8)_54%,rgba(255,255,255,0.82))] text-orange-950 shadow-[0_12px_26px_rgba(234,88,12,0.11)]",
-    tabIdle: "border-transparent text-slate-600 hover:bg-white/86 hover:text-orange-900",
-    stat:
-      "border-orange-100/75 bg-[linear-gradient(180deg,rgba(255,255,255,0.84),rgba(255,247,237,0.62))]",
-    action:
-      "bg-[linear-gradient(135deg,#f97316,#f59e0b_58%,#fde68a)] text-slate-950 shadow-[0_14px_28px_rgba(234,88,12,0.16)] hover:shadow-[0_18px_36px_rgba(234,88,12,0.2)] hover:-translate-y-0.5 border border-white/45",
+      "border-slate-300 bg-white text-slate-950 shadow-[0_4px_12px_rgba(15,23,42,0.06)]",
+    tabIdle: "border-transparent text-slate-600 hover:bg-white hover:text-slate-950",
+    stat: "border-slate-200/80 bg-white",
+    action: "bg-slate-950 text-white border border-slate-950 shadow-[0_8px_18px_rgba(15,23,42,0.16)] hover:bg-blue-700 hover:border-blue-700 hover:-translate-y-0.5",
   };
   const palette = isDayMode
     ? {
@@ -144,13 +139,6 @@ const AICommunity = () => {
         {isDayMode ? null : (
           <div className="absolute inset-x-0 top-0 h-80 bg-[linear-gradient(180deg,rgba(6,182,212,0.08),transparent)]" />
         )}
-        {isDayMode ? (
-          <>
-            <div className="absolute inset-x-0 top-0 h-px bg-orange-100/80" />
-            <div className="absolute right-[8%] top-20 hidden h-72 w-72 rounded-full bg-orange-200/18 blur-[110px] md:block" />
-            <div className="absolute left-[6%] top-32 hidden h-64 w-64 rounded-full bg-amber-100/22 blur-[100px] md:block" />
-          </>
-        ) : null}
       </div>
 
       <div className="relative z-10 mx-auto grid w-full max-w-[1180px] gap-6 2xl:max-w-[1540px] 2xl:grid-cols-[320px_minmax(0,1fr)] 2xl:items-start">
@@ -160,17 +148,11 @@ const AICommunity = () => {
 
         <div className="mx-auto w-full min-w-0 max-w-[1100px] 2xl:max-w-none">
           <header className="mb-5 md:mb-7">
-            <div className={`relative overflow-hidden border p-4 backdrop-blur-2xl md:p-6 lg:p-7 ${palette.hero}`}>
-              {isDayMode && (
-                <>
-                  <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[radial-gradient(circle,rgba(251,146,60,0.2),transparent_66%)] blur-2xl" />
-                  <div className="pointer-events-none absolute left-10 top-0 h-px w-2/5 bg-gradient-to-r from-transparent via-orange-200/80 to-transparent" />
-                </>
-              )}
+            <div className={`relative overflow-hidden border p-4 md:p-6 lg:p-7 ${palette.hero}`}>
               <div className="pointer-events-none absolute -right-10 -top-12 hidden text-[8rem] font-black uppercase leading-none tracking-normal opacity-[0.045] md:block md:text-[12rem]">
                 COMMUNITY
               </div>
-              <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-stretch">
+              <div className="grid gap-5 2xl:grid-cols-[minmax(0,1fr)_360px] 2xl:items-stretch">
                 <div className="relative">
                   <div className={`inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.24em] ${palette.label}`}>
                     <Sparkles size={14} />
@@ -215,14 +197,14 @@ const AICommunity = () => {
                         className={`group grid grid-cols-[2.75rem_1fr_auto] items-center gap-3 px-4 py-4 text-left transition ${
                           isActive
                             ? isDayMode
-                              ? "bg-[linear-gradient(135deg,rgba(255,237,213,0.98),rgba(254,215,170,0.82),rgba(255,255,255,0.9))] text-orange-950"
+                              ? "bg-white text-slate-950"
                               : "bg-orange-300 text-slate-950"
                             : isDayMode
-                              ? "bg-white/76 text-slate-700 hover:bg-orange-50/70"
+                              ? "bg-slate-50 text-slate-700 hover:bg-white hover:text-slate-950"
                               : "bg-black/16 text-white/72 hover:bg-white/[0.06] hover:text-white"
                         }`}
                       >
-                        <span className={`flex h-10 w-10 items-center justify-center border ${isActive ? (isDayMode ? "border-orange-200/80 bg-white/70 text-orange-700" : "border-slate-950/10 bg-slate-950/10") : isDayMode ? "border-orange-100 bg-white/70 text-orange-600" : "border-white/10 bg-white/[0.04]"}`}>
+                        <span className={`flex h-10 w-10 items-center justify-center border ${isActive ? (isDayMode ? "border-blue-200 bg-blue-50 text-blue-700" : "border-slate-950/10 bg-slate-950/10") : isDayMode ? "border-slate-200 bg-white text-slate-500" : "border-white/10 bg-white/[0.04]"}`}>
                           <Icon size={18} />
                         </span>
                         <span className="min-w-0">
@@ -242,13 +224,6 @@ const AICommunity = () => {
                   })}
                 </div>
               </div>
-            </div>
-
-            <div className="mt-4">
-              <ResourceSearchBar
-                placeholder="搜索活动、AI 社区、影像库与校园资源"
-                hint="社区内容 · 活动资源 · 影像记录"
-              />
             </div>
 
             <div

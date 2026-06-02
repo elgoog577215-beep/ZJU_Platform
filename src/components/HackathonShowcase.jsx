@@ -445,34 +445,40 @@ const HackathonShowcase = () => {
           }
 
           .showcase-title {
-            font-size: clamp(3.5rem, 17vw, 5.35rem);
+            font-size: clamp(3.25rem, 15vw, 5.15rem);
             line-height: 0.92;
             letter-spacing: 0;
           }
 
           @media (min-width: 641px) {
             .showcase-title {
-              font-size: clamp(5rem, 9vw, 7.4rem);
+              font-size: clamp(5rem, 8.4vw, 7.4rem);
               line-height: 0.91;
             }
           }
 
           @media (min-width: 1280px) {
             .showcase-title {
-              font-size: clamp(6rem, 7.2vw, 7.8rem);
+              font-size: clamp(6.4rem, 7.4vw, 8.4rem);
+            }
+          }
+
+          @media (min-width: 1720px) {
+            .showcase-title {
+              font-size: clamp(7.5rem, 7vw, 9.2rem);
             }
           }
 
           .showcase-gallery-grid {
             display: grid;
             gap: 0.75rem;
-            grid-auto-rows: minmax(14rem, 34vh);
+            grid-auto-rows: minmax(13rem, 32vh);
           }
 
           @media (min-width: 768px) {
             .showcase-gallery-grid {
               grid-template-columns: repeat(12, minmax(0, 1fr));
-              grid-auto-rows: minmax(16rem, 30vh);
+              grid-auto-rows: minmax(15rem, 28vh);
             }
 
             .showcase-gallery-card:nth-child(1) {
@@ -499,8 +505,18 @@ const HackathonShowcase = () => {
           }
 
           @media (min-width: 1180px) {
+            .showcase-gallery-grid {
+              grid-auto-rows: minmax(16rem, 30vh);
+            }
+
             .showcase-gallery-card:nth-child(5) {
               grid-column: 1 / 7;
+            }
+          }
+
+          @media (min-width: 1536px) {
+            .showcase-gallery-grid {
+              grid-auto-rows: minmax(17rem, 31vh);
             }
           }
 
@@ -545,7 +561,7 @@ const HackathonShowcase = () => {
 
       <section
         id="gate"
-        className="relative isolate min-h-[100svh] overflow-hidden px-4 pb-20 pt-[calc(env(safe-area-inset-top)+7.7rem)] sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+8.4rem)] lg:px-10 lg:pb-24 xl:px-14 min-[1536px]:pt-[calc(env(safe-area-inset-top)+8rem)]"
+        className="relative isolate min-h-[100svh] overflow-hidden px-4 pb-16 pt-[calc(env(safe-area-inset-top)+7.2rem)] sm:px-6 sm:pb-20 sm:pt-[calc(env(safe-area-inset-top)+8rem)] lg:px-10 lg:pb-20 xl:px-14 min-[1536px]:pt-[calc(env(safe-area-inset-top)+7.4rem)] 2xl:px-20"
       >
         <div className="showcase-stage-bg absolute inset-0 opacity-80" aria-hidden="true" />
         <div
@@ -567,17 +583,17 @@ const HackathonShowcase = () => {
           2026
         </div>
 
-        <div className="relative z-10 mx-auto grid w-full max-w-[1660px] gap-7 xl:grid-cols-[minmax(0,0.92fr)_minmax(420px,0.76fr)] xl:items-end xl:gap-10 xl:pt-24 2xl:gap-12 2xl:pt-32">
+        <div className="relative z-10 mx-auto grid w-full max-w-[1880px] gap-6 xl:grid-cols-[minmax(0,1.04fr)_minmax(460px,0.74fr)] xl:items-end xl:gap-10 xl:pt-16 min-[1536px]:grid-cols-[minmax(0,1.02fr)_minmax(560px,0.82fr)] min-[1536px]:gap-14 min-[1536px]:pt-20 2xl:grid-cols-[minmax(0,1fr)_minmax(720px,0.86fr)] 2xl:gap-20 2xl:pt-24">
           <MotionDiv {...heroReveal} className="min-w-0">
             <p className={`inline-flex items-center gap-2 border px-3 py-2 text-xs font-black uppercase ${theme.chip}`}>
               <Film className="h-4 w-4" />
               AI Build Arena 2026
             </p>
-            <h1 data-showcase-title className={`showcase-title mt-5 max-w-[980px] font-black ${isDayMode ? "text-slate-950" : "text-white"}`}>
+            <h1 data-showcase-title className={`showcase-title mt-5 max-w-[1120px] font-black ${isDayMode ? "text-slate-950" : "text-white"}`}>
               <span className="block whitespace-nowrap">AI 全栈极速</span>
               <span className={`block ${isDayMode ? "text-cyan-700" : "text-cyan-200"}`}>比赛成果</span>
             </h1>
-            <p className={`mt-5 max-w-3xl text-base font-semibold leading-7 sm:text-lg sm:leading-8 lg:text-xl lg:leading-9 ${theme.muted}`}>
+            <p className={`mt-5 max-w-4xl text-base font-semibold leading-7 sm:text-lg sm:leading-8 lg:text-xl lg:leading-9 min-[1536px]:text-[1.35rem] min-[1536px]:leading-10 ${theme.muted}`}>
               这不是报名页的延长线，而是一份赛后作品档案：宣传片、现场照片、获奖项目和支持阵容在同一个清晰界面里完成展示。
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -615,7 +631,7 @@ const HackathonShowcase = () => {
             {...heroReveal}
             transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
             id="showcase-official-film"
-            className={`relative min-h-[18rem] overflow-hidden border sm:min-h-[23rem] lg:min-h-[31rem] ${theme.surfaceStrong}`}
+            className={`relative min-h-[17rem] overflow-hidden border sm:min-h-[23rem] lg:min-h-[29rem] xl:min-h-[28rem] min-[1536px]:min-h-[34rem] 2xl:min-h-[39rem] ${theme.surfaceStrong}`}
           >
             <img
               src={officialVideoCover}
@@ -665,10 +681,10 @@ const HackathonShowcase = () => {
         <MotionDiv
           {...heroReveal}
           transition={{ duration: 0.7, delay: 0.16, ease: [0.22, 1, 0.36, 1] }}
-          className="relative z-10 mx-auto mt-8 grid w-full max-w-[1660px] gap-3 sm:grid-cols-2 lg:mt-10 lg:grid-cols-4"
+          className="relative z-10 mx-auto mt-6 grid w-full max-w-[1880px] gap-3 sm:grid-cols-2 lg:mt-8 lg:grid-cols-4 min-[1536px]:gap-4"
         >
           {eventStats.map((stat) => (
-            <div key={stat.label} className={`border p-4 backdrop-blur-xl ${theme.surface}`}>
+            <div key={stat.label} className={`border p-4 backdrop-blur-xl min-[1536px]:p-5 2xl:p-6 ${theme.surface}`}>
               <div className="flex items-end gap-2">
                 <span className={`font-mono text-4xl font-black leading-none sm:text-5xl ${isDayMode ? "text-slate-950" : "text-cyan-100"}`}>
                   {stat.shortValue || stat.value}
@@ -682,8 +698,8 @@ const HackathonShowcase = () => {
         </MotionDiv>
       </section>
 
-      <MotionSection id="gallery" {...reveal} className="relative px-4 py-16 sm:px-6 sm:py-20 lg:px-10 xl:px-14">
-        <div className="mx-auto w-full max-w-[1660px]">
+      <MotionSection id="gallery" {...reveal} className="relative px-4 py-14 sm:px-6 sm:py-16 lg:px-10 lg:py-20 xl:px-14 2xl:px-20">
+        <div className="mx-auto w-full max-w-[1880px]">
           <SectionHeader
             eyebrow="Chapter 02 / Gallery"
             title="赛场照片集锦"
@@ -692,7 +708,7 @@ const HackathonShowcase = () => {
             theme={theme}
             align="split"
           />
-          <div className="showcase-gallery-grid mt-10">
+          <div className="showcase-gallery-grid mt-8 sm:mt-10">
             {galleryMoments.map((moment, index) => (
               <article
                 key={moment.id}
@@ -742,8 +758,8 @@ const HackathonShowcase = () => {
         </div>
       </MotionSection>
 
-      <MotionSection id="works" {...reveal} className="relative px-4 py-16 sm:px-6 sm:py-20 lg:px-10 xl:px-14">
-        <div className="mx-auto w-full max-w-[1660px]">
+      <MotionSection id="works" {...reveal} className="relative px-4 py-14 sm:px-6 sm:py-16 lg:px-10 lg:py-20 xl:px-14 2xl:px-20">
+        <div className="mx-auto w-full max-w-[1880px]">
           <SectionHeader
             eyebrow="Chapter 03 / Winning Works"
             title="优秀作品展示"
@@ -752,15 +768,15 @@ const HackathonShowcase = () => {
             theme={theme}
             align="split"
           />
-          <div className="mt-10 grid gap-4 lg:grid-cols-3">
+          <div className="mt-8 grid gap-4 md:grid-cols-2 lg:mt-10 xl:grid-cols-3 min-[1720px]:gap-5">
             {showcaseWorks.map((work, index) => (
               <article
                 key={work.id}
-                className={`group flex min-h-[500px] flex-col overflow-hidden border transition duration-300 hover:-translate-y-1 ${theme.surfaceStrong}`}
+                className={`group flex min-h-[420px] flex-col overflow-hidden border transition duration-300 hover:-translate-y-1 sm:min-h-[470px] xl:min-h-[500px] min-[1720px]:min-h-[540px] ${theme.surfaceStrong}`}
               >
                 <Link
                   to="/hackathon/works"
-                  className="showcase-work-cover relative block min-h-[250px] overflow-hidden"
+                  className="showcase-work-cover relative block min-h-[210px] overflow-hidden sm:min-h-[235px] xl:min-h-[250px] min-[1720px]:min-h-[290px]"
                   aria-label={`查看${work.title}详情`}
                 >
                   <img
@@ -786,7 +802,7 @@ const HackathonShowcase = () => {
                     </h3>
                   </div>
                 </Link>
-                <div className="flex flex-1 flex-col p-5 sm:p-6">
+                <div className="flex flex-1 flex-col p-4 sm:p-5 min-[1536px]:p-6">
                   <div className="flex flex-wrap gap-2">
                     <span className={`border px-2.5 py-1 text-xs font-black ${theme.chip}`}>{work.award}</span>
                     <span className={`border px-2.5 py-1 text-xs font-black ${theme.chip}`}>
@@ -839,8 +855,8 @@ const HackathonShowcase = () => {
         </div>
       </MotionSection>
 
-      <MotionSection id="partners" {...reveal} className="relative px-4 pb-40 pt-16 sm:px-6 sm:py-20 lg:px-10 xl:px-14">
-        <div className="mx-auto w-full max-w-[1660px]">
+      <MotionSection id="partners" {...reveal} className="relative px-4 pb-40 pt-14 sm:px-6 sm:py-16 lg:px-10 lg:py-20 xl:px-14 2xl:px-20">
+        <div className="mx-auto w-full max-w-[1880px]">
           <SectionHeader
             eyebrow="Chapter 04 / Ecosystem"
             title="共同见证"
@@ -852,7 +868,7 @@ const HackathonShowcase = () => {
           <div className={`mt-10 border ${theme.surface}`}>
             <div className={`grid gap-0 divide-y ${isDayMode ? "divide-slate-200" : "divide-white/10"}`}>
               {supportLineup.map((group, index) => (
-                <section key={group.label} className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[18rem_minmax(0,1fr)] lg:p-6">
+                <section key={group.label} className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[18rem_minmax(0,1fr)] lg:p-6 min-[1536px]:grid-cols-[22rem_minmax(0,1fr)]">
                   <div>
                     <p className={`font-mono text-xs font-black uppercase tracking-[0.18em] ${theme.accent}`}>
                       0{index + 1}
@@ -860,7 +876,7 @@ const HackathonShowcase = () => {
                     <h3 className="mt-2 text-2xl font-black tracking-normal sm:text-3xl">{group.label}</h3>
                     <p className={`mt-3 text-sm font-semibold leading-6 ${theme.muted}`}>{group.detail}</p>
                   </div>
-                  <div className={`grid gap-2 ${group.logo ? "grid-cols-2 sm:grid-cols-3 xl:grid-cols-6" : "grid-cols-2 sm:grid-cols-3 xl:grid-cols-5"}`}>
+                  <div className={`grid gap-2 ${group.logo ? "grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 min-[1720px]:grid-cols-8" : "grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 min-[1720px]:grid-cols-6"}`}>
                     {group.partners.map((partner) => (
                       group.logo ? (
                         <PartnerLogoMark

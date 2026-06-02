@@ -55,25 +55,27 @@ const CommunityFeedPanel = ({
     resetFilters, searchQuery, isSearchPending,
   } = feed;
 
-  const gradientFrom = {
-    amber: 'from-amber-500/10 to-orange-500/10',
-    violet: 'from-violet-500/10 to-purple-500/10',
-    blue: 'from-blue-500/10 to-indigo-500/10',
-    orange: 'from-orange-500/10 to-red-500/10',
-  }[accentColor] || 'from-amber-500/10 to-orange-500/10';
+  const gradientFrom = isDayMode
+    ? 'from-slate-100 to-slate-50'
+    : ({
+        amber: 'from-amber-500/10 to-orange-500/10',
+        violet: 'from-violet-500/10 to-purple-500/10',
+        blue: 'from-blue-500/10 to-indigo-500/10',
+        orange: 'from-orange-500/10 to-red-500/10',
+      }[accentColor] || 'from-amber-500/10 to-orange-500/10');
 
   const emptyBorder = {
-    amber: isDayMode ? 'bg-amber-50/80 border-amber-100/80' : 'bg-amber-500/10 border-white/5',
-    violet: isDayMode ? 'bg-violet-50/80 border-violet-100/80' : 'bg-violet-500/10 border-white/5',
-    blue: isDayMode ? 'bg-blue-50/80 border-blue-100/80' : 'bg-blue-500/10 border-white/5',
-    orange: isDayMode ? 'bg-white/72 border-orange-100/80' : 'border-white/5',
+    amber: isDayMode ? 'bg-white border-slate-200/80' : 'bg-amber-500/10 border-white/5',
+    violet: isDayMode ? 'bg-white border-slate-200/80' : 'bg-violet-500/10 border-white/5',
+    blue: isDayMode ? 'bg-white border-slate-200/80' : 'bg-blue-500/10 border-white/5',
+    orange: isDayMode ? 'bg-white border-slate-200/80' : 'border-white/5',
   }[accentColor];
 
   const accentBtnClass = {
-    amber: isDayMode ? 'bg-amber-500 text-white border-amber-500 shadow-lg shadow-amber-500/20' : 'bg-amber-600 text-white border-amber-600',
-    violet: isDayMode ? 'bg-violet-500 text-white border-violet-500 shadow-lg shadow-violet-500/20' : 'bg-violet-600 text-white border-violet-600',
-    blue: isDayMode ? 'bg-blue-500 text-white border-blue-500 shadow-lg shadow-blue-500/20' : 'bg-blue-600 text-white border-blue-600',
-    orange: isDayMode ? 'bg-orange-500 text-white border-orange-500 shadow-lg shadow-orange-500/20' : 'bg-orange-600 text-white border-orange-600',
+    amber: isDayMode ? 'bg-slate-950 text-white border-slate-950 shadow-[0_6px_16px_rgba(15,23,42,0.14)]' : 'bg-amber-600 text-white border-amber-600',
+    violet: isDayMode ? 'bg-slate-950 text-white border-slate-950 shadow-[0_6px_16px_rgba(15,23,42,0.14)]' : 'bg-violet-600 text-white border-violet-600',
+    blue: isDayMode ? 'bg-slate-950 text-white border-slate-950 shadow-[0_6px_16px_rgba(15,23,42,0.14)]' : 'bg-blue-600 text-white border-blue-600',
+    orange: isDayMode ? 'bg-slate-950 text-white border-slate-950 shadow-[0_6px_16px_rgba(15,23,42,0.14)]' : 'bg-orange-600 text-white border-orange-600',
   }[accentColor];
 
   const defaultSkeleton = (i) => (
@@ -194,7 +196,7 @@ const CommunityFeedPanel = ({
           </div>
         ) : displayItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 px-4">
-            <div className={`bg-gradient-to-br ${gradientFrom} rounded-lg p-8 mb-6 border backdrop-blur-xl shadow-xl ${emptyBorder}`}>
+            <div className={`bg-gradient-to-br ${gradientFrom} rounded-lg p-8 mb-6 border ${isDayMode ? 'shadow-none' : 'backdrop-blur-xl shadow-xl'} ${emptyBorder}`}>
               {EmptyIcon && <EmptyIcon size={64} className={`text-${accentColor}-400 opacity-80`} />}
             </div>
             <h3 className={`text-2xl font-bold mb-2 ${th.textPrimary}`}>

@@ -216,7 +216,7 @@ const Navbar = () => {
     ? "motion-link relative group whitespace-nowrap rounded-[5px] px-2.5 py-2 text-xs font-medium text-slate-500 hover:bg-white/88 hover:text-slate-950 xl:px-4 xl:text-sm"
     : "motion-link relative group whitespace-nowrap rounded-[5px] px-2.5 py-2 text-xs font-medium text-gray-400 hover:bg-white/[0.075] hover:text-white xl:px-4 xl:text-sm";
   const navIndicatorClasses = isDayMode
-    ? "absolute inset-0 rounded-[5px] border border-violet-200/70 bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(245,243,255,0.76))] shadow-none"
+    ? "absolute inset-0 rounded-[5px] border border-slate-300 bg-white shadow-none"
     : "absolute inset-0 rounded-[5px] bg-white/[0.095] border border-white/14";
   const weatherButtonClasses = isDayMode
     ? "motion-press rect-button-secondary flex items-center gap-3 text-xs px-3 py-1.5 hover:text-slate-900 cursor-pointer group"
@@ -280,12 +280,12 @@ const Navbar = () => {
         </div>
         <div className="flex flex-col items-start leading-none">
           <span
-            className={`text-lg font-bold tracking-tighter transition-colors duration-300 ${isDayMode ? "text-slate-950 group-hover:text-indigo-600" : "text-white group-hover:text-indigo-200"}`}
+            className={`text-lg font-bold tracking-tighter transition-colors duration-300 ${isDayMode ? "text-slate-950 group-hover:text-blue-700" : "text-white group-hover:text-indigo-200"}`}
           >
             拓途浙享
           </span>
           <span
-            className={`text-[10px] font-medium tracking-widest mt-0.5 transition-colors ${isDayMode ? "text-slate-500 group-hover:text-indigo-500" : "text-gray-400 group-hover:text-indigo-400"}`}
+            className={`text-[10px] font-medium tracking-widest mt-0.5 transition-colors ${isDayMode ? "text-slate-500 group-hover:text-blue-600" : "text-gray-400 group-hover:text-indigo-400"}`}
           >
             数字艺术与科技
           </span>
@@ -350,7 +350,7 @@ const Navbar = () => {
               </span>
             </div>
             <div
-              className={`w-px h-3 transition-colors ${isDayMode ? "bg-slate-200/80 group-hover:bg-indigo-200/80" : "bg-white/10 group-hover:bg-indigo-500/30"}`}
+              className={`w-px h-3 transition-colors ${isDayMode ? "bg-slate-200/80 group-hover:bg-blue-200/80" : "bg-white/10 group-hover:bg-indigo-500/30"}`}
               role="separator"
               aria-hidden="true"
             />
@@ -365,7 +365,7 @@ const Navbar = () => {
               </span>
             </div>
             <div
-              className={`w-px h-3 transition-colors ${isDayMode ? "bg-slate-200/80 group-hover:bg-indigo-200/80" : "bg-white/10 group-hover:bg-indigo-500/30"}`}
+              className={`w-px h-3 transition-colors ${isDayMode ? "bg-slate-200/80 group-hover:bg-blue-200/80" : "bg-white/10 group-hover:bg-indigo-500/30"}`}
               role="separator"
               aria-hidden="true"
             />
@@ -379,7 +379,7 @@ const Navbar = () => {
 
         <button
           onClick={() => changeUiMode(nextUiMode)}
-          className={`btn-icon rect-icon-button ${isDayMode ? "text-slate-700 hover:text-indigo-600" : "text-white hover:text-yellow-200"}`}
+          className={`btn-icon rect-icon-button ${isDayMode ? "text-slate-700 hover:text-blue-700" : "text-white hover:text-yellow-200"}`}
           title={themeToggleTitle}
           aria-label={t("nav.theme_settings", "主题设置")}
         >
@@ -393,7 +393,7 @@ const Navbar = () => {
         <button
           type="button"
           onClick={() => setIsThemeOpen(true)}
-          className={`btn-icon rect-icon-button ${isDayMode ? "text-slate-700 hover:text-indigo-600" : "text-cyan-100 hover:text-cyan-50"}`}
+          className={`btn-icon rect-icon-button ${isDayMode ? "text-slate-700 hover:text-blue-700" : "text-cyan-100 hover:text-cyan-50"}`}
           title="动态壁纸"
           aria-label="动态壁纸设置"
         >
@@ -411,7 +411,7 @@ const Navbar = () => {
           <div className="flex items-center gap-3">
             <Link
               to={`/user/${user.id}`}
-              className={`motion-press rect-button-secondary relative flex items-center gap-2 px-3 py-1.5 text-sm font-medium ${isDayMode ? "text-slate-800 hover:text-indigo-600" : "text-white"}`}
+              className={`motion-press rect-button-secondary relative flex items-center gap-2 px-3 py-1.5 text-sm font-medium ${isDayMode ? "text-slate-800 hover:text-blue-700" : "text-white"}`}
               aria-label={`访问 ${user.username} 的个人主页`}
             >
               <div
@@ -672,7 +672,7 @@ const Navbar = () => {
                       key={key}
                       to={path}
                       onClick={() => setIsMobileMoreOpen(false)}
-                      className={`motion-press flex min-h-[56px] items-center gap-3 rounded-lg border px-3 ${location.pathname === path ? (isDayMode ? "border-indigo-200 bg-indigo-50 text-indigo-700" : "border-indigo-400/30 bg-indigo-500/15 text-indigo-200") : isDayMode ? "border-slate-200/80 bg-slate-50/90 text-slate-700 hover:bg-white" : "border-white/10 bg-white/[0.04] text-gray-200 hover:bg-white/10"}`}
+                      className={`motion-press flex min-h-[56px] items-center gap-3 rounded-lg border px-3 ${location.pathname === path ? (isDayMode ? "border-slate-300 bg-white text-slate-950" : "border-indigo-400/30 bg-indigo-500/15 text-indigo-200") : isDayMode ? "border-slate-200/80 bg-slate-50/90 text-slate-700 hover:bg-white" : "border-white/10 bg-white/[0.04] text-gray-200 hover:bg-white/10"}`}
                     >
                       <Icon size={18} aria-hidden="true" />
                       <span className="text-sm font-semibold">

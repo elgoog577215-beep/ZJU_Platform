@@ -69,7 +69,7 @@ const GroupCard = memo(({ group, index, isDayMode, isAdmin, onQuickAction, onEdi
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className={`inline-flex items-center gap-1 text-[11px] md:text-xs font-semibold ${isDayMode ? 'text-orange-600 hover:text-orange-700' : 'text-orange-300 hover:text-orange-200'}`}
+            className={`inline-flex items-center gap-1 text-[11px] md:text-xs font-semibold ${isDayMode ? 'text-blue-700 hover:text-blue-800' : 'text-orange-300 hover:text-orange-200'}`}
           >
             {t('community.groups.join_link', '加入链接')}
             <ExternalLink size={12} />
@@ -121,7 +121,7 @@ const GroupCard = memo(({ group, index, isDayMode, isAdmin, onQuickAction, onEdi
               if (note === null) return;
               onQuickAction(group, { review_note: note.trim() || null });
             }}
-            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] border ${isDayMode ? 'text-indigo-700 border-indigo-200 hover:bg-indigo-50' : 'text-indigo-300 border-indigo-400/20 hover:bg-indigo-500/10'}`}
+            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] border ${isDayMode ? 'text-amber-700 border-amber-200 hover:bg-amber-50' : 'text-indigo-300 border-indigo-400/20 hover:bg-indigo-500/10'}`}
           >
             备注
           </button>
@@ -365,8 +365,8 @@ const CommunityGroups = () => {
                     type="button"
                     onClick={() => setAdminReviewFilter(item.key)}
                     className={`h-10 px-3 rounded-lg border text-xs ${adminReviewFilter === item.key
-                      ? (isDayMode ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-indigo-500 text-white border-indigo-500')
-                      : (isDayMode ? 'bg-white text-slate-600 border-slate-200' : 'bg-white/5 text-gray-300 border-white/10')
+                      ? (isDayMode ? 'bg-white text-slate-950 border-slate-300 shadow-[0_4px_12px_rgba(15,23,42,0.06)]' : 'bg-indigo-500 text-white border-indigo-500')
+                      : (isDayMode ? 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-950' : 'bg-white/5 text-gray-300 border-white/10')
                     }`}
                   >
                     {item.label}
@@ -381,7 +381,7 @@ const CommunityGroups = () => {
                   if (showForm) resetForm();
                   setShowForm((v) => !v);
                 }}
-                className={`h-10 px-3 rounded-lg border text-sm inline-flex items-center gap-1.5 ${isDayMode ? 'bg-orange-500 text-white border-orange-500' : 'bg-orange-500 text-black border-orange-500'}`}
+                className={`h-10 px-3 rounded-lg border text-sm inline-flex items-center gap-1.5 ${isDayMode ? 'bg-slate-950 text-white border-slate-950' : 'bg-orange-500 text-black border-orange-500'}`}
               >
                 <Plus size={14} />
                 {showForm ? '收起表单' : (isAdmin ? '新建社群' : '投稿社群')}
@@ -392,7 +392,7 @@ const CommunityGroups = () => {
             <div className="flex flex-wrap items-center gap-2">
               <span>{filteredGroups.length} {t('community.groups.results', '个社群')}</span>
               {(search.trim() || platform !== 'all') ? (
-                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${isDayMode ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-blue-500/10 text-blue-300 border-blue-500/20'}`}>
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${isDayMode ? 'bg-white text-slate-600 border-slate-200' : 'bg-blue-500/10 text-blue-300 border-blue-500/20'}`}>
                   {t('community.filtered_view', '已应用筛选')}
                 </span>
               ) : null}
@@ -440,7 +440,7 @@ const CommunityGroups = () => {
             )}
             <div className="md:col-span-2 flex items-center justify-end gap-2">
               <button type="button" onClick={() => { setShowForm(false); resetForm(); }} className={`px-3 py-2 rounded-lg text-sm border ${isDayMode ? 'border-slate-200 text-slate-600' : 'border-white/10 text-gray-300'}`}>取消</button>
-              <button type="submit" className={`px-4 py-2 rounded-lg text-sm font-semibold ${isDayMode ? 'bg-orange-500 text-white' : 'bg-orange-500 text-black'}`}>{editingId ? '保存修改' : (isAdmin ? '创建社群' : '提交审核')}</button>
+              <button type="submit" className={`px-4 py-2 rounded-lg text-sm font-semibold ${isDayMode ? 'bg-slate-950 text-white' : 'bg-orange-500 text-black'}`}>{editingId ? '保存修改' : (isAdmin ? '创建社群' : '提交审核')}</button>
             </div>
           </form>
         )}
@@ -487,7 +487,7 @@ const CommunityGroups = () => {
         item={selectedGroup}
         onClose={() => updateParams({ tab: 'groups' })}
         isDayMode={isDayMode}
-        gradientFrom="from-blue-900/30"
+        gradientFrom={isDayMode ? "from-slate-100" : "from-blue-900/30"}
         headerHeight="h-44 sm:h-56"
         onRelatedSelect={handleRelatedSelect}
         headerContent={selectedGroup && (

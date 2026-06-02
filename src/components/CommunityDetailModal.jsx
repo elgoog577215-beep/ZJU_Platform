@@ -122,7 +122,7 @@ const CommunityDetailModal = ({
 
     if (block.style === 'quote') {
       return (
-        <blockquote className={`border-l-4 pl-5 italic text-lg leading-8 ${isDayMode ? 'border-orange-300 text-slate-600 bg-orange-50/60' : 'border-orange-400/50 text-gray-200 bg-orange-500/5'} rounded-r-2xl py-3`}>
+        <blockquote className={`border-l-4 pl-5 italic text-lg leading-8 ${isDayMode ? 'border-slate-300 text-slate-600 bg-slate-50' : 'border-orange-400/50 text-gray-200 bg-orange-500/5'} rounded-r-2xl py-3`}>
           <LinkifiedText text={block.text} />
         </blockquote>
       );
@@ -325,17 +325,17 @@ const CommunityDetailModal = ({
                 {beforeContent}
 
                 {primaryJoinGroup ? (
-                  <div className={`mb-8 rounded-lg border p-4 ${isDayMode ? 'bg-blue-50 border-blue-200' : 'bg-blue-500/10 border-blue-500/30'}`}>
+                  <div className={`mb-8 rounded-lg border p-4 ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-blue-500/10 border-blue-500/30'}`}>
                     <div className={`text-xs uppercase tracking-[0.2em] mb-2 ${isDayMode ? 'text-blue-700' : 'text-blue-300'}`}>
                       社群入口
                     </div>
-                    <p className={`text-sm mb-3 ${isDayMode ? 'text-blue-800' : 'text-blue-100'}`}>
+                    <p className={`text-sm mb-3 ${isDayMode ? 'text-slate-700' : 'text-blue-100'}`}>
                       当前内容有对应社群，可直接加入继续交流。
                     </p>
                     <button
                       type="button"
                       onClick={() => onRelatedSelect?.({ ...primaryJoinGroup, type: 'group' })}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm border ${isDayMode ? 'bg-white text-blue-700 border-blue-300 hover:bg-blue-100' : 'bg-blue-500/20 text-blue-200 border-blue-400/40 hover:bg-blue-500/30'}`}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm border ${isDayMode ? 'bg-white text-blue-700 border-blue-200 hover:bg-blue-50' : 'bg-blue-500/20 text-blue-200 border-blue-400/40 hover:bg-blue-500/30'}`}
                     >
                       加入相关社群
                       <ChevronRight size={15} />
