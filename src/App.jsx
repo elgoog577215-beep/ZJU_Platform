@@ -31,15 +31,13 @@ import Footer from './components/Footer';
 import LoadingScreen from './components/LoadingScreen';
 import PerformancePanel from './components/PerformancePanel';
 
-const Hero = lazy(() => import('./components/Hero'));
 const Gallery = lazy(() => import('./components/Gallery'));
 const MediaLibrary = lazy(() => import('./components/MediaLibrary'));
 const Music = lazy(() => import('./components/Music'));
 const Videos = lazy(() => import('./components/Videos'));
 const Articles = lazy(() => import('./components/AICommunity'));
 const Events = lazy(() => import('./components/Events'));
-const HomeCategories = lazy(() => import('./components/HomeCategories'));
-const PlatformStats = lazy(() => import('./components/PlatformStats'));
+const HomeSplash = lazy(() => import('./components/HomeSplash'));
 const About = lazy(() => import('./components/About'));
 const HackathonSeasonOne = lazy(() => import('./components/HackathonSeasonOne'));
 const HackathonWorks = lazy(() => import('./components/HackathonWorks'));
@@ -91,10 +89,10 @@ const PageTransition = ({ children }) => {
 const Home = () => (
   <>
     <SEO
-      title="首页"
-      description="AI生态团队信息聚合平台，聚合活动、作品与 AI 社区内容。"
+      title="拓途浙享"
+      description="拓途浙享校园 AI 信息共享平台，连接活动、AI 社区、影像记录与实践项目。"
     />
-    <PlatformStats hero={({ onScrollNext }) => <Hero id="home-hero" onScrollNext={onScrollNext} />} />
+    <HomeSplash />
   </>
 );
 
@@ -110,6 +108,7 @@ const AppContent = () => {
   const isHomeRoute = location.pathname === '/';
   const isAboutRoute = location.pathname === '/about';
   const isImmersiveRoute = isHomeRoute || isAboutRoute || location.pathname.startsWith('/hackathon');
+  const hideGlobalShell = isHomeRoute;
   const { cursorEnabled, settings, uiMode } = useSettings();
   const hasDesktopPointer = useMediaQuery('(min-width: 768px) and (hover: hover) and (pointer: fine)');
   const shouldMountDeferredUi = useDeferredMount(700);
@@ -168,7 +167,7 @@ const AppContent = () => {
       >
         跳转到主要内容
       </a>
-      {(
+      {!hideGlobalShell && (
         <ErrorBoundary variant="inline" silent>
           <Navbar />
         </ErrorBoundary>
@@ -180,7 +179,7 @@ const AppContent = () => {
           </Suspense>
         </ErrorBoundary>
       )}
-      {!isAdminRoute && cursorEnabled && hasDesktopPointer && !isLowPowerDevice && <CustomCursor />}
+      {!hideGlobalShell && !isAdminRoute && cursorEnabled && hasDesktopPointer && !isLowPowerDevice && <CustomCursor />}
       {!isAdminRoute && !isImmersiveRoute && hasDesktopPointer && !isLowPowerDevice && <ScrollProgress />}
 
       {shouldMountDeferredUi && (
@@ -227,16 +226,16 @@ const AppContent = () => {
         </Suspense>
       </main>
 
-      {!isAdminRoute && !isImmersiveRoute && <Footer />}
+      {!hideGlobalShell && !isAdminRoute && !isImmersiveRoute && <Footer />}
 
-      {!isAdminRoute && shouldMountDeferredUi && (
+      {!hideGlobalShell && !isAdminRoute && shouldMountDeferredUi && (
         <ErrorBoundary variant="inline" silent>
           <Suspense fallback={null}>
             <GlobalPlayer />
           </Suspense>
         </ErrorBoundary>
       )}
-      {!isAdminRoute && <MobileNavbar />}
+      {!hideGlobalShell && !isAdminRoute && <MobileNavbar />}
       {!isImmersiveRoute && <ScrollToTop />}
       <PWAInstallPrompt />
       {import.meta.env.DEV && <PerformancePanel />}

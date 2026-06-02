@@ -51,6 +51,7 @@ import MobileEventAssistantFullscreen, {
 import DOMPurify from "dompurify";
 import MobileContentToolbar from "./MobileContentToolbar";
 import SEO from "./SEO";
+import ResourceSearchBar from "./ResourceSearchBar";
 import { getEventCategoryLabel } from "../data/eventTaxonomy";
 
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
@@ -1073,6 +1074,11 @@ END:VCALENDAR`;
             {t("events.subtitle")}
           </p>
         </div>
+
+        <ResourceSearchBar
+          placeholder="搜索活动、AI 社区、影像库与校园资源"
+          hint="搜索找资源 · 推荐助手做个性化建议"
+        />
 
         <div className="hidden md:flex items-center gap-2 w-full justify-center mb-4 xl:absolute xl:right-0 xl:top-0 xl:mb-0 xl:w-auto">
           <button

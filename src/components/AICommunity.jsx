@@ -19,6 +19,7 @@ import CommunityTech from "./CommunityTech";
 import CommunityHelp from "./CommunityHelp";
 import CommunityGroups from "./CommunityGroups";
 import CommunityNewsRail from "./CommunityNewsRail";
+import ResourceSearchBar from "./ResourceSearchBar";
 
 const panels = {
   help: CommunityHelp,
@@ -241,6 +242,13 @@ const AICommunity = () => {
                   })}
                 </div>
               </div>
+            </div>
+
+            <div className="mt-4">
+              <ResourceSearchBar
+                placeholder="搜索活动、AI 社区、影像库与校园资源"
+                hint="社区内容 · 活动资源 · 影像记录"
+              />
             </div>
 
             <div

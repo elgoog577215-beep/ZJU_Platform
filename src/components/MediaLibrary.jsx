@@ -19,6 +19,7 @@ import Lightbox from "./Lightbox";
 import SEO from "./SEO";
 import SmartImage from "./SmartImage";
 import UploadModal from "./UploadModal";
+import ResourceSearchBar from "./ResourceSearchBar";
 import useMediaCategories from "../hooks/useMediaCategories";
 import { useAuth } from "../context/AuthContext";
 import { useCachedResource } from "../hooks/useCachedResource";
@@ -640,6 +641,11 @@ const MediaLibrary = () => {
           >
             按分类归档现场照片与视频记录。当前分类：{activeCategoryName}。
           </motion.p>
+
+          <ResourceSearchBar
+            placeholder="搜索活动、AI 社区、影像库与校园资源"
+            hint="影像记录 · 活动现场 · 社区内容"
+          />
 
           <motion.div
             initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
