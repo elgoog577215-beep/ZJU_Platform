@@ -207,16 +207,16 @@ const Navbar = () => {
   }, []);
 
   const shellClasses = isDayMode
-    ? "bg-white/[0.82] border-sky-200/45 shadow-[0_10px_28px_rgba(59,130,246,0.07)]"
+    ? "bg-white/[0.9] border-slate-200/70 shadow-[0_10px_28px_rgba(15,23,42,0.045)]"
     : "bg-black/62 border-white/10 shadow-none";
   const desktopPillClasses = isDayMode
-    ? "rounded-[6px] bg-white/[0.66] border-sky-200/45 shadow-none"
+    ? "rounded-[6px] bg-white/[0.72] border-slate-200/70 shadow-none"
     : "rounded-[6px] bg-white/[0.035] border-white/10 shadow-none";
   const navLinkClasses = isDayMode
-    ? "motion-link relative group whitespace-nowrap rounded-[5px] px-2.5 py-2 text-xs font-medium text-slate-500 hover:bg-sky-50/80 hover:text-slate-950 xl:px-4 xl:text-sm"
+    ? "motion-link relative group whitespace-nowrap rounded-[5px] px-2.5 py-2 text-xs font-medium text-slate-500 hover:bg-white/88 hover:text-slate-950 xl:px-4 xl:text-sm"
     : "motion-link relative group whitespace-nowrap rounded-[5px] px-2.5 py-2 text-xs font-medium text-gray-400 hover:bg-white/[0.075] hover:text-white xl:px-4 xl:text-sm";
   const navIndicatorClasses = isDayMode
-    ? "absolute inset-0 rounded-[5px] border border-sky-200/70 bg-white/[0.88] shadow-none"
+    ? "absolute inset-0 rounded-[5px] border border-violet-200/70 bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(245,243,255,0.76))] shadow-none"
     : "absolute inset-0 rounded-[5px] bg-white/[0.095] border border-white/14";
   const weatherButtonClasses = isDayMode
     ? "motion-press rect-button-secondary flex items-center gap-3 text-xs px-3 py-1.5 hover:text-slate-900 cursor-pointer group"

@@ -17,7 +17,7 @@ const MobileEventAssistantLauncher = ({ isDayMode, onOpen }) => (
       <span
         className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md transition-transform group-active:scale-95 ${
           isDayMode
-            ? "bg-blue-50 text-blue-600"
+            ? "bg-[linear-gradient(135deg,rgba(245,243,255,0.96),rgba(253,242,248,0.76))] text-violet-700"
             : "bg-white/10 text-blue-200"
         }`}
       >
@@ -87,7 +87,7 @@ const MobileEventAssistantFullscreen = ({
             </div>
             <span
               className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md ${
-                isDayMode ? "bg-blue-50 text-blue-600" : "bg-white/10 text-blue-200"
+                isDayMode ? "bg-[linear-gradient(135deg,rgba(245,243,255,0.96),rgba(253,242,248,0.76))] text-violet-700" : "bg-white/10 text-blue-200"
               }`}
             >
               <Sparkles size={18} />

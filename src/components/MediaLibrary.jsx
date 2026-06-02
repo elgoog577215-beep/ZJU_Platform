@@ -578,18 +578,18 @@ const MediaLibrary = () => {
             <motion.div
               animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.15, 0.1] }}
               transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-blue-500/10 blur-[130px]"
+              className={`absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full blur-[130px] ${isDayMode ? "bg-violet-200/10" : "bg-blue-500/10"}`}
             />
             <motion.div
               animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.12, 0.1] }}
               transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-              className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-cyan-500/10 blur-[120px]"
+              className={`absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] ${isDayMode ? "bg-rose-100/12" : "bg-cyan-500/10"}`}
             />
           </>
         ) : (
           <>
-            <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-blue-500/10 blur-[90px] hidden md:block" />
-            <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-cyan-500/10 blur-[80px] hidden md:block" />
+            <div className={`absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full blur-[90px] hidden md:block ${isDayMode ? "bg-violet-200/10" : "bg-blue-500/10"}`} />
+            <div className={`absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[80px] hidden md:block ${isDayMode ? "bg-rose-100/12" : "bg-cyan-500/10"}`} />
           </>
         )}
       </div>
@@ -614,9 +614,9 @@ const MediaLibrary = () => {
             whileHover={prefersReducedMotion ? undefined : { scale: 1.05, rotate: 90 }}
             whileTap={prefersReducedMotion ? undefined : { scale: 0.95 }}
             onClick={() => openUpload()}
-            className={`hidden md:block absolute right-0 top-0 md:top-2 p-2 md:p-3 rounded-full backdrop-blur-md border transition-all ${
+            className={`hidden md:mx-auto md:mb-4 md:block xl:absolute xl:right-0 xl:top-2 xl:mb-0 p-2 md:p-3 rounded-full backdrop-blur-md border transition-all ${
               isDayMode
-                ? "day-quiet-button text-slate-700 hover:text-indigo-600"
+                ? "day-quiet-button text-slate-700 hover:text-violet-700"
                 : "bg-white/10 hover:bg-white/20 text-white border-white/10 hover:shadow-lg hover:shadow-indigo-500/20"
             }`}
             title="上传影像"

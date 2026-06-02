@@ -39,7 +39,7 @@ const MobileContentToolbar = ({
         <button
           type="button"
           onClick={onOpenSort}
-          className={`rect-button-secondary inline-flex min-h-[44px] items-center gap-1.5 px-3.5 py-2 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "hover:text-indigo-600" : "text-gray-300"}`}
+          className={`rect-button-secondary inline-flex min-h-[44px] items-center gap-1.5 px-3.5 py-2 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "hover:text-violet-700" : "text-gray-300"}`}
         >
           <ArrowUpDown size={14} aria-hidden="true" />
           {sortText}
@@ -50,12 +50,12 @@ const MobileContentToolbar = ({
         <button
           type="button"
           onClick={onOpenFilter}
-          className={`rect-button-secondary relative inline-flex min-h-[44px] items-center gap-1.5 px-3.5 py-2 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "hover:text-indigo-600" : "text-gray-300"}`}
+          className={`rect-button-secondary relative inline-flex min-h-[44px] items-center gap-1.5 px-3.5 py-2 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "hover:text-violet-700" : "text-gray-300"}`}
         >
           <SlidersHorizontal size={14} aria-hidden="true" />
           {filterText}
           {filterCount > 0 && (
-            <span className="ml-1 rounded-md bg-indigo-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+            <span className="ml-1 rounded-md bg-violet-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
               {filterCount}
             </span>
           )}

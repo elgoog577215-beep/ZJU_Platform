@@ -363,7 +363,7 @@ const Gallery = () => {
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
-              className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-blue-500/10 blur-[130px]"
+              className={`absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full blur-[130px] ${isDayMode ? "bg-violet-200/10" : "bg-blue-500/10"}`}
             />
             <motion.div
               animate={{
@@ -376,13 +376,13 @@ const Gallery = () => {
                 ease: "easeInOut",
                 delay: 1,
               }}
-              className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-cyan-500/10 blur-[120px]"
+              className={`absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] ${isDayMode ? "bg-rose-100/12" : "bg-cyan-500/10"}`}
             />
           </>
         ) : (
           <>
-            <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-blue-500/10 blur-[90px] hidden md:block" />
-            <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-cyan-500/10 blur-[80px] hidden md:block" />
+            <div className={`absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full blur-[90px] hidden md:block ${isDayMode ? "bg-violet-200/10" : "bg-blue-500/10"}`} />
+            <div className={`absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[80px] hidden md:block ${isDayMode ? "bg-rose-100/12" : "bg-cyan-500/10"}`} />
           </>
         )}
       </div>
@@ -422,9 +422,9 @@ const Gallery = () => {
             }
             setIsUploadOpen(true);
           }}
-          className={`hidden md:block absolute right-0 top-0 md:top-2 p-2 md:p-3 rounded-full backdrop-blur-md border transition-all ${
+          className={`hidden md:mx-auto md:mb-4 md:block xl:absolute xl:right-0 xl:top-2 xl:mb-0 p-2 md:p-3 rounded-full backdrop-blur-md border transition-all ${
             isDayMode
-              ? "day-quiet-button text-slate-700 hover:text-indigo-600"
+              ? "day-quiet-button text-slate-700 hover:text-violet-700"
               : "bg-white/10 hover:bg-white/20 text-white border-white/10 hover:shadow-lg hover:shadow-indigo-500/20"
           }`}
           title={t("common.upload_photo")}
@@ -604,7 +604,7 @@ const Gallery = () => {
               onClick={() =>
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
               }
-              className={`px-6 py-2.5 rounded-full border transition-colors text-sm font-semibold ${isDayMode ? "day-quiet-button hover:text-indigo-600" : "bg-white/10 hover:bg-white/15 text-white border-white/10 hover:border-white/20"}`}
+              className={`px-6 py-2.5 rounded-full border transition-colors text-sm font-semibold ${isDayMode ? "day-quiet-button hover:text-violet-700" : "bg-white/10 hover:bg-white/15 text-white border-white/10 hover:border-white/20"}`}
             >
               {t("common.load_more", "加载更多")}
             </motion.button>

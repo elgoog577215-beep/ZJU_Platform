@@ -4,7 +4,7 @@ import { FileText, Film, Image as ImageIcon, Calendar, Music, AlertCircle } from
 import { normalizeExternalImageUrl } from '../utils/imageUtils';
 
 const getGradient = (text) => {
-  if (!text) return 'from-gray-700 to-gray-900';
+  if (!text) return 'from-slate-100 via-white to-stone-100 dark:from-gray-700 dark:to-gray-900';
   
   let hash = 0;
   for (let i = 0; i < text.length; i++) {
@@ -12,22 +12,16 @@ const getGradient = (text) => {
   }
 
   const colors = [
-    'from-red-500 to-orange-500',
-    'from-orange-500 to-amber-500',
-    'from-amber-500 to-yellow-500',
-    'from-yellow-500 to-lime-500',
-    'from-lime-500 to-green-500',
-    'from-green-500 to-emerald-500',
-    'from-emerald-500 to-teal-500',
-    'from-teal-500 to-cyan-500',
-    'from-cyan-500 to-sky-500',
-    'from-sky-500 to-blue-500',
-    'from-blue-500 to-indigo-500',
-    'from-indigo-500 to-violet-500',
-    'from-violet-500 to-purple-500',
-    'from-purple-500 to-fuchsia-500',
-    'from-fuchsia-500 to-pink-500',
-    'from-pink-500 to-rose-500',
+    'from-rose-50 via-white to-indigo-50 dark:from-red-500 dark:to-orange-500',
+    'from-orange-50 via-white to-amber-50 dark:from-orange-500 dark:to-amber-500',
+    'from-amber-50 via-white to-stone-100 dark:from-amber-500 dark:to-yellow-500',
+    'from-lime-50 via-white to-emerald-50 dark:from-yellow-500 dark:to-lime-500',
+    'from-emerald-50 via-white to-teal-50 dark:from-green-500 dark:to-emerald-500',
+    'from-teal-50 via-white to-cyan-50 dark:from-emerald-500 dark:to-teal-500',
+    'from-sky-50 via-white to-violet-50 dark:from-cyan-500 dark:to-sky-500',
+    'from-indigo-50 via-white to-fuchsia-50 dark:from-blue-500 dark:to-indigo-500',
+    'from-violet-50 via-white to-pink-50 dark:from-violet-500 dark:to-purple-500',
+    'from-fuchsia-50 via-white to-rose-50 dark:from-fuchsia-500 dark:to-pink-500',
   ];
 
   return colors[Math.abs(hash) % colors.length];
@@ -143,8 +137,8 @@ const SmartImage = ({
         ref={containerRef}
         className={`${className} bg-gradient-to-br ${gradient} flex items-center justify-center relative overflow-hidden`}
       >
-        <div className="absolute inset-0 bg-slate-950/45" />
-        <Icon size={iconSize} className="text-white/55 relative z-10" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_10%,rgba(255,255,255,0.9),transparent_48%)] dark:bg-slate-950/45" />
+        <Icon size={iconSize} className="relative z-10 text-slate-400/70 dark:text-white/55" />
       </div>
     );
   }
@@ -171,7 +165,7 @@ const SmartImage = ({
                 style={{ objectFit }}
               />
             ) : (
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/64 to-transparent animate-shimmer dark:via-white/10" />
             )}
           </motion.div>
         )}

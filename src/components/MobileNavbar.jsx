@@ -94,7 +94,7 @@ const MobileNavbar = () => {
       variants={tabbarEntrance}
       initial={prefersReducedMotion ? false : "initial"}
       animate={prefersReducedMotion ? undefined : "animate"}
-      className={`motion-gpu fixed inset-x-0 bottom-0 z-[100] border-t backdrop-blur-xl md:hidden ${isDayMode ? "border-sky-200/55 bg-white/[0.88] shadow-[0_-8px_20px_rgba(14,165,233,0.055)]" : "border-white/[0.08] bg-[#0b111c]/90 shadow-[0_-10px_24px_rgba(0,0,0,0.24)]"}`}
+      className={`motion-gpu fixed inset-x-0 bottom-0 z-[100] border-t backdrop-blur-xl md:hidden ${isDayMode ? "border-slate-200/70 bg-white/[0.9] shadow-[0_-8px_20px_rgba(15,23,42,0.045)]" : "border-white/[0.08] bg-[#0b111c]/90 shadow-[0_-10px_24px_rgba(0,0,0,0.24)]"}`}
       aria-label={t("nav.mobile_tabbar", "移动端底部导航")}
     >
       <LayoutGroup id="mobile-tabbar">
@@ -106,12 +106,12 @@ const MobileNavbar = () => {
 
           const sharedClassName = `relative flex flex-col items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isActive ? (isDayMode ? "text-slate-900" : "text-white") : isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white"}`;
           const activeIconSurface = isDayMode
-            ? "rounded-[5px] bg-sky-50/90 ring-1 ring-indigo-200/70"
+            ? "rounded-[5px] bg-[linear-gradient(135deg,rgba(245,243,255,0.96),rgba(253,242,248,0.74))] ring-1 ring-violet-200/70"
             : "rounded-[5px] bg-[#172033] ring-1 ring-white/10";
           const iconClassName = `relative p-1.5 transition-colors duration-300 ${
             isActive
               ? isDayMode
-                ? "text-indigo-600"
+                ? "text-violet-700"
                 : "text-indigo-200"
               : isDayMode
                 ? "text-slate-500"

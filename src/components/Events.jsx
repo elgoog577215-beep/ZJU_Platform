@@ -96,13 +96,13 @@ const getEventLifecycle = (date, endDate, t) => {
 const getStatusColor = (status, t) => {
   switch (status) {
     case t("events.status.upcoming"):
-      return "bg-emerald-500 text-white";
+      return "bg-emerald-50 text-emerald-700 border-emerald-200/80";
     case t("events.status.ongoing"):
-      return "bg-blue-500 text-white animate-pulse";
+      return "bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200/80 animate-pulse";
     case t("events.status.past"):
-      return "bg-gray-500 text-gray-200";
+      return "bg-slate-100 text-slate-500 border-slate-200/80";
     default:
-      return "bg-gray-500 text-white";
+      return "bg-slate-100 text-slate-600 border-slate-200/80";
   }
 };
 
@@ -138,18 +138,18 @@ const VIEW_DEDUPE_WINDOW_MS = 30 * 60 * 1000;
 const EVENT_THEME_VARIANTS = {
   cyan: {
     backdropGlow:
-      "bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.18),transparent_68%)]",
-    heroGlow: "bg-cyan-300/20",
-    softGlow: "bg-cyan-100/70",
-    accentText: "text-cyan-500",
-    dot: "bg-cyan-400",
+      "bg-[radial-gradient(circle_at_top,rgba(14,165,233,0.12),transparent_70%),radial-gradient(circle_at_80%_10%,rgba(217,70,239,0.09),transparent_58%)]",
+    heroGlow: "bg-sky-200/24",
+    softGlow: "bg-sky-50/80",
+    accentText: "text-sky-600",
+    dot: "bg-sky-400",
     surface:
-      "bg-[linear-gradient(135deg,rgba(236,254,255,0.88),rgba(255,255,255,0.92))] border border-cyan-100/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]",
-    cta: "bg-gradient-to-r from-cyan-500 via-sky-500 to-indigo-500 text-white shadow-[0_18px_40px_rgba(14,165,233,0.24)] hover:shadow-[0_24px_54px_rgba(14,165,233,0.32)] hover:-translate-y-0.5 border border-white/20",
+      "bg-[linear-gradient(135deg,rgba(248,250,252,0.94),rgba(255,255,255,0.96))] border border-sky-100/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.78)]",
+    cta: "bg-[linear-gradient(135deg,#7dd3fc,#c4b5fd_56%,#f0abfc)] text-slate-950 shadow-[0_16px_34px_rgba(124,58,237,0.13)] hover:shadow-[0_20px_42px_rgba(14,165,233,0.16)] hover:-translate-y-0.5 border border-white/55",
     highlightCard:
-      "border-cyan-100/90 bg-[linear-gradient(135deg,rgba(236,254,255,0.92),rgba(255,255,255,0.96))] shadow-[0_18px_38px_rgba(14,165,233,0.12)]",
+      "border-sky-100/90 bg-[linear-gradient(135deg,rgba(240,249,255,0.78),rgba(255,255,255,0.96))] shadow-[0_14px_32px_rgba(15,23,42,0.055)]",
     iconShell:
-      "bg-white border-cyan-200/80 text-cyan-500 shadow-[0_8px_18px_rgba(14,165,233,0.12)]",
+      "bg-white border-sky-200/80 text-sky-600 shadow-[0_8px_18px_rgba(14,165,233,0.08)]",
     tagHover: "hover:border-cyan-200/80 hover:text-cyan-600",
   },
   pink: {
@@ -202,18 +202,18 @@ const EVENT_THEME_VARIANTS = {
   },
   blue: {
     backdropGlow:
-      "bg-[radial-gradient(circle_at_top,rgba(96,165,250,0.18),transparent_68%)]",
-    heroGlow: "bg-blue-300/20",
-    softGlow: "bg-blue-100/70",
-    accentText: "text-blue-500",
-    dot: "bg-blue-400",
+      "bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.14),transparent_68%),radial-gradient(circle_at_20%_16%,rgba(244,114,182,0.09),transparent_58%)]",
+    heroGlow: "bg-indigo-200/24",
+    softGlow: "bg-indigo-50/80",
+    accentText: "text-indigo-600",
+    dot: "bg-indigo-400",
     surface:
-      "bg-[linear-gradient(135deg,rgba(239,246,255,0.88),rgba(255,255,255,0.92))] border border-blue-100/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]",
-    cta: "bg-gradient-to-r from-blue-500 via-indigo-500 to-sky-500 text-white shadow-[0_18px_40px_rgba(59,130,246,0.24)] hover:shadow-[0_24px_54px_rgba(59,130,246,0.32)] hover:-translate-y-0.5 border border-white/20",
+      "bg-[linear-gradient(135deg,rgba(238,242,255,0.82),rgba(255,255,255,0.94))] border border-indigo-100/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.74)]",
+    cta: "bg-[linear-gradient(135deg,#818cf8,#c084fc_54%,#f9a8d4)] text-white shadow-[0_16px_34px_rgba(124,58,237,0.16)] hover:shadow-[0_20px_42px_rgba(124,58,237,0.2)] hover:-translate-y-0.5 border border-white/35",
     highlightCard:
-      "border-blue-100/90 bg-[linear-gradient(135deg,rgba(239,246,255,0.92),rgba(255,255,255,0.96))] shadow-[0_18px_38px_rgba(59,130,246,0.12)]",
+      "border-indigo-100/90 bg-[linear-gradient(135deg,rgba(238,242,255,0.82),rgba(255,255,255,0.96))] shadow-[0_14px_32px_rgba(15,23,42,0.055)]",
     iconShell:
-      "bg-white border-blue-200/80 text-blue-500 shadow-[0_8px_18px_rgba(59,130,246,0.12)]",
+      "bg-white border-indigo-200/80 text-indigo-600 shadow-[0_8px_18px_rgba(99,102,241,0.08)]",
     tagHover: "hover:border-blue-200/80 hover:text-blue-600",
   },
   rose: {
@@ -264,9 +264,12 @@ const EventCard = memo(
     return (
       <motion.div
         {...motionProps}
-        className={`group rect-media-card relative overflow-hidden cursor-pointer flex flex-row md:flex-col h-full transform-gpu will-change-transform transition-[background-color,border-color,box-shadow] duration-200 ${isDayMode ? "bg-white/88 border-slate-200/80 hover:border-indigo-300/70" : "bg-[#050712]/94 border-white/15 hover:border-indigo-300/30 hover:bg-[#070914]"}`}
+        className={`group rect-media-card relative overflow-hidden cursor-pointer flex flex-row md:flex-col h-full transform-gpu will-change-transform transition-[background-color,border-color,box-shadow] duration-200 ${isDayMode ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(250,250,255,0.84))] border-slate-200/80 hover:border-fuchsia-200/80 hover:shadow-[0_18px_38px_rgba(124,58,237,0.08)]" : "bg-[#050712]/94 border-white/15 hover:border-indigo-300/30 hover:bg-[#070914]"}`}
         onClick={() => onClick(event)}
       >
+        {isDayMode && (
+          <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-fuchsia-200/70 to-transparent opacity-70" />
+        )}
         {/* Image Section */}
         <div className="w-[112px] sm:w-1/3 md:w-full aspect-square md:h-56 overflow-hidden relative shrink-0 z-10 m-3 rounded-[5px] md:m-0 md:rounded-t-[6px] md:rounded-b-none">
           <SmartImage
@@ -283,7 +286,7 @@ const EventCard = memo(
 
           {/* Status Badge - Adjusted for mobile */}
           <div
-            className={`absolute top-2 right-2 md:top-4 md:right-4 px-2.5 py-1 md:px-3 md:py-1.5 rounded-[4px] text-[10px] md:text-xs font-bold uppercase tracking-wider shadow-none flex items-center gap-1.5 z-40 border border-white/10 ${getStatusColor(status, t)} bg-opacity-90`}
+            className={`absolute top-2 right-2 md:top-4 md:right-4 px-2.5 py-1 md:px-3 md:py-1.5 rounded-[4px] text-[10px] md:text-xs font-bold uppercase tracking-wider shadow-none flex items-center gap-1.5 z-40 border ${getStatusColor(status, t)}`}
           >
             {status === t("events.status.upcoming") && (
               <Clock size={12} className="md:w-3.5 md:h-3.5" />
@@ -376,7 +379,7 @@ const EventCard = memo(
             <div className="flex flex-wrap gap-1.5 md:gap-2 overflow-hidden min-h-[24px] md:min-h-[32px]">
               {event.category && (
                 <span
-                  className={`rect-chip px-1.5 py-0.5 md:px-2.5 md:py-1.5 text-[10px] md:text-xs font-medium flex items-center gap-1 shrink-0 max-w-[96px] md:max-w-[140px] ${isDayMode ? "bg-indigo-50 text-indigo-600 border-indigo-200/80" : "bg-indigo-500/10 text-indigo-300 border-indigo-500/20"}`}
+                  className={`rect-chip px-1.5 py-0.5 md:px-2.5 md:py-1.5 text-[10px] md:text-xs font-medium flex items-center gap-1 shrink-0 max-w-[96px] md:max-w-[140px] ${isDayMode ? "bg-[linear-gradient(135deg,rgba(245,243,255,0.9),rgba(253,242,248,0.74))] text-violet-700 border-violet-200/80" : "bg-indigo-500/10 text-indigo-300 border-indigo-500/20"}`}
                 >
                   <Tag size={10} className="md:w-3 md:h-3" />
                   <span className="truncate">
@@ -403,13 +406,13 @@ const EventCard = memo(
                 count={event.likes || 0}
                 favorited={event.favorited}
                 initialFavorited={event.favorited}
-                className={`rect-icon-button p-1.5 md:p-2 transition-colors ${isDayMode ? "hover:bg-indigo-50" : "hover:bg-white/10"}`}
+                className={`rect-icon-button p-1.5 md:p-2 transition-colors ${isDayMode ? "hover:bg-fuchsia-50 hover:text-fuchsia-600" : "hover:bg-white/10"}`}
                 onToggle={(favorited, likes) =>
                   onToggleFavorite(event.id, favorited, likes)
                 }
               />
               <div
-                className={`rect-icon-button p-1.5 md:p-2 transition-[background-color,color,transform] duration-200 group-hover:translate-x-0.5 ${isDayMode ? "bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100" : "bg-white/5 group-hover:bg-white/10 group-hover:text-white"}`}
+                className={`rect-icon-button p-1.5 md:p-2 transition-[background-color,color,transform] duration-200 group-hover:translate-x-0.5 ${isDayMode ? "bg-[linear-gradient(135deg,rgba(238,242,255,0.92),rgba(252,231,243,0.82))] text-violet-700 group-hover:bg-fuchsia-50" : "bg-white/5 group-hover:bg-white/10 group-hover:text-white"}`}
               >
                 <ArrowRight
                   size={16}
@@ -950,11 +953,11 @@ END:VCALENDAR`;
     ? "rect-surface-soft"
     : "rect-surface-soft";
   const daySegmentActiveClass =
-    "border border-slate-300/70 bg-white/92 text-blue-700 shadow-none";
+    "border border-violet-200/80 bg-[linear-gradient(135deg,rgba(245,243,255,0.94),rgba(253,242,248,0.74)_52%,rgba(239,246,255,0.76))] text-violet-800 shadow-[0_10px_22px_rgba(124,58,237,0.08)]";
   const nightSegmentActiveClass =
     "border border-indigo-400/28 bg-indigo-500/16 text-indigo-100 shadow-none";
   const dayPrimaryActionClass =
-    "rect-button-primary bg-blue-600 text-white";
+    "rect-button-primary bg-[linear-gradient(135deg,#818cf8,#c084fc_54%,#f9a8d4)] text-white border-white/40";
 
   const renderDiscoveryModeToggle = (compact = false) => (
     <div
@@ -1011,7 +1014,7 @@ END:VCALENDAR`;
       />
       {isDayMode ? (
         <div className="fixed inset-0 pointer-events-none z-0 hidden overflow-hidden md:block">
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.04),rgba(2,6,23,0)_36%),linear-gradient(90deg,rgba(2,6,23,0),rgba(67,56,202,0.025),rgba(2,6,23,0))]" />
+          <div className="absolute inset-0 bg-[radial-gradient(720px_300px_at_18%_8%,rgba(216,180,254,0.13),transparent_62%),radial-gradient(820px_360px_at_82%_4%,rgba(244,114,182,0.11),transparent_60%),radial-gradient(620px_320px_at_48%_0%,rgba(125,211,252,0.1),transparent_64%)]" />
         </div>
       ) : null}
 
@@ -1071,7 +1074,7 @@ END:VCALENDAR`;
           </p>
         </div>
 
-        <div className="hidden md:flex items-center gap-2 w-full md:w-auto justify-center md:absolute md:right-0 md:top-0 mb-4 md:mb-0">
+        <div className="hidden md:flex items-center gap-2 w-full justify-center mb-4 xl:absolute xl:right-0 xl:top-0 xl:mb-0 xl:w-auto">
           <button
             type="button"
             aria-label={t("common.create_event")}

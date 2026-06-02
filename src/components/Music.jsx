@@ -32,8 +32,12 @@ import { useReducedMotion } from "../utils/animations";
 import SEO from "./SEO";
 
 const formatTime = (seconds) => {
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
+  const totalSeconds = Number(seconds);
+  if (!Number.isFinite(totalSeconds) || totalSeconds <= 0) {
+    return "0:00";
+  }
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = Math.floor(totalSeconds % 60);
   return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
 };
 
@@ -453,7 +457,7 @@ const Music = () => {
           </p>
         </div>
 
-        <div className="hidden md:flex items-center gap-4 w-full md:w-auto justify-center md:absolute md:right-0 md:top-0">
+        <div className="hidden md:flex items-center gap-4 w-full justify-center xl:absolute xl:right-0 xl:top-0 xl:w-auto">
           <div className="w-40 md:w-48">
             <SortSelector sort={sort} onSortChange={setSort} />
           </div>

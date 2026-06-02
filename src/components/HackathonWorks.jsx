@@ -361,8 +361,8 @@ const HackathonWorks = () => {
         </div>
       </div>
 
-      <main className="relative mx-auto w-full max-w-[1760px] px-4 pb-28 pt-28 sm:px-6 lg:px-10 lg:pt-32 2xl:px-16">
-        <div className="flex flex-col gap-6 border-b border-cyan-300/18 pb-10 lg:flex-row lg:items-end lg:justify-between">
+      <main className="relative mx-auto w-full max-w-[1760px] px-4 pb-[calc(env(safe-area-inset-bottom)+9.5rem)] pt-24 sm:px-6 sm:pt-28 md:pb-32 lg:px-10 lg:pt-32 2xl:px-16">
+        <div className="flex flex-col gap-6 border-b border-cyan-300/18 pb-8 sm:pb-10 xl:flex-row xl:items-end xl:justify-between">
           <div>
             <div className="flex flex-wrap gap-3">
               <Link
@@ -388,18 +388,18 @@ const HackathonWorks = () => {
             <p className={`mt-8 inline-flex border px-3 py-2 text-xs font-black uppercase ${chipClass}`}>
               Winner Stories / {works.length} Selected
             </p>
-            <h1 className="mt-5 max-w-5xl text-5xl font-black leading-none sm:text-7xl lg:text-8xl">
+            <h1 className="mt-5 max-w-5xl text-[clamp(3rem,12vw,5rem)] font-black leading-none sm:text-[clamp(4.25rem,8vw,7rem)] lg:text-8xl">
               优秀作品与经验分享
             </h1>
           </div>
-          <div className="grid grid-cols-3 gap-3 text-center lg:min-w-[420px]">
+          <div className="grid grid-cols-3 gap-2 text-center sm:gap-3 xl:min-w-[420px]">
             {[
               [String(works.length), "已发布作品"],
               [String(podiumWorks.length), "重点展示"],
               [competition ? "1" : "0", "当前比赛"],
             ].map(([value, label]) => (
-              <div key={label} className="border border-cyan-300/16 bg-cyan-300/[0.045] px-4 py-4">
-                <p className="font-mono text-3xl font-black text-cyan-200">{value}</p>
+              <div key={label} className="border border-cyan-300/16 bg-cyan-300/[0.045] px-3 py-3 sm:px-4 sm:py-4">
+                <p className="font-mono text-2xl font-black text-cyan-200 sm:text-3xl">{value}</p>
                 <p className={`mt-1 text-xs font-bold ${statLabelClass}`}>{label}</p>
               </div>
             ))}
@@ -421,19 +421,19 @@ const HackathonWorks = () => {
           </section>
         ) : (
           <>
-            <section className="py-10">
+            <section className="py-8 sm:py-10 max-md:pb-[calc(env(safe-area-inset-bottom)+8rem)]">
               <div className="mb-6 flex items-center justify-between gap-4">
                 <h2 className="text-2xl font-black sm:text-3xl">重点作品</h2>
                 <span className="text-xs font-black uppercase text-cyan-200/72">Top 3</span>
               </div>
-              <div className="grid gap-4 lg:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-2 min-[900px]:grid-cols-3">
                 {podiumWorks.map((work) => (
                   <WorkCard key={work.id} work={work} featured isDayMode={isDayMode} onOpen={setSelectedWork} />
                 ))}
               </div>
             </section>
 
-            <section className="border-t border-cyan-300/18 py-10">
+            <section className="border-t border-cyan-300/18 py-8 sm:py-10 max-md:pb-[calc(env(safe-area-inset-bottom)+9rem)]">
               <div className="mb-6 flex items-center justify-between gap-4">
                 <h2 className="text-2xl font-black sm:text-3xl">更多作品</h2>
                 <span className="text-xs font-black uppercase text-cyan-200/72">{otherWorks.length} Works</span>

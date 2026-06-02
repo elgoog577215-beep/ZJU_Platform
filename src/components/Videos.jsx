@@ -281,15 +281,15 @@ const Videos = () => {
         description="查看校园视频、活动回顾与精选影像内容。"
       />
       <div className="fixed inset-0 pointer-events-none z-0 hidden overflow-hidden md:block">
-        <div className={`absolute inset-x-0 top-24 h-px ${isDayMode ? "bg-slate-200/80" : "bg-white/10"}`} />
-        <div className={`absolute inset-x-0 top-52 h-px ${isDayMode ? "bg-slate-200/50" : "bg-white/10"}`} />
+        <div className={`absolute inset-x-0 top-24 h-px ${isDayMode ? "bg-gradient-to-r from-transparent via-slate-200/80 to-transparent" : "bg-white/10"}`} />
+        <div className={`absolute inset-x-0 top-52 h-px ${isDayMode ? "bg-gradient-to-r from-transparent via-violet-100/60 to-transparent" : "bg-white/10"}`} />
         {allowAmbientEffects && (
-          <div className={`absolute left-0 top-0 h-full w-px ${isDayMode ? "bg-slate-200/50" : "bg-white/10"}`} />
+          <div className={`absolute left-0 top-0 h-full w-px ${isDayMode ? "bg-slate-200/40" : "bg-white/10"}`} />
         )}
       </div>
 
       <div className="max-w-7xl w-full mx-auto relative z-10">
-        <div className="hidden md:flex absolute right-0 top-0 items-center gap-4 z-20">
+        <div className="hidden md:mb-4 md:flex md:justify-center xl:absolute xl:right-0 xl:top-0 xl:mb-0 items-center gap-4 z-20">
           <button
             onClick={() => {
               if (!user) {

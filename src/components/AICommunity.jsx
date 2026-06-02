@@ -92,22 +92,29 @@ const AICommunity = () => {
 
   const activeTabMeta = TABS.find((tab) => tab.key === activeTab) || TABS[0];
   const ActiveIcon = activeTabMeta.icon;
+  const dayCommunityPalette = {
+    page:
+      "bg-[radial-gradient(900px_420px_at_78%_3%,rgba(251,146,60,0.16),transparent_60%),radial-gradient(760px_360px_at_18%_0%,rgba(253,186,116,0.11),transparent_60%),radial-gradient(620px_320px_at_56%_30%,rgba(14,165,233,0.055),transparent_64%),linear-gradient(180deg,#fcfbf8_0%,#f8faf9_48%,#fffaf5_100%)] text-slate-950",
+    hero:
+      "border-orange-100/75 bg-[linear-gradient(135deg,rgba(255,255,255,0.9),rgba(255,247,237,0.72)_58%,rgba(248,250,252,0.78))] shadow-[0_24px_70px_rgba(154,52,18,0.075)] ring-1 ring-white/70",
+    rail:
+      "border-orange-100/70 bg-white/74 shadow-[0_18px_46px_rgba(154,52,18,0.055)]",
+    muted: "text-slate-600",
+    soft: "text-slate-500",
+    label: "text-orange-700",
+    tabShell:
+      "border-orange-100/80 bg-[linear-gradient(135deg,rgba(255,255,255,0.82),rgba(255,247,237,0.62))]",
+    tabActive:
+      "border-orange-300/80 bg-[linear-gradient(135deg,rgba(255,237,213,0.96),rgba(254,215,170,0.8)_54%,rgba(255,255,255,0.82))] text-orange-950 shadow-[0_12px_26px_rgba(234,88,12,0.11)]",
+    tabIdle: "border-transparent text-slate-600 hover:bg-white/86 hover:text-orange-900",
+    stat:
+      "border-orange-100/75 bg-[linear-gradient(180deg,rgba(255,255,255,0.84),rgba(255,247,237,0.62))]",
+    action:
+      "bg-[linear-gradient(135deg,#f97316,#f59e0b_58%,#fde68a)] text-slate-950 shadow-[0_14px_28px_rgba(234,88,12,0.16)] hover:shadow-[0_18px_36px_rgba(234,88,12,0.2)] hover:-translate-y-0.5 border border-white/45",
+  };
   const palette = isDayMode
     ? {
-        page:
-          "bg-[radial-gradient(1100px_520px_at_16%_-4%,rgba(14,165,233,0.16),transparent_58%),radial-gradient(900px_500px_at_86%_6%,rgba(249,115,22,0.12),transparent_58%),radial-gradient(620px_360px_at_54%_48%,rgba(129,140,248,0.08),transparent_62%),linear-gradient(180deg,#fbfeff_0%,#f7fbff_48%,#fffaf7_100%)] text-slate-950",
-        hero:
-          "border-slate-200/80 bg-white/78 shadow-[0_24px_70px_rgba(15,23,42,0.1)]",
-        rail:
-          "border-slate-200/70 bg-white/68 shadow-[0_18px_46px_rgba(15,23,42,0.07)]",
-        muted: "text-slate-600",
-        soft: "text-slate-500",
-        label: "text-cyan-700",
-        tabShell: "border-slate-200/80 bg-white/72",
-        tabActive: "border-blue-600 bg-blue-600 text-white shadow-[0_12px_26px_rgba(37,99,235,0.18)]",
-        tabIdle: "border-transparent text-slate-600 hover:bg-white hover:text-slate-950",
-        stat: "border-slate-200/80 bg-white/72",
-        action: "bg-blue-600 text-white shadow-[0_12px_26px_rgba(37,99,235,0.18)] hover:bg-blue-500",
+        ...dayCommunityPalette,
       }
     : {
         page:
@@ -137,7 +144,11 @@ const AICommunity = () => {
           <div className="absolute inset-x-0 top-0 h-80 bg-[linear-gradient(180deg,rgba(6,182,212,0.08),transparent)]" />
         )}
         {isDayMode ? (
-          <div className="absolute inset-x-0 top-0 h-px bg-slate-200/80" />
+          <>
+            <div className="absolute inset-x-0 top-0 h-px bg-orange-100/80" />
+            <div className="absolute right-[8%] top-20 hidden h-72 w-72 rounded-full bg-orange-200/18 blur-[110px] md:block" />
+            <div className="absolute left-[6%] top-32 hidden h-64 w-64 rounded-full bg-amber-100/22 blur-[100px] md:block" />
+          </>
         ) : null}
       </div>
 
@@ -149,16 +160,22 @@ const AICommunity = () => {
         <div className="mx-auto w-full min-w-0 max-w-[1100px] 2xl:max-w-none">
           <header className="mb-5 md:mb-7">
             <div className={`relative overflow-hidden border p-4 backdrop-blur-2xl md:p-6 lg:p-7 ${palette.hero}`}>
+              {isDayMode && (
+                <>
+                  <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[radial-gradient(circle,rgba(251,146,60,0.2),transparent_66%)] blur-2xl" />
+                  <div className="pointer-events-none absolute left-10 top-0 h-px w-2/5 bg-gradient-to-r from-transparent via-orange-200/80 to-transparent" />
+                </>
+              )}
               <div className="pointer-events-none absolute -right-10 -top-12 hidden text-[8rem] font-black uppercase leading-none tracking-normal opacity-[0.045] md:block md:text-[12rem]">
                 COMMUNITY
               </div>
-              <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-stretch">
+              <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-stretch">
                 <div className="relative">
                   <div className={`inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.24em] ${palette.label}`}>
                     <Sparkles size={14} />
                     ZJU AI Collaboration Hub
                   </div>
-                  <h1 className="mt-3 max-w-3xl text-[1.85rem] font-black leading-[0.98] tracking-[-0.035em] sm:text-5xl lg:text-[3.75rem]">
+                  <h1 className="mt-3 max-w-3xl text-[clamp(1.85rem,7vw,3rem)] font-black leading-[0.98] tracking-normal sm:text-5xl xl:text-[3.75rem]">
                     AI 社区
                     <span className="block">让问题、经验和人群持续流动。</span>
                   </h1>
@@ -197,14 +214,14 @@ const AICommunity = () => {
                         className={`group grid grid-cols-[2.75rem_1fr_auto] items-center gap-3 px-4 py-4 text-left transition ${
                           isActive
                             ? isDayMode
-                              ? "bg-blue-600 text-white"
+                              ? "bg-[linear-gradient(135deg,rgba(255,237,213,0.98),rgba(254,215,170,0.82),rgba(255,255,255,0.9))] text-orange-950"
                               : "bg-orange-300 text-slate-950"
                             : isDayMode
-                              ? "bg-white/76 text-slate-700 hover:bg-white"
+                              ? "bg-white/76 text-slate-700 hover:bg-orange-50/70"
                               : "bg-black/16 text-white/72 hover:bg-white/[0.06] hover:text-white"
                         }`}
                       >
-                        <span className={`flex h-10 w-10 items-center justify-center border ${isActive ? (isDayMode ? "border-white/20 bg-white/14" : "border-slate-950/10 bg-slate-950/10") : isDayMode ? "border-slate-200 bg-white/70" : "border-white/10 bg-white/[0.04]"}`}>
+                        <span className={`flex h-10 w-10 items-center justify-center border ${isActive ? (isDayMode ? "border-orange-200/80 bg-white/70 text-orange-700" : "border-slate-950/10 bg-slate-950/10") : isDayMode ? "border-orange-100 bg-white/70 text-orange-600" : "border-white/10 bg-white/[0.04]"}`}>
                           <Icon size={18} />
                         </span>
                         <span className="min-w-0">
