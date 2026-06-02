@@ -10,7 +10,7 @@ import {
   useReducedMotion,
 } from "../utils/animations";
 
-const Hero = ({ id, onScrollNext } = {}) => {
+const Hero = ({ id, onScrollNext, showScrollCue = true } = {}) => {
   const { scrollY } = useScroll();
   const y = useTransform(scrollY, [0, 500], [0, 200]);
   const opacity = useTransform(scrollY, [0, 300], [1, 0]);
@@ -168,20 +168,22 @@ const Hero = ({ id, onScrollNext } = {}) => {
         </div>
       </motion.div>
 
-      <motion.button
-        type="button"
-        style={shouldUseParallax ? { opacity } : undefined}
-        whileTap={shouldUseMotion ? tapPress : undefined}
-        className={scrollButtonClass}
-        onClick={handleScrollNext}
-        aria-label="Scroll to content"
-      >
-        <div
-          className={`motion-gpu ${shouldUseMotion ? "motion-scroll-cue" : ""} ${scrollInnerClass}`}
+      {showScrollCue && (
+        <motion.button
+          type="button"
+          style={shouldUseParallax ? { opacity } : undefined}
+          whileTap={shouldUseMotion ? tapPress : undefined}
+          className={scrollButtonClass}
+          onClick={handleScrollNext}
+          aria-label="Scroll to content"
         >
-          <ArrowDown className="h-6 w-6" />
-        </div>
-      </motion.button>
+          <div
+            className={`motion-gpu ${shouldUseMotion ? "motion-scroll-cue" : ""} ${scrollInnerClass}`}
+          >
+            <ArrowDown className="h-6 w-6" />
+          </div>
+        </motion.button>
+      )}
     </section>
   );
 };
