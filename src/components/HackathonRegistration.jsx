@@ -362,6 +362,7 @@ const HackathonRegistration = () => {
   return (
     <div
       ref={pageRef}
+      data-registration-page
       className={`h-[100svh] overflow-y-auto overflow-x-hidden scroll-smooth overscroll-y-contain min-[1720px]:snap-y min-[1720px]:snap-mandatory ${palette.page}`}
     >
       <SEO
@@ -378,7 +379,7 @@ const HackathonRegistration = () => {
       </div>
 
       {/* Desktop Navigation Dots */}
-      <div className="fixed right-6 top-1/2 z-20 hidden -translate-y-1/2 flex-col items-center gap-4 min-[1720px]:flex">
+      <div className="fixed right-4 top-1/2 z-20 hidden -translate-y-1/2 flex-col items-center gap-3 xl:flex min-[1720px]:right-6 min-[1720px]:gap-4">
         {[
           { id: "hackathon-hero", label: "主页", index: 0 },
           { id: "event-brief", label: "赛制", index: 1 },
@@ -402,7 +403,7 @@ const HackathonRegistration = () => {
             </span>
             <div className="relative">
               <div
-                className={`flex h-10 w-10 items-center justify-center rounded-full border text-xs font-black transition-all duration-300 ${
+                className={`flex h-9 w-9 items-center justify-center rounded-full border text-xs font-black transition-all duration-300 min-[1720px]:h-10 min-[1720px]:w-10 ${
                   activeSection === item.index
                     ? isDayMode
                       ? "border-cyan-500 bg-cyan-500 text-white shadow-lg shadow-cyan-200"
@@ -440,6 +441,7 @@ const HackathonRegistration = () => {
             <button
               key={item.id}
               type="button"
+              aria-label={`跳转到${item.label}`}
               onClick={() => smoothScrollTo(item.id)}
               className={`flex min-h-11 flex-1 items-center justify-center gap-2 rounded-[6px] px-3 py-2 text-xs font-bold transition-all duration-300 ${
                 activeSection === item.index
@@ -734,7 +736,7 @@ const HackathonRegistration = () => {
           <button
             type="button"
             onClick={() => smoothScrollTo("event-brief")}
-            className={`group absolute bottom-6 left-1/2 hidden -translate-x-1/2 items-center gap-2 border px-3 py-2 text-xs font-bold uppercase tracking-[0.18em] transition duration-300 hover:border-cyan-300/70 hover:text-cyan-300 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 min-[1720px]:inline-flex ${palette.chip}`}
+            className={`group absolute bottom-6 left-1/2 hidden -translate-x-1/2 items-center gap-2 border px-3 py-2 text-xs font-bold uppercase tracking-[0.18em] transition duration-300 hover:border-cyan-300/70 hover:text-cyan-300 focus:outline-none focus:ring-4 focus:ring-cyan-300/20 xl:inline-flex ${palette.chip}`}
           >
             继续了解
             <span className="inline-flex transition-transform duration-300 group-hover:translate-y-0.5">
