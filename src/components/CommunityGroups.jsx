@@ -138,7 +138,7 @@ const GroupCard = memo(({ group, index, isDayMode, isAdmin, onQuickAction, onEdi
 });
 GroupCard.displayName = 'GroupCard';
 
-const CommunityGroups = () => {
+const CommunityGroups = ({ compact = false }) => {
   const { t } = useTranslation();
   const { uiMode } = useSettings();
   const { user } = useAuth();
@@ -213,7 +213,7 @@ const CommunityGroups = () => {
         params.set(key, String(value));
       }
     });
-    if (!params.get('tab')) params.set('tab', 'groups');
+    // no top-level tab navigation in the new layout
     setSearchParams(params, { replace: false });
   };
 
@@ -334,7 +334,7 @@ const CommunityGroups = () => {
   };
 
   return (
-    <div role="tabpanel" aria-labelledby="tab-groups">
+    <div>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
         <div className="mb-6">
           <p className={`max-w-lg text-sm ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
@@ -461,12 +461,17 @@ const CommunityGroups = () => {
             </button>
           </div>
         ) : filteredGroups.length === 0 ? (
-          <div className="flex flex-col items-center py-20">
-            <QrCode size={64} className="text-gray-500 mb-4 opacity-60" />
-            <p className={`${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{t('community.groups.empty', '暂无社群')}</p>
+          <div className={`rounded-lg border px-5 py-8 text-center ${isDayMode ? 'border-slate-200/80 bg-slate-50' : 'border-white/10 bg-white/[0.03]'}`}>
+            <QrCode size={32} className={`mx-auto mb-3 ${isDayMode ? 'text-slate-300' : 'text-white/20'}`} />
+            <p className={`text-sm font-semibold ${isDayMode ? 'text-slate-700' : 'text-white/70'}`}>
+              社群二维码正在准备中
+            </p>
+            <p className={`mt-1 text-xs leading-5 ${isDayMode ? 'text-slate-400' : 'text-white/35'}`}>
+              我们正在整理各类协作群，<br />稍后会在这里发布入群方式
+            </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
+          <div className={`grid gap-3 ${compact ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-3 md:gap-6"}`}>
             {filteredGroups.map((group, index) => (
               <GroupCard
                 key={group.id}

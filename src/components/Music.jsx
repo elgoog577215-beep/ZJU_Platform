@@ -50,6 +50,7 @@ const TrackItem = memo(
     onToggleFavorite,
     canAnimate,
     isDayMode,
+    compact = false,
   }) => {
     const { t } = useTranslation();
     const isActive = track.id === activeTrackId;
@@ -59,7 +60,7 @@ const TrackItem = memo(
         initial={canAnimate ? { opacity: 0, y: 10 } : false}
         animate={canAnimate ? { opacity: 1, y: 0 } : undefined}
         transition={canAnimate ? { duration: 0.2, delay: 0.02 } : undefined}
-        className={`group flex items-center gap-4 p-3 rounded-xl transition-all cursor-pointer border backdrop-blur-md ${
+        className={`group flex items-center gap-3 rounded-xl transition-all cursor-pointer border backdrop-blur-md ${compact ? "p-2" : "p-3 gap-4"} ${
           isActive
             ? isDayMode
               ? "bg-cyan-50 border-cyan-200/80 shadow-[0_12px_28px_rgba(34,211,238,0.12)]"
@@ -70,7 +71,7 @@ const TrackItem = memo(
         }`}
         onClick={() => onClick(track)}
       >
-        <div className="relative w-14 h-14 md:w-16 md:h-16 rounded-xl overflow-hidden shrink-0 shadow-lg">
+        <div className={`relative rounded-xl overflow-hidden shrink-0 shadow-lg ${compact ? "w-9 h-9" : "w-14 h-14 md:w-16 md:h-16"}`}>
           <SmartImage
             src={getThumbnailUrl(track.cover)}
             alt={track.title}
@@ -106,59 +107,55 @@ const TrackItem = memo(
           </div>
         </div>
 
-        <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
-          <div className="flex items-center gap-2">
-            <h4
-              className={`font-bold truncate text-base md:text-lg ${isActive ? (isDayMode ? "text-blue-700" : "text-cyan-500") : isDayMode ? "text-slate-900 group-hover:text-blue-700" : "text-white group-hover:text-cyan-400"} transition-colors`}
-            >
-              {track.title}
-            </h4>
-          </div>
-
-          <div
-            className={`flex items-center gap-2 text-xs ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+        <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
+          <h4
+            className={`font-bold truncate ${compact ? "text-xs" : "text-base md:text-lg"} ${isActive ? (isDayMode ? "text-blue-700" : "text-cyan-500") : isDayMode ? "text-slate-900 group-hover:text-blue-700" : "text-white group-hover:text-cyan-400"} transition-colors`}
           >
-            <span className="truncate max-w-[150px]">{track.artist}</span>
-
-          </div>
-        </div>
-
-        <div
-          className="flex items-center gap-3 md:gap-5 mr-2"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <span
-            className={`text-xs font-mono hidden sm:block px-2 py-1 rounded-md border ${isDayMode ? "text-slate-500 bg-slate-100/90 border-slate-200/80" : "text-gray-500 bg-black/20 border-white/5"}`}
-          >
-            {formatTime(track.duration)}
+            {track.title}
+          </h4>
+          <span className={`truncate ${compact ? "text-[10px] max-w-full" : "text-xs max-w-[150px]"} ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+            {track.artist}
           </span>
-          <FavoriteButton
-            itemId={track.id}
-            itemType="music"
-            size={18}
-            showCount={true}
-            count={track.likes || 0}
-            favorited={track.favorited}
-            initialFavorited={track.favorited}
-            className={`p-2.5 rounded-full transition-all border ${
-              isActive
-                ? "bg-cyan-500/20 text-cyan-400 border-cyan-500/30"
-                : isDayMode
-                  ? "bg-white/85 text-slate-500 border-slate-200/80 hover:text-cyan-500 hover:bg-cyan-50 hover:border-cyan-200/80"
-                  : "bg-white/5 text-gray-400 border-white/5 hover:text-white hover:bg-white/20 hover:border-white/10"
-            }`}
-            onToggle={(favorited, likes) =>
-              onToggleFavorite(track.id, favorited, likes)
-            }
-          />
         </div>
+
+        {!compact && (
+          <div
+            className="flex items-center gap-3 md:gap-5 mr-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span
+              className={`text-xs font-mono hidden sm:block px-2 py-1 rounded-md border ${isDayMode ? "text-slate-500 bg-slate-100/90 border-slate-200/80" : "text-gray-500 bg-black/20 border-white/5"}`}
+            >
+              {formatTime(track.duration)}
+            </span>
+            <FavoriteButton
+              itemId={track.id}
+              itemType="music"
+              size={18}
+              showCount={true}
+              count={track.likes || 0}
+              favorited={track.favorited}
+              initialFavorited={track.favorited}
+              className={`p-2.5 rounded-full transition-all border ${
+                isActive
+                  ? "bg-cyan-500/20 text-cyan-400 border-cyan-500/30"
+                  : isDayMode
+                    ? "bg-white/85 text-slate-500 border-slate-200/80 hover:text-cyan-500 hover:bg-cyan-50 hover:border-cyan-200/80"
+                    : "bg-white/5 text-gray-400 border-white/5 hover:text-white hover:bg-white/20 hover:border-white/10"
+              }`}
+              onToggle={(favorited, likes) =>
+                onToggleFavorite(track.id, favorited, likes)
+              }
+            />
+          </div>
+        )}
       </motion.div>
     );
   },
 );
 TrackItem.displayName = "TrackItem";
 
-const Music = () => {
+const Music = ({ embedded = false, singleColumn = false }) => {
   const { t } = useTranslation();
   const { settings, uiMode } = useSettings();
   const { user } = useAuth();
@@ -406,80 +403,112 @@ const Music = () => {
     [setTracks, currentTrack],
   );
 
+  const Wrapper = embedded ? "div" : "section";
+  const wrapperClass = embedded
+    ? "relative"
+    : "pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:py-20 px-4 md:px-8 min-h-screen relative overflow-hidden";
+
   return (
-    <section className="pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:py-20 px-4 md:px-8 min-h-screen relative overflow-hidden">
-      <SEO
-        title="播客"
-        description="收听校园播客、原创音乐与精选音频内容。"
-      />
-      {/* Ambient Background */}
-      <div className="fixed inset-0 pointer-events-none z-0 hidden overflow-hidden md:block">
-        {!isDayMode && (
-          <>
-            <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] bg-purple-500/10" />
-            <div className="absolute top-[40%] right-[-10%] w-[40%] h-[40%] rounded-full blur-[100px] bg-cyan-500/10" />
-          </>
-        )}
-        <div className={`absolute bottom-[-10%] left-[20%] w-[60%] h-[40%] rounded-full blur-[120px] ${isDayMode ? "bg-slate-200/18" : "bg-indigo-500/10"}`} />
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
-        className="mb-6 md:mb-12 relative z-40 text-center"
-      >
-        <div className="md:hidden mb-4 text-left">
-          <h1
-            className={`text-2xl font-bold tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}
-          >
-            {t("music.title")}
-          </h1>
-          <p
-            className={`text-sm mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-          >
-            {t("music.subtitle")}
-          </p>
-        </div>
-        <MobileContentToolbar
-          isDayMode={isDayMode}
-          resultCount={tracks.length}
-          sortLabel={mobileSortLabel}
-          onOpenSort={() => setIsMobileSortOpen(true)}
+    <Wrapper className={wrapperClass}>
+      {!embedded && (
+        <SEO
+          title="播客"
+          description="收听校园播客、原创音乐与精选音频内容。"
         />
-        <div className="hidden md:block">
-          <h2
-            className={`text-4xl md:text-5xl font-bold font-serif mb-4 md:mb-6 ${isDayMode ? "text-slate-900" : "text-white"}`}
-          >
-            {t("music.title")}
-          </h2>
-          <p
-            className={`max-w-xl mx-auto text-sm md:text-base ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-          >
-            {t("music.subtitle")}
-          </p>
+      )}
+      {/* Ambient Background — only on standalone page */}
+      {!embedded && (
+        <div className="fixed inset-0 pointer-events-none z-0 hidden overflow-hidden md:block">
+          {!isDayMode && (
+            <>
+              <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] bg-purple-500/10" />
+              <div className="absolute top-[40%] right-[-10%] w-[40%] h-[40%] rounded-full blur-[100px] bg-cyan-500/10" />
+            </>
+          )}
+          <div className={`absolute bottom-[-10%] left-[20%] w-[60%] h-[40%] rounded-full blur-[120px] ${isDayMode ? "bg-slate-200/18" : "bg-indigo-500/10"}`} />
         </div>
+      )}
 
-        <div className="hidden md:flex items-center gap-4 w-full justify-center xl:absolute xl:right-0 xl:top-0 xl:w-auto">
-          <div className="w-40 md:w-48">
-            <SortSelector sort={sort} onSortChange={setSort} />
+      {embedded ? (
+        /* Embedded: singleColumn sidebar hides toolbar entirely; other embedded shows compact toolbar */
+        !singleColumn && (
+          <div className="mb-4 flex items-center justify-end gap-2">
+            <MobileContentToolbar
+              isDayMode={isDayMode}
+              resultCount={tracks.length}
+              sortLabel={mobileSortLabel}
+              onOpenSort={() => setIsMobileSortOpen(true)}
+            />
+            <div className="hidden md:flex items-center gap-2">
+              <SortSelector sort={sort} onSortChange={setSort} />
+              <button
+                onClick={() => {
+                  if (!user) { toast.error(t("auth.signin_required")); return; }
+                  setIsUploadOpen(true);
+                }}
+                className={`p-2 rounded-full border transition-all ${isDayMode ? "bg-white/85 hover:bg-white text-slate-700 border-slate-200/80" : "bg-white/10 hover:bg-white/20 text-white border-white/10"}`}
+                title={t("common.upload_music")}
+              >
+                <Upload size={16} />
+              </button>
+            </div>
           </div>
-          <button
-            onClick={() => {
-              if (!user) {
-                toast.error(t("auth.signin_required"));
-                return;
-              }
-              setIsUploadOpen(true);
-            }}
-            className={`p-2 md:p-3 rounded-full backdrop-blur-md border transition-all ${isDayMode ? "bg-white/85 hover:bg-white text-slate-700 border-slate-200/80 shadow-[0_12px_28px_rgba(148,163,184,0.14)]" : "bg-white/10 hover:bg-white/20 text-white border border-white/10"}`}
-            title={t("common.upload_music")}
-          >
-            <Upload size={18} className="md:w-5 md:h-5" />
-          </button>
-        </div>
-      </motion.div>
+        )
+      ) : (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+          className="mb-6 md:mb-12 relative z-40 text-center"
+        >
+          <div className="md:hidden mb-4 text-left">
+            <h1
+              className={`text-2xl font-bold tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}
+            >
+              {t("music.title")}
+            </h1>
+            <p
+              className={`text-sm mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+            >
+              {t("music.subtitle")}
+            </p>
+          </div>
+          <MobileContentToolbar
+            isDayMode={isDayMode}
+            resultCount={tracks.length}
+            sortLabel={mobileSortLabel}
+            onOpenSort={() => setIsMobileSortOpen(true)}
+          />
+          <div className="hidden md:block">
+            <h2
+              className={`text-4xl md:text-5xl font-bold font-serif mb-4 md:mb-6 ${isDayMode ? "text-slate-900" : "text-white"}`}
+            >
+              {t("music.title")}
+            </h2>
+            <p
+              className={`max-w-xl mx-auto text-sm md:text-base ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+            >
+              {t("music.subtitle")}
+            </p>
+          </div>
+          <div className="hidden md:flex items-center gap-4 w-full justify-center xl:absolute xl:right-0 xl:top-0 xl:w-auto">
+            <div className="w-40 md:w-48">
+              <SortSelector sort={sort} onSortChange={setSort} />
+            </div>
+            <button
+              onClick={() => {
+                if (!user) { toast.error(t("auth.signin_required")); return; }
+                setIsUploadOpen(true);
+              }}
+              className={`p-2 md:p-3 rounded-full backdrop-blur-md border transition-all ${isDayMode ? "bg-white/85 hover:bg-white text-slate-700 border-slate-200/80 shadow-[0_12px_28px_rgba(148,163,184,0.14)]" : "bg-white/10 hover:bg-white/20 text-white border border-white/10"}`}
+              title={t("common.upload_music")}
+            >
+              <Upload size={18} className="md:w-5 md:h-5" />
+            </button>
+          </div>
+        </motion.div>
+      )}
 
       {/* Mobile Sort Drawer (Bottom Sheet) */}
       {createPortal(
@@ -548,13 +577,13 @@ const Music = () => {
 
       {/* Mobile Mini Player - Removed (Moved to GlobalPlayer) */}
 
-      <div className="max-w-6xl w-full mx-auto grid lg:grid-cols-2 gap-6 md:gap-16 items-start relative">
+      <div className={`w-full grid items-start relative ${singleColumn ? "grid-cols-1 gap-4" : embedded ? "lg:grid-cols-2 gap-4 md:gap-6" : "lg:grid-cols-2 max-w-6xl mx-auto gap-6 md:gap-16"}`}>
         {/* Player View - Hidden on Mobile */}
         <motion.div
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
-          className={`hidden md:block backdrop-blur-2xl border rounded-3xl p-6 md:p-12 shadow-2xl relative overflow-hidden ${isDayMode ? "day-fine-surface" : "bg-[#0a0a0a]/50 border-white/20"}`}
+          className={`hidden md:block backdrop-blur-2xl border rounded-3xl shadow-2xl relative overflow-hidden ${embedded ? "p-4" : "p-6 md:p-12"} ${isDayMode ? "day-fine-surface" : "bg-[#0a0a0a]/50 border-white/20"}`}
         >
           <div
             className={`absolute inset-0 backdrop-blur-3xl z-0 rounded-3xl ${isDayMode ? "bg-slate-100/35" : "bg-white/5"}`}
@@ -570,24 +599,26 @@ const Music = () => {
 
           {/* Content Wrapper to ensure z-index above background */}
           <div className="relative z-10">
-            {/* Header */}
-            <div
-              className={`flex items-center gap-4 mb-6 sticky top-0 backdrop-blur-2xl border p-4 rounded-xl z-10 shadow-lg ${isDayMode ? "day-card-lift text-slate-900" : "bg-white/5 border-white/20"}`}
-            >
-              <div className="p-3 bg-cyan-500/20 rounded-full text-cyan-400">
-                <MusicIcon size={24} />
+            {/* Header — hidden when embedded (parent already has section title) */}
+            {!embedded && (
+              <div
+                className={`flex items-center gap-4 mb-6 sticky top-0 backdrop-blur-2xl border p-4 rounded-xl z-10 shadow-lg ${isDayMode ? "day-card-lift text-slate-900" : "bg-white/5 border-white/20"}`}
+              >
+                <div className="p-3 bg-cyan-500/20 rounded-full text-cyan-400">
+                  <MusicIcon size={24} />
+                </div>
+                <div>
+                  <h2 className="text-xl md:text-2xl font-bold font-serif">
+                    {t("music.title")}
+                  </h2>
+                </div>
               </div>
-              <div>
-                <h2 className="text-xl md:text-2xl font-bold font-serif">
-                  {t("music.title")}
-                </h2>
-              </div>
-            </div>
+            )}
 
             {/* Vinyl / Cover */}
-            <div className="flex justify-center mb-6 md:mb-8">
+            <div className="flex justify-center mb-4 md:mb-6">
               <div
-                className={`relative w-48 h-48 md:w-56 md:h-56 rounded-full border-4 overflow-hidden animate-[spin_4s_linear_infinite] ${isDayMode ? "border-slate-200/90 shadow-[0_20px_50px_rgba(148,163,184,0.24)]" : "border-white/10 shadow-2xl"}`}
+                className={`relative rounded-full border-4 overflow-hidden animate-[spin_4s_linear_infinite] ${singleColumn ? "w-32 h-32" : "w-48 h-48 md:w-56 md:h-56"} ${isDayMode ? "border-slate-200/90 shadow-[0_20px_50px_rgba(148,163,184,0.24)]" : "border-white/10 shadow-2xl"}`}
                 style={{ animationPlayState: isPlaying ? "running" : "paused" }}
               >
                 <div
@@ -610,13 +641,13 @@ const Music = () => {
             </div>
 
             {/* Info */}
-            <div className="text-center mb-8 relative">
+            <div className="text-center mb-4 relative">
               <h2
-                className={`text-3xl font-bold mb-2 px-8 ${isDayMode ? "text-slate-900" : "text-white"}`}
+                className={`font-bold mb-1 px-4 truncate ${singleColumn ? "text-base" : "text-3xl mb-2 px-8"} ${isDayMode ? "text-slate-900" : "text-white"}`}
               >
                 {activeTrack.title}
               </h2>
-              <p className="text-cyan-400 font-medium mb-4">
+              <p className={`text-cyan-400 font-medium ${singleColumn ? "text-xs mb-2" : "mb-4"}`}>
                 {activeTrack.artist}
               </p>
 
@@ -694,42 +725,46 @@ const Music = () => {
                 </button>
               </div>
 
-              {/* Speed Control */}
-              <button
-                type="button"
-                onClick={handleSpeedChange}
-                aria-label={t("common.playback_speed", "播放速度")}
-                className="text-xs font-bold text-cyan-400 border border-cyan-500/30 bg-cyan-500/5 px-4 py-1.5 rounded-full hover:bg-cyan-500/20 hover:border-cyan-500/50 transition-all active:scale-95 uppercase tracking-wider"
-                title={t("common.playback_speed")}
-              >
-                {playbackSpeed}x {t("common.speed")}
-              </button>
+              {/* Speed Control — hidden in sidebar */}
+              {!singleColumn && (
+                <button
+                  type="button"
+                  onClick={handleSpeedChange}
+                  aria-label={t("common.playback_speed", "播放速度")}
+                  className="text-xs font-bold text-cyan-400 border border-cyan-500/30 bg-cyan-500/5 px-4 py-1.5 rounded-full hover:bg-cyan-500/20 hover:border-cyan-500/50 transition-all active:scale-95 uppercase tracking-wider"
+                  title={t("common.playback_speed")}
+                >
+                  {playbackSpeed}x {t("common.speed")}
+                </button>
+              )}
             </div>
 
-            {/* Volume */}
-            <div
-              className={`flex items-center gap-3 justify-center ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-            >
-              <button
-                type="button"
-                onClick={toggleMute}
-                aria-label={isMuted ? t("common.unmute", "取消静音") : t("common.mute", "静音")}
-                className={`p-2 rounded-full transition-colors ${isDayMode ? "hover:bg-white/80 hover:text-slate-900" : "hover:bg-white/10 hover:text-white"}`}
-                title={isMuted ? t("common.unmute") : t("common.mute")}
+            {/* Volume — hidden in sidebar */}
+            {!singleColumn && (
+              <div
+                className={`flex items-center gap-3 justify-center ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
               >
-                {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-              </button>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value={volume}
-                onChange={handleVolumeChange}
-                aria-label={t("common.volume", "音量")}
-                className={`w-24 h-1 rounded-full appearance-none cursor-pointer transition-all ${isDayMode ? "bg-slate-200/90 accent-slate-500 hover:accent-slate-700" : "bg-white/10 accent-gray-400 hover:accent-white"}`}
-              />
-            </div>
+                <button
+                  type="button"
+                  onClick={toggleMute}
+                  aria-label={isMuted ? t("common.unmute", "取消静音") : t("common.mute", "静音")}
+                  className={`p-2 rounded-full transition-colors ${isDayMode ? "hover:bg-white/80 hover:text-slate-900" : "hover:bg-white/10 hover:text-white"}`}
+                  title={isMuted ? t("common.unmute") : t("common.mute")}
+                >
+                  {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                </button>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={volume}
+                  onChange={handleVolumeChange}
+                  aria-label={t("common.volume", "音量")}
+                  className={`w-24 h-1 rounded-full appearance-none cursor-pointer transition-all ${isDayMode ? "bg-slate-200/90 accent-slate-500 hover:accent-slate-700" : "bg-white/10 accent-gray-400 hover:accent-white"}`}
+                />
+              </div>
+            )}
           </div>
         </motion.div>
 
@@ -743,12 +778,12 @@ const Music = () => {
             className="overflow-visible md:flex-1 md:overflow-y-auto custom-scrollbar pr-0 md:pr-2"
           >
             <div
-              className={`flex items-center gap-4 mb-4 sticky top-0 backdrop-blur-2xl border p-4 rounded-xl z-10 shadow-lg ${isDayMode ? "day-card-lift text-slate-900" : "bg-white/5 border-white/20"}`}
+              className={`flex items-center gap-3 mb-3 sticky top-0 backdrop-blur-2xl border rounded-xl z-10 shadow-lg ${singleColumn ? "p-3" : "p-4"} ${isDayMode ? "day-card-lift text-slate-900" : "bg-white/5 border-white/20"}`}
             >
-              <div className="p-3 bg-cyan-500/20 rounded-full text-cyan-400">
-                <MusicIcon size={24} />
+              <div className={`bg-cyan-500/20 rounded-full text-cyan-400 ${singleColumn ? "p-2" : "p-3"}`}>
+                <MusicIcon size={singleColumn ? 16 : 24} />
               </div>
-              <h3 className="text-xl md:text-2xl font-bold">
+              <h3 className={`font-bold ${singleColumn ? "text-sm" : "text-xl md:text-2xl"}`}>
                 {t("music.title")} ({tracks.length})
               </h3>
             </div>
@@ -815,6 +850,7 @@ const Music = () => {
                       onToggleFavorite={handleTrackToggleFavorite}
                       canAnimate={!prefersReducedMotion && index < 10}
                       isDayMode={isDayMode}
+                      compact={singleColumn}
                     />
                   ))}
                 </>
@@ -857,7 +893,7 @@ const Music = () => {
         onUpload={handleUpload}
         type="audio"
       />
-    </section>
+    </Wrapper>
   );
 };
 
