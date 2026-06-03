@@ -71,11 +71,11 @@ const MobileNavbar = () => {
   }, [location.pathname]);
 
   const navItems = [
-    { key: "events", path: "/events", icon: Calendar, label: "活动" },
-    { key: "articles", path: "/articles", icon: Trees, label: t("nav.community", "AI社区") },
-    { key: "media", path: "/media", icon: Film, label: t("nav.media", "影像库") },
-    { key: "hackathon", path: "/hackathon", icon: Sparkles, label: "黑客松" },
-    { key: "me", path: user ? `/user/${user.id}` : null, icon: UserCircle, label: t("nav.profile", "我的") },
+    { key: "events", path: "/events", icon: Calendar, label: t("nav.events") },
+    { key: "articles", path: "/articles", icon: Trees, label: t("nav.community") },
+    { key: "media", path: "/media", icon: Film, label: t("nav.media") },
+    { key: "hackathon", path: "/hackathon", icon: Sparkles, label: t("nav.hackathon") },
+    { key: "me", path: user ? `/user/${user.id}` : null, icon: UserCircle, label: t("nav.profile") },
   ];
 
   const isItemActive = (path, key) => {
@@ -102,7 +102,7 @@ const MobileNavbar = () => {
       initial={prefersReducedMotion ? false : "initial"}
       animate={prefersReducedMotion ? undefined : "animate"}
       className={`motion-gpu fixed inset-x-0 bottom-0 z-[100] border-t backdrop-blur-xl md:hidden ${isDayMode ? "border-slate-900/[0.08] bg-[linear-gradient(180deg,rgba(255,255,255,0.88),rgba(247,251,249,0.82))] shadow-[0_-10px_26px_rgba(31,45,61,0.055)]" : "border-white/[0.08] bg-[#0b111c]/90 shadow-[0_-10px_24px_rgba(0,0,0,0.24)]"}`}
-      aria-label={t("nav.mobile_tabbar", "移动端底部导航")}
+      aria-label={t("nav.mobile_tabbar")}
     >
       <LayoutGroup id="mobile-tabbar">
       <div className="pb-[env(safe-area-inset-bottom)]">

@@ -128,10 +128,10 @@ const Navbar = () => {
   const navLinks = [
     { key: "home", path: "/" },
     { key: "events", path: "/events" },
-    { key: "hackathon", path: "/hackathon", label: "浙客松" },
+    { key: "hackathon", path: "/hackathon" },
     { key: "articles", path: "/articles" },
     { key: "music", path: "/music" },
-    { key: "media", path: "/media", label: "影像库" },
+    { key: "media", path: "/media" },
     { key: "about", path: "/about" },
     ...(isAdmin ? [{ key: "admin", path: "/admin" }] : []),
   ];
@@ -149,16 +149,16 @@ const Navbar = () => {
   const currentNavLink = navLinks.find((link) => isNavItemActive(link.path));
   const getMobileTitle = (pathname) => {
     if (pathname === "/") return t("nav.home");
-    if (pathname.startsWith("/hackathon")) return "浙客松";
+    if (pathname.startsWith("/hackathon")) return t("nav.hackathon");
     if (pathname.startsWith("/events")) return t("nav.events");
-    if (pathname.startsWith("/future-learning")) return t("nav.future_learning", "未来学习中心");
+    if (pathname.startsWith("/future-learning")) return t("nav.future_learning");
     if (pathname.startsWith("/articles")) return t("nav.articles");
-    if (pathname.startsWith("/music")) return t("nav.music", "播客");
+    if (pathname.startsWith("/music")) return t("nav.music");
     if (pathname.startsWith("/gallery")) return t("nav.gallery");
     if (pathname.startsWith("/videos")) return t("nav.videos");
-    if (pathname.startsWith("/media")) return t("nav.media", "影像库");
+    if (pathname.startsWith("/media")) return t("nav.media");
     if (pathname.startsWith("/me") || pathname.startsWith("/user/")) {
-      return t("nav.me", "我的");
+      return t("nav.me");
     }
     if (pathname.startsWith("/about")) return t("nav.about");
     if (pathname.startsWith("/admin")) return t("nav.admin");
@@ -268,13 +268,13 @@ const Navbar = () => {
       <Link
         to="/"
         className="hidden lg:flex items-center gap-3 text-white group z-50"
-        aria-label="拓途浙享首页"
+        aria-label={t("nav.home_aria")}
       >
         <div className="relative">
           <div className="absolute inset-x-0 bottom-0 h-px bg-indigo-400/0 transition-colors duration-300 group-hover:bg-indigo-400/60" />
           <img
             src="/newlogo.png"
-            alt="拓途浙享 Logo"
+            alt={t("nav.logo_alt")}
             className="relative h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
           />
         </div>
@@ -282,12 +282,12 @@ const Navbar = () => {
           <span
             className={`text-lg font-bold tracking-tighter transition-colors duration-300 ${isDayMode ? "text-slate-950 group-hover:text-teal-800" : "text-white group-hover:text-indigo-200"}`}
           >
-            拓途浙享
+            {t("nav.site_brand")}
           </span>
           <span
             className={`text-[10px] font-medium tracking-widest mt-0.5 transition-colors ${isDayMode ? "text-slate-500 group-hover:text-teal-700" : "text-gray-400 group-hover:text-indigo-400"}`}
           >
-            数字艺术与科技
+            {t("nav.site_tagline")}
           </span>
         </div>
       </Link>

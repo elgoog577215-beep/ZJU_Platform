@@ -190,10 +190,12 @@
     "me": "我的",
     "profile": "我的",
     "mobile_tabbar": "移动端底部导航",
-    "main_aria": "???",
-    "home_aria": "??????",
-    "logo_alt": "???? Logo",
-    "menu_aria": "????"
+    "main_aria": "主导航",
+    "home_aria": "拓途浙享首页",
+    "logo_alt": "拓途浙享 Logo",
+    "menu_aria": "导航菜单",
+    "site_brand": "拓途浙享",
+    "site_tagline": "数字艺术与科技"
   },
   "community": {
     "seo_description": "浙江大学 AI 社区：求助、技术分享、新闻与协作。",
@@ -716,9 +718,9 @@
     "search": "搜索...",
     "search_placeholder": "搜索活动...",
     "link_copied": "链接已复制到剪贴板！",
-    "loading": "????...",
+    "loading": "加载中...",
     "uploading": "上传中",
-    "cancel": "??",
+    "cancel": "取消",
     "delete": "删除",
     "event": "活动",
     "article": "AI专栏",
@@ -731,7 +733,7 @@
     "show_less": "收起",
     "copied_to_clipboard": "已复制到剪贴板",
     "copy_failed": "复制失败",
-    "retry": "??",
+    "retry": "重试",
     "size": "尺寸",
     "featured": "精选",
     "try_again": "重试",
@@ -745,9 +747,10 @@
     "close": "关闭",
     "load_more": "加载更多",
     "refresh": "刷新",
-    "other": "??",
-    "skip_to_main": "???????",
-    "details": "????"
+    "other": "其他",
+    "skip_to_main": "跳转到主要内容",
+    "details": "查看详情",
+    "submitting": "提交中..."
   },
   "upload": {
     "title_required": "标题不能为空",
@@ -925,12 +928,14 @@
       "title_line_2": "0路演",
       "title_line_3": "只看作品",
       "description": "现场把想法变成可运行的 AI 应用。规则足够直接：个人完成、AI 原生、作品优先。",
-      "support_lineup": "支持阵容"
+      "support_lineup": "支持阵容",
+      "live_brief": "实时简报"
     },
     "partners": {
       "group_school": "学校",
       "group_organization": "社团",
-      "group_enterprise": "企业"
+      "group_enterprise": "企业",
+      "enterprise_logos": "企业 logo"
     },
     "rules": {
       "ai_native_title": "AI 原生开发",
@@ -1015,21 +1020,150 @@
     "showcase": {
       "fallback_works": [
         {
-          "award": "????",
-          "title": "???????",
-          "author": "???? / ??"
+          "award": "冠军作品",
+          "title": "智能校园助手",
+          "author": "第一名 / 参赛者"
         },
         {
-          "award": "????",
-          "title": "???????",
-          "author": "???? / ??"
+          "award": "亚军作品",
+          "title": "跨模态学习档案",
+          "author": "第二名 / 参赛者"
         },
         {
-          "award": "????",
-          "title": "???????",
-          "author": "???? / ??"
+          "award": "季军作品",
+          "title": "现场任务自动化",
+          "author": "第三名 / 参赛者"
         }
-      ]
+      ],
+      "meta_title": "AI 全栈极速黑客松比赛成果",
+      "meta_desc": "AI 全栈极速黑客松比赛成果页，集中呈现宣传片、赛场照片、优秀作品和活动成果。",
+      "nav_aria": "浏览浙客松成果页章节",
+      "jump_to_section": "跳转到{{title}}章节",
+      "sections": {
+        "gate": "首屏",
+        "gallery": "图集",
+        "works": "作品",
+        "partners": "生态"
+      },
+      "stats": {
+        "hours": {
+          "unit": "小时",
+          "label": "极速交付",
+          "detail": "在限时内完成可运行的 AI 应用。"
+        },
+        "solo": {
+          "unit": "个人",
+          "label": "独立完成",
+          "detail": "独立完成构思、开发、调试与交付。"
+        },
+        "pitch": {
+          "unit": "路演",
+          "label": "作品优先",
+          "detail": "少看包装，更看可运行成果。"
+        },
+        "prize": {
+          "short_value": "1.75万",
+          "unit": "￥",
+          "label": "奖金池",
+          "detail": "以作品质量和落地潜力完成激励。"
+        }
+      },
+      "hero": {
+        "title_desktop": "AI 全栈极速",
+        "result": "比赛成果",
+        "desc": "这是一场 5 小时 AI 原生开发冲刺的赛后档案：宣传片、现场照片、获奖作品和支持阵容都在这里集中发布。",
+        "submit": "提交成果",
+        "watch_film": "观看宣传片",
+        "view_works": "查看获奖作品",
+        "poster_alt": "黑客松官方宣传片封面",
+        "play_film": "播放官方宣传片",
+        "upload_film": "上传官方宣传片",
+        "fallback_title": "从赛场声浪到作品上线",
+        "title_mobile_1": "AI 全栈极速",
+        "title_mobile_2": "比赛成果"
+      },
+      "gallery": {
+        "title": "现场照片精选",
+        "desc": "成果页不能只靠标题讲故事。真实画面会建立可信度：人、现场、颁奖和交流都要被看见。",
+        "view_all": "查看全部照片",
+        "upload": "上传现场照片",
+        "stage_photo": "现场照片",
+        "dynamic_caption": "来自画廊的黑客松成果照片，审核通过后自动同步到这里。"
+      },
+      "works": {
+        "title": "获奖作品展示",
+        "desc": "作品卡片聚焦结果：排名、荣誉、作者、摘要与 Git 入口都在一处可见。",
+        "view_all": "查看 {{count}} 件获奖作品",
+        "submit": "提交作品/故事",
+        "project_aria": "查看{{title}}详情",
+        "cover_alt": "{{title}} 项目封面",
+        "view_full": "查看详情",
+        "git_link": "Git 链接",
+        "fallback_award": "获奖作品",
+        "fallback_title": "未命名作品",
+        "fallback_author": "获奖创作者",
+        "fallback_honor": "Top 20 获奖创作者"
+      },
+      "partners": {
+        "title": "共同见证",
+        "desc": "合作方不只是首屏装饰性 logo。学校、社团与企业分别承接资源、运营与技术生态支持。",
+        "join": "加入 AI 社区",
+        "back": "赛事报名",
+        "counts": "已收录 {{groups}} 组 / {{partners}} 位支持方，后台更新后会同步到首屏品牌带和共创区域。",
+        "detail": {
+          "school": "场地资源、导师评审、校园传播与长期机制支持。",
+          "organization": "选手招募、志愿执行、现场协调与赛后社群承接。",
+          "enterprise": "模型、云资源、AI 工具、技术支持与合作方露出。"
+        },
+        "groups": {
+          "school": "学校支持",
+          "organization": "社团协作",
+          "enterprise": "企业生态"
+        },
+        "lineup": "支持阵容",
+        "summary": "学校、社团和企业共同构成活动背书。"
+      },
+      "actions": [
+        {
+          "label": "现场图集",
+          "detail": "开场、开发现场、颁奖和交流群"
+        },
+        {
+          "label": "作品索引",
+          "detail": "获奖作品、Git 链接和经验记录"
+        },
+        {
+          "label": "后续共创",
+          "detail": "加入社区，继续与 AI 共创"
+        }
+      ],
+      "media": {
+        "opening": {
+          "label": "开场",
+          "title": "赛事节奏对齐",
+          "caption": "组织者在开赛前对齐赛制、时间与交付标准，让每位选手进入同一个 5 小时冲刺。"
+        },
+        "builders": {
+          "label": "开发现场",
+          "title": "从提示词到作品上线",
+          "caption": "AI 工具链支撑架构、编码、调试与演示素材，现场进入冲刺状态。"
+        },
+        "speech": {
+          "label": "分享",
+          "title": "校园 AI 创新实践",
+          "caption": "现场呈现人才培养、工具生态与真实问题中的 AI 实践。"
+        },
+        "awards": {
+          "label": "颁奖",
+          "title": "作品结果亮相",
+          "caption": "优秀作品从现场交付走向公开展示与赛后传播。"
+        },
+        "exchange": {
+          "label": "交流",
+          "title": "赛后生态连接",
+          "caption": "合作方、选手与组织者把比赛成果继续推向社群。"
+        }
+      }
     }
   },
   "future_learning": {
@@ -1799,32 +1933,32 @@
     "target_placeholder": "例如：全体师生"
   },
   "media_library": {
-    "title": "???",
-    "meta_desc": "???????????????",
-    "current_category": "????",
-    "current_category_label": "?????{{category}}",
-    "description": "????????????????????{{category}}?",
-    "upload_media": "????",
-    "login_required": "????????",
-    "category_error": "???????????????????",
-    "category_loading": "????????...",
-    "no_categories": "?????????????????????",
-    "content_error": "???????????????",
-    "photos_title": "????",
-    "photos_count": "{{visible}} / {{total}} ???",
-    "upload_photos": "????",
-    "empty_photos_title": "??????",
-    "empty_photos_desc": "???????????????????????????",
-    "load_more_photos": "??????",
-    "videos_title": "????",
-    "videos_count": "{{visible}} / {{total}} ???",
-    "upload_videos": "????",
-    "empty_videos_title": "??????",
-    "empty_videos_desc": "???????????????????????????",
-    "load_more_videos": "??????",
-    "untitled_photo": "?????",
-    "untitled_video": "?????",
-    "uncategorized": "???",
-    "close_video": "????"
+    "title": "影像库",
+    "meta_desc": "按分类归档现场照片与视频记录。",
+    "current_category": "当前分类",
+    "current_category_label": "当前分类：{{category}}",
+    "description": "按分类归档现场照片与视频记录。当前分类：{{category}}。",
+    "upload_media": "上传影像",
+    "login_required": "请先登录后再上传",
+    "category_error": "分类加载失败，已切换到默认分类。",
+    "category_loading": "正在加载分类...",
+    "no_categories": "暂无影像分类，内容会显示在全部与未分类中。",
+    "content_error": "内容加载失败，请重试。",
+    "photos_title": "现场照片",
+    "photos_count": "{{visible}} / {{total}} 张照片",
+    "upload_photos": "上传照片",
+    "empty_photos_title": "暂无现场照片",
+    "empty_photos_desc": "这个分类下还没有图片，上传时选择该分类即可出现在这里。",
+    "load_more_photos": "加载更多照片",
+    "videos_title": "视频记录",
+    "videos_count": "{{visible}} / {{total}} 条视频",
+    "upload_videos": "上传视频",
+    "empty_videos_title": "暂无视频记录",
+    "empty_videos_desc": "这个分类下还没有视频，上传时选择该分类即可出现在这里。",
+    "load_more_videos": "加载更多视频",
+    "untitled_photo": "未命名照片",
+    "untitled_video": "未命名视频",
+    "uncategorized": "未分类",
+    "close_video": "关闭视频"
   }
 }
