@@ -926,6 +926,14 @@ select:focus-visible {
   display: none;
 }
 
+.hackathon-registration-scroll {
+  scrollbar-gutter: stable;
+}
+
+.hackathon-registration-scroll > section {
+  contain: paint;
+}
+
 .dropdown-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: rgba(103, 232, 249, 0.26) transparent;

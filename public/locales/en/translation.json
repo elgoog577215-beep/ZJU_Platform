@@ -1021,7 +1021,7 @@
         "fallback_title": "Untitled Work",
         "fallback_author": "Awarded Builder",
         "fallback_honor": "Top 20 Awarded Builder",
-        "desc": "Work cards focus on outcomes: rank, honor, author, summary, and Git entry are all visible in one place."
+        "desc": "Work cards focus on outcomes: work name, honor, and builder are visible at a glance."
       },
       "partners": {
         "title": "Witnessed Together",

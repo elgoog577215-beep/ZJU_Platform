@@ -420,7 +420,7 @@ const HackathonRegistration = () => {
     <div
       ref={pageRef}
       data-registration-page
-      className={`h-[100svh] snap-y snap-proximity overflow-y-auto overflow-x-hidden scroll-smooth overscroll-y-contain ${palette.page}`}
+      className={`hackathon-registration-scroll h-[100svh] min-w-0 max-w-full snap-y snap-proximity overflow-y-auto overflow-x-hidden scroll-smooth overscroll-y-contain ${palette.page}`}
     >
       <SEO
         title={t("hackathon.meta_title", { title: event.title })}
@@ -454,7 +454,7 @@ const HackathonRegistration = () => {
             >
               {item.label}
             </span>
-            <div className="relative">
+            <div className="relative overflow-hidden rounded-full">
               <div
                 className={`flex h-9 w-9 items-center justify-center rounded-full border text-xs font-black transition-all duration-300 min-[1720px]:h-10 min-[1720px]:w-10 ${
                   activeSection === item.index
@@ -511,9 +511,9 @@ const HackathonRegistration = () => {
 
       <section
         id="hackathon-hero"
-        className="relative min-h-[100svh] snap-start snap-always px-4 pt-[calc(env(safe-area-inset-top)+132px)] sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+136px)] lg:pt-[calc(env(safe-area-inset-top)+124px)] xl:px-10 min-[1720px]:pt-[calc(env(safe-area-inset-top)+72px)] 2xl:px-16"
+        className="relative min-h-[100svh] min-w-0 max-w-full snap-start snap-always overflow-x-clip px-4 pt-[calc(env(safe-area-inset-top)+132px)] sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+136px)] lg:pt-[calc(env(safe-area-inset-top)+124px)] xl:px-10 min-[1720px]:pt-[calc(env(safe-area-inset-top)+72px)] 2xl:px-16"
       >
-        <div className="pointer-events-none absolute inset-0">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div
             className={`absolute inset-0 ${
               isDayMode
@@ -594,7 +594,7 @@ const HackathonRegistration = () => {
           </div>
         ) : null}
 
-        <div className="relative mx-auto grid min-h-[calc(100svh-132px)] w-full max-w-[1880px] items-center gap-8 pb-20 pt-4 sm:gap-10 sm:pb-24 sm:pt-8 lg:pb-24 xl:grid-cols-[minmax(0,1.06fr)_minmax(480px,0.78fr)] xl:gap-10 xl:pb-16 min-[1536px]:grid-cols-[minmax(0,0.98fr)_minmax(560px,0.82fr)] min-[1536px]:gap-14 min-[1720px]:min-h-[calc(100svh-104px)] min-[1720px]:grid-cols-[minmax(0,860px)_minmax(680px,780px)] min-[1720px]:gap-24 min-[1720px]:justify-between min-[1920px]:grid-cols-[minmax(0,920px)_minmax(760px,860px)] min-[1920px]:gap-28">
+        <div className="relative mx-auto grid min-h-[calc(100svh-132px)] min-w-0 w-full max-w-[1880px] items-center gap-8 pb-20 pt-4 sm:gap-10 sm:pb-24 sm:pt-8 lg:pb-24 xl:grid-cols-[minmax(0,1.06fr)_minmax(0,0.78fr)] xl:gap-10 xl:pb-16 min-[1536px]:grid-cols-[minmax(0,0.98fr)_minmax(0,0.82fr)] min-[1536px]:gap-14 min-[1720px]:min-h-[calc(100svh-104px)] min-[1720px]:grid-cols-[minmax(0,860px)_minmax(0,780px)] min-[1720px]:gap-24 min-[1720px]:justify-between min-[1920px]:grid-cols-[minmax(0,920px)_minmax(0,860px)] min-[1920px]:gap-28">
           <MotionDiv
             {...(shouldAnimate
               ? {
@@ -681,7 +681,7 @@ const HackathonRegistration = () => {
             </div>
           </MotionDiv>
 
-          <MotionDiv {...heroMotion} className="order-1 max-w-[920px] lg:ml-0 xl:max-w-[980px]">
+          <MotionDiv {...heroMotion} className="order-1 min-w-0 max-w-[920px] lg:ml-0 xl:max-w-[980px]">
             <div
               className={`mb-6 inline-flex items-center gap-2 border px-3.5 py-2 text-xs font-semibold uppercase tracking-[0.22em] ${palette.chip}`}
             >
@@ -804,16 +804,16 @@ const HackathonRegistration = () => {
       <MotionSection
         id="event-brief"
         {...sectionMotion}
-        className="relative flex min-h-[100svh] snap-start snap-always items-center overflow-hidden px-4 py-16 sm:px-6 sm:py-20 lg:px-10 lg:py-20 min-[1536px]:px-14 2xl:px-20 2xl:py-24"
+        className="relative flex min-h-[100svh] min-w-0 max-w-full snap-start snap-always items-center overflow-hidden px-4 py-16 sm:px-6 sm:py-20 lg:px-10 lg:py-20 min-[1536px]:px-14 2xl:px-20 2xl:py-24"
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(103,232,249,0.14),transparent_28%),radial-gradient(circle_at_76%_26%,rgba(99,102,241,0.14),transparent_26%)]" />
-        <div className="mx-auto w-full max-w-[1900px]">
+        <div className="mx-auto min-w-0 w-full max-w-[1900px]">
           <div className="relative overflow-hidden">
             <div className="pointer-events-none absolute right-0 top-[-10%] max-w-full overflow-hidden font-black uppercase leading-none tracking-normal text-white/[0.04] text-[20vw]">
               SHIP
             </div>
 
-            <div className="relative grid gap-10 sm:gap-14 xl:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)] xl:items-stretch xl:gap-14 min-[1536px]:gap-24 2xl:gap-36">
+            <div className="relative grid min-w-0 gap-10 sm:gap-14 xl:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)] xl:items-stretch xl:gap-14 min-[1536px]:gap-24 2xl:gap-36">
               <div className="order-1 flex flex-col xl:min-h-[620px]">
                 <p className={`text-sm font-bold uppercase tracking-[0.28em] ${palette.accent}`}>
                   Competition Board
@@ -916,14 +916,14 @@ const HackathonRegistration = () => {
 
       <section
         id="registration-form"
-        className="relative flex min-h-[100svh] snap-start snap-always items-start overflow-hidden px-4 pb-28 pt-20 sm:px-6 sm:pb-28 sm:pt-24 lg:px-10 lg:pb-12 lg:pt-[96px] xl:items-center min-[1536px]:px-14 2xl:px-16"
+        className="relative flex min-h-[100svh] min-w-0 max-w-full snap-start snap-always items-start overflow-hidden px-4 pb-28 pt-20 sm:px-6 sm:pb-28 sm:pt-24 lg:px-10 lg:pb-12 lg:pt-[96px] xl:items-center min-[1536px]:px-14 2xl:px-16"
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_17%_18%,rgba(103,232,249,0.14),transparent_30%),radial-gradient(circle_at_86%_72%,rgba(99,102,241,0.14),transparent_28%)]" />
         <div className="pointer-events-none absolute left-0 top-[7%] max-w-full overflow-hidden font-black uppercase leading-none tracking-normal text-white/[0.04] text-[18vw]">
           APPLY
         </div>
-        <div className="mx-auto grid w-full max-w-[1880px] gap-7 xl:grid-cols-[minmax(340px,0.68fr)_minmax(720px,1.32fr)] xl:items-center xl:gap-8 min-[1536px]:grid-cols-[minmax(430px,0.76fr)_minmax(860px,1.24fr)] min-[1536px]:gap-14 2xl:grid-cols-[minmax(520px,0.78fr)_minmax(980px,1.22fr)] 2xl:gap-20">
-          <div className="relative z-10">
+        <div className="mx-auto grid min-w-0 w-full max-w-[1880px] gap-7 xl:grid-cols-[minmax(0,0.68fr)_minmax(0,1.32fr)] xl:items-center xl:gap-8 min-[1536px]:grid-cols-[minmax(0,0.76fr)_minmax(0,1.24fr)] min-[1536px]:gap-14 2xl:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] 2xl:gap-20">
+          <div className="relative z-10 min-w-0">
             <div className="max-w-[760px]">
               <p className={`text-sm font-black uppercase tracking-[0.28em] ${palette.accent}`}>
                 Register
@@ -989,7 +989,7 @@ const HackathonRegistration = () => {
                   transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
                 }
               : {})}
-            className={`relative z-10 border p-5 backdrop-blur-2xl sm:p-7 lg:p-7 2xl:p-10 ${palette.panelStrong}`}
+            className={`relative z-10 min-w-0 max-w-full border p-5 backdrop-blur-2xl sm:p-7 lg:p-7 2xl:p-10 ${palette.panelStrong}`}
           >
             <div className={`mb-6 flex items-center justify-between gap-5 border-b pb-5 ${isDayMode ? "border-cyan-200" : "border-cyan-300/14"}`}>
               <div>

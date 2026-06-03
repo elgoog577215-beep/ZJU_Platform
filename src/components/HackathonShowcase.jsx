@@ -7,8 +7,8 @@ import {
   ArrowRight,
   CalendarDays,
   Camera,
-  ExternalLink,
   Film,
+  Github,
   Image as ImageIcon,
   Play,
   Sparkles,
@@ -154,7 +154,7 @@ const SectionHeader = ({ eyebrow, title, copy, icon: Icon, theme, align = "left"
         {Icon ? <Icon className="h-4 w-4" /> : null}
         {eyebrow}
       </p>
-      <h2 className="mt-5 max-w-4xl text-[clamp(2.5rem,8vw,4.8rem)] font-black leading-[0.96] sm:text-6xl xl:text-7xl">
+      <h2 className="showcase-poster-heading mt-5 max-w-4xl text-[clamp(2.5rem,8vw,4.8rem)] font-black sm:text-6xl xl:text-7xl">
         {title}
       </h2>
     </div>
@@ -165,6 +165,172 @@ const SectionHeader = ({ eyebrow, title, copy, icon: Icon, theme, align = "left"
     ) : null}
   </div>
 );
+
+const ShowcaseSectionFrame = ({
+  id,
+  children,
+  className = "",
+  backgroundWord,
+  contentClassName = "items-center",
+}) => (
+  <MotionSection
+    id={id}
+    className={`relative min-h-[100svh] max-w-full snap-start overflow-hidden px-4 py-8 sm:px-6 sm:py-10 lg:px-10 lg:py-12 xl:px-14 2xl:px-20 ${className}`}
+  >
+    <div className="showcase-stage-bg pointer-events-none absolute inset-0 opacity-80" aria-hidden="true" />
+    <div
+      className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_20%,rgba(103,232,249,0.14),transparent_28%),radial-gradient(circle_at_82%_28%,rgba(99,102,241,0.10),transparent_26%)]"
+      aria-hidden="true"
+    />
+    {backgroundWord ? (
+      <div
+        className="pointer-events-none absolute left-[-2vw] top-[8%] max-w-full overflow-hidden font-black uppercase leading-none tracking-normal text-white/[0.035] text-[18vw]"
+        aria-hidden="true"
+      >
+        {backgroundWord}
+      </div>
+    ) : null}
+    <div className={`showcase-section-grid relative z-10 mx-auto grid min-h-[calc(100svh-4rem)] min-w-0 w-full max-w-[1880px] gap-7 sm:min-h-[calc(100svh-5rem)] lg:min-h-[calc(100svh-6rem)] xl:grid-cols-[minmax(0,0.9fr)_minmax(620px,1.1fr)] xl:gap-12 min-[1536px]:gap-16 2xl:gap-20 ${contentClassName}`}>
+      {children}
+    </div>
+  </MotionSection>
+);
+
+const ShowcaseMetricTile = ({ stat, theme, isDayMode }) => (
+  <div className={`group relative overflow-hidden border px-4 py-4 transition duration-300 hover:-translate-y-0.5 ${theme.surface}`}>
+    <div className={`absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent to-transparent ${isDayMode ? "via-cyan-500/50" : "via-cyan-300/70"}`} />
+    <div className="relative flex items-end gap-2">
+      <span className={`font-mono text-4xl font-black leading-none tracking-normal sm:text-5xl ${theme.accent}`}>
+        {stat.shortValue || stat.value}
+      </span>
+      <span className={`pb-1 text-sm font-black ${theme.muted}`}>{stat.unit}</span>
+    </div>
+    <p className="relative mt-3 text-base font-black tracking-normal">{stat.label}</p>
+    <p className={`relative mt-1 text-xs font-semibold leading-5 ${theme.soft}`}>{stat.detail}</p>
+  </div>
+);
+
+const ShowcaseImageCard = ({
+  moment,
+  index,
+  theme,
+  featured = false,
+  compact = false,
+}) => (
+  <article
+    className={`group relative min-h-[15rem] max-w-full overflow-hidden border ${theme.surfaceStrong} ${
+      featured
+        ? "min-h-[18rem] sm:min-h-[24rem] xl:h-full xl:min-h-0"
+        : compact
+          ? "min-h-[9rem] w-[18rem] shrink-0 sm:min-h-[9.5rem] sm:w-[22rem] xl:h-full xl:min-h-0 xl:w-auto"
+          : "sm:min-h-[11.5rem] xl:min-h-[12rem] min-[1720px]:min-h-[13rem]"
+    }`}
+  >
+    <img
+      src={moment.image}
+      alt={moment.title}
+      className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]"
+      style={{ filter: "brightness(0.78) saturate(1.12) contrast(1.03)" }}
+      loading={index === 0 ? "eager" : "lazy"}
+    />
+    <div className="showcase-media-overlay absolute inset-0" />
+    <div className={`absolute inset-x-0 bottom-0 ${compact ? "p-3 sm:p-4" : "p-4 sm:p-5"}`}>
+      <div className={`${compact ? "mb-2" : "mb-3"} inline-flex items-center gap-2 border border-cyan-200/40 bg-cyan-300 px-2.5 py-1.5 text-[11px] font-black uppercase text-slate-950`}>
+        <Camera className="h-3.5 w-3.5" />
+        {moment.label}
+      </div>
+      <h3 className={`${featured ? "max-w-[min(42rem,calc(100%-1rem))] text-3xl sm:text-5xl" : compact ? "text-lg sm:text-xl" : "text-xl sm:text-2xl"} break-words font-black leading-[0.95] tracking-normal text-white`}>
+        {moment.title}
+      </h3>
+      <p className={`${compact ? "line-clamp-2" : "line-clamp-2"} mt-2 max-w-[min(42rem,calc(100%-1rem))] break-words text-xs font-semibold leading-5 text-white/78 sm:text-sm sm:leading-6`}>
+        {moment.caption}
+      </p>
+    </div>
+  </article>
+);
+
+const ShowcaseWorkCard = ({ work, index, theme, isDayMode, t, featured = false, compact = false, className = "" }) => {
+  const rankLabel = work.rank || String(index + 1).padStart(2, "0");
+  const hasGitUrl = Boolean(work.gitUrl);
+
+  return (
+    <article
+      className={`group grid overflow-hidden border transition duration-300 hover:-translate-y-0.5 ${theme.surface} ${
+        featured
+          ? "min-h-[28rem] grid-rows-[minmax(16rem,1fr)_auto] xl:min-h-full"
+          : compact
+            ? "min-h-[15.5rem] grid-rows-[8.75rem_minmax(0,1fr)] xl:min-h-0"
+            : "grid-cols-[minmax(118px,0.34fr)_minmax(0,0.66fr)]"
+      } ${className}`}
+    >
+      <Link
+        to="/hackathon/works"
+        className={`showcase-work-cover relative block overflow-hidden ${
+          featured ? "min-h-[16rem] xl:min-h-0" : compact ? "min-h-0" : "min-h-[128px]"
+        }`}
+        aria-label={t("hackathon.showcase.works.project_aria", { title: work.title })}
+      >
+        <img
+          src={work.cover || (index % 2 === 0 ? HERO_IMAGE : SECONDARY_IMAGE)}
+          alt={t("hackathon.showcase.works.cover_alt", { title: work.title })}
+          className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]"
+          style={{ filter: isDayMode ? "brightness(0.88) saturate(1.08) contrast(1.02)" : "brightness(0.7) saturate(1.16) contrast(1.06)" }}
+          loading={index === 0 ? "eager" : "lazy"}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/66 via-black/12 to-transparent" />
+        <span className={`absolute right-4 top-2 z-10 font-mono font-black leading-none text-white/[0.14] ${featured ? "text-[8rem] sm:text-[9rem]" : "text-[3.6rem]"}`}>
+          {rankLabel}
+        </span>
+        <div className="absolute left-4 top-4 z-10 border border-white/18 bg-black/30 px-3 py-2 text-xs font-black uppercase text-white backdrop-blur">
+          Project {rankLabel}
+        </div>
+        {featured ? (
+          <div className="absolute bottom-4 left-5 right-5 z-10 sm:bottom-5 sm:left-6 sm:right-6">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-200">Winner Focus</p>
+            <p className="mt-2 line-clamp-2 text-3xl font-black leading-tight text-white sm:text-[2.35rem]">{work.title}</p>
+          </div>
+        ) : compact ? (
+          <div className="absolute bottom-3 left-3 right-3 z-10 flex items-center justify-between gap-3">
+            <p className="line-clamp-1 text-sm font-black uppercase text-cyan-100">{work.award}</p>
+            <p className="font-mono text-2xl font-black leading-none text-white/70">{rankLabel}</p>
+          </div>
+        ) : null}
+      </Link>
+      <div className={`flex min-w-0 flex-col ${featured ? "p-5 sm:p-5" : compact ? "p-3 sm:p-3.5" : "p-3 sm:p-3.5"}`}>
+        <div className="flex flex-wrap gap-2">
+          <span className={`border px-2.5 py-1 text-xs font-black ${theme.chip}`}>{work.award}</span>
+          <span className={`border px-2.5 py-1 text-xs font-black ${theme.chip}`}>
+            {work.author}{work.boundIdentityName ? ` / ${work.boundIdentityName}` : ""}
+          </span>
+        </div>
+        <div className="mt-2.5 flex items-start gap-3">
+          <Trophy className={`mt-1 h-5 w-5 shrink-0 ${theme.accent}`} />
+          <div className="min-w-0">
+            <p className={`line-clamp-1 text-sm font-black uppercase ${theme.accent}`}>{work.honorTitle || work.award}</p>
+            <h3 className={`${featured ? "text-4xl sm:text-[2.85rem]" : compact ? "text-xl sm:text-[1.35rem]" : "text-xl sm:text-2xl"} mt-1 line-clamp-2 font-black leading-tight`}>
+              {work.title}
+            </h3>
+          </div>
+        </div>
+        {hasGitUrl ? (
+          <a
+            href={work.gitUrl}
+            target="_blank"
+            rel="noreferrer"
+            className={`mt-auto inline-flex min-h-10 min-w-0 items-center gap-2 border px-3 text-xs font-black transition duration-200 hover:-translate-y-0.5 ${theme.secondaryButton}`}
+            aria-label={t("hackathon.showcase.works.git_link")}
+          >
+            <Github className="h-4 w-4 shrink-0" />
+            <span className="shrink-0">{t("hackathon.showcase.works.git_link")}</span>
+            <span className={`min-w-0 break-all text-left font-mono text-[0.68rem] leading-4 ${featured ? "" : "hidden min-[1536px]:inline"}`}>
+              {work.gitUrl}
+            </span>
+          </a>
+        ) : null}
+      </div>
+    </article>
+  );
+};
 
 const HackathonShowcase = () => {
   const { i18n, t } = useTranslation();
@@ -348,7 +514,6 @@ const HackathonShowcase = () => {
       boundIdentityName: work.bound_identity_name || work.boundIdentityName || "",
       gitUrl: work.git_url || work.gitUrl || "",
       cover: work.cover_url || work.cover || (index % 2 === 0 ? HERO_IMAGE : SECONDARY_IMAGE),
-      summary: work.summary || work.description || "",
       honorTitle: work.honor_title || work.honorTitle || work.award || t("hackathon.showcase.works.fallback_honor", "Top 20 获奖成员"),
     }));
   }, [outcome, t, translatedFallbackWorks]);
@@ -482,7 +647,7 @@ const HackathonShowcase = () => {
       <style>
         {`
           .showcase-page {
-            scroll-padding-top: 5rem;
+            scroll-padding-top: 1.25rem;
           }
 
           .showcase-page::selection {
@@ -526,16 +691,92 @@ const HackathonShowcase = () => {
             max-width: 4.6rem;
           }
 
+          .showcase-section-grid > * {
+            min-width: 0;
+            max-width: 100%;
+            width: 100%;
+          }
+
           .showcase-title {
+            font-family:
+              "YouSheBiaoTiHei",
+              "PangMenZhengDao",
+              "Impact",
+              "Alibaba PuHuiTi 3.0 115 Black",
+              "Source Han Sans SC Heavy",
+              "Source Han Sans CN Heavy",
+              "Noto Sans CJK SC Black",
+              "Microsoft YaHei UI",
+              sans-serif;
             font-size: clamp(3.25rem, 15vw, 5.15rem);
-            line-height: 0.92;
+            line-height: 0.98;
             letter-spacing: 0;
+            font-stretch: condensed;
+            font-synthesis-weight: none;
+            text-wrap: balance;
+            overflow-wrap: break-word;
+            word-break: keep-all;
+            text-shadow:
+              0 0.03em 0 rgba(103, 232, 249, 0.24),
+              0 0.105em 0 rgba(15, 23, 42, 0.58),
+              0 0.22em 1.65rem rgba(103, 232, 249, 0.16);
+            -webkit-text-stroke: 0.014em rgba(255, 255, 255, 0.18);
+          }
+
+          .showcase-title-line {
+            display: block;
+            max-width: 100%;
+          }
+
+          .showcase-poster-heading {
+            font-family:
+              "YouSheBiaoTiHei",
+              "PangMenZhengDao",
+              "Impact",
+              "Alibaba PuHuiTi 3.0 115 Black",
+              "Source Han Sans SC Heavy",
+              "Source Han Sans CN Heavy",
+              "Noto Sans CJK SC Black",
+              "Microsoft YaHei UI",
+              sans-serif;
+            display: block;
+            max-width: 100%;
+            width: 100%;
+            line-height: 0.98;
+            letter-spacing: 0;
+            font-stretch: condensed;
+            font-synthesis-weight: none;
+            text-wrap: balance;
+            overflow-wrap: break-word;
+            word-break: keep-all;
+            text-shadow:
+              0 0.032em 0 rgba(103, 232, 249, 0.22),
+              0 0.105em 0 rgba(15, 23, 42, 0.48),
+              0 0.22em 1.35rem rgba(103, 232, 249, 0.14);
+            -webkit-text-stroke: 0.012em rgba(255, 255, 255, 0.15);
+          }
+
+          .showcase-theme-day .showcase-title,
+          .showcase-theme-day .showcase-poster-heading {
+            text-shadow:
+              0 0.035em 0 rgba(8, 145, 178, 0.16),
+              0 0.12em 0 rgba(226, 232, 240, 0.95),
+              0 0.22em 1.2rem rgba(8, 145, 178, 0.10);
+            -webkit-text-stroke: 0.01em rgba(15, 23, 42, 0.08);
           }
 
           @media (min-width: 641px) {
             .showcase-title {
               font-size: clamp(5rem, 8.4vw, 7.4rem);
-              line-height: 0.91;
+              line-height: 0.95;
+            }
+
+            .showcase-title-line {
+              white-space: nowrap;
+            }
+
+            .showcase-poster-heading {
+              line-height: 0.96;
             }
           }
 
@@ -548,6 +789,22 @@ const HackathonShowcase = () => {
           @media (min-width: 1720px) {
             .showcase-title {
               font-size: clamp(7.5rem, 7vw, 9.2rem);
+            }
+          }
+
+          @media (max-width: 640px) {
+            .showcase-title {
+              font-size: clamp(3rem, 13.5vw, 4.6rem);
+              line-height: 1.02;
+            }
+
+            .showcase-title-line,
+            .showcase-poster-heading {
+              white-space: normal;
+            }
+
+            .showcase-poster-heading {
+              line-height: 1.04;
             }
           }
 
@@ -641,83 +898,87 @@ const HackathonShowcase = () => {
       </div>
       {chapterNav}
 
-      <section
+      <ShowcaseSectionFrame
         id="gate"
-        className="relative isolate min-h-[100svh] snap-start snap-always overflow-hidden px-4 pb-16 pt-[calc(env(safe-area-inset-top)+7.2rem)] sm:px-6 sm:pb-20 sm:pt-[calc(env(safe-area-inset-top)+8rem)] lg:px-10 lg:pb-20 xl:px-14 min-[1536px]:pt-[calc(env(safe-area-inset-top)+7.4rem)] 2xl:px-20"
+        className="snap-always pt-[calc(env(safe-area-inset-top)+7.2rem)] sm:pt-[calc(env(safe-area-inset-top)+8rem)] min-[1536px]:pt-[calc(env(safe-area-inset-top)+7.4rem)]"
+        backgroundWord="2026"
       >
-        <div className="showcase-stage-bg absolute inset-0 opacity-80" aria-hidden="true" />
-        <div
-          className={`absolute inset-x-0 top-0 h-44 bg-gradient-to-b ${
-            isDayMode ? "from-white/92 to-transparent" : "from-black/78 to-transparent"
-          }`}
-          aria-hidden="true"
-        />
-        <div
-          className={`absolute bottom-0 left-0 right-0 h-[42%] bg-gradient-to-t ${
-            isDayMode ? "from-[#f6f8fb] via-[#f6f8fb]/86 to-transparent" : "from-[#050706] via-[#050706]/80 to-transparent"
-          }`}
-          aria-hidden="true"
-        />
-        <div
-          className="pointer-events-none absolute right-[-8vw] top-[18vh] hidden font-mono text-[12rem] font-black leading-none text-white/[0.035] min-[1536px]:block"
-          aria-hidden="true"
-        >
-          2026
-        </div>
+        <MotionDiv {...heroReveal} className="min-w-0">
+          <p className={`inline-flex items-center gap-2 border px-3 py-2 text-xs font-black uppercase ${theme.chip}`}>
+            <Film className="h-4 w-4" />
+            AI Build Arena 2026
+          </p>
+          <h1 data-showcase-title className={`showcase-title mt-5 max-w-[1120px] font-black ${isDayMode ? "text-slate-950" : "text-white"}`}>
+            <span className="showcase-title-line">{t("hackathon.showcase.hero.title_desktop")}</span>
+            <span className={`showcase-title-line ${isDayMode ? "text-cyan-700" : "text-cyan-200"}`}>{t("hackathon.showcase.hero.result")}</span>
+          </h1>
+          <p className={`mt-5 max-w-4xl text-base font-semibold leading-7 sm:text-lg sm:leading-8 lg:text-xl lg:leading-9 ${theme.muted}`}>
+            {t("hackathon.showcase.hero.desc")}
+          </p>
 
-        <div className="relative z-10 mx-auto grid w-full max-w-[1880px] gap-6 xl:grid-cols-[minmax(0,1.04fr)_minmax(460px,0.74fr)] xl:items-end xl:gap-10 xl:pt-16 min-[1536px]:grid-cols-[minmax(0,1.02fr)_minmax(560px,0.82fr)] min-[1536px]:gap-14 min-[1536px]:pt-20 2xl:grid-cols-[minmax(0,1fr)_minmax(720px,0.86fr)] 2xl:gap-20 2xl:pt-24">
-          <MotionDiv {...heroReveal} className="min-w-0">
-            <p className={`inline-flex items-center gap-2 border px-3 py-2 text-xs font-black uppercase ${theme.chip}`}>
-              <Film className="h-4 w-4" />
-              AI Build Arena 2026
-            </p>
-            <h1 data-showcase-title className={`showcase-title mt-5 max-w-[1120px] font-black ${isDayMode ? "text-slate-950" : "text-white"}`}>
-              <span className="block whitespace-nowrap">{t("hackathon.showcase.hero.title_desktop", "AI 全栈极速")}</span>
-              <span className={`block ${isDayMode ? "text-cyan-700" : "text-cyan-200"}`}>{t("hackathon.showcase.hero.result", "比赛成果")}</span>
-            </h1>
-            <p className={`mt-5 max-w-4xl text-base font-semibold leading-7 sm:text-lg sm:leading-8 lg:text-xl lg:leading-9 min-[1536px]:text-[1.35rem] min-[1536px]:leading-10 ${theme.muted}`}>
-              {t("hackathon.showcase.hero.desc", "这不是报名页的延长线，而是一份赛后作品档案：宣传片、现场照片、获奖项目和支持阵容在同一个清晰界面里完成展示。")}
-            </p>
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <button
-                type="button"
-                onClick={() => openOutcomeUpload("stage_photo")}
-                className={`inline-flex min-h-12 items-center justify-center gap-2 px-6 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 ${theme.primaryButton}`}
-              >
-                <Upload className="h-4 w-4" />
-                {t("hackathon.showcase.hero.submit", "提交成果")}
-              </button>
-              <button
-                type="button"
-                onClick={() => smoothScrollTo("works")}
-                className={`inline-flex min-h-12 items-center justify-center gap-2 border px-6 text-sm font-bold transition duration-200 focus:outline-none focus:ring-4 ${theme.secondaryButton}`}
-              >
-                {t("hackathon.showcase.hero.view_works", "查看优秀作品")}
-                <ArrowRight className="h-4 w-4" />
-              </button>
-              <a
-                href="#showcase-official-film"
-                onClick={(event) => {
-                  event.preventDefault();
-                  smoothScrollTo("showcase-official-film");
-                }}
-                className={`inline-flex min-h-12 items-center justify-center gap-2 border px-6 text-sm font-bold transition duration-200 focus:outline-none focus:ring-4 ${theme.secondaryButton}`}
-              >
-                <Play className="h-4 w-4 fill-current" />
-                {t("hackathon.showcase.hero.watch_film", "观看宣传片")}
-              </a>
-            </div>
-          </MotionDiv>
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <button
+              type="button"
+              onClick={() => openOutcomeUpload("stage_photo")}
+              className={`inline-flex min-h-12 items-center justify-center gap-2 px-6 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 ${theme.primaryButton}`}
+            >
+              <Upload className="h-4 w-4" />
+              {t("hackathon.showcase.hero.submit")}
+            </button>
+            <button
+              type="button"
+              onClick={() => smoothScrollTo("works")}
+              className={`inline-flex min-h-12 items-center justify-center gap-2 border px-6 text-sm font-bold transition duration-200 focus:outline-none focus:ring-4 ${theme.secondaryButton}`}
+            >
+              {t("hackathon.showcase.hero.view_works")}
+              <ArrowRight className="h-4 w-4" />
+            </button>
+            <a
+              href="#showcase-official-film"
+              onClick={(event) => {
+                event.preventDefault();
+                smoothScrollTo("showcase-official-film");
+              }}
+              className={`inline-flex min-h-12 items-center justify-center gap-2 border px-6 text-sm font-bold transition duration-200 focus:outline-none focus:ring-4 ${theme.secondaryButton}`}
+            >
+              <Play className="h-4 w-4 fill-current" />
+              {t("hackathon.showcase.hero.watch_film")}
+            </a>
+          </div>
 
           <MotionDiv
             {...heroReveal}
-            transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-            id="showcase-official-film"
-            className={`relative min-h-[17rem] overflow-hidden border sm:min-h-[23rem] lg:min-h-[29rem] xl:min-h-[28rem] min-[1536px]:min-h-[34rem] 2xl:min-h-[39rem] ${theme.surfaceStrong}`}
+            transition={{ duration: 0.7, delay: 0.16, ease: [0.22, 1, 0.36, 1] }}
+            className="mt-8 grid gap-3 sm:grid-cols-2"
           >
+            {translatedEventStats.map((stat) => (
+              <ShowcaseMetricTile
+                key={stat.id}
+                stat={stat}
+                theme={theme}
+                isDayMode={isDayMode}
+              />
+            ))}
+          </MotionDiv>
+        </MotionDiv>
+
+        <MotionDiv
+          {...heroReveal}
+          transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          id="showcase-official-film"
+          className={`relative min-h-[24rem] overflow-hidden border p-3 sm:min-h-[30rem] xl:min-h-[38rem] ${theme.surfaceStrong}`}
+        >
+          <div className={`absolute right-6 top-6 z-20 flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] ${theme.accent}`}>
+            <span className={`h-2 w-2 rounded-full ${isDayMode ? "bg-cyan-600" : "bg-cyan-300"}`} />
+            Live Brief
+          </div>
+          <div className={`absolute left-5 top-5 z-20 border px-3 py-2 text-xs font-black uppercase ${theme.chip}`}>
+            {officialVideo?.title || "Official Film"}
+          </div>
+          <div className="relative h-full min-h-[22rem] overflow-hidden border border-white/10 sm:min-h-[28rem] xl:min-h-[36rem]">
             <img
               src={officialVideoCover}
-              alt={t("hackathon.showcase.hero.poster_alt", "黑客松宣传片封面")}
+              alt={t("hackathon.showcase.hero.poster_alt")}
               className="absolute inset-0 h-full w-full object-cover"
               style={{ filter: "brightness(0.74) saturate(1.14) contrast(1.04)" }}
               onError={(event) => {
@@ -736,193 +997,141 @@ const HackathonShowcase = () => {
               </video>
             ) : null}
             <div className={`showcase-media-overlay absolute inset-0 transition-opacity duration-300 ${isVideoPlaying ? "opacity-0" : "opacity-100"}`} />
-            <div className="absolute left-4 top-4 z-10 border border-white/18 bg-black/28 px-3 py-2 text-xs font-black uppercase text-white backdrop-blur">
-              {officialVideo?.title || "Official Film"}
-            </div>
             {!isVideoPlaying ? (
               <button
                 type="button"
                 onClick={() => (officialVideo?.url ? setIsVideoPlaying(true) : openOutcomeUpload("promo_video"))}
-                className="absolute left-1/2 top-1/2 z-10 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/24 bg-white/16 text-white backdrop-blur-xl transition duration-300 hover:scale-105 hover:bg-cyan-300 hover:text-slate-950 focus:outline-none focus:ring-4 focus:ring-cyan-300/24 sm:h-20 sm:w-20"
-                aria-label={officialVideo?.url ? t("hackathon.showcase.hero.play_film", "播放赛事宣传片") : t("hackathon.showcase.hero.upload_film", "上传赛事宣传片")}
+                className="absolute left-1/2 top-1/2 z-20 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/24 bg-white/16 text-white backdrop-blur-xl transition duration-300 hover:scale-105 hover:bg-cyan-300 hover:text-slate-950 focus:outline-none focus:ring-4 focus:ring-cyan-300/24 sm:h-20 sm:w-20"
+                aria-label={officialVideo?.url ? t("hackathon.showcase.hero.play_film") : t("hackathon.showcase.hero.upload_film")}
               >
                 <Play className="ml-1 h-7 w-7 fill-current" />
               </button>
             ) : null}
             {!isVideoPlaying ? (
-            <div className="absolute bottom-0 left-0 right-0 z-10 p-5 sm:p-7">
-              <p className="text-xs font-black uppercase text-cyan-200">Trailer / Gallery / Works</p>
-              <h2 className="mt-2 max-w-2xl text-3xl font-black leading-tight text-white sm:text-5xl">
-                {t("hackathon.showcase.hero.fallback_title", "从赛场声浪到作品上线")}
-              </h2>
+              <div className="absolute bottom-0 left-0 right-0 z-20 p-5 sm:p-7">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-200">
+                  Trailer / Gallery / Works
+                </p>
+                <h2 className="mt-2 max-w-2xl text-3xl font-black leading-tight text-white sm:text-5xl">
+                  {t("hackathon.showcase.hero.fallback_title")}
+                </h2>
+              </div>
+            ) : null}
+          </div>
+        </MotionDiv>
+      </ShowcaseSectionFrame>
+
+      <ShowcaseSectionFrame
+        id="gallery"
+        className="pt-24 sm:pt-24 lg:pb-6 lg:pt-24"
+        backgroundWord="MEDIA"
+        contentClassName="items-start lg:min-h-[calc(100svh-7rem)] xl:grid-cols-[minmax(340px,0.64fr)_minmax(700px,1.36fr)] xl:grid-rows-[minmax(0,26.5rem)_12.5rem] xl:items-stretch xl:gap-x-8 xl:gap-y-4 min-[1536px]:grid-cols-[minmax(380px,0.62fr)_minmax(820px,1.38fr)] min-[1536px]:grid-rows-[minmax(0,28rem)_13rem] min-[1536px]:gap-x-10 2xl:grid-rows-[minmax(0,29.5rem)_13.5rem]"
+      >
+          <MotionDiv {...reveal} className="min-w-0">
+            <p className={`inline-flex items-center gap-2 border px-3 py-2 text-xs font-black uppercase ${theme.chip}`}>
+              <Camera className="h-4 w-4" />
+              Chapter 02 / Gallery
+            </p>
+            <h2 className="showcase-poster-heading mt-2 max-w-4xl text-[clamp(3.2rem,7.1vw,6.4rem)] font-black tracking-normal sm:text-[clamp(4.2rem,6vw,6.25rem)]">
+              {t("hackathon.showcase.gallery.title")}
+            </h2>
+            <p className={`mt-4 max-w-2xl text-base font-semibold leading-7 sm:text-lg sm:leading-8 ${theme.muted}`}>
+              {t("hackathon.showcase.gallery.desc")}
+            </p>
+            <div className={`mt-4 grid gap-px overflow-hidden border ${theme.border} ${isDayMode ? "bg-slate-200/80" : "bg-cyan-300/16"} sm:grid-cols-2`}>
+              <div className={`${isDayMode ? "bg-white/86" : "bg-[#071011]/88"} p-3.5`}>
+                <p className={`font-mono text-xs font-black uppercase tracking-[0.2em] ${theme.accent}`}>01 / Stage Proof</p>
+                <p className="mt-2 text-4xl font-black">{galleryMoments.length}</p>
+                <p className={`mt-1 text-sm font-semibold ${theme.soft}`}>Media Moments</p>
+              </div>
+              <div className={`${isDayMode ? "bg-white/86" : "bg-[#071011]/88"} p-3.5`}>
+                <p className={`font-mono text-xs font-black uppercase tracking-[0.2em] ${theme.accent}`}>02 / Archive</p>
+                <p className="mt-2 text-4xl font-black">Live</p>
+                <p className={`mt-1 text-sm font-semibold ${theme.soft}`}>Outcome Gallery</p>
+              </div>
             </div>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <Link
+                to="/gallery"
+                className={`inline-flex min-h-12 items-center justify-center gap-2 border px-5 text-sm font-black transition duration-200 ${theme.secondaryButton}`}
+              >
+                <ImageIcon className="h-4 w-4" />
+                {t("hackathon.showcase.gallery.view_all")}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <button
+                type="button"
+                onClick={() => openOutcomeUpload("stage_photo")}
+                className={`inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 ${theme.primaryButton}`}
+              >
+                <Upload className="h-4 w-4" />
+                {t("hackathon.showcase.gallery.upload")}
+              </button>
+            </div>
+          </MotionDiv>
+
+          <MotionDiv {...reveal} className={`mt-6 grid h-full min-h-0 gap-2 border p-2 xl:mt-0 ${theme.surfaceStrong}`}>
+            {galleryMoments[0] ? (
+              <ShowcaseImageCard moment={galleryMoments[0]} index={0} theme={theme} featured />
             ) : null}
           </MotionDiv>
-        </div>
 
-        <MotionDiv
-          {...heroReveal}
-          transition={{ duration: 0.7, delay: 0.16, ease: [0.22, 1, 0.36, 1] }}
-          className="relative z-10 mx-auto mt-6 grid w-full max-w-[1880px] gap-3 sm:grid-cols-2 lg:mt-8 lg:grid-cols-4 min-[1536px]:gap-4"
-        >
-          {translatedEventStats.map((stat) => (
-            <div key={stat.label} className={`border p-4 backdrop-blur-xl min-[1536px]:p-5 2xl:p-6 ${theme.surface}`}>
-              <div className="flex items-end gap-2">
-                <span className={`font-mono text-4xl font-black leading-none sm:text-5xl ${isDayMode ? "text-slate-950" : "text-cyan-100"}`}>
-                  {stat.shortValue || stat.value}
-                </span>
-                <span className={`pb-1 text-sm font-black ${theme.muted}`}>{stat.unit}</span>
-              </div>
-              <p className="mt-3 text-base font-black">{stat.label}</p>
-              <p className={`mt-1 text-xs font-semibold leading-5 ${theme.soft}`}>{stat.detail}</p>
-            </div>
-          ))}
-        </MotionDiv>
-      </section>
-
-      <MotionSection id="gallery" {...reveal} className="relative snap-start px-4 py-14 sm:px-6 sm:py-16 lg:px-10 lg:py-20 xl:px-14 2xl:px-20">
-        <div className="mx-auto w-full max-w-[1880px]">
-          <SectionHeader
-            eyebrow="Chapter 02 / Gallery"
-            title={t("hackathon.showcase.gallery.title", "赛场照片集锦")}
-            copy={t("hackathon.showcase.gallery.desc", "成果页不应该只靠大标题撑场面。这里用真实影像建立事件可信度：人、现场、颁奖和交流都要看得见。")}
-            icon={Camera}
-            theme={theme}
-            align="split"
-          />
-          <div className="showcase-gallery-grid mt-8 sm:mt-10">
-            {galleryMoments.map((moment, index) => (
-              <article
-                key={moment.id}
-                className={`showcase-gallery-card group relative overflow-hidden border ${theme.surfaceStrong}`}
-              >
-                <img
-                  src={moment.image}
-                  alt={moment.title}
-                  className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]"
-                  style={{ filter: "brightness(0.78) saturate(1.12) contrast(1.03)" }}
-                  loading={index === 0 ? "eager" : "lazy"}
+          <MotionDiv {...reveal} className="min-h-0 xl:col-span-2 xl:h-full">
+            <div className="showcase-gallery-strip -mx-1 mt-5 flex gap-2 overflow-x-auto px-1 pb-2 xl:mt-0 xl:grid xl:h-full xl:grid-cols-4 xl:overflow-hidden">
+              {galleryMoments.slice(1).map((moment, index) => (
+                <ShowcaseImageCard
+                  key={moment.id}
+                  moment={moment}
+                  index={index + 1}
+                  theme={theme}
+                  compact
                 />
-                <div className="showcase-media-overlay absolute inset-0" />
-                <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5 lg:p-6">
-                  <div className="mb-3 inline-flex items-center gap-2 border border-cyan-200/40 bg-cyan-300 px-2.5 py-1.5 text-[11px] font-black uppercase text-slate-950">
-                    <Camera className="h-3.5 w-3.5" />
-                    {moment.label}
-                  </div>
-                  <h3 className="max-w-2xl text-2xl font-black leading-tight text-white sm:text-3xl">
-                    {moment.title}
-                  </h3>
-                  <p className="mt-2 max-w-2xl text-xs font-semibold leading-5 text-white/78 sm:text-sm sm:leading-6">
-                    {moment.caption}
-                  </p>
-                </div>
-              </article>
-            ))}
-          </div>
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-            <Link
-              to="/gallery"
-              className={`inline-flex min-h-12 items-center justify-center gap-2 border px-5 text-sm font-black transition duration-200 ${theme.secondaryButton}`}
-            >
-              <ImageIcon className="h-4 w-4" />
-              {t("hackathon.showcase.gallery.view_all", "查看所有照片")}
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            <button
-              type="button"
-              onClick={() => openOutcomeUpload("stage_photo")}
-              className={`inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 ${theme.primaryButton}`}
-            >
-              <Upload className="h-4 w-4" />
-              {t("hackathon.showcase.gallery.upload", "上传赛场照片")}
-            </button>
-          </div>
-        </div>
-      </MotionSection>
+              ))}
+            </div>
+          </MotionDiv>
+      </ShowcaseSectionFrame>
 
-      <MotionSection id="works" {...reveal} className="relative snap-start px-4 py-14 sm:px-6 sm:py-16 lg:px-10 lg:py-20 xl:px-14 2xl:px-20">
-        <div className="mx-auto w-full max-w-[1880px]">
-          <SectionHeader
-            eyebrow="Chapter 03 / Winning Works"
-            title={t("hackathon.showcase.works.title", "优秀作品展示")}
-            copy={t("hackathon.showcase.works.desc", "作品卡片从原来的装饰型展示改成结果型展示：名次、荣誉、作者、简介和 Git 入口都在同一张卡内完成判断。")}
-            icon={Trophy}
-            theme={theme}
-            align="split"
-          />
-          <div className="mt-8 grid gap-4 md:grid-cols-2 lg:mt-10 xl:grid-cols-3 min-[1720px]:gap-5">
-            {showcaseWorks.map((work, index) => (
-              <article
+      <ShowcaseSectionFrame
+        id="works"
+        className="pt-20 pb-8 sm:pt-[5.25rem] lg:pt-20 lg:pb-8 min-[1536px]:pt-20 2xl:pt-20"
+        backgroundWord="WORKS"
+        contentClassName="items-center xl:grid-cols-[minmax(330px,0.5fr)_minmax(760px,1.5fr)] xl:gap-6 min-[1536px]:grid-cols-[minmax(360px,0.46fr)_minmax(900px,1.54fr)] min-[1536px]:gap-8"
+      >
+        <MotionDiv {...reveal} className="min-w-0">
+          <p className={`inline-flex items-center gap-2 border px-3 py-2 text-xs font-black uppercase ${theme.chip}`}>
+            <Trophy className="h-4 w-4" />
+            Chapter 03 / Winning Works
+          </p>
+          <h2 className="showcase-poster-heading mt-4 max-w-4xl text-[clamp(3rem,6.2vw,5.15rem)] font-black tracking-normal">
+            {t("hackathon.showcase.works.title")}
+          </h2>
+          <p className={`mt-4 max-w-2xl text-base font-semibold leading-7 sm:text-lg sm:leading-8 ${theme.muted}`}>
+            {t("hackathon.showcase.works.desc")}
+          </p>
+          <div className={`mt-6 grid gap-px overflow-hidden border ${theme.border} ${isDayMode ? "bg-slate-200/80" : "bg-cyan-300/16"} sm:grid-cols-3`}>
+            {showcaseWorks.slice(0, 3).map((work, index) => (
+              <Link
                 key={work.id}
-                className={`group flex min-h-[420px] flex-col overflow-hidden border transition duration-300 hover:-translate-y-1 sm:min-h-[470px] xl:min-h-[500px] min-[1720px]:min-h-[540px] ${theme.surfaceStrong}`}
+                to="/hackathon/works"
+                className={`${isDayMode ? "bg-white/86 hover:bg-cyan-50" : "bg-[#071011]/88 hover:bg-cyan-300/10"} block min-h-[8.5rem] p-4 transition duration-200`}
+                aria-label={t("hackathon.showcase.works.project_aria", { title: work.title })}
               >
-                <Link
-                  to="/hackathon/works"
-                  className="showcase-work-cover relative block min-h-[210px] overflow-hidden sm:min-h-[235px] xl:min-h-[250px] min-[1720px]:min-h-[290px]"
-                  aria-label={t("hackathon.showcase.works.project_aria", "查看{{title}}详情", { title: work.title })}
-                >
-                  <img
-                    src={work.cover || (index % 2 === 0 ? HERO_IMAGE : SECONDARY_IMAGE)}
-                    alt={t("hackathon.showcase.works.cover_alt", "{{title}} 作品封面", { title: work.title })}
-                    className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]"
-                    style={{ filter: isDayMode ? "brightness(0.88) saturate(1.08) contrast(1.02)" : "brightness(0.7) saturate(1.16) contrast(1.06)" }}
-                    loading={index === 0 ? "eager" : "lazy"}
-                  />
-                  <span className="absolute right-4 top-2 z-10 font-mono text-[6rem] font-black leading-none text-white/[0.11]">
-                    {work.rank}
-                  </span>
-                  <div className="absolute left-5 top-5 z-10 border border-white/18 bg-black/30 px-3 py-2 text-xs font-black uppercase text-white backdrop-blur">
-                    Project {work.rank}
-                  </div>
-                  <div className="absolute bottom-5 left-5 right-5 z-10">
-                    <div className="flex items-center gap-2 text-cyan-200">
-                      <Trophy className="h-5 w-5" />
-                      <span className="line-clamp-1 text-sm font-black uppercase">{work.honorTitle || work.award}</span>
-                    </div>
-                    <h3 className="mt-3 line-clamp-2 max-w-[88%] text-3xl font-black leading-tight text-white drop-shadow-[0_8px_24px_rgba(0,0,0,0.5)]">
-                      {work.title}
-                    </h3>
-                  </div>
-                </Link>
-                <div className="flex flex-1 flex-col p-4 sm:p-5 min-[1536px]:p-6">
-                  <div className="flex flex-wrap gap-2">
-                    <span className={`border px-2.5 py-1 text-xs font-black ${theme.chip}`}>{work.award}</span>
-                    <span className={`border px-2.5 py-1 text-xs font-black ${theme.chip}`}>
-                      {work.author}{work.boundIdentityName ? ` · ${work.boundIdentityName}` : ""}
-                    </span>
-                  </div>
-                  {work.summary ? (
-                    <p className={`mt-4 line-clamp-4 text-sm font-semibold leading-6 ${theme.muted}`}>{work.summary}</p>
-                  ) : null}
-                  {work.gitUrl ? (
-                    <a
-                      href={work.gitUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className={`mt-auto inline-flex min-h-11 items-center justify-center gap-2 border px-4 text-sm font-black transition duration-200 ${theme.secondaryButton}`}
-                    >
-                      {t("hackathon.showcase.works.git_link", "Git 链接")}
-                      <ExternalLink className="h-4 w-4" />
-                    </a>
-                  ) : (
-                    <Link
-                      to="/hackathon/works"
-                      className={`mt-auto inline-flex min-h-11 items-center justify-center gap-2 border px-4 text-sm font-black transition duration-200 ${theme.secondaryButton}`}
-                    >
-                      {t("hackathon.showcase.works.view_full", "查看详情")}
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  )}
-                </div>
-              </article>
+                <p className={`font-mono text-xs font-black uppercase tracking-[0.2em] ${theme.accent}`}>
+                  {String(index + 1).padStart(2, "0")} / {work.award || t("hackathon.showcase.works.fallback_award")}
+                </p>
+                <p className="mt-3 line-clamp-2 text-2xl font-black leading-tight">{work.title}</p>
+                <p className={`mt-2 line-clamp-1 text-sm font-semibold ${theme.soft}`}>
+                  {work.author}{work.boundIdentityName ? ` / ${work.boundIdentityName}` : ""}
+                </p>
+              </Link>
             ))}
           </div>
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <Link
               to="/hackathon/works"
               className={`inline-flex min-h-12 items-center justify-center gap-2 border px-5 text-sm font-black transition duration-200 ${theme.secondaryButton}`}
             >
-              {t("hackathon.showcase.works.view_all", "查看全部 {{count}} 个获奖作品", { count: publishedWorksCount })}
+              {t("hackathon.showcase.works.view_all", { count: publishedWorksCount })}
               <ArrowRight className="h-4 w-4" />
             </Link>
             <button
@@ -931,11 +1140,37 @@ const HackathonShowcase = () => {
               className={`inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 ${theme.primaryButton}`}
             >
               <Upload className="h-4 w-4" />
-              {t("hackathon.showcase.works.submit", "提交作品/经验")}
+              {t("hackathon.showcase.works.submit")}
             </button>
           </div>
-        </div>
-      </MotionSection>
+        </MotionDiv>
+
+        <MotionDiv {...reveal} className={`grid gap-4 border p-3 sm:p-4 xl:min-h-[calc(100svh-16.5rem)] xl:grid-cols-[minmax(0,1.18fr)_minmax(280px,0.82fr)] ${theme.surfaceStrong}`}>
+          {showcaseWorks[0] ? (
+            <ShowcaseWorkCard
+              work={showcaseWorks[0]}
+              index={0}
+              theme={theme}
+              isDayMode={isDayMode}
+              t={t}
+              featured
+            />
+          ) : null}
+          <div className="grid gap-4 xl:grid-rows-2">
+            {showcaseWorks.slice(1).map((work, index) => (
+              <ShowcaseWorkCard
+                key={work.id}
+                work={work}
+                index={index + 1}
+                theme={theme}
+                isDayMode={isDayMode}
+                t={t}
+                compact
+              />
+            ))}
+          </div>
+        </MotionDiv>
+      </ShowcaseSectionFrame>
 
       <MotionSection id="partners" {...reveal} className="relative snap-start px-4 pb-40 pt-14 sm:px-6 sm:py-16 lg:px-10 lg:py-20 xl:px-14 2xl:px-20">
         <div className="mx-auto w-full max-w-[1880px]">
