@@ -1098,7 +1098,7 @@
         "project_aria": "查看{{title}}详情",
         "cover_alt": "{{title}} 项目封面",
         "view_full": "查看详情",
-        "git_link": "Git 链接",
+        "git_link": "查看 GitHub 仓库",
         "fallback_award": "获奖作品",
         "fallback_title": "未命名作品",
         "fallback_author": "获奖创作者",

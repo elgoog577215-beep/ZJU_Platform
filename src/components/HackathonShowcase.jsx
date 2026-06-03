@@ -175,7 +175,7 @@ const ShowcaseSectionFrame = ({
 }) => (
   <MotionSection
     id={id}
-    className={`relative min-h-[100svh] max-w-full snap-start overflow-hidden px-4 py-8 sm:px-6 sm:py-10 lg:px-10 lg:py-12 xl:px-14 2xl:px-20 ${className}`}
+    className={`relative grid min-h-[100svh] max-w-full snap-start overflow-hidden px-4 py-8 sm:px-6 sm:py-10 lg:px-10 lg:py-12 xl:px-14 2xl:px-20 ${className}`}
   >
     <div className="showcase-stage-bg pointer-events-none absolute inset-0 opacity-80" aria-hidden="true" />
     <div
@@ -190,7 +190,7 @@ const ShowcaseSectionFrame = ({
         {backgroundWord}
       </div>
     ) : null}
-    <div className={`showcase-section-grid relative z-10 mx-auto grid min-h-[calc(100svh-4rem)] min-w-0 w-full max-w-[1880px] gap-7 sm:min-h-[calc(100svh-5rem)] lg:min-h-[calc(100svh-6rem)] xl:grid-cols-[minmax(0,0.9fr)_minmax(620px,1.1fr)] xl:gap-12 min-[1536px]:gap-16 2xl:gap-20 ${contentClassName}`}>
+    <div className={`showcase-section-grid relative z-10 mx-auto grid min-h-[calc(100svh-4rem)] min-w-0 w-full max-w-[2200px] gap-7 sm:min-h-[calc(100svh-5rem)] lg:min-h-[calc(100svh-6rem)] xl:grid-cols-[minmax(0,0.9fr)_minmax(620px,1.1fr)] xl:gap-12 min-[1536px]:gap-16 2xl:gap-20 ${contentClassName}`}>
       {children}
     </div>
   </MotionSection>
@@ -257,16 +257,16 @@ const ShowcaseWorkCard = ({ work, index, theme, isDayMode, t, featured = false, 
     <article
       className={`group grid overflow-hidden border transition duration-300 hover:-translate-y-0.5 ${theme.surface} ${
         featured
-          ? "min-h-[28rem] grid-rows-[minmax(16rem,1fr)_auto] xl:min-h-full"
+          ? "min-h-[25.5rem] grid-rows-[minmax(14.25rem,1fr)_auto] xl:min-h-full"
           : compact
-            ? "min-h-[15.5rem] grid-rows-[8.75rem_minmax(0,1fr)] xl:min-h-0"
+            ? "min-h-[13.75rem] grid-rows-[7.5rem_minmax(0,1fr)] xl:min-h-0"
             : "grid-cols-[minmax(118px,0.34fr)_minmax(0,0.66fr)]"
       } ${className}`}
     >
       <Link
         to="/hackathon/works"
         className={`showcase-work-cover relative block overflow-hidden ${
-          featured ? "min-h-[16rem] xl:min-h-0" : compact ? "min-h-0" : "min-h-[128px]"
+          featured ? "min-h-[14.25rem] xl:min-h-0" : compact ? "min-h-0" : "min-h-[128px]"
         }`}
         aria-label={t("hackathon.showcase.works.project_aria", { title: work.title })}
       >
@@ -287,7 +287,7 @@ const ShowcaseWorkCard = ({ work, index, theme, isDayMode, t, featured = false, 
         {featured ? (
           <div className="absolute bottom-4 left-5 right-5 z-10 sm:bottom-5 sm:left-6 sm:right-6">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-200">Winner Focus</p>
-            <p className="mt-2 line-clamp-2 text-3xl font-black leading-tight text-white sm:text-[2.35rem]">{work.title}</p>
+            <p className="mt-2 line-clamp-2 text-3xl font-black leading-tight text-white sm:text-[2.2rem]">{work.title}</p>
           </div>
         ) : compact ? (
           <div className="absolute bottom-3 left-3 right-3 z-10 flex items-center justify-between gap-3">
@@ -296,7 +296,7 @@ const ShowcaseWorkCard = ({ work, index, theme, isDayMode, t, featured = false, 
           </div>
         ) : null}
       </Link>
-      <div className={`flex min-w-0 flex-col ${featured ? "p-5 sm:p-5" : compact ? "p-3 sm:p-3.5" : "p-3 sm:p-3.5"}`}>
+      <div className={`flex min-w-0 flex-col ${featured ? "p-4 sm:p-4" : compact ? "p-3" : "p-3 sm:p-3.5"}`}>
         <div className="flex flex-wrap gap-2">
           <span className={`border px-2.5 py-1 text-xs font-black ${theme.chip}`}>{work.award}</span>
           <span className={`border px-2.5 py-1 text-xs font-black ${theme.chip}`}>
@@ -307,7 +307,7 @@ const ShowcaseWorkCard = ({ work, index, theme, isDayMode, t, featured = false, 
           <Trophy className={`mt-1 h-5 w-5 shrink-0 ${theme.accent}`} />
           <div className="min-w-0">
             <p className={`line-clamp-1 text-sm font-black uppercase ${theme.accent}`}>{work.honorTitle || work.award}</p>
-            <h3 className={`${featured ? "text-4xl sm:text-[2.85rem]" : compact ? "text-xl sm:text-[1.35rem]" : "text-xl sm:text-2xl"} mt-1 line-clamp-2 font-black leading-tight`}>
+            <h3 className={`${featured ? "text-4xl sm:text-[2.55rem]" : compact ? "text-xl sm:text-[1.25rem]" : "text-xl sm:text-2xl"} mt-1 line-clamp-2 font-black leading-tight`}>
               {work.title}
             </h3>
           </div>
@@ -317,14 +317,13 @@ const ShowcaseWorkCard = ({ work, index, theme, isDayMode, t, featured = false, 
             href={work.gitUrl}
             target="_blank"
             rel="noreferrer"
-            className={`mt-auto inline-flex min-h-10 min-w-0 items-center gap-2 border px-3 text-xs font-black transition duration-200 hover:-translate-y-0.5 ${theme.secondaryButton}`}
+            title={work.gitUrl}
+            className={`mt-auto inline-flex min-h-9 min-w-0 items-center gap-2 border px-3 text-xs font-black transition duration-200 hover:-translate-y-0.5 ${theme.secondaryButton}`}
             aria-label={t("hackathon.showcase.works.git_link")}
           >
             <Github className="h-4 w-4 shrink-0" />
-            <span className="shrink-0">{t("hackathon.showcase.works.git_link")}</span>
-            <span className={`min-w-0 break-all text-left font-mono text-[0.68rem] leading-4 ${featured ? "" : "hidden min-[1536px]:inline"}`}>
-              {work.gitUrl}
-            </span>
+            <span className="min-w-0 truncate">{t("hackathon.showcase.works.git_link")}</span>
+            <ArrowRight className="ml-auto h-3.5 w-3.5 shrink-0" />
           </a>
         ) : null}
       </div>
@@ -430,7 +429,8 @@ const HackathonShowcase = () => {
   };
 
   const officialVideo = outcome?.media?.promo_videos?.[0] || null;
-  const officialVideoCover = officialVideo?.cover_url || SECONDARY_IMAGE;
+  const officialVideoUrl = officialVideo?.url || officialVideo?.video || officialVideo?.video_url || officialVideo?.videoUrl || officialVideo?.media_url || officialVideo?.mediaUrl || "";
+  const officialVideoCover = officialVideo?.cover_url || officialVideo?.coverUrl || officialVideo?.thumbnail || officialVideo?.poster || SECONDARY_IMAGE;
   const translatedSections = useMemo(
     () =>
       showcaseSections.map((section) => ({
@@ -483,7 +483,7 @@ const HackathonShowcase = () => {
 
   useEffect(() => {
     setIsVideoPlaying(false);
-  }, [officialVideo?.url]);
+  }, [officialVideoUrl]);
 
   const galleryMoments = useMemo(() => {
     const stagePhotos = Array.isArray(outcome?.media?.stage_photos)
@@ -985,7 +985,7 @@ const HackathonShowcase = () => {
                 event.currentTarget.src = SECONDARY_IMAGE;
               }}
             />
-            {officialVideo?.url && isVideoPlaying ? (
+            {officialVideoUrl && isVideoPlaying ? (
               <video
                 className="absolute inset-0 z-20 h-full w-full bg-black object-contain"
                 controls
@@ -993,16 +993,18 @@ const HackathonShowcase = () => {
                 preload="metadata"
                 poster={officialVideoCover}
               >
-                <source src={officialVideo.url} />
+                <source src={officialVideoUrl} />
               </video>
             ) : null}
             <div className={`showcase-media-overlay absolute inset-0 transition-opacity duration-300 ${isVideoPlaying ? "opacity-0" : "opacity-100"}`} />
-            {!isVideoPlaying ? (
+            {!isVideoPlaying && officialVideoUrl ? (
               <button
                 type="button"
-                onClick={() => (officialVideo?.url ? setIsVideoPlaying(true) : openOutcomeUpload("promo_video"))}
+                onClick={() => {
+                  setIsVideoPlaying(true);
+                }}
                 className="absolute left-1/2 top-1/2 z-20 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/24 bg-white/16 text-white backdrop-blur-xl transition duration-300 hover:scale-105 hover:bg-cyan-300 hover:text-slate-950 focus:outline-none focus:ring-4 focus:ring-cyan-300/24 sm:h-20 sm:w-20"
-                aria-label={officialVideo?.url ? t("hackathon.showcase.hero.play_film") : t("hackathon.showcase.hero.upload_film")}
+                aria-label={officialVideoUrl ? t("hackathon.showcase.hero.play_film") : t("hackathon.showcase.hero.upload_film")}
               >
                 <Play className="ml-1 h-7 w-7 fill-current" />
               </button>
@@ -1015,6 +1017,16 @@ const HackathonShowcase = () => {
                 <h2 className="mt-2 max-w-2xl text-3xl font-black leading-tight text-white sm:text-5xl">
                   {t("hackathon.showcase.hero.fallback_title")}
                 </h2>
+                {!officialVideoUrl ? (
+                  <button
+                    type="button"
+                    onClick={() => openOutcomeUpload("promo_video")}
+                    className="mt-4 inline-flex min-h-10 items-center gap-2 border border-cyan-200/50 bg-cyan-300 px-4 text-sm font-black text-slate-950 transition duration-200 hover:-translate-y-0.5"
+                  >
+                    <Upload className="h-4 w-4" />
+                    {t("hackathon.showcase.hero.upload_film")}
+                  </button>
+                ) : null}
               </div>
             ) : null}
           </div>
@@ -1023,89 +1035,91 @@ const HackathonShowcase = () => {
 
       <ShowcaseSectionFrame
         id="gallery"
-        className="pt-24 sm:pt-24 lg:pb-6 lg:pt-24"
+        className="pt-20 pb-8 sm:pt-24 lg:py-10"
         backgroundWord="MEDIA"
-        contentClassName="items-start lg:min-h-[calc(100svh-7rem)] xl:grid-cols-[minmax(340px,0.64fr)_minmax(700px,1.36fr)] xl:grid-rows-[minmax(0,26.5rem)_12.5rem] xl:items-stretch xl:gap-x-8 xl:gap-y-4 min-[1536px]:grid-cols-[minmax(380px,0.62fr)_minmax(820px,1.38fr)] min-[1536px]:grid-rows-[minmax(0,28rem)_13rem] min-[1536px]:gap-x-10 2xl:grid-rows-[minmax(0,29.5rem)_13.5rem]"
+        contentClassName="self-center items-center xl:min-h-0 xl:grid-cols-[minmax(360px,0.58fr)_minmax(760px,1.42fr)] xl:grid-rows-[minmax(0,clamp(27rem,52svh,46rem))_clamp(11.5rem,19svh,18rem)] xl:items-stretch xl:gap-x-8 xl:gap-y-4 min-[1536px]:grid-cols-[minmax(420px,0.55fr)_minmax(940px,1.45fr)] min-[1536px]:gap-x-10 2xl:grid-cols-[minmax(480px,0.52fr)_minmax(1120px,1.48fr)] 2xl:gap-x-12"
       >
           <MotionDiv {...reveal} className="min-w-0">
             <p className={`inline-flex items-center gap-2 border px-3 py-2 text-xs font-black uppercase ${theme.chip}`}>
               <Camera className="h-4 w-4" />
               Chapter 02 / Gallery
             </p>
-            <h2 className="showcase-poster-heading mt-2 max-w-4xl text-[clamp(3.2rem,7.1vw,6.4rem)] font-black tracking-normal sm:text-[clamp(4.2rem,6vw,6.25rem)]">
+            <h2 className="showcase-poster-heading mt-2 max-w-4xl text-[clamp(3.2rem,6vw,7.4rem)] font-black tracking-normal">
               {t("hackathon.showcase.gallery.title")}
             </h2>
-            <p className={`mt-4 max-w-2xl text-base font-semibold leading-7 sm:text-lg sm:leading-8 ${theme.muted}`}>
+            <p className={`mt-4 max-w-2xl text-base font-semibold leading-7 sm:text-lg sm:leading-8 2xl:text-xl 2xl:leading-9 ${theme.muted}`}>
               {t("hackathon.showcase.gallery.desc")}
             </p>
             <div className={`mt-4 grid gap-px overflow-hidden border ${theme.border} ${isDayMode ? "bg-slate-200/80" : "bg-cyan-300/16"} sm:grid-cols-2`}>
               <div className={`${isDayMode ? "bg-white/86" : "bg-[#071011]/88"} p-3.5`}>
                 <p className={`font-mono text-xs font-black uppercase tracking-[0.2em] ${theme.accent}`}>01 / Stage Proof</p>
-                <p className="mt-2 text-4xl font-black">{galleryMoments.length}</p>
-                <p className={`mt-1 text-sm font-semibold ${theme.soft}`}>Media Moments</p>
+                <p className="mt-2 text-4xl font-black 2xl:text-5xl">{galleryMoments.length}</p>
+                <p className={`mt-1 text-sm font-semibold 2xl:text-base ${theme.soft}`}>Media Moments</p>
               </div>
               <div className={`${isDayMode ? "bg-white/86" : "bg-[#071011]/88"} p-3.5`}>
                 <p className={`font-mono text-xs font-black uppercase tracking-[0.2em] ${theme.accent}`}>02 / Archive</p>
-                <p className="mt-2 text-4xl font-black">Live</p>
-                <p className={`mt-1 text-sm font-semibold ${theme.soft}`}>Outcome Gallery</p>
+                <p className="mt-2 text-4xl font-black 2xl:text-5xl">Live</p>
+                <p className={`mt-1 text-sm font-semibold 2xl:text-base ${theme.soft}`}>Outcome Gallery</p>
               </div>
-            </div>
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <Link
-                to="/gallery"
-                className={`inline-flex min-h-12 items-center justify-center gap-2 border px-5 text-sm font-black transition duration-200 ${theme.secondaryButton}`}
-              >
-                <ImageIcon className="h-4 w-4" />
-                {t("hackathon.showcase.gallery.view_all")}
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <button
-                type="button"
-                onClick={() => openOutcomeUpload("stage_photo")}
-                className={`inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 ${theme.primaryButton}`}
-              >
-                <Upload className="h-4 w-4" />
-                {t("hackathon.showcase.gallery.upload")}
-              </button>
             </div>
           </MotionDiv>
 
-          <MotionDiv {...reveal} className={`mt-6 grid h-full min-h-0 gap-2 border p-2 xl:mt-0 ${theme.surfaceStrong}`}>
+        <MotionDiv {...reveal} className={`mt-6 grid h-full min-h-0 gap-2 border p-2 xl:mt-0 ${theme.surfaceStrong}`}>
             {galleryMoments[0] ? (
               <ShowcaseImageCard moment={galleryMoments[0]} index={0} theme={theme} featured />
             ) : null}
           </MotionDiv>
 
           <MotionDiv {...reveal} className="min-h-0 xl:col-span-2 xl:h-full">
-            <div className="showcase-gallery-strip -mx-1 mt-5 flex gap-2 overflow-x-auto px-1 pb-2 xl:mt-0 xl:grid xl:h-full xl:grid-cols-4 xl:overflow-hidden">
-              {galleryMoments.slice(1).map((moment, index) => (
-                <ShowcaseImageCard
-                  key={moment.id}
-                  moment={moment}
-                  index={index + 1}
-                  theme={theme}
-                  compact
-                />
-              ))}
+            <div className="showcase-gallery-strip -mx-1 mt-5 flex gap-2 overflow-x-auto px-1 pb-2 xl:mx-0 xl:mt-0 xl:grid xl:h-full xl:grid-cols-[repeat(4,minmax(0,1fr))_minmax(11rem,0.62fr)] xl:overflow-hidden">
+              <div className="contents xl:contents">
+                {galleryMoments.slice(1).map((moment, index) => (
+                  <ShowcaseImageCard
+                    key={moment.id}
+                    moment={moment}
+                    index={index + 1}
+                    theme={theme}
+                    compact
+                  />
+                ))}
+              </div>
+              <div className={`flex min-h-[9rem] w-[11rem] shrink-0 flex-col gap-2 border p-2 sm:w-[12rem] xl:h-full xl:w-auto ${theme.surfaceStrong}`}>
+                <Link
+                  to="/gallery"
+                  className={`inline-flex min-h-0 flex-1 items-center justify-center gap-2 border px-3 text-center text-xs font-black transition duration-200 ${theme.secondaryButton}`}
+                >
+                  <ImageIcon className="h-4 w-4 shrink-0" />
+                  <span>{t("hackathon.showcase.gallery.view_all")}</span>
+                  <ArrowRight className="h-4 w-4 shrink-0" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => openOutcomeUpload("stage_photo")}
+                  className={`inline-flex min-h-0 flex-1 items-center justify-center gap-2 px-3 text-center text-xs font-black transition duration-200 focus:outline-none focus:ring-4 ${theme.primaryButton}`}
+                >
+                  <Upload className="h-4 w-4 shrink-0" />
+                  <span>{t("hackathon.showcase.gallery.upload")}</span>
+                </button>
+              </div>
             </div>
           </MotionDiv>
       </ShowcaseSectionFrame>
 
       <ShowcaseSectionFrame
         id="works"
-        className="pt-20 pb-8 sm:pt-[5.25rem] lg:pt-20 lg:pb-8 min-[1536px]:pt-20 2xl:pt-20"
+        className="pt-20 pb-8 sm:pt-[5.25rem] lg:py-10 min-[1536px]:py-10"
         backgroundWord="WORKS"
-        contentClassName="items-center xl:grid-cols-[minmax(330px,0.5fr)_minmax(760px,1.5fr)] xl:gap-6 min-[1536px]:grid-cols-[minmax(360px,0.46fr)_minmax(900px,1.54fr)] min-[1536px]:gap-8"
+        contentClassName="self-center items-center xl:min-h-0 xl:grid-cols-[minmax(360px,0.48fr)_minmax(800px,1.52fr)] xl:gap-7 min-[1536px]:grid-cols-[minmax(430px,0.45fr)_minmax(980px,1.55fr)] min-[1536px]:gap-9 2xl:grid-cols-[minmax(500px,0.42fr)_minmax(1180px,1.58fr)] 2xl:gap-12"
       >
         <MotionDiv {...reveal} className="min-w-0">
           <p className={`inline-flex items-center gap-2 border px-3 py-2 text-xs font-black uppercase ${theme.chip}`}>
             <Trophy className="h-4 w-4" />
             Chapter 03 / Winning Works
           </p>
-          <h2 className="showcase-poster-heading mt-4 max-w-4xl text-[clamp(3rem,6.2vw,5.15rem)] font-black tracking-normal">
+          <h2 className="showcase-poster-heading mt-4 max-w-4xl text-[clamp(3rem,5.4vw,7.1rem)] font-black tracking-normal">
             {t("hackathon.showcase.works.title")}
           </h2>
-          <p className={`mt-4 max-w-2xl text-base font-semibold leading-7 sm:text-lg sm:leading-8 ${theme.muted}`}>
+          <p className={`mt-4 max-w-2xl text-base font-semibold leading-7 sm:text-lg sm:leading-8 2xl:text-xl 2xl:leading-9 ${theme.muted}`}>
             {t("hackathon.showcase.works.desc")}
           </p>
           <div className={`mt-6 grid gap-px overflow-hidden border ${theme.border} ${isDayMode ? "bg-slate-200/80" : "bg-cyan-300/16"} sm:grid-cols-3`}>
@@ -1145,7 +1159,7 @@ const HackathonShowcase = () => {
           </div>
         </MotionDiv>
 
-        <MotionDiv {...reveal} className={`grid gap-4 border p-3 sm:p-4 xl:min-h-[calc(100svh-16.5rem)] xl:grid-cols-[minmax(0,1.18fr)_minmax(280px,0.82fr)] ${theme.surfaceStrong}`}>
+        <MotionDiv {...reveal} className={`grid gap-4 border p-3 sm:p-4 xl:min-h-[clamp(27rem,68svh,48rem)] xl:grid-cols-[minmax(0,1.18fr)_minmax(280px,0.82fr)] min-[1536px]:gap-5 min-[1536px]:p-5 ${theme.surfaceStrong}`}>
           {showcaseWorks[0] ? (
             <ShowcaseWorkCard
               work={showcaseWorks[0]}

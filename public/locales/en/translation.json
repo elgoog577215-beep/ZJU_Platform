@@ -1016,7 +1016,7 @@
         "project_aria": "View details for {{title}}",
         "cover_alt": "{{title}} project cover",
         "view_full": "View Details",
-        "git_link": "Git Link",
+        "git_link": "View GitHub Repo",
         "fallback_award": "Winning Work",
         "fallback_title": "Untitled Work",
         "fallback_author": "Awarded Builder",
