@@ -214,6 +214,7 @@ const ShowcaseImageCard = ({
   moment,
   index,
   theme,
+  isDayMode,
   featured = false,
   compact = false,
 }) => (
@@ -230,19 +231,19 @@ const ShowcaseImageCard = ({
       src={moment.image}
       alt={moment.title}
       className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]"
-      style={{ filter: "brightness(0.78) saturate(1.12) contrast(1.03)" }}
+      style={{ filter: isDayMode ? "brightness(1.04) saturate(1.08) contrast(1.01)" : "brightness(0.9) saturate(1.1) contrast(1.02)" }}
       loading={index === 0 ? "eager" : "lazy"}
     />
     <div className="showcase-media-overlay absolute inset-0" />
-    <div className={`absolute inset-x-0 bottom-0 ${compact ? "p-3 sm:p-4" : "p-4 sm:p-5"}`}>
+    <div className={`absolute inset-x-0 bottom-0 ${compact ? "p-3 sm:p-4" : "p-4 sm:p-5"} ${isDayMode ? "bg-gradient-to-t from-slate-950/70 via-slate-950/32 to-transparent" : ""}`}>
       <div className={`${compact ? "mb-2" : "mb-3"} inline-flex items-center gap-2 border border-cyan-200/40 bg-cyan-300 px-2.5 py-1.5 text-[11px] font-black uppercase text-slate-950`}>
         <Camera className="h-3.5 w-3.5" />
         {moment.label}
       </div>
-      <h3 className={`${featured ? "max-w-[min(42rem,calc(100%-1rem))] text-3xl sm:text-5xl" : compact ? "text-lg sm:text-xl" : "text-xl sm:text-2xl"} break-words font-black leading-[0.95] tracking-normal text-white`}>
+      <h3 className={`showcase-image-title ${featured ? "max-w-[min(42rem,calc(100%-1rem))] text-3xl sm:text-5xl" : compact ? "text-lg sm:text-xl" : "text-xl sm:text-2xl"} break-words font-black leading-[0.95] tracking-normal text-white`}>
         {moment.title}
       </h3>
-      <p className={`${compact ? "line-clamp-2" : "line-clamp-2"} mt-2 max-w-[min(42rem,calc(100%-1rem))] break-words text-xs font-semibold leading-5 text-white/78 sm:text-sm sm:leading-6`}>
+      <p className={`showcase-image-copy ${compact ? "line-clamp-2" : "line-clamp-2"} mt-2 max-w-[min(42rem,calc(100%-1rem))] break-words text-xs font-semibold leading-5 text-white/78 sm:text-sm sm:leading-6`}>
         {moment.caption}
       </p>
     </div>
@@ -250,16 +251,16 @@ const ShowcaseImageCard = ({
 );
 
 const ShowcaseWorkCard = ({ work, index, theme, isDayMode, t, featured = false, compact = false, className = "" }) => {
-  const rankLabel = work.rank || String(index + 1).padStart(2, "0");
   const hasGitUrl = Boolean(work.gitUrl);
+  const badgeLabel = work.award || work.honorTitle || t("hackathon.showcase.works.fallback_award");
 
   return (
     <article
       className={`group grid overflow-hidden border transition duration-300 hover:-translate-y-0.5 ${theme.surface} ${
         featured
-          ? "min-h-[25.5rem] grid-rows-[minmax(14.25rem,1fr)_auto] xl:min-h-full"
+          ? "min-h-[25.5rem] grid-rows-[minmax(16rem,1fr)_auto] xl:min-h-full"
           : compact
-            ? "min-h-[13.75rem] grid-rows-[7.5rem_minmax(0,1fr)] xl:min-h-0"
+            ? "min-h-[13.75rem] grid-rows-[minmax(10rem,1fr)_auto] xl:min-h-0"
             : "grid-cols-[minmax(118px,0.34fr)_minmax(0,0.66fr)]"
       } ${className}`}
     >
@@ -274,43 +275,33 @@ const ShowcaseWorkCard = ({ work, index, theme, isDayMode, t, featured = false, 
           src={work.cover || (index % 2 === 0 ? HERO_IMAGE : SECONDARY_IMAGE)}
           alt={t("hackathon.showcase.works.cover_alt", { title: work.title })}
           className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]"
-          style={{ filter: isDayMode ? "brightness(0.88) saturate(1.08) contrast(1.02)" : "brightness(0.7) saturate(1.16) contrast(1.06)" }}
+          style={{ filter: isDayMode ? "brightness(1.03) saturate(1.08) contrast(1.01)" : "brightness(0.82) saturate(1.14) contrast(1.04)" }}
           loading={index === 0 ? "eager" : "lazy"}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/66 via-black/12 to-transparent" />
-        <span className={`absolute right-4 top-2 z-10 font-mono font-black leading-none text-white/[0.14] ${featured ? "text-[8rem] sm:text-[9rem]" : "text-[3.6rem]"}`}>
-          {rankLabel}
-        </span>
-        <div className="absolute left-4 top-4 z-10 border border-white/18 bg-black/30 px-3 py-2 text-xs font-black uppercase text-white backdrop-blur">
-          Project {rankLabel}
+        <div className={`absolute inset-0 ${isDayMode ? "bg-gradient-to-t from-slate-950/12 via-transparent to-white/8" : "bg-gradient-to-t from-black/66 via-black/12 to-transparent"}`} />
+        <div className={`showcase-award-badge absolute right-4 top-4 z-10 inline-flex items-center gap-2.5 overflow-hidden border px-3.5 py-2.5 text-sm font-black backdrop-blur ${isDayMode ? "showcase-award-badge-day border-cyan-200 bg-gradient-to-r from-white via-cyan-50 to-amber-50 text-slate-950 shadow-[0_18px_42px_rgba(8,145,178,0.22)] ring-1 ring-white/80" : "border-cyan-200/40 bg-slate-950/58 text-white shadow-[0_14px_34px_rgba(0,0,0,0.28)]"} ${featured ? "showcase-award-badge-featured sm:px-5 sm:py-3.5 sm:text-lg" : ""}`}>
+          <span className={`pointer-events-none absolute inset-x-2 top-0 h-px ${isDayMode ? "bg-gradient-to-r from-transparent via-cyan-300 to-transparent" : "bg-gradient-to-r from-transparent via-white/38 to-transparent"}`} />
+          <span className={`grid shrink-0 place-items-center border ${featured ? "h-8 w-8" : "h-7 w-7"} ${isDayMode ? "border-cyan-200 bg-cyan-100 text-cyan-800 shadow-inner shadow-white/70" : "border-cyan-200/35 bg-cyan-300/14 text-cyan-100"}`}>
+            <Trophy className={`${featured ? "h-5 w-5" : "h-4.5 w-4.5"} shrink-0`} />
+          </span>
+          {badgeLabel}
         </div>
         {featured ? (
           <div className="absolute bottom-4 left-5 right-5 z-10 sm:bottom-5 sm:left-6 sm:right-6">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-200">Winner Focus</p>
-            <p className="mt-2 line-clamp-2 text-3xl font-black leading-tight text-white sm:text-[2.2rem]">{work.title}</p>
+            <p className="showcase-image-kicker text-xs font-black uppercase tracking-[0.18em] text-cyan-200">Winner Focus</p>
+            <p className="showcase-image-title mt-2 line-clamp-2 text-3xl font-black leading-tight text-white sm:text-[2.2rem]">{work.title}</p>
           </div>
         ) : compact ? (
-          <div className="absolute bottom-3 left-3 right-3 z-10 flex items-center justify-between gap-3">
-            <p className="line-clamp-1 text-sm font-black uppercase text-cyan-100">{work.award}</p>
-            <p className="font-mono text-2xl font-black leading-none text-white/70">{rankLabel}</p>
+          <div className="absolute bottom-3 left-3 right-3 z-10 sm:bottom-4 sm:left-4 sm:right-4">
+            <p className="showcase-image-title line-clamp-2 text-xl font-black leading-tight text-white sm:text-2xl">{work.title}</p>
           </div>
         ) : null}
       </Link>
-      <div className={`flex min-w-0 flex-col ${featured ? "p-4 sm:p-4" : compact ? "p-3" : "p-3 sm:p-3.5"}`}>
+      <div className={`flex min-w-0 flex-col ${featured ? "p-3.5 sm:p-4" : compact ? "p-3" : "p-3 sm:p-3.5"}`}>
         <div className="flex flex-wrap gap-2">
-          <span className={`border px-2.5 py-1 text-xs font-black ${theme.chip}`}>{work.award}</span>
           <span className={`border px-2.5 py-1 text-xs font-black ${theme.chip}`}>
             {work.author}{work.boundIdentityName ? ` / ${work.boundIdentityName}` : ""}
           </span>
-        </div>
-        <div className="mt-2.5 flex items-start gap-3">
-          <Trophy className={`mt-1 h-5 w-5 shrink-0 ${theme.accent}`} />
-          <div className="min-w-0">
-            <p className={`line-clamp-1 text-sm font-black uppercase ${theme.accent}`}>{work.honorTitle || work.award}</p>
-            <h3 className={`${featured ? "text-4xl sm:text-[2.55rem]" : compact ? "text-xl sm:text-[1.25rem]" : "text-xl sm:text-2xl"} mt-1 line-clamp-2 font-black leading-tight`}>
-              {work.title}
-            </h3>
-          </div>
         </div>
         {hasGitUrl ? (
           <a
@@ -550,12 +541,12 @@ const HackathonShowcase = () => {
         accent: "text-cyan-700",
         progress: "from-cyan-500 via-amber-400 to-lime-500",
         primaryButton:
-          "bg-slate-950 text-white shadow-[0_18px_42px_rgba(15,23,42,0.20)] hover:bg-cyan-700 focus:ring-cyan-500/24",
+          "border border-cyan-300 bg-cyan-100 text-cyan-950 shadow-[0_18px_42px_rgba(8,145,178,0.16)] hover:border-cyan-500 hover:bg-cyan-200 focus:ring-cyan-500/24",
         secondaryButton:
           "border-slate-300 bg-white/78 text-slate-800 hover:border-cyan-400 hover:bg-cyan-50 hover:text-cyan-800 focus:ring-cyan-500/20",
         navShell: "border-slate-200 bg-white/86 text-slate-700 shadow-[0_18px_60px_rgba(15,23,42,0.12)]",
-        navActive: "border-slate-950 bg-slate-950 text-white",
-        navIdle: "border-slate-200 bg-white/72 text-slate-600 hover:border-cyan-300 hover:text-cyan-700",
+        navActive: "border-cyan-500 bg-cyan-100 text-cyan-950 shadow-[0_10px_28px_rgba(8,145,178,0.18)]",
+        navIdle: "border-slate-200 bg-white/82 text-slate-600 hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-800",
         overlay: "from-slate-950/78 via-slate-950/22 to-transparent",
       }
     : {
@@ -765,6 +756,45 @@ const HackathonShowcase = () => {
             -webkit-text-stroke: 0.01em rgba(15, 23, 42, 0.08);
           }
 
+          .showcase-image-title,
+          .showcase-image-copy,
+          .showcase-image-kicker {
+            color: rgba(255, 255, 255, 0.96) !important;
+            text-shadow:
+              0 2px 4px rgba(15, 23, 42, 0.86),
+              0 8px 22px rgba(15, 23, 42, 0.62) !important;
+            -webkit-text-stroke: 0 transparent !important;
+          }
+
+          .showcase-image-copy {
+            color: rgba(255, 255, 255, 0.88) !important;
+          }
+
+          .showcase-image-kicker {
+            color: rgba(207, 250, 254, 0.98) !important;
+          }
+
+          .showcase-award-badge {
+            min-height: 2.625rem;
+            letter-spacing: 0;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.28);
+          }
+
+          .showcase-award-badge-day {
+            background:
+              linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(236, 254, 255, 0.95) 48%, rgba(255, 251, 235, 0.98) 100%) !important;
+            border-color: rgba(14, 165, 233, 0.42) !important;
+            color: rgb(15, 23, 42) !important;
+            box-shadow:
+              0 16px 38px rgba(8, 145, 178, 0.24),
+              0 3px 0 rgba(8, 145, 178, 0.18),
+              inset 0 1px 0 rgba(255, 255, 255, 0.96) !important;
+          }
+
+          .showcase-award-badge-featured {
+            min-height: 3.25rem;
+          }
+
           @media (min-width: 641px) {
             .showcase-title {
               font-size: clamp(5rem, 8.4vw, 7.4rem);
@@ -861,8 +891,15 @@ const HackathonShowcase = () => {
 
           .showcase-media-overlay {
             background:
-              linear-gradient(180deg, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0.1) 34%, rgba(0, 0, 0, 0.82) 100%),
-              linear-gradient(90deg, rgba(0, 0, 0, 0.42), transparent 58%);
+              linear-gradient(180deg, rgba(0, 0, 0, 0.015) 0%, rgba(0, 0, 0, 0.06) 36%, rgba(0, 0, 0, 0.66) 100%),
+              linear-gradient(90deg, rgba(0, 0, 0, 0.28), transparent 58%);
+          }
+
+          .showcase-theme-day .showcase-media-overlay,
+          .showcase-media-overlay-day {
+            background:
+              linear-gradient(180deg, transparent 0%, transparent 52%, rgba(15, 23, 42, 0.2) 100%),
+              linear-gradient(90deg, rgba(15, 23, 42, 0.06), transparent 62%);
           }
 
           .showcase-work-cover::after {
@@ -870,15 +907,15 @@ const HackathonShowcase = () => {
             position: absolute;
             inset: 0;
             background:
-              linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.68) 100%),
-              linear-gradient(90deg, rgba(0, 0, 0, 0.28), transparent 64%);
+              linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.54) 100%),
+              linear-gradient(90deg, rgba(0, 0, 0, 0.2), transparent 64%);
             pointer-events: none;
           }
 
           .showcase-theme-day .showcase-work-cover::after {
             background:
-              linear-gradient(180deg, rgba(15, 23, 42, 0.02) 0%, rgba(15, 23, 42, 0.58) 100%),
-              linear-gradient(90deg, rgba(15, 23, 42, 0.22), transparent 64%);
+              linear-gradient(180deg, rgba(15, 23, 42, 0.01) 0%, rgba(15, 23, 42, 0.24) 100%),
+              linear-gradient(90deg, rgba(15, 23, 42, 0.06), transparent 64%);
           }
 
           @media (max-width: 520px) {
@@ -980,7 +1017,7 @@ const HackathonShowcase = () => {
               src={officialVideoCover}
               alt={t("hackathon.showcase.hero.poster_alt")}
               className="absolute inset-0 h-full w-full object-cover"
-              style={{ filter: "brightness(0.74) saturate(1.14) contrast(1.04)" }}
+              style={{ filter: isDayMode ? "brightness(1.03) saturate(1.08) contrast(1.01)" : "brightness(0.86) saturate(1.12) contrast(1.03)" }}
               onError={(event) => {
                 event.currentTarget.src = SECONDARY_IMAGE;
               }}
@@ -996,25 +1033,25 @@ const HackathonShowcase = () => {
                 <source src={officialVideoUrl} />
               </video>
             ) : null}
-            <div className={`showcase-media-overlay absolute inset-0 transition-opacity duration-300 ${isVideoPlaying ? "opacity-0" : "opacity-100"}`} />
+            <div className={`showcase-media-overlay absolute inset-0 transition-opacity duration-300 ${isVideoPlaying ? "opacity-0" : "opacity-100"} ${isDayMode ? "showcase-media-overlay-day" : ""}`} />
             {!isVideoPlaying && officialVideoUrl ? (
               <button
                 type="button"
                 onClick={() => {
                   setIsVideoPlaying(true);
                 }}
-                className="absolute left-1/2 top-1/2 z-20 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/24 bg-white/16 text-white backdrop-blur-xl transition duration-300 hover:scale-105 hover:bg-cyan-300 hover:text-slate-950 focus:outline-none focus:ring-4 focus:ring-cyan-300/24 sm:h-20 sm:w-20"
+                className={`absolute left-1/2 top-1/2 z-20 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full backdrop-blur-xl transition duration-300 hover:scale-105 focus:outline-none focus:ring-4 sm:h-20 sm:w-20 ${isDayMode ? "border border-white/70 bg-white/78 text-slate-950 shadow-[0_18px_54px_rgba(15,23,42,0.24)] hover:bg-cyan-100 focus:ring-cyan-500/20" : "border border-white/24 bg-white/16 text-white hover:bg-cyan-300 hover:text-slate-950 focus:ring-cyan-300/24"}`}
                 aria-label={officialVideoUrl ? t("hackathon.showcase.hero.play_film") : t("hackathon.showcase.hero.upload_film")}
               >
                 <Play className="ml-1 h-7 w-7 fill-current" />
               </button>
             ) : null}
             {!isVideoPlaying ? (
-              <div className="absolute bottom-0 left-0 right-0 z-20 p-5 sm:p-7">
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-200">
+              <div className={`absolute bottom-0 left-0 right-0 z-20 p-5 sm:p-7 ${isDayMode ? "bg-gradient-to-t from-slate-950/70 via-slate-950/32 to-transparent" : ""}`}>
+                <p className="showcase-image-kicker text-xs font-black uppercase tracking-[0.18em] text-cyan-200">
                   Trailer / Gallery / Works
                 </p>
-                <h2 className="mt-2 max-w-2xl text-3xl font-black leading-tight text-white sm:text-5xl">
+                <h2 className="showcase-image-title mt-2 max-w-2xl text-3xl font-black leading-tight text-white sm:text-5xl">
                   {t("hackathon.showcase.hero.fallback_title")}
                 </h2>
                 {!officialVideoUrl ? (
@@ -1066,7 +1103,7 @@ const HackathonShowcase = () => {
 
         <MotionDiv {...reveal} className={`mt-6 grid h-full min-h-0 gap-2 border p-2 xl:mt-0 ${theme.surfaceStrong}`}>
             {galleryMoments[0] ? (
-              <ShowcaseImageCard moment={galleryMoments[0]} index={0} theme={theme} featured />
+              <ShowcaseImageCard moment={galleryMoments[0]} index={0} theme={theme} isDayMode={isDayMode} featured />
             ) : null}
           </MotionDiv>
 
@@ -1079,6 +1116,7 @@ const HackathonShowcase = () => {
                     moment={moment}
                     index={index + 1}
                     theme={theme}
+                    isDayMode={isDayMode}
                     compact
                   />
                 ))}
