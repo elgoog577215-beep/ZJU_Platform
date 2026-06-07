@@ -155,7 +155,7 @@ const EVENT_THEME_VARIANTS = {
     accentText: "text-indigo-700",
     dot: "bg-violet-500",
     surface: "bg-[linear-gradient(135deg,rgba(239,246,255,0.94),rgba(245,243,255,0.9),rgba(255,255,255,0.94))] border border-indigo-100/80",
-    cta: "bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 text-white shadow-[0_14px_32px_rgba(79,70,229,0.22)] hover:shadow-[0_18px_42px_rgba(79,70,229,0.28)] hover:-translate-y-0.5 border border-white/30",
+    cta: "bg-blue-700 text-white shadow-[0_12px_26px_rgba(29,78,216,0.18)] hover:bg-blue-800 hover:shadow-[0_14px_30px_rgba(29,78,216,0.22)] hover:-translate-y-0.5 border border-blue-700",
     highlightCard: "border-indigo-100/90 bg-[linear-gradient(135deg,rgba(239,246,255,0.94),rgba(250,245,255,0.96))] shadow-[0_16px_34px_rgba(79,70,229,0.1)]",
     iconShell: "bg-white border-indigo-200/80 text-indigo-600 shadow-[0_8px_18px_rgba(79,70,229,0.12)]",
     tagHover: "hover:border-indigo-200/80 hover:text-indigo-700",
@@ -426,6 +426,7 @@ const Events = () => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [selectedEventRecommendationContext, setSelectedEventRecommendationContext] =
     useState(null);
+  const selectedEventRecommendationContextRef = useRef(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
@@ -439,6 +440,10 @@ const Events = () => {
   );
   const shouldReduceCardMotion = prefersReducedMotion || isMobileViewport;
   const trackedViewTimestamps = useRef(new Map());
+  const updateSelectedEventRecommendationContext = useCallback((context) => {
+    selectedEventRecommendationContextRef.current = context;
+    setSelectedEventRecommendationContext(context);
+  }, []);
   const eventThemeAccent = useMemo(
     () => EVENT_THEME_VARIANTS[isDayMode ? "cyan" : "blue"],
     [isDayMode],
@@ -513,8 +518,8 @@ const Events = () => {
       return;
     }
     setSelectedEvent(null);
-    setSelectedEventRecommendationContext(null);
-  }, [navigate]);
+    updateSelectedEventRecommendationContext(null);
+  }, [navigate, updateSelectedEventRecommendationContext]);
 
   useBackClose(selectedEvent !== null, closeEvent);
   useBackClose(isUploadOpen, () => setIsUploadOpen(false));
@@ -603,7 +608,7 @@ const Events = () => {
         .get(`/events/${id}`)
         .then((res) => {
           if (res.data) {
-            setSelectedEventRecommendationContext(null);
+            updateSelectedEventRecommendationContext(null);
             setSelectedEvent(res.data);
           }
         })
@@ -613,7 +618,7 @@ const Events = () => {
           }
         });
     }
-  }, [searchParams]);
+  }, [searchParams, updateSelectedEventRecommendationContext]);
 
   const syncEventViews = useCallback(
     (eventId, views) => {
@@ -639,7 +644,11 @@ const Events = () => {
   const recordSelectedEventAssistantAction = useCallback(
     async (actionType, metadata = {}) => {
       const selectedEventId = selectedEvent?.id;
-      if (!selectedEventId || !selectedEventRecommendationContext?.assistantRunId) {
+      const recommendationContext =
+        selectedEventRecommendationContextRef.current ||
+        selectedEventRecommendationContext;
+
+      if (!selectedEventId || !recommendationContext?.assistantRunId) {
         return;
       }
 
@@ -658,16 +667,14 @@ const Events = () => {
           {
             eventId: selectedEventId,
             actionType,
-            assistantRunId: selectedEventRecommendationContext.assistantRunId,
+            assistantRunId: recommendationContext.assistantRunId,
             recommendationRank:
-              selectedEventRecommendationContext.recommendationRank || null,
-            source:
-              selectedEventRecommendationContext.source ||
-              "event_assistant_detail",
+              recommendationContext.recommendationRank || null,
+            source: recommendationContext.source || "event_assistant_detail",
             visitorKey: getOrCreateSiteVisitorKey(),
             metadata: {
               surface: metadata.surface || "event_detail",
-              nextAction: selectedEventRecommendationContext.nextAction || "",
+              nextAction: recommendationContext.nextAction || "",
               hrefHost,
             },
           },
@@ -922,13 +929,14 @@ END:VCALENDAR`;
 
       setIsMobileAssistantOpen(false);
       setIsDesktopAssistantOpen(false);
-      setSelectedEventRecommendationContext(recommendationContext);
+      updateSelectedEventRecommendationContext(recommendationContext);
       setSelectedEvent(cachedEvent || assistantEvent);
 
       api
         .get(`/events/${assistantEvent.id}`, { silent: true })
         .then((response) => {
           if (response.data) {
+            updateSelectedEventRecommendationContext(recommendationContext);
             setSelectedEvent(response.data);
           }
         })
@@ -941,13 +949,13 @@ END:VCALENDAR`;
           );
         });
     },
-    [displayEvents, events, t],
+    [displayEvents, events, t, updateSelectedEventRecommendationContext],
   );
 
   const nightSegmentActiveClass =
     "border border-indigo-400/28 bg-indigo-500/16 text-indigo-100 shadow-none";
   const dayPrimaryActionClass =
-    "rect-button-primary bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 text-white border-white/30 hover:from-blue-700 hover:via-indigo-700 hover:to-violet-700";
+    "rect-button-primary bg-blue-700 text-white border-blue-700 hover:bg-blue-800 hover:border-blue-800";
 
   return (
     <section className={`day-page-theme day-page-theme-events pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:pb-20 md:pt-24 px-4 md:px-8 relative overflow-hidden flex-grow`}>
@@ -1160,7 +1168,7 @@ END:VCALENDAR`;
             <button
               type="button"
               onClick={() => setIsDesktopAssistantOpen(true)}
-              aria-label="打开 AI 活动助手"
+              aria-label={t("events.assistant.open_assistant", "打开 AI 活动助手")}
               className={`pointer-events-auto absolute right-4 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-lg border shadow-[0_14px_34px_rgba(15,23,42,0.12)] transition-all hover:-translate-x-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 md:inline-flex 2xl:hidden ${
                 isDayMode
                   ? "border-indigo-700/14 bg-white text-indigo-700 hover:border-indigo-700/24 hover:bg-indigo-50"
@@ -1187,7 +1195,7 @@ END:VCALENDAR`;
                     transition={{ type: "spring", damping: 30, stiffness: 340 }}
                     role="dialog"
                     aria-modal="true"
-                    aria-label="AI 活动助手"
+                    aria-label={t("events.assistant.mobile_title", "AI 活动助手")}
                     className="pointer-events-auto fixed right-4 top-[calc(env(safe-area-inset-top)+96px)] z-[92] hidden h-[calc(100vh-128px)] w-[min(400px,calc(100vw-2rem))] md:block 2xl:hidden"
                   >
                     <EventAssistantPanel
@@ -1344,7 +1352,7 @@ END:VCALENDAR`;
               event={event}
               index={index}
               onClick={(nextEvent) => {
-                setSelectedEventRecommendationContext(null);
+                updateSelectedEventRecommendationContext(null);
                 setSelectedEvent(nextEvent);
               }}
               onToggleFavorite={handleToggleFavorite}

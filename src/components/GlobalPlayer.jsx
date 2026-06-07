@@ -161,9 +161,10 @@ const GlobalPlayer = () => {
     setIsMiniPlayerVisible(false);
   }, [setIsMiniPlayerVisible]);
 
-  // Don't show mini player on Desktop Music page (because full player exists), but show on Mobile Music page (as mini player)
+  // Don't duplicate the mini player on desktop where the embedded podcast
+  // player is already visible in AI Community.
   if (!currentTrack || !isMiniPlayerVisible) return null;
-  if (!isMobile && location.pathname === '/music') return null;
+  if (!isMobile && (location.pathname === '/music' || location.pathname === '/articles')) return null;
 
   if (isMobile) {
       return (

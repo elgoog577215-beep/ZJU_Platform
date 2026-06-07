@@ -1,12 +1,9 @@
 import { useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   AlertTriangle,
   ArrowRight,
-  Brain,
   Calendar,
-  Check,
   Clock3,
   Loader2,
   MapPin,
@@ -16,13 +13,11 @@ import {
   Sparkles,
   ThumbsDown,
   ThumbsUp,
-  UserRound,
   X,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 import api from "../services/api";
-import { useAuth } from "../context/AuthContext";
 import { getOrCreateSiteVisitorKey } from "../utils/visitorKey";
 
 const formatEventDate = (value) => {
@@ -44,20 +39,6 @@ const formatEventDate = (value) => {
   return `${Number(month)}.${Number(day)}`;
 };
 
-const getScopeText = (scope) => {
-  switch (scope) {
-    case "ongoing":
-      return "进行中活动";
-    case "mixed_future":
-      return "未来/进行中活动";
-    case "past":
-      return "历史活动";
-    case "upcoming":
-    default:
-      return "未开始活动";
-  }
-};
-
 const getErrorMessage = (error, t) => {
   const code = error?.response?.data?.error;
 
@@ -74,103 +55,43 @@ const getErrorMessage = (error, t) => {
   }
 };
 
-const categoryLabelMap = {
-  lecture: "讲座",
-  competition: "竞赛",
-  volunteer: "志愿",
-  recruitment: "招新/职业",
-  culture_sports: "文体",
-  exchange: "交流",
-};
-
-const benefitLabelMap = {
-  score: "综测",
-  volunteer_time: "志愿时长",
-  skill: "技能成长",
-  social: "社交放松",
-};
-
-const formatLabelMap = {
-  online: "偏线上",
-  offline: "偏线下",
-  hybrid: "线上线下都可以",
-};
-
-const quickPrompts = [
-  { label: "新生线下", prompt: "适合新生参加的线下活动，最好在紫金港附近" },
-  { label: "综测/志愿", prompt: "推荐有综测信息或者志愿时长的活动" },
-  { label: "技能作品集", prompt: "推荐能提升技能、适合做作品集的实践活动" },
-  { label: "AI 讲座", prompt: "我想参加 AI、科技或创新创业相关的讲座" },
-  { label: "本周可去", prompt: "这周能参加、时间比较近的活动有哪些" },
+const quickPromptDefs = [
+  {
+    key: "this_week",
+    labelFallback: "本周可去",
+    promptFallback: "这周能参加、时间比较近的活动有哪些",
+  },
+  {
+    key: "credit_volunteer",
+    labelFallback: "综测/志愿",
+    promptFallback: "推荐有综测信息或者志愿时长的活动",
+  },
+  {
+    key: "freshman_offline",
+    labelFallback: "新生线下",
+    promptFallback: "适合新生参加的线下活动，最好在紫金港附近",
+  },
+  {
+    key: "ai_lecture",
+    labelFallback: "AI 讲座",
+    promptFallback: "我想参加 AI、科技或创新创业相关的讲座",
+  },
 ];
 
-const feedbackReasonOptions = [
-  { value: "not_relevant", label: "不相关" },
-  { value: "time_mismatch", label: "时间不合适" },
-  { value: "location_mismatch", label: "地点不合适" },
-  { value: "benefit_mismatch", label: "收益不符合" },
-  { value: "already_joined", label: "已参加过" },
+const feedbackReasonDefs = [
+  { value: "not_relevant", fallback: "不相关" },
+  { value: "time_mismatch", fallback: "时间不合适" },
+  { value: "location_mismatch", fallback: "地点不合适" },
+  { value: "benefit_mismatch", fallback: "收益不符合" },
+  { value: "already_joined", fallback: "已参加过" },
 ];
 
-const getDiagnosticsSummary = (diagnostics) => {
-  if (!diagnostics) return [];
-  const items = [];
-  if (Number.isFinite(Number(diagnostics.hardConstraintScore))) {
-    items.push(`硬约束 ${Math.round(Number(diagnostics.hardConstraintScore))}/${Math.round(Number(diagnostics.hardConstraintPossible || 0))}`);
-  }
-  if (Number.isFinite(Number(diagnostics.deterministicScore))) {
-    items.push(`规则分 ${Math.round(Number(diagnostics.deterministicScore))}`);
-  }
-  if (Number.isFinite(Number(diagnostics.semanticScore))) {
-    items.push(`语义分 ${Math.round(Number(diagnostics.semanticScore))}`);
-  }
-  if (diagnostics.backendCompleted) {
-    items.push("规则补齐");
-  }
-  return items.slice(0, 3);
-};
-
-const getOpportunityMatchPreview = (opportunityMatch) => {
+const getDecisionPreview = (opportunityMatch) => {
   if (!opportunityMatch) return null;
-  const normalize = (value) => String(value || "").trim();
-  const uniqueValues = (values) => Array.from(new Set(values.map(normalize).filter(Boolean)));
-  const prioritize = (values, patterns, max) => {
-    const normalized = uniqueValues(values);
-    const priority = patterns.flatMap((pattern) => normalized.filter((value) => pattern.test(value)));
-    return uniqueValues([...priority, ...normalized]).slice(0, max);
-  };
-  const matched = Array.isArray(opportunityMatch.matched)
-    ? prioritize(
-      opportunityMatch.matched,
-      [/行动证据|收藏|报名|反馈/, /收益|综测|志愿|skill|social|score|volunteer/i, /主题|关键词|类型|topic|AI/i],
-      4,
-    )
-    : [];
-  const missing = Array.isArray(opportunityMatch.missing)
-    ? prioritize(opportunityMatch.missing, [/收益|综测|志愿|地点|时间|对象|形式/], 3)
-    : [];
-  const uncertainty = Array.isArray(opportunityMatch.uncertainty)
-    ? uniqueValues(opportunityMatch.uncertainty).slice(0, 2)
-    : [];
-  return {
-    matched,
-    missing,
-    uncertainty,
-    decisionHint: opportunityMatch.decisionHint || "",
-    decisionSupport: opportunityMatch.decisionSupport || null,
-    feedbackLearningUsed: Boolean(opportunityMatch.feedbackLearning?.used),
-  };
-};
-
-const getCoverageText = (coverage) => {
-  if (!coverage || !Number.isFinite(Number(coverage.total))) return "";
-  const futureCount = Number(coverage.upcoming || 0) + Number(coverage.ongoing || 0);
-  const pastCount = Number(coverage.past || 0);
-
-  if (futureCount === 0 && pastCount > 0) {
-    return `活动库：暂无未来活动，${pastCount} 个历史线索`;
-  }
-  return `活动库：${futureCount} 个未来/进行中，${pastCount} 个历史`;
+  const decisionHint = String(opportunityMatch.decisionHint || "").trim();
+  const nextAction = String(opportunityMatch.decisionSupport?.nextAction || "").trim();
+  if (!decisionHint && !nextAction) return null;
+  return { decisionHint, nextAction };
 };
 
 const EventAssistantPanel = ({
@@ -181,53 +102,42 @@ const EventAssistantPanel = ({
   variant = "panel",
 }) => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
-  const { user } = useAuth();
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [assistantState, setAssistantState] = useState(null);
   const [originalQuery, setOriginalQuery] = useState("");
   const [clarificationAsked, setClarificationAsked] = useState(false);
-  const [rememberPreference, setRememberPreference] = useState(false);
   const [feedbackMap, setFeedbackMap] = useState({});
   const [feedbackReasonMap, setFeedbackReasonMap] = useState({});
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [profileLoading, setProfileLoading] = useState(false);
-  const [profileLoaded, setProfileLoaded] = useState(false);
-  const [profileAuthRequired, setProfileAuthRequired] = useState(false);
-  const [profilePreference, setProfilePreference] = useState(null);
 
-  const scopeLabel = useMemo(
-    () => getScopeText(assistantState?.scope),
-    [assistantState?.scope],
+  const quickPrompts = useMemo(
+    () => quickPromptDefs.map((item) => ({
+      ...item,
+      label: t(`events.assistant.quick.${item.key}.label`, item.labelFallback),
+      prompt: t(`events.assistant.quick.${item.key}.prompt`, item.promptFallback),
+    })),
+    [t],
   );
-
-  const understoodItems = assistantState?.understoodIntent?.understood || [];
-  const profileSignals = assistantState?.understoodIntent?.profile?.signals || [];
-  const rankingBasis = assistantState?.reasoningTrace?.rankingBasis || [];
-  const uncertaintyItems = assistantState?.reasoningTrace?.uncertainty || [];
-  const hasModelStatus = Boolean(assistantState?.modelStatus);
-  const coverageText = useMemo(
-    () => getCoverageText(assistantState?.coverage),
-    [assistantState?.coverage],
+  const feedbackReasonOptions = useMemo(
+    () => feedbackReasonDefs.map((item) => ({
+      value: item.value,
+      label: t(`events.assistant.feedback.${item.value}`, item.fallback),
+    })),
+    [t],
   );
-  const profileSettingsPath = user?.id
-    ? `/user/${user.id}?tab=settings&settings=activity-profile`
-    : "/events";
-
   const emptyStateText = useMemo(() => {
     switch (assistantState?.emptyReason) {
       case "assistant_unreliable":
-        return "这次模型输出不够可靠，我没有把它直接展示给你。";
+        return t("events.assistant.empty_unreliable", "这次结果不够可靠，可以换个说法再试。");
       case "clarification_limit_reached":
-        return "这次补充后仍然没有稳定结果，可以换个说法再试。";
+        return t("events.assistant.empty_after_clarify", "这次补充后仍然没有稳定结果，可以换个说法再试。");
       case "no_matches":
-        return "目前没有特别贴近这些条件的活动。";
+        return t("events.assistant.empty_no_matches", "目前没有特别贴近这些条件的活动。");
       case "no_upcoming":
       default:
-        return "当前暂时没有未开始的活动。";
+        return t("events.assistant.empty_no_upcoming", "当前暂时没有未开始的活动。");
     }
-  }, [assistantState?.emptyReason]);
+  }, [assistantState?.emptyReason, t]);
 
   const sendAssistantRequest = async (payload, nextOriginalQuery, nextClarificationAsked) => {
     setLoading(true);
@@ -235,7 +145,6 @@ const EventAssistantPanel = ({
     try {
       const response = await api.post("/events/assistant", {
         allowHistoricalFallback: true,
-        rememberPreference,
         visitorKey: getOrCreateSiteVisitorKey(),
         ...payload,
       });
@@ -335,10 +244,12 @@ const EventAssistantPanel = ({
         recommendationRank: recommendationRank || getRecommendationRank(item),
         source: variant === "fullscreen" ? "event_assistant_mobile" : "event_assistant_card",
         reason: feedback === "down" && reasonLabel
-          ? `${reasonLabel}：${item.reason}`
+          ? `${reasonLabel}: ${item.reason}`
           : item.reason,
       });
-      toast.success(feedback === "up" ? "已记录：这条推荐适合你" : "已记录：后续会减少类似推荐");
+      toast.success(feedback === "up"
+        ? t("events.assistant.toast.feedback_up", "已记录：这条推荐适合你")
+        : t("events.assistant.toast.feedback_down", "已记录：后续会减少类似推荐"));
     } catch (error) {
       setFeedbackMap((previous) => {
         const next = { ...previous };
@@ -351,47 +262,11 @@ const EventAssistantPanel = ({
         return next;
       });
       if (error?.response?.status === 401) {
-        toast.error("登录后可以让助手记住反馈");
+        toast.error(t("events.assistant.toast.feedback_login_required", "登录后可以让助手记住反馈"));
       } else {
-        toast.error("反馈记录失败，请稍后再试");
+        toast.error(t("events.assistant.toast.feedback_failed", "反馈记录失败，请稍后再试"));
       }
     }
-  };
-
-  const loadProfile = async () => {
-    if (profileLoaded || profileLoading) return;
-    setProfileLoading(true);
-    try {
-      const response = await api.get("/events/assistant/preferences");
-      setProfilePreference(response.data || {});
-      setProfileLoaded(true);
-      setProfileAuthRequired(false);
-    } catch (error) {
-      if (error?.response?.status === 401) {
-        setProfileAuthRequired(true);
-        setProfileLoaded(true);
-      } else {
-        toast.error("推荐偏好加载失败");
-      }
-    } finally {
-      setProfileLoading(false);
-    }
-  };
-
-  const toggleProfile = async () => {
-    const nextOpen = !profileOpen;
-    setProfileOpen(nextOpen);
-    if (nextOpen) {
-      await loadProfile();
-    }
-  };
-
-  const openProfileSettings = () => {
-    if (!user?.id) {
-      toast.error("登录后可以在用户系统维护长期活动画像");
-      return;
-    }
-    navigate(profileSettingsPath);
   };
 
   const resetAssistant = () => {
@@ -403,26 +278,6 @@ const EventAssistantPanel = ({
     setFeedbackReasonMap({});
   };
 
-  const profileChips = useMemo(() => {
-    if (!profilePreference || profileAuthRequired) return [];
-    const chips = [
-      profilePreference.college ? `学院/组织：${profilePreference.college}` : "",
-      profilePreference.division ? `方向：${profilePreference.division}` : "",
-      profilePreference.grade ? `年级：${profilePreference.grade}` : "",
-      profilePreference.campus ? `常用校区：${profilePreference.campus}` : "",
-      profilePreference.availability ? `空闲时间：${profilePreference.availability}` : "",
-      ...(profilePreference.interestTags || []).slice(0, 5).map((item) => `兴趣：${item}`),
-      ...(profilePreference.preferredCategories || [])
-        .slice(0, 4)
-        .map((item) => `类型：${categoryLabelMap[item] || item}`),
-      ...(profilePreference.preferredBenefits || [])
-        .slice(0, 3)
-        .map((item) => `收益：${benefitLabelMap[item] || item}`),
-      profilePreference.preferredFormat ? `形式：${formatLabelMap[profilePreference.preferredFormat] || profilePreference.preferredFormat}` : "",
-    ].filter(Boolean);
-    return chips.slice(0, 12);
-  }, [profileAuthRequired, profilePreference]);
-
   const isFullscreenVariant = variant === "fullscreen";
   const isRailVariant = variant === "rail";
   const isCompactVariant = isFullscreenVariant || isRailVariant;
@@ -430,30 +285,24 @@ const EventAssistantPanel = ({
     ? "mt-0 grid grid-cols-2 gap-2.5"
     : isRailVariant
       ? "mt-3 grid grid-cols-2 gap-2"
-    : "mt-4 flex flex-wrap gap-2";
+      : "mt-4 flex flex-wrap gap-2";
   const shellClass = isFullscreenVariant
-    ? isDayMode
-      ? "bg-transparent border-transparent shadow-none"
-      : "bg-transparent border-transparent shadow-none"
+    ? "bg-transparent border-transparent shadow-none"
     : isRailVariant
       ? isDayMode
         ? "bg-white/96 border-slate-200/90 shadow-[0_18px_48px_rgba(15,23,42,0.12)]"
         : "bg-[#10121d]/94 border-white/10 shadow-[0_18px_48px_rgba(0,0,0,0.32)]"
-    : isDayMode
-    ? "bg-white/95 border-slate-200/85 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
-    : "bg-[#10121d]/88 border-white/10 shadow-none";
+      : isDayMode
+        ? "bg-white/95 border-slate-200/85 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
+        : "bg-[#10121d]/88 border-white/10 shadow-none";
   const softPanelClass = isDayMode
     ? "bg-white/86 border-slate-200/80"
     : "bg-white/[0.05] border-white/10";
-  const promptCardClass = isFullscreenVariant
+  const promptCardClass = isFullscreenVariant || isRailVariant
     ? `${isDayMode ? "border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]" : "border-white/10 bg-white/[0.055] shadow-none"}`
-    : isRailVariant
-      ? `${isDayMode ? "border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]" : "border-white/10 bg-white/[0.055] shadow-none"}`
     : softPanelClass;
-  const resultPanelClass = isFullscreenVariant
+  const resultPanelClass = isFullscreenVariant || isRailVariant
     ? `${isDayMode ? "border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]" : "border-white/10 bg-white/[0.055] shadow-none"}`
-    : isRailVariant
-      ? `${isDayMode ? "border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]" : "border-white/10 bg-white/[0.055] shadow-none"}`
     : softPanelClass;
   const textClass = isDayMode ? "text-slate-900" : "text-white";
   const mutedClass = isDayMode ? "text-slate-600" : "text-gray-300";
@@ -461,39 +310,24 @@ const EventAssistantPanel = ({
   const chipClass = isDayMode
     ? "bg-slate-50 text-slate-600 border-slate-200/80"
     : "bg-white/8 text-white/75 border-white/10";
-  const quickPromptClass = isFullscreenVariant
+  const quickPromptClass = isFullscreenVariant || isRailVariant
     ? isDayMode
       ? "bg-white text-slate-700 border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.035)] active:bg-blue-50"
       : "bg-white/[0.055] text-white/82 border-white/10 shadow-none active:bg-white/[0.09]"
-    : isRailVariant
-      ? isDayMode
-        ? "bg-white text-slate-700 border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.035)] active:bg-blue-50"
-        : "bg-white/[0.055] text-white/82 border-white/10 shadow-none active:bg-white/[0.09]"
     : chipClass;
-  const controlChipClass = isFullscreenVariant
+  const controlChipClass = isFullscreenVariant || isRailVariant
     ? isDayMode
       ? "bg-white text-slate-600 border-slate-200"
       : "bg-white/[0.06] text-white/76 border-white/10"
-    : isRailVariant
-      ? isDayMode
-        ? "bg-white text-slate-600 border-slate-200"
-        : "bg-white/[0.06] text-white/76 border-white/10"
     : chipClass;
   const actionClass = isDayMode
-    ? isCompactVariant
-      ? "bg-blue-600 text-white hover:bg-blue-500 shadow-[0_1px_2px_rgba(15,23,42,0.12)]"
-      : "bg-blue-600 text-white hover:bg-blue-500 shadow-[0_1px_2px_rgba(15,23,42,0.12)]"
-    : isCompactVariant
-      ? "bg-blue-600 text-white hover:bg-blue-500 shadow-[0_1px_2px_rgba(0,0,0,0.22)]"
-      : "bg-blue-600 text-white hover:bg-blue-500 shadow-[0_1px_2px_rgba(0,0,0,0.22)]";
+    ? "bg-blue-600 text-white hover:bg-blue-500 shadow-[0_1px_2px_rgba(15,23,42,0.12)]"
+    : "bg-blue-600 text-white hover:bg-blue-500 shadow-[0_1px_2px_rgba(0,0,0,0.22)]";
   const panelPaddingClass = isRailVariant
     ? "min-h-0 flex-1 overflow-y-auto p-3 custom-scrollbar"
     : isFullscreenVariant
       ? "px-0 pb-6 pt-0"
       : "p-4 sm:p-5 lg:p-6";
-  const insightGridClass = isRailVariant
-    ? "mt-4 grid gap-3"
-    : "mt-4 grid gap-3 lg:grid-cols-2";
   const recommendationGridClass = isRailVariant
     ? "mt-4 grid grid-cols-1 gap-3"
     : "mt-4 grid grid-cols-1 gap-4 xl:grid-cols-2";
@@ -513,21 +347,23 @@ const EventAssistantPanel = ({
           {isRailVariant ? (
             <div className={`sticky top-0 z-10 -mx-3 -mt-3 border-b px-3 py-3 backdrop-blur-xl ${isDayMode ? "border-slate-200/80 bg-white/92" : "border-white/10 bg-[#10121d]/92"}`}>
               <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0 text-left">
-                  <div className="flex items-center gap-2">
-                    <span className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border ${isDayMode ? "border-blue-100 bg-blue-50 text-blue-700" : "border-blue-300/15 bg-blue-400/10 text-blue-200"}`}>
-                      <Sparkles size={17} />
-                    </span>
-                    <div className="min-w-0">
-                      <h3 className={`truncate text-sm font-black ${textClass}`}>AI 活动助手</h3>
-                      <p className={`mt-0.5 truncate text-xs ${faintClass}`}>提问后结果在这里显示</p>
-                    </div>
+                <div className="flex min-w-0 items-center gap-2 text-left">
+                  <span className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border ${isDayMode ? "border-blue-100 bg-blue-50 text-blue-700" : "border-blue-300/15 bg-blue-400/10 text-blue-200"}`}>
+                    <Sparkles size={17} />
+                  </span>
+                  <div className="min-w-0">
+                    <h3 className={`truncate text-sm font-black ${textClass}`}>
+                      {t("events.assistant.mobile_title", "AI 活动助手")}
+                    </h3>
+                    <p className={`mt-0.5 truncate text-xs ${faintClass}`}>
+                      {t("events.assistant.mobile_subtitle", "一句话找活动")}
+                    </p>
                   </div>
                 </div>
                 {onClose ? (
                   <button
                     type="button"
-                    aria-label="关闭 AI 活动助手"
+                    aria-label={t("common.close", "关闭")}
                     onClick={onClose}
                     className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border transition-colors ${controlChipClass}`}
                   >
@@ -537,131 +373,42 @@ const EventAssistantPanel = ({
               </div>
             </div>
           ) : !isFullscreenVariant ? (
-            <>
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                <div className="max-w-2xl text-left">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] ${chipClass}`}>
-                      <Sparkles size={13} className={isDayMode ? "text-cyan-500" : "text-cyan-300"} />
-                      AI 活动推荐
-                    </span>
-                    <span className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-[11px] font-medium ${isDayMode ? "bg-emerald-50 text-emerald-700 border-emerald-200/80" : "bg-emerald-400/10 text-emerald-200 border-emerald-300/15"}`}>
-                      <Brain size={13} />
-                      AI 理解后排序
-                    </span>
-                  </div>
-
-                  <h3 className={`mt-3 text-xl font-bold tracking-normal sm:text-2xl ${textClass}`}>
-                    说出你想参加什么，我来按画像和活动库筛
-                  </h3>
-                  <p className={`mt-2 text-sm leading-7 sm:text-base ${mutedClass}`}>
-                    可以说主题、校区、面向对象、综测或志愿时长。登录后会参考你的组织、收藏报名和反馈。
-                  </p>
-                </div>
-
-                {(assistantState || originalQuery) && (
-                  <button
-                    type="button"
-                    onClick={resetAssistant}
-                    className={`inline-flex items-center gap-2 self-start rounded-lg border px-4 py-2 text-sm font-semibold transition-all ${chipClass}`}
-                  >
-                    <RotateCcw size={15} />
-                    重新提问
-                  </button>
-                )}
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <div className="max-w-2xl text-left">
+                <span className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] ${chipClass}`}>
+                  <Sparkles size={13} className={isDayMode ? "text-cyan-500" : "text-cyan-300"} />
+                  {t("events.assistant.card_badge", "AI 活动助手")}
+                </span>
+                <h3 className={`mt-3 text-xl font-bold tracking-normal sm:text-2xl ${textClass}`}>
+                  {t("events.assistant.panel_title", "用一句话找活动")}
+                </h3>
+                <p className={`mt-2 text-sm leading-7 sm:text-base ${mutedClass}`}>
+                  {t("events.assistant.panel_subtitle", "写主题、时间、地点或收益，我帮你挑出更合适的活动。")}
+                </p>
               </div>
 
-              <div className="mt-4">
+              {(assistantState || originalQuery) && (
                 <button
                   type="button"
-                  onClick={toggleProfile}
-                  className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition-all ${chipClass}`}
+                  onClick={resetAssistant}
+                  className={`inline-flex items-center gap-2 self-start rounded-lg border px-4 py-2 text-sm font-semibold transition-all ${chipClass}`}
                 >
-                  <UserRound size={15} />
-                  用户系统画像
+                  <RotateCcw size={15} />
+                  {t("events.assistant.reset", "重新提问")}
                 </button>
-              </div>
-            </>
-          ) : null}
-
-          <AnimatePresence>
-            {profileOpen && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="overflow-hidden"
-              >
-                <div className={`mt-4 rounded-lg border p-4 ${softPanelClass}`}>
-                  {profileLoading ? (
-                    <div className={`flex items-center gap-2 text-sm ${faintClass}`}>
-                      <Loader2 size={16} className="animate-spin" />
-                      正在读取用户系统画像...
-                    </div>
-                  ) : (
-                    <div className="grid gap-4">
-                      {profileAuthRequired ? (
-                        <div className={`rounded-lg border px-4 py-3 text-sm leading-6 ${isDayMode ? "border-amber-200/80 bg-amber-50 text-amber-800" : "border-amber-300/20 bg-amber-400/10 text-amber-100"}`}>
-                          登录后可以在用户系统维护长期活动画像。未登录时，也可以直接在提问里写清楚本次偏好。
-                        </div>
-                      ) : null}
-
-                      <div>
-                        <div className={`mb-3 text-sm font-semibold ${textClass}`}>
-                          推荐助手将读取以下长期画像
-                        </div>
-                        {profileChips.length ? (
-                          <div className="flex flex-wrap gap-2">
-                            {profileChips.map((item) => (
-                              <span key={item} className={`rounded-md border px-3 py-1.5 text-xs font-semibold ${chipClass}`}>
-                                {item}
-                              </span>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className={`rounded-lg border px-4 py-3 text-sm leading-6 ${chipClass}`}>
-                            暂未维护活动画像。完善后，助手会更稳定地理解你的学院、兴趣、空闲时间和活动收益偏好。
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <p className={`text-xs leading-5 ${faintClass}`}>
-                          本次提问里的临时需求仍会优先参与排序，长期画像只负责补充默认偏好。
-                        </p>
-                        <button
-                          type="button"
-                          onClick={openProfileSettings}
-                          disabled={profileAuthRequired}
-                          className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold disabled:opacity-50 ${actionClass}`}
-                        >
-                          <ArrowRight size={15} />
-                          去用户系统完善
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {originalQuery && (
-            <div className={`mt-4 inline-flex max-w-full items-center gap-2 rounded-lg border px-4 py-2 text-sm ${chipClass}`}>
-              <MessageSquareText size={14} />
-              <span className="truncate">{originalQuery}</span>
+              )}
             </div>
-          )}
+          ) : null}
 
           {!originalQuery && !assistantState ? (
             <div className={quickPromptGridClass}>
               {quickPrompts.map((item) => (
                 <button
-                  key={item.label}
+                  key={item.key}
                   type="button"
                   onClick={() => handleQuickPrompt(item.prompt)}
                   disabled={loading}
-                  className={`inline-flex min-h-[48px] items-center justify-center gap-2 rounded-lg border px-3 py-2 text-xs font-bold transition-colors disabled:opacity-50 ${quickPromptClass}`}
+                  className={`inline-flex min-h-[46px] items-center justify-center gap-2 rounded-lg border px-3 py-2 text-xs font-bold transition-colors disabled:opacity-50 ${quickPromptClass}`}
                 >
                   <Sparkles size={13} className={isDayMode ? "text-blue-500" : "text-blue-200"} />
                   {item.label}
@@ -672,6 +419,12 @@ const EventAssistantPanel = ({
 
           <form onSubmit={handleSubmit} className={isFullscreenVariant ? "mt-3" : "mt-4"}>
             <div className={`relative overflow-hidden rounded-lg border p-4 ${promptCardClass}`}>
+              {originalQuery ? (
+                <div className={`mb-3 inline-flex max-w-full items-center gap-2 rounded-md border px-3 py-1.5 text-xs ${chipClass}`}>
+                  <MessageSquareText size={13} />
+                  <span className="truncate">{originalQuery}</span>
+                </div>
+              ) : null}
               <textarea
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
@@ -684,61 +437,44 @@ const EventAssistantPanel = ({
                 rows={2}
                 placeholder={
                   assistantState?.type === "clarify"
-                    ? "补充一点偏好，我下一轮会直接给结果"
-                    : "比如：这周末线下，适合新生，最好有综测或志愿时长的活动"
+                    ? t("events.assistant.clarification_placeholder", "补充一点偏好，我就继续帮你缩小范围。")
+                    : t("events.assistant.input_placeholder", "比如：这周末线下，适合新生，最好有综测或志愿时长")
                 }
-                className={`w-full resize-none bg-transparent px-1 py-1 text-sm leading-7 outline-none sm:text-base ${isFullscreenVariant ? "min-h-[108px]" : "min-h-[96px]"} ${isDayMode ? "text-slate-900 placeholder:text-slate-400" : "text-white placeholder:text-gray-500"}`}
+                className={`w-full resize-none bg-transparent px-1 py-1 text-sm leading-7 outline-none sm:text-base ${isFullscreenVariant ? "min-h-[96px]" : "min-h-[82px]"} ${isDayMode ? "text-slate-900 placeholder:text-slate-400" : "text-white placeholder:text-gray-500"}`}
               />
 
-              <div className={`mt-4 flex flex-col gap-4 border-t pt-4 sm:flex-row sm:items-center sm:justify-between ${isDayMode ? "border-slate-200/70" : "border-white/10"}`}>
-                <div className="flex flex-wrap items-center gap-2">
-                  <label className={`inline-flex min-h-[36px] items-center gap-2 rounded-md border px-3 text-sm ${controlChipClass}`}>
-                    <input
-                      type="checkbox"
-                      checked={rememberPreference}
-                      onChange={(event) => setRememberPreference(event.target.checked)}
-                      className="h-4 w-4 rounded"
-                    />
-                    记住
-                  </label>
-                  {isCompactVariant ? (
-                    <>
-                      <button
-                        type="button"
-                        onClick={toggleProfile}
-                        className={`inline-flex min-h-[36px] items-center gap-2 rounded-md border px-3 text-sm font-semibold transition-all ${controlChipClass}`}
-                      >
-                        <UserRound size={14} />
-                        偏好
-                      </button>
-                      {(assistantState || originalQuery) && (
-                        <button
-                          type="button"
-                          onClick={resetAssistant}
-                          className={`inline-flex min-h-[36px] items-center gap-2 rounded-md border px-3 text-sm font-semibold transition-all ${controlChipClass}`}
-                        >
-                          <RotateCcw size={14} />
-                          重来
-                        </button>
-                      )}
-                    </>
-                  ) : null}
-                </div>
+              <div className={`mt-3 flex flex-col gap-3 border-t pt-3 sm:flex-row sm:items-center sm:justify-between ${isDayMode ? "border-slate-200/70" : "border-white/10"}`}>
+                {isCompactVariant && (assistantState || originalQuery) ? (
+                  <button
+                    type="button"
+                    onClick={resetAssistant}
+                    className={`inline-flex min-h-[38px] items-center justify-center gap-2 rounded-md border px-3 text-sm font-semibold transition-all ${controlChipClass}`}
+                  >
+                    <RotateCcw size={14} />
+                    {t("events.assistant.restart", "重来")}
+                  </button>
+                ) : (
+                  <span className={`hidden text-xs sm:block ${faintClass}`}>
+                    {t("events.assistant.helper", "写清楚地点、时间或收益，结果会更准。")}
+                  </span>
+                )}
 
                 <button
                   type="submit"
                   disabled={loading || input.trim() === ""}
-                  className={`inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-bold transition-all active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 ${isRailVariant ? "w-full sm:w-full" : "min-w-[148px]"} ${actionClass}`}
+                  className={`inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-bold transition-all active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 ${isRailVariant ? "w-full sm:w-auto" : "min-w-[148px]"} ${actionClass}`}
                 >
                   {loading ? (
                     <>
                       <Loader2 size={16} className="animate-spin" />
-                      思考中...
+                      {t("events.assistant.loading", "思考中...")}
                     </>
                   ) : (
                     <>
                       <SendHorizontal size={16} />
-                      {assistantState?.type === "clarify" ? "继续推荐" : "开始推荐"}
+                      {assistantState?.type === "clarify"
+                        ? t("events.assistant.submit_clarification", "继续推荐")
+                        : t("events.assistant.submit", "开始推荐")}
                     </>
                   )}
                 </button>
@@ -757,130 +493,33 @@ const EventAssistantPanel = ({
                 className="mt-4"
               >
                 <div className={`rounded-lg border ${resultPaddingClass} ${resultPanelClass}`}>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] ${chipClass}`}>
-                      <Sparkles size={13} />
-                      {scopeLabel}
-                    </span>
-                    {assistantState.remembered ? (
-                      <span className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs ${isDayMode ? "bg-emerald-50 text-emerald-700 border-emerald-200/80" : "bg-emerald-400/10 text-emerald-200 border-emerald-300/15"}`}>
-                        <Check size={13} />
-                        已记住这次偏好
-                      </span>
-                    ) : null}
-                    {hasModelStatus ? (
-                      <span className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs ${chipClass}`}>
-                        <Brain size={13} />
-                        {assistantState.modelStatus?.fallbackUsed
-                          ? "模型已降级兜底"
-                          : assistantState.modelStatus?.used
-                            ? "大模型已参与排序"
-                            : "模型未完成排序"}
-                      </span>
-                    ) : null}
-                    {coverageText ? (
-                      <span className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs ${chipClass}`}>
-                        <Calendar size={13} />
-                        {coverageText}
-                      </span>
-                    ) : null}
-                  </div>
-
                   {assistantState.summary ? (
-                    <p className={`mt-4 text-base font-semibold leading-7 ${textClass}`}>
+                    <p className={`text-base font-semibold leading-7 ${textClass}`}>
                       {assistantState.summary}
                     </p>
                   ) : null}
 
                   {assistantState.recommendationMode === "historical_fallback" && assistantState.coverage ? (
                     <p className={`mt-2 text-sm leading-6 ${faintClass}`}>
-                      我先查未来和进行中的活动，没有足够匹配项后才退到历史活动；这部分更适合用来关注后续同类机会。
+                      {t("events.assistant.historical_fallback_note", "没有足够匹配的未来活动，下面是可关注的历史线索。")}
                     </p>
                   ) : null}
 
-                  {(understoodItems.length > 0 || profileSignals.length > 0) && (
-                    <div className={insightGridClass}>
-                      {understoodItems.length > 0 ? (
-                        <div className={`rounded-lg border p-4 ${chipClass}`}>
-                          <div className={`mb-2 flex items-center gap-2 text-sm font-semibold ${textClass}`}>
-                            <Brain size={15} />
-                            我理解到
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {understoodItems.map((item) => (
-                              <span key={item} className={`rounded-md border px-3 py-1 text-xs ${chipClass}`}>
-                                {item}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      ) : null}
-
-                      {profileSignals.length > 0 ? (
-                        <div className={`rounded-lg border p-4 ${chipClass}`}>
-                          <div className={`mb-2 flex items-center gap-2 text-sm font-semibold ${textClass}`}>
-                            <UserRound size={15} />
-                            参考画像
-                          </div>
-                          <div className={`space-y-1 text-xs leading-5 ${faintClass}`}>
-                            {profileSignals.slice(0, 4).map((item) => (
-                              <div key={item}>{item}</div>
-                            ))}
-                          </div>
-                        </div>
-                      ) : null}
-                    </div>
-                  )}
-
-                  {(assistantState.warnings || []).length > 0 && (
-                    <div className={`mt-4 rounded-lg border px-4 py-3 text-sm leading-6 ${isDayMode ? "bg-amber-50 text-amber-800 border-amber-200/80" : "bg-amber-400/10 text-amber-100 border-amber-300/20"}`}>
+                  {(assistantState.warnings || []).length > 0 ? (
+                    <div className={`mt-3 rounded-lg border px-4 py-3 text-sm leading-6 ${isDayMode ? "bg-amber-50 text-amber-800 border-amber-200/80" : "bg-amber-400/10 text-amber-100 border-amber-300/20"}`}>
                       <div className="flex items-start gap-2">
                         <AlertTriangle size={16} className="mt-0.5 shrink-0" />
                         <span>{assistantState.warnings[0]}</span>
                       </div>
                     </div>
-                  )}
-
-                  {(rankingBasis.length > 0 || uncertaintyItems.length > 0) && (
-                    <div className={insightGridClass}>
-                      {rankingBasis.length > 0 ? (
-                        <div className={`rounded-lg border p-4 ${chipClass}`}>
-                          <div className={`mb-2 flex items-center gap-2 text-sm font-semibold ${textClass}`}>
-                            <Sparkles size={15} />
-                            排序依据
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {rankingBasis.slice(0, 5).map((item) => (
-                              <span key={item} className={`rounded-md border px-3 py-1 text-xs ${chipClass}`}>
-                                {item}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      ) : null}
-
-                      {uncertaintyItems.length > 0 ? (
-                        <div className={`rounded-lg border p-4 ${chipClass}`}>
-                          <div className={`mb-2 flex items-center gap-2 text-sm font-semibold ${textClass}`}>
-                            <AlertTriangle size={15} />
-                            还不确定
-                          </div>
-                          <div className={`space-y-1 text-xs leading-5 ${faintClass}`}>
-                            {uncertaintyItems.slice(0, 4).map((item) => (
-                              <div key={item}>{item}</div>
-                            ))}
-                          </div>
-                        </div>
-                      ) : null}
-                    </div>
-                  )}
+                  ) : null}
 
                   {assistantState.type === "clarify" && (
-                    <div className="mt-4 max-w-2xl">
-                      <p className={`text-sm uppercase tracking-[0.18em] ${faintClass}`}>
-                        我还想确认一点
+                    <div className="mt-2 max-w-2xl">
+                      <p className={`text-sm font-semibold ${faintClass}`}>
+                        {t("events.assistant.clarify_label", "还需要确认")}
                       </p>
-                      <p className={`mt-3 text-lg font-semibold leading-8 ${textClass}`}>
+                      <p className={`mt-2 text-lg font-semibold leading-8 ${textClass}`}>
                         {assistantState.question}
                       </p>
                     </div>
@@ -893,8 +532,8 @@ const EventAssistantPanel = ({
                       </p>
                       <p className={`mt-2 text-sm leading-7 ${mutedClass}`}>
                         {assistantState.canExpandScope
-                          ? "可以放宽到进行中或历史活动，看有没有后续可关注的线索。"
-                          : "你可以换一个主题、校区或收益条件再试。"}
+                          ? t("events.assistant.expand_hint", "可以放宽到进行中或历史活动，看有没有后续可关注的线索。")
+                          : t("events.assistant.empty_hint", "你可以换一个主题、校区或收益条件再试。")}
                       </p>
 
                       {assistantState.canExpandScope && (
@@ -905,7 +544,7 @@ const EventAssistantPanel = ({
                           className={`mt-4 inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all ${actionClass}`}
                         >
                           <ArrowRight size={15} />
-                          看看进行中或历史活动
+                          {t("events.assistant.expand_button", "看看进行中或历史活动")}
                         </button>
                       )}
                     </div>
@@ -914,195 +553,144 @@ const EventAssistantPanel = ({
                   {assistantState.type === "recommend" && (
                     <div className={recommendationGridClass}>
                       {(assistantState.recommendations || []).map((item, index) => {
-                        const opportunityPreview = getOpportunityMatchPreview(item.opportunityMatch);
+                        const decisionPreview = getDecisionPreview(item.opportunityMatch);
                         const recommendationRank = getRecommendationRank(item, index);
                         return (
                           <div
                             key={item.id}
                             className={`rounded-lg border transition-colors ${recommendationCardClass} ${isDayMode ? "bg-white border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.035)]" : "bg-white/[0.045] border-white/10"}`}
                           >
-                          <button
-                            type="button"
-                            onClick={() => {
-                              recordDecisionAction(item, "view_detail", {
-                                surface: "recommendation_card",
-                                recommendationRank,
-                                nextAction: item.opportunityMatch?.decisionSupport?.nextAction || "",
-                              });
-                              onOpenEvent(item.event, {
-                                assistantRunId: assistantState.assistantRunId,
-                                recommendationRank,
-                                source: variant === "fullscreen" ? "event_assistant_mobile" : "event_assistant_card",
-                                surface: "recommendation_card",
-                                nextAction: item.opportunityMatch?.decisionSupport?.nextAction || "",
-                              });
-                            }}
-                            className="group w-full text-left"
-                          >
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="min-w-0">
-                                <div className="mb-2 flex flex-wrap items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                recordDecisionAction(item, "view_detail", {
+                                  surface: "recommendation_card",
+                                  recommendationRank,
+                                  nextAction: item.opportunityMatch?.decisionSupport?.nextAction || "",
+                                });
+                                onOpenEvent?.(item.event, {
+                                  assistantRunId: assistantState.assistantRunId,
+                                  recommendationRank,
+                                  source: variant === "fullscreen" ? "event_assistant_mobile" : "event_assistant_card",
+                                  surface: "recommendation_card",
+                                  nextAction: item.opportunityMatch?.decisionSupport?.nextAction || "",
+                                });
+                              }}
+                              className="group w-full text-left"
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
                                   {item.isHistorical ? (
-                                    <span className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${isDayMode ? "bg-amber-50 text-amber-700 border-amber-200/80" : "bg-amber-400/10 text-amber-200 border-amber-300/15"}`}>
+                                    <span className={`mb-2 inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${isDayMode ? "bg-amber-50 text-amber-700 border-amber-200/80" : "bg-amber-400/10 text-amber-200 border-amber-300/15"}`}>
                                       <Clock3 size={12} />
-                                      历史活动
+                                      {t("events.assistant.historical_event", "历史活动")}
                                     </span>
                                   ) : null}
-                                  {Number.isFinite(Number(item.score)) ? (
-                                    <span className={`rounded-md border px-2.5 py-1 text-xs ${chipClass}`}>
-                                      匹配 {Math.max(0, Math.round(item.score))}
-                                    </span>
-                                  ) : null}
+                                  <p className={`${recommendationTitleClass} ${textClass}`}>
+                                    {item.event.title}
+                                  </p>
+                                  <p className={`${recommendationReasonClass} ${mutedClass}`}>
+                                    {item.reason}
+                                  </p>
                                 </div>
-                                <p className={`${recommendationTitleClass} ${textClass}`}>
-                                  {item.event.title}
-                                </p>
-                                <p className={`${recommendationReasonClass} ${mutedClass}`}>
-                                  {item.reason}
-                                </p>
+                                <span className={`mt-1 inline-flex h-10 shrink-0 items-center justify-center gap-1 rounded-md border px-3 text-xs font-semibold transition-transform group-hover:translate-x-1 ${chipClass}`}>
+                                  <span className="sm:hidden">{t("events.assistant.view_details", "详情")}</span>
+                                  <span className="hidden sm:inline">{t("events.assistant.view_details", "看详情")}</span>
+                                  <ArrowRight size={16} />
+                                </span>
                               </div>
-                              <span className={`mt-1 inline-flex h-10 shrink-0 items-center justify-center gap-1 rounded-md border px-3 text-xs font-semibold transition-transform group-hover:translate-x-1 ${chipClass}`}>
-                                <span className="sm:hidden">详情</span>
-                                <span className="hidden sm:inline">看详情</span>
-                                <ArrowRight size={16} />
-                              </span>
-                            </div>
-                          </button>
+                            </button>
 
-                          {(item.matchSignals || []).length > 0 && (
-                            <div className="mt-4 flex flex-wrap gap-2">
-                              {item.matchSignals.slice(0, 4).map((signal) => (
-                                <span key={signal} className={`rounded-md border px-3 py-1.5 text-xs ${chipClass}`}>
-                                  {signal}
+                            {decisionPreview?.nextAction ? (
+                              <div className={`mt-3 rounded-lg border px-3 py-2 text-sm leading-6 ${isDayMode ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-emerald-300/20 bg-emerald-400/10 text-emerald-100"}`}>
+                                <span className="font-semibold">
+                                  {t("events.assistant.next_step", "下一步")}
+                                  :
                                 </span>
-                              ))}
-                            </div>
-                          )}
+                                <span className="ml-1">{decisionPreview.nextAction}</span>
+                              </div>
+                            ) : decisionPreview?.decisionHint ? (
+                              <p className={`mt-3 text-sm leading-6 ${mutedClass}`}>
+                                {decisionPreview.decisionHint}
+                              </p>
+                            ) : null}
 
-                          {opportunityPreview && (
-                            <div className={`mt-4 rounded-lg border p-3 text-xs leading-6 ${isDayMode ? "border-sky-100 bg-sky-50/70 text-slate-700" : "border-sky-300/15 bg-sky-400/10 text-slate-200"}`}>
-                              {opportunityPreview.decisionHint && (
-                                <p className={`font-semibold ${textClass}`}>{opportunityPreview.decisionHint}</p>
-                              )}
-                              {opportunityPreview.decisionSupport?.nextAction && (
-                                <div className={`mt-2 rounded-md border px-3 py-2 ${isDayMode ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-emerald-300/20 bg-emerald-400/10 text-emerald-100"}`}>
-                                  <div className="text-[11px] font-semibold uppercase tracking-[0.08em] opacity-75">下一步</div>
-                                  <div className="mt-1 font-semibold">{opportunityPreview.decisionSupport.nextAction}</div>
-                                </div>
-                              )}
-                              {(opportunityPreview.decisionSupport?.tradeoffs?.length > 0 || opportunityPreview.decisionSupport?.fitFor?.length > 0) && (
-                                <div className="mt-2 grid gap-1.5">
-                                  {(opportunityPreview.decisionSupport.tradeoffs || []).slice(0, 2).map((value) => (
-                                    <div key={`tradeoff-${value}`} className={mutedClass}>取舍：{value}</div>
-                                  ))}
-                                  {(opportunityPreview.decisionSupport.fitFor || []).slice(0, 2).map((value) => (
-                                    <div key={`fit-${value}`} className={mutedClass}>适合：{value}</div>
-                                  ))}
-                                </div>
-                              )}
-                              {(opportunityPreview.matched.length > 0 || opportunityPreview.missing.length > 0 || opportunityPreview.uncertainty.length > 0) && (
-                                <div className="mt-2 flex flex-wrap gap-2">
-                                  {opportunityPreview.matched.map((value) => (
-                                    <span key={`matched-${value}`} className={`rounded-md border px-2 py-1 ${chipClass}`}>匹配：{value}</span>
-                                  ))}
-                                  {opportunityPreview.missing.map((value) => (
-                                    <span key={`missing-${value}`} className={`rounded-md border px-2 py-1 ${isDayMode ? "border-amber-200 bg-amber-50 text-amber-700" : "border-amber-300/20 bg-amber-400/10 text-amber-200"}`}>缺失：{value}</span>
-                                  ))}
-                                  {opportunityPreview.uncertainty.map((value) => (
-                                    <span key={`uncertainty-${value}`} className={`rounded-md border px-2 py-1 ${chipClass}`}>不确定：{value}</span>
-                                  ))}
-                                  {opportunityPreview.feedbackLearningUsed && (
-                                    <span className={`rounded-md border px-2 py-1 ${isDayMode ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-emerald-300/20 bg-emerald-400/10 text-emerald-200"}`}>已参考反馈</span>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          {getDiagnosticsSummary(item.diagnostics).length > 0 && (
-                            <div className="mt-3 flex flex-wrap gap-2">
-                              {getDiagnosticsSummary(item.diagnostics).map((summary) => (
-                                <span key={summary} className={`rounded-md border px-2.5 py-1 text-[11px] ${faintClass} ${isDayMode ? "border-slate-200 bg-slate-50" : "border-white/10 bg-white/[0.035]"}`}>
-                                  {summary}
+                            <div className={`mt-4 flex flex-wrap items-center gap-2 text-xs ${faintClass}`}>
+                              {item.event.date && (
+                                <span className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 ${chipClass}`}>
+                                  <Calendar size={13} />
+                                  {formatEventDate(item.event.date)}
                                 </span>
-                              ))}
+                              )}
+                              {item.event.location && (
+                                <span className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 ${chipClass}`}>
+                                  <MapPin size={13} />
+                                  <span className="max-w-[180px] truncate">{item.event.location}</span>
+                                </span>
+                              )}
+                              {item.event.target_audience && (
+                                <span className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 ${chipClass}`}>
+                                  {item.event.target_audience}
+                                </span>
+                              )}
                             </div>
-                          )}
 
-                          <div className={`mt-5 flex flex-wrap items-center gap-2 text-xs ${faintClass}`}>
-                            {item.event.date && (
-                              <span className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 ${chipClass}`}>
-                                <Calendar size={13} />
-                                {formatEventDate(item.event.date)}
+                            <div className={`mt-4 flex items-center justify-between border-t pt-3 ${isDayMode ? "border-slate-200/70" : "border-white/10"}`}>
+                              <span className={`text-xs ${faintClass}`}>
+                                {t("events.assistant.feedback_question", "这条推荐有用吗？")}
                               </span>
-                            )}
-                            {item.event.location && (
-                              <span className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 ${chipClass}`}>
-                                <MapPin size={13} />
-                                <span className="max-w-[180px] truncate">{item.event.location}</span>
-                              </span>
-                            )}
-                            {item.event.target_audience && (
-                              <span className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 ${chipClass}`}>
-                                {item.event.target_audience}
-                              </span>
-                            )}
-                          </div>
-
-                          <div className={`mt-4 flex items-center justify-between border-t pt-3 ${isDayMode ? "border-slate-200/70" : "border-white/10"}`}>
-                            <span className={`text-xs ${faintClass}`}>这条推荐对你有用吗？</span>
-                            <div className="flex items-center gap-2">
-                              <button
-                                type="button"
-                                aria-label="推荐适合我"
-                                title="适合我"
-                                onClick={() => submitFeedback(item, "up", "", recommendationRank)}
-                                className={`inline-flex h-9 w-9 items-center justify-center rounded-md border transition-colors ${feedbackMap[item.id] === "up" ? "bg-emerald-500 text-white border-emerald-500" : chipClass}`}
-                              >
-                                <ThumbsUp size={15} />
-                              </button>
-                              <button
-                                type="button"
-                                aria-label="推荐不适合我"
-                                title="不适合我"
-                                onClick={() => {
-                                  if (feedbackMap[item.id] === "down") {
-                                    submitFeedback(item, "down", feedbackReasonMap[item.id] || "not_relevant", recommendationRank);
-                                  } else {
-                                    setFeedbackMap((previous) => ({ ...previous, [item.id]: "down" }));
-                                    setFeedbackReasonMap((previous) => ({ ...previous, [item.id]: "not_relevant" }));
-                                  }
-                                }}
-                                className={`inline-flex h-9 w-9 items-center justify-center rounded-md border transition-colors ${feedbackMap[item.id] === "down" ? "bg-rose-500 text-white border-rose-500" : chipClass}`}
-                              >
-                                <ThumbsDown size={15} />
-                              </button>
-                            </div>
-                          </div>
-
-                          {feedbackMap[item.id] === "down" && (
-                            <div className={`mt-3 rounded-lg border p-3 ${isDayMode ? "border-rose-100 bg-rose-50/60" : "border-rose-300/15 bg-rose-400/10"}`}>
-                              <div className="flex flex-wrap gap-2">
-                                {feedbackReasonOptions.map((option) => (
-                                  <button
-                                    key={option.value}
-                                    type="button"
-                                    onClick={() => {
-                                      setFeedbackReasonMap((previous) => ({ ...previous, [item.id]: option.value }));
-                                      submitFeedback(item, "down", option.value, recommendationRank);
-                                    }}
-                                    className={`rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${
-                                      feedbackReasonMap[item.id] === option.value
-                                        ? "border-rose-500 bg-rose-500 text-white"
-                                        : chipClass
-                                    }`}
-                                  >
-                                    {option.label}
-                                  </button>
-                                ))}
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  aria-label={t("events.assistant.feedback_up_aria", "推荐适合我")}
+                                  title={t("events.assistant.feedback_up_title", "适合我")}
+                                  onClick={() => submitFeedback(item, "up", "", recommendationRank)}
+                                  className={`inline-flex h-9 w-9 items-center justify-center rounded-md border transition-colors ${feedbackMap[item.id] === "up" ? "bg-emerald-500 text-white border-emerald-500" : chipClass}`}
+                                >
+                                  <ThumbsUp size={15} />
+                                </button>
+                                <button
+                                  type="button"
+                                  aria-label={t("events.assistant.feedback_down_aria", "推荐不适合我")}
+                                  title={t("events.assistant.feedback_down_title", "不适合我")}
+                                  onClick={() => {
+                                    if (feedbackMap[item.id] === "down") {
+                                      submitFeedback(item, "down", feedbackReasonMap[item.id] || "not_relevant", recommendationRank);
+                                    } else {
+                                      setFeedbackMap((previous) => ({ ...previous, [item.id]: "down" }));
+                                      setFeedbackReasonMap((previous) => ({ ...previous, [item.id]: "not_relevant" }));
+                                    }
+                                  }}
+                                  className={`inline-flex h-9 w-9 items-center justify-center rounded-md border transition-colors ${feedbackMap[item.id] === "down" ? "bg-rose-500 text-white border-rose-500" : chipClass}`}
+                                >
+                                  <ThumbsDown size={15} />
+                                </button>
                               </div>
                             </div>
-                          )}
+
+                            {feedbackMap[item.id] === "down" && (
+                              <div className={`mt-3 rounded-lg border p-3 ${isDayMode ? "border-rose-100 bg-rose-50/60" : "border-rose-300/15 bg-rose-400/10"}`}>
+                                <div className="flex flex-wrap gap-2">
+                                  {feedbackReasonOptions.map((option) => (
+                                    <button
+                                      key={option.value}
+                                      type="button"
+                                      onClick={() => {
+                                        setFeedbackReasonMap((previous) => ({ ...previous, [item.id]: option.value }));
+                                        submitFeedback(item, "down", option.value, recommendationRank);
+                                      }}
+                                      className={`rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                                        feedbackReasonMap[item.id] === option.value
+                                          ? "border-rose-500 bg-rose-500 text-white"
+                                          : chipClass
+                                      }`}
+                                    >
+                                      {option.label}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         );
                       })}
@@ -1112,7 +700,7 @@ const EventAssistantPanel = ({
                   {assistantState.type === "recommend" ? (
                     <div className={`mt-4 rounded-lg border px-4 py-3 ${isDayMode ? "border-slate-200/80 bg-slate-50/80" : "border-white/10 bg-white/[0.04]"}`}>
                       <p className={`text-xs leading-5 ${faintClass}`}>
-                        还不够贴近？直接在上方补一句，比如“只看紫金港”“不要历史活动”“更适合新生”，我会继续收窄。
+                        {t("events.assistant.narrow_hint", "还不够贴近？在上方补一句限制条件，我会继续收窄。")}
                       </p>
                     </div>
                   ) : null}

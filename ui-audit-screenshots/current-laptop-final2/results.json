@@ -1,0 +1,1622 @@
+[
+  {
+    "viewport": "375x667",
+    "route": "/",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/375x667__home.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "375x667",
+    "route": "/hackathon",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/375x667__hackathon.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "375x667",
+    "route": "/hackathon/showcase",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/375x667__hackathon-showcase.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "375x667",
+    "route": "/hackathon/works",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/375x667__hackathon-works.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "375x667",
+    "route": "/events",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/375x667__events.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "375x667",
+    "route": "/articles",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/375x667__articles.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "375x667",
+    "route": "/media",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/375x667__media.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "375x667",
+    "route": "/gallery",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/375x667__gallery.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "375x667",
+    "route": "/music",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/375x667__music.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "375x667",
+    "route": "/videos",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/375x667__videos.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "375x667",
+    "route": "/about",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/375x667__about.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "375x667",
+    "route": "/future-learning",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/375x667__future-learning.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "390x844",
+    "route": "/",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/390x844__home.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "390x844",
+    "route": "/hackathon",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/390x844__hackathon.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "390x844",
+    "route": "/hackathon/showcase",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/390x844__hackathon-showcase.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "390x844",
+    "route": "/hackathon/works",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/390x844__hackathon-works.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "390x844",
+    "route": "/events",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/390x844__events.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "390x844",
+    "route": "/articles",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/390x844__articles.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "390x844",
+    "route": "/media",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/390x844__media.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "390x844",
+    "route": "/gallery",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/390x844__gallery.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "390x844",
+    "route": "/music",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/390x844__music.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "390x844",
+    "route": "/videos",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/390x844__videos.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "390x844",
+    "route": "/about",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/390x844__about.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "390x844",
+    "route": "/future-learning",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/390x844__future-learning.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "768x1024",
+    "route": "/",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/768x1024__home.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "768x1024",
+    "route": "/hackathon",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/768x1024__hackathon.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "768x1024",
+    "route": "/hackathon/showcase",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/768x1024__hackathon-showcase.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "768x1024",
+    "route": "/hackathon/works",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/768x1024__hackathon-works.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "768x1024",
+    "route": "/events",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/768x1024__events.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "768x1024",
+    "route": "/articles",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/768x1024__articles.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "768x1024",
+    "route": "/media",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/768x1024__media.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "768x1024",
+    "route": "/gallery",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/768x1024__gallery.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "768x1024",
+    "route": "/music",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/768x1024__music.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "768x1024",
+    "route": "/videos",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/768x1024__videos.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "768x1024",
+    "route": "/about",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/768x1024__about.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "768x1024",
+    "route": "/future-learning",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/768x1024__future-learning.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1024x768",
+    "route": "/",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1024x768__home.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1024x768",
+    "route": "/hackathon",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1024x768__hackathon.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1024x768",
+    "route": "/hackathon/showcase",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1024x768__hackathon-showcase.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1024x768",
+    "route": "/hackathon/works",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1024x768__hackathon-works.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1024x768",
+    "route": "/events",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1024x768__events.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1024x768",
+    "route": "/articles",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1024x768__articles.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1024x768",
+    "route": "/media",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1024x768__media.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1024x768",
+    "route": "/gallery",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1024x768__gallery.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1024x768",
+    "route": "/music",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1024x768__music.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1024x768",
+    "route": "/videos",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1024x768__videos.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1024x768",
+    "route": "/about",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1024x768__about.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1024x768",
+    "route": "/future-learning",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1024x768__future-learning.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1280x720",
+    "route": "/",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1280x720__home.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1280x720",
+    "route": "/hackathon",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1280x720__hackathon.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1280x720",
+    "route": "/hackathon/showcase",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1280x720__hackathon-showcase.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1280x720",
+    "route": "/hackathon/works",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1280x720__hackathon-works.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1280x720",
+    "route": "/events",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1280x720__events.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1280x720",
+    "route": "/articles",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1280x720__articles.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1280x720",
+    "route": "/media",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1280x720__media.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1280x720",
+    "route": "/gallery",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1280x720__gallery.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1280x720",
+    "route": "/music",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1280x720__music.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1280x720",
+    "route": "/videos",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1280x720__videos.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1280x720",
+    "route": "/about",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1280x720__about.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1280x720",
+    "route": "/future-learning",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1280x720__future-learning.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1366x768",
+    "route": "/",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1366x768__home.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1366x768",
+    "route": "/hackathon",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1366x768__hackathon.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1366x768",
+    "route": "/hackathon/showcase",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1366x768__hackathon-showcase.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1366x768",
+    "route": "/hackathon/works",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1366x768__hackathon-works.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1366x768",
+    "route": "/events",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1366x768__events.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1366x768",
+    "route": "/articles",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1366x768__articles.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1366x768",
+    "route": "/media",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1366x768__media.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1366x768",
+    "route": "/gallery",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1366x768__gallery.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1366x768",
+    "route": "/music",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1366x768__music.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1366x768",
+    "route": "/videos",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1366x768__videos.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1366x768",
+    "route": "/about",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1366x768__about.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1366x768",
+    "route": "/future-learning",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1366x768__future-learning.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1536x864",
+    "route": "/",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1536x864__home.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1536x864",
+    "route": "/hackathon",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1536x864__hackathon.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1536x864",
+    "route": "/hackathon/showcase",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1536x864__hackathon-showcase.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1536x864",
+    "route": "/hackathon/works",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1536x864__hackathon-works.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1536x864",
+    "route": "/events",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1536x864__events.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1536x864",
+    "route": "/articles",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1536x864__articles.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1536x864",
+    "route": "/media",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1536x864__media.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1536x864",
+    "route": "/gallery",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1536x864__gallery.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1536x864",
+    "route": "/music",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1536x864__music.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1536x864",
+    "route": "/videos",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1536x864__videos.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1536x864",
+    "route": "/about",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1536x864__about.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1536x864",
+    "route": "/future-learning",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1536x864__future-learning.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1920x1080",
+    "route": "/",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1920x1080__home.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1920x1080",
+    "route": "/hackathon",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1920x1080__hackathon.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1920x1080",
+    "route": "/hackathon/showcase",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1920x1080__hackathon-showcase.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1920x1080",
+    "route": "/hackathon/works",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1920x1080__hackathon-works.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1920x1080",
+    "route": "/events",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1920x1080__events.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1920x1080",
+    "route": "/articles",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1920x1080__articles.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1920x1080",
+    "route": "/media",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1920x1080__media.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1920x1080",
+    "route": "/gallery",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1920x1080__gallery.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1920x1080",
+    "route": "/music",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1920x1080__music.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1920x1080",
+    "route": "/videos",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1920x1080__videos.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1920x1080",
+    "route": "/about",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1920x1080__about.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "1920x1080",
+    "route": "/future-learning",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/1920x1080__future-learning.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "2048x1015",
+    "route": "/",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/2048x1015__home.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "2048x1015",
+    "route": "/hackathon",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/2048x1015__hackathon.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "2048x1015",
+    "route": "/hackathon/showcase",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/2048x1015__hackathon-showcase.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "2048x1015",
+    "route": "/hackathon/works",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/2048x1015__hackathon-works.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "2048x1015",
+    "route": "/events",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/2048x1015__events.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "2048x1015",
+    "route": "/articles",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/2048x1015__articles.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "2048x1015",
+    "route": "/media",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/2048x1015__media.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "2048x1015",
+    "route": "/gallery",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/2048x1015__gallery.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "2048x1015",
+    "route": "/music",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/2048x1015__music.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "2048x1015",
+    "route": "/videos",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/2048x1015__videos.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "2048x1015",
+    "route": "/about",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/2048x1015__about.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  },
+  {
+    "viewport": "2048x1015",
+    "route": "/future-learning",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final2/2048x1015__future-learning.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "heroBgText": false,
+      "errorBoundary": false
+    },
+    "pageErrors": [],
+    "consoleErrors": [],
+    "fail": false
+  }
+]

@@ -575,7 +575,7 @@ const getFollowingFeed = async (req, res, next) => {
     const placeholders = followingIds.map(() => '?').join(',');
     const tableConfigs = [
       { table: 'photos', type: 'photo', imageField: 'url', route: '/gallery' },
-      { table: 'music', type: 'music', imageField: 'cover', route: '/music' },
+      { table: 'music', type: 'music', imageField: 'cover', route: '/articles', hash: '#community-podcast' },
       { table: 'videos', type: 'video', imageField: 'thumbnail', route: '/videos' },
       { table: 'articles', type: 'article', imageField: 'cover', route: '/articles' },
       { table: 'events', type: 'event', imageField: 'image', route: '/events' }
@@ -588,7 +588,7 @@ const getFollowingFeed = async (req, res, next) => {
       ? tableConfigs
       : tableConfigs.filter((item) => item.table === requestedType);
 
-    const chunks = await Promise.all(activeConfigs.map(async ({ table, type, imageField, route }) => {
+    const chunks = await Promise.all(activeConfigs.map(async ({ table, type, imageField, route, hash = '' }) => {
       const rows = await db.all(
         `
         SELECT
@@ -617,7 +617,9 @@ const getFollowingFeed = async (req, res, next) => {
         type,
         resource_type: table,
         author_name: row.author_nickname || row.author_username || '匿名用户',
-        target_path: `${route}?id=${row.id}`
+        target_path: type === 'music'
+          ? `${route}?music=${row.id}${hash}`
+          : `${route}?id=${row.id}${hash}`
       }));
     }));
 

@@ -120,8 +120,28 @@ const SearchPalette = () => {
     }
   };
 
+  const normalizeTarget = (item) => {
+    const rawTarget = item.deepLink || item.link || '/';
+    if (item.type === 'music' || rawTarget.startsWith('/music')) {
+      const params = new URLSearchParams();
+      try {
+        const url = new URL(rawTarget, window.location.origin);
+        url.searchParams.forEach((value, key) => params.set(key, value));
+      } catch {
+        // Fall back to item id below; malformed result links should still
+        // land in the community podcast area.
+      }
+      const musicId = params.get('music') || params.get('id') || item.id;
+      params.delete('id');
+      if (musicId) params.set('music', musicId);
+      const query = params.toString();
+      return `/articles${query ? `?${query}` : ''}#community-podcast`;
+    }
+    return rawTarget;
+  };
+
   const handleSelect = (item) => {
-    const target = item.deepLink || item.link || '/';
+    const target = normalizeTarget(item);
     if (item.deepLink || target.includes('?')) {
       navigate(target);
     } else {

@@ -1,0 +1,12 @@
+768x1024 /  overflow=0 h=1 clip=0 errors=0/0 shot=/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final/768x1024__home.png
+768x1024 /hackathon  overflow=0 h=1 clip=0 errors=0/0 shot=/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final/768x1024__hackathon.png
+768x1024 /hackathon/showcase  overflow=0 h=1 clip=0 errors=0/0 shot=/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final/768x1024__hackathon-showcase.png
+768x1024 /hackathon/works  overflow=0 h=1 clip=0 errors=0/0 shot=/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final/768x1024__hackathon-works.png
+768x1024 /events  overflow=0 h=1 clip=0 errors=0/0 shot=/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final/768x1024__events.png
+768x1024 /articles  overflow=0 h=1 clip=0 errors=0/0 shot=/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final/768x1024__articles.png
+768x1024 /media  overflow=0 h=1 clip=0 errors=0/0 shot=/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final/768x1024__media.png
+768x1024 /gallery  overflow=0 h=1 clip=0 errors=0/0 shot=/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final/768x1024__gallery.png
+768x1024 /music  overflow=0 h=1 clip=0 errors=0/0 shot=/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final/768x1024__music.png
+768x1024 /videos  overflow=0 h=1 clip=0 errors=0/0 shot=/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final/768x1024__videos.png
+768x1024 /about  overflow=0 h=1 clip=0 errors=0/0 shot=/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final/768x1024__about.png
+768x1024 /future-learning  overflow=0 h=1 clip=0 errors=0/0 shot=/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-final/768x1024__future-learning.png

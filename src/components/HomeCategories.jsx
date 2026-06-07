@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
   Camera,
-  Music,
   BookOpen,
   Calendar,
   ArrowRight,
@@ -41,15 +40,6 @@ const categories = [
     delay: 0.1,
   },
   {
-    id: "music",
-    path: "/music",
-    icon: Music,
-    image:
-      "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80",
-    color: "from-cyan-500/80 to-blue-600/80",
-    delay: 0.15,
-  },
-  {
     id: "media",
     path: "/media",
     icon: Camera,
@@ -58,7 +48,7 @@ const categories = [
     image:
       "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&auto=format&fit=crop&q=80",
     color: "from-purple-500/80 to-indigo-600/80",
-    delay: 0.2,
+    delay: 0.15,
   },
 ];
 

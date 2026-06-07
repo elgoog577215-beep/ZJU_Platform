@@ -144,7 +144,7 @@ const setupRoutes = async (page) => {
 };
 
 test.describe("event assistant flow", () => {
-  test("desktop assistant shows recommendation, diagnostics, feedback reasons, and opens detail", async ({ page }) => {
+  test("desktop assistant shows a simplified recommendation, feedback reasons, and opens detail", async ({ page }) => {
     const actionRequests = [];
     const feedbackRequests = [];
     const assistantRequests = [];
@@ -164,7 +164,7 @@ test.describe("event assistant flow", () => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     await page.goto("/events");
 
-    await expect(page.getByRole("button", { name: "技能作品集" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "本周可去" })).toBeVisible();
     await expect(page.getByRole("button", { name: "筛选" })).toHaveCount(0);
     await expect(
       page.getByRole("button", { name: "全部", exact: true }),
@@ -172,26 +172,26 @@ test.describe("event assistant flow", () => {
     await expect(
       page.getByRole("button", { name: "讲座", exact: true }),
     ).toBeVisible();
-    await page.getByRole("button", { name: "偏好" }).click();
-    await expect(page.getByText("暂未维护活动画像")).toBeVisible();
+    await expect(page.getByRole("button", { name: "技能作品集" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "偏好" })).toHaveCount(0);
+    await expect(page.getByText("用户系统画像")).toHaveCount(0);
+    await expect(page.getByText("暂未维护活动画像")).toHaveCount(0);
     await page.getByPlaceholder(/比如/).fill("AI project at Zijingang with score");
     await page.getByRole("button", { name: "开始推荐" }).click();
     await expect.poll(() => assistantRequests.length).toBeGreaterThanOrEqual(1);
     expect(assistantRequests[0].visitorKey).toEqual(expect.any(String));
+    expect(assistantRequests[0].rememberPreference).toBeUndefined();
 
     await expect(page.getByText("已按 AI、紫金港和综测优先排序。")).toBeVisible();
-    await expect(page.getByText("硬约束优先")).toBeVisible();
-    await expect(page.getByText("硬约束 54/68")).toBeVisible();
-    await expect(page.getByText(/优先推荐/)).toBeVisible();
     await expect(page.getByText("下一步")).toBeVisible();
     await expect(page.getByText("优先查看「AI Agent Product Workshop」详情")).toBeVisible();
-    await expect(page.getByText(/取舍：当前排序最靠前/)).toBeVisible();
-    await expect(page.getByText("匹配：行动证据显示你更常选择讲座")).toBeVisible();
-    await expect(page.getByText("匹配：收益匹配：综测/加分")).toBeVisible();
-    await expect(page.getByText("缺失：面向对象")).toBeVisible();
-    await expect(page.getByText("缺失：收益：志愿时长")).toBeVisible();
-    await expect(page.getByText("不确定：时间偏好不明确")).toBeVisible();
-    await expect(page.getByText("已参考反馈")).toBeVisible();
+    await expect(page.getByText("匹配 AI 项目实践、紫金港地点和综测收益。")).toBeVisible();
+    await expect(page.getByText("硬约束优先")).toHaveCount(0);
+    await expect(page.getByText("硬约束 54/68")).toHaveCount(0);
+    await expect(page.getByText(/取舍：当前排序最靠前/)).toHaveCount(0);
+    await expect(page.getByText("匹配：行动证据显示你更常选择讲座")).toHaveCount(0);
+    await expect(page.getByText("缺失：面向对象")).toHaveCount(0);
+    await expect(page.getByText("已参考反馈")).toHaveCount(0);
 
     const desktopRejectButton = page.getByRole("button", {
       name: "推荐不适合我",
@@ -266,18 +266,21 @@ test.describe("event assistant flow", () => {
     await page.goto("/events");
 
     await page.getByRole("button", { name: /AI 活动助手/ }).click();
-    await expect(page.getByRole("button", { name: "技能作品集" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "本周可去" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "技能作品集" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "偏好" })).toHaveCount(0);
     await page.getByPlaceholder(/比如/).fill("AI project at Zijingang with score");
     await page.getByRole("button", { name: "开始推荐" }).click();
     await expect.poll(() => assistantRequests.length).toBeGreaterThanOrEqual(1);
     expect(assistantRequests[0].visitorKey).toEqual(expect.any(String));
+    expect(assistantRequests[0].rememberPreference).toBeUndefined();
 
     await expect(page.getByRole("dialog", { name: "AI 活动助手" })).toBeVisible();
     await expect(page.getByRole("button", { name: new RegExp(event.title) })).toBeVisible();
-    await expect(page.getByText("硬约束 54/68")).toBeVisible();
-    await expect(page.getByText(/优先推荐/)).toBeVisible();
     await expect(page.getByText("优先查看「AI Agent Product Workshop」详情")).toBeVisible();
-    await expect(page.getByText("匹配：收益匹配：综测/加分")).toBeVisible();
+    await expect(page.getByText("硬约束 54/68")).toHaveCount(0);
+    await expect(page.getByText(/取舍：当前排序最靠前/)).toHaveCount(0);
+    await expect(page.getByText("匹配：收益匹配：综测/加分")).toHaveCount(0);
 
     await page.getByRole("button", { name: "推荐不适合我" }).click();
     await expect(page.getByRole("button", { name: "地点不合适" })).toBeVisible();
@@ -304,7 +307,11 @@ test.describe("event assistant flow", () => {
         level: 2,
       }),
     ).toBeVisible();
-    await page.getByTestId("event-detail-favorite-mobile").click();
+    const mobileFavoriteButton = page.getByTestId("event-detail-favorite-mobile");
+    await mobileFavoriteButton.scrollIntoViewIfNeeded();
+    await expect(mobileFavoriteButton).toBeVisible();
+    await page.waitForTimeout(250);
+    await mobileFavoriteButton.click({ force: true });
     await expect
       .poll(() => actionRequests.some((request) => request.actionType === "favorite"))
       .toBeTruthy();

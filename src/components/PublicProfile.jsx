@@ -966,7 +966,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
 
     const routeMap = {
       photo: "/gallery",
-      music: "/music",
+      music: "/articles",
       video: "/videos",
       // Articles live under the AICommunity "tech" tab — must pin the tab
       // or AICommunity defaults to the help board and the id is ignored.
@@ -976,6 +976,9 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
 
     const basePath = routeMap[itemType];
     if (!basePath) return null;
+    if (itemType === "music") {
+      return `${basePath}?music=${itemId}#community-podcast`;
+    }
     const separator = basePath.includes("?") ? "&" : "?";
     return `${basePath}${separator}id=${itemId}`;
   };
@@ -1095,7 +1098,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
     const path = {
       photo: `/gallery?id=${item.id}`,
       video: `/videos?id=${item.id}`,
-      music: `/music?id=${item.id}`,
+      music: `/articles?music=${item.id}#community-podcast`,
       article: `/articles?id=${item.id}&tab=tech`,
       event: `/events?id=${item.id}`,
       news: `/articles?tab=tech&news=${item.id}`,
