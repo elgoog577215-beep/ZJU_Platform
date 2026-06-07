@@ -60,7 +60,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
             {currentPage === page && (
               <motion.div 
                 layoutId="activePage"
-                className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-500"
+                className={`absolute inset-0 ${isDayMode ? "bg-blue-700" : "bg-gradient-to-r from-cyan-500 to-blue-500"}`}
                 transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
               />
             )}

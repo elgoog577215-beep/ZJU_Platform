@@ -44,7 +44,6 @@ export const ResourceHints = () => {
       const routeMap = {
         '/': ['/gallery', '/events'],
         '/gallery': ['/videos'],
-        '/music': ['/events'],
         '/videos': ['/gallery'],
         '/articles': ['/events'],
         '/events': ['/about'],

@@ -16,7 +16,6 @@ import {
   Plus,
   Menu,
   Image as ImageIcon,
-  Music as MusicIcon,
   Film,
   Info,
   Shield,
@@ -130,7 +129,6 @@ const Navbar = () => {
     { key: "events", path: "/events" },
     { key: "hackathon", path: "/hackathon" },
     { key: "articles", path: "/articles" },
-    { key: "music", path: "/music" },
     { key: "media", path: "/media" },
     { key: "about", path: "/about" },
     ...(isAdmin ? [{ key: "admin", path: "/admin" }] : []),
@@ -153,7 +151,6 @@ const Navbar = () => {
     if (pathname.startsWith("/events")) return t("nav.events");
     if (pathname.startsWith("/future-learning")) return t("nav.future_learning");
     if (pathname.startsWith("/articles")) return t("nav.articles");
-    if (pathname.startsWith("/music")) return t("nav.music");
     if (pathname.startsWith("/gallery")) return t("nav.gallery");
     if (pathname.startsWith("/videos")) return t("nav.videos");
     if (pathname.startsWith("/media")) return t("nav.media");
@@ -178,7 +175,6 @@ const Navbar = () => {
     if (location.pathname === "/events") type = "event";
     else if (location.pathname === "/gallery") type = "image";
     else if (location.pathname === "/media") type = "media";
-    else if (location.pathname === "/music") type = "audio";
     else if (location.pathname === "/videos") type = "video";
     else if (location.pathname === "/articles") type = "article";
 
@@ -193,7 +189,6 @@ const Navbar = () => {
     "/events",
     "/gallery",
     "/media",
-    "/music",
     "/videos",
     "/articles",
   ];
@@ -207,16 +202,16 @@ const Navbar = () => {
   }, []);
 
   const shellClasses = isDayMode
-    ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.88),rgba(247,251,249,0.74))] border-slate-900/[0.08] shadow-[0_10px_30px_rgba(31,45,61,0.055)]"
+    ? "bg-white/90 border-slate-900/[0.08] shadow-[0_10px_26px_rgba(31,45,61,0.045)]"
     : "bg-black/62 border-white/10 shadow-none";
   const desktopPillClasses = isDayMode
-    ? "rounded-[6px] bg-white/[0.62] border-slate-900/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.78)]"
+    ? "rounded-[6px] bg-slate-50/82 border-slate-900/[0.08] shadow-none"
     : "rounded-[6px] bg-white/[0.035] border-white/10 shadow-none";
   const navLinkClasses = isDayMode
     ? "motion-link relative group whitespace-nowrap rounded-[5px] px-2.5 py-2 text-xs font-medium text-slate-500 hover:bg-white/82 hover:text-slate-950 xl:px-4 xl:text-sm"
     : "motion-link relative group whitespace-nowrap rounded-[5px] px-2.5 py-2 text-xs font-medium text-gray-400 hover:bg-white/[0.075] hover:text-white xl:px-4 xl:text-sm";
   const navIndicatorClasses = isDayMode
-    ? "absolute inset-0 rounded-[5px] border border-teal-700/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(232,245,242,0.9))] shadow-[0_8px_18px_rgba(15,118,110,0.08),inset_0_1px_0_rgba(255,255,255,0.92)]"
+    ? "absolute inset-0 rounded-[5px] border border-slate-900/[0.12] bg-white shadow-[0_6px_14px_rgba(31,45,61,0.06)]"
     : "absolute inset-0 rounded-[5px] bg-white/[0.095] border border-white/14";
   const weatherButtonClasses = isDayMode
     ? "motion-press rect-button-secondary flex items-center gap-3 text-xs px-3 py-1.5 hover:text-slate-900 cursor-pointer group"
@@ -239,7 +234,6 @@ const Navbar = () => {
     !location.pathname.startsWith("/user/");
   const secondaryMobileLinks = [
     { key: "media", path: "/media", icon: Film, label: "影像库" },
-    { key: "music", path: "/music", icon: MusicIcon },
     { key: "about", path: "/about", icon: Info },
     ...(isAdmin ? [{ key: "admin", path: "/admin", icon: Shield }] : []),
   ];
@@ -566,7 +560,7 @@ const Navbar = () => {
                   <button
                     type="submit"
                     disabled={isSearching}
-                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 rounded-lg transition-all disabled:opacity-50 shadow-lg shadow-indigo-500/25"
+                    className={`w-full text-white font-bold py-3 rounded-lg transition-all disabled:opacity-50 ${isDayMode ? "bg-blue-700 hover:bg-blue-800 shadow-[0_12px_26px_rgba(29,78,216,0.16)]" : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-lg shadow-indigo-500/25"}`}
                   >
                     {isSearching
                       ? t("weather.searching")
@@ -755,7 +749,7 @@ const Navbar = () => {
                         setIsMobileMoreOpen(false);
                         setIsAuthOpen(true);
                       }}
-                      className="motion-press flex min-h-[52px] items-center justify-center rounded-lg bg-indigo-600 px-3 text-sm font-bold text-white hover:bg-indigo-500"
+                      className={`motion-press flex min-h-[52px] items-center justify-center rounded-lg px-3 text-sm font-bold text-white ${isDayMode ? "bg-blue-700 hover:bg-blue-800" : "bg-indigo-600 hover:bg-indigo-500"}`}
                     >
                       {t("auth.log_in")}
                     </button>

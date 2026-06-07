@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Newspaper, QrCode } from "lucide-react";
 import { useSettings } from "../context/SettingsContext";
@@ -41,6 +41,7 @@ const AICommunity = () => {
   const { t } = useTranslation();
   const { uiMode } = useSettings();
   const isDayMode = uiMode === "day";
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const subtitle = useMemo(
@@ -60,7 +61,17 @@ const AICommunity = () => {
       },
       { replace: true },
     );
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [searchParams, setSearchParams]);
+
+  useEffect(() => {
+    if (location.hash !== "#community-podcast") return;
+    window.requestAnimationFrame(() => {
+      document.getElementById("community-podcast")?.scrollIntoView({
+        block: "start",
+        behavior: "smooth",
+      });
+    });
+  }, [location.hash]);
 
   return (
     <section

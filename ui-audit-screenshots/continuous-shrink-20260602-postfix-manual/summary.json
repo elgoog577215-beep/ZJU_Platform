@@ -1,0 +1,134 @@
+[
+  {
+    "name": "hackathon-works",
+    "route": "/hackathon/works",
+    "w": 720,
+    "h": 844,
+    "file": "720x844__hackathon-works.png",
+    "errors": [],
+    "scrollWidth": 720,
+    "clientWidth": 720,
+    "bodyText": "跳转到主要内容\n浙客松\n20\n返回比赛成果\n提交作品/经验\n\nWINNER STORIES / 20 SELECTED\n\n优秀作品与经验分享\n\n20\n\n已发布作品\n\n3\n\n重点展示\n\n1\n\n当前比赛\n\n重点作品\nTOP 3\n01\n冠军\n\n冠"
+  },
+  {
+    "name": "hackathon-works",
+    "route": "/hackathon/works",
+    "w": 390,
+    "h": 667,
+    "file": "390x667__hackathon-works.png",
+    "errors": [],
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "bodyText": "跳转到主要内容\n浙客松\n20\n返回比赛成果\n提交作品/经验\n\nWINNER STORIES / 20 SELECTED\n\n优秀作品与经验分享\n\n20\n\n已发布作品\n\n3\n\n重点展示\n\n1\n\n当前比赛\n\n重点作品\nTOP 3\n01\n冠军\n\n冠"
+  },
+  {
+    "name": "hackathon-showcase",
+    "route": "/hackathon/showcase",
+    "w": 1366,
+    "h": 768,
+    "file": "1366x768__hackathon-showcase.png",
+    "errors": [],
+    "scrollWidth": 1366,
+    "clientWidth": 1366,
+    "bodyText": "跳转到主要内容\n拓途浙享\n数字艺术与科技\n首页\n活动聚合\n浙客松\nAI 社区\n播客\n影像库\n关于\nZH\n登录\n\n浙客松\n\nZHEKESONG\n\n赛事报名\n比赛成果\n\nAI BUILD ARENA 2026\n\nAI 全栈极速\n比赛成果\n\n这不"
+  },
+  {
+    "name": "hackathon-showcase",
+    "route": "/hackathon/showcase",
+    "w": 1024,
+    "h": 768,
+    "file": "1024x768__hackathon-showcase.png",
+    "errors": [],
+    "scrollWidth": 1024,
+    "clientWidth": 1024,
+    "bodyText": "跳转到主要内容\n拓途浙享\n数字艺术与科技\n首页\n活动聚合\n浙客松\nAI 社区\n播客\n影像库\n关于\nZH\n登录\n\n浙客松\n\nZHEKESONG\n\n赛事报名\n比赛成果\n\nAI BUILD ARENA 2026\n\nAI 全栈极速\n比赛成果\n\n这不"
+  },
+  {
+    "name": "hackathon-showcase",
+    "route": "/hackathon/showcase",
+    "w": 768,
+    "h": 1024,
+    "file": "768x1024__hackathon-showcase.png",
+    "errors": [],
+    "scrollWidth": 768,
+    "clientWidth": 768,
+    "bodyText": "跳转到主要内容\n浙客松\n\n浙客松\n\nZHEKESONG\n\n赛事报名\n比赛成果\n\nAI BUILD ARENA 2026\n\nAI 全栈极速\n比赛成果\n\n这不是报名页的延长线，而是一份赛后作品档案：宣传片、现场照片、获奖项目和支持阵容在同一个清"
+  },
+  {
+    "name": "events",
+    "route": "/events",
+    "w": 1024,
+    "h": 768,
+    "file": "1024x768__events.png",
+    "errors": [],
+    "scrollWidth": 1024,
+    "clientWidth": 1024,
+    "bodyText": "跳转到主要内容\n拓途浙享\n数字艺术与科技\n首页\n活动聚合\n浙客松\nAI 社区\n播客\n影像库\n关于\nZH\n登录\n社区活动\n\n加入我们的最新活动与研讨会\n\n创建活动\n筛选\nAI 搜索\n全部\n讲座\n竞赛\n志愿\n招新\n文体\n交流\n其他\n面向：全校\n"
+  },
+  {
+    "name": "events",
+    "route": "/events",
+    "w": 900,
+    "h": 768,
+    "file": "900x768__events.png",
+    "errors": [],
+    "scrollWidth": 900,
+    "clientWidth": 900,
+    "bodyText": "跳转到主要内容\n活动聚合\n社区活动\n\n加入我们的最新活动与研讨会\n\n创建活动\n筛选\nAI 搜索\n全部\n讲座\n竞赛\n志愿\n招新\n文体\n交流\n其他\n面向：全校\n最新发布\n已结束\n23期机器人班·第五课 | 具身智能机器人产业沙龙：智驭物理新世界"
+  },
+  {
+    "name": "articles",
+    "route": "/articles",
+    "w": 1024,
+    "h": 768,
+    "file": "1024x768__articles.png",
+    "errors": [],
+    "scrollWidth": 1024,
+    "clientWidth": 1024,
+    "bodyText": "跳转到主要内容\n拓途浙享\n数字艺术与科技\n首页\n活动聚合\n浙客松\nAI 社区\n播客\n影像库\n关于\nZH\n登录\nCOMMUNITY\nZJU AI COLLABORATION HUB\nAI 社区\n让问题、经验和人群持续流动。\n\n浙江大学 AI "
+  },
+  {
+    "name": "media",
+    "route": "/media",
+    "w": 1024,
+    "h": 768,
+    "file": "1024x768__media.png",
+    "errors": [],
+    "scrollWidth": 1024,
+    "clientWidth": 1024,
+    "bodyText": "跳转到主要内容\n拓途浙享\n数字艺术与科技\n首页\n活动聚合\n浙客松\nAI 社区\n播客\n影像库\n关于\nZH\n登录\n影像库\n\n按分类归档现场照片与视频记录。当前分类：全部。\n\n全部\n\n暂无影像分类，内容会显示在全部与未分类中。\n\n现场照片\n\n5 "
+  },
+  {
+    "name": "music",
+    "route": "/music",
+    "w": 1024,
+    "h": 768,
+    "file": "1024x768__music.png",
+    "errors": [],
+    "scrollWidth": 1024,
+    "clientWidth": 1024,
+    "bodyText": "跳转到主要内容\n拓途浙享\n数字艺术与科技\n首页\n活动聚合\n浙客松\nAI 社区\n播客\n影像库\n关于\nZH\n登录\n播客声场\n\n精选播客内容\n\n最新发布\n播客声场\n选择一首曲目\n\n开始聆听\n\n0:00\n0:00\n1X 倍速\n播客声场 (19)\nD"
+  },
+  {
+    "name": "videos",
+    "route": "/videos",
+    "w": 1024,
+    "h": 768,
+    "file": "1024x768__videos.png",
+    "errors": [],
+    "scrollWidth": 1024,
+    "clientWidth": 1024,
+    "bodyText": "跳转到主要内容\n拓途浙享\n数字艺术与科技\n首页\n活动聚合\n浙客松\nAI 社区\n播客\n影像库\n关于\nZH\n登录\n光影故事\n\n动态的视觉叙事。\n\n浙客松\n1\n浙客松\n1\n宣传片\n0\n拓途浙享\n|\nTUOTUZJU\n\n© 2026 AI生态团队."
+  },
+  {
+    "name": "gallery",
+    "route": "/gallery",
+    "w": 1024,
+    "h": 768,
+    "file": "1024x768__gallery.png",
+    "errors": [],
+    "scrollWidth": 1024,
+    "clientWidth": 1024,
+    "bodyText": "跳转到主要内容\n拓途浙享\n数字艺术与科技\n首页\n活动聚合\n浙客松\nAI 社区\n播客\n影像库\n关于\nZH\n登录\n画廊\n\n查看现场照片、校园摄影与精选图片内容\n\n最新发布\n全员合照\n0\n♥\n0\n选手特写\n0\n♥\n0\n领导讲话\n0\n♥\n0\n颁奖典"
+  }
+]

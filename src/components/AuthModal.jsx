@@ -132,7 +132,7 @@ const AuthModal = ({ isOpen, onClose }) => {
             <button 
               type="submit" 
               disabled={loading}
-              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-4 sm:py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-8 shadow-lg shadow-indigo-500/25 active:scale-[0.98] min-h-[44px]"
+              className={`w-full text-white font-bold py-4 sm:py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-8 active:scale-[0.98] min-h-[44px] ${isDayMode ? "bg-blue-700 hover:bg-blue-800 shadow-[0_12px_26px_rgba(29,78,216,0.18)]" : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-lg shadow-indigo-500/25"}`}
             >
               {loading ? <Loader className="animate-spin" size={20} /> : (
                 <>

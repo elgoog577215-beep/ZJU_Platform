@@ -1,0 +1,1703 @@
+[
+  {
+    "viewport": "1280x720",
+    "route": "/hackathon",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-post2/1280x720__hackathon.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "fixed": [
+        {
+          "tag": "nav",
+          "text": "拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录",
+          "left": 0,
+          "top": 0,
+          "right": 1280,
+          "bottom": 71,
+          "width": 1280,
+          "height": 71,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 "
+        },
+        {
+          "tag": "div",
+          "text": "浙客松 ZHEKESONG 赛事报名 比赛成果",
+          "left": 20,
+          "top": 76,
+          "right": 440,
+          "bottom": 122,
+          "width": 420,
+          "height": 46,
+          "position": "fixed",
+          "display": "block",
+          "cls": "pointer-events-none fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+72px)] z-[45] "
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1280,
+          "bottom": 2,
+          "width": 1280,
+          "height": 2,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed left-0 right-0 top-[env(safe-area-inset-top)] z-50 h-0.5"
+        }
+      ],
+      "hero": {
+        "tag": "section",
+        "text": "LIVE BRIEF PRIZE POOL 17,500 ￥ 奖金池 01 / 时间 5月10日 9:00 A.M. 02 / 地点 北2-112 03 / 形",
+        "left": 0,
+        "top": 0,
+        "right": 1280,
+        "bottom": 878,
+        "width": 1280,
+        "height": 878,
+        "position": "relative",
+        "display": "block",
+        "cls": "relative min-h-[100svh] px-4 pt-[calc(env(safe-area-inset-top)+124px)] sm:px-6 xl:px-10 mi"
+      },
+      "prize": {
+        "tag": "html",
+        "text": "跳转到主要内容 拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录 浙客松 ZHEKESONG 赛事报名 比赛成果 L",
+        "left": 0,
+        "top": 0,
+        "right": 1280,
+        "bottom": 720,
+        "width": 1280,
+        "height": 720,
+        "position": "static",
+        "display": "block",
+        "cls": "scroll-smooth"
+      }
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "viewport": "1280x720",
+    "route": "/media",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-post2/1280x720__media.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "fixed": [
+        {
+          "tag": "nav",
+          "text": "拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录",
+          "left": 0,
+          "top": 0,
+          "right": 1280,
+          "bottom": 71,
+          "width": 1280,
+          "height": 71,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 "
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1280,
+          "bottom": 2,
+          "width": 1280,
+          "height": 2,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed top-0 left-0 right-0 origin-left z-[100] h-[2px] bg-gradient-to-r from-sky-300/70 vi"
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1280,
+          "bottom": 1320,
+          "width": 1280,
+          "height": 1320,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed inset-0 pointer-events-none z-0 overflow-hidden"
+        }
+      ],
+      "hero": null,
+      "prize": null
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "viewport": "1280x720",
+    "route": "/gallery",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-post2/1280x720__gallery.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "fixed": [
+        {
+          "tag": "nav",
+          "text": "拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录",
+          "left": 0,
+          "top": 0,
+          "right": 1280,
+          "bottom": 71,
+          "width": 1280,
+          "height": 71,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 "
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1280,
+          "bottom": 2,
+          "width": 1280,
+          "height": 2,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed top-0 left-0 right-0 origin-left z-[100] h-[2px] bg-gradient-to-r from-sky-300/70 vi"
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1280,
+          "bottom": 1006,
+          "width": 1280,
+          "height": 1006,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed inset-0 pointer-events-none z-0 overflow-hidden"
+        }
+      ],
+      "hero": null,
+      "prize": null
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "viewport": "1280x720",
+    "route": "/events",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-post2/1280x720__events.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "fixed": [
+        {
+          "tag": "nav",
+          "text": "拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录",
+          "left": 0,
+          "top": 0,
+          "right": 1280,
+          "bottom": 71,
+          "width": 1280,
+          "height": 71,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 "
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1280,
+          "bottom": 2,
+          "width": 1280,
+          "height": 2,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed top-0 left-0 right-0 origin-left z-[100] h-[2px] bg-gradient-to-r from-sky-300/70 vi"
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1280,
+          "bottom": 2626,
+          "width": 1280,
+          "height": 2626,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed inset-0 pointer-events-none z-0 hidden overflow-hidden md:block"
+        }
+      ],
+      "hero": null,
+      "prize": null
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "viewport": "1280x720",
+    "route": "/articles",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-post2/1280x720__articles.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "fixed": [
+        {
+          "tag": "nav",
+          "text": "拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录",
+          "left": 0,
+          "top": 0,
+          "right": 1280,
+          "bottom": 71,
+          "width": 1280,
+          "height": 71,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 "
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1280,
+          "bottom": 2,
+          "width": 1280,
+          "height": 2,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed top-0 left-0 right-0 origin-left z-[100] h-[2px] bg-gradient-to-r from-sky-300/70 vi"
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1280,
+          "bottom": 2755,
+          "width": 1280,
+          "height": 2755,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed inset-0 z-0 pointer-events-none"
+        }
+      ],
+      "hero": null,
+      "prize": null
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "viewport": "1280x720",
+    "route": "/about",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-post2/1280x720__about.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "fixed": [
+        {
+          "tag": "nav",
+          "text": "拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录",
+          "left": 0,
+          "top": 0,
+          "right": 1280,
+          "bottom": 71,
+          "width": 1280,
+          "height": 71,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 "
+        },
+        {
+          "tag": "nav",
+          "text": "01 02 03",
+          "left": 1212,
+          "top": 276,
+          "right": 1260,
+          "bottom": 444,
+          "width": 48,
+          "height": 168,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "fixed right-5 top-1/2 z-30 hidden -translate-y-1/2 flex-col gap-3 lg:flex"
+        }
+      ],
+      "hero": null,
+      "prize": null
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "viewport": "1280x720",
+    "route": "/future-learning",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-post2/1280x720__future-learning.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "fixed": [
+        {
+          "tag": "nav",
+          "text": "拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录",
+          "left": 0,
+          "top": 0,
+          "right": 1280,
+          "bottom": 71,
+          "width": 1280,
+          "height": 71,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 "
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1280,
+          "bottom": 2,
+          "width": 1280,
+          "height": 2,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed top-0 left-0 right-0 origin-left z-[100] h-[2px] bg-gradient-to-r from-sky-300/70 vi"
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1280,
+          "bottom": 2032,
+          "width": 1280,
+          "height": 2032,
+          "position": "fixed",
+          "display": "block",
+          "cls": "pointer-events-none fixed inset-0 overflow-hidden"
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 220,
+          "bottom": 2032,
+          "width": 220,
+          "height": 2032,
+          "position": "fixed",
+          "display": "block",
+          "cls": "pointer-events-none fixed inset-y-0 left-0 hidden w-[220px] lg:block opacity-20"
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 1060,
+          "top": 0,
+          "right": 1280,
+          "bottom": 2032,
+          "width": 220,
+          "height": 2032,
+          "position": "fixed",
+          "display": "block",
+          "cls": "pointer-events-none fixed inset-y-0 right-0 hidden w-[220px] scale-x-[-1] lg:block opacity"
+        }
+      ],
+      "hero": null,
+      "prize": null
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "viewport": "1366x768",
+    "route": "/hackathon",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-post2/1366x768__hackathon.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "fixed": [
+        {
+          "tag": "nav",
+          "text": "拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录",
+          "left": 0,
+          "top": 0,
+          "right": 1366,
+          "bottom": 71,
+          "width": 1366,
+          "height": 71,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 "
+        },
+        {
+          "tag": "div",
+          "text": "浙客松 ZHEKESONG 赛事报名 比赛成果",
+          "left": 20,
+          "top": 76,
+          "right": 440,
+          "bottom": 122,
+          "width": 420,
+          "height": 46,
+          "position": "fixed",
+          "display": "block",
+          "cls": "pointer-events-none fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+72px)] z-[45] "
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1366,
+          "bottom": 2,
+          "width": 1366,
+          "height": 2,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed left-0 right-0 top-[env(safe-area-inset-top)] z-50 h-0.5"
+        }
+      ],
+      "hero": {
+        "tag": "section",
+        "text": "LIVE BRIEF PRIZE POOL 17,500 ￥ 奖金池 01 / 时间 5月10日 9:00 A.M. 02 / 地点 北2-112 03 / 形",
+        "left": 0,
+        "top": 0,
+        "right": 1366,
+        "bottom": 878,
+        "width": 1366,
+        "height": 878,
+        "position": "relative",
+        "display": "block",
+        "cls": "relative min-h-[100svh] px-4 pt-[calc(env(safe-area-inset-top)+124px)] sm:px-6 xl:px-10 mi"
+      },
+      "prize": {
+        "tag": "html",
+        "text": "跳转到主要内容 拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录 浙客松 ZHEKESONG 赛事报名 比赛成果 L",
+        "left": 0,
+        "top": 0,
+        "right": 1366,
+        "bottom": 768,
+        "width": 1366,
+        "height": 768,
+        "position": "static",
+        "display": "block",
+        "cls": "scroll-smooth"
+      }
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "viewport": "1366x768",
+    "route": "/media",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-post2/1366x768__media.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "fixed": [
+        {
+          "tag": "nav",
+          "text": "拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录",
+          "left": 0,
+          "top": 0,
+          "right": 1366,
+          "bottom": 71,
+          "width": 1366,
+          "height": 71,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 "
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1366,
+          "bottom": 2,
+          "width": 1366,
+          "height": 2,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed top-0 left-0 right-0 origin-left z-[100] h-[2px] bg-gradient-to-r from-sky-300/70 vi"
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1366,
+          "bottom": 1320,
+          "width": 1366,
+          "height": 1320,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed inset-0 pointer-events-none z-0 overflow-hidden"
+        }
+      ],
+      "hero": null,
+      "prize": null
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "viewport": "1366x768",
+    "route": "/gallery",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-post2/1366x768__gallery.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "fixed": [
+        {
+          "tag": "nav",
+          "text": "拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录",
+          "left": 0,
+          "top": 0,
+          "right": 1366,
+          "bottom": 71,
+          "width": 1366,
+          "height": 71,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 "
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1366,
+          "bottom": 2,
+          "width": 1366,
+          "height": 2,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed top-0 left-0 right-0 origin-left z-[100] h-[2px] bg-gradient-to-r from-sky-300/70 vi"
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1366,
+          "bottom": 1006,
+          "width": 1366,
+          "height": 1006,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed inset-0 pointer-events-none z-0 overflow-hidden"
+        }
+      ],
+      "hero": null,
+      "prize": null
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "viewport": "1366x768",
+    "route": "/events",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-post2/1366x768__events.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "fixed": [
+        {
+          "tag": "nav",
+          "text": "拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录",
+          "left": 0,
+          "top": 0,
+          "right": 1366,
+          "bottom": 71,
+          "width": 1366,
+          "height": 71,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 "
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1366,
+          "bottom": 2,
+          "width": 1366,
+          "height": 2,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed top-0 left-0 right-0 origin-left z-[100] h-[2px] bg-gradient-to-r from-sky-300/70 vi"
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1366,
+          "bottom": 2626,
+          "width": 1366,
+          "height": 2626,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed inset-0 pointer-events-none z-0 hidden overflow-hidden md:block"
+        }
+      ],
+      "hero": null,
+      "prize": null
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "viewport": "1366x768",
+    "route": "/articles",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-post2/1366x768__articles.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "fixed": [
+        {
+          "tag": "nav",
+          "text": "拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录",
+          "left": 0,
+          "top": 0,
+          "right": 1366,
+          "bottom": 71,
+          "width": 1366,
+          "height": 71,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 "
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1366,
+          "bottom": 2,
+          "width": 1366,
+          "height": 2,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed top-0 left-0 right-0 origin-left z-[100] h-[2px] bg-gradient-to-r from-sky-300/70 vi"
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1366,
+          "bottom": 2755,
+          "width": 1366,
+          "height": 2755,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed inset-0 z-0 pointer-events-none"
+        }
+      ],
+      "hero": null,
+      "prize": null
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "viewport": "1366x768",
+    "route": "/about",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-post2/1366x768__about.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "fixed": [
+        {
+          "tag": "nav",
+          "text": "拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录",
+          "left": 0,
+          "top": 0,
+          "right": 1366,
+          "bottom": 71,
+          "width": 1366,
+          "height": 71,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 "
+        },
+        {
+          "tag": "nav",
+          "text": "01 02 03",
+          "left": 1298,
+          "top": 300,
+          "right": 1346,
+          "bottom": 468,
+          "width": 48,
+          "height": 168,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "fixed right-5 top-1/2 z-30 hidden -translate-y-1/2 flex-col gap-3 lg:flex"
+        }
+      ],
+      "hero": null,
+      "prize": null
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "viewport": "1366x768",
+    "route": "/future-learning",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-post2/1366x768__future-learning.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "fixed": [
+        {
+          "tag": "nav",
+          "text": "拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录",
+          "left": 0,
+          "top": 0,
+          "right": 1366,
+          "bottom": 71,
+          "width": 1366,
+          "height": 71,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 "
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1366,
+          "bottom": 2,
+          "width": 1366,
+          "height": 2,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed top-0 left-0 right-0 origin-left z-[100] h-[2px] bg-gradient-to-r from-sky-300/70 vi"
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1366,
+          "bottom": 2032,
+          "width": 1366,
+          "height": 2032,
+          "position": "fixed",
+          "display": "block",
+          "cls": "pointer-events-none fixed inset-0 overflow-hidden"
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 220,
+          "bottom": 2032,
+          "width": 220,
+          "height": 2032,
+          "position": "fixed",
+          "display": "block",
+          "cls": "pointer-events-none fixed inset-y-0 left-0 hidden w-[220px] lg:block opacity-20"
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 1146,
+          "top": 0,
+          "right": 1366,
+          "bottom": 2032,
+          "width": 220,
+          "height": 2032,
+          "position": "fixed",
+          "display": "block",
+          "cls": "pointer-events-none fixed inset-y-0 right-0 hidden w-[220px] scale-x-[-1] lg:block opacity"
+        }
+      ],
+      "hero": null,
+      "prize": null
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "viewport": "1536x864",
+    "route": "/hackathon",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-post2/1536x864__hackathon.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "fixed": [
+        {
+          "tag": "nav",
+          "text": "拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录",
+          "left": 0,
+          "top": 0,
+          "right": 1536,
+          "bottom": 71,
+          "width": 1536,
+          "height": 71,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 "
+        },
+        {
+          "tag": "div",
+          "text": "浙客松 ZHEKESONG 赛事报名 比赛成果",
+          "left": 20,
+          "top": 76,
+          "right": 440,
+          "bottom": 122,
+          "width": 420,
+          "height": 46,
+          "position": "fixed",
+          "display": "block",
+          "cls": "pointer-events-none fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+72px)] z-[45] "
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1536,
+          "bottom": 2,
+          "width": 1536,
+          "height": 2,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed left-0 right-0 top-[env(safe-area-inset-top)] z-50 h-0.5"
+        }
+      ],
+      "hero": {
+        "tag": "section",
+        "text": "LIVE BRIEF PRIZE POOL 17,500 ￥ 奖金池 01 / 时间 5月10日 9:00 A.M. 02 / 地点 北2-112 03 / 形",
+        "left": 0,
+        "top": 0,
+        "right": 1536,
+        "bottom": 970,
+        "width": 1536,
+        "height": 970,
+        "position": "relative",
+        "display": "block",
+        "cls": "relative min-h-[100svh] px-4 pt-[calc(env(safe-area-inset-top)+124px)] sm:px-6 xl:px-10 mi"
+      },
+      "prize": {
+        "tag": "html",
+        "text": "跳转到主要内容 拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录 浙客松 ZHEKESONG 赛事报名 比赛成果 L",
+        "left": 0,
+        "top": 0,
+        "right": 1536,
+        "bottom": 864,
+        "width": 1536,
+        "height": 864,
+        "position": "static",
+        "display": "block",
+        "cls": "scroll-smooth"
+      }
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "viewport": "1536x864",
+    "route": "/media",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-post2/1536x864__media.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "fixed": [
+        {
+          "tag": "nav",
+          "text": "拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录",
+          "left": 0,
+          "top": 0,
+          "right": 1536,
+          "bottom": 71,
+          "width": 1536,
+          "height": 71,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 "
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1536,
+          "bottom": 2,
+          "width": 1536,
+          "height": 2,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed top-0 left-0 right-0 origin-left z-[100] h-[2px] bg-gradient-to-r from-sky-300/70 vi"
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1536,
+          "bottom": 1320,
+          "width": 1536,
+          "height": 1320,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed inset-0 pointer-events-none z-0 overflow-hidden"
+        }
+      ],
+      "hero": null,
+      "prize": null
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "viewport": "1536x864",
+    "route": "/gallery",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-post2/1536x864__gallery.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "fixed": [
+        {
+          "tag": "nav",
+          "text": "拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录",
+          "left": 0,
+          "top": 0,
+          "right": 1536,
+          "bottom": 71,
+          "width": 1536,
+          "height": 71,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 "
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1536,
+          "bottom": 2,
+          "width": 1536,
+          "height": 2,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed top-0 left-0 right-0 origin-left z-[100] h-[2px] bg-gradient-to-r from-sky-300/70 vi"
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1536,
+          "bottom": 1006,
+          "width": 1536,
+          "height": 1006,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed inset-0 pointer-events-none z-0 overflow-hidden"
+        }
+      ],
+      "hero": null,
+      "prize": null
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "viewport": "1536x864",
+    "route": "/events",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-post2/1536x864__events.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "fixed": [
+        {
+          "tag": "nav",
+          "text": "拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录",
+          "left": 0,
+          "top": 0,
+          "right": 1536,
+          "bottom": 71,
+          "width": 1536,
+          "height": 71,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 "
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1536,
+          "bottom": 2,
+          "width": 1536,
+          "height": 2,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed top-0 left-0 right-0 origin-left z-[100] h-[2px] bg-gradient-to-r from-sky-300/70 vi"
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1536,
+          "bottom": 2626,
+          "width": 1536,
+          "height": 2626,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed inset-0 pointer-events-none z-0 hidden overflow-hidden md:block"
+        }
+      ],
+      "hero": null,
+      "prize": null
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "viewport": "1536x864",
+    "route": "/articles",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-post2/1536x864__articles.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "fixed": [
+        {
+          "tag": "nav",
+          "text": "拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录",
+          "left": 0,
+          "top": 0,
+          "right": 1536,
+          "bottom": 71,
+          "width": 1536,
+          "height": 71,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 "
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1536,
+          "bottom": 2,
+          "width": 1536,
+          "height": 2,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed top-0 left-0 right-0 origin-left z-[100] h-[2px] bg-gradient-to-r from-sky-300/70 vi"
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1536,
+          "bottom": 2755,
+          "width": 1536,
+          "height": 2755,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed inset-0 z-0 pointer-events-none"
+        }
+      ],
+      "hero": null,
+      "prize": null
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "viewport": "1536x864",
+    "route": "/about",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-post2/1536x864__about.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "fixed": [
+        {
+          "tag": "nav",
+          "text": "拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录",
+          "left": 0,
+          "top": 0,
+          "right": 1536,
+          "bottom": 71,
+          "width": 1536,
+          "height": 71,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 "
+        },
+        {
+          "tag": "nav",
+          "text": "01 02 03",
+          "left": 1468,
+          "top": 348,
+          "right": 1516,
+          "bottom": 516,
+          "width": 48,
+          "height": 168,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "fixed right-5 top-1/2 z-30 hidden -translate-y-1/2 flex-col gap-3 lg:flex"
+        }
+      ],
+      "hero": null,
+      "prize": null
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "viewport": "1536x864",
+    "route": "/future-learning",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-post2/1536x864__future-learning.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "fixed": [
+        {
+          "tag": "nav",
+          "text": "拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录",
+          "left": 0,
+          "top": 0,
+          "right": 1536,
+          "bottom": 71,
+          "width": 1536,
+          "height": 71,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 "
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1536,
+          "bottom": 2,
+          "width": 1536,
+          "height": 2,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed top-0 left-0 right-0 origin-left z-[100] h-[2px] bg-gradient-to-r from-sky-300/70 vi"
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 1536,
+          "bottom": 2032,
+          "width": 1536,
+          "height": 2032,
+          "position": "fixed",
+          "display": "block",
+          "cls": "pointer-events-none fixed inset-0 overflow-hidden"
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 220,
+          "bottom": 2032,
+          "width": 220,
+          "height": 2032,
+          "position": "fixed",
+          "display": "block",
+          "cls": "pointer-events-none fixed inset-y-0 left-0 hidden w-[220px] lg:block opacity-20"
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 1316,
+          "top": 0,
+          "right": 1536,
+          "bottom": 2032,
+          "width": 220,
+          "height": 2032,
+          "position": "fixed",
+          "display": "block",
+          "cls": "pointer-events-none fixed inset-y-0 right-0 hidden w-[220px] scale-x-[-1] lg:block opacity"
+        }
+      ],
+      "hero": null,
+      "prize": null
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "viewport": "2048x1015",
+    "route": "/hackathon",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-post2/2048x1015__hackathon.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "fixed": [
+        {
+          "tag": "nav",
+          "text": "拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录",
+          "left": 0,
+          "top": 0,
+          "right": 2048,
+          "bottom": 71,
+          "width": 2048,
+          "height": 71,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 "
+        },
+        {
+          "tag": "div",
+          "text": "浙客松 ZHEKESONG 赛事报名 比赛成果",
+          "left": 28,
+          "top": 78,
+          "right": 448,
+          "bottom": 124,
+          "width": 420,
+          "height": 46,
+          "position": "fixed",
+          "display": "block",
+          "cls": "pointer-events-none fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+72px)] z-[45] "
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 2048,
+          "bottom": 2,
+          "width": 2048,
+          "height": 2,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed left-0 right-0 top-[env(safe-area-inset-top)] z-50 h-0.5"
+        },
+        {
+          "tag": "div",
+          "text": "主页 赛制 02 报名 03",
+          "left": 1984,
+          "top": 432,
+          "right": 2024,
+          "bottom": 584,
+          "width": 40,
+          "height": 152,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "fixed right-6 top-1/2 z-20 hidden -translate-y-1/2 flex-col items-center gap-4 min-[1720px"
+        }
+      ],
+      "hero": {
+        "tag": "section",
+        "text": "LIVE BRIEF PRIZE POOL 17,500 ￥ 奖金池 01 / 时间 5月10日 9:00 A.M. 02 / 地点 北2-112 03 / 形",
+        "left": 0,
+        "top": 0,
+        "right": 2048,
+        "bottom": 1015,
+        "width": 2048,
+        "height": 1015,
+        "position": "relative",
+        "display": "block",
+        "cls": "relative min-h-[100svh] px-4 pt-[calc(env(safe-area-inset-top)+124px)] sm:px-6 xl:px-10 mi"
+      },
+      "prize": {
+        "tag": "html",
+        "text": "跳转到主要内容 拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录 浙客松 ZHEKESONG 赛事报名 比赛成果 主",
+        "left": 0,
+        "top": 0,
+        "right": 2048,
+        "bottom": 1015,
+        "width": 2048,
+        "height": 1015,
+        "position": "static",
+        "display": "block",
+        "cls": "scroll-smooth"
+      }
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "viewport": "2048x1015",
+    "route": "/media",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-post2/2048x1015__media.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "fixed": [
+        {
+          "tag": "nav",
+          "text": "拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录",
+          "left": 0,
+          "top": 0,
+          "right": 2048,
+          "bottom": 71,
+          "width": 2048,
+          "height": 71,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 "
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 2048,
+          "bottom": 2,
+          "width": 2048,
+          "height": 2,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed top-0 left-0 right-0 origin-left z-[100] h-[2px] bg-gradient-to-r from-sky-300/70 vi"
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 2048,
+          "bottom": 1320,
+          "width": 2048,
+          "height": 1320,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed inset-0 pointer-events-none z-0 overflow-hidden"
+        }
+      ],
+      "hero": null,
+      "prize": null
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "viewport": "2048x1015",
+    "route": "/gallery",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-post2/2048x1015__gallery.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "fixed": [
+        {
+          "tag": "nav",
+          "text": "拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录",
+          "left": 0,
+          "top": 0,
+          "right": 2048,
+          "bottom": 71,
+          "width": 2048,
+          "height": 71,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 "
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 2048,
+          "bottom": 2,
+          "width": 2048,
+          "height": 2,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed top-0 left-0 right-0 origin-left z-[100] h-[2px] bg-gradient-to-r from-sky-300/70 vi"
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 2048,
+          "bottom": 1006,
+          "width": 2048,
+          "height": 1006,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed inset-0 pointer-events-none z-0 overflow-hidden"
+        }
+      ],
+      "hero": null,
+      "prize": null
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "viewport": "2048x1015",
+    "route": "/events",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-post2/2048x1015__events.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "fixed": [
+        {
+          "tag": "nav",
+          "text": "拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录",
+          "left": 0,
+          "top": 0,
+          "right": 2048,
+          "bottom": 71,
+          "width": 2048,
+          "height": 71,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 "
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 2048,
+          "bottom": 2,
+          "width": 2048,
+          "height": 2,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed top-0 left-0 right-0 origin-left z-[100] h-[2px] bg-gradient-to-r from-sky-300/70 vi"
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 2048,
+          "bottom": 2626,
+          "width": 2048,
+          "height": 2626,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed inset-0 pointer-events-none z-0 hidden overflow-hidden md:block"
+        }
+      ],
+      "hero": null,
+      "prize": null
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "viewport": "2048x1015",
+    "route": "/articles",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-post2/2048x1015__articles.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "fixed": [
+        {
+          "tag": "nav",
+          "text": "拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录",
+          "left": 0,
+          "top": 0,
+          "right": 2048,
+          "bottom": 71,
+          "width": 2048,
+          "height": 71,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 "
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 2048,
+          "bottom": 2,
+          "width": 2048,
+          "height": 2,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed top-0 left-0 right-0 origin-left z-[100] h-[2px] bg-gradient-to-r from-sky-300/70 vi"
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 2048,
+          "bottom": 2755,
+          "width": 2048,
+          "height": 2755,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed inset-0 z-0 pointer-events-none"
+        }
+      ],
+      "hero": null,
+      "prize": null
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "viewport": "2048x1015",
+    "route": "/about",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-post2/2048x1015__about.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "fixed": [
+        {
+          "tag": "nav",
+          "text": "拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录",
+          "left": 0,
+          "top": 0,
+          "right": 2048,
+          "bottom": 71,
+          "width": 2048,
+          "height": 71,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 "
+        },
+        {
+          "tag": "nav",
+          "text": "01 02 03",
+          "left": 1980,
+          "top": 424,
+          "right": 2028,
+          "bottom": 592,
+          "width": 48,
+          "height": 168,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "fixed right-5 top-1/2 z-30 hidden -translate-y-1/2 flex-col gap-3 lg:flex"
+        }
+      ],
+      "hero": null,
+      "prize": null
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "viewport": "2048x1015",
+    "route": "/future-learning",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/current-laptop-post2/2048x1015__future-learning.png",
+    "metrics": {
+      "rootOverflowX": 0,
+      "horizontalOverflowEls": [],
+      "clipping": [],
+      "fixed": [
+        {
+          "tag": "nav",
+          "text": "拓途浙享 数字艺术与科技 首页 活动聚合 浙客松 AI 社区 播客 影像库 关于 ZH 登录",
+          "left": 0,
+          "top": 0,
+          "right": 2048,
+          "bottom": 71,
+          "width": 2048,
+          "height": 71,
+          "position": "fixed",
+          "display": "flex",
+          "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 "
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 2048,
+          "bottom": 2,
+          "width": 2048,
+          "height": 2,
+          "position": "fixed",
+          "display": "block",
+          "cls": "fixed top-0 left-0 right-0 origin-left z-[100] h-[2px] bg-gradient-to-r from-sky-300/70 vi"
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 2048,
+          "bottom": 2159,
+          "width": 2048,
+          "height": 2159,
+          "position": "fixed",
+          "display": "block",
+          "cls": "pointer-events-none fixed inset-0 overflow-hidden"
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 0,
+          "top": 0,
+          "right": 220,
+          "bottom": 2159,
+          "width": 220,
+          "height": 2159,
+          "position": "fixed",
+          "display": "block",
+          "cls": "pointer-events-none fixed inset-y-0 left-0 hidden w-[220px] lg:block opacity-20"
+        },
+        {
+          "tag": "div",
+          "text": "",
+          "left": 1828,
+          "top": 0,
+          "right": 2048,
+          "bottom": 2159,
+          "width": 220,
+          "height": 2159,
+          "position": "fixed",
+          "display": "block",
+          "cls": "pointer-events-none fixed inset-y-0 right-0 hidden w-[220px] scale-x-[-1] lg:block opacity"
+        }
+      ],
+      "hero": null,
+      "prize": null
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  }
+]

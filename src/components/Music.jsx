@@ -181,10 +181,13 @@ const Music = ({ embedded = false, singleColumn = false }) => {
   const isPaginationEnabled = settings.pagination_enabled === "true";
   const pageSize = isPaginationEnabled ? 12 : 20;
   const hasMore = !isPaginationEnabled && currentPage < totalPages;
+  const playButtonClass = isDayMode
+    ? "bg-blue-700 text-white shadow-[0_12px_26px_rgba(29,78,216,0.18)] hover:bg-blue-800 hover:shadow-[0_14px_30px_rgba(29,78,216,0.22)]"
+    : "bg-gradient-to-br from-cyan-400 to-blue-600 text-white shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)]";
 
   // Deep linking
   useEffect(() => {
-    const id = searchParams.get("id");
+    const id = searchParams.get("music") || (!embedded ? searchParams.get("id") : null);
     if (id) {
       api
         .get(`/music/${id}`)
@@ -705,7 +708,7 @@ const Music = ({ embedded = false, singleColumn = false }) => {
                   type="button"
                   onClick={togglePlay}
                   aria-label={isPlaying ? t("common.pause", "暂停") : t("common.play", "播放")}
-                  className="w-20 h-20 bg-gradient-to-br from-cyan-400 to-blue-600 text-white rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] hover:scale-105 active:scale-95 transition-all"
+                  className={`w-20 h-20 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all ${playButtonClass}`}
                   title={isPlaying ? t("common.pause") : t("common.play")}
                 >
                   {isPlaying ? (

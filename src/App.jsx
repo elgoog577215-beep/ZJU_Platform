@@ -34,7 +34,6 @@ import PerformancePanel from './components/PerformancePanel';
 
 const Gallery = lazy(() => import('./components/Gallery'));
 const MediaLibrary = lazy(() => import('./components/MediaLibrary'));
-const Music = lazy(() => import('./components/Music'));
 const Videos = lazy(() => import('./components/Videos'));
 const Articles = lazy(() => import('./components/AICommunity'));
 const Events = lazy(() => import('./components/Events'));
@@ -96,6 +95,23 @@ const Home = () => (
     <HomeSplash />
   </>
 );
+
+const MusicRedirect = () => {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const legacyId = params.get('id');
+  if (legacyId) {
+    params.delete('id');
+    params.set('music', legacyId);
+  }
+  const query = params.toString();
+  return (
+    <Navigate
+      to={`/articles${query ? `?${query}` : ''}#community-podcast`}
+      replace
+    />
+  );
+};
 
 const AdminRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -199,7 +215,7 @@ const AppContent = () => {
               <Route path="/" element={<PageTransition><Home /></PageTransition>} />
               <Route path="/media" element={<PageTransition><MediaLibrary /></PageTransition>} />
               <Route path="/gallery" element={<PageTransition><Gallery /></PageTransition>} />
-              <Route path="/music" element={<PageTransition><Music /></PageTransition>} />
+              <Route path="/music" element={<MusicRedirect />} />
               <Route path="/videos" element={<PageTransition><Videos /></PageTransition>} />
               <Route path="/articles" element={<PageTransition><Articles /></PageTransition>} />
               <Route path="/ai-community" element={<Navigate to="/articles" replace />} />

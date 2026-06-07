@@ -319,7 +319,7 @@ const PlatformStats = ({ hero } = {}) => {
       title: item.title || t("home.platform.featured_audio", "Featured Audio"),
       subtitle: t("home.platform.media_audio", "Audio"),
       image: item.cover,
-      targetPath: `/music?id=${item.id}`,
+      targetPath: `/articles?music=${item.id}#community-podcast`,
       icon: Music2,
     })),
     ...(featuredData?.events || []).slice(0, 1).map((item) => ({

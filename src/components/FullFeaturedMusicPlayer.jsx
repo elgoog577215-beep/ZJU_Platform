@@ -158,7 +158,7 @@ const FullFeaturedMusicPlayer = memo(({ tracks = [] }) => {
                         </button>
                         <button 
                             onClick={togglePlay}
-                            className="w-20 h-20 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center text-white shadow-lg hover:scale-105 transition-all"
+                            className="w-20 h-20 bg-cyan-500 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-cyan-400 hover:scale-105 transition-all"
                         >
                             {isPlaying ? <Pause size={32} fill="currentColor" /> : <Play size={32} fill="currentColor" className="ml-1" />}
                         </button>
@@ -227,7 +227,7 @@ const FullFeaturedMusicPlayer = memo(({ tracks = [] }) => {
                         if (currentTrack) togglePlay();
                         else if (tracks.length > 0) playTrack(tracks[0], tracks);
                     }}
-                    className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-600 text-white rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg shadow-cyan-500/30"
+                    className="w-12 h-12 bg-cyan-500 text-white rounded-full flex items-center justify-center hover:bg-cyan-400 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-cyan-500/30"
                 >
                     {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" className="ml-1" />}
                 </button>
