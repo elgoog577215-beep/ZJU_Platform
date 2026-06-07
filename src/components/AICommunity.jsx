@@ -1,311 +1,159 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import {
-  ArrowRight,
-  BookOpen,
-  HelpCircle,
-  Newspaper,
-  QrCode,
-  Sparkles,
-  Users,
-  X,
-} from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
+import { Newspaper, QrCode } from "lucide-react";
 import { useSettings } from "../context/SettingsContext";
-import { useBackClose } from "../hooks/useBackClose";
 import SEO from "./SEO";
-import CommunityTech from "./CommunityTech";
-import CommunityHelp from "./CommunityHelp";
 import CommunityGroups from "./CommunityGroups";
+import CommunityPosts from "./CommunityPosts";
 import CommunityNewsRail from "./CommunityNewsRail";
+import Music from "./Music";
 
-const panels = {
-  help: CommunityHelp,
-  tech: CommunityTech,
-  groups: CommunityGroups,
-};
+const SectionLabel = ({ code, title, desc, isDayMode }) => (
+  <div className="mb-4">
+    <div className={`text-[11px] font-black uppercase tracking-[0.22em] ${isDayMode ? "text-blue-700" : "text-cyan-300"}`}>
+      {code}
+    </div>
+    <h2 className="mt-1 text-xl font-black md:text-2xl">{title}</h2>
+    {desc && (
+      <p className={`mt-1 text-xs leading-5 ${isDayMode ? "text-slate-500" : "text-white/50"}`}>
+        {desc}
+      </p>
+    )}
+  </div>
+);
 
-const TABS = [
-  {
-    key: "tech",
-    icon: BookOpen,
-    labelKey: "community.tab_tech",
-    fallback: "技术分享",
-    code: "BUILD",
-    desc: "复盘工具、方法和校内项目经验",
-  },
-  {
-    key: "help",
-    icon: HelpCircle,
-    labelKey: "community.tab_help",
-    fallback: "求助",
-    code: "ASK",
-    desc: "把问题抛出来，等同学和组织接住",
-  },
-  {
-    key: "groups",
-    icon: QrCode,
-    labelKey: "community.tab_groups",
-    fallback: "二维码社群",
-    code: "LINK",
-    desc: "进入长期协作群，沉淀真实关系",
-  },
-];
-
-const DEFAULT_TAB = "tech";
+const SidebarCard = ({ icon: Icon, code, title, desc, isDayMode, children }) => (
+  <div>
+    <div className={`mb-3 rounded-lg border p-4 ${isDayMode ? "border-slate-200/80 bg-white shadow-[0_4px_14px_rgba(15,23,42,0.04)]" : "border-white/10 bg-white/[0.04]"}`}>
+      <div className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] ${isDayMode ? "text-blue-700" : "text-cyan-300"}`}>
+        <Icon size={12} />
+        {code}
+      </div>
+      <h2 className="mt-1.5 text-base font-black leading-tight">{title}</h2>
+      {desc && <p className={`mt-1 text-xs leading-5 ${isDayMode ? "text-slate-500" : "text-white/50"}`}>{desc}</p>}
+    </div>
+    {children}
+  </div>
+);
 
 const AICommunity = () => {
   const { t } = useTranslation();
   const { uiMode } = useSettings();
   const isDayMode = uiMode === "day";
   const [searchParams, setSearchParams] = useSearchParams();
-  const [isNewsOpen, setIsNewsOpen] = useState(false);
-
-  useBackClose(isNewsOpen, () => setIsNewsOpen(false));
-
-  const requestedTab = searchParams.get("tab") || DEFAULT_TAB;
-  const activeTab = panels[requestedTab] ? requestedTab : DEFAULT_TAB;
-  const ActivePanel = panels[activeTab] || CommunityTech;
 
   const subtitle = useMemo(
-    () =>
-      t(
-        "community.seo_description",
-        "浙江大学 AI 社区：求助、技术分享、新闻与协作。",
-      ),
+    () => t("community.seo_description", "浙江大学 AI 社区：求助、技术分享、新闻与协作。"),
     [t],
   );
 
   useEffect(() => {
-    if (searchParams.get("news")) {
-      setIsNewsOpen(true);
-    }
-  }, [searchParams]);
-
-  const handleTabChange = useCallback(
-    (tab) => {
-      setSearchParams({ tab }, { replace: true });
-    },
-    [setSearchParams],
-  );
-
-  const activeTabMeta = TABS.find((tab) => tab.key === activeTab) || TABS[0];
-  const ActiveIcon = activeTabMeta.icon;
-  const dayCommunityPalette = {
-    page: "bg-transparent text-slate-950",
-    hero:
-      "border-slate-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.045)]",
-    rail:
-      "border-slate-200/80 bg-white shadow-[0_8px_22px_rgba(15,23,42,0.045)]",
-    muted: "text-slate-600",
-    soft: "text-slate-500",
-    label: "text-blue-700",
-    tabShell: "border-slate-200/80 bg-slate-100/80",
-    tabActive:
-      "border-slate-300 bg-white text-slate-950 shadow-[0_4px_12px_rgba(15,23,42,0.06)]",
-    tabIdle: "border-transparent text-slate-600 hover:bg-white hover:text-slate-950",
-    stat: "border-slate-200/80 bg-white",
-    action: "bg-slate-950 text-white border border-slate-950 shadow-[0_8px_18px_rgba(15,23,42,0.16)] hover:bg-blue-700 hover:border-blue-700 hover:-translate-y-0.5",
-  };
-  const palette = isDayMode
-    ? {
-        ...dayCommunityPalette,
-      }
-    : {
-        page:
-          "text-white",
-        hero:
-          "border-white/10 bg-white/[0.045] shadow-[0_28px_90px_rgba(0,0,0,0.42)]",
-        rail:
-          "border-white/10 bg-white/[0.04] shadow-[0_18px_50px_rgba(0,0,0,0.28)]",
-        muted: "text-white/72",
-        soft: "text-white/48",
-        label: "text-cyan-300",
-        tabShell: "border-white/10 bg-black/18",
-        tabActive: "border-orange-300 bg-orange-400 text-slate-950 shadow-[0_0_32px_rgba(251,146,60,0.22)]",
-        tabIdle: "border-transparent text-white/58 hover:bg-white/[0.06] hover:text-white",
-        stat: "border-white/10 bg-white/[0.045]",
-        action: "bg-orange-300 text-slate-950 shadow-[0_0_26px_rgba(251,146,60,0.18)] hover:bg-orange-200",
-      };
+    const tab = searchParams.get("tab");
+    if (!tab) return;
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("tab");
+        if (tab === "tech" || tab === "help") next.set("postTab", tab);
+        return next;
+      },
+      { replace: true },
+    );
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <section
-      className={`relative z-10 min-h-screen overflow-hidden px-4 pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:px-6 md:pb-20 md:pt-28 lg:pt-32 ${palette.page}`}
+      className={`relative z-10 min-h-screen overflow-hidden px-4 pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:px-6 md:pb-20 md:pt-20 lg:pt-24 ${isDayMode ? "text-slate-950" : "text-white"}`}
     >
       <SEO title={t("nav.community", "AI社区")} description={subtitle} />
 
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        {isDayMode ? null : (
+      {!isDayMode && (
+        <div className="pointer-events-none fixed inset-0 z-0">
           <div className="absolute inset-x-0 top-0 h-80 bg-[linear-gradient(180deg,rgba(6,182,212,0.08),transparent)]" />
-        )}
-      </div>
+        </div>
+      )}
 
-      <div className="relative z-10 mx-auto grid w-full max-w-[1180px] gap-6 2xl:max-w-[1540px] 2xl:grid-cols-[320px_minmax(0,1fr)] 2xl:items-start">
-        <aside className="hidden 2xl:sticky 2xl:top-24 2xl:block">
-          <CommunityNewsRail />
-        </aside>
+      <div className="relative z-10 w-full">
 
-        <div className="mx-auto w-full min-w-0 max-w-[1100px] 2xl:max-w-none">
-          <header className="mb-5 md:mb-7">
-            <div className={`relative overflow-hidden border p-4 md:p-6 lg:p-7 ${palette.hero}`}>
-              <div className="pointer-events-none absolute -right-10 -top-12 hidden text-[8rem] font-black uppercase leading-none tracking-normal opacity-[0.045] md:block md:text-[12rem]">
-                COMMUNITY
-              </div>
-              <div className="grid gap-5 2xl:grid-cols-[minmax(0,1fr)_360px] 2xl:items-stretch">
-                <div className="relative">
-                  <div className={`inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.24em] ${palette.label}`}>
-                    <Sparkles size={14} />
-                    ZJU AI Collaboration Hub
-                  </div>
-                  <h1 className="mt-3 max-w-3xl text-[clamp(1.85rem,7vw,3rem)] font-black leading-[0.98] tracking-normal sm:text-5xl xl:text-[3.75rem]">
-                    AI 社区
-                    <span className="block">让问题、经验和人群持续流动。</span>
-                  </h1>
-                  <p className={`mt-4 max-w-2xl text-sm font-medium leading-7 md:text-base md:leading-8 ${palette.muted}`}>
-                    {subtitle} 从一次活动后的讨论，到下一次项目协作，都在这里接上。
-                  </p>
-                  <div className="mt-5 flex flex-wrap items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleTabChange(activeTab)}
-                      className={`inline-flex min-h-11 items-center gap-2 rounded-md px-5 text-sm font-black transition ${palette.action}`}
-                    >
-                      <ActiveIcon size={16} />
-                      进入{t(activeTabMeta.labelKey, activeTabMeta.fallback)}
-                      <ArrowRight size={16} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setIsNewsOpen(true)}
-                      className={`inline-flex min-h-11 items-center gap-2 rounded-md border px-4 text-sm font-bold transition-all 2xl:hidden ${isDayMode ? "border-slate-200/80 bg-white/70 text-slate-700 hover:bg-white" : "border-white/10 bg-white/[0.04] text-gray-200 hover:bg-white/10"}`}
-                    >
-                      <Newspaper size={16} />
-                      {t("community.news_board", "新闻热榜")}
-                    </button>
-                  </div>
-                </div>
-
-                <div className={`hidden gap-px overflow-hidden border md:grid ${isDayMode ? "border-slate-200/80 bg-slate-200/80" : "border-white/10 bg-white/10"}`}>
-                  {TABS.map(({ key, icon: Icon, labelKey, fallback, code, desc }) => {
-                    const isActive = activeTab === key;
-                    return (
-                      <button
-                        key={key}
-                        type="button"
-                        onClick={() => handleTabChange(key)}
-                        className={`group grid grid-cols-[2.75rem_1fr_auto] items-center gap-3 px-4 py-4 text-left transition ${
-                          isActive
-                            ? isDayMode
-                              ? "bg-white text-slate-950"
-                              : "bg-orange-300 text-slate-950"
-                            : isDayMode
-                              ? "bg-slate-50 text-slate-700 hover:bg-white hover:text-slate-950"
-                              : "bg-black/16 text-white/72 hover:bg-white/[0.06] hover:text-white"
-                        }`}
-                      >
-                        <span className={`flex h-10 w-10 items-center justify-center border ${isActive ? (isDayMode ? "border-blue-200 bg-blue-50 text-blue-700" : "border-slate-950/10 bg-slate-950/10") : isDayMode ? "border-slate-200 bg-white text-slate-500" : "border-white/10 bg-white/[0.04]"}`}>
-                          <Icon size={18} />
-                        </span>
-                        <span className="min-w-0">
-                          <span className="block font-mono text-[10px] font-black uppercase tracking-[0.2em] opacity-58">
-                            {code}
-                          </span>
-                          <span className="mt-1 block text-base font-black leading-tight">
-                            {t(labelKey, fallback)}
-                          </span>
-                          <span className="mt-1 block text-xs leading-5 opacity-68">
-                            {desc}
-                          </span>
-                        </span>
-                        <ArrowRight size={16} className="opacity-40 transition group-hover:translate-x-0.5 group-hover:opacity-80" />
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+        {/* ── Hero ── */}
+        <header className="mb-8 md:mb-10">
+          <div className={`relative overflow-hidden border p-4 md:p-6 lg:p-8 ${isDayMode ? "border-slate-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.045)]" : "border-white/10 bg-white/[0.045] shadow-[0_28px_90px_rgba(0,0,0,0.42)]"}`}>
+            <div className={`absolute inset-x-0 top-0 h-[2px] ${isDayMode ? "bg-gradient-to-r from-blue-500 via-indigo-400 to-transparent" : "bg-gradient-to-r from-orange-400 via-amber-300 to-transparent"}`} />
+            <div className="pointer-events-none absolute -right-10 -top-12 hidden text-[8rem] font-black uppercase leading-none opacity-[0.035] md:block md:text-[12rem]">
+              COMMUNITY
             </div>
+            <div className="relative max-w-2xl">
+              <div className={`inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.24em] ${isDayMode ? "text-blue-700" : "text-cyan-300"}`}>
+                <span className="relative flex h-2 w-2">
+                  <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${isDayMode ? "bg-blue-400" : "bg-orange-400"}`} />
+                  <span className={`relative inline-flex h-2 w-2 rounded-full ${isDayMode ? "bg-blue-500" : "bg-orange-400"}`} />
+                </span>
+                ZJU AI Collaboration Hub
+              </div>
+              <h1 className="mt-3 text-[clamp(1.85rem,7vw,3rem)] font-black leading-[0.98] tracking-normal sm:text-5xl xl:text-[3.5rem]">
+                AI 社区
+                <span className={`block text-[0.62em] font-black ${isDayMode ? "text-slate-400" : "text-white/40"}`}>
+                  让问题、经验和人群持续流动。
+                </span>
+              </h1>
+              <p className={`mt-5 mb-2 text-sm font-medium leading-7 ${isDayMode ? "text-slate-600" : "text-white/65"}`}>
+                {subtitle}
+              </p>
+            </div>
+          </div>
+        </header>
 
-            <div
-              role="tablist"
-              aria-label={t("nav.community", "AI社区")}
-              className={`scrollbar-none mt-3 flex w-full items-center gap-1 overflow-x-auto rounded-lg border p-1 ${palette.tabShell}`}
+        {/* ── 三列主体 ── */}
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(220px,1fr)_minmax(0,2.5fr)_minmax(220px,1fr)] xl:items-start">
+
+          {/* ── 左列：播客 ── */}
+          <aside id="community-podcast" className="xl:sticky xl:top-24">
+            <SectionLabel
+              code="LISTEN · 播客"
+              title="播客"
+              desc="收听校园播客与精选音频内容"
+              isDayMode={isDayMode}
+            />
+            <Music embedded singleColumn />
+          </aside>
+
+          {/* ── 中列：发帖区 ── */}
+          <main id="community-posts" className="min-w-0">
+            <SectionLabel
+              code="BUILD · ASK · 社区动态"
+              title="发帖区"
+              desc="分享项目经验，或把问题抛出来让社区接住"
+              isDayMode={isDayMode}
+            />
+            <CommunityPosts />
+          </main>
+
+          {/* ── 右列：二维码社群 + 新闻资讯 ── */}
+          <aside className="space-y-8 xl:sticky xl:top-24">
+            <SidebarCard
+              icon={QrCode}
+              code="LINK · 加入社群"
+              title="二维码社群"
+              desc="扫码加入，沉淀真实关系与长期协作"
+              isDayMode={isDayMode}
             >
-              {TABS.map(({ key, icon: Icon, labelKey, fallback }) => (
-                <button
-                  key={key}
-                  type="button"
-                  role="tab"
-                  aria-selected={activeTab === key}
-                  onClick={() => handleTabChange(key)}
-                  className={`inline-flex min-h-[42px] flex-1 items-center justify-center gap-2 rounded-md border px-3 text-sm font-bold whitespace-nowrap transition-all ${
-                    activeTab === key ? palette.tabActive : palette.tabIdle
-                  }`}
-                >
-                  <Icon size={16} />
-                  <span>{t(labelKey, fallback)}</span>
-                </button>
-              ))}
-            </div>
+              <CommunityGroups compact />
+            </SidebarCard>
 
-            <div className="mt-3 hidden gap-2 md:grid md:grid-cols-3">
-              {[
-                { label: "当前分区", value: t(activeTabMeta.labelKey, activeTabMeta.fallback), icon: ActiveIcon },
-                { label: "协作方式", value: activeTabMeta.code, icon: Users },
-                { label: "内容状态", value: "Live", icon: Sparkles },
-              ].map((item) => {
-                const Icon = item.icon;
-                return (
-                  <div key={item.label} className={`flex items-center justify-between rounded-lg border px-4 py-3 ${palette.stat}`}>
-                    <div>
-                      <div className={`text-[10px] font-black uppercase tracking-[0.18em] ${palette.soft}`}>{item.label}</div>
-                      <div className="mt-1 text-lg font-black leading-none">{item.value}</div>
-                    </div>
-                    <Icon size={18} className={palette.label} />
-                  </div>
-                );
-              })}
-            </div>
-          </header>
+            <SidebarCard
+              icon={Newspaper}
+              code="NEWS · 资讯热榜"
+              title="新闻资讯"
+              desc="校内外 AI 动态，实时更新"
+              isDayMode={isDayMode}
+            >
+              <CommunityNewsRail />
+            </SidebarCard>
+          </aside>
 
-          <ActivePanel />
         </div>
       </div>
-
-      <AnimatePresence>
-        {isNewsOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
-            className={`fixed inset-0 z-[130] 2xl:hidden ${
-              isDayMode ? "bg-white" : "bg-[#0f0f0f]"
-            }`}
-            style={{ height: "100dvh" }}
-          >
-            <div className="absolute inset-0 overflow-y-auto overscroll-contain p-3 pt-16">
-              <CommunityNewsRail />
-            </div>
-            <button
-              type="button"
-              aria-label={t("common.close", "关闭")}
-              onClick={() => setIsNewsOpen(false)}
-              style={{
-                top: "max(env(safe-area-inset-top), 1rem)",
-                right: "1rem",
-              }}
-              className={`absolute z-20 rounded-lg border p-2 transition-transform hover:rotate-90 ${
-                isDayMode
-                  ? "border-slate-200/80 bg-white text-slate-700 shadow-[0_10px_24px_rgba(15,23,42,0.08)] hover:bg-slate-50 hover:text-slate-950"
-                  : "border-white bg-white text-slate-900 shadow-lg hover:bg-slate-100"
-              }`}
-            >
-              <X size={24} />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </section>
   );
 };
