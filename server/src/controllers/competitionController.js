@@ -26,6 +26,11 @@ const toInteger = (value, fallback = 0) => {
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
+const clampInteger = (value, fallback, min, max) => {
+  const parsed = toInteger(value, fallback);
+  return Math.min(Math.max(parsed, min), max);
+};
+
 const toBooleanInt = (value) => {
   if (value === true || value === 1 || value === '1' || value === 'true') return 1;
   return 0;
@@ -270,7 +275,7 @@ const makeUniqueSlug = async (db, input, excludeId = null) => {
   }
 };
 
-const getCurrentOutcome = async (_req, res, next) => {
+const getCurrentOutcome = async (req, res, next) => {
   try {
     const db = await getDb();
     const competition = await getFeaturedCompetition(db);
@@ -284,7 +289,11 @@ const getCurrentOutcome = async (_req, res, next) => {
       });
     }
 
-    const [photoRows, videoRows, workRows] = await Promise.all([
+    const stagePhotoLimit = clampInteger(req.query.stagePhotoLimit || req.query.mediaLimit, 18, 1, 18);
+    const promoVideoLimit = clampInteger(req.query.promoVideoLimit, 8, 1, 8);
+    const workLimit = clampInteger(req.query.workLimit, 20, 1, 60);
+
+    const [photoRows, videoRows, workRows, statsRow] = await Promise.all([
       db.all(
         `SELECT p.*, COALESCE(u.nickname, u.username) AS uploader_name
          FROM photos p
@@ -293,7 +302,8 @@ const getCurrentOutcome = async (_req, res, next) => {
            AND p.deleted_at IS NULL
            AND p.gameType = 'hackathon'
           ORDER BY p.featured DESC, p.id DESC
-          LIMIT 18`,
+          LIMIT ?`,
+        [stagePhotoLimit],
       ),
       db.all(
         `SELECT v.*, COALESCE(u.nickname, u.username) AS uploader_name
@@ -303,7 +313,8 @@ const getCurrentOutcome = async (_req, res, next) => {
            AND v.deleted_at IS NULL
            AND v.gameType = 'hackathon'
           ORDER BY v.featured DESC, v.id DESC
-          LIMIT 8`,
+          LIMIT ?`,
+        [promoVideoLimit],
       ),
       db.all(
         `SELECT cw.*, COALESCE(u.nickname, u.username) AS uploader_name,
@@ -326,9 +337,27 @@ const getCurrentOutcome = async (_req, res, next) => {
              WHEN TRIM(COALESCE(cw.rank, '')) <> ''
               AND TRIM(cw.rank) NOT GLOB '*[^0-9]*'
              THEN CAST(TRIM(cw.rank) AS INTEGER)
-             ELSE NULL
-           END ASC,
-           cw.id ASC`,
+              ELSE NULL
+            END ASC,
+            cw.id ASC
+          LIMIT ?`,
+        [competition.id, workLimit],
+      ),
+      db.get(
+        `SELECT
+           (SELECT COUNT(*) FROM photos p
+             WHERE p.status = 'approved'
+               AND p.deleted_at IS NULL
+               AND p.gameType = 'hackathon') AS stage_photos,
+           (SELECT COUNT(*) FROM videos v
+             WHERE v.status = 'approved'
+               AND v.deleted_at IS NULL
+               AND v.gameType = 'hackathon') AS promo_videos,
+           (SELECT COUNT(*) FROM competition_works cw
+             WHERE cw.competition_id = ?
+               AND cw.status = 'approved'
+               AND COALESCE(cw.public_consent, 1) = 1
+               AND cw.deleted_at IS NULL) AS works`,
         [competition.id],
       ),
     ]);
@@ -350,9 +379,9 @@ const getCurrentOutcome = async (_req, res, next) => {
       },
       works,
       stats: {
-        promo_videos: promoVideos.length,
-        stage_photos: stagePhotos.length,
-        works: works.length,
+        promo_videos: toInteger(statsRow?.promo_videos, promoVideos.length),
+        stage_photos: toInteger(statsRow?.stage_photos, stagePhotos.length),
+        works: toInteger(statsRow?.works, works.length),
       },
     });
   } catch (error) {

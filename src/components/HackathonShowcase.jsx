@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -23,6 +23,7 @@ import { useSettings } from "../context/SettingsContext";
 import { useEcosystemPartners } from "../hooks/useEcosystemPartners";
 import { useSectionPager } from "../hooks/useSectionPager";
 import { useReducedMotion } from "../utils/animations";
+import { normalizeExternalImageUrl } from "../utils/imageUtils";
 import api from "../services/api";
 import CompetitionOutcomeUploadModal from "./CompetitionOutcomeUploadModal";
 import SEO from "./SEO";
@@ -97,6 +98,11 @@ const normalizeShowcaseRank = (rank, index) => {
 
 const MotionSection = motion.section;
 const MotionDiv = motion.div;
+const SHOWCASE_STAGE_PHOTO_LIMIT = 5;
+const SHOWCASE_PROMO_VIDEO_LIMIT = 1;
+const SHOWCASE_WORK_LIMIT = 3;
+
+const getShowcaseImageUrl = (url, width = 1200) => normalizeExternalImageUrl(url, width);
 
 const partnerEnglishNameMap = {
   "未来学习中心": "Future Learning Center",
@@ -228,11 +234,14 @@ const ShowcaseImageCard = ({
     }`}
   >
     <img
-      src={moment.image}
+      src={getShowcaseImageUrl(moment.image, featured ? 1400 : 640)}
       alt={moment.title}
       className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]"
       style={{ filter: isDayMode ? "brightness(1.04) saturate(1.08) contrast(1.01)" : "brightness(0.9) saturate(1.1) contrast(1.02)" }}
       loading={index === 0 ? "eager" : "lazy"}
+      decoding={index === 0 ? "sync" : "async"}
+      fetchpriority={index === 0 ? "high" : "low"}
+      sizes={featured ? "(min-width: 1280px) 58vw, 100vw" : "(min-width: 1280px) 22vw, 22rem"}
     />
     <div className="showcase-media-overlay absolute inset-0" />
     <div className={`absolute inset-x-0 bottom-0 ${compact ? "p-3 sm:p-4" : "p-4 sm:p-5"} ${isDayMode ? "bg-gradient-to-t from-slate-950/70 via-slate-950/32 to-transparent" : ""}`}>
@@ -272,11 +281,14 @@ const ShowcaseWorkCard = ({ work, index, theme, isDayMode, t, featured = false, 
         aria-label={t("hackathon.showcase.works.project_aria", { title: work.title })}
       >
         <img
-          src={work.cover || (index % 2 === 0 ? HERO_IMAGE : SECONDARY_IMAGE)}
+          src={getShowcaseImageUrl(work.cover || (index % 2 === 0 ? HERO_IMAGE : SECONDARY_IMAGE), featured ? 1200 : 640)}
           alt={t("hackathon.showcase.works.cover_alt", { title: work.title })}
           className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]"
           style={{ filter: isDayMode ? "brightness(1.03) saturate(1.08) contrast(1.01)" : "brightness(0.82) saturate(1.14) contrast(1.04)" }}
           loading={index === 0 ? "eager" : "lazy"}
+          decoding={index === 0 ? "sync" : "async"}
+          fetchpriority={index === 0 ? "high" : "low"}
+          sizes={featured ? "(min-width: 1280px) 42vw, 100vw" : "(min-width: 1280px) 22vw, 50vw"}
         />
         <div className={`absolute inset-0 ${isDayMode ? "bg-gradient-to-t from-slate-950/12 via-transparent to-white/8" : "bg-gradient-to-t from-black/66 via-black/12 to-transparent"}`} />
         <div className={`showcase-award-badge absolute right-4 top-4 z-10 inline-flex items-center gap-2.5 overflow-hidden border px-3.5 py-2.5 text-sm font-black backdrop-blur ${isDayMode ? "showcase-award-badge-day border-cyan-200 bg-gradient-to-r from-white via-cyan-50 to-amber-50 text-slate-950 shadow-[0_18px_42px_rgba(8,145,178,0.22)] ring-1 ring-white/80" : "border-cyan-200/40 bg-slate-950/58 text-white shadow-[0_14px_34px_rgba(0,0,0,0.28)]"} ${featured ? "showcase-award-badge-featured sm:px-5 sm:py-3.5 sm:text-lg" : ""}`}>
@@ -336,48 +348,67 @@ const HackathonShowcase = () => {
   const [uploadType, setUploadType] = useState(null);
   const [outcome, setOutcome] = useState(null);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const activeSectionRef = useRef(0);
+  const scrollFrameRef = useRef(null);
 
-  const fetchOutcome = async () => {
+  const updateActiveSection = useCallback((index) => {
+    activeSectionRef.current = index;
+    setActiveSection((previous) => (previous === index ? previous : index));
+  }, []);
+
+  const fetchOutcome = useCallback(async () => {
     try {
-      const response = await api.get("/competitions/current/outcome");
+      const response = await api.get("/competitions/current/outcome", {
+        params: {
+          stagePhotoLimit: SHOWCASE_STAGE_PHOTO_LIMIT,
+          promoVideoLimit: SHOWCASE_PROMO_VIDEO_LIMIT,
+          workLimit: SHOWCASE_WORK_LIMIT,
+        },
+      });
       setOutcome(response.data || null);
     } catch {
       setOutcome(null);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchOutcome();
-  }, []);
+  }, [fetchOutcome]);
 
   useEffect(() => {
     const container = pageRef.current;
     if (!container) return undefined;
 
     const handleScroll = () => {
-      const scrollHeight = container.scrollHeight - container.clientHeight;
-      setScrollProgress(scrollHeight > 0 ? (container.scrollTop / scrollHeight) * 100 : 0);
+      if (scrollFrameRef.current) return;
 
-      const containerRect = container.getBoundingClientRect();
-      const viewportCenter = containerRect.top + container.clientHeight / 2;
-      let currentIndex = 0;
-      let closestDistance = Number.POSITIVE_INFINITY;
+      scrollFrameRef.current = window.requestAnimationFrame(() => {
+        scrollFrameRef.current = null;
 
-      showcaseSections.forEach((section, index) => {
-        const element = document.getElementById(section.id);
-        if (!element) return;
+        const scrollHeight = container.scrollHeight - container.clientHeight;
+        const nextProgress = scrollHeight > 0 ? (container.scrollTop / scrollHeight) * 100 : 0;
+        setScrollProgress((previous) => (Math.abs(previous - nextProgress) < 0.4 ? previous : nextProgress));
 
-        const rect = element.getBoundingClientRect();
-        const sectionCenter = rect.top + rect.height / 2;
-        const distance = Math.abs(sectionCenter - viewportCenter);
+        const viewportCenter = container.getBoundingClientRect().top + container.clientHeight / 2;
+        let currentIndex = activeSectionRef.current;
+        let closestDistance = Number.POSITIVE_INFINITY;
 
-        if (distance < closestDistance) {
-          closestDistance = distance;
-          currentIndex = index;
-        }
+        showcaseSections.forEach((section, index) => {
+          const element = document.getElementById(section.id);
+          if (!element) return;
+
+          const rect = element.getBoundingClientRect();
+          const sectionCenter = rect.top + rect.height / 2;
+          const distance = Math.abs(sectionCenter - viewportCenter);
+
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            currentIndex = index;
+          }
+        });
+
+        updateActiveSection(currentIndex);
       });
-
-      setActiveSection(currentIndex);
     };
 
     handleScroll();
@@ -385,16 +416,19 @@ const HackathonShowcase = () => {
     window.addEventListener("resize", handleScroll);
 
     return () => {
+      if (scrollFrameRef.current) {
+        window.cancelAnimationFrame(scrollFrameRef.current);
+      }
       container.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleScroll);
     };
-  }, []);
+  }, [updateActiveSection]);
 
   useSectionPager({
     containerRef: pageRef,
     sectionIds: showcaseSectionIds,
     activeIndex: activeSection,
-    setActiveIndex: setActiveSection,
+    setActiveIndex: updateActiveSection,
     reduceMotion,
     minWidth: 0,
     lockMs: 860,
@@ -407,7 +441,7 @@ const HackathonShowcase = () => {
 
     const topOffset = window.matchMedia("(max-width: 640px)").matches ? 76 : 24;
     const targetIndex = showcaseSections.findIndex((section) => section.id === id);
-    if (targetIndex >= 0) setActiveSection(targetIndex);
+    if (targetIndex >= 0) updateActiveSection(targetIndex);
 
     scroller.scrollTo({
       top: Math.max(target.offsetTop - topOffset, 0),
@@ -544,6 +578,12 @@ const HackathonShowcase = () => {
           "border border-cyan-300 bg-cyan-100 text-cyan-950 shadow-[0_18px_42px_rgba(8,145,178,0.16)] hover:border-cyan-500 hover:bg-cyan-200 focus:ring-cyan-500/24",
         secondaryButton:
           "border-slate-300 bg-white/78 text-slate-800 hover:border-cyan-400 hover:bg-cyan-50 hover:text-cyan-800 focus:ring-cyan-500/20",
+        galleryActionShell:
+          "border-slate-200 bg-white/92 shadow-[0_24px_70px_rgba(15,23,42,0.14)] ring-1 ring-white/70",
+        galleryViewButton:
+          "border-slate-200 bg-slate-950 text-white shadow-[0_16px_38px_rgba(15,23,42,0.18)] hover:border-cyan-400 hover:bg-slate-800 hover:text-cyan-100 focus:ring-cyan-500/22",
+        galleryUploadButton:
+          "border-cyan-300 bg-gradient-to-br from-cyan-100 via-cyan-200 to-sky-200 text-cyan-950 shadow-[0_18px_48px_rgba(8,145,178,0.25)] hover:border-cyan-400 hover:from-white hover:via-cyan-100 hover:to-cyan-200 focus:ring-cyan-500/24",
         navShell: "border-slate-200 bg-white/86 text-slate-700 shadow-[0_18px_60px_rgba(15,23,42,0.12)]",
         navActive: "border-cyan-500 bg-cyan-100 text-cyan-950 shadow-[0_10px_28px_rgba(8,145,178,0.18)]",
         navIdle: "border-slate-200 bg-white/82 text-slate-600 hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-800",
@@ -563,6 +603,12 @@ const HackathonShowcase = () => {
           "bg-cyan-300 text-slate-950 shadow-[0_0_34px_rgba(103,232,249,0.26)] hover:bg-white focus:ring-cyan-300/28",
         secondaryButton:
           "border-white/14 bg-white/[0.07] text-white hover:border-cyan-300/60 hover:bg-cyan-300/10 focus:ring-cyan-300/20",
+        galleryActionShell:
+          "border-white/14 bg-[#0b1210]/88 shadow-[0_28px_76px_rgba(0,0,0,0.58)] ring-1 ring-cyan-200/10",
+        galleryViewButton:
+          "border-white/16 bg-white/[0.075] text-white hover:border-cyan-200/55 hover:bg-white/[0.12] hover:text-cyan-100 focus:ring-cyan-300/20",
+        galleryUploadButton:
+          "border-cyan-200/70 bg-gradient-to-br from-cyan-200 via-cyan-300 to-sky-300 text-slate-950 shadow-[0_0_38px_rgba(103,232,249,0.32)] hover:border-white hover:from-white hover:via-cyan-100 hover:to-cyan-200 focus:ring-cyan-300/28",
         navShell: "border-white/12 bg-[#07100f]/72 text-white shadow-[0_0_44px_rgba(103,232,249,0.10)]",
         navActive: "border-cyan-200 bg-cyan-300 text-slate-950",
         navIdle: "border-white/12 bg-black/22 text-white/64 hover:border-cyan-300/60 hover:text-white",
@@ -1021,6 +1067,9 @@ const HackathonShowcase = () => {
               onError={(event) => {
                 event.currentTarget.src = SECONDARY_IMAGE;
               }}
+              decoding="async"
+              fetchpriority="high"
+              sizes="(min-width: 1280px) 48vw, 100vw"
             />
             {officialVideoUrl && isVideoPlaying ? (
               <video
@@ -1108,7 +1157,7 @@ const HackathonShowcase = () => {
           </MotionDiv>
 
           <MotionDiv {...reveal} className="min-h-0 xl:col-span-2 xl:h-full">
-            <div className="showcase-gallery-strip -mx-1 mt-5 flex gap-2 overflow-x-auto px-1 pb-2 xl:mx-0 xl:mt-0 xl:grid xl:h-full xl:grid-cols-[repeat(4,minmax(0,1fr))_minmax(11rem,0.62fr)] xl:overflow-hidden">
+            <div className="showcase-gallery-strip -mx-1 mt-5 flex gap-2 overflow-x-auto px-1 pb-2 xl:mx-0 xl:mt-0 xl:grid xl:h-full xl:grid-cols-[repeat(4,minmax(0,1fr))_minmax(14rem,0.74fr)] xl:overflow-hidden">
               <div className="contents xl:contents">
                 {galleryMoments.slice(1).map((moment, index) => (
                   <ShowcaseImageCard
@@ -1121,22 +1170,28 @@ const HackathonShowcase = () => {
                   />
                 ))}
               </div>
-              <div className={`flex min-h-[9rem] w-[11rem] shrink-0 flex-col gap-2 border p-2 sm:w-[12rem] xl:h-full xl:w-auto ${theme.surfaceStrong}`}>
+              <div className={`flex min-h-[9.5rem] w-[14rem] shrink-0 flex-col gap-2.5 border p-2.5 xl:h-full xl:w-auto ${theme.galleryActionShell}`}>
                 <Link
                   to="/gallery"
-                  className={`inline-flex min-h-0 flex-1 items-center justify-center gap-2 border px-3 text-center text-xs font-black transition duration-200 ${theme.secondaryButton}`}
+                  className={`group relative inline-flex min-h-0 flex-1 items-center justify-center overflow-hidden border px-4 text-center text-sm font-black transition duration-300 hover:-translate-y-0.5 focus:outline-none focus:ring-4 ${theme.galleryViewButton}`}
                 >
-                  <ImageIcon className="h-4 w-4 shrink-0" />
-                  <span>{t("hackathon.showcase.gallery.view_all")}</span>
-                  <ArrowRight className="h-4 w-4 shrink-0" />
+                  <span className="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+                  <span className="mr-3 grid h-8 w-8 shrink-0 place-items-center border border-current/18 bg-white/10 text-current">
+                    <ImageIcon className="h-4 w-4" />
+                  </span>
+                  <span className="min-w-0 flex-1 whitespace-nowrap leading-tight">{t("hackathon.showcase.gallery.view_all")}</span>
+                  <ArrowRight className="h-4 w-4 shrink-0 transition duration-300 group-hover:translate-x-1" />
                 </Link>
                 <button
                   type="button"
                   onClick={() => openOutcomeUpload("stage_photo")}
-                  className={`inline-flex min-h-0 flex-1 items-center justify-center gap-2 px-3 text-center text-xs font-black transition duration-200 focus:outline-none focus:ring-4 ${theme.primaryButton}`}
+                  className={`group relative inline-flex min-h-0 flex-[1.18] items-center justify-center overflow-hidden border px-4 text-center text-sm font-black transition duration-300 hover:-translate-y-0.5 focus:outline-none focus:ring-4 ${theme.galleryUploadButton}`}
                 >
-                  <Upload className="h-4 w-4 shrink-0" />
-                  <span>{t("hackathon.showcase.gallery.upload")}</span>
+                  <span className="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+                  <span className="mr-3 grid h-9 w-9 shrink-0 place-items-center border border-slate-950/12 bg-white/36 text-slate-950 shadow-inner shadow-white/50 transition duration-300 group-hover:bg-white/70">
+                    <Upload className="h-4 w-4" />
+                  </span>
+                  <span className="min-w-0 flex-1 whitespace-nowrap leading-tight">{t("hackathon.showcase.gallery.upload")}</span>
                 </button>
               </div>
             </div>
