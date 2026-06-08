@@ -11,7 +11,7 @@ import Music from "./Music";
 
 const SectionLabel = ({ code, title, desc, isDayMode }) => (
   <div className="mb-4">
-    <div className={`text-[11px] font-black uppercase tracking-[0.22em] ${isDayMode ? "text-blue-700" : "text-cyan-300"}`}>
+    <div className={`text-[11px] font-black uppercase tracking-[0.22em] ${isDayMode ? "text-violet-700" : "text-cyan-300"}`}>
       {code}
     </div>
     <h2 className="mt-1 text-xl font-black md:text-2xl">{title}</h2>
@@ -25,8 +25,8 @@ const SectionLabel = ({ code, title, desc, isDayMode }) => (
 
 const SidebarCard = ({ icon: Icon, code, title, desc, isDayMode, children }) => (
   <div>
-    <div className={`mb-3 rounded-lg border p-4 ${isDayMode ? "border-slate-200/80 bg-white shadow-[0_4px_14px_rgba(15,23,42,0.04)]" : "border-white/10 bg-white/[0.04]"}`}>
-      <div className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] ${isDayMode ? "text-blue-700" : "text-cyan-300"}`}>
+    <div className={`mb-3 rounded-lg border p-4 ${isDayMode ? "border-violet-100/80 bg-white shadow-[0_4px_14px_rgba(168,85,247,0.045)]" : "border-white/10 bg-white/[0.04]"}`}>
+      <div className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] ${isDayMode ? "text-violet-700" : "text-cyan-300"}`}>
         <Icon size={12} />
         {code}
       </div>
@@ -89,16 +89,16 @@ const AICommunity = () => {
 
         {/* ── Hero ── */}
         <header className="mb-8 md:mb-10">
-          <div className={`relative overflow-hidden border p-4 md:p-6 lg:p-8 ${isDayMode ? "border-slate-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.045)]" : "border-white/10 bg-white/[0.045] shadow-[0_28px_90px_rgba(0,0,0,0.42)]"}`}>
-            <div className={`absolute inset-x-0 top-0 h-[2px] ${isDayMode ? "bg-gradient-to-r from-blue-500 via-indigo-400 to-transparent" : "bg-gradient-to-r from-orange-400 via-amber-300 to-transparent"}`} />
+          <div className={`relative overflow-hidden border p-4 md:p-6 lg:p-8 ${isDayMode ? "border-violet-100/80 bg-white shadow-[0_8px_24px_rgba(168,85,247,0.055)]" : "border-white/10 bg-white/[0.045] shadow-[0_28px_90px_rgba(0,0,0,0.42)]"}`}>
+            <div className={`absolute inset-x-0 top-0 h-[2px] ${isDayMode ? "bg-gradient-to-r from-pink-400 via-violet-400 to-transparent" : "bg-gradient-to-r from-orange-400 via-amber-300 to-transparent"}`} />
             <div className="pointer-events-none absolute -right-10 -top-12 hidden text-[8rem] font-black uppercase leading-none opacity-[0.035] md:block md:text-[12rem]">
               COMMUNITY
             </div>
             <div className="relative max-w-2xl">
-              <div className={`inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.24em] ${isDayMode ? "text-blue-700" : "text-cyan-300"}`}>
+              <div className={`inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.24em] ${isDayMode ? "text-violet-700" : "text-cyan-300"}`}>
                 <span className="relative flex h-2 w-2">
-                  <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${isDayMode ? "bg-blue-400" : "bg-orange-400"}`} />
-                  <span className={`relative inline-flex h-2 w-2 rounded-full ${isDayMode ? "bg-blue-500" : "bg-orange-400"}`} />
+                  <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${isDayMode ? "bg-pink-400" : "bg-orange-400"}`} />
+                  <span className={`relative inline-flex h-2 w-2 rounded-full ${isDayMode ? "bg-violet-500" : "bg-orange-400"}`} />
                 </span>
                 ZJU AI Collaboration Hub
               </div>

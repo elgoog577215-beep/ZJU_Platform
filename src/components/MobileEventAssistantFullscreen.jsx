@@ -13,7 +13,7 @@ const MobileEventAssistantLauncher = ({ isDayMode, onOpen }) => {
       onClick={onOpen}
       className={`group mb-4 flex w-full items-center justify-between rounded-lg border px-4 py-3.5 text-left transition-all active:scale-[0.99] md:hidden ${
         isDayMode
-          ? "border-slate-900/[0.08] bg-white/94 text-slate-900 shadow-[0_10px_24px_rgba(31,45,61,0.05)]"
+          ? "border-violet-100/80 bg-white text-slate-900 shadow-[0_10px_24px_rgba(168,85,247,0.06)]"
           : "border-white/10 bg-white/[0.06] text-white shadow-none"
       }`}
     >
@@ -21,7 +21,7 @@ const MobileEventAssistantLauncher = ({ isDayMode, onOpen }) => {
         <span
           className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md transition-transform group-active:scale-95 ${
             isDayMode
-              ? "bg-blue-50 text-blue-700 ring-1 ring-blue-100"
+              ? "bg-pink-50 text-violet-700 ring-1 ring-pink-100"
               : "bg-white/10 text-blue-200"
           }`}
         >
@@ -68,13 +68,13 @@ const MobileEventAssistantFullscreen = ({
           aria-labelledby="mobile-event-assistant-title"
           className={`fixed inset-0 z-[125] flex h-[100svh] flex-col md:hidden ${
             isDayMode
-              ? "bg-[#f6f7f9] text-slate-900"
+              ? "bg-white text-slate-900"
               : "bg-[#0f1117] text-white"
           }`}
         >
           <div
             className={`shrink-0 border-b px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.9rem)] ${
-              isDayMode ? "border-slate-200 bg-white/94 backdrop-blur-xl" : "border-white/10 bg-[#111318]/92 backdrop-blur-xl"
+              isDayMode ? "border-violet-100 bg-white/94 backdrop-blur-xl" : "border-white/10 bg-[#111318]/92 backdrop-blur-xl"
             }`}
           >
             <div className="flex items-center gap-3">
@@ -97,7 +97,7 @@ const MobileEventAssistantFullscreen = ({
               </div>
               <span
                 className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md ${
-                  isDayMode ? "bg-blue-50 text-blue-700 ring-1 ring-blue-100" : "bg-white/10 text-blue-200"
+                  isDayMode ? "bg-pink-50 text-violet-700 ring-1 ring-pink-100" : "bg-white/10 text-blue-200"
                 }`}
               >
                 <Sparkles size={18} />

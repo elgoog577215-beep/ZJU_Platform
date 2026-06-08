@@ -91,7 +91,7 @@ const ProgressBar = memo(({ progress, duration, onSeek, isDayMode }) => {
         max={duration || 100}
         value={progress}
         onChange={onSeek}
-        className={`flex-1 h-0.5 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2 [&::-webkit-slider-thumb]:h-2 [&::-webkit-slider-thumb]:rounded-full hover:[&::-webkit-slider-thumb]:scale-125 transition-all ${isDayMode ? 'bg-slate-200 [&::-webkit-slider-thumb]:bg-cyan-500' : 'bg-white/20 [&::-webkit-slider-thumb]:bg-cyan-500'}`}
+        className={`flex-1 h-0.5 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2 [&::-webkit-slider-thumb]:h-2 [&::-webkit-slider-thumb]:rounded-full hover:[&::-webkit-slider-thumb]:scale-125 transition-all ${isDayMode ? 'bg-violet-100 [&::-webkit-slider-thumb]:bg-violet-600' : 'bg-white/20 [&::-webkit-slider-thumb]:bg-cyan-500'}`}
         />
         <span className={`text-[9px] font-mono w-6 ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>{formatTime(duration)}</span>
     </div>

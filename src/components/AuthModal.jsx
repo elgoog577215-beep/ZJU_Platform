@@ -63,10 +63,10 @@ const AuthModal = ({ isOpen, onClose }) => {
           role="dialog"
           aria-modal="true"
           aria-labelledby={dialogTitleId}
-          className={`relative w-full max-w-md backdrop-blur-3xl border rounded-2xl shadow-2xl overflow-hidden p-8 z-10 ${isDayMode ? 'bg-white/94 border-slate-200/80 shadow-[0_24px_64px_rgba(148,163,184,0.22)]' : 'bg-[#0a0a0a]/80 border-white/10'}`}
+          className={`relative w-full max-w-md backdrop-blur-3xl border rounded-lg shadow-2xl overflow-hidden p-8 z-10 ${isDayMode ? 'bg-white border-violet-100/80 shadow-[0_24px_64px_rgba(168,85,247,0.12)]' : 'bg-[#0a0a0a]/80 border-white/10'}`}
         >
           {/* Glass Effect Background */}
-          <div className={`absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 opacity-50 pointer-events-none ${isDayMode ? '' : ''}`} />
+          <div className={`absolute inset-0 pointer-events-none ${isDayMode ? 'bg-[radial-gradient(circle_at_top_right,rgba(236,72,153,0.08),transparent_38%)]' : 'bg-gradient-to-br from-indigo-500/10 to-purple-500/10 opacity-50'}`} />
           <button 
             type="button"
             onClick={onClose}
@@ -108,7 +108,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                   type="text" 
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className={`w-full border rounded-xl py-3.5 sm:py-3 pl-10 pr-4 focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 min-h-[44px] ${isDayMode ? 'bg-slate-50 border-slate-200/80 text-slate-900 placeholder-slate-400 focus:bg-white' : 'bg-black/20 border-white/10 text-white placeholder-gray-500 focus:bg-white/5'}`}
+                  className={`w-full border rounded-md py-3.5 sm:py-3 pl-10 pr-4 focus:outline-none focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/10 transition-all duration-300 min-h-[44px] ${isDayMode ? 'bg-white border-violet-100/80 text-slate-900 placeholder-slate-400 focus:bg-white' : 'bg-black/20 border-white/10 text-white placeholder-gray-500 focus:bg-white/5'}`}
                   placeholder={t('auth.username_placeholder')}
                 />
               </div>
@@ -122,7 +122,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                   type="password" 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={`w-full border rounded-xl py-3.5 sm:py-3 pl-10 pr-4 focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 min-h-[44px] ${isDayMode ? 'bg-slate-50 border-slate-200/80 text-slate-900 placeholder-slate-400 focus:bg-white' : 'bg-black/20 border-white/10 text-white placeholder-gray-500 focus:bg-white/5'}`}
+                  className={`w-full border rounded-md py-3.5 sm:py-3 pl-10 pr-4 focus:outline-none focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/10 transition-all duration-300 min-h-[44px] ${isDayMode ? 'bg-white border-violet-100/80 text-slate-900 placeholder-slate-400 focus:bg-white' : 'bg-black/20 border-white/10 text-white placeholder-gray-500 focus:bg-white/5'}`}
                   placeholder={t('auth.password_placeholder')}
                   minLength={6}
                 />
@@ -132,7 +132,7 @@ const AuthModal = ({ isOpen, onClose }) => {
             <button 
               type="submit" 
               disabled={loading}
-              className={`w-full text-white font-bold py-4 sm:py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-8 active:scale-[0.98] min-h-[44px] ${isDayMode ? "bg-blue-700 hover:bg-blue-800 shadow-[0_12px_26px_rgba(29,78,216,0.18)]" : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-lg shadow-indigo-500/25"}`}
+              className={`w-full text-white font-bold py-4 sm:py-3.5 rounded-md transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-8 active:scale-[0.98] min-h-[44px] ${isDayMode ? "bg-violet-700 hover:bg-violet-800 shadow-[0_12px_26px_rgba(124,58,237,0.16)]" : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-lg shadow-indigo-500/25"}`}
             >
               {loading ? <Loader className="animate-spin" size={20} /> : (
                 <>

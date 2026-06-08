@@ -308,20 +308,20 @@ const EventAssistantPanel = ({
   const mutedClass = isDayMode ? "text-slate-600" : "text-gray-300";
   const faintClass = isDayMode ? "text-slate-500" : "text-gray-400";
   const chipClass = isDayMode
-    ? "bg-slate-50 text-slate-600 border-slate-200/80"
+    ? "bg-violet-50 text-slate-600 border-violet-100/80"
     : "bg-white/8 text-white/75 border-white/10";
   const quickPromptClass = isFullscreenVariant || isRailVariant
     ? isDayMode
-      ? "bg-white text-slate-700 border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.035)] active:bg-blue-50"
+      ? "bg-white text-slate-700 border-violet-100 shadow-[0_1px_2px_rgba(168,85,247,0.045)] active:bg-pink-50"
       : "bg-white/[0.055] text-white/82 border-white/10 shadow-none active:bg-white/[0.09]"
     : chipClass;
   const controlChipClass = isFullscreenVariant || isRailVariant
     ? isDayMode
-      ? "bg-white text-slate-600 border-slate-200"
+      ? "bg-white text-slate-600 border-violet-100"
       : "bg-white/[0.06] text-white/76 border-white/10"
     : chipClass;
   const actionClass = isDayMode
-    ? "bg-blue-600 text-white hover:bg-blue-500 shadow-[0_1px_2px_rgba(15,23,42,0.12)]"
+    ? "bg-violet-700 text-white hover:bg-violet-800 shadow-[0_1px_2px_rgba(124,58,237,0.14)]"
     : "bg-blue-600 text-white hover:bg-blue-500 shadow-[0_1px_2px_rgba(0,0,0,0.22)]";
   const panelPaddingClass = isRailVariant
     ? "min-h-0 flex-1 overflow-y-auto p-3 custom-scrollbar"
@@ -345,10 +345,10 @@ const EventAssistantPanel = ({
       <div className={`relative overflow-hidden border backdrop-blur-2xl ${isFullscreenVariant ? "rounded-none" : "rounded-lg"} ${isRailVariant ? "flex h-full min-h-0 flex-col" : ""} ${shellClass}`}>
         <div className={`relative ${panelPaddingClass}`}>
           {isRailVariant ? (
-            <div className={`sticky top-0 z-10 -mx-3 -mt-3 border-b px-3 py-3 backdrop-blur-xl ${isDayMode ? "border-slate-200/80 bg-white/92" : "border-white/10 bg-[#10121d]/92"}`}>
+            <div className={`sticky top-0 z-10 -mx-3 -mt-3 border-b px-3 py-3 backdrop-blur-xl ${isDayMode ? "border-violet-100/80 bg-white/92" : "border-white/10 bg-[#10121d]/92"}`}>
               <div className="flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-2 text-left">
-                  <span className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border ${isDayMode ? "border-blue-100 bg-blue-50 text-blue-700" : "border-blue-300/15 bg-blue-400/10 text-blue-200"}`}>
+                  <span className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border ${isDayMode ? "border-pink-100 bg-pink-50 text-violet-700" : "border-blue-300/15 bg-blue-400/10 text-blue-200"}`}>
                     <Sparkles size={17} />
                   </span>
                   <div className="min-w-0">
@@ -376,7 +376,7 @@ const EventAssistantPanel = ({
             <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
               <div className="max-w-2xl text-left">
                 <span className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] ${chipClass}`}>
-                  <Sparkles size={13} className={isDayMode ? "text-cyan-500" : "text-cyan-300"} />
+                  <Sparkles size={13} className={isDayMode ? "text-pink-500" : "text-cyan-300"} />
                   {t("events.assistant.card_badge", "AI 活动助手")}
                 </span>
                 <h3 className={`mt-3 text-xl font-bold tracking-normal sm:text-2xl ${textClass}`}>
@@ -410,7 +410,7 @@ const EventAssistantPanel = ({
                   disabled={loading}
                   className={`inline-flex min-h-[46px] items-center justify-center gap-2 rounded-lg border px-3 py-2 text-xs font-bold transition-colors disabled:opacity-50 ${quickPromptClass}`}
                 >
-                  <Sparkles size={13} className={isDayMode ? "text-blue-500" : "text-blue-200"} />
+                  <Sparkles size={13} className={isDayMode ? "text-violet-500" : "text-blue-200"} />
                   {item.label}
                 </button>
               ))}
@@ -698,7 +698,7 @@ const EventAssistantPanel = ({
                   )}
 
                   {assistantState.type === "recommend" ? (
-                    <div className={`mt-4 rounded-lg border px-4 py-3 ${isDayMode ? "border-slate-200/80 bg-slate-50/80" : "border-white/10 bg-white/[0.04]"}`}>
+                    <div className={`mt-4 rounded-lg border px-4 py-3 ${isDayMode ? "border-violet-100/80 bg-violet-50/80" : "border-white/10 bg-white/[0.04]"}`}>
                       <p className={`text-xs leading-5 ${faintClass}`}>
                         {t("events.assistant.narrow_hint", "还不够贴近？在上方补一句限制条件，我会继续收窄。")}
                       </p>

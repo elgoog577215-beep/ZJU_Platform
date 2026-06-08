@@ -63,10 +63,10 @@ const TrackItem = memo(
         className={`group flex items-center gap-3 rounded-xl transition-all cursor-pointer border backdrop-blur-md ${compact ? "p-2" : "p-3 gap-4"} ${
           isActive
             ? isDayMode
-              ? "bg-cyan-50 border-cyan-200/80 shadow-[0_12px_28px_rgba(34,211,238,0.12)]"
+              ? "bg-violet-50 border-violet-200/80 shadow-[0_12px_28px_rgba(168,85,247,0.1)]"
               : "bg-cyan-500/10 border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.15)]"
             : isDayMode
-              ? "day-card-lift hover:border-blue-200/80"
+              ? "day-card-lift hover:border-pink-200/80"
               : "bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10 hover:shadow-lg hover:shadow-black/20"
         }`}
         onClick={() => onClick(track)}
@@ -109,7 +109,7 @@ const TrackItem = memo(
 
         <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
           <h4
-            className={`font-bold truncate ${compact ? "text-xs" : "text-base md:text-lg"} ${isActive ? (isDayMode ? "text-blue-700" : "text-cyan-500") : isDayMode ? "text-slate-900 group-hover:text-blue-700" : "text-white group-hover:text-cyan-400"} transition-colors`}
+            className={`font-bold truncate ${compact ? "text-xs" : "text-base md:text-lg"} ${isActive ? (isDayMode ? "text-violet-700" : "text-cyan-500") : isDayMode ? "text-slate-900 group-hover:text-violet-700" : "text-white group-hover:text-cyan-400"} transition-colors`}
           >
             {track.title}
           </h4>
@@ -140,7 +140,7 @@ const TrackItem = memo(
                 isActive
                   ? "bg-cyan-500/20 text-cyan-400 border-cyan-500/30"
                   : isDayMode
-                    ? "bg-white/85 text-slate-500 border-slate-200/80 hover:text-cyan-500 hover:bg-cyan-50 hover:border-cyan-200/80"
+                    ? "bg-white/85 text-slate-500 border-violet-100/80 hover:text-pink-600 hover:bg-pink-50 hover:border-pink-200/80"
                     : "bg-white/5 text-gray-400 border-white/5 hover:text-white hover:bg-white/20 hover:border-white/10"
               }`}
               onToggle={(favorited, likes) =>
@@ -182,7 +182,7 @@ const Music = ({ embedded = false, singleColumn = false }) => {
   const pageSize = isPaginationEnabled ? 12 : 20;
   const hasMore = !isPaginationEnabled && currentPage < totalPages;
   const playButtonClass = isDayMode
-    ? "bg-blue-700 text-white shadow-[0_12px_26px_rgba(29,78,216,0.18)] hover:bg-blue-800 hover:shadow-[0_14px_30px_rgba(29,78,216,0.22)]"
+    ? "bg-violet-700 text-white shadow-[0_12px_26px_rgba(124,58,237,0.16)] hover:bg-violet-800 hover:shadow-[0_14px_30px_rgba(124,58,237,0.2)]"
     : "bg-gradient-to-br from-cyan-400 to-blue-600 text-white shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)]";
 
   // Deep linking
@@ -428,7 +428,7 @@ const Music = ({ embedded = false, singleColumn = false }) => {
               <div className="absolute top-[40%] right-[-10%] w-[40%] h-[40%] rounded-full blur-[100px] bg-cyan-500/10" />
             </>
           )}
-          <div className={`absolute bottom-[-10%] left-[20%] w-[60%] h-[40%] rounded-full blur-[120px] ${isDayMode ? "bg-slate-200/18" : "bg-indigo-500/10"}`} />
+          <div className={`absolute bottom-[-10%] left-[20%] w-[60%] h-[40%] rounded-full blur-[120px] ${isDayMode ? "bg-pink-200/14" : "bg-indigo-500/10"}`} />
         </div>
       )}
 
@@ -682,7 +682,7 @@ const Music = ({ embedded = false, singleColumn = false }) => {
                 value={progress}
                 onChange={handleSeek}
                 aria-label={t("music.seek", "播放进度")}
-                className={`w-full h-1 rounded-full appearance-none cursor-pointer transition-colors ${isDayMode ? "bg-slate-200/90 accent-blue-600 hover:accent-blue-700" : "bg-white/10 accent-cyan-400 hover:accent-cyan-300"}`}
+                className={`w-full h-1 rounded-full appearance-none cursor-pointer transition-colors ${isDayMode ? "bg-violet-100/90 accent-violet-600 hover:accent-violet-700" : "bg-white/10 accent-cyan-400 hover:accent-cyan-300"}`}
               />
               <div
                 className={`flex justify-between text-xs font-mono mt-2 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
@@ -825,7 +825,7 @@ const Music = ({ embedded = false, singleColumn = false }) => {
                   </p>
                   <button
                     onClick={refresh}
-                  className={`px-6 py-2 rounded-full transition-all border ${isDayMode ? "day-quiet-button hover:text-blue-700" : "bg-white/10 hover:bg-white/20 text-white border border-white/10"}`}
+                  className={`px-6 py-2 rounded-full transition-all border ${isDayMode ? "day-quiet-button hover:text-violet-700" : "bg-white/10 hover:bg-white/20 text-white border border-white/10"}`}
                   >
                     {t("common.retry", "重试")}
                   </button>
@@ -872,7 +872,7 @@ const Music = ({ embedded = false, singleColumn = false }) => {
                   }
                   whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
                   onClick={() => setCurrentPage((prev) => prev + 1)}
-                  className={`px-6 py-2.5 rounded-full border transition-colors text-sm font-semibold ${isDayMode ? "day-quiet-button hover:text-blue-700" : "bg-white/10 hover:bg-white/15 text-white border-white/10 hover:border-white/20"}`}
+                  className={`px-6 py-2.5 rounded-full border transition-colors text-sm font-semibold ${isDayMode ? "day-quiet-button hover:text-violet-700" : "bg-white/10 hover:bg-white/15 text-white border-white/10 hover:border-white/20"}`}
                 >
                   {t("common.load_more", "加载更多")}
                 </motion.button>

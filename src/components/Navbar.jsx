@@ -205,7 +205,7 @@ const Navbar = () => {
     ? "bg-white/90 border-slate-900/[0.08] shadow-[0_10px_26px_rgba(31,45,61,0.045)]"
     : "bg-black/62 border-white/10 shadow-none";
   const desktopPillClasses = isDayMode
-    ? "rounded-[6px] bg-slate-50/82 border-slate-900/[0.08] shadow-none"
+    ? "rounded-[6px] bg-white border-violet-100/80 shadow-none"
     : "rounded-[6px] bg-white/[0.035] border-white/10 shadow-none";
   const navLinkClasses = isDayMode
     ? "motion-link relative group whitespace-nowrap rounded-[5px] px-2.5 py-2 text-xs font-medium text-slate-500 hover:bg-white/82 hover:text-slate-950 xl:px-4 xl:text-sm"
@@ -217,7 +217,7 @@ const Navbar = () => {
     ? "motion-press rect-button-secondary flex items-center gap-3 text-xs px-3 py-1.5 hover:text-slate-900 cursor-pointer group"
     : "motion-press rect-button-secondary flex items-center gap-3 text-xs px-3 py-1.5 cursor-pointer group";
   const authButtonClasses = isDayMode
-    ? "motion-press rect-button-secondary text-sm font-medium px-4 py-1.5 hover:text-teal-800"
+    ? "motion-press rect-button-secondary text-sm font-medium px-4 py-1.5 hover:text-violet-800"
     : "motion-press rect-button-secondary text-sm font-medium px-4 py-1.5";
   const wallpaperModalClasses = isDayMode
     ? "theme-dialog text-slate-900"
@@ -274,12 +274,12 @@ const Navbar = () => {
         </div>
         <div className="flex flex-col items-start leading-none">
           <span
-            className={`text-lg font-bold tracking-tighter transition-colors duration-300 ${isDayMode ? "text-slate-950 group-hover:text-teal-800" : "text-white group-hover:text-indigo-200"}`}
+            className={`text-lg font-bold tracking-tighter transition-colors duration-300 ${isDayMode ? "text-slate-950 group-hover:text-violet-800" : "text-white group-hover:text-indigo-200"}`}
           >
             {t("nav.site_brand")}
           </span>
           <span
-            className={`text-[10px] font-medium tracking-widest mt-0.5 transition-colors ${isDayMode ? "text-slate-500 group-hover:text-teal-700" : "text-gray-400 group-hover:text-indigo-400"}`}
+            className={`text-[10px] font-medium tracking-widest mt-0.5 transition-colors ${isDayMode ? "text-slate-500 group-hover:text-pink-700" : "text-gray-400 group-hover:text-indigo-400"}`}
           >
             {t("nav.site_tagline")}
           </span>
@@ -344,7 +344,7 @@ const Navbar = () => {
               </span>
             </div>
             <div
-              className={`w-px h-3 transition-colors ${isDayMode ? "bg-slate-200/80 group-hover:bg-blue-200/80" : "bg-white/10 group-hover:bg-indigo-500/30"}`}
+              className={`w-px h-3 transition-colors ${isDayMode ? "bg-violet-100/80 group-hover:bg-pink-200/80" : "bg-white/10 group-hover:bg-indigo-500/30"}`}
               role="separator"
               aria-hidden="true"
             />
@@ -359,7 +359,7 @@ const Navbar = () => {
               </span>
             </div>
             <div
-              className={`w-px h-3 transition-colors ${isDayMode ? "bg-slate-200/80 group-hover:bg-blue-200/80" : "bg-white/10 group-hover:bg-indigo-500/30"}`}
+              className={`w-px h-3 transition-colors ${isDayMode ? "bg-violet-100/80 group-hover:bg-pink-200/80" : "bg-white/10 group-hover:bg-indigo-500/30"}`}
               role="separator"
               aria-hidden="true"
             />
@@ -373,7 +373,7 @@ const Navbar = () => {
 
         <button
           onClick={() => changeUiMode(nextUiMode)}
-          className={`btn-icon rect-icon-button ${isDayMode ? "text-slate-700 hover:text-teal-800" : "text-white hover:text-yellow-200"}`}
+          className={`btn-icon rect-icon-button ${isDayMode ? "text-slate-700 hover:text-violet-800" : "text-white hover:text-yellow-200"}`}
           title={themeToggleTitle}
           aria-label={t("nav.theme_settings", "主题设置")}
         >
@@ -387,7 +387,7 @@ const Navbar = () => {
         <button
           type="button"
           onClick={() => setIsThemeOpen(true)}
-          className={`btn-icon rect-icon-button ${isDayMode ? "text-slate-700 hover:text-teal-800" : "text-cyan-100 hover:text-cyan-50"}`}
+          className={`btn-icon rect-icon-button ${isDayMode ? "text-slate-700 hover:text-violet-800" : "text-cyan-100 hover:text-cyan-50"}`}
           title="动态壁纸"
           aria-label="动态壁纸设置"
         >
@@ -405,7 +405,7 @@ const Navbar = () => {
           <div className="flex items-center gap-3">
             <Link
               to={`/user/${user.id}`}
-              className={`motion-press rect-button-secondary relative flex items-center gap-2 px-3 py-1.5 text-sm font-medium ${isDayMode ? "text-slate-800 hover:text-blue-700" : "text-white"}`}
+              className={`motion-press rect-button-secondary relative flex items-center gap-2 px-3 py-1.5 text-sm font-medium ${isDayMode ? "text-slate-800 hover:text-violet-700" : "text-white"}`}
               aria-label={`访问 ${user.username} 的个人主页`}
             >
               <div
@@ -560,7 +560,7 @@ const Navbar = () => {
                   <button
                     type="submit"
                     disabled={isSearching}
-                    className={`w-full text-white font-bold py-3 rounded-lg transition-all disabled:opacity-50 ${isDayMode ? "bg-blue-700 hover:bg-blue-800 shadow-[0_12px_26px_rgba(29,78,216,0.16)]" : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-lg shadow-indigo-500/25"}`}
+                    className={`w-full text-white font-bold py-3 rounded-lg transition-all disabled:opacity-50 ${isDayMode ? "bg-violet-700 hover:bg-violet-800 shadow-[0_12px_26px_rgba(124,58,237,0.16)]" : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-lg shadow-indigo-500/25"}`}
                   >
                     {isSearching
                       ? t("weather.searching")
@@ -749,7 +749,7 @@ const Navbar = () => {
                         setIsMobileMoreOpen(false);
                         setIsAuthOpen(true);
                       }}
-                      className={`motion-press flex min-h-[52px] items-center justify-center rounded-lg px-3 text-sm font-bold text-white ${isDayMode ? "bg-blue-700 hover:bg-blue-800" : "bg-indigo-600 hover:bg-indigo-500"}`}
+                      className={`motion-press flex min-h-[52px] items-center justify-center rounded-lg px-3 text-sm font-bold text-white ${isDayMode ? "bg-violet-700 hover:bg-violet-800" : "bg-indigo-600 hover:bg-indigo-500"}`}
                     >
                       {t("auth.log_in")}
                     </button>

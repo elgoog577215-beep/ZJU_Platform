@@ -53,14 +53,14 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
               currentPage === page
                 ? 'text-white border-transparent shadow-[0_0_15px_rgba(6,182,212,0.5)] scale-110'
                 : isDayMode
-                  ? 'bg-white/90 backdrop-blur-3xl hover:bg-white text-slate-500 hover:text-slate-900 border-slate-200/80 hover:border-indigo-200/80'
+                  ? 'bg-white/90 backdrop-blur-3xl hover:bg-white text-slate-500 hover:text-slate-900 border-violet-100/80 hover:border-pink-200/80'
                   : 'bg-[#0a0a0a]/60 backdrop-blur-3xl hover:bg-[#0a0a0a]/80 text-gray-400 hover:text-white border-white/10 hover:border-white/30'
             }`}
           >
             {currentPage === page && (
               <motion.div 
                 layoutId="activePage"
-                className={`absolute inset-0 ${isDayMode ? "bg-blue-700" : "bg-gradient-to-r from-cyan-500 to-blue-500"}`}
+                className={`absolute inset-0 ${isDayMode ? "bg-violet-700" : "bg-gradient-to-r from-cyan-500 to-blue-500"}`}
                 transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
               />
             )}
