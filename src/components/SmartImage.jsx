@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { FileText, Film, Image as ImageIcon, Calendar, Music, AlertCircle } from 'lucide-react';
-import { normalizeExternalImageUrl } from '../utils/imageUtils';
+import { getOriginalUploadUrl, normalizeExternalImageUrl } from '../utils/imageUtils';
 import { useSettings } from '../context/SettingsContext';
 
 const getGradient = (text, isDayMode) => {
@@ -59,6 +59,13 @@ const SmartImage = ({
   const containerRef = useRef(null);
   const maxRetries = 3;
 
+  // Get actual image source. Guard against null because `typeof null === 'object'`.
+  const rawImageSrc = src && typeof src === 'object'
+    ? (src.url || src.medium?.url || src.small?.url)
+    : src;
+  const imageSrc = normalizeExternalImageUrl(rawImageSrc);
+  const originalUploadSrc = getOriginalUploadUrl(imageSrc);
+
   // Intersection Observer for lazy loading
   useEffect(() => {
     if (priority || isInView) return;
@@ -111,6 +118,15 @@ const SmartImage = ({
   }, []);
 
   const handleError = useCallback(() => {
+    const currentImage = imgRef.current;
+    const currentSrc = currentImage?.getAttribute('src');
+
+    if (currentImage && originalUploadSrc && originalUploadSrc !== currentSrc && !currentImage.dataset.originalUploadFallback) {
+      currentImage.dataset.originalUploadFallback = 'true';
+      currentImage.src = originalUploadSrc;
+      return;
+    }
+
     if (retryCount < maxRetries) {
       retryTimeoutRef.current = setTimeout(() => {
         setRetryCount(prev => prev + 1);
@@ -119,7 +135,7 @@ const SmartImage = ({
       setError(true);
       onError?.();
     }
-  }, [retryCount, onError]);
+  }, [retryCount, onError, originalUploadSrc]);
 
   const icons = {
     generic: FileText,
@@ -133,12 +149,6 @@ const SmartImage = ({
 
   const Icon = icons[type] || icons.generic;
   const gradient = getGradient(alt || type, isDayMode);
-
-  // Get actual image source. Guard against null because `typeof null === 'object'`.
-  const rawImageSrc = src && typeof src === 'object'
-    ? (src.url || src.medium?.url || src.small?.url)
-    : src;
-  const imageSrc = normalizeExternalImageUrl(rawImageSrc);
 
   // Fallback state (error or missing src)
   if (!imageSrc || error) {

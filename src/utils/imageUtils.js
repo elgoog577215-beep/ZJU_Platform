@@ -28,6 +28,35 @@ export const normalizeExternalImageUrl = (url, width) => {
   return url;
 };
 
+export const getOriginalUploadUrl = (url) => {
+  if (!url || typeof url !== 'string') return url;
+  if (url.startsWith('/uploads/')) return url;
+
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
+
+  try {
+    const parsedUrl = new URL(url, baseUrl);
+    if (!parsedUrl.pathname.endsWith('/api/uploads/image-variant')) return url;
+
+    const sourceUrl = parsedUrl.searchParams.get('src');
+    return sourceUrl && sourceUrl.startsWith('/uploads/') ? sourceUrl : url;
+  } catch {
+    return url;
+  }
+};
+
+export const fallbackToOriginalUpload = (event, fallbackUrl) => {
+  const image = event?.currentTarget;
+  if (!image) return false;
+
+  const originalUrl = fallbackUrl || getOriginalUploadUrl(image.getAttribute('src') || image.src);
+  if (!originalUrl || originalUrl === image.getAttribute('src')) return false;
+
+  image.dataset.originalUploadFallback = 'true';
+  image.src = originalUrl;
+  return true;
+};
+
 export const getHighResUrl = (url) => {
   if (!url) return url;
   return normalizeExternalImageUrl(url, 1600);

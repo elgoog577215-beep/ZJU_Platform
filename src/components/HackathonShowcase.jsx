@@ -23,7 +23,11 @@ import { useSettings } from "../context/SettingsContext";
 import { useEcosystemPartners } from "../hooks/useEcosystemPartners";
 import { useSectionPager } from "../hooks/useSectionPager";
 import { useReducedMotion } from "../utils/animations";
-import { normalizeExternalImageUrl } from "../utils/imageUtils";
+import {
+  fallbackToOriginalUpload,
+  getOriginalUploadUrl,
+  normalizeExternalImageUrl,
+} from "../utils/imageUtils";
 import api from "../services/api";
 import CompetitionOutcomeUploadModal from "./CompetitionOutcomeUploadModal";
 import SEO from "./SEO";
@@ -103,6 +107,18 @@ const SHOWCASE_PROMO_VIDEO_LIMIT = 1;
 const SHOWCASE_WORK_LIMIT = 3;
 
 const getShowcaseImageUrl = (url, width = 1200) => normalizeExternalImageUrl(url, width);
+
+const handleShowcaseImageError = (event, fallbackUrl) => {
+  if (fallbackToOriginalUpload(event)) return;
+  if (
+    fallbackUrl
+    && event.currentTarget.getAttribute('src') !== fallbackUrl
+    && !event.currentTarget.dataset.showcaseFallback
+  ) {
+    event.currentTarget.dataset.showcaseFallback = "true";
+    event.currentTarget.src = fallbackUrl;
+  }
+};
 
 const getShouldUseLiteShowcase = () => {
   if (typeof window === "undefined" || typeof navigator === "undefined") return false;
@@ -256,6 +272,7 @@ const ShowcaseImageCard = ({
       decoding={index === 0 ? "sync" : "async"}
       fetchpriority={index === 0 ? "high" : "low"}
       sizes={featured ? "(min-width: 1280px) 58vw, 100vw" : "(min-width: 1280px) 22vw, 22rem"}
+      onError={(event) => handleShowcaseImageError(event, SECONDARY_IMAGE)}
     />
     <div className="showcase-media-overlay absolute inset-0" />
     <div className={`absolute inset-x-0 bottom-0 ${compact ? "p-3 sm:p-4" : "p-4 sm:p-5"} ${isDayMode ? "bg-gradient-to-t from-slate-950/70 via-slate-950/32 to-transparent" : ""}`}>
@@ -303,6 +320,7 @@ const ShowcaseWorkCard = ({ work, index, theme, isDayMode, t, featured = false, 
           decoding={index === 0 ? "sync" : "async"}
           fetchpriority={index === 0 ? "high" : "low"}
           sizes={featured ? "(min-width: 1280px) 42vw, 100vw" : "(min-width: 1280px) 22vw, 50vw"}
+          onError={(event) => handleShowcaseImageError(event, index % 2 === 0 ? HERO_IMAGE : SECONDARY_IMAGE)}
         />
         <div className={`absolute inset-0 ${isDayMode ? "bg-gradient-to-t from-slate-950/12 via-transparent to-white/8" : "bg-gradient-to-t from-black/66 via-black/12 to-transparent"}`} />
         <div className={`showcase-award-badge absolute right-4 top-4 z-10 inline-flex items-center gap-2.5 overflow-hidden border px-3.5 py-2.5 text-sm font-black backdrop-blur ${isDayMode ? "showcase-award-badge-day border-cyan-200 bg-gradient-to-r from-white via-cyan-50 to-amber-50 text-slate-950 shadow-[0_18px_42px_rgba(8,145,178,0.22)] ring-1 ring-white/80" : "border-cyan-200/40 bg-slate-950/58 text-white shadow-[0_14px_34px_rgba(0,0,0,0.28)]"} ${featured ? "showcase-award-badge-featured sm:px-5 sm:py-3.5 sm:text-lg" : ""}`}>
@@ -482,7 +500,9 @@ const HackathonShowcase = () => {
 
   const officialVideo = outcome?.media?.promo_videos?.[0] || null;
   const officialVideoUrl = officialVideo?.url || officialVideo?.video || officialVideo?.video_url || officialVideo?.videoUrl || officialVideo?.media_url || officialVideo?.mediaUrl || "";
-  const officialVideoCover = officialVideo?.cover_url || officialVideo?.coverUrl || officialVideo?.thumbnail || officialVideo?.poster || SECONDARY_IMAGE;
+  const officialVideoCoverSource = officialVideo?.cover_url || officialVideo?.coverUrl || officialVideo?.thumbnail || officialVideo?.poster || SECONDARY_IMAGE;
+  const officialVideoCover = getShowcaseImageUrl(officialVideoCoverSource, 1200);
+  const officialVideoPoster = getOriginalUploadUrl(officialVideoCover);
   const translatedSections = useMemo(
     () =>
       showcaseSections.map((section) => ({
@@ -1113,7 +1133,7 @@ const HackathonShowcase = () => {
               className="absolute inset-0 h-full w-full object-cover"
               style={{ filter: isDayMode ? "brightness(1.03) saturate(1.08) contrast(1.01)" : "brightness(0.86) saturate(1.12) contrast(1.03)" }}
               onError={(event) => {
-                event.currentTarget.src = SECONDARY_IMAGE;
+                handleShowcaseImageError(event, SECONDARY_IMAGE);
               }}
               decoding="async"
               fetchpriority="high"
@@ -1125,7 +1145,7 @@ const HackathonShowcase = () => {
                 controls
                 autoPlay
                 preload="metadata"
-                poster={officialVideoCover}
+                poster={officialVideoPoster}
               >
                 <source src={officialVideoUrl} />
               </video>
