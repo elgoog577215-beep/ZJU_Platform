@@ -1,6 +1,10 @@
 export const normalizeExternalImageUrl = (url, width) => {
   if (!url) return url;
 
+  if (width && typeof url === 'string' && url.startsWith('/uploads/')) {
+    return `/api/uploads/image-variant?src=${encodeURIComponent(url)}&w=${encodeURIComponent(String(width))}`;
+  }
+
   if (url.includes('images.unsplash.com')) {
     const normalizedUrl = new URL(url);
 

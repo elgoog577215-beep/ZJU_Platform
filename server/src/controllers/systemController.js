@@ -1,6 +1,8 @@
 const { getDb } = require('../config/db');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
+const sharp = require('sharp');
 const { searchGlobalContent } = require('../services/globalSearchService');
 const { listPendingCompetitionItems } = require('./competitionController');
 
@@ -453,6 +455,72 @@ const handleUpload = (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+const uploadRoot = path.resolve(__dirname, '../../uploads');
+const imageVariantRoot = path.join(uploadRoot, '_variants');
+const variantWidths = [320, 480, 640, 960, 1200, 1600];
+const allowedVariantExtensions = new Set(['.jpg', '.jpeg', '.png', '.webp', '.bmp']);
+
+const pickVariantWidth = (value) => {
+    const requested = Number.parseInt(value, 10);
+    if (!Number.isFinite(requested)) return 960;
+    return variantWidths.find((width) => width >= requested) || variantWidths[variantWidths.length - 1];
+};
+
+const resolveUploadImagePath = (src) => {
+    const cleanSrc = String(src || '').split('?')[0].replace(/\\/g, '/');
+    if (!cleanSrc.startsWith('/uploads/') || cleanSrc.includes('\0') || cleanSrc.includes('..')) {
+        return null;
+    }
+
+    const relativePath = cleanSrc.replace(/^\/uploads\//, '');
+    const resolvedPath = path.resolve(uploadRoot, relativePath);
+    if (!resolvedPath.startsWith(uploadRoot + path.sep)) {
+        return null;
+    }
+
+    const extension = path.extname(resolvedPath).toLowerCase();
+    if (!allowedVariantExtensions.has(extension)) {
+        return null;
+    }
+
+    return { cleanSrc, resolvedPath };
+};
+
+const getImageVariant = async (req, res, next) => {
+    try {
+        const resolved = resolveUploadImagePath(req.query.src);
+        if (!resolved || !fs.existsSync(resolved.resolvedPath)) {
+            return res.status(404).json({ error: 'Image not found' });
+        }
+
+        const width = pickVariantWidth(req.query.w || req.query.width);
+        const quality = Math.min(Math.max(Number.parseInt(req.query.q || req.query.quality, 10) || 78, 50), 88);
+        const sourceStat = fs.statSync(resolved.resolvedPath);
+        const cacheKey = crypto
+            .createHash('sha1')
+            .update(`${resolved.cleanSrc}:${sourceStat.mtimeMs}:${sourceStat.size}:${width}:${quality}`)
+            .digest('hex');
+        const variantDir = path.join(imageVariantRoot, String(width));
+        const variantPath = path.join(variantDir, `${cacheKey}.webp`);
+
+        if (!fs.existsSync(variantPath)) {
+            fs.mkdirSync(variantDir, { recursive: true });
+            await sharp(resolved.resolvedPath, { animated: false })
+                .rotate()
+                .resize({ width, withoutEnlargement: true })
+                .webp({ quality, effort: 4 })
+                .toFile(variantPath);
+        }
+
+        res.setHeader('Cache-Control', 'public, max-age=2592000, immutable');
+        res.setHeader('Content-Type', 'image/webp');
+        res.setHeader('Vary', 'Accept');
+        return res.sendFile(variantPath);
+    } catch (error) {
+        return next(error);
+    }
+};
+
 const downloadDbBackup = (req, res, next) => {
   const dbPath = path.join(__dirname, '../../database.sqlite');
   if (fs.existsSync(dbPath)) {
@@ -564,4 +632,4 @@ const getPendingContent = async (req, res, next) => {
     } catch (error) { next(error); }
 };
 
-module.exports = { getStats, getSiteMetrics, trackVisit, handleUpload, downloadDbBackup, getFeaturedContent, crawlEvents, searchContent, getAuditLogs, getPendingContent };
+module.exports = { getStats, getSiteMetrics, trackVisit, handleUpload, getImageVariant, downloadDbBackup, getFeaturedContent, crawlEvents, searchContent, getAuditLogs, getPendingContent };

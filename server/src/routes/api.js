@@ -175,6 +175,7 @@ router.get('/search', systemController.searchContent);
 router.get('/stats', authenticateToken, isAdmin, systemController.getStats);
 router.get('/site-metrics', systemController.getSiteMetrics);
 router.post('/site-metrics/visit', optionalAuth, systemController.trackVisit);
+router.get('/uploads/image-variant', systemController.getImageVariant);
 router.post('/upload', authenticateToken, upload.fields([{ name: 'file', maxCount: 1 }, { name: 'cover', maxCount: 1 }]), systemController.handleUpload);
 router.post('/resources/parse-wechat', authenticateToken, wechatParseController.parseWeChatResource);
 router.get('/db/backup', authenticateToken, isAdmin, systemController.downloadDbBackup);

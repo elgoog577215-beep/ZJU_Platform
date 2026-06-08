@@ -104,6 +104,15 @@ const SHOWCASE_WORK_LIMIT = 3;
 
 const getShowcaseImageUrl = (url, width = 1200) => normalizeExternalImageUrl(url, width);
 
+const getShouldUseLiteShowcase = () => {
+  if (typeof window === "undefined" || typeof navigator === "undefined") return false;
+  const cores = Number(navigator.hardwareConcurrency || 0);
+  const memory = Number(navigator.deviceMemory || 0);
+  const saveData = Boolean(navigator.connection?.saveData);
+  const narrowViewport = window.matchMedia?.("(max-width: 768px)")?.matches;
+  return saveData || narrowViewport || (cores > 0 && cores <= 4) || (memory > 0 && memory <= 4);
+};
+
 const partnerEnglishNameMap = {
   "未来学习中心": "Future Learning Center",
   "AI 联合实验室": "AI Joint Lab",
@@ -178,16 +187,21 @@ const ShowcaseSectionFrame = ({
   className = "",
   backgroundWord,
   contentClassName = "items-center",
+  liteMode = false,
 }) => (
   <MotionSection
     id={id}
-    className={`relative grid min-h-[100svh] max-w-full snap-start overflow-hidden px-4 py-8 sm:px-6 sm:py-10 lg:px-10 lg:py-12 xl:px-14 2xl:px-20 ${className}`}
+    className={`showcase-section-frame relative grid min-h-[100svh] max-w-full snap-start overflow-hidden px-4 py-8 sm:px-6 sm:py-10 lg:px-10 lg:py-12 xl:px-14 2xl:px-20 ${className}`}
   >
-    <div className="showcase-stage-bg pointer-events-none absolute inset-0 opacity-80" aria-hidden="true" />
-    <div
-      className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_20%,rgba(103,232,249,0.14),transparent_28%),radial-gradient(circle_at_82%_28%,rgba(99,102,241,0.10),transparent_26%)]"
-      aria-hidden="true"
-    />
+    {!liteMode ? (
+      <>
+        <div className="showcase-stage-bg pointer-events-none absolute inset-0 opacity-80" aria-hidden="true" />
+        <div
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_20%,rgba(103,232,249,0.14),transparent_28%),radial-gradient(circle_at_82%_28%,rgba(99,102,241,0.10),transparent_26%)]"
+          aria-hidden="true"
+        />
+      </>
+    ) : null}
     {backgroundWord ? (
       <div
         className="pointer-events-none absolute left-[-2vw] top-[8%] max-w-full overflow-hidden font-black uppercase leading-none tracking-normal text-white/[0.035] text-[18vw]"
@@ -340,7 +354,8 @@ const HackathonShowcase = () => {
   const { uiMode } = useSettings();
   const { groups: ecosystemPartnerGroups } = useEcosystemPartners();
   const reduceMotion = useReducedMotion();
-  const shouldAnimate = !reduceMotion;
+  const [liteMode, setLiteMode] = useState(() => getShouldUseLiteShowcase());
+  const shouldAnimate = !reduceMotion && !liteMode;
   const isDayMode = uiMode === "day";
   const pageRef = useRef(null);
   const [activeSection, setActiveSection] = useState(0);
@@ -374,6 +389,18 @@ const HackathonShowcase = () => {
   useEffect(() => {
     fetchOutcome();
   }, [fetchOutcome]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const updateLiteMode = () => setLiteMode(getShouldUseLiteShowcase());
+    const mediaQuery = window.matchMedia?.("(max-width: 768px)");
+    mediaQuery?.addEventListener?.("change", updateLiteMode);
+    window.addEventListener("resize", updateLiteMode);
+    return () => {
+      mediaQuery?.removeEventListener?.("change", updateLiteMode);
+      window.removeEventListener("resize", updateLiteMode);
+    };
+  }, []);
 
   useEffect(() => {
     const container = pageRef.current;
@@ -430,7 +457,7 @@ const HackathonShowcase = () => {
     activeIndex: activeSection,
     setActiveIndex: updateActiveSection,
     reduceMotion,
-    minWidth: 0,
+    minWidth: liteMode ? 1024 : 0,
     lockMs: 860,
   });
 
@@ -670,7 +697,7 @@ const HackathonShowcase = () => {
     <div
       ref={pageRef}
       data-showcase-page
-      className={`showcase-page ${isDayMode ? "showcase-theme-day" : "showcase-theme-dark"} h-[100svh] snap-y snap-proximity overflow-y-auto overflow-x-hidden scroll-smooth overscroll-y-contain ${theme.page}`}
+      className={`showcase-page ${liteMode ? "showcase-lite" : ""} ${isDayMode ? "showcase-theme-day" : "showcase-theme-dark"} h-[100svh] snap-y snap-proximity overflow-y-auto overflow-x-hidden scroll-smooth overscroll-y-contain ${theme.page}`}
       style={{
         fontFamily:
           '"HarmonyOS Sans SC", "MiSans", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif',
@@ -685,6 +712,11 @@ const HackathonShowcase = () => {
         {`
           .showcase-page {
             scroll-padding-top: 1.25rem;
+          }
+
+          .showcase-section-frame {
+            content-visibility: auto;
+            contain-intrinsic-size: 1000px 100svh;
           }
 
           .showcase-page::selection {
@@ -941,6 +973,21 @@ const HackathonShowcase = () => {
               linear-gradient(90deg, rgba(0, 0, 0, 0.28), transparent 58%);
           }
 
+          .showcase-lite {
+            scroll-behavior: auto;
+            scroll-snap-type: y proximity;
+          }
+
+          .showcase-lite .showcase-stage-bg,
+          .showcase-lite .showcase-media-overlay {
+            background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.48) 100%);
+          }
+
+          .showcase-lite img {
+            transition-duration: 0ms !important;
+            filter: none !important;
+          }
+
           .showcase-theme-day .showcase-media-overlay,
           .showcase-media-overlay-day {
             background:
@@ -985,6 +1032,7 @@ const HackathonShowcase = () => {
         id="gate"
         className="snap-always pt-[calc(env(safe-area-inset-top)+7.2rem)] sm:pt-[calc(env(safe-area-inset-top)+8rem)] min-[1536px]:pt-[calc(env(safe-area-inset-top)+7.4rem)]"
         backgroundWord="2026"
+        liteMode={liteMode}
       >
         <MotionDiv {...heroReveal} className="min-w-0">
           <p className={`inline-flex items-center gap-2 border px-3 py-2 text-xs font-black uppercase ${theme.chip}`}>
@@ -1123,6 +1171,7 @@ const HackathonShowcase = () => {
         id="gallery"
         className="pt-20 pb-8 sm:pt-24 lg:py-10"
         backgroundWord="MEDIA"
+        liteMode={liteMode}
         contentClassName="self-center items-center xl:min-h-0 xl:grid-cols-[minmax(360px,0.58fr)_minmax(760px,1.42fr)] xl:grid-rows-[minmax(0,clamp(27rem,52svh,46rem))_clamp(11.5rem,19svh,18rem)] xl:items-stretch xl:gap-x-8 xl:gap-y-4 min-[1536px]:grid-cols-[minmax(420px,0.55fr)_minmax(940px,1.45fr)] min-[1536px]:gap-x-10 2xl:grid-cols-[minmax(480px,0.52fr)_minmax(1120px,1.48fr)] 2xl:gap-x-12"
       >
           <MotionDiv {...reveal} className="min-w-0">
@@ -1202,6 +1251,7 @@ const HackathonShowcase = () => {
         id="works"
         className="pt-20 pb-8 sm:pt-[5.25rem] lg:py-10 min-[1536px]:py-10"
         backgroundWord="WORKS"
+        liteMode={liteMode}
         contentClassName="self-center items-center xl:min-h-0 xl:grid-cols-[minmax(360px,0.48fr)_minmax(800px,1.52fr)] xl:gap-7 min-[1536px]:grid-cols-[minmax(430px,0.45fr)_minmax(980px,1.55fr)] min-[1536px]:gap-9 2xl:grid-cols-[minmax(500px,0.42fr)_minmax(1180px,1.58fr)] 2xl:gap-12"
       >
         <MotionDiv {...reveal} className="min-w-0">
