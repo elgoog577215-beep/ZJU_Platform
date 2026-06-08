@@ -45,29 +45,29 @@
 
 :root[data-theme='day'] {
   color-scheme: light;
-  background-color: #f4f7f5;
-  color: #102033;
-  --theme-bg: #f4f7f5;
-  --theme-bg-soft: rgba(250, 253, 251, 0.86);
-  --theme-surface: rgba(255, 255, 255, 0.82);
-  --theme-surface-strong: rgba(255, 255, 255, 0.96);
-  --theme-surface-muted: rgba(239, 246, 243, 0.82);
-  --theme-surface-hover: rgba(255, 255, 255, 0.98);
-  --theme-border: rgba(34, 49, 63, 0.105);
-  --theme-border-strong: rgba(25, 43, 59, 0.18);
-  --theme-text-primary: #102033;
-  --theme-text-secondary: rgba(30, 48, 66, 0.82);
-  --theme-text-muted: #607080;
-  --theme-text-soft: rgba(96, 112, 128, 0.68);
-  --theme-overlay-soft: rgba(247, 250, 248, 0.68);
-  --theme-overlay-strong: rgba(252, 254, 253, 0.94);
-  --theme-shadow-sm: 0 8px 20px rgba(31, 45, 61, 0.055), 0 1px 1px rgba(31, 45, 61, 0.04);
-  --theme-shadow: 0 18px 42px rgba(31, 45, 61, 0.075), 0 1px 1px rgba(31, 45, 61, 0.045);
-  --theme-shadow-lg: 0 34px 82px rgba(31, 45, 61, 0.12), 0 2px 2px rgba(31, 45, 61, 0.05);
-  --theme-accent: #0f766e;
-  --theme-accent-strong: #0f5f65;
-  --theme-accent-soft: rgba(15, 118, 110, 0.105);
-  --theme-selection: rgba(15, 118, 110, 0.18);
+  background-color: #ffffff;
+  color: #161322;
+  --theme-bg: #ffffff;
+  --theme-bg-soft: rgba(255, 255, 255, 0.9);
+  --theme-surface: rgba(255, 255, 255, 0.9);
+  --theme-surface-strong: #ffffff;
+  --theme-surface-muted: #fbf9ff;
+  --theme-surface-hover: #fff7fd;
+  --theme-border: rgba(91, 75, 110, 0.12);
+  --theme-border-strong: rgba(168, 85, 247, 0.22);
+  --theme-text-primary: #161322;
+  --theme-text-secondary: rgba(35, 28, 49, 0.82);
+  --theme-text-muted: #6c6378;
+  --theme-text-soft: rgba(108, 99, 120, 0.68);
+  --theme-overlay-soft: rgba(255, 255, 255, 0.72);
+  --theme-overlay-strong: rgba(255, 255, 255, 0.96);
+  --theme-shadow-sm: 0 8px 22px rgba(67, 56, 80, 0.045), 0 1px 1px rgba(67, 56, 80, 0.035);
+  --theme-shadow: 0 18px 42px rgba(67, 56, 80, 0.065), 0 1px 1px rgba(67, 56, 80, 0.04);
+  --theme-shadow-lg: 0 34px 82px rgba(67, 56, 80, 0.105), 0 2px 2px rgba(67, 56, 80, 0.045);
+  --theme-accent: #a855f7;
+  --theme-accent-strong: #7c3aed;
+  --theme-accent-soft: rgba(236, 72, 153, 0.105);
+  --theme-selection: rgba(236, 72, 153, 0.18);
 }
 
 html {
@@ -94,11 +94,8 @@ body {
 }
 
 body[data-theme='day'] {
-  background-color: #f4f7f5;
-  background-image:
-    radial-gradient(circle at 18% 8%, rgba(228, 245, 239, 0.9) 0, rgba(228, 245, 239, 0) 28rem),
-    radial-gradient(circle at 82% 0%, rgba(221, 235, 249, 0.78) 0, rgba(221, 235, 249, 0) 30rem),
-    linear-gradient(180deg, #fbfcf9 0%, #f4f7f5 48%, #eef3f1 100%);
+  background-color: #ffffff;
+  background-image: none;
   background-attachment: fixed;
 }
 
