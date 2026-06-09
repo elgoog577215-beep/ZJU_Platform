@@ -323,6 +323,9 @@ const EventAssistantPanel = ({
   const actionClass = isDayMode
     ? "bg-violet-700 text-white hover:bg-violet-800 shadow-[0_1px_2px_rgba(124,58,237,0.14)]"
     : "bg-blue-600 text-white hover:bg-blue-500 shadow-[0_1px_2px_rgba(0,0,0,0.22)]";
+  const disabledActionClass = isDayMode
+    ? "disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none"
+    : "disabled:bg-white/[0.07] disabled:text-white/35 disabled:shadow-none";
   const panelPaddingClass = isRailVariant
     ? "min-h-0 flex-1 overflow-y-auto p-3 custom-scrollbar"
     : isFullscreenVariant
@@ -339,6 +342,7 @@ const EventAssistantPanel = ({
   const recommendationReasonClass = isRailVariant
     ? "mt-2 text-sm leading-6"
     : "mt-3 text-sm leading-7 sm:text-base";
+  const showInlineReset = isCompactVariant && (assistantState || originalQuery);
 
   return (
     <div className={`w-full ${isRailVariant ? "h-full min-h-0" : ""} ${className}`}>
@@ -408,9 +412,8 @@ const EventAssistantPanel = ({
                   type="button"
                   onClick={() => handleQuickPrompt(item.prompt)}
                   disabled={loading}
-                  className={`inline-flex min-h-[46px] items-center justify-center gap-2 rounded-lg border px-3 py-2 text-xs font-bold transition-colors disabled:opacity-50 ${quickPromptClass}`}
+                  className={`inline-flex min-h-[44px] items-center justify-center rounded-lg border px-3 py-2 text-xs font-bold transition-colors disabled:cursor-not-allowed ${disabledActionClass} ${quickPromptClass}`}
                 >
-                  <Sparkles size={13} className={isDayMode ? "text-violet-500" : "text-blue-200"} />
                   {item.label}
                 </button>
               ))}
@@ -443,8 +446,8 @@ const EventAssistantPanel = ({
                 className={`w-full resize-none bg-transparent px-1 py-1 text-sm leading-7 outline-none sm:text-base ${isFullscreenVariant ? "min-h-[96px]" : "min-h-[82px]"} ${isDayMode ? "text-slate-900 placeholder:text-slate-400" : "text-white placeholder:text-gray-500"}`}
               />
 
-              <div className={`mt-3 flex flex-col gap-3 border-t pt-3 sm:flex-row sm:items-center sm:justify-between ${isDayMode ? "border-slate-200/70" : "border-white/10"}`}>
-                {isCompactVariant && (assistantState || originalQuery) ? (
+              <div className={`mt-3 flex flex-col gap-3 border-t pt-3 sm:flex-row sm:items-center ${showInlineReset ? "sm:justify-between" : "sm:justify-end"} ${isDayMode ? "border-slate-200/70" : "border-white/10"}`}>
+                {showInlineReset ? (
                   <button
                     type="button"
                     onClick={resetAssistant}
@@ -453,16 +456,12 @@ const EventAssistantPanel = ({
                     <RotateCcw size={14} />
                     {t("events.assistant.restart", "重来")}
                   </button>
-                ) : (
-                  <span className={`hidden text-xs sm:block ${faintClass}`}>
-                    {t("events.assistant.helper", "写清楚地点、时间或收益，结果会更准。")}
-                  </span>
-                )}
+                ) : null}
 
                 <button
                   type="submit"
                   disabled={loading || input.trim() === ""}
-                  className={`inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-bold transition-all active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 ${isRailVariant ? "w-full sm:w-auto" : "min-w-[148px]"} ${actionClass}`}
+                  className={`inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-bold transition-all active:scale-[0.99] disabled:cursor-not-allowed ${disabledActionClass} ${isRailVariant ? "w-full sm:w-auto" : "min-w-[148px]"} ${actionClass}`}
                 >
                   {loading ? (
                     <>
@@ -602,13 +601,14 @@ const EventAssistantPanel = ({
                             </button>
 
                             {decisionPreview?.nextAction ? (
-                              <div className={`mt-3 rounded-lg border px-3 py-2 text-sm leading-6 ${isDayMode ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-emerald-300/20 bg-emerald-400/10 text-emerald-100"}`}>
+                              <p className={`mt-3 flex items-start gap-2 text-sm leading-6 ${isDayMode ? "text-emerald-700" : "text-emerald-100"}`}>
+                                <ArrowRight size={14} className="mt-1 shrink-0" />
                                 <span className="font-semibold">
                                   {t("events.assistant.next_step", "下一步")}
                                   :
                                 </span>
-                                <span className="ml-1">{decisionPreview.nextAction}</span>
-                              </div>
+                                <span>{decisionPreview.nextAction}</span>
+                              </p>
                             ) : decisionPreview?.decisionHint ? (
                               <p className={`mt-3 text-sm leading-6 ${mutedClass}`}>
                                 {decisionPreview.decisionHint}
@@ -637,7 +637,7 @@ const EventAssistantPanel = ({
 
                             <div className={`mt-4 flex items-center justify-between border-t pt-3 ${isDayMode ? "border-slate-200/70" : "border-white/10"}`}>
                               <span className={`text-xs ${faintClass}`}>
-                                {t("events.assistant.feedback_question", "这条推荐有用吗？")}
+                                {t("events.assistant.feedback_question", "有用吗？")}
                               </span>
                               <div className="flex items-center gap-2">
                                 <button
@@ -696,14 +696,6 @@ const EventAssistantPanel = ({
                       })}
                     </div>
                   )}
-
-                  {assistantState.type === "recommend" ? (
-                    <div className={`mt-4 rounded-lg border px-4 py-3 ${isDayMode ? "border-violet-100/80 bg-violet-50/80" : "border-white/10 bg-white/[0.04]"}`}>
-                      <p className={`text-xs leading-5 ${faintClass}`}>
-                        {t("events.assistant.narrow_hint", "还不够贴近？在上方补一句限制条件，我会继续收窄。")}
-                      </p>
-                    </div>
-                  ) : null}
                 </div>
               </motion.div>
             )}

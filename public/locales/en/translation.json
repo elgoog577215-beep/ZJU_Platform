@@ -1187,85 +1187,29 @@
       "viral": "Trending"
     },
     "assistant": {
-      "badge": "AI Assistant",
-      "mode_label": "Discovery mode",
-      "mode_filters": "Filters",
-      "mode_filters_hint": "Manual filters stay the default, with AI search as a secondary path.",
-      "mode_ai": "AI Search",
-      "title": "Describe the event you want in one sentence",
-      "subtitle": "I will start with public upcoming events. If there are none, you can decide whether to widen the search to ongoing or past events.",
-      "embedded_title": "Try finding events with natural language",
-      "embedded_subtitle": "Describe the theme, timing, or payoff you want and I will first search across public upcoming events.",
-      "beta_hint": "Beta test, may be unstable",
-      "scope_upcoming": "Upcoming events",
-      "scope_ongoing": "Ongoing events",
-      "scope_past": "Past events",
       "empty_no_upcoming": "There are no upcoming events right now.",
       "empty_no_matches": "Nothing in this scope feels especially close to your request yet.",
       "empty_unreliable": "This result was not reliable enough. Try rephrasing your request.",
       "empty_after_clarify": "I still could not narrow it down confidently this time. Try rephrasing your request.",
-      "unreliable_hint": "You can try a more specific request, or relax some constraints and try again.",
       "unavailable": "The event AI assistant is unavailable right now.",
       "timeout": "The event AI assistant timed out. Please try again soon.",
       "error": "The event AI assistant hit a snag. Please try again.",
       "reset": "Ask again",
       "input_placeholder": "For example: I want an in-person event this weekend for freshmen, ideally with credits or volunteer hours",
       "clarification_placeholder": "Add one more detail and I will keep narrowing it down.",
-      "clarification_hint": "This is the one clarification turn. I will give results next.",
-      "helper": "Mention location, timing, or payoff for better matches.",
       "loading": "Thinking...",
       "submit": "Recommend",
       "submit_clarification": "Continue",
-      "need_more": "I need one more detail",
       "expand_hint": "If you want, I can keep looking through ongoing or past events.",
       "empty_hint": "Try rephrasing your request or loosening a few constraints.",
       "expand_button": "Look through ongoing or past events",
       "detail_error": "Failed to load event details. Please try again.",
       "card_badge": "AI Event Assistant",
-      "rank_badge": "AI Pick",
       "panel_title": "Find events in one sentence",
       "panel_subtitle": "Describe the topic, timing, location, or payoff you want. I will pick better-fit events.",
       "mobile_title": "AI Event Assistant",
       "mobile_subtitle": "Find events in one sentence",
       "back_to_events": "Back to Events",
-      "preferences": "Recommendation Preferences",
-      "preferences_short": "Preferences",
-      "profile_loading": "Loading recommendation preferences...",
-      "profile_auth_hint": "Log in to save long-term preferences. For now, you can describe them in this request.",
-      "profile": {
-        "college": "School / Organization",
-        "college_placeholder": "College of Computer Science",
-        "grade": "Year",
-        "grade_placeholder": "Freshman / First-year graduate",
-        "campus": "Main Campus",
-        "campus_placeholder": "Zijingang",
-        "interests": "Interest Keywords",
-        "interests_placeholder": "AI, entrepreneurship, volunteering, photography",
-        "preferred_categories": "Preferred Types",
-        "preferred_benefits": "Preferred Benefits"
-      },
-      "preference": {
-        "categories": {
-          "lecture": "Lecture",
-          "competition": "Competition",
-          "volunteer": "Volunteer",
-          "recruitment": "Recruitment / Career",
-          "culture_sports": "Culture & Sports",
-          "exchange": "Exchange"
-        },
-        "benefits": {
-          "score": "Credits",
-          "volunteer_time": "Volunteer Hours",
-          "skill": "Skill Growth",
-          "social": "Social / Relaxed"
-        },
-        "formats": {
-          "any": "Any Format",
-          "offline": "Offline Preferred",
-          "online": "Online Preferred",
-          "hybrid": "Either Works"
-        }
-      },
       "quick": {
         "freshman_offline": {
           "label": "Freshman Offline",
@@ -1274,10 +1218,6 @@
         "credit_volunteer": {
           "label": "Credits / Volunteer",
           "prompt": "Recommend events that mention credits or volunteer hours"
-        },
-        "portfolio": {
-          "label": "Skill Portfolio",
-          "prompt": "Recommend hands-on events that improve skills and can become portfolio work"
         },
         "ai_lecture": {
           "label": "AI Lectures",
@@ -1288,32 +1228,17 @@
           "prompt": "What events can I join this week or very soon?"
         }
       },
-      "remember": "Remember",
       "restart": "Restart",
-      "save_preferences": "Save Preferences",
-      "scope_mixed_future": "Upcoming / Ongoing events",
       "historical_fallback_note": "There were not enough matching future events, so these are past leads to watch for similar opportunities.",
-      "understood": "What I Understood",
-      "profile_signals": "Reference Signals",
-      "ranking_basis": "Ranking Basis",
-      "uncertain": "Still Unclear",
       "clarify_label": "One more detail",
       "historical_event": "Past Event",
-      "match_score": "Match {{score}}",
       "view_details": "View Details",
       "next_step": "Next step",
-      "tradeoff": "Tradeoff: {{value}}",
-      "fit_for": "Good for: {{value}}",
-      "matched": "Matched: {{value}}",
-      "missing": "Missing: {{value}}",
-      "uncertainty": "Unclear: {{value}}",
-      "feedback_used": "Feedback used",
-      "feedback_question": "Useful recommendation?",
+      "feedback_question": "Useful?",
       "feedback_up_aria": "Recommendation fits me",
       "feedback_up_title": "Fits me",
       "feedback_down_aria": "Recommendation does not fit me",
       "feedback_down_title": "Not for me",
-      "narrow_hint": "Still not close enough? Add one more constraint above and I will narrow it down.",
       "feedback": {
         "not_relevant": "Not relevant",
         "time_mismatch": "Time mismatch",
@@ -1325,18 +1250,8 @@
         "feedback_up": "Saved: this recommendation fits you",
         "feedback_down": "Saved: I will reduce similar recommendations",
         "feedback_login_required": "Log in to let the assistant remember feedback",
-        "feedback_failed": "Failed to save feedback. Please try again later.",
-        "profile_load_failed": "Failed to load recommendation preferences",
-        "profile_login_required": "Log in to save recommendation preferences",
-        "profile_saved": "Recommendation preferences saved",
-        "profile_save_failed": "Failed to save recommendation preferences"
+        "feedback_failed": "Failed to save feedback. Please try again later."
       },
-      "coverage_historical": "Event pool: no future events, {{count}} past leads",
-      "coverage_mixed": "Event pool: {{future}} upcoming/ongoing, {{past}} past",
-      "preference_remembered": "Preference remembered",
-      "model_fallback": "Model fallback used",
-      "model_used": "LLM joined ranking",
-      "model_unfinished": "Model ranking unfinished",
       "open_assistant": "Open AI Event Assistant"
     },
     "countdown": {
