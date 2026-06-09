@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { Calendar, Users } from 'lucide-react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -19,54 +19,24 @@ const STATUS_TABS = [
   { key: 'closed', label: 'community.post_status_closed' },
 ];
 
-const WORKFLOW_TABS = [
-  { key: 'approved', label: 'community.status_published' },
-  { key: 'draft', label: 'community.status_draft' },
-  { key: 'pending', label: 'community.status_pending' },
-  { key: 'rejected', label: 'community.status_rejected' },
-];
-
 const CommunityTeam = () => {
   const { t } = useTranslation();
   const { uiMode } = useSettings();
-  const { user, isAdmin } = useAuth();
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
   const isDayMode = uiMode === 'day';
   const [composerOpen, setComposerOpen] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
-  const [workflowView, setWorkflowView] = useState('approved');
   const fromUserProfileRef = useRef(Boolean(location.state?.fromUserProfile));
-  const workflowQueryParams = useMemo(() => {
-    if (!user || workflowView === 'approved') return {};
-    return {
-      workflow_status: workflowView,
-      author_id: isAdmin ? undefined : user.id,
-    };
-  }, [isAdmin, user, workflowView]);
 
   const feed = useCommunityFeed({
     endpoint: '/community/posts',
     section: 'team',
     deepLinkParam: 'post',
     defaultPageSize: 10,
-    extraQueryParams: workflowQueryParams,
-    extraDependencies: [workflowView, user?.id || 'guest'],
   });
-
-  const isOwnPost = useCallback((post) => Boolean(user && String(post?.author_id) === String(user.id)), [user]);
-
-  const openComposerForPost = async (post) => {
-    if (!post?.id) return;
-    try {
-      const res = await api.get(`/community/posts/${post.id}`);
-      setEditingPost(res.data || post);
-      setComposerOpen(true);
-    } catch {
-      toast.error(t('community.load_failed', '加载失败'));
-    }
-  };
 
   const updateParams = useCallback((next) => {
     const params = new URLSearchParams(searchParams);
@@ -112,26 +82,9 @@ const CommunityTeam = () => {
     }
   };
 
-  const renderCard = (post, index, { canAnimate, isDayMode: dm }) => {
-    const canEdit = isAdmin || isOwnPost(post);
-    return (
-      <div key={post.id} className="relative">
-        <PostCard post={post} index={index} onClick={handleOpenPost} canAnimate={canAnimate} isDayMode={dm} />
-        {canEdit ? (
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              openComposerForPost(post);
-            }}
-            className={`absolute right-3 top-3 rounded-md border px-2.5 py-1 text-[11px] font-semibold transition-colors ${dm ? 'border-slate-200 bg-white text-slate-600 hover:text-slate-950' : 'border-white/10 bg-black/35 text-white/70 hover:text-white'}`}
-          >
-            {t('common.edit', '编辑')}
-          </button>
-        ) : null}
-      </div>
-    );
-  };
+  const renderCard = (post, index, { canAnimate, isDayMode: dm }) => (
+    <PostCard key={post.id} post={post} index={index} onClick={handleOpenPost} canAnimate={canAnimate} isDayMode={dm} />
+  );
 
   const renderDetail = () => (
     <CommunityPostDetail
@@ -173,28 +126,6 @@ const CommunityTeam = () => {
 
   const controls = (
     <div className="grid gap-3">
-      {user ? (
-        <div className={`scrollbar-none flex items-center gap-1 overflow-x-auto rounded-lg border p-1 ${isDayMode ? 'border-slate-200 bg-white' : 'border-white/10 bg-black/10'}`}>
-          {WORKFLOW_TABS.map((tab) => (
-            <button
-              type="button"
-              key={tab.key}
-              onClick={() => {
-                if (workflowView === tab.key) return;
-                setWorkflowView(tab.key);
-                feed.setStatusFilter('all');
-              }}
-              className={`min-h-[32px] rounded-md px-3 text-xs font-semibold transition-colors whitespace-nowrap ${
-                workflowView === tab.key
-                  ? (isDayMode ? 'bg-slate-950 text-white' : 'bg-violet-600 text-white')
-                  : (isDayMode ? 'text-slate-600 hover:bg-slate-50' : 'text-gray-400 hover:bg-white/10')
-              }`}
-            >
-              {t(tab.label)}
-            </button>
-          ))}
-        </div>
-      ) : null}
       <input
         value={feed.searchQuery}
         onChange={(e) => feed.setSearchQuery(e.target.value)}

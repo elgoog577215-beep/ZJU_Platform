@@ -226,7 +226,7 @@ const AppContent = () => {
               <Route path="/community" element={<Navigate to="/articles" replace />} />
               <Route path="/community/help" element={<Navigate to="/articles?postTab=help" replace />} />
               <Route path="/community/tech" element={<Navigate to="/articles?postTab=tech" replace />} />
-              <Route path="/community/groups" element={<Navigate to="/articles?tab=groups" replace />} />
+              <Route path="/community/groups" element={<Navigate to="/articles" replace />} />
               <Route path="/events" element={<PageTransition><Events /></PageTransition>} />
               <Route path="/about" element={<PageTransition><About /></PageTransition>} />
               <Route path="/hackathon" element={<PageTransition><HackathonSeasonOne /></PageTransition>} />

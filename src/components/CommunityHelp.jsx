@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { HelpCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -18,57 +18,27 @@ const STATUS_TABS = [
   { key: 'solved', label: 'community.tab_solved' },
 ];
 
-const WORKFLOW_TABS = [
-  { key: 'approved', label: 'community.status_published' },
-  { key: 'draft', label: 'community.status_draft' },
-  { key: 'pending', label: 'community.status_pending' },
-  { key: 'rejected', label: 'community.status_rejected' },
-];
-
 const CommunityHelp = () => {
   const { t } = useTranslation();
   const { uiMode } = useSettings();
-  const { user, isAdmin } = useAuth();
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
   const isDayMode = uiMode === 'day';
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
-  const [workflowView, setWorkflowView] = useState('approved');
   // Capture at mount: if the user arrived from their PublicProfile card,
   // closing the detail modal should pop back to that profile (two history
   // entries: our navigate + useBackClose's hash push).
   const fromUserProfileRef = useRef(Boolean(location.state?.fromUserProfile));
-  const workflowQueryParams = useMemo(() => {
-    if (!user || workflowView === 'approved') return {};
-    return {
-      workflow_status: workflowView,
-      author_id: isAdmin ? undefined : user.id,
-    };
-  }, [isAdmin, user, workflowView]);
 
   const feed = useCommunityFeed({
     endpoint: '/community/posts',
     section: 'help',
     deepLinkParam: 'post',
     defaultPageSize: 10,
-    extraQueryParams: workflowQueryParams,
-    extraDependencies: [workflowView, user?.id || 'guest'],
   });
-
-  const isOwnPost = useCallback((post) => Boolean(user && String(post?.author_id) === String(user.id)), [user]);
-
-  const openComposerForPost = async (post) => {
-    if (!post?.id) return;
-    try {
-      const res = await api.get(`/community/posts/${post.id}`);
-      setEditingPost(res.data || post);
-      setIsComposerOpen(true);
-    } catch {
-      toast.error(t('community.load_failed', '加载失败'));
-    }
-  };
 
   const handleSolve = async (commentId) => {
     if (!feed.selectedItem) return;
@@ -97,7 +67,7 @@ const CommunityHelp = () => {
   const handleRelatedSelect = (resource) => {
     if (!resource?.id) return;
     if (resource.type === 'article') return updateParams({ postTab: 'tech', id: resource.id });
-    if (resource.type === 'group') return updateParams({ postTab: 'groups', group: resource.id });
+    if (resource.type === 'group') return updateParams({ group: resource.id });
     if (resource.type === 'news') return updateParams({ postTab: 'news', news: resource.id });
     return updateParams({ postTab: 'help', post: resource.id });
   };
@@ -121,26 +91,9 @@ const CommunityHelp = () => {
     feed.updateItemById(postId, (item) => ({ ...item, comments_count: count }));
   }, [feed]);
 
-  const renderCard = (post, index, { canAnimate, isDayMode: dm }) => {
-    const canEdit = isAdmin || isOwnPost(post);
-    return (
-      <div key={post.id} className="relative">
-        <PostCard post={post} index={index} onClick={handleOpenPost} canAnimate={canAnimate} isDayMode={dm} />
-        {canEdit ? (
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              openComposerForPost(post);
-            }}
-            className={`absolute right-3 top-3 rounded-md border px-2.5 py-1 text-[11px] font-semibold transition-colors ${dm ? 'border-slate-200 bg-white text-slate-600 hover:text-slate-950' : 'border-white/10 bg-black/35 text-white/70 hover:text-white'}`}
-          >
-            {t('common.edit', '编辑')}
-          </button>
-        ) : null}
-      </div>
-    );
-  };
+  const renderCard = (post, index, { canAnimate, isDayMode: dm }) => (
+    <PostCard key={post.id} post={post} index={index} onClick={handleOpenPost} canAnimate={canAnimate} isDayMode={dm} />
+  );
 
   const renderDetail = () => (
     <CommunityPostDetail
@@ -171,28 +124,6 @@ const CommunityHelp = () => {
 
   const helpControls = (
     <div className="grid gap-3">
-      {user ? (
-        <div className={`scrollbar-none flex items-center gap-1 overflow-x-auto rounded-lg border p-1 ${isDayMode ? 'border-slate-200 bg-white' : 'border-white/10 bg-black/10'}`}>
-          {WORKFLOW_TABS.map((tab) => (
-            <button
-              type="button"
-              key={tab.key}
-              onClick={() => {
-                if (workflowView === tab.key) return;
-                setWorkflowView(tab.key);
-                feed.setStatusFilter('all');
-              }}
-              className={`min-h-[32px] rounded-md px-3 text-xs font-semibold transition-colors whitespace-nowrap ${
-                workflowView === tab.key
-                  ? (isDayMode ? 'bg-slate-950 text-white' : 'bg-amber-600 text-white')
-                  : (isDayMode ? 'text-slate-600 hover:bg-slate-50' : 'text-gray-400 hover:bg-white/10')
-              }`}
-            >
-              {t(tab.label)}
-            </button>
-          ))}
-        </div>
-      ) : null}
       <input
         value={feed.searchQuery}
         onChange={(e) => feed.setSearchQuery(e.target.value)}

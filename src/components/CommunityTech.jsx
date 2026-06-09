@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useCallback, useState, useRef, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, ArrowRight, Calendar, X, User, Clock, Edit2, RotateCcw, Trash2, AlertCircle, Clock3, Search, Sparkles } from 'lucide-react';
+import { BookOpen, ArrowRight, Calendar, X, User, Clock, Search, Sparkles } from 'lucide-react';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
@@ -18,38 +18,6 @@ import { parseContentBlocks, calculateReadingTime } from './communityUtils';
 import { useCommunityFeed } from '../hooks/useCommunityFeed';
 import UnifiedCommunityComposer from './UnifiedCommunityComposer';
 
-const VIEW_MODES = [
-  { key: 'public', label: '全部' },
-  { key: 'mine', label: '我的投稿' },
-  { key: 'draft', label: '草稿箱' },
-  { key: 'pending', label: '待审核' },
-  { key: 'rejected', label: '已驳回' },
-  { key: 'trash', label: '回收站' },
-];
-
-const STATUS_META = {
-  draft: {
-    label: '草稿',
-    badge: 'bg-slate-100 text-slate-700 border-slate-200',
-    badgeDark: 'bg-white/10 text-gray-300 border-white/20',
-  },
-  pending: {
-    label: '待审核',
-    badge: 'bg-amber-50 text-amber-700 border-amber-200',
-    badgeDark: 'bg-amber-500/10 text-amber-300 border-amber-500/30',
-  },
-  rejected: {
-    label: '已驳回',
-    badge: 'bg-rose-50 text-rose-700 border-rose-200',
-    badgeDark: 'bg-rose-500/10 text-rose-300 border-rose-500/30',
-  },
-  approved: {
-    label: '已发布',
-    badge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    badgeDark: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30',
-  },
-};
-
 const ArticleCard = memo(({
   article,
   index,
@@ -58,10 +26,8 @@ const ArticleCard = memo(({
   canAnimate,
   isDayMode,
   actionBar = null,
-  workflowView = false,
 }) => {
   const { t } = useTranslation();
-  const statusMeta = STATUS_META[article.status] || STATUS_META.approved;
 
   return (
     <motion.div
@@ -89,18 +55,6 @@ const ArticleCard = memo(({
           </div>
         )}
         <div className="flex-1 min-w-0 flex flex-col justify-center space-y-2 md:space-y-3">
-          {workflowView && (
-            <div className="flex flex-wrap items-center gap-2">
-              <span className={`px-2.5 py-1 rounded-md text-[11px] border ${isDayMode ? statusMeta.badge : statusMeta.badgeDark}`}>
-                {statusMeta.label}
-              </span>
-              {article.status === 'rejected' && article.rejection_reason ? (
-                <span className={`text-xs ${isDayMode ? 'text-rose-700' : 'text-rose-300'}`}>
-                  驳回原因：{article.rejection_reason}
-                </span>
-              ) : null}
-            </div>
-          )}
           <div className={`flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] md:text-xs font-mono ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
             {article.author_name ? (
               <>
@@ -151,26 +105,12 @@ const CommunityTech = () => {
   const isDayMode = uiMode === 'day';
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
-  const [viewMode, setViewMode] = useState('public');
-  const [editingArticle, setEditingArticle] = useState(null);
-
-  const techQueryParams = useMemo(() => {
-    if (!user) return {};
-    if (viewMode === 'mine') return { status: 'all', uploader_id: user.id };
-    if (viewMode === 'draft') return { status: 'draft', uploader_id: user.id };
-    if (viewMode === 'pending') return { status: 'pending', uploader_id: user.id };
-    if (viewMode === 'rejected') return { status: 'rejected', uploader_id: user.id };
-    if (viewMode === 'trash') return { status: 'all', uploader_id: user.id, trashed: true };
-    return {};
-  }, [user, viewMode]);
 
   const feed = useCommunityFeed({
     endpoint: '/articles',
     category: 'tech',
     deepLinkParam: 'id',
     defaultPageSize: 6,
-    extraQueryParams: techQueryParams,
-    extraDependencies: [viewMode, user?.id],
   });
 
   const mobileSortLabel = useMemo(() => {
@@ -184,9 +124,9 @@ const CommunityTech = () => {
   }, [feed.sort, t]);
 
   const featuredArticle = useMemo(() => {
-    if (viewMode !== 'public' || feed.searchQuery.trim()) return null;
+    if (feed.searchQuery.trim()) return null;
     return (feed.displayItems || []).find((item) => item.featured) || null;
-  }, [feed.displayItems, feed.searchQuery, viewMode]);
+  }, [feed.displayItems, feed.searchQuery]);
 
   const panelItems = useMemo(
     () => (featuredArticle ? (feed.displayItems || []).filter((item) => item.id !== featuredArticle.id) : (feed.displayItems || [])),
@@ -228,13 +168,13 @@ const CommunityTech = () => {
         params.set(key, String(value));
       }
     });
-    if (!params.get('tab')) params.set('tab', 'tech');
+    if (!params.get('postTab')) params.set('postTab', 'tech');
     setSearchParams(params, { replace: false });
   }, [searchParams, setSearchParams]);
 
   const handleOpenArticle = useCallback((article) => {
     feed.handleItemClick(article);
-    updateParams({ tab: 'tech', id: article.id });
+    updateParams({ postTab: 'tech', id: article.id });
     api.post('/community/metrics/track', {
       metric_type: 'article_view',
       source_type: 'article',
@@ -245,7 +185,7 @@ const CommunityTech = () => {
   // Capture on mount — useCommunityFeed internally calls useBackClose which pushes a
   // hash entry on selectedItem change; that entry's state overwrites location.state.
   // History stack when arriving from /profile favorite OR a user's public profile:
-  //   /profile → /articles?tab=tech&id=X (navigate) → #modal-feed-xxx (useBackClose)
+  //   /profile → /articles?postTab=tech&id=X (navigate) → #modal-feed-xxx (useBackClose)
   // So -2 pops both back to the origin.
   const fromFavoritesRef = useRef(location.state?.fromFavorites === true);
   const fromUserProfileRef = useRef(Boolean(location.state?.fromUserProfile));
@@ -261,42 +201,8 @@ const CommunityTech = () => {
       return;
     }
     feed.setSelectedItem(null);
-    updateParams({ tab: 'tech' });
+    updateParams({ postTab: 'tech' });
   }, [feed, updateParams, navigate]);
-
-  const handleOpenEditor = useCallback(async (article) => {
-    try {
-      const { data } = await api.get(`/articles/${article.id}`);
-      setEditingArticle(data || article);
-      setIsUploadOpen(true);
-    } catch {
-      toast.error('加载投稿详情失败');
-    }
-  }, []);
-
-  const handleSoftDelete = useCallback(async (article) => {
-    if (!window.confirm('确认将该投稿移入回收站吗？')) return;
-    try {
-      await api.delete(`/articles/${article.id}`);
-      toast.success('已移入回收站');
-      feed.handleRefresh();
-      if (feed.selectedItem?.id === article.id) {
-        handleCloseDetail();
-      }
-    } catch (error) {
-      toast.error(error?.response?.data?.error || '删除失败');
-    }
-  }, [feed, handleCloseDetail]);
-
-  const handleRecover = useCallback(async (article) => {
-    try {
-      await api.post(`/articles/${article.id}/recover`);
-      toast.success('已从回收站恢复');
-      feed.handleRefresh();
-    } catch (error) {
-      toast.error(error?.response?.data?.error || '恢复失败');
-    }
-  }, [feed]);
 
   const handleToggleFeatured = useCallback(async (article) => {
     try {
@@ -305,21 +211,21 @@ const CommunityTech = () => {
         category: 'tech',
         featured: !article.featured,
       });
-      toast.success(article.featured ? '已取消精选' : '已设为精选');
+      toast.success(article.featured ? t('community.featured_disabled', '已取消精选') : t('community.featured_enabled', '已设为精选'));
       feed.handleRefresh();
     } catch (error) {
-      toast.error(error?.response?.data?.error || '更新精选状态失败');
+      toast.error(error?.response?.data?.error || t('community.featured_update_failed', '更新精选状态失败'));
     }
-  }, [feed]);
+  }, [feed, t]);
 
   const handleRelatedSelect = (resource) => {
     if (!resource?.id) return;
     if (resource.type === 'article') {
-      updateParams({ tab: 'tech', id: resource.id });
+      updateParams({ postTab: 'tech', id: resource.id });
       return;
     }
     if (resource.type === 'post') {
-      updateParams({ tab: 'help', post: resource.id });
+      updateParams({ postTab: 'help', post: resource.id });
       return;
     }
     if (resource.type === 'group') {
@@ -332,59 +238,15 @@ const CommunityTech = () => {
           target_id: resource.id,
         }).catch(() => {});
       }
-      updateParams({ tab: 'groups', group: resource.id });
+      updateParams({ group: resource.id });
       return;
     }
     if (resource.type === 'news') {
-      updateParams({ tab: searchParams.get('tab') || 'tech', news: resource.id });
+      updateParams({ postTab: searchParams.get('postTab') || 'tech', news: resource.id });
     }
   };
 
   const renderCard = (article, index, { canAnimate, isDayMode: currentDayMode }) => {
-    const workflowView = ['mine', 'draft', 'pending', 'rejected', 'trash'].includes(viewMode);
-    const workflowActionBar = workflowView ? (
-      <div className="flex items-center gap-2">
-        {viewMode !== 'trash' ? (
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              handleOpenEditor(article);
-            }}
-            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] border ${currentDayMode ? 'text-slate-600 border-slate-200 hover:bg-slate-100' : 'text-gray-300 border-white/10 hover:bg-white/10'}`}
-          >
-            <Edit2 size={12} />
-            {article.status === 'rejected' ? '编辑并重提' : '编辑'}
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              handleRecover(article);
-            }}
-            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] border ${currentDayMode ? 'text-emerald-700 border-emerald-200 hover:bg-emerald-50' : 'text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/10'}`}
-          >
-            <RotateCcw size={12} />
-            恢复
-          </button>
-        )}
-        {viewMode !== 'trash' ? (
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              handleSoftDelete(article);
-            }}
-            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] border ${currentDayMode ? 'text-rose-700 border-rose-200 hover:bg-rose-50' : 'text-rose-300 border-rose-500/30 hover:bg-rose-500/10'}`}
-          >
-            <Trash2 size={12} />
-            删除
-          </button>
-        ) : null}
-      </div>
-    ) : null;
-
     const adminActionBar = isAdmin ? (
       <button
         type="button"
@@ -395,13 +257,12 @@ const CommunityTech = () => {
         className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] border ${article.featured ? (currentDayMode ? 'text-amber-700 border-amber-300 bg-amber-50 hover:bg-amber-100' : 'text-amber-300 border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20') : (currentDayMode ? 'text-slate-600 border-slate-200 hover:bg-slate-100' : 'text-gray-300 border-white/10 hover:bg-white/10')}`}
       >
         <Sparkles size={12} />
-        {article.featured ? '取消精选' : '设为精选'}
+        {article.featured ? t('community.unfeature_article', '取消精选') : t('community.feature_article', '设为精选')}
       </button>
     ) : null;
 
-    const actionBar = (workflowActionBar || adminActionBar) ? (
+    const actionBar = adminActionBar ? (
       <div className="flex items-center gap-2 flex-wrap justify-end">
-        {workflowActionBar}
         {adminActionBar}
       </div>
     ) : null;
@@ -416,14 +277,12 @@ const CommunityTech = () => {
         canAnimate={canAnimate}
         isDayMode={currentDayMode}
         actionBar={actionBar}
-        workflowView={workflowView}
       />
     );
   };
 
   const handleUpload = async () => {
     feed.handleRefresh();
-    setEditingArticle(null);
   };
 
   const featuredSection = featuredArticle ? (
@@ -431,9 +290,8 @@ const CommunityTech = () => {
       <div className="mb-3 flex items-center justify-between gap-3 px-1 md:mb-4 md:px-0">
         <div className="flex items-center gap-2">
         <Sparkles size={16} className={isDayMode ? 'text-blue-700' : 'text-orange-300'} />
-        <span className={`text-xs uppercase tracking-[0.22em] ${isDayMode ? 'text-blue-700' : 'text-orange-300'}`}>精选文章</span>
+        <span className={`text-xs uppercase tracking-[0.22em] ${isDayMode ? 'text-blue-700' : 'text-orange-300'}`}>{t('community.featured_article', '精选文章')}</span>
         </div>
-        <span className={`hidden text-[11px] font-medium md:inline ${isDayMode ? 'text-slate-500' : 'text-orange-200/70'}`}>Editor&apos;s Pick</span>
       </div>
       <ArticleCard
         article={featuredArticle}
@@ -446,24 +304,8 @@ const CommunityTech = () => {
     </div>
   ) : null;
 
-  const viewModeSwitch = user ? (
-    <div className={`inline-flex max-w-full gap-1 overflow-x-auto rounded-lg border p-1 ${isDayMode ? 'bg-slate-100/70 border-slate-200/80' : 'bg-white/5 border-white/10'}`}>
-      {VIEW_MODES.map((mode) => (
-        <button
-          key={mode.key}
-          type="button"
-          onClick={() => setViewMode(mode.key)}
-          className={`min-h-[32px] px-3 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${viewMode === mode.key ? (isDayMode ? 'bg-white text-slate-950 border border-slate-300 shadow-[0_4px_12px_rgba(15,23,42,0.06)]' : 'bg-indigo-500/20 text-indigo-100 shadow-[inset_0_0_0_1px_rgba(129,140,248,0.35)]') : (isDayMode ? 'text-slate-600 hover:bg-white hover:text-slate-950' : 'text-gray-300 hover:bg-white/10')}`}
-        >
-          {mode.label}
-        </button>
-      ))}
-    </div>
-  ) : null;
-
   const extraControls = (
     <div className="flex-1">
-      {user ? <div className="md:hidden mb-3">{viewModeSwitch}</div> : null}
       <div className="space-y-3">
         <div className={`flex items-center gap-2 rounded-lg border px-3 py-2.5 ${isDayMode ? 'bg-white border-slate-200/80' : 'bg-white/5 border-white/10'}`}>
           <Search size={16} className={isDayMode ? 'text-slate-400' : 'text-gray-500'} />
@@ -491,7 +333,6 @@ const CommunityTech = () => {
         />
         <div className="hidden md:block">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-            {viewModeSwitch}
             <SortSelector
               sort={feed.sort}
               onSortChange={feed.setSort}
@@ -629,10 +470,8 @@ const CommunityTech = () => {
             boardKey="tech"
             onClose={() => {
               setIsUploadOpen(false);
-              setEditingArticle(null);
             }}
             onSuccess={handleUpload}
-            initialData={editingArticle}
           />
         )}
       />

@@ -27,8 +27,9 @@ const isValidHttpUrl = (value) => {
   }
 };
 
-const GroupCard = memo(({ group, index, isDayMode, isAdmin, onQuickAction, onEdit, onDelete, onOpen }) => {
+const GroupCard = memo(({ group, index, isDayMode, isAdmin, compact, onQuickAction, onEdit, onDelete, onOpen }) => {
   const { t } = useTranslation();
+  const platformLabel = t(`community.groups.platform_${group.platform}`, PLATFORM_LABELS[group.platform] || group.platform);
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -53,13 +54,13 @@ const GroupCard = memo(({ group, index, isDayMode, isAdmin, onQuickAction, onEdi
       <div className="flex flex-wrap items-center gap-1.5 md:gap-2 mb-1.5 md:mb-2">
         <h3 className={`text-base md:text-lg font-bold line-clamp-2 ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{group.name}</h3>
         <span className={`text-[9px] md:text-[10px] px-1.5 md:px-2 py-0.5 rounded-md border shrink-0 ${isDayMode ? 'bg-slate-100 text-slate-500 border-slate-200' : 'bg-white/5 text-gray-400 border-white/10'}`}>
-          {PLATFORM_LABELS[group.platform] || group.platform}
+          {platformLabel}
         </span>
       </div>
       <p className={`text-xs md:text-sm leading-relaxed line-clamp-2 mb-2.5 md:mb-4 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{group.description}</p>
-      {group.valid_until && (
+      {!compact && group.valid_until && (
         <p className={`text-[10px] md:text-[11px] mb-2 md:mb-3 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
-          有效期至 {String(group.valid_until).slice(0, 10)}
+          {t('community.groups.valid_until', '有效期至 {{date}}', { date: String(group.valid_until).slice(0, 10) })}
         </p>
       )}
       <div className="flex items-center justify-between gap-2">
@@ -75,18 +76,20 @@ const GroupCard = memo(({ group, index, isDayMode, isAdmin, onQuickAction, onEdi
             <ExternalLink size={12} />
           </a>
         ) : <span />}
-        <div className="flex items-center gap-1 flex-wrap justify-end">
-          {group.review_status === 'pending' && <span className={`text-[10px] px-2 py-0.5 rounded-md ${isDayMode ? 'bg-amber-100 text-amber-700' : 'bg-amber-500/15 text-amber-300'}`}>待审核</span>}
-          {Number(group.is_expired) === 1 && <span className={`text-[10px] px-2 py-0.5 rounded-md ${isDayMode ? 'bg-slate-200 text-slate-700' : 'bg-white/10 text-gray-300'}`}>已过期</span>}
-          {Number(group.is_recommended) === 1 && <span className={`text-[10px] px-2 py-0.5 rounded-md ${isDayMode ? 'bg-emerald-100 text-emerald-700' : 'bg-emerald-500/15 text-emerald-300'}`}>推荐</span>}
-        </div>
+        {!compact ? (
+          <div className="flex items-center gap-1 flex-wrap justify-end">
+            {group.review_status === 'pending' && <span className={`text-[10px] px-2 py-0.5 rounded-md ${isDayMode ? 'bg-amber-100 text-amber-700' : 'bg-amber-500/15 text-amber-300'}`}>{t('community.status_pending', '待审核')}</span>}
+            {Number(group.is_expired) === 1 && <span className={`text-[10px] px-2 py-0.5 rounded-md ${isDayMode ? 'bg-slate-200 text-slate-700' : 'bg-white/10 text-gray-300'}`}>{t('community.groups.expired', '已过期')}</span>}
+            {Number(group.is_recommended) === 1 && <span className={`text-[10px] px-2 py-0.5 rounded-md ${isDayMode ? 'bg-emerald-100 text-emerald-700' : 'bg-emerald-500/15 text-emerald-300'}`}>{t('community.groups.recommended', '推荐')}</span>}
+          </div>
+        ) : null}
       </div>
-      {group.review_status === 'rejected' && group.review_note && (
+      {!compact && group.review_status === 'rejected' && group.review_note && (
         <p className={`mt-3 text-[11px] leading-relaxed rounded-lg border px-2.5 py-2 ${isDayMode ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-rose-500/10 text-rose-300 border-rose-500/20'}`}>
-          驳回备注：{group.review_note}
+          {t('community.groups.rejection_note', '驳回备注：{{note}}', { note: group.review_note })}
         </p>
       )}
-      {isAdmin && (
+      {isAdmin && !compact && (
         <div className="mt-4 flex flex-wrap items-center gap-2">
           {group.review_status !== 'approved' && (
             <button type="button" onClick={(e) => { e.stopPropagation(); onQuickAction(group, { review_status: 'approved', review_note: null }); }} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] border ${isDayMode ? 'text-emerald-700 border-emerald-200 hover:bg-emerald-50' : 'text-emerald-300 border-emerald-500/20 hover:bg-emerald-500/10'}`}>
@@ -172,7 +175,7 @@ const CommunityGroups = ({ compact = false }) => {
   });
 
   const loadGroups = async (signal) => {
-    const review = isAdmin ? adminReviewFilter : 'approved';
+    const review = compact ? 'approved' : (isAdmin ? adminReviewFilter : 'approved');
     const res = await api.get('/community/groups', { params: { review_status: review }, signal });
     setGroups(Array.isArray(res.data) ? res.data : []);
     setLoadError(false);
@@ -184,7 +187,7 @@ const CommunityGroups = ({ compact = false }) => {
       .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
     return () => ac.abort();
-  }, [isAdmin, adminReviewFilter]);
+  }, [compact, isAdmin, adminReviewFilter]);
 
   useEffect(() => {
     const groupId = searchParams.get('group');
@@ -322,95 +325,97 @@ const CommunityGroups = ({ compact = false }) => {
   };
 
   const handleOpenGroup = async (group) => {
-    updateParams({ tab: 'groups', group: group.id });
+    updateParams({ group: group.id });
   };
 
   const handleRelatedSelect = (resource) => {
     if (!resource?.id) return;
-    if (resource.type === 'article') return updateParams({ tab: 'tech', id: resource.id });
-    if (resource.type === 'post') return updateParams({ tab: 'help', post: resource.id });
-    if (resource.type === 'news') return updateParams({ tab: 'groups', news: resource.id });
-    return updateParams({ tab: 'groups', group: resource.id });
+    if (resource.type === 'article') return updateParams({ postTab: 'tech', id: resource.id });
+    if (resource.type === 'post') return updateParams({ postTab: 'help', post: resource.id });
+    if (resource.type === 'news') return updateParams({ postTab: 'news', news: resource.id });
+    return updateParams({ group: resource.id });
   };
 
   return (
     <div>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-        <div className="mb-6">
-          <p className={`max-w-lg text-sm ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
-            {t('community.groups.subtitle', '扫描二维码加入我们的社群，获取最新消息与资源')}
-          </p>
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="搜索社群"
-              className={`h-10 px-3 rounded-lg border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`}
-            />
-            <select
-              value={platform}
-              onChange={(e) => setPlatform(e.target.value)}
-              className={`h-10 px-3 rounded-lg border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`}
-            >
-              <option value="all">全部平台</option>
-              {Object.entries(PLATFORM_LABELS).map(([k, v]) => (
-                <option key={k} value={k}>{v}</option>
-              ))}
-            </select>
-            {isAdmin && (
-              <div className="flex items-center gap-1.5">
-                {ADMIN_REVIEW_FILTERS.map((item) => (
-                  <button
-                    key={item.key}
-                    type="button"
-                    onClick={() => setAdminReviewFilter(item.key)}
-                    className={`h-10 px-3 rounded-lg border text-xs ${adminReviewFilter === item.key
-                      ? (isDayMode ? 'bg-white text-slate-950 border-slate-300 shadow-[0_4px_12px_rgba(15,23,42,0.06)]' : 'bg-indigo-500 text-white border-indigo-500')
-                      : (isDayMode ? 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-950' : 'bg-white/5 text-gray-300 border-white/10')
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            )}
-            {canSubmitGroup && (
-              <button
-                type="button"
-                onClick={() => {
-                  if (showForm) resetForm();
-                  setShowForm((v) => !v);
-                }}
-                className={`h-10 px-3 rounded-lg border text-sm inline-flex items-center gap-1.5 ${isDayMode ? 'bg-slate-950 text-white border-slate-950' : 'bg-orange-500 text-black border-orange-500'}`}
+        {!compact ? (
+          <div className="mb-6">
+            <p className={`max-w-lg text-sm ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+              {t('community.groups.subtitle', '扫描二维码加入我们的社群，获取最新消息与资源')}
+            </p>
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t('community.groups.search_placeholder', '搜索社群')}
+                className={`h-10 px-3 rounded-lg border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`}
+              />
+              <select
+                value={platform}
+                onChange={(e) => setPlatform(e.target.value)}
+                className={`h-10 px-3 rounded-lg border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`}
               >
-                <Plus size={14} />
-                {showForm ? '收起表单' : (isAdmin ? '新建社群' : '投稿社群')}
-              </button>
-            )}
-          </div>
-          <div className={`mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs ${isDayMode ? 'bg-white/72 border-slate-200/80 text-slate-500' : 'bg-white/[0.03] border-white/10 text-gray-400'}`}>
-            <div className="flex flex-wrap items-center gap-2">
-              <span>{filteredGroups.length} {t('community.groups.results', '个社群')}</span>
+                <option value="all">{t('community.groups.platform_all', '全部平台')}</option>
+                {Object.entries(PLATFORM_LABELS).map(([k, v]) => (
+                  <option key={k} value={k}>{t(`community.groups.platform_${k}`, v)}</option>
+                ))}
+              </select>
+              {isAdmin && (
+                <div className="flex items-center gap-1.5">
+                  {ADMIN_REVIEW_FILTERS.map((item) => (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => setAdminReviewFilter(item.key)}
+                      className={`h-10 px-3 rounded-lg border text-xs ${adminReviewFilter === item.key
+                        ? (isDayMode ? 'bg-white text-slate-950 border-slate-300 shadow-[0_4px_12px_rgba(15,23,42,0.06)]' : 'bg-indigo-500 text-white border-indigo-500')
+                        : (isDayMode ? 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-950' : 'bg-white/5 text-gray-300 border-white/10')
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {canSubmitGroup && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (showForm) resetForm();
+                    setShowForm((v) => !v);
+                  }}
+                  className={`h-10 px-3 rounded-lg border text-sm inline-flex items-center gap-1.5 ${isDayMode ? 'bg-slate-950 text-white border-slate-950' : 'bg-orange-500 text-black border-orange-500'}`}
+                >
+                  <Plus size={14} />
+                  {showForm ? t('community.groups.collapse_form', '收起表单') : (isAdmin ? t('community.groups.new_group', '新建社群') : t('community.groups.submit_group', '投稿社群'))}
+                </button>
+              )}
+            </div>
+            <div className={`mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs ${isDayMode ? 'bg-white/72 border-slate-200/80 text-slate-500' : 'bg-white/[0.03] border-white/10 text-gray-400'}`}>
+              <div className="flex flex-wrap items-center gap-2">
+                <span>{t('community.groups.results', '{{count}} 个社群', { count: filteredGroups.length })}</span>
+                {(search.trim() || platform !== 'all') ? (
+                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${isDayMode ? 'bg-white text-slate-600 border-slate-200' : 'bg-blue-500/10 text-blue-300 border-blue-500/20'}`}>
+                    {t('community.filtered_view', '已应用筛选')}
+                  </span>
+                ) : null}
+              </div>
               {(search.trim() || platform !== 'all') ? (
-                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${isDayMode ? 'bg-white text-slate-600 border-slate-200' : 'bg-blue-500/10 text-blue-300 border-blue-500/20'}`}>
-                  {t('community.filtered_view', '已应用筛选')}
-                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearch('');
+                    setPlatform('all');
+                  }}
+                  className={`px-2.5 py-1 rounded-md border ${isDayMode ? 'text-slate-600 border-slate-200 hover:bg-slate-100' : 'text-gray-300 border-white/10 hover:bg-white/10'}`}
+                >
+                  {t('community.clear_filters', '清除筛选')}
+                </button>
               ) : null}
             </div>
-            {(search.trim() || platform !== 'all') ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearch('');
-                  setPlatform('all');
-                }}
-                className={`px-2.5 py-1 rounded-md border ${isDayMode ? 'text-slate-600 border-slate-200 hover:bg-slate-100' : 'text-gray-300 border-white/10 hover:bg-white/10'}`}
-              >
-                {t('community.clear_filters', '清除筛选')}
-              </button>
-            ) : null}
           </div>
-        </div>
+        ) : null}
         {canSubmitGroup && showForm && (
           <form onSubmit={handleSubmitForm} className={`mb-6 p-4 rounded-lg border grid grid-cols-1 md:grid-cols-2 gap-3 ${isDayMode ? 'bg-white border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
             <input required value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} placeholder="社群名称" className={`h-10 px-3 rounded-lg border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`} />
@@ -464,10 +469,10 @@ const CommunityGroups = ({ compact = false }) => {
           <div className={`rounded-lg border px-5 py-8 text-center ${isDayMode ? 'border-slate-200/80 bg-slate-50' : 'border-white/10 bg-white/[0.03]'}`}>
             <QrCode size={32} className={`mx-auto mb-3 ${isDayMode ? 'text-slate-300' : 'text-white/20'}`} />
             <p className={`text-sm font-semibold ${isDayMode ? 'text-slate-700' : 'text-white/70'}`}>
-              社群二维码正在准备中
+              {t('community.groups.empty_title', '社群二维码正在准备中')}
             </p>
             <p className={`mt-1 text-xs leading-5 ${isDayMode ? 'text-slate-400' : 'text-white/35'}`}>
-              我们正在整理各类协作群，<br />稍后会在这里发布入群方式
+              {t('community.groups.empty_desc', '我们正在整理各类协作群，稍后会在这里发布入群方式')}
             </p>
           </div>
         ) : (
@@ -478,6 +483,7 @@ const CommunityGroups = ({ compact = false }) => {
                 group={group}
                 index={index}
                 isDayMode={isDayMode}
+                compact={compact}
                 isAdmin={isAdmin}
                 onQuickAction={handleQuickAction}
                 onEdit={handleEdit}
@@ -490,7 +496,7 @@ const CommunityGroups = ({ compact = false }) => {
       </motion.div>
       <CommunityDetailModal
         item={selectedGroup}
-        onClose={() => updateParams({ tab: 'groups' })}
+        onClose={() => updateParams({})}
         isDayMode={isDayMode}
         gradientFrom={isDayMode ? "from-slate-100" : "from-blue-900/30"}
         headerHeight="h-44 sm:h-56"
@@ -498,7 +504,7 @@ const CommunityGroups = ({ compact = false }) => {
         headerContent={selectedGroup && (
           <>
             <div className={`text-xs font-semibold mb-2 ${isDayMode ? 'text-blue-700' : 'text-blue-300'}`}>
-              社群详情
+              {t('community.groups.detail_title', '社群详情')}
             </div>
             <h2 className={`text-3xl md:text-4xl font-black leading-tight ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
               {selectedGroup.name}
@@ -510,11 +516,13 @@ const CommunityGroups = ({ compact = false }) => {
           <div className={`mb-6 rounded-lg border p-4 ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
             <div className="flex flex-wrap items-center gap-2 mb-3">
               <span className={`px-2.5 py-1 rounded-md text-xs border ${isDayMode ? 'bg-white text-slate-700 border-slate-200' : 'bg-white/10 text-gray-200 border-white/20'}`}>
-                平台：{PLATFORM_LABELS[selectedGroup.platform] || selectedGroup.platform}
+                {t('community.groups.platform_label', '平台：{{platform}}', {
+                  platform: t(`community.groups.platform_${selectedGroup.platform}`, PLATFORM_LABELS[selectedGroup.platform] || selectedGroup.platform),
+                })}
               </span>
               {selectedGroup.valid_until && (
                 <span className={`px-2.5 py-1 rounded-md text-xs border ${isDayMode ? 'bg-white text-slate-700 border-slate-200' : 'bg-white/10 text-gray-200 border-white/20'}`}>
-                  有效期至：{String(selectedGroup.valid_until).slice(0, 10)}
+                  {t('community.groups.valid_until_detail', '有效期至：{{date}}', { date: String(selectedGroup.valid_until).slice(0, 10) })}
                 </span>
               )}
             </div>
@@ -525,7 +533,7 @@ const CommunityGroups = ({ compact = false }) => {
                 rel="noopener noreferrer"
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border ${isDayMode ? 'bg-white text-blue-700 border-blue-200 hover:bg-blue-50' : 'bg-blue-500/10 text-blue-300 border-blue-500/30 hover:bg-blue-500/20'}`}
               >
-                加入社群
+                {t('community.groups.join_group', '加入社群')}
                 <ExternalLink size={12} />
               </a>
             )}

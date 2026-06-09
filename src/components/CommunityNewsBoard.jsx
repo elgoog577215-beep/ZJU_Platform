@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { Clock3, ExternalLink, Flame, Newspaper, Pin, PlusCircle } from 'lucide-react';
+import { Clock3, ExternalLink, Flame, Newspaper, Pin } from 'lucide-react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
@@ -12,13 +12,6 @@ import CommunityFeedPanel from './CommunityFeedPanel';
 import UnifiedCommunityComposer from './UnifiedCommunityComposer';
 import { parseContentBlocks, calculateReadingTime } from './communityUtils';
 
-const NEWS_STATUS_TABS = [
-  { key: 'approved', label: 'community.status_published' },
-  { key: 'draft', label: 'community.status_draft' },
-  { key: 'pending', label: 'community.status_pending' },
-  { key: 'rejected', label: 'community.status_rejected' },
-];
-
 const sortLabels = {
   hot: 'community.news_hot',
   latest: 'community.news_latest',
@@ -29,25 +22,20 @@ const CommunityNewsBoard = () => {
   const { uiMode } = useSettings();
   const { user } = useAuth();
   const isDayMode = uiMode === 'day';
-  const isAdmin = user?.role === 'admin';
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
   const fromUserProfileRef = useRef(Boolean(location.state?.fromUserProfile));
   const [sort, setSort] = useState('hot');
-  const [viewMode, setViewMode] = useState('approved');
   const [selectedNews, setSelectedNews] = useState(null);
   const [composerOpen, setComposerOpen] = useState(false);
-  const [editingNews, setEditingNews] = useState(null);
 
   const queryParams = useMemo(() => {
-    const params = { page: 1, limit: 12, sort, status: viewMode };
-    if (user && viewMode !== 'approved' && !isAdmin) params.uploader_id = user.id;
-    return params;
-  }, [isAdmin, sort, user, viewMode]);
+    return { page: 1, limit: 12, sort, status: 'approved' };
+  }, [sort]);
 
   const { data, loading, error, refresh } = useCachedResource('/news', queryParams, {
-    dependencies: [sort, viewMode, user?.id, isAdmin],
+    dependencies: [sort],
     keyPrefix: 'cache:v4:',
   });
   const list = Array.isArray(data) ? data : [];
@@ -90,21 +78,10 @@ const CommunityNewsBoard = () => {
     updateParams({ postTab: 'news' });
   }, [navigate, updateParams]);
 
-  const openEditor = async (item = null) => {
+  const openEditor = async () => {
     if (!user) {
       toast.error(t('auth.signin_required'));
       return;
-    }
-    if (item?.id) {
-      try {
-        const { data: detail } = await api.get(`/news/${item.id}`);
-        setEditingNews(detail || item);
-      } catch {
-        toast.error(t('community.load_failed', '加载失败'));
-        return;
-      }
-    } else {
-      setEditingNews(null);
     }
     setComposerOpen(true);
   };
@@ -131,7 +108,6 @@ const CommunityNewsBoard = () => {
             {item.is_pinned ? <span className="inline-flex items-center gap-1"><Pin size={12} />{t('common.pinned', '置顶')}</span> : null}
             <span>{item.source_name || t('community.news_source_internal', '站内新闻')}</span>
             <span className="inline-flex items-center gap-1"><Clock3 size={12} />{calculateReadingTime(item.content, t)}</span>
-            {item.status !== 'approved' ? <span>{item.status}</span> : null}
           </div>
           <h3 className={`line-clamp-2 text-lg font-black md:text-2xl ${dm ? 'text-slate-950 group-hover:text-sky-700' : 'text-white group-hover:text-sky-300'}`}>
             {item.title}
@@ -144,16 +120,6 @@ const CommunityNewsBoard = () => {
               <Flame size={13} />
               {Number(item.hot_score || 0)}
             </span>
-            {(isAdmin || item.uploader_id === user?.id) && (
-              <span
-                role="button"
-                tabIndex={0}
-                onClick={(event) => { event.stopPropagation(); openEditor(item); }}
-                className={`rounded-lg border px-2.5 py-1 text-xs font-semibold ${dm ? 'border-slate-200 text-slate-600 hover:bg-slate-50' : 'border-white/10 text-gray-300 hover:bg-white/10'}`}
-              >
-                {t('common.edit', '编辑')}
-              </span>
-            )}
           </div>
         </div>
       </div>
@@ -166,15 +132,6 @@ const CommunityNewsBoard = () => {
         <button type="button" onClick={() => setSort('hot')} className={`min-h-[34px] rounded-md px-3 text-xs font-semibold ${sort === 'hot' ? (isDayMode ? 'bg-white text-slate-950 shadow' : 'bg-sky-500 text-white') : (isDayMode ? 'text-slate-600' : 'text-gray-300')}`}>{t(sortLabels.hot, '热榜')}</button>
         <button type="button" onClick={() => setSort('latest')} className={`min-h-[34px] rounded-md px-3 text-xs font-semibold ${sort === 'latest' ? (isDayMode ? 'bg-white text-slate-950 shadow' : 'bg-sky-500 text-white') : (isDayMode ? 'text-slate-600' : 'text-gray-300')}`}>{t(sortLabels.latest, '最新')}</button>
       </div>
-      {user ? (
-        <div className={`inline-flex max-w-full gap-1 overflow-x-auto rounded-lg border p-1 ${isDayMode ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-black/10'}`}>
-          {NEWS_STATUS_TABS.map((item) => (
-            <button key={item.key} type="button" onClick={() => setViewMode(item.key)} className={`min-h-[34px] rounded-md px-3 text-xs font-semibold whitespace-nowrap ${viewMode === item.key ? (isDayMode ? 'bg-white text-slate-950 shadow' : 'bg-white/15 text-white') : (isDayMode ? 'text-slate-600' : 'text-gray-300')}`}>
-              {t(item.label, item.key)}
-            </button>
-          ))}
-        </div>
-      ) : null}
     </div>
   );
 
@@ -223,8 +180,8 @@ const CommunityNewsBoard = () => {
           handlePageChange: () => {},
           setCurrentPage: () => {},
           handleRefresh: () => refresh({ clearCache: true }),
-          hasActiveFilters: viewMode !== 'approved' || sort !== 'hot',
-          resetFilters: () => { setViewMode('approved'); setSort('hot'); },
+          hasActiveFilters: sort !== 'hot',
+          resetFilters: () => { setSort('hot'); },
           searchQuery: '',
           isSearchPending: false,
         }}
@@ -242,8 +199,7 @@ const CommunityNewsBoard = () => {
       <UnifiedCommunityComposer
         isOpen={composerOpen}
         boardKey="news"
-        initialData={editingNews}
-        onClose={() => { setComposerOpen(false); setEditingNews(null); }}
+        onClose={() => setComposerOpen(false)}
         onSuccess={() => refresh({ clearCache: true })}
       />
     </>

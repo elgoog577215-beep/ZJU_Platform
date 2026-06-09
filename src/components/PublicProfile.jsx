@@ -46,6 +46,7 @@ import Dropdown from "./Dropdown";
 import FavoriteButton from "./FavoriteButton";
 import NotificationCenter from "./NotificationCenter";
 import PersonalCenterShell from "./PersonalCenterShell";
+import UserCommunitySubmissions from "./UserCommunitySubmissions";
 import ProfileCardEditor from "./profile/ProfileCardEditor";
 import ProfileCustomCards from "./profile/ProfileCustomCards";
 import ProfileSocialLinks from "./profile/ProfileSocialLinks";
@@ -88,7 +89,7 @@ const EVENT_FORMAT_OPTIONS = [
   { value: "hybrid", label: "都可以" },
 ];
 
-const PROFILE_TAB_KEYS = new Set(["published", "favorites", "messages", "settings"]);
+const PROFILE_TAB_KEYS = new Set(["published", "submissions", "favorites", "messages", "settings"]);
 const SETTINGS_TAB_KEYS = new Set(["profile-card", "activity-profile", "security", "identity"]);
 
 const splitPreferenceText = (value) => String(value || "")
@@ -503,6 +504,20 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordLoading, setPasswordLoading] = useState(false);
+
+  const profileTabPath = (tabKey, settingsKey = activeSettingsTab) => {
+    if (tabKey === "settings") {
+      return `${location.pathname}?tab=settings&settings=${settingsKey}`;
+    }
+    return tabKey === "published" || tabKey === "relations"
+      ? location.pathname
+      : `${location.pathname}?tab=${tabKey}`;
+  };
+
+  const navigateProfileTab = (tabKey, settingsKey) => {
+    setActiveTab(tabKey);
+    navigate(profileTabPath(tabKey, settingsKey), { replace: true });
+  };
 
   // FIX: BUG-24 — Add AbortController to cancel stale requests when switching profiles
   useEffect(() => {
@@ -970,7 +985,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
       video: "/videos",
       // Articles live under the AICommunity "tech" tab — must pin the tab
       // or AICommunity defaults to the help board and the id is ignored.
-      article: "/articles?tab=tech",
+      article: "/articles?postTab=tech",
       event: "/events",
     };
 
@@ -1199,6 +1214,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
   const profileTabItems = isOwner
     ? [
         { key: "published", label: t("user_profile.tabs.published", "作品"), icon: Grid },
+        { key: "submissions", label: t("user_profile.tabs.submissions", "投稿"), icon: FileText },
         { key: "favorites", label: t("user_profile.tabs.favorites", "收藏"), icon: Heart },
         { key: "messages", label: t("user_profile.tabs.messages", "消息"), icon: Bell, badge: unreadCount },
         { key: "settings", label: t("user_profile.tabs.settings", "设置"), icon: Settings },
@@ -1280,8 +1296,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                 <button
                   type="button"
                   onClick={() => {
-                    setActiveTab("settings");
-                    navigate(`${location.pathname}?tab=settings&settings=${activeSettingsTab}`, { replace: true });
+                    navigateProfileTab("settings");
                   }}
                   aria-label={t("user_profile.edit_profile", "编辑资料")}
                   className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-2xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-white text-slate-700 shadow-[0_10px_20px_rgba(148,163,184,0.14)]" : "bg-white/10 text-white"}`}
@@ -1412,8 +1427,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                 {isOwner && (
                   <button
                     onClick={() => {
-                      setActiveTab("settings");
-                      navigate(`${location.pathname}?tab=settings&settings=${activeSettingsTab}`, { replace: true });
+                      navigateProfileTab("settings");
                     }}
                     className={`px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${isDayMode ? "bg-white/90 hover:bg-white text-slate-700 border border-slate-200/80 shadow-[0_12px_28px_rgba(148,163,184,0.14)]" : "bg-white/10 hover:bg-white/20 text-white"}`}
                   >
@@ -1533,7 +1547,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
         </div>
 
         {/* Tabs */}
-        <div className={`mb-5 grid gap-1 rounded-3xl border p-1 md:hidden ${profileTabItems.length > 2 ? "grid-cols-4" : "grid-cols-2"} ${isDayMode ? "border-slate-200/80 bg-white/82 shadow-[0_12px_28px_rgba(148,163,184,0.12)]" : "border-white/10 bg-white/[0.04]"}`}>
+        <div className={`mb-5 grid gap-1 rounded-3xl border p-1 md:hidden ${profileTabItems.length > 4 ? "grid-cols-5" : profileTabItems.length > 2 ? "grid-cols-4" : "grid-cols-2"} ${isDayMode ? "border-slate-200/80 bg-white/82 shadow-[0_12px_28px_rgba(148,163,184,0.12)]" : "border-white/10 bg-white/[0.04]"}`}>
           {profileTabItems.map(({ key, label, icon: Icon, badge }) => {
             const active = activeTab === key;
             return (
@@ -1541,10 +1555,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                 key={key}
                 type="button"
                 onClick={() => {
-                  setActiveTab(key);
-                  if (key !== "settings") {
-                    navigate(location.pathname, { replace: true });
-                  }
+                  navigateProfileTab(key);
                 }}
                 className={`relative flex min-h-[46px] items-center justify-center gap-1.5 rounded-[20px] px-1 text-xs font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${active ? (isDayMode ? dayActiveSegmentClass : nightActiveSegmentClass) : isDayMode ? "text-slate-500 hover:text-slate-950" : "text-gray-400 hover:text-white"}`}
               >
@@ -1561,8 +1572,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
         <div className="mb-6 hidden overflow-x-auto pb-2 custom-scrollbar gap-2 px-1 md:flex">
           <button
             onClick={() => {
-              setActiveTab("relations");
-              navigate(location.pathname, { replace: true });
+              navigateProfileTab("relations");
             }}
             className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
               activeTab === "relations"
@@ -1580,8 +1590,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
 
           <button
             onClick={() => {
-              setActiveTab("published");
-              navigate(location.pathname, { replace: true });
+              navigateProfileTab("published");
             }}
             className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
               activeTab === "published"
@@ -1601,8 +1610,24 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
             <>
               <button
                 onClick={() => {
-                  setActiveTab("favorites");
-                  navigate(location.pathname, { replace: true });
+                  navigateProfileTab("submissions");
+                }}
+                className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
+                  activeTab === "submissions"
+                    ? isDayMode
+                      ? dayActiveSegmentClass
+                      : nightActiveSegmentClass
+                    : isDayMode
+                      ? "bg-white/85 text-slate-500 border border-slate-200/80 hover:bg-white hover:text-slate-900"
+                      : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <FileText size={18} />
+                {t("user_profile.tabs.submissions", "投稿")}
+              </button>
+              <button
+                onClick={() => {
+                  navigateProfileTab("favorites");
                 }}
                 className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
                   activeTab === "favorites"
@@ -1619,8 +1644,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
               </button>
               <button
                 onClick={() => {
-                  setActiveTab("messages");
-                  navigate(location.pathname, { replace: true });
+                  navigateProfileTab("messages");
                 }}
                 className={`relative px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
                   activeTab === "messages"
@@ -1649,8 +1673,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
               </button>
               <button
                 onClick={() => {
-                  setActiveTab("settings");
-                  navigate(`${location.pathname}?tab=settings&settings=${activeSettingsTab}`, { replace: true });
+                  navigateProfileTab("settings");
                 }}
                 className={`px-6 py-3 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
                   activeTab === "settings"
@@ -1824,6 +1847,10 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
             </div>
           )}
 
+          {isOwner && activeTab === "submissions" && (
+            <UserCommunitySubmissions userId={user.id} isDayMode={isDayMode} />
+          )}
+
           {isOwner && activeTab === "favorites" && (
             <div className="space-y-6">
               <div className="flex justify-between items-center mb-4">
@@ -1946,7 +1973,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                       type="button"
                       onClick={() => {
                         setActiveSettingsTab(item.key);
-                        navigate(`${location.pathname}?tab=settings&settings=${item.key}`, { replace: true });
+                        navigate(profileTabPath("settings", item.key), { replace: true });
                       }}
                       className={`inline-flex min-h-[42px] shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-colors ${
                         isActive

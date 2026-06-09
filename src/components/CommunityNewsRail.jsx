@@ -178,11 +178,11 @@ const CommunityNewsRail = () => {
           target_id: resource.id,
         }).catch(() => {});
       }
-      return updateParams({ tab: 'tech', id: resource.id });
+      return updateParams({ postTab: 'tech', id: resource.id });
     }
-    if (resource.type === 'post') return updateParams({ tab: 'help', post: resource.id });
-    if (resource.type === 'group') return updateParams({ tab: 'groups', group: resource.id });
-    return updateParams({ tab: currentTab, news: resource.id });
+    if (resource.type === 'post') return updateParams({ postTab: 'help', post: resource.id });
+    if (resource.type === 'group') return updateParams({ group: resource.id });
+    return updateParams({ postTab: currentTab, news: resource.id });
   }, [currentTab, selectedNews?.id, updateParams]);
 
   const handleCreateNews = async (form, meta = {}) => {
