@@ -1099,11 +1099,11 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
       photo: `/gallery?id=${item.id}`,
       video: `/videos?id=${item.id}`,
       music: `/articles?music=${item.id}#community-podcast`,
-      article: `/articles?id=${item.id}&tab=tech`,
+      article: `/articles?postTab=tech&id=${item.id}`,
       event: `/events?id=${item.id}`,
-      news: `/articles?tab=tech&news=${item.id}`,
-      help: `/articles?tab=help&post=${item.id}`,
-      team: `/articles?tab=team&post=${item.id}`,
+      news: `/articles?postTab=news&news=${item.id}`,
+      help: `/articles?postTab=help&post=${item.id}`,
+      team: `/articles?postTab=team&post=${item.id}`,
       competition_work: item.target_path || `/hackathon?view=showcase&work=${item.id}`,
     }[typeKey];
     if (!path) return;

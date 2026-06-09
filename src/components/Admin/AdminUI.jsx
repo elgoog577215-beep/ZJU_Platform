@@ -9,6 +9,10 @@ export const statusMeta = {
     label: "已通过",
     tone: "success",
   },
+  draft: {
+    label: "草稿",
+    tone: "muted",
+  },
   pending: {
     label: "待审核",
     tone: "warning",

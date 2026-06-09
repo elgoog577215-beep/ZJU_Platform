@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useSettings } from "../context/SettingsContext";
 import {
@@ -10,10 +11,16 @@ import {
   useReducedMotion,
 } from "../utils/animations";
 
+const DEFAULT_HERO_TITLE = "浙江大学信息聚合平台";
+const DEFAULT_HERO_SUBTITLE = "打破信息差，共建信息网络";
+const DAY_HERO_IMAGE = "/images/hero-landscape-day-4k.jpg";
+const LEGACY_NIGHT_HERO_IMAGE = "/uploads/1767349451839-56405188.jpg";
+
 const Hero = ({ id, onScrollNext, showScrollCue = true } = {}) => {
   const { scrollY } = useScroll();
   const y = useTransform(scrollY, [0, 500], [0, 200]);
   const opacity = useTransform(scrollY, [0, 300], [1, 0]);
+  const { t } = useTranslation();
   const { settings, uiMode } = useSettings();
   const prefersReducedMotion = useReducedMotion();
   const [isMobile, setIsMobile] = useState(() =>
@@ -22,16 +29,27 @@ const Hero = ({ id, onScrollNext, showScrollCue = true } = {}) => {
 
   const shouldUseMotion = !prefersReducedMotion;
   const shouldUseParallax = shouldUseMotion && !isMobile && !onScrollNext;
-  const fallbackHeroImage = "/images/hero-landscape-day-4k.jpg";
-  const nightHeroImage = settings.hero_bg_url || fallbackHeroImage;
-  const dayHeroImage = "/images/hero-landscape-day-4k.jpg";
+  const dayHeroImage = DAY_HERO_IMAGE;
+  const configuredHeroImage = settings.hero_bg_url;
+  const nightHeroImage =
+    configuredHeroImage && configuredHeroImage !== dayHeroImage
+      ? configuredHeroImage
+      : LEGACY_NIGHT_HERO_IMAGE;
   const heroImage = uiMode === "day" ? dayHeroImage : nightHeroImage;
   const [resolvedHeroImage, setResolvedHeroImage] = useState(heroImage);
-  const heroTitle = settings.hero_title || "浙江大学信息聚合平台";
-  const defaultTitleSegments =
-    heroTitle === "浙江大学信息聚合平台"
-      ? ["浙江大学", "信息聚合平台"]
-      : null;
+  const rawHeroTitle = settings.hero_title || DEFAULT_HERO_TITLE;
+  const rawHeroSubtitle = settings.hero_subtitle || DEFAULT_HERO_SUBTITLE;
+  const isDefaultHeroTitle = rawHeroTitle === DEFAULT_HERO_TITLE;
+  const isDefaultHeroSubtitle = rawHeroSubtitle === DEFAULT_HERO_SUBTITLE;
+  const heroTitle = isDefaultHeroTitle
+    ? `${t("home.hero.title_line_1")} ${t("home.hero.title_line_2")}`
+    : rawHeroTitle;
+  const defaultTitleSegments = isDefaultHeroTitle
+    ? [t("home.hero.title_line_1"), t("home.hero.title_line_2")]
+    : null;
+  const heroSubtitle = isDefaultHeroSubtitle
+    ? t("home.hero.subtitle")
+    : rawHeroSubtitle;
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -53,7 +71,7 @@ const Hero = ({ id, onScrollNext, showScrollCue = true } = {}) => {
 
   const handleHeroImageError = () => {
     setResolvedHeroImage((current) =>
-      current === fallbackHeroImage ? current : fallbackHeroImage,
+      current === dayHeroImage ? current : dayHeroImage,
     );
   };
 
@@ -140,7 +158,7 @@ const Hero = ({ id, onScrollNext, showScrollCue = true } = {}) => {
           <div className={heroContentGlowClass} />
           <motion.div variants={heroReveal} className={kickerClass}>
             <span className="h-px w-9 bg-current opacity-45" />
-            <span>ZJU CAMPUS NETWORK</span>
+            <span>{t("home.hero.kicker")}</span>
             <span className="h-px w-9 bg-current opacity-45" />
           </motion.div>
           <motion.h1
@@ -159,11 +177,11 @@ const Hero = ({ id, onScrollNext, showScrollCue = true } = {}) => {
           </motion.h1>
 
           <motion.p variants={heroReveal} className={subtitleClass}>
-            {settings.hero_subtitle || "打破信息差，共建信息网络"}
+            {heroSubtitle}
           </motion.p>
 
           <motion.div variants={heroReveal} className={badgeClass}>
-            数字艺术 · 科技社群 · 校园共创
+            {t("home.hero.badge")}
           </motion.div>
         </div>
       </motion.div>

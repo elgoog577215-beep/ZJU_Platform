@@ -171,7 +171,7 @@ async function runMigrations(db) {
   // rejects an item, and CommunityTech reads it to display the reason to the
   // author. The column was missing from ensureCoreSchema, causing 500s on
   // every approval/rejection in the admin review center.
-  for (const table of ['photos', 'music', 'videos', 'articles', 'events']) {
+  for (const table of ['photos', 'music', 'videos', 'articles', 'events', 'news', 'community_posts']) {
     try {
       const info = await db.all(`PRAGMA table_info(${table})`);
       const columns = new Set(info.map((c) => c.name));
@@ -783,6 +783,7 @@ async function runMigrations(db) {
     related_post_ids: 'TEXT',
     related_news_ids: 'TEXT',
     related_group_ids: 'TEXT',
+    rejection_reason: 'TEXT',
   }, 'community_posts');
 
   // --- Community posts: add solved_comment_id ---
@@ -937,6 +938,7 @@ async function runMigrations(db) {
     related_post_ids: 'TEXT',
     related_news_ids: 'TEXT',
     related_group_ids: 'TEXT',
+    rejection_reason: 'TEXT',
   }, 'news');
 
   try {

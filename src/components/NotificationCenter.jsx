@@ -16,12 +16,12 @@ const isNotificationRead = (notification) => Boolean(notification?.is_read);
 // Use a builder per type instead of a flat base map so each URL can be shaped
 // independently.
 const NEW_CONTENT_ROUTE_BUILDERS = {
-  article: (id) => `/articles?id=${id}`,
+  article: (id) => `/articles?postTab=tech&id=${id}`,
   photo: (id) => `/gallery?id=${id}`,
   music: (id) => `/articles?music=${id}#community-podcast`,
   video: (id) => `/videos?id=${id}`,
   event: (id) => `/events?id=${id}`,
-  news: (id) => `/articles?tab=tech&news=${id}`,
+  news: (id) => `/articles?postTab=news&news=${id}`,
 };
 
 const buildNotificationTargetPath = (notification) => {
@@ -58,7 +58,7 @@ const buildNotificationTargetPath = (notification) => {
 
   if (resourceType.startsWith("community_post:")) {
     const [, section = "help"] = resourceType.split(":");
-    return `/articles?tab=${encodeURIComponent(section)}&post=${resourceId}`;
+    return `/articles?postTab=${encodeURIComponent(section)}&post=${resourceId}`;
   }
 
   const routeMap = {

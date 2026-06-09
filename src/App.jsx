@@ -86,15 +86,19 @@ const PageTransition = ({ children }) => {
   );
 };
 
-const Home = () => (
-  <>
-    <SEO
-      title="拓途浙享"
-      description="拓途浙享校园 AI 信息共享平台，连接活动、AI 社区、影像记录与实践项目。"
-    />
-    <HomeSplash />
-  </>
-);
+const Home = () => {
+  const { t } = useTranslation();
+
+  return (
+    <>
+      <SEO
+        title={t('home.splash.meta_title')}
+        description={t('home.splash.meta_desc')}
+      />
+      <HomeSplash />
+    </>
+  );
+};
 
 const MusicRedirect = () => {
   const location = useLocation();
@@ -220,8 +224,8 @@ const AppContent = () => {
               <Route path="/articles" element={<PageTransition><Articles /></PageTransition>} />
               <Route path="/ai-community" element={<Navigate to="/articles" replace />} />
               <Route path="/community" element={<Navigate to="/articles" replace />} />
-              <Route path="/community/help" element={<Navigate to="/articles?tab=help" replace />} />
-              <Route path="/community/tech" element={<Navigate to="/articles?tab=tech" replace />} />
+              <Route path="/community/help" element={<Navigate to="/articles?postTab=help" replace />} />
+              <Route path="/community/tech" element={<Navigate to="/articles?postTab=tech" replace />} />
               <Route path="/community/groups" element={<Navigate to="/articles?tab=groups" replace />} />
               <Route path="/events" element={<PageTransition><Events /></PageTransition>} />
               <Route path="/about" element={<PageTransition><About /></PageTransition>} />

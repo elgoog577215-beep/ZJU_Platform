@@ -129,6 +129,7 @@ router.post('/community/posts/import-document', authenticateToken, importCommuni
 router.post('/community/posts', authenticateToken, communityPostCreateLimiter, communityController.createPost);
 router.put('/community/posts/:id', authenticateToken, communityController.updatePost);
 router.delete('/community/posts/:id', authenticateToken, communityController.deletePost);
+router.post('/community/posts/:id/restore', authenticateToken, communityController.restorePost);
 router.post('/community/posts/:id/report', authenticateToken, communityController.reportPostContent);
 router.post('/community/posts/:id/like', authenticateToken, communityController.togglePostLike);
 router.get('/community/posts/:id/comments', optionalAuth, communityController.listPostComments);
@@ -157,6 +158,7 @@ router.post('/news/import', authenticateToken, newsController.importNews);
 router.put('/news/:id', authenticateToken, newsController.updateNews);
 router.put('/news/:id/review', authenticateToken, isAdmin, newsController.reviewNews);
 router.delete('/news/:id', authenticateToken, newsController.deleteNews);
+router.post('/news/:id/restore', authenticateToken, newsController.restoreNews);
 
 // Admin Community Routes
 router.get('/admin/community/stats', authenticateToken, isAdmin, communityController.adminCommunityStats);

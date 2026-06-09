@@ -1,14 +1,18 @@
 import { useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { BookOpen, HelpCircle } from 'lucide-react';
+import { BookOpen, HelpCircle, Newspaper, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useSettings } from '../context/SettingsContext';
 import CommunityTech from './CommunityTech';
 import CommunityHelp from './CommunityHelp';
+import CommunityNewsBoard from './CommunityNewsBoard';
+import CommunityTeam from './CommunityTeam';
 
 const POST_TABS = [
   { key: 'tech', labelKey: 'community.tab_tech', fallback: '技术分享', icon: BookOpen },
-  { key: 'help', labelKey: 'community.tab_help', fallback: '求助', icon: HelpCircle },
+  { key: 'help', labelKey: 'community.tab_help_qa', fallback: '求助问答', icon: HelpCircle },
+  { key: 'news', labelKey: 'community.tab_news_hot', fallback: '新闻热点', icon: Newspaper },
+  { key: 'team', labelKey: 'community.tab_team_collab', fallback: '组队协作', icon: Users },
 ];
 
 const CommunityPosts = () => {
@@ -67,7 +71,10 @@ const CommunityPosts = () => {
         ))}
       </div>
 
-      {activeTab === 'tech' ? <CommunityTech /> : <CommunityHelp />}
+      {activeTab === 'tech' ? <CommunityTech /> : null}
+      {activeTab === 'help' ? <CommunityHelp /> : null}
+      {activeTab === 'news' ? <CommunityNewsBoard /> : null}
+      {activeTab === 'team' ? <CommunityTeam /> : null}
     </div>
   );
 };

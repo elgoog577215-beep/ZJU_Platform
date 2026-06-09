@@ -13,10 +13,12 @@ const STATUS_CONFIG = {
   full: { label: 'community.post_status_full', bg: 'bg-blue-500/15', text: 'text-blue-400', border: 'border-blue-500/20', dayBg: 'bg-blue-50', dayText: 'text-blue-600', dayBorder: 'border-blue-200' },
   // fallback for legacy 'approved' / 'pending'
   approved: { label: 'community.post_status_open', bg: 'bg-amber-500/15', text: 'text-amber-400', border: 'border-amber-500/20', dayBg: 'bg-amber-50', dayText: 'text-amber-600', dayBorder: 'border-amber-200' },
+  draft: { label: 'community.status_draft', bg: 'bg-slate-500/15', text: 'text-slate-300', border: 'border-slate-500/20', dayBg: 'bg-slate-100', dayText: 'text-slate-600', dayBorder: 'border-slate-200' },
   pending: { label: 'community.post_status_pending', bg: 'bg-yellow-500/15', text: 'text-yellow-400', border: 'border-yellow-500/20', dayBg: 'bg-yellow-50', dayText: 'text-yellow-600', dayBorder: 'border-yellow-200' },
+  rejected: { label: 'community.status_rejected', bg: 'bg-rose-500/15', text: 'text-rose-300', border: 'border-rose-500/20', dayBg: 'bg-rose-50', dayText: 'text-rose-600', dayBorder: 'border-rose-200' },
 };
 
-const formatRelativeTime = (dateStr) => {
+const formatRelativeTime = (dateStr, language = 'zh-CN') => {
   if (!dateStr) return '';
   const now = new Date();
   const date = new Date(dateStr);
@@ -24,18 +26,21 @@ const formatRelativeTime = (dateStr) => {
   const diffMin = Math.floor(diffMs / 60000);
   const diffHr = Math.floor(diffMs / 3600000);
   const diffDay = Math.floor(diffMs / 86400000);
+  const locale = String(language || '').startsWith('zh') ? 'zh-CN' : 'en';
+  const formatter = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
 
-  if (diffMin < 1) return '刚刚';
-  if (diffMin < 60) return `${diffMin}分钟前`;
-  if (diffHr < 24) return `${diffHr}小时前`;
-  if (diffDay < 30) return `${diffDay}天前`;
-  return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
+  if (diffMin < 1) return formatter.format(0, 'minute');
+  if (diffMin < 60) return formatter.format(-diffMin, 'minute');
+  if (diffHr < 24) return formatter.format(-diffHr, 'hour');
+  if (diffDay < 30) return formatter.format(-diffDay, 'day');
+  return date.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
 };
 
 const PostCard = memo(({ post, index, onClick, canAnimate, isDayMode }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isTeam = post.section === 'team';
-  const statusCfg = STATUS_CONFIG[post.status] || STATUS_CONFIG.open;
+  const visibleStatus = post.review_status && post.review_status !== 'approved' ? post.review_status : post.status;
+  const statusCfg = STATUS_CONFIG[visibleStatus] || STATUS_CONFIG.open;
 
   const accentHover = isTeam ? 'hover:border-violet-500/30' : 'hover:border-amber-500/30';
   const accentShadow = isTeam
@@ -60,7 +65,7 @@ const PostCard = memo(({ post, index, onClick, canAnimate, isDayMode }) => {
             {t(statusCfg.label)}
           </span>
           <span className={`text-xs font-mono ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>
-            {formatRelativeTime(post.created_at)}
+            {formatRelativeTime(post.created_at, i18n.language)}
           </span>
         </div>
 

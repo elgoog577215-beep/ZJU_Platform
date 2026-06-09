@@ -5,6 +5,7 @@ const { normalizeLinkagePayload, serializeLinkageFields, attachLinkedResources }
 const { fanOutNewContent } = require('./notificationController');
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+const NEWS_STATUSES = new Set(['draft', 'pending', 'approved', 'rejected']);
 
 const buildExcerpt = (value = '') =>
   String(value).replace(/\s+/g, ' ').trim().slice(0, 180);
@@ -59,6 +60,9 @@ const serializeNews = (row) => serializeLinkageFields({
   pin_weight: row.pin_weight || 0,
   featured: Boolean(row.featured),
   status: row.status || 'approved',
+  review_status: row.status || 'approved',
+  workflow_status: row.status || 'approved',
+  rejection_reason: row.rejection_reason || null,
   uploader_id: row.uploader_id || null,
   created_at: row.created_at,
   updated_at: row.updated_at,
@@ -78,14 +82,35 @@ const listNews = async (req, res, next) => {
     const offset = (page - 1) * limit;
     const sort = String(req.query.sort || 'hot').trim().toLowerCase();
     const status = String(req.query.status || 'approved').trim().toLowerCase();
+    const requestedUploaderId = req.query.uploader_id ? parseInt(req.query.uploader_id, 10) : null;
     const q = String(req.query.search || '').trim();
+    const viewer = req.user && req.user.id != null
+      ? { id: req.user.id, role: req.user.role || null }
+      : null;
+    const isAdmin = viewer?.role === 'admin';
+    const ownUploaderScope = Boolean(viewer?.id && requestedUploaderId && Number(viewer.id) === Number(requestedUploaderId));
 
     const whereClauses = ['deleted_at IS NULL'];
     const params = [];
 
-    if (status !== 'all') {
+    if (isAdmin) {
+      if (status !== 'all' && NEWS_STATUSES.has(status)) {
+        whereClauses.push('status = ?');
+        params.push(status);
+      }
+    } else if (ownUploaderScope && ['all', ...NEWS_STATUSES].includes(status)) {
+      if (status !== 'all') {
+        whereClauses.push('status = ?');
+        params.push(status);
+      }
+    } else {
       whereClauses.push('status = ?');
-      params.push(status);
+      params.push('approved');
+    }
+
+    if (requestedUploaderId && (isAdmin || ownUploaderScope)) {
+      whereClauses.push('uploader_id = ?');
+      params.push(requestedUploaderId);
     }
 
     if (q.length >= 2) {
@@ -143,8 +168,19 @@ const getNews = async (req, res, next) => {
     if (!item) {
       return res.status(404).json({ error: 'News item not found' });
     }
+    const viewer = req.user && req.user.id != null
+      ? { id: req.user.id, role: req.user.role || null }
+      : null;
+    if (item.status !== 'approved') {
+      const canSeePrivate = viewer?.role === 'admin' || (viewer?.id && Number(viewer.id) === Number(item.uploader_id));
+      if (!canSeePrivate) {
+        return res.status(404).json({ error: 'News item not found' });
+      }
+    }
 
-    await db.run('UPDATE news SET views_count = COALESCE(views_count, 0) + 1, hot_score = COALESCE(hot_score, 0) + 1 WHERE id = ?', [id]);
+    if (item.status === 'approved') {
+      await db.run('UPDATE news SET views_count = COALESCE(views_count, 0) + 1, hot_score = COALESCE(hot_score, 0) + 1 WHERE id = ?', [id]);
+    }
     const updated = await db.get(
       `
       SELECT news.*, COALESCE(users.nickname, users.username) AS author_name, users.avatar AS author_avatar
@@ -155,9 +191,6 @@ const getNews = async (req, res, next) => {
       [id]
     );
     const serialized = serializeNews(updated);
-    const viewer = req.user && req.user.id != null
-      ? { id: req.user.id, role: req.user.role || null }
-      : null;
     const linked = await attachLinkedResources(db, serialized, { viewer });
     res.json(linked);
   } catch (error) {
@@ -206,7 +239,18 @@ const checkNewsSourceHealth = async (req, res, next) => {
   }
 };
 
-const buildNewsPayload = (body = {}, userRole = 'user') => {
+const normalizeNewsStatus = (value, userRole = 'user', fallback = null) => {
+  const requested = String(value || '').trim().toLowerCase();
+  if (userRole === 'admin') {
+    if (NEWS_STATUSES.has(requested)) return requested;
+    return fallback || 'approved';
+  }
+  if (requested === 'draft') return 'draft';
+  if (requested === 'pending' || requested === 'submit') return 'pending';
+  return fallback && fallback !== 'approved' ? fallback : 'pending';
+};
+
+const buildNewsPayload = (body = {}, userRole = 'user', fallbackStatus = null) => {
   const mutableBody = { ...body };
   normalizeLinkagePayload(mutableBody, { strict: true });
   const title = String(body.title || '').trim();
@@ -226,10 +270,11 @@ const buildNewsPayload = (body = {}, userRole = 'user') => {
     import_type: body.import_type || 'manual',
     external_id: body.external_id || null,
     hot_score: clamp(parseInt(body.hot_score || '0', 10) || 0, 0, 999999),
-    is_pinned: body.is_pinned ? 1 : 0,
-    pin_weight: clamp(parseInt(body.pin_weight || '0', 10) || 0, 0, 9999),
-    featured: body.featured ? 1 : 0,
-    status: userRole === 'admin' ? 'approved' : 'pending',
+    is_pinned: userRole === 'admin' && body.is_pinned ? 1 : 0,
+    pin_weight: userRole === 'admin' ? clamp(parseInt(body.pin_weight || '0', 10) || 0, 0, 9999) : 0,
+    featured: userRole === 'admin' && body.featured ? 1 : 0,
+    status: normalizeNewsStatus(body.status || body.intent, userRole, fallbackStatus),
+    rejection_reason: userRole === 'admin' && body.rejection_reason !== undefined ? String(body.rejection_reason || '').trim().slice(0, 500) : null,
     related_article_ids: mutableBody.related_article_ids || null,
     related_post_ids: mutableBody.related_post_ids || null,
     related_news_ids: mutableBody.related_news_ids || null,
@@ -292,12 +337,14 @@ const createNews = async (req, res, next) => {
 
     // Fan-out new-content notifications to the author's followers. Helper
     // swallows its own errors so this will not abort the successful publish.
-    await fanOutNewContent({
-      authorId: userId,
-      resourceType: 'news',
-      resourceId: result.lastID,
-      title: payload.title,
-    });
+    if (payload.status === 'approved') {
+      await fanOutNewContent({
+        authorId: userId,
+        resourceType: 'news',
+        resourceId: result.lastID,
+        title: payload.title,
+      });
+    }
 
     res.status(201).json(serializeNews(item));
   } catch (error) {
@@ -316,11 +363,11 @@ const updateNews = async (req, res, next) => {
       return res.status(403).json({ error: 'Permission denied' });
     }
 
-    const payload = buildNewsPayload({ ...existing, ...req.body }, req.user?.role);
+    const payload = buildNewsPayload({ ...existing, ...req.body }, req.user?.role, existing.status);
     await db.run(
       `
       UPDATE news
-      SET title = ?, excerpt = ?, content = ?, content_blocks = ?, cover = ?, source_name = ?, source_url = ?, import_type = ?, external_id = ?, hot_score = ?, is_pinned = ?, pin_weight = ?, featured = ?, status = ?, related_article_ids = ?, related_post_ids = ?, related_news_ids = ?, related_group_ids = ?, updated_at = datetime('now')
+      SET title = ?, excerpt = ?, content = ?, content_blocks = ?, cover = ?, source_name = ?, source_url = ?, import_type = ?, external_id = ?, hot_score = ?, is_pinned = ?, pin_weight = ?, featured = ?, status = ?, rejection_reason = ?, related_article_ids = ?, related_post_ids = ?, related_news_ids = ?, related_group_ids = ?, updated_at = datetime('now')
       WHERE id = ?
       `,
       [
@@ -337,7 +384,8 @@ const updateNews = async (req, res, next) => {
         payload.is_pinned,
         payload.pin_weight,
         payload.featured,
-        req.user?.role === 'admin' ? (req.body.status || existing.status || 'approved') : existing.status,
+        payload.status,
+        payload.status === 'pending' || payload.status === 'approved' ? null : (payload.rejection_reason || existing.rejection_reason || null),
         payload.related_article_ids,
         payload.related_post_ids,
         payload.related_news_ids,
@@ -378,15 +426,41 @@ const deleteNews = async (req, res, next) => {
   }
 };
 
+const restoreNews = async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const userId = req.user?.id;
+    const { id } = req.params;
+    if (!userId) return res.status(401).json({ error: 'Login required' });
+
+    const existing = await db.get('SELECT * FROM news WHERE id = ? AND deleted_at IS NOT NULL', [id]);
+    if (!existing) return res.status(404).json({ error: 'News item not found' });
+    if (req.user?.role !== 'admin' && existing.uploader_id !== userId) {
+      return res.status(403).json({ error: 'Permission denied' });
+    }
+
+    const nextStatus = req.user?.role === 'admin' ? 'approved' : (existing.status === 'draft' ? 'draft' : 'pending');
+    await db.run(
+      'UPDATE news SET deleted_at = NULL, status = ?, rejection_reason = NULL, updated_at = datetime(\'now\') WHERE id = ?',
+      [nextStatus, id]
+    );
+    const item = await db.get('SELECT * FROM news WHERE id = ?', [id]);
+    res.json(serializeNews(item));
+  } catch (error) {
+    next(error);
+  }
+};
+
 const reviewNews = async (req, res, next) => {
   try {
     const db = await getDb();
     const { id } = req.params;
     const status = String(req.body.status || req.body.action || '').trim().toLowerCase();
-    if (!['approved', 'rejected', 'pending'].includes(status)) {
+    if (!['approved', 'rejected', 'pending', 'draft'].includes(status)) {
       return res.status(400).json({ error: 'Invalid status' });
     }
-    await db.run('UPDATE news SET status = ?, updated_at = datetime(\'now\') WHERE id = ?', [status, id]);
+    const reason = String(req.body.reason || req.body.rejection_reason || '').trim().slice(0, 500);
+    await db.run('UPDATE news SET status = ?, rejection_reason = ?, updated_at = datetime(\'now\') WHERE id = ?', [status, status === 'rejected' ? (reason || null) : null, id]);
     const item = await db.get('SELECT * FROM news WHERE id = ?', [id]);
     res.json(item ? serializeNews(item) : null);
   } catch (error) {
@@ -488,6 +562,7 @@ module.exports = {
   createNews,
   updateNews,
   deleteNews,
+  restoreNews,
   reviewNews,
   importNews,
 };

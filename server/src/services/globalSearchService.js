@@ -264,13 +264,13 @@ const safeJsonParse = (value, fallback = null) => {
 const buildIndexedResultLink = (row) => {
   const facets = row.facets || safeJsonParse(row.facet_json, {}) || {};
   if (row.resource_type === 'event') return `/events?id=${row.resource_id}`;
-  if (row.resource_type === 'article') return `/articles?tab=tech&id=${row.resource_id}`;
+  if (row.resource_type === 'article') return `/articles?postTab=tech&id=${row.resource_id}`;
   if (row.resource_type === 'post') {
     const section = Array.isArray(facets.sections) && facets.sections[0] ? facets.sections[0] : 'help';
-    return `/articles?tab=${section}&post=${row.resource_id}`;
+    return `/articles?postTab=${section}&post=${row.resource_id}`;
   }
   if (row.resource_type === 'group') return `/articles?tab=groups&group=${row.resource_id}`;
-  if (row.resource_type === 'news') return `/articles?tab=tech&news=${row.resource_id}`;
+  if (row.resource_type === 'news') return `/articles?postTab=news&news=${row.resource_id}`;
   if (row.resource_type === 'photo') return `/media?photo=${row.resource_id}`;
   if (row.resource_type === 'video') return `/media?video=${row.resource_id}`;
   return '/';
@@ -573,7 +573,7 @@ const searchCommunity = async (db, parsed, limit = DEFAULT_LIMITS.community) => 
     title: row.title,
     summary: row.excerpt || sanitizeText(row.content, 120),
     image: row.cover,
-    link: `/articles?tab=tech&id=${row.id}`,
+    link: `/articles?postTab=tech&id=${row.id}`,
     date: row.created_at,
     meta: ['技术分享', row.author_name].filter(Boolean).join(' · '),
     score: Number(row.likes || 0),
@@ -587,7 +587,7 @@ const searchCommunity = async (db, parsed, limit = DEFAULT_LIMITS.community) => 
     title: row.title,
     summary: sanitizeText(row.content, 120),
     image: null,
-    link: `/articles?tab=${row.section || 'help'}&post=${row.id}`,
+    link: `/articles?postTab=${row.section || 'help'}&post=${row.id}`,
     date: row.created_at,
     meta: [SECTION_LABELS[row.section] || '社区帖子', row.author_name].filter(Boolean).join(' · '),
     score: Number(row.likes_count || 0) + Number(row.comments_count || 0),
@@ -614,7 +614,7 @@ const searchCommunity = async (db, parsed, limit = DEFAULT_LIMITS.community) => 
     title: row.title,
     summary: row.excerpt || sanitizeText(row.content, 120),
     image: row.cover,
-    link: `/articles?tab=tech&news=${row.id}`,
+    link: `/articles?postTab=news&news=${row.id}`,
     date: row.created_at,
     meta: ['AI 社区新闻', row.source_name].filter(Boolean).join(' · '),
     score: Number(row.hot_score || 0),

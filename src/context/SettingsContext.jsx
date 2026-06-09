@@ -26,7 +26,7 @@ const DEFAULT_SETTINGS = {
 };
 
 const DEFAULT_UI_MODE = 'dark';
-const UI_MODE_STORAGE_KEY = 'ui_mode_v2';
+const UI_MODE_STORAGE_KEY = 'ui_mode_v3';
 const WEATHER_WIDGET_STORAGE_KEY = 'show_weather_widget_v1';
 const BACKGROUND_SCENE_STORAGE_KEY = 'background_scene_v2';
 

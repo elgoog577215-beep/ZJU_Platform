@@ -13,6 +13,7 @@ const viewerFromReq = (req) => (
 
 const ALLOWED_SECTIONS = new Set(['help', 'tech', 'news', 'team', 'groups']);
 const ALLOWED_GROUP_PLATFORMS = new Set(['wechat', 'qq', 'discord', 'telegram', 'other']);
+const CONTENT_STATUSES = new Set(['draft', 'pending', 'approved', 'rejected', 'deleted']);
 
 const normalizeSection = (value) => {
   const section = String(value || '').trim().toLowerCase();
@@ -27,6 +28,15 @@ const parseTags = (input) => {
     .filter(Boolean)
     .slice(0, 12)
     .join(',');
+};
+
+const normalizeContentStatus = (value, { section, role = 'user', intent = 'submit' } = {}) => {
+  const requested = String(value || '').trim().toLowerCase();
+  if (requested === 'draft') return 'draft';
+  if (role === 'admin' && CONTENT_STATUSES.has(requested)) return requested;
+  if (section === 'help') return intent === 'draft' ? 'draft' : 'approved';
+  if (section === 'team') return intent === 'draft' ? 'draft' : 'pending';
+  return intent === 'draft' ? 'draft' : 'pending';
 };
 
 const sanitizeCommunityText = (input) => {
@@ -153,6 +163,39 @@ const deletePost = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+const restorePost = async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const { id } = req.params;
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: 'Login required' });
+
+    const post = await db.get('SELECT * FROM community_posts WHERE id = ? AND status = "deleted"', [id]);
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    const actor = await db.get('SELECT role FROM users WHERE id = ?', [userId]);
+    const canRestore = actor?.role === 'admin' || post.author_id === userId;
+    if (!canRestore) {
+      return res.status(403).json({ error: 'Permission denied' });
+    }
+
+    const nextStatus = actor?.role === 'admin'
+      ? 'approved'
+      : normalizeContentStatus('submit', { section: post.section, role: actor?.role || 'user', intent: 'submit' });
+    await db.run(
+      `UPDATE community_posts
+       SET status = ?, rejection_reason = NULL, updated_at = datetime('now')
+       WHERE id = ?`,
+      [nextStatus, id]
+    );
+    const updated = await db.get('SELECT * FROM community_posts WHERE id = ?', [id]);
+    const viewer = viewerFromReq(req);
+    res.json(serializePost(serializeCommunityPost(updated, viewer)));
+  } catch (error) { next(error); }
+};
+
 const deletePostComment = async (req, res, next) => {
   try {
     const db = await getDb();
@@ -253,6 +296,9 @@ const serializePost = (row) => {
     content: row.content,
     tags,
     status: normalizePostStatus(row.section, row.post_status),
+    review_status: row.status || 'approved',
+    workflow_status: row.status || 'approved',
+    rejection_reason: row.rejection_reason || null,
     author_id: row.author_id,
     author_name: row.author_name,
     author_avatar: row.author_avatar,
@@ -363,15 +409,48 @@ const listPosts = async (req, res, next) => {
     const offset = (page - 1) * limit;
     const section = normalizeSection(req.query.section);
     const status = String(req.query.status || '').trim().toLowerCase();
+    const workflowStatus = String(req.query.workflow_status || req.query.review_status || '').trim().toLowerCase();
+    const requestedAuthorId = req.query.author_id || req.query.uploader_id;
+    const authorId = requestedAuthorId ? parseInt(requestedAuthorId, 10) : null;
     const q = String(req.query.search || '').trim();
     const sort = String(req.query.sort || 'newest');
+    const viewer = viewerFromReq(req);
+    const isAdmin = viewer?.role === 'admin';
+    const ownAuthorScope = Boolean(viewer?.id && authorId && Number(viewer.id) === Number(authorId));
 
-    const whereClauses = ['status = "approved"'];
+    const whereClauses = [];
     const whereParams = [];
+
+    if (isAdmin) {
+      if (workflowStatus && workflowStatus !== 'all' && CONTENT_STATUSES.has(workflowStatus)) {
+        whereClauses.push('status = ?');
+        whereParams.push(workflowStatus);
+      } else if (!workflowStatus && status && CONTENT_STATUSES.has(status) && !validatePostStatus(section, status)) {
+        whereClauses.push('status = ?');
+        whereParams.push(status);
+      } else {
+        whereClauses.push('status != "deleted"');
+      }
+    } else if (ownAuthorScope && ['all', 'draft', 'pending', 'rejected', 'approved'].includes(workflowStatus || status)) {
+      const ownStatus = workflowStatus || status;
+      if (ownStatus !== 'all') {
+        whereClauses.push('status = ?');
+        whereParams.push(ownStatus);
+      } else {
+        whereClauses.push('status != "deleted"');
+      }
+    } else {
+      whereClauses.push('status = "approved"');
+    }
 
     if (section) {
       whereClauses.push('section = ?');
       whereParams.push(section);
+    }
+
+    if (authorId && (isAdmin || ownAuthorScope)) {
+      whereClauses.push('author_id = ?');
+      whereParams.push(authorId);
     }
 
     if (section && status && status !== 'all' && validatePostStatus(section, status)) {
@@ -399,7 +478,6 @@ const listPosts = async (req, res, next) => {
       whereParams
     );
 
-    const viewer = viewerFromReq(req);
     res.json({
       data: rows.map((row) => serializePost(serializeCommunityPost(row, viewer))),
       pagination: {
@@ -416,14 +494,22 @@ const getPost = async (req, res, next) => {
   try {
     const db = await getDb();
     const { id } = req.params;
-    const post = await db.get('SELECT * FROM community_posts WHERE id = ? AND status = "approved"', [id]);
+    const post = await db.get('SELECT * FROM community_posts WHERE id = ?', [id]);
     if (!post) {
       return res.status(404).json({ error: 'Post not found' });
     }
-
-    await db.run('UPDATE community_posts SET views_count = COALESCE(views_count, 0) + 1 WHERE id = ?', [id]);
-    const updated = await db.get('SELECT * FROM community_posts WHERE id = ?', [id]);
     const viewer = viewerFromReq(req);
+    if (post.status !== 'approved') {
+      const canSeePrivate = viewer?.role === 'admin' || (viewer?.id && Number(viewer.id) === Number(post.author_id));
+      if (!canSeePrivate || post.status === 'deleted') {
+        return res.status(404).json({ error: 'Post not found' });
+      }
+    }
+
+    if (post.status === 'approved') {
+      await db.run('UPDATE community_posts SET views_count = COALESCE(views_count, 0) + 1 WHERE id = ?', [id]);
+    }
+    const updated = await db.get('SELECT * FROM community_posts WHERE id = ?', [id]);
     const serialized = serializePost(serializeCommunityPost(updated, viewer));
     const linked = await attachLinkedResources(db, serialized, { viewer });
     res.json(linked);
@@ -465,11 +551,11 @@ const createPost = async (req, res, next) => {
     }
 
     const authorName = user.nickname || user.username;
-    // Community posts (help/team/discussion) publish without moderation — the
-    // review queue is only for resources (articles/photos/…). Non-admin users
-    // would otherwise post pending help/team posts that nobody can see until
-    // an admin approves.
-    const status = 'approved';
+    const status = normalizeContentStatus(mutableBody.status, {
+      section,
+      role: user.role || 'user',
+      intent: mutableBody.intent || mutableBody.submit_intent || 'submit',
+    });
     const postStatus = normalizePostStatus(section, req.body.post_status);
     const maxMembers = section === 'team' && Number.isInteger(Number(maxMembersRaw))
       ? Math.min(Math.max(parseInt(maxMembersRaw, 10), 2), 100)
@@ -507,7 +593,7 @@ const createPost = async (req, res, next) => {
       ]
     );
 
-    if (section === 'team') {
+    if (section === 'team' && status === 'approved') {
       await db.run(
         'INSERT OR IGNORE INTO community_post_members (post_id, user_id, created_at) VALUES (?, ?, datetime("now"))',
         [result.lastID, userId]
@@ -1030,11 +1116,22 @@ const updatePost = async (req, res, next) => {
     if (!content || content.length < 8) {
       return res.status(400).json({ error: 'Content is too short' });
     }
+    const nextStatus = mutableBody.status !== undefined || mutableBody.intent !== undefined || mutableBody.submit_intent !== undefined
+      ? normalizeContentStatus(mutableBody.status, {
+          section: existing.section,
+          role: actor.role || 'user',
+          intent: mutableBody.intent || mutableBody.submit_intent || 'submit',
+        })
+      : existing.status;
+    const rejectionReason = actor.role === 'admin' && mutableBody.rejection_reason !== undefined
+      ? sanitizeCommunityText(String(mutableBody.rejection_reason || '')).slice(0, 500)
+      : (nextStatus === 'pending' || nextStatus === 'approved' ? null : existing.rejection_reason || null);
 
     await db.run(
       `
       UPDATE community_posts
       SET title = ?, content = ?, content_blocks = ?, link = ?, tags = ?, post_status = ?, deadline = ?, max_members = ?,
+          status = ?, rejection_reason = ?,
           related_article_ids = ?, related_post_ids = ?, related_news_ids = ?, related_group_ids = ?,
           updated_at = datetime('now')
       WHERE id = ?
@@ -1048,6 +1145,8 @@ const updatePost = async (req, res, next) => {
         postStatus,
         mutableBody.deadline ?? existing.deadline ?? null,
         mutableBody.max_members ?? existing.max_members ?? null,
+        nextStatus,
+        rejectionReason,
         mutableBody.related_article_ids ?? existing.related_article_ids ?? null,
         mutableBody.related_post_ids ?? existing.related_post_ids ?? null,
         mutableBody.related_news_ids ?? existing.related_news_ids ?? null,
@@ -1293,8 +1392,8 @@ const reviewPost = async (req, res, next) => {
 
     const newStatus = action === 'approve' ? 'approved' : 'rejected';
     await db.run(
-      'UPDATE community_posts SET status = ?, updated_at = datetime("now") WHERE id = ?',
-      [newStatus, id]
+      'UPDATE community_posts SET status = ?, rejection_reason = ?, updated_at = datetime("now") WHERE id = ?',
+      [newStatus, action === 'reject' ? (sanitizeCommunityText(String(reason || '')).slice(0, 500) || null) : null, id]
     );
 
     console.log(JSON.stringify({ action: 'review', postId: id, reviewAction: action, reason: reason || null, userId, timestamp: new Date().toISOString() }));
@@ -1396,6 +1495,7 @@ module.exports = {
   createPost,
   updatePost,
   deletePost,
+  restorePost,
   reportPostContent,
   togglePostLike,
   listPostComments,

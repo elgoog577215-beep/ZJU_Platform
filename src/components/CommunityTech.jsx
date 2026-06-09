@@ -6,7 +6,6 @@ import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import SmartImage from './SmartImage';
-import UploadModal from './UploadModal';
 import FavoriteButton from './FavoriteButton';
 import SortSelector from './SortSelector';
 import MobileContentToolbar from './MobileContentToolbar';
@@ -17,6 +16,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { parseContentBlocks, calculateReadingTime } from './communityUtils';
 import { useCommunityFeed } from '../hooks/useCommunityFeed';
+import UnifiedCommunityComposer from './UnifiedCommunityComposer';
 
 const VIEW_MODES = [
   { key: 'public', label: '全部' },
@@ -421,12 +421,7 @@ const CommunityTech = () => {
     );
   };
 
-  const handleUpload = async (item) => {
-    if (item.id) {
-      await api.put(`/articles/${item.id}`, { ...item, category: 'tech' });
-    } else {
-      await api.post('/articles', { ...item, category: 'tech' });
-    }
+  const handleUpload = async () => {
     feed.handleRefresh();
     setEditingArticle(null);
   };
@@ -629,14 +624,14 @@ const CommunityTech = () => {
           </div>
         )}
         extraBottom={(
-          <UploadModal
+          <UnifiedCommunityComposer
             isOpen={isUploadOpen}
+            boardKey="tech"
             onClose={() => {
               setIsUploadOpen(false);
               setEditingArticle(null);
             }}
-            onUpload={handleUpload}
-            type="article"
+            onSuccess={handleUpload}
             initialData={editingArticle}
           />
         )}
