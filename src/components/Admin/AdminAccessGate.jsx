@@ -8,11 +8,13 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 import { useAuth } from "../../context/AuthContext";
 import { useSettings } from "../../context/SettingsContext";
 
 const AdminAccessGate = () => {
+  const { t } = useTranslation();
   const { user, loading, login, logout } = useAuth();
   const { uiMode } = useSettings();
   const [username, setUsername] = useState("123");
@@ -43,7 +45,7 @@ const AdminAccessGate = () => {
     event.preventDefault();
     const nextUsername = username.trim();
     if (!nextUsername || !password) {
-      setError("请填写管理员账号和密码。");
+      setError(t("admin.login.empty_credentials", "请填写管理员账号和密码。"));
       return;
     }
 
@@ -52,7 +54,7 @@ const AdminAccessGate = () => {
     try {
       const ok = await login(nextUsername, password);
       if (!ok) {
-        setError("登录失败，请确认账号密码，或检查本地后端服务是否已启动。");
+        setError(t("admin.login.failed", "登录失败，请确认账号密码，或检查本地后端服务是否已启动。"));
       }
     } finally {
       setSubmitting(false);
@@ -62,7 +64,9 @@ const AdminAccessGate = () => {
   const renderLoading = () => (
     <div className="flex flex-col items-center gap-3 text-center">
       <Loader2 size={24} className="animate-spin" />
-      <div className={`text-sm ${mutedClass}`}>正在确认管理员身份...</div>
+      <div className={`text-sm ${mutedClass}`}>
+        {t("admin.login.checking", "正在确认管理员身份...")}
+      </div>
     </div>
   );
 
@@ -79,10 +83,13 @@ const AdminAccessGate = () => {
           <AlertCircle size={22} />
         </div>
         <div>
-          <h1 className="text-2xl font-bold">无管理员权限</h1>
+          <h1 className="text-2xl font-bold">
+            {t("admin.login.no_permission_title", "无管理员权限")}
+          </h1>
           <p className={`mt-2 text-sm ${mutedClass}`}>
-            当前账号 {user?.username ? `“${user.username}”` : ""}
-            不是管理员账号，请退出后使用管理员账号登录。
+            {t("admin.login.no_permission_desc", "当前账号{{username}}不是管理员账号，请退出后使用管理员账号登录。", {
+              username: user?.username ? `“${user.username}”` : "",
+            })}
           </p>
         </div>
       </div>
@@ -94,11 +101,11 @@ const AdminAccessGate = () => {
           onClick={logout}
         >
           <LogOut size={16} />
-          退出当前账号
+          {t("admin.login.logout_current", "退出当前账号")}
         </button>
         <Link className={`${buttonClass} ${subtleButtonClass}`} to="/">
           <Home size={16} />
-          返回首页
+          {t("admin.login.back", "返回首页")}
         </Link>
       </div>
     </div>
@@ -122,16 +129,18 @@ const AdminAccessGate = () => {
           >
             Operations Console
           </p>
-          <h1 className="mt-2 text-2xl font-bold">管理员登录</h1>
+          <h1 className="mt-2 text-2xl font-bold">
+            {t("admin.login.title", "管理员登录")}
+          </h1>
           <p className={`mt-2 text-sm ${mutedClass}`}>
-            登录后继续管理内容、审核、社区和系统配置。
+            {t("admin.login.subtitle", "登录后继续管理内容、审核、社区和系统配置。")}
           </p>
         </div>
       </div>
 
       <div className="grid gap-3">
         <label className="grid gap-2 text-sm font-semibold">
-          <span className={mutedClass}>账号</span>
+          <span className={mutedClass}>{t("admin.login.username", "账号")}</span>
           <input
             className={inputClass}
             value={username}
@@ -143,7 +152,7 @@ const AdminAccessGate = () => {
           />
         </label>
         <label className="grid gap-2 text-sm font-semibold">
-          <span className={mutedClass}>密码</span>
+          <span className={mutedClass}>{t("admin.login.password", "密码")}</span>
           <input
             type="password"
             className={inputClass}
@@ -152,7 +161,7 @@ const AdminAccessGate = () => {
               setPassword(event.target.value);
               setError("");
             }}
-            placeholder="默认密码 123456"
+            placeholder={t("admin.login.password_placeholder", "默认密码 123456")}
             autoComplete="current-password"
           />
         </label>
@@ -181,7 +190,7 @@ const AdminAccessGate = () => {
         ) : (
           <LogIn size={16} />
         )}
-        进入管理员后台
+        {t("admin.login.enter_dashboard", "进入管理员后台")}
       </button>
     </form>
   );

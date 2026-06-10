@@ -794,7 +794,9 @@
     "other": "Other",
     "skip_to_main": "Skip to main content",
     "details": "View Details",
-    "submitting": "Submitting..."
+    "submitting": "Submitting...",
+    "online": "Online",
+    "result_count": "{{count}} items"
   },
   "gallery": {
     "title": "Gallery",
@@ -1353,6 +1355,60 @@
       "hours": "Hours",
       "minutes": "Mins",
       "seconds": "Secs"
+    },
+    "hero_title": "Discover Campus Events",
+    "hero_short_desc": "Explore talks, competitions, volunteering, recruitment, and cultural events.",
+    "hero_title_prefix": "Discover ",
+    "hero_title_accent": "Campus ",
+    "hero_title_suffix": "Events",
+    "hero_desc": "Explore talks, competitions, volunteering, recruitment, and cultural events. Find people who share your interests and make campus life richer.",
+    "search_placeholder": "Search event names, keywords, or organizers",
+    "search_aria": "Search events",
+    "clear_search": "Clear search",
+    "view_all": "View All",
+    "no_more_recommendations": "No more recommendations",
+    "no_matches_desc": "No events match the current filters. Reset filters and try again.",
+    "empty_desc": "No events are available right now. Please check back later.",
+    "reset_filters": "Reset Filters",
+    "default_audience": "Campus Event",
+    "category_fallback": "Event",
+    "categories": {
+      "lecture": "Talks",
+      "competition": "Competitions",
+      "volunteer": "Volunteering",
+      "recruitment": "Recruitment",
+      "culture_sports": "Culture & Sports",
+      "exchange": "Exchange",
+      "other": "Other"
+    },
+    "campus": {
+      "zijingang": "Zijingang",
+      "yuquan": "Yuquan",
+      "xixi": "Xixi",
+      "huajiachi": "Huajiachi",
+      "zhijiang": "Zhijiang",
+      "haining": "Haining Intl.",
+      "zhoushan": "Zhoushan",
+      "online": "Online",
+      "offcampus": "Off Campus"
+    },
+    "tone": {
+      "featured": "Featured Pick",
+      "competition": "Competition Training",
+      "volunteer": "Volunteer Call",
+      "recruitment": "Recruitment",
+      "culture_sports": "Culture & Sports",
+      "exchange": "Exchange Event",
+      "other": "Recommended Event"
+    },
+    "sections": {
+      "weekly": "Weekly Picks",
+      "upcoming": "Upcoming",
+      "latest": "Latest"
+    },
+    "sort": {
+      "aria": "Event sort order",
+      "title": "Title"
     }
   },
   "admin": {
@@ -1663,7 +1719,19 @@
       "welcome_back": "Welcome back, Admin",
       "incorrect": "Incorrect passcode",
       "logged_out": "Logged out successfully",
-      "not_admin": "Admin privileges required"
+      "not_admin": "Admin privileges required",
+      "empty_credentials": "Please enter an admin username and password.",
+      "failed": "Login failed. Check the credentials or make sure the local backend is running.",
+      "checking": "Checking admin access...",
+      "no_permission_title": "No Admin Access",
+      "no_permission_desc": "The current account{{username}} is not an admin. Log out and sign in with an admin account.",
+      "logout_current": "Log Out Current Account",
+      "title": "Admin Login",
+      "subtitle": "Sign in to manage content, reviews, community operations, and system settings.",
+      "username": "Username",
+      "password": "Password",
+      "password_placeholder": "Default password 123456",
+      "enter_dashboard": "Enter Admin Dashboard"
     },
     "logout": "Logout",
     "toast": {

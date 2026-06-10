@@ -170,35 +170,37 @@ const formatEventTimeRange = (event) => {
 };
 
 const EVENT_CATEGORY_TABS = [
-  { value: null, label: "全部" },
-  { value: "lecture", label: "讲座" },
-  { value: "competition", label: "竞赛" },
-  { value: "volunteer", label: "志愿" },
-  { value: "recruitment", label: "招新" },
-  { value: "culture_sports", label: "文体" },
-  { value: "exchange", label: "交流" },
-  { value: "other", label: "其他" },
+  { value: null, labelKey: "common.all", defaultLabel: "全部" },
+  { value: "lecture", labelKey: "events.categories.lecture", defaultLabel: "讲座" },
+  { value: "competition", labelKey: "events.categories.competition", defaultLabel: "竞赛" },
+  { value: "volunteer", labelKey: "events.categories.volunteer", defaultLabel: "志愿" },
+  { value: "recruitment", labelKey: "events.categories.recruitment", defaultLabel: "招新" },
+  { value: "culture_sports", labelKey: "events.categories.culture_sports", defaultLabel: "文体" },
+  { value: "exchange", labelKey: "events.categories.exchange", defaultLabel: "交流" },
+  { value: "other", labelKey: "events.categories.other", defaultLabel: "其他" },
 ];
 
 const CAMPUS_QUICK_FILTERS = [
-  { value: "zijingang", label: "紫金港", keywords: ["紫金港", "zijingang"] },
-  { value: "yuquan", label: "玉泉", keywords: ["玉泉", "yuquan"] },
-  { value: "xixi", label: "西溪", keywords: ["西溪", "xixi"] },
-  { value: "huajiachi", label: "华家池", keywords: ["华家池", "huajiachi"] },
-  { value: "zhijiang", label: "之江", keywords: ["之江", "zhijiang"] },
+  { value: "zijingang", labelKey: "events.campus.zijingang", defaultLabel: "紫金港", keywords: ["紫金港", "zijingang"] },
+  { value: "yuquan", labelKey: "events.campus.yuquan", defaultLabel: "玉泉", keywords: ["玉泉", "yuquan"] },
+  { value: "xixi", labelKey: "events.campus.xixi", defaultLabel: "西溪", keywords: ["西溪", "xixi"] },
+  { value: "huajiachi", labelKey: "events.campus.huajiachi", defaultLabel: "华家池", keywords: ["华家池", "huajiachi"] },
+  { value: "zhijiang", labelKey: "events.campus.zhijiang", defaultLabel: "之江", keywords: ["之江", "zhijiang"] },
   {
     value: "haining",
-    label: "海宁国际",
+    labelKey: "events.campus.haining",
+    defaultLabel: "海宁国际",
     keywords: ["海宁", "国际校区", "haining"],
   },
-  { value: "zhoushan", label: "舟山", keywords: ["舟山", "zhoushan"] },
+  { value: "zhoushan", labelKey: "events.campus.zhoushan", defaultLabel: "舟山", keywords: ["舟山", "zhoushan"] },
   {
     value: "online",
-    label: "线上",
+    labelKey: "events.campus.online",
+    defaultLabel: "线上",
     keywords: ["线上", "在线", "直播", "腾讯会议", "zoom", "online"],
     type: "online",
   },
-  { value: "offcampus", label: "校外", keywords: [], type: "offcampus" },
+  { value: "offcampus", labelKey: "events.campus.offcampus", defaultLabel: "校外", keywords: [], type: "offcampus" },
 ];
 
 const OFF_CAMPUS_KEYWORDS = [
@@ -220,24 +222,24 @@ const OFF_CAMPUS_KEYWORDS = [
 ];
 
 const EVENT_SORT_OPTIONS = [
-  { value: "newest", label: "最新发布" },
-  { value: "date_asc", label: "日期最早" },
-  { value: "date_desc", label: "日期最晚" },
-  { value: "likes", label: "最多点赞" },
-  { value: "title", label: "标题排序" },
+  { value: "newest", labelKey: "sort_filter.newest", defaultLabel: "最新发布" },
+  { value: "date_asc", labelKey: "sort_filter.date_asc", defaultLabel: "日期最早" },
+  { value: "date_desc", labelKey: "sort_filter.date_desc", defaultLabel: "日期最晚" },
+  { value: "likes", labelKey: "sort_filter.likes", defaultLabel: "最多点赞" },
+  { value: "title", labelKey: "events.sort.title", defaultLabel: "标题排序" },
 ];
 
 const HERO_SLOT_COUNT = 3;
 const HERO_SLOT_ROTATION_INTERVAL_MS = 3600;
 
-const EVENT_CATEGORY_LABEL_MAP = {
-  lecture: "讲座",
-  competition: "竞赛",
-  volunteer: "志愿",
-  recruitment: "招新",
-  culture_sports: "文体",
-  exchange: "交流",
-  other: "其他",
+const EVENT_CATEGORY_LABELS = {
+  lecture: { key: "events.categories.lecture", defaultLabel: "讲座" },
+  competition: { key: "events.categories.competition", defaultLabel: "竞赛" },
+  volunteer: { key: "events.categories.volunteer", defaultLabel: "志愿" },
+  recruitment: { key: "events.categories.recruitment", defaultLabel: "招新" },
+  culture_sports: { key: "events.categories.culture_sports", defaultLabel: "文体" },
+  exchange: { key: "events.categories.exchange", defaultLabel: "交流" },
+  other: { key: "events.categories.other", defaultLabel: "其他" },
 };
 
 const EVENT_NEUTRAL_TONE = {
@@ -248,36 +250,42 @@ const EVENT_NEUTRAL_TONE = {
 const EVENT_TONES = {
   lecture: {
     ...EVENT_NEUTRAL_TONE,
-    label: "精选推荐",
   },
   competition: {
     ...EVENT_NEUTRAL_TONE,
-    label: "竞赛训练",
   },
   volunteer: {
     ...EVENT_NEUTRAL_TONE,
-    label: "志愿招募",
   },
   recruitment: {
     ...EVENT_NEUTRAL_TONE,
-    label: "招新活动",
   },
   culture_sports: {
     ...EVENT_NEUTRAL_TONE,
-    label: "文体活动",
   },
   exchange: {
     ...EVENT_NEUTRAL_TONE,
-    label: "交流活动",
   },
   other: {
     ...EVENT_NEUTRAL_TONE,
-    label: "活动推荐",
   },
 };
 
-const getDisplayCategoryLabel = (category) =>
-  EVENT_CATEGORY_LABEL_MAP[category] || getEventCategoryLabel(category) || "活动";
+const EVENT_TONE_LABELS = {
+  lecture: { key: "events.tone.featured", defaultLabel: "精选推荐" },
+  competition: { key: "events.tone.competition", defaultLabel: "竞赛训练" },
+  volunteer: { key: "events.tone.volunteer", defaultLabel: "志愿招募" },
+  recruitment: { key: "events.tone.recruitment", defaultLabel: "招新活动" },
+  culture_sports: { key: "events.tone.culture_sports", defaultLabel: "文体活动" },
+  exchange: { key: "events.tone.exchange", defaultLabel: "交流活动" },
+  other: { key: "events.tone.other", defaultLabel: "活动推荐" },
+};
+
+const getDisplayCategoryLabel = (category, t) => {
+  const label = EVENT_CATEGORY_LABELS[category];
+  if (label) return t(label.key, label.defaultLabel);
+  return getEventCategoryLabel(category) || t("events.category_fallback", "活动");
+};
 
 const getEventToneKey = (category = "") => {
   const raw = String(category).toLowerCase();
@@ -470,9 +478,12 @@ const FavoriteControl = ({ event, onToggleFavorite, isDayMode, compact = false }
 );
 
 const HeroEventCard = memo(({ event, index = 0, label, onClick, variant = "large" }) => {
+  const { t } = useTranslation();
   if (!event) return null;
   const tone = getEventTone(event);
   const isLarge = variant === "large";
+  const toneKey = getEventToneKey(event?.category);
+  const toneLabel = EVENT_TONE_LABELS[toneKey] || EVENT_TONE_LABELS.other;
 
   return (
     <button
@@ -496,7 +507,7 @@ const HeroEventCard = memo(({ event, index = 0, label, onClick, variant = "large
       <div className="absolute inset-0 bg-gradient-to-t from-slate-950/76 via-slate-900/30 to-slate-900/4" />
       <div className="absolute left-4 top-4 z-10">
         <span className={`inline-flex rounded-md px-3 py-1.5 text-[13px] font-bold ${tone.badge}`}>
-          {label || tone.label}
+          {label || t(toneLabel.key, toneLabel.defaultLabel)}
         </span>
       </div>
       <div className={`absolute inset-x-0 bottom-0 z-10 ${isLarge ? "p-4 sm:p-5 lg:p-6" : "p-3.5 sm:p-4"}`}>
@@ -509,7 +520,9 @@ const HeroEventCard = memo(({ event, index = 0, label, onClick, variant = "large
         </h3>
         <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-medium text-white/82">
           <EventMetaItem icon={Clock}>{formatEventTimeRange(event)}</EventMetaItem>
-          <EventMetaItem icon={MapPin}>{event.location || "线上"}</EventMetaItem>
+          <EventMetaItem icon={MapPin}>
+            {event.location || t("common.online", "线上")}
+          </EventMetaItem>
         </div>
       </div>
     </button>
@@ -522,6 +535,8 @@ const EventCard = memo(
     const { t } = useTranslation();
     const status = getEventLifecycle(event.date, event.end_date, t);
     const tone = getEventTone(event);
+    const toneKey = getEventToneKey(event?.category);
+    const toneLabel = EVENT_TONE_LABELS[toneKey] || EVENT_TONE_LABELS.other;
     const motionProps = reduceMotion
       ? {}
       : {
@@ -567,7 +582,7 @@ const EventCard = memo(
           />
           <div className="absolute left-4 right-4 top-4 flex items-start justify-between gap-3">
             <span className={`rounded-md px-3 py-1.5 text-[13px] font-bold ${tone.badge}`}>
-              {tone.label}
+              {t(toneLabel.key, toneLabel.defaultLabel)}
             </span>
             <span
               className={`shrink-0 rounded-md border px-2.5 py-1 text-[11px] font-semibold ${
@@ -609,7 +624,9 @@ const EventCard = memo(
             }`}
           >
             <EventMetaItem icon={Clock}>{formatEventTimeRange(event)}</EventMetaItem>
-            <EventMetaItem icon={MapPin}>{event.location || "线上"}</EventMetaItem>
+            <EventMetaItem icon={MapPin}>
+              {event.location || t("common.online", "线上")}
+            </EventMetaItem>
             {event.organizer && (
               <EventMetaItem icon={Users}>{event.organizer}</EventMetaItem>
             )}
@@ -628,7 +645,7 @@ const EventCard = memo(
           <div className="mt-auto flex items-center justify-between gap-3 pt-4">
             <span className={`inline-flex max-w-[11rem] items-center gap-1 rounded-md border px-2.5 py-1 text-xs font-semibold ${tone.chip}`}>
               <Tag size={12} className="shrink-0" />
-              <span className="truncate">{getDisplayCategoryLabel(event.category)}</span>
+              <span className="truncate">{getDisplayCategoryLabel(event.category, t)}</span>
             </span>
             <div className="flex items-center gap-2">
               <FavoriteControl
@@ -648,6 +665,7 @@ EventCard.displayName = "EventCard";
 
 const CompactEventCard = memo(
   ({ event, index, onClick, onToggleFavorite, isDayMode }) => {
+    const { t } = useTranslation();
     const tone = getEventTone(event);
 
     return (
@@ -680,7 +698,7 @@ const CompactEventCard = memo(
               {event.title}
             </h3>
             <span className={`shrink-0 rounded-md border px-2 py-1 text-[11px] font-semibold ${tone.chip}`}>
-              {getDisplayCategoryLabel(event.category)}
+              {getDisplayCategoryLabel(event.category, t)}
             </span>
           </div>
           <div
@@ -689,11 +707,13 @@ const CompactEventCard = memo(
             }`}
           >
             <EventMetaItem icon={Clock}>{formatEventTimeRange(event)}</EventMetaItem>
-            <EventMetaItem icon={MapPin}>{event.location || "线上"}</EventMetaItem>
+            <EventMetaItem icon={MapPin}>
+              {event.location || t("common.online", "线上")}
+            </EventMetaItem>
           </div>
           <div className="mt-auto flex items-center justify-between gap-2 pt-2">
             <span className={isDayMode ? "text-xs font-medium text-slate-500" : "text-xs font-semibold text-slate-300"}>
-              {event.target_audience || event.organizer || "校园活动"}
+              {event.target_audience || event.organizer || t("events.default_audience", "校园活动")}
             </span>
             <FavoriteControl
               event={event}
@@ -709,29 +729,32 @@ const CompactEventCard = memo(
 );
 CompactEventCard.displayName = "CompactEventCard";
 
-const EventSectionHeader = ({ title, onViewAll, isDayMode }) => (
-  <div className="mb-4 flex items-center justify-between gap-4">
-    <h2
-      className={`text-xl font-bold tracking-normal md:text-2xl ${
-        isDayMode ? "text-slate-800" : "text-slate-100"
-      }`}
-    >
-      {title}
-    </h2>
-    <button
-      type="button"
-      onClick={onViewAll}
-      className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 ${
-        isDayMode
-          ? "text-slate-500 hover:bg-slate-100/80 hover:text-slate-700"
-          : "text-slate-400 hover:bg-white/8 hover:text-slate-100"
-      }`}
-    >
-      查看全部
-      <ChevronRight size={16} />
-    </button>
-  </div>
-);
+const EventSectionHeader = ({ title, onViewAll, isDayMode }) => {
+  const { t } = useTranslation();
+  return (
+    <div className="mb-4 flex items-center justify-between gap-4">
+      <h2
+        className={`text-xl font-bold tracking-normal md:text-2xl ${
+          isDayMode ? "text-slate-800" : "text-slate-100"
+        }`}
+      >
+        {title}
+      </h2>
+      <button
+        type="button"
+        onClick={onViewAll}
+        className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 ${
+          isDayMode
+            ? "text-slate-500 hover:bg-slate-100/80 hover:text-slate-700"
+            : "text-slate-400 hover:bg-white/8 hover:text-slate-100"
+        }`}
+      >
+        {t("events.view_all", "查看全部")}
+        <ChevronRight size={16} />
+      </button>
+    </div>
+  );
+};
 
 const EventsSkeleton = ({ isDayMode }) => (
   <div className="space-y-7">
@@ -1461,6 +1484,30 @@ END:VCALENDAR`;
     return (futureEvents.length ? futureEvents : visibleEvents).slice(0, 3);
   }, [visibleEvents]);
   const latestEvents = visibleEvents.slice(0, 4);
+  const localizedCategoryTabs = useMemo(
+    () =>
+      EVENT_CATEGORY_TABS.map((tab) => ({
+        ...tab,
+        label: t(tab.labelKey, tab.defaultLabel),
+      })),
+    [t],
+  );
+  const localizedCampusFilters = useMemo(
+    () =>
+      CAMPUS_QUICK_FILTERS.map((item) => ({
+        ...item,
+        label: t(item.labelKey, item.defaultLabel),
+      })),
+    [t],
+  );
+  const localizedSortOptions = useMemo(
+    () =>
+      EVENT_SORT_OPTIONS.map((option) => ({
+        ...option,
+        label: t(option.labelKey, option.defaultLabel),
+      })),
+    [t],
+  );
   const clearAllDesktopFilters = useCallback(() => {
     setSearchQuery("");
     setDebouncedSearch("");
@@ -1548,8 +1595,8 @@ END:VCALENDAR`;
   return (
     <section className="day-page-theme day-page-theme-events relative flex-grow overflow-hidden px-4 pb-[calc(env(safe-area-inset-bottom)+96px)] pt-[calc(env(safe-area-inset-top)+76px)] md:px-8 md:pb-20 md:pt-24">
       <SEO
-        title="活动"
-        description="浏览浙江大学校内活动、志愿服务、讲座与报名信息。"
+        title={t("events.meta_title", "活动聚合")}
+        description={t("events.meta_desc", "浏览浙江大学校内活动、志愿服务、讲座与报名信息。")}
       />
       {null}
 
@@ -1562,10 +1609,10 @@ END:VCALENDAR`;
       >
         <div className="md:hidden mb-4 text-left">
           <h1 className={`text-3xl font-bold leading-tight tracking-normal ${mobileHeroTitleClass}`}>
-            发现精彩活动
+            {t("events.hero_title", "发现精彩活动")}
           </h1>
           <p className={`mt-2 text-sm font-medium leading-6 ${mobileHeroCopyClass}`}>
-            探索讲座、竞赛、志愿、招新与文体活动。
+            {t("events.hero_short_desc", "探索讲座、竞赛、志愿、招新与文体活动。")}
           </p>
         </div>
         <MobileContentToolbar
@@ -1596,10 +1643,14 @@ END:VCALENDAR`;
           <div className="grid items-start gap-6 lg:gap-8 xl:grid-cols-[minmax(360px,0.86fr)_minmax(620px,1.54fr)]">
             <div className="pt-2 text-left lg:pt-3">
               <h1 className={`max-w-[560px] text-4xl font-bold leading-tight tracking-normal lg:text-5xl xl:text-6xl ${desktopHeroTitleClass}`}>
-                发现<span className={desktopHeroAccentClass}>精彩</span>活动
+                {t("events.hero_title_prefix", "发现")}
+                <span className={desktopHeroAccentClass}>
+                  {t("events.hero_title_accent", "精彩")}
+                </span>
+                {t("events.hero_title_suffix", "活动")}
               </h1>
               <p className={`mt-4 max-w-[520px] text-base font-medium leading-7 lg:mt-5 lg:max-w-[470px] lg:text-lg lg:leading-8 ${desktopHeroCopyClass}`}>
-                探索讲座、竞赛、志愿、招新与文体活动，连接兴趣同好，丰富你的校园生活。
+                {t("events.hero_desc", "探索讲座、竞赛、志愿、招新与文体活动，连接兴趣同好，丰富你的校园生活。")}
               </p>
 
               <form
@@ -1613,13 +1664,13 @@ END:VCALENDAR`;
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
                   className={`min-w-0 flex-1 bg-transparent text-[15px] font-medium outline-none ${searchInputClass}`}
-                  placeholder="搜索活动名称、关键词或组织"
-                  aria-label="搜索活动"
+                  placeholder={t("events.search_placeholder", "搜索活动名称、关键词或组织")}
+                  aria-label={t("events.search_aria", "搜索活动")}
                 />
                 {searchQuery && (
                   <button
                     type="button"
-                    aria-label="清空搜索"
+                    aria-label={t("events.clear_search", "清空搜索")}
                     onClick={() => {
                       setSearchQuery("");
                       setDebouncedSearch("");
@@ -1631,7 +1682,7 @@ END:VCALENDAR`;
                 )}
                 <button
                   type="submit"
-                  aria-label="搜索"
+                  aria-label={t("common.search", "搜索")}
                   className={`inline-flex h-10 w-10 items-center justify-center rounded-md transition-colors focus:outline-none focus-visible:ring-2 ${searchButtonClass}`}
                 >
                   <Search size={22} />
@@ -1640,7 +1691,7 @@ END:VCALENDAR`;
 
               <div className={`-mx-1 mt-4 overflow-x-auto px-1 pb-2 scrollbar-none md:mx-0 md:overflow-visible md:px-0 md:pb-0 ${campusControlWidthClass}`}>
                 <div className="flex w-max gap-2 md:w-auto md:flex-wrap md:gap-2.5">
-                  {CAMPUS_QUICK_FILTERS.map((item) => {
+                  {localizedCampusFilters.map((item) => {
                     const active = activeCampusFilter === item.value;
                     const count = campusCounts[item.value] || 0;
                     const showLocationPin = item.value === activeLocationValue;
@@ -1684,7 +1735,7 @@ END:VCALENDAR`;
                 <HeroEventCard
                   event={heroMainEvent}
                   index={0}
-                  label="本周精选"
+                  label={t("events.sections.weekly", "本周精选")}
                   onClick={openEventDetail}
                   variant="large"
                 />
@@ -1714,7 +1765,7 @@ END:VCALENDAR`;
                         : "border-white/10 bg-white/[0.045] text-slate-500"
                     }`}
                   >
-                    暂无更多推荐
+                    {t("events.no_more_recommendations", "暂无更多推荐")}
                   </div>
                 )}
               </div>
@@ -1724,7 +1775,7 @@ END:VCALENDAR`;
           <div className={`mt-7 flex flex-col items-stretch gap-4 border-t pt-5 md:flex-row md:items-center md:justify-between md:gap-5 lg:mt-8 ${desktopDividerClass}`}>
             <div className="-mx-1 min-w-0 flex-1 overflow-x-auto px-1 pb-1 scrollbar-none md:mx-0 md:overflow-visible md:px-0 md:pb-0">
               <div className="flex w-max gap-2.5 md:w-auto md:flex-wrap md:gap-3">
-                {EVENT_CATEGORY_TABS.map((tab) => {
+                {localizedCategoryTabs.map((tab) => {
                   const active = filters.category === tab.value;
                   return (
                     <button
@@ -1752,7 +1803,7 @@ END:VCALENDAR`;
                   onClick={clearAllDesktopFilters}
                   className={`rounded-md px-3 py-2 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 ${resetButtonClass}`}
                 >
-                  重置
+                  {t("admin.actions.reset", "重置")}
                 </button>
               )}
               <label className={`relative inline-flex min-h-10 items-center rounded-md border pl-3 pr-9 text-sm font-semibold backdrop-blur-xl ${sortShellClass}`}>
@@ -1761,9 +1812,9 @@ END:VCALENDAR`;
                   value={sort}
                   onChange={(event) => setSort(event.target.value)}
                   className="appearance-none bg-transparent pr-1 outline-none"
-                  aria-label="活动排序"
+                  aria-label={t("events.sort.aria", "活动排序")}
                 >
-                  {EVENT_SORT_OPTIONS.map((option) => (
+                  {localizedSortOptions.map((option) => (
                     <option
                       key={option.value}
                       value={option.value}
@@ -1814,12 +1865,12 @@ END:VCALENDAR`;
                           id="events-mobile-filter-title"
                           className={`text-[1.35rem] font-bold leading-tight ${isDayMode ? "text-slate-800" : "text-white"}`}
                         >
-                          筛选活动
+                          {t("events.filter.sheet_title", "筛选活动")}
                         </h3>
                         <p
                           className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
                         >
-                          类型和对象会立即生效
+                          {t("events.filter.sheet_hint", "类型和对象会立即生效")}
                         </p>
                       </div>
                       <button
@@ -2052,7 +2103,7 @@ END:VCALENDAR`;
           <>
             <section>
               <EventSectionHeader
-                title="本周精选"
+                title={t("events.sections.weekly", "本周精选")}
                 onViewAll={clearAllDesktopFilters}
                 isDayMode={isDayMode}
               />
@@ -2074,7 +2125,7 @@ END:VCALENDAR`;
             {upcomingEvents.length > 0 && (
               <section>
                 <EventSectionHeader
-                  title="即将开始"
+                title={t("events.sections.upcoming", "即将开始")}
                   onViewAll={clearAllDesktopFilters}
                   isDayMode={isDayMode}
                 />
@@ -2096,7 +2147,7 @@ END:VCALENDAR`;
             {latestEvents.length > 0 && (
               <section>
                 <EventSectionHeader
-                  title="最新发布"
+                  title={t("events.sections.latest", "最新发布")}
                   onViewAll={clearAllDesktopFilters}
                   isDayMode={isDayMode}
                 />
@@ -2125,8 +2176,8 @@ END:VCALENDAR`;
             </h3>
             <p className={`mb-8 max-w-md text-base font-medium leading-7 ${isDayMode ? "text-slate-500" : "text-slate-400"}`}>
               {debouncedSearch || campusFilter || Object.values(filters).some((v) => v)
-                ? "当前条件下没有匹配活动，重置筛选后再看看。"
-                : "暂时没有可展示的活动，稍后再来看看吧。"}
+                ? t("events.no_matches_desc", "当前条件下没有匹配活动，重置筛选后再看看。")
+                : t("events.empty_desc", "暂时没有可展示的活动，稍后再来看看吧。")}
             </p>
             {(debouncedSearch || campusFilter || Object.values(filters).some((v) => v)) && (
               <button
@@ -2134,7 +2185,7 @@ END:VCALENDAR`;
                 onClick={clearAllDesktopFilters}
                 className={`mb-3 rounded-md border px-5 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 ${loadMoreButtonClass}`}
               >
-                重置筛选
+                {t("events.reset_filters", "重置筛选")}
               </button>
             )}
             <motion.button
@@ -2734,14 +2785,14 @@ END:VCALENDAR`;
                               >
                                 <Tag size={18} />
                                 <span className="text-sm font-bold uppercase tracking-wider">
-                                  活动分类
+                                  {t("events.category_label", "活动分类")}
                                 </span>
                               </div>
                               <div className="flex flex-wrap gap-2">
                                 <span
                                   className={`px-3 py-1.5 rounded-md text-sm font-medium border transition-all ${isDayMode ? `bg-white text-slate-600 border-violet-100/80 shadow-[0_8px_20px_rgba(168,85,247,0.045)] hover:-translate-y-0.5 ${eventThemeAccent.tagHover}` : "bg-white/5 text-gray-300 border-white/5 hover:bg-white/10"}`}
                                 >
-                                  {getEventCategoryLabel(selectedEvent.category)}
+                                  {getDisplayCategoryLabel(selectedEvent.category, t)}
                                 </span>
                               </div>
                             </div>

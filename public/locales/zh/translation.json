@@ -842,7 +842,8 @@
     "other": "其他",
     "skip_to_main": "跳转到主要内容",
     "details": "查看详情",
-    "submitting": "提交中..."
+    "submitting": "提交中...",
+    "result_count": "{{count}} 项"
   },
   "upload": {
     "title_required": "标题不能为空",
@@ -1468,7 +1469,61 @@
     "signed_up": "已报名",
     "sign_up_now": "立即报名",
     "registered_success": "您已成功报名参加此活动。",
-    "limited_spots": "名额有限，先到先得。"
+    "limited_spots": "名额有限，先到先得。",
+    "hero_title": "发现精彩活动",
+    "hero_short_desc": "探索讲座、竞赛、志愿、招新与文体活动。",
+    "hero_title_prefix": "发现",
+    "hero_title_accent": "精彩",
+    "hero_title_suffix": "活动",
+    "hero_desc": "探索讲座、竞赛、志愿、招新与文体活动，连接兴趣同好，丰富你的校园生活。",
+    "search_placeholder": "搜索活动名称、关键词或组织",
+    "search_aria": "搜索活动",
+    "clear_search": "清空搜索",
+    "view_all": "查看全部",
+    "no_more_recommendations": "暂无更多推荐",
+    "no_matches_desc": "当前条件下没有匹配活动，重置筛选后再看看。",
+    "empty_desc": "暂时没有可展示的活动，稍后再来看看吧。",
+    "reset_filters": "重置筛选",
+    "default_audience": "校园活动",
+    "category_fallback": "活动",
+    "categories": {
+      "lecture": "讲座",
+      "competition": "竞赛",
+      "volunteer": "志愿",
+      "recruitment": "招新",
+      "culture_sports": "文体",
+      "exchange": "交流",
+      "other": "其他"
+    },
+    "campus": {
+      "zijingang": "紫金港",
+      "yuquan": "玉泉",
+      "xixi": "西溪",
+      "huajiachi": "华家池",
+      "zhijiang": "之江",
+      "haining": "海宁国际",
+      "zhoushan": "舟山",
+      "online": "线上",
+      "offcampus": "校外"
+    },
+    "tone": {
+      "featured": "精选推荐",
+      "competition": "竞赛训练",
+      "volunteer": "志愿招募",
+      "recruitment": "招新活动",
+      "culture_sports": "文体活动",
+      "exchange": "交流活动",
+      "other": "活动推荐"
+    },
+    "sections": {
+      "weekly": "本周精选",
+      "upcoming": "即将开始",
+      "latest": "最新发布"
+    },
+    "sort": {
+      "aria": "活动排序",
+      "title": "标题排序"
+    }
   },
   "admin": {
     "dashboard": "管理控制台",
@@ -1844,7 +1899,19 @@
       "welcome_back": "欢迎回来，管理员",
       "incorrect": "密码错误",
       "logged_out": "已退出管理",
-      "not_admin": "需要管理员权限"
+      "not_admin": "需要管理员权限",
+      "empty_credentials": "请填写管理员账号和密码。",
+      "failed": "登录失败，请确认账号密码，或检查本地后端服务是否已启动。",
+      "checking": "正在确认管理员身份...",
+      "no_permission_title": "无管理员权限",
+      "no_permission_desc": "当前账号{{username}}不是管理员账号，请退出后使用管理员账号登录。",
+      "logout_current": "退出当前账号",
+      "title": "管理员登录",
+      "subtitle": "登录后继续管理内容、审核、社区和系统配置。",
+      "username": "账号",
+      "password": "密码",
+      "password_placeholder": "默认密码 123456",
+      "enter_dashboard": "进入管理员后台"
     },
     "logout": "退出管理",
     "toast": {

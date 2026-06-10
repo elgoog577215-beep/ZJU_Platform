@@ -121,7 +121,7 @@ const AdminDashboard = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [navQuery, setNavQuery] = useState("");
-  const [recentTabIds, setRecentTabIds] = useState(readRecentTabs);
+  const [, setRecentTabIds] = useState(readRecentTabs);
   const contentTopRef = useRef(null);
   const isDayMode = uiMode === "day";
 
@@ -319,10 +319,6 @@ const AdminDashboard = () => {
   const flatMenuItems = useMemo(
     () => menuGroups.flatMap((group) => group.items),
     [menuGroups],
-  );
-  const moduleById = useMemo(
-    () => new Map(flatMenuItems.map((item) => [item.id, item])),
-    [flatMenuItems],
   );
   const normalizedNavQuery = navQuery.trim().toLowerCase();
   const filteredMenuGroups = useMemo(() => {

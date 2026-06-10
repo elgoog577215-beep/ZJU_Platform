@@ -439,7 +439,7 @@ const MediaLibrary = () => {
       return;
     }
     setIsMobileUploadOpen(true);
-  }, [user]);
+  }, [t, user]);
 
   const ignoreMobileFilter = useCallback((next) => {
     if (typeof next === "function") next(false);
