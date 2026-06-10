@@ -4,7 +4,13 @@ import { FileText, Film, Image as ImageIcon, Calendar, Music, AlertCircle } from
 import { getOriginalUploadUrl, normalizeExternalImageUrl } from '../utils/imageUtils';
 import { useSettings } from '../context/SettingsContext';
 
-const getGradient = (text, isDayMode) => {
+const getGradient = (text, isDayMode, placeholderTone = 'default') => {
+  if (placeholderTone === 'neutral') {
+    return isDayMode
+      ? 'from-slate-100 via-slate-50 to-stone-100'
+      : 'from-slate-800 via-slate-900 to-slate-950';
+  }
+
   if (isDayMode) return 'from-slate-100 via-slate-50 to-stone-100';
   if (!text) return 'from-gray-700 to-gray-900';
   
@@ -44,6 +50,7 @@ const SmartImage = ({
   type = 'generic',
   priority = false,
   blurPlaceholder,
+  placeholderTone = 'default',
   onLoad,
   onError,
   objectFit = 'cover',
@@ -148,7 +155,7 @@ const SmartImage = ({
   };
 
   const Icon = icons[type] || icons.generic;
-  const gradient = getGradient(alt || type, isDayMode);
+  const gradient = getGradient(alt || type, isDayMode, placeholderTone);
 
   // Fallback state (error or missing src)
   if (!imageSrc || error) {

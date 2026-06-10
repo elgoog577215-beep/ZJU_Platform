@@ -13,7 +13,7 @@ const MobileEventAssistantLauncher = ({ isDayMode, onOpen }) => {
       onClick={onOpen}
       className={`group mb-4 flex w-full items-center justify-between rounded-lg border px-4 py-3.5 text-left transition-all active:scale-[0.99] md:hidden ${
         isDayMode
-          ? "border-violet-100/80 bg-white text-slate-900 shadow-[0_10px_24px_rgba(168,85,247,0.06)]"
+          ? "border-slate-200/80 bg-white/86 text-slate-700 shadow-[0_10px_24px_rgba(15,23,42,0.045)] backdrop-blur-xl"
           : "border-white/10 bg-white/[0.06] text-white shadow-none"
       }`}
     >
@@ -21,14 +21,14 @@ const MobileEventAssistantLauncher = ({ isDayMode, onOpen }) => {
         <span
           className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md transition-transform group-active:scale-95 ${
             isDayMode
-              ? "bg-pink-50 text-violet-700 ring-1 ring-pink-100"
+              ? "bg-indigo-50/70 text-indigo-600 ring-1 ring-indigo-100/80"
               : "bg-white/10 text-blue-200"
           }`}
         >
           <Sparkles size={20} />
         </span>
         <span className="min-w-0">
-          <span className="block text-[15px] font-black tracking-tight">
+          <span className="block text-[15px] font-semibold tracking-tight">
             {t("events.assistant.mobile_title", "AI 活动助手")}
           </span>
           <span className={`mt-1 block text-xs ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
@@ -74,7 +74,7 @@ const MobileEventAssistantFullscreen = ({
         >
           <div
             className={`shrink-0 border-b px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.9rem)] ${
-              isDayMode ? "border-violet-100 bg-white/94 backdrop-blur-xl" : "border-white/10 bg-[#111318]/92 backdrop-blur-xl"
+            isDayMode ? "border-slate-200/80 bg-white/94 backdrop-blur-xl" : "border-white/10 bg-[#111318]/92 backdrop-blur-xl"
             }`}
           >
             <div className="flex items-center gap-3">
@@ -84,20 +84,20 @@ const MobileEventAssistantFullscreen = ({
                 onClick={onClose}
                 className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md border transition-colors ${
                   isDayMode
-                    ? "border-slate-200 bg-white text-slate-600 hover:text-slate-900"
+                    ? "border-slate-200 bg-white text-slate-500 hover:text-slate-700"
                     : "border-white/10 bg-white/5 text-gray-300 hover:text-white"
                 }`}
               >
                 <ArrowLeft size={20} />
               </button>
               <div className="min-w-0 flex-1 text-left">
-                <h2 id="mobile-event-assistant-title" className="truncate text-lg font-black tracking-tight">
+                <h2 id="mobile-event-assistant-title" className="truncate text-lg font-semibold tracking-tight text-slate-700">
                   {t("events.assistant.mobile_title", "AI 活动助手")}
                 </h2>
               </div>
               <span
                 className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md ${
-                  isDayMode ? "bg-pink-50 text-violet-700 ring-1 ring-pink-100" : "bg-white/10 text-blue-200"
+                  isDayMode ? "bg-indigo-50/70 text-indigo-600 ring-1 ring-indigo-100/80" : "bg-white/10 text-blue-200"
                 }`}
               >
                 <Sparkles size={18} />
