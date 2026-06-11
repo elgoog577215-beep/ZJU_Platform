@@ -67,7 +67,6 @@ const Navbar = () => {
   const isDesktopViewport = useMediaQuery("(min-width: 768px)", true);
   const [time, setTime] = useState(new Date());
   const prefersReducedMotion = useReducedMotion();
-  const isEventsRoute = location.pathname.startsWith("/events");
   const isDayMode = uiMode === "day";
   const weatherWidgetEnabled = showWeatherWidget && isDesktopViewport;
 
@@ -479,13 +478,7 @@ const Navbar = () => {
               type="button"
               aria-label={t("common.upload", "上传")}
               onClick={handleUploadClick}
-              className={`motion-press p-1.5 min-h-[44px] min-w-[44px] inline-flex items-center justify-center ml-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300/80 ${
-                isEventsRoute
-                  ? isDayMode
-                    ? "rounded-lg border border-slate-200/90 bg-white/86 text-slate-700 shadow-[0_10px_22px_rgba(15,23,42,0.06)] backdrop-blur-xl hover:bg-slate-50"
-                    : "rounded-lg border border-white/10 bg-white/[0.075] text-slate-100 shadow-[0_14px_30px_rgba(0,0,0,0.2)] backdrop-blur-xl hover:bg-white/[0.11]"
-                  : "rect-button-primary text-white"
-              }`}
+              className="motion-press rect-button-primary p-1.5 min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-white ml-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300/80"
             >
               <Plus size={16} strokeWidth={3} />
             </button>

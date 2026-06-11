@@ -1,38 +1,25 @@
 import { useTranslation } from "react-i18next";
-import { useLocation } from "react-router-dom";
 import { useSettings } from "../context/SettingsContext";
 
 const Footer = () => {
   const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
   const { uiMode } = useSettings();
-  const location = useLocation();
-  const isEventsRoute = location.pathname.startsWith("/events");
   const isDayMode = uiMode === "day";
-  const footerShellClass = isEventsRoute
-    ? isDayMode
-      ? "border-slate-200/80 bg-[#fbfcff] text-slate-900"
-      : "border-white/10 bg-[#020617] text-slate-100"
-    : isDayMode
-      ? "border-slate-200/60 bg-white/42 text-slate-900"
-      : "border-white/5 bg-black/40 text-white";
-  const footerPanelClass = isEventsRoute
-    ? isDayMode
-      ? "border-slate-200/80 bg-white shadow-[0_10px_26px_rgba(15,23,42,0.045)]"
-      : "border-white/10 bg-white/[0.045] shadow-[0_18px_42px_rgba(0,0,0,0.24)]"
-    : isDayMode
-      ? "day-fine-surface border"
-      : "border-white/6 bg-white/[0.03]";
 
   return (
     <footer
       className={`relative z-10 border-t px-4 pt-9 pb-[calc(1.5rem+4.5rem+env(safe-area-inset-bottom))] backdrop-blur-xl sm:px-6 md:pb-12 ${
-        footerShellClass
+        isDayMode
+          ? "border-slate-200/60 bg-white/42 text-slate-900"
+          : "border-white/5 bg-black/40 text-white"
       }`}
     >
       <div
         className={`mx-auto flex max-w-7xl flex-col items-center justify-between gap-5 rounded-lg border px-5 py-5 text-center md:flex-row md:px-6 md:text-left ${
-          footerPanelClass
+          isDayMode
+            ? "day-fine-surface border"
+            : "border-white/6 bg-white/[0.03]"
         }`}
       >
         <div className="flex flex-col items-center gap-2.5 md:items-start">

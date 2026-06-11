@@ -499,26 +499,6 @@ img {
     isolation: isolate;
   }
 
-  .day-page-theme-events {
-    background:
-      linear-gradient(115deg, rgba(248, 250, 252, 0.98) 0%, rgba(241, 245, 249, 0.84) 34%, rgba(239, 246, 255, 0.42) 60%, rgba(250, 250, 249, 0.58) 78%, rgba(248, 250, 252, 0.98) 100%),
-      linear-gradient(180deg, #f8fafc 0%, #ffffff 48%, #f7f8fb 100%);
-  }
-
-  .day-page-theme-events::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background:
-      linear-gradient(90deg, rgba(99, 102, 241, 0.028) 1px, transparent 1px),
-      linear-gradient(180deg, rgba(14, 165, 233, 0.024) 1px, transparent 1px),
-      linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.28) 46%, transparent 72%);
-    background-size: 56px 56px, 56px 56px, auto;
-    opacity: 0.46;
-  }
-
   :root[data-theme='day'] .day-page-theme::before {
     content: '';
     position: fixed;
@@ -531,11 +511,11 @@ img {
 
   :root[data-theme='day'] .day-page-theme-events::before {
     background:
-      linear-gradient(115deg, rgba(248, 250, 252, 0.96) 0%, rgba(241, 245, 249, 0.78) 34%, rgba(239, 246, 255, 0.36) 66%, rgba(248, 250, 252, 0.96) 100%),
-      linear-gradient(90deg, rgba(99, 102, 241, 0.028) 1px, transparent 1px),
-      linear-gradient(180deg, rgba(14, 165, 233, 0.024) 1px, transparent 1px),
-      linear-gradient(180deg, #f8fafc 0%, #ffffff 42%, #f6f8fb 100%);
-    background-size: auto, 56px 56px, 56px 56px, auto;
+      radial-gradient(circle at 15% 8%, rgba(236, 72, 153, 0.14), transparent 24rem),
+      radial-gradient(circle at 84% 6%, rgba(168, 85, 247, 0.13), transparent 26rem),
+      radial-gradient(circle at 55% 30%, rgba(244, 114, 182, 0.055), transparent 22rem),
+      linear-gradient(180deg, #ffffff 0%, #fffafd 48%, #ffffff 100%);
+    background-size: auto, auto, auto, auto;
   }
 
   :root[data-theme='day'] .day-page-theme-tech::before {
@@ -550,61 +530,23 @@ img {
   :root[data-theme='day'] .day-page-theme-events .day-card-lift,
   :root[data-theme='day'] .day-page-theme-events .rect-media-card {
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(248, 250, 252, 0.7)),
-      linear-gradient(135deg, rgba(99, 102, 241, 0.045), transparent 44%),
-      linear-gradient(315deg, rgba(14, 165, 233, 0.04), transparent 42%);
-    border-color: rgba(100, 116, 139, 0.14);
+      linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 250, 253, 0.92)),
+      radial-gradient(circle at 18% 0%, rgba(244, 114, 182, 0.11), transparent 34%),
+      radial-gradient(circle at 88% 0%, rgba(168, 85, 247, 0.1), transparent 34%);
+    border-color: rgba(168, 85, 247, 0.13);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.98),
-      0 18px 45px rgba(15, 23, 42, 0.065),
-      0 2px 8px rgba(15, 23, 42, 0.035);
+      0 16px 38px rgba(168, 85, 247, 0.075),
+      0 2px 8px rgba(67, 56, 80, 0.03);
   }
 
   :root[data-theme='day'] .day-page-theme-events .rect-media-card:hover,
   :root[data-theme='day'] .day-page-theme-events .day-card-lift:hover {
-    border-color: rgba(99, 102, 241, 0.18);
+    border-color: rgba(236, 72, 153, 0.28);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.98),
-      0 22px 54px rgba(15, 23, 42, 0.09),
-      0 3px 10px rgba(15, 23, 42, 0.045);
-  }
-
-  :root[data-theme='dark'] .day-page-theme-events {
-    background:
-      linear-gradient(115deg, rgba(15, 23, 42, 0.98) 0%, rgba(2, 6, 23, 0.96) 42%, rgba(8, 13, 24, 0.98) 72%, rgba(15, 23, 42, 0.98) 100%),
-      linear-gradient(180deg, #020617 0%, #090d18 48%, #020617 100%);
-  }
-
-  :root[data-theme='dark'] .day-page-theme-events::after {
-    background:
-      linear-gradient(90deg, rgba(148, 163, 184, 0.052) 1px, transparent 1px),
-      linear-gradient(180deg, rgba(148, 163, 184, 0.044) 1px, transparent 1px),
-      linear-gradient(135deg, transparent 0%, rgba(15, 23, 42, 0.18) 44%, transparent 74%);
-    background-size: 56px 56px, 56px 56px, auto;
-    opacity: 0.38;
-  }
-
-  :root[data-theme='dark'] .day-page-theme-events .day-fine-surface,
-  :root[data-theme='dark'] .day-page-theme-events .day-card-lift,
-  :root[data-theme='dark'] .day-page-theme-events .rect-media-card {
-    background:
-      linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(8, 13, 24, 0.82)),
-      linear-gradient(135deg, rgba(148, 163, 184, 0.06), transparent 44%),
-      linear-gradient(315deg, rgba(51, 65, 85, 0.08), transparent 42%);
-    border-color: rgba(148, 163, 184, 0.16);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.055),
-      0 18px 45px rgba(0, 0, 0, 0.22),
-      0 2px 8px rgba(0, 0, 0, 0.18);
-  }
-
-  :root[data-theme='dark'] .day-page-theme-events .rect-media-card:hover,
-  :root[data-theme='dark'] .day-page-theme-events .day-card-lift:hover {
-    border-color: rgba(203, 213, 225, 0.22);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.065),
-      0 22px 54px rgba(0, 0, 0, 0.3),
-      0 3px 10px rgba(0, 0, 0, 0.2);
+      0 20px 48px rgba(236, 72, 153, 0.11),
+      0 3px 10px rgba(67, 56, 80, 0.04);
   }
 
   :root[data-theme='day'] .day-page-theme-tech .day-fine-surface,
