@@ -582,7 +582,7 @@ const EventListRow = memo(
         </div>
 
         <div
-          className={`col-span-2 flex items-center justify-between gap-3 border-t px-4 py-3 lg:col-span-1 lg:flex-col lg:items-end lg:justify-center lg:border-l lg:border-t-0 lg:px-4 ${
+          className={`col-span-2 flex items-center justify-between gap-3 border-t px-4 py-3 lg:col-span-1 lg:flex-col lg:items-end lg:justify-center lg:border-t-0 lg:px-4 ${
             isDayMode ? "border-slate-200/80 bg-slate-50/60" : "border-white/8 bg-white/[0.025]"
           }`}
         >
