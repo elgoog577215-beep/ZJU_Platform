@@ -367,10 +367,10 @@ const EventCard = memo(
           <div
             className={`mt-auto flex min-h-[2.85rem] items-center justify-between border-t pt-2 ${isDayMode ? "border-slate-200/80" : "border-white/5"}`}
           >
-            <div className="grid min-w-0 flex-1 grid-cols-2 gap-1.5 overflow-hidden pr-2">
+            <div className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden pr-1">
               {event.category && (
                 <span
-                  className={`rect-chip flex min-w-0 items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium md:px-2 md:py-1 md:text-[11px] ${isDayMode ? "bg-violet-50 text-violet-700 border-violet-100/80" : "bg-indigo-500/10 text-indigo-300 border-indigo-500/20"}`}
+                  className={`rect-chip inline-flex min-w-0 max-w-[4.75rem] shrink items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium md:px-1.5 md:py-1 md:text-[11px] ${isDayMode ? "bg-violet-50 text-violet-700 border-violet-100/80" : "bg-indigo-500/10 text-indigo-300 border-indigo-500/20"}`}
                 >
                   <Tag size={10} className="md:w-3 md:h-3" />
                   <span className="truncate">
@@ -380,7 +380,7 @@ const EventCard = memo(
               )}
               {event.target_audience && (
                 <span
-                  className={`rect-chip flex min-w-0 items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium md:px-2 md:py-1 md:text-[11px] ${isDayMode ? "bg-pink-50 text-slate-600 border-pink-100/80" : "bg-white/5 text-gray-300 border-white/10"}`}
+                  className={`rect-chip inline-flex min-w-[3rem] max-w-full flex-1 items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium md:px-1.5 md:py-1 md:text-[11px] ${isDayMode ? "bg-pink-50 text-slate-600 border-pink-100/80" : "bg-white/5 text-gray-300 border-white/10"}`}
                 >
                   <Users size={10} className="md:w-3 md:h-3" />
                   <span className="truncate">{event.target_audience}</span>
