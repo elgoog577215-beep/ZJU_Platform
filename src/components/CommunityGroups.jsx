@@ -1,5 +1,5 @@
 import { memo, useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { QrCode, ExternalLink, Loader2, Plus, Trash2, CheckCircle2, XCircle, Clock3 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -35,16 +35,16 @@ const GroupCard = memo(({ group, index, isDayMode, isAdmin, compact, onQuickActi
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.08 }}
-      className={`backdrop-blur-xl border rounded-lg p-3 md:p-5 transition-all duration-300 hover:-translate-y-0.5 cursor-pointer ${isDayMode ? 'bg-white/82 border-slate-200/80 shadow-[0_12px_30px_rgba(15,23,42,0.07)] hover:shadow-[0_18px_36px_rgba(15,23,42,0.1)]' : 'bg-white/[0.045] border-white/10 hover:border-white/20 hover:bg-white/[0.07]'}`}
+      className={`backdrop-blur-xl border rounded-lg transition-all duration-300 hover:-translate-y-0.5 cursor-pointer ${compact ? 'p-2.5' : 'p-3 md:p-5'} ${isDayMode ? 'bg-white/82 border-slate-200/80 shadow-[0_12px_30px_rgba(15,23,42,0.07)] hover:shadow-[0_18px_36px_rgba(15,23,42,0.1)]' : 'bg-white/[0.045] border-white/10 hover:border-white/20 hover:bg-white/[0.07]'}`}
       onClick={() => onOpen?.(group)}
     >
       {/* QR Code area */}
-      <div className={`w-full aspect-square rounded-md mb-3 md:mb-4 flex items-center justify-center border border-dashed overflow-hidden ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/5 border-white/10'}`}>
+      <div className={`rounded-md flex items-center justify-center border border-dashed overflow-hidden ${compact ? 'mb-2 h-24' : 'mb-3 aspect-square md:mb-4'} ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/5 border-white/10'}`}>
         {group.qr_code_url ? (
           <img src={group.qr_code_url} alt={group.name} className="w-full h-full object-contain rounded-md" />
         ) : (
           <div className="text-center">
-            <QrCode size={36} className={`mx-auto mb-2 md:mb-3 ${isDayMode ? 'text-slate-300' : 'text-gray-600'}`} />
+            <QrCode size={compact ? 24 : 36} className={`mx-auto mb-2 md:mb-3 ${isDayMode ? 'text-slate-300' : 'text-gray-600'}`} />
             <p className={`text-[11px] md:text-xs ${isDayMode ? 'text-slate-400' : 'text-gray-500'}`}>
               {t('community.groups.qr_placeholder', '二维码待上传')}
             </p>
@@ -52,12 +52,12 @@ const GroupCard = memo(({ group, index, isDayMode, isAdmin, compact, onQuickActi
         )}
       </div>
       <div className="flex flex-wrap items-center gap-1.5 md:gap-2 mb-1.5 md:mb-2">
-        <h3 className={`text-base md:text-lg font-bold line-clamp-2 ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{group.name}</h3>
+        <h3 className={`${compact ? 'text-sm' : 'text-base md:text-lg'} font-bold line-clamp-2 ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{group.name}</h3>
         <span className={`text-[9px] md:text-[10px] px-1.5 md:px-2 py-0.5 rounded-md border shrink-0 ${isDayMode ? 'bg-slate-100 text-slate-500 border-slate-200' : 'bg-white/5 text-gray-400 border-white/10'}`}>
           {platformLabel}
         </span>
       </div>
-      <p className={`text-xs md:text-sm leading-relaxed line-clamp-2 mb-2.5 md:mb-4 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{group.description}</p>
+      <p className={`${compact ? 'mb-2 text-[11px] leading-5' : 'mb-2.5 text-xs leading-relaxed md:mb-4 md:text-sm'} line-clamp-2 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{group.description}</p>
       {!compact && group.valid_until && (
         <p className={`text-[10px] md:text-[11px] mb-2 md:mb-3 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
           {t('community.groups.valid_until', '有效期至 {{date}}', { date: String(group.valid_until).slice(0, 10) })}
@@ -141,7 +141,7 @@ const GroupCard = memo(({ group, index, isDayMode, isAdmin, compact, onQuickActi
 });
 GroupCard.displayName = 'GroupCard';
 
-const CommunityGroups = ({ compact = false }) => {
+const CommunityGroups = ({ compact = false, compactLimit = 3 }) => {
   const { t } = useTranslation();
   const { uiMode } = useSettings();
   const { user } = useAuth();
@@ -226,6 +226,7 @@ const CommunityGroups = ({ compact = false }) => {
     const matchSearch = !keyword || `${g.name} ${g.description || ''}`.toLowerCase().includes(keyword);
     return matchPlatform && matchSearch;
   }), [groups, platform, search]);
+  const visibleGroups = compact ? filteredGroups.slice(0, compactLimit) : filteredGroups;
 
   const resetForm = () => {
     setEditingId(null);
@@ -476,8 +477,8 @@ const CommunityGroups = ({ compact = false }) => {
             </p>
           </div>
         ) : (
-          <div className={`grid gap-3 ${compact ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-3 md:gap-6"}`}>
-            {filteredGroups.map((group, index) => (
+          <div className={`grid gap-2.5 ${compact ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-3 md:gap-6"}`}>
+            {visibleGroups.map((group, index) => (
               <GroupCard
                 key={group.id}
                 group={group}
@@ -493,6 +494,14 @@ const CommunityGroups = ({ compact = false }) => {
             ))}
           </div>
         )}
+        {compact && filteredGroups.length > compactLimit ? (
+          <Link
+            to="/articles#community-groups"
+            className={`mt-3 inline-flex min-h-[34px] w-full items-center justify-center rounded-md border px-3 text-xs font-semibold transition-colors ${isDayMode ? 'border-violet-100 bg-violet-50 text-violet-700 hover:bg-violet-100' : 'border-blue-300/20 bg-blue-400/10 text-blue-200 hover:bg-blue-400/15'}`}
+          >
+            {t('community.groups.view_all', '查看更多社群')}
+          </Link>
+        ) : null}
       </motion.div>
       <CommunityDetailModal
         item={selectedGroup}

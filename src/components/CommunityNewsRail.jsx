@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Newspaper, Flame, Clock3, Pin, ExternalLink, PlusCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
@@ -26,7 +26,7 @@ const ADMIN_STATUS_FILTERS = [
 
 const DEFAULT_COMMUNITY_TAB = 'tech';
 
-const CommunityNewsRail = () => {
+const CommunityNewsRail = ({ railCompact = false }) => {
   const { t } = useTranslation();
   const { uiMode } = useSettings();
   const { user } = useAuth();
@@ -53,6 +53,7 @@ const CommunityNewsRail = () => {
     status: null,
     reason: null,
   });
+  const newsStatus = railCompact ? 'approved' : (isAdmin ? adminStatusFilter : 'approved');
 
   const {
     data: newsItems,
@@ -61,13 +62,13 @@ const CommunityNewsRail = () => {
     refresh,
   } = useCachedResource(
     '/news',
-    { page: 1, limit: 12, sort: activeSort, status: isAdmin ? adminStatusFilter : 'approved' },
-    { dependencies: [activeSort, isAdmin, adminStatusFilter], keyPrefix: 'cache:v2:' }
+    { page: 1, limit: 12, sort: activeSort, status: newsStatus },
+    { dependencies: [activeSort, newsStatus], keyPrefix: 'cache:v2:' }
   );
 
   const list = Array.isArray(newsItems) ? newsItems : [];
   const contentBlocks = useMemo(() => parseContentBlocks(selectedNews?.content_blocks), [selectedNews?.content_blocks]);
-  const currentTab = searchParams.get('tab') || DEFAULT_COMMUNITY_TAB;
+  const currentTab = searchParams.get('postTab') || searchParams.get('tab') || DEFAULT_COMMUNITY_TAB;
   const hasActiveAdminFilter = isAdmin && adminStatusFilter !== 'all';
   const isLatestSort = activeSort === 'latest';
 
@@ -87,8 +88,8 @@ const CommunityNewsRail = () => {
         params.set(key, String(value));
       }
     });
-    if (!params.get('tab')) {
-      params.set('tab', currentTab);
+    if (!params.get('postTab') && !params.get('tab')) {
+      params.set('postTab', currentTab);
     }
     setSearchParams(params, { replace: false });
   }, [currentTab, searchParams, setSearchParams]);
@@ -153,7 +154,7 @@ const CommunityNewsRail = () => {
 
   const handleOpen = useCallback((item) => {
     setSelectedNews(item);
-    updateParams({ tab: currentTab, news: item.id });
+    updateParams({ postTab: currentTab, news: item.id });
   }, [currentTab, updateParams]);
 
   const handleClose = useCallback(() => {
@@ -163,7 +164,7 @@ const CommunityNewsRail = () => {
       return;
     }
     setSelectedNews(null);
-    updateParams({ tab: currentTab });
+    updateParams({ postTab: currentTab });
   }, [currentTab, updateParams, navigate]);
 
   const handleRelatedSelect = useCallback((resource) => {
@@ -355,6 +356,136 @@ const CommunityNewsRail = () => {
       </div>
     );
   })() : null;
+
+  if (railCompact) {
+    const compactList = list.slice(0, 5);
+
+    return (
+      <>
+        <div className={`rounded-lg border p-3 ${isDayMode ? 'bg-white border-slate-200/80 shadow-[0_8px_22px_rgba(15,23,42,0.045)]' : 'backdrop-blur-xl bg-white/[0.045] border-white/10'}`}>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <h3 className={`truncate text-sm font-black ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
+                {t('community.news_board', '新闻热榜')}
+              </h3>
+              <p className={`mt-0.5 truncate text-[11px] ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+                {isLatestSort ? t('community.news_latest', '最新') : t('community.news_hot', '热榜')}
+              </p>
+            </div>
+            <Link
+              to="/articles?postTab=news"
+              className={`shrink-0 rounded-md border px-2.5 py-1.5 text-[11px] font-semibold transition-colors ${isDayMode ? 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-white' : 'border-white/10 bg-white/5 text-gray-200 hover:bg-white/10'}`}
+            >
+              {t('community.news_view_all', '查看更多')}
+            </Link>
+          </div>
+
+          <div className="mb-3 grid grid-cols-2 gap-2">
+            {TAB_CONFIG.map(({ key, icon: Icon, labelKey, fallback }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setActiveSort(key)}
+                className={`inline-flex min-h-[34px] items-center justify-center gap-1.5 rounded-md border px-2 text-xs font-semibold transition-all ${
+                  activeSort === key
+                    ? (isDayMode ? 'bg-slate-950 text-white border-slate-950 shadow-[0_6px_16px_rgba(15,23,42,0.14)]' : 'bg-blue-500 text-white border-blue-500')
+                    : (isDayMode ? 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-950' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10')
+                }`}
+              >
+                <Icon size={13} />
+                {t(labelKey, fallback)}
+              </button>
+            ))}
+          </div>
+
+          <div className="max-h-[290px] space-y-2 overflow-y-auto pr-1 custom-scrollbar">
+            {loading ? (
+              [...Array(5)].map((_, i) => (
+                <div key={i} className={`rounded-lg border p-2.5 animate-pulse ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
+                  <div className={`mb-2 h-3 w-4/5 rounded ${isDayMode ? 'bg-slate-200' : 'bg-white/10'}`} />
+                  <div className={`h-2.5 w-1/2 rounded ${isDayMode ? 'bg-slate-200' : 'bg-white/10'}`} />
+                </div>
+              ))
+            ) : null}
+
+            {!loading && error ? (
+              <button
+                type="button"
+                onClick={() => refresh({ clearCache: true })}
+                className={`w-full rounded-lg border p-3 text-sm ${isDayMode ? 'bg-red-50 text-red-600 border-red-200' : 'bg-red-500/10 text-red-300 border-red-500/20'}`}
+              >
+                {t('common.retry', '重试')}
+              </button>
+            ) : null}
+
+            {!loading && !error && compactList.length === 0 ? (
+              <div className={`rounded-lg border p-4 text-center text-sm ${isDayMode ? 'bg-slate-50 text-slate-500 border-slate-200' : 'bg-white/[0.03] text-gray-400 border-white/10'}`}>
+                {t('community.news_empty', '暂无新闻')}
+              </div>
+            ) : null}
+
+            {!loading && !error && compactList.map((item, index) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => handleOpen(item)}
+                className={`w-full rounded-lg border p-2.5 text-left transition-all ${
+                  isDayMode ? 'bg-white border-slate-200/80 hover:border-slate-300 hover:bg-slate-50' : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.06] hover:border-blue-400/40'
+                }`}
+              >
+                <div className="flex items-start gap-2">
+                  <span className={`mt-0.5 text-[11px] font-black ${index < 3 ? (isDayMode ? 'text-blue-700' : 'text-orange-500') : (isDayMode ? 'text-slate-400' : 'text-gray-500')}`}>
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className={`line-clamp-2 text-xs font-semibold leading-5 ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
+                      {item.title}
+                    </div>
+                    <div className={`mt-1 flex min-w-0 items-center gap-2 text-[10px] ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+                      {item.is_pinned ? <span className="inline-flex shrink-0 items-center gap-1"><Pin size={10} />{t('common.pinned', '置顶')}</span> : null}
+                      <span className="truncate">{item.source_name || t('community.news_source_internal', '站内')}</span>
+                    </div>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <CommunityDetailModal
+          item={detailItem}
+          onClose={handleClose}
+          isDayMode={isDayMode}
+          gradientFrom={isDayMode ? "from-slate-100" : "from-sky-900/35"}
+          coverImage={selectedNews?.cover}
+          shareParam="news"
+          onRelatedSelect={handleRelatedSelect}
+          headerContent={selectedNews ? (
+            <>
+              <div className={`text-xs md:text-sm flex flex-wrap items-center gap-3 mb-4 ${isDayMode ? 'text-blue-700' : 'text-sky-200'}`}>
+                <span>{selectedNews.source_name || t('community.news_source_internal', '站内')}</span>
+                <span>•</span>
+                <span>{selectedNews.created_at ? new Date(selectedNews.created_at).toLocaleDateString('zh-CN') : ''}</span>
+                <span>•</span>
+                <span>{calculateReadingTime(selectedNews.content, t)}</span>
+              </div>
+              <h2 className={`text-3xl md:text-5xl font-black leading-tight ${isDayMode ? 'text-slate-900' : 'text-white drop-shadow-2xl'}`}>
+                {selectedNews.title}
+              </h2>
+            </>
+          ) : null}
+          contentBlocks={contentBlocks}
+          htmlContent={selectedNews?.content}
+          afterContent={(
+            <>
+              {renderSourceActions}
+              {renderDestinationActions}
+            </>
+          )}
+        />
+      </>
+    );
+  }
 
   return (
     <div className={`rounded-lg border p-4 md:p-5 ${isDayMode ? 'bg-white border-slate-200/80 shadow-[0_8px_22px_rgba(15,23,42,0.045)]' : 'backdrop-blur-xl bg-white/[0.045] border-white/10'}`}>

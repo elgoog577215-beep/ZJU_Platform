@@ -1,10 +1,11 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { QrCode } from "lucide-react";
+import { Newspaper, QrCode } from "lucide-react";
 import { useSettings } from "../context/SettingsContext";
 import SEO from "./SEO";
 import CommunityGroups from "./CommunityGroups";
+import CommunityNewsRail from "./CommunityNewsRail";
 import CommunityPosts from "./CommunityPosts";
 import Music from "./Music";
 
@@ -32,12 +33,18 @@ const SidebarCard = ({ icon: Icon, code, title, isDayMode, children }) => (
   </div>
 );
 
+const DESKTOP_RAIL_QUERY = "(min-width: 1280px)";
+
 const AICommunity = () => {
   const { t } = useTranslation();
   const { uiMode } = useSettings();
   const isDayMode = uiMode === "day";
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [isDesktopRail, setIsDesktopRail] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia(DESKTOP_RAIL_QUERY).matches;
+  });
 
   const subtitle = useMemo(
     () => t("community.seo_description", "浙江大学 AI 社区：求助、技术分享、新闻与协作。"),
@@ -59,14 +66,22 @@ const AICommunity = () => {
   }, [searchParams, setSearchParams]);
 
   useEffect(() => {
-    if (location.hash !== "#community-podcast") return;
+    if (location.hash !== "#community-podcast" && location.hash !== "#community-groups") return;
     window.requestAnimationFrame(() => {
-      document.getElementById("community-podcast")?.scrollIntoView({
+      document.getElementById(location.hash.slice(1))?.scrollIntoView({
         block: "start",
         behavior: "smooth",
       });
     });
   }, [location.hash]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(DESKTOP_RAIL_QUERY);
+    const handleChange = () => setIsDesktopRail(mediaQuery.matches);
+    handleChange();
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
 
   return (
     <section
@@ -93,7 +108,7 @@ const AICommunity = () => {
           </div>
         </header>
 
-        <div className="grid grid-cols-1 gap-5 md:gap-6 xl:grid-cols-[minmax(220px,1fr)_minmax(0,2.5fr)_minmax(220px,1fr)] xl:items-start">
+        <div className="grid grid-cols-1 gap-5 md:gap-6 xl:grid-cols-[18rem_minmax(0,1fr)_22rem] 2xl:grid-cols-[19rem_minmax(0,1fr)_24rem] xl:items-start">
 
           <aside id="community-podcast" className="order-2 xl:sticky xl:top-24 xl:order-1">
             <SectionLabel
@@ -102,7 +117,11 @@ const AICommunity = () => {
               isDayMode={isDayMode}
               compactOnMobile
             />
-            <Music embedded singleColumn />
+            {isDesktopRail ? (
+              <Music embedded singleColumn sidebarCompact />
+            ) : (
+              <Music embedded singleColumn />
+            )}
           </aside>
 
           <main id="community-posts" className="order-1 min-w-0 xl:order-2">
@@ -115,15 +134,28 @@ const AICommunity = () => {
             <CommunityPosts />
           </main>
 
-          <aside className="order-3 space-y-6 md:space-y-8 xl:sticky xl:top-24">
-            <SidebarCard
-              icon={QrCode}
-              code={t("community.sidebar_groups_code", "LINK · 加入社群")}
-              title={t("community.sidebar_groups_title", "二维码社群")}
-              isDayMode={isDayMode}
-            >
-              <CommunityGroups compact />
-            </SidebarCard>
+          <aside className="order-3 space-y-5 md:space-y-6 xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto xl:pr-1 custom-scrollbar">
+            {isDesktopRail ? (
+              <SidebarCard
+                icon={Newspaper}
+                code={t("community.sidebar_hot_code", "TREND · 热榜")}
+                title={t("community.sidebar_hot_title", "AI 热榜")}
+                isDayMode={isDayMode}
+              >
+                <CommunityNewsRail railCompact />
+              </SidebarCard>
+            ) : null}
+
+            <div id="community-groups">
+              <SidebarCard
+                icon={QrCode}
+                code={t("community.sidebar_groups_code", "LINK · 加入社群")}
+                title={t("community.sidebar_groups_title", "二维码社群")}
+                isDayMode={isDayMode}
+              >
+                <CommunityGroups compact compactLimit={2} />
+              </SidebarCard>
+            </div>
           </aside>
 
         </div>

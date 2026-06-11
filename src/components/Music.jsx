@@ -1,5 +1,6 @@
 import { createPortal } from "react-dom";
 import React, { useState, useEffect, useCallback, memo } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { useContentPageEvents, useMobileSortLabel, useMobileToolbarSync } from "../hooks/useContentPage";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -23,7 +24,6 @@ import { useAuth } from "../context/AuthContext";
 import { useMusic } from "../context/MusicContext";
 import api from "../services/api";
 import SortSelector from "./SortSelector";
-import { useSearchParams } from "react-router-dom";
 import SmartImage from "./SmartImage";
 import MobileContentToolbar from "./MobileContentToolbar";
 import toast from "react-hot-toast";
@@ -155,7 +155,7 @@ const TrackItem = memo(
 );
 TrackItem.displayName = "TrackItem";
 
-const Music = ({ embedded = false, singleColumn = false }) => {
+const Music = ({ embedded = false, singleColumn = false, sidebarCompact = false }) => {
   const { t } = useTranslation();
   const { settings, uiMode } = useSettings();
   const { user } = useAuth();
@@ -179,7 +179,7 @@ const Music = ({ embedded = false, singleColumn = false }) => {
   const [error, setError] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const isPaginationEnabled = settings.pagination_enabled === "true";
-  const pageSize = isPaginationEnabled ? 12 : 20;
+  const pageSize = sidebarCompact ? 3 : (isPaginationEnabled ? 12 : 20);
   const hasMore = !isPaginationEnabled && currentPage < totalPages;
   const playButtonClass = isDayMode
     ? "bg-violet-700 text-white shadow-[0_12px_26px_rgba(124,58,237,0.16)] hover:bg-violet-800 hover:shadow-[0_14px_30px_rgba(124,58,237,0.2)]"
@@ -580,6 +580,108 @@ const Music = ({ embedded = false, singleColumn = false }) => {
 
       {/* Mobile Mini Player - Removed (Moved to GlobalPlayer) */}
 
+      {sidebarCompact ? (
+        <div className={`rounded-lg border p-3 ${isDayMode ? "border-slate-200/80 bg-white shadow-[0_8px_22px_rgba(15,23,42,0.045)]" : "border-white/10 bg-white/[0.045]"}`}>
+          <div className="flex items-start gap-3">
+            <div className={`h-16 w-16 shrink-0 overflow-hidden rounded-md border ${isDayMode ? "border-slate-200 bg-slate-50" : "border-white/10 bg-white/5"}`}>
+              <SmartImage
+                src={activeTrack.cover}
+                alt={activeTrack.title}
+                type="music"
+                className="h-full w-full"
+                imageClassName="h-full w-full object-cover"
+                iconSize={26}
+              />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className={`text-[11px] font-semibold uppercase tracking-[0.16em] ${isDayMode ? "text-violet-700" : "text-cyan-300"}`}>
+                {t("music.now_playing", "正在播放")}
+              </p>
+              <h3 className={`mt-1 truncate text-sm font-black ${isDayMode ? "text-slate-900" : "text-white"}`}>
+                {activeTrack.title}
+              </h3>
+              <p className={`mt-0.5 truncate text-xs ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+                {activeTrack.artist}
+              </p>
+              <div className="mt-2 flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={handlePrev}
+                  aria-label={t("common.previous_track", "上一首")}
+                  className={`inline-flex h-8 w-8 items-center justify-center rounded-md border transition-colors ${isDayMode ? "border-slate-200 bg-white text-slate-500 hover:text-slate-900" : "border-white/10 bg-white/5 text-gray-300 hover:text-white"}`}
+                >
+                  <SkipBack size={14} />
+                </button>
+                <button
+                  type="button"
+                  onClick={togglePlay}
+                  aria-label={isPlaying ? t("common.pause", "暂停") : t("common.play", "播放")}
+                  className={`inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors ${playButtonClass}`}
+                >
+                  {isPlaying ? <Pause size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" className="ml-0.5" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  aria-label={t("common.next_track", "下一首")}
+                  className={`inline-flex h-8 w-8 items-center justify-center rounded-md border transition-colors ${isDayMode ? "border-slate-200 bg-white text-slate-500 hover:text-slate-900" : "border-white/10 bg-white/5 text-gray-300 hover:text-white"}`}
+                >
+                  <SkipForward size={14} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className={`my-3 h-px ${isDayMode ? "bg-slate-200/70" : "bg-white/10"}`} />
+
+          <div className="space-y-2">
+            {loading && tracks.length === 0 ? (
+              [...Array(3)].map((_, i) => (
+                <div key={i} className={`flex items-center gap-2 rounded-lg border p-2 animate-pulse ${isDayMode ? "border-slate-200 bg-slate-50" : "border-white/10 bg-white/[0.03]"}`}>
+                  <div className={`h-9 w-9 rounded-md ${isDayMode ? "bg-slate-200" : "bg-white/10"}`} />
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <div className={`h-3 w-4/5 rounded ${isDayMode ? "bg-slate-200" : "bg-white/10"}`} />
+                    <div className={`h-2.5 w-1/2 rounded ${isDayMode ? "bg-slate-200" : "bg-white/10"}`} />
+                  </div>
+                </div>
+              ))
+            ) : error ? (
+              <button
+                type="button"
+                onClick={refresh}
+                className={`w-full rounded-lg border p-3 text-sm ${isDayMode ? "border-rose-200 bg-rose-50 text-rose-700" : "border-rose-500/20 bg-rose-500/10 text-rose-300"}`}
+              >
+                {t("common.retry", "重试")}
+              </button>
+            ) : tracks.length === 0 ? (
+              <div className={`rounded-lg border p-3 text-center text-xs ${isDayMode ? "border-slate-200 bg-slate-50 text-slate-500" : "border-white/10 bg-white/[0.03] text-gray-400"}`}>
+                {t("music.no_tracks", "暂无音频")}
+              </div>
+            ) : (
+              tracks.slice(0, 3).map((track, index) => (
+                <TrackItem
+                  key={track.id}
+                  track={track}
+                  activeTrackId={activeTrack.id}
+                  isPlaying={isPlaying}
+                  onClick={handleTrackClick}
+                  onToggleFavorite={handleTrackToggleFavorite}
+                  canAnimate={!prefersReducedMotion && index < 3}
+                  isDayMode={isDayMode}
+                  compact
+                />
+              ))
+            )}
+          </div>
+
+          <Link
+            to="/articles#community-podcast"
+            className={`mt-3 inline-flex min-h-[34px] w-full items-center justify-center rounded-md border px-3 text-xs font-semibold transition-colors ${isDayMode ? "border-violet-100 bg-violet-50 text-violet-700 hover:bg-violet-100" : "border-cyan-300/20 bg-cyan-400/10 text-cyan-200 hover:bg-cyan-400/15"}`}
+          >
+            {t("community.view_more_podcast", "查看更多播客")}
+          </Link>
+        </div>
+      ) : (
       <div className={`w-full grid items-start relative ${singleColumn ? "grid-cols-1 gap-4" : embedded ? "lg:grid-cols-2 gap-4 md:gap-6" : "lg:grid-cols-2 max-w-6xl mx-auto gap-6 md:gap-16"}`}>
         {/* Player View - Hidden on Mobile */}
         <motion.div
@@ -889,6 +991,7 @@ const Music = ({ embedded = false, singleColumn = false }) => {
           )}
         </div>
       </div>
+      )}
 
       <UploadModal
         isOpen={isUploadOpen}
