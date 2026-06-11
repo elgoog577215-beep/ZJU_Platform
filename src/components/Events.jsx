@@ -1246,9 +1246,9 @@ END:VCALENDAR`;
             setIsMobileAssistantOpen(true);
           }}
         />
-        <div className={`${EVENT_CONTENT_WIDTH_CLASS} hidden md:block mb-6`}>
+        <div className={`${EVENT_CONTENT_WIDTH_CLASS} hidden md:block mb-1`}>
           <h2
-            className={`text-3xl md:text-4xl lg:text-5xl font-bold font-serif mb-3 md:mb-5 ${isDayMode ? "text-slate-950" : "text-white"}`}
+            className={`text-3xl md:text-4xl lg:text-5xl font-bold font-serif mb-2 md:mb-3 ${isDayMode ? "text-slate-950" : "text-white"}`}
           >
             {t("events.title")}
           </h2>
@@ -1259,7 +1259,7 @@ END:VCALENDAR`;
           </p>
         </div>
 
-        <div className={`${EVENT_CONTENT_WIDTH_CLASS} hidden items-center justify-end gap-2 md:flex mb-4`}>
+        <div className={`${EVENT_CONTENT_WIDTH_CLASS} hidden -mt-7 items-center justify-end gap-2 md:flex mb-2`}>
           <button
             type="button"
             aria-label={t("common.create_event")}
@@ -1278,7 +1278,7 @@ END:VCALENDAR`;
         </div>
 
         {/* Desktop Filter Section */}
-        <div className={`${EVENT_FILTER_WIDTH_CLASS} hidden md:block mb-7`}>
+        <div className={`${EVENT_FILTER_WIDTH_CLASS} hidden md:block mb-5`}>
           <EventFilterPanel
             filters={filters}
             onFiltersChange={setFilters}
