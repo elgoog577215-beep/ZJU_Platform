@@ -60,9 +60,11 @@ import { useReducedMotion } from "../utils/animations";
 import { getOrCreateSiteVisitorKey } from "../utils/visitorKey";
 
 const EVENT_CARD_GRID_CLASS =
-  "grid grid-cols-1 items-start gap-4 md:[grid-template-columns:repeat(auto-fit,minmax(245px,1fr))] lg:gap-5 xl:[grid-template-columns:repeat(auto-fit,minmax(230px,1fr))] 2xl:[grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]";
+  "grid grid-cols-1 items-start gap-4 md:[grid-template-columns:repeat(auto-fit,minmax(300px,1fr))] lg:gap-5 xl:[grid-template-columns:repeat(4,minmax(0,1fr))]";
 const EVENT_CONTENT_WIDTH_CLASS =
-  "mx-auto w-full max-w-[108rem] 2xl:mr-[calc(400px+2rem)] 2xl:max-w-[calc(100vw-464px)]";
+  "mx-auto w-full max-w-[108rem] xl:ml-0 xl:mr-auto xl:max-w-[calc(100vw-364px)] 2xl:max-w-[calc(100vw-464px)]";
+const EVENT_FILTER_WIDTH_CLASS =
+  "mx-auto w-full max-w-5xl xl:ml-0 xl:mr-auto xl:max-w-[calc(100vw-364px)] 2xl:max-w-[calc(100vw-464px)]";
 
 const getEventLifecycle = (date, endDate, t) => {
   if (!date) return t("events.status.unknown");
@@ -259,11 +261,11 @@ const EventCard = memo(
     return (
       <motion.div
         {...motionProps}
-        className={`group rect-media-card relative overflow-hidden cursor-pointer flex h-[170px] flex-row md:h-[318px] md:flex-col 2xl:h-[330px] transform-gpu will-change-transform transition-[background-color,border-color,box-shadow] duration-200 ${isDayMode ? "border-violet-100/80 bg-white hover:border-pink-200/80 hover:shadow-[0_14px_32px_rgba(236,72,153,0.09)]" : "bg-[#050712]/94 border-white/15 hover:border-indigo-300/30 hover:bg-[#070914]"}`}
+        className={`group rect-media-card relative overflow-hidden cursor-pointer flex h-[184px] flex-row md:h-[430px] md:flex-col xl:h-[440px] 2xl:h-[452px] transform-gpu will-change-transform transition-[background-color,border-color,box-shadow] duration-200 ${isDayMode ? "border-violet-100/80 bg-white hover:border-pink-200/80 hover:shadow-[0_14px_32px_rgba(236,72,153,0.09)]" : "bg-[#050712]/94 border-white/15 hover:border-indigo-300/30 hover:bg-[#070914]"}`}
         onClick={() => onClick(event)}
       >
         {/* Image Section */}
-        <div className="w-[112px] sm:w-1/3 md:w-full aspect-square md:h-32 xl:h-[7.5rem] 2xl:h-[8.5rem] overflow-hidden relative shrink-0 z-10 m-3 rounded-[5px] md:m-0 md:rounded-t-[6px] md:rounded-b-none">
+        <div className="w-[120px] sm:w-1/3 md:w-full aspect-square md:h-40 2xl:h-44 overflow-hidden relative shrink-0 z-10 m-3 rounded-[5px] md:m-0 md:rounded-t-[6px] md:rounded-b-none">
           <SmartImage
             src={getThumbnailUrl(event.image)}
             alt={event.title}
@@ -292,17 +294,17 @@ const EventCard = memo(
         </div>
 
         {/* Content Section */}
-        <div className="p-3 md:p-3.5 relative flex-1 flex min-h-0 flex-col min-w-0 justify-center md:justify-start">
+        <div className="p-3 md:p-4 relative flex-1 flex min-h-0 flex-col min-w-0 justify-center md:justify-start">
           {/* Title */}
           <h3
-            className={`mb-1.5 line-clamp-2 min-h-[2.35rem] text-base font-bold leading-tight tracking-tight sm:text-lg md:text-[1.05rem] ${isDayMode ? "text-slate-900" : "text-white"}`}
+            className={`mb-2 line-clamp-3 min-h-[3.9rem] text-base font-bold leading-tight tracking-tight sm:text-lg md:text-[1.08rem] ${isDayMode ? "text-slate-900" : "text-white"}`}
           >
             {event.title}
           </h3>
 
           {/* Date & Location - Clean Text Row */}
           <div
-            className={`mb-2 flex min-h-[2.6rem] flex-col gap-1 text-xs sm:text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+            className={`mb-3 flex min-h-[3.65rem] flex-col gap-1.5 text-xs sm:text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
           >
             <div className="flex items-center gap-1.5 shrink-0">
               <Calendar size={14} className={isDayMode ? "text-violet-600 md:w-4 md:h-4" : "text-indigo-400 md:w-4 md:h-4"} />
@@ -321,7 +323,7 @@ const EventCard = memo(
                 size={14}
                 className={isDayMode ? "text-slate-400 shrink-0 md:w-4 md:h-4" : "text-indigo-400 shrink-0 md:w-4 md:h-4"}
               />
-              <span className="truncate">
+              <span className="line-clamp-2 min-w-0 leading-5">
                 {event.location || t("common.online", "线上")}
               </span>
             </div>
@@ -338,10 +340,10 @@ const EventCard = memo(
 
           {/* Benefits Badges */}
           {(event.score || event.volunteer_time) && (
-            <div className="mb-2 hidden h-[1.75rem] flex-nowrap gap-1.5 overflow-hidden md:flex">
+            <div className="mb-3 hidden h-[1.9rem] flex-nowrap gap-1.5 overflow-hidden md:flex">
               {event.score && (
                 <span
-                  className={`rect-chip inline-flex max-w-[7.5rem] shrink-0 items-center gap-1.5 px-2 py-1 text-[11px] font-bold uppercase tracking-wider ${isDayMode ? "bg-purple-50 text-purple-600 border-purple-200/80" : "bg-purple-500/10 text-purple-300 border-purple-500/20"}`}
+                  className={`rect-chip inline-flex max-w-[9.5rem] shrink-0 items-center gap-1.5 px-2 py-1 text-[11px] font-bold uppercase tracking-wider ${isDayMode ? "bg-purple-50 text-purple-600 border-purple-200/80" : "bg-purple-500/10 text-purple-300 border-purple-500/20"}`}
                 >
                   <Award size={12} />
                   <span className="truncate">{event.score}</span>
@@ -349,7 +351,7 @@ const EventCard = memo(
               )}
               {event.volunteer_time && (
                 <span
-                  className={`rect-chip inline-flex max-w-[7.5rem] shrink-0 items-center gap-1.5 px-2 py-1 text-[11px] font-bold uppercase tracking-wider ${isDayMode ? "bg-emerald-50 text-emerald-600 border-emerald-200/80" : "bg-emerald-500/10 text-emerald-300 border-emerald-500/20"}`}
+                  className={`rect-chip inline-flex max-w-[9.5rem] shrink-0 items-center gap-1.5 px-2 py-1 text-[11px] font-bold uppercase tracking-wider ${isDayMode ? "bg-emerald-50 text-emerald-600 border-emerald-200/80" : "bg-emerald-500/10 text-emerald-300 border-emerald-500/20"}`}
                 >
                   <Clock size={12} />
                   <span className="truncate">{event.volunteer_time}</span>
@@ -358,12 +360,12 @@ const EventCard = memo(
             </div>
           )}
           {!event.score && !event.volunteer_time && (
-            <div className="mb-2 hidden h-[1.75rem] md:block" />
+            <div className="mb-3 hidden h-[1.9rem] md:block" />
           )}
 
           {/* Footer: Category & Actions */}
           <div
-            className={`mt-auto flex min-h-[2.7rem] items-center justify-between border-t pt-2 ${isDayMode ? "border-slate-200/80" : "border-white/5"}`}
+            className={`mt-auto flex min-h-[2.85rem] items-center justify-between border-t pt-2 ${isDayMode ? "border-slate-200/80" : "border-white/5"}`}
           >
             <div className="grid min-w-0 flex-1 grid-cols-2 gap-1.5 overflow-hidden pr-2">
               {event.category && (
@@ -1244,7 +1246,7 @@ END:VCALENDAR`;
             setIsMobileAssistantOpen(true);
           }}
         />
-        <div className="hidden md:block mb-6">
+        <div className={`${EVENT_CONTENT_WIDTH_CLASS} hidden md:block mb-6`}>
           <h2
             className={`text-3xl md:text-4xl lg:text-5xl font-bold font-serif mb-3 md:mb-5 ${isDayMode ? "text-slate-950" : "text-white"}`}
           >
@@ -1257,7 +1259,7 @@ END:VCALENDAR`;
           </p>
         </div>
 
-        <div className="hidden md:flex items-center gap-2 w-full justify-center mb-4 xl:absolute xl:right-0 xl:top-0 xl:mb-0 xl:w-auto">
+        <div className={`${EVENT_CONTENT_WIDTH_CLASS} hidden items-center justify-end gap-2 md:flex mb-4`}>
           <button
             type="button"
             aria-label={t("common.create_event")}
@@ -1276,7 +1278,7 @@ END:VCALENDAR`;
         </div>
 
         {/* Desktop Filter Section */}
-        <div className="hidden md:block w-full max-w-5xl mx-auto mb-7">
+        <div className={`${EVENT_FILTER_WIDTH_CLASS} hidden md:block mb-7`}>
           <EventFilterPanel
             filters={filters}
             onFiltersChange={setFilters}
@@ -1435,8 +1437,8 @@ END:VCALENDAR`;
 
         {canRenderDesktopAssistant && createPortal(
           <div className="pointer-events-none fixed inset-y-0 right-0 z-[90] hidden md:block">
-            <div className="pointer-events-none absolute right-4 top-[calc(env(safe-area-inset-top)+104px)] hidden 2xl:block">
-              <div className="pointer-events-auto flex h-[calc(100vh-136px)] w-[min(400px,calc(100vw-2rem))] flex-col">
+            <div className="pointer-events-none absolute right-4 top-[calc(env(safe-area-inset-top)+104px)] hidden xl:block">
+              <div className="pointer-events-auto flex h-[calc(100vh-136px)] w-[300px] flex-col 2xl:w-[400px]">
                 <EventAssistantPanel
                   isDayMode={isDayMode}
                   onOpenEvent={handleOpenAssistantEvent}
@@ -1450,7 +1452,7 @@ END:VCALENDAR`;
               type="button"
               onClick={() => setIsDesktopAssistantOpen(true)}
               aria-label={t("events.assistant.open_assistant", "打开 AI 活动助手")}
-              className={`pointer-events-auto absolute right-4 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-lg border shadow-[0_14px_34px_rgba(15,23,42,0.12)] transition-all hover:-translate-x-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 md:inline-flex 2xl:hidden ${
+              className={`pointer-events-auto absolute right-4 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-lg border shadow-[0_14px_34px_rgba(15,23,42,0.12)] transition-all hover:-translate-x-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 md:inline-flex xl:hidden ${
                 isDayMode
                   ? "border-indigo-700/14 bg-white text-indigo-700 hover:border-indigo-700/24 hover:bg-indigo-50"
                   : "border-white/10 bg-[#10121d]/92 text-blue-200 hover:border-white/20"
@@ -1467,7 +1469,7 @@ END:VCALENDAR`;
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     onClick={() => setIsDesktopAssistantOpen(false)}
-                    className={`pointer-events-auto fixed inset-0 z-[91] hidden md:block 2xl:hidden ${isDayMode ? "bg-white/50" : "bg-black/45"}`}
+                    className={`pointer-events-auto fixed inset-0 z-[91] hidden md:block xl:hidden ${isDayMode ? "bg-white/50" : "bg-black/45"}`}
                   />
                   <motion.aside
                     initial={{ opacity: 0, x: 28 }}
@@ -1477,7 +1479,7 @@ END:VCALENDAR`;
                     role="dialog"
                     aria-modal="true"
                     aria-label={t("events.assistant.mobile_title", "AI 活动助手")}
-                    className="pointer-events-auto fixed right-4 top-[calc(env(safe-area-inset-top)+96px)] z-[92] hidden h-[calc(100vh-128px)] w-[min(400px,calc(100vw-2rem))] md:block 2xl:hidden"
+                    className="pointer-events-auto fixed right-4 top-[calc(env(safe-area-inset-top)+96px)] z-[92] hidden h-[calc(100vh-128px)] w-[min(400px,calc(100vw-2rem))] md:block xl:hidden"
                   >
                     <EventAssistantPanel
                       isDayMode={isDayMode}
@@ -1593,17 +1595,17 @@ END:VCALENDAR`;
           {Array.from({ length: 8 }, (_, index) => index + 1).map((i) => (
             <div
               key={i}
-              className={`rect-media-card relative flex h-[170px] flex-row overflow-hidden md:h-[318px] md:flex-col 2xl:h-[330px] ${isDayMode ? "bg-white border-violet-100/80 shadow-[0_14px_34px_rgba(168,85,247,0.06)]" : "bg-white/[0.04] border-white/5"}`}
+              className={`rect-media-card relative flex h-[184px] flex-row overflow-hidden md:h-[430px] md:flex-col xl:h-[440px] 2xl:h-[452px] ${isDayMode ? "bg-white border-violet-100/80 shadow-[0_14px_34px_rgba(168,85,247,0.06)]" : "bg-white/[0.04] border-white/5"}`}
             >
               {/* Shimmer Effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-skeleton" />
 
               {/* Image Skeleton */}
               <div
-                className={`w-1/3 md:w-full aspect-square md:h-32 xl:h-[7.5rem] 2xl:h-[8.5rem] ${isDayMode ? "bg-violet-50" : "bg-white/5"}`}
+                className={`w-1/3 md:w-full aspect-square md:h-40 2xl:h-44 ${isDayMode ? "bg-violet-50" : "bg-white/5"}`}
               />
               {/* Content Skeleton */}
-              <div className="flex w-2/3 flex-1 flex-col p-3 md:w-full md:p-3.5">
+              <div className="flex w-2/3 flex-1 flex-col p-3 md:w-full md:p-4">
                 <div
                   className={`h-6 rounded-[2px] w-3/4 mb-4 ${isDayMode ? "bg-violet-50" : "bg-white/10"}`}
                 />
