@@ -60,11 +60,11 @@ import { useReducedMotion } from "../utils/animations";
 import { getOrCreateSiteVisitorKey } from "../utils/visitorKey";
 
 const EVENT_CARD_GRID_CLASS =
-  "grid grid-cols-1 items-start gap-4 md:[grid-template-columns:repeat(auto-fit,minmax(300px,1fr))] lg:gap-5 xl:[grid-template-columns:repeat(4,minmax(0,1fr))]";
+  "grid grid-cols-1 items-start gap-4 md:[grid-template-columns:repeat(auto-fit,minmax(300px,1fr))] lg:gap-5 xl:[grid-template-columns:repeat(auto-fit,minmax(235px,1fr))] 2xl:[grid-template-columns:repeat(4,minmax(0,1fr))]";
 const EVENT_CONTENT_WIDTH_CLASS =
-  "mx-auto w-full max-w-[108rem] xl:ml-0 xl:mr-auto xl:max-w-[calc(100vw-364px)] 2xl:max-w-[calc(100vw-464px)]";
+  "mx-auto w-full max-w-[84rem] xl:mx-0 xl:ml-[max(0px,calc((100vw-84rem-300px-2rem)/2-2rem))] xl:max-w-[min(84rem,calc(100vw-364px))] 2xl:ml-[max(0px,calc((100vw-84rem-400px-2rem)/2-2rem))] 2xl:max-w-[min(84rem,calc(100vw-464px))]";
 const EVENT_FILTER_WIDTH_CLASS =
-  "mx-auto w-full max-w-5xl xl:ml-0 xl:mr-auto xl:max-w-[calc(100vw-364px)] 2xl:max-w-[calc(100vw-464px)]";
+  "mx-auto w-full max-w-5xl xl:mx-0 xl:ml-[max(0px,calc((100vw-84rem-300px-2rem)/2-2rem))] xl:max-w-[min(84rem,calc(100vw-364px))] 2xl:ml-[max(0px,calc((100vw-84rem-400px-2rem)/2-2rem))] 2xl:max-w-[min(84rem,calc(100vw-464px))]";
 
 const getEventLifecycle = (date, endDate, t) => {
   if (!date) return t("events.status.unknown");
@@ -367,10 +367,10 @@ const EventCard = memo(
           <div
             className={`mt-auto flex min-h-[2.85rem] items-center justify-between border-t pt-2 ${isDayMode ? "border-slate-200/80" : "border-white/5"}`}
           >
-            <div className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden pr-1">
+            <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden pr-2">
               {event.category && (
                 <span
-                  className={`rect-chip inline-flex min-w-0 max-w-[4.75rem] shrink items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium md:px-1.5 md:py-1 md:text-[11px] ${isDayMode ? "bg-violet-50 text-violet-700 border-violet-100/80" : "bg-indigo-500/10 text-indigo-300 border-indigo-500/20"}`}
+                  className={`rect-chip inline-flex min-w-0 max-w-[7rem] shrink-0 items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium md:px-2 md:py-1 md:text-[11px] ${isDayMode ? "bg-violet-50 text-violet-700 border-violet-100/80" : "bg-indigo-500/10 text-indigo-300 border-indigo-500/20"}`}
                 >
                   <Tag size={10} className="md:w-3 md:h-3" />
                   <span className="truncate">
@@ -380,7 +380,7 @@ const EventCard = memo(
               )}
               {event.target_audience && (
                 <span
-                  className={`rect-chip inline-flex min-w-[3rem] max-w-full flex-1 items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium md:px-1.5 md:py-1 md:text-[11px] ${isDayMode ? "bg-pink-50 text-slate-600 border-pink-100/80" : "bg-white/5 text-gray-300 border-white/10"}`}
+                  className={`rect-chip inline-flex min-w-0 max-w-full shrink items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium md:px-2 md:py-1 md:text-[11px] ${isDayMode ? "bg-pink-50 text-slate-600 border-pink-100/80" : "bg-white/5 text-gray-300 border-white/10"}`}
                 >
                   <Users size={10} className="md:w-3 md:h-3" />
                   <span className="truncate">{event.target_audience}</span>
@@ -388,7 +388,7 @@ const EventCard = memo(
               )}
             </div>
 
-            <div className="flex items-center gap-2 md:gap-3 shrink-0 ml-auto">
+            <div className="flex items-center gap-1.5 md:gap-2 shrink-0 ml-auto">
               <FavoriteButton
                 itemId={event.id}
                 itemType="event"
@@ -403,7 +403,7 @@ const EventCard = memo(
                 }
               />
               <div
-                className={`rect-icon-button p-1.5 md:p-2 transition-[background-color,color,transform] duration-200 group-hover:translate-x-0.5 ${isDayMode ? "bg-violet-50 text-violet-700 group-hover:bg-violet-600 group-hover:text-white" : "bg-white/5 group-hover:bg-white/10 group-hover:text-white"}`}
+                className={`rect-icon-button p-1.5 transition-[background-color,color,transform] duration-200 group-hover:translate-x-0.5 ${isDayMode ? "bg-violet-50 text-violet-700 group-hover:bg-violet-600 group-hover:text-white" : "bg-white/5 group-hover:bg-white/10 group-hover:text-white"}`}
               >
                 <ArrowRight
                   size={16}
@@ -1437,7 +1437,7 @@ END:VCALENDAR`;
 
         {canRenderDesktopAssistant && createPortal(
           <div className="pointer-events-none fixed inset-y-0 right-0 z-[90] hidden md:block">
-            <div className="pointer-events-none absolute right-4 top-[calc(env(safe-area-inset-top)+104px)] hidden xl:block">
+            <div className="pointer-events-none absolute right-4 top-[calc(env(safe-area-inset-top)+104px)] hidden xl:block xl:right-[max(1rem,calc((100vw-84rem-300px-2rem)/2))] 2xl:right-[max(1rem,calc((100vw-84rem-400px-2rem)/2))]">
               <div className="pointer-events-auto flex h-[calc(100vh-136px)] w-[300px] flex-col 2xl:w-[400px]">
                 <EventAssistantPanel
                   isDayMode={isDayMode}
