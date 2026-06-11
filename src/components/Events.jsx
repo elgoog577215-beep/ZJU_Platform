@@ -61,6 +61,8 @@ import { getOrCreateSiteVisitorKey } from "../utils/visitorKey";
 
 const EVENT_CARD_GRID_CLASS =
   "grid grid-cols-1 items-start gap-4 md:[grid-template-columns:repeat(auto-fit,minmax(245px,1fr))] lg:gap-5 xl:[grid-template-columns:repeat(auto-fit,minmax(230px,1fr))] 2xl:[grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]";
+const EVENT_CONTENT_WIDTH_CLASS =
+  "mx-auto w-full max-w-[108rem] 2xl:mr-[calc(400px+2rem)] 2xl:max-w-[calc(100vw-464px)]";
 
 const getEventLifecycle = (date, endDate, t) => {
   if (!date) return t("events.status.unknown");
@@ -257,7 +259,7 @@ const EventCard = memo(
     return (
       <motion.div
         {...motionProps}
-        className={`group rect-media-card relative overflow-hidden cursor-pointer flex flex-row md:flex-col transform-gpu will-change-transform transition-[background-color,border-color,box-shadow] duration-200 ${isDayMode ? "border-violet-100/80 bg-white hover:border-pink-200/80 hover:shadow-[0_14px_32px_rgba(236,72,153,0.09)]" : "bg-[#050712]/94 border-white/15 hover:border-indigo-300/30 hover:bg-[#070914]"}`}
+        className={`group rect-media-card relative overflow-hidden cursor-pointer flex h-[170px] flex-row md:h-[318px] md:flex-col 2xl:h-[330px] transform-gpu will-change-transform transition-[background-color,border-color,box-shadow] duration-200 ${isDayMode ? "border-violet-100/80 bg-white hover:border-pink-200/80 hover:shadow-[0_14px_32px_rgba(236,72,153,0.09)]" : "bg-[#050712]/94 border-white/15 hover:border-indigo-300/30 hover:bg-[#070914]"}`}
         onClick={() => onClick(event)}
       >
         {/* Image Section */}
@@ -290,17 +292,17 @@ const EventCard = memo(
         </div>
 
         {/* Content Section */}
-        <div className="p-3 md:p-3.5 relative flex-1 flex flex-col min-w-0 justify-center md:justify-start">
+        <div className="p-3 md:p-3.5 relative flex-1 flex min-h-0 flex-col min-w-0 justify-center md:justify-start">
           {/* Title */}
           <h3
-            className={`text-base sm:text-lg md:text-[1.05rem] font-bold mb-1.5 line-clamp-2 leading-tight tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}
+            className={`mb-1.5 line-clamp-2 min-h-[2.35rem] text-base font-bold leading-tight tracking-tight sm:text-lg md:text-[1.05rem] ${isDayMode ? "text-slate-900" : "text-white"}`}
           >
             {event.title}
           </h3>
 
           {/* Date & Location - Clean Text Row */}
           <div
-            className={`flex flex-col gap-1 text-xs sm:text-sm mb-2 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+            className={`mb-2 flex min-h-[2.6rem] flex-col gap-1 text-xs sm:text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
           >
             <div className="flex items-center gap-1.5 shrink-0">
               <Calendar size={14} className={isDayMode ? "text-violet-600 md:w-4 md:h-4" : "text-indigo-400 md:w-4 md:h-4"} />
@@ -336,34 +338,37 @@ const EventCard = memo(
 
           {/* Benefits Badges */}
           {(event.score || event.volunteer_time) && (
-            <div className="flex flex-wrap gap-1.5 mb-2 md:mb-3">
+            <div className="mb-2 hidden h-[1.75rem] flex-nowrap gap-1.5 overflow-hidden md:flex">
               {event.score && (
                 <span
-                  className={`rect-chip inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold uppercase tracking-wider ${isDayMode ? "bg-purple-50 text-purple-600 border-purple-200/80" : "bg-purple-500/10 text-purple-300 border-purple-500/20"}`}
+                  className={`rect-chip inline-flex max-w-[7.5rem] shrink-0 items-center gap-1.5 px-2 py-1 text-[11px] font-bold uppercase tracking-wider ${isDayMode ? "bg-purple-50 text-purple-600 border-purple-200/80" : "bg-purple-500/10 text-purple-300 border-purple-500/20"}`}
                 >
                   <Award size={12} />
-                  {event.score}
+                  <span className="truncate">{event.score}</span>
                 </span>
               )}
               {event.volunteer_time && (
                 <span
-                  className={`rect-chip inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold uppercase tracking-wider ${isDayMode ? "bg-emerald-50 text-emerald-600 border-emerald-200/80" : "bg-emerald-500/10 text-emerald-300 border-emerald-500/20"}`}
+                  className={`rect-chip inline-flex max-w-[7.5rem] shrink-0 items-center gap-1.5 px-2 py-1 text-[11px] font-bold uppercase tracking-wider ${isDayMode ? "bg-emerald-50 text-emerald-600 border-emerald-200/80" : "bg-emerald-500/10 text-emerald-300 border-emerald-500/20"}`}
                 >
                   <Clock size={12} />
-                  {event.volunteer_time}
+                  <span className="truncate">{event.volunteer_time}</span>
                 </span>
               )}
             </div>
           )}
+          {!event.score && !event.volunteer_time && (
+            <div className="mb-2 hidden h-[1.75rem] md:block" />
+          )}
 
           {/* Footer: Category & Actions */}
           <div
-            className={`flex items-center justify-between mt-auto pt-2 border-t ${isDayMode ? "border-slate-200/80" : "border-white/5"}`}
+            className={`mt-auto flex min-h-[2.7rem] items-center justify-between border-t pt-2 ${isDayMode ? "border-slate-200/80" : "border-white/5"}`}
           >
-            <div className="flex flex-wrap gap-1.5 md:gap-2 overflow-hidden min-h-[24px] md:min-h-[32px]">
+            <div className="grid min-w-0 flex-1 grid-cols-2 gap-1.5 overflow-hidden pr-2">
               {event.category && (
                 <span
-                  className={`rect-chip px-1.5 py-0.5 md:px-2 md:py-1 text-[10px] md:text-[11px] font-medium flex items-center gap-1 shrink-0 max-w-[96px] md:max-w-[120px] ${isDayMode ? "bg-violet-50 text-violet-700 border-violet-100/80" : "bg-indigo-500/10 text-indigo-300 border-indigo-500/20"}`}
+                  className={`rect-chip flex min-w-0 items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium md:px-2 md:py-1 md:text-[11px] ${isDayMode ? "bg-violet-50 text-violet-700 border-violet-100/80" : "bg-indigo-500/10 text-indigo-300 border-indigo-500/20"}`}
                 >
                   <Tag size={10} className="md:w-3 md:h-3" />
                   <span className="truncate">
@@ -373,7 +378,7 @@ const EventCard = memo(
               )}
               {event.target_audience && (
                 <span
-                  className={`rect-chip px-1.5 py-0.5 md:px-2 md:py-1 text-[10px] md:text-[11px] font-medium flex items-center gap-1 shrink-0 max-w-[110px] md:max-w-[132px] ${isDayMode ? "bg-pink-50 text-slate-600 border-pink-100/80" : "bg-white/5 text-gray-300 border-white/10"}`}
+                  className={`rect-chip flex min-w-0 items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium md:px-2 md:py-1 md:text-[11px] ${isDayMode ? "bg-pink-50 text-slate-600 border-pink-100/80" : "bg-white/5 text-gray-300 border-white/10"}`}
                 >
                   <Users size={10} className="md:w-3 md:h-3" />
                   <span className="truncate">{event.target_audience}</span>
@@ -1280,7 +1285,7 @@ END:VCALENDAR`;
           />
         </div>
 
-        <div className="mx-auto hidden w-full max-w-[108rem] items-center justify-between gap-4 md:flex">
+        <div className={`${EVENT_CONTENT_WIDTH_CLASS} hidden items-center justify-between gap-4 md:flex`}>
           <div
             className={`text-left text-sm font-medium ${
               isDayMode ? "text-slate-500" : "text-gray-400"
@@ -1584,21 +1589,21 @@ END:VCALENDAR`;
           </button>
         </div>
       ) : loading && displayEvents.length === 0 ? (
-        <div className={`${EVENT_CARD_GRID_CLASS} mx-auto w-full max-w-[108rem]`}>
+        <div className={`${EVENT_CARD_GRID_CLASS} ${EVENT_CONTENT_WIDTH_CLASS}`}>
           {Array.from({ length: 8 }, (_, index) => index + 1).map((i) => (
             <div
               key={i}
-              className={`rect-media-card overflow-hidden h-full flex flex-row md:flex-col relative group ${isDayMode ? "bg-white border-violet-100/80 shadow-[0_14px_34px_rgba(168,85,247,0.06)]" : "bg-white/[0.04] border-white/5"}`}
+              className={`rect-media-card relative flex h-[170px] flex-row overflow-hidden md:h-[318px] md:flex-col 2xl:h-[330px] ${isDayMode ? "bg-white border-violet-100/80 shadow-[0_14px_34px_rgba(168,85,247,0.06)]" : "bg-white/[0.04] border-white/5"}`}
             >
               {/* Shimmer Effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-skeleton" />
 
               {/* Image Skeleton */}
               <div
-                className={`w-1/3 md:w-full aspect-square md:h-40 xl:h-36 2xl:h-40 ${isDayMode ? "bg-violet-50" : "bg-white/5"}`}
+                className={`w-1/3 md:w-full aspect-square md:h-32 xl:h-[7.5rem] 2xl:h-[8.5rem] ${isDayMode ? "bg-violet-50" : "bg-white/5"}`}
               />
               {/* Content Skeleton */}
-              <div className="p-4 flex-1 flex flex-col w-2/3 md:w-full">
+              <div className="flex w-2/3 flex-1 flex-col p-3 md:w-full md:p-3.5">
                 <div
                   className={`h-6 rounded-[2px] w-3/4 mb-4 ${isDayMode ? "bg-violet-50" : "bg-white/10"}`}
                 />
@@ -1621,7 +1626,7 @@ END:VCALENDAR`;
           ))}
         </div>
       ) : viewMode === "list" && !isMobileViewport ? (
-        <div className="mx-auto flex w-full max-w-[108rem] flex-col gap-3">
+        <div className={`${EVENT_CONTENT_WIDTH_CLASS} flex flex-col gap-3`}>
           {displayEvents.map((event, index) => (
             <EventListRow
               key={event.id}
@@ -1635,7 +1640,7 @@ END:VCALENDAR`;
           ))}
         </div>
       ) : (
-        <div className={`${EVENT_CARD_GRID_CLASS} mx-auto w-full max-w-[108rem]`}>
+        <div className={`${EVENT_CARD_GRID_CLASS} ${EVENT_CONTENT_WIDTH_CLASS}`}>
           {displayEvents.map((event, index) => (
             <EventCard
               key={event.id}
