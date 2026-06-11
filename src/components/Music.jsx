@@ -1,6 +1,6 @@
 import { createPortal } from "react-dom";
 import React, { useState, useEffect, useCallback, memo } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useContentPageEvents, useMobileSortLabel, useMobileToolbarSync } from "../hooks/useContentPage";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -178,8 +178,9 @@ const Music = ({ embedded = false, singleColumn = false, sidebarCompact = false 
   const [sort, setSort] = useState("newest");
   const [error, setError] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [showAllCompactTracks, setShowAllCompactTracks] = useState(false);
   const isPaginationEnabled = settings.pagination_enabled === "true";
-  const pageSize = sidebarCompact ? 3 : (isPaginationEnabled ? 12 : 20);
+  const pageSize = sidebarCompact ? 8 : (isPaginationEnabled ? 12 : 20);
   const hasMore = !isPaginationEnabled && currentPage < totalPages;
   const playButtonClass = isDayMode
     ? "bg-violet-700 text-white shadow-[0_12px_26px_rgba(124,58,237,0.16)] hover:bg-violet-800 hover:shadow-[0_14px_30px_rgba(124,58,237,0.2)]"
@@ -379,6 +380,8 @@ const Music = ({ embedded = false, singleColumn = false, sidebarCompact = false 
     ...playerTrackState,
     ...(activeTrackInList || {}),
   };
+  const visibleCompactTracks = showAllCompactTracks ? tracks : tracks.slice(0, 3);
+  const canToggleCompactTracks = tracks.length > 3;
 
   const handleTrackClick = (track) => {
     playTrack(track);
@@ -634,7 +637,7 @@ const Music = ({ embedded = false, singleColumn = false, sidebarCompact = false 
 
           <div className={`my-3 h-px ${isDayMode ? "bg-slate-200/70" : "bg-white/10"}`} />
 
-          <div className="space-y-2">
+          <div className={`space-y-2 ${showAllCompactTracks ? "max-h-[430px] overflow-y-auto pr-1 custom-scrollbar" : ""}`}>
             {loading && tracks.length === 0 ? (
               [...Array(3)].map((_, i) => (
                 <div key={i} className={`flex items-center gap-2 rounded-lg border p-2 animate-pulse ${isDayMode ? "border-slate-200 bg-slate-50" : "border-white/10 bg-white/[0.03]"}`}>
@@ -658,7 +661,7 @@ const Music = ({ embedded = false, singleColumn = false, sidebarCompact = false 
                 {t("music.no_tracks", "暂无音频")}
               </div>
             ) : (
-              tracks.slice(0, 3).map((track, index) => (
+              visibleCompactTracks.map((track, index) => (
                 <TrackItem
                   key={track.id}
                   track={track}
@@ -674,12 +677,16 @@ const Music = ({ embedded = false, singleColumn = false, sidebarCompact = false 
             )}
           </div>
 
-          <Link
-            to="/articles#community-podcast"
-            className={`mt-3 inline-flex min-h-[34px] w-full items-center justify-center rounded-md border px-3 text-xs font-semibold transition-colors ${isDayMode ? "border-violet-100 bg-violet-50 text-violet-700 hover:bg-violet-100" : "border-cyan-300/20 bg-cyan-400/10 text-cyan-200 hover:bg-cyan-400/15"}`}
+          <button
+            type="button"
+            onClick={() => setShowAllCompactTracks((value) => !value)}
+            disabled={!canToggleCompactTracks}
+            className={`mt-3 inline-flex min-h-[34px] w-full items-center justify-center rounded-md border px-3 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-55 ${isDayMode ? "border-violet-100 bg-violet-50 text-violet-700 hover:bg-violet-100 disabled:hover:bg-violet-50" : "border-cyan-300/20 bg-cyan-400/10 text-cyan-200 hover:bg-cyan-400/15 disabled:hover:bg-cyan-400/10"}`}
           >
-            {t("community.view_more_podcast", "查看更多播客")}
-          </Link>
+            {showAllCompactTracks
+              ? t("community.collapse_podcast", "收起播客")
+              : t("community.view_more_podcast", "查看更多播客")}
+          </button>
         </div>
       ) : (
       <div className={`w-full grid items-start relative ${singleColumn ? "grid-cols-1 gap-4" : embedded ? "lg:grid-cols-2 gap-4 md:gap-6" : "lg:grid-cols-2 max-w-6xl mx-auto gap-6 md:gap-16"}`}>

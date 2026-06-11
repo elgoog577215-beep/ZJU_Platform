@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Newspaper, QrCode } from "lucide-react";
+import { QrCode } from "lucide-react";
 import { useSettings } from "../context/SettingsContext";
 import SEO from "./SEO";
 import CommunityGroups from "./CommunityGroups";
-import CommunityNewsRail from "./CommunityNewsRail";
 import CommunityPosts from "./CommunityPosts";
 import Music from "./Music";
 
@@ -135,17 +134,6 @@ const AICommunity = () => {
           </main>
 
           <aside className="order-3 space-y-5 md:space-y-6 xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto xl:pr-1 custom-scrollbar">
-            {isDesktopRail ? (
-              <SidebarCard
-                icon={Newspaper}
-                code={t("community.sidebar_hot_code", "TREND · 热榜")}
-                title={t("community.sidebar_hot_title", "AI 热榜")}
-                isDayMode={isDayMode}
-              >
-                <CommunityNewsRail railCompact />
-              </SidebarCard>
-            ) : null}
-
             <div id="community-groups">
               <SidebarCard
                 icon={QrCode}
