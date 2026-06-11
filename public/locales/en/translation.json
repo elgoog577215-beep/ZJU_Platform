@@ -1366,6 +1366,14 @@
     "search_aria": "Search events",
     "clear_search": "Clear search",
     "view_all": "View All",
+    "result_count": "{{count}} events",
+    "view_mode": {
+      "aria": "Event view switcher",
+      "cards": "Cards",
+      "cards_aria": "Switch to card view",
+      "list": "List",
+      "list_aria": "Switch to list view"
+    },
     "no_more_recommendations": "No more recommendations",
     "no_matches_desc": "No events match the current filters. Reset filters and try again.",
     "empty_desc": "No events are available right now. Please check back later.",

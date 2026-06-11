@@ -13,6 +13,8 @@ import {
   Calendar,
   MapPin,
   ArrowRight,
+  LayoutGrid,
+  List,
   X,
   Upload,
   Clock,
@@ -56,6 +58,9 @@ import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { getThumbnailUrl } from "../utils/imageUtils";
 import { useReducedMotion } from "../utils/animations";
 import { getOrCreateSiteVisitorKey } from "../utils/visitorKey";
+
+const EVENT_CARD_GRID_CLASS =
+  "grid grid-cols-1 items-start gap-4 md:[grid-template-columns:repeat(auto-fit,minmax(245px,1fr))] lg:gap-5 xl:[grid-template-columns:repeat(auto-fit,minmax(230px,1fr))] 2xl:[grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]";
 
 const getEventLifecycle = (date, endDate, t) => {
   if (!date) return t("events.status.unknown");
@@ -252,11 +257,11 @@ const EventCard = memo(
     return (
       <motion.div
         {...motionProps}
-        className={`group rect-media-card relative overflow-hidden cursor-pointer flex flex-row md:flex-col h-full transform-gpu will-change-transform transition-[background-color,border-color,box-shadow] duration-200 ${isDayMode ? "border-violet-100/80 bg-white hover:border-pink-200/80 hover:shadow-[0_18px_42px_rgba(236,72,153,0.1)]" : "bg-[#050712]/94 border-white/15 hover:border-indigo-300/30 hover:bg-[#070914]"}`}
+        className={`group rect-media-card relative overflow-hidden cursor-pointer flex flex-row md:flex-col transform-gpu will-change-transform transition-[background-color,border-color,box-shadow] duration-200 ${isDayMode ? "border-violet-100/80 bg-white hover:border-pink-200/80 hover:shadow-[0_14px_32px_rgba(236,72,153,0.09)]" : "bg-[#050712]/94 border-white/15 hover:border-indigo-300/30 hover:bg-[#070914]"}`}
         onClick={() => onClick(event)}
       >
         {/* Image Section */}
-        <div className="w-[112px] sm:w-1/3 md:w-full aspect-square md:h-56 overflow-hidden relative shrink-0 z-10 m-3 rounded-[5px] md:m-0 md:rounded-t-[6px] md:rounded-b-none">
+        <div className="w-[112px] sm:w-1/3 md:w-full aspect-square md:h-32 xl:h-[7.5rem] 2xl:h-[8.5rem] overflow-hidden relative shrink-0 z-10 m-3 rounded-[5px] md:m-0 md:rounded-t-[6px] md:rounded-b-none">
           <SmartImage
             src={getThumbnailUrl(event.image)}
             alt={event.title}
@@ -271,7 +276,7 @@ const EventCard = memo(
 
           {/* Status Badge - Adjusted for mobile */}
           <div
-            className={`absolute top-2 right-2 md:top-4 md:right-4 px-2.5 py-1 md:px-3 md:py-1.5 rounded-[4px] text-[10px] md:text-xs font-bold uppercase tracking-wider shadow-none flex items-center gap-1.5 z-40 border ${getStatusColor(status, t, isDayMode)}`}
+            className={`absolute top-2 right-2 md:top-3 md:right-3 px-2.5 py-1 rounded-[4px] text-[10px] md:text-[11px] font-bold uppercase tracking-wider shadow-none flex items-center gap-1.5 z-40 border ${getStatusColor(status, t, isDayMode)}`}
           >
             {status === t("events.status.upcoming") && (
               <Clock size={12} className="md:w-3.5 md:h-3.5" />
@@ -285,17 +290,17 @@ const EventCard = memo(
         </div>
 
         {/* Content Section */}
-        <div className="p-3 md:p-5 relative flex-1 flex flex-col min-w-0 h-full justify-center md:justify-start">
+        <div className="p-3 md:p-3.5 relative flex-1 flex flex-col min-w-0 justify-center md:justify-start">
           {/* Title */}
           <h3
-            className={`text-base sm:text-lg md:text-xl font-bold mb-1.5 md:mb-2 line-clamp-2 leading-tight tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}
+            className={`text-base sm:text-lg md:text-[1.05rem] font-bold mb-1.5 line-clamp-2 leading-tight tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}
           >
             {event.title}
           </h3>
 
           {/* Date & Location - Clean Text Row */}
           <div
-            className={`flex flex-col md:flex-row md:items-center gap-1 md:gap-3 text-xs sm:text-sm mb-2 md:mb-3 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+            className={`flex flex-col gap-1 text-xs sm:text-sm mb-2 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
           >
             <div className="flex items-center gap-1.5 shrink-0">
               <Calendar size={14} className={isDayMode ? "text-violet-600 md:w-4 md:h-4" : "text-indigo-400 md:w-4 md:h-4"} />
@@ -308,12 +313,6 @@ const EventCard = memo(
                   `-${formatDateTime(event.end_date)}`}
               </span>
             </div>
-
-            <span
-              className={`hidden md:inline ${isDayMode ? "text-slate-300" : "text-white/20"}`}
-            >
-              •
-            </span>
 
             <div className="flex items-center gap-1.5 min-w-0">
               <MapPin
@@ -329,7 +328,7 @@ const EventCard = memo(
           {/* Description - Max 3 lines (Hidden on Mobile) */}
           {event.description && (
             <p
-              className={`hidden md:block text-sm mb-4 line-clamp-3 leading-6 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+              className={`hidden text-[13px] mb-3 line-clamp-1 leading-5 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
             >
               {event.description}
             </p>
@@ -337,7 +336,7 @@ const EventCard = memo(
 
           {/* Benefits Badges */}
           {(event.score || event.volunteer_time) && (
-            <div className="flex flex-wrap gap-1.5 md:gap-2 mb-2 md:mb-4">
+            <div className="flex flex-wrap gap-1.5 mb-2 md:mb-3">
               {event.score && (
                 <span
                   className={`rect-chip inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold uppercase tracking-wider ${isDayMode ? "bg-purple-50 text-purple-600 border-purple-200/80" : "bg-purple-500/10 text-purple-300 border-purple-500/20"}`}
@@ -359,12 +358,12 @@ const EventCard = memo(
 
           {/* Footer: Category & Actions */}
           <div
-            className={`flex items-center justify-between mt-auto pt-2 md:pt-3 border-t ${isDayMode ? "border-slate-200/80" : "border-white/5"}`}
+            className={`flex items-center justify-between mt-auto pt-2 border-t ${isDayMode ? "border-slate-200/80" : "border-white/5"}`}
           >
             <div className="flex flex-wrap gap-1.5 md:gap-2 overflow-hidden min-h-[24px] md:min-h-[32px]">
               {event.category && (
                 <span
-                  className={`rect-chip px-1.5 py-0.5 md:px-2.5 md:py-1.5 text-[10px] md:text-xs font-medium flex items-center gap-1 shrink-0 max-w-[96px] md:max-w-[140px] ${isDayMode ? "bg-violet-50 text-violet-700 border-violet-100/80" : "bg-indigo-500/10 text-indigo-300 border-indigo-500/20"}`}
+                  className={`rect-chip px-1.5 py-0.5 md:px-2 md:py-1 text-[10px] md:text-[11px] font-medium flex items-center gap-1 shrink-0 max-w-[96px] md:max-w-[120px] ${isDayMode ? "bg-violet-50 text-violet-700 border-violet-100/80" : "bg-indigo-500/10 text-indigo-300 border-indigo-500/20"}`}
                 >
                   <Tag size={10} className="md:w-3 md:h-3" />
                   <span className="truncate">
@@ -374,7 +373,7 @@ const EventCard = memo(
               )}
               {event.target_audience && (
                 <span
-                  className={`rect-chip px-1.5 py-0.5 md:px-2.5 md:py-1.5 text-[10px] md:text-xs font-medium flex items-center gap-1 shrink-0 max-w-[110px] md:max-w-[160px] ${isDayMode ? "bg-pink-50 text-slate-600 border-pink-100/80" : "bg-white/5 text-gray-300 border-white/10"}`}
+                  className={`rect-chip px-1.5 py-0.5 md:px-2 md:py-1 text-[10px] md:text-[11px] font-medium flex items-center gap-1 shrink-0 max-w-[110px] md:max-w-[132px] ${isDayMode ? "bg-pink-50 text-slate-600 border-pink-100/80" : "bg-white/5 text-gray-300 border-white/10"}`}
                 >
                   <Users size={10} className="md:w-3 md:h-3" />
                   <span className="truncate">{event.target_audience}</span>
@@ -391,7 +390,7 @@ const EventCard = memo(
                 count={event.likes || 0}
                 favorited={event.favorited}
                 initialFavorited={event.favorited}
-                className={`rect-icon-button p-1.5 md:p-2 transition-colors ${isDayMode ? "hover:bg-violet-50 hover:text-violet-700" : "hover:bg-white/10"}`}
+                className={`rect-icon-button p-1.5 transition-colors ${isDayMode ? "hover:bg-violet-50 hover:text-violet-700" : "hover:bg-white/10"}`}
                 onToggle={(favorited, likes) =>
                   onToggleFavorite(event.id, favorited, likes)
                 }
@@ -413,6 +412,213 @@ const EventCard = memo(
 );
 EventCard.displayName = "EventCard";
 
+const EventListRow = memo(
+  ({ event, index, onClick, onToggleFavorite, reduceMotion, isDayMode }) => {
+    const { t } = useTranslation();
+    const status = getEventLifecycle(event.date, event.end_date, t);
+    const motionProps = reduceMotion
+      ? {}
+      : {
+          initial: { opacity: 0, y: 10 },
+          animate: {
+            opacity: 1,
+            y: 0,
+            transition: {
+              duration: 0.24,
+              ease: [0.22, 1, 0.36, 1],
+              delay: Math.min(index, 8) * 0.025,
+            },
+          },
+          whileHover: {
+            y: -1,
+            transition: { duration: 0.14, ease: [0.22, 1, 0.36, 1] },
+          },
+        };
+
+    return (
+      <motion.div
+        role="button"
+        tabIndex={0}
+        {...motionProps}
+        onClick={() => onClick(event)}
+        onKeyDown={(eventKey) => {
+          if (eventKey.key === "Enter" || eventKey.key === " ") {
+            eventKey.preventDefault();
+            onClick(event);
+          }
+        }}
+        className={`group rect-media-card grid w-full cursor-pointer grid-cols-[132px_minmax(0,1fr)] items-stretch overflow-hidden text-left transition-[background-color,border-color,box-shadow,transform] duration-200 lg:grid-cols-[152px_minmax(0,1fr)_180px] ${
+          isDayMode
+            ? "border-slate-200/80 bg-white hover:border-violet-200/90 hover:shadow-[0_14px_32px_rgba(99,102,241,0.09)]"
+            : "border-white/10 bg-[#050712]/94 hover:border-indigo-300/30 hover:bg-[#070914]"
+        }`}
+      >
+        <div className="relative min-h-[132px] overflow-hidden">
+          <SmartImage
+            src={getThumbnailUrl(event.image)}
+            alt={event.title}
+            loading="lazy"
+            priority={index < 8}
+            className="absolute inset-0 h-full w-full"
+            imageClassName="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+          />
+          <div
+            className={`absolute inset-0 opacity-55 ${
+              isDayMode
+                ? "bg-gradient-to-t from-white/80 via-transparent to-transparent"
+                : "bg-gradient-to-t from-black/70 via-transparent to-transparent"
+            }`}
+          />
+        </div>
+
+        <div className="flex min-w-0 flex-col px-4 py-3.5 lg:px-5">
+          <div className="flex min-w-0 items-start gap-3">
+            <h3
+              className={`line-clamp-2 min-w-0 flex-1 text-base font-bold leading-snug tracking-tight lg:text-lg ${
+                isDayMode ? "text-slate-950" : "text-white"
+              }`}
+            >
+              {event.title}
+            </h3>
+            <span
+              className={`shrink-0 rounded-[4px] border px-2 py-1 text-[10px] font-bold uppercase tracking-wider lg:hidden ${getStatusColor(status, t, isDayMode)}`}
+            >
+              {status}
+            </span>
+          </div>
+
+          <div
+            className={`mt-2 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs lg:text-sm ${
+              isDayMode ? "text-slate-500" : "text-gray-400"
+            }`}
+          >
+            <span className="inline-flex min-w-0 items-center gap-1.5">
+              <Calendar
+                size={14}
+                className={isDayMode ? "text-violet-600" : "text-indigo-400"}
+              />
+              <span className={isDayMode ? "font-medium text-slate-700" : "font-medium text-gray-200"}>
+                {formatDateTime(event.date)}
+                {event.end_date &&
+                  !isSameDay(event.date, event.end_date) &&
+                  `-${formatDateTime(event.end_date)}`}
+              </span>
+            </span>
+            <span className="inline-flex min-w-0 items-center gap-1.5">
+              <MapPin
+                size={14}
+                className={isDayMode ? "shrink-0 text-slate-400" : "shrink-0 text-indigo-400"}
+              />
+              <span className="truncate">
+                {event.location || t("common.online", "线上")}
+              </span>
+            </span>
+            {event.organizer && (
+              <span className="hidden min-w-0 items-center gap-1.5 xl:inline-flex">
+                <Building2
+                  size={14}
+                  className={isDayMode ? "shrink-0 text-slate-400" : "shrink-0 text-indigo-400"}
+                />
+                <span className="truncate">{event.organizer}</span>
+              </span>
+            )}
+          </div>
+
+          {event.description && (
+            <p
+              className={`mt-2 line-clamp-2 text-[13px] leading-5 lg:max-w-3xl ${
+                isDayMode ? "text-slate-500" : "text-gray-400"
+              }`}
+            >
+              {event.description}
+            </p>
+          )}
+
+          <div className="mt-auto flex min-w-0 flex-wrap items-center gap-1.5 pt-3">
+            {event.category && (
+              <span
+                className={`rect-chip inline-flex max-w-[150px] items-center gap-1 px-2 py-1 text-[11px] font-medium ${
+                  isDayMode
+                    ? "bg-violet-50 text-violet-700 border-violet-100/80"
+                    : "bg-indigo-500/10 text-indigo-300 border-indigo-500/20"
+                }`}
+              >
+                <Tag size={11} className="shrink-0" />
+                <span className="truncate">{getEventCategoryLabel(event.category)}</span>
+              </span>
+            )}
+            {event.target_audience && (
+              <span
+                className={`rect-chip inline-flex max-w-[180px] items-center gap-1 px-2 py-1 text-[11px] font-medium ${
+                  isDayMode
+                    ? "bg-pink-50 text-slate-600 border-pink-100/80"
+                    : "bg-white/5 text-gray-300 border-white/10"
+                }`}
+              >
+                <Users size={11} className="shrink-0" />
+                <span className="truncate">{event.target_audience}</span>
+              </span>
+            )}
+            {event.score && (
+              <span
+                className={`rect-chip inline-flex items-center gap-1 px-2 py-1 text-[11px] font-semibold ${
+                  isDayMode
+                    ? "bg-purple-50 text-purple-600 border-purple-200/80"
+                    : "bg-purple-500/10 text-purple-300 border-purple-500/20"
+                }`}
+              >
+                <Award size={11} />
+                {event.score}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div
+          className={`col-span-2 flex items-center justify-between gap-3 border-t px-4 py-3 lg:col-span-1 lg:flex-col lg:items-end lg:justify-center lg:border-l lg:border-t-0 lg:px-4 ${
+            isDayMode ? "border-slate-200/80 bg-slate-50/60" : "border-white/8 bg-white/[0.025]"
+          }`}
+        >
+          <span
+            className={`hidden rounded-[4px] border px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider lg:inline-flex ${getStatusColor(status, t, isDayMode)}`}
+          >
+            {status}
+          </span>
+          <div className="flex items-center gap-2">
+            <div onClick={(eventClick) => eventClick.stopPropagation()}>
+              <FavoriteButton
+                itemId={event.id}
+                itemType="event"
+                size={16}
+                showCount={true}
+                count={event.likes || 0}
+                favorited={event.favorited}
+                initialFavorited={event.favorited}
+                className={`rect-icon-button p-2 transition-colors ${
+                  isDayMode ? "hover:bg-violet-50 hover:text-violet-700" : "hover:bg-white/10"
+                }`}
+                onToggle={(favorited, likes) =>
+                  onToggleFavorite(event.id, favorited, likes)
+                }
+              />
+            </div>
+            <span
+              className={`rect-icon-button inline-flex h-9 w-9 items-center justify-center transition-[background-color,color,transform] duration-200 group-hover:translate-x-0.5 ${
+                isDayMode
+                  ? "bg-violet-50 text-violet-700 group-hover:bg-violet-600 group-hover:text-white"
+                  : "bg-white/5 group-hover:bg-white/10 group-hover:text-white"
+              }`}
+            >
+              <ArrowRight size={17} />
+            </span>
+          </div>
+        </div>
+      </motion.div>
+    );
+  },
+);
+EventListRow.displayName = "EventListRow";
+
 const Events = () => {
   const { t } = useTranslation();
   const { settings, uiMode } = useSettings();
@@ -432,6 +638,7 @@ const Events = () => {
   const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
   const [isMobileAssistantOpen, setIsMobileAssistantOpen] = useState(false);
   const [isDesktopAssistantOpen, setIsDesktopAssistantOpen] = useState(false);
+  const [viewMode, setViewMode] = useState("cards");
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth < 768 : false,
   );
@@ -956,6 +1163,30 @@ END:VCALENDAR`;
     "border border-indigo-400/28 bg-indigo-500/16 text-indigo-100 shadow-none";
   const dayPrimaryActionClass =
     "rect-button-primary bg-violet-700 text-white border-violet-700 hover:bg-violet-800 hover:border-violet-800";
+  const openEventFromList = useCallback(
+    (nextEvent) => {
+      updateSelectedEventRecommendationContext(null);
+      setSelectedEvent(nextEvent);
+    },
+    [updateSelectedEventRecommendationContext],
+  );
+  const viewModeOptions = useMemo(
+    () => [
+      {
+        value: "cards",
+        label: t("events.view_mode.cards"),
+        ariaLabel: t("events.view_mode.cards_aria"),
+        icon: LayoutGrid,
+      },
+      {
+        value: "list",
+        label: t("events.view_mode.list"),
+        ariaLabel: t("events.view_mode.list_aria"),
+        icon: List,
+      },
+    ],
+    [t],
+  );
 
   return (
     <section className={`day-page-theme day-page-theme-events pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:pb-20 md:pt-24 px-4 md:px-8 relative overflow-hidden flex-grow`}>
@@ -1047,6 +1278,51 @@ END:VCALENDAR`;
             sort={sort}
             onSortChange={setSort}
           />
+        </div>
+
+        <div className="mx-auto hidden w-full max-w-[108rem] items-center justify-between gap-4 md:flex">
+          <div
+            className={`text-left text-sm font-medium ${
+              isDayMode ? "text-slate-500" : "text-gray-400"
+            }`}
+          >
+            {t("events.result_count", { count: displayEvents.length })}
+          </div>
+          <div
+            className={`inline-flex rounded-[6px] border p-1 ${
+              isDayMode
+                ? "border-slate-200/80 bg-white/88"
+                : "border-white/10 bg-white/[0.045]"
+            }`}
+            role="group"
+            aria-label={t("events.view_mode.aria")}
+          >
+            {viewModeOptions.map((option) => {
+              const active = viewMode === option.value;
+              const Icon = option.icon;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  aria-label={option.ariaLabel}
+                  aria-pressed={active}
+                  onClick={() => setViewMode(option.value)}
+                  className={`inline-flex min-h-9 items-center gap-2 rounded-[4px] px-3 text-sm font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+                    active
+                      ? isDayMode
+                        ? "bg-slate-950 text-white shadow-[0_8px_18px_rgba(15,23,42,0.12)]"
+                        : "bg-white text-slate-950"
+                      : isDayMode
+                        ? "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                        : "text-gray-400 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <Icon size={15} />
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Mobile Filter Drawer (Bottom Sheet) */}
@@ -1308,8 +1584,8 @@ END:VCALENDAR`;
           </button>
         </div>
       ) : loading && displayEvents.length === 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-7 lg:gap-8 max-w-7xl mx-auto">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
+        <div className={`${EVENT_CARD_GRID_CLASS} mx-auto w-full max-w-[108rem]`}>
+          {Array.from({ length: 8 }, (_, index) => index + 1).map((i) => (
             <div
               key={i}
               className={`rect-media-card overflow-hidden h-full flex flex-row md:flex-col relative group ${isDayMode ? "bg-white border-violet-100/80 shadow-[0_14px_34px_rgba(168,85,247,0.06)]" : "bg-white/[0.04] border-white/5"}`}
@@ -1319,10 +1595,10 @@ END:VCALENDAR`;
 
               {/* Image Skeleton */}
               <div
-                className={`w-1/3 md:w-full aspect-square md:h-64 ${isDayMode ? "bg-violet-50" : "bg-white/5"}`}
+                className={`w-1/3 md:w-full aspect-square md:h-40 xl:h-36 2xl:h-40 ${isDayMode ? "bg-violet-50" : "bg-white/5"}`}
               />
               {/* Content Skeleton */}
-              <div className="p-4 md:p-6 flex-1 flex flex-col w-2/3 md:w-full">
+              <div className="p-4 flex-1 flex flex-col w-2/3 md:w-full">
                 <div
                   className={`h-6 rounded-[2px] w-3/4 mb-4 ${isDayMode ? "bg-violet-50" : "bg-white/10"}`}
                 />
@@ -1344,17 +1620,28 @@ END:VCALENDAR`;
             </div>
           ))}
         </div>
+      ) : viewMode === "list" && !isMobileViewport ? (
+        <div className="mx-auto flex w-full max-w-[108rem] flex-col gap-3">
+          {displayEvents.map((event, index) => (
+            <EventListRow
+              key={event.id}
+              event={event}
+              index={index}
+              onClick={openEventFromList}
+              onToggleFavorite={handleToggleFavorite}
+              reduceMotion={shouldReduceCardMotion}
+              isDayMode={isDayMode}
+            />
+          ))}
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-7 lg:gap-8 max-w-7xl mx-auto">
+        <div className={`${EVENT_CARD_GRID_CLASS} mx-auto w-full max-w-[108rem]`}>
           {displayEvents.map((event, index) => (
             <EventCard
               key={event.id}
               event={event}
               index={index}
-              onClick={(nextEvent) => {
-                updateSelectedEventRecommendationContext(null);
-                setSelectedEvent(nextEvent);
-              }}
+              onClick={openEventFromList}
               onToggleFavorite={handleToggleFavorite}
               reduceMotion={shouldReduceCardMotion}
               isDayMode={isDayMode}
