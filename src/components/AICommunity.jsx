@@ -8,12 +8,14 @@ import CommunityGroups from "./CommunityGroups";
 import CommunityPosts from "./CommunityPosts";
 import Music from "./Music";
 
-const SectionLabel = ({ code, title, isDayMode }) => (
-  <div className="mb-4">
+const SectionLabel = ({ code, title, isDayMode, compactOnMobile = false }) => (
+  <div className={compactOnMobile ? "mb-3 md:mb-4" : "mb-4"}>
     <div className={`text-[11px] font-black uppercase tracking-[0.22em] ${isDayMode ? "text-violet-700" : "text-cyan-300"}`}>
       {code}
     </div>
-    <h2 className="mt-1 text-xl font-black md:text-2xl">{title}</h2>
+    <h2 className={`${compactOnMobile ? "mt-0.5 text-lg md:mt-1 md:text-2xl" : "mt-1 text-xl md:text-2xl"} font-black`}>
+      {title}
+    </h2>
   </div>
 );
 
@@ -68,7 +70,7 @@ const AICommunity = () => {
 
   return (
     <section
-      className={`relative z-10 min-h-screen overflow-hidden px-4 pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:px-6 md:pb-20 md:pt-20 lg:pt-24 ${isDayMode ? "text-slate-950" : "text-white"}`}
+      className={`relative z-10 min-h-screen overflow-hidden px-3 pt-[calc(env(safe-area-inset-top)+72px)] pb-[calc(env(safe-area-inset-bottom)+104px)] sm:px-4 md:px-6 md:pb-20 md:pt-20 lg:pt-24 ${isDayMode ? "text-slate-950" : "text-white"}`}
     >
       <SEO title={t("nav.community", "AI社区")} description={subtitle} />
 
@@ -80,38 +82,40 @@ const AICommunity = () => {
 
       <div className="relative z-10 w-full">
 
-        <header className="mb-5 md:mb-7">
-          <div className={`relative overflow-hidden border px-4 py-4 md:px-6 md:py-5 ${isDayMode ? "border-violet-100/80 bg-white shadow-[0_8px_24px_rgba(168,85,247,0.055)]" : "border-white/10 bg-white/[0.045] shadow-[0_28px_90px_rgba(0,0,0,0.42)]"}`}>
+        <header className="mb-4 md:mb-7">
+          <div className={`relative overflow-hidden rounded-lg border px-4 py-3.5 md:px-6 md:py-5 ${isDayMode ? "border-violet-100/80 bg-white shadow-[0_8px_24px_rgba(168,85,247,0.055)]" : "border-white/10 bg-white/[0.045] shadow-[0_28px_90px_rgba(0,0,0,0.42)]"}`}>
             <div className={`absolute inset-x-0 top-0 h-[2px] ${isDayMode ? "bg-gradient-to-r from-pink-400 via-violet-400 to-transparent" : "bg-gradient-to-r from-orange-400 via-amber-300 to-transparent"}`} />
             <div className="relative">
-              <h1 className="text-[clamp(1.8rem,6vw,2.8rem)] font-black leading-none tracking-normal">
+              <h1 className="text-[clamp(1.55rem,8vw,2.8rem)] font-black leading-none tracking-normal">
                 {t("community.hero_title", "AI 社区")}
               </h1>
             </div>
           </div>
         </header>
 
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(220px,1fr)_minmax(0,2.5fr)_minmax(220px,1fr)] xl:items-start">
+        <div className="grid grid-cols-1 gap-5 md:gap-6 xl:grid-cols-[minmax(220px,1fr)_minmax(0,2.5fr)_minmax(220px,1fr)] xl:items-start">
 
-          <aside id="community-podcast" className="xl:sticky xl:top-24">
+          <aside id="community-podcast" className="order-2 xl:sticky xl:top-24 xl:order-1">
             <SectionLabel
               code={t("community.sidebar_podcast_code", "LISTEN · 播客")}
               title={t("community.sidebar_podcast_title", "播客")}
               isDayMode={isDayMode}
+              compactOnMobile
             />
             <Music embedded singleColumn />
           </aside>
 
-          <main id="community-posts" className="min-w-0">
+          <main id="community-posts" className="order-1 min-w-0 xl:order-2">
             <SectionLabel
               code={t("community.main_posts_code", "BUILD · ASK · 社区动态")}
               title={t("community.main_posts_title", "发帖区")}
               isDayMode={isDayMode}
+              compactOnMobile
             />
             <CommunityPosts />
           </main>
 
-          <aside className="space-y-8 xl:sticky xl:top-24">
+          <aside className="order-3 space-y-6 md:space-y-8 xl:sticky xl:top-24">
             <SidebarCard
               icon={QrCode}
               code={t("community.sidebar_groups_code", "LINK · 加入社群")}

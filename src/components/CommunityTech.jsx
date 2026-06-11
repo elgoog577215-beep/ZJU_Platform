@@ -35,15 +35,15 @@ const ArticleCard = memo(({
       animate={canAnimate ? { opacity: 1, y: 0 } : undefined}
       transition={canAnimate ? { duration: 0.24, delay: Math.min(index, 5) * 0.03 } : undefined}
       onClick={() => onClick(article)}
-      className={`group relative overflow-hidden rounded-lg border p-3.5 transition-all duration-300 hover:-translate-y-0.5 md:p-5 ${isDayMode ? 'bg-white border-slate-200/80 shadow-[0_8px_22px_rgba(15,23,42,0.045)] hover:border-slate-300 hover:shadow-[0_12px_28px_rgba(15,23,42,0.065)]' : 'bg-white/[0.045] hover:bg-white/[0.07] border-white/10 hover:shadow-[0_20px_40px_-15px_rgba(249,115,22,0.15)]'}`}
+      className={`group relative overflow-hidden rounded-lg border p-3 transition-all duration-300 hover:-translate-y-0.5 md:p-5 ${isDayMode ? 'bg-white border-slate-200/80 shadow-[0_8px_22px_rgba(15,23,42,0.045)] hover:border-slate-300 hover:shadow-[0_12px_28px_rgba(15,23,42,0.065)]' : 'bg-white/[0.045] hover:bg-white/[0.07] border-white/10 hover:shadow-[0_20px_40px_-15px_rgba(249,115,22,0.15)]'}`}
     >
       <div className={`pointer-events-none absolute inset-x-0 top-0 h-px ${isDayMode ? 'bg-slate-200/80' : 'bg-gradient-to-r from-transparent via-orange-500/20 to-transparent'}`} />
       {isDayMode ? (
         null
       ) : null}
-      <div className="flex gap-3 md:gap-6 items-start">
+      <div className="flex gap-3 items-start md:gap-6">
         {article.cover && (
-          <div className="w-[110px] sm:w-[128px] md:w-48 h-[110px] sm:h-[128px] md:h-32 rounded-md overflow-hidden flex-shrink-0">
+          <div className="h-[104px] w-[104px] flex-shrink-0 overflow-hidden rounded-md sm:h-[122px] sm:w-[122px] md:h-32 md:w-48">
             <SmartImage
               src={article.cover}
               alt={article.title}
@@ -54,8 +54,8 @@ const ArticleCard = memo(({
             />
           </div>
         )}
-        <div className="flex-1 min-w-0 flex flex-col justify-center space-y-2 md:space-y-3">
-          <div className={`flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] md:text-xs font-mono ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+        <div className="flex min-w-0 flex-1 flex-col justify-center space-y-1.5 md:space-y-3">
+          <div className={`flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] font-mono md:text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
             {article.author_name ? (
               <>
                 <span className="flex items-center gap-1 min-w-0 max-w-full truncate"><User size={12} className="shrink-0" />{article.author_name}</span>
@@ -66,11 +66,11 @@ const ArticleCard = memo(({
             <span>•</span>
             <span className="flex items-center gap-1"><Clock size={12} />{calculateReadingTime(article.content, t)}</span>
           </div>
-          <h3 className={`text-lg md:text-2xl font-bold leading-tight line-clamp-2 transition-colors ${isDayMode ? 'text-slate-900 group-hover:text-blue-700' : 'text-white group-hover:text-orange-400'}`}>
+          <h3 className={`line-clamp-2 text-base font-bold leading-snug transition-colors md:text-2xl md:leading-tight ${isDayMode ? 'text-slate-900 group-hover:text-blue-700' : 'text-white group-hover:text-orange-400'}`}>
             {article.title}
           </h3>
           <p className={`hidden md:block line-clamp-2 text-[15px] leading-7 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{article.excerpt}</p>
-          <div className="pt-1 md:pt-2 flex items-center justify-end gap-2 md:gap-3 mt-auto">
+          <div className="mt-auto flex items-center justify-end gap-1.5 pt-1 md:gap-3 md:pt-2">
             {actionBar}
             <FavoriteButton
               itemId={article.id}
@@ -79,10 +79,10 @@ const ArticleCard = memo(({
               showCount
               count={article.likes || 0}
               initialFavorited={article.favorited}
-              className={`min-h-[44px] min-w-[44px] p-1.5 md:min-h-0 md:min-w-0 md:p-2 rounded-md transition-colors ${isDayMode ? 'hover:bg-slate-100 hover:text-blue-700 text-slate-500' : 'hover:bg-white/10 hover:text-orange-500 text-gray-400'}`}
+              className={`min-h-[40px] min-w-[40px] rounded-md p-1.5 transition-colors md:min-h-0 md:min-w-0 md:p-2 ${isDayMode ? 'hover:bg-slate-100 hover:text-blue-700 text-slate-500' : 'hover:bg-white/10 hover:text-orange-500 text-gray-400'}`}
               onToggle={(favorited, likes) => onToggleFavorite(article.id, favorited, likes)}
             />
-            <div className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center p-1.5 md:min-h-0 md:min-w-0 md:p-2 rounded-md transition-all duration-300 ${isDayMode ? 'bg-slate-100 text-slate-500 group-hover:bg-slate-950 group-hover:text-white' : 'bg-white/5 group-hover:bg-orange-500 group-hover:text-black'}`}>
+            <div className={`inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-md p-1.5 transition-all duration-300 md:min-h-0 md:min-w-0 md:p-2 ${isDayMode ? 'bg-slate-100 text-slate-500 group-hover:bg-slate-950 group-hover:text-white' : 'bg-white/5 group-hover:bg-orange-500 group-hover:text-black'}`}>
               <ArrowRight size={16} className="-rotate-45 group-hover:rotate-0 transition-transform duration-300" />
             </div>
           </div>
@@ -136,9 +136,17 @@ const CommunityTech = () => {
 
   const contentBlocks = useMemo(() => parseContentBlocks(feed.selectedItem?.content_blocks), [feed.selectedItem?.content_blocks]);
 
+  const openUpload = useCallback(() => {
+    if (!user) {
+      toast.error(t('auth.signin_required'));
+      return;
+    }
+    setIsUploadOpen(true);
+  }, [t, user]);
+
   useEffect(() => {
     const onUpload = (event) => {
-      if (event.detail.type === 'article') setIsUploadOpen(true);
+      if (event.detail.type === 'article') openUpload();
     };
     const onSort = () => {
       setIsMobileSortOpen((prev) => !prev);
@@ -149,7 +157,7 @@ const CommunityTech = () => {
       window.removeEventListener('open-upload-modal', onUpload);
       window.removeEventListener('toggle-mobile-sort', onSort);
     };
-  }, []);
+  }, [openUpload]);
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent('set-mobile-toolbar-state', {
@@ -353,7 +361,7 @@ const CommunityTech = () => {
       onClose={handleCloseDetail}
       isDayMode={isDayMode}
       gradientFrom={isDayMode ? "from-slate-100" : "from-orange-900/40"}
-      headerHeight="h-72 sm:h-96"
+      headerHeight="h-56 sm:h-72 md:h-96"
       coverImage={feed.selectedItem?.cover}
       shareParam="id"
       onRelatedSelect={handleRelatedSelect}
@@ -362,7 +370,7 @@ const CommunityTech = () => {
           <div className={`flex items-center gap-3 font-bold text-lg md:text-xl uppercase tracking-[0.2em] mb-4 ${isDayMode ? 'text-blue-700' : 'text-orange-300 drop-shadow-lg'}`}>
             <span>{feed.selectedItem.date}</span>
           </div>
-          <h2 className={`text-4xl md:text-6xl font-black leading-[0.95] tracking-tight font-serif ${isDayMode ? 'text-slate-900' : 'text-white drop-shadow-2xl'}`}>
+          <h2 className={`text-2xl font-black leading-tight tracking-tight md:text-6xl md:leading-[0.95] font-serif ${isDayMode ? 'text-slate-900' : 'text-white drop-shadow-2xl'}`}>
             {feed.selectedItem.title}
           </h2>
         </>
@@ -448,13 +456,7 @@ const CommunityTech = () => {
         featuredSection={featuredSection}
         hideSortSelector
         hideMobileSummary
-        onNewPost={() => {
-          if (!user) {
-            toast.error(t('auth.signin_required'));
-            return;
-          }
-          setIsUploadOpen(true);
-        }}
+        onNewPost={openUpload}
         renderSkeleton={(index) => (
           <div key={index} className={`backdrop-blur-xl border rounded-lg p-5 animate-pulse flex flex-col md:flex-row gap-6 ${isDayMode ? 'bg-white/60 border-white/75' : 'bg-white/[0.04] border-white/5'}`}>
             <div className={`w-full md:w-48 h-48 md:h-32 rounded-md shrink-0 ${isDayMode ? 'bg-white/70' : 'bg-white/5'}`} />

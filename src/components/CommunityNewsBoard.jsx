@@ -78,44 +78,53 @@ const CommunityNewsBoard = () => {
     updateParams({ postTab: 'news' });
   }, [navigate, updateParams]);
 
-  const openEditor = async () => {
+  const openEditor = useCallback(() => {
     if (!user) {
       toast.error(t('auth.signin_required'));
       return;
     }
     setComposerOpen(true);
-  };
+  }, [t, user]);
+
+  React.useEffect(() => {
+    const onOpenComposer = (event) => {
+      if (event.detail?.boardKey !== 'news') return;
+      openEditor();
+    };
+    window.addEventListener('open-community-composer', onOpenComposer);
+    return () => window.removeEventListener('open-community-composer', onOpenComposer);
+  }, [openEditor]);
 
   const renderCard = (item, index, { canAnimate, isDayMode: dm }) => (
     <button
       key={item.id}
       type="button"
       onClick={() => handleOpen(item)}
-      className={`group w-full rounded-lg border p-4 text-left transition-all hover:-translate-y-0.5 md:p-5 ${
+      className={`group w-full rounded-lg border p-3.5 text-left transition-all hover:-translate-y-0.5 md:p-5 ${
         dm ? 'border-slate-200/80 bg-white shadow-[0_8px_22px_rgba(15,23,42,0.045)] hover:border-slate-300' : 'border-white/10 bg-white/[0.045] hover:bg-white/[0.07]'
       } ${canAnimate ? 'animate-in fade-in slide-in-from-bottom-2 duration-300' : ''}`}
     >
-      <div className="flex gap-4">
+      <div className="flex gap-3 md:gap-4">
         {item.cover ? (
-          <img src={item.cover} alt="" className="h-24 w-32 rounded-md object-cover md:h-28 md:w-40" />
+          <img src={item.cover} alt="" className="h-24 w-28 shrink-0 rounded-md object-cover sm:w-32 md:h-28 md:w-40" />
         ) : (
           <div className={`flex h-24 w-24 shrink-0 items-center justify-center rounded-md border md:h-28 md:w-32 ${dm ? 'border-slate-200 bg-slate-50 text-slate-400' : 'border-white/10 bg-white/[0.04] text-gray-500'}`}>
             <Newspaper size={26} />
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <div className={`mb-2 flex flex-wrap items-center gap-2 text-xs ${dm ? 'text-slate-500' : 'text-gray-400'}`}>
+          <div className={`mb-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] md:mb-2 md:text-xs ${dm ? 'text-slate-500' : 'text-gray-400'}`}>
             {item.is_pinned ? <span className="inline-flex items-center gap-1"><Pin size={12} />{t('common.pinned', '置顶')}</span> : null}
             <span>{item.source_name || t('community.news_source_internal', '站内新闻')}</span>
             <span className="inline-flex items-center gap-1"><Clock3 size={12} />{calculateReadingTime(item.content, t)}</span>
           </div>
-          <h3 className={`line-clamp-2 text-lg font-black md:text-2xl ${dm ? 'text-slate-950 group-hover:text-sky-700' : 'text-white group-hover:text-sky-300'}`}>
+          <h3 className={`line-clamp-2 text-base font-black leading-snug md:text-2xl ${dm ? 'text-slate-950 group-hover:text-sky-700' : 'text-white group-hover:text-sky-300'}`}>
             {item.title}
           </h3>
-          <p className={`mt-2 line-clamp-2 text-sm leading-6 ${dm ? 'text-slate-500' : 'text-gray-400'}`}>
+          <p className={`mt-1.5 line-clamp-2 text-[13px] leading-5 md:mt-2 md:text-sm md:leading-6 ${dm ? 'text-slate-500' : 'text-gray-400'}`}>
             {item.excerpt || item.content}
           </p>
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 md:mt-3">
             <span className={`inline-flex items-center gap-1 text-xs ${dm ? 'text-slate-500' : 'text-gray-400'}`}>
               <Flame size={13} />
               {Number(item.hot_score || 0)}
@@ -141,14 +150,14 @@ const CommunityNewsBoard = () => {
       onClose={handleCloseDetail}
       isDayMode={isDayMode}
       gradientFrom={isDayMode ? 'from-slate-100' : 'from-sky-900/40'}
-      headerHeight="h-72 sm:h-96"
+      headerHeight="h-56 sm:h-72 md:h-96"
       coverImage={selectedNews?.cover}
       headerContent={selectedNews && (
         <>
           <div className={`mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-[0.2em] ${isDayMode ? 'text-sky-700' : 'text-sky-300'}`}>
             {selectedNews.source_name || t('community.news_source_internal', '站内新闻')}
           </div>
-          <h2 className={`text-4xl font-black leading-tight md:text-6xl ${isDayMode ? 'text-slate-950' : 'text-white drop-shadow-2xl'}`}>{selectedNews.title}</h2>
+          <h2 className={`text-2xl font-black leading-tight md:text-6xl ${isDayMode ? 'text-slate-950' : 'text-white drop-shadow-2xl'}`}>{selectedNews.title}</h2>
         </>
       )}
       contentBlocks={contentBlocks}

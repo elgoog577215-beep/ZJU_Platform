@@ -94,16 +94,16 @@ const CommunityFeedPanel = ({
   return (
     <div role="tabpanel">
       {/* Controls */}
-      <div className={`mb-5 flex flex-col gap-3 rounded-lg border p-3 md:mb-6 md:p-4 max-md:border-transparent max-md:bg-transparent max-md:p-0 max-md:shadow-none ${isDayMode ? 'bg-white/82 border-slate-200/70 shadow-[0_10px_26px_rgba(15,23,42,0.04)]' : 'bg-white/[0.035] border-white/10'}`}>
+      <div className={`mb-4 flex flex-col gap-2.5 rounded-lg border p-3 md:mb-6 md:gap-3 md:p-4 max-md:border-transparent max-md:bg-transparent max-md:p-0 max-md:shadow-none ${isDayMode ? 'bg-white/82 border-slate-200/70 shadow-[0_10px_26px_rgba(15,23,42,0.04)]' : 'bg-white/[0.035] border-white/10'}`}>
         <div className={`flex flex-col justify-between gap-3 md:flex-row ${statusTabs ? 'md:items-center' : 'md:items-start'}`}>
           {/* Status tabs */}
           {statusTabs && (
-            <div className={`scrollbar-none flex items-center gap-1 overflow-x-auto rounded-lg border p-1 ${isDayMode ? 'border-slate-200/70 bg-slate-50' : 'border-white/10 bg-black/10'}`}>
+            <div className={`scrollbar-none -mx-1 flex max-w-full items-center gap-1 overflow-x-auto rounded-lg border p-1 sm:mx-0 ${isDayMode ? 'border-slate-200/70 bg-slate-50' : 'border-white/10 bg-black/10'}`}>
               {statusTabs.map(({ key, label }) => (
                 <button
                   key={key}
                   onClick={() => setStatusFilter(key)}
-                  className={`min-h-[34px] px-3.5 rounded-md text-xs font-semibold transition-all whitespace-nowrap ${
+                  className={`min-h-[34px] min-w-fit rounded-md px-3 text-xs font-semibold transition-all whitespace-nowrap md:px-3.5 ${
                     statusFilter === key
                       ? accentBtnClass
                       : (isDayMode ? 'text-slate-600 hover:bg-white hover:text-slate-950' : 'text-gray-400 hover:bg-white/10')
@@ -117,7 +117,7 @@ const CommunityFeedPanel = ({
 
           {!statusTabs && extraControls}
 
-          <div className="flex min-w-0 flex-shrink flex-wrap items-center justify-end gap-2">
+          <div className="flex min-w-0 flex-shrink flex-wrap items-center justify-end gap-2 max-md:hidden">
             {!hideSortSelector ? (
               <div className={`${statusTabs ? 'hidden md:block' : ''} w-40 md:w-48`}>
                 <SortSelector sort={sort} onSortChange={setSort} />
@@ -157,7 +157,7 @@ const CommunityFeedPanel = ({
               <span>{t('common.loading', '加载中')}...</span>
             ) : null}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 md:gap-2">
             {hasActiveFilters ? (
               <button
                 type="button"

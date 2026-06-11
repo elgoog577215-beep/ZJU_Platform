@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useSearchParams } from 'react-router-dom';
-import { BookOpen, HelpCircle, Newspaper, Users } from 'lucide-react';
+import { BookOpen, HelpCircle, Newspaper, Plus, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useSettings } from '../context/SettingsContext';
 import CommunityTech from './CommunityTech';
@@ -39,10 +40,10 @@ const CommunityPosts = () => {
   );
 
   return (
-    <div>
+    <div className="relative">
       <div
         role="tablist"
-        className={`mb-4 flex items-center gap-1 rounded-lg border p-1 ${
+        className={`scrollbar-none -mx-1 mb-4 flex items-center gap-1 overflow-x-auto rounded-lg border p-1 sm:mx-0 md:overflow-visible ${
           isDayMode
             ? 'border-slate-200/80 bg-slate-100/80'
             : 'border-white/10 bg-black/18'
@@ -55,7 +56,7 @@ const CommunityPosts = () => {
             role="tab"
             aria-selected={activeTab === key}
             onClick={() => handleTabChange(key)}
-            className={`inline-flex min-h-[42px] flex-1 items-center justify-center gap-2 rounded-md border px-3 text-sm font-bold whitespace-nowrap transition-all ${
+            className={`inline-flex min-h-[40px] min-w-[112px] flex-none items-center justify-center gap-1.5 rounded-md border px-3 text-[13px] font-bold whitespace-nowrap transition-all md:min-h-[42px] md:min-w-0 md:flex-1 md:gap-2 md:text-sm ${
               activeTab === key
                 ? isDayMode
                   ? 'border-slate-300 bg-white text-slate-950 shadow-[0_4px_12px_rgba(15,23,42,0.06)]'
@@ -75,6 +76,28 @@ const CommunityPosts = () => {
       {activeTab === 'help' ? <CommunityHelp /> : null}
       {activeTab === 'news' ? <CommunityNewsBoard /> : null}
       {activeTab === 'team' ? <CommunityTeam /> : null}
+
+      {createPortal(
+        <button
+          type="button"
+          onClick={() => {
+            if (activeTab === 'tech') {
+              window.dispatchEvent(new CustomEvent('open-upload-modal', { detail: { type: 'article' } }));
+              return;
+            }
+            window.dispatchEvent(new CustomEvent('open-community-composer', { detail: { boardKey: activeTab } }));
+          }}
+          aria-label={t('community.post_new', '发帖')}
+          className={`fixed bottom-[calc(env(safe-area-inset-bottom)+5.25rem)] right-4 z-[88] inline-flex h-12 w-12 items-center justify-center rounded-lg border shadow-[0_18px_34px_rgba(15,23,42,0.22)] transition-transform active:scale-95 md:hidden ${
+            isDayMode
+              ? 'border-violet-200 bg-violet-700 text-white'
+              : 'border-orange-300/30 bg-orange-400 text-slate-950'
+          }`}
+        >
+          <Plus size={22} />
+        </button>,
+        document.body,
+      )}
     </div>
   );
 };

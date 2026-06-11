@@ -40,6 +40,21 @@ const CommunityHelp = () => {
     defaultPageSize: 10,
   });
 
+  const openComposer = useCallback(() => {
+    if (!user) { toast.error(t('auth.signin_required')); return; }
+    setEditingPost(null);
+    setIsComposerOpen(true);
+  }, [t, user]);
+
+  React.useEffect(() => {
+    const onOpenComposer = (event) => {
+      if (event.detail?.boardKey !== 'help') return;
+      openComposer();
+    };
+    window.addEventListener('open-community-composer', onOpenComposer);
+    return () => window.removeEventListener('open-community-composer', onOpenComposer);
+  }, [openComposer]);
+
   const handleSolve = async (commentId) => {
     if (!feed.selectedItem) return;
     try {
@@ -114,7 +129,7 @@ const CommunityHelp = () => {
               {feed.selectedItem.created_at && new Date(feed.selectedItem.created_at).toLocaleDateString('zh-CN')}
             </span>
           </div>
-          <h2 className={`text-3xl md:text-5xl font-black leading-tight tracking-tight font-serif ${isDayMode ? 'text-slate-900' : 'text-white drop-shadow-2xl'}`}>
+          <h2 className={`text-2xl font-black leading-tight tracking-tight md:text-5xl font-serif ${isDayMode ? 'text-slate-900' : 'text-white drop-shadow-2xl'}`}>
             {feed.selectedItem.title}
           </h2>
         </>
@@ -145,11 +160,7 @@ const CommunityHelp = () => {
       accentColor="amber"
       statusTabs={STATUS_TABS}
       extraControls={helpControls}
-      onNewPost={() => {
-        if (!user) { toast.error(t('auth.signin_required')); return; }
-        setEditingPost(null);
-        setIsComposerOpen(true);
-      }}
+      onNewPost={openComposer}
       extraBottom={
         <UnifiedCommunityComposer
           isOpen={isComposerOpen}

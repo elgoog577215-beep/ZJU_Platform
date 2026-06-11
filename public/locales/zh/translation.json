@@ -40,6 +40,7 @@
     "logout_success": "已成功退出登录",
     "login_failed": "登录失败",
     "registration_failed": "注册失败",
+    "signin_required": "请先登录",
     "join_lumos": "加入 Lumos",
     "signin_desc": "登录以管理您的内容",
     "signup_desc": "创建账户以开始上传",

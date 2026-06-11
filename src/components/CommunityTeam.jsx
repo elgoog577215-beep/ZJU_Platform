@@ -38,6 +38,21 @@ const CommunityTeam = () => {
     defaultPageSize: 10,
   });
 
+  const openComposer = useCallback(() => {
+    if (!user) { toast.error(t('auth.signin_required')); return; }
+    setEditingPost(null);
+    setComposerOpen(true);
+  }, [t, user]);
+
+  React.useEffect(() => {
+    const onOpenComposer = (event) => {
+      if (event.detail?.boardKey !== 'team') return;
+      openComposer();
+    };
+    window.addEventListener('open-community-composer', onOpenComposer);
+    return () => window.removeEventListener('open-community-composer', onOpenComposer);
+  }, [openComposer]);
+
   const updateParams = useCallback((next) => {
     const params = new URLSearchParams(searchParams);
     ['id', 'post', 'news', 'group'].forEach((key) => params.delete(key));
@@ -116,7 +131,7 @@ const CommunityTeam = () => {
               {t('community.tab_team_collab', '组队协作')}
             </span>
           </div>
-          <h2 className={`text-3xl font-black leading-tight tracking-tight md:text-5xl ${isDayMode ? 'text-slate-900' : 'text-white drop-shadow-2xl'}`}>
+          <h2 className={`text-2xl font-black leading-tight tracking-tight md:text-5xl ${isDayMode ? 'text-slate-900' : 'text-white drop-shadow-2xl'}`}>
             {feed.selectedItem.title}
           </h2>
         </>
@@ -148,11 +163,7 @@ const CommunityTeam = () => {
         accentColor="violet"
         statusTabs={STATUS_TABS}
         extraControls={controls}
-        onNewPost={() => {
-          if (!user) { toast.error(t('auth.signin_required')); return; }
-          setEditingPost(null);
-          setComposerOpen(true);
-        }}
+        onNewPost={openComposer}
       />
       <UnifiedCommunityComposer
         isOpen={composerOpen}

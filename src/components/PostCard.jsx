@@ -56,11 +56,11 @@ const PostCard = memo(({ post, index, onClick, canAnimate, isDayMode }) => {
       animate={canAnimate ? { opacity: 1, y: 0 } : undefined}
       transition={canAnimate ? { duration: 0.24, delay: Math.min(index, 5) * 0.03 } : undefined}
       onClick={() => onClick(post)}
-      className={`group relative backdrop-blur-xl border rounded-lg p-5 transition-all duration-300 ${accentHover} cursor-pointer overflow-hidden ${accentShadow} hover:-translate-y-0.5 ${isDayMode ? 'bg-white/82 hover:bg-white border-slate-200/80 shadow-[0_12px_30px_rgba(15,23,42,0.07)]' : 'bg-white/[0.045] hover:bg-white/[0.07] border-white/10'}`}
+      className={`group relative overflow-hidden rounded-lg border p-3.5 backdrop-blur-xl transition-all duration-300 md:p-5 ${accentHover} cursor-pointer ${accentShadow} hover:-translate-y-0.5 ${isDayMode ? 'bg-white/82 hover:bg-white border-slate-200/80 shadow-[0_12px_30px_rgba(15,23,42,0.07)]' : 'bg-white/[0.045] hover:bg-white/[0.07] border-white/10'}`}
     >
-      <div className="flex-1 space-y-2.5">
+      <div className="flex-1 space-y-2 md:space-y-2.5">
         {/* Status + Time */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-semibold border ${isDayMode ? `${statusCfg.dayBg} ${statusCfg.dayText} ${statusCfg.dayBorder}` : `${statusCfg.bg} ${statusCfg.text} ${statusCfg.border}`}`}>
             {t(statusCfg.label)}
           </span>
@@ -70,12 +70,12 @@ const PostCard = memo(({ post, index, onClick, canAnimate, isDayMode }) => {
         </div>
 
         {/* Title */}
-        <h3 className={`text-lg md:text-xl font-bold ${titleHover} transition-colors leading-snug ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
+        <h3 className={`text-base font-bold md:text-xl ${titleHover} transition-colors leading-snug ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
           {post.title}
         </h3>
 
         {/* Excerpt */}
-        <p className={`text-sm line-clamp-2 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+        <p className={`line-clamp-2 text-[13px] leading-5 md:text-sm ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
           {post.excerpt || post.content}
         </p>
 
@@ -105,10 +105,10 @@ const PostCard = memo(({ post, index, onClick, canAnimate, isDayMode }) => {
         )}
 
         {/* Footer: author + replies */}
-        <div className={`flex items-center gap-3 pt-1 text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
-          <span className="flex items-center gap-1">
+        <div className={`flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+          <span className="flex min-w-0 items-center gap-1">
             <User size={12} />
-            {post.author_name || t('common.anonymous', '匿名用户')}
+            <span className="max-w-[8rem] truncate">{post.author_name || t('common.anonymous', '匿名用户')}</span>
           </span>
           <span className="flex items-center gap-1">
             <MessageCircle size={12} />

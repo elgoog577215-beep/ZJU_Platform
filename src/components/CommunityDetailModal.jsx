@@ -114,7 +114,7 @@ const CommunityDetailModal = ({
   const renderTextBlock = (block, blockKey, headingId) => {
     if (block.style === 'heading') {
       return (
-        <h3 id={headingId} className={`scroll-mt-24 text-2xl md:text-3xl font-black tracking-tight ${th.textPrimary}`}>
+        <h3 id={headingId} className={`scroll-mt-24 text-xl font-black tracking-tight md:text-3xl ${th.textPrimary}`}>
           {block.text}
         </h3>
       );
@@ -122,7 +122,7 @@ const CommunityDetailModal = ({
 
     if (block.style === 'quote') {
       return (
-        <blockquote className={`border-l-4 pl-5 italic text-lg leading-8 ${isDayMode ? 'border-slate-300 text-slate-600 bg-slate-50' : 'border-orange-400/50 text-gray-200 bg-orange-500/5'} rounded-r-2xl py-3`}>
+        <blockquote className={`border-l-4 py-3 pl-4 text-base italic leading-7 md:pl-5 md:text-lg md:leading-8 ${isDayMode ? 'border-slate-300 text-slate-600 bg-slate-50' : 'border-orange-400/50 text-gray-200 bg-orange-500/5'} rounded-r-lg`}>
           <LinkifiedText text={block.text} />
         </blockquote>
       );
@@ -134,7 +134,7 @@ const CommunityDetailModal = ({
         .map((line) => line.trim())
         .filter(Boolean);
       return (
-        <ul className={`space-y-2 pl-6 list-disc text-lg leading-8 ${th.textContent}`}>
+        <ul className={`space-y-2 pl-5 text-base leading-7 md:pl-6 md:text-lg md:leading-8 list-disc ${th.textContent}`}>
           {items.map((line, idx) => (
             <li key={`${blockKey}-li-${idx}`}>
               <LinkifiedText text={line} />
@@ -158,7 +158,7 @@ const CommunityDetailModal = ({
     }
 
     return (
-      <p className={`whitespace-pre-wrap break-words leading-8 text-lg ${th.textContent}`}>
+      <p className={`whitespace-pre-wrap break-words text-base leading-7 md:text-lg md:leading-8 ${th.textContent}`}>
         <LinkifiedText text={block.text} />
       </p>
     );
@@ -226,20 +226,20 @@ const CommunityDetailModal = ({
 
                 <button
                   onClick={onClose}
-                  className={`absolute top-6 right-6 p-2 rounded-lg backdrop-blur-md border transition-all z-20 group ${th.closeBtn}`}
+                  className={`absolute right-4 top-4 z-20 rounded-lg border p-2 backdrop-blur-md transition-all group md:right-6 md:top-6 ${th.closeBtn}`}
                 >
-                  <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />
+                  <X size={22} className="transition-transform duration-300 group-hover:rotate-90 md:size-6" />
                 </button>
 
                 <div
-                  className={`absolute bottom-0 left-0 px-6 pt-6 pb-6 md:px-10 md:pt-10 md:pb-8 w-full z-20 ${coverImage ? 'pt-48' : 'pt-32'} -mb-1 backdrop-blur-[2px] ${th.titleOverlay}`}
+                  className={`absolute bottom-0 left-0 z-20 w-full px-4 pb-4 pt-5 md:px-10 md:pb-8 md:pt-10 ${coverImage ? 'pt-28 md:pt-48' : 'pt-20 md:pt-32'} -mb-1 backdrop-blur-[2px] ${th.titleOverlay}`}
                 >
                   {headerContent}
                 </div>
               </div>
 
-              <div className="px-5 sm:px-8 md:px-12 pt-4 pb-12 max-w-5xl mx-auto">
-                <div className={`flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8 pb-6 border-b ${th.borderSubtle}`}>
+              <div className="mx-auto max-w-5xl px-4 pb-12 pt-4 sm:px-8 md:px-12">
+                <div className={`mb-6 flex flex-col gap-3 border-b pb-4 md:mb-8 md:flex-row md:items-center md:justify-between md:gap-4 md:pb-6 ${th.borderSubtle}`}>
                   <div
                     role="button"
                     tabIndex={canGoProfile ? 0 : -1}
@@ -251,7 +251,7 @@ const CommunityDetailModal = ({
                     }
                     onClick={canGoProfile ? handleAuthorNavigate : undefined}
                     onKeyDown={canGoProfile ? handleAuthorKeyDown : undefined}
-                    className={`flex items-center gap-3 rounded-lg -mx-2 px-2 py-1 transition-colors ${
+                    className={`-mx-2 flex items-center gap-3 rounded-lg px-2 py-1 transition-colors ${
                       canGoProfile
                         ? `cursor-pointer ${isDayMode ? 'hover:bg-slate-100 focus:bg-slate-100' : 'hover:bg-white/10 focus:bg-white/10'} focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/60`
                         : 'cursor-not-allowed opacity-60'
@@ -272,7 +272,7 @@ const CommunityDetailModal = ({
                         <User size={20} className={canGoProfile ? th.textSecondary : ''} />
                       )}
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <div className={`text-sm font-bold ${th.textPrimary}`}>
                         {canGoProfile
                           ? item.author_name || t('common.anonymous', '匿名用户')
@@ -281,11 +281,11 @@ const CommunityDetailModal = ({
                       <div className={`text-xs ${th.textTertiary}`}>{t('common.author')}</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <button
                       type="button"
                       onClick={handleShare}
-                      className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-sm ${isDayMode ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50' : 'bg-white/5 text-gray-200 border-white/10 hover:bg-white/10'}`}
+                      className={`inline-flex min-h-[38px] items-center gap-2 rounded-lg border px-3 text-sm ${isDayMode ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50' : 'bg-white/5 text-gray-200 border-white/10 hover:bg-white/10'}`}
                     >
                       <Share2 size={16} />
                       分享
@@ -294,7 +294,7 @@ const CommunityDetailModal = ({
                       <button
                         type="button"
                         onClick={() => navigator.clipboard?.writeText(shareUrl)}
-                        className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-sm ${isDayMode ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50' : 'bg-white/5 text-gray-200 border-white/10 hover:bg-white/10'}`}
+                        className={`inline-flex min-h-[38px] items-center gap-2 rounded-lg border px-3 text-sm ${isDayMode ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50' : 'bg-white/5 text-gray-200 border-white/10 hover:bg-white/10'}`}
                       >
                         <Copy size={16} />
                         复制链接
@@ -305,7 +305,7 @@ const CommunityDetailModal = ({
                 </div>
 
                 {tocItems.length >= 2 ? (
-                  <div className={`mb-8 rounded-lg border p-5 ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
+                  <div className={`mb-6 rounded-lg border p-4 md:mb-8 md:p-5 ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
                     <div className={`text-xs uppercase tracking-[0.22em] mb-3 ${th.textTertiary}`}>目录</div>
                     <div className="grid gap-2 sm:grid-cols-2">
                       {tocItems.map((entry) => (
@@ -344,7 +344,7 @@ const CommunityDetailModal = ({
                 ) : null}
 
                 {contentBlocks.length > 0 ? (
-                  <div className="space-y-6 mb-10">
+                  <div className="mb-8 space-y-5 md:mb-10 md:space-y-6">
                     {contentBlocks.map((block, bIdx) => {
                       const headingEntry = tocItems.find((entry) => entry.index === bIdx);
                       const headingId = headingEntry?.id;
@@ -402,7 +402,7 @@ const CommunityDetailModal = ({
                   </div>
                 ) : htmlContent ? (
                   <div
-                    className={`prose prose-lg max-w-none leading-relaxed break-words mb-10 ${th.prose}`}
+                    className={`prose max-w-none break-words mb-8 md:prose-lg md:mb-10 ${th.prose}`}
                     dangerouslySetInnerHTML={{
                       // linkify first (wraps bare URLs in <a>), then sanitize
                       // so DOMPurify keeps our added anchors and strips

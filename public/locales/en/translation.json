@@ -2,6 +2,7 @@
   "auth": {
     "welcome_back": "Welcome Back",
     "join_lumos": "Join Lumos",
+    "signin_required": "Please sign in first",
     "signin_desc": "Sign in to manage your content",
     "signup_desc": "Create an account to start uploading",
     "username": "Username",
