@@ -11,15 +11,15 @@ const MobileEventAssistantLauncher = ({ isDayMode, onOpen }) => {
     <button
       type="button"
       onClick={onOpen}
-      className={`group mb-4 flex w-full items-center justify-between rounded-lg border px-4 py-3.5 text-left transition-all active:scale-[0.99] md:hidden ${
+      className={`group mb-3 flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left transition-[background-color,border-color,box-shadow,transform] hover:-translate-y-px active:translate-y-0 active:scale-[0.99] md:hidden ${
         isDayMode
-          ? "border-violet-100/80 bg-white text-slate-900 shadow-[0_10px_24px_rgba(168,85,247,0.06)]"
-          : "border-white/10 bg-white/[0.06] text-white shadow-none"
+          ? "border-violet-100/80 bg-white text-slate-900 shadow-[0_10px_24px_rgba(168,85,247,0.06)] hover:border-violet-200 hover:bg-pink-50/40"
+          : "border-white/10 bg-white/[0.06] text-white shadow-none hover:border-blue-300/20 hover:bg-white/[0.085]"
       }`}
     >
       <span className="flex min-w-0 items-center gap-3">
         <span
-          className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md transition-transform group-active:scale-95 ${
+          className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md transition-transform group-hover:scale-[1.03] group-active:scale-95 ${
             isDayMode
               ? "bg-pink-50 text-violet-700 ring-1 ring-pink-100"
               : "bg-white/10 text-blue-200"
@@ -37,7 +37,7 @@ const MobileEventAssistantLauncher = ({ isDayMode, onOpen }) => {
         </span>
       </span>
       <span
-        className={`ml-3 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md border transition-transform group-active:translate-x-0.5 ${
+        className={`ml-3 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border transition-transform group-hover:translate-x-0.5 group-active:translate-x-1 ${
           isDayMode ? "border-slate-900/[0.08] bg-white/80 text-slate-500" : "border-white/10 bg-white/5 text-gray-300"
         }`}
       >
@@ -59,10 +59,10 @@ const MobileEventAssistantFullscreen = ({
     <AnimatePresence>
       {isOpen ? (
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 18 }}
-          transition={{ type: "spring", damping: 30, stiffness: 340 }}
+          initial={{ opacity: 0, y: 18, scale: 0.985 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 12, scale: 0.99 }}
+          transition={{ type: "spring", damping: 32, stiffness: 360 }}
           role="dialog"
           aria-modal="true"
           aria-labelledby="mobile-event-assistant-title"
@@ -73,7 +73,7 @@ const MobileEventAssistantFullscreen = ({
           }`}
         >
           <div
-            className={`shrink-0 border-b px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.9rem)] ${
+            className={`shrink-0 border-b px-4 pb-2.5 pt-[calc(env(safe-area-inset-top)+0.8rem)] ${
               isDayMode ? "border-violet-100 bg-white/94 backdrop-blur-xl" : "border-white/10 bg-[#111318]/92 backdrop-blur-xl"
             }`}
           >
@@ -82,7 +82,7 @@ const MobileEventAssistantFullscreen = ({
                 type="button"
                 aria-label={t("events.assistant.back_to_events", "返回活动列表")}
                 onClick={onClose}
-                className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md border transition-colors ${
+                className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md border transition-colors ${
                   isDayMode
                     ? "border-slate-200 bg-white text-slate-600 hover:text-slate-900"
                     : "border-white/10 bg-white/5 text-gray-300 hover:text-white"
@@ -96,7 +96,7 @@ const MobileEventAssistantFullscreen = ({
                 </h2>
               </div>
               <span
-                className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md ${
+                className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${
                   isDayMode ? "bg-pink-50 text-violet-700 ring-1 ring-pink-100" : "bg-white/10 text-blue-200"
                 }`}
               >
@@ -105,7 +105,7 @@ const MobileEventAssistantFullscreen = ({
             </div>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 custom-scrollbar">
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 custom-scrollbar">
             <EventAssistantPanel
               isDayMode={isDayMode}
               className="pb-[calc(env(safe-area-inset-bottom)+1rem)]"

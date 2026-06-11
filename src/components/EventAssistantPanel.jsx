@@ -282,16 +282,16 @@ const EventAssistantPanel = ({
   const isRailVariant = variant === "rail";
   const isCompactVariant = isFullscreenVariant || isRailVariant;
   const quickPromptGridClass = isFullscreenVariant
-    ? "mt-0 grid grid-cols-2 gap-2.5"
+    ? "mt-0 grid grid-cols-2 gap-2"
     : isRailVariant
-      ? "mt-3 grid grid-cols-2 gap-2"
+      ? "mt-2.5 grid grid-cols-2 gap-1.5"
       : "mt-4 flex flex-wrap gap-2";
   const shellClass = isFullscreenVariant
     ? "bg-transparent border-transparent shadow-none"
     : isRailVariant
       ? isDayMode
-        ? "bg-white/96 border-slate-200/90 shadow-[0_18px_48px_rgba(15,23,42,0.12)]"
-        : "bg-[#10121d]/94 border-white/10 shadow-[0_18px_48px_rgba(0,0,0,0.32)]"
+        ? "bg-white/97 border-slate-200/85 shadow-[0_18px_44px_rgba(15,23,42,0.11)]"
+        : "bg-[#0d111a]/94 border-white/10 shadow-[0_18px_46px_rgba(0,0,0,0.34)]"
       : isDayMode
         ? "bg-white/95 border-slate-200/85 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
         : "bg-[#10121d]/88 border-white/10 shadow-none";
@@ -299,10 +299,10 @@ const EventAssistantPanel = ({
     ? "bg-white/86 border-slate-200/80"
     : "bg-white/[0.05] border-white/10";
   const promptCardClass = isFullscreenVariant || isRailVariant
-    ? `${isDayMode ? "border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]" : "border-white/10 bg-white/[0.055] shadow-none"}`
+    ? `${isDayMode ? "border-slate-200/90 bg-white/96 shadow-[0_1px_2px_rgba(15,23,42,0.04)]" : "border-white/10 bg-white/[0.045] shadow-none"}`
     : softPanelClass;
   const resultPanelClass = isFullscreenVariant || isRailVariant
-    ? `${isDayMode ? "border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]" : "border-white/10 bg-white/[0.055] shadow-none"}`
+    ? `${isDayMode ? "border-slate-200/90 bg-white/96 shadow-[0_1px_2px_rgba(15,23,42,0.04)]" : "border-white/10 bg-white/[0.045] shadow-none"}`
     : softPanelClass;
   const textClass = isDayMode ? "text-slate-900" : "text-white";
   const mutedClass = isDayMode ? "text-slate-600" : "text-gray-300";
@@ -312,8 +312,8 @@ const EventAssistantPanel = ({
     : "bg-white/8 text-white/75 border-white/10";
   const quickPromptClass = isFullscreenVariant || isRailVariant
     ? isDayMode
-      ? "bg-white text-slate-700 border-violet-100 shadow-[0_1px_2px_rgba(168,85,247,0.045)] active:bg-pink-50"
-      : "bg-white/[0.055] text-white/82 border-white/10 shadow-none active:bg-white/[0.09]"
+      ? "bg-white text-slate-700 border-violet-100 shadow-[0_1px_2px_rgba(168,85,247,0.045)] hover:border-violet-200 hover:bg-pink-50/60 active:bg-pink-50"
+      : "bg-white/[0.055] text-white/82 border-white/10 shadow-none hover:border-blue-300/20 hover:bg-white/[0.085] active:bg-white/[0.1]"
     : chipClass;
   const controlChipClass = isFullscreenVariant || isRailVariant
     ? isDayMode
@@ -327,33 +327,53 @@ const EventAssistantPanel = ({
     ? "disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none"
     : "disabled:bg-white/[0.07] disabled:text-white/35 disabled:shadow-none";
   const panelPaddingClass = isRailVariant
-    ? "min-h-0 flex-1 overflow-y-auto p-3 custom-scrollbar"
+    ? "min-h-0 flex-1 overflow-y-auto p-2.5 custom-scrollbar"
     : isFullscreenVariant
       ? "px-0 pb-6 pt-0"
       : "p-4 sm:p-5 lg:p-6";
   const recommendationGridClass = isRailVariant
-    ? "mt-4 grid grid-cols-1 gap-3"
+    ? "mt-3 grid grid-cols-1 gap-2.5"
     : "mt-4 grid grid-cols-1 gap-4 xl:grid-cols-2";
-  const resultPaddingClass = isRailVariant ? "p-3.5" : "p-4 sm:p-5";
-  const recommendationCardClass = isRailVariant ? "p-3.5" : "p-4 sm:p-5";
+  const resultPaddingClass = isRailVariant ? "p-3" : "p-4 sm:p-5";
+  const recommendationCardClass = isRailVariant ? "p-3" : "p-4 sm:p-5";
   const recommendationTitleClass = isRailVariant
-    ? "text-base font-bold leading-7"
+    ? "text-[15px] font-bold leading-6"
     : "text-lg font-bold leading-8 sm:text-xl";
   const recommendationReasonClass = isRailVariant
-    ? "mt-2 text-sm leading-6"
+    ? "mt-1.5 text-[13px] leading-5"
     : "mt-3 text-sm leading-7 sm:text-base";
+  const shellRadiusClass = isFullscreenVariant ? "rounded-none" : isRailVariant ? "rounded-[7px]" : "rounded-lg";
+  const promptCardPaddingClass = isRailVariant ? "p-3" : "p-4";
+  const promptFocusClass = isDayMode
+    ? "focus-within:border-violet-300/90 focus-within:shadow-[0_0_0_3px_rgba(139,92,246,0.08)]"
+    : "focus-within:border-blue-300/35 focus-within:bg-white/[0.06]";
+  const textareaSizeClass = isRailVariant
+    ? "min-h-[70px] text-sm leading-6"
+    : isFullscreenVariant
+      ? "min-h-[96px] text-sm leading-7 sm:text-base"
+      : "min-h-[82px] text-sm leading-7 sm:text-base";
+  const quickPromptButtonSizeClass = isRailVariant
+    ? "min-h-[38px] px-2.5 py-2 text-[11px] leading-4"
+    : "min-h-[44px] px-3 py-2 text-xs";
+  const formMarginClass = isFullscreenVariant || isRailVariant ? "mt-3" : "mt-4";
+  const controlRowClass = isRailVariant ? "mt-2.5 gap-2 pt-2.5" : "mt-3 gap-3 pt-3";
+  const resetButtonSizeClass = isRailVariant ? "min-h-[36px] px-2.5 text-xs" : "min-h-[38px] px-3 text-sm";
+  const submitButtonSizeClass = isRailVariant ? "min-h-[38px] px-3 py-2 text-xs" : "px-5 py-3 text-sm";
+  const detailButtonClass = isRailVariant ? "mt-0.5 h-8 px-2.5" : "mt-1 h-10 px-3";
+  const metaChipClass = isRailVariant ? "px-2 py-1" : "px-3 py-1.5";
+  const feedbackButtonSizeClass = isRailVariant ? "h-8 w-8" : "h-9 w-9";
   const showInlineReset = isCompactVariant && (assistantState || originalQuery);
 
   return (
     <div className={`w-full ${isRailVariant ? "h-full min-h-0" : ""} ${className}`}>
-      <div className={`relative overflow-hidden border backdrop-blur-2xl ${isFullscreenVariant ? "rounded-none" : "rounded-lg"} ${isRailVariant ? "flex h-full min-h-0 flex-col" : ""} ${shellClass}`}>
+      <div className={`relative overflow-hidden border backdrop-blur-2xl transition-[background-color,border-color,box-shadow] ${shellRadiusClass} ${isRailVariant ? "flex h-full min-h-0 flex-col" : ""} ${shellClass}`}>
         <div className={`relative ${panelPaddingClass}`}>
           {isRailVariant ? (
-            <div className={`sticky top-0 z-10 -mx-3 -mt-3 border-b px-3 py-3 backdrop-blur-xl ${isDayMode ? "border-violet-100/80 bg-white/92" : "border-white/10 bg-[#10121d]/92"}`}>
-              <div className="flex items-center justify-between gap-3">
+            <div className={`sticky top-0 z-10 -mx-2.5 -mt-2.5 border-b px-2.5 py-2.5 backdrop-blur-xl ${isDayMode ? "border-violet-100/80 bg-white/92" : "border-white/10 bg-[#0d111a]/92"}`}>
+              <div className="flex items-center justify-between gap-2.5">
                 <div className="flex min-w-0 items-center gap-2 text-left">
-                  <span className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border ${isDayMode ? "border-pink-100 bg-pink-50 text-violet-700" : "border-blue-300/15 bg-blue-400/10 text-blue-200"}`}>
-                    <Sparkles size={17} />
+                  <span className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border ${isDayMode ? "border-pink-100 bg-pink-50 text-violet-700" : "border-blue-300/15 bg-blue-400/10 text-blue-200"}`}>
+                    <Sparkles size={16} />
                   </span>
                   <div className="min-w-0">
                     <h3 className={`truncate text-sm font-black ${textClass}`}>
@@ -369,7 +389,7 @@ const EventAssistantPanel = ({
                     type="button"
                     aria-label={t("common.close", "关闭")}
                     onClick={onClose}
-                    className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border transition-colors ${controlChipClass}`}
+                    className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border transition-colors ${controlChipClass}`}
                   >
                     <X size={16} />
                   </button>
@@ -412,7 +432,7 @@ const EventAssistantPanel = ({
                   type="button"
                   onClick={() => handleQuickPrompt(item.prompt)}
                   disabled={loading}
-                  className={`inline-flex min-h-[44px] items-center justify-center rounded-lg border px-3 py-2 text-xs font-bold transition-colors disabled:cursor-not-allowed ${disabledActionClass} ${quickPromptClass}`}
+                  className={`inline-flex items-center justify-center rounded-lg border font-bold transition-[background-color,border-color,transform] hover:-translate-y-px active:translate-y-0 disabled:cursor-not-allowed disabled:hover:translate-y-0 ${quickPromptButtonSizeClass} ${disabledActionClass} ${quickPromptClass}`}
                 >
                   {item.label}
                 </button>
@@ -420,8 +440,8 @@ const EventAssistantPanel = ({
             </div>
           ) : null}
 
-          <form onSubmit={handleSubmit} className={isFullscreenVariant ? "mt-3" : "mt-4"}>
-            <div className={`relative overflow-hidden rounded-lg border p-4 ${promptCardClass}`}>
+          <form onSubmit={handleSubmit} className={formMarginClass}>
+            <div className={`relative overflow-hidden rounded-lg border transition-[background-color,border-color,box-shadow] ${promptCardPaddingClass} ${promptFocusClass} ${promptCardClass}`}>
               {originalQuery ? (
                 <div className={`mb-3 inline-flex max-w-full items-center gap-2 rounded-md border px-3 py-1.5 text-xs ${chipClass}`}>
                   <MessageSquareText size={13} />
@@ -443,15 +463,15 @@ const EventAssistantPanel = ({
                     ? t("events.assistant.clarification_placeholder", "补充一点偏好，我就继续帮你缩小范围。")
                     : t("events.assistant.input_placeholder", "比如：这周末线下，适合新生，最好有综测或志愿时长")
                 }
-                className={`w-full resize-none bg-transparent px-1 py-1 text-sm leading-7 outline-none sm:text-base ${isFullscreenVariant ? "min-h-[96px]" : "min-h-[82px]"} ${isDayMode ? "text-slate-900 placeholder:text-slate-400" : "text-white placeholder:text-gray-500"}`}
+                className={`w-full resize-none bg-transparent px-1 py-1 outline-none ${textareaSizeClass} ${isDayMode ? "text-slate-900 placeholder:text-slate-400" : "text-white placeholder:text-gray-500"}`}
               />
 
-              <div className={`mt-3 flex flex-col gap-3 border-t pt-3 sm:flex-row sm:items-center ${showInlineReset ? "sm:justify-between" : "sm:justify-end"} ${isDayMode ? "border-slate-200/70" : "border-white/10"}`}>
+              <div className={`flex flex-col border-t sm:flex-row sm:items-center ${controlRowClass} ${showInlineReset ? "sm:justify-between" : "sm:justify-end"} ${isDayMode ? "border-slate-200/70" : "border-white/10"}`}>
                 {showInlineReset ? (
                   <button
                     type="button"
                     onClick={resetAssistant}
-                    className={`inline-flex min-h-[38px] items-center justify-center gap-2 rounded-md border px-3 text-sm font-semibold transition-all ${controlChipClass}`}
+                    className={`inline-flex items-center justify-center gap-2 rounded-md border font-semibold transition-all ${resetButtonSizeClass} ${controlChipClass}`}
                   >
                     <RotateCcw size={14} />
                     {t("events.assistant.restart", "重来")}
@@ -461,7 +481,7 @@ const EventAssistantPanel = ({
                 <button
                   type="submit"
                   disabled={loading || input.trim() === ""}
-                  className={`inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-bold transition-all active:scale-[0.99] disabled:cursor-not-allowed ${disabledActionClass} ${isRailVariant ? "w-full sm:w-auto" : "min-w-[148px]"} ${actionClass}`}
+                  className={`inline-flex items-center justify-center gap-2 rounded-lg font-bold transition-all hover:-translate-y-px active:translate-y-0 active:scale-[0.99] disabled:cursor-not-allowed disabled:hover:translate-y-0 ${submitButtonSizeClass} ${disabledActionClass} ${isRailVariant ? "w-full sm:w-auto" : "min-w-[148px]"} ${actionClass}`}
                 >
                   {loading ? (
                     <>
@@ -485,10 +505,10 @@ const EventAssistantPanel = ({
             {assistantState && (
               <motion.div
                 key={assistantState.type + assistantState.scope}
-                initial={{ opacity: 0, y: 14 }}
+                initial={{ opacity: 0, y: isRailVariant ? 8 : 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: isRailVariant ? 0.2 : 0.24, ease: [0.22, 1, 0.36, 1] }}
                 className="mt-4"
               >
                 <div className={`rounded-lg border ${resultPaddingClass} ${resultPanelClass}`}>
@@ -557,7 +577,7 @@ const EventAssistantPanel = ({
                         return (
                           <div
                             key={item.id}
-                            className={`rounded-lg border transition-colors ${recommendationCardClass} ${isDayMode ? "bg-white border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.035)]" : "bg-white/[0.045] border-white/10"}`}
+                            className={`rounded-lg border transition-[background-color,border-color,box-shadow,transform] hover:-translate-y-0.5 ${recommendationCardClass} ${isDayMode ? "bg-white border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.035)] hover:border-violet-200 hover:bg-violet-50/30 hover:shadow-[0_8px_18px_rgba(88,28,135,0.06)]" : "bg-white/[0.045] border-white/10 hover:border-blue-300/20 hover:bg-white/[0.065]"}`}
                           >
                             <button
                               type="button"
@@ -592,7 +612,7 @@ const EventAssistantPanel = ({
                                     {item.reason}
                                   </p>
                                 </div>
-                                <span className={`mt-1 inline-flex h-10 shrink-0 items-center justify-center gap-1 rounded-md border px-3 text-xs font-semibold transition-transform group-hover:translate-x-1 ${chipClass}`}>
+                                <span className={`inline-flex shrink-0 items-center justify-center gap-1 rounded-md border text-xs font-semibold transition-transform group-hover:translate-x-1 ${detailButtonClass} ${chipClass}`}>
                                   <span className="sm:hidden">{t("events.assistant.view_details", "详情")}</span>
                                   <span className="hidden sm:inline">{t("events.assistant.view_details", "看详情")}</span>
                                   <ArrowRight size={16} />
@@ -617,25 +637,25 @@ const EventAssistantPanel = ({
 
                             <div className={`mt-4 flex flex-wrap items-center gap-2 text-xs ${faintClass}`}>
                               {item.event.date && (
-                                <span className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 ${chipClass}`}>
+                                <span className={`inline-flex items-center gap-1.5 rounded-md border ${metaChipClass} ${chipClass}`}>
                                   <Calendar size={13} />
                                   {formatEventDate(item.event.date)}
                                 </span>
                               )}
                               {item.event.location && (
-                                <span className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 ${chipClass}`}>
+                                <span className={`inline-flex items-center gap-1.5 rounded-md border ${metaChipClass} ${chipClass}`}>
                                   <MapPin size={13} />
                                   <span className="max-w-[180px] truncate">{item.event.location}</span>
                                 </span>
                               )}
                               {item.event.target_audience && (
-                                <span className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 ${chipClass}`}>
+                                <span className={`inline-flex items-center gap-1.5 rounded-md border ${metaChipClass} ${chipClass}`}>
                                   {item.event.target_audience}
                                 </span>
                               )}
                             </div>
 
-                            <div className={`mt-4 flex items-center justify-between border-t pt-3 ${isDayMode ? "border-slate-200/70" : "border-white/10"}`}>
+                            <div className={`${isRailVariant ? "mt-3 pt-2.5" : "mt-4 pt-3"} flex items-center justify-between border-t ${isDayMode ? "border-slate-200/70" : "border-white/10"}`}>
                               <span className={`text-xs ${faintClass}`}>
                                 {t("events.assistant.feedback_question", "有用吗？")}
                               </span>
@@ -645,7 +665,7 @@ const EventAssistantPanel = ({
                                   aria-label={t("events.assistant.feedback_up_aria", "推荐适合我")}
                                   title={t("events.assistant.feedback_up_title", "适合我")}
                                   onClick={() => submitFeedback(item, "up", "", recommendationRank)}
-                                  className={`inline-flex h-9 w-9 items-center justify-center rounded-md border transition-colors ${feedbackMap[item.id] === "up" ? "bg-emerald-500 text-white border-emerald-500" : chipClass}`}
+                                  className={`inline-flex items-center justify-center rounded-md border transition-[background-color,border-color,color,transform] hover:-translate-y-px active:translate-y-0 ${feedbackButtonSizeClass} ${feedbackMap[item.id] === "up" ? "bg-emerald-500 text-white border-emerald-500" : chipClass}`}
                                 >
                                   <ThumbsUp size={15} />
                                 </button>
@@ -661,7 +681,7 @@ const EventAssistantPanel = ({
                                       setFeedbackReasonMap((previous) => ({ ...previous, [item.id]: "not_relevant" }));
                                     }
                                   }}
-                                  className={`inline-flex h-9 w-9 items-center justify-center rounded-md border transition-colors ${feedbackMap[item.id] === "down" ? "bg-rose-500 text-white border-rose-500" : chipClass}`}
+                                  className={`inline-flex items-center justify-center rounded-md border transition-[background-color,border-color,color,transform] hover:-translate-y-px active:translate-y-0 ${feedbackButtonSizeClass} ${feedbackMap[item.id] === "down" ? "bg-rose-500 text-white border-rose-500" : chipClass}`}
                                 >
                                   <ThumbsDown size={15} />
                                 </button>
