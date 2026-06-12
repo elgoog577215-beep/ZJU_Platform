@@ -42,7 +42,7 @@ const PhotoCard = memo(forwardRef(({ photo, index, onClick, onToggleFavorite, ca
       ease: [0.25, 0.46, 0.45, 0.94],
     }}
     whileHover={canAnimate ? { y: -4, transition: { duration: 0.18 } } : undefined}
-    className={`break-inside-avoid relative group aspect-[4/5] overflow-hidden rounded-2xl cursor-pointer backdrop-blur-sm border transition-all duration-300 w-full inline-block touch-manipulation mb-0 sm:aspect-auto sm:mb-4 md:mb-6 ${
+    className={`relative group aspect-[4/5] overflow-hidden rounded-2xl cursor-pointer backdrop-blur-sm border transition-all duration-300 w-full touch-manipulation ${
       isDayMode
         ? "day-card-lift rounded-xl"
         : "bg-white/5 border-white/10 hover:shadow-2xl hover:shadow-indigo-500/10 hover:border-white/20"
@@ -53,8 +53,8 @@ const PhotoCard = memo(forwardRef(({ photo, index, onClick, onToggleFavorite, ca
       src={getThumbnailUrl(photo.url)}
       alt={photo.title}
       type="image"
-      className="h-full w-full sm:min-h-[240px]"
-      imageClassName="h-full w-full object-cover transform transition-transform duration-700 ease-out group-hover:scale-105 sm:h-auto sm:min-h-[240px]"
+      className="h-full w-full"
+      imageClassName="h-full w-full object-cover transform transition-transform duration-700 ease-out group-hover:scale-105"
       blurPlaceholder={photo.blurPlaceholder}
     />
 
@@ -713,8 +713,8 @@ const MediaLibrary = () => {
           </motion.div>
         ) : null}
 
-        <div className="grid gap-8 2xl:grid-cols-[minmax(0,1fr)_minmax(320px,0.42fr)] 2xl:items-start">
-          <aside className="order-1 min-w-0 2xl:order-2">
+        <div className="grid gap-10">
+          <section className="order-1 min-w-0">
             <div className="mb-4 flex items-center justify-between gap-4">
               <div>
                 <h2 className={`text-xl md:text-2xl font-semibold tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}>
@@ -737,7 +737,7 @@ const MediaLibrary = () => {
             </div>
 
             {videosLoading && displayVideos.length === 0 ? (
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-2 md:gap-5 2xl:grid-cols-1">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 lg:gap-5">
                 {[...Array(4)].map((_, index) => (
                   <div
                     key={index}
@@ -756,7 +756,7 @@ const MediaLibrary = () => {
                 isDayMode={isDayMode}
               />
             ) : (
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-2 md:gap-5 2xl:grid-cols-1">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 lg:gap-5">
                 {displayVideos.map((video, index) => (
                   <VideoCard
                     key={video.id}
@@ -784,9 +784,9 @@ const MediaLibrary = () => {
                 {t("media_library.load_more_videos", "加载更多视频")}
               </LoadMoreButton>
             ) : null}
-          </aside>
+          </section>
 
-          <section className="order-2 min-w-0 2xl:order-1">
+          <section className="order-2 min-w-0">
             <div className="mb-4 flex items-center justify-between gap-4">
               <div>
                 <h2 className={`text-xl md:text-2xl font-semibold tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}>
@@ -809,13 +809,13 @@ const MediaLibrary = () => {
             </div>
 
             {photosLoading && displayPhotos.length === 0 ? (
-              <div className="grid grid-cols-2 gap-3 sm:columns-2 sm:block sm:gap-4 md:gap-6">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 lg:gap-5">
                 {[...Array(6)].map((_, index) => (
                   <div
                     key={index}
-                    className={`aspect-[4/5] rounded-2xl animate-pulse sm:mb-4 sm:break-inside-avoid sm:aspect-auto ${
-                      index % 3 === 0 ? "sm:h-72" : "sm:h-52"
-                    } ${isDayMode ? "bg-slate-100 border border-slate-200/80" : "bg-white/5 border border-white/10"}`}
+                    className={`aspect-[4/5] rounded-2xl animate-pulse ${
+                      isDayMode ? "bg-slate-100 border border-slate-200/80" : "bg-white/5 border border-white/10"
+                    }`}
                   />
                 ))}
               </div>
@@ -829,7 +829,7 @@ const MediaLibrary = () => {
             ) : (
               <motion.div
                 layout={!prefersReducedMotion && typeof window !== "undefined" && window.innerWidth >= 768}
-                className="grid grid-cols-2 gap-3 pb-4 sm:block sm:columns-2 sm:gap-4 md:gap-6 md:pb-0"
+                className="grid grid-cols-2 gap-3 pb-4 sm:gap-4 lg:grid-cols-3 lg:gap-5 md:pb-0"
               >
                 <AnimatePresence mode="popLayout">
                   {displayPhotos.map((photo, index) => (
