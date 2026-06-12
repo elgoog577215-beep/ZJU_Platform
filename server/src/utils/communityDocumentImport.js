@@ -8,6 +8,9 @@ const SUPPORTED_DOCUMENT_EXTENSIONS = new Set([
   '.docx',
   '.md',
   '.markdown',
+  '.txt',
+  '.html',
+  '.htm',
 ]);
 
 const extractor = new WordExtractor();
@@ -64,6 +67,32 @@ const buildBlocksFromPlainText = (rawText = '') => {
 
     return createTextBlock(paragraph, 'paragraph');
   });
+};
+
+const decodeHtmlEntities = (value = '') => String(value || '')
+  .replace(/&nbsp;/gi, ' ')
+  .replace(/&amp;/gi, '&')
+  .replace(/&lt;/gi, '<')
+  .replace(/&gt;/gi, '>')
+  .replace(/&quot;/gi, '"')
+  .replace(/&#39;/gi, "'");
+
+const extractHtmlText = (rawHtml = '') => {
+  const normalized = String(rawHtml || '')
+    .replace(/<script[\s\S]*?<\/script>/gi, '\n')
+    .replace(/<style[\s\S]*?<\/style>/gi, '\n')
+    .replace(/<noscript[\s\S]*?<\/noscript>/gi, '\n')
+    .replace(/<!--[\s\S]*?-->/g, '\n')
+    .replace(/<\/(h[1-6]|p|li|blockquote|pre|div|section|article|main|br)>/gi, '\n')
+    .replace(/<li[^>]*>/gi, '- ')
+    .replace(/<h[1-6][^>]*>/gi, '\n# ')
+    .replace(/<blockquote[^>]*>/gi, '\n> ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n[ \t]+/g, '\n')
+    .replace(/\n{3,}/g, '\n\n');
+
+  return decodeHtmlEntities(normalized);
 };
 
 const buildBlocksFromMarkdown = (rawMarkdown = '') => {
@@ -377,6 +406,14 @@ const importCommunityDocument = async (file) => {
   if (extension === '.md' || extension === '.markdown') {
     sourceType = 'markdown';
     sourceText = await fs.readFile(file.path, 'utf8');
+    contentBlocks = buildBlocksFromMarkdown(sourceText);
+  } else if (extension === '.txt') {
+    sourceType = 'text';
+    sourceText = await fs.readFile(file.path, 'utf8');
+    contentBlocks = promoteLeadingTitleBlock(buildBlocksFromPlainText(sourceText));
+  } else if (extension === '.html' || extension === '.htm') {
+    sourceType = 'html';
+    sourceText = extractHtmlText(await fs.readFile(file.path, 'utf8'));
     contentBlocks = buildBlocksFromMarkdown(sourceText);
   } else if (extension === '.pdf') {
     sourceType = 'pdf';

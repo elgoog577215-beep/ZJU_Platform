@@ -21,6 +21,7 @@ const tagController = require('../controllers/tagController');
 const notificationController = require('../controllers/notificationController');
 const commentController = require('../controllers/commentController');
 const communityController = require('../controllers/communityController');
+const cliController = require('../controllers/cliController');
 const newsController = require('../controllers/newsController');
 const hackathonController = require('../controllers/hackathonController');
 const competitionController = require('../controllers/competitionController');
@@ -64,6 +65,16 @@ const communityCommentCreateLimiter = customRateLimit({
 
 const importCommunityDocumentUpload = (req, res, next) => {
   upload.single('document')(req, res, (error) => {
+    if (error) {
+      error.statusCode = 400;
+      return next(error);
+    }
+    return next();
+  });
+};
+
+const cliDocumentUpload = (req, res, next) => {
+  upload.single('file')(req, res, (error) => {
     if (error) {
       error.statusCode = 400;
       return next(error);
@@ -141,6 +152,11 @@ router.post('/community/posts/:id/join', authenticateToken, communityController.
 router.delete('/community/posts/:id/join', authenticateToken, communityController.leaveTeamPost);
 router.get('/community/posts/:id/members', optionalAuth, communityController.listTeamMembers);
 router.get('/community/search', optionalAuth, communityController.searchPosts);
+
+// CLI Publishing Routes
+router.post('/cli/import', authenticateToken, cliDocumentUpload, cliController.importCliFile);
+router.post('/cli/publish', authenticateToken, communityPostCreateLimiter, cliDocumentUpload, cliController.publishCliFile);
+router.get('/cli/submissions', authenticateToken, cliController.listCliSubmissions);
 
 // Community Groups
 router.get('/community/groups', optionalAuth, communityController.listGroups);

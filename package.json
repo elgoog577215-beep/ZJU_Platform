@@ -3,6 +3,10 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "bin": {
+    "zju": "./bin/zju.js",
+    "zju-community": "./bin/zju.js"
+  },
   "scripts": {
     "dev": "npm run dev:full",
     "dev:client": "vite --host --port 5180",
