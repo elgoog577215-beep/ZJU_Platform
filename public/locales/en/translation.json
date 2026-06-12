@@ -1383,6 +1383,11 @@
       "list": "List",
       "list_aria": "Switch to list view"
     },
+    "college_notice": {
+      "badge": "College Notice",
+      "link_available": "Link included",
+      "text_notice": "Text notice"
+    },
     "no_more_recommendations": "No more recommendations",
     "no_matches_desc": "No events match the current filters. Reset filters and try again.",
     "empty_desc": "No events are available right now. Please check back later.",
@@ -1390,6 +1395,7 @@
     "default_audience": "Campus Event",
     "category_fallback": "Event",
     "categories": {
+      "college_notice": "College Notices",
       "lecture": "Talks",
       "competition": "Competitions",
       "volunteer": "Volunteering",
@@ -1802,6 +1808,7 @@
       "parse_success": "Parse successful",
       "parse_failed": "Failed to parse WeChat article",
       "required_end_date": "End Date is required",
+      "required_event_category": "Please choose an event category",
       "wechat_import": "Import from WeChat",
       "wechat_placeholder": "Paste WeChat article link...",
       "parsing": "Parsing...",
@@ -1975,6 +1982,10 @@
   "event_fields": {
     "basic_info": "Basic Info",
     "attributes": "Attributes",
+    "category": "Event Category",
+    "special_marks": "Special Marks",
+    "college_notice": "College Notice",
+    "college_notice_hint": "For counselor or college announcements. It can be combined with the normal event category.",
     "start_date": "Start Date & Time",
     "end_date": "End Date & Time",
     "volunteer_duration": "Volunteer Duration",

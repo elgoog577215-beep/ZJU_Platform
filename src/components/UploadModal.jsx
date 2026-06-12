@@ -10,11 +10,21 @@ import { useSettings } from '../context/SettingsContext';
 import { useBackClose } from '../hooks/useBackClose';
 import useMediaCategories from '../hooks/useMediaCategories';
 import {
+  COLLEGE_NOTICE_TAG,
   EVENT_CATEGORIES,
   EVENT_AUDIENCE_GROUPS,
   EVENT_AUDIENCE_OPTIONS,
+  getEventCategoryLabel,
   normalizeEventCategoryValue,
 } from '../data/eventTaxonomy';
+
+const getTagList = (value = '') =>
+  String(value || '')
+    .split(',')
+    .map((tag) => tag.trim())
+    .filter(Boolean);
+
+const serializeTagList = (items = []) => [...new Set(items)].join(',');
 
 const createArticleBlock = (blockType = 'text') => ({
   id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -234,7 +244,7 @@ const ARTICLE_BLOCK_META = {
 };
 
 const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = null, allowBatch = false }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const onCloseRef = useRef(onClose);
   useEffect(() => {
     onCloseRef.current = onClose;
@@ -321,6 +331,9 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   const [eventScore, setEventScore] = useState(initialData?.score || '');
   const [eventVolunteerTime, setEventVolunteerTime] = useState(initialData?.volunteer_time || '');
   const [eventCategory, setEventCategory] = useState(() => normalizeEventCategory(initialData?.category));
+  const [isCollegeNotice, setIsCollegeNotice] = useState(() =>
+    getTagList(initialData?.tags).includes(COLLEGE_NOTICE_TAG)
+  );
   const [eventTarget, setEventTarget] = useState(() => normalizeEventAudience(initialData?.target_audience) || initialData?.target_audience || '');
   const [eventOrganizer, setEventOrganizer] = useState(initialData?.organizer || '');
   const [audienceSearch, setAudienceSearch] = useState('');
@@ -394,6 +407,19 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         ? current.filter((item) => item !== audience)
         : [...current, audience];
       return next.join(',');
+    });
+  }, []);
+
+  const toggleCollegeNotice = React.useCallback(() => {
+    setIsCollegeNotice((current) => {
+      const next = !current;
+      setTags((previousTags) => {
+        const currentTags = getTagList(previousTags).filter(
+          (tag) => tag !== COLLEGE_NOTICE_TAG,
+        );
+        return serializeTagList(next ? [...currentTags, COLLEGE_NOTICE_TAG] : currentTags);
+      });
+      return next;
     });
   }, []);
 
@@ -567,6 +593,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             setEventScore(initialData.score || '');
             setEventVolunteerTime(initialData.volunteer_time || '');
             setEventCategory(normalizeEventCategory(initialData.category));
+            setIsCollegeNotice(getTagList(initialData.tags).includes(COLLEGE_NOTICE_TAG));
             setEventTarget(normalizeEventAudience(initialData.target_audience) || initialData.target_audience || '');
             setEventOrganizer(initialData.organizer || '');
             setFeatured(initialData.featured || false);
@@ -594,6 +621,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             setEventLink('');
             setEventScore('');
             setEventCategory('');
+            setIsCollegeNotice(false);
             setEventTarget('');
             setEventOrganizer('');
             setFeatured(false);
@@ -1069,7 +1097,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         return;
     }
     if (type === 'event' && !eventCategory) {
-        toast.error('请选择活动分类');
+        toast.error(t('upload.required_event_category'));
         return;
     }
     if (type === 'article') {
@@ -1128,12 +1156,20 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
       const resolvedStatus = submitIntent === 'draft'
         ? 'draft'
         : (isAdmin ? 'approved' : 'pending');
+      const eventTags = serializeTagList(
+        isCollegeNotice
+          ? [
+              ...getTagList(tags).filter((tag) => tag !== COLLEGE_NOTICE_TAG),
+              COLLEGE_NOTICE_TAG,
+            ]
+          : getTagList(tags).filter((tag) => tag !== COLLEGE_NOTICE_TAG),
+      );
 
       const newItem = {
         ...initialData, // Keep existing ID and other fields if editing
         title,
-        tags: type === 'event' ? '' : tags,
-        tag: type === 'event' ? '' : tags, // For backward compatibility with article 'tag'
+        tags: type === 'event' ? eventTags : tags,
+        tag: type === 'event' ? eventTags : tags, // For backward compatibility with article 'tag'
         category_id: usesMediaCategory && mediaCategoryId ? Number(mediaCategoryId) : null,
         url: fileUrl, 
         
@@ -1502,7 +1538,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                             />
                         </div>
                         <div>
-                            <label className={labelClasses}>活动分类</label>
+                            <label className={labelClasses}>{t('event_fields.category')}</label>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                               {EVENT_CATEGORIES.map((category) => {
                                 const selected = eventCategory === category.value;
@@ -1518,11 +1554,37 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                         : (isDayMode ? 'border-slate-200/80 bg-white/86 text-slate-600 hover:border-indigo-200 hover:bg-white hover:text-slate-900' : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/25 hover:bg-white/10 hover:text-white')
                                     }`}
                                   >
-                                    {category.label}
+                                    {getEventCategoryLabel(category.value, i18n.resolvedLanguage || i18n.language)}
                                   </button>
                                 );
                               })}
                             </div>
+                        </div>
+                        <div>
+                            <label className={labelClasses}>{t('event_fields.special_marks')}</label>
+                            <button
+                              type="button"
+                              aria-pressed={isCollegeNotice}
+                              onClick={toggleCollegeNotice}
+                              className={`flex min-h-[52px] w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+                                isCollegeNotice
+                                  ? (isDayMode ? 'border-violet-500 bg-violet-600 text-white shadow-[0_14px_28px_rgba(124,58,237,0.18)]' : 'border-indigo-400/35 bg-indigo-500/20 text-indigo-100 shadow-none')
+                                  : (isDayMode ? 'border-slate-200/80 bg-white/86 text-slate-600 hover:border-violet-200 hover:bg-white hover:text-slate-900' : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/25 hover:bg-white/10 hover:text-white')
+                              }`}
+                            >
+                              <span className="min-w-0">
+                                <span className="block text-sm font-black">
+                                  {t('event_fields.college_notice')}
+                                </span>
+                                <span className={`mt-1 block text-xs leading-5 ${isCollegeNotice ? 'text-white/78' : (isDayMode ? 'text-slate-500' : 'text-gray-400')}`}>
+                                  {t('event_fields.college_notice_hint')}
+                                </span>
+                              </span>
+                              <Check
+                                size={18}
+                                className={isCollegeNotice ? 'opacity-100' : 'opacity-30'}
+                              />
+                            </button>
                         </div>
                      </div>
                   </div>

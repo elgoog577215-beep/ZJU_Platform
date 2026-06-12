@@ -871,6 +871,7 @@
     "parse_failed": "解析微信文章失败",
     "ai_reasoning": "AI 日期推断逻辑",
     "required_end_date": "截止日期为必填项",
+    "required_event_category": "请选择活动分类",
     "wechat_import": "从微信公众号导入",
     "wechat_placeholder": "粘贴微信公众号文章链接...",
     "parsing": "解析中...",
@@ -1497,6 +1498,11 @@
       "list": "列表",
       "list_aria": "切换到列表视图"
     },
+    "college_notice": {
+      "badge": "学院通知",
+      "link_available": "含链接",
+      "text_notice": "文字通知"
+    },
     "no_more_recommendations": "暂无更多推荐",
     "no_matches_desc": "当前条件下没有匹配活动，重置筛选后再看看。",
     "empty_desc": "暂时没有可展示的活动，稍后再来看看吧。",
@@ -1504,6 +1510,7 @@
     "default_audience": "校园活动",
     "category_fallback": "活动",
     "categories": {
+      "college_notice": "学院通知",
       "lecture": "讲座",
       "competition": "竞赛",
       "volunteer": "志愿",
@@ -2121,6 +2128,10 @@
   "event_fields": {
     "basic_info": "基本信息",
     "attributes": "活动属性",
+    "category": "活动分类",
+    "special_marks": "特殊标记",
+    "college_notice": "学院通知",
+    "college_notice_hint": "用于辅导员或学院发布的通知，可与普通活动分类同时存在。",
     "start_date": "开始日期时间",
     "end_date": "截止日期时间",
     "volunteer_duration": "志愿时长",

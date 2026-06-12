@@ -5,12 +5,18 @@ import { useTranslation } from "react-i18next";
 import SortSelector from "./SortSelector";
 import { useSettings } from "../context/SettingsContext";
 import {
+  COLLEGE_NOTICE_CATEGORY_VALUE,
   EVENT_AUDIENCE_GROUPS,
   EVENT_CATEGORIES,
   getEventAudienceGroupLabel,
   getEventAudienceLabel,
   getEventCategoryLabel,
 } from "../data/eventTaxonomy";
+
+const EVENT_FILTER_CATEGORIES = [
+  { value: COLLEGE_NOTICE_CATEGORY_VALUE, special: true },
+  ...EVENT_CATEGORIES,
+];
 
 const EventFilterPanel = ({
   filters,
@@ -202,7 +208,7 @@ const EventFilterPanel = ({
               </span>
             </button>
 
-            {EVENT_CATEGORIES.map((category) => {
+            {EVENT_FILTER_CATEGORIES.map((category) => {
               const active = selectedCategory === category.value;
               return (
                 <button
@@ -324,7 +330,7 @@ const EventFilterPanel = ({
 
         <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
           <div
-          className={`relative min-w-0 overflow-hidden border lg:flex-1 lg:max-w-[690px] xl:max-w-[760px] ${isDayMode ? "border-violet-100/80 bg-white/66" : "border-white/[0.09] bg-[#050712]/88"}`}
+            className={`relative min-w-0 overflow-hidden border lg:flex-1 lg:max-w-[690px] xl:max-w-[760px] ${isDayMode ? "border-violet-100/80 bg-white/66" : "border-white/[0.09] bg-[#050712]/88"}`}
           >
             <div className="scrollbar-none flex min-w-0 items-center gap-1 overflow-x-auto p-1 pr-10 md:pr-1">
               <button
@@ -339,7 +345,7 @@ const EventFilterPanel = ({
                 </span>
               </button>
 
-              {EVENT_CATEGORIES.map((category) => {
+              {EVENT_FILTER_CATEGORIES.map((category) => {
                 const active = selectedCategory === category.value;
                 return (
                   <button

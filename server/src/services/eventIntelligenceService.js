@@ -280,6 +280,10 @@ const buildEventCatalogPromptText = () => {
 
 const getEventCategoryFilterTerms = (value) => {
   const normalized = normalizeText(value);
+  if (normalized === 'college_notice' || normalized === '学院通知') {
+    return ['学院通知'];
+  }
+
   const canonical = normalizeEventCategory(normalized) || normalized;
   const category = EVENT_CATEGORIES.find((item) => item.value === canonical);
   const label = category?.label;

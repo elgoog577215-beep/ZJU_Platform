@@ -14,7 +14,10 @@ import {
   X,
 } from "lucide-react";
 import api from "../../services/api";
-import { getEventCategoryLabel } from "../../data/eventTaxonomy";
+import {
+  COLLEGE_NOTICE_TAG,
+  getEventCategoryLabel,
+} from "../../data/eventTaxonomy";
 import Dropdown from "../Dropdown";
 import UploadModal from "../UploadModal";
 import {
@@ -154,6 +157,10 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
     if (isEventResource) {
       const categoryLabel =
         getEventCategoryLabel(item.category) || item.category || "未分类";
+      const hasCollegeNotice = String(item.tags || "")
+        .split(",")
+        .map((tag) => tag.trim())
+        .includes(COLLEGE_NOTICE_TAG);
 
       return (
         <div className="flex max-w-xs flex-wrap gap-1">
@@ -166,6 +173,17 @@ const ResourceManager = ({ title, apiEndpoint, type, icon: Icon }) => {
           >
             {categoryLabel}
           </span>
+          {hasCollegeNotice ? (
+            <span
+              className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                isDayMode
+                  ? "bg-violet-50 text-violet-700"
+                  : "bg-indigo-500/10 text-indigo-200"
+              }`}
+            >
+              {COLLEGE_NOTICE_TAG}
+            </span>
+          ) : null}
         </div>
       );
     }

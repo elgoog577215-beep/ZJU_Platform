@@ -1,3 +1,6 @@
+export const COLLEGE_NOTICE_CATEGORY_VALUE = "college_notice";
+export const COLLEGE_NOTICE_TAG = "学院通知";
+
 export const EVENT_CATEGORIES = [
   { value: "lecture", label: "讲座" },
   { value: "competition", label: "竞赛" },
@@ -17,6 +20,7 @@ export const EVENT_CATEGORY_LABELS = {
     culture_sports: "文体",
     exchange: "交流",
     other: "其他",
+    [COLLEGE_NOTICE_CATEGORY_VALUE]: COLLEGE_NOTICE_TAG,
   },
   en: {
     lecture: "Lectures",
@@ -26,6 +30,7 @@ export const EVENT_CATEGORY_LABELS = {
     culture_sports: "Culture & Sports",
     exchange: "Exchange",
     other: "Other",
+    [COLLEGE_NOTICE_CATEGORY_VALUE]: "College Notices",
   },
 };
 
@@ -133,6 +138,14 @@ export const EVENT_CATEGORY_ALIASES = {
 export const normalizeEventCategoryValue = (value) => {
   const normalized = String(value || "").trim();
   if (!normalized) return "";
+
+  if (
+    normalized === COLLEGE_NOTICE_CATEGORY_VALUE ||
+    normalized === COLLEGE_NOTICE_TAG ||
+    normalized.toLowerCase() === "college notices"
+  ) {
+    return COLLEGE_NOTICE_CATEGORY_VALUE;
+  }
 
   const directMatch = EVENT_CATEGORIES.find(
     (item) => item.value === normalized || item.label === normalized,
