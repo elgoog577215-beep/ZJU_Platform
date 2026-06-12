@@ -737,7 +737,7 @@ const MediaLibrary = () => {
             </div>
 
             {videosLoading && displayVideos.length === 0 ? (
-              <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 lg:gap-5">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">
                 {[...Array(4)].map((_, index) => (
                   <div
                     key={index}
@@ -756,7 +756,7 @@ const MediaLibrary = () => {
                 isDayMode={isDayMode}
               />
             ) : (
-              <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 lg:gap-5">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">
                 {displayVideos.map((video, index) => (
                   <VideoCard
                     key={video.id}
@@ -809,7 +809,7 @@ const MediaLibrary = () => {
             </div>
 
             {photosLoading && displayPhotos.length === 0 ? (
-              <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 lg:gap-5">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">
                 {[...Array(6)].map((_, index) => (
                   <div
                     key={index}
@@ -829,7 +829,7 @@ const MediaLibrary = () => {
             ) : (
               <motion.div
                 layout={!prefersReducedMotion && typeof window !== "undefined" && window.innerWidth >= 768}
-                className="grid grid-cols-2 gap-3 pb-4 sm:gap-4 lg:grid-cols-3 lg:gap-5 md:pb-0"
+                className="grid grid-cols-2 gap-3 pb-4 sm:gap-4 lg:grid-cols-4 lg:gap-5 md:pb-0"
               >
                 <AnimatePresence mode="popLayout">
                   {displayPhotos.map((photo, index) => (
