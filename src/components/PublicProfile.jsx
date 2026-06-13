@@ -988,7 +988,9 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
       // or AICommunity defaults to the help board and the id is ignored.
       article: "/articles?postTab=tech",
       event: "/events",
-      project: "/projects",
+      // Carry the favorites marker in the query (router state is wiped by the
+      // detail's history push); ProjectPlaza reads ?fromfav=1 to return here.
+      project: "/projects?fromfav=1",
     };
 
     const basePath = routeMap[itemType];
@@ -1906,6 +1908,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                         <img
                           src={
                             item.cover ||
+                            item.cover_url ||
                             item.thumbnail ||
                             item.url ||
                             item.image

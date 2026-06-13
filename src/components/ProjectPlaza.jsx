@@ -290,7 +290,7 @@ const ProjectPlaza = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const variant = uiMode === "day" ? "playful" : "cyber";
 
   const [items, setItems] = useState([]);
@@ -300,7 +300,12 @@ const ProjectPlaza = () => {
   const [progFilter, setProgFilter] = useState("all");
   const [needFilter, setNeedFilter] = useState(null);
   const [search, setSearch] = useState("");
-  const fromFavoritesRef = useRef(location.state?.fromFavorites === true);
+  // Came from the user's favorites list? Prefer the URL marker (survives the
+  // detail's history.pushState, which wipes router state); fall back to state.
+  const fromFavoritesRef = useRef(
+    searchParams.get("fromfav") === "1" || location.state?.fromFavorites === true
+  );
+  const deepLinkOpenedRef = useRef(false);
 
   const fetchList = useCallback(async () => {
     setLoading(true);
@@ -317,24 +322,30 @@ const ProjectPlaza = () => {
 
   useEffect(() => { fetchList(); }, [fetchList]);
 
-  // Deep link ?id= opens the detail (also the favorites-return entry point)
+  // Deep link ?id= opens the detail once (also the favorites-return entry point).
+  // Guarded so closing the modal (which clears ?id) never re-triggers an open.
   useEffect(() => {
     const id = searchParams.get("id");
-    if (id && (!selected || String(selected.id) !== String(id))) {
+    if (id && !deepLinkOpenedRef.current) {
+      deepLinkOpenedRef.current = true;
       getProject(id).then((r) => setSelected(r.data)).catch(() => {});
     }
-  }, [searchParams, selected]);
+  }, [searchParams]);
 
   const openDetail = async (p) => {
     try { const { data } = await getProject(p.id); setSelected(data); }
     catch { toast.error("打开失败"); }
   };
 
+  // fromFavorites: jump back to the favorites tab (navigate(-2)); otherwise just
+  // close. Do NOT issue any extra navigation in the else branch — useBackClose
+  // owns the history (it pops the pushed hash), and a competing setSearchParams
+  // here would override navigate(-2) during the popstate re-entry.
   const closeDetail = useCallback(() => {
     if (fromFavoritesRef.current) { fromFavoritesRef.current = false; navigate(-2); return; }
     setSelected(null);
-    if (searchParams.get("id")) { const next = new URLSearchParams(searchParams); next.delete("id"); setSearchParams(next, { replace: true }); }
-  }, [navigate, searchParams, setSearchParams]);
+    deepLinkOpenedRef.current = false;
+  }, [navigate]);
 
   useBackClose(selected !== null, closeDetail);
 
