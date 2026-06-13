@@ -11,6 +11,7 @@ const STATUS_CONFIG = {
   // team statuses
   recruiting: { label: 'community.post_status_recruiting', bg: 'bg-violet-500/15', text: 'text-violet-400', border: 'border-violet-500/20', dayBg: 'bg-violet-50', dayText: 'text-violet-600', dayBorder: 'border-violet-200' },
   full: { label: 'community.post_status_full', bg: 'bg-blue-500/15', text: 'text-blue-400', border: 'border-blue-500/20', dayBg: 'bg-blue-50', dayText: 'text-blue-600', dayBorder: 'border-blue-200' },
+  published: { label: 'community.post_status_published', bg: 'bg-emerald-500/15', text: 'text-emerald-400', border: 'border-emerald-500/20', dayBg: 'bg-emerald-50', dayText: 'text-emerald-600', dayBorder: 'border-emerald-200' },
   // fallback for legacy 'approved' / 'pending'
   approved: { label: 'community.post_status_open', bg: 'bg-amber-500/15', text: 'text-amber-400', border: 'border-amber-500/20', dayBg: 'bg-amber-50', dayText: 'text-amber-600', dayBorder: 'border-amber-200' },
   draft: { label: 'community.status_draft', bg: 'bg-slate-500/15', text: 'text-slate-300', border: 'border-slate-500/20', dayBg: 'bg-slate-100', dayText: 'text-slate-600', dayBorder: 'border-slate-200' },
@@ -39,14 +40,17 @@ const formatRelativeTime = (dateStr, language = 'zh-CN') => {
 const PostCard = memo(({ post, index, onClick, canAnimate, isDayMode }) => {
   const { t, i18n } = useTranslation();
   const isTeam = post.section === 'team';
+  const isProject = post.section === 'project';
   const visibleStatus = post.review_status && post.review_status !== 'approved' ? post.review_status : post.status;
   const statusCfg = STATUS_CONFIG[visibleStatus] || STATUS_CONFIG.open;
 
-  const accentHover = isTeam ? 'hover:border-violet-500/30' : 'hover:border-amber-500/30';
+  const accentHover = isTeam ? 'hover:border-violet-500/30' : isProject ? 'hover:border-emerald-500/30' : 'hover:border-amber-500/30';
   const accentShadow = isTeam
     ? 'hover:shadow-[0_20px_40px_-15px_rgba(139,92,246,0.15)]'
-    : 'hover:shadow-[0_20px_40px_-15px_rgba(245,158,11,0.15)]';
-  const titleHover = isTeam ? 'group-hover:text-violet-400' : 'group-hover:text-amber-400';
+    : isProject
+      ? 'hover:shadow-[0_20px_40px_-15px_rgba(16,185,129,0.15)]'
+      : 'hover:shadow-[0_20px_40px_-15px_rgba(245,158,11,0.15)]';
+  const titleHover = isTeam ? 'group-hover:text-violet-400' : isProject ? 'group-hover:text-emerald-400' : 'group-hover:text-amber-400';
 
   const progress = isTeam && post.max_members ? Math.min((post.current_members || 0) / post.max_members, 1) : 0;
 

@@ -1,36 +1,126 @@
-import { useCallback } from 'react';
-import { createPortal } from 'react-dom';
+import { useCallback, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { BookOpen, HelpCircle, Newspaper, Plus, Users } from 'lucide-react';
+import { BookOpen, Clock3, HelpCircle, Loader2, MessageCircle, Newspaper, PenLine, Rocket, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
 import { useSettings } from '../context/SettingsContext';
+import { useAuth } from '../context/AuthContext';
+import { useCachedResource } from '../hooks/useCachedResource';
 import CommunityTech from './CommunityTech';
 import CommunityHelp from './CommunityHelp';
 import CommunityNewsBoard from './CommunityNewsBoard';
 import CommunityTeam from './CommunityTeam';
+import CommunityProject from './CommunityProject';
+import CommunityPostTypePicker from './CommunityPostTypePicker';
+import UnifiedCommunityComposer from './UnifiedCommunityComposer';
 
 const POST_TABS = [
+  { key: 'featured', labelKey: 'community.tab_featured', fallback: '精选', icon: Clock3 },
   { key: 'tech', labelKey: 'community.tab_tech', fallback: '技术分享', icon: BookOpen },
   { key: 'help', labelKey: 'community.tab_help_qa', fallback: '求助问答', icon: HelpCircle },
   { key: 'news', labelKey: 'community.tab_news_hot', fallback: '新闻热点', icon: Newspaper },
   { key: 'team', labelKey: 'community.tab_team_collab', fallback: '组队协作', icon: Users },
+  { key: 'project', labelKey: 'community.tab_project_updates', fallback: '项目动态', icon: Rocket },
 ];
 
+const FEATURED_META = {
+  tech: { labelKey: 'community.tab_tech', fallback: '技术分享', icon: BookOpen, tone: 'orange' },
+  help: { labelKey: 'community.tab_help_qa', fallback: '求助问答', icon: HelpCircle, tone: 'amber' },
+  news: { labelKey: 'community.tab_news_hot', fallback: '新闻热点', icon: Newspaper, tone: 'blue' },
+  team: { labelKey: 'community.tab_team_collab', fallback: '组队协作', icon: Users, tone: 'violet' },
+  project: { labelKey: 'community.tab_project_updates', fallback: '项目动态', icon: Rocket, tone: 'green' },
+};
+
+const toneClasses = {
+  orange: {
+    badge: 'bg-orange-500/12 text-orange-300 border-orange-400/20',
+    dayBadge: 'bg-orange-50 text-orange-700 border-orange-200',
+    hover: 'group-hover:text-orange-300',
+    dayHover: 'group-hover:text-orange-700',
+  },
+  amber: {
+    badge: 'bg-amber-500/12 text-amber-300 border-amber-400/20',
+    dayBadge: 'bg-amber-50 text-amber-700 border-amber-200',
+    hover: 'group-hover:text-amber-300',
+    dayHover: 'group-hover:text-amber-700',
+  },
+  blue: {
+    badge: 'bg-sky-500/12 text-sky-300 border-sky-400/20',
+    dayBadge: 'bg-sky-50 text-sky-700 border-sky-200',
+    hover: 'group-hover:text-sky-300',
+    dayHover: 'group-hover:text-sky-700',
+  },
+  violet: {
+    badge: 'bg-violet-500/12 text-violet-300 border-violet-400/20',
+    dayBadge: 'bg-violet-50 text-violet-700 border-violet-200',
+    hover: 'group-hover:text-violet-300',
+    dayHover: 'group-hover:text-violet-700',
+  },
+  green: {
+    badge: 'bg-emerald-500/12 text-emerald-300 border-emerald-400/20',
+    dayBadge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    hover: 'group-hover:text-emerald-300',
+    dayHover: 'group-hover:text-emerald-700',
+  },
+};
+
+const toDateValue = (item) => item?.updated_at || item?.created_at || item?.published_at || item?.date || '';
+
+const formatFeaturedDate = (value, language) => {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value).slice(0, 10);
+  const locale = String(language || '').startsWith('zh') ? 'zh-CN' : 'en';
+  return new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric' }).format(date);
+};
+
+const getExcerpt = (item) => String(item?.excerpt || item?.content || item?.description || '').replace(/<[^>]+>/g, '').slice(0, 120);
+
 const CommunityPosts = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { uiMode } = useSettings();
+  const { user } = useAuth();
   const isDayMode = uiMode === 'day';
   const [searchParams, setSearchParams] = useSearchParams();
+  const [typePickerOpen, setTypePickerOpen] = useState(false);
+  const [composerState, setComposerState] = useState({ open: false, boardKey: 'help' });
 
-  const rawTab = searchParams.get('postTab') || 'tech';
-  const activeTab = POST_TABS.some((tb) => tb.key === rawTab) ? rawTab : 'tech';
+  const rawTab = searchParams.get('postTab') || 'featured';
+  const activeTab = POST_TABS.some((tb) => tb.key === rawTab) ? rawTab : 'featured';
+
+  const techFeatured = useCachedResource('/articles', { page: 1, limit: 3, category: 'tech', sort: 'newest', status: 'approved' }, { keyPrefix: 'cache:v5:', dependencies: [] });
+  const helpFeatured = useCachedResource('/community/posts', { page: 1, limit: 3, section: 'help', sort: 'newest' }, { keyPrefix: 'cache:v5:', dependencies: [] });
+  const newsFeatured = useCachedResource('/news', { page: 1, limit: 3, sort: 'latest', status: 'approved' }, { keyPrefix: 'cache:v5:', dependencies: [] });
+  const teamFeatured = useCachedResource('/community/posts', { page: 1, limit: 3, section: 'team', sort: 'newest' }, { keyPrefix: 'cache:v5:', dependencies: [] });
+  const projectFeatured = useCachedResource('/community/posts', { page: 1, limit: 3, section: 'project', sort: 'newest' }, { keyPrefix: 'cache:v5:', dependencies: [] });
+
+  const featuredResources = useMemo(() => [
+    { board: 'tech', resource: techFeatured },
+    { board: 'help', resource: helpFeatured },
+    { board: 'news', resource: newsFeatured },
+    { board: 'team', resource: teamFeatured },
+    { board: 'project', resource: projectFeatured },
+  ], [helpFeatured, newsFeatured, projectFeatured, teamFeatured, techFeatured]);
+
+  const featuredItems = useMemo(() => featuredResources
+    .flatMap(({ board, resource }) => (Array.isArray(resource.data) ? resource.data : []).map((item) => ({ ...item, board, sortDate: toDateValue(item) })))
+    .sort((a, b) => new Date(b.sortDate || 0) - new Date(a.sortDate || 0))
+    .slice(0, 8), [featuredResources]);
+
+  const featuredLoading = featuredResources.some(({ resource }) => resource.loading) && featuredItems.length === 0;
+  const featuredError = featuredResources.every(({ resource }) => resource.error);
 
   const handleTabChange = useCallback(
     (tab) => {
       setSearchParams(
         (prev) => {
           const next = new URLSearchParams(prev);
-          next.set('postTab', tab);
+          ['id', 'post', 'news', 'group'].forEach((key) => next.delete(key));
+          if (tab === 'featured') {
+            next.delete('postTab');
+          } else {
+            next.set('postTab', tab);
+          }
           return next;
         },
         { replace: true },
@@ -39,65 +129,185 @@ const CommunityPosts = () => {
     [setSearchParams],
   );
 
+  const handleOpenTypePicker = useCallback(() => {
+    setTypePickerOpen(true);
+  }, []);
+
+  const handleSelectPostType = useCallback((boardKey) => {
+    setTypePickerOpen(false);
+    if (!user) {
+      toast.error(t('auth.signin_required'));
+      return;
+    }
+    handleTabChange(boardKey);
+    setComposerState({ open: true, boardKey });
+  }, [handleTabChange, t, user]);
+
+  const handleComposerClose = useCallback(() => {
+    setComposerState((prev) => ({ ...prev, open: false }));
+  }, []);
+
+  const handleComposerSuccess = useCallback(() => {
+    window.dispatchEvent(new CustomEvent('community-feed-refresh', { detail: { boardKey: composerState.boardKey } }));
+  }, [composerState.boardKey]);
+
+  const handleOpenFeatured = useCallback((item) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        ['id', 'post', 'news', 'group'].forEach((key) => next.delete(key));
+        next.set('postTab', item.board);
+        if (item.board === 'tech') next.set('id', item.id);
+        else if (item.board === 'news') next.set('news', item.id);
+        else next.set('post', item.id);
+        return next;
+      },
+      { replace: false },
+    );
+  }, [setSearchParams]);
+
+  const refreshFeatured = useCallback(() => {
+    featuredResources.forEach(({ resource }) => resource.refresh({ clearCache: true }));
+  }, [featuredResources]);
+
+  const renderFeatured = () => (
+    <div className="space-y-4">
+      {featuredLoading ? (
+        <div className="grid gap-3 md:grid-cols-2">
+          {[...Array(4)].map((_, index) => (
+            <div key={index} className={`h-36 animate-pulse rounded-lg border ${isDayMode ? 'border-slate-200 bg-white/70' : 'border-white/10 bg-white/[0.04]'}`} />
+          ))}
+        </div>
+      ) : featuredError ? (
+        <div className={`rounded-lg border p-6 text-center ${isDayMode ? 'border-slate-200 bg-white text-slate-600' : 'border-white/10 bg-white/[0.035] text-gray-300'}`}>
+          <p className="text-sm">{t('community.featured_load_failed', '精选内容加载失败')}</p>
+          <button type="button" onClick={refreshFeatured} className={`mt-4 rounded-lg border px-4 py-2 text-sm font-semibold ${isDayMode ? 'border-slate-200 hover:bg-slate-50' : 'border-white/10 hover:bg-white/10'}`}>
+            {t('common.retry', '重试')}
+          </button>
+        </div>
+      ) : featuredItems.length === 0 ? (
+        <div className={`rounded-lg border border-dashed p-10 text-center ${isDayMode ? 'border-slate-200 bg-white/70 text-slate-500' : 'border-white/10 bg-white/[0.03] text-gray-400'}`}>
+          <BookOpen className="mx-auto mb-3 h-10 w-10 opacity-35" />
+          <p className="font-bold">{t('community.featured_empty', '暂无精选内容')}</p>
+          <p className="mt-1 text-sm">{t('community.featured_empty_desc', '切换分类查看最新内容，或发布第一条社区动态。')}</p>
+        </div>
+      ) : (
+        <div className="grid gap-3 md:grid-cols-2">
+          {featuredItems.map((item) => {
+            const meta = FEATURED_META[item.board] || FEATURED_META.help;
+            const Icon = meta.icon;
+            const tone = toneClasses[meta.tone] || toneClasses.amber;
+            const metric = item.board === 'news'
+              ? `${Number(item.hot_score || 0)} ${t('community.hot_metric', '热度')}`
+              : `${Number(item.comments_count || item.likes || item.likes_count || 0)} ${item.board === 'tech' ? t('community.likes_metric', '赞') : t('community.replies_metric', '回复')}`;
+            return (
+              <button
+                key={`${item.board}-${item.id}`}
+                type="button"
+                onClick={() => handleOpenFeatured(item)}
+                className={`group min-h-[142px] rounded-lg border p-4 text-left transition-all hover:-translate-y-0.5 md:p-5 ${isDayMode ? 'border-slate-200/80 bg-white hover:border-slate-300 hover:shadow-[0_12px_28px_rgba(15,23,42,0.06)]' : 'border-white/10 bg-white/[0.045] hover:border-white/18 hover:bg-white/[0.07]'}`}
+              >
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <span className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-bold ${isDayMode ? tone.dayBadge : tone.badge}`}>
+                    <Icon size={13} />
+                    {t(meta.labelKey, meta.fallback)}
+                  </span>
+                  <span className={`text-xs ${isDayMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                    {formatFeaturedDate(item.sortDate, i18n.language)}
+                  </span>
+                </div>
+                <h3 className={`line-clamp-2 text-base font-black leading-snug transition-colors md:text-lg ${isDayMode ? `text-slate-950 ${tone.dayHover}` : `text-white ${tone.hover}`}`}>
+                  {item.title || t('community.untitled', '未命名')}
+                </h3>
+                <p className={`mt-2 line-clamp-2 text-sm leading-6 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+                  {getExcerpt(item)}
+                </p>
+                <div className={`mt-3 flex items-center gap-2 text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>
+                  <MessageCircle size={13} />
+                  <span>{metric}</span>
+                  {(item.author_name || item.source_name) ? <span className="truncate">· {item.author_name || item.source_name}</span> : null}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="relative">
-      <div
-        role="tablist"
-        className={`scrollbar-none -mx-1 mb-4 flex items-center gap-1 overflow-x-auto rounded-lg border p-1 sm:mx-0 md:overflow-visible ${
-          isDayMode
-            ? 'border-slate-200/80 bg-slate-100/80'
-            : 'border-white/10 bg-black/18'
-        }`}
-      >
-        {POST_TABS.map(({ key, labelKey, fallback, icon: Icon }) => (
+      <div className={`mb-4 rounded-lg border p-4 md:mb-6 md:p-5 ${
+        isDayMode
+          ? 'border-slate-200/80 bg-white shadow-[0_10px_26px_rgba(15,23,42,0.04)]'
+          : 'border-white/10 bg-white/[0.035]'
+      }`}>
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="min-w-0">
+            <h3 className={`mt-1 text-xl font-black md:text-2xl ${isDayMode ? 'text-slate-950' : 'text-white'}`}>
+              {t('community.featured_entry_title', '社区精选')}
+            </h3>
+            <p className={`mt-1 max-w-2xl text-sm leading-6 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+              {t('community.featured_entry_desc', '发现 AI 社区的精选内容，或发布你的经验、问题与项目进展。')}
+            </p>
+          </div>
           <button
-            key={key}
             type="button"
-            role="tab"
-            aria-selected={activeTab === key}
-            onClick={() => handleTabChange(key)}
-            className={`inline-flex min-h-[40px] min-w-[112px] flex-none items-center justify-center gap-1.5 rounded-md border px-3 text-[13px] font-bold whitespace-nowrap transition-all md:min-h-[42px] md:min-w-0 md:flex-1 md:gap-2 md:text-sm ${
-              activeTab === key
-                ? isDayMode
-                  ? 'border-slate-300 bg-white text-slate-950 shadow-[0_4px_12px_rgba(15,23,42,0.06)]'
-                  : 'border-orange-300 bg-orange-400 text-slate-950 shadow-[0_0_32px_rgba(251,146,60,0.22)]'
-                : isDayMode
-                  ? 'border-transparent text-slate-600 hover:bg-white hover:text-slate-950'
-                  : 'border-transparent text-white/58 hover:bg-white/[0.06] hover:text-white'
+            onClick={handleOpenTypePicker}
+            className={`inline-flex min-h-[44px] shrink-0 items-center justify-center gap-2 rounded-lg border px-5 text-sm font-black transition-all active:scale-95 ${
+              isDayMode
+                ? 'border-violet-200 bg-violet-600 text-white shadow-[0_10px_24px_rgba(124,58,237,0.18)] hover:bg-violet-700'
+                : 'border-orange-300/40 bg-orange-400 text-slate-950 shadow-[0_0_28px_rgba(251,146,60,0.18)] hover:bg-orange-300'
             }`}
           >
-            <Icon size={16} />
-            <span>{t(labelKey, fallback)}</span>
+            <PenLine size={18} />
+            {t('community.post_new', '发帖')}
           </button>
-        ))}
+        </div>
+        <div className={`scrollbar-none mt-4 flex gap-1 overflow-x-auto rounded-lg border p-1 ${isDayMode ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-black/15'}`}>
+          {POST_TABS.map(({ key, labelKey, fallback, icon: Icon }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => handleTabChange(key)}
+              className={`inline-flex min-h-[36px] shrink-0 items-center justify-center gap-1.5 rounded-md border px-3 text-xs font-bold transition-colors md:flex-1 ${
+                activeTab === key
+                  ? isDayMode
+                    ? 'border-violet-200 bg-violet-50 text-violet-700 shadow-[0_4px_12px_rgba(124,58,237,0.08)]'
+                    : 'border-orange-300/50 bg-orange-400 text-slate-950'
+                  : isDayMode
+                    ? 'border-transparent text-slate-600 hover:bg-white hover:text-violet-700'
+                    : 'border-transparent text-gray-300 hover:bg-white/8 hover:text-white'
+              }`}
+            >
+              <Icon size={14} />
+              {t(labelKey, fallback)}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {activeTab === 'tech' ? <CommunityTech /> : null}
-      {activeTab === 'help' ? <CommunityHelp /> : null}
-      {activeTab === 'news' ? <CommunityNewsBoard /> : null}
-      {activeTab === 'team' ? <CommunityTeam /> : null}
+      {activeTab === 'featured' ? renderFeatured() : null}
+      {activeTab === 'tech' ? <CommunityTech hideNewPostButton /> : null}
+      {activeTab === 'help' ? <CommunityHelp hideNewPostButton /> : null}
+      {activeTab === 'news' ? <CommunityNewsBoard hideNewPostButton /> : null}
+      {activeTab === 'team' ? <CommunityTeam hideNewPostButton /> : null}
+      {activeTab === 'project' ? <CommunityProject hideNewPostButton /> : null}
 
-      {createPortal(
-        <button
-          type="button"
-          onClick={() => {
-            if (activeTab === 'tech') {
-              window.dispatchEvent(new CustomEvent('open-upload-modal', { detail: { type: 'article' } }));
-              return;
-            }
-            window.dispatchEvent(new CustomEvent('open-community-composer', { detail: { boardKey: activeTab } }));
-          }}
-          aria-label={t('community.post_new', '发帖')}
-          className={`fixed bottom-[calc(env(safe-area-inset-bottom)+5.25rem)] right-4 z-[88] inline-flex h-12 w-12 items-center justify-center rounded-lg border shadow-[0_18px_34px_rgba(15,23,42,0.22)] transition-transform active:scale-95 md:hidden ${
-            isDayMode
-              ? 'border-violet-200 bg-violet-700 text-white'
-              : 'border-orange-300/30 bg-orange-400 text-slate-950'
-          }`}
-        >
-          <Plus size={22} />
-        </button>,
-        document.body,
-      )}
+      <CommunityPostTypePicker
+        isOpen={typePickerOpen}
+        activeType={activeTab}
+        onSelect={handleSelectPostType}
+        onClose={() => setTypePickerOpen(false)}
+      />
+
+      <UnifiedCommunityComposer
+        isOpen={composerState.open}
+        boardKey={composerState.boardKey}
+        onClose={handleComposerClose}
+        onSuccess={handleComposerSuccess}
+      />
+
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useCallback, useState, useRef, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, ArrowRight, Calendar, X, User, Clock, Search, Sparkles } from 'lucide-react';
+import { BookOpen, ArrowRight, Calendar, X, User, Clock, Sparkles } from 'lucide-react';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
@@ -11,6 +11,7 @@ import SortSelector from './SortSelector';
 import MobileContentToolbar from './MobileContentToolbar';
 import CommunityDetailModal from './CommunityDetailModal';
 import CommunityFeedPanel from './CommunityFeedPanel';
+import CommunitySearchInput from './CommunitySearchInput';
 import { useSettings } from '../context/SettingsContext';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
@@ -94,7 +95,7 @@ const ArticleCard = memo(({
 
 ArticleCard.displayName = 'ArticleCard';
 
-const CommunityTech = () => {
+const CommunityTech = ({ onNewPost, hideNewPostButton = false }) => {
   const { t } = useTranslation();
   const { uiMode } = useSettings();
   const { user } = useAuth();
@@ -158,6 +159,14 @@ const CommunityTech = () => {
       window.removeEventListener('toggle-mobile-sort', onSort);
     };
   }, [openUpload]);
+
+  useEffect(() => {
+    const onRefresh = (event) => {
+      if (event.detail?.boardKey === 'tech') feed.handleRefresh();
+    };
+    window.addEventListener('community-feed-refresh', onRefresh);
+    return () => window.removeEventListener('community-feed-refresh', onRefresh);
+  }, [feed]);
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent('set-mobile-toolbar-state', {
@@ -315,24 +324,13 @@ const CommunityTech = () => {
   const extraControls = (
     <div className="flex-1">
       <div className="space-y-3">
-        <div className={`flex items-center gap-2 rounded-lg border px-3 py-2.5 ${isDayMode ? 'bg-white border-slate-200/80' : 'bg-white/5 border-white/10'}`}>
-          <Search size={16} className={isDayMode ? 'text-slate-400' : 'text-gray-500'} />
-          <input
-            value={feed.searchQuery}
-            onChange={(event) => feed.setSearchQuery(event.target.value)}
-            placeholder={t('community.tech_search_placeholder', 'Search article titles, summaries, or body text')}
-            className={`w-full bg-transparent text-sm outline-none ${isDayMode ? 'text-slate-700 placeholder:text-slate-400' : 'text-gray-200 placeholder:text-gray-500'}`}
-          />
-          {feed.searchQuery ? (
-            <button
-              type="button"
-              onClick={() => feed.setSearchQuery('')}
-              className={`text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}
-            >
-              {t('common.clear', 'Clear')}
-            </button>
-          ) : null}
-        </div>
+        <CommunitySearchInput
+          value={feed.searchQuery}
+          onChange={feed.setSearchQuery}
+          onClear={() => feed.setSearchQuery('')}
+          placeholder={t('community.tech_search_placeholder', 'Search article titles, summaries, or body text')}
+          isDayMode={isDayMode}
+        />
         <MobileContentToolbar
           isDayMode={isDayMode}
           resultCount={panelItems.length}
@@ -456,7 +454,8 @@ const CommunityTech = () => {
         featuredSection={featuredSection}
         hideSortSelector
         hideMobileSummary
-        onNewPost={openUpload}
+        onNewPost={onNewPost || openUpload}
+        hideNewPostButton={hideNewPostButton}
         renderSkeleton={(index) => (
           <div key={index} className={`backdrop-blur-xl border rounded-lg p-5 animate-pulse flex flex-col md:flex-row gap-6 ${isDayMode ? 'bg-white/60 border-white/75' : 'bg-white/[0.04] border-white/5'}`}>
             <div className={`w-full md:w-48 h-48 md:h-32 rounded-md shrink-0 ${isDayMode ? 'bg-white/70' : 'bg-white/5'}`} />

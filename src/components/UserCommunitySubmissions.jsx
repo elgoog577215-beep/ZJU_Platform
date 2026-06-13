@@ -10,6 +10,7 @@ import {
   Loader2,
   Newspaper,
   RefreshCcw,
+  Rocket,
   Search,
   Trash2,
   Users,
@@ -27,6 +28,7 @@ const BOARD_OPTIONS = [
   { key: 'help', labelKey: 'community.tab_help_qa', fallback: '求助问答', icon: HelpCircle },
   { key: 'news', labelKey: 'community.tab_news_hot', fallback: '新闻热点', icon: Newspaper },
   { key: 'team', labelKey: 'community.tab_team_collab', fallback: '组队协作', icon: Users },
+  { key: 'project', labelKey: 'community.tab_project_updates', fallback: '项目动态', icon: Rocket },
 ];
 
 const STATUS_OPTIONS = [
@@ -88,6 +90,19 @@ const BOARD_FETCHERS = {
       limit: 50,
     }),
     path: (id) => `/articles?postTab=team&post=${id}`,
+  },
+  project: {
+    endpoint: '/community/posts',
+    detail: (id) => `/community/posts/${id}`,
+    delete: (id) => `/community/posts/${id}`,
+    params: ({ userId, status }) => ({
+      section: 'project',
+      author_id: userId,
+      workflow_status: status,
+      sort: 'newest',
+      limit: 50,
+    }),
+    path: (id) => `/articles?postTab=project&post=${id}`,
   },
 };
 
@@ -152,7 +167,7 @@ const UserCommunitySubmissions = ({ userId, isDayMode }) => {
       setError(null);
       try {
         const boards = activeBoard === 'all'
-          ? ['tech', 'help', 'news', 'team']
+          ? ['tech', 'help', 'news', 'team', 'project']
           : [activeBoard];
         const status = activeStatus === 'all' ? 'all' : activeStatus;
         const results = await Promise.all(

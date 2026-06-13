@@ -11,6 +11,7 @@ import PostCard from './PostCard';
 import CommunityPostDetail from './CommunityPostDetail';
 import CommunityFeedPanel from './CommunityFeedPanel';
 import UnifiedCommunityComposer from './UnifiedCommunityComposer';
+import CommunitySearchInput from './CommunitySearchInput';
 
 const STATUS_TABS = [
   { key: 'all', label: 'community.tab_all' },
@@ -19,7 +20,7 @@ const STATUS_TABS = [
   { key: 'closed', label: 'community.post_status_closed' },
 ];
 
-const CommunityTeam = () => {
+const CommunityTeam = ({ onNewPost, hideNewPostButton = false }) => {
   const { t } = useTranslation();
   const { uiMode } = useSettings();
   const { user } = useAuth();
@@ -52,6 +53,14 @@ const CommunityTeam = () => {
     window.addEventListener('open-community-composer', onOpenComposer);
     return () => window.removeEventListener('open-community-composer', onOpenComposer);
   }, [openComposer]);
+
+  React.useEffect(() => {
+    const onRefresh = (event) => {
+      if (event.detail?.boardKey === 'team') feed.handleRefresh();
+    };
+    window.addEventListener('community-feed-refresh', onRefresh);
+    return () => window.removeEventListener('community-feed-refresh', onRefresh);
+  }, [feed]);
 
   const updateParams = useCallback((next) => {
     const params = new URLSearchParams(searchParams);
@@ -141,11 +150,12 @@ const CommunityTeam = () => {
 
   const controls = (
     <div className="grid gap-3">
-      <input
+      <CommunitySearchInput
         value={feed.searchQuery}
-        onChange={(e) => feed.setSearchQuery(e.target.value)}
+        onChange={feed.setSearchQuery}
+        onClear={() => feed.setSearchQuery('')}
         placeholder={t('community.team_search_placeholder', '搜索组队协作')}
-        className={`h-10 w-full rounded-lg border px-3 text-sm ${isDayMode ? 'border-slate-200 bg-white text-slate-700' : 'border-white/10 bg-white/5 text-gray-200'}`}
+        isDayMode={isDayMode}
       />
     </div>
   );
@@ -163,7 +173,8 @@ const CommunityTeam = () => {
         accentColor="violet"
         statusTabs={STATUS_TABS}
         extraControls={controls}
-        onNewPost={openComposer}
+        onNewPost={onNewPost || openComposer}
+        hideNewPostButton={hideNewPostButton}
       />
       <UnifiedCommunityComposer
         isOpen={composerOpen}

@@ -13,6 +13,7 @@ import {
   Pin,
   Plus,
   RefreshCw,
+  Rocket,
   RotateCcw,
   Trash2,
   Users,
@@ -38,6 +39,7 @@ const BOARD_META = {
   help: { labelKey: "admin.community.boards.help", fallback: "求助问答", icon: HelpCircle, tone: "text-amber-500" },
   news: { labelKey: "admin.community.boards.news", fallback: "新闻热点", icon: Newspaper, tone: "text-rose-500" },
   team: { labelKey: "admin.community.boards.team", fallback: "组队协作", icon: Users, tone: "text-violet-500" },
+  project: { labelKey: "admin.community.boards.project", fallback: "项目动态", icon: Rocket, tone: "text-emerald-500" },
 };
 
 const WORKFLOW_FILTERS = [

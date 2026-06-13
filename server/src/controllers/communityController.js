@@ -11,7 +11,7 @@ const viewerFromReq = (req) => (
     : null
 );
 
-const ALLOWED_SECTIONS = new Set(['help', 'tech', 'news', 'team', 'groups']);
+const ALLOWED_SECTIONS = new Set(['help', 'tech', 'news', 'team', 'project', 'groups']);
 const ALLOWED_GROUP_PLATFORMS = new Set(['wechat', 'qq', 'discord', 'telegram', 'other']);
 const CONTENT_STATUSES = new Set(['draft', 'pending', 'approved', 'rejected', 'deleted']);
 

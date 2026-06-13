@@ -39,6 +39,7 @@ const BOARD_CONFIG = {
     supportsCover: true,
     supportsExcerpt: true,
     supportsSource: false,
+    supportsProjectLink: false,
     supportsTeamFields: false,
     supportsCode: true,
     publishStatus: 'pending',
@@ -53,6 +54,7 @@ const BOARD_CONFIG = {
     supportsCover: false,
     supportsExcerpt: false,
     supportsSource: false,
+    supportsProjectLink: false,
     supportsTeamFields: false,
     supportsCode: true,
     publishStatus: 'approved',
@@ -65,6 +67,7 @@ const BOARD_CONFIG = {
     supportsCover: true,
     supportsExcerpt: true,
     supportsSource: true,
+    supportsProjectLink: false,
     supportsTeamFields: false,
     supportsCode: false,
     publishStatus: 'pending',
@@ -78,7 +81,22 @@ const BOARD_CONFIG = {
     supportsCover: false,
     supportsExcerpt: false,
     supportsSource: false,
+    supportsProjectLink: false,
     supportsTeamFields: true,
+    supportsCode: true,
+    publishStatus: 'pending',
+  },
+  project: {
+    accent: 'emerald',
+    titleKey: 'community.composer_title_project',
+    titleFallback: '发布项目动态',
+    endpoint: '/community/posts',
+    section: 'project',
+    supportsCover: false,
+    supportsExcerpt: false,
+    supportsSource: false,
+    supportsProjectLink: true,
+    supportsTeamFields: false,
     supportsCode: true,
     publishStatus: 'pending',
   },
@@ -104,6 +122,11 @@ const accentClasses = {
     button: 'bg-violet-600 text-white hover:bg-violet-700',
     ring: 'focus:ring-violet-300/50 focus:border-violet-300',
     darkButton: 'bg-violet-600 text-white hover:bg-violet-500',
+  },
+  emerald: {
+    button: 'bg-emerald-600 text-white hover:bg-emerald-700',
+    ring: 'focus:ring-emerald-300/50 focus:border-emerald-300',
+    darkButton: 'bg-emerald-600 text-white hover:bg-emerald-500',
   },
 };
 
@@ -478,6 +501,12 @@ const UnifiedCommunityComposer = ({
                           </div>
                         </div>
                       </>
+                    )}
+                    {config.supportsProjectLink && (
+                      <div className="space-y-2 md:col-span-2">
+                        <label className={labelCls}>{t('community.project_link_label', '项目链接')}</label>
+                        <input value={link} onChange={(e) => setLink(e.target.value)} placeholder="https://github.com/..." className={inputCls} />
+                      </div>
                     )}
                   </div>
 

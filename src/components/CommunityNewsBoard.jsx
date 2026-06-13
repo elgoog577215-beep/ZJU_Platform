@@ -9,6 +9,7 @@ import { useCachedResource } from '../hooks/useCachedResource';
 import api from '../services/api';
 import CommunityDetailModal from './CommunityDetailModal';
 import CommunityFeedPanel from './CommunityFeedPanel';
+import CommunitySearchInput from './CommunitySearchInput';
 import UnifiedCommunityComposer from './UnifiedCommunityComposer';
 import { parseContentBlocks, calculateReadingTime } from './communityUtils';
 
@@ -17,7 +18,7 @@ const sortLabels = {
   latest: 'community.news_latest',
 };
 
-const CommunityNewsBoard = () => {
+const CommunityNewsBoard = ({ onNewPost, hideNewPostButton = false }) => {
   const { t } = useTranslation();
   const { uiMode } = useSettings();
   const { user } = useAuth();
@@ -27,6 +28,7 @@ const CommunityNewsBoard = () => {
   const location = useLocation();
   const fromUserProfileRef = useRef(Boolean(location.state?.fromUserProfile));
   const [sort, setSort] = useState('hot');
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedNews, setSelectedNews] = useState(null);
   const [composerOpen, setComposerOpen] = useState(false);
 
@@ -38,7 +40,12 @@ const CommunityNewsBoard = () => {
     dependencies: [sort],
     keyPrefix: 'cache:v4:',
   });
-  const list = Array.isArray(data) ? data : [];
+  const rawList = Array.isArray(data) ? data : [];
+  const list = useMemo(() => {
+    const term = searchQuery.trim().toLowerCase();
+    if (!term) return rawList;
+    return rawList.filter((item) => [item.title, item.excerpt, item.content, item.source_name].filter(Boolean).join(' ').toLowerCase().includes(term));
+  }, [rawList, searchQuery]);
   const contentBlocks = useMemo(() => parseContentBlocks(selectedNews?.content_blocks), [selectedNews?.content_blocks]);
 
   const updateParams = useCallback((next) => {
@@ -95,6 +102,14 @@ const CommunityNewsBoard = () => {
     return () => window.removeEventListener('open-community-composer', onOpenComposer);
   }, [openEditor]);
 
+  React.useEffect(() => {
+    const onRefresh = (event) => {
+      if (event.detail?.boardKey === 'news') refresh({ clearCache: true });
+    };
+    window.addEventListener('community-feed-refresh', onRefresh);
+    return () => window.removeEventListener('community-feed-refresh', onRefresh);
+  }, [refresh]);
+
   const renderCard = (item, index, { canAnimate, isDayMode: dm }) => (
     <button
       key={item.id}
@@ -137,6 +152,14 @@ const CommunityNewsBoard = () => {
 
   const extraControls = (
     <div className="flex flex-1 flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <CommunitySearchInput
+        value={searchQuery}
+        onChange={setSearchQuery}
+        onClear={() => setSearchQuery('')}
+        placeholder={t('community.news_search_placeholder', '搜索新闻热点')}
+        isDayMode={isDayMode}
+        className="md:flex-1"
+      />
       <div className={`inline-flex max-w-full gap-1 overflow-x-auto rounded-lg border p-1 ${isDayMode ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-black/10'}`}>
         <button type="button" onClick={() => setSort('hot')} className={`min-h-[34px] rounded-md px-3 text-xs font-semibold ${sort === 'hot' ? (isDayMode ? 'bg-white text-slate-950 shadow' : 'bg-sky-500 text-white') : (isDayMode ? 'text-slate-600' : 'text-gray-300')}`}>{t(sortLabels.hot, '热榜')}</button>
         <button type="button" onClick={() => setSort('latest')} className={`min-h-[34px] rounded-md px-3 text-xs font-semibold ${sort === 'latest' ? (isDayMode ? 'bg-white text-slate-950 shadow' : 'bg-sky-500 text-white') : (isDayMode ? 'text-slate-600' : 'text-gray-300')}`}>{t(sortLabels.latest, '最新')}</button>
@@ -189,9 +212,9 @@ const CommunityNewsBoard = () => {
           handlePageChange: () => {},
           setCurrentPage: () => {},
           handleRefresh: () => refresh({ clearCache: true }),
-          hasActiveFilters: sort !== 'hot',
-          resetFilters: () => { setSort('hot'); },
-          searchQuery: '',
+          hasActiveFilters: sort !== 'hot' || Boolean(searchQuery.trim()),
+          resetFilters: () => { setSort('hot'); setSearchQuery(''); },
+          searchQuery,
           isSearchPending: false,
         }}
         isDayMode={isDayMode}
@@ -202,7 +225,8 @@ const CommunityNewsBoard = () => {
         emptyDesc={t('community.news_empty_desc', '新闻内容正在建设中，敬请期待。')}
         accentColor="blue"
         extraControls={extraControls}
-        onNewPost={() => openEditor()}
+        onNewPost={onNewPost || (() => openEditor())}
+        hideNewPostButton={hideNewPostButton}
         hideSortSelector
       />
       <UnifiedCommunityComposer

@@ -10,6 +10,7 @@ import PostCard from './PostCard';
 import UnifiedCommunityComposer from './UnifiedCommunityComposer';
 import CommunityPostDetail from './CommunityPostDetail';
 import CommunityFeedPanel from './CommunityFeedPanel';
+import CommunitySearchInput from './CommunitySearchInput';
 import { useCommunityFeed } from '../hooks/useCommunityFeed';
 
 const STATUS_TABS = [
@@ -18,7 +19,7 @@ const STATUS_TABS = [
   { key: 'solved', label: 'community.tab_solved' },
 ];
 
-const CommunityHelp = () => {
+const CommunityHelp = ({ onNewPost, hideNewPostButton = false }) => {
   const { t } = useTranslation();
   const { uiMode } = useSettings();
   const { user } = useAuth();
@@ -54,6 +55,14 @@ const CommunityHelp = () => {
     window.addEventListener('open-community-composer', onOpenComposer);
     return () => window.removeEventListener('open-community-composer', onOpenComposer);
   }, [openComposer]);
+
+  React.useEffect(() => {
+    const onRefresh = (event) => {
+      if (event.detail?.boardKey === 'help') feed.handleRefresh();
+    };
+    window.addEventListener('community-feed-refresh', onRefresh);
+    return () => window.removeEventListener('community-feed-refresh', onRefresh);
+  }, [feed]);
 
   const handleSolve = async (commentId) => {
     if (!feed.selectedItem) return;
@@ -139,11 +148,12 @@ const CommunityHelp = () => {
 
   const helpControls = (
     <div className="grid gap-3">
-      <input
+      <CommunitySearchInput
         value={feed.searchQuery}
-        onChange={(e) => feed.setSearchQuery(e.target.value)}
+        onChange={feed.setSearchQuery}
+        onClear={() => feed.setSearchQuery('')}
         placeholder={t('community.help_search_placeholder', '搜索求助帖（标题/正文）')}
-        className={`w-full h-10 px-3 rounded-lg border text-sm ${isDayMode ? 'bg-white border-slate-200 text-slate-700' : 'bg-white/5 border-white/10 text-gray-200'}`}
+        isDayMode={isDayMode}
       />
     </div>
   );
@@ -160,7 +170,8 @@ const CommunityHelp = () => {
       accentColor="amber"
       statusTabs={STATUS_TABS}
       extraControls={helpControls}
-      onNewPost={openComposer}
+      onNewPost={onNewPost || openComposer}
+      hideNewPostButton={hideNewPostButton}
       extraBottom={
         <UnifiedCommunityComposer
           isOpen={isComposerOpen}

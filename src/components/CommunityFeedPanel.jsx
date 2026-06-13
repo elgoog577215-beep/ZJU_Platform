@@ -44,6 +44,7 @@ const CommunityFeedPanel = ({
   renderSkeleton,
   hideSortSelector = false,
   hideMobileSummary = false,
+  hideNewPostButton = false,
 }) => {
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
@@ -62,6 +63,7 @@ const CommunityFeedPanel = ({
         violet: 'from-violet-500/10 to-purple-500/10',
         blue: 'from-blue-500/10 to-indigo-500/10',
         orange: 'from-orange-500/10 to-red-500/10',
+        green: 'from-emerald-500/10 to-teal-500/10',
       }[accentColor] || 'from-amber-500/10 to-orange-500/10');
 
   const emptyBorder = {
@@ -69,14 +71,24 @@ const CommunityFeedPanel = ({
     violet: isDayMode ? 'bg-white border-slate-200/80' : 'bg-violet-500/10 border-white/5',
     blue: isDayMode ? 'bg-white border-slate-200/80' : 'bg-blue-500/10 border-white/5',
     orange: isDayMode ? 'bg-white border-slate-200/80' : 'border-white/5',
+    green: isDayMode ? 'bg-white border-slate-200/80' : 'bg-emerald-500/10 border-white/5',
   }[accentColor];
 
   const accentBtnClass = {
-    amber: isDayMode ? 'bg-slate-950 text-white border-slate-950 shadow-[0_6px_16px_rgba(15,23,42,0.14)]' : 'bg-amber-600 text-white border-amber-600',
-    violet: isDayMode ? 'bg-slate-950 text-white border-slate-950 shadow-[0_6px_16px_rgba(15,23,42,0.14)]' : 'bg-violet-600 text-white border-violet-600',
-    blue: isDayMode ? 'bg-slate-950 text-white border-slate-950 shadow-[0_6px_16px_rgba(15,23,42,0.14)]' : 'bg-blue-600 text-white border-blue-600',
-    orange: isDayMode ? 'bg-slate-950 text-white border-slate-950 shadow-[0_6px_16px_rgba(15,23,42,0.14)]' : 'bg-orange-600 text-white border-orange-600',
+    amber: isDayMode ? 'bg-amber-50 text-amber-700 border-amber-200 shadow-[0_4px_12px_rgba(245,158,11,0.10)]' : 'bg-amber-600 text-white border-amber-600',
+    violet: isDayMode ? 'bg-violet-50 text-violet-700 border-violet-200 shadow-[0_4px_12px_rgba(139,92,246,0.10)]' : 'bg-violet-600 text-white border-violet-600',
+    blue: isDayMode ? 'bg-sky-50 text-sky-700 border-sky-200 shadow-[0_4px_12px_rgba(14,165,233,0.10)]' : 'bg-blue-600 text-white border-blue-600',
+    orange: isDayMode ? 'bg-orange-50 text-orange-700 border-orange-200 shadow-[0_4px_12px_rgba(249,115,22,0.10)]' : 'bg-orange-600 text-white border-orange-600',
+    green: isDayMode ? 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-[0_4px_12px_rgba(16,185,129,0.10)]' : 'bg-emerald-600 text-white border-emerald-600',
   }[accentColor];
+
+  const emptyIconClass = {
+    amber: 'text-amber-400',
+    violet: 'text-violet-400',
+    blue: 'text-blue-400',
+    orange: 'text-orange-400',
+    green: 'text-emerald-400',
+  }[accentColor] || 'text-amber-400';
 
   const defaultSkeleton = (i) => (
     <div key={i} className={`border rounded-lg p-5 md:p-6 animate-pulse ${th.card}`}>
@@ -123,7 +135,7 @@ const CommunityFeedPanel = ({
                 <SortSelector sort={sort} onSortChange={setSort} />
               </div>
             ) : null}
-            {onNewPost && (
+            {onNewPost && !hideNewPostButton && (
               <button
                 onClick={onNewPost}
                 className={`hidden min-h-[40px] items-center gap-2 rounded-lg border px-4 text-sm font-semibold transition-all md:inline-flex ${accentBtnClass}`}
@@ -197,7 +209,7 @@ const CommunityFeedPanel = ({
         ) : displayItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 px-4">
             <div className={`bg-gradient-to-br ${gradientFrom} rounded-lg p-8 mb-6 border ${isDayMode ? 'shadow-none' : 'backdrop-blur-xl shadow-xl'} ${emptyBorder}`}>
-              {EmptyIcon && <EmptyIcon size={64} className={`text-${accentColor}-400 opacity-80`} />}
+              {EmptyIcon && <EmptyIcon size={64} className={`${emptyIconClass} opacity-80`} />}
             </div>
             <h3 className={`text-2xl font-bold mb-2 ${th.textPrimary}`}>
               {hasActiveFilters ? t('community.no_filtered_results', '没有符合当前条件的内容') : emptyTitle}
