@@ -1,6 +1,46 @@
 export const COLLEGE_NOTICE_CATEGORY_VALUE = "college_notice";
 export const COLLEGE_NOTICE_TAG = "学院通知";
 
+export const COLLEGE_NOTICE_TYPES = [
+  { value: "academic", label: "学业通知" },
+  { value: "evaluation", label: "评奖评优" },
+  { value: "bonus", label: "加分活动" },
+  { value: "volunteer", label: "志愿招募" },
+  { value: "lecture", label: "讲座通知" },
+  { value: "competition", label: "竞赛通知" },
+  { value: "administrative", label: "事务通知" },
+  { value: "registration", label: "报名通知" },
+  { value: "voting", label: "投票通知" },
+  { value: "other", label: "其他通知" },
+];
+
+export const COLLEGE_NOTICE_TYPE_LABELS = {
+  zh: {
+    academic: "学业通知",
+    evaluation: "评奖评优",
+    bonus: "加分活动",
+    volunteer: "志愿招募",
+    lecture: "讲座通知",
+    competition: "竞赛通知",
+    administrative: "事务通知",
+    registration: "报名通知",
+    voting: "投票通知",
+    other: "其他通知",
+  },
+  en: {
+    academic: "Academic Notice",
+    evaluation: "Awards & Evaluation",
+    bonus: "Bonus Credit",
+    volunteer: "Volunteer Recruitment",
+    lecture: "Lecture Notice",
+    competition: "Competition Notice",
+    administrative: "Administrative Notice",
+    registration: "Registration Notice",
+    voting: "Voting Notice",
+    other: "Other Notice",
+  },
+};
+
 export const EVENT_CATEGORIES = [
   { value: "lecture", label: "讲座" },
   { value: "competition", label: "竞赛" },
@@ -220,6 +260,7 @@ export const EVENT_AUDIENCE_GROUPS = [
       "信息与电子工程学院",
       "控制科学与工程学院",
       "计算机科学与技术学院",
+      "人工智能学院",
       "软件学院",
       "生物医学工程与仪器科学学院",
       "集成电路学院",
@@ -249,6 +290,28 @@ export const EVENT_AUDIENCE_GROUPS = [
 export const EVENT_AUDIENCE_OPTIONS = EVENT_AUDIENCE_GROUPS.flatMap(
   ({ items }) => items,
 );
+
+export const EVENT_SOURCE_COLLEGE_OPTIONS = EVENT_AUDIENCE_OPTIONS.filter(
+  (item) => item !== "全校",
+);
+
+const PRIORITY_SOURCE_COLLEGES = [
+  "云峰学园",
+  "丹青学园",
+  "蓝田学园",
+  "紫云碧峰学园",
+  "港湾家园",
+  "海宁国际校区",
+];
+
+const EVENT_SOURCE_COLLEGE_MATCH_OPTIONS = [
+  ...PRIORITY_SOURCE_COLLEGES.filter((item) =>
+    EVENT_SOURCE_COLLEGE_OPTIONS.includes(item),
+  ),
+  ...EVENT_SOURCE_COLLEGE_OPTIONS.filter(
+    (item) => !PRIORITY_SOURCE_COLLEGES.includes(item),
+  ),
+];
 
 export const EVENT_AUDIENCE_LABELS_EN = {
   全校: "All Campus",
@@ -290,6 +353,7 @@ export const EVENT_AUDIENCE_LABELS_EN = {
   信息与电子工程学院: "College of Information Science and Electronic Engineering",
   控制科学与工程学院: "College of Control Science and Engineering",
   计算机科学与技术学院: "College of Computer Science and Technology",
+  人工智能学院: "College of Artificial Intelligence",
   软件学院: "School of Software Technology",
   生物医学工程与仪器科学学院: "College of Biomedical Engineering and Instrument Science",
   集成电路学院: "School of Integrated Circuits",
@@ -322,6 +386,63 @@ export const getEventCategoryLabel = (value, language = "zh") => {
     value ||
     ""
   );
+};
+
+export const normalizeCollegeNoticeType = (value) => {
+  const normalized = String(value || "").trim();
+  if (!normalized) return "";
+  const direct = COLLEGE_NOTICE_TYPES.find(
+    (item) => item.value === normalized || item.label === normalized,
+  );
+  if (direct) return direct.value;
+
+  if (/保研|推免|课程|学业|培养|考试|选课|教务/.test(normalized)) return "academic";
+  if (/评奖|评优|奖学金|荣誉|十佳/.test(normalized)) return "evaluation";
+  if (/加分|综测|素质分|二课|第二课堂|第三课堂/.test(normalized)) return "bonus";
+  if (/志愿|志愿者|公益|社会实践/.test(normalized)) return "volunteer";
+  if (/讲座|报告|论坛|分享/.test(normalized)) return "lecture";
+  if (/竞赛|比赛|挑战杯|黑客松/.test(normalized)) return "competition";
+  if (/报名|招募|申请|征集/.test(normalized)) return "registration";
+  if (/投票|评选|点赞/.test(normalized)) return "voting";
+  if (/通知|事务|安排|调整|汇总|提醒|公示/.test(normalized)) return "administrative";
+  return "other";
+};
+
+export const getCollegeNoticeTypeLabel = (value, language = "zh") => {
+  const normalized = normalizeCollegeNoticeType(value) || "other";
+  const lang = String(language || "zh").startsWith("en") ? "en" : "zh";
+  return COLLEGE_NOTICE_TYPE_LABELS[lang]?.[normalized] || value || "";
+};
+
+export const inferEventSourceCollege = (event = {}) => {
+  const source = [
+    event.source_college,
+    event.organizer,
+    event.target_audience,
+    event.title,
+    event.description,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  if (!source.trim()) return "";
+
+  const direct = EVENT_SOURCE_COLLEGE_MATCH_OPTIONS.find((item) =>
+    source.includes(item),
+  );
+  if (direct) return direct;
+
+  if (/云峰/.test(source)) return "云峰学园";
+  if (/丹青/.test(source)) return "丹青学园";
+  if (/蓝田/.test(source)) return "蓝田学园";
+  if (/求是/.test(source)) return "求是学院";
+  if (/竺可桢|竺院/.test(source)) return "竺可桢学院";
+  if (/计算机/.test(source)) return "计算机科学与技术学院";
+  if (/软件/.test(source)) return "软件学院";
+  if (/人工智能/.test(source)) return "人工智能学院";
+  if (/集成电路/.test(source)) return "集成电路学院";
+
+  return "";
 };
 
 export const getEventAudienceLabel = (value, language = "zh") =>

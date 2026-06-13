@@ -186,7 +186,7 @@ const sanitizeRequest = (req, res, next) => {
   const fieldsToSanitize = [
     // FIX: BUG-06 — Remove 'password' from sanitization list to prevent corruption before hashing
     'username', 'email', 'name', 'nickname',
-    'location', 'organizer', 'target_audience'
+    'location', 'organizer', 'target_audience', 'notice_type', 'source_college'
   ];
 
   if (req.body && typeof req.body === 'object') {

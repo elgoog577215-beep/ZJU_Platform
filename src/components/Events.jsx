@@ -55,7 +55,9 @@ import SEO from "./SEO";
 import {
   COLLEGE_NOTICE_CATEGORY_VALUE,
   COLLEGE_NOTICE_TAG,
+  getCollegeNoticeTypeLabel,
   getEventCategoryLabel,
+  inferEventSourceCollege,
 } from "../data/eventTaxonomy";
 
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
@@ -77,9 +79,14 @@ const getEventTags = (event = {}) =>
     .filter(Boolean);
 
 const isCollegeNoticeEvent = (event = {}) =>
+  Boolean(Number(event.is_college_notice)) ||
   getEventTags(event).includes(COLLEGE_NOTICE_TAG);
 
 const getCollegeNoticeSource = (event = {}) => {
+  const sourceCollege = String(event.source_college || "").trim();
+  if (sourceCollege) return sourceCollege;
+  const inferred = inferEventSourceCollege(event);
+  if (inferred) return inferred;
   const organizer = String(event.organizer || "").trim();
   if (organizer) return organizer;
   const audience = String(event.target_audience || "").trim();
@@ -673,9 +680,13 @@ EventListRow.displayName = "EventListRow";
 
 const CollegeNoticeRow = memo(
   ({ event, index, onClick, onToggleFavorite, reduceMotion, isDayMode }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const status = getEventLifecycle(event.date, event.end_date, t);
     const noticeSource = getCollegeNoticeSource(event);
+    const noticeTypeLabel = getCollegeNoticeTypeLabel(
+      event.notice_type || "other",
+      i18n.resolvedLanguage || i18n.language,
+    );
     const motionProps = reduceMotion
       ? {}
       : {
@@ -738,6 +749,17 @@ const CollegeNoticeRow = memo(
                   <span className="truncate">
                     {getEventCategoryLabel(event.category)}
                   </span>
+                </span>
+              )}
+              {noticeTypeLabel && (
+                <span
+                  className={`rect-chip inline-flex max-w-[150px] items-center gap-1 px-2 py-1 text-[11px] font-medium ${
+                    isDayMode
+                      ? "border-pink-100/80 bg-pink-50 text-rose-700"
+                      : "border-white/10 bg-white/[0.045] text-slate-300"
+                  }`}
+                >
+                  <span className="truncate">{noticeTypeLabel}</span>
                 </span>
               )}
               <span
@@ -883,7 +905,7 @@ const CollegeNoticeRow = memo(
 CollegeNoticeRow.displayName = "CollegeNoticeRow";
 
 const Events = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { settings, uiMode } = useSettings();
   const { user } = useAuth();
   const prefersReducedMotion = useReducedMotion();
@@ -958,6 +980,17 @@ const Events = () => {
   });
   const isCollegeNoticeFilter =
     filters.category === COLLEGE_NOTICE_CATEGORY_VALUE;
+  const selectedEventIsCollegeNotice =
+    selectedEvent && isCollegeNoticeEvent(selectedEvent);
+  const selectedEventNoticeSource = selectedEventIsCollegeNotice
+    ? getCollegeNoticeSource(selectedEvent)
+    : "";
+  const selectedEventNoticeTypeLabel = selectedEventIsCollegeNotice
+    ? getCollegeNoticeTypeLabel(
+        selectedEvent?.notice_type || "other",
+        i18n.resolvedLanguage || i18n.language,
+      )
+    : "";
   const hasActiveMobileFilters = Object.values(filters).some((v) => v);
   const mobileSortLabel = useMobileSortLabel(sort, t);
 
@@ -2579,6 +2612,56 @@ END:VCALENDAR`;
 
                           {/* Detailed Info List */}
                           <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                            {selectedEventNoticeSource && (
+                              <div
+                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-violet-50/70 border-violet-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
+                              >
+                                <div className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border border-violet-100 text-violet-700" : "bg-indigo-500/5 border border-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/10"}`}>
+                                  <Building2
+                                    size={18}
+                                    className="sm:h-5 sm:w-5"
+                                  />
+                                </div>
+                                <div className="min-w-0">
+                                  <h4
+                                    className={`mb-1 text-xs font-bold uppercase tracking-[0.18em] sm:text-sm sm:tracking-wider ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                  >
+                                    {t("event_fields.source_college")}
+                                  </h4>
+                                  <p
+                                    className={`text-sm leading-snug break-words sm:text-base ${isDayMode ? "text-slate-700" : "text-gray-200"}`}
+                                  >
+                                    {selectedEventNoticeSource}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+
+                            {selectedEventNoticeTypeLabel && (
+                              <div
+                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-pink-50/70 border-pink-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
+                              >
+                                <div className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border border-pink-100 text-rose-600" : "bg-purple-500/5 border border-purple-500/10 text-purple-400 group-hover:bg-purple-500/10"}`}>
+                                  <FileText
+                                    size={18}
+                                    className="sm:h-5 sm:w-5"
+                                  />
+                                </div>
+                                <div className="min-w-0">
+                                  <h4
+                                    className={`mb-1 text-xs font-bold uppercase tracking-[0.18em] sm:text-sm sm:tracking-wider ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                                  >
+                                    {t("event_fields.notice_type")}
+                                  </h4>
+                                  <p
+                                    className={`text-sm leading-snug break-words sm:text-base ${isDayMode ? "text-slate-700" : "text-gray-200"}`}
+                                  >
+                                    {selectedEventNoticeTypeLabel}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+
                             <div
                               className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-violet-50/70 border-violet-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
                             >

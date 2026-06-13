@@ -11,10 +11,15 @@ import { useBackClose } from '../hooks/useBackClose';
 import useMediaCategories from '../hooks/useMediaCategories';
 import {
   COLLEGE_NOTICE_TAG,
+  COLLEGE_NOTICE_TYPES,
   EVENT_CATEGORIES,
   EVENT_AUDIENCE_GROUPS,
   EVENT_AUDIENCE_OPTIONS,
+  EVENT_SOURCE_COLLEGE_OPTIONS,
+  getCollegeNoticeTypeLabel,
   getEventCategoryLabel,
+  inferEventSourceCollege,
+  normalizeCollegeNoticeType,
   normalizeEventCategoryValue,
 } from '../data/eventTaxonomy';
 
@@ -332,8 +337,11 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   const [eventVolunteerTime, setEventVolunteerTime] = useState(initialData?.volunteer_time || '');
   const [eventCategory, setEventCategory] = useState(() => normalizeEventCategory(initialData?.category));
   const [isCollegeNotice, setIsCollegeNotice] = useState(() =>
+    Boolean(Number(initialData?.is_college_notice)) ||
     getTagList(initialData?.tags).includes(COLLEGE_NOTICE_TAG)
   );
+  const [noticeType, setNoticeType] = useState(() => normalizeCollegeNoticeType(initialData?.notice_type) || 'other');
+  const [sourceCollege, setSourceCollege] = useState(() => initialData?.source_college || inferEventSourceCollege(initialData || {}));
   const [eventTarget, setEventTarget] = useState(() => normalizeEventAudience(initialData?.target_audience) || initialData?.target_audience || '');
   const [eventOrganizer, setEventOrganizer] = useState(initialData?.organizer || '');
   const [audienceSearch, setAudienceSearch] = useState('');
@@ -422,6 +430,17 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
       return next;
     });
   }, []);
+
+  React.useEffect(() => {
+    if (!isCollegeNotice || sourceCollege) return;
+    const inferred = inferEventSourceCollege({
+      organizer: eventOrganizer,
+      target_audience: eventTarget,
+      title,
+      description,
+    });
+    if (inferred) setSourceCollege(inferred);
+  }, [description, eventOrganizer, eventTarget, isCollegeNotice, sourceCollege, title]);
 
   const restoreArticleDraft = React.useCallback(() => {
     if (type !== 'article' || isEditing) return;
@@ -593,7 +612,9 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             setEventScore(initialData.score || '');
             setEventVolunteerTime(initialData.volunteer_time || '');
             setEventCategory(normalizeEventCategory(initialData.category));
-            setIsCollegeNotice(getTagList(initialData.tags).includes(COLLEGE_NOTICE_TAG));
+            setIsCollegeNotice(Boolean(Number(initialData.is_college_notice)) || getTagList(initialData.tags).includes(COLLEGE_NOTICE_TAG));
+            setNoticeType(normalizeCollegeNoticeType(initialData.notice_type) || 'other');
+            setSourceCollege(initialData.source_college || inferEventSourceCollege(initialData));
             setEventTarget(normalizeEventAudience(initialData.target_audience) || initialData.target_audience || '');
             setEventOrganizer(initialData.organizer || '');
             setFeatured(initialData.featured || false);
@@ -1104,6 +1125,10 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         toast.error(t('upload.required_college_notice_source'));
         return;
     }
+    if (type === 'event' && isCollegeNotice && !sourceCollege.trim()) {
+        toast.error(t('upload.required_source_college'));
+        return;
+    }
     if (type === 'article') {
       const hasEffectiveContent = articleBlocks.some((block) => {
         if (block.type === 'text') return !!block.text?.trim();
@@ -1195,6 +1220,9 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         target_audience: type === 'event' ? eventTarget : null,
         organizer: type === 'event' ? eventOrganizer : null,
         category: type === 'event' ? eventCategory : null,
+        is_college_notice: type === 'event' && isCollegeNotice ? 1 : 0,
+        notice_type: type === 'event' && isCollegeNotice ? noticeType : null,
+        source_college: type === 'event' && isCollegeNotice ? sourceCollege : null,
         status: resolvedStatus,
         volunteer_time: type === 'event' ? eventVolunteerTime : null,
         related_article_ids: relatedArticleIds,
@@ -1589,6 +1617,48 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                 className={isCollegeNotice ? 'opacity-100' : 'opacity-30'}
                               />
                             </button>
+                            {isCollegeNotice && (
+                              <div className={`mt-3 space-y-3 rounded-2xl border p-3 ${isDayMode ? 'border-violet-100 bg-violet-50/60' : 'border-indigo-400/20 bg-indigo-500/10'}`}>
+                                <div>
+                                  <label className={labelClasses}>{t('event_fields.notice_type')}</label>
+                                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                                    {COLLEGE_NOTICE_TYPES.map((noticeOption) => {
+                                      const selected = noticeType === noticeOption.value;
+                                      return (
+                                        <button
+                                          key={noticeOption.value}
+                                          type="button"
+                                          aria-pressed={selected}
+                                          onClick={() => setNoticeType(noticeOption.value)}
+                                          className={`min-h-[38px] rounded-xl border px-2 py-2 text-xs font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+                                            selected
+                                              ? (isDayMode ? 'border-violet-500 bg-white text-violet-700' : 'border-indigo-300/50 bg-indigo-400/18 text-indigo-50')
+                                              : (isDayMode ? 'border-violet-100 bg-white/70 text-slate-600 hover:border-violet-200' : 'border-white/10 bg-white/5 text-gray-300 hover:bg-white/10')
+                                          }`}
+                                        >
+                                          {getCollegeNoticeTypeLabel(noticeOption.value, i18n.resolvedLanguage || i18n.language)}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                                <div>
+                                  <label className={labelClasses}>{t('event_fields.source_college')}</label>
+                                  <select
+                                    value={sourceCollege}
+                                    onChange={(event) => setSourceCollege(event.target.value)}
+                                    className={inputClasses}
+                                  >
+                                    <option value="">{t('event_fields.source_college_placeholder')}</option>
+                                    {EVENT_SOURCE_COLLEGE_OPTIONS.map((college) => (
+                                      <option key={college} value={college}>
+                                        {college}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+                            )}
                         </div>
                      </div>
                   </div>

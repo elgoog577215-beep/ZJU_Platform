@@ -16,6 +16,13 @@ const buildAllSchoolAudienceMatch = (field) => ({
 
 const buildEventCategoryFilter = (category) => {
     const normalized = String(category || '').trim();
+    if (normalized === 'college_notice' || normalized === '学院通知') {
+        return {
+            clause: '(is_college_notice = 1 OR tags = ? OR tags LIKE ? OR tags LIKE ? OR tags LIKE ?)',
+            params: ['学院通知', '学院通知,%', '%,学院通知', '%,学院通知,%'],
+        };
+    }
+
     const terms = getEventCategoryFilterTerms(normalized);
     if (terms.length === 0) return null;
 
@@ -68,6 +75,31 @@ const normalizeEventTags = (tagsString) => {
     .map((tag) => tag.trim())
     .filter(Boolean);
   return Array.from(new Set(tags)).join(',');
+};
+
+const inferCollegeNoticeFlag = (body = {}) => {
+  const explicit = body.is_college_notice;
+  if (explicit === true || explicit === 1 || explicit === '1' || explicit === 'true') return 1;
+  if (explicit === false || explicit === 0 || explicit === '0' || explicit === 'false') return 0;
+  return normalizeEventTags(body.tags).split(',').includes('学院通知') ? 1 : 0;
+};
+
+const normalizeEventPayload = (body = {}) => {
+  body.tags = normalizeEventTags(body.tags);
+  body.is_college_notice = inferCollegeNoticeFlag(body);
+
+  if (body.is_college_notice && !body.tags.split(',').includes('学院通知')) {
+    body.tags = normalizeEventTags([body.tags, '学院通知'].filter(Boolean).join(','));
+  }
+
+  if (!body.is_college_notice) {
+    body.notice_type = null;
+    body.source_college = null;
+    return;
+  }
+
+  body.notice_type = String(body.notice_type || '').trim() || 'other';
+  body.source_college = String(body.source_college || '').trim();
 };
 
 const normalizeArticlePayload = (table, body) => {
@@ -153,7 +185,7 @@ const createHandler = (table, fields) => async (req, res, next) => {
     const db = await getDb();
     normalizeArticlePayload(table, req.body);
     if (table === 'events') {
-        req.body.tags = normalizeEventTags(req.body.tags);
+        normalizeEventPayload(req.body);
     }
     const placeholders = fields.map(() => '?').join(',');
     
@@ -199,7 +231,7 @@ const updateHandler = (table, fields) => async (req, res, next) => {
     const db = await getDb();
     normalizeArticlePayload(table, req.body);
     if (table === 'events') {
-        req.body.tags = normalizeEventTags(req.body.tags);
+        normalizeEventPayload(req.body);
     }
     const { id } = req.params;
     
@@ -554,14 +586,23 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
         }
 
         if (tag && tag !== 'All') {
-            whereClauses.push('tag = ?');
-            params.push(tag);
-            countParams.push(tag);
+            const normalizedTag = String(tag).trim();
+            if (normalizedTag) {
+                whereClauses.push('(tags = ? OR tags LIKE ? OR tags LIKE ? OR tags LIKE ?)');
+                const tagParams = [
+                    normalizedTag,
+                    `${normalizedTag},%`,
+                    `%,${normalizedTag}`,
+                    `%,${normalizedTag},%`,
+                ];
+                params.push(...tagParams);
+                countParams.push(...tagParams);
+            }
         }
 
         // Dynamic Field Filtering
         if (table === 'events') {
-            const filterableFields = ['location', 'organizer', 'target_audience'];
+            const filterableFields = ['location', 'organizer', 'target_audience', 'source_college', 'notice_type'];
             filterableFields.forEach(field => {
                 if (req.query[field]) {
                     if (field === 'target_audience') {
@@ -789,7 +830,7 @@ const getDistinctValues = (table) => async (req, res, next) => {
 
         // Dynamic Field Filtering for Events
         if (table === 'events') {
-            const filterableFields = ['location', 'organizer', 'target_audience'];
+            const filterableFields = ['location', 'organizer', 'target_audience', 'source_college', 'notice_type'];
             filterableFields.forEach(f => {
                 // Don't filter by the field we are querying distinct values for
                 if (f !== field && req.query[f]) {
@@ -827,7 +868,7 @@ const getEventDistinctOptions = async (req, res, next) => {
         const db = await getDb();
         const status = req.query.status || 'approved';
         const lifecycle = req.query.lifecycle;
-        const filterableFields = ['location', 'organizer', 'target_audience'];
+        const filterableFields = ['location', 'organizer', 'target_audience', 'source_college', 'notice_type'];
 
         const buildQueryForField = (field) => {
             const whereClauses = [`"${field}" IS NOT NULL AND "${field}" != ''`];
@@ -858,7 +899,7 @@ const getEventDistinctOptions = async (req, res, next) => {
             return { query, params };
         };
 
-        const [locationRows, organizerRows, audienceRows] = await Promise.all(
+        const [locationRows, organizerRows, audienceRows, sourceCollegeRows, noticeTypeRows] = await Promise.all(
             filterableFields.map((field) => {
                 const { query, params } = buildQueryForField(field);
                 return db.all(query, params);
@@ -868,7 +909,9 @@ const getEventDistinctOptions = async (req, res, next) => {
         res.json({
             location: locationRows.map((row) => row.location),
             organizer: organizerRows.map((row) => row.organizer),
-            target_audience: audienceRows.map((row) => row.target_audience)
+            target_audience: audienceRows.map((row) => row.target_audience),
+            source_college: sourceCollegeRows.map((row) => row.source_college),
+            notice_type: noticeTypeRows.map((row) => row.notice_type)
         });
     } catch (error) { next(error); }
 }
@@ -879,7 +922,7 @@ const fields = {
     music: ['title', 'artist', 'duration', 'cover', 'audio', 'featured', 'tags'],
     videos: ['title', 'tags', 'category_id', 'thumbnail', 'video', 'gameType', 'gameDescription', 'featured'],
     articles: ['title', 'date', 'excerpt', 'tags', 'content', 'content_blocks', 'cover', 'featured', 'category', 'related_article_ids', 'related_post_ids', 'related_news_ids', 'related_group_ids'],
-    events: ['title', 'date', 'end_date', 'location', 'tags', 'image', 'description', 'content', 'link', 'featured', 'score', 'target_audience', 'organizer', 'volunteer_time', 'category']
+    events: ['title', 'date', 'end_date', 'location', 'tags', 'image', 'description', 'content', 'link', 'featured', 'score', 'target_audience', 'organizer', 'volunteer_time', 'category', 'is_college_notice', 'notice_type', 'source_college']
 };
 
 const getRelatedHandler = (table) => async (req, res, next) => {

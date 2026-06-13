@@ -116,6 +116,9 @@ async function ensureCoreSchema(db) {
       organizer TEXT,
       volunteer_time TEXT,
       category TEXT,
+      is_college_notice INTEGER DEFAULT 0,
+      notice_type TEXT,
+      source_college TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       deleted_at DATETIME
     );

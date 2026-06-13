@@ -43,6 +43,18 @@ async function runMigrations(db) {
       await db.exec(`ALTER TABLE events ADD COLUMN category TEXT`);
       console.log('✅ Added category to events table');
     }
+    if (!eventsColumns.includes('is_college_notice')) {
+      await db.exec(`ALTER TABLE events ADD COLUMN is_college_notice INTEGER DEFAULT 0`);
+      console.log('✅ Added is_college_notice to events table');
+    }
+    if (!eventsColumns.includes('notice_type')) {
+      await db.exec(`ALTER TABLE events ADD COLUMN notice_type TEXT`);
+      console.log('✅ Added notice_type to events table');
+    }
+    if (!eventsColumns.includes('source_college')) {
+      await db.exec(`ALTER TABLE events ADD COLUMN source_college TEXT`);
+      console.log('✅ Added source_college to events table');
+    }
   } catch (err) {
     if (!err.message.includes('duplicate column')) {
       console.warn('Migration warning (events):', err.message);
@@ -544,6 +556,9 @@ async function runMigrations(db) {
       CREATE INDEX IF NOT EXISTS idx_articles_status_deleted_created_at ON articles(status, deleted_at, created_at DESC);
       CREATE INDEX IF NOT EXISTS idx_events_status_deleted_date ON events(status, deleted_at, date DESC);
       CREATE INDEX IF NOT EXISTS idx_events_status_deleted_category ON events(status, deleted_at, category);
+      CREATE INDEX IF NOT EXISTS idx_events_status_deleted_college_notice ON events(status, deleted_at, is_college_notice);
+      CREATE INDEX IF NOT EXISTS idx_events_status_deleted_source_college ON events(status, deleted_at, source_college);
+      CREATE INDEX IF NOT EXISTS idx_events_status_deleted_notice_type ON events(status, deleted_at, notice_type);
       CREATE INDEX IF NOT EXISTS idx_events_status_deleted_views ON events(status, deleted_at, views DESC);
       CREATE INDEX IF NOT EXISTS idx_events_uploader_id ON events(uploader_id);
       CREATE INDEX IF NOT EXISTS idx_articles_uploader_id ON articles(uploader_id);
