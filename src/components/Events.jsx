@@ -767,10 +767,12 @@ const CollegeNoticeRow = memo(
                   size={14}
                   className={isDayMode ? "shrink-0 text-violet-600" : "shrink-0 text-indigo-300"}
                 />
-                <span className={isDayMode ? "shrink-0 text-slate-500" : "shrink-0 text-indigo-200/75"}>
-                  {t("events.college_notice.source_label")}
+                <span className="min-w-0 truncate">
+                  <span className={isDayMode ? "text-slate-500" : "text-indigo-200/75"}>
+                    {t("events.college_notice.source_label")}
+                  </span>
+                  <span>{noticeSource}</span>
                 </span>
-                <span className="min-w-0 truncate">{noticeSource}</span>
               </div>
             )}
 
@@ -1454,8 +1456,8 @@ END:VCALENDAR`;
   return (
     <section className={`day-page-theme day-page-theme-events pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:pb-20 md:pt-24 px-4 md:px-8 relative overflow-hidden flex-grow`}>
       <SEO
-        title="活动"
-        description="浏览浙江大学校内活动、志愿服务、讲座与报名信息。"
+        title={t("events.meta_title")}
+        description={t("events.meta_desc")}
       />
       {null}
 
@@ -1622,12 +1624,12 @@ END:VCALENDAR`;
                           id="events-mobile-filter-title"
                           className={`text-[1.35rem] font-black leading-tight ${isDayMode ? "text-slate-950" : "text-white"}`}
                         >
-                          筛选活动
+                          {t("events.filter.sheet_title")}
                         </h3>
                         <p
                           className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
                         >
-                          类型和对象会立即生效
+                          {t("events.filter.sheet_hint")}
                         </p>
                       </div>
                       <button

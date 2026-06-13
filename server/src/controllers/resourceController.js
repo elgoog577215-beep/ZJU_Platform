@@ -61,14 +61,12 @@ const processTags = async (tagsString) => {
   }
 };
 
-const EVENT_SPECIAL_TAGS = new Set(['学院通知']);
-
-const normalizeEventSpecialTags = (tagsString) => {
+const normalizeEventTags = (tagsString) => {
   if (!tagsString) return '';
   const tags = String(tagsString)
     .split(/[，,;；、\n\t]+/)
     .map((tag) => tag.trim())
-    .filter((tag) => EVENT_SPECIAL_TAGS.has(tag));
+    .filter(Boolean);
   return Array.from(new Set(tags)).join(',');
 };
 
@@ -155,7 +153,7 @@ const createHandler = (table, fields) => async (req, res, next) => {
     const db = await getDb();
     normalizeArticlePayload(table, req.body);
     if (table === 'events') {
-        req.body.tags = normalizeEventSpecialTags(req.body.tags);
+        req.body.tags = normalizeEventTags(req.body.tags);
     }
     const placeholders = fields.map(() => '?').join(',');
     
@@ -201,7 +199,7 @@ const updateHandler = (table, fields) => async (req, res, next) => {
     const db = await getDb();
     normalizeArticlePayload(table, req.body);
     if (table === 'events') {
-        req.body.tags = normalizeEventSpecialTags(req.body.tags);
+        req.body.tags = normalizeEventTags(req.body.tags);
     }
     const { id } = req.params;
     
