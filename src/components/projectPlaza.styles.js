@@ -72,8 +72,6 @@ export const PROJECT_PLAZA_CSS = `
 .ppp-cover::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(2,6,23,0.05) 40%,rgba(2,6,23,0.5));pointer-events:none;}
 .ppp-prog{position:absolute;right:12px;top:12px;z-index:3;display:inline-flex;align-items:center;gap:7px;background:var(--prog-bg);backdrop-filter:blur(8px);color:var(--prog-ink);font-size:11.5px;font-weight:700;padding:5px 11px 5px 9px;border-radius:var(--r-pill);box-shadow:var(--sh-sm);}
 .ppp-d{width:8px;height:8px;border-radius:50%;}
-.ppp-save{position:absolute;right:12px;bottom:12px;z-index:3;height:29px;padding:0 11px;border-radius:var(--r-pill);background:var(--prog-bg);backdrop-filter:blur(8px);border:0;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--call-on);box-shadow:var(--sh-sm);transition:transform .16s var(--ease);}
-.ppp-save:hover{transform:scale(1.08);}
 .ppp-photos{position:absolute;left:12px;bottom:12px;z-index:3;display:inline-flex;align-items:center;gap:5px;background:rgba(2,6,23,0.55);backdrop-filter:blur(6px);color:#fff;font-size:11px;padding:4px 9px;border-radius:var(--r-pill);font-weight:600;}
 
 .ppp-body{padding:15px 17px 8px;flex:1;display:flex;flex-direction:column;}
@@ -89,7 +87,12 @@ export const PROJECT_PLAZA_CSS = `
 .ppp-stack{display:flex;}
 .ppp-av{width:25px;height:25px;border-radius:50%;border:2px solid var(--avborder);display:grid;place-items:center;color:#fff;font-size:10.5px;font-weight:700;flex:none;}
 .ppp-lbl{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.ppp-heat{font-size:11.5px;color:var(--soft);white-space:nowrap;}
+.ppp-favrow{display:flex;align-items:center;gap:8px;flex:none;}
+.ppp-views{font-size:11.5px;color:var(--soft);white-space:nowrap;}
+/* FavoriteButton wrapper (events-style heart): heart color follows currentColor,
+   Tailwind classes inside handle pink fill/hover; we just set base color + spacing */
+.ppp-fav{color:var(--muted);border-radius:8px;padding:2px 4px;}
+.ppp-fav-modal{flex:none;border:1px solid var(--border-strong);padding:11px 15px;border-radius:12px;color:var(--ink-2);}
 
 /* ===== modal ===== */
 .ppp-scrim{position:fixed;inset:0;z-index:50;background:rgba(4,8,20,0.62);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;padding:28px;animation:pppfade .2s var(--ease);}

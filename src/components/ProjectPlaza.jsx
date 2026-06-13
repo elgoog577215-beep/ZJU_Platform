@@ -6,8 +6,9 @@ import { useAuth } from "../context/AuthContext";
 import { useBackClose } from "../hooks/useBackClose";
 import SEO from "./SEO";
 import api, {
-  getProjects, getProject, createProjectCard, toggleProjectFavorite,
+  getProjects, getProject, createProjectCard,
 } from "../services/api";
+import FavoriteButton from "./FavoriteButton";
 import { PROJECT_PLAZA_CSS } from "./projectPlaza.styles";
 
 const PROG = {
@@ -36,16 +37,13 @@ const ProgPill = ({ progress, className = "" }) => {
   return <span className={`ppp-prog ${className}`}><span className="ppp-d" style={{ background: p.c }} />{p.label}</span>;
 };
 
-const Card = ({ p, onOpen, onFavorite }) => (
+const Card = ({ p, onOpen, onFav }) => (
   <article className="ppp-card" onClick={() => onOpen(p)}>
     <div className="ppp-cover">
       {p.cover_url
         ? <img className="ppp-art" src={p.cover_url} alt={p.title} loading="lazy" />
         : <span className="ppp-art ppp-noart">{p.title?.slice(0, 2)}</span>}
       <ProgPill progress={p.progress} />
-      <button className={`ppp-save ${p.favorited ? "is-saved" : ""}`} onClick={(e) => { e.stopPropagation(); onFavorite(p); }}>
-        {p.favorited ? "💜" : "🤍"} {p.likes ?? 0}
-      </button>
       {p.images?.length > 1 && <span className="ppp-photos">📷 {p.images.length}</span>}
     </div>
     <div className="ppp-body">
@@ -62,13 +60,25 @@ const Card = ({ p, onOpen, onFavorite }) => (
           <div className="ppp-stack"><Avatar name={p.owner_name} /></div>
           <span className="ppp-lbl">{p.owner_name || "匿名"}</span>
         </div>
-        <span className="ppp-heat">🔥 {p.likes ?? 0} · 👁 {p.views ?? 0}</span>
+        <div className="ppp-favrow" onClick={(e) => e.stopPropagation()}>
+          <span className="ppp-views">👁 {p.views ?? 0}</span>
+          <FavoriteButton
+            itemId={p.id}
+            itemType="project"
+            favorited={p.favorited}
+            count={p.likes ?? 0}
+            showCount
+            size={16}
+            className="ppp-fav"
+            onToggle={(fav, likes) => onFav(p.id, fav, likes)}
+          />
+        </div>
       </div>
     </div>
   </article>
 );
 
-const DetailModal = ({ p, onClose, onFavorite, loggedIn }) => {
+const DetailModal = ({ p, onClose, onFav, loggedIn }) => {
   const imgs = p.images?.length ? p.images : (p.cover_url ? [p.cover_url] : []);
   const [active, setActive] = useState(0);
   const paras = (p.content || "").split(/\n+/).filter(Boolean);
@@ -131,7 +141,16 @@ const DetailModal = ({ p, onClose, onFavorite, loggedIn }) => {
             {loggedIn
               ? <span className="ppp-cbtn ghost">{p.contact_wechat ? `✉ 微信 · ${p.contact_wechat}` : (p.contact_email ? `✉ ${p.contact_email}` : "未留联系方式")}</span>
               : <span className="ppp-cbtn ghost">🔒 登录后查看联系方式</span>}
-            <button className={`ppp-cbtn ghost icon ${p.favorited ? "is-saved" : ""}`} onClick={() => onFavorite(p)}>{p.favorited ? "💜" : "🔖"}</button>
+            <FavoriteButton
+              itemId={p.id}
+              itemType="project"
+              favorited={p.favorited}
+              count={p.likes ?? 0}
+              showCount
+              size={18}
+              className="ppp-fav ppp-fav-modal"
+              onToggle={(fav, likes) => onFav(p.id, fav, likes)}
+            />
           </div>
         </div>
       </div>
@@ -274,7 +293,7 @@ const CreateForm = ({ onClose, onCreated }) => {
               <div className="ppp-tech">{tags.slice(0, 3).map((t) => <span className="ppp-tag" key={t}>{t}</span>)}</div>
               <div className="ppp-meta">
                 <div className="ppp-team"><div className="ppp-stack"><Avatar name="你" /></div><span className="ppp-lbl">你</span></div>
-                <span className="ppp-heat">🔥 0 · 👁 0</span>
+                <div className="ppp-favrow"><span className="ppp-views">👁 0</span><span className="ppp-fav" style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>♡ 0</span></div>
               </div>
             </div>
           </article>
@@ -349,15 +368,13 @@ const ProjectPlaza = () => {
 
   useBackClose(selected !== null, closeDetail);
 
-  const onFavorite = async (p) => {
-    if (!user) { toast("请先登录后再收藏"); return; }
-    try {
-      const { data } = await toggleProjectFavorite(p.id);
-      const patch = (x) => (String(x.id) === String(p.id) ? { ...x, favorited: data.favorited, likes: data.likes } : x);
-      setItems((list) => list.map(patch));
-      setSelected((s) => (s && String(s.id) === String(p.id) ? { ...s, favorited: data.favorited, likes: data.likes } : s));
-    } catch { toast.error("操作失败"); }
-  };
+  // FavoriteButton owns the API call + login check + optimistic update;
+  // we just sync the plaza/detail local state from its onToggle callback.
+  const applyFav = useCallback((id, favorited, likes) => {
+    const patch = (x) => (String(x.id) === String(id) ? { ...x, favorited, likes } : x);
+    setItems((list) => list.map(patch));
+    setSelected((s) => (s && String(s.id) === String(id) ? { ...s, favorited, likes } : s));
+  }, []);
 
   const startCreate = () => {
     if (!user) { toast("请先登录后再发布"); return; }
@@ -414,14 +431,14 @@ const ProjectPlaza = () => {
               </div>
             ) : (
               <div className="ppp-grid">
-                {items.map((p) => <Card p={p} key={p.id} onOpen={openDetail} onFavorite={onFavorite} />)}
+                {items.map((p) => <Card p={p} key={p.id} onOpen={openDetail} onFav={applyFav} />)}
               </div>
             )}
           </>
         )}
       </div>
 
-      {selected && <DetailModal p={selected} onClose={closeDetail} onFavorite={onFavorite} loggedIn={Boolean(user)} />}
+      {selected && <DetailModal p={selected} onClose={closeDetail} onFav={applyFav} loggedIn={Boolean(user)} />}
     </div>
   );
 };
