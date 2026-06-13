@@ -368,7 +368,6 @@ const ProjectPlaza = () => {
     <div className="ppp-root" data-variant={variant}>
       <SEO title="项目广场" description="把正在做的项目放上来，让对的人找到你。" />
       <style>{PROJECT_PLAZA_CSS}</style>
-      <div className="ppp-backdrop" />
 
       <div className="ppp-wrap">
         {creating ? (

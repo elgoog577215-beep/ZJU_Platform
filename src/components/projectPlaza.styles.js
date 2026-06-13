@@ -15,13 +15,6 @@ export const PROJECT_PLAZA_CSS = `
   --sh-sm:0 8px 22px rgba(2,6,23,0.4);--sh-lg:0 40px 90px rgba(2,6,23,0.62);
   --prog-bg:rgba(2,6,23,0.66);--prog-ink:#e2e8f0;--avborder:#0b1220;
   color:var(--ink-2);}
-.ppp-root[data-variant="cyber"] .ppp-backdrop{
-  background:radial-gradient(1200px 620px at 82% -12%,rgba(34,211,238,0.12),transparent 60%),
-    radial-gradient(950px 520px at 0% 2%,rgba(99,102,241,0.14),transparent 56%),
-    linear-gradient(180deg,#040a18,#020617 46%);}
-.ppp-root[data-variant="cyber"] .ppp-backdrop::after{content:"";position:absolute;inset:0;opacity:.55;
-  background-image:linear-gradient(rgba(34,211,238,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(34,211,238,0.05) 1px,transparent 1px);
-  background-size:50px 50px;mask-image:linear-gradient(180deg,#000,transparent 72%);}
 
 /* ===== PLAYFUL (活泼 · 白天主题) ===== */
 .ppp-root[data-variant="playful"]{
@@ -34,14 +27,10 @@ export const PROJECT_PLAZA_CSS = `
   --sh-sm:0 8px 22px rgba(67,56,80,0.06),0 1px 2px rgba(67,56,80,0.04);--sh-lg:0 40px 90px rgba(67,56,80,0.16);
   --prog-bg:rgba(255,255,255,0.92);--prog-ink:#3a3346;--avborder:#fff;
   --r-card:18px;color:var(--ink-2);}
-.ppp-root[data-variant="playful"] .ppp-backdrop{
-  background:radial-gradient(1100px 520px at 88% -4%,rgba(168,85,247,0.16),transparent 60%),
-    radial-gradient(900px 480px at -5% 6%,rgba(236,72,153,0.12),transparent 55%),
-    radial-gradient(800px 520px at 50% 108%,rgba(14,165,233,0.10),transparent 60%),#f6f4fb;}
 .ppp-root[data-variant="playful"] .ppp-brand{color:#a855f7;}
 
-/* shared */
-.ppp-backdrop{position:fixed;inset:0;z-index:0;}
+/* shared — page is transparent and sits on the platform's global background
+   (dark = BackgroundSystem dynamic scene, day = day-ambient), like AICommunity/Events */
 .ppp-wrap{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 90px) 24px 96px;}
 
 .ppp-ph{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;}
