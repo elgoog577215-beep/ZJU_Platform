@@ -170,6 +170,12 @@ const TYPE_META = {
     placeholderDay:   "from-amber-50 via-sky-50 to-indigo-50",
     placeholderNight: "from-amber-500/20 via-sky-500/15 to-indigo-500/20",
   },
+  project: {
+    label: "项目", textDay: "text-cyan-700", textNight: "text-cyan-300",
+    smartImageType: "article",
+    placeholderDay:   "from-cyan-50 via-sky-50 to-blue-50",
+    placeholderNight: "from-cyan-500/20 via-sky-500/15 to-blue-500/20",
+  },
 };
 
 /**
@@ -1124,6 +1130,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
       help: `/articles?postTab=help&post=${item.id}`,
       team: `/articles?postTab=team&post=${item.id}`,
       competition_work: item.target_path || `/hackathon?view=showcase&work=${item.id}`,
+      project: `/projects?fromfav=1&id=${item.id}`,
     }[typeKey];
     if (!path) return;
     navigate(path, {

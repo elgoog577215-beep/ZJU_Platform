@@ -68,7 +68,7 @@ const Card = ({ p, onOpen, onFav }) => (
             favorited={p.favorited}
             count={p.likes ?? 0}
             showCount
-            size={16}
+            size={20}
             className="ppp-fav"
             onToggle={(fav, likes) => onFav(p.id, fav, likes)}
           />
@@ -102,7 +102,7 @@ const DetailModal = ({ p, onClose, onFav, loggedIn }) => {
           )}
         </div>
         <div className="ppp-mbody">
-          <span className="ppp-kicker">👋 项目名片</span>
+          <span className="ppp-kicker">项目名片</span>
           <div className="ppp-mhead">
             <h2 className="ppp-mtitle">{p.title}</h2>
             <ProgPill progress={p.progress} className="ppp-mprog2" />
@@ -147,7 +147,7 @@ const DetailModal = ({ p, onClose, onFav, loggedIn }) => {
               favorited={p.favorited}
               count={p.likes ?? 0}
               showCount
-              size={18}
+              size={22}
               className="ppp-fav ppp-fav-modal"
               onToggle={(fav, likes) => onFav(p.id, fav, likes)}
             />
@@ -393,7 +393,7 @@ const ProjectPlaza = () => {
           <>
             <div className="ppp-ph">
               <div>
-                <h1><span className="ppp-wave">👋</span>项目广场</h1>
+                <h1>项目广场</h1>
                 <div className="ppp-sub">把正在发生的想法，变成一张可以被看见的项目名片 —— 它会自我介绍：在做什么、做到哪、还缺谁。</div>
               </div>
               <div className="ppp-brand">TUOTUZJU</div>
@@ -401,7 +401,6 @@ const ProjectPlaza = () => {
 
             <div className="ppp-toolbar">
               <div className="ppp-search">
-                <span className="ppp-si">🔍</span>
                 <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="搜索项目、技术栈、发起人…" />
               </div>
               <button className="ppp-newbtn" onClick={startCreate}>＋ 发布我的项目</button>

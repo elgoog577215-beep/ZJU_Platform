@@ -9,7 +9,7 @@ export const PROJECT_PLAZA_CSS = `
   --ink:#f1f5f9;--ink-2:rgba(226,232,240,0.86);--muted:#8aa0bd;--soft:rgba(148,163,184,0.66);
   --surface:rgba(255,255,255,0.045);--surface-2:rgba(255,255,255,0.07);--surface-soft:rgba(255,255,255,0.02);
   --border:rgba(255,255,255,0.10);--border-strong:rgba(34,211,238,0.34);
-  --brand:#22d3ee;--brand-2:#6366f1;--brand-ink:#04121f;--brand-soft:rgba(34,211,238,0.13);
+  --brand:#67e8f9;--brand-2:#22d3ee;--brand-ink:#020617;--brand-soft:rgba(34,211,238,0.13);
   --call-ink:#fecdd3;--call-soft:rgba(251,113,133,0.14);--call-border:rgba(251,113,133,0.36);--call-on:#fb7185;
   --p-idea:#94a3b8;--p-dev:#22d3ee;--p-live:#34d399;--p-pause:#fbbf24;
   --sh-sm:0 8px 22px rgba(2,6,23,0.4);--sh-lg:0 40px 90px rgba(2,6,23,0.62);
@@ -21,13 +21,13 @@ export const PROJECT_PLAZA_CSS = `
   --ink:#171221;--ink-2:rgba(35,28,49,0.86);--muted:#6c6378;--soft:rgba(108,99,120,0.62);
   --surface:#ffffff;--surface-2:#f7f3ff;--surface-soft:#fbf9ff;
   --border:rgba(91,75,110,0.12);--border-strong:rgba(124,58,237,0.26);
-  --brand:#7c3aed;--brand-2:#ec4899;--brand-ink:#fff;--brand-soft:rgba(124,58,237,0.10);
+  --brand:#047857;--brand-2:#059669;--brand-ink:#ffffff;--brand-soft:rgba(124,58,237,0.10);
   --call-ink:#be123c;--call-soft:#fff1f3;--call-border:rgba(244,63,94,0.28);--call-on:#f43f5e;
   --p-idea:#94a3b8;--p-dev:#7c3aed;--p-live:#10b981;--p-pause:#f59e0b;
   --sh-sm:0 8px 22px rgba(67,56,80,0.06),0 1px 2px rgba(67,56,80,0.04);--sh-lg:0 40px 90px rgba(67,56,80,0.16);
   --prog-bg:rgba(255,255,255,0.92);--prog-ink:#3a3346;--avborder:#fff;
   --r-card:18px;color:var(--ink-2);}
-.ppp-root[data-variant="playful"] .ppp-brand{color:#a855f7;}
+.ppp-root[data-variant="playful"] .ppp-brand{color:#047857;}
 
 /* shared — page is transparent and sits on the platform's global background
    (dark = BackgroundSystem dynamic scene, day = day-ambient), like AICommunity/Events */
@@ -35,19 +35,17 @@ export const PROJECT_PLAZA_CSS = `
 
 .ppp-ph{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;}
 .ppp-ph h1{font-family:var(--display);font-weight:600;color:var(--ink);font-size:40px;letter-spacing:-0.02em;margin:0;line-height:1.05;}
-.ppp-wave{display:inline-block;font-family:var(--body);font-size:32px;margin-right:8px;transform:rotate(-8deg);}
 .ppp-sub{color:var(--muted);font-size:14.5px;margin-top:11px;max-width:54ch;}
 .ppp-brand{font-family:var(--body);font-weight:800;font-size:15px;letter-spacing:.18em;color:var(--brand);opacity:.9;}
 
 .ppp-toolbar{display:flex;gap:12px;align-items:center;margin:26px 0 18px;flex-wrap:wrap;}
-.ppp-search{flex:1;min-width:240px;display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:0 14px;height:46px;}
-.ppp-search .ppp-si{opacity:.7;font-size:14px;}
+.ppp-search{flex:1;min-width:240px;display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:0 16px;height:46px;}
 .ppp-search input{flex:1;background:transparent;border:0;outline:none;color:var(--ink);font-family:var(--body);font-size:14px;height:100%;}
 .ppp-search input::placeholder{color:var(--soft);}
-.ppp-newbtn{display:inline-flex;align-items:center;gap:8px;color:#fff;border:0;cursor:pointer;font-family:var(--body);
+.ppp-newbtn{display:inline-flex;align-items:center;gap:8px;color:#020617;border:0;cursor:pointer;font-family:var(--body);
   padding:0 20px;height:46px;border-radius:12px;font-size:14.5px;font-weight:700;white-space:nowrap;
-  background:linear-gradient(135deg,var(--brand-2),var(--brand));box-shadow:0 12px 28px rgba(34,211,238,0.22);transition:transform .18s var(--ease);}
-.ppp-root[data-variant="playful"] .ppp-newbtn{background:linear-gradient(135deg,#7c3aed,#ec4899);box-shadow:0 12px 28px rgba(124,58,237,0.3);}
+  background:#67e8f9;box-shadow:0 12px 28px rgba(34,211,238,0.22);transition:transform .18s var(--ease);}
+.ppp-root[data-variant="playful"] .ppp-newbtn{background:#ecfdf5;color:#047857;border:1px solid rgba(16,185,129,0.45);box-shadow:0 12px 28px rgba(16,185,129,0.18);}
 .ppp-newbtn:hover{transform:translateY(-2px);}
 
 .ppp-filters{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:26px;}
@@ -85,14 +83,14 @@ export const PROJECT_PLAZA_CSS = `
 .ppp-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;}
 .ppp-team{display:flex;align-items:center;gap:8px;min-width:0;}
 .ppp-stack{display:flex;}
-.ppp-av{width:25px;height:25px;border-radius:50%;border:2px solid var(--avborder);display:grid;place-items:center;color:#fff;font-size:10.5px;font-weight:700;flex:none;}
+.ppp-av{width:30px;height:30px;border-radius:50%;border:2px solid var(--avborder);display:grid;place-items:center;color:#fff;font-size:12px;font-weight:700;flex:none;}
 .ppp-lbl{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .ppp-favrow{display:flex;align-items:center;gap:8px;flex:none;}
-.ppp-views{font-size:11.5px;color:var(--soft);white-space:nowrap;}
+.ppp-views{font-size:13px;color:var(--soft);white-space:nowrap;}
 /* FavoriteButton wrapper (events-style heart): heart color follows currentColor,
    Tailwind classes inside handle pink fill/hover; we just set base color + spacing */
 .ppp-fav{color:var(--muted);border-radius:8px;padding:2px 4px;}
-.ppp-fav-modal{flex:none;border:1px solid var(--border-strong);padding:11px 15px;border-radius:12px;color:var(--ink-2);}
+.ppp-fav-modal{flex:none;border:0;padding:11px 15px;border-radius:12px;color:var(--ink-2);}
 
 /* ===== modal ===== */
 .ppp-scrim{position:fixed;inset:0;z-index:50;background:rgba(4,8,20,0.62);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;padding:28px;animation:pppfade .2s var(--ease);}
@@ -128,8 +126,8 @@ export const PROJECT_PLAZA_CSS = `
 .ppp-mtag{font-size:12px;color:var(--ink-2);background:var(--surface-2);border:1px solid var(--border);padding:4px 11px;border-radius:8px;}
 .ppp-mcontact{display:flex;gap:9px;margin-top:22px;padding-top:18px;border-top:1px solid var(--border);position:sticky;bottom:-22px;background:inherit;}
 .ppp-cbtn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:12px 16px;border-radius:12px;font-size:13.5px;font-weight:700;cursor:pointer;text-decoration:none;border:0;font-family:var(--body);}
-.ppp-cbtn.primary{flex:1;background:linear-gradient(135deg,var(--brand-2),var(--brand));color:#fff;}
-.ppp-root[data-variant="playful"] .ppp-cbtn.primary{background:linear-gradient(135deg,#7c3aed,#ec4899);}
+.ppp-cbtn.primary{flex:1;background:#67e8f9;color:#020617;}
+.ppp-root[data-variant="playful"] .ppp-cbtn.primary{background:#ecfdf5;color:#047857;border:1px solid rgba(16,185,129,0.45);}
 .ppp-cbtn.ghost{background:var(--surface);border:1px solid var(--border-strong);color:var(--brand);}
 .ppp-cbtn.ghost.icon{flex:none;padding:12px 14px;}
 .ppp-cbtn.ppp-disabled{opacity:.5;pointer-events:none;}
