@@ -79,6 +79,14 @@ const getEventTags = (event = {}) =>
 const isCollegeNoticeEvent = (event = {}) =>
   getEventTags(event).includes(COLLEGE_NOTICE_TAG);
 
+const getCollegeNoticeSource = (event = {}) => {
+  const organizer = String(event.organizer || "").trim();
+  if (organizer) return organizer;
+  const audience = String(event.target_audience || "").trim();
+  if (audience) return audience;
+  return "";
+};
+
 const getEventLifecycle = (date, endDate, t) => {
   if (!date) return t("events.status.unknown");
   try {
@@ -667,6 +675,7 @@ const CollegeNoticeRow = memo(
   ({ event, index, onClick, onToggleFavorite, reduceMotion, isDayMode }) => {
     const { t } = useTranslation();
     const status = getEventLifecycle(event.date, event.end_date, t);
+    const noticeSource = getCollegeNoticeSource(event);
     const motionProps = reduceMotion
       ? {}
       : {
@@ -746,6 +755,25 @@ const CollegeNoticeRow = memo(
               {event.title}
             </h3>
 
+            {noticeSource && (
+              <div
+                className={`mt-3 flex min-w-0 items-center gap-2 rounded-md border px-3 py-2 text-xs font-semibold md:text-[13px] ${
+                  isDayMode
+                    ? "border-violet-100/90 bg-violet-50/70 text-slate-700"
+                    : "border-indigo-400/20 bg-indigo-500/10 text-indigo-100"
+                }`}
+              >
+                <Building2
+                  size={14}
+                  className={isDayMode ? "shrink-0 text-violet-600" : "shrink-0 text-indigo-300"}
+                />
+                <span className={isDayMode ? "shrink-0 text-slate-500" : "shrink-0 text-indigo-200/75"}>
+                  {t("events.college_notice.source_label")}
+                </span>
+                <span className="min-w-0 truncate">{noticeSource}</span>
+              </div>
+            )}
+
             <div
               className={`mt-2 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs md:text-sm ${
                 isDayMode ? "text-slate-500" : "text-gray-400"
@@ -769,16 +797,7 @@ const CollegeNoticeRow = memo(
                     `-${formatDateTime(event.end_date)}`}
                 </span>
               </span>
-              {event.organizer && (
-                <span className="inline-flex min-w-0 items-center gap-1.5">
-                  <Building2
-                    size={14}
-                    className={isDayMode ? "shrink-0 text-slate-400" : "shrink-0 text-indigo-400"}
-                  />
-                  <span className="truncate">{event.organizer}</span>
-                </span>
-              )}
-              {event.target_audience && (
+              {event.target_audience && event.target_audience !== noticeSource && (
                 <span className="inline-flex min-w-0 items-center gap-1.5">
                   <Users
                     size={14}

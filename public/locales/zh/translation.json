@@ -1527,6 +1527,7 @@
     },
     "college_notice": {
       "badge": "学院通知",
+      "source_label": "发布单位：",
       "link_available": "含链接",
       "text_notice": "文字通知"
     },
