@@ -1100,6 +1100,10 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         toast.error(t('upload.required_event_category'));
         return;
     }
+    if (type === 'event' && isCollegeNotice && !eventOrganizer.trim()) {
+        toast.error(t('upload.required_college_notice_source'));
+        return;
+    }
     if (type === 'article') {
       const hasEffectiveContent = articleBlocks.some((block) => {
         if (block.type === 'text') return !!block.text?.trim();
@@ -1681,6 +1685,11 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                        className={inputClasses}
                                        placeholder={t('event_fields.organizer_placeholder')}
                                    />
+                                   {isCollegeNotice && (
+                                     <p className={`mt-2 text-xs font-medium leading-relaxed ${isDayMode ? 'text-indigo-600' : 'text-indigo-200/80'}`}>
+                                       {t('event_fields.college_notice_source_hint')}
+                                     </p>
+                                   )}
                                </div>
                                <div className="col-span-1">
                                    <label className={labelClasses}>{t('event_fields.score_label')}</label>
@@ -1694,14 +1703,14 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                </div>
                                <div className="col-span-1 sm:col-span-2">
                                    <div className="flex items-center justify-between gap-3">
-                                     <label className={labelClasses}>面向学院/学园</label>
+                                     <label className={labelClasses}>{t('event_fields.target_audience_group')}</label>
                                      {selectedAudience.length > 0 && (
                                        <button
                                          type="button"
                                          onClick={() => setEventTarget('')}
                                          className={`text-xs font-semibold transition-colors ${isDayMode ? 'text-slate-500 hover:text-slate-900' : 'text-gray-400 hover:text-white'}`}
                                        >
-                                         清空
+                                         {t('event_fields.clear_audience')}
                                        </button>
                                      )}
                                    </div>
@@ -1727,7 +1736,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                        value={audienceSearch}
                                        onChange={(e) => setAudienceSearch(e.target.value)}
                                        className={`${inputClasses} pl-9`}
-                                       placeholder="搜索学院、学园或全校"
+                                       placeholder={t('event_fields.search_audience_placeholder')}
                                      />
                                    </div>
                                    <div className={`rounded-2xl border p-3 ${isDayMode ? 'border-slate-200/80 bg-slate-50/80' : 'border-white/10 bg-black/20'}`}>
@@ -1762,7 +1771,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                        ))}
                                        {visibleAudienceGroups.length === 0 && (
                                          <div className={`rounded-xl border px-4 py-5 text-center text-sm ${isDayMode ? 'border-slate-200/80 bg-white text-slate-500' : 'border-white/10 bg-white/5 text-gray-400'}`}>
-                                           没有匹配的学院或学园
+                                           {t('event_fields.no_audience_matches')}
                                          </div>
                                        )}
                                        </div>
@@ -1774,7 +1783,9 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                          className={`mt-3 w-full min-h-[40px] rounded-xl border px-3 py-2 text-xs font-bold inline-flex items-center justify-center gap-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-white text-slate-600 border-slate-200/80 hover:text-slate-900 hover:border-indigo-200' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10 hover:text-white'}`}
                                        >
                                          <ChevronDown size={14} className={showAllAudiences ? 'rotate-180 transition-transform' : 'transition-transform'} />
-                                         {showAllAudiences ? '收起到常用对象' : `展开全部学院/学园（${totalAudienceCount}）`}
+                                         {showAllAudiences
+                                           ? t('event_fields.collapse_common_audiences')
+                                           : t('event_fields.expand_all_audiences', { count: totalAudienceCount })}
                                        </button>
                                      )}
                                    </div>
