@@ -1,17 +1,26 @@
 {
-  "task": "{任务名称}",
-  "started_at": "YYYY-MM-DDTHH:MM:SSZ",
+  "task": "add-project-plaza — 项目广场 / 项目名片",
+  "started_at": "2026-06-13T00:00:00Z",
   "status": "in_progress",
   "workflow_mode": "full",
-  "phase": "P0-explore",
-  "current_step": "{当前在做什么}",
+  "phase": "P3-plan-done",
+  "current_step": "四视角审视完成 + openspec artifacts + 施工图已生成，待 /execute",
 
   "spec": {
-    "path": "openspec/changes/{name}/specs/",
+    "path": "openspec/changes/add-project-plaza/specs/",
     "confirmed": false
   },
 
-  "files_modified": [],
+  "files_modified": [
+    "openspec/changes/add-project-plaza/proposal.md",
+    "openspec/changes/add-project-plaza/design.md",
+    "openspec/changes/add-project-plaza/specs/project-cards/spec.md",
+    "openspec/changes/add-project-plaza/specs/project-plaza/spec.md",
+    "openspec/changes/add-project-plaza/specs/project-engagement/spec.md",
+    "openspec/changes/add-project-plaza/specs/user-profile-content-aggregation/spec.md",
+    "openspec/changes/add-project-plaza/tasks.md",
+    "docs/superpowers/plans/2026-06-13-add-project-plaza.md"
+  ],
   "commits": [],
 
   "tests_passed": false,
@@ -23,18 +32,11 @@
   "blocked_reason": null,
 
   "verify": {
-    "layer1": {
-      "typecheck": null,
-      "lint": null,
-      "test": null
-    },
-    "layer2": {
-      "browser": null,
-      "api": null
-    },
+    "layer1": { "typecheck": null, "lint": null, "test": null },
+    "layer2": { "browser": null, "api": null },
     "total_rounds": 0,
     "result": null
   },
 
-  "notes": "{任何断点备注，恢复时读这里}"
+  "notes": "Plan 完成。openspec validate --strict 通过。CSO 决策已定：联系方式仅登录可见、v1 加举报+下架。未做跨模型复审(可选)。预览原型 src/components/ProjectPlazaPreview.jsx + /lab/projects 临时路由 + public/lab-covers/ 为设计预览(用户已接受为原型)，/execute 时 ProjectPlazaPreview 产品化为真实组件并删除临时路由。施工图: docs/superpowers/plans/2026-06-13-add-project-plaza.md。"
 }
