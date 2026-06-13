@@ -128,6 +128,7 @@ const Navbar = () => {
     { key: "events", path: "/events" },
     { key: "hackathon", path: "/hackathon" },
     { key: "articles", path: "/articles" },
+    { key: "projects", path: "/projects" },
     { key: "media", path: "/media" },
     { key: "about", path: "/about" },
     ...(isAdmin ? [{ key: "admin", path: "/admin" }] : []),

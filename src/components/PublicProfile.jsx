@@ -63,6 +63,7 @@ const CONTENT_TYPES = [
   { key: "news", label: "新闻" },
   { key: "help", label: "求助" },
   { key: "team", label: "组队" },
+  { key: "project", label: "项目" },
   { key: "competition_work", label: "成果" },
 ];
 
@@ -987,6 +988,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
       // or AICommunity defaults to the help board and the id is ignored.
       article: "/articles?postTab=tech",
       event: "/events",
+      project: "/projects",
     };
 
     const basePath = routeMap[itemType];
@@ -1168,6 +1170,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
     { value: "video", label: t("nav.videos"), icon: Film },
     { value: "article", label: t("nav.articles"), icon: FileText },
     { value: "event", label: t("nav.events"), icon: Calendar },
+    { value: "project", label: "项目", icon: Sparkles },
   ];
   const displayName = user.nickname || user.username || t("user_profile.unknown_user", "用户");
   const avatarInitial = displayName.charAt(0).toUpperCase();
