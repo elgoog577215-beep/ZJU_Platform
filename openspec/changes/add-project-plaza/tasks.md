@@ -1,5 +1,10 @@
 # Tasks: add-project-plaza
 
+> **执行状态（2026-06-13, /execute Inline @ feat/project-plaza）**：
+> ✅ 后端 §1–§2 全部完成并 API 验证；✅ 前端 §3–§4 全部完成并浏览器验证（AC1/2/3/6 通过）。
+> ✅ §5.2 API 验证、§5.4 lint（改动文件 exit 0）、§6.1 validate --strict 通过。
+> ⏳ 待 `/verify`：§5.1 写 e2e spec 文件（happy path 已手动跑通）、§5.3 白天主题快照（playful CSS 同原型已验）、§6.2 diff review、§6.3 sync-specs + archive。
+
 ## 1. 后端 · 数据与实体
 - [ ] 1.1 `runMigrations.js` 新增 `project_cards` 表 + 索引（status/progress/created, user_id, likes/created）
 - [ ] 1.2 新增 `projectCardController.js`：create / update / delete（作者校验）
