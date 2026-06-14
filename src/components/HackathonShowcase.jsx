@@ -272,7 +272,7 @@ const ShowcaseImageCard = ({
   compact = false,
 }) => (
   <article
-    className={`group relative min-h-[15rem] max-w-full overflow-hidden border ${theme.surfaceStrong} ${
+    className={`showcase-image-card ${featured ? "showcase-image-card-featured" : ""} ${compact ? "showcase-image-card-compact" : ""} group relative min-h-[15rem] max-w-full overflow-hidden border ${theme.surfaceStrong} ${
       featured
         ? "min-h-[18rem] sm:min-h-[24rem] lg:h-full lg:min-h-0"
         : compact
@@ -313,7 +313,7 @@ const ShowcaseWorkCard = ({ work, index, theme, isDayMode, t, featured = false, 
 
   return (
     <article
-      className={`group grid overflow-hidden border transition duration-300 hover:-translate-y-0.5 ${theme.surface} ${
+      className={`showcase-work-card ${featured ? "showcase-work-card-featured" : ""} ${compact ? "showcase-work-card-compact" : ""} group grid overflow-hidden border transition duration-300 hover:-translate-y-0.5 ${theme.surface} ${
         featured
           ? "min-h-[25.5rem] grid-rows-[minmax(16rem,1fr)_auto] lg:min-h-full"
           : compact
@@ -1072,6 +1072,303 @@ const HackathonShowcase = () => {
             }
           }
 
+          @media (min-width: 1024px) and (max-width: 1535px), (min-width: 1024px) and (max-height: 900px) {
+            .showcase-section-paged {
+              padding-left: clamp(2rem, 3vw, 2.75rem);
+              padding-right: clamp(2rem, 3vw, 2.75rem);
+              padding-top: clamp(1.35rem, 2.8svh, 2.1rem);
+              padding-bottom: clamp(1.1rem, 2.4svh, 1.8rem);
+            }
+
+            .showcase-gate-frame.showcase-section-paged {
+              padding-top: calc(env(safe-area-inset-top) + 7.25rem);
+              padding-bottom: 1rem;
+            }
+
+            .showcase-section-grid {
+              min-height: calc(100svh - 5.5rem);
+              gap: clamp(0.85rem, 2vw, 1.5rem);
+            }
+
+            .showcase-gate-frame .showcase-section-grid {
+              min-height: calc(100svh - 8.35rem);
+            }
+
+            .showcase-paged-flow .showcase-section-grid {
+              grid-template-columns: minmax(0, 1fr) minmax(480px, 0.96fr);
+            }
+
+            .showcase-title {
+              font-size: clamp(4.25rem, 5.9vw, 5.95rem);
+              line-height: 0.95;
+            }
+
+            .showcase-title-line {
+              white-space: normal;
+            }
+
+            html[lang^="en"] .showcase-title {
+              font-size: clamp(3.75rem, 5.2vw, 5.1rem);
+              line-height: 0.98;
+            }
+
+            .showcase-hero-copy .showcase-title {
+              margin-top: 0.85rem;
+            }
+
+            .showcase-hero-desc {
+              margin-top: 0.9rem;
+              max-width: 46rem;
+              font-size: clamp(0.92rem, 1.05vw, 1.02rem);
+              line-height: 1.55;
+            }
+
+            .showcase-hero-actions {
+              margin-top: 1rem;
+              gap: 0.55rem;
+            }
+
+            .showcase-hero-actions > * {
+              min-height: 2.45rem;
+              padding-left: 1rem;
+              padding-right: 1rem;
+              font-size: 0.8rem;
+            }
+
+            [data-showcase-hero-stats] {
+              margin-top: 1rem;
+              gap: 0.55rem;
+            }
+
+            .showcase-metric-tile {
+              padding: 0.62rem 0.75rem;
+            }
+
+            .showcase-metric-tile .font-mono {
+              font-size: clamp(1.75rem, 2.9vw, 2.55rem);
+            }
+
+            .showcase-metric-tile p {
+              margin-top: 0.35rem;
+              font-size: 0.82rem;
+              line-height: 1.25;
+            }
+
+            .showcase-metric-tile p:last-child {
+              font-size: 0.72rem;
+              line-height: 1.35;
+            }
+
+            .showcase-film-card {
+              padding: 0.55rem;
+            }
+
+            .showcase-film-inner {
+              min-height: 0 !important;
+            }
+
+            .showcase-film-card .showcase-image-title {
+              font-size: clamp(2rem, 3.15vw, 3rem);
+              line-height: 1.02;
+            }
+
+            .showcase-film-card .showcase-image-kicker {
+              font-size: 0.68rem;
+            }
+
+            .showcase-film-caption {
+              padding: 1rem 1.2rem;
+            }
+
+            .showcase-poster-heading {
+              font-size: clamp(2.65rem, 4.55vw, 4.85rem) !important;
+              line-height: 0.98;
+            }
+
+            .showcase-gallery-copy,
+            .showcase-works-copy {
+              margin-top: 0.75rem;
+              font-size: 0.95rem;
+              line-height: 1.55;
+            }
+
+            .showcase-gallery-proof-grid,
+            .showcase-works-index,
+            .showcase-works-cta {
+              margin-top: 1rem;
+            }
+
+            .showcase-gallery-proof-tile {
+              padding: 0.7rem;
+            }
+
+            .showcase-gallery-proof-tile p:nth-child(2) {
+              margin-top: 0.35rem;
+              font-size: 1.85rem;
+              line-height: 1;
+            }
+
+            #gallery.showcase-section-paged {
+              padding-top: 4.35rem;
+              padding-bottom: 1.25rem;
+            }
+
+            #gallery .showcase-section-grid {
+              grid-template-columns: minmax(260px, 0.55fr) minmax(500px, 1.45fr);
+              grid-template-rows: minmax(0, clamp(15.5rem, 39svh, 23rem)) clamp(6.4rem, 12svh, 8.5rem);
+              column-gap: 1.25rem;
+              row-gap: 0.85rem;
+            }
+
+            .showcase-gallery-feature-shell {
+              padding: 0.5rem;
+            }
+
+            .showcase-gallery-strip {
+              gap: 0.5rem;
+            }
+
+            .showcase-gallery-action-shell {
+              min-height: 7.35rem;
+              width: 12rem;
+              gap: 0.5rem;
+              padding: 0.5rem;
+            }
+
+            .showcase-gallery-action-shell > * {
+              padding-left: 0.65rem;
+              padding-right: 0.65rem;
+              font-size: 0.78rem;
+            }
+
+            .showcase-image-card-featured .showcase-image-title {
+              font-size: clamp(1.9rem, 3vw, 3.05rem);
+              line-height: 1.02;
+            }
+
+            .showcase-image-card-compact .showcase-image-title {
+              font-size: clamp(1rem, 1.32vw, 1.22rem);
+              line-height: 1.05;
+            }
+
+            .showcase-image-copy {
+              margin-top: 0.35rem;
+              font-size: 0.75rem;
+              line-height: 1.35;
+            }
+
+            #works.showcase-section-paged {
+              padding-top: 4.15rem;
+              padding-bottom: 1.25rem;
+            }
+
+            #works .showcase-section-grid {
+              grid-template-columns: minmax(270px, 0.48fr) minmax(520px, 1.52fr);
+              gap: 1.2rem;
+            }
+
+            .showcase-works-index a {
+              min-height: 6.35rem;
+              padding: 0.75rem;
+            }
+
+            .showcase-works-index a p:nth-child(2) {
+              margin-top: 0.45rem;
+              font-size: 1.18rem;
+            }
+
+            .showcase-works-cta {
+              gap: 0.55rem;
+            }
+
+            .showcase-works-cta > * {
+              min-height: 2.5rem;
+              padding-left: 1rem;
+              padding-right: 1rem;
+              font-size: 0.8rem;
+            }
+
+            .showcase-works-board {
+              min-height: clamp(16.5rem, 48svh, 27rem) !important;
+              grid-template-columns: minmax(0, 1.08fr) minmax(190px, 0.92fr);
+              gap: 0.65rem;
+              padding: 0.65rem !important;
+            }
+
+            .showcase-work-card-featured {
+              min-height: 100%;
+              grid-template-rows: minmax(11rem, 1fr) auto;
+            }
+
+            .showcase-work-card-compact {
+              min-height: 0;
+              grid-template-rows: minmax(7.5rem, 1fr) auto;
+            }
+
+            .showcase-work-card .showcase-award-badge {
+              right: 0.65rem;
+              top: 0.65rem;
+              max-width: calc(100% - 1.3rem);
+              min-height: 2rem;
+              gap: 0.4rem;
+              padding: 0.45rem 0.6rem;
+              font-size: 0.72rem;
+            }
+
+            .showcase-award-badge-featured {
+              min-height: 2.25rem;
+            }
+
+            .showcase-work-card .showcase-award-badge span {
+              height: 1.55rem;
+              width: 1.55rem;
+            }
+
+            .showcase-work-card-featured .showcase-image-title {
+              font-size: clamp(1.6rem, 2.55vw, 2.35rem);
+              line-height: 1.05;
+            }
+
+            .showcase-work-card-compact .showcase-image-title {
+              font-size: clamp(1.08rem, 1.55vw, 1.38rem);
+              line-height: 1.05;
+            }
+
+            .showcase-work-card > div:last-child {
+              padding: 0.65rem;
+            }
+          }
+
+          @media (min-width: 1024px) and (max-height: 760px) {
+            .showcase-gate-frame.showcase-section-paged {
+              padding-top: calc(env(safe-area-inset-top) + 6.55rem);
+            }
+
+            .showcase-gate-frame .showcase-section-grid {
+              min-height: calc(100svh - 7.75rem);
+            }
+
+            .showcase-title {
+              font-size: clamp(3.85rem, 5.45vw, 5.15rem);
+            }
+
+            html[lang^="en"] .showcase-title {
+              font-size: clamp(3.35rem, 4.85vw, 4.55rem);
+            }
+
+            .showcase-hero-desc {
+              display: -webkit-box;
+              -webkit-box-orient: vertical;
+              -webkit-line-clamp: 3;
+              overflow: hidden;
+            }
+
+            .showcase-metric-tile {
+              padding-top: 0.5rem;
+              padding-bottom: 0.5rem;
+            }
+          }
+
           @media (max-width: 640px) {
             .showcase-title {
               font-size: clamp(3rem, 13.5vw, 4.6rem);
@@ -1376,7 +1673,7 @@ const HackathonShowcase = () => {
               </button>
             ) : null}
             {!isVideoPlaying ? (
-              <div className={`absolute bottom-0 left-0 right-0 z-20 p-5 sm:p-7 ${isDayMode ? "bg-gradient-to-t from-slate-950/70 via-slate-950/32 to-transparent" : ""}`}>
+              <div className={`showcase-film-caption absolute bottom-0 left-0 right-0 z-20 p-5 sm:p-7 ${isDayMode ? "bg-gradient-to-t from-slate-950/70 via-slate-950/32 to-transparent" : ""}`}>
                 <p className="showcase-image-kicker text-xs font-black uppercase tracking-[0.18em] text-cyan-200">
                   Trailer / Gallery / Works
                 </p>
@@ -1415,16 +1712,16 @@ const HackathonShowcase = () => {
             <h2 className="showcase-poster-heading mt-2 max-w-4xl text-[clamp(3.2rem,6vw,7.4rem)] font-black tracking-normal">
               {t("hackathon.showcase.gallery.title")}
             </h2>
-            <p className={`mt-4 max-w-2xl text-base font-semibold leading-7 sm:text-lg sm:leading-8 2xl:text-xl 2xl:leading-9 ${theme.muted}`}>
+            <p className={`showcase-gallery-copy mt-4 max-w-2xl text-base font-semibold leading-7 sm:text-lg sm:leading-8 2xl:text-xl 2xl:leading-9 ${theme.muted}`}>
               {t("hackathon.showcase.gallery.desc")}
             </p>
-            <div className={`mt-4 grid gap-px overflow-hidden border ${theme.border} ${isDayMode ? "bg-slate-200/80" : "bg-cyan-300/16"} sm:grid-cols-2`}>
-              <div className={`${isDayMode ? "bg-white/86" : "bg-[#071011]/88"} p-3.5`}>
+            <div className={`showcase-gallery-proof-grid mt-4 grid gap-px overflow-hidden border ${theme.border} ${isDayMode ? "bg-slate-200/80" : "bg-cyan-300/16"} sm:grid-cols-2`}>
+              <div className={`showcase-gallery-proof-tile ${isDayMode ? "bg-white/86" : "bg-[#071011]/88"} p-3.5`}>
                 <p className={`font-mono text-xs font-black uppercase tracking-[0.2em] ${theme.accent}`}>01 / Stage Proof</p>
                 <p className="mt-2 text-4xl font-black 2xl:text-5xl">{galleryMoments.length}</p>
                 <p className={`mt-1 text-sm font-semibold 2xl:text-base ${theme.soft}`}>Media Moments</p>
               </div>
-              <div className={`${isDayMode ? "bg-white/86" : "bg-[#071011]/88"} p-3.5`}>
+              <div className={`showcase-gallery-proof-tile ${isDayMode ? "bg-white/86" : "bg-[#071011]/88"} p-3.5`}>
                 <p className={`font-mono text-xs font-black uppercase tracking-[0.2em] ${theme.accent}`}>02 / Archive</p>
                 <p className="mt-2 text-4xl font-black 2xl:text-5xl">Live</p>
                 <p className={`mt-1 text-sm font-semibold 2xl:text-base ${theme.soft}`}>Outcome Gallery</p>
@@ -1432,7 +1729,7 @@ const HackathonShowcase = () => {
             </div>
           </MotionDiv>
 
-        <MotionDiv {...reveal} className={`grid gap-2 border p-2 ${compactFlow ? "min-h-[20rem]" : "h-full min-h-0 lg:mt-0"} ${theme.surfaceStrong}`}>
+        <MotionDiv {...reveal} className={`showcase-gallery-feature-shell grid gap-2 border p-2 ${compactFlow ? "min-h-[20rem]" : "h-full min-h-0 lg:mt-0"} ${theme.surfaceStrong}`}>
             {galleryMoments[0] ? (
               <ShowcaseImageCard moment={galleryMoments[0]} index={0} theme={theme} isDayMode={isDayMode} featured />
             ) : null}
@@ -1452,7 +1749,7 @@ const HackathonShowcase = () => {
                   />
                 ))}
               </div>
-              <div className={`flex min-h-[9.5rem] w-[14rem] shrink-0 flex-col gap-2.5 border p-2.5 ${compactFlow ? "" : "lg:h-full lg:w-auto"} ${theme.galleryActionShell}`}>
+              <div className={`showcase-gallery-action-shell flex min-h-[9.5rem] w-[14rem] shrink-0 flex-col gap-2.5 border p-2.5 ${compactFlow ? "" : "lg:h-full lg:w-auto"} ${theme.galleryActionShell}`}>
                 <Link
                   to="/gallery"
                   className={`group relative inline-flex min-h-0 flex-1 items-center justify-center overflow-hidden border px-4 text-center text-sm font-black transition duration-300 hover:-translate-y-0.5 focus:outline-none focus:ring-4 ${theme.galleryViewButton}`}
@@ -1496,10 +1793,10 @@ const HackathonShowcase = () => {
           <h2 className="showcase-poster-heading mt-4 max-w-4xl text-[clamp(3rem,5.4vw,7.1rem)] font-black tracking-normal">
             {t("hackathon.showcase.works.title")}
           </h2>
-          <p className={`mt-4 max-w-2xl text-base font-semibold leading-7 sm:text-lg sm:leading-8 2xl:text-xl 2xl:leading-9 ${theme.muted}`}>
+          <p className={`showcase-works-copy mt-4 max-w-2xl text-base font-semibold leading-7 sm:text-lg sm:leading-8 2xl:text-xl 2xl:leading-9 ${theme.muted}`}>
             {t("hackathon.showcase.works.desc")}
           </p>
-          <div className={`mt-6 grid gap-px overflow-hidden border ${theme.border} ${isDayMode ? "bg-slate-200/80" : "bg-cyan-300/16"} sm:grid-cols-3`}>
+          <div className={`showcase-works-index mt-6 grid gap-px overflow-hidden border ${theme.border} ${isDayMode ? "bg-slate-200/80" : "bg-cyan-300/16"} sm:grid-cols-3`}>
             {showcaseWorks.slice(0, 3).map((work, index) => (
               <Link
                 key={work.id}
@@ -1517,7 +1814,7 @@ const HackathonShowcase = () => {
               </Link>
             ))}
           </div>
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          <div className="showcase-works-cta mt-6 flex flex-col gap-3 sm:flex-row">
             <Link
               to="/hackathon/works"
               className={`inline-flex min-h-12 items-center justify-center gap-2 border px-5 text-sm font-black transition duration-200 ${theme.secondaryButton}`}
@@ -1536,7 +1833,7 @@ const HackathonShowcase = () => {
           </div>
         </MotionDiv>
 
-        <MotionDiv {...reveal} className={`grid gap-4 border p-3 sm:p-4 ${compactFlow ? "" : "lg:min-h-[clamp(21rem,61svh,36rem)] lg:grid-cols-[minmax(0,1.18fr)_minmax(220px,0.82fr)] xl:min-h-[clamp(25rem,66svh,45rem)] xl:grid-cols-[minmax(0,1.18fr)_minmax(280px,0.82fr)] min-[1536px]:gap-5 min-[1536px]:p-5"} ${theme.surfaceStrong}`}>
+        <MotionDiv {...reveal} className={`showcase-works-board grid gap-4 border p-3 sm:p-4 ${compactFlow ? "" : "lg:min-h-[clamp(21rem,61svh,36rem)] lg:grid-cols-[minmax(0,1.18fr)_minmax(220px,0.82fr)] xl:min-h-[clamp(25rem,66svh,45rem)] xl:grid-cols-[minmax(0,1.18fr)_minmax(280px,0.82fr)] min-[1536px]:gap-5 min-[1536px]:p-5"} ${theme.surfaceStrong}`}>
           {showcaseWorks[0] ? (
             <ShowcaseWorkCard
               work={showcaseWorks[0]}
