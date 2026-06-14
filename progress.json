@@ -1,28 +1,21 @@
 {
   "task": "add-project-plaza — 项目广场 / 项目名片",
   "started_at": "2026-06-13T00:00:00Z",
-  "status": "in_progress",
+  "status": "verified",
   "workflow_mode": "full",
-  "phase": "P4-execute-done",
-  "current_step": "Inline 执行完成(后端+前端)，已手动+API+浏览器验证 AC1-8，待 /verify 全量闭环",
+  "phase": "P5-verify-done",
+  "current_step": "/verify 四关通过；specs 已 sync；待合并/PR 后再 archive",
 
   "spec": {
     "path": "openspec/changes/add-project-plaza/specs/",
-    "confirmed": false
+    "confirmed": true,
+    "synced_to_main": true
   },
 
   "branch": "feat/project-plaza",
-  "commits": [
-    "310f9913 docs(plan)",
-    "65ed40c0 feat(api): project_cards table + CRUD/list/detail/report",
-    "9bb4bbb2 feat(api): register project in favorites/notify/aggregation",
-    "d6af0ebb feat(web): plaza page + detail + create",
-    "778c22c9 feat(web): wire routes/nav/profile/i18n",
-    "804bbc20 fix(web): robust favorites-return nav + polish"
-  ],
 
-  "tests_passed": false,
-  "diff_reviewed": false,
+  "tests_passed": true,
+  "diff_reviewed": true,
   "error_count": 0,
   "errors": [],
 
@@ -31,17 +24,20 @@
 
   "verify": {
     "layer1": {
-      "typecheck": "n/a (jsconfig, no tsconfig)",
-      "lint": "changed files eslint clean (exit 0)",
-      "test": "no unit suite; verify.sh 全量未跑(遗留 lint 噪音)"
+      "typecheck": "n/a (jsconfig)",
+      "lint": "改动文件 eslint exit 0",
+      "test": "npm run build ✓ 18.9s(全量打包,ProjectPlaza 入包) + 无单测套件(e2e 用户选不补)"
     },
     "layer2": {
-      "browser": "AC1 创建页渲染 / AC2 广场列表+筛选 / AC3 详情弹窗+长正文 / AC6 收藏→详情→返回收藏 均通过",
-      "api": "AC1 创建 / 联系方式登录可见 / AC4 收藏复用 / AC5 收藏通知作者 / AC7 越权(admin可删) 均通过"
+      "browser": "AC1/2/3/6/8 + 通知跳转 + 尺寸D 浏览器实测",
+      "api": "AC1/4/5/7 + 联系方式登录可见 API 实测"
     },
+    "gate2_acceptance": "AC1-8 + CSO(联系方式仅登录/举报下架/限流/https) 全达成,逐条有证据",
+    "gate3_diff_review": "24文件/14commit逻辑拆分; SQL 全参数化; build 通过",
+    "gate4": "知识沉淀✓(taste-log+3 brain pattern); sync-specs✓(validate 45/0); archive 待合并后; e2e 用户选不补",
     "total_rounds": 1,
-    "result": "AC1-8 手动+API+浏览器验证通过；全量 /verify 闭环待跑"
+    "result": "PASS"
   },
 
-  "notes": "Inline 在 feat/project-plaza 就地执行。后端：project_cards 表+CRUD+举报+下架；favorites/通知/聚合注册式接入(收藏=点赞,被收藏通知作者)。前端：ProjectPlaza(广场+详情弹窗+发布页,跟随 uiMode 暗=赛博/白=活泼,真实照片封面)、Navbar 入口、PublicProfile 项目分类+收藏返回(?fromfav=1 marker 替代易丢的 router state)。i18n nav.projects/common.project。预览原型已删、/lab 路由已移除、public/lab-covers 已清。坑: useBackClose 的 pushState 会抹掉 router state → 改用 URL marker；closeDetail 不能在 else 分支 setSearchParams(会和 navigate(-2) 打架)。已种 4 条 demo 数据。未做跨模型复审。v2: 站内私信/动态跟踪。"
+  "notes": "feat/project-plaza 14 commit, 未 push 未合并。/verify 四关 PASS。specs 已同步进 openspec/specs/(project-cards/plaza/engagement + user-profile-content-aggregation 合并项目类型)。archive 留到合并/PR 后。未做的(v2/B文档后续): 团队/社团身份绑定、项目关联(成员/活动/帖子/成果)、给A/C的API约定、AI社区发帖关联、站内私信、动态跟踪。taste-log 流程已建+实跑(背景/爱心/emoji/配色/尺寸5条+视觉伴侣); 全局 brain 加了 reuse-first / avoid-visual-ai-tells / visual-companion-for-ambiguous-ui 三 pattern。"
 }
