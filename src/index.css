@@ -697,6 +697,346 @@ img {
       padding-bottom: max(env(safe-area-inset-bottom), 0.85rem) !important;
       gap: 0.625rem !important;
     }
+
+    .upload-modal-article {
+      max-height: calc(100dvh - 24px) !important;
+    }
+
+    .upload-modal-article .upload-modal-header {
+      padding-left: 1.25rem !important;
+      padding-right: 1.25rem !important;
+      padding-top: 0.75rem !important;
+      padding-bottom: 0.75rem !important;
+    }
+
+    .upload-modal-article .upload-modal-body {
+      padding: 1rem 1.25rem !important;
+      row-gap: 1rem !important;
+    }
+
+    .upload-modal-article .upload-modal-footer {
+      padding: 0.8rem 1.25rem !important;
+      padding-bottom: max(env(safe-area-inset-bottom), 0.8rem) !important;
+    }
+
+    .upload-modal-article-grid {
+      gap: 1rem !important;
+    }
+
+    .upload-modal-article-main {
+      row-gap: 0.875rem !important;
+    }
+
+    .upload-modal-article-title-input {
+      padding-top: 0.55rem !important;
+      padding-bottom: 0.7rem !important;
+      font-size: 1.65rem !important;
+      line-height: 2rem !important;
+    }
+
+    .upload-modal-article-toolbar {
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+      gap: 0.55rem !important;
+    }
+
+    .upload-modal-article-format-bar {
+      padding-top: 0.45rem !important;
+      padding-bottom: 0.45rem !important;
+    }
+
+    .upload-modal-article-editor,
+    .upload-modal-article-blocks {
+      row-gap: 0.55rem !important;
+    }
+
+    .upload-modal-article-block {
+      padding: 0.75rem !important;
+    }
+
+    .upload-modal-article-textarea {
+      height: 7rem !important;
+      line-height: 1.55rem !important;
+      font-size: 0.9rem !important;
+    }
+
+    .upload-modal-article-file-drop {
+      height: 4.75rem !important;
+      border-radius: 0.65rem !important;
+    }
+
+    .upload-modal-article-preview-card {
+      padding: 1rem !important;
+      row-gap: 0.75rem !important;
+      border-radius: 0.75rem !important;
+    }
+
+    .upload-modal-article-side {
+      max-height: calc(100dvh - 12rem) !important;
+      overflow-y: auto !important;
+      padding-right: 0.25rem !important;
+      row-gap: 0.75rem !important;
+    }
+
+    .upload-modal-article-settings {
+      padding: 0.9rem !important;
+      row-gap: 0.75rem !important;
+      border-radius: 0.75rem !important;
+    }
+
+    .upload-modal-article-cover {
+      height: 2.35rem !important;
+      border-radius: 0.65rem !important;
+      padding-left: 0.8rem !important;
+      padding-right: 0.8rem !important;
+    }
+
+    .upload-modal-article-summary {
+      height: 5.5rem !important;
+    }
+
+    .community-composer-header {
+      padding: 0.65rem 1.25rem !important;
+    }
+
+    .community-composer-eyebrow {
+      font-size: 0.62rem !important;
+      letter-spacing: 0.14em !important;
+    }
+
+    .community-composer-title {
+      font-size: 1.05rem !important;
+      line-height: 1.35rem !important;
+    }
+
+    .community-composer-button,
+    .community-composer-footer-button {
+      min-height: 2.2rem !important;
+      padding-left: 0.85rem !important;
+      padding-right: 0.85rem !important;
+      font-size: 0.8rem !important;
+    }
+
+    .community-composer-icon-button {
+      width: 2.2rem !important;
+      height: 2.2rem !important;
+    }
+
+    .community-composer-main {
+      grid-template-columns: minmax(0, 1fr) 19rem !important;
+    }
+
+    .community-composer-editor {
+      padding: 1rem 1.25rem !important;
+    }
+
+    .community-composer-editor-inner {
+      row-gap: 0.9rem !important;
+    }
+
+    .community-composer-field {
+      row-gap: 0.35rem !important;
+    }
+
+    .community-composer-meta-grid {
+      gap: 0.75rem !important;
+    }
+
+    .community-composer-mini-grid {
+      gap: 0.65rem !important;
+    }
+
+    .community-composer-input {
+      padding-top: 0.55rem !important;
+      padding-bottom: 0.55rem !important;
+      font-size: 0.85rem !important;
+    }
+
+    .community-composer-short-textarea {
+      min-height: 4.75rem !important;
+    }
+
+    .community-composer-content,
+    .community-composer-blocks {
+      row-gap: 0.65rem !important;
+    }
+
+    .community-composer-block {
+      padding: 0.75rem !important;
+    }
+
+    .community-composer-select {
+      margin-bottom: 0.4rem !important;
+      padding-top: 0.2rem !important;
+      padding-bottom: 0.2rem !important;
+    }
+
+    .community-composer-textarea {
+      min-height: 6.5rem !important;
+      line-height: 1.45rem !important;
+    }
+
+    .community-composer-file-drop {
+      height: 4.75rem !important;
+    }
+
+    .community-composer-media-preview {
+      max-height: 10rem !important;
+    }
+
+    .community-composer-add-buttons {
+      gap: 0.45rem !important;
+    }
+
+    .community-composer-small-button {
+      padding: 0.32rem 0.6rem !important;
+      font-size: 0.7rem !important;
+    }
+
+    .community-composer-side {
+      padding: 0.85rem !important;
+    }
+
+    .community-composer-side-inner {
+      row-gap: 0.85rem !important;
+    }
+
+    .community-composer-preview {
+      padding: 0.85rem !important;
+    }
+
+    .community-composer-footer {
+      padding: 0.65rem 1.25rem !important;
+    }
+
+    .outcome-upload-backdrop {
+      padding: 0.875rem !important;
+    }
+
+    .outcome-upload-panel {
+      max-height: calc(100dvh - 28px) !important;
+      border-radius: 0.65rem !important;
+    }
+
+    .outcome-upload-header {
+      padding: 0.85rem 1.1rem !important;
+    }
+
+    .outcome-upload-eyebrow {
+      font-size: 0.62rem !important;
+      letter-spacing: 0.12em !important;
+    }
+
+    .outcome-upload-title {
+      margin-top: 0.15rem !important;
+      font-size: 1.08rem !important;
+      line-height: 1.4rem !important;
+    }
+
+    .outcome-upload-subtitle {
+      display: none !important;
+    }
+
+    .outcome-upload-close {
+      width: 2.25rem !important;
+      height: 2.25rem !important;
+      border-radius: 0.55rem !important;
+    }
+
+    .outcome-upload-form {
+      max-height: calc(100dvh - 5.75rem) !important;
+      padding: 1rem 1.1rem !important;
+    }
+
+    .outcome-upload-type-grid {
+      gap: 0.45rem !important;
+    }
+
+    .outcome-upload-type-option {
+      min-height: 2.35rem !important;
+      border-radius: 0.6rem !important;
+      padding-left: 0.65rem !important;
+      padding-right: 0.65rem !important;
+      font-size: 0.78rem !important;
+    }
+
+    .outcome-upload-type-destination {
+      display: none !important;
+    }
+
+    .outcome-upload-card {
+      margin-top: 0.8rem !important;
+      padding: 0.9rem !important;
+      border-radius: 0.75rem !important;
+    }
+
+    .outcome-upload-card-head {
+      margin-bottom: 0.75rem !important;
+    }
+
+    .outcome-upload-field-stack {
+      gap: 0.85rem !important;
+    }
+
+    .outcome-upload-field-grid {
+      gap: 0.8rem !important;
+    }
+
+    .outcome-upload-field {
+      gap: 0.35rem !important;
+      font-size: 0.8rem !important;
+    }
+
+    .outcome-upload-field-hint {
+      display: none !important;
+    }
+
+    .outcome-upload-input {
+      min-height: 2.35rem !important;
+      border-radius: 0.65rem !important;
+      padding-left: 0.7rem !important;
+      padding-right: 0.7rem !important;
+      font-size: 0.85rem !important;
+    }
+
+    .outcome-upload-textarea {
+      min-height: 4.75rem !important;
+      border-radius: 0.65rem !important;
+      padding: 0.65rem 0.75rem !important;
+      font-size: 0.85rem !important;
+      line-height: 1.45rem !important;
+    }
+
+    .outcome-upload-long-textarea {
+      min-height: 5.75rem !important;
+    }
+
+    .outcome-upload-actions {
+      position: sticky !important;
+      bottom: 0 !important;
+      z-index: 6 !important;
+      margin-top: 0.9rem !important;
+      margin-left: -1.1rem !important;
+      margin-right: -1.1rem !important;
+      margin-bottom: -1rem !important;
+      padding: 0.75rem 1.1rem 1rem !important;
+      gap: 0.65rem !important;
+      background:
+        linear-gradient(180deg, rgba(7, 16, 20, 0), rgba(7, 16, 20, 0.94) 32%, #071014 100%);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    :root[data-theme='day'] .outcome-upload-actions {
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.94) 32%, #ffffff 100%);
+      border-top-color: rgba(148, 163, 184, 0.24);
+    }
+
+    .outcome-upload-action-button {
+      min-height: 2.35rem !important;
+      border-radius: 0.65rem !important;
+      font-size: 0.82rem !important;
+    }
   }
 
   .day-ambient-shell {

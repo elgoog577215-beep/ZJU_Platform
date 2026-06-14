@@ -1918,20 +1918,20 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                 </div>
                 </>
               ) : (
-                <div className="space-y-4 sm:space-y-6">
+                <div className="upload-modal-generic-body space-y-4 sm:space-y-6">
                   {type === 'article' && (
-                    <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-4 sm:gap-5">
-                      <div className="space-y-4">
+                    <div className="upload-modal-article-grid grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-4 sm:gap-5">
+                      <div className="upload-modal-article-main space-y-4">
                         <input
                           type="text"
                           required
                           value={title}
                           onChange={e => setTitle(e.target.value)}
-                          className={`w-full bg-transparent border-0 border-b px-1 py-3 focus:outline-none text-2xl sm:text-3xl font-black tracking-tight ${isDayMode ? 'border-slate-200/90 focus:border-indigo-300 text-slate-950 placeholder:text-slate-400' : 'border-white/10 focus:border-white/25 text-white placeholder:text-gray-500'}`}
+                          className={`upload-modal-article-title-input w-full bg-transparent border-0 border-b px-1 py-3 focus:outline-none text-2xl sm:text-3xl font-black tracking-tight ${isDayMode ? 'border-slate-200/90 focus:border-indigo-300 text-slate-950 placeholder:text-slate-400' : 'border-white/10 focus:border-white/25 text-white placeholder:text-gray-500'}`}
                           placeholder="输入标题，开始写作"
                         />
 
-                        <div className="py-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+                        <div className="upload-modal-article-toolbar py-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
                           <div className="flex items-center gap-2">
                             <button type="button" onClick={() => setArticleEditorMode('edit')} className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5 ${articleEditorMode === 'edit' ? (isDayMode ? 'bg-blue-50 text-blue-700 border-blue-200 shadow-none' : 'bg-indigo-500/20 text-indigo-100 border-indigo-400/35 shadow-none') : (isDayMode ? 'bg-white/88 border-slate-200/80 text-slate-600 hover:bg-white hover:border-blue-200' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10')}`}>
                               <PenSquare size={14} />
@@ -1968,8 +1968,8 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                         </div>
 
                         {articleEditorMode === 'edit' ? (
-                          <div onPaste={handleArticleEditorPaste} className="space-y-3">
-                            <div className={`sticky top-0 z-20 py-2 border-b ${isDayMode ? 'bg-white/92 border-slate-200/80' : 'bg-[#0f0f0f]/95 border-white/10'}`}>
+                          <div onPaste={handleArticleEditorPaste} className="upload-modal-article-editor space-y-3">
+                            <div className={`upload-modal-article-format-bar sticky top-0 z-20 py-2 border-b ${isDayMode ? 'bg-white/92 border-slate-200/80' : 'bg-[#0f0f0f]/95 border-white/10'}`}>
                               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                 <div className="flex flex-wrap gap-2">
                                 <button type="button" onClick={() => updateActiveTextStyle('paragraph')} className={`px-2.5 py-1.5 rounded-md border text-[11px] transition-colors ${activeTextStyle === 'paragraph' ? (isDayMode ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-indigo-500/20 text-indigo-100 border-indigo-400/35') : (isDayMode ? 'border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 hover:border-indigo-200' : 'border-white/10 bg-white/[0.03] text-gray-300 hover:bg-white/10')}`}>正文</button>
@@ -1996,7 +1996,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                               </div>
                             </div>
 
-                            <div className="space-y-2">
+                            <div className="upload-modal-article-blocks space-y-2">
                               {articleBlocks.map((block, index) => (
                                 <div
                                   key={block.id}
@@ -2021,7 +2021,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                     }
                                   }}
                                   onDrop={() => handleArticleBlockDrop(block.id)}
-                                  className={`relative border rounded-lg p-3 transition-all ${draggingBlockId === block.id ? 'opacity-60 border-indigo-400/50 bg-indigo-500/10' : (isDayMode ? 'border-slate-200/80 bg-white/90 hover:border-indigo-200 shadow-[0_10px_20px_rgba(148,163,184,0.12)]' : 'border-white/10 bg-transparent hover:border-white/20')} ${dragOverBlockId === block.id && draggingBlockId !== block.id ? 'ring-2 ring-indigo-400/40 border-indigo-300/50' : ''}`}
+                                  className={`upload-modal-article-block relative border rounded-lg p-3 transition-all ${draggingBlockId === block.id ? 'opacity-60 border-indigo-400/50 bg-indigo-500/10' : (isDayMode ? 'border-slate-200/80 bg-white/90 hover:border-indigo-200 shadow-[0_10px_20px_rgba(148,163,184,0.12)]' : 'border-white/10 bg-transparent hover:border-white/20')} ${dragOverBlockId === block.id && draggingBlockId !== block.id ? 'ring-2 ring-indigo-400/40 border-indigo-300/50' : ''}`}
                                 >
                                   <div className="flex items-center justify-between gap-2 mb-3">
                                     <div className={`flex items-center gap-2 text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
@@ -2054,7 +2054,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                         }}
                                         onFocus={() => setActiveTextBlockId(block.id)}
                                         onKeyDown={(e) => handleArticleTextKeyDown(e, block)}
-                                        className={`${inputClasses} h-32 text-[15px] leading-7`}
+                                        className={`${inputClasses} upload-modal-article-textarea h-32 text-[15px] leading-7`}
                                         placeholder="输入正文内容，输入 / 后回车可快速插入块"
                                       />
                                       {block.style === 'code' && (
@@ -2086,7 +2086,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                           onChange={(e) => handleArticleBlockFileChange(block.id, block.type, e.target.files?.[0])}
                                           className="absolute inset-0 opacity-0 cursor-pointer z-10"
                                         />
-                                        <div className={`h-24 rounded-xl border border-dashed flex items-center justify-center text-xs ${isDayMode ? 'border-slate-200/90 bg-slate-50/80 text-slate-500' : 'border-white/20 bg-white/[0.03] text-gray-300'}`}>
+                                        <div className={`upload-modal-article-file-drop h-24 rounded-xl border border-dashed flex items-center justify-center text-xs ${isDayMode ? 'border-slate-200/90 bg-slate-50/80 text-slate-500' : 'border-white/20 bg-white/[0.03] text-gray-300'}`}>
                                           {block.name || (block.type === 'file' ? '选择附件文件' : `选择${block.type === 'image' ? '图片' : '视频'}文件`)}
                                         </div>
                                       </div>
@@ -2121,7 +2121,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                             </div>
                           </div>
                         ) : (
-                          <div className={`rounded-2xl border p-5 space-y-4 ${isDayMode ? 'border-slate-200/80 bg-white/95 shadow-[0_18px_40px_rgba(148,163,184,0.14)]' : 'border-white/10 bg-[#121212]'}`}>
+                          <div className={`upload-modal-article-preview-card rounded-2xl border p-5 space-y-4 ${isDayMode ? 'border-slate-200/80 bg-white/95 shadow-[0_18px_40px_rgba(148,163,184,0.14)]' : 'border-white/10 bg-[#121212]'}`}>
                             <div className={`text-sm font-semibold ${isDayMode ? 'text-slate-700' : 'text-white/90'}`}>{title || '未命名文章'}</div>
                             {articleBlocks.map((block) => (
                               <div key={`preview-${block.id}`} className="space-y-2">
@@ -2173,8 +2173,8 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                         )}
                       </div>
 
-                      <aside className="space-y-4 xl:sticky xl:top-4 self-start">
-                        <div className={`rounded-xl border p-4 space-y-3.5 ${isDayMode ? 'border-slate-200/80 bg-white/92' : 'border-white/10 bg-[#121212]'}`}>
+                      <aside className="upload-modal-article-side space-y-4 xl:sticky xl:top-4 self-start">
+                        <div className={`upload-modal-article-settings rounded-xl border p-4 space-y-3.5 ${isDayMode ? 'border-slate-200/80 bg-white/92' : 'border-white/10 bg-[#121212]'}`}>
                           <div className={`text-xs font-semibold tracking-wider ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>发布设置</div>
                           <div>
                             <label className={labelClasses}>发布时间</label>
@@ -2187,7 +2187,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                           </div>
                           <div>
                             <label className={labelClasses}>文章封面</label>
-                            <div className={`h-[48px] rounded-2xl border px-4 flex items-center justify-between gap-3 text-xs relative overflow-hidden ${isDayMode ? 'border-slate-200/80 bg-slate-50/90 text-slate-500' : 'border-white/10 bg-white/5 text-gray-400'}`}>
+                            <div className={`upload-modal-article-cover h-[48px] rounded-2xl border px-4 flex items-center justify-between gap-3 text-xs relative overflow-hidden ${isDayMode ? 'border-slate-200/80 bg-slate-50/90 text-slate-500' : 'border-white/10 bg-white/5 text-gray-400'}`}>
                               <input type="file" accept="image/*" onChange={e => handleFileChange(e, true)} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
                               <span className="truncate">{coverFile?.name || (coverPreview ? '已设置封面，点击可替换' : '点击上传封面图')}</span>
                               <span className="px-2 py-0.5 rounded-lg border border-white/10 bg-white/5 text-[10px]">JPG/PNG</span>
@@ -2198,7 +2198,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                             <textarea
                               value={description}
                               onChange={e => setDescription(e.target.value)}
-                              className={`${inputClasses} h-28 resize-none`}
+                              className={`${inputClasses} upload-modal-article-summary h-28 resize-none`}
                               placeholder="用于列表展示与搜索摘要，建议 40-120 字"
                             />
                           </div>

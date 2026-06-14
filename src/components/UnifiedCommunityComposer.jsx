@@ -422,21 +422,21 @@ const UnifiedCommunityComposer = ({
           exit={{ opacity: 0 }}
           className={`fixed inset-0 z-[120] ${isDayMode ? 'bg-white' : 'bg-black'}`}
         >
-          <div className={`flex h-[100dvh] flex-col border ${shellCls}`}>
-            <header className={`flex items-center justify-between gap-3 border-b px-4 py-3 md:px-6 ${isDayMode ? 'border-slate-200 bg-white' : 'border-white/10 bg-neutral-950'}`}>
+          <div className={`community-composer-shell flex h-[100dvh] flex-col border ${shellCls}`}>
+            <header className={`community-composer-header flex items-center justify-between gap-3 border-b px-4 py-3 md:px-6 ${isDayMode ? 'border-slate-200 bg-white' : 'border-white/10 bg-neutral-950'}`}>
               <div className="min-w-0">
-                <p className={`text-[11px] font-black uppercase tracking-[0.22em] ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>
+                <p className={`community-composer-eyebrow text-[11px] font-black uppercase tracking-[0.22em] ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>
                   {t('community.unified_composer', '统一社区编辑器')}
                 </p>
-                <h2 className="truncate text-lg font-black md:text-xl">
+                <h2 className="community-composer-title truncate text-lg font-black md:text-xl">
                   {t(config.titleKey, config.titleFallback)}
                 </h2>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="community-composer-header-actions flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setPreviewOpen((prev) => !prev)}
-                  className={`inline-flex min-h-[40px] items-center gap-2 rounded-lg border px-3 text-sm font-semibold ${isDayMode ? 'border-slate-200 text-slate-700 hover:bg-slate-50' : 'border-white/10 text-gray-200 hover:bg-white/10'}`}
+                  className={`community-composer-button inline-flex min-h-[40px] items-center gap-2 rounded-lg border px-3 text-sm font-semibold ${isDayMode ? 'border-slate-200 text-slate-700 hover:bg-slate-50' : 'border-white/10 text-gray-200 hover:bg-white/10'}`}
                 >
                   <Eye size={16} />
                   {t('community.preview', '预览')}
@@ -444,73 +444,73 @@ const UnifiedCommunityComposer = ({
                 <button
                   type="button"
                   onClick={handleClose}
-                  className={`inline-flex h-10 w-10 items-center justify-center rounded-lg border ${isDayMode ? 'border-slate-200 text-slate-600 hover:bg-slate-50' : 'border-white/10 text-gray-300 hover:bg-white/10'}`}
+                  className={`community-composer-icon-button inline-flex h-10 w-10 items-center justify-center rounded-lg border ${isDayMode ? 'border-slate-200 text-slate-600 hover:bg-slate-50' : 'border-white/10 text-gray-300 hover:bg-white/10'}`}
                 >
                   <X size={18} />
                 </button>
               </div>
             </header>
 
-            <main className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden lg:grid-cols-[minmax(0,1fr)_360px]">
-              <section className="min-h-0 overflow-y-auto px-4 py-4 md:px-6 md:py-6">
-                <div className="mx-auto max-w-4xl space-y-5">
-                  <div className="space-y-2">
+            <main className="community-composer-main grid min-h-0 flex-1 grid-cols-1 overflow-hidden lg:grid-cols-[minmax(0,1fr)_360px]">
+              <section className="community-composer-editor min-h-0 overflow-y-auto px-4 py-4 md:px-6 md:py-6">
+                <div className="community-composer-editor-inner mx-auto max-w-4xl space-y-5">
+                  <div className="community-composer-field space-y-2">
                     <label className={labelCls}>{t('community.post_title_label', '标题')}</label>
-                    <input value={title} onChange={(e) => setTitle(e.target.value)} className={`${inputCls} text-lg font-bold`} maxLength={120} />
+                    <input value={title} onChange={(e) => setTitle(e.target.value)} className={`community-composer-input ${inputCls} text-lg font-bold`} maxLength={120} />
                   </div>
 
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="community-composer-meta-grid grid grid-cols-1 gap-4 md:grid-cols-2">
                     {config.supportsExcerpt && (
-                      <div className="space-y-2 md:col-span-2">
+                      <div className="community-composer-field space-y-2 md:col-span-2">
                         <label className={labelCls}>{t('community.excerpt', '摘要')}</label>
-                        <textarea value={excerpt} onChange={(e) => setExcerpt(e.target.value)} rows={3} className={`${inputCls} resize-none`} />
+                        <textarea value={excerpt} onChange={(e) => setExcerpt(e.target.value)} rows={3} className={`community-composer-input community-composer-short-textarea ${inputCls} resize-none`} />
                       </div>
                     )}
                     {config.supportsCover && (
-                      <div className="space-y-2 md:col-span-2">
+                      <div className="community-composer-field space-y-2 md:col-span-2">
                         <label className={labelCls}>{t('common.cover', '封面')}</label>
-                        <input value={cover} onChange={(e) => setCover(e.target.value)} placeholder="https://..." className={inputCls} />
+                        <input value={cover} onChange={(e) => setCover(e.target.value)} placeholder="https://..." className={`community-composer-input ${inputCls}`} />
                       </div>
                     )}
                     {config.supportsSource && (
                       <>
-                        <div className="space-y-2">
+                        <div className="community-composer-field space-y-2">
                           <label className={labelCls}>{t('community.news_source_name', '来源名称')}</label>
-                          <input value={sourceName} onChange={(e) => setSourceName(e.target.value)} className={inputCls} />
+                          <input value={sourceName} onChange={(e) => setSourceName(e.target.value)} className={`community-composer-input ${inputCls}`} />
                         </div>
-                        <div className="space-y-2">
+                        <div className="community-composer-field space-y-2">
                           <label className={labelCls}>{t('community.news_source_url', '来源链接')}</label>
-                          <input value={sourceUrl} onChange={(e) => setSourceUrl(e.target.value)} className={inputCls} />
+                          <input value={sourceUrl} onChange={(e) => setSourceUrl(e.target.value)} className={`community-composer-input ${inputCls}`} />
                         </div>
                       </>
                     )}
                     {config.supportsTeamFields && (
                       <>
-                        <div className="space-y-2">
+                        <div className="community-composer-field space-y-2">
                           <label className={labelCls}>{t('community.post_link_label', '活动链接')}</label>
-                          <input value={link} onChange={(e) => setLink(e.target.value)} className={inputCls} />
+                          <input value={link} onChange={(e) => setLink(e.target.value)} className={`community-composer-input ${inputCls}`} />
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-2">
+                        <div className="community-composer-mini-grid grid grid-cols-2 gap-3">
+                          <div className="community-composer-field space-y-2">
                             <label className={labelCls}>{t('community.post_deadline_label', '截止日期')}</label>
-                            <input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} className={inputCls} />
+                            <input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} className={`community-composer-input ${inputCls}`} />
                           </div>
-                          <div className="space-y-2">
+                          <div className="community-composer-field space-y-2">
                             <label className={labelCls}>{t('community.post_max_members_label', '招募人数')}</label>
-                            <input type="number" min={2} max={100} value={maxMembers} onChange={(e) => setMaxMembers(e.target.value)} className={inputCls} />
+                            <input type="number" min={2} max={100} value={maxMembers} onChange={(e) => setMaxMembers(e.target.value)} className={`community-composer-input ${inputCls}`} />
                           </div>
                         </div>
                       </>
                     )}
                     {config.supportsProjectLink && (
-                      <div className="space-y-2 md:col-span-2">
+                      <div className="community-composer-field space-y-2 md:col-span-2">
                         <label className={labelCls}>{t('community.project_link_label', '项目链接')}</label>
-                        <input value={link} onChange={(e) => setLink(e.target.value)} placeholder="https://github.com/..." className={inputCls} />
+                        <input value={link} onChange={(e) => setLink(e.target.value)} placeholder="https://github.com/..." className={`community-composer-input ${inputCls}`} />
                       </div>
                     )}
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="community-composer-content space-y-3">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <label className={labelCls}>{t('community.post_content_label', '内容')}</label>
                       <div className="flex flex-wrap items-center gap-2">
@@ -519,7 +519,7 @@ const UnifiedCommunityComposer = ({
                           type="button"
                           onClick={() => documentImportInputRef.current?.click()}
                           disabled={importingDocument}
-                          className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold disabled:opacity-50 ${isDayMode ? 'border-slate-200 text-slate-700 hover:bg-slate-50' : 'border-white/10 text-gray-200 hover:bg-white/10'}`}
+                          className={`community-composer-small-button inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold disabled:opacity-50 ${isDayMode ? 'border-slate-200 text-slate-700 hover:bg-slate-50' : 'border-white/10 text-gray-200 hover:bg-white/10'}`}
                         >
                           {importingDocument ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
                           {t('community.post_import_document', '导入文档')}
@@ -527,9 +527,9 @@ const UnifiedCommunityComposer = ({
                       </div>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="community-composer-blocks space-y-3">
                       {blocks.map((block, index) => (
-                        <div key={block.id} className={`rounded-lg border p-3 ${isDayMode ? 'border-slate-200 bg-slate-50/70' : 'border-white/10 bg-white/[0.025]'}`}>
+                        <div key={block.id} className={`community-composer-block rounded-lg border p-3 ${isDayMode ? 'border-slate-200 bg-slate-50/70' : 'border-white/10 bg-white/[0.025]'}`}>
                           <div className="mb-2 flex items-center justify-between gap-2">
                             <div className={`flex items-center gap-1.5 text-xs font-semibold ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>
                               <GripVertical size={13} />
@@ -546,7 +546,7 @@ const UnifiedCommunityComposer = ({
                               <select
                                 value={block.style || 'paragraph'}
                                 onChange={(e) => updateBlock(block.id, { style: e.target.value })}
-                                className={`mb-2 rounded-lg border px-2 py-1 text-xs ${isDayMode ? 'border-slate-200 bg-white text-slate-700' : 'border-white/10 bg-neutral-900 text-gray-200'}`}
+                                className={`community-composer-select mb-2 rounded-lg border px-2 py-1 text-xs ${isDayMode ? 'border-slate-200 bg-white text-slate-700' : 'border-white/10 bg-neutral-900 text-gray-200'}`}
                               >
                                 <option value="paragraph">{t('community.block_text', '文字')}</option>
                                 <option value="heading">{t('community.block_heading', '标题')}</option>
@@ -558,7 +558,7 @@ const UnifiedCommunityComposer = ({
                                 value={block.text}
                                 onChange={(e) => updateBlock(block.id, { text: e.target.value })}
                                 rows={block.style === 'code' ? 8 : 5}
-                                className={`${inputCls} resize-y ${block.style === 'code' ? 'font-mono' : 'font-sans'}`}
+                                className={`community-composer-textarea ${inputCls} resize-y ${block.style === 'code' ? 'font-mono' : 'font-sans'}`}
                               />
                             </>
                           ) : (
@@ -576,14 +576,14 @@ const UnifiedCommunityComposer = ({
                                     }}
                                     className="absolute inset-0 z-10 cursor-pointer opacity-0"
                                   />
-                                  <div className={`flex h-24 items-center justify-center rounded-lg border-2 border-dashed text-xs ${isDayMode ? 'border-slate-200 text-slate-500' : 'border-white/15 text-gray-500'}`}>
+                                  <div className={`community-composer-file-drop flex h-24 items-center justify-center rounded-lg border-2 border-dashed text-xs ${isDayMode ? 'border-slate-200 text-slate-500' : 'border-white/15 text-gray-500'}`}>
                                     {uploadingBlockId === block.id ? <Loader2 size={16} className="animate-spin" /> : t('community.select_file', '点击选择文件')}
                                   </div>
                                 </div>
                               ) : (
                                 <>
-                                  {block.type === 'image' && <img src={block.url} alt="" className="max-h-64 w-full rounded-lg object-contain" />}
-                                  {block.type === 'video' && <video src={block.url} controls className="max-h-64 w-full rounded-lg" />}
+                                  {block.type === 'image' && <img src={block.url} alt="" className="community-composer-media-preview max-h-64 w-full rounded-lg object-contain" />}
+                                  {block.type === 'video' && <video src={block.url} controls className="community-composer-media-preview max-h-64 w-full rounded-lg" />}
                                   {block.type === 'file' && (
                                     <div className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${isDayMode ? 'border-slate-200 bg-white text-slate-700' : 'border-white/10 bg-white/5 text-gray-200'}`}>
                                       <Paperclip size={15} />
@@ -591,7 +591,7 @@ const UnifiedCommunityComposer = ({
                                     </div>
                                   )}
                                   {block.type !== 'file' && (
-                                    <input value={block.caption || ''} onChange={(e) => updateBlock(block.id, { caption: e.target.value })} placeholder={t('community.caption_optional', '可选说明文字')} className={inputCls} />
+                                    <input value={block.caption || ''} onChange={(e) => updateBlock(block.id, { caption: e.target.value })} placeholder={t('community.caption_optional', '可选说明文字')} className={`community-composer-input ${inputCls}`} />
                                   )}
                                 </>
                               )}
@@ -601,9 +601,9 @@ const UnifiedCommunityComposer = ({
                       ))}
                     </div>
 
-                    <div className="flex flex-wrap gap-2">
+                    <div className="community-composer-add-buttons flex flex-wrap gap-2">
                       {availableBlocks.map(({ type, icon: Icon, label }) => (
-                        <button key={type} type="button" onClick={() => addBlock(type)} className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold ${isDayMode ? 'border-slate-200 text-slate-700 hover:bg-slate-50' : 'border-white/10 text-gray-300 hover:bg-white/10'}`}>
+                        <button key={type} type="button" onClick={() => addBlock(type)} className={`community-composer-small-button inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold ${isDayMode ? 'border-slate-200 text-slate-700 hover:bg-slate-50' : 'border-white/10 text-gray-300 hover:bg-white/10'}`}>
                           <Plus size={13} />
                           <Icon size={13} />
                           {label}
@@ -614,10 +614,10 @@ const UnifiedCommunityComposer = ({
                 </div>
               </section>
 
-              <aside className={`min-h-0 overflow-y-auto border-t p-4 lg:border-l lg:border-t-0 ${isDayMode ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/[0.025]'}`}>
-                <div className="space-y-4">
+              <aside className={`community-composer-side min-h-0 overflow-y-auto border-t p-4 lg:border-l lg:border-t-0 ${isDayMode ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/[0.025]'}`}>
+                <div className="community-composer-side-inner space-y-4">
                   {previewOpen ? (
-                    <div className={`rounded-lg border p-4 ${isDayMode ? 'border-slate-200 bg-white' : 'border-white/10 bg-neutral-950'}`}>
+                    <div className={`community-composer-preview rounded-lg border p-4 ${isDayMode ? 'border-slate-200 bg-white' : 'border-white/10 bg-neutral-950'}`}>
                       <p className={labelCls}>{t('community.preview', '预览')}</p>
                       <h3 className="mt-2 text-xl font-black">{title || t('community.untitled', '未命名')}</h3>
                       {excerpt && <p className={`mt-2 text-sm ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{excerpt}</p>}
@@ -636,28 +636,28 @@ const UnifiedCommunityComposer = ({
                     </div>
                   ) : null}
 
-                  <div className="space-y-2">
+                  <div className="community-composer-field space-y-2">
                     <label className={labelCls}>{t('community.post_tags_label', '标签')}</label>
-                    <input value={tags} onChange={(e) => setTags(e.target.value)} className={inputCls} placeholder={t('community.tags_placeholder', '用逗号分隔')} />
+                    <input value={tags} onChange={(e) => setTags(e.target.value)} className={`community-composer-input ${inputCls}`} placeholder={t('community.tags_placeholder', '用逗号分隔')} />
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="community-composer-field space-y-2">
                     <label className={labelCls}>{t('community.related_resources', '跨模块关联')}</label>
-                    <input value={relatedArticleIds} onChange={(e) => setRelatedArticleIds(e.target.value)} className={inputCls} placeholder={t('community.related_articles_placeholder', '相关文章 ID')} />
-                    <input value={relatedPostIds} onChange={(e) => setRelatedPostIds(e.target.value)} className={inputCls} placeholder={t('community.related_posts_placeholder', '相关帖子 ID')} />
-                    <input value={relatedNewsIds} onChange={(e) => setRelatedNewsIds(e.target.value)} className={inputCls} placeholder={t('community.related_news_placeholder', '相关新闻 ID')} />
-                    <input value={relatedGroupIds} onChange={(e) => setRelatedGroupIds(e.target.value)} className={inputCls} placeholder={t('community.related_groups_placeholder', '相关社群 ID')} />
+                    <input value={relatedArticleIds} onChange={(e) => setRelatedArticleIds(e.target.value)} className={`community-composer-input ${inputCls}`} placeholder={t('community.related_articles_placeholder', '相关文章 ID')} />
+                    <input value={relatedPostIds} onChange={(e) => setRelatedPostIds(e.target.value)} className={`community-composer-input ${inputCls}`} placeholder={t('community.related_posts_placeholder', '相关帖子 ID')} />
+                    <input value={relatedNewsIds} onChange={(e) => setRelatedNewsIds(e.target.value)} className={`community-composer-input ${inputCls}`} placeholder={t('community.related_news_placeholder', '相关新闻 ID')} />
+                    <input value={relatedGroupIds} onChange={(e) => setRelatedGroupIds(e.target.value)} className={`community-composer-input ${inputCls}`} placeholder={t('community.related_groups_placeholder', '相关社群 ID')} />
                   </div>
                 </div>
               </aside>
             </main>
 
-            <footer className={`flex flex-wrap items-center justify-end gap-2 border-t px-4 py-3 md:px-6 ${isDayMode ? 'border-slate-200 bg-white' : 'border-white/10 bg-neutral-950'}`}>
-              <button type="button" onClick={() => submit('draft')} disabled={submitting} className={`inline-flex min-h-[42px] items-center gap-2 rounded-lg border px-4 text-sm font-semibold disabled:opacity-50 ${isDayMode ? 'border-slate-200 text-slate-700 hover:bg-slate-50' : 'border-white/10 text-gray-200 hover:bg-white/10'}`}>
+            <footer className={`community-composer-footer flex flex-wrap items-center justify-end gap-2 border-t px-4 py-3 md:px-6 ${isDayMode ? 'border-slate-200 bg-white' : 'border-white/10 bg-neutral-950'}`}>
+              <button type="button" onClick={() => submit('draft')} disabled={submitting} className={`community-composer-footer-button inline-flex min-h-[42px] items-center gap-2 rounded-lg border px-4 text-sm font-semibold disabled:opacity-50 ${isDayMode ? 'border-slate-200 text-slate-700 hover:bg-slate-50' : 'border-white/10 text-gray-200 hover:bg-white/10'}`}>
                 <Save size={16} />
                 {t('community.save_draft', '保存草稿')}
               </button>
-              <button type="button" onClick={() => submit(isAdmin ? 'approved' : config.publishStatus)} disabled={submitting} className={`inline-flex min-h-[42px] items-center gap-2 rounded-lg px-5 text-sm font-semibold disabled:opacity-50 ${isDayMode ? accent.button : accent.darkButton}`}>
+              <button type="button" onClick={() => submit(isAdmin ? 'approved' : config.publishStatus)} disabled={submitting} className={`community-composer-footer-button inline-flex min-h-[42px] items-center gap-2 rounded-lg px-5 text-sm font-semibold disabled:opacity-50 ${isDayMode ? accent.button : accent.darkButton}`}>
                 {submitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                 {config.publishStatus === 'approved' || isAdmin ? t('community.publish_now', '发布') : t('community.submit_for_review', '提交审核')}
               </button>

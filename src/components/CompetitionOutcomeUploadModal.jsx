@@ -224,30 +224,30 @@ const CompetitionOutcomeUploadModal = ({ open, onClose, onSubmitted, initialType
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[160] flex items-end justify-center bg-black/68 p-0 backdrop-blur-sm sm:items-center sm:p-4">
-      <div className={`max-h-[92vh] w-full max-w-3xl overflow-hidden border border-white/10 ${shellClass} sm:rounded-2xl`}>
-        <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+    <div className="outcome-upload-backdrop fixed inset-0 z-[160] flex items-end justify-center bg-black/68 p-0 backdrop-blur-sm sm:items-center sm:p-4">
+      <div className={`outcome-upload-panel max-h-[92vh] w-full max-w-3xl overflow-hidden border border-white/10 ${shellClass} sm:rounded-2xl`}>
+        <div className="outcome-upload-header flex items-center justify-between border-b border-white/10 px-5 py-4">
           <div>
-            <p className={`text-xs font-black uppercase tracking-[0.18em] ${mutedClass}`}>
+            <p className={`outcome-upload-eyebrow text-xs font-black uppercase tracking-[0.18em] ${mutedClass}`}>
               Competition Outcome Upload
             </p>
-            <h2 className="mt-1 text-xl font-black">提交黑客松成果</h2>
-            <p className={`mt-1 text-xs leading-5 ${mutedClass}`}>
+            <h2 className="outcome-upload-title mt-1 text-xl font-black">提交黑客松成果</h2>
+            <p className={`outcome-upload-subtitle mt-1 text-xs leading-5 ${mutedClass}`}>
               照片进入画廊，视频进入视频栏目，作品进入优秀作品与经验分享。
             </p>
           </div>
           <button
             type="button"
             onClick={resetAndClose}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 transition hover:bg-white/10"
+            className="outcome-upload-close inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 transition hover:bg-white/10"
             aria-label="关闭"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="max-h-[calc(92vh-73px)] overflow-y-auto px-5 py-5">
-          <div className="grid gap-2 sm:grid-cols-3">
+        <form onSubmit={handleSubmit} className="outcome-upload-form max-h-[calc(92vh-73px)] overflow-y-auto px-5 py-5">
+          <div className="outcome-upload-type-grid grid gap-2 sm:grid-cols-3">
             {typeOptions.map((option) => {
               const Icon = option.icon;
               const active = form.type === option.value;
@@ -256,7 +256,7 @@ const CompetitionOutcomeUploadModal = ({ open, onClose, onSubmitted, initialType
                   key={option.value}
                   type="button"
                   onClick={() => setForm(createInitialForm(option.value))}
-                  className={`flex min-h-12 items-center justify-center gap-2 rounded-xl border px-3 text-sm font-black transition ${
+                  className={`outcome-upload-type-option flex min-h-12 items-center justify-center gap-2 rounded-xl border px-3 text-sm font-black transition ${
                     active
                       ? "border-cyan-300 bg-cyan-300 text-slate-950"
                       : isDayMode
@@ -267,7 +267,7 @@ const CompetitionOutcomeUploadModal = ({ open, onClose, onSubmitted, initialType
                   <Icon className="h-4 w-4" />
                   <span className="grid text-left leading-tight">
                     <span>{option.label}</span>
-                    <span className={`text-[10px] font-bold ${active ? "text-slate-700" : mutedClass}`}>
+                    <span className={`outcome-upload-type-destination text-[10px] font-bold ${active ? "text-slate-700" : mutedClass}`}>
                       {option.destination}
                     </span>
                   </span>
@@ -276,8 +276,8 @@ const CompetitionOutcomeUploadModal = ({ open, onClose, onSubmitted, initialType
             })}
           </div>
 
-          <div className="mt-5 rounded-2xl border border-white/10 p-4">
-            <div className="mb-4 flex items-center gap-2">
+          <div className="outcome-upload-card mt-5 rounded-2xl border border-white/10 p-4">
+            <div className="outcome-upload-card-head mb-4 flex items-center gap-2">
               <SelectedIcon className="h-5 w-5 text-cyan-300" />
               <span className="text-sm font-black">{selectedType.label}</span>
               <span className={`text-xs ${mutedClass}`}>{selectedType.destination}</span>
@@ -285,123 +285,123 @@ const CompetitionOutcomeUploadModal = ({ open, onClose, onSubmitted, initialType
             </div>
 
             {form.type === "work" ? (
-              <div className="grid gap-4">
-                <label className="grid gap-2 text-sm font-semibold">
+              <div className="outcome-upload-field-stack grid gap-4">
+                <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
                   作品名称
                   <input
                     required
                     value={form.workTitle}
                     onChange={(event) => updateField("workTitle", event.target.value)}
-                    className={`min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
+                    className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
                   />
                 </label>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <label className="grid gap-2 text-sm font-semibold">
+                <div className="outcome-upload-field-grid grid gap-4 sm:grid-cols-2">
+                  <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
                     作者
                     <input
                       required
                       value={form.author}
                       onChange={(event) => updateField("author", event.target.value)}
-                      className={`min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
+                      className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
                     />
-                    <span className="text-xs font-medium opacity-70">
+                    <span className="outcome-upload-field-hint text-xs font-medium opacity-70">
                       填写获奖者、团队或社团名称后，相关用户可在个人主页中确认认领。
                     </span>
                   </label>
-                  <label className="grid gap-2 text-sm font-semibold">
+                  <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
                     Git 链接
                     <input
                       required
                       type="url"
                       value={form.gitUrl}
                       onChange={(event) => updateField("gitUrl", event.target.value)}
-                      className={`min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
+                      className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
                     />
                   </label>
                 </div>
-                <label className="grid gap-2 text-sm font-semibold">
+                <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
                   简介
                   <textarea
                     required
                     rows={4}
                     value={form.summary}
                     onChange={(event) => updateField("summary", event.target.value)}
-                    className={`rounded-xl border px-3 py-3 outline-none ${inputClass}`}
+                    className={`outcome-upload-textarea rounded-xl border px-3 py-3 outline-none ${inputClass}`}
                   />
                 </label>
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <label className="grid gap-2 text-sm font-semibold">
+                <div className="outcome-upload-field-grid grid gap-4 sm:grid-cols-3">
+                  <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
                     奖项
                     <input
                       value={form.award}
                       onChange={(event) => updateField("award", event.target.value)}
-                      className={`min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
+                      className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
                     />
                   </label>
-                  <label className="grid gap-2 text-sm font-semibold">
+                  <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
                     排序
                     <input
                       value={form.rank}
                       onChange={(event) => updateField("rank", event.target.value)}
-                      className={`min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
+                      className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
                     />
                   </label>
-                  <label className="grid gap-2 text-sm font-semibold">
+                  <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
                     封面（可选）
                     <input
                       type="file"
                       accept="image/*"
                       onChange={(event) => updateField("coverFile", event.target.files?.[0] || null)}
-                      className={`min-h-11 rounded-xl border px-3 py-2 outline-none ${inputClass}`}
+                      className={`outcome-upload-input min-h-11 rounded-xl border px-3 py-2 outline-none ${inputClass}`}
                     />
                   </label>
                 </div>
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <label className="grid gap-2 text-sm font-semibold">
+                <div className="outcome-upload-field-grid grid gap-4 sm:grid-cols-3">
+                  <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
                     荣誉称号
                     <input
                       value={form.honorTitle}
                       onChange={(event) => updateField("honorTitle", event.target.value)}
                       placeholder="如 Top 20 获奖成员"
-                      className={`min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
+                      className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
                     />
                   </label>
-                  <label className="grid gap-2 text-sm font-semibold">
+                  <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
                     年级
                     <input
                       value={form.grade}
                       onChange={(event) => updateField("grade", event.target.value)}
                       placeholder="如 大一 / 研二"
-                      className={`min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
+                      className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
                     />
                   </label>
-                  <label className="grid gap-2 text-sm font-semibold">
+                  <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
                     专业
                     <input
                       value={form.major}
                       onChange={(event) => updateField("major", event.target.value)}
                       placeholder="如 计算机科学与技术"
-                      className={`min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
+                      className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
                     />
                   </label>
                 </div>
-                <label className="grid gap-2 text-sm font-semibold">
+                <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
                   精选感悟
                   <input
                     value={form.highlight}
                     onChange={(event) => updateField("highlight", event.target.value)}
                     placeholder="一句最想展示在卡片上的经验或感受"
-                    className={`min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
+                    className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
                   />
                 </label>
-                <label className="grid gap-2 text-sm font-semibold">
+                <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
                   经验分享
                   <textarea
                     rows={5}
                     value={form.experience}
                     onChange={(event) => updateField("experience", event.target.value)}
                     placeholder="可以写作品创新点、技术点、卡壳点、五小时极限开发的时间分配与迭代心得"
-                    className={`rounded-xl border px-3 py-3 outline-none ${inputClass}`}
+                    className={`outcome-upload-textarea outcome-upload-long-textarea rounded-xl border px-3 py-3 outline-none ${inputClass}`}
                   />
                 </label>
                 <label className="flex items-start gap-3 text-sm font-semibold">
@@ -415,44 +415,44 @@ const CompetitionOutcomeUploadModal = ({ open, onClose, onSubmitted, initialType
                 </label>
               </div>
             ) : (
-              <div className="grid gap-4">
-                <label className="grid gap-2 text-sm font-semibold">
+              <div className="outcome-upload-field-stack grid gap-4">
+                <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
                   标题
                   <input
                     required
                     value={form.title}
                     onChange={(event) => updateField("title", event.target.value)}
-                    className={`min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
+                    className={`outcome-upload-input min-h-11 rounded-xl border px-3 outline-none ${inputClass}`}
                   />
                 </label>
-                <label className="grid gap-2 text-sm font-semibold">
+                <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
                   简介
                   <textarea
                     rows={3}
                     value={form.description}
                     onChange={(event) => updateField("description", event.target.value)}
-                    className={`rounded-xl border px-3 py-3 outline-none ${inputClass}`}
+                    className={`outcome-upload-textarea rounded-xl border px-3 py-3 outline-none ${inputClass}`}
                   />
                 </label>
-                <div className={`grid gap-4 ${isPromoVideo ? "sm:grid-cols-2" : ""}`}>
-                  <label className="grid gap-2 text-sm font-semibold">
+                <div className={`outcome-upload-field-grid grid gap-4 ${isPromoVideo ? "sm:grid-cols-2" : ""}`}>
+                  <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
                     {isPromoVideo ? "宣传片文件" : "照片文件"}
                     <input
                       required
                       type="file"
                       accept={form.type === "promo_video" ? "video/*" : "image/*"}
                       onChange={(event) => updateField("file", event.target.files?.[0] || null)}
-                      className={`min-h-11 rounded-xl border px-3 py-2 outline-none ${inputClass}`}
+                      className={`outcome-upload-input min-h-11 rounded-xl border px-3 py-2 outline-none ${inputClass}`}
                     />
                   </label>
                   {isPromoVideo ? (
-                    <label className="grid gap-2 text-sm font-semibold">
+                    <label className="outcome-upload-field grid gap-2 text-sm font-semibold">
                       封面（可选）
                       <input
                         type="file"
                         accept="image/*"
                         onChange={(event) => updateField("coverFile", event.target.files?.[0] || null)}
-                        className={`min-h-11 rounded-xl border px-3 py-2 outline-none ${inputClass}`}
+                        className={`outcome-upload-input min-h-11 rounded-xl border px-3 py-2 outline-none ${inputClass}`}
                       />
                     </label>
                   ) : null}
@@ -461,18 +461,18 @@ const CompetitionOutcomeUploadModal = ({ open, onClose, onSubmitted, initialType
             )}
           </div>
 
-          <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <div className="outcome-upload-actions mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <button
               type="button"
               onClick={resetAndClose}
-              className="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/10 px-4 text-sm font-bold transition hover:bg-white/8"
+              className="outcome-upload-action-button inline-flex min-h-11 items-center justify-center rounded-xl border border-white/10 px-4 text-sm font-bold transition hover:bg-white/8"
             >
               取消
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-cyan-300 px-5 text-sm font-black text-slate-950 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+              className="outcome-upload-action-button inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-cyan-300 px-5 text-sm font-black text-slate-950 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
             >
               {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
               {submitting ? submitLabel || "提交中" : "提交成果"}
