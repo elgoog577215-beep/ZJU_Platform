@@ -10,9 +10,47 @@ const buildCommaSeparatedMatch = (field, value) => ({
 });
 
 const buildAllSchoolAudienceMatch = (field) => ({
-    clause: `("${field}" = ? OR "${field}" LIKE ? OR "${field}" LIKE ? OR "${field}" LIKE ? OR "${field}" LIKE ? OR "${field}" LIKE ?)`,
-    params: ['全校', '全校,%', '%,全校', '%,全校,%', '%全校师生%', '%全体师生%'],
+    clause: `("${field}" = ? OR "${field}" LIKE ? OR "${field}" LIKE ? OR "${field}" LIKE ? OR "${field}" LIKE ? OR "${field}" LIKE ? OR "${field}" LIKE ?)`,
+    params: ['全校', '全校,%', '%,全校', '%,全校,%', '%全校%', '%全校师生%', '%全体师生%'],
 });
+
+const buildTextContainsMatch = (field, value) => ({
+    clause: `("${field}" = ? OR "${field}" LIKE ?)`,
+    params: [value, `%${value}%`],
+});
+
+const mergeOrFilters = (filters) => ({
+    clause: `(${filters.map((filter) => filter.clause).join(' OR ')})`,
+    params: filters.flatMap((filter) => filter.params),
+});
+
+const isCollegeScopeValue = (value) => (
+    /学院|学园|学系|校区|College|School|Department|Institute|Campus/i.test(String(value || ''))
+);
+
+const buildEventCollegeScopeFilter = (audience) => {
+    const normalized = String(audience || '').trim();
+    if (!normalized) return null;
+
+    if (normalized === '全校') {
+        return buildAllSchoolAudienceMatch('target_audience');
+    }
+
+    const filters = [
+        buildCommaSeparatedMatch('target_audience', normalized),
+        buildTextContainsMatch('target_audience', normalized),
+        buildAllSchoolAudienceMatch('target_audience'),
+    ];
+
+    if (isCollegeScopeValue(normalized)) {
+        filters.push(
+            buildTextContainsMatch('source_college', normalized),
+            buildTextContainsMatch('organizer', normalized),
+        );
+    }
+
+    return mergeOrFilters(filters);
+};
 
 const buildEventCategoryFilter = (category) => {
     const normalized = String(category || '').trim();
@@ -43,14 +81,14 @@ const buildEventSearchFilter = (searchTerm, rawSearch) => {
     const category = normalizeEventCategory(rawSearch);
     if (!category) {
         return {
-            clause: '(title LIKE ? OR category LIKE ? OR description LIKE ? OR organizer LIKE ? OR target_audience LIKE ?)',
-            params: [searchTerm, searchTerm, searchTerm, searchTerm, searchTerm],
+            clause: '(title LIKE ? OR category LIKE ? OR description LIKE ? OR organizer LIKE ? OR target_audience LIKE ? OR source_college LIKE ?)',
+            params: [searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm],
         };
     }
 
     return {
-        clause: '(title LIKE ? OR category LIKE ? OR category = ? OR description LIKE ? OR organizer LIKE ? OR target_audience LIKE ?)',
-        params: [searchTerm, searchTerm, category, searchTerm, searchTerm, searchTerm],
+        clause: '(title LIKE ? OR category LIKE ? OR category = ? OR description LIKE ? OR organizer LIKE ? OR target_audience LIKE ? OR source_college LIKE ?)',
+        params: [searchTerm, searchTerm, category, searchTerm, searchTerm, searchTerm, searchTerm],
     };
 };
 
@@ -606,18 +644,11 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
             filterableFields.forEach(field => {
                 if (req.query[field]) {
                     if (field === 'target_audience') {
-                        const audience = String(req.query[field]).trim();
-                        if (audience === '全校') {
-                            const audienceFilter = buildAllSchoolAudienceMatch(field);
-                            whereClauses.push(audienceFilter.clause);
-                            params.push(...audienceFilter.params);
-                            countParams.push(...audienceFilter.params);
-                        } else {
-                            const audienceFilter = buildCommaSeparatedMatch(field, audience);
-                            const allSchoolFilter = buildAllSchoolAudienceMatch(field);
-                            whereClauses.push(`(${audienceFilter.clause} OR ${allSchoolFilter.clause})`);
-                            params.push(...audienceFilter.params, ...allSchoolFilter.params);
-                            countParams.push(...audienceFilter.params, ...allSchoolFilter.params);
+                        const collegeScopeFilter = buildEventCollegeScopeFilter(req.query[field]);
+                        if (collegeScopeFilter) {
+                            whereClauses.push(collegeScopeFilter.clause);
+                            params.push(...collegeScopeFilter.params);
+                            countParams.push(...collegeScopeFilter.params);
                         }
                     } else {
                         whereClauses.push(`"${field}" = ?`);
@@ -991,5 +1022,8 @@ module.exports = {
     getDistinctValues,
     getEventDistinctOptions,
     updateStatus,
-    fields
+    fields,
+    _test: {
+        buildEventCollegeScopeFilter,
+    },
 };

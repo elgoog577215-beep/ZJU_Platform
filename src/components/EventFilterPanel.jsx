@@ -91,7 +91,10 @@ const EventFilterPanel = ({
       ...filters,
       target_audience: nextAudience,
     });
-    if (!isSheetMode) setIsAudienceOpen(false);
+    if (!isSheetMode) {
+      setAudienceSearch("");
+      setIsAudienceOpen(false);
+    }
   };
 
   const clearAll = () => {
@@ -381,7 +384,7 @@ const EventFilterPanel = ({
                   className={isDayMode ? "text-violet-600" : "text-[#aab0ff]"}
                 />
                 <span className="truncate">
-                  {t("events.filter.audience_prefix", "面向：")}
+                  {t("events.filter.audience_prefix", "学院范围：")}
                   {audienceLabel(selectedAudience || allAudienceValue)}
                 </span>
               </span>
@@ -444,7 +447,10 @@ const EventFilterPanel = ({
                 <p
                   className={`mt-0.5 text-xs ${isDayMode ? "text-slate-500" : "text-slate-500"}`}
                 >
-                  {t("events.filter.audience_hint", "选择学院、学园或保持全校")}
+                  {t(
+                    "events.filter.audience_hint",
+                    "匹配该学院面向活动、学院通知和全校活动",
+                  )}
                 </p>
               </div>
               <div className="relative w-full sm:w-72">
@@ -487,7 +493,7 @@ const EventFilterPanel = ({
                     )}
                     <div className="flex flex-wrap gap-2">
                       {group.items.map((audience) => {
-                        const selected = selectedAudience === audience;
+                        const selected = isAudienceSelected(audience);
                         return (
                           <button
                             key={audience}
