@@ -5,10 +5,86 @@ const crypto = require('crypto');
 const sharp = require('sharp');
 const { searchGlobalContent } = require('../services/globalSearchService');
 const { listPendingCompetitionItems } = require('./competitionController');
+const {
+    scrapeWeChat,
+    parseWithLLM,
+    cleanWeChatUrl,
+    wechatCache,
+    CACHE_TTL,
+    downloadWeChatImage,
+} = require('../utils/wechat');
 
-// Placeholder for crawler until implemented
 const runCrawler = async (url, source) => {
-    return { status: 'skipped', message: 'Crawler module is not yet implemented.' };
+    if (!url) {
+        return {
+            status: 'skipped',
+            message: '请提供需要解析的活动通知链接。',
+            events: [],
+            total: 0,
+            added: 0,
+        };
+    }
+
+    const cleanedUrl = cleanWeChatUrl(url);
+    const hostname = new URL(cleanedUrl).hostname;
+    const isWeChatUrl = hostname.includes('weixin.qq.com') || hostname.includes('mp.weixin.qq.com');
+    if (!isWeChatUrl) {
+        return {
+            status: 'skipped',
+            message: '当前爬虫入口已接入微信公众号活动/通知解析；普通网页源还未实现。',
+            source: source || hostname,
+            events: [],
+            total: 0,
+            added: 0,
+        };
+    }
+
+    if (wechatCache.has(cleanedUrl)) {
+        const { data, timestamp } = wechatCache.get(cleanedUrl);
+        if (Date.now() - timestamp < CACHE_TTL) {
+            return {
+                status: 'parsed',
+                source: source || data?.source_college || data?.organizer || hostname,
+                events: [data],
+                total: 1,
+                added: 0,
+                cacheHit: true,
+            };
+        }
+        wechatCache.delete(cleanedUrl);
+    }
+
+    const scrapedData = await scrapeWeChat(cleanedUrl);
+    const parsedData = await parseWithLLM(scrapedData);
+    if (!parsedData.content) parsedData.content = scrapedData.content;
+    parsedData.title = parsedData.title || scrapedData.title || 'Untitled';
+    parsedData.description = parsedData.description || scrapedData.content?.substring(0, 200) || '';
+    parsedData.link = cleanedUrl;
+
+    if (scrapedData.coverImage) {
+        try {
+            const localImagePath = await downloadWeChatImage(scrapedData.coverImage);
+            parsedData.coverImage = localImagePath || scrapedData.coverImage;
+            parsedData.image = parsedData.coverImage;
+        } catch {
+            parsedData.coverImage = scrapedData.coverImage;
+            parsedData.image = scrapedData.coverImage;
+        }
+    }
+
+    wechatCache.set(cleanedUrl, {
+        data: parsedData,
+        timestamp: Date.now(),
+    });
+
+    return {
+        status: 'parsed',
+        source: source || parsedData.source_college || parsedData.organizer || hostname,
+        events: [parsedData],
+        total: 1,
+        added: 0,
+        cacheHit: false,
+    };
 };
 
 const searchContent = async (req, res, next) => {

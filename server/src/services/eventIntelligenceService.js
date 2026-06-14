@@ -10,6 +10,28 @@ const {
 
 const CATEGORY_VALUES = new Set(EVENT_CATEGORIES.map((item) => item.value));
 const CATEGORY_LABEL_LOOKUP = new Map(EVENT_CATEGORIES.map((item) => [item.label, item.value]));
+const COLLEGE_NOTICE_TAG = '学院通知';
+const COLLEGE_NOTICE_TYPES = [
+  'academic',
+  'evaluation',
+  'bonus',
+  'volunteer',
+  'lecture',
+  'competition',
+  'administrative',
+  'registration',
+  'voting',
+  'other',
+];
+
+const PRIORITY_SOURCE_COLLEGES = [
+  '云峰学园',
+  '丹青学园',
+  '蓝田学园',
+  '紫云碧峰学园',
+  '港湾家园',
+  '海宁国际校区',
+];
 
 const normalizeText = (value = '') => String(value || '')
   .replace(/\s+/g, ' ')
@@ -18,6 +40,12 @@ const normalizeText = (value = '') => String(value || '')
 const normalizeLookupText = (value = '') => normalizeText(value).toLowerCase();
 
 const unique = (items) => [...new Set(items.filter(Boolean))];
+
+const EVENT_SOURCE_COLLEGE_OPTIONS = EVENT_AUDIENCE_OPTIONS.filter((item) => item !== '全校');
+const EVENT_SOURCE_COLLEGE_MATCH_OPTIONS = [
+  ...PRIORITY_SOURCE_COLLEGES.filter((item) => EVENT_SOURCE_COLLEGE_OPTIONS.includes(item)),
+  ...EVENT_SOURCE_COLLEGE_OPTIONS.filter((item) => !PRIORITY_SOURCE_COLLEGES.includes(item)),
+];
 
 const getStandardOption = (options, hints, fallback) => (
   options.find((item) => hints.some((hint) => String(item).includes(hint))) || fallback
@@ -110,6 +138,109 @@ const normalizeEventCategory = (value) => {
   }
 
   return '';
+};
+
+const normalizeCollegeNoticeType = (value) => {
+  const normalized = normalizeText(value);
+  if (!normalized) return '';
+  if (COLLEGE_NOTICE_TYPES.includes(normalized)) return normalized;
+
+  if (/保研|推免|课程|学业|培养|考试|选课|教务|补考|缓考|学籍|毕业|论文|答辩/.test(normalized)) return 'academic';
+  if (/评奖|评优|奖学金|荣誉|十佳|优秀|先进|公示名单/.test(normalized)) return 'evaluation';
+  if (/加分|综测|素质分|二课|第二课堂|第三课堂|积分/.test(normalized)) return 'bonus';
+  if (/志愿|志愿者|公益|社会实践/.test(normalized)) return 'volunteer';
+  if (/讲座|报告|论坛|分享|沙龙|宣讲/.test(normalized)) return 'lecture';
+  if (/竞赛|比赛|挑战杯|黑客松|大赛|赛道/.test(normalized)) return 'competition';
+  if (/报名|招募|申请|征集|推荐|遴选|选拔/.test(normalized)) return 'registration';
+  if (/投票|评选|点赞|网络评审/.test(normalized)) return 'voting';
+  if (/通知|事务|安排|调整|汇总|提醒|公示|公告|名单|值班|会议|缴费|领取/.test(normalized)) return 'administrative';
+  return 'other';
+};
+
+const inferEventSourceCollege = (event = {}) => {
+  const source = [
+    event.source_college,
+    event.organizer,
+    event.author,
+    event.target_audience,
+    event.title,
+    event.description,
+    event.content,
+  ].map(normalizeText).filter(Boolean).join(' ');
+
+  if (!source) return '';
+
+  const direct = EVENT_SOURCE_COLLEGE_MATCH_OPTIONS.find((item) => source.includes(item));
+  if (direct) return direct;
+
+  if (/云峰/.test(source)) return '云峰学园';
+  if (/丹青/.test(source)) return '丹青学园';
+  if (/蓝田/.test(source)) return '蓝田学园';
+  if (/求是/.test(source)) return '求是学院';
+  if (/竺可桢|竺院/.test(source)) return '竺可桢学院';
+  if (/计算机/.test(source)) return '计算机科学与技术学院';
+  if (/软件/.test(source)) return '软件学院';
+  if (/人工智能/.test(source)) return '人工智能学院';
+  if (/集成电路/.test(source)) return '集成电路学院';
+  if (/信电|信息与电子/.test(source)) return '信息与电子工程学院';
+  if (/控制/.test(source)) return '控制科学与工程学院';
+  if (/光电/.test(source)) return '光电科学与工程学院';
+
+  return '';
+};
+
+const inferCollegeNoticeSignal = (event = {}) => {
+  const text = [
+    event.title,
+    event.description,
+    event.content,
+    event.organizer,
+    event.author,
+    event.target_audience,
+    event.tags,
+  ].map((value) => {
+    if (Array.isArray(value)) return value.join(' ');
+    return normalizeText(value);
+  }).filter(Boolean).join(' ');
+
+  if (!text) return false;
+
+  const tags = splitList(event.tags);
+  if (tags.includes(COLLEGE_NOTICE_TAG) || tags.includes('college_notice')) return true;
+  if (/学院通知|学园通知|学院公告|学园公告|学院公示|学园公示/.test(text)) return true;
+
+  const sourceCollege = inferEventSourceCollege(event);
+  const hasNoticeTerm = /通知|公告|公示|报名|招募|申请|评奖|评优|奖学金|综测|素质分|加分|推免|保研|教务|课程|考试|名单|选拔|推荐|征集|投票/.test(text);
+  return Boolean(sourceCollege && hasNoticeTerm);
+};
+
+const normalizeCollegeNoticeFields = (payload = {}, source = {}) => {
+  const merged = {
+    ...source,
+    ...payload,
+    author: payload.author || source.author,
+    tags: Array.isArray(payload.tags) ? payload.tags.join(' ') : payload.tags,
+  };
+  const explicitFlag = payload.is_college_notice;
+  const isExplicitTrue = explicitFlag === true || explicitFlag === 1 || explicitFlag === '1' || explicitFlag === 'true';
+  const isCollegeNotice = isExplicitTrue || inferCollegeNoticeSignal(merged);
+
+  if (!isCollegeNotice) {
+    return {
+      is_college_notice: 0,
+      notice_type: null,
+      source_college: null,
+    };
+  }
+
+  return {
+    is_college_notice: 1,
+    notice_type: normalizeCollegeNoticeType(payload.notice_type || payload.noticeType || payload.type || merged.title || merged.description) || 'other',
+    source_college: inferEventSourceCollege({
+      ...merged,
+      source_college: payload.source_college || payload.sourceCollege,
+    }),
+  };
 };
 
 const detectCategories = (text = '') => {
@@ -274,6 +405,8 @@ const buildEventCatalogPromptText = () => {
     '',
     `校区/形式标准项：${context.campuses.join('、')}`,
     `面向对象标准项：${context.audiences.join('、')}`,
+    `学院通知来源学院标准项：${EVENT_SOURCE_COLLEGE_OPTIONS.join('、')}`,
+    '学院通知类型只能从 academic、evaluation、bonus、volunteer、lecture、competition、administrative、registration、voting、other 中选择。',
     '活动标签已停用；不要生成 tags，活动归类只使用 category。',
   ].join('\n');
 };
@@ -317,6 +450,7 @@ const validateParsedEventPayload = (payload = {}, source = {}) => {
     ? Math.min(Math.max(0, confidence), classification.confidence)
     : classification.confidence;
   const modelReason = normalizeText(payload.category_reason);
+  const collegeNoticeFields = normalizeCollegeNoticeFields(payload, source);
 
   return {
     ...payload,
@@ -327,6 +461,7 @@ const validateParsedEventPayload = (payload = {}, source = {}) => {
     category_source: classification.source,
     target_audience: normalizedAudience || null,
     tags: [],
+    ...collegeNoticeFields,
   };
 };
 
@@ -345,6 +480,10 @@ module.exports = {
   detectCampusTerms,
   getEventCategoryFilterTerms,
   getCategoryLabel,
+  inferCollegeNoticeSignal,
+  inferEventSourceCollege,
+  normalizeCollegeNoticeFields,
+  normalizeCollegeNoticeType,
   normalizeEventAudience,
   normalizeEventCategory,
   validateParsedEventPayload,

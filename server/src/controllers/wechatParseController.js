@@ -37,6 +37,9 @@ const recordWechatParseRun = async (result = {}, dbOverride = null) => {
           runtimeTelemetry: result.runtimeTelemetry || { taskCount: 0, tasks: [] },
           hasCoverImage: Boolean(result.hasCoverImage),
           category: result.category || null,
+          isCollegeNotice: result.isCollegeNotice ?? null,
+          noticeType: result.noticeType || null,
+          sourceCollege: result.sourceCollege || null,
           errorCode: result.errorCode || null,
         }),
       ]
@@ -98,6 +101,9 @@ const parseWeChatResource = async (req, res) => {
           runtimeTelemetry: data?.aiMeta?.runtimeTelemetry,
           hasCoverImage: Boolean(data?.coverImage),
           category: data?.category,
+          isCollegeNotice: data?.is_college_notice,
+          noticeType: data?.notice_type,
+          sourceCollege: data?.source_college,
         });
         return res.json(data);
       }
@@ -162,6 +168,9 @@ const parseWeChatResource = async (req, res) => {
       runtimeTelemetry: parsedData.aiMeta?.runtimeTelemetry,
       hasCoverImage: Boolean(parsedData.coverImage),
       category: parsedData.category,
+      isCollegeNotice: parsedData.is_college_notice,
+      noticeType: parsedData.notice_type,
+      sourceCollege: parsedData.source_college,
     });
 
     return res.json(parsedData);

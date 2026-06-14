@@ -220,6 +220,28 @@ const normalizeEventAudience = (value = '') => {
     .join(',');
 };
 
+const isTruthyFlag = (value) =>
+  value === true ||
+  value === 1 ||
+  value === '1' ||
+  String(value || '').toLowerCase() === 'true';
+
+const resolveParsedCollegeNoticeFields = (data = {}) => {
+  const sourceCollege = data.source_college || inferEventSourceCollege(data);
+  const noticeType = normalizeCollegeNoticeType(data.notice_type) || 'other';
+  const hasNoticeTag = getTagList(data.tags).includes(COLLEGE_NOTICE_TAG);
+  const isCollegeNotice =
+    isTruthyFlag(data.is_college_notice) ||
+    hasNoticeTag ||
+    Boolean(data.source_college || data.notice_type);
+
+  return {
+    isCollegeNotice,
+    noticeType,
+    sourceCollege,
+  };
+};
+
 const ARTICLE_BLOCK_META = {
   text: {
     label: '文字',
@@ -516,6 +538,23 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             if (data.volunteer_time) setEventVolunteerTime(data.volunteer_time);
             if (data.score) setEventScore(data.score);
             if (data.date_reasoning) setDateReasoning(data.date_reasoning);
+            const parsedNotice = resolveParsedCollegeNoticeFields(data);
+            if (parsedNotice.isCollegeNotice) {
+                setIsCollegeNotice(true);
+                setNoticeType(parsedNotice.noticeType);
+                if (parsedNotice.sourceCollege) setSourceCollege(parsedNotice.sourceCollege);
+                setTags((previousTags) => serializeTagList([
+                    ...getTagList(previousTags).filter((tag) => tag !== COLLEGE_NOTICE_TAG),
+                    COLLEGE_NOTICE_TAG,
+                ]));
+            } else {
+                setIsCollegeNotice(false);
+                setNoticeType('other');
+                setSourceCollege('');
+                setTags((previousTags) => serializeTagList(
+                    getTagList(previousTags).filter((tag) => tag !== COLLEGE_NOTICE_TAG),
+                ));
+            }
 
             // Set cover image if available
             if (data.coverImage) {

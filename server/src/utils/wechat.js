@@ -301,6 +301,9 @@ async function parseWithLLM(data, options = {}) {
                         target_audience: '从标准面向对象中选择；多个用英文逗号连接；无法确定填 null',
                         volunteer_time: '志愿时长；无则 null',
                         score: '综测/素质分；无则 null',
+                        is_college_notice: '是否为学院/学园发布的通知、公告、公示、报名、评奖评优、综测加分、志愿招募等；是填 1，否则填 0',
+                        notice_type: '若 is_college_notice=1，只能填 academic/evaluation/bonus/volunteer/lecture/competition/administrative/registration/voting/other',
+                        source_college: '若 is_college_notice=1，从学院通知来源学院标准项中选择发布学院/学园；无法确定填 null',
                         tags: []
                     }
                 }, null, 2)
