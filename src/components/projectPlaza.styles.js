@@ -83,13 +83,14 @@ export const PROJECT_PLAZA_CSS = `
 .ppp-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;}
 .ppp-team{display:flex;align-items:center;gap:8px;min-width:0;}
 .ppp-stack{display:flex;}
-.ppp-av{width:30px;height:30px;border-radius:50%;border:2px solid var(--avborder);display:grid;place-items:center;color:#fff;font-size:12px;font-weight:700;flex:none;}
+.ppp-av{width:34px;height:34px;border-radius:50%;border:2px solid var(--avborder);display:grid;place-items:center;color:#fff;font-size:13px;font-weight:700;flex:none;}
 .ppp-lbl{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.ppp-favrow{display:flex;align-items:center;gap:8px;flex:none;}
-.ppp-views{font-size:13px;color:var(--soft);white-space:nowrap;}
+.ppp-favrow{display:flex;align-items:center;gap:10px;flex:none;}
+.ppp-views{font-size:14px;color:var(--soft);white-space:nowrap;}
 /* FavoriteButton wrapper (events-style heart): heart color follows currentColor,
    Tailwind classes inside handle pink fill/hover; we just set base color + spacing */
 .ppp-fav{color:var(--muted);border-radius:8px;padding:2px 4px;}
+.ppp-fav span{font-size:14px;font-weight:600;}
 .ppp-fav-modal{flex:none;border:0;padding:11px 15px;border-radius:12px;color:var(--ink-2);}
 
 /* ===== modal ===== */

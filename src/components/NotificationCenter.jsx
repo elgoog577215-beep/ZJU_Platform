@@ -22,6 +22,7 @@ const NEW_CONTENT_ROUTE_BUILDERS = {
   video: (id) => `/videos?id=${id}`,
   event: (id) => `/events?id=${id}`,
   news: (id) => `/articles?postTab=news&news=${id}`,
+  project: (id) => `/projects?id=${id}`,
 };
 
 const buildNotificationTargetPath = (notification) => {
@@ -71,6 +72,7 @@ const buildNotificationTargetPath = (notification) => {
     articles: "/articles",
     event: "/events",
     events: "/events",
+    project: "/projects",
   };
 
   const basePath = routeMap[resourceType];
