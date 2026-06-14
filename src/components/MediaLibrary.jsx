@@ -27,7 +27,7 @@ import { useSettings } from "../context/SettingsContext";
 import { useBackClose } from "../hooks/useBackClose";
 import { useContentPageEvents } from "../hooks/useContentPage";
 import api from "../services/api";
-import { getThumbnailUrl } from "../utils/imageUtils";
+import { normalizeExternalImageUrl, getThumbnailUrl } from "../utils/imageUtils";
 import { useReducedMotion } from "../utils/animations";
 
 const PhotoCard = memo(forwardRef(({ photo, index, onClick, onToggleFavorite, canAnimate, isDayMode, untitledLabel }, ref) => (
@@ -42,15 +42,15 @@ const PhotoCard = memo(forwardRef(({ photo, index, onClick, onToggleFavorite, ca
       ease: [0.25, 0.46, 0.45, 0.94],
     }}
     whileHover={canAnimate ? { y: -4, transition: { duration: 0.18 } } : undefined}
-    className={`relative group aspect-[4/5] overflow-hidden rounded-2xl cursor-pointer backdrop-blur-sm border transition-all duration-300 w-full touch-manipulation ${
+    className={`rect-media-card relative group aspect-video overflow-hidden cursor-pointer backdrop-blur-sm transition-all duration-300 w-full touch-manipulation ${
       isDayMode
-        ? "day-card-lift rounded-xl"
+        ? "day-card-lift"
         : "bg-white/5 border-white/10 hover:shadow-2xl hover:shadow-indigo-500/10 hover:border-white/20"
     }`}
     onClick={() => onClick(index)}
   >
     <SmartImage
-      src={getThumbnailUrl(photo.url)}
+      src={normalizeExternalImageUrl(photo.url, 640)}
       alt={photo.title}
       type="image"
       className="h-full w-full"
@@ -813,7 +813,7 @@ const MediaLibrary = () => {
                 {[...Array(6)].map((_, index) => (
                   <div
                     key={index}
-                    className={`aspect-[4/5] rounded-2xl animate-pulse ${
+                    className={`rect-media-card aspect-video animate-pulse ${
                       isDayMode ? "bg-slate-100 border border-slate-200/80" : "bg-white/5 border border-white/10"
                     }`}
                   />

@@ -9,6 +9,7 @@ import { useSettings } from '../context/SettingsContext';
 import FavoriteButton from './FavoriteButton';
 import { useBackClose } from '../hooks/useBackClose';
 import api from '../services/api';
+import { getHighResUrl, getThumbnailUrl } from '../utils/imageUtils';
 
 const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) => {
   const { t } = useTranslation();
@@ -85,6 +86,8 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) =>
       }
   };
 
+  const displayImageUrl = getHighResUrl(photo.url);
+
   // Mock Exif Data (since we don't have it in DB yet)
   const exif = {
       camera: 'Sony A7R IV',
@@ -154,7 +157,7 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) =>
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          src={photo.url} 
+          src={displayImageUrl}
           alt={photo.title}
           className="max-w-full max-h-[85vh] object-contain shadow-2xl rounded-sm"
         />
@@ -260,7 +263,7 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) =>
                                     className={`cursor-pointer group relative aspect-square rounded-xl overflow-hidden border transition-all ${isDayMode ? 'bg-white border-slate-200/80 hover:border-indigo-300/80 shadow-[0_12px_28px_rgba(148,163,184,0.12)]' : 'bg-white/5 border-white/10 hover:border-indigo-500/50'}`}
                                 >
                                     <img 
-                                        src={p.thumbnail || p.url} 
+                                        src={getThumbnailUrl(p.thumbnail || p.url)}
                                         alt={p.title} 
                                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
                                     />
