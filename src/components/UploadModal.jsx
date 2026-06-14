@@ -1399,16 +1399,16 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
 
   // UI Constants
   const inputClasses = isDayMode
-    ? "rect-field w-full px-4 py-3.5 sm:py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-indigo-400/70 transition-all duration-300 text-base min-h-[48px] sm:min-h-[44px] bg-white/95 focus:bg-white"
-    : "rect-field w-full bg-black/35 px-4 py-3.5 sm:py-3 text-white placeholder:text-gray-500 focus:outline-none focus:border-indigo-400/70 focus:bg-white/10 transition-all duration-300 text-base min-h-[48px] sm:min-h-[44px]";
+    ? "upload-modal-field rect-field w-full px-4 py-3.5 sm:py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-indigo-400/70 transition-all duration-300 text-base min-h-[48px] sm:min-h-[44px] bg-white/95 focus:bg-white"
+    : "upload-modal-field rect-field w-full bg-black/35 px-4 py-3.5 sm:py-3 text-white placeholder:text-gray-500 focus:outline-none focus:border-indigo-400/70 focus:bg-white/10 transition-all duration-300 text-base min-h-[48px] sm:min-h-[44px]";
   const labelClasses = isDayMode
-    ? "block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider pl-1"
-    : "block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider pl-1";
+    ? "upload-modal-label block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider pl-1"
+    : "upload-modal-label block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider pl-1";
   const cardClasses = isDayMode
-    ? "rect-panel p-5 sm:p-6 space-y-5 sm:space-y-6 bg-white/95"
-    : "rect-panel p-5 sm:p-6 space-y-5 sm:space-y-6 bg-[#121212]";
+    ? "upload-modal-card rect-panel p-5 sm:p-6 space-y-5 sm:space-y-6 bg-white/95"
+    : "upload-modal-card rect-panel p-5 sm:p-6 space-y-5 sm:space-y-6 bg-[#121212]";
   const uploadBoxClasses = (isActive) =>
-    `relative border-2 border-dashed rounded-[7px] p-6 sm:p-8 flex flex-col items-center justify-center group transition-all duration-300 ${
+    `upload-modal-dropzone relative border-2 border-dashed rounded-[7px] p-6 sm:p-8 flex flex-col items-center justify-center group transition-all duration-300 ${
       isDayMode
         ? `${isActive ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200/80 bg-white/82 hover:border-indigo-300 hover:bg-white'}`
         : `bg-black/20 ${isActive ? 'border-indigo-500 bg-indigo-500/10' : 'border-white/10 hover:border-white/30 hover:bg-white/5'}`
@@ -1417,14 +1417,14 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
     ? (isDayMode ? 'p-0 bg-white/78' : 'p-0 bg-black/90')
     : (isDayMode ? 'p-0 sm:p-4 bg-white/68' : 'p-0 sm:p-4 bg-black/80');
   const modalPanelClass = isDayMode
-    ? `relative bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] w-full h-[100dvh] overflow-hidden flex flex-col z-10 ${type === 'article' ? 'max-w-none border-0 rounded-none shadow-none' : `border-0 sm:border border-slate-200/90 rounded-none sm:rounded-[7px] ${type === 'event' ? 'sm:max-w-5xl' : 'sm:max-w-2xl'} shadow-[0_18px_42px_rgba(15,23,42,0.16)] sm:max-h-[90vh]`}`
-    : `relative bg-[#0f0f0f] w-full h-[100dvh] overflow-hidden flex flex-col z-10 ${type === 'article' ? 'max-w-none border-0 rounded-none shadow-none' : `border-0 sm:border border-white/10 rounded-none sm:rounded-[7px] ${type === 'event' ? 'sm:max-w-5xl' : 'sm:max-w-2xl'} shadow-[0_18px_48px_rgba(0,0,0,0.55)] sm:max-h-[90vh]`}`;
+    ? `upload-modal-panel upload-modal-${type} relative bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] w-full h-[100dvh] overflow-hidden flex flex-col z-10 ${type === 'article' ? 'max-w-none border-0 rounded-none shadow-none' : `border-0 sm:border border-slate-200/90 rounded-none sm:rounded-[7px] ${type === 'event' ? 'sm:max-w-5xl' : 'sm:max-w-2xl'} shadow-[0_18px_42px_rgba(15,23,42,0.16)] sm:max-h-[90vh]`}`
+    : `upload-modal-panel upload-modal-${type} relative bg-[#0f0f0f] w-full h-[100dvh] overflow-hidden flex flex-col z-10 ${type === 'article' ? 'max-w-none border-0 rounded-none shadow-none' : `border-0 sm:border border-white/10 rounded-none sm:rounded-[7px] ${type === 'event' ? 'sm:max-w-5xl' : 'sm:max-w-2xl'} shadow-[0_18px_48px_rgba(0,0,0,0.55)] sm:max-h-[90vh]`}`;
   const headerClass = isDayMode
-    ? `px-5 ${type === 'article' ? 'sm:px-6 py-3 sm:py-4 border-slate-200/80' : 'sm:px-8 py-4 sm:py-6 border-slate-200/80'} border-b flex justify-between items-center bg-white/95 z-20 flex-shrink-0 pt-[max(env(safe-area-inset-top),16px)]`
-    : `px-5 ${type === 'article' ? 'sm:px-6 py-3 sm:py-4 border-white/10' : 'sm:px-8 py-4 sm:py-6 border-white/10'} border-b flex justify-between items-center bg-[#0f0f0f] z-20 flex-shrink-0 pt-[max(env(safe-area-inset-top),16px)]`;
+    ? `upload-modal-header px-5 ${type === 'article' ? 'sm:px-6 py-3 sm:py-4 border-slate-200/80' : 'sm:px-8 py-4 sm:py-6 border-slate-200/80'} border-b flex justify-between items-center bg-white/95 z-20 flex-shrink-0 pt-[max(env(safe-area-inset-top),16px)]`
+    : `upload-modal-header px-5 ${type === 'article' ? 'sm:px-6 py-3 sm:py-4 border-white/10' : 'sm:px-8 py-4 sm:py-6 border-white/10'} border-b flex justify-between items-center bg-[#0f0f0f] z-20 flex-shrink-0 pt-[max(env(safe-area-inset-top),16px)]`;
   const stickyFooterClass = isDayMode
-    ? "sticky bottom-0 bg-white/96 border-t border-slate-200/80 p-5 sm:p-8 mt-auto z-20 pb-[max(env(safe-area-inset-bottom),20px)] sm:pb-8 flex flex-col-reverse sm:flex-row justify-end gap-3 shadow-[0_-10px_24px_rgba(15,23,42,0.08)]"
-    : "sticky bottom-0 bg-[#0f0f0f] border-t border-white/10 p-5 sm:p-8 mt-auto z-20 pb-[max(env(safe-area-inset-bottom),20px)] sm:pb-8 flex flex-col-reverse sm:flex-row justify-end gap-3 shadow-[0_-12px_28px_rgba(0,0,0,0.5)]";
+    ? "upload-modal-footer sticky bottom-0 bg-white/96 border-t border-slate-200/80 p-5 sm:p-8 mt-auto z-20 pb-[max(env(safe-area-inset-bottom),20px)] sm:pb-8 flex flex-col-reverse sm:flex-row justify-end gap-3 shadow-[0_-10px_24px_rgba(15,23,42,0.08)]"
+    : "upload-modal-footer sticky bottom-0 bg-[#0f0f0f] border-t border-white/10 p-5 sm:p-8 mt-auto z-20 pb-[max(env(safe-area-inset-bottom),20px)] sm:pb-8 flex flex-col-reverse sm:flex-row justify-end gap-3 shadow-[0_-12px_28px_rgba(0,0,0,0.5)]";
   const dialogTitleId = `upload-modal-title-${type}`;
 
   return createPortal(
@@ -1453,8 +1453,8 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
 
             {/* Header - Fixed at top */}
             <div className={headerClass}>
-              <h3 id={dialogTitleId} className={`text-xl sm:text-2xl font-black flex items-center gap-3 tracking-tight ${isDayMode ? 'text-slate-950' : 'text-white'}`}>
-                <span className={`p-2 sm:p-2.5 rounded-[5px] border ${isDayMode ? 'bg-white border-slate-200/80 text-indigo-600' : 'bg-white/5 border-white/10'}`}>
+              <h3 id={dialogTitleId} className={`upload-modal-title text-xl sm:text-2xl font-black flex items-center gap-3 tracking-tight ${isDayMode ? 'text-slate-950' : 'text-white'}`}>
+                <span className={`upload-modal-title-icon p-2 sm:p-2.5 rounded-[5px] border ${isDayMode ? 'bg-white border-slate-200/80 text-indigo-600' : 'bg-white/5 border-white/10'}`}>
                     {React.cloneElement(getIcon(), { size: 24 })}
                 </span>
                 <span className="truncate">
@@ -1485,24 +1485,24 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             </div>
 
             {/* Form Content - Scrollable */}
-            <form ref={formRef} onSubmit={handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar relative z-10 flex flex-col">
-              <div className={`${type === 'article' ? 'p-4 sm:p-6' : 'p-5 sm:p-8'} flex-1 ${type === 'article' ? 'space-y-4 sm:space-y-5' : 'space-y-6 sm:space-y-8'}`}>
+            <form ref={formRef} onSubmit={handleSubmit} className="upload-modal-form flex-1 overflow-y-auto custom-scrollbar relative z-10 flex flex-col">
+              <div className={`upload-modal-body ${type === 'article' ? 'p-4 sm:p-6' : 'p-5 sm:p-8'} flex-1 ${type === 'article' ? 'space-y-4 sm:space-y-5' : 'space-y-6 sm:space-y-8'}`}>
               {type === 'event' ? (
                 <>
                 {/* Event Specific Fields */}
-                <div className={`p-5 sm:p-6 border relative overflow-hidden group ${isDayMode ? 'bg-emerald-50/70 border-emerald-200/70' : 'bg-green-500/10 border-green-500/20'}`}>
-                    <div className="absolute right-0 top-0 h-full w-px opacity-40 transition-opacity duration-300">
+                <div className={`upload-modal-smart-parse p-5 sm:p-6 border relative overflow-hidden group ${isDayMode ? 'bg-emerald-50/70 border-emerald-200/70' : 'bg-green-500/10 border-green-500/20'}`}>
+                    <div className="upload-modal-smart-watermark absolute right-0 top-0 h-full w-px opacity-40 transition-opacity duration-300">
                         <Link size={100} className="text-green-500 transform rotate-12" />
                     </div>
                     <div className="relative z-10">
-                        <h4 className="text-sm font-bold text-green-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <h4 className="upload-modal-section-title text-sm font-bold text-green-400 uppercase tracking-wider mb-2 flex items-center gap-2">
                             <Sparkles size={18} />
                             {t('upload.smart_parse_title', '智能识别')}
                         </h4>
-                        <p className="text-sm text-green-100/60 mb-5 max-w-xl leading-relaxed">
+                        <p className="upload-modal-smart-desc text-sm text-green-100/60 mb-5 max-w-xl leading-relaxed">
                             {t('upload.smart_parse_desc', '粘贴微信公众号文章链接，一键自动提取活动详情。')}
                         </p>
-                        <div className="flex flex-col sm:flex-row gap-3">
+                        <div className="upload-modal-inline-action flex flex-col sm:flex-row gap-3">
                             <div className="relative flex-1">
                                 <Link size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-green-500/50" />
                                 <input
@@ -1510,14 +1510,14 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                     value={wechatUrl}
                                     onChange={(e) => setWechatUrl(e.target.value)}
                                     placeholder="https://mp.weixin.qq.com/s/..."
-                                    className={`rect-field w-full pl-11 pr-4 py-3.5 sm:py-3 focus:outline-none transition-all text-sm ${isDayMode ? 'bg-white/95 border-emerald-200/80 text-slate-900 placeholder:text-emerald-400/60 focus:border-emerald-400 focus:bg-white' : 'bg-black/40 border-green-500/30 text-white placeholder:text-green-500/30 focus:border-green-500 focus:bg-black/60'}`}
+                                    className={`upload-modal-field rect-field w-full pl-11 pr-4 py-3.5 sm:py-3 focus:outline-none transition-all text-sm ${isDayMode ? 'bg-white/95 border-emerald-200/80 text-slate-900 placeholder:text-emerald-400/60 focus:border-emerald-400 focus:bg-white' : 'bg-black/40 border-green-500/30 text-white placeholder:text-green-500/30 focus:border-green-500 focus:bg-black/60'}`}
                                 />
                             </div>
                             <button
                                 type="button"
                                 onClick={handleParseWeChat}
                                 disabled={!wechatUrl || isParsing}
-                                className="rect-button-primary w-full sm:w-auto px-6 py-3.5 sm:py-3 bg-green-500 hover:bg-green-400 text-black font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
+                                className="upload-modal-action-button rect-button-primary w-full sm:w-auto px-6 py-3.5 sm:py-3 bg-green-500 hover:bg-green-400 text-black font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
                             >
                                 {isParsing ? (
                                     <>
@@ -1536,7 +1536,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                 <button 
                                     type="button"
                                     onClick={handleClearParsedData}
-                                    className={`rect-button-secondary w-full sm:w-auto px-6 py-3.5 sm:px-4 sm:py-3 flex items-center justify-center gap-2 ${isDayMode ? 'bg-white/90 text-slate-500 hover:text-slate-900' : 'text-gray-400 hover:text-white'}`}
+                                    className={`upload-modal-action-button rect-button-secondary w-full sm:w-auto px-6 py-3.5 sm:px-4 sm:py-3 flex items-center justify-center gap-2 ${isDayMode ? 'bg-white/90 text-slate-500 hover:text-slate-900' : 'text-gray-400 hover:text-white'}`}
                                     title={t('common.clear')}
                                 >
                                     <RotateCcw size={18} />
@@ -1547,14 +1547,14 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+                <div className="upload-modal-event-grid grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
                   {/* Left Column: Media & Core Info */}
-                  <div className="space-y-6 sm:space-y-8">
+                  <div className="upload-modal-column space-y-6 sm:space-y-8">
                      {/* Cover Image (Event Image) */}
-                     <div className="space-y-3">
+                     <div className="upload-modal-field-group space-y-3">
                         <label className={labelClasses}>{t('common.image')}</label>
                         <div 
-                            className={`${uploadBoxClasses(dragTarget === 'cover')} h-48 sm:h-64`}
+                            className={`${uploadBoxClasses(dragTarget === 'cover')} upload-modal-cover-dropzone h-48 sm:h-64`}
                             onDragEnter={(e) => handleDragEnter(e, 'cover')}
                             onDragLeave={handleDragLeave}
                             onDragOver={(e) => handleDragOver(e, 'cover')}
@@ -1575,7 +1575,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                 </div>
                             ) : (
                                 <div className="flex flex-col items-center pointer-events-none text-center">
-                                    <div className={`p-4 rounded-[5px] mb-4 transition-colors duration-300 ${dragTarget === 'cover' ? 'bg-indigo-500/20 text-indigo-400' : (isDayMode ? 'bg-white/90 text-slate-400 group-hover:bg-white group-hover:text-slate-900 border border-slate-200/80' : 'bg-white/5 text-gray-400 group-hover:bg-white/10 group-hover:text-white border border-white/10')}`}>
+                                    <div className={`upload-modal-dropzone-icon p-4 rounded-[5px] mb-4 transition-colors duration-300 ${dragTarget === 'cover' ? 'bg-indigo-500/20 text-indigo-400' : (isDayMode ? 'bg-white/90 text-slate-400 group-hover:bg-white group-hover:text-slate-900 border border-slate-200/80' : 'bg-white/5 text-gray-400 group-hover:bg-white/10 group-hover:text-white border border-white/10')}`}>
                                         <Plus size={28} />
                                     </div>
                                     <span className={`text-base font-bold transition-colors ${dragTarget === 'cover' ? (isDayMode ? 'text-indigo-600' : 'text-indigo-300') : (isDayMode ? 'text-slate-500 group-hover:text-slate-900' : 'text-gray-400 group-hover:text-white')}`}>
@@ -1604,13 +1604,13 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                             <textarea
                               value={description}
                               onChange={e => setDescription(e.target.value)}
-                              className={`${inputClasses} h-36 resize-none leading-relaxed py-4`}
+                              className={`${inputClasses} upload-modal-description h-36 resize-none leading-relaxed py-4`}
                               placeholder={t('upload.description_placeholder')}
                             />
                         </div>
                         <div>
                             <label className={labelClasses}>{t('event_fields.category')}</label>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                            <div className="upload-modal-chip-grid grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                               {EVENT_CATEGORIES.map((category) => {
                                 const selected = eventCategory === category.value;
                                 return (
@@ -1619,7 +1619,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                     type="button"
                                     aria-pressed={selected}
                                     onClick={() => setEventCategory(category.value)}
-                                    className={`min-h-[44px] rounded-2xl border px-3 py-2.5 text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+                                    className={`upload-modal-choice-button min-h-[44px] rounded-2xl border px-3 py-2.5 text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
                                       selected
                                         ? (isDayMode ? 'border-indigo-500 bg-indigo-600 text-white shadow-[0_14px_28px_rgba(99,102,241,0.22)]' : 'border-indigo-400/35 bg-indigo-500/20 text-indigo-100 shadow-none')
                                         : (isDayMode ? 'border-slate-200/80 bg-white/86 text-slate-600 hover:border-indigo-200 hover:bg-white hover:text-slate-900' : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/25 hover:bg-white/10 hover:text-white')
@@ -1637,7 +1637,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                               type="button"
                               aria-pressed={isCollegeNotice}
                               onClick={toggleCollegeNotice}
-                              className={`flex min-h-[52px] w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+                              className={`upload-modal-notice-toggle flex min-h-[52px] w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
                                 isCollegeNotice
                                   ? (isDayMode ? 'border-violet-500 bg-violet-600 text-white shadow-[0_14px_28px_rgba(124,58,237,0.18)]' : 'border-indigo-400/35 bg-indigo-500/20 text-indigo-100 shadow-none')
                                   : (isDayMode ? 'border-slate-200/80 bg-white/86 text-slate-600 hover:border-violet-200 hover:bg-white hover:text-slate-900' : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/25 hover:bg-white/10 hover:text-white')
@@ -1657,10 +1657,10 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                               />
                             </button>
                             {isCollegeNotice && (
-                              <div className={`mt-3 space-y-3 rounded-2xl border p-3 ${isDayMode ? 'border-violet-100 bg-violet-50/60' : 'border-indigo-400/20 bg-indigo-500/10'}`}>
+                              <div className={`upload-modal-notice-panel mt-3 space-y-3 rounded-2xl border p-3 ${isDayMode ? 'border-violet-100 bg-violet-50/60' : 'border-indigo-400/20 bg-indigo-500/10'}`}>
                                 <div>
                                   <label className={labelClasses}>{t('event_fields.notice_type')}</label>
-                                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                                  <div className="upload-modal-chip-grid grid grid-cols-2 gap-2 sm:grid-cols-3">
                                     {COLLEGE_NOTICE_TYPES.map((noticeOption) => {
                                       const selected = noticeType === noticeOption.value;
                                       return (
@@ -1669,7 +1669,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                           type="button"
                                           aria-pressed={selected}
                                           onClick={() => setNoticeType(noticeOption.value)}
-                                          className={`min-h-[38px] rounded-xl border px-2 py-2 text-xs font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+                                          className={`upload-modal-choice-button min-h-[38px] rounded-xl border px-2 py-2 text-xs font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
                                             selected
                                               ? (isDayMode ? 'border-violet-500 bg-white text-violet-700' : 'border-indigo-300/50 bg-indigo-400/18 text-indigo-50')
                                               : (isDayMode ? 'border-violet-100 bg-white/70 text-slate-600 hover:border-violet-200' : 'border-white/10 bg-white/5 text-gray-300 hover:bg-white/10')
@@ -1703,13 +1703,13 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                   </div>
 
                   {/* Right Column: Event Details */}
-                  <div className="space-y-6 sm:space-y-8">
+                  <div className="upload-modal-column space-y-6 sm:space-y-8">
                       {/* Basic Info Card */}
                       <div className={cardClasses}>
-                           <h4 className="text-sm font-black text-gray-300 uppercase tracking-widest flex items-center gap-2.5 pb-4 border-b border-white/10">
+                           <h4 className="upload-modal-card-title text-sm font-black text-gray-300 uppercase tracking-widest flex items-center gap-2.5 pb-4 border-b border-white/10">
                                <Calendar size={16} className="text-indigo-400" /> {t('event_fields.basic_info')}
                            </h4>
-                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 pt-2">
+                           <div className="upload-modal-form-grid grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 pt-2">
                                <div className="col-span-1">
                                     <label className={labelClasses}>{t('event_fields.start_date')}</label>
                                     <input
@@ -1735,7 +1735,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                
                                {/* Date Reasoning Display */}
                                {dateReasoning && (
-                                   <div className="col-span-1 sm:col-span-2 bg-gradient-to-br from-indigo-500/10 to-purple-500/5 border border-indigo-500/20 rounded-2xl p-4 sm:p-5 relative overflow-hidden">
+                                   <div className="upload-modal-ai-reasoning col-span-1 sm:col-span-2 bg-gradient-to-br from-indigo-500/10 to-purple-500/5 border border-indigo-500/20 rounded-2xl p-4 sm:p-5 relative overflow-hidden">
                                        <div className="absolute top-0 right-0 p-3 opacity-10">
                                             <Sparkles size={40} className="text-indigo-400" />
                                        </div>
@@ -1771,10 +1771,10 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
 
                       {/* Attributes Card */}
                       <div className={cardClasses}>
-                           <h4 className="text-sm font-black text-gray-300 uppercase tracking-widest flex items-center gap-2.5 pb-4 border-b border-white/10">
+                           <h4 className="upload-modal-card-title text-sm font-black text-gray-300 uppercase tracking-widest flex items-center gap-2.5 pb-4 border-b border-white/10">
                                <Tag size={16} className="text-indigo-400" /> {t('event_fields.attributes')}
                            </h4>
-                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 pt-2">
+                           <div className="upload-modal-form-grid grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 pt-2">
                                <div className="col-span-1">
                                    <label className={labelClasses}>{t('event_fields.volunteer_duration')}</label>
                                    <input
@@ -1824,13 +1824,13 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                      )}
                                    </div>
                                    {selectedAudience.length > 0 && (
-                                     <div className="mb-3 flex flex-wrap gap-2">
+                                     <div className="upload-modal-selected-audiences mb-3 flex flex-wrap gap-2">
                                        {selectedAudience.map((audience) => (
                                          <button
                                            key={audience}
                                            type="button"
                                            onClick={() => toggleEventAudience(audience)}
-                                           className={`min-h-[32px] rounded-full border px-3 py-1.5 text-xs font-bold inline-flex items-center gap-1.5 ${isDayMode ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-indigo-500/15 text-indigo-100 border-indigo-400/25'}`}
+                                           className={`upload-modal-audience-chip min-h-[32px] rounded-full border px-3 py-1.5 text-xs font-bold inline-flex items-center gap-1.5 ${isDayMode ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-indigo-500/15 text-indigo-100 border-indigo-400/25'}`}
                                          >
                                            {audience}
                                            <X size={12} />
@@ -1848,15 +1848,15 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                        placeholder={t('event_fields.search_audience_placeholder')}
                                      />
                                    </div>
-                                   <div className={`rounded-2xl border p-3 ${isDayMode ? 'border-slate-200/80 bg-slate-50/80' : 'border-white/10 bg-black/20'}`}>
-                                     <div className={`${showAllAudiences || audienceQuery ? 'max-h-60 overflow-y-auto pr-1 custom-scrollbar' : ''}`}>
-                                       <div className="space-y-4">
+                                   <div className={`upload-modal-audience-panel rounded-2xl border p-3 ${isDayMode ? 'border-slate-200/80 bg-slate-50/80' : 'border-white/10 bg-black/20'}`}>
+                                     <div className={`${showAllAudiences || audienceQuery ? 'upload-modal-audience-scroll max-h-60 overflow-y-auto pr-1 custom-scrollbar' : ''}`}>
+                                       <div className="upload-modal-audience-groups space-y-4">
                                        {visibleAudienceGroups.map((group) => (
                                          <div key={group.group}>
                                            <div className={`mb-2 text-[11px] font-black uppercase tracking-[0.16em] ${isDayMode ? 'text-slate-400' : 'text-gray-500'}`}>
                                              {group.group}
                                            </div>
-                                           <div className="flex flex-wrap gap-2">
+                                           <div className="upload-modal-audience-options flex flex-wrap gap-2">
                                              {group.items.map((audience) => {
                                                const selected = selectedAudience.includes(audience);
                                                return (
@@ -1865,7 +1865,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                                    type="button"
                                                    aria-pressed={selected}
                                                    onClick={() => toggleEventAudience(audience)}
-                                                   className={`min-h-[40px] rounded-xl border px-3 py-2 text-xs font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+                                                   className={`upload-modal-audience-option min-h-[40px] rounded-xl border px-3 py-2 text-xs font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
                                                      selected
                                                        ? (isDayMode ? 'border-indigo-500 bg-indigo-50 text-indigo-700 shadow-[0_10px_22px_rgba(99,102,241,0.14)]' : 'border-indigo-400/50 bg-indigo-500/20 text-indigo-100')
                                                        : (isDayMode ? 'border-slate-200/80 bg-white text-slate-600 hover:border-indigo-200 hover:text-slate-900' : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/20 hover:bg-white/10')
@@ -1889,7 +1889,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                        <button
                                          type="button"
                                          onClick={() => setShowAllAudiences((value) => !value)}
-                                         className={`mt-3 w-full min-h-[40px] rounded-xl border px-3 py-2 text-xs font-bold inline-flex items-center justify-center gap-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-white text-slate-600 border-slate-200/80 hover:text-slate-900 hover:border-indigo-200' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10 hover:text-white'}`}
+                                         className={`upload-modal-expand-button mt-3 w-full min-h-[40px] rounded-xl border px-3 py-2 text-xs font-bold inline-flex items-center justify-center gap-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-white text-slate-600 border-slate-200/80 hover:text-slate-900 hover:border-indigo-200' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10 hover:text-white'}`}
                                        >
                                          <ChevronDown size={14} className={showAllAudiences ? 'rotate-180 transition-transform' : 'transition-transform'} />
                                          {showAllAudiences

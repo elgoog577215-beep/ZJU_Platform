@@ -489,6 +489,216 @@ img {
     color: #161322;
   }
 
+  @media (min-width: 640px) and (max-height: 820px) {
+    .upload-modal-panel:not(.upload-modal-article) {
+      max-height: calc(100dvh - 28px) !important;
+    }
+
+    .upload-modal-panel:not(.upload-modal-article) .upload-modal-header {
+      padding-left: 1.25rem !important;
+      padding-right: 1.25rem !important;
+      padding-top: 0.875rem !important;
+      padding-bottom: 0.875rem !important;
+    }
+
+    .upload-modal-title {
+      gap: 0.625rem !important;
+      font-size: 1.25rem !important;
+      line-height: 1.55rem !important;
+    }
+
+    .upload-modal-title-icon {
+      padding: 0.45rem !important;
+    }
+
+    .upload-modal-title-icon svg {
+      width: 1.25rem !important;
+      height: 1.25rem !important;
+    }
+
+    .upload-modal-panel:not(.upload-modal-article) .upload-modal-body {
+      padding: 1.125rem 1.5rem !important;
+      row-gap: 1rem !important;
+    }
+
+    .upload-modal-smart-parse {
+      padding: 1rem 1.25rem !important;
+    }
+
+    .upload-modal-smart-watermark {
+      display: none !important;
+    }
+
+    .upload-modal-section-title {
+      margin-bottom: 0.35rem !important;
+      font-size: 0.78rem !important;
+    }
+
+    .upload-modal-smart-desc {
+      margin-bottom: 0.75rem !important;
+      font-size: 0.78rem !important;
+      line-height: 1.25rem !important;
+    }
+
+    .upload-modal-inline-action {
+      gap: 0.625rem !important;
+    }
+
+    .upload-modal-event-grid {
+      gap: 1rem !important;
+    }
+
+    .upload-modal-column {
+      row-gap: 1rem !important;
+    }
+
+    .upload-modal-field-group {
+      row-gap: 0.5rem !important;
+    }
+
+    .upload-modal-card {
+      padding: 1rem !important;
+      row-gap: 0.875rem !important;
+    }
+
+    .upload-modal-card-title {
+      padding-bottom: 0.65rem !important;
+      font-size: 0.74rem !important;
+      letter-spacing: 0.08em !important;
+    }
+
+    .upload-modal-form-grid {
+      gap: 0.875rem !important;
+      padding-top: 0 !important;
+    }
+
+    .upload-modal-field {
+      min-height: 2.35rem !important;
+      padding-top: 0.58rem !important;
+      padding-bottom: 0.58rem !important;
+      font-size: 0.875rem !important;
+    }
+
+    .upload-modal-label {
+      margin-bottom: 0.35rem !important;
+      font-size: 0.68rem !important;
+      letter-spacing: 0.08em !important;
+    }
+
+    .upload-modal-cover-dropzone {
+      height: 10.5rem !important;
+    }
+
+    .upload-modal-dropzone {
+      padding: 1rem !important;
+    }
+
+    .upload-modal-dropzone-icon {
+      margin-bottom: 0.625rem !important;
+      padding: 0.75rem !important;
+    }
+
+    .upload-modal-dropzone-icon svg {
+      width: 1.35rem !important;
+      height: 1.35rem !important;
+    }
+
+    .upload-modal-description {
+      height: 5.75rem !important;
+      padding-top: 0.75rem !important;
+      padding-bottom: 0.75rem !important;
+      line-height: 1.45rem !important;
+    }
+
+    .upload-modal-chip-grid {
+      gap: 0.45rem !important;
+    }
+
+    .upload-modal-choice-button {
+      min-height: 2rem !important;
+      border-radius: 0.55rem !important;
+      padding: 0.38rem 0.55rem !important;
+      font-size: 0.74rem !important;
+      line-height: 1rem !important;
+    }
+
+    .upload-modal-notice-toggle {
+      min-height: 2.7rem !important;
+      border-radius: 0.65rem !important;
+      padding: 0.65rem 0.8rem !important;
+    }
+
+    .upload-modal-notice-toggle span span:last-child {
+      display: none !important;
+    }
+
+    .upload-modal-notice-panel {
+      margin-top: 0.625rem !important;
+      padding: 0.75rem !important;
+      row-gap: 0.625rem !important;
+      border-radius: 0.65rem !important;
+    }
+
+    .upload-modal-ai-reasoning {
+      padding: 0.8rem !important;
+      border-radius: 0.65rem !important;
+    }
+
+    .upload-modal-selected-audiences {
+      margin-bottom: 0.5rem !important;
+      gap: 0.4rem !important;
+    }
+
+    .upload-modal-audience-chip {
+      min-height: 1.75rem !important;
+      padding: 0.3rem 0.55rem !important;
+    }
+
+    .upload-modal-audience-panel {
+      padding: 0.65rem !important;
+      border-radius: 0.65rem !important;
+    }
+
+    .upload-modal-audience-scroll {
+      max-height: 10rem !important;
+    }
+
+    .upload-modal-audience-groups {
+      row-gap: 0.65rem !important;
+    }
+
+    .upload-modal-audience-options {
+      gap: 0.4rem !important;
+    }
+
+    .upload-modal-audience-option {
+      min-height: 1.8rem !important;
+      border-radius: 0.55rem !important;
+      padding: 0.35rem 0.6rem !important;
+      font-size: 0.72rem !important;
+    }
+
+    .upload-modal-expand-button {
+      min-height: 2rem !important;
+      margin-top: 0.55rem !important;
+      border-radius: 0.55rem !important;
+      padding-top: 0.4rem !important;
+      padding-bottom: 0.4rem !important;
+    }
+
+    .upload-modal-action-button {
+      padding-top: 0.62rem !important;
+      padding-bottom: 0.62rem !important;
+      min-height: 2.35rem !important;
+    }
+
+    .upload-modal-footer {
+      padding: 0.85rem 1.5rem !important;
+      padding-bottom: max(env(safe-area-inset-bottom), 0.85rem) !important;
+      gap: 0.625rem !important;
+    }
+  }
+
   .day-ambient-shell {
     position: relative;
     isolation: isolate;
