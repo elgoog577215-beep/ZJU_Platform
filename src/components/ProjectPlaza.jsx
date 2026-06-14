@@ -68,7 +68,7 @@ const Card = ({ p, onOpen, onFav }) => (
             favorited={p.favorited}
             count={p.likes ?? 0}
             showCount
-            size={22}
+            size={26}
             className="ppp-fav"
             onToggle={(fav, likes) => onFav(p.id, fav, likes)}
           />
@@ -147,7 +147,7 @@ const DetailModal = ({ p, onClose, onFav, loggedIn }) => {
               favorited={p.favorited}
               count={p.likes ?? 0}
               showCount
-              size={24}
+              size={26}
               className="ppp-fav ppp-fav-modal"
               onToggle={(fav, likes) => onFav(p.id, fav, likes)}
             />
