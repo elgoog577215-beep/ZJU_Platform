@@ -727,16 +727,21 @@ const CollegeNoticeRow = memo(
         <div className="grid gap-0 md:grid-cols-[minmax(0,1fr)_176px]">
           <div className="min-w-0 px-4 py-4 md:px-5">
             <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <span
-                className={`rect-chip inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-black ${
-                  isDayMode
-                    ? "border-violet-200/80 bg-violet-50 text-violet-700"
-                    : "border-indigo-400/25 bg-indigo-500/15 text-indigo-200"
-                }`}
-              >
-                <FileText size={12} />
-                {t("events.college_notice.badge")}
-              </span>
+              {noticeSource && (
+                <span
+                  className={`rect-chip inline-flex min-w-0 max-w-[240px] items-center gap-1.5 px-2.5 py-1 text-[11px] font-black ${
+                    isDayMode
+                      ? "border-violet-200/80 bg-violet-50 text-violet-700"
+                      : "border-indigo-400/25 bg-indigo-500/15 text-indigo-200"
+                  }`}
+                >
+                  <Building2 size={12} className="shrink-0" />
+                  <span className="min-w-0 truncate">
+                    <span>{t("events.college_notice.source_label")}</span>
+                    <span className="ml-1">{noticeSource}</span>
+                  </span>
+                </span>
+              )}
               {event.category && (
                 <span
                   className={`rect-chip inline-flex max-w-[150px] items-center gap-1 px-2 py-1 text-[11px] font-medium ${
@@ -776,27 +781,6 @@ const CollegeNoticeRow = memo(
             >
               {event.title}
             </h3>
-
-            {noticeSource && (
-              <div
-                className={`mt-3 flex min-w-0 items-center gap-2 rounded-md border px-3 py-2 text-xs font-semibold md:text-[13px] ${
-                  isDayMode
-                    ? "border-violet-100/90 bg-violet-50/70 text-slate-700"
-                    : "border-indigo-400/20 bg-indigo-500/10 text-indigo-100"
-                }`}
-              >
-                <Building2
-                  size={14}
-                  className={isDayMode ? "shrink-0 text-violet-600" : "shrink-0 text-indigo-300"}
-                />
-                <span className="min-w-0 truncate">
-                  <span className={isDayMode ? "text-slate-500" : "text-indigo-200/75"}>
-                    {t("events.college_notice.source_label")}
-                  </span>
-                  <span>{noticeSource}</span>
-                </span>
-              </div>
-            )}
 
             <div
               className={`mt-2 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs md:text-sm ${
