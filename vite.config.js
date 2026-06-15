@@ -20,6 +20,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       VitePWA({
+        manifestFilename: 'manifest.json',
         registerType: 'autoUpdate',
         injectRegister: 'auto',
         devOptions: {
@@ -49,7 +50,7 @@ export default defineConfig(({ mode }) => {
         workbox: {
           navigateFallback: '/index.html',
           // Keep install precache lean for Android TWA startup; chunks are cached on demand.
-          globPatterns: ['index.html', 'manifest.webmanifest', 'offline.html', 'pwa-icon.svg', '.well-known/assetlinks.json'],
+          globPatterns: ['index.html', 'manifest.json', 'offline.html', 'pwa-icon.svg', '.well-known/assetlinks.json'],
           manifestTransforms: [
             async (entries) => {
               const manifest = entries.filter((entry) => {
@@ -123,7 +124,17 @@ export default defineConfig(({ mode }) => {
           skipWaiting: true,
           clientsClaim: true
         }
-      })
+      }),
+      {
+        name: 'mirror-web-manifest',
+        closeBundle() {
+          const manifestJsonPath = path.resolve(__dirname, 'dist', 'manifest.json');
+          const legacyManifestPath = path.resolve(__dirname, 'dist', 'manifest.webmanifest');
+          if (fs.existsSync(manifestJsonPath)) {
+            fs.copyFileSync(manifestJsonPath, legacyManifestPath);
+          }
+        }
+      }
     ],
     resolve: {
       alias: {
