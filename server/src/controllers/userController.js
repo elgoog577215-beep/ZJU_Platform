@@ -1028,6 +1028,24 @@ const getUserResources = async (req, res, next) => {
           )
         ];
 
+        // Project cards: owner column is user_id; visitors see only published,
+        // owner/admin additionally see drafts. Removed cards are never shown.
+        let projectQuery = `SELECT id, user_id, title, intro AS description, content,
+                                   cover_url AS cover, progress, need_tags, tech_tags,
+                                   likes, views, status, created_at
+                              FROM project_cards
+                             WHERE user_id = ? AND status != 'removed'`;
+        const projectParams = [id];
+        if (!isOwner && !isAdmin) {
+          projectQuery += ` AND status = 'published'`;
+        }
+        projectQuery += ` ORDER BY id DESC`;
+        const projectRows = await db.all(projectQuery, projectParams);
+        allResources = [
+          ...allResources,
+          ...projectRows.map((p) => ({ ...p, type: 'project' })),
+        ];
+
         // Unified sort by created_at DESC (fallback to id for ties / missing timestamps)
         allResources.sort((a, b) => {
           const ta = new Date(a.created_at || 0).getTime();

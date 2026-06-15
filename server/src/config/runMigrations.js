@@ -1481,6 +1481,48 @@ async function runMigrations(db) {
     }
   }
 
+  // ── Project plaza: project_cards + project_reports ──
+  try {
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS project_cards (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        intro TEXT,
+        content TEXT,
+        progress TEXT DEFAULT 'idea',
+        need_tags TEXT DEFAULT '[]',
+        tech_tags TEXT DEFAULT '[]',
+        repo_url TEXT,
+        contact_wechat TEXT,
+        contact_email TEXT,
+        cover_url TEXT,
+        images_json TEXT DEFAULT '[]',
+        status TEXT DEFAULT 'published',
+        likes INTEGER DEFAULT 0,
+        views INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      );
+      CREATE INDEX IF NOT EXISTS idx_project_cards_feed ON project_cards (status, progress, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_project_cards_user ON project_cards (user_id);
+      CREATE INDEX IF NOT EXISTS idx_project_cards_likes ON project_cards (likes DESC, created_at DESC);
+      CREATE TABLE IF NOT EXISTS project_reports (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_id INTEGER NOT NULL,
+        reporter_id INTEGER NOT NULL,
+        reason TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('Project cards tables ready');
+  } catch (err) {
+    if (!err.message.includes('already exists')) {
+      console.warn('Migration warning (project cards):', err.message);
+    }
+  }
+
 }
 
 module.exports = {

@@ -1,21 +1,21 @@
 {
-  "task": "{任务名称}",
-  "started_at": "YYYY-MM-DDTHH:MM:SSZ",
-  "status": "in_progress",
+  "task": "add-project-plaza — 项目广场 / 项目名片",
+  "started_at": "2026-06-13T00:00:00Z",
+  "status": "verified",
   "workflow_mode": "full",
-  "phase": "P0-explore",
-  "current_step": "{当前在做什么}",
+  "phase": "P5-verify-done",
+  "current_step": "/verify 四关通过；specs 已 sync；待合并/PR 后再 archive",
 
   "spec": {
-    "path": "openspec/changes/{name}/specs/",
-    "confirmed": false
+    "path": "openspec/changes/add-project-plaza/specs/",
+    "confirmed": true,
+    "synced_to_main": true
   },
 
-  "files_modified": [],
-  "commits": [],
+  "branch": "feat/project-plaza",
 
-  "tests_passed": false,
-  "diff_reviewed": false,
+  "tests_passed": true,
+  "diff_reviewed": true,
   "error_count": 0,
   "errors": [],
 
@@ -24,17 +24,20 @@
 
   "verify": {
     "layer1": {
-      "typecheck": null,
-      "lint": null,
-      "test": null
+      "typecheck": "n/a (jsconfig)",
+      "lint": "改动文件 eslint exit 0",
+      "test": "npm run build ✓ 18.9s(全量打包,ProjectPlaza 入包) + 无单测套件(e2e 用户选不补)"
     },
     "layer2": {
-      "browser": null,
-      "api": null
+      "browser": "AC1/2/3/6/8 + 通知跳转 + 尺寸D 浏览器实测",
+      "api": "AC1/4/5/7 + 联系方式登录可见 API 实测"
     },
-    "total_rounds": 0,
-    "result": null
+    "gate2_acceptance": "AC1-8 + CSO(联系方式仅登录/举报下架/限流/https) 全达成,逐条有证据",
+    "gate3_diff_review": "24文件/14commit逻辑拆分; SQL 全参数化; build 通过",
+    "gate4": "知识沉淀✓(taste-log+3 brain pattern); sync-specs✓(validate 45/0); archive 待合并后; e2e 用户选不补",
+    "total_rounds": 1,
+    "result": "PASS"
   },
 
-  "notes": "{任何断点备注，恢复时读这里}"
+  "notes": "feat/project-plaza 14 commit, 未 push 未合并。/verify 四关 PASS。specs 已同步进 openspec/specs/(project-cards/plaza/engagement + user-profile-content-aggregation 合并项目类型)。archive 留到合并/PR 后。未做的(v2/B文档后续): 团队/社团身份绑定、项目关联(成员/活动/帖子/成果)、给A/C的API约定、AI社区发帖关联、站内私信、动态跟踪。taste-log 流程已建+实跑(背景/爱心/emoji/配色/尺寸5条+视觉伴侣); 全局 brain 加了 reuse-first / avoid-visual-ai-tells / visual-companion-for-ambiguous-ui 三 pattern。"
 }

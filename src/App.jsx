@@ -46,6 +46,7 @@ const AdminDashboard = lazy(() => import('./components/Admin/AdminDashboard'));
 const AdminAccessGate = lazy(() => import('./components/Admin/AdminAccessGate'));
 const NotFound = lazy(() => import('./components/NotFound'));
 const PublicProfile = lazy(() => import('./components/PublicProfile'));
+const ProjectPlaza = lazy(() => import('./components/ProjectPlaza'));
 const SearchPalette = lazy(() => import('./components/SearchPalette'));
 const GlobalPlayer = lazy(() => import('./components/GlobalPlayer'));
 const BackgroundSystem = lazy(() => import('./components/BackgroundSystem'));
@@ -242,6 +243,7 @@ const AppContent = () => {
                 }
               />
               <Route path="/user/:id" element={<PageTransition><PublicProfile /></PageTransition>} />
+              <Route path="/projects" element={<PageTransition><ProjectPlaza /></PageTransition>} />
               <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
             </Routes>
           </AnimatePresence>

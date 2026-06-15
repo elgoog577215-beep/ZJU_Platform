@@ -7,7 +7,8 @@ const FAVORITE_TABLE_MAP = {
     'music': 'music',
     'video': 'videos',
     'article': 'articles',
-    'event': 'events'
+    'event': 'events',
+    'project': 'project_cards'
 };
 
 const FAVORITE_RESOURCE_META = {
@@ -16,6 +17,7 @@ const FAVORITE_RESOURCE_META = {
     video: { table: 'videos', ownerColumn: 'uploader_id', label: '视频' },
     article: { table: 'articles', ownerColumn: 'uploader_id', label: '文章' },
     event: { table: 'events', ownerColumn: 'uploader_id', label: '活动' },
+    project: { table: 'project_cards', ownerColumn: 'user_id', label: '项目' },
 };
 
 const resolveActorName = async (db, userId) => {

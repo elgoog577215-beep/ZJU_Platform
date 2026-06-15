@@ -29,6 +29,7 @@ const futureLearningController = require('../controllers/futureLearningControlle
 const wechatParseController = require('../controllers/wechatParseController');
 const ecosystemPartnerController = require('../controllers/ecosystemPartnerController');
 const mediaCategoryController = require('../controllers/mediaCategoryController');
+const projectCardController = require('../controllers/projectCardController');
 const { logger } = require('../utils/logger');
 
 const { authenticateToken, isAdmin, optionalAuth } = require('../middleware/auth');
@@ -59,6 +60,18 @@ const communityCommentCreateLimiter = customRateLimit({
     res.status(429).json({
       error: '回复过于频繁，请稍后再试',
       retryAfter: 5 * 60,
+    });
+  },
+});
+
+const projectCreateLimiter = customRateLimit({
+  windowMs: 10 * 60 * 1000,
+  maxRequests: 10,
+  keyGenerator: (req) => req.user?.id ? `project-create:${req.user.id}` : `project-create:${req.ip}`,
+  handler: (_req, res) => {
+    res.status(429).json({
+      error: '发布过于频繁，请稍后再试',
+      retryAfter: 10 * 60,
     });
   },
 });
@@ -187,6 +200,15 @@ router.post('/admin/community/posts/batch-review', authenticateToken, isAdmin, c
 router.post('/favorites/toggle', authenticateToken, favoriteController.toggleFavorite);
 router.get('/favorites', authenticateToken, favoriteController.getFavorites);
 router.get('/favorites/check', authenticateToken, favoriteController.checkFavoriteStatus);
+
+// Project plaza / project cards
+router.get('/projects', optionalAuth, projectCardController.listProjects);
+router.get('/projects/:id', optionalAuth, projectCardController.getProject);
+router.post('/projects', authenticateToken, projectCreateLimiter, projectCardController.createProject);
+router.put('/projects/:id', authenticateToken, projectCardController.updateProject);
+router.delete('/projects/:id', authenticateToken, projectCardController.deleteProject);
+router.post('/projects/:id/report', authenticateToken, projectCardController.reportProject);
+router.put('/admin/projects/:id/takedown', authenticateToken, isAdmin, projectCardController.takedownProject);
 
 // System Routes
 router.get('/search', systemController.searchContent);

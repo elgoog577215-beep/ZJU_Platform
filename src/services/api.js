@@ -133,6 +133,16 @@ export const getProfileCard = (userId) => api.get(`/users/${userId}/profile-card
 
 export const updateProfileCard = (payload) => api.put('/users/me/profile-card', payload);
 
+// Project plaza / project cards
+export const getProjects = (params = {}) => api.get('/projects', { params });
+export const getProject = (id) => api.get(`/projects/${id}`);
+export const createProjectCard = (payload) => api.post('/projects', payload);
+export const updateProjectCard = (id, payload) => api.put(`/projects/${id}`, payload);
+export const deleteProjectCard = (id) => api.delete(`/projects/${id}`);
+export const reportProjectCard = (id, reason) => api.post(`/projects/${id}/report`, { reason });
+export const toggleProjectFavorite = (id) =>
+  api.post('/favorites/toggle', { itemId: id, itemType: 'project' });
+
 if (useCommunityMock) {
   const originalGet = api.get.bind(api);
   const originalPost = api.post.bind(api);

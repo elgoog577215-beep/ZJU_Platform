@@ -44,6 +44,7 @@ const RESOURCE_TYPE_LABEL = {
     video: '视频',
     event: '活动',
     news: '新闻',
+    project: '项目',
 };
 
 /**

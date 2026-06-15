@@ -63,6 +63,7 @@ const CONTENT_TYPES = [
   { key: "news", label: "新闻" },
   { key: "help", label: "求助" },
   { key: "team", label: "组队" },
+  { key: "project", label: "项目" },
   { key: "competition_work", label: "成果" },
 ];
 
@@ -168,6 +169,12 @@ const TYPE_META = {
     smartImageType: "article",
     placeholderDay:   "from-amber-50 via-sky-50 to-indigo-50",
     placeholderNight: "from-amber-500/20 via-sky-500/15 to-indigo-500/20",
+  },
+  project: {
+    label: "项目", textDay: "text-cyan-700", textNight: "text-cyan-300",
+    smartImageType: "article",
+    placeholderDay:   "from-cyan-50 via-sky-50 to-blue-50",
+    placeholderNight: "from-cyan-500/20 via-sky-500/15 to-blue-500/20",
   },
 };
 
@@ -987,6 +994,9 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
       // or AICommunity defaults to the help board and the id is ignored.
       article: "/articles?postTab=tech",
       event: "/events",
+      // Carry the favorites marker in the query (router state is wiped by the
+      // detail's history push); ProjectPlaza reads ?fromfav=1 to return here.
+      project: "/projects?fromfav=1",
     };
 
     const basePath = routeMap[itemType];
@@ -1120,6 +1130,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
       help: `/articles?postTab=help&post=${item.id}`,
       team: `/articles?postTab=team&post=${item.id}`,
       competition_work: item.target_path || `/hackathon?view=showcase&work=${item.id}`,
+      project: `/projects?fromfav=1&id=${item.id}`,
     }[typeKey];
     if (!path) return;
     navigate(path, {
@@ -1168,6 +1179,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
     { value: "video", label: t("nav.videos"), icon: Film },
     { value: "article", label: t("nav.articles"), icon: FileText },
     { value: "event", label: t("nav.events"), icon: Calendar },
+    { value: "project", label: "项目", icon: Sparkles },
   ];
   const displayName = user.nickname || user.username || t("user_profile.unknown_user", "用户");
   const avatarInitial = displayName.charAt(0).toUpperCase();
@@ -1903,6 +1915,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                         <img
                           src={
                             item.cover ||
+                            item.cover_url ||
                             item.thumbnail ||
                             item.url ||
                             item.image
