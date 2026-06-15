@@ -7,7 +7,6 @@ import SEO from "./SEO";
 import Hero from "./Hero";
 import { useSettings } from "../context/SettingsContext";
 import { tapPress, useReducedMotion } from "../utils/animations";
-import { isStandaloneDisplay } from "../utils/displayMode";
 
 const SPLASH_SEEN_KEY = "site-splash:last-seen-date";
 const SPLASH_DURATION_MS = 3000;
@@ -42,10 +41,7 @@ const HomeSplash = () => {
     if (typeof window === "undefined") return undefined;
 
     try {
-      if (
-        isStandaloneDisplay() ||
-        window.localStorage.getItem(SPLASH_SEEN_KEY) === todayKey
-      ) {
+      if (window.localStorage.getItem(SPLASH_SEEN_KEY) === todayKey) {
         navigate("/events", { replace: true });
         return undefined;
       }
