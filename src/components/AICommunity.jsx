@@ -110,6 +110,16 @@ const AICommunity = () => {
 
         <div className="grid grid-cols-1 gap-5 md:gap-6 xl:grid-cols-[18rem_minmax(0,1fr)_22rem] 2xl:grid-cols-[19rem_minmax(0,1fr)_24rem] xl:items-start">
 
+          <main id="community-posts" className="order-1 min-w-0 xl:order-2">
+            <SectionLabel
+              code={t("community.main_posts_code", "BUILD · ASK · 社区动态")}
+              title={t("community.main_posts_title", "发帖区")}
+              isDayMode={isDayMode}
+              compactOnMobile
+            />
+            <CommunityPosts />
+          </main>
+
           <aside id="community-podcast" className="order-2 xl:sticky xl:top-24 xl:order-1">
             <SectionLabel
               code={t("community.sidebar_podcast_code", "LISTEN · 播客")}
@@ -123,16 +133,6 @@ const AICommunity = () => {
               <Music embedded singleColumn />
             )}
           </aside>
-
-          <main id="community-posts" className="order-1 min-w-0 xl:order-2">
-            <SectionLabel
-              code={t("community.main_posts_code", "BUILD · ASK · 社区动态")}
-              title={t("community.main_posts_title", "发帖区")}
-              isDayMode={isDayMode}
-              compactOnMobile
-            />
-            <CommunityPosts />
-          </main>
 
           <aside className="order-3 space-y-5 md:space-y-6 xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto xl:pr-1 custom-scrollbar">
             <div id="community-groups">

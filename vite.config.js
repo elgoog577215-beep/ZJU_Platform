@@ -29,7 +29,8 @@ export default defineConfig(({ mode }) => {
         manifest: {
           name: '拓途浙享',
           short_name: '拓途浙享',
-          description: 'A futuristic portfolio website with immersive interactions.',
+          description: '拓途浙享校园 AI 信息共享平台，连接活动、AI 社区、影像记录与实践项目。',
+          lang: 'zh-CN',
           theme_color: '#0a0a0a',
           background_color: '#0a0a0a',
           display: 'standalone',
