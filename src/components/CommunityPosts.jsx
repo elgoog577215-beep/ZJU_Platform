@@ -1,6 +1,6 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { BookOpen, Clock3, HelpCircle, Loader2, MessageCircle, Newspaper, PenLine, Users } from 'lucide-react';
+import { BookOpen, Clock3, HelpCircle, MessageCircle, Newspaper, PenLine, Podcast, QrCode, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { useSettings } from '../context/SettingsContext';
@@ -10,8 +10,10 @@ import CommunityTech from './CommunityTech';
 import CommunityHelp from './CommunityHelp';
 import CommunityNewsBoard from './CommunityNewsBoard';
 import CommunityTeam from './CommunityTeam';
+import CommunityGroups from './CommunityGroups';
 import CommunityPostTypePicker from './CommunityPostTypePicker';
 import UnifiedCommunityComposer from './UnifiedCommunityComposer';
+import Music from './Music';
 
 const POST_TABS = [
   { key: 'featured', labelKey: 'community.tab_featured', fallback: '精选', icon: Clock3 },
@@ -19,6 +21,8 @@ const POST_TABS = [
   { key: 'help', labelKey: 'community.tab_help_qa', fallback: '求助问答', icon: HelpCircle },
   { key: 'news', labelKey: 'community.tab_news_hot', fallback: '新闻热点', icon: Newspaper },
   { key: 'team', labelKey: 'community.tab_team_collab', fallback: '组队协作', icon: Users },
+  { key: 'podcast', labelKey: 'community.tab_podcast', fallback: '播客', icon: Podcast, mobileOnly: true },
+  { key: 'groups', labelKey: 'community.tab_groups', fallback: '二维码社群', icon: QrCode, mobileOnly: true },
 ];
 
 const FEATURED_META = {
@@ -67,6 +71,10 @@ const formatFeaturedDate = (value, language) => {
 
 const getExcerpt = (item) => String(item?.excerpt || item?.content || item?.description || '').replace(/<[^>]+>/g, '').slice(0, 120);
 
+const isPublishableTab = (tab) => ['featured', 'tech', 'help', 'news', 'team'].includes(tab);
+const MOBILE_COMMUNITY_QUERY = '(max-width: 1279px)';
+const MOBILE_ONLY_TABS = new Set(POST_TABS.filter((tab) => tab.mobileOnly).map((tab) => tab.key));
+
 const CommunityPosts = () => {
   const { t, i18n } = useTranslation();
   const { uiMode } = useSettings();
@@ -75,9 +83,22 @@ const CommunityPosts = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [typePickerOpen, setTypePickerOpen] = useState(false);
   const [composerState, setComposerState] = useState({ open: false, boardKey: 'help' });
+  const [isMobileCommunity, setIsMobileCommunity] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia(MOBILE_COMMUNITY_QUERY).matches;
+  });
 
   const rawTab = searchParams.get('postTab') === 'project' ? 'tech' : searchParams.get('postTab') || 'featured';
-  const activeTab = POST_TABS.some((tb) => tb.key === rawTab) ? rawTab : 'featured';
+  const requestedTab = POST_TABS.some((tb) => tb.key === rawTab) ? rawTab : 'featured';
+  const activeTab = !isMobileCommunity && MOBILE_ONLY_TABS.has(requestedTab) ? 'featured' : requestedTab;
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(MOBILE_COMMUNITY_QUERY);
+    const handleChange = () => setIsMobileCommunity(mediaQuery.matches);
+    handleChange();
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
 
   const techFeatured = useCachedResource('/articles', { page: 1, limit: 3, category: 'tech', sort: 'newest', status: 'approved' }, { keyPrefix: 'cache:v5:', dependencies: [] });
   const helpFeatured = useCachedResource('/community/posts', { page: 1, limit: 3, section: 'help', sort: 'newest' }, { keyPrefix: 'cache:v5:', dependencies: [] });
@@ -124,6 +145,10 @@ const CommunityPosts = () => {
 
   const handleSelectPostType = useCallback((boardKey) => {
     setTypePickerOpen(false);
+    if (!isPublishableTab(boardKey)) {
+      handleTabChange(boardKey);
+      return;
+    }
     if (!user) {
       toast.error(t('auth.signin_required'));
       return;
@@ -255,12 +280,14 @@ const CommunityPosts = () => {
           </button>
         </div>
         <div className={`scrollbar-none mt-4 flex gap-1 overflow-x-auto rounded-lg border p-1 ${isDayMode ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-black/15'}`}>
-          {POST_TABS.map(({ key, labelKey, fallback, icon: Icon }) => (
+          {POST_TABS.map(({ key, labelKey, fallback, icon: Icon, mobileOnly }) => (
             <button
               key={key}
               type="button"
               onClick={() => handleTabChange(key)}
               className={`inline-flex min-h-[36px] shrink-0 items-center justify-center gap-1.5 rounded-md border px-3 text-xs font-bold transition-colors md:flex-1 ${
+                mobileOnly ? 'xl:hidden' : ''
+              } ${
                 activeTab === key
                   ? isDayMode
                     ? 'border-violet-200 bg-violet-50 text-violet-700 shadow-[0_4px_12px_rgba(124,58,237,0.08)]'
@@ -282,10 +309,20 @@ const CommunityPosts = () => {
       {activeTab === 'help' ? <CommunityHelp hideNewPostButton /> : null}
       {activeTab === 'news' ? <CommunityNewsBoard hideNewPostButton /> : null}
       {activeTab === 'team' ? <CommunityTeam hideNewPostButton /> : null}
+      {activeTab === 'podcast' ? (
+        <div id="community-podcast-mobile" className="xl:hidden">
+          <Music embedded singleColumn />
+        </div>
+      ) : null}
+      {activeTab === 'groups' ? (
+        <div id="community-groups-mobile" className="xl:hidden">
+          <CommunityGroups />
+        </div>
+      ) : null}
 
       <CommunityPostTypePicker
         isOpen={typePickerOpen}
-        activeType={activeTab}
+        activeType={isPublishableTab(activeTab) ? activeTab : 'featured'}
         onSelect={handleSelectPostType}
         onClose={() => setTypePickerOpen(false)}
       />

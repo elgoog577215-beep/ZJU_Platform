@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { QrCode } from "lucide-react";
@@ -33,6 +33,8 @@ const SidebarCard = ({ icon: Icon, code, title, isDayMode, children }) => (
 );
 
 const DESKTOP_RAIL_QUERY = "(min-width: 1280px)";
+const MOBILE_COMMUNITY_QUERY = "(max-width: 1279px)";
+const VALID_POST_TABS = new Set(["tech", "help", "news", "team", "podcast", "groups"]);
 
 const AICommunity = () => {
   const { t } = useTranslation();
@@ -44,28 +46,57 @@ const AICommunity = () => {
     if (typeof window === "undefined") return false;
     return window.matchMedia(DESKTOP_RAIL_QUERY).matches;
   });
+  const [isMobileCommunity, setIsMobileCommunity] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia(MOBILE_COMMUNITY_QUERY).matches;
+  });
 
   const subtitle = useMemo(
     () => t("community.seo_description", "浙江大学 AI 社区：求助、技术分享、新闻与协作。"),
     [t],
   );
 
-  useEffect(() => {
-    const tab = searchParams.get("tab");
+  const setCommunityTab = useCallback((tab, { replace = true } = {}) => {
     if (!tab) return;
     setSearchParams(
       (prev) => {
         const next = new URLSearchParams(prev);
         next.delete("tab");
         if (tab === "project") next.set("postTab", "tech");
-        if (tab === "tech" || tab === "help" || tab === "news" || tab === "team") next.set("postTab", tab);
+        if (VALID_POST_TABS.has(tab)) next.set("postTab", tab);
         return next;
       },
-      { replace: true },
+      { replace },
     );
-  }, [searchParams, setSearchParams]);
+  }, [setSearchParams]);
 
   useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (!tab) return;
+    setCommunityTab(tab);
+  }, [searchParams, setCommunityTab]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(MOBILE_COMMUNITY_QUERY);
+    const handleChange = () => setIsMobileCommunity(mediaQuery.matches);
+    handleChange();
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobileCommunity) return;
+    if (location.hash === "#community-podcast") {
+      setCommunityTab("podcast");
+      return;
+    }
+    if (location.hash === "#community-groups") {
+      setCommunityTab("groups");
+    }
+  }, [isMobileCommunity, location.hash, setCommunityTab]);
+
+  useEffect(() => {
+    if (isMobileCommunity) return;
     if (location.hash !== "#community-podcast" && location.hash !== "#community-groups") return;
     window.requestAnimationFrame(() => {
       document.getElementById(location.hash.slice(1))?.scrollIntoView({
@@ -73,7 +104,7 @@ const AICommunity = () => {
         behavior: "smooth",
       });
     });
-  }, [location.hash]);
+  }, [isMobileCommunity, location.hash]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia(DESKTOP_RAIL_QUERY);
@@ -120,7 +151,7 @@ const AICommunity = () => {
             <CommunityPosts />
           </main>
 
-          <aside id="community-podcast" className="order-2 xl:sticky xl:top-24 xl:order-1">
+          <aside id="community-podcast" className="order-2 hidden xl:sticky xl:top-24 xl:order-1 xl:block">
             <SectionLabel
               code={t("community.sidebar_podcast_code", "LISTEN · 播客")}
               title={t("community.sidebar_podcast_title", "播客")}
@@ -134,7 +165,7 @@ const AICommunity = () => {
             )}
           </aside>
 
-          <aside className="order-3 space-y-5 md:space-y-6 xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto xl:pr-1 custom-scrollbar">
+          <aside className="order-3 hidden space-y-5 md:space-y-6 xl:sticky xl:top-24 xl:block xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto xl:pr-1 custom-scrollbar">
             <div id="community-groups">
               <SidebarCard
                 icon={QrCode}
