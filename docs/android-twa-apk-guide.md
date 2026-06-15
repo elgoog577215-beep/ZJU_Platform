@@ -13,6 +13,7 @@
 - 显示模式：`standalone`
 - 屏幕方向：`portrait`
 - 通知委托：已开启
+- 兼容策略：优先使用 TWA；如果设备没有可用 Chrome / Custom Tabs / TWA 承载浏览器，则回退到内置 WebView。
 - TWA 工程目录：`android-twa/`
 - 公开域名绑定文件：`public/.well-known/assetlinks.json`
 
@@ -50,9 +51,11 @@ https://tuotuzju.com/.well-known/assetlinks.json
 ```bash
 curl -I -L https://tuotuzju.com/.well-known/assetlinks.json
 curl -sL https://tuotuzju.com/.well-known/assetlinks.json | jq .
+curl -I -L https://tuotuzju.com/manifest.json
 ```
 
 如果 `content-type` 是 `text/html`，或 body 是 `index.html`，说明静态服务把 `.well-known` 路径错误地回退到了 SPA 首页，需要先修部署或 Nginx 静态文件规则。
+`manifest.json` 应返回 JSON 类型；旧的 `manifest.webmanifest` 可以保留兼容，但新版 APK 使用 `manifest.json` 降低 MIME 兼容风险。
 
 ## 打包命令
 
@@ -117,6 +120,7 @@ find android-twa -name "*.apk" -o -name "*.aab"
 - 如果顶部是 `com.tuotuzju.app/.LauncherActivity` 后立刻退出，优先看原生崩溃日志。
 - 如果顶部是 `com.android.chrome/...FirstRunActivity`，说明 Chrome 首次运行页挡住了 TWA，需要在设备上完成 Chrome 初始化。
 - 如果顶部是 `com.android.chrome/...CustomTabActivity`，说明 APK 已进入承载层，但可能因为 `assetlinks.json` 未生效而降级为 Custom Tabs。
+- 如果设备没有 Chrome 或没有支持 Custom Tabs / TWA 的浏览器，新版 APK 应进入 `WebViewFallbackActivity`，而不是停在桌面或反复启动 `LauncherActivity`。
 
 ### 3. 抓取关键日志
 
@@ -132,6 +136,7 @@ sleep 8
 - `AndroidRuntime` / `FATAL EXCEPTION`：原生崩溃。
 - `FirstRunActivity`：Chrome 首次运行阻塞。
 - `asset_statements` / `Digital Asset Links` / `TrustedWeb` 相关错误：域名绑定未通过。
+- `Found no TWA providers`：设备缺少可用 TWA 承载浏览器，应确认新版 APK 的 fallback strategy 是 `webview`，并且 Manifest 已包含 `android.permission.INTERNET`。
 - Chrome 已打开但网页空白：继续检查线上首页资源、Service Worker、首屏 JS 和网络请求。
 
 ### 4. 启动性能重点
@@ -152,5 +157,6 @@ grep -n "mammoth\\|pdf-\\|three-vendor\\|AdminDashboard" dist/sw.js || true
 
 - `android-twa/twa-manifest.json` 中的 `appVersionCode` 和 `appVersionName`
 - `android-twa/app/build.gradle` 中的 `versionCode` 和 `versionName`
+- `android-twa/app/build.gradle` 中的 `fallbackType`，应保持为 `webview`，确保无 Chrome / 无 TWA 浏览器设备仍可打开
 
 其中 `versionCode` 必须递增，否则 Android 无法覆盖安装，也无法提交到应用商店。

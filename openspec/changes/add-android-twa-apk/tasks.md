@@ -11,3 +11,5 @@
 - [x] 增加最新 Android 黑屏/启动页卡住的真机诊断路径。
 - [x] 收窄移动/App 首屏运行时，避免加载桌面 3D 与装饰资源。
 - [x] 收窄 PWA precache，确保大 chunk 按访问缓存。
+- [x] 增加 WebView fallback，确保缺少 Chrome/TWA 承载浏览器时仍能打开。
+- [x] 切换 Web Manifest 到 `manifest.json`，降低 MIME 兼容风险。

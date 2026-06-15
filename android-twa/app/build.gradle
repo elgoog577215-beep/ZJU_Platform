@@ -45,7 +45,7 @@ def twaManifest = [
     generatorApp: 'bubblewrap-cli', // Application that generated the Android Project
     // The fallback strategy for when Trusted Web Activity is not available. Possible values are
     // 'customtabs' and 'webview'.
-    fallbackType: 'customtabs',
+    fallbackType: 'webview',
     enableSiteSettingsShortcut: 'true',
     orientation: 'portrait',
 ]
@@ -57,8 +57,8 @@ android {
         applicationId "com.tuotuzju.app"
         minSdkVersion 21
         targetSdkVersion 35
-        versionCode 1
-        versionName "1"
+        versionCode 3
+        versionName "3"
 
         // The name for the application
         resValue "string", "appName", twaManifest.name
@@ -76,7 +76,7 @@ android {
             // The URL the Web Manifest for the Progressive Web App that the TWA points to. This
             // is used by Chrome OS and Meta Quest to open the Web version of the PWA instead of
             // the TWA, as it will probably give a better user experience for non-mobile devices.
-            resValue "string", "webManifestUrl", 'https://tuotuzju.com/manifest.webmanifest'
+            resValue "string", "webManifestUrl", 'https://tuotuzju.com/manifest.json'
         
 
         

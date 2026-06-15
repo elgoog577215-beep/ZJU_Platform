@@ -255,7 +255,7 @@ const Navbar = () => {
       variants={navEntrance}
       initial={prefersReducedMotion ? false : "initial"}
       animate={prefersReducedMotion ? undefined : "animate"}
-      className={`motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 py-2.5 md:py-3 border-b backdrop-blur-xl ${shellClasses}`}
+      className={`motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 pt-[calc(env(safe-area-inset-top)+0.625rem)] pb-2.5 md:py-3 border-b backdrop-blur-xl ${shellClasses}`}
       role="navigation"
       aria-label="主导航"
     >

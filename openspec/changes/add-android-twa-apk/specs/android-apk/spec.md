@@ -52,6 +52,31 @@ Android 交付工程 SHALL 使用 Trusted Web Activity 封装 `https://tuotuzju.
 - **Then** 开发者必须能通过文档命令确认 APK 是否安装、`LauncherActivity` 是否可解析、顶部 Activity 是否进入 Chrome/TWA 承载层
 - **Then** 开发者必须能抓取包含 `com.tuotuzju.app`、`TrustedWeb`、`CustomTabs`、`Chrome`、`cr_` 和 `AndroidRuntime` 关键词的日志
 
+### Requirement: Android APK 必须提供浏览器不可用 fallback
+
+Android APK SHALL 在没有可用 Chrome、Custom Tabs 或 TWA provider 的设备上回退到内置 WebView，并保持联网能力。
+
+#### Scenario: 设备没有可用 TWA 承载浏览器
+
+- **Given** 设备已安装 `com.tuotuzju.app`
+- **And** Chrome 或其它支持 TWA 的浏览器不可用
+- **When** 用户点击桌面图标启动 App
+- **Then** App 必须进入 `WebViewFallbackActivity`
+- **Then** App 必须具备 `android.permission.INTERNET`
+- **Then** 用户仍能看到 `https://tuotuzju.com/` 首页内容，而不是停留桌面、黑屏或反复启动 `LauncherActivity`
+
+### Requirement: Web Manifest 必须使用稳定 JSON 入口
+
+网站 SHALL 发布 `manifest.json` 作为新版 Android APK 的 Web Manifest URL，并保留旧 manifest 入口兼容浏览器。
+
+#### Scenario: 线上站点部署 Web Manifest
+
+- **Given** 网站已部署最新前端静态产物
+- **When** 访问 `https://tuotuzju.com/manifest.json`
+- **Then** 响应必须是 JSON
+- **Then** JSON 必须包含 `name`、`start_url`、`display` 和图标配置
+- **Then** 首页 `<link rel="manifest">` 必须指向 `/manifest.json`
+
 ### Requirement: Android App 首屏必须避免桌面装饰资源
 
 Android App / TWA 运行时 SHALL 使用移动端轻量启动路径，MUST NOT 在首屏加载桌面专用 3D 背景、自定义鼠标或桌面滚动进度。

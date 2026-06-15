@@ -20,12 +20,12 @@
     "path": "/Users/yq/.tuotuzju-android/tuotuzju-release.keystore",
     "alias": "tuotuzju"
   },
-  "appVersionName": "1",
-  "appVersionCode": 1,
+  "appVersionName": "3",
+  "appVersionCode": 3,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
-  "webManifestUrl": "https://tuotuzju.com/manifest.webmanifest",
-  "fallbackType": "customtabs",
+  "webManifestUrl": "https://tuotuzju.com/manifest.json",
+  "fallbackType": "webview",
   "features": {},
   "alphaDependencies": {
     "enabled": false
@@ -43,5 +43,5 @@
   "fileHandlers": [],
   "launchHandlerClientMode": "",
   "displayOverride": [],
-  "appVersion": "1"
+  "appVersion": "3"
 }
