@@ -238,6 +238,20 @@ app.use('/uploads',
 
 // Serve Frontend Static Files (Production)
 const distPath = path.join(__dirname, '../dist');
+const assetLinksPath = path.join(distPath, '.well-known', 'assetlinks.json');
+
+if (fs.existsSync(assetLinksPath)) {
+  app.get('/.well-known/assetlinks.json', (req, res) => {
+    res.sendFile(assetLinksPath, {
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Cache-Control': 'public, max-age=300, must-revalidate',
+        'X-Content-Type-Options': 'nosniff',
+      },
+    });
+  });
+}
+
 if (fs.existsSync(distPath)) {
   app.use(express.static(distPath, {
     maxAge: '1y',
