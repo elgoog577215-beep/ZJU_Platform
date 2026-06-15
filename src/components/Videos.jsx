@@ -20,7 +20,7 @@ import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import SortSelector from "./SortSelector";
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
-import { useBackClose } from "../hooks/useBackClose";
+import { useBackClose, useBodyScrollLock } from "../hooks/useBackClose";
 import { useCachedResource } from "../hooks/useCachedResource";
 import MobileContentToolbar from "./MobileContentToolbar";
 import toast from "react-hot-toast";
@@ -162,6 +162,8 @@ const Videos = () => {
 
   useBackClose(selectedVideo !== null, closeVideo);
   useBackClose(isUploadOpen, () => setIsUploadOpen(false));
+  useBackClose(isMobileSortOpen, () => setIsMobileSortOpen(false));
+  useBodyScrollLock(isMobileSortOpen);
 
   const {
     data: videos,
@@ -340,54 +342,58 @@ const Videos = () => {
 
         {/* Mobile Sort Drawer (Bottom Sheet) */}
         {createPortal(
-          <AnimatePresence>
-            {isMobileSortOpen && (
-              <>
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  onClick={() => setIsMobileSortOpen(false)}
-                  className={`fixed inset-0 backdrop-blur-sm z-[100] md:hidden ${isDayMode ? "bg-white/70" : "bg-black/60"}`}
-                />
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.96, y: 16 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.96, y: 16 }}
-                  transition={{ type: "spring", damping: 28, stiffness: 320 }}
-                  className={`fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit border z-[101] md:hidden flex flex-col max-w-sm mx-auto ${isDayMode ? "bg-white/96 border-slate-200/80 shadow-[0_20px_48px_rgba(148,163,184,0.18)]" : "bg-[#1a1a1a]/95 border-white/10 shadow-[0_18px_48px_rgba(0,0,0,0.42)]"}`}
-                >
-                  <div className={`p-4 border-b flex justify-between items-center sticky top-0 z-10 ${isDayMode ? "bg-white/96 border-slate-200/80" : "bg-[#1a1a1a]/95 border-white/10"}`}>
-                    <div>
-                      <h3 className={`text-lg font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}>
-                        {t("common.sort", "排序")}
-                      </h3>
-                      <p className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-                        {t("sort_filter.title", "选择排序方式")}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => setIsMobileSortOpen(false)}
-                      className={`rect-icon-button p-2 transition-colors ${isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white"}`}
+          isMobileSortOpen ? (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                onClick={() => setIsMobileSortOpen(false)}
+                className={`fixed inset-0 backdrop-blur-sm z-[100] md:hidden ${isDayMode ? "bg-white/70" : "bg-black/60"}`}
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.96, y: 16 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ type: "spring", damping: 28, stiffness: 320 }}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="videos-mobile-sort-title"
+                className={`fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit border z-[101] md:hidden flex flex-col max-w-sm mx-auto ${isDayMode ? "bg-white/96 border-slate-200/80 shadow-[0_20px_48px_rgba(148,163,184,0.18)]" : "bg-[#1a1a1a]/95 border-white/10 shadow-[0_18px_48px_rgba(0,0,0,0.42)]"}`}
+              >
+                <div className={`p-4 border-b flex justify-between items-center sticky top-0 z-10 ${isDayMode ? "bg-white/96 border-slate-200/80" : "bg-[#1a1a1a]/95 border-white/10"}`}>
+                  <div>
+                    <h3
+                      id="videos-mobile-sort-title"
+                      className={`text-lg font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}
                     >
-                      <X size={20} />
-                    </button>
+                      {t("common.sort", "排序")}
+                    </h3>
+                    <p className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+                      {t("sort_filter.title", "选择排序方式")}
+                    </p>
                   </div>
-                  <div className="p-4">
-                    <SortSelector
-                      sort={sort}
-                      onSortChange={(val) => {
-                        setSort(val);
-                        setTimeout(() => setIsMobileSortOpen(false), 300);
-                      }}
-                      className="w-full"
-                      renderMode="list"
-                    />
-                  </div>
-                </motion.div>
-              </>
-            )}
-          </AnimatePresence>,
+                  <button
+                    type="button"
+                    onClick={() => setIsMobileSortOpen(false)}
+                    aria-label={t("common.close", "关闭")}
+                    className={`rect-icon-button p-2 transition-colors ${isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white"}`}
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+                <div className="p-4">
+                  <SortSelector
+                    sort={sort}
+                    onSortChange={(val) => {
+                      setSort(val);
+                      setTimeout(() => setIsMobileSortOpen(false), 300);
+                    }}
+                    className="w-full"
+                    renderMode="list"
+                  />
+                </div>
+              </motion.div>
+            </>
+          ) : null,
           document.body,
         )}
 

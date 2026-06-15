@@ -18,6 +18,7 @@ import api from '../services/api';
 import { parseContentBlocks, calculateReadingTime } from './communityUtils';
 import { useCommunityFeed } from '../hooks/useCommunityFeed';
 import UnifiedCommunityComposer from './UnifiedCommunityComposer';
+import { useBackClose, useBodyScrollLock } from '../hooks/useBackClose';
 
 const ArticleCard = memo(({
   article,
@@ -176,6 +177,8 @@ const CommunityTech = ({ onNewPost, hideNewPostButton = false }) => {
       },
     }));
   }, [mobileSortLabel]);
+  useBackClose(isMobileSortOpen, () => setIsMobileSortOpen(false));
+  useBodyScrollLock(isMobileSortOpen);
 
   const updateParams = useCallback((next) => {
     const params = new URLSearchParams(searchParams);
@@ -393,47 +396,43 @@ const CommunityTech = ({ onNewPost, hideNewPostButton = false }) => {
   const mobileDrawers = (
     <>
       {createPortal(
-        <AnimatePresence>
-          {isMobileSortOpen ? (
-            <>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setIsMobileSortOpen(false)}
-                className={`fixed inset-0 z-[100] backdrop-blur-md md:hidden ${isDayMode ? 'bg-slate-100/58' : 'bg-black/62'}`}
-              />
-              <motion.div
-                role="dialog"
-                aria-modal="true"
-                aria-label={t('common.sort', '排序')}
-                initial={{ y: '100%' }}
-                animate={{ y: 0 }}
-                exit={{ y: '100%' }}
-                transition={{ type: 'spring', damping: 34, stiffness: 360 }}
-                className={`fixed inset-x-0 bottom-0 z-[101] mx-auto flex w-full max-w-md flex-col overflow-hidden rounded-t-lg border-x border-t pb-[env(safe-area-inset-bottom)] shadow-[0_-24px_70px_rgba(0,0,0,0.34)] backdrop-blur-2xl md:hidden ${isDayMode ? 'border-white/80 bg-white/92 text-slate-900' : 'border-white/10 bg-neutral-950/96 text-white'}`}
-              >
-                <div className={`border-b px-5 py-4 flex justify-between items-center ${isDayMode ? 'border-slate-200/70' : 'border-white/10'}`}>
-                  <h3 className={`text-lg font-bold ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{t('common.sort', '排序')}</h3>
-                  <button type="button" onClick={() => setIsMobileSortOpen(false)} aria-label={t('common.close', '关闭')} className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg ${isDayMode ? 'text-slate-500 bg-slate-100' : 'text-gray-400 bg-white/8'}`}>
-                    <X size={22} />
-                  </button>
-                </div>
-                <div className="px-5 pb-5 pt-4">
-                  <SortSelector
-                    sort={feed.sort}
-                    onSortChange={(value) => {
-                      feed.setSort(value);
-                      setTimeout(() => setIsMobileSortOpen(false), 220);
-                    }}
-                    className="w-full"
-                    renderMode="list"
-                  />
-                </div>
-              </motion.div>
-            </>
-          ) : null}
-        </AnimatePresence>,
+        isMobileSortOpen ? (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              onClick={() => setIsMobileSortOpen(false)}
+              className={`fixed inset-0 z-[100] backdrop-blur-md md:hidden ${isDayMode ? 'bg-slate-100/58' : 'bg-black/62'}`}
+            />
+            <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-label={t('common.sort', '排序')}
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              transition={{ type: 'spring', damping: 34, stiffness: 360 }}
+              className={`fixed inset-x-0 bottom-0 z-[101] mx-auto flex w-full max-w-md flex-col overflow-hidden rounded-t-lg border-x border-t pb-[env(safe-area-inset-bottom)] shadow-[0_-24px_70px_rgba(0,0,0,0.34)] backdrop-blur-2xl md:hidden ${isDayMode ? 'border-white/80 bg-white/92 text-slate-900' : 'border-white/10 bg-neutral-950/96 text-white'}`}
+            >
+              <div className={`border-b px-5 py-4 flex justify-between items-center ${isDayMode ? 'border-slate-200/70' : 'border-white/10'}`}>
+                <h3 className={`text-lg font-bold ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{t('common.sort', '排序')}</h3>
+                <button type="button" onClick={() => setIsMobileSortOpen(false)} aria-label={t('common.close', '关闭')} className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg ${isDayMode ? 'text-slate-500 bg-slate-100' : 'text-gray-400 bg-white/8'}`}>
+                  <X size={22} />
+                </button>
+              </div>
+              <div className="px-5 pb-5 pt-4">
+                <SortSelector
+                  sort={feed.sort}
+                  onSortChange={(value) => {
+                    feed.setSort(value);
+                    setTimeout(() => setIsMobileSortOpen(false), 220);
+                  }}
+                  className="w-full"
+                  renderMode="list"
+                />
+              </div>
+            </motion.div>
+          </>
+        ) : null,
         document.body
       )}
     </>

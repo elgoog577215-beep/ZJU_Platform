@@ -74,3 +74,16 @@ export const useBackClose = (isOpen, onClose) => {
   // Compatibility return for existing usage
   return { onNavigate: () => {} }; 
 };
+
+export const useBodyScrollLock = (isLocked) => {
+  useEffect(() => {
+    if (!isLocked || typeof document === 'undefined') return undefined;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isLocked]);
+};

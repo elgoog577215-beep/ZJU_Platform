@@ -41,7 +41,7 @@ import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
 import SmartImage from "./SmartImage";
-import { useBackClose } from "../hooks/useBackClose";
+import { useBackClose, useBodyScrollLock } from "../hooks/useBackClose";
 import { useCachedResource } from "../hooks/useCachedResource";
 import EventFilterPanel from "./EventFilterPanel";
 import SortSelector from "./SortSelector";
@@ -1043,24 +1043,19 @@ const Events = () => {
 
   useBackClose(selectedEvent !== null, closeEvent);
   useBackClose(isUploadOpen, () => setIsUploadOpen(false));
+  useBackClose(isMobileFilterOpen, () => setIsMobileFilterOpen(false));
+  useBackClose(isMobileSortOpen, () => setIsMobileSortOpen(false));
   useBackClose(isMobileAssistantOpen, () => setIsMobileAssistantOpen(false));
   useBackClose(isDesktopAssistantOpen, () => setIsDesktopAssistantOpen(false));
 
-  useEffect(() => {
-    if (
-      (!selectedEvent && !isMobileAssistantOpen) ||
-      typeof document === "undefined"
-    ) {
-      return undefined;
-    }
-
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, [selectedEvent, isMobileAssistantOpen]);
+  useBodyScrollLock(
+    Boolean(
+      selectedEvent ||
+      isMobileFilterOpen ||
+      isMobileSortOpen ||
+      isMobileAssistantOpen,
+    ),
+  );
 
   const isPaginationEnabled = settings.pagination_enabled === "true";
   const pageSize = isPaginationEnabled ? 6 : 12;
@@ -1642,94 +1637,90 @@ END:VCALENDAR`;
 
         {/* Mobile Filter Drawer (Bottom Sheet) */}
         {createPortal(
-          <AnimatePresence>
-            {isMobileFilterOpen && (
-              <>
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  onClick={() => setIsMobileFilterOpen(false)}
-                  className={`fixed inset-0 backdrop-blur-sm z-[100] md:hidden ${isDayMode ? "bg-white/60" : "bg-black/60"}`}
-                />
-                <motion.div
-                  initial={{ y: 36 }}
-                  animate={{ y: 0 }}
-                  exit={{ y: 36 }}
-                  transition={{ type: "spring", damping: 28, stiffness: 320 }}
-                  role="dialog"
-                  aria-modal="true"
-                  aria-labelledby="events-mobile-filter-title"
-                  className={`fixed inset-x-0 bottom-0 z-[101] mx-auto flex max-h-[92dvh] w-full max-w-md flex-col overflow-hidden border-x border-t transform-gpu md:hidden ${isDayMode ? "border-slate-200/80 bg-white shadow-[0_-18px_48px_rgba(148,163,184,0.18)]" : "border-white/10 bg-neutral-950 shadow-[0_-18px_48px_rgba(0,0,0,0.42)]"}`}
+          isMobileFilterOpen ? (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                onClick={() => setIsMobileFilterOpen(false)}
+                className={`fixed inset-0 backdrop-blur-sm z-[100] md:hidden ${isDayMode ? "bg-white/60" : "bg-black/60"}`}
+              />
+              <motion.div
+                initial={{ y: 36 }}
+                animate={{ y: 0 }}
+                transition={{ type: "spring", damping: 28, stiffness: 320 }}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="events-mobile-filter-title"
+                className={`fixed inset-x-0 bottom-0 z-[101] mx-auto flex max-h-[92dvh] w-full max-w-md flex-col overflow-hidden border-x border-t transform-gpu md:hidden ${isDayMode ? "border-slate-200/80 bg-white shadow-[0_-18px_48px_rgba(148,163,184,0.18)]" : "border-white/10 bg-neutral-950 shadow-[0_-18px_48px_rgba(0,0,0,0.42)]"}`}
+              >
+                <div
+                  className={`shrink-0 border-b px-5 pb-3 pt-4 ${isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-neutral-950"}`}
+                >
+                  <div className="mx-auto mb-3 h-px w-12 bg-slate-400/50" />
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <h3
+                        id="events-mobile-filter-title"
+                        className={`text-[1.35rem] font-black leading-tight ${isDayMode ? "text-slate-950" : "text-white"}`}
+                      >
+                        {t("events.filter.sheet_title")}
+                      </h3>
+                      <p
+                        className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                      >
+                        {t("events.filter.sheet_hint")}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      aria-label={t("common.close", "关闭")}
+                      onClick={() => setIsMobileFilterOpen(false)}
+                      className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-slate-100 text-slate-500 hover:text-slate-900" : "bg-white/10 text-gray-400 hover:text-white"}`}
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+                </div>
+                <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 scrollbar-none">
+                  <EventFilterPanel
+                    filters={filters}
+                    onFiltersChange={setFilters}
+                    sort={sort}
+                    onSortChange={setSort}
+                    hideSort={true}
+                    mode="sheet"
+                  />
+                </div>
+                <div
+                  className={`shrink-0 border-t px-5 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-4 ${isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-neutral-950"}`}
                 >
                   <div
-                    className={`shrink-0 border-b px-5 pb-3 pt-4 ${isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-neutral-950"}`}
+                    className={`grid items-center gap-3 ${hasActiveMobileFilters ? "grid-cols-[0.82fr_1.18fr]" : "grid-cols-1"}`}
                   >
-                    <div className="mx-auto mb-3 h-px w-12 bg-slate-400/50" />
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <h3
-                          id="events-mobile-filter-title"
-                          className={`text-[1.35rem] font-black leading-tight ${isDayMode ? "text-slate-950" : "text-white"}`}
-                        >
-                          {t("events.filter.sheet_title")}
-                        </h3>
-                        <p
-                          className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                        >
-                          {t("events.filter.sheet_hint")}
-                        </p>
-                      </div>
+                    {hasActiveMobileFilters && (
                       <button
                         type="button"
-                        aria-label={t("common.close", "关闭")}
-                        onClick={() => setIsMobileFilterOpen(false)}
-                        className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-slate-100 text-slate-500 hover:text-slate-900" : "bg-white/10 text-gray-400 hover:text-white"}`}
+                        aria-label={t("common.clear_all", "重置")}
+                        onClick={resetMobileFilters}
+                        className={`rect-button-secondary min-h-[52px] text-base font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-slate-600" : "text-gray-200"}`}
                       >
-                        <X size={20} />
+                        {t("common.clear_all", "重置")}
                       </button>
-                    </div>
-                  </div>
-                  <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 scrollbar-none">
-                    <EventFilterPanel
-                      filters={filters}
-                      onFiltersChange={setFilters}
-                      sort={sort}
-                      onSortChange={setSort}
-                      hideSort={true}
-                      mode="sheet"
-                    />
-                  </div>
-                  <div
-                    className={`shrink-0 border-t px-5 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-4 ${isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-neutral-950"}`}
-                  >
-                    <div
-                      className={`grid items-center gap-3 ${hasActiveMobileFilters ? "grid-cols-[0.82fr_1.18fr]" : "grid-cols-1"}`}
+                    )}
+                    <button
+                      type="button"
+                      aria-label={t("common.done", "完成")}
+                      onClick={() => setIsMobileFilterOpen(false)}
+                      className={`rect-button min-h-[52px] text-base font-black focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? dayPrimaryActionClass : nightSegmentActiveClass}`}
                     >
-                      {hasActiveMobileFilters && (
-                        <button
-                          type="button"
-                          aria-label={t("common.clear_all", "重置")}
-                          onClick={resetMobileFilters}
-                          className={`rect-button-secondary min-h-[52px] text-base font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-slate-600" : "text-gray-200"}`}
-                        >
-                          {t("common.clear_all", "重置")}
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        aria-label={t("common.done", "完成")}
-                        onClick={() => setIsMobileFilterOpen(false)}
-                        className={`rect-button min-h-[52px] text-base font-black focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? dayPrimaryActionClass : nightSegmentActiveClass}`}
-                      >
-                        {t("common.done", "完成")}
-                      </button>
-                    </div>
+                      {t("common.done", "完成")}
+                    </button>
                   </div>
-                </motion.div>
-              </>
-            )}
-          </AnimatePresence>,
+                </div>
+              </motion.div>
+            </>
+          ) : null,
           document.body,
         )}
 
@@ -1806,76 +1797,72 @@ END:VCALENDAR`;
 
         {/* Mobile Sort Drawer (Bottom Sheet) */}
         {createPortal(
-          <AnimatePresence>
-            {isMobileSortOpen && (
-              <>
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  onClick={() => setIsMobileSortOpen(false)}
-                  className={`fixed inset-0 backdrop-blur-sm z-[100] md:hidden ${isDayMode ? "bg-white/55" : "bg-black/60"}`}
-                />
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.96, y: 16 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.96, y: 16 }}
-                  transition={{ type: "spring", damping: 28, stiffness: 320 }}
-                  role="dialog"
-                  aria-modal="true"
-                  aria-labelledby="events-mobile-sort-title"
-                  className={`fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit border z-[101] md:hidden flex flex-col max-w-sm mx-auto ${isDayMode ? "bg-white/95 border-slate-200/80 shadow-[0_20px_48px_rgba(148,163,184,0.18)]" : "bg-[#1a1a1a]/95 border-white/10 shadow-[0_18px_48px_rgba(0,0,0,0.42)]"}`}
+          isMobileSortOpen ? (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                onClick={() => setIsMobileSortOpen(false)}
+                className={`fixed inset-0 backdrop-blur-sm z-[100] md:hidden ${isDayMode ? "bg-white/55" : "bg-black/60"}`}
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.96, y: 16 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ type: "spring", damping: 28, stiffness: 320 }}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="events-mobile-sort-title"
+                className={`fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit border z-[101] md:hidden flex flex-col max-w-sm mx-auto ${isDayMode ? "bg-white/95 border-slate-200/80 shadow-[0_20px_48px_rgba(148,163,184,0.18)]" : "bg-[#1a1a1a]/95 border-white/10 shadow-[0_18px_48px_rgba(0,0,0,0.42)]"}`}
+              >
+                <div
+                  className={`p-4 border-b flex justify-between items-center sticky top-0 z-10 ${isDayMode ? "border-slate-200/80 bg-white/92" : "border-white/10 bg-[#1a1a1a]/95"}`}
                 >
-                  <div
-                    className={`p-4 border-b flex justify-between items-center sticky top-0 z-10 ${isDayMode ? "border-slate-200/80 bg-white/92" : "border-white/10 bg-[#1a1a1a]/95"}`}
-                  >
-                    <div>
-                      <h3
-                        id="events-mobile-sort-title"
-                        className={`text-lg font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}
-                      >
-                        {t("common.sort", "排序")}
-                      </h3>
-                      <p
-                        className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                      >
-                        {t("sort_filter.title", "选择活动排序方式")}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      aria-label={t("common.close", "关闭")}
-                      onClick={() => setIsMobileSortOpen(false)}
-                      className={`rect-icon-button p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white"}`}
+                  <div>
+                    <h3
+                      id="events-mobile-sort-title"
+                      className={`text-lg font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}
                     >
-                      <X size={20} />
-                    </button>
+                      {t("common.sort", "排序")}
+                    </h3>
+                    <p
+                      className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+                    >
+                      {t("sort_filter.title", "选择活动排序方式")}
+                    </p>
                   </div>
-                  <div className="p-4">
-                    <SortSelector
-                      sort={sort}
-                      onSortChange={(val) => {
-                        setSort(val);
-                        setTimeout(() => setIsMobileSortOpen(false), 300);
-                      }}
-                      className="w-full"
-                      extraOptions={[
-                        {
-                          value: "date_asc",
-                          label: t("sort_filter.date_asc", "日期（最早）"),
-                        },
-                        {
-                          value: "date_desc",
-                          label: t("sort_filter.date_desc", "日期（最晚）"),
-                        },
-                      ]}
-                      renderMode="list"
-                    />
-                  </div>
-                </motion.div>
-              </>
-            )}
-          </AnimatePresence>,
+                  <button
+                    type="button"
+                    aria-label={t("common.close", "关闭")}
+                    onClick={() => setIsMobileSortOpen(false)}
+                    className={`rect-icon-button p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white"}`}
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+                <div className="p-4">
+                  <SortSelector
+                    sort={sort}
+                    onSortChange={(val) => {
+                      setSort(val);
+                      setTimeout(() => setIsMobileSortOpen(false), 300);
+                    }}
+                    className="w-full"
+                    extraOptions={[
+                      {
+                        value: "date_asc",
+                        label: t("sort_filter.date_asc", "日期（最早）"),
+                      },
+                      {
+                        value: "date_desc",
+                        label: t("sort_filter.date_desc", "日期（最晚）"),
+                      },
+                    ]}
+                    renderMode="list"
+                  />
+                </div>
+              </motion.div>
+            </>
+          ) : null,
           document.body,
         )}
       </motion.div>

@@ -32,7 +32,7 @@ import { GallerySkeleton } from "./SkeletonLoader";
 import toast from "react-hot-toast";
 import SEO from "./SEO";
 
-import { useBackClose } from "../hooks/useBackClose";
+import { useBackClose, useBodyScrollLock } from "../hooks/useBackClose";
 import { useCachedResource } from "../hooks/useCachedResource";
 import { getThumbnailUrl } from "../utils/imageUtils";
 import { useReducedMotion } from "../utils/animations";
@@ -235,6 +235,8 @@ const Gallery = () => {
   }, [navigate]);
 
   useBackClose(isUploadOpen, () => setIsUploadOpen(false));
+  useBackClose(isMobileSortOpen, () => setIsMobileSortOpen(false));
+  useBodyScrollLock(isMobileSortOpen);
 
   // FIX: BUG-16 — Use ref to track if deep link was processed; remove displayPhotos dependency
   const deepLinkProcessedRef = useRef(false);
@@ -461,58 +463,62 @@ const Gallery = () => {
 
       {/* Mobile Sort Drawer (Bottom Sheet) */}
       {createPortal(
-        <AnimatePresence>
-          {isMobileSortOpen && (
-            <>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setIsMobileSortOpen(false)}
-                className={`fixed inset-0 backdrop-blur-sm z-[100] md:hidden ${isDayMode ? "bg-white/62" : "bg-black/60"}`}
-              />
-              <motion.div
-                initial={{ opacity: 0, scale: 0.96, y: 16 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.96, y: 16 }}
-                transition={{ type: "spring", damping: 28, stiffness: 320 }}
-                className={`fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit backdrop-blur-xl border rounded-3xl z-[101] md:hidden flex flex-col max-w-sm mx-auto ${
-                  isDayMode
-                    ? "day-fine-surface"
-                    : "bg-[#1a1a1a]/95 border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
-                }`}
-              >
-                <div className={`p-4 border-b flex justify-between items-center sticky top-0 z-10 backdrop-blur-xl rounded-t-3xl ${isDayMode ? "border-slate-200/70 bg-white/72" : "border-white/10 bg-[#1a1a1a]/95"}`}>
-                  <div>
-                    <h3 className={`text-lg font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}>
-                      {t("common.sort", "排序")}
-                    </h3>
-                    <p className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-                      {t("sort_filter.title", "选择排序方式")}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setIsMobileSortOpen(false)}
-                    className={`p-2 rounded-full transition-colors ${isDayMode ? "day-quiet-button border text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white bg-white/5"}`}
+        isMobileSortOpen ? (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              onClick={() => setIsMobileSortOpen(false)}
+              className={`fixed inset-0 backdrop-blur-sm z-[100] md:hidden ${isDayMode ? "bg-white/62" : "bg-black/60"}`}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ type: "spring", damping: 28, stiffness: 320 }}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="gallery-mobile-sort-title"
+              className={`fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit backdrop-blur-xl border rounded-3xl z-[101] md:hidden flex flex-col max-w-sm mx-auto ${
+                isDayMode
+                  ? "day-fine-surface"
+                  : "bg-[#1a1a1a]/95 border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
+              }`}
+            >
+              <div className={`p-4 border-b flex justify-between items-center sticky top-0 z-10 backdrop-blur-xl rounded-t-3xl ${isDayMode ? "border-slate-200/70 bg-white/72" : "border-white/10 bg-[#1a1a1a]/95"}`}>
+                <div>
+                  <h3
+                    id="gallery-mobile-sort-title"
+                    className={`text-lg font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}
                   >
-                    <X size={20} />
-                  </button>
+                    {t("common.sort", "排序")}
+                  </h3>
+                  <p className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+                    {t("sort_filter.title", "选择排序方式")}
+                  </p>
                 </div>
-                <div className="p-4">
-                  <SortSelector
-                    sort={sort}
-                    onSortChange={(val) => {
-                      setSort(val);
-                      setTimeout(() => setIsMobileSortOpen(false), 300);
-                    }}
-                    className="w-full"
-                    renderMode="list"
-                  />
-                </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>,
+                <button
+                  type="button"
+                  onClick={() => setIsMobileSortOpen(false)}
+                  aria-label={t("common.close", "关闭")}
+                  className={`p-2 rounded-full transition-colors ${isDayMode ? "day-quiet-button border text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white bg-white/5"}`}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="p-4">
+                <SortSelector
+                  sort={sort}
+                  onSortChange={(val) => {
+                    setSort(val);
+                    setTimeout(() => setIsMobileSortOpen(false), 300);
+                  }}
+                  className="w-full"
+                  renderMode="list"
+                />
+              </div>
+            </motion.div>
+          </>
+        ) : null,
         document.body,
       )}
 
