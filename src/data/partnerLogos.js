@@ -154,7 +154,18 @@ export const normalizeEcosystemPartner = (partner = {}) => ({
   id: partner.id ?? `${partner.category || "partner"}-${partner.name || Math.random()}`,
   category: partner.category || "enterprise",
   name: partner.name || "",
+  name_en: partner.name_en || partner.nameEn || "",
   description: partner.description || "",
+  description_en: partner.description_en || partner.descriptionEn || "",
+  cooperation_direction:
+    partner.cooperation_direction || partner.cooperationDirection || "",
+  cooperation_direction_en:
+    partner.cooperation_direction_en || partner.cooperationDirectionEn || "",
+  event_organizer_aliases: Array.isArray(partner.event_organizer_aliases)
+    ? partner.event_organizer_aliases
+    : Array.isArray(partner.eventOrganizerAliases)
+      ? partner.eventOrganizerAliases
+      : [],
   logo_url: partner.logo_url || partner.logoUrl || partner.src || "",
   dark_logo_url: partner.dark_logo_url || partner.darkLogoUrl || partner.darkSrc || "",
   link_url: partner.link_url || partner.linkUrl || "",

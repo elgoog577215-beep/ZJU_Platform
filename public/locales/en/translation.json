@@ -1249,6 +1249,27 @@
     "meta_desc": "Browse campus events, volunteer opportunities, talks, and registration information at Zhejiang University.",
     "title": "Community Events",
     "subtitle": "Join our latest activities and workshops",
+    "organizations": {
+      "aria": "Partner organization wall",
+      "kicker": "Partner organizations",
+      "title": "Campus groups co-creating events",
+      "desc": "Explore the organizations helping plan, promote, and support campus activities.",
+      "count": "{{count}} total",
+      "view_directory": "View all",
+      "directory_title": "All partner organizations",
+      "search_placeholder": "Search organizations, descriptions, or collaboration focus",
+      "no_matches": "No matching organizations",
+      "detail_label": "View organization details",
+      "no_description": "No organization description yet.",
+      "direction": "Collaboration focus",
+      "no_direction": "Collaboration focus to be added",
+      "view_all": "View all related events",
+      "homepage": "Organization homepage",
+      "related": "Related events",
+      "loading_related": "Loading related events...",
+      "no_related": "No related events matched yet",
+      "active_filter": "Organization: {{name}}"
+    },
     "no_upcoming_desc": "No upcoming events for now. Please check back later.",
     "no_events": "No matching events found",
     "category_label": "Event Category",
@@ -1450,6 +1471,17 @@
     "delete_confirm": "Are you sure you want to delete this item?",
     "id": "ID",
     "actions": "Actions",
+    "ecosystem_partners": {
+      "fields": {
+        "name_en": "English name",
+        "description_en": "English description",
+        "cooperation_direction": "Collaboration focus",
+        "cooperation_direction_en": "Collaboration focus (English)",
+        "event_organizer_aliases": "Event organizer aliases",
+        "event_organizer_aliases_placeholder": "One event organizer name or alias per line, for example:\n浙江大学学生会\nZJU Student Union",
+        "event_organizer_aliases_help": "Used to match related events on the events page. The original organization name is enough by default; add aliases later as needed."
+      }
+    },
     "tabs": {
       "overview": "Overview",
       "pending": "Review Center",
