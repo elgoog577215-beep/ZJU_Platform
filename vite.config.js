@@ -48,17 +48,18 @@ export default defineConfig(({ mode }) => {
         },
         workbox: {
           navigateFallback: '/index.html',
-          // Large media is cached on demand below; keep the install precache lean.
-          globPatterns: ['**/*.{js,css,html,ico,svg}'],
+          // Keep install precache lean for Android TWA startup; chunks are cached on demand.
+          globPatterns: ['index.html', 'manifest.webmanifest', 'offline.html', 'pwa-icon.svg', '.well-known/assetlinks.json'],
           manifestTransforms: [
             async (entries) => {
-              const freshAssetCutoff = buildStartedAt - 1000;
               const manifest = entries.filter((entry) => {
-                if (!entry.url.startsWith('assets/')) return true;
+                if (entry.url.startsWith('assets/')) return false;
+                if (entry.url.endsWith('.map')) return false;
 
                 try {
                   const assetPath = path.resolve(__dirname, 'dist', entry.url);
-                  return fs.statSync(assetPath).mtimeMs >= freshAssetCutoff;
+                  const isFresh = fs.statSync(assetPath).mtimeMs >= buildStartedAt - 1000;
+                  return isFresh || entry.url === 'index.html';
                 } catch {
                   return true;
                 }
@@ -75,6 +76,28 @@ export default defineConfig(({ mode }) => {
               options: {
                 cacheName: 'api-cache',
                 networkTimeoutSeconds: 10,
+                cacheableResponse: { statuses: [0, 200] }
+              }
+            },
+            {
+              urlPattern: ({ request, url }) =>
+                url.origin === self.location.origin &&
+                request.destination === 'script',
+              handler: 'StaleWhileRevalidate',
+              options: {
+                cacheName: 'js-chunk-cache',
+                expiration: { maxEntries: 80, maxAgeSeconds: 60 * 60 * 24 * 14 },
+                cacheableResponse: { statuses: [0, 200] }
+              }
+            },
+            {
+              urlPattern: ({ request, url }) =>
+                url.origin === self.location.origin &&
+                request.destination === 'style',
+              handler: 'StaleWhileRevalidate',
+              options: {
+                cacheName: 'css-chunk-cache',
+                expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 14 },
                 cacheableResponse: { statuses: [0, 200] }
               }
             },
@@ -110,6 +133,10 @@ export default defineConfig(({ mode }) => {
     build: {
       emptyOutDir: true,
       chunkSizeWarningLimit: 1000,
+      modulePreload: {
+        resolveDependencies: (_url, deps) =>
+          deps.filter((dep) => !/(^|\/)(three-vendor|pdf-|mammoth\.browser|AdminDashboard)-/.test(dep))
+      },
       rollupOptions: {
         output: {
           manualChunks: {

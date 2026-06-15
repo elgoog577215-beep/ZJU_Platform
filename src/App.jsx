@@ -8,7 +8,7 @@ import {
   useLocation,
 } from 'react-router-dom';
 import { useAuth, AuthProvider } from './context/AuthContext';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Toaster } from 'react-hot-toast';
 import { MusicProvider } from './context/MusicContext';
 import { SettingsProvider, useSettings } from './context/SettingsContext';
@@ -19,6 +19,7 @@ import { useMediaQuery } from './hooks/useMediaQuery';
 import { usePerformanceMonitor } from './hooks/usePerformanceMonitor';
 import { useServiceWorker } from './hooks/useServiceWorker';
 import { routeTransition, useReducedMotion } from './utils/animations';
+import { isStandaloneDisplay } from './utils/displayMode';
 import { getOrCreateSiteVisitorKey } from './utils/visitorKey';
 import SEO from './components/SEO';
 
@@ -136,7 +137,15 @@ const AppContent = () => {
   const hasDesktopPointer = useMediaQuery('(min-width: 768px) and (hover: hover) and (pointer: fine)');
   const shouldMountDeferredUi = useDeferredMount(700);
   const [isLowPowerDevice, setIsLowPowerDevice] = useState(false);
-  const shouldRenderDarkBackground = uiMode !== 'day' && !isAdminRoute && !isImmersiveRoute;
+  const [isAppRuntime, setIsAppRuntime] = useState(false);
+  const shouldRenderDarkBackground =
+    uiMode !== 'day' &&
+    !isAdminRoute &&
+    !isImmersiveRoute &&
+    hasDesktopPointer &&
+    !isLowPowerDevice &&
+    !isAppRuntime &&
+    shouldMountDeferredUi;
 
   useServiceWorker();
 
@@ -154,6 +163,23 @@ const AppContent = () => {
     const cores = Number(navigator.hardwareConcurrency || 0);
     const memory = Number(navigator.deviceMemory || 0);
     setIsLowPowerDevice((cores > 0 && cores <= 4) || (memory > 0 && memory <= 4));
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const standaloneQuery = window.matchMedia?.('(display-mode: standalone)');
+    const fullscreenQuery = window.matchMedia?.('(display-mode: fullscreen)');
+    const updateDisplayMode = () => setIsAppRuntime(isStandaloneDisplay());
+
+    updateDisplayMode();
+    standaloneQuery?.addEventListener?.('change', updateDisplayMode);
+    fullscreenQuery?.addEventListener?.('change', updateDisplayMode);
+
+    return () => {
+      standaloneQuery?.removeEventListener?.('change', updateDisplayMode);
+      fullscreenQuery?.removeEventListener?.('change', updateDisplayMode);
+    };
   }, []);
 
   useEffect(() => {
@@ -215,38 +241,36 @@ const AppContent = () => {
 
       <main id="main-content" className={`flex-grow ${isImmersiveRoute ? 'pb-0' : 'pb-32 md:pb-0'}`} role="main">
         <Suspense fallback={<LoadingScreen />}>
-          <AnimatePresence mode="wait" initial={false}>
-            <Routes location={location} key={location.pathname}>
-              <Route path="/" element={<PageTransition><Home /></PageTransition>} />
-              <Route path="/media" element={<PageTransition><MediaLibrary /></PageTransition>} />
-              <Route path="/gallery" element={<PageTransition><Gallery /></PageTransition>} />
-              <Route path="/music" element={<MusicRedirect />} />
-              <Route path="/videos" element={<PageTransition><Videos /></PageTransition>} />
-              <Route path="/articles" element={<PageTransition><Articles /></PageTransition>} />
-              <Route path="/ai-community" element={<Navigate to="/articles" replace />} />
-              <Route path="/community" element={<Navigate to="/articles" replace />} />
-              <Route path="/community/help" element={<Navigate to="/articles?postTab=help" replace />} />
-              <Route path="/community/tech" element={<Navigate to="/articles?postTab=tech" replace />} />
-              <Route path="/community/groups" element={<Navigate to="/articles" replace />} />
-              <Route path="/events" element={<PageTransition><Events /></PageTransition>} />
-              <Route path="/about" element={<PageTransition><About /></PageTransition>} />
-              <Route path="/hackathon" element={<PageTransition><HackathonSeasonOne /></PageTransition>} />
-              <Route path="/hackathon/showcase" element={<PageTransition><HackathonSeasonOne /></PageTransition>} />
-              <Route path="/hackathon/works" element={<PageTransition><HackathonWorks /></PageTransition>} />
-              <Route path="/future-learning" element={<PageTransition><FutureLearningCenter /></PageTransition>} />
-              <Route
-                path="/admin"
-                element={
-                  <AdminRoute>
-                    <AdminDashboard />
-                  </AdminRoute>
-                }
-              />
-              <Route path="/user/:id" element={<PageTransition><PublicProfile /></PageTransition>} />
-              <Route path="/projects" element={<PageTransition><ProjectPlaza /></PageTransition>} />
-              <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
-            </Routes>
-          </AnimatePresence>
+          <Routes location={location} key={location.pathname}>
+            <Route path="/" element={<PageTransition><Home /></PageTransition>} />
+            <Route path="/media" element={<PageTransition><MediaLibrary /></PageTransition>} />
+            <Route path="/gallery" element={<PageTransition><Gallery /></PageTransition>} />
+            <Route path="/music" element={<MusicRedirect />} />
+            <Route path="/videos" element={<PageTransition><Videos /></PageTransition>} />
+            <Route path="/articles" element={<PageTransition><Articles /></PageTransition>} />
+            <Route path="/ai-community" element={<Navigate to="/articles" replace />} />
+            <Route path="/community" element={<Navigate to="/articles" replace />} />
+            <Route path="/community/help" element={<Navigate to="/articles?postTab=help" replace />} />
+            <Route path="/community/tech" element={<Navigate to="/articles?postTab=tech" replace />} />
+            <Route path="/community/groups" element={<Navigate to="/articles" replace />} />
+            <Route path="/events" element={<PageTransition><Events /></PageTransition>} />
+            <Route path="/about" element={<PageTransition><About /></PageTransition>} />
+            <Route path="/hackathon" element={<PageTransition><HackathonSeasonOne /></PageTransition>} />
+            <Route path="/hackathon/showcase" element={<PageTransition><HackathonSeasonOne /></PageTransition>} />
+            <Route path="/hackathon/works" element={<PageTransition><HackathonWorks /></PageTransition>} />
+            <Route path="/future-learning" element={<PageTransition><FutureLearningCenter /></PageTransition>} />
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
+              }
+            />
+            <Route path="/user/:id" element={<PageTransition><PublicProfile /></PageTransition>} />
+            <Route path="/projects" element={<PageTransition><ProjectPlaza /></PageTransition>} />
+            <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
+          </Routes>
         </Suspense>
       </main>
 

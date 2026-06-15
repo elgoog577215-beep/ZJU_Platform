@@ -45,6 +45,15 @@ https://tuotuzju.com/.well-known/assetlinks.json
 
 如果该地址返回 HTML、404 或非 JSON，Android 会降级为 Custom Tabs，无法获得完整 TWA 体验。
 
+线上验证命令：
+
+```bash
+curl -I -L https://tuotuzju.com/.well-known/assetlinks.json
+curl -sL https://tuotuzju.com/.well-known/assetlinks.json | jq .
+```
+
+如果 `content-type` 是 `text/html`，或 body 是 `index.html`，说明静态服务把 `.well-known` 路径错误地回退到了 SPA 首页，需要先修部署或 Nginx 静态文件规则。
+
 ## 打包命令
 
 在项目根目录执行：
@@ -81,6 +90,61 @@ find android-twa -name "*.apk" -o -name "*.aab"
 - 底部导航、活动详情、AI 社区、影像页面是否能正常操作
 - 推送权限弹窗或通知授权路径是否符合预期
 - 线上 `assetlinks.json` 是否已生效
+
+## 真机黑屏或启动页卡住排查
+
+如果最新 Android 系统安装后出现黑屏、启动页卡住或点击图标没有进入首页，先不要继续猜性能问题，按下面顺序判断卡在哪一层。
+
+### 1. 确认 APK 已安装且入口存在
+
+```bash
+/Users/yq/Library/Android/sdk/platform-tools/adb devices -l
+/Users/yq/Library/Android/sdk/platform-tools/adb shell pm list packages | grep tuotuzju
+/Users/yq/Library/Android/sdk/platform-tools/adb shell cmd package resolve-activity --brief com.tuotuzju.app
+/Users/yq/Library/Android/sdk/platform-tools/adb shell am start -n com.tuotuzju.app/.LauncherActivity
+```
+
+如果 `resolve-activity` 找不到 `com.tuotuzju.app/.LauncherActivity`，说明安装包或启动入口异常，需要重新构建 APK。
+
+### 2. 判断是否进入 TWA / Chrome 承载层
+
+启动后执行：
+
+```bash
+/Users/yq/Library/Android/sdk/platform-tools/adb shell dumpsys activity activities | grep -E "topResumedActivity|mResumedActivity|LauncherActivity|CustomTab|Trusted"
+```
+
+- 如果顶部是 `com.tuotuzju.app/.LauncherActivity` 后立刻退出，优先看原生崩溃日志。
+- 如果顶部是 `com.android.chrome/...FirstRunActivity`，说明 Chrome 首次运行页挡住了 TWA，需要在设备上完成 Chrome 初始化。
+- 如果顶部是 `com.android.chrome/...CustomTabActivity`，说明 APK 已进入承载层，但可能因为 `assetlinks.json` 未生效而降级为 Custom Tabs。
+
+### 3. 抓取关键日志
+
+```bash
+/Users/yq/Library/Android/sdk/platform-tools/adb logcat -c
+/Users/yq/Library/Android/sdk/platform-tools/adb shell am start -n com.tuotuzju.app/.LauncherActivity
+sleep 8
+/Users/yq/Library/Android/sdk/platform-tools/adb logcat -d | grep -Ei "tuotuzju|TrustedWeb|CustomTabs|Chrome|cr_|asset_statements|FirstRun|AndroidRuntime"
+```
+
+排查优先级：
+
+- `AndroidRuntime` / `FATAL EXCEPTION`：原生崩溃。
+- `FirstRunActivity`：Chrome 首次运行阻塞。
+- `asset_statements` / `Digital Asset Links` / `TrustedWeb` 相关错误：域名绑定未通过。
+- Chrome 已打开但网页空白：继续检查线上首页资源、Service Worker、首屏 JS 和网络请求。
+
+### 4. 启动性能重点
+
+Android App / TWA 环境不应该加载桌面端装饰资源，例如 Three.js 背景、桌面自定义鼠标和桌面滚动进度。构建后检查：
+
+```bash
+npm run build
+grep -n "three-vendor" dist/index.html || true
+grep -n "mammoth\\|pdf-\\|three-vendor\\|AdminDashboard" dist/sw.js || true
+```
+
+`dist/index.html` 不应主动 preload `three-vendor`。大页面 chunk 可以存在于 `dist/assets`，但不应进入首轮 precache。
 
 ## 版本发布
 

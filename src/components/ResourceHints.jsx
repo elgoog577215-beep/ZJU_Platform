@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { isStandaloneDisplay } from '../utils/displayMode';
 
 /**
  * Component to add resource hints for performance optimization
@@ -37,6 +38,12 @@ export const ResourceHints = () => {
     const slowConnection = effectiveType === 'slow-2g' || effectiveType === '2g';
 
     if (saveDataEnabled || slowConnection || document.visibilityState === 'hidden') {
+      return undefined;
+    }
+
+    const isMobileViewport =
+      window.matchMedia?.('(max-width: 767px)').matches ?? window.innerWidth < 768;
+    if (isMobileViewport || isStandaloneDisplay()) {
       return undefined;
     }
 
