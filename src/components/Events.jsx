@@ -56,6 +56,7 @@ import {
   COLLEGE_NOTICE_CATEGORY_VALUE,
   COLLEGE_NOTICE_TAG,
   getCollegeNoticeTypeLabel,
+  getEventAudienceLabel,
   getEventCategoryLabel,
   inferEventSourceCollege,
 } from "../data/eventTaxonomy";
@@ -135,11 +136,11 @@ const getStatusColor = (status, t, isDayMode = false) => {
       case t("events.status.upcoming"):
         return "bg-emerald-50 text-emerald-700 border-emerald-200/80";
       case t("events.status.ongoing"):
-        return "bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200/80 animate-pulse";
+        return "bg-sky-50 text-sky-700 border-sky-200/80 animate-pulse";
       case t("events.status.past"):
-        return "bg-violet-50 text-slate-500 border-violet-100/80";
+        return "bg-slate-100 text-slate-500 border-slate-200/80";
       default:
-        return "bg-violet-50 text-slate-600 border-violet-100/80";
+        return "bg-slate-100 text-slate-600 border-slate-200/80";
     }
   }
 
@@ -187,15 +188,15 @@ const VIEW_DEDUPE_WINDOW_MS = 30 * 60 * 1000;
 const EVENT_THEME_VARIANTS = {
   cyan: {
     backdropGlow: "",
-    heroGlow: "bg-fuchsia-50",
-    softGlow: "bg-violet-50",
-    accentText: "text-violet-700",
-    dot: "bg-fuchsia-500",
-    surface: "bg-white border border-violet-100/80",
-    cta: "bg-violet-700 text-white shadow-[0_12px_26px_rgba(124,58,237,0.16)] hover:bg-violet-800 hover:shadow-[0_14px_30px_rgba(124,58,237,0.2)] hover:-translate-y-0.5 border border-violet-700",
-    highlightCard: "border-violet-100/90 bg-white shadow-[0_16px_34px_rgba(168,85,247,0.08)]",
-    iconShell: "bg-white border-violet-200/80 text-violet-600 shadow-[0_8px_18px_rgba(168,85,247,0.1)]",
-    tagHover: "hover:border-violet-200/80 hover:text-violet-700",
+    heroGlow: "bg-sky-50",
+    softGlow: "bg-blue-50",
+    accentText: "text-blue-700",
+    dot: "bg-sky-500",
+    surface: "bg-white border border-blue-100/80",
+    cta: "bg-blue-700 text-white shadow-[0_12px_26px_rgba(37,99,235,0.16)] hover:bg-blue-800 hover:shadow-[0_14px_30px_rgba(37,99,235,0.2)] hover:-translate-y-0.5 border border-blue-700",
+    highlightCard: "border-blue-100/90 bg-white shadow-[0_16px_34px_rgba(37,99,235,0.07)]",
+    iconShell: "bg-white border-blue-200/80 text-blue-600 shadow-[0_8px_18px_rgba(37,99,235,0.08)]",
+    tagHover: "hover:border-blue-200/80 hover:text-blue-700",
   },
   pink: {
     backdropGlow: "",
@@ -261,9 +262,14 @@ const EVENT_THEME_VARIANTS = {
 
 const EventCard = memo(
   ({ event, index, onClick, onToggleFavorite, reduceMotion, isDayMode }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
 
     const status = getEventLifecycle(event.date, event.end_date, t);
+    const eventLanguage = i18n.resolvedLanguage || i18n.language || "zh";
+    const formatEventCategory = (value) =>
+      getEventCategoryLabel(value, eventLanguage);
+    const formatEventAudience = (value) =>
+      getEventAudienceLabel(value, eventLanguage);
     const motionProps = reduceMotion
       ? {}
       : {
@@ -289,7 +295,7 @@ const EventCard = memo(
     return (
       <motion.div
         {...motionProps}
-        className={`group rect-media-card relative overflow-hidden cursor-pointer flex h-[184px] flex-row md:h-[430px] md:flex-col xl:h-[440px] 2xl:h-[452px] transform-gpu will-change-transform transition-[background-color,border-color,box-shadow] duration-200 ${isDayMode ? "border-violet-100/80 bg-white hover:border-pink-200/80 hover:shadow-[0_14px_32px_rgba(236,72,153,0.09)]" : "bg-[#050712]/94 border-white/15 hover:border-indigo-300/30 hover:bg-[#070914]"}`}
+        className={`group rect-media-card relative overflow-hidden cursor-pointer flex h-[184px] flex-row md:h-[430px] md:flex-col xl:h-[440px] 2xl:h-[452px] transform-gpu will-change-transform transition-[background-color,border-color,box-shadow] duration-200 ${isDayMode ? "border-blue-100/80 bg-white hover:border-blue-200/90 hover:shadow-[0_14px_32px_rgba(37,99,235,0.085)]" : "bg-[#050712]/94 border-white/15 hover:border-indigo-300/30 hover:bg-[#070914]"}`}
         onClick={() => onClick(event)}
       >
         {/* Image Section */}
@@ -335,7 +341,7 @@ const EventCard = memo(
             className={`mb-3 flex min-h-[3.65rem] flex-col gap-1.5 text-xs sm:text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
           >
             <div className="flex items-center gap-1.5 shrink-0">
-              <Calendar size={14} className={isDayMode ? "text-violet-600 md:w-4 md:h-4" : "text-indigo-400 md:w-4 md:h-4"} />
+              <Calendar size={14} className={isDayMode ? "text-blue-600 md:w-4 md:h-4" : "text-indigo-400 md:w-4 md:h-4"} />
               <span
                 className={`font-medium whitespace-nowrap ${isDayMode ? "text-slate-700" : "text-gray-200"}`}
               >
@@ -371,7 +377,7 @@ const EventCard = memo(
             <div className="mb-3 hidden h-[1.9rem] flex-nowrap gap-1.5 overflow-hidden md:flex">
               {event.score && (
                 <span
-                  className={`rect-chip inline-flex max-w-[9.5rem] shrink-0 items-center gap-1.5 px-2 py-1 text-[11px] font-bold uppercase tracking-wider ${isDayMode ? "bg-purple-50 text-purple-600 border-purple-200/80" : "bg-purple-500/10 text-purple-300 border-purple-500/20"}`}
+                  className={`rect-chip inline-flex max-w-[9.5rem] shrink-0 items-center gap-1.5 px-2 py-1 text-[11px] font-bold uppercase tracking-wider ${isDayMode ? "bg-amber-50 text-amber-700 border-amber-200/80" : "bg-purple-500/10 text-purple-300 border-purple-500/20"}`}
                 >
                   <Award size={12} />
                   <span className="truncate">{event.score}</span>
@@ -398,7 +404,7 @@ const EventCard = memo(
             <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden pr-2">
               {isCollegeNoticeEvent(event) && (
                 <span
-                  className={`rect-chip inline-flex min-w-0 max-w-[7rem] shrink-0 items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium md:px-2 md:py-1 md:text-[11px] ${isDayMode ? "bg-violet-50 text-violet-700 border-violet-100/80" : "bg-indigo-500/10 text-indigo-300 border-indigo-500/20"}`}
+                  className={`rect-chip inline-flex min-w-0 max-w-[7rem] shrink-0 items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium md:px-2 md:py-1 md:text-[11px] ${isDayMode ? "bg-blue-50 text-blue-700 border-blue-100/80" : "bg-indigo-500/10 text-indigo-300 border-indigo-500/20"}`}
                 >
                   <FileText size={10} className="md:w-3 md:h-3" />
                   <span className="truncate">
@@ -408,20 +414,22 @@ const EventCard = memo(
               )}
               {event.category && (
                 <span
-                  className={`rect-chip inline-flex min-w-0 max-w-[7rem] shrink-0 items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium md:px-2 md:py-1 md:text-[11px] ${isDayMode ? "bg-violet-50 text-violet-700 border-violet-100/80" : "bg-indigo-500/10 text-indigo-300 border-indigo-500/20"}`}
+                  className={`rect-chip inline-flex min-w-0 max-w-[7rem] shrink-0 items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium md:px-2 md:py-1 md:text-[11px] ${isDayMode ? "bg-blue-50 text-blue-700 border-blue-100/80" : "bg-indigo-500/10 text-indigo-300 border-indigo-500/20"}`}
                 >
                   <Tag size={10} className="md:w-3 md:h-3" />
                   <span className="truncate">
-                    {getEventCategoryLabel(event.category)}
+                    {formatEventCategory(event.category)}
                   </span>
                 </span>
               )}
               {event.target_audience && (
                 <span
-                  className={`rect-chip inline-flex min-w-0 max-w-full shrink items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium md:px-2 md:py-1 md:text-[11px] ${isDayMode ? "bg-pink-50 text-slate-600 border-pink-100/80" : "bg-white/5 text-gray-300 border-white/10"}`}
+                  className={`rect-chip inline-flex min-w-0 max-w-full shrink items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium md:px-2 md:py-1 md:text-[11px] ${isDayMode ? "bg-slate-50 text-slate-600 border-slate-200/80" : "bg-white/5 text-gray-300 border-white/10"}`}
                 >
                   <Users size={10} className="md:w-3 md:h-3" />
-                  <span className="truncate">{event.target_audience}</span>
+                  <span className="truncate">
+                    {formatEventAudience(event.target_audience)}
+                  </span>
                 </span>
               )}
             </div>
@@ -435,13 +443,13 @@ const EventCard = memo(
                 count={event.likes || 0}
                 favorited={event.favorited}
                 initialFavorited={event.favorited}
-                className={`rect-icon-button p-1.5 transition-colors ${isDayMode ? "hover:bg-violet-50 hover:text-violet-700" : "hover:bg-white/10"}`}
+                className={`rect-icon-button p-1.5 transition-colors ${isDayMode ? "hover:bg-blue-50 hover:text-blue-700" : "hover:bg-white/10"}`}
                 onToggle={(favorited, likes) =>
                   onToggleFavorite(event.id, favorited, likes)
                 }
               />
               <div
-                className={`rect-icon-button p-1.5 transition-[background-color,color,transform] duration-200 group-hover:translate-x-0.5 ${isDayMode ? "bg-violet-50 text-violet-700 group-hover:bg-violet-600 group-hover:text-white" : "bg-white/5 group-hover:bg-white/10 group-hover:text-white"}`}
+                className={`rect-icon-button p-1.5 transition-[background-color,color,transform] duration-200 group-hover:translate-x-0.5 ${isDayMode ? "bg-blue-50 text-blue-700 group-hover:bg-blue-700 group-hover:text-white" : "bg-white/5 group-hover:bg-white/10 group-hover:text-white"}`}
               >
                 <ArrowRight
                   size={16}
@@ -459,8 +467,13 @@ EventCard.displayName = "EventCard";
 
 const EventListRow = memo(
   ({ event, index, onClick, onToggleFavorite, reduceMotion, isDayMode }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const status = getEventLifecycle(event.date, event.end_date, t);
+    const eventLanguage = i18n.resolvedLanguage || i18n.language || "zh";
+    const formatEventCategory = (value) =>
+      getEventCategoryLabel(value, eventLanguage);
+    const formatEventAudience = (value) =>
+      getEventAudienceLabel(value, eventLanguage);
     const motionProps = reduceMotion
       ? {}
       : {
@@ -494,7 +507,7 @@ const EventListRow = memo(
         }}
         className={`group rect-media-card grid w-full cursor-pointer grid-cols-[132px_minmax(0,1fr)] items-stretch overflow-hidden text-left transition-[background-color,border-color,box-shadow,transform] duration-200 lg:grid-cols-[152px_minmax(0,1fr)_180px] ${
           isDayMode
-            ? "border-slate-200/80 bg-white hover:border-violet-200/90 hover:shadow-[0_14px_32px_rgba(99,102,241,0.09)]"
+            ? "border-slate-200/80 bg-white hover:border-blue-200/90 hover:shadow-[0_14px_32px_rgba(37,99,235,0.085)]"
             : "border-white/10 bg-[#050712]/94 hover:border-indigo-300/30 hover:bg-[#070914]"
         }`}
       >
@@ -540,7 +553,7 @@ const EventListRow = memo(
             <span className="inline-flex min-w-0 items-center gap-1.5">
               <Calendar
                 size={14}
-                className={isDayMode ? "text-violet-600" : "text-indigo-400"}
+                className={isDayMode ? "text-blue-600" : "text-indigo-400"}
               />
               <span className={isDayMode ? "font-medium text-slate-700" : "font-medium text-gray-200"}>
                 {formatDateTime(event.date)}
@@ -584,7 +597,7 @@ const EventListRow = memo(
               <span
                 className={`rect-chip inline-flex max-w-[150px] items-center gap-1 px-2 py-1 text-[11px] font-medium ${
                   isDayMode
-                    ? "bg-violet-50 text-violet-700 border-violet-100/80"
+                    ? "bg-blue-50 text-blue-700 border-blue-100/80"
                     : "bg-indigo-500/10 text-indigo-300 border-indigo-500/20"
                 }`}
               >
@@ -598,31 +611,33 @@ const EventListRow = memo(
               <span
                 className={`rect-chip inline-flex max-w-[150px] items-center gap-1 px-2 py-1 text-[11px] font-medium ${
                   isDayMode
-                    ? "bg-violet-50 text-violet-700 border-violet-100/80"
+                    ? "bg-blue-50 text-blue-700 border-blue-100/80"
                     : "bg-indigo-500/10 text-indigo-300 border-indigo-500/20"
                 }`}
               >
                 <Tag size={11} className="shrink-0" />
-                <span className="truncate">{getEventCategoryLabel(event.category)}</span>
+                <span className="truncate">{formatEventCategory(event.category)}</span>
               </span>
             )}
             {event.target_audience && (
               <span
                 className={`rect-chip inline-flex max-w-[180px] items-center gap-1 px-2 py-1 text-[11px] font-medium ${
                   isDayMode
-                    ? "bg-pink-50 text-slate-600 border-pink-100/80"
+                    ? "bg-slate-50 text-slate-600 border-slate-200/80"
                     : "bg-white/5 text-gray-300 border-white/10"
                 }`}
               >
                 <Users size={11} className="shrink-0" />
-                <span className="truncate">{event.target_audience}</span>
+                <span className="truncate">
+                  {formatEventAudience(event.target_audience)}
+                </span>
               </span>
             )}
             {event.score && (
               <span
                 className={`rect-chip inline-flex items-center gap-1 px-2 py-1 text-[11px] font-semibold ${
                   isDayMode
-                    ? "bg-purple-50 text-purple-600 border-purple-200/80"
+                    ? "bg-amber-50 text-amber-700 border-amber-200/80"
                     : "bg-purple-500/10 text-purple-300 border-purple-500/20"
                 }`}
               >
@@ -654,7 +669,7 @@ const EventListRow = memo(
                 favorited={event.favorited}
                 initialFavorited={event.favorited}
                 className={`rect-icon-button p-2 transition-colors ${
-                  isDayMode ? "hover:bg-violet-50 hover:text-violet-700" : "hover:bg-white/10"
+                  isDayMode ? "hover:bg-blue-50 hover:text-blue-700" : "hover:bg-white/10"
                 }`}
                 onToggle={(favorited, likes) =>
                   onToggleFavorite(event.id, favorited, likes)
@@ -664,7 +679,7 @@ const EventListRow = memo(
             <span
               className={`rect-icon-button inline-flex h-9 w-9 items-center justify-center transition-[background-color,color,transform] duration-200 group-hover:translate-x-0.5 ${
                 isDayMode
-                  ? "bg-violet-50 text-violet-700 group-hover:bg-violet-600 group-hover:text-white"
+                  ? "bg-blue-50 text-blue-700 group-hover:bg-blue-700 group-hover:text-white"
                   : "bg-white/5 group-hover:bg-white/10 group-hover:text-white"
               }`}
             >
@@ -687,6 +702,11 @@ const CollegeNoticeRow = memo(
       event.notice_type || "other",
       i18n.resolvedLanguage || i18n.language,
     );
+    const eventLanguage = i18n.resolvedLanguage || i18n.language || "zh";
+    const formatEventCategory = (value) =>
+      getEventCategoryLabel(value, eventLanguage);
+    const formatEventAudience = (value) =>
+      getEventAudienceLabel(value, eventLanguage);
     const motionProps = reduceMotion
       ? {}
       : {
@@ -720,7 +740,7 @@ const CollegeNoticeRow = memo(
         }}
         className={`group rect-media-card w-full cursor-pointer overflow-hidden border text-left transition-[background-color,border-color,box-shadow,transform] duration-200 ${
           isDayMode
-            ? "border-violet-100/80 bg-white hover:border-violet-200/90 hover:shadow-[0_14px_32px_rgba(99,102,241,0.09)]"
+            ? "border-blue-100/80 bg-white hover:border-blue-200/90 hover:shadow-[0_14px_32px_rgba(37,99,235,0.085)]"
             : "border-white/10 bg-[#050712]/94 hover:border-indigo-300/30 hover:bg-[#070914]"
         }`}
       >
@@ -731,7 +751,7 @@ const CollegeNoticeRow = memo(
                 <span
                   className={`rect-chip inline-flex min-w-0 max-w-[240px] items-center gap-1.5 px-2.5 py-1 text-[11px] font-black ${
                     isDayMode
-                      ? "border-violet-200/80 bg-violet-50 text-violet-700"
+                      ? "border-blue-200/80 bg-blue-50 text-blue-700"
                       : "border-indigo-400/25 bg-indigo-500/15 text-indigo-200"
                   }`}
                 >
@@ -752,7 +772,7 @@ const CollegeNoticeRow = memo(
                 >
                   <Tag size={11} className="shrink-0" />
                   <span className="truncate">
-                    {getEventCategoryLabel(event.category)}
+                    {formatEventCategory(event.category)}
                   </span>
                 </span>
               )}
@@ -760,7 +780,7 @@ const CollegeNoticeRow = memo(
                 <span
                   className={`rect-chip inline-flex max-w-[150px] items-center gap-1 px-2 py-1 text-[11px] font-medium ${
                     isDayMode
-                      ? "border-pink-100/80 bg-pink-50 text-rose-700"
+                      ? "border-sky-100/80 bg-sky-50 text-sky-700"
                       : "border-white/10 bg-white/[0.045] text-slate-300"
                   }`}
                 >
@@ -790,7 +810,7 @@ const CollegeNoticeRow = memo(
               <span className="inline-flex min-w-0 items-center gap-1.5">
                 <Calendar
                   size={14}
-                  className={isDayMode ? "text-violet-600" : "text-indigo-400"}
+                  className={isDayMode ? "text-blue-600" : "text-indigo-400"}
                 />
                 <span
                   className={
@@ -811,7 +831,9 @@ const CollegeNoticeRow = memo(
                     size={14}
                     className={isDayMode ? "shrink-0 text-slate-400" : "shrink-0 text-indigo-400"}
                   />
-                  <span className="truncate">{event.target_audience}</span>
+                  <span className="truncate">
+                    {formatEventAudience(event.target_audience)}
+                  </span>
                 </span>
               )}
             </div>
@@ -830,14 +852,14 @@ const CollegeNoticeRow = memo(
           <div
             className={`flex items-center justify-between gap-3 border-t px-4 py-3 md:flex-col md:items-end md:justify-center md:border-l md:border-t-0 ${
               isDayMode
-                ? "border-violet-100/80 bg-violet-50/40"
+                ? "border-blue-100/80 bg-blue-50/40"
                 : "border-white/8 bg-white/[0.025]"
             }`}
           >
             {event.link ? (
               <span
                 className={`inline-flex items-center gap-1.5 text-xs font-bold ${
-                  isDayMode ? "text-violet-700" : "text-indigo-200"
+                  isDayMode ? "text-blue-700" : "text-indigo-200"
                 }`}
               >
                 <ExternalLink size={14} />
@@ -863,7 +885,7 @@ const CollegeNoticeRow = memo(
                   favorited={event.favorited}
                   initialFavorited={event.favorited}
                   className={`rect-icon-button p-2 transition-colors ${
-                    isDayMode ? "hover:bg-white hover:text-violet-700" : "hover:bg-white/10"
+                    isDayMode ? "hover:bg-white hover:text-blue-700" : "hover:bg-white/10"
                   }`}
                   onToggle={(favorited, likes) =>
                     onToggleFavorite(event.id, favorited, likes)
@@ -873,7 +895,7 @@ const CollegeNoticeRow = memo(
               <span
                 className={`rect-icon-button inline-flex h-9 w-9 items-center justify-center transition-[background-color,color,transform] duration-200 group-hover:translate-x-0.5 ${
                   isDayMode
-                    ? "bg-white text-violet-700 group-hover:bg-violet-600 group-hover:text-white"
+                    ? "bg-white text-blue-700 group-hover:bg-blue-700 group-hover:text-white"
                     : "bg-white/5 group-hover:bg-white/10 group-hover:text-white"
                 }`}
               >
@@ -925,6 +947,15 @@ const Events = () => {
     [isDayMode],
   );
   const showLegacyHeaderImage = false;
+  const eventLanguage = i18n.resolvedLanguage || i18n.language || "zh";
+  const formatEventCategory = useCallback(
+    (value) => getEventCategoryLabel(value, eventLanguage),
+    [eventLanguage],
+  );
+  const formatEventAudience = useCallback(
+    (value) => getEventAudienceLabel(value, eventLanguage),
+    [eventLanguage],
+  );
 
   // Listen for global events from Navbar
   useEffect(() => {
@@ -1444,7 +1475,7 @@ END:VCALENDAR`;
   const nightSegmentActiveClass =
     "border border-indigo-400/28 bg-indigo-500/16 text-indigo-100 shadow-none";
   const dayPrimaryActionClass =
-    "rect-button-primary bg-violet-700 text-white border-violet-700 hover:bg-violet-800 hover:border-violet-800";
+    "rect-button-primary bg-blue-700 text-white border-blue-700 hover:bg-blue-800 hover:border-blue-800";
   const openEventFromList = useCallback(
     (nextEvent) => {
       updateSelectedEventRecommendationContext(null);
@@ -1492,7 +1523,7 @@ END:VCALENDAR`;
             {t("events.title")}
           </h1>
           <p
-            className={`text-sm mt-1 ${isDayMode ? "text-rose-700/62" : "text-gray-400"}`}
+            className={`text-sm mt-1 ${isDayMode ? "text-slate-600" : "text-gray-400"}`}
           >
             {t("events.subtitle")}
           </p>
@@ -1528,7 +1559,7 @@ END:VCALENDAR`;
             {t("events.title")}
           </h2>
           <p
-            className={`max-w-xl mx-auto text-sm md:text-base ${isDayMode ? "text-rose-700/58" : "text-gray-400"}`}
+            className={`max-w-xl mx-auto text-sm md:text-base ${isDayMode ? "text-slate-600" : "text-gray-400"}`}
           >
             {t("events.subtitle")}
           </p>
@@ -1545,7 +1576,7 @@ END:VCALENDAR`;
               }
               setIsUploadOpen(true);
             }}
-            className={`rect-button-secondary flex items-center gap-2 px-4 py-2 md:px-5 md:py-2.5 transition-all font-bold text-sm shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "hover:text-slate-950" : "text-white"}`}
+            className={`rect-button-secondary flex items-center gap-2 px-4 py-2 md:px-5 md:py-2.5 transition-all font-bold text-sm shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 ${isDayMode ? "border-slate-200/80 bg-white/90 text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-800" : "text-white"}`}
           >
             <Upload size={18} className="md:w-5 md:h-5" />{" "}
             {t("common.create_event")}
@@ -1574,7 +1605,7 @@ END:VCALENDAR`;
             <div
               className={`inline-flex rounded-[6px] border p-1 ${
                 isDayMode
-                  ? "border-slate-200/80 bg-white/88"
+                  ? "border-slate-200/80 bg-white/92"
                   : "border-white/10 bg-white/[0.045]"
               }`}
               role="group"
@@ -1872,33 +1903,33 @@ END:VCALENDAR`;
           {Array.from({ length: 8 }, (_, index) => index + 1).map((i) => (
             <div
               key={i}
-              className={`rect-media-card relative flex h-[184px] flex-row overflow-hidden md:h-[430px] md:flex-col xl:h-[440px] 2xl:h-[452px] ${isDayMode ? "bg-white border-violet-100/80 shadow-[0_14px_34px_rgba(168,85,247,0.06)]" : "bg-white/[0.04] border-white/5"}`}
+              className={`rect-media-card relative flex h-[184px] flex-row overflow-hidden md:h-[430px] md:flex-col xl:h-[440px] 2xl:h-[452px] ${isDayMode ? "bg-white border-blue-100/80 shadow-[0_14px_34px_rgba(37,99,235,0.055)]" : "bg-white/[0.04] border-white/5"}`}
             >
               {/* Shimmer Effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-skeleton" />
 
               {/* Image Skeleton */}
               <div
-                className={`w-1/3 md:w-full aspect-square md:h-40 2xl:h-44 ${isDayMode ? "bg-violet-50" : "bg-white/5"}`}
+                className={`w-1/3 md:w-full aspect-square md:h-40 2xl:h-44 ${isDayMode ? "bg-blue-50" : "bg-white/5"}`}
               />
               {/* Content Skeleton */}
               <div className="flex w-2/3 flex-1 flex-col p-3 md:w-full md:p-4">
                 <div
-                  className={`h-6 rounded-[2px] w-3/4 mb-4 ${isDayMode ? "bg-violet-50" : "bg-white/10"}`}
+                  className={`h-6 rounded-[2px] w-3/4 mb-4 ${isDayMode ? "bg-blue-50" : "bg-white/10"}`}
                 />
                 <div className="flex gap-2 mb-4">
                   <div
-                    className={`h-6 rounded-[2px] w-20 ${isDayMode ? "bg-pink-50" : "bg-white/5"}`}
+                    className={`h-6 rounded-[2px] w-20 ${isDayMode ? "bg-sky-50" : "bg-white/5"}`}
                   />
                   <div
-                    className={`h-6 rounded-[2px] w-24 ${isDayMode ? "bg-violet-50" : "bg-white/5"}`}
+                    className={`h-6 rounded-[2px] w-24 ${isDayMode ? "bg-blue-50" : "bg-white/5"}`}
                   />
                 </div>
                 <div
-                  className={`h-4 rounded-[2px] w-full mb-2 ${isDayMode ? "bg-pink-50" : "bg-white/5"}`}
+                  className={`h-4 rounded-[2px] w-full mb-2 ${isDayMode ? "bg-sky-50" : "bg-white/5"}`}
                 />
                 <div
-                  className={`h-4 rounded-[2px] w-2/3 ${isDayMode ? "bg-violet-50" : "bg-white/5"}`}
+                  className={`h-4 rounded-[2px] w-2/3 ${isDayMode ? "bg-blue-50" : "bg-white/5"}`}
                 />
               </div>
             </div>
@@ -1960,7 +1991,7 @@ END:VCALENDAR`;
               onClick={() =>
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
               }
-               className={`rect-button-secondary px-6 py-2.5 transition-colors text-sm font-semibold ${isDayMode ? "text-slate-700 hover:border-violet-200/80 hover:text-violet-700" : "text-white"}`}
+               className={`rect-button-secondary px-6 py-2.5 transition-colors text-sm font-semibold ${isDayMode ? "text-slate-700 hover:border-blue-200/80 hover:bg-blue-50 hover:text-blue-700" : "text-white"}`}
             >
               {t("common.load_more", "加载更多")}
             </motion.button>
@@ -1970,9 +2001,9 @@ END:VCALENDAR`;
       {!loading && displayEvents.length === 0 && (
         <div className="flex min-h-[52vh] flex-col items-center justify-center px-4 py-20 text-center md:min-h-[48vh] md:py-32">
           <div
-             className={`rect-panel p-8 mb-6 relative group ${isDayMode ? "bg-white border-violet-100/80" : "bg-white/5 border-white/5"}`}
+             className={`rect-panel p-8 mb-6 relative group ${isDayMode ? "bg-white border-blue-100/80" : "bg-white/5 border-white/5"}`}
           >
-             <div className={`absolute inset-x-6 bottom-0 h-px opacity-0 transition-opacity duration-300 group-hover:opacity-100 ${isDayMode ? "bg-pink-200" : "bg-indigo-400/0 group-hover:bg-indigo-400/60"}`} />
+             <div className={`absolute inset-x-6 bottom-0 h-px opacity-0 transition-opacity duration-300 group-hover:opacity-100 ${isDayMode ? "bg-blue-200" : "bg-indigo-400/0 group-hover:bg-indigo-400/60"}`} />
             <Calendar
               size={64}
               className={`relative z-10 ${isDayMode ? "text-slate-400" : "text-white/40"}`}
@@ -1988,7 +2019,7 @@ END:VCALENDAR`;
           >
             {debouncedSearch || Object.values(filters).some((v) => v)
               ? `${t("advanced_filter.clear", "清除所有筛选")} ${t("common.or", "或")} ${t("common.search", "搜索...")}`
-              : "暂时没有即将开始的活动，稍后再来看看吧"}
+              : t("events.empty_desc")}
           </p>
           {Object.values(filters).some((v) => v) && (
             <button
@@ -2011,7 +2042,7 @@ END:VCALENDAR`;
               }
               setIsUploadOpen(true);
             }}
-            className="rect-button-primary px-8 py-3.5 text-white font-bold transition-all flex items-center gap-3"
+            className={`px-8 py-3.5 text-white font-bold transition-all flex items-center gap-3 ${isDayMode ? dayPrimaryActionClass : "rect-button-primary"}`}
           >
             <Plus size={20} />
             {t("common.create_event")}
@@ -2243,7 +2274,7 @@ END:VCALENDAR`;
                                       size={14}
                                       className={eventThemeAccent.accentText}
                                     />
-                                    {selectedEvent.target_audience}
+                                    {formatEventAudience(selectedEvent.target_audience)}
                                   </span>
                                 )}
                               </div>
@@ -2549,7 +2580,7 @@ END:VCALENDAR`;
                             </h3>
                             {/* Render HTML content safely */}
                             <div
-                              className={`prose prose-lg max-w-none leading-relaxed ${isDayMode ? "prose-slate prose-headings:text-slate-900 prose-p:text-slate-600 prose-strong:text-slate-800 prose-a:text-violet-700 prose-li:text-slate-600 text-slate-700" : "prose-invert text-gray-300"}`}
+                              className={`prose prose-lg max-w-none leading-relaxed ${isDayMode ? "prose-slate prose-headings:text-slate-900 prose-p:text-slate-600 prose-strong:text-slate-800 prose-a:text-blue-700 prose-li:text-slate-600 text-slate-700" : "prose-invert text-gray-300"}`}
                               dangerouslySetInnerHTML={{
                                 __html: DOMPurify.sanitize(
                                   selectedEvent.content ||
@@ -2570,7 +2601,7 @@ END:VCALENDAR`;
                           {/* Key Attributes Grid */}
                           {selectedEvent.category && (
                             <div
-                              className={`rounded-lg p-4 border backdrop-blur-sm ${isDayMode ? "bg-violet-50/70 border-violet-100/80" : "bg-white/[0.03] border-white/5"}`}
+                              className={`rounded-lg p-4 border backdrop-blur-sm ${isDayMode ? "bg-blue-50/70 border-blue-100/80" : "bg-white/[0.03] border-white/5"}`}
                             >
                               <div
                                 className={`flex items-center gap-2 mb-3 ${eventThemeAccent.accentText}`}
@@ -2582,9 +2613,9 @@ END:VCALENDAR`;
                               </div>
                               <div className="flex flex-wrap gap-2">
                                 <span
-                                  className={`px-3 py-1.5 rounded-md text-sm font-medium border transition-all ${isDayMode ? `bg-white text-slate-600 border-violet-100/80 shadow-[0_8px_20px_rgba(168,85,247,0.045)] hover:-translate-y-0.5 ${eventThemeAccent.tagHover}` : "bg-white/5 text-gray-300 border-white/5 hover:bg-white/10"}`}
+                                  className={`px-3 py-1.5 rounded-md text-sm font-medium border transition-all ${isDayMode ? `bg-white text-slate-600 border-blue-100/80 shadow-[0_8px_20px_rgba(37,99,235,0.045)] hover:-translate-y-0.5 ${eventThemeAccent.tagHover}` : "bg-white/5 text-gray-300 border-white/5 hover:bg-white/10"}`}
                                 >
-                                  {getEventCategoryLabel(selectedEvent.category)}
+                                  {formatEventCategory(selectedEvent.category)}
                                 </span>
                               </div>
                             </div>
@@ -2598,9 +2629,9 @@ END:VCALENDAR`;
                           <div className="grid grid-cols-2 gap-3 sm:gap-4">
                             {selectedEventNoticeSource && (
                               <div
-                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-violet-50/70 border-violet-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
+                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-blue-50/70 border-blue-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
                               >
-                                <div className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border border-violet-100 text-violet-700" : "bg-indigo-500/5 border border-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/10"}`}>
+                                <div className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border border-blue-100 text-blue-700" : "bg-indigo-500/5 border border-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/10"}`}>
                                   <Building2
                                     size={18}
                                     className="sm:h-5 sm:w-5"
@@ -2623,9 +2654,9 @@ END:VCALENDAR`;
 
                             {selectedEventNoticeTypeLabel && (
                               <div
-                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-pink-50/70 border-pink-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
+                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-sky-50/70 border-sky-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
                               >
-                                <div className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border border-pink-100 text-rose-600" : "bg-purple-500/5 border border-purple-500/10 text-purple-400 group-hover:bg-purple-500/10"}`}>
+                                <div className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border border-sky-100 text-sky-700" : "bg-purple-500/5 border border-purple-500/10 text-purple-400 group-hover:bg-purple-500/10"}`}>
                                   <FileText
                                     size={18}
                                     className="sm:h-5 sm:w-5"
@@ -2647,9 +2678,9 @@ END:VCALENDAR`;
                             )}
 
                             <div
-                              className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-violet-50/70 border-violet-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
+                              className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-blue-50/70 border-blue-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
                             >
-                              <div className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border border-violet-100 text-violet-700" : "bg-orange-500/5 border border-orange-500/10 text-orange-400 group-hover:bg-orange-500/10"}`}>
+                              <div className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border border-blue-100 text-blue-700" : "bg-orange-500/5 border border-orange-500/10 text-orange-400 group-hover:bg-orange-500/10"}`}>
                                 <Calendar size={18} className="sm:h-5 sm:w-5" />
                               </div>
                               <div className="min-w-0">
@@ -2673,9 +2704,9 @@ END:VCALENDAR`;
                             </div>
 
                             <div
-                              className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-pink-50/70 border-pink-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
+                              className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-sky-50/70 border-sky-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
                             >
-                              <div className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border border-pink-100 text-rose-600" : "bg-indigo-500/5 border border-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/10"}`}>
+                              <div className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border border-sky-100 text-sky-700" : "bg-indigo-500/5 border border-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/10"}`}>
                                 <MapPin size={18} className="sm:h-5 sm:w-5" />
                               </div>
                               <div className="min-w-0">
@@ -2694,9 +2725,9 @@ END:VCALENDAR`;
 
                             {selectedEvent.organizer && (
                               <div
-                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-violet-50/70 border-violet-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
+                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-blue-50/70 border-blue-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
                               >
-                                <div className="p-2 bg-green-500/5 border border-green-500/10 rounded-xl text-green-400 shrink-0 group-hover:bg-green-500/10 transition-colors sm:p-2.5">
+                                <div className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border border-emerald-100 text-emerald-700" : "bg-green-500/5 border border-green-500/10 text-green-400 group-hover:bg-green-500/10"}`}>
                                   <Building2
                                     size={18}
                                     className="sm:h-5 sm:w-5"
@@ -2719,9 +2750,9 @@ END:VCALENDAR`;
 
                             {selectedEvent.target_audience && (
                               <div
-                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-pink-50/70 border-pink-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
+                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-slate-50/80 border-slate-200/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
                               >
-                                <div className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-fuchsia-50/80 border border-fuchsia-100 text-fuchsia-500 group-hover:bg-fuchsia-100/70" : "bg-blue-500/5 border border-blue-500/10 text-blue-400 group-hover:bg-blue-500/10"}`}>
+                                <div className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border border-slate-200 text-slate-600 group-hover:text-blue-700" : "bg-blue-500/5 border border-blue-500/10 text-blue-400 group-hover:bg-blue-500/10"}`}>
                                   <Users size={18} className="sm:h-5 sm:w-5" />
                                 </div>
                                 <div className="min-w-0">
@@ -2733,7 +2764,7 @@ END:VCALENDAR`;
                                   <p
                                     className={`text-sm leading-snug break-words sm:text-base ${isDayMode ? "text-slate-700" : "text-gray-200"}`}
                                   >
-                                    {selectedEvent.target_audience}
+                                    {formatEventAudience(selectedEvent.target_audience)}
                                   </p>
                                 </div>
                               </div>
@@ -2741,9 +2772,9 @@ END:VCALENDAR`;
 
                             {selectedEvent.volunteer_time && (
                               <div
-                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-violet-50/70 border-violet-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
+                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-emerald-50/70 border-emerald-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
                               >
-                                <div className="p-2 bg-emerald-500/5 border border-emerald-500/10 rounded-xl text-emerald-400 shrink-0 group-hover:bg-emerald-500/10 transition-colors sm:p-2.5">
+                                <div className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border border-emerald-100 text-emerald-700" : "bg-emerald-500/5 border border-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500/10"}`}>
                                   <Clock size={18} className="sm:h-5 sm:w-5" />
                                 </div>
                                 <div className="min-w-0">
@@ -2763,9 +2794,9 @@ END:VCALENDAR`;
 
                             {selectedEvent.score && (
                               <div
-                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-pink-50/70 border-pink-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
+                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-amber-50/70 border-amber-100/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
                               >
-                                <div className="p-2 bg-purple-500/5 border border-purple-500/10 rounded-xl text-purple-400 shrink-0 group-hover:bg-purple-500/10 transition-colors sm:p-2.5">
+                                <div className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border border-amber-100 text-amber-700" : "bg-purple-500/5 border border-purple-500/10 text-purple-400 group-hover:bg-purple-500/10"}`}>
                                   <Award size={18} className="sm:h-5 sm:w-5" />
                                 </div>
                                 <div className="min-w-0">

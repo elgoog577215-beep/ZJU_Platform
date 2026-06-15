@@ -1,4 +1,4 @@
-export const DEFAULT_BACKGROUND_SCENE = "cyber";
+export const DEFAULT_BACKGROUND_SCENE = "crystal";
 
 export const BACKGROUND_SCENES = [
   {
