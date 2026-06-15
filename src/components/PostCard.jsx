@@ -40,17 +40,14 @@ const formatRelativeTime = (dateStr, language = 'zh-CN') => {
 const PostCard = memo(({ post, index, onClick, canAnimate, isDayMode }) => {
   const { t, i18n } = useTranslation();
   const isTeam = post.section === 'team';
-  const isProject = post.section === 'project';
   const visibleStatus = post.review_status && post.review_status !== 'approved' ? post.review_status : post.status;
   const statusCfg = STATUS_CONFIG[visibleStatus] || STATUS_CONFIG.open;
 
-  const accentHover = isTeam ? 'hover:border-violet-500/30' : isProject ? 'hover:border-emerald-500/30' : 'hover:border-amber-500/30';
+  const accentHover = isTeam ? 'hover:border-violet-500/30' : 'hover:border-amber-500/30';
   const accentShadow = isTeam
     ? 'hover:shadow-[0_20px_40px_-15px_rgba(139,92,246,0.15)]'
-    : isProject
-      ? 'hover:shadow-[0_20px_40px_-15px_rgba(16,185,129,0.15)]'
-      : 'hover:shadow-[0_20px_40px_-15px_rgba(245,158,11,0.15)]';
-  const titleHover = isTeam ? 'group-hover:text-violet-400' : isProject ? 'group-hover:text-emerald-400' : 'group-hover:text-amber-400';
+    : 'hover:shadow-[0_20px_40px_-15px_rgba(245,158,11,0.15)]';
+  const titleHover = isTeam ? 'group-hover:text-violet-400' : 'group-hover:text-amber-400';
 
   const progress = isTeam && post.max_members ? Math.min((post.current_members || 0) / post.max_members, 1) : 0;
 

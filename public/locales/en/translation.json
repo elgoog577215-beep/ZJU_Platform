@@ -1,4 +1,9 @@
 {
+  "pwa": {
+    "install_title": "Install TUOTU ZJU",
+    "install_desc": "Add it to your phone for a more app-like experience.",
+    "install_action": "Install"
+  },
   "auth": {
     "welcome_back": "Welcome Back",
     "join_lumos": "Join Lumos",
@@ -367,11 +372,10 @@
     "tab_help_qa": "Q&A",
     "tab_news_hot": "News Trends",
     "tab_team_collab": "Collaboration",
-    "tab_project_updates": "Project Updates",
     "unified_publish_entry": "Unified Publish Entry",
     "publish_to_community": "Publish to Community",
     "featured_entry_title": "Community Picks",
-    "featured_entry_desc": "Discover selected AI community posts, or share your experience, questions, and project updates.",
+    "featured_entry_desc": "Discover selected AI community posts, or share your experience, questions, and collaboration needs.",
     "featured_load_failed": "Failed to load featured content",
     "featured_empty": "No featured content yet",
     "featured_empty_desc": "Switch categories for the latest content, or publish the first community update.",
@@ -385,13 +389,11 @@
     "type_desc_help": "Ask questions, debug issues, and find ideas",
     "type_desc_news": "Share AI news, model updates, and industry notes",
     "type_desc_team": "Recruit teammates and coordinate collaboration",
-    "type_desc_project": "Post project progress, demos, and release notes",
     "unified_composer": "Unified Community Editor",
     "composer_title_tech": "Publish Tech Sharing",
     "composer_title_help": "Ask a Question",
     "composer_title_news": "Submit News",
     "composer_title_team": "Create Collaboration Post",
-    "composer_title_project": "Publish Project Update",
     "block_text": "Text",
     "block_heading": "Heading",
     "block_quote": "Quote",
@@ -424,10 +426,6 @@
     "team_joined": "Joined",
     "team_join_failed": "Failed to join",
     "team_search_placeholder": "Search collaboration posts",
-    "project_search_placeholder": "Search project updates",
-    "project_empty": "No project updates yet",
-    "project_empty_desc": "Publish the first project progress note, demo, or release update.",
-    "project_link_label": "Project Link",
     "help_search_placeholder": "Search Q&A posts by title or body",
     "load_failed": "Failed to load",
     "untitled": "Untitled",
@@ -1567,8 +1565,7 @@
         "tech": "Tech Sharing",
         "help": "Q&A",
         "news": "News Trends",
-        "team": "Collaboration",
-        "project": "Project Updates"
+        "team": "Collaboration"
       },
       "filters": {
         "all_status": "All Statuses",

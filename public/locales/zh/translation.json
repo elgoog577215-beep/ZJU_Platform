@@ -14,6 +14,11 @@
     "clear_all_failed": "清空失败",
     "new_notification": "新通知"
   },
+  "pwa": {
+    "install_title": "安装拓途浙享",
+    "install_desc": "添加到手机桌面，获得更像 App 的访问体验。",
+    "install_action": "安装"
+  },
   "lightbox": {
     "download_started": "下载已开始",
     "download_failed": "下载失败",
@@ -414,11 +419,10 @@
     "tab_help_qa": "求助问答",
     "tab_news_hot": "新闻热点",
     "tab_team_collab": "组队协作",
-    "tab_project_updates": "项目动态",
     "unified_publish_entry": "统一发帖入口",
     "publish_to_community": "发布到社区",
     "featured_entry_title": "社区精选",
-    "featured_entry_desc": "发现 AI 社区的精选内容，或发布你的经验、问题与项目进展。",
+    "featured_entry_desc": "发现 AI 社区的精选内容，或发布你的经验、问题与协作需求。",
     "featured_load_failed": "精选内容加载失败",
     "featured_empty": "暂无精选内容",
     "featured_empty_desc": "切换分类查看最新内容，或发布第一条社区动态。",
@@ -432,13 +436,11 @@
     "type_desc_help": "提问、排错、寻找思路和解法",
     "type_desc_news": "分享 AI 新闻、模型动态和行业观察",
     "type_desc_team": "招募队友、项目合作、活动协作",
-    "type_desc_project": "发布项目进展、Demo、版本更新",
     "unified_composer": "统一社区编辑器",
     "composer_title_tech": "发布技术分享",
     "composer_title_help": "发布求助问答",
     "composer_title_news": "投稿新闻热点",
     "composer_title_team": "发布组队协作",
-    "composer_title_project": "发布项目动态",
     "block_text": "文字",
     "block_heading": "标题",
     "block_quote": "引用",
@@ -471,10 +473,6 @@
     "team_joined": "已加入组队",
     "team_join_failed": "加入失败",
     "team_search_placeholder": "搜索组队协作",
-    "project_search_placeholder": "搜索项目动态",
-    "project_empty": "暂无项目动态",
-    "project_empty_desc": "发布第一个项目进展、Demo 或版本更新。",
-    "project_link_label": "项目链接",
     "help_search_placeholder": "搜索求助帖（标题/正文）",
     "load_failed": "加载失败",
     "untitled": "未命名",
@@ -1680,8 +1678,7 @@
         "tech": "技术分享",
         "help": "求助问答",
         "news": "新闻热点",
-        "team": "组队协作",
-        "project": "项目动态"
+        "team": "组队协作"
       },
       "filters": {
         "all_status": "全部状态",

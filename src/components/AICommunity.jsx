@@ -57,6 +57,7 @@ const AICommunity = () => {
       (prev) => {
         const next = new URLSearchParams(prev);
         next.delete("tab");
+        if (tab === "project") next.set("postTab", "tech");
         if (tab === "tech" || tab === "help" || tab === "news" || tab === "team") next.set("postTab", tab);
         return next;
       },

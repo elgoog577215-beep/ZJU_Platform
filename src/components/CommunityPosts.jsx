@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { BookOpen, Clock3, HelpCircle, Loader2, MessageCircle, Newspaper, PenLine, Rocket, Users } from 'lucide-react';
+import { BookOpen, Clock3, HelpCircle, Loader2, MessageCircle, Newspaper, PenLine, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { useSettings } from '../context/SettingsContext';
@@ -10,7 +10,6 @@ import CommunityTech from './CommunityTech';
 import CommunityHelp from './CommunityHelp';
 import CommunityNewsBoard from './CommunityNewsBoard';
 import CommunityTeam from './CommunityTeam';
-import CommunityProject from './CommunityProject';
 import CommunityPostTypePicker from './CommunityPostTypePicker';
 import UnifiedCommunityComposer from './UnifiedCommunityComposer';
 
@@ -20,7 +19,6 @@ const POST_TABS = [
   { key: 'help', labelKey: 'community.tab_help_qa', fallback: '求助问答', icon: HelpCircle },
   { key: 'news', labelKey: 'community.tab_news_hot', fallback: '新闻热点', icon: Newspaper },
   { key: 'team', labelKey: 'community.tab_team_collab', fallback: '组队协作', icon: Users },
-  { key: 'project', labelKey: 'community.tab_project_updates', fallback: '项目动态', icon: Rocket },
 ];
 
 const FEATURED_META = {
@@ -28,7 +26,6 @@ const FEATURED_META = {
   help: { labelKey: 'community.tab_help_qa', fallback: '求助问答', icon: HelpCircle, tone: 'amber' },
   news: { labelKey: 'community.tab_news_hot', fallback: '新闻热点', icon: Newspaper, tone: 'blue' },
   team: { labelKey: 'community.tab_team_collab', fallback: '组队协作', icon: Users, tone: 'violet' },
-  project: { labelKey: 'community.tab_project_updates', fallback: '项目动态', icon: Rocket, tone: 'green' },
 };
 
 const toneClasses = {
@@ -56,12 +53,6 @@ const toneClasses = {
     hover: 'group-hover:text-violet-300',
     dayHover: 'group-hover:text-violet-700',
   },
-  green: {
-    badge: 'bg-emerald-500/12 text-emerald-300 border-emerald-400/20',
-    dayBadge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    hover: 'group-hover:text-emerald-300',
-    dayHover: 'group-hover:text-emerald-700',
-  },
 };
 
 const toDateValue = (item) => item?.updated_at || item?.created_at || item?.published_at || item?.date || '';
@@ -85,22 +76,20 @@ const CommunityPosts = () => {
   const [typePickerOpen, setTypePickerOpen] = useState(false);
   const [composerState, setComposerState] = useState({ open: false, boardKey: 'help' });
 
-  const rawTab = searchParams.get('postTab') || 'featured';
+  const rawTab = searchParams.get('postTab') === 'project' ? 'tech' : searchParams.get('postTab') || 'featured';
   const activeTab = POST_TABS.some((tb) => tb.key === rawTab) ? rawTab : 'featured';
 
   const techFeatured = useCachedResource('/articles', { page: 1, limit: 3, category: 'tech', sort: 'newest', status: 'approved' }, { keyPrefix: 'cache:v5:', dependencies: [] });
   const helpFeatured = useCachedResource('/community/posts', { page: 1, limit: 3, section: 'help', sort: 'newest' }, { keyPrefix: 'cache:v5:', dependencies: [] });
   const newsFeatured = useCachedResource('/news', { page: 1, limit: 3, sort: 'latest', status: 'approved' }, { keyPrefix: 'cache:v5:', dependencies: [] });
   const teamFeatured = useCachedResource('/community/posts', { page: 1, limit: 3, section: 'team', sort: 'newest' }, { keyPrefix: 'cache:v5:', dependencies: [] });
-  const projectFeatured = useCachedResource('/community/posts', { page: 1, limit: 3, section: 'project', sort: 'newest' }, { keyPrefix: 'cache:v5:', dependencies: [] });
 
   const featuredResources = useMemo(() => [
     { board: 'tech', resource: techFeatured },
     { board: 'help', resource: helpFeatured },
     { board: 'news', resource: newsFeatured },
     { board: 'team', resource: teamFeatured },
-    { board: 'project', resource: projectFeatured },
-  ], [helpFeatured, newsFeatured, projectFeatured, teamFeatured, techFeatured]);
+  ], [helpFeatured, newsFeatured, teamFeatured, techFeatured]);
 
   const featuredItems = useMemo(() => featuredResources
     .flatMap(({ board, resource }) => (Array.isArray(resource.data) ? resource.data : []).map((item) => ({ ...item, board, sortDate: toDateValue(item) })))
@@ -139,8 +128,9 @@ const CommunityPosts = () => {
       toast.error(t('auth.signin_required'));
       return;
     }
-    handleTabChange(boardKey);
-    setComposerState({ open: true, boardKey });
+    const nextBoardKey = boardKey === 'project' ? 'tech' : boardKey;
+    handleTabChange(nextBoardKey);
+    setComposerState({ open: true, boardKey: nextBoardKey });
   }, [handleTabChange, t, user]);
 
   const handleComposerClose = useCallback(() => {
@@ -248,7 +238,7 @@ const CommunityPosts = () => {
               {t('community.featured_entry_title', '社区精选')}
             </h3>
             <p className={`mt-1 max-w-2xl text-sm leading-6 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
-              {t('community.featured_entry_desc', '发现 AI 社区的精选内容，或发布你的经验、问题与项目进展。')}
+              {t('community.featured_entry_desc', '发现 AI 社区的精选内容，或发布你的经验、问题与协作需求。')}
             </p>
           </div>
           <button
@@ -292,7 +282,6 @@ const CommunityPosts = () => {
       {activeTab === 'help' ? <CommunityHelp hideNewPostButton /> : null}
       {activeTab === 'news' ? <CommunityNewsBoard hideNewPostButton /> : null}
       {activeTab === 'team' ? <CommunityTeam hideNewPostButton /> : null}
-      {activeTab === 'project' ? <CommunityProject hideNewPostButton /> : null}
 
       <CommunityPostTypePicker
         isOpen={typePickerOpen}

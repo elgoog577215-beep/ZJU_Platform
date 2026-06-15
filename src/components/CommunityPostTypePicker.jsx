@@ -1,6 +1,6 @@
 import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { BookOpen, HelpCircle, Newspaper, Rocket, Users, X } from 'lucide-react';
+import { BookOpen, HelpCircle, Newspaper, Users, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useSettings } from '../context/SettingsContext';
@@ -37,14 +37,6 @@ export const COMMUNITY_POST_TYPES = [
     descKey: 'community.type_desc_team',
     descFallback: '招募队友、项目合作、活动协作',
     icon: Users,
-  },
-  {
-    key: 'project',
-    labelKey: 'community.tab_project_updates',
-    fallback: '项目动态',
-    descKey: 'community.type_desc_project',
-    descFallback: '发布项目进展、Demo、版本更新',
-    icon: Rocket,
   },
 ];
 

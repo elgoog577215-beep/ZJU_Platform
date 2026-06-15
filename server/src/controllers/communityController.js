@@ -11,7 +11,7 @@ const viewerFromReq = (req) => (
     : null
 );
 
-const ALLOWED_SECTIONS = new Set(['help', 'tech', 'news', 'team', 'project', 'groups']);
+const ALLOWED_SECTIONS = new Set(['help', 'team', 'groups']);
 const ALLOWED_GROUP_PLATFORMS = new Set(['wechat', 'qq', 'discord', 'telegram', 'other']);
 const CONTENT_STATUSES = new Set(['draft', 'pending', 'approved', 'rejected', 'deleted']);
 
@@ -407,7 +407,11 @@ const listPosts = async (req, res, next) => {
     const page = Math.max(parseInt(req.query.page || '1', 10), 1);
     const limit = Math.min(Math.max(parseInt(req.query.limit || '20', 10), 1), 50);
     const offset = (page - 1) * limit;
-    const section = normalizeSection(req.query.section);
+    const rawSection = String(req.query.section || '').trim().toLowerCase();
+    const section = rawSection && rawSection !== 'all' ? normalizeSection(rawSection) : null;
+    if (rawSection && rawSection !== 'all' && !section) {
+      return res.status(400).json({ error: 'Invalid section' });
+    }
     const status = String(req.query.status || '').trim().toLowerCase();
     const workflowStatus = String(req.query.workflow_status || req.query.review_status || '').trim().toLowerCase();
     const requestedAuthorId = req.query.author_id || req.query.uploader_id;

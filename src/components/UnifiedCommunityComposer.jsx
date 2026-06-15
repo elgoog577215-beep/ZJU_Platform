@@ -39,7 +39,6 @@ const BOARD_CONFIG = {
     supportsCover: true,
     supportsExcerpt: true,
     supportsSource: false,
-    supportsProjectLink: false,
     supportsTeamFields: false,
     supportsCode: true,
     publishStatus: 'pending',
@@ -54,7 +53,6 @@ const BOARD_CONFIG = {
     supportsCover: false,
     supportsExcerpt: false,
     supportsSource: false,
-    supportsProjectLink: false,
     supportsTeamFields: false,
     supportsCode: true,
     publishStatus: 'approved',
@@ -67,7 +65,6 @@ const BOARD_CONFIG = {
     supportsCover: true,
     supportsExcerpt: true,
     supportsSource: true,
-    supportsProjectLink: false,
     supportsTeamFields: false,
     supportsCode: false,
     publishStatus: 'pending',
@@ -81,22 +78,7 @@ const BOARD_CONFIG = {
     supportsCover: false,
     supportsExcerpt: false,
     supportsSource: false,
-    supportsProjectLink: false,
     supportsTeamFields: true,
-    supportsCode: true,
-    publishStatus: 'pending',
-  },
-  project: {
-    accent: 'emerald',
-    titleKey: 'community.composer_title_project',
-    titleFallback: '发布项目动态',
-    endpoint: '/community/posts',
-    section: 'project',
-    supportsCover: false,
-    supportsExcerpt: false,
-    supportsSource: false,
-    supportsProjectLink: true,
-    supportsTeamFields: false,
     supportsCode: true,
     publishStatus: 'pending',
   },
@@ -122,11 +104,6 @@ const accentClasses = {
     button: 'bg-violet-600 text-white hover:bg-violet-700',
     ring: 'focus:ring-violet-300/50 focus:border-violet-300',
     darkButton: 'bg-violet-600 text-white hover:bg-violet-500',
-  },
-  emerald: {
-    button: 'bg-emerald-600 text-white hover:bg-emerald-700',
-    ring: 'focus:ring-emerald-300/50 focus:border-emerald-300',
-    darkButton: 'bg-emerald-600 text-white hover:bg-emerald-500',
   },
 };
 
@@ -176,7 +153,8 @@ const UnifiedCommunityComposer = ({
   const { user, isAdmin } = useAuth();
   const { uiMode } = useSettings();
   const isDayMode = uiMode === 'day';
-  const config = BOARD_CONFIG[boardKey] || BOARD_CONFIG.help;
+  const normalizedBoardKey = boardKey === 'project' ? 'tech' : boardKey;
+  const config = BOARD_CONFIG[normalizedBoardKey] || BOARD_CONFIG.help;
   const accent = accentClasses[config.accent] || accentClasses.amber;
   const [title, setTitle] = useState('');
   const [excerpt, setExcerpt] = useState('');
@@ -324,7 +302,7 @@ const UnifiedCommunityComposer = ({
 
   const buildPayload = useCallback((status) => {
     const fallbackExcerpt = excerpt.trim() || plainContent.replace(/\s+/g, ' ').slice(0, 140);
-    if (boardKey === 'tech') {
+    if (normalizedBoardKey === 'tech') {
       return {
         id: initialData?.id,
         title: title.trim(),
@@ -341,7 +319,7 @@ const UnifiedCommunityComposer = ({
         related_group_ids: relatedGroupIds.trim(),
       };
     }
-    if (boardKey === 'news') {
+    if (normalizedBoardKey === 'news') {
       return {
         id: initialData?.id,
         title: title.trim(),
@@ -375,7 +353,7 @@ const UnifiedCommunityComposer = ({
       related_news_ids: relatedNewsIds.trim(),
       related_group_ids: relatedGroupIds.trim(),
     };
-  }, [boardKey, cleanBlocks, config.category, config.section, cover, deadline, excerpt, htmlContent, initialData, link, maxMembers, plainContent, relatedArticleIds, relatedGroupIds, relatedNewsIds, relatedPostIds, sourceName, sourceUrl, tags, title]);
+  }, [cleanBlocks, config.category, config.section, cover, deadline, excerpt, htmlContent, initialData, link, maxMembers, normalizedBoardKey, plainContent, relatedArticleIds, relatedGroupIds, relatedNewsIds, relatedPostIds, sourceName, sourceUrl, tags, title]);
 
   const submit = useCallback(async (status) => {
     if (!user) {
@@ -501,12 +479,6 @@ const UnifiedCommunityComposer = ({
                           </div>
                         </div>
                       </>
-                    )}
-                    {config.supportsProjectLink && (
-                      <div className="community-composer-field space-y-2 md:col-span-2">
-                        <label className={labelCls}>{t('community.project_link_label', '项目链接')}</label>
-                        <input value={link} onChange={(e) => setLink(e.target.value)} placeholder="https://github.com/..." className={`community-composer-input ${inputCls}`} />
-                      </div>
                     )}
                   </div>
 
