@@ -12,6 +12,37 @@ const nullableText = (value, maxLength = 500) => {
   return text || null;
 };
 
+const parseAliasList = (value) => {
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    const text = value.trim();
+    if (!text) return [];
+    try {
+      const parsed = JSON.parse(text);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      // Fall through to newline/comma parsing for admin textarea values.
+    }
+    return text.split(/[\n,]/);
+  }
+  return [];
+};
+
+const normalizeAliasList = (value, maxItems = 20) => {
+  const seen = new Set();
+  const aliases = [];
+  for (const item of parseAliasList(value)) {
+    const alias = trimText(item, 120);
+    if (!alias || seen.has(alias)) continue;
+    seen.add(alias);
+    aliases.push(alias);
+    if (aliases.length >= maxItems) break;
+  }
+  return aliases;
+};
+
+const serializeAliasList = (value) => JSON.stringify(normalizeAliasList(value));
+
 const toInteger = (value, fallback = 0) => {
   const parsed = Number.parseInt(value, 10);
   return Number.isFinite(parsed) ? parsed : fallback;
@@ -46,6 +77,7 @@ const sendBadRequest = (res, message) => res.status(400).json({ error: message }
 
 const serializePartner = (row) => ({
   ...row,
+  event_organizer_aliases: normalizeAliasList(row.event_organizer_aliases),
   sort_order: toInteger(row.sort_order, 0),
   enabled: Boolean(row.enabled),
   featured: Boolean(row.featured),
@@ -53,12 +85,32 @@ const serializePartner = (row) => ({
 
 const readPartnerBody = (body, existing = {}) => {
   const name = body.name !== undefined ? trimText(body.name, 120) : existing.name;
+  const nameEn =
+    body.name_en !== undefined || body.nameEn !== undefined
+      ? nullableText(body.name_en ?? body.nameEn, 160)
+      : existing.name_en || null;
   const category =
     body.category !== undefined
       ? normalizeCategory(body.category, existing.category || 'enterprise')
       : existing.category || 'enterprise';
   const description =
     body.description !== undefined ? nullableText(body.description, 500) : existing.description || null;
+  const descriptionEn =
+    body.description_en !== undefined || body.descriptionEn !== undefined
+      ? nullableText(body.description_en ?? body.descriptionEn, 700)
+      : existing.description_en || null;
+  const cooperationDirection =
+    body.cooperation_direction !== undefined || body.cooperationDirection !== undefined
+      ? nullableText(body.cooperation_direction ?? body.cooperationDirection, 240)
+      : existing.cooperation_direction || null;
+  const cooperationDirectionEn =
+    body.cooperation_direction_en !== undefined || body.cooperationDirectionEn !== undefined
+      ? nullableText(body.cooperation_direction_en ?? body.cooperationDirectionEn, 320)
+      : existing.cooperation_direction_en || null;
+  const eventOrganizerAliases =
+    body.event_organizer_aliases !== undefined || body.eventOrganizerAliases !== undefined
+      ? normalizeAliasList(body.event_organizer_aliases ?? body.eventOrganizerAliases)
+      : normalizeAliasList(existing.event_organizer_aliases);
   const logoUrl =
     body.logo_url !== undefined || body.logoUrl !== undefined
       ? nullableText(body.logo_url ?? body.logoUrl, 1000)
@@ -74,8 +126,14 @@ const readPartnerBody = (body, existing = {}) => {
 
   return {
     name,
+    nameEn,
     category,
     description,
+    descriptionEn,
+    cooperationDirection,
+    cooperationDirectionEn,
+    eventOrganizerAliases,
+    eventOrganizerAliasesJson: serializeAliasList(eventOrganizerAliases),
     logoUrl,
     darkLogoUrl,
     linkUrl,
@@ -185,13 +243,20 @@ const createPartner = async (req, res, next) => {
 
     const result = await db.run(
       `INSERT INTO ecosystem_partners (
-        category, name, description, logo_url, dark_logo_url, link_url,
+        category, name, name_en, description, description_en,
+        cooperation_direction, cooperation_direction_en, event_organizer_aliases,
+        logo_url, dark_logo_url, link_url,
         sort_order, enabled, featured, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
       [
         payload.category,
         payload.name,
+        payload.nameEn,
         payload.description,
+        payload.descriptionEn,
+        payload.cooperationDirection,
+        payload.cooperationDirectionEn,
+        payload.eventOrganizerAliasesJson,
         payload.logoUrl,
         payload.darkLogoUrl,
         payload.linkUrl,
@@ -226,7 +291,12 @@ const updatePartner = async (req, res, next) => {
       `UPDATE ecosystem_partners
        SET category = ?,
            name = ?,
+           name_en = ?,
            description = ?,
+           description_en = ?,
+           cooperation_direction = ?,
+           cooperation_direction_en = ?,
+           event_organizer_aliases = ?,
            logo_url = ?,
            dark_logo_url = ?,
            link_url = ?,
@@ -238,7 +308,12 @@ const updatePartner = async (req, res, next) => {
       [
         payload.category,
         payload.name,
+        payload.nameEn,
         payload.description,
+        payload.descriptionEn,
+        payload.cooperationDirection,
+        payload.cooperationDirectionEn,
+        payload.eventOrganizerAliasesJson,
         payload.logoUrl,
         payload.darkLogoUrl,
         payload.linkUrl,

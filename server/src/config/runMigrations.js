@@ -1053,7 +1053,12 @@ async function runMigrations(db) {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         category TEXT NOT NULL,
         name TEXT NOT NULL,
+        name_en TEXT,
         description TEXT,
+        description_en TEXT,
+        cooperation_direction TEXT,
+        cooperation_direction_en TEXT,
+        event_organizer_aliases TEXT DEFAULT '[]',
         logo_url TEXT,
         dark_logo_url TEXT,
         link_url TEXT,
@@ -1065,6 +1070,14 @@ async function runMigrations(db) {
         deleted_at DATETIME
       )
     `);
+
+    await ensureColumns('ecosystem_partners', {
+      name_en: 'TEXT',
+      description_en: 'TEXT',
+      cooperation_direction: 'TEXT',
+      cooperation_direction_en: 'TEXT',
+      event_organizer_aliases: "TEXT DEFAULT '[]'",
+    }, 'ecosystem partners');
 
     await db.exec(`
       CREATE INDEX IF NOT EXISTS idx_ecosystem_partners_public
@@ -1104,6 +1117,56 @@ async function runMigrations(db) {
     }
 
     console.log('✅ Ecosystem partners table ready');
+    const organizationDefaults = [
+      ['浙江大学本科生院', 'ZJU Undergraduate School', '协同发布本科生培养、报名与校园成长相关活动信息。', 'Supports undergraduate-facing activity distribution and student development opportunities.', '活动联动 / 信息触达', 'Event coordination / Student reach', ['浙江大学本科生院', '本科生院'], 110],
+      ['浙江大学艺术与考古博物馆', 'ZJU Museum of Art and Archaeology', '协同文化艺术、展览导览与博物馆教育活动触达。', 'Supports cultural, exhibition, museum education, and guided activity outreach.', '文化艺术 / 展览共创', 'Arts and culture / Exhibition co-creation', ['浙江大学艺术与考古博物馆', '艺术与考古博物馆'], 120],
+      ['浙江大学星辰汇', 'ZJU Xingchenhui', '协同校园活动传播、青年成长与社群参与。', 'Supports campus activity communication, youth development, and community participation.', '社群传播 / 青年成长', 'Community communication / Youth development', ['浙江大学星辰汇', '星辰汇'], 130],
+      ['浙大出国交流资讯', 'ZJU Global Exchange Info', '协同出国交流、国际项目与留学相关信息触达。', 'Supports global exchange, international program, and study-abroad information outreach.', '国际交流 / 信息服务', 'Global exchange / Information service', ['浙大出国交流资讯', '出国交流资讯'], 140],
+      ['浙江大学 CC98 论坛', 'ZJU CC98 Forum', '协同校园社区讨论、活动扩散与学生信息互助。', 'Supports campus forum discussion, activity distribution, and peer information exchange.', '社区扩散 / 学生互助', 'Community distribution / Student support', ['浙江大学 CC98 论坛', 'CC98', '浙江大学CC98论坛'], 150],
+      ['浙江大学红十字会', 'ZJU Red Cross', '协同公益实践、志愿服务与健康安全相关活动。', 'Supports public service, volunteering, health, and safety activities.', '公益实践 / 志愿服务', 'Public service / Volunteering', ['浙江大学红十字会', '红十字会'], 160],
+      ['浙江大学图书馆', 'ZJU Library', '协同信息素养、阅读推广与学习资源相关活动。', 'Supports information literacy, reading promotion, and learning resource activities.', '学习资源 / 信息素养', 'Learning resources / Information literacy', ['浙江大学图书馆', '图书馆'], 170],
+      ['浙大体育与艺术', 'ZJU Sports and Arts', '协同体育艺术、校园美育与综合素质活动传播。', 'Supports sports, arts, aesthetic education, and holistic development activities.', '体育艺术 / 素质拓展', 'Sports and arts / Holistic development', ['浙大体育与艺术', '体育与艺术'], 180],
+      ['浙大生活', 'ZJU Life', '协同校园生活服务、学生资讯与活动提醒。', 'Supports campus life services, student information, and activity reminders.', '校园生活 / 信息触达', 'Campus life / Information outreach', ['浙大生活'], 190],
+      ['浙江大学学生会', 'ZJU Student Union', '协同学生权益、校园活动与组织动员。', 'Supports student affairs, campus events, and student mobilization.', '学生组织 / 活动执行', 'Student organization / Event execution', ['浙江大学学生会', '学生会'], 200],
+      ['浙江大学求是学院', 'ZJU Qiushi College', '协同书院育人、学业发展与校园活动触达。', 'Supports college education, academic development, and campus activity outreach.', '书院协同 / 学生成长', 'College coordination / Student growth', ['浙江大学求是学院', '求是学院'], 210],
+      ['浙江大学团委', 'ZJU Youth League Committee', '协同团学活动、青年发展与志愿实践信息。', 'Supports youth league activities, youth development, and volunteer practice information.', '团学活动 / 青年发展', 'Youth league activities / Youth development', ['浙江大学团委', '团委'], 220],
+      ['浙大素拓 ZJUST', 'ZJUST', '协同素质拓展、第二课堂与综合成长活动触达。', 'Supports holistic development, second-classroom, and growth activities.', '素质拓展 / 第二课堂', 'Holistic development / Second classroom', ['浙大素拓 ZJUST', 'ZJUST', '浙大素拓'], 230],
+      ['浙大微学工', 'ZJU Student Affairs', '协同学工资讯、学生服务与校园通知触达。', 'Supports student affairs information, services, and campus notices.', '学工资讯 / 学生服务', 'Student affairs / Student services', ['浙大微学工', '微学工'], 240],
+      ['蓝田学园', 'Lantian College', '协同学园育人、学生发展与活动信息触达。', 'Supports college community development, student growth, and activity outreach.', '学园协同 / 学生成长', 'College coordination / Student growth', ['蓝田学园'], 250],
+      ['蓝田青年', 'Lantian Youth', '协同蓝田学园青年活动、志愿实践与信息传播。', 'Supports Lantian youth activities, volunteer practice, and information distribution.', '青年活动 / 志愿实践', 'Youth activities / Volunteer practice', ['蓝田青年'], 260],
+      ['求是学院丹阳青溪学园', 'Danyang Qingxi College', '协同学园社区、书院活动与学生成长信息。', 'Supports college community activities and student development information.', '学园社区 / 活动共创', 'College community / Activity co-creation', ['求是学院丹阳青溪学园', '丹阳青溪学园'], 270],
+      ['云峰微讯', 'Yunfeng News', '协同学园资讯、校园活动与学生服务传播。', 'Supports college information, campus activities, and student service communication.', '学园资讯 / 活动传播', 'College news / Activity communication', ['云峰微讯'], 280],
+      ['浙大竺院人', 'ZJU Chu Kochen College', '协同竺院资讯、荣誉教育与学生发展活动。', 'Supports Chu Kochen College information, honors education, and student development activities.', '荣誉教育 / 学生成长', 'Honors education / Student growth', ['浙大竺院人', '竺院人', '竺可桢学院'], 290],
+    ];
+
+    for (const [name, nameEn, description, descriptionEn, cooperationDirection, cooperationDirectionEn, aliases, sortOrder] of organizationDefaults) {
+      const existing = await db.get(
+        'SELECT id FROM ecosystem_partners WHERE category = ? AND name = ? LIMIT 1',
+        ['organization', name],
+      );
+      if (existing) continue;
+
+      await db.run(
+        `INSERT INTO ecosystem_partners (
+          category, name, name_en, description, description_en,
+          cooperation_direction, cooperation_direction_en, event_organizer_aliases,
+          logo_url, dark_logo_url, link_url, sort_order, enabled, featured,
+          created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, ?, 1, 1, datetime('now'), datetime('now'))`,
+        [
+          'organization',
+          name,
+          nameEn,
+          description,
+          descriptionEn,
+          cooperationDirection,
+          cooperationDirectionEn,
+          JSON.stringify(aliases),
+          sortOrder,
+        ],
+      );
+    }
+
   } catch (err) {
     if (!err.message.includes('already exists')) {
       console.warn('Migration warning (ecosystem partners):', err.message);

@@ -13,6 +13,7 @@ import {
   Users,
   X,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 
 import api from "../../services/api";
@@ -62,7 +63,12 @@ const categoryMeta = {
 const emptyForm = {
   category: "enterprise",
   name: "",
+  name_en: "",
   description: "",
+  description_en: "",
+  cooperation_direction: "",
+  cooperation_direction_en: "",
+  event_organizer_aliases: "",
   logo_url: "",
   dark_logo_url: "",
   link_url: "",
@@ -83,7 +89,14 @@ const isPublicVisible = (partner) =>
 const normalizeForm = (partner = emptyForm) => ({
   category: partner.category || "enterprise",
   name: partner.name || "",
+  name_en: partner.name_en || "",
   description: partner.description || "",
+  description_en: partner.description_en || "",
+  cooperation_direction: partner.cooperation_direction || "",
+  cooperation_direction_en: partner.cooperation_direction_en || "",
+  event_organizer_aliases: Array.isArray(partner.event_organizer_aliases)
+    ? partner.event_organizer_aliases.join("\n")
+    : "",
   logo_url: partner.logo_url || "",
   dark_logo_url: partner.dark_logo_url || "",
   link_url: partner.link_url || "",
@@ -93,6 +106,7 @@ const normalizeForm = (partner = emptyForm) => ({
 });
 
 const EcosystemPartnerManager = () => {
+  const { t } = useTranslation();
   const { isDayMode, headingTextClass, mutedTextClass } = useAdminTheme();
   const [partners, setPartners] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -139,7 +153,14 @@ const EcosystemPartnerManager = () => {
       if (!keyword) return true;
       return [
         partner.name,
+        partner.name_en,
         partner.description,
+        partner.description_en,
+        partner.cooperation_direction,
+        partner.cooperation_direction_en,
+        ...(Array.isArray(partner.event_organizer_aliases)
+          ? partner.event_organizer_aliases
+          : []),
         partner.logo_url,
         partner.dark_logo_url,
         partner.link_url,
@@ -181,7 +202,15 @@ const EcosystemPartnerManager = () => {
     const payload = {
       ...form,
       name: form.name.trim(),
+      name_en: form.name_en.trim(),
       description: form.description.trim(),
+      description_en: form.description_en.trim(),
+      cooperation_direction: form.cooperation_direction.trim(),
+      cooperation_direction_en: form.cooperation_direction_en.trim(),
+      event_organizer_aliases: form.event_organizer_aliases
+        .split(/\n/)
+        .map((item) => item.trim())
+        .filter(Boolean),
       logo_url: form.logo_url.trim(),
       dark_logo_url: form.dark_logo_url.trim(),
       link_url: form.link_url.trim(),
@@ -360,6 +389,15 @@ const EcosystemPartnerManager = () => {
               {partner.description}
             </p>
           ) : null}
+          {partner.cooperation_direction ? (
+            <p
+              className={`mt-2 line-clamp-1 text-xs font-semibold ${
+                isDayMode ? "text-emerald-700" : "text-emerald-200"
+              }`}
+            >
+              {partner.cooperation_direction}
+            </p>
+          ) : null}
           <div className="mt-4 flex flex-wrap gap-2">
             {renderVisibilitySwitch(partner)}
             <AdminIconButton
@@ -508,6 +546,11 @@ const EcosystemPartnerManager = () => {
                             <AdminTableCellText strong className="block truncate">
                               {partner.name}
                             </AdminTableCellText>
+                            {partner.name_en ? (
+                              <AdminTableCellText className="mt-1 block max-w-[260px] truncate text-xs">
+                                {partner.name_en}
+                              </AdminTableCellText>
+                            ) : null}
                             {partner.link_url ? (
                               <AdminTableCellText className="mt-1 block max-w-[260px] truncate text-xs">
                                 {partner.link_url}
@@ -518,9 +561,16 @@ const EcosystemPartnerManager = () => {
                       </td>
                       <td className="p-4">{renderCategory(partner.category)}</td>
                       <td className="p-4">
-                        <AdminTableCellText className="line-clamp-2 max-w-[320px]">
-                          {partner.description || "暂无说明"}
-                        </AdminTableCellText>
+                        <div className="space-y-1">
+                          <AdminTableCellText className="line-clamp-2 max-w-[320px]">
+                            {partner.description || "暂无说明"}
+                          </AdminTableCellText>
+                          {partner.cooperation_direction ? (
+                            <AdminTableCellText className="line-clamp-1 max-w-[320px] text-xs">
+                              {partner.cooperation_direction}
+                            </AdminTableCellText>
+                          ) : null}
+                        </div>
                       </td>
                       <td className="p-4">
                         <AdminTableCellText>{partner.sort_order || 0}</AdminTableCellText>
@@ -566,7 +616,7 @@ const EcosystemPartnerManager = () => {
         onConfirm={handleSubmit}
         onCancel={closeEditor}
       >
-        <div className="grid gap-4">
+        <div className="grid max-h-[60dvh] gap-4 overflow-y-auto pr-1">
           <label className={`block text-sm font-semibold ${headingTextClass}`}>
             分类
             <select
@@ -595,6 +645,18 @@ const EcosystemPartnerManager = () => {
           </label>
 
           <label className={`block text-sm font-semibold ${headingTextClass}`}>
+            {t("admin.ecosystem_partners.fields.name_en", "英文名称")}
+            <input
+              data-testid="ecosystem-partner-name-en-input"
+              value={form.name_en}
+              onChange={(event) => updateForm("name_en", event.target.value)}
+              maxLength={160}
+              placeholder="Undergraduate School, Zhejiang University"
+              className="theme-admin-input mt-2 w-full rounded-xl px-3 py-2.5 text-sm"
+            />
+          </label>
+
+          <label className={`block text-sm font-semibold ${headingTextClass}`}>
             简短说明
             <textarea
               value={form.description}
@@ -604,6 +666,77 @@ const EcosystemPartnerManager = () => {
               placeholder="说明它在生态中的支持方式"
               className="theme-admin-input mt-2 w-full resize-none rounded-xl px-3 py-2.5 text-sm leading-6"
             />
+          </label>
+
+          <label className={`block text-sm font-semibold ${headingTextClass}`}>
+            {t("admin.ecosystem_partners.fields.description_en", "英文简介")}
+            <textarea
+              data-testid="ecosystem-partner-description-en-input"
+              value={form.description_en}
+              onChange={(event) => updateForm("description_en", event.target.value)}
+              rows={3}
+              maxLength={600}
+              placeholder="Briefly describe this partner for English readers."
+              className="theme-admin-input mt-2 w-full resize-none rounded-xl px-3 py-2.5 text-sm leading-6"
+            />
+          </label>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className={`block text-sm font-semibold ${headingTextClass}`}>
+              {t("admin.ecosystem_partners.fields.cooperation_direction", "合作方向")}
+              <textarea
+                data-testid="ecosystem-partner-cooperation-direction-input"
+                value={form.cooperation_direction}
+                onChange={(event) =>
+                  updateForm("cooperation_direction", event.target.value)
+                }
+                rows={2}
+                maxLength={300}
+                placeholder="例如：学生活动共创、志愿服务、校园文化传播"
+                className="theme-admin-input mt-2 w-full resize-none rounded-xl px-3 py-2.5 text-sm leading-6"
+              />
+            </label>
+            <label className={`block text-sm font-semibold ${headingTextClass}`}>
+              {t(
+                "admin.ecosystem_partners.fields.cooperation_direction_en",
+                "合作方向（英文）",
+              )}
+              <textarea
+                data-testid="ecosystem-partner-cooperation-direction-en-input"
+                value={form.cooperation_direction_en}
+                onChange={(event) =>
+                  updateForm("cooperation_direction_en", event.target.value)
+                }
+                rows={2}
+                maxLength={360}
+                placeholder="Student activities, volunteer programs, campus culture"
+                className="theme-admin-input mt-2 w-full resize-none rounded-xl px-3 py-2.5 text-sm leading-6"
+              />
+            </label>
+          </div>
+
+          <label className={`block text-sm font-semibold ${headingTextClass}`}>
+            {t("admin.ecosystem_partners.fields.event_organizer_aliases", "活动匹配词")}
+            <textarea
+              data-testid="ecosystem-partner-aliases-input"
+              value={form.event_organizer_aliases}
+              onChange={(event) =>
+                updateForm("event_organizer_aliases", event.target.value)
+              }
+              rows={4}
+              maxLength={2600}
+              placeholder={t(
+                "admin.ecosystem_partners.fields.event_organizer_aliases_placeholder",
+                "一行一个活动主办方名称或别名，例如：\n浙江大学学生会\nZJU Student Union",
+              )}
+              className="theme-admin-input mt-2 w-full resize-none rounded-xl px-3 py-2.5 text-sm leading-6"
+            />
+            <span className={`mt-1 block text-xs font-normal ${mutedTextClass}`}>
+              {t(
+                "admin.ecosystem_partners.fields.event_organizer_aliases_help",
+                "用于在活动页匹配相关活动；默认可只填社团原名，后台后续可补充别名。",
+              )}
+            </span>
           </label>
 
           <div className="grid gap-3 sm:grid-cols-2">

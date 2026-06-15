@@ -43,7 +43,9 @@ import toast from "react-hot-toast";
 import SmartImage from "./SmartImage";
 import { useBackClose, useBodyScrollLock } from "../hooks/useBackClose";
 import { useCachedResource } from "../hooks/useCachedResource";
+import { useEcosystemPartners } from "../hooks/useEcosystemPartners";
 import EventFilterPanel from "./EventFilterPanel";
+import OrganizationPartnerWall from "./OrganizationPartnerWall";
 import SortSelector from "./SortSelector";
 import EventAssistantPanel from "./EventAssistantPanel";
 import MobileEventAssistantFullscreen, {
@@ -914,6 +916,7 @@ const Events = () => {
   const { t, i18n } = useTranslation();
   const { settings, uiMode } = useSettings();
   const { user } = useAuth();
+  const { organizationPartners } = useEcosystemPartners();
   const prefersReducedMotion = useReducedMotion();
   const isDayMode = uiMode === "day";
   const [searchParams] = useSearchParams();
@@ -1006,14 +1009,19 @@ const Events = () => {
         i18n.resolvedLanguage || i18n.language,
       )
     : "";
-  const hasActiveMobileFilters = Object.values(filters).some((v) => v);
+  const [partnerFilter, setPartnerFilter] = useState(null);
+  const partnerFilterKey = partnerFilter?.terms?.join("|") || "";
+  const hasActiveMobileFilters =
+    Object.values(filters).some((v) => v) || Boolean(partnerFilter);
   const mobileSortLabel = useMobileSortLabel(sort, t);
 
   const resetMobileFilters = () => {
     setFilters({ category: null, target_audience: null });
+    setPartnerFilter(null);
   };
 
-  const mobileFilterCount = Object.values(filters).filter(Boolean).length;
+  const mobileFilterCount =
+    Object.values(filters).filter(Boolean).length + (partnerFilter ? 1 : 0);
 
   // Debounce search
   useEffect(() => {
@@ -1076,6 +1084,7 @@ const Events = () => {
       sort,
       status: "approved",
       search: debouncedSearch,
+      ...(partnerFilterKey ? { organizer_any: partnerFilter.terms.join(",") } : {}),
       ...filters,
     },
     {
@@ -1083,6 +1092,7 @@ const Events = () => {
         settings.pagination_enabled,
         debouncedSearch,
         JSON.stringify(filters),
+        partnerFilterKey,
       ],
     },
   );
@@ -1096,6 +1106,7 @@ const Events = () => {
     sort,
     debouncedSearch,
     JSON.stringify(filters),
+    partnerFilterKey,
     settings.pagination_enabled,
   ]);
 
@@ -1400,6 +1411,22 @@ END:VCALENDAR`;
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleApplyPartnerFilter = useCallback((nextFilter) => {
+    if (!nextFilter?.terms?.length) return;
+    setPartnerFilter(nextFilter);
+    setCurrentPage(1);
+    if (typeof window !== "undefined") {
+      window.requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    }
+  }, []);
+
+  const clearPartnerFilter = useCallback(() => {
+    setPartnerFilter(null);
+    setCurrentPage(1);
+  }, []);
+
   const handleToggleFavorite = useCallback(
     (eventId, favorited, likes) => {
       setEvents((prev) =>
@@ -1547,6 +1574,30 @@ END:VCALENDAR`;
             setIsMobileAssistantOpen(true);
           }}
         />
+
+        {partnerFilter && (
+          <div className={`${EVENT_CONTENT_WIDTH_CLASS} mb-4 flex justify-start`}>
+            <button
+              type="button"
+              data-testid="organization-partner-active-filter"
+              onClick={clearPartnerFilter}
+              className={`inline-flex min-h-9 max-w-full items-center gap-2 rounded-[6px] border px-3 text-xs font-bold transition-colors ${
+                isDayMode
+                  ? "border-violet-200 bg-violet-50 text-violet-800 hover:bg-white"
+                  : "border-indigo-400/25 bg-indigo-500/12 text-indigo-100 hover:bg-indigo-500/18"
+              }`}
+            >
+              <Users size={14} />
+              <span className="truncate">
+                {t("events.organizations.active_filter", "社团：{{name}}", {
+                  name: partnerFilter.name,
+                })}
+              </span>
+              <X size={14} />
+            </button>
+          </div>
+        )}
+
         <div className={`${EVENT_CONTENT_WIDTH_CLASS} hidden md:block mb-1`}>
           <h2
             className={`text-3xl md:text-4xl lg:text-5xl font-bold font-serif mb-2 md:mb-3 ${isDayMode ? "text-slate-950" : "text-white"}`}
@@ -1587,6 +1638,14 @@ END:VCALENDAR`;
             onSortChange={setSort}
           />
         </div>
+
+        <OrganizationPartnerWall
+          partners={organizationPartners}
+          isDayMode={isDayMode}
+          className={`${EVENT_FILTER_WIDTH_CLASS} mb-4 text-left md:mb-4`}
+          onApplyPartnerFilter={handleApplyPartnerFilter}
+          onOpenEvent={openEventFromList}
+        />
 
         <div className={`${EVENT_CONTENT_WIDTH_CLASS} hidden items-center justify-between gap-4 md:flex`}>
           <div
@@ -2004,7 +2063,7 @@ END:VCALENDAR`;
           <p
             className={`mb-8 max-w-md text-lg ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
           >
-            {debouncedSearch || Object.values(filters).some((v) => v)
+            {debouncedSearch || Object.values(filters).some((v) => v) || partnerFilter
               ? `${t("advanced_filter.clear", "清除所有筛选")} ${t("common.or", "或")} ${t("common.search", "搜索...")}`
               : t("events.empty_desc")}
           </p>

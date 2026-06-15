@@ -9,6 +9,29 @@ const buildCommaSeparatedMatch = (field, value) => ({
     params: [value, `${value},%`, `%,${value}`, `%,${value},%`],
 });
 
+const normalizeOrganizerAny = (value) => {
+    const source = Array.isArray(value) ? value : String(value || '').split(',');
+    const seen = new Set();
+    const terms = [];
+    for (const item of source) {
+        const term = String(item || '').trim().slice(0, 120);
+        if (!term || seen.has(term)) continue;
+        seen.add(term);
+        terms.push(term);
+        if (terms.length >= 20) break;
+    }
+    return terms;
+};
+
+const buildOrganizerAnyFilter = (value) => {
+    const terms = normalizeOrganizerAny(value);
+    if (terms.length === 0) return null;
+    return {
+        clause: `(${terms.map(() => '"organizer" = ?').join(' OR ')})`,
+        params: terms,
+    };
+};
+
 const buildAllSchoolAudienceMatch = (field) => ({
     clause: `("${field}" = ? OR "${field}" LIKE ? OR "${field}" LIKE ? OR "${field}" LIKE ? OR "${field}" LIKE ? OR "${field}" LIKE ? OR "${field}" LIKE ?)`,
     params: ['全校', '全校,%', '%,全校', '%,全校,%', '%全校%', '%全校师生%', '%全体师生%'],
@@ -657,6 +680,13 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
                     }
                 }
             });
+
+            const organizerAnyFilter = buildOrganizerAnyFilter(req.query.organizer_any);
+            if (organizerAnyFilter) {
+                whereClauses.push(organizerAnyFilter.clause);
+                params.push(...organizerAnyFilter.params);
+                countParams.push(...organizerAnyFilter.params);
+            }
         }
         
         // Tags Search (comma separated for multiple tags OR logic)
