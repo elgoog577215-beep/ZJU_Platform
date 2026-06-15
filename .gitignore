@@ -37,6 +37,17 @@ pnpm-debug.log*
 server/.env
 server-access.local.txt
 
+# Android signing artifacts (keep release keys outside git)
+*.jks
+*.keystore
+android-twa/.gradle/
+android-twa/build/
+android-twa/app/build/
+android-twa/*.apk
+android-twa/*.apk.idsig
+android-twa/*.aab
+android-twa/**/release/
+
 # OS junk
 .DS_Store
 Thumbs.db
