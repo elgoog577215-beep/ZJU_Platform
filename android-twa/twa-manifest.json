@@ -13,15 +13,15 @@
   "backgroundColor": "#0A0A0A",
   "enableNotifications": true,
   "startUrl": "/",
-  "iconUrl": "https://tuotuzju.com/newlogo.png",
-  "maskableIconUrl": "https://tuotuzju.com/newlogo.png",
+  "iconUrl": "https://tuotuzju.com/icons/icon-512.png",
+  "maskableIconUrl": "https://tuotuzju.com/icons/maskable-icon-512.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
     "path": "/Users/yq/.tuotuzju-android/tuotuzju-release.keystore",
     "alias": "tuotuzju"
   },
-  "appVersionName": "8",
-  "appVersionCode": 8,
+  "appVersionName": "9",
+  "appVersionCode": 9,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://tuotuzju.com/manifest.json",
@@ -43,5 +43,5 @@
   "fileHandlers": [],
   "launchHandlerClientMode": "",
   "displayOverride": [],
-  "appVersion": "8"
+  "appVersion": "9"
 }

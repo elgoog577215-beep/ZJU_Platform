@@ -17,7 +17,7 @@ import { useReducedMotion } from "../utils/animations";
 import SEO from "./SEO";
 
 const APK_DOWNLOAD_URL = "/downloads/tuotuzju-android.apk";
-const APK_VERSION = "8";
+const APK_VERSION = "9";
 const APK_UPDATED_AT = "2026-06-17";
 
 const reveal = (enabled, delay = 0) => {

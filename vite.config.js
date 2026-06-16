@@ -26,7 +26,16 @@ export default defineConfig(({ mode }) => {
         devOptions: {
           enabled: false
         },
-        includeAssets: ['newlogo.png'],
+        includeAssets: [
+          'newlogo.png',
+          'favicon-16.png',
+          'favicon-32.png',
+          'apple-touch-icon.png',
+          'icons/icon-192.png',
+          'icons/icon-512.png',
+          'icons/maskable-icon-192.png',
+          'icons/maskable-icon-512.png'
+        ],
         manifest: {
           name: '拓途浙享',
           short_name: '拓途浙享',
@@ -40,17 +49,45 @@ export default defineConfig(({ mode }) => {
           start_url: '/',
           icons: [
             {
-              src: 'newlogo.png',
-              sizes: '729x734',
+              src: 'icons/icon-192.png',
+              sizes: '192x192',
               type: 'image/png',
               purpose: 'any'
+            },
+            {
+              src: 'icons/icon-512.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'any'
+            },
+            {
+              src: 'icons/maskable-icon-192.png',
+              sizes: '192x192',
+              type: 'image/png',
+              purpose: 'maskable'
+            },
+            {
+              src: 'icons/maskable-icon-512.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'maskable'
             }
           ]
         },
         workbox: {
           navigateFallback: '/index.html',
           // Keep install precache lean for Android TWA startup; chunks are cached on demand.
-          globPatterns: ['index.html', 'manifest.json', 'offline.html', 'newlogo.png', '.well-known/assetlinks.json'],
+          globPatterns: [
+            'index.html',
+            'manifest.json',
+            'offline.html',
+            'newlogo.png',
+            'favicon-16.png',
+            'favicon-32.png',
+            'apple-touch-icon.png',
+            'icons/*.png',
+            '.well-known/assetlinks.json'
+          ],
           manifestTransforms: [
             async (entries) => {
               const manifest = entries.filter((entry) => {
