@@ -452,6 +452,10 @@ const MediaLibrary = () => {
   const closeUpload = useCallback(() => setUploadType(null), []);
   const closeUploadPicker = useCallback(() => setIsMobileUploadOpen(false), []);
   const closeSelectedVideo = useCallback(() => setSelectedVideo(null), []);
+  const chooseUploadType = useCallback((type) => {
+    setIsMobileUploadOpen(false);
+    window.setTimeout(() => setUploadType(type), 0);
+  }, []);
 
   useBackClose(Boolean(uploadType), closeUpload);
   useBackClose(isMobileUploadOpen, closeUploadPicker);
@@ -981,10 +985,10 @@ const MediaLibrary = () => {
           >
             <h3 className={`text-lg font-bold ${isDayMode ? "text-slate-950" : "text-white"}`}>{t("media_library.upload_media", "上传影像")}</h3>
             <div className="mt-4 grid grid-cols-2 gap-2">
-              <button type="button" onClick={() => { setIsMobileUploadOpen(false); setUploadType("image"); }} className="rect-button-secondary min-h-[48px]">
+              <button type="button" onClick={() => chooseUploadType("image")} className="rect-button-secondary min-h-[48px]">
                 {t("media_library.upload_photos", "上传照片")}
               </button>
-              <button type="button" onClick={() => { setIsMobileUploadOpen(false); setUploadType("video"); }} className="rect-button-primary min-h-[48px] text-white">
+              <button type="button" onClick={() => chooseUploadType("video")} className="rect-button-primary min-h-[48px] text-white">
                 {t("media_library.upload_videos", "上传视频")}
               </button>
             </div>
