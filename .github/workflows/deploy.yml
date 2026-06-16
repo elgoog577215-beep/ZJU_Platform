@@ -38,7 +38,7 @@ jobs:
 
       - name: Install & Build
         run: |
-          npm install
+          npm install --legacy-peer-deps --package-lock=false
           npm run build
 
       - name: Update backend on server
@@ -57,7 +57,7 @@ jobs:
             fi
             git pull --ff-only origin master
             cd server
-            npm install --omit=dev
+            npm install --omit=dev --legacy-peer-deps --package-lock=false
             cd ..
             pm2 restart zju-server --update-env
             curl --fail --silent --show-error http://127.0.0.1:3001/api/health > /tmp/zju-health.json
