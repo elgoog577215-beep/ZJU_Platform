@@ -38,7 +38,7 @@ export const useContentPageEvents = (
 ) => {
   useEffect(() => {
     const handleOpenUpload = (e) => {
-      if (e.detail.type === contentType) setIsUploadOpen(true);
+      if (e?.detail?.type === contentType) setIsUploadOpen(true);
     };
     const handleToggleFilter = () => {
       setIsMobileSortOpen(false);

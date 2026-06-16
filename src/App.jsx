@@ -119,6 +119,26 @@ const MusicRedirect = () => {
   );
 };
 
+const hasProfileRouteId = (user) => {
+  const id = user?.id;
+  return id !== undefined && id !== null && String(id).trim() !== '';
+};
+
+const MeRedirect = () => {
+  const { user, loading } = useAuth();
+  const canOpenProfile = hasProfileRouteId(user);
+
+  useEffect(() => {
+    if (!loading && !canOpenProfile && typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('open-auth-modal'));
+    }
+  }, [canOpenProfile, loading]);
+
+  if (loading) return <LoadingScreen />;
+  if (canOpenProfile) return <Navigate to={`/user/${user.id}`} replace />;
+  return <PageTransition><Home /></PageTransition>;
+};
+
 const AdminRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading || !user || user.role !== 'admin') return <AdminAccessGate />;
@@ -267,6 +287,7 @@ const AppContent = () => {
                 </AdminRoute>
               }
             />
+            <Route path="/me" element={<MeRedirect />} />
             <Route path="/user/:id" element={<PageTransition><PublicProfile /></PageTransition>} />
             <Route path="/projects" element={<PageTransition><ProjectPlaza /></PageTransition>} />
             <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />

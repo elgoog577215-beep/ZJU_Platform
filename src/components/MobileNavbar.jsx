@@ -70,17 +70,22 @@ const MobileNavbar = () => {
     document.body.style.overflow = "";
   }, [location.pathname]);
 
+  const profilePath =
+    user?.id !== undefined && user?.id !== null && String(user.id).trim() !== ""
+      ? `/user/${user.id}`
+      : null;
+
   const navItems = [
     { key: "events", path: "/events", icon: Calendar, label: t("nav.events") },
     { key: "articles", path: "/articles", icon: Trees, label: t("nav.community") },
     { key: "media", path: "/media", icon: Film, label: t("nav.media") },
     { key: "hackathon", path: "/hackathon", icon: Sparkles, label: t("nav.hackathon") },
-    { key: "me", path: user ? `/user/${user.id}` : null, icon: UserCircle, label: t("nav.profile") },
+    { key: "me", path: profilePath, icon: UserCircle, label: t("nav.profile") },
   ];
 
   const isItemActive = (path, key) => {
     if (key === "me") {
-      return location.pathname.startsWith("/user/");
+      return location.pathname.startsWith("/user/") || location.pathname === "/me";
     }
     if (key === "hackathon") return location.pathname.startsWith("/hackathon");
     if (key === "articles") {
@@ -169,7 +174,7 @@ const MobileNavbar = () => {
             </motion.div>
           );
 
-          if (item.key === "me" && !user) {
+          if (item.key === "me" && !item.path) {
             return (
               <button
                 key={item.key}

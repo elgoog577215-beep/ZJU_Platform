@@ -1,4 +1,4 @@
-import React, { forwardRef, memo, useCallback, useEffect, useMemo, useState } from "react";
+import React, { forwardRef, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
@@ -344,6 +344,7 @@ const MediaLibrary = () => {
   const [externalPhoto, setExternalPhoto] = useState(null);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [isMobileUploadOpen, setIsMobileUploadOpen] = useState(false);
+  const pendingMobileUploadTypeRef = useRef(null);
   const [photoPage, setPhotoPage] = useState(1);
   const [videoPage, setVideoPage] = useState(1);
   const photoDeepLinkId = searchParams.get("photo");
@@ -453,9 +454,20 @@ const MediaLibrary = () => {
   const closeUploadPicker = useCallback(() => setIsMobileUploadOpen(false), []);
   const closeSelectedVideo = useCallback(() => setSelectedVideo(null), []);
   const chooseUploadType = useCallback((type) => {
+    pendingMobileUploadTypeRef.current = type;
     setIsMobileUploadOpen(false);
-    window.setTimeout(() => setUploadType(type), 0);
   }, []);
+
+  useEffect(() => {
+    if (isMobileUploadOpen || !pendingMobileUploadTypeRef.current) return undefined;
+
+    const nextType = pendingMobileUploadTypeRef.current;
+    pendingMobileUploadTypeRef.current = null;
+    // Let the picker pop its modal hash before opening the upload modal.
+    const timer = window.setTimeout(() => setUploadType(nextType), 120);
+
+    return () => window.clearTimeout(timer);
+  }, [isMobileUploadOpen]);
 
   useBackClose(Boolean(uploadType), closeUpload);
   useBackClose(isMobileUploadOpen, closeUploadPicker);

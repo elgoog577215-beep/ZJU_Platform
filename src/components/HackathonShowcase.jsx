@@ -407,6 +407,35 @@ const HackathonShowcase = () => {
     setActiveSection((previous) => (previous === index ? previous : index));
   }, []);
 
+  const getScrollMetrics = useCallback(() => {
+    const container = pageRef.current;
+    if (!container) return null;
+
+    if (compactFlow) {
+      const documentElement = document.documentElement;
+      const body = document.body;
+      const scrollTop =
+        window.scrollY ||
+        documentElement?.scrollTop ||
+        body?.scrollTop ||
+        0;
+      const scrollHeight = Math.max(
+        documentElement?.scrollHeight || 0,
+        body?.scrollHeight || 0,
+        container.scrollHeight || 0,
+      );
+      const clientHeight = window.innerHeight || documentElement?.clientHeight || container.clientHeight || 0;
+      return { scrollTop, scrollHeight, clientHeight, viewportTop: 0 };
+    }
+
+    return {
+      scrollTop: container.scrollTop,
+      scrollHeight: container.scrollHeight,
+      clientHeight: container.clientHeight,
+      viewportTop: container.getBoundingClientRect().top,
+    };
+  }, [compactFlow]);
+
   const fetchOutcome = useCallback(async () => {
     try {
       const response = await api.get("/competitions/current/outcome", {
@@ -451,11 +480,14 @@ const HackathonShowcase = () => {
       scrollFrameRef.current = window.requestAnimationFrame(() => {
         scrollFrameRef.current = null;
 
-        const scrollHeight = container.scrollHeight - container.clientHeight;
-        const nextProgress = scrollHeight > 0 ? (container.scrollTop / scrollHeight) * 100 : 0;
+        const metrics = getScrollMetrics();
+        if (!metrics) return;
+
+        const scrollHeight = metrics.scrollHeight - metrics.clientHeight;
+        const nextProgress = scrollHeight > 0 ? (metrics.scrollTop / scrollHeight) * 100 : 0;
         setScrollProgress((previous) => (Math.abs(previous - nextProgress) < 0.4 ? previous : nextProgress));
 
-        const viewportCenter = container.getBoundingClientRect().top + container.clientHeight / 2;
+        const viewportCenter = metrics.viewportTop + metrics.clientHeight / 2;
         let currentIndex = activeSectionRef.current;
         let closestDistance = Number.POSITIVE_INFINITY;
 
@@ -477,18 +509,20 @@ const HackathonShowcase = () => {
       });
     };
 
+    const scrollTarget = compactFlow ? window : container;
+
     handleScroll();
-    container.addEventListener("scroll", handleScroll, { passive: true });
+    scrollTarget.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("resize", handleScroll);
 
     return () => {
       if (scrollFrameRef.current) {
         window.cancelAnimationFrame(scrollFrameRef.current);
       }
-      container.removeEventListener("scroll", handleScroll);
+      scrollTarget.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleScroll);
     };
-  }, [updateActiveSection]);
+  }, [compactFlow, getScrollMetrics, updateActiveSection]);
 
   useSectionPager({
     containerRef: pageRef,
@@ -508,6 +542,15 @@ const HackathonShowcase = () => {
     const topOffset = window.matchMedia("(max-width: 640px)").matches ? 76 : 24;
     const targetIndex = showcaseSections.findIndex((section) => section.id === id);
     if (targetIndex >= 0) updateActiveSection(targetIndex);
+
+    if (compactFlow) {
+      const targetTop = target.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({
+        top: Math.max(targetTop - topOffset, 0),
+        behavior: shouldAnimate ? "smooth" : "auto",
+      });
+      return;
+    }
 
     scroller.scrollTo({
       top: Math.max(target.offsetTop - topOffset, 0),
@@ -738,7 +781,7 @@ const HackathonShowcase = () => {
     <div
       ref={pageRef}
       data-showcase-page
-      className={`showcase-page ${liteMode ? "showcase-lite" : ""} ${compactFlow ? "showcase-compact-flow" : "showcase-paged-flow"} ${isDayMode ? "showcase-theme-day" : "showcase-theme-dark"} overflow-y-auto overflow-x-hidden overscroll-y-contain ${theme.page}`}
+      className={`showcase-page ${liteMode ? "showcase-lite" : ""} ${compactFlow ? "showcase-compact-flow overflow-visible overscroll-y-auto" : "showcase-paged-flow overflow-y-auto overscroll-y-contain"} ${isDayMode ? "showcase-theme-day" : "showcase-theme-dark"} overflow-x-hidden ${theme.page}`}
       style={{
         fontFamily:
           '"HarmonyOS Sans SC", "MiSans", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif',
@@ -764,8 +807,11 @@ const HackathonShowcase = () => {
           .showcase-compact-flow {
             min-height: 100svh;
             height: auto;
+            overflow: visible;
             scroll-behavior: auto;
             scroll-snap-type: none;
+            touch-action: pan-y;
+            -webkit-overflow-scrolling: touch;
           }
 
           .showcase-section-frame {
@@ -776,6 +822,13 @@ const HackathonShowcase = () => {
           .showcase-section-compact {
             scroll-snap-align: none;
             contain-intrinsic-size: auto 900px;
+          }
+
+          @media (max-width: 1023px) {
+            .showcase-section-frame {
+              content-visibility: visible;
+              contain-intrinsic-size: auto;
+            }
           }
 
           .showcase-page::selection {
