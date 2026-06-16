@@ -161,6 +161,12 @@
             
         </activity>
 
+        <activity android:name=".AppWebViewActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:exported="false"
+            android:hardwareAccelerated="true"
+            android:theme="@style/AppTheme" />
+
         <activity android:name="com.google.androidbrowserhelper.trusted.FocusActivity" />
 
         <activity android:name="com.google.androidbrowserhelper.trusted.WebViewFallbackActivity"

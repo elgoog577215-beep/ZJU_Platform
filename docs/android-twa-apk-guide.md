@@ -2,7 +2,7 @@
 
 ## 目标
 
-本项目的 Android 端采用 Trusted Web Activity（TWA）封装 `https://tuotuzju.com/`，让用户从桌面图标进入后直接打开现有网页应用。网页侧原本的启动动画保留，作为 App 进入后的首屏品牌启动体验。
+本项目的 Android 端采用内置 WebView 作为主入口，直接加载 `https://tuotuzju.com/`，避免新版 Android 设备上被 Chrome/TWA 首次运行、承载浏览器状态或外部 Custom Tabs 行为卡住。网页侧原本的启动动画保留，作为 App 进入后的首屏品牌启动体验。
 
 ## 当前配置
 
@@ -13,16 +13,18 @@
 - 显示模式：`standalone`
 - 屏幕方向：`portrait`
 - 通知委托：已开启
-- 兼容策略：优先使用 TWA；如果设备没有可用 Chrome / Custom Tabs / TWA 承载浏览器，则回退到内置 WebView。
+- 兼容策略：主入口固定进入 `AppWebViewActivity`，由内置 WebView 承载网页；TWA 相关元数据保留用于域名绑定和后续兼容。
+- WebView 能力：支持 JS 弹窗、多窗口拦截、文件上传选择器、下载外跳、站内前进后退。
 - TWA 工程目录：`android-twa/`
 - 公开域名绑定文件：`public/.well-known/assetlinks.json`
+- 官网下载页：`/download` 只面向浏览器用户；App/TWA/standalone 运行时访问会回到首页，避免 App 内重复下载 App。
 
 ## 本机工具链
 
 当前打包依赖以下本机工具：
 
 - Node.js / npm
-- Bubblewrap CLI：通过 `npx @bubblewrap/cli@1.24.1` 使用
+- Gradle Wrapper：`android-twa/gradlew`
 - JDK 17：`/Users/yq/.cache/codex-jdks/jdk-17.0.19+10`
 - Android SDK：`/Users/yq/Library/Android/sdk`
 - Release keystore：`/Users/yq/.tuotuzju-android/tuotuzju-release.keystore`
@@ -32,7 +34,7 @@
 
 ## 域名绑定
 
-Android TWA 必须通过 Digital Asset Links 证明 APK 和网站属于同一方。当前证书指纹已经写入：
+Digital Asset Links 用于证明 APK 和网站属于同一方。当前证书指纹已经写入：
 
 ```txt
 public/.well-known/assetlinks.json
@@ -44,7 +46,7 @@ public/.well-known/assetlinks.json
 https://tuotuzju.com/.well-known/assetlinks.json
 ```
 
-如果该地址返回 HTML、404 或非 JSON，Android 会降级为 Custom Tabs，无法获得完整 TWA 体验。
+如果该地址返回 HTML、404 或非 JSON，TWA/域名验证会失败；当前 WebView 主入口仍可打开，但深链信任和后续 TWA 兼容会受影响。
 
 线上验证命令：
 
@@ -66,10 +68,25 @@ source /Users/yq/.tuotuzju-android/keystore.env
 export JAVA_HOME=/Users/yq/.cache/codex-jdks/jdk-17.0.19+10/Contents/Home
 export ANDROID_HOME=/Users/yq/Library/Android/sdk
 export ANDROID_SDK_ROOT=/Users/yq/Library/Android/sdk
-node ~/.npm/_npx/b919127f08f4c910/node_modules/@bubblewrap/cli/bin/bubblewrap.js build --directory=android-twa
+cd android-twa
+./gradlew clean assembleRelease
+cd ..
+
+BT=/Users/yq/Library/Android/sdk/build-tools/36.1.0
+UNSIGNED=android-twa/app/build/outputs/apk/release/app-release-unsigned.apk
+ALIGNED=android-twa/app/build/outputs/apk/release/app-release-unsigned-aligned.apk
+SIGNED=output/android/apk/tuotuzju-v8-20260617-signed.apk
+"$BT/zipalign" -p -f 4 "$UNSIGNED" "$ALIGNED"
+"$BT/apksigner" sign \
+  --ks /Users/yq/.tuotuzju-android/tuotuzju-release.keystore \
+  --ks-key-alias tuotuzju \
+  --ks-pass "pass:${TUOTUZJU_KEYSTORE_PASSWORD}" \
+  --key-pass "pass:${TUOTUZJU_KEY_PASSWORD}" \
+  --out "$SIGNED" \
+  "$ALIGNED"
 ```
 
-如果 Bubblewrap 提示输入 keystore password 和 key password，使用 `keystore.env` 中对应值。
+不要用 Bubblewrap 重新生成工程来覆盖 `android-twa/`，否则可能把 `AppWebViewActivity`、上传选择器和弹窗处理逻辑冲掉。
 
 ## 验证命令
 
@@ -77,7 +94,8 @@ node ~/.npm/_npx/b919127f08f4c910/node_modules/@bubblewrap/cli/bin/bubblewrap.js
 
 ```bash
 find android-twa -name "*.apk" -o -name "*.aab"
-/Users/yq/Library/Android/sdk/build-tools/34.0.0/apksigner verify --print-certs <apk-path>
+/Users/yq/Library/Android/sdk/build-tools/36.1.0/aapt dump badging <apk-path>
+/Users/yq/Library/Android/sdk/build-tools/36.1.0/apksigner verify --verbose --print-certs <apk-path>
 ```
 
 本地安装测试：
@@ -88,7 +106,8 @@ find android-twa -name "*.apk" -o -name "*.aab"
 
 安装后重点检查：
 
-- App 是否正常启动到 `https://tuotuzju.com/`
+- App 是否进入 `com.tuotuzju.app/.AppWebViewActivity` 并正常加载 `https://tuotuzju.com/`
+- 如果外部链接尝试把 App 打开到 `/download`，应被引导回首页，而不是在 App 内显示下载页。
 - 网页启动动画是否保留
 - 底部导航、活动详情、AI 社区、影像页面是否能正常操作
 - 推送权限弹窗或通知授权路径是否符合预期
@@ -109,18 +128,17 @@ find android-twa -name "*.apk" -o -name "*.aab"
 
 如果 `resolve-activity` 找不到 `com.tuotuzju.app/.LauncherActivity`，说明安装包或启动入口异常，需要重新构建 APK。
 
-### 2. 判断是否进入 TWA / Chrome 承载层
+### 2. 判断是否进入 WebView 承载层
 
 启动后执行：
 
 ```bash
-/Users/yq/Library/Android/sdk/platform-tools/adb shell dumpsys activity activities | grep -E "topResumedActivity|mResumedActivity|LauncherActivity|CustomTab|Trusted"
+/Users/yq/Library/Android/sdk/platform-tools/adb shell dumpsys activity activities | grep -E "topResumedActivity|mResumedActivity|LauncherActivity|AppWebViewActivity|AndroidRuntime"
 ```
 
 - 如果顶部是 `com.tuotuzju.app/.LauncherActivity` 后立刻退出，优先看原生崩溃日志。
-- 如果顶部是 `com.android.chrome/...FirstRunActivity`，说明 Chrome 首次运行页挡住了 TWA，需要在设备上完成 Chrome 初始化。
-- 如果顶部是 `com.android.chrome/...CustomTabActivity`，说明 APK 已进入承载层，但可能因为 `assetlinks.json` 未生效而降级为 Custom Tabs。
-- 如果设备没有 Chrome 或没有支持 Custom Tabs / TWA 的浏览器，新版 APK 应进入 `WebViewFallbackActivity`，而不是停在桌面或反复启动 `LauncherActivity`。
+- 如果顶部是 `com.tuotuzju.app/.AppWebViewActivity`，说明原生入口正常，继续看网页资源、网络和 JS 日志。
+- 如果顶部仍跳到 Chrome 或 Custom Tabs，说明安装的不是新版 WebView 主入口 APK，先核对 `versionCode`。
 
 ### 3. 抓取关键日志
 
@@ -128,20 +146,19 @@ find android-twa -name "*.apk" -o -name "*.aab"
 /Users/yq/Library/Android/sdk/platform-tools/adb logcat -c
 /Users/yq/Library/Android/sdk/platform-tools/adb shell am start -n com.tuotuzju.app/.LauncherActivity
 sleep 8
-/Users/yq/Library/Android/sdk/platform-tools/adb logcat -d | grep -Ei "tuotuzju|TrustedWeb|CustomTabs|Chrome|cr_|asset_statements|FirstRun|AndroidRuntime"
+/Users/yq/Library/Android/sdk/platform-tools/adb logcat -d | grep -Ei "tuotuzju|AppWebViewActivity|File chooser|AndroidRuntime|chromium|cr_|asset_statements"
 ```
 
 排查优先级：
 
 - `AndroidRuntime` / `FATAL EXCEPTION`：原生崩溃。
-- `FirstRunActivity`：Chrome 首次运行阻塞。
-- `asset_statements` / `Digital Asset Links` / `TrustedWeb` 相关错误：域名绑定未通过。
-- `Found no TWA providers`：设备缺少可用 TWA 承载浏览器，应确认新版 APK 的 fallback strategy 是 `webview`，并且 Manifest 已包含 `android.permission.INTERNET`。
-- Chrome 已打开但网页空白：继续检查线上首页资源、Service Worker、首屏 JS 和网络请求。
+- `AppWebViewActivity` 已启动但网页空白：继续检查网络、线上首页资源、Service Worker、首屏 JS。
+- `File chooser` 日志：用于判断上传按钮是否真的触发了 Android 文件选择器。
+- `asset_statements` / `Digital Asset Links` 错误：不应阻止当前 WebView 主入口启动，但会影响域名验证和后续 TWA 兼容。
 
 ### 4. 启动性能重点
 
-Android App / TWA 环境不应该加载桌面端装饰资源，例如 Three.js 背景、桌面自定义鼠标和桌面滚动进度。构建后检查：
+Android App / WebView 环境不应该加载桌面端装饰资源，例如 Three.js 背景、桌面自定义鼠标和桌面滚动进度。构建后检查：
 
 ```bash
 npm run build
@@ -158,5 +175,7 @@ grep -n "mammoth\\|pdf-\\|three-vendor\\|AdminDashboard" dist/sw.js || true
 - `android-twa/twa-manifest.json` 中的 `appVersionCode` 和 `appVersionName`
 - `android-twa/app/build.gradle` 中的 `versionCode` 和 `versionName`
 - `android-twa/app/build.gradle` 中的 `fallbackType`，应保持为 `webview`，确保无 Chrome / 无 TWA 浏览器设备仍可打开
+- `src/components/AppDownload.jsx` 中的 `APK_VERSION` 和 `APK_UPDATED_AT`
+- `public/downloads/tuotuzju-android.apk`，应覆盖为最新 signed APK
 
 其中 `versionCode` 必须递增，否则 Android 无法覆盖安装，也无法提交到应用商店。

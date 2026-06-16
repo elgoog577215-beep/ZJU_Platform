@@ -41,6 +41,7 @@ server-access.local.txt
 *.jks
 *.keystore
 android-twa/.gradle/
+android-twa/local.properties
 android-twa/build/
 android-twa/app/build/
 android-twa/*.apk

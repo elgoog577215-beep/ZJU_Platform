@@ -20,8 +20,8 @@
     "path": "/Users/yq/.tuotuzju-android/tuotuzju-release.keystore",
     "alias": "tuotuzju"
   },
-  "appVersionName": "3",
-  "appVersionCode": 3,
+  "appVersionName": "8",
+  "appVersionCode": 8,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://tuotuzju.com/manifest.json",
@@ -34,7 +34,7 @@
   "isChromeOSOnly": false,
   "isMetaQuest": false,
   "fullScopeUrl": "https://tuotuzju.com/",
-  "minSdkVersion": 21,
+  "minSdkVersion": 23,
   "orientation": "portrait",
   "fingerprints": [],
   "additionalTrustedOrigins": [],
@@ -43,5 +43,5 @@
   "fileHandlers": [],
   "launchHandlerClientMode": "",
   "displayOverride": [],
-  "appVersion": "3"
+  "appVersion": "8"
 }

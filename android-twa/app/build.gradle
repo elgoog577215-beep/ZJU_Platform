@@ -55,10 +55,10 @@ android {
     namespace "com.tuotuzju.app"
     defaultConfig {
         applicationId "com.tuotuzju.app"
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion 35
-        versionCode 3
-        versionName "3"
+        versionCode 8
+        versionName "8"
 
         // The name for the application
         resValue "string", "appName", twaManifest.name
@@ -208,6 +208,6 @@ repositories {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     
-        implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.6.2'
+        implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.7.1'
     
 }

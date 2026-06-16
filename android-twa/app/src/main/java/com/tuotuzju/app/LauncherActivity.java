@@ -15,6 +15,8 @@
  */
 package com.tuotuzju.app;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Build;
@@ -23,7 +25,7 @@ import android.os.Bundle;
 
 
 public class LauncherActivity
-        extends com.google.androidbrowserhelper.trusted.LauncherActivity {
+        extends Activity {
     
 
     
@@ -40,15 +42,19 @@ public class LauncherActivity
         } else {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         }
-    }
 
-    @Override
-    protected Uri getLaunchingUrl() {
-        // Get the original launch Url.
-        Uri uri = super.getLaunchingUrl();
+        Uri uri = getIntent().getData();
+        if (uri == null) {
+            uri = Uri.parse(getString(R.string.launchUrl));
+        }
+        if ("/download".equals(uri.getPath())) {
+            uri = Uri.parse(getString(R.string.launchUrl));
+        }
 
-        
-
-        return uri;
+        Intent intent = new Intent(this, AppWebViewActivity.class);
+        intent.setData(uri);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
+        finish();
     }
 }
