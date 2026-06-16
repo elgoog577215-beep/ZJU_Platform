@@ -176,9 +176,13 @@ export const PROJECT_PLAZA_CSS = `
 @media (max-width:900px){.ppp-cgrid{grid-template-columns:1fr;}.ppp-preview{position:static;max-width:360px;}}
 
 @media (max-width:820px){
+  .ppp-wrap{padding:calc(env(safe-area-inset-top) + 90px) 24px calc(env(safe-area-inset-bottom) + 132px);}
   .ppp-modal{grid-template-columns:1fr;max-height:90vh;overflow:auto;}
   .ppp-mgallery{min-height:200px;height:200px;}
   .ppp-ph h1{font-size:32px;}
+  .ppp-empty{min-height:0;margin-top:-18px;padding:11px 16px 14px;font-size:13.5px;line-height:1.45;}
+  .ppp-empty-emoji{display:none;}
+  .ppp-empty-action{display:none;}
 }
 @media (prefers-reduced-motion:reduce){.ppp-card,.ppp-newbtn,.ppp-chip{transition:none;}.ppp-scrim,.ppp-modal{animation:none;}}
 `;

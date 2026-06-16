@@ -426,7 +426,7 @@ const ProjectPlaza = () => {
               <div className="ppp-empty">
                 <div className="ppp-empty-emoji">🌱</div>
                 还没有匹配的项目名片。
-                <button className="ppp-newbtn" onClick={startCreate} style={{ marginTop: 16 }}>＋ 发布第一个项目</button>
+                <button className="ppp-newbtn ppp-empty-action" onClick={startCreate} style={{ marginTop: 16 }}>＋ 发布第一个项目</button>
               </div>
             ) : (
               <div className="ppp-grid">

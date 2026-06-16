@@ -664,16 +664,6 @@ const MediaLibrary = () => {
               isDayMode={isDayMode}
               allLabel={t("common.all", "全部")}
             />
-            <button
-              type="button"
-              onClick={() => openUpload()}
-              className={`rect-button-secondary inline-flex min-h-[44px] items-center justify-center gap-2 px-4 py-2 text-sm font-semibold md:hidden ${
-                isDayMode ? "text-slate-700" : "text-white"
-              }`}
-            >
-              <Upload size={17} />
-              {t("media_library.upload_media", "上传影像")}
-            </button>
           </motion.div>
 
           {categoriesError ? (

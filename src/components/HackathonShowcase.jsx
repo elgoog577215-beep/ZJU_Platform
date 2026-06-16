@@ -1423,9 +1423,21 @@ const HackathonShowcase = () => {
           }
 
           @media (max-width: 640px) {
+            .showcase-compact-flow .showcase-gate-frame {
+              min-height: auto;
+            }
+
+            .showcase-compact-flow .showcase-gate-frame .showcase-section-grid {
+              gap: 1.15rem;
+            }
+
+            .showcase-compact-flow .showcase-gate-frame .showcase-hero-copy {
+              min-height: auto;
+            }
+
             .showcase-title {
-              font-size: clamp(3rem, 13.5vw, 4.6rem);
-              line-height: 1.02;
+              font-size: clamp(2.65rem, 11vw, 3.85rem);
+              line-height: 0.98;
             }
 
             .showcase-title-line,
@@ -1433,8 +1445,98 @@ const HackathonShowcase = () => {
               white-space: normal;
             }
 
+            .showcase-hero-copy .showcase-title {
+              margin-top: 0.85rem;
+            }
+
+            .showcase-hero-desc {
+              margin-top: 1rem;
+              font-size: 0.98rem;
+              line-height: 1.72;
+            }
+
+            .showcase-hero-actions {
+              margin-top: 1.15rem;
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 0.65rem;
+            }
+
+            .showcase-hero-actions > * {
+              min-height: 2.9rem;
+              padding-left: 0.8rem;
+              padding-right: 0.8rem;
+            }
+
+            .showcase-hero-actions > *:first-child {
+              grid-column: 1 / -1;
+            }
+
+            [data-showcase-hero-stats] {
+              margin-top: 1rem;
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+              gap: 0.6rem;
+            }
+
+            .showcase-metric-tile {
+              padding: 0.7rem 0.75rem;
+            }
+
+            .showcase-metric-tile .font-mono {
+              font-size: clamp(1.65rem, 9vw, 2.2rem);
+            }
+
+            .showcase-metric-tile p {
+              margin-top: 0.15rem;
+              font-size: 0.72rem;
+              line-height: 1.2;
+            }
+
+            .showcase-metric-tile p:last-child {
+              display: none;
+            }
+
             .showcase-poster-heading {
               line-height: 1.04;
+            }
+          }
+
+          @media (max-width: 640px) and (max-height: 720px) {
+            .showcase-hero-desc {
+              display: -webkit-box;
+              -webkit-box-orient: vertical;
+              -webkit-line-clamp: 2;
+              margin-top: 0.8rem;
+              overflow: hidden;
+            }
+
+            .showcase-hero-actions {
+              margin-top: 0.85rem;
+              gap: 0.5rem;
+            }
+
+            .showcase-hero-actions > * {
+              min-height: 2.55rem;
+            }
+
+            [data-showcase-hero-stats] {
+              margin-top: 0.75rem;
+              grid-template-columns: repeat(4, minmax(0, 1fr));
+              gap: 0.45rem;
+            }
+
+            .showcase-metric-tile {
+              padding: 0.5rem 0.35rem;
+            }
+
+            .showcase-metric-tile .font-mono {
+              font-size: clamp(1.1rem, 5.4vw, 1.45rem);
+            }
+
+            .showcase-metric-tile p {
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
             }
           }
 
