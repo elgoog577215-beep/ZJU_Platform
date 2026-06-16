@@ -18,10 +18,49 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
+      - name: Preflight server backend
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            set -eu
+            cd /var/www/ZJU_Platform
+            test "$(git branch --show-current)" = "master"
+            git fetch origin master
+            if [ -n "$(git status --porcelain)" ]; then
+              echo "Server worktree is dirty. Resolve or stash server-local changes before deploying."
+              git status --short
+              exit 1
+            fi
+            git merge-base --is-ancestor HEAD origin/master
+
       - name: Install & Build
         run: |
           npm install
           npm run build
+
+      - name: Update backend on server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            set -eu
+            cd /var/www/ZJU_Platform
+            if [ -n "$(git status --porcelain)" ]; then
+              echo "Server worktree became dirty after preflight. Stop before backend update."
+              git status --short
+              exit 1
+            fi
+            git pull --ff-only origin master
+            cd server
+            npm install --omit=dev
+            cd ..
+            pm2 restart zju-server --update-env
+            curl --fail --silent --show-error http://127.0.0.1:3001/api/health > /tmp/zju-health.json
 
       - name: Upload dist to server
         uses: appleboy/scp-action@v0.1.7
@@ -34,16 +73,19 @@ jobs:
           strip_components: 1
           rm: true
 
-      - name: Restart services
+      - name: Reload nginx
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            set -e
-            cd /var/www/ZJU_Platform
-            git pull origin master
-            cd server && npm install --omit=dev && cd ..
-            pm2 restart all
+            set -eu
             systemctl reload nginx
+
+      - name: Verify production contract
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error https://tuotuzju.com/api/health > /tmp/zju-health.json
+          curl --fail --silent --show-error 'https://tuotuzju.com/api/projects?limit=1' > /tmp/zju-projects.json
+          curl --fail --silent --show-error https://tuotuzju.com/projects > /tmp/zju-projects.html
