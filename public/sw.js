@@ -6,7 +6,6 @@ const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/offline.html',
-  '/pwa-icon.svg',
   '/newlogo.png',
 ];
 
@@ -90,8 +89,8 @@ async function syncData() {
 self.addEventListener('push', (event) => {
   const options = {
     body: event.data?.text() || '新通知',
-    icon: '/pwa-icon.svg',
-    badge: '/pwa-icon.svg',
+    icon: '/newlogo.png',
+    badge: '/newlogo.png',
     vibrate: [100, 50, 100],
     data: {
       dateOfArrival: Date.now(),

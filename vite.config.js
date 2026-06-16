@@ -40,17 +40,17 @@ export default defineConfig(({ mode }) => {
           start_url: '/',
           icons: [
             {
-              src: 'pwa-icon.svg',
-              sizes: 'any',
-              type: 'image/svg+xml',
-              purpose: 'any maskable'
+              src: 'newlogo.png',
+              sizes: '729x734',
+              type: 'image/png',
+              purpose: 'any'
             }
           ]
         },
         workbox: {
           navigateFallback: '/index.html',
           // Keep install precache lean for Android TWA startup; chunks are cached on demand.
-          globPatterns: ['index.html', 'manifest.json', 'offline.html', 'pwa-icon.svg', '.well-known/assetlinks.json'],
+          globPatterns: ['index.html', 'manifest.json', 'offline.html', 'newlogo.png', '.well-known/assetlinks.json'],
           manifestTransforms: [
             async (entries) => {
               const manifest = entries.filter((entry) => {

@@ -7,7 +7,7 @@ const DEFAULT_DESCRIPTION =
   'AI生态团队信息聚合平台，聚合活动、画廊、播客、视频与 AI 社区内容。';
 
 const toAbsoluteUrl = (siteUrl, value) => {
-  if (!value) return `${siteUrl}/pwa-icon.svg`;
+  if (!value) return `${siteUrl}/newlogo.png`;
   if (/^https?:\/\//i.test(value)) return value;
   return `${siteUrl}${value.startsWith('/') ? value : `/${value}`}`;
 };
@@ -82,7 +82,7 @@ const SEO = ({
           name: siteName,
           alternateName: siteAltName,
           url: siteUrl,
-          logo: `${siteUrl}/pwa-icon.svg`,
+          logo: `${siteUrl}/newlogo.png`,
           description: defaultDescription,
           founder: {
             '@type': 'Organization',

@@ -13,8 +13,8 @@
   "backgroundColor": "#0A0A0A",
   "enableNotifications": true,
   "startUrl": "/",
-  "iconUrl": "https://tuotuzju.com/pwa-icon.svg",
-  "maskableIconUrl": "https://tuotuzju.com/pwa-icon.svg",
+  "iconUrl": "https://tuotuzju.com/newlogo.png",
+  "maskableIconUrl": "https://tuotuzju.com/newlogo.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
     "path": "/Users/yq/.tuotuzju-android/tuotuzju-release.keystore",
