@@ -19,7 +19,7 @@ import { useMediaQuery } from './hooks/useMediaQuery';
 import { usePerformanceMonitor } from './hooks/usePerformanceMonitor';
 import { useServiceWorker } from './hooks/useServiceWorker';
 import { routeTransition, useReducedMotion } from './utils/animations';
-import { isStandaloneDisplay } from './utils/displayMode';
+import { isAppRuntime as detectAppRuntime } from './utils/displayMode';
 import { getOrCreateSiteVisitorKey } from './utils/visitorKey';
 import SEO from './components/SEO';
 
@@ -40,6 +40,7 @@ const Articles = lazy(() => import('./components/AICommunity'));
 const Events = lazy(() => import('./components/Events'));
 const HomeSplash = lazy(() => import('./components/HomeSplash'));
 const About = lazy(() => import('./components/About'));
+const AppDownload = lazy(() => import('./components/AppDownload'));
 const HackathonSeasonOne = lazy(() => import('./components/HackathonSeasonOne'));
 const HackathonWorks = lazy(() => import('./components/HackathonWorks'));
 const FutureLearningCenter = lazy(() => import('./components/FutureLearningCenter'));
@@ -151,7 +152,8 @@ const AppContent = () => {
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isHomeRoute = location.pathname === '/';
   const isAboutRoute = location.pathname === '/about';
-  const isImmersiveRoute = isHomeRoute || isAboutRoute || location.pathname.startsWith('/hackathon');
+  const isDownloadRoute = location.pathname === '/download';
+  const isImmersiveRoute = isHomeRoute || isAboutRoute || isDownloadRoute || location.pathname.startsWith('/hackathon');
   const hideGlobalShell = isHomeRoute;
   const { cursorEnabled, settings, uiMode } = useSettings();
   const hasDesktopPointer = useMediaQuery('(min-width: 768px) and (hover: hover) and (pointer: fine)');
@@ -190,7 +192,7 @@ const AppContent = () => {
 
     const standaloneQuery = window.matchMedia?.('(display-mode: standalone)');
     const fullscreenQuery = window.matchMedia?.('(display-mode: fullscreen)');
-    const updateDisplayMode = () => setIsAppRuntime(isStandaloneDisplay());
+    const updateDisplayMode = () => setIsAppRuntime(detectAppRuntime());
 
     updateDisplayMode();
     standaloneQuery?.addEventListener?.('change', updateDisplayMode);
@@ -275,6 +277,7 @@ const AppContent = () => {
             <Route path="/community/groups" element={<Navigate to="/articles" replace />} />
             <Route path="/events" element={<PageTransition><Events /></PageTransition>} />
             <Route path="/about" element={<PageTransition><About /></PageTransition>} />
+            <Route path="/download" element={<PageTransition><AppDownload /></PageTransition>} />
             <Route path="/hackathon" element={<PageTransition><HackathonSeasonOne /></PageTransition>} />
             <Route path="/hackathon/showcase" element={<PageTransition><HackathonSeasonOne /></PageTransition>} />
             <Route path="/hackathon/works" element={<PageTransition><HackathonWorks /></PageTransition>} />

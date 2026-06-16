@@ -20,12 +20,20 @@ const SEO = ({
   type = 'website',
   article = {},
 }) => {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const lang = i18n.language || 'zh';
   const siteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://tuotuzj.com';
+  const siteName = t('seo.site_name', SITE_NAME);
+  const siteAltName = t('seo.site_alt_name', SITE_ALT_NAME);
+  const defaultDescription = t('seo.default_desc', DEFAULT_DESCRIPTION);
+  const authorName = t('seo.author', 'AI生态团队');
+  const keywords = t(
+    'seo.keywords',
+    '拓途浙享, 浙江大学, AI生态团队, 活动, 画廊, 播客, 视频, AI社区, 校园平台',
+  );
 
-  const seoTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} | ${SITE_ALT_NAME}`;
-  const seoDescription = description || DEFAULT_DESCRIPTION;
+  const seoTitle = title ? `${title} | ${siteName}` : `${siteName} | ${siteAltName}`;
+  const seoDescription = description || defaultDescription;
   const seoImage = toAbsoluteUrl(siteUrl, image);
   const seoUrl = url || siteUrl;
 
@@ -35,11 +43,8 @@ const SEO = ({
       <title>{seoTitle}</title>
       <meta name="title" content={seoTitle} />
       <meta name="description" content={seoDescription} />
-      <meta name="author" content="AI生态团队" />
-      <meta
-        name="keywords"
-        content="拓途浙享, 浙江大学, AI生态团队, 活动, 画廊, 播客, 视频, AI社区, 校园平台"
-      />
+      <meta name="author" content={authorName} />
+      <meta name="keywords" content={keywords} />
       <meta name="robots" content="index, follow" />
       <meta name="theme-color" content="#0a0a0a" />
       <link rel="canonical" href={seoUrl} />
@@ -49,7 +54,7 @@ const SEO = ({
       <meta property="og:title" content={seoTitle} />
       <meta property="og:description" content={seoDescription} />
       <meta property="og:image" content={seoImage} />
-      <meta property="og:site_name" content={SITE_NAME} />
+      <meta property="og:site_name" content={siteName} />
       <meta property="og:locale" content={lang === 'zh' ? 'zh_CN' : 'en_US'} />
 
       {type === 'article' && (
@@ -74,14 +79,14 @@ const SEO = ({
         {JSON.stringify({
           '@context': 'https://schema.org',
           '@type': 'Organization',
-          name: SITE_NAME,
-          alternateName: SITE_ALT_NAME,
+          name: siteName,
+          alternateName: siteAltName,
           url: siteUrl,
           logo: `${siteUrl}/pwa-icon.svg`,
-          description: DEFAULT_DESCRIPTION,
+          description: defaultDescription,
           founder: {
             '@type': 'Organization',
-            name: 'AI生态团队',
+            name: authorName,
           },
           contactPoint: {
             '@type': 'ContactPoint',
@@ -95,8 +100,8 @@ const SEO = ({
         {JSON.stringify({
           '@context': 'https://schema.org',
           '@type': 'WebSite',
-          name: SITE_NAME,
-          alternateName: SITE_ALT_NAME,
+          name: siteName,
+          alternateName: siteAltName,
           url: siteUrl,
           potentialAction: {
             '@type': 'SearchAction',

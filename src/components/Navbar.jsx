@@ -19,6 +19,7 @@ import {
   Film,
   Info,
   Shield,
+  Smartphone,
   Trees,
   UserCircle,
   Wallpaper,
@@ -131,6 +132,7 @@ const Navbar = () => {
     { key: "projects", path: "/projects" },
     { key: "media", path: "/media" },
     { key: "about", path: "/about" },
+    { key: "download", path: "/download" },
     ...(isAdmin ? [{ key: "admin", path: "/admin" }] : []),
   ];
   const isNavItemActive = (path) => {
@@ -154,6 +156,7 @@ const Navbar = () => {
     if (pathname.startsWith("/gallery")) return t("nav.gallery");
     if (pathname.startsWith("/videos")) return t("nav.videos");
     if (pathname.startsWith("/media")) return t("nav.media");
+    if (pathname.startsWith("/download")) return t("nav.download");
     if (pathname.startsWith("/me") || pathname.startsWith("/user/")) {
       return t("nav.me");
     }
@@ -233,7 +236,8 @@ const Navbar = () => {
     !location.pathname.startsWith("/me") &&
     !location.pathname.startsWith("/user/");
   const secondaryMobileLinks = [
-    { key: "media", path: "/media", icon: Film, label: "影像库" },
+    { key: "media", path: "/media", icon: Film },
+    { key: "download", path: "/download", icon: Smartphone },
     { key: "about", path: "/about", icon: Info },
     ...(isAdmin ? [{ key: "admin", path: "/admin", icon: Shield }] : []),
   ];
@@ -257,7 +261,7 @@ const Navbar = () => {
       animate={prefersReducedMotion ? undefined : "animate"}
       className={`motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 pt-[calc(env(safe-area-inset-top)+0.625rem)] pb-2.5 md:py-3 border-b backdrop-blur-xl ${shellClasses}`}
       role="navigation"
-      aria-label="主导航"
+      aria-label={t("nav.main_aria")}
     >
       <Link
         to="/"
@@ -289,7 +293,7 @@ const Navbar = () => {
       <div
         className={`hidden min-w-0 items-center gap-0.5 border px-1.5 py-1 lg:flex xl:gap-1 xl:px-2 ${desktopPillClasses}`}
         role="menubar"
-        aria-label="导航菜单"
+        aria-label={t("nav.menu_aria")}
       >
         {navLinks.map((item) => (
           <Link
@@ -388,8 +392,8 @@ const Navbar = () => {
           type="button"
           onClick={() => setIsThemeOpen(true)}
           className={`btn-icon rect-icon-button ${isDayMode ? "text-slate-700 hover:text-violet-800" : "text-cyan-100 hover:text-cyan-50"}`}
-          title="动态壁纸"
-          aria-label="动态壁纸设置"
+          title={t("nav.wallpaper_title")}
+          aria-label={t("nav.wallpaper_aria")}
         >
           <Wallpaper size={18} aria-hidden="true" />
         </button>
@@ -647,7 +651,7 @@ const Navbar = () => {
                       {t("nav.more", "更多")}
                     </div>
                     <div className="mt-1 text-lg font-bold">
-                      {t("nav.mobile_more_title", "更多入口")}
+                      {t("nav.mobile_more_title")}
                     </div>
                   </div>
                   <button
@@ -705,7 +709,9 @@ const Navbar = () => {
                     className={`motion-press flex min-h-[52px] items-center gap-3 rounded-lg border px-3 text-left ${isDayMode ? "border-slate-200/80 bg-slate-50/90 text-slate-700 hover:bg-white" : "border-cyan-300/15 bg-cyan-300/[0.06] text-cyan-100 hover:bg-cyan-300/[0.1]"}`}
                   >
                     <Wallpaper size={18} aria-hidden="true" />
-                    <span className="text-sm font-semibold">动态壁纸</span>
+                    <span className="text-sm font-semibold">
+                      {t("nav.wallpaper_title")}
+                    </span>
                   </button>
 
                   <div
@@ -783,7 +789,7 @@ const Navbar = () => {
                   <div className="flex items-center gap-2">
                     <Wallpaper size={16} />
                     <h3 className="text-sm font-bold uppercase tracking-widest">
-                      动态壁纸
+                      {t("nav.wallpaper_title")}
                     </h3>
                   </div>
                   <button
@@ -806,10 +812,10 @@ const Navbar = () => {
                       </div>
                       <div>
                         <div className="font-bold text-slate-900">
-                          动态壁纸仅夜间模式可用
+                          {t("nav.wallpaper_dark_only")}
                         </div>
                         <p className="mt-1 leading-6">
-                          白天模式保持轻量静态背景，切到夜间后可以更换网站动态背景。
+                          {t("nav.wallpaper_day_hint")}
                         </p>
                         <button
                           type="button"
@@ -817,7 +823,7 @@ const Navbar = () => {
                           className="motion-press mt-3 inline-flex min-h-10 items-center gap-2 rounded-md bg-slate-950 px-4 text-sm font-bold text-white hover:bg-slate-800"
                         >
                           <Moon size={16} />
-                          切到夜间模式
+                          {t("nav.switch_to_night")}
                         </button>
                       </div>
                     </div>
@@ -830,13 +836,15 @@ const Navbar = () => {
                           Website Background
                         </div>
                         <div className="mt-1 text-sm font-bold text-white">
-                          当前：{activeBackgroundScene.name}
+                          {t("nav.wallpaper_current", {
+                            name: activeBackgroundScene.name,
+                          })}
                         </div>
                       </div>
                       <div className="hidden text-right text-xs leading-5 text-white/50 sm:block">
-                        立即生效
+                        {t("nav.wallpaper_live")}
                         <br />
-                        已保存到本机
+                        {t("nav.wallpaper_saved")}
                       </div>
                     </div>
 
@@ -860,9 +868,9 @@ const Navbar = () => {
                                 <div className="truncate text-sm font-black text-white">
                                   {scene.name}
                                 </div>
-                                {isActiveScene ? (
+                                  {isActiveScene ? (
                                   <span className="shrink-0 rounded-md bg-cyan-300 px-2 py-0.5 text-[10px] font-black text-slate-950">
-                                    已启用
+                                    {t("nav.wallpaper_enabled")}
                                   </span>
                                 ) : null}
                               </div>
@@ -888,7 +896,7 @@ const Navbar = () => {
                   <div
                     className={`mb-2 px-2 text-[11px] ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
                   >
-                    日间/夜间影响全站配色与文字对比度
+                    {t("nav.appearance_hint")}
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     {["dark", "day"].map((mode) => {
@@ -926,7 +934,7 @@ const Navbar = () => {
                 <div
                   className="hidden"
                 >
-                  首页背景已固定为静态渐变，白天/夜间模式仍会同步切换整体观感。
+                  {t("nav.wallpaper_static_home_note")}
                 </div>
               </motion.div>
             </motion.div>

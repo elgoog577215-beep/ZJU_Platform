@@ -225,7 +225,20 @@
     "logo_alt": "拓途浙享 Logo",
     "menu_aria": "导航菜单",
     "site_brand": "拓途浙享",
-    "site_tagline": "数字艺术与科技"
+    "site_tagline": "数字艺术与科技",
+    "download": "下载 App",
+    "wallpaper_title": "动态壁纸",
+    "wallpaper_aria": "动态壁纸设置",
+    "more": "更多",
+    "wallpaper_dark_only": "动态壁纸仅夜间模式可用",
+    "wallpaper_day_hint": "白天模式保持轻量静态背景，切到夜间后可以更换网站动态背景。",
+    "switch_to_night": "切到夜间模式",
+    "wallpaper_current": "当前：{{name}}",
+    "wallpaper_live": "立即生效",
+    "wallpaper_saved": "已保存到本机",
+    "wallpaper_enabled": "已启用",
+    "appearance_hint": "日间/夜间影响全站配色与文字对比度",
+    "wallpaper_static_home_note": "首页背景已固定为静态渐变，白天/夜间模式仍会同步切换整体观感。"
   },
   "community": {
     "seo_description": "浙江大学 AI 社区：求助、技术分享、新闻与协作。",
@@ -2248,5 +2261,48 @@
     "untitled_video": "未命名视频",
     "uncategorized": "未分类",
     "close_video": "关闭视频"
+  },
+  "download": {
+    "meta_title": "下载拓途浙享 App",
+    "meta_desc": "从拓途浙享官网下载 Android App，进入活动聚合、AI 社区、影像记录与实践项目。",
+    "in_app_meta_title": "你已在拓途浙享 App 中",
+    "in_app_meta_desc": "当前环境已经是拓途浙享 App，不需要再次下载。",
+    "kicker": "官方 Android 客户端",
+    "title": "把拓途浙享装进手机",
+    "subtitle": "从官网安装 Android App，打开后直接进入现有平台体验，活动、AI 社区、影像库和项目广场都在同一个入口。",
+    "primary_action": "下载 Android App",
+    "browse_web": "先浏览网页版",
+    "file_note": "当前版本 v{{version}}，更新于 {{date}}。请仅从官方域名下载。",
+    "preview_label": "移动端预览",
+    "app_name": "拓途浙享",
+    "card_title": "校园 AI 信息入口",
+    "card_desc": "用 App 方式打开官网能力，减少浏览器切换，让常用内容更容易回到手边。",
+    "preview_events": "活动",
+    "preview_ai": "AI 社区",
+    "preview_media": "影像",
+    "safe_title": "下载安全说明",
+    "install_title": "安装步骤",
+    "qr_title": "电脑端访问？",
+    "qr_desc": "用手机扫描当前页面地址，或在手机浏览器中打开 tuotuzju.com/download 后下载。",
+    "trust": {
+      "official": "下载入口只指向拓途浙享官方域名或后续配置的官方静态资源。",
+      "twa": "Android App 采用内置 WebView 作为稳定入口，同时保留 TWA 元数据用于域名信任和后续兼容。",
+      "webview_guard": "如果已经在 App 内访问，本页面会自动返回首页，避免重复下载。"
+    },
+    "steps": {
+      "open": "点击下载按钮，等待 APK 文件下载完成。",
+      "allow": "如果系统提示，请允许浏览器安装来自该来源的应用。",
+      "launch": "安装后从桌面图标打开拓途浙享，进入平台首页。"
+    },
+    "in_app_title": "你已经在 App 里了",
+    "in_app_desc": "当前环境已经是拓途浙享 App，不需要再次下载。页面将自动返回首页。",
+    "back_home": "返回首页"
+  },
+  "seo": {
+    "site_name": "拓途浙享",
+    "site_alt_name": "TUOTUZJU",
+    "default_desc": "AI生态团队信息聚合平台，聚合活动、画廊、播客、视频与 AI 社区内容。",
+    "author": "AI生态团队",
+    "keywords": "拓途浙享, 浙江大学, AI生态团队, 活动, 画廊, 播客, 视频, AI社区, 校园平台"
   }
 }
