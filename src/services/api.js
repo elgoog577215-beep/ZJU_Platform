@@ -137,7 +137,7 @@ export const listOutcomeLinks = (status = 'all') =>
 export const updateOutcomeLink = (linkId, action) =>
   api.put(`/users/me/outcome-links/${linkId}`, { action });
 
-export const getProfileCard = (userId) => api.get(`/users/${userId}/profile-card`);
+export const getProfileCard = (userId, config = {}) => api.get(`/users/${userId}/profile-card`, config);
 
 export const updateProfileCard = (payload) => api.put('/users/me/profile-card', payload);
 

@@ -76,6 +76,7 @@
     },
     "no_published_works": "该用户尚未发布任何作品。",
     "user_not_found": "用户未找到",
+    "load_failed": "资料加载失败，请稍后重试",
     "go_home": "返回首页",
     "stats": {
       "works": "作品",

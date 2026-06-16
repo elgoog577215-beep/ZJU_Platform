@@ -35,6 +35,10 @@
       "favorites": "Favorites",
       "security": "Security"
     },
+    "no_published_works": "This user has not published anything yet.",
+    "user_not_found": "User not found",
+    "load_failed": "Failed to load profile. Please try again later.",
+    "go_home": "Back home",
     "uploads": {
       "title": "My Uploads",
       "no_uploads": "No uploads yet",

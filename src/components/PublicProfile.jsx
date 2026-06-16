@@ -110,6 +110,15 @@ const EMPTY_EVENT_PREFERENCE_FORM = {
   preferredFormat: "",
 };
 
+const createEmptyProfileCard = (userId) => ({
+  user_id: userId,
+  slogan: "",
+  status: "",
+  tags: [],
+  social_links: [],
+  cards: [],
+});
+
 // Visual metadata per content type. The badge lives inside the caption
 // (glass chip), so we only need type-coloured text tokens for day / night.
 // `placeholder{Day,Night}` define the soft gradient used by
@@ -534,15 +543,29 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [userRes, resourcesRes, profileCardRes] = await Promise.all([
+        setError(null);
+        const profileCardPromise = getProfileCard(id, {
+          signal: abortController.signal,
+          silent: true,
+          noRetry: true,
+        })
+          .then((res) => res.data)
+          .catch((profileCardError) => {
+            if (abortController.signal.aborted) throw profileCardError;
+            if (process.env.NODE_ENV === "development") {
+              console.warn("Failed to fetch profile card", profileCardError);
+            }
+            return null;
+          });
+        const [userRes, resourcesRes, profileCardData] = await Promise.all([
           api.get(`/users/${id}/profile`, { signal: abortController.signal }),
           api.get(`/users/${id}/resources`, { signal: abortController.signal }),
-          getProfileCard(id),
+          profileCardPromise,
         ]);
         if (abortController.signal.aborted) return;
         setUser(userRes.data);
         setResources(resourcesRes.data);
-        setProfileCard(profileCardRes.data);
+        setProfileCard(profileCardData || createEmptyProfileCard(userRes.data.id));
 
         // Init profile data if owner
         if (currentUser && String(currentUser.id) === String(userRes.data.id)) {
@@ -558,7 +581,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
         if (process.env.NODE_ENV === "development") {
           console.error("Failed to fetch profile", err);
         }
-        setError("User not found");
+        setError(err?.response?.status === 404 ? "not_found" : "load_failed");
       } finally {
         if (!abortController.signal.aborted) {
           setLoading(false);
@@ -1160,7 +1183,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
         className={`min-h-screen flex flex-col items-center justify-center ${isDayMode ? "bg-[#f8fafc] text-slate-900" : "bg-[#0a0a0a] text-white"}`}
       >
         <h2 className="text-2xl font-bold mb-4">
-          {t("user_profile.user_not_found")}
+          {t(error === "load_failed" ? "user_profile.load_failed" : "user_profile.user_not_found")}
         </h2>
         <button
           onClick={() => navigate("/")}
