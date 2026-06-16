@@ -2,10 +2,18 @@ import axios from 'axios';
 import errorMonitor from '../utils/errorMonitor';
 import { resolveCommunityMock } from '../mocks/communityMockApi';
 
-// Create an axios instance
-// We use a relative path '/api' which Vite will proxy to the backend
+const isNativeCapacitor =
+  typeof window !== 'undefined' &&
+  window.Capacitor?.isNativePlatform?.() === true;
+
+const apiBaseURL =
+  import.meta.env.VITE_API_BASE_URL ||
+  (isNativeCapacitor ? 'https://tuotuzju.com/api' : '/api');
+
+// Create an axios instance. Web dev uses Vite's /api proxy; the iOS
+// Capacitor bundle needs an absolute production API origin.
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: apiBaseURL,
   headers: {
     'Content-Type': 'application/json',
   },

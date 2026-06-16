@@ -9,11 +9,13 @@ export const isStandaloneDisplay = () => {
     window.matchMedia("(display-mode: fullscreen)").matches;
   const isIosStandalone = window.navigator?.standalone === true;
   const isTrustedWebActivity = document.referrer?.startsWith("android-app://");
+  const isNativeCapacitor = window.Capacitor?.isNativePlatform?.() === true;
 
   return Boolean(
     isStandaloneMedia ||
       isFullscreenMedia ||
       isIosStandalone ||
-      isTrustedWebActivity,
+      isTrustedWebActivity ||
+      isNativeCapacitor,
   );
 };

@@ -48,6 +48,22 @@ android-twa/*.apk.idsig
 android-twa/*.aab
 android-twa/**/release/
 
+# iOS / Xcode local artifacts and signing materials
+ios/App/build/
+ios/App/DerivedData/
+ios/App/App/public/
+ios/App/*.xcarchive
+ios/App/*.ipa
+ios/App/*.dSYM.zip
+ios/App/*.mobileprovision
+ios/App/*.p12
+ios/App/Pods/
+ios/App/Podfile.lock
+*.mobileprovision
+*.provisionprofile
+*.p12
+*.cer
+
 # OS junk
 .DS_Store
 Thumbs.db

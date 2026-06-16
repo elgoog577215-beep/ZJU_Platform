@@ -35,6 +35,10 @@ const main = () => {
     'Configured public IP should pass CORS validation.'
   );
   assert(
+    !isOriginAllowed('capacitor://localhost', productionOrigins),
+    'Explicit production CORS config should remain authoritative.'
+  );
+  assert(
     !isOriginAllowed('https://evil.example.com', productionOrigins),
     'Unknown third-party origins must still be rejected.'
   );
@@ -43,6 +47,14 @@ const main = () => {
     'Configured production env should be recognized as explicit.'
   );
   console.log('✓ Production CORS allowlist accepts configured domain and public IP only.');
+
+  const productionFallbackOrigins = getAllowedOrigins({
+    NODE_ENV: 'production'
+  });
+  assert(
+    isOriginAllowed('capacitor://localhost', productionFallbackOrigins),
+    'Fallback production allowlist should support the iOS Capacitor origin.'
+  );
 
   const developmentOrigins = getAllowedOrigins({
     NODE_ENV: 'development'
@@ -54,6 +66,10 @@ const main = () => {
   assert(
     isOriginAllowed('http://localhost:3001', developmentOrigins),
     'Development allowlist should keep the API dev origin.'
+  );
+  assert(
+    isOriginAllowed('capacitor://localhost', developmentOrigins),
+    'Development allowlist should support the iOS Capacitor origin.'
   );
   console.log('✓ Development CORS allowlist keeps the expected local origins.');
 };

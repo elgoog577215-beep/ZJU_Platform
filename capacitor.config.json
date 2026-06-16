@@ -1,0 +1,14 @@
+{
+  "appId": "com.tuotuzju.app",
+  "appName": "\u62d3\u9014\u6d59\u4eab",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https",
+    "iosScheme": "capacitor"
+  },
+  "ios": {
+    "contentInset": "automatic",
+    "scrollEnabled": true,
+    "limitsNavigationsToAppBoundDomains": false
+  }
+}

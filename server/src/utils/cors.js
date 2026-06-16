@@ -2,11 +2,13 @@ const DEFAULT_DEV_ORIGINS = [
   'http://localhost:5173',
   'http://localhost:5180',
   'http://localhost:3000',
-  'http://localhost:3001'
+  'http://localhost:3001',
+  'capacitor://localhost'
 ];
 
 const DEFAULT_PRODUCTION_FALLBACK_ORIGINS = [
   'https://tuotuzju.com',
+  'capacitor://localhost',
   'http://118.31.78.72'
 ];
 
@@ -16,7 +18,16 @@ const normalizeOrigin = (value) => {
   }
 
   try {
-    return new URL(value.trim()).origin;
+    const parsed = new URL(value.trim());
+    if (parsed.origin && parsed.origin !== 'null') {
+      return parsed.origin;
+    }
+
+    if (parsed.protocol && parsed.host) {
+      return `${parsed.protocol}//${parsed.host}`;
+    }
+
+    return null;
   } catch {
     return null;
   }
