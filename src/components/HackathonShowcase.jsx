@@ -153,6 +153,9 @@ const getLocalizedPartnerName = (partner = {}, language = "zh") => {
   return getPartnerDisplayName(partner);
 };
 
+const shouldUseTranslatedShowcaseCopy = (language = "zh") =>
+  String(language).startsWith("en");
+
 const PartnerLogoMark = ({ partner, isDayMode, language }) => {
   const src = getPartnerLogoSrc(partner, isDayMode);
   const name = getLocalizedPartnerName(partner, language);
@@ -530,7 +533,7 @@ const HackathonShowcase = () => {
     activeIndex: activeSection,
     setActiveIndex: updateActiveSection,
     reduceMotion,
-    minWidth: compactFlow ? Number.POSITIVE_INFINITY : 1024,
+    minWidth: compactFlow ? Number.POSITIVE_INFINITY : 0,
     lockMs: 860,
   });
 
@@ -539,7 +542,7 @@ const HackathonShowcase = () => {
     const scroller = pageRef.current;
     if (!target || !scroller) return;
 
-    const topOffset = window.matchMedia("(max-width: 640px)").matches ? 76 : 24;
+    const topOffset = window.innerWidth < 768 ? 76 : 96;
     const targetIndex = showcaseSections.findIndex((section) => section.id === id);
     if (targetIndex >= 0) updateActiveSection(targetIndex);
 
@@ -627,16 +630,23 @@ const HackathonShowcase = () => {
       : [];
     if (stagePhotos.length === 0) return translatedMediaMoments;
 
+    const useTranslatedCopy = shouldUseTranslatedShowcaseCopy(language);
     const dynamicMoments = stagePhotos.slice(0, 5).map((item, index) => ({
       id: `${item.source_table || "stage"}-${item.source_id || item.id || index}`,
-      label: item.type_label || item.category || t("hackathon.showcase.gallery.stage_photo", "赛场照片"),
-      title: item.title || translatedMediaMoments[index % translatedMediaMoments.length].title,
-      caption: item.description || item.gameDescription || t("hackathon.showcase.gallery.dynamic_caption", "来自画廊的黑客松成果照片，审核通过后自动同步到这里。"),
+      label: useTranslatedCopy
+        ? t("hackathon.showcase.gallery.stage_photo", "Field Photo")
+        : item.type_label || item.category || t("hackathon.showcase.gallery.stage_photo", "赛场照片"),
+      title: useTranslatedCopy
+        ? translatedMediaMoments[index % translatedMediaMoments.length].title
+        : item.title || translatedMediaMoments[index % translatedMediaMoments.length].title,
+      caption: useTranslatedCopy
+        ? translatedMediaMoments[index % translatedMediaMoments.length].caption
+        : item.description || item.gameDescription || t("hackathon.showcase.gallery.dynamic_caption", "来自画廊的黑客松成果照片，审核通过后自动同步到这里。"),
       image: item.cover_url || item.url || translatedMediaMoments[index % translatedMediaMoments.length].image,
     }));
 
     return [...dynamicMoments, ...translatedMediaMoments.slice(dynamicMoments.length)].slice(0, 5);
-  }, [outcome, t, translatedMediaMoments]);
+  }, [language, outcome, t, translatedMediaMoments]);
 
   const showcaseWorks = useMemo(() => {
     const works = Array.isArray(outcome?.works) ? outcome.works : [];
@@ -752,26 +762,43 @@ const HackathonShowcase = () => {
       ? createPortal(
           <nav
             aria-label={t("hackathon.showcase.nav_aria", "比赛成果展览章节")}
-            className={`fixed right-4 top-1/2 z-[120] hidden -translate-y-1/2 border p-2 backdrop-blur-2xl min-[1536px]:block ${theme.navShell}`}
+            className="fixed right-4 top-1/2 z-[120] hidden -translate-y-1/2 flex-col items-center gap-3 xl:flex min-[1720px]:right-6 min-[1720px]:gap-4"
           >
-            <div className="grid gap-2">
-              {translatedSections.map((step, index) => (
-                <button
-                  key={step.id}
-                  type="button"
-                  onClick={() => smoothScrollTo(step.id)}
-                  className={`group relative flex h-10 w-10 items-center justify-center border text-[11px] font-black transition duration-200 ${
-                    activeSection === index ? theme.navActive : theme.navIdle
-                  }`}
-                  aria-label={t("hackathon.showcase.jump_to_section", "跳转到{{title}}章节", { title: step.title })}
+            {translatedSections.map((step, index) => (
+              <button
+                key={step.id}
+                type="button"
+                onClick={() => smoothScrollTo(step.id)}
+                className={`group relative flex items-center gap-3 transition-all duration-300 ${
+                  activeSection === index ? "pointer-events-none" : ""
+                }`}
+                aria-label={t("hackathon.showcase.jump_to_section", "跳转到{{title}}章节", { title: step.title })}
+              >
+                <span
+                  className={`absolute right-full mr-3 whitespace-nowrap text-xs font-bold uppercase tracking-wider opacity-0 transition-all duration-300 group-hover:opacity-100 ${
+                    activeSection === index ? "opacity-100" : ""
+                  } ${isDayMode ? "text-slate-600" : "text-white/60"}`}
                 >
-                  {step.no}
-                  <span className={`pointer-events-none absolute right-full mr-3 min-w-[96px] border px-3 py-2 text-left text-[11px] font-black opacity-0 backdrop-blur transition duration-200 group-hover:opacity-100 ${theme.navShell}`}>
-                    {step.title}
-                  </span>
-                </button>
-              ))}
-            </div>
+                  {step.title}
+                </span>
+                <div className="relative overflow-hidden rounded-full">
+                  <div
+                    className={`flex h-9 w-9 items-center justify-center rounded-full border text-xs font-black transition-all duration-300 min-[1720px]:h-10 min-[1720px]:w-10 ${
+                      activeSection === index ? theme.navActive : theme.navIdle
+                    }`}
+                  >
+                    {activeSection === index ? (
+                      <span className="h-2.5 w-2.5 rounded-full bg-current" />
+                    ) : (
+                      <span className="text-[10px]">{step.no}</span>
+                    )}
+                  </div>
+                  {activeSection === index ? (
+                    <span className="absolute inset-0 rounded-full bg-cyan-400/20 animate-ping" />
+                  ) : null}
+                </div>
+              </button>
+            ))}
           </nav>,
           document.body,
         )
@@ -781,7 +808,11 @@ const HackathonShowcase = () => {
     <div
       ref={pageRef}
       data-showcase-page
-      className={`showcase-page ${liteMode ? "showcase-lite" : ""} ${compactFlow ? "showcase-compact-flow overflow-visible overscroll-y-auto" : "showcase-paged-flow overflow-y-auto overscroll-y-contain"} ${isDayMode ? "showcase-theme-day" : "showcase-theme-dark"} overflow-x-hidden ${theme.page}`}
+      className={`showcase-page ${liteMode ? "showcase-lite" : ""} ${
+        compactFlow
+          ? "showcase-compact-flow overflow-visible overscroll-y-auto"
+          : "hackathon-registration-scroll showcase-paged-flow h-[100svh] min-w-0 max-w-full snap-y snap-proximity overflow-y-auto overflow-x-hidden scroll-smooth overscroll-y-contain"
+      } ${isDayMode ? "showcase-theme-day" : "showcase-theme-dark"} overflow-x-hidden ${theme.page}`}
       style={{
         fontFamily:
           '"HarmonyOS Sans SC", "MiSans", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif',
@@ -815,8 +846,8 @@ const HackathonShowcase = () => {
           }
 
           .showcase-section-frame {
-            content-visibility: auto;
-            contain-intrinsic-size: 1000px 100svh;
+            content-visibility: visible;
+            contain-intrinsic-size: auto;
           }
 
           .showcase-section-compact {
@@ -1267,8 +1298,8 @@ const HackathonShowcase = () => {
             }
 
             #gallery .showcase-section-grid {
-              grid-template-columns: minmax(260px, 0.55fr) minmax(500px, 1.45fr);
-              grid-template-rows: minmax(0, clamp(15.5rem, 39svh, 23rem)) clamp(6.4rem, 12svh, 8.5rem);
+              grid-template-columns: minmax(300px, 0.58fr) minmax(0, 1.42fr);
+              grid-template-rows: minmax(0, 1fr) clamp(7rem, 14svh, 9.25rem);
               column-gap: 1.25rem;
               row-gap: 0.85rem;
             }
@@ -1292,6 +1323,10 @@ const HackathonShowcase = () => {
               padding-left: 0.65rem;
               padding-right: 0.65rem;
               font-size: 0.78rem;
+            }
+
+            #gallery .showcase-poster-heading {
+              font-size: clamp(2.55rem, 4vw, 4.45rem) !important;
             }
 
             .showcase-image-card-featured .showcase-image-title {
@@ -1857,14 +1892,14 @@ const HackathonShowcase = () => {
         backgroundWord="MEDIA"
         liteMode={liteMode}
         compactFlow={compactFlow}
-        contentClassName={compactFlow ? "items-start" : "self-center items-center lg:min-h-0 lg:grid-cols-[minmax(300px,0.58fr)_minmax(520px,1.42fr)] lg:grid-rows-[minmax(0,clamp(20rem,51svh,34rem))_clamp(8.75rem,17svh,13rem)] lg:items-stretch lg:gap-x-5 lg:gap-y-3 xl:grid-cols-[minmax(360px,0.58fr)_minmax(760px,1.42fr)] xl:grid-rows-[minmax(0,clamp(24rem,52svh,42rem))_clamp(10rem,18svh,16rem)] xl:gap-x-8 xl:gap-y-4 min-[1536px]:grid-cols-[minmax(420px,0.55fr)_minmax(940px,1.45fr)] min-[1536px]:gap-x-10 2xl:grid-cols-[minmax(480px,0.52fr)_minmax(1120px,1.48fr)] 2xl:gap-x-12"}
+        contentClassName={compactFlow ? "items-start" : "self-center items-center lg:min-h-0 lg:grid-cols-[minmax(360px,0.52fr)_minmax(0,1.48fr)] lg:grid-rows-[minmax(0,1fr)_clamp(8.5rem,16svh,12rem)] lg:items-stretch lg:gap-x-5 lg:gap-y-3 xl:grid-cols-[minmax(440px,0.5fr)_minmax(0,1.5fr)] xl:grid-rows-[minmax(0,1fr)_clamp(9.5rem,17svh,14rem)] xl:gap-x-8 xl:gap-y-4 min-[1536px]:grid-cols-[minmax(520px,0.48fr)_minmax(0,1.52fr)] min-[1536px]:gap-x-10 2xl:max-w-[1840px] 2xl:grid-cols-[minmax(560px,0.46fr)_minmax(0,1.54fr)] 2xl:gap-x-12"}
       >
           <MotionDiv {...reveal} className="min-w-0">
             <p className={`inline-flex items-center gap-2 border px-3 py-2 text-xs font-black uppercase ${theme.chip}`}>
               <Camera className="h-4 w-4" />
               Chapter 02 / Gallery
             </p>
-            <h2 className="showcase-poster-heading mt-2 max-w-4xl text-[clamp(3.2rem,6vw,7.4rem)] font-black tracking-normal">
+            <h2 className="showcase-poster-heading mt-2 max-w-4xl text-[clamp(2.9rem,4.8vw,5.7rem)] font-black tracking-normal">
               {t("hackathon.showcase.gallery.title")}
             </h2>
             <p className={`showcase-gallery-copy mt-4 max-w-2xl text-base font-semibold leading-7 sm:text-lg sm:leading-8 2xl:text-xl 2xl:leading-9 ${theme.muted}`}>
@@ -1890,8 +1925,8 @@ const HackathonShowcase = () => {
             ) : null}
           </MotionDiv>
 
-          <MotionDiv {...reveal} className={compactFlow ? "min-h-0" : "min-h-0 lg:col-span-2 lg:h-full"}>
-            <div className={`showcase-gallery-strip -mx-1 mt-5 flex gap-2 overflow-x-auto px-1 pb-2 ${compactFlow ? "" : "lg:mx-0 lg:mt-0 lg:grid lg:h-full lg:grid-cols-[repeat(4,minmax(0,1fr))_minmax(12rem,0.72fr)] lg:overflow-hidden xl:grid-cols-[repeat(4,minmax(0,1fr))_minmax(14rem,0.74fr)]"}`}>
+          <MotionDiv {...reveal} className={compactFlow ? "min-h-0" : "min-h-0 lg:col-start-2 lg:h-full"}>
+            <div className={`showcase-gallery-strip -mx-1 mt-5 flex gap-2 overflow-x-auto px-1 pb-2 ${compactFlow ? "" : "lg:mx-0 lg:mt-0 lg:grid lg:h-full lg:grid-cols-[repeat(4,minmax(0,1fr))_minmax(10rem,0.78fr)] lg:overflow-hidden xl:grid-cols-[repeat(4,minmax(0,1fr))_minmax(12rem,0.78fr)]"}`}>
               <div className={compactFlow ? "grid gap-3" : "contents lg:contents"}>
                 {galleryMoments.slice(1).map((moment, index) => (
                   <ShowcaseImageCard
@@ -1913,7 +1948,7 @@ const HackathonShowcase = () => {
                   <span className="mr-3 grid h-8 w-8 shrink-0 place-items-center border border-current/18 bg-white/10 text-current">
                     <ImageIcon className="h-4 w-4" />
                   </span>
-                  <span className="min-w-0 flex-1 whitespace-nowrap leading-tight">{t("hackathon.showcase.gallery.view_all")}</span>
+                  <span className="min-w-0 flex-1 leading-tight">{t("hackathon.showcase.gallery.view_all")}</span>
                   <ArrowRight className="h-4 w-4 shrink-0 transition duration-300 group-hover:translate-x-1" />
                 </Link>
                 <button
@@ -1925,7 +1960,7 @@ const HackathonShowcase = () => {
                   <span className="mr-3 grid h-9 w-9 shrink-0 place-items-center border border-slate-950/12 bg-white/36 text-slate-950 shadow-inner shadow-white/50 transition duration-300 group-hover:bg-white/70">
                     <Upload className="h-4 w-4" />
                   </span>
-                  <span className="min-w-0 flex-1 whitespace-nowrap leading-tight">{t("hackathon.showcase.gallery.upload")}</span>
+                  <span className="min-w-0 flex-1 leading-tight">{t("hackathon.showcase.gallery.upload")}</span>
                 </button>
               </div>
             </div>
@@ -2015,7 +2050,7 @@ const HackathonShowcase = () => {
         </MotionDiv>
       </ShowcaseSectionFrame>
 
-      <MotionSection id="partners" {...reveal} className="relative snap-start px-4 pb-40 pt-14 sm:px-6 sm:py-16 lg:px-10 lg:py-20 xl:px-14 2xl:px-20">
+      <MotionSection id="partners" {...reveal} className="relative min-h-[100svh] snap-start snap-always px-4 pb-40 pt-14 sm:px-6 sm:py-16 lg:flex lg:items-center lg:px-10 lg:py-20 xl:px-14 2xl:px-20">
         <div className="mx-auto w-full max-w-[1880px]">
           <SectionHeader
             eyebrow="Chapter 04 / Ecosystem"
