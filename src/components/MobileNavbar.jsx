@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Calendar, Film, Sparkles, Trees, UserCircle } from "lucide-react";
+import { Calendar, Rocket, Sparkles, Trees, UserCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { LayoutGroup, motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
@@ -78,7 +78,7 @@ const MobileNavbar = () => {
   const navItems = [
     { key: "events", path: "/events", icon: Calendar, label: t("nav.events") },
     { key: "articles", path: "/articles", icon: Trees, label: t("nav.community") },
-    { key: "media", path: "/media", icon: Film, label: t("nav.media") },
+    { key: "projects", path: "/projects", icon: Rocket, label: t("nav.projects") },
     { key: "hackathon", path: "/hackathon", icon: Sparkles, label: t("nav.hackathon") },
     { key: "me", path: profilePath, icon: UserCircle, label: t("nav.profile") },
   ];
@@ -91,13 +91,7 @@ const MobileNavbar = () => {
     if (key === "articles") {
       return location.pathname.startsWith("/articles");
     }
-    if (key === "media") {
-      return (
-        location.pathname.startsWith("/media") ||
-        location.pathname.startsWith("/gallery") ||
-        location.pathname.startsWith("/videos")
-      );
-    }
+    if (key === "projects") return location.pathname.startsWith("/projects");
     return location.pathname === path;
   };
 
