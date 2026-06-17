@@ -79,7 +79,7 @@ jobs:
           source: "dist/*"
           target: "/var/www/ZJU_Platform/dist/"
           strip_components: 1
-          rm: true
+          overwrite: true
 
       - name: Reload nginx
         uses: appleboy/ssh-action@v1

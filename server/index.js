@@ -257,14 +257,22 @@ if (fs.existsSync(distPath)) {
     maxAge: '1y',
     immutable: true,
     setHeaders: (res, filePath) => {
+      const filename = path.basename(filePath);
       // Don't cache HTML files
-      if (filePath.endsWith('.html')) {
+      if (filePath.endsWith('.html') || filename === 'sw.js' || filename === 'manifest.json' || filename === 'manifest.webmanifest') {
         res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
       }
     }
   }));
+
+  app.use('/assets', (req, res) => {
+    res.status(404).json({
+      error: 'Asset not found',
+      path: req.originalUrl,
+    });
+  });
 }
 
 // ====================
