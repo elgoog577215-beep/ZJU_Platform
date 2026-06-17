@@ -467,7 +467,31 @@
     "sidebar_hot_code": "TREND · Hot",
     "sidebar_hot_title": "AI Hotlist",
     "sidebar_groups_code": "LINK · Join Groups",
-    "sidebar_groups_title": "QR Groups"
+    "sidebar_groups_title": "QR Groups",
+    "tab_materials": "Final Materials",
+    "type_desc_materials": "Upload past papers, outlines, notes, and review materials.",
+    "composer_title_materials": "Publish Final Materials",
+    "materials_search_placeholder": "Search courses, teachers, subjects, or material types",
+    "materials_empty": "No final materials yet",
+    "materials_empty_desc": "Upload the first review material and help the next student save time.",
+    "materials_upload_hint": "Uploads enter admin review before becoming visible site-wide",
+    "materials_scope_hint": "Best for past papers, review outlines, slide summaries, and study notes",
+    "materials_detail_tip": "Supports PDF, Word, Markdown, and attachment blocks",
+    "materials_upload_action": "Upload Material",
+    "material_course": "Course",
+    "material_teacher": "Teacher",
+    "material_semester": "Semester",
+    "material_type": "Material Type",
+    "material_type_placeholder": "Choose material type",
+    "material_type_exam": "Past Paper",
+    "material_type_outline": "Review Outline",
+    "material_type_slides": "Slide Summary",
+    "material_type_notes": "Notes",
+    "material_type_solution": "Solutions",
+    "material_type_other": "Other",
+    "material_course_placeholder": "e.g. Calculus / College Physics",
+    "material_teacher_placeholder": "Optional",
+    "material_semester_placeholder": "e.g. 2025-2026 Autumn-Winter"
   },
   "search": {
     "placeholder": "Search content..."
@@ -1616,7 +1640,8 @@
         "tech": "Tech Sharing",
         "help": "Q&A",
         "news": "News Trends",
-        "team": "Collaboration"
+        "team": "Collaboration",
+        "materials": "Final Materials"
       },
       "filters": {
         "all_status": "All Statuses",

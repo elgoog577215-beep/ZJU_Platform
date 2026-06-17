@@ -511,7 +511,31 @@
     "sidebar_hot_code": "TREND · 热榜",
     "sidebar_hot_title": "AI 热榜",
     "sidebar_groups_code": "LINK · 加入社群",
-    "sidebar_groups_title": "二维码社群"
+    "sidebar_groups_title": "二维码社群",
+    "tab_materials": "期末资料",
+    "type_desc_materials": "上传往年题、提纲、笔记和复习资料。",
+    "composer_title_materials": "发布期末资料",
+    "materials_search_placeholder": "搜索课程、老师、科目或资料类型",
+    "materials_empty": "暂无期末资料",
+    "materials_empty_desc": "上传第一份复习资料，帮后来者少走弯路。",
+    "materials_upload_hint": "上传资料后进入后台审核，通过后全站可见",
+    "materials_scope_hint": "适合分享往年题、复习提纲、课件摘要和经验整理",
+    "materials_detail_tip": "支持上传 PDF、Word、Markdown 与附件块",
+    "materials_upload_action": "上传资料",
+    "material_course": "课程",
+    "material_teacher": "老师",
+    "material_semester": "学期",
+    "material_type": "资料类型",
+    "material_type_placeholder": "选择资料类型",
+    "material_type_exam": "往年题",
+    "material_type_outline": "复习提纲",
+    "material_type_slides": "课件摘要",
+    "material_type_notes": "笔记整理",
+    "material_type_solution": "题解/答案",
+    "material_type_other": "其他资料",
+    "material_course_placeholder": "如：微积分 / 大学物理",
+    "material_teacher_placeholder": "可选",
+    "material_semester_placeholder": "如：2025-2026 秋冬"
   },
   "search": {
     "placeholder": "搜索内容...",
@@ -1726,7 +1750,8 @@
         "tech": "技术分享",
         "help": "求助问答",
         "news": "新闻热点",
-        "team": "组队协作"
+        "team": "组队协作",
+        "materials": "期末资料"
       },
       "filters": {
         "all_status": "全部状态",

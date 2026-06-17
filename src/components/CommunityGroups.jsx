@@ -332,7 +332,7 @@ const CommunityGroups = ({ compact = false, compactLimit = 3 }) => {
   const handleRelatedSelect = (resource) => {
     if (!resource?.id) return;
     if (resource.type === 'article') return updateParams({ postTab: 'tech', id: resource.id });
-    if (resource.type === 'post') return updateParams({ postTab: 'help', post: resource.id });
+    if (resource.type === 'post') return updateParams({ postTab: resource.section || 'help', post: resource.id });
     if (resource.type === 'news') return updateParams({ postTab: 'news', news: resource.id });
     return updateParams({ group: resource.id });
   };

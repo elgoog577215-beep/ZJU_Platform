@@ -7,6 +7,7 @@ import {
   Cpu,
   Edit2,
   ExternalLink,
+  FileStack,
   HelpCircle,
   MessageSquare,
   Newspaper,
@@ -36,6 +37,7 @@ import {
 const BOARD_META = {
   tech: { labelKey: "admin.community.boards.tech", fallback: "技术分享", icon: Cpu, tone: "text-sky-500" },
   help: { labelKey: "admin.community.boards.help", fallback: "求助问答", icon: HelpCircle, tone: "text-amber-500" },
+  materials: { labelKey: "admin.community.boards.materials", fallback: "期末资料", icon: FileStack, tone: "text-emerald-500" },
   news: { labelKey: "admin.community.boards.news", fallback: "新闻热点", icon: Newspaper, tone: "text-rose-500" },
   team: { labelKey: "admin.community.boards.team", fallback: "组队协作", icon: Users, tone: "text-violet-500" },
 };
@@ -95,18 +97,25 @@ const normalizeNews = (item, t) => ({
 });
 
 const normalizePost = (item, t) => {
-  const boardKey = item.section === "team" ? "team" : "help";
+  const boardKey = item.section === "team" ? "team" : item.section === "materials" ? "materials" : "help";
+  const materialMeta = [
+    item.material_course,
+    item.material_teacher,
+    item.material_semester,
+    item.material_type ? t(`community.material_type_${item.material_type}`, item.material_type) : "",
+  ].filter(Boolean);
   return {
     id: item.id,
     type: "post",
     boardKey,
     title: item.title || t("admin.community.untitled_post", "未命名帖子"),
-    excerpt: item.excerpt || item.content || "",
+    excerpt: item.excerpt || item.content || materialMeta.join(" / ") || "",
     author: item.author_name || item.author || "-",
     status: statusOf(item),
     createdAt: item.created_at,
     metric: t("admin.community.reply_metric", { count: item.comments_count || 0, defaultValue: "{{count}} 回复" }),
     href: `/articles?postTab=${boardKey}&post=${item.id}`,
+    materialMeta,
     raw: item,
   };
 };
@@ -157,7 +166,7 @@ const AdminCommunity = () => {
       const articles = safeArray(articlesRes.data?.data || articlesRes.data).map((item) => normalizeArticle(item, t));
       const news = safeArray(newsRes.data?.data || newsRes.data).map((item) => normalizeNews(item, t));
       const posts = safeArray(postsRes.data?.data || postsRes.data)
-        .filter((item) => item.section === "help" || item.section === "team")
+        .filter((item) => item.section === "help" || item.section === "team" || item.section === "materials")
         .map((item) => normalizePost(item, t));
 
       setContentItems([...articles, ...news, ...posts].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)));
@@ -194,7 +203,7 @@ const AdminCommunity = () => {
       if (boardFilter !== "all" && item.boardKey !== boardFilter) return false;
       if (workflowFilter !== "all" && item.status !== workflowFilter) return false;
       if (!term) return true;
-      return [item.title, item.excerpt, item.author]
+      return [item.title, item.excerpt, item.author, ...(item.materialMeta || [])]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(term));
     });

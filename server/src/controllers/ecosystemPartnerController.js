@@ -1,4 +1,5 @@
 const { getDb } = require('../config/db');
+const profileService = require('../services/profileService');
 
 const CATEGORY_VALUES = new Set(['school', 'organization', 'enterprise']);
 
@@ -82,6 +83,12 @@ const serializePartner = (row) => ({
   enabled: Boolean(row.enabled),
   featured: Boolean(row.featured),
 });
+
+const selectPartnerSql = `
+  SELECT ep.*, p.handle AS profile_handle, p.type AS profile_type
+  FROM ecosystem_partners ep
+  LEFT JOIN profiles p ON p.id = ep.profile_id
+`;
 
 const readPartnerBody = (body, existing = {}) => {
   const name = body.name !== undefined ? trimText(body.name, 120) : existing.name;
@@ -181,20 +188,19 @@ const listPublicPartners = async (_req, res, next) => {
   try {
     const db = await getDb();
     const rows = await db.all(`
-      SELECT *
-      FROM ecosystem_partners
-      WHERE deleted_at IS NULL
-        AND enabled = 1
-        AND featured = 1
+      ${selectPartnerSql}
+      WHERE ep.deleted_at IS NULL
+        AND ep.enabled = 1
+        AND ep.featured = 1
       ORDER BY
-        CASE category
+        CASE ep.category
           WHEN 'school' THEN 1
           WHEN 'organization' THEN 2
           WHEN 'enterprise' THEN 3
           ELSE 4
         END,
-        sort_order ASC,
-        id ASC
+        ep.sort_order ASC,
+        ep.id ASC
     `);
     res.setHeader('Cache-Control', 'no-store');
     return res.json(rows.map(serializePartner));
@@ -207,26 +213,25 @@ const listAdminPartners = async (req, res, next) => {
   try {
     const db = await getDb();
     const category = normalizeCategory(req.query.category, '');
-    const clauses = ['deleted_at IS NULL'];
+    const clauses = ['ep.deleted_at IS NULL'];
     const params = [];
     if (category) {
-      clauses.push('category = ?');
+      clauses.push('ep.category = ?');
       params.push(category);
     }
 
     const rows = await db.all(
-      `SELECT *
-       FROM ecosystem_partners
+      `${selectPartnerSql}
        WHERE ${clauses.join(' AND ')}
        ORDER BY
-         CASE category
+         CASE ep.category
            WHEN 'school' THEN 1
            WHEN 'organization' THEN 2
            WHEN 'enterprise' THEN 3
            ELSE 4
          END,
-         sort_order ASC,
-         id ASC`,
+         ep.sort_order ASC,
+         ep.id ASC`,
       params,
     );
     return res.json(rows.map(serializePartner));
@@ -266,8 +271,9 @@ const createPartner = async (req, res, next) => {
       ],
     );
 
+    await profileService.syncPartnerProfile(db, result.lastID);
     await createAuditLog(db, req.user?.id, result.lastID, 'create');
-    const row = await db.get('SELECT * FROM ecosystem_partners WHERE id = ?', [result.lastID]);
+    const row = await db.get(`${selectPartnerSql} WHERE ep.id = ?`, [result.lastID]);
     return res.status(201).json(serializePartner(row));
   } catch (error) {
     return next(error);
@@ -324,8 +330,9 @@ const updatePartner = async (req, res, next) => {
       ],
     );
 
+    await profileService.syncPartnerProfile(db, id);
     await createAuditLog(db, req.user?.id, id, 'update');
-    const row = await db.get('SELECT * FROM ecosystem_partners WHERE id = ?', [id]);
+    const row = await db.get(`${selectPartnerSql} WHERE ep.id = ?`, [id]);
     return res.json(serializePartner(row));
   } catch (error) {
     return next(error);
@@ -346,6 +353,7 @@ const deletePartner = async (req, res, next) => {
       'UPDATE ecosystem_partners SET deleted_at = datetime("now"), updated_at = datetime("now") WHERE id = ?',
       [id],
     );
+    await profileService.syncPartnerProfile(db, id);
     await createAuditLog(db, req.user?.id, id, 'soft_delete');
     return res.json({ success: true });
   } catch (error) {

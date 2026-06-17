@@ -5,6 +5,7 @@ import {
   Clock3,
   Edit3,
   ExternalLink,
+  FileStack,
   FileText,
   HelpCircle,
   Loader2,
@@ -25,6 +26,7 @@ const BOARD_OPTIONS = [
   { key: 'all', labelKey: 'user_profile.submissions.board_all', fallback: '全部版面', icon: FileText },
   { key: 'tech', labelKey: 'community.tab_tech', fallback: '技术分享', icon: BookOpen },
   { key: 'help', labelKey: 'community.tab_help_qa', fallback: '求助问答', icon: HelpCircle },
+  { key: 'materials', labelKey: 'community.tab_materials', fallback: '期末资料', icon: FileStack },
   { key: 'news', labelKey: 'community.tab_news_hot', fallback: '新闻热点', icon: Newspaper },
   { key: 'team', labelKey: 'community.tab_team_collab', fallback: '组队协作', icon: Users },
 ];
@@ -63,6 +65,19 @@ const BOARD_FETCHERS = {
       limit: 50,
     }),
     path: (id) => `/articles?postTab=help&post=${id}`,
+  },
+  materials: {
+    endpoint: '/community/posts',
+    detail: (id) => `/community/posts/${id}`,
+    delete: (id) => `/community/posts/${id}`,
+    params: ({ userId, status }) => ({
+      section: 'materials',
+      author_id: userId,
+      workflow_status: status,
+      sort: 'newest',
+      limit: 50,
+    }),
+    path: (id) => `/articles?postTab=materials&post=${id}`,
   },
   news: {
     endpoint: '/news',
@@ -109,7 +124,7 @@ const normalizeListPayload = (payload) => {
 };
 
 const getWorkflowStatus = (board, item) => {
-  if (board === 'help' || board === 'team') {
+  if (board === 'help' || board === 'team' || board === 'materials') {
     return item.workflow_status || item.review_status || 'approved';
   }
   return item.workflow_status || item.review_status || item.status || 'approved';
@@ -119,7 +134,7 @@ const normalizeSubmission = (board, item) => ({
   ...item,
   board,
   workflowStatus: getWorkflowStatus(board, item),
-  businessStatus: board === 'help' || board === 'team' ? item.status : '',
+  businessStatus: board === 'help' || board === 'team' || board === 'materials' ? item.status : '',
   rejectionReason: item.rejection_reason || item.review_note || '',
   sortDate: item.updated_at || item.created_at || item.published_at || item.date || '',
 });
@@ -152,7 +167,7 @@ const UserCommunitySubmissions = ({ userId, isDayMode }) => {
       setError(null);
       try {
         const boards = activeBoard === 'all'
-          ? ['tech', 'help', 'news', 'team']
+          ? ['tech', 'help', 'materials', 'news', 'team']
           : [activeBoard];
         const status = activeStatus === 'all' ? 'all' : activeStatus;
         const results = await Promise.all(
@@ -187,10 +202,14 @@ const UserCommunitySubmissions = ({ userId, isDayMode }) => {
         item.content,
         item.tags,
         item.source_name,
+        item.material_course,
+        item.material_teacher,
+        item.material_semester,
+        item.material_type ? t(`community.material_type_${item.material_type}`, item.material_type) : '',
       ].filter(Boolean).join(' ').toLowerCase();
       return haystack.includes(term);
     });
-  }, [items, query]);
+  }, [items, query, t]);
 
   const statusLabel = (status) => t(`user_profile.submissions.status_${status}`, status);
   const boardLabel = (board) => {

@@ -4,6 +4,7 @@ const { normalizeLinkagePayload, serializeLinkageFields, attachLinkedResources }
 const { serializeCommunityPost } = require('../utils/serializeCommunityPost');
 const { cleanupTempFiles } = require('../middleware/upload');
 const { importCommunityDocument } = require('../utils/communityDocumentImport');
+const profileService = require('../services/profileService');
 
 const viewerFromReq = (req) => (
   req && req.user && req.user.id != null
@@ -11,9 +12,10 @@ const viewerFromReq = (req) => (
     : null
 );
 
-const ALLOWED_SECTIONS = new Set(['help', 'team', 'groups']);
+const ALLOWED_SECTIONS = new Set(['help', 'team', 'materials', 'groups']);
 const ALLOWED_GROUP_PLATFORMS = new Set(['wechat', 'qq', 'discord', 'telegram', 'other']);
 const CONTENT_STATUSES = new Set(['draft', 'pending', 'approved', 'rejected', 'deleted']);
+const MATERIAL_TYPES = new Set(['exam', 'outline', 'slides', 'notes', 'solution', 'other']);
 
 const normalizeSection = (value) => {
   const section = String(value || '').trim().toLowerCase();
@@ -30,12 +32,18 @@ const parseTags = (input) => {
     .join(',');
 };
 
+const normalizeMaterialType = (input) => {
+  const value = String(input || '').trim().toLowerCase();
+  if (!value) return null;
+  return MATERIAL_TYPES.has(value) ? value : 'other';
+};
+
 const normalizeContentStatus = (value, { section, role = 'user', intent = 'submit' } = {}) => {
   const requested = String(value || '').trim().toLowerCase();
   if (requested === 'draft') return 'draft';
   if (role === 'admin' && CONTENT_STATUSES.has(requested)) return requested;
   if (section === 'help') return intent === 'draft' ? 'draft' : 'approved';
-  if (section === 'team') return intent === 'draft' ? 'draft' : 'pending';
+  if (section === 'team' || section === 'materials') return intent === 'draft' ? 'draft' : 'pending';
   return intent === 'draft' ? 'draft' : 'pending';
 };
 
@@ -51,6 +59,10 @@ const sanitizeCommunityText = (input) => {
     .replace(/>/g, '&gt;')
     .trim();
 };
+
+const sanitizeShortText = (input, maxLength = 80) => (
+  sanitizeCommunityText(String(input || '')).slice(0, maxLength)
+);
 
 const importPostDocument = async (req, res, next) => {
   try {
@@ -132,7 +144,10 @@ const reportPostContent = async (req, res, next) => {
       [id, targetCommentId, targetType, reason || null, userId]
     );
     res.status(201).json({ success: true });
-  } catch (error) { next(error); }
+  } catch (error) {
+    if (error.status) return res.status(error.status).json({ error: error.message });
+    next(error);
+  }
 };
 
 const deletePost = async (req, res, next) => {
@@ -160,7 +175,10 @@ const deletePost = async (req, res, next) => {
       [id]
     );
     res.json({ success: true });
-  } catch (error) { next(error); }
+  } catch (error) {
+    if (error.status) return res.status(error.status).json({ error: error.message });
+    next(error);
+  }
 };
 
 const restorePost = async (req, res, next) => {
@@ -310,6 +328,10 @@ const serializePost = (row) => {
     link: row.link || null,
     deadline: row.deadline || null,
     max_members: row.max_members || null,
+    material_course: row.material_course || null,
+    material_teacher: row.material_teacher || null,
+    material_semester: row.material_semester || null,
+    material_type: row.material_type || null,
     current_members: row.current_members || 0,
     solved_comment_id: row.solved_comment_id || null,
     is_pinned: Boolean(row.is_pinned),
@@ -464,8 +486,8 @@ const listPosts = async (req, res, next) => {
 
     if (q.length >= 2) {
       const term = `%${q}%`;
-      whereClauses.push('(title LIKE ? OR content LIKE ? OR tags LIKE ? OR author_name LIKE ?)');
-      whereParams.push(term, term, term, term);
+      whereClauses.push('(title LIKE ? OR content LIKE ? OR tags LIKE ? OR author_name LIKE ? OR material_course LIKE ? OR material_teacher LIKE ? OR material_semester LIKE ? OR material_type LIKE ?)');
+      whereParams.push(term, term, term, term, term, term, term, term);
     }
 
     const whereSQL = `WHERE ${whereClauses.join(' AND ')}`;
@@ -564,15 +586,25 @@ const createPost = async (req, res, next) => {
     const maxMembers = section === 'team' && Number.isInteger(Number(maxMembersRaw))
       ? Math.min(Math.max(parseInt(maxMembersRaw, 10), 2), 100)
       : null;
+    const materialCourse = section === 'materials' ? sanitizeShortText(mutableBody.material_course, 80) || null : null;
+    const materialTeacher = section === 'materials' ? sanitizeShortText(mutableBody.material_teacher, 60) || null : null;
+    const materialSemester = section === 'materials' ? sanitizeShortText(mutableBody.material_semester, 40) || null : null;
+    const materialType = section === 'materials' ? normalizeMaterialType(mutableBody.material_type) : null;
     const currentMembers = section === 'team' ? 1 : 0;
     // Anonymous opt-in removed — column kept for schema stability but always 0.
     const isAnonymous = 0;
+    const publisherProfileId = await profileService.resolvePublisherProfileId(
+      db,
+      userId,
+      mutableBody.publisher_profile_id,
+      user.role || 'user',
+    );
 
     const result = await db.run(
       `
       INSERT INTO community_posts
-      (section, title, content, content_blocks, link, tags, status, post_status, deadline, max_members, current_members, author_id, author_name, author_avatar, is_anonymous, related_article_ids, related_post_ids, related_news_ids, related_group_ids, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+      (section, title, content, content_blocks, link, tags, status, post_status, deadline, max_members, material_course, material_teacher, material_semester, material_type, current_members, author_id, author_name, author_avatar, is_anonymous, related_article_ids, related_post_ids, related_news_ids, related_group_ids, publisher_profile_id, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
       `,
       [
         section,
@@ -585,6 +617,10 @@ const createPost = async (req, res, next) => {
         postStatus,
         deadline,
         maxMembers,
+        materialCourse,
+        materialTeacher,
+        materialSemester,
+        materialType,
         currentMembers,
         userId,
         authorName,
@@ -594,6 +630,7 @@ const createPost = async (req, res, next) => {
         mutableBody.related_post_ids || null,
         mutableBody.related_news_ids || null,
         mutableBody.related_group_ids || null,
+        publisherProfileId,
       ]
     );
 
@@ -1130,11 +1167,25 @@ const updatePost = async (req, res, next) => {
     const rejectionReason = actor.role === 'admin' && mutableBody.rejection_reason !== undefined
       ? sanitizeCommunityText(String(mutableBody.rejection_reason || '')).slice(0, 500)
       : (nextStatus === 'pending' || nextStatus === 'approved' ? null : existing.rejection_reason || null);
+    const isMaterialPost = existing.section === 'materials';
+    const materialCourse = isMaterialPost && mutableBody.material_course !== undefined
+      ? sanitizeShortText(mutableBody.material_course, 80) || null
+      : (existing.material_course || null);
+    const materialTeacher = isMaterialPost && mutableBody.material_teacher !== undefined
+      ? sanitizeShortText(mutableBody.material_teacher, 60) || null
+      : (existing.material_teacher || null);
+    const materialSemester = isMaterialPost && mutableBody.material_semester !== undefined
+      ? sanitizeShortText(mutableBody.material_semester, 40) || null
+      : (existing.material_semester || null);
+    const materialType = isMaterialPost && mutableBody.material_type !== undefined
+      ? normalizeMaterialType(mutableBody.material_type)
+      : (existing.material_type || null);
 
     await db.run(
       `
       UPDATE community_posts
       SET title = ?, content = ?, content_blocks = ?, link = ?, tags = ?, post_status = ?, deadline = ?, max_members = ?,
+          material_course = ?, material_teacher = ?, material_semester = ?, material_type = ?,
           status = ?, rejection_reason = ?,
           related_article_ids = ?, related_post_ids = ?, related_news_ids = ?, related_group_ids = ?,
           updated_at = datetime('now')
@@ -1149,6 +1200,10 @@ const updatePost = async (req, res, next) => {
         postStatus,
         mutableBody.deadline ?? existing.deadline ?? null,
         mutableBody.max_members ?? existing.max_members ?? null,
+        isMaterialPost ? materialCourse : null,
+        isMaterialPost ? materialTeacher : null,
+        isMaterialPost ? materialSemester : null,
+        isMaterialPost ? materialType : null,
         nextStatus,
         rejectionReason,
         mutableBody.related_article_ids ?? existing.related_article_ids ?? null,

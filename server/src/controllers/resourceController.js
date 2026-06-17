@@ -3,6 +3,7 @@ const { deleteFileFromUrl } = require('../utils/fileUtils');
 const { createNotification, fanOutNewContent } = require('./notificationController');
 const { normalizeLinkagePayload, serializeLinkageFields, attachLinkedResources } = require('../utils/communityLinks');
 const { getEventCategoryFilterTerms, normalizeEventCategory } = require('../services/eventIntelligenceService');
+const profileService = require('../services/profileService');
 
 const buildCommaSeparatedMatch = (field, value) => ({
     clause: `("${field}" = ? OR "${field}" LIKE ? OR "${field}" LIKE ? OR "${field}" LIKE ?)`,
@@ -255,11 +256,32 @@ const createHandler = (table, fields) => async (req, res, next) => {
     const workflowStatus = normalizeArticleWorkflowStatus(table, req.body.status, userRole);
     const status = workflowStatus || (userRole === 'admin' ? 'approved' : 'pending');
     const uploader_id = req.user ? req.user.id : null;
+    const publisherProfileId = await profileService.resolvePublisherProfileId(
+        db,
+        uploader_id,
+        req.body.publisher_profile_id,
+        userRole,
+    );
+    const organizerProfileId = table === 'events'
+        ? await profileService.resolveOrganizerProfileId(
+            db,
+            uploader_id,
+            req.body.organizer_profile_id,
+            req.body.organizer,
+            userRole,
+        )
+        : null;
 
     const sql = `INSERT INTO ${table} (${fields.join(',')}, status, uploader_id, created_at) VALUES (${placeholders}, ?, ?, datetime('now'))`;
     const values = [...fields.map(field => req.body[field]), status, uploader_id];
     
     const result = await db.run(sql, values);
+    if (publisherProfileId) {
+        await db.run(`UPDATE ${table} SET publisher_profile_id = ? WHERE id = ?`, [publisherProfileId, result.lastID]);
+    }
+    if (table === 'events' && organizerProfileId) {
+        await db.run('UPDATE events SET organizer_profile_id = ? WHERE id = ?', [organizerProfileId, result.lastID]);
+    }
 
     // Process tags to ensure they exist in the centralized tags table
     if (req.body.tags) {
@@ -283,8 +305,18 @@ const createHandler = (table, fields) => async (req, res, next) => {
         });
     }
 
-    res.json(serializeResourceItem(table, { id: result.lastID, ...req.body, status, likes: 0 }));
-  } catch (error) { next(error); }
+    res.json(serializeResourceItem(table, {
+        id: result.lastID,
+        ...req.body,
+        status,
+        likes: 0,
+        publisher_profile_id: publisherProfileId,
+        organizer_profile_id: organizerProfileId,
+    }));
+  } catch (error) {
+    if (error.status) return res.status(error.status).json({ error: error.message });
+    next(error);
+  }
 };
 
 const updateHandler = (table, fields) => async (req, res, next) => {
@@ -305,6 +337,7 @@ const updateHandler = (table, fields) => async (req, res, next) => {
     if (req.user.role !== 'admin' && oldItem.uploader_id !== req.user.id) {
         return res.status(403).json({ error: 'You do not have permission to update this resource' });
     }
+    const userRole = req.user ? req.user.role : 'user';
 
     // Check for file changes to delete old files
     const fileFields = ['url', 'cover', 'thumbnail', 'image', 'audio', 'video'];
@@ -314,18 +347,46 @@ const updateHandler = (table, fields) => async (req, res, next) => {
     }
     });
 
+    const profileUpdates = {};
+    if (req.body.publisher_profile_id !== undefined) {
+        profileUpdates.publisher_profile_id = await profileService.resolvePublisherProfileId(
+            db,
+            req.user.id,
+            req.body.publisher_profile_id,
+            userRole,
+        );
+    }
+    if (table === 'events' && (req.body.organizer_profile_id !== undefined || req.body.organizer !== undefined)) {
+        profileUpdates.organizer_profile_id = await profileService.resolveOrganizerProfileId(
+            db,
+            req.user.id,
+            req.body.organizer_profile_id,
+            req.body.organizer,
+            userRole,
+        );
+    }
     const setClause = fields.map(field => `${field} = ?`).join(',');
     const sql = `UPDATE ${table} SET ${setClause} WHERE id = ?`;
     const values = [...fields.map(field => req.body[field]), id];
     await db.run(sql, values);
+    const profileSet = Object.keys(profileUpdates);
+    if (profileSet.length > 0) {
+        await db.run(
+            `UPDATE ${table} SET ${profileSet.map((field) => `${field} = ?`).join(', ')} WHERE id = ?`,
+            [...profileSet.map((field) => profileUpdates[field]), id],
+        );
+    }
     
     // Process tags to ensure they exist in the centralized tags table
     if (req.body.tags) {
         await processTags(req.body.tags);
     }
 
-    res.json(serializeResourceItem(table, { id, ...req.body }));
-  } catch (error) { next(error); }
+    res.json(serializeResourceItem(table, { id, ...req.body, ...profileUpdates }));
+  } catch (error) {
+    if (error.status) return res.status(error.status).json({ error: error.message });
+    next(error);
+  }
 };
 
 const deleteHandler = (table) => async (req, res, next) => {
@@ -462,7 +523,16 @@ const getOneHandler = (table) => async (req, res, next) => {
     const userId = req.user ? req.user.id : null;
     const itemType = getSingularType(table);
 
-    let query = `SELECT ${table}.*, COALESCE(u.nickname, u.username) AS author_name, u.avatar AS author_avatar`;
+    let query = `SELECT ${table}.*, COALESCE(u.nickname, u.username) AS author_name, u.avatar AS author_avatar,
+      publisher_profile.handle AS publisher_profile_handle,
+      publisher_profile.display_name AS publisher_profile_name,
+      publisher_profile.type AS publisher_profile_type`;
+    if (table === 'events') {
+        query += `,
+          organizer_profile.handle AS organizer_profile_handle,
+          organizer_profile.display_name AS organizer_profile_name,
+          organizer_profile.type AS organizer_profile_type`;
+    }
     if (supportsMediaCategory(table)) {
         query += `, (SELECT name FROM media_categories WHERE id = ${table}.category_id) AS category_name`;
     }
@@ -473,7 +543,13 @@ const getOneHandler = (table) => async (req, res, next) => {
          params.push(itemType, userId);
     }
 
-    query += ` FROM ${table} LEFT JOIN users u ON ${table}.uploader_id = u.id WHERE ${table}.id = ?`;
+    query += ` FROM ${table}
+      LEFT JOIN users u ON ${table}.uploader_id = u.id
+      LEFT JOIN profiles publisher_profile ON publisher_profile.id = ${table}.publisher_profile_id`;
+    if (table === 'events') {
+      query += ` LEFT JOIN profiles organizer_profile ON organizer_profile.id = events.organizer_profile_id`;
+    }
+    query += ` WHERE ${table}.id = ?`;
     params.push(id);
 
     const item = await db.get(query, params);
@@ -551,7 +627,16 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
             }
         }
 
-        let query = `SELECT ${table}.*, COALESCE(u.nickname, u.username) AS author_name, u.avatar AS author_avatar`;
+        let query = `SELECT ${table}.*, COALESCE(u.nickname, u.username) AS author_name, u.avatar AS author_avatar,
+            publisher_profile.handle AS publisher_profile_handle,
+            publisher_profile.display_name AS publisher_profile_name,
+            publisher_profile.type AS publisher_profile_type`;
+        if (table === 'events') {
+             query += `,
+                organizer_profile.handle AS organizer_profile_handle,
+                organizer_profile.display_name AS organizer_profile_name,
+                organizer_profile.type AS organizer_profile_type`;
+        }
         let params = [];
 
         if (supportsMediaCategory(table)) {
@@ -567,7 +652,12 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
              params.push(itemType, userId);
         }
 
-        query += ` FROM ${table} LEFT JOIN users u ON ${table}.uploader_id = u.id`;
+        query += ` FROM ${table}
+            LEFT JOIN users u ON ${table}.uploader_id = u.id
+            LEFT JOIN profiles publisher_profile ON publisher_profile.id = ${table}.publisher_profile_id`;
+        if (table === 'events') {
+             query += ` LEFT JOIN profiles organizer_profile ON organizer_profile.id = events.organizer_profile_id`;
+        }
 
         let countQuery = `SELECT COUNT(*) as count FROM ${table}`;
         let countParams = [];
@@ -576,14 +666,14 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
         // Trash Filter
         if (trashed) {
             if (isAdmin) {
-                whereClauses.push('deleted_at IS NOT NULL');
+                whereClauses.push(`${table}.deleted_at IS NOT NULL`);
             } else if (userId && effectiveUploaderId && Number(userId) === Number(effectiveUploaderId)) {
-                whereClauses.push('deleted_at IS NOT NULL');
+                whereClauses.push(`${table}.deleted_at IS NOT NULL`);
             } else {
-                whereClauses.push('deleted_at IS NULL');
+                whereClauses.push(`${table}.deleted_at IS NULL`);
             }
         } else {
-            whereClauses.push('deleted_at IS NULL');
+            whereClauses.push(`${table}.deleted_at IS NULL`);
         }
 
         // Generic Search
@@ -611,13 +701,13 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
 
         // Filter by status unless asking for 'all'
         if (effectiveStatus !== 'all') {
-            whereClauses.push('status = ?');
+            whereClauses.push(`${table}.status = ?`);
             params.push(effectiveStatus);
             countParams.push(effectiveStatus);
         }
 
         if (effectiveUploaderId) {
-            whereClauses.push('uploader_id = ?');
+            whereClauses.push(`${table}.uploader_id = ?`);
             params.push(effectiveUploaderId);
             countParams.push(effectiveUploaderId);
         }
@@ -625,7 +715,7 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
         if (supportsMediaCategory(table) && String(rawCategoryId || '').trim() !== '') {
             const categoryId = Number.parseInt(rawCategoryId, 10);
             if (Number.isFinite(categoryId) && categoryId > 0) {
-                whereClauses.push('category_id = ?');
+                whereClauses.push(`${table}.category_id = ?`);
                 params.push(categoryId);
                 countParams.push(categoryId);
             }
@@ -722,11 +812,11 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
         const lifecycle = req.query.lifecycle;
         if (lifecycle && table === 'events') {
              if (lifecycle === 'upcoming') {
-                 whereClauses.push('date > date("now", "localtime")');
+                 whereClauses.push(`${table}.date > date("now", "localtime")`);
              } else if (lifecycle === 'past') {
-                 whereClauses.push('date < date("now", "localtime")');
+                 whereClauses.push(`${table}.date < date("now", "localtime")`);
              } else if (lifecycle === 'ongoing') {
-                 whereClauses.push('date = date("now", "localtime")');
+                 whereClauses.push(`${table}.date = date("now", "localtime")`);
              }
         }
 
@@ -739,37 +829,37 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
         // Sorting Logic
         switch (sort) {
             case 'oldest':
-                query += ' ORDER BY id ASC';
+                query += ` ORDER BY ${table}.id ASC`;
                 break;
             case 'views':
                 if (table === 'events') {
-                    query += ' ORDER BY COALESCE(views, 0) DESC, date DESC, id DESC';
+                    query += ` ORDER BY COALESCE(${table}.views, 0) DESC, ${table}.date DESC, ${table}.id DESC`;
                     break;
                 }
-                query += ' ORDER BY id DESC';
+                query += ` ORDER BY ${table}.id DESC`;
                 break;
             case 'registrations':
                 if (table === 'events') {
-                    query += ' ORDER BY registration_count DESC, date DESC, id DESC';
+                    query += ` ORDER BY registration_count DESC, ${table}.date DESC, ${table}.id DESC`;
                     break;
                 }
-                query += ' ORDER BY id DESC';
+                query += ` ORDER BY ${table}.id DESC`;
                 break;
             case 'likes':
-                query += ' ORDER BY likes DESC, id DESC';
+                query += ` ORDER BY ${table}.likes DESC, ${table}.id DESC`;
                 break;
             case 'title':
-                query += ' ORDER BY title ASC';
+                query += ` ORDER BY ${table}.title ASC`;
                 break;
             case 'date_asc':
-                query += ' ORDER BY date ASC';
+                query += ` ORDER BY ${table}.date ASC`;
                 break;
             case 'date_desc':
-                query += ' ORDER BY date DESC';
+                query += ` ORDER BY ${table}.date DESC`;
                 break;
             case 'newest':
             default:
-                query += ' ORDER BY id DESC';
+                query += ` ORDER BY ${table}.id DESC`;
                 break;
         }
 

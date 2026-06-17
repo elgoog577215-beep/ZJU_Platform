@@ -40,6 +40,7 @@ const CommunityFeedPanel = ({
   extraControls,
   featuredSection,
   extraBottom,
+  newPostLabel,
   skeletonCount = 5,
   renderSkeleton,
   hideSortSelector = false,
@@ -49,6 +50,7 @@ const CommunityFeedPanel = ({
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
   const th = communityTheme(isDayMode);
+  const newPostText = newPostLabel || t('community.post_new', '发帖');
   const {
     displayItems, isLoading, error, currentPage, totalPages, hasMore,
     isPaginationEnabled, sort, setSort, statusFilter, setStatusFilter,
@@ -139,16 +141,27 @@ const CommunityFeedPanel = ({
               <button
                 onClick={onNewPost}
                 className={`hidden min-h-[40px] items-center gap-2 rounded-lg border px-4 text-sm font-semibold transition-all md:inline-flex ${accentBtnClass}`}
-                title={t('community.post_new', '发帖')}
+                title={newPostText}
               >
                 <Upload size={18} className="md:w-5 md:h-5" />
-                <span>{t('community.post_new', '发帖')}</span>
+                <span>{newPostText}</span>
               </button>
             )}
           </div>
         </div>
         {statusTabs && extraControls ? (
           <div>{extraControls}</div>
+        ) : null}
+        {onNewPost && !hideNewPostButton ? (
+          <button
+            type="button"
+            onClick={onNewPost}
+            className={`inline-flex min-h-[40px] w-full items-center justify-center gap-2 rounded-lg border px-4 text-sm font-semibold transition-all md:hidden ${accentBtnClass}`}
+            title={newPostText}
+          >
+            <Upload size={18} />
+            <span>{newPostText}</span>
+          </button>
         ) : null}
         <div className={`${hideMobileSummary ? 'hidden md:flex' : 'flex'} flex-wrap items-center justify-between gap-2 border-t pt-3 text-xs max-md:border-transparent max-md:px-1 max-md:pt-0 ${isDayMode ? 'border-slate-200/60 text-slate-500' : 'border-white/10 text-gray-400'}`}>
           <div className="flex flex-wrap items-center gap-2.5">

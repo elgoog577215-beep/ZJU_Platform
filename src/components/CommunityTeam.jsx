@@ -119,7 +119,7 @@ const CommunityTeam = ({ onNewPost, hideNewPostButton = false }) => {
       onRelatedSelect={(resource) => {
         if (resource.type === 'article') updateParams({ postTab: 'tech', id: resource.id });
         if (resource.type === 'news') updateParams({ postTab: 'news', news: resource.id });
-        if (resource.type === 'post') updateParams({ postTab: 'team', post: resource.id });
+        if (resource.type === 'post') updateParams({ postTab: resource.section || 'team', post: resource.id });
       }}
       onCommentsCountChange={handleCommentsCountChange}
       beforeContent={feed.selectedItem && (

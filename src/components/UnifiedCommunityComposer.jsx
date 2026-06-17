@@ -57,6 +57,20 @@ const BOARD_CONFIG = {
     supportsCode: true,
     publishStatus: 'approved',
   },
+  materials: {
+    accent: 'green',
+    titleKey: 'community.composer_title_materials',
+    titleFallback: '发布期末资料',
+    endpoint: '/community/posts',
+    section: 'materials',
+    supportsCover: false,
+    supportsExcerpt: false,
+    supportsSource: false,
+    supportsTeamFields: false,
+    supportsMaterialFields: true,
+    supportsCode: true,
+    publishStatus: 'pending',
+  },
   news: {
     accent: 'sky',
     titleKey: 'community.composer_title_news',
@@ -105,6 +119,11 @@ const accentClasses = {
     ring: 'focus:ring-violet-300/50 focus:border-violet-300',
     darkButton: 'bg-violet-600 text-white hover:bg-violet-500',
   },
+  green: {
+    button: 'bg-emerald-600 text-white hover:bg-emerald-700',
+    ring: 'focus:ring-emerald-300/50 focus:border-emerald-300',
+    darkButton: 'bg-emerald-600 text-white hover:bg-emerald-500',
+  },
 };
 
 const deriveBlocksFromText = (text = '') => {
@@ -142,6 +161,16 @@ const getAccept = (type) => {
   return '*/*';
 };
 
+const MATERIAL_TYPE_OPTIONS = [
+  { value: '', labelKey: 'community.material_type_placeholder', fallback: '选择资料类型' },
+  { value: 'exam', labelKey: 'community.material_type_exam', fallback: '往年题' },
+  { value: 'outline', labelKey: 'community.material_type_outline', fallback: '复习提纲' },
+  { value: 'slides', labelKey: 'community.material_type_slides', fallback: '课件摘要' },
+  { value: 'notes', labelKey: 'community.material_type_notes', fallback: '笔记整理' },
+  { value: 'solution', labelKey: 'community.material_type_solution', fallback: '题解/答案' },
+  { value: 'other', labelKey: 'community.material_type_other', fallback: '其他资料' },
+];
+
 const UnifiedCommunityComposer = ({
   isOpen,
   boardKey = 'help',
@@ -165,6 +194,10 @@ const UnifiedCommunityComposer = ({
   const [link, setLink] = useState('');
   const [deadline, setDeadline] = useState('');
   const [maxMembers, setMaxMembers] = useState('');
+  const [materialCourse, setMaterialCourse] = useState('');
+  const [materialTeacher, setMaterialTeacher] = useState('');
+  const [materialSemester, setMaterialSemester] = useState('');
+  const [materialType, setMaterialType] = useState('');
   const [relatedArticleIds, setRelatedArticleIds] = useState('');
   const [relatedPostIds, setRelatedPostIds] = useState('');
   const [relatedNewsIds, setRelatedNewsIds] = useState('');
@@ -198,6 +231,10 @@ const UnifiedCommunityComposer = ({
     setLink(initialData?.link || '');
     setDeadline(initialData?.deadline || '');
     setMaxMembers(initialData?.max_members ? String(initialData.max_members) : '');
+    setMaterialCourse(initialData?.material_course || '');
+    setMaterialTeacher(initialData?.material_teacher || '');
+    setMaterialSemester(initialData?.material_semester || '');
+    setMaterialType(initialData?.material_type || '');
     setRelatedArticleIds(Array.isArray(initialData?.related_article_ids) ? initialData.related_article_ids.join(',') : (initialData?.related_article_ids || ''));
     setRelatedPostIds(Array.isArray(initialData?.related_post_ids) ? initialData.related_post_ids.join(',') : (initialData?.related_post_ids || ''));
     setRelatedNewsIds(Array.isArray(initialData?.related_news_ids) ? initialData.related_news_ids.join(',') : (initialData?.related_news_ids || ''));
@@ -302,6 +339,12 @@ const UnifiedCommunityComposer = ({
 
   const buildPayload = useCallback((status) => {
     const fallbackExcerpt = excerpt.trim() || plainContent.replace(/\s+/g, ' ').slice(0, 140);
+    const materialPayload = config.supportsMaterialFields ? {
+      material_course: materialCourse.trim(),
+      material_teacher: materialTeacher.trim(),
+      material_semester: materialSemester.trim(),
+      material_type: materialType,
+    } : {};
     if (normalizedBoardKey === 'tech') {
       return {
         id: initialData?.id,
@@ -344,16 +387,21 @@ const UnifiedCommunityComposer = ({
       content_blocks: JSON.stringify(cleanBlocks),
       tags: tags.trim(),
       status,
-      post_status: config.section === 'team' ? (initialData?.status || 'recruiting') : (initialData?.status || 'open'),
+      post_status: config.section === 'team'
+        ? (initialData?.status || 'recruiting')
+        : config.section
+          ? (initialData?.status || 'published')
+          : (initialData?.status || 'open'),
       link: link.trim(),
       deadline,
       max_members: maxMembers ? parseInt(maxMembers, 10) : undefined,
+      ...materialPayload,
       related_article_ids: relatedArticleIds.trim(),
       related_post_ids: relatedPostIds.trim(),
       related_news_ids: relatedNewsIds.trim(),
       related_group_ids: relatedGroupIds.trim(),
     };
-  }, [cleanBlocks, config.category, config.section, cover, deadline, excerpt, htmlContent, initialData, link, maxMembers, normalizedBoardKey, plainContent, relatedArticleIds, relatedGroupIds, relatedNewsIds, relatedPostIds, sourceName, sourceUrl, tags, title]);
+  }, [cleanBlocks, config.category, config.section, config.supportsMaterialFields, cover, deadline, excerpt, htmlContent, initialData, link, materialCourse, materialSemester, materialTeacher, materialType, maxMembers, normalizedBoardKey, plainContent, relatedArticleIds, relatedGroupIds, relatedNewsIds, relatedPostIds, sourceName, sourceUrl, tags, title]);
 
   const submit = useCallback(async (status) => {
     if (!user) {
@@ -477,6 +525,54 @@ const UnifiedCommunityComposer = ({
                             <label className={labelCls}>{t('community.post_max_members_label', '招募人数')}</label>
                             <input type="number" min={2} max={100} value={maxMembers} onChange={(e) => setMaxMembers(e.target.value)} className={`community-composer-input ${inputCls}`} />
                           </div>
+                        </div>
+                      </>
+                    )}
+                    {config.supportsMaterialFields && (
+                      <>
+                        <div className="community-composer-field space-y-2">
+                          <label className={labelCls}>{t('community.material_course', '课程')}</label>
+                          <input
+                            value={materialCourse}
+                            onChange={(e) => setMaterialCourse(e.target.value)}
+                            className={`community-composer-input ${inputCls}`}
+                            placeholder={t('community.material_course_placeholder', '如：微积分 / 大学物理')}
+                            maxLength={80}
+                          />
+                        </div>
+                        <div className="community-composer-field space-y-2">
+                          <label className={labelCls}>{t('community.material_teacher', '老师')}</label>
+                          <input
+                            value={materialTeacher}
+                            onChange={(e) => setMaterialTeacher(e.target.value)}
+                            className={`community-composer-input ${inputCls}`}
+                            placeholder={t('community.material_teacher_placeholder', '可选')}
+                            maxLength={60}
+                          />
+                        </div>
+                        <div className="community-composer-field space-y-2">
+                          <label className={labelCls}>{t('community.material_semester', '学期')}</label>
+                          <input
+                            value={materialSemester}
+                            onChange={(e) => setMaterialSemester(e.target.value)}
+                            className={`community-composer-input ${inputCls}`}
+                            placeholder={t('community.material_semester_placeholder', '如：2025-2026 秋冬')}
+                            maxLength={40}
+                          />
+                        </div>
+                        <div className="community-composer-field space-y-2">
+                          <label className={labelCls}>{t('community.material_type', '资料类型')}</label>
+                          <select
+                            value={materialType}
+                            onChange={(e) => setMaterialType(e.target.value)}
+                            className={`community-composer-input ${inputCls}`}
+                          >
+                            {MATERIAL_TYPE_OPTIONS.map((option) => (
+                              <option key={option.value || 'empty'} value={option.value}>
+                                {t(option.labelKey, option.fallback)}
+                              </option>
+                            ))}
+                          </select>
                         </div>
                       </>
                     )}

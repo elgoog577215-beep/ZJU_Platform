@@ -6,6 +6,7 @@ import {
   Route,
   Navigate,
   useLocation,
+  useParams,
 } from 'react-router-dom';
 import { useAuth, AuthProvider } from './context/AuthContext';
 import { motion } from 'framer-motion';
@@ -47,7 +48,8 @@ const FutureLearningCenter = lazy(() => import('./components/FutureLearningCente
 const AdminDashboard = lazy(() => import('./components/Admin/AdminDashboard'));
 const AdminAccessGate = lazy(() => import('./components/Admin/AdminAccessGate'));
 const NotFound = lazy(() => import('./components/NotFound'));
-const PublicProfile = lazy(() => import('./components/PublicProfile'));
+const ProfilePage = lazy(() => import('./components/ProfilePage'));
+const ProfileDirectory = lazy(() => import('./components/ProfileDirectory'));
 const ProjectPlaza = lazy(() => import('./components/ProjectPlaza'));
 const SearchPalette = lazy(() => import('./components/SearchPalette'));
 const GlobalPlayer = lazy(() => import('./components/GlobalPlayer'));
@@ -138,6 +140,11 @@ const MeRedirect = () => {
   if (loading) return <LoadingScreen />;
   if (canOpenProfile) return <Navigate to={`/user/${user.id}`} replace />;
   return <PageTransition><Home /></PageTransition>;
+};
+
+const LegacyUserRedirect = () => {
+  const { id } = useParams();
+  return <Navigate to={`/u/user-${id}`} replace />;
 };
 
 const AdminRoute = ({ children }) => {
@@ -291,7 +298,10 @@ const AppContent = () => {
               }
             />
             <Route path="/me" element={<MeRedirect />} />
-            <Route path="/user/:id" element={<PageTransition><PublicProfile /></PageTransition>} />
+            <Route path="/profiles" element={<PageTransition><ProfileDirectory /></PageTransition>} />
+            <Route path="/u/:handle" element={<PageTransition><ProfilePage /></PageTransition>} />
+            <Route path="/org/:handle" element={<PageTransition><ProfilePage /></PageTransition>} />
+            <Route path="/user/:id" element={<LegacyUserRedirect />} />
             <Route path="/projects" element={<PageTransition><ProjectPlaza /></PageTransition>} />
             <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
           </Routes>

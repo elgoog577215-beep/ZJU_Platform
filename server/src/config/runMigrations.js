@@ -1,4 +1,5 @@
 const { ensureCoreSchema } = require('./ensureCoreSchema');
+const profileService = require('../services/profileService');
 
 async function runMigrations(db) {
   console.log('🔄 Running database migrations...');
@@ -799,6 +800,10 @@ async function runMigrations(db) {
     related_news_ids: 'TEXT',
     related_group_ids: 'TEXT',
     rejection_reason: 'TEXT',
+    material_course: 'TEXT',
+    material_teacher: 'TEXT',
+    material_semester: 'TEXT',
+    material_type: 'TEXT',
   }, 'community_posts');
 
   // --- Community posts: add solved_comment_id ---
@@ -1077,6 +1082,7 @@ async function runMigrations(db) {
       cooperation_direction: 'TEXT',
       cooperation_direction_en: 'TEXT',
       event_organizer_aliases: "TEXT DEFAULT '[]'",
+      profile_id: 'INTEGER',
     }, 'ecosystem partners');
 
     await db.exec(`
@@ -1170,6 +1176,109 @@ async function runMigrations(db) {
   } catch (err) {
     if (!err.message.includes('already exists')) {
       console.warn('Migration warning (ecosystem partners):', err.message);
+    }
+  }
+
+  try {
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS profiles (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        type TEXT NOT NULL CHECK (type IN ('person', 'club', 'school', 'enterprise', 'organization')),
+        handle TEXT UNIQUE NOT NULL,
+        display_name TEXT NOT NULL,
+        display_name_en TEXT,
+        avatar_url TEXT,
+        logo_url TEXT,
+        cover_url TEXT,
+        bio TEXT,
+        description TEXT,
+        description_en TEXT,
+        cooperation_direction TEXT,
+        cooperation_direction_en TEXT,
+        link_url TEXT,
+        verified INTEGER DEFAULT 0,
+        status TEXT DEFAULT 'active',
+        owner_user_id INTEGER,
+        source_type TEXT,
+        source_id INTEGER,
+        created_at TEXT DEFAULT (datetime('now')),
+        updated_at TEXT DEFAULT (datetime('now')),
+        deleted_at DATETIME,
+        FOREIGN KEY (owner_user_id) REFERENCES users(id) ON DELETE SET NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS profile_members (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        profile_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        role TEXT DEFAULT 'editor' CHECK (role IN ('owner', 'admin', 'editor')),
+        status TEXT DEFAULT 'active',
+        created_at TEXT DEFAULT (datetime('now')),
+        updated_at TEXT DEFAULT (datetime('now')),
+        UNIQUE(profile_id, user_id),
+        FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+
+      CREATE TABLE IF NOT EXISTS profile_aliases (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        profile_id INTEGER NOT NULL,
+        alias TEXT NOT NULL,
+        normalized_alias TEXT NOT NULL,
+        purpose TEXT DEFAULT 'search',
+        created_at TEXT DEFAULT (datetime('now')),
+        UNIQUE(profile_id, normalized_alias, purpose),
+        FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE
+      );
+    `);
+
+    await db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_profiles_handle
+        ON profiles(handle);
+      CREATE INDEX IF NOT EXISTS idx_profiles_type_status
+        ON profiles(type, status, deleted_at);
+      CREATE INDEX IF NOT EXISTS idx_profiles_source
+        ON profiles(source_type, source_id);
+      CREATE INDEX IF NOT EXISTS idx_profile_members_user
+        ON profile_members(user_id, status, profile_id);
+      CREATE INDEX IF NOT EXISTS idx_profile_aliases_match
+        ON profile_aliases(normalized_alias, purpose, profile_id);
+    `);
+
+    const publisherTables = ['photos', 'music', 'videos', 'articles', 'events', 'news', 'community_posts'];
+    for (const table of publisherTables) {
+      await ensureColumns(table, {
+        publisher_profile_id: 'INTEGER',
+      }, `${table} profile publisher`);
+    }
+    await ensureColumns('events', {
+      organizer_profile_id: 'INTEGER',
+    }, 'events profile organizer');
+
+    await db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_photos_publisher_profile
+        ON photos(publisher_profile_id, status, deleted_at);
+      CREATE INDEX IF NOT EXISTS idx_music_publisher_profile
+        ON music(publisher_profile_id, status, deleted_at);
+      CREATE INDEX IF NOT EXISTS idx_videos_publisher_profile
+        ON videos(publisher_profile_id, status, deleted_at);
+      CREATE INDEX IF NOT EXISTS idx_articles_publisher_profile
+        ON articles(publisher_profile_id, status, deleted_at);
+      CREATE INDEX IF NOT EXISTS idx_events_publisher_profile
+        ON events(publisher_profile_id, status, deleted_at);
+      CREATE INDEX IF NOT EXISTS idx_events_organizer_profile
+        ON events(organizer_profile_id, status, deleted_at);
+      CREATE INDEX IF NOT EXISTS idx_news_publisher_profile
+        ON news(publisher_profile_id, status, deleted_at);
+      CREATE INDEX IF NOT EXISTS idx_community_posts_publisher_profile
+        ON community_posts(publisher_profile_id, status);
+    `);
+
+    await profileService.bootstrapProfiles(db);
+    console.log('鉁?Profiles table ready');
+  } catch (err) {
+    if (!err.message.includes('already exists') && !err.message.includes('duplicate column')) {
+      console.warn('Migration warning (profiles):', err.message);
     }
   }
 

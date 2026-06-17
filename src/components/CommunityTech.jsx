@@ -245,7 +245,7 @@ const CommunityTech = ({ onNewPost, hideNewPostButton = false }) => {
       return;
     }
     if (resource.type === 'post') {
-      updateParams({ postTab: 'help', post: resource.id });
+      updateParams({ postTab: resource.section || 'help', post: resource.id });
       return;
     }
     if (resource.type === 'group') {

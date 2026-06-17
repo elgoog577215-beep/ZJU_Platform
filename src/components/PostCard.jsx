@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { motion } from 'framer-motion';
-import { MessageCircle, User, Calendar, Users } from 'lucide-react';
+import { BookOpen, MessageCircle, User, Calendar, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const STATUS_CONFIG = {
@@ -40,16 +40,29 @@ const formatRelativeTime = (dateStr, language = 'zh-CN') => {
 const PostCard = memo(({ post, index, onClick, canAnimate, isDayMode }) => {
   const { t, i18n } = useTranslation();
   const isTeam = post.section === 'team';
+  const isMaterials = post.section === 'materials';
   const visibleStatus = post.review_status && post.review_status !== 'approved' ? post.review_status : post.status;
   const statusCfg = STATUS_CONFIG[visibleStatus] || STATUS_CONFIG.open;
 
-  const accentHover = isTeam ? 'hover:border-violet-500/30' : 'hover:border-amber-500/30';
+  const accentHover = isTeam
+    ? 'hover:border-violet-500/30'
+    : isMaterials
+      ? 'hover:border-emerald-500/30'
+      : 'hover:border-amber-500/30';
   const accentShadow = isTeam
     ? 'hover:shadow-[0_20px_40px_-15px_rgba(139,92,246,0.15)]'
-    : 'hover:shadow-[0_20px_40px_-15px_rgba(245,158,11,0.15)]';
-  const titleHover = isTeam ? 'group-hover:text-violet-400' : 'group-hover:text-amber-400';
+    : isMaterials
+      ? 'hover:shadow-[0_20px_40px_-15px_rgba(16,185,129,0.16)]'
+      : 'hover:shadow-[0_20px_40px_-15px_rgba(245,158,11,0.15)]';
+  const titleHover = isTeam ? 'group-hover:text-violet-400' : isMaterials ? 'group-hover:text-emerald-400' : 'group-hover:text-amber-400';
 
   const progress = isTeam && post.max_members ? Math.min((post.current_members || 0) / post.max_members, 1) : 0;
+  const materialMeta = isMaterials ? [
+    post.material_course,
+    post.material_teacher,
+    post.material_semester,
+    post.material_type ? t(`community.material_type_${post.material_type}`, post.material_type) : '',
+  ].filter(Boolean).slice(0, 4) : [];
 
   return (
     <motion.div
@@ -79,6 +92,20 @@ const PostCard = memo(({ post, index, onClick, canAnimate, isDayMode }) => {
         <p className={`line-clamp-2 text-[13px] leading-5 md:text-sm ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
           {post.excerpt || post.content}
         </p>
+
+        {materialMeta.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 pt-0.5">
+            {materialMeta.map((item, metaIndex) => (
+              <span
+                key={`${item}-${metaIndex}`}
+                className={`inline-flex max-w-full items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-semibold ${isDayMode ? 'border-emerald-100 bg-emerald-50 text-emerald-700' : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200'}`}
+              >
+                <BookOpen size={11} />
+                <span className="truncate">{item}</span>
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* Team: deadline + members progress */}
         {isTeam && post.max_members && (

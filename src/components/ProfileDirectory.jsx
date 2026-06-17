@@ -1,0 +1,145 @@
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { BadgeCheck, Building2, Search, UserRound } from "lucide-react";
+import { useTranslation } from "react-i18next";
+
+import api from "../services/api";
+import { useSettings } from "../context/SettingsContext";
+import SEO from "./SEO";
+
+const PROFILE_TYPES = [
+  { value: "", label: "全部" },
+  { value: "person", label: "个人" },
+  { value: "club", label: "社团" },
+  { value: "school", label: "学校" },
+  { value: "enterprise", label: "企业" },
+  { value: "organization", label: "组织" },
+];
+
+const typeLabel = (type) =>
+  PROFILE_TYPES.find((item) => item.value === type)?.label || "主体";
+
+const profilePath = (profile) =>
+  profile.type === "person" ? `/u/${profile.handle}` : `/org/${profile.handle}`;
+
+const ProfileDirectory = () => {
+  const { t } = useTranslation();
+  const { uiMode } = useSettings();
+  const isDayMode = uiMode === "day";
+  const [query, setQuery] = useState("");
+  const [type, setType] = useState("");
+  const [profiles, setProfiles] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const params = useMemo(() => {
+    const next = {};
+    if (query.trim()) next.q = query.trim();
+    if (type) next.type = type;
+    return next;
+  }, [query, type]);
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    api.get("/profiles", { params })
+      .then((response) => {
+        if (!active) return;
+        setProfiles(Array.isArray(response.data) ? response.data : []);
+      })
+      .catch(() => {
+        if (active) setProfiles([]);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [params]);
+
+  return (
+    <div className={`min-h-screen px-4 py-8 sm:px-6 lg:px-8 ${isDayMode ? "bg-slate-50 text-slate-950" : "bg-[#0d0f14] text-white"}`}>
+      <SEO title={t("profiles.directory_title", "主体目录")} description={t("profiles.directory_desc", "浏览个人、社团、学校、企业和组织主体主页")} />
+      <main className="mx-auto max-w-6xl">
+        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className={`text-xs font-black uppercase tracking-[0.22em] ${isDayMode ? "text-indigo-700" : "text-indigo-300"}`}>Profiles</p>
+            <h1 className="mt-2 text-3xl font-black tracking-tight">主体目录</h1>
+          </div>
+          <div className="flex w-full flex-col gap-2 sm:flex-row md:w-auto">
+            <div className="relative min-w-0 flex-1 md:w-72">
+              <Search className={`pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 ${isDayMode ? "text-slate-400" : "text-white/40"}`} size={16} />
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="搜索主体"
+                className={`w-full rounded-[6px] border py-2.5 pl-10 pr-3 text-sm outline-none ${isDayMode ? "border-slate-200 bg-white text-slate-950" : "border-white/10 bg-white/5 text-white"}`}
+              />
+            </div>
+            <select
+              value={type}
+              onChange={(event) => setType(event.target.value)}
+              className={`rounded-[6px] border px-3 py-2.5 text-sm outline-none ${isDayMode ? "border-slate-200 bg-white text-slate-950" : "border-white/10 bg-white/5 text-white"}`}
+            >
+              {PROFILE_TYPES.map((item) => (
+                <option key={item.value || "all"} value={item.value}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className={`rounded-[6px] border p-8 text-center text-sm ${isDayMode ? "border-slate-200 bg-white text-slate-500" : "border-white/10 bg-white/[0.03] text-white/50"}`}>
+            {t("common.loading")}
+          </div>
+        ) : profiles.length === 0 ? (
+          <div className={`rounded-[6px] border p-8 text-center text-sm ${isDayMode ? "border-slate-200 bg-white text-slate-500" : "border-white/10 bg-white/[0.03] text-white/50"}`}>
+            暂无匹配主体
+          </div>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {profiles.map((profile) => {
+              const Icon = profile.type === "person" ? UserRound : Building2;
+              const mark = profile.logo_url || profile.avatar_url;
+              return (
+                <Link
+                  key={profile.id}
+                  to={profilePath(profile)}
+                  className={`group rounded-[6px] border p-4 transition ${isDayMode ? "border-slate-200 bg-white hover:border-indigo-200" : "border-white/10 bg-white/[0.03] hover:border-white/20"}`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={`flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-[6px] border ${isDayMode ? "border-slate-200 bg-slate-50" : "border-white/10 bg-white/5"}`}>
+                      {mark ? (
+                        <img src={mark} alt="" className="h-full w-full object-cover" loading="lazy" />
+                      ) : (
+                        <Icon size={20} />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <h2 className="truncate text-base font-bold">{profile.display_name}</h2>
+                        {profile.verified ? <BadgeCheck className="shrink-0 text-sky-500" size={15} /> : null}
+                      </div>
+                      <p className={`mt-1 text-xs ${isDayMode ? "text-slate-500" : "text-white/45"}`}>
+                        {typeLabel(profile.type)} · @{profile.handle}
+                      </p>
+                      {(profile.bio || profile.description) ? (
+                        <p className={`mt-3 line-clamp-2 text-sm leading-6 ${isDayMode ? "text-slate-600" : "text-white/65"}`}>
+                          {profile.bio || profile.description}
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </main>
+    </div>
+  );
+};
+
+export default ProfileDirectory;
