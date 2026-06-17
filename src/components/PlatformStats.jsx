@@ -20,7 +20,11 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useSettings } from "../context/SettingsContext";
-import { getPartnerDisplayName, getPartnerLogoSrc } from "../data/partnerLogos";
+import {
+  getPartnerDisplayName,
+  getPartnerLogoSrc,
+  getPartnerProfilePath,
+} from "../data/partnerLogos";
 import { useCachedResource } from "../hooks/useCachedResource";
 import { useEcosystemPartners } from "../hooks/useEcosystemPartners";
 import api from "../services/api";
@@ -335,8 +339,12 @@ const PlatformStats = ({ hero } = {}) => {
     .slice(0, 7);
   const featuredPreviewItems = featuredItems.slice(0, 3);
 
-  const schoolSupport = schoolPartners.map((partner) => partner.name);
-  const studentOrganizations = organizationPartners.map((partner) => partner.name);
+  const schoolSupport = schoolPartners;
+  const studentOrganizations = organizationPartners;
+  const openPartnerProfile = (partner) => {
+    const profilePath = getPartnerProfilePath(partner);
+    if (profilePath) navigate(profilePath);
+  };
 
   const proofStats = [
     {
@@ -890,9 +898,13 @@ const PlatformStats = ({ hero } = {}) => {
               </div>
 
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-1 sm:gap-3">
-                {schoolSupport.map((item) => (
-                  <div
-                    key={item}
+                {schoolSupport.map((partner) => {
+                  const name = getPartnerDisplayName(partner);
+                  return (
+                  <button
+                    key={partner.id || name}
+                    type="button"
+                    onClick={() => openPartnerProfile(partner)}
                     className={`grid gap-0.5 border-l-4 px-3 py-2 sm:gap-2 sm:px-4 sm:py-3.5 ${
                       isDayMode
                         ? "border-l-cyan-500 bg-white/76"
@@ -903,9 +915,10 @@ const PlatformStats = ({ hero } = {}) => {
                       <Building2 className="h-3.5 w-3.5" />
                       School Support
                     </div>
-                    <div className="text-sm font-black leading-tight sm:text-xl">{item}</div>
-                  </div>
-                ))}
+                    <div className="text-left text-sm font-black leading-tight sm:text-xl">{name}</div>
+                  </button>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -926,18 +939,23 @@ const PlatformStats = ({ hero } = {}) => {
                   </p>
                 </div>
                 <div className="grid grid-cols-5 gap-2 sm:gap-3">
-                  {studentOrganizations.map((item) => (
-                    <span
-                      key={item}
+                  {studentOrganizations.map((partner) => {
+                    const name = getPartnerDisplayName(partner);
+                    return (
+                    <button
+                      key={partner.id || name}
+                      type="button"
+                      onClick={() => openPartnerProfile(partner)}
                       className={`flex min-h-[52px] items-center justify-center border px-2 py-2 text-sm font-black transition duration-300 hover:-translate-y-0.5 sm:min-h-[68px] sm:px-4 sm:py-3 sm:text-xl lg:min-h-[86px] ${
                         isDayMode
                           ? "border-slate-200/80 bg-white/72 shadow-[0_18px_48px_rgba(15,23,42,0.08)]"
                           : "border-white/10 bg-white/[0.035] hover:border-cyan-300/24 hover:bg-cyan-300/[0.055]"
                       }`}
                     >
-                      {item}
-                    </span>
-                  ))}
+                      {name}
+                    </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -965,8 +983,10 @@ const PlatformStats = ({ hero } = {}) => {
 
               <div className="scrollbar-none flex snap-x gap-3 overflow-x-auto pb-1 sm:grid sm:auto-rows-fr sm:grid-cols-3 sm:overflow-visible sm:pb-0 lg:grid-cols-4 xl:gap-4">
                 {enterpriseLogos.map((logo) => (
-                  <div
+                  <button
                     key={logo.id || logo.src || logo.name}
+                    type="button"
+                    onClick={() => openPartnerProfile(logo)}
                     className={`group flex min-h-[58px] min-w-[48%] snap-start items-center justify-center overflow-hidden border px-3 py-3 transition duration-300 hover:-translate-y-0.5 sm:min-h-[72px] sm:min-w-0 sm:px-4 sm:py-4 lg:min-h-[88px] lg:px-3 lg:py-4 xl:px-4 ${
                       isDayMode
                         ? "border-slate-200/80 bg-white/80 shadow-[0_16px_44px_rgba(15,23,42,0.08)]"
@@ -999,7 +1019,7 @@ const PlatformStats = ({ hero } = {}) => {
                         {logo.text}
                       </span>
                     ) : null}
-                  </div>
+                  </button>
                 ))}
               </div>
               </div>

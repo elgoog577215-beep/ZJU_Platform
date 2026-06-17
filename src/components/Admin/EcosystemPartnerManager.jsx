@@ -5,6 +5,7 @@ import {
   Edit2,
   Eye,
   EyeOff,
+  ExternalLink,
   Handshake,
   Plus,
   RefreshCw,
@@ -62,6 +63,7 @@ const categoryMeta = {
 
 const emptyForm = {
   category: "enterprise",
+  profile_handle: "",
   name: "",
   name_en: "",
   description: "",
@@ -86,8 +88,29 @@ const sortAdminPartners = (items = []) => sortEcosystemPartners(items);
 const isPublicVisible = (partner) =>
   partner.enabled !== false && partner.featured !== false;
 
+const profileTypeForPartnerCategory = (category) => {
+  if (category === "school") return "school";
+  if (category === "enterprise") return "enterprise";
+  return "organization";
+};
+
+const normalizeProfileHandle = (value) =>
+  String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 64);
+
+const buildProfileAliases = (aliases = []) =>
+  aliases.flatMap((alias) => [
+    { alias, purpose: "organizer_match" },
+    { alias, purpose: "search" },
+  ]);
+
 const normalizeForm = (partner = emptyForm) => ({
   category: partner.category || "enterprise",
+  profile_handle: partner.profile_handle || partner.handle || "",
   name: partner.name || "",
   name_en: partner.name_en || "",
   description: partner.description || "",
@@ -116,6 +139,9 @@ const EcosystemPartnerManager = () => {
   const [form, setForm] = useState(emptyForm);
   const [deletePartner, setDeletePartner] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [profileMembers, setProfileMembers] = useState([]);
+  const [membersLoading, setMembersLoading] = useState(false);
+  const [memberForm, setMemberForm] = useState({ user_id: "", role: "editor" });
 
   const fetchPartners = async () => {
     setLoading(true);
@@ -133,6 +159,23 @@ const EcosystemPartnerManager = () => {
   useEffect(() => {
     fetchPartners();
   }, []);
+
+  const fetchProfileMembers = async (profileId) => {
+    if (!profileId) {
+      setProfileMembers([]);
+      return;
+    }
+    setMembersLoading(true);
+    try {
+      const response = await api.get(`/admin/profiles/${profileId}/members`);
+      setProfileMembers(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      toast.error(error.response?.data?.error || "加载主体管理员失败");
+      setProfileMembers([]);
+    } finally {
+      setMembersLoading(false);
+    }
+  };
 
   const stats = useMemo(() => {
     const base = { total: partners.length, visible: 0, hidden: 0 };
@@ -164,6 +207,7 @@ const EcosystemPartnerManager = () => {
         partner.logo_url,
         partner.dark_logo_url,
         partner.link_url,
+        partner.profile_handle,
       ]
         .map((value) => String(value || "").toLowerCase())
         .some((value) => value.includes(keyword));
@@ -181,16 +225,89 @@ const EcosystemPartnerManager = () => {
   const openCreate = () => {
     setEditingPartner({ id: null });
     setForm(emptyForm);
+    setProfileMembers([]);
+    setMemberForm({ user_id: "", role: "editor" });
   };
 
   const openEdit = (partner) => {
     setEditingPartner(partner);
     setForm(normalizeForm(partner));
+    setMemberForm({ user_id: "", role: "editor" });
+    fetchProfileMembers(partner.profile_id);
   };
 
   const closeEditor = () => {
     setEditingPartner(null);
     setForm(emptyForm);
+    setProfileMembers([]);
+    setMemberForm({ user_id: "", role: "editor" });
+  };
+
+  const syncProfileAfterPartnerSave = async (partner, partnerPayload) => {
+    if (!partner?.profile_id) return partner;
+    const handle = normalizeProfileHandle(form.profile_handle || partner.profile_handle);
+    if (!handle) return partner;
+
+    const aliases = buildProfileAliases(partnerPayload.event_organizer_aliases);
+    const response = await api.put(`/admin/profiles/${partner.profile_id}`, {
+      type: profileTypeForPartnerCategory(partnerPayload.category),
+      handle,
+      display_name: partnerPayload.name,
+      display_name_en: partnerPayload.name_en,
+      logo_url: partnerPayload.logo_url,
+      avatar_url: partnerPayload.logo_url || partnerPayload.dark_logo_url,
+      description: partnerPayload.description,
+      description_en: partnerPayload.description_en,
+      cooperation_direction: partnerPayload.cooperation_direction,
+      cooperation_direction_en: partnerPayload.cooperation_direction_en,
+      link_url: partnerPayload.link_url,
+      verified: partnerPayload.enabled && partnerPayload.featured,
+      status: partnerPayload.enabled && partnerPayload.featured ? "active" : "inactive",
+      aliases,
+    });
+
+    return {
+      ...partner,
+      profile_handle: response.data?.handle || handle,
+      profile_type: response.data?.type || profileTypeForPartnerCategory(partnerPayload.category),
+    };
+  };
+
+  const addProfileMember = async () => {
+    if (!editingPartner?.profile_id) return;
+    const userId = Number.parseInt(memberForm.user_id, 10);
+    if (!Number.isInteger(userId) || userId <= 0) {
+      toast.error("请输入有效用户 ID");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await api.put(`/admin/profiles/${editingPartner.profile_id}/members/${userId}`, {
+        role: memberForm.role,
+        status: "active",
+      });
+      setMemberForm({ user_id: "", role: "editor" });
+      await fetchProfileMembers(editingPartner.profile_id);
+      toast.success("主体管理员已更新");
+    } catch (error) {
+      toast.error(error.response?.data?.error || "保存主体管理员失败");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const removeProfileMember = async (member) => {
+    if (!editingPartner?.profile_id || !member?.user_id) return;
+    setSubmitting(true);
+    try {
+      await api.delete(`/admin/profiles/${editingPartner.profile_id}/members/${member.user_id}`);
+      await fetchProfileMembers(editingPartner.profile_id);
+      toast.success("主体管理员已移除");
+    } catch (error) {
+      toast.error(error.response?.data?.error || "移除主体管理员失败");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -225,10 +342,11 @@ const EcosystemPartnerManager = () => {
           `/admin/ecosystem-partners/${editingPartner.id}`,
           payload,
         );
+        const savedPartner = await syncProfileAfterPartnerSave(response.data, payload);
         setPartners((previous) =>
           sortAdminPartners(
             previous.map((partner) =>
-              partner.id === editingPartner.id ? response.data : partner,
+              partner.id === editingPartner.id ? savedPartner : partner,
             ),
           ),
         );
@@ -236,7 +354,8 @@ const EcosystemPartnerManager = () => {
         toast.success("合作方已更新");
       } else {
         const response = await api.post("/admin/ecosystem-partners", payload);
-        setPartners((previous) => sortAdminPartners([...previous, response.data]));
+        const savedPartner = await syncProfileAfterPartnerSave(response.data, payload);
+        setPartners((previous) => sortAdminPartners([...previous, savedPartner]));
         syncPublicPartnerViews();
         toast.success("合作方已创建");
       }
@@ -336,6 +455,28 @@ const EcosystemPartnerManager = () => {
     );
   };
 
+  const renderProfileLink = (partner) => {
+    if (!partner.profile_handle) {
+      return (
+        <span className={`text-xs ${mutedTextClass}`}>未生成主体</span>
+      );
+    }
+    return (
+      <button
+        type="button"
+        onClick={() => window.open(`/org/${partner.profile_handle}`, "_blank", "noopener,noreferrer")}
+        className={`inline-flex min-h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-semibold transition ${
+          isDayMode
+            ? "border-slate-200 bg-white text-slate-600 hover:border-indigo-200 hover:text-indigo-700"
+            : "border-white/10 bg-white/5 text-gray-200 hover:border-white/20 hover:text-white"
+        }`}
+      >
+        <ExternalLink size={14} />
+        /org/{partner.profile_handle}
+      </button>
+    );
+  };
+
   const renderVisibilitySwitch = (partner) => {
     const visible = isPublicVisible(partner);
     const Icon = visible ? Eye : EyeOff;
@@ -399,6 +540,7 @@ const EcosystemPartnerManager = () => {
             </p>
           ) : null}
           <div className="mt-4 flex flex-wrap gap-2">
+            {renderProfileLink(partner)}
             {renderVisibilitySwitch(partner)}
             <AdminIconButton
               label="删除合作方"
@@ -525,9 +667,10 @@ const EcosystemPartnerManager = () => {
           ) : (
             <>
               {renderMobileCards()}
-              <AdminTableShell minWidth={1120}>
+              <AdminTableShell minWidth={1240}>
                 <thead>
                   <tr className="theme-admin-table-head border-b text-xs uppercase tracking-[0.2em]">
+                    <th className="p-4">主体主页</th>
                     <th className="p-4">合作方</th>
                     <th className="p-4">分类</th>
                     <th className="p-4">说明</th>
@@ -539,6 +682,7 @@ const EcosystemPartnerManager = () => {
                 <tbody className="theme-admin-table-body divide-y">
                   {filteredPartners.map((partner) => (
                     <tr key={partner.id} className="theme-admin-row">
+                      <td className="p-4">{renderProfileLink(partner)}</td>
                       <td className="p-4">
                         <div className="flex items-center gap-3">
                           {renderLogo(partner)}
@@ -633,6 +777,20 @@ const EcosystemPartnerManager = () => {
           </label>
 
           <label className={`block text-sm font-semibold ${headingTextClass}`}>
+            Profile Handle
+            <div className="mt-2 flex overflow-hidden rounded-xl border border-white/10">
+              <span className={`flex items-center px-3 text-sm ${mutedTextClass}`}>/org/</span>
+              <input
+                value={form.profile_handle}
+                onChange={(event) => updateForm("profile_handle", normalizeProfileHandle(event.target.value))}
+                maxLength={64}
+                placeholder="zju-student-union"
+                className="theme-admin-input min-w-0 flex-1 rounded-none border-0 px-3 py-2.5 text-sm"
+              />
+            </div>
+          </label>
+
+          <label className={`block text-sm font-semibold ${headingTextClass}`}>
             名称
             <input
               value={form.name}
@@ -680,6 +838,69 @@ const EcosystemPartnerManager = () => {
               className="theme-admin-input mt-2 w-full resize-none rounded-xl px-3 py-2.5 text-sm leading-6"
             />
           </label>
+
+          {editingPartner?.profile_id ? (
+            <section
+              className={`rounded-xl border p-3 ${
+                isDayMode ? "border-slate-200 bg-slate-50/80" : "border-white/10 bg-white/[0.03]"
+              }`}
+            >
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <h4 className={`text-sm font-bold ${headingTextClass}`}>主体管理员</h4>
+                  <p className={`mt-1 text-xs ${mutedTextClass}`}>owner/admin/editor 可用该主体发布内容</p>
+                </div>
+                {membersLoading ? <span className={`text-xs ${mutedTextClass}`}>加载中...</span> : null}
+              </div>
+              <div className="grid gap-2 sm:grid-cols-[1fr_130px_auto]">
+                <input
+                  value={memberForm.user_id}
+                  onChange={(event) => setMemberForm((previous) => ({ ...previous, user_id: event.target.value }))}
+                  placeholder="用户 ID"
+                  className="theme-admin-input rounded-xl px-3 py-2.5 text-sm"
+                />
+                <select
+                  value={memberForm.role}
+                  onChange={(event) => setMemberForm((previous) => ({ ...previous, role: event.target.value }))}
+                  className="theme-admin-input rounded-xl px-3 py-2.5 text-sm"
+                >
+                  <option value="editor">editor</option>
+                  <option value="admin">admin</option>
+                  <option value="owner">owner</option>
+                </select>
+                <AdminButton type="button" tone="subtle" onClick={addProfileMember} disabled={submitting}>
+                  <Plus size={16} />
+                  添加
+                </AdminButton>
+              </div>
+              <div className="mt-3 grid gap-2">
+                {profileMembers.length === 0 ? (
+                  <p className={`text-xs ${mutedTextClass}`}>暂无额外管理员</p>
+                ) : (
+                  profileMembers.map((member) => (
+                    <div
+                      key={`${member.user_id}-${member.role}`}
+                      className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2 ${
+                        isDayMode ? "border-slate-200 bg-white" : "border-white/10 bg-black/20"
+                      }`}
+                    >
+                      <span className={`min-w-0 truncate text-sm ${headingTextClass}`}>
+                        #{member.user_id} {member.nickname || member.username || "User"}
+                        <span className={`ml-2 text-xs ${mutedTextClass}`}>{member.role}</span>
+                      </span>
+                      <AdminIconButton
+                        label="移除主体管理员"
+                        tone="danger"
+                        onClick={() => removeProfileMember(member)}
+                      >
+                        <X size={15} />
+                      </AdminIconButton>
+                    </div>
+                  ))
+                )}
+              </div>
+            </section>
+          ) : null}
 
           <div className="grid gap-3 sm:grid-cols-2">
             <label className={`block text-sm font-semibold ${headingTextClass}`}>

@@ -63,7 +63,7 @@ import {
   inferEventSourceCollege,
 } from "../data/eventTaxonomy";
 
-import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
+import { Link as RouterLink, useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { getThumbnailUrl } from "../utils/imageUtils";
 import { useReducedMotion } from "../utils/animations";
 import { getOrCreateSiteVisitorKey } from "../utils/visitorKey";
@@ -579,7 +579,17 @@ const EventListRow = memo(
                   size={14}
                   className={isDayMode ? "shrink-0 text-slate-400" : "shrink-0 text-indigo-400"}
                 />
-                <span className="truncate">{event.organizer}</span>
+                {event.organizer_profile_handle ? (
+                  <RouterLink
+                    to={`/org/${event.organizer_profile_handle}`}
+                    onClick={(linkEvent) => linkEvent.stopPropagation()}
+                    className={`truncate hover:underline ${isDayMode ? "hover:text-slate-800" : "hover:text-white"}`}
+                  >
+                    {event.organizer}
+                  </RouterLink>
+                ) : (
+                  <span className="truncate">{event.organizer}</span>
+                )}
               </span>
             )}
           </div>
@@ -1008,6 +1018,9 @@ const Events = () => {
         selectedEvent?.notice_type || "other",
         i18n.resolvedLanguage || i18n.language,
       )
+    : "";
+  const selectedOrganizerProfilePath = selectedEvent?.organizer_profile_handle
+    ? `/org/${selectedEvent.organizer_profile_handle}`
     : "";
   const [partnerFilter, setPartnerFilter] = useState(null);
   const partnerFilterKey = partnerFilter?.terms?.join("|") || "";
@@ -2302,15 +2315,28 @@ END:VCALENDAR`;
                               )}
                               <div className="mt-4 flex flex-wrap items-center gap-2.5">
                                 {selectedEvent.organizer && (
-                                  <span
-                                    className={`inline-flex items-center gap-2 rounded-md px-3.5 py-2 border text-xs sm:text-sm font-medium ${isDayMode ? "bg-white/82 text-slate-600 border-white/80 shadow-[0_10px_22px_rgba(15,23,42,0.06)]" : "bg-white/10 text-white/80 border-white/15"}`}
-                                  >
-                                    <Building2
-                                      size={14}
-                                      className={eventThemeAccent.accentText}
-                                    />
-                                    {selectedEvent.organizer}
-                                  </span>
+                                  selectedOrganizerProfilePath ? (
+                                    <RouterLink
+                                      to={selectedOrganizerProfilePath}
+                                      className={`inline-flex items-center gap-2 rounded-md px-3.5 py-2 border text-xs sm:text-sm font-medium transition-colors ${isDayMode ? "bg-white/82 text-slate-600 border-white/80 shadow-[0_10px_22px_rgba(15,23,42,0.06)] hover:text-slate-950" : "bg-white/10 text-white/80 border-white/15 hover:text-white"}`}
+                                    >
+                                      <Building2
+                                        size={14}
+                                        className={eventThemeAccent.accentText}
+                                      />
+                                      {selectedEvent.organizer}
+                                    </RouterLink>
+                                  ) : (
+                                    <span
+                                      className={`inline-flex items-center gap-2 rounded-md px-3.5 py-2 border text-xs sm:text-sm font-medium ${isDayMode ? "bg-white/82 text-slate-600 border-white/80 shadow-[0_10px_22px_rgba(15,23,42,0.06)]" : "bg-white/10 text-white/80 border-white/15"}`}
+                                    >
+                                      <Building2
+                                        size={14}
+                                        className={eventThemeAccent.accentText}
+                                      />
+                                      {selectedEvent.organizer}
+                                    </span>
+                                  )
                                 )}
                                 {selectedEvent.target_audience && (
                                   <span
@@ -2785,11 +2811,20 @@ END:VCALENDAR`;
                                   >
                                     {t("event_fields.organizer")}
                                   </h4>
-                                  <p
-                                    className={`text-sm leading-snug break-words sm:text-base ${isDayMode ? "text-slate-700" : "text-gray-200"}`}
-                                  >
-                                    {selectedEvent.organizer}
-                                  </p>
+                                  {selectedOrganizerProfilePath ? (
+                                    <RouterLink
+                                      to={selectedOrganizerProfilePath}
+                                      className={`text-sm leading-snug break-words sm:text-base hover:underline ${isDayMode ? "text-slate-700 hover:text-slate-950" : "text-gray-200 hover:text-white"}`}
+                                    >
+                                      {selectedEvent.organizer}
+                                    </RouterLink>
+                                  ) : (
+                                    <p
+                                      className={`text-sm leading-snug break-words sm:text-base ${isDayMode ? "text-slate-700" : "text-gray-200"}`}
+                                    >
+                                      {selectedEvent.organizer}
+                                    </p>
+                                  )}
                                 </div>
                               </div>
                             )}

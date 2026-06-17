@@ -31,6 +31,20 @@ const getTagList = (value = '') =>
 
 const serializeTagList = (items = []) => [...new Set(items)].join(',');
 
+const PROFILE_TYPE_LABELS = {
+  person: '个人',
+  club: '社团',
+  school: '学校',
+  enterprise: '企业',
+  organization: '组织',
+};
+
+const formatProfileOptionLabel = (profile = {}) => {
+  const name = profile.display_name || profile.handle || `Profile ${profile.id}`;
+  const type = PROFILE_TYPE_LABELS[profile.type] || '主体';
+  return `${name} · ${type}`;
+};
+
 const createArticleBlock = (blockType = 'text') => ({
   id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
   type: blockType === 'code' ? 'text' : blockType,
@@ -366,6 +380,14 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   const [sourceCollege, setSourceCollege] = useState(() => initialData?.source_college || inferEventSourceCollege(initialData || {}));
   const [eventTarget, setEventTarget] = useState(() => normalizeEventAudience(initialData?.target_audience) || initialData?.target_audience || '');
   const [eventOrganizer, setEventOrganizer] = useState(initialData?.organizer || '');
+  const [manageableProfiles, setManageableProfiles] = useState([]);
+  const [profilesLoading, setProfilesLoading] = useState(false);
+  const [selectedPublisherProfileId, setSelectedPublisherProfileId] = useState(
+    initialData?.publisher_profile_id ? String(initialData.publisher_profile_id) : '',
+  );
+  const [selectedOrganizerProfileId, setSelectedOrganizerProfileId] = useState(
+    initialData?.organizer_profile_id ? String(initialData.organizer_profile_id) : '',
+  );
   const [audienceSearch, setAudienceSearch] = useState('');
   const [showAllAudiences, setShowAllAudiences] = useState(false);
   const [dateReasoning, setDateReasoning] = useState('');
@@ -439,6 +461,20 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
       return next.join(',');
     });
   }, []);
+
+  const organizationProfiles = React.useMemo(
+    () => manageableProfiles.filter((profile) => profile.type && profile.type !== 'person'),
+    [manageableProfiles],
+  );
+
+  const handlePublisherProfileChange = React.useCallback((profileId) => {
+    setSelectedPublisherProfileId(profileId);
+    if (type !== 'event' || selectedOrganizerProfileId) return;
+    const selectedProfile = manageableProfiles.find((profile) => String(profile.id) === String(profileId));
+    if (selectedProfile && selectedProfile.type !== 'person') {
+      setSelectedOrganizerProfileId(String(selectedProfile.id));
+    }
+  }, [manageableProfiles, selectedOrganizerProfileId, type]);
 
   const toggleCollegeNotice = React.useCallback(() => {
     setIsCollegeNotice((current) => {
@@ -594,6 +630,61 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
       toast.success(t('upload.cleared'));
   };
 
+  React.useEffect(() => {
+    if (!isOpen || !user) {
+      setManageableProfiles([]);
+      setProfilesLoading(false);
+      return undefined;
+    }
+
+    let active = true;
+    setProfilesLoading(true);
+
+    api.get('/users/me/profiles', { silent: true })
+      .then((response) => {
+        if (!active) return;
+        const profiles = Array.isArray(response.data)
+          ? response.data
+          : (Array.isArray(response.data?.data) ? response.data.data : []);
+        setManageableProfiles(profiles);
+        setSelectedPublisherProfileId((current) => {
+          if (current && profiles.some((profile) => String(profile.id) === String(current))) {
+            return String(current);
+          }
+          const initialProfileId = initialData?.publisher_profile_id ? String(initialData.publisher_profile_id) : '';
+          if (initialProfileId && profiles.some((profile) => String(profile.id) === initialProfileId)) {
+            return initialProfileId;
+          }
+          const personalProfile = profiles.find((profile) => profile.type === 'person');
+          return personalProfile ? String(personalProfile.id) : '';
+        });
+        setSelectedOrganizerProfileId((current) => {
+          if (type !== 'event') return '';
+          const orgProfiles = profiles.filter((profile) => profile.type && profile.type !== 'person');
+          if (current && orgProfiles.some((profile) => String(profile.id) === String(current))) {
+            return String(current);
+          }
+          const initialProfileId = initialData?.organizer_profile_id ? String(initialData.organizer_profile_id) : '';
+          if (initialProfileId && orgProfiles.some((profile) => String(profile.id) === initialProfileId)) {
+            return initialProfileId;
+          }
+          return '';
+        });
+      })
+      .catch((error) => {
+        if (!active) return;
+        console.warn('Failed to load manageable profiles:', error);
+        setManageableProfiles([]);
+      })
+      .finally(() => {
+        if (active) setProfilesLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [initialData?.organizer_profile_id, initialData?.publisher_profile_id, isOpen, type, user]);
+
   // Reset form when modal opens with new data or closes
   React.useEffect(() => {
     if (isOpen) {
@@ -656,6 +747,8 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             setSourceCollege(initialData.source_college || inferEventSourceCollege(initialData));
             setEventTarget(normalizeEventAudience(initialData.target_audience) || initialData.target_audience || '');
             setEventOrganizer(initialData.organizer || '');
+            setSelectedPublisherProfileId(initialData.publisher_profile_id ? String(initialData.publisher_profile_id) : '');
+            setSelectedOrganizerProfileId(initialData.organizer_profile_id ? String(initialData.organizer_profile_id) : '');
             setFeatured(initialData.featured || false);
             setSize(initialData.size || '');
             setPreview(initialData.url || initialData.audio || initialData.video || null);
@@ -684,6 +777,8 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             setIsCollegeNotice(false);
             setEventTarget('');
             setEventOrganizer('');
+            setSelectedPublisherProfileId('');
+            setSelectedOrganizerProfileId('');
             setFeatured(false);
             setSize('');
             setPreview(null);
@@ -1107,6 +1202,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             title: buildBatchImageTitle(image.file, index, batchImages.length),
             tags,
             tag: tags,
+            publisher_profile_id: selectedPublisherProfileId ? Number(selectedPublisherProfileId) : null,
             category_id: mediaCategoryId ? Number(mediaCategoryId) : null,
             url: fileUrl,
             audio: null,
@@ -1238,6 +1334,8 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         title,
         tags: type === 'event' ? eventTags : tags,
         tag: type === 'event' ? eventTags : tags, // For backward compatibility with article 'tag'
+        publisher_profile_id: selectedPublisherProfileId ? Number(selectedPublisherProfileId) : null,
+        organizer_profile_id: type === 'event' && selectedOrganizerProfileId ? Number(selectedOrganizerProfileId) : null,
         category_id: usesMediaCategory && mediaCategoryId ? Number(mediaCategoryId) : null,
         url: fileUrl, 
         
@@ -1487,6 +1585,45 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             {/* Form Content - Scrollable */}
             <form ref={formRef} onSubmit={handleSubmit} className="upload-modal-form flex-1 overflow-y-auto custom-scrollbar relative z-10 flex flex-col">
               <div className={`upload-modal-body ${type === 'article' ? 'p-4 sm:p-6' : 'p-5 sm:p-8'} flex-1 ${type === 'article' ? 'space-y-4 sm:space-y-5' : 'space-y-6 sm:space-y-8'}`}>
+              {(profilesLoading || manageableProfiles.length > 0) && (
+                <section className={`${cardClasses} !space-y-4`}>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className={labelClasses}>{t('profiles.publisher_identity', '发布身份')}</label>
+                      <select
+                        value={selectedPublisherProfileId}
+                        onChange={(event) => handlePublisherProfileChange(event.target.value)}
+                        disabled={profilesLoading || manageableProfiles.length === 0}
+                        className={inputClasses}
+                      >
+                        <option value="">{profilesLoading ? t('common.loading') : t('profiles.default_personal', '默认个人身份')}</option>
+                        {manageableProfiles.map((profile) => (
+                          <option key={profile.id} value={profile.id}>
+                            {formatProfileOptionLabel(profile)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {type === 'event' && organizationProfiles.length > 0 && (
+                      <div>
+                        <label className={labelClasses}>{t('profiles.organizer_profile', '主办主体')}</label>
+                        <select
+                          value={selectedOrganizerProfileId}
+                          onChange={(event) => setSelectedOrganizerProfileId(event.target.value)}
+                          className={inputClasses}
+                        >
+                          <option value="">{t('profiles.organizer_auto_match', '按主办方文本自动匹配')}</option>
+                          {organizationProfiles.map((profile) => (
+                            <option key={profile.id} value={profile.id}>
+                              {formatProfileOptionLabel(profile)}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                </section>
+              )}
               {type === 'event' ? (
                 <>
                 {/* Event Specific Fields */}

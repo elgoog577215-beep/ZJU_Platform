@@ -3,9 +3,10 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Calendar, ExternalLink, Loader2, Search, Users, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Link, useNavigate } from "react-router-dom";
 
 import api from "../services/api";
-import { getPartnerLogoSrc } from "../data/partnerLogos";
+import { getPartnerLogoSrc, getPartnerProfilePath } from "../data/partnerLogos";
 
 const DESKTOP_PREVIEW_LIMIT = 10;
 const MOBILE_PREVIEW_LIMIT = 8;
@@ -110,6 +111,7 @@ const OrganizationPartnerWall = ({
   onOpenEvent,
 }) => {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const language = i18n.resolvedLanguage || i18n.language || "zh";
   const [selectedPartner, setSelectedPartner] = useState(null);
   const [directoryOpen, setDirectoryOpen] = useState(false);
@@ -221,6 +223,16 @@ const OrganizationPartnerWall = ({
     });
     setSelectedPartner(null);
   };
+  const openPartnerProfile = (partner) => {
+    const profilePath = getPartnerProfilePath(partner);
+    if (profilePath) {
+      setDirectoryOpen(false);
+      setSelectedPartner(null);
+      navigate(profilePath);
+      return;
+    }
+    setSelectedPartner(partner);
+  };
 
   return (
     <>
@@ -252,7 +264,7 @@ const OrganizationPartnerWall = ({
                   key={partner.id}
                   type="button"
                   data-testid={`organization-partner-card-mobile-${partner.id}`}
-                  onClick={() => setSelectedPartner(partner)}
+                  onClick={() => openPartnerProfile(partner)}
                   className={`flex min-w-[8.5rem] items-center gap-2 rounded-[6px] border px-2 py-1.5 text-left md:hidden ${chipClass}`}
                 >
                   <PartnerLogo partner={partner} name={name} isDayMode={isDayMode} size="sm" />
@@ -283,7 +295,7 @@ const OrganizationPartnerWall = ({
                   key={partner.id}
                   type="button"
                   data-testid={`organization-partner-card-desktop-${partner.id}`}
-                  onClick={() => setSelectedPartner(partner)}
+                  onClick={() => openPartnerProfile(partner)}
                   className={`hidden min-w-[10rem] items-center gap-2 rounded-[6px] border px-2.5 py-1.5 text-left transition-colors md:flex ${chipClass}`}
                 >
                   <PartnerLogo partner={partner} name={name} isDayMode={isDayMode} size="sm" />
@@ -392,10 +404,7 @@ const OrganizationPartnerWall = ({
                                 <button
                                   key={partner.id}
                                   type="button"
-                                  onClick={() => {
-                                    setDirectoryOpen(false);
-                                    setSelectedPartner(partner);
-                                  }}
+                                  onClick={() => openPartnerProfile(partner)}
                                   className={`rounded-[6px] border p-3 text-left ${
                                     isDayMode
                                       ? "border-slate-200 bg-white hover:border-violet-200"
@@ -518,6 +527,20 @@ const OrganizationPartnerWall = ({
                               <Search size={16} />
                               {t("events.organizations.view_all", "查看相关活动")}
                             </button>
+                            {getPartnerProfilePath(selectedPartner) ? (
+                            <Link
+                              to={getPartnerProfilePath(selectedPartner)}
+                              onClick={() => setSelectedPartner(null)}
+                              className={`inline-flex min-h-11 items-center gap-2 rounded-[6px] border px-4 text-sm font-bold ${
+                                isDayMode
+                                  ? "border-violet-200 bg-violet-50 text-violet-800 hover:border-violet-300 hover:bg-white"
+                                  : "border-indigo-400/30 bg-indigo-400/10 text-indigo-100 hover:border-indigo-300/50"
+                              }`}
+                            >
+                              {t("events.organizations.profile", "主体主页")}
+                              <ArrowRight size={15} />
+                            </Link>
+                            ) : null}
                             {selectedPartner.link_url ? (
                               <a
                                 href={selectedPartner.link_url}

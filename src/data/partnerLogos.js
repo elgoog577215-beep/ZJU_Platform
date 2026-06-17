@@ -7,6 +7,7 @@ export const ECOSYSTEM_PARTNER_CATEGORIES = [
 export const defaultEcosystemPartners = [
   {
     id: "default-school-future-learning",
+    profile_handle: "partner-1",
     category: "school",
     name: "未来学习中心",
     name_en: "Future Learning Center",
@@ -17,6 +18,7 @@ export const defaultEcosystemPartners = [
   },
   {
     id: "default-school-ai-lab",
+    profile_handle: "partner-2",
     category: "school",
     name: "AI 联合实验室",
     name_en: "AI Joint Lab",
@@ -27,6 +29,7 @@ export const defaultEcosystemPartners = [
   },
   {
     id: "default-org-xlab",
+    profile_handle: "partner-3",
     category: "organization",
     name: "XLAB",
     description: "协同选手招募、志愿执行与赛后社群承接。",
@@ -36,6 +39,7 @@ export const defaultEcosystemPartners = [
   },
   {
     id: "default-org-zjuai",
+    profile_handle: "partner-4",
     category: "organization",
     name: "ZJUAI",
     description: "协同校园 AI 学习者与开发者社群连接。",
@@ -45,6 +49,7 @@ export const defaultEcosystemPartners = [
   },
   {
     id: "default-org-eai",
+    profile_handle: "partner-5",
     category: "organization",
     name: "EAI",
     description: "协同活动运营、现场执行与实践人群组织。",
@@ -54,6 +59,7 @@ export const defaultEcosystemPartners = [
   },
   {
     id: "default-org-aira",
+    profile_handle: "partner-6",
     category: "organization",
     name: "AIRA",
     description: "协同 AI 实践社群共建与项目交流。",
@@ -63,6 +69,7 @@ export const defaultEcosystemPartners = [
   },
   {
     id: "default-org-kab",
+    profile_handle: "partner-7",
     category: "organization",
     name: "KAB",
     description: "协同创新创业人群组织与活动承接。",
@@ -72,6 +79,7 @@ export const defaultEcosystemPartners = [
   },
   {
     id: "default-enterprise-minimax",
+    profile_handle: "partner-8",
     category: "enterprise",
     name: "MiniMax",
     description: "提供模型能力、技术资源与生态支持。",
@@ -83,6 +91,7 @@ export const defaultEcosystemPartners = [
   },
   {
     id: "default-enterprise-modelscope",
+    profile_handle: "partner-9",
     category: "enterprise",
     name: "ModelScope 魔搭社区",
     name_en: "ModelScope",
@@ -95,6 +104,7 @@ export const defaultEcosystemPartners = [
   },
   {
     id: "default-enterprise-bonjour",
+    profile_handle: "partner-10",
     category: "enterprise",
     name: "Bonjour",
     description: "提供数字名片与合作传播支持。",
@@ -107,6 +117,7 @@ export const defaultEcosystemPartners = [
   },
   {
     id: "default-enterprise-aliyun",
+    profile_handle: "partner-11",
     category: "enterprise",
     name: "阿里云",
     name_en: "Alibaba Cloud",
@@ -120,6 +131,7 @@ export const defaultEcosystemPartners = [
   },
   {
     id: "default-enterprise-qoder",
+    profile_handle: "partner-12",
     category: "enterprise",
     name: "Qoder",
     description: "提供 AI 开发工具与工程实践支持。",
@@ -133,6 +145,7 @@ export const defaultEcosystemPartners = [
   },
   {
     id: "default-enterprise-stepfun",
+    profile_handle: "partner-13",
     category: "enterprise",
     name: "阶跃 StepFun",
     name_en: "StepFun",
@@ -209,6 +222,15 @@ export const getPartnerLogoSrc = (partner = {}, isDayMode = true) => {
   const lightLogo = partner.logo_url || partner.logoUrl || partner.src || "";
   const darkLogo = partner.dark_logo_url || partner.darkLogoUrl || partner.darkSrc || "";
   return isDayMode ? lightLogo || darkLogo : darkLogo || lightLogo;
+};
+
+export const getPartnerProfilePath = (partner = {}) => {
+  const explicitHandle = partner.profile_handle || partner.profileHandle || partner.handle;
+  const fallbackHandle = /^\d+$/.test(String(partner.id || ""))
+    ? `partner-${partner.id}`
+    : "";
+  const handle = explicitHandle || fallbackHandle;
+  return handle ? `/org/${handle}` : "";
 };
 
 export const toLegacyLogo = (partner = {}) => ({

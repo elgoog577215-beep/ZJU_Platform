@@ -12,7 +12,7 @@ import {
 } from "../data/partnerLogos";
 
 export const ECOSYSTEM_PARTNERS_UPDATED_EVENT = "ecosystem-partners:updated";
-const ECOSYSTEM_PARTNERS_CACHE_PREFIX = "ecosystem-partners:v1:";
+const ECOSYSTEM_PARTNERS_CACHE_PREFIX = "ecosystem-partners:v2:";
 const ECOSYSTEM_PARTNERS_CHANNEL = "ecosystem-partners";
 
 export const clearEcosystemPartnersCache = () => {
@@ -54,7 +54,7 @@ export const useEcosystemPartners = () => {
     "/ecosystem-partners",
     {},
     {
-      keyPrefix: "ecosystem-partners:v1:",
+      keyPrefix: ECOSYSTEM_PARTNERS_CACHE_PREFIX,
       ttl: 5 * 60 * 1000,
       silent: true,
     },

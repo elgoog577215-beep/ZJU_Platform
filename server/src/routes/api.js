@@ -15,6 +15,7 @@ const eventAssistantController = require('../controllers/eventAssistantControlle
 const aiAssistantController = require('../controllers/aiAssistantController');
 const aiModelConfigController = require('../controllers/aiModelConfigController');
 const userController = require('../controllers/userController');
+const profileController = require('../controllers/profileController');
 const profileCardController = require('../controllers/profileCardController');
 const messageController = require('../controllers/messageController');
 const tagController = require('../controllers/tagController');
@@ -115,6 +116,7 @@ router.put('/users/me/identity-claims/:claimId', authenticateToken, userControll
 router.get('/users/me/outcome-links', authenticateToken, userController.listOwnOutcomeLinks);
 router.put('/users/me/outcome-links/:linkId', authenticateToken, userController.updateOwnOutcomeLink);
 router.put('/users/me/profile-card', authenticateToken, profileCardController.updateOwnProfileCard);
+router.get('/users/me/profiles', authenticateToken, profileController.listOwnProfiles);
 
 // User Management Routes (Admin)
 router.get('/admin/users', authenticateToken, isAdmin, userController.getAllUsers);
@@ -122,8 +124,16 @@ router.put('/admin/users/:id', authenticateToken, isAdmin, userController.update
 router.delete('/admin/users/:id', authenticateToken, isAdmin, userController.deleteUser);
 router.post('/admin/outcome-links', authenticateToken, isAdmin, userController.adminCreateOutcomeLink);
 router.put('/admin/outcome-links/:linkId', authenticateToken, isAdmin, userController.adminUpdateOutcomeLink);
+router.get('/admin/profiles', authenticateToken, isAdmin, profileController.listAdminProfiles);
+router.put('/admin/profiles/:id', authenticateToken, isAdmin, profileController.updateAdminProfile);
+router.get('/admin/profiles/:id/members', authenticateToken, isAdmin, profileController.listAdminProfileMembers);
+router.put('/admin/profiles/:id/members/:userId', authenticateToken, isAdmin, profileController.upsertAdminProfileMember);
+router.delete('/admin/profiles/:id/members/:userId', authenticateToken, isAdmin, profileController.deleteAdminProfileMember);
 
 // Public Profile Routes
+router.get('/profiles', optionalAuth, profileController.listProfiles);
+router.get('/profiles/:handle', optionalAuth, profileController.getProfile);
+router.get('/profiles/:handle/feed', optionalAuth, profileController.getProfileFeed);
 router.get('/users/:id/profile', optionalAuth, userController.getPublicProfile);
 router.get('/users/:id/profile-card', optionalAuth, profileCardController.getUserProfileCard);
 router.get('/users/:id/resources', optionalAuth, userController.getUserResources);

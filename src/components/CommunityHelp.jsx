@@ -93,7 +93,7 @@ const CommunityHelp = ({ onNewPost, hideNewPostButton = false }) => {
     if (resource.type === 'article') return updateParams({ postTab: 'tech', id: resource.id });
     if (resource.type === 'group') return updateParams({ group: resource.id });
     if (resource.type === 'news') return updateParams({ postTab: 'news', news: resource.id });
-    return updateParams({ postTab: 'help', post: resource.id });
+    return updateParams({ postTab: resource.section || 'help', post: resource.id });
   };
 
   const handleOpenPost = (post) => {

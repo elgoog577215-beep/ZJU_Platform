@@ -37,7 +37,7 @@ const app = express();
 app.disable('x-powered-by');
 
 // 端口配置：优先使用环境变量，否则使用 5181
-const PORT = process.env.PORT || 5181;
+const PORT = process.env.PORT || 5182;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
 const isLocalDevRequest = (req) => {

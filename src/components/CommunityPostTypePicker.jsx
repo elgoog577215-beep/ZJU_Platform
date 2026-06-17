@@ -1,6 +1,6 @@
 import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { BookOpen, HelpCircle, Newspaper, Users, X } from 'lucide-react';
+import { BookOpen, FileStack, HelpCircle, Newspaper, Users, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useSettings } from '../context/SettingsContext';
@@ -11,7 +11,7 @@ export const COMMUNITY_POST_TYPES = [
     labelKey: 'community.tab_tech',
     fallback: '技术分享',
     descKey: 'community.type_desc_tech',
-    descFallback: '沉淀教程、实践经验、代码方案',
+    descFallback: '沉淀教程、实践经验、代码方案。',
     icon: BookOpen,
   },
   {
@@ -19,15 +19,23 @@ export const COMMUNITY_POST_TYPES = [
     labelKey: 'community.tab_help_qa',
     fallback: '求助问答',
     descKey: 'community.type_desc_help',
-    descFallback: '提问、排错、寻找思路和解法',
+    descFallback: '提问、排错、寻找思路和解法。',
     icon: HelpCircle,
+  },
+  {
+    key: 'materials',
+    labelKey: 'community.tab_materials',
+    fallback: '期末资料',
+    descKey: 'community.type_desc_materials',
+    descFallback: '上传往年题、提纲、笔记和复习资料。',
+    icon: FileStack,
   },
   {
     key: 'news',
     labelKey: 'community.tab_news_hot',
     fallback: '新闻热点',
     descKey: 'community.type_desc_news',
-    descFallback: '分享 AI 新闻、模型动态和行业观察',
+    descFallback: '分享 AI 新闻、模型动态和行业观察。',
     icon: Newspaper,
   },
   {
@@ -35,7 +43,7 @@ export const COMMUNITY_POST_TYPES = [
     labelKey: 'community.tab_team_collab',
     fallback: '组队协作',
     descKey: 'community.type_desc_team',
-    descFallback: '招募队友、项目合作、活动协作',
+    descFallback: '招募队友、项目合作、活动协作。',
     icon: Users,
   },
 ];

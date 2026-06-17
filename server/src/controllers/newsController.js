@@ -3,6 +3,7 @@ const cheerio = require('cheerio');
 const { getDb } = require('../config/db');
 const { normalizeLinkagePayload, serializeLinkageFields, attachLinkedResources } = require('../utils/communityLinks');
 const { fanOutNewContent } = require('./notificationController');
+const profileService = require('../services/profileService');
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 const NEWS_STATUSES = new Set(['draft', 'pending', 'approved', 'rejected']);
@@ -295,12 +296,18 @@ const createNews = async (req, res, next) => {
     if (payload.content.length < 8) {
       return res.status(400).json({ error: 'Content is too short' });
     }
+    const publisherProfileId = await profileService.resolvePublisherProfileId(
+      db,
+      userId,
+      req.body.publisher_profile_id,
+      req.user?.role,
+    );
 
     const result = await db.run(
       `
       INSERT INTO news
-      (title, excerpt, content, content_blocks, cover, source_name, source_url, import_type, external_id, hot_score, is_pinned, pin_weight, featured, status, related_article_ids, related_post_ids, related_news_ids, related_group_ids, uploader_id, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+      (title, excerpt, content, content_blocks, cover, source_name, source_url, import_type, external_id, hot_score, is_pinned, pin_weight, featured, status, related_article_ids, related_post_ids, related_news_ids, related_group_ids, uploader_id, publisher_profile_id, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
       `,
       [
         payload.title,
@@ -322,6 +329,7 @@ const createNews = async (req, res, next) => {
         payload.related_news_ids,
         payload.related_group_ids,
         userId,
+        publisherProfileId,
       ]
     );
 
@@ -348,6 +356,7 @@ const createNews = async (req, res, next) => {
 
     res.status(201).json(serializeNews(item));
   } catch (error) {
+    if (error.status) return res.status(error.status).json({ error: error.message });
     next(error);
   }
 };
@@ -364,10 +373,13 @@ const updateNews = async (req, res, next) => {
     }
 
     const payload = buildNewsPayload({ ...existing, ...req.body }, req.user?.role, existing.status);
+    const publisherProfileId = req.body.publisher_profile_id !== undefined
+      ? await profileService.resolvePublisherProfileId(db, userId, req.body.publisher_profile_id, req.user?.role)
+      : existing.publisher_profile_id;
     await db.run(
       `
       UPDATE news
-      SET title = ?, excerpt = ?, content = ?, content_blocks = ?, cover = ?, source_name = ?, source_url = ?, import_type = ?, external_id = ?, hot_score = ?, is_pinned = ?, pin_weight = ?, featured = ?, status = ?, rejection_reason = ?, related_article_ids = ?, related_post_ids = ?, related_news_ids = ?, related_group_ids = ?, updated_at = datetime('now')
+      SET title = ?, excerpt = ?, content = ?, content_blocks = ?, cover = ?, source_name = ?, source_url = ?, import_type = ?, external_id = ?, hot_score = ?, is_pinned = ?, pin_weight = ?, featured = ?, status = ?, rejection_reason = ?, related_article_ids = ?, related_post_ids = ?, related_news_ids = ?, related_group_ids = ?, publisher_profile_id = ?, updated_at = datetime('now')
       WHERE id = ?
       `,
       [
@@ -390,6 +402,7 @@ const updateNews = async (req, res, next) => {
         payload.related_post_ids,
         payload.related_news_ids,
         payload.related_group_ids,
+        publisherProfileId,
         id,
       ]
     );
@@ -405,6 +418,7 @@ const updateNews = async (req, res, next) => {
     );
     res.json(serializeNews(item));
   } catch (error) {
+    if (error.status) return res.status(error.status).json({ error: error.message });
     next(error);
   }
 };
@@ -522,12 +536,18 @@ const importNews = async (req, res, next) => {
     );
     // Imported news must always go through edit-and-confirm before publishing.
     payload.status = 'draft';
+    const publisherProfileId = await profileService.resolvePublisherProfileId(
+      db,
+      userId,
+      req.body.publisher_profile_id,
+      req.user?.role,
+    );
 
     const result = await db.run(
       `
       INSERT INTO news
-      (title, excerpt, content, content_blocks, cover, source_name, source_url, import_type, external_id, hot_score, is_pinned, pin_weight, featured, status, uploader_id, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+      (title, excerpt, content, content_blocks, cover, source_name, source_url, import_type, external_id, hot_score, is_pinned, pin_weight, featured, status, uploader_id, publisher_profile_id, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
       `,
       [
         payload.title,
@@ -545,12 +565,14 @@ const importNews = async (req, res, next) => {
         payload.featured,
         payload.status,
         userId,
+        publisherProfileId,
       ]
     );
 
     const item = await db.get('SELECT * FROM news WHERE id = ?', [result.lastID]);
     res.status(201).json(serializeNews(item));
   } catch (error) {
+    if (error.status) return res.status(error.status).json({ error: error.message });
     next(error);
   }
 };

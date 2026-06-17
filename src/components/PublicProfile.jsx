@@ -248,7 +248,7 @@ const normalizeContentType = (item) => {
   if (!item) return null;
   const raw = item.type;
   if (!raw) return null;
-  if (raw === "help" || raw === "team") return raw;
+  if (raw === "help" || raw === "team" || raw === "materials") return raw;
   if (raw === "photos") return "photo";
   if (raw === "videos") return "video";
   if (raw === "music") return "music";
@@ -1151,6 +1151,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
       event: `/events?id=${item.id}`,
       news: `/articles?postTab=news&news=${item.id}`,
       help: `/articles?postTab=help&post=${item.id}`,
+      materials: `/articles?postTab=materials&post=${item.id}`,
       team: `/articles?postTab=team&post=${item.id}`,
       competition_work: item.target_path || `/hackathon?view=showcase&work=${item.id}`,
       project: `/projects?fromfav=1&id=${item.id}`,

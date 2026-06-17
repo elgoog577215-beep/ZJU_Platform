@@ -34,7 +34,7 @@ const SidebarCard = ({ icon: Icon, code, title, isDayMode, children }) => (
 
 const DESKTOP_RAIL_QUERY = "(min-width: 1280px)";
 const MOBILE_COMMUNITY_QUERY = "(max-width: 1279px)";
-const VALID_POST_TABS = new Set(["tech", "help", "news", "team", "podcast", "groups"]);
+const VALID_POST_TABS = new Set(["tech", "help", "materials", "news", "team", "podcast", "groups"]);
 
 const AICommunity = () => {
   const { t } = useTranslation();

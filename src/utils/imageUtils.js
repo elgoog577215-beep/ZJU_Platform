@@ -1,8 +1,13 @@
 export const normalizeExternalImageUrl = (url, width) => {
   if (!url) return url;
+  if (typeof url !== 'string') return url;
 
-  if (width && typeof url === 'string' && url.startsWith('/uploads/')) {
+  if (width && url.startsWith('/uploads/')) {
     return `/api/uploads/image-variant?src=${encodeURIComponent(url)}&w=${encodeURIComponent(String(width))}`;
+  }
+
+  if (shouldUseLocalPlaceholder(url)) {
+    return '';
   }
 
   if (url.includes('images.unsplash.com')) {
@@ -26,6 +31,18 @@ export const normalizeExternalImageUrl = (url, width) => {
   }
 
   return url;
+};
+
+const shouldUseLocalPlaceholder = (url) => {
+  const allowRemoteSampleImages = import.meta.env?.VITE_ALLOW_REMOTE_SAMPLE_IMAGES === 'true';
+  if (allowRemoteSampleImages || !url.startsWith('http')) return false;
+
+  try {
+    const parsedUrl = new URL(url);
+    return parsedUrl.hostname === 'images.unsplash.com';
+  } catch {
+    return false;
+  }
 };
 
 export const getOriginalUploadUrl = (url) => {
