@@ -60,7 +60,15 @@ jobs:
             npm install --omit=dev --legacy-peer-deps --package-lock=false
             cd ..
             pm2 restart zju-server --update-env
-            curl --fail --silent --show-error http://127.0.0.1:3001/api/health > /tmp/zju-health.json
+            for i in $(seq 1 30); do
+              if curl --fail --silent --show-error http://127.0.0.1:3001/api/health > /tmp/zju-health.json; then
+                exit 0
+              fi
+              sleep 2
+            done
+            pm2 logs zju-server --lines 80 --nostream || true
+            cat /tmp/zju-health.json 2>/dev/null || true
+            exit 1
 
       - name: Upload dist to server
         uses: appleboy/scp-action@v0.1.7
