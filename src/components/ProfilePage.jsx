@@ -5,20 +5,26 @@ import {
   BadgeCheck,
   Building2,
   CalendarDays,
+  Edit3,
   ExternalLink,
   FileText,
   Grid3X3,
   Image as ImageIcon,
+  KeyRound,
   Loader2,
   MapPin,
   Newspaper,
   Radio,
+  Save,
   Search,
+  Upload,
   User,
   Users,
+  X,
 } from "lucide-react";
-import api from "../services/api";
+import api, { uploadFile } from "../services/api";
 import { useSettings } from "../context/SettingsContext";
+import { useAuth } from "../context/AuthContext";
 import SEO from "./SEO";
 
 const TYPE_META = {
@@ -56,6 +62,27 @@ const feedTarget = (item) => {
   if (item.type === "article") return `/articles?article=${item.id}`;
   if (item.type === "news") return `/articles?news=${item.id}`;
   return "";
+};
+
+const editableFormFromProfile = (profile = {}) => ({
+  display_name: profile.display_name || "",
+  display_name_en: profile.display_name_en || "",
+  avatar_url: profile.avatar_url || "",
+  logo_url: profile.logo_url || "",
+  cover_url: profile.cover_url || "",
+  bio: profile.bio || "",
+  description: profile.description || "",
+  description_en: profile.description_en || "",
+  cooperation_direction: profile.cooperation_direction || "",
+  cooperation_direction_en: profile.cooperation_direction_en || "",
+  link_url: profile.link_url || "",
+});
+
+const canEditProfile = (profile, currentUser) => {
+  if (!profile || !currentUser) return false;
+  if (currentUser.role === "admin") return true;
+  if (profile.owner_user_id && String(profile.owner_user_id) === String(currentUser.id)) return true;
+  return profile.member_role === "owner" || profile.member_role === "admin";
 };
 
 const ProfileMark = ({ profile, isDayMode }) => {
@@ -155,6 +182,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
   const params = useParams();
   const navigate = useNavigate();
   const { uiMode } = useSettings();
+  const { user: currentUser, refreshUser } = useAuth();
   const isDayMode = uiMode === "day";
   const handle = forcedHandle || params.handle;
   const [profile, setProfile] = useState(null);
@@ -164,6 +192,19 @@ const ProfilePage = ({ forcedHandle = null }) => {
   const [loading, setLoading] = useState(true);
   const [feedLoading, setFeedLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [editing, setEditing] = useState(false);
+  const [editForm, setEditForm] = useState(() => editableFormFromProfile());
+  const [saving, setSaving] = useState(false);
+  const [uploadingField, setUploadingField] = useState("");
+  const [editError, setEditError] = useState("");
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordMessage, setPasswordMessage] = useState("");
 
   useEffect(() => {
     if (!handle) return undefined;
@@ -172,7 +213,10 @@ const ProfilePage = ({ forcedHandle = null }) => {
     setError(null);
     api
       .get(`/profiles/${handle}`, { signal: controller.signal })
-      .then((response) => setProfile(response.data))
+      .then((response) => {
+        setProfile(response.data);
+        setEditing(false);
+      })
       .catch((err) => {
         if (controller.signal.aborted) return;
         setError(err);
@@ -208,6 +252,106 @@ const ProfilePage = ({ forcedHandle = null }) => {
 
   const meta = useMemo(() => typeMeta(profile?.type), [profile?.type]);
   const TypeIcon = meta.icon;
+  const editable = canEditProfile(profile, currentUser);
+  const canChangePassword =
+    profile?.type === "person" &&
+    currentUser?.id &&
+    profile?.owner_user_id &&
+    String(profile.owner_user_id) === String(currentUser.id);
+  const inputClass = isDayMode
+    ? "border-slate-200 bg-white text-slate-950 placeholder:text-slate-400 focus:border-sky-400"
+    : "border-white/10 bg-white/[0.06] text-white placeholder:text-white/35 focus:border-sky-300/60";
+  const labelClass = isDayMode ? "text-slate-600" : "text-slate-300";
+
+  const updateEditField = (field, value) => {
+    setEditForm((previous) => ({ ...previous, [field]: value }));
+  };
+
+  const startEditing = () => {
+    setEditForm(editableFormFromProfile(profile));
+    setEditError("");
+    setPasswordError("");
+    setPasswordMessage("");
+    setEditing(true);
+  };
+
+  const handleProfileImageUpload = async (field, file) => {
+    if (!file) return;
+    setUploadingField(field);
+    setEditError("");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await uploadFile("/upload", formData);
+      const url = response.data?.fileUrl || response.data?.url || "";
+      if (!url) throw new Error("Upload did not return a file URL");
+      updateEditField(field, url);
+      if (field === "logo_url" && !editForm.avatar_url) updateEditField("avatar_url", url);
+    } catch (uploadError) {
+      setEditError(uploadError.response?.data?.error || uploadError.message || "图片上传失败");
+    } finally {
+      setUploadingField("");
+    }
+  };
+
+  const saveProfile = async (event) => {
+    event.preventDefault();
+    if (!profile) return;
+    setSaving(true);
+    setEditError("");
+    try {
+      const response = await api.put(`/profiles/${profile.handle}`, editForm);
+      setProfile((previous) => ({
+        ...previous,
+        ...response.data,
+        stats: previous?.stats || response.data?.stats || {},
+      }));
+      setEditing(false);
+      refreshUser?.();
+    } catch (saveError) {
+      setEditError(saveError.response?.data?.error || saveError.message || "保存失败");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updatePasswordField = (field, value) => {
+    setPasswordForm((previous) => ({ ...previous, [field]: value }));
+    setPasswordError("");
+    setPasswordMessage("");
+  };
+
+  const changePassword = async () => {
+    const currentPassword = passwordForm.currentPassword;
+    const newPassword = passwordForm.newPassword;
+    const confirmPassword = passwordForm.confirmPassword;
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setPasswordError("请填写当前密码和新密码");
+      return;
+    }
+    if (newPassword.length < 6) {
+      setPasswordError("新密码至少 6 位");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError("两次输入的新密码不一致");
+      return;
+    }
+
+    setPasswordSaving(true);
+    setPasswordError("");
+    setPasswordMessage("");
+    try {
+      await api.post("/auth/change-password", { currentPassword, newPassword });
+      setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setPasswordMessage("密码已更新");
+    } catch (error) {
+      const validationMessage = error.response?.data?.errors?.[0]?.msg;
+      setPasswordError(error.response?.data?.error || validationMessage || error.message || "修改密码失败");
+    } finally {
+      setPasswordSaving(false);
+    }
+  };
   const description = profile?.description || profile?.bio || "这个主体还没有填写公开介绍。";
 
   if (loading) {
@@ -318,6 +462,19 @@ const ProfilePage = ({ forcedHandle = null }) => {
             </div>
 
             <div className="flex flex-row gap-2 md:flex-col md:items-end">
+              {editable ? (
+                <button
+                  type="button"
+                  data-testid="profile-edit-button"
+                  onClick={startEditing}
+                  className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-[6px] border px-4 text-sm font-bold ${
+                    isDayMode ? "border-sky-200 bg-sky-50 text-sky-700 hover:bg-white" : "border-sky-300/25 bg-sky-400/10 text-sky-100 hover:border-sky-200/45"
+                  }`}
+                >
+                  <Edit3 size={16} />
+                  编辑主页
+                </button>
+              ) : null}
               {profile.link_url ? (
                 <a
                   href={profile.link_url}
@@ -362,6 +519,264 @@ const ProfilePage = ({ forcedHandle = null }) => {
             ))}
           </div>
         </header>
+
+        {editing ? (() => {
+          const primaryImageField = profile.type === "person" ? "avatar_url" : "logo_url";
+          const primaryImageLabel = profile.type === "person" ? "头像" : "Logo";
+          return (
+            <form
+              onSubmit={saveProfile}
+              className={`mt-4 rounded-[8px] border p-4 md:p-5 ${
+                isDayMode ? "border-sky-100 bg-white" : "border-sky-300/15 bg-white/[0.04]"
+              }`}
+            >
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-black">编辑主页</h2>
+                  <p className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-slate-400"}`}>
+                    修改名称、简介、封面和公开链接。
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEditing(false)}
+                  className={`inline-flex h-10 w-10 items-center justify-center rounded-[6px] ${
+                    isDayMode ? "bg-slate-100 text-slate-600 hover:text-slate-950" : "bg-white/10 text-slate-300 hover:text-white"
+                  }`}
+                  aria-label="关闭编辑"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {editError ? (
+                <div className={`mb-4 rounded-[6px] border px-3 py-2 text-sm font-semibold ${
+                  isDayMode ? "border-red-200 bg-red-50 text-red-700" : "border-red-400/25 bg-red-500/10 text-red-100"
+                }`}>
+                  {editError}
+                </div>
+              ) : null}
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className={`grid gap-2 text-sm font-bold ${labelClass}`}>
+                  显示名称
+                  <input
+                    value={editForm.display_name}
+                    onChange={(event) => updateEditField("display_name", event.target.value)}
+                    className={`h-11 rounded-[6px] border px-3 outline-none ${inputClass}`}
+                    maxLength={120}
+                    required
+                  />
+                </label>
+                <label className={`grid gap-2 text-sm font-bold ${labelClass}`}>
+                  英文名称
+                  <input
+                    value={editForm.display_name_en}
+                    onChange={(event) => updateEditField("display_name_en", event.target.value)}
+                    className={`h-11 rounded-[6px] border px-3 outline-none ${inputClass}`}
+                    maxLength={160}
+                  />
+                </label>
+
+                <label className={`grid gap-2 text-sm font-bold ${labelClass}`}>
+                  {primaryImageLabel} URL
+                  <div className="flex gap-2">
+                    <input
+                      value={editForm[primaryImageField]}
+                      onChange={(event) => updateEditField(primaryImageField, event.target.value)}
+                      className={`h-11 min-w-0 flex-1 rounded-[6px] border px-3 outline-none ${inputClass}`}
+                      placeholder="/uploads/..."
+                    />
+                    <span className={`relative inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-2 rounded-[6px] border px-3 text-sm font-black ${
+                      isDayMode ? "border-slate-200 bg-slate-50 text-slate-700" : "border-white/10 bg-white/[0.05] text-slate-100"
+                    }`}>
+                      {uploadingField === primaryImageField ? <Loader2 className="animate-spin" size={15} /> : <Upload size={15} />}
+                      上传
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="absolute inset-0 cursor-pointer opacity-0"
+                        onChange={(event) => handleProfileImageUpload(primaryImageField, event.target.files?.[0])}
+                      />
+                    </span>
+                  </div>
+                </label>
+
+                <label className={`grid gap-2 text-sm font-bold ${labelClass}`}>
+                  封面 URL
+                  <div className="flex gap-2">
+                    <input
+                      value={editForm.cover_url}
+                      onChange={(event) => updateEditField("cover_url", event.target.value)}
+                      className={`h-11 min-w-0 flex-1 rounded-[6px] border px-3 outline-none ${inputClass}`}
+                      placeholder="/uploads/..."
+                    />
+                    <span className={`relative inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-2 rounded-[6px] border px-3 text-sm font-black ${
+                      isDayMode ? "border-slate-200 bg-slate-50 text-slate-700" : "border-white/10 bg-white/[0.05] text-slate-100"
+                    }`}>
+                      {uploadingField === "cover_url" ? <Loader2 className="animate-spin" size={15} /> : <Upload size={15} />}
+                      上传
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="absolute inset-0 cursor-pointer opacity-0"
+                        onChange={(event) => handleProfileImageUpload("cover_url", event.target.files?.[0])}
+                      />
+                    </span>
+                  </div>
+                </label>
+
+                <label className={`grid gap-2 text-sm font-bold ${labelClass}`}>
+                  简短介绍
+                  <textarea
+                    value={editForm.bio}
+                    onChange={(event) => updateEditField("bio", event.target.value)}
+                    className={`min-h-24 rounded-[6px] border px-3 py-2 outline-none ${inputClass}`}
+                    maxLength={500}
+                  />
+                </label>
+                <label className={`grid gap-2 text-sm font-bold ${labelClass}`}>
+                  主页介绍
+                  <textarea
+                    value={editForm.description}
+                    onChange={(event) => updateEditField("description", event.target.value)}
+                    className={`min-h-24 rounded-[6px] border px-3 py-2 outline-none ${inputClass}`}
+                    maxLength={1200}
+                  />
+                </label>
+
+                {profile.type !== "person" ? (
+                  <label className={`grid gap-2 text-sm font-bold ${labelClass}`}>
+                    合作方向
+                    <input
+                      value={editForm.cooperation_direction}
+                      onChange={(event) => updateEditField("cooperation_direction", event.target.value)}
+                      className={`h-11 rounded-[6px] border px-3 outline-none ${inputClass}`}
+                      maxLength={500}
+                    />
+                  </label>
+                ) : null}
+                <label className={`grid gap-2 text-sm font-bold ${labelClass}`}>
+                  外部链接
+                  <input
+                    value={editForm.link_url}
+                    onChange={(event) => updateEditField("link_url", event.target.value)}
+                    className={`h-11 rounded-[6px] border px-3 outline-none ${inputClass}`}
+                    placeholder="https://..."
+                    maxLength={1000}
+                  />
+                </label>
+              </div>
+
+              {canChangePassword ? (
+                <section
+                  className={`mt-5 rounded-[8px] border p-4 ${
+                    isDayMode ? "border-slate-200 bg-slate-50/80" : "border-white/10 bg-white/[0.035]"
+                  }`}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") event.preventDefault();
+                  }}
+                >
+                  <div className="mb-4 flex items-center gap-2">
+                    <KeyRound size={17} className={isDayMode ? "text-sky-600" : "text-sky-200"} />
+                    <div>
+                      <h3 className="text-base font-black">修改账户密码</h3>
+                      <p className={`mt-0.5 text-xs ${isDayMode ? "text-slate-500" : "text-slate-400"}`}>
+                        只影响当前登录账户，不影响公开主页资料。
+                      </p>
+                    </div>
+                  </div>
+
+                  {passwordError ? (
+                    <div className={`mb-3 rounded-[6px] border px-3 py-2 text-sm font-semibold ${
+                      isDayMode ? "border-red-200 bg-red-50 text-red-700" : "border-red-400/25 bg-red-500/10 text-red-100"
+                    }`}>
+                      {passwordError}
+                    </div>
+                  ) : null}
+                  {passwordMessage ? (
+                    <div className={`mb-3 rounded-[6px] border px-3 py-2 text-sm font-semibold ${
+                      isDayMode ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-emerald-400/25 bg-emerald-500/10 text-emerald-100"
+                    }`}>
+                      {passwordMessage}
+                    </div>
+                  ) : null}
+
+                  <div className="grid gap-3 md:grid-cols-3">
+                    <label className={`grid gap-2 text-sm font-bold ${labelClass}`}>
+                      当前密码
+                      <input
+                        type="password"
+                        value={passwordForm.currentPassword}
+                        onChange={(event) => updatePasswordField("currentPassword", event.target.value)}
+                        className={`h-11 rounded-[6px] border px-3 outline-none ${inputClass}`}
+                        autoComplete="current-password"
+                      />
+                    </label>
+                    <label className={`grid gap-2 text-sm font-bold ${labelClass}`}>
+                      新密码
+                      <input
+                        type="password"
+                        value={passwordForm.newPassword}
+                        onChange={(event) => updatePasswordField("newPassword", event.target.value)}
+                        className={`h-11 rounded-[6px] border px-3 outline-none ${inputClass}`}
+                        autoComplete="new-password"
+                      />
+                    </label>
+                    <label className={`grid gap-2 text-sm font-bold ${labelClass}`}>
+                      确认新密码
+                      <input
+                        type="password"
+                        value={passwordForm.confirmPassword}
+                        onChange={(event) => updatePasswordField("confirmPassword", event.target.value)}
+                        className={`h-11 rounded-[6px] border px-3 outline-none ${inputClass}`}
+                        autoComplete="new-password"
+                      />
+                    </label>
+                  </div>
+
+                  <div className="mt-4 flex justify-end">
+                    <button
+                      type="button"
+                      data-testid="profile-password-save-button"
+                      onClick={changePassword}
+                      disabled={passwordSaving}
+                      className={`inline-flex min-h-10 items-center gap-2 rounded-[6px] px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-55 ${
+                        isDayMode ? "bg-slate-950 text-white hover:bg-slate-800" : "bg-white text-slate-950 hover:bg-sky-100"
+                      }`}
+                    >
+                      {passwordSaving ? <Loader2 className="animate-spin" size={15} /> : <KeyRound size={15} />}
+                      更新密码
+                    </button>
+                  </div>
+                </section>
+              ) : null}
+
+              <div className="mt-5 flex flex-wrap justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditing(false)}
+                  className={`inline-flex min-h-11 items-center gap-2 rounded-[6px] border px-4 text-sm font-bold ${
+                    isDayMode ? "border-slate-200 bg-white text-slate-700" : "border-white/10 bg-white/[0.04] text-slate-200"
+                  }`}
+                >
+                  取消
+                </button>
+                <button
+                  type="submit"
+                  data-testid="profile-save-button"
+                  disabled={saving || Boolean(uploadingField)}
+                  className={`inline-flex min-h-11 items-center gap-2 rounded-[6px] px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-55 ${
+                    isDayMode ? "bg-sky-600 text-white hover:bg-sky-700" : "bg-sky-300 text-slate-950 hover:bg-white"
+                  }`}
+                >
+                  {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+                  保存主页
+                </button>
+              </div>
+            </form>
+          );
+        })() : null}
 
         <nav className="mt-6 flex gap-2 overflow-x-auto pb-2">
           {FEED_TABS.map((tab) => {

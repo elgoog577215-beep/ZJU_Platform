@@ -81,6 +81,74 @@ const normalizeAdminProfilePayload = (body = {}, existing = {}) => {
   };
 };
 
+const isSafeProfileUrl = (value) => {
+  const url = String(value || '').trim();
+  if (!url) return true;
+  if (url.includes('..')) return false;
+  if (url.startsWith('/uploads/') || url.startsWith('/images/')) return true;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
+const normalizeEditableProfilePayload = (body = {}, existing = {}) => {
+  const displayName = String(body.display_name ?? body.name ?? existing.display_name ?? '').trim().slice(0, 120);
+  if (!displayName) {
+    const error = new Error('Profile display name is required');
+    error.status = 400;
+    throw error;
+  }
+
+  const payload = {
+    display_name: displayName,
+    display_name_en: String(body.display_name_en ?? existing.display_name_en ?? '').trim().slice(0, 160) || null,
+    avatar_url: String(body.avatar_url ?? existing.avatar_url ?? '').trim().slice(0, 1000) || null,
+    logo_url: String(body.logo_url ?? existing.logo_url ?? '').trim().slice(0, 1000) || null,
+    cover_url: String(body.cover_url ?? existing.cover_url ?? '').trim().slice(0, 1000) || null,
+    bio: String(body.bio ?? existing.bio ?? '').trim().slice(0, 500) || null,
+    description: String(body.description ?? existing.description ?? '').trim().slice(0, 1200) || null,
+    description_en: String(body.description_en ?? existing.description_en ?? '').trim().slice(0, 1200) || null,
+    cooperation_direction: String(body.cooperation_direction ?? existing.cooperation_direction ?? '').trim().slice(0, 500) || null,
+    cooperation_direction_en: String(body.cooperation_direction_en ?? existing.cooperation_direction_en ?? '').trim().slice(0, 500) || null,
+    link_url: String(body.link_url ?? existing.link_url ?? '').trim().slice(0, 1000) || null,
+  };
+
+  for (const field of ['avatar_url', 'logo_url', 'cover_url', 'link_url']) {
+    if (!isSafeProfileUrl(payload[field])) {
+      const error = new Error(`${field} is invalid`);
+      error.status = 400;
+      throw error;
+    }
+  }
+
+  if (existing.type === 'person') {
+    payload.logo_url = null;
+    payload.cooperation_direction = null;
+    payload.cooperation_direction_en = null;
+  }
+
+  return payload;
+};
+
+const canEditProfileDetails = async (db, user, profile) => {
+  if (!user?.id || !profile?.id) return false;
+  if (user.role === 'admin') return true;
+  if (profile.owner_user_id && String(profile.owner_user_id) === String(user.id)) return true;
+  const membership = await db.get(
+    `SELECT id FROM profile_members
+     WHERE profile_id = ?
+       AND user_id = ?
+       AND status = 'active'
+       AND role IN ('owner', 'admin')
+     LIMIT 1`,
+    [profile.id, user.id],
+  );
+  return Boolean(membership);
+};
+
 const pickCover = (row, type) => {
   if (type === 'photo') return row.url || row.cover || '';
   if (type === 'video') return row.thumbnail || row.cover || '';
@@ -166,6 +234,22 @@ const getProfile = async (req, res, next) => {
     const db = await getDb();
     const profile = await loadProfileWithAliases(db, req.params.handle);
     if (!profile) return res.status(404).json({ error: 'Profile not found' });
+    let memberRole = null;
+    if (req.user?.id) {
+      if (profile.owner_user_id && String(profile.owner_user_id) === String(req.user.id)) {
+        memberRole = 'owner';
+      } else {
+        const membership = await db.get(
+          `SELECT role FROM profile_members
+           WHERE profile_id = ?
+             AND user_id = ?
+             AND status = 'active'
+           LIMIT 1`,
+          [profile.id, req.user.id],
+        );
+        memberRole = membership?.role || null;
+      }
+    }
 
     const [publishedCount, eventCount] = await Promise.all([
       db.get(
@@ -191,6 +275,7 @@ const getProfile = async (req, res, next) => {
 
     return res.json({
       ...profile,
+      member_role: memberRole,
       stats: {
         published_count: publishedCount?.count || 0,
         event_count: eventCount?.count || 0,
@@ -386,6 +471,79 @@ const listOwnProfiles = async (req, res, next) => {
     const rows = await profileService.listManageableProfiles(db, req.user?.id);
     return res.json(rows.map((row) => profileService.serializeProfile(row)));
   } catch (error) {
+    return next(error);
+  }
+};
+
+const updateOwnProfile = async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const existing = await profileService.findProfileByHandle(db, req.params.handle);
+    if (!existing || existing.status !== 'active') {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+    if (!(await canEditProfileDetails(db, req.user, existing))) {
+      return res.status(403).json({ error: 'You do not have permission to edit this profile' });
+    }
+
+    const payload = normalizeEditableProfilePayload(req.body, existing);
+    await db.run(
+      `UPDATE profiles
+       SET display_name = ?,
+           display_name_en = ?,
+           avatar_url = ?,
+           logo_url = ?,
+           cover_url = ?,
+           bio = ?,
+           description = ?,
+           description_en = ?,
+           cooperation_direction = ?,
+           cooperation_direction_en = ?,
+           link_url = ?,
+           updated_at = datetime('now')
+       WHERE id = ?`,
+      [
+        payload.display_name,
+        payload.display_name_en,
+        payload.avatar_url,
+        payload.logo_url,
+        payload.cover_url,
+        payload.bio,
+        payload.description,
+        payload.description_en,
+        payload.cooperation_direction,
+        payload.cooperation_direction_en,
+        payload.link_url,
+        existing.id,
+      ],
+    );
+
+    if (existing.type === 'person' && existing.owner_user_id) {
+      await db.run(
+        `UPDATE users
+         SET nickname = ?,
+             avatar = COALESCE(?, avatar)
+         WHERE id = ?`,
+        [payload.display_name, payload.avatar_url || null, existing.owner_user_id],
+      );
+      await profileService.addProfileAlias(db, existing.id, payload.display_name, 'search');
+    }
+
+    const updated = await profileService.findProfileById(db, existing.id);
+    const aliases = await profileService.listAliases(db, existing.id);
+    await syncEcosystemPartnerFromProfile(db, updated, {
+      ...updated,
+      ...payload,
+      type: updated.type,
+      status: updated.status,
+      verified: updated.verified,
+    }, aliases);
+    return res.json(profileService.serializeProfile(updated, aliases));
+  } catch (error) {
+    if (error.status) return res.status(error.status).json({ error: error.message });
+    if (error.code === 'SQLITE_CONSTRAINT' || /UNIQUE constraint failed/i.test(error.message || '')) {
+      return res.status(409).json({ error: 'Display name is already used' });
+    }
     return next(error);
   }
 };
@@ -635,5 +793,6 @@ module.exports = {
   listOwnProfiles,
   listProfiles,
   updateAdminProfile,
+  updateOwnProfile,
   upsertAdminProfileMember,
 };

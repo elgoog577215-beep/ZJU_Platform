@@ -117,6 +117,7 @@ router.get('/users/me/outcome-links', authenticateToken, userController.listOwnO
 router.put('/users/me/outcome-links/:linkId', authenticateToken, userController.updateOwnOutcomeLink);
 router.put('/users/me/profile-card', authenticateToken, profileCardController.updateOwnProfileCard);
 router.get('/users/me/profiles', authenticateToken, profileController.listOwnProfiles);
+router.put('/profiles/:handle', authenticateToken, profileController.updateOwnProfile);
 
 // User Management Routes (Admin)
 router.get('/admin/users', authenticateToken, isAdmin, userController.getAllUsers);
