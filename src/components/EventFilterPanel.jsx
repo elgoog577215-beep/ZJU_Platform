@@ -111,8 +111,8 @@ const EventFilterPanel = ({
 
   const shellClass = isSheetMode ? "space-y-3" : "relative z-10 space-y-3";
   const glassClass = isDayMode
-    ? "border-slate-200/80 bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(248,251,255,0.82)_54%,rgba(255,255,255,0.88))] shadow-[0_14px_34px_rgba(15,23,42,0.055)]"
-    : "border-white/[0.12] bg-[#070a14]/92 shadow-none";
+    ? "border-slate-200/80 bg-white/88 shadow-[0_10px_24px_rgba(15,23,42,0.04)]"
+    : "border-white/[0.10] bg-white/[0.035] shadow-none";
   const subtleGlassClass = isDayMode
     ? "border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,251,255,0.9))] shadow-[0_12px_30px_rgba(15,23,42,0.055)]"
     : "border-white/[0.12] bg-[#080b14]/92 shadow-none";
@@ -125,29 +125,27 @@ const EventFilterPanel = ({
   const nightFocusClass = isDayMode
     ? "focus-visible:ring-blue-400/70"
     : "focus-visible:border-white/[0.22] focus-visible:ring-slate-300/35 focus-visible:shadow-[0_0_0_4px_rgba(148,163,184,0.12)]";
-  const activeLayoutId = `event-channel-active-${isSheetMode ? "sheet" : "desktop"}`;
-
   const channelButtonClass = (active) =>
-    `rect-button relative h-10 shrink-0 px-4 text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${
+    `relative h-11 shrink-0 border-b-2 px-3.5 text-sm font-bold transition-colors focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${
         active
           ? isDayMode
-          ? "text-blue-900"
-          : "text-indigo-100"
+          ? "border-blue-600 bg-blue-50/70 text-blue-900"
+          : "border-indigo-300 bg-indigo-400/10 text-indigo-100"
         : isDayMode
-          ? "text-slate-500 hover:bg-blue-50/80 hover:text-blue-900"
-          : "text-slate-300 hover:bg-white/[0.055] hover:text-white"
+          ? "border-transparent text-slate-500 hover:bg-blue-50/60 hover:text-blue-900"
+          : "border-transparent text-slate-300 hover:bg-white/[0.055] hover:text-white"
     }`;
 
   const renderActivePill = () => (
-    <motion.span
-      layoutId={activeLayoutId}
-      className={`absolute inset-0 ${
-        isDayMode
-          ? "border border-blue-700/18 bg-[linear-gradient(135deg,rgba(239,246,255,0.98),rgba(248,251,255,0.9)_54%,rgba(255,255,255,0.9))] shadow-[0_10px_22px_rgba(37,99,235,0.085)]"
-          : "border border-indigo-400/35 bg-indigo-500/20 shadow-none"
-      }`}
-      transition={{ type: "spring", bounce: 0.12, duration: 0.42 }}
-    />
+    isSheetMode ? (
+      <span
+        className={`absolute inset-0 ${
+          isDayMode
+            ? "border border-blue-700/18 bg-blue-50/80 shadow-[0_10px_22px_rgba(37,99,235,0.08)]"
+            : "border border-indigo-400/35 bg-indigo-500/20 shadow-none"
+        }`}
+      />
+    ) : null
   );
 
   const isAudienceSelected = (audience) =>
@@ -322,20 +320,17 @@ const EventFilterPanel = ({
   return (
     <div className={shellClass}>
       <div
-        className={`relative overflow-visible border p-2 ${glassClass}`}
+        className={`relative overflow-visible border px-3 py-2 ${glassClass}`}
       >
         <div
           className={`pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent to-transparent ${isDayMode ? "via-white/80" : "via-white/18"}`}
         />
-        <div
-              className={`pointer-events-none absolute inset-y-3 left-3 w-px ${isDayMode ? "bg-gradient-to-b from-blue-200/20 via-sky-200/55 to-indigo-200/20" : "bg-indigo-400/20"}`}
-        />
 
-        <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div
-            className={`relative min-w-0 overflow-hidden border lg:flex-1 lg:max-w-[690px] xl:max-w-[760px] ${isDayMode ? "border-slate-200/80 bg-white/72" : "border-white/[0.09] bg-[#050712]/88"}`}
+            className={`relative min-w-0 overflow-hidden border-b lg:flex-1 lg:max-w-[690px] xl:max-w-[760px] ${isDayMode ? "border-slate-200/80" : "border-white/[0.09]"}`}
           >
-            <div className="scrollbar-none flex min-w-0 items-center gap-1 overflow-x-auto p-1 pr-10 md:pr-1">
+            <div className="scrollbar-none flex min-w-0 items-center gap-1 overflow-x-auto pr-10 md:pr-1">
               <button
                 type="button"
                 aria-pressed={!selectedCategory}

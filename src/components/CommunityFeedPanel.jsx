@@ -85,6 +85,14 @@ const CommunityFeedPanel = ({
     green: isDayMode ? 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-[0_4px_12px_rgba(16,185,129,0.10)]' : 'bg-emerald-600 text-white border-emerald-600',
   }[accentColor];
 
+  const accentTabClass = {
+    amber: isDayMode ? 'border-amber-500 bg-amber-50/70 text-amber-700' : 'border-amber-300 bg-amber-400/10 text-amber-100',
+    violet: isDayMode ? 'border-violet-500 bg-violet-50/70 text-violet-700' : 'border-violet-300 bg-violet-400/10 text-violet-100',
+    blue: isDayMode ? 'border-sky-500 bg-sky-50/70 text-sky-700' : 'border-sky-300 bg-sky-400/10 text-sky-100',
+    orange: isDayMode ? 'border-orange-500 bg-orange-50/70 text-orange-700' : 'border-orange-300 bg-orange-400/10 text-orange-100',
+    green: isDayMode ? 'border-emerald-500 bg-emerald-50/70 text-emerald-700' : 'border-emerald-300 bg-emerald-400/10 text-emerald-100',
+  }[accentColor];
+
   const emptyIconClass = {
     amber: 'text-amber-400',
     violet: 'text-violet-400',
@@ -94,17 +102,17 @@ const CommunityFeedPanel = ({
   }[accentColor] || 'text-amber-400';
 
   const statusControl = statusTabs ? (
-    <div className={`scrollbar-none flex w-full max-w-full items-center gap-1 overflow-x-auto rounded-lg border p-1 sm:w-auto ${isDayMode ? 'border-slate-200/70 bg-slate-50' : 'border-white/10 bg-black/10'}`}>
+    <div className="scrollbar-none flex w-full max-w-full items-center gap-1.5 overflow-x-auto sm:w-auto">
       {statusTabs.map(({ key, label }) => (
         <button
           key={key}
           type="button"
           aria-pressed={statusFilter === key}
           onClick={() => setStatusFilter(key)}
-          className={`min-h-[34px] min-w-fit rounded-md px-3 text-xs font-semibold transition-all whitespace-nowrap md:px-3.5 ${
+          className={`min-h-[38px] min-w-fit border-b-2 px-2.5 text-xs font-semibold transition-colors whitespace-nowrap md:px-3 ${
             statusFilter === key
-              ? accentBtnClass
-              : (isDayMode ? 'text-slate-600 hover:bg-white hover:text-slate-950' : 'text-gray-400 hover:bg-white/10')
+              ? accentTabClass
+              : (isDayMode ? 'border-transparent text-slate-600 hover:bg-slate-50/80 hover:text-slate-950' : 'border-transparent text-gray-400 hover:bg-white/8 hover:text-white')
           }`}
         >
           {t(label)}

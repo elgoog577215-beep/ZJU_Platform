@@ -118,7 +118,7 @@ const TagFilter = ({ selectedTags = [], onChange, className, variant = 'card', t
   }
   
   const containerClasses = variant === 'card' 
-    ? `${isDayMode ? 'bg-white/46 backdrop-blur-3xl border border-white/70 shadow-[0_16px_40px_rgba(99,102,241,0.08)] ring-1 ring-slate-900/[0.025]' : 'bg-[#07070a]/70 backdrop-blur-3xl border border-white/10 shadow-[0_18px_44px_rgba(0,0,0,0.35)]'} rounded-3xl p-4 md:p-6`
+    ? `${isDayMode ? 'border-t border-slate-200/80 bg-transparent' : 'border-t border-white/10 bg-transparent'} pt-4 md:pt-5`
     : "";
 
   return (
@@ -133,7 +133,7 @@ const TagFilter = ({ selectedTags = [], onChange, className, variant = 'card', t
                   className={`flex items-center gap-2 ${isMobile ? 'cursor-pointer' : 'cursor-default'} rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70`}
                   onClick={() => isMobile && setIsMobileCollapsed(!isMobileCollapsed)}
               >
-                  <div className={`p-2.5 sm:p-2 rounded-xl ${variant === 'card' ? (isDayMode ? 'bg-white/64 text-indigo-500 border border-white/75 shadow-[0_8px_20px_rgba(99,102,241,0.12)]' : 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/25 shadow-[0_0_20px_-8px_rgba(99,102,241,0.5)]') : (isDayMode ? 'bg-slate-100 text-slate-700 border border-slate-200/80' : 'bg-white/10 text-white')}`}>
+                  <div className={`p-2 sm:p-1.5 rounded-md ${variant === 'card' ? (isDayMode ? 'text-indigo-500' : 'text-indigo-300') : (isDayMode ? 'bg-slate-100 text-slate-700 border border-slate-200/80' : 'bg-white/10 text-white')}`}>
                       <Filter size={isMobile ? 16 : 18} />
                   </div>
                   <span className={`font-bold text-base md:text-lg tracking-wide ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{t('common.filter_by_tags', '标签筛选')}</span>
@@ -151,7 +151,7 @@ const TagFilter = ({ selectedTags = [], onChange, className, variant = 'card', t
                   <button
                       type="button"
                       onClick={() => onChange([])}
-                      className={`text-xs font-medium flex items-center gap-1 transition-colors px-3 py-2 sm:px-3 sm:py-1.5 rounded-full min-h-[44px] sm:min-h-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'text-slate-500 hover:text-slate-900 bg-white/54 hover:bg-white/82 border border-white/70' : 'text-gray-400 hover:text-white bg-white/5 hover:bg-white/10'}`}
+                      className={`text-xs font-medium flex items-center gap-1 transition-colors px-3 py-2 sm:px-3 sm:py-1.5 rounded-md min-h-[44px] sm:min-h-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'text-slate-500 hover:bg-slate-50 hover:text-slate-900' : 'text-gray-400 hover:bg-white/8 hover:text-white'}`}
                   >
                       <X size={12} />
                       {t('common.clear_all', '清除全部')}
@@ -167,7 +167,7 @@ const TagFilter = ({ selectedTags = [], onChange, className, variant = 'card', t
           </div>
         ) : null}
         {selectedTags.length > 0 && !isSheetVariant && !isInlineVariant && (
-          <div className={`mb-3 text-xs inline-flex items-center px-2.5 py-1 rounded-full border ${isDayMode ? 'text-indigo-600 bg-indigo-50 border-indigo-200/80' : 'text-indigo-300 bg-indigo-500/10 border-indigo-500/30'}`}>{selectedCountLabel}</div>
+              <div className={`mb-3 text-xs inline-flex items-center px-2.5 py-1 rounded-md border-b-2 ${isDayMode ? 'border-indigo-500 bg-indigo-50/70 text-indigo-600' : 'border-indigo-300 bg-indigo-500/10 text-indigo-300'}`}>{selectedCountLabel}</div>
         )}
         {shouldShowSearch && !isInlineVariant && (
           <div className="mb-3 relative">
@@ -179,7 +179,7 @@ const TagFilter = ({ selectedTags = [], onChange, className, variant = 'card', t
                 setIsExpanded(true);
               }}
               placeholder={t('common.search', '搜索...')}
-              className={`w-full rounded-xl border pl-9 pr-10 py-2.5 min-h-[44px] text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-white/52 border-white/70 text-slate-700 placeholder:text-slate-400 focus:border-indigo-300/80' : 'bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-indigo-400/40'}`}
+              className={`w-full rounded-md border pl-9 pr-10 py-2.5 min-h-[44px] text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-white/78 border-slate-200/80 text-slate-700 placeholder:text-slate-400 focus:border-indigo-300/80' : 'bg-white/[0.035] border-white/10 text-white placeholder:text-gray-500 focus:border-indigo-400/40'}`}
             />
             {searchTerm && (
               <button
@@ -214,7 +214,7 @@ const TagFilter = ({ selectedTags = [], onChange, className, variant = 'card', t
                                 type="button"
                                 aria-pressed={selectedTags.includes(tag.name)}
                                 onClick={() => toggleTag(tag.name)}
-                                className={`${isInlineVariant ? 'min-h-[32px] rounded-full px-3 py-1.5 text-xs' : 'min-h-[44px] rounded-2xl px-4 py-2.5 text-sm sm:min-h-0 sm:py-2 hover:-translate-y-0.5'} font-medium transition-all border flex items-center gap-2 ${
+                                className={`${isInlineVariant ? 'min-h-[32px] rounded-full px-3 py-1.5 text-xs' : 'min-h-[40px] rounded-md px-3.5 py-2 text-sm sm:min-h-0 hover:-translate-y-0.5'} font-medium transition-all border flex items-center gap-2 ${
                                     selectedTags.includes(tag.name)
                                         ? (isDayMode ? 'bg-blue-50 text-blue-700 border-blue-200/80 shadow-none' : 'bg-indigo-500/20 text-indigo-100 border-indigo-400/35 shadow-none')
                                         : (isDayMode ? 'bg-white/70 text-slate-500 border-slate-200/80 hover:bg-white hover:text-slate-900 hover:border-blue-200/80' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/20')

@@ -291,26 +291,27 @@ const CommunityPosts = ({ headingCode, headingTitle }) => {
           </button>
         </div>
       ) : null}
-      <div className={`mb-4 rounded-lg border p-4 md:mb-6 md:p-5 ${
-        isDayMode
-          ? 'border-slate-200/80 bg-white shadow-[0_10px_26px_rgba(15,23,42,0.04)]'
-          : 'border-white/10 bg-white/[0.035]'
-      }`}>
-        <div className={`scrollbar-none flex gap-1 overflow-x-auto rounded-lg border p-1 ${isDayMode ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-black/15'}`}>
+      <nav
+        aria-label={t('community.subnav_aria', '社区版块导航')}
+        className={`mb-4 border-b md:mb-6 ${
+          isDayMode ? 'border-slate-200/80' : 'border-white/10'
+        }`}
+      >
+        <div className="scrollbar-none flex gap-1 overflow-x-auto">
           {POST_TABS.map(({ key, labelKey, fallback, icon: Icon, mobileOnly }) => (
             <button
               key={key}
               type="button"
               onClick={() => handleTabChange(key)}
-              className={`inline-flex min-h-[36px] shrink-0 items-center justify-center gap-1.5 rounded-md border px-3 text-xs font-bold transition-colors md:flex-1 ${
+              className={`inline-flex min-h-[44px] shrink-0 items-center justify-center gap-1.5 border-b-2 px-3 text-xs font-bold transition-colors md:flex-1 ${
                 mobileOnly ? 'xl:hidden' : ''
               } ${
                 activeTab === key
                   ? isDayMode
-                    ? 'border-violet-200 bg-violet-50 text-violet-700 shadow-[0_4px_12px_rgba(124,58,237,0.08)]'
-                    : 'border-orange-300/50 bg-orange-400 text-slate-950'
+                    ? 'border-violet-500 bg-violet-50/70 text-violet-700'
+                    : 'border-orange-300 bg-orange-400/10 text-orange-200'
                   : isDayMode
-                    ? 'border-transparent text-slate-600 hover:bg-white hover:text-violet-700'
+                    ? 'border-transparent text-slate-600 hover:bg-slate-50/70 hover:text-violet-700'
                     : 'border-transparent text-gray-300 hover:bg-white/8 hover:text-white'
               }`}
             >
@@ -319,7 +320,7 @@ const CommunityPosts = ({ headingCode, headingTitle }) => {
             </button>
           ))}
         </div>
-      </div>
+      </nav>
 
       {activeTab === 'featured' ? renderFeatured() : null}
       {activeTab === 'tech' ? <CommunityTech hideNewPostButton /> : null}
