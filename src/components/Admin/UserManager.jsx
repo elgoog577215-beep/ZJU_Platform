@@ -19,6 +19,8 @@ import {
   useAdminTheme,
 } from "./AdminUI";
 
+const getUserRoleGroup = (role) => (role === "admin" ? "admin" : "user");
+
 const UserManager = () => {
   const { isDayMode, mutedTextClass } = useAdminTheme();
   const [users, setUsers] = useState([]);
@@ -55,26 +57,48 @@ const UserManager = () => {
     fetchUsers();
   }, []);
 
-  const filteredUsers = useMemo(() => {
+  const searchMatchedUsers = useMemo(() => {
     const lowerQuery = searchQuery.trim().toLowerCase();
-    return users.filter((user) => {
-      const matchesSearch =
+    return users.filter(
+      (user) =>
         !lowerQuery ||
         String(user.username || "")
           .toLowerCase()
-          .includes(lowerQuery);
-      const matchesRole = roleFilter === "all" || user.role === roleFilter;
-      return matchesSearch && matchesRole;
-    });
-  }, [roleFilter, searchQuery, users]);
+          .includes(lowerQuery),
+    );
+  }, [searchQuery, users]);
 
-  const counts = useMemo(
+  const filteredUsers = useMemo(
+    () =>
+      searchMatchedUsers.filter(
+        (user) =>
+          roleFilter === "all" || getUserRoleGroup(user.role) === roleFilter,
+      ),
+    [roleFilter, searchMatchedUsers],
+  );
+
+  const totalCounts = useMemo(
     () => ({
       total: users.length,
-      admin: users.filter((user) => user.role === "admin").length,
-      user: users.filter((user) => user.role !== "admin").length,
+      admin: users.filter((user) => getUserRoleGroup(user.role) === "admin")
+        .length,
+      user: users.filter((user) => getUserRoleGroup(user.role) === "user")
+        .length,
     }),
     [users],
+  );
+
+  const filterCounts = useMemo(
+    () => ({
+      total: searchMatchedUsers.length,
+      admin: searchMatchedUsers.filter(
+        (user) => getUserRoleGroup(user.role) === "admin",
+      ).length,
+      user: searchMatchedUsers.filter(
+        (user) => getUserRoleGroup(user.role) === "user",
+      ).length,
+    }),
+    [searchMatchedUsers],
   );
 
   const handleEdit = (user) => {
@@ -234,35 +258,35 @@ const UserManager = () => {
                 active={roleFilter === "all"}
                 onClick={() => setRoleFilter("all")}
               >
-                全部 ({counts.total})
+                全部 ({filterCounts.total})
               </FilterChip>
               <FilterChip
                 active={roleFilter === "admin"}
                 onClick={() => setRoleFilter("admin")}
               >
-                管理员 ({counts.admin})
+                管理员 ({filterCounts.admin})
               </FilterChip>
               <FilterChip
                 active={roleFilter === "user"}
                 onClick={() => setRoleFilter("user")}
               >
-                普通用户 ({counts.user})
+                普通用户 ({filterCounts.user})
               </FilterChip>
             </ToolbarGroup>
           </AdminToolbar>
         }
       >
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <AdminMetricCard label="总用户数" value={counts.total} icon={User} />
+          <AdminMetricCard label="总用户数" value={totalCounts.total} icon={User} />
           <AdminMetricCard
             label="管理员"
-            value={counts.admin}
+            value={totalCounts.admin}
             icon={Key}
             tone="violet"
           />
           <AdminMetricCard
             label="普通用户"
-            value={counts.user}
+            value={totalCounts.user}
             icon={User}
             tone="emerald"
           />
