@@ -564,8 +564,10 @@ export const ConfirmDialog = ({
   description,
   confirmText = "确认",
   cancelText = "取消",
+  pendingText = "处理中...",
   tone = "danger",
   pending = false,
+  confirmDisabled = false,
   onConfirm,
   onCancel,
   children,
@@ -631,10 +633,10 @@ export const ConfirmDialog = ({
               <AdminButton
                 tone={tone}
                 className="flex-1"
-                disabled={pending}
+                disabled={pending || confirmDisabled}
                 onClick={onConfirm}
               >
-                {pending ? "处理中..." : confirmText}
+                {pending ? pendingText : confirmText}
               </AdminButton>
             </div>
           </motion.div>
