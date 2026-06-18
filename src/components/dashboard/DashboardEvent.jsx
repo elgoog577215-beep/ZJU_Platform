@@ -12,7 +12,7 @@ const DashboardEvent = ({ event, onClick }) => {
   return (
   <div 
     onClick={() => onClick(event)}
-    className={`relative w-full h-full rounded-3xl overflow-hidden cursor-pointer group border ${isDayMode ? 'border-slate-200/80 bg-white/88 shadow-[0_18px_40px_rgba(148,163,184,0.18)]' : 'border-white/10 bg-black'}`}
+    className={`relative w-full h-full rounded-3xl overflow-hidden cursor-pointer group border ${isDayMode ? 'border-slate-200/80 bg-white' : 'border-white/10 bg-black'}`}
   >
     <SmartImage 
         src={getHighResUrl(event.image)} 
@@ -24,10 +24,12 @@ const DashboardEvent = ({ event, onClick }) => {
     />
     
     {/* Gradient Overlay */}
-    <div className={`absolute inset-0 ${isDayMode ? 'bg-gradient-to-t from-white via-white/12 to-transparent' : 'bg-gradient-to-t from-black/90 via-transparent to-transparent'}`} />
+    {!isDayMode && (
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
+    )}
     
     {/* Date Badge */}
-    <div className={`absolute top-6 left-6 flex flex-col items-center backdrop-blur-md border rounded-xl p-3 shadow-lg transition-colors ${isDayMode ? 'bg-white/88 border-slate-200/80 group-hover:bg-white' : 'bg-white/10 border-white/20 group-hover:bg-white/20'}`}>
+    <div className={`absolute top-6 left-6 flex flex-col items-center border rounded-xl p-3 transition-colors ${isDayMode ? 'bg-white border-slate-200/80 group-hover:bg-slate-50' : 'bg-white/10 border-white/20 group-hover:bg-white/20 backdrop-blur-md shadow-lg'}`}>
         <span className="text-xs font-bold text-red-400 uppercase tracking-wider">{new Date(event.date).toLocaleString('default', { month: 'short' })}</span>
         <span className={`text-2xl font-bold font-serif ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{new Date(event.date).getDate()}</span>
     </div>

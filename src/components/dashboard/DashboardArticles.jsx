@@ -16,7 +16,7 @@ const DashboardArticles = ({ articles, onSelect }) => {
         <div 
           key={article.id}
           onClick={() => onSelect(article)}
-          className={`rounded-3xl p-6 transition-all cursor-pointer group flex flex-col justify-between relative overflow-hidden min-h-[180px] border ${isDayMode ? 'bg-white/88 border-slate-200/80 hover:border-red-200 shadow-[0_18px_40px_rgba(148,163,184,0.16)]' : 'bg-[#0a0a0a]/80 border-white/10 hover:border-red-500/30'}`}
+          className={`rounded-3xl p-6 transition-all cursor-pointer group flex flex-col justify-between relative overflow-hidden min-h-[180px] border ${isDayMode ? 'bg-white border-slate-200/80 hover:border-red-200' : 'bg-[#0a0a0a]/80 border-white/10 hover:border-red-500/30'}`}
         >
         {article.image && (
           <>
@@ -28,7 +28,9 @@ const DashboardArticles = ({ articles, onSelect }) => {
                 imageClassName={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${isDayMode ? 'opacity-14 group-hover:opacity-22' : 'opacity-20 group-hover:opacity-30'}`} 
                 iconSize={32}
             />
-            <div className={`absolute inset-0 ${isDayMode ? 'bg-gradient-to-t from-white via-white/78 to-transparent' : 'bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/80 to-transparent'}`} />
+            {!isDayMode && (
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/80 to-transparent" />
+            )}
           </>
         )}
         <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/10 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-red-500/20 transition-colors" />

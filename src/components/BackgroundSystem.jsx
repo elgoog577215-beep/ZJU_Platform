@@ -49,8 +49,8 @@ const DAY_RENDER_TUNING = {
   contrast: 0.78,
 };
 
-const getSceneClearColor = (isDayMode) => (isDayMode ? "#f8fbff" : "#000000");
-const getSceneFogColor = (isDayMode) => (isDayMode ? "#f8fbff" : "#000000");
+const getSceneClearColor = (isDayMode) => (isDayMode ? "#ffffff" : "#000000");
+const getSceneFogColor = (isDayMode) => (isDayMode ? "#ffffff" : "#000000");
 
 const getHighQualityDpr = () => {
   if (typeof window === "undefined") return 1.75;
@@ -669,8 +669,8 @@ const BackgroundSystem = ({ forcedTheme = null }) => {
   const saturation = (sceneTuning.saturation || 1) * (isDayMode ? DAY_RENDER_TUNING.saturation : 1);
   const contrast = (sceneTuning.contrast || 1) * (isDayMode ? DAY_RENDER_TUNING.contrast : 1);
   const backgroundClassName = isDayMode
-    ? "pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-white"
-    : "pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-black";
+    ? "pointer-events-none fixed inset-0 z-0 overflow-hidden bg-white"
+    : "pointer-events-none fixed inset-0 z-0 overflow-hidden bg-black";
 
   return (
     <div
@@ -716,10 +716,7 @@ const BackgroundSystem = ({ forcedTheme = null }) => {
         </Canvas>
       )}
       {isDayMode ? (
-        <>
-          <div className="absolute inset-0 bg-white/46" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_16%_16%,rgba(236,72,153,0.08),transparent_28rem),radial-gradient(circle_at_84%_12%,rgba(168,85,247,0.085),transparent_30rem),linear-gradient(180deg,rgba(255,255,255,0.22),rgba(255,255,255,0.58))]" />
-        </>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_14%_16%,rgba(236,72,153,0.12),transparent_26rem),radial-gradient(circle_at_86%_12%,rgba(168,85,247,0.11),transparent_30rem),radial-gradient(circle_at_52%_88%,rgba(14,165,233,0.09),transparent_28rem)]" />
       ) : (
         <div className="absolute inset-0 bg-black/55 md:hidden" />
       )}

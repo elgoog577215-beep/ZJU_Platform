@@ -76,13 +76,13 @@ export const getFileTypeBadgeClass = (name = '', mime = '', isDayMode = false) =
 /** Shared theme class-name maps to reduce isDayMode ternary repetition */
 export const communityTheme = (isDayMode) => ({
   // Modal
-  modalBackdrop: isDayMode ? 'bg-white/70' : 'bg-black/90',
+  modalBackdrop: isDayMode ? 'bg-transparent' : 'bg-black/90',
   modalSurface: isDayMode ? 'bg-white' : 'bg-[#0a0a0a]',
   closeBtn: isDayMode
-    ? 'bg-white/82 hover:bg-white text-slate-700 border-slate-200/80'
+    ? 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200/80'
     : 'bg-black/40 hover:bg-black/60 text-white border-white/10',
   titleOverlay: isDayMode
-    ? 'bg-gradient-to-t from-white via-white/92 to-transparent'
+    ? 'bg-white'
     : 'bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/90 to-transparent',
   gradientTo: isDayMode ? 'to-slate-100' : 'to-gray-900',
 
@@ -100,10 +100,10 @@ export const communityTheme = (isDayMode) => ({
 
   // Cards & skeleton
   card: isDayMode
-    ? 'bg-white border-slate-200/80 shadow-[0_8px_22px_rgba(15,23,42,0.045)]'
+    ? 'bg-white border-slate-200/80'
     : 'bg-white/[0.045] border-white/10',
   cardHover: isDayMode
-    ? 'bg-white hover:bg-white border-slate-200/80 hover:border-slate-300 shadow-[0_8px_22px_rgba(15,23,42,0.045)] hover:shadow-[0_12px_28px_rgba(15,23,42,0.065)]'
+    ? 'bg-white hover:bg-white border-slate-200/80 hover:border-slate-300'
     : 'bg-white/[0.045] hover:bg-white/[0.07] border-white/10',
   skeleton: isDayMode ? 'bg-slate-100' : 'bg-white/5',
   skeletonStrong: isDayMode ? 'bg-slate-100' : 'bg-white/10',
@@ -113,7 +113,7 @@ export const communityTheme = (isDayMode) => ({
     ? 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200/80 shadow-none'
     : 'bg-white/10 hover:bg-white/20 text-white border-white/10',
   btnLoadMore: isDayMode
-    ? 'bg-white/88 hover:bg-white text-slate-700 border-slate-200/80'
+    ? 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200/80'
     : 'bg-white/10 hover:bg-white/15 text-white border-white/10',
 
   // Comment area

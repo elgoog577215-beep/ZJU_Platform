@@ -111,10 +111,10 @@ const EventFilterPanel = ({
 
   const shellClass = isSheetMode ? "space-y-3" : "relative z-10 space-y-3";
   const glassClass = isDayMode
-    ? "border-slate-200/80 bg-white/88 shadow-[0_10px_24px_rgba(15,23,42,0.04)]"
+    ? "border-slate-200/80 bg-white"
     : "border-white/[0.10] bg-white/[0.035] shadow-none";
   const subtleGlassClass = isDayMode
-    ? "border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,251,255,0.9))] shadow-[0_12px_30px_rgba(15,23,42,0.055)]"
+    ? "border-slate-200/80 bg-white"
     : "border-white/[0.12] bg-[#080b14]/92 shadow-none";
   const mutedTextClass = isDayMode ? "text-slate-500" : "text-gray-400";
   const strongTextClass = isDayMode ? "text-slate-900" : "text-white";
@@ -141,7 +141,7 @@ const EventFilterPanel = ({
       <span
         className={`absolute inset-0 ${
           isDayMode
-            ? "border border-blue-700/18 bg-blue-50/80 shadow-[0_10px_22px_rgba(37,99,235,0.08)]"
+            ? "border border-blue-700/18 bg-blue-50/80"
             : "border border-indigo-400/35 bg-indigo-500/20 shadow-none"
         }`}
       />
@@ -168,17 +168,17 @@ const EventFilterPanel = ({
             ? "text-blue-900"
             : "text-indigo-100"
             : isDayMode
-            ? "bg-white/70 text-slate-600"
+            ? "bg-white text-slate-600"
             : "bg-white/[0.06] text-slate-300"
       }`;
     const sheetAudienceChipClass = (active) =>
       `min-h-[44px] rounded-md border px-3.5 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${
         active
             ? isDayMode
-            ? "border-blue-700/18 bg-[linear-gradient(135deg,rgba(239,246,255,0.98),rgba(248,251,255,0.86))] text-blue-800 shadow-[0_10px_22px_rgba(37,99,235,0.08)]"
+            ? "border-blue-700/18 bg-blue-50 text-blue-800"
             : nightControlActiveClass
           : isDayMode
-            ? "border-slate-200/80 bg-white/80 text-slate-600"
+            ? "border-slate-200/80 bg-white text-slate-600"
             : nightControlClass
       }`;
 
@@ -245,7 +245,7 @@ const EventFilterPanel = ({
                 type="button"
                 aria-expanded={showAllAudiences}
                 onClick={() => setShowAllAudiences((value) => !value)}
-                className={`inline-flex min-h-[44px] shrink-0 items-center justify-center gap-1 rounded-md px-3.5 text-xs font-bold transition-colors focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${isDayMode ? "bg-white/78 text-slate-600" : "bg-white/[0.06] text-slate-300"}`}
+                className={`inline-flex min-h-[44px] shrink-0 items-center justify-center gap-1 rounded-md px-3.5 text-xs font-bold transition-colors focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${isDayMode ? "bg-white text-slate-600" : "bg-white/[0.06] text-slate-300"}`}
               >
                 <ChevronDown
                   size={14}
@@ -267,7 +267,7 @@ const EventFilterPanel = ({
               value={audienceSearch}
               onChange={(event) => setAudienceSearch(event.target.value)}
               aria-label={t("events.filter.search_audience", "搜索学院或学园")}
-              className={`h-12 w-full rounded-lg border pl-11 pr-12 text-base outline-none transition-colors focus-visible:ring-2 ${nightFocusClass} ${isDayMode ? "border-slate-200/80 bg-white/90 text-slate-800 placeholder:text-slate-400" : "border-white/[0.11] bg-[#171a26] text-white placeholder:text-slate-500"}`}
+              className={`h-12 w-full rounded-lg border pl-11 pr-12 text-base outline-none transition-colors focus-visible:ring-2 ${nightFocusClass} ${isDayMode ? "border-slate-200/80 bg-white text-slate-800 placeholder:text-slate-400" : "border-white/[0.11] bg-[#171a26] text-white placeholder:text-slate-500"}`}
               placeholder={t("events.filter.search_audience_placeholder", "搜索学院 / 学园")}
             />
             {audienceSearch && (
@@ -306,7 +306,7 @@ const EventFilterPanel = ({
 
             {visibleAudienceGroups.length === 0 && (
               <div
-              className={`border px-4 py-8 text-center text-sm ${isDayMode ? "border-slate-200/80 bg-white/80 text-slate-500" : "border-white/[0.11] bg-[#171a26] text-slate-400"}`}
+              className={`border px-4 py-8 text-center text-sm ${isDayMode ? "border-slate-200/80 bg-white text-slate-500" : "border-white/[0.11] bg-[#171a26] text-slate-400"}`}
               >
                 {t("events.filter.no_audience_matches", "没有匹配的学院或学园")}
               </div>
@@ -322,9 +322,9 @@ const EventFilterPanel = ({
       <div
         className={`relative overflow-visible border px-3 py-2 ${glassClass}`}
       >
-        <div
-          className={`pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent to-transparent ${isDayMode ? "via-white/80" : "via-white/18"}`}
-        />
+        {!isDayMode && (
+          <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/18 to-transparent" />
+        )}
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div
@@ -361,9 +361,9 @@ const EventFilterPanel = ({
                 );
               })}
             </div>
-            <div
-              className={`pointer-events-none absolute inset-y-1 right-1 w-10 ${isDayMode ? "bg-gradient-to-l from-white via-white/88 to-transparent" : "bg-gradient-to-l from-[#0a0d14] via-[#0a0d14]/88 to-transparent"}`}
-            />
+            {!isDayMode && (
+              <div className="pointer-events-none absolute inset-y-1 right-1 w-10 bg-gradient-to-l from-[#0a0d14] via-[#0a0d14]/88 to-transparent" />
+            )}
           </div>
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center lg:justify-end">
@@ -411,7 +411,7 @@ const EventFilterPanel = ({
                   className="w-full"
                   buttonClassName={
                     isDayMode
-                      ? "rect-button-secondary bg-white/80 hover:bg-blue-50 hover:border-blue-200 w-full py-3 text-slate-700 transition-all hover:text-blue-900"
+                      ? "rect-button-secondary bg-white hover:bg-blue-50 hover:border-blue-200 w-full py-3 text-slate-700 transition-all hover:text-blue-900"
                       : `rect-button-secondary ${nightControlClass} w-full py-3 transition-all`
                   }
                   extraOptions={sortExtraOptions}
@@ -498,10 +498,10 @@ const EventFilterPanel = ({
                             className={`rect-button min-h-[38px] border px-3 text-xs font-semibold transition-all focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${
                               selected
                                 ? isDayMode
-                                    ? "border-blue-200 bg-[linear-gradient(135deg,rgba(239,246,255,0.96),rgba(248,251,255,0.84))] text-blue-800 shadow-none"
+                                    ? "border-blue-200 bg-blue-50 text-blue-800 shadow-none"
                                     : nightControlActiveClass
                                 : isDayMode
-                                  ? "border-slate-200/80 bg-white/72 text-slate-600 shadow-none hover:border-blue-200 hover:bg-blue-50 hover:text-blue-900"
+                                  ? "border-slate-200/80 bg-white text-slate-600 shadow-none hover:border-blue-200 hover:bg-blue-50 hover:text-blue-900"
                                   : nightControlClass
                             }`}
                           >
@@ -515,7 +515,7 @@ const EventFilterPanel = ({
 
                 {visibleAudienceGroups.length === 0 && (
                   <div
-                    className={`border px-4 py-6 text-center text-sm ${isDayMode ? "border-slate-200/80 bg-white/70 text-slate-500" : "border-white/[0.11] bg-[#171a26] text-slate-400"}`}
+                    className={`border px-4 py-6 text-center text-sm ${isDayMode ? "border-slate-200/80 bg-white text-slate-500" : "border-white/[0.11] bg-[#171a26] text-slate-400"}`}
                   >
                     {t("events.filter.no_audience_matches", "没有匹配的学院或学园")}
                   </div>

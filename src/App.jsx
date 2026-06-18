@@ -242,17 +242,6 @@ const AppContent = () => {
       }`}
     >
       <ResourceHints />
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-6 focus:py-3 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
-      >
-        {t('common.skip_to_main')}
-      </a>
-      {!hideGlobalShell && (
-        <ErrorBoundary variant="inline" silent>
-          <Navbar />
-        </ErrorBoundary>
-      )}
       {shouldRenderDynamicBackground && (
         <ErrorBoundary variant="inline" silent>
           <Suspense fallback={null}>
@@ -260,70 +249,83 @@ const AppContent = () => {
           </Suspense>
         </ErrorBoundary>
       )}
-      {!hideGlobalShell && !isAdminRoute && cursorEnabled && hasDesktopPointer && !isLowPowerDevice && <CustomCursor />}
-      {!isAdminRoute && !isImmersiveRoute && hasDesktopPointer && !isLowPowerDevice && <ScrollProgress />}
+      <div className="relative z-10 flex min-h-screen flex-col">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-6 focus:py-3 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
+        >
+          {t('common.skip_to_main')}
+        </a>
+        {!hideGlobalShell && (
+          <ErrorBoundary variant="inline" silent>
+            <Navbar />
+          </ErrorBoundary>
+        )}
+        {!hideGlobalShell && !isAdminRoute && cursorEnabled && hasDesktopPointer && !isLowPowerDevice && <CustomCursor />}
+        {!isAdminRoute && !isImmersiveRoute && hasDesktopPointer && !isLowPowerDevice && <ScrollProgress />}
 
-      {shouldMountDeferredUi && (
-        <ErrorBoundary variant="inline" silent>
-          <Suspense fallback={null}>
-            <SearchPalette />
+        {shouldMountDeferredUi && (
+          <ErrorBoundary variant="inline" silent>
+            <Suspense fallback={null}>
+              <SearchPalette />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+
+        <main id="main-content" className={`flex-grow ${isImmersiveRoute ? 'pb-0' : 'pb-32 md:pb-0'}`} role="main">
+          <Suspense fallback={<LoadingScreen />}>
+            <Routes location={location} key={location.pathname}>
+              <Route path="/" element={<PageTransition><Home /></PageTransition>} />
+              <Route path="/media" element={<PageTransition><MediaLibrary /></PageTransition>} />
+              <Route path="/gallery" element={<PageTransition><Gallery /></PageTransition>} />
+              <Route path="/music" element={<MusicRedirect />} />
+              <Route path="/videos" element={<PageTransition><Videos /></PageTransition>} />
+              <Route path="/articles" element={<PageTransition><Articles /></PageTransition>} />
+              <Route path="/ai-community" element={<Navigate to="/articles" replace />} />
+              <Route path="/community" element={<Navigate to="/articles" replace />} />
+              <Route path="/community/help" element={<Navigate to="/articles?postTab=help" replace />} />
+              <Route path="/community/tech" element={<Navigate to="/articles?postTab=tech" replace />} />
+              <Route path="/community/groups" element={<Navigate to="/articles" replace />} />
+              <Route path="/events" element={<PageTransition><Events /></PageTransition>} />
+              <Route path="/about" element={<PageTransition><About /></PageTransition>} />
+              <Route path="/download" element={<PageTransition><AppDownload /></PageTransition>} />
+              <Route path="/hackathon" element={<PageTransition><HackathonSeasonOne /></PageTransition>} />
+              <Route path="/hackathon/showcase" element={<PageTransition><HackathonSeasonOne /></PageTransition>} />
+              <Route path="/hackathon/works" element={<PageTransition><HackathonWorks /></PageTransition>} />
+              <Route path="/future-learning" element={<PageTransition><FutureLearningCenter /></PageTransition>} />
+              <Route
+                path="/admin"
+                element={
+                  <AdminRoute>
+                    <AdminDashboard />
+                  </AdminRoute>
+                }
+              />
+              <Route path="/me" element={<MeRedirect />} />
+              <Route path="/profiles" element={<PageTransition><ProfileDirectory /></PageTransition>} />
+              <Route path="/u/:handle" element={<PageTransition><ProfilePage /></PageTransition>} />
+              <Route path="/org/:handle" element={<PageTransition><ProfilePage /></PageTransition>} />
+              <Route path="/user/:id" element={<LegacyUserRedirect />} />
+              <Route path="/projects" element={<PageTransition><ProjectPlaza /></PageTransition>} />
+              <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
+            </Routes>
           </Suspense>
-        </ErrorBoundary>
-      )}
+        </main>
 
-      <main id="main-content" className={`flex-grow ${isImmersiveRoute ? 'pb-0' : 'pb-32 md:pb-0'}`} role="main">
-        <Suspense fallback={<LoadingScreen />}>
-          <Routes location={location} key={location.pathname}>
-            <Route path="/" element={<PageTransition><Home /></PageTransition>} />
-            <Route path="/media" element={<PageTransition><MediaLibrary /></PageTransition>} />
-            <Route path="/gallery" element={<PageTransition><Gallery /></PageTransition>} />
-            <Route path="/music" element={<MusicRedirect />} />
-            <Route path="/videos" element={<PageTransition><Videos /></PageTransition>} />
-            <Route path="/articles" element={<PageTransition><Articles /></PageTransition>} />
-            <Route path="/ai-community" element={<Navigate to="/articles" replace />} />
-            <Route path="/community" element={<Navigate to="/articles" replace />} />
-            <Route path="/community/help" element={<Navigate to="/articles?postTab=help" replace />} />
-            <Route path="/community/tech" element={<Navigate to="/articles?postTab=tech" replace />} />
-            <Route path="/community/groups" element={<Navigate to="/articles" replace />} />
-            <Route path="/events" element={<PageTransition><Events /></PageTransition>} />
-            <Route path="/about" element={<PageTransition><About /></PageTransition>} />
-            <Route path="/download" element={<PageTransition><AppDownload /></PageTransition>} />
-            <Route path="/hackathon" element={<PageTransition><HackathonSeasonOne /></PageTransition>} />
-            <Route path="/hackathon/showcase" element={<PageTransition><HackathonSeasonOne /></PageTransition>} />
-            <Route path="/hackathon/works" element={<PageTransition><HackathonWorks /></PageTransition>} />
-            <Route path="/future-learning" element={<PageTransition><FutureLearningCenter /></PageTransition>} />
-            <Route
-              path="/admin"
-              element={
-                <AdminRoute>
-                  <AdminDashboard />
-                </AdminRoute>
-              }
-            />
-            <Route path="/me" element={<MeRedirect />} />
-            <Route path="/profiles" element={<PageTransition><ProfileDirectory /></PageTransition>} />
-            <Route path="/u/:handle" element={<PageTransition><ProfilePage /></PageTransition>} />
-            <Route path="/org/:handle" element={<PageTransition><ProfilePage /></PageTransition>} />
-            <Route path="/user/:id" element={<LegacyUserRedirect />} />
-            <Route path="/projects" element={<PageTransition><ProjectPlaza /></PageTransition>} />
-            <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
-          </Routes>
-        </Suspense>
-      </main>
+        {!hideGlobalShell && !isAdminRoute && !isImmersiveRoute && <Footer />}
 
-      {!hideGlobalShell && !isAdminRoute && !isImmersiveRoute && <Footer />}
-
-      {!hideGlobalShell && !isAdminRoute && shouldMountDeferredUi && (
-        <ErrorBoundary variant="inline" silent>
-          <Suspense fallback={null}>
-            <GlobalPlayer />
-          </Suspense>
-        </ErrorBoundary>
-      )}
-      {!hideGlobalShell && !isAdminRoute && <MobileNavbar />}
-      {!isImmersiveRoute && <ScrollToTop />}
-      <PWAInstallPrompt />
-      {import.meta.env.DEV && <PerformancePanel />}
+        {!hideGlobalShell && !isAdminRoute && shouldMountDeferredUi && (
+          <ErrorBoundary variant="inline" silent>
+            <Suspense fallback={null}>
+              <GlobalPlayer />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+        {!hideGlobalShell && !isAdminRoute && <MobileNavbar />}
+        {!isImmersiveRoute && <ScrollToTop />}
+        <PWAInstallPrompt />
+        {import.meta.env.DEV && <PerformancePanel />}
+      </div>
     </div>
   );
 };

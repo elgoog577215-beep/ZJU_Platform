@@ -102,12 +102,12 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) =>
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className={`fixed inset-0 z-[60] flex items-center justify-center backdrop-blur-md p-4 ${isDayMode ? 'bg-white/78' : 'bg-black/95'}`}
+            className={`fixed inset-0 z-[60] flex items-center justify-center p-4 ${isDayMode ? 'bg-transparent' : 'bg-black/95 backdrop-blur-md'}`}
             onClick={onClose}
         >
             {/* Top Controls */}
             <div className="absolute top-4 right-4 flex gap-4 z-50" onClick={e => e.stopPropagation()}>
-                <div className={`flex items-center gap-2 backdrop-blur-md rounded-full p-1 border ${isDayMode ? 'bg-white/88 border-slate-200/80 shadow-[0_14px_32px_rgba(148,163,184,0.16)]' : 'bg-black/40 border-white/10'}`}>
+                <div className={`flex items-center gap-2 rounded-full p-1 border ${isDayMode ? 'bg-white border-slate-200/80' : 'bg-black/40 border-white/10 backdrop-blur-md'}`}>
             <FavoriteButton 
               itemId={photo.id}
               itemType="photo"
@@ -134,7 +134,7 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) =>
 
         <button 
           onClick={onClose}
-          className={`p-3 rounded-full backdrop-blur-md transition-all border ${isDayMode ? 'bg-white/88 hover:bg-red-50 text-slate-500 hover:text-red-500 border-slate-200/80 shadow-[0_14px_32px_rgba(148,163,184,0.16)]' : 'bg-black/40 hover:bg-red-500/20 text-white/70 hover:text-red-400 border-white/10'}`}
+          className={`p-3 rounded-full transition-all border ${isDayMode ? 'bg-white hover:bg-red-50 text-slate-500 hover:text-red-500 border-slate-200/80' : 'bg-black/40 hover:bg-red-500/20 text-white/70 hover:text-red-400 border-white/10 backdrop-blur-md'}`}
         >
           <X size={24} />
         </button>
@@ -147,7 +147,7 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) =>
       >
         <button 
           onClick={onPrev}
-          className={`absolute left-0 md:-left-16 p-4 rounded-full transition-colors ${isDayMode ? 'text-slate-400 hover:text-slate-900 hover:bg-white/88' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+          className={`absolute left-0 md:-left-16 p-4 rounded-full transition-colors ${isDayMode ? 'text-slate-400 hover:text-slate-900 hover:bg-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
         >
           <ChevronLeft size={48} />
         </button>
@@ -164,7 +164,7 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) =>
 
         <button 
           onClick={onNext}
-          className={`absolute right-0 md:-right-16 p-4 rounded-full transition-colors ${isDayMode ? 'text-slate-400 hover:text-slate-900 hover:bg-white/88' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+          className={`absolute right-0 md:-right-16 p-4 rounded-full transition-colors ${isDayMode ? 'text-slate-400 hover:text-slate-900 hover:bg-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
         >
           <ChevronRight size={48} />
         </button>
@@ -184,7 +184,7 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) =>
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className={`fixed top-0 right-0 bottom-0 w-full sm:w-80 md:w-96 backdrop-blur-xl border-l md:border-l flex flex-col z-[70] ${isDayMode ? 'bg-white/96 border-slate-200/80 shadow-[-18px_0_44px_rgba(148,163,184,0.18)]' : 'bg-[#1a1a1a]/95 border-white/10'}`}
+                className={`fixed top-0 right-0 bottom-0 w-full sm:w-80 md:w-96 border-l md:border-l flex flex-col z-[70] ${isDayMode ? 'bg-white border-slate-200/80' : 'bg-[#1a1a1a]/95 border-white/10 backdrop-blur-xl'}`}
                 onClick={e => e.stopPropagation()}
             >
                 <div className="flex justify-between items-center p-6 pb-2">
@@ -260,7 +260,7 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) =>
                                 <div 
                                     key={p.id} 
                                     onClick={() => onSelect && onSelect(p)} 
-                                    className={`cursor-pointer group relative aspect-square rounded-xl overflow-hidden border transition-all ${isDayMode ? 'bg-white border-slate-200/80 hover:border-indigo-300/80 shadow-[0_12px_28px_rgba(148,163,184,0.12)]' : 'bg-white/5 border-white/10 hover:border-indigo-500/50'}`}
+                                    className={`cursor-pointer group relative aspect-square rounded-xl overflow-hidden border transition-all ${isDayMode ? 'bg-white border-slate-200/80 hover:border-indigo-300/80' : 'bg-white/5 border-white/10 hover:border-indigo-500/50'}`}
                                 >
                                     <img 
                                         src={getThumbnailUrl(p.thumbnail || p.url)}
@@ -268,7 +268,7 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) =>
                                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
                                     />
                                     <div className={`absolute inset-0 transition-colors ${isDayMode ? 'bg-white/10 group-hover:bg-transparent' : 'bg-black/20 group-hover:bg-transparent'}`} />
-                                    <div className={`absolute bottom-0 left-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity ${isDayMode ? 'bg-gradient-to-t from-white via-white/92 to-transparent' : 'bg-gradient-to-t from-black/80 to-transparent'}`}>
+                                    <div className={`absolute bottom-0 left-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity ${isDayMode ? 'bg-white' : 'bg-gradient-to-t from-black/80 to-transparent'}`}>
                                         <p className={`text-xs truncate ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{p.title}</p>
                                     </div>
                                 </div>
