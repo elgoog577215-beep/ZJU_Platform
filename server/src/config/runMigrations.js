@@ -1,6 +1,33 @@
 const { ensureCoreSchema } = require('./ensureCoreSchema');
 const profileService = require('../services/profileService');
 
+const ORGANIZATION_PARTNER_LOGOS = Object.freeze({
+  XLAB: '/images/partner-logos/organizations/xlab.svg',
+  ZJUAI: '/images/partner-logos/organizations/zjuai.svg',
+  EAI: '/images/partner-logos/organizations/eai.svg',
+  AIRA: '/images/partner-logos/organizations/aira.svg',
+  KAB: '/images/partner-logos/organizations/kab.svg',
+  '浙江大学本科生院': '/images/partner-logos/organizations/undergraduate-school.svg',
+  '浙江大学艺术与考古博物馆': '/images/partner-logos/organizations/museum-art-archaeology.svg',
+  '浙江大学星辰汇': '/images/partner-logos/organizations/xingchenhui.svg',
+  '浙大出国交流资讯': '/images/partner-logos/organizations/global-exchange-info.svg',
+  '浙江大学 CC98 论坛': '/images/partner-logos/organizations/cc98.svg',
+  '浙江大学红十字会': '/images/partner-logos/organizations/red-cross.svg',
+  '浙江大学图书馆': '/images/partner-logos/organizations/library.svg',
+  '浙大体育与艺术': '/images/partner-logos/organizations/sports-arts.svg',
+  '浙大生活': '/images/partner-logos/organizations/zju-life.svg',
+  '浙江大学学生会': '/images/partner-logos/organizations/student-union.svg',
+  '浙江大学求是学院': '/images/partner-logos/organizations/qiushi-college.svg',
+  '浙江大学团委': '/images/partner-logos/organizations/youth-league.svg',
+  '浙大素拓 ZJUST': '/images/partner-logos/organizations/zjust.svg',
+  '浙大微学工': '/images/partner-logos/organizations/student-affairs.svg',
+  '蓝田学园': '/images/partner-logos/organizations/lantian-college.svg',
+  '蓝田青年': '/images/partner-logos/organizations/lantian-youth.svg',
+  '求是学院丹阳青溪学园': '/images/partner-logos/organizations/danyang-qingxi-college.svg',
+  '云峰微讯': '/images/partner-logos/organizations/yunfeng-news.svg',
+  '浙大竺院人': '/images/partner-logos/organizations/chu-kochen-college.svg',
+});
+
 async function runMigrations(db) {
   console.log('🔄 Running database migrations...');
   await ensureCoreSchema(db);
@@ -1124,6 +1151,11 @@ async function runMigrations(db) {
 
     console.log('✅ Ecosystem partners table ready');
     const organizationDefaults = [
+      ['XLAB', 'XLAB', '协同选手招募、志愿执行与赛后社群承接。', 'Supports participant recruitment, volunteer coordination, and post-event community operations.', '活动组织 / 社群承接', 'Event organization / Community operations', ['XLAB'], 10],
+      ['ZJUAI', 'ZJUAI', '协同校园 AI 学习者与开发者社群连接。', 'Connects campus AI learners and developer communities.', 'AI 社群 / 开发者连接', 'AI community / Developer connection', ['ZJUAI'], 20],
+      ['EAI', 'EAI', '协同活动运营、现场执行与实践人群组织。', 'Supports event operations, on-site execution, and practitioner community organization.', '活动运营 / 现场执行', 'Event operations / On-site execution', ['EAI'], 30],
+      ['AIRA', 'AIRA', '协同 AI 实践社群共建与项目交流。', 'Supports AI practice community building and project exchange.', 'AI 实践 / 项目交流', 'AI practice / Project exchange', ['AIRA'], 40],
+      ['KAB', 'KAB', '协同创新创业人群组织与活动承接。', 'Supports innovation and entrepreneurship groups, event organization, and campus outreach.', '创新创业 / 活动承接', 'Innovation and entrepreneurship / Event support', ['KAB'], 50],
       ['浙江大学本科生院', 'ZJU Undergraduate School', '协同发布本科生培养、报名与校园成长相关活动信息。', 'Supports undergraduate-facing activity distribution and student development opportunities.', '活动联动 / 信息触达', 'Event coordination / Student reach', ['浙江大学本科生院', '本科生院'], 110],
       ['浙江大学艺术与考古博物馆', 'ZJU Museum of Art and Archaeology', '协同文化艺术、展览导览与博物馆教育活动触达。', 'Supports cultural, exhibition, museum education, and guided activity outreach.', '文化艺术 / 展览共创', 'Arts and culture / Exhibition co-creation', ['浙江大学艺术与考古博物馆', '艺术与考古博物馆'], 120],
       ['浙江大学星辰汇', 'ZJU Xingchenhui', '协同校园活动传播、青年成长与社群参与。', 'Supports campus activity communication, youth development, and community participation.', '社群传播 / 青年成长', 'Community communication / Youth development', ['浙江大学星辰汇', '星辰汇'], 130],
@@ -1150,7 +1182,33 @@ async function runMigrations(db) {
         'SELECT id FROM ecosystem_partners WHERE category = ? AND name = ? LIMIT 1',
         ['organization', name],
       );
-      if (existing) continue;
+      if (existing) {
+        await db.run(
+          `UPDATE ecosystem_partners
+           SET name_en = COALESCE(NULLIF(TRIM(name_en), ''), ?),
+               description_en = COALESCE(NULLIF(TRIM(description_en), ''), ?),
+               cooperation_direction = COALESCE(NULLIF(TRIM(cooperation_direction), ''), ?),
+               cooperation_direction_en = COALESCE(NULLIF(TRIM(cooperation_direction_en), ''), ?),
+               event_organizer_aliases = CASE
+                 WHEN event_organizer_aliases IS NULL
+                   OR TRIM(event_organizer_aliases) = ''
+                   OR TRIM(event_organizer_aliases) = '[]'
+                 THEN ?
+                 ELSE event_organizer_aliases
+               END,
+               updated_at = datetime('now')
+           WHERE id = ?`,
+          [
+            nameEn,
+            descriptionEn,
+            cooperationDirection,
+            cooperationDirectionEn,
+            JSON.stringify(aliases),
+            existing.id,
+          ],
+        );
+        continue;
+      }
 
       await db.run(
         `INSERT INTO ecosystem_partners (
@@ -1172,6 +1230,24 @@ async function runMigrations(db) {
         ],
       );
     }
+
+    for (const [name, logoUrl] of Object.entries(ORGANIZATION_PARTNER_LOGOS)) {
+      await db.run(
+        `UPDATE ecosystem_partners
+         SET logo_url = COALESCE(NULLIF(TRIM(logo_url), ''), ?),
+             dark_logo_url = COALESCE(NULLIF(TRIM(dark_logo_url), ''), ?),
+             updated_at = datetime('now')
+         WHERE category = 'organization'
+           AND name = ?
+           AND deleted_at IS NULL
+           AND (
+             logo_url IS NULL OR TRIM(logo_url) = ''
+             OR dark_logo_url IS NULL OR TRIM(dark_logo_url) = ''
+           )`,
+        [logoUrl, logoUrl, name],
+      );
+    }
+    console.log('✅ Ecosystem organization logos backfilled');
 
   } catch (err) {
     if (!err.message.includes('already exists')) {
