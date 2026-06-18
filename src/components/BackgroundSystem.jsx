@@ -676,6 +676,7 @@ const BackgroundSystem = ({ forcedTheme = null }) => {
     <div
       aria-hidden="true"
       className={backgroundClassName}
+      data-dynamic-background="true"
       style={{ filter: `brightness(${brightness}) saturate(${saturation}) contrast(${contrast})` }}
     >
       {prefersReducedMotion ? (

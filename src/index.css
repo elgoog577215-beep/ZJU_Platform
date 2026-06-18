@@ -1076,6 +1076,21 @@ img {
     background-size: auto, auto, auto;
   }
 
+  :root[data-theme='day'] .dynamic-background-active .day-page-theme::before {
+    background:
+      radial-gradient(circle at 15% 8%, rgba(14, 165, 233, 0.08), transparent 24rem),
+      radial-gradient(circle at 84% 6%, rgba(168, 85, 247, 0.075), transparent 26rem);
+    opacity: 0.42;
+  }
+
+  :root[data-theme='day'] .dynamic-background-active .day-page-theme-events::before,
+  :root[data-theme='day'] .dynamic-background-active .day-page-theme-tech::before {
+    background:
+      radial-gradient(circle at 15% 8%, rgba(14, 165, 233, 0.07), transparent 24rem),
+      radial-gradient(circle at 84% 6%, rgba(168, 85, 247, 0.065), transparent 26rem);
+    background-size: auto, auto;
+  }
+
   :root[data-theme='day'] .day-page-theme-events .day-fine-surface,
   :root[data-theme='day'] .day-page-theme-events .day-card-lift,
   :root[data-theme='day'] .day-page-theme-events .rect-media-card {
