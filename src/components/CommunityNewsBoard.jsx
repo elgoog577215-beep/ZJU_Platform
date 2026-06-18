@@ -47,6 +47,10 @@ const CommunityNewsBoard = ({ onNewPost, hideNewPostButton = false }) => {
     return rawList.filter((item) => [item.title, item.excerpt, item.content, item.source_name].filter(Boolean).join(' ').toLowerCase().includes(term));
   }, [rawList, searchQuery]);
   const contentBlocks = useMemo(() => parseContentBlocks(selectedNews?.content_blocks), [selectedNews?.content_blocks]);
+  const sortOptions = useMemo(() => [
+    { value: 'hot', label: t(sortLabels.hot, '热榜') },
+    { value: 'latest', label: t(sortLabels.latest, '最新') },
+  ], [t]);
 
   const updateParams = useCallback((next) => {
     const params = new URLSearchParams(searchParams);
@@ -151,20 +155,13 @@ const CommunityNewsBoard = ({ onNewPost, hideNewPostButton = false }) => {
   );
 
   const extraControls = (
-    <div className="flex flex-1 flex-col gap-3 md:flex-row md:items-center md:justify-between">
-      <CommunitySearchInput
-        value={searchQuery}
-        onChange={setSearchQuery}
-        onClear={() => setSearchQuery('')}
-        placeholder={t('community.news_search_placeholder', '搜索新闻热点')}
-        isDayMode={isDayMode}
-        className="md:flex-1"
-      />
-      <div className={`inline-flex max-w-full gap-1 overflow-x-auto rounded-lg border p-1 ${isDayMode ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-black/10'}`}>
-        <button type="button" onClick={() => setSort('hot')} className={`min-h-[34px] rounded-md px-3 text-xs font-semibold ${sort === 'hot' ? (isDayMode ? 'bg-white text-slate-950 shadow' : 'bg-sky-500 text-white') : (isDayMode ? 'text-slate-600' : 'text-gray-300')}`}>{t(sortLabels.hot, '热榜')}</button>
-        <button type="button" onClick={() => setSort('latest')} className={`min-h-[34px] rounded-md px-3 text-xs font-semibold ${sort === 'latest' ? (isDayMode ? 'bg-white text-slate-950 shadow' : 'bg-sky-500 text-white') : (isDayMode ? 'text-slate-600' : 'text-gray-300')}`}>{t(sortLabels.latest, '最新')}</button>
-      </div>
-    </div>
+    <CommunitySearchInput
+      value={searchQuery}
+      onChange={setSearchQuery}
+      onClear={() => setSearchQuery('')}
+      placeholder={t('community.news_search_placeholder', '搜索新闻热点')}
+      isDayMode={isDayMode}
+    />
   );
 
   const renderDetail = () => (
@@ -225,9 +222,9 @@ const CommunityNewsBoard = ({ onNewPost, hideNewPostButton = false }) => {
         emptyDesc={t('community.news_empty_desc', '新闻内容正在建设中，敬请期待。')}
         accentColor="blue"
         extraControls={extraControls}
+        sortOptions={sortOptions}
         onNewPost={onNewPost || (() => openEditor())}
         hideNewPostButton={hideNewPostButton}
-        hideSortSelector
       />
       <UnifiedCommunityComposer
         isOpen={composerOpen}

@@ -1,14 +1,11 @@
 import React, { useEffect, useMemo, useCallback, useState, useRef, memo } from 'react';
-import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, ArrowRight, Calendar, X, User, Clock, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { BookOpen, ArrowRight, Calendar, User, Clock, Sparkles } from 'lucide-react';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import SmartImage from './SmartImage';
 import FavoriteButton from './FavoriteButton';
-import SortSelector from './SortSelector';
-import MobileContentToolbar from './MobileContentToolbar';
 import CommunityDetailModal from './CommunityDetailModal';
 import CommunityFeedPanel from './CommunityFeedPanel';
 import CommunitySearchInput from './CommunitySearchInput';
@@ -18,7 +15,6 @@ import api from '../services/api';
 import { parseContentBlocks, calculateReadingTime } from './communityUtils';
 import { useCommunityFeed } from '../hooks/useCommunityFeed';
 import UnifiedCommunityComposer from './UnifiedCommunityComposer';
-import { useBackClose, useBodyScrollLock } from '../hooks/useBackClose';
 
 const ArticleCard = memo(({
   article,
@@ -106,7 +102,6 @@ const CommunityTech = ({ onNewPost, hideNewPostButton = false }) => {
   const location = useLocation();
   const isDayMode = uiMode === 'day';
   const [isUploadOpen, setIsUploadOpen] = useState(false);
-  const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
 
   const feed = useCommunityFeed({
     endpoint: '/articles',
@@ -114,16 +109,6 @@ const CommunityTech = ({ onNewPost, hideNewPostButton = false }) => {
     deepLinkParam: 'id',
     defaultPageSize: 6,
   });
-
-  const mobileSortLabel = useMemo(() => {
-    const labels = {
-      newest: t('sort_filter.newest', '最新'),
-      oldest: t('sort_filter.oldest', '最早'),
-      likes: t('sort_filter.likes', '最热'),
-      title: t('sort_filter.title', '标题'),
-    };
-    return labels[feed.sort] || labels.newest;
-  }, [feed.sort, t]);
 
   const featuredArticle = useMemo(() => {
     if (feed.searchQuery.trim()) return null;
@@ -150,14 +135,9 @@ const CommunityTech = ({ onNewPost, hideNewPostButton = false }) => {
     const onUpload = (event) => {
       if (event.detail.type === 'article') openUpload();
     };
-    const onSort = () => {
-      setIsMobileSortOpen((prev) => !prev);
-    };
     window.addEventListener('open-upload-modal', onUpload);
-    window.addEventListener('toggle-mobile-sort', onSort);
     return () => {
       window.removeEventListener('open-upload-modal', onUpload);
-      window.removeEventListener('toggle-mobile-sort', onSort);
     };
   }, [openUpload]);
 
@@ -168,17 +148,6 @@ const CommunityTech = ({ onNewPost, hideNewPostButton = false }) => {
     window.addEventListener('community-feed-refresh', onRefresh);
     return () => window.removeEventListener('community-feed-refresh', onRefresh);
   }, [feed]);
-
-  useEffect(() => {
-    window.dispatchEvent(new CustomEvent('set-mobile-toolbar-state', {
-      detail: {
-        filterCount: 0,
-        sortLabel: mobileSortLabel,
-      },
-    }));
-  }, [mobileSortLabel]);
-  useBackClose(isMobileSortOpen, () => setIsMobileSortOpen(false));
-  useBodyScrollLock(isMobileSortOpen);
 
   const updateParams = useCallback((next) => {
     const params = new URLSearchParams(searchParams);
@@ -325,35 +294,13 @@ const CommunityTech = ({ onNewPost, hideNewPostButton = false }) => {
   ) : null;
 
   const extraControls = (
-    <div className="flex-1">
-      <div className="space-y-3">
-        <CommunitySearchInput
-          value={feed.searchQuery}
-          onChange={feed.setSearchQuery}
-          onClear={() => feed.setSearchQuery('')}
-          placeholder={t('community.tech_search_placeholder', 'Search article titles, summaries, or body text')}
-          isDayMode={isDayMode}
-        />
-        <MobileContentToolbar
-          isDayMode={isDayMode}
-          resultCount={panelItems.length}
-          sortLabel={mobileSortLabel}
-          onOpenSort={() => setIsMobileSortOpen(true)}
-        />
-        <div className="hidden md:block">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-            <SortSelector
-              sort={feed.sort}
-              onSortChange={feed.setSort}
-              className="w-48"
-              buttonClassName={isDayMode
-                ? "border border-slate-200 bg-white text-slate-700 rounded-lg px-4 py-2 min-h-[40px] text-sm font-medium hover:bg-slate-50"
-                : "border border-white/10 bg-white/5 text-white rounded-lg px-4 py-2 min-h-[40px] text-sm font-medium hover:bg-white/10"}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
+    <CommunitySearchInput
+      value={feed.searchQuery}
+      onChange={feed.setSearchQuery}
+      onClear={() => feed.setSearchQuery('')}
+      placeholder={t('community.tech_search_placeholder', '搜索文章标题、摘要或正文')}
+      isDayMode={isDayMode}
+    />
   );
 
   const renderDetail = () => (
@@ -393,90 +340,40 @@ const CommunityTech = ({ onNewPost, hideNewPostButton = false }) => {
     />
   );
 
-  const mobileDrawers = (
-    <>
-      {createPortal(
-        isMobileSortOpen ? (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              onClick={() => setIsMobileSortOpen(false)}
-              className={`fixed inset-0 z-[100] backdrop-blur-md md:hidden ${isDayMode ? 'bg-slate-100/58' : 'bg-black/62'}`}
-            />
-            <motion.div
-              role="dialog"
-              aria-modal="true"
-              aria-label={t('common.sort', '排序')}
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              transition={{ type: 'spring', damping: 34, stiffness: 360 }}
-              className={`fixed inset-x-0 bottom-0 z-[101] mx-auto flex w-full max-w-md flex-col overflow-hidden rounded-t-lg border-x border-t pb-[env(safe-area-inset-bottom)] shadow-[0_-24px_70px_rgba(0,0,0,0.34)] backdrop-blur-2xl md:hidden ${isDayMode ? 'border-white/80 bg-white/92 text-slate-900' : 'border-white/10 bg-neutral-950/96 text-white'}`}
-            >
-              <div className={`border-b px-5 py-4 flex justify-between items-center ${isDayMode ? 'border-slate-200/70' : 'border-white/10'}`}>
-                <h3 className={`text-lg font-bold ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{t('common.sort', '排序')}</h3>
-                <button type="button" onClick={() => setIsMobileSortOpen(false)} aria-label={t('common.close', '关闭')} className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg ${isDayMode ? 'text-slate-500 bg-slate-100' : 'text-gray-400 bg-white/8'}`}>
-                  <X size={22} />
-                </button>
-              </div>
-              <div className="px-5 pb-5 pt-4">
-                <SortSelector
-                  sort={feed.sort}
-                  onSortChange={(value) => {
-                    feed.setSort(value);
-                    setTimeout(() => setIsMobileSortOpen(false), 220);
-                  }}
-                  className="w-full"
-                  renderMode="list"
-                />
-              </div>
-            </motion.div>
-          </>
-        ) : null,
-        document.body
-      )}
-    </>
-  );
-
   return (
-    <>
-      <CommunityFeedPanel
-        feed={panelFeed}
-        isDayMode={isDayMode}
-        renderCard={renderCard}
-        renderDetail={renderDetail}
-        emptyIcon={BookOpen}
-        emptyTitle={t('articles.no_articles')}
-        emptyDesc={t('articles.subtitle')}
-        accentColor="orange"
-        extraControls={extraControls}
-        featuredSection={featuredSection}
-        hideSortSelector
-        hideMobileSummary
-        onNewPost={onNewPost || openUpload}
-        hideNewPostButton={hideNewPostButton}
-        renderSkeleton={(index) => (
-          <div key={index} className={`backdrop-blur-xl border rounded-lg p-5 animate-pulse flex flex-col md:flex-row gap-6 ${isDayMode ? 'bg-white/60 border-white/75' : 'bg-white/[0.04] border-white/5'}`}>
-            <div className={`w-full md:w-48 h-48 md:h-32 rounded-md shrink-0 ${isDayMode ? 'bg-white/70' : 'bg-white/5'}`} />
-            <div className="flex-1 space-y-4 py-2">
-              <div className={`h-8 rounded w-3/4 ${isDayMode ? 'bg-white/70' : 'bg-white/10'}`} />
-              <div className={`h-4 rounded w-full ${isDayMode ? 'bg-white/58' : 'bg-white/5'}`} />
-            </div>
+    <CommunityFeedPanel
+      feed={panelFeed}
+      isDayMode={isDayMode}
+      renderCard={renderCard}
+      renderDetail={renderDetail}
+      emptyIcon={BookOpen}
+      emptyTitle={t('articles.no_articles')}
+      emptyDesc={t('articles.subtitle')}
+      accentColor="orange"
+      extraControls={extraControls}
+      featuredSection={featuredSection}
+      onNewPost={onNewPost || openUpload}
+      hideNewPostButton={hideNewPostButton}
+      renderSkeleton={(index) => (
+        <div key={index} className={`backdrop-blur-xl border rounded-lg p-5 animate-pulse flex flex-col md:flex-row gap-6 ${isDayMode ? 'bg-white/60 border-white/75' : 'bg-white/[0.04] border-white/5'}`}>
+          <div className={`w-full md:w-48 h-48 md:h-32 rounded-md shrink-0 ${isDayMode ? 'bg-white/70' : 'bg-white/5'}`} />
+          <div className="flex-1 space-y-4 py-2">
+            <div className={`h-8 rounded w-3/4 ${isDayMode ? 'bg-white/70' : 'bg-white/10'}`} />
+            <div className={`h-4 rounded w-full ${isDayMode ? 'bg-white/58' : 'bg-white/5'}`} />
           </div>
-        )}
-        extraBottom={(
-          <UnifiedCommunityComposer
-            isOpen={isUploadOpen}
-            boardKey="tech"
-            onClose={() => {
-              setIsUploadOpen(false);
-            }}
-            onSuccess={handleUpload}
-          />
-        )}
-      />
-      {mobileDrawers}
-    </>
+        </div>
+      )}
+      extraBottom={(
+        <UnifiedCommunityComposer
+          isOpen={isUploadOpen}
+          boardKey="tech"
+          onClose={() => {
+            setIsUploadOpen(false);
+          }}
+          onSuccess={handleUpload}
+        />
+      )}
+    />
   );
 };
 

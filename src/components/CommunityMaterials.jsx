@@ -176,11 +176,11 @@ const CommunityMaterials = ({ onNewPost, hideNewPostButton = false }) => {
         isDayMode={isDayMode}
       />
       <div className={`flex flex-wrap items-center gap-2 text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
-        <span className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 ${isDayMode ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200'}`}>
+        <span className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 ${isDayMode ? 'border-slate-200 bg-slate-50 text-slate-600' : 'border-white/10 bg-white/[0.04] text-gray-300'}`}>
           <Upload size={13} />
           {t('community.materials_upload_hint', '上传资料后进入后台审核，通过后全站可见')}
         </span>
-        <span>{t('community.materials_scope_hint', '适合分享往年题、复习提纲、课件摘要和经验整理')}</span>
+        <span className="hidden sm:inline">{t('community.materials_scope_hint', '适合分享往年题、复习提纲、课件摘要和经验整理')}</span>
       </div>
     </div>
   );

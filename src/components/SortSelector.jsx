@@ -8,6 +8,7 @@ const SortSelector = ({
   onSortChange,
   className,
   buttonClassName,
+  options: customOptions,
   extraOptions = [],
   renderMode = 'dropdown'
 }) => {
@@ -15,7 +16,7 @@ const SortSelector = ({
   const { uiMode } = useSettings();
   const isDayMode = uiMode === 'day';
 
-  const options = [
+  const options = customOptions || [
     { value: 'newest', label: t('sort_filter.newest', '最新发布') },
     { value: 'oldest', label: t('sort_filter.oldest', '最早发布') },
     { value: 'likes', label: t('sort_filter.likes', '最多喜欢') },

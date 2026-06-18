@@ -43,6 +43,7 @@ const CommunityFeedPanel = ({
   newPostLabel,
   skeletonCount = 5,
   renderSkeleton,
+  sortOptions,
   hideSortSelector = false,
   hideMobileSummary = false,
   hideNewPostButton = false,
@@ -92,6 +93,40 @@ const CommunityFeedPanel = ({
     green: 'text-emerald-400',
   }[accentColor] || 'text-amber-400';
 
+  const statusControl = statusTabs ? (
+    <div className={`scrollbar-none flex w-full max-w-full items-center gap-1 overflow-x-auto rounded-lg border p-1 sm:w-auto ${isDayMode ? 'border-slate-200/70 bg-slate-50' : 'border-white/10 bg-black/10'}`}>
+      {statusTabs.map(({ key, label }) => (
+        <button
+          key={key}
+          type="button"
+          aria-pressed={statusFilter === key}
+          onClick={() => setStatusFilter(key)}
+          className={`min-h-[34px] min-w-fit rounded-md px-3 text-xs font-semibold transition-all whitespace-nowrap md:px-3.5 ${
+            statusFilter === key
+              ? accentBtnClass
+              : (isDayMode ? 'text-slate-600 hover:bg-white hover:text-slate-950' : 'text-gray-400 hover:bg-white/10')
+          }`}
+        >
+          {t(label)}
+        </button>
+      ))}
+    </div>
+  ) : null;
+
+  const sortControl = !hideSortSelector ? (
+    <div className="w-full min-w-[9.5rem] sm:w-44 md:w-48">
+      <SortSelector
+        sort={sort}
+        onSortChange={setSort}
+        options={sortOptions}
+        className="w-full"
+        buttonClassName={isDayMode
+          ? 'border border-slate-200 bg-white text-slate-700 rounded-lg px-3 py-2 min-h-[40px] text-sm font-medium hover:bg-slate-50'
+          : 'border border-white/10 bg-white/5 text-white rounded-lg px-3 py-2 min-h-[40px] text-sm font-medium hover:bg-white/10'}
+      />
+    </div>
+  ) : null;
+
   const defaultSkeleton = (i) => (
     <div key={i} className={`border rounded-lg p-5 md:p-6 animate-pulse ${th.card}`}>
       <div className="space-y-3">
@@ -109,34 +144,14 @@ const CommunityFeedPanel = ({
     <div role="tabpanel">
       {/* Controls */}
       <div className={`mb-4 flex flex-col gap-2.5 rounded-lg border p-3 md:mb-6 md:gap-3 md:p-4 max-md:border-transparent max-md:bg-transparent max-md:p-0 max-md:shadow-none ${isDayMode ? 'bg-white/82 border-slate-200/70 shadow-[0_10px_26px_rgba(15,23,42,0.04)]' : 'bg-white/[0.035] border-white/10'}`}>
-        <div className={`flex flex-col justify-between gap-3 md:flex-row ${statusTabs ? 'md:items-center' : 'md:items-start'}`}>
-          {/* Status tabs */}
-          {statusTabs && (
-            <div className={`scrollbar-none -mx-1 flex max-w-full items-center gap-1 overflow-x-auto rounded-lg border p-1 sm:mx-0 ${isDayMode ? 'border-slate-200/70 bg-slate-50' : 'border-white/10 bg-black/10'}`}>
-              {statusTabs.map(({ key, label }) => (
-                <button
-                  key={key}
-                  onClick={() => setStatusFilter(key)}
-                  className={`min-h-[34px] min-w-fit rounded-md px-3 text-xs font-semibold transition-all whitespace-nowrap md:px-3.5 ${
-                    statusFilter === key
-                      ? accentBtnClass
-                      : (isDayMode ? 'text-slate-600 hover:bg-white hover:text-slate-950' : 'text-gray-400 hover:bg-white/10')
-                  }`}
-                >
-                  {t(label)}
-                </button>
-              ))}
-            </div>
-          )}
+        <div className="grid gap-2.5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+          {extraControls ? (
+            <div className="min-w-0">{extraControls}</div>
+          ) : null}
 
-          {!statusTabs && extraControls}
-
-          <div className="flex min-w-0 flex-shrink flex-wrap items-center justify-end gap-2 max-md:hidden">
-            {!hideSortSelector ? (
-              <div className={`${statusTabs ? 'hidden md:block' : ''} w-40 md:w-48`}>
-                <SortSelector sort={sort} onSortChange={setSort} />
-              </div>
-            ) : null}
+          <div className="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center lg:w-auto lg:justify-end">
+            {statusControl}
+            {sortControl}
             {onNewPost && !hideNewPostButton && (
               <button
                 onClick={onNewPost}
@@ -149,9 +164,6 @@ const CommunityFeedPanel = ({
             )}
           </div>
         </div>
-        {statusTabs && extraControls ? (
-          <div>{extraControls}</div>
-        ) : null}
         {onNewPost && !hideNewPostButton ? (
           <button
             type="button"

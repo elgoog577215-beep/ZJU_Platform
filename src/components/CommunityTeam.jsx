@@ -149,15 +149,13 @@ const CommunityTeam = ({ onNewPost, hideNewPostButton = false }) => {
   );
 
   const controls = (
-    <div className="grid gap-3">
-      <CommunitySearchInput
-        value={feed.searchQuery}
-        onChange={feed.setSearchQuery}
-        onClear={() => feed.setSearchQuery('')}
-        placeholder={t('community.team_search_placeholder', '搜索组队协作')}
-        isDayMode={isDayMode}
-      />
-    </div>
+    <CommunitySearchInput
+      value={feed.searchQuery}
+      onChange={feed.setSearchQuery}
+      onClear={() => feed.setSearchQuery('')}
+      placeholder={t('community.team_search_placeholder', '搜索组队协作')}
+      isDayMode={isDayMode}
+    />
   );
 
   return (

@@ -324,7 +324,7 @@ const CommunityPosts = ({ headingCode, headingTitle }) => {
       {activeTab === 'featured' ? renderFeatured() : null}
       {activeTab === 'tech' ? <CommunityTech hideNewPostButton /> : null}
       {activeTab === 'help' ? <CommunityHelp hideNewPostButton /> : null}
-      {activeTab === 'materials' ? <CommunityMaterials /> : null}
+      {activeTab === 'materials' ? <CommunityMaterials hideNewPostButton /> : null}
       {activeTab === 'news' ? <CommunityNewsBoard hideNewPostButton /> : null}
       {activeTab === 'team' ? <CommunityTeam hideNewPostButton /> : null}
       {activeTab === 'podcast' ? (

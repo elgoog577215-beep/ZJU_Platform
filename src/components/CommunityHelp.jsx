@@ -147,15 +147,13 @@ const CommunityHelp = ({ onNewPost, hideNewPostButton = false }) => {
   );
 
   const helpControls = (
-    <div className="grid gap-3">
-      <CommunitySearchInput
-        value={feed.searchQuery}
-        onChange={feed.setSearchQuery}
-        onClear={() => feed.setSearchQuery('')}
-        placeholder={t('community.help_search_placeholder', '搜索求助帖（标题/正文）')}
-        isDayMode={isDayMode}
-      />
-    </div>
+    <CommunitySearchInput
+      value={feed.searchQuery}
+      onChange={feed.setSearchQuery}
+      onClear={() => feed.setSearchQuery('')}
+      placeholder={t('community.help_search_placeholder', '搜索求助帖（标题/正文）')}
+      isDayMode={isDayMode}
+    />
   );
 
   return (
