@@ -158,7 +158,7 @@ const listProjects = async (req, res, next) => {
     if (progress && PROGRESS.has(progress)) { where.push('p.progress = ?'); params.push(progress); }
     if (need) { where.push('p.need_tags LIKE ?'); params.push(`%"${need}"%`); }
     if (q) {
-      where.push('(p.title LIKE ? OR p.tech_tags LIKE ? OR COALESCE(u.nickname, u.username) LIKE ?)');
+      where.push('(p.title LIKE ? OR p.tech_tags LIKE ? OR COALESCE(NULLIF(u.nickname, \'\'), u.username) LIKE ?)');
       const like = `%${q}%`;
       params.push(like, like, like);
     }
@@ -169,7 +169,7 @@ const listProjects = async (req, res, next) => {
       params
     );
     const rows = await db.all(
-      `SELECT p.*, COALESCE(u.nickname, u.username) AS owner_name, u.avatar AS owner_avatar
+      `SELECT p.*, COALESCE(NULLIF(u.nickname, ''), u.username) AS owner_name, u.avatar AS owner_avatar
          FROM project_cards p LEFT JOIN users u ON u.id = p.user_id
         WHERE ${whereSql}
         ORDER BY p.created_at DESC
@@ -189,7 +189,7 @@ const getProject = async (req, res, next) => {
   try {
     const db = await getDb();
     const row = await db.get(
-      `SELECT p.*, COALESCE(u.nickname, u.username) AS owner_name, u.avatar AS owner_avatar
+      `SELECT p.*, COALESCE(NULLIF(u.nickname, ''), u.username) AS owner_name, u.avatar AS owner_avatar
          FROM project_cards p LEFT JOIN users u ON u.id = p.user_id WHERE p.id = ?`,
       [req.params.id]
     );

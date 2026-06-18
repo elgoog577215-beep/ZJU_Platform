@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 
 const clampList = (items, limit) => (Array.isArray(items) ? items.filter(Boolean).slice(0, limit) : []);
 
-const initials = (name) => (name ? String(name).trim().slice(0, 1) : "P");
+const initials = (name) => (name ? String(name).trim().slice(0, 1) : "拓");
 
 const formatCount = (value) => {
   const n = Number(value);
@@ -28,6 +28,15 @@ const buildProjectUrl = (projectId) => {
   return url.toString();
 };
 
+const resolveAssetUrl = (value) => {
+  if (!value) return "";
+  try {
+    return new URL(value, window.location.origin).toString();
+  } catch {
+    return value;
+  }
+};
+
 const ProjectSharePoster = ({ project, onClose }) => {
   const { t } = useTranslation();
   const posterRef = useRef(null);
@@ -37,13 +46,18 @@ const ProjectSharePoster = ({ project, onClose }) => {
   const projectUrl = useMemo(() => buildProjectUrl(project?.id), [project?.id]);
   const title = project?.title || t("project_share_poster.untitled", "未命名项目");
   const intro = project?.intro || t("project_share_poster.default_intro", "一个正在生长的校园项目");
-  const ownerName = project?.owner_name || t("project_share_poster.anonymous_owner", "匿名发起人");
-  const coverUrl = project?.cover_url || project?.images?.[0] || "";
-  const techTags = clampList(project?.tech_tags, 3);
-  const needTags = clampList(project?.need_tags, 3);
+  const ownerName = project?.owner_name || t("project_share_poster.unknown_owner", "项目发起人");
+  const ownerAvatar = resolveAssetUrl(project?.owner_avatar);
+  const coverUrl = resolveAssetUrl(project?.cover_url || project?.images?.[0] || "");
+  const techTags = clampList(project?.tech_tags, 2);
+  const needTags = clampList(project?.need_tags, 2);
   const progressLabel = t(`project_share_poster.progress.${project?.progress || "idea"}`, {
     defaultValue: t("project_share_poster.progress.idea", "构思中"),
   });
+  const allTags = [
+    ...needTags.map((value) => ({ value, tone: "need" })),
+    ...techTags.map((value) => ({ value, tone: "tech" })),
+  ].slice(0, 4);
   const fileName = `tuotu-project-${safeFilePart(title)}.png`;
 
   useEffect(() => {
@@ -153,41 +167,58 @@ const ProjectSharePoster = ({ project, onClose }) => {
                   <span>{initials(title)}</span>
                 </div>
               )}
-              <div className="ppp-poster-brand">{t("project_share_poster.brand", "拓浙AI生态：项目广场")}</div>
+              <div className="ppp-poster-topbar">
+                <div className="ppp-poster-site">
+                  <img src="/newlogo.png" alt="" crossOrigin="anonymous" />
+                  <div>
+                    <strong>{t("project_share_poster.site_name", "拓浙AI生态")}</strong>
+                    <span>{t("project_share_poster.site_subtitle", "项目广场")}</span>
+                  </div>
+                </div>
+                <span className="ppp-poster-badge">{progressLabel}</span>
+              </div>
             </div>
 
             <div className="ppp-poster-main">
-              <div className="ppp-poster-kicker">{t("project_share_poster.kicker", "校园项目分享")}</div>
-              <h2 className="ppp-poster-title">{title}</h2>
-              <p className="ppp-poster-intro">{intro}</p>
+              <section className="ppp-poster-title-block">
+                <div className="ppp-poster-kicker">{t("project_share_poster.kicker", "校园项目分享")}</div>
+                <h2 className="ppp-poster-title">{title}</h2>
+                <p className="ppp-poster-intro">{intro}</p>
+              </section>
 
-              <div className="ppp-poster-tags">
-                <span className="ppp-poster-tag status">{progressLabel}</span>
-                {techTags.map((tag) => (
-                  <span className="ppp-poster-tag tech" key={`tech-${tag}`}>{tag}</span>
-                ))}
-                {needTags.map((tag) => (
-                  <span className="ppp-poster-tag need" key={`need-${tag}`}>{tag}</span>
-                ))}
-              </div>
-
-              <div className="ppp-poster-owner">
-                <div className="ppp-poster-avatar">{initials(ownerName)}</div>
-                <div className="ppp-poster-owner-text">
-                  <span>{t("project_share_poster.owner_label", "发起人")}</span>
-                  <strong>{ownerName}</strong>
+              <div className="ppp-poster-meta-row">
+                <div className="ppp-poster-owner">
+                  <div className="ppp-poster-avatar">
+                    {ownerAvatar ? <img src={ownerAvatar} alt="" crossOrigin="anonymous" /> : <span>{initials(ownerName)}</span>}
+                  </div>
+                  <div className="ppp-poster-owner-text">
+                    <span>{t("project_share_poster.owner_label", "发起人")}</span>
+                    <strong>{ownerName}</strong>
+                  </div>
                 </div>
+
                 <div className="ppp-poster-stats">
-                  <span>{t("project_share_poster.likes", "{{count}} 收藏", { count: formatCount(project?.likes) })}</span>
-                  <span>{t("project_share_poster.views", "{{count}} 浏览", { count: formatCount(project?.views) })}</span>
+                  <div><strong>{formatCount(project?.likes)}</strong><span>{t("project_share_poster.likes_label", "收藏")}</span></div>
+                  <div><strong>{formatCount(project?.views)}</strong><span>{t("project_share_poster.views_label", "浏览")}</span></div>
                 </div>
               </div>
+
+              {allTags.length > 0 && (
+                <div className="ppp-poster-tags">
+                  {allTags.map((tag) => (
+                    <span className={`ppp-poster-tag ${tag.tone}`} key={`${tag.tone}-${tag.value}`}>{tag.value}</span>
+                  ))}
+                </div>
+              )}
 
               <div className="ppp-poster-footer">
+                <div className="ppp-poster-footer-brand">
+                  <img src="/newlogo.png" alt="" crossOrigin="anonymous" />
+                </div>
                 <div className="ppp-poster-cta">
+                  <em>{t("project_share_poster.brand", "拓浙AI生态：项目广场")}</em>
                   <strong>{t("project_share_poster.scan_title", "扫码查看项目详情")}</strong>
-                  <span>{t("project_share_poster.scan_subtitle", "加入项目广场，发现更多校园项目")}</span>
-                  <em>ZJU Platform</em>
+                  <span>{t("project_share_poster.scan_subtitle", "发现更多校园项目与实践伙伴")}</span>
                 </div>
                 <div className="ppp-poster-qr">
                   {qrDataUrl ? <img src={qrDataUrl} alt={t("project_share_poster.qr_alt", "项目详情二维码")} /> : <span />}

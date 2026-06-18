@@ -179,37 +179,52 @@ export const PROJECT_PLAZA_CSS = `
 .ppp-poster-modal{position:relative;width:min(100%,940px);max-height:92vh;overflow:auto;background:#fff7f8;color:#23151a;border:1px solid rgba(255,36,66,0.24);border-radius:8px;box-shadow:0 36px 100px rgba(45,20,28,0.32);display:grid;grid-template-columns:minmax(390px,1fr) 292px;gap:22px;padding:24px;}
 .ppp-poster-close{position:absolute;right:14px;top:14px;z-index:4;width:34px;height:34px;border:1px solid rgba(35,21,26,0.12);border-radius:6px;background:rgba(255,255,255,0.82);color:#23151a;display:grid;place-items:center;cursor:pointer;box-shadow:0 8px 18px rgba(45,20,28,0.08);}
 .ppp-poster-preview{display:flex;justify-content:center;align-items:flex-start;min-width:0;padding:8px 0;}
-.ppp-poster-card{width:360px;height:480px;overflow:hidden;background:#fff7f8;border-radius:8px;box-shadow:0 18px 48px rgba(45,20,28,0.22);font-family:"Noto Serif SC","Songti SC",Georgia,serif;position:relative;}
-.ppp-poster-cover{height:224px;position:relative;overflow:hidden;background:#f1f5f9;}
-.ppp-poster-cover::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(35,21,26,0.02) 42%,rgba(35,21,26,0.42));pointer-events:none;}
+.ppp-poster-card{width:360px;height:480px;overflow:hidden;background:#fffaf4;border-radius:8px;box-shadow:0 18px 48px rgba(45,20,28,0.22);font-family:"Noto Serif SC","Songti SC",Georgia,serif;position:relative;border:1px solid rgba(255,36,66,0.12);display:flex;flex-direction:column;}
+.ppp-poster-card,.ppp-poster-card *{box-sizing:border-box;}
+.ppp-poster-cover{flex:0 0 174px;position:relative;overflow:hidden;background:#f1f5f9;}
+.ppp-poster-cover::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(35,21,26,0.06) 0%,rgba(35,21,26,0.08) 46%,rgba(35,21,26,0.46) 100%);pointer-events:none;}
 .ppp-poster-cover-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
 .ppp-poster-cover-fallback{position:absolute;inset:0;display:grid;place-items:center;background:
-  linear-gradient(135deg,#ffe1e7 0%,#ffffff 38%,#d8f7ee 100%);}
+  radial-gradient(circle at 70% 22%,rgba(255,36,66,0.22),transparent 30%),linear-gradient(135deg,#ffe1e7 0%,#ffffff 42%,#d8f7ee 100%);}
 .ppp-poster-cover-fallback span{width:92px;height:92px;border-radius:50%;display:grid;place-items:center;background:#ff2442;color:#fff;font-size:44px;font-weight:900;box-shadow:0 18px 32px rgba(255,36,66,0.24);}
-.ppp-poster-brand{position:absolute;left:16px;top:14px;z-index:2;background:rgba(255,255,255,0.9);color:#ff2442;border:1px solid rgba(255,36,66,0.24);border-radius:999px;padding:6px 11px;font:800 11px/1.1 var(--body);letter-spacing:0;}
-.ppp-poster-main{height:256px;padding:15px 18px 16px;display:flex;flex-direction:column;background:
-  linear-gradient(180deg,#fff7f8 0%,#ffffff 48%,#f4fffb 100%);}
-.ppp-poster-kicker{font:800 10px/1 var(--body);letter-spacing:.06em;color:#ff2442;margin-bottom:6px;}
-.ppp-poster-title{margin:0;color:#23151a;font-size:28px;line-height:1.08;font-weight:900;letter-spacing:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-.ppp-poster-intro{margin:7px 0 8px;color:#594249;font:600 12.5px/1.45 var(--body);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-.ppp-poster-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;max-height:50px;overflow:hidden;}
-.ppp-poster-tag{display:inline-flex;align-items:center;height:22px;border-radius:5px;padding:0 8px;font:800 10.5px/1 var(--body);border:1px solid transparent;white-space:nowrap;}
+.ppp-poster-topbar{position:absolute;left:14px;right:14px;top:13px;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.ppp-poster-site{display:flex;align-items:center;gap:7px;min-width:0;background:rgba(255,255,255,0.9);border:1px solid rgba(255,255,255,0.74);border-radius:999px;padding:5px 10px 5px 6px;box-shadow:0 8px 18px rgba(35,21,26,0.12);}
+.ppp-poster-site img{width:25px;height:25px;object-fit:contain;flex:none;}
+.ppp-poster-site div{display:flex;flex-direction:column;gap:1px;min-width:0;}
+.ppp-poster-site strong{font:900 10px/1 var(--body);color:#23151a;white-space:nowrap;}
+.ppp-poster-site span{font:800 8px/1 var(--body);letter-spacing:.05em;color:#ff2442;white-space:nowrap;}
+.ppp-poster-badge{flex:none;background:#ff2442;color:#fff;border-radius:999px;padding:7px 10px;font:900 10px/1 var(--body);box-shadow:0 9px 18px rgba(255,36,66,0.28);}
+.ppp-poster-main{flex:1;min-height:0;padding:14px 18px;display:flex;flex-direction:column;background:
+  linear-gradient(180deg,#fffaf4 0%,#fff 46%,#f5fff9 100%);}
+.ppp-poster-title-block{min-height:102px;}
+.ppp-poster-kicker{font:900 10px/1 var(--body);letter-spacing:.08em;color:#ff2442;margin-bottom:7px;}
+.ppp-poster-title{margin:0;color:#23151a;font-size:26px;line-height:1.08;font-weight:900;letter-spacing:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.ppp-poster-intro{margin:8px 0 0;color:#5d4850;font:700 12.2px/1.5 var(--body);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.ppp-poster-meta-row{display:flex;align-items:center;gap:12px;border-top:1px solid rgba(35,21,26,0.1);border-bottom:1px solid rgba(35,21,26,0.1);padding:8px 0;margin-top:2px;}
+.ppp-poster-owner{display:flex;align-items:center;gap:9px;min-width:0;flex:1;}
+.ppp-poster-avatar{width:35px;height:35px;border-radius:50%;display:grid;place-items:center;background:#ff2442;color:#fff;font:900 14px/1 var(--body);flex:none;overflow:hidden;border:2px solid #fff;box-shadow:0 8px 16px rgba(45,20,28,0.12);}
+.ppp-poster-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
+.ppp-poster-avatar span{display:grid;place-items:center;width:100%;height:100%;}
+.ppp-poster-owner-text{min-width:0;display:flex;flex-direction:column;gap:2px;}
+.ppp-poster-owner-text span{font:800 9px/1 var(--body);color:#a16f7b;}
+.ppp-poster-owner-text strong{font:900 12px/1.2 var(--body);color:#23151a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:124px;}
+.ppp-poster-stats{display:flex;align-items:center;gap:8px;flex:none;}
+.ppp-poster-stats div{display:flex;flex-direction:column;align-items:flex-end;gap:1px;}
+.ppp-poster-stats strong{font:900 14px/1 var(--body);color:#23151a;}
+.ppp-poster-stats span{font:800 8px/1 var(--body);color:#a16f7b;}
+.ppp-poster-tags{display:flex;flex-wrap:nowrap;gap:6px;margin-top:8px;min-height:23px;max-height:23px;overflow:hidden;}
+.ppp-poster-tag{display:inline-flex;align-items:center;height:23px;border-radius:999px;padding:0 9px;font:900 10px/1 var(--body);border:1px solid transparent;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:86px;}
 .ppp-poster-tag.status{background:#23151a;color:#fff;}
 .ppp-poster-tag.tech{background:#eafff6;color:#087457;border-color:#a7f3d0;}
 .ppp-poster-tag.need{background:#fff0f3;color:#e11d48;border-color:#fecdd3;}
-.ppp-poster-owner{display:flex;align-items:center;gap:9px;border-top:1px solid rgba(35,21,26,0.1);border-bottom:1px solid rgba(35,21,26,0.1);padding:9px 0;margin-top:auto;}
-.ppp-poster-avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#ff2442;color:#fff;font:900 14px/1 var(--body);flex:none;}
-.ppp-poster-owner-text{min-width:0;display:flex;flex-direction:column;gap:1px;}
-.ppp-poster-owner-text span{font:700 9.5px/1 var(--body);color:#9b6d78;}
-.ppp-poster-owner-text strong{font:900 12px/1.2 var(--body);color:#23151a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:96px;}
-.ppp-poster-stats{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:130px;}
-.ppp-poster-stats span{font:800 10px/1 var(--body);color:#5b4a4f;background:#fff;border:1px solid rgba(35,21,26,0.1);border-radius:5px;padding:5px 6px;}
-.ppp-poster-footer{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding-top:11px;}
-.ppp-poster-cta{display:flex;flex-direction:column;gap:3px;min-width:0;}
-.ppp-poster-cta strong{font:900 15px/1.1 var(--body);color:#23151a;}
-.ppp-poster-cta span{font:700 10.5px/1.25 var(--body);color:#7c5b64;max-width:178px;}
-.ppp-poster-cta em{font:900 9px/1 var(--body);letter-spacing:.12em;color:#ff2442;font-style:normal;margin-top:3px;}
-.ppp-poster-qr{width:74px;height:74px;background:#fff;border:1px solid rgba(35,21,26,0.12);border-radius:6px;padding:5px;display:grid;place-items:center;box-shadow:0 8px 18px rgba(45,20,28,0.08);flex:none;}
+.ppp-poster-footer{display:flex;align-items:center;gap:9px;margin-top:auto;padding-top:8px;border-top:1px dashed rgba(35,21,26,0.14);}
+.ppp-poster-footer-brand{width:32px;height:32px;border-radius:8px;background:#fff;display:grid;place-items:center;box-shadow:0 8px 18px rgba(45,20,28,0.08);border:1px solid rgba(35,21,26,0.1);flex:none;}
+.ppp-poster-footer-brand img{width:26px;height:26px;object-fit:contain;}
+.ppp-poster-cta{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1;}
+.ppp-poster-cta em{font:900 9px/1 var(--body);letter-spacing:.05em;color:#ff2442;font-style:normal;}
+.ppp-poster-cta strong{font:900 13px/1.1 var(--body);color:#23151a;}
+.ppp-poster-cta span{font:800 9.5px/1.22 var(--body);color:#7c5b64;max-width:170px;}
+.ppp-poster-qr{width:64px;height:64px;background:#fff;border:1px solid rgba(35,21,26,0.12);border-radius:6px;padding:5px;display:grid;place-items:center;box-shadow:0 8px 18px rgba(45,20,28,0.08);flex:none;}
 .ppp-poster-qr img{width:100%;height:100%;display:block;}
 .ppp-poster-qr span{width:44px;height:44px;border-radius:6px;background:#f1e4e8;display:block;}
 .ppp-poster-side{display:flex;flex-direction:column;padding:26px 8px 8px;min-width:0;}
@@ -234,19 +249,29 @@ export const PROJECT_PLAZA_CSS = `
   .ppp-poster-modal{grid-template-columns:1fr;width:100%;max-height:94vh;padding:18px 14px;gap:12px;}
   .ppp-poster-preview{padding-top:26px;}
   .ppp-poster-card{width:300px;height:400px;}
-  .ppp-poster-cover{height:186px;}
-  .ppp-poster-main{height:214px;padding:12px 14px 13px;}
-  .ppp-poster-title{font-size:23px;}
-  .ppp-poster-intro{font-size:11.5px;margin:6px 0 7px;}
-  .ppp-poster-tag{height:19px;font-size:9.5px;padding:0 6px;}
-  .ppp-poster-owner{padding:7px 0;}
-  .ppp-poster-avatar{width:28px;height:28px;font-size:12px;}
-  .ppp-poster-owner-text strong{max-width:74px;font-size:11px;}
-  .ppp-poster-stats{max-width:108px;gap:4px;}
-  .ppp-poster-stats span{font-size:8.5px;padding:4px 5px;}
-  .ppp-poster-cta strong{font-size:12.5px;}
-  .ppp-poster-cta span{font-size:9px;max-width:142px;}
-  .ppp-poster-qr{width:62px;height:62px;}
+  .ppp-poster-cover{flex-basis:146px;}
+  .ppp-poster-main{padding:11px 14px 12px;}
+  .ppp-poster-title-block{min-height:84px;}
+  .ppp-poster-site img{width:21px;height:21px;}
+  .ppp-poster-site strong{font-size:8.5px;}
+  .ppp-poster-site span{font-size:7px;}
+  .ppp-poster-badge{font-size:8.5px;padding:6px 8px;}
+  .ppp-poster-title{font-size:22px;}
+  .ppp-poster-intro{font-size:10.8px;margin-top:6px;}
+  .ppp-poster-meta-row{padding:7px 0;gap:8px;}
+  .ppp-poster-avatar{width:29px;height:29px;font-size:11px;}
+  .ppp-poster-owner-text strong{max-width:98px;font-size:10.5px;}
+  .ppp-poster-stats{gap:6px;}
+  .ppp-poster-stats strong{font-size:11px;}
+  .ppp-poster-stats span{font-size:7px;}
+  .ppp-poster-tags{gap:5px;margin-top:7px;min-height:19px;max-height:19px;}
+  .ppp-poster-tag{height:19px;font-size:8.5px;padding:0 7px;max-width:70px;}
+  .ppp-poster-footer{gap:7px;padding-top:7px;}
+  .ppp-poster-footer-brand{width:27px;height:27px;}
+  .ppp-poster-footer-brand img{width:22px;height:22px;}
+  .ppp-poster-cta strong{font-size:11px;}
+  .ppp-poster-cta span{font-size:8px;max-width:132px;}
+  .ppp-poster-qr{width:52px;height:52px;padding:4px;}
   .ppp-poster-side{padding:0 4px 4px;}
   .ppp-ph h1{font-size:32px;}
   .ppp-empty{min-height:0;margin-top:-18px;padding:11px 16px 14px;font-size:13.5px;line-height:1.45;}

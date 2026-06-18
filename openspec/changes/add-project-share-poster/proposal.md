@@ -8,7 +8,8 @@
 
 - 在项目详情弹窗增加“生成海报”入口。
 - 新增项目分享海报预览弹窗，用户先预览，再下载 PNG。
-- 海报采用小红书通用项目卡结构：顶部项目图片，图片上显示“拓浙AI生态：项目广场”，下方展示项目标题、简介、状态、技术栈、招募需求、发起人、收藏/浏览数据，底部显示二维码。
+- 海报采用小红书通用项目卡结构：顶部项目图片，下方展示项目标题、简介、状态、技术栈、招募需求、发起人昵称与头像、收藏/浏览数据，底部显示二维码。
+- 海报必须同时宣传项目和网站：使用“拓浙AI生态：项目广场”官方标识，并展示站点 logo。
 - 二维码指向 `/projects?id={projectId}`，扫码后打开该项目详情。
 - 海报弹窗支持复制项目链接；浏览器支持时可使用系统分享。
 - 新增中文与英文文案，新增文案从 i18n 读取。
@@ -26,6 +27,7 @@
   - `src/components/ProjectPlaza.jsx`：详情弹窗增加生成海报入口，根组件管理海报预览状态。
   - `src/components/ProjectSharePoster.jsx`：新增海报预览、二维码生成、PNG 导出、复制链接和系统分享。
   - `src/components/projectPlaza.styles.js`：新增海报弹窗与 1080×1440 海报样式。
+  - `server/src/controllers/projectCardController.js`：项目列表与详情返回发起人展示名和头像，昵称为空时回退用户名。
   - `public/locales/zh/translation.json`、`public/locales/en/translation.json`：新增文案。
   - `package.json`、`package-lock.json`：新增 `html-to-image` 与 `qrcode`。
 - 验证：
