@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
+import { Share2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useSettings } from "../context/SettingsContext";
 import { useAuth } from "../context/AuthContext";
 import { useBackClose } from "../hooks/useBackClose";
@@ -9,6 +11,7 @@ import api, {
   getProjects, getProject, createProjectCard,
 } from "../services/api";
 import FavoriteButton from "./FavoriteButton";
+import ProjectSharePoster from "./ProjectSharePoster";
 import { PROJECT_PLAZA_CSS } from "./projectPlaza.styles";
 
 const PROG = {
@@ -78,7 +81,8 @@ const Card = ({ p, onOpen, onFav }) => (
   </article>
 );
 
-const DetailModal = ({ p, onClose, onFav, loggedIn }) => {
+const DetailModal = ({ p, onClose, onFav, loggedIn, onOpenPoster }) => {
+  const { t } = useTranslation();
   const imgs = p.images?.length ? p.images : (p.cover_url ? [p.cover_url] : []);
   const [active, setActive] = useState(0);
   const paras = (p.content || "").split(/\n+/).filter(Boolean);
@@ -138,6 +142,10 @@ const DetailModal = ({ p, onClose, onFav, loggedIn }) => {
             {p.repo_url
               ? <a className="ppp-cbtn primary" href={p.repo_url} target="_blank" rel="noreferrer">✦ 看仓库</a>
               : <span className="ppp-cbtn primary ppp-disabled">无仓库</span>}
+            <button className="ppp-cbtn ghost" type="button" onClick={() => onOpenPoster(p)}>
+              <Share2 size={16} />
+              {t("project_share_poster.open_action", "生成海报")}
+            </button>
             {loggedIn
               ? <span className="ppp-cbtn ghost">{p.contact_wechat ? `✉ 微信 · ${p.contact_wechat}` : (p.contact_email ? `✉ ${p.contact_email}` : "未留联系方式")}</span>
               : <span className="ppp-cbtn ghost">🔒 登录后查看联系方式</span>}
@@ -315,6 +323,7 @@ const ProjectPlaza = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
+  const [posterProject, setPosterProject] = useState(null);
   const [creating, setCreating] = useState(false);
   const [progFilter, setProgFilter] = useState("all");
   const [needFilter, setNeedFilter] = useState(null);
@@ -437,7 +446,16 @@ const ProjectPlaza = () => {
         )}
       </div>
 
-      {selected && <DetailModal p={selected} onClose={closeDetail} onFav={applyFav} loggedIn={Boolean(user)} />}
+      {selected && (
+        <DetailModal
+          p={selected}
+          onClose={closeDetail}
+          onFav={applyFav}
+          loggedIn={Boolean(user)}
+          onOpenPoster={setPosterProject}
+        />
+      )}
+      {posterProject && <ProjectSharePoster project={posterProject} onClose={() => setPosterProject(null)} />}
     </div>
   );
 };
