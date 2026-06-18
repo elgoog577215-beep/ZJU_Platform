@@ -128,27 +128,13 @@ const AICommunity = () => {
 
       <div className="relative z-10 w-full">
 
-        <header className="mb-4 md:mb-7">
-          <div className={`relative overflow-hidden rounded-lg border px-4 py-3.5 md:px-6 md:py-5 ${isDayMode ? "border-violet-100/80 bg-white shadow-[0_8px_24px_rgba(168,85,247,0.055)]" : "border-white/10 bg-white/[0.045] shadow-[0_28px_90px_rgba(0,0,0,0.42)]"}`}>
-            <div className={`absolute inset-x-0 top-0 h-[2px] ${isDayMode ? "bg-gradient-to-r from-pink-400 via-violet-400 to-transparent" : "bg-gradient-to-r from-orange-400 via-amber-300 to-transparent"}`} />
-            <div className="relative">
-              <h1 className="text-[clamp(1.55rem,8vw,2.8rem)] font-black leading-none tracking-normal">
-                {t("community.hero_title", "AI 社区")}
-              </h1>
-            </div>
-          </div>
-        </header>
-
         <div className="grid grid-cols-1 gap-5 md:gap-6 xl:grid-cols-[18rem_minmax(0,1fr)_22rem] 2xl:grid-cols-[19rem_minmax(0,1fr)_24rem] xl:items-start">
 
           <main id="community-posts" className="order-1 min-w-0 xl:order-2">
-            <SectionLabel
-              code={t("community.main_posts_code", "BUILD · ASK · 社区动态")}
-              title={t("community.main_posts_title", "发帖区")}
-              isDayMode={isDayMode}
-              compactOnMobile
+            <CommunityPosts
+              headingCode={t("community.main_posts_code", "BUILD · ASK · 社区动态")}
+              headingTitle={t("community.main_posts_title", "发帖区")}
             />
-            <CommunityPosts />
           </main>
 
           <aside id="community-podcast" className="order-2 hidden xl:sticky xl:top-24 xl:order-1 xl:block">

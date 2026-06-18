@@ -84,7 +84,7 @@ const isPublishableTab = (tab) => ['featured', 'tech', 'help', 'materials', 'new
 const MOBILE_COMMUNITY_QUERY = '(max-width: 1279px)';
 const MOBILE_ONLY_TABS = new Set(POST_TABS.filter((tab) => tab.mobileOnly).map((tab) => tab.key));
 
-const CommunityPosts = () => {
+const CommunityPosts = ({ headingCode, headingTitle }) => {
   const { t, i18n } = useTranslation();
   const { uiMode } = useSettings();
   const { user } = useAuth();
@@ -263,24 +263,24 @@ const CommunityPosts = () => {
 
   return (
     <div className="relative">
-      <div className={`mb-4 rounded-lg border p-4 md:mb-6 md:p-5 ${
-        isDayMode
-          ? 'border-slate-200/80 bg-white shadow-[0_10px_26px_rgba(15,23,42,0.04)]'
-          : 'border-white/10 bg-white/[0.035]'
-      }`}>
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      {(headingCode || headingTitle) ? (
+        <div className="mb-3 flex flex-col gap-3 md:mb-4 md:flex-row md:items-end md:justify-between">
           <div className="min-w-0">
-            <h3 className={`mt-1 text-xl font-black md:text-2xl ${isDayMode ? 'text-slate-950' : 'text-white'}`}>
-              {t('community.featured_entry_title', '社区精选')}
-            </h3>
-            <p className={`mt-1 max-w-2xl text-sm leading-6 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
-              {t('community.featured_entry_desc', '发现 AI 社区的精选内容，或发布你的经验、问题与协作需求。')}
-            </p>
+            {headingCode ? (
+              <div className={`text-[11px] font-black uppercase tracking-[0.22em] ${isDayMode ? 'text-violet-700' : 'text-cyan-300'}`}>
+                {headingCode}
+              </div>
+            ) : null}
+            {headingTitle ? (
+              <h2 className={`mt-0.5 text-lg font-black md:mt-1 md:text-2xl ${isDayMode ? 'text-slate-950' : 'text-white'}`}>
+                {headingTitle}
+              </h2>
+            ) : null}
           </div>
           <button
             type="button"
             onClick={handleOpenTypePicker}
-            className={`inline-flex min-h-[44px] shrink-0 items-center justify-center gap-2 rounded-lg border px-5 text-sm font-black transition-all active:scale-95 ${
+            className={`inline-flex min-h-[44px] shrink-0 items-center justify-center gap-2 rounded-lg border px-5 text-sm font-black transition-all active:scale-95 md:self-center ${
               isDayMode
                 ? 'border-violet-200 bg-violet-600 text-white shadow-[0_10px_24px_rgba(124,58,237,0.18)] hover:bg-violet-700'
                 : 'border-orange-300/40 bg-orange-400 text-slate-950 shadow-[0_0_28px_rgba(251,146,60,0.18)] hover:bg-orange-300'
@@ -290,7 +290,13 @@ const CommunityPosts = () => {
             {t('community.post_new', '发帖')}
           </button>
         </div>
-        <div className={`scrollbar-none mt-4 flex gap-1 overflow-x-auto rounded-lg border p-1 ${isDayMode ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-black/15'}`}>
+      ) : null}
+      <div className={`mb-4 rounded-lg border p-4 md:mb-6 md:p-5 ${
+        isDayMode
+          ? 'border-slate-200/80 bg-white shadow-[0_10px_26px_rgba(15,23,42,0.04)]'
+          : 'border-white/10 bg-white/[0.035]'
+      }`}>
+        <div className={`scrollbar-none flex gap-1 overflow-x-auto rounded-lg border p-1 ${isDayMode ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-black/15'}`}>
           {POST_TABS.map(({ key, labelKey, fallback, icon: Icon, mobileOnly }) => (
             <button
               key={key}
