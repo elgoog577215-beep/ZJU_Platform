@@ -230,8 +230,8 @@
     "wallpaper_title": "动态壁纸",
     "wallpaper_aria": "动态壁纸设置",
     "more": "更多",
-    "wallpaper_dark_only": "动态壁纸仅夜间模式可用",
-    "wallpaper_day_hint": "白天模式保持轻量静态背景，切到夜间后可以更换网站动态背景。",
+    "wallpaper_scope": "网站动态背景",
+    "wallpaper_mode_hint": "动态壁纸已支持白天和黑夜模式。白天模式会自动柔化动态强度与光效，优先保证阅读清晰。",
     "switch_to_night": "切到夜间模式",
     "wallpaper_current": "当前：{{name}}",
     "wallpaper_live": "立即生效",
@@ -2247,6 +2247,10 @@
     "go_home": "返回首页"
   },
   "themes": {
+    "space": {
+      "name": "深空星云",
+      "desc": "星云空间"
+    },
     "grid": {
       "name": "复古网格",
       "desc": "合成波"
@@ -2256,8 +2260,12 @@
       "desc": "飞溅火花"
     },
     "crystal": {
-      "name": "水晶洞穴",
-      "desc": "折射"
+      "name": "晶体洞窟",
+      "desc": "清晰焦点"
+    },
+    "clouds": {
+      "name": "空灵云层",
+      "desc": "柔雾星空"
     },
     "cyber": {
       "name": "赛博电路",

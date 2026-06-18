@@ -162,13 +162,12 @@ const AppContent = () => {
   const isDownloadRoute = location.pathname === '/download';
   const isImmersiveRoute = isHomeRoute || isAboutRoute || isDownloadRoute || location.pathname.startsWith('/hackathon');
   const hideGlobalShell = isHomeRoute;
-  const { cursorEnabled, settings, uiMode } = useSettings();
+  const { cursorEnabled, settings } = useSettings();
   const hasDesktopPointer = useMediaQuery('(min-width: 768px) and (hover: hover) and (pointer: fine)');
   const shouldMountDeferredUi = useDeferredMount(700);
   const [isLowPowerDevice, setIsLowPowerDevice] = useState(false);
   const [isAppRuntime, setIsAppRuntime] = useState(false);
-  const shouldRenderDarkBackground =
-    uiMode !== 'day' &&
+  const shouldRenderDynamicBackground =
     !isAdminRoute &&
     !isImmersiveRoute &&
     hasDesktopPointer &&
@@ -250,7 +249,7 @@ const AppContent = () => {
           <Navbar />
         </ErrorBoundary>
       )}
-      {shouldRenderDarkBackground && (
+      {shouldRenderDynamicBackground && (
         <ErrorBoundary variant="inline" silent>
           <Suspense fallback={null}>
             <BackgroundSystem />

@@ -249,6 +249,10 @@ const Navbar = () => {
   const activeBackgroundScene =
     BACKGROUND_SCENES.find((scene) => scene.id === backgroundScene) ||
     BACKGROUND_SCENES[0];
+  const activeBackgroundSceneName = t(
+    `themes.${activeBackgroundScene.id}.name`,
+    activeBackgroundScene.name,
+  );
   const weatherTemperature = Number(weather?.temperature);
   const weatherTemperatureLabel = Number.isFinite(weatherTemperature)
     ? `${Math.round(weatherTemperature)}°C`
@@ -804,86 +808,109 @@ const Navbar = () => {
                   </button>
                 </div>
 
-                {isDayMode ? (
-                  <div className="mb-4 rounded-lg border border-slate-200/80 bg-white/90 p-4 text-sm text-slate-600">
-                    <div className="flex items-start gap-3">
-                      <div className="mt-0.5 rounded-md bg-slate-950 p-2 text-white">
-                        <Moon size={16} />
-                      </div>
-                      <div>
-                        <div className="font-bold text-slate-900">
-                          {t("nav.wallpaper_dark_only")}
-                        </div>
-                        <p className="mt-1 leading-6">
-                          {t("nav.wallpaper_day_hint")}
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => changeUiMode("dark")}
-                          className="motion-press mt-3 inline-flex min-h-10 items-center gap-2 rounded-md bg-slate-950 px-4 text-sm font-bold text-white hover:bg-slate-800"
-                        >
-                          <Moon size={16} />
-                          {t("nav.switch_to_night")}
-                        </button>
-                      </div>
+                <div
+                  className={`mb-3 flex items-center justify-between gap-4 rounded-lg border px-4 py-3 ${
+                    isDayMode
+                      ? "border-violet-200/70 bg-white/92"
+                      : "border-cyan-300/10 bg-cyan-300/[0.055]"
+                  }`}
+                >
+                  <div>
+                    <div
+                      className={`text-xs font-black uppercase tracking-[0.22em] ${
+                        isDayMode ? "text-violet-500/78" : "text-cyan-200/70"
+                      }`}
+                    >
+                      {t("nav.wallpaper_scope")}
                     </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="mb-3 flex items-center justify-between gap-4 rounded-lg border border-cyan-300/10 bg-cyan-300/[0.055] px-4 py-3">
-                      <div>
-                        <div className="text-xs font-black uppercase tracking-[0.22em] text-cyan-200/70">
-                          Website Background
-                        </div>
-                        <div className="mt-1 text-sm font-bold text-white">
-                          {t("nav.wallpaper_current", {
-                            name: activeBackgroundScene.name,
-                          })}
-                        </div>
-                      </div>
-                      <div className="hidden text-right text-xs leading-5 text-white/50 sm:block">
-                        {t("nav.wallpaper_live")}
-                        <br />
-                        {t("nav.wallpaper_saved")}
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                      {BACKGROUND_SCENES.map((scene) => {
-                        const isActiveScene = scene.id === backgroundScene;
-
-                        return (
-                          <button
-                            key={scene.id}
-                            type="button"
-                            onClick={() => changeBackgroundScene(scene.id)}
-                            className={`motion-press group flex min-h-[108px] items-stretch overflow-hidden rounded-lg border text-left transition-all ${isActiveScene ? "border-cyan-300/50 bg-cyan-300/[0.12] shadow-[0_18px_44px_rgba(34,211,238,0.12)]" : "border-white/10 bg-white/[0.045] hover:border-cyan-300/30 hover:bg-white/[0.07]"}`}
-                            aria-pressed={isActiveScene}
-                          >
-                            <div className={`w-24 shrink-0 ${scene.preview}`}>
-                              <div className="h-full w-full bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(0,0,0,0.26))]" />
-                            </div>
-                            <div className="flex min-w-0 flex-1 flex-col justify-center px-4 py-3">
-                              <div className="flex items-center justify-between gap-2">
-                                <div className="truncate text-sm font-black text-white">
-                                  {scene.name}
-                                </div>
-                                  {isActiveScene ? (
-                                  <span className="shrink-0 rounded-md bg-cyan-300 px-2 py-0.5 text-[10px] font-black text-slate-950">
-                                    {t("nav.wallpaper_enabled")}
-                                  </span>
-                                ) : null}
-                              </div>
-                              <p className="mt-1 line-clamp-2 text-xs leading-5 text-white/58">
-                                {scene.desc}
-                              </p>
-                            </div>
-                          </button>
-                        );
+                    <div
+                      className={`mt-1 text-sm font-bold ${
+                        isDayMode ? "text-slate-900" : "text-white"
+                      }`}
+                    >
+                      {t("nav.wallpaper_current", {
+                        name: activeBackgroundSceneName,
                       })}
                     </div>
-                  </>
-                )}
+                  </div>
+                  <div
+                    className={`hidden text-right text-xs leading-5 sm:block ${
+                      isDayMode ? "text-slate-500" : "text-white/50"
+                    }`}
+                  >
+                    {t("nav.wallpaper_live")}
+                    <br />
+                    {t("nav.wallpaper_saved")}
+                  </div>
+                </div>
+
+                <div
+                  className={`mb-4 rounded-lg border px-4 py-3 text-xs leading-5 ${
+                    isDayMode
+                      ? "border-violet-100/90 bg-violet-50/50 text-slate-600"
+                      : "border-white/10 bg-white/[0.035] text-white/56"
+                  }`}
+                >
+                  {t("nav.wallpaper_mode_hint")}
+                </div>
+
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {BACKGROUND_SCENES.map((scene) => {
+                    const isActiveScene = scene.id === backgroundScene;
+                    const sceneName = t(`themes.${scene.id}.name`, scene.name);
+                    const sceneDesc = t(`themes.${scene.id}.desc`, scene.desc);
+                    const sceneButtonClasses = isDayMode
+                      ? isActiveScene
+                        ? "border-violet-300/80 bg-white shadow-[0_18px_40px_rgba(168,85,247,0.12)]"
+                        : "border-slate-200/80 bg-white/76 hover:border-violet-200 hover:bg-white"
+                      : isActiveScene
+                        ? "border-cyan-300/50 bg-cyan-300/[0.12] shadow-[0_18px_44px_rgba(34,211,238,0.12)]"
+                        : "border-white/10 bg-white/[0.045] hover:border-cyan-300/30 hover:bg-white/[0.07]";
+
+                    return (
+                      <button
+                        key={scene.id}
+                        type="button"
+                        onClick={() => changeBackgroundScene(scene.id)}
+                        className={`motion-press group flex min-h-[108px] items-stretch overflow-hidden rounded-lg border text-left transition-all ${sceneButtonClasses}`}
+                        aria-pressed={isActiveScene}
+                      >
+                        <div className={`w-24 shrink-0 ${scene.preview}`}>
+                          <div className="h-full w-full bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(0,0,0,0.26))]" />
+                        </div>
+                        <div className="flex min-w-0 flex-1 flex-col justify-center px-4 py-3">
+                          <div className="flex items-center justify-between gap-2">
+                            <div
+                              className={`truncate text-sm font-black ${
+                                isDayMode ? "text-slate-900" : "text-white"
+                              }`}
+                            >
+                              {sceneName}
+                            </div>
+                            {isActiveScene ? (
+                              <span
+                                className={`shrink-0 rounded-md px-2 py-0.5 text-[10px] font-black ${
+                                  isDayMode
+                                    ? "bg-violet-600 text-white"
+                                    : "bg-cyan-300 text-slate-950"
+                                }`}
+                              >
+                                {t("nav.wallpaper_enabled")}
+                              </span>
+                            ) : null}
+                          </div>
+                          <p
+                            className={`mt-1 line-clamp-2 text-xs leading-5 ${
+                              isDayMode ? "text-slate-500" : "text-white/58"
+                            }`}
+                          >
+                            {sceneDesc}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
 
                 <div
                   className={`mb-4 rounded-lg border p-1.5 ${isDayMode ? "border-slate-200/80 bg-slate-50/90" : "border-white/10 bg-white/5"}`}

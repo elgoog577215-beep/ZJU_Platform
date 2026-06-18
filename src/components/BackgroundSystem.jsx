@@ -42,6 +42,13 @@ const SCENE_RENDER_TUNING = {
   orbit: { brightness: 1.24, bloom: 0.56, saturation: 1.26, contrast: 1 },
 };
 
+const DAY_RENDER_TUNING = {
+  brightness: 1.2,
+  bloom: 0.24,
+  saturation: 0.72,
+  contrast: 0.62,
+};
+
 const getHighQualityDpr = () => {
   if (typeof window === "undefined") return 1.75;
   return clamp(window.devicePixelRatio || 1.75, 1.5, 2);
@@ -628,23 +635,35 @@ const BackgroundSystem = ({ forcedTheme = null }) => {
   const [dpr, setDpr] = useState(getHighQualityDpr);
   const [effectsEnabled, setEffectsEnabled] = useState(true);
 
-  if (uiMode === "day") {
-    return null;
-  }
-
   const requestedSceneId = forcedTheme || backgroundScene;
   const sceneId = sceneComponents[requestedSceneId] ? requestedSceneId : DEFAULT_BACKGROUND_SCENE;
   const CurrentScene = sceneComponents[sceneId];
   const sceneTuning = SCENE_RENDER_TUNING[sceneId] || SCENE_RENDER_TUNING[DEFAULT_BACKGROUND_SCENE];
-  const brightness = clamp(readNumericSetting(settings.background_brightness, 1) * sceneTuning.brightness, 0.5, 1.34);
-  const bloom = clamp(readNumericSetting(settings.background_bloom, 0.8) * sceneTuning.bloom, 0.06, 0.74);
-  const saturation = sceneTuning.saturation || 1;
-  const contrast = sceneTuning.contrast || 1;
+  const isDayMode = uiMode === "day";
+  const brightness = clamp(
+    readNumericSetting(settings.background_brightness, 1) *
+      sceneTuning.brightness *
+      (isDayMode ? DAY_RENDER_TUNING.brightness : 1),
+    isDayMode ? 0.72 : 0.5,
+    isDayMode ? 1.42 : 1.34,
+  );
+  const bloom = clamp(
+    readNumericSetting(settings.background_bloom, 0.8) *
+      sceneTuning.bloom *
+      (isDayMode ? DAY_RENDER_TUNING.bloom : 1),
+    isDayMode ? 0.02 : 0.06,
+    isDayMode ? 0.18 : 0.74,
+  );
+  const saturation = (sceneTuning.saturation || 1) * (isDayMode ? DAY_RENDER_TUNING.saturation : 1);
+  const contrast = (sceneTuning.contrast || 1) * (isDayMode ? DAY_RENDER_TUNING.contrast : 1);
+  const backgroundClassName = isDayMode
+    ? "pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-white"
+    : "pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-black";
 
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-black"
+      className={backgroundClassName}
       style={{ filter: `brightness(${brightness}) saturate(${saturation}) contrast(${contrast})` }}
     >
       {prefersReducedMotion ? (
@@ -683,7 +702,14 @@ const BackgroundSystem = ({ forcedTheme = null }) => {
           </Suspense>
         </Canvas>
       )}
-      <div className="absolute inset-0 bg-black/55 md:hidden" />
+      {isDayMode ? (
+        <>
+          <div className="absolute inset-0 bg-white/82" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_16%_16%,rgba(236,72,153,0.1),transparent_28rem),radial-gradient(circle_at_84%_12%,rgba(168,85,247,0.11),transparent_30rem),linear-gradient(180deg,rgba(255,255,255,0.58),rgba(255,255,255,0.9))]" />
+        </>
+      ) : (
+        <div className="absolute inset-0 bg-black/55 md:hidden" />
+      )}
     </div>
   );
 };
