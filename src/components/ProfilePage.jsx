@@ -742,7 +742,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
                       onClick={changePassword}
                       disabled={passwordSaving}
                       className={`inline-flex min-h-10 items-center gap-2 rounded-[6px] px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-55 ${
-                        isDayMode ? "bg-slate-950 text-white hover:bg-slate-800" : "bg-white text-slate-950 hover:bg-sky-100"
+                        isDayMode ? "bg-violet-600 text-white hover:bg-violet-700" : "bg-white text-slate-950 hover:bg-sky-100"
                       }`}
                     >
                       {passwordSaving ? <Loader2 className="animate-spin" size={15} /> : <KeyRound size={15} />}

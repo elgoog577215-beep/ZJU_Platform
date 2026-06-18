@@ -702,7 +702,7 @@ const HackathonShowcase = () => {
         galleryActionShell:
           "border-slate-200 bg-white/92 shadow-[0_24px_70px_rgba(15,23,42,0.14)] ring-1 ring-white/70",
         galleryViewButton:
-          "border-slate-200 bg-slate-950 text-white shadow-[0_16px_38px_rgba(15,23,42,0.18)] hover:border-cyan-400 hover:bg-slate-800 hover:text-cyan-100 focus:ring-cyan-500/22",
+          "border-cyan-300 bg-cyan-50 text-cyan-900 shadow-[0_16px_38px_rgba(8,145,178,0.12)] hover:border-cyan-500 hover:bg-cyan-100 focus:ring-cyan-500/22",
         galleryUploadButton:
           "border-cyan-300 bg-gradient-to-br from-cyan-100 via-cyan-200 to-sky-200 text-cyan-950 shadow-[0_18px_48px_rgba(8,145,178,0.25)] hover:border-cyan-400 hover:from-white hover:via-cyan-100 hover:to-cyan-200 focus:ring-cyan-500/24",
         navShell: "border-slate-200 bg-white/86 text-slate-700 shadow-[0_18px_60px_rgba(15,23,42,0.12)]",

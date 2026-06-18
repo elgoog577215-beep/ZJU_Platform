@@ -1,0 +1,808 @@
+[
+  {
+    "viewport": {
+      "name": "iphone12",
+      "width": 390,
+      "height": 844
+    },
+    "route": "/media",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/mobile-ui-fix-20260617/iphone12-390x844__media.png",
+    "path": "/media",
+    "uploads": [
+      {
+        "text": "上传",
+        "aria": "上传",
+        "title": "",
+        "cls": "motion-press rect-button-primary p-1.5 min-h-[44px] min-w-[44px] inline-flex items-center ",
+        "rect": {
+          "x": 330,
+          "y": 10,
+          "w": 44,
+          "h": 44,
+          "bottom": 54,
+          "right": 374
+        }
+      }
+    ],
+    "blocks": [
+      {
+        "text": "影像库 当前分类：全部 全部 暂无影像分类，内容会显示在全部与未分类中。 视频记录 3 / 3 条视频 浙客松 未分类 1 浙客松 未分类 1 宣传片 未分类 0 现场照片 5 / 5 张照片 全员合",
+        "cls": "day-page-theme day-page-theme-tech pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] ",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 390,
+          "h": 1067,
+          "bottom": 1067,
+          "right": 390
+        }
+      },
+      {
+        "text": "",
+        "cls": "fixed inset-0 pointer-events-none z-0 overflow-hidden",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 390,
+          "h": 1067,
+          "bottom": 1067,
+          "right": 390
+        }
+      },
+      {
+        "text": "影像库 当前分类：全部 全部 暂无影像分类，内容会显示在全部与未分类中。 视频记录 3 / 3 条视频 浙客松 未分类 1 浙客松 未分类 1 宣传片 未分类 0 现场照片 5 / 5 张照片 全员合",
+        "cls": "max-w-[1180px] 2xl:max-w-[1440px] w-full mx-auto relative z-10",
+        "rect": {
+          "x": 16,
+          "y": 76,
+          "w": 358,
+          "h": 895,
+          "bottom": 971,
+          "right": 374
+        }
+      },
+      {
+        "text": "视频记录 3 / 3 条视频 浙客松 未分类 1 浙客松 未分类 1 宣传片 未分类 0",
+        "cls": "order-1 min-w-0",
+        "rect": {
+          "x": 16,
+          "y": 256,
+          "w": 358,
+          "h": 275,
+          "bottom": 531,
+          "right": 374
+        }
+      },
+      {
+        "text": "视频记录 3 / 3 条视频",
+        "cls": "mb-4 flex items-center justify-between gap-4",
+        "rect": {
+          "x": 16,
+          "y": 256,
+          "w": 358,
+          "h": 52,
+          "bottom": 308,
+          "right": 374
+        }
+      },
+      {
+        "text": "浙客松 未分类 1 浙客松 未分类 1 宣传片 未分类 0",
+        "cls": "grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-5",
+        "rect": {
+          "x": 16,
+          "y": 324,
+          "w": 358,
+          "h": 207,
+          "bottom": 531,
+          "right": 374
+        }
+      },
+      {
+        "text": "现场照片 5 / 5 张照片 全员合照 0 选手特写 0 领导讲话 0 颁奖典礼 0 交流环节 0",
+        "cls": "order-2 min-w-0",
+        "rect": {
+          "x": 16,
+          "y": 571,
+          "w": 358,
+          "h": 400,
+          "bottom": 971,
+          "right": 374
+        }
+      },
+      {
+        "text": "现场照片 5 / 5 张照片",
+        "cls": "mb-4 flex items-center justify-between gap-4",
+        "rect": {
+          "x": 16,
+          "y": 571,
+          "w": 358,
+          "h": 52,
+          "bottom": 623,
+          "right": 374
+        }
+      },
+      {
+        "text": "全员合照 0 选手特写 0 领导讲话 0 颁奖典礼 0 交流环节 0",
+        "cls": "grid grid-cols-2 gap-3 pb-4 sm:gap-4 lg:grid-cols-4 lg:gap-5 md:pb-0",
+        "rect": {
+          "x": 16,
+          "y": 639,
+          "w": 358,
+          "h": 332,
+          "bottom": 971,
+          "right": 374
+        }
+      }
+    ],
+    "navs": [
+      {
+        "text": "影像库",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 390,
+          "h": 65,
+          "bottom": 65,
+          "right": 390
+        },
+        "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 pt-[calc(env(safe-area-inset-t"
+      },
+      {
+        "text": "活动聚合 AI社区 项目广场 浙客松 我的",
+        "rect": {
+          "x": 0,
+          "y": 785,
+          "w": 390,
+          "h": 59,
+          "bottom": 844,
+          "right": 390
+        },
+        "cls": "motion-gpu fixed inset-x-0 bottom-0 z-[100] border-t backdrop-blur-xl md:hidden border-white/[0.08] bg-[#0b111c]/90 shad"
+      }
+    ],
+    "scrollHeight": 1483,
+    "overflow": 0
+  },
+  {
+    "viewport": {
+      "name": "iphone12",
+      "width": 390,
+      "height": 844
+    },
+    "route": "/hackathon",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/mobile-ui-fix-20260617/iphone12-390x844__hackathon.png",
+    "path": "/hackathon",
+    "uploads": [
+      {
+        "text": "提交成果",
+        "aria": "",
+        "title": "",
+        "cls": "inline-flex min-h-12 items-center justify-center gap-2 px-6 text-sm font-black transition ",
+        "rect": {
+          "x": 16,
+          "y": 363,
+          "w": 358,
+          "h": 46,
+          "bottom": 409,
+          "right": 374
+        }
+      }
+    ],
+    "blocks": [
+      {
+        "text": "2026 AI BUILD ARENA 2026 AI 全栈极速 比赛成果 这是一场 5 小时 AI 原生开发冲刺的赛后档案：宣传片、现场照片、获奖作品和支持阵容都在这里集中发布。 提交成果 查看获奖",
+        "cls": "showcase-section-frame relative grid max-w-full px-4 sm:px-6 lg:px-10 xl:px-14 2xl:px-20 showcase-section-compact min-h-",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 390,
+          "h": 1093,
+          "bottom": 1093,
+          "right": 390
+        }
+      },
+      {
+        "text": "2026",
+        "cls": "pointer-events-none absolute left-[-2vw] top-[8%] max-w-full overflow-hidden font-black uppercase leading-none tracking-",
+        "rect": {
+          "x": -8,
+          "y": 87,
+          "w": 168,
+          "h": 70,
+          "bottom": 158,
+          "right": 161
+        }
+      },
+      {
+        "text": "AI BUILD ARENA 2026 AI 全栈极速 比赛成果 这是一场 5 小时 AI 原生开发冲刺的赛后档案：宣传片、现场照片、获奖作品和支持阵容都在这里集中发布。 提交成果 查看获奖作品 观看",
+        "cls": "showcase-section-grid relative z-10 mx-auto grid min-w-0 w-full max-w-[2200px] min-h-0 gap-6 items-center",
+        "rect": {
+          "x": 16,
+          "y": 116,
+          "w": 358,
+          "h": 929,
+          "bottom": 1045,
+          "right": 374
+        }
+      },
+      {
+        "text": "AI BUILD ARENA 2026 AI 全栈极速 比赛成果 这是一场 5 小时 AI 原生开发冲刺的赛后档案：宣传片、现场照片、获奖作品和支持阵容都在这里集中发布。 提交成果 查看获奖作品 观看",
+        "cls": "showcase-hero-copy min-w-0",
+        "rect": {
+          "x": 16,
+          "y": 116,
+          "w": 358,
+          "h": 527,
+          "bottom": 643,
+          "right": 374
+        }
+      },
+      {
+        "text": "这是一场 5 小时 AI 原生开发冲刺的赛后档案：宣传片、现场照片、获奖作品和支持阵容都在这里集中发布。",
+        "cls": "showcase-hero-desc mt-5 max-w-4xl text-base font-semibold leading-7 sm:text-lg sm:leading-8 lg:text-xl lg:leading-9 text",
+        "rect": {
+          "x": 16,
+          "y": 264,
+          "w": 358,
+          "h": 81,
+          "bottom": 345,
+          "right": 374
+        }
+      },
+      {
+        "text": "提交成果 查看获奖作品 观看宣传片",
+        "cls": "showcase-hero-actions mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap",
+        "rect": {
+          "x": 16,
+          "y": 363,
+          "w": 358,
+          "h": 103,
+          "bottom": 466,
+          "right": 374
+        }
+      },
+      {
+        "text": "5 小时 极速交付 1 个人 独立完成 0 路演 作品优先 1.75万 ￥ 奖金池",
+        "cls": "mt-8 grid gap-3 sm:grid-cols-2",
+        "rect": {
+          "x": 16,
+          "y": 482,
+          "w": 358,
+          "h": 161,
+          "bottom": 643,
+          "right": 374
+        }
+      }
+    ],
+    "navs": [
+      {
+        "text": "浙客松",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 390,
+          "h": 65,
+          "bottom": 65,
+          "right": 390
+        },
+        "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 pt-[calc(env(safe-area-inset-t"
+      },
+      {
+        "text": "活动聚合 AI社区 项目广场 浙客松 我的",
+        "rect": {
+          "x": 0,
+          "y": 785,
+          "w": 390,
+          "h": 59,
+          "bottom": 844,
+          "right": 390
+        },
+        "cls": "motion-gpu fixed inset-x-0 bottom-0 z-[100] border-t backdrop-blur-xl md:hidden border-white/[0.08] bg-[#0b111c]/90 shad"
+      }
+    ],
+    "scrollHeight": 7291,
+    "overflow": 0
+  },
+  {
+    "viewport": {
+      "name": "iphone12",
+      "width": 390,
+      "height": 844
+    },
+    "route": "/projects",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/mobile-ui-fix-20260617/iphone12-390x844__projects.png",
+    "path": "/projects",
+    "uploads": [
+      {
+        "text": "＋ 发布我的项目",
+        "aria": "",
+        "title": "",
+        "cls": "ppp-newbtn",
+        "rect": {
+          "x": 24,
+          "y": 309,
+          "w": 145,
+          "h": 46,
+          "bottom": 355,
+          "right": 169
+        }
+      },
+      {
+        "text": "＋ 发布第一个项目",
+        "aria": "",
+        "title": "",
+        "cls": "ppp-newbtn",
+        "rect": {
+          "x": 115,
+          "y": 682,
+          "w": 160,
+          "h": 46,
+          "bottom": 728,
+          "right": 275
+        }
+      }
+    ],
+    "blocks": [
+      {
+        "text": "＋ 发布我的项目",
+        "cls": "ppp-toolbar",
+        "rect": {
+          "x": 24,
+          "y": 251,
+          "w": 342,
+          "h": 104,
+          "bottom": 355,
+          "right": 366
+        }
+      },
+      {
+        "text": "进度 全部 构思中 开发中 已上线 我在找 缺人 缺设计 缺讨论 找测试用户",
+        "cls": "ppp-filters",
+        "rect": {
+          "x": 24,
+          "y": 373,
+          "w": 342,
+          "h": 125,
+          "bottom": 497,
+          "right": 366
+        }
+      },
+      {
+        "text": "🌱 还没有匹配的项目名片。 ＋ 发布第一个项目",
+        "cls": "ppp-empty",
+        "rect": {
+          "x": 24,
+          "y": 523,
+          "w": 342,
+          "h": 293,
+          "bottom": 816,
+          "right": 366
+        }
+      }
+    ],
+    "navs": [
+      {
+        "text": "项目广场",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 390,
+          "h": 65,
+          "bottom": 65,
+          "right": 390
+        },
+        "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 pt-[calc(env(safe-area-inset-t"
+      },
+      {
+        "text": "活动聚合 AI社区 项目广场 浙客松 我的",
+        "rect": {
+          "x": 0,
+          "y": 785,
+          "w": 390,
+          "h": 59,
+          "bottom": 844,
+          "right": 390
+        },
+        "cls": "motion-gpu fixed inset-x-0 bottom-0 z-[100] border-t backdrop-blur-xl md:hidden border-white/[0.08] bg-[#0b111c]/90 shad"
+      }
+    ],
+    "scrollHeight": 1364,
+    "overflow": 0
+  },
+  {
+    "viewport": {
+      "name": "small",
+      "width": 375,
+      "height": 667
+    },
+    "route": "/media",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/mobile-ui-fix-20260617/small-375x667__media.png",
+    "path": "/media",
+    "uploads": [
+      {
+        "text": "上传",
+        "aria": "上传",
+        "title": "",
+        "cls": "motion-press rect-button-primary p-1.5 min-h-[44px] min-w-[44px] inline-flex items-center ",
+        "rect": {
+          "x": 315,
+          "y": 10,
+          "w": 44,
+          "h": 44,
+          "bottom": 54,
+          "right": 359
+        }
+      }
+    ],
+    "blocks": [
+      {
+        "text": "影像库 当前分类：全部 全部 暂无影像分类，内容会显示在全部与未分类中。 视频记录 3 / 3 条视频 浙客松 未分类 1 浙客松 未分类 1 宣传片 未分类 0 现场照片 5 / 5 张照片 全员合",
+        "cls": "day-page-theme day-page-theme-tech pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] ",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 375,
+          "h": 1045,
+          "bottom": 1045,
+          "right": 375
+        }
+      },
+      {
+        "text": "",
+        "cls": "fixed inset-0 pointer-events-none z-0 overflow-hidden",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 375,
+          "h": 1045,
+          "bottom": 1045,
+          "right": 375
+        }
+      },
+      {
+        "text": "影像库 当前分类：全部 全部 暂无影像分类，内容会显示在全部与未分类中。 视频记录 3 / 3 条视频 浙客松 未分类 1 浙客松 未分类 1 宣传片 未分类 0 现场照片 5 / 5 张照片 全员合",
+        "cls": "max-w-[1180px] 2xl:max-w-[1440px] w-full mx-auto relative z-10",
+        "rect": {
+          "x": 16,
+          "y": 76,
+          "w": 343,
+          "h": 873,
+          "bottom": 949,
+          "right": 359
+        }
+      },
+      {
+        "text": "视频记录 3 / 3 条视频 浙客松 未分类 1 浙客松 未分类 1 宣传片 未分类 0",
+        "cls": "order-1 min-w-0",
+        "rect": {
+          "x": 16,
+          "y": 256,
+          "w": 343,
+          "h": 266,
+          "bottom": 522,
+          "right": 359
+        }
+      },
+      {
+        "text": "视频记录 3 / 3 条视频",
+        "cls": "mb-4 flex items-center justify-between gap-4",
+        "rect": {
+          "x": 16,
+          "y": 256,
+          "w": 343,
+          "h": 52,
+          "bottom": 308,
+          "right": 359
+        }
+      },
+      {
+        "text": "浙客松 未分类 1 浙客松 未分类 1 宣传片 未分类 0",
+        "cls": "grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-5",
+        "rect": {
+          "x": 16,
+          "y": 324,
+          "w": 343,
+          "h": 198,
+          "bottom": 522,
+          "right": 359
+        }
+      },
+      {
+        "text": "现场照片 5 / 5 张照片 全员合照 0 选手特写 0 领导讲话 0 颁奖典礼 0 交流环节 0",
+        "cls": "order-2 min-w-0",
+        "rect": {
+          "x": 16,
+          "y": 562,
+          "w": 343,
+          "h": 387,
+          "bottom": 949,
+          "right": 359
+        }
+      },
+      {
+        "text": "现场照片 5 / 5 张照片",
+        "cls": "mb-4 flex items-center justify-between gap-4",
+        "rect": {
+          "x": 16,
+          "y": 562,
+          "w": 343,
+          "h": 52,
+          "bottom": 614,
+          "right": 359
+        }
+      },
+      {
+        "text": "全员合照 0 选手特写 0 领导讲话 0 颁奖典礼 0 交流环节 0",
+        "cls": "grid grid-cols-2 gap-3 pb-4 sm:gap-4 lg:grid-cols-4 lg:gap-5 md:pb-0",
+        "rect": {
+          "x": 16,
+          "y": 630,
+          "w": 343,
+          "h": 319,
+          "bottom": 949,
+          "right": 359
+        }
+      }
+    ],
+    "navs": [
+      {
+        "text": "影像库",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 375,
+          "h": 65,
+          "bottom": 65,
+          "right": 375
+        },
+        "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 pt-[calc(env(safe-area-inset-t"
+      },
+      {
+        "text": "活动聚合 AI社区 项目广场 浙客松 我的",
+        "rect": {
+          "x": 0,
+          "y": 608,
+          "w": 375,
+          "h": 59,
+          "bottom": 667,
+          "right": 375
+        },
+        "cls": "motion-gpu fixed inset-x-0 bottom-0 z-[100] border-t backdrop-blur-xl md:hidden border-white/[0.08] bg-[#0b111c]/90 shad"
+      }
+    ],
+    "scrollHeight": 1462,
+    "overflow": 0
+  },
+  {
+    "viewport": {
+      "name": "small",
+      "width": 375,
+      "height": 667
+    },
+    "route": "/hackathon",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/mobile-ui-fix-20260617/small-375x667__hackathon.png",
+    "path": "/hackathon",
+    "uploads": [
+      {
+        "text": "提交成果",
+        "aria": "",
+        "title": "",
+        "cls": "inline-flex min-h-12 items-center justify-center gap-2 px-6 text-sm font-black transition ",
+        "rect": {
+          "x": 16,
+          "y": 362,
+          "w": 343,
+          "h": 46,
+          "bottom": 408,
+          "right": 359
+        }
+      }
+    ],
+    "blocks": [
+      {
+        "text": "2026 AI BUILD ARENA 2026 AI 全栈极速 比赛成果 这是一场 5 小时 AI 原生开发冲刺的赛后档案：宣传片、现场照片、获奖作品和支持阵容都在这里集中发布。 提交成果 查看获奖",
+        "cls": "showcase-section-frame relative grid max-w-full px-4 sm:px-6 lg:px-10 xl:px-14 2xl:px-20 showcase-section-compact min-h-",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 375,
+          "h": 1090,
+          "bottom": 1090,
+          "right": 375
+        }
+      },
+      {
+        "text": "2026",
+        "cls": "pointer-events-none absolute left-[-2vw] top-[8%] max-w-full overflow-hidden font-black uppercase leading-none tracking-",
+        "rect": {
+          "x": -7,
+          "y": 87,
+          "w": 162,
+          "h": 68,
+          "bottom": 155,
+          "right": 155
+        }
+      },
+      {
+        "text": "AI BUILD ARENA 2026 AI 全栈极速 比赛成果 这是一场 5 小时 AI 原生开发冲刺的赛后档案：宣传片、现场照片、获奖作品和支持阵容都在这里集中发布。 提交成果 查看获奖作品 观看",
+        "cls": "showcase-section-grid relative z-10 mx-auto grid min-w-0 w-full max-w-[2200px] min-h-0 gap-6 items-center",
+        "rect": {
+          "x": 16,
+          "y": 116,
+          "w": 343,
+          "h": 926,
+          "bottom": 1042,
+          "right": 359
+        }
+      },
+      {
+        "text": "AI BUILD ARENA 2026 AI 全栈极速 比赛成果 这是一场 5 小时 AI 原生开发冲刺的赛后档案：宣传片、现场照片、获奖作品和支持阵容都在这里集中发布。 提交成果 查看获奖作品 观看",
+        "cls": "showcase-hero-copy min-w-0",
+        "rect": {
+          "x": 16,
+          "y": 116,
+          "w": 343,
+          "h": 523,
+          "bottom": 639,
+          "right": 359
+        }
+      },
+      {
+        "text": "这是一场 5 小时 AI 原生开发冲刺的赛后档案：宣传片、现场照片、获奖作品和支持阵容都在这里集中发布。",
+        "cls": "showcase-hero-desc mt-5 max-w-4xl text-base font-semibold leading-7 sm:text-lg sm:leading-8 lg:text-xl lg:leading-9 text",
+        "rect": {
+          "x": 16,
+          "y": 263,
+          "w": 343,
+          "h": 81,
+          "bottom": 344,
+          "right": 359
+        }
+      },
+      {
+        "text": "提交成果 查看获奖作品 观看宣传片",
+        "cls": "showcase-hero-actions mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap",
+        "rect": {
+          "x": 16,
+          "y": 362,
+          "w": 343,
+          "h": 103,
+          "bottom": 465,
+          "right": 359
+        }
+      },
+      {
+        "text": "5 小时 极速交付 1 个人 独立完成 0 路演 作品优先 1.75万 ￥ 奖金池",
+        "cls": "mt-8 grid gap-3 sm:grid-cols-2",
+        "rect": {
+          "x": 16,
+          "y": 481,
+          "w": 343,
+          "h": 158,
+          "bottom": 639,
+          "right": 359
+        }
+      }
+    ],
+    "navs": [
+      {
+        "text": "浙客松",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 375,
+          "h": 65,
+          "bottom": 65,
+          "right": 375
+        },
+        "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 pt-[calc(env(safe-area-inset-t"
+      },
+      {
+        "text": "活动聚合 AI社区 项目广场 浙客松 我的",
+        "rect": {
+          "x": 0,
+          "y": 608,
+          "w": 375,
+          "h": 59,
+          "bottom": 667,
+          "right": 375
+        },
+        "cls": "motion-gpu fixed inset-x-0 bottom-0 z-[100] border-t backdrop-blur-xl md:hidden border-white/[0.08] bg-[#0b111c]/90 shad"
+      }
+    ],
+    "scrollHeight": 7329,
+    "overflow": 0
+  },
+  {
+    "viewport": {
+      "name": "small",
+      "width": 375,
+      "height": 667
+    },
+    "route": "/projects",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/mobile-ui-fix-20260617/small-375x667__projects.png",
+    "path": "/projects",
+    "uploads": [
+      {
+        "text": "＋ 发布我的项目",
+        "aria": "",
+        "title": "",
+        "cls": "ppp-newbtn",
+        "rect": {
+          "x": 24,
+          "y": 330,
+          "w": 145,
+          "h": 46,
+          "bottom": 376,
+          "right": 169
+        }
+      }
+    ],
+    "blocks": [
+      {
+        "text": "＋ 发布我的项目",
+        "cls": "ppp-toolbar",
+        "rect": {
+          "x": 24,
+          "y": 272,
+          "w": 327,
+          "h": 104,
+          "bottom": 376,
+          "right": 351
+        }
+      },
+      {
+        "text": "进度 全部 构思中 开发中 已上线 我在找 缺人 缺设计 缺讨论 找测试用户",
+        "cls": "ppp-filters",
+        "rect": {
+          "x": 24,
+          "y": 394,
+          "w": 327,
+          "h": 125,
+          "bottom": 519,
+          "right": 351
+        }
+      },
+      {
+        "text": "🌱 还没有匹配的项目名片。 ＋ 发布第一个项目",
+        "cls": "ppp-empty",
+        "rect": {
+          "x": 24,
+          "y": 545,
+          "w": 327,
+          "h": 293,
+          "bottom": 837,
+          "right": 351
+        }
+      }
+    ],
+    "navs": [
+      {
+        "text": "项目广场",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 375,
+          "h": 65,
+          "bottom": 65,
+          "right": 375
+        },
+        "cls": "motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 pt-[calc(env(safe-area-inset-t"
+      },
+      {
+        "text": "活动聚合 AI社区 项目广场 浙客松 我的",
+        "rect": {
+          "x": 0,
+          "y": 608,
+          "w": 375,
+          "h": 59,
+          "bottom": 667,
+          "right": 375
+        },
+        "cls": "motion-gpu fixed inset-x-0 bottom-0 z-[100] border-t backdrop-blur-xl md:hidden border-white/[0.08] bg-[#0b111c]/90 shad"
+      }
+    ],
+    "scrollHeight": 1386,
+    "overflow": 0
+  }
+]

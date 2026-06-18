@@ -1688,11 +1688,11 @@ END:VCALENDAR`;
                     aria-label={option.ariaLabel}
                     aria-pressed={active}
                     onClick={() => setViewMode(option.value)}
-                    className={`inline-flex min-h-9 items-center gap-2 rounded-[4px] px-3 text-sm font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+                    className={`inline-flex min-h-9 items-center gap-2 rounded-[4px] border border-transparent px-3 text-sm font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
                       active
                         ? isDayMode
-                          ? "bg-slate-950 text-white shadow-[0_8px_18px_rgba(15,23,42,0.12)]"
-                          : "bg-white text-slate-950"
+                          ? "border-blue-200/80 bg-blue-50 text-blue-700 shadow-[0_8px_18px_rgba(37,99,235,0.08)]"
+                          : "border-white bg-white text-slate-950"
                         : isDayMode
                           ? "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                           : "text-gray-400 hover:bg-white/10 hover:text-white"

@@ -2329,5 +2329,101 @@
     "default_desc": "An AI ecosystem information platform for events, galleries, podcasts, videos, and community content.",
     "author": "AI Ecosystem Team",
     "keywords": "TUOTU ZJU, Zhejiang University, AI ecosystem, events, gallery, podcast, video, AI community, campus platform"
+  },
+  "project_plaza": {
+    "meta_title": "Project Plaza",
+    "meta_desc": "Share active projects and help the right collaborators find you.",
+    "kicker": "BUILD · Project Plaza",
+    "title": "Project Plaza",
+    "subtitle": "Find projects, scan progress, join the right team.",
+    "search_placeholder": "Search projects, stacks, initiators...",
+    "loading": "Loading...",
+    "empty_title": "No matching project cards yet",
+    "empty_desc": "Try another keyword, or publish the first project.",
+    "untitled": "Untitled Project",
+    "anonymous": "Anonymous",
+    "initial_you": "You",
+    "detail_kicker": "Project Card",
+    "owner_prefix": "Initiator",
+    "detail_intro": "Project Intro",
+    "detail_needs": "Looking For",
+    "detail_tags": "Traits / Stack",
+    "progress": {
+      "idea": "Idea",
+      "dev": "Building",
+      "live": "Live",
+      "pause": "Paused"
+    },
+    "filters": {
+      "aria": "Project filters",
+      "all": "All",
+      "progress": "Progress",
+      "needs": "Needs"
+    },
+    "needs": {
+      "people": "People",
+      "design": "Design",
+      "product": "Product",
+      "discussion": "Discussion",
+      "testers": "Test Users",
+      "funding": "Funding"
+    },
+    "stats": {
+      "saves": "{{count}} saves"
+    },
+    "actions": {
+      "publish": "Publish Project",
+      "publish_first": "Publish First Project",
+      "repo": "View Repo",
+      "no_repo": "No Repo"
+    },
+    "contact": {
+      "wechat": "WeChat",
+      "empty": "No contact provided",
+      "login_required": "Log in to view contact"
+    },
+    "toasts": {
+      "load_failed": "Failed to load",
+      "open_failed": "Failed to open",
+      "login_to_publish": "Please log in before publishing",
+      "upload_failed": "Image upload failed",
+      "name_required": "Please enter a project name",
+      "repo_https": "Repository link must use https",
+      "draft_saved": "Draft saved",
+      "published": "Published to the plaza",
+      "publish_failed": "Publish failed"
+    },
+    "form": {
+      "back": "Back to Plaza",
+      "title": "Publish Project Card",
+      "save_draft": "Save Draft",
+      "publish": "Publish",
+      "publishing": "Publishing...",
+      "photos": "Project Photos",
+      "photos_hint": "First image is the cover, up to 9",
+      "upload": "Upload",
+      "cover": "Cover",
+      "name": "Project Name",
+      "name_placeholder": "Example: Campus Book Exchange",
+      "summary": "One-line Summary",
+      "summary_hint": "Shown on the card",
+      "summary_placeholder": "Say what it is in one line",
+      "body": "Project Intro",
+      "body_hint": "Shown after opening the card",
+      "body_placeholder": "What are you building, where is it now, what comes next...",
+      "progress": "Current Progress",
+      "needs": "Looking For",
+      "needs_hint": "Multiple choices allowed",
+      "tags": "Stack / Traits",
+      "tag_placeholder": "Type and press Enter",
+      "repo": "Repository Link",
+      "contact": "Contact",
+      "contact_hint": "Visible to logged-in users only",
+      "contact_placeholder": "WeChat ID / email",
+      "preview_label": "Live Preview",
+      "preview_title": "Project Name",
+      "preview_summary": "The one-line summary appears here",
+      "preview_hint": "People see this compact card first, then open it for the full intro."
+    }
   }
 }

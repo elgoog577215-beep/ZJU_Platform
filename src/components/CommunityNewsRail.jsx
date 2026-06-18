@@ -16,6 +16,9 @@ const TAB_CONFIG = [
   { key: 'latest', icon: Clock3, labelKey: 'community.news_latest', fallback: '最新' },
 ];
 
+const DAY_ACTIVE_PILL_CLASS =
+  'bg-blue-50 text-blue-700 border-blue-200/80 shadow-[0_6px_16px_rgba(37,99,235,0.08)]';
+
 const ADMIN_STATUS_FILTERS = [
   { key: 'all', label: '全部' },
   { key: 'draft', label: '草稿' },
@@ -388,7 +391,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
                 onClick={() => setActiveSort(key)}
                 className={`inline-flex min-h-[34px] items-center justify-center gap-1.5 rounded-md border px-2 text-xs font-semibold transition-all ${
                   activeSort === key
-                    ? (isDayMode ? 'bg-slate-950 text-white border-slate-950 shadow-[0_6px_16px_rgba(15,23,42,0.14)]' : 'bg-blue-500 text-white border-blue-500')
+                    ? (isDayMode ? DAY_ACTIVE_PILL_CLASS : 'bg-blue-500 text-white border-blue-500')
                     : (isDayMode ? 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-950' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10')
                 }`}
               >
@@ -519,7 +522,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
             onClick={() => setActiveSort(key)}
             className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs border transition-all ${
               activeSort === key
-                ? (isDayMode ? 'bg-slate-950 text-white border-slate-950 shadow-[0_6px_16px_rgba(15,23,42,0.14)]' : 'bg-blue-500 text-white border-blue-500')
+                ? (isDayMode ? DAY_ACTIVE_PILL_CLASS : 'bg-blue-500 text-white border-blue-500')
                 : (isDayMode ? 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-950' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10')
             }`}
           >
@@ -562,7 +565,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
               type="button"
               onClick={handleImportNews}
               disabled={isImporting}
-              className={`px-3 h-9 rounded-lg text-xs font-semibold disabled:opacity-60 ${isDayMode ? 'bg-slate-950 text-white' : 'bg-blue-500 text-white'}`}
+              className={`px-3 h-9 rounded-lg text-xs font-semibold disabled:opacity-60 ${isDayMode ? 'bg-violet-600 text-white hover:bg-violet-700' : 'bg-blue-500 text-white'}`}
             >
               {isImporting ? t('common.loading', '加载中') : t('community.import', '导入')}
             </button>

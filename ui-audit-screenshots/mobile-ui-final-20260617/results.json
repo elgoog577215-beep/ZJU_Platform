@@ -1,0 +1,266 @@
+[
+  {
+    "viewport": {
+      "name": "small",
+      "width": 375,
+      "height": 667
+    },
+    "route": "/media",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/mobile-ui-final-20260617/small-375x667__media.png",
+    "path": "/media",
+    "uploads": [
+      {
+        "text": "上传",
+        "aria": "上传",
+        "title": "",
+        "rect": {
+          "x": 315,
+          "y": 10,
+          "w": 44,
+          "h": 44,
+          "bottom": 54,
+          "right": 359
+        }
+      }
+    ],
+    "bottomNav": {
+      "x": 0,
+      "y": 608,
+      "w": 375,
+      "h": 59,
+      "bottom": 667,
+      "right": 375
+    },
+    "emptyRect": null,
+    "titleRect": null,
+    "statsRect": null,
+    "overflow": 0
+  },
+  {
+    "viewport": {
+      "name": "small",
+      "width": 375,
+      "height": 667
+    },
+    "route": "/hackathon",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/mobile-ui-final-20260617/small-375x667__hackathon.png",
+    "path": "/hackathon",
+    "uploads": [
+      {
+        "text": "提交成果",
+        "aria": "",
+        "title": "",
+        "rect": {
+          "x": 16,
+          "y": 362,
+          "w": 343,
+          "h": 46,
+          "bottom": 408,
+          "right": 359
+        }
+      }
+    ],
+    "bottomNav": {
+      "x": 0,
+      "y": 608,
+      "w": 375,
+      "h": 59,
+      "bottom": 667,
+      "right": 375
+    },
+    "emptyRect": null,
+    "titleRect": {
+      "x": 16,
+      "y": 164,
+      "w": 343,
+      "h": 83,
+      "bottom": 247,
+      "right": 359
+    },
+    "statsRect": {
+      "x": 16,
+      "y": 481,
+      "w": 343,
+      "h": 158,
+      "bottom": 639,
+      "right": 359
+    },
+    "overflow": 0
+  },
+  {
+    "viewport": {
+      "name": "small",
+      "width": 375,
+      "height": 667
+    },
+    "route": "/projects",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/mobile-ui-final-20260617/small-375x667__projects.png",
+    "path": "/projects",
+    "uploads": [
+      {
+        "text": "＋ 发布我的项目",
+        "aria": "",
+        "title": "",
+        "rect": {
+          "x": 24,
+          "y": 330,
+          "w": 145,
+          "h": 46,
+          "bottom": 376,
+          "right": 169
+        }
+      }
+    ],
+    "bottomNav": {
+      "x": 0,
+      "y": 608,
+      "w": 375,
+      "h": 59,
+      "bottom": 667,
+      "right": 375
+    },
+    "emptyRect": {
+      "x": 24,
+      "y": 545,
+      "w": 327,
+      "h": 173,
+      "bottom": 717,
+      "right": 351
+    },
+    "titleRect": null,
+    "statsRect": null,
+    "overflow": 0
+  },
+  {
+    "viewport": {
+      "name": "iphone12",
+      "width": 390,
+      "height": 844
+    },
+    "route": "/media",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/mobile-ui-final-20260617/iphone12-390x844__media.png",
+    "path": "/media",
+    "uploads": [
+      {
+        "text": "上传",
+        "aria": "上传",
+        "title": "",
+        "rect": {
+          "x": 330,
+          "y": 10,
+          "w": 44,
+          "h": 44,
+          "bottom": 54,
+          "right": 374
+        }
+      }
+    ],
+    "bottomNav": {
+      "x": 0,
+      "y": 785,
+      "w": 390,
+      "h": 59,
+      "bottom": 844,
+      "right": 390
+    },
+    "emptyRect": null,
+    "titleRect": null,
+    "statsRect": null,
+    "overflow": 0
+  },
+  {
+    "viewport": {
+      "name": "iphone12",
+      "width": 390,
+      "height": 844
+    },
+    "route": "/hackathon",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/mobile-ui-final-20260617/iphone12-390x844__hackathon.png",
+    "path": "/hackathon",
+    "uploads": [
+      {
+        "text": "提交成果",
+        "aria": "",
+        "title": "",
+        "rect": {
+          "x": 16,
+          "y": 363,
+          "w": 358,
+          "h": 46,
+          "bottom": 409,
+          "right": 374
+        }
+      }
+    ],
+    "bottomNav": {
+      "x": 0,
+      "y": 785,
+      "w": 390,
+      "h": 59,
+      "bottom": 844,
+      "right": 390
+    },
+    "emptyRect": null,
+    "titleRect": {
+      "x": 16,
+      "y": 164,
+      "w": 358,
+      "h": 84,
+      "bottom": 248,
+      "right": 374
+    },
+    "statsRect": {
+      "x": 16,
+      "y": 482,
+      "w": 358,
+      "h": 161,
+      "bottom": 643,
+      "right": 374
+    },
+    "overflow": 0
+  },
+  {
+    "viewport": {
+      "name": "iphone12",
+      "width": 390,
+      "height": 844
+    },
+    "route": "/projects",
+    "screenshot": "/Users/yq/Desktop/ZJU_Platform/ui-audit-screenshots/mobile-ui-final-20260617/iphone12-390x844__projects.png",
+    "path": "/projects",
+    "uploads": [
+      {
+        "text": "＋ 发布我的项目",
+        "aria": "",
+        "title": "",
+        "rect": {
+          "x": 24,
+          "y": 309,
+          "w": 145,
+          "h": 46,
+          "bottom": 355,
+          "right": 169
+        }
+      }
+    ],
+    "bottomNav": {
+      "x": 0,
+      "y": 785,
+      "w": 390,
+      "h": 59,
+      "bottom": 844,
+      "right": 390
+    },
+    "emptyRect": {
+      "x": 24,
+      "y": 523,
+      "w": 342,
+      "h": 173,
+      "bottom": 696,
+      "right": 366
+    },
+    "titleRect": null,
+    "statsRect": null,
+    "overflow": 0
+  }
+]

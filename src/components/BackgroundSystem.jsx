@@ -43,11 +43,14 @@ const SCENE_RENDER_TUNING = {
 };
 
 const DAY_RENDER_TUNING = {
-  brightness: 1.2,
-  bloom: 0.24,
-  saturation: 0.72,
-  contrast: 0.62,
+  brightness: 1.18,
+  bloom: 0.3,
+  saturation: 0.78,
+  contrast: 0.78,
 };
+
+const getSceneClearColor = (isDayMode) => (isDayMode ? "#f8fbff" : "#000000");
+const getSceneFogColor = (isDayMode) => (isDayMode ? "#f8fbff" : "#000000");
 
 const getHighQualityDpr = () => {
   if (typeof window === "undefined") return 1.75;
@@ -113,9 +116,9 @@ const FaintGrid = ({
   );
 };
 
-const DeepSpaceScene = () => (
+const DeepSpaceScene = ({ isDayMode = false }) => (
   <>
-    <color attach="background" args={["#000000"]} />
+    <color attach="background" args={[getSceneClearColor(isDayMode)]} />
     <Stars radius={100} depth={50} count={4600} factor={4.1} saturation={0} fade speed={0.42} />
     <Float speed={1} rotationIntensity={0.2} floatIntensity={0.2}>
       <Cloud
@@ -152,7 +155,7 @@ const DeepSpaceScene = () => (
   </>
 );
 
-const RetroGridScene = () => {
+const RetroGridScene = ({ isDayMode = false }) => {
   const gridRef = useRef(null);
 
   useFrame((state) => {
@@ -163,8 +166,8 @@ const RetroGridScene = () => {
 
   return (
     <>
-      <color attach="background" args={["#000000"]} />
-      <fog attach="fog" args={["#000000", 5, 40]} />
+      <color attach="background" args={[getSceneClearColor(isDayMode)]} />
+      <fog attach="fog" args={[getSceneFogColor(isDayMode), 5, 40]} />
       <group ref={gridRef} rotation={[Math.PI / 2.5, 0, 0]} position={[0, -3.4, -14]}>
         <FaintGrid
           centerColor="#dc47ff"
@@ -191,10 +194,10 @@ const RetroGridScene = () => {
   );
 };
 
-const FireEmbersScene = () => (
+const FireEmbersScene = ({ isDayMode = false }) => (
   <>
-    <color attach="background" args={["#000000"]} />
-    <fog attach="fog" args={["#000000", 5, 20]} />
+    <color attach="background" args={[getSceneClearColor(isDayMode)]} />
+    <fog attach="fog" args={[getSceneFogColor(isDayMode), 5, 20]} />
     <Sparkles
       count={360}
       scale={[22, 6.4, 12]}
@@ -280,9 +283,9 @@ const SmoothWireIcosahedron = ({
   );
 };
 
-const CrystalCaveScene = () => (
+const CrystalCaveScene = ({ isDayMode = false }) => (
   <>
-    <color attach="background" args={["#000000"]} />
+    <color attach="background" args={[getSceneClearColor(isDayMode)]} />
     <Float speed={2} rotationIntensity={1} floatIntensity={2}>
       <SmoothWireIcosahedron
         color="#33f6ff"
@@ -310,10 +313,10 @@ const CrystalCaveScene = () => (
   </>
 );
 
-const EtherealCloudsScene = () => (
+const EtherealCloudsScene = ({ isDayMode = false }) => (
   <>
-    <color attach="background" args={["#000000"]} />
-    <fog attach="fog" args={["#000000", 8, 32]} />
+    <color attach="background" args={[getSceneClearColor(isDayMode)]} />
+    <fog attach="fog" args={[getSceneFogColor(isDayMode), 8, 32]} />
     <Float speed={0.5} rotationIntensity={0.1} floatIntensity={0.5}>
       <Cloud
         texture={CLOUD_URL}
@@ -341,7 +344,7 @@ const EtherealCloudsScene = () => (
   </>
 );
 
-const CyberCircuitScene = () => {
+const CyberCircuitScene = ({ isDayMode = false }) => {
   const gridRef = useRef(null);
 
   useFrame((state) => {
@@ -353,8 +356,8 @@ const CyberCircuitScene = () => {
 
   return (
     <>
-      <color attach="background" args={["#000000"]} />
-      <fog attach="fog" args={["#000000", 2, 25]} />
+      <color attach="background" args={[getSceneClearColor(isDayMode)]} />
+      <fog attach="fog" args={[getSceneFogColor(isDayMode), 2, 25]} />
       <group ref={gridRef} rotation={[Math.PI / 3, 0, 0]} position={[0, -3.2, -13]}>
         <FaintGrid
           centerColor="#13c7dc"
@@ -370,7 +373,7 @@ const CyberCircuitScene = () => {
   );
 };
 
-const DNAScene = () => {
+const DNAScene = ({ isDayMode = false }) => {
   const groupRef = useRef(null);
   const geometry = useMemo(() => {
     const points = [];
@@ -392,7 +395,7 @@ const DNAScene = () => {
 
   return (
     <>
-      <color attach="background" args={["#000000"]} />
+      <color attach="background" args={[getSceneClearColor(isDayMode)]} />
       <group ref={groupRef} rotation={[0, 0, Math.PI / 4]} position={[3.8, -0.2, -9.6]} scale={0.42}>
         <points geometry={geometry}>
           <PointMaterial transparent size={0.09} opacity={0.52} sizeAttenuation depthWrite={false} color="#20ff9d" />
@@ -404,9 +407,9 @@ const DNAScene = () => {
   );
 };
 
-const BinaryStreamScene = () => (
+const BinaryStreamScene = ({ isDayMode = false }) => (
   <>
-    <color attach="background" args={["#000000"]} />
+    <color attach="background" args={[getSceneClearColor(isDayMode)]} />
     <Sparkles
       count={210}
       scale={[22, 8, 0]}
@@ -427,7 +430,7 @@ const BinaryStreamScene = () => (
   </>
 );
 
-const NetworkScene = () => {
+const NetworkScene = ({ isDayMode = false }) => {
   const nodePositions = useMemo(
     () => [
       [-4.4, 1.6, -6.2],
@@ -441,7 +444,7 @@ const NetworkScene = () => {
 
   return (
     <>
-      <color attach="background" args={["#000000"]} />
+      <color attach="background" args={[getSceneClearColor(isDayMode)]} />
       <Stars radius={30} count={300} factor={5.4} fade speed={0.4} color="#8bb8ff" />
       <group position={[0, 0, -1]}>
         {nodePositions.map((position, index) => (
@@ -475,7 +478,7 @@ const NetworkScene = () => {
   );
 };
 
-const ParticleWaveScene = () => {
+const ParticleWaveScene = ({ isDayMode = false }) => {
   const ref = useRef(null);
   const geometry = useMemo(() => {
     const points = [];
@@ -506,7 +509,7 @@ const ParticleWaveScene = () => {
 
   return (
     <>
-      <color attach="background" args={["#000000"]} />
+      <color attach="background" args={[getSceneClearColor(isDayMode)]} />
       <group rotation={[Math.PI / 6, 0, 0]} position={[0, -4.4, -10.8]}>
         <points ref={ref} geometry={geometry}>
           <PointMaterial transparent size={0.068} opacity={0.55} depthWrite={false} color="#ff65cf" />
@@ -529,7 +532,7 @@ const ParticleWaveScene = () => {
   );
 };
 
-const OrbitalScene = () => {
+const OrbitalScene = ({ isDayMode = false }) => {
   const ringARef = useRef(null);
   const ringBRef = useRef(null);
   const ringCRef = useRef(null);
@@ -543,7 +546,7 @@ const OrbitalScene = () => {
 
   return (
     <>
-      <color attach="background" args={["#000000"]} />
+      <color attach="background" args={[getSceneClearColor(isDayMode)]} />
       <pointLight position={[1.8, -0.4, -7.4]} intensity={0.9} color="#ff6f9a" distance={10} />
       <Cloud
         texture={CLOUD_URL}
@@ -600,31 +603,40 @@ const sceneComponents = {
   orbit: OrbitalScene,
 };
 
-const StaticDarkFallback = ({ sceneId }) => {
-  const backgroundImage = {
-    cyber:
-      "radial-gradient(ellipse at 50% 78%, rgba(0,255,255,0.42), transparent 42%), #000000",
+const StaticFallback = ({ sceneId, isDayMode = false }) => {
+  const darkFallbacks = {
+    cyber: "radial-gradient(ellipse at 50% 78%, rgba(0,255,255,0.42), transparent 42%), #000000",
     space:
       "radial-gradient(ellipse at 28% 20%, rgba(109,40,217,0.62), transparent 40%), radial-gradient(ellipse at 76% 28%, rgba(37,99,235,0.55), transparent 42%), #000000",
-    grid:
-      "radial-gradient(ellipse at 50% 78%, rgba(255,0,255,0.5), transparent 44%), #000000",
-    embers:
-      "radial-gradient(ellipse at 50% 90%, rgba(255,192,74,0.66), transparent 44%), #000000",
+    grid: "radial-gradient(ellipse at 50% 78%, rgba(255,0,255,0.5), transparent 44%), #000000",
+    embers: "radial-gradient(ellipse at 50% 90%, rgba(255,192,74,0.66), transparent 44%), #000000",
     crystal:
       "radial-gradient(ellipse at 32% 26%, rgba(51,246,255,0.5), transparent 38%), radial-gradient(ellipse at 74% 62%, rgba(255,77,255,0.44), transparent 34%), #000000",
     clouds:
       "radial-gradient(ellipse at 48% 36%, rgba(223,247,255,0.4), transparent 48%), radial-gradient(ellipse at 35% 56%, rgba(96,165,250,0.32), transparent 42%), #000000",
-    dna:
-      "radial-gradient(ellipse at 50% 50%, rgba(32,255,157,0.52), transparent 38%), #000000",
-    binary:
-      "radial-gradient(ellipse at 50% 52%, rgba(34,245,139,0.46), transparent 42%), #000000",
-    network:
-      "radial-gradient(ellipse at 52% 40%, rgba(106,165,255,0.52), transparent 42%), #000000",
-    wave:
-      "radial-gradient(ellipse at 54% 54%, rgba(255,101,207,0.52), transparent 42%), #000000",
-    orbit:
-      "radial-gradient(ellipse at 50% 50%, rgba(255,111,154,0.58), transparent 40%), #000000",
-  }[sceneId];
+    dna: "radial-gradient(ellipse at 50% 50%, rgba(32,255,157,0.52), transparent 38%), #000000",
+    binary: "radial-gradient(ellipse at 50% 52%, rgba(34,245,139,0.46), transparent 42%), #000000",
+    network: "radial-gradient(ellipse at 52% 40%, rgba(106,165,255,0.52), transparent 42%), #000000",
+    wave: "radial-gradient(ellipse at 54% 54%, rgba(255,101,207,0.52), transparent 42%), #000000",
+    orbit: "radial-gradient(ellipse at 50% 50%, rgba(255,111,154,0.58), transparent 40%), #000000",
+  };
+  const dayFallbacks = {
+    cyber: "radial-gradient(ellipse at 50% 78%, rgba(14,165,233,0.16), transparent 42%), #f8fbff",
+    space:
+      "radial-gradient(ellipse at 28% 20%, rgba(168,85,247,0.14), transparent 40%), radial-gradient(ellipse at 76% 28%, rgba(37,99,235,0.12), transparent 42%), #f8fbff",
+    grid: "radial-gradient(ellipse at 50% 78%, rgba(236,72,153,0.14), transparent 44%), #fff8fd",
+    embers: "radial-gradient(ellipse at 50% 90%, rgba(251,191,36,0.18), transparent 44%), #fffaf2",
+    crystal:
+      "radial-gradient(ellipse at 32% 26%, rgba(14,165,233,0.14), transparent 38%), radial-gradient(ellipse at 74% 62%, rgba(236,72,153,0.12), transparent 34%), #f8fbff",
+    clouds:
+      "radial-gradient(ellipse at 48% 36%, rgba(186,230,253,0.22), transparent 48%), radial-gradient(ellipse at 35% 56%, rgba(147,197,253,0.14), transparent 42%), #f8fbff",
+    dna: "radial-gradient(ellipse at 50% 50%, rgba(16,185,129,0.14), transparent 38%), #f8fff9",
+    binary: "radial-gradient(ellipse at 50% 52%, rgba(34,197,94,0.13), transparent 42%), #f8fff9",
+    network: "radial-gradient(ellipse at 52% 40%, rgba(96,165,250,0.16), transparent 42%), #f8fbff",
+    wave: "radial-gradient(ellipse at 54% 54%, rgba(236,72,153,0.14), transparent 42%), #fff8fd",
+    orbit: "radial-gradient(ellipse at 50% 50%, rgba(244,114,182,0.16), transparent 40%), #fff8fd",
+  };
+  const backgroundImage = (isDayMode ? dayFallbacks : darkFallbacks)[sceneId];
 
   return <div className="absolute inset-0" style={{ backgroundImage }} />;
 };
@@ -667,7 +679,7 @@ const BackgroundSystem = ({ forcedTheme = null }) => {
       style={{ filter: `brightness(${brightness}) saturate(${saturation}) contrast(${contrast})` }}
     >
       {prefersReducedMotion ? (
-        <StaticDarkFallback sceneId={sceneId} />
+        <StaticFallback sceneId={sceneId} isDayMode={isDayMode} />
       ) : (
         <Canvas
           camera={{ fov: 60, position: [0, 0, 10] }}
@@ -686,7 +698,7 @@ const BackgroundSystem = ({ forcedTheme = null }) => {
             }}
           />
           <Suspense fallback={null}>
-            <CurrentScene />
+            <CurrentScene isDayMode={isDayMode} />
             {effectsEnabled ? (
               <EffectComposer disableNormalPass multisampling={dpr >= 1.5 ? 4 : 0}>
                 <Bloom
@@ -704,8 +716,8 @@ const BackgroundSystem = ({ forcedTheme = null }) => {
       )}
       {isDayMode ? (
         <>
-          <div className="absolute inset-0 bg-white/82" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_16%_16%,rgba(236,72,153,0.1),transparent_28rem),radial-gradient(circle_at_84%_12%,rgba(168,85,247,0.11),transparent_30rem),linear-gradient(180deg,rgba(255,255,255,0.58),rgba(255,255,255,0.9))]" />
+          <div className="absolute inset-0 bg-white/46" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_16%_16%,rgba(236,72,153,0.08),transparent_28rem),radial-gradient(circle_at_84%_12%,rgba(168,85,247,0.085),transparent_30rem),linear-gradient(180deg,rgba(255,255,255,0.22),rgba(255,255,255,0.58))]" />
         </>
       ) : (
         <div className="absolute inset-0 bg-black/55 md:hidden" />

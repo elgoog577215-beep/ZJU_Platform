@@ -2429,5 +2429,101 @@
     "default_desc": "AI生态团队信息聚合平台，聚合活动、画廊、播客、视频与 AI 社区内容。",
     "author": "AI生态团队",
     "keywords": "拓途浙享, 浙江大学, AI生态团队, 活动, 画廊, 播客, 视频, AI社区, 校园平台"
+  },
+  "project_plaza": {
+    "meta_title": "项目广场",
+    "meta_desc": "把正在做的项目放上来，让对的人找到你。",
+    "kicker": "BUILD · 项目广场",
+    "title": "项目广场",
+    "subtitle": "找项目、看进度、补队友。",
+    "search_placeholder": "搜索项目、技术栈、发起人...",
+    "loading": "加载中...",
+    "empty_title": "还没有匹配的项目名片",
+    "empty_desc": "换个关键词，或发布第一个项目。",
+    "untitled": "未命名项目",
+    "anonymous": "匿名",
+    "initial_you": "你",
+    "detail_kicker": "项目名片",
+    "owner_prefix": "发起人",
+    "detail_intro": "项目介绍",
+    "detail_needs": "在找",
+    "detail_tags": "特点 / 技术栈",
+    "progress": {
+      "idea": "构思中",
+      "dev": "开发中",
+      "live": "已上线",
+      "pause": "暂停"
+    },
+    "filters": {
+      "aria": "项目筛选",
+      "all": "全部",
+      "progress": "进度",
+      "needs": "在找"
+    },
+    "needs": {
+      "people": "缺人",
+      "design": "缺设计",
+      "product": "缺产品",
+      "discussion": "缺讨论",
+      "testers": "找测试用户",
+      "funding": "缺资金"
+    },
+    "stats": {
+      "saves": "{{count}} 收藏"
+    },
+    "actions": {
+      "publish": "发布项目",
+      "publish_first": "发布第一个项目",
+      "repo": "看仓库",
+      "no_repo": "无仓库"
+    },
+    "contact": {
+      "wechat": "微信",
+      "empty": "未留联系方式",
+      "login_required": "登录后查看联系方式"
+    },
+    "toasts": {
+      "load_failed": "加载失败",
+      "open_failed": "打开失败",
+      "login_to_publish": "请先登录后再发布",
+      "upload_failed": "图片上传失败",
+      "name_required": "请填写项目名称",
+      "repo_https": "仓库链接需为 https",
+      "draft_saved": "已存草稿",
+      "published": "已发布到广场",
+      "publish_failed": "发布失败"
+    },
+    "form": {
+      "back": "返回广场",
+      "title": "发布项目名片",
+      "save_draft": "存草稿",
+      "publish": "发布到广场",
+      "publishing": "发布中...",
+      "photos": "项目照片",
+      "photos_hint": "第一张作封面，最多 9 张",
+      "upload": "上传",
+      "cover": "封面",
+      "name": "项目名称",
+      "name_placeholder": "例如：校园二手书漂流",
+      "summary": "一句话简介",
+      "summary_hint": "显示在卡片上",
+      "summary_placeholder": "一句话说清楚它是什么",
+      "body": "项目介绍",
+      "body_hint": "点开名片后展示",
+      "body_placeholder": "在做什么、做到哪一步、接下来想干嘛...",
+      "progress": "当前进度",
+      "needs": "我在找",
+      "needs_hint": "可多选",
+      "tags": "技术栈 / 特点标签",
+      "tag_placeholder": "输入后回车",
+      "repo": "仓库链接",
+      "contact": "联系方式",
+      "contact_hint": "仅登录用户可见",
+      "contact_placeholder": "微信号 / 邮箱",
+      "preview_label": "实时预览",
+      "preview_title": "项目名称",
+      "preview_summary": "一句话简介会显示在这里",
+      "preview_hint": "别人会先看到这张紧凑名片，点开再读完整介绍。"
+    }
   }
 }

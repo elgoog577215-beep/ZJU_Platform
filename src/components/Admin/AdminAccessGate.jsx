@@ -35,7 +35,7 @@ const AdminAccessGate = () => {
   const buttonClass =
     "rect-button inline-flex min-h-[44px] items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60";
   const primaryButtonClass = isDayMode
-    ? "rect-button-primary bg-slate-950 text-white hover:bg-slate-800"
+    ? "rect-button-primary bg-violet-600 text-white hover:bg-violet-700"
     : "rect-button-primary bg-indigo-500 text-white hover:bg-indigo-400";
   const subtleButtonClass = isDayMode
     ? "rect-button-secondary bg-white text-slate-700 hover:text-slate-950"

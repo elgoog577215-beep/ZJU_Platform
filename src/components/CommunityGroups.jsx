@@ -386,7 +386,7 @@ const CommunityGroups = ({ compact = false, compactLimit = 3 }) => {
                     if (showForm) resetForm();
                     setShowForm((v) => !v);
                   }}
-                  className={`h-10 px-3 rounded-lg border text-sm inline-flex items-center gap-1.5 ${isDayMode ? 'bg-slate-950 text-white border-slate-950' : 'bg-orange-500 text-black border-orange-500'}`}
+                  className={`h-10 px-3 rounded-lg border text-sm inline-flex items-center gap-1.5 ${isDayMode ? 'bg-violet-600 text-white border-violet-600 hover:bg-violet-700' : 'bg-orange-500 text-black border-orange-500'}`}
                 >
                   <Plus size={14} />
                   {showForm ? t('community.groups.collapse_form', '收起表单') : (isAdmin ? t('community.groups.new_group', '新建社群') : t('community.groups.submit_group', '投稿社群'))}
@@ -446,7 +446,7 @@ const CommunityGroups = ({ compact = false, compactLimit = 3 }) => {
             )}
             <div className="md:col-span-2 flex items-center justify-end gap-2">
               <button type="button" onClick={() => { setShowForm(false); resetForm(); }} className={`px-3 py-2 rounded-lg text-sm border ${isDayMode ? 'border-slate-200 text-slate-600' : 'border-white/10 text-gray-300'}`}>取消</button>
-              <button type="submit" className={`px-4 py-2 rounded-lg text-sm font-semibold ${isDayMode ? 'bg-slate-950 text-white' : 'bg-orange-500 text-black'}`}>{editingId ? '保存修改' : (isAdmin ? '创建社群' : '提交审核')}</button>
+              <button type="submit" className={`px-4 py-2 rounded-lg text-sm font-semibold ${isDayMode ? 'bg-violet-600 text-white hover:bg-violet-700' : 'bg-orange-500 text-black'}`}>{editingId ? '保存修改' : (isAdmin ? '创建社群' : '提交审核')}</button>
             </div>
           </form>
         )}

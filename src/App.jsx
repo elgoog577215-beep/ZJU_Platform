@@ -236,7 +236,11 @@ const AppContent = () => {
   }, [isAdminRoute, location.pathname]);
 
   return (
-    <div className="day-ambient-shell flex flex-col min-h-screen">
+    <div
+      className={`day-ambient-shell flex min-h-screen flex-col ${
+        shouldRenderDynamicBackground ? 'dynamic-background-active' : ''
+      }`}
+    >
       <ResourceHints />
       <a
         href="#main-content"
