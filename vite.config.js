@@ -28,6 +28,7 @@ export default defineConfig(({ mode }) => {
         },
         includeAssets: [
           'newlogo.png',
+          'favicon.ico',
           'favicon-16.png',
           'favicon-32.png',
           'apple-touch-icon.png',
@@ -82,6 +83,7 @@ export default defineConfig(({ mode }) => {
             'manifest.json',
             'offline.html',
             'newlogo.png',
+            'favicon.ico',
             'favicon-16.png',
             'favicon-32.png',
             'apple-touch-icon.png',
