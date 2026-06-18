@@ -290,29 +290,29 @@ const EventAssistantPanel = ({
     ? "bg-transparent border-transparent shadow-none"
     : isRailVariant
       ? isDayMode
-        ? "bg-white/97 border-slate-200/85 shadow-[0_18px_44px_rgba(15,23,42,0.11)]"
+        ? "bg-white border-slate-200/85 shadow-none"
         : "bg-[#0d111a]/94 border-white/10 shadow-[0_18px_46px_rgba(0,0,0,0.34)]"
       : isDayMode
-        ? "bg-white/95 border-slate-200/85 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
+        ? "bg-white border-slate-200/85 shadow-none"
         : "bg-[#10121d]/88 border-white/10 shadow-none";
   const softPanelClass = isDayMode
-    ? "bg-white/86 border-slate-200/80"
+    ? "bg-white border-slate-200/80"
     : "bg-white/[0.05] border-white/10";
   const promptCardClass = isFullscreenVariant || isRailVariant
-    ? `${isDayMode ? "border-slate-200/90 bg-white/96 shadow-[0_1px_2px_rgba(15,23,42,0.04)]" : "border-white/10 bg-white/[0.045] shadow-none"}`
+    ? `${isDayMode ? "border-slate-200/90 bg-white shadow-none" : "border-white/10 bg-white/[0.045] shadow-none"}`
     : softPanelClass;
   const resultPanelClass = isFullscreenVariant || isRailVariant
-    ? `${isDayMode ? "border-slate-200/90 bg-white/96 shadow-[0_1px_2px_rgba(15,23,42,0.04)]" : "border-white/10 bg-white/[0.045] shadow-none"}`
+    ? `${isDayMode ? "border-slate-200/90 bg-white shadow-none" : "border-white/10 bg-white/[0.045] shadow-none"}`
     : softPanelClass;
   const textClass = isDayMode ? "text-slate-900" : "text-white";
   const mutedClass = isDayMode ? "text-slate-600" : "text-gray-300";
   const faintClass = isDayMode ? "text-slate-500" : "text-gray-400";
   const chipClass = isDayMode
-    ? "bg-violet-50 text-slate-600 border-violet-100/80"
+    ? "bg-white text-slate-600 border-violet-100/80"
     : "bg-white/8 text-white/75 border-white/10";
   const quickPromptClass = isFullscreenVariant || isRailVariant
     ? isDayMode
-      ? "bg-white text-slate-700 border-violet-100 shadow-[0_1px_2px_rgba(168,85,247,0.045)] hover:border-violet-200 hover:bg-pink-50/60 active:bg-pink-50"
+      ? "bg-white text-slate-700 border-violet-100 shadow-none hover:border-violet-200 hover:bg-white active:bg-white"
       : "bg-white/[0.055] text-white/82 border-white/10 shadow-none hover:border-blue-300/20 hover:bg-white/[0.085] active:bg-white/[0.1]"
     : chipClass;
   const controlChipClass = isFullscreenVariant || isRailVariant
@@ -321,10 +321,10 @@ const EventAssistantPanel = ({
       : "bg-white/[0.06] text-white/76 border-white/10"
     : chipClass;
   const actionClass = isDayMode
-    ? "bg-violet-700 text-white hover:bg-violet-800 shadow-[0_1px_2px_rgba(124,58,237,0.14)]"
+    ? "bg-violet-700 text-white hover:bg-violet-800 shadow-none"
     : "bg-blue-600 text-white hover:bg-blue-500 shadow-[0_1px_2px_rgba(0,0,0,0.22)]";
   const disabledActionClass = isDayMode
-    ? "disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none"
+    ? "disabled:bg-white disabled:text-slate-400 disabled:shadow-none"
     : "disabled:bg-white/[0.07] disabled:text-white/35 disabled:shadow-none";
   const panelPaddingClass = isRailVariant
     ? "min-h-0 flex-1 overflow-y-auto p-2.5 custom-scrollbar"
@@ -345,7 +345,7 @@ const EventAssistantPanel = ({
   const shellRadiusClass = isFullscreenVariant ? "rounded-none" : isRailVariant ? "rounded-[7px]" : "rounded-lg";
   const promptCardPaddingClass = isRailVariant ? "p-3" : "p-4";
   const promptFocusClass = isDayMode
-    ? "focus-within:border-violet-300/90 focus-within:shadow-[0_0_0_3px_rgba(139,92,246,0.08)]"
+    ? "focus-within:border-violet-300/90 focus-within:shadow-none"
     : "focus-within:border-blue-300/35 focus-within:bg-white/[0.06]";
   const textareaSizeClass = isRailVariant
     ? "min-h-[70px] text-sm leading-6"
@@ -366,13 +366,13 @@ const EventAssistantPanel = ({
 
   return (
     <div className={`w-full ${isRailVariant ? "h-full min-h-0" : ""} ${className}`}>
-      <div className={`relative overflow-hidden border backdrop-blur-2xl transition-[background-color,border-color,box-shadow] ${shellRadiusClass} ${isRailVariant ? "flex h-full min-h-0 flex-col" : ""} ${shellClass}`}>
+      <div className={`relative overflow-hidden border transition-[background-color,border-color,box-shadow] ${isDayMode ? "" : "backdrop-blur-2xl"} ${shellRadiusClass} ${isRailVariant ? "flex h-full min-h-0 flex-col" : ""} ${shellClass}`}>
         <div className={`relative ${panelPaddingClass}`}>
           {isRailVariant ? (
-            <div className={`sticky top-0 z-10 -mx-2.5 -mt-2.5 border-b px-2.5 py-2.5 backdrop-blur-xl ${isDayMode ? "border-violet-100/80 bg-white/92" : "border-white/10 bg-[#0d111a]/92"}`}>
+            <div className={`sticky top-0 z-10 -mx-2.5 -mt-2.5 border-b px-2.5 py-2.5 ${isDayMode ? "border-violet-100/80 bg-white" : "border-white/10 bg-[#0d111a]/92 backdrop-blur-xl"}`}>
               <div className="flex items-center justify-between gap-2.5">
                 <div className="flex min-w-0 items-center gap-2 text-left">
-                  <span className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border ${isDayMode ? "border-pink-100 bg-pink-50 text-violet-700" : "border-blue-300/15 bg-blue-400/10 text-blue-200"}`}>
+                  <span className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border ${isDayMode ? "border-pink-100 bg-white text-violet-700" : "border-blue-300/15 bg-blue-400/10 text-blue-200"}`}>
                     <Sparkles size={16} />
                   </span>
                   <div className="min-w-0">
@@ -577,7 +577,7 @@ const EventAssistantPanel = ({
                         return (
                           <div
                             key={item.id}
-                            className={`rounded-lg border transition-[background-color,border-color,box-shadow,transform] hover:-translate-y-0.5 ${recommendationCardClass} ${isDayMode ? "bg-white border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.035)] hover:border-violet-200 hover:bg-violet-50/30 hover:shadow-[0_8px_18px_rgba(88,28,135,0.06)]" : "bg-white/[0.045] border-white/10 hover:border-blue-300/20 hover:bg-white/[0.065]"}`}
+                            className={`rounded-lg border transition-[background-color,border-color,box-shadow,transform] ${recommendationCardClass} ${isDayMode ? "bg-white border-slate-200 shadow-none hover:border-violet-200 hover:bg-white hover:shadow-none" : "bg-white/[0.045] border-white/10 hover:-translate-y-0.5 hover:border-blue-300/20 hover:bg-white/[0.065]"}`}
                           >
                             <button
                               type="button"

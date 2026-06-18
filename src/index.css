@@ -48,22 +48,22 @@
   background-color: #ffffff;
   color: #161322;
   --theme-bg: #ffffff;
-  --theme-bg-soft: rgba(255, 255, 255, 0.9);
-  --theme-surface: rgba(255, 255, 255, 0.9);
+  --theme-bg-soft: #ffffff;
+  --theme-surface: #ffffff;
   --theme-surface-strong: #ffffff;
-  --theme-surface-muted: #fbf9ff;
-  --theme-surface-hover: #fff7fd;
+  --theme-surface-muted: #ffffff;
+  --theme-surface-hover: #ffffff;
   --theme-border: rgba(91, 75, 110, 0.12);
   --theme-border-strong: rgba(168, 85, 247, 0.22);
   --theme-text-primary: #161322;
   --theme-text-secondary: rgba(35, 28, 49, 0.82);
   --theme-text-muted: #6c6378;
   --theme-text-soft: rgba(108, 99, 120, 0.68);
-  --theme-overlay-soft: rgba(255, 255, 255, 0.72);
-  --theme-overlay-strong: rgba(255, 255, 255, 0.96);
-  --theme-shadow-sm: 0 8px 22px rgba(67, 56, 80, 0.045), 0 1px 1px rgba(67, 56, 80, 0.035);
-  --theme-shadow: 0 18px 42px rgba(67, 56, 80, 0.065), 0 1px 1px rgba(67, 56, 80, 0.04);
-  --theme-shadow-lg: 0 34px 82px rgba(67, 56, 80, 0.105), 0 2px 2px rgba(67, 56, 80, 0.045);
+  --theme-overlay-soft: transparent;
+  --theme-overlay-strong: #ffffff;
+  --theme-shadow-sm: none;
+  --theme-shadow: none;
+  --theme-shadow-lg: none;
   --theme-accent: #a855f7;
   --theme-accent-strong: #7c3aed;
   --theme-accent-soft: rgba(236, 72, 153, 0.105);
@@ -1080,25 +1080,24 @@ img {
   :root[data-theme='day'] .day-fine-surface {
     background: #ffffff;
     border-color: rgba(91, 75, 110, 0.12);
-    box-shadow:
-      0 12px 30px rgba(67, 56, 80, 0.05);
+    box-shadow: none;
   }
 
   :root[data-theme='day'] .day-chrome-surface {
-    background: rgba(255, 255, 255, 0.94);
+    background: #ffffff;
     border-color: rgba(91, 75, 110, 0.11);
-    box-shadow: 0 10px 26px rgba(67, 56, 80, 0.045);
+    box-shadow: none;
   }
 
   :root[data-theme='day'] .day-card-lift {
     background: #ffffff;
     border-color: rgba(91, 75, 110, 0.12);
-    box-shadow: 0 12px 30px rgba(67, 56, 80, 0.05);
+    box-shadow: none;
   }
 
   :root[data-theme='day'] .day-card-lift:hover {
     border-color: rgba(236, 72, 153, 0.2);
-    box-shadow: 0 16px 38px rgba(168, 85, 247, 0.08);
+    box-shadow: none;
   }
 
   :root[data-theme='day'] .day-quiet-button {
@@ -1109,7 +1108,7 @@ img {
   }
 
   :root[data-theme='day'] .day-quiet-button:hover {
-    background: #fff7fd;
+    background: #ffffff;
     border-color: rgba(236, 72, 153, 0.22);
     color: #161322;
   }
@@ -1117,32 +1116,31 @@ img {
   :root[data-theme='day'] .day-paper-surface {
     background: #ffffff;
     border-color: rgba(91, 75, 110, 0.12);
-    box-shadow: 0 14px 34px rgba(67, 56, 80, 0.05);
+    box-shadow: none;
   }
 
   :root[data-theme='day'] .day-soft-active {
-    background: #fff7fd;
+    background: #ffffff;
     border-color: rgba(236, 72, 153, 0.26);
     color: #9d174d;
-    box-shadow: 0 8px 18px rgba(236, 72, 153, 0.07);
+    box-shadow: none;
   }
 
   .theme-admin-shell {
-    background:
-      linear-gradient(180deg, color-mix(in srgb, var(--theme-bg) 92%, transparent) 0%, var(--theme-bg) 100%);
+    background: var(--theme-bg);
     color: var(--theme-text-primary);
   }
 
   .theme-admin-sidebar {
-    background: color-mix(in srgb, var(--theme-surface-strong) 92%, transparent);
+    background: var(--theme-surface-strong);
     border: 1px solid var(--theme-border);
-    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+    box-shadow: none;
   }
 
   .theme-admin-panel {
     background: var(--theme-surface-strong);
     border: 1px solid var(--theme-border);
-    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+    box-shadow: none;
     color: var(--theme-text-primary);
   }
 
@@ -2132,24 +2130,24 @@ img.motion-image-zoom {
 :root[data-theme='day'] .text-gray-400 { color: rgba(71, 85, 105, 0.8); }
 :root[data-theme='day'] .text-gray-500 { color: rgba(100, 116, 139, 0.88); }
 
-:root[data-theme='day'] .bg-white\/5 { background-color: rgba(255, 255, 255, 0.68); }
-:root[data-theme='day'] .bg-white\/10 { background-color: rgba(255, 255, 255, 0.84); }
-:root[data-theme='day'] .bg-white\/15 { background-color: rgba(255, 255, 255, 0.78); }
-:root[data-theme='day'] .bg-white\/20 { background-color: rgba(255, 255, 255, 0.72); }
-:root[data-theme='day'] .bg-black\/20 { background-color: rgba(255, 255, 255, 0.56); }
-:root[data-theme='day'] .bg-black\/40 { background-color: rgba(249, 253, 255, 0.86); }
-:root[data-theme='day'] .bg-black\/50 { background-color: rgba(255, 255, 255, 0.88); }
+:root[data-theme='day'] .bg-white\/5 { background-color: #ffffff; }
+:root[data-theme='day'] .bg-white\/10 { background-color: #ffffff; }
+:root[data-theme='day'] .bg-white\/15 { background-color: #ffffff; }
+:root[data-theme='day'] .bg-white\/20 { background-color: #ffffff; }
+:root[data-theme='day'] .bg-black\/20 { background-color: transparent; }
+:root[data-theme='day'] .bg-black\/40 { background-color: transparent; }
+:root[data-theme='day'] .bg-black\/50 { background-color: transparent; }
 
 :root[data-theme='day'] .border-white\/5 { border-color: rgba(148, 163, 184, 0.16); }
 :root[data-theme='day'] .border-white\/10 { border-color: rgba(148, 163, 184, 0.2); }
 :root[data-theme='day'] .border-white\/15 { border-color: rgba(148, 163, 184, 0.22); }
 :root[data-theme='day'] .border-white\/20 { border-color: rgba(15, 23, 42, 0.12); }
 
-:root[data-theme='day'] .hover\:bg-white\/10:hover { background-color: rgba(255, 255, 255, 0.82); }
-:root[data-theme='day'] .hover\:bg-white\/15:hover { background-color: rgba(255, 255, 255, 0.9); }
+:root[data-theme='day'] .hover\:bg-white\/10:hover { background-color: #ffffff; }
+:root[data-theme='day'] .hover\:bg-white\/15:hover { background-color: #ffffff; }
 :root[data-theme='day'] .hover\:text-white:hover { color: var(--theme-text-primary); }
 :root[data-theme='day'] .hover\:border-white\/10:hover { border-color: rgba(37, 99, 235, 0.16); }
-:root[data-theme='day'] .shadow-\[0_8px_32px_rgba\(0\,0\,0\,0\.4\)\] { box-shadow: 0 18px 40px rgba(15, 23, 42, 0.09); }
+:root[data-theme='day'] .shadow-\[0_8px_32px_rgba\(0\,0\,0\,0\.4\)\] { box-shadow: none; }
 
 :root[data-theme='day'] .hero-day-ink {
   color: rgba(250, 255, 253, 0.96);

@@ -19,7 +19,7 @@ const ScrollProgress = () => {
     <motion.div
       className={`fixed top-0 left-0 right-0 origin-left z-[100] ${
         isDayMode
-          ? 'h-[2px] bg-gradient-to-r from-sky-300/70 via-indigo-300/70 to-rose-300/70 shadow-[0_0_14px_rgba(129,140,248,0.24)]'
+          ? 'h-[2px] bg-gradient-to-r from-sky-300/70 via-indigo-300/70 to-rose-300/70 shadow-none'
           : 'h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500'
       }`}
       style={{ scaleX: scrollYProgress }}

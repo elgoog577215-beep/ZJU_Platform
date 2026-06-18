@@ -621,20 +621,20 @@ const StaticFallback = ({ sceneId, isDayMode = false }) => {
     orbit: "radial-gradient(ellipse at 50% 50%, rgba(255,111,154,0.58), transparent 40%), #000000",
   };
   const dayFallbacks = {
-    cyber: "radial-gradient(ellipse at 50% 78%, rgba(14,165,233,0.16), transparent 42%), #f8fbff",
+    cyber: "radial-gradient(ellipse at 50% 78%, rgba(14,165,233,0.16), transparent 42%), #ffffff",
     space:
-      "radial-gradient(ellipse at 28% 20%, rgba(168,85,247,0.14), transparent 40%), radial-gradient(ellipse at 76% 28%, rgba(37,99,235,0.12), transparent 42%), #f8fbff",
-    grid: "radial-gradient(ellipse at 50% 78%, rgba(236,72,153,0.14), transparent 44%), #fff8fd",
-    embers: "radial-gradient(ellipse at 50% 90%, rgba(251,191,36,0.18), transparent 44%), #fffaf2",
+      "radial-gradient(ellipse at 28% 20%, rgba(168,85,247,0.14), transparent 40%), radial-gradient(ellipse at 76% 28%, rgba(37,99,235,0.12), transparent 42%), #ffffff",
+    grid: "radial-gradient(ellipse at 50% 78%, rgba(236,72,153,0.14), transparent 44%), #ffffff",
+    embers: "radial-gradient(ellipse at 50% 90%, rgba(251,191,36,0.18), transparent 44%), #ffffff",
     crystal:
-      "radial-gradient(ellipse at 32% 26%, rgba(14,165,233,0.14), transparent 38%), radial-gradient(ellipse at 74% 62%, rgba(236,72,153,0.12), transparent 34%), #f8fbff",
+      "radial-gradient(ellipse at 32% 26%, rgba(14,165,233,0.14), transparent 38%), radial-gradient(ellipse at 74% 62%, rgba(236,72,153,0.12), transparent 34%), #ffffff",
     clouds:
-      "radial-gradient(ellipse at 48% 36%, rgba(186,230,253,0.22), transparent 48%), radial-gradient(ellipse at 35% 56%, rgba(147,197,253,0.14), transparent 42%), #f8fbff",
-    dna: "radial-gradient(ellipse at 50% 50%, rgba(16,185,129,0.14), transparent 38%), #f8fff9",
-    binary: "radial-gradient(ellipse at 50% 52%, rgba(34,197,94,0.13), transparent 42%), #f8fff9",
-    network: "radial-gradient(ellipse at 52% 40%, rgba(96,165,250,0.16), transparent 42%), #f8fbff",
-    wave: "radial-gradient(ellipse at 54% 54%, rgba(236,72,153,0.14), transparent 42%), #fff8fd",
-    orbit: "radial-gradient(ellipse at 50% 50%, rgba(244,114,182,0.16), transparent 40%), #fff8fd",
+      "radial-gradient(ellipse at 48% 36%, rgba(186,230,253,0.22), transparent 48%), radial-gradient(ellipse at 35% 56%, rgba(147,197,253,0.14), transparent 42%), #ffffff",
+    dna: "radial-gradient(ellipse at 50% 50%, rgba(16,185,129,0.14), transparent 38%), #ffffff",
+    binary: "radial-gradient(ellipse at 50% 52%, rgba(34,197,94,0.13), transparent 42%), #ffffff",
+    network: "radial-gradient(ellipse at 52% 40%, rgba(96,165,250,0.16), transparent 42%), #ffffff",
+    wave: "radial-gradient(ellipse at 54% 54%, rgba(236,72,153,0.14), transparent 42%), #ffffff",
+    orbit: "radial-gradient(ellipse at 50% 50%, rgba(244,114,182,0.16), transparent 40%), #ffffff",
   };
   const backgroundImage = (isDayMode ? dayFallbacks : darkFallbacks)[sceneId];
 

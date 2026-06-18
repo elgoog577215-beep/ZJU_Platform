@@ -129,10 +129,10 @@ const EventFilterPanel = ({
     `relative h-11 shrink-0 border-b-2 px-3.5 text-sm font-bold transition-colors focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${
         active
           ? isDayMode
-          ? "border-blue-600 bg-blue-50/70 text-blue-900"
+          ? "border-blue-600 bg-white text-blue-900"
           : "border-indigo-300 bg-indigo-400/10 text-indigo-100"
         : isDayMode
-          ? "border-transparent text-slate-500 hover:bg-blue-50/60 hover:text-blue-900"
+          ? "border-transparent text-slate-500 hover:bg-white hover:text-blue-900"
           : "border-transparent text-slate-300 hover:bg-white/[0.055] hover:text-white"
     }`;
 
@@ -275,7 +275,7 @@ const EventFilterPanel = ({
                 type="button"
                 aria-label={t("common.clear", "清除")}
                 onClick={() => setAudienceSearch("")}
-                className={`absolute right-1 top-1/2 inline-flex min-h-[44px] min-w-[44px] -translate-y-1/2 items-center justify-center rounded-md ${isDayMode ? "text-slate-400 hover:bg-slate-100 hover:text-slate-700" : "text-slate-500 hover:bg-white/[0.07] hover:text-white"}`}
+                className={`absolute right-1 top-1/2 inline-flex min-h-[44px] min-w-[44px] -translate-y-1/2 items-center justify-center rounded-md ${isDayMode ? "text-slate-400 hover:bg-white hover:text-slate-700" : "text-slate-500 hover:bg-white/[0.07] hover:text-white"}`}
               >
                 <X size={16} />
               </button>

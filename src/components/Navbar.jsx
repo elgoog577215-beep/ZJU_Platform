@@ -205,16 +205,16 @@ const Navbar = () => {
   }, []);
 
   const shellClasses = isDayMode
-    ? "bg-white/90 border-slate-900/[0.08] shadow-[0_10px_26px_rgba(31,45,61,0.045)]"
+    ? "bg-white border-slate-900/[0.08] shadow-none"
     : "bg-black/62 border-white/10 shadow-none";
   const desktopPillClasses = isDayMode
     ? "rounded-[6px] bg-white border-violet-100/80 shadow-none"
     : "rounded-[6px] bg-white/[0.035] border-white/10 shadow-none";
   const navLinkClasses = isDayMode
-    ? "motion-link relative group whitespace-nowrap rounded-[5px] px-2.5 py-2 text-xs font-medium text-slate-500 hover:bg-white/82 hover:text-slate-950 xl:px-4 xl:text-sm"
+    ? "motion-link relative group whitespace-nowrap rounded-[5px] px-2.5 py-2 text-xs font-medium text-slate-500 hover:bg-white hover:text-slate-950 xl:px-4 xl:text-sm"
     : "motion-link relative group whitespace-nowrap rounded-[5px] px-2.5 py-2 text-xs font-medium text-gray-400 hover:bg-white/[0.075] hover:text-white xl:px-4 xl:text-sm";
   const navIndicatorClasses = isDayMode
-    ? "absolute inset-0 rounded-[5px] border border-slate-900/[0.12] bg-white shadow-[0_6px_14px_rgba(31,45,61,0.06)]"
+    ? "absolute inset-0 rounded-[5px] border border-slate-900/[0.12] bg-white shadow-none"
     : "absolute inset-0 rounded-[5px] bg-white/[0.095] border border-white/14";
   const weatherButtonClasses = isDayMode
     ? "motion-press rect-button-secondary flex items-center gap-3 text-xs px-3 py-1.5 hover:text-slate-900 cursor-pointer group"
@@ -226,7 +226,7 @@ const Navbar = () => {
     ? "theme-dialog text-slate-900"
     : "bg-[#08111f]/96 backdrop-blur-2xl border border-cyan-300/10 text-white";
   const wallpaperHeaderClasses = isDayMode
-    ? "text-slate-700 bg-white/92 border border-slate-200/70"
+    ? "text-slate-700 bg-white border border-slate-200/70"
     : "text-white/84 bg-[#08111f]/92 border border-white/10";
   const weatherModalClasses = isDayMode
     ? "theme-dialog text-slate-900"
@@ -263,7 +263,7 @@ const Navbar = () => {
       variants={navEntrance}
       initial={prefersReducedMotion ? false : "initial"}
       animate={prefersReducedMotion ? undefined : "animate"}
-      className={`motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 pt-[calc(env(safe-area-inset-top)+0.625rem)] pb-2.5 md:py-3 border-b backdrop-blur-xl ${shellClasses}`}
+      className={`motion-gpu fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 md:px-6 pt-[calc(env(safe-area-inset-top)+0.625rem)] pb-2.5 md:py-3 border-b ${isDayMode ? "" : "backdrop-blur-xl"} ${shellClasses}`}
       role="navigation"
       aria-label={t("nav.main_aria")}
     >
@@ -506,7 +506,7 @@ const Navbar = () => {
               initial={prefersReducedMotion ? false : "initial"}
               animate={prefersReducedMotion ? undefined : "animate"}
               exit={prefersReducedMotion ? undefined : "exit"}
-              className={`fixed inset-0 z-[100] flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-sm ${isDayMode ? "bg-white/68" : "bg-black/80"}`}
+              className={`fixed inset-0 z-[100] flex items-end md:items-center justify-center p-0 md:p-4 ${isDayMode ? "bg-transparent" : "bg-black/80 backdrop-blur-sm"}`}
               onClick={() => setIsWeatherModalOpen(false)}
             >
               <motion.div
@@ -550,7 +550,7 @@ const Navbar = () => {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder={t("weather.placeholder")}
-                        className={`w-full border rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:border-indigo-500 transition-all ${isDayMode ? "bg-white/80 border-slate-200/80 text-slate-900 focus:bg-white" : "bg-black/20 border-white/10 text-white focus:bg-black/40"}`}
+                        className={`w-full border rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:border-indigo-500 transition-all ${isDayMode ? "bg-white border-slate-200/80 text-slate-900 focus:bg-white" : "bg-black/20 border-white/10 text-white focus:bg-black/40"}`}
                         autoFocus
                       />
                       <Search
@@ -568,7 +568,7 @@ const Navbar = () => {
                   <button
                     type="submit"
                     disabled={isSearching}
-                    className={`w-full text-white font-bold py-3 rounded-lg transition-all disabled:opacity-50 ${isDayMode ? "bg-violet-700 hover:bg-violet-800 shadow-[0_12px_26px_rgba(124,58,237,0.16)]" : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-lg shadow-indigo-500/25"}`}
+                    className={`w-full text-white font-bold py-3 rounded-lg transition-all disabled:opacity-50 ${isDayMode ? "bg-violet-700 hover:bg-violet-800 shadow-none" : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-lg shadow-indigo-500/25"}`}
                   >
                     {isSearching
                       ? t("weather.searching")
@@ -589,7 +589,7 @@ const Navbar = () => {
                       <button
                         key={result.id}
                         onClick={() => selectCity(result)}
-                        className={`motion-press w-full text-left p-3 rounded-md flex flex-col group border ${result.isLocal ? (isDayMode ? "bg-indigo-50 border-indigo-200/80" : "bg-indigo-900/20 border-indigo-500/30") : isDayMode ? "bg-white/70 border-slate-200/70 hover:bg-white" : "bg-black/20 border-transparent hover:bg-white/10"}`}
+                        className={`motion-press w-full text-left p-3 rounded-md flex flex-col group border ${result.isLocal ? (isDayMode ? "bg-white border-indigo-200/80" : "bg-indigo-900/20 border-indigo-500/30") : isDayMode ? "bg-white border-slate-200/70 hover:bg-white" : "bg-black/20 border-transparent hover:bg-white/10"}`}
                       >
                         <div className="flex justify-between items-center">
                           <span
@@ -605,7 +605,7 @@ const Navbar = () => {
                             />
                           ) : (
                             <span
-                              className={`text-[10px] px-1.5 rounded ${isDayMode ? "bg-slate-100 text-slate-500" : "bg-white/10 text-gray-400"}`}
+                              className={`text-[10px] px-1.5 rounded ${isDayMode ? "bg-white text-slate-500" : "bg-white/10 text-gray-400"}`}
                             >
                               {result.country}
                             </span>
@@ -633,7 +633,7 @@ const Navbar = () => {
               initial={prefersReducedMotion ? false : "initial"}
               animate={prefersReducedMotion ? undefined : "animate"}
               exit={prefersReducedMotion ? undefined : "exit"}
-              className={`fixed inset-0 z-[100] flex items-end justify-center p-0 backdrop-blur-sm md:hidden ${isDayMode ? "bg-white/60" : "bg-black/70"}`}
+              className={`fixed inset-0 z-[100] flex items-end justify-center p-0 md:hidden ${isDayMode ? "bg-transparent" : "bg-black/70 backdrop-blur-sm"}`}
               onClick={() => setIsMobileMoreOpen(false)}
             >
               <motion.div
@@ -644,7 +644,7 @@ const Navbar = () => {
                 role="dialog"
                 aria-modal="true"
                 aria-label={t("nav.more", "更多")}
-                className={`w-full rounded-t-lg border-t p-4 pb-[calc(env(safe-area-inset-bottom)+20px)] shadow-2xl ${isDayMode ? "border-slate-200/80 bg-white/96 text-slate-900" : "border-white/10 bg-[#111827]/96 text-white"}`}
+                className={`w-full rounded-t-lg border-t p-4 pb-[calc(env(safe-area-inset-bottom)+20px)] ${isDayMode ? "border-slate-200/80 bg-white text-slate-900 shadow-none" : "border-white/10 bg-[#111827]/96 text-white shadow-2xl"}`}
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="mb-4 flex items-center justify-between">
@@ -662,7 +662,7 @@ const Navbar = () => {
                     type="button"
                     aria-label={t("common.close", "关闭")}
                     onClick={() => setIsMobileMoreOpen(false)}
-                    className={`motion-press min-h-[44px] min-w-[44px] rounded-lg p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900" : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"}`}
+                    className={`motion-press min-h-[44px] min-w-[44px] rounded-lg p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-white text-slate-500 hover:bg-white hover:text-slate-900" : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"}`}
                   >
                     <X size={20} aria-hidden="true" />
                   </button>
@@ -674,7 +674,7 @@ const Navbar = () => {
                       key={key}
                       to={path}
                       onClick={() => setIsMobileMoreOpen(false)}
-                      className={`motion-press flex min-h-[56px] items-center gap-3 rounded-lg border px-3 ${location.pathname === path ? (isDayMode ? "border-slate-300 bg-white text-slate-950" : "border-indigo-400/30 bg-indigo-500/15 text-indigo-200") : isDayMode ? "border-slate-200/80 bg-slate-50/90 text-slate-700 hover:bg-white" : "border-white/10 bg-white/[0.04] text-gray-200 hover:bg-white/10"}`}
+                      className={`motion-press flex min-h-[56px] items-center gap-3 rounded-lg border px-3 ${location.pathname === path ? (isDayMode ? "border-slate-300 bg-white text-slate-950" : "border-indigo-400/30 bg-indigo-500/15 text-indigo-200") : isDayMode ? "border-slate-200/80 bg-white text-slate-700 hover:bg-white" : "border-white/10 bg-white/[0.04] text-gray-200 hover:bg-white/10"}`}
                     >
                       <Icon size={18} aria-hidden="true" />
                       <span className="text-sm font-semibold">
@@ -692,7 +692,7 @@ const Navbar = () => {
                   <button
                     type="button"
                     onClick={() => changeUiMode(nextUiMode)}
-                    className={`motion-press flex min-h-[52px] items-center gap-3 rounded-lg border px-3 text-left ${isDayMode ? "border-slate-200/80 bg-slate-50/90 text-slate-700 hover:bg-white" : "border-white/10 bg-white/[0.04] text-gray-200 hover:bg-white/10"}`}
+                    className={`motion-press flex min-h-[52px] items-center gap-3 rounded-lg border px-3 text-left ${isDayMode ? "border-slate-200/80 bg-white text-slate-700 hover:bg-white" : "border-white/10 bg-white/[0.04] text-gray-200 hover:bg-white/10"}`}
                   >
                     {isDayMode ? (
                       <Moon size={18} aria-hidden="true" />
@@ -710,7 +710,7 @@ const Navbar = () => {
                       setIsMobileMoreOpen(false);
                       setIsThemeOpen(true);
                     }}
-                    className={`motion-press flex min-h-[52px] items-center gap-3 rounded-lg border px-3 text-left ${isDayMode ? "border-slate-200/80 bg-slate-50/90 text-slate-700 hover:bg-white" : "border-cyan-300/15 bg-cyan-300/[0.06] text-cyan-100 hover:bg-cyan-300/[0.1]"}`}
+                    className={`motion-press flex min-h-[52px] items-center gap-3 rounded-lg border px-3 text-left ${isDayMode ? "border-slate-200/80 bg-white text-slate-700 hover:bg-white" : "border-cyan-300/15 bg-cyan-300/[0.06] text-cyan-100 hover:bg-cyan-300/[0.1]"}`}
                   >
                     <Wallpaper size={18} aria-hidden="true" />
                     <span className="text-sm font-semibold">
@@ -719,7 +719,7 @@ const Navbar = () => {
                   </button>
 
                   <div
-                    className={`col-span-2 flex min-h-[52px] items-center justify-center rounded-lg border px-2 ${isDayMode ? "border-slate-200/80 bg-slate-50/90" : "border-white/10 bg-white/[0.04]"}`}
+                    className={`col-span-2 flex min-h-[52px] items-center justify-center rounded-lg border px-2 ${isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-white/[0.04]"}`}
                   >
                     <LanguageSwitcher />
                   </div>
@@ -731,7 +731,7 @@ const Navbar = () => {
                       <Link
                         to={`/user/${user.id}`}
                         onClick={() => setIsMobileMoreOpen(false)}
-                        className={`motion-press flex min-h-[52px] items-center gap-3 rounded-lg border px-3 ${isDayMode ? "border-slate-200/80 bg-slate-50/90 text-slate-700 hover:bg-white" : "border-white/10 bg-white/[0.04] text-gray-200 hover:bg-white/10"}`}
+                        className={`motion-press flex min-h-[52px] items-center gap-3 rounded-lg border px-3 ${isDayMode ? "border-slate-200/80 bg-white text-slate-700 hover:bg-white" : "border-white/10 bg-white/[0.04] text-gray-200 hover:bg-white/10"}`}
                       >
                         <UserCircle size={18} aria-hidden="true" />
                         <span className="text-sm font-semibold">
@@ -776,7 +776,7 @@ const Navbar = () => {
               initial={prefersReducedMotion ? false : "initial"}
               animate={prefersReducedMotion ? undefined : "animate"}
               exit={prefersReducedMotion ? undefined : "exit"}
-              className={`fixed inset-0 z-[100] flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-sm ${isDayMode ? "bg-white/68" : "bg-black/80"}`}
+              className={`fixed inset-0 z-[100] flex items-end md:items-center justify-center p-0 md:p-4 ${isDayMode ? "bg-transparent" : "bg-black/80 backdrop-blur-sm"}`}
               onClick={() => setIsThemeOpen(false)}
             >
               <motion.div
@@ -811,7 +811,7 @@ const Navbar = () => {
                 <div
                   className={`mb-3 flex items-center justify-between gap-4 rounded-lg border px-4 py-3 ${
                     isDayMode
-                      ? "border-violet-200/70 bg-white/92"
+                      ? "border-violet-200/70 bg-white"
                       : "border-cyan-300/10 bg-cyan-300/[0.055]"
                   }`}
                 >
@@ -847,7 +847,7 @@ const Navbar = () => {
                 <div
                   className={`mb-4 rounded-lg border px-4 py-3 text-xs leading-5 ${
                     isDayMode
-                      ? "border-violet-100/90 bg-violet-50/50 text-slate-600"
+                      ? "border-violet-100/90 bg-white text-slate-600"
                       : "border-white/10 bg-white/[0.035] text-white/56"
                   }`}
                 >
@@ -859,10 +859,10 @@ const Navbar = () => {
                     const isActiveScene = scene.id === backgroundScene;
                     const sceneName = t(`themes.${scene.id}.name`, scene.name);
                     const sceneDesc = t(`themes.${scene.id}.desc`, scene.desc);
-                    const sceneButtonClasses = isDayMode
-                      ? isActiveScene
-                        ? "border-violet-300/80 bg-white shadow-[0_18px_40px_rgba(168,85,247,0.12)]"
-                        : "border-slate-200/80 bg-white/76 hover:border-violet-200 hover:bg-white"
+	                    const sceneButtonClasses = isDayMode
+	                      ? isActiveScene
+	                        ? "border-violet-300/80 bg-white shadow-none"
+	                        : "border-slate-200/80 bg-white hover:border-violet-200 hover:bg-white"
                       : isActiveScene
                         ? "border-cyan-300/50 bg-cyan-300/[0.12] shadow-[0_18px_44px_rgba(34,211,238,0.12)]"
                         : "border-white/10 bg-white/[0.045] hover:border-cyan-300/30 hover:bg-white/[0.07]";
@@ -913,7 +913,7 @@ const Navbar = () => {
                 </div>
 
                 <div
-                  className={`mb-4 rounded-lg border p-1.5 ${isDayMode ? "border-slate-200/80 bg-slate-50/90" : "border-white/10 bg-white/5"}`}
+                  className={`mb-4 rounded-lg border p-1.5 ${isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-white/5"}`}
                 >
                   <div
                     className={`mb-2 px-2 pt-1 text-[10px] font-semibold uppercase tracking-[0.24em] ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
@@ -932,7 +932,7 @@ const Navbar = () => {
                         <button
                           key={mode}
                           onClick={() => changeUiMode(mode)}
-                          className={`rounded-md px-3 py-3 text-left transition-all border ${isActiveMode ? "bg-indigo-500/15 border-indigo-400/30 shadow-[0_10px_22px_rgba(99,102,241,0.14)]" : isDayMode ? "bg-transparent border-transparent hover:bg-white/90" : "bg-transparent border-transparent hover:bg-white/10"}`}
+	                          className={`rounded-md px-3 py-3 text-left transition-all border ${isActiveMode ? (isDayMode ? "bg-white border-indigo-400/30 shadow-none" : "bg-indigo-500/15 border-indigo-400/30 shadow-[0_10px_22px_rgba(99,102,241,0.14)]") : isDayMode ? "bg-transparent border-transparent hover:bg-white" : "bg-transparent border-transparent hover:bg-white/10"}`}
                         >
                           <div
                             className={`text-sm font-semibold ${isDayMode ? "text-slate-900" : "text-white"}`}

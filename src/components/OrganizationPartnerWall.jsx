@@ -85,7 +85,7 @@ const PartnerLogo = ({ partner, name, isDayMode, size = "md" }) => {
     <span
       className={`flex ${sizeClass} shrink-0 items-center justify-center rounded-[6px] border ${
         isDayMode
-          ? "border-slate-200 bg-slate-50 text-slate-500"
+          ? "border-slate-200 bg-white text-slate-500"
           : "border-white/10 bg-white/[0.04] text-slate-400"
       }`}
     >
@@ -205,10 +205,10 @@ const OrganizationPartnerWall = ({
   const mutedClass = isDayMode ? "text-slate-500" : "text-slate-400";
   const strongClass = isDayMode ? "text-slate-950" : "text-white";
   const railClass = isDayMode
-    ? "border-slate-200/70 bg-white/46"
+    ? "border-slate-200/70 bg-white"
     : "border-white/10 bg-white/[0.025]";
   const chipClass = isDayMode
-    ? "border-slate-200/80 bg-white/72 text-slate-800 hover:border-violet-200 hover:bg-white"
+    ? "border-slate-200/80 bg-white text-slate-800 hover:border-violet-200 hover:bg-white"
     : "border-white/10 bg-white/[0.04] text-slate-100 hover:border-indigo-300/30 hover:bg-white/[0.07]";
 
   const applySelectedPartner = () => {
@@ -330,9 +330,9 @@ const OrganizationPartnerWall = ({
             <AnimatePresence>
               {directoryOpen && (
                 <motion.div
-                  className={`fixed inset-0 z-[110] flex items-end justify-center px-3 pb-3 pt-[calc(env(safe-area-inset-top)+1rem)] md:items-center md:p-6 ${
-                    isDayMode ? "bg-white/70" : "bg-black/70"
-                  } backdrop-blur-sm`}
+	                  className={`fixed inset-0 z-[110] flex items-end justify-center px-3 pb-3 pt-[calc(env(safe-area-inset-top)+1rem)] md:items-center md:p-6 ${
+	                    isDayMode ? "bg-transparent" : "bg-black/70 backdrop-blur-sm"
+	                  }`}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
@@ -349,8 +349,8 @@ const OrganizationPartnerWall = ({
                     transition={{ type: "spring", damping: 28, stiffness: 320 }}
                     onClick={(event) => event.stopPropagation()}
                     className={`max-h-[86dvh] w-full max-w-5xl overflow-hidden rounded-[8px] border ${
-                      isDayMode
-                        ? "border-slate-200 bg-white text-slate-900 shadow-[0_24px_70px_rgba(15,23,42,0.18)]"
+	                      isDayMode
+	                        ? "border-slate-200 bg-white text-slate-900 shadow-none"
                         : "border-white/10 bg-[#0b0d16] text-white shadow-[0_24px_70px_rgba(0,0,0,0.42)]"
                     }`}
                   >
@@ -368,7 +368,7 @@ const OrganizationPartnerWall = ({
                         onClick={() => setDirectoryOpen(false)}
                         aria-label={t("common.close", "关闭")}
                         className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[6px] ${
-                          isDayMode ? "bg-slate-100 text-slate-500 hover:text-slate-950" : "bg-white/10 text-slate-300 hover:text-white"
+                          isDayMode ? "bg-white text-slate-500 hover:text-slate-950" : "bg-white/10 text-slate-300 hover:text-white"
                         }`}
                       >
                         <X size={18} />
@@ -384,7 +384,7 @@ const OrganizationPartnerWall = ({
                           placeholder={t("events.organizations.search_placeholder", "搜索社团、简介或合作方向")}
                           className={`h-11 w-full rounded-[6px] border pl-9 pr-3 text-sm font-semibold outline-none ${
                             isDayMode
-                              ? "border-slate-200 bg-slate-50 text-slate-900 focus:border-violet-300"
+                              ? "border-slate-200 bg-white text-slate-900 focus:border-violet-300"
                               : "border-white/10 bg-white/[0.04] text-white focus:border-indigo-300/40"
                           }`}
                         />
@@ -439,9 +439,9 @@ const OrganizationPartnerWall = ({
 
               {selectedPartner && (
                 <motion.div
-                  className={`fixed inset-0 z-[110] flex items-end justify-center px-3 pb-3 pt-[calc(env(safe-area-inset-top)+1rem)] md:items-center md:p-6 ${
-                    isDayMode ? "bg-white/70" : "bg-black/70"
-                  } backdrop-blur-sm`}
+	                  className={`fixed inset-0 z-[110] flex items-end justify-center px-3 pb-3 pt-[calc(env(safe-area-inset-top)+1rem)] md:items-center md:p-6 ${
+	                    isDayMode ? "bg-transparent" : "bg-black/70 backdrop-blur-sm"
+	                  }`}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
@@ -458,8 +458,8 @@ const OrganizationPartnerWall = ({
                     transition={{ type: "spring", damping: 28, stiffness: 320 }}
                     onClick={(event) => event.stopPropagation()}
                     className={`max-h-[86dvh] w-full max-w-3xl overflow-hidden rounded-[8px] border ${
-                      isDayMode
-                        ? "border-slate-200 bg-white text-slate-900 shadow-[0_24px_70px_rgba(15,23,42,0.18)]"
+	                      isDayMode
+	                        ? "border-slate-200 bg-white text-slate-900 shadow-none"
                         : "border-white/10 bg-[#0b0d16] text-white shadow-[0_24px_70px_rgba(0,0,0,0.42)]"
                     }`}
                   >
@@ -480,7 +480,7 @@ const OrganizationPartnerWall = ({
                         onClick={() => setSelectedPartner(null)}
                         aria-label={t("common.close", "关闭")}
                         className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[6px] ${
-                          isDayMode ? "bg-slate-100 text-slate-500 hover:text-slate-950" : "bg-white/10 text-slate-300 hover:text-white"
+                          isDayMode ? "bg-white text-slate-500 hover:text-slate-950" : "bg-white/10 text-slate-300 hover:text-white"
                         }`}
                       >
                         <X size={18} />
@@ -556,7 +556,7 @@ const OrganizationPartnerWall = ({
                           </div>
                         </div>
 
-                        <aside className={`rounded-[6px] border p-3 ${isDayMode ? "border-slate-200 bg-slate-50/80" : "border-white/10 bg-white/[0.04]"}`}>
+                        <aside className={`rounded-[6px] border p-3 ${isDayMode ? "border-slate-200 bg-white" : "border-white/10 bg-white/[0.04]"}`}>
                           <div className="mb-3 flex items-center justify-between gap-3">
                             <div className={`inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] ${mutedClass}`}>
                               <Users size={14} />

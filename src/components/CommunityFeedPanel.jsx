@@ -78,11 +78,11 @@ const CommunityFeedPanel = ({
   }[accentColor];
 
   const accentBtnClass = {
-    amber: isDayMode ? 'bg-amber-50 text-amber-700 border-amber-200 shadow-[0_4px_12px_rgba(245,158,11,0.10)]' : 'bg-amber-600 text-white border-amber-600',
-    violet: isDayMode ? 'bg-violet-50 text-violet-700 border-violet-200 shadow-[0_4px_12px_rgba(139,92,246,0.10)]' : 'bg-violet-600 text-white border-violet-600',
-    blue: isDayMode ? 'bg-sky-50 text-sky-700 border-sky-200 shadow-[0_4px_12px_rgba(14,165,233,0.10)]' : 'bg-blue-600 text-white border-blue-600',
-    orange: isDayMode ? 'bg-orange-50 text-orange-700 border-orange-200 shadow-[0_4px_12px_rgba(249,115,22,0.10)]' : 'bg-orange-600 text-white border-orange-600',
-    green: isDayMode ? 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-[0_4px_12px_rgba(16,185,129,0.10)]' : 'bg-emerald-600 text-white border-emerald-600',
+    amber: isDayMode ? 'bg-white text-amber-700 border-amber-200 shadow-none' : 'bg-amber-600 text-white border-amber-600',
+    violet: isDayMode ? 'bg-white text-violet-700 border-violet-200 shadow-none' : 'bg-violet-600 text-white border-violet-600',
+    blue: isDayMode ? 'bg-white text-sky-700 border-sky-200 shadow-none' : 'bg-blue-600 text-white border-blue-600',
+    orange: isDayMode ? 'bg-white text-orange-700 border-orange-200 shadow-none' : 'bg-orange-600 text-white border-orange-600',
+    green: isDayMode ? 'bg-white text-emerald-700 border-emerald-200 shadow-none' : 'bg-emerald-600 text-white border-emerald-600',
   }[accentColor];
 
   const accentTabClass = {
@@ -112,7 +112,7 @@ const CommunityFeedPanel = ({
           className={`min-h-[38px] min-w-fit border-b-2 px-2.5 text-xs font-semibold transition-colors whitespace-nowrap md:px-3 ${
             statusFilter === key
               ? accentTabClass
-              : (isDayMode ? 'border-transparent text-slate-600 hover:bg-slate-50/80 hover:text-slate-950' : 'border-transparent text-gray-400 hover:bg-white/8 hover:text-white')
+              : (isDayMode ? 'border-transparent text-slate-600 hover:bg-white hover:text-slate-950' : 'border-transparent text-gray-400 hover:bg-white/8 hover:text-white')
           }`}
         >
           {t(label)}
@@ -129,7 +129,7 @@ const CommunityFeedPanel = ({
         options={sortOptions}
         className="w-full"
         buttonClassName={isDayMode
-          ? 'border border-slate-200 bg-white text-slate-700 rounded-lg px-3 py-2 min-h-[40px] text-sm font-medium hover:bg-slate-50'
+          ? 'border border-slate-200 bg-white text-slate-700 rounded-lg px-3 py-2 min-h-[40px] text-sm font-medium hover:bg-white'
           : 'border border-white/10 bg-white/5 text-white rounded-lg px-3 py-2 min-h-[40px] text-sm font-medium hover:bg-white/10'}
       />
     </div>
@@ -151,7 +151,7 @@ const CommunityFeedPanel = ({
   return (
     <div role="tabpanel">
       {/* Controls */}
-      <div className={`mb-4 flex flex-col gap-2.5 rounded-lg border p-3 md:mb-6 md:gap-3 md:p-4 max-md:border-transparent max-md:bg-transparent max-md:p-0 max-md:shadow-none ${isDayMode ? 'bg-white/82 border-slate-200/70 shadow-[0_10px_26px_rgba(15,23,42,0.04)]' : 'bg-white/[0.035] border-white/10'}`}>
+      <div className={`mb-4 flex flex-col gap-2.5 rounded-lg border p-3 md:mb-6 md:gap-3 md:p-4 max-md:border-transparent max-md:bg-transparent max-md:p-0 max-md:shadow-none ${isDayMode ? 'bg-white border-slate-200/70 shadow-none' : 'bg-white/[0.035] border-white/10'}`}>
         <div className="grid gap-2.5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
           {extraControls ? (
             <div className="min-w-0">{extraControls}</div>
@@ -207,7 +207,7 @@ const CommunityFeedPanel = ({
               <button
                 type="button"
                 onClick={resetFilters}
-                className={`px-2.5 py-1 rounded-md transition-colors ${isDayMode ? 'text-slate-600 hover:bg-slate-100' : 'text-gray-300 hover:bg-white/10'}`}
+                className={`px-2.5 py-1 rounded-md transition-colors ${isDayMode ? 'text-slate-600 hover:bg-white' : 'text-gray-300 hover:bg-white/10'}`}
               >
                 {t('community.clear_filters', '清除筛选')}
               </button>
@@ -215,7 +215,7 @@ const CommunityFeedPanel = ({
             <button
               type="button"
               onClick={handleRefresh}
-              className={`px-2.5 py-1 rounded-md transition-colors ${isDayMode ? 'text-slate-600 hover:bg-slate-100' : 'text-gray-300 hover:bg-white/10'}`}
+              className={`px-2.5 py-1 rounded-md transition-colors ${isDayMode ? 'text-slate-600 hover:bg-white' : 'text-gray-300 hover:bg-white/10'}`}
             >
               {t('common.refresh', '刷新')}
             </button>

@@ -17,7 +17,7 @@ const TAB_CONFIG = [
 ];
 
 const DAY_ACTIVE_PILL_CLASS =
-  'bg-blue-50 text-blue-700 border-blue-200/80 shadow-[0_6px_16px_rgba(37,99,235,0.08)]';
+  'bg-white text-blue-700 border-blue-200/80 shadow-none';
 
 const ADMIN_STATUS_FILTERS = [
   { key: 'all', label: '全部' },
@@ -304,7 +304,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
             navigator.clipboard?.writeText(fallbackText);
             toast.success(t('community.news_copy_search_hint', '已复制“标题 + 来源”，可直接粘贴搜索'));
           }}
-          className={`text-xs px-2.5 py-1 rounded-md border ${isDayMode ? 'text-slate-600 border-slate-200 hover:bg-slate-100' : 'text-gray-300 border-white/10 hover:bg-white/10'}`}
+          className={`text-xs px-2.5 py-1 rounded-md border ${isDayMode ? 'text-slate-600 border-slate-200 hover:bg-white' : 'text-gray-300 border-white/10 hover:bg-white/10'}`}
         >
           {t('community.news_copy_search', '复制标题+来源')}
         </button>
@@ -323,7 +323,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
     const groups = Array.isArray(selectedNews.linked_resources.groups) ? selectedNews.linked_resources.groups : [];
     if (articles.length === 0 && posts.length === 0 && groups.length === 0) return null;
     return (
-      <div className={`mt-6 rounded-lg border p-3 ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
+      <div className={`mt-6 rounded-lg border p-3 ${isDayMode ? 'bg-white border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
         <p className={`text-xs font-semibold mb-2 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
           {t('community.next_actions', '下一步')}
         </p>
@@ -332,7 +332,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
             <button
               type="button"
               onClick={() => handleRelatedSelect({ ...articles[0], type: 'article' })}
-              className={`px-2.5 py-1.5 rounded-lg text-xs border ${isDayMode ? 'text-blue-700 border-blue-200 hover:bg-blue-50' : 'text-orange-300 border-orange-500/30 hover:bg-orange-500/10'}`}
+              className={`px-2.5 py-1.5 rounded-lg text-xs border ${isDayMode ? 'text-blue-700 border-blue-200 hover:bg-white' : 'text-orange-300 border-orange-500/30 hover:bg-orange-500/10'}`}
             >
               {t('community.read_related_article', '去看相关文章')}
             </button>
@@ -341,7 +341,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
             <button
               type="button"
               onClick={() => handleRelatedSelect({ ...posts[0], type: 'post' })}
-              className={`px-2.5 py-1.5 rounded-lg text-xs border ${isDayMode ? 'text-amber-700 border-amber-200 hover:bg-amber-50' : 'text-amber-300 border-amber-500/30 hover:bg-amber-500/10'}`}
+              className={`px-2.5 py-1.5 rounded-lg text-xs border ${isDayMode ? 'text-amber-700 border-amber-200 hover:bg-white' : 'text-amber-300 border-amber-500/30 hover:bg-amber-500/10'}`}
             >
               {t('community.open_related_help', '查看相关求助')}
             </button>
@@ -350,7 +350,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
             <button
               type="button"
               onClick={() => handleRelatedSelect({ ...groups[0], type: 'group' })}
-              className={`px-2.5 py-1.5 rounded-lg text-xs border ${isDayMode ? 'text-blue-700 border-blue-200 hover:bg-blue-50' : 'text-blue-300 border-blue-500/30 hover:bg-blue-500/10'}`}
+              className={`px-2.5 py-1.5 rounded-lg text-xs border ${isDayMode ? 'text-blue-700 border-blue-200 hover:bg-white' : 'text-blue-300 border-blue-500/30 hover:bg-blue-500/10'}`}
             >
               {t('community.join_related_group', '加入相关社群')}
             </button>
@@ -365,7 +365,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
 
     return (
       <>
-        <div className={`rounded-lg border p-3 ${isDayMode ? 'bg-white border-slate-200/80 shadow-[0_8px_22px_rgba(15,23,42,0.045)]' : 'backdrop-blur-xl bg-white/[0.045] border-white/10'}`}>
+        <div className={`rounded-lg border p-3 ${isDayMode ? 'bg-white border-slate-200/80 shadow-none' : 'backdrop-blur-xl bg-white/[0.045] border-white/10'}`}>
           <div className="mb-3 flex items-center justify-between gap-3">
             <div className="min-w-0">
               <h3 className={`truncate text-sm font-black ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
@@ -377,7 +377,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
             </div>
             <Link
               to="/articles?postTab=news"
-              className={`shrink-0 rounded-md border px-2.5 py-1.5 text-[11px] font-semibold transition-colors ${isDayMode ? 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-white' : 'border-white/10 bg-white/5 text-gray-200 hover:bg-white/10'}`}
+              className={`shrink-0 rounded-md border px-2.5 py-1.5 text-[11px] font-semibold transition-colors ${isDayMode ? 'border-slate-200 bg-white text-slate-700 hover:bg-white' : 'border-white/10 bg-white/5 text-gray-200 hover:bg-white/10'}`}
             >
               {t('community.news_view_all', '查看更多')}
             </Link>
@@ -392,7 +392,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
                 className={`inline-flex min-h-[34px] items-center justify-center gap-1.5 rounded-md border px-2 text-xs font-semibold transition-all ${
                   activeSort === key
                     ? (isDayMode ? DAY_ACTIVE_PILL_CLASS : 'bg-blue-500 text-white border-blue-500')
-                    : (isDayMode ? 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-950' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10')
+                    : (isDayMode ? 'bg-white text-slate-600 border-slate-200 hover:bg-white hover:text-slate-950' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10')
                 }`}
               >
                 <Icon size={13} />
@@ -404,7 +404,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
           <div className="max-h-[290px] space-y-2 overflow-y-auto pr-1 custom-scrollbar">
             {loading ? (
               [...Array(5)].map((_, i) => (
-                <div key={i} className={`rounded-lg border p-2.5 animate-pulse ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
+                <div key={i} className={`rounded-lg border p-2.5 animate-pulse ${isDayMode ? 'bg-white border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
                   <div className={`mb-2 h-3 w-4/5 rounded ${isDayMode ? 'bg-slate-200' : 'bg-white/10'}`} />
                   <div className={`h-2.5 w-1/2 rounded ${isDayMode ? 'bg-slate-200' : 'bg-white/10'}`} />
                 </div>
@@ -422,7 +422,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
             ) : null}
 
             {!loading && !error && compactList.length === 0 ? (
-              <div className={`rounded-lg border p-4 text-center text-sm ${isDayMode ? 'bg-slate-50 text-slate-500 border-slate-200' : 'bg-white/[0.03] text-gray-400 border-white/10'}`}>
+              <div className={`rounded-lg border p-4 text-center text-sm ${isDayMode ? 'bg-white text-slate-500 border-slate-200' : 'bg-white/[0.03] text-gray-400 border-white/10'}`}>
                 {t('community.news_empty', '暂无新闻')}
               </div>
             ) : null}
@@ -433,7 +433,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
                 type="button"
                 onClick={() => handleOpen(item)}
                 className={`w-full rounded-lg border p-2.5 text-left transition-all ${
-                  isDayMode ? 'bg-white border-slate-200/80 hover:border-slate-300 hover:bg-slate-50' : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.06] hover:border-blue-400/40'
+                  isDayMode ? 'bg-white border-slate-200/80 hover:border-slate-300 hover:bg-white' : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.06] hover:border-blue-400/40'
                 }`}
               >
                 <div className="flex items-start gap-2">
@@ -491,10 +491,10 @@ const CommunityNewsRail = ({ railCompact = false }) => {
   }
 
   return (
-    <div className={`rounded-lg border p-4 md:p-5 ${isDayMode ? 'bg-white border-slate-200/80 shadow-[0_8px_22px_rgba(15,23,42,0.045)]' : 'backdrop-blur-xl bg-white/[0.045] border-white/10'}`}>
+    <div className={`rounded-lg border p-4 md:p-5 ${isDayMode ? 'bg-white border-slate-200/80 shadow-none' : 'backdrop-blur-xl bg-white/[0.045] border-white/10'}`}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDayMode ? 'bg-slate-100 text-blue-700 border border-slate-200' : 'bg-blue-500/15 text-blue-300'}`}>
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDayMode ? 'bg-white text-blue-700 border border-slate-200' : 'bg-blue-500/15 text-blue-300'}`}>
             <Newspaper size={16} />
           </div>
           <h3 className={`text-sm md:text-base font-bold ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
@@ -506,7 +506,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
           <button
             type="button"
             onClick={() => setIsUploadOpen(true)}
-            className={`inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border ${isDayMode ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50' : 'bg-white/5 text-gray-200 border-white/10 hover:bg-white/10'}`}
+            className={`inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border ${isDayMode ? 'bg-white text-slate-700 border-slate-200 hover:bg-white' : 'bg-white/5 text-gray-200 border-white/10 hover:bg-white/10'}`}
           >
             <PlusCircle size={13} />
             {t('common.publish', '发布')}
@@ -523,7 +523,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
             className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs border transition-all ${
               activeSort === key
                 ? (isDayMode ? DAY_ACTIVE_PILL_CLASS : 'bg-blue-500 text-white border-blue-500')
-                : (isDayMode ? 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-950' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10')
+                : (isDayMode ? 'bg-white text-slate-600 border-slate-200 hover:bg-white hover:text-slate-950' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10')
             }`}
           >
             <Icon size={13} />
@@ -542,7 +542,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
               className={`px-2.5 py-1 rounded-md text-[11px] border transition-all ${
                 adminStatusFilter === item.key
                   ? (isDayMode ? 'bg-white text-slate-950 border-slate-300' : 'bg-indigo-500 text-white border-indigo-500')
-                  : (isDayMode ? 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-white hover:text-slate-950' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10')
+                  : (isDayMode ? 'bg-white text-slate-600 border-slate-200 hover:bg-white hover:text-slate-950' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10')
               }`}
             >
               {item.label}
@@ -552,7 +552,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
       ) : null}
 
       {isAdmin ? (
-        <div className={`mb-4 p-2 rounded-lg border ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
+        <div className={`mb-4 p-2 rounded-lg border ${isDayMode ? 'bg-white border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
           <div className="flex gap-2">
             <input
               type="url"
@@ -573,7 +573,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
         </div>
       ) : null}
 
-      <div className={`mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs ${isDayMode ? 'bg-slate-50 border-slate-200 text-slate-500' : 'bg-white/[0.03] border-white/10 text-gray-400'}`}>
+      <div className={`mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs ${isDayMode ? 'bg-white border-slate-200 text-slate-500' : 'bg-white/[0.03] border-white/10 text-gray-400'}`}>
         <div className="flex flex-wrap items-center gap-2">
           <span>{list.length} {t('community.results_count', '条结果')}</span>
           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${isDayMode ? 'bg-white text-slate-600 border-slate-200' : 'bg-blue-500/10 text-blue-300 border-blue-500/20'}`}>
@@ -588,7 +588,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
         <button
           type="button"
           onClick={() => refresh({ clearCache: true })}
-          className={`px-2.5 py-1 rounded-md border transition-colors ${isDayMode ? 'text-slate-600 border-white/70 bg-white/38 hover:bg-white/76' : 'text-gray-300 border-white/10 hover:bg-white/10'}`}
+          className={`px-2.5 py-1 rounded-md border transition-colors ${isDayMode ? 'text-slate-600 border-slate-200 bg-white hover:bg-white' : 'text-gray-300 border-white/10 hover:bg-white/10'}`}
         >
           {t('common.refresh', '刷新')}
         </button>
@@ -597,7 +597,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
       <div className="space-y-2 max-h-[560px] overflow-y-auto pr-1">
         {loading ? (
           [...Array(6)].map((_, i) => (
-            <div key={i} className={`rounded-lg border p-3 animate-pulse ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
+            <div key={i} className={`rounded-lg border p-3 animate-pulse ${isDayMode ? 'bg-white border-slate-200' : 'bg-white/[0.03] border-white/10'}`}>
               <div className={`h-3 rounded w-4/5 mb-2 ${isDayMode ? 'bg-slate-200' : 'bg-white/10'}`} />
               <div className={`h-3 rounded w-1/2 ${isDayMode ? 'bg-slate-200' : 'bg-white/10'}`} />
             </div>
@@ -615,7 +615,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
         ) : null}
 
         {!loading && !error && list.length === 0 ? (
-          <div className={`rounded-lg border p-4 text-sm text-center ${isDayMode ? 'bg-slate-50 text-slate-500 border-slate-200' : 'bg-white/[0.03] text-gray-400 border-white/10'}`}>
+          <div className={`rounded-lg border p-4 text-sm text-center ${isDayMode ? 'bg-white text-slate-500 border-slate-200' : 'bg-white/[0.03] text-gray-400 border-white/10'}`}>
             {t('community.news_empty', '暂无新闻')}
           </div>
         ) : null}
@@ -626,7 +626,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
             type="button"
             onClick={() => handleOpen(item)}
             className={`w-full text-left rounded-lg border p-3 transition-all group ${
-              isDayMode ? 'bg-white border-slate-200/80 hover:border-slate-300 hover:bg-slate-50 shadow-none' : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.06] hover:border-blue-400/40'
+              isDayMode ? 'bg-white border-slate-200/80 hover:border-slate-300 hover:bg-white shadow-none' : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.06] hover:border-blue-400/40'
             }`}
           >
             <div className="flex items-start gap-2">
@@ -645,7 +645,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
                       item.status === 'approved'
                         ? (isDayMode ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30')
                         : item.status === 'draft'
-                          ? (isDayMode ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-white/10 text-gray-300 border-white/20')
+                          ? (isDayMode ? 'bg-white text-slate-700 border-slate-200' : 'bg-white/10 text-gray-300 border-white/20')
                           : item.status === 'rejected'
                             ? (isDayMode ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-rose-500/15 text-rose-300 border-rose-500/30')
                             : (isDayMode ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-amber-500/15 text-amber-300 border-amber-500/30')
@@ -656,10 +656,10 @@ const CommunityNewsRail = ({ railCompact = false }) => {
                 </div>
                 {isAdmin ? (
                   <div className="mt-2 flex max-h-0 flex-wrap items-center gap-1.5 overflow-hidden opacity-0 transition-all duration-200 group-hover:max-h-40 group-hover:opacity-100 group-focus-within:max-h-40 group-focus-within:opacity-100">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] border ${isDayMode ? 'text-slate-600 border-slate-200 bg-slate-50' : 'text-gray-300 border-white/15 bg-white/[0.03]'}`}>
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] border ${isDayMode ? 'text-slate-600 border-slate-200 bg-white' : 'text-gray-300 border-white/15 bg-white/[0.03]'}`}>
                       热度 {Number(item.hot_score || 0)}
                     </span>
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] border ${isDayMode ? 'text-slate-600 border-slate-200 bg-slate-50' : 'text-gray-300 border-white/15 bg-white/[0.03]'}`}>
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] border ${isDayMode ? 'text-slate-600 border-slate-200 bg-white' : 'text-gray-300 border-white/15 bg-white/[0.03]'}`}>
                       权重 {Number(item.pin_weight || 0)}
                     </span>
                     <span
@@ -685,7 +685,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
                       tabIndex={0}
                       onClick={(e) => { e.stopPropagation(); handleTuneScore(item, 'pin_weight', -1); }}
                       onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); handleTuneScore(item, 'pin_weight', -1); } }}
-                      className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] border ${isDayMode ? 'text-slate-700 border-slate-200 hover:bg-slate-100' : 'text-gray-300 border-white/20 hover:bg-white/10'}`}
+                      className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] border ${isDayMode ? 'text-slate-700 border-slate-200 hover:bg-white' : 'text-gray-300 border-white/20 hover:bg-white/10'}`}
                     >
                       权重-1
                     </span>
@@ -695,7 +695,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
                         tabIndex={0}
                         onClick={(e) => { e.stopPropagation(); handleReview(item, 'approved'); }}
                         onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); handleReview(item, 'approved'); } }}
-                        className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] border ${isDayMode ? 'text-emerald-700 border-emerald-200 hover:bg-emerald-50' : 'text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/10'}`}
+                        className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] border ${isDayMode ? 'text-emerald-700 border-emerald-200 hover:bg-white' : 'text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/10'}`}
                       >
                         发布
                       </span>
@@ -706,7 +706,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
                         tabIndex={0}
                         onClick={(e) => { e.stopPropagation(); handleReview(item, 'rejected'); }}
                         onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); handleReview(item, 'rejected'); } }}
-                        className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] border ${isDayMode ? 'text-rose-700 border-rose-200 hover:bg-rose-50' : 'text-rose-300 border-rose-500/30 hover:bg-rose-500/10'}`}
+                        className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] border ${isDayMode ? 'text-rose-700 border-rose-200 hover:bg-white' : 'text-rose-300 border-rose-500/30 hover:bg-rose-500/10'}`}
                       >
                         驳回
                       </span>
@@ -716,7 +716,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
                       tabIndex={0}
                       onClick={(e) => { e.stopPropagation(); handlePinToggle(item); }}
                       onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); handlePinToggle(item); } }}
-                      className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] border ${isDayMode ? 'text-blue-700 border-blue-200 hover:bg-blue-50' : 'text-blue-300 border-blue-500/30 hover:bg-blue-500/10'}`}
+                      className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] border ${isDayMode ? 'text-blue-700 border-blue-200 hover:bg-white' : 'text-blue-300 border-blue-500/30 hover:bg-blue-500/10'}`}
                     >
                       {item.is_pinned ? '取消置顶' : '置顶'}
                     </span>
@@ -745,7 +745,7 @@ const CommunityNewsRail = ({ railCompact = false }) => {
                           }
                         }
                       }}
-                      className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] border ${isDayMode ? 'text-slate-700 border-slate-200 hover:bg-slate-100' : 'text-gray-200 border-white/20 hover:bg-white/10'}`}
+                      className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] border ${isDayMode ? 'text-slate-700 border-slate-200 hover:bg-white' : 'text-gray-200 border-white/20 hover:bg-white/10'}`}
                     >
                       编辑
                     </span>

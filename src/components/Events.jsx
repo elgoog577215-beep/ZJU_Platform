@@ -140,9 +140,9 @@ const getStatusColor = (status, t, isDayMode = false) => {
       case t("events.status.ongoing"):
         return "bg-sky-50 text-sky-700 border-sky-200/80 animate-pulse";
       case t("events.status.past"):
-        return "bg-slate-100 text-slate-500 border-slate-200/80";
+        return "bg-white text-slate-500 border-slate-200/80";
       default:
-        return "bg-slate-100 text-slate-600 border-slate-200/80";
+        return "bg-white text-slate-600 border-slate-200/80";
     }
   }
 
@@ -426,7 +426,7 @@ const EventCard = memo(
               )}
               {event.target_audience && (
                 <span
-                  className={`rect-chip inline-flex min-w-0 max-w-full shrink items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium md:px-2 md:py-1 md:text-[11px] ${isDayMode ? "bg-slate-50 text-slate-600 border-slate-200/80" : "bg-white/5 text-gray-300 border-white/10"}`}
+                  className={`rect-chip inline-flex min-w-0 max-w-full shrink items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium md:px-2 md:py-1 md:text-[11px] ${isDayMode ? "bg-white text-slate-600 border-slate-200/80" : "bg-white/5 text-gray-300 border-white/10"}`}
                 >
                   <Users size={10} className="md:w-3 md:h-3" />
                   <span className="truncate">
@@ -445,13 +445,13 @@ const EventCard = memo(
                 count={event.likes || 0}
                 favorited={event.favorited}
                 initialFavorited={event.favorited}
-                className={`rect-icon-button p-1.5 transition-colors ${isDayMode ? "hover:bg-blue-50 hover:text-blue-700" : "hover:bg-white/10"}`}
+                className={`rect-icon-button p-1.5 transition-colors ${isDayMode ? "hover:bg-white hover:text-blue-700" : "hover:bg-white/10"}`}
                 onToggle={(favorited, likes) =>
                   onToggleFavorite(event.id, favorited, likes)
                 }
               />
               <div
-                className={`rect-icon-button p-1.5 transition-[background-color,color,transform] duration-200 group-hover:translate-x-0.5 ${isDayMode ? "bg-blue-50 text-blue-700 group-hover:bg-blue-700 group-hover:text-white" : "bg-white/5 group-hover:bg-white/10 group-hover:text-white"}`}
+                className={`rect-icon-button p-1.5 transition-[background-color,color,transform] duration-200 group-hover:translate-x-0.5 ${isDayMode ? "bg-white text-blue-700 group-hover:bg-white group-hover:text-blue-800" : "bg-white/5 group-hover:bg-white/10 group-hover:text-white"}`}
               >
                 <ArrowRight
                   size={16}
@@ -631,7 +631,7 @@ const EventListRow = memo(
               <span
                 className={`rect-chip inline-flex max-w-[180px] items-center gap-1 px-2 py-1 text-[11px] font-medium ${
                   isDayMode
-                    ? "bg-slate-50 text-slate-600 border-slate-200/80"
+                    ? "bg-white text-slate-600 border-slate-200/80"
                     : "bg-white/5 text-gray-300 border-white/10"
                 }`}
               >
@@ -658,7 +658,7 @@ const EventListRow = memo(
 
         <div
           className={`col-span-2 flex items-center justify-between gap-3 border-t px-4 py-3 lg:col-span-1 lg:flex-col lg:items-end lg:justify-center lg:border-t-0 lg:px-4 ${
-            isDayMode ? "border-slate-200/80 bg-slate-50/60" : "border-white/8 bg-white/[0.025]"
+            isDayMode ? "border-slate-200/80 bg-white" : "border-white/8 bg-white/[0.025]"
           }`}
         >
           <span
@@ -677,7 +677,7 @@ const EventListRow = memo(
                 favorited={event.favorited}
                 initialFavorited={event.favorited}
                 className={`rect-icon-button p-2 transition-colors ${
-                  isDayMode ? "hover:bg-blue-50 hover:text-blue-700" : "hover:bg-white/10"
+                  isDayMode ? "hover:bg-white hover:text-blue-700" : "hover:bg-white/10"
                 }`}
                 onToggle={(favorited, likes) =>
                   onToggleFavorite(event.id, favorited, likes)
@@ -774,7 +774,7 @@ const CollegeNoticeRow = memo(
                 <span
                   className={`rect-chip inline-flex max-w-[150px] items-center gap-1 px-2 py-1 text-[11px] font-medium ${
                     isDayMode
-                      ? "border-slate-200/80 bg-slate-50 text-slate-600"
+                      ? "border-slate-200/80 bg-white text-slate-600"
                       : "border-white/10 bg-white/[0.045] text-slate-300"
                   }`}
                 >
@@ -1687,10 +1687,10 @@ END:VCALENDAR`;
                     className={`inline-flex min-h-9 items-center gap-2 rounded-[4px] border border-transparent px-3 text-sm font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
                       active
                         ? isDayMode
-                          ? "border-blue-200/80 bg-blue-50 text-blue-700"
+                          ? "border-blue-200/80 bg-white text-blue-700"
                           : "border-white bg-white text-slate-950"
-                        : isDayMode
-                          ? "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                          : isDayMode
+                          ? "text-slate-500 hover:bg-white hover:text-slate-900"
                           : "text-gray-400 hover:bg-white/10 hover:text-white"
                     }`}
                   >
@@ -1711,7 +1711,7 @@ END:VCALENDAR`;
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 onClick={() => setIsMobileFilterOpen(false)}
-                className={`fixed inset-0 backdrop-blur-sm z-[100] md:hidden ${isDayMode ? "bg-white/60" : "bg-black/60"}`}
+                className={`fixed inset-0 z-[100] md:hidden ${isDayMode ? "bg-transparent" : "bg-black/60 backdrop-blur-sm"}`}
               />
               <motion.div
                 initial={{ y: 36 }}
@@ -1744,7 +1744,7 @@ END:VCALENDAR`;
                       type="button"
                       aria-label={t("common.close", "关闭")}
                       onClick={() => setIsMobileFilterOpen(false)}
-                      className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-slate-100 text-slate-500 hover:text-slate-900" : "bg-white/10 text-gray-400 hover:text-white"}`}
+                      className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-white text-slate-500 hover:text-slate-900" : "bg-white/10 text-gray-400 hover:text-white"}`}
                     >
                       <X size={20} />
                     </button>
@@ -1836,7 +1836,7 @@ END:VCALENDAR`;
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     onClick={() => setIsDesktopAssistantOpen(false)}
-                    className={`pointer-events-auto fixed inset-0 z-[91] hidden md:block xl:hidden ${isDayMode ? "bg-white/50" : "bg-black/45"}`}
+                    className={`pointer-events-auto fixed inset-0 z-[91] hidden md:block xl:hidden ${isDayMode ? "bg-transparent" : "bg-black/45"}`}
                   />
                   <motion.aside
                     initial={{ opacity: 0, x: 28 }}
@@ -1871,7 +1871,7 @@ END:VCALENDAR`;
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 onClick={() => setIsMobileSortOpen(false)}
-                className={`fixed inset-0 backdrop-blur-sm z-[100] md:hidden ${isDayMode ? "bg-white/55" : "bg-black/60"}`}
+                className={`fixed inset-0 z-[100] md:hidden ${isDayMode ? "bg-transparent" : "bg-black/60 backdrop-blur-sm"}`}
               />
               <motion.div
                 initial={{ opacity: 0, scale: 0.96, y: 16 }}
@@ -1967,26 +1967,26 @@ END:VCALENDAR`;
 
               {/* Image Skeleton */}
               <div
-                className={`w-1/3 md:w-full aspect-square md:h-40 2xl:h-44 ${isDayMode ? "bg-blue-50" : "bg-white/5"}`}
+                className={`w-1/3 md:w-full aspect-square md:h-40 2xl:h-44 ${isDayMode ? "bg-white" : "bg-white/5"}`}
               />
               {/* Content Skeleton */}
               <div className="flex w-2/3 flex-1 flex-col p-3 md:w-full md:p-4">
                 <div
-                  className={`h-6 rounded-[2px] w-3/4 mb-4 ${isDayMode ? "bg-blue-50" : "bg-white/10"}`}
+                  className={`h-6 rounded-[2px] w-3/4 mb-4 ${isDayMode ? "bg-white" : "bg-white/10"}`}
                 />
                 <div className="flex gap-2 mb-4">
                   <div
-                    className={`h-6 rounded-[2px] w-20 ${isDayMode ? "bg-sky-50" : "bg-white/5"}`}
+                    className={`h-6 rounded-[2px] w-20 ${isDayMode ? "bg-white" : "bg-white/5"}`}
                   />
                   <div
-                    className={`h-6 rounded-[2px] w-24 ${isDayMode ? "bg-blue-50" : "bg-white/5"}`}
+                    className={`h-6 rounded-[2px] w-24 ${isDayMode ? "bg-white" : "bg-white/5"}`}
                   />
                 </div>
                 <div
-                  className={`h-4 rounded-[2px] w-full mb-2 ${isDayMode ? "bg-sky-50" : "bg-white/5"}`}
+                  className={`h-4 rounded-[2px] w-full mb-2 ${isDayMode ? "bg-white" : "bg-white/5"}`}
                 />
                 <div
-                  className={`h-4 rounded-[2px] w-2/3 ${isDayMode ? "bg-blue-50" : "bg-white/5"}`}
+                  className={`h-4 rounded-[2px] w-2/3 ${isDayMode ? "bg-white" : "bg-white/5"}`}
                 />
               </div>
             </div>
@@ -2152,10 +2152,10 @@ END:VCALENDAR`;
                   <button
                     onClick={closeEvent}
                     aria-label={t("common.close", "关闭")}
-                    className={`absolute right-5 top-5 h-12 w-12 rounded-lg border transition-all duration-300 z-40 group inline-flex items-center justify-center overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer ${isDayMode ? `bg-white text-slate-700 border-slate-200 hover:bg-slate-50 focus-visible:ring-slate-400/70 focus-visible:ring-offset-white` : "bg-black/45 hover:bg-black/65 text-white border-white/10 hover:border-white/20 backdrop-blur-xl focus-visible:ring-white/60 focus-visible:ring-offset-[#0f0f0f]"}`}
+                    className={`absolute right-5 top-5 h-12 w-12 rounded-lg border transition-all duration-300 z-40 group inline-flex items-center justify-center overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer ${isDayMode ? `bg-white text-slate-700 border-slate-200 hover:bg-white focus-visible:ring-slate-400/70 focus-visible:ring-offset-white` : "bg-black/45 hover:bg-black/65 text-white border-white/10 hover:border-white/20 backdrop-blur-xl focus-visible:ring-white/60 focus-visible:ring-offset-[#0f0f0f]"}`}
                   >
                     <span
-                      className={`relative inline-flex h-9 w-9 items-center justify-center rounded-md transition-all duration-300 ${isDayMode ? "bg-white border border-slate-200 group-hover:bg-slate-50" : "bg-white/10 border border-white/10 group-hover:bg-white/15"}`}
+                      className={`relative inline-flex h-9 w-9 items-center justify-center rounded-md transition-all duration-300 ${isDayMode ? "bg-white border border-slate-200 group-hover:bg-white" : "bg-white/10 border border-white/10 group-hover:bg-white/15"}`}
                     >
                       <X
                         size={20}
@@ -2186,10 +2186,10 @@ END:VCALENDAR`;
                         <button
                           onClick={closeEvent}
                           aria-label={t("common.close", "关闭")}
-                          className={`absolute right-4 top-4 sm:top-6 sm:right-6 h-11 w-11 sm:h-12 sm:w-12 rounded-lg border transition-all duration-300 z-30 group inline-flex items-center justify-center overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer ${isDayMode ? `bg-white hover:bg-slate-50 text-slate-700 border-slate-200 focus-visible:ring-slate-400/70 focus-visible:ring-offset-white` : "bg-black/45 hover:bg-black/65 text-white border-white/10 hover:border-white/20 backdrop-blur-xl focus-visible:ring-white/60 focus-visible:ring-offset-[#0f0f0f]"}`}
+                          className={`absolute right-4 top-4 sm:top-6 sm:right-6 h-11 w-11 sm:h-12 sm:w-12 rounded-lg border transition-all duration-300 z-30 group inline-flex items-center justify-center overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer ${isDayMode ? `bg-white hover:bg-white text-slate-700 border-slate-200 focus-visible:ring-slate-400/70 focus-visible:ring-offset-white` : "bg-black/45 hover:bg-black/65 text-white border-white/10 hover:border-white/20 backdrop-blur-xl focus-visible:ring-white/60 focus-visible:ring-offset-[#0f0f0f]"}`}
                         >
                           <span
-                            className={`relative inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-md transition-all duration-300 ${isDayMode ? "bg-white border border-slate-200 group-hover:bg-slate-50" : "bg-white/10 border border-white/10 group-hover:bg-white/15"}`}
+                            className={`relative inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-md transition-all duration-300 ${isDayMode ? "bg-white border border-slate-200 group-hover:bg-white" : "bg-white/10 border border-white/10 group-hover:bg-white/15"}`}
                           >
                             <X
                               size={20}
@@ -2254,7 +2254,7 @@ END:VCALENDAR`;
                               >
                                 {selectedEvent.title}
                                 <span
-                                  className={`inline-flex items-center justify-center align-middle ml-3 sm:ml-4 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-bold uppercase tracking-wider border backdrop-blur-md font-sans shadow-lg translate-y-[-0.1em] sm:translate-y-[-0.2em] ${isDayMode ? "ring-1 ring-white/50" : ""} ${getStatusColor(getEventLifecycle(selectedEvent.date, selectedEvent.end_date, t), t, isDayMode)}`}
+                                  className={`inline-flex items-center justify-center align-middle ml-3 sm:ml-4 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-bold uppercase tracking-wider border font-sans translate-y-[-0.1em] sm:translate-y-[-0.2em] ${isDayMode ? "ring-1 ring-white/50 shadow-none" : "backdrop-blur-md shadow-lg"} ${getStatusColor(getEventLifecycle(selectedEvent.date, selectedEvent.end_date, t), t, isDayMode)}`}
                                 >
                                   {getEventLifecycle(
                                     selectedEvent.date,
@@ -2318,7 +2318,7 @@ END:VCALENDAR`;
                                 count={selectedEvent.likes || 0}
                                 favorited={selectedEvent.favorited}
                                 testId="event-detail-favorite-desktop"
-                                className={`p-3 rounded-md transition-all shrink-0 border ${isDayMode ? "bg-white hover:bg-slate-50 border-slate-200 text-slate-700" : "bg-white/10 hover:bg-white/20 border border-white/10 backdrop-blur-md"}`}
+                                className={`p-3 rounded-md transition-all shrink-0 border ${isDayMode ? "bg-white hover:bg-white border-slate-200 text-slate-700" : "bg-white/10 hover:bg-white/20 border border-white/10 backdrop-blur-md"}`}
                                 onToggle={(favorited, likes) => {
                                   recordSelectedEventAssistantAction(
                                     favorited ? "favorite" : "unfavorite",
@@ -2360,10 +2360,10 @@ END:VCALENDAR`;
                       <button
                         onClick={closeEvent}
                         aria-label={t("common.close", "关闭")}
-                        className={`absolute right-4 top-4 h-11 w-11 rounded-lg border transition-all duration-300 z-30 group inline-flex items-center justify-center overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer ${isDayMode ? `bg-white hover:bg-slate-50 text-slate-700 border-slate-200 focus-visible:ring-slate-400/70 focus-visible:ring-offset-white` : "bg-black/45 hover:bg-black/65 text-white border-white/10 hover:border-white/20 backdrop-blur-xl focus-visible:ring-white/60 focus-visible:ring-offset-[#0f0f0f]"}`}
+                        className={`absolute right-4 top-4 h-11 w-11 rounded-lg border transition-all duration-300 z-30 group inline-flex items-center justify-center overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer ${isDayMode ? `bg-white hover:bg-white text-slate-700 border-slate-200 focus-visible:ring-slate-400/70 focus-visible:ring-offset-white` : "bg-black/45 hover:bg-black/65 text-white border-white/10 hover:border-white/20 backdrop-blur-xl focus-visible:ring-white/60 focus-visible:ring-offset-[#0f0f0f]"}`}
                       >
                         <span
-                          className={`relative inline-flex h-8 w-8 items-center justify-center rounded-md transition-all duration-300 ${isDayMode ? "bg-white border border-slate-200 group-hover:bg-slate-50" : "bg-white/10 border border-white/10 group-hover:bg-white/15"}`}
+                          className={`relative inline-flex h-8 w-8 items-center justify-center rounded-md transition-all duration-300 ${isDayMode ? "bg-white border border-slate-200 group-hover:bg-white" : "bg-white/10 border border-white/10 group-hover:bg-white/15"}`}
                         >
                           <X
                             size={20}
@@ -2418,7 +2418,7 @@ END:VCALENDAR`;
                           count={selectedEvent.likes || 0}
                           favorited={selectedEvent.favorited}
                           testId="event-detail-favorite-mobile"
-                          className={`p-3 rounded-md transition-all shrink-0 border ${isDayMode ? "bg-white hover:bg-slate-50 border-slate-200 text-slate-700" : "bg-white/10 hover:bg-white/20 border border-white/10 backdrop-blur-md"}`}
+                          className={`p-3 rounded-md transition-all shrink-0 border ${isDayMode ? "bg-white hover:bg-white border-slate-200 text-slate-700" : "bg-white/10 hover:bg-white/20 border border-white/10 backdrop-blur-md"}`}
                           onToggle={(favorited, likes) => {
                             recordSelectedEventAssistantAction(
                               favorited ? "favorite" : "unfavorite",
@@ -2489,7 +2489,7 @@ END:VCALENDAR`;
                               <button
                                 type="button"
                                 onClick={handleCopyLocation}
-                                className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 border text-sm font-semibold transition-colors ${isDayMode ? "bg-white border-slate-200 text-slate-700 hover:bg-slate-50" : "bg-white/8 border-white/15 text-white/85 hover:bg-white/12"}`}
+                                className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 border text-sm font-semibold transition-colors ${isDayMode ? "bg-white border-slate-200 text-slate-700 hover:bg-white" : "bg-white/8 border-white/15 text-white/85 hover:bg-white/12"}`}
                               >
                                 <MapPin
                                   size={15}
@@ -2521,7 +2521,7 @@ END:VCALENDAR`;
                             count={selectedEvent.likes || 0}
                             favorited={selectedEvent.favorited}
                             testId="event-detail-favorite-desktop"
-                            className={`h-12 px-4 rounded-lg transition-all border ${isDayMode ? "bg-white hover:bg-slate-50 border-slate-200 text-slate-700" : "bg-white/10 hover:bg-white/20 border border-white/10 text-white backdrop-blur-md"}`}
+                            className={`h-12 px-4 rounded-lg transition-all border ${isDayMode ? "bg-white hover:bg-white border-slate-200 text-slate-700" : "bg-white/10 hover:bg-white/20 border border-white/10 text-white backdrop-blur-md"}`}
                             onToggle={(favorited, likes) => {
                               recordSelectedEventAssistantAction(
                                 favorited ? "favorite" : "unfavorite",
@@ -2580,7 +2580,7 @@ END:VCALENDAR`;
                         >
                           <div className="relative">
                             <div
-                              className={`inline-flex items-center gap-2 rounded-md px-3 py-1 mb-4 border ${isDayMode ? "bg-slate-50/90 text-slate-500 border-slate-200/80" : "bg-white/10 text-white/70 border-white/10"}`}
+                              className={`inline-flex items-center gap-2 rounded-md px-3 py-1 mb-4 border ${isDayMode ? "bg-white text-slate-500 border-slate-200/80" : "bg-white/10 text-white/70 border-white/10"}`}
                             >
                               <FileText
                                 size={16}
@@ -2618,7 +2618,7 @@ END:VCALENDAR`;
                           {/* Key Attributes Grid */}
                           {selectedEvent.category && (
                             <div
-                              className={`rounded-lg p-4 border backdrop-blur-sm ${isDayMode ? "bg-blue-50/70 border-blue-100/80" : "bg-white/[0.03] border-white/5"}`}
+                              className={`rounded-lg p-4 border ${isDayMode ? "bg-white border-blue-100/80" : "bg-white/[0.03] border-white/5 backdrop-blur-sm"}`}
                             >
                               <div
                                 className={`flex items-center gap-2 mb-3 ${eventThemeAccent.accentText}`}
@@ -2776,7 +2776,7 @@ END:VCALENDAR`;
 
                             {selectedEvent.target_audience && (
                               <div
-                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-slate-50/80 border-slate-200/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
+                                className={`flex items-start gap-2.5 group rounded-lg px-3 py-3 border transition-all sm:items-center sm:gap-3 sm:px-4 sm:py-4 ${isDayMode ? "bg-white border-slate-200/80 hover:bg-white" : "bg-white/[0.03] border-white/5"}`}
                               >
                                 <div className={`p-2 rounded-xl shrink-0 transition-colors sm:p-2.5 ${isDayMode ? "bg-white border border-slate-200 text-slate-600 group-hover:text-blue-700" : "bg-blue-500/5 border border-blue-500/10 text-blue-400 group-hover:bg-blue-500/10"}`}>
                                   <Users size={18} className="sm:h-5 sm:w-5" />
