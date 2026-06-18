@@ -60,14 +60,9 @@ const getLocalizedPartnerText = (partner = {}, baseKey, language = "zh") => {
   return partner[baseKey] || partner[englishKey] || "";
 };
 
-const getFallbackMark = (name) => {
-  const compact = String(name || "").replace(/\s+/g, "");
-  return compact.slice(0, compact.length > 1 && /[\u4e00-\u9fff]/.test(compact) ? 2 : 3).toUpperCase();
-};
-
 const PartnerLogo = ({ partner, name, isDayMode, size = "md" }) => {
   const logoSrc = getPartnerLogoSrc(partner, isDayMode);
-  const sizeClass = size === "sm" ? "h-9 w-9 text-[11px]" : "h-12 w-12 text-xs";
+  const sizeClass = size === "sm" ? "h-9 w-9" : "h-12 w-12";
   if (logoSrc) {
     return (
       <span
@@ -79,7 +74,8 @@ const PartnerLogo = ({ partner, name, isDayMode, size = "md" }) => {
           src={logoSrc}
           alt={`${name} logo`}
           className="max-h-[70%] max-w-full object-contain"
-          loading="lazy"
+          loading="eager"
+          decoding="async"
         />
       </span>
     );
@@ -87,13 +83,14 @@ const PartnerLogo = ({ partner, name, isDayMode, size = "md" }) => {
 
   return (
     <span
-      className={`flex ${sizeClass} shrink-0 items-center justify-center rounded-[6px] border font-black ${
+      className={`flex ${sizeClass} shrink-0 items-center justify-center rounded-[6px] border ${
         isDayMode
-          ? "border-violet-100 bg-violet-50 text-violet-700"
-          : "border-indigo-400/20 bg-indigo-500/12 text-indigo-100"
+          ? "border-slate-200 bg-slate-50 text-slate-500"
+          : "border-white/10 bg-white/[0.04] text-slate-400"
       }`}
     >
-      {getFallbackMark(name)}
+      <Users size={size === "sm" ? 15 : 18} aria-hidden="true" />
+      <span className="sr-only">{name}</span>
     </span>
   );
 };

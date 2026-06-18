@@ -5,32 +5,14 @@ export const ECOSYSTEM_PARTNER_CATEGORIES = [
 ];
 
 const organizationLogoBase = "/images/partner-logos/organizations";
+const officialOrganizationLogoBase = `${organizationLogoBase}/official`;
 
 export const ORGANIZATION_PARTNER_LOGOS = {
-  XLAB: `${organizationLogoBase}/xlab.svg`,
-  ZJUAI: `${organizationLogoBase}/zjuai.svg`,
-  EAI: `${organizationLogoBase}/eai.svg`,
-  AIRA: `${organizationLogoBase}/aira.svg`,
-  KAB: `${organizationLogoBase}/kab.svg`,
-  浙江大学本科生院: `${organizationLogoBase}/undergraduate-school.svg`,
-  浙江大学艺术与考古博物馆: `${organizationLogoBase}/museum-art-archaeology.svg`,
-  浙江大学星辰汇: `${organizationLogoBase}/xingchenhui.svg`,
-  浙大出国交流资讯: `${organizationLogoBase}/global-exchange-info.svg`,
-  "浙江大学 CC98 论坛": `${organizationLogoBase}/cc98.svg`,
-  浙江大学红十字会: `${organizationLogoBase}/red-cross.svg`,
-  浙江大学图书馆: `${organizationLogoBase}/library.svg`,
-  浙大体育与艺术: `${organizationLogoBase}/sports-arts.svg`,
-  浙大生活: `${organizationLogoBase}/zju-life.svg`,
-  浙江大学学生会: `${organizationLogoBase}/student-union.svg`,
-  浙江大学求是学院: `${organizationLogoBase}/qiushi-college.svg`,
-  浙江大学团委: `${organizationLogoBase}/youth-league.svg`,
-  "浙大素拓 ZJUST": `${organizationLogoBase}/zjust.svg`,
-  浙大微学工: `${organizationLogoBase}/student-affairs.svg`,
-  蓝田学园: `${organizationLogoBase}/lantian-college.svg`,
-  蓝田青年: `${organizationLogoBase}/lantian-youth.svg`,
-  求是学院丹阳青溪学园: `${organizationLogoBase}/danyang-qingxi-college.svg`,
-  云峰微讯: `${organizationLogoBase}/yunfeng-news.svg`,
-  浙大竺院人: `${organizationLogoBase}/chu-kochen-college.svg`,
+  浙江大学本科生院: `${officialOrganizationLogoBase}/undergraduate-school.png`,
+  浙江大学艺术与考古博物馆: `${officialOrganizationLogoBase}/museum-art-archaeology.png`,
+  "浙江大学 CC98 论坛": `${officialOrganizationLogoBase}/cc98.png`,
+  浙江大学图书馆: `${officialOrganizationLogoBase}/library.png`,
+  求是学院丹阳青溪学园: `${officialOrganizationLogoBase}/danyang-qingxi-college.png`,
 };
 
 const withOrganizationLogo = (partner) => {

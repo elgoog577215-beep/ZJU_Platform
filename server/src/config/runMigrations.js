@@ -2,30 +2,11 @@ const { ensureCoreSchema } = require('./ensureCoreSchema');
 const profileService = require('../services/profileService');
 
 const ORGANIZATION_PARTNER_LOGOS = Object.freeze({
-  XLAB: '/images/partner-logos/organizations/xlab.svg',
-  ZJUAI: '/images/partner-logos/organizations/zjuai.svg',
-  EAI: '/images/partner-logos/organizations/eai.svg',
-  AIRA: '/images/partner-logos/organizations/aira.svg',
-  KAB: '/images/partner-logos/organizations/kab.svg',
-  '浙江大学本科生院': '/images/partner-logos/organizations/undergraduate-school.svg',
-  '浙江大学艺术与考古博物馆': '/images/partner-logos/organizations/museum-art-archaeology.svg',
-  '浙江大学星辰汇': '/images/partner-logos/organizations/xingchenhui.svg',
-  '浙大出国交流资讯': '/images/partner-logos/organizations/global-exchange-info.svg',
-  '浙江大学 CC98 论坛': '/images/partner-logos/organizations/cc98.svg',
-  '浙江大学红十字会': '/images/partner-logos/organizations/red-cross.svg',
-  '浙江大学图书馆': '/images/partner-logos/organizations/library.svg',
-  '浙大体育与艺术': '/images/partner-logos/organizations/sports-arts.svg',
-  '浙大生活': '/images/partner-logos/organizations/zju-life.svg',
-  '浙江大学学生会': '/images/partner-logos/organizations/student-union.svg',
-  '浙江大学求是学院': '/images/partner-logos/organizations/qiushi-college.svg',
-  '浙江大学团委': '/images/partner-logos/organizations/youth-league.svg',
-  '浙大素拓 ZJUST': '/images/partner-logos/organizations/zjust.svg',
-  '浙大微学工': '/images/partner-logos/organizations/student-affairs.svg',
-  '蓝田学园': '/images/partner-logos/organizations/lantian-college.svg',
-  '蓝田青年': '/images/partner-logos/organizations/lantian-youth.svg',
-  '求是学院丹阳青溪学园': '/images/partner-logos/organizations/danyang-qingxi-college.svg',
-  '云峰微讯': '/images/partner-logos/organizations/yunfeng-news.svg',
-  '浙大竺院人': '/images/partner-logos/organizations/chu-kochen-college.svg',
+  '浙江大学本科生院': '/images/partner-logos/organizations/official/undergraduate-school.png',
+  '浙江大学艺术与考古博物馆': '/images/partner-logos/organizations/official/museum-art-archaeology.png',
+  '浙江大学 CC98 论坛': '/images/partner-logos/organizations/official/cc98.png',
+  '浙江大学图书馆': '/images/partner-logos/organizations/official/library.png',
+  '求是学院丹阳青溪学园': '/images/partner-logos/organizations/official/danyang-qingxi-college.png',
 });
 
 async function runMigrations(db) {
@@ -1231,23 +1212,38 @@ async function runMigrations(db) {
       );
     }
 
+    await db.run(
+      `UPDATE ecosystem_partners
+       SET logo_url = CASE
+             WHEN logo_url LIKE '/images/partner-logos/organizations/%.svg' THEN NULL
+             ELSE logo_url
+           END,
+           dark_logo_url = CASE
+             WHEN dark_logo_url LIKE '/images/partner-logos/organizations/%.svg' THEN NULL
+             ELSE dark_logo_url
+           END,
+           updated_at = datetime('now')
+       WHERE category = 'organization'
+         AND deleted_at IS NULL
+         AND (
+           logo_url LIKE '/images/partner-logos/organizations/%.svg'
+           OR dark_logo_url LIKE '/images/partner-logos/organizations/%.svg'
+         )`,
+    );
+
     for (const [name, logoUrl] of Object.entries(ORGANIZATION_PARTNER_LOGOS)) {
       await db.run(
         `UPDATE ecosystem_partners
-         SET logo_url = COALESCE(NULLIF(TRIM(logo_url), ''), ?),
-             dark_logo_url = COALESCE(NULLIF(TRIM(dark_logo_url), ''), ?),
+         SET logo_url = ?,
+             dark_logo_url = ?,
              updated_at = datetime('now')
          WHERE category = 'organization'
            AND name = ?
-           AND deleted_at IS NULL
-           AND (
-             logo_url IS NULL OR TRIM(logo_url) = ''
-             OR dark_logo_url IS NULL OR TRIM(dark_logo_url) = ''
-           )`,
+           AND deleted_at IS NULL`,
         [logoUrl, logoUrl, name],
       );
     }
-    console.log('✅ Ecosystem organization logos backfilled');
+    console.log('✅ Ecosystem organization official logos synced');
 
   } catch (err) {
     if (!err.message.includes('already exists')) {
