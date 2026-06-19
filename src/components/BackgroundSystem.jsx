@@ -671,13 +671,16 @@ const BackgroundSystem = ({ forcedTheme = null }) => {
   const backgroundClassName = isDayMode
     ? "pointer-events-none fixed inset-0 z-0 overflow-hidden bg-white"
     : "pointer-events-none fixed inset-0 z-0 overflow-hidden bg-black";
+  const backgroundFilter = isDayMode
+    ? "none"
+    : `brightness(${brightness}) saturate(${saturation}) contrast(${contrast})`;
 
   return (
     <div
       aria-hidden="true"
       className={backgroundClassName}
       data-dynamic-background="true"
-      style={{ filter: `brightness(${brightness}) saturate(${saturation}) contrast(${contrast})` }}
+      style={{ filter: backgroundFilter }}
     >
       {prefersReducedMotion ? (
         <StaticFallback sceneId={sceneId} isDayMode={isDayMode} />
