@@ -111,10 +111,10 @@ const EventFilterPanel = ({
 
   const shellClass = isSheetMode ? "space-y-3" : "relative z-10 space-y-3";
   const glassClass = isDayMode
-    ? "border-slate-200/80 bg-white"
+    ? "border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.02),0_10px_24px_rgba(15,23,42,0.035)]"
     : "border-white/[0.10] bg-white/[0.035] shadow-none";
   const subtleGlassClass = isDayMode
-    ? "border-slate-200/80 bg-white"
+    ? "border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.018),0_8px_18px_rgba(15,23,42,0.028)]"
     : "border-white/[0.12] bg-[#080b14]/92 shadow-none";
   const mutedTextClass = isDayMode ? "text-slate-500" : "text-gray-400";
   const strongTextClass = isDayMode ? "text-slate-900" : "text-white";

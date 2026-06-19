@@ -205,7 +205,7 @@ const OrganizationPartnerWall = ({
   const mutedClass = isDayMode ? "text-slate-500" : "text-slate-400";
   const strongClass = isDayMode ? "text-slate-950" : "text-white";
   const railClass = isDayMode
-    ? "border-slate-200/70 bg-white"
+    ? "border-slate-200/70 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.018),0_10px_22px_rgba(15,23,42,0.03)]"
     : "border-white/10 bg-white/[0.025]";
   const chipClass = isDayMode
     ? "border-slate-200/80 bg-white text-slate-800 hover:border-slate-300 hover:bg-white"
@@ -331,7 +331,7 @@ const OrganizationPartnerWall = ({
               {directoryOpen && (
                 <motion.div
 	                  className={`fixed inset-0 z-[110] flex items-end justify-center px-3 pb-3 pt-[calc(env(safe-area-inset-top)+1rem)] md:items-center md:p-6 ${
-	                    isDayMode ? "bg-transparent" : "bg-black/70 backdrop-blur-sm"
+	                    isDayMode ? "bg-white/[0.14] backdrop-blur-sm" : "bg-black/70 backdrop-blur-sm"
 	                  }`}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -350,7 +350,7 @@ const OrganizationPartnerWall = ({
                     onClick={(event) => event.stopPropagation()}
                     className={`max-h-[86dvh] w-full max-w-5xl overflow-hidden rounded-[8px] border ${
 	                      isDayMode
-	                        ? "border-slate-200 bg-white text-slate-900 shadow-none"
+	                        ? "border-slate-200 bg-white text-slate-900 shadow-[0_20px_64px_rgba(15,23,42,0.13)]"
                         : "border-white/10 bg-[#0b0d16] text-white shadow-[0_24px_70px_rgba(0,0,0,0.42)]"
                     }`}
                   >
@@ -440,7 +440,7 @@ const OrganizationPartnerWall = ({
               {selectedPartner && (
                 <motion.div
 	                  className={`fixed inset-0 z-[110] flex items-end justify-center px-3 pb-3 pt-[calc(env(safe-area-inset-top)+1rem)] md:items-center md:p-6 ${
-	                    isDayMode ? "bg-transparent" : "bg-black/70 backdrop-blur-sm"
+	                    isDayMode ? "bg-white/[0.14] backdrop-blur-sm" : "bg-black/70 backdrop-blur-sm"
 	                  }`}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -459,7 +459,7 @@ const OrganizationPartnerWall = ({
                     onClick={(event) => event.stopPropagation()}
                     className={`max-h-[86dvh] w-full max-w-3xl overflow-hidden rounded-[8px] border ${
 	                      isDayMode
-	                        ? "border-slate-200 bg-white text-slate-900 shadow-none"
+	                        ? "border-slate-200 bg-white text-slate-900 shadow-[0_20px_64px_rgba(15,23,42,0.13)]"
                         : "border-white/10 bg-[#0b0d16] text-white shadow-[0_24px_70px_rgba(0,0,0,0.42)]"
                     }`}
                   >

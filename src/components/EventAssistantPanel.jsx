@@ -290,19 +290,19 @@ const EventAssistantPanel = ({
     ? "bg-transparent border-transparent shadow-none"
     : isRailVariant
       ? isDayMode
-        ? "bg-white border-slate-200/85 shadow-none"
+        ? "bg-white border-slate-200/85 shadow-[0_1px_2px_rgba(15,23,42,0.02),0_14px_34px_rgba(15,23,42,0.05)]"
         : "bg-[#0d111a]/94 border-white/10 shadow-[0_18px_46px_rgba(0,0,0,0.34)]"
       : isDayMode
-        ? "bg-white border-slate-200/85 shadow-none"
+        ? "bg-white border-slate-200/85 shadow-[0_1px_2px_rgba(15,23,42,0.02),0_12px_30px_rgba(15,23,42,0.045)]"
         : "bg-[#10121d]/88 border-white/10 shadow-none";
   const softPanelClass = isDayMode
     ? "bg-white border-slate-200/80"
     : "bg-white/[0.05] border-white/10";
   const promptCardClass = isFullscreenVariant || isRailVariant
-    ? `${isDayMode ? "border-slate-200/90 bg-white shadow-none" : "border-white/10 bg-white/[0.045] shadow-none"}`
+    ? `${isDayMode ? "border-slate-200/90 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.018),0_8px_18px_rgba(15,23,42,0.026)]" : "border-white/10 bg-white/[0.045] shadow-none"}`
     : softPanelClass;
   const resultPanelClass = isFullscreenVariant || isRailVariant
-    ? `${isDayMode ? "border-slate-200/90 bg-white shadow-none" : "border-white/10 bg-white/[0.045] shadow-none"}`
+    ? `${isDayMode ? "border-slate-200/90 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.018),0_8px_18px_rgba(15,23,42,0.026)]" : "border-white/10 bg-white/[0.045] shadow-none"}`
     : softPanelClass;
   const textClass = isDayMode ? "text-slate-900" : "text-white";
   const mutedClass = isDayMode ? "text-slate-600" : "text-gray-300";
@@ -577,7 +577,7 @@ const EventAssistantPanel = ({
                         return (
                           <div
                             key={item.id}
-                            className={`rounded-lg border transition-[background-color,border-color,box-shadow,transform] ${recommendationCardClass} ${isDayMode ? "bg-white border-slate-200 shadow-none hover:border-slate-300 hover:bg-white hover:shadow-none" : "bg-white/[0.045] border-white/10 hover:-translate-y-0.5 hover:border-blue-300/20 hover:bg-white/[0.065]"}`}
+                            className={`rounded-lg border transition-[background-color,border-color,box-shadow,transform] ${recommendationCardClass} ${isDayMode ? "bg-white border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.018),0_8px_18px_rgba(15,23,42,0.026)] hover:border-slate-300 hover:bg-white hover:shadow-[0_2px_4px_rgba(15,23,42,0.025),0_12px_24px_rgba(15,23,42,0.038)]" : "bg-white/[0.045] border-white/10 hover:-translate-y-0.5 hover:border-blue-300/20 hover:bg-white/[0.065]"}`}
                           >
                             <button
                               type="button"

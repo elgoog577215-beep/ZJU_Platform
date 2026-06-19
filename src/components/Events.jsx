@@ -1631,7 +1631,7 @@ END:VCALENDAR`;
               }
               setIsUploadOpen(true);
             }}
-            className={`rect-button-secondary flex items-center gap-2 px-4 py-2 md:px-5 md:py-2.5 transition-all font-bold text-sm shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 ${isDayMode ? "border-slate-200/80 bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-800" : "text-white"}`}
+            className={`rect-button-secondary flex items-center gap-2 px-4 py-2 md:px-5 md:py-2.5 transition-all font-bold text-sm shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 ${isDayMode ? "border-slate-200/80 bg-white text-slate-700 shadow-[0_1px_2px_rgba(15,23,42,0.018),0_8px_18px_rgba(15,23,42,0.028)] hover:border-blue-200 hover:bg-blue-50 hover:text-blue-800" : "text-white"}`}
           >
             <Upload size={18} className="md:w-5 md:h-5" />{" "}
             {t("common.create_event")}
@@ -1668,7 +1668,7 @@ END:VCALENDAR`;
             <div
               className={`inline-flex rounded-[6px] border p-1 ${
                 isDayMode
-                  ? "border-slate-200/80 bg-white"
+                  ? "border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.018),0_8px_18px_rgba(15,23,42,0.028)]"
                   : "border-white/10 bg-white/[0.045]"
               }`}
               role="group"
@@ -2131,7 +2131,7 @@ END:VCALENDAR`;
               role="dialog"
               aria-modal="true"
               aria-label={selectedEvent?.title || t("events.title")}
-              className={`fixed inset-0 z-[140] flex items-end justify-center p-0 md:items-center md:p-4 ${isDayMode ? "bg-transparent" : "bg-black/80 backdrop-blur-md"}`}
+              className={`fixed inset-0 z-[140] flex items-end justify-center p-0 md:items-center md:p-4 ${isDayMode ? "bg-white/[0.12] backdrop-blur-md" : "bg-black/80 backdrop-blur-md"}`}
               onClick={closeEvent}
             >
               <motion.div
@@ -2145,7 +2145,7 @@ END:VCALENDAR`;
                     ? undefined
                     : { duration: 0.28, ease: [0.22, 1, 0.36, 1] }
                 }
-                className={`w-full max-w-5xl overflow-hidden overscroll-contain relative flex flex-col ${isMobileViewport ? "min-h-[100dvh] max-h-[100dvh] rounded-none border-0" : "min-h-[100dvh] md:min-h-0 max-h-[100dvh] md:max-h-[90vh] rounded-t-[7px] md:rounded-[7px] border-x-0 border-b-0 md:border"} ${isDayMode ? "bg-white border-slate-200/90" : "bg-[#0f0f0f] border-white/10 shadow-2xl"}`}
+                className={`w-full max-w-5xl overflow-hidden overscroll-contain relative flex flex-col ${isMobileViewport ? "min-h-[100dvh] max-h-[100dvh] rounded-none border-0" : "min-h-[100dvh] md:min-h-0 max-h-[100dvh] md:max-h-[90vh] rounded-t-[7px] md:rounded-[7px] border-x-0 border-b-0 md:border"} ${isDayMode ? "bg-white border-slate-200/90 shadow-[0_24px_72px_rgba(15,23,42,0.16)]" : "bg-[#0f0f0f] border-white/10 shadow-2xl"}`}
                 onClick={(e) => e.stopPropagation()}
               >
                 {!isMobileViewport && (
