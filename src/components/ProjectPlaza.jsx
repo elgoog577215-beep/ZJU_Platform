@@ -52,7 +52,7 @@ const NEED_LABEL_KEYS = {
 };
 
 const initials = (name, fallback = "你") => (name ? name.trim().slice(0, 1) : fallback.trim().slice(0, 1));
-const GRAD = "linear-gradient(135deg,#f43f5e,#7c3aed)";
+const GRAD = "linear-gradient(135deg,#d88bb8,#8b6fd6)";
 
 const getProgressLabel = (t, progress) => {
   const meta = PROGRESS_META[progress] || PROGRESS_META.idea;
