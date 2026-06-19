@@ -2256,49 +2256,9 @@
     "go_home": "返回首页"
   },
   "themes": {
-    "space": {
-      "name": "深空星云",
-      "desc": "星云空间"
-    },
-    "grid": {
-      "name": "复古网格",
-      "desc": "合成波"
-    },
-    "embers": {
-      "name": "火焰余烬",
-      "desc": "飞溅火花"
-    },
     "crystal": {
       "name": "晶体洞窟",
       "desc": "清晰焦点"
-    },
-    "clouds": {
-      "name": "空灵云层",
-      "desc": "柔雾星空"
-    },
-    "cyber": {
-      "name": "赛博电路",
-      "desc": "主机"
-    },
-    "dna": {
-      "name": "数字 DNA",
-      "desc": "生命代码"
-    },
-    "binary": {
-      "name": "二进制流",
-      "desc": "数据流"
-    },
-    "network": {
-      "name": "网络节点",
-      "desc": "连接"
-    },
-    "wave": {
-      "name": "粒子波",
-      "desc": "振荡"
-    },
-    "orbit": {
-      "name": "轨道环",
-      "desc": "引力"
     }
   },
   "event_fields": {

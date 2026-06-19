@@ -2138,49 +2138,9 @@
     "go_home": "Go Home"
   },
   "themes": {
-    "space": {
-      "name": "Deep Space",
-      "desc": "Stellar Nebula"
-    },
-    "grid": {
-      "name": "Retro Grid",
-      "desc": "Synthwave"
-    },
-    "embers": {
-      "name": "Fire Embers",
-      "desc": "Rising Sparks"
-    },
     "crystal": {
       "name": "Crystal Cave",
       "desc": "Refraction"
-    },
-    "clouds": {
-      "name": "Ethereal",
-      "desc": "Soft Sky"
-    },
-    "cyber": {
-      "name": "Cyber Circuit",
-      "desc": "Mainframe"
-    },
-    "dna": {
-      "name": "Digital DNA",
-      "desc": "Code of Life"
-    },
-    "binary": {
-      "name": "Binary Stream",
-      "desc": "Data Flow"
-    },
-    "network": {
-      "name": "Network Nodes",
-      "desc": "Connectivity"
-    },
-    "wave": {
-      "name": "Particle Wave",
-      "desc": "Oscillation"
-    },
-    "orbit": {
-      "name": "Orbital Rings",
-      "desc": "Gravity"
     }
   },
   "sort_filter": {

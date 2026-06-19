@@ -90,7 +90,9 @@ export const SettingsProvider = ({ children }) => {
   });
   const [backgroundScene, setBackgroundScene] = useState(() => {
     const saved = readStorage(BACKGROUND_SCENE_STORAGE_KEY, DEFAULT_BACKGROUND_SCENE);
-    return isBackgroundSceneId(saved) ? saved : DEFAULT_BACKGROUND_SCENE;
+    if (isBackgroundSceneId(saved)) return saved;
+    writeStorage(BACKGROUND_SCENE_STORAGE_KEY, DEFAULT_BACKGROUND_SCENE);
+    return DEFAULT_BACKGROUND_SCENE;
   });
   const [showWeatherWidget, setShowWeatherWidget] = useState(() => {
     const saved = readStorage(WEATHER_WIDGET_STORAGE_KEY, 'false');

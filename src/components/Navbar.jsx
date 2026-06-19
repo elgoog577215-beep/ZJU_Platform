@@ -854,18 +854,14 @@ const Navbar = () => {
                   {t("nav.wallpaper_mode_hint")}
                 </div>
 
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-2">
                   {BACKGROUND_SCENES.map((scene) => {
-                    const isActiveScene = scene.id === backgroundScene;
+                    const isActiveScene = true;
                     const sceneName = t(`themes.${scene.id}.name`, scene.name);
                     const sceneDesc = t(`themes.${scene.id}.desc`, scene.desc);
 	                    const sceneButtonClasses = isDayMode
-	                      ? isActiveScene
-	                        ? "border-violet-300/80 bg-white shadow-none"
-	                        : "border-slate-200/80 bg-white hover:border-violet-200 hover:bg-white"
-                      : isActiveScene
-                        ? "border-cyan-300/50 bg-cyan-300/[0.12] shadow-[0_18px_44px_rgba(34,211,238,0.12)]"
-                        : "border-white/10 bg-white/[0.045] hover:border-cyan-300/30 hover:bg-white/[0.07]";
+	                      ? "border-violet-300/80 bg-white shadow-none"
+                      : "border-cyan-300/50 bg-cyan-300/[0.12] shadow-[0_18px_44px_rgba(34,211,238,0.12)]";
 
                     return (
                       <button
