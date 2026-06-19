@@ -308,20 +308,20 @@ const EventAssistantPanel = ({
   const mutedClass = isDayMode ? "text-slate-600" : "text-gray-300";
   const faintClass = isDayMode ? "text-slate-500" : "text-gray-400";
   const chipClass = isDayMode
-    ? "bg-white text-slate-600 border-violet-100/80"
+    ? "bg-white text-slate-600 border-slate-200/80"
     : "bg-white/8 text-white/75 border-white/10";
   const quickPromptClass = isFullscreenVariant || isRailVariant
     ? isDayMode
-      ? "bg-white text-slate-700 border-violet-100 shadow-none hover:border-violet-200 hover:bg-white active:bg-white"
+      ? "bg-white text-slate-700 border-slate-200/80 shadow-none hover:border-slate-300 hover:bg-white active:bg-white"
       : "bg-white/[0.055] text-white/82 border-white/10 shadow-none hover:border-blue-300/20 hover:bg-white/[0.085] active:bg-white/[0.1]"
     : chipClass;
   const controlChipClass = isFullscreenVariant || isRailVariant
     ? isDayMode
-      ? "bg-white text-slate-600 border-violet-100"
+      ? "bg-white text-slate-600 border-slate-200/80"
       : "bg-white/[0.06] text-white/76 border-white/10"
     : chipClass;
   const actionClass = isDayMode
-    ? "bg-violet-700 text-white hover:bg-violet-800 shadow-none"
+    ? "bg-blue-700 text-white hover:bg-blue-800 shadow-none"
     : "bg-blue-600 text-white hover:bg-blue-500 shadow-[0_1px_2px_rgba(0,0,0,0.22)]";
   const disabledActionClass = isDayMode
     ? "disabled:bg-white disabled:text-slate-400 disabled:shadow-none"
@@ -345,7 +345,7 @@ const EventAssistantPanel = ({
   const shellRadiusClass = isFullscreenVariant ? "rounded-none" : isRailVariant ? "rounded-[7px]" : "rounded-lg";
   const promptCardPaddingClass = isRailVariant ? "p-3" : "p-4";
   const promptFocusClass = isDayMode
-    ? "focus-within:border-violet-300/90 focus-within:shadow-none"
+    ? "focus-within:border-blue-300/80 focus-within:shadow-none"
     : "focus-within:border-blue-300/35 focus-within:bg-white/[0.06]";
   const textareaSizeClass = isRailVariant
     ? "min-h-[70px] text-sm leading-6"
@@ -369,10 +369,10 @@ const EventAssistantPanel = ({
       <div className={`relative overflow-hidden border transition-[background-color,border-color,box-shadow] ${isDayMode ? "" : "backdrop-blur-2xl"} ${shellRadiusClass} ${isRailVariant ? "flex h-full min-h-0 flex-col" : ""} ${shellClass}`}>
         <div className={`relative ${panelPaddingClass}`}>
           {isRailVariant ? (
-            <div className={`sticky top-0 z-10 -mx-2.5 -mt-2.5 border-b px-2.5 py-2.5 ${isDayMode ? "border-violet-100/80 bg-white" : "border-white/10 bg-[#0d111a]/92 backdrop-blur-xl"}`}>
+            <div className={`sticky top-0 z-10 -mx-2.5 -mt-2.5 border-b px-2.5 py-2.5 ${isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-[#0d111a]/92 backdrop-blur-xl"}`}>
               <div className="flex items-center justify-between gap-2.5">
                 <div className="flex min-w-0 items-center gap-2 text-left">
-                  <span className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border ${isDayMode ? "border-pink-100 bg-white text-violet-700" : "border-blue-300/15 bg-blue-400/10 text-blue-200"}`}>
+                  <span className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border ${isDayMode ? "border-slate-200/80 bg-white text-blue-700" : "border-blue-300/15 bg-blue-400/10 text-blue-200"}`}>
                     <Sparkles size={16} />
                   </span>
                   <div className="min-w-0">
@@ -400,7 +400,7 @@ const EventAssistantPanel = ({
             <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
               <div className="max-w-2xl text-left">
                 <span className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] ${chipClass}`}>
-                  <Sparkles size={13} className={isDayMode ? "text-pink-500" : "text-cyan-300"} />
+                  <Sparkles size={13} className={isDayMode ? "text-blue-600" : "text-cyan-300"} />
                   {t("events.assistant.card_badge", "AI 活动助手")}
                 </span>
                 <h3 className={`mt-3 text-xl font-bold tracking-normal sm:text-2xl ${textClass}`}>
@@ -577,7 +577,7 @@ const EventAssistantPanel = ({
                         return (
                           <div
                             key={item.id}
-                            className={`rounded-lg border transition-[background-color,border-color,box-shadow,transform] ${recommendationCardClass} ${isDayMode ? "bg-white border-slate-200 shadow-none hover:border-violet-200 hover:bg-white hover:shadow-none" : "bg-white/[0.045] border-white/10 hover:-translate-y-0.5 hover:border-blue-300/20 hover:bg-white/[0.065]"}`}
+                            className={`rounded-lg border transition-[background-color,border-color,box-shadow,transform] ${recommendationCardClass} ${isDayMode ? "bg-white border-slate-200 shadow-none hover:border-slate-300 hover:bg-white hover:shadow-none" : "bg-white/[0.045] border-white/10 hover:-translate-y-0.5 hover:border-blue-300/20 hover:bg-white/[0.065]"}`}
                           >
                             <button
                               type="button"

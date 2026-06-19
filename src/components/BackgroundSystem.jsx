@@ -719,7 +719,7 @@ const BackgroundSystem = ({ forcedTheme = null }) => {
         </Canvas>
       )}
       {isDayMode ? (
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_14%_16%,rgba(236,72,153,0.12),transparent_26rem),radial-gradient(circle_at_86%_12%,rgba(168,85,247,0.11),transparent_30rem),radial-gradient(circle_at_52%_88%,rgba(14,165,233,0.09),transparent_28rem)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_14%_16%,rgba(59,130,246,0.055),transparent_30rem),radial-gradient(circle_at_86%_12%,rgba(20,184,166,0.045),transparent_32rem),radial-gradient(circle_at_52%_88%,rgba(251,191,36,0.04),transparent_30rem)]" />
       ) : (
         <div className="absolute inset-0 bg-black/55 md:hidden" />
       )}

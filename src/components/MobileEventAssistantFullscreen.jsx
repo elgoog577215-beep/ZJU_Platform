@@ -13,7 +13,7 @@ const MobileEventAssistantLauncher = ({ isDayMode, onOpen }) => {
       onClick={onOpen}
       className={`group mb-3 flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left transition-[background-color,border-color,box-shadow,transform] hover:-translate-y-px active:translate-y-0 active:scale-[0.99] md:hidden ${
         isDayMode
-          ? "border-violet-100/80 bg-white text-slate-900 shadow-none hover:border-violet-200 hover:bg-white"
+          ? "border-slate-200/80 bg-white text-slate-900 shadow-none hover:border-slate-300 hover:bg-white"
           : "border-white/10 bg-white/[0.06] text-white shadow-none hover:border-blue-300/20 hover:bg-white/[0.085]"
       }`}
     >
@@ -21,7 +21,7 @@ const MobileEventAssistantLauncher = ({ isDayMode, onOpen }) => {
         <span
           className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md transition-transform group-hover:scale-[1.03] group-active:scale-95 ${
             isDayMode
-              ? "bg-white text-violet-700 ring-1 ring-pink-100"
+              ? "bg-white text-blue-700 ring-1 ring-slate-200/80"
               : "bg-white/10 text-blue-200"
           }`}
         >
@@ -74,7 +74,7 @@ const MobileEventAssistantFullscreen = ({
         >
           <div
             className={`shrink-0 border-b px-4 pb-2.5 pt-[calc(env(safe-area-inset-top)+0.8rem)] ${
-              isDayMode ? "border-violet-100 bg-white" : "border-white/10 bg-[#111318]/92 backdrop-blur-xl"
+              isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-[#111318]/92 backdrop-blur-xl"
             }`}
           >
             <div className="flex items-center gap-3">
@@ -97,7 +97,7 @@ const MobileEventAssistantFullscreen = ({
               </div>
               <span
                 className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${
-                  isDayMode ? "bg-white text-violet-700 ring-1 ring-pink-100" : "bg-white/10 text-blue-200"
+                  isDayMode ? "bg-white text-blue-700 ring-1 ring-slate-200/80" : "bg-white/10 text-blue-200"
                 }`}
               >
                 <Sparkles size={18} />

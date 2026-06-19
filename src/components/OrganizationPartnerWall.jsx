@@ -208,7 +208,7 @@ const OrganizationPartnerWall = ({
     ? "border-slate-200/70 bg-white"
     : "border-white/10 bg-white/[0.025]";
   const chipClass = isDayMode
-    ? "border-slate-200/80 bg-white text-slate-800 hover:border-violet-200 hover:bg-white"
+    ? "border-slate-200/80 bg-white text-slate-800 hover:border-slate-300 hover:bg-white"
     : "border-white/10 bg-white/[0.04] text-slate-100 hover:border-indigo-300/30 hover:bg-white/[0.07]";
 
   const applySelectedPartner = () => {
@@ -240,7 +240,7 @@ const OrganizationPartnerWall = ({
       >
         <div className={`flex items-center gap-3 overflow-hidden border-y px-0 py-2 ${railClass}`}>
           <div className="flex shrink-0 items-center gap-2 pl-1 md:pl-3">
-            <Users size={14} className={isDayMode ? "text-violet-700" : "text-indigo-200"} />
+            <Users size={14} className={isDayMode ? "text-blue-700" : "text-indigo-200"} />
             <div className="leading-none">
               <div className={`text-xs font-black ${strongClass}`}>
                 {t("events.organizations.kicker", "合作社团")}
@@ -299,7 +299,7 @@ const OrganizationPartnerWall = ({
                   <div className="min-w-0">
                     <div className={`truncate text-xs font-black leading-4 ${strongClass}`}>{name}</div>
                     {direction ? (
-                      <div className={`mt-0.5 truncate text-[11px] font-semibold ${isDayMode ? "text-violet-700" : "text-indigo-200"}`}>
+                      <div className={`mt-0.5 truncate text-[11px] font-semibold ${isDayMode ? "text-blue-700" : "text-indigo-200"}`}>
                         {direction}
                       </div>
                     ) : null}
@@ -313,7 +313,7 @@ const OrganizationPartnerWall = ({
                 onClick={() => setDirectoryOpen(true)}
                 className={`hidden min-w-[6.5rem] items-center justify-center gap-2 rounded-[6px] border px-3 py-1.5 text-xs font-black md:flex ${
                   isDayMode
-                    ? "border-slate-200 bg-white text-slate-700 hover:border-violet-200"
+                    ? "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
                     : "border-white/10 bg-white/5 text-slate-200 hover:border-white/20"
                 }`}
               >
@@ -384,7 +384,7 @@ const OrganizationPartnerWall = ({
                           placeholder={t("events.organizations.search_placeholder", "搜索社团、简介或合作方向")}
                           className={`h-11 w-full rounded-[6px] border pl-9 pr-3 text-sm font-semibold outline-none ${
                             isDayMode
-                              ? "border-slate-200 bg-white text-slate-900 focus:border-violet-300"
+                              ? "border-slate-200 bg-white text-slate-900 focus:border-blue-300"
                               : "border-white/10 bg-white/[0.04] text-white focus:border-indigo-300/40"
                           }`}
                         />
@@ -404,7 +404,7 @@ const OrganizationPartnerWall = ({
                                   onClick={() => openPartnerProfile(partner)}
                                   className={`rounded-[6px] border p-3 text-left ${
                                     isDayMode
-                                      ? "border-slate-200 bg-white hover:border-violet-200"
+                                      ? "border-slate-200 bg-white hover:border-slate-300"
                                       : "border-white/10 bg-white/[0.04] hover:border-indigo-300/30"
                                   }`}
                                 >
@@ -413,7 +413,7 @@ const OrganizationPartnerWall = ({
                                     <div className="min-w-0">
                                       <div className={`line-clamp-2 text-sm font-black leading-5 ${strongClass}`}>{name}</div>
                                       {direction ? (
-                                        <div className={`mt-1 line-clamp-1 text-[11px] font-semibold ${isDayMode ? "text-violet-700" : "text-indigo-200"}`}>
+                                        <div className={`mt-1 line-clamp-1 text-[11px] font-semibold ${isDayMode ? "text-blue-700" : "text-indigo-200"}`}>
                                           {direction}
                                         </div>
                                       ) : null}
@@ -504,7 +504,7 @@ const OrganizationPartnerWall = ({
                             <div className={`mb-2 text-xs font-black uppercase tracking-[0.18em] ${mutedClass}`}>
                               {t("events.organizations.direction", "合作方向")}
                             </div>
-                            <p className={`text-sm leading-7 ${isDayMode ? "text-violet-700" : "text-indigo-200"}`}>
+                            <p className={`text-sm leading-7 ${isDayMode ? "text-blue-700" : "text-indigo-200"}`}>
                               {getLocalizedPartnerText(selectedPartner, "cooperation_direction", language) ||
                                 t("events.organizations.no_direction", "活动协作 / 信息触达")}
                             </p>
@@ -517,7 +517,7 @@ const OrganizationPartnerWall = ({
                           onClick={applySelectedPartner}
                               className={`inline-flex min-h-11 items-center gap-2 rounded-[6px] px-4 text-sm font-black ${
                                 isDayMode
-                                  ? "bg-violet-700 text-white hover:bg-violet-800"
+                                  ? "bg-blue-700 text-white hover:bg-blue-800"
                                   : "bg-indigo-500 text-white hover:bg-indigo-400"
                               }`}
                             >
@@ -530,7 +530,7 @@ const OrganizationPartnerWall = ({
                               onClick={() => setSelectedPartner(null)}
                               className={`inline-flex min-h-11 items-center gap-2 rounded-[6px] border px-4 text-sm font-bold ${
                                 isDayMode
-                                  ? "border-violet-200 bg-violet-50 text-violet-800 hover:border-violet-300 hover:bg-white"
+                                  ? "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-white"
                                   : "border-indigo-400/30 bg-indigo-400/10 text-indigo-100 hover:border-indigo-300/50"
                               }`}
                             >
@@ -545,7 +545,7 @@ const OrganizationPartnerWall = ({
                                 rel="noopener noreferrer"
                                 className={`inline-flex min-h-11 items-center gap-2 rounded-[6px] border px-4 text-sm font-bold ${
                                   isDayMode
-                                    ? "border-slate-200 bg-white text-slate-700 hover:border-violet-200"
+                                    ? "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
                                     : "border-white/10 bg-white/5 text-slate-200 hover:border-white/20"
                                 }`}
                               >
@@ -580,7 +580,7 @@ const OrganizationPartnerWall = ({
                                   }}
                                   className={`w-full rounded-[6px] border p-3 text-left transition-colors ${
                                     isDayMode
-                                      ? "border-slate-200 bg-white hover:border-violet-200"
+                                      ? "border-slate-200 bg-white hover:border-slate-300"
                                       : "border-white/10 bg-[#0b0d16] hover:border-indigo-300/30"
                                   }`}
                                 >
