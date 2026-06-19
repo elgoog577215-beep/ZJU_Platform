@@ -2474,12 +2474,12 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                     </div>
                     <div className="min-w-0 flex-1 text-left">
                       <div className="text-sm font-semibold">
-                        {t("me.install_app", "安装应用")}
+                        {t("me.install_app", "安装 App")}
                       </div>
                       <div
                         className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
                       >
-                        {t("me.install_app_hint", "在支持的浏览器中安装为桌面应用。")}
+                        {t("me.install_app_hint", "像 App 一样打开拓途浙享。")}
                       </div>
                     </div>
                   </button>

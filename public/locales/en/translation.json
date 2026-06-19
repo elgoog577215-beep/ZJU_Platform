@@ -1,8 +1,17 @@
 {
   "pwa": {
-    "install_title": "Install TUOTU ZJU",
-    "install_desc": "Add it to your phone for a more app-like experience.",
-    "install_action": "Install"
+    "install_title": "Install the TUOTU ZJU App",
+    "install_desc": "Add it to your home screen and open it like an app.",
+    "install_action": "Install App"
+  },
+  "me": {
+    "preferences": "Preferences & Device",
+    "weather_widget": "Time & Weather",
+    "weather_widget_on": "Show time and weather in the top right",
+    "weather_widget_off": "Keep the top right clean by default",
+    "language": "Language",
+    "install_app": "Install App",
+    "install_app_hint": "Open TUOTU ZJU like an app."
   },
   "auth": {
     "welcome_back": "Welcome Back",
@@ -2289,39 +2298,19 @@
   },
   "download": {
     "meta_title": "Download the TUOTU ZJU App",
-    "meta_desc": "Download the official Android app for TUOTU ZJU and access events, the AI community, media, and projects in one place.",
-    "in_app_meta_title": "You are already in the TUOTU ZJU app",
-    "in_app_meta_desc": "This runtime is already the TUOTU ZJU app, so another download is not needed.",
-    "kicker": "Official Android client",
-    "title": "Put TUOTU ZJU on your phone",
-    "subtitle": "Install the Android app from the official site and enter the same platform experience for events, the AI community, media, and project work.",
+    "meta_desc": "Download the TUOTU ZJU Android app.",
+    "kicker": "Android App",
+    "title": "Download the TUOTU ZJU App",
+    "subtitle": "Install it and open TUOTU ZJU directly.",
     "primary_action": "Download Android App",
-    "browse_web": "Browse web version",
-    "file_note": "Current version v{{version}}, updated on {{date}}. Download only from the official domain.",
-    "preview_label": "Mobile preview",
+    "browse_web": "Continue on web",
+    "file_note": "v{{version}} · Updated {{date}}",
+    "preview_label": "App preview",
     "app_name": "TUOTU ZJU",
     "card_title": "Campus AI information hub",
-    "card_desc": "Open the official site as an app, reduce browser switching, and keep frequent campus workflows close at hand.",
     "preview_events": "Events",
     "preview_ai": "AI Community",
-    "preview_media": "Media",
-    "safe_title": "Download safety",
-    "install_title": "Install steps",
-    "qr_title": "On desktop?",
-    "qr_desc": "Scan this page address with your phone, or open tuotuzju.com/download in a mobile browser to download.",
-    "trust": {
-      "official": "The download entry points only to the TUOTU ZJU official domain or an official static asset path configured later.",
-      "twa": "The Android app uses a built-in WebView as the stable entry, with TWA metadata kept for domain trust and future compatibility.",
-      "webview_guard": "If this page is opened inside the app, it returns to the home page to avoid a download loop."
-    },
-    "steps": {
-      "open": "Tap the download button and wait for the APK file to finish downloading.",
-      "allow": "If Android asks, allow your browser to install apps from this source.",
-      "launch": "After installation, open TUOTU ZJU from the launcher to enter the platform home page."
-    },
-    "in_app_title": "You are already in the app",
-    "in_app_desc": "This runtime is already the TUOTU ZJU app, so another download is not needed. You will return to the home page automatically.",
-    "back_home": "Back Home"
+    "preview_media": "Media"
   },
   "seo": {
     "site_name": "TUOTU ZJU",

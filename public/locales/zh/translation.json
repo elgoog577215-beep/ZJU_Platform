@@ -15,9 +15,18 @@
     "new_notification": "新通知"
   },
   "pwa": {
-    "install_title": "安装拓途浙享",
-    "install_desc": "添加到手机桌面，获得更像 App 的访问体验。",
-    "install_action": "安装"
+    "install_title": "安装拓途浙享 App",
+    "install_desc": "添加到桌面，像 App 一样打开。",
+    "install_action": "安装 App"
+  },
+  "me": {
+    "preferences": "偏好与设备",
+    "weather_widget": "时间与天气",
+    "weather_widget_on": "右上角显示时间和天气",
+    "weather_widget_off": "右上角默认隐藏",
+    "language": "语言",
+    "install_app": "安装 App",
+    "install_app_hint": "像 App 一样打开拓途浙享。"
   },
   "lightbox": {
     "download_started": "下载已开始",
@@ -2389,39 +2398,19 @@
   },
   "download": {
     "meta_title": "下载拓途浙享 App",
-    "meta_desc": "从拓途浙享官网下载 Android App，进入活动聚合、AI 社区、影像记录与实践项目。",
-    "in_app_meta_title": "你已在拓途浙享 App 中",
-    "in_app_meta_desc": "当前环境已经是拓途浙享 App，不需要再次下载。",
-    "kicker": "官方 Android 客户端",
-    "title": "把拓途浙享装进手机",
-    "subtitle": "从官网安装 Android App，打开后直接进入现有平台体验，活动、AI 社区、影像库和项目广场都在同一个入口。",
+    "meta_desc": "下载拓途浙享 Android App。",
+    "kicker": "Android App",
+    "title": "下载拓途浙享 App",
+    "subtitle": "安装后直接打开拓途浙享。",
     "primary_action": "下载 Android App",
-    "browse_web": "先浏览网页版",
-    "file_note": "当前版本 v{{version}}，更新于 {{date}}。请仅从官方域名下载。",
-    "preview_label": "移动端预览",
+    "browse_web": "继续使用网页版",
+    "file_note": "v{{version}} · {{date}} 更新",
+    "preview_label": "App 预览",
     "app_name": "拓途浙享",
     "card_title": "校园 AI 信息入口",
-    "card_desc": "用 App 方式打开官网能力，减少浏览器切换，让常用内容更容易回到手边。",
     "preview_events": "活动",
     "preview_ai": "AI 社区",
-    "preview_media": "影像",
-    "safe_title": "下载安全说明",
-    "install_title": "安装步骤",
-    "qr_title": "电脑端访问？",
-    "qr_desc": "用手机扫描当前页面地址，或在手机浏览器中打开 tuotuzju.com/download 后下载。",
-    "trust": {
-      "official": "下载入口只指向拓途浙享官方域名或后续配置的官方静态资源。",
-      "twa": "Android App 采用内置 WebView 作为稳定入口，同时保留 TWA 元数据用于域名信任和后续兼容。",
-      "webview_guard": "如果已经在 App 内访问，本页面会自动返回首页，避免重复下载。"
-    },
-    "steps": {
-      "open": "点击下载按钮，等待 APK 文件下载完成。",
-      "allow": "如果系统提示，请允许浏览器安装来自该来源的应用。",
-      "launch": "安装后从桌面图标打开拓途浙享，进入平台首页。"
-    },
-    "in_app_title": "你已经在 App 里了",
-    "in_app_desc": "当前环境已经是拓途浙享 App，不需要再次下载。页面将自动返回首页。",
-    "back_home": "返回首页"
+    "preview_media": "影像"
   },
   "seo": {
     "site_name": "拓途浙享",
