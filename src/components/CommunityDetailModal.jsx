@@ -225,8 +225,10 @@ const CommunityDetailModal = ({
                 )}
 
                 <button
+                  type="button"
                   onClick={onClose}
-                  className={`absolute right-4 top-4 z-20 rounded-lg border p-2 backdrop-blur-md transition-all group md:right-6 md:top-6 ${th.closeBtn}`}
+                  aria-label={t('common.close', '关闭')}
+                  className={`absolute right-4 top-4 z-40 rounded-lg border p-2 backdrop-blur-md transition-all group md:right-6 md:top-6 ${th.closeBtn}`}
                 >
                   <X size={22} className="transition-transform duration-300 group-hover:rotate-90 md:size-6" />
                 </button>
