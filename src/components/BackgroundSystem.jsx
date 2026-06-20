@@ -23,7 +23,7 @@ const SCENE_RENDER_TUNING = {
   crystal: { brightness: 1.12, bloom: 0.48, saturation: 1.2, contrast: 1 },
 };
 
-const CRYSTAL_SHAPES = [
+const DAY_CRYSTAL_SHAPES = [
   {
     color: "#33f6ff",
     lineWidth: 0.82,
@@ -47,6 +47,30 @@ const CRYSTAL_SHAPES = [
   },
 ];
 
+const DARK_CRYSTAL_SHAPES = [
+  {
+    color: "#33f6ff",
+    lineWidth: 0.82,
+    opacity: 0.36,
+    position: [-0.35, 0.55, -9.6],
+    radius: 1.05,
+  },
+  {
+    color: "#ff4dff",
+    lineWidth: 0.72,
+    opacity: 0.34,
+    position: [3.85, 1.85, -10.8],
+    radius: 0.9,
+  },
+  {
+    color: "#fff36a",
+    lineWidth: 0.58,
+    opacity: 0.3,
+    position: [-4.5, -2.25, -10.6],
+    radius: 0.66,
+  },
+];
+
 const CRYSTAL_RENDER_PROFILES = {
   day: {
     blending: THREE.NormalBlending,
@@ -61,13 +85,14 @@ const CRYSTAL_RENDER_PROFILES = {
     sparkleColor: "#58d9ff",
     sparkleOpacity: 0.22,
     sparkleSize: 1.36,
+    shapes: DAY_CRYSTAL_SHAPES,
   },
   dark: {
     blending: THREE.AdditiveBlending,
     canvasBackground: "#000000",
     fillOpacity: 0.014,
     glowBlending: THREE.AdditiveBlending,
-    glowOpacity: 0.18,
+    glowOpacity: 0,
     glowScaleMultiplier: 5.1,
     haloOpacity: 0.045,
     haloLineMultiplier: 2.4,
@@ -75,6 +100,7 @@ const CRYSTAL_RENDER_PROFILES = {
     sparkleColor: "white",
     sparkleOpacity: 0.28,
     sparkleSize: 1.55,
+    shapes: DARK_CRYSTAL_SHAPES,
   },
 };
 
@@ -219,7 +245,7 @@ const CrystalCaveScene = ({ profile }) => {
         <color attach="background" args={[profile.canvasBackground]} />
       ) : null}
       <Float speed={2} rotationIntensity={1} floatIntensity={2}>
-        {CRYSTAL_SHAPES.map((shape) => (
+        {profile.shapes.map((shape) => (
           <group key={`${shape.color}-${shape.radius}`}>
             <CrystalGlow {...shape} profile={profile} />
             <SmoothWireIcosahedron {...shape} profile={profile} />
