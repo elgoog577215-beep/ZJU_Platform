@@ -1,4 +1,4 @@
-import React, { Suspense, useMemo, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import {
   Float,
@@ -23,11 +23,130 @@ const SCENE_RENDER_TUNING = {
   crystal: { brightness: 1.12, bloom: 0.48, saturation: 1.2, contrast: 1 },
 };
 
-const getSceneClearColor = (isDayMode) => (isDayMode ? "#ffffff" : "#000000");
+const CRYSTAL_SHAPES = [
+  {
+    color: "#33f6ff",
+    lineWidth: 0.82,
+    opacity: 0.36,
+    position: [-14.3, 8.2, -10.5],
+    radius: 1.18,
+  },
+  {
+    color: "#ff4dff",
+    lineWidth: 0.72,
+    opacity: 0.34,
+    position: [2.7, 9.55, -11.4],
+    radius: 1.02,
+  },
+  {
+    color: "#fff36a",
+    lineWidth: 0.58,
+    opacity: 0.3,
+    position: [7.2, 9.35, -10.8],
+    radius: 0.72,
+  },
+];
+
+const CRYSTAL_RENDER_PROFILES = {
+  day: {
+    blending: THREE.NormalBlending,
+    canvasBackground: null,
+    fillOpacity: 0.034,
+    glowBlending: THREE.NormalBlending,
+    glowOpacity: 0.32,
+    glowScaleMultiplier: 8.6,
+    haloOpacity: 0.115,
+    haloLineMultiplier: 2.45,
+    lineOpacityMultiplier: 1.72,
+    sparkleColor: "#58d9ff",
+    sparkleOpacity: 0.22,
+    sparkleSize: 1.36,
+  },
+  dark: {
+    blending: THREE.AdditiveBlending,
+    canvasBackground: "#000000",
+    fillOpacity: 0.014,
+    glowBlending: THREE.AdditiveBlending,
+    glowOpacity: 0.18,
+    glowScaleMultiplier: 5.1,
+    haloOpacity: 0.045,
+    haloLineMultiplier: 2.4,
+    lineOpacityMultiplier: 1,
+    sparkleColor: "white",
+    sparkleOpacity: 0.28,
+    sparkleSize: 1.55,
+  },
+};
 
 const getHighQualityDpr = () => {
   if (typeof window === "undefined") return 1.75;
   return clamp(window.devicePixelRatio || 1.75, 1.5, 2);
+};
+
+const createGlowTexture = (color) => {
+  if (typeof document === "undefined") return null;
+
+  const size = 256;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const context = canvas.getContext("2d");
+  if (!context) return null;
+
+  const parsedColor = new THREE.Color(color);
+  const rgb = [
+    Math.round(parsedColor.r * 255),
+    Math.round(parsedColor.g * 255),
+    Math.round(parsedColor.b * 255),
+  ].join(",");
+  const gradient = context.createRadialGradient(
+    size / 2,
+    size / 2,
+    0,
+    size / 2,
+    size / 2,
+    size / 2,
+  );
+  gradient.addColorStop(0, `rgba(${rgb},0.78)`);
+  gradient.addColorStop(0.34, `rgba(${rgb},0.24)`);
+  gradient.addColorStop(0.72, `rgba(${rgb},0.065)`);
+  gradient.addColorStop(1, `rgba(${rgb},0)`);
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, size, size);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+};
+
+const CrystalGlow = ({ color, position, radius, profile }) => {
+  const texture = useMemo(() => createGlowTexture(color), [color]);
+
+  useEffect(() => {
+    return () => {
+      texture?.dispose();
+    };
+  }, [texture]);
+
+  if (!texture || !profile.glowOpacity) return null;
+
+  const scale = radius * profile.glowScaleMultiplier;
+
+  return (
+    <sprite position={[position[0], position[1], position[2] + 0.12]} scale={[scale, scale, 1]}>
+      <spriteMaterial
+        blending={profile.glowBlending}
+        color="#ffffff"
+        depthTest={false}
+        depthWrite={false}
+        map={texture}
+        opacity={profile.glowOpacity}
+        toneMapped={false}
+        transparent
+      />
+    </sprite>
+  );
 };
 
 const SmoothWireIcosahedron = ({
@@ -36,9 +155,7 @@ const SmoothWireIcosahedron = ({
   color,
   lineWidth = 1,
   opacity = 0.72,
-  fillOpacity = 0.014,
-  haloOpacity = 0.045,
-  blending = THREE.AdditiveBlending,
+  profile,
 }) => {
   const { geometry, edgePoints } = useMemo(() => {
     const nextGeometry = new THREE.IcosahedronGeometry(radius, 0);
@@ -62,30 +179,30 @@ const SmoothWireIcosahedron = ({
     <group position={position}>
       <mesh geometry={geometry}>
         <meshBasicMaterial
-          blending={blending}
+          blending={profile.blending}
           color={color}
           depthWrite={false}
-          opacity={fillOpacity}
+          opacity={profile.fillOpacity}
           transparent
         />
       </mesh>
       <Line
-        blending={blending}
+        blending={profile.blending}
         color={color}
         depthWrite={false}
-        lineWidth={lineWidth * 2.4}
-        opacity={haloOpacity}
+        lineWidth={lineWidth * profile.haloLineMultiplier}
+        opacity={profile.haloOpacity}
         points={edgePoints}
         segments
         toneMapped={false}
         transparent
       />
       <Line
-        blending={blending}
+        blending={profile.blending}
         color={color}
         depthWrite={false}
         lineWidth={lineWidth}
-        opacity={opacity}
+        opacity={Math.min(0.62, opacity * profile.lineOpacityMultiplier)}
         points={edgePoints}
         segments
         toneMapped={false}
@@ -95,58 +212,29 @@ const SmoothWireIcosahedron = ({
   );
 };
 
-const CrystalCaveScene = ({ isDayMode = false }) => {
-  const lineBoost = isDayMode ? 1.72 : 1;
-  const glowBoost = isDayMode ? 2.25 : 1;
-  const blending = isDayMode ? THREE.NormalBlending : THREE.AdditiveBlending;
-  const fillOpacity = isDayMode ? 0.16 : 0.014;
-  const haloOpacity = isDayMode ? 0.24 : 0.045;
-  const crystalScale = isDayMode ? 1.38 : 1;
-
+const CrystalCaveScene = ({ profile }) => {
   return (
-  <>
-    <color attach="background" args={[getSceneClearColor(isDayMode)]} />
-    <Float speed={2} rotationIntensity={1} floatIntensity={2}>
-      <SmoothWireIcosahedron
-        color="#33f6ff"
-        lineWidth={0.82 * lineBoost}
-        opacity={Math.min(0.88, 0.36 * glowBoost)}
-        position={[-0.35, 0.55, -9.6]}
-        radius={1.05 * crystalScale}
-        fillOpacity={fillOpacity}
-        haloOpacity={haloOpacity}
-        blending={blending}
+    <>
+      {profile.canvasBackground ? (
+        <color attach="background" args={[profile.canvasBackground]} />
+      ) : null}
+      <Float speed={2} rotationIntensity={1} floatIntensity={2}>
+        {CRYSTAL_SHAPES.map((shape) => (
+          <group key={`${shape.color}-${shape.radius}`}>
+            <CrystalGlow {...shape} profile={profile} />
+            <SmoothWireIcosahedron {...shape} profile={profile} />
+          </group>
+        ))}
+      </Float>
+      <Sparkles
+        count={76}
+        scale={18}
+        size={profile.sparkleSize}
+        speed={0.28}
+        opacity={profile.sparkleOpacity}
+        color={profile.sparkleColor}
       />
-      <SmoothWireIcosahedron
-        color="#ff4dff"
-        lineWidth={0.72 * lineBoost}
-        opacity={Math.min(0.82, 0.34 * glowBoost)}
-        position={[3.85, 1.85, -10.8]}
-        radius={0.9 * crystalScale}
-        fillOpacity={fillOpacity}
-        haloOpacity={haloOpacity}
-        blending={blending}
-      />
-      <SmoothWireIcosahedron
-        color="#fff36a"
-        lineWidth={0.58 * lineBoost}
-        opacity={Math.min(0.72, 0.3 * glowBoost)}
-        position={[-4.5, -2.25, -10.6]}
-        radius={0.66 * crystalScale}
-        fillOpacity={fillOpacity}
-        haloOpacity={haloOpacity}
-        blending={blending}
-      />
-    </Float>
-    <Sparkles
-      count={76}
-      scale={18}
-      size={isDayMode ? 2.25 : 1.55}
-      speed={0.28}
-      opacity={isDayMode ? 0.46 : 0.28}
-      color={isDayMode ? "#38f8ff" : "white"}
-    />
-  </>
+    </>
   );
 };
 
@@ -166,6 +254,9 @@ const BackgroundSystem = () => {
 
   const sceneTuning = SCENE_RENDER_TUNING[DEFAULT_BACKGROUND_SCENE];
   const isDayMode = uiMode === "day";
+  const crystalProfile = isDayMode
+    ? CRYSTAL_RENDER_PROFILES.day
+    : CRYSTAL_RENDER_PROFILES.dark;
   const brightness = clamp(
     readNumericSetting(settings.background_brightness, 1) *
       sceneTuning.brightness,
@@ -199,7 +290,12 @@ const BackgroundSystem = () => {
           camera={{ fov: 60, position: [0, 0, 10] }}
           className="absolute inset-0"
           dpr={dpr}
-          gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
+          gl={{
+            alpha: true,
+            antialias: true,
+            powerPreference: "high-performance",
+            premultipliedAlpha: false,
+          }}
         >
           <PerformanceMonitor
             onDecline={() => {
@@ -212,7 +308,7 @@ const BackgroundSystem = () => {
             }}
           />
           <Suspense fallback={null}>
-            <CrystalCaveScene isDayMode={isDayMode} />
+            <CrystalCaveScene profile={crystalProfile} />
             {effectsEnabled ? (
               <EffectComposer disableNormalPass multisampling={dpr >= 1.5 ? 4 : 0}>
                 <Bloom
