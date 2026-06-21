@@ -239,6 +239,30 @@ app.use('/uploads',
 // Serve Frontend Static Files (Production)
 const distPath = path.join(__dirname, '../dist');
 const assetLinksPath = path.join(distPath, '.well-known', 'assetlinks.json');
+const legacyHomeSplashChunkPattern = /^\/assets\/HomeSplash-[\w-]+\.js$/;
+const staleHomeSplashRecoveryModule = `
+const recoveryKey = 'tuotu:legacy-home-splash-chunk-reload';
+try {
+  const hasRetried = sessionStorage.getItem(recoveryKey);
+  if (!hasRetried) {
+    sessionStorage.setItem(recoveryKey, String(Date.now()));
+    if ('caches' in window) {
+      caches.keys().then((keys) => Promise.all(
+        keys
+          .filter((key) => key === 'js-chunk-cache' || key === 'css-chunk-cache' || key.includes('workbox-precache'))
+          .map((key) => caches.delete(key))
+      )).finally(() => window.location.reload());
+    } else {
+      window.location.reload();
+    }
+  }
+} catch {
+  window.location.reload();
+}
+export default function LegacyHomeSplashChunkRecovery() {
+  return null;
+}
+`;
 
 if (fs.existsSync(assetLinksPath)) {
   app.get('/.well-known/assetlinks.json', (req, res) => {
@@ -253,6 +277,23 @@ if (fs.existsSync(assetLinksPath)) {
 }
 
 if (fs.existsSync(distPath)) {
+  app.get('/assets/:filename', (req, res, next) => {
+    if (!legacyHomeSplashChunkPattern.test(req.path)) {
+      return next();
+    }
+
+    const requestedPath = path.join(distPath, 'assets', req.params.filename);
+    if (fs.existsSync(requestedPath)) {
+      return next();
+    }
+
+    res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    return res.send(staleHomeSplashRecoveryModule);
+  });
+
   app.use(express.static(distPath, {
     maxAge: '1y',
     immutable: true,

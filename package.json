@@ -43,6 +43,7 @@
     "e2e:install": "playwright install chromium",
     "test:e2e": "playwright test",
     "test:e2e:smoke": "playwright test e2e/smoke.spec.js --project=chromium",
+    "check:startup-chunks": "node scripts/check-startup-chunks.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "husky"

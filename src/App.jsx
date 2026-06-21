@@ -33,27 +33,75 @@ import MobileNavbar from './components/MobileNavbar';
 import Footer from './components/Footer';
 import LoadingScreen from './components/LoadingScreen';
 import PerformancePanel from './components/PerformancePanel';
+import HomeSplash from './components/HomeSplash';
 
-const Gallery = lazy(() => import('./components/Gallery'));
-const MediaLibrary = lazy(() => import('./components/MediaLibrary'));
-const Videos = lazy(() => import('./components/Videos'));
-const Articles = lazy(() => import('./components/AICommunity'));
-const Events = lazy(() => import('./components/Events'));
-const HomeSplash = lazy(() => import('./components/HomeSplash'));
-const About = lazy(() => import('./components/About'));
-const AppDownload = lazy(() => import('./components/AppDownload'));
-const HackathonSeasonOne = lazy(() => import('./components/HackathonSeasonOne'));
-const HackathonWorks = lazy(() => import('./components/HackathonWorks'));
-const FutureLearningCenter = lazy(() => import('./components/FutureLearningCenter'));
-const AdminDashboard = lazy(() => import('./components/Admin/AdminDashboard'));
-const AdminAccessGate = lazy(() => import('./components/Admin/AdminAccessGate'));
-const NotFound = lazy(() => import('./components/NotFound'));
-const ProfilePage = lazy(() => import('./components/ProfilePage'));
-const ProfileDirectory = lazy(() => import('./components/ProfileDirectory'));
-const ProjectPlaza = lazy(() => import('./components/ProjectPlaza'));
-const SearchPalette = lazy(() => import('./components/SearchPalette'));
-const GlobalPlayer = lazy(() => import('./components/GlobalPlayer'));
-const BackgroundSystem = lazy(() => import('./components/BackgroundSystem'));
+const CHUNK_RECOVERY_RELOAD_KEY = 'tuotu:chunk-recovery:reload-attempted';
+const STALE_CHUNK_CACHE_NAMES = new Set(['js-chunk-cache', 'css-chunk-cache']);
+
+const isDynamicImportFetchError = (error) => {
+  const message = String(error?.message || error || '');
+  return /Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module|Load failed/i.test(message);
+};
+
+const clearStaleChunkCaches = () => {
+  if (typeof window === 'undefined' || !('caches' in window)) return;
+
+  window.caches.keys()
+    .then((cacheNames) => Promise.all(
+      cacheNames
+        .filter((cacheName) => STALE_CHUNK_CACHE_NAMES.has(cacheName) || cacheName.includes('workbox-precache'))
+        .map((cacheName) => window.caches.delete(cacheName)),
+    ))
+    .catch(() => {});
+};
+
+const recoverFromDynamicImportError = (error) => {
+  if (!isDynamicImportFetchError(error) || typeof window === 'undefined') {
+    return false;
+  }
+
+  const recoveryKey = `${CHUNK_RECOVERY_RELOAD_KEY}:${window.location.pathname}`;
+
+  try {
+    if (window.sessionStorage.getItem(recoveryKey)) {
+      return false;
+    }
+    window.sessionStorage.setItem(recoveryKey, String(Date.now()));
+  } catch {
+    return false;
+  }
+
+  clearStaleChunkCaches();
+  window.setTimeout(() => window.location.reload(), 80);
+  return true;
+};
+
+const lazyRoute = (loader) => lazy(() => loader().catch((error) => {
+  if (recoverFromDynamicImportError(error)) {
+    return new Promise(() => {});
+  }
+  throw error;
+}));
+
+const Gallery = lazyRoute(() => import('./components/Gallery'));
+const MediaLibrary = lazyRoute(() => import('./components/MediaLibrary'));
+const Videos = lazyRoute(() => import('./components/Videos'));
+const Articles = lazyRoute(() => import('./components/AICommunity'));
+const Events = lazyRoute(() => import('./components/Events'));
+const About = lazyRoute(() => import('./components/About'));
+const AppDownload = lazyRoute(() => import('./components/AppDownload'));
+const HackathonSeasonOne = lazyRoute(() => import('./components/HackathonSeasonOne'));
+const HackathonWorks = lazyRoute(() => import('./components/HackathonWorks'));
+const FutureLearningCenter = lazyRoute(() => import('./components/FutureLearningCenter'));
+const AdminDashboard = lazyRoute(() => import('./components/Admin/AdminDashboard'));
+const AdminAccessGate = lazyRoute(() => import('./components/Admin/AdminAccessGate'));
+const NotFound = lazyRoute(() => import('./components/NotFound'));
+const ProfilePage = lazyRoute(() => import('./components/ProfilePage'));
+const ProfileDirectory = lazyRoute(() => import('./components/ProfileDirectory'));
+const ProjectPlaza = lazyRoute(() => import('./components/ProjectPlaza'));
+const SearchPalette = lazyRoute(() => import('./components/SearchPalette'));
+const GlobalPlayer = lazyRoute(() => import('./components/GlobalPlayer'));
+const BackgroundSystem = lazyRoute(() => import('./components/BackgroundSystem'));
 
 const useDeferredMount = (delay = 0) => {
   const [mounted, setMounted] = useState(false);
