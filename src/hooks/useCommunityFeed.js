@@ -23,6 +23,8 @@ export function useCommunityFeed({
   defaultPageSize = 10,
   extraQueryParams = {},
   extraDependencies = [],
+  extraFiltersActive = false,
+  onResetExtraFilters,
 } = {}) {
   const { settings } = useSettings();
   const [searchParams] = useSearchParams();
@@ -77,7 +79,7 @@ export function useCommunityFeed({
 
   const totalPages = pagination?.totalPages || 1;
   const hasMore = !isPaginationEnabled && currentPage < totalPages;
-  const hasActiveFilters = statusFilter !== 'all' || selectedTags.length > 0 || Boolean(searchQuery.trim());
+  const hasActiveFilters = statusFilter !== 'all' || selectedTags.length > 0 || Boolean(searchQuery.trim()) || Boolean(extraFiltersActive);
   const isSearchPending = searchQuery.trim() !== debouncedSearchQuery;
 
   // Reset page on filter / sort change
@@ -128,8 +130,9 @@ export function useCommunityFeed({
     setSearchQuery('');
     setDebouncedSearchQuery('');
     setSelectedTags([]);
+    onResetExtraFilters?.();
     setCurrentPage(1);
-  }, []);
+  }, [onResetExtraFilters]);
 
   const handleToggleFavorite = useCallback((itemId, favorited, likes) => {
     const updater = (prev) => {

@@ -438,6 +438,7 @@ const listPosts = async (req, res, next) => {
     const workflowStatus = String(req.query.workflow_status || req.query.review_status || '').trim().toLowerCase();
     const requestedAuthorId = req.query.author_id || req.query.uploader_id;
     const authorId = requestedAuthorId ? parseInt(requestedAuthorId, 10) : null;
+    const materialCourse = sanitizeShortText(req.query.material_course, 80);
     const q = String(req.query.search || '').trim();
     const sort = String(req.query.sort || 'newest');
     const viewer = viewerFromReq(req);
@@ -484,6 +485,11 @@ const listPosts = async (req, res, next) => {
       whereParams.push(status);
     }
 
+    if (section === 'materials' && materialCourse) {
+      whereClauses.push('material_course = ?');
+      whereParams.push(materialCourse);
+    }
+
     if (q.length >= 2) {
       const term = `%${q}%`;
       whereClauses.push('(title LIKE ? OR content LIKE ? OR tags LIKE ? OR author_name LIKE ? OR material_course LIKE ? OR material_teacher LIKE ? OR material_semester LIKE ? OR material_type LIKE ?)');
@@ -512,6 +518,59 @@ const listPosts = async (req, res, next) => {
         limit,
         totalPages: Math.ceil((total?.count || 0) / limit)
       }
+    });
+  } catch (error) { next(error); }
+};
+
+const listMaterialCourses = async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const q = sanitizeShortText(req.query.search, 80);
+    const limit = Math.min(Math.max(parseInt(req.query.limit || '24', 10), 1), 60);
+    const whereClauses = [
+      'section = "materials"',
+      'status = "approved"',
+      'material_course IS NOT NULL',
+      'TRIM(material_course) != ""',
+    ];
+    const whereParams = [];
+
+    if (q) {
+      whereClauses.push('material_course LIKE ?');
+      whereParams.push(`%${q}%`);
+    }
+
+    const rows = await db.all(
+      `
+      SELECT
+        TRIM(material_course) AS name,
+        COUNT(*) AS count,
+        MAX(COALESCE(updated_at, created_at)) AS latest_at,
+        (
+          SELECT cp2.title
+          FROM community_posts cp2
+          WHERE cp2.section = 'materials'
+            AND cp2.status = 'approved'
+            AND TRIM(cp2.material_course) = TRIM(cp.material_course)
+          ORDER BY COALESCE(cp2.updated_at, cp2.created_at) DESC, cp2.id DESC
+          LIMIT 1
+        ) AS latest_post_title
+      FROM community_posts cp
+      WHERE ${whereClauses.join(' AND ')}
+      GROUP BY TRIM(material_course)
+      ORDER BY count DESC, latest_at DESC, name COLLATE NOCASE ASC
+      LIMIT ?
+      `,
+      [...whereParams, limit]
+    );
+
+    res.json({
+      data: rows.map((row) => ({
+        name: row.name,
+        count: row.count || 0,
+        latest_at: row.latest_at || null,
+        latest_post_title: row.latest_post_title || null,
+      })),
     });
   } catch (error) { next(error); }
 };
@@ -1550,6 +1609,7 @@ const adminCommunityMetrics = async (req, res, next) => {
 module.exports = {
   importPostDocument,
   listPosts,
+  listMaterialCourses,
   getPost,
   createPost,
   updatePost,

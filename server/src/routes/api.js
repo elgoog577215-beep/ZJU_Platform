@@ -159,6 +159,7 @@ router.delete('/comments/:id', authenticateToken, commentController.deleteCommen
 
 // Community Routes
 router.get('/community/posts', optionalAuth, communityController.listPosts);
+router.get('/community/material-courses', optionalAuth, communityController.listMaterialCourses);
 router.get('/community/posts/:id', optionalAuth, communityController.getPost);
 router.post('/community/posts/import-document', authenticateToken, importCommunityDocumentUpload, communityController.importPostDocument);
 router.post('/community/posts', authenticateToken, communityPostCreateLimiter, communityController.createPost);

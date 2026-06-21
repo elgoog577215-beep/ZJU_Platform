@@ -161,6 +161,8 @@ const getAccept = (type) => {
   return '*/*';
 };
 
+const normalizeCourseName = (value) => String(value || '').trim().replace(/\s+/g, ' ');
+
 const MATERIAL_TYPE_OPTIONS = [
   { value: '', labelKey: 'community.material_type_placeholder', fallback: '选择资料类型' },
   { value: 'exam', labelKey: 'community.material_type_exam', fallback: '往年题' },
@@ -198,6 +200,8 @@ const UnifiedCommunityComposer = ({
   const [materialTeacher, setMaterialTeacher] = useState('');
   const [materialSemester, setMaterialSemester] = useState('');
   const [materialType, setMaterialType] = useState('');
+  const [materialCourseOptions, setMaterialCourseOptions] = useState([]);
+  const [materialCourseLoading, setMaterialCourseLoading] = useState(false);
   const [relatedArticleIds, setRelatedArticleIds] = useState('');
   const [relatedPostIds, setRelatedPostIds] = useState('');
   const [relatedNewsIds, setRelatedNewsIds] = useState('');
@@ -243,6 +247,31 @@ const UnifiedCommunityComposer = ({
     setBlocks(parsed.length ? parsed : deriveBlocksFromText(extractPlainText(initialData?.content || '')));
     setPreviewOpen(false);
   }, [initialData, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || !config.supportsMaterialFields) return undefined;
+    const ac = new AbortController();
+    const timeoutId = window.setTimeout(async () => {
+      setMaterialCourseLoading(true);
+      try {
+        const courseQuery = normalizeCourseName(materialCourse);
+        const res = await api.get('/community/material-courses', {
+          params: { search: courseQuery, limit: 8 },
+          signal: ac.signal,
+        });
+        setMaterialCourseOptions(Array.isArray(res.data?.data) ? res.data.data : []);
+      } catch {
+        if (!ac.signal.aborted) setMaterialCourseOptions([]);
+      } finally {
+        if (!ac.signal.aborted) setMaterialCourseLoading(false);
+      }
+    }, 180);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      ac.abort();
+    };
+  }, [config.supportsMaterialFields, isOpen, materialCourse]);
 
   const addBlock = useCallback((type) => {
     setBlocks((prev) => [...prev, createCommunityBlock(type)]);
@@ -336,11 +365,16 @@ const UnifiedCommunityComposer = ({
     .filter(Boolean)
     .join('\n\n'), [cleanBlocks]);
   const htmlContent = useMemo(() => buildContentHtml(cleanBlocks), [cleanBlocks]);
+  const normalizedMaterialCourse = useMemo(() => normalizeCourseName(materialCourse), [materialCourse]);
+  const hasExactMaterialCourse = useMemo(
+    () => materialCourseOptions.some((option) => normalizeCourseName(option.name) === normalizedMaterialCourse),
+    [materialCourseOptions, normalizedMaterialCourse],
+  );
 
   const buildPayload = useCallback((status) => {
     const fallbackExcerpt = excerpt.trim() || plainContent.replace(/\s+/g, ' ').slice(0, 140);
     const materialPayload = config.supportsMaterialFields ? {
-      material_course: materialCourse.trim(),
+      material_course: normalizedMaterialCourse,
       material_teacher: materialTeacher.trim(),
       material_semester: materialSemester.trim(),
       material_type: materialType,
@@ -401,7 +435,7 @@ const UnifiedCommunityComposer = ({
       related_news_ids: relatedNewsIds.trim(),
       related_group_ids: relatedGroupIds.trim(),
     };
-  }, [cleanBlocks, config.category, config.section, config.supportsMaterialFields, cover, deadline, excerpt, htmlContent, initialData, link, materialCourse, materialSemester, materialTeacher, materialType, maxMembers, normalizedBoardKey, plainContent, relatedArticleIds, relatedGroupIds, relatedNewsIds, relatedPostIds, sourceName, sourceUrl, tags, title]);
+  }, [cleanBlocks, config.category, config.section, config.supportsMaterialFields, cover, deadline, excerpt, htmlContent, initialData, link, materialSemester, materialTeacher, materialType, maxMembers, normalizedBoardKey, normalizedMaterialCourse, plainContent, relatedArticleIds, relatedGroupIds, relatedNewsIds, relatedPostIds, sourceName, sourceUrl, tags, title]);
 
   const submit = useCallback(async (status) => {
     if (!user) {
@@ -539,6 +573,59 @@ const UnifiedCommunityComposer = ({
                             placeholder={t('community.material_course_placeholder', '如：微积分 / 大学物理')}
                             maxLength={80}
                           />
+                          <div className={`rounded-lg border p-2 ${isDayMode ? 'border-emerald-100 bg-emerald-50/60' : 'border-emerald-400/15 bg-emerald-400/[0.06]'}`}>
+                            <div className="mb-1.5 flex items-center justify-between gap-2">
+                              <span className={`text-[11px] font-bold ${isDayMode ? 'text-emerald-700' : 'text-emerald-100'}`}>
+                                {t('community.material_course_suggestions', '已有课程标签')}
+                              </span>
+                              {materialCourseLoading ? (
+                                <Loader2 size={12} className={`animate-spin ${isDayMode ? 'text-emerald-600' : 'text-emerald-200'}`} />
+                              ) : null}
+                            </div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {materialCourseOptions.length > 0 ? materialCourseOptions.map((course) => {
+                                const isSelected = normalizedMaterialCourse === normalizeCourseName(course.name);
+                                return (
+                                  <button
+                                    key={course.name}
+                                    type="button"
+                                    aria-pressed={isSelected}
+                                    onClick={() => setMaterialCourse(course.name)}
+                                    className={`inline-flex min-h-[30px] max-w-full items-center gap-1.5 rounded-md border px-2 text-xs font-semibold ${
+                                      isSelected
+                                        ? isDayMode
+                                          ? 'border-emerald-500 bg-emerald-600 text-white'
+                                          : 'border-emerald-200 bg-emerald-300 text-emerald-950'
+                                        : isDayMode
+                                          ? 'border-emerald-100 bg-white text-emerald-700 hover:border-emerald-200'
+                                          : 'border-emerald-300/20 bg-white/[0.04] text-emerald-100 hover:bg-emerald-300/10'
+                                    }`}
+                                  >
+                                    <span className="truncate">{course.name}</span>
+                                    <span className={`rounded px-1 py-0.5 text-[10px] ${isSelected ? 'bg-white/20' : isDayMode ? 'bg-emerald-50 text-emerald-600' : 'bg-emerald-300/10 text-emerald-200'}`}>
+                                      {course.count}
+                                    </span>
+                                  </button>
+                                );
+                              }) : (
+                                <span className={`text-xs ${isDayMode ? 'text-emerald-700/75' : 'text-emerald-100/75'}`}>
+                                  {t('community.material_course_suggestions_empty', '还没有可复用课程，提交后会生成新标签')}
+                                </span>
+                              )}
+                              {normalizedMaterialCourse && !hasExactMaterialCourse ? (
+                                <button
+                                  type="button"
+                                  onClick={() => setMaterialCourse(normalizedMaterialCourse)}
+                                  className={`inline-flex min-h-[30px] max-w-full items-center gap-1 rounded-md border border-dashed px-2 text-xs font-semibold ${isDayMode ? 'border-emerald-300 bg-white text-emerald-700' : 'border-emerald-300/35 bg-emerald-300/10 text-emerald-100'}`}
+                                >
+                                  {t('community.material_course_create_label', { course: normalizedMaterialCourse })}
+                                </button>
+                              ) : null}
+                            </div>
+                            <p className={`mt-1.5 text-[11px] leading-4 ${isDayMode ? 'text-emerald-700/75' : 'text-emerald-100/70'}`}>
+                              {t('community.material_course_single_hint', '一份资料只能选择一个课程；新课程审核通过后会进入公共标签库。')}
+                            </p>
+                          </div>
                         </div>
                         <div className="community-composer-field space-y-2">
                           <label className={labelCls}>{t('community.material_teacher', '老师')}</label>
