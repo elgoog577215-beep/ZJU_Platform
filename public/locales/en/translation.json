@@ -1637,7 +1637,8 @@
       "users": "Users",
       "community": "Community",
       "messages": "Messages",
-      "settings": "Settings"
+      "settings": "Settings",
+      "attribution": "Attribution"
     },
     "messages": {
       "title": "Messages",
@@ -1828,7 +1829,8 @@
       "users": "Accounts, roles, and user status",
       "messages": "Site contact and feedback messages",
       "tags": "Site tags and filter dictionaries",
-      "settings": "Site switches and basic configuration"
+      "settings": "Site switches and basic configuration",
+      "attribution": "Move official-uploaded events under certified organizations"
     },
     "pro_tip": "Pro Tip",
     "pro_tip_desc": "Use the grid/list view toggle to manage content efficiently.",
@@ -2139,6 +2141,60 @@
       "upcoming_events": "Upcoming Events",
       "event_date": "Event Date",
       "review_status": "Review Status"
+    },
+    "attribution": {
+      "title": "Certified Organization Attribution",
+      "description": "Safely transition official-uploaded historical events to certified organizations while preserving uploader audit facts and migration logs.",
+      "load_profiles_failed": "Failed to load certified organizations",
+      "select_profile_first": "Select a certified organization first",
+      "preview_failed": "Failed to generate candidates",
+      "select_candidates_first": "Select candidates to migrate first",
+      "apply_confirm": "Apply attribution for {{count}} selected events to this organization? Original uploader and created time will not be overwritten.",
+      "apply_success": "Migrated {{applied}} events, skipped {{skipped}}.",
+      "apply_failed": "Failed to apply migration",
+      "preview": "Generate Candidates",
+      "previewing": "Generating candidates...",
+      "profile_label": "Certified organization",
+      "no_profiles": "No certified organizations available",
+      "refresh": "Refresh Candidates",
+      "safety_note": "Safety rule: this tool only moves public publisher and organizer attribution. It never overwrites uploader, created time, review state, or file paths. Conflict candidates are not selectable by default.",
+      "metrics": {
+        "total": "Candidates",
+        "strong": "Strong",
+        "medium": "Medium",
+        "conflict": "Conflicts"
+      },
+      "candidates_title": "Migration candidates",
+      "candidates_desc": "Strong matches come from exact organizer aliases; medium matches come from titles, body text, or source clues; location remains weak evidence only.",
+      "levels": {
+        "all": "All",
+        "strong": "Strong",
+        "medium": "Medium",
+        "weak": "Weak",
+        "conflict": "Conflict"
+      },
+      "selected_count": "{{count}} candidates selected",
+      "select_visible": "Select visible migratable",
+      "clear_selection": "Clear selection",
+      "apply_selected": "Apply Migration",
+      "applying": "Applying...",
+      "table": {
+        "select": "Select",
+        "event": "Event",
+        "organizer": "Organizer text",
+        "level": "Level",
+        "evidence": "Evidence",
+        "current": "Current attribution"
+      },
+      "select_candidate": "Select this attribution candidate",
+      "untitled": "Untitled event",
+      "no_organizer": "No organizer text",
+      "current_publisher": "Publisher: {{id}}",
+      "current_organizer": "Organizer: {{id}}",
+      "initial_title": "Select an organization and generate candidates",
+      "initial_desc": "Candidate scanning is read-only and does not modify historical data.",
+      "empty_title": "No matching migration candidates",
+      "empty_desc": "Try another organization, add organization aliases, or inspect historical organizer text."
     }
   },
   "not_found": {
@@ -2382,6 +2438,14 @@
       "preview_title": "Project Name",
       "preview_summary": "The one-line summary appears here",
       "preview_hint": "People see this compact card first, then open it for the full intro."
+    }
+  },
+  "profiles": {
+    "verification": {
+      "official": "Official",
+      "organization": "Verified Organization",
+      "school": "School Official",
+      "pending": "Pending Claim"
     }
   }
 }

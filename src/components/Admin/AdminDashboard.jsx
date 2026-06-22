@@ -30,6 +30,7 @@ import {
   ShieldCheck,
   Trees,
   Handshake,
+  GitBranch,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -47,6 +48,7 @@ import HackathonManager from "./HackathonManager";
 import FutureLearningManager from "./FutureLearningManager";
 import AiAssistantManager from "./AiAssistantManager";
 import EcosystemPartnerManager from "./EcosystemPartnerManager";
+import EventAttributionMigrationManager from "./EventAttributionMigrationManager";
 import MediaCategoryManager from "./MediaCategoryManager";
 import { AdminButton } from "./AdminUI";
 
@@ -61,6 +63,7 @@ const KNOWN_TAB_IDS = new Set([
   "overview",
   "pending",
   "intelligence",
+  "attribution",
   "events",
   "hackathon",
   "future-learning",
@@ -185,6 +188,15 @@ const AdminDashboard = () => {
             description: t(
               "admin.descriptions.intelligence",
               "活动治理和模型接口",
+            ),
+          },
+          {
+            id: "attribution",
+            label: t("admin.tabs.attribution", "Organization attribution"),
+            icon: GitBranch,
+            description: t(
+              "admin.descriptions.attribution",
+              "Move historical official-uploaded events to certified organizations",
             ),
           },
           {
@@ -425,6 +437,8 @@ const AdminDashboard = () => {
         return <SettingsManager />;
       case "intelligence":
         return <AiAssistantManager />;
+      case "attribution":
+        return <EventAttributionMigrationManager />;
       case "users":
         return <UserManager />;
       case "pages":

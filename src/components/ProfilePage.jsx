@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
-  BadgeCheck,
   Building2,
   CalendarDays,
   Edit3,
@@ -26,6 +25,7 @@ import api, { uploadFile } from "../services/api";
 import { useSettings } from "../context/SettingsContext";
 import { useAuth } from "../context/AuthContext";
 import SEO from "./SEO";
+import OfficialVerificationBadge from "./OfficialVerificationBadge";
 
 const TYPE_META = {
   person: { label: "个人主页", icon: User, tone: "sky" },
@@ -428,14 +428,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
                   <TypeIcon size={14} />
                   {meta.label}
                 </span>
-                {profile.verified ? (
-                  <span className={`inline-flex items-center gap-1.5 rounded-[4px] px-2.5 py-1 text-xs font-black ${
-                    isDayMode ? "bg-emerald-50 text-emerald-700" : "bg-emerald-400/10 text-emerald-100"
-                  }`}>
-                    <BadgeCheck size={14} />
-                    已认证
-                  </span>
-                ) : null}
+                <OfficialVerificationBadge profile={profile} isDayMode={isDayMode} />
               </div>
               <h1 className="truncate text-3xl font-black leading-tight md:text-5xl">
                 {profile.display_name}

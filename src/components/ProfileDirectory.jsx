@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { BadgeCheck, Building2, Search, UserRound } from "lucide-react";
+import { Building2, Search, UserRound } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import api from "../services/api";
 import { useSettings } from "../context/SettingsContext";
 import SEO from "./SEO";
+import OfficialVerificationBadge from "./OfficialVerificationBadge";
 
 const PROFILE_TYPES = [
   { value: "", label: "全部" },
@@ -120,7 +121,7 @@ const ProfileDirectory = () => {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
                         <h2 className="truncate text-base font-bold">{profile.display_name}</h2>
-                        {profile.verified ? <BadgeCheck className="shrink-0 text-sky-500" size={15} /> : null}
+                        <OfficialVerificationBadge profile={profile} compact isDayMode={isDayMode} />
                       </div>
                       <p className={`mt-1 text-xs ${isDayMode ? "text-slate-500" : "text-white/45"}`}>
                         {typeLabel(profile.type)} · @{profile.handle}

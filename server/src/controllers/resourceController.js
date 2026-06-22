@@ -526,12 +526,16 @@ const getOneHandler = (table) => async (req, res, next) => {
     let query = `SELECT ${table}.*, COALESCE(u.nickname, u.username) AS author_name, u.avatar AS author_avatar,
       publisher_profile.handle AS publisher_profile_handle,
       publisher_profile.display_name AS publisher_profile_name,
-      publisher_profile.type AS publisher_profile_type`;
+      publisher_profile.type AS publisher_profile_type,
+      publisher_profile.verified AS publisher_profile_verified,
+      publisher_profile.status AS publisher_profile_status`;
     if (table === 'events') {
         query += `,
           organizer_profile.handle AS organizer_profile_handle,
           organizer_profile.display_name AS organizer_profile_name,
-          organizer_profile.type AS organizer_profile_type`;
+          organizer_profile.type AS organizer_profile_type,
+          organizer_profile.verified AS organizer_profile_verified,
+          organizer_profile.status AS organizer_profile_status`;
     }
     if (supportsMediaCategory(table)) {
         query += `, (SELECT name FROM media_categories WHERE id = ${table}.category_id) AS category_name`;
@@ -630,12 +634,16 @@ const getAllHandler = (table, defaultLimit = 12) => async (req, res, next) => {
         let query = `SELECT ${table}.*, COALESCE(u.nickname, u.username) AS author_name, u.avatar AS author_avatar,
             publisher_profile.handle AS publisher_profile_handle,
             publisher_profile.display_name AS publisher_profile_name,
-            publisher_profile.type AS publisher_profile_type`;
+            publisher_profile.type AS publisher_profile_type,
+            publisher_profile.verified AS publisher_profile_verified,
+            publisher_profile.status AS publisher_profile_status`;
         if (table === 'events') {
              query += `,
                 organizer_profile.handle AS organizer_profile_handle,
                 organizer_profile.display_name AS organizer_profile_name,
-                organizer_profile.type AS organizer_profile_type`;
+                organizer_profile.type AS organizer_profile_type,
+                organizer_profile.verified AS organizer_profile_verified,
+                organizer_profile.status AS organizer_profile_status`;
         }
         let params = [];
 

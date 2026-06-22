@@ -1346,6 +1346,37 @@ async function runMigrations(db) {
         ON community_posts(publisher_profile_id, status);
     `);
 
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS event_attribution_migration_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        batch_id TEXT NOT NULL,
+        event_id INTEGER NOT NULL,
+        target_profile_id INTEGER NOT NULL,
+        previous_publisher_profile_id INTEGER,
+        previous_organizer_profile_id INTEGER,
+        next_publisher_profile_id INTEGER,
+        next_organizer_profile_id INTEGER,
+        match_level TEXT,
+        confidence REAL DEFAULT 0,
+        matched_by TEXT,
+        evidence TEXT,
+        status TEXT DEFAULT 'applied',
+        confirmed_by INTEGER,
+        created_at TEXT DEFAULT (datetime('now')),
+        reverted_at TEXT,
+        FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
+        FOREIGN KEY (target_profile_id) REFERENCES profiles(id) ON DELETE CASCADE,
+        FOREIGN KEY (confirmed_by) REFERENCES users(id) ON DELETE SET NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_event_attr_logs_batch
+        ON event_attribution_migration_logs(batch_id, id);
+      CREATE INDEX IF NOT EXISTS idx_event_attr_logs_event
+        ON event_attribution_migration_logs(event_id, status);
+      CREATE INDEX IF NOT EXISTS idx_event_attr_logs_profile
+        ON event_attribution_migration_logs(target_profile_id, status);
+    `);
+
     await profileService.bootstrapProfiles(db);
     console.log('鉁?Profiles table ready');
   } catch (err) {

@@ -1702,7 +1702,8 @@
       "users": "用户管理",
       "community": "社区运营",
       "messages": "消息管理",
-      "settings": "系统设置"
+      "settings": "系统设置",
+      "attribution": "组织归属"
     },
     "audit_logs": {
       "title": "审核日志",
@@ -1953,7 +1954,8 @@
       "users": "账号、角色与用户状态",
       "messages": "站内联系与反馈消息",
       "tags": "站内标签和筛选字典",
-      "settings": "站点开关和基础配置"
+      "settings": "站点开关和基础配置",
+      "attribution": "历史代录活动归属到认证组织"
     },
     "pro_tip": "专业提示",
     "pro_tip_desc": "使用网格/列表视图切换来高效管理内容。",
@@ -2257,6 +2259,60 @@
       "upcoming_events": "待开始活动",
       "event_date": "活动时间",
       "review_status": "审核状态"
+    },
+    "attribution": {
+      "title": "认证组织归属迁移",
+      "description": "把平台官方代录的历史活动安全过渡到认证组织名下，保留原上传账号和迁移日志。",
+      "load_profiles_failed": "加载认证组织失败",
+      "select_profile_first": "请先选择认证组织",
+      "preview_failed": "生成候选失败",
+      "select_candidates_first": "请先选择要迁移的候选",
+      "apply_confirm": "确认把选中的 {{count}} 条活动归属写入该认证组织？原上传账号和创建时间不会被覆盖。",
+      "apply_success": "已迁移 {{applied}} 条，跳过 {{skipped}} 条。",
+      "apply_failed": "应用迁移失败",
+      "preview": "生成候选",
+      "previewing": "正在生成候选...",
+      "profile_label": "认证组织",
+      "no_profiles": "暂无可用认证组织",
+      "refresh": "刷新候选",
+      "safety_note": "安全规则：此工具只迁移公开发布主体和主办主体，不覆盖原上传账号、创建时间、审核状态或文件路径。冲突候选默认不能勾选。",
+      "metrics": {
+        "total": "候选总数",
+        "strong": "强匹配",
+        "medium": "中匹配",
+        "conflict": "冲突"
+      },
+      "candidates_title": "迁移候选",
+      "candidates_desc": "强匹配来自主办方别名精确命中；中匹配来自标题、正文或来源线索；地点只会作为弱证据。",
+      "levels": {
+        "all": "全部",
+        "strong": "强匹配",
+        "medium": "中匹配",
+        "weak": "弱匹配",
+        "conflict": "冲突"
+      },
+      "selected_count": "已选择 {{count}} 条候选",
+      "select_visible": "选择当前可迁移项",
+      "clear_selection": "清空选择",
+      "apply_selected": "确认迁移",
+      "applying": "正在迁移...",
+      "table": {
+        "select": "选择",
+        "event": "活动",
+        "organizer": "主办方文本",
+        "level": "等级",
+        "evidence": "证据",
+        "current": "当前归属"
+      },
+      "select_candidate": "选择该归属候选",
+      "untitled": "未命名活动",
+      "no_organizer": "未填写主办方",
+      "current_publisher": "发布主体：{{id}}",
+      "current_organizer": "主办主体：{{id}}",
+      "initial_title": "先选择组织并生成候选",
+      "initial_desc": "候选扫描是只读操作，不会修改任何历史数据。",
+      "empty_title": "没有匹配的迁移候选",
+      "empty_desc": "可以更换认证组织、补充组织别名，或检查历史活动主办方文本。"
     }
   },
   "not_found": {
@@ -2482,6 +2538,14 @@
       "preview_title": "项目名称",
       "preview_summary": "一句话简介会显示在这里",
       "preview_hint": "别人会先看到这张紧凑名片，点开再读完整介绍。"
+    }
+  },
+  "profiles": {
+    "verification": {
+      "official": "官方认证",
+      "organization": "认证组织",
+      "school": "学校官方",
+      "pending": "待认领"
     }
   }
 }

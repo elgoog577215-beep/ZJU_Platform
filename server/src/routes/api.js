@@ -29,6 +29,7 @@ const competitionController = require('../controllers/competitionController');
 const futureLearningController = require('../controllers/futureLearningController');
 const wechatParseController = require('../controllers/wechatParseController');
 const ecosystemPartnerController = require('../controllers/ecosystemPartnerController');
+const eventAttributionMigrationController = require('../controllers/eventAttributionMigrationController');
 const mediaCategoryController = require('../controllers/mediaCategoryController');
 const projectCardController = require('../controllers/projectCardController');
 const { logger } = require('../utils/logger');
@@ -130,6 +131,9 @@ router.put('/admin/profiles/:id', authenticateToken, isAdmin, profileController.
 router.get('/admin/profiles/:id/members', authenticateToken, isAdmin, profileController.listAdminProfileMembers);
 router.put('/admin/profiles/:id/members/:userId', authenticateToken, isAdmin, profileController.upsertAdminProfileMember);
 router.delete('/admin/profiles/:id/members/:userId', authenticateToken, isAdmin, profileController.deleteAdminProfileMember);
+router.get('/admin/event-attribution/candidates', authenticateToken, isAdmin, eventAttributionMigrationController.previewCandidates);
+router.post('/admin/event-attribution/apply', authenticateToken, isAdmin, eventAttributionMigrationController.applyCandidates);
+router.get('/admin/event-attribution/logs', authenticateToken, isAdmin, eventAttributionMigrationController.listLogs);
 
 // Public Profile Routes
 router.get('/profiles', optionalAuth, profileController.listProfiles);

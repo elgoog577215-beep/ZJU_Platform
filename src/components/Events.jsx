@@ -54,6 +54,7 @@ import MobileEventAssistantFullscreen, {
 import DOMPurify from "dompurify";
 import MobileContentToolbar from "./MobileContentToolbar";
 import SEO from "./SEO";
+import OfficialVerificationBadge from "./OfficialVerificationBadge";
 import {
   COLLEGE_NOTICE_CATEGORY_VALUE,
   COLLEGE_NOTICE_TAG,
@@ -96,6 +97,12 @@ const getCollegeNoticeSource = (event = {}) => {
   if (audience) return audience;
   return "";
 };
+
+const organizerProfileFromEvent = (event = {}) => ({
+  type: event.organizer_profile_type,
+  verified: event.organizer_profile_verified === true || Number(event.organizer_profile_verified) === 1,
+  status: event.organizer_profile_status,
+});
 
 const getEventLifecycle = (date, endDate, t) => {
   if (!date) return t("events.status.unknown");
@@ -586,6 +593,11 @@ const EventListRow = memo(
                 ) : (
                   <span className="truncate">{event.organizer}</span>
                 )}
+                <OfficialVerificationBadge
+                  profile={organizerProfileFromEvent(event)}
+                  compact
+                  isDayMode={isDayMode}
+                />
               </span>
             )}
           </div>
@@ -2282,6 +2294,11 @@ END:VCALENDAR`;
                                         className={eventThemeAccent.accentText}
                                       />
                                       {selectedEvent.organizer}
+                                      <OfficialVerificationBadge
+                                        profile={organizerProfileFromEvent(selectedEvent)}
+                                        compact
+                                        isDayMode={isDayMode}
+                                      />
                                     </RouterLink>
                                   ) : (
                                     <span
@@ -2292,6 +2309,11 @@ END:VCALENDAR`;
                                         className={eventThemeAccent.accentText}
                                       />
                                       {selectedEvent.organizer}
+                                      <OfficialVerificationBadge
+                                        profile={organizerProfileFromEvent(selectedEvent)}
+                                        compact
+                                        isDayMode={isDayMode}
+                                      />
                                     </span>
                                   )
                                 )}
@@ -2759,9 +2781,14 @@ END:VCALENDAR`;
                                   {selectedOrganizerProfilePath ? (
                                     <RouterLink
                                       to={selectedOrganizerProfilePath}
-                                      className={`text-sm leading-snug break-words sm:text-base hover:underline ${isDayMode ? "text-slate-700 hover:text-slate-950" : "text-gray-200 hover:text-white"}`}
+                                      className={`inline-flex items-center gap-2 text-sm leading-snug break-words sm:text-base hover:underline ${isDayMode ? "text-slate-700 hover:text-slate-950" : "text-gray-200 hover:text-white"}`}
                                     >
                                       {selectedEvent.organizer}
+                                      <OfficialVerificationBadge
+                                        profile={organizerProfileFromEvent(selectedEvent)}
+                                        compact
+                                        isDayMode={isDayMode}
+                                      />
                                     </RouterLink>
                                   ) : (
                                     <p
