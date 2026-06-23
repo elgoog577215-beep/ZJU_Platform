@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Copy, Download, Share2, X } from "lucide-react";
 import { toPng } from "html-to-image";
 import QRCode from "qrcode";
@@ -37,7 +38,7 @@ const resolveAssetUrl = (value) => {
   }
 };
 
-const ProjectSharePoster = ({ project, onClose }) => {
+const ProjectSharePoster = ({ project, onClose, variant = "playful" }) => {
   const { t } = useTranslation();
   const posterRef = useRef(null);
   const [qrDataUrl, setQrDataUrl] = useState("");
@@ -143,10 +144,10 @@ const ProjectSharePoster = ({ project, onClose }) => {
     }
   };
 
-  if (!project) return null;
+  if (!project || typeof document === "undefined") return null;
 
-  return (
-    <div className="ppp-poster-scrim" onClick={onClose}>
+  return createPortal(
+    <div className="ppp-root ppp-poster-scrim" data-variant={variant} onClick={onClose}>
       <div className="ppp-poster-modal" onClick={(e) => e.stopPropagation()}>
         <button
           className="ppp-poster-close"
@@ -249,7 +250,8 @@ const ProjectSharePoster = ({ project, onClose }) => {
           <div className="ppp-poster-note">{t("project_share_poster.privacy_note", "海报不会显示联系方式，只展示公开项目信息。")}</div>
         </aside>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

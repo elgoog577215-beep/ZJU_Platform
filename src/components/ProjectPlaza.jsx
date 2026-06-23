@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
@@ -120,15 +121,16 @@ const Card = ({ p, onOpen, onFav, t }) => {
   );
 };
 
-const DetailModal = ({ p, onClose, onFav, loggedIn, onOpenPoster }) => {
+const DetailModal = ({ p, onClose, onFav, loggedIn, onOpenPoster, variant }) => {
   const { t } = useTranslation();
   const imgs = p.images?.length ? p.images : (p.cover_url ? [p.cover_url] : []);
   const [active, setActive] = useState(0);
   const paras = (p.content || "").split(/\n+/).filter(Boolean);
   const title = p.title || t("project_plaza.untitled", "未命名项目");
   const ownerName = p.owner_name || t("project_plaza.anonymous", "匿名");
-  return (
-    <div className="ppp-scrim" onClick={onClose}>
+  if (typeof document === "undefined") return null;
+  return createPortal(
+    <div className="ppp-root ppp-scrim" data-variant={variant} onClick={onClose}>
       <div className="ppp-modal" onClick={(e) => e.stopPropagation()}>
         <button className="ppp-x" type="button" onClick={onClose} aria-label={t("common.close", "关闭")}><X size={18} /></button>
         <div className="ppp-mgallery">
@@ -203,7 +205,8 @@ const DetailModal = ({ p, onClose, onFav, loggedIn, onOpenPoster }) => {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
@@ -421,6 +424,15 @@ const ProjectPlaza = () => {
 
   useBackClose(selected !== null, closeDetail);
 
+  useEffect(() => {
+    if (!selected && !posterProject) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [posterProject, selected]);
+
   const applyFav = useCallback((id, favorited, likes) => {
     const patch = (item) => (String(item.id) === String(id) ? { ...item, favorited, likes } : item);
     setItems((list) => list.map(patch));
@@ -503,9 +515,10 @@ const ProjectPlaza = () => {
           onFav={applyFav}
           loggedIn={Boolean(user)}
           onOpenPoster={setPosterProject}
+          variant={variant}
         />
       )}
-      {posterProject && <ProjectSharePoster project={posterProject} onClose={() => setPosterProject(null)} />}
+      {posterProject && <ProjectSharePoster project={posterProject} onClose={() => setPosterProject(null)} variant={variant} />}
     </div>
   );
 };
