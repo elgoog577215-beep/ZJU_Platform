@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>技术路线图优化版</title>
+  <style>
+    :root {
+      --ink: #1d2a38;
+      --muted: #647486;
+      --line: #b9c7d7;
+      --blue: #1f5d91;
+      --blue-soft: #eef6fb;
+      --green: #357760;
+      --green-soft: #eff8f3;
+      --gold: #a46d25;
+      --gold-soft: #fff8ec;
+      --bg: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 1600px;
+      height: 900px;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif;
+    }
+
+    .page {
+      width: 1600px;
+      height: 900px;
+      padding: 54px 68px 52px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 42px;
+      line-height: 1.18;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin-top: 12px;
+      padding-bottom: 18px;
+      border-bottom: 3px solid #d9e1ea;
+      color: var(--muted);
+      font-size: 19px;
+      line-height: 1.5;
+      font-weight: 500;
+    }
+
+    .flow {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 34px 42px;
+      margin-top: 44px;
+    }
+
+    .card {
+      min-height: 150px;
+      border: 3px solid #315f89;
+      border-radius: 10px;
+      background: #fff;
+      overflow: hidden;
+      box-shadow: 0 4px 0 rgba(31, 93, 145, 0.08);
+    }
+
+    .card.green {
+      border-color: var(--green);
+      box-shadow: 0 4px 0 rgba(53, 119, 96, 0.08);
+    }
+
+    .card.gold {
+      border-color: var(--gold);
+      box-shadow: 0 4px 0 rgba(164, 109, 37, 0.08);
+    }
+
+    .head {
+      display: flex;
+      align-items: center;
+      min-height: 42px;
+      padding: 8px 15px;
+      color: #fff;
+      background: var(--blue);
+      font-size: 20px;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+
+    .green .head {
+      background: var(--green);
+    }
+
+    .gold .head {
+      background: var(--gold);
+    }
+
+    .body {
+      padding: 15px 17px 17px;
+      background: var(--blue-soft);
+      min-height: 108px;
+      font-size: 17px;
+      line-height: 1.48;
+      color: #283746;
+    }
+
+    .green .body {
+      background: var(--green-soft);
+    }
+
+    .gold .body {
+      background: var(--gold-soft);
+    }
+
+    .body p {
+      margin: 0 0 5px;
+    }
+
+    .body p:last-child {
+      margin-bottom: 0;
+    }
+
+    .metrics {
+      margin-top: 48px;
+      display: grid;
+      grid-template-columns: 184px 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .metrics-title {
+      padding-top: 7px;
+      font-size: 21px;
+      font-weight: 750;
+      color: #324354;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .chip {
+      height: 36px;
+      padding: 0 18px;
+      display: inline-flex;
+      align-items: center;
+      border: 2px solid #c9d5e2;
+      border-radius: 999px;
+      background: #f8fbfe;
+      color: #4f5f70;
+      font-size: 16px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .bottom {
+      display: grid;
+      grid-template-columns: 1fr 1.48fr;
+      gap: 44px;
+      margin-top: 40px;
+      align-items: stretch;
+    }
+
+    .feedback,
+    .governance {
+      min-height: 132px;
+      border: 3px solid var(--gold);
+      border-radius: 12px;
+      background: #fffaf2;
+      padding: 22px 28px;
+    }
+
+    .governance {
+      border-color: #315f89;
+      background: #f4f9fd;
+    }
+
+    .panel-title {
+      margin: 0 0 10px;
+      font-size: 23px;
+      line-height: 1.25;
+      color: #915f22;
+      font-weight: 800;
+    }
+
+    .governance .panel-title {
+      color: #1f5d91;
+    }
+
+    .panel-copy {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.62;
+      color: #3d4b59;
+    }
+
+    svg.lines {
+      position: absolute;
+      inset: 0;
+      width: 1600px;
+      height: 900px;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1 class="title">技术路线图：ETL + NLP/LLM + Hybrid Search/RAG + 教育质量指标建模</h1>
+    <div class="subtitle">围绕“数据采集 → 结构化治理 → 智能检索推荐 → 指标评价 → 反馈迭代”，形成可验证的技术闭环。</div>
+
+    <svg class="lines" viewBox="0 0 1600 900" aria-hidden="true">
+      <defs>
+        <marker id="arrow-blue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+          <path d="M 0 0 L 12 6 L 0 12 z" fill="#7f94ab" />
+        </marker>
+        <marker id="arrow-gold" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+          <path d="M 0 0 L 12 6 L 0 12 z" fill="#a46d25" />
+        </marker>
+      </defs>
+      <path d="M 403 294 H 445" stroke="#7f94ab" stroke-width="3" marker-end="url(#arrow-blue)" fill="none" />
+      <path d="M 779 294 H 821" stroke="#7f94ab" stroke-width="3" marker-end="url(#arrow-blue)" fill="none" />
+      <path d="M 1156 294 H 1198" stroke="#7f94ab" stroke-width="3" marker-end="url(#arrow-blue)" fill="none" />
+      <path d="M 1288 377 V 411" stroke="#7f94ab" stroke-width="3" marker-end="url(#arrow-blue)" fill="none" />
+      <path d="M 1198 494 H 1156" stroke="#7f94ab" stroke-width="3" marker-end="url(#arrow-blue)" fill="none" />
+      <path d="M 821 494 H 779" stroke="#7f94ab" stroke-width="3" marker-end="url(#arrow-blue)" fill="none" />
+      <path d="M 445 494 H 403" stroke="#7f94ab" stroke-width="3" marker-end="url(#arrow-blue)" fill="none" />
+      <path d="M 470 718 V 774 H 666" stroke="#a46d25" stroke-width="3" marker-end="url(#arrow-gold)" fill="none" />
+      <path d="M 1175 662 V 733" stroke="#a46d25" stroke-width="3" marker-end="url(#arrow-gold)" fill="none" />
+    </svg>
+
+    <section class="flow" aria-label="技术流程">
+      <article class="card">
+        <div class="head">1 数据源 Data Sources</div>
+        <div class="body">
+          <p>官网、公众号、社团平台</p>
+          <p>活动、讲座、竞赛、志愿</p>
+          <p>用户行为日志与反馈</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="head">2 ETL Pipeline</div>
+        <div class="body">
+          <p>Crawler / API / RSS 接入</p>
+          <p>HTML Parser + Scheduler</p>
+          <p>字段映射与增量更新</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="head">3 NLP/LLM 抽取</div>
+        <div class="body">
+          <p>NER、时间地点识别</p>
+          <p>JSON Schema 约束输出</p>
+          <p>置信度评分 Confidence</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="head">4 数据治理</div>
+        <div class="body">
+          <p>Entity Resolution 实体对齐</p>
+          <p>SimHash / MinHash 去重</p>
+          <p>DQI 数据质量评分</p>
+        </div>
+      </article>
+
+      <article class="card gold">
+        <div class="head">8 运维与安全</div>
+        <div class="body">
+          <p>JWT / RBAC / Audit Log</p>
+          <p>Monitoring / Backup</p>
+          <p>隐私脱敏与人工复核</p>
+        </div>
+      </article>
+
+      <article class="card green">
+        <div class="head">7 评价模型</div>
+        <div class="body">
+          <p>AHP + Entropy 组合权重</p>
+          <p>覆盖、时效、转化、满意度</p>
+          <p>教育质量动态监测</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="head">6 RAG 推荐</div>
+        <div class="body">
+          <p>候选池约束 LLM 解释</p>
+          <p>用户画像 Profile</p>
+          <p>反馈学习 Feedback</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="head">5 Hybrid Search</div>
+        <div class="body">
+          <p>BM25 / TF-IDF 关键词召回</p>
+          <p>Embedding 向量召回</p>
+          <p>Rule-based Re-ranking</p>
+        </div>
+      </article>
+    </section>
+
+    <section class="metrics" aria-label="核心指标">
+      <div class="metrics-title">核心数据指标</div>
+      <div class="chips">
+        <span class="chip">Data Completeness</span>
+        <span class="chip">DQI</span>
+        <span class="chip">Update Latency</span>
+        <span class="chip">Search Hit Rate</span>
+        <span class="chip">CTR / CVR</span>
+        <span class="chip">Recommendation Acceptance</span>
+        <span class="chip">Cross-college Reach</span>
+        <span class="chip">User Satisfaction</span>
+        <span class="chip">Model Explainability</span>
+      </div>
+    </section>
+
+    <section class="bottom" aria-label="闭环说明">
+      <div class="governance">
+        <h2 class="panel-title">可验证产出</h2>
+        <p class="panel-copy">每个阶段都沉淀结构化日志、质量评分和指标快照，支撑离线评测、人工复核和上线前对比。</p>
+      </div>
+      <div class="feedback">
+        <h2 class="panel-title">Feedback Loop / 闭环迭代</h2>
+        <p class="panel-copy">将检索日志、推荐反馈、人工复核结果和阶段性评估报告，回流到 ETL 规则、标签体系、排序权重与评价阈值，持续校准模型效果。</p>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
