@@ -1,11 +1,11 @@
 {
     "schema_version": 1,
-    "commit": "1af0d1dc12d7606db2ca00483657bed7234c5b21",
-    "indexed_at": "2026-06-23T07:14:59Z",
+    "commit": "ace52ed41570a804ba66e23135ea53d85eb4c4d9",
+    "indexed_at": "2026-06-23T15:11:49Z",
     "project": "Users-yq-Desktop-ZJU_Platform",
-    "nodes": 3936,
-    "edges": 4196,
-    "original_size": 6815744,
-    "compressed_size": 741080,
+    "nodes": 0,
+    "edges": 0,
+    "original_size": 102400,
+    "compressed_size": 1396,
     "compression_level": 3
 }
