@@ -1,0 +1,10 @@
+{
+  "app": {
+    "bundleName": "com.yq.zju_activity_platform",
+    "vendor": "example",
+    "versionCode": 1000000,
+    "versionName": "1.0.0",
+    "icon": "$media:icon",
+    "label": "$string:app_name"
+  }
+}

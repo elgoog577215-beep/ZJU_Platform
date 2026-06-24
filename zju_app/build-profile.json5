@@ -1,0 +1,69 @@
+{
+  "app": {
+    "signingConfigs": [
+      {
+        "name": "debug",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "C:/Users/Administrator/Downloads/调试.cer",
+          "keyAlias": "p12",
+          "keyPassword": "0000001C282E475AD950091191BD524F56223B4E83E680F3341743EA518E062874E91197C55DB6388D479F52",
+          "profile": "C:/Users/Administrator/Downloads/调试Debug.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "C:/Users/Administrator/p12.p12",
+          "storePassword": "0000001CE3956692D80916B3B7CA3929857D3BB25BAB53CC2E9D449CBEF0CE1B61B9651D797662ED7E9EE9E3"
+        }
+      },
+      {
+        "name": "release",
+        "type": "HarmonyOS",
+        "material": {
+          "storeFile": "C:\\Users\\Administrator\\p12.p12",
+          "storePassword": "0000001CB87AD398FEA71EF53841E2CD71E7CB6DDDA476B813B8EC72C83E6201447FE1042CFDBD39CD216352",
+          "keyAlias": "p12",
+          "keyPassword": "0000001C51D0BD0BD2C27AD7E5243C8A3EEA7B4D0A736F2D258E5B0F5798DEECD179BA2B4C6C4DE240D12847",
+          "signAlg": "SHA256withECDSA",
+          "profile": "C:/Users/Administrator/Downloads/发布Release.p7b",
+          "certpath": "C:/Users/Administrator/Downloads/发布.cer"
+        }
+      }
+    ],
+    "products": [
+      {
+        "name": "default",
+        "signingConfig": "release",
+        "targetSdkVersion": "6.0.1(21)",
+        "compatibleSdkVersion": "5.1.1(19)",
+        "runtimeOS": "HarmonyOS",
+        "buildOption": {
+          "strictMode": {
+            "caseSensitiveCheck": true,
+            "useNormalizedOHMUrl": true
+          }
+        }
+      }
+    ],
+    "buildModeSet": [
+      {
+        "name": "debug",
+      },
+      {
+        "name": "release"
+      }
+    ]
+  },
+  "modules": [
+    {
+      "name": "entry",
+      "srcPath": "./entry",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    }
+  ]
+}

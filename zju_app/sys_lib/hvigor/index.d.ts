@@ -1,0 +1,80 @@
+export * from 'log4js';
+export { LocalFileWriter } from './src/common/util/local-file-writer.js';
+export { noop } from './src/common/util/noop.js';
+export { parseJsonFile, parseJsonText } from './src/common/util/parse-json/parse-json-util.js';
+export { replacer } from './src/common/util/replacer.js';
+export { hash, hashFile, isWindows, isMac, isLinux, maxPathLength } from '@ohos/hvigor-common';
+export { PathUtil } from './src/common/util/path-util.js';
+export { getModuleIndex, setWorkerIdWithModule, getWorkerIdWithModule } from './src/common/util/math-util.js';
+export { HvigorCommonConst, HvigorBuildConst } from './src/base/common/options/common-const.js';
+export { ReportServiceImpl } from './src/base/common/report/report-service-impl.js';
+export { WatchEvent } from './src/base/common/daemon-protocol/build-event.js';
+export { readJavaDaemonInfoFromCacheFile } from './src/base/daemon/java/java-daemon-util.js';
+export { TraceManager } from './src/base/common/trace/trace-manager.js';
+export { DEFAULT_HVIGOR_CONFIG_JSON_FILE_NAME } from './src/common/const/const.js';
+export { HVIGOR_PROJECT_WRAPPER_HOME } from './src/common/const/path-const.js';
+export { TrackAPI } from './src/base/common/trace/hvigor-trace-factory.js';
+export { Tasks } from './src/base/internal/task/build/tasks.js';
+export { DefaultSyncTask } from './src/base/internal/task/core/default-sync-task.js';
+export { TaskDetails } from './src/base/internal/task/interface/task-details-interface.js';
+export type { TaskInputValue } from './src/base/internal/snapshot/util/task-input-value-entry.js';
+export { TaskState } from './src/base/internal/pool/enum/task-state.js';
+export { WorkerPoolDelegator } from './src/base/internal/pool/worker-pool/worker-delegator.js';
+export type { SubmitOption } from './src/base/internal/pool/worker-pool/submit-option.js';
+export { PoolConstant } from './src/base/internal/pool/constant/constant.js';
+export { FileSet } from './src/base/internal/snapshot/util/file-set.js';
+export { projectTaskDag, TaskDirectedAcyclicGraph } from './src/base/internal/task/core/task-directed-acyclic-graph.js';
+export { watchWorker, normalWorker } from './src/base/internal/pool/worker-pool/watch-worker.js';
+export { startEnvironment } from './src/base/internal/data/global-data.js';
+export { AnalyzeModeMap, LogLevelMap, coreParameter } from './src/base/internal/data/global-core-parameters.js';
+export { ProjectCacheService } from './src/base/internal/cache/project-cache-service.js';
+export { CacheStore, CacheStoreManager } from './src/base/internal/pool/store/cache-store.js';
+export { TcbStore } from './src/base/internal/pool/store/tcb-store.js';
+export { ExtendedErrorInfo } from './src/base/internal/pool/worker-manager/extended-error-info.js';
+export { GlobalParam } from './src/base/external/global-param.js';
+export { DefaultTask } from './src/base/external/task/default-task.js';
+export { CoreTask } from './src/base/external/task/core-task.js';
+export { HvigorSystemPlugin } from './src/base/external/plugin/hvigor-system-plugin.js';
+export { HvigorCoreNode, Project, Module } from './src/base/external/core/hvigor-core-node.js';
+export { IncrementalExecTask } from './src/base/external/task/incremental-exec-task.js';
+export { defaultModelRegistry } from './src/base/external/default-tooling-model-bean-registry.js';
+export { hvigor } from './src/base/external/core/hvigor.js';
+export { hvigorCore, getHvigorNode, getHvigorConfigValue, getNode } from './src/base/external/core/hvigor-core.js';
+export type { ToolingModelBean } from './src/base/external/tooling-model-bean.js';
+export { hvigorConfig } from './src/base/external/core/hvigor-config.js';
+export { addExtensionHandler } from './src/base/boot/hooks/require-hook.js';
+export { globalData } from './src/base/internal/data/global-data.js';
+export { HvigorLogger } from './src/base/log/hvigor-log.js';
+export { HvigorConfigLoader } from './src/common/util/hvigor-config-loader.js';
+export { replaceBundleName } from './src/base/log/adaptor/fileLogger.js';
+export { getConfiguration, levelMap, setCategoriesLevel } from './src/base/log/default-configuration.js';
+export { Json5Reader } from './src/base/util/json5-reader.js';
+export { iconv } from './src/common/util/iconv';
+export { splitTime, formatTime } from './src/base/util/time-util.js';
+export { DurationEvent } from './src/base/metrics/event/duration-event.js';
+export { ContinualEvent } from './src/base/metrics/event/continual-event.js';
+export { MarkEvent, MarkEventType } from './src/base/metrics/event/mark-event.js';
+export { MAIN_THREAD, MetricFactory } from './src/base/metrics/metric-factory.js';
+export { MetricService } from './src/base/metrics/metric-service.js';
+export { MetricLogType } from './src/base/metrics/event/log-event.js';
+export { MetricEventType } from './src/base/metrics/event/base-event.js';
+export { HvigorTaskGroupType } from './src/base/external/task/core-task.js';
+export { formatTimeToNumber } from './src/base/util/time-util.js';
+export { FileUtil } from './src/common/util/hvigor-file-util.js';
+export { getAlignTarget } from './src/base/util/task-util.js';
+export { OHOS_ARK_COMPILE_SOURCE_MAP_DIR } from './src/common/const/const';
+/** Hvigor基础接口 **/
+export { HvigorPlugin, HvigorNode, HvigorTask, HvigorTaskContext, Task, TaskInput, TaskOutput } from './src/base/external/api/hvigor-api.js';
+export { Properties, StartParam } from './src/base/data/parameters.js';
+/** 弃用接口 **/
+export { HvigorPluginContext } from './src/base/external/api/hvigor-api.js';
+/**
+ * 增量声明装饰器
+ */
+export { Input, Inputs, InputFile, InputFiles, OutputFile, OutputFiles, IgnoreSuperIncremental } from './src/base/incremental-decorator/index.js';
+/** rollup compilePlugin 插件语法检查 **/
+export { doCompilePluginTypeCheck } from './src/base/internal/util/ts_check.js';
+/** 对外提供hvigor自定义任务可以使用线程池的能力 **/
+export { submitWorker, WorkerOption } from './src/base/external/worker/worker.js';
+export { Priority } from './src/base/internal/pool/enum/priority.js';
+export { TCB } from './src/base/internal/pool/model/tcb.js';
