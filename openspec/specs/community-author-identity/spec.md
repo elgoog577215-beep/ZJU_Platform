@@ -4,32 +4,16 @@
 TBD - created by archiving change community-identity-and-follow-notifications. Update Purpose after archive.
 ## Requirements
 ### Requirement: Author Display Name Fallback
+Author and uploader identity SHALL continue using nickname first and username as fallback, and avatar fields SHALL use `users.avatar` when available.
 
-所有资源控制器在返回作者身份字段时 SHALL 使用 `COALESCE(u.nickname, u.username) AS author_name`，以保证 `nickname` 未设置的老用户也能显示真实身份。
+#### Scenario: Competition work uploader fallback
+- **WHEN** a competition work is returned with uploader identity
+- **THEN** uploader display uses nickname or username and includes avatar when available.
 
-适用资源表：`articles`, `photos`, `music`, `videos`, `events`, `news`。
-
-- `getOneHandler` / `getAllHandler` / `listNews` / `getNews` / 以及任何涉及作者 JOIN 的查询 MUST 使用该 fallback
-- 返回给前端的 `author_name` MUST 始终非 null，除非该资源 `uploader_id` 本身为 NULL（seed 数据或用户删号后的孤儿资源）
-- 回归测试 MUST 覆盖"用户只有 username 没有 nickname"的场景
-
-#### Scenario: User without nickname uploads an article
-
-- **GIVEN** 一个 `nickname = NULL, username = 'zhang_san'` 的用户发布了一篇 `articles` 资源
-- **WHEN** 任一访客调用 `GET /articles/:id`
-- **THEN** 响应中的 `author_name` 字段等于 `'zhang_san'`，不为 `'匿名用户'`、不为 NULL
-
-#### Scenario: User with nickname uploads an article
-
-- **GIVEN** 一个 `nickname = '小明', username = 'zhang_san'` 的用户发布了一篇 `articles` 资源
-- **WHEN** 任一访客调用 `GET /articles/:id`
-- **THEN** 响应中的 `author_name` 字段等于 `'小明'`
-
-#### Scenario: News endpoint uses the same fallback
-
-- **GIVEN** 一条 news 的 uploader `nickname` 为 NULL 但 `username` 为 `'editor_01'`
-- **WHEN** 访客调用 `GET /news` 或 `GET /news/:id`
-- **THEN** 响应中的 `author_name` 为 `'editor_01'`
+#### Scenario: Bound outcome identity display
+- **WHEN** a competition work is returned with confirmed bound identity information
+- **THEN** the response preserves original author/team text
+- **AND** includes confirmed identity display information separately when available.
 
 ### Requirement: Nickname Field Constraints
 
@@ -114,3 +98,4 @@ TBD - created by archiving change community-identity-and-follow-notifications. U
 > provided no meaningful privacy that nickname choice couldn't already
 > deliver. The `community_posts.is_anonymous` column remains in the
 > schema for backwards compatibility but is always written as 0.
+

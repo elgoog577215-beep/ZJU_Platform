@@ -1,0 +1,113 @@
+# media-library-categories Specification
+
+## Purpose
+TBD - created by archiving change unify-media-library-categories. Update Purpose after archive.
+## Requirements
+### Requirement: 影像库统一浏览入口
+
+系统 SHALL 提供一个 `/media` 影像库页面，用于统一浏览图片和视频，同时保持后端图片与视频资源分离。
+
+#### Scenario: 用户打开影像库
+
+- **GIVEN** 用户访问 `/media`
+- **WHEN** 页面加载完成
+- **THEN** 用户看到“影像库”标题
+- **AND** 页面同时展示图片区域和视频区域
+- **AND** 图片来自 `photos` 资源
+- **AND** 视频来自 `videos` 资源
+
+#### Scenario: 桌面端左右分栏
+
+- **GIVEN** 用户在桌面端访问 `/media`
+- **WHEN** 页面渲染影像内容
+- **THEN** 图片区域占主要宽度
+- **AND** 视频区域作为右侧栏展示
+
+#### Scenario: 移动端上下排列
+
+- **GIVEN** 用户在移动端访问 `/media`
+- **WHEN** 页面渲染影像内容
+- **THEN** 图片和视频不得被硬压成左右两栏
+- **AND** 页面使用上下排列保证可读性。
+
+### Requirement: 影像分类可由管理员维护
+
+系统 SHALL 允许管理员维护影像分类，用于图片和视频的共同归档。
+
+#### Scenario: 管理员创建分类
+
+- **GIVEN** 管理员打开后台影像分类管理
+- **WHEN** 管理员提交一个有效分类名
+- **THEN** 系统创建一个影像分类
+- **AND** 该分类可以用于图片和视频上传。
+
+#### Scenario: 管理员停用分类
+
+- **GIVEN** 一个影像分类已经存在
+- **WHEN** 管理员将该分类设为停用
+- **THEN** 该分类不再作为普通用户上传时的可选项
+- **AND** 已归入该分类的历史图片和视频不会被删除。
+
+### Requirement: 上传图片和视频可选择影像分类
+
+系统 SHALL 在图片和视频上传流程中提供影像分类选择。
+
+#### Scenario: 用户上传图片
+
+- **GIVEN** 启用的影像分类存在
+- **WHEN** 用户上传图片
+- **THEN** 用户可以选择一个影像分类
+- **AND** 图片保存后记录所选分类。
+
+#### Scenario: 用户上传视频
+
+- **GIVEN** 启用的影像分类存在
+- **WHEN** 用户上传视频
+- **THEN** 用户可以选择一个影像分类
+- **AND** 视频保存后记录所选分类。
+
+### Requirement: 分类筛选同时作用于图片和视频
+
+系统 SHALL 在影像库中提供分类筛选，筛选结果同时作用于图片区域和视频区域。
+
+#### Scenario: 用户选择一个分类
+
+- **GIVEN** 用户打开 `/media`
+- **WHEN** 用户选择“黑客松第一季”等影像分类
+- **THEN** 图片区域只展示该分类下的图片
+- **AND** 视频区域只展示该分类下的视频。
+
+#### Scenario: 用户选择全部
+
+- **GIVEN** 用户打开 `/media`
+- **WHEN** 用户选择“全部”
+- **THEN** 图片区域展示所有可见图片
+- **AND** 视频区域展示所有可见视频。
+
+### Requirement: 不引入精选和比赛成果联动
+
+系统 SHALL NOT 在本轮影像库分类能力中引入精选、置顶到成果页或比赛成果联动。
+
+#### Scenario: 管理员管理影像分类
+
+- **GIVEN** 管理员打开影像分类或影像资源管理
+- **WHEN** 管理员编辑分类或资源
+- **THEN** 系统不要求管理员选择比赛成果页
+- **AND** 系统不提供“精选到比赛成果”的本轮功能。
+
+### Requirement: 旧画廊和视频入口保持兼容
+
+系统 SHALL 保留旧的 `/gallery` 和 `/videos` 入口，避免历史链接失效。
+
+#### Scenario: 用户打开旧图片链接
+
+- **GIVEN** 用户访问 `/gallery?id=<photoId>`
+- **WHEN** 页面加载
+- **THEN** 系统仍可打开对应图片体验。
+
+#### Scenario: 用户打开旧视频链接
+
+- **GIVEN** 用户访问 `/videos?id=<videoId>`
+- **WHEN** 页面加载
+- **THEN** 系统仍可打开对应视频体验。
+

@@ -2,9 +2,7 @@
 
 ## Purpose
 全站「项目广场」独立页面（`/projects`，不在 AI 社区下），聚合所有已发布项目名片，支持按进度/需求标签筛选与关键词搜索，点击打开详情，并支持从收藏进入后正确返回收藏；视觉跟随平台全局主题。（由 add-project-plaza 同步）
-
 ## Requirements
-
 ### Requirement: Project Plaza Page
 There SHALL be a dedicated project plaza page at `/projects` that aggregates all published project cards across users. The plaza SHALL NOT live under the AI community section.
 
@@ -35,16 +33,35 @@ The plaza SHALL support filtering by progress and by need tag, and keyword searc
 - **THEN** cards matching the keyword in title, tech tags, or owner name are shown.
 
 ### Requirement: Project Detail View
-Clicking a card SHALL open a project detail view showing the full long-form content, summary stats, need tags, tech tags, contact (login-gated), and a repository action. On desktop it SHALL be a modal overlay; on mobile a full-screen view.
+点击项目卡片后，系统 SHALL 打开项目详情视图，展示长正文、概要数据、需求标签、技术标签、登录后可见的联系方式、仓库操作，以及项目分享海报操作。桌面端 SHALL 使用弹窗覆盖层，移动端 SHALL 使用全屏视图。
 
-#### Scenario: Open and close detail
-- **WHEN** the visitor clicks a project card in the plaza
-- **THEN** the detail opens showing the full `content`, summary stats, needs, tech, and (if logged in) contact
-- **AND** closing the detail returns to the plaza.
+#### Scenario: Open share poster preview
+- **WHEN** 访问者打开项目详情
+- **THEN** 详情视图显示“生成海报”操作。
+- **WHEN** 访问者点击该操作
+- **THEN** 系统先打开海报预览，而不是直接开始下载。
 
-#### Scenario: Deep link to a card
-- **WHEN** the plaza is opened with `?id={id}`
-- **THEN** the corresponding card's detail opens automatically.
+#### Scenario: Poster contains shareable project card
+- **WHEN** 海报预览完成渲染
+- **THEN** 海报展示项目封面图，或在没有封面时展示生成的兜底视觉
+- **AND** 海报展示“拓浙AI生态：项目广场”标识和站点 logo
+- **AND** 海报展示项目标题、简介、进度、精选技术标签、精选需求标签、发起人展示名、发起人头像、收藏数和浏览数
+- **AND** 发起人展示名优先使用昵称，昵称为空时回退用户名
+- **AND** 海报不展示登录后才可见的联系方式。
+
+#### Scenario: Poster QR opens project detail
+- **WHEN** 海报预览完成渲染
+- **THEN** 海报包含指向 `/projects?id={projectId}` 的二维码。
+- **WHEN** 用户扫描二维码
+- **THEN** 项目详情可以通过现有深链行为打开。
+
+#### Scenario: Download poster image
+- **WHEN** 访问者选择下载海报
+- **THEN** 浏览器将预览内容导出为 PNG 图片。
+
+#### Scenario: Share link fallback
+- **WHEN** 原生文件分享不可用
+- **THEN** 海报预览仍然允许访问者复制项目详情链接。
 
 ### Requirement: Return To Favorites Navigation
 When a project detail is opened from the user's favorites list, closing it SHALL return the user to the favorites tab, reusing the platform's existing favorites-return navigation pattern (a URL marker is used since the detail's history push wipes router state).
@@ -69,3 +86,4 @@ The plaza SHALL show a guiding empty state when there are no matching cards.
 #### Scenario: No cards yet
 - **WHEN** there are no published project cards (or none match the filters)
 - **THEN** an empty state invites the user to publish a project.
+

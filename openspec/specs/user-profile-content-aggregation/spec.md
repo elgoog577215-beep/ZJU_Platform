@@ -4,48 +4,19 @@
 TBD - created by archiving change community-identity-and-follow-notifications. Update Purpose after archive.
 ## Requirements
 ### Requirement: getUserResources Extended Coverage
+`GET /users/:id/resources` SHALL include confirmed competition outcome bindings as `type = 'competition_work'`, applying visitor/owner/admin visibility rules.
 
-`GET /users/:id/resources` SHALL 返回该用户发布的所有可见内容，覆盖范围：
+#### Scenario: Competition work appears in profile resources
+- **WHEN** a requester can see a user's confirmed competition work binding
+- **THEN** the resources response includes an item with `type = 'competition_work'`.
 
-- 资源表：`photos`, `videos`, `music`, `articles`, `events`, **`news`**（本次新增）
-- 社区帖：`community_posts`（本次新增），包括 `section = 'help'` 和 `section = 'team'`
-- 项目名片：`project_cards`（add-project-plaza 新增），owner 列为 `user_id`，访客只见 `status='published'`、本人见草稿、`removed` 一律不出
+#### Scenario: Visitor cannot see candidate work
+- **WHEN** a visitor requests resources for a user with candidate, rejected, or revoked competition work bindings
+- **THEN** those bindings are excluded.
 
-筛选规则：
-- 非 owner 非 admin 访客：只见 `status = 'approved' AND deleted_at IS NULL` 的条目
-- 匿名求助贴（`is_anonymous = 1`）：非 owner 非 admin 访客 MUST 看不到该条
-- Owner 本人：看到全部自己的内容，包括 draft / pending / rejected 状态和匿名求助贴
-- Admin：看到全部（含他人的 draft / 匿名求助贴）以便审核
-
-返回格式：
-- 每条带 `type` 字段（`'photo' | 'music' | 'video' | 'article' | 'event' | 'news' | 'help' | 'team' | 'project'`）
-- 统一字段：`id`, `type`, `title`, `cover`（可选）, `created_at`, `likes`
-- 按 `created_at DESC` 排序
-
-#### Scenario: Visitor views another user's profile
-
-- **GIVEN** 用户 B 发布了 5 个资源 + 1 个非匿名求助贴 + 1 个匿名求助贴
-- **WHEN** 访客 C 调用 `GET /users/B/resources`
-- **THEN** 响应包含 5 + 1 = 6 条记录（匿名求助贴被过滤）
-
-#### Scenario: Owner views own profile
-
-- **GIVEN** 用户 B 同上
-- **WHEN** B 本人调用 `GET /users/B/resources`
-- **THEN** 响应包含全部 7 条记录（含匿名求助贴）
-
-#### Scenario: Admin views another user's profile
-
-- **GIVEN** 用户 B 同上
-- **AND** admin D（role='admin'）
-- **WHEN** D 调用 `GET /users/B/resources`
-- **THEN** 响应包含全部 7 条记录
-
-#### Scenario: News is included
-
-- **GIVEN** 用户 B 发布了 1 条 news（status=approved）
-- **WHEN** 访客调用 `GET /users/B/resources`
-- **THEN** 响应中至少有 1 条 `type = 'news'` 的记录
+#### Scenario: Owner can inspect non-public binding state
+- **WHEN** the owner requests resources or binding management data
+- **THEN** relevant candidate, rejected, and revoked states are available only to the owner or an administrator.
 
 ### Requirement: Profile Content Type Tabs
 
