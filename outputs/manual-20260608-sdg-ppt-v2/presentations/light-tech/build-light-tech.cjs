@@ -6,7 +6,7 @@ const sharp = require('sharp');
 const ROOT = '/Users/yq/Desktop/ZJU_Platform';
 const WORK = path.join(ROOT, 'outputs/manual-20260608-sdg-ppt-v2/presentations/light-tech');
 const ASSET_DIR = path.join(WORK, 'assets');
-const OUT = path.join(ROOT, 'docs/presentations/智享无差-高校AI教育信息平权创业汇报-黑客松亮色科技风.pptx');
+const OUT = path.join(ROOT, 'docs/archive/presentations/智享无差-高校AI教育信息平权创业汇报-黑客松亮色科技风.pptx');
 fs.mkdirSync(ASSET_DIR, { recursive: true });
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
 

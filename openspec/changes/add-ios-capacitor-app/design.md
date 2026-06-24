@@ -80,7 +80,7 @@ iOS App 应优先只承载可信域名：
 
 ## 8. 构建与文档
 
-实现阶段应新增 `docs/ios-capacitor-app-guide.md`，至少包含：
+实现阶段应新增 `docs/guides/ios-capacitor-app-guide.md`，至少包含：
 
 - 依赖安装。
 - 初始化 / 同步 Capacitor。

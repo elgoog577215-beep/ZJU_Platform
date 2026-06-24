@@ -1,7 +1,7 @@
 # AI Community Implementation Progress
 
 Date: 2026-04-16  
-Source Plan: `docs/superpowers/specs/2026-04-16-ai-community-implementation-plan.md`
+Source Plan: `docs/archive/superpowers/specs/2026-04-16-ai-community-implementation-plan.md`
 
 ## Execution Status
 

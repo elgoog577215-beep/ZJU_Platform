@@ -1,6 +1,6 @@
 # 社区模块：原型 UI 高保真 mirror
 
-本文记录将 `ui` 仓库中 **ZJU AI 社区静态原型**（`docs/superpowers/prototype/zju-ai-community*.html/css/js`）迁移到本平台 React 路由 **`/community/*`** 的实现要点，便于评审与后续迭代。
+本文记录将 `ui` 仓库中 **ZJU AI 社区静态原型**（历史原型文件 `zju-ai-community*.html/css/js`）迁移到本平台 React 路由 **`/community/*`** 的实现要点，便于评审与后续迭代。
 
 ## 目标
 

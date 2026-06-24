@@ -103,4 +103,4 @@
 
 ---
 
-> Plan: docs/superpowers/plans/2026-04-18-community-identity-and-follow-notifications.md
+> Plan: docs/archive/superpowers/plans/2026-04-18-community-identity-and-follow-notifications.md

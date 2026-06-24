@@ -56,4 +56,4 @@
 7. `test(e2e): project plaza happy path` — 5.x
 
 ---
-> Plan: docs/superpowers/plans/2026-06-13-add-project-plaza.md
+> Plan: docs/archive/superpowers/plans/2026-06-13-add-project-plaza.md

@@ -2,7 +2,7 @@
 
 ## 原型高保真 UI
 
-实现说明、文件清单、布局/token/播客/i18n 等详见 **[docs/community-prototype-mirror.md](docs/community-prototype-mirror.md)**。
+实现说明、文件清单、布局/token/播客/i18n 等详见 **[docs/archive/legacy-specs/community-prototype-mirror.md](docs/archive/legacy-specs/community-prototype-mirror.md)**。
 
 ## 前置
 

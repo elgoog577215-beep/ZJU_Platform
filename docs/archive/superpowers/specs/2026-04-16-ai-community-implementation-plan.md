@@ -1,7 +1,7 @@
 # AI Community Implementation Plan
 
 Date: 2026-04-16
-Source Spec: `docs/superpowers/specs/2026-04-16-ai-community-phased-spec.md`
+Source Spec: `docs/archive/superpowers/specs/2026-04-16-ai-community-phased-spec.md`
 
 ## Goal
 

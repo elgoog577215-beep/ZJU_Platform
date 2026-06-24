@@ -27,7 +27,7 @@
 ### Task 1: Spec And Boundaries
 
 - [x] Add OpenSpec proposal, design, tasks, and capability spec.
-- [x] Preserve the rule document at `docs/superpowers/specs/2026-06-22-certified-organization-transition-design.md`.
+- [x] Preserve the rule document at `docs/archive/superpowers/specs/2026-06-22-certified-organization-transition-design.md`.
 
 ### Task 2: Backend TDD
 

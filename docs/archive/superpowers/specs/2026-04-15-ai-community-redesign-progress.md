@@ -1,7 +1,7 @@
 # AI Community Redesign Progress
 
 Date: 2026-04-15
-Source Spec: `docs/superpowers/specs/2026-04-15-ai-community-redesign-design.md`
+Source Spec: `docs/archive/superpowers/specs/2026-04-15-ai-community-redesign-design.md`
 
 ## 已完成
 

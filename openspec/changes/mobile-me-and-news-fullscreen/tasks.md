@@ -46,4 +46,4 @@
 
 ---
 
-> Plan: docs/superpowers/plans/2026-04-17-mobile-me-and-news-fullscreen.md（/plan 阶段生成）
+> Plan: docs/archive/superpowers/plans/2026-04-17-mobile-me-and-news-fullscreen.md（/plan 阶段生成）
