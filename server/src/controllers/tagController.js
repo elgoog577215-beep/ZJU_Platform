@@ -3,30 +3,8 @@ const { getDb } = require('../config/db');
 // Event tags are retired; events use category as their public/search taxonomy.
 const resources = ['photos', 'videos', 'music', 'articles'];
 
-const ensureTagsTable = async () => {
-    const db = await getDb();
-    await db.exec(`
-        CREATE TABLE IF NOT EXISTS tags (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT UNIQUE,
-            count INTEGER DEFAULT 0
-        )
-    `);
-    
-    // Ensure 'tags' column exists in all resource tables
-    for (const resource of resources) {
-        const columns = await db.all(`PRAGMA table_info(${resource})`);
-        const hasTags = columns.some(c => c.name === 'tags');
-        if (!hasTags) {
-
-            await db.exec(`ALTER TABLE ${resource} ADD COLUMN tags TEXT`);
-        }
-    }
-};
-
 const getTags = async (req, res, next) => {
     try {
-        await ensureTagsTable();
         const db = await getDb();
         const { type } = req.query;
         
@@ -114,7 +92,6 @@ const getTags = async (req, res, next) => {
 
 const createTag = async (req, res, next) => {
     try {
-        await ensureTagsTable();
         const db = await getDb();
         const { name } = req.body;
         
@@ -134,7 +111,6 @@ const createTag = async (req, res, next) => {
 
 const updateTag = async (req, res, next) => {
     try {
-        await ensureTagsTable();
         const db = await getDb();
         const { id } = req.params;
         const { name: newName } = req.body;
@@ -175,7 +151,6 @@ const updateTag = async (req, res, next) => {
 
 const deleteTag = async (req, res, next) => {
     try {
-        await ensureTagsTable();
         const db = await getDb();
         const { id } = req.params;
         
@@ -210,7 +185,6 @@ const deleteTag = async (req, res, next) => {
 // Scan all resources and populate the tags table (Maintenance tool)
 const syncTags = async (req, res, next) => {
     try {
-        await ensureTagsTable();
         const db = await getDb();
         
         const tagCounts = {};

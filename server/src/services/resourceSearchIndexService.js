@@ -9,6 +9,9 @@ const VECTOR_DIMENSIONS = 64;
 const DEFAULT_REFRESH_LIMIT = 280;
 const DEFAULT_SEARCH_LIMIT = 12;
 
+// This is a lightweight hashed token vector for local ranking only. It is not
+// a model embedding and should not be described as semantic vector search.
+
 const RESOURCE_TYPE_GROUPS = {
   event: 'events',
   article: 'community',
@@ -165,7 +168,7 @@ const stableHashInt = (value) => crypto
   .digest()
   .readUInt32BE(0);
 
-const buildLocalEmbeddingVector = (text) => {
+const buildLocalTokenVector = (text) => {
   const counts = new Map();
   extractTokens(text).forEach((token) => {
     counts.set(token, (counts.get(token) || 0) + 1);
@@ -457,7 +460,7 @@ const buildResourceIndexRow = (resource) => {
     keyword_terms: JSON.stringify(payload.keywordTerms),
     facet_json: JSON.stringify(payload.facets),
     embedding_text: toText(embeddingText, 6000),
-    vector_json: JSON.stringify(buildLocalEmbeddingVector(embeddingText)),
+    vector_json: JSON.stringify(buildLocalTokenVector(embeddingText)),
     quality_score: payload.qualityScore,
     popularity_score: payload.popularityScore,
     status: 'ready',
@@ -1215,7 +1218,7 @@ const searchResourceIndex = async (db, parsed, options = {}) => {
     ...(parsed.benefits || []),
     ...(parsed.mediaTypes || []),
   ].filter(Boolean).join(' ');
-  const queryVector = buildLocalEmbeddingVector(queryText);
+  const queryVector = buildLocalTokenVector(queryText);
 
   return rows
     .map((row) => scoreIndexRow(row, parsed, queryVector))
@@ -1228,7 +1231,7 @@ module.exports = {
   INDEX_VERSION,
   RESOURCE_TYPE_GROUPS,
   RESOURCE_TYPE_LABELS,
-  buildLocalEmbeddingVector,
+  buildLocalTokenVector,
   buildResourceIndexRow,
   getResourceSearchIndexCoverage,
   loadIndexableResources,

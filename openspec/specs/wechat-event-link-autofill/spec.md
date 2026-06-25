@@ -1,7 +1,7 @@
 # 微信解析活动链接自动回填 Spec
 
 ## Purpose
-定义微信链接解析后活动链接字段的自动回填与清空规则，避免用户重复输入并防止误覆盖已有内容。
+定义微信链接解析后活动链接字段、活动分类和归类元数据的自动回填规则，避免管理员重复输入、防止误覆盖已有内容，并让 AI 解析结果保持可校验、可解释和可发布。
 ## Requirements
 ### Requirement: 微信解析后自动回填活动链接
 解析成功后，系统 SHALL 自动将用户输入的微信 URL 填入"活动链接"字段，前提是该字段当前为空。
@@ -46,4 +46,3 @@
 - **WHEN** 模型返回归类原因或服务端完成归类推断
 - **THEN** 解析结果 SHALL include category confidence or reason metadata when available
 - **THEN** missing metadata MUST NOT block successful parsing if the normalized category is valid
-

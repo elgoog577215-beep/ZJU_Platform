@@ -1,4 +1,5 @@
 const { ensureCoreSchema } = require('./ensureCoreSchema');
+const { ensureColumns } = require('./migrations/helpers');
 const profileService = require('../services/profileService');
 
 const ORGANIZATION_PARTNER_LOGOS = Object.freeze({
@@ -12,25 +13,6 @@ const ORGANIZATION_PARTNER_LOGOS = Object.freeze({
 async function runMigrations(db) {
   console.log('🔄 Running database migrations...');
   await ensureCoreSchema(db);
-
-  const ensureColumns = async (table, columns, label) => {
-    try {
-      const info = await db.all(`PRAGMA table_info(${table})`);
-      const existing = info.map((col) => col.name);
-      if (existing.length === 0) return;
-
-      for (const [name, definition] of Object.entries(columns)) {
-        if (!existing.includes(name)) {
-          await db.exec(`ALTER TABLE ${table} ADD COLUMN ${name} ${definition}`);
-          console.log(`鉁?Added ${name} to ${label || table}`);
-        }
-      }
-    } catch (err) {
-      if (!err.message.includes('duplicate column')) {
-        console.warn(`Migration warning (${label || table} columns):`, err.message);
-      }
-    }
-  };
 
   try {
     const eventsInfo = await db.all(`PRAGMA table_info(events)`);
@@ -107,7 +89,7 @@ async function runMigrations(db) {
   }
 
   try {
-    await ensureColumns('comments', {
+    await ensureColumns(db, 'comments', {
       user_id: 'INTEGER',
       parent_id: 'INTEGER',
       author: 'TEXT',
@@ -162,7 +144,7 @@ async function runMigrations(db) {
   // Migration: unify notification content to single `content` column.
   // See openspec/changes/unify-notification-content/ for full context.
   try {
-    await ensureColumns('notifications', {
+    await ensureColumns(db, 'notifications', {
       title: 'TEXT',
       message: 'TEXT',
       content: 'TEXT',
@@ -750,7 +732,7 @@ async function runMigrations(db) {
     }
   }
 
-  await ensureColumns('articles', {
+  await ensureColumns(db, 'articles', {
     related_article_ids: 'TEXT',
     related_post_ids: 'TEXT',
     related_news_ids: 'TEXT',
@@ -802,7 +784,7 @@ async function runMigrations(db) {
     }
   }
 
-  await ensureColumns('community_posts', {
+  await ensureColumns(db, 'community_posts', {
     related_article_ids: 'TEXT',
     related_post_ids: 'TEXT',
     related_news_ids: 'TEXT',
@@ -893,7 +875,7 @@ async function runMigrations(db) {
     }
   }
 
-  await ensureColumns('community_groups', {
+  await ensureColumns(db, 'community_groups', {
     primary_tags: 'TEXT',
     related_article_ids: 'TEXT',
     related_post_ids: 'TEXT',
@@ -961,7 +943,7 @@ async function runMigrations(db) {
   }
 
   console.log('✅ Database migrations completed');
-  await ensureColumns('news', {
+  await ensureColumns(db, 'news', {
     related_article_ids: 'TEXT',
     related_post_ids: 'TEXT',
     related_news_ids: 'TEXT',
@@ -1034,7 +1016,7 @@ async function runMigrations(db) {
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    await ensureColumns('future_learning_registrations', {
+    await ensureColumns(db, 'future_learning_registrations', {
       status: "TEXT DEFAULT 'new'",
       admin_note: "TEXT DEFAULT ''",
       updated_at: 'DATETIME',
@@ -1084,7 +1066,7 @@ async function runMigrations(db) {
       )
     `);
 
-    await ensureColumns('ecosystem_partners', {
+    await ensureColumns(db, 'ecosystem_partners', {
       name_en: 'TEXT',
       description_en: 'TEXT',
       cooperation_direction: 'TEXT',
@@ -1319,11 +1301,11 @@ async function runMigrations(db) {
 
     const publisherTables = ['photos', 'music', 'videos', 'articles', 'events', 'news', 'community_posts'];
     for (const table of publisherTables) {
-      await ensureColumns(table, {
+      await ensureColumns(db, table, {
         publisher_profile_id: 'INTEGER',
       }, `${table} profile publisher`);
     }
-    await ensureColumns('events', {
+    await ensureColumns(db, 'events', {
       organizer_profile_id: 'INTEGER',
     }, 'events profile organizer');
 
@@ -1399,7 +1381,7 @@ async function runMigrations(db) {
       );
     `);
 
-    await ensureColumns('media_categories', {
+    await ensureColumns(db, 'media_categories', {
       name: 'TEXT NOT NULL DEFAULT ""',
       description: 'TEXT',
       sort_order: 'INTEGER DEFAULT 0',
@@ -1409,11 +1391,11 @@ async function runMigrations(db) {
       deleted_at: 'DATETIME',
     }, 'media_categories');
 
-    await ensureColumns('photos', {
+    await ensureColumns(db, 'photos', {
       category_id: 'INTEGER',
     }, 'photos');
 
-    await ensureColumns('videos', {
+    await ensureColumns(db, 'videos', {
       category_id: 'INTEGER',
     }, 'videos');
 
@@ -1434,7 +1416,7 @@ async function runMigrations(db) {
   }
 
   try {
-    await ensureColumns('competitions', {
+    await ensureColumns(db, 'competitions', {
       slug: 'TEXT',
       title: 'TEXT NOT NULL DEFAULT ""',
       subtitle: 'TEXT',
@@ -1448,7 +1430,7 @@ async function runMigrations(db) {
       deleted_at: 'DATETIME',
     }, 'competitions');
 
-    await ensureColumns('competition_media', {
+    await ensureColumns(db, 'competition_media', {
       competition_id: 'INTEGER',
       type: 'TEXT',
       title: 'TEXT NOT NULL DEFAULT ""',
@@ -1466,7 +1448,7 @@ async function runMigrations(db) {
       deleted_at: 'DATETIME',
     }, 'competition_media');
 
-    await ensureColumns('competition_works', {
+    await ensureColumns(db, 'competition_works', {
       competition_id: 'INTEGER',
       title: 'TEXT NOT NULL DEFAULT ""',
       author: 'TEXT NOT NULL DEFAULT ""',
@@ -1493,13 +1475,13 @@ async function runMigrations(db) {
       deleted_at: 'DATETIME',
     }, 'competition_works');
 
-    await ensureColumns('photos', {
+    await ensureColumns(db, 'photos', {
       category_id: 'INTEGER',
       gameType: 'TEXT',
       gameDescription: 'TEXT',
     }, 'photos');
 
-    await ensureColumns('videos', {
+    await ensureColumns(db, 'videos', {
       category_id: 'INTEGER',
       gameType: 'TEXT',
       gameDescription: 'TEXT',
@@ -1739,10 +1721,10 @@ async function runMigrations(db) {
       CREATE INDEX IF NOT EXISTS idx_resource_search_index_updated
         ON resource_search_index(status, updated_at DESC);
     `);
-    await ensureColumns('user_event_preferences', {
+    await ensureColumns(db, 'user_event_preferences', {
       availability: 'TEXT',
     }, 'user_event_preferences');
-    await ensureColumns('resource_search_index', {
+    await ensureColumns(db, 'resource_search_index', {
       image_url: 'TEXT',
       resource_date: 'TEXT',
       popularity_score: 'REAL DEFAULT 0',

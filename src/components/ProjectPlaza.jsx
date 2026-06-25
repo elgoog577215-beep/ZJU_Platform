@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { createPortal } from "react-dom";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
@@ -27,6 +26,7 @@ import api, {
 import FavoriteButton from "./FavoriteButton";
 import ProjectSharePoster from "./ProjectSharePoster";
 import { PROJECT_PLAZA_CSS } from "./projectPlaza.styles";
+import BodyPortal from "../shared/ui/BodyPortal";
 
 const PROGRESS_META = {
   idea: { labelKey: "project_plaza.progress.idea", fallback: "构思中", c: "var(--p-idea)" },
@@ -128,8 +128,8 @@ const DetailModal = ({ p, onClose, onFav, loggedIn, onOpenPoster, variant }) => 
   const paras = (p.content || "").split(/\n+/).filter(Boolean);
   const title = p.title || t("project_plaza.untitled", "未命名项目");
   const ownerName = p.owner_name || t("project_plaza.anonymous", "匿名");
-  if (typeof document === "undefined") return null;
-  return createPortal(
+  return (
+    <BodyPortal>
     <div className="ppp-root ppp-scrim" data-variant={variant} onClick={onClose}>
       <div className="ppp-modal" onClick={(e) => e.stopPropagation()}>
         <button className="ppp-x" type="button" onClick={onClose} aria-label={t("common.close", "关闭")}><X size={18} /></button>
@@ -205,8 +205,8 @@ const DetailModal = ({ p, onClose, onFav, loggedIn, onOpenPoster, variant }) => 
           </div>
         </div>
       </div>
-    </div>,
-    document.body
+    </div>
+    </BodyPortal>
   );
 };
 

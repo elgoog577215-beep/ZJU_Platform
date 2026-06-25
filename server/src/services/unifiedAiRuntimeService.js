@@ -464,6 +464,45 @@ const callModelNonStreamFirst = async (db, payload, timeout) => {
   }
 };
 
+const buildJsonRuntimeResponse = ({
+  normalized,
+  result = {},
+  task,
+  runtimePolicy,
+  messages,
+  startedAt,
+  responseData,
+  provider,
+  model,
+}) => {
+  const attempts = result.attempts || [];
+  const config = result.config || null;
+
+  return {
+    parsed: normalized.parsed,
+    rawContent: normalized.rawContent,
+    jsonText: normalized.jsonText,
+    config,
+    attempts,
+    modelStatus: {
+      used: true,
+      task,
+      provider: provider || config?.name || config?.provider || null,
+      model: model || config?.model || null,
+      runtimePolicy,
+      fallbackAttempts: attempts,
+      telemetry: buildRuntimeTelemetry({
+        task,
+        messages,
+        runtimePolicy,
+        startedAt,
+        responseData,
+        attempts,
+      }),
+    }
+  };
+};
+
 const callJson = async (db, {
   task,
   messages,
@@ -493,26 +532,16 @@ const callJson = async (db, {
       runtimePolicy
     });
     const normalized = normalizeRunnerOutput(runnerOutput);
-    return {
-      ...normalized,
-      config: { id: 'injected', name: 'Injected model runner' },
-      attempts: [],
-      modelStatus: {
-        used: true,
-        task,
-        provider: 'injected',
-        runtimePolicy,
-        fallbackAttempts: [],
-        telemetry: buildRuntimeTelemetry({
-          task,
-          messages: qualityMessages,
-          runtimePolicy,
-          startedAt,
-          responseData: runnerOutput?.data || { usage: runnerOutput?.usage || null },
-          attempts: [],
-        }),
-      }
-    };
+    return buildJsonRuntimeResponse({
+      normalized,
+      result: { config: { id: 'injected', name: 'Injected model runner' }, attempts: [] },
+      task,
+      runtimePolicy,
+      messages: qualityMessages,
+      startedAt,
+      responseData: runnerOutput?.data || { usage: runnerOutput?.usage || null },
+      provider: 'injected',
+    });
   }
 
   if (!db) {
@@ -581,29 +610,15 @@ const callJson = async (db, {
     }
 
     if (normalized) {
-      return {
-        parsed: normalized.parsed,
-        rawContent: normalized.rawContent,
-        jsonText: normalized.jsonText,
-        config: result.config,
-        attempts: result.attempts || [],
-        modelStatus: {
-          used: true,
-          task,
-          provider: result.config?.name || result.config?.provider || null,
-          model: result.config?.model || null,
-          runtimePolicy,
-          fallbackAttempts: result.attempts || [],
-          telemetry: buildRuntimeTelemetry({
-            task,
-            messages: qualityMessages,
-            runtimePolicy,
-            startedAt,
-            responseData,
-            attempts: result.attempts || [],
-          }),
-        }
-      };
+      return buildJsonRuntimeResponse({
+        normalized,
+        result,
+        task,
+        runtimePolicy,
+        messages: qualityMessages,
+        startedAt,
+        responseData,
+      });
     }
 
     const repairMessages = attachQualityInstruction([
@@ -665,29 +680,15 @@ const callJson = async (db, {
     }
   }
 
-  return {
-    parsed: normalized.parsed,
-    rawContent: normalized.rawContent,
-    jsonText: normalized.jsonText,
-    config: result.config,
-    attempts: result.attempts || [],
-    modelStatus: {
-      used: true,
-      task,
-      provider: result.config?.name || result.config?.provider || null,
-      model: result.config?.model || null,
-      runtimePolicy,
-      fallbackAttempts: result.attempts || [],
-      telemetry: buildRuntimeTelemetry({
-        task,
-        messages: qualityMessages,
-        runtimePolicy,
-        startedAt,
-        responseData,
-        attempts: result.attempts || [],
-      }),
-    }
-  };
+  return buildJsonRuntimeResponse({
+    normalized,
+    result,
+    task,
+    runtimePolicy,
+    messages: qualityMessages,
+    startedAt,
+    responseData,
+  });
 };
 
 module.exports = {

@@ -1,6 +1,7 @@
 import axios from 'axios';
 import errorMonitor from '../utils/errorMonitor';
 import { resolveCommunityMock } from '../mocks/communityMockApi';
+import { getStoredAuthToken } from '../shared/authTokenStorage';
 
 const isNativeCapacitor =
   typeof window !== 'undefined' &&
@@ -35,7 +36,7 @@ const isErrorReportingRequest = (config) => {
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+    const token = getStoredAuthToken();
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
@@ -56,12 +57,14 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
     
-    // Retry logic for network errors or 5xx status codes
+    // Retry only safe reads by default. Callers can opt in with retryWrites.
     if (!config || !config.retry) {
         config.retry = 0;
     }
 
-    if (!config?.noRetry && config.retry < 3 && (error.message === 'Network Error' || (error.response && error.response.status >= 500))) {
+    const method = String(config?.method || 'get').toLowerCase();
+    const canRetry = method === 'get' || config?.retryWrites === true;
+    if (canRetry && !config?.noRetry && config.retry < 3 && (error.message === 'Network Error' || (error.response && error.response.status >= 500))) {
         config.retry += 1;
         const delayRetry = new Promise(resolve => setTimeout(resolve, 1000 * config.retry));
         await delayRetry;

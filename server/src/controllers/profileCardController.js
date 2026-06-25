@@ -187,28 +187,7 @@ const sanitizeCards = (cards = []) =>
     .filter((item) => item.card_type || item.custom_type || item.cover_url || item.description || item.link_url)
     .slice(0, 40);
 
-const ensureProfileCardColumns = async (db) => {
-  const columns = await db.all(`PRAGMA table_info(user_profile_cards)`);
-  const names = new Set(columns.map((column) => column.name));
-  const additions = [
-    ['card_type', `ALTER TABLE user_profile_cards ADD COLUMN card_type TEXT DEFAULT 'other'`],
-    ['custom_type', `ALTER TABLE user_profile_cards ADD COLUMN custom_type TEXT`],
-    ['cover_url', `ALTER TABLE user_profile_cards ADD COLUMN cover_url TEXT`],
-    ['description', `ALTER TABLE user_profile_cards ADD COLUMN description TEXT`],
-    ['link_url', `ALTER TABLE user_profile_cards ADD COLUMN link_url TEXT`],
-    ['crop_x', `ALTER TABLE user_profile_cards ADD COLUMN crop_x REAL DEFAULT 0`],
-    ['crop_y', `ALTER TABLE user_profile_cards ADD COLUMN crop_y REAL DEFAULT 0`],
-    ['crop_width', `ALTER TABLE user_profile_cards ADD COLUMN crop_width REAL DEFAULT 1`],
-    ['crop_height', `ALTER TABLE user_profile_cards ADD COLUMN crop_height REAL DEFAULT 1`],
-    ['aspect_ratio', `ALTER TABLE user_profile_cards ADD COLUMN aspect_ratio TEXT DEFAULT 'wide'`],
-  ];
-  for (const [name, sql] of additions) {
-    if (!names.has(name)) await db.exec(sql);
-  }
-};
-
 const loadProfileCard = async (db, userId, includeHidden = false) => {
-  await ensureProfileCardColumns(db);
   const user = await db.get(
     'SELECT id, profile_slogan, profile_status FROM users WHERE id = ?',
     [userId]
@@ -268,7 +247,6 @@ const updateOwnProfileCard = async (req, res, next) => {
     const userId = req.user?.id;
     if (!userId) return res.status(401).json({ error: 'Login required' });
     const db = await getDb();
-    await ensureProfileCardColumns(db);
     const slogan = trimText(req.body?.slogan, 240);
     const status = trimText(req.body?.status, 40);
     if (!PROFILE_STATUSES.has(status)) {

@@ -3,6 +3,7 @@ import api from '../services/api';
 import { showSuccess, showError } from '../utils/notify';
 import errorMonitor from '../utils/errorMonitor';
 import { useTranslation } from 'react-i18next';
+import { clearStoredAuthToken, getStoredAuthToken, storeAuthToken } from '../shared/authTokenStorage';
 
 const AuthContext = createContext();
 
@@ -11,7 +12,7 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const { t } = useTranslation();
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(() => !!localStorage.getItem('token'));
+  const [loading, setLoading] = useState(() => !!getStoredAuthToken());
 
   const getAuthErrorMessage = (err, fallbackKey) => {
     const data = err?.response?.data;
@@ -20,7 +21,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = getStoredAuthToken();
     if (!token) {
       setLoading(false);
       return;
@@ -31,7 +32,7 @@ export const AuthProvider = ({ children }) => {
       .then(res => setUser(res.data))
       .catch((err) => {
         if (err.response && (err.response.status === 401 || err.response.status === 403)) {
-          localStorage.removeItem('token');
+          clearStoredAuthToken();
           delete api.defaults.headers.common['Authorization'];
           setUser(null);
         }
@@ -39,11 +40,11 @@ export const AuthProvider = ({ children }) => {
       .finally(() => setLoading(false));
   }, []);
 
-  const login = async (username, password) => {
+  const login = async (username, password, options = {}) => {
     try {
       const res = await api.post('/auth/login', { username, password });
       const { token, user } = res.data;
-      localStorage.setItem('token', token);
+      storeAuthToken(token, { persistent: options.remember === true });
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setUser(user);
       errorMonitor.setUser(user);
@@ -56,11 +57,11 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (username, password) => {
+  const register = async (username, password, options = {}) => {
     try {
       const res = await api.post('/auth/register', { username, password });
       const { token, user } = res.data;
-      localStorage.setItem('token', token);
+      storeAuthToken(token, { persistent: options.remember === true });
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setUser(user);
       errorMonitor.setUser(user);
@@ -74,7 +75,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    clearStoredAuthToken();
     delete api.defaults.headers.common['Authorization'];
     setUser(null);
     errorMonitor.setUser(null);

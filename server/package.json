@@ -27,6 +27,7 @@
     "search:index:refresh": "node scripts/refresh-resource-search-index.js",
     "events:classify": "node scripts/classify-event-categories.js --dry-run",
     "events:classify:apply": "node scripts/classify-event-categories.js --apply",
+    "test:foundation": "node --test tests/platform-foundation.test.js",
     "events:retire-tags": "node scripts/retire-event-tags.js --dry-run",
     "events:retire-tags:apply": "node scripts/retire-event-tags.js --apply"
   },
