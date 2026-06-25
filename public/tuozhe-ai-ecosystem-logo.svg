@@ -1,0 +1,40 @@
+<svg width="720" height="180" viewBox="0 0 720 180" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">拓浙AI生态 Logo</title>
+  <desc id="desc">由指南针网络、上升箭头和拓浙AI生态文字组成的横版品牌标识。</desc>
+  <defs>
+    <linearGradient id="mark-blue" x1="24" y1="152" x2="154" y2="24" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1D4ED8"/>
+      <stop offset="1" stop-color="#06B6D4"/>
+    </linearGradient>
+    <linearGradient id="mark-pink" x1="82" y1="133" x2="161" y2="48" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C026D3"/>
+      <stop offset="1" stop-color="#FF2D8D"/>
+    </linearGradient>
+    <linearGradient id="text-gradient" x1="214" y1="58" x2="551" y2="122" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F172A"/>
+      <stop offset=".48" stop-color="#1D4ED8"/>
+      <stop offset="1" stop-color="#C026D3"/>
+    </linearGradient>
+    <filter id="soft-shadow" x="-10%" y="-16%" width="120%" height="132%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#1E1B4B" flood-opacity=".14"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#soft-shadow)">
+    <rect x="16" y="16" width="148" height="148" rx="36" fill="#FFFFFF"/>
+    <path d="M89.5 28L126 88.5L90.5 153L54 89L89.5 28Z" fill="#EFF6FF"/>
+    <path d="M90 28L105 91L90 153L75 91L90 28Z" fill="url(#mark-blue)" opacity=".94"/>
+    <path d="M28 90H152M46 49L134 131M134 49L46 131" stroke="url(#mark-blue)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>
+    <path d="M42 128C26 104 26 75 42 52M138 52C154 76 154 105 138 128" stroke="url(#mark-blue)" stroke-width="8" stroke-linecap="round" opacity=".72"/>
+    <circle cx="48" cy="48" r="7" fill="#0EA5E9"/>
+    <circle cx="132" cy="132" r="7" fill="#7C3AED"/>
+    <circle cx="50" cy="132" r="7" fill="#2563EB"/>
+    <path d="M76 106L142 41L124 108L108 95L76 106Z" fill="url(#mark-pink)"/>
+    <path d="M108 95L124 108L113 119L108 95Z" fill="#9D174D"/>
+  </g>
+
+  <text x="210" y="86" fill="url(#text-gradient)" font-family="PingFang SC, Microsoft YaHei, Noto Sans CJK SC, Arial, sans-serif" font-size="52" font-weight="800" letter-spacing="0">拓浙AI生态</text>
+  <text x="214" y="128" fill="#475569" font-family="Inter, PingFang SC, Microsoft YaHei, Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="5">TUOZHE AI ECOSYSTEM</text>
+  <path d="M210 146H612" stroke="#CBD5E1" stroke-width="2" stroke-linecap="round"/>
+  <path d="M210 146H398" stroke="url(#mark-pink)" stroke-width="2" stroke-linecap="round"/>
+</svg>
