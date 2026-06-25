@@ -451,13 +451,7 @@ const Navbar = () => {
         )}
       </div>
 
-      <div className="flex w-full items-center justify-between px-1 lg:hidden z-50">
-        <div
-          className={`text-base font-bold tracking-wide absolute left-1/2 -translate-x-1/2 pointer-events-none max-w-[42vw] truncate ${isDayMode ? "text-slate-800" : "text-white/90"}`}
-        >
-          {mobileTitle}
-        </div>
-
+      <div className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-1 lg:hidden z-50">
         <div className="flex items-center">
           <button
             type="button"
@@ -468,6 +462,12 @@ const Navbar = () => {
           >
             <Menu size={18} aria-hidden="true" />
           </button>
+        </div>
+
+        <div
+          className={`min-w-0 truncate text-center text-base font-bold tracking-wide ${isDayMode ? "text-slate-800" : "text-white/90"}`}
+        >
+          {mobileTitle}
         </div>
 
         <div className="flex items-center">

@@ -320,7 +320,7 @@ const AppContent = () => {
           </ErrorBoundary>
         )}
 
-        <main id="main-content" className={`flex-grow ${isImmersiveRoute ? 'pb-0' : 'pb-32 md:pb-0'}`} role="main">
+        <main id="main-content" className={`flex-grow ${isImmersiveRoute ? 'pb-0' : 'pb-[var(--mobile-content-bottom-padding)] md:pb-0'}`} role="main">
           <Suspense fallback={<LoadingScreen />}>
             <Routes location={location} key={location.pathname}>
               <Route path="/" element={<PageTransition><Home /></PageTransition>} />

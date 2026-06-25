@@ -35,7 +35,7 @@ const ScrollToTop = () => {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
-                className={`fixed bottom-44 right-6 z-40 md:bottom-12 md:right-8 ${isAboutPage ? 'hidden md:block' : ''}`}
+                className={`fixed bottom-[calc(var(--mobile-bottom-nav-height)+env(safe-area-inset-bottom)+0.75rem)] right-4 z-40 md:bottom-12 md:right-8 ${isAboutPage ? 'hidden md:block' : ''}`}
             >
             <button
                 onClick={scrollToTop}

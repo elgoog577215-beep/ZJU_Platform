@@ -100,17 +100,17 @@ const MobileNavbar = () => {
       variants={tabbarEntrance}
       initial={prefersReducedMotion ? false : "initial"}
       animate={prefersReducedMotion ? undefined : "animate"}
-      className={`motion-gpu fixed inset-x-0 bottom-0 z-[100] border-t backdrop-blur-xl md:hidden ${isDayMode ? "border-slate-900/[0.08] bg-white/90 shadow-[0_-10px_24px_rgba(31,45,61,0.045)]" : "border-white/[0.08] bg-[#0b111c]/90 shadow-[0_-10px_24px_rgba(0,0,0,0.24)]"}`}
+      className={`motion-gpu fixed inset-x-0 bottom-0 z-[80] border-t backdrop-blur-xl md:hidden ${isDayMode ? "border-slate-900/[0.08] bg-white/90 shadow-[0_-10px_24px_rgba(31,45,61,0.045)]" : "border-white/[0.08] bg-[#0b111c]/90 shadow-[0_-10px_24px_rgba(0,0,0,0.24)]"}`}
       aria-label={t("nav.mobile_tabbar")}
     >
       <LayoutGroup id="mobile-tabbar">
       <div className="pb-[env(safe-area-inset-bottom)]">
-      <div className="grid h-[58px] grid-cols-5 px-2">
+      <div className="grid h-[var(--mobile-bottom-nav-height)] grid-cols-5 px-1.5">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = isItemActive(item.path, item.key);
 
-          const sharedClassName = `relative flex flex-col items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isActive ? (isDayMode ? "text-slate-900" : "text-white") : isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white"}`;
+          const sharedClassName = `relative flex min-w-0 flex-col items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isActive ? (isDayMode ? "text-slate-900" : "text-white") : isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white"}`;
           const activeIconSurface = isDayMode
             ? "rounded-[5px] bg-white ring-1 ring-slate-900/[0.12] shadow-[0_6px_14px_rgba(31,45,61,0.06)]"
             : "rounded-[5px] bg-[#172033] ring-1 ring-white/10";
@@ -131,7 +131,7 @@ const MobileNavbar = () => {
           const inner = (
             <motion.div
               whileTap={prefersReducedMotion ? undefined : tapPress}
-              className="flex flex-col items-center gap-1"
+              className="flex min-w-0 flex-col items-center gap-1"
             >
               <div
                 className={iconClassName}
@@ -161,7 +161,7 @@ const MobileNavbar = () => {
                 )}
               </div>
               <span
-                className={`text-[11px] leading-none transition-all ${isActive ? "font-semibold opacity-100" : "font-medium opacity-85"}`}
+                className={`max-w-full truncate px-0.5 text-[10px] leading-none transition-all ${isActive ? "font-semibold opacity-100" : "font-medium opacity-85"}`}
               >
                 {item.label}
               </span>

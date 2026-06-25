@@ -250,7 +250,7 @@ const MediaCategoryRail = memo(({ categories, activeCategoryId, onChange, isDayM
     ? "focus-visible:ring-blue-400/55"
     : "focus-visible:border-white/[0.22] focus-visible:ring-slate-300/35 focus-visible:shadow-[0_0_0_4px_rgba(148,163,184,0.12)]";
   const channelButtonClass = (active) =>
-    `rect-button relative h-10 shrink-0 px-4 text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 ${nightFocusClass} ${
+    `rect-button relative min-h-[44px] shrink-0 px-4 text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 md:min-h-10 ${nightFocusClass} ${
       active
         ? isDayMode
           ? "text-slate-950"
@@ -575,10 +575,10 @@ const MediaLibrary = () => {
   const totalVideoCount = Number(videoPagination?.total || visibleVideoCount);
 
   return (
-    <section className="day-page-theme day-page-theme-tech pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:py-16 px-4 md:px-6 relative overflow-hidden flex-grow">
+    <section className="day-page-theme day-page-theme-tech pt-[calc(env(safe-area-inset-top)+76px)] pb-6 md:py-16 px-4 md:px-6 relative overflow-hidden flex-grow">
       <SEO title={t("media_library.title", "影像库")} description={t("media_library.meta_desc", "按分类浏览现场照片与视频记录。")} />
 
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+      <div className="fixed inset-0 pointer-events-none z-0 hidden overflow-hidden md:block">
         {!isDayMode && allowAmbientEffects ? (
           <>
             <motion.div

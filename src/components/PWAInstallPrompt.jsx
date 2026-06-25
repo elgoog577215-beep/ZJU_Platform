@@ -69,7 +69,7 @@ const PWAInstallPrompt = () => {
           exit={{ y: 100, opacity: 0 }}
           className={`fixed z-[120] flex items-center gap-3 border p-3 backdrop-blur-xl md:bottom-6 md:right-6 md:max-w-sm md:gap-4 md:p-4 ${
             isMobile
-              ? "inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+72px)]"
+              ? "inset-x-3 bottom-[calc(var(--mobile-bottom-nav-height)+env(safe-area-inset-bottom)+0.75rem)]"
               : ""
           } ${isDayMode ? "bg-white/94 border-slate-200/80 shadow-[0_24px_60px_rgba(148,163,184,0.22)]" : "bg-[#111] border-white/10 shadow-2xl"}`}
           role="status"

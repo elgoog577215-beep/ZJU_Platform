@@ -72,6 +72,8 @@
 
 html {
   scroll-behavior: smooth;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 ::selection {
@@ -84,6 +86,8 @@ body {
   min-width: 320px;
   min-height: 100vh;
   min-height: 100dvh;
+  max-width: 100%;
+  overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
   background-color: var(--theme-bg);
   color: var(--theme-text-primary);
@@ -91,6 +95,32 @@ body {
     background-color var(--motion-duration-base) var(--motion-ease-standard),
     color var(--motion-duration-base) var(--motion-ease-standard);
   /* cursor: none; - Moved to CustomCursor component for toggle support */
+}
+
+#root {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+@supports not (overflow: clip) {
+  #root {
+    overflow-x: hidden;
+  }
+}
+
+:root {
+  --mobile-bottom-nav-height: 64px;
+  --mobile-content-bottom-padding: calc(
+    var(--mobile-bottom-nav-height) + env(safe-area-inset-bottom) + 18px
+  );
+}
+
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }
 
 body[data-theme='day'] {

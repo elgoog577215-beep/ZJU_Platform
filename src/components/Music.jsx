@@ -415,7 +415,7 @@ const Music = ({ embedded = false, singleColumn = false, sidebarCompact = false 
   const Wrapper = embedded ? "div" : "section";
   const wrapperClass = embedded
     ? "relative"
-    : "pt-[calc(env(safe-area-inset-top)+76px)] pb-[calc(env(safe-area-inset-bottom)+96px)] md:py-20 px-4 md:px-8 min-h-screen relative overflow-hidden";
+    : "pt-[calc(env(safe-area-inset-top)+76px)] pb-6 md:py-20 px-4 md:px-8 min-h-screen relative overflow-hidden";
 
   return (
     <Wrapper className={wrapperClass}>
