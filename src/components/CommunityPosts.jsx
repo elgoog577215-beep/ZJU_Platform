@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { BookOpen, Clock3, FileStack, HelpCircle, MessageCircle, Newspaper, PenLine, Podcast, QrCode, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -6,15 +6,16 @@ import toast from 'react-hot-toast';
 import { useSettings } from '../context/SettingsContext';
 import { useAuth } from '../context/AuthContext';
 import { useCachedResource } from '../hooks/useCachedResource';
-import CommunityTech from './CommunityTech';
-import CommunityHelp from './CommunityHelp';
-import CommunityMaterials from './CommunityMaterials';
-import CommunityNewsBoard from './CommunityNewsBoard';
-import CommunityTeam from './CommunityTeam';
-import CommunityGroups from './CommunityGroups';
 import CommunityPostTypePicker from './CommunityPostTypePicker';
 import UnifiedCommunityComposer from './UnifiedCommunityComposer';
-import Music from './Music';
+
+const CommunityGroups = lazy(() => import('./CommunityGroups'));
+const CommunityHelp = lazy(() => import('./CommunityHelp'));
+const CommunityMaterials = lazy(() => import('./CommunityMaterials'));
+const CommunityNewsBoard = lazy(() => import('./CommunityNewsBoard'));
+const CommunityTeam = lazy(() => import('./CommunityTeam'));
+const CommunityTech = lazy(() => import('./CommunityTech'));
+const Music = lazy(() => import('./Music'));
 
 const POST_TABS = [
   { key: 'featured', labelKey: 'community.tab_featured', fallback: '精选', icon: Clock3 },
@@ -100,6 +101,7 @@ const CommunityPosts = ({ headingCode, headingTitle }) => {
   const rawTab = searchParams.get('postTab') === 'project' ? 'tech' : searchParams.get('postTab') || 'featured';
   const requestedTab = POST_TABS.some((tb) => tb.key === rawTab) ? rawTab : 'featured';
   const activeTab = !isMobileCommunity && MOBILE_ONLY_TABS.has(requestedTab) ? 'featured' : requestedTab;
+  const shouldLoadFeatured = activeTab === 'featured';
 
   useEffect(() => {
     const mediaQuery = window.matchMedia(MOBILE_COMMUNITY_QUERY);
@@ -109,11 +111,11 @@ const CommunityPosts = ({ headingCode, headingTitle }) => {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
-  const techFeatured = useCachedResource('/articles', { page: 1, limit: 3, category: 'tech', sort: 'newest', status: 'approved' }, { keyPrefix: 'cache:v5:', dependencies: [] });
-  const helpFeatured = useCachedResource('/community/posts', { page: 1, limit: 3, section: 'help', sort: 'newest' }, { keyPrefix: 'cache:v5:', dependencies: [] });
-  const materialsFeatured = useCachedResource('/community/posts', { page: 1, limit: 3, section: 'materials', sort: 'newest' }, { keyPrefix: 'cache:v5:', dependencies: [] });
-  const newsFeatured = useCachedResource('/news', { page: 1, limit: 3, sort: 'latest', status: 'approved' }, { keyPrefix: 'cache:v5:', dependencies: [] });
-  const teamFeatured = useCachedResource('/community/posts', { page: 1, limit: 3, section: 'team', sort: 'newest' }, { keyPrefix: 'cache:v5:', dependencies: [] });
+  const techFeatured = useCachedResource('/articles', { page: 1, limit: 3, category: 'tech', sort: 'newest', status: 'approved' }, { keyPrefix: 'cache:v5:', enabled: shouldLoadFeatured, dependencies: [] });
+  const helpFeatured = useCachedResource('/community/posts', { page: 1, limit: 3, section: 'help', sort: 'newest' }, { keyPrefix: 'cache:v5:', enabled: shouldLoadFeatured, dependencies: [] });
+  const materialsFeatured = useCachedResource('/community/posts', { page: 1, limit: 3, section: 'materials', sort: 'newest' }, { keyPrefix: 'cache:v5:', enabled: shouldLoadFeatured, dependencies: [] });
+  const newsFeatured = useCachedResource('/news', { page: 1, limit: 3, sort: 'latest', status: 'approved' }, { keyPrefix: 'cache:v5:', enabled: shouldLoadFeatured, dependencies: [] });
+  const teamFeatured = useCachedResource('/community/posts', { page: 1, limit: 3, section: 'team', sort: 'newest' }, { keyPrefix: 'cache:v5:', enabled: shouldLoadFeatured, dependencies: [] });
 
   const featuredResources = useMemo(() => [
     { board: 'tech', resource: techFeatured },
@@ -322,22 +324,24 @@ const CommunityPosts = ({ headingCode, headingTitle }) => {
         </div>
       </nav>
 
-      {activeTab === 'featured' ? renderFeatured() : null}
-      {activeTab === 'tech' ? <CommunityTech hideNewPostButton /> : null}
-      {activeTab === 'help' ? <CommunityHelp hideNewPostButton /> : null}
-      {activeTab === 'materials' ? <CommunityMaterials hideNewPostButton /> : null}
-      {activeTab === 'news' ? <CommunityNewsBoard hideNewPostButton /> : null}
-      {activeTab === 'team' ? <CommunityTeam hideNewPostButton /> : null}
-      {activeTab === 'podcast' ? (
-        <div id="community-podcast-mobile" className="xl:hidden">
-          <Music embedded singleColumn />
-        </div>
-      ) : null}
-      {activeTab === 'groups' ? (
-        <div id="community-groups-mobile" className="xl:hidden">
-          <CommunityGroups />
-        </div>
-      ) : null}
+      <Suspense fallback={null}>
+        {activeTab === 'featured' ? renderFeatured() : null}
+        {activeTab === 'tech' ? <CommunityTech hideNewPostButton /> : null}
+        {activeTab === 'help' ? <CommunityHelp hideNewPostButton /> : null}
+        {activeTab === 'materials' ? <CommunityMaterials hideNewPostButton /> : null}
+        {activeTab === 'news' ? <CommunityNewsBoard hideNewPostButton /> : null}
+        {activeTab === 'team' ? <CommunityTeam hideNewPostButton /> : null}
+        {activeTab === 'podcast' ? (
+          <div id="community-podcast-mobile" className="xl:hidden">
+            <Music embedded singleColumn />
+          </div>
+        ) : null}
+        {activeTab === 'groups' ? (
+          <div id="community-groups-mobile" className="xl:hidden">
+            <CommunityGroups />
+          </div>
+        ) : null}
+      </Suspense>
 
       <CommunityPostTypePicker
         isOpen={typePickerOpen}

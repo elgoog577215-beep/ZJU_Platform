@@ -105,8 +105,8 @@ const CRYSTAL_RENDER_PROFILES = {
 };
 
 const getHighQualityDpr = () => {
-  if (typeof window === "undefined") return 1.75;
-  return clamp(window.devicePixelRatio || 1.75, 1.5, 2);
+  if (typeof window === "undefined") return 1.35;
+  return clamp(window.devicePixelRatio || 1.35, 1.2, 1.5);
 };
 
 const createGlowTexture = (color) => {
@@ -318,14 +318,14 @@ const BackgroundSystem = () => {
           dpr={dpr}
           gl={{
             alpha: true,
-            antialias: true,
-            powerPreference: "high-performance",
+            antialias: dpr > 1.25,
+            powerPreference: "low-power",
             premultipliedAlpha: false,
           }}
         >
           <PerformanceMonitor
             onDecline={() => {
-              setDpr(1.25);
+              setDpr(1);
               setEffectsEnabled(false);
             }}
             onIncline={() => {
@@ -336,7 +336,7 @@ const BackgroundSystem = () => {
           <Suspense fallback={null}>
             <CrystalCaveScene profile={crystalProfile} />
             {effectsEnabled ? (
-              <EffectComposer disableNormalPass multisampling={dpr >= 1.5 ? 4 : 0}>
+              <EffectComposer disableNormalPass multisampling={dpr >= 1.5 ? 2 : 0}>
                 <Bloom
                   intensity={bloom}
                   luminanceSmoothing={0.35}

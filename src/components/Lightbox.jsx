@@ -160,6 +160,9 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) =>
           src={displayImageUrl}
           alt={photo.title}
           className="max-w-full max-h-[85vh] object-contain shadow-2xl rounded-sm"
+          loading="eager"
+          decoding="async"
+          fetchpriority="high"
         />
 
         <button 
@@ -266,6 +269,8 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) =>
                                         src={getThumbnailUrl(p.thumbnail || p.url)}
                                         alt={p.title} 
                                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                                        loading="lazy"
+                                        decoding="async"
                                     />
                                     <div className={`absolute inset-0 transition-colors ${isDayMode ? 'bg-white/10 group-hover:bg-transparent' : 'bg-black/20 group-hover:bg-transparent'}`} />
                                     <div className={`absolute bottom-0 left-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity ${isDayMode ? 'bg-white' : 'bg-gradient-to-t from-black/80 to-transparent'}`}>

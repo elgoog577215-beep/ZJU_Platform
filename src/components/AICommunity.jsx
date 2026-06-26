@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { QrCode } from "lucide-react";
 import { useSettings } from "../context/SettingsContext";
 import SEO from "./SEO";
-import CommunityGroups from "./CommunityGroups";
 import CommunityPosts from "./CommunityPosts";
-import Music from "./Music";
+
+const CommunityGroups = lazy(() => import("./CommunityGroups"));
+const Music = lazy(() => import("./Music"));
 
 const SectionLabel = ({ code, title, isDayMode, compactOnMobile = false }) => (
   <div className={compactOnMobile ? "mb-3 md:mb-4" : "mb-4"}>
@@ -144,11 +145,13 @@ const AICommunity = () => {
               isDayMode={isDayMode}
               compactOnMobile
             />
-            {isDesktopRail ? (
-              <Music embedded singleColumn sidebarCompact />
-            ) : (
-              <Music embedded singleColumn />
-            )}
+            <Suspense fallback={null}>
+              {isDesktopRail ? (
+                <Music embedded singleColumn sidebarCompact />
+              ) : (
+                <Music embedded singleColumn />
+              )}
+            </Suspense>
           </aside>
 
           <aside className="order-3 hidden space-y-5 md:space-y-6 xl:sticky xl:top-24 xl:block xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto xl:pr-1 custom-scrollbar">
@@ -159,7 +162,9 @@ const AICommunity = () => {
                 title={t("community.sidebar_groups_title", "二维码社群")}
                 isDayMode={isDayMode}
               >
-                <CommunityGroups compact compactLimit={2} />
+                <Suspense fallback={null}>
+                  <CommunityGroups compact compactLimit={2} />
+                </Suspense>
               </SidebarCard>
             </div>
           </aside>

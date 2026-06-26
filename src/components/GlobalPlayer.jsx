@@ -5,9 +5,10 @@ import { useMusic } from '../context/MusicContext';
 import { useLocation } from 'react-router-dom';
 import { useSettings } from '../context/SettingsContext';
 import { useMediaQuery } from '../hooks/useMediaQuery';
+import { useReducedMotion } from '../utils/animations';
 
 // Simple Audio Visualizer Component - Memoized
-const Visualizer = memo(({ isPlaying }) => {
+const Visualizer = memo(({ isPlaying, reduceMotion = false }) => {
   const barHeights = useMemo(
     () => Array.from({ length: 10 }, (_, index) => 10 + ((index * 5) % 14)),
     [],
@@ -20,11 +21,11 @@ const Visualizer = memo(({ isPlaying }) => {
           key={i}
           className="w-1 bg-gradient-to-t from-cyan-500 to-blue-600 rounded-t-full"
           animate={{
-            height: isPlaying ? [6, height, 6] : 6,
+            height: isPlaying && !reduceMotion ? [6, height, 6] : 6,
           }}
           transition={{
             duration: 0.55,
-            repeat: isPlaying ? Infinity : 0,
+            repeat: isPlaying && !reduceMotion ? Infinity : 0,
             repeatType: 'reverse',
             delay: i * 0.05,
             ease: 'easeInOut'
@@ -37,7 +38,7 @@ const Visualizer = memo(({ isPlaying }) => {
 Visualizer.displayName = 'Visualizer';
 
 // Memoized Player Info Component
-const PlayerInfo = memo(({ currentTrack, isPlaying, onClose, isDayMode }) => {
+const PlayerInfo = memo(({ currentTrack, isPlaying, onClose, isDayMode, reduceMotion = false }) => {
   return (
     <div className={`flex items-center gap-4 relative z-10 mb-4 backdrop-blur-md rounded-2xl p-3 border shadow-lg ${isDayMode ? 'bg-white/86 border-slate-200/80 shadow-[0_14px_32px_rgba(148,163,184,0.16)]' : 'bg-white/5 border-white/5'}`}>
         {/* Drag Handle Indicator */}
@@ -49,7 +50,9 @@ const PlayerInfo = memo(({ currentTrack, isPlaying, onClose, isDayMode }) => {
         <img 
             src={currentTrack.cover} 
             alt={currentTrack.title} 
-            className={`w-full h-full object-cover ${isPlaying ? 'animate-[spin_4s_linear_infinite]' : ''}`} 
+            className={`w-full h-full object-cover ${isPlaying && !reduceMotion ? 'animate-[spin_4s_linear_infinite]' : ''}`}
+            loading="lazy"
+            decoding="async"
         />
         <div className={`absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20 ${isDayMode ? 'bg-slate-900/20' : 'bg-black/40'}`}>
             <Music size={16} className="text-white" />
@@ -128,6 +131,7 @@ const GlobalPlayer = () => {
   const [duration, setDuration] = useState(0);
   const location = useLocation();
   const isMobile = useMediaQuery('(max-width: 767px)');
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     if (!currentTrack || !isMiniPlayerVisible) return undefined;
@@ -184,6 +188,8 @@ const GlobalPlayer = () => {
                             src={currentTrack.cover} 
                             alt={currentTrack.title} 
                             className="w-full h-full object-cover"
+                            loading="lazy"
+                            decoding="async"
                         />
                         <div className="absolute inset-0 flex items-center justify-center">
                             <div className={`w-1.5 h-1.5 rounded-full border ${isDayMode ? 'bg-white border-slate-300/90' : 'bg-black border-white/20'}`} />
@@ -234,7 +240,7 @@ const GlobalPlayer = () => {
         {/* Visualizer Background */}
         {isPlaying && (
           <div className="absolute bottom-0 left-0 w-full h-32 opacity-20 pointer-events-none z-0 mask-image-gradient-to-t mix-blend-screen">
-              <Visualizer isPlaying={isPlaying} />
+              <Visualizer isPlaying={isPlaying} reduceMotion={reduceMotion} />
           </div>
         )}
 
@@ -243,6 +249,7 @@ const GlobalPlayer = () => {
             isPlaying={isPlaying} 
             onClose={handleClose}
             isDayMode={isDayMode}
+            reduceMotion={reduceMotion}
         />
 
         <ProgressBar 

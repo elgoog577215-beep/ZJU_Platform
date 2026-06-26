@@ -41,7 +41,14 @@ const GroupCard = memo(({ group, index, isDayMode, isAdmin, compact, onQuickActi
       {/* QR Code area */}
       <div className={`rounded-md flex items-center justify-center border border-dashed overflow-hidden ${compact ? 'mb-2 h-24' : 'mb-3 aspect-square md:mb-4'} ${isDayMode ? 'bg-slate-50 border-slate-200' : 'bg-white/5 border-white/10'}`}>
         {group.qr_code_url ? (
-          <img src={group.qr_code_url} alt={group.name} className="w-full h-full object-contain rounded-md" />
+          <img
+            src={group.qr_code_url}
+            alt={group.name}
+            className="w-full h-full object-contain rounded-md"
+            loading={index < 2 ? 'eager' : 'lazy'}
+            decoding="async"
+            fetchpriority={index < 2 ? 'high' : 'auto'}
+          />
         ) : (
           <div className="text-center">
             <QrCode size={compact ? 24 : 36} className={`mx-auto mb-2 md:mb-3 ${isDayMode ? 'text-slate-300' : 'text-gray-600'}`} />

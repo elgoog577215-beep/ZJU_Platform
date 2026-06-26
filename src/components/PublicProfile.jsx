@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { Suspense, lazy, useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import SmartImage from "./SmartImage";
 import {
@@ -44,13 +44,14 @@ import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import Dropdown from "./Dropdown";
 import FavoriteButton from "./FavoriteButton";
-import NotificationCenter from "./NotificationCenter";
 import PersonalCenterShell from "./PersonalCenterShell";
 import UserCommunitySubmissions from "./UserCommunitySubmissions";
 import ProfileCardEditor from "./profile/ProfileCardEditor";
 import ProfileCustomCards from "./profile/ProfileCustomCards";
 import ProfileSocialLinks from "./profile/ProfileSocialLinks";
 import { useReducedMotion } from "../utils/animations";
+
+const NotificationCenter = lazy(() => import("./NotificationCenter"));
 
 // Content type tabs shown in the "published" area.
 const CONTENT_TYPES = [
@@ -1297,6 +1298,9 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                       src={user.avatar}
                       alt={displayName}
                       className="h-full w-full object-cover"
+                      loading="eager"
+                      decoding="async"
+                      fetchpriority="high"
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-500 to-rose-500 text-2xl font-bold text-white">
@@ -1436,6 +1440,9 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                     src={user.avatar}
                     alt={user.nickname || user.username}
                     className="w-full h-full object-cover"
+                    loading="eager"
+                    decoding="async"
+                    fetchpriority="high"
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-3xl md:text-4xl font-bold text-white">
@@ -1829,6 +1836,8 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                             src={item.avatar}
                             alt={item.nickname || item.username}
                             className="w-full h-full object-cover"
+                            loading="lazy"
+                            decoding="async"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-sm font-bold text-indigo-400">
@@ -1946,6 +1955,8 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                           }
                           alt={item.title}
                           className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110"
+                          loading="lazy"
+                          decoding="async"
                         />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -1994,7 +2005,9 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                   {t("notifications.title", "通知中心")}
                 </h3>
               </div>
-              <NotificationCenter embedded />
+              <Suspense fallback={null}>
+                <NotificationCenter embedded />
+              </Suspense>
             </div>
           )}
 
@@ -2048,7 +2061,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                       <div className={`h-28 w-28 shrink-0 overflow-hidden rounded-2xl border ${isDayMode ? "border-white bg-slate-100" : "border-white/10 bg-white/10"}`}>
                         {avatarPreview ? (
                           <div data-avatar-crop-box className="relative h-full w-full select-none overflow-hidden">
-                            <img src={avatarPreview} alt={displayName} className="absolute inset-0 h-full w-full object-cover opacity-55" draggable={false} />
+                            <img src={avatarPreview} alt={displayName} className="absolute inset-0 h-full w-full object-cover opacity-55" draggable={false} decoding="async" />
                             <div
                               className="absolute cursor-move border-2 border-white bg-white/10 shadow-[0_0_0_999px_rgba(0,0,0,0.28)]"
                               style={{
@@ -2063,7 +2076,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                             </div>
                           </div>
                         ) : user.avatar ? (
-                          <img src={user.avatar} alt={displayName} className="h-full w-full object-cover" />
+                          <img src={user.avatar} alt={displayName} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-500 to-rose-500 text-2xl font-bold text-white">
                             {avatarInitial}

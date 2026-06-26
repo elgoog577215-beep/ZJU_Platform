@@ -125,7 +125,14 @@ const CommunityNewsBoard = ({ onNewPost, hideNewPostButton = false }) => {
     >
       <div className="flex gap-3 md:gap-4">
         {item.cover ? (
-          <img src={item.cover} alt="" className="h-24 w-28 shrink-0 rounded-md object-cover sm:w-32 md:h-28 md:w-40" />
+          <img
+            src={item.cover}
+            alt=""
+            className="h-24 w-28 shrink-0 rounded-md object-cover sm:w-32 md:h-28 md:w-40"
+            loading={index < 2 ? 'eager' : 'lazy'}
+            decoding="async"
+            fetchpriority={index < 2 ? 'high' : 'auto'}
+          />
         ) : (
           <div className={`flex h-24 w-24 shrink-0 items-center justify-center rounded-md border md:h-28 md:w-32 ${dm ? 'border-slate-200 bg-slate-50 text-slate-400' : 'border-white/10 bg-white/[0.04] text-gray-500'}`}>
             <Newspaper size={26} />

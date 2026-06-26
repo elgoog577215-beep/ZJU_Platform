@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Heart } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
@@ -117,34 +116,25 @@ const FavoriteButton = ({
   };
 
   return (
-    <motion.button
-      whileTap={{ scale: 0.8 }}
-      whileHover={{ scale: 1.1 }}
-    onClick={handleToggle}
-    aria-label={favoriteLabel}
-    aria-pressed={isFavorited}
-    data-testid={testId}
-    className={`flex min-h-10 min-w-10 items-center justify-center gap-1.5 group ${className}`}
-    disabled={loading}
-  >
+    <button
+      type="button"
+      onClick={handleToggle}
+      aria-label={favoriteLabel}
+      aria-pressed={isFavorited}
+      data-testid={testId}
+      className={`flex min-h-10 min-w-10 items-center justify-center gap-1.5 group transition-transform active:scale-95 motion-reduce:transform-none ${className}`}
+      disabled={loading}
+    >
       <div className="relative">
         <Heart 
           size={size} 
           className={`transition-colors duration-300 ${isFavorited ? 'fill-pink-500 text-pink-500' : 'text-current group-hover:text-pink-500'}`} 
         />
-        {isFavorited && (
-             <motion.div 
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1.5, opacity: 0 }}
-                transition={{ duration: 0.5 }}
-                className="absolute inset-0 rounded-full bg-pink-500/30"
-             />
-        )}
       </div>
       {showCount && (
         <span className="text-xs font-medium">{likeCount}</span>
       )}
-    </motion.button>
+    </button>
   );
 };
 

@@ -78,7 +78,7 @@ const Card = ({ p, onOpen, onFav, t }) => {
     <article className="ppp-card" onClick={() => onOpen(p)}>
       <div className="ppp-cover">
         {p.cover_url
-          ? <img className="ppp-art" src={p.cover_url} alt={title} loading="lazy" />
+          ? <img className="ppp-art" src={p.cover_url} alt={title} loading="lazy" decoding="async" />
           : <span className="ppp-art ppp-noart">{title.slice(0, 2)}</span>}
         <ProgPill progress={p.progress} t={t} />
         {p.images?.length > 1 && (
@@ -135,14 +135,14 @@ const DetailModal = ({ p, onClose, onFav, loggedIn, onOpenPoster, variant }) => 
         <button className="ppp-x" type="button" onClick={onClose} aria-label={t("common.close", "关闭")}><X size={18} /></button>
         <div className="ppp-mgallery">
           {imgs[active]
-            ? <img className="ppp-mhero" src={imgs[active]} alt={title} />
+            ? <img className="ppp-mhero" src={imgs[active]} alt={title} loading="eager" decoding="async" fetchpriority="high" />
             : <span className="ppp-mhero ppp-noart">{title.slice(0, 2)}</span>}
           <ProgPill progress={p.progress} t={t} className="ppp-mprog" />
           {imgs.length > 1 && (
             <div className="ppp-mthumbs">
               {imgs.map((im, i) => (
                 <button className={`ppp-t ${i === active ? "sel" : ""}`} type="button" key={im + i} onClick={() => setActive(i)}>
-                  <img src={im} alt="" />
+                  <img src={im} alt="" loading="lazy" decoding="async" />
                 </button>
               ))}
             </div>
@@ -282,7 +282,7 @@ const CreateForm = ({ onClose, onCreated }) => {
               <button className="ppp-up ppp-upadd" type="button" onClick={() => fileRef.current?.click()}><UploadCloud size={20} /><small>{t("project_plaza.form.upload", "上传")}</small></button>
               <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={onPick} />
               {images.map((url, i) => (
-                <div className="ppp-up" key={url}><img src={url} alt="" />{i === 0 && <span className="ppp-upcover">{t("project_plaza.form.cover", "封面")}</span>}</div>
+                <div className="ppp-up" key={url}><img src={url} alt="" loading="lazy" decoding="async" />{i === 0 && <span className="ppp-upcover">{t("project_plaza.form.cover", "封面")}</span>}</div>
               ))}
             </div>
           </div>
@@ -345,7 +345,7 @@ const CreateForm = ({ onClose, onCreated }) => {
           <div className="ppp-pvlab">{t("project_plaza.form.preview_label", "实时预览")}</div>
           <article className="ppp-card ppp-pvcard">
             <div className="ppp-cover">
-              {images[0] ? <img className="ppp-art" src={images[0]} alt="" /> : <span className="ppp-art ppp-noart">{name.slice(0, 2) || t("project_plaza.form.cover", "封面")}</span>}
+              {images[0] ? <img className="ppp-art" src={images[0]} alt="" loading="lazy" decoding="async" /> : <span className="ppp-art ppp-noart">{name.slice(0, 2) || t("project_plaza.form.cover", "封面")}</span>}
               <ProgPill progress={prog} t={t} />
             </div>
             <div className="ppp-body">

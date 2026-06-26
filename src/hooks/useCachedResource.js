@@ -170,7 +170,11 @@ export const useCachedResource = (endpoint, params = {}, options = {}) => {
 
     // FIX: BUG-09 — Add AbortController to cancel stale requests and prevent setState after unmount
     useEffect(() => {
-        if (!enabled) return;
+        if (!enabled) {
+            setLoading(false);
+            setError(null);
+            return undefined;
+        }
 
         const abortController = new AbortController();
 

@@ -98,7 +98,13 @@ const Comments = ({ resourceId, resourceType }) => {
                                     <div className="flex items-center gap-2">
                                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-xs text-white font-bold overflow-hidden">
                                             {comment.avatar ? (
-                                                <img src={comment.avatar} alt={comment.author} className="w-full h-full object-cover" />
+                                                <img
+                                                    src={comment.avatar}
+                                                    alt={comment.author}
+                                                    className="w-full h-full object-cover"
+                                                    loading="lazy"
+                                                    decoding="async"
+                                                />
                                             ) : (
                                                 comment.author?.charAt(0).toUpperCase() || '?'
                                             )}

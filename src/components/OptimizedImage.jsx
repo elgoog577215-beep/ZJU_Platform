@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
 
 /**
  * 优化的图片组件
@@ -72,7 +71,7 @@ const OptimizedImage = ({
 
       {/* 实际图片 */}
       {isInView && !hasError && (
-        <motion.img
+        <img
           src={src}
           alt={alt}
           className={`block w-full h-full object-cover transition-opacity duration-300 ${
@@ -82,9 +81,7 @@ const OptimizedImage = ({
           onError={handleError}
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: isLoaded ? 1 : 0 }}
-          transition={{ duration: 0.3 }}
+          fetchpriority={priority ? 'high' : 'auto'}
         />
       )}
 
