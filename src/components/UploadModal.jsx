@@ -1506,7 +1506,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
     ? "upload-modal-card rect-panel p-5 sm:p-6 space-y-5 sm:space-y-6 bg-white/95"
     : "upload-modal-card rect-panel p-5 sm:p-6 space-y-5 sm:space-y-6 bg-[#121212]";
   const uploadBoxClasses = (isActive) =>
-    `upload-modal-dropzone relative border-2 border-dashed rounded-[7px] p-6 sm:p-8 flex flex-col items-center justify-center group transition-all duration-300 ${
+    `upload-modal-dropzone upload-modal-upload-box relative border-2 border-dashed rounded-[7px] p-6 sm:p-8 flex flex-col items-center justify-center group transition-all duration-300 ${
       isDayMode
         ? `${isActive ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200/80 bg-white/82 hover:border-indigo-300 hover:bg-white'}`
         : `bg-black/20 ${isActive ? 'border-indigo-500 bg-indigo-500/10' : 'border-white/10 hover:border-white/30 hover:bg-white/5'}`
@@ -1711,7 +1711,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                     </div>
                                 </div>
                             ) : (
-                                <div className="flex flex-col items-center pointer-events-none text-center">
+                                <div className="upload-modal-cover-empty-content flex flex-col items-center pointer-events-none text-center">
                                     <div className={`upload-modal-dropzone-icon p-4 rounded-[5px] mb-4 transition-colors duration-300 ${dragTarget === 'cover' ? 'bg-indigo-500/20 text-indigo-400' : (isDayMode ? 'bg-white/90 text-slate-400 group-hover:bg-white group-hover:text-slate-900 border border-slate-200/80' : 'bg-white/5 text-gray-400 group-hover:bg-white/10 group-hover:text-white border border-white/10')}`}>
                                         <Plus size={28} />
                                     </div>
@@ -2378,7 +2378,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                         {type === 'article' ? t('common.cover', '封面') : t(`common.${type}`)}
                     </label>
                      <div 
-                        className={`${uploadBoxClasses(dragTarget === 'main')} min-h-[160px] sm:min-h-[200px]`}
+                        className={`${uploadBoxClasses(dragTarget === 'main')} upload-modal-main-dropzone min-h-[160px] sm:min-h-[200px]`}
                         onDragEnter={(e) => handleDragEnter(e, 'main')}
                         onDragLeave={handleDragLeave}
                         onDragOver={(e) => handleDragOver(e, 'main')}
@@ -2436,8 +2436,8 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                 </div>
                             )
                         ) : (
-                        <div className="flex flex-col items-center justify-center text-center pointer-events-none px-4">
-                            <div className={`p-3 sm:p-4 rounded-full mb-3 sm:mb-4 transition-transform duration-300 ${dragTarget === 'main' ? 'bg-indigo-500/20 scale-110 text-indigo-400' : (isDayMode ? 'bg-white/90 text-slate-400 group-hover:bg-white group-hover:scale-110 group-hover:text-slate-900' : 'bg-white/5 text-gray-400 group-hover:bg-white/10 group-hover:scale-110 group-hover:text-white')}`}>
+                        <div className="upload-modal-empty-dropzone-content flex flex-col items-center justify-center text-center pointer-events-none px-4">
+                            <div className={`upload-modal-main-dropzone-icon p-3 sm:p-4 rounded-full mb-3 sm:mb-4 transition-transform duration-300 ${dragTarget === 'main' ? 'bg-indigo-500/20 scale-110 text-indigo-400' : (isDayMode ? 'bg-white/90 text-slate-400 group-hover:bg-white group-hover:scale-110 group-hover:text-slate-900' : 'bg-white/5 text-gray-400 group-hover:bg-white/10 group-hover:scale-110 group-hover:text-white')}`}>
                                {dragTarget === 'main' ? <Upload size={24} className="sm:w-8 sm:h-8" /> : React.cloneElement(getIcon(), { size: 24, className: 'sm:w-8 sm:h-8' })}
                             </div>
                             <p className={`font-medium text-base sm:text-lg ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
@@ -2458,7 +2458,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                      <div className="space-y-2">
                         <label className={labelClasses}>{t('common.cover')}</label>
                         <div 
-                            className={`${uploadBoxClasses(dragTarget === 'cover')} h-32 sm:h-40`}
+                            className={`${uploadBoxClasses(dragTarget === 'cover')} upload-modal-secondary-cover-dropzone h-32 sm:h-40`}
                             onDragEnter={(e) => handleDragEnter(e, 'cover')}
                             onDragLeave={handleDragLeave}
                             onDragOver={(e) => handleDragOver(e, 'cover')}

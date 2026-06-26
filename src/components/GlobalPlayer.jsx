@@ -172,7 +172,7 @@ const GlobalPlayer = () => {
             initial={{ y: 100, opacity: 0, scale: 0.9 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 100, opacity: 0, scale: 0.9 }}
-            className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] left-4 right-4 z-[90] pointer-events-none"
+            className="fixed bottom-[calc(var(--mobile-content-bottom-padding)+0.25rem)] left-3 right-3 z-[70] pointer-events-none"
         >
             <div className={`backdrop-blur-2xl border rounded-full p-2 pr-4 flex items-center justify-between pointer-events-auto ring-1 ${isDayMode ? 'bg-white/92 border-slate-200/80 shadow-[0_12px_32px_rgba(148,163,184,0.24)] ring-slate-200/70' : 'bg-black/60 border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] ring-white/5'}`}>
                 <div className="flex items-center gap-3 overflow-hidden">
@@ -189,7 +189,7 @@ const GlobalPlayer = () => {
                             <div className={`w-1.5 h-1.5 rounded-full border ${isDayMode ? 'bg-white border-slate-300/90' : 'bg-black border-white/20'}`} />
                         </div>
                     </div>
-                    <div className="flex flex-col overflow-hidden max-w-[120px]">
+                    <div className="flex flex-col overflow-hidden max-w-[min(42vw,160px)]">
                         <span className={`font-bold text-sm truncate ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{currentTrack.title}</span>
                         <span className={`text-[10px] truncate ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{currentTrack.artist}</span>
                     </div>

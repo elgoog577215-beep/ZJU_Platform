@@ -2377,7 +2377,7 @@ END:VCALENDAR`;
 
                   {isMobileViewport && (
                     <div
-                      className={`relative px-4 pt-5 pb-4 border-b ${isDayMode ? "bg-white border-slate-200/70" : "bg-[#0f0f0f] border-white/10"}`}
+                      className={`relative px-4 pt-4 pb-3 border-b ${isDayMode ? "bg-white border-slate-200/70" : "bg-[#0f0f0f] border-white/10"}`}
                     >
                       <button
                         onClick={closeEvent}
@@ -2396,7 +2396,7 @@ END:VCALENDAR`;
                       <div className="pr-14">
                         <div className="min-w-0">
                           <h2
-                            className={`text-[1.7rem] font-black leading-[1.15] tracking-tight ${isDayMode ? "text-slate-950" : "text-white"}`}
+                            className={`line-clamp-2 text-[1.35rem] font-black leading-[1.16] tracking-tight ${isDayMode ? "text-slate-950" : "text-white"}`}
                           >
                             {selectedEvent.title}
                           </h2>
@@ -2411,11 +2411,11 @@ END:VCALENDAR`;
                                   href: selectedEvent.link,
                                 })
                               }
-                              className={`mt-3 inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold transition-all group ${isDayMode ? eventThemeAccent.cta : "bg-indigo-500/90 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 backdrop-blur-md border border-white/10"}`}
+                              className={`mt-2 inline-flex items-center justify-center gap-2 rounded-md px-3.5 py-2 text-xs font-bold transition-all group ${isDayMode ? eventThemeAccent.cta : "bg-indigo-500/90 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 backdrop-blur-md border border-white/10"}`}
                             >
                               {t("events.visit_link")}
                               <ExternalLink
-                                size={16}
+                                size={14}
                                 className="group-hover:translate-x-0.5 transition-transform"
                               />
                             </a>
@@ -2425,22 +2425,22 @@ END:VCALENDAR`;
 
                       {selectedEvent.description && (
                         <p
-                          className={`mt-4 text-sm leading-7 ${isDayMode ? "text-slate-600" : "text-white/75"}`}
+                          className={`mt-3 line-clamp-3 text-[13px] leading-6 ${isDayMode ? "text-slate-600" : "text-white/75"}`}
                         >
                           {selectedEvent.description}
                         </p>
                       )}
 
-                      <div className="mt-4 flex justify-start">
+                      <div className="mt-3 flex justify-start">
                         <FavoriteButton
                           itemId={selectedEvent.id}
                           itemType="event"
-                          size={24}
+                          size={20}
                           showCount={true}
                           count={selectedEvent.likes || 0}
                           favorited={selectedEvent.favorited}
                           testId="event-detail-favorite-mobile"
-                          className={`p-3 rounded-md transition-all shrink-0 border ${isDayMode ? "bg-white hover:bg-white border-slate-200 text-slate-700" : "bg-white/10 hover:bg-white/20 border border-white/10 backdrop-blur-md"}`}
+                          className={`p-2.5 rounded-md transition-all shrink-0 border ${isDayMode ? "bg-white hover:bg-white border-slate-200 text-slate-700" : "bg-white/10 hover:bg-white/20 border border-white/10 backdrop-blur-md"}`}
                           onToggle={(favorited, likes) => {
                             recordSelectedEventAssistantAction(
                               favorited ? "favorite" : "unfavorite",

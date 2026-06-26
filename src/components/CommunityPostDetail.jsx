@@ -487,7 +487,7 @@ const CommunityPostDetail = ({
                           <span className="font-semibold">@{c.quote_snapshot.author}:</span> {c.quote_snapshot.content}
                         </div>
                       )}
-                      <div className="mt-2 flex items-center gap-2">
+                      <div className="community-comment-actions mt-2 flex items-center gap-2">
                         <button
                           type="button"
                           onClick={() => openReply(c, c, false)}
@@ -499,7 +499,7 @@ const CommunityPostDetail = ({
                         <button
                           type="button"
                           onClick={() => openReply(c, c, true)}
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs border ${isDayMode ? 'text-slate-600 border-slate-200 hover:bg-slate-100' : 'text-gray-300 border-white/10 hover:bg-white/10'}`}
+                          className={`community-comment-secondary-action inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs border ${isDayMode ? 'text-slate-600 border-slate-200 hover:bg-slate-100' : 'text-gray-300 border-white/10 hover:bg-white/10'}`}
                         >
                           <Quote size={12} />
                           {t('community.quote', '引用')}
@@ -507,7 +507,7 @@ const CommunityPostDetail = ({
                         <button
                           type="button"
                           onClick={() => handleReport({ targetType: 'comment', targetId: c.id })}
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs border ${isDayMode ? 'text-slate-600 border-slate-200 hover:bg-slate-100' : 'text-gray-300 border-white/10 hover:bg-white/10'}`}
+                          className={`community-comment-secondary-action inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs border ${isDayMode ? 'text-slate-600 border-slate-200 hover:bg-slate-100' : 'text-gray-300 border-white/10 hover:bg-white/10'}`}
                         >
                           <Flag size={12} />
                           {t('community.report', '举报')}
@@ -516,7 +516,7 @@ const CommunityPostDetail = ({
                           <button
                             type="button"
                             onClick={() => handleDeleteComment(c.id)}
-                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs border ${isDayMode ? 'text-rose-600 border-rose-200 hover:bg-rose-50' : 'text-rose-300 border-rose-500/25 hover:bg-rose-500/10'}`}
+                            className={`community-comment-secondary-action inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs border ${isDayMode ? 'text-rose-600 border-rose-200 hover:bg-rose-50' : 'text-rose-300 border-rose-500/25 hover:bg-rose-500/10'}`}
                           >
                             <Trash2 size={12} />
                             {t('common.delete', '删除')}
@@ -533,7 +533,7 @@ const CommunityPostDetail = ({
                         </button>
                       )}
                       {Array.isArray(c.replies) && c.replies.length > 0 && (
-                        <div className={`mt-3 pl-3 border-l space-y-2 ${isDayMode ? 'border-slate-200' : 'border-white/10'}`}>
+                        <div className={`community-reply-thread mt-3 pl-3 border-l space-y-2 ${isDayMode ? 'border-slate-200' : 'border-white/10'}`}>
                           <div className={`text-[11px] ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
                             {t('community.reply_count', '共 {{count}} 条二级回复', { count: c.replies.length })}
                           </div>
@@ -568,7 +568,7 @@ const CommunityPostDetail = ({
                                   </div>
                                 )}
                                 {renderCommentText(reply.id, reply.content, 'small')}
-                                <div className="mt-1.5 flex items-center gap-2">
+                                <div className="community-reply-actions mt-1.5 flex items-center gap-2">
                                   <button
                                     type="button"
                                     onClick={() => openReply(c, reply, false)}
@@ -580,7 +580,7 @@ const CommunityPostDetail = ({
                                   <button
                                     type="button"
                                     onClick={() => openReply(c, reply, true)}
-                                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] border ${isDayMode ? 'text-slate-600 border-slate-200 hover:bg-slate-100' : 'text-gray-300 border-white/10 hover:bg-white/10'}`}
+                                    className={`community-comment-secondary-action inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] border ${isDayMode ? 'text-slate-600 border-slate-200 hover:bg-slate-100' : 'text-gray-300 border-white/10 hover:bg-white/10'}`}
                                   >
                                     <Quote size={11} />
                                     {t('community.quote', '引用')}
@@ -588,7 +588,7 @@ const CommunityPostDetail = ({
                                   <button
                                     type="button"
                                     onClick={() => handleReport({ targetType: 'comment', targetId: reply.id })}
-                                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] border ${isDayMode ? 'text-slate-600 border-slate-200 hover:bg-slate-100' : 'text-gray-300 border-white/10 hover:bg-white/10'}`}
+                                    className={`community-comment-secondary-action inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] border ${isDayMode ? 'text-slate-600 border-slate-200 hover:bg-slate-100' : 'text-gray-300 border-white/10 hover:bg-white/10'}`}
                                   >
                                     <Flag size={11} />
                                     {t('community.report', '举报')}
@@ -597,7 +597,7 @@ const CommunityPostDetail = ({
                                     <button
                                       type="button"
                                       onClick={() => handleDeleteComment(reply.id)}
-                                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] border ${isDayMode ? 'text-rose-600 border-rose-200 hover:bg-rose-50' : 'text-rose-300 border-rose-500/25 hover:bg-rose-500/10'}`}
+                                      className={`community-comment-secondary-action inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] border ${isDayMode ? 'text-rose-600 border-rose-200 hover:bg-rose-50' : 'text-rose-300 border-rose-500/25 hover:bg-rose-500/10'}`}
                                     >
                                       <Trash2 size={11} />
                                       {t('common.delete', '删除')}

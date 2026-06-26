@@ -22,7 +22,7 @@ const CommunityDetailModal = ({
   onClose,
   isDayMode,
   gradientFrom = 'from-amber-900/30',
-  headerHeight = 'h-56 sm:h-72',
+  headerHeight = 'h-44 sm:h-72',
   coverImage,
   headerContent,
   authorBar,
@@ -296,7 +296,7 @@ const CommunityDetailModal = ({
                       <button
                         type="button"
                         onClick={() => navigator.clipboard?.writeText(shareUrl)}
-                        className={`inline-flex min-h-[38px] items-center gap-2 rounded-lg border px-3 text-sm ${isDayMode ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50' : 'bg-white/5 text-gray-200 border-white/10 hover:bg-white/10'}`}
+                        className={`hidden min-h-[38px] items-center gap-2 rounded-lg border px-3 text-sm sm:inline-flex ${isDayMode ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50' : 'bg-white/5 text-gray-200 border-white/10 hover:bg-white/10'}`}
                       >
                         <Copy size={16} />
                         复制链接

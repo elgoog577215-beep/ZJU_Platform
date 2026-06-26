@@ -1068,6 +1068,207 @@ img {
     }
   }
 
+  @media (max-width: 639px) {
+    .upload-modal-panel:not(.upload-modal-article) {
+      height: 100dvh !important;
+      max-height: 100dvh !important;
+    }
+
+    .upload-modal-panel:not(.upload-modal-article) .upload-modal-header {
+      padding: max(env(safe-area-inset-top), 0.75rem) 1rem 0.75rem !important;
+    }
+
+    .upload-modal-title {
+      gap: 0.55rem !important;
+      font-size: 1.05rem !important;
+      line-height: 1.3rem !important;
+    }
+
+    .upload-modal-title-icon {
+      padding: 0.38rem !important;
+    }
+
+    .upload-modal-title-icon svg {
+      width: 1.1rem !important;
+      height: 1.1rem !important;
+    }
+
+    .upload-modal-panel:not(.upload-modal-article) .upload-modal-body {
+      padding: 0.85rem 1rem !important;
+    }
+
+    .upload-modal-panel:not(.upload-modal-article) .upload-modal-body > :not([hidden]) ~ :not([hidden]),
+    .upload-modal-column > :not([hidden]) ~ :not([hidden]),
+    .upload-modal-card > :not([hidden]) ~ :not([hidden]) {
+      margin-top: 0.85rem !important;
+    }
+
+    .upload-modal-smart-parse {
+      padding: 0.8rem 0.9rem !important;
+      border-radius: 0.65rem !important;
+    }
+
+    .upload-modal-smart-watermark,
+    .upload-modal-smart-desc {
+      display: none !important;
+    }
+
+    .upload-modal-section-title {
+      margin-bottom: 0.5rem !important;
+      font-size: 0.72rem !important;
+      letter-spacing: 0.08em !important;
+    }
+
+    .upload-modal-inline-action {
+      gap: 0.5rem !important;
+    }
+
+    .upload-modal-event-grid {
+      gap: 0.85rem !important;
+    }
+
+    .upload-modal-field-group {
+      row-gap: 0.45rem !important;
+    }
+
+    .upload-modal-card {
+      padding: 0.85rem !important;
+      border-radius: 0.65rem !important;
+    }
+
+    .upload-modal-field {
+      min-height: 2.55rem !important;
+      padding-top: 0.58rem !important;
+      padding-bottom: 0.58rem !important;
+      font-size: 1rem !important;
+    }
+
+    .upload-modal-label {
+      margin-bottom: 0.32rem !important;
+      font-size: 0.68rem !important;
+      letter-spacing: 0.08em !important;
+    }
+
+    .upload-modal-cover-dropzone {
+      height: 6.75rem !important;
+    }
+
+    .upload-modal-main-dropzone {
+      min-height: 6.25rem !important;
+    }
+
+    .upload-modal-secondary-cover-dropzone {
+      height: 5rem !important;
+    }
+
+    .upload-modal-dropzone {
+      padding: 0.7rem !important;
+    }
+
+    .upload-modal-cover-empty-content,
+    .upload-modal-empty-dropzone-content {
+      width: 100% !important;
+      flex-direction: row !important;
+      justify-content: center !important;
+      gap: 0.7rem !important;
+      padding-left: 0.25rem !important;
+      padding-right: 0.25rem !important;
+      text-align: left !important;
+    }
+
+    .upload-modal-dropzone-icon,
+    .upload-modal-main-dropzone-icon {
+      flex-shrink: 0 !important;
+      margin-bottom: 0 !important;
+      padding: 0.55rem !important;
+      border-radius: 0.55rem !important;
+      transform: none !important;
+    }
+
+    .upload-modal-dropzone-icon svg,
+    .upload-modal-main-dropzone-icon svg {
+      width: 1.1rem !important;
+      height: 1.1rem !important;
+    }
+
+    .upload-modal-dropzone p,
+    .upload-modal-dropzone span {
+      line-height: 1.2rem !important;
+    }
+
+    .upload-modal-description {
+      height: 5rem !important;
+      line-height: 1.45rem !important;
+    }
+
+    .upload-modal-chip-grid {
+      gap: 0.4rem !important;
+    }
+
+    .upload-modal-choice-button {
+      min-height: 2rem !important;
+      border-radius: 0.55rem !important;
+      padding: 0.35rem 0.5rem !important;
+      font-size: 0.74rem !important;
+    }
+
+    .upload-modal-action-button {
+      min-height: 2.35rem !important;
+      padding: 0.55rem 0.75rem !important;
+      font-size: 0.8rem !important;
+    }
+
+    .upload-modal-panel:not(.upload-modal-article) .upload-modal-footer {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      padding: 0.65rem 1rem !important;
+      padding-bottom: max(env(safe-area-inset-bottom), 0.7rem) !important;
+      gap: 0.55rem !important;
+    }
+
+    .upload-modal-panel:not(.upload-modal-article) .upload-modal-footer > button {
+      min-height: 2.5rem !important;
+      padding: 0.65rem 0.75rem !important;
+      font-size: 0.82rem !important;
+    }
+
+    .community-comment-actions,
+    .community-reply-actions {
+      flex-wrap: wrap !important;
+      gap: 0.35rem !important;
+    }
+
+    .community-comment-secondary-action {
+      padding-left: 0.45rem !important;
+      padding-right: 0.45rem !important;
+    }
+
+    .community-comment-secondary-action svg + * {
+      display: none !important;
+    }
+
+    .community-reply-thread {
+      margin-left: 0 !important;
+      padding-left: 0.65rem !important;
+    }
+
+    .profile-page-title {
+      display: -webkit-box;
+      overflow: hidden;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .profile-page-title {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
   .day-ambient-shell {
     position: relative;
     isolation: isolate;

@@ -430,7 +430,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
                 </span>
                 <OfficialVerificationBadge profile={profile} isDayMode={isDayMode} />
               </div>
-              <h1 className="truncate text-3xl font-black leading-tight md:text-5xl">
+              <h1 className="profile-page-title text-3xl font-black leading-tight md:text-5xl">
                 {profile.display_name}
               </h1>
               {profile.display_name_en ? (
@@ -454,7 +454,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
               ) : null}
             </div>
 
-            <div className="flex flex-row gap-2 md:flex-col md:items-end">
+            <div className="flex flex-wrap gap-2 md:flex-col md:items-end">
               {editable ? (
                 <button
                   type="button"
@@ -483,11 +483,11 @@ const ProfilePage = ({ forcedHandle = null }) => {
               ) : null}
               <Link
                 to={profileRoute(profile)}
-                className={`inline-flex min-h-11 items-center justify-center rounded-[6px] border px-4 text-sm font-mono font-bold ${
+                className={`inline-flex min-h-11 min-w-0 max-w-full items-center justify-center rounded-[6px] border px-4 text-sm font-mono font-bold ${
                   isDayMode ? "border-slate-200 bg-slate-50 text-slate-500" : "border-white/10 bg-white/[0.04] text-slate-400"
                 }`}
               >
-                @{profile.handle}
+                <span className="truncate">@{profile.handle}</span>
               </Link>
             </div>
           </div>
