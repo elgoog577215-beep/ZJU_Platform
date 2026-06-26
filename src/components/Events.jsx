@@ -1573,7 +1573,6 @@ END:VCALENDAR`;
         </div>
         <MobileContentToolbar
           isDayMode={isDayMode}
-          resultCount={displayEvents.length}
           sortLabel={mobileSortLabel}
           filterCount={mobileFilterCount}
           onOpenSort={() => {
