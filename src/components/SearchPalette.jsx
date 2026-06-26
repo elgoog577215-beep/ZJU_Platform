@@ -11,9 +11,9 @@ import { useTranslation } from 'react-i18next';
 
 import { getThumbnailUrl } from '../utils/imageUtils';
 
-const SearchPalette = () => {
+const SearchPalette = ({ initialOpen = false }) => {
   const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(initialOpen);
   useBackClose(isOpen, () => setIsOpen(false));
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);

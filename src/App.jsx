@@ -11,7 +11,7 @@ import {
 import { useAuth, AuthProvider } from './context/AuthContext';
 import { motion } from 'framer-motion';
 import { Toaster } from 'react-hot-toast';
-import { MusicProvider } from './context/MusicContext';
+import { MusicProvider, useMusic } from './context/MusicContext';
 import { SettingsProvider, useSettings } from './context/SettingsContext';
 import { HelmetProvider } from 'react-helmet-async';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -216,18 +216,23 @@ const AppContent = () => {
   const isImmersiveRoute = isHomeRoute || isAboutRoute || isDownloadRoute || location.pathname.startsWith('/hackathon');
   const hideGlobalShell = isHomeRoute;
   const { cursorEnabled, settings } = useSettings();
+  const { currentTrack, isMiniPlayerVisible } = useMusic();
   const hasDesktopPointer = useMediaQuery('(min-width: 768px) and (hover: hover) and (pointer: fine)');
+  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
   const shouldMountDeferredUi = useDeferredMount(700);
   const shouldMountLateDebugUi = useDeferredMount(1800);
+  const [shouldMountSearchPalette, setShouldMountSearchPalette] = useState(false);
   const [isLowPowerDevice, setIsLowPowerDevice] = useState(false);
   const [isAppRuntime, setIsAppRuntime] = useState(false);
   const shouldRenderDynamicBackground =
     !isAdminRoute &&
     !isImmersiveRoute &&
     hasDesktopPointer &&
+    !prefersReducedMotion &&
     !isLowPowerDevice &&
     !isAppRuntime &&
     shouldMountDeferredUi;
+  const shouldMountGlobalPlayer = Boolean(currentTrack && isMiniPlayerVisible);
 
   useServiceWorker();
 
@@ -269,6 +274,23 @@ const AppContent = () => {
       document.title = settings.site_title;
     }
   }, [settings?.site_title]);
+
+  useEffect(() => {
+    const mountSearchPalette = () => setShouldMountSearchPalette(true);
+    const handleKeyDown = (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        mountSearchPalette();
+      }
+    };
+
+    window.addEventListener('open-search-palette', mountSearchPalette);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('open-search-palette', mountSearchPalette);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -315,14 +337,14 @@ const AppContent = () => {
             <Navbar />
           </ErrorBoundary>
         )}
-        {!hideGlobalShell && !isAdminRoute && cursorEnabled && hasDesktopPointer && !isLowPowerDevice && shouldMountDeferredUi && (
+        {!hideGlobalShell && !isAdminRoute && cursorEnabled && hasDesktopPointer && !prefersReducedMotion && !isLowPowerDevice && shouldMountDeferredUi && (
           <ErrorBoundary variant="inline" silent>
             <Suspense fallback={null}>
               <CustomCursor />
             </Suspense>
           </ErrorBoundary>
         )}
-        {!isAdminRoute && !isImmersiveRoute && hasDesktopPointer && !isLowPowerDevice && shouldMountDeferredUi && (
+        {!isAdminRoute && !isImmersiveRoute && hasDesktopPointer && !prefersReducedMotion && !isLowPowerDevice && shouldMountDeferredUi && (
           <ErrorBoundary variant="inline" silent>
             <Suspense fallback={null}>
               <ScrollProgress />
@@ -330,10 +352,10 @@ const AppContent = () => {
           </ErrorBoundary>
         )}
 
-        {shouldMountDeferredUi && (
+        {shouldMountSearchPalette && (
           <ErrorBoundary variant="inline" silent>
             <Suspense fallback={null}>
-              <SearchPalette />
+              <SearchPalette initialOpen />
             </Suspense>
           </ErrorBoundary>
         )}
@@ -380,7 +402,7 @@ const AppContent = () => {
 
         {!hideGlobalShell && !isAdminRoute && !isImmersiveRoute && <Footer />}
 
-        {!hideGlobalShell && !isAdminRoute && shouldMountDeferredUi && (
+        {!hideGlobalShell && !isAdminRoute && shouldMountGlobalPlayer && (
           <ErrorBoundary variant="inline" silent>
             <Suspense fallback={null}>
               <GlobalPlayer />
@@ -388,7 +410,7 @@ const AppContent = () => {
           </ErrorBoundary>
         )}
         {!hideGlobalShell && !isAdminRoute && <MobileNavbar />}
-        {!isImmersiveRoute && shouldMountDeferredUi && (
+        {!isImmersiveRoute && hasDesktopPointer && shouldMountDeferredUi && (
           <ErrorBoundary variant="inline" silent>
             <Suspense fallback={null}>
               <ScrollToTop />
