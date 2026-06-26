@@ -2052,6 +2052,24 @@ img.motion-image-zoom {
   animation: shimmer 1.5s infinite;
 }
 
+@keyframes skeleton-shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.62; }
+  50% { opacity: 1; }
+}
+
+.animate-skeleton-shimmer {
+  animation: skeleton-shimmer 1.5s linear infinite;
+}
+
+.animate-skeleton-pulse {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
 @keyframes pulse-glow {
   0%, 100% {
     box-shadow: 0 0 5px rgba(99, 102, 241, 0.3),

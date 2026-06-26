@@ -32,7 +32,6 @@ import PWAInstallPrompt from './components/PWAInstallPrompt';
 import MobileNavbar from './components/MobileNavbar';
 import Footer from './components/Footer';
 import LoadingScreen from './components/LoadingScreen';
-import PerformancePanel from './components/PerformancePanel';
 import HomeSplash from './components/HomeSplash';
 
 const CHUNK_RECOVERY_RELOAD_KEY = 'tuotu:chunk-recovery:reload-attempted';
@@ -102,6 +101,7 @@ const ProjectPlaza = lazyRoute(() => import('./components/ProjectPlaza'));
 const SearchPalette = lazyRoute(() => import('./components/SearchPalette'));
 const GlobalPlayer = lazyRoute(() => import('./components/GlobalPlayer'));
 const BackgroundSystem = lazyRoute(() => import('./components/BackgroundSystem'));
+const PerformancePanel = lazyRoute(() => import('./components/PerformancePanel'));
 
 const useDeferredMount = (delay = 0) => {
   const [mounted, setMounted] = useState(false);
@@ -125,13 +125,18 @@ const useDeferredMount = (delay = 0) => {
 
 const PageTransition = ({ children }) => {
   const prefersReducedMotion = useReducedMotion();
+  const isMobileViewport = useMediaQuery('(max-width: 767px)');
+
+  if (prefersReducedMotion || isMobileViewport) {
+    return <div className="w-full">{children}</div>;
+  }
 
   return (
     <motion.div
       variants={routeTransition}
-      initial={prefersReducedMotion ? false : 'initial'}
-      animate={prefersReducedMotion ? undefined : 'animate'}
-      exit={prefersReducedMotion ? undefined : 'exit'}
+      initial="initial"
+      animate="animate"
+      exit="exit"
       className="motion-gpu w-full"
     >
       {children}
@@ -213,6 +218,7 @@ const AppContent = () => {
   const { cursorEnabled, settings } = useSettings();
   const hasDesktopPointer = useMediaQuery('(min-width: 768px) and (hover: hover) and (pointer: fine)');
   const shouldMountDeferredUi = useDeferredMount(700);
+  const shouldMountLateDebugUi = useDeferredMount(1800);
   const [isLowPowerDevice, setIsLowPowerDevice] = useState(false);
   const [isAppRuntime, setIsAppRuntime] = useState(false);
   const shouldRenderDynamicBackground =
@@ -372,7 +378,11 @@ const AppContent = () => {
         {!hideGlobalShell && !isAdminRoute && <MobileNavbar />}
         {!isImmersiveRoute && <ScrollToTop />}
         <PWAInstallPrompt />
-        {import.meta.env.DEV && <PerformancePanel />}
+        {import.meta.env.DEV && shouldMountLateDebugUi && (
+          <Suspense fallback={null}>
+            <PerformancePanel />
+          </Suspense>
+        )}
       </div>
     </div>
   );

@@ -67,6 +67,7 @@ const PhotoCard = memo(
             src={getThumbnailUrl(photo.url)}
             alt={photo.title}
             type="image"
+            priority={index === 0}
             className="w-full min-h-[156px] sm:min-h-[240px]"
             imageClassName="h-auto min-h-[156px] w-full object-cover transform transition-transform duration-700 ease-out group-hover:scale-105 sm:min-h-[240px]"
             blurPlaceholder={photo.blurPlaceholder}
@@ -390,9 +391,9 @@ const Gallery = () => {
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
+        animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+        transition={prefersReducedMotion ? undefined : { duration: 0.32 }}
         className="mb-4 md:mb-12 relative z-40 text-center"
       >
         <div className="md:hidden mb-3 text-left">
@@ -415,8 +416,8 @@ const Gallery = () => {
         />
 
         <motion.button
-          whileHover={{ scale: 1.05, rotate: 90 }}
-          whileTap={{ scale: 0.95 }}
+          whileHover={prefersReducedMotion ? undefined : { scale: 1.04 }}
+          whileTap={prefersReducedMotion ? undefined : { scale: 0.96 }}
           onClick={() => {
             if (!user) {
               toast.error(t("auth.signin_required"));
@@ -435,26 +436,26 @@ const Gallery = () => {
         </motion.button>
 
         <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
+          animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+          transition={prefersReducedMotion ? undefined : { duration: 0.36, delay: 0.06 }}
           className="hidden md:block text-4xl md:text-5xl font-bold font-serif mb-4 md:mb-6"
         >
           {t("gallery.title")}
         </motion.h2>
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
+          animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+          transition={prefersReducedMotion ? undefined : { duration: 0.36, delay: 0.1 }}
           className="hidden md:block text-gray-400 max-w-xl mx-auto mb-6 md:mb-8 text-sm md:text-base"
         >
           {t("gallery.subtitle")}
         </motion.p>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
+          animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+          transition={prefersReducedMotion ? undefined : { duration: 0.36, delay: 0.14 }}
           className="hidden md:flex flex-col items-center gap-6 relative z-50"
         >
           <SortSelector sort={sort} onSortChange={setSort} />
@@ -464,27 +465,27 @@ const Gallery = () => {
       {/* Mobile Sort Drawer (Bottom Sheet) */}
       {createPortal(
         isMobileSortOpen ? (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              onClick={() => setIsMobileSortOpen(false)}
-              className={`fixed inset-0 backdrop-blur-sm z-[100] md:hidden ${isDayMode ? "bg-white/62" : "bg-black/60"}`}
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 16 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ type: "spring", damping: 28, stiffness: 320 }}
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="gallery-mobile-sort-title"
-              className={`fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit backdrop-blur-xl border rounded-3xl z-[101] md:hidden flex flex-col max-w-sm mx-auto ${
+            <>
+              <motion.div
+                initial={prefersReducedMotion ? false : { opacity: 0 }}
+                animate={prefersReducedMotion ? undefined : { opacity: 1 }}
+                onClick={() => setIsMobileSortOpen(false)}
+                className={`fixed inset-0 z-[100] md:hidden ${isDayMode ? "bg-white/62" : "bg-black/60"}`}
+              />
+              <motion.div
+                initial={prefersReducedMotion ? false : { y: 28 }}
+                animate={prefersReducedMotion ? undefined : { y: 0 }}
+                transition={prefersReducedMotion ? undefined : { duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="gallery-mobile-sort-title"
+                className={`fixed inset-x-0 bottom-0 z-[101] mx-auto flex max-h-[78dvh] w-full max-w-md flex-col overflow-y-auto border-t md:hidden ${
                 isDayMode
-                  ? "day-fine-surface"
-                  : "bg-[#1a1a1a]/95 border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
+                  ? "bg-white border-slate-200/80 shadow-[0_-16px_40px_rgba(148,163,184,0.18)]"
+                  : "bg-[#1a1a1a] border-white/10 shadow-[0_-18px_48px_rgba(0,0,0,0.42)]"
               }`}
             >
-              <div className={`p-4 border-b flex justify-between items-center sticky top-0 z-10 backdrop-blur-xl rounded-t-3xl ${isDayMode ? "border-slate-200/70 bg-white/72" : "border-white/10 bg-[#1a1a1a]/95"}`}>
+              <div className={`p-4 border-b flex justify-between items-center sticky top-0 z-10 ${isDayMode ? "border-slate-200/70 bg-white" : "border-white/10 bg-[#1a1a1a]"}`}>
                 <div>
                   <h3
                     id="gallery-mobile-sort-title"

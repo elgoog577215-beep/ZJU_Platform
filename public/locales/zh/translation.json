@@ -2541,6 +2541,19 @@
     }
   },
   "profiles": {
+    "directory_title": "主体目录",
+    "directory_desc": "浏览个人、社团、学校、企业和组织主体主页",
+    "search_placeholder": "搜索主体",
+    "empty": "暂无匹配主体",
+    "types": {
+      "all": "全部",
+      "person": "个人",
+      "club": "社团",
+      "school": "学校",
+      "enterprise": "企业",
+      "organization": "组织",
+      "subject": "主体"
+    },
     "verification": {
       "official": "官方认证",
       "organization": "认证组织",

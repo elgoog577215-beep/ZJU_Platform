@@ -1,56 +1,26 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 
 /**
  * Skeleton Loader Component - Glassmorphism Style
  * Maintains the site's visual aesthetic while loading
  */
 
-const shimmerVariants = {
-  initial: { x: '-100%' },
-  animate: { 
-    x: '100%',
-    transition: {
-      repeat: Infinity,
-      duration: 1.5,
-      ease: 'linear'
-    }
-  }
-};
-
-const pulseVariants = {
-  animate: {
-    opacity: [0.5, 1, 0.5],
-    transition: {
-      duration: 1.5,
-      repeat: Infinity,
-      ease: 'easeInOut'
-    }
-  }
-};
-
 // Base skeleton item with glass effect
 const SkeletonItem = ({ className = '', variant = 'shimmer' }) => {
   return (
-    <motion.div
-      variants={pulseVariants}
-      animate="animate"
+    <div
       className={`
         relative overflow-hidden rounded-xl
         bg-white/5 backdrop-blur-sm
         border border-white/5
+        animate-skeleton-pulse
         ${className}
       `}
     >
       {variant === 'shimmer' && (
-        <motion.div
-          variants={shimmerVariants}
-          initial="initial"
-          animate="animate"
-          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
-        />
+        <div className="absolute inset-0 animate-skeleton-shimmer bg-gradient-to-r from-transparent via-white/10 to-transparent" />
       )}
-    </motion.div>
+    </div>
   );
 };
 

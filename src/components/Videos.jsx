@@ -46,7 +46,7 @@ const VideoCard = memo(
           src={getThumbnailUrl(video.thumbnail)}
           alt={video.title}
           type="video"
-          priority={index < 4}
+          priority={index === 0}
           className="w-full h-full"
           imageClassName="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100"
           iconSize={48}
@@ -308,10 +308,9 @@ const Videos = () => {
         </div>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
+          animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+          transition={prefersReducedMotion ? undefined : { duration: 0.32 }}
           className="mb-4 md:mb-12 text-center"
         >
           <div className="md:hidden text-left mb-3">
@@ -345,19 +344,19 @@ const Videos = () => {
           isMobileSortOpen ? (
             <>
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+                initial={prefersReducedMotion ? false : { opacity: 0 }}
+                animate={prefersReducedMotion ? undefined : { opacity: 1 }}
                 onClick={() => setIsMobileSortOpen(false)}
-                className={`fixed inset-0 backdrop-blur-sm z-[100] md:hidden ${isDayMode ? "bg-white/70" : "bg-black/60"}`}
+                className={`fixed inset-0 z-[100] md:hidden ${isDayMode ? "bg-white/62" : "bg-black/60"}`}
               />
               <motion.div
-                initial={{ opacity: 0, scale: 0.96, y: 16 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ type: "spring", damping: 28, stiffness: 320 }}
+                initial={prefersReducedMotion ? false : { y: 28 }}
+                animate={prefersReducedMotion ? undefined : { y: 0 }}
+                transition={prefersReducedMotion ? undefined : { duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="videos-mobile-sort-title"
-                className={`fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit border z-[101] md:hidden flex flex-col max-w-sm mx-auto ${isDayMode ? "bg-white/96 border-slate-200/80 shadow-[0_20px_48px_rgba(148,163,184,0.18)]" : "bg-[#1a1a1a]/95 border-white/10 shadow-[0_18px_48px_rgba(0,0,0,0.42)]"}`}
+                className={`fixed inset-x-0 bottom-0 z-[101] mx-auto flex max-h-[78dvh] w-full max-w-md flex-col overflow-y-auto border-t md:hidden ${isDayMode ? "bg-white border-slate-200/80 shadow-[0_-16px_40px_rgba(148,163,184,0.18)]" : "bg-[#1a1a1a] border-white/10 shadow-[0_-18px_48px_rgba(0,0,0,0.42)]"}`}
               >
                 <div className={`p-4 border-b flex justify-between items-center sticky top-0 z-10 ${isDayMode ? "bg-white/96 border-slate-200/80" : "bg-[#1a1a1a]/95 border-white/10"}`}>
                   <div>

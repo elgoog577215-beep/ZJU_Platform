@@ -2441,6 +2441,19 @@
     }
   },
   "profiles": {
+    "directory_title": "Profile Directory",
+    "directory_desc": "Browse personal, club, school, enterprise, and organization profiles.",
+    "search_placeholder": "Search profiles",
+    "empty": "No matching profiles",
+    "types": {
+      "all": "All",
+      "person": "Person",
+      "club": "Club",
+      "school": "School",
+      "enterprise": "Enterprise",
+      "organization": "Organization",
+      "subject": "Profile"
+    },
     "verification": {
       "official": "Official",
       "organization": "Verified Organization",

@@ -8,18 +8,6 @@ import { useSettings } from "../context/SettingsContext";
 import SEO from "./SEO";
 import OfficialVerificationBadge from "./OfficialVerificationBadge";
 
-const PROFILE_TYPES = [
-  { value: "", label: "全部" },
-  { value: "person", label: "个人" },
-  { value: "club", label: "社团" },
-  { value: "school", label: "学校" },
-  { value: "enterprise", label: "企业" },
-  { value: "organization", label: "组织" },
-];
-
-const typeLabel = (type) =>
-  PROFILE_TYPES.find((item) => item.value === type)?.label || "主体";
-
 const profilePath = (profile) =>
   profile.type === "person" ? `/u/${profile.handle}` : `/org/${profile.handle}`;
 
@@ -28,16 +16,40 @@ const ProfileDirectory = () => {
   const { uiMode } = useSettings();
   const isDayMode = uiMode === "day";
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [type, setType] = useState("");
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const profileTypes = useMemo(
+    () => [
+      { value: "", label: t("profiles.types.all", "全部") },
+      { value: "person", label: t("profiles.types.person", "个人") },
+      { value: "club", label: t("profiles.types.club", "社团") },
+      { value: "school", label: t("profiles.types.school", "学校") },
+      { value: "enterprise", label: t("profiles.types.enterprise", "企业") },
+      { value: "organization", label: t("profiles.types.organization", "组织") },
+    ],
+    [t],
+  );
+
   const params = useMemo(() => {
     const next = {};
-    if (query.trim()) next.q = query.trim();
+    if (debouncedQuery.trim()) next.q = debouncedQuery.trim();
     if (type) next.type = type;
     return next;
-  }, [query, type]);
+  }, [debouncedQuery, type]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 250);
+    return () => window.clearTimeout(timeoutId);
+  }, [query]);
+
+  const typeLabelFor = (value) =>
+    profileTypes.find((item) => item.value === value)?.label ||
+    t("profiles.types.subject", "主体");
 
   useEffect(() => {
     let active = true;
@@ -65,7 +77,9 @@ const ProfileDirectory = () => {
         <div className="mb-4 flex flex-col gap-3 md:mb-6 md:flex-row md:items-end md:justify-between md:gap-4">
           <div>
             <p className={`text-[11px] font-black uppercase tracking-[0.18em] md:text-xs md:tracking-[0.22em] ${isDayMode ? "text-indigo-700" : "text-indigo-300"}`}>Profiles</p>
-            <h1 className="mt-1 text-2xl font-black tracking-tight md:mt-2 md:text-3xl">主体目录</h1>
+            <h1 className="mt-1 text-2xl font-black tracking-tight md:mt-2 md:text-3xl">
+              {t("profiles.directory_title", "主体目录")}
+            </h1>
           </div>
           <div className="flex w-full flex-col gap-2 sm:flex-row md:w-auto">
             <div className="relative min-w-0 flex-1 md:w-72">
@@ -73,7 +87,7 @@ const ProfileDirectory = () => {
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="搜索主体"
+                placeholder={t("profiles.search_placeholder", "搜索主体")}
                 className={`min-h-10 w-full rounded-[6px] border py-2 pl-10 pr-3 text-sm outline-none md:min-h-[44px] md:py-2.5 ${isDayMode ? "border-slate-200 bg-white text-slate-950" : "border-white/10 bg-white/5 text-white"}`}
               />
             </div>
@@ -82,7 +96,7 @@ const ProfileDirectory = () => {
               onChange={(event) => setType(event.target.value)}
               className={`min-h-10 rounded-[6px] border px-3 py-2 text-sm outline-none md:min-h-[44px] md:py-2.5 ${isDayMode ? "border-slate-200 bg-white text-slate-950" : "border-white/10 bg-white/5 text-white"}`}
             >
-              {PROFILE_TYPES.map((item) => (
+              {profileTypes.map((item) => (
                 <option key={item.value || "all"} value={item.value}>
                   {item.label}
                 </option>
@@ -97,7 +111,7 @@ const ProfileDirectory = () => {
           </div>
         ) : profiles.length === 0 ? (
           <div className={`rounded-[6px] border p-5 text-center text-sm md:p-8 ${isDayMode ? "border-slate-200 bg-white text-slate-500" : "border-white/10 bg-white/[0.03] text-white/50"}`}>
-            暂无匹配主体
+            {t("profiles.empty", "暂无匹配主体")}
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -124,7 +138,7 @@ const ProfileDirectory = () => {
                         <OfficialVerificationBadge profile={profile} compact isDayMode={isDayMode} />
                       </div>
                       <p className={`mt-1 text-xs ${isDayMode ? "text-slate-500" : "text-white/45"}`}>
-                        {typeLabel(profile.type)} · @{profile.handle}
+                        {typeLabelFor(profile.type)} · @{profile.handle}
                       </p>
                       {(profile.bio || profile.description) ? (
                         <p className={`mt-2 line-clamp-2 text-xs leading-5 md:mt-3 md:text-sm md:leading-6 ${isDayMode ? "text-slate-600" : "text-white/65"}`}>

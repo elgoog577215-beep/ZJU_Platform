@@ -313,7 +313,7 @@ const EventCard = memo(
             src={getThumbnailUrl(event.image)}
             alt={event.title}
             loading="lazy"
-            priority={index < 6}
+            priority={index === 0}
             className="absolute inset-0 w-full h-full"
             imageClassName="w-full h-full object-cover"
           />
@@ -525,7 +525,7 @@ const EventListRow = memo(
             src={getThumbnailUrl(event.image)}
             alt={event.title}
             loading="lazy"
-            priority={index < 8}
+            priority={index === 0}
             className="absolute inset-0 h-full w-full"
             imageClassName="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           />

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { Suspense, lazy, useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Cloud,
@@ -41,14 +41,15 @@ import {
   navEntrance,
   useReducedMotion,
 } from "../utils/animations";
-import AuthModal from "./AuthModal";
-import NotificationCenter from "./NotificationCenter";
 import ReactDOM from "react-dom";
 import toast from "react-hot-toast";
 
 const Portal = ({ children }) => {
   return ReactDOM.createPortal(children, document.body);
 };
+
+const AuthModal = lazy(() => import("./AuthModal"));
+const NotificationCenter = lazy(() => import("./NotificationCenter"));
 
 const Navbar = () => {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -402,10 +403,14 @@ const Navbar = () => {
           <Wallpaper size={18} aria-hidden="true" />
         </button>
 
-        <NotificationCenter
-          enabled={isDesktopViewport}
-          onUnreadCountChange={setUnreadNotificationCount}
-        />
+        {isDesktopViewport && (
+          <Suspense fallback={null}>
+            <NotificationCenter
+              enabled
+              onUnreadCountChange={setUnreadNotificationCount}
+            />
+          </Suspense>
+        )}
 
         <LanguageSwitcher />
 
@@ -965,7 +970,11 @@ const Navbar = () => {
         )}
       </AnimatePresence>
 
-      <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
+      {isAuthOpen && (
+        <Suspense fallback={null}>
+          <AuthModal isOpen onClose={() => setIsAuthOpen(false)} />
+        </Suspense>
+      )}
     </motion.nav>
   );
 };

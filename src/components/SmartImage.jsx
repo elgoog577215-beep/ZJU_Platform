@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { motion } from 'framer-motion';
 import { FileText, Film, Image as ImageIcon, Calendar, Music, AlertCircle } from 'lucide-react';
 import { getOriginalUploadUrl, normalizeExternalImageUrl } from '../utils/imageUtils';
 import { useSettings } from '../context/SettingsContext';
@@ -185,25 +184,23 @@ const SmartImage = ({
 
       {/* Actual Image */}
       {isInView && (
-        <motion.img
+        <img
           ref={imgRef}
           key={`${imageSrc}-${retryCount}`}
           src={imageSrc}
           alt={alt || ''}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: loaded ? 1 : 0 }}
-          transition={{ duration: 0.4, ease: 'easeOut' }}
           onLoad={handleLoad}
           onError={handleError}
           className={`
             w-full h-full
-            transition-all duration-700
+            transition-opacity duration-300
             ${loaded ? 'opacity-100' : 'opacity-0 invisible'}
             ${imageClassName}
           `}
           style={{ objectFit }}
           loading={priority ? 'eager' : 'lazy'}
-          decoding={priority ? 'sync' : 'async'}
+          decoding="async"
+          fetchPriority={priority ? 'high' : 'auto'}
           {...props}
         />
       )}

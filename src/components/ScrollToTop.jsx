@@ -2,24 +2,36 @@ import React, { useState, useEffect } from 'react';
 import { ArrowUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const ScrollToTop = () => {
   const [isVisible, setIsVisible] = useState(false);
   const location = useLocation();
   const isAboutPage = location.pathname === '/about';
+  const isDesktopViewport = useMediaQuery('(min-width: 768px)');
 
   useEffect(() => {
+    if (!isDesktopViewport) {
+      setIsVisible(false);
+      return undefined;
+    }
+
+    let frameId = 0;
     const toggleVisibility = () => {
-      if (window.pageYOffset > 300) {
-        setIsVisible(true);
-      } else {
-        setIsVisible(false);
-      }
+      if (frameId) return;
+      frameId = window.requestAnimationFrame(() => {
+        frameId = 0;
+        setIsVisible(window.pageYOffset > 300);
+      });
     };
 
-    window.addEventListener('scroll', toggleVisibility);
-    return () => window.removeEventListener('scroll', toggleVisibility);
-  }, []);
+    toggleVisibility();
+    window.addEventListener('scroll', toggleVisibility, { passive: true });
+    return () => {
+      if (frameId) window.cancelAnimationFrame(frameId);
+      window.removeEventListener('scroll', toggleVisibility);
+    };
+  }, [isDesktopViewport]);
 
   const scrollToTop = () => {
     window.scrollTo({
@@ -27,6 +39,8 @@ const ScrollToTop = () => {
       behavior: 'smooth',
     });
   };
+
+  if (!isDesktopViewport) return null;
 
   return (
     <AnimatePresence>

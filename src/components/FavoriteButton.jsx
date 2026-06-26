@@ -124,7 +124,7 @@ const FavoriteButton = ({
     aria-label={favoriteLabel}
     aria-pressed={isFavorited}
     data-testid={testId}
-    className={`flex items-center justify-center gap-1.5 group ${className}`}
+    className={`flex min-h-10 min-w-10 items-center justify-center gap-1.5 group ${className}`}
     disabled={loading}
   >
       <div className="relative">

@@ -74,7 +74,7 @@ const PartnerLogo = ({ partner, name, isDayMode, size = "md" }) => {
           src={logoSrc}
           alt={`${name} logo`}
           className="max-h-[70%] max-w-full object-contain"
-          loading="eager"
+          loading="lazy"
           decoding="async"
         />
       </span>
@@ -253,7 +253,7 @@ const OrganizationPartnerWall = ({
             </div>
           </div>
 
-          <div className="scrollbar-none flex min-w-0 flex-1 gap-1.5 overflow-x-auto px-1 py-0.5 md:gap-2">
+          <div className="scrollbar-none flex min-w-0 flex-1 gap-1.5 overflow-x-auto overscroll-x-contain px-1 py-0.5 md:gap-2">
             {mobilePreviewPartners.map((partner) => {
               const name = getLocalizedPartnerName(partner, language);
               return (
