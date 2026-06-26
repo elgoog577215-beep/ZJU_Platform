@@ -85,6 +85,29 @@ const isPublishableTab = (tab) => ['featured', 'tech', 'help', 'materials', 'new
 const MOBILE_COMMUNITY_QUERY = '(max-width: 1279px)';
 const MOBILE_ONLY_TABS = new Set(POST_TABS.filter((tab) => tab.mobileOnly).map((tab) => tab.key));
 
+const CommunityPaneFallback = ({ isDayMode, label }) => (
+  <div
+    className={`rounded-lg border p-4 md:p-5 ${
+      isDayMode ? 'border-slate-200 bg-white/75' : 'border-white/10 bg-white/[0.035]'
+    }`}
+    role="status"
+    aria-live="polite"
+  >
+    <div className="mb-4 flex items-center justify-between gap-4">
+      <div className={`h-4 w-28 animate-pulse rounded ${isDayMode ? 'bg-slate-200' : 'bg-white/10'}`} />
+      <span className={`text-xs font-semibold ${isDayMode ? 'text-slate-400' : 'text-gray-500'}`}>{label}</span>
+    </div>
+    <div className="grid gap-3 md:grid-cols-2">
+      {[0, 1, 2, 3].map((item) => (
+        <div
+          key={item}
+          className={`h-28 animate-pulse rounded-lg ${isDayMode ? 'bg-slate-100' : 'bg-white/[0.055]'}`}
+        />
+      ))}
+    </div>
+  </div>
+);
+
 const CommunityPosts = ({ headingCode, headingTitle }) => {
   const { t, i18n } = useTranslation();
   const { uiMode } = useSettings();
@@ -299,11 +322,14 @@ const CommunityPosts = ({ headingCode, headingTitle }) => {
           isDayMode ? 'border-slate-200/80' : 'border-white/10'
         }`}
       >
-        <div className="scrollbar-none flex gap-1 overflow-x-auto">
+        <div className="scrollbar-none flex gap-1 overflow-x-auto" role="tablist">
           {POST_TABS.map(({ key, labelKey, fallback, icon: Icon, mobileOnly }) => (
             <button
               key={key}
               type="button"
+              role="tab"
+              aria-selected={activeTab === key}
+              aria-current={activeTab === key ? 'page' : undefined}
               onClick={() => handleTabChange(key)}
               className={`inline-flex min-h-10 shrink-0 items-center justify-center gap-1.5 border-b-2 px-2.5 text-xs font-bold transition-colors md:min-h-[44px] md:flex-1 md:px-3 ${
                 mobileOnly ? 'xl:hidden' : ''
@@ -324,7 +350,7 @@ const CommunityPosts = ({ headingCode, headingTitle }) => {
         </div>
       </nav>
 
-      <Suspense fallback={null}>
+      <Suspense fallback={<CommunityPaneFallback isDayMode={isDayMode} label={t('community.loading_content', '正在加载社区内容...')} />}>
         {activeTab === 'featured' ? renderFeatured() : null}
         {activeTab === 'tech' ? <CommunityTech hideNewPostButton /> : null}
         {activeTab === 'help' ? <CommunityHelp hideNewPostButton /> : null}

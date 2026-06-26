@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
 import { useTranslation } from 'react-i18next';
 import { useSettings } from '../context/SettingsContext';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const TAG_CACHE = new Map();
 
@@ -16,18 +17,8 @@ const TagFilter = ({ selectedTags = [], onChange, className, variant = 'card', t
   const [isFetching, setIsFetching] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useMediaQuery('(max-width: 767px)');
   const [isMobileCollapsed, setIsMobileCollapsed] = useState(true);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   // Serialize filters to a stable string for use as effect dependency
   const filtersKey = JSON.stringify(filters);

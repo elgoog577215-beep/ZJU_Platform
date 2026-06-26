@@ -512,7 +512,14 @@
     "material_semester_placeholder": "e.g. 2025-2026 Autumn-Winter"
   },
   "search": {
-    "placeholder": "Search content..."
+    "placeholder": "Search content...",
+    "no_results": "No results for \"{{query}}\"",
+    "empty_hint": "Search articles, videos, podcasts, or events...",
+    "min_chars": "Enter at least 2 characters to search",
+    "footer_hint": "Use ↑↓ to navigate and Enter to select",
+    "brand_search": "Lumos Smart Search",
+    "ai_search": "Sitewide AI Search",
+    "result_meta": "{{time}}ms · {{count}} results"
   },
   "hero": {
     "title": "CAPTURE",
@@ -879,6 +886,7 @@
     "searching": "Searching...",
     "clear": "Clear",
     "done": "Done",
+    "scroll_to_top": "Scroll to top",
     "sort": "Sort",
     "filters": "Filters",
     "or": "or",
@@ -997,7 +1005,8 @@
     "no_tracks": "No podcast episodes yet. Upload one now!",
     "now_playing": "Now Playing",
     "select_track": "Select a track",
-    "to_start": "to start listening"
+    "to_start": "to start listening",
+    "progress": "Playback progress"
   },
   "articles": {
     "title": "AI Columns",

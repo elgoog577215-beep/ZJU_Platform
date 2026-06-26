@@ -33,6 +33,20 @@ const SidebarCard = ({ icon: Icon, code, title, isDayMode, children }) => (
   </div>
 );
 
+const SidebarFallback = ({ isDayMode, label }) => (
+  <div
+    className={`rounded-lg border p-4 ${
+      isDayMode ? "border-slate-200 bg-white/75" : "border-white/10 bg-white/[0.035]"
+    }`}
+    role="status"
+    aria-live="polite"
+  >
+    <div className={`mb-3 h-3 w-24 animate-pulse rounded ${isDayMode ? "bg-slate-200" : "bg-white/10"}`} />
+    <div className={`h-20 animate-pulse rounded-lg ${isDayMode ? "bg-slate-100" : "bg-white/[0.055]"}`} />
+    <span className="sr-only">{label}</span>
+  </div>
+);
+
 const DESKTOP_RAIL_QUERY = "(min-width: 1280px)";
 const MOBILE_COMMUNITY_QUERY = "(max-width: 1279px)";
 const VALID_POST_TABS = new Set(["tech", "help", "materials", "news", "team", "podcast", "groups"]);
@@ -145,7 +159,7 @@ const AICommunity = () => {
               isDayMode={isDayMode}
               compactOnMobile
             />
-            <Suspense fallback={null}>
+            <Suspense fallback={<SidebarFallback isDayMode={isDayMode} label={t("community.loading_content", "正在加载社区内容...")} />}>
               {isDesktopRail ? (
                 <Music embedded singleColumn sidebarCompact />
               ) : (
@@ -162,7 +176,7 @@ const AICommunity = () => {
                 title={t("community.sidebar_groups_title", "二维码社群")}
                 isDayMode={isDayMode}
               >
-                <Suspense fallback={null}>
+                <Suspense fallback={<SidebarFallback isDayMode={isDayMode} label={t("community.loading_content", "正在加载社区内容...")} />}>
                   <CommunityGroups compact compactLimit={2} />
                 </Suspense>
               </SidebarCard>

@@ -561,7 +561,9 @@
     "empty_hint": "搜索文章、视频、音乐或活动...",
     "min_chars": "输入至少 2 个字符以开始搜索",
     "footer_hint": "使用 ↑↓ 键导航，Enter 键选择",
-    "brand_search": "Lumos 智能搜索"
+    "brand_search": "Lumos 智能搜索",
+    "ai_search": "全站 AI 搜索",
+    "result_meta": "{{time}}ms · {{count}} 条结果"
   },
   "hero": {
     "title": "捕捉",
@@ -899,6 +901,7 @@
     "admin_name": "Lumos 管理员",
     "search": "搜索...",
     "search_placeholder": "搜索活动...",
+    "scroll_to_top": "返回顶部",
     "link_copied": "链接已复制到剪贴板！",
     "loading": "加载中...",
     "uploading": "上传中",
@@ -1054,7 +1057,8 @@
     "no_tracks": "暂无播客，上传一些播客吧！",
     "now_playing": "正在播放",
     "select_track": "选择一首曲目",
-    "to_start": "开始聆听"
+    "to_start": "开始聆听",
+    "progress": "播放进度"
   },
   "articles": {
     "title": "AI专栏",

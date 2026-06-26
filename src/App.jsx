@@ -25,10 +25,6 @@ import { getOrCreateSiteVisitorKey } from './utils/visitorKey';
 import SEO from './components/SEO';
 
 import Navbar from './components/Navbar';
-import ScrollToTop from './components/ScrollToTop';
-import CustomCursor from './components/CustomCursor';
-import ScrollProgress from './components/ScrollProgress';
-import PWAInstallPrompt from './components/PWAInstallPrompt';
 import MobileNavbar from './components/MobileNavbar';
 import Footer from './components/Footer';
 import LoadingScreen from './components/LoadingScreen';
@@ -99,8 +95,12 @@ const ProfilePage = lazyRoute(() => import('./components/ProfilePage'));
 const ProfileDirectory = lazyRoute(() => import('./components/ProfileDirectory'));
 const ProjectPlaza = lazyRoute(() => import('./components/ProjectPlaza'));
 const SearchPalette = lazyRoute(() => import('./components/SearchPalette'));
+const CustomCursor = lazyRoute(() => import('./components/CustomCursor'));
 const GlobalPlayer = lazyRoute(() => import('./components/GlobalPlayer'));
 const BackgroundSystem = lazyRoute(() => import('./components/BackgroundSystem'));
+const ScrollProgress = lazyRoute(() => import('./components/ScrollProgress'));
+const ScrollToTop = lazyRoute(() => import('./components/ScrollToTop'));
+const PWAInstallPrompt = lazyRoute(() => import('./components/PWAInstallPrompt'));
 const PerformancePanel = lazyRoute(() => import('./components/PerformancePanel'));
 
 const useDeferredMount = (delay = 0) => {
@@ -315,8 +315,20 @@ const AppContent = () => {
             <Navbar />
           </ErrorBoundary>
         )}
-        {!hideGlobalShell && !isAdminRoute && cursorEnabled && hasDesktopPointer && !isLowPowerDevice && <CustomCursor />}
-        {!isAdminRoute && !isImmersiveRoute && hasDesktopPointer && !isLowPowerDevice && <ScrollProgress />}
+        {!hideGlobalShell && !isAdminRoute && cursorEnabled && hasDesktopPointer && !isLowPowerDevice && shouldMountDeferredUi && (
+          <ErrorBoundary variant="inline" silent>
+            <Suspense fallback={null}>
+              <CustomCursor />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+        {!isAdminRoute && !isImmersiveRoute && hasDesktopPointer && !isLowPowerDevice && shouldMountDeferredUi && (
+          <ErrorBoundary variant="inline" silent>
+            <Suspense fallback={null}>
+              <ScrollProgress />
+            </Suspense>
+          </ErrorBoundary>
+        )}
 
         {shouldMountDeferredUi && (
           <ErrorBoundary variant="inline" silent>
@@ -376,8 +388,18 @@ const AppContent = () => {
           </ErrorBoundary>
         )}
         {!hideGlobalShell && !isAdminRoute && <MobileNavbar />}
-        {!isImmersiveRoute && <ScrollToTop />}
-        <PWAInstallPrompt />
+        {!isImmersiveRoute && shouldMountDeferredUi && (
+          <ErrorBoundary variant="inline" silent>
+            <Suspense fallback={null}>
+              <ScrollToTop />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+        <ErrorBoundary variant="inline" silent>
+          <Suspense fallback={null}>
+            <PWAInstallPrompt />
+          </Suspense>
+        </ErrorBoundary>
         {import.meta.env.DEV && shouldMountLateDebugUi && (
           <Suspense fallback={null}>
             <PerformancePanel />

@@ -729,7 +729,7 @@ const Music = ({ embedded = false, singleColumn = false, sidebarCompact = false 
             {/* Vinyl / Cover */}
             <div className="flex justify-center mb-4 md:mb-6">
               <div
-                className={`relative rounded-full border-4 overflow-hidden animate-[spin_4s_linear_infinite] ${singleColumn ? "w-32 h-32" : "w-48 h-48 md:w-56 md:h-56"} ${isDayMode ? "border-slate-200/90 shadow-[0_20px_50px_rgba(148,163,184,0.24)]" : "border-white/10 shadow-2xl"}`}
+                className={`relative rounded-full border-4 overflow-hidden ${isPlaying && !prefersReducedMotion ? "animate-[spin_4s_linear_infinite]" : ""} ${singleColumn ? "w-32 h-32" : "w-48 h-48 md:w-56 md:h-56"} ${isDayMode ? "border-slate-200/90 shadow-[0_20px_50px_rgba(148,163,184,0.24)]" : "border-white/10 shadow-2xl"}`}
                 style={{ animationPlayState: isPlaying ? "running" : "paused" }}
               >
                 <div

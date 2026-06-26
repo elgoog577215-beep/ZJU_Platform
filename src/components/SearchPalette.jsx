@@ -289,9 +289,13 @@ const SearchPalette = () => {
                           <div className={`flex items-center justify-between gap-3 rounded-[5px] border px-3 py-2 text-xs ${isDayMode ? 'border-slate-200 bg-slate-50 text-slate-500' : 'border-white/10 bg-white/[0.03] text-gray-400'}`}>
                             <span className="inline-flex items-center gap-1">
                               <Sparkles size={13} />
-                              全站 AI 搜索
+                              {t('search.ai_search', '全站 AI 搜索')}
                             </span>
-                            <span>{searchMeta.search_time_ms || 0}ms · {searchMeta.total || results.length} 条结果</span>
+                            <span>{t('search.result_meta', {
+                              time: searchMeta.search_time_ms || 0,
+                              count: searchMeta.total || results.length,
+                              defaultValue: '{{time}}ms · {{count}} 条结果',
+                            })}</span>
                           </div>
                         ) : null}
 

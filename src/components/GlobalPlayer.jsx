@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, memo, useCallback, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Play, Pause, SkipBack, SkipForward, X, Music } from 'lucide-react';
 import { useMusic } from '../context/MusicContext';
@@ -6,6 +6,7 @@ import { useLocation } from 'react-router-dom';
 import { useSettings } from '../context/SettingsContext';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useReducedMotion } from '../utils/animations';
+import { useTranslation } from 'react-i18next';
 
 // Simple Audio Visualizer Component - Memoized
 const Visualizer = memo(({ isPlaying, reduceMotion = false }) => {
@@ -38,7 +39,7 @@ const Visualizer = memo(({ isPlaying, reduceMotion = false }) => {
 Visualizer.displayName = 'Visualizer';
 
 // Memoized Player Info Component
-const PlayerInfo = memo(({ currentTrack, isPlaying, onClose, isDayMode, reduceMotion = false }) => {
+const PlayerInfo = memo(({ currentTrack, isPlaying, onClose, isDayMode, reduceMotion = false, closeLabel }) => {
   return (
     <div className={`flex items-center gap-4 relative z-10 mb-4 backdrop-blur-md rounded-2xl p-3 border shadow-lg ${isDayMode ? 'bg-white/86 border-slate-200/80 shadow-[0_14px_32px_rgba(148,163,184,0.16)]' : 'bg-white/5 border-white/5'}`}>
         {/* Drag Handle Indicator */}
@@ -66,7 +67,7 @@ const PlayerInfo = memo(({ currentTrack, isPlaying, onClose, isDayMode, reduceMo
             <h4 className={`font-bold text-sm truncate leading-tight mb-0.5 ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{currentTrack.title}</h4>
             <p className={`text-[10px] truncate uppercase tracking-wider ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{currentTrack.artist}</p>
             </div>
-            <button onClick={onClose} className={`p-1.5 -mr-1 rounded-full active:scale-95 transition-all ${isDayMode ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}>
+            <button type="button" onClick={onClose} aria-label={closeLabel} className={`p-1.5 -mr-1 rounded-full active:scale-95 transition-all ${isDayMode ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}>
             <X size={16} />
             </button>
         </div>
@@ -77,7 +78,7 @@ const PlayerInfo = memo(({ currentTrack, isPlaying, onClose, isDayMode, reduceMo
 PlayerInfo.displayName = 'PlayerInfo';
 
 // Memoized Progress Bar Component
-const ProgressBar = memo(({ progress, duration, onSeek, isDayMode }) => {
+const ProgressBar = memo(({ progress, duration, onSeek, isDayMode, label }) => {
   const formatTime = (time) => {
     if (!time) return "0:00";
     const mins = Math.floor(time / 60);
@@ -93,6 +94,7 @@ const ProgressBar = memo(({ progress, duration, onSeek, isDayMode }) => {
         min="0"
         max={duration || 100}
         value={progress}
+        aria-label={label}
         onChange={onSeek}
         className={`flex-1 h-0.5 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2 [&::-webkit-slider-thumb]:h-2 [&::-webkit-slider-thumb]:rounded-full hover:[&::-webkit-slider-thumb]:scale-125 transition-all ${isDayMode ? 'bg-violet-100 [&::-webkit-slider-thumb]:bg-violet-600' : 'bg-white/20 [&::-webkit-slider-thumb]:bg-cyan-500'}`}
         />
@@ -103,19 +105,21 @@ const ProgressBar = memo(({ progress, duration, onSeek, isDayMode }) => {
 ProgressBar.displayName = 'ProgressBar';
 
 // Memoized Controls Component
-const PlayerControls = memo(({ isPlaying, onPlayPause, onNext, onPrev, isDayMode }) => {
+const PlayerControls = memo(({ isPlaying, onPlayPause, onNext, onPrev, isDayMode, labels }) => {
   return (
     <div className="flex items-center justify-center gap-4 relative z-10 group">
-        <button onClick={onPrev} className={`p-2.5 md:p-3 rounded-full transition-all hover:scale-110 active:scale-95 ${isDayMode ? 'text-slate-700 hover:bg-slate-100' : 'text-white hover:bg-white/10'}`}>
+        <button type="button" onClick={onPrev} aria-label={labels.previous} className={`p-2.5 md:p-3 rounded-full transition-all hover:scale-110 active:scale-95 ${isDayMode ? 'text-slate-700 hover:bg-slate-100' : 'text-white hover:bg-white/10'}`}>
             <SkipBack size={20} className="w-5 h-5 md:w-6 md:h-6" />
         </button>
         <button 
+            type="button"
             onClick={onPlayPause} 
+            aria-label={isPlaying ? labels.pause : labels.play}
             className="p-3 md:p-4 bg-white text-black rounded-full hover:scale-110 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)]"
         >
             {isPlaying ? <Pause size={24} className="w-6 h-6 md:w-7 md:h-7 fill-black" /> : <Play size={24} className="w-6 h-6 md:w-7 md:h-7 fill-black ml-1" />}
         </button>
-        <button onClick={onNext} className={`p-2.5 md:p-3 rounded-full transition-all hover:scale-110 active:scale-95 ${isDayMode ? 'text-slate-700 hover:bg-slate-100' : 'text-white hover:bg-white/10'}`}>
+        <button type="button" onClick={onNext} aria-label={labels.next} className={`p-2.5 md:p-3 rounded-full transition-all hover:scale-110 active:scale-95 ${isDayMode ? 'text-slate-700 hover:bg-slate-100' : 'text-white hover:bg-white/10'}`}>
             <SkipForward size={20} className="w-5 h-5 md:w-6 md:h-6" />
         </button>
     </div>
@@ -124,6 +128,7 @@ const PlayerControls = memo(({ isPlaying, onPlayPause, onNext, onPrev, isDayMode
 PlayerControls.displayName = 'PlayerControls';
 
 const GlobalPlayer = () => {
+  const { t } = useTranslation();
   const { currentTrack, isPlaying, togglePlay, nextTrack, prevTrack, audioRef, isMiniPlayerVisible, setIsMiniPlayerVisible } = useMusic();
   const { uiMode } = useSettings();
   const isDayMode = uiMode === 'day';
@@ -132,6 +137,15 @@ const GlobalPlayer = () => {
   const location = useLocation();
   const isMobile = useMediaQuery('(max-width: 767px)');
   const reduceMotion = useReducedMotion();
+  const lastProgressRef = useRef({ progress: 0, duration: 0 });
+  const playerLabels = useMemo(() => ({
+    previous: t('common.previous_track', '上一首'),
+    next: t('common.next_track', '下一首'),
+    play: t('common.play', '播放'),
+    pause: t('common.pause', '暂停'),
+    close: t('common.close', '关闭'),
+    progress: t('music.progress', '播放进度'),
+  }), [t]);
 
   useEffect(() => {
     if (!currentTrack || !isMiniPlayerVisible) return undefined;
@@ -140,8 +154,17 @@ const GlobalPlayer = () => {
     if (!audio) return;
     
     const updateProgress = () => {
-      setProgress(audio.currentTime);
-      setDuration(audio.duration || 0);
+      const nextProgress = audio.currentTime || 0;
+      const nextDuration = audio.duration || 0;
+      const last = lastProgressRef.current;
+      if (Math.abs(nextProgress - last.progress) >= 0.25 || nextProgress === 0) {
+        last.progress = nextProgress;
+        setProgress(nextProgress);
+      }
+      if (nextDuration !== last.duration) {
+        last.duration = nextDuration;
+        setDuration(nextDuration);
+      }
     };
 
     audio.addEventListener('timeupdate', updateProgress);
@@ -157,6 +180,7 @@ const GlobalPlayer = () => {
     const newTime = parseFloat(e.target.value);
     if (audioRef.current) {
         audioRef.current.currentTime = newTime;
+        lastProgressRef.current.progress = newTime;
         setProgress(newTime);
     }
   }, [audioRef]);
@@ -181,7 +205,7 @@ const GlobalPlayer = () => {
             <div className={`backdrop-blur-2xl border rounded-full p-2 pr-4 flex items-center justify-between pointer-events-auto ring-1 ${isDayMode ? 'bg-white/92 border-slate-200/80 shadow-[0_12px_32px_rgba(148,163,184,0.24)] ring-slate-200/70' : 'bg-black/60 border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] ring-white/5'}`}>
                 <div className="flex items-center gap-3 overflow-hidden">
                     <div 
-                        className={`relative w-10 h-10 rounded-full border overflow-hidden shrink-0 animate-[spin_4s_linear_infinite] ${isDayMode ? 'border-slate-200/90' : 'border-white/10'}`}
+                        className={`relative w-10 h-10 rounded-full border overflow-hidden shrink-0 ${isPlaying && !reduceMotion ? 'animate-[spin_4s_linear_infinite]' : ''} ${isDayMode ? 'border-slate-200/90' : 'border-white/10'}`}
                         style={{ animationPlayState: isPlaying ? 'running' : 'paused' }}
                     >
                         <img 
@@ -203,19 +227,25 @@ const GlobalPlayer = () => {
                 
                 <div className="flex items-center gap-2 shrink-0 pl-2">
                      <button 
+                        type="button"
                         onClick={(e) => { e.stopPropagation(); togglePlay(); }}
+                        aria-label={isPlaying ? playerLabels.pause : playerLabels.play}
                         className="w-8 h-8 flex items-center justify-center bg-white text-black rounded-full active:scale-90 transition-transform shadow-lg"
                      >
                         {isPlaying ? <Pause size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" className="ml-0.5" />}
                      </button>
                      <button 
+                        type="button"
                         onClick={(e) => { e.stopPropagation(); nextTrack(); }}
+                        aria-label={playerLabels.next}
                         className={`w-8 h-8 flex items-center justify-center rounded-full active:scale-90 transition-all ${isDayMode ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100' : 'text-white/70 hover:text-white hover:bg-white/10'}`}
                      >
                         <SkipForward size={18} />
                      </button>
                      <button 
+                        type="button"
                         onClick={(e) => { e.stopPropagation(); setIsMiniPlayerVisible(false); }}
+                        aria-label={playerLabels.close}
                         className={`w-8 h-8 flex items-center justify-center rounded-full active:scale-90 transition-all ${isDayMode ? 'text-slate-400 hover:text-slate-800 hover:bg-slate-100' : 'text-white/50 hover:text-white hover:bg-white/10'}`}
                      >
                         <X size={16} />
@@ -250,6 +280,7 @@ const GlobalPlayer = () => {
             onClose={handleClose}
             isDayMode={isDayMode}
             reduceMotion={reduceMotion}
+            closeLabel={playerLabels.close}
         />
 
         <ProgressBar 
@@ -257,6 +288,7 @@ const GlobalPlayer = () => {
             duration={duration} 
             onSeek={handleSeek}
             isDayMode={isDayMode}
+            label={playerLabels.progress}
         />
 
         <PlayerControls 
@@ -265,6 +297,7 @@ const GlobalPlayer = () => {
             onNext={nextTrack} 
             onPrev={prevTrack} 
             isDayMode={isDayMode}
+            labels={playerLabels}
         />
       </div>
     </motion.div>

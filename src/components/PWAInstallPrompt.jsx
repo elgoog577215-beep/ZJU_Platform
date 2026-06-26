@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { useSettings } from "../context/SettingsContext";
 import { isStandaloneDisplay } from "../utils/displayMode";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 
 const PWAInstallPrompt = () => {
   const { t } = useTranslation();
@@ -11,7 +12,7 @@ const PWAInstallPrompt = () => {
   const isDayMode = uiMode === "day";
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showPrompt, setShowPrompt] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useMediaQuery("(max-width: 767px)");
   const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
@@ -29,14 +30,17 @@ const PWAInstallPrompt = () => {
   }, []);
 
   useEffect(() => {
-    const updateViewportState = () => {
-      setIsMobile(window.innerWidth < 768);
-      setIsStandalone(isStandaloneDisplay());
-    };
+    const updateDisplayMode = () => setIsStandalone(isStandaloneDisplay());
+    const standaloneQuery = window.matchMedia?.("(display-mode: standalone)");
+    const fullscreenQuery = window.matchMedia?.("(display-mode: fullscreen)");
 
-    updateViewportState();
-    window.addEventListener("resize", updateViewportState);
-    return () => window.removeEventListener("resize", updateViewportState);
+    updateDisplayMode();
+    standaloneQuery?.addEventListener?.("change", updateDisplayMode);
+    fullscreenQuery?.addEventListener?.("change", updateDisplayMode);
+    return () => {
+      standaloneQuery?.removeEventListener?.("change", updateDisplayMode);
+      fullscreenQuery?.removeEventListener?.("change", updateDisplayMode);
+    };
   }, []);
 
   useEffect(() => {

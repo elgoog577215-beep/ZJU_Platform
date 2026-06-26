@@ -5,6 +5,7 @@ import api from '../services/api';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSettings } from '../context/SettingsContext';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const AdvancedFilter = ({
     filters,
@@ -25,22 +26,14 @@ const AdvancedFilter = ({
     });
 
     const [isFetching, setIsFetching] = useState(false);
-    const [isMobile, setIsMobile] = useState(false);
+    const isMobile = useMediaQuery('(max-width: 767px)');
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [overflowVisible, setOverflowVisible] = useState(false);
     const optionsCacheRef = useRef(new Map());
 
     useEffect(() => {
-        const checkMobile = () => {
-            setIsMobile(window.innerWidth < 768);
-            if (window.innerWidth < 768) setIsCollapsed(true);
-            else setIsCollapsed(false);
-        };
-        
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
-    }, []);
+        setIsCollapsed(isMobile);
+    }, [isMobile]);
 
     const normalizedFilters = useMemo(() => ({
         location: filters?.location || null,
