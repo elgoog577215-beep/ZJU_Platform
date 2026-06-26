@@ -213,21 +213,21 @@ const VideoCard = memo(({ video, index, onClick, onToggleFavorite, canAnimate, i
 VideoCard.displayName = "VideoCard";
 
 const EmptyState = ({ icon: Icon, title, description, accent = "indigo", isDayMode }) => (
-  <div className="flex min-h-[260px] flex-col items-center justify-center px-4 py-16 text-center">
+  <div className="flex min-h-[178px] flex-col items-center justify-center px-4 py-8 text-center md:min-h-[260px] md:py-16">
     <div
-      className={`rounded-xl p-8 mb-6 border ${
+      className={`mb-4 rounded-lg border p-4 md:mb-6 md:rounded-xl md:p-8 ${
         isDayMode ? "bg-white border-slate-200/80" : "bg-white/5 border-white/10"
       }`}
     >
-      <Icon size={56} className={isDayMode ? "text-slate-400" : accent === "pink" ? "text-pink-400 opacity-80" : "text-gray-500"} />
+      <Icon size={36} className={`${isDayMode ? "text-slate-400" : accent === "pink" ? "text-pink-400 opacity-80" : "text-gray-500"} md:h-14 md:w-14`} />
     </div>
-    <h3 className={`text-2xl font-bold mb-2 ${isDayMode ? "text-slate-900" : "text-white"}`}>{title}</h3>
-    <p className={`max-w-md ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>{description}</p>
+    <h3 className={`mb-1.5 text-lg font-bold md:mb-2 md:text-2xl ${isDayMode ? "text-slate-900" : "text-white"}`}>{title}</h3>
+    <p className={`max-w-md text-sm md:text-base ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>{description}</p>
   </div>
 );
 
 const LoadMoreButton = ({ onClick, loading, disabled, isDayMode, loadingLabel, children }) => (
-  <div className="flex items-center justify-center py-8">
+  <div className="flex items-center justify-center py-5 md:py-8">
     <motion.button
       type="button"
       whileHover={!disabled ? { scale: 1.02 } : undefined}
@@ -250,7 +250,7 @@ const MediaCategoryRail = memo(({ categories, activeCategoryId, onChange, isDayM
     ? "focus-visible:ring-blue-400/55"
     : "focus-visible:border-white/[0.22] focus-visible:ring-slate-300/35 focus-visible:shadow-[0_0_0_4px_rgba(148,163,184,0.12)]";
   const channelButtonClass = (active) =>
-    `rect-button relative min-h-[44px] shrink-0 px-4 text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 md:min-h-10 ${nightFocusClass} ${
+    `rect-button relative min-h-9 shrink-0 px-3 text-xs font-bold transition-all focus:outline-none focus-visible:ring-2 md:min-h-10 md:px-4 md:text-sm ${nightFocusClass} ${
       active
         ? isDayMode
           ? "text-slate-950"
@@ -273,22 +273,22 @@ const MediaCategoryRail = memo(({ categories, activeCategoryId, onChange, isDayM
   );
 
   return (
-    <div className="relative z-10 mx-auto w-full max-w-[760px]">
+    <div className="relative z-10 mx-auto w-fit max-w-full md:w-full md:max-w-[760px]">
       <div
-        className={`relative overflow-visible border p-1 ${
+        className={`relative overflow-visible border-0 p-0 md:border md:p-1 ${
           isDayMode
             ? "border-slate-200/80 bg-white shadow-none"
             : "border-white/[0.12] bg-[#070a14]/92 shadow-none"
         }`}
       >
         <div
-          className={`relative min-w-0 overflow-hidden border ${
+          className={`relative min-w-0 overflow-hidden border-0 bg-transparent md:border ${
             isDayMode
-              ? "border-slate-200/80 bg-slate-50"
-              : "border-white/[0.09] bg-[#050712]/88"
+              ? "border-slate-200/80 md:bg-slate-50"
+              : "border-white/[0.09] md:bg-[#050712]/88"
           }`}
         >
-          <div className="scrollbar-none flex min-w-0 items-center gap-1 overflow-x-auto p-0.5 pr-10 md:pr-0.5">
+          <div className="scrollbar-none flex min-w-0 items-center gap-1 overflow-x-auto p-0.5 pr-8 md:pr-0.5">
             <button
               type="button"
               aria-pressed={!activeCategoryId}
@@ -316,7 +316,7 @@ const MediaCategoryRail = memo(({ categories, activeCategoryId, onChange, isDayM
             })}
           </div>
           <div
-            className={`pointer-events-none absolute inset-y-1 right-1 w-10 ${
+            className={`pointer-events-none absolute inset-y-1 right-1 hidden w-8 md:block md:w-10 ${
               isDayMode
                 ? "bg-gradient-to-l from-slate-50 via-slate-50/88 to-transparent"
                 : "bg-gradient-to-l from-[#0a0d14] via-[#0a0d14]/88 to-transparent"
@@ -605,13 +605,13 @@ const MediaLibrary = () => {
           initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
           animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mb-6 md:mb-9 text-center"
+          className="mb-4 md:mb-9 text-center"
         >
-          <div className="md:hidden text-left mb-4">
-            <h1 className={`text-2xl font-bold tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}>
+          <div className="md:hidden mb-3 text-left">
+            <h1 className={`text-xl font-bold tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}>
               {t("media_library.title", "影像库")}
             </h1>
-            <p className={`text-sm mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+            <p className={`mt-1 text-xs ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
               {t("media_library.current_category_label", "当前分类：{{category}}", { category: activeCategoryName })}
             </p>
           </div>
@@ -655,7 +655,7 @@ const MediaLibrary = () => {
             initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
             animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-col items-stretch justify-center gap-3 md:flex-row md:items-center md:gap-4 relative z-50"
+            className="relative z-50 flex flex-col items-stretch justify-center gap-2 md:flex-row md:items-center md:gap-4"
           >
             <MediaCategoryRail
               categories={categories}
@@ -684,11 +684,11 @@ const MediaLibrary = () => {
               </button>
             </div>
           ) : categoriesLoading ? (
-            <p className={`mt-3 text-xs ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+            <p className={`mt-2 text-xs md:mt-3 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
               {t("media_library.category_loading", "正在加载影像分类...")}
             </p>
           ) : categories.length === 0 ? (
-            <p className={`mt-3 text-xs ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+            <p className={`mt-2 text-xs md:mt-3 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
               {t("media_library.no_categories", "暂无影像分类，内容会显示在全部与未分类中。")}
             </p>
           ) : null}
@@ -698,10 +698,10 @@ const MediaLibrary = () => {
           <motion.div
             initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.95 }}
             animate={prefersReducedMotion ? undefined : { opacity: 1, scale: 1 }}
-            className="mb-8 flex flex-col items-center justify-center py-12 text-center"
+            className="mb-6 flex flex-col items-center justify-center py-8 text-center md:mb-8 md:py-12"
           >
-            <AlertCircle size={48} className="text-red-400 mb-4 opacity-50 mx-auto" />
-            <p className={`mb-6 ${isDayMode ? "text-slate-600" : "text-gray-300"}`}>{t("media_library.content_error", "影像内容加载失败，请稍后重试。")}</p>
+            <AlertCircle size={38} className="mx-auto mb-3 text-red-400 opacity-50 md:mb-4 md:h-12 md:w-12" />
+            <p className={`mb-4 text-sm md:mb-6 md:text-base ${isDayMode ? "text-slate-600" : "text-gray-300"}`}>{t("media_library.content_error", "影像内容加载失败，请稍后重试。")}</p>
             <button
               type="button"
               onClick={() => {
@@ -719,14 +719,14 @@ const MediaLibrary = () => {
           </motion.div>
         ) : null}
 
-        <div className="grid gap-10">
+        <div className="grid gap-6 md:gap-10">
           <section className="order-1 min-w-0">
-            <div className="mb-4 flex items-center justify-between gap-4">
+            <div className="mb-3 flex items-center justify-between gap-3 md:mb-4 md:gap-4">
               <div>
-                <h2 className={`text-xl md:text-2xl font-semibold tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}>
+                <h2 className={`text-lg font-semibold tracking-tight md:text-2xl ${isDayMode ? "text-slate-900" : "text-white"}`}>
                   {t("media_library.videos_title", "视频记录")}
                 </h2>
-                <p className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+                <p className={`mt-0.5 text-xs md:mt-1 md:text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
                   {t("media_library.videos_count", "{{visible}} / {{total}} 条视频", { visible: visibleVideoCount, total: totalVideoCount })}
                 </p>
               </div>
@@ -747,7 +747,7 @@ const MediaLibrary = () => {
                 {[...Array(4)].map((_, index) => (
                   <div
                     key={index}
-                    className={`rect-media-card aspect-video animate-pulse relative overflow-hidden ${
+                    className={`rect-media-card relative h-20 animate-pulse overflow-hidden md:aspect-video md:h-auto ${
                       isDayMode ? "bg-white/84 border-slate-200/80" : "bg-[#1a1a1a]/40 border-white/5"
                     }`}
                   />
@@ -793,12 +793,12 @@ const MediaLibrary = () => {
           </section>
 
           <section className="order-2 min-w-0">
-            <div className="mb-4 flex items-center justify-between gap-4">
+            <div className="mb-3 flex items-center justify-between gap-3 md:mb-4 md:gap-4">
               <div>
-                <h2 className={`text-xl md:text-2xl font-semibold tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}>
+                <h2 className={`text-lg font-semibold tracking-tight md:text-2xl ${isDayMode ? "text-slate-900" : "text-white"}`}>
                   {t("media_library.photos_title", "现场照片")}
                 </h2>
-                <p className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+                <p className={`mt-0.5 text-xs md:mt-1 md:text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
                   {t("media_library.photos_count", "{{visible}} / {{total}} 张照片", { visible: visiblePhotoCount, total: totalPhotoCount })}
                 </p>
               </div>
@@ -819,7 +819,7 @@ const MediaLibrary = () => {
                 {[...Array(6)].map((_, index) => (
                   <div
                     key={index}
-                    className={`rect-media-card aspect-video animate-pulse ${
+                    className={`rect-media-card h-20 animate-pulse md:aspect-video md:h-auto ${
                       isDayMode ? "bg-slate-100 border border-slate-200/80" : "bg-white/5 border border-white/10"
                     }`}
                   />

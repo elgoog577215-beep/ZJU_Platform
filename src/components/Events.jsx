@@ -70,7 +70,7 @@ import { useReducedMotion } from "../utils/animations";
 import { getOrCreateSiteVisitorKey } from "../utils/visitorKey";
 
 const EVENT_CARD_GRID_CLASS =
-  "grid grid-cols-1 items-start gap-4 md:[grid-template-columns:repeat(auto-fit,minmax(300px,1fr))] lg:gap-5 xl:[grid-template-columns:repeat(auto-fit,minmax(235px,1fr))] 2xl:[grid-template-columns:repeat(4,minmax(0,1fr))]";
+  "grid grid-cols-1 items-start gap-3 md:[grid-template-columns:repeat(auto-fit,minmax(300px,1fr))] md:gap-4 lg:gap-5 xl:[grid-template-columns:repeat(auto-fit,minmax(235px,1fr))] 2xl:[grid-template-columns:repeat(4,minmax(0,1fr))]";
 const EVENT_CONTENT_WIDTH_CLASS =
   "mx-auto w-full max-w-[84rem] xl:mx-0 xl:ml-[max(0px,calc((100vw-84rem-300px-2rem)/2-2rem))] xl:max-w-[min(84rem,calc(100vw-364px))] 2xl:ml-[max(0px,calc((100vw-84rem-400px-2rem)/2-2rem))] 2xl:max-w-[min(84rem,calc(100vw-464px))]";
 const EVENT_FILTER_WIDTH_CLASS =
@@ -304,11 +304,11 @@ const EventCard = memo(
     return (
       <motion.div
         {...motionProps}
-        className={`group rect-media-card relative overflow-hidden cursor-pointer flex h-[184px] flex-row md:h-[430px] md:flex-col xl:h-[440px] 2xl:h-[452px] transform-gpu will-change-transform transition-[background-color,border-color,box-shadow] duration-200 ${isDayMode ? "border-blue-100/80 bg-white hover:border-blue-200/90" : "bg-[#050712]/94 border-white/15 hover:border-indigo-300/30 hover:bg-[#070914]"}`}
+        className={`group rect-media-card relative overflow-hidden cursor-pointer flex h-[156px] flex-row md:h-[430px] md:flex-col xl:h-[440px] 2xl:h-[452px] transform-gpu will-change-transform transition-[background-color,border-color,box-shadow] duration-200 ${isDayMode ? "border-blue-100/80 bg-white hover:border-blue-200/90" : "bg-[#050712]/94 border-white/15 hover:border-indigo-300/30 hover:bg-[#070914]"}`}
         onClick={() => onClick(event)}
       >
         {/* Image Section */}
-        <div className="w-[120px] sm:w-1/3 md:w-full aspect-square md:h-40 2xl:h-44 overflow-hidden relative shrink-0 z-10 m-3 rounded-[5px] md:m-0 md:rounded-t-[6px] md:rounded-b-none">
+        <div className="m-2 w-[104px] shrink-0 overflow-hidden rounded-[5px] relative z-10 aspect-square sm:w-1/3 md:m-0 md:h-40 md:w-full md:rounded-b-none md:rounded-t-[6px] 2xl:h-44">
           <SmartImage
             src={getThumbnailUrl(event.image)}
             alt={event.title}
@@ -337,17 +337,17 @@ const EventCard = memo(
         </div>
 
         {/* Content Section */}
-        <div className="p-3 md:p-4 relative flex-1 flex min-h-0 flex-col min-w-0 justify-center md:justify-start">
+        <div className="p-2.5 md:p-4 relative flex-1 flex min-h-0 flex-col min-w-0 justify-center md:justify-start">
           {/* Title */}
           <h3
-            className={`mb-2 line-clamp-3 min-h-[3.9rem] text-base font-bold leading-tight tracking-tight sm:text-lg md:text-[1.08rem] ${isDayMode ? "text-slate-900" : "text-white"}`}
+            className={`mb-1.5 line-clamp-2 min-h-[2.55rem] text-[15px] font-bold leading-tight tracking-tight sm:text-base md:mb-2 md:line-clamp-3 md:min-h-[3.9rem] md:text-[1.08rem] ${isDayMode ? "text-slate-900" : "text-white"}`}
           >
             {event.title}
           </h3>
 
           {/* Date & Location - Clean Text Row */}
           <div
-            className={`mb-3 flex min-h-[3.65rem] flex-col gap-1.5 text-xs sm:text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+            className={`mb-2 flex min-h-[2.45rem] flex-col gap-1 text-[11px] sm:text-xs md:mb-3 md:min-h-[3.65rem] md:gap-1.5 md:text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
           >
             <div className="flex items-center gap-1.5 shrink-0">
               <Calendar size={14} className={isDayMode ? "text-blue-600 md:w-4 md:h-4" : "text-indigo-400 md:w-4 md:h-4"} />
@@ -366,7 +366,7 @@ const EventCard = memo(
                 size={14}
                 className={isDayMode ? "text-slate-400 shrink-0 md:w-4 md:h-4" : "text-indigo-400 shrink-0 md:w-4 md:h-4"}
               />
-              <span className="line-clamp-2 min-w-0 leading-5">
+              <span className="line-clamp-1 min-w-0 leading-4 md:line-clamp-2 md:leading-5">
                 {event.location || t("common.online", "线上")}
               </span>
             </div>
@@ -408,7 +408,7 @@ const EventCard = memo(
 
           {/* Footer: Category & Actions */}
           <div
-            className={`mt-auto flex min-h-[2.85rem] items-center justify-between border-t pt-2 ${isDayMode ? "border-slate-200/80" : "border-white/5"}`}
+            className={`mt-auto flex min-h-8 items-center justify-between border-t pt-1.5 md:min-h-[2.85rem] md:pt-2 ${isDayMode ? "border-slate-200/80" : "border-white/5"}`}
           >
             <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden pr-2">
               {isCollegeNoticeEvent(event) && (
@@ -1557,16 +1557,16 @@ END:VCALENDAR`;
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
-        className="mb-6 md:mb-9 relative z-40 md:pt-0 text-center"
+        className="mb-4 md:mb-9 relative z-40 md:pt-0 text-center"
       >
-        <div className="md:hidden mb-4 text-left">
+        <div className="md:hidden mb-3 text-left">
           <h1
-            className={`text-2xl font-bold tracking-tight ${isDayMode ? "text-slate-950" : "text-white"}`}
+            className={`text-xl font-bold tracking-tight ${isDayMode ? "text-slate-950" : "text-white"}`}
           >
             {t("events.title")}
           </h1>
           <p
-            className={`text-sm mt-1 ${isDayMode ? "text-slate-600" : "text-gray-400"}`}
+            className={`text-xs mt-1 ${isDayMode ? "text-slate-600" : "text-gray-400"}`}
           >
             {t("events.subtitle")}
           </p>
@@ -1663,7 +1663,7 @@ END:VCALENDAR`;
         <OrganizationPartnerWall
           partners={organizationPartners}
           isDayMode={isDayMode}
-          className={`${EVENT_FILTER_WIDTH_CLASS} mb-4 text-left md:mb-4`}
+          className={`${EVENT_FILTER_WIDTH_CLASS} mb-3 text-left md:mb-4`}
           onApplyPartnerFilter={handleApplyPartnerFilter}
           onOpenEvent={openEventFromList}
         />
@@ -1970,7 +1970,7 @@ END:VCALENDAR`;
           {Array.from({ length: 8 }, (_, index) => index + 1).map((i) => (
             <div
               key={i}
-              className={`rect-media-card relative flex h-[184px] flex-row overflow-hidden md:h-[430px] md:flex-col xl:h-[440px] 2xl:h-[452px] ${isDayMode ? "bg-white border-blue-100/80" : "bg-white/[0.04] border-white/5"}`}
+              className={`rect-media-card relative flex h-[156px] flex-row overflow-hidden md:h-[430px] md:flex-col xl:h-[440px] 2xl:h-[452px] ${isDayMode ? "bg-white border-blue-100/80" : "bg-white/[0.04] border-white/5"}`}
             >
               {/* Shimmer Effect */}
               {!isDayMode && (
@@ -1979,12 +1979,12 @@ END:VCALENDAR`;
 
               {/* Image Skeleton */}
               <div
-                className={`w-1/3 md:w-full aspect-square md:h-40 2xl:h-44 ${isDayMode ? "bg-white" : "bg-white/5"}`}
+                className={`m-2 aspect-square w-[104px] shrink-0 rounded-[5px] md:m-0 md:h-40 md:w-full md:rounded-none 2xl:h-44 ${isDayMode ? "bg-white" : "bg-white/5"}`}
               />
               {/* Content Skeleton */}
-              <div className="flex w-2/3 flex-1 flex-col p-3 md:w-full md:p-4">
+              <div className="flex flex-1 flex-col p-2.5 md:w-full md:p-4">
                 <div
-                  className={`h-6 rounded-[2px] w-3/4 mb-4 ${isDayMode ? "bg-white" : "bg-white/10"}`}
+                  className={`h-5 rounded-[2px] w-3/4 mb-3 md:h-6 md:mb-4 ${isDayMode ? "bg-white" : "bg-white/10"}`}
                 />
                 <div className="flex gap-2 mb-4">
                   <div

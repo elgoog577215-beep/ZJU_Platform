@@ -21,7 +21,7 @@ const MobileContentToolbar = ({
 
   return (
     <div
-      className={`mb-4 flex w-full min-w-0 items-center gap-2 overflow-x-auto px-1 pb-1 md:hidden ${isDayMode ? "text-slate-600" : "text-gray-400"}`}
+      className={`mb-3 flex w-full min-w-0 items-center gap-2 overflow-x-auto px-1 pb-1 md:hidden ${isDayMode ? "text-slate-600" : "text-gray-400"}`}
     >
       {typeof resultCount === "number" && resultCount > 0 ? (
         <span
@@ -39,7 +39,7 @@ const MobileContentToolbar = ({
         <button
           type="button"
           onClick={onOpenSort}
-          className={`rect-button-secondary inline-flex min-h-[44px] shrink-0 items-center gap-1.5 px-3.5 py-2 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 ${isDayMode ? "hover:text-slate-900" : "text-gray-300"}`}
+          className={`rect-button-secondary inline-flex min-h-10 shrink-0 items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 ${isDayMode ? "hover:text-slate-900" : "text-gray-300"}`}
         >
           <ArrowUpDown size={14} aria-hidden="true" />
           {sortText}
@@ -50,7 +50,7 @@ const MobileContentToolbar = ({
         <button
           type="button"
           onClick={onOpenFilter}
-          className={`rect-button-secondary relative inline-flex min-h-[44px] shrink-0 items-center gap-1.5 px-3.5 py-2 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 ${isDayMode ? "hover:text-slate-900" : "text-gray-300"}`}
+          className={`rect-button-secondary relative inline-flex min-h-10 shrink-0 items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 ${isDayMode ? "hover:text-slate-900" : "text-gray-300"}`}
         >
           <SlidersHorizontal size={14} aria-hidden="true" />
           {filterText}
@@ -66,7 +66,7 @@ const MobileContentToolbar = ({
         <button
           type="button"
           onClick={onClearFilters}
-          className="rect-button inline-flex min-h-[44px] shrink-0 items-center gap-1 border border-red-500/20 bg-red-500/10 px-2.5 py-2 text-xs font-semibold text-red-400 transition-colors hover:bg-red-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400/60"
+          className="rect-button inline-flex min-h-10 shrink-0 items-center gap-1 border border-red-500/20 bg-red-500/10 px-2.5 py-1.5 text-xs font-semibold text-red-400 transition-colors hover:bg-red-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400/60"
         >
           <X size={12} aria-hidden="true" />
           {resetText}

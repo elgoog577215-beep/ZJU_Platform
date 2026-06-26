@@ -55,7 +55,7 @@ const VideoCard = memo(
         {/* New Badge */}
         {video.date &&
           new Date() - new Date(video.date) < 7 * 24 * 60 * 60 * 1000 && (
-            <div className="absolute top-4 left-4 px-2 py-0.5 rounded-[4px] bg-pink-500 text-white text-[10px] font-bold uppercase tracking-wider shadow-none z-20">
+            <div className="absolute left-2 top-2 rounded-[4px] bg-pink-500 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white shadow-none z-20 md:left-4 md:top-4 md:px-2 md:text-[10px]">
               New
             </div>
           )}
@@ -64,41 +64,41 @@ const VideoCard = memo(
           className={`absolute inset-0 ${isDayMode ? "bg-gradient-to-t from-slate-950/60 via-slate-950/10 to-transparent" : "bg-gradient-to-t from-black/70 via-black/15 to-transparent"} opacity-60 group-hover:opacity-50 transition-opacity duration-300`}
         />
 
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <div className="absolute inset-0 flex items-center justify-center opacity-100 transition-opacity duration-300 md:opacity-0 md:group-hover:opacity-100">
           <div
-            className={`rect-icon-button flex h-16 w-16 items-center justify-center border group-hover:scale-105 transition-transform duration-300 relative ${isDayMode ? "bg-white/84 text-slate-950 border-white/70" : "bg-black/45 text-white border-white/20"}`}
+            className={`rect-icon-button flex h-10 w-10 items-center justify-center border group-hover:scale-105 transition-transform duration-300 relative md:h-16 md:w-16 ${isDayMode ? "bg-white/84 text-slate-950 border-white/70" : "bg-black/45 text-white border-white/20"}`}
           >
             <Play
-              size={34}
+              size={22}
               fill={isDayMode ? "#0f172a" : "white"}
-              className={`${isDayMode ? "text-slate-950" : "text-white"} ml-2 relative z-10`}
+              className={`${isDayMode ? "text-slate-950" : "text-white"} ml-0.5 relative z-10 md:ml-2 md:h-[34px] md:w-[34px]`}
             />
           </div>
         </div>
 
-        <div className="absolute bottom-0 left-0 w-full p-4 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-          <div className="flex flex-col gap-2">
+        <div className="absolute bottom-0 left-0 w-full translate-y-0 p-2.5 transition-transform duration-300 md:translate-y-2 md:p-4 md:group-hover:translate-y-0">
+          <div className="flex flex-col gap-1.5 md:gap-2">
             <div className="flex justify-between items-end">
-              <h3 className="text-lg md:text-xl font-bold text-[rgba(255,255,255,0.96)] drop-shadow-[0_2px_10px_rgba(15,23,42,0.5)] line-clamp-1 flex-1 mr-4">
+              <h3 className="mr-2 flex-1 line-clamp-1 text-xs font-bold text-[rgba(255,255,255,0.96)] drop-shadow-[0_2px_10px_rgba(15,23,42,0.5)] md:mr-4 md:text-xl">
                 {video.title}
               </h3>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 md:gap-2">
                 <FavoriteButton
                   itemId={video.id}
                   itemType="video"
-                  size={18}
+                  size={16}
                   showCount={true}
                   count={video.likes || 0}
                   favorited={video.favorited}
                   initialFavorited={video.favorited}
-                  className={`rect-icon-button p-2 transition-colors group/btn text-white ${isDayMode ? "bg-white/76 border-white/50" : "bg-black/50 border-white/10"}`}
+                  className={`rect-icon-button p-1.5 transition-colors group/btn text-white md:p-2 ${isDayMode ? "bg-white/76 border-white/50" : "bg-black/50 border-white/10"}`}
                   onToggle={(favorited, likes) =>
                     onToggleFavorite(video.id, favorited, likes)
                   }
                 />
                 <div
-                  className={`rect-icon-button p-2 border group-hover:bg-pink-500 group-hover:text-white transition-all duration-300 ${isDayMode ? "bg-white/76 border-white/50" : "bg-white/20 border-white/10"}`}
+                  className={`rect-icon-button hidden p-2 border group-hover:bg-pink-500 group-hover:text-white transition-all duration-300 md:block ${isDayMode ? "bg-white/76 border-white/50" : "bg-white/20 border-white/10"}`}
                 >
                   <ArrowRight
                     size={18}
@@ -312,16 +312,16 @@ const Videos = () => {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="mb-6 md:mb-12 text-center"
+          className="mb-4 md:mb-12 text-center"
         >
-          <div className="md:hidden text-left mb-4">
+          <div className="md:hidden text-left mb-3">
             <h1
-              className={`text-2xl font-bold tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}
+              className={`text-xl font-bold tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}
             >
               {t("videos.title")}
             </h1>
             <p
-              className={`text-sm mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+              className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
             >
               {t("videos.subtitle")}
             </p>
@@ -397,27 +397,27 @@ const Videos = () => {
           document.body,
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 md:gap-8">
           {loading && displayVideos.length === 0 ? (
             // Loading Skeletons
             [...Array(6)].map((_, i) => (
               <div
                 key={i}
-                className={`rect-media-card aspect-video animate-pulse relative overflow-hidden ${isDayMode ? "bg-white/84 border-slate-200/80" : "bg-[#1a1a1a]/40 border-white/5"}`}
+                className={`rect-media-card relative h-24 animate-pulse overflow-hidden md:aspect-video md:h-auto ${isDayMode ? "bg-white/84 border-slate-200/80" : "bg-[#1a1a1a]/40 border-white/5"}`}
               >
                 <div className={`absolute inset-0 ${isDayMode ? "bg-gradient-to-t from-slate-200/70 to-transparent" : "bg-gradient-to-t from-black/50 to-transparent"}`} />
-                <div className="absolute bottom-6 left-6 right-6 space-y-3">
-                  <div className="h-4 bg-white/10 rounded w-1/4" />
-                  <div className="h-6 bg-white/10 rounded w-3/4" />
+                <div className="absolute bottom-3 left-3 right-3 space-y-2 md:bottom-6 md:left-6 md:right-6 md:space-y-3">
+                  <div className="h-3 bg-white/10 rounded w-1/4 md:h-4" />
+                  <div className="h-4 bg-white/10 rounded w-3/4 md:h-6" />
                 </div>
               </div>
             ))
           ) : error ? (
-            <div className="col-span-full flex flex-col items-center justify-center py-20 px-4">
-              <div className="rect-panel bg-red-500/10 p-6 mb-6 border border-red-500/20">
-                <AlertCircle size={48} className="text-red-400 opacity-80" />
+            <div className="col-span-full flex flex-col items-center justify-center px-4 py-12 md:py-20">
+              <div className="rect-panel mb-4 border border-red-500/20 bg-red-500/10 p-5 md:mb-6 md:p-6">
+                <AlertCircle size={40} className="text-red-400 opacity-80 md:h-12 md:w-12" />
               </div>
-              <p className="text-gray-300 mb-6 text-lg">
+              <p className="mb-4 text-center text-sm text-gray-300 md:mb-6 md:text-lg">
                 {t("common.error_fetching_data")}
               </p>
               <button
@@ -428,14 +428,14 @@ const Videos = () => {
               </button>
             </div>
           ) : displayVideos.length === 0 ? (
-            <div className="col-span-full flex flex-col items-center justify-center py-20 px-4">
-              <div className="rect-panel bg-pink-500/10 p-8 mb-6 border border-white/5">
-                <Film size={64} className="text-pink-400 opacity-80" />
+            <div className="col-span-full flex flex-col items-center justify-center px-4 py-12 md:py-20">
+              <div className="rect-panel mb-4 border border-white/5 bg-pink-500/10 p-5 md:mb-6 md:p-8">
+                <Film size={44} className="text-pink-400 opacity-80 md:h-16 md:w-16" />
               </div>
-              <h3 className={`text-2xl font-bold mb-2 ${isDayMode ? "text-slate-900" : "text-white"}`}>
+              <h3 className={`mb-2 text-xl font-bold md:text-2xl ${isDayMode ? "text-slate-900" : "text-white"}`}>
                 {t("videos.no_videos")}
               </h3>
-              <p className="text-gray-400 text-center max-w-md">
+              <p className="max-w-md text-center text-sm text-gray-400 md:text-base">
                 {t("videos.subtitle")}
               </p>
             </div>
@@ -459,7 +459,7 @@ const Videos = () => {
           displayVideos.length > 0 &&
           !isPaginationEnabled &&
           hasMore && (
-            <div className="flex items-center justify-center pt-10">
+            <div className="flex items-center justify-center pt-6 md:pt-10">
               <motion.button
                 whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
                 whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}

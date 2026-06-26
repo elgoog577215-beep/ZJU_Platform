@@ -58,8 +58,8 @@ const PhotoCard = memo(
           whileHover={
             canAnimate ? { y: -4, transition: { duration: 0.18 } } : undefined
           }
-          className={`break-inside-avoid relative group overflow-hidden rounded-2xl cursor-pointer 
-                 backdrop-blur-sm border transition-all duration-300 w-full inline-block touch-manipulation mb-4 md:mb-6
+          className={`break-inside-avoid relative group overflow-hidden rounded-lg md:rounded-2xl cursor-pointer
+                 backdrop-blur-sm border transition-all duration-300 w-full inline-block touch-manipulation mb-3 md:mb-6
                  ${isDayMode ? "day-card-lift" : "bg-white/5 border-white/10 hover:shadow-2xl hover:shadow-indigo-500/10 hover:border-white/20"}`}
           onClick={() => onClick(index)}
         >
@@ -67,20 +67,20 @@ const PhotoCard = memo(
             src={getThumbnailUrl(photo.url)}
             alt={photo.title}
             type="image"
-            className="w-full min-h-[220px] sm:min-h-[240px]"
-            imageClassName="h-auto min-h-[220px] w-full object-cover transform transition-transform duration-700 ease-out group-hover:scale-105 sm:min-h-[240px]"
+            className="w-full min-h-[156px] sm:min-h-[240px]"
+            imageClassName="h-auto min-h-[156px] w-full object-cover transform transition-transform duration-700 ease-out group-hover:scale-105 sm:min-h-[240px]"
             blurPlaceholder={photo.blurPlaceholder}
           />
 
           <div
             className={`absolute inset-0 ${isDayMode ? "bg-gradient-to-t from-slate-950/76 via-slate-900/18 to-transparent" : "bg-gradient-to-t from-black/90 via-black/40 to-transparent"}
                    opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300
-                   flex flex-col justify-end p-4`}
+                   flex flex-col justify-end p-2.5 md:p-4`}
           >
             <div className="flex flex-col gap-2 md:translate-y-3 md:group-hover:translate-y-0 transition-transform duration-300">
               <div className="flex justify-between items-end gap-2">
                 <h3
-                  className="text-lg font-bold text-[rgba(255,255,255,0.96)] drop-shadow-[0_2px_10px_rgba(15,23,42,0.45)] line-clamp-2 flex-1
+                  className="text-xs md:text-lg font-bold text-[rgba(255,255,255,0.96)] drop-shadow-[0_2px_10px_rgba(15,23,42,0.45)] line-clamp-2 flex-1
                                transform transition-transform duration-300"
                 >
                   {photo.title}
@@ -91,12 +91,12 @@ const PhotoCard = memo(
                     <FavoriteButton
                       itemId={photo.id}
                       itemType="photo"
-                      size={18}
+                      size={16}
                       showCount={true}
                       count={photo.likes || 0}
                       favorited={photo.favorited}
                       initialFavorited={photo.favorited}
-                      className={`p-2 rounded-full backdrop-blur-md 
+                      className={`p-1.5 rounded-full backdrop-blur-md md:p-2
                                        transition-all duration-200 text-white border
                                        ${isDayMode ? "bg-white/82 hover:bg-white border-white/60 shadow-[0_10px_20px_rgba(15,23,42,0.16)]" : "bg-white/10 border-white/10"}
                                        hover:border-white/70 hover:shadow-lg`}
@@ -106,7 +106,7 @@ const PhotoCard = memo(
                     />
                   </div>
                   <div
-                    className={`p-2 rounded-full backdrop-blur-md border 
+                    className={`hidden p-2 rounded-full backdrop-blur-md border md:block
                                   ${isDayMode ? "bg-white/72 border-white/40 shadow-[0_12px_24px_rgba(15,23,42,0.18)]" : "bg-white/20 border-white/10"} 
                                   ${isDayMode ? "group-hover:bg-slate-950" : "group-hover:bg-indigo-500"} group-hover:text-white
                                   transition-all duration-300`}
@@ -393,16 +393,16 @@ const Gallery = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="mb-6 md:mb-12 relative z-40 text-center"
+        className="mb-4 md:mb-12 relative z-40 text-center"
       >
-        <div className="md:hidden mb-4 text-left">
+        <div className="md:hidden mb-3 text-left">
           <h1
-            className={`text-2xl font-bold tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}
+            className={`text-xl font-bold tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}
           >
             {t("gallery.title")}
           </h1>
           <p
-            className={`text-sm mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+            className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
           >
             {t("gallery.subtitle")}
           </p>
@@ -528,7 +528,7 @@ const Gallery = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="flex flex-col items-center justify-center py-20 text-center"
+          className="flex flex-col items-center justify-center py-12 text-center md:py-20"
         >
           <motion.div
             animate={{ rotate: [0, 10, -10, 0] }}
@@ -539,7 +539,7 @@ const Gallery = () => {
               className="text-red-400 mb-4 opacity-50 mx-auto"
             />
           </motion.div>
-          <p className="text-gray-300 mb-6">
+          <p className="mb-4 text-sm text-gray-300 md:mb-6 md:text-base">
             {t("common.error_fetching_data")}
           </p>
           <motion.button
@@ -553,22 +553,22 @@ const Gallery = () => {
           </motion.button>
         </motion.div>
       ) : displayPhotos.length === 0 ? (
-        <div className="flex min-h-[52vh] flex-col items-center justify-center px-4 py-16 text-center md:min-h-[48vh] md:py-20">
+        <div className="flex min-h-[34vh] flex-col items-center justify-center px-4 py-10 text-center md:min-h-[48vh] md:py-20">
           <div
-            className={`rounded-3xl p-8 mb-6 border backdrop-blur-xl ${isDayMode ? "bg-white/88 border-slate-200/80" : "bg-white/5 border-white/10"}`}
+            className={`mb-4 rounded-xl border p-5 backdrop-blur-xl md:mb-6 md:rounded-3xl md:p-8 ${isDayMode ? "bg-white/88 border-slate-200/80" : "bg-white/5 border-white/10"}`}
           >
             <Box
-              size={56}
-              className={isDayMode ? "text-slate-400" : "text-gray-500"}
+              size={42}
+              className={`${isDayMode ? "text-slate-400" : "text-gray-500"} md:h-14 md:w-14`}
             />
           </div>
           <h3
-            className={`text-2xl font-bold mb-2 ${isDayMode ? "text-slate-900" : "text-white"}`}
+            className={`mb-2 text-xl font-bold md:text-2xl ${isDayMode ? "text-slate-900" : "text-white"}`}
           >
             {t("gallery.title")}
           </h3>
           <p
-            className={`max-w-md ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+            className={`max-w-md text-sm md:text-base ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
           >
             {t("gallery.subtitle")}
           </p>
@@ -580,7 +580,7 @@ const Gallery = () => {
             typeof window !== "undefined" &&
             window.innerWidth >= 768
           }
-          className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 md:gap-6 max-w-7xl mx-auto pb-8 md:pb-0"
+          className="columns-2 sm:columns-2 md:columns-3 lg:columns-4 gap-3 md:gap-6 max-w-7xl mx-auto pb-8 md:pb-0"
         >
           <AnimatePresence mode="popLayout">
             {displayPhotos.map((photo, index) => (
@@ -603,7 +603,7 @@ const Gallery = () => {
         displayPhotos.length > 0 &&
         settings.pagination_enabled !== "true" &&
         hasMore && (
-          <div className="flex items-center justify-center py-10">
+          <div className="flex items-center justify-center py-6 md:py-10">
             <motion.button
               whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
               whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
@@ -626,7 +626,7 @@ const Gallery = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="text-center py-10"
+            className="text-center py-6 md:py-10"
             /* FIX: BUG-31 — Removed invalid onPageChange prop from motion.div */
           />
         )}

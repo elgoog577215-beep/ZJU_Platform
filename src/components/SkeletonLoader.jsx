@@ -57,11 +57,11 @@ const SkeletonItem = ({ className = '', variant = 'shimmer' }) => {
 // Photo card skeleton
 export const PhotoCardSkeleton = () => {
   return (
-    <div className="break-inside-avoid mb-4 md:mb-6">
-      <SkeletonItem className="w-full aspect-[3/4] rounded-2xl" />
-      <div className="mt-3 space-y-2">
-        <SkeletonItem className="h-5 w-3/4" />
-        <SkeletonItem className="h-4 w-1/2" />
+    <div className="break-inside-avoid">
+      <SkeletonItem className="w-full aspect-[4/3] rounded-lg md:aspect-[3/4] md:rounded-2xl" />
+      <div className="mt-2 space-y-1.5 md:mt-3 md:space-y-2">
+        <SkeletonItem className="h-4 w-3/4 md:h-5" />
+        <SkeletonItem className="h-3 w-1/2 md:h-4" />
       </div>
     </div>
   );
@@ -70,7 +70,7 @@ export const PhotoCardSkeleton = () => {
 // Gallery skeleton grid
 export const GallerySkeleton = ({ count = 12 }) => {
   return (
-    <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 md:gap-6">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 md:gap-6">
       {Array.from({ length: count }).map((_, i) => (
         <PhotoCardSkeleton key={i} />
       ))}

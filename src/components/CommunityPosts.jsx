@@ -197,23 +197,23 @@ const CommunityPosts = ({ headingCode, headingTitle }) => {
   }, [featuredResources]);
 
   const renderFeatured = () => (
-    <div className="space-y-4">
+    <div className="space-y-3 md:space-y-4">
       {featuredLoading ? (
         <div className="grid gap-3 md:grid-cols-2">
           {[...Array(4)].map((_, index) => (
-            <div key={index} className={`h-36 animate-pulse rounded-lg border ${isDayMode ? 'border-slate-200 bg-white/70' : 'border-white/10 bg-white/[0.04]'}`} />
+            <div key={index} className={`h-28 animate-pulse rounded-lg border md:h-36 ${isDayMode ? 'border-slate-200 bg-white/70' : 'border-white/10 bg-white/[0.04]'}`} />
           ))}
         </div>
       ) : featuredError ? (
-        <div className={`rounded-lg border p-6 text-center ${isDayMode ? 'border-slate-200 bg-white text-slate-600' : 'border-white/10 bg-white/[0.035] text-gray-300'}`}>
+        <div className={`rounded-lg border p-5 text-center md:p-6 ${isDayMode ? 'border-slate-200 bg-white text-slate-600' : 'border-white/10 bg-white/[0.035] text-gray-300'}`}>
           <p className="text-sm">{t('community.featured_load_failed', '精选内容加载失败')}</p>
           <button type="button" onClick={refreshFeatured} className={`mt-4 rounded-lg border px-4 py-2 text-sm font-semibold ${isDayMode ? 'border-slate-200 hover:bg-slate-50' : 'border-white/10 hover:bg-white/10'}`}>
             {t('common.retry', '重试')}
           </button>
         </div>
       ) : featuredItems.length === 0 ? (
-        <div className={`rounded-lg border border-dashed p-10 text-center ${isDayMode ? 'border-slate-200 bg-white/70 text-slate-500' : 'border-white/10 bg-white/[0.03] text-gray-400'}`}>
-          <BookOpen className="mx-auto mb-3 h-10 w-10 opacity-35" />
+        <div className={`rounded-lg border border-dashed p-6 text-center md:p-10 ${isDayMode ? 'border-slate-200 bg-white/70 text-slate-500' : 'border-white/10 bg-white/[0.03] text-gray-400'}`}>
+          <BookOpen className="mx-auto mb-2 h-8 w-8 opacity-35 md:mb-3 md:h-10 md:w-10" />
           <p className="font-bold">{t('community.featured_empty', '暂无精选内容')}</p>
           <p className="mt-1 text-sm">{t('community.featured_empty_desc', '切换分类查看最新内容，或发布第一条社区动态。')}</p>
         </div>
@@ -231,10 +231,10 @@ const CommunityPosts = ({ headingCode, headingTitle }) => {
                 key={`${item.board}-${item.id}`}
                 type="button"
                 onClick={() => handleOpenFeatured(item)}
-                className={`group min-h-[142px] rounded-lg border p-4 text-left transition-all hover:-translate-y-0.5 md:p-5 ${isDayMode ? 'border-slate-200/80 bg-white hover:border-slate-300 hover:shadow-[0_12px_28px_rgba(15,23,42,0.06)]' : 'border-white/10 bg-white/[0.045] hover:border-white/18 hover:bg-white/[0.07]'}`}
+                className={`group min-h-[116px] rounded-lg border p-3 text-left transition-all hover:-translate-y-0.5 md:min-h-[142px] md:p-5 ${isDayMode ? 'border-slate-200/80 bg-white hover:border-slate-300 hover:shadow-[0_12px_28px_rgba(15,23,42,0.06)]' : 'border-white/10 bg-white/[0.045] hover:border-white/18 hover:bg-white/[0.07]'}`}
               >
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <span className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-bold ${isDayMode ? tone.dayBadge : tone.badge}`}>
+                <div className="mb-2 flex items-center justify-between gap-2 md:mb-3 md:gap-3">
+                  <span className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-[11px] font-bold md:px-2.5 md:py-1 md:text-xs ${isDayMode ? tone.dayBadge : tone.badge}`}>
                     <Icon size={13} />
                     {t(meta.labelKey, meta.fallback)}
                   </span>
@@ -242,13 +242,13 @@ const CommunityPosts = ({ headingCode, headingTitle }) => {
                     {formatFeaturedDate(item.sortDate, i18n.language)}
                   </span>
                 </div>
-                <h3 className={`line-clamp-2 text-base font-black leading-snug transition-colors md:text-lg ${isDayMode ? `text-slate-950 ${tone.dayHover}` : `text-white ${tone.hover}`}`}>
+                <h3 className={`line-clamp-2 text-sm font-black leading-snug transition-colors md:text-lg ${isDayMode ? `text-slate-950 ${tone.dayHover}` : `text-white ${tone.hover}`}`}>
                   {item.title || t('community.untitled', '未命名')}
                 </h3>
-                <p className={`mt-2 line-clamp-2 text-sm leading-6 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+                <p className={`mt-1.5 line-clamp-2 text-xs leading-5 md:mt-2 md:text-sm md:leading-6 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
                   {getExcerpt(item)}
                 </p>
-                <div className={`mt-3 flex items-center gap-2 text-xs ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>
+                <div className={`mt-2 flex items-center gap-2 text-xs md:mt-3 ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>
                   <MessageCircle size={13} />
                   <span>{metric}</span>
                   {(item.author_name || item.source_name) ? <span className="truncate">· {item.author_name || item.source_name}</span> : null}
@@ -264,7 +264,7 @@ const CommunityPosts = ({ headingCode, headingTitle }) => {
   return (
     <div className="relative">
       {(headingCode || headingTitle) ? (
-        <div className="mb-3 flex flex-col gap-3 md:mb-4 md:flex-row md:items-end md:justify-between">
+        <div className="mb-2 flex flex-col gap-2 md:mb-4 md:flex-row md:items-end md:justify-between">
           <div className="min-w-0">
             {headingCode ? (
               <div className={`text-[11px] font-black uppercase tracking-[0.22em] ${isDayMode ? 'text-violet-700' : 'text-cyan-300'}`}>
@@ -272,7 +272,7 @@ const CommunityPosts = ({ headingCode, headingTitle }) => {
               </div>
             ) : null}
             {headingTitle ? (
-              <h2 className={`mt-0.5 text-lg font-black md:mt-1 md:text-2xl ${isDayMode ? 'text-slate-950' : 'text-white'}`}>
+              <h2 className={`mt-0.5 text-base font-black md:mt-1 md:text-2xl ${isDayMode ? 'text-slate-950' : 'text-white'}`}>
                 {headingTitle}
               </h2>
             ) : null}
@@ -280,7 +280,7 @@ const CommunityPosts = ({ headingCode, headingTitle }) => {
           <button
             type="button"
             onClick={handleOpenTypePicker}
-            className={`inline-flex min-h-[44px] shrink-0 items-center justify-center gap-2 rounded-lg border px-5 text-sm font-black transition-all active:scale-95 md:self-center ${
+            className={`inline-flex min-h-10 shrink-0 self-start items-center justify-center gap-2 rounded-lg border px-4 text-sm font-black transition-all active:scale-95 md:min-h-[44px] md:self-center md:px-5 ${
               isDayMode
                 ? 'border-violet-200 bg-violet-600 text-white shadow-[0_10px_24px_rgba(124,58,237,0.18)] hover:bg-violet-700'
                 : 'border-orange-300/40 bg-orange-400 text-slate-950 shadow-[0_0_28px_rgba(251,146,60,0.18)] hover:bg-orange-300'
@@ -293,7 +293,7 @@ const CommunityPosts = ({ headingCode, headingTitle }) => {
       ) : null}
       <nav
         aria-label={t('community.subnav_aria', '社区版块导航')}
-        className={`mb-4 border-b md:mb-6 ${
+        className={`mb-3 border-b md:mb-6 ${
           isDayMode ? 'border-slate-200/80' : 'border-white/10'
         }`}
       >
@@ -303,7 +303,7 @@ const CommunityPosts = ({ headingCode, headingTitle }) => {
               key={key}
               type="button"
               onClick={() => handleTabChange(key)}
-              className={`inline-flex min-h-[44px] shrink-0 items-center justify-center gap-1.5 border-b-2 px-3 text-xs font-bold transition-colors md:flex-1 ${
+              className={`inline-flex min-h-10 shrink-0 items-center justify-center gap-1.5 border-b-2 px-2.5 text-xs font-bold transition-colors md:min-h-[44px] md:flex-1 md:px-3 ${
                 mobileOnly ? 'xl:hidden' : ''
               } ${
                 activeTab === key
