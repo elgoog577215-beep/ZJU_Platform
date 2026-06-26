@@ -72,36 +72,36 @@ const AppDownload = () => {
         description={t("download.meta_desc")}
       />
       <section className={`min-h-screen overflow-hidden ${palette.page}`}>
-        <div className={`relative flex min-h-screen items-center px-5 pt-24 pb-16 md:pt-28 ${palette.hero}`}>
-          <div className="mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className={`relative flex min-h-screen items-start px-5 pb-24 pt-[calc(env(safe-area-inset-top)+76px)] md:items-center md:pb-16 md:pt-28 ${palette.hero}`}>
+          <div className="mx-auto grid w-full max-w-6xl items-center gap-6 md:gap-10 lg:grid-cols-[minmax(0,1fr)_360px]">
             <motion.div {...reveal(shouldAnimate)}>
               <p className={`text-xs font-black uppercase tracking-[0.28em] ${palette.label}`}>
                 {t("download.kicker")}
               </p>
-              <h1 className="mt-5 max-w-3xl text-4xl font-black leading-[1.04] tracking-tight md:text-6xl">
+              <h1 className="mt-3 max-w-3xl text-3xl font-black leading-[1.04] tracking-tight md:mt-5 md:text-6xl">
                 {t("download.title")}
               </h1>
-              <p className={`mt-5 max-w-xl text-base leading-7 md:text-lg ${palette.textSoft}`}>
+              <p className={`mt-3 max-w-xl text-sm leading-6 md:mt-5 md:text-lg md:leading-7 ${palette.textSoft}`}>
                 {t("download.subtitle")}
               </p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-5 grid grid-cols-[1.12fr_0.88fr] gap-2.5 md:mt-8 md:flex md:gap-3">
                 <a
                   href={downloadUrl}
                   download
-                  className={`inline-flex min-h-[50px] items-center justify-center gap-2 rounded-md px-6 text-sm font-black transition-colors ${palette.primary}`}
+                  className={`inline-flex min-h-10 items-center justify-center gap-1.5 rounded-md px-3 text-xs font-black transition-colors md:min-h-[50px] md:gap-2 md:px-6 md:text-sm ${palette.primary}`}
                 >
-                  <Download size={18} />
+                  <Download size={16} className="md:h-[18px] md:w-[18px]" />
                   {t("download.primary_action")}
                 </a>
                 <Link
                   to="/"
-                  className={`inline-flex min-h-[50px] items-center justify-center gap-2 rounded-md border px-6 text-sm font-bold transition-colors ${palette.secondary}`}
+                  className={`inline-flex min-h-10 items-center justify-center gap-1.5 rounded-md border px-3 text-xs font-bold transition-colors md:min-h-[50px] md:gap-2 md:px-6 md:text-sm ${palette.secondary}`}
                 >
                   {t("download.browse_web")}
-                  <ArrowRight size={17} />
+                  <ArrowRight size={15} className="md:h-[17px] md:w-[17px]" />
                 </Link>
               </div>
-              <p className={`mt-4 text-xs leading-6 ${palette.textMuted}`}>
+              <p className={`mt-3 text-xs leading-5 md:mt-4 md:leading-6 ${palette.textMuted}`}>
                 {t("download.file_note", {
                   version: APK_VERSION,
                   date: APK_UPDATED_AT,
@@ -111,31 +111,31 @@ const AppDownload = () => {
 
             <motion.div
               {...reveal(shouldAnimate, 0.08)}
-              className={`relative mx-auto w-full max-w-[340px] rounded-lg border p-4 ${palette.phone}`}
+              className={`relative mx-auto w-full max-w-[300px] rounded-lg border p-3 md:max-w-[340px] md:p-4 ${palette.phone}`}
             >
-              <div className="mb-4 flex items-center justify-between">
+              <div className="mb-3 flex items-center justify-between md:mb-4">
                 <div>
                   <p className="text-xs font-semibold opacity-60">
                     {t("download.preview_label")}
                   </p>
-                  <p className="mt-1 text-lg font-black">
+                  <p className="mt-1 text-base font-black md:text-lg">
                     {t("download.app_name")}
                   </p>
                 </div>
-                <div className="flex h-11 w-11 items-center justify-center rounded-md bg-white text-slate-950">
-                  <Smartphone size={22} />
+                <div className="flex h-9 w-9 items-center justify-center rounded-md bg-white text-slate-950 md:h-11 md:w-11">
+                  <Smartphone size={18} className="md:h-[22px] md:w-[22px]" />
                 </div>
               </div>
-              <div className="rounded-md bg-white p-3 text-slate-950">
+              <div className="rounded-md bg-white p-2.5 text-slate-950 md:p-3">
                 <img
                   src="/newlogo.png"
                   alt={t("nav.logo_alt")}
-                  className="h-12 w-auto"
+                  className="h-9 w-auto md:h-12"
                 />
-                <p className="mt-8 text-2xl font-black leading-tight">
+                <p className="mt-5 text-xl font-black leading-tight md:mt-8 md:text-2xl">
                   {t("download.card_title")}
                 </p>
-                <div className="mt-6 grid grid-cols-3 gap-2">
+                <div className="mt-4 grid grid-cols-3 gap-1.5 md:mt-6 md:gap-2">
                   {[
                     t("download.preview_events"),
                     t("download.preview_ai"),
@@ -143,7 +143,7 @@ const AppDownload = () => {
                   ].map((label) => (
                     <div
                       key={label}
-                      className="rounded-md bg-slate-100 px-2 py-3 text-center text-[11px] font-bold text-slate-600"
+                      className="rounded-md bg-slate-100 px-1.5 py-2 text-center text-[10px] font-bold text-slate-600 md:px-2 md:py-3 md:text-[11px]"
                     >
                       {label}
                     </div>

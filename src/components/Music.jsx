@@ -469,16 +469,16 @@ const Music = ({ embedded = false, singleColumn = false, sidebarCompact = false 
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="mb-6 md:mb-12 relative z-40 text-center"
+          className="mb-4 md:mb-12 relative z-40 text-center"
         >
-          <div className="md:hidden mb-4 text-left">
+          <div className="md:hidden mb-3 text-left">
             <h1
-              className={`text-2xl font-bold tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}
+              className={`text-xl font-bold tracking-tight ${isDayMode ? "text-slate-900" : "text-white"}`}
             >
               {t("music.title")}
             </h1>
             <p
-              className={`text-sm mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
+              className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
             >
               {t("music.subtitle")}
             </p>
@@ -889,12 +889,12 @@ const Music = ({ embedded = false, singleColumn = false, sidebarCompact = false 
             className="overflow-visible md:flex-1 md:overflow-y-auto custom-scrollbar pr-0 md:pr-2"
           >
             <div
-              className={`flex items-center gap-3 mb-3 sticky top-0 backdrop-blur-2xl border rounded-xl z-10 shadow-lg ${singleColumn ? "p-3" : "p-4"} ${isDayMode ? "day-card-lift text-slate-900" : "bg-white/5 border-white/20"}`}
+              className={`mb-3 flex items-center gap-2 sticky top-0 z-10 rounded-lg border backdrop-blur-2xl shadow-lg md:gap-3 md:rounded-xl ${singleColumn ? "p-2.5 md:p-3" : "p-3 md:p-4"} ${isDayMode ? "day-card-lift text-slate-900" : "bg-white/5 border-white/20"}`}
             >
-              <div className={`bg-cyan-500/20 rounded-full text-cyan-400 ${singleColumn ? "p-2" : "p-3"}`}>
-                <MusicIcon size={singleColumn ? 16 : 24} />
+              <div className={`rounded-md bg-cyan-500/20 text-cyan-400 md:rounded-full ${singleColumn ? "p-2" : "p-2 md:p-3"}`}>
+                <MusicIcon size={singleColumn ? 16 : 20} className="md:h-6 md:w-6" />
               </div>
-              <h3 className={`font-bold ${singleColumn ? "text-sm" : "text-xl md:text-2xl"}`}>
+              <h3 className={`font-bold ${singleColumn ? "text-sm" : "text-base md:text-2xl"}`}>
                 {t("music.title")} ({tracks.length})
               </h3>
             </div>
@@ -905,29 +905,29 @@ const Music = ({ embedded = false, singleColumn = false, sidebarCompact = false 
                 [...Array(5)].map((_, i) => (
                   <div
                     key={i}
-                    className={`p-4 rounded-xl flex items-center gap-4 animate-pulse ${isDayMode ? "day-card-lift" : "bg-white/5"}`}
+                    className={`flex items-center gap-3 rounded-lg p-3 animate-pulse md:gap-4 md:rounded-xl md:p-4 ${isDayMode ? "day-card-lift" : "bg-white/5"}`}
                   >
                     <div
-                      className={`w-12 h-12 rounded-lg flex-shrink-0 ${isDayMode ? "bg-slate-100" : "bg-white/10"}`}
+                      className={`h-10 w-10 flex-shrink-0 rounded-md md:h-12 md:w-12 md:rounded-lg ${isDayMode ? "bg-slate-100" : "bg-white/10"}`}
                     />
-                    <div className="flex-1 space-y-2">
+                    <div className="flex-1 space-y-1.5 md:space-y-2">
                       <div
-                        className={`h-4 rounded w-1/3 ${isDayMode ? "bg-slate-100" : "bg-white/10"}`}
+                        className={`h-3.5 rounded w-1/3 md:h-4 ${isDayMode ? "bg-slate-100" : "bg-white/10"}`}
                       />
                       <div
-                        className={`h-3 rounded w-1/4 ${isDayMode ? "bg-slate-100" : "bg-white/10"}`}
+                        className={`h-2.5 rounded w-1/4 md:h-3 ${isDayMode ? "bg-slate-100" : "bg-white/10"}`}
                       />
                     </div>
                   </div>
                 ))
               ) : error ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="flex flex-col items-center justify-center py-8 text-center md:py-12">
                   <AlertCircle
-                    size={48}
-                    className="text-red-400 mb-4 opacity-50 mx-auto"
+                    size={36}
+                    className="mx-auto mb-3 text-red-400 opacity-50 md:mb-4 md:h-12 md:w-12"
                   />
                   <p
-                    className={`mb-6 ${isDayMode ? "text-slate-600" : "text-gray-300"}`}
+                    className={`mb-4 text-sm md:mb-6 md:text-base ${isDayMode ? "text-slate-600" : "text-gray-300"}`}
                   >
                     {t("common.error_fetching_data", "获取数据失败")}
                   </p>
@@ -942,11 +942,11 @@ const Music = ({ embedded = false, singleColumn = false, sidebarCompact = false 
                 <>
                   {tracks.length === 0 && (
                     <div
-                      className={`text-center py-12 ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
-                    >
-                      <MusicIcon
-                        size={48}
-                        className="mx-auto mb-4 opacity-20"
+                    className={`py-8 text-center md:py-12 ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
+                  >
+                    <MusicIcon
+                        size={36}
+                        className="mx-auto mb-3 opacity-20 md:mb-4 md:h-12 md:w-12"
                       />
                       <p>{t("music.no_tracks")}</p>
                     </div>

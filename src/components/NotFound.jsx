@@ -9,35 +9,35 @@ const NotFound = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="min-h-screen flex flex-col items-center justify-center bg-black text-white relative z-50">
+    <section className="relative z-50 flex min-h-screen flex-col items-center justify-center bg-black px-4 pb-24 pt-[calc(env(safe-area-inset-top)+76px)] text-white">
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
-        className="text-center relative"
+        className="relative w-full max-w-sm text-center"
       >
-        <div className="absolute inset-0 bg-indigo-500/10 blur-[100px] rounded-full pointer-events-none" />
+        <div className="pointer-events-none absolute inset-x-10 top-6 h-40 rounded-full bg-indigo-500/10 blur-[70px] md:inset-0 md:h-auto md:blur-[100px]" />
         <motion.h1
-          className="text-7xl md:text-9xl font-bold font-serif text-transparent bg-clip-text bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-600 mb-4 animate-text-gradient drop-shadow-2xl"
+          className="mb-3 bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-600 bg-clip-text font-serif text-6xl font-bold text-transparent drop-shadow-2xl md:mb-4 md:text-9xl"
           animate={{ y: [0, -10, 0] }}
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
         >
           404
         </motion.h1>
-        <p className="text-xl md:text-2xl text-gray-400 mb-6 md:mb-8 relative z-10">
+        <p className="relative z-10 mb-3 text-lg text-gray-400 md:mb-8 md:text-2xl">
           {t("not_found.title")}
         </p>
-        <p className="text-gray-500 mb-8 max-w-md mx-auto relative z-10">
+        <p className="relative z-10 mx-auto mb-5 max-w-md text-sm leading-6 text-gray-500 md:mb-8 md:text-base">
           {t("not_found.description")}
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 justify-center">
+        <div className="flex items-center justify-center gap-2 sm:gap-4">
           <button
             onClick={() => navigate(-1)}
-            className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-8 py-3 bg-white/5 hover:bg-white/10 text-white rounded-full transition-all border border-white/10 backdrop-blur-md shadow-[0_0_20px_rgba(255,255,255,0.05)] hover:shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:-translate-y-1 relative z-10 group"
+            className="group relative z-10 inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-4 text-sm text-white backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-white/10 sm:px-8"
           >
             <ArrowLeft
-              size={20}
+              size={17}
               className="text-gray-400 group-hover:text-white transition-colors"
             />
             <span className="font-medium">{t("common.back", "Back")}</span>
@@ -45,10 +45,10 @@ const NotFound = () => {
 
           <Link
             to="/"
-            className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-8 py-3 bg-white/5 hover:bg-white/10 text-white rounded-full transition-all border border-white/10 backdrop-blur-md shadow-[0_0_20px_rgba(99,102,241,0.2)] hover:shadow-[0_0_30px_rgba(99,102,241,0.4)] hover:-translate-y-1 relative z-10 group"
+            className="group relative z-10 inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-4 text-sm text-white backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-white/10 sm:px-8"
           >
             <Home
-              size={20}
+              size={17}
               className="text-indigo-400 group-hover:text-white transition-colors"
             />
             <span className="font-medium">{t("not_found.go_home")}</span>

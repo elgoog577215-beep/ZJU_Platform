@@ -1463,7 +1463,7 @@ const HackathonShowcase = () => {
             }
 
             .showcase-compact-flow .showcase-gate-frame .showcase-section-grid {
-              gap: 1.15rem;
+              gap: 0.8rem;
             }
 
             .showcase-compact-flow .showcase-gate-frame .showcase-hero-copy {
@@ -1471,7 +1471,7 @@ const HackathonShowcase = () => {
             }
 
             .showcase-title {
-              font-size: clamp(2.65rem, 11vw, 3.85rem);
+              font-size: clamp(2.1rem, 9vw, 3rem);
               line-height: 0.98;
             }
 
@@ -1481,40 +1481,45 @@ const HackathonShowcase = () => {
             }
 
             .showcase-hero-copy .showcase-title {
-              margin-top: 0.85rem;
+              margin-top: 0.55rem;
             }
 
             .showcase-hero-desc {
-              margin-top: 1rem;
-              font-size: 0.98rem;
-              line-height: 1.72;
+              display: -webkit-box;
+              -webkit-box-orient: vertical;
+              -webkit-line-clamp: 2;
+              margin-top: 0.7rem;
+              overflow: hidden;
+              font-size: 0.9rem;
+              line-height: 1.5;
             }
 
             .showcase-hero-actions {
-              margin-top: 1.15rem;
+              margin-top: 0.85rem;
               display: grid;
               grid-template-columns: 1fr 1fr;
-              gap: 0.65rem;
+              gap: 0.5rem;
             }
 
             .showcase-hero-actions > * {
-              min-height: 2.9rem;
-              padding-left: 0.8rem;
-              padding-right: 0.8rem;
+              min-height: 2.45rem;
+              padding-left: 0.6rem;
+              padding-right: 0.6rem;
+              font-size: 0.76rem;
             }
 
             .showcase-hero-actions > *:first-child {
-              grid-column: 1 / -1;
+              grid-column: auto;
             }
 
             [data-showcase-hero-stats] {
-              margin-top: 1rem;
+              margin-top: 0.75rem;
               grid-template-columns: repeat(2, minmax(0, 1fr));
-              gap: 0.6rem;
+              gap: 0.45rem;
             }
 
             .showcase-metric-tile {
-              padding: 0.7rem 0.75rem;
+              padding: 0.5rem 0.55rem;
             }
 
             .showcase-metric-tile .font-mono {
@@ -1673,11 +1678,11 @@ const HackathonShowcase = () => {
           }
 
           .showcase-compact-flow .showcase-gallery-strip article {
-            min-height: 15rem;
+            min-height: 11.5rem;
           }
 
           .showcase-compact-flow .showcase-gallery-strip > div:last-child {
-            min-height: 9rem;
+            min-height: 7rem;
           }
 
           .showcase-compact-flow .showcase-award-badge {
@@ -1697,7 +1702,7 @@ const HackathonShowcase = () => {
             }
 
             .showcase-compact-flow .showcase-section-compact:first-of-type {
-              padding-top: calc(env(safe-area-inset-top) + 7.25rem);
+              padding-top: calc(env(safe-area-inset-top) + 5.55rem);
             }
 
             .showcase-compact-flow .showcase-image-title {
@@ -1816,16 +1821,16 @@ const HackathonShowcase = () => {
           {...heroReveal}
           transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
           id="showcase-official-film"
-          className={`showcase-film-card relative overflow-hidden border p-3 ${compactFlow ? "min-h-[24rem] sm:min-h-[30rem]" : "min-h-[clamp(18rem,50svh,26rem)] lg:min-h-0 lg:h-full"} ${theme.surfaceStrong}`}
+          className={`showcase-film-card relative overflow-hidden border p-2.5 sm:p-3 ${compactFlow ? "min-h-[18rem] sm:min-h-[30rem]" : "min-h-[clamp(18rem,50svh,26rem)] lg:min-h-0 lg:h-full"} ${theme.surfaceStrong}`}
         >
-          <div className={`absolute right-6 top-6 z-20 flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] ${theme.accent}`}>
+          <div className={`absolute right-4 top-4 z-20 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.16em] sm:right-6 sm:top-6 sm:text-xs sm:tracking-[0.2em] ${theme.accent}`}>
             <span className={`h-2 w-2 rounded-full ${isDayMode ? "bg-cyan-600" : "bg-cyan-300"}`} />
             Live Brief
           </div>
-          <div className={`absolute left-5 top-5 z-20 border px-3 py-2 text-xs font-black uppercase ${theme.chip}`}>
+          <div className={`absolute left-4 top-4 z-20 border px-2.5 py-1.5 text-[10px] font-black uppercase sm:left-5 sm:top-5 sm:px-3 sm:py-2 sm:text-xs ${theme.chip}`}>
             {officialVideo?.title || "Official Film"}
           </div>
-          <div className={`showcase-film-inner relative h-full overflow-hidden border border-white/10 ${compactFlow ? "min-h-[22rem] sm:min-h-[28rem]" : "min-h-[clamp(16rem,46svh,24rem)] lg:min-h-0"}`}>
+          <div className={`showcase-film-inner relative h-full overflow-hidden border border-white/10 ${compactFlow ? "min-h-[16rem] sm:min-h-[28rem]" : "min-h-[clamp(16rem,46svh,24rem)] lg:min-h-0"}`}>
             <img
               src={officialVideoCover}
               alt={t("hackathon.showcase.hero.poster_alt")}
@@ -1856,10 +1861,10 @@ const HackathonShowcase = () => {
                 onClick={() => {
                   setIsVideoPlaying(true);
                 }}
-                className={`absolute left-1/2 top-1/2 z-20 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full backdrop-blur-xl transition duration-300 hover:scale-105 focus:outline-none focus:ring-4 sm:h-20 sm:w-20 ${isDayMode ? "border border-white/70 bg-white/78 text-slate-950 shadow-[0_18px_54px_rgba(15,23,42,0.24)] hover:bg-cyan-100 focus:ring-cyan-500/20" : "border border-white/24 bg-white/16 text-white hover:bg-cyan-300 hover:text-slate-950 focus:ring-cyan-300/24"}`}
+                className={`absolute left-1/2 top-1/2 z-20 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full backdrop-blur-xl transition duration-300 hover:scale-105 focus:outline-none focus:ring-4 sm:h-20 sm:w-20 ${isDayMode ? "border border-white/70 bg-white/78 text-slate-950 shadow-[0_18px_54px_rgba(15,23,42,0.24)] hover:bg-cyan-100 focus:ring-cyan-500/20" : "border border-white/24 bg-white/16 text-white hover:bg-cyan-300 hover:text-slate-950 focus:ring-cyan-300/24"}`}
                 aria-label={officialVideoUrl ? t("hackathon.showcase.hero.play_film") : t("hackathon.showcase.hero.upload_film")}
               >
-                <Play className="ml-1 h-7 w-7 fill-current" />
+                <Play className="ml-1 h-5 w-5 fill-current sm:h-7 sm:w-7" />
               </button>
             ) : null}
             {!isVideoPlaying ? (

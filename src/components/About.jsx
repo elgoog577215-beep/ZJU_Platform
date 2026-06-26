@@ -267,10 +267,10 @@ const About = () => {
           AI ECOSYSTEM
         </div>
 
-        <div className="relative z-10 mx-auto grid min-h-[calc(100svh-88px)] w-full max-w-[2140px] content-start gap-6 pt-7 sm:pt-9 lg:min-h-[calc(100svh-118px)] lg:content-center lg:items-center lg:gap-8 lg:pt-0 xl:grid-cols-[minmax(0,0.96fr)_minmax(560px,700px)] xl:gap-12 2xl:grid-cols-[minmax(0,0.9fr)_minmax(660px,780px)] 2xl:gap-14">
+        <div className="relative z-10 mx-auto grid min-h-[calc(100svh-88px)] w-full max-w-[2140px] content-start gap-4 pt-5 sm:gap-6 sm:pt-9 lg:min-h-[calc(100svh-118px)] lg:content-center lg:items-center lg:gap-8 lg:pt-0 xl:grid-cols-[minmax(0,0.96fr)_minmax(560px,700px)] xl:gap-12 2xl:grid-cols-[minmax(0,0.9fr)_minmax(660px,780px)] 2xl:gap-14">
           <motion.div {...heroReveal(shouldAnimate)} className="max-w-[960px]">
             <div
-              className={`inline-flex items-center gap-2 border px-3.5 py-2 text-[11px] font-black uppercase tracking-[0.22em] sm:text-xs ${palette.label} ${
+              className={`inline-flex items-center gap-2 border px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] sm:px-3.5 sm:py-2 sm:text-xs sm:tracking-[0.22em] ${palette.label} ${
                 isDayMode
                   ? "border-cyan-500/30 bg-cyan-500/8"
                   : "border-cyan-300/30 bg-cyan-300/[0.07]"
@@ -280,7 +280,7 @@ const About = () => {
               ZJU AI Ecosystem
             </div>
 
-            <h1 className="mt-4 max-w-[1080px] text-[2.28rem] font-black leading-[0.98] tracking-[-0.045em] min-[380px]:text-[2.45rem] sm:mt-6 sm:text-6xl md:text-[5rem] lg:mt-6 lg:text-[clamp(4.35rem,9.2vh,5.25rem)] lg:leading-[0.92] lg:tracking-[-0.075em] xl:text-[clamp(4rem,7.8vh,5.8rem)] 2xl:text-[6.35rem] [@media_(max-height:820px)]:lg:mt-4">
+            <h1 className="mt-3 max-w-[1080px] text-[2rem] font-black leading-[0.98] tracking-[-0.045em] min-[380px]:text-[2.2rem] sm:mt-6 sm:text-6xl md:text-[5rem] lg:mt-6 lg:text-[clamp(4.35rem,9.2vh,5.25rem)] lg:leading-[0.92] lg:tracking-[-0.075em] xl:text-[clamp(4rem,7.8vh,5.8rem)] 2xl:text-[6.35rem] [@media_(max-height:820px)]:lg:mt-4">
               <span className="block">{t("about.ecosystem.hero.title_1", "把企业真题，")}</span>
               <span className="block">{t("about.ecosystem.hero.title_2", "接入一张")}</span>
               <span className={`block ${palette.accent}`}>
@@ -288,17 +288,17 @@ const About = () => {
               </span>
             </h1>
 
-            <p className={`mt-4 max-w-4xl text-sm font-medium leading-6 sm:mt-6 sm:text-xl sm:leading-9 lg:mt-5 lg:text-[clamp(0.95rem,1.9vh,1.18rem)] lg:leading-8 [@media_(max-height:820px)]:lg:mt-4 ${palette.textSoft}`}>
+            <p className={`mt-3 max-w-4xl text-xs font-medium leading-5 sm:mt-6 sm:text-xl sm:leading-9 lg:mt-5 lg:text-[clamp(0.95rem,1.9vh,1.18rem)] lg:leading-8 [@media_(max-height:820px)]:lg:mt-4 ${palette.textSoft}`}>
               <strong className={isDayMode ? "text-slate-950" : "text-white"}>
                 {t("about.ecosystem.hero.strong", "真实课题、实战项目、校企认定。")}
               </strong>
               {" "}{t("about.ecosystem.hero.desc", "让学生在做中学，让企业提前看见人才，让校园创新通向产业现场。")}
             </p>
 
-            <div className="mt-5 lg:mt-7 [@media_(max-height:820px)]:lg:mt-5">
+            <div className="mt-4 lg:mt-7 [@media_(max-height:820px)]:lg:mt-5">
               <a
                 href="#ecosystem-handles"
-                className={`inline-flex min-h-12 items-center justify-center gap-2 px-7 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 sm:min-h-14 sm:px-9 [@media_(max-height:820px)]:lg:min-h-12 [@media_(max-height:820px)]:lg:px-7 ${palette.primary}`}
+                className={`inline-flex min-h-10 items-center justify-center gap-2 px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 sm:min-h-14 sm:px-9 [@media_(max-height:820px)]:lg:min-h-12 [@media_(max-height:820px)]:lg:px-7 ${palette.primary}`}
               >
                 {t("about.ecosystem.hero.cta", "查看生态闭环")}
                 <ArrowRight className="h-4 w-4" />
@@ -306,7 +306,7 @@ const About = () => {
             </div>
 
             <div
-              className={`mt-5 grid max-w-4xl grid-cols-3 gap-px overflow-hidden border sm:mt-6 lg:mt-7 [@media_(max-height:820px)]:lg:mt-5 ${
+              className={`mt-4 grid max-w-4xl grid-cols-3 gap-px overflow-hidden border sm:mt-6 lg:mt-7 [@media_(max-height:820px)]:lg:mt-5 ${
                 isDayMode
                   ? "border-cyan-500/18 bg-cyan-500/18"
                   : "border-cyan-300/18 bg-cyan-300/18"
@@ -315,21 +315,21 @@ const About = () => {
               {proofStats.map((item) => (
                 <div
                   key={item.label}
-                  className={`p-3.5 sm:p-6 lg:p-5 2xl:p-6 [@media_(max-height:820px)]:lg:p-3.5 ${
+                  className={`p-2.5 sm:p-6 lg:p-5 2xl:p-6 [@media_(max-height:820px)]:lg:p-3.5 ${
                     isDayMode ? "bg-white/80" : "bg-[#071113]/78"
                   }`}
                 >
-                  <div className={`text-[clamp(1.15rem,7vw,1.5rem)] font-black leading-none tracking-tight sm:text-4xl lg:text-[clamp(2rem,4.6vh,2.55rem)] 2xl:text-5xl ${palette.accent}`}>
+                  <div className={`text-[clamp(1rem,6vw,1.35rem)] font-black leading-none tracking-tight sm:text-4xl lg:text-[clamp(2rem,4.6vh,2.55rem)] 2xl:text-5xl ${palette.accent}`}>
                     {item.value}
                   </div>
-                  <p className={`mt-2 text-[10px] font-bold leading-4 sm:mt-3 sm:text-xs sm:leading-5 lg:mt-2.5 [@media_(max-height:820px)]:lg:mt-2 ${palette.textMuted}`}>
+                  <p className={`mt-1.5 text-[9px] font-bold leading-3 sm:mt-3 sm:text-xs sm:leading-5 lg:mt-2.5 [@media_(max-height:820px)]:lg:mt-2 ${palette.textMuted}`}>
                     {item.label}
                   </p>
                 </div>
               ))}
             </div>
 
-            <div className={`mt-4 grid gap-px overflow-hidden border xl:hidden ${
+            <div className={`mt-3 grid grid-cols-3 gap-px overflow-hidden border sm:grid-cols-1 xl:hidden ${
               isDayMode
                 ? "border-slate-200/80 bg-slate-200/80 shadow-[0_16px_46px_rgba(15,23,42,0.05)]"
                 : "border-white/10 bg-white/10"
@@ -340,24 +340,24 @@ const About = () => {
                   <Link
                     key={item.code}
                     to={item.route}
-                    className={`group grid grid-cols-[2.4rem_1fr_auto] items-center gap-3 px-4 py-3 transition ${
+                    className={`group grid min-h-[4.7rem] grid-rows-[auto_1fr] place-items-center gap-1 px-1.5 py-2 text-center transition sm:min-h-0 sm:grid-cols-[2.4rem_1fr_auto] sm:grid-rows-none sm:items-center sm:gap-3 sm:px-4 sm:py-3 sm:text-left ${
                       isDayMode
                         ? "bg-white/78 hover:bg-cyan-50"
                         : "bg-[#071113]/86 hover:bg-cyan-300/10"
                     }`}
                   >
-                    <span className={`flex h-9 w-9 items-center justify-center ${palette.accentBg} text-slate-950 shadow-[0_0_24px_rgba(103,232,249,0.18)]`}>
-                      <Icon className="h-4 w-4" />
+                    <span className={`flex h-7 w-7 items-center justify-center sm:h-9 sm:w-9 ${palette.accentBg} text-slate-950 shadow-[0_0_24px_rgba(103,232,249,0.18)]`}>
+                      <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </span>
                     <span className="min-w-0">
-                      <span className={`block font-mono text-[10px] font-black uppercase tracking-[0.18em] ${palette.accent}`}>
+                      <span className={`hidden font-mono text-[10px] font-black uppercase tracking-[0.18em] sm:block ${palette.accent}`}>
                         {item.code}
                       </span>
-                      <span className="mt-0.5 block text-[0.95rem] font-black leading-tight">
+                      <span className="block text-[11px] font-black leading-tight sm:mt-0.5 sm:text-[0.95rem]">
                         {item.title}
                       </span>
                     </span>
-                    <ArrowRight className={`h-4 w-4 transition group-hover:translate-x-0.5 ${palette.textMuted}`} />
+                    <ArrowRight className={`hidden h-4 w-4 transition group-hover:translate-x-0.5 sm:block ${palette.textMuted}`} />
                   </Link>
                 );
               })}
@@ -438,14 +438,14 @@ const About = () => {
               {t("about.ecosystem.engine.desc", "资源入口聚合机会，AI 社区承接共建，技术黑客松完成高密度验证。三者联动，才让 AI 热度变成可运营、可复制的人才培养机制。")}
             </p>
 
-            <div className="-mx-4 mt-4 grid auto-cols-[86%] grid-flow-col gap-3 overflow-x-auto px-4 pb-1 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:mt-5 sm:grid-flow-row sm:grid-cols-1 sm:overflow-visible sm:px-0 sm:pb-0 sm:[scrollbar-width:auto] lg:mt-[clamp(1rem,2.1vh,1.75rem)] lg:h-[clamp(17rem,32vh,24rem)] lg:min-h-0 lg:auto-cols-auto lg:auto-rows-fr lg:grid-cols-3 lg:gap-5 2xl:gap-7 [&::-webkit-scrollbar]:hidden sm:[&::-webkit-scrollbar]:block">
+            <div className="-mx-4 mt-3 grid auto-cols-[76%] grid-flow-col gap-2.5 overflow-x-auto px-4 pb-1 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:mt-5 sm:grid-flow-row sm:grid-cols-1 sm:overflow-visible sm:px-0 sm:pb-0 sm:[scrollbar-width:auto] lg:mt-[clamp(1rem,2.1vh,1.75rem)] lg:h-[clamp(17rem,32vh,24rem)] lg:min-h-0 lg:auto-cols-auto lg:auto-rows-fr lg:grid-cols-3 lg:gap-5 2xl:gap-7 [&::-webkit-scrollbar]:hidden sm:[&::-webkit-scrollbar]:block">
               {operatingHandles.map((item) => {
                 const Icon = item.icon;
                 return (
                   <Link
                     key={item.code}
                     to={item.route}
-                    className={`group relative h-[238px] snap-start overflow-hidden border border-l-4 p-4 transition duration-300 hover:-translate-y-1 sm:h-auto sm:min-h-[250px] sm:p-7 lg:flex lg:h-full lg:min-h-0 lg:p-[clamp(1rem,2.4vh,2rem)] ${palette.card} ${
+                    className={`group relative h-[178px] snap-start overflow-hidden border border-l-4 p-3 transition duration-300 hover:-translate-y-1 sm:h-auto sm:min-h-[250px] sm:p-7 lg:flex lg:h-full lg:min-h-0 lg:p-[clamp(1rem,2.4vh,2rem)] ${palette.card} ${
                       isDayMode ? "border-l-cyan-500" : "border-l-cyan-300"
                     }`}
                   >
@@ -460,14 +460,14 @@ const About = () => {
                         <div className={`font-mono text-xs font-black uppercase tracking-[0.2em] ${palette.accent}`}>
                           {item.index} / {item.code}
                         </div>
-                        <div className={`flex h-9 w-9 items-center justify-center sm:h-10 sm:w-10 lg:h-[clamp(2.5rem,5vh,4rem)] lg:w-[clamp(2.5rem,5vh,4rem)] ${palette.accentBg} text-slate-950 shadow-[0_0_34px_rgba(103,232,249,0.24)]`}>
-                          <Icon className="h-[1.125rem] w-[1.125rem] sm:h-5 sm:w-5 lg:h-[clamp(1.25rem,2.6vh,2rem)] lg:w-[clamp(1.25rem,2.6vh,2rem)]" />
+                        <div className={`flex h-8 w-8 items-center justify-center sm:h-10 sm:w-10 lg:h-[clamp(2.5rem,5vh,4rem)] lg:w-[clamp(2.5rem,5vh,4rem)] ${palette.accentBg} text-slate-950 shadow-[0_0_34px_rgba(103,232,249,0.24)]`}>
+                          <Icon className="h-4 w-4 sm:h-5 sm:w-5 lg:h-[clamp(1.25rem,2.6vh,2rem)] lg:w-[clamp(1.25rem,2.6vh,2rem)]" />
                         </div>
                       </div>
-                      <h3 className="mt-2 text-[1.35rem] font-black leading-none tracking-[-0.04em] sm:mt-8 sm:text-4xl lg:mt-[clamp(1rem,2.6vh,1.85rem)] lg:text-[clamp(1.9rem,3.8vh,2.85rem)]">
+                      <h3 className="mt-2 text-lg font-black leading-none tracking-[-0.04em] sm:mt-8 sm:text-4xl lg:mt-[clamp(1rem,2.6vh,1.85rem)] lg:text-[clamp(1.9rem,3.8vh,2.85rem)]">
                         {item.title}
                       </h3>
-                      <p className={`mt-3 line-clamp-3 text-xs leading-5 sm:mt-5 sm:text-sm sm:leading-7 lg:mt-[clamp(0.75rem,1.8vh,1.35rem)] lg:text-[clamp(0.88rem,1.3vh,1.02rem)] lg:leading-6 ${palette.textSoft}`}>
+                      <p className={`mt-2 line-clamp-2 text-[11px] leading-4 sm:mt-5 sm:line-clamp-3 sm:text-sm sm:leading-7 lg:mt-[clamp(0.75rem,1.8vh,1.35rem)] lg:text-[clamp(0.88rem,1.3vh,1.02rem)] lg:leading-6 ${palette.textSoft}`}>
                         {item.description}
                       </p>
                       <div className={`mt-2 flex items-end justify-between border-t pt-2 sm:mt-6 sm:items-center sm:pt-5 lg:mt-auto lg:pt-[clamp(0.8rem,1.8vh,1.35rem)] ${palette.divider}`}>
@@ -475,11 +475,11 @@ const About = () => {
                           <div className={`text-[9px] font-black uppercase tracking-[0.16em] sm:text-[11px] sm:tracking-[0.18em] ${palette.textMuted}`}>
                             Loop Role
                           </div>
-                          <div className={`mt-1 text-base font-black sm:mt-1.5 sm:text-lg lg:mt-2 lg:text-[clamp(1.25rem,2.6vh,1.9rem)] ${palette.accent}`}>
+                          <div className={`mt-1 text-sm font-black sm:mt-1.5 sm:text-lg lg:mt-2 lg:text-[clamp(1.25rem,2.6vh,1.9rem)] ${palette.accent}`}>
                             {item.loop}
                           </div>
                         </div>
-                        <div className={`inline-flex items-center gap-1.5 text-xs font-black sm:gap-2 sm:text-sm ${palette.accent}`}>
+                        <div className={`inline-flex items-center gap-1 text-[11px] font-black sm:gap-2 sm:text-sm ${palette.accent}`}>
                           {item.short}
                           <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
                         </div>
