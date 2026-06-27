@@ -915,6 +915,8 @@
     "upload_video": "上传视频",
     "upload_track": "上传播客",
     "upload_article": "发布AI专栏",
+    "favorite": "收藏",
+    "unfavorite": "取消收藏",
     "like": "点赞",
     "close_video": "关闭视频",
     "previous_track": "上一首",

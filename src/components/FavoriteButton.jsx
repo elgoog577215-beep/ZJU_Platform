@@ -80,7 +80,7 @@ const FavoriteButton = ({
     e.stopPropagation();
 
     if (!user) {
-      toast.error(t('auth.login_required', '请先登录'));
+      toast.error(t('auth.signin_required'));
       return;
     }
 
