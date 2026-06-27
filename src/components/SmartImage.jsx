@@ -79,6 +79,10 @@ const SmartImage = ({
   // Intersection Observer for lazy loading
   useEffect(() => {
     if (priority || isInView) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      setIsInView(true);
+      return;
+    }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -88,7 +92,7 @@ const SmartImage = ({
         }
       },
       {
-        rootMargin: '50px 0px',
+        rootMargin: '320px 0px',
         threshold: 0.01
       }
     );
