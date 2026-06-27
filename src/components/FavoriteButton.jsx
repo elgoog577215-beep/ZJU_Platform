@@ -121,6 +121,7 @@ const FavoriteButton = ({
       onClick={handleToggle}
       aria-label={favoriteLabel}
       aria-pressed={isFavorited}
+      aria-busy={loading || undefined}
       data-testid={testId}
       className={`flex min-h-10 min-w-10 items-center justify-center gap-1.5 group transition-transform active:scale-95 motion-reduce:transform-none ${className}`}
       disabled={loading}
