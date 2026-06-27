@@ -1001,6 +1001,7 @@
   "gallery": {
     "title": "Gallery",
     "subtitle": "Browse live event photos, campus photography, and curated image highlights.",
+    "open_photo": "Open photo: {{title}}",
     "play": "Play",
     "view_3d": "3D Preview",
     "categories": {

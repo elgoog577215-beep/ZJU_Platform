@@ -1032,6 +1032,7 @@
   "gallery": {
     "title": "画廊",
     "subtitle": "查看现场照片、校园摄影与精选图片内容",
+    "open_photo": "打开照片：{{title}}",
     "play": "游玩",
     "view_3d": "3D 预览",
     "categories": {

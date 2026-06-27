@@ -41,9 +41,17 @@ import { useReducedMotion } from "../utils/animations";
 const PhotoCard = memo(
   forwardRef(
     (
-      { photo, index, onClick, onToggleFavorite, canAnimate, isDayMode },
+      { photo, index, onClick, onToggleFavorite, canAnimate, isDayMode, t },
       ref,
     ) => {
+      const openPhoto = () => onClick(index);
+
+      const handleOpenKeyDown = (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        openPhoto();
+      };
+
       return (
         <motion.div
           ref={ref}
@@ -58,11 +66,20 @@ const PhotoCard = memo(
           whileHover={
             canAnimate ? { y: -4, transition: { duration: 0.18 } } : undefined
           }
-          className={`break-inside-avoid relative group overflow-hidden rounded-lg md:rounded-2xl cursor-pointer
+          className={`break-inside-avoid relative group overflow-hidden rounded-lg md:rounded-2xl cursor-pointer text-left
                  backdrop-blur-sm border transition-all duration-300 w-full inline-block touch-manipulation mb-3 md:mb-6
                  ${isDayMode ? "day-card-lift" : "bg-white/5 border-white/10 hover:shadow-2xl hover:shadow-indigo-500/10 hover:border-white/20"}`}
-          onClick={() => onClick(index)}
         >
+          <button
+            type="button"
+            aria-label={t("gallery.open_photo", { title: photo.title })}
+            onClick={openPhoto}
+            onKeyDown={handleOpenKeyDown}
+            className={`absolute inset-0 z-30 rounded-lg border-0 bg-transparent p-0 text-left outline-none transition-shadow md:rounded-2xl
+              focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black
+              ${isDayMode ? "focus-visible:ring-offset-white" : ""}`}
+          />
+
           <SmartImage
             src={getThumbnailUrl(photo.url)}
             alt={photo.title}
@@ -74,7 +91,7 @@ const PhotoCard = memo(
           />
 
           <div
-            className={`absolute inset-0 ${isDayMode ? "bg-gradient-to-t from-slate-950/76 via-slate-900/18 to-transparent" : "bg-gradient-to-t from-black/90 via-black/40 to-transparent"}
+            className={`pointer-events-none absolute inset-0 z-20 ${isDayMode ? "bg-gradient-to-t from-slate-950/76 via-slate-900/18 to-transparent" : "bg-gradient-to-t from-black/90 via-black/40 to-transparent"}
                    opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300
                    flex flex-col justify-end p-2.5 md:p-4`}
           >
@@ -88,7 +105,7 @@ const PhotoCard = memo(
                 </h3>
 
                 <div className="flex items-center gap-2">
-                  <div onClick={(e) => e.stopPropagation()}>
+                  <div className="pointer-events-auto relative z-40" onClick={(e) => e.stopPropagation()}>
                     <FavoriteButton
                       itemId={photo.id}
                       itemType="photo"
@@ -122,7 +139,8 @@ const PhotoCard = memo(
 
           {typeof photo.likes === "number" && (
             <div
-              className="absolute top-3 right-3 flex items-center gap-1 
+              aria-hidden="true"
+              className="pointer-events-none absolute top-3 right-3 z-40 flex items-center gap-1 
                    backdrop-blur-md rounded-full px-2 py-1
                    border border-white/10"
               style={{
@@ -593,6 +611,7 @@ const Gallery = () => {
                 onToggleFavorite={handleToggleFavorite}
                 canAnimate={!prefersReducedMotion && index < 8}
                 isDayMode={isDayMode}
+                t={t}
               />
             ))}
           </AnimatePresence>
