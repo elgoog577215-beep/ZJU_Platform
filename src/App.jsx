@@ -377,6 +377,7 @@ const AppContent = () => {
               <Route path="/events" element={<PageTransition><Events /></PageTransition>} />
               <Route path="/about" element={<PageTransition><About /></PageTransition>} />
               <Route path="/download" element={<PageTransition><AppDownload /></PageTransition>} />
+              <Route path="/app" element={<Navigate to="/download" replace />} />
               <Route path="/hackathon" element={<PageTransition><HackathonSeasonOne /></PageTransition>} />
               <Route path="/hackathon/showcase" element={<PageTransition><HackathonSeasonOne /></PageTransition>} />
               <Route path="/hackathon/works" element={<PageTransition><HackathonWorks /></PageTransition>} />

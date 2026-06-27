@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Globe } from 'lucide-react';
@@ -13,6 +13,7 @@ const LanguageSwitcher = () => {
   const { i18n } = useTranslation();
   const { uiMode } = useSettings();
   const [isOpen, setIsOpen] = React.useState(false);
+  const menuRef = useRef(null);
   const isDayMode = uiMode === 'day';
   const currentLanguageCode = (i18n.resolvedLanguage || i18n.language || 'zh').split('-')[0];
 
@@ -22,13 +23,33 @@ const LanguageSwitcher = () => {
     document.documentElement.lang = currentLang.code;
   }, [currentLanguageCode]);
 
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const handlePointerDown = (event) => {
+      if (!menuRef.current?.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setIsOpen(false);
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen]);
+
   const changeLanguage = (langCode) => {
     i18n.changeLanguage(langCode);
     setIsOpen(false);
   };
 
   return (
-    <div className="relative z-50">
+    <div ref={menuRef} className="relative z-50">
       <button
         type="button"
         onClick={() => setIsOpen((open) => !open)}
@@ -38,7 +59,7 @@ const LanguageSwitcher = () => {
         aria-controls="language-switcher-menu"
         className={`flex items-center gap-2 rounded-lg p-2 transition-colors ${isDayMode ? 'text-slate-500 hover:bg-white/90 hover:text-slate-900' : 'text-gray-300 hover:bg-white/10 hover:text-white'}`}
       >
-        <Globe className="h-5 w-5" />
+        <Globe className="h-5 w-5" aria-hidden="true" />
         <span className="text-sm font-medium uppercase">{currentLanguageCode}</span>
       </button>
 

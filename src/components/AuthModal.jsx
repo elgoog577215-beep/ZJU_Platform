@@ -25,6 +25,11 @@ const AuthModal = ({ isOpen, onClose }) => {
   const { uiMode } = useSettings();
   const isDayMode = uiMode === 'day';
 
+  const switchMode = () => {
+    setIsLogin((value) => !value);
+    setError('');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -152,6 +157,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                   <ArrowRight size={18} aria-hidden="true" />
                 </>
               )}
+              {loading ? <span className="sr-only">{t('common.loading')}</span> : null}
             </button>
           </form>
 
@@ -159,7 +165,7 @@ const AuthModal = ({ isOpen, onClose }) => {
             {isLogin ? t('auth.no_account') : t('auth.has_account')}
             <button 
               type="button"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={switchMode}
               className={`font-bold ml-1 transition-colors underline decoration-indigo-500/50 hover:decoration-indigo-500 py-2 px-1 ${isDayMode ? 'text-slate-900 hover:text-indigo-500' : 'text-white hover:text-indigo-400'}`}
             >
               {isLogin ? t('auth.sign_up') : t('auth.log_in')}

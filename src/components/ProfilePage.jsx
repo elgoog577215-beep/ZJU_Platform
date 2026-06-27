@@ -26,22 +26,23 @@ import { useSettings } from "../context/SettingsContext";
 import { useAuth } from "../context/AuthContext";
 import SEO from "./SEO";
 import OfficialVerificationBadge from "./OfficialVerificationBadge";
+import { useTranslation } from "react-i18next";
 
 const TYPE_META = {
-  person: { label: "个人主页", icon: User, tone: "sky" },
-  club: { label: "社团账号", icon: Users, tone: "violet" },
-  school: { label: "学校/学院", icon: Building2, tone: "emerald" },
-  enterprise: { label: "企业账号", icon: Building2, tone: "amber" },
-  organization: { label: "组织账号", icon: Users, tone: "indigo" },
+  person: { labelKey: "profiles.types.person", icon: User, tone: "sky" },
+  club: { labelKey: "profiles.types.club", icon: Users, tone: "violet" },
+  school: { labelKey: "profiles.types.school", icon: Building2, tone: "emerald" },
+  enterprise: { labelKey: "profiles.types.enterprise", icon: Building2, tone: "amber" },
+  organization: { labelKey: "profiles.types.organization", icon: Users, tone: "indigo" },
 };
 
 const FEED_TABS = [
-  { key: "all", label: "全部", icon: Grid3X3 },
-  { key: "events", label: "活动", icon: CalendarDays },
-  { key: "articles", label: "文章", icon: FileText },
-  { key: "news", label: "新闻", icon: Newspaper },
-  { key: "media", label: "媒体", icon: ImageIcon },
-  { key: "posts", label: "社区", icon: Radio },
+  { key: "all", labelKey: "profiles.page.tabs.all", icon: Grid3X3 },
+  { key: "events", labelKey: "profiles.page.tabs.events", icon: CalendarDays },
+  { key: "articles", labelKey: "profiles.page.tabs.articles", icon: FileText },
+  { key: "news", labelKey: "profiles.page.tabs.news", icon: Newspaper },
+  { key: "media", labelKey: "profiles.page.tabs.media", icon: ImageIcon },
+  { key: "posts", labelKey: "profiles.page.tabs.posts", icon: Radio },
 ];
 
 const typeMeta = (type) => TYPE_META[type] || TYPE_META.organization;
@@ -85,9 +86,9 @@ const canEditProfile = (profile, currentUser) => {
   return profile.member_role === "owner" || profile.member_role === "admin";
 };
 
-const ProfileMark = ({ profile, isDayMode }) => {
+const ProfileMark = ({ profile, isDayMode, displayName }) => {
   const src = profileImage(profile);
-  const name = profile?.display_name || "Profile";
+  const name = displayName || profile?.display_name || "Profile";
   if (src) {
     return (
       <div className={`flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-[8px] border md:h-24 md:w-24 ${
@@ -106,8 +107,14 @@ const ProfileMark = ({ profile, isDayMode }) => {
   );
 };
 
-const FeedCard = ({ item, isDayMode }) => {
+const localizedProfileText = (profile, language, enField, zhField) => {
+  const isEnglish = String(language || "").startsWith("en");
+  return isEnglish ? (profile?.[enField] || profile?.[zhField] || "") : (profile?.[zhField] || profile?.[enField] || "");
+};
+
+const FeedCard = ({ item, isDayMode, t }) => {
   const target = feedTarget(item);
+  const feedTypeLabel = t(`profiles.page.feed_type.${item.type}`, item.type);
   const content = (
     <article className={`group grid min-h-[148px] grid-cols-[108px_1fr] overflow-hidden rounded-[8px] border transition-colors md:grid-cols-[148px_1fr] ${
       isDayMode
@@ -128,13 +135,13 @@ const FeedCard = ({ item, isDayMode }) => {
           <span className={`rounded-[4px] border px-2 py-1 text-[11px] font-black uppercase ${
             isDayMode ? "border-slate-200 bg-slate-50 text-slate-600" : "border-white/10 bg-white/[0.05] text-slate-300"
           }`}>
-            {item.type}
+            {feedTypeLabel}
           </span>
           {item.relation === "organized" ? (
             <span className={`rounded-[4px] px-2 py-1 text-[11px] font-bold ${
               isDayMode ? "bg-violet-50 text-violet-700" : "bg-indigo-500/15 text-indigo-100"
             }`}>
-              主办关联
+              {t("profiles.page.organized_relation")}
             </span>
           ) : null}
         </div>
@@ -179,6 +186,7 @@ const FeedCard = ({ item, isDayMode }) => {
 };
 
 const ProfilePage = ({ forcedHandle = null }) => {
+  const { t, i18n } = useTranslation();
   const params = useParams();
   const navigate = useNavigate();
   const { uiMode } = useSettings();
@@ -253,6 +261,14 @@ const ProfilePage = ({ forcedHandle = null }) => {
   const meta = useMemo(() => typeMeta(profile?.type), [profile?.type]);
   const TypeIcon = meta.icon;
   const editable = canEditProfile(profile, currentUser);
+  const language = i18n.resolvedLanguage || i18n.language || "zh";
+  const isEnglish = language.startsWith("en");
+  const displayName = isEnglish
+    ? (profile?.display_name_en || profile?.display_name || t("profiles.types.subject"))
+    : (profile?.display_name || profile?.display_name_en || t("profiles.types.subject"));
+  const secondaryDisplayName = isEnglish
+    ? (profile?.display_name && profile.display_name !== displayName ? profile.display_name : "")
+    : profile?.display_name_en;
   const canChangePassword =
     profile?.type === "person" &&
     currentUser?.id &&
@@ -262,6 +278,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
     ? "border-slate-200 bg-white text-slate-950 placeholder:text-slate-400 focus:border-sky-400"
     : "border-white/10 bg-white/[0.06] text-white placeholder:text-white/35 focus:border-sky-300/60";
   const labelClass = isDayMode ? "text-slate-600" : "text-slate-300";
+  const metaLabel = t(meta.labelKey);
 
   const updateEditField = (field, value) => {
     setEditForm((previous) => ({ ...previous, [field]: value }));
@@ -288,7 +305,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
       updateEditField(field, url);
       if (field === "logo_url" && !editForm.avatar_url) updateEditField("avatar_url", url);
     } catch (uploadError) {
-      setEditError(uploadError.response?.data?.error || uploadError.message || "图片上传失败");
+      setEditError(uploadError.response?.data?.error || uploadError.message || t("profiles.page.upload_failed"));
     } finally {
       setUploadingField("");
     }
@@ -309,7 +326,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
       setEditing(false);
       refreshUser?.();
     } catch (saveError) {
-      setEditError(saveError.response?.data?.error || saveError.message || "保存失败");
+      setEditError(saveError.response?.data?.error || saveError.message || t("profiles.page.save_failed"));
     } finally {
       setSaving(false);
     }
@@ -326,15 +343,15 @@ const ProfilePage = ({ forcedHandle = null }) => {
     const newPassword = passwordForm.newPassword;
     const confirmPassword = passwordForm.confirmPassword;
     if (!currentPassword || !newPassword || !confirmPassword) {
-      setPasswordError("请填写当前密码和新密码");
+      setPasswordError(t("profiles.page.password_missing"));
       return;
     }
     if (newPassword.length < 6) {
-      setPasswordError("新密码至少 6 位");
+      setPasswordError(t("profiles.page.password_min"));
       return;
     }
     if (newPassword !== confirmPassword) {
-      setPasswordError("两次输入的新密码不一致");
+      setPasswordError(t("profiles.page.password_mismatch"));
       return;
     }
 
@@ -344,15 +361,23 @@ const ProfilePage = ({ forcedHandle = null }) => {
     try {
       await api.post("/auth/change-password", { currentPassword, newPassword });
       setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
-      setPasswordMessage("密码已更新");
+      setPasswordMessage(t("profiles.page.password_updated"));
     } catch (error) {
       const validationMessage = error.response?.data?.errors?.[0]?.msg;
-      setPasswordError(error.response?.data?.error || validationMessage || error.message || "修改密码失败");
+      setPasswordError(error.response?.data?.error || validationMessage || error.message || t("profiles.page.password_failed"));
     } finally {
       setPasswordSaving(false);
     }
   };
-  const description = profile?.description || profile?.bio || "这个主体还没有填写公开介绍。";
+  const description = localizedProfileText(profile, language, "description_en", "description")
+    || localizedProfileText(profile, language, "bio_en", "bio")
+    || t("profiles.page.default_description");
+  const cooperationDirection = localizedProfileText(
+    profile,
+    language,
+    "cooperation_direction_en",
+    "cooperation_direction",
+  );
 
   if (loading) {
     return (
@@ -368,9 +393,9 @@ const ProfilePage = ({ forcedHandle = null }) => {
         isDayMode ? "text-slate-900" : "text-white"
       }`}>
         <Search className={isDayMode ? "text-slate-400" : "text-white/35"} size={48} />
-        <h1 className="mt-5 text-2xl font-black">主体主页不存在</h1>
+        <h1 className="mt-5 text-2xl font-black">{t("profiles.page.not_found_title")}</h1>
         <p className={`mt-2 text-sm ${isDayMode ? "text-slate-500" : "text-slate-400"}`}>
-          这个 Profile 可能尚未创建、已归档，或 handle 已变更。
+          {t("profiles.page.not_found_desc")}
         </p>
         <button
           type="button"
@@ -380,7 +405,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
           }`}
         >
           <ArrowLeft size={16} />
-          返回
+          {t("profiles.page.back")}
         </button>
       </div>
     );
@@ -390,7 +415,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
     <section className={`min-h-screen px-4 py-8 md:px-8 md:py-12 ${
       isDayMode ? "bg-slate-50 text-slate-950" : "text-white"
     }`}>
-      <SEO title={`${profile.display_name} - 主体主页`} description={description} />
+      <SEO title={`${displayName} - ${t("profiles.page.title_suffix")}`} description={description} />
       <div className="mx-auto w-full max-w-6xl">
         <button
           type="button"
@@ -400,7 +425,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
           }`}
         >
           <ArrowLeft size={16} />
-          返回
+          {t("profiles.page.back")}
         </button>
 
         <header className={`overflow-hidden rounded-[8px] border ${
@@ -419,25 +444,25 @@ const ProfilePage = ({ forcedHandle = null }) => {
           </div>
 
           <div className="grid gap-5 p-4 md:grid-cols-[auto_1fr_auto] md:gap-6 md:p-6">
-            <ProfileMark profile={profile} isDayMode={isDayMode} />
+              <ProfileMark profile={profile} isDayMode={isDayMode} displayName={displayName} />
             <div className="min-w-0">
               <div className="mb-3 flex flex-wrap items-center gap-2">
                 <span className={`inline-flex items-center gap-1.5 rounded-[4px] border px-2.5 py-1 text-xs font-black ${
                   isDayMode ? "border-sky-200 bg-sky-50 text-sky-700" : "border-sky-300/20 bg-sky-400/10 text-sky-100"
                 }`}>
                   <TypeIcon size={14} />
-                  {meta.label}
+                  {metaLabel}
                 </span>
                 <OfficialVerificationBadge profile={profile} isDayMode={isDayMode} />
               </div>
               <h1 className="profile-page-title text-3xl font-black leading-tight md:text-5xl">
                 {profile.display_name}
               </h1>
-              {profile.display_name_en ? (
+              {secondaryDisplayName ? (
                 <p className={`mt-1 text-sm font-bold md:text-base ${
                   isDayMode ? "text-slate-500" : "text-slate-400"
                 }`}>
-                  {profile.display_name_en}
+                  {secondaryDisplayName}
                 </p>
               ) : null}
               <p className={`mt-4 max-w-3xl text-sm leading-7 md:text-base ${
@@ -445,11 +470,11 @@ const ProfilePage = ({ forcedHandle = null }) => {
               }`}>
                 {description}
               </p>
-              {profile.cooperation_direction ? (
+              {cooperationDirection ? (
                 <p className={`mt-3 text-sm font-bold ${
                   isDayMode ? "text-violet-700" : "text-indigo-100"
                 }`}>
-                  {profile.cooperation_direction}
+                  {cooperationDirection}
                 </p>
               ) : null}
             </div>
@@ -465,7 +490,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
                   }`}
                 >
                   <Edit3 size={16} />
-                  编辑主页
+                  {t("profiles.page.edit_homepage")}
                 </button>
               ) : null}
               {profile.link_url ? (
@@ -477,7 +502,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
                     isDayMode ? "border-slate-200 bg-white text-slate-700 hover:border-sky-200" : "border-white/10 bg-white/[0.04] text-white hover:border-white/20"
                   }`}
                 >
-                  外部链接
+                  {t("profiles.page.external_link")}
                   <ExternalLink size={16} />
                 </a>
               ) : null}
@@ -496,10 +521,10 @@ const ProfilePage = ({ forcedHandle = null }) => {
             isDayMode ? "border-slate-200" : "border-white/10"
           }`}>
             {[
-              ["内容", profile.stats?.published_count || 0],
-              ["活动", profile.stats?.event_count || 0],
-              ["类型", meta.label],
-              ["状态", profile.verified ? "认证" : "普通"],
+              [t("profiles.page.stats_content"), profile.stats?.published_count || 0],
+              [t("profiles.page.stats_events"), profile.stats?.event_count || 0],
+              [t("profiles.page.stats_type"), metaLabel],
+              [t("profiles.page.stats_status"), profile.verified ? t("profiles.page.verified") : t("profiles.page.normal")],
             ].map(([label, value]) => (
               <div key={label} className={`px-4 py-4 ${
                 isDayMode ? "border-slate-200" : "border-white/10"
@@ -515,7 +540,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
 
         {editing ? (() => {
           const primaryImageField = profile.type === "person" ? "avatar_url" : "logo_url";
-          const primaryImageLabel = profile.type === "person" ? "头像" : "Logo";
+          const primaryImageLabel = profile.type === "person" ? t("profiles.page.avatar") : t("profiles.page.logo");
           return (
             <form
               onSubmit={saveProfile}
@@ -525,9 +550,9 @@ const ProfilePage = ({ forcedHandle = null }) => {
             >
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-lg font-black">编辑主页</h2>
+                  <h2 className="text-lg font-black">{t("profiles.page.edit_title")}</h2>
                   <p className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-slate-400"}`}>
-                    修改名称、简介、封面和公开链接。
+                    {t("profiles.page.edit_desc")}
                   </p>
                 </div>
                 <button
@@ -536,7 +561,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
                   className={`inline-flex h-10 w-10 items-center justify-center rounded-[6px] ${
                     isDayMode ? "bg-slate-100 text-slate-600 hover:text-slate-950" : "bg-white/10 text-slate-300 hover:text-white"
                   }`}
-                  aria-label="关闭编辑"
+                  aria-label={t("profiles.page.close_edit")}
                 >
                   <X size={18} />
                 </button>
@@ -552,7 +577,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
 
               <div className="grid gap-4 md:grid-cols-2">
                 <label className={`grid gap-2 text-sm font-bold ${labelClass}`}>
-                  显示名称
+                  {t("profiles.page.display_name")}
                   <input
                     value={editForm.display_name}
                     onChange={(event) => updateEditField("display_name", event.target.value)}
@@ -562,7 +587,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
                   />
                 </label>
                 <label className={`grid gap-2 text-sm font-bold ${labelClass}`}>
-                  英文名称
+                  {t("profiles.page.display_name_en")}
                   <input
                     value={editForm.display_name_en}
                     onChange={(event) => updateEditField("display_name_en", event.target.value)}
@@ -572,7 +597,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
                 </label>
 
                 <label className={`grid gap-2 text-sm font-bold ${labelClass}`}>
-                  {primaryImageLabel} URL
+                  {t("profiles.page.primary_image_url", { label: primaryImageLabel })}
                   <div className="flex gap-2">
                     <input
                       value={editForm[primaryImageField]}
@@ -584,7 +609,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
                       isDayMode ? "border-slate-200 bg-slate-50 text-slate-700" : "border-white/10 bg-white/[0.05] text-slate-100"
                     }`}>
                       {uploadingField === primaryImageField ? <Loader2 className="animate-spin" size={15} /> : <Upload size={15} />}
-                      上传
+                      {t("profiles.page.upload")}
                       <input
                         type="file"
                         accept="image/*"
@@ -596,7 +621,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
                 </label>
 
                 <label className={`grid gap-2 text-sm font-bold ${labelClass}`}>
-                  封面 URL
+                  {t("profiles.page.cover_url")}
                   <div className="flex gap-2">
                     <input
                       value={editForm.cover_url}
@@ -608,7 +633,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
                       isDayMode ? "border-slate-200 bg-slate-50 text-slate-700" : "border-white/10 bg-white/[0.05] text-slate-100"
                     }`}>
                       {uploadingField === "cover_url" ? <Loader2 className="animate-spin" size={15} /> : <Upload size={15} />}
-                      上传
+                      {t("profiles.page.upload")}
                       <input
                         type="file"
                         accept="image/*"
@@ -620,7 +645,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
                 </label>
 
                 <label className={`grid gap-2 text-sm font-bold ${labelClass}`}>
-                  简短介绍
+                  {t("profiles.page.bio")}
                   <textarea
                     value={editForm.bio}
                     onChange={(event) => updateEditField("bio", event.target.value)}
@@ -629,7 +654,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
                   />
                 </label>
                 <label className={`grid gap-2 text-sm font-bold ${labelClass}`}>
-                  主页介绍
+                  {t("profiles.page.description")}
                   <textarea
                     value={editForm.description}
                     onChange={(event) => updateEditField("description", event.target.value)}
@@ -640,7 +665,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
 
                 {profile.type !== "person" ? (
                   <label className={`grid gap-2 text-sm font-bold ${labelClass}`}>
-                    合作方向
+                    {t("profiles.page.cooperation_direction")}
                     <input
                       value={editForm.cooperation_direction}
                       onChange={(event) => updateEditField("cooperation_direction", event.target.value)}
@@ -650,7 +675,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
                   </label>
                 ) : null}
                 <label className={`grid gap-2 text-sm font-bold ${labelClass}`}>
-                  外部链接
+                  {t("profiles.page.external_link")}
                   <input
                     value={editForm.link_url}
                     onChange={(event) => updateEditField("link_url", event.target.value)}
@@ -673,9 +698,9 @@ const ProfilePage = ({ forcedHandle = null }) => {
                   <div className="mb-4 flex items-center gap-2">
                     <KeyRound size={17} className={isDayMode ? "text-sky-600" : "text-sky-200"} />
                     <div>
-                      <h3 className="text-base font-black">修改账户密码</h3>
+                      <h3 className="text-base font-black">{t("profiles.page.password_title")}</h3>
                       <p className={`mt-0.5 text-xs ${isDayMode ? "text-slate-500" : "text-slate-400"}`}>
-                        只影响当前登录账户，不影响公开主页资料。
+                        {t("profiles.page.password_desc")}
                       </p>
                     </div>
                   </div>
@@ -697,7 +722,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
 
                   <div className="grid gap-3 md:grid-cols-3">
                     <label className={`grid gap-2 text-sm font-bold ${labelClass}`}>
-                      当前密码
+                      {t("profiles.page.current_password")}
                       <input
                         type="password"
                         value={passwordForm.currentPassword}
@@ -707,7 +732,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
                       />
                     </label>
                     <label className={`grid gap-2 text-sm font-bold ${labelClass}`}>
-                      新密码
+                      {t("profiles.page.new_password")}
                       <input
                         type="password"
                         value={passwordForm.newPassword}
@@ -717,7 +742,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
                       />
                     </label>
                     <label className={`grid gap-2 text-sm font-bold ${labelClass}`}>
-                      确认新密码
+                      {t("profiles.page.confirm_password")}
                       <input
                         type="password"
                         value={passwordForm.confirmPassword}
@@ -739,7 +764,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
                       }`}
                     >
                       {passwordSaving ? <Loader2 className="animate-spin" size={15} /> : <KeyRound size={15} />}
-                      更新密码
+                      {t("user_profile.security.update_btn")}
                     </button>
                   </div>
                 </section>
@@ -753,7 +778,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
                     isDayMode ? "border-slate-200 bg-white text-slate-700" : "border-white/10 bg-white/[0.04] text-slate-200"
                   }`}
                 >
-                  取消
+                  {t("profiles.page.cancel")}
                 </button>
                 <button
                   type="submit"
@@ -764,7 +789,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
                   }`}
                 >
                   {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
-                  保存主页
+                  {t("profiles.page.save_homepage")}
                 </button>
               </div>
             </form>
@@ -791,7 +816,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
                 }`}
               >
                 <Icon size={15} />
-                {tab.label}
+                {t(tab.labelKey)}
               </button>
             );
           })}
@@ -807,7 +832,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
           ) : feed.length > 0 ? (
             <div className="grid gap-3 md:grid-cols-2">
               {feed.map((item) => (
-                <FeedCard key={`${item.type}-${item.id}-${item.relation || "published"}`} item={item} isDayMode={isDayMode} />
+                <FeedCard key={`${item.type}-${item.id}-${item.relation || "published"}`} item={item} isDayMode={isDayMode} t={t} />
               ))}
             </div>
           ) : (
@@ -816,10 +841,10 @@ const ProfilePage = ({ forcedHandle = null }) => {
             }`}>
               <Grid3X3 size={34} />
               <h2 className={`mt-4 text-lg font-black ${isDayMode ? "text-slate-900" : "text-white"}`}>
-                暂无公开内容
+                {t("profiles.page.empty_title")}
               </h2>
               <p className="mt-2 max-w-md text-sm leading-6">
-                这个主体还没有发布或关联到当前分类下的公开内容。
+                {t("profiles.page.empty_desc")}
               </p>
             </div>
           )}
@@ -829,7 +854,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
           <div className={`mt-5 text-center text-xs font-semibold ${
             isDayMode ? "text-slate-500" : "text-slate-400"
           }`}>
-            第 {pagination.page || 1} / {pagination.totalPages} 页
+            {t("profiles.page.page_indicator", { page: pagination.page || 1, total: pagination.totalPages })}
           </div>
         ) : null}
       </div>

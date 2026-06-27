@@ -16,6 +16,7 @@ import api from "../services/api";
 import { useSettings } from "../context/SettingsContext";
 import CompetitionOutcomeUploadModal from "./CompetitionOutcomeUploadModal";
 import SEO from "./SEO";
+import { useTranslation } from "react-i18next";
 
 const fallbackCover = "/images/hero-landscape-day-4k.jpg";
 
@@ -30,14 +31,14 @@ const normalizeRank = (rank, index) => {
   return /^\d+$/.test(value) ? value.padStart(2, "0") : value;
 };
 
-const normalizeWork = (work, index) => ({
+const normalizeWork = (work, index, t) => ({
   ...work,
   rank: normalizeRank(work.rank, index),
-  award: work.award || "优秀作品",
-  honorTitle: work.honor_title || work.honorTitle || work.award || "Top 20 获奖成员",
+  award: work.award || t("hackathon.works_page.fallback_award"),
+  honorTitle: work.honor_title || work.honorTitle || work.award || t("hackathon.works_page.fallback_honor"),
   gitUrl: work.git_url || work.gitUrl || "",
   cover: work.cover_url || work.cover || fallbackCover,
-  author: work.author || work.uploader_name || "获奖成员",
+  author: work.author || work.uploader_name || t("hackathon.works_page.fallback_author"),
   boundIdentityName: work.bound_identity_name || work.boundIdentityName || "",
   boundIdentityType: work.bound_identity_type || work.boundIdentityType || "",
   summary: work.summary || work.description || work.gameDescription || "",
@@ -48,16 +49,16 @@ const normalizeWork = (work, index) => ({
   storyFileUrl: work.story_file_url || work.storyFileUrl || "",
 });
 
-const WorkCover = ({ work, featured = false, isDayMode = false, onOpen }) => (
+const WorkCover = ({ work, featured = false, isDayMode = false, onOpen, t }) => (
   <button
     type="button"
     onClick={() => onOpen?.(work)}
     className={`relative block w-full overflow-hidden bg-[#061113] text-left ${featured ? "aspect-[16/10]" : "aspect-[16/11]"}`}
-    aria-label={`查看${work.title}详情`}
+    aria-label={t("hackathon.works_page.view_work_aria", { title: work.title })}
   >
     <img
       src={work.cover}
-      alt={`${work.title} 封面`}
+      alt={t("hackathon.works_page.cover_alt", { title: work.title })}
       className="absolute inset-0 h-full w-full object-cover opacity-90 transition duration-700 group-hover:scale-[1.035]"
       style={{ filter: isDayMode ? "brightness(0.88) saturate(1.08) contrast(1.02)" : "brightness(0.66) saturate(1.16) contrast(1.08)" }}
       loading={featured ? "eager" : "lazy"}
@@ -81,13 +82,13 @@ const WorkCover = ({ work, featured = false, isDayMode = false, onOpen }) => (
         {work.title}
       </p>
       <span className="mt-3 inline-flex min-h-9 items-center border border-white/18 bg-white/12 px-3 text-xs font-black text-white opacity-0 backdrop-blur transition duration-300 group-hover:opacity-100">
-        查看详情
+        {t("hackathon.works_page.view_details")}
       </span>
     </div>
   </button>
 );
 
-const WorkCard = ({ work, featured = false, isDayMode = false, onOpen }) => {
+const WorkCard = ({ work, featured = false, isDayMode = false, onOpen, t }) => {
   const panelClass = isDayMode
     ? "border-cyan-200/70 bg-white/88 text-slate-950 shadow-[0_24px_80px_rgba(15,23,42,0.12)]"
     : "border-cyan-300/[0.18] bg-[#061014]/88 text-white shadow-[0_30px_100px_rgba(0,0,0,0.45)]";
@@ -102,7 +103,7 @@ const WorkCard = ({ work, featured = false, isDayMode = false, onOpen }) => {
 
   return (
     <article className={`group flex h-full flex-col overflow-hidden border ${panelClass} transition duration-300 hover:-translate-y-1 hover:border-cyan-300/60`}>
-      <WorkCover work={work} featured={featured} isDayMode={isDayMode} onOpen={onOpen} />
+      <WorkCover work={work} featured={featured} isDayMode={isDayMode} onOpen={onOpen} t={t} />
       <div className={`flex flex-1 flex-col ${featured ? "p-6 lg:p-7" : "p-5"}`}>
         <div className={`mb-4 h-1 w-full bg-gradient-to-r ${rankClass}`} />
         <h2 className={featured ? "text-3xl font-black leading-tight lg:text-4xl" : "line-clamp-2 min-h-[4rem] text-2xl font-black leading-tight"}>
@@ -140,7 +141,7 @@ const WorkCard = ({ work, featured = false, isDayMode = false, onOpen }) => {
             className={`inline-flex min-h-11 w-full items-center justify-center gap-2 border px-4 text-sm font-black transition ${actionClass}`}
           >
             <BookOpen className="h-4 w-4" />
-            查看经验
+            {t("hackathon.works_page.view_story")}
           </button>
           {work.gitUrl ? (
             <a
@@ -150,7 +151,7 @@ const WorkCard = ({ work, featured = false, isDayMode = false, onOpen }) => {
               className={`inline-flex min-h-11 w-full items-center justify-center gap-2 border px-4 text-sm font-black transition ${actionClass}`}
             >
               <Github className="h-4 w-4" />
-              项目链接
+              {t("hackathon.works_page.project_link")}
               <ExternalLink className="h-4 w-4" />
             </a>
           ) : null}
@@ -160,7 +161,7 @@ const WorkCard = ({ work, featured = false, isDayMode = false, onOpen }) => {
   );
 };
 
-const WorkDetailModal = ({ work, isDayMode, onClose }) => {
+const WorkDetailModal = ({ work, isDayMode, onClose, t }) => {
   useEffect(() => {
     if (!work || typeof document === "undefined") return undefined;
 
@@ -186,10 +187,10 @@ const WorkDetailModal = ({ work, isDayMode, onClose }) => {
   const mutedClass = isDayMode ? "text-slate-600" : "text-white/64";
   const paragraphClass = isDayMode ? "text-slate-700" : "text-white/76";
   const detailStats = [
-    ["名次", work.rank ? `#${work.rank}` : "未标注"],
-    ["荣誉", work.honorTitle || work.award || "优秀作品"],
-    ["选手", work.author || "获奖成员"],
-    ["专业", [work.grade, work.major].filter(Boolean).join(" / ") || "未填写"],
+    [t("hackathon.works_page.rank"), work.rank ? `#${work.rank}` : t("hackathon.works_page.not_marked")],
+    [t("hackathon.works_page.honor"), work.honorTitle || work.award || t("hackathon.works_page.fallback_award")],
+    [t("hackathon.works_page.builder"), work.author || t("hackathon.works_page.fallback_author")],
+    [t("hackathon.works_page.major"), [work.grade, work.major].filter(Boolean).join(" / ") || t("hackathon.works_page.not_filled")],
   ];
 
   if (typeof document === "undefined") return null;
@@ -199,7 +200,7 @@ const WorkDetailModal = ({ work, isDayMode, onClose }) => {
       className="fixed inset-0 z-[170] flex items-end justify-center bg-black/72 p-0 backdrop-blur-md sm:items-center sm:p-4"
       role="dialog"
       aria-modal="true"
-      aria-label={`${work.title} 作品详情`}
+      aria-label={t("hackathon.works_page.work_detail", { title: work.title })}
       onMouseDown={onClose}
     >
       <article
@@ -209,7 +210,7 @@ const WorkDetailModal = ({ work, isDayMode, onClose }) => {
         <div className="relative min-h-[34svh] overflow-hidden bg-[#061113] sm:min-h-[420px] lg:min-h-0">
           <img
             src={work.cover}
-            alt={`${work.title} 作品预览`}
+            alt={t("hackathon.works_page.preview_alt", { title: work.title })}
             className="absolute inset-0 h-full w-full object-cover"
             style={{ filter: isDayMode ? "brightness(0.9) saturate(1.06)" : "brightness(0.72) saturate(1.14) contrast(1.04)" }}
           />
@@ -244,7 +245,7 @@ const WorkDetailModal = ({ work, isDayMode, onClose }) => {
               className={`inline-flex h-10 w-10 shrink-0 items-center justify-center border transition ${
                 isDayMode ? "border-slate-200 bg-slate-50 text-slate-800 hover:bg-slate-100" : "border-white/10 bg-white/5 text-white hover:bg-white/10"
               }`}
-              aria-label="关闭"
+              aria-label={t("common.close")}
             >
               <X className="h-5 w-5" />
             </button>
@@ -267,13 +268,13 @@ const WorkDetailModal = ({ work, isDayMode, onClose }) => {
               </blockquote>
             ) : null}
             <section className="mt-6 grid gap-3">
-              <h3 className="text-lg font-black">作品介绍</h3>
-              <p className={`whitespace-pre-line text-sm leading-7 ${paragraphClass}`}>{work.summary || "暂无作品介绍"}</p>
+              <h3 className="text-lg font-black">{t("hackathon.works_page.work_intro")}</h3>
+              <p className={`whitespace-pre-line text-sm leading-7 ${paragraphClass}`}>{work.summary || t("hackathon.works_page.empty_intro")}</p>
             </section>
             <section className="mt-6 grid gap-3">
-              <h3 className="text-lg font-black">经验分享</h3>
+              <h3 className="text-lg font-black">{t("hackathon.works_page.story")}</h3>
               <p className={`whitespace-pre-line text-sm leading-7 ${paragraphClass}`}>
-                {work.experience || "暂无经验分享，后续可由获奖成员补充。"}
+                {work.experience || t("hackathon.works_page.empty_story")}
               </p>
             </section>
           </div>
@@ -281,14 +282,14 @@ const WorkDetailModal = ({ work, isDayMode, onClose }) => {
             {work.gitUrl ? (
               <a href={work.gitUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-11 w-full items-center justify-center gap-2 bg-cyan-300 px-4 text-sm font-black text-slate-950 transition hover:bg-white sm:w-auto">
                 <Github className="h-4 w-4" />
-                项目链接
+                {t("hackathon.works_page.project_link")}
                 <ExternalLink className="h-4 w-4" />
               </a>
             ) : null}
             {work.storyFileUrl ? (
               <a href={work.storyFileUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-11 w-full items-center justify-center gap-2 border border-cyan-300/24 px-4 text-sm font-black transition hover:border-cyan-300 sm:w-auto">
                 <BookOpen className="h-4 w-4" />
-                原文附件
+                {t("hackathon.works_page.story_file")}
               </a>
             ) : null}
           </div>
@@ -300,6 +301,7 @@ const WorkDetailModal = ({ work, isDayMode, onClose }) => {
 };
 
 const HackathonWorks = () => {
+  const { t } = useTranslation();
   const { uiMode } = useSettings();
   const isDayMode = uiMode === "day";
   const [works, setWorks] = useState([]);
@@ -313,7 +315,7 @@ const HackathonWorks = () => {
     try {
       const response = await api.get("/competitions/current/outcome");
       const nextWorks = Array.isArray(response.data?.works)
-        ? response.data.works.map(normalizeWork)
+        ? response.data.works.map((work, index) => normalizeWork(work, index, t))
         : [];
       setWorks(nextWorks);
       setCompetition(response.data?.competition || null);
@@ -327,7 +329,7 @@ const HackathonWorks = () => {
 
   useEffect(() => {
     fetchWorks();
-  }, []);
+  }, [t]);
 
   const podiumWorks = useMemo(() => works.slice(0, 3), [works]);
   const otherWorks = useMemo(() => works.slice(3), [works]);
@@ -350,8 +352,8 @@ const HackathonWorks = () => {
       }}
     >
       <SEO
-        title={`${competition?.title || "比赛"}优秀作品`}
-        description="集中展示管理员审核通过的优秀作品、获奖成员荣誉称号、项目链接与赛后经验分享。"
+        title={t("hackathon.works_page.meta_title")}
+        description={t("hackathon.works_page.meta_desc")}
         image="/images/hero-landscape-day-4k.jpg"
       />
       <div className="pointer-events-none fixed inset-0">
@@ -374,7 +376,7 @@ const HackathonWorks = () => {
                 className={`inline-flex min-h-11 items-center gap-2 border px-4 text-sm font-black transition ${chromeClass}`}
               >
                 <ArrowLeft className="h-4 w-4" />
-                返回比赛成果
+                {t("hackathon.works_page.back_to_showcase")}
               </Link>
               <button
                 type="button"
@@ -386,21 +388,21 @@ const HackathonWorks = () => {
                 }`}
               >
                 <Upload className="h-4 w-4" />
-                提交作品/经验
+                {t("hackathon.works_page.submit")}
               </button>
             </div>
             <p className={`mt-8 inline-flex border px-3 py-2 text-xs font-black uppercase ${chipClass}`}>
               Winner Stories / {works.length} Selected
             </p>
             <h1 className="mt-5 max-w-5xl text-[clamp(3rem,12vw,5rem)] font-black leading-none sm:text-[clamp(4.25rem,8vw,7rem)] lg:text-8xl">
-              优秀作品与经验分享
+              {t("hackathon.works_page.title")}
             </h1>
           </div>
           <div className="grid grid-cols-3 gap-2 text-center sm:gap-3 xl:min-w-[420px]">
             {[
-              [String(works.length), "已发布作品"],
-              [String(podiumWorks.length), "重点展示"],
-              [competition ? "1" : "0", "当前比赛"],
+              [String(works.length), t("hackathon.works_page.stats_published")],
+              [String(podiumWorks.length), t("hackathon.works_page.stats_featured")],
+              [competition ? "1" : "0", t("hackathon.works_page.stats_competition")],
             ].map(([value, label]) => (
               <div key={label} className="border border-cyan-300/16 bg-cyan-300/[0.045] px-3 py-3 sm:px-4 sm:py-4">
                 <p className="font-mono text-2xl font-black text-cyan-200 sm:text-3xl">{value}</p>
@@ -413,50 +415,50 @@ const HackathonWorks = () => {
         {loading ? (
           <section className="py-20 text-center">
             <RefreshCw className="mx-auto h-8 w-8 animate-spin text-cyan-200" />
-            <p className={`mt-4 text-sm font-bold ${statLabelClass}`}>正在加载优秀作品</p>
+            <p className={`mt-4 text-sm font-bold ${statLabelClass}`}>{t("hackathon.works_page.loading")}</p>
           </section>
         ) : works.length === 0 ? (
           <section className="py-20 text-center">
             <Trophy className="mx-auto h-12 w-12 text-cyan-200" />
-            <h2 className="mt-5 text-3xl font-black">暂无已审核优秀作品</h2>
+            <h2 className="mt-5 text-3xl font-black">{t("hackathon.works_page.empty_title")}</h2>
             <p className={`mx-auto mt-3 max-w-xl text-sm leading-6 ${statLabelClass}`}>
-              外部用户提交后会进入管理员待审核，审核通过后才会出现在这里。
+              {t("hackathon.works_page.empty_desc")}
             </p>
           </section>
         ) : (
           <>
             <section className="py-8 sm:py-10 max-md:pb-[calc(env(safe-area-inset-bottom)+8rem)]">
               <div className="mb-6 flex items-center justify-between gap-4">
-                <h2 className="text-2xl font-black sm:text-3xl">重点作品</h2>
+                <h2 className="text-2xl font-black sm:text-3xl">{t("hackathon.works_page.featured_title")}</h2>
                 <span className="text-xs font-black uppercase text-cyan-200/72">Top 3</span>
               </div>
               <div className="grid gap-4 md:grid-cols-2 min-[900px]:grid-cols-3">
                 {podiumWorks.map((work) => (
-                  <WorkCard key={work.id} work={work} featured isDayMode={isDayMode} onOpen={setSelectedWork} />
+                  <WorkCard key={work.id} work={work} featured isDayMode={isDayMode} onOpen={setSelectedWork} t={t} />
                 ))}
               </div>
             </section>
 
             <section className="border-t border-cyan-300/18 py-8 sm:py-10 max-md:pb-[calc(env(safe-area-inset-bottom)+9rem)]">
               <div className="mb-6 flex items-center justify-between gap-4">
-                <h2 className="text-2xl font-black sm:text-3xl">更多作品</h2>
+                <h2 className="text-2xl font-black sm:text-3xl">{t("hackathon.works_page.more_title")}</h2>
                 <span className="text-xs font-black uppercase text-cyan-200/72">{otherWorks.length} Works</span>
               </div>
               {otherWorks.length > 0 ? (
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                   {otherWorks.map((work) => (
-                    <WorkCard key={work.id} work={work} isDayMode={isDayMode} onOpen={setSelectedWork} />
+                    <WorkCard key={work.id} work={work} isDayMode={isDayMode} onOpen={setSelectedWork} t={t} />
                   ))}
                 </div>
               ) : (
-                <p className={`text-sm font-bold ${statLabelClass}`}>暂无更多已审核作品。</p>
+                <p className={`text-sm font-bold ${statLabelClass}`}>{t("hackathon.works_page.no_more")}</p>
               )}
             </section>
           </>
         )}
       </main>
 
-      <WorkDetailModal work={selectedWork} isDayMode={isDayMode} onClose={() => setSelectedWork(null)} />
+      <WorkDetailModal work={selectedWork} isDayMode={isDayMode} onClose={() => setSelectedWork(null)} t={t} />
       <CompetitionOutcomeUploadModal
         open={uploadOpen}
         initialType="work"

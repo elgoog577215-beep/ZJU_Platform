@@ -34,7 +34,7 @@ const Comments = ({ resourceId, resourceType }) => {
         if (!newComment.trim()) return;
 
         if (!user) {
-            toast.error(t('auth.login_required'));
+            toast.error(t('auth.signin_required'));
             return;
         }
 
@@ -72,13 +72,14 @@ const Comments = ({ resourceId, resourceType }) => {
     return (
         <div className="flex flex-col h-full">
             <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                {t('comments.title')} <span className="text-sm font-normal text-gray-500">({comments.length})</span>
+                {t('comments.title')} <span className="text-sm font-normal text-gray-500" aria-label={`${comments.length} ${t('comments.title')}`}>({comments.length})</span>
             </h3>
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar mb-4 pr-2 space-y-4">
+            <div className="flex-1 overflow-y-auto custom-scrollbar mb-4 pr-2 space-y-4" aria-busy={loading || undefined}>
                 {loading ? (
-                    <div className="flex justify-center py-4">
-                        <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                    <div className="flex justify-center py-4" role="status" aria-live="polite">
+                        <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" aria-hidden="true" />
+                        <span className="sr-only">{t('comments.loading')}</span>
                     </div>
                 ) : comments.length === 0 ? (
                     <div className="text-center text-gray-500 py-8">
@@ -117,10 +118,12 @@ const Comments = ({ resourceId, resourceType }) => {
                                     {/* FIX: BUG-18 — Use String() to normalize ID types for comparison */}
                                     {(user && (String(user.id) === String(comment.user_id) || user.role === 'admin')) && (
                                         <button 
+                                            type="button"
                                             onClick={() => handleDelete(comment.id)}
+                                            aria-label={t('comments.delete')}
                                             className="text-gray-500 hover:text-red-400 transition-colors p-1"
                                         >
-                                            <Trash2 size={14} />
+                                            <Trash2 size={14} aria-hidden="true" />
                                         </button>
                                     )}
                                 </div>
@@ -138,6 +141,7 @@ const Comments = ({ resourceId, resourceType }) => {
                             value={newComment}
                             onChange={(e) => setNewComment(e.target.value.slice(0, 500))}
                             placeholder={t('comments.placeholder')}
+                            aria-label={t('comments.placeholder')}
                             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pr-12 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 focus:bg-white/10 transition-all resize-none h-20 text-sm custom-scrollbar"
                         />
                         <div className="absolute bottom-2 right-2 text-[10px] text-gray-500 font-mono">
@@ -147,9 +151,11 @@ const Comments = ({ resourceId, resourceType }) => {
                     <button 
                         type="submit" 
                         disabled={!newComment.trim() || submitting}
+                        aria-label={submitting ? t('comments.submitting') : t('comments.submit')}
+                        aria-busy={submitting || undefined}
                         className="absolute top-2 right-2 p-2 bg-indigo-500 hover:bg-indigo-400 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-indigo-500/20 active:scale-95"
                     >
-                        {submitting ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send size={16} />}
+                        {submitting ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" aria-hidden="true" /> : <Send size={16} aria-hidden="true" />}
                     </button>
                 </form>
             </div>
