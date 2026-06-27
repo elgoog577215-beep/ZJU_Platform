@@ -3,6 +3,8 @@ import clsx from "clsx";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { useSettings } from "../../context/SettingsContext";
+import { useBodyScrollLock } from "../../hooks/useBackClose";
+import { trapFocus } from "../../utils/accessibility";
 
 export const statusMeta = {
   approved: {
@@ -575,6 +577,9 @@ export const ConfirmDialog = ({
   const { dialogBackdropClass, dialogPanelClass, mutedTextClass, isDayMode } =
     useAdminTheme();
   const titleId = React.useId();
+  const dialogRef = React.useRef(null);
+
+  useBodyScrollLock(open);
 
   React.useEffect(() => {
     if (!open) return undefined;
@@ -584,6 +589,11 @@ export const ConfirmDialog = ({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onCancel, open]);
+
+  React.useEffect(() => {
+    if (!open || !dialogRef.current) return undefined;
+    return trapFocus(dialogRef.current);
+  }, [open]);
 
   return (
     <AnimatePresence>
@@ -599,6 +609,7 @@ export const ConfirmDialog = ({
           onClick={onCancel}
         >
           <motion.div
+            ref={dialogRef}
             initial={{ opacity: 0, scale: 0.96, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 12 }}

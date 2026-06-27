@@ -7,6 +7,24 @@
  * 管理焦点
  */
 
+const FOCUSABLE_SELECTOR = [
+  'button:not([disabled])',
+  '[href]',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(', ');
+
+const getFocusableElements = (container) => {
+  if (!container) return [];
+
+  return Array.from(container.querySelectorAll(FOCUSABLE_SELECTOR)).filter((element) => {
+    const style = window.getComputedStyle(element);
+    return style.display !== 'none' && style.visibility !== 'hidden';
+  });
+};
+
 /**
  * 将焦点设置到指定元素
  * @param {HTMLElement} element - 目标元素
@@ -29,9 +47,7 @@ export const focusElement = (element) => {
 export const focusFirstElement = (container) => {
   if (!container) return;
   
-  const focusableElements = container.querySelectorAll(
-    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-  );
+  const focusableElements = getFocusableElements(container);
   
   if (focusableElements.length > 0) {
     focusableElements[0].focus();
@@ -45,9 +61,7 @@ export const focusFirstElement = (container) => {
 export const focusLastElement = (container) => {
   if (!container) return;
   
-  const focusableElements = container.querySelectorAll(
-    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-  );
+  const focusableElements = getFocusableElements(container);
   
   if (focusableElements.length > 0) {
     focusableElements[focusableElements.length - 1].focus();
@@ -62,9 +76,8 @@ export const focusLastElement = (container) => {
 export const trapFocus = (container) => {
   if (!container) return () => {};
   
-  const focusableElements = container.querySelectorAll(
-    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-  );
+  const focusableElements = getFocusableElements(container);
+  if (focusableElements.length === 0) return () => {};
   
   const firstElement = focusableElements[0];
   const lastElement = focusableElements[focusableElements.length - 1];
