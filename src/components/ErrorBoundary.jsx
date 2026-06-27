@@ -42,7 +42,7 @@ class ErrorBoundary extends React.Component {
 
       // Default Full Page Error
       return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-black text-white p-6 text-center z-[100] relative">
+        <div role="alert" aria-live="assertive" className="min-h-screen flex flex-col items-center justify-center bg-black text-white p-6 text-center z-[100] relative">
             <h1 className="text-4xl font-bold font-serif text-red-500 mb-4">{t('error.something_went_wrong')}</h1>
             <p className="text-gray-400 max-w-md mb-8">
                 {t('error.boundary_desc')}
@@ -54,7 +54,8 @@ class ErrorBoundary extends React.Component {
             )}
             
             <div className="flex gap-4">
-                <button 
+                <button
+                    type="button"
                     onClick={() => {
                         this.handleReset();
                         // Optional: Navigate to home if critical
@@ -62,14 +63,15 @@ class ErrorBoundary extends React.Component {
                     }}
                     className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 rounded-full transition-colors font-bold"
                 >
-                    <RefreshCw size={20} />
+                    <RefreshCw size={20} aria-hidden="true" />
                     {t('common.try_again')}
                 </button>
-                <button 
+                <button
+                    type="button"
                     onClick={() => window.location.reload()}
                     className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 rounded-full transition-colors font-bold"
                 >
-                    <RefreshCw size={20} />
+                    <RefreshCw size={20} aria-hidden="true" />
                     {t('common.force_reload')}
                 </button>
             </div>
