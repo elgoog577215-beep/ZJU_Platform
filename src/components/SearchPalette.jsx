@@ -28,6 +28,7 @@ const SearchPalette = ({ initialOpen = false }) => {
   const normalizedQuery = query.trim();
   const { uiMode } = useSettings();
   const isDayMode = uiMode === 'day';
+  const listboxId = 'search-palette-results';
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -149,15 +150,15 @@ const SearchPalette = ({ initialOpen = false }) => {
 
   const getIcon = (type) => {
     switch(type) {
-      case 'photo': return <ImageIcon size={16} className="text-purple-400" />;
-      case 'music': return <Music size={16} className="text-pink-400" />;
-      case 'video': return <Film size={16} className="text-blue-400" />;
-      case 'article': return <FileText size={16} className="text-yellow-400" />;
-      case 'event': return <Calendar size={16} className="text-green-400" />;
-      case 'post': return <MessageSquare size={16} className="text-orange-400" />;
-      case 'group': return <Users size={16} className="text-cyan-400" />;
-      case 'news': return <FileText size={16} className="text-sky-400" />;
-      default: return <Search size={16} />;
+      case 'photo': return <ImageIcon size={16} aria-hidden="true" className="text-purple-400" />;
+      case 'music': return <Music size={16} aria-hidden="true" className="text-pink-400" />;
+      case 'video': return <Film size={16} aria-hidden="true" className="text-blue-400" />;
+      case 'article': return <FileText size={16} aria-hidden="true" className="text-yellow-400" />;
+      case 'event': return <Calendar size={16} aria-hidden="true" className="text-green-400" />;
+      case 'post': return <MessageSquare size={16} aria-hidden="true" className="text-orange-400" />;
+      case 'group': return <Users size={16} aria-hidden="true" className="text-cyan-400" />;
+      case 'news': return <FileText size={16} aria-hidden="true" className="text-sky-400" />;
+      default: return <Search size={16} aria-hidden="true" />;
     }
   };
 
@@ -173,6 +174,8 @@ const SearchPalette = ({ initialOpen = false }) => {
       <button
         key={`${item.type}-${item.id}`}
         type="button"
+        role="option"
+        aria-selected={isSelected}
         aria-label={`${item.typeLabel || t(`common.${item.type}`, item.type)} ${item.title}`}
         onClick={() => handleSelect(item)}
         onMouseEnter={() => setSelectedIndex(Math.max(0, index))}
@@ -219,7 +222,7 @@ const SearchPalette = ({ initialOpen = false }) => {
           ) : null}
         </div>
         {isSelected && (
-          <ArrowRight size={16} className={isDayMode ? 'text-slate-400' : 'text-gray-400'} />
+          <ArrowRight size={16} aria-hidden="true" className={isDayMode ? 'text-slate-400' : 'text-gray-400'} />
         )}
       </button>
     );
@@ -257,10 +260,14 @@ const SearchPalette = ({ initialOpen = false }) => {
             className={`relative flex h-[100dvh] w-full flex-col overflow-hidden rounded-none border-0 shadow-[0_20px_48px_rgba(0,0,0,0.36)] md:h-auto md:max-w-2xl md:rounded-[7px] md:border ${isDayMode ? 'bg-white text-slate-950 md:border-slate-200' : 'bg-[#0a0a0a] text-white md:border-white/10'}`}
             >
             <div className={`mt-[env(safe-area-inset-top)] flex shrink-0 items-center gap-3 border-b px-4 py-4 md:mt-0 ${isDayMode ? 'theme-divider' : 'border-white/10'}`}>
-                <Search className={isDayMode ? 'text-slate-400' : 'text-gray-400'} size={20} />
+                <Search aria-hidden="true" className={isDayMode ? 'text-slate-400' : 'text-gray-400'} size={20} />
                 <input
                 ref={inputRef}
                 type="text"
+                role="combobox"
+                aria-expanded={results.length > 0}
+                aria-controls={results.length > 0 ? listboxId : undefined}
+                aria-autocomplete="list"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleInputKeyDown}
@@ -272,7 +279,7 @@ const SearchPalette = ({ initialOpen = false }) => {
                         <span className="text-xs">ESC</span>
                     </kbd>
                     <button type="button" aria-label={t('common.close', '关闭')} onClick={() => setIsOpen(false)} className={`rect-icon-button p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'text-slate-400 hover:text-slate-900' : 'text-gray-400 hover:text-white'}`}>
-                        <X size={20} />
+                        <X size={20} aria-hidden="true" />
                     </button>
                 </div>
             </div>
@@ -281,7 +288,7 @@ const SearchPalette = ({ initialOpen = false }) => {
                 {loading ? (
                     <div className={`p-8 text-center ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>{t('common.searching')}</div>
                 ) : results.length > 0 ? (
-                    <div className="space-y-3">
+                    <div id={listboxId} role="listbox" aria-label={t('search.results', '搜索结果')} className="space-y-3">
                         {searchMeta?.parsed_query ? (
                           <div className={`flex items-center justify-between gap-3 rounded-[5px] border px-3 py-2 text-xs ${isDayMode ? 'border-slate-200 bg-slate-50 text-slate-500' : 'border-white/10 bg-white/[0.03] text-gray-400'}`}>
                             <span className="inline-flex items-center gap-1">
@@ -317,7 +324,7 @@ const SearchPalette = ({ initialOpen = false }) => {
                 ) : (
                     <div className={`p-12 text-center flex flex-col items-center ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>
                         <div className={`mb-6 flex h-20 w-20 items-center justify-center border animate-pulse ${isDayMode ? 'border-slate-200 bg-slate-100' : 'border-white/10 bg-white/5'}`}>
-                            <Command className={isDayMode ? 'text-slate-300' : 'text-white/20'} size={40} />
+                            <Command aria-hidden="true" className={isDayMode ? 'text-slate-300' : 'text-white/20'} size={40} />
                         </div>
                         <p className={`text-lg font-medium ${isDayMode ? 'text-slate-400' : 'text-white/40'}`}>{t('search.empty_hint')}</p>
                         <p className={`text-xs mt-2 ${isDayMode ? 'text-slate-300' : 'text-white/20'}`}>{t('search.min_chars')}</p>

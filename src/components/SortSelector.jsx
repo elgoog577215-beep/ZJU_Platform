@@ -27,13 +27,14 @@ const SortSelector = ({
   if (renderMode === 'list') {
     return (
       <div className={className || 'w-full'}>
-        <div className="flex flex-col gap-2">
+        <div role="group" aria-label={t('common.sort', '排序')} className="flex flex-col gap-2">
           {options.map((option) => {
             const active = option.value === sort;
             return (
               <button
                 key={option.value}
                 type="button"
+                aria-label={t('sort_filter.choose_option', '选择 {{label}}', { label: option.label })}
                 aria-pressed={active}
                 onClick={() => onSortChange(option.value)}
                 className={`w-full min-h-[48px] flex items-center justify-between gap-3 px-4 py-4 rounded-lg border transition-all text-left focus:outline-none focus-visible:ring-2 ${isDayMode ? 'focus-visible:ring-blue-300/60' : 'focus-visible:ring-indigo-400/70'} ${
@@ -48,12 +49,12 @@ const SortSelector = ({
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div className={`p-2 rounded-md ${active ? (isDayMode ? 'bg-blue-50 text-blue-700' : 'bg-indigo-500/20 text-indigo-300') : (isDayMode ? 'bg-slate-50 text-slate-500' : 'bg-white/5 text-gray-400')}`}>
-                    <ArrowUpDown size={16} />
+                    <ArrowUpDown size={16} aria-hidden="true" />
                   </div>
                   <span className="font-medium truncate">{option.label}</span>
                 </div>
                 <div className={`shrink-0 transition-opacity ${active ? 'opacity-100' : 'opacity-0'}`}>
-                  <Check size={18} className={isDayMode ? 'text-blue-700' : 'text-indigo-300'} />
+                  <Check size={18} aria-hidden="true" className={isDayMode ? 'text-blue-700' : 'text-indigo-300'} />
                 </div>
               </button>
             );

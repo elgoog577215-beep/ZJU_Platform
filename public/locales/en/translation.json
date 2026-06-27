@@ -529,6 +529,7 @@
   },
   "search": {
     "placeholder": "Search content...",
+    "results": "Search results",
     "no_results": "No results for \"{{query}}\"",
     "empty_hint": "Search articles, videos, podcasts, or events...",
     "min_chars": "Enter at least 2 characters to search",
@@ -843,6 +844,8 @@
     "category": "Category",
     "date": "Date",
     "location": "Location",
+    "reset": "Reset",
+    "active_filter_count": "{{count}} filters active",
     "pagination": "Pagination",
     "previous_page": "Previous page",
     "next_page": "Next page",

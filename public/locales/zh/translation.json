@@ -563,6 +563,7 @@
   },
   "search": {
     "placeholder": "搜索内容...",
+    "results": "搜索结果",
     "no_results": "没有找到关于 \"{{query}}\" 的结果",
     "empty_hint": "搜索文章、视频、音乐或活动...",
     "min_chars": "输入至少 2 个字符以开始搜索",
@@ -873,6 +874,8 @@
     "category": "分类",
     "date": "日期",
     "location": "地点",
+    "reset": "重置",
+    "active_filter_count": "{{count}} 个筛选已启用",
     "pagination": "分页",
     "previous_page": "上一页",
     "next_page": "下一页",

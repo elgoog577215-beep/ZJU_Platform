@@ -77,9 +77,10 @@ const PWAInstallPrompt = () => {
               : ""
           } ${isDayMode ? "bg-white/94 border-slate-200/80 shadow-[0_24px_60px_rgba(148,163,184,0.22)]" : "bg-[#111] border-white/10 shadow-2xl"}`}
           role="status"
+          aria-live="polite"
         >
           <div className="shrink-0 rounded-lg bg-gradient-to-br from-indigo-600 to-cyan-500 p-2.5 md:p-3">
-            <Download size={isMobile ? 20 : 24} className="text-white" />
+            <Download size={isMobile ? 20 : 24} aria-hidden="true" className="text-white" />
           </div>
           <div className="min-w-0 flex-1">
             <h4 className={`text-sm font-bold leading-tight ${isDayMode ? "text-slate-900" : "text-white"}`}>
@@ -96,11 +97,12 @@ const PWAInstallPrompt = () => {
               aria-label={t("common.close", "关闭")}
               className={`inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-md p-2 transition-colors ${isDayMode ? "text-slate-400 hover:text-slate-900 hover:bg-slate-100" : "text-gray-400 hover:text-white hover:bg-white/10"}`}
             >
-              <X size={18} />
+              <X size={18} aria-hidden="true" />
             </button>
             <button
               type="button"
               onClick={handleInstallClick}
+              aria-label={t("pwa.install_action")}
               className={`inline-flex min-h-[40px] items-center justify-center rounded-md px-3 text-xs font-bold transition-colors md:px-4 ${isDayMode ? "bg-indigo-600 text-white hover:bg-indigo-500 shadow-[0_12px_28px_rgba(99,102,241,0.24)]" : "bg-indigo-500 text-white hover:bg-indigo-400"}`}
             >
               {t("pwa.install_action")}

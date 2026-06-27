@@ -18,6 +18,7 @@ const MobileContentToolbar = ({
   const resetText = clearLabel || t("common.reset", "重置");
   const filterText = filterButtonLabel || t("common.filters", "筛选");
   const sortText = sortButtonLabel || sortLabel || t("common.sort", "排序");
+  const filterBadgeLabel = t("common.active_filter_count", "{{count}} 个筛选已启用", { count: filterCount });
 
   return (
     <div
@@ -25,6 +26,7 @@ const MobileContentToolbar = ({
     >
       {typeof resultCount === "number" && resultCount > 0 ? (
         <span
+          aria-live="polite"
           className={`min-w-0 truncate text-xs font-medium ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
         >
           {t("common.result_count", "{{count}} 项", { count: resultCount })}
@@ -55,7 +57,7 @@ const MobileContentToolbar = ({
         >
           <SlidersHorizontal size={14} aria-hidden="true" />
           {filterCount > 0 && (
-            <span className="absolute -right-1 -top-1 rounded-md bg-blue-600 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+            <span aria-label={filterBadgeLabel} className="absolute -right-1 -top-1 rounded-md bg-blue-600 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
               {filterCount}
             </span>
           )}
