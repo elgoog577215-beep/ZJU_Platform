@@ -5,11 +5,12 @@ import { X, User, Lock, ArrowRight, Loader, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 import { useTranslation } from 'react-i18next';
-import { useBackClose } from '../hooks/useBackClose';
+import { useBackClose, useBodyScrollLock } from '../hooks/useBackClose';
 
 const AuthModal = ({ isOpen, onClose }) => {
   const { t } = useTranslation();
   useBackClose(isOpen, onClose);
+  useBodyScrollLock(isOpen);
   const dialogTitleId = useId();
   const usernameId = useId();
   const passwordId = useId();

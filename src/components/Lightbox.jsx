@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 import FavoriteButton from './FavoriteButton';
-import { useBackClose } from '../hooks/useBackClose';
+import { useBackClose, useBodyScrollLock } from '../hooks/useBackClose';
 import api from '../services/api';
 import { getHighResUrl, getThumbnailUrl } from '../utils/imageUtils';
 
@@ -30,6 +30,7 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) =>
   }, [photo?.id]);
   
   useBackClose(true, onClose);
+  useBodyScrollLock(true);
 
   useEffect(() => {
     const checkApp = () => {
