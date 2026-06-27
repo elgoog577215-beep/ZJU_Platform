@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useId } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Check } from 'lucide-react';
@@ -76,6 +76,7 @@ const Dropdown = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
+  const listboxId = useId();
   const { uiMode } = useSettings();
   const isDayMode = uiMode === 'day';
 
@@ -104,17 +105,22 @@ const Dropdown = ({
         type="button"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
+        aria-controls={isOpen ? listboxId : undefined}
+        onKeyDown={(event) => {
+          if (event.key === 'Escape') setIsOpen(false);
+        }}
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center justify-between gap-2 w-full backdrop-blur-sm border rounded-lg px-4 py-3.5 sm:py-3 focus:outline-none focus-visible:outline-none transition-all duration-300 group min-h-[44px] sm:min-h-0 ${focusClass} ${isSheet ? (hasSelection ? (isDayMode ? 'border-cyan-300/50 bg-cyan-500/10 text-slate-900' : 'border-cyan-300/35 bg-cyan-300/10 text-white') : isOpen ? (isDayMode ? 'border-cyan-300/60 bg-white text-slate-900' : 'border-white/[0.16] bg-[#141926] text-white') : (isDayMode ? 'bg-white/82 border-slate-200/80 text-slate-600 hover:bg-white' : 'border-white/[0.11] text-slate-300 hover:bg-white/[0.06]')) : (isDayMode ? 'bg-white/82 border-slate-200/80 text-slate-800 hover:bg-white hover:border-cyan-300/70 focus:border-cyan-400/60' : 'bg-[#171a26] border-white/[0.11] text-white hover:bg-[#1d2130] hover:border-white/[0.18]')} ${buttonClassName}`}
       >
         <div className="flex items-center gap-3 min-w-0">
-          {Icon && <Icon size={18} className={`shrink-0 transition-colors ${hasSelection ? (isDayMode ? 'text-cyan-700' : 'text-cyan-200') : (isDayMode ? 'text-slate-500 group-hover:text-cyan-600' : 'text-slate-400 group-hover:text-cyan-100')}`} />}
+          {Icon && <Icon size={18} aria-hidden="true" className={`shrink-0 transition-colors ${hasSelection ? (isDayMode ? 'text-cyan-700' : 'text-cyan-200') : (isDayMode ? 'text-slate-500 group-hover:text-cyan-600' : 'text-slate-400 group-hover:text-cyan-100')}`} />}
           <span className={`text-sm font-medium truncate min-w-0 flex-1 text-left ${hasSelection ? (isDayMode ? "text-slate-900" : "text-white") : (isDayMode ? "text-slate-500" : "text-gray-400")}`}>
             {selectedOption ? selectedOption.label : placeholder}
           </span>
         </div>
         <ChevronDown
           size={16}
+          aria-hidden="true"
           className={`transition-transform duration-300 ${hasSelection ? (isDayMode ? 'text-cyan-700' : 'text-cyan-200') : (isDayMode ? 'text-slate-500 group-hover:text-slate-900' : 'text-slate-500 group-hover:text-white')} ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
@@ -131,7 +137,7 @@ const Dropdown = ({
               : `absolute top-full left-0 mt-2 min-w-full w-max max-w-[320px] border rounded-lg shadow-2xl overflow-hidden z-[100] ${isDayMode ? 'bg-white border-slate-200/80 ring-1 ring-slate-200/60 shadow-[0_20px_54px_rgba(15,23,42,0.12)]' : 'bg-[#080c16] border-white/[0.14] ring-1 ring-cyan-200/[0.08] shadow-[0_22px_60px_rgba(0,0,0,0.58)]'} ${menuClassName}`
             }
           >
-            <div role="listbox" className={`${isSheet ? 'max-h-48' : 'max-h-72'} overflow-y-auto dropdown-scrollbar p-1.5 space-y-0.5`}>
+            <div id={listboxId} role="listbox" className={`${isSheet ? 'max-h-48' : 'max-h-72'} overflow-y-auto dropdown-scrollbar p-1.5 space-y-0.5`}>
               {options.map((option) => (
                 <button
                   key={option.value}
@@ -159,7 +165,7 @@ const Dropdown = ({
                         animate={{ scale: 1 }}
                         className={`shrink-0 ${isDayMode ? 'text-cyan-700' : 'text-cyan-100'}`}
                     >
-                        <Check size={16} strokeWidth={3} />
+                        <Check size={16} strokeWidth={3} aria-hidden="true" />
                     </motion.div>
                   )}
                 </button>
