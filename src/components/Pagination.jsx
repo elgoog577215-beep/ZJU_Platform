@@ -1,9 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { useSettings } from '../context/SettingsContext';
 
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   const { uiMode } = useSettings();
+  const { t } = useTranslation();
   const isDayMode = uiMode === 'day';
   if (totalPages <= 1) return null;
 
@@ -30,10 +32,10 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   };
 
   return (
-    <div className="flex justify-center items-center space-x-2 sm:space-x-3 mt-8 pb-20 md:pb-8">
+    <nav aria-label={t('common.pagination', '分页')} className="flex justify-center items-center space-x-2 sm:space-x-3 mt-8 pb-20 md:pb-8">
       <button
         type="button"
-        aria-label="上一页"
+        aria-label={t('common.previous_page', '上一页')}
         onClick={() => onPageChange(Math.max(1, currentPage - 1))}
         disabled={currentPage === 1}
         className={`px-4 py-3 sm:py-2 rounded-lg backdrop-blur-3xl disabled:opacity-50 disabled:cursor-not-allowed transition-all border min-h-[44px] min-w-[44px] inline-flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-white/90 hover:bg-white text-slate-700 border-slate-200/80' : 'bg-[#0a0a0a]/60 hover:bg-[#0a0a0a]/80 text-white border-white/10'}`}
@@ -47,7 +49,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
             key={page}
             type="button"
             aria-current={currentPage === page ? 'page' : undefined}
-            aria-label={`第 ${page} 页`}
+            aria-label={t('common.page_number', '第 {{page}} 页', { page })}
             onClick={() => onPageChange(page)}
             className={`min-w-[44px] h-11 sm:min-w-[40px] sm:h-10 rounded-full transition-all border font-bold relative overflow-hidden group ${
               currentPage === page
@@ -74,14 +76,14 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
 
       <button
         type="button"
-        aria-label="下一页"
+        aria-label={t('common.next_page', '下一页')}
         onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
         disabled={currentPage === totalPages}
         className={`px-4 py-3 sm:py-2 rounded-lg backdrop-blur-3xl disabled:opacity-50 disabled:cursor-not-allowed transition-all border min-h-[44px] min-w-[44px] inline-flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-white/90 hover:bg-white text-slate-700 border-slate-200/80' : 'bg-[#0a0a0a]/60 hover:bg-[#0a0a0a]/80 text-white border-white/10'}`}
       >
         &gt;
       </button>
-    </div>
+    </nav>
   );
 };
 
