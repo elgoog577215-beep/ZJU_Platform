@@ -20,6 +20,8 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) =>
   const [isApp, setIsApp] = useState(false);
   const [relatedPhotos, setRelatedPhotos] = useState([]);
   const isDayMode = uiMode === 'day';
+  const hasPrev = typeof onPrev === 'function';
+  const hasNext = typeof onNext === 'function';
 
   useEffect(() => {
     if (photo?.id) {
@@ -60,13 +62,13 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) =>
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowRight') onNext();
-      if (e.key === 'ArrowLeft') onPrev();
+      if (e.key === 'ArrowRight' && hasNext) onNext();
+      if (e.key === 'ArrowLeft' && hasPrev) onPrev();
       if (e.key === 'i') setShowInfo(prev => !prev);
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose, onNext, onPrev]);
+  }, [hasNext, hasPrev, onClose, onNext, onPrev]);
 
   const handleDownload = async () => {
       try {
@@ -156,14 +158,16 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) =>
         className="relative max-w-7xl max-h-[90vh] w-full flex items-center justify-center"
         onClick={(e) => e.stopPropagation()}
       >
-        <button
-          type="button"
-          onClick={onPrev}
-          aria-label={t('lightbox.previous_photo')}
-          className={`absolute left-0 md:-left-16 p-4 rounded-full transition-colors ${isDayMode ? 'text-slate-400 hover:text-slate-900 hover:bg-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
-        >
-          <ChevronLeft size={48} aria-hidden="true" />
-        </button>
+        {hasPrev && (
+          <button
+            type="button"
+            onClick={onPrev}
+            aria-label={t('lightbox.previous_photo')}
+            className={`absolute left-0 md:-left-16 p-4 rounded-full transition-colors ${isDayMode ? 'text-slate-400 hover:text-slate-900 hover:bg-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+          >
+            <ChevronLeft size={48} aria-hidden="true" />
+          </button>
+        )}
 
         <motion.img
           key={photo.id}
@@ -178,14 +182,16 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) =>
           fetchpriority="high"
         />
 
-        <button
-          type="button"
-          onClick={onNext}
-          aria-label={t('lightbox.next_photo')}
-          className={`absolute right-0 md:-right-16 p-4 rounded-full transition-colors ${isDayMode ? 'text-slate-400 hover:text-slate-900 hover:bg-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
-        >
-          <ChevronRight size={48} aria-hidden="true" />
-        </button>
+        {hasNext && (
+          <button
+            type="button"
+            onClick={onNext}
+            aria-label={t('lightbox.next_photo')}
+            className={`absolute right-0 md:-right-16 p-4 rounded-full transition-colors ${isDayMode ? 'text-slate-400 hover:text-slate-900 hover:bg-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+          >
+            <ChevronRight size={48} aria-hidden="true" />
+          </button>
+        )}
 
         {/* Bottom Info Bar */}
         <div className="absolute -bottom-16 left-0 right-0 text-center">
