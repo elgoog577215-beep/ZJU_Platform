@@ -4,6 +4,7 @@ import { BookOpen, FileStack, HelpCircle, Newspaper, Users, X } from 'lucide-rea
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useSettings } from '../context/SettingsContext';
+import { useBodyScrollLock } from '../hooks/useBackClose';
 
 export const COMMUNITY_POST_TYPES = [
   {
@@ -52,6 +53,7 @@ const CommunityPostTypePicker = ({ isOpen, activeType = 'tech', onSelect, onClos
   const { t } = useTranslation();
   const { uiMode } = useSettings();
   const isDayMode = uiMode === 'day';
+  useBodyScrollLock(isOpen);
 
   if (typeof document === 'undefined') return null;
 

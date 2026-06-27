@@ -3,7 +3,7 @@ import { Search, Command, X, ArrowRight, Image as ImageIcon, Music, Film, FileTe
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import { useBackClose } from '../hooks/useBackClose';
+import { useBackClose, useBodyScrollLock } from '../hooks/useBackClose';
 import { useReducedMotion } from '../utils/animations';
 import { useSettings } from '../context/SettingsContext';
 
@@ -15,6 +15,7 @@ const SearchPalette = ({ initialOpen = false }) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(initialOpen);
   useBackClose(isOpen, () => setIsOpen(false));
+  useBodyScrollLock(isOpen);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [resultGroups, setResultGroups] = useState([]);
@@ -30,10 +31,6 @@ const SearchPalette = ({ initialOpen = false }) => {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setIsOpen(prev => !prev);
-      }
       if (e.key === 'Escape') {
         setIsOpen(false);
       }
