@@ -30,7 +30,17 @@ import api from "../services/api";
 import { normalizeExternalImageUrl, getThumbnailUrl } from "../utils/imageUtils";
 import { useReducedMotion } from "../utils/animations";
 
-const PhotoCard = memo(forwardRef(({ photo, index, onClick, onToggleFavorite, canAnimate, isDayMode, untitledLabel }, ref) => (
+const PhotoCard = memo(forwardRef(({ photo, index, onClick, onToggleFavorite, canAnimate, isDayMode, untitledLabel, openLabel }, ref) => {
+  const title = photo.title || untitledLabel;
+  const openPhoto = () => onClick(index);
+
+  const handleOpenKeyDown = (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    openPhoto();
+  };
+
+  return (
   <motion.div
     ref={ref}
     initial={canAnimate ? { opacity: 0, y: 16 } : false}
@@ -47,11 +57,20 @@ const PhotoCard = memo(forwardRef(({ photo, index, onClick, onToggleFavorite, ca
         ? "day-card-lift"
         : "bg-white/5 border-white/10 hover:shadow-2xl hover:shadow-indigo-500/10 hover:border-white/20"
     }`}
-    onClick={() => onClick(index)}
   >
+    <button
+      type="button"
+      aria-label={openLabel}
+      onClick={openPhoto}
+      onKeyDown={handleOpenKeyDown}
+      className={`absolute inset-0 z-30 rounded-lg border-0 bg-transparent p-0 text-left outline-none transition-shadow
+        focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black
+        ${isDayMode ? "focus-visible:ring-offset-white" : ""}`}
+    />
+
     <SmartImage
       src={normalizeExternalImageUrl(photo.url, 640)}
-      alt={photo.title}
+      alt={title}
       type="image"
       className="h-full w-full"
       imageClassName="h-full w-full object-cover transform transition-transform duration-700 ease-out group-hover:scale-105"
@@ -59,7 +78,7 @@ const PhotoCard = memo(forwardRef(({ photo, index, onClick, onToggleFavorite, ca
     />
 
     <div
-      className={`absolute inset-0 ${
+      className={`pointer-events-none absolute inset-0 z-20 ${
         isDayMode
           ? "bg-gradient-to-t from-slate-950/76 via-slate-900/18 to-transparent"
           : "bg-gradient-to-t from-black/90 via-black/40 to-transparent"
@@ -69,7 +88,7 @@ const PhotoCard = memo(forwardRef(({ photo, index, onClick, onToggleFavorite, ca
         <div className="flex justify-between items-end gap-1.5 sm:gap-2">
           <div className="min-w-0 flex-1">
             <h3 className="text-xs font-bold text-[rgba(255,255,255,0.96)] drop-shadow-[0_2px_10px_rgba(15,23,42,0.45)] line-clamp-2 sm:text-lg">
-              {photo.title || untitledLabel}
+              {title}
             </h3>
             {photo.category_name ? (
               <p className="mt-0.5 text-[10px] font-medium text-white/72 line-clamp-1 sm:mt-1 sm:text-xs">
@@ -79,7 +98,7 @@ const PhotoCard = memo(forwardRef(({ photo, index, onClick, onToggleFavorite, ca
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <div onClick={(event) => event.stopPropagation()}>
+            <div className="pointer-events-auto relative z-40" onClick={(event) => event.stopPropagation()}>
               <FavoriteButton
                 itemId={photo.id}
                 itemType="photo"
@@ -110,7 +129,8 @@ const PhotoCard = memo(forwardRef(({ photo, index, onClick, onToggleFavorite, ca
 
     {typeof photo.likes === "number" && (
       <div
-        className="absolute top-3 right-3 hidden items-center gap-1 backdrop-blur-md rounded-full px-2 py-1 border border-white/10 sm:flex"
+        aria-hidden="true"
+        className="pointer-events-none absolute top-3 right-3 z-40 hidden items-center gap-1 backdrop-blur-md rounded-full px-2 py-1 border border-white/10 sm:flex"
         style={{ backgroundColor: isDayMode ? "rgba(255,255,255,0.82)" : "rgba(0,0,0,0.4)" }}
       >
         <span className="text-pink-400 text-xs">♥</span>
@@ -120,25 +140,45 @@ const PhotoCard = memo(forwardRef(({ photo, index, onClick, onToggleFavorite, ca
       </div>
     )}
   </motion.div>
-)));
+  );
+}));
 
 PhotoCard.displayName = "PhotoCard";
 
-const VideoCard = memo(({ video, index, onClick, onToggleFavorite, canAnimate, isDayMode, untitledLabel, uncategorizedLabel }) => (
+const VideoCard = memo(({ video, index, onClick, onToggleFavorite, canAnimate, isDayMode, untitledLabel, uncategorizedLabel, openLabel }) => {
+  const title = video.title || untitledLabel;
+  const openVideo = () => onClick(video);
+
+  const handleOpenKeyDown = (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    openVideo();
+  };
+
+  return (
   <motion.div
     initial={canAnimate ? { opacity: 0, y: 14 } : false}
     animate={canAnimate ? { opacity: 1, y: 0 } : undefined}
     transition={canAnimate ? { duration: 0.24, delay: Math.min(index, 5) * 0.03 } : undefined}
-    onClick={() => onClick(video)}
     className={`group rect-media-card relative aspect-video overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 ${
       isDayMode
         ? "bg-white border-slate-200/80 hover:border-slate-300"
         : "bg-[#111111]/84 border-white/10 hover:border-pink-500/30"
     }`}
   >
+    <button
+      type="button"
+      aria-label={openLabel}
+      onClick={openVideo}
+      onKeyDown={handleOpenKeyDown}
+      className={`absolute inset-0 z-30 rounded-lg border-0 bg-transparent p-0 text-left outline-none transition-shadow
+        focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black
+        ${isDayMode ? "focus-visible:ring-offset-white" : ""}`}
+    />
+
     <SmartImage
       src={getThumbnailUrl(video.thumbnail)}
-      alt={video.title}
+      alt={title}
       type="video"
       priority={index === 0}
       className="w-full h-full"
@@ -153,14 +193,14 @@ const VideoCard = memo(({ video, index, onClick, onToggleFavorite, canAnimate, i
     )}
 
     <div
-      className={`absolute inset-0 ${
+      className={`pointer-events-none absolute inset-0 z-20 ${
         isDayMode
           ? "bg-gradient-to-t from-slate-950/60 via-slate-950/10 to-transparent"
           : "bg-gradient-to-t from-black/70 via-black/15 to-transparent"
       } opacity-60 group-hover:opacity-50 transition-opacity duration-300`}
     />
 
-    <div className="absolute inset-0 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
+    <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
       <div
         className={`rect-icon-button flex h-10 w-10 items-center justify-center border group-hover:scale-105 transition-transform duration-300 relative sm:h-14 sm:w-14 ${
           isDayMode ? "bg-white/84 text-slate-950 border-white/70" : "bg-black/45 text-white border-white/20"
@@ -170,11 +210,11 @@ const VideoCard = memo(({ video, index, onClick, onToggleFavorite, canAnimate, i
       </div>
     </div>
 
-    <div className="absolute bottom-0 left-0 w-full p-2.5 translate-y-0 transition-transform duration-300 sm:p-4 sm:translate-y-2 sm:group-hover:translate-y-0">
+    <div className="pointer-events-none absolute bottom-0 left-0 z-20 w-full p-2.5 translate-y-0 transition-transform duration-300 sm:p-4 sm:translate-y-2 sm:group-hover:translate-y-0">
       <div className="flex justify-between items-end gap-1.5 sm:gap-3">
         <div className="min-w-0 flex-1">
           <h3 className="text-xs font-bold text-[rgba(255,255,255,0.96)] drop-shadow-[0_2px_10px_rgba(15,23,42,0.5)] line-clamp-1 sm:text-base md:text-lg">
-            {video.title || untitledLabel}
+            {title}
           </h3>
           <p className="mt-0.5 text-[10px] font-medium text-white/68 line-clamp-1 sm:mt-1 sm:text-xs">
             {video.category_name || uncategorizedLabel}
@@ -182,7 +222,7 @@ const VideoCard = memo(({ video, index, onClick, onToggleFavorite, canAnimate, i
         </div>
 
         <div className="flex items-center gap-1.5 sm:gap-2">
-          <div onClick={(event) => event.stopPropagation()}>
+          <div className="pointer-events-auto relative z-40" onClick={(event) => event.stopPropagation()}>
             <FavoriteButton
               itemId={video.id}
               itemType="video"
@@ -208,7 +248,8 @@ const VideoCard = memo(({ video, index, onClick, onToggleFavorite, canAnimate, i
       </div>
     </div>
   </motion.div>
-));
+  );
+});
 
 VideoCard.displayName = "VideoCard";
 
@@ -774,6 +815,7 @@ const MediaLibrary = () => {
                     isDayMode={isDayMode}
                     untitledLabel={t("media_library.untitled_video", "未命名视频")}
                     uncategorizedLabel={t("media_library.uncategorized", "未分类")}
+                    openLabel={`${video.title || t("media_library.untitled_video", "未命名视频")} ${t("common.video", "视频")}`}
                   />
                 ))}
               </div>
@@ -848,6 +890,7 @@ const MediaLibrary = () => {
                       canAnimate={!prefersReducedMotion && index < 8}
                       isDayMode={isDayMode}
                       untitledLabel={t("media_library.untitled_photo", "未命名照片")}
+                      openLabel={t("gallery.open_photo", { title: photo.title || t("media_library.untitled_photo", "未命名照片") })}
                     />
                   ))}
                 </AnimatePresence>
