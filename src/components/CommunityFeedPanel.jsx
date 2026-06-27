@@ -109,7 +109,7 @@ const CommunityFeedPanel = ({
           type="button"
           aria-pressed={statusFilter === key}
           onClick={() => setStatusFilter(key)}
-          className={`min-h-[38px] min-w-fit border-b-2 px-2.5 text-xs font-semibold transition-colors whitespace-nowrap md:px-3 ${
+          className={`min-h-10 min-w-fit border-b-2 px-3 text-xs font-semibold transition-colors whitespace-nowrap md:px-3 ${
             statusFilter === key
               ? accentTabClass
               : (isDayMode ? 'border-transparent text-slate-600 hover:bg-white hover:text-slate-950' : 'border-transparent text-gray-400 hover:bg-white/8 hover:text-white')
@@ -207,7 +207,7 @@ const CommunityFeedPanel = ({
               <button
                 type="button"
                 onClick={resetFilters}
-                className={`px-2.5 py-1 rounded-md transition-colors ${isDayMode ? 'text-slate-600 hover:bg-white' : 'text-gray-300 hover:bg-white/10'}`}
+                className={`inline-flex min-h-10 items-center rounded-md px-2.5 transition-colors md:min-h-0 md:py-1 ${isDayMode ? 'text-slate-600 hover:bg-white' : 'text-gray-300 hover:bg-white/10'}`}
               >
                 {t('community.clear_filters', '清除筛选')}
               </button>
@@ -215,7 +215,7 @@ const CommunityFeedPanel = ({
             <button
               type="button"
               onClick={handleRefresh}
-              className={`px-2.5 py-1 rounded-md transition-colors ${isDayMode ? 'text-slate-600 hover:bg-white' : 'text-gray-300 hover:bg-white/10'}`}
+              className={`inline-flex min-h-10 items-center rounded-md px-2.5 transition-colors md:min-h-0 md:py-1 ${isDayMode ? 'text-slate-600 hover:bg-white' : 'text-gray-300 hover:bg-white/10'}`}
             >
               {t('common.refresh', '刷新')}
             </button>
@@ -230,21 +230,21 @@ const CommunityFeedPanel = ({
         {isLoading && displayItems.length === 0 ? (
           [...Array(skeletonCount)].map((_, i) => renderSkeleton ? renderSkeleton(i) : defaultSkeleton(i))
         ) : error ? (
-          <div className="flex flex-col items-center justify-center py-20 px-4">
-            <div className="bg-red-500/10 rounded-lg p-6 mb-6 border border-red-500/20 backdrop-blur-xl">
-              <AlertCircle size={48} className="text-red-400 opacity-80" />
+          <div className="flex flex-col items-center justify-center px-4 py-12 md:py-20">
+            <div className="mb-4 rounded-lg border border-red-500/20 bg-red-500/10 p-5 backdrop-blur-xl md:mb-6 md:p-6">
+              <AlertCircle size={44} className="text-red-400 opacity-80 md:size-12" />
             </div>
-            <p className={`mb-6 text-lg ${th.textContent}`}>{t('common.error_fetching_data')}</p>
-            <button onClick={handleRefresh} className={`px-8 py-3 rounded-lg transition-all border font-medium hover:scale-105 active:scale-95 ${th.btnSecondary}`}>
+            <p className={`mb-5 text-center text-base md:mb-6 md:text-lg ${th.textContent}`}>{t('common.error_fetching_data')}</p>
+            <button onClick={handleRefresh} className={`min-h-11 rounded-lg border px-8 text-sm font-medium transition-all hover:scale-105 active:scale-95 md:py-3 ${th.btnSecondary}`}>
               {t('common.retry')}
             </button>
           </div>
         ) : displayItems.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 px-4">
-            <div className={`bg-gradient-to-br ${gradientFrom} rounded-lg p-8 mb-6 border ${isDayMode ? 'shadow-none' : 'backdrop-blur-xl shadow-xl'} ${emptyBorder}`}>
-              {EmptyIcon && <EmptyIcon size={64} className={`${emptyIconClass} opacity-80`} />}
+          <div className="flex flex-col items-center justify-center px-4 py-12 md:py-20">
+            <div className={`mb-4 rounded-lg border bg-gradient-to-br p-6 md:mb-6 md:p-8 ${gradientFrom} ${isDayMode ? 'shadow-none' : 'backdrop-blur-xl shadow-xl'} ${emptyBorder}`}>
+              {EmptyIcon && <EmptyIcon size={56} className={`${emptyIconClass} opacity-80 md:size-16`} />}
             </div>
-            <h3 className={`text-2xl font-bold mb-2 ${th.textPrimary}`}>
+            <h3 className={`mb-2 text-center text-xl font-bold md:text-2xl ${th.textPrimary}`}>
               {hasActiveFilters ? t('community.no_filtered_results', '没有符合当前条件的内容') : emptyTitle}
             </h3>
             <p className={`text-center max-w-md ${th.textSecondary}`}>
@@ -256,7 +256,7 @@ const CommunityFeedPanel = ({
               <button
                 type="button"
                 onClick={resetFilters}
-                className={`mt-5 px-6 py-2.5 rounded-lg border transition-colors text-sm font-semibold ${th.btnSecondary}`}
+                className={`mt-5 min-h-11 rounded-lg border px-6 text-sm font-semibold transition-colors md:py-2.5 ${th.btnSecondary}`}
               >
                 {t('community.clear_filters', '清除筛选')}
               </button>
