@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { FileText, Film, Image as ImageIcon, Calendar, Music, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { getOriginalUploadUrl, normalizeExternalImageUrl } from '../utils/imageUtils';
 import { useSettings } from '../context/SettingsContext';
 
@@ -34,6 +35,15 @@ const getGradient = (text, isDayMode) => {
   return colors[Math.abs(hash) % colors.length];
 };
 
+const fallbackLabelByType = {
+  video: ['common.video_cover_unavailable', '视频封面暂不可用'],
+  image: ['common.image_unavailable', '图片暂不可用'],
+  article: ['common.article_cover_unavailable', '文章封面暂不可用'],
+  event: ['common.event_cover_unavailable', '活动封面暂不可用'],
+  music: ['common.music_cover_unavailable', '音频封面暂不可用'],
+  generic: ['common.image_unavailable', '图片暂不可用']
+};
+
 const SmartImage = ({ 
   src, 
   alt, 
@@ -49,6 +59,7 @@ const SmartImage = ({
   ...props 
 }) => {
   const { uiMode } = useSettings();
+  const { t } = useTranslation();
   const isDayMode = uiMode === 'day';
   const [error, setError] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -148,16 +159,20 @@ const SmartImage = ({
 
   const Icon = icons[type] || icons.generic;
   const gradient = getGradient(alt || type, isDayMode);
+  const [fallbackLabelKey, fallbackLabelText] = fallbackLabelByType[type] || fallbackLabelByType.generic;
+  const fallbackLabel = alt || t(fallbackLabelKey, fallbackLabelText);
 
   // Fallback state (error or missing src)
   if (!imageSrc || error) {
     return (
       <div 
         ref={containerRef}
+        role="img"
+        aria-label={fallbackLabel}
         className={`${className} bg-gradient-to-br ${gradient} flex items-center justify-center relative overflow-hidden`}
       >
         <div className={`absolute inset-0 ${isDayMode ? "bg-white/18" : "bg-slate-950/45"}`} />
-        <Icon size={iconSize} className={`relative z-10 ${isDayMode ? "text-slate-400/70" : "text-white/55"}`} />
+        <Icon size={iconSize} aria-hidden="true" className={`relative z-10 ${isDayMode ? "text-slate-400/70" : "text-white/55"}`} />
       </div>
     );
   }

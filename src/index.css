@@ -2070,6 +2070,19 @@ img.motion-image-zoom {
   animation: skeleton-pulse 1.5s ease-in-out infinite;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .animate-skeleton,
+  .animate-shimmer,
+  .animate-skeleton-shimmer,
+  .animate-skeleton-pulse {
+    animation: none !important;
+  }
+
+  .animate-skeleton-shimmer {
+    display: none;
+  }
+}
+
 @keyframes pulse-glow {
   0%, 100% {
     box-shadow: 0 0 5px rgba(99, 102, 241, 0.3),
