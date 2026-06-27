@@ -7,6 +7,7 @@ import DOMPurify from 'dompurify';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import api from '../services/api';
+import { useBodyScrollLock } from '../hooks/useBackClose';
 import { communityTheme, extractTocItems, flattenLinkedResources } from './communityUtils';
 import { LinkifiedText, linkifyHtml } from '../utils/linkify';
 
@@ -39,6 +40,7 @@ const CommunityDetailModal = ({
   const tocItems = useMemo(() => extractTocItems(contentBlocks), [contentBlocks]);
   const uploaderId = item?.uploader_id ?? item?.author_id ?? null;
   const canGoProfile = uploaderId != null;
+  useBodyScrollLock(Boolean(item));
 
   const handleAuthorNavigate = () => {
     if (!canGoProfile) return;
