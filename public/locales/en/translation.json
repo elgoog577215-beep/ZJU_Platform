@@ -817,6 +817,8 @@
   },
   "common": {
     "error_fetching_data": "Failed to fetch data",
+    "notifications": "Notifications",
+    "close_notification": "Close notification",
     "explore": "Explore",
     "upload": "Upload",
     "upload_now": "Upload Now",

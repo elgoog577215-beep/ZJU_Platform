@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, createContext, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { 
   CheckCircle, 
   XCircle, 
@@ -66,6 +67,7 @@ const toastColors = {
 
 // Individual Toast Component
 const Toast = ({ id, type, title, message, duration, onRemove, action }) => {
+  const { t } = useTranslation();
   const Icon = toastIcons[type];
   const colors = toastColors[type];
   const [progress, setProgress] = useState(100);
@@ -137,6 +139,7 @@ const Toast = ({ id, type, title, message, duration, onRemove, action }) => {
         <div className={`flex-shrink-0 ${colors.icon}`}>
           <Icon 
             size={20} 
+            aria-hidden="true"
             className={type === TOAST_TYPES.LOADING ? 'animate-spin' : ''} 
           />
         </div>
@@ -178,9 +181,9 @@ const Toast = ({ id, type, title, message, duration, onRemove, action }) => {
           className="flex-shrink-0 text-gray-400 hover:text-white 
                      transition-colors duration-200 p-1 rounded-lg
                      hover:bg-white/10"
-          aria-label="关闭通知"
+          aria-label={t('common.close_notification', '关闭通知')}
         >
-          <X size={16} />
+          <X size={16} aria-hidden="true" />
         </button>
       </div>
     </motion.div>
@@ -190,6 +193,7 @@ const Toast = ({ id, type, title, message, duration, onRemove, action }) => {
 // Toast Container Component
 export const ToastContainer = ({ position = 'bottom-right' }) => {
   const { toasts } = useToast();
+  const { t } = useTranslation();
 
   const positionClasses = {
     'top-left': 'top-4 left-4',
@@ -205,7 +209,7 @@ export const ToastContainer = ({ position = 'bottom-right' }) => {
       className={`fixed z-[9999] flex flex-col gap-3 ${positionClasses[position]}`}
       role="region"
       aria-live="polite"
-      aria-label="通知"
+      aria-label={t('common.notifications', '通知')}
     >
       <AnimatePresence mode="popLayout">
         {toasts.map((toast) => (
