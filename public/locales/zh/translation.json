@@ -36,7 +36,13 @@
     "title": "标题",
     "category": "分类",
     "exif": "EXIF 信息",
-    "likes": "点赞数"
+    "likes": "点赞数",
+    "stats": "统计",
+    "related": "相关图片",
+    "no_related": "暂无相关图片",
+    "previous_photo": "上一张图片",
+    "next_photo": "下一张图片",
+    "view_related_photo": "查看 {{title}}"
   },
   "comments": {
     "title": "评论",

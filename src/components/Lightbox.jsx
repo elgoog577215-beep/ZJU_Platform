@@ -74,7 +74,7 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) =>
           const url = window.URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
-          link.download = photo.title || t('common.download');
+          link.download = photo.title || t('lightbox.download');
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
@@ -102,6 +102,9 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) =>
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            role="dialog"
+            aria-modal="true"
+            aria-label={photo.title || t('lightbox.title')}
             className={`fixed inset-0 z-[60] flex items-center justify-center p-4 ${isDayMode ? 'bg-transparent' : 'bg-black/95 backdrop-blur-md'}`}
             onClick={onClose}
         >
@@ -117,26 +120,33 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) =>
               initialFavorited={photo.favorited}
             />
             <button 
+              type="button"
               onClick={handleDownload}
+              aria-label={t('lightbox.download')}
               className={`hidden md:block p-3 rounded-full transition-all ${isDayMode ? 'text-slate-500 hover:text-green-500 hover:bg-green-50' : 'text-white/70 hover:text-green-400 hover:bg-white/10'}`}
-              title={t('common.download')}
+              title={t('lightbox.download')}
             >
-              <Download size={20} />
+              <Download size={20} aria-hidden="true" />
             </button>
-            <button 
+            <button
+              type="button"
               onClick={() => setShowInfo(!showInfo)}
+              aria-label={t('lightbox.info')}
+              aria-pressed={showInfo}
               className={`p-3 rounded-full transition-all ${showInfo ? (isDayMode ? 'text-indigo-600 bg-indigo-50' : 'text-white bg-white/20') : (isDayMode ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100' : 'text-white/70 hover:text-white hover:bg-white/10')}`}
               title={t('lightbox.info')}
             >
-              <Info size={20} />
+              <Info size={20} aria-hidden="true" />
             </button>
         </div>
 
-        <button 
+        <button
+          type="button"
           onClick={onClose}
+          aria-label={t('common.close')}
           className={`p-3 rounded-full transition-all border ${isDayMode ? 'bg-white hover:bg-red-50 text-slate-500 hover:text-red-500 border-slate-200/80' : 'bg-black/40 hover:bg-red-500/20 text-white/70 hover:text-red-400 border-white/10 backdrop-blur-md'}`}
         >
-          <X size={24} />
+          <X size={24} aria-hidden="true" />
         </button>
       </div>
 
@@ -145,11 +155,13 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) =>
         className="relative max-w-7xl max-h-[90vh] w-full flex items-center justify-center"
         onClick={(e) => e.stopPropagation()}
       >
-        <button 
+        <button
+          type="button"
           onClick={onPrev}
+          aria-label={t('lightbox.previous_photo')}
           className={`absolute left-0 md:-left-16 p-4 rounded-full transition-colors ${isDayMode ? 'text-slate-400 hover:text-slate-900 hover:bg-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
         >
-          <ChevronLeft size={48} />
+          <ChevronLeft size={48} aria-hidden="true" />
         </button>
 
         <motion.img
@@ -165,11 +177,13 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) =>
           fetchpriority="high"
         />
 
-        <button 
+        <button
+          type="button"
           onClick={onNext}
+          aria-label={t('lightbox.next_photo')}
           className={`absolute right-0 md:-right-16 p-4 rounded-full transition-colors ${isDayMode ? 'text-slate-400 hover:text-slate-900 hover:bg-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
         >
-          <ChevronRight size={48} />
+          <ChevronRight size={48} aria-hidden="true" />
         </button>
 
         {/* Bottom Info Bar */}
@@ -192,21 +206,25 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) =>
             >
                 <div className="flex justify-between items-center p-6 pb-2">
                     <div className="flex gap-4">
-                        <button 
+                        <button
+                            type="button"
                             onClick={() => setActiveTab('info')}
+                            aria-pressed={activeTab === 'info'}
                             className={`text-lg font-bold pb-2 border-b-2 transition-colors ${activeTab === 'info' ? (isDayMode ? 'text-slate-900 border-indigo-500' : 'text-white border-indigo-500') : (isDayMode ? 'text-slate-400 border-transparent hover:text-slate-700' : 'text-gray-500 border-transparent hover:text-gray-300')}`}
                         >
                             {t('lightbox.info')}
                         </button>
-                        <button 
+                        <button
+                            type="button"
                             onClick={() => setActiveTab('related')}
+                            aria-pressed={activeTab === 'related'}
                             className={`text-lg font-bold pb-2 border-b-2 transition-colors ${activeTab === 'related' ? (isDayMode ? 'text-slate-900 border-indigo-500' : 'text-white border-indigo-500') : (isDayMode ? 'text-slate-400 border-transparent hover:text-slate-700' : 'text-gray-500 border-transparent hover:text-gray-300')}`}
                         >
                             {t('lightbox.related', 'Related')}
                         </button>
                     </div>
-                    <button onClick={() => setShowInfo(false)} className={isDayMode ? 'text-slate-400 hover:text-slate-900' : 'text-gray-400 hover:text-white'}>
-                        <X size={20} />
+                    <button type="button" onClick={() => setShowInfo(false)} aria-label={t('common.close')} className={isDayMode ? 'text-slate-400 hover:text-slate-900' : 'text-gray-400 hover:text-white'}>
+                        <X size={20} aria-hidden="true" />
                     </button>
                 </div>
 
@@ -260,10 +278,12 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) =>
                     ) : (
                         <div className="grid grid-cols-2 gap-4 animate-in fade-in duration-300">
                             {relatedPhotos.map(p => (
-                                <div 
-                                    key={p.id} 
-                                    onClick={() => onSelect && onSelect(p)} 
-                                    className={`cursor-pointer group relative aspect-square rounded-xl overflow-hidden border transition-all ${isDayMode ? 'bg-white border-slate-200/80 hover:border-indigo-300/80' : 'bg-white/5 border-white/10 hover:border-indigo-500/50'}`}
+                                <button
+                                    key={p.id}
+                                    type="button"
+                                    onClick={() => onSelect && onSelect(p)}
+                                    aria-label={t('lightbox.view_related_photo', 'View {{title}}', { title: p.title })}
+                                    className={`cursor-pointer group relative aspect-square rounded-xl overflow-hidden border text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-white border-slate-200/80 hover:border-indigo-300/80' : 'bg-white/5 border-white/10 hover:border-indigo-500/50'}`}
                                 >
                                     <img 
                                         src={getThumbnailUrl(p.thumbnail || p.url)}
@@ -276,7 +296,7 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, onLikeToggle, onSelect }) =>
                                     <div className={`absolute bottom-0 left-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity ${isDayMode ? 'bg-white' : 'bg-gradient-to-t from-black/80 to-transparent'}`}>
                                         <p className={`text-xs truncate ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{p.title}</p>
                                     </div>
-                                </div>
+                                </button>
                             ))}
                             {relatedPhotos.length === 0 && (
                                 <div className={`col-span-2 text-center py-8 ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>

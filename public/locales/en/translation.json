@@ -1,4 +1,20 @@
 {
+  "lightbox": {
+    "download_started": "Download started",
+    "download_failed": "Download failed",
+    "download": "Download",
+    "info": "Info",
+    "title": "Title",
+    "category": "Category",
+    "exif": "EXIF",
+    "likes": "Likes",
+    "stats": "Stats",
+    "related": "Related photos",
+    "no_related": "No related photos found",
+    "previous_photo": "Previous photo",
+    "next_photo": "Next photo",
+    "view_related_photo": "View {{title}}"
+  },
   "pwa": {
     "install_title": "Install the TUOTU ZJU App",
     "install_desc": "Add it to your home screen and open it like an app.",
