@@ -850,6 +850,7 @@
     "previous_page": "Previous page",
     "next_page": "Next page",
     "page_number": "Page {{page}}",
+    "page_numbers": "Page numbers",
     "image": "Image",
     "image_unavailable": "Image unavailable",
     "video_cover_unavailable": "Video cover unavailable",

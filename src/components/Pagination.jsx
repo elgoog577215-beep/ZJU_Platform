@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useSettings } from '../context/SettingsContext';
 
@@ -36,14 +37,15 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
       <button
         type="button"
         aria-label={t('common.previous_page', '上一页')}
+        aria-disabled={currentPage === 1}
         onClick={() => onPageChange(Math.max(1, currentPage - 1))}
         disabled={currentPage === 1}
         className={`px-4 py-3 sm:py-2 rounded-lg backdrop-blur-3xl disabled:opacity-50 disabled:cursor-not-allowed transition-all border min-h-[44px] min-w-[44px] inline-flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-white/90 hover:bg-white text-slate-700 border-slate-200/80' : 'bg-[#0a0a0a]/60 hover:bg-[#0a0a0a]/80 text-white border-white/10'}`}
       >
-        &lt;
+        <ChevronLeft size={18} aria-hidden="true" />
       </button>
       
-      <div className="flex space-x-2 overflow-x-auto max-w-[240px] sm:max-w-none scrollbar-hide">
+      <div className="flex space-x-2 overflow-x-auto max-w-[240px] sm:max-w-none scrollbar-hide" aria-label={t('common.page_numbers', '页码')}>
         {getVisiblePages().map((page) => (
           <button
             key={page}
@@ -77,11 +79,12 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
       <button
         type="button"
         aria-label={t('common.next_page', '下一页')}
+        aria-disabled={currentPage === totalPages}
         onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
         disabled={currentPage === totalPages}
         className={`px-4 py-3 sm:py-2 rounded-lg backdrop-blur-3xl disabled:opacity-50 disabled:cursor-not-allowed transition-all border min-h-[44px] min-w-[44px] inline-flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? 'bg-white/90 hover:bg-white text-slate-700 border-slate-200/80' : 'bg-[#0a0a0a]/60 hover:bg-[#0a0a0a]/80 text-white border-white/10'}`}
       >
-        &gt;
+        <ChevronRight size={18} aria-hidden="true" />
       </button>
     </nav>
   );
