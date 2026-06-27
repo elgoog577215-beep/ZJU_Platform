@@ -12,7 +12,16 @@
     "mark_read_failed": "标记已读失败",
     "mark_all_read_failed": "全部已读失败",
     "clear_all_failed": "清空失败",
-    "new_notification": "新通知"
+    "new_notification": "新通知",
+    "open": "打开通知中心",
+    "open_with_unread": "打开通知中心，{{count}} 条未读",
+    "unread_count": "{{count}} 条未读",
+    "loading": "正在加载通知...",
+    "open_item": "打开通知",
+    "read": "已读",
+    "unread": "未读",
+    "delete": "删除通知",
+    "mark_read": "标记已读"
   },
   "pwa": {
     "install_title": "安装拓途浙享 App",
@@ -1077,6 +1086,8 @@
     "subtitle": "精选播客内容",
     "no_tracks": "暂无播客，上传一些播客吧！",
     "now_playing": "正在播放",
+    "now_playing_track": "正在播放：{{title}}，{{artist}}",
+    "cover_alt": "{{title}} 封面",
     "select_track": "选择一首曲目",
     "to_start": "开始聆听",
     "progress": "播放进度"

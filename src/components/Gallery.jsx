@@ -349,8 +349,8 @@ const Gallery = () => {
   return (
     <section className="pt-[calc(env(safe-area-inset-top)+76px)] pb-6 md:py-20 px-4 md:px-8 relative overflow-hidden flex-grow">
       <SEO
-        title="画廊"
-        description="查看现场照片、校园摄影与精选图片内容。"
+        title={t("gallery.title")}
+        description={t("gallery.subtitle")}
       />
       {/* Enhanced Ambient Background */}
       <div className="fixed inset-0 pointer-events-none z-0 hidden overflow-hidden md:block">

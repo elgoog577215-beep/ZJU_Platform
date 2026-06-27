@@ -9,16 +9,17 @@ import React from 'react';
 const SkeletonItem = ({ className = '', variant = 'shimmer' }) => {
   return (
     <div
+      aria-hidden="true"
       className={`
         relative overflow-hidden rounded-xl
         bg-white/5 backdrop-blur-sm
         border border-white/5
-        animate-skeleton-pulse
+        animate-skeleton-pulse motion-reduce:animate-none
         ${className}
       `}
     >
       {variant === 'shimmer' && (
-        <div className="absolute inset-0 animate-skeleton-shimmer bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+        <div className="absolute inset-0 animate-skeleton-shimmer bg-gradient-to-r from-transparent via-white/10 to-transparent motion-reduce:hidden" />
       )}
     </div>
   );
@@ -38,9 +39,14 @@ export const PhotoCardSkeleton = () => {
 };
 
 // Gallery skeleton grid
-export const GallerySkeleton = ({ count = 12 }) => {
+export const GallerySkeleton = ({ count = 12, label = '' }) => {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 md:gap-6">
+    <div
+      className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 md:gap-6"
+      role="status"
+      aria-live="polite"
+      aria-label={label || undefined}
+    >
       {Array.from({ length: count }).map((_, i) => (
         <PhotoCardSkeleton key={i} />
       ))}
@@ -113,9 +119,14 @@ export const EventCardSkeleton = () => {
 };
 
 // Text skeleton (for paragraphs)
-export const TextSkeleton = ({ lines = 3 }) => {
+export const TextSkeleton = ({ lines = 3, label = '' }) => {
   return (
-    <div className="space-y-2">
+    <div
+      className="space-y-2"
+      role="status"
+      aria-live="polite"
+      aria-label={label || undefined}
+    >
       {Array.from({ length: lines }).map((_, i) => (
         <SkeletonItem 
           key={i} 
