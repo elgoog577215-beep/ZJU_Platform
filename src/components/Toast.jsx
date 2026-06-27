@@ -72,6 +72,7 @@ const Toast = ({ id, type, title, message, duration, onRemove, action }) => {
   const colors = toastColors[type];
   const [progress, setProgress] = useState(100);
   const [isPaused, setIsPaused] = useState(false);
+  const isAssertive = type === TOAST_TYPES.ERROR || type === TOAST_TYPES.WARNING;
 
   useEffect(() => {
     if (type === TOAST_TYPES.LOADING || duration === Infinity) return;
@@ -116,6 +117,8 @@ const Toast = ({ id, type, title, message, duration, onRemove, action }) => {
       }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
+      role={isAssertive ? 'alert' : 'status'}
+      aria-live={isAssertive ? 'assertive' : 'polite'}
       className={`
         relative w-full max-w-sm overflow-hidden rounded-xl
         backdrop-blur-xl border ${colors.bg} ${colors.border}
@@ -140,7 +143,7 @@ const Toast = ({ id, type, title, message, duration, onRemove, action }) => {
           <Icon 
             size={20} 
             aria-hidden="true"
-            className={type === TOAST_TYPES.LOADING ? 'animate-spin' : ''} 
+            className={type === TOAST_TYPES.LOADING ? 'animate-spin motion-reduce:animate-none' : ''}
           />
         </div>
 
