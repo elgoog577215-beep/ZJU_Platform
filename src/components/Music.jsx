@@ -55,13 +55,14 @@ const TrackItem = memo(
   }) => {
     const { t } = useTranslation();
     const isActive = track.id === activeTrackId;
+    const playTrackItem = () => onClick(track);
 
     return (
       <motion.div
         initial={canAnimate ? { opacity: 0, y: 10 } : false}
         animate={canAnimate ? { opacity: 1, y: 0 } : undefined}
         transition={canAnimate ? { duration: 0.2, delay: 0.02 } : undefined}
-        className={`group flex items-center gap-3 rounded-xl transition-all cursor-pointer border backdrop-blur-md ${compact ? "p-2" : "p-3 gap-4"} ${
+        className={`group relative flex items-center gap-3 rounded-xl transition-all cursor-pointer border backdrop-blur-md ${compact ? "p-2" : "p-3 gap-4"} ${
           isActive
             ? isDayMode
               ? "bg-violet-50 border-violet-200/80 shadow-[0_12px_28px_rgba(168,85,247,0.1)]"
@@ -70,8 +71,16 @@ const TrackItem = memo(
               ? "day-card-lift hover:border-pink-200/80"
               : "bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10 hover:shadow-lg hover:shadow-black/20"
         }`}
-        onClick={() => onClick(track)}
       >
+        <button
+          type="button"
+          aria-label={`${track.title} ${t("common.play", "播放")}`}
+          onClick={playTrackItem}
+          className={`absolute inset-0 z-10 rounded-xl border-0 bg-transparent p-0 text-left outline-none transition-shadow
+            focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black
+            ${isDayMode ? "focus-visible:ring-offset-white" : ""}`}
+        />
+
         <div className={`relative rounded-xl overflow-hidden shrink-0 shadow-lg ${compact ? "w-9 h-9" : "w-14 h-14 md:w-16 md:h-16"}`}>
           <SmartImage
             src={getThumbnailUrl(track.cover)}
@@ -121,8 +130,7 @@ const TrackItem = memo(
 
         {!compact && (
           <div
-            className="flex items-center gap-3 md:gap-5 mr-2"
-            onClick={(e) => e.stopPropagation()}
+            className="relative z-20 flex items-center gap-3 md:gap-5 mr-2"
           >
             <span
               className={`text-xs font-mono hidden sm:block px-2 py-1 rounded-md border ${isDayMode ? "text-slate-500 bg-slate-100/90 border-slate-200/80" : "text-gray-500 bg-black/20 border-white/5"}`}

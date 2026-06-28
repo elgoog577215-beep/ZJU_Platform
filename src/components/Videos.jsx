@@ -30,6 +30,9 @@ import SEO from "./SEO";
 
 const VideoCard = memo(
   ({ video, index, onClick, onToggleFavorite, canAnimate, isDayMode }) => {
+    const { t } = useTranslation();
+    const openVideo = () => onClick(video);
+
     return (
       <motion.div
         initial={canAnimate ? { opacity: 0, y: 14 } : false}
@@ -39,9 +42,17 @@ const VideoCard = memo(
             ? { duration: 0.24, delay: Math.min(index, 5) * 0.03 }
             : undefined
         }
-        onClick={() => onClick(video)}
         className={`group rect-media-card relative aspect-video overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 ${isDayMode ? "bg-white/88 border-slate-200/80 hover:border-pink-300/50" : "bg-[#111111]/84 border-white/10 hover:border-pink-500/30"}`}
       >
+        <button
+          type="button"
+          aria-label={`${video.title} ${t("common.video", "视频")}`}
+          onClick={openVideo}
+          className={`absolute inset-0 z-30 rounded-lg border-0 bg-transparent p-0 text-left outline-none transition-shadow
+            focus-visible:ring-2 focus-visible:ring-pink-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black
+            ${isDayMode ? "focus-visible:ring-offset-white" : ""}`}
+        />
+
         <SmartImage
           src={getThumbnailUrl(video.thumbnail)}
           alt={video.title}
@@ -61,10 +72,10 @@ const VideoCard = memo(
           )}
 
         <div
-          className={`absolute inset-0 ${isDayMode ? "bg-gradient-to-t from-slate-950/60 via-slate-950/10 to-transparent" : "bg-gradient-to-t from-black/70 via-black/15 to-transparent"} opacity-60 group-hover:opacity-50 transition-opacity duration-300`}
+          className={`pointer-events-none absolute inset-0 z-20 ${isDayMode ? "bg-gradient-to-t from-slate-950/60 via-slate-950/10 to-transparent" : "bg-gradient-to-t from-black/70 via-black/15 to-transparent"} opacity-60 group-hover:opacity-50 transition-opacity duration-300`}
         />
 
-        <div className="absolute inset-0 flex items-center justify-center opacity-100 transition-opacity duration-300 md:opacity-0 md:group-hover:opacity-100">
+        <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center opacity-100 transition-opacity duration-300 md:opacity-0 md:group-hover:opacity-100">
           <div
             className={`rect-icon-button flex h-10 w-10 items-center justify-center border group-hover:scale-105 transition-transform duration-300 relative md:h-16 md:w-16 ${isDayMode ? "bg-white/84 text-slate-950 border-white/70" : "bg-black/45 text-white border-white/20"}`}
           >
@@ -76,14 +87,14 @@ const VideoCard = memo(
           </div>
         </div>
 
-        <div className="absolute bottom-0 left-0 w-full translate-y-0 p-2.5 transition-transform duration-300 md:translate-y-2 md:p-4 md:group-hover:translate-y-0">
+        <div className="pointer-events-none absolute bottom-0 left-0 z-20 w-full translate-y-0 p-2.5 transition-transform duration-300 md:translate-y-2 md:p-4 md:group-hover:translate-y-0">
           <div className="flex flex-col gap-1.5 md:gap-2">
             <div className="flex justify-between items-end">
               <h3 className="mr-2 flex-1 line-clamp-1 text-xs font-bold text-[rgba(255,255,255,0.96)] drop-shadow-[0_2px_10px_rgba(15,23,42,0.5)] md:mr-4 md:text-xl">
                 {video.title}
               </h3>
 
-              <div className="flex items-center gap-1.5 md:gap-2">
+              <div className="pointer-events-auto relative z-40 flex items-center gap-1.5 md:gap-2">
                 <FavoriteButton
                   itemId={video.id}
                   itemType="video"
@@ -494,6 +505,9 @@ const Videos = () => {
                   : { duration: 0.2, ease: [0.22, 1, 0.36, 1] }
               }
               className={`fixed inset-0 z-[100] backdrop-blur-md overflow-y-auto ${isDayMode ? "bg-white/72" : "bg-black/90"}`}
+              role="dialog"
+              aria-modal="true"
+              aria-label={selectedVideo.title || t("videos.title")}
               onClick={closeVideo}
             >
               <div className="flex min-h-full items-center justify-center p-4 md:p-8">
@@ -517,7 +531,9 @@ const Videos = () => {
                     className={`relative aspect-video ${isDayMode ? "bg-slate-100" : "bg-black"}`}
                   >
                     <button
+                      type="button"
                       onClick={closeVideo}
+                      aria-label={t("common.close_video")}
                       className={`rect-icon-button absolute top-6 right-6 p-2 transition-all z-20 group ${isDayMode ? "bg-white/90 hover:bg-white text-slate-700 border-slate-200/80" : "bg-black/40 hover:bg-black/60 text-white border-white/10"}`}
                       title={t("common.close_video")}
                     >
