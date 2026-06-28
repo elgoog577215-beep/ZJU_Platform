@@ -75,7 +75,13 @@ const Card = ({ p, onOpen, onFav, t }) => {
   const fallbackInitial = t("project_plaza.initial_you", "你");
   const title = p.title || t("project_plaza.untitled", "未命名项目");
   return (
-    <article className="ppp-card" onClick={() => onOpen(p)}>
+    <article className="ppp-card">
+      <button
+        type="button"
+        className="ppp-card-open"
+        onClick={() => onOpen(p)}
+        aria-label={`${title} ${t("common.view_details")}`}
+      />
       <div className="ppp-cover">
         {p.cover_url
           ? <img className="ppp-art" src={p.cover_url} alt={title} loading="lazy" decoding="async" />
@@ -102,7 +108,7 @@ const Card = ({ p, onOpen, onFav, t }) => {
             <div className="ppp-stack"><Avatar name={p.owner_name} fallbackInitial={fallbackInitial} /></div>
             <span className="ppp-lbl">{p.owner_name || t("project_plaza.anonymous", "匿名")}</span>
           </div>
-          <div className="ppp-favrow" onClick={(e) => e.stopPropagation()}>
+          <div className="ppp-favrow">
             <span className="ppp-views"><Eye size={14} />{p.views ?? 0}</span>
             <FavoriteButton
               itemId={p.id}
@@ -131,7 +137,13 @@ const DetailModal = ({ p, onClose, onFav, loggedIn, onOpenPoster, variant }) => 
   return (
     <BodyPortal>
     <div className="ppp-root ppp-scrim" data-variant={variant} onClick={onClose}>
-      <div className="ppp-modal" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="ppp-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        onClick={(e) => e.stopPropagation()}
+      >
         <button className="ppp-x" type="button" onClick={onClose} aria-label={t("common.close", "关闭")}><X size={18} /></button>
         <div className="ppp-mgallery">
           {imgs[active]

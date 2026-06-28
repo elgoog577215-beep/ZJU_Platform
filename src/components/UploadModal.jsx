@@ -2339,12 +2339,21 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                               placeholder="用于列表展示与搜索摘要，建议 40-120 字"
                             />
                           </div>
-                          <div className="flex items-center gap-3 pt-1">
-                            <div className={`w-5 h-5 rounded border flex items-center justify-center cursor-pointer transition-colors ${featured ? 'bg-indigo-500 border-indigo-500' : (isDayMode ? 'bg-white border-slate-300 hover:border-indigo-300' : 'bg-white/5 border-white/20 hover:border-white/40')}`} onClick={() => setFeatured(!featured)}>
+                          <label className="flex cursor-pointer items-center gap-3 pt-1">
+                            <input
+                              type="checkbox"
+                              checked={featured}
+                              onChange={(event) => setFeatured(event.target.checked)}
+                              className="peer sr-only"
+                            />
+                            <span
+                              aria-hidden="true"
+                              className={`flex h-5 w-5 items-center justify-center rounded border transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-400 peer-focus-visible:ring-offset-2 ${featured ? 'bg-indigo-500 border-indigo-500' : (isDayMode ? 'bg-white border-slate-300 hover:border-indigo-300 peer-focus-visible:ring-offset-white' : 'bg-white/5 border-white/20 hover:border-white/40 peer-focus-visible:ring-offset-[#121212]')}`}
+                            >
                               {featured && <Check size={12} className="text-white" />}
-                            </div>
-                            <label className={`text-sm cursor-pointer ${isDayMode ? 'text-slate-600' : 'text-gray-300'}`} onClick={() => setFeatured(!featured)}>{t('common.featured')}</label>
-                          </div>
+                            </span>
+                            <span className={`text-sm ${isDayMode ? 'text-slate-600' : 'text-gray-300'}`}>{t('common.featured')}</span>
+                          </label>
                           <div className={`rounded-lg border px-3 py-2.5 ${isDayMode ? 'border-slate-200/80 bg-slate-50/90' : 'border-white/10 bg-white/5'}`}>
                             <div className={`flex items-center justify-between text-[11px] mb-2 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
                               <span>发布完整度</span>
@@ -2582,20 +2591,23 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                     </div>
                     
                     {/* Featured Checkbox */}
-                    <div className="flex items-center gap-3 pt-2">
-                        <div 
-                            className={`w-6 h-6 sm:w-5 sm:h-5 rounded border flex items-center justify-center cursor-pointer transition-colors ${featured ? 'bg-indigo-500 border-indigo-500' : (isDayMode ? 'bg-white border-slate-300 hover:border-indigo-300' : 'bg-white/5 border-white/20 hover:border-white/40')}`}
-                            onClick={() => setFeatured(!featured)}
+                    <label className="flex cursor-pointer select-none items-center gap-3 pt-2">
+                        <input
+                            type="checkbox"
+                            checked={featured}
+                            onChange={(event) => setFeatured(event.target.checked)}
+                            className="peer sr-only"
+                        />
+                        <span
+                            aria-hidden="true"
+                            className={`flex h-6 w-6 items-center justify-center rounded border transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-400 peer-focus-visible:ring-offset-2 sm:h-5 sm:w-5 ${featured ? 'bg-indigo-500 border-indigo-500' : (isDayMode ? 'bg-white border-slate-300 hover:border-indigo-300 peer-focus-visible:ring-offset-white' : 'bg-white/5 border-white/20 hover:border-white/40 peer-focus-visible:ring-offset-[#121212]')}`}
                         >
                             {featured && <Check size={14} className="text-white sm:w-3 sm:h-3" />}
-                        </div>
-                        <label 
-                            className={`text-sm font-medium select-none cursor-pointer transition-colors ${isDayMode ? 'text-slate-600 hover:text-slate-900' : 'text-gray-300 hover:text-white'}`}
-                            onClick={() => setFeatured(!featured)}
-                        >
+                        </span>
+                        <span className={`text-sm font-medium transition-colors ${isDayMode ? 'text-slate-600 hover:text-slate-900' : 'text-gray-300 hover:text-white'}`}>
                             {t('common.featured')}
-                        </label>
-                    </div>
+                        </span>
+                    </label>
                   </div>
                   </div>
               </div>
