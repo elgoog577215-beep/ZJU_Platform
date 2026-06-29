@@ -2726,6 +2726,23 @@
       "progress": "Progress",
       "needs": "Needs"
     },
+    "sort": {
+      "aria": "Project sorting",
+      "match": "Recommended",
+      "newest": "Newest",
+      "active": "Most active"
+    },
+    "radar": {
+      "aria": "Project opportunity radar",
+      "kicker": "Opportunity Radar",
+      "headline": "{{count}} projects are looking for collaborators",
+      "headline_one": "{{count}} project is looking for a collaborator",
+      "headline_other": "{{count}} projects are looking for collaborators",
+      "copy": "Projects worth joining rise first based on stage, needs, and activity.",
+      "recruiting": "Recruiting",
+      "live": "Live",
+      "hot_need": "Top need"
+    },
     "needs": {
       "people": "People",
       "design": "Design",

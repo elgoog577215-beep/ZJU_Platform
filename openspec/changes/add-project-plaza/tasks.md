@@ -31,12 +31,15 @@
 - [x] 4.3 `PublicProfile.jsx`：内容类型 + `favoriteTypeOptions` 加"项目"；`buildFavoriteTargetPath` 加 `project: "/projects"`
 - [x] 4.4 `services/api.js`：项目名片 CRUD/列表/详情/举报/收藏 调用
 - [x] 4.5 `i18n.js`：文案（进度 label、需求标签、按钮、空状态等）
+- [x] 4.6 发现效率升级：推荐 / 最新 / 最活跃排序，优先暴露开放招募、进度活跃和热度更高的项目
+- [x] 4.7 机会雷达：展示开放招募、已上线、最热需求，并支持一键切换到对应筛选
 
 ## 5. 验证
 - [x] 5.1 e2e 主流程：发布→广场出现→收藏；移动详情 body portal 和 scroll lock
 - [x] 5.2 API：未登录无联系方式 / 非作者改删被拒 / 被收藏产生通知
 - [ ] 5.3 白天+暗色两主题渲染快照
 - [x] 5.4 相关 eslint 通过；`/verify` Gate 1
+- [x] 5.5 发现效率 E2E：默认推荐排序优先机会项目，切换“最新”后按发布时间排序
 
 ## 6. 收尾
 - [x] 6.1 `openspec validate add-project-plaza --strict` 通过

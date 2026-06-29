@@ -2764,6 +2764,23 @@
       "progress": "进度",
       "needs": "在找"
     },
+    "sort": {
+      "aria": "项目排序",
+      "match": "推荐",
+      "newest": "最新",
+      "active": "最活跃"
+    },
+    "radar": {
+      "aria": "项目机会雷达",
+      "kicker": "机会雷达",
+      "headline": "{{count}} 个项目正在找同伴",
+      "headline_one": "{{count}} 个项目正在找同伴",
+      "headline_other": "{{count}} 个项目正在找同伴",
+      "copy": "按进度、需求和热度自动把更值得加入的项目排到前面。",
+      "recruiting": "开放招募",
+      "live": "已上线",
+      "hot_need": "最热需求"
+    },
     "needs": {
       "people": "缺人",
       "design": "缺设计",

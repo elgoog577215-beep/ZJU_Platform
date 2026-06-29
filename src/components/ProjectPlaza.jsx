@@ -9,8 +9,10 @@ import {
   Lock,
   Mail,
   Plus,
+  Radar,
   Search,
   Share2,
+  Sparkles,
   UploadCloud,
   UserRound,
   X,
@@ -43,6 +45,11 @@ const PROGRESS_FILTERS = [
 const NEED_FILTERS = ["缺人", "缺设计", "缺讨论", "找测试用户"];
 const NEEDS_ALL = ["缺人", "缺设计", "缺产品", "缺讨论", "找测试用户", "缺资金"];
 const PROG_OPTS = ["idea", "dev", "live", "pause"];
+const SORT_OPTIONS = [
+  { key: "match", labelKey: "project_plaza.sort.match", fallback: "推荐" },
+  { key: "newest", labelKey: "project_plaza.sort.newest", fallback: "最新" },
+  { key: "active", labelKey: "project_plaza.sort.active", fallback: "最活跃" },
+];
 const NEED_LABEL_KEYS = {
   "缺人": "project_plaza.needs.people",
   "缺设计": "project_plaza.needs.design",
@@ -61,6 +68,19 @@ const getProgressLabel = (t, progress) => {
 };
 
 const getNeedLabel = (t, need) => (NEED_LABEL_KEYS[need] ? t(NEED_LABEL_KEYS[need], need) : need);
+const getRadarHeadline = (t, count) =>
+  t(count === 1 ? "project_plaza.radar.headline_one" : "project_plaza.radar.headline_other", "{{count}} 个项目正在找同伴", { count });
+const projectScore = (p) =>
+  (p.progress === "dev" ? 35 : p.progress === "live" ? 28 : p.progress === "idea" ? 20 : 8)
+  + Math.min(Number(p.need_tags?.length || 0) * 9, 24)
+  + Math.min(Number(p.likes || 0) * 2 + Number(p.views || 0) * 0.35, 32)
+  + Math.min(Number(p.tech_tags?.length || 0) * 2, 9);
+
+const sortProjects = (items, sort) => [...items].sort((a, b) => {
+  if (sort === "newest") return String(b.created_at || "").localeCompare(String(a.created_at || ""));
+  if (sort === "active") return (Number(b.likes || 0) * 8 + Number(b.views || 0)) - (Number(a.likes || 0) * 8 + Number(a.views || 0));
+  return projectScore(b) - projectScore(a);
+});
 
 const Avatar = ({ name, grad = GRAD, idx = 0, fallbackInitial = "你" }) => (
   <span className="ppp-av" style={{ background: grad, marginLeft: idx ? -8 : 0 }}>{initials(name, fallbackInitial)}</span>
@@ -74,6 +94,7 @@ const ProgPill = ({ progress, t, className = "" }) => {
 const Card = ({ p, onOpen, onFav, t }) => {
   const fallbackInitial = t("project_plaza.initial_you", "你");
   const title = p.title || t("project_plaza.untitled", "未命名项目");
+  const score = Math.round(projectScore(p));
   return (
     <article className="ppp-card">
       <button
@@ -90,6 +111,7 @@ const Card = ({ p, onOpen, onFav, t }) => {
         {p.images?.length > 1 && (
           <span className="ppp-photos"><Images size={12} />{p.images.length}</span>
         )}
+        <span className="ppp-score"><Sparkles size={12} />{score}</span>
       </div>
       <div className="ppp-body">
         <div className="ppp-trow">
@@ -395,6 +417,7 @@ const ProjectPlaza = () => {
   const [progFilter, setProgFilter] = useState("all");
   const [needFilter, setNeedFilter] = useState(null);
   const [search, setSearch] = useState("");
+  const [sort, setSort] = useState("match");
   const fromFavoritesRef = useRef(
     searchParams.get("fromfav") === "1" || location.state?.fromFavorites === true
   );
@@ -456,6 +479,14 @@ const ProjectPlaza = () => {
     setCreating(true);
   };
 
+  const visibleItems = sortProjects(items, sort);
+  const liveCount = items.filter((item) => item.progress === "live").length;
+  const recruitingCount = items.filter((item) => item.need_tags?.length > 0).length;
+  const topNeed = NEEDS_ALL
+    .map((need) => [need, items.filter((item) => item.need_tags?.includes(need)).length])
+    .sort((a, b) => b[1] - a[1])
+    .find(([, count]) => count > 0)?.[0] || NEED_FILTERS[0];
+
   return (
     <div className="ppp-root" data-variant={variant}>
       <SEO title={t("project_plaza.meta_title", "项目广场")} description={t("project_plaza.meta_desc", "把正在做的项目放上来，让对的人找到你。")} />
@@ -482,6 +513,13 @@ const ProjectPlaza = () => {
                   <Search size={17} />
                   <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("project_plaza.search_placeholder", "搜索项目、技术栈、发起人...")} />
                 </label>
+                <div className="ppp-sort" aria-label={t("project_plaza.sort.aria", "项目排序")}>
+                  {SORT_OPTIONS.map(({ key, labelKey, fallback }) => (
+                    <button key={key} type="button" className={sort === key ? "on" : ""} onClick={() => setSort(key)}>
+                      {t(labelKey, fallback)}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="ppp-filters" aria-label={t("project_plaza.filters.aria", "项目筛选")}>
@@ -502,6 +540,25 @@ const ProjectPlaza = () => {
               </div>
             </section>
 
+            <section className="ppp-radar" aria-label={t("project_plaza.radar.aria", "项目机会雷达")}>
+              <div>
+                <span className="ppp-radar-k"><Radar size={15} />{t("project_plaza.radar.kicker", "机会雷达")}</span>
+                <strong>{getRadarHeadline(t, recruitingCount)}</strong>
+                <p>{t("project_plaza.radar.copy", "按进度、需求和热度自动把更值得加入的项目排到前面。")}</p>
+              </div>
+              <div className="ppp-radar-stats">
+                <button type="button" onClick={() => setNeedFilter(topNeed)}>
+                  <span>{recruitingCount}</span>{t("project_plaza.radar.recruiting", "开放招募")}
+                </button>
+                <button type="button" onClick={() => setProgFilter("live")}>
+                  <span>{liveCount}</span>{t("project_plaza.radar.live", "已上线")}
+                </button>
+                <button type="button" onClick={() => setNeedFilter(topNeed)}>
+                  <span>{getNeedLabel(t, topNeed)}</span>{t("project_plaza.radar.hot_need", "最热需求")}
+                </button>
+              </div>
+            </section>
+
             {loading ? (
               <div className="ppp-empty">{t("project_plaza.loading", "加载中...")}</div>
             ) : items.length === 0 ? (
@@ -513,7 +570,7 @@ const ProjectPlaza = () => {
               </div>
             ) : (
               <div className="ppp-grid">
-                {items.map((project) => <Card p={project} key={project.id} onOpen={openDetail} onFav={applyFav} t={t} />)}
+                {visibleItems.map((project) => <Card p={project} key={project.id} onOpen={openDetail} onFav={applyFav} t={t} />)}
               </div>
             )}
           </>

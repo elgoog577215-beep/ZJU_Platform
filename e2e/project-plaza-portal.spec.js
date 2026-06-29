@@ -26,6 +26,19 @@ const project = {
   contact_email: null,
 };
 
+const quietProject = {
+  ...project,
+  id: 8803,
+  title: "Archive Notes",
+  intro: "A quieter project card.",
+  progress: "pause",
+  need_tags: [],
+  tech_tags: ["Docs"],
+  likes: 0,
+  views: 1,
+  created_at: "2026-06-28T00:00:00.000Z",
+};
+
 const installProjectMocks = async (page) => {
   await page.route("**/api/settings", (route) =>
     route.fulfill({
@@ -69,10 +82,10 @@ const installProjectMocks = async (page) => {
 
     return route.fulfill({
       json: {
-        items: [project],
+        items: [quietProject, project],
         page: 1,
         limit: 24,
-        total: 1,
+        total: 2,
         totalPages: 1,
       },
     });
@@ -149,4 +162,19 @@ test("project plaza supports authenticated publish and favorite", async ({ page 
   await dialog.getByRole("button", { name: "收藏" }).click();
   await expect(dialog.getByRole("button", { name: "取消收藏" })).toBeVisible();
   await expect(page.getByText("4 收藏")).toBeVisible();
+});
+
+test("project plaza ranks opportunity cards by match score", async ({ page }) => {
+  await installProjectMocks(page);
+  await page.goto("/projects");
+
+  await expect(page.getByText("机会雷达")).toBeVisible();
+  await expect(page.getByText("1 个项目正在找同伴")).toBeVisible();
+  await expect(page.getByRole("button", { name: "推荐" })).toHaveClass(/on/);
+
+  const titles = page.locator(".ppp-title");
+  await expect(titles.first()).toHaveText(project.title);
+
+  await page.getByRole("button", { name: "最新" }).click();
+  await expect(titles.first()).toHaveText(quietProject.title);
 });
