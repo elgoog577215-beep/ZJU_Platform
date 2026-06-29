@@ -322,7 +322,10 @@ test.describe("admin console refinement", () => {
     ).toBeVisible();
     await expect(page.getByRole("navigation", { name: "主导航" })).toBeVisible();
     await expect(
-      page.getByRole("menuitem", { name: "首页" }),
+      page.getByRole("link", { name: "拓途浙享首页" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "打开总览模块" }),
     ).toBeVisible();
     await expect(page.getByRole("heading", { name: "运营总览" })).toBeVisible();
     await expect(page.getByText("当前待审核内容")).toBeVisible();

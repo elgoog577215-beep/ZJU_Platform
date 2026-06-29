@@ -40,6 +40,7 @@
 - 规划：先收束 `mobile-me-and-news-fullscreen` 和 `overhaul-day-mode-theme-system` 的可验证部分；继续从共享组件和主题 token 下手，不逐页堆颜色补丁。
 - 当前执行切片：验证移动“我的”入口、AI 社区新闻全屏、项目广场 body portal 和白天/暗色构建。
 - 验证：移动 viewport Playwright、相关 lint/build、英文模式文案扫描。
+- 2026-06-29 执行记录：已补 `mobile-community-shell.spec.js`，覆盖未登录“我的”唤起登录、新闻详情移动端返回关闭和 scroll lock；白天/暗色主题仍按 `overhaul-day-mode-theme-system` 保留为独立大项。
 
 ### P2 iOS Capacitor App
 
@@ -54,6 +55,7 @@
 - 规划：复用已有 `admin-command-center` 与 `admin-console-systematization` 规格；短期不重写后台，只围绕内容队列和治理队列补入口。
 - 当前执行切片：等项目广场、社区投稿、黑客松成果的内容链路稳定后，把它们挂入统一后台队列。
 - 验证：admin e2e、URL tab 深链、审核状态和模型 key 管理回归。
+- 2026-06-29 执行记录：`admin-console.spec.js` 与 `admin-ecosystem-partners.spec.js` 通过；同步修正后台导航测试中过期的“首页”断言，改为当前 Logo 首页链接 + 总览模块入口。
 
 ## 暂不做
 
