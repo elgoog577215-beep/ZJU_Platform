@@ -175,6 +175,16 @@ test("project plaza ranks opportunity cards by match score", async ({ page }) =>
   const titles = page.locator(".ppp-title");
   await expect(titles.first()).toHaveText(project.title);
 
+  const recruitingButton = page.getByRole("button", { name: /开放招募/ });
+  await recruitingButton.click();
+  await expect(recruitingButton).toHaveClass(/on/);
+  await expect(titles).toHaveCount(1);
+  await expect(titles.first()).toHaveText(project.title);
+
+  await recruitingButton.click();
+  await expect(recruitingButton).not.toHaveClass(/on/);
+  await expect(titles).toHaveCount(2);
+
   await page.getByRole("button", { name: "最新" }).click();
   await expect(titles.first()).toHaveText(quietProject.title);
 });

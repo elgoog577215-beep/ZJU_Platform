@@ -59,6 +59,7 @@ export const PROJECT_PLAZA_CSS = `
 	.ppp-radar-stats{display:grid;grid-template-columns:repeat(3,minmax(96px,1fr));gap:8px;min-width:min(100%,420px);}
 	.ppp-radar-stats button{min-width:0;border:1px solid var(--border);background:var(--surface);color:var(--muted);border-radius:var(--r-control);padding:10px 11px;text-align:left;cursor:pointer;font:800 11.5px/1.25 var(--body);}
 	.ppp-radar-stats button span{display:block;color:var(--ink);font-size:17px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;}
+	.ppp-radar-stats button.on{border-color:var(--brand);background:var(--surface-strong);color:var(--ink);}
 	.ppp-radar-stats button:hover{border-color:var(--border-strong);}
 .ppp-empty strong{font-size:17px;color:var(--ink);}
 .ppp-empty-action{margin-top:8px;}

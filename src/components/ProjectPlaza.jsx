@@ -416,6 +416,7 @@ const ProjectPlaza = () => {
   const [creating, setCreating] = useState(false);
   const [progFilter, setProgFilter] = useState("all");
   const [needFilter, setNeedFilter] = useState(null);
+  const [recruitingOnly, setRecruitingOnly] = useState(false);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("match");
   const fromFavoritesRef = useRef(
@@ -479,7 +480,32 @@ const ProjectPlaza = () => {
     setCreating(true);
   };
 
-  const visibleItems = sortProjects(items, sort);
+  const toggleNeedFilter = (need) => {
+    setRecruitingOnly(false);
+    setNeedFilter(needFilter === need ? null : need);
+  };
+  const setProgressFilter = (key) => {
+    setRecruitingOnly(false);
+    setProgFilter(key);
+  };
+  const showRecruitingProjects = () => {
+    setProgFilter("all");
+    setNeedFilter(null);
+    setRecruitingOnly((value) => !value);
+  };
+  const showLiveProjects = () => {
+    setRecruitingOnly(false);
+    setNeedFilter(null);
+    setProgFilter("live");
+  };
+  const showTopNeedProjects = () => {
+    setRecruitingOnly(false);
+    setNeedFilter(topNeed);
+    setProgFilter("all");
+  };
+
+  const filteredItems = recruitingOnly ? items.filter((item) => item.need_tags?.length > 0) : items;
+  const visibleItems = sortProjects(filteredItems, sort);
   const liveCount = items.filter((item) => item.progress === "live").length;
   const recruitingCount = items.filter((item) => item.need_tags?.length > 0).length;
   const topNeed = NEEDS_ALL
@@ -526,7 +552,7 @@ const ProjectPlaza = () => {
                 <div className="ppp-filter-group">
                   <span className="ppp-flabel">{t("project_plaza.filters.progress", "进度")}</span>
                   {PROGRESS_FILTERS.map(({ key, labelKey, fallback, color }) => (
-                    <button key={key} type="button" className={`ppp-chip ${progFilter === key ? "on" : ""}`} onClick={() => setProgFilter(key)}>
+                    <button key={key} type="button" className={`ppp-chip ${progFilter === key ? "on" : ""}`} onClick={() => setProgressFilter(key)}>
                       {color && <span className="ppp-cdot" style={{ background: color }} />}{t(labelKey, fallback)}
                     </button>
                   ))}
@@ -534,7 +560,7 @@ const ProjectPlaza = () => {
                 <div className="ppp-filter-group">
                   <span className="ppp-flabel">{t("project_plaza.filters.needs", "在找")}</span>
                   {NEED_FILTERS.map((need) => (
-                    <button key={need} type="button" className={`ppp-chip call ${needFilter === need ? "on" : ""}`} onClick={() => setNeedFilter(needFilter === need ? null : need)}>{getNeedLabel(t, need)}</button>
+                    <button key={need} type="button" className={`ppp-chip call ${needFilter === need ? "on" : ""}`} onClick={() => toggleNeedFilter(need)}>{getNeedLabel(t, need)}</button>
                   ))}
                 </div>
               </div>
@@ -547,13 +573,13 @@ const ProjectPlaza = () => {
                 <p>{t("project_plaza.radar.copy", "按进度、需求和热度自动把更值得加入的项目排到前面。")}</p>
               </div>
               <div className="ppp-radar-stats">
-                <button type="button" onClick={() => setNeedFilter(topNeed)}>
+                <button type="button" className={recruitingOnly ? "on" : ""} onClick={showRecruitingProjects}>
                   <span>{recruitingCount}</span>{t("project_plaza.radar.recruiting", "开放招募")}
                 </button>
-                <button type="button" onClick={() => setProgFilter("live")}>
+                <button type="button" className={!recruitingOnly && progFilter === "live" ? "on" : ""} onClick={showLiveProjects}>
                   <span>{liveCount}</span>{t("project_plaza.radar.live", "已上线")}
                 </button>
-                <button type="button" onClick={() => setNeedFilter(topNeed)}>
+                <button type="button" className={!recruitingOnly && needFilter === topNeed ? "on" : ""} onClick={showTopNeedProjects}>
                   <span>{getNeedLabel(t, topNeed)}</span>{t("project_plaza.radar.hot_need", "最热需求")}
                 </button>
               </div>
@@ -561,7 +587,7 @@ const ProjectPlaza = () => {
 
             {loading ? (
               <div className="ppp-empty">{t("project_plaza.loading", "加载中...")}</div>
-            ) : items.length === 0 ? (
+            ) : visibleItems.length === 0 ? (
               <div className="ppp-empty">
                 <UserRound size={34} />
                 <strong>{t("project_plaza.empty_title", "还没有匹配的项目名片")}</strong>
