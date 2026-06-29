@@ -1279,6 +1279,143 @@ img {
     isolation: isolate;
   }
 
+  .section-theme {
+    --section-accent: var(--theme-accent);
+    --section-accent-strong: var(--theme-accent-strong);
+    --section-accent-soft: color-mix(in srgb, var(--section-accent) 14%, transparent);
+    --section-line: color-mix(in srgb, var(--section-accent) 18%, var(--theme-border));
+    --section-title-font: var(--theme-font-display);
+    --section-card-shadow: 0 16px 36px rgba(2, 6, 23, 0.2);
+  }
+
+  .section-theme[data-section='events'] {
+    --section-accent: #2563eb;
+    --section-accent-strong: #1d4ed8;
+  }
+
+  .section-theme[data-section='community'] {
+    --section-accent: #7c3aed;
+    --section-accent-strong: #6d28d9;
+  }
+
+  .section-theme[data-section='media'] {
+    --section-accent: #059669;
+    --section-accent-strong: #047857;
+  }
+
+  .section-theme[data-section='gallery'] {
+    --section-accent: #0891b2;
+    --section-accent-strong: #0e7490;
+  }
+
+  .section-theme[data-section='videos'] {
+    --section-accent: #db2777;
+    --section-accent-strong: #be185d;
+  }
+
+  .section-theme[data-section='projects'] {
+    --section-accent: #8b5cf6;
+    --section-accent-strong: #7c3aed;
+  }
+
+  .section-theme[data-section='hackathon'] {
+    --section-accent: #0891b2;
+    --section-accent-strong: #0e7490;
+  }
+
+  .section-page::before,
+  .section-page::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .section-page::before {
+    background:
+      linear-gradient(180deg, var(--section-accent-soft), transparent 22rem),
+      linear-gradient(90deg, color-mix(in srgb, var(--section-accent) 8%, transparent), transparent 34rem);
+    opacity: 0.72;
+  }
+
+  .section-page::after {
+    background-image:
+      linear-gradient(to right, var(--section-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--section-line) 1px, transparent 1px);
+    background-size: 72px 72px;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.36), transparent 28rem);
+    opacity: 0.12;
+  }
+
+  .section-kicker {
+    color: var(--section-accent);
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
+  .section-title {
+    color: var(--theme-text-primary);
+    font-family: var(--section-title-font);
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: 0;
+    line-height: 1.08;
+  }
+
+  .section-subtitle {
+    color: var(--theme-text-muted);
+    font-size: 0.95rem;
+    line-height: 1.65;
+  }
+
+  .section-accent-text {
+    color: var(--section-accent);
+  }
+
+  .section-button-primary {
+    background: var(--section-accent-strong);
+    border-color: var(--section-accent-strong);
+    color: #ffffff;
+    box-shadow: none;
+  }
+
+  .section-button-primary:hover {
+    background: color-mix(in srgb, var(--section-accent-strong) 88%, #ffffff);
+    border-color: color-mix(in srgb, var(--section-accent-strong) 88%, #ffffff);
+  }
+
+  .section-tab-active {
+    background: color-mix(in srgb, var(--section-accent) 12%, transparent);
+    border-color: color-mix(in srgb, var(--section-accent) 62%, transparent);
+    color: var(--section-accent);
+  }
+
+  :root[data-theme='day'] .section-theme {
+    --section-accent-soft: color-mix(in srgb, var(--section-accent) 8%, transparent);
+    --section-line: color-mix(in srgb, var(--section-accent) 12%, rgba(148, 163, 184, 0.18));
+    --section-card-shadow: none;
+  }
+
+  :root[data-theme='day'] .section-page::before {
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--section-accent) 7%, #ffffff), transparent 20rem),
+      linear-gradient(90deg, color-mix(in srgb, var(--section-accent) 4%, transparent), transparent 34rem);
+    opacity: 0.88;
+  }
+
+  :root[data-theme='day'] .section-page::after {
+    opacity: 0.14;
+  }
+
+  @media (min-width: 768px) {
+    .section-title {
+      font-size: 2.75rem;
+    }
+  }
+
   :root[data-theme='day'] .day-page-theme-events {
     --event-day-shadow-surface: 0 1px 2px rgba(15, 23, 42, 0.025),
       0 10px 24px rgba(15, 23, 42, 0.035);

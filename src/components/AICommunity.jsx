@@ -131,15 +131,10 @@ const AICommunity = () => {
 
   return (
     <section
-      className={`relative z-10 min-h-screen overflow-hidden px-3 pt-[calc(env(safe-area-inset-top)+72px)] pb-6 sm:px-4 md:px-6 md:pb-20 md:pt-20 lg:pt-24 ${isDayMode ? "text-slate-950" : "text-white"}`}
+      data-section="community"
+      className={`section-theme section-page relative z-10 min-h-screen overflow-hidden px-3 pt-[calc(env(safe-area-inset-top)+72px)] pb-6 sm:px-4 md:px-6 md:pb-20 md:pt-20 lg:pt-24 ${isDayMode ? "text-slate-950" : "text-white"}`}
     >
       <SEO title={t("nav.community", "AI社区")} description={subtitle} />
-
-      {!isDayMode && (
-        <div className="pointer-events-none fixed inset-0 z-0 hidden md:block">
-          <div className="absolute inset-x-0 top-0 h-80 bg-[linear-gradient(180deg,rgba(6,182,212,0.08),transparent)]" />
-        </div>
-      )}
 
       <div className="relative z-10 w-full">
 

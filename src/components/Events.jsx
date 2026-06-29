@@ -1545,7 +1545,7 @@ END:VCALENDAR`;
   );
 
   return (
-    <section className={`day-page-theme day-page-theme-events pt-[calc(env(safe-area-inset-top)+76px)] pb-6 md:pb-20 md:pt-24 px-4 md:px-8 relative overflow-hidden flex-grow`}>
+    <section data-section="events" className={`section-theme section-page day-page-theme day-page-theme-events pt-[calc(env(safe-area-inset-top)+76px)] pb-6 md:pb-20 md:pt-24 px-4 md:px-8 relative overflow-hidden flex-grow`}>
       <SEO
         title={t("events.meta_title")}
         description={t("events.meta_desc")}

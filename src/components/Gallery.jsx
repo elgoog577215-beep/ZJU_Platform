@@ -207,10 +207,6 @@ const Gallery = () => {
   const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
   const mobileSortLabel = useMobileSortLabel(sort, t);
   const ignoreMobileFilter = useCallback(() => {}, []);
-  const allowAmbientEffects =
-    !prefersReducedMotion &&
-    (typeof window === "undefined" || window.innerWidth >= 768);
-
   useContentPageEvents("image", setIsUploadOpen, ignoreMobileFilter, setIsMobileSortOpen);
 
   useEffect(() => {
@@ -365,49 +361,11 @@ const Gallery = () => {
   );
 
   return (
-    <section className="pt-[calc(env(safe-area-inset-top)+76px)] pb-6 md:py-20 px-4 md:px-8 relative overflow-hidden flex-grow">
+    <section data-section="gallery" className="section-theme section-page day-page-theme day-page-theme-tech pt-[calc(env(safe-area-inset-top)+76px)] pb-6 md:py-20 px-4 md:px-8 relative overflow-hidden flex-grow">
       <SEO
         title={t("gallery.title")}
         description={t("gallery.subtitle")}
       />
-      {/* Enhanced Ambient Background */}
-      <div className="fixed inset-0 pointer-events-none z-0 hidden overflow-hidden md:block">
-        {!isDayMode && allowAmbientEffects ? (
-          <>
-            <motion.div
-              animate={{
-                scale: [1, 1.1, 1],
-                opacity: [0.1, 0.15, 0.1],
-              }}
-              transition={{
-                duration: 8,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-              className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full blur-[130px] bg-blue-500/10"
-            />
-            <motion.div
-              animate={{
-                scale: [1, 1.2, 1],
-                opacity: [0.1, 0.12, 0.1],
-              }}
-              transition={{
-                duration: 10,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 1,
-              }}
-              className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] bg-cyan-500/10"
-            />
-          </>
-        ) : !isDayMode ? (
-          <>
-            <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full blur-[90px] hidden md:block bg-blue-500/10" />
-            <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[80px] hidden md:block bg-cyan-500/10" />
-          </>
-        ) : null}
-      </div>
-
       <motion.div
         initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
         animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
@@ -457,7 +415,7 @@ const Gallery = () => {
           initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
           animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
           transition={prefersReducedMotion ? undefined : { duration: 0.36, delay: 0.06 }}
-          className="hidden md:block text-4xl md:text-5xl font-bold font-serif mb-4 md:mb-6"
+          className="section-title hidden md:block mb-4 md:mb-6"
         >
           {t("gallery.title")}
         </motion.h2>
@@ -465,7 +423,7 @@ const Gallery = () => {
           initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
           animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
           transition={prefersReducedMotion ? undefined : { duration: 0.36, delay: 0.1 }}
-          className="hidden md:block text-gray-400 max-w-xl mx-auto mb-6 md:mb-8 text-sm md:text-base"
+          className="section-subtitle hidden md:block max-w-xl mx-auto mb-6 md:mb-8"
         >
           {t("gallery.subtitle")}
         </motion.p>
@@ -630,7 +588,7 @@ const Gallery = () => {
               onClick={() =>
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
               }
-              className={`px-6 py-2.5 rounded-full border transition-colors text-sm font-semibold ${isDayMode ? "day-quiet-button hover:text-blue-700" : "bg-white/10 hover:bg-white/15 text-white border-white/10 hover:border-white/20"}`}
+              className={`rect-button-secondary px-6 py-2.5 transition-colors text-sm font-semibold ${isDayMode ? "hover:text-[var(--section-accent)]" : "text-white hover:border-white/20"}`}
             >
               {t("common.load_more", "加载更多")}
             </motion.button>

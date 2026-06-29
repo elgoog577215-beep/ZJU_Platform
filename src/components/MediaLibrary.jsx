@@ -401,10 +401,6 @@ const MediaLibrary = () => {
   const photoLimit = isPaginationEnabled ? 18 : 48;
   const videoLimit = isPaginationEnabled ? 12 : 24;
   const categoryParam = categoryId ? Number(categoryId) : undefined;
-  const allowAmbientEffects =
-    !prefersReducedMotion &&
-    (typeof window === "undefined" || window.innerWidth >= 768);
-
   const {
     data: photos,
     pagination: photoPagination,
@@ -616,30 +612,8 @@ const MediaLibrary = () => {
   const totalVideoCount = Number(videoPagination?.total || visibleVideoCount);
 
   return (
-    <section className="day-page-theme day-page-theme-tech pt-[calc(env(safe-area-inset-top)+76px)] pb-6 md:py-16 px-4 md:px-6 relative overflow-hidden flex-grow">
+    <section data-section="media" className="section-theme section-page day-page-theme day-page-theme-tech pt-[calc(env(safe-area-inset-top)+76px)] pb-6 md:py-16 px-4 md:px-6 relative overflow-hidden flex-grow">
       <SEO title={t("media_library.title", "影像库")} description={t("media_library.meta_desc", "按分类浏览现场照片与视频记录。")} />
-
-      <div className="fixed inset-0 pointer-events-none z-0 hidden overflow-hidden md:block">
-        {!isDayMode && allowAmbientEffects ? (
-          <>
-            <motion.div
-              animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.15, 0.1] }}
-              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full blur-[130px] bg-blue-500/10"
-            />
-            <motion.div
-              animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.12, 0.1] }}
-              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-              className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] bg-cyan-500/10"
-            />
-          </>
-        ) : !isDayMode ? (
-          <>
-            <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full blur-[90px] hidden md:block bg-blue-500/10" />
-            <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[80px] hidden md:block bg-cyan-500/10" />
-          </>
-        ) : null}
-      </div>
 
       <div className="max-w-[1180px] 2xl:max-w-[1440px] w-full mx-auto relative z-10">
         <motion.div
@@ -657,27 +631,11 @@ const MediaLibrary = () => {
             </p>
           </div>
 
-          <motion.button
-            whileHover={prefersReducedMotion ? undefined : { scale: 1.03 }}
-            whileTap={prefersReducedMotion ? undefined : { scale: 0.95 }}
-            onClick={() => openUpload()}
-            className={`hidden md:mx-auto md:mb-4 md:inline-flex xl:absolute xl:right-0 xl:top-1 xl:mb-0 p-2.5 rounded-lg border transition-all ${
-              isDayMode
-                ? "day-quiet-button text-slate-700 hover:text-emerald-700"
-                : "bg-white/10 hover:bg-white/20 text-white border-white/10 hover:shadow-lg hover:shadow-indigo-500/20"
-            }`}
-            title={t("media_library.upload_media", "上传影像")}
-          >
-            <Upload size={18} className="md:w-5 md:h-5" />
-          </motion.button>
-
           <motion.h2
             initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
             animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className={`hidden md:block text-3xl md:text-4xl font-semibold tracking-tight mb-3 ${
-              isDayMode ? "text-slate-950" : "text-white"
-            }`}
+            className="section-title hidden md:block mb-3"
           >
             {t("media_library.title", "影像库")}
           </motion.h2>
@@ -685,9 +643,7 @@ const MediaLibrary = () => {
             initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
             animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className={`hidden md:block max-w-xl mx-auto mb-5 md:mb-6 text-sm ${
-              isDayMode ? "text-slate-500" : "text-gray-400"
-            }`}
+            className="section-subtitle hidden md:block max-w-xl mx-auto mb-5 md:mb-6"
           >
             {t("media_library.description", "按分类归档现场照片与视频记录。当前分类：{{category}}。", { category: activeCategoryName })}
           </motion.p>

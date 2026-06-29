@@ -145,9 +145,6 @@ const Videos = () => {
   const pageSize = isPaginationEnabled ? 12 : 18;
   const [displayVideos, setDisplayVideos] = useState([]);
   const isDayMode = uiMode === "day";
-  const allowAmbientEffects =
-    !prefersReducedMotion &&
-    (typeof window === "undefined" || window.innerWidth >= 768);
   const mobileSortLabel = useMobileSortLabel(sort, t);
   const ignoreMobileFilter = useCallback(() => {}, []);
   useContentPageEvents("video", setIsUploadOpen, ignoreMobileFilter, setIsMobileSortOpen);
@@ -288,19 +285,11 @@ const Videos = () => {
   );
 
   return (
-    <section className="pt-[calc(env(safe-area-inset-top)+76px)] pb-6 md:py-24 px-4 md:px-8 min-h-screen relative z-10 overflow-hidden">
+    <section data-section="videos" className="section-theme section-page day-page-theme day-page-theme-tech pt-[calc(env(safe-area-inset-top)+76px)] pb-6 md:py-24 px-4 md:px-8 min-h-screen relative z-10 overflow-hidden">
       <SEO
         title={t("videos.title")}
         description={t("videos.subtitle")}
       />
-      <div className="fixed inset-0 pointer-events-none z-0 hidden overflow-hidden md:block">
-        <div className={`absolute inset-x-0 top-24 h-px ${isDayMode ? "bg-gradient-to-r from-transparent via-slate-200/80 to-transparent" : "bg-white/10"}`} />
-        <div className={`absolute inset-x-0 top-52 h-px ${isDayMode ? "bg-gradient-to-r from-transparent via-violet-100/60 to-transparent" : "bg-white/10"}`} />
-        {allowAmbientEffects && (
-          <div className={`absolute left-0 top-0 h-full w-px ${isDayMode ? "bg-slate-200/40" : "bg-white/10"}`} />
-        )}
-      </div>
-
       <div className="max-w-7xl w-full mx-auto relative z-10">
         <div className="hidden md:mb-4 md:flex md:justify-center xl:absolute xl:right-0 xl:top-0 xl:mb-0 items-center gap-4 z-20">
           <button
@@ -342,10 +331,10 @@ const Videos = () => {
             sortLabel={mobileSortLabel}
             onOpenSort={() => setIsMobileSortOpen(true)}
           />
-          <h2 className="hidden md:block text-4xl md:text-5xl font-bold font-serif mb-4 md:mb-6">
+          <h2 className="section-title hidden md:block mb-4 md:mb-6">
             {t("videos.title")}
           </h2>
-          <p className="hidden md:block text-gray-400 max-w-xl mx-auto">
+          <p className="section-subtitle hidden md:block max-w-xl mx-auto">
             {t("videos.subtitle")}
           </p>
         </motion.div>
@@ -476,7 +465,7 @@ const Videos = () => {
                 onClick={() =>
                   setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                 }
-                className={`rect-button-secondary px-6 py-2.5 transition-colors text-sm font-semibold ${isDayMode ? "hover:text-pink-600" : "text-white hover:border-white/20"}`}
+                className={`rect-button-secondary px-6 py-2.5 transition-colors text-sm font-semibold ${isDayMode ? "hover:text-[var(--section-accent)]" : "text-white hover:border-white/20"}`}
               >
                 {t("common.load_more", "加载更多")}
               </motion.button>
