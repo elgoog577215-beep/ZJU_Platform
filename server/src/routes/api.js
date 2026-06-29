@@ -110,6 +110,7 @@ router.put('/auth/profile', authenticateToken, (req, res) => {
     req.params.id = req.user.id;
     userController.updateUser(req, res);
 });
+router.get('/users/me/overview', authenticateToken, userController.getOwnOverview);
 router.post('/users/me/avatar', authenticateToken, avatarUpload.single('avatar'), userController.uploadOwnAvatar);
 router.get('/users/me/identity-claims', authenticateToken, userController.listOwnIdentityClaims);
 router.post('/users/me/identity-claims', authenticateToken, userController.createOwnIdentityClaim);

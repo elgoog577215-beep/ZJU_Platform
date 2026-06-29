@@ -92,6 +92,7 @@ const AdminDashboard = lazyRoute(() => import('./components/Admin/AdminDashboard
 const AdminAccessGate = lazyRoute(() => import('./components/Admin/AdminAccessGate'));
 const NotFound = lazyRoute(() => import('./components/NotFound'));
 const ProfilePage = lazyRoute(() => import('./components/ProfilePage'));
+const PublicProfile = lazyRoute(() => import('./components/PublicProfile'));
 const ProfileDirectory = lazyRoute(() => import('./components/ProfileDirectory'));
 const ProjectPlaza = lazyRoute(() => import('./components/ProjectPlaza'));
 const SearchPalette = lazyRoute(() => import('./components/SearchPalette'));
@@ -182,6 +183,7 @@ const hasProfileRouteId = (user) => {
 
 const MeRedirect = () => {
   const { user, loading } = useAuth();
+  const location = useLocation();
   const canOpenProfile = hasProfileRouteId(user);
 
   useEffect(() => {
@@ -191,13 +193,20 @@ const MeRedirect = () => {
   }, [canOpenProfile, loading]);
 
   if (loading) return <LoadingScreen />;
-  if (canOpenProfile) return <Navigate to={`/user/${user.id}`} replace />;
+  if (canOpenProfile) {
+    const target = location.search ? `/user/${user.id}/center${location.search}` : `/user/${user.id}`;
+    return <Navigate to={target} replace />;
+  }
   return <PageTransition><Home /></PageTransition>;
 };
 
 const LegacyUserRedirect = () => {
   const { id } = useParams();
-  return <Navigate to={`/u/user-${id}`} replace />;
+  const location = useLocation();
+  if (location.search.includes('tab=') || location.search.includes('settings=')) {
+    return <Navigate to={`/user/${id}/center${location.search || ''}`} replace />;
+  }
+  return <Navigate to={`/u/user-${id}${location.search || ''}`} replace />;
 };
 
 const AdminRoute = ({ children }) => {
@@ -394,6 +403,7 @@ const AppContent = () => {
               <Route path="/profiles" element={<PageTransition><ProfileDirectory /></PageTransition>} />
               <Route path="/u/:handle" element={<PageTransition><ProfilePage /></PageTransition>} />
               <Route path="/org/:handle" element={<PageTransition><ProfilePage /></PageTransition>} />
+              <Route path="/user/:id/center" element={<PageTransition><PublicProfile /></PageTransition>} />
               <Route path="/user/:id" element={<LegacyUserRedirect />} />
               <Route path="/projects" element={<PageTransition><ProjectPlaza /></PageTransition>} />
               <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />

@@ -100,6 +100,7 @@
       "uploads": "上传",
       "submissions": "投稿",
       "favorites": "收藏",
+      "messages": "消息",
       "security": "安全"
     },
     "no_published_works": "该用户尚未发布任何作品。",
@@ -210,7 +211,213 @@
       "other": "其他",
       "secret": "保密"
     },
-    "profile_updated": "个人资料已更新"
+    "profile_updated": "个人资料已更新",
+    "system_overview": {
+      "eyebrow": "用户系统",
+      "title": "账号与身份控制中心",
+      "subtitle": "这里汇总你的个人资料、认证身份、可管理组织、投稿状态和成果认领。",
+      "stats": {
+        "completion": "资料完整度",
+        "identities": "认证身份",
+        "profiles": "可管理主体",
+        "pending": "待处理"
+      },
+      "completion_title": "资料闭环",
+      "completion_items": {
+        "nickname": "设置显示名称",
+        "avatar": "上传头像",
+        "profileCard": "完善个人名片",
+        "activityProfile": "填写活动画像",
+        "identity": "添加认证身份",
+        "managedProfile": "绑定可管理主体"
+      },
+      "actions": {
+        "title": "下一步",
+        "empty": "当前没有必须处理的事项。",
+        "pending_submissions": "{{count}} 条投稿待处理",
+        "candidate_outcomes": "{{count}} 个成果待认领"
+      },
+      "managed_profiles": "可管理主体",
+      "verified": "已认证",
+      "no_managed_profiles": "暂无可管理主体。",
+      "profile_types": {
+        "person": "个人",
+        "club": "组织/社团",
+        "organization": "组织",
+        "school": "学院/学园",
+        "enterprise": "合作方"
+      },
+      "content_status": {
+        "approved": "已发布",
+        "pending": "待审核",
+        "drafts": "草稿"
+      }
+    },
+    "center": {
+      "content_types": {
+        "all": "全部",
+        "photo": "图片",
+        "video": "视频",
+        "music": "音乐",
+        "article": "文章",
+        "event": "活动",
+        "news": "新闻",
+        "help": "求助",
+        "team": "组队",
+        "project": "项目",
+        "competition_work": "成果"
+      },
+      "event_categories": {
+        "lecture": "讲座",
+        "competition": "竞赛",
+        "volunteer": "志愿",
+        "recruitment": "招新/职业",
+        "culture_sports": "文体",
+        "exchange": "交流"
+      },
+      "event_benefits": {
+        "score": "综测",
+        "volunteer_time": "志愿时长",
+        "skill": "技能成长",
+        "social": "社交放松"
+      },
+      "event_formats": {
+        "any": "不限方式",
+        "offline": "偏线下",
+        "online": "偏线上",
+        "hybrid": "都可以"
+      },
+      "identity_types": {
+        "person": "个人",
+        "team": "团队",
+        "club": "组织/社团",
+        "organization": "组织/社团",
+        "identity": "身份"
+      },
+      "identity_status": {
+        "pending": "待确认",
+        "verified": "已认证",
+        "rejected": "已拒绝",
+        "unknown": "未知状态"
+      },
+      "outcome_status": {
+        "candidate": "待认领",
+        "confirmed": "已确认",
+        "rejected": "已拒绝",
+        "revoked": "已撤销",
+        "unknown": "未知状态"
+      },
+      "profile_status": {
+        "open_chat": "开放交流",
+        "seeking_collab": "寻求合作",
+        "coffee_chat": "Coffee Chat",
+        "team_up": "组队开发",
+        "joining_events": "活动参与",
+        "busy": "暂时忙碌"
+      },
+      "work_meta": {
+        "award": "奖项：{{value}}",
+        "rank": "排名：{{value}}",
+        "bound_identity": "归属：{{value}}",
+        "author": "获奖者：{{value}}"
+      },
+      "follow": {
+        "login_to_follow": "登录关注",
+        "follow": "关注",
+        "following": "已关注",
+        "followers": "粉丝",
+        "following_count": "关注",
+        "followed": "关注成功",
+        "unfollowed": "已取消关注"
+      },
+      "settings_tabs": {
+        "profile_card": "个人名片设置",
+        "activity_profile": "活动画像",
+        "security": "安全相关",
+        "identity": "个人认证"
+      },
+      "activity_profile": {
+        "title": "活动推荐画像",
+        "desc": "这里维护长期资料，活动推荐助手会自动读取这些信息，再结合收藏、报名和反馈做个性化排序。",
+        "source_badge": "用户系统资料源",
+        "loading": "正在读取活动画像...",
+        "save": "保存活动画像",
+        "preferred_categories": "偏好活动类型",
+        "preferred_benefits": "偏好收益",
+        "fields": {
+          "college": "学院/组织",
+          "division": "方向/专业",
+          "grade": "年级身份",
+          "campus": "常用校区",
+          "availability": "空闲时间",
+          "interest_tags": "兴趣关键词"
+        },
+        "placeholders": {
+          "college": "计算机学院 / AI 社团",
+          "division": "人工智能 / 产品设计",
+          "grade": "本科新生 / 研一",
+          "campus": "紫金港 / 玉泉",
+          "availability": "周三晚上、周末下午、考试周前不推荐",
+          "interest_tags": "AI、创业、志愿、摄影，用顿号或空格分隔"
+        }
+      },
+      "identity": {
+        "title": "成果认领",
+        "current_org": "当前组织/社团",
+        "no_org": "暂未认证组织/社团",
+        "org_hint": "组织/社团认证请使用下方认证入口，并填写对应邀请码。",
+        "claims_title": "身份认证",
+        "org_name_placeholder": "填写组织或社团名称",
+        "name_placeholder": "填写用于匹配成果的名称",
+        "invite_placeholder": "填写组织/社团邀请码",
+        "verify_org": "认证组织/社团",
+        "add_identity": "添加身份",
+        "empty_claims": "暂无认证身份。",
+        "outcomes_title": "可能属于你的成果",
+        "empty_outcomes": "暂未匹配到可认领成果。",
+        "confirm": "确认",
+        "reject": "拒绝",
+        "revoke": "撤销"
+      },
+      "toast": {
+        "login_to_edit_activity": "登录后可以维护活动画像",
+        "activity_load_failed": "活动画像加载失败",
+        "avatar_type": "头像必须是 JPG、PNG 或 WebP 图片",
+        "avatar_size": "头像文件不能超过 5MB",
+        "avatar_missing": "缺少头像地址",
+        "avatar_updated": "头像已更新",
+        "avatar_failed": "头像上传失败",
+        "identity_name_short": "认证名称至少需要 2 个字符",
+        "invite_required": "请填写组织/社团邀请码",
+        "org_verified": "组织/社团认证已通过",
+        "identity_added": "身份已添加",
+        "identity_failed": "添加身份失败",
+        "outcome_updated": "成果认领状态已更新",
+        "outcome_failed": "更新成果认领失败",
+        "activity_saved": "活动画像已保存",
+        "login_to_save_activity": "登录后可以保存活动画像",
+        "activity_save_failed": "活动画像保存失败",
+        "operation_failed": "操作失败，请稍后再试"
+      },
+      "relations": "关注关系",
+      "my_homepage": "我的主页",
+      "user_homepage": "用户主页",
+      "member_fallback": "拓途浙享成员",
+      "profile_basics": "头像与显示名称",
+      "avatar": "头像",
+      "choose_image": "选择图片",
+      "uploading": "上传中...",
+      "save_avatar": "保存头像",
+      "avatar_hint": "支持 JPG、PNG 或 WebP，最大 5MB。选择图片后拖动 1:1 方框选择头像区域。",
+      "avatar_state": {
+        "dirty": "头像未保存",
+        "saving": "头像保存中...",
+        "error": "头像保存失败",
+        "saved": "头像已保存"
+      },
+      "profile_card": "个人名片",
+      "untitled": "未命名"
+    }
   },
   "nav": {
     "home": "首页",
@@ -976,7 +1183,9 @@
     "skip_to_main": "跳转到主要内容",
     "details": "查看详情",
     "submitting": "提交中...",
-    "result_count": "{{count}} 项"
+    "result_count": "{{count}} 项",
+    "processing": "处理中...",
+    "no_data": "暂无数据"
   },
   "upload": {
     "title_required": "标题不能为空",

@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useState, useEffect, useMemo } from "react";
+import React, { Suspense, lazy, useState, useEffect, useMemo, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import SmartImage from "./SmartImage";
 import {
@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import api, {
   createIdentityClaim,
+  getUserSystemOverview,
   getProfileCard,
   listIdentityClaims,
   listOutcomeLinks,
@@ -49,46 +50,47 @@ import UserCommunitySubmissions from "./UserCommunitySubmissions";
 import ProfileCardEditor from "./profile/ProfileCardEditor";
 import ProfileCustomCards from "./profile/ProfileCustomCards";
 import ProfileSocialLinks from "./profile/ProfileSocialLinks";
+import UserSystemOverview from "./profile/UserSystemOverview";
 import { useReducedMotion } from "../utils/animations";
 
 const NotificationCenter = lazy(() => import("./NotificationCenter"));
 
 // Content type tabs shown in the "published" area.
 const CONTENT_TYPES = [
-  { key: "all", label: "所有" },
-  { key: "photo", label: "图片" },
-  { key: "video", label: "视频" },
-  { key: "music", label: "音乐" },
-  { key: "article", label: "文章" },
-  { key: "event", label: "活动" },
-  { key: "news", label: "新闻" },
-  { key: "help", label: "求助" },
-  { key: "team", label: "组队" },
-  { key: "project", label: "项目" },
-  { key: "competition_work", label: "成果" },
+  { key: "all", labelKey: "user_profile.center.content_types.all" },
+  { key: "photo", labelKey: "user_profile.center.content_types.photo" },
+  { key: "video", labelKey: "user_profile.center.content_types.video" },
+  { key: "music", labelKey: "user_profile.center.content_types.music" },
+  { key: "article", labelKey: "user_profile.center.content_types.article" },
+  { key: "event", labelKey: "user_profile.center.content_types.event" },
+  { key: "news", labelKey: "user_profile.center.content_types.news" },
+  { key: "help", labelKey: "user_profile.center.content_types.help" },
+  { key: "team", labelKey: "user_profile.center.content_types.team" },
+  { key: "project", labelKey: "user_profile.center.content_types.project" },
+  { key: "competition_work", labelKey: "user_profile.center.content_types.competition_work" },
 ];
 
 const EVENT_CATEGORY_OPTIONS = [
-  { value: "lecture", label: "讲座" },
-  { value: "competition", label: "竞赛" },
-  { value: "volunteer", label: "志愿" },
-  { value: "recruitment", label: "招新/职业" },
-  { value: "culture_sports", label: "文体" },
-  { value: "exchange", label: "交流" },
+  { value: "lecture", labelKey: "user_profile.center.event_categories.lecture" },
+  { value: "competition", labelKey: "user_profile.center.event_categories.competition" },
+  { value: "volunteer", labelKey: "user_profile.center.event_categories.volunteer" },
+  { value: "recruitment", labelKey: "user_profile.center.event_categories.recruitment" },
+  { value: "culture_sports", labelKey: "user_profile.center.event_categories.culture_sports" },
+  { value: "exchange", labelKey: "user_profile.center.event_categories.exchange" },
 ];
 
 const EVENT_BENEFIT_OPTIONS = [
-  { value: "score", label: "综测" },
-  { value: "volunteer_time", label: "志愿时长" },
-  { value: "skill", label: "技能成长" },
-  { value: "social", label: "社交放松" },
+  { value: "score", labelKey: "user_profile.center.event_benefits.score" },
+  { value: "volunteer_time", labelKey: "user_profile.center.event_benefits.volunteer_time" },
+  { value: "skill", labelKey: "user_profile.center.event_benefits.skill" },
+  { value: "social", labelKey: "user_profile.center.event_benefits.social" },
 ];
 
 const EVENT_FORMAT_OPTIONS = [
-  { value: "", label: "不限方式" },
-  { value: "offline", label: "偏线下" },
-  { value: "online", label: "偏线上" },
-  { value: "hybrid", label: "都可以" },
+  { value: "", labelKey: "user_profile.center.event_formats.any" },
+  { value: "offline", labelKey: "user_profile.center.event_formats.offline" },
+  { value: "online", labelKey: "user_profile.center.event_formats.online" },
+  { value: "hybrid", labelKey: "user_profile.center.event_formats.hybrid" },
 ];
 
 const PROFILE_TAB_KEYS = new Set(["published", "submissions", "favorites", "messages", "settings"]);
@@ -127,61 +129,61 @@ const createEmptyProfileCard = (userId) => ({
 // text-as-image cards.
 const TYPE_META = {
   photo: {
-    label: "图片", textDay: "text-pink-600", textNight: "text-pink-300",
+    label: "图片", labelKey: "user_profile.center.content_types.photo", textDay: "text-pink-600", textNight: "text-pink-300",
     smartImageType: "image",
     placeholderDay:   "from-pink-50 via-rose-50 to-amber-50",
     placeholderNight: "from-pink-500/20 via-rose-500/15 to-amber-500/20",
   },
   video: {
-    label: "视频", textDay: "text-emerald-600", textNight: "text-emerald-300",
+    label: "视频", labelKey: "user_profile.center.content_types.video", textDay: "text-emerald-600", textNight: "text-emerald-300",
     smartImageType: "video",
     placeholderDay:   "from-emerald-50 via-teal-50 to-cyan-50",
     placeholderNight: "from-emerald-500/20 via-teal-500/15 to-cyan-500/20",
   },
   music: {
-    label: "音乐", textDay: "text-purple-600", textNight: "text-purple-300",
+    label: "音乐", labelKey: "user_profile.center.content_types.music", textDay: "text-purple-600", textNight: "text-purple-300",
     smartImageType: "music",
     placeholderDay:   "from-purple-50 via-fuchsia-50 to-pink-50",
     placeholderNight: "from-purple-500/20 via-fuchsia-500/15 to-pink-500/20",
   },
   article: {
-    label: "文章", textDay: "text-orange-600", textNight: "text-orange-300",
+    label: "文章", labelKey: "user_profile.center.content_types.article", textDay: "text-orange-600", textNight: "text-orange-300",
     smartImageType: "article",
     placeholderDay:   "from-orange-50 via-amber-50 to-yellow-50",
     placeholderNight: "from-orange-500/20 via-amber-500/15 to-yellow-500/20",
   },
   event: {
-    label: "活动", textDay: "text-blue-600", textNight: "text-blue-300",
+    label: "活动", labelKey: "user_profile.center.content_types.event", textDay: "text-blue-600", textNight: "text-blue-300",
     smartImageType: "event",
     placeholderDay:   "from-blue-50 via-sky-50 to-cyan-50",
     placeholderNight: "from-blue-500/20 via-sky-500/15 to-cyan-500/20",
   },
   news: {
-    label: "新闻", textDay: "text-slate-600", textNight: "text-slate-300",
+    label: "新闻", labelKey: "user_profile.center.content_types.news", textDay: "text-slate-600", textNight: "text-slate-300",
     smartImageType: "article",
     placeholderDay:   "from-slate-50 via-gray-50 to-zinc-100",
     placeholderNight: "from-slate-500/20 via-gray-500/15 to-zinc-500/20",
   },
   help: {
-    label: "求助", textDay: "text-amber-600", textNight: "text-amber-300",
+    label: "求助", labelKey: "user_profile.center.content_types.help", textDay: "text-amber-600", textNight: "text-amber-300",
     smartImageType: "article",
     placeholderDay:   "from-amber-50 via-yellow-50 to-orange-50",
     placeholderNight: "from-amber-500/20 via-yellow-500/15 to-orange-500/20",
   },
   team: {
-    label: "组队", textDay: "text-indigo-600", textNight: "text-indigo-300",
+    label: "组队", labelKey: "user_profile.center.content_types.team", textDay: "text-indigo-600", textNight: "text-indigo-300",
     smartImageType: "article",
     placeholderDay:   "from-indigo-50 via-violet-50 to-purple-50",
     placeholderNight: "from-indigo-500/20 via-violet-500/15 to-purple-500/20",
   },
   competition_work: {
-    label: "成果", textDay: "text-amber-700", textNight: "text-amber-200",
+    label: "成果", labelKey: "user_profile.center.content_types.competition_work", textDay: "text-amber-700", textNight: "text-amber-200",
     smartImageType: "article",
     placeholderDay:   "from-amber-50 via-sky-50 to-indigo-50",
     placeholderNight: "from-amber-500/20 via-sky-500/15 to-indigo-500/20",
   },
   project: {
-    label: "项目", textDay: "text-cyan-700", textNight: "text-cyan-300",
+    label: "项目", labelKey: "user_profile.center.content_types.project", textDay: "text-cyan-700", textNight: "text-cyan-300",
     smartImageType: "article",
     placeholderDay:   "from-cyan-50 via-sky-50 to-blue-50",
     placeholderNight: "from-cyan-500/20 via-sky-500/15 to-blue-500/20",
@@ -260,38 +262,22 @@ const normalizeContentType = (item) => {
   return raw;
 };
 
-const identityTypeLabel = (type) => ({
-  person: "个人",
-  team: "团队",
-  club: "组织/社团",
-  organization: "组织/社团",
-}[type] || "身份");
+const identityTypeLabel = (type, t) =>
+  t(`user_profile.center.identity_types.${type}`, t("user_profile.center.identity_types.identity"));
 
-const identityStatusLabel = (status) => ({
-  pending: "待确认",
-  verified: "已认证",
-  rejected: "已拒绝",
-}[status] || "未知状态");
+const identityStatusLabel = (status, t) =>
+  t(`user_profile.center.identity_status.${status}`, t("user_profile.center.identity_status.unknown"));
 
-const outcomeStatusLabel = (status) => ({
-  candidate: "待认领",
-  confirmed: "已确认",
-  rejected: "已拒绝",
-  revoked: "已撤销",
-}[status] || "未知状态");
+const outcomeStatusLabel = (status, t) =>
+  t(`user_profile.center.outcome_status.${status}`, t("user_profile.center.outcome_status.unknown"));
 
-const profileStatusLabel = (status) => ({
-  open_chat: "开放交流",
-  seeking_collab: "寻求合作",
-  coffee_chat: "Coffee Chat",
-  team_up: "组队开发",
-  joining_events: "活动参与",
-  busy: "暂时忙碌",
-}[status] || "");
+const profileStatusLabel = (status, t) =>
+  t(`user_profile.center.profile_status.${status}`, "");
 
-function ProfileContentCard({ item, onClick, isDayMode }) {
+function ProfileContentCard({ item, onClick, isDayMode, t }) {
   const typeKey = normalizeContentType(item) || "article";
   const meta = TYPE_META[typeKey] || TYPE_META.article;
+  const metaLabel = t(meta.labelKey, meta.label);
 
   // Cover source by resource type:
   //  - events.image / photos.url / videos.thumbnail / articles.cover
@@ -301,18 +287,18 @@ function ProfileContentCard({ item, onClick, isDayMode }) {
     item.cover || item.image || item.thumbnail || item.url || null;
   const dateSource = item.created_at || item.createdAt || item.published_at;
   const dateStr = dateSource ? new Date(dateSource).toLocaleDateString() : "";
-  const title = item.title || "(无标题)";
+  const title = item.title || t("user_profile.center.untitled");
   const likes = Number(item.likes) || Number(item.likes_count) || 0;
   const isCompetitionWork = typeKey === "competition_work";
   const competitionMeta = [
     item.competition_title,
-    item.award ? `奖项：${item.award}` : null,
-    item.rank ? `排名：${item.rank}` : null,
+    item.award ? t("user_profile.center.work_meta.award", { value: item.award }) : null,
+    item.rank ? t("user_profile.center.work_meta.rank", { value: item.rank }) : null,
   ].filter(Boolean).join(" · ");
   const boundIdentityMeta = item.bound_identity_name
-    ? `归属：${item.bound_identity_name}`
+    ? t("user_profile.center.work_meta.bound_identity", { value: item.bound_identity_name })
     : item.author
-      ? `获奖者：${item.author}`
+      ? t("user_profile.center.work_meta.author", { value: item.author })
       : "";
 
   // Project-standard glass shell (matches ArticleCard in Articles.jsx).
@@ -369,7 +355,7 @@ function ProfileContentCard({ item, onClick, isDayMode }) {
           <span
             className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${badgeGlass} ${badgeText}`}
           >
-            {meta.label}
+            {metaLabel}
           </span>
           {likes > 0 && (
             <span className={`ml-auto inline-flex items-center gap-1.5 text-sm font-bold ${heartTint}`}>
@@ -416,6 +402,8 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
   const [user, setUser] = useState(null);
   const [resources, setResources] = useState([]);
   const [profileCard, setProfileCard] = useState(null);
+  const [userSystemOverview, setUserSystemOverview] = useState(null);
+  const [userSystemOverviewLoading, setUserSystemOverviewLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -536,6 +524,31 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
     navigate(profileTabPath(tabKey, settingsKey), { replace: true });
   };
 
+  const refreshUserSystemOverview = useCallback(async () => {
+    if (!isOwner) return;
+    setUserSystemOverviewLoading(true);
+    try {
+      const response = await getUserSystemOverview();
+      setUserSystemOverview(response.data || null);
+    } catch {
+      setUserSystemOverview(null);
+    } finally {
+      setUserSystemOverviewLoading(false);
+    }
+  }, [isOwner]);
+
+  const openUserSystemTarget = (target) => {
+    if (target === "submissions") {
+      navigateProfileTab("submissions");
+      return;
+    }
+    if (target === "published") {
+      navigateProfileTab("published");
+      return;
+    }
+    navigateProfileTab("settings", target || "profile-card");
+  };
+
   // FIX: BUG-24 — Add AbortController to cancel stale requests when switching profiles
   useEffect(() => {
     if (!id) return;
@@ -607,6 +620,14 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
   }, [activeTab, favoriteType, isOwner]);
 
   useEffect(() => {
+    if (!isOwner) {
+      setUserSystemOverview(null);
+      return;
+    }
+    refreshUserSystemOverview();
+  }, [isOwner, user?.id, refreshUserSystemOverview]);
+
+  useEffect(() => {
     if (!isOwner || activeTab !== "settings") return;
     fetchIdentityClaims();
     fetchOutcomeLinks();
@@ -651,7 +672,9 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
         setEventPreferenceLoaded(true);
       } catch (error) {
         if (!cancelled) {
-          toast.error(error?.response?.status === 401 ? "登录后可以维护活动画像" : "活动画像加载失败");
+          toast.error(error?.response?.status === 401
+            ? t("user_profile.center.toast.login_to_edit_activity")
+            : t("user_profile.center.toast.activity_load_failed"));
         }
       } finally {
         if (!cancelled) setEventPreferenceLoading(false);
@@ -765,12 +788,12 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
     const file = event.target.files?.[0];
     if (!file) return;
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      toast.error("头像必须是 JPG、PNG 或 WebP 图片");
+      toast.error(t("user_profile.center.toast.avatar_type"));
       event.target.value = "";
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("头像文件不能超过 5MB");
+      toast.error(t("user_profile.center.toast.avatar_size"));
       event.target.value = "";
       return;
     }
@@ -798,16 +821,17 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
         crop_size: avatarCrop.size,
       });
       const nextAvatar = res.data?.avatar || res.data?.user?.avatar;
-      if (!nextAvatar) throw new Error("缺少头像地址");
+      if (!nextAvatar) throw new Error(t("user_profile.center.toast.avatar_missing"));
       setUser((prev) => (prev ? { ...prev, avatar: nextAvatar } : prev));
       setAvatarFile(null);
       setAvatarPreview("");
       setAvatarSaveState("saved");
       await refreshUser();
-      toast.success("头像已更新");
+      await refreshUserSystemOverview();
+      toast.success(t("user_profile.center.toast.avatar_updated"));
     } catch (err) {
       setAvatarSaveState("error");
-      toast.error(err.response?.data?.error || err.response?.data?.message || "头像上传失败");
+      toast.error(err.response?.data?.error || err.response?.data?.message || t("user_profile.center.toast.avatar_failed"));
     } finally {
       setAvatarLoading(false);
     }
@@ -870,11 +894,11 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
   const handleCreateIdentityClaim = async () => {
     const displayName = identityName.trim();
     if (displayName.length < 2) {
-      toast.error("认证名称至少需要 2 个字符");
+      toast.error(t("user_profile.center.toast.identity_name_short"));
       return;
     }
     if (identityType === "club" && identityInviteCode.trim().length === 0) {
-      toast.error("请填写组织/社团邀请码");
+      toast.error(t("user_profile.center.toast.invite_required"));
       return;
     }
     setIdentityLoading(true);
@@ -887,15 +911,18 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
       setIdentityName("");
       setIdentityInviteCode("");
       await Promise.all([fetchIdentityClaims(), fetchOutcomeLinks()]);
+      await refreshUserSystemOverview();
       await refreshUser();
       setUser((prev) =>
         prev && identityType === "club"
           ? { ...prev, organization_cr: displayName }
           : prev,
       );
-      toast.success(identityType === "club" ? "组织/社团认证已通过" : "身份已添加");
+      toast.success(identityType === "club"
+        ? t("user_profile.center.toast.org_verified")
+        : t("user_profile.center.toast.identity_added"));
     } catch (err) {
-      toast.error(err.response?.data?.error || "添加身份失败");
+      toast.error(err.response?.data?.error || t("user_profile.center.toast.identity_failed"));
     } finally {
       setIdentityLoading(false);
     }
@@ -906,9 +933,10 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
     try {
       await updateOutcomeLink(linkId, action);
       await Promise.all([fetchOutcomeLinks(), api.get(`/users/${id}/resources`).then((res) => setResources(res.data || []))]);
-      toast.success("成果认领状态已更新");
+      await refreshUserSystemOverview();
+      toast.success(t("user_profile.center.toast.outcome_updated"));
     } catch (err) {
-      toast.error(err.response?.data?.error || "更新成果认领失败");
+      toast.error(err.response?.data?.error || t("user_profile.center.toast.outcome_failed"));
     } finally {
       setOutcomeActionId(null);
     }
@@ -961,9 +989,12 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
         preferredFormat: data.preferredFormat || "",
       });
       setEventPreferenceLoaded(true);
-      toast.success("活动画像已保存");
+      await refreshUserSystemOverview();
+      toast.success(t("user_profile.center.toast.activity_saved"));
     } catch (error) {
-      toast.error(error?.response?.status === 401 ? "登录后可以保存活动画像" : "活动画像保存失败");
+      toast.error(error?.response?.status === 401
+        ? t("user_profile.center.toast.login_to_save_activity")
+        : t("user_profile.center.toast.activity_save_failed"));
     } finally {
       setEventPreferenceSaving(false);
     }
@@ -988,6 +1019,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
       // user's existing organization_cr on the server.
       toast.success(t("user_profile.profile_updated"));
       await refreshUser();
+      await refreshUserSystemOverview();
 
       // Update local user state to reflect changes immediately
       setUser((prev) => ({
@@ -1086,9 +1118,11 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
           ),
         );
       }
-      toast.success(currentlyFollowing ? "已取消关注" : "关注成功");
+      toast.success(currentlyFollowing
+        ? t("user_profile.center.follow.unfollowed")
+        : t("user_profile.center.follow.followed"));
     } catch (err) {
-      toast.error(err.response?.data?.error || "操作失败，请稍后再试");
+      toast.error(err.response?.data?.error || t("user_profile.center.toast.operation_failed"));
     } finally {
       setFollowLoading(false);
     }
@@ -1129,7 +1163,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
         );
       }
     } catch (err) {
-      toast.error(err.response?.data?.error || "操作失败，请稍后再试");
+      toast.error(err.response?.data?.error || t("user_profile.center.toast.operation_failed"));
     } finally {
       setRelationFollowLoadingIds((prev) => ({
         ...prev,
@@ -1204,18 +1238,18 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
     { value: "video", label: t("nav.videos"), icon: Film },
     { value: "article", label: t("nav.articles"), icon: FileText },
     { value: "event", label: t("nav.events"), icon: Calendar },
-    { value: "project", label: "项目", icon: Sparkles },
+    { value: "project", label: t("user_profile.center.content_types.project"), icon: Sparkles },
   ];
   const displayName = user.nickname || user.username || t("user_profile.unknown_user", "用户");
   const avatarInitial = displayName.charAt(0).toUpperCase();
   const roleLabel = user.role === "admin" ? "Admin" : user.role || "Member";
   const primaryFollowLabel = !currentUser
-    ? "登录关注"
+    ? t("user_profile.center.follow.login_to_follow")
     : followLoading
-      ? "处理中..."
+      ? t("common.processing", "Processing...")
       : user.is_following
-        ? "已关注"
-        : "关注";
+        ? t("user_profile.center.follow.following")
+        : t("user_profile.center.follow.follow");
   const PrimaryFollowIcon = user.is_following ? UserCheck : UserPlus;
   const profileStats = [
     {
@@ -1231,7 +1265,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
     },
     {
       key: "followers",
-      label: "粉丝",
+      label: t("user_profile.center.follow.followers"),
       value: user.followers_count || 0,
       onClick: () => {
         setRelationTab("followers");
@@ -1240,7 +1274,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
     },
     {
       key: "following",
-      label: "关注",
+      label: t("user_profile.center.follow.following_count"),
       value: user.following_count || 0,
       onClick: () => {
         setRelationTab("following");
@@ -1258,13 +1292,13 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
       ]
     : [
         { key: "published", label: t("user_profile.tabs.published", "作品"), icon: Grid },
-        { key: "relations", label: "关系", icon: Users },
+        { key: "relations", label: t("user_profile.center.relations"), icon: Users },
       ];
   const settingsTabItems = [
-    { key: "profile-card", label: "个人名片设置", icon: User },
-    { key: "activity-profile", label: "活动画像", icon: Sparkles },
-    { key: "security", label: "安全相关", icon: Lock },
-    { key: "identity", label: "个人认证", icon: Briefcase },
+    { key: "profile-card", label: t("user_profile.center.settings_tabs.profile_card"), icon: User },
+    { key: "activity-profile", label: t("user_profile.center.settings_tabs.activity_profile"), icon: Sparkles },
+    { key: "security", label: t("user_profile.center.settings_tabs.security"), icon: Lock },
+    { key: "identity", label: t("user_profile.center.settings_tabs.identity"), icon: Briefcase },
   ];
 
   const hasProfileCardContent = Boolean(
@@ -1317,7 +1351,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
 
               <div className="min-w-0 flex-1 pt-1">
                 <div className={`text-[11px] font-semibold uppercase tracking-[0.18em] ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-                  {isOwner ? "我的主页" : "用户主页"}
+                  {isOwner ? t("user_profile.center.my_homepage") : t("user_profile.center.user_homepage")}
                 </div>
                 <h1
                   className={`mt-1 truncate text-2xl font-bold leading-tight ${isDayMode ? "text-slate-950" : "text-white"}`}
@@ -1327,7 +1361,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                 <div className={`mt-1 flex min-h-[22px] items-center gap-1.5 text-xs ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
                   <Briefcase size={13} aria-hidden="true" />
                   <span className="truncate">
-                    {user.organization_cr || user.username || "拓途浙享成员"}
+                    {user.organization_cr || user.username || t("user_profile.center.member_fallback")}
                   </span>
                 </div>
               </div>
@@ -1397,7 +1431,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
               <div className="relative mt-5 space-y-3">
                 {profileCard.status && (
                   <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${isDayMode ? "bg-emerald-50 text-emerald-700" : "bg-emerald-500/15 text-emerald-200"}`}>
-                    {profileStatusLabel(profileCard.status)}
+                    {profileStatusLabel(profileCard.status, t)}
                   </span>
                 )}
                 {profileCard.slogan && (
@@ -1489,12 +1523,12 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                     className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${user.is_following ? (isDayMode ? dayActiveSegmentClass : nightActiveSegmentClass) : isDayMode ? "bg-white/90 hover:bg-white text-slate-700 border border-slate-200/80 shadow-[0_12px_28px_rgba(148,163,184,0.14)]" : "bg-white/10 hover:bg-white/20 text-white border border-white/10"} disabled:opacity-60`}
                   >
                     {!currentUser
-                      ? "登录后关注"
+                      ? t("user_profile.center.follow.login_to_follow")
                       : followLoading
-                        ? "处理中..."
+                        ? t("common.processing", "Processing...")
                         : user.is_following
-                          ? "已关注"
-                          : "关注"}
+                          ? t("user_profile.center.follow.following")
+                          : t("user_profile.center.follow.follow")}
                   </button>
                 )}
               </div>
@@ -1546,7 +1580,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                   <div
                     className={`text-[10px] md:text-xs uppercase tracking-wider ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
                   >
-                    粉丝
+                    {t("user_profile.center.follow.followers")}
                   </div>
                 </div>
                 <div className="text-center md:text-left">
@@ -1558,7 +1592,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                   <div
                     className={`text-[10px] md:text-xs uppercase tracking-wider ${isDayMode ? "text-slate-500" : "text-gray-500"}`}
                   >
-                    关注
+                    {t("user_profile.center.follow.following_count")}
                   </div>
                 </div>
               </div>
@@ -1567,7 +1601,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                   <div className="flex flex-wrap items-center gap-2">
                     {profileCard.status && (
                       <span className={`inline-flex rounded-full px-3 py-1.5 text-xs font-bold ${isDayMode ? "bg-emerald-50 text-emerald-700" : "bg-emerald-500/15 text-emerald-200"}`}>
-                        {profileStatusLabel(profileCard.status)}
+                        {profileStatusLabel(profileCard.status, t)}
                       </span>
                     )}
                     {profileCard.tags?.map((tag) => (
@@ -1588,6 +1622,16 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
             </div>
           </div>
         </div>
+
+        {isOwner && (
+          <UserSystemOverview
+            overview={userSystemOverview}
+            loading={userSystemOverviewLoading}
+            isDayMode={isDayMode}
+            t={t}
+            onOpenTarget={openUserSystemTarget}
+          />
+        )}
 
         {/* Tabs */}
         <div className={`mb-5 grid gap-1 rounded-3xl border p-1 md:hidden ${profileTabItems.length > 4 ? "grid-cols-5" : profileTabItems.length > 2 ? "grid-cols-4" : "grid-cols-2"} ${isDayMode ? "border-slate-200/80 bg-white/82 shadow-[0_12px_28px_rgba(148,163,184,0.12)]" : "border-white/10 bg-white/[0.04]"}`}>
@@ -1628,7 +1672,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
             }`}
           >
             <User size={18} />
-            关注关系
+            {t("user_profile.center.relations")}
           </button>
 
           <button
@@ -1759,7 +1803,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                             : "bg-white/5 text-gray-300 border border-white/10 hover:bg-white/10 hover:text-white"
                       }`}
                     >
-                      <span>{ct.label}</span>
+                      <span>{t(ct.labelKey)}</span>
                       <span
                         className={`ml-1.5 text-xs ${active ? "opacity-90" : "opacity-70"}`}
                       >
@@ -1786,6 +1830,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                       item={item}
                       onClick={() => handleContentClick(item)}
                       isDayMode={isDayMode}
+                      t={t}
                     />
                   ))}
                 </div>
@@ -1801,14 +1846,14 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                   onClick={() => setRelationTab("followers")}
                   className={`min-h-[42px] rounded-2xl px-4 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${relationTab === "followers" ? (isDayMode ? dayActiveSegmentClass : nightActiveSegmentClass) : isDayMode ? "text-slate-600" : "text-gray-300"}`}
                 >
-                  粉丝
+                  {t("user_profile.center.follow.followers")}
                 </button>
                 <button
                   type="button"
                   onClick={() => setRelationTab("following")}
                   className={`min-h-[42px] rounded-2xl px-4 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${relationTab === "following" ? (isDayMode ? dayActiveSegmentClass : nightActiveSegmentClass) : isDayMode ? "text-slate-600" : "text-gray-300"}`}
                 >
-                  关注
+                  {t("user_profile.center.follow.following_count")}
                 </button>
               </div>
               {relationLoading ? (
@@ -1819,7 +1864,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                 <div
                   className={`text-center py-12 rounded-xl border border-dashed ${isDayMode ? "text-slate-500 bg-white/82 border-slate-200/80" : "text-gray-500 bg-black/20 border-white/5"}`}
                 >
-                  暂无数据
+                  {t("common.no_data", "No data yet")}
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -1879,10 +1924,10 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                             className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${item.is_following ? (isDayMode ? "bg-indigo-600 text-white border-indigo-600 shadow-[0_10px_22px_rgba(99,102,241,0.2)]" : nightActiveSegmentClass) : isDayMode ? "bg-white text-slate-700 border-slate-200/80" : "bg-white/5 text-gray-300 border-white/10"} disabled:opacity-60`}
                           >
                             {relationFollowLoadingIds[item.id]
-                              ? "处理中..."
+                              ? t("common.processing", "Processing...")
                               : item.is_following
-                                ? "已关注"
-                                : "关注"}
+                                ? t("user_profile.center.follow.following")
+                                : t("user_profile.center.follow.follow")}
                           </button>
                         )}
                     </div>
@@ -2049,13 +2094,13 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                   className={`text-xl font-bold mb-6 flex items-center gap-2 ${isDayMode ? "text-slate-900" : "text-white"}`}
                 >
                   <User size={20} className="text-indigo-500" />
-                  头像与显示名称
+                  {t("user_profile.center.profile_basics")}
                 </h3>
 
                 <form onSubmit={handleProfileUpdate} className="space-y-4">
                   <div className="pt-2">
                     <label className={`block text-sm font-medium mb-2 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-                      头像
+                      {t("user_profile.center.avatar")}
                     </label>
                     <div className={`flex items-center gap-4 rounded-2xl border p-4 ${isDayMode ? "bg-slate-50/80 border-slate-200/80" : "bg-black/20 border-white/10"}`}>
                       <div className={`h-28 w-28 shrink-0 overflow-hidden rounded-2xl border ${isDayMode ? "border-white bg-slate-100" : "border-white/10 bg-white/10"}`}>
@@ -2086,11 +2131,11 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                       <div className="min-w-0 flex-1 space-y-3">
                         <label className={`inline-flex min-h-[40px] cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-colors ${isDayMode ? "bg-white text-slate-700 border border-slate-200/80 hover:bg-slate-50" : "bg-white/10 text-white border border-white/10 hover:bg-white/15"}`}>
                           <Upload size={16} />
-                          选择图片
+                          {t("user_profile.center.choose_image")}
                           <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={handleAvatarSelect} />
                         </label>
                         <button type="button" onClick={handleAvatarUpload} disabled={!avatarFile || avatarLoading} className="inline-flex min-h-[40px] items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50">
-                          {avatarLoading ? "上传中..." : "保存头像"}
+                          {avatarLoading ? t("user_profile.center.uploading") : t("user_profile.center.save_avatar")}
                         </button>
                         <p className={`text-xs font-bold ${
                           avatarSaveState === "dirty"
@@ -2101,10 +2146,16 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                                 ? "text-slate-500"
                                 : "text-gray-500"
                         }`}>
-                          {avatarSaveState === "dirty" ? "头像未保存" : avatarSaveState === "saving" ? "头像保存中..." : avatarSaveState === "error" ? "头像保存失败" : "头像已保存"}
+                          {avatarSaveState === "dirty"
+                            ? t("user_profile.center.avatar_state.dirty")
+                            : avatarSaveState === "saving"
+                              ? t("user_profile.center.avatar_state.saving")
+                              : avatarSaveState === "error"
+                                ? t("user_profile.center.avatar_state.error")
+                                : t("user_profile.center.avatar_state.saved")}
                         </p>
                         <p className={`text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>
-                          支持 JPG、PNG 或 WebP，最大 5MB。选择图片后拖动 1:1 方框选择头像区域。
+                          {t("user_profile.center.avatar_hint")}
                         </p>
                       </div>
                     </div>
@@ -2163,7 +2214,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                   className={`text-xl font-bold mb-6 flex items-center gap-2 ${isDayMode ? "text-slate-900" : "text-white"}`}
                 >
                   <User size={20} className="text-indigo-500" />
-                  个人名片
+                  {t("user_profile.center.profile_card")}
                 </h3>
                 <ProfileCardEditor
                   profileCard={profileCard}
@@ -2181,42 +2232,42 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                       <div>
                         <h3 className={`flex items-center gap-2 text-xl font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}>
                           <Sparkles size={20} className="text-indigo-500" />
-                          活动推荐画像
+                          {t("user_profile.center.activity_profile.title")}
                         </h3>
                         <p className={`mt-2 max-w-2xl text-sm leading-6 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
-                          这里维护长期资料，活动推荐助手会自动读取这些信息，再结合收藏、报名和反馈做个性化排序。
+                          {t("user_profile.center.activity_profile.desc")}
                         </p>
                       </div>
                       <div className={`inline-flex items-center gap-2 rounded-2xl border px-3 py-2 text-xs font-bold ${isDayMode ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"}`}>
                         <UserCheck size={15} />
-                        用户系统资料源
+                        {t("user_profile.center.activity_profile.source_badge")}
                       </div>
                     </div>
 
                     {eventPreferenceLoading ? (
                       <div className={`flex min-h-[180px] items-center justify-center gap-2 rounded-2xl border ${isDayMode ? "border-slate-200/80 bg-slate-50/80 text-slate-500" : "border-white/10 bg-black/20 text-gray-400"}`}>
                         <Loader2 size={18} className="animate-spin" />
-                        正在读取活动画像...
+                        {t("user_profile.center.activity_profile.loading")}
                       </div>
                     ) : (
                       <div className="space-y-6">
                         <div className="grid gap-4 md:grid-cols-2">
                           {[
-                            ["college", "学院/组织", "计算机学院 / AI 社团", User],
-                            ["division", "方向/专业", "人工智能 / 产品设计", Briefcase],
-                            ["grade", "年级身份", "本科新生 / 研一", Calendar],
-                            ["campus", "常用校区", "紫金港 / 玉泉", MapPin],
+                            ["college", "user_profile.center.activity_profile.fields.college", "user_profile.center.activity_profile.placeholders.college", User],
+                            ["division", "user_profile.center.activity_profile.fields.division", "user_profile.center.activity_profile.placeholders.division", Briefcase],
+                            ["grade", "user_profile.center.activity_profile.fields.grade", "user_profile.center.activity_profile.placeholders.grade", Calendar],
+                            ["campus", "user_profile.center.activity_profile.fields.campus", "user_profile.center.activity_profile.placeholders.campus", MapPin],
                           ].map(([key, label, placeholder, Icon]) => (
                             <label key={key} className={`grid gap-2 text-sm font-semibold ${isDayMode ? "text-slate-600" : "text-gray-300"}`}>
                               <span className="flex items-center gap-2">
                                 <Icon size={15} />
-                                {label}
+                                {t(label)}
                               </span>
                               <input
                                 type="text"
                                 value={eventPreferenceForm[key]}
                                 onChange={(event) => updateEventPreferenceField(key, event.target.value)}
-                                placeholder={placeholder}
+                                placeholder={t(placeholder)}
                                 className={`w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500 ${isDayMode ? "border border-slate-200/80 bg-slate-50 text-slate-900 placeholder:text-slate-400" : "border border-white/10 bg-black/20 text-white placeholder:text-gray-500"}`}
                               />
                             </label>
@@ -2226,31 +2277,31 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                         <label className={`grid gap-2 text-sm font-semibold ${isDayMode ? "text-slate-600" : "text-gray-300"}`}>
                           <span className="flex items-center gap-2">
                             <Clock3 size={15} />
-                            空闲时间
+                            {t("user_profile.center.activity_profile.fields.availability")}
                           </span>
                           <input
                             type="text"
                             value={eventPreferenceForm.availability}
                             onChange={(event) => updateEventPreferenceField("availability", event.target.value)}
-                            placeholder="周三晚上、周末下午、考试周前不推荐"
+                            placeholder={t("user_profile.center.activity_profile.placeholders.availability")}
                             className={`w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500 ${isDayMode ? "border border-slate-200/80 bg-slate-50 text-slate-900 placeholder:text-slate-400" : "border border-white/10 bg-black/20 text-white placeholder:text-gray-500"}`}
                           />
                         </label>
 
                         <label className={`grid gap-2 text-sm font-semibold ${isDayMode ? "text-slate-600" : "text-gray-300"}`}>
-                          兴趣关键词
+                          {t("user_profile.center.activity_profile.fields.interest_tags")}
                           <input
                             type="text"
                             value={eventPreferenceForm.interestTagsText}
                             onChange={(event) => updateEventPreferenceField("interestTagsText", event.target.value)}
-                            placeholder="AI、创业、志愿、摄影，用顿号或空格分隔"
+                            placeholder={t("user_profile.center.activity_profile.placeholders.interest_tags")}
                             className={`w-full rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500 ${isDayMode ? "border border-slate-200/80 bg-slate-50 text-slate-900 placeholder:text-slate-400" : "border border-white/10 bg-black/20 text-white placeholder:text-gray-500"}`}
                           />
                         </label>
 
                         <div className="grid gap-5 lg:grid-cols-2">
                           <div>
-                            <div className={`mb-3 text-sm font-bold ${isDayMode ? "text-slate-700" : "text-white"}`}>偏好活动类型</div>
+                            <div className={`mb-3 text-sm font-bold ${isDayMode ? "text-slate-700" : "text-white"}`}>{t("user_profile.center.activity_profile.preferred_categories")}</div>
                             <div className="flex flex-wrap gap-2">
                               {EVENT_CATEGORY_OPTIONS.map((option) => {
                                 const active = eventPreferenceForm.preferredCategories.includes(option.value);
@@ -2261,14 +2312,14 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                                     onClick={() => toggleEventPreferenceArrayValue("preferredCategories", option.value)}
                                     className={`rounded-xl border px-3 py-2 text-xs font-bold transition-colors ${active ? "border-indigo-500 bg-indigo-600 text-white" : isDayMode ? "border-slate-200 bg-white text-slate-600 hover:border-indigo-200 hover:text-indigo-700" : "border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"}`}
                                   >
-                                    {option.label}
+                                    {t(option.labelKey)}
                                   </button>
                                 );
                               })}
                             </div>
                           </div>
                           <div>
-                            <div className={`mb-3 text-sm font-bold ${isDayMode ? "text-slate-700" : "text-white"}`}>偏好收益</div>
+                            <div className={`mb-3 text-sm font-bold ${isDayMode ? "text-slate-700" : "text-white"}`}>{t("user_profile.center.activity_profile.preferred_benefits")}</div>
                             <div className="flex flex-wrap gap-2">
                               {EVENT_BENEFIT_OPTIONS.map((option) => {
                                 const active = eventPreferenceForm.preferredBenefits.includes(option.value);
@@ -2279,7 +2330,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                                     onClick={() => toggleEventPreferenceArrayValue("preferredBenefits", option.value)}
                                     className={`rounded-xl border px-3 py-2 text-xs font-bold transition-colors ${active ? "border-emerald-500 bg-emerald-600 text-white" : isDayMode ? "border-slate-200 bg-white text-slate-600 hover:border-emerald-200 hover:text-emerald-700" : "border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"}`}
                                   >
-                                    {option.label}
+                                    {t(option.labelKey)}
                                   </button>
                                 );
                               })}
@@ -2298,7 +2349,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                                   onClick={() => updateEventPreferenceField("preferredFormat", option.value)}
                                   className={`rounded-xl border px-3 py-2 text-xs font-bold transition-colors ${active ? "border-sky-500 bg-sky-600 text-white" : isDayMode ? "border-slate-200 bg-white text-slate-600 hover:border-sky-200 hover:text-sky-700" : "border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"}`}
                                 >
-                                  {option.label}
+                                  {t(option.labelKey)}
                                 </button>
                               );
                             })}
@@ -2310,7 +2361,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                             className="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
                           >
                             {eventPreferenceSaving ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-                            保存活动画像
+                            {t("user_profile.center.activity_profile.save")}
                           </button>
                         </div>
                       </div>
@@ -2522,37 +2573,37 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                   className={`text-xl font-bold mb-6 flex items-center gap-2 ${isDayMode ? "text-slate-900" : "text-white"}`}
                 >
                   <Briefcase size={20} className="text-indigo-500" />
-                  成果认领
+                  {t("user_profile.center.identity.title")}
                 </h3>
 
                 <div className="space-y-5">
                   <div className={`rounded-2xl border p-4 ${isDayMode ? "bg-slate-50/80 border-slate-200/80" : "bg-black/20 border-white/10"}`}>
-                    <div className={`text-sm font-bold mb-3 ${isDayMode ? "text-slate-800" : "text-white"}`}>当前组织/社团</div>
+                    <div className={`text-sm font-bold mb-3 ${isDayMode ? "text-slate-800" : "text-white"}`}>{t("user_profile.center.identity.current_org")}</div>
                     <div className={`rounded-xl border px-3 py-2 text-sm font-bold ${isDayMode ? "bg-white border-slate-200 text-slate-700" : "bg-white/5 border-white/10 text-gray-200"}`}>
-                      {user?.organization_cr || profileData.organization || "暂未认证组织/社团"}
+                      {user?.organization_cr || profileData.organization || t("user_profile.center.identity.no_org")}
                     </div>
                     <p className={`mt-2 text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>
-                      组织/社团认证请使用下方认证入口，并填写对应邀请码。
+                      {t("user_profile.center.identity.org_hint")}
                     </p>
                   </div>
 
                   <div className={`rounded-2xl border p-4 ${isDayMode ? "bg-slate-50/80 border-slate-200/80" : "bg-black/20 border-white/10"}`}>
-                    <div className={`text-sm font-bold mb-3 ${isDayMode ? "text-slate-800" : "text-white"}`}>身份认证</div>
+                    <div className={`text-sm font-bold mb-3 ${isDayMode ? "text-slate-800" : "text-white"}`}>{t("user_profile.center.identity.claims_title")}</div>
                     <div className="grid grid-cols-1 sm:grid-cols-[120px_1fr] gap-2">
                       <select
                         value={identityType}
                         onChange={(event) => setIdentityType(event.target.value)}
                         className={`rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 ${isDayMode ? "bg-white border border-slate-200 text-slate-900" : "bg-black/30 border border-white/10 text-white"}`}
                       >
-                        <option value="person">个人</option>
-                        <option value="team">团队</option>
-                        <option value="club">组织/社团</option>
+                        <option value="person">{t("user_profile.center.identity_types.person")}</option>
+                        <option value="team">{t("user_profile.center.identity_types.team")}</option>
+                        <option value="club">{t("user_profile.center.identity_types.club")}</option>
                       </select>
                       <input
                         type="text"
                         value={identityName}
                         onChange={(event) => setIdentityName(event.target.value)}
-                        placeholder={identityType === "club" ? "填写组织或社团名称" : "填写用于匹配成果的名称"}
+                        placeholder={identityType === "club" ? t("user_profile.center.identity.org_name_placeholder") : t("user_profile.center.identity.name_placeholder")}
                         className={`rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 ${isDayMode ? "bg-white border border-slate-200 text-slate-900" : "bg-black/30 border border-white/10 text-white"}`}
                       />
                     </div>
@@ -2561,7 +2612,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                         type="text"
                         value={identityInviteCode}
                         onChange={(event) => setIdentityInviteCode(event.target.value)}
-                        placeholder="填写组织/社团邀请码"
+                        placeholder={t("user_profile.center.identity.invite_placeholder")}
                         className={`mt-2 w-full rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 ${isDayMode ? "bg-white border border-slate-200 text-slate-900" : "bg-black/30 border border-white/10 text-white"}`}
                       />
                     )}
@@ -2571,43 +2622,47 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                       disabled={identityLoading}
                       className="mt-3 inline-flex min-h-[38px] items-center rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
                     >
-                      {identityLoading ? "提交中..." : identityType === "club" ? "认证组织/社团" : "添加身份"}
+                      {identityLoading
+                        ? t("common.submitting", "Submitting...")
+                        : identityType === "club"
+                          ? t("user_profile.center.identity.verify_org")
+                          : t("user_profile.center.identity.add_identity")}
                     </button>
                     <div className="mt-4 space-y-2">
                       {identityClaims.length === 0 ? (
-                        <p className={`text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>暂无认证身份。</p>
+                        <p className={`text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>{t("user_profile.center.identity.empty_claims")}</p>
                       ) : identityClaims.map((claim) => (
                         <div key={claim.id} className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm ${isDayMode ? "bg-white border-slate-200 text-slate-700" : "bg-white/5 border-white/10 text-gray-200"}`}>
                           <span className="font-bold">{claim.display_name}</span>
-                          <span className={`ml-auto text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>{identityTypeLabel(claim.type)} · {identityStatusLabel(claim.status)}</span>
+                          <span className={`ml-auto text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>{identityTypeLabel(claim.type, t)} · {identityStatusLabel(claim.status, t)}</span>
                         </div>
                       ))}
                     </div>
                   </div>
 
                   <div className={`rounded-2xl border p-4 ${isDayMode ? "bg-slate-50/80 border-slate-200/80" : "bg-black/20 border-white/10"}`}>
-                    <div className={`text-sm font-bold mb-3 ${isDayMode ? "text-slate-800" : "text-white"}`}>可能属于你的成果</div>
+                    <div className={`text-sm font-bold mb-3 ${isDayMode ? "text-slate-800" : "text-white"}`}>{t("user_profile.center.identity.outcomes_title")}</div>
                     {outcomeLinksLoading ? (
-                      <p className={`text-sm ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>加载中...</p>
+                      <p className={`text-sm ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>{t("common.loading")}</p>
                     ) : outcomeLinks.length === 0 ? (
-                      <p className={`text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>暂未匹配到可认领成果。</p>
+                      <p className={`text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>{t("user_profile.center.identity.empty_outcomes")}</p>
                     ) : (
                       <div className="space-y-3">
                         {outcomeLinks.slice(0, 8).map((link) => (
                           <div key={link.link_id || `${link.id}-${link.identity_claim_id}`} className={`rounded-xl border p-3 ${isDayMode ? "bg-white border-slate-200" : "bg-white/5 border-white/10"}`}>
                             <div className={`text-sm font-bold line-clamp-1 ${isDayMode ? "text-slate-900" : "text-white"}`}>{link.title}</div>
                             <div className={`mt-1 text-xs ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>
-                              {link.bound_identity_name || link.matched_text || link.author} · {outcomeStatusLabel(link.binding_status)}
+                              {link.bound_identity_name || link.matched_text || link.author} · {outcomeStatusLabel(link.binding_status, t)}
                             </div>
                             <div className="mt-3 flex flex-wrap gap-2">
                               {link.binding_status !== "confirmed" && (
-                                <button type="button" disabled={outcomeActionId === link.link_id} onClick={() => handleOutcomeAction(link.link_id, "confirm")} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50">确认</button>
+                                <button type="button" disabled={outcomeActionId === link.link_id} onClick={() => handleOutcomeAction(link.link_id, "confirm")} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50">{t("user_profile.center.identity.confirm")}</button>
                               )}
                               {link.binding_status === "candidate" && (
-                                <button type="button" disabled={outcomeActionId === link.link_id} onClick={() => handleOutcomeAction(link.link_id, "reject")} className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50">拒绝</button>
+                                <button type="button" disabled={outcomeActionId === link.link_id} onClick={() => handleOutcomeAction(link.link_id, "reject")} className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50">{t("user_profile.center.identity.reject")}</button>
                               )}
                               {link.binding_status === "confirmed" && (
-                                <button type="button" disabled={outcomeActionId === link.link_id} onClick={() => handleOutcomeAction(link.link_id, "revoke")} className="rounded-lg bg-slate-600 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50">撤销</button>
+                                <button type="button" disabled={outcomeActionId === link.link_id} onClick={() => handleOutcomeAction(link.link_id, "revoke")} className="rounded-lg bg-slate-600 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50">{t("user_profile.center.identity.revoke")}</button>
                               )}
                             </div>
                           </div>

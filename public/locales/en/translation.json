@@ -102,6 +102,7 @@
       "uploads": "Uploads",
       "submissions": "Submissions",
       "favorites": "Favorites",
+      "messages": "Messages",
       "security": "Security"
     },
     "no_published_works": "This user has not published anything yet.",
@@ -212,7 +213,213 @@
       "other": "Other",
       "secret": "Secret"
     },
-    "profile_updated": "Profile updated successfully"
+    "profile_updated": "Profile updated successfully",
+    "system_overview": {
+      "eyebrow": "User System",
+      "title": "Account & Identity Control Center",
+      "subtitle": "A single view of your profile, verified identities, managed organizations, submissions, and outcome claims.",
+      "stats": {
+        "completion": "Profile Completion",
+        "identities": "Verified Identities",
+        "profiles": "Managed Profiles",
+        "pending": "Pending Items"
+      },
+      "completion_title": "Profile Checklist",
+      "completion_items": {
+        "nickname": "Set display name",
+        "avatar": "Upload avatar",
+        "profileCard": "Complete profile card",
+        "activityProfile": "Fill event profile",
+        "identity": "Add verified identity",
+        "managedProfile": "Bind managed profile"
+      },
+      "actions": {
+        "title": "Next Steps",
+        "empty": "No required actions right now.",
+        "pending_submissions": "{{count}} submissions need review",
+        "candidate_outcomes": "{{count}} outcomes need claiming"
+      },
+      "managed_profiles": "Managed Profiles",
+      "verified": "Verified",
+      "no_managed_profiles": "No managed profiles yet.",
+      "profile_types": {
+        "person": "Person",
+        "club": "Club",
+        "organization": "Organization",
+        "school": "School",
+        "enterprise": "Partner"
+      },
+      "content_status": {
+        "approved": "Published",
+        "pending": "Pending",
+        "drafts": "Drafts"
+      }
+    },
+    "center": {
+      "content_types": {
+        "all": "All",
+        "photo": "Photos",
+        "video": "Videos",
+        "music": "Audio",
+        "article": "Articles",
+        "event": "Events",
+        "news": "News",
+        "help": "Help",
+        "team": "Teams",
+        "project": "Projects",
+        "competition_work": "Outcomes"
+      },
+      "event_categories": {
+        "lecture": "Talks",
+        "competition": "Competitions",
+        "volunteer": "Volunteering",
+        "recruitment": "Recruitment/Career",
+        "culture_sports": "Culture & Sports",
+        "exchange": "Exchange"
+      },
+      "event_benefits": {
+        "score": "Evaluation Points",
+        "volunteer_time": "Volunteer Hours",
+        "skill": "Skill Growth",
+        "social": "Social & Relax"
+      },
+      "event_formats": {
+        "any": "Any Format",
+        "offline": "Mostly Offline",
+        "online": "Mostly Online",
+        "hybrid": "Either Works"
+      },
+      "identity_types": {
+        "person": "Person",
+        "team": "Team",
+        "club": "Organization/Club",
+        "organization": "Organization/Club",
+        "identity": "Identity"
+      },
+      "identity_status": {
+        "pending": "Pending",
+        "verified": "Verified",
+        "rejected": "Rejected",
+        "unknown": "Unknown Status"
+      },
+      "outcome_status": {
+        "candidate": "To Claim",
+        "confirmed": "Confirmed",
+        "rejected": "Rejected",
+        "revoked": "Revoked",
+        "unknown": "Unknown Status"
+      },
+      "profile_status": {
+        "open_chat": "Open to Chat",
+        "seeking_collab": "Seeking Collaboration",
+        "coffee_chat": "Coffee Chat",
+        "team_up": "Building a Team",
+        "joining_events": "Joining Events",
+        "busy": "Busy for Now"
+      },
+      "work_meta": {
+        "award": "Award: {{value}}",
+        "rank": "Rank: {{value}}",
+        "bound_identity": "Belongs to: {{value}}",
+        "author": "Winner: {{value}}"
+      },
+      "follow": {
+        "login_to_follow": "Sign in to Follow",
+        "follow": "Follow",
+        "following": "Following",
+        "followers": "Followers",
+        "following_count": "Following",
+        "followed": "Followed",
+        "unfollowed": "Unfollowed"
+      },
+      "settings_tabs": {
+        "profile_card": "Profile Card",
+        "activity_profile": "Activity Profile",
+        "security": "Security",
+        "identity": "Identity"
+      },
+      "activity_profile": {
+        "title": "Activity Recommendation Profile",
+        "desc": "Maintain long-term profile signals here. The event assistant can use them with favorites, registrations, and feedback for personalized ranking.",
+        "source_badge": "User System Source",
+        "loading": "Loading activity profile...",
+        "save": "Save Activity Profile",
+        "preferred_categories": "Preferred Event Types",
+        "preferred_benefits": "Preferred Benefits",
+        "fields": {
+          "college": "College / Organization",
+          "division": "Field / Major",
+          "grade": "Grade Identity",
+          "campus": "Usual Campus",
+          "availability": "Availability",
+          "interest_tags": "Interest Keywords"
+        },
+        "placeholders": {
+          "college": "Computer Science / AI Club",
+          "division": "AI / Product Design",
+          "grade": "Freshman / First-year Graduate",
+          "campus": "Zijingang / Yuquan",
+          "availability": "Wednesday nights, weekend afternoons, avoid exam weeks",
+          "interest_tags": "AI, startups, volunteering, photography; separate with spaces or commas"
+        }
+      },
+      "identity": {
+        "title": "Outcome Claims",
+        "current_org": "Current Organization/Club",
+        "no_org": "No verified organization/club yet",
+        "org_hint": "Use the verification entry below and enter the matching invite code for organization/club verification.",
+        "claims_title": "Identity Verification",
+        "org_name_placeholder": "Enter organization or club name",
+        "name_placeholder": "Enter a name used to match outcomes",
+        "invite_placeholder": "Enter organization/club invite code",
+        "verify_org": "Verify Organization/Club",
+        "add_identity": "Add Identity",
+        "empty_claims": "No verified identities yet.",
+        "outcomes_title": "Outcomes That May Belong to You",
+        "empty_outcomes": "No claimable outcomes matched yet.",
+        "confirm": "Confirm",
+        "reject": "Reject",
+        "revoke": "Revoke"
+      },
+      "toast": {
+        "login_to_edit_activity": "Sign in to edit your activity profile",
+        "activity_load_failed": "Failed to load activity profile",
+        "avatar_type": "Avatar must be a JPG, PNG, or WebP image",
+        "avatar_size": "Avatar file must be under 5 MB",
+        "avatar_missing": "Avatar URL is missing",
+        "avatar_updated": "Avatar updated",
+        "avatar_failed": "Avatar upload failed",
+        "identity_name_short": "Identity name must be at least 2 characters",
+        "invite_required": "Please enter the organization/club invite code",
+        "org_verified": "Organization/club verified",
+        "identity_added": "Identity added",
+        "identity_failed": "Failed to add identity",
+        "outcome_updated": "Outcome claim status updated",
+        "outcome_failed": "Failed to update outcome claim",
+        "activity_saved": "Activity profile saved",
+        "login_to_save_activity": "Sign in to save your activity profile",
+        "activity_save_failed": "Failed to save activity profile",
+        "operation_failed": "Operation failed. Please try again later."
+      },
+      "relations": "Relationships",
+      "my_homepage": "My Homepage",
+      "user_homepage": "User Homepage",
+      "member_fallback": "TUOTUZJU Member",
+      "profile_basics": "Avatar & Display Name",
+      "avatar": "Avatar",
+      "choose_image": "Choose Image",
+      "uploading": "Uploading...",
+      "save_avatar": "Save Avatar",
+      "avatar_hint": "Supports JPG, PNG, or WebP up to 5 MB. After choosing an image, drag the 1:1 box to crop the avatar.",
+      "avatar_state": {
+        "dirty": "Avatar not saved",
+        "saving": "Saving avatar...",
+        "error": "Avatar save failed",
+        "saved": "Avatar saved"
+      },
+      "profile_card": "Profile Card",
+      "untitled": "Untitled"
+    }
   },
   "nav": {
     "home": "Home",
@@ -987,7 +1194,9 @@
     "details": "View Details",
     "submitting": "Submitting...",
     "online": "Online",
-    "result_count": "{{count}} items"
+    "result_count": "{{count}} items",
+    "processing": "Processing...",
+    "no_data": "No data yet"
   },
   "upload": {
     "title_required": "Title is required",

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -21,11 +21,12 @@ import {
   Users,
   X,
 } from "lucide-react";
-import api, { uploadFile } from "../services/api";
+import api, { getUserSystemOverview, uploadFile } from "../services/api";
 import { useSettings } from "../context/SettingsContext";
 import { useAuth } from "../context/AuthContext";
 import SEO from "./SEO";
 import OfficialVerificationBadge from "./OfficialVerificationBadge";
+import UserSystemOverview from "./profile/UserSystemOverview";
 import { useTranslation } from "react-i18next";
 
 const TYPE_META = {
@@ -84,6 +85,12 @@ const canEditProfile = (profile, currentUser) => {
   if (currentUser.role === "admin") return true;
   if (profile.owner_user_id && String(profile.owner_user_id) === String(currentUser.id)) return true;
   return profile.member_role === "owner" || profile.member_role === "admin";
+};
+
+const isOwnPersonalProfile = (profile, currentUser) => {
+  if (!profile || !currentUser?.id || profile.type !== "person") return false;
+  if (profile.owner_user_id && String(profile.owner_user_id) === String(currentUser.id)) return true;
+  return profile.source_type === "user" && String(profile.source_id) === String(currentUser.id);
 };
 
 const ProfileMark = ({ profile, isDayMode, displayName }) => {
@@ -213,6 +220,8 @@ const ProfilePage = ({ forcedHandle = null }) => {
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordError, setPasswordError] = useState("");
   const [passwordMessage, setPasswordMessage] = useState("");
+  const [userSystemOverview, setUserSystemOverview] = useState(null);
+  const [userSystemOverviewLoading, setUserSystemOverviewLoading] = useState(false);
 
   useEffect(() => {
     if (!handle) return undefined;
@@ -261,6 +270,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
   const meta = useMemo(() => typeMeta(profile?.type), [profile?.type]);
   const TypeIcon = meta.icon;
   const editable = canEditProfile(profile, currentUser);
+  const showUserSystemOverview = isOwnPersonalProfile(profile, currentUser);
   const language = i18n.resolvedLanguage || i18n.language || "zh";
   const isEnglish = language.startsWith("en");
   const displayName = isEnglish
@@ -279,6 +289,41 @@ const ProfilePage = ({ forcedHandle = null }) => {
     : "border-white/10 bg-white/[0.06] text-white placeholder:text-white/35 focus:border-sky-300/60";
   const labelClass = isDayMode ? "text-slate-600" : "text-slate-300";
   const metaLabel = t(meta.labelKey);
+
+  const refreshUserSystemOverview = useCallback(async () => {
+    if (!showUserSystemOverview) return;
+    setUserSystemOverviewLoading(true);
+    try {
+      const response = await getUserSystemOverview();
+      setUserSystemOverview(response.data || null);
+    } catch {
+      setUserSystemOverview(null);
+    } finally {
+      setUserSystemOverviewLoading(false);
+    }
+  }, [showUserSystemOverview]);
+
+  useEffect(() => {
+    if (!showUserSystemOverview) {
+      setUserSystemOverview(null);
+      return;
+    }
+    refreshUserSystemOverview();
+  }, [refreshUserSystemOverview, showUserSystemOverview]);
+
+  const openUserSystemTarget = (target) => {
+    const userId = currentUser?.id;
+    if (!userId) return;
+    if (target === "submissions") {
+      navigate(`/user/${userId}/center?tab=submissions`);
+      return;
+    }
+    if (target === "published") {
+      navigate(`/user/${userId}/center`);
+      return;
+    }
+    navigate(`/user/${userId}/center?tab=settings&settings=${target || "profile-card"}`);
+  };
 
   const updateEditField = (field, value) => {
     setEditForm((previous) => ({ ...previous, [field]: value }));
@@ -325,6 +370,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
       }));
       setEditing(false);
       refreshUser?.();
+      refreshUserSystemOverview();
     } catch (saveError) {
       setEditError(saveError.response?.data?.error || saveError.message || t("profiles.page.save_failed"));
     } finally {
@@ -537,6 +583,18 @@ const ProfilePage = ({ forcedHandle = null }) => {
             ))}
           </div>
         </header>
+
+        {showUserSystemOverview ? (
+          <div className="mt-4">
+            <UserSystemOverview
+              overview={userSystemOverview}
+              loading={userSystemOverviewLoading}
+              isDayMode={isDayMode}
+              t={t}
+              onOpenTarget={openUserSystemTarget}
+            />
+          </div>
+        ) : null}
 
         {editing ? (() => {
           const primaryImageField = profile.type === "person" ? "avatar_url" : "logo_url";

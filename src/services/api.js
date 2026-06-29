@@ -127,6 +127,8 @@ export const uploadProfileCardCover = (file) => {
 
 export const listIdentityClaims = () => api.get('/users/me/identity-claims');
 
+export const getUserSystemOverview = () => api.get('/users/me/overview');
+
 export const createIdentityClaim = ({ type, displayName, invitationCode }) =>
   api.post('/users/me/identity-claims', {
     type,

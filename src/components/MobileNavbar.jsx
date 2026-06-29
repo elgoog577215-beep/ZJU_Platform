@@ -72,7 +72,7 @@ const MobileNavbar = () => {
 
   const profilePath =
     user?.id !== undefined && user?.id !== null && String(user.id).trim() !== ""
-      ? `/user/${user.id}`
+      ? `/user/${user.id}/center`
       : null;
 
   const navItems = [

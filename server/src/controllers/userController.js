@@ -4,10 +4,22 @@ const path = require('path');
 const sharp = require('sharp');
 const { getDb } = require('../config/db');
 const { createNotification } = require('./notificationController');
+const profileService = require('../services/profileService');
 
 const NICKNAME_REGEX = /^[\u4e00-\u9fa5a-zA-Z0-9_]+$/;
 const IDENTITY_TYPES = new Set(['person', 'team', 'club', 'organization']);
 const LINK_STATUSES = new Set(['candidate', 'confirmed', 'rejected', 'revoked']);
+const CONTENT_STATUS_SOURCES = [
+  { key: 'photos', table: 'photos', ownerColumn: 'uploader_id', deletedColumn: 'deleted_at' },
+  { key: 'videos', table: 'videos', ownerColumn: 'uploader_id', deletedColumn: 'deleted_at' },
+  { key: 'music', table: 'music', ownerColumn: 'uploader_id', deletedColumn: 'deleted_at' },
+  { key: 'articles', table: 'articles', ownerColumn: 'uploader_id', deletedColumn: 'deleted_at' },
+  { key: 'events', table: 'events', ownerColumn: 'uploader_id', deletedColumn: 'deleted_at' },
+  { key: 'news', table: 'news', ownerColumn: 'uploader_id', deletedColumn: 'deleted_at' },
+  { key: 'communityPosts', table: 'community_posts', ownerColumn: 'author_id' },
+  { key: 'projects', table: 'project_cards', ownerColumn: 'user_id', deletedWhere: "status != 'removed'" },
+  { key: 'competitionWorks', table: 'competition_works', ownerColumn: 'uploader_id', deletedColumn: 'deleted_at' },
+];
 
 const normalizeIdentityType = (value = '') => {
   const type = String(value).trim().toLowerCase();
@@ -45,6 +57,83 @@ const serializeIdentityClaim = (row) => ({
   created_at: row.created_at,
   updated_at: row.updated_at,
 });
+
+const safeGet = async (db, sql, params = [], fallback = null) => {
+  try {
+    return await db.get(sql, params);
+  } catch {
+    return fallback;
+  }
+};
+
+const safeAll = async (db, sql, params = []) => {
+  try {
+    return await db.all(sql, params);
+  } catch {
+    return [];
+  }
+};
+
+const mergeStatusCounts = (target, rows = []) => {
+  for (const row of rows) {
+    const status = row.status || 'unknown';
+    const count = Number(row.count) || 0;
+    target[status] = (target[status] || 0) + count;
+  }
+  return target;
+};
+
+const countContentSource = async (db, source, userId) => {
+  const deletedWhere = source.deletedWhere
+    ? ` AND ${source.deletedWhere}`
+    : source.deletedColumn
+      ? ` AND ${source.deletedColumn} IS NULL`
+      : '';
+  const rows = await safeAll(
+    db,
+    `SELECT COALESCE(status, 'unknown') AS status, COUNT(*) AS count
+     FROM ${source.table}
+     WHERE ${source.ownerColumn} = ?${deletedWhere}
+     GROUP BY COALESCE(status, 'unknown')`,
+    [userId]
+  );
+  const byStatus = mergeStatusCounts({}, rows);
+  const total = Object.values(byStatus).reduce((sum, count) => sum + count, 0);
+  return { key: source.key, total, byStatus };
+};
+
+const completionItem = (key, completed, target) => ({ key, completed: Boolean(completed), target });
+
+const buildProfileCompletion = ({ user, profileCard, activityPreference, identityCounts, managedProfiles }) => {
+  const activityFields = [
+    activityPreference?.college,
+    activityPreference?.division,
+    activityPreference?.grade,
+    activityPreference?.campus,
+    activityPreference?.availability,
+    activityPreference?.interest_tags,
+  ].filter((value) => String(value || '').trim()).length;
+  const items = [
+    completionItem('nickname', user?.nickname, 'profile-card'),
+    completionItem('avatar', user?.avatar, 'profile-card'),
+    completionItem(
+      'profileCard',
+      profileCard?.slogan || profileCard?.tag_count > 0 || profileCard?.card_count > 0 || profileCard?.social_count > 0,
+      'profile-card'
+    ),
+    completionItem('activityProfile', activityFields >= 2, 'activity-profile'),
+    completionItem('identity', identityCounts.total > 0, 'identity'),
+    completionItem('managedProfile', managedProfiles.length > 0, 'identity'),
+  ];
+  const completed = items.filter((item) => item.completed).length;
+  return {
+    percent: Math.round((completed / items.length) * 100),
+    completed,
+    total: items.length,
+    items,
+    missing: items.filter((item) => !item.completed).map((item) => item.key),
+  };
+};
 
 const buildUploadUrl = (file) => {
   if (!file?.path) return null;
@@ -313,6 +402,134 @@ const uploadOwnAvatar = async (req, res, next) => {
       [req.user.id]
     );
     res.json({ avatar, user });
+  } catch (error) { next(error); }
+};
+
+const getOwnOverview = async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: 'Login required' });
+
+    const db = await getDb();
+    const user = await safeGet(
+      db,
+      `SELECT id, username, role, avatar, organization_cr, gender, age, nickname,
+              profile_slogan, profile_status, created_at
+       FROM users
+       WHERE id = ?`,
+      [userId]
+    );
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const [
+      managedProfileRows,
+      identityRows,
+      profileCard,
+      activityPreference,
+      outcomeRows,
+      contentSources,
+    ] = await Promise.all([
+      profileService.listManageableProfiles(db, userId),
+      safeAll(
+        db,
+        `SELECT type, status, COUNT(*) AS count
+         FROM user_identity_claims
+         WHERE user_id = ?
+         GROUP BY type, status`,
+        [userId]
+      ),
+      safeGet(
+        db,
+        `SELECT
+          u.profile_slogan AS slogan,
+          u.profile_status AS status,
+          (SELECT COUNT(*) FROM user_profile_tags WHERE user_id = u.id) AS tag_count,
+          (SELECT COUNT(*) FROM user_social_links WHERE user_id = u.id AND is_visible = 1) AS social_count,
+          (SELECT COUNT(*) FROM user_profile_cards WHERE user_id = u.id AND is_visible = 1) AS card_count
+         FROM users u
+         WHERE u.id = ?`,
+        [userId],
+        {}
+      ),
+      safeGet(db, 'SELECT * FROM user_event_preferences WHERE user_id = ?', [userId], {}),
+      safeAll(
+        db,
+        `SELECT status, COUNT(*) AS count
+         FROM competition_work_identity_links
+         WHERE user_id = ?
+         GROUP BY status`,
+        [userId]
+      ),
+      Promise.all(CONTENT_STATUS_SOURCES.map((source) => countContentSource(db, source, userId))),
+    ]);
+
+    const managedProfiles = managedProfileRows.map((row) => profileService.serializeProfile(row));
+    const identitySummary = identityRows.reduce(
+      (summary, row) => {
+        const count = Number(row.count) || 0;
+        summary.total += count;
+        summary.byStatus[row.status || 'unknown'] = (summary.byStatus[row.status || 'unknown'] || 0) + count;
+        summary.byType[row.type || 'unknown'] = (summary.byType[row.type || 'unknown'] || 0) + count;
+        if (row.status === 'verified') summary.verified += count;
+        if (row.status === 'pending') summary.pending += count;
+        if (isOrganizationIdentityType(row.type)) summary.organizations += count;
+        return summary;
+      },
+      { total: 0, verified: 0, pending: 0, organizations: 0, byStatus: {}, byType: {} }
+    );
+
+    const byStatus = {};
+    const bySource = {};
+    let contentTotal = 0;
+    for (const source of contentSources) {
+      bySource[source.key] = source;
+      contentTotal += source.total;
+      mergeStatusCounts(byStatus, Object.entries(source.byStatus).map(([status, count]) => ({ status, count })));
+    }
+
+    const outcomeByStatus = mergeStatusCounts({}, outcomeRows);
+    const outcomeTotal = Object.values(outcomeByStatus).reduce((sum, count) => sum + count, 0);
+    const activityCompleted = [
+      activityPreference?.college,
+      activityPreference?.division,
+      activityPreference?.grade,
+      activityPreference?.campus,
+      activityPreference?.availability,
+      activityPreference?.interest_tags,
+    ].filter((value) => String(value || '').trim()).length;
+
+    const profileCompletion = buildProfileCompletion({
+      user,
+      profileCard,
+      activityPreference,
+      identityCounts: identitySummary,
+      managedProfiles,
+    });
+
+    res.json({
+      account: user,
+      profileCompletion,
+      managedProfiles,
+      identitySummary,
+      contentSummary: {
+        total: contentTotal,
+        byStatus,
+        bySource,
+        pending: byStatus.pending || 0,
+        approved: (byStatus.approved || 0) + (byStatus.published || 0),
+        drafts: byStatus.draft || 0,
+      },
+      outcomeSummary: {
+        total: outcomeTotal,
+        byStatus: outcomeByStatus,
+        candidate: outcomeByStatus.candidate || 0,
+        confirmed: outcomeByStatus.confirmed || 0,
+      },
+      activityProfile: {
+        completedFields: activityCompleted,
+        hasPreference: activityCompleted > 0,
+      },
+    });
   } catch (error) { next(error); }
 };
 
@@ -1062,6 +1279,7 @@ module.exports = {
   getAllUsers,
   updateUser,
   uploadOwnAvatar,
+  getOwnOverview,
   listOwnIdentityClaims,
   createOwnIdentityClaim,
   updateOwnIdentityClaim,

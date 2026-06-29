@@ -417,9 +417,9 @@ const Navbar = () => {
         {user ? (
           <div className="flex items-center gap-3">
             <Link
-              to={`/user/${user.id}`}
+              to={`/user/${user.id}/center`}
               className={`motion-press rect-button-secondary relative flex items-center gap-2 px-3 py-1.5 text-sm font-medium ${isDayMode ? "text-slate-800 hover:text-violet-700" : "text-white"}`}
-              aria-label={`访问 ${user.username} 的个人主页`}
+              aria-label={t("nav.profile")}
             >
               <div
                 className="w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] text-white"
@@ -734,7 +734,7 @@ const Navbar = () => {
                   {user ? (
                     <>
                       <Link
-                        to={`/user/${user.id}`}
+                        to={`/user/${user.id}/center`}
                         onClick={() => setIsMobileMoreOpen(false)}
                         className={`motion-press flex min-h-[52px] items-center gap-3 rounded-lg border px-3 ${isDayMode ? "border-slate-200/80 bg-white text-slate-700 hover:bg-white" : "border-white/10 bg-white/[0.04] text-gray-200 hover:bg-white/10"}`}
                       >
