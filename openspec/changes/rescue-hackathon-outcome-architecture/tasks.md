@@ -30,3 +30,9 @@
 
 - [ ] 5.1 Add first-class `event_key` / campaign relation for photo/video records.
 - [ ] 5.2 Archive or migrate legacy `competition_media` records after confirming no production UI depends on them.
+
+## 6. 验证记录
+
+- 2026-06-29：`openspec validate rescue-hackathon-outcome-architecture --strict` 通过。
+- 2026-06-29：审计 `src/`，未发现前端继续调用 `competition-media` / `admin/competition-media`；legacy `competition_media` 当前只保留在后端 admin 兼容接口和数据层。
+- 2026-06-29：按当前阶段决策，不做破坏性迁移或删除；5.2 仍保留为后续数据迁移/归档任务。

@@ -85,7 +85,7 @@ const MobileNavbar = () => {
 
   const isItemActive = (path, key) => {
     if (key === "me") {
-      return location.pathname.startsWith("/user/") || location.pathname === "/me";
+      return location.pathname.startsWith("/user/");
     }
     if (key === "hackathon") return location.pathname.startsWith("/hackathon");
     if (key === "articles") {

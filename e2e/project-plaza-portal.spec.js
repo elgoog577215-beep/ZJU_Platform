@@ -37,11 +37,34 @@ const installProjectMocks = async (page) => {
     }),
   );
 
+  await page.route("**/api/notifications**", (route) =>
+    route.fulfill({ json: { notifications: [], unread_count: 0 } }),
+  );
+
+  await page.route("**/api/favorites/check**", (route) =>
+    route.fulfill({ json: { favorited: false } }),
+  );
+
   await page.route("**/api/projects**", (route) => {
     const pathname = new URL(route.request().url()).pathname;
+    const method = route.request().method();
 
     if (pathname.endsWith(`/api/projects/${project.id}`)) {
       return route.fulfill({ json: project });
+    }
+
+    if (method === "POST") {
+      return route.fulfill({
+        status: 201,
+        json: {
+          ...project,
+          id: 8802,
+          title: "Campus Archive Kit",
+          intro: "A new project from the create form.",
+          likes: 0,
+          views: 0,
+        },
+      });
     }
 
     return route.fulfill({
@@ -54,6 +77,10 @@ const installProjectMocks = async (page) => {
       },
     });
   });
+
+  await page.route("**/api/favorites/toggle", (route) =>
+    route.fulfill({ json: { favorited: true, likes: 4 } }),
+  );
 };
 
 test("project plaza mobile detail uses body portal and restores scroll lock", async ({
@@ -63,7 +90,7 @@ test("project plaza mobile detail uses body portal and restores scroll lock", as
   await page.setViewportSize(mobileViewport);
   await page.goto("/projects");
 
-  await page.getByRole("heading", { name: project.title }).click();
+  await page.getByRole("button", { name: `${project.title} 查看详情` }).click();
   const closeButton = page.getByRole("button", { name: "关闭" });
   await expect(closeButton).toBeVisible();
 
@@ -92,4 +119,34 @@ test("project plaza mobile detail uses body portal and restores scroll lock", as
   await expect
     .poll(() => page.evaluate(() => document.body.style.overflow))
     .toBe("");
+});
+
+test("project plaza supports authenticated publish and favorite", async ({ page }) => {
+  await installProjectMocks(page);
+  await page.addInitScript(() => {
+    localStorage.setItem("token", "test-token");
+  });
+  await page.route("**/api/auth/me", (route) =>
+    route.fulfill({
+      json: {
+        id: 7,
+        username: "builder",
+        nickname: "Builder",
+        role: "user",
+      },
+    }),
+  );
+
+  await page.goto("/projects");
+  await page.getByRole("button", { name: "发布项目" }).click();
+  await page.getByPlaceholder("例如：校园二手书漂流").fill("Campus Archive Kit");
+  await page.getByPlaceholder("一句话说清楚它是什么").fill("A new project from the create form.");
+  await page.getByRole("button", { name: "发布到广场" }).click();
+
+  await expect(page.getByText("Campus AI Builder")).toBeVisible();
+  await page.getByRole("button", { name: `${project.title} 查看详情` }).click();
+  const dialog = page.getByRole("dialog", { name: project.title });
+  await dialog.getByRole("button", { name: "收藏" }).click();
+  await expect(dialog.getByRole("button", { name: "取消收藏" })).toBeVisible();
+  await expect(page.getByText("4 收藏")).toBeVisible();
 });

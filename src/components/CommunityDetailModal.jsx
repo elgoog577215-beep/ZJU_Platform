@@ -7,7 +7,7 @@ import DOMPurify from 'dompurify';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import api from '../services/api';
-import { useBodyScrollLock } from '../hooks/useBackClose';
+import { useBackClose, useBodyScrollLock } from '../hooks/useBackClose';
 import { communityTheme, extractTocItems, flattenLinkedResources } from './communityUtils';
 import { LinkifiedText, linkifyHtml } from '../utils/linkify';
 
@@ -40,6 +40,7 @@ const CommunityDetailModal = ({
   const tocItems = useMemo(() => extractTocItems(contentBlocks), [contentBlocks]);
   const uploaderId = item?.uploader_id ?? item?.author_id ?? null;
   const canGoProfile = uploaderId != null;
+  useBackClose(Boolean(item), onClose);
   useBodyScrollLock(Boolean(item));
 
   const handleAuthorNavigate = () => {
@@ -216,6 +217,9 @@ const CommunityDetailModal = ({
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 50, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-label={item.title || item.name || t('community.detail', '内容详情')}
               className={`relative w-full min-h-screen shadow-2xl overflow-hidden ${th.modalSurface}`}
             >
               <div

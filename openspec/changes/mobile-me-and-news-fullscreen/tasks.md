@@ -30,19 +30,26 @@
 
 ## 4. Verification
 
-- [ ] 4.1 Chrome DevTools iPhone 16 Pro 预设：
+- [x] 4.1 Chrome DevTools iPhone 16 Pro 预设：
   - 未登录点"我的" → AuthModal 弹出，不跳 `/me`
   - 登录成功后再点"我的" → 跳 `/user/${id}`
-- [ ] 4.2 同预设：点 AI 社区"新闻热榜"入口 → 全屏覆盖，底部 MobileNavbar 不可见；右上角 X 点击关闭；硬件返回（或 devtools 的 back 按钮）也能关闭。
-- [ ] 4.3 StrictMode 自检：dev 模式打开覆盖层，观察是否存在打开后立即关闭的 double-mount race；若有，对 `useBackClose` 的调用套 `setTimeout(0)` 模式。
+- [x] 4.2 同预设：点 AI 社区"新闻热榜"入口 → 全屏覆盖，底部 MobileNavbar 不可见；右上角 X 点击关闭；硬件返回（或 devtools 的 back 按钮）也能关闭。
+- [x] 4.3 StrictMode 自检：dev 模式打开覆盖层，观察是否存在打开后立即关闭的 double-mount race；若有，对 `useBackClose` 的调用套 `setTimeout(0)` 模式。
 - [ ] 4.4 iOS Safari 真机（或 Safari macOS 响应式设计模式）确认 `100dvh` 下地址栏显隐都不截断内容。
-- [ ] 4.5 深链测试：直接访问 `/articles?news=<id>` → `isMobileNewsOpen` 自动为 true，覆盖层自动打开。
-- [ ] 4.6 Accessibility：`aria-label` 在 X 按钮 / "我的" button（未登录态）上存在；focus-visible ring 正常。
+- [x] 4.5 深链测试：直接访问 `/articles?news=<id>` → `isMobileNewsOpen` 自动为 true，覆盖层自动打开。
+- [x] 4.6 Accessibility：`aria-label` 在 X 按钮 / "我的" button（未登录态）上存在；focus-visible ring 正常。
 
 ## 5. Follow-up
 
 - [ ] 5.1 本轮在真实设备上跑满两天无回归反馈 → 考虑下一轮把其他移动端 overlay（收藏页、消息页等）统一到同一套"全屏 + useBackClose"模式。
 - [ ] 5.2 若用户反馈"登录成功后希望自动跳到个人主页"，开单独 change `mobile-auth-success-auto-navigate`。
+
+## 6. 验证记录
+
+- 2026-06-29：新增并通过 `NO_PROXY=localhost,127.0.0.1,::1 npx playwright test e2e/mobile-community-shell.spec.js --project=chromium`。
+- 2026-06-29：验证未登录移动端“我的”按钮打开登录弹窗，不跳转 `/me`，且 `/me` 不再被误判为 active。
+- 2026-06-29：验证移动端 AI 社区新闻 tab 可打开详情弹窗，body scroll lock 生效，浏览器返回关闭详情并恢复滚动。
+- 2026-06-29：补齐 `CommunityDetailModal` 的 `role="dialog"`、`aria-modal` 和可访问名称，新闻详情跟随 URL `news` 参数移除而关闭。
 
 ---
 

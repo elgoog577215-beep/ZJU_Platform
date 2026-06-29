@@ -64,7 +64,10 @@ const CommunityNewsBoard = ({ onNewPost, hideNewPostButton = false }) => {
 
   React.useEffect(() => {
     const newsId = searchParams.get('news');
-    if (!newsId) return;
+    if (!newsId) {
+      setSelectedNews(null);
+      return undefined;
+    }
     let cancelled = false;
     api.get(`/news/${newsId}`)
       .then(({ data: item }) => {
