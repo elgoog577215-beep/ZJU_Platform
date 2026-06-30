@@ -514,7 +514,7 @@ const ProjectPlaza = () => {
     .find(([, count]) => count > 0)?.[0] || NEED_FILTERS[0];
 
   return (
-    <div className="section-theme section-page ppp-root" data-section="projects" data-variant={variant}>
+    <div className="ppp-root" data-variant={variant}>
       <SEO title={t("project_plaza.meta_title", "项目广场")} description={t("project_plaza.meta_desc", "把正在做的项目放上来，让对的人找到你。")} />
       <style>{PROJECT_PLAZA_CSS}</style>
       <div className="ppp-backdrop" />

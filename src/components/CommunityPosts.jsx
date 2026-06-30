@@ -292,7 +292,7 @@ const CommunityPosts = ({ headingCode, headingTitle }) => {
         <div className="mb-2 flex flex-col gap-2 md:mb-4 md:flex-row md:items-end md:justify-between">
           <div className="min-w-0">
             {headingCode ? (
-              <div className="section-kicker">
+              <div className={`text-[11px] font-black uppercase tracking-[0.22em] ${isDayMode ? 'text-violet-700' : 'text-cyan-300'}`}>
                 {headingCode}
               </div>
             ) : null}
@@ -305,7 +305,11 @@ const CommunityPosts = ({ headingCode, headingTitle }) => {
           <button
             type="button"
             onClick={handleOpenTypePicker}
-            className="section-button-primary inline-flex min-h-10 shrink-0 self-start items-center justify-center gap-2 rounded-lg border px-4 text-sm font-black transition-all active:scale-95 md:min-h-[44px] md:self-center md:px-5"
+            className={`inline-flex min-h-10 shrink-0 self-start items-center justify-center gap-2 rounded-lg border px-4 text-sm font-black transition-all active:scale-95 md:min-h-[44px] md:self-center md:px-5 ${
+              isDayMode
+                ? 'border-violet-200 bg-violet-600 text-white shadow-[0_10px_24px_rgba(124,58,237,0.18)] hover:bg-violet-700'
+                : 'border-orange-300/40 bg-orange-400 text-slate-950 shadow-[0_0_28px_rgba(251,146,60,0.18)] hover:bg-orange-300'
+            }`}
           >
             <PenLine size={18} />
             {t('community.post_new', '发帖')}
@@ -332,10 +336,10 @@ const CommunityPosts = ({ headingCode, headingTitle }) => {
               } ${
                 activeTab === key
                   ? isDayMode
-                    ? 'section-tab-active border-b-[var(--section-accent)]'
-                    : 'border-[var(--section-accent)] bg-[var(--section-accent-soft)] text-[var(--section-accent)]'
+                    ? 'border-violet-500 bg-violet-50/70 text-violet-700'
+                    : 'border-orange-300 bg-orange-400/10 text-orange-200'
                   : isDayMode
-                    ? 'border-transparent text-slate-600 hover:bg-slate-50/70 hover:text-[var(--section-accent)]'
+                    ? 'border-transparent text-slate-600 hover:bg-slate-50/70 hover:text-violet-700'
                     : 'border-transparent text-gray-300 hover:bg-white/8 hover:text-white'
               }`}
             >
