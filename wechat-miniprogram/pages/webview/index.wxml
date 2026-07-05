@@ -1,1 +1,1 @@
-<web-view src="{{src}}" binderror="handleError"></web-view>
+<web-view src="{{src}}" bindload="handleLoad" binderror="handleError"></web-view>
