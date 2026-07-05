@@ -4,6 +4,9 @@ export const ECOSYSTEM_PARTNER_CATEGORIES = [
   { id: "enterprise", label: "企业生态", shortLabel: "企业", code: "Enterprise Partners" },
 ];
 
+export const CORE_PARTNER_SCOPE = "core_partner";
+export const ACTIVITY_PROVIDER_SCOPE = "activity_provider";
+
 const organizationLogoBase = "/images/partner-logos/organizations";
 const officialOrganizationLogoBase = `${organizationLogoBase}/official`;
 
@@ -487,36 +490,85 @@ export const defaultEcosystemPartners = [
     enabled: true,
     featured: true,
   },
-].map(withOrganizationLogo);
+].map((partner) => {
+  const partnerScope =
+    partner.category === "organization" && partner.sort_order >= 100
+      ? ACTIVITY_PROVIDER_SCOPE
+      : CORE_PARTNER_SCOPE;
+  return withOrganizationLogo({
+    ...partner,
+    partner_scope: partner.partner_scope || partnerScope,
+    featured:
+      partner.partner_scope === ACTIVITY_PROVIDER_SCOPE
+        ? false
+        : partner.partner_scope === CORE_PARTNER_SCOPE
+          ? true
+          : partnerScope === CORE_PARTNER_SCOPE,
+  });
+});
 
 const categoryOrder = new Map(
   ECOSYSTEM_PARTNER_CATEGORIES.map((category, index) => [category.id, index]),
 );
 
-export const normalizeEcosystemPartner = (partner = {}) => ({
-  ...partner,
-  id: partner.id ?? `${partner.category || "partner"}-${partner.name || Math.random()}`,
-  category: partner.category || "enterprise",
-  name: partner.name || "",
-  name_en: partner.name_en || partner.nameEn || "",
-  description: partner.description || "",
-  description_en: partner.description_en || partner.descriptionEn || "",
-  cooperation_direction:
-    partner.cooperation_direction || partner.cooperationDirection || "",
-  cooperation_direction_en:
-    partner.cooperation_direction_en || partner.cooperationDirectionEn || "",
-  event_organizer_aliases: Array.isArray(partner.event_organizer_aliases)
-    ? partner.event_organizer_aliases
-    : Array.isArray(partner.eventOrganizerAliases)
-      ? partner.eventOrganizerAliases
-      : [],
-  logo_url: partner.logo_url || partner.logoUrl || partner.src || "",
-  dark_logo_url: partner.dark_logo_url || partner.darkLogoUrl || partner.darkSrc || "",
-  link_url: partner.link_url || partner.linkUrl || "",
-  sort_order: Number.parseInt(partner.sort_order ?? partner.sortOrder ?? 0, 10) || 0,
-  enabled: partner.enabled !== false,
-  featured: partner.featured !== false,
-});
+const normalizeBooleanFlag = (value, fallback = true) => {
+  if (value === undefined || value === null) return fallback;
+  return value !== false && value !== 0 && value !== "0" && value !== "false";
+};
+
+export const normalizePartnerScope = (value, fallback = CORE_PARTNER_SCOPE) => {
+  const scope = String(value || "").trim().toLowerCase();
+  if (scope === CORE_PARTNER_SCOPE || scope === "core" || scope === "competition_partner") {
+    return CORE_PARTNER_SCOPE;
+  }
+  if (
+    scope === ACTIVITY_PROVIDER_SCOPE ||
+    scope === "activity" ||
+    scope === "activity_provider" ||
+    scope === "directory"
+  ) {
+    return ACTIVITY_PROVIDER_SCOPE;
+  }
+  return fallback;
+};
+
+export const normalizeEcosystemPartner = (partner = {}) => {
+  const hasExplicitScope =
+    partner.partner_scope !== undefined ||
+    partner.partnerScope !== undefined ||
+    partner.scope !== undefined;
+  const legacyFeatured = normalizeBooleanFlag(partner.featured, true);
+  const partnerScope = normalizePartnerScope(
+    partner.partner_scope || partner.partnerScope || partner.scope,
+    legacyFeatured ? CORE_PARTNER_SCOPE : ACTIVITY_PROVIDER_SCOPE,
+  );
+
+  return {
+    ...partner,
+    id: partner.id ?? `${partner.category || "partner"}-${partner.name || Math.random()}`,
+    category: partner.category || "enterprise",
+    name: partner.name || "",
+    name_en: partner.name_en || partner.nameEn || "",
+    description: partner.description || "",
+    description_en: partner.description_en || partner.descriptionEn || "",
+    cooperation_direction:
+      partner.cooperation_direction || partner.cooperationDirection || "",
+    cooperation_direction_en:
+      partner.cooperation_direction_en || partner.cooperationDirectionEn || "",
+    event_organizer_aliases: Array.isArray(partner.event_organizer_aliases)
+      ? partner.event_organizer_aliases
+      : Array.isArray(partner.eventOrganizerAliases)
+        ? partner.eventOrganizerAliases
+        : [],
+    logo_url: partner.logo_url || partner.logoUrl || partner.src || "",
+    dark_logo_url: partner.dark_logo_url || partner.darkLogoUrl || partner.darkSrc || "",
+    link_url: partner.link_url || partner.linkUrl || "",
+    sort_order: Number.parseInt(partner.sort_order ?? partner.sortOrder ?? 0, 10) || 0,
+    enabled: normalizeBooleanFlag(partner.enabled, true),
+    featured: hasExplicitScope ? partnerScope === CORE_PARTNER_SCOPE : legacyFeatured,
+    partner_scope: partnerScope,
+  };
+};
 
 export const sortEcosystemPartners = (partners = []) =>
   [...partners].sort((left, right) => {
@@ -528,14 +580,34 @@ export const sortEcosystemPartners = (partners = []) =>
     return String(left.name || "").localeCompare(String(right.name || ""), "zh-CN");
   });
 
-export const getPartnersByCategory = (partners = [], category) =>
-  sortEcosystemPartners(partners.map(normalizeEcosystemPartner)).filter(
-    (partner) => partner.category === category && partner.enabled && partner.featured,
-  );
+export const getPartnersByCategory = (
+  partners = [],
+  category,
+  { featuredOnly = true, scope } = {},
+) =>
+  sortEcosystemPartners(partners.map(normalizeEcosystemPartner)).filter((partner) => {
+    const requiredScope =
+      scope === undefined
+        ? featuredOnly
+          ? CORE_PARTNER_SCOPE
+          : null
+        : normalizePartnerScope(scope, "");
+    return (
+      partner.category === category &&
+      partner.enabled &&
+      (!requiredScope || partner.partner_scope === requiredScope)
+    );
+  });
 
-export const groupEcosystemPartners = (partners = []) => {
+export const groupEcosystemPartners = (partners = [], { scope = CORE_PARTNER_SCOPE } = {}) => {
+  const requiredScope = scope ? normalizePartnerScope(scope, "") : null;
   const normalized = sortEcosystemPartners(
-    partners.map(normalizeEcosystemPartner).filter((partner) => partner.enabled && partner.featured),
+    partners
+      .map(normalizeEcosystemPartner)
+      .filter(
+        (partner) =>
+          partner.enabled && (!requiredScope || partner.partner_scope === requiredScope),
+      ),
   );
   return ECOSYSTEM_PARTNER_CATEGORIES.map((category) => ({
     ...category,

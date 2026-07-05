@@ -22,6 +22,7 @@ const organizationPartner = {
   sort_order: 10,
   enabled: true,
   featured: true,
+  partner_scope: "core_partner",
 };
 
 const installAdminPartnerMocks = async (page, onUpdate) => {
@@ -121,6 +122,7 @@ test("admin ecosystem partners editor submits organization metadata fields", asy
     cooperation_direction: "学生活动共创、志愿服务与校园传播",
     enabled: true,
     featured: true,
+    partner_scope: "core_partner",
   });
   expect(updatePayload.event_organizer_aliases).toEqual([
     "浙江大学学生会",

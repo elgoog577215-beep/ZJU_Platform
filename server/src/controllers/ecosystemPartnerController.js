@@ -2,6 +2,9 @@ const { getDb } = require('../config/db');
 const profileService = require('../services/profileService');
 
 const CATEGORY_VALUES = new Set(['school', 'organization', 'enterprise']);
+const CORE_PARTNER_SCOPE = 'core_partner';
+const ACTIVITY_PROVIDER_SCOPE = 'activity_provider';
+const PARTNER_SCOPE_VALUES = new Set([CORE_PARTNER_SCOPE, ACTIVITY_PROVIDER_SCOPE]);
 
 const trimText = (value, maxLength = 500) => {
   if (value === undefined || value === null) return '';
@@ -60,6 +63,27 @@ const normalizeCategory = (value, fallback = 'enterprise') => {
   return CATEGORY_VALUES.has(category) ? category : fallback;
 };
 
+const normalizePartnerScope = (value, fallback = CORE_PARTNER_SCOPE) => {
+  const scope = trimText(value, 60).toLowerCase();
+  if (scope === CORE_PARTNER_SCOPE || scope === 'core' || scope === 'competition_partner') {
+    return CORE_PARTNER_SCOPE;
+  }
+  if (scope === ACTIVITY_PROVIDER_SCOPE || scope === 'activity' || scope === 'directory') {
+    return ACTIVITY_PROVIDER_SCOPE;
+  }
+  return fallback;
+};
+
+const getPartnerScopeSql = (tableAlias = 'ep') => `
+  CASE
+    WHEN ${tableAlias}.partner_scope IN ('${CORE_PARTNER_SCOPE}', '${ACTIVITY_PROVIDER_SCOPE}')
+      THEN ${tableAlias}.partner_scope
+    WHEN COALESCE(${tableAlias}.featured, 1) = 1
+      THEN '${CORE_PARTNER_SCOPE}'
+    ELSE '${ACTIVITY_PROVIDER_SCOPE}'
+  END
+`;
+
 const isSafePartnerUrl = (value) => {
   const url = trimText(value, 1000);
   if (!url) return true;
@@ -76,13 +100,23 @@ const isSafePartnerUrl = (value) => {
 
 const sendBadRequest = (res, message) => res.status(400).json({ error: message });
 
-const serializePartner = (row) => ({
-  ...row,
-  event_organizer_aliases: normalizeAliasList(row.event_organizer_aliases),
-  sort_order: toInteger(row.sort_order, 0),
-  enabled: Boolean(row.enabled),
-  featured: Boolean(row.featured),
-});
+const serializePartner = (row) => {
+  const fallbackScope = toBooleanInt(row.featured, 1)
+    ? CORE_PARTNER_SCOPE
+    : ACTIVITY_PROVIDER_SCOPE;
+  const partnerScope = normalizePartnerScope(row.partner_scope, fallbackScope);
+  return {
+    ...row,
+    event_organizer_aliases: normalizeAliasList(row.event_organizer_aliases),
+    sort_order: toInteger(row.sort_order, 0),
+    enabled: Boolean(row.enabled),
+    featured: partnerScope === CORE_PARTNER_SCOPE,
+    partner_scope: partnerScope,
+    scope: partnerScope,
+    is_core_partner: partnerScope === CORE_PARTNER_SCOPE,
+    is_activity_provider: partnerScope === ACTIVITY_PROVIDER_SCOPE,
+  };
+};
 
 const selectPartnerSql = `
   SELECT ep.*, p.handle AS profile_handle, p.type AS profile_type
@@ -130,6 +164,27 @@ const readPartnerBody = (body, existing = {}) => {
     body.link_url !== undefined || body.linkUrl !== undefined
       ? nullableText(body.link_url ?? body.linkUrl, 1000)
       : existing.link_url || null;
+  const requestedFeatured =
+    body.featured !== undefined
+      ? toBooleanInt(body.featured, 1)
+      : existing.featured === undefined
+        ? 1
+        : toBooleanInt(existing.featured, 1);
+  const requestedScope = body.partner_scope ?? body.partnerScope ?? body.scope;
+  const partnerScope =
+    requestedScope !== undefined
+      ? normalizePartnerScope(
+        requestedScope,
+        requestedFeatured ? CORE_PARTNER_SCOPE : ACTIVITY_PROVIDER_SCOPE,
+      )
+      : body.featured !== undefined
+        ? requestedFeatured
+          ? CORE_PARTNER_SCOPE
+          : ACTIVITY_PROVIDER_SCOPE
+        : normalizePartnerScope(
+          existing.partner_scope,
+          requestedFeatured ? CORE_PARTNER_SCOPE : ACTIVITY_PROVIDER_SCOPE,
+        );
 
   return {
     name,
@@ -144,6 +199,7 @@ const readPartnerBody = (body, existing = {}) => {
     logoUrl,
     darkLogoUrl,
     linkUrl,
+    partnerScope,
     sortOrder:
       body.sort_order !== undefined || body.sortOrder !== undefined
         ? toInteger(body.sort_order ?? body.sortOrder, 0)
@@ -154,18 +210,14 @@ const readPartnerBody = (body, existing = {}) => {
         : existing.enabled === undefined
           ? 1
           : toBooleanInt(existing.enabled, 1),
-    featured:
-      body.featured !== undefined
-        ? toBooleanInt(body.featured, 1)
-        : existing.featured === undefined
-          ? 1
-          : toBooleanInt(existing.featured, 1),
+    featured: partnerScope === CORE_PARTNER_SCOPE ? 1 : 0,
   };
 };
 
 const validatePartnerPayload = (payload, res) => {
   if (!payload.name) return sendBadRequest(res, '请填写合作方名称');
   if (!CATEGORY_VALUES.has(payload.category)) return sendBadRequest(res, '合作方分类无效');
+  if (!PARTNER_SCOPE_VALUES.has(payload.partnerScope)) return sendBadRequest(res, '合作方层级无效');
   if (!isSafePartnerUrl(payload.logoUrl)) return sendBadRequest(res, 'Logo 地址无效');
   if (!isSafePartnerUrl(payload.darkLogoUrl)) return sendBadRequest(res, '深色 Logo 地址无效');
   if (!isSafePartnerUrl(payload.linkUrl)) return sendBadRequest(res, '链接地址无效');
@@ -184,14 +236,19 @@ const createAuditLog = async (db, adminId, resourceId, action, reason = null) =>
   }
 };
 
-const listPublicPartners = async (_req, res, next) => {
+const listPublicPartners = async (req, res, next) => {
   try {
     const db = await getDb();
+    const scopeFilter = normalizePartnerScope(req.query.scope, '');
+    const clauses = ['ep.deleted_at IS NULL', 'ep.enabled = 1'];
+    const params = [];
+    if (scopeFilter) {
+      clauses.push(`${getPartnerScopeSql('ep')} = ?`);
+      params.push(scopeFilter);
+    }
     const rows = await db.all(`
       ${selectPartnerSql}
-      WHERE ep.deleted_at IS NULL
-        AND ep.enabled = 1
-        AND ep.featured = 1
+      WHERE ${clauses.join(' AND ')}
       ORDER BY
         CASE ep.category
           WHEN 'school' THEN 1
@@ -201,7 +258,7 @@ const listPublicPartners = async (_req, res, next) => {
         END,
         ep.sort_order ASC,
         ep.id ASC
-    `);
+    `, params);
     res.setHeader('Cache-Control', 'no-store');
     return res.json(rows.map(serializePartner));
   } catch (error) {
@@ -218,6 +275,11 @@ const listAdminPartners = async (req, res, next) => {
     if (category) {
       clauses.push('ep.category = ?');
       params.push(category);
+    }
+    const scopeFilter = normalizePartnerScope(req.query.scope, '');
+    if (scopeFilter) {
+      clauses.push(`${getPartnerScopeSql('ep')} = ?`);
+      params.push(scopeFilter);
     }
 
     const rows = await db.all(
@@ -251,8 +313,8 @@ const createPartner = async (req, res, next) => {
         category, name, name_en, description, description_en,
         cooperation_direction, cooperation_direction_en, event_organizer_aliases,
         logo_url, dark_logo_url, link_url,
-        sort_order, enabled, featured, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+        sort_order, enabled, featured, partner_scope, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
       [
         payload.category,
         payload.name,
@@ -268,6 +330,7 @@ const createPartner = async (req, res, next) => {
         payload.sortOrder,
         payload.enabled,
         payload.featured,
+        payload.partnerScope,
       ],
     );
 
@@ -309,6 +372,7 @@ const updatePartner = async (req, res, next) => {
            sort_order = ?,
            enabled = ?,
            featured = ?,
+           partner_scope = ?,
            updated_at = datetime('now')
        WHERE id = ? AND deleted_at IS NULL`,
       [
@@ -326,6 +390,7 @@ const updatePartner = async (req, res, next) => {
         payload.sortOrder,
         payload.enabled,
         payload.featured,
+        payload.partnerScope,
         id,
       ],
     );

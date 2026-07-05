@@ -1088,6 +1088,7 @@ async function runMigrations(db) {
         sort_order INTEGER DEFAULT 0,
         enabled INTEGER DEFAULT 1,
         featured INTEGER DEFAULT 1,
+        partner_scope TEXT DEFAULT 'core_partner',
         created_at TEXT DEFAULT (datetime('now')),
         updated_at TEXT DEFAULT (datetime('now')),
         deleted_at DATETIME
@@ -1101,13 +1102,27 @@ async function runMigrations(db) {
       cooperation_direction_en: 'TEXT',
       event_organizer_aliases: "TEXT DEFAULT '[]'",
       profile_id: 'INTEGER',
+      partner_scope: "TEXT DEFAULT 'core_partner'",
     }, 'ecosystem partners');
+
+    await db.run(`
+      UPDATE ecosystem_partners
+      SET partner_scope = CASE
+            WHEN COALESCE(featured, 1) = 1 THEN 'core_partner'
+            ELSE 'activity_provider'
+          END
+      WHERE partner_scope IS NULL
+         OR TRIM(partner_scope) = ''
+         OR partner_scope NOT IN ('core_partner', 'activity_provider')
+    `);
 
     await db.exec(`
       CREATE INDEX IF NOT EXISTS idx_ecosystem_partners_public
         ON ecosystem_partners(enabled, featured, category, sort_order, id);
       CREATE INDEX IF NOT EXISTS idx_ecosystem_partners_admin
         ON ecosystem_partners(category, sort_order, id);
+      CREATE INDEX IF NOT EXISTS idx_ecosystem_partners_scope
+        ON ecosystem_partners(enabled, partner_scope, category, sort_order, id);
     `);
 
     const partnerCount = await db.get('SELECT COUNT(*) AS count FROM ecosystem_partners');
@@ -1132,8 +1147,8 @@ async function runMigrations(db) {
         await db.run(
           `INSERT INTO ecosystem_partners (
             category, name, description, logo_url, dark_logo_url, link_url,
-            sort_order, enabled, featured, created_at, updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 1, datetime('now'), datetime('now'))`,
+            sort_order, enabled, featured, partner_scope, created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 1, 'core_partner', datetime('now'), datetime('now'))`,
           partner,
         );
       }
@@ -1201,13 +1216,15 @@ async function runMigrations(db) {
         continue;
       }
 
+      const featured = sortOrder < 100 ? 1 : 0;
+      const partnerScope = featured ? 'core_partner' : 'activity_provider';
       await db.run(
         `INSERT INTO ecosystem_partners (
           category, name, name_en, description, description_en,
           cooperation_direction, cooperation_direction_en, event_organizer_aliases,
-          logo_url, dark_logo_url, link_url, sort_order, enabled, featured,
+          logo_url, dark_logo_url, link_url, sort_order, enabled, featured, partner_scope,
           created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, ?, 1, 1, datetime('now'), datetime('now'))`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, ?, 1, ?, ?, datetime('now'), datetime('now'))`,
         [
           'organization',
           name,
@@ -1218,7 +1235,35 @@ async function runMigrations(db) {
           cooperationDirectionEn,
           JSON.stringify(aliases),
           sortOrder,
+          featured,
+          partnerScope,
         ],
+      );
+    }
+
+    const scopeMigrationKey = 'ecosystem_partner_scope_v1';
+    const scopeMigration = await db.get(
+      'SELECT value FROM settings WHERE key = ? LIMIT 1',
+      [scopeMigrationKey],
+    );
+    if (!scopeMigration) {
+      const activityDirectoryOrgNames = organizationDefaults
+        .filter(([, , , , , , , sortOrder]) => sortOrder >= 100)
+        .map(([name]) => name);
+      await db.run(
+        `UPDATE ecosystem_partners
+         SET featured = 0,
+             partner_scope = 'activity_provider',
+             updated_at = datetime('now')
+         WHERE category = 'organization'
+           AND deleted_at IS NULL
+           AND name IN (${activityDirectoryOrgNames.map(() => '?').join(',')})`,
+        activityDirectoryOrgNames,
+      );
+      await db.run(
+        `INSERT OR REPLACE INTO settings (key, value)
+         VALUES (?, datetime('now'))`,
+        [scopeMigrationKey],
       );
     }
 

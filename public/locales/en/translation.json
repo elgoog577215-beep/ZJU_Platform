@@ -1969,6 +1969,23 @@
     "id": "ID",
     "actions": "Actions",
     "ecosystem_partners": {
+      "page_description": "Manage organization and enterprise identities, separating ecosystem/competition partners from activity providers.",
+      "list_description": "Lower sort values appear earlier. Ecosystem/competition partners power the home, about, and hackathon endorsement modules; activity providers only power event-page matching.",
+      "metrics": {
+        "core_display": "Ecosystem/Competition Partners",
+        "not_core": "Activity Providers"
+      },
+      "scope": {
+        "table_header": "Identity Level",
+        "collected": "Activity Directory Included",
+        "not_collected": "Not in Activity Directory",
+        "core_display": "Ecosystem/Competition Partner",
+        "collection_only": "Activity Provider",
+        "core_display_full": "Ecosystem/Competition Partner",
+        "not_core_display": "Activity Provider",
+        "core_enabled_toast": "Marked as an ecosystem/competition partner",
+        "core_disabled_toast": "Marked as an activity provider"
+      },
       "fields": {
         "name_en": "English name",
         "description_en": "English description",

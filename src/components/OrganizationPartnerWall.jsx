@@ -119,7 +119,7 @@ const OrganizationPartnerWall = ({
   const visiblePartners = useMemo(
     () =>
       partners
-        .filter((partner) => partner?.enabled !== false && partner?.featured !== false),
+        .filter((partner) => partner?.enabled !== false && partner?.enabled !== 0),
     [partners],
   );
   const desktopPreviewPartners = useMemo(

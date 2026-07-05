@@ -19,7 +19,10 @@ import toast from "react-hot-toast";
 
 import api from "../../services/api";
 import {
+  ACTIVITY_PROVIDER_SCOPE,
+  CORE_PARTNER_SCOPE,
   ECOSYSTEM_PARTNER_CATEGORIES,
+  normalizePartnerScope,
   sortEcosystemPartners,
 } from "../../data/partnerLogos";
 import { notifyEcosystemPartnersUpdated } from "../../hooks/useEcosystemPartners";
@@ -77,6 +80,7 @@ const emptyForm = {
   sort_order: 0,
   enabled: true,
   featured: true,
+  partner_scope: CORE_PARTNER_SCOPE,
 };
 
 const syncPublicPartnerViews = () => {
@@ -85,8 +89,20 @@ const syncPublicPartnerViews = () => {
 
 const sortAdminPartners = (items = []) => sortEcosystemPartners(items);
 
+const isCollected = (partner) => partner.enabled !== false && partner.enabled !== 0;
+
+const getPartnerScope = (partner) =>
+  normalizePartnerScope(
+    partner.partner_scope || partner.partnerScope || partner.scope,
+    partner.featured === false || partner.featured === 0
+      ? ACTIVITY_PROVIDER_SCOPE
+      : CORE_PARTNER_SCOPE,
+  );
+
+const isCorePartner = (partner) => getPartnerScope(partner) === CORE_PARTNER_SCOPE;
+
 const isPublicVisible = (partner) =>
-  partner.enabled !== false && partner.featured !== false;
+  isCollected(partner) && isCorePartner(partner);
 
 const profileTypeForPartnerCategory = (category) => {
   if (category === "school") return "school";
@@ -124,8 +140,9 @@ const normalizeForm = (partner = emptyForm) => ({
   dark_logo_url: partner.dark_logo_url || "",
   link_url: partner.link_url || "",
   sort_order: Number.parseInt(partner.sort_order ?? 0, 10) || 0,
-  enabled: isPublicVisible(partner),
-  featured: isPublicVisible(partner),
+  enabled: isCollected(partner),
+  featured: isCorePartner(partner),
+  partner_scope: getPartnerScope(partner),
 });
 
 const EcosystemPartnerManager = () => {
@@ -219,7 +236,21 @@ const EcosystemPartnerManager = () => {
   };
 
   const updateFormVisibility = (visible) => {
-    setForm((previous) => ({ ...previous, enabled: visible, featured: visible }));
+    setForm((previous) => ({
+      ...previous,
+      partner_scope: visible ? CORE_PARTNER_SCOPE : ACTIVITY_PROVIDER_SCOPE,
+      featured: visible,
+      enabled: visible ? true : previous.enabled,
+    }));
+  };
+
+  const updateFormCollection = (enabled) => {
+    setForm((previous) => ({
+      ...previous,
+      enabled,
+      partner_scope: enabled ? previous.partner_scope : ACTIVITY_PROVIDER_SCOPE,
+      featured: enabled ? previous.featured : false,
+    }));
   };
 
   const openCreate = () => {
@@ -261,8 +292,8 @@ const EcosystemPartnerManager = () => {
       cooperation_direction: partnerPayload.cooperation_direction,
       cooperation_direction_en: partnerPayload.cooperation_direction_en,
       link_url: partnerPayload.link_url,
-      verified: partnerPayload.enabled && partnerPayload.featured,
-      status: partnerPayload.enabled && partnerPayload.featured ? "active" : "inactive",
+      verified: partnerPayload.enabled,
+      status: partnerPayload.enabled ? "active" : "inactive",
       aliases,
     });
 
@@ -332,8 +363,9 @@ const EcosystemPartnerManager = () => {
       dark_logo_url: form.dark_logo_url.trim(),
       link_url: form.link_url.trim(),
       sort_order: Number.parseInt(form.sort_order, 10) || 0,
-      enabled: isPublicVisible(form),
+      enabled: isCollected(form),
       featured: isPublicVisible(form),
+      partner_scope: isPublicVisible(form) ? CORE_PARTNER_SCOPE : ACTIVITY_PROVIDER_SCOPE,
     };
 
     try {
@@ -372,8 +404,9 @@ const EcosystemPartnerManager = () => {
     try {
       const response = await api.put(`/admin/ecosystem-partners/${partner.id}`, {
         ...normalizeForm(partner),
-        enabled: nextVisible,
+        enabled: nextVisible ? true : isCollected(partner),
         featured: nextVisible,
+        partner_scope: nextVisible ? CORE_PARTNER_SCOPE : ACTIVITY_PROVIDER_SCOPE,
       });
       setPartners((previous) =>
         sortAdminPartners(
@@ -381,7 +414,11 @@ const EcosystemPartnerManager = () => {
         ),
       );
       syncPublicPartnerViews();
-      toast.success(nextVisible ? "已展示到前台" : "已转为后台保留");
+      toast.success(
+        nextVisible
+          ? t("admin.ecosystem_partners.scope.core_enabled_toast", "已标为生态/比赛合作方")
+          : t("admin.ecosystem_partners.scope.core_disabled_toast", "已标为活动提供方"),
+      );
     } catch (error) {
       toast.error(error.response?.data?.error || "更新状态失败");
     }
@@ -495,7 +532,9 @@ const EcosystemPartnerManager = () => {
         }`}
       >
         <Icon size={16} />
-        {visible ? "前台展示" : "后台保留"}
+        {visible
+          ? t("admin.ecosystem_partners.scope.core_display", "生态/比赛合作方")
+          : t("admin.ecosystem_partners.scope.collection_only", "活动提供方")}
       </button>
     );
   };
@@ -563,7 +602,10 @@ const EcosystemPartnerManager = () => {
     <>
       <AdminPageShell
         title="生态伙伴管理"
-        description="统一维护学校支持、社团协作与企业生态；保存后会同步影响首页、关于页和黑客松页面。"
+        description={t(
+          "admin.ecosystem_partners.page_description",
+          "统一维护组织与企业主体，区分生态/比赛合作方和活动提供方。",
+        )}
         actions={
           <>
             <AdminButton tone="subtle" onClick={fetchPartners}>
@@ -629,13 +671,13 @@ const EcosystemPartnerManager = () => {
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
           <AdminMetricCard label="合作方" value={stats.total} icon={Handshake} />
           <AdminMetricCard
-            label="前台展示"
+            label={t("admin.ecosystem_partners.metrics.core_display", "生态/比赛合作方")}
             value={stats.visible}
             icon={Eye}
             tone="emerald"
           />
           <AdminMetricCard
-            label="后台保留"
+            label={t("admin.ecosystem_partners.metrics.not_core", "活动提供方")}
             value={stats.hidden}
             icon={EyeOff}
             tone="violet"
@@ -656,7 +698,10 @@ const EcosystemPartnerManager = () => {
 
         <AdminPanel
           title={`合作方列表 (${filteredPartners.length})`}
-          description="排序数值越小越靠前；关闭“前台展示”会保留资料，但不会出现在公开页面。"
+          description={t(
+            "admin.ecosystem_partners.list_description",
+            "排序数值越小越靠前；生态/比赛合作方用于首页、关于页和黑客松背书模块，活动提供方只用于活动页匹配。",
+          )}
         >
           {filteredPartners.length === 0 ? (
             <AdminEmptyState
@@ -675,7 +720,9 @@ const EcosystemPartnerManager = () => {
                     <th className="p-4">分类</th>
                     <th className="p-4">说明</th>
                     <th className="p-4">排序</th>
-                    <th className="p-4">前台状态</th>
+                    <th className="p-4">
+                      {t("admin.ecosystem_partners.scope.table_header", "展示层级")}
+                    </th>
                     <th className="p-4 text-right">操作</th>
                   </tr>
                 </thead>
@@ -1005,9 +1052,9 @@ const EcosystemPartnerManager = () => {
           <div className="grid gap-2">
             <button
               type="button"
-              onClick={() => updateFormVisibility(!isPublicVisible(form))}
+              onClick={() => updateFormCollection(!isCollected(form))}
               className={`flex min-h-11 items-center justify-between rounded-xl border px-3 text-sm font-semibold ${
-                isPublicVisible(form)
+                isCollected(form)
                   ? isDayMode
                     ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-700"
                     : "border-emerald-500/20 bg-emerald-500/10 text-emerald-200"
@@ -1016,7 +1063,27 @@ const EcosystemPartnerManager = () => {
                     : "border-white/10 bg-white/5 text-gray-400"
               }`}
             >
-              {isPublicVisible(form) ? "前台展示" : "后台保留"}
+              {isCollected(form)
+                ? t("admin.ecosystem_partners.scope.collected", "活动聚合收录")
+                : t("admin.ecosystem_partners.scope.not_collected", "不参与活动聚合")}
+              {isCollected(form) ? <Check size={16} /> : <X size={16} />}
+            </button>
+            <button
+              type="button"
+              onClick={() => updateFormVisibility(!isPublicVisible(form))}
+              className={`flex min-h-11 items-center justify-between rounded-xl border px-3 text-sm font-semibold ${
+                isPublicVisible(form)
+                  ? isDayMode
+                    ? "border-cyan-500/20 bg-cyan-500/10 text-cyan-700"
+                    : "border-cyan-500/20 bg-cyan-500/10 text-cyan-200"
+                  : isDayMode
+                    ? "border-slate-200 bg-slate-50 text-slate-500"
+                    : "border-white/10 bg-white/5 text-gray-400"
+              }`}
+            >
+              {isPublicVisible(form)
+                ? t("admin.ecosystem_partners.scope.core_display_full", "生态/比赛合作方")
+                : t("admin.ecosystem_partners.scope.not_core_display", "活动提供方")}
               {isPublicVisible(form) ? <Check size={16} /> : <X size={16} />}
             </button>
           </div>

@@ -1972,6 +1972,23 @@
     "id": "ID",
     "actions": "操作",
     "ecosystem_partners": {
+      "page_description": "统一维护组织与企业主体，区分生态/比赛合作方和活动提供方。",
+      "list_description": "排序数值越小越靠前；生态/比赛合作方用于首页、关于页和黑客松背书模块，活动提供方只用于活动页匹配。",
+      "metrics": {
+        "core_display": "生态/比赛合作方",
+        "not_core": "活动提供方"
+      },
+      "scope": {
+        "table_header": "身份层级",
+        "collected": "活动聚合收录",
+        "not_collected": "不参与活动聚合",
+        "core_display": "生态/比赛合作方",
+        "collection_only": "活动提供方",
+        "core_display_full": "生态/比赛合作方",
+        "not_core_display": "活动提供方",
+        "core_enabled_toast": "已标为生态/比赛合作方",
+        "core_disabled_toast": "已标为活动提供方"
+      },
       "fields": {
         "name_en": "英文名称",
         "description_en": "英文简介",

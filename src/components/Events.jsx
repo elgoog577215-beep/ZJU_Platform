@@ -934,7 +934,7 @@ const Events = () => {
   const { t, i18n } = useTranslation();
   const { settings, uiMode } = useSettings();
   const { user } = useAuth();
-  const { organizationPartners } = useEcosystemPartners();
+  const { eventOrganizationPartners } = useEcosystemPartners();
   const prefersReducedMotion = useReducedMotion();
   const isDayMode = uiMode === "day";
   const [searchParams] = useSearchParams();
@@ -1660,7 +1660,7 @@ END:VCALENDAR`;
         </div>
 
         <OrganizationPartnerWall
-          partners={organizationPartners}
+          partners={eventOrganizationPartners}
           isDayMode={isDayMode}
           className={`${EVENT_FILTER_WIDTH_CLASS} mb-3 text-left md:mb-4`}
           onApplyPartnerFilter={handleApplyPartnerFilter}

@@ -64,7 +64,10 @@ const getEcosystemPartnerNames = async (db) => {
       FROM ecosystem_partners
       WHERE deleted_at IS NULL
         AND enabled = 1
-        AND featured = 1
+        AND COALESCE(
+          NULLIF(partner_scope, ''),
+          CASE WHEN COALESCE(featured, 1) = 1 THEN 'core_partner' ELSE 'activity_provider' END
+        ) = 'core_partner'
       ORDER BY
         CASE category
           WHEN 'school' THEN 1

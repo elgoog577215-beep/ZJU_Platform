@@ -2,6 +2,8 @@ import { useEffect, useMemo } from "react";
 
 import { useCachedResource } from "./useCachedResource";
 import {
+  ACTIVITY_PROVIDER_SCOPE,
+  CORE_PARTNER_SCOPE,
   chunkPartners,
   defaultEcosystemPartners,
   getPartnersByCategory,
@@ -12,7 +14,7 @@ import {
 } from "../data/partnerLogos";
 
 export const ECOSYSTEM_PARTNERS_UPDATED_EVENT = "ecosystem-partners:updated";
-const ECOSYSTEM_PARTNERS_CACHE_PREFIX = "ecosystem-partners:v2:";
+const ECOSYSTEM_PARTNERS_CACHE_PREFIX = "ecosystem-partners:v3:";
 const ECOSYSTEM_PARTNERS_CHANNEL = "ecosystem-partners";
 
 export const clearEcosystemPartnersCache = () => {
@@ -67,7 +69,17 @@ export const useEcosystemPartners = () => {
     [data, shouldUseFallback],
   );
   const groups = useMemo(
-    () => groupEcosystemPartners(partners).filter((group) => group.partners.length > 0),
+    () =>
+      groupEcosystemPartners(partners, { scope: CORE_PARTNER_SCOPE }).filter(
+        (group) => group.partners.length > 0,
+      ),
+    [partners],
+  );
+  const activityDirectoryGroups = useMemo(
+    () =>
+      groupEcosystemPartners(partners, { scope: null }).filter(
+        (group) => group.partners.length > 0,
+      ),
     [partners],
   );
   const schoolPartners = useMemo(
@@ -76,6 +88,22 @@ export const useEcosystemPartners = () => {
   );
   const organizationPartners = useMemo(
     () => getPartnersByCategory(partners, "organization"),
+    [partners],
+  );
+  const eventOrganizationPartners = useMemo(
+    () =>
+      getPartnersByCategory(partners, "organization", {
+        featuredOnly: false,
+        scope: null,
+      }),
+    [partners],
+  );
+  const activityProviderOrganizationPartners = useMemo(
+    () =>
+      getPartnersByCategory(partners, "organization", {
+        featuredOnly: false,
+        scope: ACTIVITY_PROVIDER_SCOPE,
+      }),
     [partners],
   );
   const enterprisePartners = useMemo(
@@ -122,8 +150,11 @@ export const useEcosystemPartners = () => {
   return {
     partners,
     groups,
+    activityDirectoryGroups,
     schoolPartners,
     organizationPartners,
+    eventOrganizationPartners,
+    activityProviderOrganizationPartners,
     enterprisePartners,
     enterpriseLogos,
     enterpriseLogoRows,
