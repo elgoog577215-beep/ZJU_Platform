@@ -1,0 +1,55 @@
+.home-page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 112rpx 40rpx 56rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 28rpx;
+  background: #f8fafc;
+}
+
+.home-card {
+  border: 1rpx solid rgba(15, 23, 42, 0.1);
+  background: #ffffff;
+  padding: 44rpx 40rpx;
+  box-shadow: 0 24rpx 80rpx rgba(15, 23, 42, 0.08);
+}
+
+.home-kicker {
+  color: #0f766e;
+  font-size: 22rpx;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.home-title {
+  margin-top: 20rpx;
+  color: #0f172a;
+  font-size: 48rpx;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.home-desc {
+  margin-top: 20rpx;
+  color: #475569;
+  font-size: 28rpx;
+  line-height: 1.65;
+}
+
+.home-origin {
+  margin-top: 28rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 8rpx;
+  background: #ecfeff;
+  color: #155e75;
+  font-size: 24rpx;
+  font-weight: 700;
+  word-break: break-all;
+}
+
+.home-actions {
+  display: grid;
+  gap: 18rpx;
+}

@@ -1,5 +1,6 @@
 {
   "pages": [
+    "pages/home/index",
     "pages/webview/index",
     "pages/login/index",
     "pages/subscribe/index",
