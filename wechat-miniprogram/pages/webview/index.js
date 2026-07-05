@@ -7,10 +7,13 @@ Page({
 
   loadTimer: null,
 
-  onLoad(options = {}) {
-    const targetPath = options.path || options.url || DEFAULT_PATH;
+  onLoad(options) {
+    const params = options || {};
+    const targetPath = params.path || params.url || DEFAULT_PATH;
+    const src = buildWebViewUrl(targetPath);
+    console.info("[tuotuzju-miniprogram] webview onLoad", src);
     this.setData({
-      src: buildWebViewUrl(targetPath),
+      src,
     });
 
     this.loadTimer = setTimeout(() => {
@@ -43,7 +46,7 @@ Page({
 
   onShareAppMessage() {
     return {
-      title: "拓途浙享",
+      title: "Tuotu ZJU",
       path: "/pages/webview/index",
     };
   },

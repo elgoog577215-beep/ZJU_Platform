@@ -3,9 +3,10 @@ Page({
     reason: "load",
   },
 
-  onLoad(options = {}) {
+  onLoad(options) {
+    const params = options || {};
     this.setData({
-      reason: options.reason || "load",
+      reason: params.reason || "load",
     });
   },
 

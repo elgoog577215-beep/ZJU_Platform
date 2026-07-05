@@ -1,13 +1,14 @@
 {
   "pages": [
-    "pages/home/index",
+    "pages/index/index",
     "pages/webview/index",
+    "pages/home/index",
     "pages/login/index",
     "pages/subscribe/index",
     "pages/fallback/index"
   ],
   "window": {
-    "navigationBarTitleText": "拓途浙享",
+    "navigationBarTitleText": "Tuotu ZJU",
     "navigationBarBackgroundColor": "#ffffff",
     "navigationBarTextStyle": "black",
     "backgroundColor": "#f8fafc"

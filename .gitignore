@@ -1,5 +1,8 @@
 # Node dependencies
 node_modules/
+
+# WeChat DevTools local private config
+wechat-miniprogram/project.private.config.json
 server/node_modules/
 
 # Build outputs

@@ -3,9 +3,10 @@ Page({
     redirect: "",
   },
 
-  onLoad(options = {}) {
+  onLoad(options) {
+    const params = options || {};
     this.setData({
-      redirect: options.redirect || "",
+      redirect: params.redirect || "",
     });
   },
 

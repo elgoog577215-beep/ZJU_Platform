@@ -3,9 +3,10 @@ Page({
     eventId: "",
   },
 
-  onLoad(options = {}) {
+  onLoad(options) {
+    const params = options || {};
     this.setData({
-      eventId: options.eventId || "",
+      eventId: params.eventId || "",
     });
   },
 

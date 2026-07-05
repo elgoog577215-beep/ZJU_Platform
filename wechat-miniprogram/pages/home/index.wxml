@@ -1,15 +1,15 @@
 <view class="home-page">
   <view class="home-card">
     <view class="home-kicker">TUOTUZJU MINI PROGRAM</view>
-    <view class="home-title">拓途浙享</view>
+    <view class="home-title">Tuotu ZJU</view>
     <view class="home-desc">
-      当前为微信小程序原生入口。若你能看到这一页，说明小程序编译和原生渲染正常，黑屏问题集中在 WebView 域名、证书或远程页面加载阶段。
+      Native diagnostic entry. If this page is visible, the mini program shell is compiling and rendering correctly.
     </view>
     <view class="home-origin">{{webOrigin}}</view>
   </view>
 
   <view class="home-actions">
-    <button class="bridge-button primary" bindtap="openEvents">打开活动聚合</button>
-    <button class="bridge-button secondary" bindtap="openFallback">打开诊断页</button>
+    <button class="bridge-button primary" bindtap="openEvents">Open Events</button>
+    <button class="bridge-button secondary" bindtap="openFallback">Open Diagnostic</button>
   </view>
 </view>
