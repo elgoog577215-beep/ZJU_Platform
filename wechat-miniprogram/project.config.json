@@ -1,0 +1,14 @@
+{
+  "appid": "touristappid",
+  "projectname": "tuotuzju-webview-miniapp",
+  "description": "拓途浙享微信小程序 WebView 壳工程",
+  "miniprogramRoot": "./",
+  "compileType": "miniprogram",
+  "setting": {
+    "urlCheck": true,
+    "es6": true,
+    "postcss": true,
+    "minified": true,
+    "enhance": true
+  }
+}

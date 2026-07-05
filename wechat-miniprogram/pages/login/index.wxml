@@ -1,0 +1,12 @@
+<view class="bridge-page">
+  <view class="bridge-card">
+    <view class="bridge-kicker">WECHAT LOGIN</view>
+    <view class="bridge-title">微信登录桥接待配置</view>
+    <view class="bridge-desc">
+      后续这里会调用 wx.login，并由后端使用 code2Session 换取 openid。当前版本先保留桥接入口，不在仓库中写入 AppSecret。
+    </view>
+  </view>
+  <view class="bridge-actions">
+    <button class="bridge-button primary" bindtap="openHome">返回活动入口</button>
+  </view>
+</view>

@@ -5,8 +5,9 @@ import './index.css';
 import './i18n'; // Import i18n configuration
 import ErrorBoundary from './components/ErrorBoundary';
 import { useRegisterSW } from 'virtual:pwa-register/react';
+import { isMiniProgramWebView } from './utils/miniProgramEnv';
 
-const PWAUpdater = () => {
+const PWAUpdaterRuntime = () => {
   const { needRefresh, updateServiceWorker } = useRegisterSW();
 
   React.useEffect(() => {
@@ -21,6 +22,11 @@ const PWAUpdater = () => {
     }
   }, [needRefresh, updateServiceWorker]);
   return null;
+};
+
+const PWAUpdater = () => {
+  if (isMiniProgramWebView()) return null;
+  return <PWAUpdaterRuntime />;
 };
 
 ReactDOM.createRoot(document.getElementById('root')).render(

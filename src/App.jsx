@@ -21,6 +21,12 @@ import { usePerformanceMonitor } from './hooks/usePerformanceMonitor';
 import { useServiceWorker } from './hooks/useServiceWorker';
 import { routeTransition, useReducedMotion } from './utils/animations';
 import { isAppRuntime as detectAppRuntime } from './utils/displayMode';
+import {
+  isMiniProgramBlockedPath,
+  isMiniProgramWebView as detectMiniProgramWebView,
+  rememberMiniProgramWebView,
+  toMiniProgramPath,
+} from './utils/miniProgramEnv';
 import { getOrCreateSiteVisitorKey } from './utils/visitorKey';
 import SEO from './components/SEO';
 
@@ -233,6 +239,7 @@ const AppContent = () => {
   const [shouldMountSearchPalette, setShouldMountSearchPalette] = useState(false);
   const [isLowPowerDevice, setIsLowPowerDevice] = useState(false);
   const [isAppRuntime, setIsAppRuntime] = useState(false);
+  const [isMiniProgramMode, setIsMiniProgramMode] = useState(() => detectMiniProgramWebView());
   const shouldRenderDynamicBackground =
     !isAdminRoute &&
     !isImmersiveRoute &&
@@ -240,10 +247,11 @@ const AppContent = () => {
     !prefersReducedMotion &&
     !isLowPowerDevice &&
     !isAppRuntime &&
+    !isMiniProgramMode &&
     shouldMountDeferredUi;
   const shouldMountGlobalPlayer = Boolean(currentTrack && isMiniPlayerVisible);
 
-  useServiceWorker();
+  useServiceWorker({ enabled: !isMiniProgramMode });
 
   usePerformanceMonitor({
     enabled: import.meta.env.PROD,
@@ -277,6 +285,11 @@ const AppContent = () => {
       fullscreenQuery?.removeEventListener?.('change', updateDisplayMode);
     };
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    setIsMiniProgramMode(rememberMiniProgramWebView());
+  }, [location.search]);
 
   useEffect(() => {
     if (settings?.site_title) {
@@ -320,6 +333,10 @@ const AppContent = () => {
     window.sessionStorage.setItem(sessionVisitKey, '1');
   }, [isAdminRoute, location.pathname]);
 
+  if (isMiniProgramMode && isMiniProgramBlockedPath(location.pathname)) {
+    return <Navigate to={toMiniProgramPath('/events')} replace />;
+  }
+
   return (
     <div
       className={`day-ambient-shell flex min-h-screen flex-col ${
@@ -343,7 +360,7 @@ const AppContent = () => {
         </a>
         {!hideGlobalShell && (
           <ErrorBoundary variant="inline" silent>
-            <Navbar />
+            <Navbar miniProgramMode={isMiniProgramMode} />
           </ErrorBoundary>
         )}
         {!hideGlobalShell && !isAdminRoute && cursorEnabled && hasDesktopPointer && !prefersReducedMotion && !isLowPowerDevice && shouldMountDeferredUi && (

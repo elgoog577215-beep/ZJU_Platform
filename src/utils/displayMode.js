@@ -1,3 +1,5 @@
+import { isMiniProgramWebView } from "./miniProgramEnv";
+
 export const isTrustedWebActivity = () => {
   if (typeof document === "undefined") return false;
   return document.referrer?.startsWith("android-app://");
@@ -34,4 +36,5 @@ export const isStandaloneDisplay = () => {
   );
 };
 
-export const isAppRuntime = () => isStandaloneDisplay() || isAndroidWebView();
+export const isAppRuntime = () =>
+  isStandaloneDisplay() || isAndroidWebView() || isMiniProgramWebView();

@@ -1,0 +1,12 @@
+<view class="bridge-page">
+  <view class="bridge-card">
+    <view class="bridge-kicker">WECHAT WEBVIEW</view>
+    <view class="bridge-title">页面暂时无法打开</view>
+    <view class="bridge-desc">
+      可能是网络波动、业务域名尚未配置，或当前路径不在小程序开放范围内。你可以返回活动入口重新加载。
+    </view>
+  </view>
+  <view class="bridge-actions">
+    <button class="bridge-button primary" bindtap="openHome">返回活动入口</button>
+  </view>
+</view>

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { useSettings } from "../context/SettingsContext";
 import { isStandaloneDisplay } from "../utils/displayMode";
+import { isMiniProgramWebView } from "../utils/miniProgramEnv";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 
 const PWAInstallPrompt = () => {
@@ -16,6 +17,8 @@ const PWAInstallPrompt = () => {
   const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
+    if (isMiniProgramWebView()) return undefined;
+
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
@@ -66,7 +69,7 @@ const PWAInstallPrompt = () => {
 
   return (
     <AnimatePresence>
-      {showPrompt && !isStandalone && (
+      {showPrompt && !isStandalone && !isMiniProgramWebView() && (
         <motion.div
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}

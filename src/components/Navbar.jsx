@@ -51,7 +51,7 @@ const Portal = ({ children }) => {
 const AuthModal = lazy(() => import("./AuthModal"));
 const NotificationCenter = lazy(() => import("./NotificationCenter"));
 
-const Navbar = () => {
+const Navbar = ({ miniProgramMode = false }) => {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isThemeOpen, setIsThemeOpen] = useState(false);
   const [isMobileMoreOpen, setIsMobileMoreOpen] = useState(false);
@@ -133,8 +133,8 @@ const Navbar = () => {
     { key: "projects", path: "/projects" },
     { key: "media", path: "/media" },
     { key: "about", path: "/about" },
-    { key: "download", path: "/download" },
-    ...(isAdmin ? [{ key: "admin", path: "/admin" }] : []),
+    ...(!miniProgramMode ? [{ key: "download", path: "/download" }] : []),
+    ...(!miniProgramMode && isAdmin ? [{ key: "admin", path: "/admin" }] : []),
   ];
   const isNavItemActive = (path) => {
     if (path === "/hackathon") return location.pathname.startsWith("/hackathon");
@@ -238,9 +238,9 @@ const Navbar = () => {
     !location.pathname.startsWith("/user/");
   const secondaryMobileLinks = [
     { key: "media", path: "/media", icon: Film },
-    { key: "download", path: "/download", icon: Smartphone },
     { key: "about", path: "/about", icon: Info },
-    ...(isAdmin ? [{ key: "admin", path: "/admin", icon: Shield }] : []),
+    ...(!miniProgramMode ? [{ key: "download", path: "/download", icon: Smartphone }] : []),
+    ...(!miniProgramMode && isAdmin ? [{ key: "admin", path: "/admin", icon: Shield }] : []),
   ];
   const nextUiMode = isDayMode ? "dark" : "day";
   const themeToggleLabel = t(

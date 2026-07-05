@@ -49,4 +49,17 @@ export default [
       'react-hooks/set-state-in-effect': 'off',
     },
   },
+  {
+    files: ['wechat-miniprogram/**/*.js'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: {
+        App: 'readonly',
+        Page: 'readonly',
+        Component: 'readonly',
+        getApp: 'readonly',
+        wx: 'readonly',
+      },
+    },
+  },
 ];

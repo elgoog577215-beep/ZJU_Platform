@@ -1,16 +1,29 @@
 import { useEffect } from "react";
+import { isMiniProgramWebView } from "../utils/miniProgramEnv";
 
 /**
  * Service Worker 注册 Hook
  * 用于注册 PWA Service Worker
  */
-export const useServiceWorker = () => {
+export const useServiceWorker = ({ enabled = true } = {}) => {
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
     if (!("serviceWorker" in navigator)) {
       return;
     }
 
     const registerSW = async () => {
+      if (isMiniProgramWebView()) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(
+          registrations.map((registration) => registration.unregister()),
+        );
+        return;
+      }
+
       if (import.meta.env.DEV) {
         const registrations = await navigator.serviceWorker.getRegistrations();
         await Promise.all(
@@ -48,7 +61,7 @@ export const useServiceWorker = () => {
     };
 
     registerSW();
-  }, []);
+  }, [enabled]);
 };
 
 /**

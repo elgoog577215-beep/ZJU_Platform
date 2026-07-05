@@ -1,0 +1,12 @@
+<view class="bridge-page">
+  <view class="bridge-card">
+    <view class="bridge-kicker">SUBSCRIBE</view>
+    <view class="bridge-title">活动提醒桥接待配置</view>
+    <view class="bridge-desc">
+      后续这里会调用 wx.requestSubscribeMessage，并把用户主动订阅的活动提醒意图同步到后端。当前版本先保留桥接入口。
+    </view>
+  </view>
+  <view class="bridge-actions">
+    <button class="bridge-button primary" bindtap="openHome">返回活动入口</button>
+  </view>
+</view>

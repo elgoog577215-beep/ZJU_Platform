@@ -1,0 +1,16 @@
+{
+  "pages": [
+    "pages/webview/index",
+    "pages/login/index",
+    "pages/subscribe/index",
+    "pages/fallback/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "拓途浙享",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f8fafc"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}
