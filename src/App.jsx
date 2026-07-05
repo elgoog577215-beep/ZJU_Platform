@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useEffect, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   BrowserRouter as Router,
@@ -6,6 +6,7 @@ import {
   Route,
   Navigate,
   useLocation,
+  useNavigate,
   useParams,
 } from 'react-router-dom';
 import { useAuth, AuthProvider } from './context/AuthContext';
@@ -38,6 +39,8 @@ import HomeSplash from './components/HomeSplash';
 
 const CHUNK_RECOVERY_RELOAD_KEY = 'tuotu:chunk-recovery:reload-attempted';
 const STALE_CHUNK_CACHE_NAMES = new Set(['js-chunk-cache', 'css-chunk-cache']);
+const WECHAT_LOGIN_TOKEN_QUERY = 'wechat_login_token';
+const WECHAT_LOGIN_ERROR_QUERY = 'wechat_login_error';
 
 const isDynamicImportFetchError = (error) => {
   const message = String(error?.message || error || '');
@@ -221,6 +224,47 @@ const AdminRoute = ({ children }) => {
   return children;
 };
 
+const MiniProgramAuthReturn = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { loginWithToken } = useAuth();
+  const consumedReturnRef = useRef('');
+
+  useEffect(() => {
+    const returnKey = `${location.pathname}${location.search}${location.hash || ''}`;
+    const params = new URLSearchParams(location.search);
+    const token = params.get(WECHAT_LOGIN_TOKEN_QUERY);
+    const loginError = params.get(WECHAT_LOGIN_ERROR_QUERY);
+
+    if (!token && !loginError) {
+      return;
+    }
+
+    if (consumedReturnRef.current === returnKey) {
+      return;
+    }
+    consumedReturnRef.current = returnKey;
+
+    params.delete(WECHAT_LOGIN_TOKEN_QUERY);
+    params.delete(WECHAT_LOGIN_ERROR_QUERY);
+    const nextSearch = params.toString();
+    navigate(`${location.pathname}${nextSearch ? `?${nextSearch}` : ''}${location.hash || ''}`, { replace: true });
+
+    if (loginError) {
+      window.setTimeout(() => window.dispatchEvent(new Event('open-auth-modal')), 0);
+      return;
+    }
+
+    loginWithToken(token, { source: 'wechat-miniapp' }).then((success) => {
+      if (!success) {
+        window.dispatchEvent(new Event('open-auth-modal'));
+      }
+    });
+  }, [location.hash, location.pathname, location.search, loginWithToken, navigate]);
+
+  return null;
+};
+
 const AppContent = () => {
   const location = useLocation();
   const { t } = useTranslation();
@@ -344,6 +388,7 @@ const AppContent = () => {
       }`}
     >
       <ResourceHints />
+      <MiniProgramAuthReturn />
       {shouldRenderDynamicBackground && (
         <ErrorBoundary variant="inline" silent>
           <Suspense fallback={null}>

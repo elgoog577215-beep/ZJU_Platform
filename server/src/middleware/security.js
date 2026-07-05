@@ -21,6 +21,7 @@ const helmetConfig = {
       scriptSrc: [
         "'self'",
         "'unsafe-inline'",
+        "https://res.wx.qq.com",
         ...(process.env.NODE_ENV !== 'production' ? ["'unsafe-eval'"] : [])
       ],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],

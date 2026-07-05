@@ -52,19 +52,24 @@
 
 微信登录、订阅消息等原生能力 SHALL 由小程序原生页面承载，网页不得直接保存微信密钥或假设可以调用全部 `wx.*` API。
 
-#### Scenario: 登录桥接尚未配置
+#### Scenario: 登录桥接服务端未配置
 
 - **GIVEN** 用户进入登录桥接页
-- **WHEN** 小程序尚未配置真实 AppID、AppSecret 和后端登录接口
-- **THEN** 小程序 SHALL 展示能力待配置提示
+- **WHEN** 后端尚未配置真实 `WECHAT_MINIAPP_APPID` 或 `WECHAT_MINIAPP_SECRET`
+- **THEN** 小程序 SHALL 展示登录暂不可用提示
 - **THEN** 用户 SHALL 能返回 WebView 主页面
 
-#### Scenario: 后续接入真实微信登录
+#### Scenario: 用户使用微信账号登录
 
-- **GIVEN** 小程序已配置微信登录
-- **WHEN** 原生页调用 `wx.login`
+- **GIVEN** 用户在小程序 WebView 中打开网站登录弹窗
+- **WHEN** 用户点击“微信一键登录”
+- **THEN** 网站 SHALL 跳转到小程序原生登录页
+- **THEN** 原生页 SHALL 调用 `wx.login`
 - **THEN** code SHALL 发送到后端
 - **THEN** 后端 SHALL 使用 AppSecret 调用 `code2Session`
+- **THEN** 后端 SHALL 绑定 openid 到现有 `users` 账号并签发现有 JWT
+- **THEN** 小程序 SHALL 回到原 WebView 路径
+- **THEN** 网站 SHALL 消费登录 token、刷新 `/auth/me` 并清理 URL 中的 token
 - **THEN** 小程序端和网页端 MUST NOT 暴露 AppSecret
 
 ### Requirement: 小程序工程不得包含微信敏感凭据

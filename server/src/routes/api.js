@@ -103,6 +103,7 @@ router.post('/auth/register', validate(registerValidation), authController.regis
 // FIX: BUG-04 — Mount bruteForceProtection on login routes
 router.post('/auth/login', bruteForceProtection, validate(loginValidation), authController.login);
 router.post('/auth/admin-login', bruteForceProtection, authController.adminLogin);
+router.post('/auth/wechat-miniapp/login', bruteForceProtection, authController.wechatMiniappLogin);
 router.get('/auth/me', authenticateToken, authController.me);
 router.post('/auth/change-password', authenticateToken, validate(changePasswordValidation), authController.changePassword);
 router.put('/auth/profile', authenticateToken, (req, res) => {

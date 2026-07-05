@@ -57,13 +57,27 @@
 
 ## 4. 原生桥接页
 
-第一期先提供桥接页骨架，不绑定真实微信密钥：
+第一期保留“WebView 承载主体 + 原生页调用微信 API”的边界：
 
-- `pages/login/index`：后续用于 `wx.login`，当前提示桥接能力待配置。
-- `pages/subscribe/index`：后续用于 `wx.requestSubscribeMessage`，当前提示订阅能力待配置。
+- `pages/login/index`：承载微信登录。网页登录弹窗在小程序环境中跳转到该页，该页调用 `wx.login` 获取 code，再请求后端 `/api/auth/wechat-miniapp/login`。
+- `pages/subscribe/index`：后续用于 `wx.requestSubscribeMessage`，当前仍作为订阅能力占位页。
 - `pages/fallback/index`：加载失败、路径非法或能力未配置时兜底。
 
-后续接入真实微信登录时，必须由后端使用 `AppSecret` 调用 `code2Session`，网页和小程序端不得保存或暴露 `AppSecret`。
+微信登录链路：
+
+1. 网站登录弹窗在 `miniapp=1` 会话中展示“微信一键登录”。
+2. 网页通过微信 JSSDK 的 `wx.miniProgram.navigateTo` 进入 `pages/login/index`。
+3. 原生页调用 `wx.login`，只把临时 code 发给后端。
+4. 后端从环境变量读取 `WECHAT_MINIAPP_APPID` 和 `WECHAT_MINIAPP_SECRET`，调用 `code2Session` 换取 openid。
+5. 后端用 `wechat_miniapp_identities` 绑定 openid 与现有 `users` 记录；若首次登录，则创建普通用户。
+6. 后端签发现有 JWT，小程序把 token 带回允许的 WebView 路径。
+7. React 应用消费 `wechat_login_token` 后立即清理 URL，并通过 `/auth/me` 刷新登录态。
+
+安全边界：
+
+- `AppSecret` 只存在于服务端环境变量，不进入前端、小程序包或 Git。
+- 小程序端不保存 `session_key`；后端也只保存 `session_key_hash` 便于后续排查和轮换。
+- 当前 MVP 为了复用现有登录态，回跳时短暂携带 JWT query；React 首屏消费后会 `replace` 清理。后续若要进一步收紧，可将该 query 替换成一次性 web ticket。
 
 ## 5. 域名与配置
 

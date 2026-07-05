@@ -1,1 +1,12 @@
 /* Shared styles live in app.wxss. */
+
+.login-error {
+  margin-top: 24rpx;
+  padding: 20rpx 24rpx;
+  border: 1rpx solid rgba(220, 38, 38, 0.18);
+  border-radius: 8rpx;
+  background: rgba(254, 242, 242, 0.95);
+  color: #b91c1c;
+  font-size: 26rpx;
+  line-height: 1.5;
+}

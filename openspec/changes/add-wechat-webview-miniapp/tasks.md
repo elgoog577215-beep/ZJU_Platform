@@ -25,3 +25,11 @@
 - [x] 4.1 运行 `npm run build`。
 - [x] 4.2 运行与改动范围匹配的静态检查。
 - [x] 4.3 检查 `git diff`，确认未提交微信密钥、上传密钥或真实 AppID。
+
+## 5. 微信登录桥接
+
+- [x] 5.1 新增后端 `/api/auth/wechat-miniapp/login`，由服务端调用 `code2Session`。
+- [x] 5.2 新增 `wechat_miniapp_identities` 绑定表，复用现有 `users` 与 JWT。
+- [x] 5.3 登录弹窗在小程序 WebView 中展示“微信一键登录”，并跳转原生登录页。
+- [x] 5.4 小程序原生登录页调用 `wx.login`，登录成功后回到原 WebView 路径。
+- [x] 5.5 运行构建、后端语法检查和敏感信息差异检查。

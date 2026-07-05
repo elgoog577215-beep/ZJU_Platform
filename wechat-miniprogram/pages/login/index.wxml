@@ -1,12 +1,28 @@
 <view class="bridge-page">
   <view class="bridge-card">
     <view class="bridge-kicker">WECHAT LOGIN</view>
-    <view class="bridge-title">微信登录桥接待配置</view>
+    <view class="bridge-title">微信账号登录</view>
     <view class="bridge-desc">
-      后续这里会调用 wx.login，并由后端使用 code2Session 换取 openid。当前版本先保留桥接入口，不在仓库中写入 AppSecret。
+      使用微信身份完成登录后，将自动回到拓途浙享网页，并复用网站的账号与内容权限。
     </view>
+    <view wx:if="{{error}}" class="login-error">{{error}}</view>
   </view>
+
   <view class="bridge-actions">
-    <button class="bridge-button primary" bindtap="openHome">返回活动入口</button>
+    <button
+      class="bridge-button primary"
+      loading="{{loading}}"
+      disabled="{{loading}}"
+      bindtap="handleWechatLogin"
+    >
+      微信一键登录
+    </button>
+    <button
+      class="bridge-button secondary"
+      disabled="{{loading}}"
+      bindtap="openHome"
+    >
+      返回活动入口
+    </button>
   </view>
 </view>

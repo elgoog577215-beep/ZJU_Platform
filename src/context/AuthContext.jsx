@@ -74,6 +74,35 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const loginWithToken = async (token, options = {}) => {
+    if (!token) {
+      showError(t('auth.login_failed'));
+      return false;
+    }
+
+    try {
+      storeAuthToken(token, { persistent: options.remember === true });
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      const res = await api.get('/auth/me');
+      setUser(res.data);
+      errorMonitor.setUser(res.data);
+
+      if (!options.silent) {
+        const displayName = res.data?.nickname || res.data?.username;
+        showSuccess(t('auth.wechat_login_success', { username: displayName }));
+      }
+
+      return true;
+    } catch (err) {
+      clearStoredAuthToken();
+      delete api.defaults.headers.common['Authorization'];
+      setUser(null);
+      errorMonitor.report(err, { action: 'loginWithToken', source: options.source });
+      showError(getAuthErrorMessage(err, 'auth.login_failed'));
+      return false;
+    }
+  };
+
   const logout = () => {
     clearStoredAuthToken();
     delete api.defaults.headers.common['Authorization'];
@@ -92,7 +121,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading, refreshUser, isAdmin: user?.role === 'admin' }}>
+    <AuthContext.Provider value={{ user, login, register, loginWithToken, logout, loading, refreshUser, isAdmin: user?.role === 'admin' }}>
       {children}
     </AuthContext.Provider>
   );

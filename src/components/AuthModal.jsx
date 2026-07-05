@@ -1,11 +1,13 @@
 import React, { useId, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, User, Lock, ArrowRight, Loader, AlertCircle } from 'lucide-react';
+import { X, User, Lock, ArrowRight, Loader, AlertCircle, MessageCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 import { useTranslation } from 'react-i18next';
 import { useBackClose, useBodyScrollLock } from '../hooks/useBackClose';
+import { isMiniProgramWebView } from '../utils/miniProgramEnv';
+import { buildWechatLoginBridgeUrl, navigateToMiniProgramPage } from '../utils/wechatMiniProgramBridge';
 
 const AuthModal = ({ isOpen, onClose }) => {
   const { t } = useTranslation();
@@ -20,10 +22,12 @@ const AuthModal = ({ isOpen, onClose }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [wechatLoading, setWechatLoading] = useState(false);
   const [error, setError] = useState('');
   const { login, register } = useAuth();
   const { uiMode } = useSettings();
   const isDayMode = uiMode === 'day';
+  const canUseWechatLogin = isLogin && isMiniProgramWebView();
 
   const switchMode = () => {
     setIsLogin((value) => !value);
@@ -49,6 +53,22 @@ const AuthModal = ({ isOpen, onClose }) => {
       onClose();
       setUsername('');
       setPassword('');
+    }
+  };
+
+  const handleWechatLogin = async () => {
+    if (typeof window === 'undefined') return;
+
+    setError('');
+    setWechatLoading(true);
+
+    try {
+      const redirectPath = `${window.location.pathname}${window.location.search}${window.location.hash}` || '/events';
+      await navigateToMiniProgramPage(buildWechatLoginBridgeUrl(redirectPath));
+    } catch (err) {
+      setError(t('auth.wechat_bridge_unavailable'));
+    } finally {
+      setWechatLoading(false);
     }
   };
 
@@ -160,6 +180,28 @@ const AuthModal = ({ isOpen, onClose }) => {
               {loading ? <span className="sr-only">{t('common.loading')}</span> : null}
             </button>
           </form>
+
+          {canUseWechatLogin && (
+            <div className="relative z-10 mt-6">
+              <div className="mb-4 flex items-center gap-3">
+                <span className={`h-px flex-1 ${isDayMode ? 'bg-slate-200' : 'bg-white/10'}`} />
+                <span className={`text-xs font-semibold ${isDayMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                  {t('auth.or')}
+                </span>
+                <span className={`h-px flex-1 ${isDayMode ? 'bg-slate-200' : 'bg-white/10'}`} />
+              </div>
+              <button
+                type="button"
+                onClick={handleWechatLogin}
+                disabled={loading || wechatLoading}
+                aria-busy={wechatLoading || undefined}
+                className={`w-full font-bold py-3.5 rounded-md transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] min-h-[44px] ${isDayMode ? 'bg-[#07c160] text-white hover:bg-[#06ad56] shadow-[0_12px_26px_rgba(7,193,96,0.16)]' : 'bg-[#07c160] text-white hover:bg-[#06ad56] shadow-lg shadow-emerald-500/15'}`}
+              >
+                {wechatLoading ? <Loader className="animate-spin" size={20} aria-hidden="true" /> : <MessageCircle size={18} aria-hidden="true" />}
+                {wechatLoading ? t('auth.wechat_signing_in') : t('auth.wechat_sign_in')}
+              </button>
+            </div>
+          )}
 
           <div className={`mt-8 text-center text-sm relative z-10 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
             {isLogin ? t('auth.no_account') : t('auth.has_account')}

@@ -317,6 +317,34 @@ async function runMigrations(db) {
   }
 
   try {
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS wechat_miniapp_identities (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        openid TEXT NOT NULL UNIQUE,
+        unionid TEXT,
+        session_key_hash TEXT,
+        last_login_at TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_wechat_miniapp_identities_openid
+        ON wechat_miniapp_identities(openid);
+      CREATE INDEX IF NOT EXISTS idx_wechat_miniapp_identities_user
+        ON wechat_miniapp_identities(user_id);
+      CREATE INDEX IF NOT EXISTS idx_wechat_miniapp_identities_unionid
+        ON wechat_miniapp_identities(unionid);
+    `);
+    console.log('WeChat mini program identity table ready');
+  } catch (err) {
+    if (!err.message.includes('already exists')) {
+      console.warn('Migration warning (wechat_miniapp_identities):', err.message);
+    }
+  }
+
+  try {
     const usersInfo = await db.all(`PRAGMA table_info(users)`);
     const userColumns = usersInfo.map(col => col.name);
 
