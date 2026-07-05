@@ -78,6 +78,19 @@ const projectCreateLimiter = customRateLimit({
   },
 });
 
+const wechatMiniappBindLimiter = customRateLimit({
+  windowMs: 10 * 60 * 1000,
+  maxRequests: 20,
+  keyGenerator: (req) => req.user?.id ? `wechat-miniapp-bind:${req.user.id}` : `wechat-miniapp-bind:${req.ip}`,
+  handler: (_req, res) => {
+    res.status(429).json({
+      error: 'Too many WeChat binding attempts, please try again later.',
+      errorCode: 'WECHAT_BIND_RATE_LIMITED',
+      retryAfter: 10 * 60,
+    });
+  },
+});
+
 const importCommunityDocumentUpload = (req, res, next) => {
   upload.single('document')(req, res, (error) => {
     if (error) {
@@ -104,6 +117,9 @@ router.post('/auth/register', validate(registerValidation), authController.regis
 router.post('/auth/login', bruteForceProtection, validate(loginValidation), authController.login);
 router.post('/auth/admin-login', bruteForceProtection, authController.adminLogin);
 router.post('/auth/wechat-miniapp/login', bruteForceProtection, authController.wechatMiniappLogin);
+router.get('/auth/wechat-miniapp/status', authenticateToken, authController.getWechatMiniappStatus);
+router.post('/auth/wechat-miniapp/bind-ticket', authenticateToken, wechatMiniappBindLimiter, authController.createWechatMiniappBindTicket);
+router.post('/auth/wechat-miniapp/bind', wechatMiniappBindLimiter, authController.wechatMiniappBind);
 router.get('/auth/me', authenticateToken, authController.me);
 router.post('/auth/change-password', authenticateToken, validate(changePasswordValidation), authController.changePassword);
 router.put('/auth/profile', authenticateToken, (req, res) => {

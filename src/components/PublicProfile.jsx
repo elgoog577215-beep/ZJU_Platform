@@ -29,6 +29,8 @@ import {
   Sparkles,
   MapPin,
   Clock3,
+  MessageCircle,
+  ShieldCheck,
 } from "lucide-react";
 import api, {
   createIdentityClaim,
@@ -52,6 +54,11 @@ import ProfileCustomCards from "./profile/ProfileCustomCards";
 import ProfileSocialLinks from "./profile/ProfileSocialLinks";
 import UserSystemOverview from "./profile/UserSystemOverview";
 import { useReducedMotion } from "../utils/animations";
+import { isMiniProgramWebView } from "../utils/miniProgramEnv";
+import {
+  buildWechatBindBridgeUrl,
+  navigateToMiniProgramPage,
+} from "../utils/wechatMiniProgramBridge";
 
 const NotificationCenter = lazy(() => import("./NotificationCenter"));
 
@@ -509,6 +516,9 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordLoading, setPasswordLoading] = useState(false);
+  const [wechatBindingStatus, setWechatBindingStatus] = useState({ bound: false });
+  const [wechatBindingLoading, setWechatBindingLoading] = useState(false);
+  const [wechatBindingActionLoading, setWechatBindingActionLoading] = useState(false);
 
   const profileTabPath = (tabKey, settingsKey = activeSettingsTab) => {
     if (tabKey === "settings") {
@@ -534,6 +544,22 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
       setUserSystemOverview(null);
     } finally {
       setUserSystemOverviewLoading(false);
+    }
+  }, [isOwner]);
+
+  const fetchWechatBindingStatus = useCallback(async () => {
+    if (!isOwner) return;
+    setWechatBindingLoading(true);
+    try {
+      const response = await api.get("/auth/wechat-miniapp/status", {
+        silent: true,
+        noRetry: true,
+      });
+      setWechatBindingStatus(response.data || { bound: false });
+    } catch {
+      setWechatBindingStatus({ bound: false, unavailable: true });
+    } finally {
+      setWechatBindingLoading(false);
     }
   }, [isOwner]);
 
@@ -632,6 +658,21 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
     fetchIdentityClaims();
     fetchOutcomeLinks();
   }, [isOwner, activeTab]);
+
+  useEffect(() => {
+    if (!isOwner || activeTab !== "settings" || activeSettingsTab !== "security") return;
+    fetchWechatBindingStatus();
+  }, [isOwner, activeTab, activeSettingsTab, fetchWechatBindingStatus]);
+
+  useEffect(() => {
+    const handleWechatBindReturn = () => {
+      fetchWechatBindingStatus();
+    };
+    window.addEventListener("wechat-miniapp-bind-return", handleWechatBindReturn);
+    return () => {
+      window.removeEventListener("wechat-miniapp-bind-return", handleWechatBindReturn);
+    };
+  }, [fetchWechatBindingStatus]);
 
   useEffect(() => {
     if (!isOwner) return;
@@ -1086,6 +1127,46 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
     }
   };
 
+  const getWechatBindingErrorMessage = (err) => {
+    const errorCode = err?.response?.data?.errorCode;
+    const messageKeyByCode = {
+      WECHAT_NOT_CONFIGURED: "user_profile.security.wechat.not_configured",
+      WECHAT_ALREADY_BOUND: "user_profile.security.wechat.already_bound",
+      WECHAT_USER_ALREADY_BOUND: "user_profile.security.wechat.user_already_bound",
+      WECHAT_BIND_TICKET_INVALID: "user_profile.security.wechat.ticket_invalid",
+      WECHAT_BIND_RATE_LIMITED: "user_profile.security.wechat.rate_limited",
+    };
+    return t(messageKeyByCode[errorCode] || "user_profile.security.wechat.bind_failed");
+  };
+
+  const handleWechatBind = async () => {
+    if (wechatBindingActionLoading || wechatBindingStatus.bound) return;
+
+    if (!isMiniProgramWebView()) {
+      toast.error(t("user_profile.security.wechat.open_in_miniapp"));
+      return;
+    }
+
+    setWechatBindingActionLoading(true);
+    try {
+      const response = await api.post("/auth/wechat-miniapp/bind-ticket");
+      const ticket = response.data?.ticket;
+      if (!ticket) {
+        throw new Error("Missing WeChat bind ticket");
+      }
+
+      const redirectPath = `${location.pathname}${location.search || ""}${location.hash || ""}`;
+      await navigateToMiniProgramPage(buildWechatBindBridgeUrl({
+        redirectPath,
+        ticket,
+      }));
+    } catch (err) {
+      toast.error(getWechatBindingErrorMessage(err));
+    } finally {
+      setWechatBindingActionLoading(false);
+    }
+  };
+
   const handleFollowToggle = async (targetUserId, currentlyFollowing) => {
     if (!currentUser) {
       toast.error(t("auth.signin_required"));
@@ -1300,6 +1381,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
     { key: "security", label: t("user_profile.center.settings_tabs.security"), icon: Lock },
     { key: "identity", label: t("user_profile.center.settings_tabs.identity"), icon: Briefcase },
   ];
+  const canBindWechatInMiniProgram = isMiniProgramWebView();
 
   const hasProfileCardContent = Boolean(
     profileCard?.slogan ||
@@ -2207,6 +2289,77 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                     </button>
                   </div>
                 </form>
+              </div>
+
+              <div className={settingsPanelClass}>
+                <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <h3
+                      className={`flex items-center gap-2 text-xl font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}
+                    >
+                      <ShieldCheck size={20} className="text-emerald-500" />
+                      {t("user_profile.security.wechat.title")}
+                    </h3>
+                    <p className={`mt-2 text-sm leading-6 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+                      {t("user_profile.security.wechat.description")}
+                    </p>
+                  </div>
+                  <span
+                    className={`inline-flex shrink-0 items-center justify-center rounded-full px-3 py-1 text-xs font-bold ${
+                      wechatBindingStatus.bound
+                        ? "bg-emerald-500/12 text-emerald-400"
+                        : isDayMode
+                          ? "bg-slate-100 text-slate-600"
+                          : "bg-white/10 text-gray-300"
+                    }`}
+                  >
+                    {wechatBindingLoading
+                      ? t("common.loading")
+                      : wechatBindingStatus.bound
+                        ? t("user_profile.security.wechat.bound")
+                        : t("user_profile.security.wechat.unbound")}
+                  </span>
+                </div>
+
+                <div className={`mb-5 flex items-start gap-3 rounded-2xl border p-4 ${isDayMode ? "border-slate-200/80 bg-slate-50/90" : "border-white/10 bg-white/5"}`}>
+                  <div className={`${settingsIconClass} ${wechatBindingStatus.bound ? "text-emerald-400" : ""}`}>
+                    <MessageCircle size={18} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className={`text-sm font-semibold ${isDayMode ? "text-slate-800" : "text-white"}`}>
+                      {wechatBindingStatus.bound
+                        ? t("user_profile.security.wechat.bound_hint")
+                        : t("user_profile.security.wechat.unbound_hint")}
+                    </div>
+                    <div className={`mt-1 text-xs leading-5 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+                      {wechatBindingStatus.bound && wechatBindingStatus.lastLoginAt
+                        ? t("user_profile.security.wechat.last_login", {
+                            time: new Date(wechatBindingStatus.lastLoginAt).toLocaleString(),
+                          })
+                        : t("user_profile.security.wechat.no_openid_exposed")}
+                    </div>
+                  </div>
+                </div>
+
+                {!wechatBindingStatus.bound && (
+                  <button
+                    type="button"
+                    onClick={handleWechatBind}
+                    disabled={wechatBindingActionLoading || !canBindWechatInMiniProgram}
+                    className={`inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition-all disabled:cursor-not-allowed disabled:opacity-60 ${
+                      canBindWechatInMiniProgram
+                        ? "bg-[#07c160] text-white hover:bg-[#06ad56]"
+                        : isDayMode
+                          ? "bg-slate-100 text-slate-500"
+                          : "bg-white/10 text-gray-300"
+                    }`}
+                  >
+                    {wechatBindingActionLoading ? <Loader2 size={16} className="animate-spin" /> : <MessageCircle size={16} />}
+                    {canBindWechatInMiniProgram
+                      ? t("user_profile.security.wechat.bind_button")
+                      : t("user_profile.security.wechat.open_in_miniapp")}
+                  </button>
+                )}
               </div>
 
               <div className={settingsPanelClass}>

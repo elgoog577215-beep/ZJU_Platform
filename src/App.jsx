@@ -29,6 +29,7 @@ import {
   toMiniProgramPath,
 } from './utils/miniProgramEnv';
 import { getOrCreateSiteVisitorKey } from './utils/visitorKey';
+import { showError, showSuccess } from './utils/notify';
 import SEO from './components/SEO';
 
 import Navbar from './components/Navbar';
@@ -41,6 +42,8 @@ const CHUNK_RECOVERY_RELOAD_KEY = 'tuotu:chunk-recovery:reload-attempted';
 const STALE_CHUNK_CACHE_NAMES = new Set(['js-chunk-cache', 'css-chunk-cache']);
 const WECHAT_LOGIN_TOKEN_QUERY = 'wechat_login_token';
 const WECHAT_LOGIN_ERROR_QUERY = 'wechat_login_error';
+const WECHAT_BIND_QUERY = 'wechat_bind';
+const WECHAT_BIND_ERROR_QUERY = 'wechat_bind_error';
 
 const isDynamicImportFetchError = (error) => {
   const message = String(error?.message || error || '');
@@ -227,6 +230,7 @@ const AdminRoute = ({ children }) => {
 const MiniProgramAuthReturn = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { loginWithToken } = useAuth();
   const consumedReturnRef = useRef('');
 
@@ -235,8 +239,10 @@ const MiniProgramAuthReturn = () => {
     const params = new URLSearchParams(location.search);
     const token = params.get(WECHAT_LOGIN_TOKEN_QUERY);
     const loginError = params.get(WECHAT_LOGIN_ERROR_QUERY);
+    const bindResult = params.get(WECHAT_BIND_QUERY);
+    const bindError = params.get(WECHAT_BIND_ERROR_QUERY);
 
-    if (!token && !loginError) {
+    if (!token && !loginError && !bindResult && !bindError) {
       return;
     }
 
@@ -247,8 +253,25 @@ const MiniProgramAuthReturn = () => {
 
     params.delete(WECHAT_LOGIN_TOKEN_QUERY);
     params.delete(WECHAT_LOGIN_ERROR_QUERY);
+    params.delete(WECHAT_BIND_QUERY);
+    params.delete(WECHAT_BIND_ERROR_QUERY);
     const nextSearch = params.toString();
     navigate(`${location.pathname}${nextSearch ? `?${nextSearch}` : ''}${location.hash || ''}`, { replace: true });
+
+    if (bindResult || bindError) {
+      if (bindResult === 'success') {
+        showSuccess(t('auth.wechat_bind_success'));
+        window.dispatchEvent(new CustomEvent('wechat-miniapp-bind-return', {
+          detail: { result: 'success' },
+        }));
+      } else {
+        showError(t('auth.wechat_bind_failed'));
+        window.dispatchEvent(new CustomEvent('wechat-miniapp-bind-return', {
+          detail: { result: 'failed', error: bindError },
+        }));
+      }
+      return;
+    }
 
     if (loginError) {
       window.setTimeout(() => window.dispatchEvent(new Event('open-auth-modal')), 0);

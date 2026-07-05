@@ -1,17 +1,23 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const crypto = require('crypto');
 const { getDb } = require('../config/db');
 const { loginAttemptTracker } = require('../middleware/security');
+const {
+  WECHAT_BIND_TICKET_RE,
+  WECHAT_BIND_TICKET_TTL_MS,
+  WECHAT_LOGIN_CODE_RE,
+  bindWechatMiniappIdentity,
+  createBindingTicket,
+  exchangeWechatLoginCode,
+  findBoundWechatMiniappUser,
+  hashValue,
+} = require('../services/wechatMiniappAuthService');
 
 // FIX: BUG-02 — Remove hardcoded JWT secret fallback; fail fast if not configured
 const SECRET_KEY = process.env.SECRET_KEY;
 if (!SECRET_KEY) {
   throw new Error('FATAL: SECRET_KEY environment variable is required. Set it before starting the server.');
 }
-
-const WECHAT_LOGIN_CODE_RE = /^[A-Za-z0-9_-]{8,160}$/;
-const WECHAT_CODE2SESSION_URL = 'https://api.weixin.qq.com/sns/jscode2session';
 
 const signAuthToken = (user) => jwt.sign(
   { id: user.id, username: user.username, role: user.role },
@@ -27,130 +33,104 @@ const toAuthUser = (user) => ({
   avatar: user.avatar,
 });
 
-const hashValue = (value) => crypto
-  .createHash('sha256')
-  .update(String(value || ''))
-  .digest('hex');
+const getWechatMiniappStatus = async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const identity = await db.get(
+      `SELECT id, last_login_at, created_at, updated_at
+       FROM wechat_miniapp_identities
+       WHERE user_id = ?
+       LIMIT 1`,
+      [req.user.id]
+    );
 
-const buildWechatUsername = (openid) => `wx_${hashValue(openid).slice(0, 16)}`;
-
-const exchangeWechatLoginCode = async (code) => {
-  const appid = process.env.WECHAT_MINIAPP_APPID || process.env.WECHAT_APPID;
-  const secret = process.env.WECHAT_MINIAPP_SECRET || process.env.WECHAT_APP_SECRET;
-
-  if (!appid || !secret) {
-    const error = new Error('WeChat mini program login is not configured');
-    error.statusCode = 503;
-    error.publicMessage = 'WeChat login is not configured';
-    throw error;
+    res.json({
+      bound: Boolean(identity),
+      lastLoginAt: identity?.last_login_at || null,
+      createdAt: identity?.created_at || null,
+      updatedAt: identity?.updated_at || null,
+    });
+  } catch (error) {
+    next(error);
   }
-
-  if (typeof fetch !== 'function') {
-    const error = new Error('Global fetch is unavailable in this Node.js runtime');
-    error.statusCode = 500;
-    error.publicMessage = 'Server runtime does not support WeChat login';
-    throw error;
-  }
-
-  const url = new URL(WECHAT_CODE2SESSION_URL);
-  url.searchParams.set('appid', appid);
-  url.searchParams.set('secret', secret);
-  url.searchParams.set('js_code', code);
-  url.searchParams.set('grant_type', 'authorization_code');
-
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: { Accept: 'application/json' },
-  });
-
-  if (!response.ok) {
-    const error = new Error(`WeChat code2session HTTP ${response.status}`);
-    error.statusCode = 502;
-    error.publicMessage = 'WeChat login failed';
-    throw error;
-  }
-
-  const data = await response.json();
-  if (data.errcode) {
-    const error = new Error(`WeChat code2session failed: ${data.errcode}`);
-    error.statusCode = 401;
-    error.publicMessage = 'WeChat login failed';
-    error.wechatErrcode = data.errcode;
-    error.wechatErrmsg = data.errmsg;
-    throw error;
-  }
-
-  if (!data.openid) {
-    const error = new Error('WeChat code2session response missing openid');
-    error.statusCode = 502;
-    error.publicMessage = 'WeChat login failed';
-    throw error;
-  }
-
-  return data;
 };
 
-const findOrCreateWechatMiniappUser = async (db, session) => {
-  const now = new Date().toISOString();
-  const sessionKeyHash = session.session_key ? hashValue(session.session_key) : null;
-  const unionid = session.unionid || null;
-  let transactionStarted = false;
-
-  await db.exec('BEGIN IMMEDIATE');
-  transactionStarted = true;
+const createWechatMiniappBindTicket = async (req, res, next) => {
   try {
-    const existingIdentity = await db.get(
-      `SELECT wi.user_id, u.id, u.username, u.role, u.nickname, u.avatar
-       FROM wechat_miniapp_identities wi
-       JOIN users u ON u.id = wi.user_id
-       WHERE wi.openid = ?`,
-      [session.openid]
-    );
-
-    if (existingIdentity) {
-      await db.run(
-        `UPDATE wechat_miniapp_identities
-         SET unionid = COALESCE(?, unionid),
-             session_key_hash = ?,
-             last_login_at = ?,
-             updated_at = ?
-         WHERE openid = ?`,
-        [unionid, sessionKeyHash, now, now, session.openid]
-      );
-      await db.exec('COMMIT');
-      return existingIdentity;
+    if (req.user?.id === undefined || req.user?.id === null) {
+      return res.status(401).json({ error: 'Authentication required', errorCode: 'AUTH_REQUIRED' });
     }
 
-    const username = buildWechatUsername(session.openid);
-    const passwordHash = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 12);
-    const nickname = `WeChat User ${hashValue(session.openid).slice(0, 6)}`;
-    const userResult = await db.run(
-      'INSERT INTO users (username, password, role, nickname, created_at) VALUES (?, ?, ?, ?, ?)',
-      [username, passwordHash, 'user', nickname, now]
-    );
+    const db = await getDb();
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + WECHAT_BIND_TICKET_TTL_MS);
+    const ticket = createBindingTicket();
+    const ticketHash = hashValue(ticket);
 
     await db.run(
-      `INSERT INTO wechat_miniapp_identities
-        (user_id, openid, unionid, session_key_hash, last_login_at, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [userResult.lastID, session.openid, unionid, sessionKeyHash, now, now, now]
+      `DELETE FROM wechat_miniapp_binding_tickets
+       WHERE used_at IS NOT NULL OR expires_at <= ?`,
+      [now.toISOString()]
+    ).catch(() => {});
+
+    await db.run(
+      `INSERT INTO wechat_miniapp_binding_tickets
+        (user_id, ticket_hash, expires_at, created_at)
+       VALUES (?, ?, ?, ?)`,
+      [req.user.id, ticketHash, expiresAt.toISOString(), now.toISOString()]
     );
 
-    await db.exec('COMMIT');
-    return {
-      id: userResult.lastID,
-      username,
-      role: 'user',
-      nickname,
-      avatar: null,
-    };
+    res.json({
+      ticket,
+      expiresAt: expiresAt.toISOString(),
+      expiresIn: Math.floor(WECHAT_BIND_TICKET_TTL_MS / 1000),
+    });
   } catch (error) {
-    if (transactionStarted) {
-      await db.exec('ROLLBACK').catch((rollbackError) => {
-        console.warn('Rollback warning (wechat_miniapp_login):', rollbackError.message);
+    next(error);
+  }
+};
+
+const wechatMiniappBind = async (req, res, next) => {
+  try {
+    const code = String(req.body?.code || '').trim();
+    const ticket = String(req.body?.ticket || '').trim();
+
+    if (!WECHAT_LOGIN_CODE_RE.test(code)) {
+      return res.status(400).json({ error: 'Invalid WeChat login code', errorCode: 'WECHAT_CODE_INVALID' });
+    }
+
+    if (!WECHAT_BIND_TICKET_RE.test(ticket)) {
+      return res.status(400).json({ error: 'Invalid WeChat binding ticket', errorCode: 'WECHAT_BIND_TICKET_INVALID' });
+    }
+
+    const db = await getDb();
+    const session = await exchangeWechatLoginCode(code);
+    const result = await bindWechatMiniappIdentity(db, session, ticket);
+
+    await db.run(
+      'INSERT INTO audit_logs (admin_id, resource_type, resource_id, action, reason) VALUES (?, ?, ?, ?, ?)',
+      [result.userId, 'auth', 0, 'wechat_miniapp_bind', 'User bound WeChat mini program account']
+    ).catch((error) => {
+      console.warn('Audit log warning (wechat_miniapp_bind):', error.message);
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    if (error.wechatErrcode) {
+      console.warn('WeChat mini program bind failed', {
+        errcode: error.wechatErrcode,
+        errmsg: error.wechatErrmsg,
       });
     }
-    throw error;
+
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({
+        error: error.publicMessage || 'WeChat binding failed',
+        errorCode: error.errorCode,
+      });
+    }
+
+    next(error);
   }
 };
 
@@ -282,7 +262,7 @@ const wechatMiniappLogin = async (req, res, next) => {
 
     const db = await getDb();
     const session = await exchangeWechatLoginCode(code);
-    const user = await findOrCreateWechatMiniappUser(db, session);
+    const user = await findBoundWechatMiniappUser(db, session);
     const authUser = toAuthUser(user);
     const token = signAuthToken(authUser);
 
@@ -308,7 +288,10 @@ const wechatMiniappLogin = async (req, res, next) => {
       if (error.statusCode >= 400 && error.statusCode < 500) {
         req.loginTracker?.recordFailed();
       }
-      return res.status(error.statusCode).json({ error: error.publicMessage || 'WeChat login failed' });
+      return res.status(error.statusCode).json({
+        error: error.publicMessage || 'WeChat login failed',
+        errorCode: error.errorCode,
+      });
     }
 
     next(error);
@@ -363,4 +346,15 @@ const changePassword = async (req, res, next) => {
     } catch (error) { next(error); }
 };
 
-module.exports = { register, login, adminLogin, wechatMiniappLogin, me, changePassword, SECRET_KEY };
+module.exports = {
+  register,
+  login,
+  adminLogin,
+  wechatMiniappLogin,
+  getWechatMiniappStatus,
+  createWechatMiniappBindTicket,
+  wechatMiniappBind,
+  me,
+  changePassword,
+  SECRET_KEY,
+};

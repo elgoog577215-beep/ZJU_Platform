@@ -336,8 +336,25 @@ async function runMigrations(db) {
         ON wechat_miniapp_identities(user_id);
       CREATE INDEX IF NOT EXISTS idx_wechat_miniapp_identities_unionid
         ON wechat_miniapp_identities(unionid);
+
+      CREATE TABLE IF NOT EXISTS wechat_miniapp_binding_tickets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        ticket_hash TEXT NOT NULL UNIQUE,
+        expires_at TEXT NOT NULL,
+        used_at TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_wechat_miniapp_binding_tickets_hash
+        ON wechat_miniapp_binding_tickets(ticket_hash);
+      CREATE INDEX IF NOT EXISTS idx_wechat_miniapp_binding_tickets_user
+        ON wechat_miniapp_binding_tickets(user_id);
+      CREATE INDEX IF NOT EXISTS idx_wechat_miniapp_binding_tickets_expiry
+        ON wechat_miniapp_binding_tickets(expires_at);
     `);
-    console.log('WeChat mini program identity table ready');
+    console.log('WeChat mini program identity and binding ticket tables ready');
   } catch (err) {
     if (!err.message.includes('already exists')) {
       console.warn('Migration warning (wechat_miniapp_identities):', err.message);

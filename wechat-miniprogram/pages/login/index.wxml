@@ -1,10 +1,10 @@
 <view class="login-page">
   <view class="login-surface">
     <view class="login-accent"></view>
-    <view class="login-kicker">WECHAT LOGIN</view>
-    <view class="login-title">微信账号登录</view>
+    <view class="login-kicker">{{copy.kicker}}</view>
+    <view class="login-title">{{copy.title}}</view>
     <view class="login-desc">
-      使用微信身份完成登录后，将自动回到拓途浙享网页，并复用网站的账号与内容权限。
+      {{copy.description}}
     </view>
     <view wx:if="{{error}}" class="login-error">
       <view class="login-error-icon">!</view>
@@ -19,14 +19,14 @@
       disabled="{{loading}}"
       bindtap="handleWechatLogin"
     >
-      微信一键登录
+      {{copy.primaryButton}}
     </button>
     <button
       class="login-button secondary"
       disabled="{{loading}}"
       bindtap="openHome"
     >
-      返回活动入口
+      {{copy.secondaryButton}}
     </button>
   </view>
 </view>

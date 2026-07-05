@@ -38,8 +38,28 @@ const loadWechatJssdk = () => {
   return jssdkLoadPromise;
 };
 
+const buildWechatLoginBridgeUrlWithParams = (params) => {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && String(value).length > 0) {
+      query.set(key, String(value));
+    }
+  });
+  return `/pages/login/index?${query.toString()}`;
+};
+
 export const buildWechatLoginBridgeUrl = (redirectPath = '/events') =>
-  `/pages/login/index?redirect=${encodeURIComponent(redirectPath || '/events')}`;
+  buildWechatLoginBridgeUrlWithParams({
+    mode: 'login',
+    redirect: redirectPath || '/events',
+  });
+
+export const buildWechatBindBridgeUrl = ({ redirectPath = '/events', ticket }) =>
+  buildWechatLoginBridgeUrlWithParams({
+    mode: 'bind',
+    redirect: redirectPath || '/events',
+    ticket,
+  });
 
 export const navigateToMiniProgramPage = async (url) => {
   await loadWechatJssdk();
