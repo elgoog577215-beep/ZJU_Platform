@@ -1218,7 +1218,7 @@ img {
       font-size: 0.8rem !important;
     }
 
-    .upload-modal-panel:not(.upload-modal-article) .upload-modal-footer {
+    .upload-modal-panel:not(.upload-modal-article):not(.upload-modal-event) .upload-modal-footer {
       display: grid !important;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       padding: 0.65rem 1rem !important;
@@ -1226,7 +1226,7 @@ img {
       gap: 0.55rem !important;
     }
 
-    .upload-modal-panel:not(.upload-modal-article) .upload-modal-footer > button {
+    .upload-modal-panel:not(.upload-modal-article):not(.upload-modal-event) .upload-modal-footer > button {
       min-height: 2.5rem !important;
       padding: 0.65rem 0.75rem !important;
       font-size: 0.82rem !important;
@@ -1985,6 +1985,20 @@ img.motion-image-zoom {
 }
 ::-webkit-scrollbar-track {
   background: transparent;
+}
+
+@media (max-width: 767px) {
+  html,
+  body {
+    scrollbar-width: none;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  #root::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
 }
 
 /* Animations */

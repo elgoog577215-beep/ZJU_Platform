@@ -31,6 +31,9 @@ import {
   Tag,
   Plus,
   Sparkles,
+  Search,
+  Menu,
+  ChevronDown,
 } from "lucide-react";
 import UploadModal from "./UploadModal";
 import FavoriteButton from "./FavoriteButton";
@@ -44,6 +47,7 @@ import SmartImage from "./SmartImage";
 import { useBackClose, useBodyScrollLock } from "../hooks/useBackClose";
 import { useCachedResource } from "../hooks/useCachedResource";
 import { useEcosystemPartners } from "../hooks/useEcosystemPartners";
+import { useHorizontalDragScroll } from "../hooks/useHorizontalDragScroll";
 import EventFilterPanel from "./EventFilterPanel";
 import OrganizationPartnerWall from "./OrganizationPartnerWall";
 import SortSelector from "./SortSelector";
@@ -57,6 +61,7 @@ import SEO from "./SEO";
 import OfficialVerificationBadge from "./OfficialVerificationBadge";
 import {
   COLLEGE_NOTICE_CATEGORY_VALUE,
+  EVENT_CATEGORIES,
   COLLEGE_NOTICE_TAG,
   getCollegeNoticeTypeLabel,
   getEventAudienceLabel,
@@ -192,6 +197,57 @@ const formatDateTime = (dateStr) => {
   return `${month}.${day}`;
 };
 
+const EVENT_FALLBACK_COVER_URLS = {
+  [COLLEGE_NOTICE_CATEGORY_VALUE]:
+    "https://images.pexels.com/photos/207692/pexels-photo-207692.jpeg?auto=compress&cs=tinysrgb&w=900&h=900&fit=crop",
+  lecture:
+    "https://images.pexels.com/photos/8386440/pexels-photo-8386440.jpeg?auto=compress&cs=tinysrgb&w=900&h=900&fit=crop",
+  competition:
+    "https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&cs=tinysrgb&w=900&h=900&fit=crop",
+  volunteer:
+    "https://images.pexels.com/photos/6646918/pexels-photo-6646918.jpeg?auto=compress&cs=tinysrgb&w=900&h=900&fit=crop",
+  recruitment:
+    "https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&cs=tinysrgb&w=900&h=900&fit=crop",
+  culture_sports:
+    "https://images.pexels.com/photos/209977/pexels-photo-209977.jpeg?auto=compress&cs=tinysrgb&w=900&h=900&fit=crop",
+  exchange:
+    "https://images.pexels.com/photos/1181396/pexels-photo-1181396.jpeg?auto=compress&cs=tinysrgb&w=900&h=900&fit=crop",
+  other:
+    "https://images.pexels.com/photos/3183150/pexels-photo-3183150.jpeg?auto=compress&cs=tinysrgb&w=900&h=900&fit=crop",
+};
+
+const getEventFallbackCoverKey = (event = {}) => {
+  const category = String(event.category || "").trim();
+  if (isCollegeNoticeEvent(event) || category === COLLEGE_NOTICE_CATEGORY_VALUE) {
+    return COLLEGE_NOTICE_CATEGORY_VALUE;
+  }
+  if (EVENT_FALLBACK_COVER_URLS[category]) return category;
+
+  const text = `${event.title || ""} ${event.description || ""} ${event.tags || ""} ${event.organizer || ""}`;
+  if (/志愿|公益|助老|服务|volunteer/i.test(text)) return "volunteer";
+  if (/竞赛|比赛|挑战|competition|contest|hackathon/i.test(text)) {
+    return "competition";
+  }
+  if (/招新|招募|招聘|recruit/i.test(text)) return "recruitment";
+  if (/文体|运动|体育|音乐|艺术|culture|sport|music|art/i.test(text)) {
+    return "culture_sports";
+  }
+  if (/交流|校友|国际|exchange|forum|meetup/i.test(text)) return "exchange";
+  if (/讲座|报告|分享|AI|人工智能|lecture|talk|workshop/i.test(text)) {
+    return "lecture";
+  }
+  return "other";
+};
+
+const getEventCoverUrl = (event = {}) => {
+  const uploadedCover = getThumbnailUrl(event.image);
+  if (uploadedCover) return uploadedCover;
+  return (
+    EVENT_FALLBACK_COVER_URLS[getEventFallbackCoverKey(event)] ||
+    EVENT_FALLBACK_COVER_URLS.other
+  );
+};
+
 const VIEW_DEDUPE_WINDOW_MS = 30 * 60 * 1000;
 
 const EVENT_THEME_VARIANTS = {
@@ -299,12 +355,105 @@ const EventCard = memo(
               ease: [0.22, 1, 0.36, 1],
             },
           },
+          whileTap: {
+            scale: 0.985,
+            transition: {
+              duration: 0.12,
+              ease: [0.22, 1, 0.36, 1],
+            },
+          },
         };
 
     return (
+      <>
       <motion.div
         {...motionProps}
-        className={`group rect-media-card relative overflow-hidden cursor-pointer flex h-[156px] flex-row md:h-[430px] md:flex-col xl:h-[440px] 2xl:h-[452px] transform-gpu will-change-transform transition-[background-color,border-color,box-shadow] duration-200 ${isDayMode ? "border-blue-100/80 bg-white hover:border-blue-200/90" : "bg-[#050712]/94 border-white/15 hover:border-indigo-300/30 hover:bg-[#070914]"}`}
+        className={`group relative flex h-[136px] cursor-pointer overflow-hidden rounded-[8px] border p-2 shadow-none md:hidden ${
+          isDayMode
+            ? "border-slate-200 bg-white"
+            : "border-white/10 bg-[#0a1020]/92"
+        }`}
+        onClick={() => onClick(event)}
+      >
+        <div className="relative h-full w-[104px] shrink-0 overflow-hidden rounded-[6px] bg-[#101827] min-[520px]:w-[140px]">
+          <SmartImage
+            src={getEventCoverUrl(event)}
+            alt={event.title}
+            type="event"
+            iconSize={18}
+            loading="lazy"
+            priority={index === 0}
+            className="absolute inset-0 h-full w-full"
+            imageClassName="h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/5 to-transparent" />
+          <span className="absolute left-1 top-1 rounded-[4px] bg-black/72 px-1.5 py-0.5 text-[9px] font-black leading-3 text-white">
+            {formatDateTime(event.date).split(" ")[0] || " -- "}
+          </span>
+        </div>
+
+        <div className="flex min-w-0 flex-1 flex-col px-3 py-1">
+          <div className="flex min-w-0 items-start gap-2">
+            <h3 className={`line-clamp-1 min-w-0 flex-1 text-base font-black leading-6 ${isDayMode ? "text-slate-950" : "text-white"}`}>
+              {event.title}
+            </h3>
+            <div onClick={(eventClick) => eventClick.stopPropagation()} className="-mr-1 -mt-1">
+              <FavoriteButton
+                itemId={event.id}
+                itemType="event"
+                size={15}
+                showCount={false}
+                count={event.likes || 0}
+                favorited={event.favorited}
+                initialFavorited={event.favorited}
+                className={`min-h-7 min-w-7 rounded-md p-1 ${isDayMode ? "text-slate-500" : "text-slate-300"}`}
+                onToggle={(favorited, likes) =>
+                  onToggleFavorite(event.id, favorited, likes)
+                }
+              />
+            </div>
+          </div>
+
+          <div className="mt-1.5 flex h-6 min-w-0 items-center gap-1.5 overflow-hidden">
+            {event.category && (
+              <span className={`inline-flex h-6 max-w-[5.5rem] shrink-0 items-center rounded-[5px] border px-2 text-xs font-bold leading-none shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)] ${isDayMode ? "border-blue-200 bg-blue-50 text-blue-700" : "border-indigo-300/40 bg-indigo-500/20 text-indigo-100"}`}>
+                <span className="truncate">{formatEventCategory(event.category)}</span>
+              </span>
+            )}
+            {event.target_audience && (
+              <span className={`inline-flex h-6 max-w-[7rem] shrink-0 items-center rounded-[5px] border px-2 text-xs font-bold leading-none shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)] ${isDayMode ? "border-slate-300 bg-slate-100 text-slate-700" : "border-white/25 bg-white/10 text-slate-100"}`}>
+                <span className="truncate">{formatEventAudience(event.target_audience)}</span>
+              </span>
+            )}
+          </div>
+
+          <div className={`mt-1.5 space-y-0.5 text-xs leading-5 ${isDayMode ? "text-slate-500" : "text-slate-400"}`}>
+            <div className="flex min-w-0 items-center gap-1.5">
+              <Clock size={12} className={isDayMode ? "text-blue-600" : "text-slate-300"} />
+              <span className="truncate">
+                {formatDateTime(event.date)}
+                {event.end_date && !isSameDay(event.date, event.end_date) && ` - ${formatDateTime(event.end_date)}`}
+              </span>
+            </div>
+            <div className="flex min-w-0 items-center gap-1.5">
+              <MapPin size={12} className={isDayMode ? "text-blue-600" : "text-slate-300"} />
+              <span className="truncate">{event.location || t("common.online", "线上")}</span>
+            </div>
+          </div>
+
+          <div className={`mt-auto flex items-center gap-1.5 text-xs font-semibold ${isDayMode ? "text-slate-500" : "text-slate-400"}`}>
+            <Users size={12} />
+            <span className="truncate">{event.registered_count || event.participant_count || 0} 人已报名</span>
+            <span className={`ml-auto inline-flex h-5 w-5 items-center justify-center rounded-full ${isDayMode ? "bg-slate-100 text-slate-600" : "bg-white/10 text-slate-200"}`}>
+              <ArrowRight size={12} />
+            </span>
+          </div>
+        </div>
+      </motion.div>
+
+      <motion.div
+        {...motionProps}
+        className={`group rect-media-card relative hidden overflow-hidden cursor-pointer h-[156px] flex-row md:flex md:h-[430px] md:flex-col xl:h-[440px] 2xl:h-[452px] transform-gpu will-change-transform transition-[background-color,border-color,box-shadow] duration-200 ${isDayMode ? "border-blue-100/80 bg-white hover:border-blue-200/90" : "bg-[#050712]/94 border-white/15 hover:border-indigo-300/30 hover:bg-[#070914]"}`}
         onClick={() => onClick(event)}
       >
         {/* Image Section */}
@@ -469,6 +618,7 @@ const EventCard = memo(
           </div>
         </div>
       </motion.div>
+      </>
     );
   },
 );
@@ -957,7 +1107,7 @@ const Events = () => {
   const [canRenderDesktopAssistant, setCanRenderDesktopAssistant] = useState(
     () => (typeof window !== "undefined" ? window.innerWidth >= 768 : false),
   );
-  const shouldReduceCardMotion = prefersReducedMotion || isMobileViewport;
+  const shouldReduceCardMotion = prefersReducedMotion;
   const trackedViewTimestamps = useRef(new Map());
   const updateSelectedEventRecommendationContext = useCallback((context) => {
     selectedEventRecommendationContextRef.current = context;
@@ -1043,6 +1193,27 @@ const Events = () => {
 
   const mobileFilterCount =
     Object.values(filters).filter(Boolean).length + (partnerFilter ? 1 : 0);
+  const {
+    scrollRef: mobileCategoryScrollRef,
+    dragScrollProps: mobileCategoryDragProps,
+  } = useHorizontalDragScroll();
+  const mobileCategoryTabs = useMemo(
+    () => [
+      { value: null, label: t("common.all", "全部") },
+      { value: COLLEGE_NOTICE_CATEGORY_VALUE, label: t("events.college_notice.badge", "学院通知") },
+      ...EVENT_CATEGORIES.map((category) => ({
+        value: category.value,
+        label: getEventCategoryLabel(category.value, eventLanguage),
+      })),
+    ],
+    [eventLanguage, t],
+  );
+  const handleMobileCategoryChange = useCallback((value) => {
+    setFilters((prev) => ({
+      ...prev,
+      category: value || null,
+    }));
+  }, []);
 
   // Debounce search
   useEffect(() => {
@@ -1543,9 +1714,23 @@ END:VCALENDAR`;
     ],
     [t],
   );
+  const mobileControlMotion = prefersReducedMotion
+    ? {}
+    : {
+        whileHover: { y: -1 },
+        whileTap: { scale: 0.94 },
+        transition: { type: "spring", stiffness: 520, damping: 34 },
+      };
+  const mobileTabMotion = prefersReducedMotion
+    ? {}
+    : {
+        whileHover: { opacity: 0.92 },
+        whileTap: { opacity: 0.72 },
+        transition: { type: "spring", stiffness: 520, damping: 34 },
+      };
 
   return (
-    <section className={`day-page-theme day-page-theme-events pt-[calc(env(safe-area-inset-top)+76px)] pb-6 md:pb-20 md:pt-24 px-4 md:px-8 relative overflow-hidden flex-grow`}>
+    <section className={`day-page-theme day-page-theme-events pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-[calc(env(safe-area-inset-bottom)+10rem)] md:pb-20 md:pt-24 px-4 md:px-8 relative overflow-hidden flex-grow ${isDayMode ? "" : "bg-[#030817]"}`}>
       <SEO
         title={t("events.meta_title")}
         description={t("events.meta_desc")}
@@ -1557,23 +1742,109 @@ END:VCALENDAR`;
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
-        className="mb-4 md:mb-9 relative z-40 md:pt-0 text-center"
+        className="mb-3 md:mb-9 relative z-40 md:pt-0 text-center"
       >
-        <div className="md:hidden mb-3 text-left">
-          <h1
-            className={`text-xl font-bold tracking-tight ${isDayMode ? "text-slate-950" : "text-white"}`}
+        <div className="mb-4 grid grid-cols-[44px_minmax(0,1fr)_96px] items-start gap-2 md:hidden">
+          <motion.button
+            {...mobileControlMotion}
+            type="button"
+            aria-label={t("common.menu", "菜单")}
+            onClick={() => setIsMobileFilterOpen(true)}
+            className={`inline-flex h-9 w-9 items-center justify-center rounded-[6px] border transition-[background-color,border-color,box-shadow] ${isDayMode ? "border-slate-200 bg-white text-slate-700" : "border-white/10 bg-white/[0.055] text-slate-200"}`}
           >
-            {t("events.title")}
-          </h1>
-          <p
-            className={`text-xs mt-1 ${isDayMode ? "text-slate-600" : "text-gray-400"}`}
-          >
-            {t("events.subtitle")}
-          </p>
+            <Menu size={18} />
+          </motion.button>
+          <div className="min-w-0 text-center">
+            <h1 className={`text-[1.25rem] font-black leading-6 tracking-tight ${isDayMode ? "text-slate-950" : "text-white"}`}>
+              社区活动
+            </h1>
+            <p className={`mt-1 truncate text-[8px] font-black uppercase tracking-[0.42em] ${isDayMode ? "text-cyan-700" : "text-cyan-300"}`}>
+              Discover · Join · 社区活动
+            </p>
+          </div>
+          <div className="flex justify-end gap-2">
+            <motion.button
+              {...mobileControlMotion}
+              type="button"
+              aria-label={t("search.placeholder", "搜索")}
+              onClick={() => window.dispatchEvent(new Event("open-search-palette"))}
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-[6px] border transition-[background-color,border-color,box-shadow] ${isDayMode ? "border-slate-200 bg-white text-slate-700" : "border-white/10 bg-white/[0.055] text-slate-200"}`}
+            >
+              <Search size={18} />
+            </motion.button>
+            <motion.button
+              {...mobileControlMotion}
+              type="button"
+              aria-label={t("common.create_event")}
+              onClick={() => {
+                if (!user) {
+                  toast.error(t("auth.signin_required"));
+                  return;
+                }
+                setIsUploadOpen(true);
+              }}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-[6px] bg-indigo-500 text-white shadow-[0_0_18px_rgba(99,102,241,0.36)]"
+            >
+              <Plus size={19} strokeWidth={3} />
+            </motion.button>
+          </div>
+        </div>
+        <div className="md:hidden">
+          <OrganizationPartnerWall
+            partners={organizationPartners}
+            isDayMode={isDayMode}
+            className="mb-2 text-left"
+            onApplyPartnerFilter={handleApplyPartnerFilter}
+            onOpenEvent={openEventFromList}
+          />
+          <div className="relative mb-3">
+            <div
+              ref={mobileCategoryScrollRef}
+              {...mobileCategoryDragProps}
+              className={`scrollbar-none flex cursor-grab select-none snap-x snap-proximity gap-2.5 overflow-x-auto overscroll-x-contain scroll-smooth border-b pb-1 pr-8 touch-pan-x active:cursor-grabbing ${isDayMode ? "border-slate-200" : "border-white/10"}`}
+            >
+              {mobileCategoryTabs.map((tab) => {
+                const active = (filters.category || null) === tab.value;
+                return (
+                  <motion.button
+                    {...mobileTabMotion}
+                    key={tab.value || "all"}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => handleMobileCategoryChange(tab.value)}
+                    className={`relative h-10 shrink-0 snap-start px-3 text-sm font-black transition-colors ${
+                      active
+                        ? isDayMode
+                          ? "text-indigo-700"
+                          : "text-indigo-100"
+                        : isDayMode
+                          ? "text-slate-500"
+                          : "text-slate-300"
+                    }`}
+                  >
+                    {tab.label}
+                    {active ? (
+                      <motion.span
+                        layoutId="events-mobile-category-underline"
+                        className="absolute inset-x-1 bottom-0 h-0.5 rounded-full bg-indigo-400"
+                        transition={{ type: "spring", stiffness: 520, damping: 38 }}
+                      />
+                    ) : null}
+                  </motion.button>
+                );
+              })}
+            </div>
+            <div
+              aria-hidden="true"
+              className={`pointer-events-none absolute bottom-1 right-0 top-0 w-10 ${isDayMode ? "bg-gradient-to-l from-white to-transparent" : "bg-gradient-to-l from-[#030817] to-transparent"}`}
+            />
+          </div>
         </div>
         <MobileContentToolbar
           isDayMode={isDayMode}
           sortLabel={mobileSortLabel}
+          sort={sort}
+          onSortChange={setSort}
           filterCount={mobileFilterCount}
           onOpenSort={() => {
             setIsMobileFilterOpen(false);
@@ -1586,15 +1857,6 @@ END:VCALENDAR`;
           onClearFilters={resetMobileFilters}
           clearLabel={t("common.clear_all", "重置")}
         />
-        <MobileEventAssistantLauncher
-          isDayMode={isDayMode}
-          onOpen={() => {
-            setIsMobileFilterOpen(false);
-            setIsMobileSortOpen(false);
-            setIsMobileAssistantOpen(true);
-          }}
-        />
-
         {partnerFilter && (
           <div className={`${EVENT_CONTENT_WIDTH_CLASS} mb-4 flex justify-start`}>
             <button
@@ -1662,7 +1924,7 @@ END:VCALENDAR`;
         <OrganizationPartnerWall
           partners={eventOrganizationPartners}
           isDayMode={isDayMode}
-          className={`${EVENT_FILTER_WIDTH_CLASS} mb-3 text-left md:mb-4`}
+          className={`${EVENT_FILTER_WIDTH_CLASS} mb-3 hidden text-left md:mb-4 md:block`}
           onApplyPartnerFilter={handleApplyPartnerFilter}
           onOpenEvent={openEventFromList}
         />
@@ -1719,45 +1981,46 @@ END:VCALENDAR`;
           isMobileFilterOpen ? (
             <>
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                onClick={() => setIsMobileFilterOpen(false)}
-                className={`fixed inset-0 z-[100] md:hidden ${isDayMode ? "bg-transparent" : "bg-black/60 backdrop-blur-sm"}`}
-              />
-              <motion.div
-                initial={{ y: 36 }}
-                animate={{ y: 0 }}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ type: "spring", damping: 28, stiffness: 320 }}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="events-mobile-filter-title"
-                className={`fixed inset-x-0 bottom-0 z-[101] mx-auto flex max-h-[92dvh] w-full max-w-md flex-col overflow-hidden border-x border-t transform-gpu md:hidden ${isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-neutral-950 shadow-[0_-18px_48px_rgba(0,0,0,0.42)]"}`}
+                className={`fixed inset-0 z-[101] flex h-[100svh] w-full flex-col overflow-hidden transform-gpu md:hidden ${isDayMode ? "bg-white text-slate-900" : "bg-[#030817] text-white"}`}
               >
                 <div
-                  className={`shrink-0 border-b px-5 pb-3 pt-4 ${isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-neutral-950"}`}
+                  className={`shrink-0 px-5 pb-3 pt-[calc(env(safe-area-inset-top)+1rem)] ${isDayMode ? "bg-white" : "bg-[#030817]"}`}
                 >
-                  <div className="mx-auto mb-3 h-px w-12 bg-slate-400/50" />
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <h3
-                        id="events-mobile-filter-title"
-                        className={`text-[1.35rem] font-black leading-tight ${isDayMode ? "text-slate-950" : "text-white"}`}
-                      >
-                        {t("events.filter.sheet_title")}
-                      </h3>
-                      <p
-                        className={`mt-1 text-sm ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                      >
-                        {t("events.filter.sheet_hint")}
-                      </p>
-                    </div>
+                  <div className="grid grid-cols-[44px_minmax(0,1fr)_44px] items-start gap-2">
                     <button
                       type="button"
                       aria-label={t("common.close", "关闭")}
                       onClick={() => setIsMobileFilterOpen(false)}
-                      className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "bg-white text-slate-500 hover:text-slate-900" : "bg-white/10 text-gray-400 hover:text-white"}`}
+                      className={`inline-flex h-9 w-9 items-center justify-center rounded-[6px] ${isDayMode ? "text-slate-600" : "text-slate-200"}`}
                     >
-                      <X size={20} />
+                      <X size={18} />
+                    </button>
+                    <div className="text-center">
+                      <h3
+                        id="events-mobile-filter-title"
+                        className={`text-[1.2rem] font-black leading-6 ${isDayMode ? "text-slate-950" : "text-white"}`}
+                      >
+                        社区活动
+                      </h3>
+                      <p
+                        className={`mt-1 truncate text-[8px] font-black uppercase tracking-[0.42em] ${isDayMode ? "text-cyan-700" : "text-cyan-300"}`}
+                      >
+                        Discover · Join · 社区活动
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      aria-label={t("common.clear_all", "清空")}
+                      onClick={resetMobileFilters}
+                      className={`inline-flex h-9 items-center justify-end text-[11px] font-bold ${isDayMode ? "text-slate-600" : "text-slate-300"}`}
+                    >
+                      清空
                     </button>
                   </div>
                 </div>
@@ -1772,7 +2035,7 @@ END:VCALENDAR`;
                   />
                 </div>
                 <div
-                  className={`shrink-0 border-t px-5 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-4 ${isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-neutral-950"}`}
+                  className={`shrink-0 border-t px-5 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-4 ${isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-[#030817]"}`}
                 >
                   <div
                     className={`grid items-center gap-3 ${hasActiveMobileFilters ? "grid-cols-[0.82fr_1.18fr]" : "grid-cols-1"}`}
@@ -1782,7 +2045,7 @@ END:VCALENDAR`;
                         type="button"
                         aria-label={t("common.clear_all", "重置")}
                         onClick={resetMobileFilters}
-                        className={`rect-button-secondary min-h-[52px] text-base font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-slate-600" : "text-gray-200"}`}
+                        className={`rect-button-secondary min-h-[44px] text-sm font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-slate-600" : "text-gray-200"}`}
                       >
                         {t("common.clear_all", "重置")}
                       </button>
@@ -1791,7 +2054,7 @@ END:VCALENDAR`;
                       type="button"
                       aria-label={t("common.done", "完成")}
                       onClick={() => setIsMobileFilterOpen(false)}
-                      className={`rect-button min-h-[52px] text-base font-black focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? dayPrimaryActionClass : nightSegmentActiveClass}`}
+                      className={`rect-button min-h-[44px] text-sm font-black focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? dayPrimaryActionClass : nightSegmentActiveClass}`}
                     >
                       {t("common.done", "完成")}
                     </button>
@@ -1885,29 +2148,25 @@ END:VCALENDAR`;
                 className={`fixed inset-0 z-[100] md:hidden ${isDayMode ? "bg-transparent" : "bg-black/60 backdrop-blur-sm"}`}
               />
               <motion.div
-                initial={{ opacity: 0, scale: 0.96, y: 16 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
+                initial={{ y: 36 }}
+                animate={{ y: 0 }}
                 transition={{ type: "spring", damping: 28, stiffness: 320 }}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="events-mobile-sort-title"
-                className={`fixed inset-0 m-auto w-[calc(100%-2rem)] h-fit border z-[101] md:hidden flex flex-col max-w-sm mx-auto ${isDayMode ? "bg-white border-slate-200/80" : "bg-[#1a1a1a]/95 border-white/10 shadow-[0_18px_48px_rgba(0,0,0,0.42)]"}`}
+                className={`fixed inset-x-0 bottom-0 z-[101] mx-auto flex max-h-[72dvh] w-full max-w-md flex-col overflow-hidden rounded-t-[18px] border-x border-t md:hidden ${isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-[#171c2b]/96 shadow-[0_-18px_48px_rgba(0,0,0,0.42)]"}`}
               >
                 <div
-                  className={`p-4 border-b flex justify-between items-center sticky top-0 z-10 ${isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-[#1a1a1a]/95"}`}
+                  className={`relative flex items-center justify-between border-b px-5 pb-4 pt-7 ${isDayMode ? "border-slate-200/80 bg-white" : "border-white/10 bg-transparent"}`}
                 >
+                  <div className="absolute left-1/2 top-3 h-1 w-12 -translate-x-1/2 rounded-full bg-slate-400/45" />
                   <div>
                     <h3
                       id="events-mobile-sort-title"
-                      className={`text-lg font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}
+                      className={`text-base font-black ${isDayMode ? "text-slate-900" : "text-white"}`}
                     >
-                      {t("common.sort", "排序")}
+                      排序方式
                     </h3>
-                    <p
-                      className={`text-xs mt-1 ${isDayMode ? "text-slate-500" : "text-gray-400"}`}
-                    >
-                      {t("sort_filter.title", "选择活动排序方式")}
-                    </p>
                   </div>
                   <button
                     type="button"
@@ -1918,7 +2177,7 @@ END:VCALENDAR`;
                     <X size={20} />
                   </button>
                 </div>
-                <div className="p-4">
+                <div className="px-5 py-3 pb-[calc(env(safe-area-inset-bottom)+1rem)]">
                   <SortSelector
                     sort={sort}
                     onSortChange={(val) => {
@@ -2034,18 +2293,28 @@ END:VCALENDAR`;
       ) : (
         <div className={`${EVENT_CARD_GRID_CLASS} ${EVENT_CONTENT_WIDTH_CLASS}`}>
           {displayEvents.map((event, index) => (
-            <EventCard
-              key={event.id}
-              event={event}
-              index={index}
-              onClick={openEventFromList}
-              onToggleFavorite={handleToggleFavorite}
-              reduceMotion={shouldReduceCardMotion}
-              isDayMode={isDayMode}
-            />
+            <React.Fragment key={event.id}>
+              <EventCard
+                event={event}
+                index={index}
+                onClick={openEventFromList}
+                onToggleFavorite={handleToggleFavorite}
+                reduceMotion={shouldReduceCardMotion}
+                isDayMode={isDayMode}
+              />
+            </React.Fragment>
           ))}
         </div>
       )}
+
+      <MobileEventAssistantLauncher
+        isDayMode={isDayMode}
+        onOpen={() => {
+          setIsMobileFilterOpen(false);
+          setIsMobileSortOpen(false);
+          setIsMobileAssistantOpen(true);
+        }}
+      />
 
       {!loading &&
         !error &&
@@ -2376,94 +2645,96 @@ END:VCALENDAR`;
 
                   {isMobileViewport && (
                     <div
-                      className={`relative px-4 pt-4 pb-3 border-b ${isDayMode ? "bg-white border-slate-200/70" : "bg-[#0f0f0f] border-white/10"}`}
+                      className={`relative border-b ${isDayMode ? "bg-white border-slate-200/70" : "bg-[#030817] border-white/10"}`}
                     >
-                      <button
-                        onClick={closeEvent}
-                        aria-label={t("common.close", "关闭")}
-                        className={`absolute right-4 top-4 h-11 w-11 rounded-lg border transition-all duration-300 z-30 group inline-flex items-center justify-center overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer ${isDayMode ? `bg-white hover:bg-white text-slate-700 border-slate-200 focus-visible:ring-slate-400/70 focus-visible:ring-offset-white` : "bg-black/45 hover:bg-black/65 text-white border-white/10 hover:border-white/20 backdrop-blur-xl focus-visible:ring-white/60 focus-visible:ring-offset-[#0f0f0f]"}`}
-                      >
-                        <span
-                          className={`relative inline-flex h-8 w-8 items-center justify-center rounded-md transition-all duration-300 ${isDayMode ? "bg-white border border-slate-200 group-hover:bg-white" : "bg-white/10 border border-white/10 group-hover:bg-white/15"}`}
+                      <div className="relative h-[170px] overflow-hidden">
+                        <SmartImage
+                          src={getEventCoverUrl(selectedEvent)}
+                          alt={selectedEvent.title}
+                          type="event"
+                          className="absolute inset-0 h-full w-full"
+                          imageClassName="h-full w-full object-cover"
+                          priority
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#030817] via-black/20 to-black/45" />
+                        <button
+                          onClick={closeEvent}
+                          aria-label={t("common.close", "关闭")}
+                          className="absolute left-3 top-3 z-20 inline-flex h-9 w-9 items-center justify-center rounded-[6px] bg-black/35 text-white backdrop-blur-md"
                         >
-                          <X
-                            size={20}
-                            className="group-hover:rotate-90 group-hover:scale-105 transition-transform duration-300"
-                          />
+                          <ArrowRight size={18} className="rotate-180" />
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={t("common.share", "分享")}
+                          onClick={handleShare}
+                          className="absolute right-3 top-3 z-20 inline-flex h-9 w-9 items-center justify-center rounded-[6px] bg-black/35 text-white backdrop-blur-md"
+                        >
+                          <Share2 size={17} />
+                        </button>
+                        <span className="absolute left-3 top-14 z-20 rounded-[5px] bg-black/62 px-2 py-1 text-[10px] font-black leading-4 text-white">
+                          {formatDateTime(selectedEvent.date).split(" ")[0]}
                         </span>
-                      </button>
-                      <div className="pr-14">
-                        <div className="min-w-0">
-                          <h2
-                            className={`line-clamp-2 text-[1.35rem] font-black leading-[1.16] tracking-tight ${isDayMode ? "text-slate-950" : "text-white"}`}
-                          >
-                            {selectedEvent.title}
-                          </h2>
-                          {selectedEvent.link ? (
-                            <a
-                              href={selectedEvent.link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={() =>
-                                recordSelectedEventAssistantAction("register", {
-                                  surface: "detail_link_mobile",
-                                  href: selectedEvent.link,
-                                })
-                              }
-                              className={`mt-2 inline-flex items-center justify-center gap-2 rounded-md px-3.5 py-2 text-xs font-bold transition-all group ${isDayMode ? eventThemeAccent.cta : "bg-indigo-500/90 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 backdrop-blur-md border border-white/10"}`}
-                            >
-                              {t("events.visit_link")}
-                              <ExternalLink
-                                size={14}
-                                className="group-hover:translate-x-0.5 transition-transform"
-                              />
-                            </a>
-                          ) : null}
-                        </div>
                       </div>
 
-                      {selectedEvent.description && (
-                        <p
-                          className={`mt-3 line-clamp-3 text-[13px] leading-6 ${isDayMode ? "text-slate-600" : "text-white/75"}`}
-                        >
-                          {selectedEvent.description}
-                        </p>
-                      )}
-
-                      <div className="mt-3 flex justify-start">
-                        <FavoriteButton
-                          itemId={selectedEvent.id}
-                          itemType="event"
-                          size={20}
-                          showCount={true}
-                          count={selectedEvent.likes || 0}
-                          favorited={selectedEvent.favorited}
-                          testId="event-detail-favorite-mobile"
-                          className={`p-2.5 rounded-md transition-all shrink-0 border ${isDayMode ? "bg-white hover:bg-white border-slate-200 text-slate-700" : "bg-white/10 hover:bg-white/20 border border-white/10 backdrop-blur-md"}`}
-                          onToggle={(favorited, likes) => {
-                            recordSelectedEventAssistantAction(
-                              favorited ? "favorite" : "unfavorite",
-                              { surface: "event_detail_mobile" },
-                            );
-                            setSelectedEvent((prev) => ({
-                              ...prev,
-                              likes: likes !== undefined ? likes : prev.likes,
-                              favorited,
-                            }));
-                            setEvents((prev) =>
-                              prev.map((e) =>
-                                e.id === selectedEvent.id
-                                  ? {
-                                      ...e,
-                                      likes:
-                                        likes !== undefined ? likes : e.likes,
-                                      favorited,
-                                    }
-                                  : e,
-                              ),
-                            );
-                          }}
-                        />
+                      <div className="px-4 pb-4 pt-3">
+                        <div className="flex items-start gap-3">
+                          <div className="min-w-0 flex-1">
+                            <h2 className={`line-clamp-2 text-[1.05rem] font-black leading-6 tracking-tight ${isDayMode ? "text-slate-950" : "text-white"}`}>
+                              {selectedEvent.title}
+                            </h2>
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              {selectedEvent.category ? (
+                                <span className={`rounded-[4px] px-2 py-0.5 text-[10px] font-bold ${isDayMode ? "bg-blue-50 text-blue-700" : "bg-white/8 text-indigo-100"}`}>
+                                  {formatEventCategory(selectedEvent.category)}
+                                </span>
+                              ) : null}
+                              {selectedEvent.target_audience ? (
+                                <span className={`rounded-[4px] px-2 py-0.5 text-[10px] font-bold ${isDayMode ? "bg-slate-100 text-slate-600" : "bg-white/8 text-slate-300"}`}>
+                                  {formatEventAudience(selectedEvent.target_audience)}
+                                </span>
+                              ) : null}
+                            </div>
+                          </div>
+                          <FavoriteButton
+                            itemId={selectedEvent.id}
+                            itemType="event"
+                            size={18}
+                            showCount={false}
+                            count={selectedEvent.likes || 0}
+                            favorited={selectedEvent.favorited}
+                            testId="event-detail-favorite-mobile"
+                            className={`h-9 w-9 rounded-full border ${isDayMode ? "bg-white border-slate-200 text-slate-700" : "bg-white/10 border-white/10 text-white"}`}
+                            onToggle={(favorited, likes) => {
+                              recordSelectedEventAssistantAction(favorited ? "favorite" : "unfavorite", { surface: "event_detail_mobile" });
+                              setSelectedEvent((prev) => ({ ...prev, likes: likes !== undefined ? likes : prev.likes, favorited }));
+                              setEvents((prev) => prev.map((e) => e.id === selectedEvent.id ? { ...e, likes: likes !== undefined ? likes : e.likes, favorited } : e));
+                            }}
+                          />
+                        </div>
+                        <div className={`mt-3 space-y-2 text-xs ${isDayMode ? "text-slate-600" : "text-slate-300"}`}>
+                          <div className="flex items-center gap-2">
+                            <Clock size={13} />
+                            <span>{formatDateTime(selectedEvent.date)}{selectedEvent.end_date && !isSameDay(selectedEvent.date, selectedEvent.end_date) ? ` - ${formatDateTime(selectedEvent.end_date)}` : ""}</span>
+                          </div>
+                          {selectedEvent.location ? (
+                            <div className="flex items-center gap-2">
+                              <MapPin size={13} />
+                              <span className="truncate">{selectedEvent.location}</span>
+                            </div>
+                          ) : null}
+                          {selectedEvent.organizer ? (
+                            <div className="flex items-center gap-2">
+                              <Building2 size={13} />
+                              <span className="truncate">{selectedEvent.organizer}</span>
+                            </div>
+                          ) : null}
+                        </div>
+                        {selectedEvent.description ? (
+                          <p className={`mt-4 text-xs leading-6 ${isDayMode ? "text-slate-600" : "text-white/75"}`}>
+                            {selectedEvent.description}
+                          </p>
+                        ) : null}
                       </div>
                     </div>
                   )}

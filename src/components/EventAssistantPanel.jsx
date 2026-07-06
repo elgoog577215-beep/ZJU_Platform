@@ -424,6 +424,21 @@ const EventAssistantPanel = ({
             </div>
           ) : null}
 
+          {isFullscreenVariant && !originalQuery && !assistantState ? (
+            <div className="mb-5 flex flex-col items-center pt-4 text-center">
+              <div className={`mb-4 flex h-20 w-20 items-center justify-center rounded-full border ${isDayMode ? "border-indigo-100 bg-indigo-50 text-indigo-700" : "border-indigo-300/20 bg-indigo-500/18 text-indigo-100"}`}>
+                <Sparkles size={34} />
+              </div>
+              <h3 className={`text-base font-black ${textClass}`}>你好，我是你的活动助手</h3>
+              <p className={`mt-2 max-w-[17rem] text-xs leading-5 ${faintClass}`}>
+                告诉我你的兴趣和需求，我会帮你找到合适的活动。
+              </p>
+              <div className={`mt-4 rounded-full border px-3 py-1 text-[11px] ${controlChipClass}`}>
+                你可以这样问
+              </div>
+            </div>
+          ) : null}
+
           {!originalQuery && !assistantState ? (
             <div className={quickPromptGridClass}>
               {quickPrompts.map((item) => (

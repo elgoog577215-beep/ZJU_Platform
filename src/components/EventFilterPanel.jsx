@@ -230,7 +230,16 @@ const EventFilterPanel = ({
         </section>
 
         <section className={`space-y-3 border-t pt-5 ${sheetBorderClass}`}>
-          <div className="flex items-center justify-end gap-3">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <div className={sheetSectionTitleClass}>
+                {t("events.filter.audience_mobile_title", "面向对象")}
+              </div>
+              <p className={sheetHintClass}>
+                {t("events.filter.audience_short_hint", "按学院、年级或群体缩小范围")}
+              </p>
+            </div>
+            <div className="flex items-center justify-end gap-3">
             {selectedAudience && (
               <button
                 type="button"
@@ -256,6 +265,7 @@ const EventFilterPanel = ({
                   : `${t("common.all", "全部")} ${totalAudienceCount}`}
               </button>
             )}
+            </div>
           </div>
 
           <label className="relative block">

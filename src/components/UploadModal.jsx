@@ -391,6 +391,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   const [audienceSearch, setAudienceSearch] = useState('');
   const [showAllAudiences, setShowAllAudiences] = useState(false);
   const [dateReasoning, setDateReasoning] = useState('');
+  const [mobileEventStep, setMobileEventStep] = useState(1);
   const [relatedArticleIds, setRelatedArticleIds] = useState(Array.isArray(initialData?.related_article_ids) ? initialData.related_article_ids.join(',') : (initialData?.related_article_ids || ''));
   const [relatedPostIds, setRelatedPostIds] = useState(Array.isArray(initialData?.related_post_ids) ? initialData.related_post_ids.join(',') : (initialData?.related_post_ids || ''));
   const [relatedNewsIds, setRelatedNewsIds] = useState(Array.isArray(initialData?.related_news_ids) ? initialData.related_news_ids.join(',') : (initialData?.related_news_ids || ''));
@@ -405,6 +406,14 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   const [slashMenuBlockId, setSlashMenuBlockId] = useState(null);
   const [isImportingDocument, setIsImportingDocument] = useState(false);
   const articleImportInputRef = React.useRef(null);
+  const wasOpenRef = React.useRef(false);
+
+  useEffect(() => {
+    if (isOpen && !wasOpenRef.current && type === 'event') {
+      setMobileEventStep(1);
+    }
+    wasOpenRef.current = isOpen;
+  }, [isOpen, type]);
 
   const articleDraftStorageKey = React.useMemo(
     () => `zju-article-draft-${user?.id || 'guest'}`,
@@ -1179,6 +1188,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title && !hasBatchImages) {
+        if (type === 'event') setMobileEventStep(1);
         toast.error(t('upload.title_required'));
         return;
     }
@@ -1187,6 +1197,11 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         return;
     }
 
+    if (type === 'event' && !eventDate) {
+        setMobileEventStep(2);
+        toast.error(t('upload.required_start_date', '请填写开始时间'));
+        return;
+    }
     if (hasBatchImages) {
       setIsUploading(true);
       try {
@@ -1249,18 +1264,27 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
     }
 
     if (type === 'event' && !eventEndDate) {
+        setMobileEventStep(2);
         toast.error(t('upload.required_end_date'));
         return;
     }
+    if (type === 'event' && !eventLocation.trim()) {
+        setMobileEventStep(2);
+        toast.error(t('upload.required_location', '请填写活动地点'));
+        return;
+    }
     if (type === 'event' && !eventCategory) {
+        setMobileEventStep(1);
         toast.error(t('upload.required_event_category'));
         return;
     }
     if (type === 'event' && isCollegeNotice && !eventOrganizer.trim()) {
+        setMobileEventStep(2);
         toast.error(t('upload.required_college_notice_source'));
         return;
     }
     if (type === 'event' && isCollegeNotice && !sourceCollege.trim()) {
+        setMobileEventStep(3);
         toast.error(t('upload.required_source_college'));
         return;
     }
@@ -1555,7 +1579,12 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                 <span className={`upload-modal-title-icon p-2 sm:p-2.5 rounded-[5px] border ${isDayMode ? 'bg-white border-slate-200/80 text-indigo-600' : 'bg-white/5 border-white/10'}`}>
                     {React.cloneElement(getIcon(), { size: 24 })}
                 </span>
-                <span className="truncate">
+                {type === 'event' && (
+                  <span className="truncate">
+                    {isEditing ? t('common.edit_event', '编辑活动') : t('common.create_event', '创建活动')}
+                  </span>
+                )}
+                <span className={`truncate ${type === 'event' ? 'hidden' : ''}`}>
                     {type === 'article' ? '文章撰写' : `${isEditing ? t('admin.edit_item') : t('common.upload')} `}
                     {type !== 'article' && <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">{t(`common.${type}`)}</span>}
                 </span>
@@ -1582,11 +1611,43 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
               </div>
             </div>
 
+            {type === 'event' && (
+              <div className={`upload-modal-mobile-stepper flex items-center gap-3 border-b px-5 py-3 sm:hidden ${isDayMode ? 'border-slate-200/80 bg-white/95' : 'border-white/10 bg-[#0f0f0f]'}`}>
+                {[1, 2, 3].map((step) => {
+                  const active = mobileEventStep === step;
+                  return (
+                    <button
+                      key={step}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => setMobileEventStep(step)}
+                      className="flex min-w-0 flex-1 items-center gap-2"
+                    >
+                      <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-black ${
+                        active
+                          ? (isDayMode ? 'bg-indigo-600 text-white' : 'bg-indigo-500 text-white')
+                          : (isDayMode ? 'bg-slate-100 text-slate-500' : 'bg-white/8 text-gray-400')
+                      }`}>
+                        {step}
+                      </span>
+                      <span className={`truncate text-[11px] font-bold ${
+                        active
+                          ? (isDayMode ? 'text-slate-900' : 'text-white')
+                          : (isDayMode ? 'text-slate-500' : 'text-gray-500')
+                      }`}>
+                        {step === 1 ? '基本信息' : step === 2 ? '活动详情' : '发布设置'}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
             {/* Form Content - Scrollable */}
-            <form ref={formRef} onSubmit={handleSubmit} className="upload-modal-form flex-1 overflow-y-auto custom-scrollbar relative z-10 flex flex-col">
+            <form ref={formRef} onSubmit={handleSubmit} noValidate={type === 'event'} className="upload-modal-form flex-1 overflow-y-auto custom-scrollbar relative z-10 flex flex-col">
               <div className={`upload-modal-body ${type === 'article' ? 'p-4 sm:p-6' : 'p-5 sm:p-8'} flex-1 ${type === 'article' ? 'space-y-4 sm:space-y-5' : 'space-y-6 sm:space-y-8'}`}>
               {(profilesLoading || manageableProfiles.length > 0) && (
-                <section className={`${cardClasses} !space-y-4`}>
+                <section className={`${cardClasses} !space-y-4 ${type === 'event' ? 'hidden sm:block' : ''}`}>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
                       <label className={labelClasses}>{t('profiles.publisher_identity', '发布身份')}</label>
@@ -1627,7 +1688,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
               {type === 'event' ? (
                 <>
                 {/* Event Specific Fields */}
-                <div className={`upload-modal-smart-parse p-5 sm:p-6 border relative overflow-hidden group ${isDayMode ? 'bg-emerald-50/70 border-emerald-200/70' : 'bg-green-500/10 border-green-500/20'}`}>
+                <div className={`upload-modal-smart-parse p-5 sm:p-6 border relative overflow-hidden group ${mobileEventStep !== 1 ? 'hidden sm:block' : ''} ${isDayMode ? 'bg-emerald-50/70 border-emerald-200/70' : 'bg-green-500/10 border-green-500/20'}`}>
                     <div className="upload-modal-smart-watermark absolute right-0 top-0 h-full w-px opacity-40 transition-opacity duration-300">
                         <Link size={100} className="text-green-500 transform rotate-12" />
                     </div>
@@ -1686,7 +1747,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
 
                 <div className="upload-modal-event-grid grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
                   {/* Left Column: Media & Core Info */}
-                  <div className="upload-modal-column space-y-6 sm:space-y-8">
+                  <div className={`upload-modal-column space-y-6 sm:space-y-8 ${mobileEventStep !== 1 ? 'hidden sm:block' : ''}`}>
                      {/* Cover Image (Event Image) */}
                      <div className="upload-modal-field-group space-y-3">
                         <label className={labelClasses}>{t('common.image')}</label>
@@ -1840,7 +1901,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                   </div>
 
                   {/* Right Column: Event Details */}
-                  <div className="upload-modal-column space-y-6 sm:space-y-8">
+                  <div className={`upload-modal-column space-y-6 sm:space-y-8 ${mobileEventStep !== 2 ? 'hidden sm:block' : ''}`}>
                       {/* Basic Info Card */}
                       <div className={cardClasses}>
                            <h4 className="upload-modal-card-title text-sm font-black text-gray-300 uppercase tracking-widest flex items-center gap-2.5 pb-4 border-b border-white/10">
@@ -2051,6 +2112,160 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                </div>
                            </div>
                       </div>
+                  </div>
+                </div>
+                <div className={`upload-modal-mobile-final-step space-y-4 sm:hidden ${mobileEventStep === 3 ? '' : 'hidden'}`}>
+                  <div className={cardClasses}>
+                    <label className="flex cursor-pointer items-center justify-between gap-4">
+                      <span className="min-w-0">
+                        <span className={`block text-sm font-black ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
+                          {t('event_fields.college_notice')}
+                        </span>
+                        <span className={`mt-1 block text-xs leading-5 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>
+                          {t('event_fields.college_notice_hint')}
+                        </span>
+                      </span>
+                      <input
+                        type="checkbox"
+                        checked={isCollegeNotice}
+                        onChange={toggleCollegeNotice}
+                        className="peer sr-only"
+                      />
+                      <span
+                        aria-hidden="true"
+                        className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
+                          isCollegeNotice
+                            ? (isDayMode ? 'bg-indigo-600' : 'bg-indigo-500')
+                            : (isDayMode ? 'bg-slate-200' : 'bg-white/12')
+                        }`}
+                      >
+                        <span
+                          className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-transform ${
+                            isCollegeNotice ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </span>
+                    </label>
+
+                    {isCollegeNotice && (
+                      <div className="space-y-4 pt-2">
+                        <div>
+                          <label className={labelClasses}>{t('event_fields.notice_type')}</label>
+                          <div className="upload-modal-chip-grid grid grid-cols-2 gap-2">
+                            {COLLEGE_NOTICE_TYPES.map((noticeOption) => {
+                              const selected = noticeType === noticeOption.value;
+                              return (
+                                <button
+                                  key={noticeOption.value}
+                                  type="button"
+                                  aria-pressed={selected}
+                                  onClick={() => setNoticeType(noticeOption.value)}
+                                  className={`upload-modal-choice-button min-h-[38px] rounded-xl border px-2 py-2 text-xs font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+                                    selected
+                                      ? (isDayMode ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-indigo-300/50 bg-indigo-400/18 text-indigo-50')
+                                      : (isDayMode ? 'border-slate-200 bg-white text-slate-600' : 'border-white/10 bg-white/5 text-gray-300')
+                                  }`}
+                                >
+                                  {getCollegeNoticeTypeLabel(noticeOption.value, i18n.resolvedLanguage || i18n.language)}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        <div>
+                          <label className={labelClasses}>{t('event_fields.source_college')}</label>
+                          <select
+                            value={sourceCollege}
+                            onChange={(event) => setSourceCollege(event.target.value)}
+                            className={inputClasses}
+                          >
+                            <option value="">{t('event_fields.source_college_placeholder')}</option>
+                            {EVENT_SOURCE_COLLEGE_OPTIONS.map((college) => (
+                              <option key={college} value={college}>
+                                {college}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className={cardClasses}>
+                    <label className={labelClasses}>{t('upload.event_link')}</label>
+                    <div className="relative group">
+                      <Link size={18} className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${isDayMode ? 'text-slate-400 group-focus-within:text-indigo-500' : 'text-gray-500 group-focus-within:text-indigo-400'}`} />
+                      <input
+                        type="text"
+                        value={eventLink}
+                        onChange={(event) => setEventLink(event.target.value)}
+                        className={`${inputClasses} pl-11`}
+                        placeholder="https://..."
+                      />
+                    </div>
+                  </div>
+
+                  <div className={cardClasses}>
+                    <div className="space-y-4">
+                      <div>
+                        <label className={labelClasses}>{t('profiles.publisher_identity', '发布身份')}</label>
+                        <select
+                          value={selectedPublisherProfileId}
+                          onChange={(event) => handlePublisherProfileChange(event.target.value)}
+                          disabled={profilesLoading || manageableProfiles.length === 0}
+                          className={inputClasses}
+                        >
+                          <option value="">{profilesLoading ? t('common.loading') : t('profiles.default_personal', '默认个人身份')}</option>
+                          {manageableProfiles.map((profile) => (
+                            <option key={profile.id} value={profile.id}>
+                              {formatProfileOptionLabel(profile)}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      {organizationProfiles.length > 0 && (
+                        <div>
+                          <label className={labelClasses}>{t('profiles.organizer_profile', '主办主体')}</label>
+                          <select
+                            value={selectedOrganizerProfileId}
+                            onChange={(event) => setSelectedOrganizerProfileId(event.target.value)}
+                            disabled={profilesLoading}
+                            className={inputClasses}
+                          >
+                            <option value="">{t('profiles.organizer_auto_match', '按主办方文本自动匹配')}</option>
+                            {organizationProfiles.map((profile) => (
+                              <option key={profile.id} value={profile.id}>
+                                {formatProfileOptionLabel(profile)}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className={cardClasses}>
+                    <label className="flex cursor-pointer select-none items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={featured}
+                        onChange={(event) => setFeatured(event.target.checked)}
+                        className="peer sr-only"
+                      />
+                      <span
+                        aria-hidden="true"
+                        className={`flex h-6 w-6 items-center justify-center rounded border transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-400 peer-focus-visible:ring-offset-2 ${
+                          featured
+                            ? 'border-indigo-500 bg-indigo-500'
+                            : (isDayMode ? 'border-slate-300 bg-white' : 'border-white/20 bg-white/5')
+                        }`}
+                      >
+                        {featured && <Check size={14} className="text-white" />}
+                      </span>
+                      <span className={`text-sm font-bold ${isDayMode ? 'text-slate-700' : 'text-gray-200'}`}>
+                        {t('common.featured')}
+                      </span>
+                    </label>
                   </div>
                 </div>
                 </>
@@ -2616,10 +2831,60 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
 
               {/* Submit Buttons - Sticky at bottom */}
               <div className={stickyFooterClass}>
+                {type === 'event' && (
+                  <div className="grid w-full min-w-0 flex-1 grid-cols-2 gap-3 sm:hidden">
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        if (mobileEventStep === 1) {
+                          handleClose();
+                          return;
+                        }
+                        setMobileEventStep((step) => Math.max(1, step - 1));
+                      }}
+                      className={`rect-button-secondary min-h-[50px] w-full px-4 text-sm font-bold ${isDayMode ? 'bg-white/90 text-slate-600 hover:text-slate-900' : 'text-gray-300 hover:text-white'}`}
+                    >
+                      {mobileEventStep === 1 ? t('common.cancel') : '上一步'}
+                    </button>
+                    {mobileEventStep < 3 ? (
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          setMobileEventStep((step) => Math.min(3, step + 1));
+                        }}
+                        className={`rect-button-primary min-h-[50px] w-full px-4 text-sm font-black ${isDayMode ? 'bg-indigo-600 text-white hover:bg-indigo-500' : 'bg-indigo-500 text-white hover:bg-indigo-400'}`}
+                      >
+                        下一步
+                      </button>
+                    ) : (
+                      <button
+                        type="submit"
+                        disabled={isUploading}
+                        className={`rect-button-primary flex min-h-[50px] w-full items-center justify-center gap-2 px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50 ${isDayMode ? 'bg-indigo-600 text-white hover:bg-indigo-500' : 'bg-indigo-500 text-white hover:bg-indigo-400'}`}
+                      >
+                        {isUploading ? (
+                          <>
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                            <span>{t('upload.uploading')}...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Upload size={18} />
+                            <span>{isEditing ? t('common.save') : '上传 / 保存'}</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                )}
                 <button
                   type="button"
                   onClick={handleClose}
-                  className={`rect-button-secondary w-full sm:w-auto px-6 py-4 sm:py-3.5 font-bold text-sm ${isDayMode ? 'text-slate-600 hover:text-slate-900 bg-white/90' : 'text-gray-400 hover:text-white'}`}
+                  className={`rect-button-secondary w-full sm:w-auto px-6 py-4 sm:py-3.5 font-bold text-sm ${type === 'event' ? 'max-sm:!hidden sm:inline-flex' : ''} ${isDayMode ? 'text-slate-600 hover:text-slate-900 bg-white/90' : 'text-gray-400 hover:text-white'}`}
                 >
                   {t('common.cancel')}
                 </button>
@@ -2632,7 +2897,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                     }
                   }}
                   disabled={isUploading}
-                  className={`rect-button-primary w-full sm:w-auto px-8 py-4 sm:py-3.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 font-black text-sm ${isDayMode ? 'bg-indigo-600 text-white hover:bg-indigo-500' : 'bg-indigo-500 text-white hover:bg-indigo-400'}`}
+                  className={`rect-button-primary w-full sm:w-auto px-8 py-4 sm:py-3.5 disabled:opacity-50 disabled:cursor-not-allowed items-center justify-center gap-2.5 font-black text-sm ${type === 'event' ? 'max-sm:!hidden sm:inline-flex' : 'flex'} ${isDayMode ? 'bg-indigo-600 text-white hover:bg-indigo-500' : 'bg-indigo-500 text-white hover:bg-indigo-400'}`}
                 >
                   {isUploading ? (
                     <>
