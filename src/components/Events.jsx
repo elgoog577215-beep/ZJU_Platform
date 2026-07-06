@@ -376,9 +376,7 @@ const EventCard = memo(
         }`}
         onClick={() => onClick(event)}
       >
-        <div className={`relative h-full w-[126px] shrink-0 overflow-hidden rounded-[8px] min-[520px]:w-[150px] ${
-          isDayMode ? "bg-slate-100" : "bg-[#101827]"
-        }`}>
+        <div className="relative h-full w-[126px] shrink-0 overflow-hidden rounded-[8px] bg-[#101827] min-[520px]:w-[150px]">
           <SmartImage
             src={getEventCoverUrl(event)}
             alt={event.title}
@@ -387,8 +385,7 @@ const EventCard = memo(
             loading="lazy"
             priority={index === 0}
             className="absolute inset-0 h-full w-full"
-            imageClassName="h-full w-full"
-            objectFit="contain"
+            imageClassName="h-full w-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/5 to-transparent" />
           <span className="absolute left-2 top-2 rounded-[5px] bg-indigo-950/78 px-2 py-0.5 text-[14px] font-black leading-5 text-white shadow-[0_6px_16px_rgba(0,0,0,0.32)]">
@@ -2708,14 +2705,13 @@ END:VCALENDAR`;
                     <div
                       className={`relative border-b ${isDayMode ? "bg-white border-slate-200/70" : "bg-[#030817] border-white/10"}`}
                     >
-                      <div className={`relative h-[170px] overflow-hidden ${isDayMode ? "bg-slate-100" : "bg-[#070d1a]"}`}>
+                      <div className="relative h-[170px] overflow-hidden">
                         <SmartImage
                           src={getEventCoverUrl(selectedEvent)}
                           alt={selectedEvent.title}
                           type="event"
                           className="absolute inset-0 h-full w-full"
-                          imageClassName="h-full w-full"
-                          objectFit="contain"
+                          imageClassName="h-full w-full object-cover"
                           priority
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-[#030817] via-black/20 to-black/45" />
