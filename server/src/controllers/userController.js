@@ -5,6 +5,12 @@ const sharp = require('sharp');
 const { getDb } = require('../config/db');
 const { createNotification } = require('./notificationController');
 const profileService = require('../services/profileService');
+const {
+  canBypassReview,
+  normalizeAccountType,
+  normalizeAdminScope,
+  normalizeReviewPermission,
+} = require('../utils/userPermissions');
 
 const NICKNAME_REGEX = /^[\u4e00-\u9fa5a-zA-Z0-9_]+$/;
 const IDENTITY_TYPES = new Set(['person', 'team', 'club', 'organization']);
@@ -19,6 +25,15 @@ const CONTENT_STATUS_SOURCES = [
   { key: 'communityPosts', table: 'community_posts', ownerColumn: 'author_id' },
   { key: 'projects', table: 'project_cards', ownerColumn: 'user_id', deletedWhere: "status != 'removed'" },
   { key: 'competitionWorks', table: 'competition_works', ownerColumn: 'uploader_id', deletedColumn: 'deleted_at' },
+];
+const ORGANIZATION_PROFILE_TYPES = new Set(['club', 'organization', 'school', 'enterprise']);
+const PROFILE_CONTENT_SOURCES = [
+  { key: 'photos', table: 'photos', profileColumn: 'publisher_profile_id', deletedColumn: 'deleted_at' },
+  { key: 'videos', table: 'videos', profileColumn: 'publisher_profile_id', deletedColumn: 'deleted_at' },
+  { key: 'music', table: 'music', profileColumn: 'publisher_profile_id', deletedColumn: 'deleted_at' },
+  { key: 'articles', table: 'articles', profileColumn: 'publisher_profile_id', deletedColumn: 'deleted_at' },
+  { key: 'news', table: 'news', profileColumn: 'publisher_profile_id', deletedColumn: 'deleted_at' },
+  { key: 'communityPosts', table: 'community_posts', profileColumn: 'publisher_profile_id' },
 ];
 
 const normalizeIdentityType = (value = '') => {
@@ -100,6 +115,173 @@ const countContentSource = async (db, source, userId) => {
   const byStatus = mergeStatusCounts({}, rows);
   const total = Object.values(byStatus).reduce((sum, count) => sum + count, 0);
   return { key: source.key, total, byStatus };
+};
+
+const normalizeUserAccessFields = (user = {}) => ({
+  account_type: normalizeAccountType(user.account_type, user.organization_cr ? 'organization' : 'personal'),
+  review_permission: normalizeReviewPermission(
+    user.review_permission,
+    user.role === 'admin' ? 'admin' : 'normal',
+  ),
+  admin_scope: normalizeAdminScope(
+    user.admin_scope,
+    user.role === 'admin' ? 'platform' : 'none',
+  ),
+});
+
+const serializePermissionSummary = (user = {}) => {
+  const normalized = normalizeUserAccessFields(user);
+  const reviewPermission = normalized.review_permission;
+  return {
+    accountType: normalized.account_type,
+    reviewPermission,
+    adminScope: normalized.admin_scope,
+    role: user.role || 'user',
+    isAdmin: user.role === 'admin',
+    canBypassReview: canBypassReview({ ...user, ...normalized }),
+    accountTypeKey: `account_type.${normalized.account_type}`,
+    reviewPermissionKey: `review_permission.${reviewPermission}`,
+    adminScopeKey: `admin_scope.${normalized.admin_scope}`,
+  };
+};
+
+const getUserContentSummary = async (db, userId) => {
+  const contentSources = await Promise.all(
+    CONTENT_STATUS_SOURCES.map((source) => countContentSource(db, source, userId))
+  );
+  const byStatus = {};
+  const bySource = {};
+  let total = 0;
+  for (const source of contentSources) {
+    bySource[source.key] = source;
+    total += source.total;
+    mergeStatusCounts(byStatus, Object.entries(source.byStatus).map(([status, count]) => ({ status, count })));
+  }
+  return {
+    total,
+    byStatus,
+    bySource,
+    pending: byStatus.pending || 0,
+    approved: (byStatus.approved || 0) + (byStatus.published || 0),
+    drafts: byStatus.draft || 0,
+    rejected: byStatus.rejected || 0,
+  };
+};
+
+const loadPartnerRowsForProfiles = async (db, profileIds = []) => {
+  const ids = profileIds.filter(Boolean);
+  if (!ids.length) return new Map();
+  const rows = await safeAll(
+    db,
+    `SELECT id, profile_id, category, name, partner_scope, enabled, featured
+     FROM ecosystem_partners
+     WHERE deleted_at IS NULL
+       AND profile_id IN (${ids.map(() => '?').join(',')})`,
+    ids
+  );
+  return new Map(rows.map((row) => [row.profile_id, row]));
+};
+
+const decorateOrganizationProfiles = async (db, profiles = []) => {
+  const partnerByProfileId = await loadPartnerRowsForProfiles(db, profiles.map((profile) => profile.id));
+  return profiles.map((profile) => {
+    const partner = partnerByProfileId.get(profile.id) || null;
+    return {
+      ...profileService.serializeProfile(profile),
+      member_role: profile.member_role || null,
+      partner: partner
+        ? {
+            id: partner.id,
+            name: partner.name,
+            category: partner.category,
+            partner_scope: partner.partner_scope || (partner.featured ? 'core_partner' : 'activity_provider'),
+            enabled: Boolean(partner.enabled),
+            featured: Boolean(partner.featured),
+          }
+        : null,
+    };
+  });
+};
+
+const buildOrganizationWorkspace = async (db, managedProfiles = []) => {
+  const organizationRows = managedProfiles.filter((profile) => ORGANIZATION_PROFILE_TYPES.has(profile.type));
+  const managed = await decorateOrganizationProfiles(db, organizationRows);
+  const byType = managed.reduce((summary, profile) => {
+    summary[profile.type] = (summary[profile.type] || 0) + 1;
+    return summary;
+  }, {});
+  return {
+    managed,
+    total: managed.length,
+    byType,
+    corePartners: managed.filter((profile) => profile.partner?.partner_scope === 'core_partner').length,
+    activityProviders: managed.filter((profile) => profile.partner?.partner_scope === 'activity_provider').length,
+  };
+};
+
+const buildNextActions = ({ profileCompletion, identitySummary, contentSummary, outcomeSummary, organizationWorkspace }) => {
+  const actions = [];
+  for (const missing of profileCompletion?.missing || []) {
+    actions.push({
+      key: `complete_${missing}`,
+      target: targetForCompletionKey(missing),
+      priority: 'profile',
+    });
+  }
+  if ((identitySummary?.pending || 0) > 0) {
+    actions.push({ key: 'review_identity', target: 'identity', priority: 'identity' });
+  }
+  if ((contentSummary?.pending || 0) > 0) {
+    actions.push({ key: 'check_submissions', target: 'submissions', priority: 'content', count: contentSummary.pending });
+  }
+  if ((outcomeSummary?.candidate || 0) > 0) {
+    actions.push({ key: 'confirm_outcomes', target: 'identity', priority: 'outcome', count: outcomeSummary.candidate });
+  }
+  if ((organizationWorkspace?.total || 0) === 0) {
+    actions.push({ key: 'claim_organization', target: 'identity', priority: 'organization' });
+  }
+  return actions.slice(0, 6);
+};
+
+const targetForCompletionKey = (key) => {
+  if (key === 'activityProfile') return 'activity-profile';
+  if (key === 'identity' || key === 'managedProfile') return 'identity';
+  return 'profile-card';
+};
+
+const countProfileContent = async (db, profileId) => {
+  const byStatus = {};
+  let total = 0;
+  for (const source of PROFILE_CONTENT_SOURCES) {
+    const deletedWhere = source.deletedColumn ? ` AND ${source.deletedColumn} IS NULL` : '';
+    const rows = await safeAll(
+      db,
+      `SELECT COALESCE(status, 'unknown') AS status, COUNT(*) AS count
+       FROM ${source.table}
+       WHERE ${source.profileColumn} = ?${deletedWhere}
+       GROUP BY COALESCE(status, 'unknown')`,
+      [profileId]
+    );
+    mergeStatusCounts(byStatus, rows);
+    total += rows.reduce((sum, row) => sum + (Number(row.count) || 0), 0);
+  }
+  const eventRows = await safeAll(
+    db,
+    `SELECT COALESCE(status, 'unknown') AS status, COUNT(*) AS count
+     FROM events
+     WHERE (publisher_profile_id = ? OR organizer_profile_id = ?)
+       AND deleted_at IS NULL
+     GROUP BY COALESCE(status, 'unknown')`,
+    [profileId, profileId]
+  );
+  mergeStatusCounts(byStatus, eventRows);
+  total += eventRows.reduce((sum, row) => sum + (Number(row.count) || 0), 0);
+  return {
+    total,
+    byStatus,
+    pending: byStatus.pending || 0,
+    approved: (byStatus.approved || 0) + (byStatus.published || 0),
+  };
 };
 
 const completionItem = (key, completed, target) => ({ key, completed: Boolean(completed), target });
@@ -270,8 +452,47 @@ function validateNickname(raw) {
 const getAllUsers = async (req, res, next) => {
   try {
     const db = await getDb();
-    const users = await db.all('SELECT id, username, role, created_at FROM users ORDER BY created_at DESC');
-    res.json(users);
+    const users = await db.all(
+      `SELECT id, username, role, account_type, review_permission, admin_scope,
+              avatar, nickname, organization_cr, created_at
+       FROM users
+       ORDER BY datetime(created_at) DESC, id DESC`
+    );
+    const enriched = await Promise.all(users.map(async (user) => {
+      const normalized = normalizeUserAccessFields(user);
+      const [profileCounts, contentSummary] = await Promise.all([
+        safeGet(
+          db,
+          `SELECT
+             COUNT(*) AS managed_profile_count,
+             SUM(CASE WHEN p.type IN ('club', 'organization', 'school', 'enterprise') THEN 1 ELSE 0 END) AS organization_profile_count
+           FROM profile_members pm
+           JOIN profiles p ON p.id = pm.profile_id
+           WHERE pm.user_id = ?
+             AND pm.status = 'active'
+             AND p.status = 'active'
+             AND p.deleted_at IS NULL`,
+          [user.id],
+          { managed_profile_count: 0, organization_profile_count: 0 }
+        ),
+        getUserContentSummary(db, user.id),
+      ]);
+      return {
+        ...user,
+        ...normalized,
+        managed_profile_count: Number(profileCounts?.managed_profile_count) || 0,
+        organization_profile_count: Number(profileCounts?.organization_profile_count) || 0,
+        pending_content_count: Number(contentSummary.pending) || 0,
+        content_summary: {
+          total: contentSummary.total,
+          pending: contentSummary.pending,
+          approved: contentSummary.approved,
+          drafts: contentSummary.drafts,
+          rejected: contentSummary.rejected,
+        },
+      };
+    }));
+    res.json(enriched);
   } catch (error) { next(error); }
 };
 
@@ -308,7 +529,19 @@ const updateUser = async (req, res, next) => {
   try {
     const db = await getDb();
     const { id } = req.params;
-    const { role, password, avatar, organization_cr, gender, age, nickname, invitation_code } = req.body;
+    const {
+      role,
+      password,
+      avatar,
+      organization_cr,
+      gender,
+      age,
+      nickname,
+      invitation_code,
+      account_type,
+      review_permission,
+      admin_scope,
+    } = req.body;
 
     const user = await db.get('SELECT * FROM users WHERE id = ?', [id]);
     if (!user) return res.status(404).json({ error: 'User not found' });
@@ -332,8 +565,35 @@ const updateUser = async (req, res, next) => {
     }
 
     // FIX: BUG-01 — Only admins can change roles; ignore role field from non-admin users
-    if (role && req.user && req.user.role === 'admin') {
-      await db.run('UPDATE users SET role = ? WHERE id = ?', [role, id]);
+    if (req.user && req.user.role === 'admin') {
+      if (role) {
+        const nextRole = role === 'admin' ? 'admin' : 'user';
+        await db.run('UPDATE users SET role = ? WHERE id = ?', [nextRole, id]);
+        if (review_permission === undefined && admin_scope === undefined) {
+          await db.run(
+            'UPDATE users SET review_permission = ?, admin_scope = ? WHERE id = ?',
+            [nextRole === 'admin' ? 'admin' : 'normal', nextRole === 'admin' ? 'platform' : 'none', id]
+          );
+        }
+      }
+      if (account_type !== undefined) {
+        await db.run(
+          'UPDATE users SET account_type = ? WHERE id = ?',
+          [normalizeAccountType(account_type), id]
+        );
+      }
+      if (review_permission !== undefined) {
+        await db.run(
+          'UPDATE users SET review_permission = ? WHERE id = ?',
+          [normalizeReviewPermission(review_permission, user.role === 'admin' ? 'admin' : 'normal'), id]
+        );
+      }
+      if (admin_scope !== undefined) {
+        await db.run(
+          'UPDATE users SET admin_scope = ? WHERE id = ?',
+          [normalizeAdminScope(admin_scope, user.role === 'admin' ? 'platform' : 'none'), id]
+        );
+      }
     }
 
     if (avatar !== undefined) await db.run('UPDATE users SET avatar = ? WHERE id = ?', [avatar, id]);
@@ -413,7 +673,8 @@ const getOwnOverview = async (req, res, next) => {
     const db = await getDb();
     const user = await safeGet(
       db,
-      `SELECT id, username, role, avatar, organization_cr, gender, age, nickname,
+      `SELECT id, username, role, account_type, review_permission, admin_scope,
+              avatar, organization_cr, gender, age, nickname,
               profile_slogan, profile_status, created_at
        FROM users
        WHERE id = ?`,
@@ -427,7 +688,7 @@ const getOwnOverview = async (req, res, next) => {
       profileCard,
       activityPreference,
       outcomeRows,
-      contentSources,
+      contentSummary,
     ] = await Promise.all([
       profileService.listManageableProfiles(db, userId),
       safeAll(
@@ -460,10 +721,12 @@ const getOwnOverview = async (req, res, next) => {
          GROUP BY status`,
         [userId]
       ),
-      Promise.all(CONTENT_STATUS_SOURCES.map((source) => countContentSource(db, source, userId))),
+      getUserContentSummary(db, userId),
     ]);
 
     const managedProfiles = managedProfileRows.map((row) => profileService.serializeProfile(row));
+    const organizationWorkspace = await buildOrganizationWorkspace(db, managedProfileRows);
+    const permissionSummary = serializePermissionSummary(user);
     const identitySummary = identityRows.reduce(
       (summary, row) => {
         const count = Number(row.count) || 0;
@@ -478,17 +741,14 @@ const getOwnOverview = async (req, res, next) => {
       { total: 0, verified: 0, pending: 0, organizations: 0, byStatus: {}, byType: {} }
     );
 
-    const byStatus = {};
-    const bySource = {};
-    let contentTotal = 0;
-    for (const source of contentSources) {
-      bySource[source.key] = source;
-      contentTotal += source.total;
-      mergeStatusCounts(byStatus, Object.entries(source.byStatus).map(([status, count]) => ({ status, count })));
-    }
-
     const outcomeByStatus = mergeStatusCounts({}, outcomeRows);
     const outcomeTotal = Object.values(outcomeByStatus).reduce((sum, count) => sum + count, 0);
+    const outcomeSummary = {
+      total: outcomeTotal,
+      byStatus: outcomeByStatus,
+      candidate: outcomeByStatus.candidate || 0,
+      confirmed: outcomeByStatus.confirmed || 0,
+    };
     const activityCompleted = [
       activityPreference?.college,
       activityPreference?.division,
@@ -505,31 +765,117 @@ const getOwnOverview = async (req, res, next) => {
       identityCounts: identitySummary,
       managedProfiles,
     });
+    const nextActions = buildNextActions({
+      profileCompletion,
+      identitySummary,
+      contentSummary,
+      outcomeSummary,
+      organizationWorkspace,
+    });
 
     res.json({
-      account: user,
+      account: { ...user, ...normalizeUserAccessFields(user) },
+      accountType: permissionSummary.accountType,
+      permissionSummary,
       profileCompletion,
       managedProfiles,
       identitySummary,
-      contentSummary: {
-        total: contentTotal,
-        byStatus,
-        bySource,
-        pending: byStatus.pending || 0,
-        approved: (byStatus.approved || 0) + (byStatus.published || 0),
-        drafts: byStatus.draft || 0,
-      },
-      outcomeSummary: {
-        total: outcomeTotal,
-        byStatus: outcomeByStatus,
-        candidate: outcomeByStatus.candidate || 0,
-        confirmed: outcomeByStatus.confirmed || 0,
-      },
+      organizationWorkspace,
+      contentSummary,
+      outcomeSummary,
+      nextActions,
       activityProfile: {
         completedFields: activityCompleted,
         hasPreference: activityCompleted > 0,
       },
     });
+  } catch (error) { next(error); }
+};
+
+const getAdminUserOrganizations = async (_req, res, next) => {
+  try {
+    const db = await getDb();
+    const rows = await safeAll(
+      db,
+      `SELECT p.*,
+              ep.id AS partner_id,
+              ep.category AS partner_category,
+              ep.name AS partner_name,
+              ep.partner_scope,
+              ep.enabled AS partner_enabled,
+              ep.featured AS partner_featured
+       FROM profiles p
+       LEFT JOIN ecosystem_partners ep
+         ON ep.profile_id = p.id
+        AND ep.deleted_at IS NULL
+       WHERE p.deleted_at IS NULL
+         AND p.type IN ('club', 'organization', 'school', 'enterprise')
+       ORDER BY
+         CASE p.type WHEN 'club' THEN 1 WHEN 'organization' THEN 2 WHEN 'school' THEN 3 WHEN 'enterprise' THEN 4 ELSE 9 END,
+         p.verified DESC,
+         p.display_name ASC`
+    );
+
+    const organizations = await Promise.all(rows.map(async (row) => {
+      const [members, contentSummary, eventCountRow] = await Promise.all([
+        safeAll(
+          db,
+          `SELECT pm.user_id, pm.role AS member_role, pm.status AS member_status,
+                  u.username, u.nickname, u.avatar, u.role,
+                  u.account_type, u.review_permission, u.admin_scope
+           FROM profile_members pm
+           JOIN users u ON u.id = pm.user_id
+           WHERE pm.profile_id = ?
+           ORDER BY
+             CASE pm.role WHEN 'owner' THEN 1 WHEN 'admin' THEN 2 WHEN 'editor' THEN 3 ELSE 9 END,
+             u.id ASC`,
+          [row.id]
+        ),
+        countProfileContent(db, row.id),
+        safeGet(
+          db,
+          `SELECT COUNT(*) AS count
+           FROM events
+           WHERE (publisher_profile_id = ? OR organizer_profile_id = ?)
+             AND status = 'approved'
+             AND deleted_at IS NULL`,
+          [row.id, row.id],
+          { count: 0 }
+        ),
+      ]);
+      const serialized = profileService.serializeProfile(row);
+      const partnerScope = row.partner_scope || (row.partner_featured ? 'core_partner' : 'activity_provider');
+      return {
+        ...serialized,
+        partner: row.partner_id
+          ? {
+              id: row.partner_id,
+              name: row.partner_name,
+              category: row.partner_category,
+              partner_scope: partnerScope,
+              enabled: Boolean(row.partner_enabled),
+              featured: Boolean(row.partner_featured),
+            }
+          : null,
+        members: members.map((member) => ({
+          user_id: member.user_id,
+          username: member.username,
+          nickname: member.nickname,
+          avatar: member.avatar,
+          role: member.role,
+          account_type: normalizeAccountType(member.account_type),
+          review_permission: normalizeReviewPermission(member.review_permission, member.role === 'admin' ? 'admin' : 'normal'),
+          admin_scope: normalizeAdminScope(member.admin_scope, member.role === 'admin' ? 'platform' : 'none'),
+          member_role: member.member_role,
+          member_status: member.member_status,
+        })),
+        member_count: members.length,
+        content_summary: contentSummary,
+        event_count: Number(eventCountRow?.count) || 0,
+      };
+    }));
+
+    res.json({ data: organizations });
   } catch (error) { next(error); }
 };
 
@@ -1280,6 +1626,7 @@ module.exports = {
   updateUser,
   uploadOwnAvatar,
   getOwnOverview,
+  getAdminUserOrganizations,
   listOwnIdentityClaims,
   createOwnIdentityClaim,
   updateOwnIdentityClaim,

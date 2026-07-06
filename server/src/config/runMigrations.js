@@ -391,6 +391,21 @@ async function runMigrations(db) {
         console.log('✅ Added nickname to users table');
       }
 
+      if (!userColumns.includes('account_type')) {
+        await db.exec(`ALTER TABLE users ADD COLUMN account_type TEXT DEFAULT 'personal'`);
+        console.log('✅ Added account_type to users table');
+      }
+
+      if (!userColumns.includes('review_permission')) {
+        await db.exec(`ALTER TABLE users ADD COLUMN review_permission TEXT DEFAULT 'normal'`);
+        console.log('✅ Added review_permission to users table');
+      }
+
+      if (!userColumns.includes('admin_scope')) {
+        await db.exec(`ALTER TABLE users ADD COLUMN admin_scope TEXT DEFAULT 'none'`);
+        console.log('✅ Added admin_scope to users table');
+      }
+
       if (!userColumns.includes('profile_slogan')) {
         await db.exec(`ALTER TABLE users ADD COLUMN profile_slogan TEXT`);
         console.log('Added profile_slogan to users table');
@@ -409,6 +424,41 @@ async function runMigrations(db) {
         `);
         console.log('✅ Backfilled organization_cr from organization');
       }
+
+      await db.exec(`
+        UPDATE users
+        SET account_type = 'personal'
+        WHERE account_type IS NULL
+           OR TRIM(account_type) = ''
+           OR account_type NOT IN ('personal', 'organization')
+      `);
+      await db.exec(`
+        UPDATE users
+        SET review_permission = CASE
+              WHEN role = 'admin' THEN 'admin'
+              ELSE 'normal'
+            END
+        WHERE review_permission IS NULL
+           OR TRIM(review_permission) = ''
+           OR review_permission NOT IN ('normal', 'trusted', 'admin')
+      `);
+      await db.exec(`
+        UPDATE users
+        SET admin_scope = CASE
+              WHEN role = 'admin' THEN 'platform'
+              ELSE 'none'
+            END
+        WHERE admin_scope IS NULL
+           OR TRIM(admin_scope) = ''
+           OR admin_scope NOT IN ('none', 'platform')
+      `);
+      await db.exec(`
+        UPDATE users
+        SET account_type = 'organization'
+        WHERE account_type = 'personal'
+          AND organization_cr IS NOT NULL
+          AND TRIM(organization_cr) != ''
+      `);
     }
   } catch (err) {
     if (!err.message.includes('duplicate column')) {

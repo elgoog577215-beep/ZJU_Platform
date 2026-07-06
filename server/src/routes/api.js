@@ -140,6 +140,7 @@ router.put('/profiles/:handle', authenticateToken, profileController.updateOwnPr
 
 // User Management Routes (Admin)
 router.get('/admin/users', authenticateToken, isAdmin, userController.getAllUsers);
+router.get('/admin/user-organizations', authenticateToken, isAdmin, userController.getAdminUserOrganizations);
 router.put('/admin/users/:id', authenticateToken, isAdmin, userController.updateUser);
 router.delete('/admin/users/:id', authenticateToken, isAdmin, userController.deleteUser);
 router.post('/admin/outcome-links', authenticateToken, isAdmin, userController.adminCreateOutcomeLink);

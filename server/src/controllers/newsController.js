@@ -4,6 +4,7 @@ const { getDb } = require('../config/db');
 const { normalizeLinkagePayload, serializeLinkageFields, attachLinkedResources } = require('../utils/communityLinks');
 const { fanOutNewContent } = require('./notificationController');
 const profileService = require('../services/profileService');
+const { canBypassReview } = require('../utils/userPermissions');
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 const NEWS_STATUSES = new Set(['draft', 'pending', 'approved', 'rejected']);
@@ -240,20 +241,23 @@ const checkNewsSourceHealth = async (req, res, next) => {
   }
 };
 
-const normalizeNewsStatus = (value, userRole = 'user', fallback = null) => {
+const normalizeNewsStatus = (value, user = {}, fallback = null) => {
   const requested = String(value || '').trim().toLowerCase();
+  const userRole = user?.role || 'user';
   if (userRole === 'admin') {
     if (NEWS_STATUSES.has(requested)) return requested;
     return fallback || 'approved';
   }
   if (requested === 'draft') return 'draft';
+  if (canBypassReview(user)) return 'approved';
   if (requested === 'pending' || requested === 'submit') return 'pending';
   return fallback && fallback !== 'approved' ? fallback : 'pending';
 };
 
-const buildNewsPayload = (body = {}, userRole = 'user', fallbackStatus = null) => {
+const buildNewsPayload = (body = {}, user = {}, fallbackStatus = null) => {
   const mutableBody = { ...body };
   normalizeLinkagePayload(mutableBody, { strict: true });
+  const userRole = user?.role || 'user';
   const title = String(body.title || '').trim();
   const excerpt = String(body.excerpt || '').trim();
   const content = String(body.content || '').trim();
@@ -274,7 +278,7 @@ const buildNewsPayload = (body = {}, userRole = 'user', fallbackStatus = null) =
     is_pinned: userRole === 'admin' && body.is_pinned ? 1 : 0,
     pin_weight: userRole === 'admin' ? clamp(parseInt(body.pin_weight || '0', 10) || 0, 0, 9999) : 0,
     featured: userRole === 'admin' && body.featured ? 1 : 0,
-    status: normalizeNewsStatus(body.status || body.intent, userRole, fallbackStatus),
+    status: normalizeNewsStatus(body.status || body.intent, user, fallbackStatus),
     rejection_reason: userRole === 'admin' && body.rejection_reason !== undefined ? String(body.rejection_reason || '').trim().slice(0, 500) : null,
     related_article_ids: mutableBody.related_article_ids || null,
     related_post_ids: mutableBody.related_post_ids || null,
@@ -289,7 +293,7 @@ const createNews = async (req, res, next) => {
     const userId = req.user?.id;
     if (!userId) return res.status(401).json({ error: 'Login required' });
 
-    const payload = buildNewsPayload(req.body, req.user?.role);
+    const payload = buildNewsPayload(req.body, req.user || {});
     if (payload.title.length < 4) {
       return res.status(400).json({ error: 'Title is too short' });
     }
@@ -372,7 +376,7 @@ const updateNews = async (req, res, next) => {
       return res.status(403).json({ error: 'Permission denied' });
     }
 
-    const payload = buildNewsPayload({ ...existing, ...req.body }, req.user?.role, existing.status);
+    const payload = buildNewsPayload({ ...existing, ...req.body }, req.user || {}, existing.status);
     const publisherProfileId = req.body.publisher_profile_id !== undefined
       ? await profileService.resolvePublisherProfileId(db, userId, req.body.publisher_profile_id, req.user?.role)
       : existing.publisher_profile_id;
@@ -532,7 +536,7 @@ const importNews = async (req, res, next) => {
         source_url: sourceUrl,
         import_type: 'external',
       },
-      req.user?.role
+      req.user || {}
     );
     // Imported news must always go through edit-and-confirm before publishing.
     payload.status = 'draft';

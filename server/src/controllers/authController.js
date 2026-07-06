@@ -20,7 +20,14 @@ if (!SECRET_KEY) {
 }
 
 const signAuthToken = (user) => jwt.sign(
-  { id: user.id, username: user.username, role: user.role },
+  {
+    id: user.id,
+    username: user.username,
+    role: user.role,
+    account_type: user.account_type || 'personal',
+    review_permission: user.review_permission || (user.role === 'admin' ? 'admin' : 'normal'),
+    admin_scope: user.admin_scope || (user.role === 'admin' ? 'platform' : 'none'),
+  },
   SECRET_KEY,
   { expiresIn: '7d' }
 );
@@ -29,6 +36,9 @@ const toAuthUser = (user) => ({
   id: user.id,
   username: user.username,
   role: user.role,
+  account_type: user.account_type || 'personal',
+  review_permission: user.review_permission || (user.role === 'admin' ? 'admin' : 'normal'),
+  admin_scope: user.admin_scope || (user.role === 'admin' ? 'platform' : 'none'),
   nickname: user.nickname,
   avatar: user.avatar,
 });
@@ -161,14 +171,33 @@ const register = async (req, res, next) => {
     const userCount = await db.get('SELECT COUNT(*) as count FROM users');
     const role = userCount.count === 0 ? 'admin' : 'user';
 
+    const reviewPermission = role === 'admin' ? 'admin' : 'normal';
+    const adminScope = role === 'admin' ? 'platform' : 'none';
     const result = await db.run(
-      'INSERT INTO users (username, password, role, created_at) VALUES (?, ?, ?, ?)',
-      [username, hashedPassword, role, new Date().toISOString()]
+      'INSERT INTO users (username, password, role, account_type, review_permission, admin_scope, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [username, hashedPassword, role, 'personal', reviewPermission, adminScope, new Date().toISOString()]
     );
 
-    const token = signAuthToken({ id: result.lastID, username, role });
+    const token = signAuthToken({
+      id: result.lastID,
+      username,
+      role,
+      account_type: 'personal',
+      review_permission: reviewPermission,
+      admin_scope: adminScope,
+    });
 
-    res.json({ token, user: { id: result.lastID, username, role } });
+    res.json({
+      token,
+      user: {
+        id: result.lastID,
+        username,
+        role,
+        account_type: 'personal',
+        review_permission: reviewPermission,
+        admin_scope: adminScope,
+      },
+    });
   } catch (error) { next(error); }
 };
 
@@ -203,7 +232,7 @@ const login = async (req, res, next) => {
       [user.id, 'auth', 0, 'login', 'User logged in']
     );
 
-    res.json({ token, user: { id: user.id, username: user.username, role: user.role } });
+    res.json({ token, user: toAuthUser(user) });
   } catch (error) { next(error); }
 };
 
@@ -240,15 +269,15 @@ const adminLogin = async (req, res, next) => {
 
     // FIX: BUG-14 — Look up actual admin user from database instead of hardcoding id:1
     const db = await getDb();
-    let adminUser = await db.get("SELECT id, username, role FROM users WHERE role = 'admin' LIMIT 1");
+    let adminUser = await db.get("SELECT id, username, role, account_type, review_permission, admin_scope FROM users WHERE role = 'admin' LIMIT 1");
     if (!adminUser) {
       // Fallback: create a virtual admin identity if no admin user exists in DB
-      adminUser = { id: 0, username: 'admin', role: 'admin' };
+      adminUser = { id: 0, username: 'admin', role: 'admin', account_type: 'personal', review_permission: 'admin', admin_scope: 'platform' };
     }
 
     const token = signAuthToken({ ...adminUser, role: 'admin' });
 
-    res.json({ token, user: { id: adminUser.id, username: adminUser.username, role: 'admin' } });
+    res.json({ token, user: toAuthUser({ ...adminUser, role: 'admin' }) });
   } catch (error) { next(error); }
 };
 
@@ -303,7 +332,12 @@ const me = async (req, res, next) => {
         const db = await getDb();
         // Fetch full user details from DB to ensure we have the latest data
         // Exclude password for security
-        const user = await db.get('SELECT id, username, role, avatar, organization_cr, gender, age, nickname, created_at FROM users WHERE id = ?', [req.user.id]);
+        const user = await db.get(
+          `SELECT id, username, role, account_type, review_permission, admin_scope,
+                  avatar, organization_cr, gender, age, nickname, created_at
+           FROM users WHERE id = ?`,
+          [req.user.id]
+        );
         
         if (!user) {
             // Handle special case for hardcoded admin (id: 1)
@@ -312,6 +346,9 @@ const me = async (req, res, next) => {
                     id: 1,
                     username: 'admin',
                     role: 'admin',
+                    account_type: 'personal',
+                    review_permission: 'admin',
+                    admin_scope: 'platform',
                     nickname: 'Administrator',
                     created_at: new Date().toISOString()
                 });

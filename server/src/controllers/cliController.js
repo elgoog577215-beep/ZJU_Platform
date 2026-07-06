@@ -2,6 +2,7 @@ const { getDb } = require('../config/db');
 const { cleanupTempFiles } = require('../middleware/upload');
 const { importCommunityDocument } = require('../utils/communityDocumentImport');
 const { fanOutNewContent } = require('./notificationController');
+const { canBypassReview } = require('../utils/userPermissions');
 
 const CHANNELS = new Set(['tech', 'news']);
 const REVIEW_STATUSES = new Set(['draft', 'pending', 'approved', 'rejected']);
@@ -23,10 +24,12 @@ const normalizeTags = (value = '') => normalizeText(value)
 
 const buildExcerpt = (value = '') => normalizeText(value).replace(/\s+/g, ' ').slice(0, 180);
 
-const normalizeStatus = (requestedStatus, userRole = 'user') => {
+const normalizeStatus = (requestedStatus, user = {}) => {
   const status = normalizeText(requestedStatus || 'pending').toLowerCase();
+  const userRole = user?.role || 'user';
   if (userRole === 'admin' && REVIEW_STATUSES.has(status)) return status;
-  return status === 'draft' ? 'draft' : 'pending';
+  if (status === 'draft') return 'draft';
+  return canBypassReview(user) ? 'approved' : 'pending';
 };
 
 const normalizeSourceUrl = (value = '') => {
@@ -237,7 +240,7 @@ const publishCliFile = async (req, res, next) => {
     const imported = await importCommunityDocument(req.file);
     const title = normalizeText(req.body?.title) || imported.title;
     const excerpt = normalizeText(req.body?.excerpt || req.body?.summary) || buildExcerpt(imported.plainText);
-    const status = normalizeStatus(req.body?.status || req.body?.intent, req.user?.role);
+    const status = normalizeStatus(req.body?.status || req.body?.intent, req.user || {});
 
     if (title.length < 4) {
       return res.status(400).json({ error: 'Title is too short' });

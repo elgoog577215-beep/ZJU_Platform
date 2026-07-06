@@ -5,6 +5,7 @@ const { serializeCommunityPost } = require('../utils/serializeCommunityPost');
 const { cleanupTempFiles } = require('../middleware/upload');
 const { importCommunityDocument } = require('../utils/communityDocumentImport');
 const profileService = require('../services/profileService');
+const { canBypassReview } = require('../utils/userPermissions');
 
 const viewerFromReq = (req) => (
   req && req.user && req.user.id != null
@@ -38,13 +39,12 @@ const normalizeMaterialType = (input) => {
   return MATERIAL_TYPES.has(value) ? value : 'other';
 };
 
-const normalizeContentStatus = (value, { section, role = 'user', intent = 'submit' } = {}) => {
+const normalizeContentStatus = (value, { section, user = {}, role = user?.role || 'user', intent = 'submit' } = {}) => {
   const requested = String(value || '').trim().toLowerCase();
   if (requested === 'draft') return 'draft';
   if (role === 'admin' && CONTENT_STATUSES.has(requested)) return requested;
-  if (section === 'help') return intent === 'draft' ? 'draft' : 'approved';
-  if (section === 'team' || section === 'materials') return intent === 'draft' ? 'draft' : 'pending';
-  return intent === 'draft' ? 'draft' : 'pending';
+  if (intent === 'draft') return 'draft';
+  return canBypassReview(user) ? 'approved' : 'pending';
 };
 
 const sanitizeCommunityText = (input) => {
@@ -162,7 +162,7 @@ const deletePost = async (req, res, next) => {
       return res.status(404).json({ error: 'Post not found' });
     }
 
-    const actor = await db.get('SELECT role FROM users WHERE id = ?', [userId]);
+    const actor = await db.get('SELECT role, review_permission FROM users WHERE id = ?', [userId]);
     const canDelete = actor?.role === 'admin' || post.author_id === userId;
     if (!canDelete) {
       return res.status(403).json({ error: 'Permission denied' });
@@ -201,7 +201,7 @@ const restorePost = async (req, res, next) => {
 
     const nextStatus = actor?.role === 'admin'
       ? 'approved'
-      : normalizeContentStatus('submit', { section: post.section, role: actor?.role || 'user', intent: 'submit' });
+      : normalizeContentStatus('submit', { section: post.section, user: actor || {}, intent: 'submit' });
     await db.run(
       `UPDATE community_posts
        SET status = ?, rejection_reason = NULL, updated_at = datetime('now')
@@ -630,7 +630,7 @@ const createPost = async (req, res, next) => {
       return res.status(400).json({ error: 'Content is too short' });
     }
 
-    const user = await db.get('SELECT username, nickname, avatar, role FROM users WHERE id = ?', [userId]);
+    const user = await db.get('SELECT username, nickname, avatar, role, review_permission FROM users WHERE id = ?', [userId]);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -638,7 +638,7 @@ const createPost = async (req, res, next) => {
     const authorName = user.nickname || user.username;
     const status = normalizeContentStatus(mutableBody.status, {
       section,
-      role: user.role || 'user',
+      user,
       intent: mutableBody.intent || mutableBody.submit_intent || 'submit',
     });
     const postStatus = normalizePostStatus(section, req.body.post_status);
@@ -1190,7 +1190,7 @@ const updatePost = async (req, res, next) => {
     if (!existing || existing.status === 'deleted') {
       return res.status(404).json({ error: 'Post not found' });
     }
-    const actor = await db.get('SELECT role FROM users WHERE id = ?', [userId]);
+    const actor = await db.get('SELECT role, review_permission FROM users WHERE id = ?', [userId]);
     if (!actor || (actor.role !== 'admin' && existing.author_id !== userId)) {
       return res.status(403).json({ error: 'Permission denied' });
     }
@@ -1219,7 +1219,7 @@ const updatePost = async (req, res, next) => {
     const nextStatus = mutableBody.status !== undefined || mutableBody.intent !== undefined || mutableBody.submit_intent !== undefined
       ? normalizeContentStatus(mutableBody.status, {
           section: existing.section,
-          role: actor.role || 'user',
+          user: actor,
           intent: mutableBody.intent || mutableBody.submit_intent || 'submit',
         })
       : existing.status;

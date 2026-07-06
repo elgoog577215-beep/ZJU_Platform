@@ -105,6 +105,8 @@ class DatabasePool {
       // Users
       'CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)',
       'CREATE INDEX IF NOT EXISTS idx_users_role ON users(role)',
+      'CREATE INDEX IF NOT EXISTS idx_users_account_type ON users(account_type)',
+      'CREATE INDEX IF NOT EXISTS idx_users_review_permission ON users(review_permission)',
       'CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(created_at)',
       
       // Resources - Photos

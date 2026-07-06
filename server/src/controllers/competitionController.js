@@ -1,6 +1,7 @@
 const { getDb } = require('../config/db');
 const { createNotification } = require('./notificationController');
 const { createCandidateLinksForWork } = require('./userController');
+const { canBypassReview } = require('../utils/userPermissions');
 
 const MEDIA_TYPES = new Set(['promo_video', 'stage_photo']);
 const REVIEW_STATUSES = new Set(['pending', 'approved', 'rejected']);
@@ -409,7 +410,9 @@ const submitCurrentMedia = async (req, res, next) => {
     if (coverUrl && !isSafeAssetUrl(coverUrl)) return sendBadRequest(res, '封面地址无效');
 
     const requestedStatus = normalizeStatus(req.body.status, 'approved');
-    const status = req.user?.role === 'admin' ? requestedStatus : 'pending';
+    const status = req.user?.role === 'admin'
+      ? requestedStatus
+      : (canBypassReview(req.user || {}) ? 'approved' : 'pending');
     const reviewedBy = status === 'approved' || status === 'rejected' ? req.user.id : null;
     const reviewedAt = reviewedBy ? new Date().toISOString() : null;
 
@@ -464,7 +467,9 @@ const submitCurrentWork = async (req, res, next) => {
     if (coverUrl && !isSafeAssetUrl(coverUrl)) return sendBadRequest(res, '封面地址无效');
 
     const requestedStatus = normalizeStatus(req.body.status, 'approved');
-    const status = req.user?.role === 'admin' ? requestedStatus : 'pending';
+    const status = req.user?.role === 'admin'
+      ? requestedStatus
+      : (canBypassReview(req.user || {}) ? 'approved' : 'pending');
     const reviewedBy = status === 'approved' || status === 'rejected' ? req.user.id : null;
     const reviewedAt = reviewedBy ? new Date().toISOString() : null;
 

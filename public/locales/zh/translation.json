@@ -242,12 +242,16 @@
       "title": "账号与身份控制中心",
       "subtitle": "这里汇总你的个人资料、认证身份、可管理组织、投稿状态和成果认领。",
       "stats": {
+        "account_type": "账号主体",
+        "review_permission": "发布权限",
+        "organizations": "组织主体",
         "completion": "资料完整度",
         "identities": "认证身份",
         "profiles": "可管理主体",
         "pending": "待处理"
       },
       "completion_title": "资料闭环",
+      "completion_desc": "资料、活动画像与身份认证会共同影响推荐、投稿归属和组织接管。",
       "completion_items": {
         "nickname": "设置显示名称",
         "avatar": "上传头像",
@@ -258,10 +262,42 @@
       },
       "actions": {
         "title": "下一步",
+        "desc": "把最该处理的资料、投稿、成果和组织动作收在这里。",
         "empty": "当前没有必须处理的事项。",
         "pending_submissions": "{{count}} 条投稿待处理",
         "candidate_outcomes": "{{count}} 个成果待认领"
       },
+      "next_actions": {
+        "complete_nickname": "补充显示名称",
+        "complete_avatar": "上传头像",
+        "complete_profileCard": "完善个人名片",
+        "complete_activityProfile": "填写活动画像",
+        "complete_identity": "添加认证身份",
+        "complete_managedProfile": "绑定可管理主体",
+        "check_submissions": "查看待审核投稿",
+        "confirm_outcomes": "确认成果认领",
+        "claim_organization": "申请或绑定组织主体",
+        "review_identity": "查看身份认证进度"
+      },
+      "account_type": {
+        "personal": "个人账号",
+        "organization": "组织账号"
+      },
+      "review_permission": {
+        "normal": "普通审核",
+        "trusted": "免审核发布",
+        "admin": "管理员发布"
+      },
+      "partner_scope": {
+        "core": "生态/比赛合作方",
+        "activity": "活动提供方"
+      },
+      "organization_workspace": {
+        "title": "我的组织工作台",
+        "claim": "申请组织身份"
+      },
+      "content_title": "发布与审核状态",
+      "content_empty": "暂无发布内容，可以先从活动、AI 社区或项目广场开始。",
       "managed_profiles": "可管理主体",
       "verified": "已认证",
       "no_managed_profiles": "暂无可管理主体。",
@@ -275,7 +311,8 @@
       "content_status": {
         "approved": "已发布",
         "pending": "待审核",
-        "drafts": "草稿"
+        "drafts": "草稿",
+        "rejected": "已驳回"
       }
     },
     "center": {
@@ -2498,19 +2535,54 @@
       "delete_success": "用户已删除",
       "delete_fail": "删除用户失败",
       "loading_users": "正在加载用户列表...",
+      "loading_organizations": "正在加载组织主体...",
+      "error_load_organizations": "获取组织主体失败",
       "title": "用户管理",
-      "description": "查看账号、筛选角色、调整权限，并为单个用户重置密码。刷新会保留当前列表，避免误以为数据被删少。",
+      "description": "统一查看账号、发布权限、组织主体和前台展示身份；角色解决能否进后台，发布权限解决内容是否免审核。",
       "refresh": "刷新",
       "refreshing": "刷新中",
-      "search_placeholder": "搜索用户名、ID 或角色",
+      "search_placeholder": "搜索用户名、ID、权限或组织",
       "search_aria": "搜索用户",
       "clear_search": "清空搜索",
+      "views": {
+        "accounts": "账号",
+        "organizations": "组织主体",
+        "permissions": "权限治理"
+      },
       "filter_all": "全部账号",
       "role_user": "普通用户",
       "role_admin": "管理员",
+      "permission_all": "全部权限",
+      "account_type": {
+        "personal": "个人账号",
+        "organization": "组织账号"
+      },
+      "review_permission": {
+        "normal": "普通审核",
+        "trusted": "免审核发布",
+        "admin": "管理员发布"
+      },
+      "review_permission_desc": {
+        "normal": "提交内容进入审核队列，适合新用户和普通成员。",
+        "trusted": "可信账号提交内容默认通过，适合已确认的社团或官方组织。",
+        "admin": "拥有管理员发布能力，并通常可进入后台处理审核。"
+      },
+      "admin_scope": {
+        "none": "无后台范围",
+        "platform": "平台后台"
+      },
+      "partner_scope": {
+        "core_partner": "生态/比赛合作方",
+        "activity_provider": "活动提供方",
+        "profile_only": "仅组织主体"
+      },
       "metric_total": "总用户数",
       "metric_admin": "管理员",
       "metric_user": "普通用户",
+      "metric_trusted": "免审核",
+      "metric_org_accounts": "组织账号",
+      "metric_organizations": "组织主体",
+      "metric_pending": "待审内容",
       "metric_search_helper": "当前搜索命中 {{count}} 个",
       "list_title": "用户列表（{{count}}）",
       "result_summary": "当前显示 {{shown}} / {{total}} 个账号。",
@@ -2519,17 +2591,33 @@
       "search_notice": "正在按“{{query}}”搜索，全部账号命中 {{matched}} / {{total}} 个；角色筛选只改变显示范围，不会改动账号数据。",
       "empty_title": "没有匹配的用户",
       "empty_desc": "可以清空搜索词，或切换到其他角色范围。",
+      "organizations_title": "组织主体（{{count}}）",
+      "organizations_desc": "这里汇总可作为活动筛选、发布归属、关于页或黑客松合作方展示的组织 profile。",
+      "empty_organizations_title": "没有匹配的组织主体",
+      "empty_organizations_desc": "可以清空搜索词，或到生态伙伴管理中新建组织主体。",
       "col_user": "用户",
       "col_role": "角色",
+      "col_account_type": "主体类型",
+      "col_review_permission": "发布权限",
+      "col_orgs": "组织数",
+      "col_pending": "待审",
+      "col_organization": "组织",
+      "col_scope": "展示层级",
+      "col_members": "成员",
+      "col_events": "活动",
+      "col_content": "内容",
+      "col_profile": "主体主页",
       "col_created": "创建时间",
       "col_actions": "操作",
       "created_at": "创建时间",
+      "org_count": "组织主体",
+      "pending_content": "待审内容",
       "edit": "编辑",
       "delete": "删除",
       "edit_user": "编辑用户",
       "delete_user": "删除用户",
       "edit_title": "编辑用户",
-      "edit_desc": "可以调整当前用户的角色，或只为当前用户重置密码。",
+      "edit_desc": "可以调整当前用户的后台角色、账号主体类型、发布审核权限，或只为当前用户重置密码。",
       "save_changes": "保存修改",
       "cancel": "取消",
       "saving": "保存中...",
@@ -2537,12 +2625,18 @@
       "user_id": "ID {{id}}",
       "edit_target_note": "当前操作对象：{{username}}。保存时只会提交这个用户的变更。",
       "role_field": "角色",
+      "account_type_field": "账号主体类型",
+      "review_permission_field": "发布审核权限",
+      "admin_scope_field": "管理员范围",
       "password_field": "新密码",
       "password_placeholder": "留空则不修改密码",
       "password_too_short": "密码至少 6 位。",
       "password_hint": "留空不会修改密码；填写后只会重置当前用户。",
       "password_scope_title": "密码修改范围",
       "password_scope_desc": "本次密码重置只发送到 {{username}} 这个账号，不会批量修改其他用户。",
+      "permission_scope_title": "权限轴说明",
+      "permission_scope_desc": "组织账号不自动等于管理员；免审核只影响内容发布是否进入审核，后台访问仍由角色控制。",
+      "permission_empty": "暂无该权限档位的账号。",
       "no_changes": "还没有可保存的变更。",
       "delete_title": "确认删除用户",
       "delete_desc": "即将删除 {{username}}，该操作不可撤销。后端会阻止删除当前登录账号。",

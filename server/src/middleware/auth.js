@@ -20,9 +20,15 @@ const authenticateToken = (req, res, next) => {
     try {
       const { getDb } = require('../config/db');
       const db = await getDb();
-      const dbUser = await db.get('SELECT id, username, role FROM users WHERE id = ?', [user.id]);
+      const dbUser = await db.get(
+        'SELECT id, username, role, account_type, review_permission, admin_scope FROM users WHERE id = ?',
+        [user.id],
+      );
       if (dbUser) {
         user.role = dbUser.role;
+        user.account_type = dbUser.account_type || 'personal';
+        user.review_permission = dbUser.review_permission || (dbUser.role === 'admin' ? 'admin' : 'normal');
+        user.admin_scope = dbUser.admin_scope || (dbUser.role === 'admin' ? 'platform' : 'none');
       }
     } catch (dbErr) {
       // Fall back to JWT role if DB lookup fails
@@ -39,8 +45,24 @@ const optionalAuth = (req, res, next) => {
   if (!token) return next();
 
   // FIX: BUG-12 — Specify algorithm for optionalAuth as well
-  jwt.verify(token, SECRET_KEY, { algorithms: ['HS256'] }, (err, user) => {
+  jwt.verify(token, SECRET_KEY, { algorithms: ['HS256'] }, async (err, user) => {
     if (!err) {
+      try {
+        const { getDb } = require('../config/db');
+        const db = await getDb();
+        const dbUser = await db.get(
+          'SELECT id, username, role, account_type, review_permission, admin_scope FROM users WHERE id = ?',
+          [user.id],
+        );
+        if (dbUser) {
+          user.role = dbUser.role;
+          user.account_type = dbUser.account_type || 'personal';
+          user.review_permission = dbUser.review_permission || (dbUser.role === 'admin' ? 'admin' : 'normal');
+          user.admin_scope = dbUser.admin_scope || (dbUser.role === 'admin' ? 'platform' : 'none');
+        }
+      } catch {
+        // Fall back to token payload for optional auth.
+      }
         req.user = user;
     }
     next();

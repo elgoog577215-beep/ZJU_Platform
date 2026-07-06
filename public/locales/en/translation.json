@@ -244,12 +244,16 @@
       "title": "Account & Identity Control Center",
       "subtitle": "A single view of your profile, verified identities, managed organizations, submissions, and outcome claims.",
       "stats": {
+        "account_type": "Account Type",
+        "review_permission": "Publishing Permission",
+        "organizations": "Organizations",
         "completion": "Profile Completion",
         "identities": "Verified Identities",
         "profiles": "Managed Profiles",
         "pending": "Pending Items"
       },
       "completion_title": "Profile Checklist",
+      "completion_desc": "Profile details, event preferences, and verified identities shape recommendations, submissions, and organization ownership.",
       "completion_items": {
         "nickname": "Set display name",
         "avatar": "Upload avatar",
@@ -260,10 +264,42 @@
       },
       "actions": {
         "title": "Next Steps",
+        "desc": "The most useful profile, submission, outcome, and organization actions are gathered here.",
         "empty": "No required actions right now.",
         "pending_submissions": "{{count}} submissions need review",
         "candidate_outcomes": "{{count}} outcomes need claiming"
       },
+      "next_actions": {
+        "complete_nickname": "Add display name",
+        "complete_avatar": "Upload avatar",
+        "complete_profileCard": "Complete profile card",
+        "complete_activityProfile": "Fill event profile",
+        "complete_identity": "Add verified identity",
+        "complete_managedProfile": "Bind a managed profile",
+        "check_submissions": "Review pending submissions",
+        "confirm_outcomes": "Confirm outcome claims",
+        "claim_organization": "Apply for an organization profile",
+        "review_identity": "Check identity verification"
+      },
+      "account_type": {
+        "personal": "Personal Account",
+        "organization": "Organization Account"
+      },
+      "review_permission": {
+        "normal": "Review Required",
+        "trusted": "No-review Publishing",
+        "admin": "Admin Publishing"
+      },
+      "partner_scope": {
+        "core": "Ecosystem/Hackathon Partner",
+        "activity": "Activity Provider"
+      },
+      "organization_workspace": {
+        "title": "My Organization Workspace",
+        "claim": "Apply for organization identity"
+      },
+      "content_title": "Publishing & Review Status",
+      "content_empty": "No published content yet. Start from events, AI Community, or Project Plaza.",
       "managed_profiles": "Managed Profiles",
       "verified": "Verified",
       "no_managed_profiles": "No managed profiles yet.",
@@ -277,7 +313,8 @@
       "content_status": {
         "approved": "Published",
         "pending": "Pending",
-        "drafts": "Drafts"
+        "drafts": "Drafts",
+        "rejected": "Rejected"
       }
     },
     "center": {
@@ -2442,19 +2479,54 @@
       "delete_success": "User deleted",
       "delete_fail": "Failed to delete user",
       "loading_users": "Loading users...",
+      "loading_organizations": "Loading organization profiles...",
+      "error_load_organizations": "Failed to load organization profiles",
       "title": "User Management",
-      "description": "Review accounts, filter roles, adjust permissions, and reset a single user's password. Refresh keeps the current list visible so the data does not appear to disappear.",
+      "description": "Manage accounts, publishing permissions, organization profiles, and public-facing identity in one place. Roles control admin access; publishing permissions control review bypass.",
       "refresh": "Refresh",
       "refreshing": "Refreshing",
-      "search_placeholder": "Search username, ID, or role",
+      "search_placeholder": "Search username, ID, permission, or organization",
       "search_aria": "Search users",
       "clear_search": "Clear search",
+      "views": {
+        "accounts": "Accounts",
+        "organizations": "Organizations",
+        "permissions": "Permissions"
+      },
       "filter_all": "All Accounts",
       "role_user": "Standard User",
       "role_admin": "Admin",
+      "permission_all": "All Permissions",
+      "account_type": {
+        "personal": "Personal Account",
+        "organization": "Organization Account"
+      },
+      "review_permission": {
+        "normal": "Standard Review",
+        "trusted": "Review Bypass",
+        "admin": "Admin Publishing"
+      },
+      "review_permission_desc": {
+        "normal": "Submissions enter the review queue. Best for new users and regular members.",
+        "trusted": "Trusted accounts publish approved content by default. Best for verified clubs or official organizations.",
+        "admin": "Has admin publishing capability and usually has backend review access."
+      },
+      "admin_scope": {
+        "none": "No Admin Scope",
+        "platform": "Platform Admin"
+      },
+      "partner_scope": {
+        "core_partner": "Ecosystem / Hackathon Partner",
+        "activity_provider": "Activity Provider",
+        "profile_only": "Profile Only"
+      },
       "metric_total": "Total Users",
       "metric_admin": "Admins",
       "metric_user": "Standard Users",
+      "metric_trusted": "Review Bypass",
+      "metric_org_accounts": "Organization Accounts",
+      "metric_organizations": "Organization Profiles",
+      "metric_pending": "Pending Content",
       "metric_search_helper": "{{count}} match current search",
       "list_title": "User List ({{count}})",
       "result_summary": "Showing {{shown}} / {{total}} accounts.",
@@ -2463,17 +2535,33 @@
       "search_notice": "Searching for \"{{query}}\" matches {{matched}} / {{total}} accounts. Role filters only change the visible range and do not modify account data.",
       "empty_title": "No matching users",
       "empty_desc": "Clear the search term or switch to another role range.",
+      "organizations_title": "Organization Profiles ({{count}})",
+      "organizations_desc": "Profiles here can power activity filters, publishing attribution, About pages, or hackathon partner displays.",
+      "empty_organizations_title": "No matching organization profiles",
+      "empty_organizations_desc": "Clear the search term, or create an organization profile in ecosystem partner management.",
       "col_user": "User",
       "col_role": "Role",
+      "col_account_type": "Account Type",
+      "col_review_permission": "Publishing Permission",
+      "col_orgs": "Organizations",
+      "col_pending": "Pending",
+      "col_organization": "Organization",
+      "col_scope": "Display Scope",
+      "col_members": "Members",
+      "col_events": "Events",
+      "col_content": "Content",
+      "col_profile": "Profile",
       "col_created": "Created",
       "col_actions": "Actions",
       "created_at": "Created",
+      "org_count": "Organization Profiles",
+      "pending_content": "Pending Content",
       "edit": "Edit",
       "delete": "Delete",
       "edit_user": "Edit user",
       "delete_user": "Delete user",
       "edit_title": "Edit User",
-      "edit_desc": "Change this user's role, or reset only this user's password.",
+      "edit_desc": "Change this user's backend role, account type, publishing permission, or reset only this user's password.",
       "save_changes": "Save Changes",
       "cancel": "Cancel",
       "saving": "Saving...",
@@ -2481,12 +2569,18 @@
       "user_id": "ID {{id}}",
       "edit_target_note": "Current target: {{username}}. Saving only submits changes for this user.",
       "role_field": "Role",
+      "account_type_field": "Account Type",
+      "review_permission_field": "Publishing Review Permission",
+      "admin_scope_field": "Admin Scope",
       "password_field": "New Password",
       "password_placeholder": "Leave blank to keep unchanged",
       "password_too_short": "Password must be at least 6 characters.",
       "password_hint": "Leave blank to keep the password unchanged; filling it resets only the current user.",
       "password_scope_title": "Password Scope",
       "password_scope_desc": "This password reset is sent only to {{username}} and will not update other users in bulk.",
+      "permission_scope_title": "Permission Axes",
+      "permission_scope_desc": "An organization account is not automatically an admin. Review bypass only affects whether content enters review; backend access is still controlled by role.",
+      "permission_empty": "No accounts in this permission tier yet.",
       "no_changes": "There are no changes to save yet.",
       "delete_title": "Confirm User Deletion",
       "delete_desc": "You are about to delete {{username}}. This cannot be undone. The backend blocks deleting the currently signed-in account.",

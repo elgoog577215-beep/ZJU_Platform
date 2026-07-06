@@ -4,6 +4,7 @@ const { createNotification, fanOutNewContent } = require('./notificationControll
 const { normalizeLinkagePayload, serializeLinkageFields, attachLinkedResources } = require('../utils/communityLinks');
 const { getEventCategoryFilterTerms, normalizeEventCategory } = require('../services/eventIntelligenceService');
 const profileService = require('../services/profileService');
+const { canBypassReview } = require('../utils/userPermissions');
 
 const buildCommaSeparatedMatch = (field, value) => ({
     clause: `("${field}" = ? OR "${field}" LIKE ? OR "${field}" LIKE ? OR "${field}" LIKE ?)`,
@@ -197,17 +198,17 @@ const serializeResourceItem = (table, item) => {
 
 const supportsMediaCategory = (table) => table === 'photos' || table === 'videos';
 
-const normalizeArticleWorkflowStatus = (table, requestedStatus, userRole = 'user') => {
+const normalizeArticleWorkflowStatus = (table, requestedStatus, user = {}) => {
   if (table !== 'articles') return null;
   const normalized = String(requestedStatus || '').trim().toLowerCase();
+  const userRole = user?.role || 'user';
   if (!normalized) {
-    return userRole === 'admin' ? 'approved' : 'pending';
+    return canBypassReview(user) ? 'approved' : 'pending';
   }
   // Non-admin users can only create drafts or submit for pending review.
   if (userRole !== 'admin') {
     if (normalized === 'draft') return 'draft';
-    if (normalized === 'pending') return 'pending';
-    return 'pending';
+    return canBypassReview(user) ? 'approved' : 'pending';
   }
   // Admins can set any workflow status explicitly.
   if (['draft', 'pending', 'approved', 'rejected'].includes(normalized)) {
@@ -253,8 +254,8 @@ const createHandler = (table, fields) => async (req, res, next) => {
     
     // Determine status based on user role and optional workflow intent.
     const userRole = req.user ? req.user.role : 'user';
-    const workflowStatus = normalizeArticleWorkflowStatus(table, req.body.status, userRole);
-    const status = workflowStatus || (userRole === 'admin' ? 'approved' : 'pending');
+    const workflowStatus = normalizeArticleWorkflowStatus(table, req.body.status, req.user || {});
+    const status = workflowStatus || (canBypassReview(req.user || {}) ? 'approved' : 'pending');
     const uploader_id = req.user ? req.user.id : null;
     const publisherProfileId = await profileService.resolvePublisherProfileId(
         db,
@@ -290,13 +291,13 @@ const createHandler = (table, fields) => async (req, res, next) => {
 
     // Fan-out new-content notifications to the author's followers.
     // Only for the 5 user-facing resource tables. Community posts are excluded
-    // per spec "No Fan-out for Community Posts". Rejected items are skipped so
-    // admin moderation does not leak pre-review content.
+    // per spec "No Fan-out for Community Posts". Pending/draft/rejected items
+    // must not leak before review.
     //
     // NOTE: Using getSingularType so 'music' stays 'music' (not table.slice(0,-1)
     // which would incorrectly produce 'musi').
     const FANOUT_TABLES = new Set(['photos', 'music', 'videos', 'articles', 'events']);
-    if (FANOUT_TABLES.has(table) && status !== 'rejected') {
+    if (FANOUT_TABLES.has(table) && status === 'approved') {
         await fanOutNewContent({
             authorId: uploader_id,
             resourceType: getSingularType(table),
