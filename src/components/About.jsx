@@ -505,7 +505,7 @@ const About = () => {
 
       <section
         id="about-hero"
-        className={`relative isolate min-h-[100svh] overflow-hidden px-4 pb-8 pt-[calc(env(safe-area-inset-top)+78px)] sm:px-6 md:pt-[calc(env(safe-area-inset-top)+112px)] lg:h-[100svh] lg:snap-start lg:snap-always lg:pb-8 lg:pl-10 lg:pr-28 lg:pt-[calc(env(safe-area-inset-top)+84px)] 2xl:pl-16 2xl:pr-36 ${palette.hero}`}
+        className={`relative isolate min-h-[100svh] overflow-hidden px-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] pt-[calc(env(safe-area-inset-top)+76px)] sm:px-6 md:pt-[calc(env(safe-area-inset-top)+112px)] lg:h-[100svh] lg:snap-start lg:snap-always lg:pb-8 lg:pl-10 lg:pr-28 lg:pt-[calc(env(safe-area-inset-top)+84px)] 2xl:pl-16 2xl:pr-36 ${palette.hero}`}
       >
         <div
           className={`pointer-events-none absolute inset-0 [background-size:46px_46px] ${palette.grid}`}
@@ -525,7 +525,7 @@ const About = () => {
             ref={heroStageRef}
             data-about-hero-stage
             style={heroStageStyle}
-            className="grid min-h-[calc(100svh-88px)] w-full content-start gap-5 pt-4 will-change-transform sm:gap-7 sm:pt-8 lg:min-h-[calc(100svh-118px)] lg:content-center lg:items-center lg:gap-10 lg:pt-0 xl:grid-cols-[minmax(0,1fr)_minmax(540px,680px)] xl:gap-12 2xl:grid-cols-[minmax(0,1fr)_minmax(700px,860px)] 2xl:gap-16"
+            className="grid min-h-[calc(100svh-164px)] w-full content-start gap-5 pt-2 will-change-transform sm:gap-7 sm:pt-8 lg:min-h-[calc(100svh-118px)] lg:content-center lg:items-center lg:gap-10 lg:pt-0 xl:grid-cols-[minmax(0,1fr)_minmax(540px,680px)] xl:gap-12 2xl:grid-cols-[minmax(0,1fr)_minmax(700px,860px)] 2xl:gap-16"
           >
             <motion.div
               {...heroReveal(shouldAnimate)}
@@ -547,8 +547,8 @@ const About = () => {
               <h1
                 className={`mt-4 max-w-5xl font-black leading-[0.94] tracking-normal sm:mt-7 lg:mt-6 ${
                   isEnglish
-                    ? "text-4xl sm:text-5xl md:text-6xl lg:text-5xl xl:text-[3.55rem] 2xl:text-[4.6rem]"
-                    : "text-4xl sm:text-6xl md:text-7xl lg:text-6xl xl:text-[4.35rem] 2xl:text-[5.35rem]"
+                    ? "text-[clamp(2.55rem,12vw,4.1rem)] sm:text-5xl md:text-6xl lg:text-5xl xl:text-[3.55rem] 2xl:text-[4.6rem]"
+                    : "text-[clamp(2.75rem,13vw,4.35rem)] sm:text-6xl md:text-7xl lg:text-6xl xl:text-[4.35rem] 2xl:text-[5.35rem]"
                 }`}
               >
                 <span className="block">
@@ -563,7 +563,7 @@ const About = () => {
               </h1>
 
               <p
-                className={`mt-5 max-w-4xl text-base font-bold leading-7 sm:mt-6 sm:text-xl sm:leading-9 lg:text-lg lg:leading-8 xl:text-xl xl:leading-9 2xl:text-2xl 2xl:leading-10 ${palette.textSoft}`}
+                className={`mt-4 max-w-4xl text-[15px] font-bold leading-7 sm:mt-6 sm:text-xl sm:leading-9 lg:text-lg lg:leading-8 xl:text-xl xl:leading-9 2xl:text-2xl 2xl:leading-10 ${palette.textSoft}`}
               >
                 <strong className={isDayMode ? "text-slate-950" : "text-white"}>
                   {t(
@@ -577,17 +577,17 @@ const About = () => {
                 )}
               </p>
 
-              <div className="mt-6 flex flex-wrap gap-3.5 lg:mt-8">
+              <div className="mt-6 grid gap-3 sm:flex sm:flex-wrap sm:gap-3.5 lg:mt-8">
                 <Link
                   to="/events"
-                  className={`inline-flex min-h-[3.25rem] items-center justify-center gap-2.5 px-6 text-base font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 sm:min-h-14 sm:px-8 2xl:min-h-16 2xl:px-9 2xl:text-lg ${palette.primary}`}
+                  className={`inline-flex min-h-12 items-center justify-center gap-2.5 px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 sm:min-h-14 sm:px-8 sm:text-base 2xl:min-h-16 2xl:px-9 2xl:text-lg ${palette.primary}`}
                 >
                   <Rocket className="h-5 w-5" />
                   {t("about.ecosystem.hero.primary_cta", "进入拓途浙享")}
                 </Link>
                 <a
                   href="#business-lines"
-                  className={`inline-flex min-h-[3.25rem] items-center justify-center gap-2.5 border px-6 text-base font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/25 sm:min-h-14 sm:px-8 2xl:min-h-16 2xl:px-9 2xl:text-lg ${palette.secondary}`}
+                  className={`inline-flex min-h-12 items-center justify-center gap-2.5 border px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/25 sm:min-h-14 sm:px-8 sm:text-base 2xl:min-h-16 2xl:px-9 2xl:text-lg ${palette.secondary}`}
                 >
                   <BookOpen className="h-5 w-5" />
                   {t("about.ecosystem.hero.secondary_cta", "看业务架构")}
@@ -654,7 +654,7 @@ const About = () => {
 
             <motion.div
               {...heroReveal(shouldAnimate, 0.18)}
-              className={`grid w-full grid-cols-2 gap-px overflow-hidden border sm:grid-cols-5 xl:col-span-2 ${
+              className={`grid w-full grid-cols-3 gap-px overflow-hidden border sm:grid-cols-5 xl:col-span-2 ${
                 isDayMode
                   ? "border-cyan-500/18 bg-cyan-500/18"
                   : "border-cyan-300/18 bg-cyan-300/18"
@@ -663,17 +663,17 @@ const About = () => {
               {proofStats.map((item) => (
                 <div
                   key={item.label}
-                  className={`flex min-h-[82px] flex-col justify-center p-3 sm:p-4 lg:min-h-[118px] lg:p-4 2xl:min-h-[144px] 2xl:p-6 ${
+                  className={`flex min-h-[64px] flex-col justify-center p-2 sm:min-h-[82px] sm:p-4 lg:min-h-[118px] lg:p-4 2xl:min-h-[144px] 2xl:p-6 ${
                     isDayMode ? "bg-white/82" : "bg-[#071113]/82"
                   }`}
                 >
                   <div
-                    className={`text-2xl font-black leading-none sm:text-3xl lg:text-[2.55rem] xl:text-[2.9rem] 2xl:text-[3.75rem] ${palette.accent}`}
+                    className={`text-[1.35rem] font-black leading-none sm:text-3xl lg:text-[2.55rem] xl:text-[2.9rem] 2xl:text-[3.75rem] ${palette.accent}`}
                   >
                     {item.value}
                   </div>
                   <p
-                    className={`mt-2 text-[10px] font-bold leading-3 sm:text-xs lg:text-xs lg:leading-4 2xl:text-sm 2xl:leading-5 ${palette.textMuted}`}
+                    className={`mt-1.5 break-words text-[9px] font-bold leading-3 sm:mt-2 sm:text-xs lg:text-xs lg:leading-4 2xl:text-sm 2xl:leading-5 ${palette.textMuted}`}
                   >
                     {item.label}
                   </p>
