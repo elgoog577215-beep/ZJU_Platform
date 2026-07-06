@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, Calendar, ExternalLink, Loader2, Search, Users, X } from "lucide-react";
+import { ArrowRight, Calendar, ExternalLink, Loader2, MoreHorizontal, Search, Users, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -10,7 +10,7 @@ import { getPartnerLogoSrc, getPartnerProfilePath } from "../data/partnerLogos";
 import { useHorizontalDragScroll } from "../hooks/useHorizontalDragScroll";
 
 const DESKTOP_PREVIEW_LIMIT = 10;
-const MOBILE_PREVIEW_LIMIT = 10;
+const MOBILE_PREVIEW_LIMIT = 7;
 
 const toArray = (value) => {
   if (Array.isArray(value)) return value;
@@ -64,7 +64,7 @@ const getLocalizedPartnerText = (partner = {}, baseKey, language = "zh") => {
 const PartnerLogo = ({ partner, name, isDayMode, size = "md" }) => {
   const logoSrc = getPartnerLogoSrc(partner, isDayMode);
   const sizeClass =
-    size === "mobile" ? "h-10 w-10" : size === "sm" ? "h-9 w-9" : "h-12 w-12";
+    size === "mobile" ? "h-12 w-12" : size === "sm" ? "h-9 w-9" : "h-12 w-12";
   const roundedClass = size === "mobile" ? "rounded-full" : "rounded-[6px]";
   if (logoSrc) {
     return (
@@ -250,20 +250,20 @@ const OrganizationPartnerWall = ({
         aria-label={t("events.organizations.aria", "合作社团")}
         data-testid="organization-partner-wall"
       >
-        <div className={`overflow-hidden rounded-[8px] border md:flex md:items-center md:gap-3 md:rounded-none md:border-x-0 md:border-y md:px-0 md:py-2 ${railClass}`}>
-          <div className={`flex items-center justify-between border-b px-3 py-2 md:hidden ${isDayMode ? "border-slate-200/70" : "border-white/10"}`}>
-            <div className={`text-sm font-black ${strongClass}`}>合作社团</div>
+        <div className={`overflow-hidden rounded-[12px] border md:flex md:items-center md:gap-3 md:rounded-none md:border-x-0 md:border-y md:px-0 md:py-2 ${railClass}`}>
+          <div className={`flex items-center justify-between px-4 pb-2 pt-3 md:hidden ${isDayMode ? "border-slate-200/70" : "border-white/10"}`}>
+            <div className={`text-[18px] font-black ${strongClass}`}>合作社团</div>
             <motion.button
               {...partnerMotionProps}
               type="button"
               onClick={() => setDirectoryOpen(true)}
-              className={`inline-flex items-center gap-1 text-xs font-bold ${mutedClass}`}
+              className={`inline-flex items-center gap-1 text-sm font-semibold ${mutedClass}`}
             >
               查看全部
-              <ArrowRight size={12} />
+              <ArrowRight size={15} />
             </motion.button>
           </div>
-          <div className="relative flex items-center gap-2 px-2 py-3 md:contents">
+          <div className="relative flex items-center gap-2 px-3 pb-3 pt-2 md:contents">
           <div className="hidden shrink-0 items-center gap-1.5 pl-1 md:flex md:gap-2 md:pl-3">
             <Users size={13} className={isDayMode ? "text-blue-700" : "text-indigo-200"} />
             <div className="hidden leading-none min-[360px]:block">
@@ -281,7 +281,7 @@ const OrganizationPartnerWall = ({
           <div
             ref={mobilePartnerScrollRef}
             {...mobilePartnerDragProps}
-            className="scrollbar-none flex min-w-0 flex-1 cursor-grab select-none snap-x snap-proximity gap-4 overflow-x-auto overscroll-x-contain scroll-smooth px-1 py-0.5 pr-8 touch-pan-x active:cursor-grabbing md:cursor-auto md:select-auto md:snap-none md:gap-2 md:pr-1"
+            className="scrollbar-none flex min-w-0 flex-1 cursor-grab select-none snap-x snap-proximity gap-4 overflow-x-auto overscroll-x-contain scroll-smooth px-1 py-1 pr-8 touch-pan-x active:cursor-grabbing md:cursor-auto md:select-auto md:snap-none md:gap-2 md:pr-1"
           >
             {mobilePreviewPartners.map((partner) => {
               const name = getLocalizedPartnerName(partner, language);
@@ -292,12 +292,12 @@ const OrganizationPartnerWall = ({
                   type="button"
                   data-testid={`organization-partner-card-mobile-${partner.id}`}
                   onClick={() => openPartnerProfile(partner)}
-                  className={`flex min-w-[3.6rem] snap-start flex-col items-center gap-1 rounded-[6px] px-0.5 py-0.5 text-center md:hidden ${
+                  className={`flex min-w-[3.8rem] snap-start flex-col items-center gap-1.5 rounded-[8px] px-0.5 py-0.5 text-center md:hidden ${
                     isDayMode ? "text-slate-800" : "text-slate-100"
                   }`}
                 >
                   <PartnerLogo partner={partner} name={name} isDayMode={isDayMode} size="mobile" />
-                  <span className={`line-clamp-1 max-w-[3.8rem] text-[10px] font-bold leading-4 ${strongClass}`}>{name}</span>
+                  <span className={`line-clamp-1 max-w-[4.2rem] text-[12px] font-semibold leading-4 ${strongClass}`}>{name}</span>
                 </motion.button>
               );
             })}
@@ -306,14 +306,16 @@ const OrganizationPartnerWall = ({
                 {...partnerMotionProps}
                 type="button"
                 onClick={() => setDirectoryOpen(true)}
-                className={`flex min-w-[5rem] snap-start items-center justify-center gap-1.5 rounded-[6px] border px-2.5 py-1 text-xs font-black md:hidden ${
-                  isDayMode
-                    ? "border-slate-200 bg-white text-slate-700"
-                    : "border-white/10 bg-white/[0.04] text-slate-200"
+                className={`flex min-w-[3.8rem] snap-start flex-col items-center gap-1.5 rounded-[8px] px-0.5 py-0.5 text-center text-xs font-semibold md:hidden ${
+                  isDayMode ? "text-slate-800" : "text-slate-100"
                 }`}
               >
-                <Search size={14} />
-                {t("events.organizations.view_directory", "全部")}
+                <span className={`inline-flex h-12 w-12 items-center justify-center rounded-full border ${
+                  isDayMode ? "border-slate-200 bg-white text-slate-600" : "border-white/15 bg-white/[0.04] text-slate-200"
+                }`}>
+                  <MoreHorizontal size={23} />
+                </span>
+                <span>{t("events.organizations.more", "更多")}</span>
               </motion.button>
             ) : null}
 

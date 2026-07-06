@@ -1,6 +1,6 @@
 import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, Bot, ChevronRight, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import EventAssistantPanel from "./EventAssistantPanel";
 
@@ -14,37 +14,58 @@ const MobileEventAssistantLauncher = ({ isDayMode, onOpen }) => {
       transition={{ type: "spring", stiffness: 520, damping: 34 }}
       type="button"
       onClick={onOpen}
-      className={`group fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+76px)] z-[58] flex h-[56px] items-center justify-between rounded-[10px] border px-3 text-left shadow-[0_14px_34px_rgba(0,0,0,0.34)] transition-[background-color,border-color] md:hidden ${
+      className={`group mb-4 flex min-h-[118px] w-full flex-wrap items-center gap-3 overflow-hidden rounded-[12px] border px-3.5 py-3 text-left transition-[background-color,border-color,box-shadow] min-[390px]:min-h-[104px] min-[390px]:flex-nowrap md:hidden ${
         isDayMode
-          ? "border-slate-200/80 bg-white text-slate-900 hover:border-slate-300"
-          : "border-white/10 bg-[#151b2c]/96 text-white hover:border-indigo-300/20"
+          ? "border-blue-200/80 bg-[radial-gradient(circle_at_12%_18%,rgba(191,219,254,0.82),transparent_34%),linear-gradient(105deg,#ffffff,#eff6ff_48%,#e0e7ff)] text-slate-950 shadow-[0_16px_36px_rgba(37,99,235,0.13)] hover:border-blue-300"
+          : "border-indigo-400/45 bg-[radial-gradient(circle_at_12%_50%,rgba(80,120,255,0.38),transparent_28%),linear-gradient(100deg,rgba(32,44,104,0.98),rgba(9,16,42,0.96))] text-white shadow-[0_18px_46px_rgba(20,40,120,0.28)] hover:border-indigo-300/70"
       }`}
     >
-      <span className="flex min-w-0 items-center gap-2.5">
+      <span className="flex min-w-0 basis-full items-center gap-3 min-[390px]:basis-auto min-[390px]:flex-1">
         <span
-          className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-transform group-hover:scale-[1.03] group-active:scale-95 ${
+          className={`relative inline-flex h-[72px] w-[88px] shrink-0 items-end justify-center overflow-hidden rounded-[10px] transition-transform group-hover:scale-[1.02] group-active:scale-95 ${
             isDayMode
-              ? "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100"
-              : "bg-indigo-500/28 text-indigo-100 ring-1 ring-indigo-300/20"
+              ? "bg-blue-100/90 text-blue-700 ring-1 ring-blue-200"
+              : "bg-indigo-500/18 text-indigo-100 ring-1 ring-indigo-300/25"
           }`}
         >
-          <Sparkles size={16} />
+          <span className={`absolute left-3 top-2 h-1.5 w-1.5 rounded-full ${isDayMode ? "bg-cyan-500 shadow-[0_0_16px_rgba(6,182,212,0.65)]" : "bg-cyan-300 shadow-[0_0_16px_rgba(103,232,249,0.9)]"}`} />
+          <span className={isDayMode ? "absolute right-3 top-5 text-blue-400" : "absolute right-3 top-5 text-indigo-200"}>
+            <Sparkles size={13} />
+          </span>
+          <span className={`mb-2 inline-flex h-12 w-12 items-center justify-center rounded-full border shadow-[0_0_28px_rgba(99,102,241,0.34)] ${isDayMode ? "border-blue-200 bg-white" : "border-indigo-300/30 bg-[#111b46]"}`}>
+            <Bot size={28} />
+          </span>
+          <span className={`absolute bottom-2 right-2 rounded-[5px] border px-1.5 py-0.5 text-[10px] font-black text-white ${isDayMode ? "border-blue-300/40 bg-blue-600" : "border-indigo-300/30 bg-indigo-600/80"}`}>
+            AI
+          </span>
         </span>
         <span className="min-w-0">
-          <span className="block text-base font-black tracking-tight">
+          <span className="flex min-w-0 items-center gap-1 text-[20px] font-black leading-6 tracking-tight">
             {t("events.assistant.mobile_title", "AI 活动助手")}
+            <Sparkles size={15} className={`shrink-0 ${isDayMode ? "text-blue-500" : "text-indigo-200"}`} />
           </span>
-          <span className={`mt-0.5 block text-xs ${isDayMode ? "text-slate-500" : "text-gray-400"}`}>
+          <span className={`mt-1 block text-[14px] leading-5 ${isDayMode ? "text-slate-600" : "text-slate-300"}`}>
             为你发现合适的活动
+          </span>
+          <span className="mt-2 flex max-w-full gap-1 overflow-hidden">
+            {["兴趣推荐", "智能匹配", "活动答疑"].map((label) => (
+              <span
+                key={label}
+                className={`inline-flex h-5 shrink-0 items-center rounded-[4px] border px-1.5 text-[10px] font-semibold ${isDayMode ? "border-blue-200 bg-white/75 text-blue-700" : "border-indigo-300/25 bg-indigo-500/15 text-indigo-100"}`}
+              >
+                {label}
+              </span>
+            ))}
           </span>
         </span>
       </span>
       <span
-        className={`ml-3 inline-flex h-9 shrink-0 items-center justify-center rounded-[6px] border px-4 text-sm font-bold ${
-          isDayMode ? "border-slate-900/[0.08] bg-indigo-600 text-white" : "border-indigo-400/20 bg-indigo-500 text-white"
+        className={`ml-[100px] inline-flex h-11 basis-[calc(100%-100px)] shrink-0 items-center justify-center gap-1 rounded-[9px] border px-4 text-[17px] font-black shadow-[0_10px_24px_rgba(99,102,241,0.25)] min-[390px]:ml-2 min-[390px]:h-12 min-[390px]:basis-auto ${
+          isDayMode ? "border-blue-500 bg-blue-600 text-white" : "border-indigo-300/20 bg-indigo-500 text-white"
         }`}
       >
-        去询问
+        去探索
+        <ChevronRight size={18} />
       </span>
     </motion.button>
   );

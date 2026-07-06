@@ -32,7 +32,8 @@ import {
   Plus,
   Sparkles,
   Search,
-  Menu,
+  Moon,
+  Sun,
   ChevronDown,
 } from "lucide-react";
 import UploadModal from "./UploadModal";
@@ -368,14 +369,14 @@ const EventCard = memo(
       <>
       <motion.div
         {...motionProps}
-        className={`group relative flex h-[136px] cursor-pointer overflow-hidden rounded-[8px] border p-2 shadow-none md:hidden ${
+        className={`group relative flex h-[176px] cursor-pointer overflow-hidden rounded-[12px] border p-2.5 md:hidden ${
           isDayMode
-            ? "border-slate-200 bg-white"
-            : "border-white/10 bg-[#0a1020]/92"
+            ? "border-blue-100 bg-white shadow-[0_14px_32px_rgba(37,99,235,0.10)]"
+            : "border-white/10 bg-[#070d1a]/94 shadow-[0_18px_42px_rgba(0,0,0,0.22)]"
         }`}
         onClick={() => onClick(event)}
       >
-        <div className="relative h-full w-[104px] shrink-0 overflow-hidden rounded-[6px] bg-[#101827] min-[520px]:w-[140px]">
+        <div className="relative h-full w-[126px] shrink-0 overflow-hidden rounded-[8px] bg-[#101827] min-[520px]:w-[150px]">
           <SmartImage
             src={getEventCoverUrl(event)}
             alt={event.title}
@@ -387,26 +388,26 @@ const EventCard = memo(
             imageClassName="h-full w-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/5 to-transparent" />
-          <span className="absolute left-1 top-1 rounded-[4px] bg-black/72 px-1.5 py-0.5 text-[9px] font-black leading-3 text-white">
+          <span className="absolute left-2 top-2 rounded-[5px] bg-indigo-950/78 px-2 py-0.5 text-[14px] font-black leading-5 text-white shadow-[0_6px_16px_rgba(0,0,0,0.32)]">
             {formatDateTime(event.date).split(" ")[0] || " -- "}
           </span>
         </div>
 
-        <div className="flex min-w-0 flex-1 flex-col px-3 py-1">
-          <div className="flex min-w-0 items-start gap-2">
-            <h3 className={`line-clamp-1 min-w-0 flex-1 text-base font-black leading-6 ${isDayMode ? "text-slate-950" : "text-white"}`}>
+        <div className="flex min-w-0 flex-1 flex-col px-3.5 py-2.5">
+          <div className="flex min-h-[32px] min-w-0 items-start gap-2">
+            <h3 className={`line-clamp-1 min-w-0 flex-1 text-[19px] font-black leading-7 tracking-tight ${isDayMode ? "text-slate-950" : "text-white"}`}>
               {event.title}
             </h3>
             <div onClick={(eventClick) => eventClick.stopPropagation()} className="-mr-1 -mt-1">
               <FavoriteButton
                 itemId={event.id}
                 itemType="event"
-                size={15}
+                size={22}
                 showCount={false}
                 count={event.likes || 0}
                 favorited={event.favorited}
                 initialFavorited={event.favorited}
-                className={`min-h-7 min-w-7 rounded-md p-1 ${isDayMode ? "text-slate-500" : "text-slate-300"}`}
+                className={`min-h-9 min-w-9 rounded-md p-1 ${isDayMode ? "text-slate-500 hover:bg-blue-50 hover:text-blue-600" : "text-slate-100"}`}
                 onToggle={(favorited, likes) =>
                   onToggleFavorite(event.id, favorited, likes)
                 }
@@ -414,38 +415,38 @@ const EventCard = memo(
             </div>
           </div>
 
-          <div className="mt-1.5 flex h-6 min-w-0 items-center gap-1.5 overflow-hidden">
+          <div className="mt-1 flex min-h-[28px] min-w-0 items-center gap-2 overflow-hidden">
             {event.category && (
-              <span className={`inline-flex h-6 max-w-[5.5rem] shrink-0 items-center rounded-[5px] border px-2 text-xs font-bold leading-none shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)] ${isDayMode ? "border-blue-200 bg-blue-50 text-blue-700" : "border-indigo-300/40 bg-indigo-500/20 text-indigo-100"}`}>
-                <span className="truncate">{formatEventCategory(event.category)}</span>
+              <span className={`inline-flex min-h-[26px] max-w-[5.8rem] shrink-0 items-center rounded-[4px] border px-2.5 py-1 text-[13px] font-bold leading-[16px] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)] ${isDayMode ? "border-blue-200 bg-blue-50 text-blue-700" : "border-indigo-300/40 bg-indigo-500/20 text-indigo-100"}`}>
+                <span className="block truncate leading-[16px]">{formatEventCategory(event.category)}</span>
               </span>
             )}
             {event.target_audience && (
-              <span className={`inline-flex h-6 max-w-[7rem] shrink-0 items-center rounded-[5px] border px-2 text-xs font-bold leading-none shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)] ${isDayMode ? "border-slate-300 bg-slate-100 text-slate-700" : "border-white/25 bg-white/10 text-slate-100"}`}>
-                <span className="truncate">{formatEventAudience(event.target_audience)}</span>
+              <span className={`inline-flex min-h-[26px] max-w-[7rem] shrink-0 items-center rounded-[4px] border px-2.5 py-1 text-[13px] font-bold leading-[16px] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)] ${isDayMode ? "border-slate-200 bg-slate-50 text-slate-700" : "border-white/25 bg-white/10 text-slate-100"}`}>
+                <span className="block truncate leading-[16px]">{formatEventAudience(event.target_audience)}</span>
               </span>
             )}
           </div>
 
-          <div className={`mt-1.5 space-y-0.5 text-xs leading-5 ${isDayMode ? "text-slate-500" : "text-slate-400"}`}>
-            <div className="flex min-w-0 items-center gap-1.5">
-              <Clock size={12} className={isDayMode ? "text-blue-600" : "text-slate-300"} />
+          <div className={`mt-2 grid min-h-[48px] gap-1 text-[14px] leading-5 ${isDayMode ? "text-slate-500" : "text-slate-300"}`}>
+            <div className="flex h-5 min-w-0 items-center gap-1.5">
+              <Clock size={15} className={isDayMode ? "text-blue-600" : "text-slate-300"} />
               <span className="truncate">
                 {formatDateTime(event.date)}
                 {event.end_date && !isSameDay(event.date, event.end_date) && ` - ${formatDateTime(event.end_date)}`}
               </span>
             </div>
-            <div className="flex min-w-0 items-center gap-1.5">
-              <MapPin size={12} className={isDayMode ? "text-blue-600" : "text-slate-300"} />
+            <div className="flex h-5 min-w-0 items-center gap-1.5">
+              <MapPin size={15} className={isDayMode ? "text-blue-600" : "text-slate-300"} />
               <span className="truncate">{event.location || t("common.online", "线上")}</span>
             </div>
           </div>
 
-          <div className={`mt-auto flex items-center gap-1.5 text-xs font-semibold ${isDayMode ? "text-slate-500" : "text-slate-400"}`}>
-            <Users size={12} />
+          <div className={`mt-auto flex items-center gap-1.5 text-[14px] font-semibold ${isDayMode ? "text-slate-500" : "text-slate-300"}`}>
+            <Users size={15} />
             <span className="truncate">{event.registered_count || event.participant_count || 0} 人已报名</span>
-            <span className={`ml-auto inline-flex h-5 w-5 items-center justify-center rounded-full ${isDayMode ? "bg-slate-100 text-slate-600" : "bg-white/10 text-slate-200"}`}>
-              <ArrowRight size={12} />
+            <span className={`ml-auto inline-flex h-8 w-8 items-center justify-center rounded-full ${isDayMode ? "bg-blue-50 text-blue-700" : "bg-white/10 text-slate-200"}`}>
+              <ArrowRight size={17} />
             </span>
           </div>
         </div>
@@ -1082,7 +1083,7 @@ CollegeNoticeRow.displayName = "CollegeNoticeRow";
 
 const Events = () => {
   const { t, i18n } = useTranslation();
-  const { settings, uiMode } = useSettings();
+  const { settings, uiMode, changeUiMode } = useSettings();
   const { user } = useAuth();
   const { eventOrganizationPartners } = useEcosystemPartners();
   const prefersReducedMotion = useReducedMotion();
@@ -1214,6 +1215,9 @@ const Events = () => {
       category: value || null,
     }));
   }, []);
+  const selectedMobileCategoryLabel =
+    mobileCategoryTabs.find((tab) => tab.value === (filters.category || null))
+      ?.label || t("common.all", "全部");
 
   // Debounce search
   useEffect(() => {
@@ -1733,7 +1737,7 @@ END:VCALENDAR`;
       };
 
   return (
-    <section className={`day-page-theme day-page-theme-events pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-[calc(env(safe-area-inset-bottom)+10rem)] md:pb-20 md:pt-24 px-4 md:px-8 relative overflow-hidden flex-grow ${isDayMode ? "" : "bg-[#030817]"}`}>
+    <section className={`day-page-theme day-page-theme-events pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-[calc(env(safe-area-inset-bottom)+10rem)] md:pb-20 md:pt-24 px-4 md:px-8 relative overflow-hidden flex-grow ${isDayMode ? "bg-[linear-gradient(180deg,#f8fbff_0%,#eef6ff_46%,#f8fafc_100%)] md:bg-transparent" : "bg-[#030817]"}`}>
       <SEO
         title={t("events.meta_title")}
         description={t("events.meta_desc")}
@@ -1747,21 +1751,22 @@ END:VCALENDAR`;
         viewport={{ once: true }}
         className="mb-3 md:mb-9 relative z-40 md:pt-0 text-center"
       >
-        <div className="mb-4 grid grid-cols-[44px_minmax(0,1fr)_96px] items-start gap-2 md:hidden">
+        <div className="mb-6 grid grid-cols-[56px_minmax(0,1fr)_112px] items-center gap-2 md:hidden">
           <motion.button
             {...mobileControlMotion}
             type="button"
-            aria-label={t("common.menu", "菜单")}
-            onClick={() => setIsMobileFilterOpen(true)}
-            className={`inline-flex h-9 w-9 items-center justify-center rounded-[6px] border transition-[background-color,border-color,box-shadow] ${isDayMode ? "border-slate-200 bg-white text-slate-700" : "border-white/10 bg-white/[0.055] text-slate-200"}`}
+            aria-label={isDayMode ? t("nav.night_mode", "夜间模式") : t("nav.day_mode", "日间模式")}
+            title={isDayMode ? t("nav.night_mode", "夜间模式") : t("nav.day_mode", "日间模式")}
+            onClick={() => changeUiMode(isDayMode ? "dark" : "day")}
+            className={`inline-flex h-11 w-11 items-center justify-center rounded-[8px] border transition-[background-color,border-color,box-shadow] ${isDayMode ? "border-blue-100 bg-white/95 text-slate-700 shadow-[0_10px_24px_rgba(37,99,235,0.10)]" : "border-white/10 bg-white/[0.055] text-slate-200"}`}
           >
-            <Menu size={18} />
+            {isDayMode ? <Moon size={23} /> : <Sun size={23} />}
           </motion.button>
           <div className="min-w-0 text-center">
-            <h1 className={`text-[1.25rem] font-black leading-6 tracking-tight ${isDayMode ? "text-slate-950" : "text-white"}`}>
+            <h1 className={`text-[2rem] font-black leading-9 tracking-tight ${isDayMode ? "text-slate-950 drop-shadow-[0_8px_18px_rgba(37,99,235,0.12)]" : "text-white"}`}>
               社区活动
             </h1>
-            <p className={`mt-1 truncate text-[8px] font-black uppercase tracking-[0.42em] ${isDayMode ? "text-cyan-700" : "text-cyan-300"}`}>
+            <p className={`mt-1 truncate text-[10px] font-black uppercase tracking-[0.46em] ${isDayMode ? "text-cyan-700" : "text-cyan-300"}`}>
               Discover · Join · 社区活动
             </p>
           </div>
@@ -1771,9 +1776,9 @@ END:VCALENDAR`;
               type="button"
               aria-label={t("search.placeholder", "搜索")}
               onClick={() => window.dispatchEvent(new Event("open-search-palette"))}
-              className={`inline-flex h-9 w-9 items-center justify-center rounded-[6px] border transition-[background-color,border-color,box-shadow] ${isDayMode ? "border-slate-200 bg-white text-slate-700" : "border-white/10 bg-white/[0.055] text-slate-200"}`}
+              className={`inline-flex h-11 w-11 items-center justify-center rounded-[8px] border transition-[background-color,border-color,box-shadow] ${isDayMode ? "border-blue-100 bg-white/95 text-slate-700 shadow-[0_10px_24px_rgba(37,99,235,0.10)]" : "border-white/10 bg-white/[0.055] text-slate-200"}`}
             >
-              <Search size={18} />
+              <Search size={24} />
             </motion.button>
             <motion.button
               {...mobileControlMotion}
@@ -1786,25 +1791,22 @@ END:VCALENDAR`;
                 }
                 setIsUploadOpen(true);
               }}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-[6px] bg-indigo-500 text-white shadow-[0_0_18px_rgba(99,102,241,0.36)]"
+              className={`inline-flex h-11 w-11 items-center justify-center rounded-[8px] text-white ${isDayMode ? "bg-blue-600 shadow-[0_12px_26px_rgba(37,99,235,0.28)]" : "bg-indigo-500 shadow-[0_0_18px_rgba(99,102,241,0.36)]"}`}
             >
-              <Plus size={19} strokeWidth={3} />
+              <Plus size={25} strokeWidth={3} />
             </motion.button>
           </div>
         </div>
         <div className="md:hidden">
-          <OrganizationPartnerWall
-            partners={eventOrganizationPartners}
-            isDayMode={isDayMode}
-            className="mb-2 text-left"
-            onApplyPartnerFilter={handleApplyPartnerFilter}
-            onOpenEvent={openEventFromList}
-          />
-          <div className="relative mb-3">
+          <div className={`relative -mx-4 mb-3 overflow-hidden rounded-b-[14px] border-y shadow-[0_12px_34px_rgba(15,23,42,0.10)] ${
+            isDayMode
+              ? "border-blue-100/90 bg-white/88"
+              : "border-indigo-400/20 bg-[#080f1f]/92 shadow-[0_12px_34px_rgba(15,23,42,0.32)]"
+          }`}>
             <div
               ref={mobileCategoryScrollRef}
               {...mobileCategoryDragProps}
-              className={`scrollbar-none flex cursor-grab select-none snap-x snap-proximity gap-2.5 overflow-x-auto overscroll-x-contain scroll-smooth border-b pb-1 pr-8 touch-pan-x active:cursor-grabbing ${isDayMode ? "border-slate-200" : "border-white/10"}`}
+              className={`scrollbar-none flex cursor-grab select-none snap-x snap-proximity gap-6 overflow-x-auto overscroll-x-contain scroll-smooth px-4 pb-2 pt-3 pr-10 touch-pan-x active:cursor-grabbing ${isDayMode ? "bg-transparent" : ""}`}
             >
               {mobileCategoryTabs.map((tab) => {
                 const active = (filters.category || null) === tab.value;
@@ -1815,21 +1817,21 @@ END:VCALENDAR`;
                     type="button"
                     aria-pressed={active}
                     onClick={() => handleMobileCategoryChange(tab.value)}
-                    className={`relative h-10 shrink-0 snap-start px-3 text-sm font-black transition-colors ${
+                    className={`relative h-12 shrink-0 snap-start px-0.5 text-[20px] font-black transition-colors ${
                       active
                         ? isDayMode
-                          ? "text-indigo-700"
-                          : "text-indigo-100"
+                          ? "text-blue-700"
+                          : "text-white"
                         : isDayMode
                           ? "text-slate-500"
-                          : "text-slate-300"
+                          : "text-slate-400"
                     }`}
                   >
                     {tab.label}
                     {active ? (
                       <motion.span
                         layoutId="events-mobile-category-underline"
-                        className="absolute inset-x-1 bottom-0 h-0.5 rounded-full bg-indigo-400"
+                        className={`absolute inset-x-0 bottom-0 h-1 rounded-full ${isDayMode ? "bg-blue-600" : "bg-indigo-400"}`}
                         transition={{ type: "spring", stiffness: 520, damping: 38 }}
                       />
                     ) : null}
@@ -1839,7 +1841,7 @@ END:VCALENDAR`;
             </div>
             <div
               aria-hidden="true"
-              className={`pointer-events-none absolute bottom-1 right-0 top-0 w-10 ${isDayMode ? "bg-gradient-to-l from-white to-transparent" : "bg-gradient-to-l from-[#030817] to-transparent"}`}
+              className={`pointer-events-none absolute bottom-0 right-0 top-0 w-12 ${isDayMode ? "bg-gradient-to-l from-white to-transparent" : "bg-gradient-to-l from-[#080f1f] to-transparent"}`}
             />
           </div>
         </div>
@@ -1860,8 +1862,70 @@ END:VCALENDAR`;
           onClearFilters={resetMobileFilters}
           clearLabel={t("common.clear_all", "重置")}
         />
+        <div className="mb-6 md:hidden">
+          <div className="scrollbar-none flex gap-2 overflow-x-auto pr-3">
+            {[
+              {
+                key: "category",
+                label: filters.category ? selectedMobileCategoryLabel : "全部类型",
+                onClear: () => handleMobileCategoryChange(null),
+              },
+              {
+                key: "campus",
+                label: partnerFilter?.name || "浙江大学",
+                onClear: () => setPartnerFilter(null),
+              },
+              {
+                key: "format",
+                label: "线下活动",
+                onClear: resetMobileFilters,
+              },
+              {
+                key: "clear",
+                label: "清除筛选",
+                onClear: resetMobileFilters,
+                clearAll: true,
+              },
+            ].map((chip) => (
+              <button
+                key={chip.key}
+                type="button"
+                onClick={chip.onClear}
+                className={`inline-flex h-9 shrink-0 items-center gap-2 rounded-full border px-4 text-[15px] font-medium ${
+                  chip.clearAll
+                    ? isDayMode
+                      ? "border-transparent bg-transparent px-2 text-blue-700"
+                      : "border-transparent bg-transparent px-2 text-indigo-300"
+                    : isDayMode
+                      ? "border-blue-100 bg-white/92 text-slate-700 shadow-[0_8px_18px_rgba(37,99,235,0.08)]"
+                      : "border-white/12 bg-white/[0.035] text-slate-300"
+                }`}
+              >
+                <span>{chip.label}</span>
+                {!chip.clearAll && <X size={15} />}
+              </button>
+            ))}
+          </div>
+        </div>
+        <MobileEventAssistantLauncher
+          isDayMode={isDayMode}
+          onOpen={() => {
+            setIsMobileFilterOpen(false);
+            setIsMobileSortOpen(false);
+            setIsMobileAssistantOpen(true);
+          }}
+        />
+        <div className="md:hidden">
+          <OrganizationPartnerWall
+            partners={eventOrganizationPartners}
+            isDayMode={isDayMode}
+            className="mb-4 text-left"
+            onApplyPartnerFilter={handleApplyPartnerFilter}
+            onOpenEvent={openEventFromList}
+          />
+        </div>
         {partnerFilter && (
-          <div className={`${EVENT_CONTENT_WIDTH_CLASS} mb-4 flex justify-start`}>
+          <div className={`${EVENT_CONTENT_WIDTH_CLASS} mb-4 hidden justify-start md:flex`}>
             <button
               type="button"
               data-testid="organization-partner-active-filter"
@@ -2309,15 +2373,6 @@ END:VCALENDAR`;
           ))}
         </div>
       )}
-
-      <MobileEventAssistantLauncher
-        isDayMode={isDayMode}
-        onOpen={() => {
-          setIsMobileFilterOpen(false);
-          setIsMobileSortOpen(false);
-          setIsMobileAssistantOpen(true);
-        }}
-      />
 
       {!loading &&
         !error &&
