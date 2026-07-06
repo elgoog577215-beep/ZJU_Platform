@@ -48,6 +48,16 @@ const buildWechatLoginBridgeUrlWithParams = (params) => {
   return `/pages/login/index?${query.toString()}`;
 };
 
+const buildBridgeUrl = (page, params) => {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && String(value).length > 0) {
+      query.set(key, String(value));
+    }
+  });
+  return `${page}?${query.toString()}`;
+};
+
 export const buildWechatLoginBridgeUrl = (redirectPath = '/events') =>
   buildWechatLoginBridgeUrlWithParams({
     mode: 'login',
@@ -59,6 +69,21 @@ export const buildWechatBindBridgeUrl = ({ redirectPath = '/events', ticket }) =
     mode: 'bind',
     redirect: redirectPath || '/events',
     ticket,
+  });
+
+export const buildWechatNativeUploadBridgeUrl = ({
+  sessionId,
+  uploadToken,
+  field = 'file',
+  accept = '*/*',
+  redirectPath = '/events',
+}) =>
+  buildBridgeUrl('/pages/native-upload/index', {
+    sessionId,
+    uploadToken,
+    field,
+    accept,
+    redirect: redirectPath || '/events',
   });
 
 export const navigateToMiniProgramPage = async (url) => {

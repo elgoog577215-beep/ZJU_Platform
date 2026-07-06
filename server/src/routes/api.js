@@ -33,6 +33,7 @@ const eventAttributionMigrationController = require('../controllers/eventAttribu
 const mediaCategoryController = require('../controllers/mediaCategoryController');
 const projectCardController = require('../controllers/projectCardController');
 const { logger } = require('../utils/logger');
+const { verifyNativeUploadToken } = require('../services/nativeUploadSessionService');
 
 const { authenticateToken, isAdmin, optionalAuth } = require('../middleware/auth');
 const { validate, registerValidation, loginValidation, changePasswordValidation, settingsValidation, resourceValidation } = require('../middleware/validate');
@@ -90,6 +91,31 @@ const wechatMiniappBindLimiter = customRateLimit({
     });
   },
 });
+
+const nativeUploadSessionLimiter = customRateLimit({
+  windowMs: 10 * 60 * 1000,
+  maxRequests: 30,
+  keyGenerator: (req) => req.user?.id ? `native-upload-session:${req.user.id}` : `native-upload-session:${req.ip}`,
+  handler: (_req, res) => {
+    res.status(429).json({
+      error: 'Too many native upload attempts, please try again later.',
+      errorCode: 'NATIVE_UPLOAD_RATE_LIMITED',
+      retryAfter: 10 * 60,
+    });
+  },
+});
+
+const authenticateNativeUploadSession = (req, res, next) => {
+  try {
+    req.nativeUploadSession = verifyNativeUploadToken(req.headers['x-native-upload-token']);
+    next();
+  } catch (error) {
+    res.status(error.statusCode || 401).json({
+      error: error.message || 'Invalid native upload token',
+      errorCode: error.errorCode || 'NATIVE_UPLOAD_TOKEN_INVALID',
+    });
+  }
+};
 
 const importCommunityDocumentUpload = (req, res, next) => {
   upload.single('document')(req, res, (error) => {
@@ -252,6 +278,10 @@ router.get('/site-metrics', systemController.getSiteMetrics);
 router.post('/site-metrics/visit', optionalAuth, systemController.trackVisit);
 router.get('/uploads/image-variant', systemController.getImageVariant);
 router.post('/upload', authenticateToken, upload.fields([{ name: 'file', maxCount: 1 }, { name: 'cover', maxCount: 1 }]), systemController.handleUpload);
+router.post('/native-upload-sessions', authenticateToken, nativeUploadSessionLimiter, systemController.createNativeUploadSessionHandler);
+router.get('/native-upload-sessions/:sessionId', authenticateToken, systemController.getNativeUploadSessionHandler);
+router.post('/upload/native', authenticateNativeUploadSession, upload.fields([{ name: 'file', maxCount: 1 }, { name: 'cover', maxCount: 1 }]), systemController.handleNativeUpload);
+router.post('/upload/native/cancel', authenticateNativeUploadSession, systemController.cancelNativeUpload);
 router.post('/resources/parse-wechat', authenticateToken, wechatParseController.parseWeChatResource);
 router.get('/db/backup', authenticateToken, isAdmin, systemController.downloadDbBackup);
 router.get('/featured', systemController.getFeaturedContent);

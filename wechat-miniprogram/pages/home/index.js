@@ -1,6 +1,8 @@
+const { WEB_ORIGIN } = require("../../utils/webview");
+
 Page({
   data: {
-    webOrigin: "https://tuotuzju.com",
+    webOrigin: WEB_ORIGIN,
   },
 
   openEvents() {

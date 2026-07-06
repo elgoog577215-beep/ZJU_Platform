@@ -1,6 +1,8 @@
+const { WEB_ORIGIN } = require("./utils/webview");
+
 App({
   globalData: {
-    webOrigin: "https://tuotuzju.com",
+    webOrigin: WEB_ORIGIN,
   },
 
   onLaunch() {

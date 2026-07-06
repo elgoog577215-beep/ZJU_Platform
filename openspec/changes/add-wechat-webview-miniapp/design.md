@@ -1,5 +1,13 @@
 # 设计
 
+## 7. 小程序原生上传第二版
+
+第二版不再依赖 WebView 内的 HTML 文件选择器作为唯一上传入口。网站上传弹窗在小程序 WebView 中先向后端创建短期上传会话，后端返回 `sessionId` 与 HMAC 签名的上传 token；网页随后通过 `wx.miniProgram.navigateTo` 跳转到 `pages/native-upload/index`。原生页调用 `wx.chooseMedia` 或 `wx.chooseMessageFile` 选择文件，并通过 `wx.uploadFile` 上传到同源 `/api/upload/native`。
+
+上传 token 只授权一次短期上传，不包含网站 JWT，不暴露用户密码或微信密钥。后端根据 token 找到会话、校验过期时间、校验上传字段必须匹配 `file` 或 `cover`，再复用现有 multer 文件类型白名单与上传目录。上传完成后，网页通过 `/api/native-upload-sessions/:sessionId` 轮询状态，把返回的 `/uploads/...` URL 回填到原表单。
+
+该方案保留 WebView 主体和网站后台作为唯一内容管理入口，同时把手机端最容易失效的文件选择动作交给微信原生能力处理。若原生上传页异常，网站普通浏览器上传路径仍保持不变，小程序也可以回退到网页入口重新操作。
+
 ## 1. 总体架构
 
 第一期采用“微信小程序壳 + 网站 WebView + 原生桥接页”的混合方案。

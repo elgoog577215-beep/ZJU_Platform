@@ -7,8 +7,13 @@ import toast from 'react-hot-toast';
 import api, { uploadFile } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
-import { useBackClose } from '../hooks/useBackClose';
+import { useBackClose, useBodyScrollLock } from '../hooks/useBackClose';
 import useMediaCategories from '../hooks/useMediaCategories';
+import { isMiniProgramWebView } from '../utils/miniProgramEnv';
+import {
+  buildWechatNativeUploadBridgeUrl,
+  navigateToMiniProgramPage,
+} from '../utils/wechatMiniProgramBridge';
 import {
   COLLEGE_NOTICE_TAG,
   COLLEGE_NOTICE_TYPES,
@@ -30,6 +35,9 @@ const getTagList = (value = '') =>
     .filter(Boolean);
 
 const serializeTagList = (items = []) => [...new Set(items)].join(',');
+
+const NATIVE_UPLOAD_POLL_INTERVAL_MS = 1500;
+const NATIVE_UPLOAD_TIMEOUT_MS = 10 * 60 * 1000;
 
 const PROFILE_TYPE_LABELS = {
   person: '个人',
@@ -294,6 +302,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
     onCloseRef.current?.();
   }, []);
   useBackClose(isOpen, handleClose);
+  useBodyScrollLock(isOpen);
   const { user, isAdmin } = useAuth();
   const { uiMode } = useSettings();
   const isDayMode = uiMode === 'day';
@@ -306,6 +315,14 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   // Secondary file (Cover image for Music/Video/Event)
   const [coverFile, setCoverFile] = useState(null);
   const [coverPreview, setCoverPreview] = useState(initialData?.cover || initialData?.thumbnail || initialData?.image || null);
+  const [nativeFileName, setNativeFileName] = useState('');
+  const [nativeCoverFileName, setNativeCoverFileName] = useState('');
+  const [nativeUploadState, setNativeUploadState] = useState({
+    active: false,
+    sessionId: '',
+    target: null,
+  });
+  const nativeUploadPollerRef = useRef(null);
 
   const [title, setTitle] = useState(initialData?.title || '');
   const [tags, setTags] = useState(initialData?.tags || ''); // Tags state
@@ -800,6 +817,9 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         }
         setFile(null);
         setCoverFile(null);
+        setNativeFileName('');
+        setNativeCoverFileName('');
+        setNativeUploadState({ active: false, sessionId: '', target: null });
         setWechatUrl('');
         setIsParsing(false);
         setArticleEditorMode('edit');
@@ -1148,6 +1168,153 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
     });
   };
 
+  const stopNativeUploadPolling = useCallback(() => {
+    if (nativeUploadPollerRef.current) {
+      clearInterval(nativeUploadPollerRef.current);
+      nativeUploadPollerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => () => {
+    stopNativeUploadPolling();
+  }, [stopNativeUploadPolling]);
+
+  useEffect(() => {
+    if (!isOpen) stopNativeUploadPolling();
+  }, [isOpen, stopNativeUploadPolling]);
+
+  const getCurrentReturnPath = () => {
+    if (typeof window === 'undefined') return '/events';
+    return `${window.location.pathname || '/events'}${window.location.search || ''}${window.location.hash || ''}`;
+  };
+
+  const getNativeUploadAccept = (target = {}) => {
+    if (target.kind === 'article-block') return getArticleBlockAccept(target.blockType);
+    if (target.kind === 'cover') return 'image/*';
+    switch (type) {
+      case 'video':
+        return 'video/*';
+      case 'audio':
+        return 'audio/*';
+      case 'article':
+      case 'event':
+        return 'image/*';
+      default:
+        return 'image/*';
+    }
+  };
+
+  const applyNativeUploadResult = (target = {}, result = {}) => {
+    const uploadedUrl = result.fileUrl || result.coverUrl;
+    if (!uploadedUrl) {
+      throw new Error('Native upload completed without a file URL');
+    }
+
+    const uploadedName = result.name || uploadedUrl.split('/').pop() || '';
+
+    if (target.kind === 'cover') {
+      setCoverFile(null);
+      setCoverPreview(uploadedUrl);
+      setNativeCoverFileName(uploadedName);
+      toast.success(t('upload.native_upload_success'));
+      return;
+    }
+
+    if (target.kind === 'article-block' && target.blockId) {
+      updateArticleBlock(target.blockId, {
+        file: null,
+        url: uploadedUrl,
+        name: uploadedName,
+        size: Number(result.size || 0),
+        mime: result.mime || '',
+      });
+      toast.success(t('upload.native_upload_success'));
+      return;
+    }
+
+    setFile(null);
+    setPreview(uploadedUrl);
+    setBatchImages([]);
+    setNativeFileName(uploadedName);
+    toast.success(t('upload.native_upload_success'));
+  };
+
+  const pollNativeUploadSession = (sessionId, target) => {
+    stopNativeUploadPolling();
+
+    const startedAt = Date.now();
+    const tick = async () => {
+      if (Date.now() - startedAt > NATIVE_UPLOAD_TIMEOUT_MS) {
+        stopNativeUploadPolling();
+        setNativeUploadState({ active: false, sessionId: '', target: null });
+        toast.error(t('upload.native_upload_timeout'));
+        return;
+      }
+
+      try {
+        const response = await api.get(`/native-upload-sessions/${sessionId}`, {
+          silent: true,
+          noRetry: true,
+        });
+        const session = response.data || {};
+        if (session.status === 'uploaded') {
+          stopNativeUploadPolling();
+          applyNativeUploadResult(target, session.result);
+          setNativeUploadState({ active: false, sessionId: '', target: null });
+        } else if (session.status === 'failed') {
+          stopNativeUploadPolling();
+          setNativeUploadState({ active: false, sessionId: '', target: null });
+          if (session.error !== 'NATIVE_UPLOAD_CANCELED') {
+            toast.error(session.error || t('upload.native_upload_failed'));
+          }
+        }
+      } catch (error) {
+        if (Date.now() - startedAt > 30 * 1000) {
+          console.warn('Native upload polling failed:', error);
+        }
+      }
+    };
+
+    nativeUploadPollerRef.current = setInterval(tick, NATIVE_UPLOAD_POLL_INTERVAL_MS);
+    tick();
+  };
+
+  const startNativeUpload = async (target) => {
+    if (nativeUploadState.active) return;
+    if (!user) {
+      toast.error(t('auth.signin_required'));
+      return;
+    }
+
+    const field = target.kind === 'cover' ? 'cover' : 'file';
+    const accept = getNativeUploadAccept(target);
+
+    try {
+      setNativeUploadState({ active: true, sessionId: '', target });
+      const response = await api.post('/native-upload-sessions', { field, accept });
+      const { sessionId, uploadToken } = response.data || {};
+      if (!sessionId || !uploadToken) {
+        throw new Error('Native upload session was not created');
+      }
+
+      pollNativeUploadSession(sessionId, target);
+      setNativeUploadState({ active: true, sessionId, target });
+
+      await navigateToMiniProgramPage(buildWechatNativeUploadBridgeUrl({
+        sessionId,
+        uploadToken,
+        field,
+        accept,
+        redirectPath: getCurrentReturnPath(),
+      }));
+    } catch (error) {
+      stopNativeUploadPolling();
+      setNativeUploadState({ active: false, sessionId: '', target: null });
+      console.error('Failed to start native upload:', error);
+      toast.error(t('upload.native_upload_failed'));
+    }
+  };
+
   const handleFileChange = async (e, isCover = false) => {
     const selectedFile = e.target.files[0];
     if (!selectedFile) return;
@@ -1159,11 +1326,13 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         setBatchImages([]);
         setFile(selectedImages[0].file);
         setPreview(selectedImages[0].preview);
+        setNativeFileName('');
         return;
       }
       setBatchImages(selectedImages);
       setFile(selectedImages[0].file);
       setPreview(selectedImages[0].preview);
+      setNativeFileName('');
       return;
     }
 
@@ -1172,10 +1341,12 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
       if (isCover) {
           setCoverFile(selectedFile);
           setCoverPreview(reader.result);
+          setNativeCoverFileName('');
       } else {
           setFile(selectedFile);
           setPreview(reader.result);
           setBatchImages([]);
+          setNativeFileName('');
       }
     };
     reader.readAsDataURL(selectedFile);
@@ -1192,7 +1363,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         toast.error(t('upload.title_required'));
         return;
     }
-    if (!isEditing && type !== 'event' && type !== 'article' && !file && !hasBatchImages) {
+    if (!isEditing && type !== 'event' && type !== 'article' && !file && !hasBatchImages && !preview) {
         toast.error(t('upload.file_required'));
         return;
     }
@@ -1488,11 +1659,13 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         setBatchImages([]);
         setFile(selectedImages[0].file);
         setPreview(selectedImages[0].preview);
+        setNativeFileName('');
         return;
       }
       setBatchImages(selectedImages);
       setFile(selectedImages[0].file);
       setPreview(selectedImages[0].preview);
+      setNativeFileName('');
       return;
     }
     
@@ -1510,13 +1683,40 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             if (isCover) {
                 setCoverFile(droppedFile);
                 setCoverPreview(reader.result);
+                setNativeCoverFileName('');
             } else {
                 setFile(droppedFile);
                 setPreview(reader.result);
+                setNativeFileName('');
             }
         };
         reader.readAsDataURL(droppedFile);
     }
+  };
+
+  const canUseNativeUpload = isMiniProgramWebView();
+  const nativeUploadButtonClasses = isDayMode
+    ? 'border-indigo-200 bg-white/95 text-indigo-700 shadow-[0_8px_18px_rgba(99,102,241,0.14)] hover:bg-indigo-50'
+    : 'border-indigo-400/35 bg-indigo-500/16 text-indigo-100 shadow-[0_8px_24px_rgba(79,70,229,0.22)] hover:bg-indigo-500/24';
+
+  const renderNativeUploadButton = (target, label) => {
+    if (!canUseNativeUpload) return null;
+    const isCurrentTarget = nativeUploadState.active && nativeUploadState.target?.kind === target.kind && nativeUploadState.target?.blockId === target.blockId;
+    return (
+      <button
+        type="button"
+        disabled={nativeUploadState.active}
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          startNativeUpload(target);
+        }}
+        className={`absolute bottom-3 left-1/2 z-30 inline-flex min-h-[36px] -translate-x-1/2 items-center justify-center gap-1.5 rounded-[6px] border px-3 py-1.5 text-xs font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${nativeUploadButtonClasses}`}
+      >
+        <Upload size={14} />
+        <span>{isCurrentTarget ? t('upload.native_upload_waiting') : label}</span>
+      </button>
+    );
   };
 
   // UI Constants
@@ -1556,7 +1756,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className={`fixed inset-0 z-[150] flex items-center justify-center ${overlayShellClass}`}
+          className={`upload-modal-overlay fixed inset-0 z-[150] flex items-center justify-center ${overlayShellClass}`}
           onClick={handleClose}
         >
         <motion.div
@@ -1761,8 +1961,9 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                             <input
                                 type="file"
                                 accept="image/*"
+                                disabled={canUseNativeUpload}
                                 onChange={(e) => handleFileChange(e, true)}
-                                className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                                className={`absolute inset-0 opacity-0 cursor-pointer z-10 ${canUseNativeUpload ? 'pointer-events-none' : ''}`}
                             />
                             {coverPreview ? (
                                 <div className="relative h-full w-full flex justify-center items-center pointer-events-none">
@@ -1781,6 +1982,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                     </span>
                                 </div>
                             )}
+                            {renderNativeUploadButton({ kind: 'cover' }, t('upload.native_upload_cover'))}
                         </div>
                      </div>
 
@@ -2435,12 +2637,18 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                         <input
                                           type="file"
                                           accept={getArticleBlockAccept(block.type)}
+                                          disabled={canUseNativeUpload}
                                           onChange={(e) => handleArticleBlockFileChange(block.id, block.type, e.target.files?.[0])}
-                                          className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                                          className={`absolute inset-0 opacity-0 cursor-pointer z-10 ${canUseNativeUpload ? 'pointer-events-none' : ''}`}
                                         />
                                         <div className={`upload-modal-article-file-drop h-24 rounded-xl border border-dashed flex items-center justify-center text-xs ${isDayMode ? 'border-slate-200/90 bg-slate-50/80 text-slate-500' : 'border-white/20 bg-white/[0.03] text-gray-300'}`}>
                                           {block.name || (block.type === 'file' ? '选择附件文件' : `选择${block.type === 'image' ? '图片' : '视频'}文件`)}
                                         </div>
+                                        {renderNativeUploadButton({
+                                          kind: 'article-block',
+                                          blockId: block.id,
+                                          blockType: block.type,
+                                        }, t('upload.native_upload_file'))}
                                       </div>
                                       {(block.type === 'image' || block.type === 'video') && block.url && (
                                         <div className={`rounded-xl border p-2 ${isDayMode ? 'border-slate-200/80 bg-slate-50/90' : 'border-white/10 bg-black/40'}`}>
@@ -2540,9 +2748,24 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                           <div>
                             <label className={labelClasses}>文章封面</label>
                             <div className={`upload-modal-article-cover h-[48px] rounded-2xl border px-4 flex items-center justify-between gap-3 text-xs relative overflow-hidden ${isDayMode ? 'border-slate-200/80 bg-slate-50/90 text-slate-500' : 'border-white/10 bg-white/5 text-gray-400'}`}>
-                              <input type="file" accept="image/*" onChange={e => handleFileChange(e, true)} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
-                              <span className="truncate">{coverFile?.name || (coverPreview ? '已设置封面，点击可替换' : '点击上传封面图')}</span>
-                              <span className="px-2 py-0.5 rounded-lg border border-white/10 bg-white/5 text-[10px]">JPG/PNG</span>
+                              <input type="file" accept="image/*" disabled={canUseNativeUpload} onChange={e => handleFileChange(e, true)} className={`absolute inset-0 opacity-0 cursor-pointer z-10 ${canUseNativeUpload ? 'pointer-events-none' : ''}`} />
+                              <span className="truncate">{coverFile?.name || nativeCoverFileName || (coverPreview ? '已设置封面，点击可替换' : '点击上传封面图')}</span>
+                              {canUseNativeUpload ? (
+                                <button
+                                  type="button"
+                                  disabled={nativeUploadState.active}
+                                  onClick={(event) => {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                    startNativeUpload({ kind: 'cover' });
+                                  }}
+                                  className={`relative z-30 shrink-0 rounded-lg border px-2 py-1 text-[10px] font-bold ${nativeUploadButtonClasses}`}
+                                >
+                                  {t('upload.native_upload_short')}
+                                </button>
+                              ) : (
+                                <span className="px-2 py-0.5 rounded-lg border border-white/10 bg-white/5 text-[10px]">JPG/PNG</span>
+                              )}
                             </div>
                           </div>
                           <div>
@@ -2612,8 +2835,9 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                         type="file"
                         accept={getAcceptType()}
                         multiple={isImageBatchEnabled}
+                        disabled={canUseNativeUpload}
                         onChange={(e) => handleFileChange(e, false)}
-                        className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                        className={`absolute inset-0 opacity-0 cursor-pointer z-10 ${canUseNativeUpload ? 'pointer-events-none' : ''}`}
                         />
                         
                         {hasBatchImages ? (
@@ -2647,7 +2871,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                     <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-2 sm:mb-3">
                                         <Music size={24} className="text-green-400 sm:w-8 sm:h-8" />
                                     </div>
-                                    <p className={`font-medium text-sm break-all ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{file?.name}</p>
+                                    <p className={`font-medium text-sm break-all ${isDayMode ? 'text-slate-900' : 'text-white'}`}>{file?.name || nativeFileName}</p>
                                     <p className={`text-xs mt-1 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`}>{t('upload.click_drag_replace')}</p>
                                 </div>
                             ) : type === 'video' ? (
@@ -2672,6 +2896,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                             </p>
                         </div>
                         )}
+                        {renderNativeUploadButton({ kind: 'main' }, t('upload.native_upload_file'))}
                     </div>
                   </div>
                   )}
@@ -2691,8 +2916,9 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                             <input
                                 type="file"
                                 accept="image/*"
+                                disabled={canUseNativeUpload}
                                 onChange={(e) => handleFileChange(e, true)}
-                                className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                                className={`absolute inset-0 opacity-0 cursor-pointer z-10 ${canUseNativeUpload ? 'pointer-events-none' : ''}`}
                             />
                             {coverPreview ? (
                                 <div className="relative h-full w-full flex justify-center items-center pointer-events-none px-4">
@@ -2709,6 +2935,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                     </span>
                                 </div>
                             )}
+                            {renderNativeUploadButton({ kind: 'cover' }, t('upload.native_upload_cover'))}
                         </div>
                      </div>
                   

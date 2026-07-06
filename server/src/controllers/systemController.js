@@ -6,6 +6,12 @@ const sharp = require('sharp');
 const { searchGlobalContent } = require('../services/globalSearchService');
 const { listPendingCompetitionItems } = require('./competitionController');
 const {
+    completeNativeUploadSession,
+    createNativeUploadSession,
+    failNativeUploadSession,
+    getNativeUploadSession,
+} = require('../services/nativeUploadSessionService');
+const {
     scrapeWeChat,
     parseWithLLM,
     cleanWeChatUrl,
@@ -510,24 +516,92 @@ const getStats = async (req, res, next) => {
   }
 };
 
+const buildUploadResponse = (req) => {
+  const response = {};
+
+  // Build URL that includes the subdirectory (images/, videos/, etc.)
+  const buildUrl = (fileObj) => {
+    const uploadsDir = path.join(__dirname, '../../uploads');
+    const relativePath = path.relative(uploadsDir, fileObj.path).replace(/\\/g, '/');
+    return `/uploads/${relativePath}`;
+  };
+
+  if (req.files && req.files['file']) {
+    response.fileUrl = buildUrl(req.files['file'][0]);
+  }
+  if (req.files && req.files['cover']) {
+    response.coverUrl = buildUrl(req.files['cover'][0]);
+  }
+
+  const uploadedFile = req.files?.file?.[0] || req.files?.cover?.[0] || null;
+  if (uploadedFile) {
+    response.name = uploadedFile.originalname || uploadedFile.filename || '';
+    response.size = uploadedFile.size || 0;
+    response.mime = uploadedFile.mimetype || '';
+  }
+
+  return response;
+};
+
 const handleUpload = (req, res, next) => {
   try {
-    const response = {};
+    res.json(buildUploadResponse(req));
+  } catch (error) { next(error); }
+};
 
-    // Build URL that includes the subdirectory (images/, videos/, etc.)
-    const buildUrl = (fileObj) => {
-      const uploadsDir = path.join(__dirname, '../../uploads');
-      const relativePath = path.relative(uploadsDir, fileObj.path).replace(/\\/g, '/');
-      return `/uploads/${relativePath}`;
-    };
+const createNativeUploadSessionHandler = (req, res, next) => {
+  try {
+    const session = createNativeUploadSession(req.user.id, {
+      field: req.body?.field,
+      accept: req.body?.accept,
+    });
+    res.json(session);
+  } catch (error) { next(error); }
+};
 
-    if (req.files && req.files['file']) {
-      response.fileUrl = buildUrl(req.files['file'][0]);
+const getNativeUploadSessionHandler = (req, res, next) => {
+  try {
+    const session = getNativeUploadSession(req.user.id, req.params.sessionId);
+    res.json(session);
+  } catch (error) { next(error); }
+};
+
+const handleNativeUpload = (req, res, next) => {
+  try {
+    const uploadToken = req.headers['x-native-upload-token'];
+    const response = buildUploadResponse(req);
+    if (!response.fileUrl && !response.coverUrl) {
+      return res.status(400).json({
+        error: 'No file uploaded',
+        errorCode: 'NATIVE_UPLOAD_EMPTY',
+      });
     }
-    if (req.files && req.files['cover']) {
-      response.coverUrl = buildUrl(req.files['cover'][0]);
+    if (req.nativeUploadSession?.field === 'cover' && !response.coverUrl) {
+      return res.status(400).json({
+        error: 'Cover upload session requires a cover file',
+        errorCode: 'NATIVE_UPLOAD_FIELD_MISMATCH',
+      });
     }
-    res.json(response);
+    if (req.nativeUploadSession?.field === 'file' && !response.fileUrl) {
+      return res.status(400).json({
+        error: 'File upload session requires a file',
+        errorCode: 'NATIVE_UPLOAD_FIELD_MISMATCH',
+      });
+    }
+
+    const session = completeNativeUploadSession(uploadToken, response);
+    res.json({
+      ...response,
+      session,
+    });
+  } catch (error) { next(error); }
+};
+
+const cancelNativeUpload = (req, res, next) => {
+  try {
+    const uploadToken = req.headers['x-native-upload-token'];
+    const session = failNativeUploadSession(uploadToken, 'NATIVE_UPLOAD_CANCELED');
+    res.json(session);
   } catch (error) { next(error); }
 };
 
@@ -708,4 +782,20 @@ const getPendingContent = async (req, res, next) => {
     } catch (error) { next(error); }
 };
 
-module.exports = { getStats, getSiteMetrics, trackVisit, handleUpload, getImageVariant, downloadDbBackup, getFeaturedContent, crawlEvents, searchContent, getAuditLogs, getPendingContent };
+module.exports = {
+  getStats,
+  getSiteMetrics,
+  trackVisit,
+  handleUpload,
+  createNativeUploadSessionHandler,
+  getNativeUploadSessionHandler,
+  handleNativeUpload,
+  cancelNativeUpload,
+  getImageVariant,
+  downloadDbBackup,
+  getFeaturedContent,
+  crawlEvents,
+  searchContent,
+  getAuditLogs,
+  getPendingContent,
+};

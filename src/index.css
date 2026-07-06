@@ -113,6 +113,7 @@ body {
   --mobile-content-bottom-padding: calc(
     var(--mobile-bottom-nav-height) + env(safe-area-inset-bottom) + 18px
   );
+  --miniapp-webview-chrome-top: max(96px, calc(env(safe-area-inset-top) + 52px));
 }
 
 @media (max-width: 767px) {
@@ -120,6 +121,25 @@ body {
   select,
   textarea {
     font-size: 16px;
+  }
+}
+
+@media (max-width: 639px) {
+  .miniapp-webview .upload-modal-overlay {
+    top: var(--miniapp-webview-chrome-top) !important;
+  }
+
+  .miniapp-webview .upload-modal-panel:not(.upload-modal-article) {
+    height: calc(100dvh - var(--miniapp-webview-chrome-top)) !important;
+    max-height: calc(100dvh - var(--miniapp-webview-chrome-top)) !important;
+  }
+
+  .miniapp-webview .upload-modal-form {
+    min-height: 0 !important;
+  }
+
+  .miniapp-webview .upload-modal-body {
+    min-height: 0 !important;
   }
 }
 

@@ -1,5 +1,16 @@
-const WEB_ORIGIN = "https://tuotuzju.com";
+const PRODUCTION_WEB_ORIGIN = "https://tuotuzju.com";
+const LOCAL_WEB_ORIGIN = "http://127.0.0.1:5180";
+
+// Toggle this to true only for local DevTools debugging. Release builds must use production.
+const USE_LOCAL_WEB_ORIGIN = false;
+const WEB_ORIGIN = USE_LOCAL_WEB_ORIGIN ? LOCAL_WEB_ORIGIN : PRODUCTION_WEB_ORIGIN;
 const DEFAULT_PATH = "/events";
+
+const KNOWN_WEB_ORIGINS = Array.from(new Set([
+  WEB_ORIGIN,
+  LOCAL_WEB_ORIGIN,
+  PRODUCTION_WEB_ORIGIN,
+]));
 
 const ALLOWED_EXACT_PATHS = new Set([
   "/events",
@@ -47,8 +58,9 @@ const safeDecode = (value) => {
 const stripOrigin = (value) => {
   const text = safeDecode(String(value || "").trim());
   if (!text) return DEFAULT_PATH;
-  if (text.startsWith(WEB_ORIGIN)) {
-    return text.slice(WEB_ORIGIN.length) || DEFAULT_PATH;
+  const matchedOrigin = KNOWN_WEB_ORIGINS.find((origin) => text.startsWith(origin));
+  if (matchedOrigin) {
+    return text.slice(matchedOrigin.length) || DEFAULT_PATH;
   }
   if (/^https?:\/\//i.test(text)) return DEFAULT_PATH;
   return text;
@@ -105,6 +117,9 @@ const buildWebViewUrl = (inputPath) => {
 
 module.exports = {
   WEB_ORIGIN,
+  PRODUCTION_WEB_ORIGIN,
+  LOCAL_WEB_ORIGIN,
+  USE_LOCAL_WEB_ORIGIN,
   DEFAULT_PATH,
   buildWebViewUrl,
   normalizePath,

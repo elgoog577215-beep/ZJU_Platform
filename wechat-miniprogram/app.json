@@ -4,6 +4,7 @@
     "pages/index/index",
     "pages/home/index",
     "pages/login/index",
+    "pages/native-upload/index",
     "pages/subscribe/index",
     "pages/fallback/index"
   ],

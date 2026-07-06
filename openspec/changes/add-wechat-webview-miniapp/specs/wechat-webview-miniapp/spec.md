@@ -1,5 +1,34 @@
 ## ADDED Requirements
 
+### Requirement: 小程序 WebView 上传必须提供原生上传通道
+
+当网站运行在微信小程序 WebView 中时，文件上传 SHALL 提供微信原生上传通道，以避免移动端 WebView 文件选择器不可用或体验不稳定。
+
+#### Scenario: 用户在小程序中上传主文件
+
+- **GIVEN** 用户已在小程序 WebView 中登录网站
+- **WHEN** 用户在上传弹窗点击“小程序上传文件”
+- **THEN** 网站 SHALL 创建短期原生上传会话
+- **THEN** 网站 SHALL 跳转到小程序 `pages/native-upload/index`
+- **THEN** 小程序原生页 SHALL 使用 `wx.chooseMedia` 或 `wx.chooseMessageFile` 选择文件
+- **THEN** 小程序原生页 SHALL 使用 `wx.uploadFile` 上传到 `/api/upload/native`
+- **THEN** 网站 SHALL 在原表单中回填上传后的 `/uploads/...` 文件 URL
+
+#### Scenario: 原生上传 token 被篡改或重复使用
+
+- **GIVEN** 小程序原生上传请求携带无效、过期、篡改或已完成的上传 token
+- **WHEN** 后端收到 `/api/upload/native` 请求
+- **THEN** 后端 SHALL 拒绝请求
+- **THEN** 后端 SHALL NOT 复用网站 JWT 或创建新的登录态
+- **THEN** 后端 SHALL NOT 将文件标记为当前表单的有效上传结果
+
+#### Scenario: 用户上传封面文件
+
+- **GIVEN** 上传会话声明字段为 `cover`
+- **WHEN** 小程序原生页提交上传
+- **THEN** 后端 SHALL 要求上传字段名为 `cover`
+- **THEN** 网站 SHALL 将返回的 `coverUrl` 回填到封面预览
+
 ### Requirement: 微信小程序必须优先通过 WebView 承载现有网站
 
 微信小程序 SHALL 通过 `web-view` 加载现有网站核心公开页面，默认入口为活动页，并通过同一网站页面、同一后端 API、同一数据库实现内容同步。

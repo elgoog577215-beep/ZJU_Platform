@@ -359,6 +359,14 @@ const AppContent = () => {
   }, [location.search]);
 
   useEffect(() => {
+    if (typeof document === 'undefined') return undefined;
+    document.documentElement.classList.toggle('miniapp-webview', isMiniProgramMode);
+    return () => {
+      document.documentElement.classList.remove('miniapp-webview');
+    };
+  }, [isMiniProgramMode]);
+
+  useEffect(() => {
     if (settings?.site_title) {
       document.title = settings.site_title;
     }

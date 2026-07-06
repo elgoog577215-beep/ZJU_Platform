@@ -1,5 +1,14 @@
 # tasks
 
+## 6. 小程序原生上传第二版
+
+- [x] 6.1 后端新增短期原生上传会话与 HMAC 上传 token，不把网站 JWT 传入小程序页面。
+- [x] 6.2 后端新增 `/api/native-upload-sessions`、`/api/native-upload-sessions/:sessionId` 与 `/api/upload/native`。
+- [x] 6.3 网站上传弹窗在小程序 WebView 中展示原生上传按钮，创建会话后跳转小程序原生页。
+- [x] 6.4 小程序新增 `pages/native-upload/index`，通过 `wx.chooseMedia` / `wx.chooseMessageFile` 与 `wx.uploadFile` 上传。
+- [x] 6.5 网站轮询上传会话，原生上传完成后回填文件 URL，保留当前表单状态。
+- [x] 6.6 增加后端上传会话单元测试，覆盖完成、越权查询与 token 篡改拒绝。
+
 ## 1. OpenSpec
 
 - [x] 1.1 写入 `proposal.md`、`design.md`、`tasks.md`。

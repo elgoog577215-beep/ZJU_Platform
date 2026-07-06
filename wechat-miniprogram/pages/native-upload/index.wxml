@@ -1,0 +1,39 @@
+<view class="native-upload-page">
+  <view class="native-upload-surface">
+    <view class="native-upload-accent"></view>
+    <view class="native-upload-kicker">{{copy.kicker}}</view>
+    <view class="native-upload-title">{{copy.title}}</view>
+    <view class="native-upload-desc">{{copy.description}}</view>
+
+    <view wx:if="{{fileName}}" class="native-upload-file">{{fileName}}</view>
+    <view wx:if="{{status === 'uploading' || status === 'completed'}}" class="native-upload-progress">
+      <view class="native-upload-progress-track">
+        <view class="native-upload-progress-fill" style="width: {{progress}}%;"></view>
+      </view>
+      <text>{{status === 'completed' ? copy.completed : copy.uploading}} {{progress}}%</text>
+    </view>
+
+    <view wx:if="{{error}}" class="native-upload-error">
+      <view class="native-upload-error-icon">!</view>
+      <text>{{error}}</text>
+    </view>
+  </view>
+
+  <view class="native-upload-actions">
+    <button
+      class="native-upload-button primary"
+      loading="{{status === 'uploading'}}"
+      disabled="{{!uploadToken || status === 'uploading' || status === 'completed'}}"
+      bindtap="chooseAndUpload"
+    >
+      {{status === 'failed' ? copy.retry : copy.choose}}
+    </button>
+    <button
+      class="native-upload-button secondary"
+      disabled="{{status === 'uploading'}}"
+      bindtap="goBack"
+    >
+      {{copy.back}}
+    </button>
+  </view>
+</view>
