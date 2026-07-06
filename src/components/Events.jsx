@@ -394,25 +394,10 @@ const EventCard = memo(
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col px-3.5 py-2.5">
-          <div className="flex min-h-[32px] min-w-0 items-start gap-2">
+          <div className="flex min-h-[32px] min-w-0 items-start">
             <h3 className={`line-clamp-1 min-w-0 flex-1 text-[19px] font-black leading-7 tracking-tight ${isDayMode ? "text-slate-950" : "text-white"}`}>
               {event.title}
             </h3>
-            <div onClick={(eventClick) => eventClick.stopPropagation()} className="-mr-1 -mt-1">
-              <FavoriteButton
-                itemId={event.id}
-                itemType="event"
-                size={22}
-                showCount={false}
-                count={event.likes || 0}
-                favorited={event.favorited}
-                initialFavorited={event.favorited}
-                className={`min-h-9 min-w-9 rounded-md p-1 ${isDayMode ? "text-slate-500 hover:bg-blue-50 hover:text-blue-600" : "text-slate-100"}`}
-                onToggle={(favorited, likes) =>
-                  onToggleFavorite(event.id, favorited, likes)
-                }
-              />
-            </div>
           </div>
 
           <div className="mt-1 flex min-h-[28px] min-w-0 items-center gap-2 overflow-hidden">
@@ -445,9 +430,25 @@ const EventCard = memo(
           <div className={`mt-auto flex items-center gap-1.5 text-[14px] font-semibold ${isDayMode ? "text-slate-500" : "text-slate-300"}`}>
             <Users size={15} />
             <span className="truncate">{event.registered_count || event.participant_count || 0} 人已报名</span>
-            <span className={`ml-auto inline-flex h-8 w-8 items-center justify-center rounded-full ${isDayMode ? "bg-blue-50 text-blue-700" : "bg-white/10 text-slate-200"}`}>
-              <ArrowRight size={17} />
-            </span>
+            <div onClick={(eventClick) => eventClick.stopPropagation()} className="ml-auto">
+              <FavoriteButton
+                itemId={event.id}
+                itemType="event"
+                size={18}
+                showCount={false}
+                count={event.likes || 0}
+                favorited={event.favorited}
+                initialFavorited={event.favorited}
+                className={`!min-h-8 !min-w-8 h-8 w-8 rounded-full p-0 ${
+                  isDayMode
+                    ? "bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-pink-500"
+                    : "bg-white/10 text-slate-200 hover:bg-white/15 hover:text-pink-400"
+                }`}
+                onToggle={(favorited, likes) =>
+                  onToggleFavorite(event.id, favorited, likes)
+                }
+              />
+            </div>
           </div>
         </div>
       </motion.div>
