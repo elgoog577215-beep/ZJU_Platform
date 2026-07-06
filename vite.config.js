@@ -77,6 +77,8 @@ export default defineConfig(({ mode }) => {
         },
         workbox: {
           navigateFallback: '/index.html',
+          // /code is a separate app mounted on the same domain.
+          navigateFallbackDenylist: [/^\/code(?:\/|$)/],
           // Keep install precache lean for Android TWA startup; chunks are cached on demand.
           globPatterns: [
             'index.html',
