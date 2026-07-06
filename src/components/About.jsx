@@ -18,7 +18,7 @@ import {
   Trophy,
   Users,
 } from "lucide-react";
-import { getPartnerDisplayName, getPartnerLogoSrc } from "../data/partnerLogos";
+import { getPartnerLogoSrc } from "../data/partnerLogos";
 import { useSettings } from "../context/SettingsContext";
 import { useEcosystemPartners } from "../hooks/useEcosystemPartners";
 import { useReducedMotion } from "../utils/animations";
@@ -52,6 +52,9 @@ const About = () => {
   const reduceMotion = useReducedMotion();
   const shouldAnimate = !reduceMotion;
   const isDayMode = uiMode === "day";
+  const enterpriseLogoWall = enterpriseLogos.filter((logo) =>
+    getPartnerLogoSrc(logo, isDayMode),
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
@@ -75,7 +78,9 @@ const About = () => {
 
       const root = target.closest("[data-about-scroll-root]");
       const behavior = reduceMotion ? "auto" : "smooth";
-      const shouldUseDesktopScroller = window.matchMedia("(min-width: 1024px)").matches;
+      const shouldUseDesktopScroller = window.matchMedia(
+        "(min-width: 1024px)",
+      ).matches;
 
       if (shouldUseDesktopScroller && root instanceof HTMLElement) {
         root.scrollTo({ top: target.offsetTop, behavior });
@@ -105,8 +110,7 @@ const About = () => {
   const palette = isDayMode
     ? {
         page: "bg-[#f6f8fb] text-slate-950",
-        hero:
-          "bg-[linear-gradient(135deg,#ffffff_0%,#eef8fb_52%,#f8fafc_100%)]",
+        hero: "bg-[linear-gradient(135deg,#ffffff_0%,#eef8fb_52%,#f8fafc_100%)]",
         section:
           "bg-[linear-gradient(180deg,rgba(255,255,255,0.94)_0%,rgba(240,249,252,0.76)_100%)]",
         final:
@@ -119,8 +123,7 @@ const About = () => {
           "border-slate-200 bg-white/88 shadow-[0_28px_90px_rgba(15,23,42,0.1)]",
         panelStrong:
           "border-cyan-500/20 bg-white/92 shadow-[0_36px_110px_rgba(15,23,42,0.14)]",
-        card:
-          "border-slate-200 bg-white/88 shadow-[0_24px_70px_rgba(15,23,42,0.09)]",
+        card: "border-slate-200 bg-white/88 shadow-[0_24px_70px_rgba(15,23,42,0.09)]",
         accent: "text-cyan-700",
         accentBg: "bg-cyan-500",
         altAccent: "text-amber-700",
@@ -131,13 +134,11 @@ const About = () => {
           "border-slate-300 bg-white/78 text-slate-800 hover:border-cyan-400 hover:text-cyan-700",
         divider: "border-slate-200",
         watermark: "text-slate-900/[0.045]",
-        grid:
-          "opacity-[0.16] [background-image:linear-gradient(rgba(6,182,212,0.14)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.1)_1px,transparent_1px)]",
+        grid: "opacity-[0.16] [background-image:linear-gradient(rgba(6,182,212,0.14)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.1)_1px,transparent_1px)]",
       }
     : {
         page: "bg-[#030405] text-white",
-        hero:
-          "bg-[linear-gradient(135deg,#020303_0%,#071111_54%,#020303_100%)]",
+        hero: "bg-[linear-gradient(135deg,#020303_0%,#071111_54%,#020303_100%)]",
         section:
           "bg-[linear-gradient(180deg,rgba(3,4,5,0.98)_0%,rgba(7,17,17,0.9)_100%)]",
         final:
@@ -150,8 +151,7 @@ const About = () => {
           "border-white/10 bg-[#101516]/88 shadow-[0_28px_90px_rgba(0,0,0,0.46)]",
         panelStrong:
           "border-cyan-300/24 bg-[#081012]/86 shadow-[0_36px_120px_rgba(0,0,0,0.62)]",
-        card:
-          "border-white/10 bg-[linear-gradient(180deg,rgba(16,21,22,0.92),rgba(16,21,22,0.64))]",
+        card: "border-white/10 bg-[linear-gradient(180deg,rgba(16,21,22,0.92),rgba(16,21,22,0.64))]",
         accent: "text-cyan-300",
         accentBg: "bg-cyan-300",
         altAccent: "text-amber-200",
@@ -162,8 +162,7 @@ const About = () => {
           "border-white/16 bg-white/[0.045] text-white hover:border-cyan-300/70 hover:bg-cyan-300/10",
         divider: "border-white/10",
         watermark: "text-white/[0.04]",
-        grid:
-          "opacity-[0.12] [background-image:linear-gradient(rgba(103,232,249,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(103,232,249,0.1)_1px,transparent_1px)]",
+        grid: "opacity-[0.12] [background-image:linear-gradient(rgba(103,232,249,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(103,232,249,0.1)_1px,transparent_1px)]",
       };
 
   const pageSections = [
@@ -200,7 +199,10 @@ const About = () => {
     {
       index: "01",
       title: t("about.ecosystem.loop.discover", "发现机会"),
-      detail: t("about.ecosystem.loop.discover_desc", "活动、资源与真实需求统一触达"),
+      detail: t(
+        "about.ecosystem.loop.discover_desc",
+        "活动、资源与真实需求统一触达",
+      ),
     },
     {
       index: "02",
@@ -215,7 +217,10 @@ const About = () => {
     {
       index: "04",
       title: t("about.ecosystem.loop.recognize", "认定通道"),
-      detail: t("about.ecosystem.loop.recognize_desc", "优秀成果连接校企背书与机会"),
+      detail: t(
+        "about.ecosystem.loop.recognize_desc",
+        "优秀成果连接校企背书与机会",
+      ),
     },
   ];
 
@@ -224,14 +229,20 @@ const About = () => {
       index: "01",
       code: "Campus",
       title: t("about.ecosystem.support.school_title", "校内支持"),
-      headline: t("about.ecosystem.support.school_headline", "场景、空间与机制"),
+      headline: t(
+        "about.ecosystem.support.school_headline",
+        "场景、空间与机制",
+      ),
       description: t(
         "about.ecosystem.support.school_desc",
         "未来学习中心与校内创新平台提供产学融合场景，让真实课题能够稳定进入校园实践。",
       ),
       icon: Landmark,
       items: [
-        t("about.ecosystem.support.school_items.future_learning", "未来学习中心"),
+        t(
+          "about.ecosystem.support.school_items.future_learning",
+          "未来学习中心",
+        ),
         t("about.ecosystem.support.school_items.innovation", "创新创业学院"),
         t("about.ecosystem.support.school_items.ai_school", "人工智能学院"),
         t("about.ecosystem.support.school_items.medical", "基础医学院"),
@@ -241,21 +252,15 @@ const About = () => {
       index: "02",
       code: "Enterprise",
       title: t("about.ecosystem.support.enterprise_title", "企业合作"),
-      headline: t("about.ecosystem.support.enterprise_headline", "真实命题与技术资源"),
+      headline: t(
+        "about.ecosystem.support.enterprise_headline",
+        "真实命题与技术资源",
+      ),
       description: t(
         "about.ecosystem.support.enterprise_desc",
         "AI 企业、开发工具与行业伙伴把真实问题、模型能力、云资源和人才通道带入校园。",
       ),
       icon: Building2,
-      items: [
-        t("about.ecosystem.support.enterprise_items.getui", "每日互动"),
-        t("about.ecosystem.support.enterprise_items.aliyun", "阿里云"),
-        t("about.ecosystem.support.enterprise_items.minimax", "MiniMax"),
-        t("about.ecosystem.support.enterprise_items.stepfun", "阶跃星辰"),
-        t("about.ecosystem.support.enterprise_items.modelscope", "魔搭社区"),
-        t("about.ecosystem.support.enterprise_items.qoder", "Qoder"),
-        t("about.ecosystem.support.enterprise_items.bonjour", "Bonjour"),
-      ],
     },
     {
       index: "03",
@@ -267,13 +272,18 @@ const About = () => {
         "资本与产业资源为优秀项目提供更长期的成长视野，让校园成果有机会继续孵化。",
       ),
       icon: Handshake,
-      items: [t("about.ecosystem.support.capital_items.five_source", "五源资本")],
+      items: [
+        t("about.ecosystem.support.capital_items.five_source", "五源资本"),
+      ],
     },
     {
       index: "04",
       code: "Force",
       title: t("about.ecosystem.support.organization_title", "组织合作"),
-      headline: t("about.ecosystem.support.organization_headline", "社群、活动与执行力量"),
+      headline: t(
+        "about.ecosystem.support.organization_headline",
+        "社群、活动与执行力量",
+      ),
       description: t(
         "about.ecosystem.support.organization_desc",
         "学生组织、科创社团与核心负责人共同承接社群运营、活动执行和项目协作。",
@@ -282,9 +292,18 @@ const About = () => {
       items: [
         t("about.ecosystem.support.organization_items.qiangying", "强鹰俱乐部"),
         t("about.ecosystem.support.organization_items.xlab", "XLAB"),
-        t("about.ecosystem.support.organization_items.ai_association", "人工智能协会"),
-        t("about.ecosystem.support.organization_items.ai_research", "AI 创研会"),
-        t("about.ecosystem.support.organization_items.embedded_ai", "嵌入式人工智能协会"),
+        t(
+          "about.ecosystem.support.organization_items.ai_association",
+          "人工智能协会",
+        ),
+        t(
+          "about.ecosystem.support.organization_items.ai_research",
+          "AI 创研会",
+        ),
+        t(
+          "about.ecosystem.support.organization_items.embedded_ai",
+          "嵌入式人工智能协会",
+        ),
         t("about.ecosystem.support.organization_items.kab", "KAB 创业俱乐部"),
       ],
     },
@@ -295,7 +314,10 @@ const About = () => {
       index: "01",
       code: "INFO",
       title: t("about.ecosystem.business.info_title", "信息共享平台"),
-      short: t("about.ecosystem.business.info_short", "活动聚合 / 校园机会入口"),
+      short: t(
+        "about.ecosystem.business.info_short",
+        "活动聚合 / 校园机会入口",
+      ),
       description: t(
         "about.ecosystem.business.info_desc",
         "面向校园通知、讲座、竞赛与社团活动分散的问题，通过活动聚合、搜索推荐和组织主页，把机会统一沉淀到一个入口。",
@@ -310,7 +332,10 @@ const About = () => {
       index: "02",
       code: "GROW",
       title: t("about.ecosystem.business.grow_title", "AI 生态培养体系"),
-      short: t("about.ecosystem.business.grow_short", "AI 社区 / 学习体系 / 项目执行"),
+      short: t(
+        "about.ecosystem.business.grow_short",
+        "AI 社区 / 学习体系 / 项目执行",
+      ),
       description: t(
         "about.ecosystem.business.grow_desc",
         "以网站 AI 社区为公开内容沉淀入口，结合微信群社群、智能体协会和真实项目，形成从 AI 入门到协作实践的成长体系。",
@@ -325,12 +350,18 @@ const About = () => {
       index: "03",
       code: "ZJUHACK",
       title: t("about.ecosystem.business.hackathon_title", "浙客松系列黑客松"),
-      short: t("about.ecosystem.business.hackathon_short", "交叉赛事 / 人才选拔 / 成果认证"),
+      short: t(
+        "about.ecosystem.business.hackathon_short",
+        "交叉赛事 / 人才选拔 / 成果认证",
+      ),
       description: t(
         "about.ecosystem.business.hackathon_desc",
         "围绕量化、医学、硬件、人文社科等交叉主题持续举办 AI 实战赛事，让学生完成作品闭环，并连接企业认证、实习内推和项目孵化。",
       ),
-      metric: t("about.ecosystem.business.hackathon_metric", "季度化 AI 交叉赛事"),
+      metric: t(
+        "about.ecosystem.business.hackathon_metric",
+        "季度化 AI 交叉赛事",
+      ),
       route: "/hackathon",
       cta: t("about.ecosystem.business.hackathon_cta", "查看浙客松"),
       icon: Trophy,
@@ -410,8 +441,12 @@ const About = () => {
         id="about-hero"
         className={`relative isolate min-h-[100svh] overflow-hidden px-4 pb-8 pt-[calc(env(safe-area-inset-top)+78px)] sm:px-6 md:pt-[calc(env(safe-area-inset-top)+112px)] lg:h-[100svh] lg:snap-start lg:snap-always lg:pb-8 lg:pl-10 lg:pr-28 lg:pt-[calc(env(safe-area-inset-top)+84px)] 2xl:pl-16 2xl:pr-36 ${palette.hero}`}
       >
-        <div className={`pointer-events-none absolute inset-0 [background-size:46px_46px] ${palette.grid}`} />
-        <div className={`pointer-events-none absolute -right-[8vw] bottom-0 select-none text-[18vw] font-black uppercase leading-[0.8] ${palette.watermark}`}>
+        <div
+          className={`pointer-events-none absolute inset-0 [background-size:46px_46px] ${palette.grid}`}
+        />
+        <div
+          className={`pointer-events-none absolute -right-[8vw] bottom-0 select-none text-[18vw] font-black uppercase leading-[0.8] ${palette.watermark}`}
+        >
           ECOSYSTEM
         </div>
 
@@ -424,23 +459,33 @@ const About = () => {
                   : "border-cyan-300/30 bg-cyan-300/[0.07]"
               }`}
             >
-              <span className={`h-2 w-2 ${palette.accentBg} shadow-[0_0_22px_rgba(103,232,249,0.72)]`} />
+              <span
+                className={`h-2 w-2 ${palette.accentBg} shadow-[0_0_22px_rgba(103,232,249,0.72)]`}
+              />
               {t("about.ecosystem.hero.brand", "拓浙 AI 生态")}
             </div>
 
             <h1 className="mt-4 max-w-6xl text-4xl font-black leading-[0.98] tracking-normal sm:mt-7 sm:text-6xl md:text-7xl lg:mt-6 lg:text-7xl 2xl:text-8xl">
-              <span className="block">{t("about.ecosystem.hero.title_1", "让 AI 学习、")}</span>
-              <span className="block">{t("about.ecosystem.hero.title_2", "真实项目与产业机会，")}</span>
+              <span className="block">
+                {t("about.ecosystem.hero.title_1", "让 AI 学习、")}
+              </span>
+              <span className="block">
+                {t("about.ecosystem.hero.title_2", "真实项目与产业机会，")}
+              </span>
               <span className={`block ${palette.accent}`}>
                 {t("about.ecosystem.hero.title_3", "在校园里连成生态。")}
               </span>
             </h1>
 
-            <p className={`mt-4 max-w-4xl text-sm font-medium leading-6 sm:mt-6 sm:text-xl sm:leading-9 lg:text-lg lg:leading-8 ${palette.textSoft}`}>
+            <p
+              className={`mt-4 max-w-4xl text-sm font-medium leading-6 sm:mt-6 sm:text-xl sm:leading-9 lg:text-lg lg:leading-8 ${palette.textSoft}`}
+            >
               <strong className={isDayMode ? "text-slate-950" : "text-white"}>
-                {t("about.ecosystem.hero.strong", "以浙江大学为起点，连接学生、学院、企业与真实 AI 场景。")}
-              </strong>
-              {" "}
+                {t(
+                  "about.ecosystem.hero.strong",
+                  "以浙江大学为起点，连接学生、学院、企业与真实 AI 场景。",
+                )}
+              </strong>{" "}
               {t(
                 "about.ecosystem.hero.desc",
                 "通过信息共享平台、AI 生态培养体系与浙客松系列黑客松，让学生从发现机会、学习 AI、参与项目，到获得校企认定与实习就业通道。",
@@ -478,10 +523,14 @@ const About = () => {
                     isDayMode ? "bg-white/82" : "bg-[#071113]/82"
                   }`}
                 >
-                  <div className={`text-2xl font-black leading-none sm:text-3xl lg:text-4xl ${palette.accent}`}>
+                  <div
+                    className={`text-2xl font-black leading-none sm:text-3xl lg:text-4xl ${palette.accent}`}
+                  >
                     {item.value}
                   </div>
-                  <p className={`mt-2 text-[11px] font-bold leading-4 sm:text-xs ${palette.textMuted}`}>
+                  <p
+                    className={`mt-2 text-[11px] font-bold leading-4 sm:text-xs ${palette.textMuted}`}
+                  >
                     {item.label}
                   </p>
                 </div>
@@ -493,16 +542,24 @@ const About = () => {
             {...heroReveal(shouldAnimate, 0.12)}
             className={`relative hidden min-h-[600px] overflow-hidden border p-7 backdrop-blur-2xl xl:block 2xl:min-h-[680px] 2xl:p-8 ${palette.panelStrong}`}
           >
-            <div className={`pointer-events-none absolute -right-12 -top-10 text-[8rem] font-black uppercase leading-none ${palette.watermark}`}>
+            <div
+              className={`pointer-events-none absolute -right-12 -top-10 text-[8rem] font-black uppercase leading-none ${palette.watermark}`}
+            >
               LOOP
             </div>
             <div className="relative z-10 flex min-h-[546px] flex-col justify-between 2xl:min-h-[616px]">
-              <div className={`flex items-center justify-between text-[11px] font-black uppercase ${palette.label}`}>
-                <span>{t("about.ecosystem.brief.eyebrow", "Ecosystem Brief")}</span>
+              <div
+                className={`flex items-center justify-between text-[11px] font-black uppercase ${palette.label}`}
+              >
+                <span>
+                  {t("about.ecosystem.brief.eyebrow", "Ecosystem Brief")}
+                </span>
                 <span>{t("about.ecosystem.brief.status", "Running")}</span>
               </div>
               <div>
-                <div className={`text-8xl font-black leading-[0.82] 2xl:text-9xl ${palette.accent}`}>
+                <div
+                  className={`text-8xl font-black leading-[0.82] 2xl:text-9xl ${palette.accent}`}
+                >
                   3
                 </div>
                 <p className="mt-4 text-4xl font-black leading-tight 2xl:text-5xl">
@@ -510,14 +567,18 @@ const About = () => {
                   <br />
                   {t("about.ecosystem.brief.title_2", "共同支撑")}
                 </p>
-                <p className={`mt-4 max-w-lg text-base font-bold leading-7 2xl:text-lg 2xl:leading-8 ${palette.textSoft}`}>
+                <p
+                  className={`mt-4 max-w-lg text-base font-bold leading-7 2xl:text-lg 2xl:leading-8 ${palette.textSoft}`}
+                >
                   {t(
                     "about.ecosystem.brief.desc",
                     "信息入口带来触达，AI 生态培养体系承接成长，浙客松把真实问题压缩成可验证的实战场。",
                   )}
                 </p>
               </div>
-              <div className={`grid gap-px overflow-hidden border ${isDayMode ? "border-cyan-500/18 bg-cyan-500/18" : "border-cyan-300/18 bg-cyan-300/18"}`}>
+              <div
+                className={`grid gap-px overflow-hidden border ${isDayMode ? "border-cyan-500/18 bg-cyan-500/18" : "border-cyan-300/18 bg-cyan-300/18"}`}
+              >
                 {loopItems.map((item) => (
                   <div
                     key={item.index}
@@ -525,10 +586,18 @@ const About = () => {
                       isDayMode ? "bg-white/92" : "bg-[#030a0c]/94"
                     }`}
                   >
-                    <div className={`font-mono text-xs font-black ${palette.accent}`}>{item.index}</div>
+                    <div
+                      className={`font-mono text-xs font-black ${palette.accent}`}
+                    >
+                      {item.index}
+                    </div>
                     <div>
                       <div className="text-xl font-black">{item.title}</div>
-                      <p className={`mt-1 text-sm leading-5 ${palette.textMuted}`}>{item.detail}</p>
+                      <p
+                        className={`mt-1 text-sm leading-5 ${palette.textMuted}`}
+                      >
+                        {item.detail}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -544,10 +613,14 @@ const About = () => {
           {...sectionReveal(shouldAnimate)}
           className={`${sectionBaseClass} ${palette.section}`}
         >
-          <div className={`pointer-events-none absolute -right-[7vw] top-4 select-none text-[17vw] font-black uppercase leading-[0.8] ${palette.watermark}`}>
+          <div
+            className={`pointer-events-none absolute -right-[7vw] top-4 select-none text-[17vw] font-black uppercase leading-[0.8] ${palette.watermark}`}
+          >
             BACKED
           </div>
-          <div className={`pointer-events-none absolute inset-0 [background-size:56px_56px] ${palette.grid}`} />
+          <div
+            className={`pointer-events-none absolute inset-0 [background-size:56px_56px] ${palette.grid}`}
+          />
           <div className="relative z-10 mx-auto flex min-h-0 w-full max-w-[2140px] flex-1 flex-col justify-center">
             <div className="grid gap-5 lg:grid-cols-[minmax(0,0.86fr)_minmax(360px,0.7fr)] lg:items-end lg:gap-10 2xl:gap-14">
               <div className="max-w-[960px]">
@@ -555,11 +628,20 @@ const About = () => {
                   Resource Support
                 </p>
                 <h2 className="mt-3 max-w-5xl text-3xl font-black leading-tight tracking-normal sm:text-6xl lg:text-6xl 2xl:text-7xl">
-                  <span className="block">{t("about.ecosystem.support.title_1", "资源不是附属，")}</span>
-                  <span className="block">{t("about.ecosystem.support.title_2", "而是生态成立的基础。")}</span>
+                  <span className="block">
+                    {t("about.ecosystem.support.title_1", "资源不是附属，")}
+                  </span>
+                  <span className="block">
+                    {t(
+                      "about.ecosystem.support.title_2",
+                      "而是生态成立的基础。",
+                    )}
+                  </span>
                 </h2>
               </div>
-              <p className={`max-w-3xl text-sm leading-6 sm:text-lg sm:leading-8 lg:justify-self-end lg:pb-2 ${palette.textSoft}`}>
+              <p
+                className={`max-w-3xl text-sm leading-6 sm:text-lg sm:leading-8 lg:justify-self-end lg:pb-2 ${palette.textSoft}`}
+              >
                 {t(
                   "about.ecosystem.support.desc",
                   "学校提供场景与机制，企业带来真实课题与技术资源，资本连接项目孵化，学生组织承接社群、活动和执行力量。",
@@ -575,67 +657,96 @@ const About = () => {
                     key={group.code}
                     className={`relative flex min-h-[430px] snap-start flex-col overflow-hidden border p-5 sm:min-h-[360px] sm:p-6 lg:h-full lg:min-h-0 lg:p-6 2xl:p-7 ${palette.card}`}
                   >
-                    <div className={`pointer-events-none absolute -bottom-8 -right-6 text-[7rem] font-black uppercase leading-none ${palette.watermark}`}>
+                    <div
+                      className={`pointer-events-none absolute -bottom-8 -right-6 text-[7rem] font-black uppercase leading-none ${palette.watermark}`}
+                    >
                       {group.code}
                     </div>
                     <div className="relative z-10 flex h-full flex-col">
                       <div className="flex items-start justify-between gap-4">
-                        <div className={`font-mono text-xs font-black uppercase ${palette.accent}`}>
+                        <div
+                          className={`font-mono text-xs font-black uppercase ${palette.accent}`}
+                        >
                           {group.index} / {group.code}
                         </div>
-                        <div className={`flex h-11 w-11 items-center justify-center ${group.index === "03" ? palette.altAccentBg : palette.accentBg} text-slate-950`}>
+                        <div
+                          className={`flex h-11 w-11 items-center justify-center ${group.index === "03" ? palette.altAccentBg : palette.accentBg} text-slate-950`}
+                        >
                           <Icon className="h-5 w-5" />
                         </div>
                       </div>
                       <h3 className="mt-5 text-3xl font-black leading-tight sm:text-4xl lg:text-3xl 2xl:text-4xl">
                         {group.title}
                       </h3>
-                      <p className={`mt-2 text-sm font-black ${group.index === "03" ? palette.altAccent : palette.accent}`}>
+                      <p
+                        className={`mt-2 text-sm font-black ${group.index === "03" ? palette.altAccent : palette.accent}`}
+                      >
                         {group.headline}
                       </p>
-                      <p className={`mt-4 text-sm leading-6 ${palette.textSoft}`}>
+                      <p
+                        className={`mt-4 text-sm leading-6 ${palette.textSoft}`}
+                      >
                         {group.description}
                       </p>
-                      <div className={`mt-5 flex flex-wrap gap-2 border-t pt-5 ${palette.divider}`}>
-                        {group.items.map((item) => (
-                          <span
-                            key={item}
-                            className={`border px-2.5 py-1.5 text-xs font-bold ${
-                              isDayMode
-                                ? "border-slate-200 bg-white/72 text-slate-700"
-                                : "border-white/10 bg-white/[0.045] text-white/72"
-                            }`}
+                      {group.index === "02" ? (
+                        enterpriseLogoWall.length > 0 ? (
+                          <div
+                            className={`mt-auto grid grid-cols-3 gap-2 border-t pt-5 ${palette.divider}`}
                           >
-                            {item}
-                          </span>
-                        ))}
-                      </div>
-                      {group.index === "02" && enterpriseLogos.length > 0 ? (
-                        <div className={`mt-auto grid grid-cols-3 gap-1.5 border-t pt-5 ${palette.divider}`}>
-                          {enterpriseLogos.slice(0, 6).map((logo) => (
-                            <div
-                              key={logo.id || logo.src || logo.name}
-                              className={`flex min-h-[42px] items-center justify-center px-2 py-2 ${
-                                isDayMode ? "bg-white/72" : "bg-white/[0.04]"
+                            {enterpriseLogoWall.map((logo) => {
+                              const logoSrc = getPartnerLogoSrc(
+                                logo,
+                                isDayMode,
+                              );
+                              const logoKey =
+                                `${logo.id || ""} ${logo.name || ""} ${logo.alt || ""}`.toLowerCase();
+                              const tileSpan = logoKey.includes("getui")
+                                ? "col-span-3"
+                                : logoKey.includes("qoder")
+                                  ? "col-span-2"
+                                  : "";
+                              return (
+                                <div
+                                  key={logo.id || logo.src || logo.name}
+                                  className={`flex min-h-[52px] items-center justify-center px-2.5 py-2 ${tileSpan} ${
+                                    isDayMode
+                                      ? "bg-white/72"
+                                      : "bg-white/[0.04]"
+                                  }`}
+                                >
+                                  <img
+                                    src={logoSrc}
+                                    alt={
+                                      logo.alt ||
+                                      `${logo.name || "合作方"} logo`
+                                    }
+                                    className={`max-h-6 w-auto max-w-full object-contain sm:max-h-7 ${
+                                      !isDayMode ? logo.darkClassName || "" : ""
+                                    }`}
+                                  />
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : null
+                      ) : (
+                        <div
+                          className={`mt-5 flex flex-wrap gap-2 border-t pt-5 ${palette.divider}`}
+                        >
+                          {group.items.map((item) => (
+                            <span
+                              key={item}
+                              className={`border px-2.5 py-1.5 text-xs font-bold ${
+                                isDayMode
+                                  ? "border-slate-200 bg-white/72 text-slate-700"
+                                  : "border-white/10 bg-white/[0.045] text-white/72"
                               }`}
                             >
-                              {getPartnerLogoSrc(logo, isDayMode) ? (
-                                <img
-                                  src={getPartnerLogoSrc(logo, isDayMode)}
-                                  alt={logo.alt}
-                                  className={`w-auto max-w-full object-contain ${
-                                    logo.size || "h-4 sm:h-5"
-                                  } ${!isDayMode ? logo.darkClassName || "" : ""}`}
-                                />
-                              ) : (
-                                <span className="text-center text-[11px] font-black">
-                                  {getPartnerDisplayName(logo)}
-                                </span>
-                              )}
-                            </div>
+                              {item}
+                            </span>
                           ))}
                         </div>
-                      ) : null}
+                      )}
                     </div>
                   </article>
                 );
@@ -649,7 +760,9 @@ const About = () => {
           {...sectionReveal(shouldAnimate, 0.08)}
           className={`${sectionBaseClass} ${palette.page}`}
         >
-          <div className={`pointer-events-none absolute -right-[6vw] top-8 select-none text-[18vw] font-black uppercase leading-[0.8] ${palette.watermark}`}>
+          <div
+            className={`pointer-events-none absolute -right-[6vw] top-8 select-none text-[18vw] font-black uppercase leading-[0.8] ${palette.watermark}`}
+          >
             BUILD
           </div>
           <div className="relative z-10 mx-auto flex min-h-0 w-full max-w-[2140px] flex-1 flex-col justify-center">
@@ -658,10 +771,19 @@ const About = () => {
                 Three Businesses
               </p>
               <h2 className="mt-3 text-3xl font-black leading-tight tracking-normal sm:text-6xl lg:text-6xl 2xl:text-7xl">
-                <span className="block">{t("about.ecosystem.business.title_1", "三项业务，")}</span>
-                <span className="block">{t("about.ecosystem.business.title_2", "把资源转化为学生成长路径。")}</span>
+                <span className="block">
+                  {t("about.ecosystem.business.title_1", "三项业务，")}
+                </span>
+                <span className="block">
+                  {t(
+                    "about.ecosystem.business.title_2",
+                    "把资源转化为学生成长路径。",
+                  )}
+                </span>
               </h2>
-              <p className={`mt-4 max-w-4xl text-sm leading-6 sm:text-lg sm:leading-8 ${palette.textSoft}`}>
+              <p
+                className={`mt-4 max-w-4xl text-sm leading-6 sm:text-lg sm:leading-8 ${palette.textSoft}`}
+              >
                 {t(
                   "about.ecosystem.business.desc",
                   "信息入口带来信任和触达，AI 生态培养体系完成学习与项目承接，浙客松系列黑客松把交叉学科问题转化为高密度实战与成果认证。",
@@ -703,15 +825,21 @@ const About = () => {
                             : "border-l-cyan-300"
                     } ${palette.card}`}
                   >
-                    <div className={`pointer-events-none absolute -bottom-7 -right-5 text-[7rem] font-black uppercase leading-none transition duration-300 group-hover:translate-x-1 ${palette.watermark}`}>
+                    <div
+                      className={`pointer-events-none absolute -bottom-7 -right-5 text-[7rem] font-black uppercase leading-none transition duration-300 group-hover:translate-x-1 ${palette.watermark}`}
+                    >
                       {item.code}
                     </div>
                     <div className="relative z-10 flex h-full flex-col">
                       <div className="flex items-start justify-between gap-4">
-                        <div className={`font-mono text-xs font-black uppercase ${accentClass}`}>
+                        <div
+                          className={`font-mono text-xs font-black uppercase ${accentClass}`}
+                        >
                           {item.index} / {item.code}
                         </div>
-                        <div className={`flex h-12 w-12 items-center justify-center ${iconBgClass} text-slate-950`}>
+                        <div
+                          className={`flex h-12 w-12 items-center justify-center ${iconBgClass} text-slate-950`}
+                        >
                           <Icon className="h-6 w-6" />
                         </div>
                       </div>
@@ -721,19 +849,29 @@ const About = () => {
                       <p className={`mt-2 text-sm font-black ${accentClass}`}>
                         {item.short}
                       </p>
-                      <p className={`mt-5 text-sm leading-7 lg:text-base ${palette.textSoft}`}>
+                      <p
+                        className={`mt-5 text-sm leading-7 lg:text-base ${palette.textSoft}`}
+                      >
                         {item.description}
                       </p>
-                      <div className={`mt-auto flex items-end justify-between gap-4 border-t pt-5 ${palette.divider}`}>
+                      <div
+                        className={`mt-auto flex items-end justify-between gap-4 border-t pt-5 ${palette.divider}`}
+                      >
                         <div>
-                          <div className={`text-[11px] font-black uppercase ${palette.textMuted}`}>
+                          <div
+                            className={`text-[11px] font-black uppercase ${palette.textMuted}`}
+                          >
                             Focus
                           </div>
-                          <div className={`mt-2 text-lg font-black ${accentClass}`}>
+                          <div
+                            className={`mt-2 text-lg font-black ${accentClass}`}
+                          >
                             {item.metric}
                           </div>
                         </div>
-                        <div className={`inline-flex items-center gap-2 text-sm font-black ${accentClass}`}>
+                        <div
+                          className={`inline-flex items-center gap-2 text-sm font-black ${accentClass}`}
+                        >
                           {item.cta}
                           <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
                         </div>
@@ -751,20 +889,30 @@ const About = () => {
           {...sectionReveal(shouldAnimate, 0.08)}
           className={`${sectionBaseClass} ${palette.final}`}
         >
-          <div className={`pointer-events-none absolute -right-[8vw] bottom-0 select-none text-[18vw] font-black uppercase leading-[0.8] ${palette.watermark}`}>
+          <div
+            className={`pointer-events-none absolute -right-[8vw] bottom-0 select-none text-[18vw] font-black uppercase leading-[0.8] ${palette.watermark}`}
+          >
             JOIN
           </div>
-          <div className={`pointer-events-none absolute inset-0 [background-size:46px_46px] ${palette.grid}`} />
+          <div
+            className={`pointer-events-none absolute inset-0 [background-size:46px_46px] ${palette.grid}`}
+          />
           <div className="relative z-10 mx-auto grid min-h-0 w-full max-w-[2140px] flex-1 gap-6 lg:grid-cols-[minmax(0,0.78fr)_minmax(520px,0.92fr)] lg:items-center lg:gap-10 2xl:gap-14">
             <div>
               <p className={`text-xs font-black uppercase ${palette.label}`}>
                 Join the Ecosystem
               </p>
               <h2 className="mt-3 max-w-4xl text-4xl font-black leading-tight tracking-normal sm:text-6xl lg:text-7xl">
-                <span className="block">{t("about.ecosystem.join.title_1", "加入拓浙")}</span>
-                <span className={`block ${palette.accent}`}>{t("about.ecosystem.join.title_2", "AI 生态")}</span>
+                <span className="block">
+                  {t("about.ecosystem.join.title_1", "加入拓浙")}
+                </span>
+                <span className={`block ${palette.accent}`}>
+                  {t("about.ecosystem.join.title_2", "AI 生态")}
+                </span>
               </h2>
-              <p className={`mt-5 max-w-3xl text-sm leading-6 sm:text-lg sm:leading-8 ${palette.textSoft}`}>
+              <p
+                className={`mt-5 max-w-3xl text-sm leading-6 sm:text-lg sm:leading-8 ${palette.textSoft}`}
+              >
                 {t(
                   "about.ecosystem.join.desc",
                   "无论你是学生、组织负责人、企业课题方还是学校合作伙伴，都可以从这里进入平台、下载 App 或发起合作。",
@@ -805,12 +953,20 @@ const About = () => {
                     to={item.route}
                     className={`group relative min-h-[200px] overflow-hidden border p-5 transition duration-300 hover:-translate-y-1 sm:min-h-[260px] lg:min-h-[190px] xl:min-h-[280px] ${palette.card}`}
                   >
-                    <div className={`flex h-11 w-11 items-center justify-center ${palette.accentBg} text-slate-950`}>
+                    <div
+                      className={`flex h-11 w-11 items-center justify-center ${palette.accentBg} text-slate-950`}
+                    >
                       <Icon className="h-5 w-5" />
                     </div>
-                    <h3 className="mt-5 text-2xl font-black leading-tight">{item.title}</h3>
-                    <p className={`mt-3 text-sm leading-6 ${palette.textSoft}`}>{item.description}</p>
-                    <div className={`mt-5 inline-flex items-center gap-2 text-sm font-black ${palette.accent}`}>
+                    <h3 className="mt-5 text-2xl font-black leading-tight">
+                      {item.title}
+                    </h3>
+                    <p className={`mt-3 text-sm leading-6 ${palette.textSoft}`}>
+                      {item.description}
+                    </p>
+                    <div
+                      className={`mt-5 inline-flex items-center gap-2 text-sm font-black ${palette.accent}`}
+                    >
                       {item.action}
                       <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
                     </div>
