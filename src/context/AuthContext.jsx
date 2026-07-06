@@ -17,7 +17,19 @@ export const AuthProvider = ({ children }) => {
   const getAuthErrorMessage = (err, fallbackKey) => {
     const data = err?.response?.data;
     const validationMessage = data?.errors?.[0]?.msg || data?.details?.[0]?.message;
-    return data?.error || validationMessage || t(fallbackKey);
+    const rawMessage = data?.error || validationMessage;
+    const authErrorMap = {
+      'Username already exists': 'auth.username_exists',
+      'Password must be at least 6 characters long': 'auth.password_too_short',
+      'Username must be at least 3 characters long': 'auth.username_too_short',
+      'Username can only contain letters, numbers, and underscores': 'auth.username_invalid',
+      'Username and password are required': 'auth.error_missing_fields',
+      'Username is required': 'auth.username_required',
+      'Password is required': 'auth.password_required',
+      'Invalid credentials': 'auth.invalid_credentials',
+    };
+
+    return authErrorMap[rawMessage] ? t(authErrorMap[rawMessage]) : rawMessage || t(fallbackKey);
   };
 
   useEffect(() => {
