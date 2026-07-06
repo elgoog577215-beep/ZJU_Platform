@@ -1699,9 +1699,42 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
     ? 'border-indigo-200 bg-white/95 text-indigo-700 shadow-[0_8px_18px_rgba(99,102,241,0.14)] hover:bg-indigo-50'
     : 'border-indigo-400/35 bg-indigo-500/16 text-indigo-100 shadow-[0_8px_24px_rgba(79,70,229,0.22)] hover:bg-indigo-500/24';
 
-  const renderNativeUploadButton = (target, label) => {
+  const renderNativeUploadButton = (target, label, options = {}) => {
     if (!canUseNativeUpload) return null;
+    const variant = options.variant || 'compact';
     const isCurrentTarget = nativeUploadState.active && nativeUploadState.target?.kind === target.kind && nativeUploadState.target?.blockId === target.blockId;
+    const buttonLabel = isCurrentTarget ? t('upload.native_upload_waiting') : label;
+    if (variant === 'full') {
+      return (
+        <button
+          type="button"
+          disabled={nativeUploadState.active}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            startNativeUpload(target);
+          }}
+          className={`absolute inset-0 z-30 flex flex-col items-center justify-center gap-2 rounded-[6px] border transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${
+            isDayMode
+              ? 'border-indigo-200 bg-indigo-50 text-indigo-800 hover:bg-indigo-100'
+              : 'border-indigo-400/30 bg-[#080a14] text-indigo-100 hover:bg-[#0d1020]'
+          }`}
+        >
+          <span className={`inline-flex min-h-[48px] w-[min(82%,22rem)] items-center justify-center gap-2 rounded-[6px] border px-4 py-2 text-lg font-black ${
+            isDayMode
+              ? 'border-indigo-200 bg-white text-indigo-700 shadow-[0_10px_22px_rgba(99,102,241,0.16)]'
+              : 'border-indigo-300/35 bg-indigo-500/18 text-white shadow-[0_12px_26px_rgba(79,70,229,0.24)]'
+          }`}>
+            <Upload size={20} />
+            <span>{buttonLabel}</span>
+          </span>
+          <span className={`px-4 text-center text-xs font-medium ${isDayMode ? 'text-indigo-600' : 'text-indigo-200/78'}`}>
+            {t('upload.native_upload_hint')}
+          </span>
+        </button>
+      );
+    }
+
     return (
       <button
         type="button"
@@ -1714,7 +1747,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         className={`absolute bottom-3 left-1/2 z-30 inline-flex min-h-[36px] -translate-x-1/2 items-center justify-center gap-1.5 rounded-[6px] border px-3 py-1.5 text-xs font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${nativeUploadButtonClasses}`}
       >
         <Upload size={14} />
-        <span>{isCurrentTarget ? t('upload.native_upload_waiting') : label}</span>
+        <span>{buttonLabel}</span>
       </button>
     );
   };
@@ -1982,7 +2015,11 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                     </span>
                                 </div>
                             )}
-                            {renderNativeUploadButton({ kind: 'cover' }, t('upload.native_upload_cover'))}
+                            {renderNativeUploadButton(
+                              { kind: 'cover' },
+                              t('upload.native_upload_cover'),
+                              { variant: coverPreview ? 'compact' : 'full' },
+                            )}
                         </div>
                      </div>
 
@@ -2896,7 +2933,11 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                             </p>
                         </div>
                         )}
-                        {renderNativeUploadButton({ kind: 'main' }, t('upload.native_upload_file'))}
+                        {renderNativeUploadButton(
+                          { kind: 'main' },
+                          t('upload.native_upload_file'),
+                          { variant: (hasBatchImages || preview) ? 'compact' : 'full' },
+                        )}
                     </div>
                   </div>
                   )}
@@ -2935,7 +2976,11 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                     </span>
                                 </div>
                             )}
-                            {renderNativeUploadButton({ kind: 'cover' }, t('upload.native_upload_cover'))}
+                            {renderNativeUploadButton(
+                              { kind: 'cover' },
+                              t('upload.native_upload_cover'),
+                              { variant: coverPreview ? 'compact' : 'full' },
+                            )}
                         </div>
                      </div>
                   

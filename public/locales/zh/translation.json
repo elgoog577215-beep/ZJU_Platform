@@ -1315,6 +1315,7 @@
     "native_upload_cover": "小程序上传图片",
     "native_upload_short": "小程序上传",
     "native_upload_waiting": "等待选择",
+    "native_upload_hint": "点击后会打开微信原生选择器",
     "native_upload_success": "小程序上传成功",
     "native_upload_failed": "小程序上传失败，请重试",
     "native_upload_timeout": "小程序上传超时，请重新选择文件",
