@@ -4,7 +4,17 @@ import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import {
   ArrowRight,
+  BookOpen,
+  Building2,
   CalendarDays,
+  Download,
+  GraduationCap,
+  Handshake,
+  Landmark,
+  Mail,
+  Network,
+  Rocket,
+  Smartphone,
   Trophy,
   Users,
 } from "lucide-react";
@@ -35,28 +45,13 @@ const heroReveal = (enabled, delay = 0) => {
   };
 };
 
-const partnerNameTranslations = {
-  1: "Future Learning Center",
-  2: "AI Joint Lab",
-  9: "ModelScope Community",
-  11: "Alibaba Cloud",
-  13: "StepFun",
-  "未来学习中心": "Future Learning Center",
-  "AI 联合实验室": "AI Joint Lab",
-  "ModelScope 魔搭社区": "ModelScope Community",
-  "阿里云": "Alibaba Cloud",
-  "阶跃 StepFun": "StepFun",
-};
-
 const About = () => {
-  const { t, i18n } = useTranslation();
-  const { settings, uiMode } = useSettings();
-  const { schoolPartners, organizationPartners, enterpriseLogos } = useEcosystemPartners();
+  const { t } = useTranslation();
+  const { uiMode } = useSettings();
+  const { enterpriseLogos } = useEcosystemPartners();
   const reduceMotion = useReducedMotion();
   const shouldAnimate = !reduceMotion;
   const isDayMode = uiMode === "day";
-  const language = i18n.resolvedLanguage || i18n.language || "zh";
-  const isEnglish = String(language).startsWith("en");
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
@@ -107,104 +102,46 @@ const About = () => {
     };
   }, [reduceMotion]);
 
-  const getPartnerName = (partner) =>
-    isEnglish
-      ? partnerNameTranslations[partner.id] || partnerNameTranslations[partner.name] || partner.name
-      : partner.name;
-  const schoolSupport = schoolPartners.map(getPartnerName);
-  const studentOrganizations = organizationPartners.map(getPartnerName);
-  const operatingHandles = [
-    {
-      index: "01",
-      code: "ENTRY",
-      title: t("about.ecosystem.handles.events_title", "活动聚合"),
-      short: t("about.ecosystem.handles.events_short", "统一入口"),
-      loop: t("about.ecosystem.handles.events_loop", "汇聚资源"),
-      icon: CalendarDays,
-      description: t("about.ecosystem.handles.events_desc", "聚合活动、项目、企业课题与学习资源，让全域 AI 机会进入同一入口。"),
-      route: "/events",
-    },
-    {
-      index: "02",
-      code: "LINK",
-      title: t("about.ecosystem.handles.community_title", "AI 社区"),
-      short: t("about.ecosystem.handles.community_short", "持续共建"),
-      loop: t("about.ecosystem.handles.community_loop", "组织人群"),
-      icon: Users,
-      description: t("about.ecosystem.handles.community_desc", "连接学习者、开发者与社团负责人，把交流转化为长期共建。"),
-      route: "/community",
-    },
-    {
-      index: "03",
-      code: "BUILD",
-      title: t("about.ecosystem.handles.hackathon_title", "极速黑客松"),
-      short: t("about.ecosystem.handles.hackathon_short", "成果认定"),
-      loop: t("about.ecosystem.handles.hackathon_loop", "验证能力"),
-      icon: Trophy,
-      description: t("about.ecosystem.handles.hackathon_desc", "企业真实命题、限时技术攻坚、零路演评审，让硬核能力被直接验证。"),
-      route: "/hackathon",
-    },
-  ];
-
-  const loopItems = [
-    { index: "01", title: t("about.ecosystem.loop.gather", "汇聚"), detail: t("about.ecosystem.loop.gather_desc", "活动、项目与企业课题进入同一入口") },
-    { index: "02", title: t("about.ecosystem.loop.practice", "实战"), detail: t("about.ecosystem.loop.practice_desc", "学生在赛事与项目中做中学") },
-    { index: "03", title: t("about.ecosystem.loop.recognize", "认定"), detail: t("about.ecosystem.loop.recognize_desc", "校企共同背书成果能力") },
-    { index: "04", title: t("about.ecosystem.loop.channel", "通道"), detail: t("about.ecosystem.loop.channel_desc", "优秀人才通向实习与内推") },
-  ];
-
-  const foundationPillars = [
-    { index: "A", title: t("about.ecosystem.foundation.scenario", "场景开放"), detail: t("about.ecosystem.foundation.scenario_desc", "真实任务进入校园现场") },
-    { index: "B", title: t("about.ecosystem.foundation.coordination", "组织协同"), detail: t("about.ecosystem.foundation.coordination_desc", "空间、人群与执行联动") },
-    { index: "C", title: t("about.ecosystem.foundation.mechanism", "长期机制"), detail: t("about.ecosystem.foundation.mechanism_desc", "活动沉淀为持续通道") },
-  ];
-
-  const proofStats = [
-    {
-      value: settings.about_stat_1_value || "1000+",
-      label: !isEnglish && settings.about_stat_1_label
-        ? settings.about_stat_1_label
-        : t("about.ecosystem.stats.user_base", "平台用户基础"),
-    },
-    { value: "3", label: t("about.ecosystem.stats.core_chain", "三位一体业务") },
-    {
-      value: !isEnglish && settings.about_stat_3_value
-        ? settings.about_stat_3_value
-        : t("about.ecosystem.stats.sprint_value", "5 小时"),
-      label: !isEnglish && settings.about_stat_3_label
-        ? settings.about_stat_3_label
-        : t("about.ecosystem.stats.sprint_label", "限时实战攻坚"),
-    },
-  ];
-
   const palette = isDayMode
     ? {
         page: "bg-[#f6f8fb] text-slate-950",
         hero:
-          "bg-[radial-gradient(circle_at_72%_18%,rgba(6,182,212,0.18),transparent_28%),radial-gradient(circle_at_20%_78%,rgba(79,70,229,0.1),transparent_24%),linear-gradient(135deg,#ffffff_0%,#eef8fb_54%,#f8fafc_100%)]",
+          "bg-[linear-gradient(135deg,#ffffff_0%,#eef8fb_52%,#f8fafc_100%)]",
+        section:
+          "bg-[linear-gradient(180deg,rgba(255,255,255,0.94)_0%,rgba(240,249,252,0.76)_100%)]",
+        final:
+          "bg-[linear-gradient(135deg,#f8fafc_0%,#eef8fb_48%,#ffffff_100%)]",
         textSoft: "text-slate-600",
         textMuted: "text-slate-500",
         label: "text-cyan-700",
         border: "border-slate-200/80",
         panel:
-          "border-slate-200 bg-white/88 shadow-[0_28px_90px_rgba(15,23,42,0.12)]",
+          "border-slate-200 bg-white/88 shadow-[0_28px_90px_rgba(15,23,42,0.1)]",
         panelStrong:
           "border-cyan-500/20 bg-white/92 shadow-[0_36px_110px_rgba(15,23,42,0.14)]",
         card:
-          "border-slate-200 bg-white/88 shadow-[0_24px_70px_rgba(15,23,42,0.1)]",
+          "border-slate-200 bg-white/88 shadow-[0_24px_70px_rgba(15,23,42,0.09)]",
         accent: "text-cyan-700",
         accentBg: "bg-cyan-500",
+        altAccent: "text-amber-700",
+        altAccentBg: "bg-amber-400",
         primary:
-          "bg-cyan-500 theme-on-dark shadow-[0_18px_42px_rgba(6,182,212,0.28)] hover:bg-cyan-600",
+          "bg-cyan-600 text-white shadow-[0_18px_42px_rgba(6,182,212,0.28)] hover:bg-cyan-700",
         secondary:
-          "border-slate-300 bg-white/70 text-slate-800 hover:border-cyan-400 hover:text-cyan-700",
+          "border-slate-300 bg-white/78 text-slate-800 hover:border-cyan-400 hover:text-cyan-700",
         divider: "border-slate-200",
         watermark: "text-slate-900/[0.045]",
+        grid:
+          "opacity-[0.16] [background-image:linear-gradient(rgba(6,182,212,0.14)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.1)_1px,transparent_1px)]",
       }
     : {
         page: "bg-[#030405] text-white",
         hero:
-          "bg-[radial-gradient(circle_at_72%_18%,rgba(34,211,238,0.26),transparent_26%),radial-gradient(circle_at_20%_78%,rgba(99,102,241,0.12),transparent_25%),linear-gradient(135deg,#020303_0%,#071111_54%,#020303_100%)]",
+          "bg-[linear-gradient(135deg,#020303_0%,#071111_54%,#020303_100%)]",
+        section:
+          "bg-[linear-gradient(180deg,rgba(3,4,5,0.98)_0%,rgba(7,17,17,0.9)_100%)]",
+        final:
+          "bg-[linear-gradient(135deg,#020303_0%,#081012_52%,#030405_100%)]",
         textSoft: "text-white/72",
         textMuted: "text-white/48",
         label: "text-cyan-300",
@@ -217,13 +154,225 @@ const About = () => {
           "border-white/10 bg-[linear-gradient(180deg,rgba(16,21,22,0.92),rgba(16,21,22,0.64))]",
         accent: "text-cyan-300",
         accentBg: "bg-cyan-300",
+        altAccent: "text-amber-200",
+        altAccentBg: "bg-amber-300",
         primary:
           "bg-cyan-300 text-slate-950 shadow-[0_0_42px_rgba(103,232,249,0.28)] hover:bg-white",
         secondary:
           "border-white/16 bg-white/[0.045] text-white hover:border-cyan-300/70 hover:bg-cyan-300/10",
         divider: "border-white/10",
         watermark: "text-white/[0.04]",
+        grid:
+          "opacity-[0.12] [background-image:linear-gradient(rgba(103,232,249,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(103,232,249,0.1)_1px,transparent_1px)]",
       };
+
+  const pageSections = [
+    ["01", "#about-hero"],
+    ["02", "#resource-support"],
+    ["03", "#business-lines"],
+    ["04", "#join-ecosystem"],
+  ];
+
+  const proofStats = [
+    {
+      value: "2300+",
+      label: t("about.ecosystem.stats.users", "注册用户"),
+    },
+    {
+      value: "900+",
+      label: t("about.ecosystem.stats.daily_views", "日均浏览"),
+    },
+    {
+      value: "700+",
+      label: t("about.ecosystem.stats.events", "校园活动收录"),
+    },
+    {
+      value: "500",
+      label: t("about.ecosystem.stats.community", "AI 社群满额"),
+    },
+    {
+      value: "300",
+      label: t("about.ecosystem.stats.hackathon", "首届浙客松报名"),
+    },
+  ];
+
+  const loopItems = [
+    {
+      index: "01",
+      title: t("about.ecosystem.loop.discover", "发现机会"),
+      detail: t("about.ecosystem.loop.discover_desc", "活动、资源与真实需求统一触达"),
+    },
+    {
+      index: "02",
+      title: t("about.ecosystem.loop.learn", "学习共创"),
+      detail: t("about.ecosystem.loop.learn_desc", "AI 社区与学习体系承接成长"),
+    },
+    {
+      index: "03",
+      title: t("about.ecosystem.loop.build", "项目实战"),
+      detail: t("about.ecosystem.loop.build_desc", "赛事和项目推动作品闭环"),
+    },
+    {
+      index: "04",
+      title: t("about.ecosystem.loop.recognize", "认定通道"),
+      detail: t("about.ecosystem.loop.recognize_desc", "优秀成果连接校企背书与机会"),
+    },
+  ];
+
+  const supportGroups = [
+    {
+      index: "01",
+      code: "Campus",
+      title: t("about.ecosystem.support.school_title", "校内支持"),
+      headline: t("about.ecosystem.support.school_headline", "场景、空间与机制"),
+      description: t(
+        "about.ecosystem.support.school_desc",
+        "未来学习中心与校内创新平台提供产学融合场景，让真实课题能够稳定进入校园实践。",
+      ),
+      icon: Landmark,
+      items: [
+        t("about.ecosystem.support.school_items.future_learning", "未来学习中心"),
+        t("about.ecosystem.support.school_items.innovation", "创新创业学院"),
+        t("about.ecosystem.support.school_items.ai_school", "人工智能学院"),
+        t("about.ecosystem.support.school_items.medical", "基础医学院"),
+      ],
+    },
+    {
+      index: "02",
+      code: "Enterprise",
+      title: t("about.ecosystem.support.enterprise_title", "企业合作"),
+      headline: t("about.ecosystem.support.enterprise_headline", "真实命题与技术资源"),
+      description: t(
+        "about.ecosystem.support.enterprise_desc",
+        "AI 企业、开发工具与行业伙伴把真实问题、模型能力、云资源和人才通道带入校园。",
+      ),
+      icon: Building2,
+      items: [
+        t("about.ecosystem.support.enterprise_items.getui", "每日互动"),
+        t("about.ecosystem.support.enterprise_items.aliyun", "阿里云"),
+        t("about.ecosystem.support.enterprise_items.minimax", "MiniMax"),
+        t("about.ecosystem.support.enterprise_items.stepfun", "阶跃星辰"),
+        t("about.ecosystem.support.enterprise_items.modelscope", "魔搭社区"),
+        t("about.ecosystem.support.enterprise_items.qoder", "Qoder"),
+        t("about.ecosystem.support.enterprise_items.bonjour", "Bonjour"),
+      ],
+    },
+    {
+      index: "03",
+      code: "Capital",
+      title: t("about.ecosystem.support.capital_title", "资本合作"),
+      headline: t("about.ecosystem.support.capital_headline", "孵化与成长连接"),
+      description: t(
+        "about.ecosystem.support.capital_desc",
+        "资本与产业资源为优秀项目提供更长期的成长视野，让校园成果有机会继续孵化。",
+      ),
+      icon: Handshake,
+      items: [t("about.ecosystem.support.capital_items.five_source", "五源资本")],
+    },
+    {
+      index: "04",
+      code: "Force",
+      title: t("about.ecosystem.support.organization_title", "组织合作"),
+      headline: t("about.ecosystem.support.organization_headline", "社群、活动与执行力量"),
+      description: t(
+        "about.ecosystem.support.organization_desc",
+        "学生组织、科创社团与核心负责人共同承接社群运营、活动执行和项目协作。",
+      ),
+      icon: Network,
+      items: [
+        t("about.ecosystem.support.organization_items.qiangying", "强鹰俱乐部"),
+        t("about.ecosystem.support.organization_items.xlab", "XLAB"),
+        t("about.ecosystem.support.organization_items.ai_association", "人工智能协会"),
+        t("about.ecosystem.support.organization_items.ai_research", "AI 创研会"),
+        t("about.ecosystem.support.organization_items.embedded_ai", "嵌入式人工智能协会"),
+        t("about.ecosystem.support.organization_items.kab", "KAB 创业俱乐部"),
+      ],
+    },
+  ];
+
+  const businessLines = [
+    {
+      index: "01",
+      code: "INFO",
+      title: t("about.ecosystem.business.info_title", "信息共享平台"),
+      short: t("about.ecosystem.business.info_short", "活动聚合 / 校园机会入口"),
+      description: t(
+        "about.ecosystem.business.info_desc",
+        "面向校园通知、讲座、竞赛与社团活动分散的问题，通过活动聚合、搜索推荐和组织主页，把机会统一沉淀到一个入口。",
+      ),
+      metric: t("about.ecosystem.business.info_metric", "700+ 活动收录"),
+      route: "/events",
+      cta: t("about.ecosystem.business.info_cta", "查看活动"),
+      icon: CalendarDays,
+      tone: "cyan",
+    },
+    {
+      index: "02",
+      code: "GROW",
+      title: t("about.ecosystem.business.grow_title", "AI 生态培养体系"),
+      short: t("about.ecosystem.business.grow_short", "AI 社区 / 学习体系 / 项目执行"),
+      description: t(
+        "about.ecosystem.business.grow_desc",
+        "以网站 AI 社区为公开内容沉淀入口，结合微信群社群、智能体协会和真实项目，形成从 AI 入门到协作实践的成长体系。",
+      ),
+      metric: t("about.ecosystem.business.grow_metric", "500 人社群满额"),
+      route: "/articles",
+      cta: t("about.ecosystem.business.grow_cta", "进入 AI 社区"),
+      icon: GraduationCap,
+      tone: "emerald",
+    },
+    {
+      index: "03",
+      code: "ZJUHACK",
+      title: t("about.ecosystem.business.hackathon_title", "浙客松系列黑客松"),
+      short: t("about.ecosystem.business.hackathon_short", "交叉赛事 / 人才选拔 / 成果认证"),
+      description: t(
+        "about.ecosystem.business.hackathon_desc",
+        "围绕量化、医学、硬件、人文社科等交叉主题持续举办 AI 实战赛事，让学生完成作品闭环，并连接企业认证、实习内推和项目孵化。",
+      ),
+      metric: t("about.ecosystem.business.hackathon_metric", "季度化 AI 交叉赛事"),
+      route: "/hackathon",
+      cta: t("about.ecosystem.business.hackathon_cta", "查看浙客松"),
+      icon: Trophy,
+      tone: "amber",
+    },
+  ];
+
+  const joinCards = [
+    {
+      title: t("about.ecosystem.join.student_title", "学生"),
+      description: t(
+        "about.ecosystem.join.student_desc",
+        "发现校园机会，加入 AI 社区，参与项目与黑客松，把学习转化成作品。",
+      ),
+      action: t("about.ecosystem.join.student_cta", "进入平台"),
+      route: "/events",
+      icon: Users,
+    },
+    {
+      title: t("about.ecosystem.join.org_title", "组织与社团"),
+      description: t(
+        "about.ecosystem.join.org_desc",
+        "入驻组织主页，发布活动与项目招募，一起建设校园 AI 资源网络。",
+      ),
+      action: t("about.ecosystem.join.org_cta", "查看组织目录"),
+      route: "/profiles",
+      icon: Network,
+    },
+    {
+      title: t("about.ecosystem.join.enterprise_title", "企业与课题方"),
+      description: t(
+        "about.ecosystem.join.enterprise_desc",
+        "提交真实需求、合办主题赛事，连接学生团队与可验证的 AI 实践成果。",
+      ),
+      action: t("about.ecosystem.join.enterprise_cta", "联系合作"),
+      route: "/future-learning",
+      icon: BriefcaseIcon,
+    },
+  ];
+
+  const sectionBaseClass =
+    "relative flex min-h-[100svh] scroll-mt-0 flex-col overflow-hidden px-4 pb-[calc(5.25rem+env(safe-area-inset-bottom))] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:px-6 sm:py-20 lg:h-[100svh] lg:snap-start lg:snap-always lg:pb-[clamp(1rem,3vh,2.5rem)] lg:pl-10 lg:pr-28 lg:pt-[calc(env(safe-area-inset-top)+clamp(4.5rem,8.2vh,5.125rem))] 2xl:pl-16 2xl:pr-36";
 
   return (
     <div
@@ -231,19 +380,18 @@ const About = () => {
       className={`min-h-screen overflow-x-hidden scroll-smooth pb-0 lg:h-screen lg:overflow-y-auto lg:snap-y lg:snap-mandatory ${palette.page}`}
     >
       <SEO
-        title={t("about.ecosystem.meta_title", "关于我们")}
-        description={t("about.ecosystem.meta_desc", "了解拓途浙享如何以企业真实课题、校园 AI 社区与技术黑客松连接学校、企业和学生，构建产学融合生态。")}
+        title={t("about.ecosystem.meta_title", "拓浙 AI 生态")}
+        description={t(
+          "about.ecosystem.meta_desc",
+          "了解拓浙 AI 生态如何以信息共享平台、AI 生态培养体系与浙客松系列黑客松连接学生、学院、企业和真实 AI 场景。",
+        )}
       />
 
       <nav
         aria-label={t("about.ecosystem.pagination_aria", "关于页面分页")}
         className="fixed right-5 top-1/2 z-30 hidden -translate-y-1/2 flex-col gap-3 lg:flex"
       >
-        {[
-          ["01", "#about-hero"],
-          ["02", "#ecosystem-handles"],
-          ["03", "#support-galaxy"],
-        ].map(([label, href]) => (
+        {pageSections.map(([label, href]) => (
           <a
             key={href}
             href={href}
@@ -262,51 +410,62 @@ const About = () => {
         id="about-hero"
         className={`relative isolate min-h-[100svh] overflow-hidden px-4 pb-8 pt-[calc(env(safe-area-inset-top)+78px)] sm:px-6 md:pt-[calc(env(safe-area-inset-top)+112px)] lg:h-[100svh] lg:snap-start lg:snap-always lg:pb-8 lg:pl-10 lg:pr-28 lg:pt-[calc(env(safe-area-inset-top)+84px)] 2xl:pl-16 2xl:pr-36 ${palette.hero}`}
       >
-        <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:linear-gradient(rgba(103,232,249,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(103,232,249,0.12)_1px,transparent_1px)] [background-size:46px_46px]" />
-        <div className={`pointer-events-none absolute -right-[8vw] bottom-0 select-none text-[18vw] font-black uppercase leading-[0.8] tracking-[-0.1em] ${palette.watermark}`}>
-          AI ECOSYSTEM
+        <div className={`pointer-events-none absolute inset-0 [background-size:46px_46px] ${palette.grid}`} />
+        <div className={`pointer-events-none absolute -right-[8vw] bottom-0 select-none text-[18vw] font-black uppercase leading-[0.8] ${palette.watermark}`}>
+          ECOSYSTEM
         </div>
 
-        <div className="relative z-10 mx-auto grid min-h-[calc(100svh-88px)] w-full max-w-[2140px] content-start gap-4 pt-5 sm:gap-6 sm:pt-9 lg:min-h-[calc(100svh-118px)] lg:content-center lg:items-center lg:gap-8 lg:pt-0 xl:grid-cols-[minmax(0,0.96fr)_minmax(560px,700px)] xl:gap-12 2xl:grid-cols-[minmax(0,0.9fr)_minmax(660px,780px)] 2xl:gap-14">
-          <motion.div {...heroReveal(shouldAnimate)} className="max-w-[960px]">
+        <div className="relative z-10 mx-auto grid min-h-[calc(100svh-88px)] w-full max-w-[2140px] content-start gap-5 pt-4 sm:gap-7 sm:pt-8 lg:min-h-[calc(100svh-118px)] lg:content-center lg:items-center lg:gap-10 lg:pt-0 xl:grid-cols-[minmax(0,1fr)_minmax(540px,680px)] xl:gap-12 2xl:grid-cols-[minmax(0,0.92fr)_minmax(640px,760px)] 2xl:gap-14">
+          <motion.div {...heroReveal(shouldAnimate)} className="max-w-[980px]">
             <div
-              className={`inline-flex items-center gap-2 border px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] sm:px-3.5 sm:py-2 sm:text-xs sm:tracking-[0.22em] ${palette.label} ${
+              className={`inline-flex items-center gap-2 border px-3 py-1.5 text-[10px] font-black uppercase sm:px-3.5 sm:py-2 sm:text-xs ${palette.label} ${
                 isDayMode
                   ? "border-cyan-500/30 bg-cyan-500/8"
                   : "border-cyan-300/30 bg-cyan-300/[0.07]"
               }`}
             >
               <span className={`h-2 w-2 ${palette.accentBg} shadow-[0_0_22px_rgba(103,232,249,0.72)]`} />
-              ZJU AI Ecosystem
+              {t("about.ecosystem.hero.brand", "拓浙 AI 生态")}
             </div>
 
-            <h1 className="mt-3 max-w-[1080px] text-[2rem] font-black leading-[0.98] tracking-[-0.045em] min-[380px]:text-[2.2rem] sm:mt-6 sm:text-6xl md:text-[5rem] lg:mt-6 lg:text-[clamp(4.35rem,9.2vh,5.25rem)] lg:leading-[0.92] lg:tracking-[-0.075em] xl:text-[clamp(4rem,7.8vh,5.8rem)] 2xl:text-[6.35rem] [@media_(max-height:820px)]:lg:mt-4">
-              <span className="block">{t("about.ecosystem.hero.title_1", "把企业真题，")}</span>
-              <span className="block">{t("about.ecosystem.hero.title_2", "接入一张")}</span>
+            <h1 className="mt-4 max-w-6xl text-4xl font-black leading-[0.98] tracking-normal sm:mt-7 sm:text-6xl md:text-7xl lg:mt-6 lg:text-7xl 2xl:text-8xl">
+              <span className="block">{t("about.ecosystem.hero.title_1", "让 AI 学习、")}</span>
+              <span className="block">{t("about.ecosystem.hero.title_2", "真实项目与产业机会，")}</span>
               <span className={`block ${palette.accent}`}>
-                {t("about.ecosystem.hero.title_3", "校园 AI 网络。")}
+                {t("about.ecosystem.hero.title_3", "在校园里连成生态。")}
               </span>
             </h1>
 
-            <p className={`mt-3 max-w-4xl text-xs font-medium leading-5 sm:mt-6 sm:text-xl sm:leading-9 lg:mt-5 lg:text-[clamp(0.95rem,1.9vh,1.18rem)] lg:leading-8 [@media_(max-height:820px)]:lg:mt-4 ${palette.textSoft}`}>
+            <p className={`mt-4 max-w-4xl text-sm font-medium leading-6 sm:mt-6 sm:text-xl sm:leading-9 lg:text-lg lg:leading-8 ${palette.textSoft}`}>
               <strong className={isDayMode ? "text-slate-950" : "text-white"}>
-                {t("about.ecosystem.hero.strong", "真实课题、实战项目、校企认定。")}
+                {t("about.ecosystem.hero.strong", "以浙江大学为起点，连接学生、学院、企业与真实 AI 场景。")}
               </strong>
-              {" "}{t("about.ecosystem.hero.desc", "让学生在做中学，让企业提前看见人才，让校园创新通向产业现场。")}
+              {" "}
+              {t(
+                "about.ecosystem.hero.desc",
+                "通过信息共享平台、AI 生态培养体系与浙客松系列黑客松，让学生从发现机会、学习 AI、参与项目，到获得校企认定与实习就业通道。",
+              )}
             </p>
 
-            <div className="mt-4 lg:mt-7 [@media_(max-height:820px)]:lg:mt-5">
-              <a
-                href="#ecosystem-handles"
-                className={`inline-flex min-h-10 items-center justify-center gap-2 px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 sm:min-h-14 sm:px-9 [@media_(max-height:820px)]:lg:min-h-12 [@media_(max-height:820px)]:lg:px-7 ${palette.primary}`}
+            <div className="mt-5 flex flex-wrap gap-3 lg:mt-8">
+              <Link
+                to="/events"
+                className={`inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 sm:px-7 ${palette.primary}`}
               >
-                {t("about.ecosystem.hero.cta", "查看生态闭环")}
-                <ArrowRight className="h-4 w-4" />
+                <Rocket className="h-4 w-4" />
+                {t("about.ecosystem.hero.primary_cta", "进入平台")}
+              </Link>
+              <a
+                href="#business-lines"
+                className={`inline-flex min-h-12 items-center justify-center gap-2 border px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/25 sm:px-7 ${palette.secondary}`}
+              >
+                <BookOpen className="h-4 w-4" />
+                {t("about.ecosystem.hero.secondary_cta", "了解三项业务")}
               </a>
             </div>
 
             <div
-              className={`mt-4 grid max-w-4xl grid-cols-3 gap-px overflow-hidden border sm:mt-6 lg:mt-7 [@media_(max-height:820px)]:lg:mt-5 ${
+              className={`mt-5 grid max-w-5xl grid-cols-2 gap-px overflow-hidden border sm:mt-7 sm:grid-cols-5 ${
                 isDayMode
                   ? "border-cyan-500/18 bg-cyan-500/18"
                   : "border-cyan-300/18 bg-cyan-300/18"
@@ -315,101 +474,63 @@ const About = () => {
               {proofStats.map((item) => (
                 <div
                   key={item.label}
-                  className={`p-2.5 sm:p-6 lg:p-5 2xl:p-6 [@media_(max-height:820px)]:lg:p-3.5 ${
-                    isDayMode ? "bg-white/80" : "bg-[#071113]/78"
+                  className={`min-h-[82px] p-3 sm:p-4 lg:min-h-[104px] lg:p-5 ${
+                    isDayMode ? "bg-white/82" : "bg-[#071113]/82"
                   }`}
                 >
-                  <div className={`text-[clamp(1rem,6vw,1.35rem)] font-black leading-none tracking-tight sm:text-4xl lg:text-[clamp(2rem,4.6vh,2.55rem)] 2xl:text-5xl ${palette.accent}`}>
+                  <div className={`text-2xl font-black leading-none sm:text-3xl lg:text-4xl ${palette.accent}`}>
                     {item.value}
                   </div>
-                  <p className={`mt-1.5 text-[9px] font-bold leading-3 sm:mt-3 sm:text-xs sm:leading-5 lg:mt-2.5 [@media_(max-height:820px)]:lg:mt-2 ${palette.textMuted}`}>
+                  <p className={`mt-2 text-[11px] font-bold leading-4 sm:text-xs ${palette.textMuted}`}>
                     {item.label}
                   </p>
                 </div>
               ))}
             </div>
-
-            <div className={`mt-3 grid grid-cols-3 gap-px overflow-hidden border sm:grid-cols-1 xl:hidden ${
-              isDayMode
-                ? "border-slate-200/80 bg-slate-200/80 shadow-[0_16px_46px_rgba(15,23,42,0.05)]"
-                : "border-white/10 bg-white/10"
-            }`}>
-              {operatingHandles.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.code}
-                    to={item.route}
-                    className={`group grid min-h-[4.7rem] grid-rows-[auto_1fr] place-items-center gap-1 px-1.5 py-2 text-center transition sm:min-h-0 sm:grid-cols-[2.4rem_1fr_auto] sm:grid-rows-none sm:items-center sm:gap-3 sm:px-4 sm:py-3 sm:text-left ${
-                      isDayMode
-                        ? "bg-white/78 hover:bg-cyan-50"
-                        : "bg-[#071113]/86 hover:bg-cyan-300/10"
-                    }`}
-                  >
-                    <span className={`flex h-7 w-7 items-center justify-center sm:h-9 sm:w-9 ${palette.accentBg} text-slate-950 shadow-[0_0_24px_rgba(103,232,249,0.18)]`}>
-                      <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    </span>
-                    <span className="min-w-0">
-                      <span className={`hidden font-mono text-[10px] font-black uppercase tracking-[0.18em] sm:block ${palette.accent}`}>
-                        {item.code}
-                      </span>
-                      <span className="block text-[11px] font-black leading-tight sm:mt-0.5 sm:text-[0.95rem]">
-                        {item.title}
-                      </span>
-                    </span>
-                    <ArrowRight className={`hidden h-4 w-4 transition group-hover:translate-x-0.5 sm:block ${palette.textMuted}`} />
-                  </Link>
-                );
-              })}
-            </div>
-
           </motion.div>
 
           <motion.aside
             {...heroReveal(shouldAnimate, 0.12)}
-            className={`relative hidden min-h-[620px] overflow-hidden border p-7 backdrop-blur-2xl xl:block xl:min-h-[clamp(33rem,70vh,38.75rem)] xl:p-[clamp(1.25rem,2.4vh,1.75rem)] 2xl:min-h-[700px] 2xl:p-8 ${palette.panelStrong}`}
+            className={`relative hidden min-h-[600px] overflow-hidden border p-7 backdrop-blur-2xl xl:block 2xl:min-h-[680px] 2xl:p-8 ${palette.panelStrong}`}
           >
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_16%,rgba(103,232,249,0.18),transparent_36%),linear-gradient(135deg,rgba(103,232,249,0.08),transparent_46%)]" />
-            <div className={`pointer-events-none absolute -right-12 -top-10 text-[8rem] font-black uppercase leading-none tracking-[-0.08em] ${palette.watermark}`}>
-              LIVE
+            <div className={`pointer-events-none absolute -right-12 -top-10 text-[8rem] font-black uppercase leading-none ${palette.watermark}`}>
+              LOOP
             </div>
-            <div className="relative z-10 flex min-h-[564px] flex-col justify-between xl:min-h-[clamp(29rem,63vh,35.25rem)] 2xl:min-h-[636px]">
-              <div className={`flex items-center justify-between text-[11px] font-black uppercase tracking-[0.2em] ${palette.label}`}>
-                <span>Ecosystem Brief</span>
-                <span>Live</span>
+            <div className="relative z-10 flex min-h-[546px] flex-col justify-between 2xl:min-h-[616px]">
+              <div className={`flex items-center justify-between text-[11px] font-black uppercase ${palette.label}`}>
+                <span>{t("about.ecosystem.brief.eyebrow", "Ecosystem Brief")}</span>
+                <span>{t("about.ecosystem.brief.status", "Running")}</span>
               </div>
               <div>
-                <div className={`text-[clamp(6rem,13vh,8.8rem)] font-black leading-[0.78] tracking-[-0.08em] 2xl:text-[10.5rem] ${palette.accent}`}>
+                <div className={`text-8xl font-black leading-[0.82] 2xl:text-9xl ${palette.accent}`}>
                   3
                 </div>
-                <p className="mt-4 text-[clamp(2.35rem,5.4vh,3rem)] font-black leading-[1.02] tracking-[-0.05em] 2xl:text-[3.35rem]">
-                  {t("about.ecosystem.brief.title_1", "三方协同")}
+                <p className="mt-4 text-4xl font-black leading-tight 2xl:text-5xl">
+                  {t("about.ecosystem.brief.title_1", "三项业务")}
                   <br />
-                  {t("about.ecosystem.brief.title_2", "闭环运转")}
+                  {t("about.ecosystem.brief.title_2", "共同支撑")}
                 </p>
-                <p className={`mt-3 max-w-lg text-base font-bold leading-7 2xl:mt-4 2xl:text-lg 2xl:leading-8 ${palette.textSoft}`}>
-                  {t("about.ecosystem.brief.desc", "企业发布真实课题，学生在实战中产出成果，校企共同完成认定与推荐。")}
+                <p className={`mt-4 max-w-lg text-base font-bold leading-7 2xl:text-lg 2xl:leading-8 ${palette.textSoft}`}>
+                  {t(
+                    "about.ecosystem.brief.desc",
+                    "信息入口带来触达，AI 生态培养体系承接成长，浙客松把真实问题压缩成可验证的实战场。",
+                  )}
                 </p>
               </div>
               <div className={`grid gap-px overflow-hidden border ${isDayMode ? "border-cyan-500/18 bg-cyan-500/18" : "border-cyan-300/18 bg-cyan-300/18"}`}>
-                {operatingHandles.map((item) => (
-                  <Link
-                    key={item.code}
-                    to={item.route}
-                    className={`group flex items-center justify-between gap-4 px-6 py-5 transition 2xl:px-7 2xl:py-5 ${
-                      isDayMode
-                        ? "bg-white/92 hover:bg-cyan-50"
-                        : "bg-[#030a0c]/94 hover:bg-cyan-300/10"
+                {loopItems.map((item) => (
+                  <div
+                    key={item.index}
+                    className={`grid grid-cols-[3.5rem_1fr] gap-4 px-6 py-4 ${
+                      isDayMode ? "bg-white/92" : "bg-[#030a0c]/94"
                     }`}
                   >
+                    <div className={`font-mono text-xs font-black ${palette.accent}`}>{item.index}</div>
                     <div>
-                      <div className={`font-mono text-[11px] font-black uppercase tracking-[0.18em] ${palette.accent}`}>
-                        {item.index} / {item.code}
-                      </div>
-                      <div className="mt-2 text-2xl font-black 2xl:text-3xl">{item.title}</div>
+                      <div className="text-xl font-black">{item.title}</div>
+                      <p className={`mt-1 text-sm leading-5 ${palette.textMuted}`}>{item.detail}</p>
                     </div>
-                    <ArrowRight className="h-4 w-4 opacity-50 transition group-hover:translate-x-1 group-hover:opacity-100" />
-                  </Link>
+                  </div>
                 ))}
               </div>
             </div>
@@ -419,68 +540,201 @@ const About = () => {
 
       <main>
         <motion.section
-          id="ecosystem-handles"
+          id="resource-support"
           {...sectionReveal(shouldAnimate)}
-          className="relative flex h-[100svh] scroll-mt-0 flex-col overflow-hidden px-4 pb-[calc(5.25rem+env(safe-area-inset-bottom))] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:px-6 sm:py-20 lg:h-[100svh] lg:snap-start lg:snap-always lg:pb-[clamp(1rem,3vh,2.5rem)] lg:pl-10 lg:pr-28 lg:pt-[calc(env(safe-area-inset-top)+clamp(4.5rem,8.2vh,5.125rem))] 2xl:pl-16 2xl:pr-36"
+          className={`${sectionBaseClass} ${palette.section}`}
         >
-          <div className={`pointer-events-none absolute -right-[4vw] top-8 select-none text-[18vw] font-black uppercase leading-[0.8] tracking-[-0.08em] ${palette.watermark}`}>
-            RUN
+          <div className={`pointer-events-none absolute -right-[7vw] top-4 select-none text-[17vw] font-black uppercase leading-[0.8] ${palette.watermark}`}>
+            BACKED
+          </div>
+          <div className={`pointer-events-none absolute inset-0 [background-size:56px_56px] ${palette.grid}`} />
+          <div className="relative z-10 mx-auto flex min-h-0 w-full max-w-[2140px] flex-1 flex-col justify-center">
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,0.86fr)_minmax(360px,0.7fr)] lg:items-end lg:gap-10 2xl:gap-14">
+              <div className="max-w-[960px]">
+                <p className={`text-xs font-black uppercase ${palette.label}`}>
+                  Resource Support
+                </p>
+                <h2 className="mt-3 max-w-5xl text-3xl font-black leading-tight tracking-normal sm:text-6xl lg:text-6xl 2xl:text-7xl">
+                  <span className="block">{t("about.ecosystem.support.title_1", "资源不是附属，")}</span>
+                  <span className="block">{t("about.ecosystem.support.title_2", "而是生态成立的基础。")}</span>
+                </h2>
+              </div>
+              <p className={`max-w-3xl text-sm leading-6 sm:text-lg sm:leading-8 lg:justify-self-end lg:pb-2 ${palette.textSoft}`}>
+                {t(
+                  "about.ecosystem.support.desc",
+                  "学校提供场景与机制，企业带来真实课题与技术资源，资本连接项目孵化，学生组织承接社群、活动和执行力量。",
+                )}
+              </p>
+            </div>
+
+            <div className="-mx-4 mt-5 grid auto-cols-[86%] grid-flow-col gap-3 overflow-x-auto px-4 pb-1 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:grid-flow-row sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 sm:[scrollbar-width:auto] lg:mt-8 lg:h-[clamp(28rem,56vh,42rem)] lg:min-h-0 lg:grid-cols-4 lg:gap-5 2xl:gap-7 [&::-webkit-scrollbar]:hidden sm:[&::-webkit-scrollbar]:block">
+              {supportGroups.map((group) => {
+                const Icon = group.icon;
+                return (
+                  <article
+                    key={group.code}
+                    className={`relative flex min-h-[430px] snap-start flex-col overflow-hidden border p-5 sm:min-h-[360px] sm:p-6 lg:h-full lg:min-h-0 lg:p-6 2xl:p-7 ${palette.card}`}
+                  >
+                    <div className={`pointer-events-none absolute -bottom-8 -right-6 text-[7rem] font-black uppercase leading-none ${palette.watermark}`}>
+                      {group.code}
+                    </div>
+                    <div className="relative z-10 flex h-full flex-col">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className={`font-mono text-xs font-black uppercase ${palette.accent}`}>
+                          {group.index} / {group.code}
+                        </div>
+                        <div className={`flex h-11 w-11 items-center justify-center ${group.index === "03" ? palette.altAccentBg : palette.accentBg} text-slate-950`}>
+                          <Icon className="h-5 w-5" />
+                        </div>
+                      </div>
+                      <h3 className="mt-5 text-3xl font-black leading-tight sm:text-4xl lg:text-3xl 2xl:text-4xl">
+                        {group.title}
+                      </h3>
+                      <p className={`mt-2 text-sm font-black ${group.index === "03" ? palette.altAccent : palette.accent}`}>
+                        {group.headline}
+                      </p>
+                      <p className={`mt-4 text-sm leading-6 ${palette.textSoft}`}>
+                        {group.description}
+                      </p>
+                      <div className={`mt-5 flex flex-wrap gap-2 border-t pt-5 ${palette.divider}`}>
+                        {group.items.map((item) => (
+                          <span
+                            key={item}
+                            className={`border px-2.5 py-1.5 text-xs font-bold ${
+                              isDayMode
+                                ? "border-slate-200 bg-white/72 text-slate-700"
+                                : "border-white/10 bg-white/[0.045] text-white/72"
+                            }`}
+                          >
+                            {item}
+                          </span>
+                        ))}
+                      </div>
+                      {group.index === "02" && enterpriseLogos.length > 0 ? (
+                        <div className={`mt-auto grid grid-cols-3 gap-1.5 border-t pt-5 ${palette.divider}`}>
+                          {enterpriseLogos.slice(0, 6).map((logo) => (
+                            <div
+                              key={logo.id || logo.src || logo.name}
+                              className={`flex min-h-[42px] items-center justify-center px-2 py-2 ${
+                                isDayMode ? "bg-white/72" : "bg-white/[0.04]"
+                              }`}
+                            >
+                              {getPartnerLogoSrc(logo, isDayMode) ? (
+                                <img
+                                  src={getPartnerLogoSrc(logo, isDayMode)}
+                                  alt={logo.alt}
+                                  className={`w-auto max-w-full object-contain ${
+                                    logo.size || "h-4 sm:h-5"
+                                  } ${!isDayMode ? logo.darkClassName || "" : ""}`}
+                                />
+                              ) : (
+                                <span className="text-center text-[11px] font-black">
+                                  {getPartnerDisplayName(logo)}
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        </motion.section>
+
+        <motion.section
+          id="business-lines"
+          {...sectionReveal(shouldAnimate, 0.08)}
+          className={`${sectionBaseClass} ${palette.page}`}
+        >
+          <div className={`pointer-events-none absolute -right-[6vw] top-8 select-none text-[18vw] font-black uppercase leading-[0.8] ${palette.watermark}`}>
+            BUILD
           </div>
           <div className="relative z-10 mx-auto flex min-h-0 w-full max-w-[2140px] flex-1 flex-col justify-center">
-            <p className={`text-xs font-black uppercase tracking-[0.24em] ${palette.label}`}>
-              Core Engine
-            </p>
-            <h2 className="mt-3 max-w-5xl text-[1.9rem] font-black leading-[0.98] tracking-[-0.055em] sm:text-6xl lg:text-[clamp(3.45rem,7vh,5.65rem)]">
-              <span className="block sm:inline">{t("about.ecosystem.engine.title_1", "三位一体，")}</span>
-              <span className="block sm:inline">{t("about.ecosystem.engine.title_2", "打通产学闭环。")}</span>
-            </h2>
-            <p className={`mt-3 max-w-3xl text-sm leading-6 sm:mt-4 sm:text-lg sm:leading-8 lg:text-[clamp(0.95rem,1.45vh,1.125rem)] lg:leading-7 ${palette.textSoft}`}>
-              {t("about.ecosystem.engine.desc", "资源入口聚合机会，AI 社区承接共建，技术黑客松完成高密度验证。三者联动，才让 AI 热度变成可运营、可复制的人才培养机制。")}
-            </p>
+            <div className="max-w-5xl">
+              <p className={`text-xs font-black uppercase ${palette.label}`}>
+                Three Businesses
+              </p>
+              <h2 className="mt-3 text-3xl font-black leading-tight tracking-normal sm:text-6xl lg:text-6xl 2xl:text-7xl">
+                <span className="block">{t("about.ecosystem.business.title_1", "三项业务，")}</span>
+                <span className="block">{t("about.ecosystem.business.title_2", "把资源转化为学生成长路径。")}</span>
+              </h2>
+              <p className={`mt-4 max-w-4xl text-sm leading-6 sm:text-lg sm:leading-8 ${palette.textSoft}`}>
+                {t(
+                  "about.ecosystem.business.desc",
+                  "信息入口带来信任和触达，AI 生态培养体系完成学习与项目承接，浙客松系列黑客松把交叉学科问题转化为高密度实战与成果认证。",
+                )}
+              </p>
+            </div>
 
-            <div className="-mx-4 mt-3 grid auto-cols-[76%] grid-flow-col gap-2.5 overflow-x-auto px-4 pb-1 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:mt-5 sm:grid-flow-row sm:grid-cols-1 sm:overflow-visible sm:px-0 sm:pb-0 sm:[scrollbar-width:auto] lg:mt-[clamp(1rem,2.1vh,1.75rem)] lg:h-[clamp(17rem,32vh,24rem)] lg:min-h-0 lg:auto-cols-auto lg:auto-rows-fr lg:grid-cols-3 lg:gap-5 2xl:gap-7 [&::-webkit-scrollbar]:hidden sm:[&::-webkit-scrollbar]:block">
-              {operatingHandles.map((item) => {
+            <div className="-mx-4 mt-6 grid auto-cols-[84%] grid-flow-col gap-3 overflow-x-auto px-4 pb-1 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:grid-flow-row sm:grid-cols-1 sm:overflow-visible sm:px-0 sm:pb-0 sm:[scrollbar-width:auto] lg:mt-8 lg:h-[clamp(25rem,50vh,38rem)] lg:min-h-0 lg:grid-cols-3 lg:gap-5 2xl:gap-7 [&::-webkit-scrollbar]:hidden sm:[&::-webkit-scrollbar]:block">
+              {businessLines.map((item) => {
                 const Icon = item.icon;
+                const isAmber = item.tone === "amber";
+                const isEmerald = item.tone === "emerald";
+                const accentClass = isAmber
+                  ? palette.altAccent
+                  : isEmerald
+                    ? isDayMode
+                      ? "text-emerald-700"
+                      : "text-emerald-200"
+                    : palette.accent;
+                const iconBgClass = isAmber
+                  ? palette.altAccentBg
+                  : isEmerald
+                    ? "bg-emerald-400"
+                    : palette.accentBg;
+
                 return (
                   <Link
                     key={item.code}
                     to={item.route}
-                    className={`group relative h-[178px] snap-start overflow-hidden border border-l-4 p-3 transition duration-300 hover:-translate-y-1 sm:h-auto sm:min-h-[250px] sm:p-7 lg:flex lg:h-full lg:min-h-0 lg:p-[clamp(1rem,2.4vh,2rem)] ${palette.card} ${
-                      isDayMode ? "border-l-cyan-500" : "border-l-cyan-300"
-                    }`}
+                    className={`group relative flex min-h-[360px] snap-start flex-col overflow-hidden border border-l-4 p-5 transition duration-300 hover:-translate-y-1 sm:min-h-[300px] sm:p-7 lg:h-full lg:min-h-0 lg:p-7 2xl:p-8 ${
+                      isAmber
+                        ? isDayMode
+                          ? "border-l-amber-400"
+                          : "border-l-amber-300"
+                        : isEmerald
+                          ? "border-l-emerald-400"
+                          : isDayMode
+                            ? "border-l-cyan-500"
+                            : "border-l-cyan-300"
+                    } ${palette.card}`}
                   >
-                    <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,rgba(103,232,249,0.10),transparent_34%)] opacity-0 transition duration-300 group-hover:opacity-100" />
-                    <div className={`pointer-events-none absolute -bottom-8 -right-5 text-[8rem] font-black uppercase leading-none tracking-[-0.08em] transition duration-300 group-hover:translate-x-1 ${
-                      isDayMode ? "text-slate-900/[0.035]" : "text-white/[0.045]"
-                    }`}>
+                    <div className={`pointer-events-none absolute -bottom-7 -right-5 text-[7rem] font-black uppercase leading-none transition duration-300 group-hover:translate-x-1 ${palette.watermark}`}>
                       {item.code}
                     </div>
-                    <div className="relative z-10 lg:flex lg:h-full lg:flex-col">
+                    <div className="relative z-10 flex h-full flex-col">
                       <div className="flex items-start justify-between gap-4">
-                        <div className={`font-mono text-xs font-black uppercase tracking-[0.2em] ${palette.accent}`}>
+                        <div className={`font-mono text-xs font-black uppercase ${accentClass}`}>
                           {item.index} / {item.code}
                         </div>
-                        <div className={`flex h-8 w-8 items-center justify-center sm:h-10 sm:w-10 lg:h-[clamp(2.5rem,5vh,4rem)] lg:w-[clamp(2.5rem,5vh,4rem)] ${palette.accentBg} text-slate-950 shadow-[0_0_34px_rgba(103,232,249,0.24)]`}>
-                          <Icon className="h-4 w-4 sm:h-5 sm:w-5 lg:h-[clamp(1.25rem,2.6vh,2rem)] lg:w-[clamp(1.25rem,2.6vh,2rem)]" />
+                        <div className={`flex h-12 w-12 items-center justify-center ${iconBgClass} text-slate-950`}>
+                          <Icon className="h-6 w-6" />
                         </div>
                       </div>
-                      <h3 className="mt-2 text-lg font-black leading-none tracking-[-0.04em] sm:mt-8 sm:text-4xl lg:mt-[clamp(1rem,2.6vh,1.85rem)] lg:text-[clamp(1.9rem,3.8vh,2.85rem)]">
+                      <h3 className="mt-6 text-3xl font-black leading-tight sm:text-4xl lg:text-4xl">
                         {item.title}
                       </h3>
-                      <p className={`mt-2 line-clamp-2 text-[11px] leading-4 sm:mt-5 sm:line-clamp-3 sm:text-sm sm:leading-7 lg:mt-[clamp(0.75rem,1.8vh,1.35rem)] lg:text-[clamp(0.88rem,1.3vh,1.02rem)] lg:leading-6 ${palette.textSoft}`}>
+                      <p className={`mt-2 text-sm font-black ${accentClass}`}>
+                        {item.short}
+                      </p>
+                      <p className={`mt-5 text-sm leading-7 lg:text-base ${palette.textSoft}`}>
                         {item.description}
                       </p>
-                      <div className={`mt-2 flex items-end justify-between border-t pt-2 sm:mt-6 sm:items-center sm:pt-5 lg:mt-auto lg:pt-[clamp(0.8rem,1.8vh,1.35rem)] ${palette.divider}`}>
+                      <div className={`mt-auto flex items-end justify-between gap-4 border-t pt-5 ${palette.divider}`}>
                         <div>
-                          <div className={`text-[9px] font-black uppercase tracking-[0.16em] sm:text-[11px] sm:tracking-[0.18em] ${palette.textMuted}`}>
-                            Loop Role
+                          <div className={`text-[11px] font-black uppercase ${palette.textMuted}`}>
+                            Focus
                           </div>
-                          <div className={`mt-1 text-sm font-black sm:mt-1.5 sm:text-lg lg:mt-2 lg:text-[clamp(1.25rem,2.6vh,1.9rem)] ${palette.accent}`}>
-                            {item.loop}
+                          <div className={`mt-2 text-lg font-black ${accentClass}`}>
+                            {item.metric}
                           </div>
                         </div>
-                        <div className={`inline-flex items-center gap-1 text-[11px] font-black sm:gap-2 sm:text-sm ${palette.accent}`}>
-                          {item.short}
+                        <div className={`inline-flex items-center gap-2 text-sm font-black ${accentClass}`}>
+                          {item.cta}
                           <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
                         </div>
                       </div>
@@ -489,314 +743,80 @@ const About = () => {
                 );
               })}
             </div>
-
-            <div className="mt-4 border-t pt-3 sm:mt-10 sm:pt-7 lg:mt-[clamp(0.85rem,1.8vh,1.5rem)] lg:pt-[clamp(0.75rem,1.5vh,1.35rem)]">
-              <div className={`hidden gap-px overflow-hidden border ${isDayMode ? "border-cyan-500/18 bg-cyan-500/18" : "border-cyan-300/18 bg-cyan-300/18"} lg:grid lg:grid-cols-[0.92fr_repeat(4,1fr)]`}>
-                <div className={`px-6 py-[clamp(0.8rem,1.8vh,1.5rem)] 2xl:px-7 ${isDayMode ? "bg-white/70" : "bg-white/[0.035]"}`}>
-                  <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${palette.label}`}>Operating Loop</p>
-                  <h3 className="mt-2 text-[clamp(1.2rem,2.4vh,1.9rem)] font-black leading-none tracking-[-0.04em]">
-                    {t("about.ecosystem.engine.loop_title", "从真题到通道")}
-                  </h3>
-                </div>
-              {loopItems.map((item) => (
-                <div
-                  key={item.index}
-                  className={`px-6 py-[clamp(0.8rem,1.8vh,1.5rem)] 2xl:px-7 ${
-                    isDayMode ? "bg-white/88" : "bg-[#071113]/94"
-                  }`}
-                >
-                  <div className={`font-mono text-xs font-black ${palette.accent}`}>
-                    {item.index}
-                  </div>
-                  <h3 className="mt-2 text-[clamp(1.2rem,2.4vh,1.9rem)] font-black">{item.title}</h3>
-                  <p className={`mt-1.5 text-xs leading-5 2xl:text-sm ${palette.textMuted}`}>
-                    {item.detail}
-                  </p>
-                </div>
-              ))}
-              </div>
-
-              <div className={`mt-4 grid grid-cols-2 gap-px overflow-hidden border lg:hidden ${isDayMode ? "border-cyan-500/18 bg-cyan-500/18" : "border-cyan-300/18 bg-cyan-300/18"}`}>
-                {loopItems.map((item) => (
-                  <div
-                    key={item.index}
-                    className={`grid min-h-[78px] grid-cols-[2.3rem_1fr] items-center gap-x-2.5 p-3 ${
-                      isDayMode ? "bg-white/88" : "bg-[#071113]/94"
-                    }`}
-                  >
-                    <div className={`font-mono text-xs font-black ${palette.accent}`}>
-                      {item.index}
-                    </div>
-                    <div>
-                      <h3 className="text-base font-black">{item.title}</h3>
-                      <p className={`mt-1 text-[11px] leading-4 ${palette.textMuted}`}>
-                        {item.detail}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         </motion.section>
 
         <motion.section
-          id="support-galaxy"
+          id="join-ecosystem"
           {...sectionReveal(shouldAnimate, 0.08)}
-          className={`relative flex h-[100svh] scroll-mt-0 flex-col overflow-hidden px-4 pb-[calc(5.25rem+env(safe-area-inset-bottom))] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:px-6 sm:pb-20 sm:pt-20 lg:h-[100svh] lg:snap-start lg:snap-always lg:pb-[clamp(1rem,3vh,2.5rem)] lg:pl-10 lg:pr-28 lg:pt-[calc(env(safe-area-inset-top)+clamp(4.5rem,8.2vh,5.125rem))] 2xl:pl-16 2xl:pr-36 ${
-            isDayMode
-              ? "bg-[radial-gradient(circle_at_75%_22%,rgba(6,182,212,0.14),transparent_30%)]"
-              : "bg-[radial-gradient(circle_at_74%_18%,rgba(34,211,238,0.14),transparent_30%)]"
-          }`}
+          className={`${sectionBaseClass} ${palette.final}`}
         >
-          <div className={`pointer-events-none absolute -right-[8vw] top-4 select-none text-[17vw] font-black uppercase leading-[0.8] tracking-[-0.08em] ${palette.watermark}`}>
-            BACKED
+          <div className={`pointer-events-none absolute -right-[8vw] bottom-0 select-none text-[18vw] font-black uppercase leading-[0.8] ${palette.watermark}`}>
+            JOIN
           </div>
-          <div className={`pointer-events-none absolute left-0 top-0 h-px w-full ${
-            isDayMode
-              ? "bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent"
-              : "bg-gradient-to-r from-transparent via-cyan-300/30 to-transparent"
-          }`} />
-          <div className={`pointer-events-none absolute inset-0 opacity-[0.12] [background-image:linear-gradient(rgba(103,232,249,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(103,232,249,0.12)_1px,transparent_1px)] [background-size:56px_56px]`} />
-          <div className={`pointer-events-none absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[110px] ${
-            isDayMode ? "bg-cyan-200/[0.26]" : "bg-cyan-300/10"
-          }`} />
-          <div className="relative z-10 mx-auto flex min-h-0 w-full max-w-[2140px] flex-1 flex-col justify-center">
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,0.82fr)_minmax(360px,0.78fr)] lg:items-end lg:gap-10 2xl:gap-14">
-              <div className="max-w-[820px]">
-                <p className={`text-xs font-black uppercase tracking-[0.24em] ${palette.label}`}>
-                  Support Galaxy
-                </p>
-                <h2 className="mt-3 max-w-[820px] text-[1.85rem] font-black leading-[0.98] tracking-[-0.055em] sm:text-6xl lg:text-[clamp(3rem,5.6vh,4.55rem)]">
-                  <span className="block">{t("about.ecosystem.support.title_1", "三方资源在场，")}</span>
-                  <span className="block">{t("about.ecosystem.support.title_2", "产学融合有底气。")}</span>
-                </h2>
-              </div>
-              <p className={`max-w-3xl text-xs leading-5 sm:text-lg sm:leading-8 lg:justify-self-end lg:pb-[clamp(0.25rem,1vh,0.9rem)] lg:text-[clamp(0.95rem,1.45vh,1.125rem)] lg:leading-7 ${palette.textSoft}`}>
-                {t("about.ecosystem.support.desc", "学校提供场景与机制，学生组织承接人群与执行，企业伙伴带来真实课题、技术资源和人才通道。")}
+          <div className={`pointer-events-none absolute inset-0 [background-size:46px_46px] ${palette.grid}`} />
+          <div className="relative z-10 mx-auto grid min-h-0 w-full max-w-[2140px] flex-1 gap-6 lg:grid-cols-[minmax(0,0.78fr)_minmax(520px,0.92fr)] lg:items-center lg:gap-10 2xl:gap-14">
+            <div>
+              <p className={`text-xs font-black uppercase ${palette.label}`}>
+                Join the Ecosystem
               </p>
+              <h2 className="mt-3 max-w-4xl text-4xl font-black leading-tight tracking-normal sm:text-6xl lg:text-7xl">
+                <span className="block">{t("about.ecosystem.join.title_1", "加入拓浙")}</span>
+                <span className={`block ${palette.accent}`}>{t("about.ecosystem.join.title_2", "AI 生态")}</span>
+              </h2>
+              <p className={`mt-5 max-w-3xl text-sm leading-6 sm:text-lg sm:leading-8 ${palette.textSoft}`}>
+                {t(
+                  "about.ecosystem.join.desc",
+                  "无论你是学生、组织负责人、企业课题方还是学校合作伙伴，都可以从这里进入平台、下载 App 或发起合作。",
+                )}
+              </p>
+
+              <div className="mt-7 flex flex-wrap gap-3">
+                <Link
+                  to="/download"
+                  className={`inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 sm:px-7 ${palette.primary}`}
+                >
+                  <Download className="h-4 w-4" />
+                  {t("about.ecosystem.join.download_cta", "下载 App")}
+                </Link>
+                <Link
+                  to="/events"
+                  className={`inline-flex min-h-12 items-center justify-center gap-2 border px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/25 sm:px-7 ${palette.secondary}`}
+                >
+                  <Smartphone className="h-4 w-4" />
+                  {t("about.ecosystem.join.platform_cta", "进入平台")}
+                </Link>
+                <Link
+                  to="/future-learning"
+                  className={`inline-flex min-h-12 items-center justify-center gap-2 border px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/25 sm:px-7 ${palette.secondary}`}
+                >
+                  <Mail className="h-4 w-4" />
+                  {t("about.ecosystem.join.contact_cta", "联系合作")}
+                </Link>
+              </div>
             </div>
 
-            <div className="-mx-4 mt-4 grid auto-cols-[86%] grid-flow-col gap-3 overflow-x-auto px-4 pb-1 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:grid-flow-row sm:grid-cols-1 sm:overflow-visible sm:px-0 sm:pb-0 sm:[scrollbar-width:auto] lg:mt-[clamp(1rem,2.2vh,2rem)] lg:h-[clamp(29rem,62vh,48rem)] lg:min-h-0 lg:auto-cols-auto lg:grid-cols-[0.78fr_1.22fr] lg:gap-5 2xl:gap-7 [&::-webkit-scrollbar]:hidden sm:[&::-webkit-scrollbar]:block">
-              <div className={`relative h-[480px] snap-start overflow-hidden border p-4 sm:h-auto sm:min-h-[460px] sm:p-8 lg:h-full lg:min-h-0 lg:p-[clamp(1rem,2.35vh,1.9rem)] ${palette.panelStrong}`}>
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_10%,rgba(103,232,249,0.18),transparent_34%),linear-gradient(135deg,rgba(103,232,249,0.08),transparent_42%)]" />
-                <div className={`pointer-events-none absolute -right-16 bottom-4 text-[9rem] font-black uppercase leading-none tracking-[-0.08em] sm:text-[12rem] lg:text-[clamp(8rem,15vh,11rem)] ${palette.watermark}`}>
-                  BASE
-                </div>
-                <div className={`pointer-events-none absolute left-0 top-0 h-full w-1 ${
-                  isDayMode ? "bg-cyan-500" : "bg-cyan-300"
-                }`} />
-                <div className={`pointer-events-none absolute left-8 right-8 top-[45%] hidden h-px lg:block ${
-                  isDayMode
-                    ? "bg-gradient-to-r from-cyan-500/0 via-cyan-500/[0.2] to-cyan-500/0"
-                    : "bg-gradient-to-r from-cyan-300/0 via-cyan-300/[0.2] to-cyan-300/0"
-                }`} />
-                <div className={`pointer-events-none absolute right-8 top-8 h-16 w-16 border-r border-t sm:right-10 sm:top-10 sm:h-20 sm:w-20 ${
-                  isDayMode ? "border-cyan-500/20" : "border-cyan-300/[0.2]"
-                }`} />
-                <div className="relative z-10 flex h-full min-h-0 flex-col justify-between gap-4 sm:min-h-[396px] sm:gap-6 lg:min-h-0">
-                  <div>
-                    <div className="flex items-start justify-between gap-4">
-                      <div className={`font-mono text-xs font-black uppercase tracking-[0.2em] ${palette.accent}`}>
-                        01 / Foundation
-                      </div>
-                      <div className={`hidden text-[10px] font-black uppercase tracking-[0.2em] sm:block ${palette.textMuted}`}>
-                        Stable Base
-                      </div>
+            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+              {joinCards.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.title}
+                    to={item.route}
+                    className={`group relative min-h-[200px] overflow-hidden border p-5 transition duration-300 hover:-translate-y-1 sm:min-h-[260px] lg:min-h-[190px] xl:min-h-[280px] ${palette.card}`}
+                  >
+                    <div className={`flex h-11 w-11 items-center justify-center ${palette.accentBg} text-slate-950`}>
+                      <Icon className="h-5 w-5" />
                     </div>
-                    <h3 className="mt-3 max-w-lg text-[2.15rem] font-black leading-[0.88] tracking-[-0.055em] sm:mt-6 sm:text-6xl lg:mt-[clamp(0.9rem,2vh,1.45rem)] lg:text-[clamp(2.8rem,5.2vh,4.15rem)]">
-                      {t("about.ecosystem.support.school_title", "学校支持")}
-                    </h3>
-                    <p className={`mt-3 max-w-lg text-xs leading-5 sm:mt-5 sm:text-sm sm:leading-7 lg:mt-[clamp(0.75rem,1.75vh,1.25rem)] lg:text-[clamp(0.86rem,1.28vh,1rem)] lg:leading-6 ${palette.textSoft}`}>
-                      {t("about.ecosystem.support.school_desc", "未来学习中心与校内创新平台把场景、空间和组织机制先搭好，让企业课题能稳定进入校园实践。")}
-                    </p>
-                  </div>
-
-                  <div className={`relative overflow-hidden border ${
-                    isDayMode
-                      ? "border-cyan-500/[0.16] bg-white/[0.62]"
-                      : "border-cyan-300/[0.12] bg-white/[0.035]"
-                  }`}>
-                    <div className={`flex items-center justify-between border-b px-3.5 py-2.5 sm:px-5 ${
-                      isDayMode ? "border-cyan-500/[0.14]" : "border-cyan-300/[0.12]"
-                    }`}>
-                      <div className={`text-[9px] font-black uppercase tracking-[0.18em] sm:text-[10px] ${palette.textMuted}`}>
-                        Mechanism Layer
-                      </div>
-                      <div className={`font-mono text-[10px] font-black ${palette.accent}`}>
-                        A-C
-                      </div>
+                    <h3 className="mt-5 text-2xl font-black leading-tight">{item.title}</h3>
+                    <p className={`mt-3 text-sm leading-6 ${palette.textSoft}`}>{item.description}</p>
+                    <div className={`mt-5 inline-flex items-center gap-2 text-sm font-black ${palette.accent}`}>
+                      {item.action}
+                      <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
                     </div>
-                    <div className={`grid gap-px ${
-                      isDayMode ? "bg-cyan-500/[0.14]" : "bg-cyan-300/[0.12]"
-                    }`}>
-                      {foundationPillars.map((pillar, pillarIndex) => (
-                        <div
-                          key={pillar.index}
-                          className={`group grid min-h-[52px] grid-cols-[2.25rem_1fr] items-center gap-3 px-3.5 py-2.5 transition duration-300 sm:min-h-[68px] sm:grid-cols-[2.75rem_1fr] sm:px-5 lg:min-h-[clamp(3.05rem,6.4vh,4.7rem)] lg:px-5 lg:py-[clamp(0.55rem,1.2vh,0.95rem)] ${
-                            isDayMode
-                              ? "bg-white/[0.86] hover:bg-cyan-50/90"
-                              : "bg-[#071113]/[0.9] hover:bg-cyan-300/[0.055]"
-                          }`}
-                        >
-                          <div className={`relative flex h-8 w-8 items-center justify-center border font-mono text-[10px] font-black sm:h-10 sm:w-10 sm:text-xs ${
-                            isDayMode
-                              ? "border-cyan-500/25 bg-cyan-50 text-cyan-700"
-                              : "border-cyan-300/20 bg-cyan-300/[0.07] text-cyan-200"
-                          }`}>
-                            {pillar.index}
-                            {pillarIndex < foundationPillars.length - 1 ? (
-                              <span className={`absolute left-1/2 top-full hidden h-6 w-px -translate-x-1/2 sm:block ${
-                                isDayMode ? "bg-cyan-500/25" : "bg-cyan-300/22"
-                              }`} />
-                            ) : null}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="text-sm font-black leading-tight tracking-[-0.02em] sm:text-lg lg:text-[clamp(1rem,1.75vh,1.28rem)]">
-                              {pillar.title}
-                            </div>
-                            <p className={`mt-1 text-[11px] font-bold leading-4 sm:text-xs lg:text-[clamp(0.72rem,1.05vh,0.86rem)] ${palette.textMuted}`}>
-                              {pillar.detail}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:gap-3 2xl:gap-4">
-                    {schoolSupport.map((item, index) => (
-                      <div
-                        key={item}
-                        className={`group relative min-h-[72px] overflow-hidden border px-3 py-3 transition duration-300 hover:-translate-y-0.5 sm:min-h-[92px] sm:px-5 sm:py-4 lg:min-h-[clamp(4.25rem,9vh,6.1rem)] lg:px-5 lg:py-[clamp(0.75rem,1.8vh,1.2rem)] ${
-                          isDayMode
-                            ? "border-slate-200/80 bg-white/[0.82] shadow-[0_14px_36px_rgba(15,23,42,0.07)] hover:border-cyan-500/28"
-                            : "border-white/10 bg-white/[0.045] hover:border-cyan-300/28 hover:bg-cyan-300/[0.05]"
-                        }`}
-                      >
-                        <div className={`pointer-events-none absolute inset-x-0 top-0 h-0.5 ${
-                          isDayMode ? "bg-cyan-500/70" : "bg-cyan-300/70"
-                        }`} />
-                        <div className={`text-[8px] font-black uppercase tracking-[0.16em] sm:text-[10px] sm:tracking-[0.18em] ${palette.textMuted}`}>
-                          {index === 0 ? "Anchor Unit" : "Research Unit"}
-                        </div>
-                        <div className="mt-2 min-w-0 break-words text-[0.95rem] font-black leading-tight tracking-[-0.035em] sm:text-2xl lg:mt-2.5 lg:text-[clamp(1.15rem,2.15vh,1.7rem)] 2xl:text-[clamp(1.28rem,2.3vh,1.95rem)]">
-                          {item}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid h-[480px] snap-start gap-3 lg:h-full lg:min-h-0 lg:grid-rows-[0.95fr_1.05fr] lg:gap-5 2xl:gap-7">
-                <div className={`relative min-h-0 overflow-hidden border p-4 sm:p-8 lg:flex lg:flex-col lg:justify-center lg:p-[clamp(1rem,2.3vh,1.95rem)] ${palette.card}`}>
-                  <div className={`pointer-events-none absolute -right-10 -top-10 text-[8rem] font-black uppercase leading-none tracking-[-0.08em] ${palette.watermark}`}>
-                    FORCE
-                  </div>
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                    <div>
-                      <div className={`font-mono text-xs font-black uppercase tracking-[0.2em] ${palette.accent}`}>
-                        02 / Campus Force
-                      </div>
-                  <h3 className="mt-2 text-2xl font-black tracking-[-0.045em] sm:mt-3 sm:text-4xl lg:mt-[clamp(0.5rem,1.5vh,0.9rem)] lg:text-[clamp(1.9rem,4.2vh,3.2rem)]">
-                        {t("about.ecosystem.support.student_title", "学生组织")}
-                      </h3>
-                    </div>
-                    <div className={`text-sm font-black uppercase tracking-[0.18em] ${palette.textMuted}`}>
-                      Campus Force
-                    </div>
-                  </div>
-                  <p className={`mt-2 max-w-2xl text-xs font-bold leading-5 sm:mt-3 sm:text-sm sm:leading-6 lg:mt-[clamp(0.6rem,1.8vh,1.5rem)] lg:text-[clamp(0.85rem,1.35vh,1.05rem)] lg:leading-6 ${palette.textMuted}`}>
-                    {t("about.ecosystem.support.student_desc", "头部科创社团与核心负责人共同承接活动、项目和实践人群，让校园动能持续流动。")}
-                  </p>
-                  <div className="relative mt-3 grid grid-cols-5 gap-1.5 sm:mt-5 sm:gap-3 lg:mt-[clamp(0.85rem,1.7vh,1.35rem)] lg:gap-3 2xl:gap-4">
-                    <div className={`pointer-events-none absolute left-3 right-3 top-1/2 hidden h-px -translate-y-1/2 sm:block ${
-                      isDayMode
-                        ? "bg-gradient-to-r from-cyan-500/0 via-cyan-500/[0.28] to-cyan-500/0"
-                        : "bg-gradient-to-r from-cyan-300/0 via-cyan-300/[0.28] to-cyan-300/0"
-                    }`} />
-                    {studentOrganizations.map((item) => (
-                      <span
-                        key={item}
-                        className={`relative flex min-h-[38px] items-center justify-center border px-2 py-2 text-sm font-black transition duration-300 hover:-translate-y-0.5 sm:min-h-[62px] sm:px-4 sm:py-3 sm:text-xl lg:min-h-[clamp(2.35rem,4.4vh,4.05rem)] lg:px-4 lg:py-3 lg:text-[clamp(1.05rem,2.1vh,1.75rem)] 2xl:px-5 2xl:py-4 2xl:text-[clamp(1.15rem,2.3vh,1.875rem)] ${
-                          isDayMode
-                            ? "border-cyan-500/[0.18] bg-white/[0.72] shadow-[0_14px_36px_rgba(15,23,42,0.08)]"
-                            : "border-cyan-300/[0.14] bg-[#071112]/[0.88] shadow-[0_0_28px_rgba(103,232,249,0.035)] hover:border-cyan-300/30 hover:bg-cyan-300/[0.055]"
-                        }`}
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className={`relative min-h-0 overflow-hidden border p-4 sm:p-8 lg:flex lg:flex-col lg:justify-center lg:p-[clamp(1rem,2.3vh,1.95rem)] ${palette.panelStrong}`}>
-                  <div className={`pointer-events-none absolute -right-14 -bottom-10 text-[8rem] font-black uppercase leading-none tracking-[-0.08em] ${palette.watermark}`}>
-                    TECH
-                  </div>
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                    <div>
-                      <div className={`font-mono text-xs font-black uppercase tracking-[0.2em] ${palette.accent}`}>
-                        03 / Technical Backing
-                      </div>
-                      <h3 className="mt-2 text-2xl font-black tracking-[-0.045em] sm:mt-3 sm:text-4xl lg:mt-[clamp(0.5rem,1.5vh,0.9rem)] lg:text-[clamp(1.9rem,4.2vh,3.2rem)]">
-                        {t("about.ecosystem.support.enterprise_title", "企业伙伴")}
-                      </h3>
-                    </div>
-                    <div className={`text-sm font-black uppercase tracking-[0.18em] ${palette.textMuted}`}>
-                      Resource Layer
-                    </div>
-                  </div>
-
-                  <p className={`mt-2 max-w-2xl text-xs font-bold leading-5 sm:mt-3 sm:text-sm sm:leading-6 lg:mt-[clamp(0.6rem,1.8vh,1.5rem)] lg:text-[clamp(0.85rem,1.35vh,1.05rem)] lg:leading-6 ${palette.textMuted}`}>
-                    {t("about.ecosystem.support.enterprise_desc", "头部 AI 企业把真实课题、模型、云和工具带入校园，支撑项目从想法走向可运行成果。")}
-                  </p>
-
-                  <div className={`mt-3 grid grid-cols-3 gap-1.5 border-t pt-3 sm:mt-5 sm:gap-3 sm:pt-4 lg:mt-[clamp(0.85rem,1.8vh,1.5rem)] lg:grid-cols-6 lg:gap-2 lg:pt-[clamp(0.75rem,1.6vh,1.25rem)] xl:gap-3 ${
-                    isDayMode ? "border-cyan-500/[0.14]" : "border-cyan-300/[0.12]"
-                  }`}>
-                    {enterpriseLogos.map((logo) => (
-                      <div
-                        key={logo.id || logo.src || logo.name}
-                        className={`group flex min-h-[46px] items-center justify-center px-2 py-2 transition duration-300 hover:-translate-y-0.5 sm:min-h-[72px] sm:px-5 sm:py-4 lg:min-h-[clamp(3rem,5.3vh,4.35rem)] lg:px-2 lg:py-3 xl:px-3 ${
-                          isDayMode
-                            ? "bg-white/[0.72] shadow-[inset_0_0_0_1px_rgba(6,182,212,0.12),0_16px_36px_rgba(15,23,42,0.07)]"
-                            : "bg-white/[0.035] shadow-[inset_0_0_0_1px_rgba(103,232,249,0.09),0_0_0_1px_rgba(103,232,249,0.015)] hover:bg-cyan-300/[0.055]"
-                        }`}
-                      >
-                        {getPartnerLogoSrc(logo, isDayMode) ? (
-                          <img
-                            src={getPartnerLogoSrc(logo, isDayMode)}
-                            alt={logo.alt}
-                            className={`w-auto max-w-full object-contain transition duration-300 group-hover:scale-[1.04] ${
-                              logo.size || "h-4 sm:h-7 lg:h-[clamp(1.35rem,2.7vh,1.9rem)]"
-                            } ${!isDayMode ? logo.darkClassName || "" : ""}`}
-                          />
-                        ) : (
-                          <span
-                            className={`text-center text-xs font-black leading-tight sm:text-sm ${
-                              isDayMode ? "text-slate-950" : "text-white"
-                            }`}
-                          >
-                            {getPartnerDisplayName(logo)}
-                          </span>
-                        )}
-                        {logo.text ? (
-                          <span
-                            className={`ml-1.5 whitespace-nowrap text-xs font-black leading-none tracking-tight sm:ml-2 sm:text-base lg:text-[clamp(0.8rem,1.15vw,1rem)] ${
-                              isDayMode ? "text-slate-950" : "text-white"
-                            }`}
-                          >
-                            {logo.text}
-                          </span>
-                        ) : null}
-                      </div>
-                    ))}
-                  </div>
-
-                </div>
-              </div>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </motion.section>
@@ -804,5 +824,7 @@ const About = () => {
     </div>
   );
 };
+
+const BriefcaseIcon = Building2;
 
 export default About;

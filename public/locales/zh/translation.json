@@ -872,76 +872,122 @@
     "exhibitions": "次展览",
     "projects": "个完成项目",
     "ecosystem": {
-      "meta_title": "关于我们",
-      "meta_desc": "了解拓途浙享如何以企业真实课题、校园 AI 社区与技术黑客松连接学校、企业和学生，构建产学融合生态。",
+      "meta_title": "拓浙 AI 生态",
+      "meta_desc": "了解拓浙 AI 生态如何以信息共享平台、AI 生态培养体系与浙客松系列黑客松连接学生、学院、企业和真实 AI 场景。",
       "pagination_aria": "关于页面分页",
       "hero": {
-        "title_1": "把企业真题，",
-        "title_2": "接入一张",
-        "title_3": "校园 AI 网络。",
-        "strong": "真实课题、实战项目、校企认定。",
-        "desc": "让学生在做中学，让企业提前看见人才，让校园创新通向产业现场。",
-        "cta": "查看生态闭环"
+        "brand": "拓浙 AI 生态",
+        "title_1": "让 AI 学习、",
+        "title_2": "真实项目与产业机会，",
+        "title_3": "在校园里连成生态。",
+        "strong": "以浙江大学为起点，连接学生、学院、企业与真实 AI 场景。",
+        "desc": "通过信息共享平台、AI 生态培养体系与浙客松系列黑客松，让学生从发现机会、学习 AI、参与项目，到获得校企认定与实习就业通道。",
+        "primary_cta": "进入平台",
+        "secondary_cta": "了解三项业务"
       },
       "stats": {
-        "user_base": "平台用户基础",
-        "core_chain": "三位一体业务",
-        "sprint_value": "5 小时",
-        "sprint_label": "限时实战攻坚"
+        "users": "注册用户",
+        "daily_views": "日均浏览",
+        "events": "校园活动收录",
+        "community": "AI 社群满额",
+        "hackathon": "首届浙客松报名"
       },
       "brief": {
-        "title_1": "三方协同",
-        "title_2": "闭环运转",
-        "desc": "企业发布真实课题，学生在实战中产出成果，校企共同完成认定与推荐。"
-      },
-      "handles": {
-        "events_title": "活动聚合",
-        "events_short": "统一入口",
-        "events_loop": "汇聚资源",
-        "events_desc": "聚合活动、项目、企业课题与学习资源，让全域 AI 机会进入同一入口。",
-        "community_title": "AI 社区",
-        "community_short": "持续共建",
-        "community_loop": "组织人群",
-        "community_desc": "连接学习者、开发者与社团负责人，把交流转化为长期共建。",
-        "hackathon_title": "极速黑客松",
-        "hackathon_short": "成果认定",
-        "hackathon_loop": "验证能力",
-        "hackathon_desc": "企业真实命题、限时技术攻坚、零路演评审，让硬核能力被直接验证。"
-      },
-      "engine": {
-        "title_1": "三位一体，",
-        "title_2": "打通产学闭环。",
-        "desc": "资源入口聚合机会，AI 社区承接共建，技术黑客松完成高密度验证。三者联动，才让 AI 热度变成可运营、可复制的人才培养机制。",
-        "loop_title": "从真题到通道"
+        "eyebrow": "Ecosystem Brief",
+        "status": "Running",
+        "title_1": "三项业务",
+        "title_2": "共同支撑",
+        "desc": "信息入口带来触达，AI 生态培养体系承接成长，浙客松把真实问题压缩成可验证的实战场。"
       },
       "loop": {
-        "gather": "汇聚",
-        "gather_desc": "活动、项目与企业课题进入同一入口",
-        "practice": "实战",
-        "practice_desc": "学生在赛事与项目中做中学",
-        "recognize": "认定",
-        "recognize_desc": "校企共同背书成果能力",
-        "channel": "通道",
-        "channel_desc": "优秀人才通向实习与内推"
+        "discover": "发现机会",
+        "discover_desc": "活动、资源与真实需求统一触达",
+        "learn": "学习共创",
+        "learn_desc": "AI 社区与学习体系承接成长",
+        "build": "项目实战",
+        "build_desc": "赛事和项目推动作品闭环",
+        "recognize": "认定通道",
+        "recognize_desc": "优秀成果连接校企背书与机会"
       },
       "support": {
-        "title_1": "三方资源在场，",
-        "title_2": "产学融合有底气。",
-        "desc": "学校提供场景与机制，学生组织承接人群与执行，企业伙伴带来真实课题、技术资源和人才通道。",
-        "school_title": "学校支持",
-        "school_desc": "未来学习中心与校内创新平台把场景、空间和组织机制先搭好，让企业课题能稳定进入校园实践。",
-        "student_title": "学生组织",
-        "student_desc": "头部科创社团与核心负责人共同承接活动、项目和实践人群，让校园动能持续流动。",
-        "enterprise_title": "企业伙伴",
-        "enterprise_desc": "头部 AI 企业把真实课题、模型、云和工具带入校园，支撑项目从想法走向可运行成果。"
+        "title_1": "资源不是附属，",
+        "title_2": "而是生态成立的基础。",
+        "desc": "学校提供场景与机制，企业带来真实课题与技术资源，资本连接项目孵化，学生组织承接社群、活动和执行力量。",
+        "school_title": "校内支持",
+        "school_headline": "场景、空间与机制",
+        "school_desc": "未来学习中心与校内创新平台提供产学融合场景，让真实课题能够稳定进入校园实践。",
+        "school_items": {
+          "future_learning": "未来学习中心",
+          "innovation": "创新创业学院",
+          "ai_school": "人工智能学院",
+          "medical": "基础医学院"
+        },
+        "enterprise_title": "企业合作",
+        "enterprise_headline": "真实命题与技术资源",
+        "enterprise_desc": "AI 企业、开发工具与行业伙伴把真实问题、模型能力、云资源和人才通道带入校园。",
+        "enterprise_items": {
+          "getui": "每日互动",
+          "aliyun": "阿里云",
+          "minimax": "MiniMax",
+          "stepfun": "阶跃星辰",
+          "modelscope": "魔搭社区",
+          "qoder": "Qoder",
+          "bonjour": "Bonjour"
+        },
+        "capital_title": "资本合作",
+        "capital_headline": "孵化与成长连接",
+        "capital_desc": "资本与产业资源为优秀项目提供更长期的成长视野，让校园成果有机会继续孵化。",
+        "capital_items": {
+          "five_source": "五源资本"
+        },
+        "organization_title": "组织合作",
+        "organization_headline": "社群、活动与执行力量",
+        "organization_desc": "学生组织、科创社团与核心负责人共同承接社群运营、活动执行和项目协作。",
+        "organization_items": {
+          "qiangying": "强鹰俱乐部",
+          "xlab": "XLAB",
+          "ai_association": "人工智能协会",
+          "ai_research": "AI 创研会",
+          "embedded_ai": "嵌入式人工智能协会",
+          "kab": "KAB 创业俱乐部"
+        }
       },
-      "foundation": {
-        "scenario": "场景开放",
-        "scenario_desc": "真实任务进入校园现场",
-        "coordination": "组织协同",
-        "coordination_desc": "空间、人群与执行联动",
-        "mechanism": "长期机制",
-        "mechanism_desc": "活动沉淀为持续通道"
+      "business": {
+        "title_1": "三项业务，",
+        "title_2": "把资源转化为学生成长路径。",
+        "desc": "信息入口带来信任和触达，AI 生态培养体系完成学习与项目承接，浙客松系列黑客松把交叉学科问题转化为高密度实战与成果认证。",
+        "info_title": "信息共享平台",
+        "info_short": "活动聚合 / 校园机会入口",
+        "info_desc": "面向校园通知、讲座、竞赛与社团活动分散的问题，通过活动聚合、搜索推荐和组织主页，把机会统一沉淀到一个入口。",
+        "info_metric": "700+ 活动收录",
+        "info_cta": "查看活动",
+        "grow_title": "AI 生态培养体系",
+        "grow_short": "AI 社区 / 学习体系 / 项目执行",
+        "grow_desc": "以网站 AI 社区为公开内容沉淀入口，结合微信群社群、智能体协会和真实项目，形成从 AI 入门到协作实践的成长体系。",
+        "grow_metric": "500 人社群满额",
+        "grow_cta": "进入 AI 社区",
+        "hackathon_title": "浙客松系列黑客松",
+        "hackathon_short": "交叉赛事 / 人才选拔 / 成果认证",
+        "hackathon_desc": "围绕量化、医学、硬件、人文社科等交叉主题持续举办 AI 实战赛事，让学生完成作品闭环，并连接企业认证、实习内推和项目孵化。",
+        "hackathon_metric": "季度化 AI 交叉赛事",
+        "hackathon_cta": "查看浙客松"
+      },
+      "join": {
+        "title_1": "加入拓浙",
+        "title_2": "AI 生态",
+        "desc": "无论你是学生、组织负责人、企业课题方还是学校合作伙伴，都可以从这里进入平台、下载 App 或发起合作。",
+        "download_cta": "下载 App",
+        "platform_cta": "进入平台",
+        "contact_cta": "联系合作",
+        "student_title": "学生",
+        "student_desc": "发现校园机会，加入 AI 社区，参与项目与黑客松，把学习转化成作品。",
+        "student_cta": "进入平台",
+        "org_title": "组织与社团",
+        "org_desc": "入驻组织主页，发布活动与项目招募，一起建设校园 AI 资源网络。",
+        "org_cta": "查看组织目录",
+        "enterprise_title": "企业与课题方",
+        "enterprise_desc": "提交真实需求、合办主题赛事，连接学生团队与可验证的 AI 实践成果。",
+        "enterprise_cta": "联系合作"
       }
     }
   },

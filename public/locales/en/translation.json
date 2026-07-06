@@ -874,76 +874,122 @@
     "exhibitions": "Exhibitions",
     "projects": "Projects",
     "ecosystem": {
-      "meta_title": "About",
-      "meta_desc": "Learn how TUOTU ZJU connects universities, companies, and students through real enterprise briefs, campus AI community, and technical hackathons.",
+      "meta_title": "ZJU AI Ecosystem",
+      "meta_desc": "Learn how the ZJU AI Ecosystem connects students, colleges, enterprises, and real AI scenarios through an information platform, AI growth system, and ZJUHack series.",
       "pagination_aria": "About page sections",
       "hero": {
-        "title_1": "Connect real",
-        "title_2": "enterprise briefs to",
-        "title_3": "a campus AI network.",
-        "strong": "Real briefs, practical projects, shared recognition.",
-        "desc": "Students learn by building, companies see talent earlier, and campus innovation gains a path into real industry scenarios.",
-        "cta": "View the Ecosystem Loop"
+        "brand": "ZJU AI Ecosystem",
+        "title_1": "Turn AI learning,",
+        "title_2": "real projects, and industry pathways",
+        "title_3": "into a campus ecosystem.",
+        "strong": "Starting from Zhejiang University, we connect students, colleges, companies, and real AI scenarios.",
+        "desc": "Through the information platform, AI ecosystem growth system, and ZJUHack series, students move from discovering opportunities and learning AI to building projects, earning recognition, and reaching internships or career pathways.",
+        "primary_cta": "Enter Platform",
+        "secondary_cta": "Explore Businesses"
       },
       "stats": {
-        "user_base": "Platform User Base",
-        "core_chain": "Three-Part Service Chain",
-        "sprint_value": "5 Hours",
-        "sprint_label": "Timed Practice Sprint"
+        "users": "Registered Users",
+        "daily_views": "Daily Views",
+        "events": "Campus Events Collected",
+        "community": "AI Community Capacity",
+        "hackathon": "First ZJUHack Sign-ups"
       },
       "brief": {
-        "title_1": "Three-way",
-        "title_2": "closed loop",
-        "desc": "Companies release real briefs, students produce outcomes through practice, and campus plus enterprise partners complete recognition and recommendation."
-      },
-      "handles": {
-        "events_title": "Events Hub",
-        "events_short": "Unified Entry",
-        "events_loop": "Gather Resources",
-        "events_desc": "Gather events, projects, enterprise briefs, and learning resources into one AI opportunity entry point.",
-        "community_title": "AI Community",
-        "community_short": "Continuous Co-creation",
-        "community_loop": "Organize People",
-        "community_desc": "Connect learners, developers, and student organization leads, turning discussion into long-term co-creation.",
-        "hackathon_title": "Rapid Hackathon",
-        "hackathon_short": "Outcome Recognition",
-        "hackathon_loop": "Validate Capability",
-        "hackathon_desc": "Real enterprise briefs, timed technical sprints, and no-pitch judging directly validate hard skills."
-      },
-      "engine": {
-        "title_1": "One operating loop,",
-        "title_2": "not just more events.",
-        "desc": "The resource entry gathers opportunities, the AI community carries collaboration, and the technical hackathon validates capability at high density. Together, they turn AI momentum into an operable and repeatable talent development mechanism.",
-        "loop_title": "From Briefs to Pathways"
+        "eyebrow": "Ecosystem Brief",
+        "status": "Running",
+        "title_1": "Three businesses",
+        "title_2": "working together",
+        "desc": "The information entry creates reach, the AI ecosystem growth system carries development, and ZJUHack compresses real problems into verifiable practice."
       },
       "loop": {
-        "gather": "Gather",
-        "gather_desc": "Events, projects, and enterprise briefs enter one hub",
-        "practice": "Practice",
-        "practice_desc": "Students learn by doing in competitions and projects",
-        "recognize": "Recognize",
-        "recognize_desc": "Campus and companies endorse proven capability",
-        "channel": "Pathway",
-        "channel_desc": "Strong talent moves toward internships and referrals"
+        "discover": "Discover",
+        "discover_desc": "Events, resources, and real needs reach students together",
+        "learn": "Learn & Co-create",
+        "learn_desc": "AI community and learning systems carry growth",
+        "build": "Build in Practice",
+        "build_desc": "Competitions and projects turn ideas into outcomes",
+        "recognize": "Recognition Path",
+        "recognize_desc": "Strong outcomes connect to campus-enterprise endorsement"
       },
       "support": {
-        "title_1": "Three resource layers",
-        "title_2": "make co-creation credible.",
-        "desc": "Campus units provide scenarios and mechanisms, student organizations carry people and execution, and enterprise partners bring real briefs, technical resources, and talent pathways.",
+        "title_1": "Resources are not decoration.",
+        "title_2": "They are the base of the ecosystem.",
+        "desc": "Campus units provide scenarios and mechanisms, companies bring real briefs and technical resources, capital connects incubation, and student organizations carry community, events, and execution.",
         "school_title": "Campus Support",
-        "school_desc": "The Future Learning Center and campus innovation platforms prepare scenarios, spaces, and operating mechanisms so enterprise briefs can steadily enter campus practice.",
-        "student_title": "Student Organizations",
-        "student_desc": "Leading tech clubs and core organizers carry activities, projects, and practice communities so campus momentum keeps moving.",
+        "school_headline": "Scenarios, spaces, and mechanisms",
+        "school_desc": "The Future Learning Center and campus innovation platforms provide industry-education scenarios so real briefs can steadily enter campus practice.",
+        "school_items": {
+          "future_learning": "Future Learning Center",
+          "innovation": "Innovation & Entrepreneurship College",
+          "ai_school": "School of Artificial Intelligence",
+          "medical": "School of Basic Medical Sciences"
+        },
         "enterprise_title": "Enterprise Partners",
-        "enterprise_desc": "Leading AI companies bring real briefs, models, cloud, and tools into campus, helping ideas become runnable outcomes."
+        "enterprise_headline": "Real briefs and technical resources",
+        "enterprise_desc": "AI companies, developer tools, and industry partners bring real problems, model capabilities, cloud resources, and talent pathways into campus.",
+        "enterprise_items": {
+          "getui": "Getui",
+          "aliyun": "Alibaba Cloud",
+          "minimax": "MiniMax",
+          "stepfun": "StepFun",
+          "modelscope": "ModelScope",
+          "qoder": "Qoder",
+          "bonjour": "Bonjour"
+        },
+        "capital_title": "Capital Partners",
+        "capital_headline": "Incubation and growth connection",
+        "capital_desc": "Capital and industry resources give strong projects a longer growth horizon, helping campus outcomes move toward incubation.",
+        "capital_items": {
+          "five_source": "5Y Capital"
+        },
+        "organization_title": "Organization Partners",
+        "organization_headline": "Community, events, and execution",
+        "organization_desc": "Student organizations, tech clubs, and core organizers carry community operations, event execution, and project collaboration.",
+        "organization_items": {
+          "qiangying": "Qiangying Club",
+          "xlab": "XLAB",
+          "ai_association": "AI Association",
+          "ai_research": "AI Research Club",
+          "embedded_ai": "Embedded AI Association",
+          "kab": "KAB Entrepreneurship Club"
+        }
       },
-      "foundation": {
-        "scenario": "Open Scenarios",
-        "scenario_desc": "Real tasks enter the campus site",
-        "coordination": "Coordinated Operation",
-        "coordination_desc": "Space, people, and execution move together",
-        "mechanism": "Long-term Mechanism",
-        "mechanism_desc": "Activities become a continuous pathway"
+      "business": {
+        "title_1": "Three businesses",
+        "title_2": "turn resources into student growth paths.",
+        "desc": "The information entry builds trust and reach, the AI ecosystem growth system carries learning and project execution, and the ZJUHack series turns interdisciplinary problems into high-density practice and outcome recognition.",
+        "info_title": "Information Sharing Platform",
+        "info_short": "Events hub / Campus opportunity entry",
+        "info_desc": "For scattered campus notices, talks, competitions, and student organization events, the platform uses aggregation, search, recommendations, and organization profiles to bring opportunities into one entry point.",
+        "info_metric": "700+ events collected",
+        "info_cta": "View Events",
+        "grow_title": "AI Ecosystem Growth System",
+        "grow_short": "AI Community / Learning system / Project execution",
+        "grow_desc": "The public AI Community on the website works with WeChat groups, the agent association, and real projects to form a path from AI onboarding to collaborative practice.",
+        "grow_metric": "500-member community full",
+        "grow_cta": "Enter AI Community",
+        "hackathon_title": "ZJUHack Series",
+        "hackathon_short": "Interdisciplinary competitions / Talent selection / Outcome recognition",
+        "hackathon_desc": "Around themes such as quant, medicine, hardware, and humanities or social sciences, the series helps students complete project loops and connect with enterprise recognition, referrals, and incubation.",
+        "hackathon_metric": "Quarterly AI crossover events",
+        "hackathon_cta": "View ZJUHack"
+      },
+      "join": {
+        "title_1": "Join the ZJU",
+        "title_2": "AI Ecosystem",
+        "desc": "Whether you are a student, organization lead, enterprise brief owner, or campus partner, you can enter the platform, download the app, or start a collaboration here.",
+        "download_cta": "Download App",
+        "platform_cta": "Enter Platform",
+        "contact_cta": "Contact for Collaboration",
+        "student_title": "Students",
+        "student_desc": "Discover campus opportunities, join the AI Community, participate in projects and hackathons, and turn learning into work.",
+        "student_cta": "Enter Platform",
+        "org_title": "Organizations",
+        "org_desc": "Create organization profiles, publish events and project calls, and build the campus AI resource network together.",
+        "org_cta": "View Directory",
+        "enterprise_title": "Companies & Brief Owners",
+        "enterprise_desc": "Submit real needs, co-host themed competitions, and connect with student teams and verifiable AI practice outcomes.",
+        "enterprise_cta": "Start Collaboration"
       }
     }
   },
