@@ -10,6 +10,8 @@ import api from '../services/api';
 import { useBackClose, useBodyScrollLock } from '../hooks/useBackClose';
 import { communityTheme, extractTocItems, flattenLinkedResources } from './communityUtils';
 import { LinkifiedText, linkifyHtml } from '../utils/linkify';
+import { isMiniProgramWebView } from '../utils/miniProgramEnv';
+import { shareViaMiniProgram } from '../utils/wechatMiniProgramBridge';
 
 const TYPE_META = {
   article: { label: '文章', icon: BookOpen },
@@ -71,13 +73,32 @@ const CommunityDetailModal = ({
 
   const handleShare = async () => {
     if (!item) return;
+    const shareTarget = shareUrl ? new URL(shareUrl) : null;
+    const sharePath = shareTarget
+      ? `${shareTarget.pathname}${shareTarget.search}${shareTarget.hash}`
+      : "";
     const payload = {
       title: item.title || item.name || t('community.detail', '内容详情'),
       text: item.excerpt || item.description || '',
       url: shareUrl,
+      path: sharePath,
+      imageUrl: coverImage || item.cover_image || item.image_url || '',
     };
 
     try {
+      if (isMiniProgramWebView()) {
+        await shareViaMiniProgram(payload);
+        toast.success(t('common.miniapp_share_ready'));
+        if (shareParam === 'id') {
+          api.post('/community/metrics/track', {
+            metric_type: 'article_share',
+            source_type: 'article',
+            source_id: item.id,
+          }).catch(() => {});
+        }
+        return;
+      }
+
       if (navigator.share) {
         await navigator.share(payload);
         if (shareParam === 'id') {

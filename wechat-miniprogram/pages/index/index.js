@@ -5,6 +5,11 @@ const {
   buildWebViewUrl,
   DEFAULT_PATH,
 } = require("../../utils/webview");
+const {
+  pickSharePayloadFromEvent,
+  buildShareAppMessage,
+  buildShareTimelineMessage,
+} = require("../../utils/share");
 
 const getNavigationTitle = () => {
   if (!USE_LOCAL_WEB_ORIGIN) return "拓途浙享 | TUOTUZJU";
@@ -32,6 +37,7 @@ Page({
 
   loadTimer: null,
   targetPath: DEFAULT_PATH,
+  sharePayload: null,
 
   onLoad(options) {
     const params = options || {};
@@ -104,10 +110,27 @@ Page({
     });
   },
 
-  onShareAppMessage() {
-    return {
+  handleMessage(event) {
+    const sharePayload = pickSharePayloadFromEvent(event);
+    if (!sharePayload) return;
+    this.sharePayload = sharePayload;
+    console.info("[tuotuzju-miniprogram] index share payload updated", sharePayload);
+  },
+
+  getCurrentSharePayload(options = {}) {
+    return this.sharePayload || {
       title: "Tuotu ZJU",
-      path: "/pages/index/index",
+      path: options.webViewUrl || this.targetPath || DEFAULT_PATH,
     };
+  },
+
+  onShareAppMessage(options) {
+    return buildShareAppMessage(this.getCurrentSharePayload(options), {
+      shellPath: "/pages/index/index",
+    });
+  },
+
+  onShareTimeline() {
+    return buildShareTimelineMessage(this.getCurrentSharePayload());
   },
 });

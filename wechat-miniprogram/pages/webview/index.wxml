@@ -1,4 +1,4 @@
-<web-view src="{{src}}" bindload="handleLoad" binderror="handleError"></web-view>
+<web-view src="{{src}}" bindload="handleLoad" binderror="handleError" bindmessage="handleMessage"></web-view>
 <cover-view wx:if="{{isLocalDebug}}" class="local-debug-panel">
   <cover-view class="local-debug-title">{{debugLabel}}</cover-view>
   <cover-view class="local-debug-status">{{loadState}}</cover-view>

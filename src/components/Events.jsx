@@ -75,6 +75,7 @@ import { getThumbnailUrl } from "../utils/imageUtils";
 import { useReducedMotion } from "../utils/animations";
 import { getOrCreateSiteVisitorKey } from "../utils/visitorKey";
 import { isMiniProgramWebView } from "../utils/miniProgramEnv";
+import { shareViaMiniProgram } from "../utils/wechatMiniProgramBridge";
 
 const EVENT_CARD_GRID_CLASS =
   "grid grid-cols-1 items-start gap-3 md:[grid-template-columns:repeat(auto-fit,minmax(300px,1fr))] md:gap-4 lg:gap-5 xl:[grid-template-columns:repeat(auto-fit,minmax(235px,1fr))] 2xl:[grid-template-columns:repeat(4,minmax(0,1fr))]";
@@ -1615,11 +1616,28 @@ END:VCALENDAR`;
 
   const handleShare = async () => {
     if (!selectedEvent) return;
+    const shareUrl = new URL("/events", window.location.origin);
+    shareUrl.searchParams.set("id", String(selectedEvent.id));
+    const sharePath = `/events?id=${encodeURIComponent(String(selectedEvent.id))}`;
     const shareData = {
       title: selectedEvent.title,
       text: `${selectedEvent.title}\n${selectedEvent.date}\n${selectedEvent.location}\n\n${selectedEvent.description}`,
-      url: window.location.href,
+      url: shareUrl.toString(),
+      path: sharePath,
+      imageUrl: getEventCoverUrl(selectedEvent),
     };
+
+    if (isMiniProgramWebView()) {
+      try {
+        await shareViaMiniProgram(shareData);
+        toast.success(t("common.miniapp_share_ready"));
+        return;
+      } catch (error) {
+        console.error("Error preparing mini program share:", error);
+        handleCopyInfo();
+        return;
+      }
+    }
 
     if (navigator.share) {
       try {
@@ -2775,6 +2793,7 @@ END:VCALENDAR`;
                         <button
                           type="button"
                           aria-label={t("common.share", "分享")}
+                          data-testid="event-detail-share-mobile"
                           onClick={handleShare}
                           className="absolute right-3 top-3 z-20 inline-flex h-9 w-9 items-center justify-center rounded-[6px] bg-black/35 text-white backdrop-blur-md"
                         >

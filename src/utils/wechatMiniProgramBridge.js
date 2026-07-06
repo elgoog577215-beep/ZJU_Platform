@@ -4,7 +4,15 @@ let jssdkLoadPromise = null;
 
 const hasMiniProgramBridge = () =>
   typeof window !== 'undefined' &&
+  Boolean(window.wx?.miniProgram?.navigateTo || window.wx?.miniProgram?.postMessage);
+
+const hasMiniProgramNavigator = () =>
+  typeof window !== 'undefined' &&
   Boolean(window.wx?.miniProgram?.navigateTo);
+
+const hasMiniProgramMessenger = () =>
+  typeof window !== 'undefined' &&
+  Boolean(window.wx?.miniProgram?.postMessage);
 
 const loadWechatJssdk = () => {
   if (hasMiniProgramBridge()) {
@@ -91,7 +99,7 @@ export const buildWechatNativeUploadBridgeUrl = ({
 export const navigateToMiniProgramPage = async (url) => {
   await loadWechatJssdk();
 
-  if (!hasMiniProgramBridge()) {
+  if (!hasMiniProgramNavigator()) {
     throw new Error('WeChat mini program bridge is unavailable');
   }
 
@@ -103,3 +111,32 @@ export const navigateToMiniProgramPage = async (url) => {
     });
   });
 };
+
+const normalizeSharePayload = (payload = {}) => {
+  const normalized = {};
+  ["title", "text", "url", "path", "imageUrl"].forEach((key) => {
+    const value = payload[key];
+    if (value !== undefined && value !== null && String(value).trim()) {
+      normalized[key] = String(value).trim();
+    }
+  });
+  return normalized;
+};
+
+export const postMiniProgramMessage = async (message) => {
+  await loadWechatJssdk();
+
+  if (!hasMiniProgramMessenger()) {
+    throw new Error('WeChat mini program message bridge is unavailable');
+  }
+
+  window.wx.miniProgram.postMessage({
+    data: message,
+  });
+};
+
+export const shareViaMiniProgram = async (payload) =>
+  postMiniProgramMessage({
+    type: 'tuotu:share',
+    payload: normalizeSharePayload(payload),
+  });

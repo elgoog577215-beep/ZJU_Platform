@@ -138,6 +138,50 @@ test.describe("event detail layout regression", () => {
       .toBeGreaterThan(before.scrollTop);
   });
 
+  test("miniapp mobile detail routes share through the WeChat bridge", async ({
+    page,
+    request,
+  }) => {
+    await page.setViewportSize(MOBILE_VIEWPORT);
+    await page.addInitScript(() => {
+      window.__miniShareMessages = [];
+      window.__webShareCalled = false;
+      Object.defineProperty(window.navigator, "share", {
+        configurable: true,
+        value: async () => {
+          window.__webShareCalled = true;
+        },
+      });
+      window.wx = {
+        miniProgram: {
+          navigateTo: () => {},
+          postMessage: (message) => {
+            window.__miniShareMessages.push(message);
+          },
+        },
+      };
+    });
+    const event = await getFirstEvent(request);
+
+    await page.goto(`/events?id=${event.id}&miniapp=1&miniapp_nav_inset=112`);
+    await expect(page.getByRole("dialog", { name: event.title })).toBeVisible();
+    await page.getByTestId("event-detail-share-mobile").click();
+
+    await expect
+      .poll(() => page.evaluate(() => window.__miniShareMessages.length))
+      .toBe(1);
+
+    const result = await page.evaluate(() => ({
+      message: window.__miniShareMessages[0],
+      webShareCalled: window.__webShareCalled,
+    }));
+    expect(result.webShareCalled).toBe(false);
+    expect(result.message.data.type).toBe("tuotu:share");
+    expect(result.message.data.payload.title).toBe(event.title);
+    expect(result.message.data.payload.path).toBe(`/events?id=${event.id}`);
+    expect(result.message.data.payload.url).toContain(`/events?id=${event.id}`);
+  });
+
   test("desktop detail keeps the close button topmost above the hero overlay", async ({
     page,
     request,

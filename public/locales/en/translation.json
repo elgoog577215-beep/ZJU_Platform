@@ -1248,6 +1248,7 @@
     "unfavorite": "Remove favorite",
     "like": "Like",
     "share": "Share",
+    "miniapp_share_ready": "WeChat share is ready. Use the top-right menu to send it.",
     "close_video": "Close Video",
     "previous_track": "Previous Track",
     "next_track": "Next Track",

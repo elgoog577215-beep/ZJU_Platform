@@ -5,6 +5,8 @@ import { toPng } from "html-to-image";
 import QRCode from "qrcode";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
+import { isMiniProgramWebView } from "../utils/miniProgramEnv";
+import { shareViaMiniProgram } from "../utils/wechatMiniProgramBridge";
 
 const clampList = (items, limit) => (Array.isArray(items) ? items.filter(Boolean).slice(0, limit) : []);
 
@@ -116,6 +118,24 @@ const ProjectSharePoster = ({ project, onClose, variant = "playful" }) => {
   };
 
   const handleNativeShare = async () => {
+    const miniProgramShareData = {
+      title,
+      text: t("project_share_poster.share_text", "鐪嬬湅杩欎釜椤圭洰骞垮満閲岀殑鏍″洯椤圭洰"),
+      url: projectUrl,
+      path: `/projects?id=${encodeURIComponent(String(project?.id || ""))}`,
+      imageUrl: coverUrl,
+    };
+
+    if (isMiniProgramWebView()) {
+      try {
+        await shareViaMiniProgram(miniProgramShareData);
+        toast.success(t("common.miniapp_share_ready"));
+      } catch {
+        await handleCopy();
+      }
+      return;
+    }
+
     if (!navigator.share) {
       await handleCopy();
       return;
