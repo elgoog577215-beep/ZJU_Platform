@@ -1807,7 +1807,7 @@ END:VCALENDAR`;
             <div
               ref={mobileCategoryScrollRef}
               {...mobileCategoryDragProps}
-              className={`scrollbar-none flex cursor-grab select-none snap-x snap-proximity gap-6 overflow-x-auto overscroll-x-contain scroll-smooth px-4 pb-2 pt-3 pr-10 touch-pan-x active:cursor-grabbing ${isDayMode ? "bg-transparent" : ""}`}
+              className={`scrollbar-none flex cursor-grab select-none snap-x snap-proximity gap-1 overflow-x-auto overscroll-x-contain scroll-smooth px-4 touch-pan-x active:cursor-grabbing ${isDayMode ? "bg-transparent" : ""}`}
             >
               {mobileCategoryTabs.map((tab) => {
                 const active = (filters.category || null) === tab.value;
@@ -1818,7 +1818,7 @@ END:VCALENDAR`;
                     type="button"
                     aria-pressed={active}
                     onClick={() => handleMobileCategoryChange(tab.value)}
-                    className={`relative h-12 shrink-0 snap-start px-0.5 text-[20px] font-black transition-colors ${
+                    className={`relative inline-flex min-h-10 shrink-0 snap-start items-center justify-center px-2.5 text-xs font-bold transition-colors ${
                       active
                         ? isDayMode
                           ? "text-blue-700"
