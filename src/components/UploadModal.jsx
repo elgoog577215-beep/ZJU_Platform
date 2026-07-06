@@ -1186,7 +1186,18 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   useEffect(() => {
     if (!isOpen || type !== 'event' || !isMiniProgramWebView()) return;
     requestAnimationFrame(() => {
-      formRef.current?.querySelector?.('.upload-modal-body')?.scrollTo?.({ top: 0, behavior: 'auto' });
+      const scrollTargets = [
+        document.querySelector('.upload-modal-miniapp-event-overlay'),
+        formRef.current,
+        formRef.current?.querySelector?.('.upload-modal-body'),
+      ].filter(Boolean);
+      scrollTargets.forEach((target) => {
+        if ('scrollTo' in target) {
+          target.scrollTo({ top: 0, behavior: 'auto' });
+        } else {
+          target.scrollTop = 0;
+        }
+      });
     });
   }, [isOpen, type]);
 
@@ -1917,7 +1928,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             <form ref={formRef} onSubmit={handleSubmit} noValidate={type === 'event'} className={formClass}>
               <div className={bodyClass}>
               {isMiniProgramEventModal && (
-                <div className={`upload-modal-miniapp-toolbar sticky z-[60] mb-4 rounded-[7px] border p-3 shadow-[0_10px_24px_rgba(0,0,0,0.28)] ${isDayMode ? 'border-slate-200 bg-white/96' : 'border-white/10 bg-[#111214]'}`}>
+                <div className={`upload-modal-miniapp-toolbar relative z-10 mb-4 rounded-[7px] border p-3 shadow-[0_10px_24px_rgba(0,0,0,0.28)] ${isDayMode ? 'border-slate-200 bg-white/96' : 'border-white/10 bg-[#111214]'}`}>
                   <div className="mb-3 flex items-center justify-between gap-3">
                     <div className="min-w-0">
                       <div className={`text-lg font-black leading-tight ${isDayMode ? 'text-slate-950' : 'text-white'}`}>

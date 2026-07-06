@@ -128,23 +128,35 @@ body {
   .miniapp-webview .upload-modal-overlay,
   .upload-modal-miniapp-event-overlay {
     top: 0 !important;
+    align-items: stretch !important;
     height: 100dvh !important;
+    justify-content: flex-start !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
   }
 
   .miniapp-webview .upload-modal-panel:not(.upload-modal-article),
   .upload-modal-miniapp-event {
-    height: 100dvh !important;
-    max-height: 100dvh !important;
+    height: auto !important;
+    min-height: 100dvh !important;
+    max-height: none !important;
+    overflow: visible !important;
   }
 
   .miniapp-webview .upload-modal-form,
   .upload-modal-miniapp-event-form {
+    display: block !important;
+    flex: 0 0 auto !important;
     min-height: 0 !important;
+    overflow: visible !important;
   }
 
   .miniapp-webview .upload-modal-body,
   .upload-modal-miniapp-event-body {
+    flex: 0 0 auto !important;
     min-height: 0 !important;
+    overflow: visible !important;
   }
 
   .miniapp-webview .upload-modal-event .upload-modal-header,
@@ -168,22 +180,10 @@ body {
     display: none !important;
   }
 
-  .upload-modal-miniapp-toolbar {
-    top: calc(var(--miniapp-webview-nav-inset) + 0.5rem) !important;
-  }
-
-  .miniapp-webview .upload-modal-event .upload-modal-form,
-  .upload-modal-miniapp-event-form {
-    overflow: hidden !important;
-  }
-
   .miniapp-webview .upload-modal-event .upload-modal-body,
   .upload-modal-miniapp-event-body {
-    flex: 1 1 auto !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch;
-    padding-top: calc(var(--miniapp-webview-nav-inset) + 0.75rem) !important;
-    padding-bottom: 1rem !important;
+    padding-top: 1rem !important;
+    padding-bottom: 1.25rem !important;
   }
 
   .miniapp-webview .upload-modal-event .upload-modal-footer,
