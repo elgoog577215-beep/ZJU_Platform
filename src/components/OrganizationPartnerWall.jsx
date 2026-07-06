@@ -8,6 +8,7 @@ import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { getPartnerLogoSrc, getPartnerProfilePath } from "../data/partnerLogos";
 import { useHorizontalDragScroll } from "../hooks/useHorizontalDragScroll";
+import { isMiniProgramWebView } from "../utils/miniProgramEnv";
 
 const DESKTOP_PREVIEW_LIMIT = 10;
 const MOBILE_PREVIEW_LIMIT = 7;
@@ -200,6 +201,7 @@ const OrganizationPartnerWall = ({
 
   useEffect(() => {
     if ((!selectedPartner && !directoryOpen) || typeof document === "undefined") return undefined;
+    if (isMiniProgramWebView()) return undefined;
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {

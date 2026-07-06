@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef } from 'react';
+import { isMiniProgramWebView } from '../utils/miniProgramEnv';
 
 /**
  * Hook to handle closing modals/overlays with the system back button.
@@ -78,6 +79,7 @@ export const useBackClose = (isOpen, onClose) => {
 export const useBodyScrollLock = (isLocked) => {
   useEffect(() => {
     if (!isLocked || typeof document === 'undefined') return undefined;
+    if (isMiniProgramWebView()) return undefined;
 
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';

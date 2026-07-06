@@ -19,6 +19,7 @@ import { useReducedMotion } from "../utils/animations";
 import CompetitionOutcomeUploadModal from "./CompetitionOutcomeUploadModal";
 import SEO from "./SEO";
 import { useTranslation } from "react-i18next";
+import { isMiniProgramWebView } from "../utils/miniProgramEnv";
 
 const fallbackCover = "/images/hero-landscape-day-4k.jpg";
 
@@ -168,6 +169,7 @@ const WorkCard = ({ work, featured = false, isDayMode = false, onOpen, t }) => {
 const WorkDetailModal = ({ work, isDayMode, onClose, t }) => {
   useEffect(() => {
     if (!work || typeof document === "undefined") return undefined;
+    if (isMiniProgramWebView()) return undefined;
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";

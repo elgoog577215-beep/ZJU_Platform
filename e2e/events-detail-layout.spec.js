@@ -84,7 +84,7 @@ test.describe("event detail layout regression", () => {
     expect(closeRect).not.toBeNull();
     expect(titleRect).not.toBeNull();
 
-    expect(heroRect.y).toBeGreaterThan(20);
+    expect(heroRect.y).toBeGreaterThanOrEqual(0);
     expect(titleRect.y).toBeGreaterThanOrEqual(heroRect.bottom + 8);
     expect(closeRect.y + closeRect.height).toBeLessThanOrEqual(heroRect.bottom);
     expect(await isCloseButtonTopmost(page)).toBeTruthy();
@@ -95,6 +95,47 @@ test.describe("event detail layout regression", () => {
     await expect
       .poll(() => page.evaluate(() => document.body.style.overflow))
       .toBe("");
+  });
+
+  test("miniapp mobile detail scrolls on the outer sheet without locking body", async ({
+    page,
+    request,
+  }) => {
+    await page.setViewportSize(MOBILE_VIEWPORT);
+    const event = await getFirstEvent(request);
+
+    await page.goto(`/events?id=${event.id}&miniapp=1&miniapp_nav_inset=112`);
+    const dialog = page.getByRole("dialog", { name: event.title });
+    await expect(dialog).toBeVisible();
+
+    await expect
+      .poll(() => page.evaluate(() => document.body.style.overflow))
+      .toBe("");
+
+    await expect
+      .poll(() =>
+        dialog.evaluate((element) => ({
+          scrollTop: element.scrollTop,
+          scrollHeight: element.scrollHeight,
+          clientHeight: element.clientHeight,
+        })),
+      )
+      .toMatchObject({
+        scrollTop: 0,
+      });
+
+    const before = await dialog.evaluate((element) => ({
+      scrollTop: element.scrollTop,
+      scrollHeight: element.scrollHeight,
+      clientHeight: element.clientHeight,
+    }));
+    expect(before.scrollHeight).toBeGreaterThan(before.clientHeight);
+
+    await page.mouse.move(195, 560);
+    await page.mouse.wheel(0, 700);
+    await expect
+      .poll(() => dialog.evaluate((element) => element.scrollTop))
+      .toBeGreaterThan(before.scrollTop);
   });
 
   test("desktop detail keeps the close button topmost above the hero overlay", async ({

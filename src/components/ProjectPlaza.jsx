@@ -29,6 +29,7 @@ import FavoriteButton from "./FavoriteButton";
 import ProjectSharePoster from "./ProjectSharePoster";
 import { PROJECT_PLAZA_CSS } from "./projectPlaza.styles";
 import BodyPortal from "../shared/ui/BodyPortal";
+import { isMiniProgramWebView } from "../utils/miniProgramEnv";
 
 const PROGRESS_META = {
   idea: { labelKey: "project_plaza.progress.idea", fallback: "构思中", c: "var(--p-idea)" },
@@ -462,6 +463,7 @@ const ProjectPlaza = () => {
 
   useEffect(() => {
     if (!selected && !posterProject) return undefined;
+    if (isMiniProgramWebView()) return undefined;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {

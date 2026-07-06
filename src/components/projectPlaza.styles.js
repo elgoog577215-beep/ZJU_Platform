@@ -187,6 +187,12 @@ export const PROJECT_PLAZA_CSS = `
   .ppp-modal{grid-template-columns:1fr;width:100%;height:100dvh;max-width:none;max-height:none;overflow:hidden;border:0;border-radius:0;}.ppp-mgallery{min-height:210px;height:210px;flex:none;}.ppp-mbody{padding:20px 18px calc(env(safe-area-inset-bottom) + 18px);overflow:auto;}.ppp-mtitle{font-size:23px;}.ppp-mcontact{position:static;}.ppp-mcontact .ppp-cbtn{flex:1 1 150px;}
   .ppp-cbar{align-items:stretch;flex-direction:column;}.ppp-cactions{display:grid;grid-template-columns:1fr 1fr;}.ppp-frow{flex-direction:column;gap:12px;}.ppp-preview{max-width:none;}.ppp-empty{min-height:190px;}
 }
+.miniapp-webview .ppp-scrim{align-items:flex-start;overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;}
+@media (max-width:820px){
+  .miniapp-webview .ppp-scrim{padding:0;}
+  .miniapp-webview .ppp-modal{height:auto;min-height:100dvh;max-height:none;overflow:visible;}
+  .miniapp-webview .ppp-mbody{overflow:visible;}
+}
 @media (prefers-reduced-motion:reduce){.ppp-card,.ppp-newbtn,.ppp-chip,.ppp-art,.ppp-arrow{transition:none;}.ppp-scrim,.ppp-modal{animation:none;}}
 
 /* ===== share poster ===== */

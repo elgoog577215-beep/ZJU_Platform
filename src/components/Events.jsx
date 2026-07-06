@@ -74,6 +74,7 @@ import { Link as RouterLink, useSearchParams, useNavigate, useLocation } from "r
 import { getThumbnailUrl } from "../utils/imageUtils";
 import { useReducedMotion } from "../utils/animations";
 import { getOrCreateSiteVisitorKey } from "../utils/visitorKey";
+import { isMiniProgramWebView } from "../utils/miniProgramEnv";
 
 const EVENT_CARD_GRID_CLASS =
   "grid grid-cols-1 items-start gap-3 md:[grid-template-columns:repeat(auto-fit,minmax(300px,1fr))] md:gap-4 lg:gap-5 xl:[grid-template-columns:repeat(auto-fit,minmax(235px,1fr))] 2xl:[grid-template-columns:repeat(4,minmax(0,1fr))]";
@@ -369,6 +370,7 @@ const EventCard = memo(
       <>
       <motion.div
         {...motionProps}
+        data-testid="event-card"
         className={`group relative flex h-[176px] cursor-pointer overflow-hidden rounded-[12px] border p-2.5 md:hidden ${
           isDayMode
             ? "border-blue-100 bg-white shadow-[0_14px_32px_rgba(37,99,235,0.10)]"
@@ -459,6 +461,7 @@ const EventCard = memo(
 
       <motion.div
         {...motionProps}
+        data-testid="event-card"
         className={`group rect-media-card relative hidden overflow-hidden cursor-pointer h-[156px] flex-row md:flex md:h-[430px] md:flex-col xl:h-[440px] 2xl:h-[452px] transform-gpu will-change-transform transition-[background-color,border-color,box-shadow] duration-200 ${isDayMode ? "border-blue-100/80 bg-white hover:border-blue-200/90" : "bg-[#050712]/94 border-white/15 hover:border-indigo-300/30 hover:bg-[#070914]"}`}
         onClick={() => onClick(event)}
       >
@@ -907,6 +910,7 @@ const CollegeNoticeRow = memo(
         role="button"
         tabIndex={0}
         {...motionProps}
+        data-testid="event-card"
         onClick={() => onClick(event)}
         onKeyDown={(eventKey) => {
           if (eventKey.key === "Enter" || eventKey.key === " ") {
@@ -1113,6 +1117,8 @@ const Events = () => {
   const [canRenderDesktopAssistant, setCanRenderDesktopAssistant] = useState(
     () => (typeof window !== "undefined" ? window.innerWidth >= 768 : false),
   );
+  const isMiniProgramMode = isMiniProgramWebView();
+  const useMiniProgramModalScroll = isMiniProgramMode && isMobileViewport;
   const shouldReduceCardMotion = prefersReducedMotion;
   const trackedViewTimestamps = useRef(new Map());
   const updateSelectedEventRecommendationContext = useCallback((context) => {
@@ -2497,7 +2503,11 @@ END:VCALENDAR`;
               role="dialog"
               aria-modal="true"
               aria-label={selectedEvent?.title || t("events.title")}
-              className={`fixed inset-0 z-[140] flex items-end justify-center p-0 md:items-center md:p-4 ${isDayMode ? "bg-white/[0.12] backdrop-blur-md" : "bg-black/80 backdrop-blur-md"}`}
+              className={`fixed inset-0 z-[140] flex justify-center p-0 md:items-center md:p-4 ${
+                useMiniProgramModalScroll
+                  ? "items-start overflow-y-auto overscroll-y-contain"
+                  : "items-end overflow-hidden md:overflow-y-auto"
+              } ${isDayMode ? "bg-white/[0.12] backdrop-blur-md" : "bg-black/80 backdrop-blur-md"}`}
               onClick={closeEvent}
             >
               <motion.div
@@ -2511,7 +2521,13 @@ END:VCALENDAR`;
                     ? undefined
                     : { duration: 0.28, ease: [0.22, 1, 0.36, 1] }
                 }
-                className={`w-full max-w-5xl overflow-hidden overscroll-contain relative flex flex-col ${isMobileViewport ? "min-h-[100dvh] max-h-[100dvh] rounded-none border-0" : "min-h-[100dvh] md:min-h-0 max-h-[100dvh] md:max-h-[90vh] rounded-t-[7px] md:rounded-[7px] border-x-0 border-b-0 md:border"} ${isDayMode ? "bg-white border-slate-200/90 shadow-[0_24px_72px_rgba(15,23,42,0.16)]" : "bg-[#0f0f0f] border-white/10 shadow-2xl"}`}
+                className={`w-full max-w-5xl overscroll-contain relative flex flex-col ${
+                  useMiniProgramModalScroll
+                    ? "min-h-[100dvh] rounded-none border-0 overflow-visible"
+                    : isMobileViewport
+                      ? "min-h-[100dvh] max-h-[100dvh] rounded-none border-0 overflow-hidden"
+                      : "min-h-[100dvh] md:min-h-0 max-h-[100dvh] md:max-h-[90vh] rounded-t-[7px] md:rounded-[7px] border-x-0 border-b-0 md:border overflow-hidden"
+                } ${isDayMode ? "bg-white border-slate-200/90 shadow-[0_24px_72px_rgba(15,23,42,0.16)]" : "bg-[#0f0f0f] border-white/10 shadow-2xl"}`}
                 onClick={(e) => e.stopPropagation()}
               >
                 {!isMobileViewport && (
@@ -2530,7 +2546,13 @@ END:VCALENDAR`;
                     </span>
                   </button>
                 )}
-                <div className="relative flex-1 overflow-y-auto overscroll-contain custom-scrollbar">
+                <div
+                  className={`relative overscroll-contain custom-scrollbar ${
+                    useMiniProgramModalScroll
+                      ? "flex-none overflow-visible"
+                      : "flex-1 overflow-y-auto"
+                  }`}
+                >
                   {!isMobileViewport && showLegacyHeaderImage && (
                     <>
                       {/* Modal Header Image */}
