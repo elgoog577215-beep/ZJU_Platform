@@ -138,7 +138,7 @@ test.describe("event detail layout regression", () => {
       .toBeGreaterThan(before.scrollTop);
   });
 
-  test("miniapp mobile detail routes share through the WeChat bridge", async ({
+  test("miniapp mobile detail syncs native share data and hides web upload/share buttons", async ({
     page,
     request,
   }) => {
@@ -165,14 +165,14 @@ test.describe("event detail layout regression", () => {
 
     await page.goto(`/events?id=${event.id}&miniapp=1&miniapp_nav_inset=112`);
     await expect(page.getByRole("dialog", { name: event.title })).toBeVisible();
-    await page.getByTestId("event-detail-share-mobile").click();
+    await expect(page.getByTestId("event-detail-share-mobile")).toHaveCount(0);
 
     await expect
       .poll(() => page.evaluate(() => window.__miniShareMessages.length))
-      .toBe(1);
+      .toBeGreaterThan(0);
 
     const result = await page.evaluate(() => ({
-      message: window.__miniShareMessages[0],
+      message: window.__miniShareMessages.at(-1),
       webShareCalled: window.__webShareCalled,
     }));
     expect(result.webShareCalled).toBe(false);
@@ -180,6 +180,9 @@ test.describe("event detail layout regression", () => {
     expect(result.message.data.payload.title).toBe(event.title);
     expect(result.message.data.payload.path).toBe(`/events?id=${event.id}`);
     expect(result.message.data.payload.url).toContain(`/events?id=${event.id}`);
+
+    await page.goto("/events?miniapp=1&miniapp_nav_inset=112");
+    await expect(page.locator('[aria-label="创建活动"]')).toHaveCount(0);
   });
 
   test("desktop detail keeps the close button topmost above the hero overlay", async ({

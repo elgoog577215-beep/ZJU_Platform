@@ -90,6 +90,19 @@ const getEventTags = (event = {}) =>
     .map((tag) => tag.trim())
     .filter(Boolean);
 
+const buildEventShareData = (event) => {
+  if (!event || typeof window === "undefined") return null;
+  const shareUrl = new URL("/events", window.location.origin);
+  shareUrl.searchParams.set("id", String(event.id));
+  return {
+    title: event.title,
+    text: `${event.title}\n${event.date}\n${event.location}\n\n${event.description}`,
+    url: shareUrl.toString(),
+    path: `/events?id=${encodeURIComponent(String(event.id))}`,
+    imageUrl: getEventCoverUrl(event),
+  };
+};
+
 const isCollegeNoticeEvent = (event = {}) =>
   Boolean(Number(event.is_college_notice)) ||
   getEventTags(event).includes(COLLEGE_NOTICE_TAG);
@@ -1144,6 +1157,7 @@ const Events = () => {
   // Listen for global events from Navbar
   useEffect(() => {
     const handleOpenUpload = (e) => {
+      if (isMiniProgramMode) return;
       if (e.detail.type === "event") setIsUploadOpen(true);
     };
 
@@ -1151,7 +1165,7 @@ const Events = () => {
     return () => {
       window.removeEventListener("open-upload-modal", handleOpenUpload);
     };
-  }, []);
+  }, [isMiniProgramMode]);
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
@@ -1616,16 +1630,8 @@ END:VCALENDAR`;
 
   const handleShare = async () => {
     if (!selectedEvent) return;
-    const shareUrl = new URL("/events", window.location.origin);
-    shareUrl.searchParams.set("id", String(selectedEvent.id));
-    const sharePath = `/events?id=${encodeURIComponent(String(selectedEvent.id))}`;
-    const shareData = {
-      title: selectedEvent.title,
-      text: `${selectedEvent.title}\n${selectedEvent.date}\n${selectedEvent.location}\n\n${selectedEvent.description}`,
-      url: shareUrl.toString(),
-      path: sharePath,
-      imageUrl: getEventCoverUrl(selectedEvent),
-    };
+    const shareData = buildEventShareData(selectedEvent);
+    if (!shareData) return;
 
     if (isMiniProgramWebView()) {
       try {
@@ -1650,6 +1656,17 @@ END:VCALENDAR`;
       handleCopyInfo();
     }
   };
+
+  useEffect(() => {
+    if (!isMiniProgramMode || !selectedEvent) return;
+    const shareData = buildEventShareData(selectedEvent);
+    if (!shareData) return;
+    shareViaMiniProgram(shareData).catch((error) => {
+      if (process.env.NODE_ENV === "development") {
+        console.warn("Failed to sync mini program share payload:", error);
+      }
+    });
+  }, [isMiniProgramMode, selectedEvent]);
 
   const handleCopyInfo = () => {
     if (!selectedEvent) return;
@@ -2012,6 +2029,7 @@ END:VCALENDAR`;
           </p>
         </div>
 
+        {!isMiniProgramMode && (
         <div className={`${EVENT_CONTENT_WIDTH_CLASS} hidden -mt-7 items-center justify-end gap-2 md:flex mb-2`}>
           <button
             type="button"
@@ -2029,6 +2047,7 @@ END:VCALENDAR`;
             {t("common.create_event")}
           </button>
         </div>
+        )}
 
         {/* Desktop Filter Section */}
         <div className={`${EVENT_FILTER_WIDTH_CLASS} hidden md:block mb-5`}>
@@ -2479,21 +2498,23 @@ END:VCALENDAR`;
               {t("advanced_filter.clear", "清除所有筛选")}
             </button>
           )}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => {
-              if (!user) {
-                toast.error(t("auth.signin_required"));
-                return;
-              }
-              setIsUploadOpen(true);
-            }}
-            className={`px-8 py-3.5 text-white font-bold transition-all flex items-center gap-3 ${isDayMode ? dayPrimaryActionClass : "rect-button-primary"}`}
-          >
-            <Plus size={20} />
-            {t("common.create_event")}
-          </motion.button>
+          {!isMiniProgramMode && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                if (!user) {
+                  toast.error(t("auth.signin_required"));
+                  return;
+                }
+                setIsUploadOpen(true);
+              }}
+              className={`px-8 py-3.5 text-white font-bold transition-all flex items-center gap-3 ${isDayMode ? dayPrimaryActionClass : "rect-button-primary"}`}
+            >
+              <Plus size={20} />
+              {t("common.create_event")}
+            </motion.button>
+          )}
         </div>
       )}
 
@@ -2790,15 +2811,17 @@ END:VCALENDAR`;
                         >
                           <ArrowRight size={18} className="rotate-180" />
                         </button>
-                        <button
-                          type="button"
-                          aria-label={t("common.share", "分享")}
-                          data-testid="event-detail-share-mobile"
-                          onClick={handleShare}
-                          className="absolute right-3 top-3 z-20 inline-flex h-9 w-9 items-center justify-center rounded-[6px] bg-black/35 text-white backdrop-blur-md"
-                        >
-                          <Share2 size={17} />
-                        </button>
+                        {!isMiniProgramMode && (
+                          <button
+                            type="button"
+                            aria-label={t("common.share", "分享")}
+                            data-testid="event-detail-share-mobile"
+                            onClick={handleShare}
+                            className="absolute right-3 top-3 z-20 inline-flex h-9 w-9 items-center justify-center rounded-[6px] bg-black/35 text-white backdrop-blur-md"
+                          >
+                            <Share2 size={17} />
+                          </button>
+                        )}
                         <span className="absolute left-3 top-14 z-20 rounded-[5px] bg-black/62 px-2 py-1 text-[10px] font-black leading-4 text-white">
                           {formatDateTime(selectedEvent.date).split(" ")[0]}
                         </span>
