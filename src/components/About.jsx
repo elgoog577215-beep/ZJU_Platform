@@ -573,7 +573,13 @@ const About = () => {
                 {t("about.ecosystem.hero.brand", "拓浙 AI 生态")}
               </div>
 
-              <h1 className="mt-4 max-w-5xl text-4xl font-black leading-[0.94] tracking-normal sm:mt-7 sm:text-6xl md:text-7xl lg:mt-6 lg:text-6xl xl:text-[4.35rem] 2xl:text-[5.35rem]">
+              <h1
+                className={`mt-4 max-w-5xl font-black leading-[0.94] tracking-normal sm:mt-7 lg:mt-6 ${
+                  isEnglish
+                    ? "text-4xl sm:text-5xl md:text-6xl lg:text-5xl xl:text-[3.55rem] 2xl:text-[4.6rem]"
+                    : "text-4xl sm:text-6xl md:text-7xl lg:text-6xl xl:text-[4.35rem] 2xl:text-[5.35rem]"
+                }`}
+              >
                 <span className="block">
                   {t("about.ecosystem.hero.title_1", "让 AI 学习、")}
                 </span>
@@ -637,15 +643,19 @@ const About = () => {
                   <span>{t("about.ecosystem.brief.status", "Running")}</span>
                 </div>
                 <div>
-                  <p className="text-4xl font-black leading-[0.98] 2xl:text-5xl">
-                    <span
-                      className={`mr-3 inline-block text-6xl leading-none 2xl:text-7xl ${palette.accent}`}
-                    >
-                      3
+                  <p className="max-w-2xl text-4xl font-black leading-[0.98] 2xl:text-5xl">
+                    <span className={`block ${palette.accent}`}>
+                      {t(
+                        "about.ecosystem.brief.title_1",
+                        "真实需求进校园",
+                      )}
                     </span>
-                    {t("about.ecosystem.brief.title_1", "项业务")}
-                    <br />
-                    {t("about.ecosystem.brief.title_2", "共同支撑")}
+                    <span className="block">
+                      {t(
+                        "about.ecosystem.brief.title_2",
+                        "学生成果通产业",
+                      )}
+                    </span>
                   </p>
                   <p
                     className={`mt-4 max-w-2xl text-base font-bold leading-7 2xl:text-lg 2xl:leading-8 ${palette.textSoft}`}

@@ -875,17 +875,17 @@
     "projects": "Projects",
     "ecosystem": {
       "meta_title": "ZJU AI Ecosystem",
-      "meta_desc": "Learn how the ZJU AI Ecosystem connects students, colleges, enterprises, and real AI scenarios through an information platform, AI growth system, and ZJUHack series.",
+      "meta_desc": "Learn how the ZJU AI Ecosystem brings real AI briefs onto campus and helps students move from learning, projects, competitions, and recognition into industry opportunities.",
       "pagination_aria": "About page sections",
       "hero": {
         "brand": "ZJU AI Ecosystem",
-        "title_1": "Turn AI learning,",
-        "title_2": "real projects, and industry pathways",
-        "title_3": "into a campus ecosystem.",
-        "strong": "Starting from Zhejiang University, we connect opportunities, learning, projects, and campus-enterprise pathways.",
-        "desc": "The information platform, AI growth system, and ZJUHack help students turn AI learning into work and opportunity.",
-        "primary_cta": "Enter Platform",
-        "secondary_cta": "Explore Businesses"
+        "title_1": "AI briefs enter campus,",
+        "title_2": "student work",
+        "title_3": "reaches industry.",
+        "strong": "Starting from Zhejiang University, we connect campus talent with real AI scenarios.",
+        "desc": "Tuotu ZJU, the AI growth system, and ZJUHack turn learning into deliverable projects, recognition, internships, and incubation.",
+        "primary_cta": "Enter Ecosystem",
+        "secondary_cta": "View the Loop"
       },
       "stats": {
         "users": "Registered Users",
@@ -897,9 +897,9 @@
       "brief": {
         "eyebrow": "Ecosystem Brief",
         "status": "Running",
-        "title_1": "businesses",
-        "title_2": "working together",
-        "desc": "The platform creates reach, the growth system carries learning, and ZJUHack closes the practice loop."
+        "title_1": "Real briefs enter campus",
+        "title_2": "outcomes reach industry",
+        "desc": "Enterprises, public-sector teams, professors, and campus units bring real scenarios. The ecosystem turns them into student-deliverable projects, then connects recognition to internships, jobs, and incubation."
       },
       "loop": {
         "discover": "Discover",
