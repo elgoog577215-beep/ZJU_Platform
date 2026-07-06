@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
@@ -45,16 +45,100 @@ const heroReveal = (enabled, delay = 0) => {
   };
 };
 
+const useAboutHeroScale = () => {
+  const stageRef = useRef(null);
+  const [frame, setFrame] = useState({ scale: 1, height: null });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    const stage = stageRef.current;
+    if (!stage) return undefined;
+
+    let frameId = 0;
+    let timeoutId = 0;
+
+    const measure = () => {
+      const viewportWidth =
+        window.visualViewport?.width || window.innerWidth || 0;
+      const shouldScale = viewportWidth >= 1024;
+
+      if (!shouldScale) {
+        setFrame((current) =>
+          current.scale === 1 && current.height === null
+            ? current
+            : { scale: 1, height: null },
+        );
+        return;
+      }
+
+      const section = stage.closest("#about-hero");
+      const sectionRect = section?.getBoundingClientRect();
+      const stageRect = stage.getBoundingClientRect();
+      const stageTop = sectionRect
+        ? Math.max(stageRect.top - sectionRect.top, 0)
+        : 0;
+      const stageHeight = stage.offsetHeight;
+      const sectionHeight = section?.clientHeight || window.innerHeight || 0;
+      const bottomBreathingRoom = viewportWidth >= 1280 ? 32 : 24;
+      const availableHeight = Math.max(
+        360,
+        sectionHeight - stageTop - bottomBreathingRoom,
+      );
+      const nextScale = Math.min(1, availableHeight / Math.max(stageHeight, 1));
+      const normalizedScale = Number(nextScale.toFixed(4));
+      const nextHeight =
+        normalizedScale < 0.999
+          ? Math.ceil(stageHeight * normalizedScale)
+          : null;
+
+      setFrame((current) => {
+        const sameScale = Math.abs(current.scale - normalizedScale) < 0.002;
+        const sameHeight = current.height === nextHeight;
+        return sameScale && sameHeight
+          ? current
+          : { scale: normalizedScale, height: nextHeight };
+      });
+    };
+
+    const scheduleMeasure = () => {
+      window.cancelAnimationFrame(frameId);
+      frameId = window.requestAnimationFrame(measure);
+    };
+
+    const observer = new ResizeObserver(scheduleMeasure);
+    observer.observe(stage);
+    scheduleMeasure();
+    timeoutId = window.setTimeout(scheduleMeasure, 420);
+
+    window.addEventListener("resize", scheduleMeasure);
+    window.visualViewport?.addEventListener?.("resize", scheduleMeasure);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.clearTimeout(timeoutId);
+      observer.disconnect();
+      window.removeEventListener("resize", scheduleMeasure);
+      window.visualViewport?.removeEventListener?.("resize", scheduleMeasure);
+    };
+  }, []);
+
+  return [stageRef, frame];
+};
+
 const About = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { uiMode } = useSettings();
   const { enterpriseLogos } = useEcosystemPartners();
   const reduceMotion = useReducedMotion();
   const shouldAnimate = !reduceMotion;
   const isDayMode = uiMode === "day";
+  const isEnglish =
+    i18n.resolvedLanguage?.startsWith("en") || i18n.language?.startsWith("en");
   const enterpriseLogoWall = enterpriseLogos.filter((logo) =>
     getPartnerLogoSrc(logo, isDayMode),
   );
+  const [heroStageRef, heroStageFrame] = useAboutHeroScale();
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
@@ -404,6 +488,17 @@ const About = () => {
 
   const sectionBaseClass =
     "relative flex min-h-[100svh] scroll-mt-0 flex-col overflow-hidden px-4 pb-[calc(5.25rem+env(safe-area-inset-bottom))] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:px-6 sm:py-20 lg:h-[100svh] lg:snap-start lg:snap-always lg:pb-[clamp(1rem,3vh,2.5rem)] lg:pl-10 lg:pr-28 lg:pt-[calc(env(safe-area-inset-top)+clamp(4.5rem,8.2vh,5.125rem))] 2xl:pl-16 2xl:pr-36";
+  const heroStageShellStyle = heroStageFrame.height
+    ? { height: `${heroStageFrame.height}px` }
+    : undefined;
+  const heroStageStyle =
+    heroStageFrame.scale < 0.999
+      ? {
+          width: `${100 / heroStageFrame.scale}%`,
+          transform: `scale(${heroStageFrame.scale})`,
+          transformOrigin: "top left",
+        }
+      : undefined;
 
   return (
     <div
@@ -426,7 +521,7 @@ const About = () => {
           <a
             key={href}
             href={href}
-            className={`group flex h-12 w-12 items-center justify-center border text-[11px] font-black transition duration-300 focus:outline-none focus:ring-4 focus:ring-cyan-300/25 ${
+            className={`group flex h-14 w-14 items-center justify-center border text-sm font-black transition duration-300 focus:outline-none focus:ring-4 focus:ring-cyan-300/25 ${
               isDayMode
                 ? "border-slate-200 bg-white/74 text-slate-500 hover:border-cyan-500/40 hover:text-cyan-700"
                 : "border-white/10 bg-white/[0.045] text-white/42 hover:border-cyan-300/50 hover:text-cyan-200"
@@ -450,67 +545,151 @@ const About = () => {
           ECOSYSTEM
         </div>
 
-        <div className="relative z-10 mx-auto grid min-h-[calc(100svh-88px)] w-full max-w-[2140px] content-start gap-5 pt-4 sm:gap-7 sm:pt-8 lg:min-h-[calc(100svh-118px)] lg:content-center lg:items-center lg:gap-10 lg:pt-0 xl:grid-cols-[minmax(0,1fr)_minmax(540px,680px)] xl:gap-12 2xl:grid-cols-[minmax(0,0.92fr)_minmax(640px,760px)] 2xl:gap-14">
-          <motion.div {...heroReveal(shouldAnimate)} className="max-w-[980px]">
-            <div
-              className={`inline-flex items-center gap-2 border px-3 py-1.5 text-[10px] font-black uppercase sm:px-3.5 sm:py-2 sm:text-xs ${palette.label} ${
-                isDayMode
-                  ? "border-cyan-500/30 bg-cyan-500/8"
-                  : "border-cyan-300/30 bg-cyan-300/[0.07]"
-              }`}
+        <div
+          className="relative z-10 mx-auto w-full max-w-[2140px] overflow-hidden"
+          data-about-hero-stage-shell
+          style={heroStageShellStyle}
+        >
+          <div
+            ref={heroStageRef}
+            data-about-hero-stage
+            style={heroStageStyle}
+            className="grid min-h-[calc(100svh-88px)] w-full content-start gap-5 pt-4 will-change-transform sm:gap-7 sm:pt-8 lg:min-h-[calc(100svh-118px)] lg:content-center lg:items-center lg:gap-10 lg:pt-0 xl:grid-cols-[minmax(0,1fr)_minmax(540px,680px)] xl:gap-12 2xl:grid-cols-[minmax(0,1fr)_minmax(700px,860px)] 2xl:gap-16"
+          >
+            <motion.div
+              {...heroReveal(shouldAnimate)}
+              className="max-w-[1040px]"
             >
-              <span
-                className={`h-2 w-2 ${palette.accentBg} shadow-[0_0_22px_rgba(103,232,249,0.72)]`}
-              />
-              {t("about.ecosystem.hero.brand", "拓浙 AI 生态")}
-            </div>
+              <div
+                className={`inline-flex items-center gap-2 border px-3 py-1.5 text-xs font-black uppercase sm:px-3.5 sm:py-2 sm:text-sm ${palette.label} ${
+                  isDayMode
+                    ? "border-cyan-500/30 bg-cyan-500/8"
+                    : "border-cyan-300/30 bg-cyan-300/[0.07]"
+                }`}
+              >
+                <span
+                  className={`h-2 w-2 ${palette.accentBg} shadow-[0_0_22px_rgba(103,232,249,0.72)]`}
+                />
+                {t("about.ecosystem.hero.brand", "拓浙 AI 生态")}
+              </div>
 
-            <h1 className="mt-4 max-w-6xl text-4xl font-black leading-[0.98] tracking-normal sm:mt-7 sm:text-6xl md:text-7xl lg:mt-6 lg:text-7xl 2xl:text-8xl">
-              <span className="block">
-                {t("about.ecosystem.hero.title_1", "让 AI 学习、")}
-              </span>
-              <span className="block">
-                {t("about.ecosystem.hero.title_2", "真实项目与产业机会，")}
-              </span>
-              <span className={`block ${palette.accent}`}>
-                {t("about.ecosystem.hero.title_3", "在校园里连成生态。")}
-              </span>
-            </h1>
+              <h1 className="mt-4 max-w-5xl text-4xl font-black leading-[0.94] tracking-normal sm:mt-7 sm:text-6xl md:text-7xl lg:mt-6 lg:text-6xl xl:text-[4.35rem] 2xl:text-[5.35rem]">
+                <span className="block">
+                  {t("about.ecosystem.hero.title_1", "让 AI 学习、")}
+                </span>
+                <span className="block">
+                  {t("about.ecosystem.hero.title_2", "真实项目与产业机会，")}
+                </span>
+                <span className={`block ${palette.accent}`}>
+                  {t("about.ecosystem.hero.title_3", "在校园里连成生态。")}
+                </span>
+              </h1>
 
-            <p
-              className={`mt-4 max-w-4xl text-sm font-medium leading-6 sm:mt-6 sm:text-xl sm:leading-9 lg:text-lg lg:leading-8 ${palette.textSoft}`}
-            >
-              <strong className={isDayMode ? "text-slate-950" : "text-white"}>
+              <p
+                className={`mt-4 max-w-3xl text-sm font-medium leading-6 sm:mt-6 sm:text-lg sm:leading-8 lg:text-base lg:leading-7 2xl:text-lg 2xl:leading-8 ${palette.textSoft}`}
+              >
+                <strong className={isDayMode ? "text-slate-950" : "text-white"}>
+                  {t(
+                    "about.ecosystem.hero.strong",
+                    "从浙江大学出发，连接机会、学习、项目与校企通道。",
+                  )}
+                </strong>{" "}
                 {t(
-                  "about.ecosystem.hero.strong",
-                  "以浙江大学为起点，连接学生、学院、企业与真实 AI 场景。",
+                  "about.ecosystem.hero.desc",
+                  "信息共享平台、AI 培养体系与浙客松，让学生把 AI 学习落成作品和机会。",
                 )}
-              </strong>{" "}
-              {t(
-                "about.ecosystem.hero.desc",
-                "通过信息共享平台、AI 生态培养体系与浙客松系列黑客松，让学生从发现机会、学习 AI、参与项目，到获得校企认定与实习就业通道。",
-              )}
-            </p>
+              </p>
 
-            <div className="mt-5 flex flex-wrap gap-3 lg:mt-8">
-              <Link
-                to="/events"
-                className={`inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 sm:px-7 ${palette.primary}`}
-              >
-                <Rocket className="h-4 w-4" />
-                {t("about.ecosystem.hero.primary_cta", "进入平台")}
-              </Link>
-              <a
-                href="#business-lines"
-                className={`inline-flex min-h-12 items-center justify-center gap-2 border px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/25 sm:px-7 ${palette.secondary}`}
-              >
-                <BookOpen className="h-4 w-4" />
-                {t("about.ecosystem.hero.secondary_cta", "了解三项业务")}
-              </a>
-            </div>
+              <div className="mt-5 flex flex-wrap gap-3 lg:mt-7">
+                <Link
+                  to="/events"
+                  className={`inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 sm:px-7 ${palette.primary}`}
+                >
+                  <Rocket className="h-4 w-4" />
+                  {t("about.ecosystem.hero.primary_cta", "进入平台")}
+                </Link>
+                <a
+                  href="#business-lines"
+                  className={`inline-flex min-h-12 items-center justify-center gap-2 border px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/25 sm:px-7 ${palette.secondary}`}
+                >
+                  <BookOpen className="h-4 w-4" />
+                  {t("about.ecosystem.hero.secondary_cta", "了解三项业务")}
+                </a>
+              </div>
+            </motion.div>
 
-            <div
-              className={`mt-5 grid max-w-5xl grid-cols-2 gap-px overflow-hidden border sm:mt-7 sm:grid-cols-5 ${
+            <motion.aside
+              {...heroReveal(shouldAnimate, 0.12)}
+              className={`relative hidden min-h-[560px] overflow-hidden border p-7 backdrop-blur-2xl xl:block 2xl:min-h-[650px] 2xl:p-8 ${palette.panelStrong}`}
+            >
+              <div
+                className={`pointer-events-none absolute -right-12 -top-10 text-[8rem] font-black uppercase leading-none ${palette.watermark}`}
+              >
+                LOOP
+              </div>
+              <div className="relative z-10 flex min-h-[506px] flex-col justify-between 2xl:min-h-[586px]">
+                <div
+                  className={`flex items-center justify-between text-xs font-black uppercase 2xl:text-sm ${palette.label}`}
+                >
+                  <span>
+                    {t("about.ecosystem.brief.eyebrow", "Ecosystem Brief")}
+                  </span>
+                  <span>{t("about.ecosystem.brief.status", "Running")}</span>
+                </div>
+                <div>
+                  <p className="text-4xl font-black leading-[0.98] 2xl:text-5xl">
+                    <span
+                      className={`mr-3 inline-block text-6xl leading-none 2xl:text-7xl ${palette.accent}`}
+                    >
+                      3
+                    </span>
+                    {t("about.ecosystem.brief.title_1", "项业务")}
+                    <br />
+                    {t("about.ecosystem.brief.title_2", "共同支撑")}
+                  </p>
+                  <p
+                    className={`mt-4 max-w-2xl text-base font-bold leading-7 2xl:text-lg 2xl:leading-8 ${palette.textSoft}`}
+                  >
+                    {t(
+                      "about.ecosystem.brief.desc",
+                      "信息入口负责触达，培养体系承接成长，浙客松完成实战闭环。",
+                    )}
+                  </p>
+                </div>
+                <div
+                  className={`grid gap-px overflow-hidden border ${isDayMode ? "border-cyan-500/18 bg-cyan-500/18" : "border-cyan-300/18 bg-cyan-300/18"}`}
+                >
+                  {loopItems.map((item) => (
+                    <div
+                      key={item.index}
+                      className={`grid grid-cols-[5.5rem_1fr] gap-5 px-7 py-5 2xl:grid-cols-[6rem_1fr] 2xl:px-8 2xl:py-6 ${
+                        isDayMode ? "bg-white/92" : "bg-[#030a0c]/94"
+                      }`}
+                    >
+                      <div
+                        className={`font-mono text-2xl font-black leading-none 2xl:text-3xl ${palette.accent}`}
+                      >
+                        {item.index}
+                      </div>
+                      <div>
+                        <div className="text-2xl font-black 2xl:text-3xl">
+                          {item.title}
+                        </div>
+                        <p
+                          className={`mt-1.5 text-base leading-6 2xl:text-lg 2xl:leading-7 ${palette.textMuted}`}
+                        >
+                          {item.detail}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.aside>
+
+            <motion.div
+              {...heroReveal(shouldAnimate, 0.18)}
+              className={`grid w-full grid-cols-2 gap-px overflow-hidden border sm:grid-cols-5 xl:col-span-2 ${
                 isDayMode
                   ? "border-cyan-500/18 bg-cyan-500/18"
                   : "border-cyan-300/18 bg-cyan-300/18"
@@ -519,91 +698,24 @@ const About = () => {
               {proofStats.map((item) => (
                 <div
                   key={item.label}
-                  className={`min-h-[82px] p-3 sm:p-4 lg:min-h-[104px] lg:p-5 ${
+                  className={`flex min-h-[82px] flex-col justify-center p-3 sm:p-4 lg:min-h-[118px] lg:p-4 2xl:min-h-[144px] 2xl:p-6 ${
                     isDayMode ? "bg-white/82" : "bg-[#071113]/82"
                   }`}
                 >
                   <div
-                    className={`text-2xl font-black leading-none sm:text-3xl lg:text-4xl ${palette.accent}`}
+                    className={`text-2xl font-black leading-none sm:text-3xl lg:text-[2.55rem] xl:text-[2.9rem] 2xl:text-[3.75rem] ${palette.accent}`}
                   >
                     {item.value}
                   </div>
                   <p
-                    className={`mt-2 text-[11px] font-bold leading-4 sm:text-xs ${palette.textMuted}`}
+                    className={`mt-2 text-[10px] font-bold leading-3 sm:text-xs lg:text-xs lg:leading-4 2xl:text-sm 2xl:leading-5 ${palette.textMuted}`}
                   >
                     {item.label}
                   </p>
                 </div>
               ))}
-            </div>
-          </motion.div>
-
-          <motion.aside
-            {...heroReveal(shouldAnimate, 0.12)}
-            className={`relative hidden min-h-[600px] overflow-hidden border p-7 backdrop-blur-2xl xl:block 2xl:min-h-[680px] 2xl:p-8 ${palette.panelStrong}`}
-          >
-            <div
-              className={`pointer-events-none absolute -right-12 -top-10 text-[8rem] font-black uppercase leading-none ${palette.watermark}`}
-            >
-              LOOP
-            </div>
-            <div className="relative z-10 flex min-h-[546px] flex-col justify-between 2xl:min-h-[616px]">
-              <div
-                className={`flex items-center justify-between text-[11px] font-black uppercase ${palette.label}`}
-              >
-                <span>
-                  {t("about.ecosystem.brief.eyebrow", "Ecosystem Brief")}
-                </span>
-                <span>{t("about.ecosystem.brief.status", "Running")}</span>
-              </div>
-              <div>
-                <div
-                  className={`text-8xl font-black leading-[0.82] 2xl:text-9xl ${palette.accent}`}
-                >
-                  3
-                </div>
-                <p className="mt-4 text-4xl font-black leading-tight 2xl:text-5xl">
-                  {t("about.ecosystem.brief.title_1", "三项业务")}
-                  <br />
-                  {t("about.ecosystem.brief.title_2", "共同支撑")}
-                </p>
-                <p
-                  className={`mt-4 max-w-lg text-base font-bold leading-7 2xl:text-lg 2xl:leading-8 ${palette.textSoft}`}
-                >
-                  {t(
-                    "about.ecosystem.brief.desc",
-                    "信息入口带来触达，AI 生态培养体系承接成长，浙客松把真实问题压缩成可验证的实战场。",
-                  )}
-                </p>
-              </div>
-              <div
-                className={`grid gap-px overflow-hidden border ${isDayMode ? "border-cyan-500/18 bg-cyan-500/18" : "border-cyan-300/18 bg-cyan-300/18"}`}
-              >
-                {loopItems.map((item) => (
-                  <div
-                    key={item.index}
-                    className={`grid grid-cols-[3.5rem_1fr] gap-4 px-6 py-4 ${
-                      isDayMode ? "bg-white/92" : "bg-[#030a0c]/94"
-                    }`}
-                  >
-                    <div
-                      className={`font-mono text-xs font-black ${palette.accent}`}
-                    >
-                      {item.index}
-                    </div>
-                    <div>
-                      <div className="text-xl font-black">{item.title}</div>
-                      <p
-                        className={`mt-1 text-sm leading-5 ${palette.textMuted}`}
-                      >
-                        {item.detail}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </motion.aside>
+            </motion.div>
+          </div>
         </div>
       </section>
 
@@ -624,7 +736,7 @@ const About = () => {
           <div className="relative z-10 mx-auto flex min-h-0 w-full max-w-[2140px] flex-1 flex-col justify-center">
             <div className="grid gap-5 lg:grid-cols-[minmax(0,0.86fr)_minmax(360px,0.7fr)] lg:items-end lg:gap-10 2xl:gap-14">
               <div className="max-w-[960px]">
-                <p className={`text-xs font-black uppercase ${palette.label}`}>
+                <p className={`text-sm font-black uppercase ${palette.label}`}>
                   Resource Support
                 </p>
                 <h2 className="mt-3 max-w-5xl text-3xl font-black leading-tight tracking-normal sm:text-6xl lg:text-6xl 2xl:text-7xl">
@@ -652,6 +764,20 @@ const About = () => {
             <div className="-mx-4 mt-5 grid auto-cols-[86%] grid-flow-col gap-3 overflow-x-auto px-4 pb-1 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:grid-flow-row sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 sm:[scrollbar-width:auto] lg:mt-8 lg:h-[clamp(28rem,56vh,42rem)] lg:min-h-0 lg:grid-cols-4 lg:gap-5 2xl:gap-7 [&::-webkit-scrollbar]:hidden sm:[&::-webkit-scrollbar]:block">
               {supportGroups.map((group) => {
                 const Icon = group.icon;
+                const textItemCount = group.items?.length || 0;
+                const isSingleSupportItem = textItemCount === 1;
+                const supportItemGridClass =
+                  textItemCount <= 1 ? "grid-cols-1" : "grid-cols-2";
+                const supportItemTextClass =
+                  isEnglish && textItemCount > 1
+                    ? textItemCount <= 4
+                      ? "text-xs sm:text-[13px] 2xl:text-sm"
+                      : "text-[11px] sm:text-xs 2xl:text-sm"
+                    : textItemCount <= 1
+                      ? "text-xl sm:text-2xl lg:text-xl 2xl:text-2xl"
+                      : textItemCount <= 4
+                        ? "text-base sm:text-lg 2xl:text-xl"
+                        : "text-sm sm:text-base 2xl:text-lg";
                 return (
                   <article
                     key={group.code}
@@ -665,7 +791,7 @@ const About = () => {
                     <div className="relative z-10 flex h-full flex-col">
                       <div className="flex items-start justify-between gap-4">
                         <div
-                          className={`font-mono text-xs font-black uppercase ${palette.accent}`}
+                          className={`font-mono text-sm font-black uppercase 2xl:text-base ${palette.accent}`}
                         >
                           {group.index} / {group.code}
                         </div>
@@ -729,20 +855,34 @@ const About = () => {
                         ) : null
                       ) : (
                         <div
-                          className={`mt-5 flex flex-wrap gap-2 border-t pt-5 ${palette.divider}`}
+                          className={`border-t ${
+                            isSingleSupportItem
+                              ? "mt-auto pt-5"
+                              : `flex min-h-0 flex-1 flex-col ${isEnglish ? "mt-4 pt-4" : "mt-6 pt-5"}`
+                          } ${palette.divider}`}
                         >
-                          {group.items.map((item) => (
-                            <span
-                              key={item}
-                              className={`border px-2.5 py-1.5 text-xs font-bold ${
-                                isDayMode
-                                  ? "border-slate-200 bg-white/72 text-slate-700"
-                                  : "border-white/10 bg-white/[0.045] text-white/72"
-                              }`}
-                            >
-                              {item}
-                            </span>
-                          ))}
+                          <div
+                            className={`grid ${supportItemGridClass} ${
+                              isSingleSupportItem
+                                ? "min-h-[92px] sm:min-h-[104px] lg:min-h-[108px]"
+                                : isEnglish
+                                  ? "min-h-0 flex-1 content-start gap-1.5"
+                                  : "min-h-[144px] flex-1 gap-2.5 sm:min-h-[156px] lg:min-h-0"
+                            }`}
+                          >
+                            {group.items.map((item) => (
+                              <span
+                                key={item}
+                                className={`flex min-w-0 items-center justify-center break-words border text-center font-black leading-tight ${isEnglish ? "px-1.5 py-1.5" : "px-1.5 py-3"} ${supportItemTextClass} ${
+                                  isDayMode
+                                    ? "border-slate-200 bg-white/80 text-slate-800"
+                                    : "border-white/10 bg-white/[0.055] text-white/82"
+                                }`}
+                              >
+                                {item}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -765,7 +905,7 @@ const About = () => {
           </div>
           <div className="relative z-10 mx-auto flex min-h-0 w-full max-w-[2140px] flex-1 flex-col justify-center">
             <div className="max-w-5xl">
-              <p className={`text-xs font-black uppercase ${palette.label}`}>
+              <p className={`text-sm font-black uppercase ${palette.label}`}>
                 Three Businesses
               </p>
               <h2 className="mt-3 text-3xl font-black leading-tight tracking-normal sm:text-6xl lg:text-6xl 2xl:text-7xl">
@@ -831,7 +971,7 @@ const About = () => {
                     <div className="relative z-10 flex h-full flex-col">
                       <div className="flex items-start justify-between gap-4">
                         <div
-                          className={`font-mono text-xs font-black uppercase ${accentClass}`}
+                          className={`font-mono text-sm font-black uppercase 2xl:text-base ${accentClass}`}
                         >
                           {item.index} / {item.code}
                         </div>
@@ -897,7 +1037,7 @@ const About = () => {
           />
           <div className="relative z-10 mx-auto grid min-h-0 w-full max-w-[2140px] flex-1 gap-6 lg:grid-cols-[minmax(0,0.78fr)_minmax(520px,0.92fr)] lg:items-center lg:gap-10 2xl:gap-14">
             <div>
-              <p className={`text-xs font-black uppercase ${palette.label}`}>
+              <p className={`text-sm font-black uppercase ${palette.label}`}>
                 Join the Ecosystem
               </p>
               <h2 className="mt-3 max-w-4xl text-4xl font-black leading-tight tracking-normal sm:text-6xl lg:text-7xl">

@@ -882,8 +882,8 @@
         "title_1": "Turn AI learning,",
         "title_2": "real projects, and industry pathways",
         "title_3": "into a campus ecosystem.",
-        "strong": "Starting from Zhejiang University, we connect students, colleges, companies, and real AI scenarios.",
-        "desc": "Through the information platform, AI ecosystem growth system, and ZJUHack series, students move from discovering opportunities and learning AI to building projects, earning recognition, and reaching internships or career pathways.",
+        "strong": "Starting from Zhejiang University, we connect opportunities, learning, projects, and campus-enterprise pathways.",
+        "desc": "The information platform, AI growth system, and ZJUHack help students turn AI learning into work and opportunity.",
         "primary_cta": "Enter Platform",
         "secondary_cta": "Explore Businesses"
       },
@@ -897,9 +897,9 @@
       "brief": {
         "eyebrow": "Ecosystem Brief",
         "status": "Running",
-        "title_1": "Three businesses",
+        "title_1": "businesses",
         "title_2": "working together",
-        "desc": "The information entry creates reach, the AI ecosystem growth system carries development, and ZJUHack compresses real problems into verifiable practice."
+        "desc": "The platform creates reach, the growth system carries learning, and ZJUHack closes the practice loop."
       },
       "loop": {
         "discover": "Discover",
