@@ -586,7 +586,7 @@ const About = () => {
               </h1>
 
               <p
-                className={`mt-4 max-w-3xl text-sm font-medium leading-6 sm:mt-6 sm:text-lg sm:leading-8 lg:text-base lg:leading-7 2xl:text-lg 2xl:leading-8 ${palette.textSoft}`}
+                className={`mt-5 max-w-4xl text-base font-bold leading-7 sm:mt-6 sm:text-xl sm:leading-9 lg:text-lg lg:leading-8 xl:text-xl xl:leading-9 2xl:text-2xl 2xl:leading-10 ${palette.textSoft}`}
               >
                 <strong className={isDayMode ? "text-slate-950" : "text-white"}>
                   {t(
@@ -600,19 +600,19 @@ const About = () => {
                 )}
               </p>
 
-              <div className="mt-5 flex flex-wrap gap-3 lg:mt-7">
+              <div className="mt-6 flex flex-wrap gap-3.5 lg:mt-8">
                 <Link
                   to="/events"
-                  className={`inline-flex min-h-12 items-center justify-center gap-2 px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 sm:px-7 ${palette.primary}`}
+                  className={`inline-flex min-h-[3.25rem] items-center justify-center gap-2.5 px-6 text-base font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 sm:min-h-14 sm:px-8 2xl:min-h-16 2xl:px-9 2xl:text-lg ${palette.primary}`}
                 >
-                  <Rocket className="h-4 w-4" />
+                  <Rocket className="h-5 w-5" />
                   {t("about.ecosystem.hero.primary_cta", "进入平台")}
                 </Link>
                 <a
                   href="#business-lines"
-                  className={`inline-flex min-h-12 items-center justify-center gap-2 border px-5 text-sm font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/25 sm:px-7 ${palette.secondary}`}
+                  className={`inline-flex min-h-[3.25rem] items-center justify-center gap-2.5 border px-6 text-base font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/25 sm:min-h-14 sm:px-8 2xl:min-h-16 2xl:px-9 2xl:text-lg ${palette.secondary}`}
                 >
-                  <BookOpen className="h-4 w-4" />
+                  <BookOpen className="h-5 w-5" />
                   {t("about.ecosystem.hero.secondary_cta", "了解三项业务")}
                 </a>
               </div>
@@ -657,26 +657,43 @@ const About = () => {
                   </p>
                 </div>
                 <div
-                  className={`grid gap-px overflow-hidden border ${isDayMode ? "border-cyan-500/18 bg-cyan-500/18" : "border-cyan-300/18 bg-cyan-300/18"}`}
+                  className={`grid grid-cols-2 gap-px overflow-hidden border ${isDayMode ? "border-cyan-500/18 bg-cyan-500/18" : "border-cyan-300/18 bg-cyan-300/18"}`}
                 >
                   {loopItems.map((item) => (
                     <div
                       key={item.index}
-                      className={`grid grid-cols-[5.5rem_1fr] gap-5 px-7 py-5 2xl:grid-cols-[6rem_1fr] 2xl:px-8 2xl:py-6 ${
+                      className={`group relative min-h-[148px] overflow-hidden px-5 py-5 2xl:min-h-[170px] 2xl:px-6 2xl:py-6 ${
                         isDayMode ? "bg-white/92" : "bg-[#030a0c]/94"
                       }`}
                     >
                       <div
-                        className={`font-mono text-2xl font-black leading-none 2xl:text-3xl ${palette.accent}`}
+                        aria-hidden="true"
+                        className={`pointer-events-none absolute -left-3 -top-5 font-mono text-[6.2rem] font-black leading-none transition duration-300 group-hover:translate-x-1 2xl:-left-4 2xl:-top-6 2xl:text-[7.4rem] ${
+                          isDayMode
+                            ? "text-cyan-600/[0.16]"
+                            : "text-cyan-300/[0.2]"
+                        }`}
                       >
                         {item.index}
                       </div>
-                      <div>
-                        <div className="text-2xl font-black 2xl:text-3xl">
+                      <div
+                        aria-hidden="true"
+                        className={`absolute right-4 top-4 h-2 w-2 2xl:right-5 2xl:top-5 ${palette.accentBg} ${
+                          isDayMode
+                            ? "shadow-[0_0_22px_rgba(8,145,178,0.32)]"
+                            : "shadow-[0_0_22px_rgba(103,232,249,0.5)]"
+                        }`}
+                      />
+                      <div
+                        className={`relative z-10 flex h-full flex-col justify-end border-l pl-4 2xl:pl-5 ${
+                          isDayMode ? "border-cyan-600/32" : "border-cyan-300/34"
+                        }`}
+                      >
+                        <div className="text-2xl font-black leading-tight 2xl:text-[2rem]">
                           {item.title}
                         </div>
                         <p
-                          className={`mt-1.5 text-base leading-6 2xl:text-lg 2xl:leading-7 ${palette.textMuted}`}
+                          className={`mt-2 text-sm font-bold leading-6 2xl:text-base 2xl:leading-7 ${palette.textMuted}`}
                         >
                           {item.detail}
                         </p>
