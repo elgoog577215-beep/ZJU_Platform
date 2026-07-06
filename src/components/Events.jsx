@@ -1791,7 +1791,7 @@ END:VCALENDAR`;
         </div>
         <div className="md:hidden">
           <OrganizationPartnerWall
-            partners={organizationPartners}
+            partners={eventOrganizationPartners}
             isDayMode={isDayMode}
             className="mb-2 text-left"
             onApplyPartnerFilter={handleApplyPartnerFilter}
