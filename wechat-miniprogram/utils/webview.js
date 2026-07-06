@@ -1,8 +1,8 @@
 const PRODUCTION_WEB_ORIGIN = "https://tuotuzju.com";
-const LOCAL_WEB_ORIGIN = "http://127.0.0.1:5180";
+const LOCAL_WEB_ORIGIN = "http://10.195.244.93:5180";
 
 // Toggle this to true only for local DevTools debugging. Release builds must use production.
-const USE_LOCAL_WEB_ORIGIN = false;
+const USE_LOCAL_WEB_ORIGIN = true;
 const WEB_ORIGIN = USE_LOCAL_WEB_ORIGIN ? LOCAL_WEB_ORIGIN : PRODUCTION_WEB_ORIGIN;
 const DEFAULT_PATH = "/events";
 
@@ -108,11 +108,39 @@ const appendQueryParam = (path, key, value) => {
   return `${pathname}${nextQuery}${nextHash}`;
 };
 
-const buildWebViewUrl = (inputPath) => {
+const getMiniappNavInset = () => {
+  try {
+    const windowInfo = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
+    const screenHeight = Number(windowInfo?.screenHeight || 0);
+    const windowHeight = Number(windowInfo?.windowHeight || 0);
+    const windowDiff = Math.round(screenHeight - windowHeight);
+    if (windowDiff > 40 && windowDiff < 180) {
+      return windowDiff;
+    }
+
+    const statusBarHeight = Number(windowInfo?.statusBarHeight || 0);
+    const menuButton = wx.getMenuButtonBoundingClientRect ? wx.getMenuButtonBoundingClientRect() : null;
+    if (menuButton && statusBarHeight > 0) {
+      const navBarHeight = (menuButton.top - statusBarHeight) * 2 + menuButton.height;
+      return Math.round(statusBarHeight + navBarHeight);
+    }
+  } catch (error) {
+    console.warn("[tuotuzju-miniprogram] nav inset fallback", error);
+  }
+
+  return 112;
+};
+
+const buildWebViewUrl = (inputPath, options = {}) => {
+  const targetOrigin = options.origin || WEB_ORIGIN;
   let path = normalizePath(inputPath);
   path = appendQueryParam(path, "miniapp", "1");
+  path = appendQueryParam(path, "miniapp_nav_inset", String(getMiniappNavInset()));
+  if (targetOrigin === LOCAL_WEB_ORIGIN) {
+    path = appendQueryParam(path, "miniapp_debug_ts", String(Date.now()));
+  }
   path = appendQueryParam(path, "utm_source", "wechat_miniprogram");
-  return `${WEB_ORIGIN}${path}`;
+  return `${targetOrigin}${path}`;
 };
 
 module.exports = {

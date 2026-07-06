@@ -1,1 +1,12 @@
 <web-view src="{{src}}" bindload="handleLoad" binderror="handleError"></web-view>
+<cover-view wx:if="{{isLocalDebug}}" class="local-debug-panel">
+  <cover-view class="local-debug-title">{{debugLabel}}</cover-view>
+  <cover-view class="local-debug-status">{{loadState}}</cover-view>
+  <cover-view class="local-debug-url">{{displaySrc}}</cover-view>
+  <cover-view class="local-debug-actions">
+    <cover-view class="local-debug-button primary" bindtap="loadLocal">刷新本地</cover-view>
+    <cover-view class="local-debug-button" bindtap="loadProduction">线上版</cover-view>
+    <cover-view class="local-debug-button" bindtap="copyCurrentUrl">复制地址</cover-view>
+    <cover-view class="local-debug-button danger" bindtap="exitWebView">退出</cover-view>
+  </cover-view>
+</cover-view>

@@ -9,7 +9,7 @@
     "pages/fallback/index"
   ],
   "window": {
-    "navigationBarTitleText": "Tuotu ZJU",
+    "navigationBarTitleText": "本地调试 | TUOTUZJU",
     "navigationBarBackgroundColor": "#ffffff",
     "navigationBarTextStyle": "black",
     "backgroundColor": "#f8fafc"
