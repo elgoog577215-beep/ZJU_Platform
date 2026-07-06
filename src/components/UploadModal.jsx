@@ -1704,6 +1704,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
     const variant = options.variant || 'compact';
     const isCurrentTarget = nativeUploadState.active && nativeUploadState.target?.kind === target.kind && nativeUploadState.target?.blockId === target.blockId;
     const buttonLabel = isCurrentTarget ? t('upload.native_upload_waiting') : label;
+    const hintLabel = options.hint || t('upload.native_upload_hint');
     if (variant === 'full') {
       return (
         <button
@@ -1714,13 +1715,13 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             event.stopPropagation();
             startNativeUpload(target);
           }}
-          className={`absolute inset-0 z-30 flex flex-col items-center justify-center gap-2 rounded-[6px] border transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${
+          className={`upload-modal-native-full-button absolute inset-0 z-30 flex flex-col items-center justify-center gap-2 rounded-[6px] border transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${
             isDayMode
               ? 'border-indigo-200 bg-indigo-50 text-indigo-800 hover:bg-indigo-100'
               : 'border-indigo-400/30 bg-[#080a14] text-indigo-100 hover:bg-[#0d1020]'
           }`}
         >
-          <span className={`inline-flex min-h-[48px] w-[min(82%,22rem)] items-center justify-center gap-2 rounded-[6px] border px-4 py-2 text-lg font-black ${
+          <span className={`upload-modal-native-full-label inline-flex min-h-[48px] w-[min(82%,22rem)] items-center justify-center gap-2 rounded-[6px] border px-4 py-2 text-lg font-black ${
             isDayMode
               ? 'border-indigo-200 bg-white text-indigo-700 shadow-[0_10px_22px_rgba(99,102,241,0.16)]'
               : 'border-indigo-300/35 bg-indigo-500/18 text-white shadow-[0_12px_26px_rgba(79,70,229,0.24)]'
@@ -1729,7 +1730,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             <span>{buttonLabel}</span>
           </span>
           <span className={`px-4 text-center text-xs font-medium ${isDayMode ? 'text-indigo-600' : 'text-indigo-200/78'}`}>
-            {t('upload.native_upload_hint')}
+            {hintLabel}
           </span>
         </button>
       );
@@ -1751,6 +1752,22 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
       </button>
     );
   };
+
+  const renderUnifiedUploadPrompt = (label, hint) => (
+    <div className="upload-modal-unified-upload-prompt pointer-events-none flex h-full w-full flex-col items-center justify-center gap-2 px-3 text-center">
+      <span className={`upload-modal-native-full-label inline-flex min-h-[48px] w-[min(82%,22rem)] items-center justify-center gap-2 rounded-[6px] border px-4 py-2 text-lg font-black ${
+        isDayMode
+          ? 'border-indigo-200 bg-white text-indigo-700 shadow-[0_10px_22px_rgba(99,102,241,0.16)]'
+          : 'border-indigo-300/35 bg-indigo-500/18 text-white shadow-[0_12px_26px_rgba(79,70,229,0.24)]'
+      }`}>
+        <Upload size={20} />
+        <span>{label}</span>
+      </span>
+      <span className={`px-4 text-center text-xs font-medium ${isDayMode ? 'text-indigo-600' : 'text-indigo-200/78'}`}>
+        {hint}
+      </span>
+    </div>
+  );
 
   // UI Constants
   const inputClasses = isDayMode
@@ -2005,20 +2022,13 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                         <p className={`text-sm font-medium flex items-center gap-2 px-4 py-2 rounded-[5px] border ${isDayMode ? 'text-slate-900 bg-white/95 border-slate-200/80' : 'text-white bg-white/10 border-white/20'}`}><Upload size={16} /> {t('upload.replace')}</p>
                                     </div>
                                 </div>
-                            ) : (
-                                <div className="upload-modal-cover-empty-content flex flex-col items-center pointer-events-none text-center">
-                                    <div className={`upload-modal-dropzone-icon p-4 rounded-[5px] mb-4 transition-colors duration-300 ${dragTarget === 'cover' ? 'bg-indigo-500/20 text-indigo-400' : (isDayMode ? 'bg-white/90 text-slate-400 group-hover:bg-white group-hover:text-slate-900 border border-slate-200/80' : 'bg-white/5 text-gray-400 group-hover:bg-white/10 group-hover:text-white border border-white/10')}`}>
-                                        <Plus size={28} />
-                                    </div>
-                                    <span className={`text-base font-bold transition-colors ${dragTarget === 'cover' ? (isDayMode ? 'text-indigo-600' : 'text-indigo-300') : (isDayMode ? 'text-slate-500 group-hover:text-slate-900' : 'text-gray-400 group-hover:text-white')}`}>
-                                        {dragTarget === 'cover' ? t('upload.drop_image') : `${t('common.upload')} ${t('common.image')}`}
-                                    </span>
-                                </div>
+                            ) : canUseNativeUpload ? null : (
+                                renderUnifiedUploadPrompt(t('upload.native_upload_cover'), t('upload.choose_image_hint'))
                             )}
                             {renderNativeUploadButton(
                               { kind: 'cover' },
                               t('upload.native_upload_cover'),
-                              { variant: coverPreview ? 'compact' : 'full' },
+                              { variant: coverPreview ? 'compact' : 'full', hint: t('upload.choose_image_hint') },
                             )}
                         </div>
                      </div>
@@ -2920,23 +2930,19 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                     <img src={preview} alt="Preview" className="max-h-48 sm:max-h-64 rounded-xl object-contain shadow-2xl" />
                                 </div>
                             )
-                        ) : (
-                        <div className="upload-modal-empty-dropzone-content flex flex-col items-center justify-center text-center pointer-events-none px-4">
-                            <div className={`upload-modal-main-dropzone-icon p-3 sm:p-4 rounded-full mb-3 sm:mb-4 transition-transform duration-300 ${dragTarget === 'main' ? 'bg-indigo-500/20 scale-110 text-indigo-400' : (isDayMode ? 'bg-white/90 text-slate-400 group-hover:bg-white group-hover:scale-110 group-hover:text-slate-900' : 'bg-white/5 text-gray-400 group-hover:bg-white/10 group-hover:scale-110 group-hover:text-white')}`}>
-                               {dragTarget === 'main' ? <Upload size={24} className="sm:w-8 sm:h-8" /> : React.cloneElement(getIcon(), { size: 24, className: 'sm:w-8 sm:h-8' })}
-                            </div>
-                            <p className={`font-medium text-base sm:text-lg ${isDayMode ? 'text-slate-900' : 'text-white'}`}>
-                            {dragTarget === 'main' ? t('upload.drop_file') : (isImageBatchEnabled ? '批量上传图片' : `${t('common.upload')} ${t(`common.${type}`)}`)}
-                            </p>
-                            <p className={`text-xs sm:text-sm mt-1 sm:mt-2 max-w-xs mx-auto ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>
-                                {isImageBatchEnabled ? '支持一次选择多张图片，拖到这里也可以' : t('upload.drag_drop_browse')}
-                            </p>
-                        </div>
+                        ) : canUseNativeUpload ? null : (
+                          renderUnifiedUploadPrompt(
+                            type === 'image' ? t('upload.native_upload_cover') : t('upload.native_upload_file'),
+                            type === 'image' ? t('upload.choose_image_hint') : t('upload.native_upload_hint'),
+                          )
                         )}
                         {renderNativeUploadButton(
                           { kind: 'main' },
-                          t('upload.native_upload_file'),
-                          { variant: (hasBatchImages || preview) ? 'compact' : 'full' },
+                          type === 'image' ? t('upload.native_upload_cover') : t('upload.native_upload_file'),
+                          {
+                            variant: (hasBatchImages || preview) ? 'compact' : 'full',
+                            hint: type === 'image' ? t('upload.choose_image_hint') : t('upload.native_upload_hint'),
+                          },
                         )}
                     </div>
                   </div>
@@ -2968,18 +2974,13 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
                                         <p className={`text-xs flex items-center gap-1 ${isDayMode ? 'text-slate-900' : 'text-white'}`}><Upload size={14}/> {t('upload.replace')}</p>
                                     </div>
                                 </div>
-                            ) : (
-                                <div className="flex flex-col items-center pointer-events-none">
-                                    <Plus size={20} className={`mb-2 transition-colors sm:w-6 sm:h-6 ${dragTarget === 'cover' ? 'text-indigo-400' : (isDayMode ? 'text-slate-400' : 'text-gray-400')}`} />
-                                    <span className={`text-xs font-medium transition-colors ${dragTarget === 'cover' ? (isDayMode ? 'text-indigo-500' : 'text-indigo-300') : (isDayMode ? 'text-slate-500' : 'text-gray-500')}`}>
-                                        {dragTarget === 'cover' ? t('upload.drop_image') : `${t('common.upload')} ${t('common.image')}`}
-                                    </span>
-                                </div>
+                            ) : canUseNativeUpload ? null : (
+                                renderUnifiedUploadPrompt(t('upload.native_upload_cover'), t('upload.choose_image_hint'))
                             )}
                             {renderNativeUploadButton(
                               { kind: 'cover' },
                               t('upload.native_upload_cover'),
-                              { variant: coverPreview ? 'compact' : 'full' },
+                              { variant: coverPreview ? 'compact' : 'full', hint: t('upload.choose_image_hint') },
                             )}
                         </div>
                      </div>

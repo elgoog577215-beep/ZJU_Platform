@@ -141,6 +141,64 @@ body {
   .miniapp-webview .upload-modal-body {
     min-height: 0 !important;
   }
+
+  .miniapp-webview .upload-modal-event .upload-modal-header,
+  .miniapp-webview .upload-modal-event .upload-modal-mobile-stepper,
+  .miniapp-webview .upload-modal-event .upload-modal-footer {
+    flex: 0 0 auto !important;
+  }
+
+  .miniapp-webview .upload-modal-event .upload-modal-header {
+    position: relative !important;
+    z-index: 45 !important;
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.65rem !important;
+  }
+
+  .miniapp-webview .upload-modal-event .upload-modal-form {
+    overflow: hidden !important;
+  }
+
+  .miniapp-webview .upload-modal-event .upload-modal-body {
+    flex: 1 1 auto !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 1rem !important;
+  }
+
+  .miniapp-webview .upload-modal-event .upload-modal-footer {
+    position: relative !important;
+    bottom: auto !important;
+    display: block !important;
+    margin-top: 0 !important;
+    padding: 0.6rem 0.85rem !important;
+    padding-bottom: max(env(safe-area-inset-bottom), 0.85rem) !important;
+    z-index: 50 !important;
+  }
+
+  .miniapp-webview .upload-modal-event .upload-modal-footer > .grid {
+    display: grid !important;
+    gap: 0.55rem !important;
+  }
+
+  .miniapp-webview .upload-modal-event .upload-modal-footer button {
+    min-height: 2.7rem !important;
+    border-radius: 0.65rem !important;
+  }
+
+  .miniapp-webview .upload-modal-native-full-button {
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    padding: 0.55rem !important;
+  }
+
+  .miniapp-webview .upload-modal-native-full-label {
+    width: min(92%, 22rem) !important;
+    min-height: 3rem !important;
+    font-size: 1.05rem !important;
+    line-height: 1.25rem !important;
+  }
 }
 
 body[data-theme='day'] {
