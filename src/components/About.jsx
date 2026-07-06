@@ -700,22 +700,13 @@ const About = () => {
                               );
                               const logoKey =
                                 `${logo.id || ""} ${logo.name || ""} ${logo.alt || ""}`.toLowerCase();
-                              const isQoderLogo = logoKey.includes("qoder");
                               const tileSpan = logoKey.includes("getui")
                                 ? "col-span-3"
-                                : isQoderLogo
-                                  ? "col-span-2"
-                                  : "";
-                              const tileHeight = isQoderLogo
-                                ? "min-h-[64px]"
-                                : "min-h-[52px]";
-                              const logoSize = isQoderLogo
-                                ? "max-h-9 sm:max-h-10"
-                                : "max-h-6 sm:max-h-7";
+                                : "";
                               return (
                                 <div
                                   key={logo.id || logo.src || logo.name}
-                                  className={`flex ${tileHeight} items-center justify-center px-2.5 py-2 ${tileSpan} ${
+                                  className={`flex min-h-[52px] items-center justify-center px-2.5 py-2 ${tileSpan} ${
                                     isDayMode
                                       ? "bg-white/72"
                                       : "bg-white/[0.04]"
@@ -727,7 +718,7 @@ const About = () => {
                                       logo.alt ||
                                       `${logo.name || "合作方"} logo`
                                     }
-                                    className={`${logoSize} w-auto max-w-full object-contain ${
+                                    className={`max-h-6 w-auto max-w-full object-contain sm:max-h-7 ${
                                       !isDayMode ? logo.darkClassName || "" : ""
                                     }`}
                                   />
