@@ -1183,6 +1183,13 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
     if (!isOpen) stopNativeUploadPolling();
   }, [isOpen, stopNativeUploadPolling]);
 
+  useEffect(() => {
+    if (!isOpen || type !== 'event' || !isMiniProgramWebView()) return;
+    requestAnimationFrame(() => {
+      formRef.current?.querySelector?.('.upload-modal-body')?.scrollTo?.({ top: 0, behavior: 'auto' });
+    });
+  }, [isOpen, type]);
+
   const getCurrentReturnPath = () => {
     if (typeof window === 'undefined') return '/events';
     return `${window.location.pathname || '/events'}${window.location.search || ''}${window.location.hash || ''}`;
@@ -1806,6 +1813,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   const stickyFooterClass = isDayMode
     ? "upload-modal-footer sticky bottom-0 bg-white/96 border-t border-slate-200/80 p-5 sm:p-8 mt-auto z-20 pb-[max(env(safe-area-inset-bottom),20px)] sm:pb-8 flex flex-col-reverse sm:flex-row justify-end gap-3 shadow-[0_-10px_24px_rgba(15,23,42,0.08)]"
     : "upload-modal-footer sticky bottom-0 bg-[#0f0f0f] border-t border-white/10 p-5 sm:p-8 mt-auto z-20 pb-[max(env(safe-area-inset-bottom),20px)] sm:pb-8 flex flex-col-reverse sm:flex-row justify-end gap-3 shadow-[0_-12px_28px_rgba(0,0,0,0.5)]";
+  const overlayClass = `upload-modal-overlay fixed inset-0 z-[150] flex items-center justify-center ${overlayShellClass} ${isMiniProgramEventModal ? 'upload-modal-miniapp-event-overlay' : ''}`;
   const formClass = `upload-modal-form flex-1 overflow-y-auto custom-scrollbar relative z-10 flex flex-col ${isMiniProgramEventModal ? 'upload-modal-miniapp-event-form' : ''}`;
   const bodyClass = `upload-modal-body ${type === 'article' ? 'p-4 sm:p-6' : 'p-5 sm:p-8'} flex-1 ${type === 'article' ? 'space-y-4 sm:space-y-5' : 'space-y-6 sm:space-y-8'} ${isMiniProgramEventModal ? 'upload-modal-miniapp-event-body' : ''}`;
   const footerClass = `${stickyFooterClass} ${isMiniProgramEventModal ? 'upload-modal-miniapp-event-footer' : ''}`;
@@ -1818,7 +1826,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className={`upload-modal-overlay fixed inset-0 z-[150] flex items-center justify-center ${overlayShellClass}`}
+          className={overlayClass}
           onClick={handleClose}
         >
         <motion.div
@@ -1908,6 +1916,48 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             {/* Form Content - Scrollable */}
             <form ref={formRef} onSubmit={handleSubmit} noValidate={type === 'event'} className={formClass}>
               <div className={bodyClass}>
+              {isMiniProgramEventModal && (
+                <div className={`upload-modal-miniapp-toolbar sticky z-[60] mb-4 rounded-[7px] border p-3 shadow-[0_10px_24px_rgba(0,0,0,0.28)] ${isDayMode ? 'border-slate-200 bg-white/96' : 'border-white/10 bg-[#111214]'}`}>
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className={`text-lg font-black leading-tight ${isDayMode ? 'text-slate-950' : 'text-white'}`}>
+                        {isEditing ? t('common.edit_event', '编辑活动') : t('common.create_event', '创建活动')}
+                      </div>
+                      <div className={`mt-1 text-[11px] font-semibold ${isDayMode ? 'text-slate-500' : 'text-gray-500'}`}>
+                        {mobileEventStep === 1 ? '基本信息' : mobileEventStep === 2 ? '活动详情' : '发布设置'}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleClose}
+                      aria-label={t('common.close', '关闭')}
+                      className={`rect-icon-button shrink-0 ${isDayMode ? 'text-slate-500 hover:text-slate-900 bg-white/90' : 'text-gray-300 hover:text-white'}`}
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[1, 2, 3].map((step) => {
+                      const active = mobileEventStep === step;
+                      return (
+                        <button
+                          key={step}
+                          type="button"
+                          aria-pressed={active}
+                          onClick={() => setMobileEventStep(step)}
+                          className={`min-h-[38px] rounded-[6px] border px-2 text-xs font-black transition-colors ${
+                            active
+                              ? (isDayMode ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-indigo-400/45 bg-indigo-500 text-white')
+                              : (isDayMode ? 'border-slate-200 bg-slate-50 text-slate-500' : 'border-white/10 bg-white/[0.04] text-gray-400')
+                          }`}
+                        >
+                          {step === 1 ? '基本' : step === 2 ? '详情' : '发布'}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
               {(profilesLoading || manageableProfiles.length > 0) && (
                 <section className={`${cardClasses} !space-y-4 ${type === 'event' ? 'hidden sm:block' : ''}`}>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

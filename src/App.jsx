@@ -23,6 +23,7 @@ import { useServiceWorker } from './hooks/useServiceWorker';
 import { routeTransition, useReducedMotion } from './utils/animations';
 import { isAppRuntime as detectAppRuntime } from './utils/displayMode';
 import {
+  getMiniProgramNavInset,
   isMiniProgramBlockedPath,
   isMiniProgramWebView as detectMiniProgramWebView,
   rememberMiniProgramWebView,
@@ -360,11 +361,21 @@ const AppContent = () => {
 
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
+    const navInset = getMiniProgramNavInset();
     document.documentElement.classList.toggle('miniapp-webview', isMiniProgramMode);
+    if (isMiniProgramMode) {
+      document.documentElement.style.setProperty(
+        '--miniapp-webview-nav-inset',
+        `${navInset || 112}px`,
+      );
+    } else {
+      document.documentElement.style.removeProperty('--miniapp-webview-nav-inset');
+    }
     return () => {
       document.documentElement.classList.remove('miniapp-webview');
+      document.documentElement.style.removeProperty('--miniapp-webview-nav-inset');
     };
-  }, [isMiniProgramMode]);
+  }, [isMiniProgramMode, location.search]);
 
   useEffect(() => {
     if (settings?.site_title) {
