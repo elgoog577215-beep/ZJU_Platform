@@ -166,8 +166,26 @@ Page({
   },
 
   openHome() {
+    const pages = typeof getCurrentPages === "function" ? getCurrentPages() : [];
+    const previousPage = pages.length > 1 ? pages[pages.length - 2] : null;
+    const previousRoute = previousPage?.route || "";
+
+    if (previousRoute === "pages/webview/index" || previousRoute === "pages/index/index") {
+      wx.navigateBack({
+        delta: 1,
+        fail: () => {
+          this.openWebViewHome();
+        },
+      });
+      return;
+    }
+
+    this.openWebViewHome();
+  },
+
+  openWebViewHome() {
     wx.reLaunch({
-      url: "/pages/webview/index",
+      url: `/pages/webview/index?path=${encodeURIComponent(this.data.redirect || DEFAULT_PATH)}`,
     });
   },
 });
