@@ -279,35 +279,6 @@ const About = () => {
     },
   ];
 
-  const loopItems = [
-    {
-      index: "01",
-      title: t("about.ecosystem.loop.discover", "发现机会"),
-      detail: t(
-        "about.ecosystem.loop.discover_desc",
-        "活动、资源与真实需求统一触达",
-      ),
-    },
-    {
-      index: "02",
-      title: t("about.ecosystem.loop.learn", "学习共创"),
-      detail: t("about.ecosystem.loop.learn_desc", "AI 社区与学习体系承接成长"),
-    },
-    {
-      index: "03",
-      title: t("about.ecosystem.loop.build", "项目实战"),
-      detail: t("about.ecosystem.loop.build_desc", "赛事和项目推动作品闭环"),
-    },
-    {
-      index: "04",
-      title: t("about.ecosystem.loop.recognize", "认定通道"),
-      detail: t(
-        "about.ecosystem.loop.recognize_desc",
-        "优秀成果连接校企背书与机会",
-      ),
-    },
-  ];
-
   const supportGroups = [
     {
       index: "01",
@@ -581,13 +552,13 @@ const About = () => {
                 }`}
               >
                 <span className="block">
-                  {t("about.ecosystem.hero.title_1", "让 AI 学习、")}
+                  {t("about.ecosystem.hero.title_1", "拓浙")}
                 </span>
                 <span className="block">
-                  {t("about.ecosystem.hero.title_2", "真实项目与产业机会，")}
+                  {t("about.ecosystem.hero.title_2", "AI 生态")}
                 </span>
                 <span className={`block ${palette.accent}`}>
-                  {t("about.ecosystem.hero.title_3", "在校园里连成生态。")}
+                  {t("about.ecosystem.hero.title_3", "ZJU AI ECOSYSTEM")}
                 </span>
               </h1>
 
@@ -597,12 +568,12 @@ const About = () => {
                 <strong className={isDayMode ? "text-slate-950" : "text-white"}>
                   {t(
                     "about.ecosystem.hero.strong",
-                    "从浙江大学出发，连接机会、学习、项目与校企通道。",
+                    "海纳百川，永不设限。",
                   )}
                 </strong>{" "}
                 {t(
                   "about.ecosystem.hero.desc",
-                  "信息共享平台、AI 培养体系与浙客松，让学生把 AI 学习落成作品和机会。",
+                  "从浙大出发，聚合资源与人才，构建 AI 为中心的产学结合培养体系。",
                 )}
               </p>
 
@@ -612,14 +583,14 @@ const About = () => {
                   className={`inline-flex min-h-[3.25rem] items-center justify-center gap-2.5 px-6 text-base font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30 sm:min-h-14 sm:px-8 2xl:min-h-16 2xl:px-9 2xl:text-lg ${palette.primary}`}
                 >
                   <Rocket className="h-5 w-5" />
-                  {t("about.ecosystem.hero.primary_cta", "进入平台")}
+                  {t("about.ecosystem.hero.primary_cta", "进入拓途浙享")}
                 </Link>
                 <a
                   href="#business-lines"
                   className={`inline-flex min-h-[3.25rem] items-center justify-center gap-2.5 border px-6 text-base font-black transition duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/25 sm:min-h-14 sm:px-8 2xl:min-h-16 2xl:px-9 2xl:text-lg ${palette.secondary}`}
                 >
                   <BookOpen className="h-5 w-5" />
-                  {t("about.ecosystem.hero.secondary_cta", "了解三项业务")}
+                  {t("about.ecosystem.hero.secondary_cta", "看业务架构")}
                 </a>
               </div>
             </motion.div>
@@ -631,85 +602,52 @@ const About = () => {
               <div
                 className={`pointer-events-none absolute -right-12 -top-10 text-[8rem] font-black uppercase leading-none ${palette.watermark}`}
               >
-                LOOP
+                {t("about.ecosystem.brief.watermark", "BRAND")}
               </div>
               <div className="relative z-10 flex min-h-[506px] flex-col justify-between 2xl:min-h-[586px]">
                 <div
                   className={`flex items-center justify-between text-xs font-black uppercase 2xl:text-sm ${palette.label}`}
                 >
                   <span>
-                    {t("about.ecosystem.brief.eyebrow", "Ecosystem Brief")}
+                    {t("about.ecosystem.brief.eyebrow", "Brand Motto")}
                   </span>
-                  <span>{t("about.ecosystem.brief.status", "Running")}</span>
+                  <span>{t("about.ecosystem.brief.status", "ZJU Origin")}</span>
                 </div>
-                <div>
-                  <p className="max-w-2xl text-4xl font-black leading-[0.98] 2xl:text-5xl">
+                <div className="py-8">
+                  <p className="max-w-3xl text-5xl font-black leading-[0.98] 2xl:text-7xl">
                     <span className={`block ${palette.accent}`}>
                       {t(
                         "about.ecosystem.brief.title_1",
-                        "真实需求进校园",
+                        "海纳百川，",
                       )}
                     </span>
                     <span className="block">
                       {t(
                         "about.ecosystem.brief.title_2",
-                        "学生成果通产业",
+                        "永不设限。",
                       )}
                     </span>
                   </p>
                   <p
-                    className={`mt-4 max-w-2xl text-base font-bold leading-7 2xl:text-lg 2xl:leading-8 ${palette.textSoft}`}
+                    className={`mt-8 max-w-2xl text-xl font-bold leading-9 2xl:text-2xl 2xl:leading-10 ${palette.textSoft}`}
                   >
                     {t(
                       "about.ecosystem.brief.desc",
-                      "信息入口负责触达，培养体系承接成长，浙客松完成实战闭环。",
+                      "从浙大出发，聚合资源与人才，构建 AI 为中心的产学结合培养体系。",
                     )}
                   </p>
                 </div>
                 <div
-                  className={`grid grid-cols-2 gap-px overflow-hidden border ${isDayMode ? "border-cyan-500/18 bg-cyan-500/18" : "border-cyan-300/18 bg-cyan-300/18"}`}
+                  className={`border-l-4 py-5 pl-5 text-sm font-black uppercase tracking-normal 2xl:text-base ${
+                    isDayMode
+                      ? "border-cyan-500 text-slate-500"
+                      : "border-cyan-300 text-white/52"
+                  }`}
                 >
-                  {loopItems.map((item) => (
-                    <div
-                      key={item.index}
-                      className={`group relative min-h-[148px] overflow-hidden px-5 py-5 2xl:min-h-[170px] 2xl:px-6 2xl:py-6 ${
-                        isDayMode ? "bg-white/92" : "bg-[#030a0c]/94"
-                      }`}
-                    >
-                      <div
-                        aria-hidden="true"
-                        className={`pointer-events-none absolute -left-3 -top-5 font-mono text-[6.2rem] font-black leading-none transition duration-300 group-hover:translate-x-1 2xl:-left-4 2xl:-top-6 2xl:text-[7.4rem] ${
-                          isDayMode
-                            ? "text-cyan-600/[0.16]"
-                            : "text-cyan-300/[0.2]"
-                        }`}
-                      >
-                        {item.index}
-                      </div>
-                      <div
-                        aria-hidden="true"
-                        className={`absolute right-4 top-4 h-2 w-2 2xl:right-5 2xl:top-5 ${palette.accentBg} ${
-                          isDayMode
-                            ? "shadow-[0_0_22px_rgba(8,145,178,0.32)]"
-                            : "shadow-[0_0_22px_rgba(103,232,249,0.5)]"
-                        }`}
-                      />
-                      <div
-                        className={`relative z-10 flex h-full flex-col justify-end border-l pl-4 2xl:pl-5 ${
-                          isDayMode ? "border-cyan-600/32" : "border-cyan-300/34"
-                        }`}
-                      >
-                        <div className="text-2xl font-black leading-tight 2xl:text-[2rem]">
-                          {item.title}
-                        </div>
-                        <p
-                          className={`mt-2 text-sm font-bold leading-6 2xl:text-base 2xl:leading-7 ${palette.textMuted}`}
-                        >
-                          {item.detail}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                  {t(
+                    "about.ecosystem.brief.signature",
+                    "Resource aggregation / Talent network / AI-centered education",
+                  )}
                 </div>
               </div>
             </motion.aside>

@@ -877,13 +877,13 @@
       "pagination_aria": "关于页面分页",
       "hero": {
         "brand": "拓浙 AI 生态",
-        "title_1": "真实 AI 需求",
-        "title_2": "进入校园，",
-        "title_3": "通向产业。",
-        "strong": "从浙江大学出发，连接学生、学校、企业与真实场景。",
-        "desc": "拓途浙享、AI 培养体系与浙客松共同把学习训练、项目交付、校企认证和实习孵化通道连成闭环。",
-        "primary_cta": "进入生态平台",
-        "secondary_cta": "查看生态闭环"
+        "title_1": "拓浙",
+        "title_2": "AI 生态",
+        "title_3": "ZJU AI ECOSYSTEM",
+        "strong": "海纳百川，永不设限。",
+        "desc": "从浙大出发，聚合资源与人才，构建 AI 为中心的产学结合培养体系。",
+        "primary_cta": "进入拓途浙享",
+        "secondary_cta": "看业务架构"
       },
       "stats": {
         "users": "注册用户",
@@ -893,21 +893,23 @@
         "hackathon": "首届浙客松报名"
       },
       "brief": {
-        "eyebrow": "Ecosystem Brief",
-        "status": "Running",
-        "title_1": "真实需求进校园",
-        "title_2": "学生成果产业化",
-        "desc": "企业、政府、教授与学院提出真实场景，生态筛选拆解为学生可交付项目，再以校企认证连接实习、就业与孵化。"
+        "watermark": "BRAND",
+        "eyebrow": "品牌口号",
+        "status": "源自浙大",
+        "title_1": "海纳百川，",
+        "title_2": "永不设限。",
+        "desc": "从浙大出发，聚合资源与人才，构建 AI 为中心的产学结合培养体系。",
+        "signature": "资源聚合 / 人才网络 / AI 产学培养"
       },
       "loop": {
-        "discover": "发现机会",
-        "discover_desc": "活动、资源与真实需求统一触达",
-        "learn": "学习共创",
-        "learn_desc": "AI 社区与学习体系承接成长",
-        "build": "项目实战",
-        "build_desc": "赛事和项目推动作品闭环",
-        "recognize": "认定通道",
-        "recognize_desc": "优秀成果连接校企背书与机会"
+        "discover": "数字底座",
+        "discover_desc": "拓途浙享承接活动、AI 社区、项目广场和赛事展示",
+        "learn": "组织与学习",
+        "learn_desc": "智能体协会和社群把学生组织起来做中学",
+        "build": "品牌赛事",
+        "build_desc": "浙客松围绕学院与企业命题形成作品和人才信号",
+        "recognize": "产学闭环",
+        "recognize_desc": "真实需求到学生交付，再连接认证、实习和孵化"
       },
       "support": {
         "title_1": "资源不是附属，",

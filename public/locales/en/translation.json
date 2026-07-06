@@ -879,13 +879,13 @@
       "pagination_aria": "About page sections",
       "hero": {
         "brand": "ZJU AI Ecosystem",
-        "title_1": "AI briefs enter campus,",
-        "title_2": "student work",
-        "title_3": "reaches industry.",
-        "strong": "Starting from Zhejiang University, we connect campus talent with real AI scenarios.",
-        "desc": "Tuotu ZJU, the AI growth system, and ZJUHack turn learning into deliverable projects, recognition, internships, and incubation.",
-        "primary_cta": "Enter Ecosystem",
-        "secondary_cta": "View the Loop"
+        "title_1": "ZJU",
+        "title_2": "AI Ecosystem",
+        "title_3": "TUOZHE AI NETWORK",
+        "strong": "Open to all streams. Built without limits.",
+        "desc": "Starting from ZJU, we aggregate resources and talent to build an AI-centered industry-education training system.",
+        "primary_cta": "Enter Tuotu ZJU",
+        "secondary_cta": "View Business Map"
       },
       "stats": {
         "users": "Registered Users",
@@ -895,21 +895,23 @@
         "hackathon": "First ZJUHack Sign-ups"
       },
       "brief": {
-        "eyebrow": "Ecosystem Brief",
-        "status": "Running",
-        "title_1": "Real briefs enter campus",
-        "title_2": "outcomes reach industry",
-        "desc": "Enterprises, public-sector teams, professors, and campus units bring real scenarios. The ecosystem turns them into student-deliverable projects, then connects recognition to internships, jobs, and incubation."
+        "watermark": "BRAND",
+        "eyebrow": "Brand Motto",
+        "status": "ZJU Origin",
+        "title_1": "Open to all streams.",
+        "title_2": "Built without limits.",
+        "desc": "Starting from ZJU, we aggregate resources and talent to build an AI-centered industry-education training system.",
+        "signature": "Resource aggregation / Talent network / AI-centered education"
       },
       "loop": {
-        "discover": "Discover",
-        "discover_desc": "Events, resources, and real needs reach students together",
-        "learn": "Learn & Co-create",
-        "learn_desc": "AI community and learning systems carry growth",
-        "build": "Build in Practice",
-        "build_desc": "Competitions and projects turn ideas into outcomes",
-        "recognize": "Recognition Path",
-        "recognize_desc": "Strong outcomes connect to campus-enterprise endorsement"
+        "discover": "Digital Base",
+        "discover_desc": "Tuotu ZJU carries events, AI community, project square, and event showcases",
+        "learn": "Organization & Learning",
+        "learn_desc": "The association and groups organize students to learn by building",
+        "build": "Flagship Events",
+        "build_desc": "ZJUHack turns college and enterprise briefs into outcomes and talent signals",
+        "recognize": "Industry Loop",
+        "recognize_desc": "Real needs move to student delivery, then recognition, internships, and incubation"
       },
       "support": {
         "title_1": "Resources are not decoration.",
