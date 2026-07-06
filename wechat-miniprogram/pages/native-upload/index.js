@@ -44,6 +44,7 @@ Page({
     progress: 0,
     fileName: "",
     error: "",
+    autoStart: false,
     cancelSubmitted: false,
   },
 
@@ -59,8 +60,14 @@ Page({
       field: params.field === "cover" ? "cover" : "file",
       accept,
       redirect: normalizePath(params.redirect || DEFAULT_PATH),
+      autoStart: params.auto === "1",
       error: !sessionId || !uploadToken ? COPY.missingToken : "",
     });
+
+    if (sessionId && uploadToken && params.auto === "1") {
+      wx.setNavigationBarTitle({ title: "\u9009\u62e9\u6587\u4ef6" });
+      setTimeout(() => this.chooseAndUpload(), 120);
+    }
   },
 
   onUnload() {
@@ -112,6 +119,9 @@ Page({
       fail: (error) => {
         if (error?.errMsg && error.errMsg.includes("cancel")) {
           this.setData({ status: "idle" });
+          if (this.data.autoStart) {
+            this.goBack();
+          }
           return;
         }
         console.error("[native-upload] chooseMedia failed", error);
@@ -139,6 +149,9 @@ Page({
       fail: (error) => {
         if (error?.errMsg && error.errMsg.includes("cancel")) {
           this.setData({ status: "idle" });
+          if (this.data.autoStart) {
+            this.goBack();
+          }
           return;
         }
         console.error("[native-upload] chooseMessageFile failed", error);
@@ -210,7 +223,10 @@ Page({
 
   goBack() {
     this.cancelSession();
-    const pages = typeof getCurrentPages === "function" ? getCurrentPages() : [];
+    const pages =
+      typeof globalThis.getCurrentPages === "function"
+        ? globalThis.getCurrentPages()
+        : [];
     if (pages.length > 1) {
       wx.navigateBack({
         delta: 1,

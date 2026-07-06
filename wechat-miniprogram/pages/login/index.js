@@ -166,7 +166,10 @@ Page({
   },
 
   openHome() {
-    const pages = typeof getCurrentPages === "function" ? getCurrentPages() : [];
+    const pages =
+      typeof globalThis.getCurrentPages === "function"
+        ? globalThis.getCurrentPages()
+        : [];
     const previousPage = pages.length > 1 ? pages[pages.length - 2] : null;
     const previousRoute = previousPage?.route || "";
 

@@ -1,5 +1,11 @@
 <view class="native-upload-page">
-  <view class="native-upload-surface">
+  <view wx:if="{{autoStart && status !== 'failed' && !error}}" class="native-upload-inline-status">
+    <view class="native-upload-spinner"></view>
+    <text>{{status === 'uploading' ? copy.uploading : '正在打开微信选择器'}}</text>
+    <text wx:if="{{fileName}}" class="native-upload-inline-file">{{fileName}}</text>
+  </view>
+
+  <view wx:else class="native-upload-surface">
     <view class="native-upload-accent"></view>
     <view class="native-upload-kicker">{{copy.kicker}}</view>
     <view class="native-upload-title">{{copy.title}}</view>
@@ -19,7 +25,7 @@
     </view>
   </view>
 
-  <view class="native-upload-actions">
+  <view wx:if="{{!autoStart || status === 'failed' || error}}" class="native-upload-actions">
     <button
       class="native-upload-button primary"
       loading="{{status === 'uploading'}}"

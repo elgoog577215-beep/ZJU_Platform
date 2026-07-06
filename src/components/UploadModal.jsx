@@ -1324,6 +1324,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
         field,
         accept,
         redirectPath: getCurrentReturnPath(),
+        auto: true,
       }));
     } catch (error) {
       stopNativeUploadPolling();

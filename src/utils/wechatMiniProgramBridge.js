@@ -77,6 +77,7 @@ export const buildWechatNativeUploadBridgeUrl = ({
   field = 'file',
   accept = '*/*',
   redirectPath = '/events',
+  auto = true,
 }) =>
   buildBridgeUrl('/pages/native-upload/index', {
     sessionId,
@@ -84,6 +85,7 @@ export const buildWechatNativeUploadBridgeUrl = ({
     field,
     accept,
     redirect: redirectPath || '/events',
+    auto: auto ? '1' : '',
   });
 
 export const navigateToMiniProgramPage = async (url) => {

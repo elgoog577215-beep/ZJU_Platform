@@ -27,6 +27,43 @@ page {
   box-shadow: 0 34rpx 92rpx rgba(0, 0, 0, 0.42);
 }
 
+.native-upload-inline-status {
+  min-height: 220rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18rpx;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 28rpx;
+  font-weight: 800;
+  text-align: center;
+}
+
+.native-upload-inline-file {
+  max-width: 86vw;
+  color: rgba(226, 232, 240, 0.62);
+  font-size: 22rpx;
+  font-weight: 600;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.native-upload-spinner {
+  width: 54rpx;
+  height: 54rpx;
+  border: 6rpx solid rgba(255, 255, 255, 0.16);
+  border-top-color: #818cf8;
+  border-radius: 999rpx;
+  animation: native-upload-spin 720ms linear infinite;
+}
+
+@keyframes native-upload-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .native-upload-accent {
   position: absolute;
   top: 0;
