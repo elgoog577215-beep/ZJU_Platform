@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import {
@@ -14,6 +14,8 @@ import {
 
 import api from "../services/api";
 import { useSettings } from "../context/SettingsContext";
+import { useSectionPager } from "../hooks/useSectionPager";
+import { useReducedMotion } from "../utils/animations";
 import CompetitionOutcomeUploadModal from "./CompetitionOutcomeUploadModal";
 import SEO from "./SEO";
 import { useTranslation } from "react-i18next";
@@ -25,6 +27,8 @@ const rankTone = {
   "02": "from-cyan-200 via-sky-300 to-white",
   "03": "from-fuchsia-200 via-cyan-200 to-white",
 };
+
+const worksSectionIds = ["works-hero", "works-featured", "works-more"];
 
 const normalizeRank = (rank, index) => {
   const value = String(rank || index + 1).trim();
@@ -303,14 +307,22 @@ const WorkDetailModal = ({ work, isDayMode, onClose, t }) => {
 const HackathonWorks = () => {
   const { t } = useTranslation();
   const { uiMode } = useSettings();
+  const reduceMotion = useReducedMotion();
   const isDayMode = uiMode === "day";
+  const pageRef = useRef(null);
   const [works, setWorks] = useState([]);
   const [competition, setCompetition] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedWork, setSelectedWork] = useState(null);
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState(0);
+  const [scrollProgress, setScrollProgress] = useState(0);
 
-  const fetchWorks = async () => {
+  const setActiveWorkSection = useCallback((index) => {
+    setActiveSection((previous) => (previous === index ? previous : index));
+  }, []);
+
+  const fetchWorks = useCallback(async () => {
     setLoading(true);
     try {
       const response = await api.get("/competitions/current/outcome");
@@ -325,11 +337,55 @@ const HackathonWorks = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     fetchWorks();
-  }, [t]);
+  }, [fetchWorks]);
+
+  useEffect(() => {
+    const container = pageRef.current;
+    if (!container) return undefined;
+
+    const handleScroll = () => {
+      const scrollTop = container.scrollTop;
+      const scrollHeight = container.scrollHeight - container.clientHeight;
+      const nextProgress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+      setScrollProgress((previous) =>
+        Math.abs(previous - nextProgress) < 0.35 ? previous : nextProgress,
+      );
+
+      const sectionElements = worksSectionIds
+        .map((id) => document.getElementById(id))
+        .filter(Boolean);
+
+      for (let i = sectionElements.length - 1; i >= 0; i--) {
+        const rect = sectionElements[i].getBoundingClientRect();
+        if (rect.top <= window.innerHeight / 2) {
+          setActiveWorkSection(i);
+          break;
+        }
+      }
+    };
+
+    handleScroll();
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll);
+
+    return () => {
+      container.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
+  }, [setActiveWorkSection]);
+
+  useSectionPager({
+    containerRef: pageRef,
+    sectionIds: worksSectionIds,
+    setActiveIndex: setActiveWorkSection,
+    reduceMotion,
+    minWidth: 0,
+    lockMs: 860,
+  });
 
   const podiumWorks = useMemo(() => works.slice(0, 3), [works]);
   const otherWorks = useMemo(() => works.slice(3), [works]);
@@ -340,10 +396,31 @@ const HackathonWorks = () => {
     ? "border-emerald-200 bg-white/72 text-emerald-700"
     : "border-cyan-300/24 bg-cyan-300/[0.06] text-cyan-100";
   const statLabelClass = isDayMode ? "text-slate-600" : "text-white/58";
+  const sectionNavItems = loading || works.length === 0
+    ? [{ id: "works-hero", label: t("hackathon.works_page.title"), no: "01" }]
+    : [
+        { id: "works-hero", label: t("hackathon.works_page.title"), no: "01" },
+        { id: "works-featured", label: t("hackathon.works_page.featured_title"), no: "02" },
+        { id: "works-more", label: t("hackathon.works_page.more_title"), no: "03" },
+      ];
+
+  const smoothScrollTo = (id) => {
+    const target = document.getElementById(id);
+    const scroller = pageRef.current;
+    if (!target || !scroller) return;
+
+    const targetIndex = worksSectionIds.indexOf(id);
+    if (targetIndex >= 0) setActiveWorkSection(targetIndex);
+
+    scroller.scrollTo({
+      top: Math.max(target.offsetTop, 0),
+      behavior: reduceMotion ? "auto" : "smooth",
+    });
+  };
 
   return (
     <div
-      className={`day-page-theme day-page-theme-tech min-h-screen overflow-hidden ${
+      className={`day-page-theme day-page-theme-tech relative h-[100svh] min-h-[100svh] overflow-hidden ${
         isDayMode ? "bg-[#f4fbf7] text-slate-950" : "bg-[#020405] text-white"
       }`}
       style={{
@@ -367,95 +444,174 @@ const HackathonWorks = () => {
         </div>
       </div>
 
-      <main className="relative mx-auto w-full max-w-[1760px] px-4 pb-[calc(env(safe-area-inset-bottom)+9.5rem)] pt-24 sm:px-6 sm:pt-28 md:pb-32 lg:px-10 lg:pt-32 2xl:px-16">
-        <div className="flex flex-col gap-6 border-b border-cyan-300/18 pb-8 sm:pb-10 xl:flex-row xl:items-end xl:justify-between">
-          <div>
-            <div className="flex flex-wrap gap-3">
-              <Link
-                to="/hackathon/showcase"
-                className={`inline-flex min-h-11 items-center gap-2 border px-4 text-sm font-black transition ${chromeClass}`}
+      <div className="fixed left-0 right-0 top-[env(safe-area-inset-top)] z-50 h-0.5">
+        <div
+          className="h-full bg-gradient-to-r from-cyan-400 via-emerald-400 to-amber-300 transition-all duration-150"
+          style={{ width: `${scrollProgress}%` }}
+        />
+      </div>
+
+      {sectionNavItems.length > 1 ? (
+        <nav
+          data-works-section-nav
+          className="fixed right-4 top-1/2 z-40 hidden -translate-y-1/2 flex-col items-center gap-3 xl:flex min-[1720px]:right-6 min-[1720px]:gap-4"
+          aria-label={t("hackathon.works_page.meta_title")}
+        >
+          {sectionNavItems.map((item, index) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => smoothScrollTo(item.id)}
+              className={`group relative flex items-center gap-3 transition-all duration-300 ${
+                activeSection === index ? "pointer-events-none" : ""
+              }`}
+              aria-label={item.label}
+            >
+              <span
+                className={`absolute right-full mr-3 whitespace-nowrap text-xs font-bold uppercase tracking-wider opacity-0 transition-all duration-300 group-hover:opacity-100 ${
+                  activeSection === index ? "opacity-100" : ""
+                } ${isDayMode ? "text-slate-600" : "text-white/60"}`}
               >
-                <ArrowLeft className="h-4 w-4" />
-                {t("hackathon.works_page.back_to_showcase")}
-              </Link>
-              <button
-                type="button"
-                onClick={() => setUploadOpen(true)}
-                className={`inline-flex min-h-11 items-center gap-2 px-4 text-sm font-black transition ${
-                  isDayMode
-                    ? "bg-emerald-600 text-white hover:bg-slate-950"
-                    : "bg-cyan-300 text-slate-950 hover:bg-white"
-                }`}
-              >
-                <Upload className="h-4 w-4" />
-                {t("hackathon.works_page.submit")}
-              </button>
+                {item.label}
+              </span>
+              <div className="relative overflow-hidden rounded-full">
+                <div
+                  className={`flex h-9 w-9 items-center justify-center rounded-full border text-xs font-black transition-all duration-300 min-[1720px]:h-10 min-[1720px]:w-10 ${
+                    activeSection === index
+                      ? isDayMode
+                        ? "border-emerald-500 bg-emerald-500 text-white shadow-lg shadow-emerald-200"
+                        : "border-cyan-400 bg-cyan-300 text-slate-950 shadow-lg shadow-cyan-200/20"
+                      : isDayMode
+                        ? "border-slate-200 bg-white/80 text-slate-400 hover:border-emerald-400 hover:text-emerald-600"
+                        : "border-white/10 bg-white/5 text-white/30 hover:border-cyan-400 hover:text-cyan-300"
+                  }`}
+                >
+                  {activeSection === index ? (
+                    <span className="h-2.5 w-2.5 rounded-full bg-current" />
+                  ) : (
+                    <span className="text-[10px]">{item.no}</span>
+                  )}
+                </div>
+                {activeSection === index ? (
+                  <span className="absolute inset-0 rounded-full bg-cyan-400/20 animate-ping" />
+                ) : null}
+              </div>
+            </button>
+          ))}
+        </nav>
+      ) : null}
+
+      <main
+        ref={pageRef}
+        className={`hackathon-registration-scroll relative h-[100svh] min-w-0 max-w-full snap-y snap-proximity overflow-y-auto overflow-x-hidden scroll-smooth overscroll-y-contain ${
+          isDayMode ? "bg-[#f4fbf7]/70" : "bg-[#020405]/70"
+        }`}
+      >
+        <section
+          id="works-hero"
+          className="relative flex min-h-[100svh] min-w-0 max-w-full snap-start snap-always items-center overflow-x-clip px-4 pb-[calc(env(safe-area-inset-bottom)+5rem)] pt-[calc(env(safe-area-inset-top)+6.5rem)] sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+7rem)] lg:px-10 lg:pt-[calc(env(safe-area-inset-top)+7.5rem)] 2xl:px-16"
+        >
+          <div className="relative mx-auto grid w-full max-w-[1760px] gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.42fr)] xl:items-end">
+            <div>
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  to="/hackathon/showcase"
+                  className={`inline-flex min-h-11 items-center gap-2 border px-4 text-sm font-black transition ${chromeClass}`}
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  {t("hackathon.works_page.back_to_showcase")}
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setUploadOpen(true)}
+                  className={`inline-flex min-h-11 items-center gap-2 px-4 text-sm font-black transition ${
+                    isDayMode
+                      ? "bg-emerald-600 text-white hover:bg-slate-950"
+                      : "bg-cyan-300 text-slate-950 hover:bg-white"
+                  }`}
+                >
+                  <Upload className="h-4 w-4" />
+                  {t("hackathon.works_page.submit")}
+                </button>
+              </div>
+              <p className={`mt-8 inline-flex border px-3 py-2 text-xs font-black uppercase ${chipClass}`}>
+                Winner Stories / {works.length} Selected
+              </p>
+              <h1 className="mt-5 max-w-5xl text-[clamp(3rem,12vw,5rem)] font-black leading-none sm:text-[clamp(4.25rem,8vw,7rem)] lg:text-8xl">
+                {t("hackathon.works_page.title")}
+              </h1>
             </div>
-            <p className={`mt-8 inline-flex border px-3 py-2 text-xs font-black uppercase ${chipClass}`}>
-              Winner Stories / {works.length} Selected
-            </p>
-            <h1 className="mt-5 max-w-5xl text-[clamp(3rem,12vw,5rem)] font-black leading-none sm:text-[clamp(4.25rem,8vw,7rem)] lg:text-8xl">
-              {t("hackathon.works_page.title")}
-            </h1>
-          </div>
-          <div className="grid grid-cols-3 gap-2 text-center sm:gap-3 xl:min-w-[420px]">
-            {[
-              [String(works.length), t("hackathon.works_page.stats_published")],
-              [String(podiumWorks.length), t("hackathon.works_page.stats_featured")],
-              [competition ? "1" : "0", t("hackathon.works_page.stats_competition")],
-            ].map(([value, label]) => (
-              <div key={label} className="border border-cyan-300/16 bg-cyan-300/[0.045] px-3 py-3 sm:px-4 sm:py-4">
-                <p className="font-mono text-2xl font-black text-cyan-200 sm:text-3xl">{value}</p>
-                <p className={`mt-1 text-xs font-bold ${statLabelClass}`}>{label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+            <div className="grid grid-cols-3 gap-2 text-center sm:gap-3 xl:min-w-[420px]">
+              {[
+                [String(works.length), t("hackathon.works_page.stats_published")],
+                [String(podiumWorks.length), t("hackathon.works_page.stats_featured")],
+                [competition ? "1" : "0", t("hackathon.works_page.stats_competition")],
+              ].map(([value, label]) => (
+                <div key={label} className="border border-cyan-300/16 bg-cyan-300/[0.045] px-3 py-3 sm:px-4 sm:py-4">
+                  <p className="font-mono text-2xl font-black text-cyan-200 sm:text-3xl">{value}</p>
+                  <p className={`mt-1 text-xs font-bold ${statLabelClass}`}>{label}</p>
+                </div>
+              ))}
+            </div>
 
-        {loading ? (
-          <section className="py-20 text-center">
-            <RefreshCw className="mx-auto h-8 w-8 animate-spin text-cyan-200" />
-            <p className={`mt-4 text-sm font-bold ${statLabelClass}`}>{t("hackathon.works_page.loading")}</p>
-          </section>
-        ) : works.length === 0 ? (
-          <section className="py-20 text-center">
-            <Trophy className="mx-auto h-12 w-12 text-cyan-200" />
-            <h2 className="mt-5 text-3xl font-black">{t("hackathon.works_page.empty_title")}</h2>
-            <p className={`mx-auto mt-3 max-w-xl text-sm leading-6 ${statLabelClass}`}>
-              {t("hackathon.works_page.empty_desc")}
-            </p>
-          </section>
-        ) : (
+            {loading ? (
+              <div className="xl:col-span-2 border-t border-cyan-300/18 py-12 text-center">
+                <RefreshCw className="mx-auto h-8 w-8 animate-spin text-cyan-200" />
+                <p className={`mt-4 text-sm font-bold ${statLabelClass}`}>{t("hackathon.works_page.loading")}</p>
+              </div>
+            ) : works.length === 0 ? (
+              <div className="xl:col-span-2 border-t border-cyan-300/18 py-12 text-center">
+                <Trophy className="mx-auto h-12 w-12 text-cyan-200" />
+                <h2 className="mt-5 text-3xl font-black">{t("hackathon.works_page.empty_title")}</h2>
+                <p className={`mx-auto mt-3 max-w-xl text-sm leading-6 ${statLabelClass}`}>
+                  {t("hackathon.works_page.empty_desc")}
+                </p>
+              </div>
+            ) : null}
+          </div>
+        </section>
+
+        {!loading && works.length > 0 ? (
           <>
-            <section className="py-8 sm:py-10 max-md:pb-[calc(env(safe-area-inset-bottom)+8rem)]">
-              <div className="mb-6 flex items-center justify-between gap-4">
-                <h2 className="text-2xl font-black sm:text-3xl">{t("hackathon.works_page.featured_title")}</h2>
-                <span className="text-xs font-black uppercase text-cyan-200/72">Top 3</span>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2 min-[900px]:grid-cols-3">
-                {podiumWorks.map((work) => (
-                  <WorkCard key={work.id} work={work} featured isDayMode={isDayMode} onOpen={setSelectedWork} t={t} />
-                ))}
-              </div>
-            </section>
-
-            <section className="border-t border-cyan-300/18 py-8 sm:py-10 max-md:pb-[calc(env(safe-area-inset-bottom)+9rem)]">
-              <div className="mb-6 flex items-center justify-between gap-4">
-                <h2 className="text-2xl font-black sm:text-3xl">{t("hackathon.works_page.more_title")}</h2>
-                <span className="text-xs font-black uppercase text-cyan-200/72">{otherWorks.length} Works</span>
-              </div>
-              {otherWorks.length > 0 ? (
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                  {otherWorks.map((work) => (
-                    <WorkCard key={work.id} work={work} isDayMode={isDayMode} onOpen={setSelectedWork} t={t} />
+            <section
+              id="works-featured"
+              className="relative flex min-h-[100svh] min-w-0 max-w-full snap-start snap-always items-center overflow-x-clip px-4 py-12 sm:px-6 sm:py-14 lg:px-10 xl:py-16 2xl:px-16"
+            >
+              <div className="relative mx-auto w-full max-w-[1760px]">
+                <div className="mb-6 flex items-center justify-between gap-4">
+                  <h2 className="text-2xl font-black sm:text-3xl">{t("hackathon.works_page.featured_title")}</h2>
+                  <span className="text-xs font-black uppercase text-cyan-200/72">Top 3</span>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2 min-[900px]:grid-cols-3">
+                  {podiumWorks.map((work) => (
+                    <WorkCard key={work.id} work={work} featured isDayMode={isDayMode} onOpen={setSelectedWork} t={t} />
                   ))}
                 </div>
-              ) : (
-                <p className={`text-sm font-bold ${statLabelClass}`}>{t("hackathon.works_page.no_more")}</p>
-              )}
+              </div>
+            </section>
+
+            <section
+              id="works-more"
+              className="relative min-h-[100svh] min-w-0 max-w-full snap-start snap-always overflow-x-clip border-t border-cyan-300/18 px-4 pb-[calc(env(safe-area-inset-bottom)+9rem)] pt-12 sm:px-6 sm:pt-14 md:pb-24 lg:px-10 xl:pt-16 2xl:px-16"
+            >
+              <div className="relative mx-auto w-full max-w-[1760px]">
+                <div className="mb-6 flex items-center justify-between gap-4">
+                  <h2 className="text-2xl font-black sm:text-3xl">{t("hackathon.works_page.more_title")}</h2>
+                  <span className="text-xs font-black uppercase text-cyan-200/72">{otherWorks.length} Works</span>
+                </div>
+                {otherWorks.length > 0 ? (
+                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    {otherWorks.map((work) => (
+                      <WorkCard key={work.id} work={work} isDayMode={isDayMode} onOpen={setSelectedWork} t={t} />
+                    ))}
+                  </div>
+                ) : (
+                  <p className={`text-sm font-bold ${statLabelClass}`}>{t("hackathon.works_page.no_more")}</p>
+                )}
+              </div>
             </section>
           </>
-        )}
+        ) : null}
       </main>
 
       <WorkDetailModal work={selectedWork} isDayMode={isDayMode} onClose={() => setSelectedWork(null)} t={t} />
