@@ -1311,7 +1311,15 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
       stopNativeUploadPolling();
       setNativeUploadState({ active: false, sessionId: '', target: null });
       console.error('Failed to start native upload:', error);
-      toast.error(t('upload.native_upload_failed'));
+      const status = error?.response?.status;
+      const serverMessage = error?.response?.data?.error || error?.response?.data?.message;
+      const bridgeMessage = error?.errMsg || error?.message;
+      const detailMessage = serverMessage || bridgeMessage;
+      toast.error(
+        detailMessage
+          ? `${t('upload.native_upload_failed')}: ${detailMessage}${status ? ` (${status})` : ''}`
+          : t('upload.native_upload_failed'),
+      );
     }
   };
 
@@ -1695,6 +1703,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
   };
 
   const canUseNativeUpload = isMiniProgramWebView();
+  const isMiniProgramEventModal = canUseNativeUpload && type === 'event';
   const nativeUploadButtonClasses = isDayMode
     ? 'border-indigo-200 bg-white/95 text-indigo-700 shadow-[0_8px_18px_rgba(99,102,241,0.14)] hover:bg-indigo-50'
     : 'border-indigo-400/35 bg-indigo-500/16 text-indigo-100 shadow-[0_8px_24px_rgba(79,70,229,0.22)] hover:bg-indigo-500/24';
@@ -1789,14 +1798,17 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
     ? (isDayMode ? 'p-0 bg-white/78' : 'p-0 bg-black/90')
     : (isDayMode ? 'p-0 sm:p-4 bg-white/68' : 'p-0 sm:p-4 bg-black/80');
   const modalPanelClass = isDayMode
-    ? `upload-modal-panel upload-modal-${type} relative bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] w-full h-[100dvh] overflow-hidden flex flex-col z-10 ${type === 'article' ? 'max-w-none border-0 rounded-none shadow-none' : `border-0 sm:border border-slate-200/90 rounded-none sm:rounded-[7px] ${type === 'event' ? 'sm:max-w-5xl' : 'sm:max-w-2xl'} shadow-[0_18px_42px_rgba(15,23,42,0.16)] sm:max-h-[90vh]`}`
-    : `upload-modal-panel upload-modal-${type} relative bg-[#0f0f0f] w-full h-[100dvh] overflow-hidden flex flex-col z-10 ${type === 'article' ? 'max-w-none border-0 rounded-none shadow-none' : `border-0 sm:border border-white/10 rounded-none sm:rounded-[7px] ${type === 'event' ? 'sm:max-w-5xl' : 'sm:max-w-2xl'} shadow-[0_18px_48px_rgba(0,0,0,0.55)] sm:max-h-[90vh]`}`;
+    ? `upload-modal-panel upload-modal-${type} ${isMiniProgramEventModal ? 'upload-modal-miniapp-event' : ''} relative bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] w-full h-[100dvh] overflow-hidden flex flex-col z-10 ${type === 'article' ? 'max-w-none border-0 rounded-none shadow-none' : `border-0 sm:border border-slate-200/90 rounded-none sm:rounded-[7px] ${type === 'event' ? 'sm:max-w-5xl' : 'sm:max-w-2xl'} shadow-[0_18px_42px_rgba(15,23,42,0.16)] sm:max-h-[90vh]`}`
+    : `upload-modal-panel upload-modal-${type} ${isMiniProgramEventModal ? 'upload-modal-miniapp-event' : ''} relative bg-[#0f0f0f] w-full h-[100dvh] overflow-hidden flex flex-col z-10 ${type === 'article' ? 'max-w-none border-0 rounded-none shadow-none' : `border-0 sm:border border-white/10 rounded-none sm:rounded-[7px] ${type === 'event' ? 'sm:max-w-5xl' : 'sm:max-w-2xl'} shadow-[0_18px_48px_rgba(0,0,0,0.55)] sm:max-h-[90vh]`}`;
   const headerClass = isDayMode
     ? `upload-modal-header px-5 ${type === 'article' ? 'sm:px-6 py-3 sm:py-4 border-slate-200/80' : 'sm:px-8 py-4 sm:py-6 border-slate-200/80'} border-b flex justify-between items-center bg-white/95 z-20 flex-shrink-0 pt-[max(env(safe-area-inset-top),16px)]`
     : `upload-modal-header px-5 ${type === 'article' ? 'sm:px-6 py-3 sm:py-4 border-white/10' : 'sm:px-8 py-4 sm:py-6 border-white/10'} border-b flex justify-between items-center bg-[#0f0f0f] z-20 flex-shrink-0 pt-[max(env(safe-area-inset-top),16px)]`;
   const stickyFooterClass = isDayMode
     ? "upload-modal-footer sticky bottom-0 bg-white/96 border-t border-slate-200/80 p-5 sm:p-8 mt-auto z-20 pb-[max(env(safe-area-inset-bottom),20px)] sm:pb-8 flex flex-col-reverse sm:flex-row justify-end gap-3 shadow-[0_-10px_24px_rgba(15,23,42,0.08)]"
     : "upload-modal-footer sticky bottom-0 bg-[#0f0f0f] border-t border-white/10 p-5 sm:p-8 mt-auto z-20 pb-[max(env(safe-area-inset-bottom),20px)] sm:pb-8 flex flex-col-reverse sm:flex-row justify-end gap-3 shadow-[0_-12px_28px_rgba(0,0,0,0.5)]";
+  const formClass = `upload-modal-form flex-1 overflow-y-auto custom-scrollbar relative z-10 flex flex-col ${isMiniProgramEventModal ? 'upload-modal-miniapp-event-form' : ''}`;
+  const bodyClass = `upload-modal-body ${type === 'article' ? 'p-4 sm:p-6' : 'p-5 sm:p-8'} flex-1 ${type === 'article' ? 'space-y-4 sm:space-y-5' : 'space-y-6 sm:space-y-8'} ${isMiniProgramEventModal ? 'upload-modal-miniapp-event-body' : ''}`;
+  const footerClass = `${stickyFooterClass} ${isMiniProgramEventModal ? 'upload-modal-miniapp-event-footer' : ''}`;
   const dialogTitleId = `upload-modal-title-${type}`;
 
   return createPortal(
@@ -1894,8 +1906,8 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
             )}
 
             {/* Form Content - Scrollable */}
-            <form ref={formRef} onSubmit={handleSubmit} noValidate={type === 'event'} className="upload-modal-form flex-1 overflow-y-auto custom-scrollbar relative z-10 flex flex-col">
-              <div className={`upload-modal-body ${type === 'article' ? 'p-4 sm:p-6' : 'p-5 sm:p-8'} flex-1 ${type === 'article' ? 'space-y-4 sm:space-y-5' : 'space-y-6 sm:space-y-8'}`}>
+            <form ref={formRef} onSubmit={handleSubmit} noValidate={type === 'event'} className={formClass}>
+              <div className={bodyClass}>
               {(profilesLoading || manageableProfiles.length > 0) && (
                 <section className={`${cardClasses} !space-y-4 ${type === 'event' ? 'hidden sm:block' : ''}`}>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -3103,7 +3115,7 @@ const UploadModal = ({ isOpen, onClose, onUpload, type = 'image', initialData = 
               </div>
 
               {/* Submit Buttons - Sticky at bottom */}
-              <div className={stickyFooterClass}>
+              <div className={footerClass}>
                 {type === 'event' && (
                   <div className="grid w-full min-w-0 flex-1 grid-cols-2 gap-3 sm:hidden">
                     <button

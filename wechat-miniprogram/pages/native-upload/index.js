@@ -27,6 +27,11 @@ const decodeParam = (value) => {
 
 const getWebOrigin = () => getApp().globalData?.webOrigin || WEB_ORIGIN;
 
+const formatWxError = (fallback, error) => {
+  const message = error?.errMsg || error?.message || "";
+  return message ? `${fallback}: ${message}` : fallback;
+};
+
 Page({
   data: {
     copy: COPY,
@@ -109,7 +114,8 @@ Page({
           this.setData({ status: "idle" });
           return;
         }
-        this.fail(COPY.chooseFailed);
+        console.error("[native-upload] chooseMedia failed", error);
+        this.fail(formatWxError(COPY.chooseFailed, error));
       },
     });
   },
@@ -135,7 +141,8 @@ Page({
           this.setData({ status: "idle" });
           return;
         }
-        this.fail(COPY.chooseFailed);
+        console.error("[native-upload] chooseMessageFile failed", error);
+        this.fail(formatWxError(COPY.chooseFailed, error));
       },
     });
   },
@@ -159,6 +166,7 @@ Page({
         sessionId: this.data.sessionId,
       },
       success: (response) => {
+        console.info("[native-upload] uploadFile response", response.statusCode, response.data);
         let body = {};
         try {
           body = JSON.parse(response.data || "{}");
@@ -176,10 +184,12 @@ Page({
           return;
         }
 
+        console.error("[native-upload] uploadFile non-2xx", response.statusCode, body, response.data);
         this.fail(body.error || body.message || COPY.uploadFailed);
       },
-      fail: () => {
-        this.fail(COPY.uploadFailed);
+      fail: (error) => {
+        console.error("[native-upload] uploadFile failed", error);
+        this.fail(formatWxError(COPY.uploadFailed, error));
       },
     });
 
