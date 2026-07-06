@@ -1586,16 +1586,19 @@ END:VCALENDAR`;
   };
 
   const addEvent = (newItem) => {
-    api
+    return api
       .post("/events", newItem)
       .then(() => {
-        refresh({ clearCache: true });
+        return refresh({ clearCache: true });
       })
-      .catch((err) => console.error("Failed to save event", err));
+      .catch((err) => {
+        console.error("Failed to save event", err);
+        throw err;
+      });
   };
 
   const handleUpload = (newItem) => {
-    addEvent(newItem);
+    return addEvent(newItem);
   };
 
   const handlePageChange = (page) => {
