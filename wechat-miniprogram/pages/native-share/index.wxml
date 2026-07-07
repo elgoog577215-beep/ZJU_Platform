@@ -14,6 +14,9 @@
       <view class="native-share-preview-body">
         <view class="native-share-preview-title">{{shareTitle}}</view>
         <view wx:if="{{shareText}}" class="native-share-preview-text">{{shareText}}</view>
+        <view wx:if="{{imageStatus !== 'idle'}}" class="native-share-image-status {{imageStatus}}">
+          {{imageStatus === 'loading' ? copy.imagePreparing : imageStatus === 'ready' ? copy.imageReady : copy.imageFallback}}
+        </view>
       </view>
     </view>
   </view>

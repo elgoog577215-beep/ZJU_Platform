@@ -1,4 +1,4 @@
-const { DEFAULT_PATH, normalizePath } = require("./webview");
+const { WEB_ORIGIN, DEFAULT_PATH, normalizePath } = require("./webview");
 
 const SHARE_MESSAGE_TYPE = "tuotu:share";
 const DEFAULT_SHARE_TITLE = "Tuotu ZJU";
@@ -10,7 +10,9 @@ const sanitizeText = (value, fallback = "", maxLength = 120) => {
 
 const sanitizeImageUrl = (value) => {
   const text = String(value || "").trim();
-  if (!/^https?:\/\//i.test(text)) return "";
+  if (!text) return "";
+  if (/^https?:\/\//i.test(text)) return text;
+  if (text.startsWith("/")) return `${WEB_ORIGIN}${text}`;
   return text;
 };
 

@@ -66,6 +66,18 @@ const buildBridgeUrl = (page, params) => {
   return `${page}?${query.toString()}`;
 };
 
+const normalizeWebUrl = (value) => {
+  const text = String(value || '').trim();
+  if (!text) return '';
+  if (typeof window === 'undefined') return text;
+
+  try {
+    return new URL(text, window.location.origin).toString();
+  } catch {
+    return text;
+  }
+};
+
 export const buildWechatLoginBridgeUrl = (redirectPath = '/events') =>
   buildWechatLoginBridgeUrlWithParams({
     mode: 'login',
@@ -107,7 +119,7 @@ export const buildWechatNativeShareBridgeUrl = ({
     title: title ? String(title).slice(0, 80) : '',
     text: text ? String(text).slice(0, 180) : '',
     path: path || '/events',
-    imageUrl: imageUrl || '',
+    imageUrl: normalizeWebUrl(imageUrl),
     returnPath: returnPath || path || '/events',
   });
 

@@ -183,6 +183,7 @@ test.describe("event detail layout regression", () => {
     expect(result.webShareCalled).toBe(false);
     expect(result.nativeShareUrl).toContain("/pages/native-share/index?");
     expect(decodeURIComponent(result.nativeShareUrl)).toContain(`path=/events?id=${event.id}`);
+    expect(decodeURIComponent(result.nativeShareUrl)).toContain("imageUrl=http");
     expect(decodeURIComponent(result.nativeShareUrl)).toContain(event.title);
 
     await page.goto("/events?miniapp=1&miniapp_nav_inset=112");
