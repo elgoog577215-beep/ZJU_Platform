@@ -139,6 +139,12 @@ export const navigateToMiniProgramPage = async (url) => {
   });
 };
 
+export const shareViaNativeMiniProgram = async (payload = {}) =>
+  navigateToMiniProgramPage(buildWechatNativeShareBridgeUrl({
+    ...payload,
+    returnPath: payload.returnPath || payload.path || '/events',
+  }));
+
 const normalizeSharePayload = (payload = {}) => {
   const normalized = {};
   ["title", "text", "url", "path", "imageUrl"].forEach((key) => {

@@ -12,8 +12,7 @@ import { communityTheme, extractTocItems, flattenLinkedResources } from './commu
 import { LinkifiedText, linkifyHtml } from '../utils/linkify';
 import { isMiniProgramWebView } from '../utils/miniProgramEnv';
 import {
-  buildWechatNativeShareBridgeUrl,
-  navigateToMiniProgramPage,
+  shareViaNativeMiniProgram,
   shareViaMiniProgram,
 } from '../utils/wechatMiniProgramBridge';
 
@@ -92,10 +91,7 @@ const CommunityDetailModal = ({
     try {
       if (isMiniProgramWebView()) {
         try {
-          await navigateToMiniProgramPage(buildWechatNativeShareBridgeUrl({
-            ...payload,
-            returnPath: payload.path,
-          }));
+          await shareViaNativeMiniProgram(payload);
         } catch (nativeShareError) {
           console.error('Error opening native mini program share page:', nativeShareError);
           await shareViaMiniProgram(payload);

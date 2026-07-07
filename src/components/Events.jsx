@@ -76,8 +76,7 @@ import { useReducedMotion } from "../utils/animations";
 import { getOrCreateSiteVisitorKey } from "../utils/visitorKey";
 import { isMiniProgramWebView } from "../utils/miniProgramEnv";
 import {
-  buildWechatNativeShareBridgeUrl,
-  navigateToMiniProgramPage,
+  shareViaNativeMiniProgram,
   shareViaMiniProgram,
 } from "../utils/wechatMiniProgramBridge";
 
@@ -1638,10 +1637,7 @@ END:VCALENDAR`;
 
     if (isMiniProgramWebView()) {
       try {
-        await navigateToMiniProgramPage(buildWechatNativeShareBridgeUrl({
-          ...shareData,
-          returnPath: shareData.path,
-        }));
+        await shareViaNativeMiniProgram(shareData);
         return;
       } catch (nativeShareError) {
         console.error("Error opening native mini program share page:", nativeShareError);

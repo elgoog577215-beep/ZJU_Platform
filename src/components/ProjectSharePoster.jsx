@@ -7,8 +7,7 @@ import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { isMiniProgramWebView } from "../utils/miniProgramEnv";
 import {
-  buildWechatNativeShareBridgeUrl,
-  navigateToMiniProgramPage,
+  shareViaNativeMiniProgram,
   shareViaMiniProgram,
 } from "../utils/wechatMiniProgramBridge";
 
@@ -132,10 +131,7 @@ const ProjectSharePoster = ({ project, onClose, variant = "playful" }) => {
 
     if (isMiniProgramWebView()) {
       try {
-        await navigateToMiniProgramPage(buildWechatNativeShareBridgeUrl({
-          ...miniProgramShareData,
-          returnPath: miniProgramShareData.path,
-        }));
+        await shareViaNativeMiniProgram(miniProgramShareData);
       } catch {
         try {
           await shareViaMiniProgram(miniProgramShareData);
