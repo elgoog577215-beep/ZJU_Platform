@@ -457,6 +457,12 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
   const isDayMode = uiMode === "day";
   const profileContentRef = React.useRef(null);
   const settingsContentRef = React.useRef(null);
+  const profileBasicsRef = React.useRef(null);
+  const profileCardEditorRef = React.useRef(null);
+  const activityProfileRef = React.useRef(null);
+  const managedProfilesRef = React.useRef(null);
+  const identityClaimsRef = React.useRef(null);
+  const outcomeClaimsRef = React.useRef(null);
   const settingsPanelClass = isDayMode
     ? "rounded-2xl p-4 md:p-6 border h-fit bg-white/82 border-slate-200/80 shadow-[0_18px_40px_rgba(148,163,184,0.12)]"
     : "rounded-2xl p-4 md:p-6 border h-fit bg-white/5 border-white/10";
@@ -540,12 +546,21 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
   };
 
   const scrollToProfileSection = (ref) => {
-    window.requestAnimationFrame(() => {
-      ref.current?.scrollIntoView({
-        block: "start",
-        behavior: prefersReducedMotion ? "auto" : "smooth",
-      });
-    });
+    let attempts = 0;
+    const scrollWhenReady = () => {
+      attempts += 1;
+      if (ref.current) {
+        ref.current.scrollIntoView({
+          block: "start",
+          behavior: prefersReducedMotion ? "auto" : "smooth",
+        });
+        return;
+      }
+      if (attempts < 8) {
+        window.requestAnimationFrame(scrollWhenReady);
+      }
+    };
+    window.requestAnimationFrame(scrollWhenReady);
   };
 
   const refreshUserSystemOverview = useCallback(async () => {
@@ -588,9 +603,20 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
       scrollToProfileSection(profileContentRef);
       return;
     }
-    const settingsTarget = SETTINGS_TAB_KEYS.has(target) ? target : "profile-card";
-    navigateProfileTab("settings", settingsTarget);
-    scrollToProfileSection(settingsContentRef);
+    const targetConfig = {
+      "profile-basics": { settings: "profile-card", ref: profileBasicsRef },
+      "profile-card": { settings: "profile-card", ref: profileBasicsRef },
+      "profile-card-editor": { settings: "profile-card", ref: profileCardEditorRef },
+      "activity-profile": { settings: "activity-profile", ref: activityProfileRef },
+      identity: { settings: "identity", ref: identityClaimsRef },
+      "identity-claims": { settings: "identity", ref: identityClaimsRef },
+      "managed-profiles": { settings: "identity", ref: managedProfilesRef },
+      "outcome-claims": { settings: "identity", ref: outcomeClaimsRef },
+      security: { settings: "security", ref: settingsContentRef },
+    }[target] || { settings: "profile-card", ref: profileBasicsRef };
+
+    navigateProfileTab("settings", targetConfig.settings);
+    scrollToProfileSection(targetConfig.ref);
   };
 
   // FIX: BUG-24 — Add AbortController to cancel stale requests when switching profiles
@@ -2191,7 +2217,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
 
               {activeSettingsTab === "profile-card" && (
                 <div className="space-y-8">
-              <div className={settingsPanelClass}>
+              <div ref={profileBasicsRef} data-testid="profile-basics-section" className={`${settingsPanelClass} scroll-mt-24`}>
                 <h3
                   className={`text-xl font-bold mb-6 flex items-center gap-2 ${isDayMode ? "text-slate-900" : "text-white"}`}
                 >
@@ -2382,7 +2408,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                 )}
               </div>
 
-              <div className={settingsPanelClass}>
+              <div ref={profileCardEditorRef} data-testid="profile-card-editor-section" className={`${settingsPanelClass} scroll-mt-24`}>
                 <h3
                   className={`text-xl font-bold mb-6 flex items-center gap-2 ${isDayMode ? "text-slate-900" : "text-white"}`}
                 >
@@ -2400,7 +2426,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
 
               {activeSettingsTab === "activity-profile" && (
                 <div className="space-y-6">
-                  <div className={settingsPanelClass}>
+                  <div ref={activityProfileRef} data-testid="activity-profile-section" className={`${settingsPanelClass} scroll-mt-24`}>
                     <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div>
                         <h3 className={`flex items-center gap-2 text-xl font-bold ${isDayMode ? "text-slate-900" : "text-white"}`}>
@@ -2750,7 +2776,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                 </h3>
 
                 <div className="space-y-5">
-                  <div className={`rounded-2xl border p-4 ${isDayMode ? "bg-slate-50/80 border-slate-200/80" : "bg-black/20 border-white/10"}`}>
+                  <div ref={managedProfilesRef} data-testid="managed-profiles-section" className={`scroll-mt-24 rounded-2xl border p-4 ${isDayMode ? "bg-slate-50/80 border-slate-200/80" : "bg-black/20 border-white/10"}`}>
                     <div className={`text-sm font-bold mb-3 ${isDayMode ? "text-slate-800" : "text-white"}`}>{t("user_profile.center.identity.current_org")}</div>
                     <div className={`rounded-xl border px-3 py-2 text-sm font-bold ${isDayMode ? "bg-white border-slate-200 text-slate-700" : "bg-white/5 border-white/10 text-gray-200"}`}>
                       {user?.organization_cr || profileData.organization || t("user_profile.center.identity.no_org")}
@@ -2760,7 +2786,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                     </p>
                   </div>
 
-                  <div className={`rounded-2xl border p-4 ${isDayMode ? "bg-slate-50/80 border-slate-200/80" : "bg-black/20 border-white/10"}`}>
+                  <div ref={identityClaimsRef} data-testid="identity-claims-section" className={`scroll-mt-24 rounded-2xl border p-4 ${isDayMode ? "bg-slate-50/80 border-slate-200/80" : "bg-black/20 border-white/10"}`}>
                     <div className={`text-sm font-bold mb-3 ${isDayMode ? "text-slate-800" : "text-white"}`}>{t("user_profile.center.identity.claims_title")}</div>
                     <div className="grid grid-cols-1 sm:grid-cols-[120px_1fr] gap-2">
                       <select
@@ -2813,7 +2839,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                     </div>
                   </div>
 
-                  <div className={`rounded-2xl border p-4 ${isDayMode ? "bg-slate-50/80 border-slate-200/80" : "bg-black/20 border-white/10"}`}>
+                  <div ref={outcomeClaimsRef} data-testid="outcome-claims-section" className={`scroll-mt-24 rounded-2xl border p-4 ${isDayMode ? "bg-slate-50/80 border-slate-200/80" : "bg-black/20 border-white/10"}`}>
                     <div className={`text-sm font-bold mb-3 ${isDayMode ? "text-slate-800" : "text-white"}`}>{t("user_profile.center.identity.outcomes_title")}</div>
                     {outcomeLinksLoading ? (
                       <p className={`text-sm ${isDayMode ? "text-slate-500" : "text-gray-500"}`}>{t("common.loading")}</p>
@@ -2849,6 +2875,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
             </div>
           )}
         </div>
+        <div className="h-36 md:hidden" aria-hidden="true" />
     </PersonalCenterShell>
   );
 };

@@ -11,19 +11,36 @@ import {
 } from "lucide-react";
 
 const targetForCompletionKey = (key) => {
+  if (key === "nickname" || key === "avatar") return "profile-basics";
+  if (key === "profileCard") return "profile-card-editor";
   if (key === "activityProfile") return "activity-profile";
-  if (key === "identity" || key === "managedProfile") return "identity";
-  return "profile-card";
+  if (key === "identity") return "identity-claims";
+  if (key === "managedProfile") return "managed-profiles";
+  return "profile-basics";
 };
 
 const actionTargetForKey = (key) => {
   if (key === "check_submissions") return "submissions";
-  if (key === "confirm_outcomes" || key === "claim_organization" || key === "review_identity") return "identity";
+  if (key === "confirm_outcomes") return "outcome-claims";
+  if (key === "claim_organization") return "managed-profiles";
+  if (key === "review_identity") return "identity-claims";
   if (key?.startsWith("complete_")) {
     return targetForCompletionKey(key.replace("complete_", ""));
   }
-  return "profile-card";
+  return "profile-basics";
 };
+
+const isBroadTarget = (target) => target === "identity" || target === "profile-card";
+
+const resolveCompletionTarget = (item) =>
+  item?.target && !isBroadTarget(item.target)
+    ? item.target
+    : targetForCompletionKey(item?.key);
+
+const resolveActionTarget = (action) =>
+  action?.target && !isBroadTarget(action.target)
+    ? action.target
+    : actionTargetForKey(action?.key);
 
 const scopeLabelKey = (scope) =>
   scope === "core_partner"
@@ -60,7 +77,7 @@ const UserSystemOverview = ({ overview, loading, isDayMode, t, onOpenTarget }) =
       .filter((item) => !item.completed)
       .map((item) => ({
         key: `complete_${item.key}`,
-        target: item.target || targetForCompletionKey(item.key),
+        target: resolveCompletionTarget(item),
       })),
     ...(overview?.contentSummary?.pending > 0
       ? [{ key: "check_submissions", target: "submissions", count: overview.contentSummary.pending }]
@@ -77,7 +94,7 @@ const UserSystemOverview = ({ overview, loading, isDayMode, t, onOpenTarget }) =
       icon: accountType === "organization" ? Briefcase : UserRound,
       label: t("user_profile.system_overview.stats.account_type"),
       value: t(`user_profile.system_overview.account_type.${accountType}`),
-      target: "profile-card",
+      target: "profile-basics",
       tone: isDayMode ? "text-sky-700" : "text-sky-200",
     },
     {
@@ -95,7 +112,7 @@ const UserSystemOverview = ({ overview, loading, isDayMode, t, onOpenTarget }) =
       icon: Users,
       label: t("user_profile.system_overview.stats.organizations"),
       value: organizationWorkspace.total || managedOrganizations.length || 0,
-      target: "identity",
+      target: "managed-profiles",
       tone: isDayMode ? "text-violet-700" : "text-violet-200",
     },
     {
@@ -103,7 +120,11 @@ const UserSystemOverview = ({ overview, loading, isDayMode, t, onOpenTarget }) =
       icon: Bell,
       label: t("user_profile.system_overview.stats.pending"),
       value: pendingCount,
-      target: pendingCount > 0 ? "submissions" : "identity",
+      target: overview?.contentSummary?.pending > 0
+        ? "submissions"
+        : overview?.outcomeSummary?.candidate > 0
+          ? "outcome-claims"
+          : "identity-claims",
       tone: pendingCount > 0
         ? isDayMode ? "text-rose-700" : "text-rose-200"
         : isDayMode ? "text-slate-700" : "text-slate-200",
@@ -185,7 +206,7 @@ const UserSystemOverview = ({ overview, loading, isDayMode, t, onOpenTarget }) =
               <button
                 key={item.key}
                 type="button"
-                onClick={() => openTarget(item.target || targetForCompletionKey(item.key))}
+                onClick={() => openTarget(resolveCompletionTarget(item))}
                 data-testid={`user-system-completion-${item.key}`}
                 className={`flex min-h-10 items-center justify-between gap-2 rounded-[6px] border px-3 text-left text-xs font-bold transition-colors ${
                   item.completed
@@ -224,7 +245,7 @@ const UserSystemOverview = ({ overview, loading, isDayMode, t, onOpenTarget }) =
                 <button
                   key={action.key}
                   type="button"
-                  onClick={() => openTarget(action.target || actionTargetForKey(action.key))}
+                  onClick={() => openTarget(resolveActionTarget(action))}
                   data-testid={`user-system-action-${action.key}`}
                   className={`${buttonClass} justify-between border text-left ${
                     isDayMode

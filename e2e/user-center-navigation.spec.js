@@ -100,6 +100,17 @@ async function installUserCenterMocks(page) {
   );
 }
 
+async function expectSectionNearTop(page, testId) {
+  await expect(page.getByTestId(testId)).toBeVisible();
+  await expect
+    .poll(() =>
+      page
+        .getByTestId(testId)
+        .evaluate((element) => element.getBoundingClientRect().top),
+    )
+    .toBeLessThan(260);
+}
+
 test("mobile user center overview cards open the matching functional sections", async ({
   page,
 }) => {
@@ -113,7 +124,7 @@ test("mobile user center overview cards open the matching functional sections", 
   await page.getByTestId("user-system-stat-organizations").click();
 
   await expect(page).toHaveURL(/tab=settings&settings=identity/);
-  await expect(page.getByTestId("profile-settings-panel")).toBeVisible();
+  await expectSectionNearTop(page, "managed-profiles-section");
   await expect
     .poll(() => page.evaluate(() => window.scrollY))
     .toBeGreaterThan(initialScrollY);
@@ -121,7 +132,19 @@ test("mobile user center overview cards open the matching functional sections", 
   await page.getByTestId("user-system-action-check_submissions").click();
   await expect(page).toHaveURL(/tab=submissions/);
 
+  await page.getByTestId("user-system-completion-profileCard").click();
+  await expect(page).toHaveURL(/tab=settings&settings=profile-card/);
+  await expectSectionNearTop(page, "profile-card-editor-section");
+
   await page.getByTestId("user-system-completion-activityProfile").click();
   await expect(page).toHaveURL(/tab=settings&settings=activity-profile/);
-  await expect(page.getByTestId("profile-settings-panel")).toBeVisible();
+  await expectSectionNearTop(page, "activity-profile-section");
+
+  await page.getByTestId("user-system-completion-identity").click();
+  await expect(page).toHaveURL(/tab=settings&settings=identity/);
+  await expectSectionNearTop(page, "identity-claims-section");
+
+  await page.getByTestId("user-system-action-confirm_outcomes").click();
+  await expect(page).toHaveURL(/tab=settings&settings=identity/);
+  await expectSectionNearTop(page, "outcome-claims-section");
 });
