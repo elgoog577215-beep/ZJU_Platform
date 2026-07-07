@@ -12,6 +12,10 @@ const {
     getNativeUploadSession,
 } = require('../services/nativeUploadSessionService');
 const {
+    createNativePosterSession,
+    getNativePosterSession,
+} = require('../services/nativePosterSessionService');
+const {
     scrapeWeChat,
     parseWithLLM,
     cleanWeChatUrl,
@@ -605,6 +609,36 @@ const cancelNativeUpload = (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+const buildAbsoluteApiUrl = (req, pathname) => {
+    const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
+    const host = req.get('x-forwarded-host') || req.get('host');
+    return `${protocol}://${host}${pathname}`;
+};
+
+const createNativePosterSessionHandler = async (req, res, next) => {
+    try {
+        const session = await createNativePosterSession({
+            imageData: req.body?.imageData,
+            fileName: req.body?.fileName,
+        });
+        const imagePath = `/api/native-poster-sessions/${encodeURIComponent(session.sessionId)}/image?token=${encodeURIComponent(session.token)}`;
+        res.status(201).json({
+            ...session,
+            imageUrl: buildAbsoluteApiUrl(req, imagePath),
+        });
+    } catch (error) { next(error); }
+};
+
+const getNativePosterSessionImageHandler = async (req, res, next) => {
+    try {
+        const session = await getNativePosterSession(req.params.sessionId, req.query.token);
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(session.fileName)}"`);
+        res.setHeader('Cache-Control', 'private, max-age=600');
+        res.sendFile(session.filePath);
+    } catch (error) { next(error); }
+};
+
 const uploadRoot = path.resolve(__dirname, '../../uploads');
 const imageVariantRoot = path.join(uploadRoot, '_variants');
 const variantWidths = [320, 480, 640, 960, 1200, 1600];
@@ -791,6 +825,8 @@ module.exports = {
   getNativeUploadSessionHandler,
   handleNativeUpload,
   cancelNativeUpload,
+  createNativePosterSessionHandler,
+  getNativePosterSessionImageHandler,
   getImageVariant,
   downloadDbBackup,
   getFeaturedContent,

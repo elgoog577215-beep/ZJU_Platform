@@ -188,3 +188,52 @@ test("project plaza ranks opportunity cards by match score", async ({ page }) =>
   await page.getByRole("button", { name: "最新" }).click();
   await expect(titles.first()).toHaveText(quietProject.title);
 });
+
+test("project poster download opens native save page inside mini program webview", async ({ page }) => {
+  await installProjectMocks(page);
+  await page.setViewportSize(mobileViewport);
+  await page.addInitScript(() => {
+    window.__wxjs_environment = "miniprogram";
+    window.__miniNavigateUrls = [];
+    window.wx = {
+      miniProgram: {
+        navigateTo({ url, success }) {
+          window.__miniNavigateUrls.push(url);
+          success?.({});
+        },
+      },
+    };
+  });
+
+  let posterRequestBody = null;
+  await page.route("**/api/native-poster-sessions", async (route) => {
+    posterRequestBody = route.request().postDataJSON();
+    await route.fulfill({
+      status: 201,
+      json: {
+        sessionId: "poster-session-1",
+        token: "poster-token",
+        fileName: "tuotu-project-Campus-AI-Builder.png",
+        imageUrl: "https://tuotuzju.com/api/native-poster-sessions/poster-session-1/image?token=poster-token",
+        expiresAt: "2026-07-07T12:00:00.000Z",
+        expiresIn: 600,
+      },
+    });
+  });
+
+  await page.goto("/projects?miniapp=1");
+  await page.locator(".ppp-card", { hasText: project.title }).locator(".ppp-card-open").click();
+  await page.locator(".ppp-mcontact button.ppp-cbtn.ghost").first().click();
+  await expect(page.locator(".ppp-poster-modal")).toBeVisible();
+  await page.locator(".ppp-poster-actions .ppp-cbtn.primary").click();
+
+  await expect
+    .poll(() => posterRequestBody?.imageData?.startsWith("data:image/png;base64,"))
+    .toBe(true);
+  await expect
+    .poll(() => page.evaluate(() => window.__miniNavigateUrls || []))
+    .toContainEqual(expect.stringContaining("/pages/native-poster-save/index?"));
+  await expect
+    .poll(() => page.evaluate(() => window.__miniNavigateUrls?.[0] || ""))
+    .toContain("imageUrl=https%3A%2F%2Ftuotuzju.com%2Fapi%2Fnative-poster-sessions");
+});

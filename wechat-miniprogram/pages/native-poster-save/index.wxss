@@ -1,0 +1,139 @@
+page {
+  min-height: 100%;
+  background: #080912;
+  color: #ffffff;
+}
+
+.poster-save-page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 120rpx 32rpx 64rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 28rpx;
+  background:
+    radial-gradient(circle at 50% 4%, rgba(236, 72, 153, 0.18), transparent 38%),
+    linear-gradient(180deg, rgba(20, 24, 38, 0.96) 0%, rgba(7, 9, 18, 1) 50%, rgba(12, 14, 24, 1) 100%);
+}
+
+.poster-save-surface {
+  padding: 46rpx 36rpx 38rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.12);
+  border-radius: 18rpx;
+  background: rgba(10, 10, 16, 0.9);
+  box-shadow: 0 34rpx 92rpx rgba(0, 0, 0, 0.42);
+}
+
+.poster-save-kicker {
+  color: #fecdd3;
+  font-size: 23rpx;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+.poster-save-title {
+  margin-top: 18rpx;
+  color: #ffffff;
+  font-size: 48rpx;
+  font-weight: 900;
+  line-height: 1.12;
+}
+
+.poster-save-desc {
+  margin-top: 16rpx;
+  color: rgba(226, 232, 240, 0.66);
+  font-size: 27rpx;
+  line-height: 1.62;
+}
+
+.poster-preview {
+  margin-top: 32rpx;
+  overflow: hidden;
+  border: 1rpx solid rgba(255, 255, 255, 0.12);
+  border-radius: 16rpx;
+  background: rgba(255, 248, 241, 0.96);
+}
+
+.poster-image {
+  width: 100%;
+  display: block;
+}
+
+.poster-empty {
+  min-height: 360rpx;
+  padding: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(226, 232, 240, 0.7);
+  font-size: 28rpx;
+  line-height: 1.5;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.poster-status {
+  margin-top: 22rpx;
+  display: inline-flex;
+  align-items: center;
+  min-height: 46rpx;
+  padding: 0 20rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(226, 232, 240, 0.78);
+  font-size: 23rpx;
+  font-weight: 800;
+}
+
+.poster-status.saved {
+  background: rgba(34, 197, 94, 0.15);
+  color: #bbf7d0;
+}
+
+.poster-status.failed {
+  background: rgba(248, 113, 113, 0.14);
+  color: #fecaca;
+}
+
+.poster-status.downloading {
+  background: rgba(96, 165, 250, 0.14);
+  color: #bfdbfe;
+}
+
+.poster-save-actions {
+  display: grid;
+  gap: 18rpx;
+  padding: 0 18rpx;
+}
+
+.poster-save-button {
+  padding: 0;
+  border: 0;
+  min-height: 92rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12rpx;
+  font-size: 30rpx;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.poster-save-button::after {
+  border: 0;
+}
+
+.poster-save-button.primary {
+  background: linear-gradient(90deg, #06b6d4 0%, #4f46e5 100%);
+  color: #ffffff;
+  box-shadow: 0 18rpx 44rpx rgba(6, 182, 212, 0.24);
+}
+
+.poster-save-button.primary[disabled] {
+  opacity: 0.58;
+}
+
+.poster-save-button.secondary {
+  border: 1rpx solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(255, 255, 255, 0.9);
+}

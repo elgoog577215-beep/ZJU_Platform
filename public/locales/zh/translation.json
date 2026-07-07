@@ -2900,6 +2900,8 @@
     "exporting": "生成中...",
     "download_success": "海报已生成",
     "download_failed": "海报生成失败，请检查图片是否可访问",
+    "miniapp_save_opened": "已打开小程序保存页",
+    "miniapp_save_failed": "小程序保存页打开失败，请稍后重试",
     "copy_success": "项目链接已复制",
     "share_text": "看看这个项目广场里的校园项目",
     "share_failed": "分享失败，可先复制链接",

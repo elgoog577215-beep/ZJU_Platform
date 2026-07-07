@@ -6,6 +6,7 @@
     "pages/login/index",
     "pages/native-upload/index",
     "pages/native-share/index",
+    "pages/native-poster-save/index",
     "pages/subscribe/index",
     "pages/fallback/index"
   ],

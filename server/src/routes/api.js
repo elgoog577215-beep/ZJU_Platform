@@ -105,6 +105,19 @@ const nativeUploadSessionLimiter = customRateLimit({
   },
 });
 
+const nativePosterSessionLimiter = customRateLimit({
+  windowMs: 10 * 60 * 1000,
+  maxRequests: 20,
+  keyGenerator: (req) => `native-poster-session:${req.ip}`,
+  handler: (_req, res) => {
+    res.status(429).json({
+      error: 'Too many native poster save attempts, please try again later.',
+      errorCode: 'NATIVE_POSTER_RATE_LIMITED',
+      retryAfter: 10 * 60,
+    });
+  },
+});
+
 const authenticateNativeUploadSession = (req, res, next) => {
   try {
     req.nativeUploadSession = verifyNativeUploadToken(req.headers['x-native-upload-token']);
@@ -280,6 +293,8 @@ router.get('/uploads/image-variant', systemController.getImageVariant);
 router.post('/upload', authenticateToken, upload.fields([{ name: 'file', maxCount: 1 }, { name: 'cover', maxCount: 1 }]), systemController.handleUpload);
 router.post('/native-upload-sessions', authenticateToken, nativeUploadSessionLimiter, systemController.createNativeUploadSessionHandler);
 router.get('/native-upload-sessions/:sessionId', authenticateToken, systemController.getNativeUploadSessionHandler);
+router.post('/native-poster-sessions', nativePosterSessionLimiter, systemController.createNativePosterSessionHandler);
+router.get('/native-poster-sessions/:sessionId/image', systemController.getNativePosterSessionImageHandler);
 router.post('/upload/native', authenticateNativeUploadSession, upload.fields([{ name: 'file', maxCount: 1 }, { name: 'cover', maxCount: 1 }]), systemController.handleNativeUpload);
 router.post('/upload/native/cancel', authenticateNativeUploadSession, systemController.cancelNativeUpload);
 router.post('/resources/parse-wechat', authenticateToken, wechatParseController.parseWeChatResource);

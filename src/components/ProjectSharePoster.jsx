@@ -5,8 +5,10 @@ import { toPng } from "html-to-image";
 import QRCode from "qrcode";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
+import api from "../services/api";
 import { isMiniProgramWebView } from "../utils/miniProgramEnv";
 import {
+  savePosterViaNativeMiniProgram,
   shareViaNativeMiniProgram,
   shareViaMiniProgram,
 } from "../utils/wechatMiniProgramBridge";
@@ -99,6 +101,21 @@ const ProjectSharePoster = ({ project, onClose, variant = "playful" }) => {
     setBusy("download");
     try {
       const dataUrl = await exportPoster();
+      if (isMiniProgramWebView()) {
+        const response = await api.post("/native-poster-sessions", {
+          imageData: dataUrl,
+          fileName,
+        });
+        await savePosterViaNativeMiniProgram({
+          imageUrl: response.data?.imageUrl,
+          fileName: response.data?.fileName || fileName,
+          returnPath: `/projects?id=${encodeURIComponent(String(project?.id || ""))}`,
+          auto: true,
+        });
+        toast.success(t("project_share_poster.miniapp_save_opened", "已打开小程序保存页"));
+        return;
+      }
+
       const link = document.createElement("a");
       link.download = fileName;
       link.href = dataUrl;

@@ -196,7 +196,7 @@ export const PROJECT_PLAZA_CSS = `
 @media (prefers-reduced-motion:reduce){.ppp-card,.ppp-newbtn,.ppp-chip,.ppp-art,.ppp-arrow{transition:none;}.ppp-scrim,.ppp-modal{animation:none;}}
 
 /* ===== share poster ===== */
-.ppp-poster-scrim{position:fixed;inset:0;z-index:70;background:rgba(12,10,18,0.66);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:28px;animation:pppfade .2s var(--ease);}
+.ppp-poster-scrim{position:fixed;inset:0;z-index:220;background:rgba(12,10,18,0.66);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:28px;animation:pppfade .2s var(--ease);}
 .ppp-poster-modal{position:relative;width:min(100%,940px);max-height:92vh;overflow:auto;background:#fff7f8;color:#23151a;border:1px solid rgba(255,36,66,0.24);border-radius:8px;box-shadow:0 36px 100px rgba(45,20,28,0.32);display:grid;grid-template-columns:minmax(390px,1fr) 292px;gap:22px;padding:24px;}
 .ppp-poster-close{position:absolute;right:14px;top:14px;z-index:4;width:34px;height:34px;border:1px solid rgba(35,21,26,0.12);border-radius:6px;background:rgba(255,255,255,0.82);color:#23151a;display:grid;place-items:center;cursor:pointer;box-shadow:0 8px 18px rgba(45,20,28,0.08);}
 .ppp-poster-preview{display:flex;justify-content:center;align-items:flex-start;min-width:0;padding:8px 0;}
