@@ -225,6 +225,7 @@ test("project poster download opens native save page inside mini program webview
   await page.locator(".ppp-card", { hasText: project.title }).locator(".ppp-card-open").click();
   await page.locator(".ppp-mcontact button.ppp-cbtn.ghost").first().click();
   await expect(page.locator(".ppp-poster-modal")).toBeVisible();
+  await expect(page.locator(".ppp-scrim")).toHaveCount(0);
   await page.locator(".ppp-poster-actions .ppp-cbtn.primary").click();
 
   await expect
@@ -274,6 +275,7 @@ test("project poster share opens native image share page inside mini program web
   await page.locator(".ppp-card", { hasText: project.title }).locator(".ppp-card-open").click();
   await page.locator(".ppp-mcontact button.ppp-cbtn.ghost").first().click();
   await expect(page.locator(".ppp-poster-modal")).toBeVisible();
+  await expect(page.locator(".ppp-scrim")).toHaveCount(0);
   await page.locator(".ppp-poster-actions .ppp-cbtn.ghost").first().click();
 
   await expect

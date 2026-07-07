@@ -461,6 +461,11 @@ const ProjectPlaza = () => {
 
   useBackClose(selected !== null, closeDetail);
 
+  const openPoster = useCallback((project) => {
+    setPosterProject(project);
+    setSelected(null);
+  }, []);
+
   useEffect(() => {
     if (!selected && !posterProject) return undefined;
     if (isMiniProgramWebView()) return undefined;
@@ -611,7 +616,7 @@ const ProjectPlaza = () => {
           onClose={closeDetail}
           onFav={applyFav}
           loggedIn={Boolean(user)}
-          onOpenPoster={setPosterProject}
+          onOpenPoster={openPoster}
           variant={variant}
         />
       )}
