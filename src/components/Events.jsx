@@ -387,17 +387,21 @@ const EventCard = memo(
             className="absolute inset-0 h-full w-full"
             imageClassName="h-full w-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/5 to-transparent" />
-          <span className="absolute left-2 top-2 rounded-[5px] bg-indigo-950/78 px-2 py-0.5 text-[14px] font-black leading-5 text-white shadow-[0_6px_16px_rgba(0,0,0,0.32)]">
-            {formatDateTime(event.date).split(" ")[0] || " -- "}
-          </span>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/0 to-transparent" />
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col px-3.5 py-2.5">
-          <div className="flex min-h-[32px] min-w-0 items-start">
+          <div className="flex min-h-[32px] min-w-0 items-start gap-2">
             <h3 className={`line-clamp-1 min-w-0 flex-1 text-[19px] font-black leading-7 tracking-tight ${isDayMode ? "text-slate-950" : "text-white"}`}>
               {event.title}
             </h3>
+            <span className={`shrink-0 rounded-[5px] border px-2 py-0.5 text-[13px] font-black leading-5 ${
+              isDayMode
+                ? "border-slate-200 bg-slate-50 text-slate-700"
+                : "border-white/15 bg-white/10 text-slate-100"
+            }`}>
+              {formatDateTime(event.date).split(" ")[0] || "--"}
+            </span>
           </div>
 
           <div className="mt-1 flex min-h-[28px] min-w-0 items-center gap-2 overflow-hidden">
@@ -415,14 +419,14 @@ const EventCard = memo(
 
           <div className={`mt-2 grid min-h-[48px] gap-1 text-[14px] leading-5 ${isDayMode ? "text-slate-500" : "text-slate-300"}`}>
             <div className="flex h-5 min-w-0 items-center gap-1.5">
-              <Clock size={15} className={isDayMode ? "text-blue-600" : "text-slate-300"} />
+              <Clock size={15} className={isDayMode ? "text-slate-500" : "text-slate-300"} />
               <span className="truncate">
                 {formatDateTime(event.date)}
                 {event.end_date && !isSameDay(event.date, event.end_date) && ` - ${formatDateTime(event.end_date)}`}
               </span>
             </div>
             <div className="flex h-5 min-w-0 items-center gap-1.5">
-              <MapPin size={15} className={isDayMode ? "text-blue-600" : "text-slate-300"} />
+              <MapPin size={15} className={isDayMode ? "text-slate-500" : "text-slate-300"} />
               <span className="truncate">{event.location || t("common.online", "线上")}</span>
             </div>
           </div>
@@ -441,7 +445,7 @@ const EventCard = memo(
                 initialFavorited={event.favorited}
                 className={`!min-h-8 !min-w-8 h-8 w-8 rounded-full p-0 ${
                   isDayMode
-                    ? "bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-pink-500"
+                    ? "bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-pink-500"
                     : "bg-white/10 text-slate-200 hover:bg-white/15 hover:text-pink-400"
                 }`}
                 onToggle={(favorited, likes) =>
@@ -1219,6 +1223,48 @@ const Events = () => {
   const selectedMobileCategoryLabel =
     mobileCategoryTabs.find((tab) => tab.value === (filters.category || null))
       ?.label || t("common.all", "全部");
+  const activeMobileFilterChips = useMemo(() => {
+    const chips = [];
+    if (filters.category) {
+      chips.push({
+        key: "category",
+        label: selectedMobileCategoryLabel,
+        onClear: () => handleMobileCategoryChange(null),
+      });
+    }
+    if (filters.target_audience) {
+      chips.push({
+        key: "audience",
+        label: formatEventAudience(filters.target_audience),
+        onClear: () =>
+          setFilters((prev) => ({ ...prev, target_audience: null })),
+      });
+    }
+    if (partnerFilter) {
+      chips.push({
+        key: "campus",
+        label: partnerFilter.name,
+        onClear: () => setPartnerFilter(null),
+      });
+    }
+    if (chips.length > 0) {
+      chips.push({
+        key: "clear",
+        label: "清除筛选",
+        onClear: resetMobileFilters,
+        clearAll: true,
+      });
+    }
+    return chips;
+  }, [
+    filters.category,
+    filters.target_audience,
+    formatEventAudience,
+    handleMobileCategoryChange,
+    partnerFilter,
+    resetMobileFilters,
+    selectedMobileCategoryLabel,
+  ]);
 
   // Debounce search
   useEffect(() => {
@@ -1752,7 +1798,7 @@ END:VCALENDAR`;
         viewport={{ once: true }}
         className="mb-3 md:mb-9 relative z-40 md:pt-0 text-center"
       >
-        <div className="mb-6 grid grid-cols-[56px_minmax(0,1fr)_112px] items-center gap-2 md:hidden">
+        <div className="mb-4 grid grid-cols-[56px_minmax(0,1fr)_112px] items-center gap-2 md:hidden">
           <motion.button
             {...mobileControlMotion}
             type="button"
@@ -1792,14 +1838,14 @@ END:VCALENDAR`;
                 }
                 setIsUploadOpen(true);
               }}
-              className={`inline-flex h-11 w-11 items-center justify-center rounded-[8px] text-white ${isDayMode ? "bg-blue-600 shadow-[0_12px_26px_rgba(37,99,235,0.28)]" : "bg-indigo-500 shadow-[0_0_18px_rgba(99,102,241,0.36)]"}`}
+              className={`inline-flex h-11 w-11 items-center justify-center rounded-[8px] border ${isDayMode ? "border-blue-200 bg-white/95 text-blue-600 shadow-[0_10px_24px_rgba(37,99,235,0.10)]" : "border-transparent bg-indigo-500 text-white shadow-[0_0_18px_rgba(99,102,241,0.36)]"}`}
             >
               <Plus size={25} strokeWidth={3} />
             </motion.button>
           </div>
         </div>
         <div className="md:hidden">
-          <div className={`relative -mx-4 mb-3 overflow-hidden rounded-b-[14px] border-y shadow-[0_12px_34px_rgba(15,23,42,0.10)] ${
+          <div className={`relative -mx-4 mb-2 overflow-hidden rounded-b-[14px] border-y shadow-[0_12px_34px_rgba(15,23,42,0.10)] ${
             isDayMode
               ? "border-blue-100/90 bg-white/88"
               : "border-indigo-400/20 bg-[#080f1f]/92 shadow-[0_12px_34px_rgba(15,23,42,0.32)]"
@@ -1846,12 +1892,13 @@ END:VCALENDAR`;
             />
           </div>
         </div>
-        <MobileContentToolbar
-          isDayMode={isDayMode}
-          sortLabel={mobileSortLabel}
-          sort={sort}
-          onSortChange={setSort}
-          filterCount={mobileFilterCount}
+          <MobileContentToolbar
+            isDayMode={isDayMode}
+            sortLabel={mobileSortLabel}
+            sort={sort}
+            compact
+            onSortChange={setSort}
+            filterCount={mobileFilterCount}
           onOpenSort={() => {
             setIsMobileFilterOpen(false);
             setIsMobileSortOpen(true);
@@ -1863,31 +1910,10 @@ END:VCALENDAR`;
           onClearFilters={resetMobileFilters}
           clearLabel={t("common.clear_all", "重置")}
         />
-        <div className="mb-6 md:hidden">
-          <div className="scrollbar-none flex gap-2 overflow-x-auto pr-3">
-            {[
-              {
-                key: "category",
-                label: filters.category ? selectedMobileCategoryLabel : "全部类型",
-                onClear: () => handleMobileCategoryChange(null),
-              },
-              {
-                key: "campus",
-                label: partnerFilter?.name || "浙江大学",
-                onClear: () => setPartnerFilter(null),
-              },
-              {
-                key: "format",
-                label: "线下活动",
-                onClear: resetMobileFilters,
-              },
-              {
-                key: "clear",
-                label: "清除筛选",
-                onClear: resetMobileFilters,
-                clearAll: true,
-              },
-            ].map((chip) => (
+        {activeMobileFilterChips.length > 0 && (
+          <div className="mb-4 md:hidden">
+            <div className="scrollbar-none flex gap-2 overflow-x-auto pr-3">
+              {activeMobileFilterChips.map((chip) => (
               <button
                 key={chip.key}
                 type="button"
@@ -1905,9 +1931,10 @@ END:VCALENDAR`;
                 <span>{chip.label}</span>
                 {!chip.clearAll && <X size={15} />}
               </button>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
         <MobileEventAssistantLauncher
           isDayMode={isDayMode}
           onOpen={() => {

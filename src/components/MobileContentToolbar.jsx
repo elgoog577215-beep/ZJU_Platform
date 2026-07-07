@@ -12,12 +12,14 @@ const MobileContentToolbar = ({
   onClearFilters,
   clearLabel,
   filterButtonLabel,
+  compact = false,
 }) => {
   const { t } = useTranslation();
   const resetText = clearLabel || t("common.clear_all", "清空");
   const filterText = filterButtonLabel || t("common.filters", "筛选");
   const sortText = sortLabel || t("sort_filter.newest", "最新发布");
 
+  const buttonHeightClass = compact ? "h-10" : "h-12";
   const baseButtonClass = isDayMode
     ? "border-blue-100 bg-white/92 text-slate-700 shadow-[0_10px_24px_rgba(30,64,175,0.08)] active:bg-blue-50"
     : "border-white/10 bg-white/[0.045] text-slate-200";
@@ -28,12 +30,12 @@ const MobileContentToolbar = ({
   };
 
   return (
-    <div className="mb-3 grid w-full grid-cols-[1fr_1fr_0.98fr] gap-2 md:hidden">
+    <div className={`${compact ? "mb-2" : "mb-3"} grid w-full grid-cols-[1fr_1fr_0.98fr] gap-2 md:hidden`}>
       <motion.button
         {...motionProps}
         type="button"
         onClick={onOpenSort}
-        className={`inline-flex h-12 min-w-0 items-center justify-center gap-2 rounded-[8px] border px-2.5 text-[14px] font-semibold transition-[background-color,border-color,box-shadow] ${baseButtonClass}`}
+        className={`inline-flex ${buttonHeightClass} min-w-0 items-center justify-center gap-2 rounded-[8px] border px-2.5 text-[14px] font-semibold transition-[background-color,border-color,box-shadow] ${baseButtonClass}`}
         aria-label={sortText}
         title={sortText}
       >
@@ -46,7 +48,7 @@ const MobileContentToolbar = ({
         {...motionProps}
         type="button"
         onClick={onOpenFilter}
-        className={`relative inline-flex h-12 min-w-0 items-center justify-center gap-2 rounded-[8px] border px-2.5 text-[14px] font-semibold transition-[background-color,border-color,box-shadow] ${baseButtonClass}`}
+        className={`relative inline-flex ${buttonHeightClass} min-w-0 items-center justify-center gap-2 rounded-[8px] border px-2.5 text-[14px] font-semibold transition-[background-color,border-color,box-shadow] ${baseButtonClass}`}
         aria-label={filterText}
         title={filterText}
       >
@@ -65,7 +67,7 @@ const MobileContentToolbar = ({
         {...motionProps}
         type="button"
         onClick={onClearFilters}
-        className={`inline-flex h-12 min-w-0 items-center justify-center gap-2 rounded-[8px] border px-2.5 text-[14px] font-semibold transition-[background-color,border-color,box-shadow] ${baseButtonClass}`}
+        className={`inline-flex ${buttonHeightClass} min-w-0 items-center justify-center gap-2 rounded-[8px] border px-2.5 text-[14px] font-semibold transition-[background-color,border-color,box-shadow] ${baseButtonClass}`}
         aria-label={resetText}
         title={resetText}
       >
