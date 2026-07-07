@@ -1,0 +1,328 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { BadgeCheck, Building2, Copy, Download, QrCode, Share2, UserRound, X } from "lucide-react";
+import { toPng } from "html-to-image";
+import QRCode from "qrcode";
+import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
+
+const initials = (value) => {
+  const text = String(value || "拓浙").replace(/\s+/g, "").trim();
+  return text.slice(0, 2).toUpperCase() || "拓浙";
+};
+
+const safeFilePart = (value) =>
+  String(value || "profile")
+    .trim()
+    .replace(/[\\/:*?"<>|]+/g, "-")
+    .replace(/\s+/g, "-")
+    .slice(0, 40) || "profile";
+
+const compactUrl = (value) => {
+  try {
+    const parsed = new URL(value);
+    return `${parsed.host}${parsed.pathname}`.replace(/\/$/, "");
+  } catch {
+    return value || "";
+  }
+};
+
+const resolveAssetUrl = (value) => {
+  if (!value) return "";
+  try {
+    return new URL(value, window.location.origin).toString();
+  } catch {
+    return value;
+  }
+};
+
+const clampList = (items, limit) => (
+  Array.isArray(items)
+    ? items.map((item) => String(item || "").trim()).filter(Boolean).slice(0, limit)
+    : []
+);
+
+const ProfileSharePoster = ({
+  profile,
+  profileCard,
+  displayName,
+  metaLabel,
+  description,
+  shareUrl,
+  tags = [],
+  onClose,
+}) => {
+  const { t } = useTranslation();
+  const posterRef = useRef(null);
+  const [qrDataUrl, setQrDataUrl] = useState("");
+  const [busy, setBusy] = useState("");
+
+  const isPerson = profile?.type === "person";
+  const name = displayName || profile?.display_name || t("profiles.types.subject");
+  const avatarUrl = resolveAssetUrl(profile?.logo_url || profile?.avatar_url || "");
+  const coverUrl = resolveAssetUrl(profile?.cover_url || "");
+  const statusLabel = profileCard?.status
+    ? t(`user_profile.center.profile_status.${profileCard.status}`, { defaultValue: profileCard.status })
+    : "";
+  const slogan = String(profileCard?.slogan || "").trim();
+  const intro = slogan || description || t("profile_share_poster.default_intro");
+  const fileName = `tuotu-profile-${safeFilePart(name)}.png`;
+  const shareTitle = t("profile_share_poster.share_title", { name });
+  const visibleTags = useMemo(() => {
+    const merged = [
+      statusLabel,
+      ...clampList(tags, 5),
+      metaLabel,
+      profile?.verified ? t("profiles.page.verified") : "",
+    ];
+    const seen = new Set();
+    return merged.filter((item) => {
+      const key = String(item || "").trim().toLowerCase();
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }).slice(0, 5);
+  }, [metaLabel, profile?.verified, statusLabel, tags, t]);
+  const Icon = isPerson ? UserRound : Building2;
+
+  useEffect(() => {
+    if (!shareUrl) return undefined;
+    let alive = true;
+    setQrDataUrl("");
+    QRCode.toDataURL(shareUrl, {
+      width: 196,
+      margin: 1,
+      color: { dark: "#17231f", light: "#fffdf8" },
+    })
+      .then((url) => {
+        if (alive) setQrDataUrl(url);
+      })
+      .catch(() => {
+        if (alive) toast.error(t("profile_share_poster.qr_failed"));
+      });
+    return () => {
+      alive = false;
+    };
+  }, [shareUrl, t]);
+
+  const exportPoster = async () => {
+    if (!posterRef.current) throw new Error("poster-not-ready");
+    if (document.fonts?.ready) await document.fonts.ready;
+    return toPng(posterRef.current, {
+      backgroundColor: "#fffdf8",
+      cacheBust: true,
+      pixelRatio: 3,
+    });
+  };
+
+  const handleDownload = async () => {
+    setBusy("download");
+    try {
+      const dataUrl = await exportPoster();
+      const link = document.createElement("a");
+      link.download = fileName;
+      link.href = dataUrl;
+      link.click();
+      toast.success(t("profile_share_poster.download_success"));
+    } catch {
+      toast.error(t("profile_share_poster.download_failed"));
+    } finally {
+      setBusy("");
+    }
+  };
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success(t("profile_share_poster.copy_success"));
+    } catch {
+      toast.error(t("common.copy_failed", "复制失败"));
+    }
+  };
+
+  const handleNativeShare = async () => {
+    if (!navigator.share) {
+      await handleCopy();
+      return;
+    }
+    setBusy("share");
+    try {
+      const dataUrl = await exportPoster();
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], fileName, { type: "image/png" });
+      const shareData = {
+        title: shareTitle,
+        text: t(isPerson ? "profile_share_poster.share_text_person" : "profile_share_poster.share_text_org"),
+        url: shareUrl,
+      };
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ ...shareData, files: [file] });
+      } else {
+        await navigator.share(shareData);
+      }
+    } catch (error) {
+      if (error?.name !== "AbortError") toast.error(t("profile_share_poster.share_failed"));
+    } finally {
+      setBusy("");
+    }
+  };
+
+  if (!profile || !shareUrl || typeof document === "undefined") return null;
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[160] flex min-h-dvh items-center justify-center bg-slate-950/68 px-4 py-5 backdrop-blur-md"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={t("profile_share_poster.dialog_title")}
+    >
+      <div
+        className="relative grid max-h-[94vh] w-full max-w-[920px] gap-5 overflow-auto rounded-[8px] border border-white/18 bg-[#fffdf8] p-4 text-slate-950 shadow-[0_34px_90px_rgba(15,23,42,0.34)] md:grid-cols-[minmax(0,1fr)_280px] md:p-6"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-[6px] border border-slate-200 bg-white/90 text-slate-700 shadow-sm hover:text-slate-950"
+          aria-label={t("common.close", "关闭")}
+        >
+          <X size={18} />
+        </button>
+
+        <div className="flex min-w-0 justify-center pt-8 md:pt-3">
+          <article
+            ref={posterRef}
+            className="relative flex h-[500px] w-[326px] flex-col overflow-hidden rounded-[8px] border border-[#d8d2c3] bg-[#fffdf8] shadow-[0_18px_54px_rgba(39,58,49,0.2)] sm:h-[540px] sm:w-[360px]"
+          >
+            <div className="relative h-28 shrink-0 overflow-hidden bg-[#dfeee8] sm:h-32">
+              {coverUrl ? (
+                <img src={coverUrl} alt="" crossOrigin="anonymous" className="h-full w-full object-cover" />
+              ) : (
+                <div className="h-full w-full bg-[linear-gradient(135deg,#dceee8_0%,#fffdf8_48%,#ffe4d0_100%)]" />
+              )}
+              <div className="absolute inset-x-0 bottom-0 h-16 bg-[linear-gradient(180deg,transparent,rgba(255,253,248,0.96))]" />
+              <div className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-[6px] border border-white/70 bg-white/88 px-2.5 py-1.5 shadow-sm">
+                <img src="/newlogo.png" alt="" crossOrigin="anonymous" className="h-6 w-6 object-contain" />
+                <div className="flex flex-col leading-none">
+                  <strong className="text-[10px] font-black text-[#17231f]">{t("profile_share_poster.site_name")}</strong>
+                  <span className="mt-1 text-[8px] font-black uppercase tracking-[0.08em] text-[#c85f3d]">{t("profile_share_poster.site_subtitle")}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="relative -mt-10 flex flex-1 flex-col px-5 pb-5 sm:px-6 sm:pb-6">
+              <div className="flex items-end justify-between gap-4">
+                <div className="h-[82px] w-[82px] overflow-hidden rounded-[8px] border-[3px] border-[#fffdf8] bg-[#17231f] shadow-[0_12px_26px_rgba(23,35,31,0.22)]">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="" crossOrigin="anonymous" className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="grid h-full w-full place-items-center text-xl font-black text-white">{initials(name)}</div>
+                  )}
+                </div>
+                <span className="mb-2 inline-flex items-center gap-1.5 rounded-[6px] border border-[#d8d2c3] bg-white px-2.5 py-1.5 text-[11px] font-black text-[#3d4f47]">
+                  <Icon size={13} />
+                  {metaLabel}
+                </span>
+              </div>
+
+              <div className="mt-4 min-w-0">
+                <div className="flex items-center gap-2">
+                  <h2 className="line-clamp-2 text-[27px] font-black leading-[1.06] tracking-normal text-[#17231f] sm:text-[31px]">
+                    {name}
+                  </h2>
+                  {profile?.verified ? <BadgeCheck className="shrink-0 text-[#0f8f6d]" size={20} /> : null}
+                </div>
+                <p className="mt-2 font-mono text-[12px] font-black text-[#728078]">@{profile?.handle}</p>
+                <p className="mt-4 line-clamp-3 text-[13px] font-bold leading-6 text-[#4d5f57]">
+                  {intro}
+                </p>
+              </div>
+
+              {visibleTags.length > 0 ? (
+                <div className="mt-4 flex max-h-[58px] flex-wrap gap-2 overflow-hidden">
+                  {visibleTags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-flex max-w-[142px] items-center rounded-[6px] border border-[#cfe1d9] bg-[#edf8f3] px-2.5 py-1 text-[10px] font-black text-[#17634e]"
+                    >
+                      <span className="truncate">{tag}</span>
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+
+              <div className="mt-auto grid grid-cols-[1fr_82px] items-end gap-4 border-t border-dashed border-[#cfc7b8] pt-4">
+                <div className="min-w-0">
+                  <div className="mb-2 inline-flex items-center gap-1.5 rounded-[6px] bg-[#17231f] px-2 py-1 text-[10px] font-black text-[#fffdf8]">
+                    <QrCode size={12} />
+                    {t("profile_share_poster.scan_badge")}
+                  </div>
+                  <strong className="block text-[16px] font-black leading-tight text-[#17231f]">
+                    {t(isPerson ? "profile_share_poster.scan_title_person" : "profile_share_poster.scan_title_org")}
+                  </strong>
+                  <span className="mt-1 block truncate text-[10px] font-bold text-[#7c897f]">
+                    {compactUrl(shareUrl)}
+                  </span>
+                </div>
+                <div className="h-[82px] w-[82px] rounded-[6px] border border-[#d8d2c3] bg-white p-1.5 shadow-sm">
+                  {qrDataUrl ? (
+                    <img src={qrDataUrl} alt={t("profile_share_poster.qr_alt")} className="h-full w-full" />
+                  ) : (
+                    <span className="block h-full w-full rounded-[4px] bg-slate-100" />
+                  )}
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <aside className="flex min-w-0 flex-col px-1 pb-1 pt-0 md:pt-8">
+          <span className="text-[11px] font-black uppercase tracking-[0.14em] text-[#c85f3d]">
+            {t("profile_share_poster.preview_label")}
+          </span>
+          <h3 className="mt-2 text-2xl font-black leading-tight text-[#17231f]">
+            {t("profile_share_poster.dialog_title")}
+          </h3>
+          <p className="mt-3 text-sm font-semibold leading-6 text-[#65756d]">
+            {t(isPerson ? "profile_share_poster.dialog_desc_person" : "profile_share_poster.dialog_desc_org")}
+          </p>
+          <div className="mt-5 grid gap-2">
+            <button
+              type="button"
+              disabled={Boolean(busy) || !qrDataUrl}
+              onClick={handleDownload}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-[6px] bg-[#17231f] px-4 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-55"
+            >
+              <Download size={16} />
+              {busy === "download" ? t("profile_share_poster.exporting") : t("profile_share_poster.download_png")}
+            </button>
+            <button
+              type="button"
+              disabled={Boolean(busy) || !qrDataUrl}
+              onClick={handleNativeShare}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-[6px] border border-[#d8d2c3] bg-white px-4 text-sm font-black text-[#17231f] disabled:cursor-not-allowed disabled:opacity-55"
+            >
+              <Share2 size={16} />
+              {busy === "share" ? t("profile_share_poster.exporting") : t("profile_share_poster.native_share")}
+            </button>
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-[6px] border border-[#d8d2c3] bg-white px-4 text-sm font-black text-[#17231f]"
+            >
+              <Copy size={16} />
+              {t("profile_share_poster.copy_link")}
+            </button>
+          </div>
+          <div className="mt-5 rounded-[6px] border border-[#e4ded1] bg-[#f9f5eb] px-3 py-3 text-xs font-bold leading-5 text-[#6f7c73]">
+            {t("profile_share_poster.privacy_note")}
+          </div>
+        </aside>
+      </div>
+    </div>,
+    document.body,
+  );
+};
+
+export default ProfileSharePoster;

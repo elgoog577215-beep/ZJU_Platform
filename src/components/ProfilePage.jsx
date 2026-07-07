@@ -16,17 +16,19 @@ import {
   Radio,
   Save,
   Search,
+  Share2,
   Upload,
   User,
   Users,
   X,
 } from "lucide-react";
-import api, { getUserSystemOverview, uploadFile } from "../services/api";
+import api, { getProfileCard, getUserSystemOverview, uploadFile } from "../services/api";
 import { useSettings } from "../context/SettingsContext";
 import { useAuth } from "../context/AuthContext";
 import SEO from "./SEO";
 import OfficialVerificationBadge from "./OfficialVerificationBadge";
 import UserSystemOverview from "./profile/UserSystemOverview";
+import ProfileSharePoster from "./ProfileSharePoster";
 import { useTranslation } from "react-i18next";
 
 const TYPE_META = {
@@ -59,11 +61,35 @@ const profileImage = (profile) =>
 const profileRoute = (profile) =>
   profile?.type === "person" ? `/u/${profile.handle}` : `/org/${profile.handle}`;
 
+const buildProfileShareUrl = (profile) => {
+  const path = profileRoute(profile);
+  if (typeof window === "undefined") return path;
+  return new URL(path, window.location.origin).toString();
+};
+
+const profileOwnerUserId = (profile) => (
+  profile?.owner_user_id || (profile?.source_type === "user" ? profile.source_id : null)
+);
+
 const feedTarget = (item) => {
   if (item.type === "event") return `/events?id=${item.id}`;
   if (item.type === "article") return `/articles?article=${item.id}`;
   if (item.type === "news") return `/articles?news=${item.id}`;
   return "";
+};
+
+const uniqueText = (items = [], limit = 5) => {
+  const seen = new Set();
+  const next = [];
+  for (const item of items) {
+    const text = String(item || "").trim();
+    const key = text.toLowerCase();
+    if (!text || seen.has(key)) continue;
+    seen.add(key);
+    next.push(text);
+    if (next.length >= limit) break;
+  }
+  return next;
 };
 
 const editableFormFromProfile = (profile = {}) => ({
@@ -222,6 +248,8 @@ const ProfilePage = ({ forcedHandle = null }) => {
   const [passwordMessage, setPasswordMessage] = useState("");
   const [userSystemOverview, setUserSystemOverview] = useState(null);
   const [userSystemOverviewLoading, setUserSystemOverviewLoading] = useState(false);
+  const [profileCard, setProfileCard] = useState(null);
+  const [sharePosterOpen, setSharePosterOpen] = useState(false);
 
   useEffect(() => {
     if (!handle) return undefined;
@@ -244,6 +272,29 @@ const ProfilePage = ({ forcedHandle = null }) => {
       });
     return () => controller.abort();
   }, [handle]);
+
+  useEffect(() => {
+    const userId = profile?.type === "person" ? profileOwnerUserId(profile) : null;
+    if (!userId) {
+      setProfileCard(null);
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    getProfileCard(userId, {
+      signal: controller.signal,
+      silent: true,
+      noRetry: true,
+    })
+      .then((response) => {
+        if (!controller.signal.aborted) setProfileCard(response.data || null);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setProfileCard(null);
+      });
+
+    return () => controller.abort();
+  }, [profile]);
 
   useEffect(() => {
     if (!handle || error) return undefined;
@@ -284,11 +335,50 @@ const ProfilePage = ({ forcedHandle = null }) => {
     currentUser?.id &&
     profile?.owner_user_id &&
     String(profile.owner_user_id) === String(currentUser.id);
+  const description = localizedProfileText(profile, language, "description_en", "description")
+    || localizedProfileText(profile, language, "bio_en", "bio")
+    || t("profiles.page.default_description");
+  const cooperationDirection = localizedProfileText(
+    profile,
+    language,
+    "cooperation_direction_en",
+    "cooperation_direction",
+  );
   const inputClass = isDayMode
     ? "border-slate-200 bg-white text-slate-950 placeholder:text-slate-400 focus:border-sky-400"
     : "border-white/10 bg-white/[0.06] text-white placeholder:text-white/35 focus:border-sky-300/60";
   const labelClass = isDayMode ? "text-slate-600" : "text-slate-300";
   const metaLabel = t(meta.labelKey);
+  const shareUrl = useMemo(() => (profile ? buildProfileShareUrl(profile) : ""), [profile]);
+  const profileCardStatusLabel = profileCard?.status
+    ? t(`user_profile.center.profile_status.${profileCard.status}`, { defaultValue: profileCard.status })
+    : "";
+  const profileCardTags = useMemo(
+    () => uniqueText((profileCard?.tags || []).map((tag) => tag.label), 5),
+    [profileCard?.tags],
+  );
+  const profileAliasTags = useMemo(
+    () => uniqueText((profile?.aliases || [])
+      .filter((alias) => alias.purpose === "search")
+      .map((alias) => alias.alias), 4),
+    [profile?.aliases],
+  );
+  const heroTags = useMemo(() => {
+    if (profile?.type === "person") {
+      return uniqueText([profileCardStatusLabel, ...profileCardTags], 5);
+    }
+    return uniqueText([
+      metaLabel,
+      profile?.verified ? t("profiles.page.verified") : "",
+      ...profileAliasTags,
+    ], 5);
+  }, [metaLabel, profile?.type, profile?.verified, profileAliasTags, profileCardStatusLabel, profileCardTags, t]);
+  const identityLead = profile?.type === "person"
+    ? (profileCard?.slogan || description)
+    : (cooperationDirection || description);
+  const identityHint = profile?.type === "person"
+    ? t("profiles.page.personal_card_hint")
+    : t("profiles.page.organization_card_hint");
 
   const refreshUserSystemOverview = useCallback(async () => {
     if (!showUserSystemOverview) return;
@@ -415,15 +505,6 @@ const ProfilePage = ({ forcedHandle = null }) => {
       setPasswordSaving(false);
     }
   };
-  const description = localizedProfileText(profile, language, "description_en", "description")
-    || localizedProfileText(profile, language, "bio_en", "bio")
-    || t("profiles.page.default_description");
-  const cooperationDirection = localizedProfileText(
-    profile,
-    language,
-    "cooperation_direction_en",
-    "cooperation_direction",
-  );
 
   if (loading) {
     return (
@@ -490,7 +571,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
           </div>
 
           <div className="grid gap-5 p-4 md:grid-cols-[auto_1fr_auto] md:gap-6 md:p-6">
-              <ProfileMark profile={profile} isDayMode={isDayMode} displayName={displayName} />
+            <ProfileMark profile={profile} isDayMode={isDayMode} displayName={displayName} />
             <div className="min-w-0">
               <div className="mb-3 flex flex-wrap items-center gap-2">
                 <span className={`inline-flex items-center gap-1.5 rounded-[4px] border px-2.5 py-1 text-xs font-black ${
@@ -500,9 +581,16 @@ const ProfilePage = ({ forcedHandle = null }) => {
                   {metaLabel}
                 </span>
                 <OfficialVerificationBadge profile={profile} isDayMode={isDayMode} />
+                {profileCardStatusLabel ? (
+                  <span className={`inline-flex items-center rounded-[4px] border px-2.5 py-1 text-xs font-black ${
+                    isDayMode ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-emerald-300/20 bg-emerald-400/10 text-emerald-100"
+                  }`}>
+                    {profileCardStatusLabel}
+                  </span>
+                ) : null}
               </div>
               <h1 className="profile-page-title text-3xl font-black leading-tight md:text-5xl">
-                {profile.display_name}
+                {displayName}
               </h1>
               {secondaryDisplayName ? (
                 <p className={`mt-1 text-sm font-bold md:text-base ${
@@ -511,21 +599,54 @@ const ProfilePage = ({ forcedHandle = null }) => {
                   {secondaryDisplayName}
                 </p>
               ) : null}
-              <p className={`mt-4 max-w-3xl text-sm leading-7 md:text-base ${
+              <div className={`mt-4 inline-flex max-w-full items-center rounded-[4px] border px-2.5 py-1 text-[11px] font-black uppercase tracking-[0.12em] ${
+                isDayMode ? "border-slate-200 bg-slate-50 text-slate-500" : "border-white/10 bg-white/[0.04] text-slate-400"
+              }`}>
+                <span className="truncate">{identityHint}</span>
+              </div>
+              <p className={`mt-3 max-w-3xl text-sm leading-7 md:text-base ${
                 isDayMode ? "text-slate-600" : "text-slate-300"
               }`}>
-                {description}
+                {identityLead}
               </p>
-              {cooperationDirection ? (
+              {cooperationDirection && cooperationDirection !== identityLead ? (
                 <p className={`mt-3 text-sm font-bold ${
                   isDayMode ? "text-violet-700" : "text-indigo-100"
                 }`}>
                   {cooperationDirection}
                 </p>
               ) : null}
+              {heroTags.length > 0 ? (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {heroTags.map((tag) => (
+                    <span
+                      key={tag}
+                      className={`inline-flex max-w-full items-center rounded-[5px] border px-2.5 py-1 text-xs font-black ${
+                        isDayMode
+                          ? "border-slate-200 bg-white text-slate-600"
+                          : "border-white/10 bg-white/[0.045] text-slate-200"
+                      }`}
+                    >
+                      <span className="truncate">{tag}</span>
+                    </span>
+                  ))}
+                </div>
+              ) : null}
             </div>
 
             <div className="flex flex-wrap gap-2 md:flex-col md:items-end">
+              <button
+                type="button"
+                data-testid="profile-share-card-button"
+                onClick={() => setSharePosterOpen(true)}
+                className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-[6px] border px-4 text-sm font-black ${
+                  isDayMode ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-white" : "border-emerald-300/25 bg-emerald-400/10 text-emerald-100 hover:border-emerald-200/45"
+                }`}
+                aria-label={t("profiles.page.share_card_aria", { name: displayName })}
+              >
+                <Share2 size={16} />
+                {t("profiles.page.share_card")}
+              </button>
               {editable ? (
                 <button
                   type="button"
@@ -916,6 +1037,18 @@ const ProfilePage = ({ forcedHandle = null }) => {
           </div>
         ) : null}
       </div>
+      {sharePosterOpen ? (
+        <ProfileSharePoster
+          profile={profile}
+          profileCard={profileCard}
+          displayName={displayName}
+          metaLabel={metaLabel}
+          description={description}
+          shareUrl={shareUrl}
+          tags={heroTags}
+          onClose={() => setSharePosterOpen(false)}
+        />
+      ) : null}
     </section>
   );
 };
