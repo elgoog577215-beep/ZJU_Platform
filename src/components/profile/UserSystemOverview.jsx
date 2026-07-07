@@ -77,6 +77,7 @@ const UserSystemOverview = ({ overview, loading, isDayMode, t, onOpenTarget }) =
       icon: accountType === "organization" ? Briefcase : UserRound,
       label: t("user_profile.system_overview.stats.account_type"),
       value: t(`user_profile.system_overview.account_type.${accountType}`),
+      target: "profile-card",
       tone: isDayMode ? "text-sky-700" : "text-sky-200",
     },
     {
@@ -84,6 +85,7 @@ const UserSystemOverview = ({ overview, loading, isDayMode, t, onOpenTarget }) =
       icon: ShieldCheck,
       label: t("user_profile.system_overview.stats.review_permission"),
       value: t(`user_profile.system_overview.review_permission.${reviewPermission}`),
+      target: "submissions",
       tone: permission.canBypassReview
         ? isDayMode ? "text-emerald-700" : "text-emerald-200"
         : isDayMode ? "text-amber-700" : "text-amber-200",
@@ -93,6 +95,7 @@ const UserSystemOverview = ({ overview, loading, isDayMode, t, onOpenTarget }) =
       icon: Users,
       label: t("user_profile.system_overview.stats.organizations"),
       value: organizationWorkspace.total || managedOrganizations.length || 0,
+      target: "identity",
       tone: isDayMode ? "text-violet-700" : "text-violet-200",
     },
     {
@@ -100,6 +103,7 @@ const UserSystemOverview = ({ overview, loading, isDayMode, t, onOpenTarget }) =
       icon: Bell,
       label: t("user_profile.system_overview.stats.pending"),
       value: pendingCount,
+      target: pendingCount > 0 ? "submissions" : "identity",
       tone: pendingCount > 0
         ? isDayMode ? "text-rose-700" : "text-rose-200"
         : isDayMode ? "text-slate-700" : "text-slate-200",
@@ -136,14 +140,25 @@ const UserSystemOverview = ({ overview, loading, isDayMode, t, onOpenTarget }) =
       </div>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {topStats.map(({ key, icon: Icon, value, label, tone }) => (
-          <div key={key} className={`rounded-[8px] border p-4 ${moduleClass}`}>
+        {topStats.map(({ key, icon: Icon, value, label, target, tone }) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => openTarget(target)}
+            data-testid={`user-system-stat-${key}`}
+            className={`rounded-[8px] border p-4 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${
+              isDayMode
+                ? `${moduleClass} hover:border-indigo-200 hover:bg-white`
+                : `${moduleClass} hover:border-white/20 hover:bg-white/[0.07]`
+            }`}
+            aria-label={`${label}: ${value}`}
+          >
             <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-[6px] ${isDayMode ? "bg-white" : "bg-white/10"} ${tone}`}>
               <Icon size={18} aria-hidden="true" />
             </div>
             <div className={`text-2xl font-bold ${titleText}`}>{value}</div>
             <div className={`mt-1 text-xs font-semibold ${mutedText}`}>{label}</div>
-          </div>
+          </button>
         ))}
       </div>
 
@@ -171,6 +186,7 @@ const UserSystemOverview = ({ overview, loading, isDayMode, t, onOpenTarget }) =
                 key={item.key}
                 type="button"
                 onClick={() => openTarget(item.target || targetForCompletionKey(item.key))}
+                data-testid={`user-system-completion-${item.key}`}
                 className={`flex min-h-10 items-center justify-between gap-2 rounded-[6px] border px-3 text-left text-xs font-bold transition-colors ${
                   item.completed
                     ? isDayMode
@@ -209,6 +225,7 @@ const UserSystemOverview = ({ overview, loading, isDayMode, t, onOpenTarget }) =
                   key={action.key}
                   type="button"
                   onClick={() => openTarget(action.target || actionTargetForKey(action.key))}
+                  data-testid={`user-system-action-${action.key}`}
                   className={`${buttonClass} justify-between border text-left ${
                     isDayMode
                       ? "border-indigo-100 bg-white text-indigo-700 hover:border-indigo-200"

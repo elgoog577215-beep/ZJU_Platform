@@ -455,6 +455,8 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
   }, [isOwner]);
   const prefersReducedMotion = useReducedMotion();
   const isDayMode = uiMode === "day";
+  const profileContentRef = React.useRef(null);
+  const settingsContentRef = React.useRef(null);
   const settingsPanelClass = isDayMode
     ? "rounded-2xl p-4 md:p-6 border h-fit bg-white/82 border-slate-200/80 shadow-[0_18px_40px_rgba(148,163,184,0.12)]"
     : "rounded-2xl p-4 md:p-6 border h-fit bg-white/5 border-white/10";
@@ -530,8 +532,20 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
   };
 
   const navigateProfileTab = (tabKey, settingsKey) => {
+    if (tabKey === "settings" && settingsKey && SETTINGS_TAB_KEYS.has(settingsKey)) {
+      setActiveSettingsTab(settingsKey);
+    }
     setActiveTab(tabKey);
     navigate(profileTabPath(tabKey, settingsKey), { replace: true });
+  };
+
+  const scrollToProfileSection = (ref) => {
+    window.requestAnimationFrame(() => {
+      ref.current?.scrollIntoView({
+        block: "start",
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+      });
+    });
   };
 
   const refreshUserSystemOverview = useCallback(async () => {
@@ -566,13 +580,17 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
   const openUserSystemTarget = (target) => {
     if (target === "submissions") {
       navigateProfileTab("submissions");
+      scrollToProfileSection(profileContentRef);
       return;
     }
     if (target === "published") {
       navigateProfileTab("published");
+      scrollToProfileSection(profileContentRef);
       return;
     }
-    navigateProfileTab("settings", target || "profile-card");
+    const settingsTarget = SETTINGS_TAB_KEYS.has(target) ? target : "profile-card";
+    navigateProfileTab("settings", settingsTarget);
+    scrollToProfileSection(settingsContentRef);
   };
 
   // FIX: BUG-24 — Add AbortController to cancel stale requests when switching profiles
@@ -1715,6 +1733,8 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
           />
         )}
 
+        <div ref={profileContentRef} className="scroll-mt-24" />
+
         {/* Tabs */}
         <div className={`mb-5 grid gap-1 rounded-3xl border p-1 md:hidden ${profileTabItems.length > 4 ? "grid-cols-5" : profileTabItems.length > 2 ? "grid-cols-4" : "grid-cols-2"} ${isDayMode ? "border-slate-200/80 bg-white/82 shadow-[0_12px_28px_rgba(148,163,184,0.12)]" : "border-white/10 bg-white/[0.04]"}`}>
           {profileTabItems.map(({ key, label, icon: Icon, badge }) => {
@@ -2139,7 +2159,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
           )}
 
           {isOwner && activeTab === "settings" && (
-            <div className="space-y-6">
+            <div ref={settingsContentRef} data-testid="profile-settings-panel" className="scroll-mt-24 space-y-6">
               <div className={`flex gap-2 overflow-x-auto rounded-2xl border p-2 ${isDayMode ? "border-slate-200/80 bg-white/80" : "border-white/10 bg-white/[0.04]"}`}>
                 {settingsTabItems.map((item) => {
                   const Icon = item.icon;
