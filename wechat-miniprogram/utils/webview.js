@@ -5,6 +5,7 @@ const LOCAL_WEB_ORIGIN = "http://10.195.244.93:5180";
 const USE_LOCAL_WEB_ORIGIN = false;
 const WEB_ORIGIN = USE_LOCAL_WEB_ORIGIN ? LOCAL_WEB_ORIGIN : PRODUCTION_WEB_ORIGIN;
 const DEFAULT_PATH = "/events";
+const WEBVIEW_CACHE_VERSION = "20260707_poster_modal";
 
 const KNOWN_WEB_ORIGINS = Array.from(new Set([
   WEB_ORIGIN,
@@ -136,6 +137,7 @@ const buildWebViewUrl = (inputPath, options = {}) => {
   let path = normalizePath(inputPath);
   path = appendQueryParam(path, "miniapp", "1");
   path = appendQueryParam(path, "miniapp_nav_inset", String(getMiniappNavInset()));
+  path = appendQueryParam(path, "miniapp_build", WEBVIEW_CACHE_VERSION);
   if (targetOrigin === LOCAL_WEB_ORIGIN) {
     path = appendQueryParam(path, "miniapp_debug_ts", String(Date.now()));
   }
@@ -149,6 +151,7 @@ module.exports = {
   LOCAL_WEB_ORIGIN,
   USE_LOCAL_WEB_ORIGIN,
   DEFAULT_PATH,
+  WEBVIEW_CACHE_VERSION,
   buildWebViewUrl,
   normalizePath,
   isBlockedPath,
