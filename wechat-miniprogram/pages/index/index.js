@@ -9,6 +9,7 @@ const {
   pickSharePayloadFromEvent,
   buildShareAppMessage,
   buildShareTimelineMessage,
+  enableNativeShareMenu,
 } = require("../../utils/share");
 
 const getNavigationTitle = () => {
@@ -42,6 +43,7 @@ Page({
   onLoad(options) {
     const params = options || {};
     this.targetPath = params.path || params.url || DEFAULT_PATH;
+    enableNativeShareMenu();
     this.loadLocal();
     applyNavigationTitle();
   },

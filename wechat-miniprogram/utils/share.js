@@ -73,10 +73,19 @@ const buildShareTimelineMessage = (sharePayload) => {
   return result;
 };
 
+const enableNativeShareMenu = () => {
+  if (typeof wx === "undefined" || !wx.showShareMenu) return;
+  wx.showShareMenu({
+    withShareTicket: true,
+    menus: ["shareAppMessage", "shareTimeline"],
+  });
+};
+
 module.exports = {
   SHARE_MESSAGE_TYPE,
   sanitizeSharePayload,
   pickSharePayloadFromEvent,
   buildShareAppMessage,
   buildShareTimelineMessage,
+  enableNativeShareMenu,
 };
