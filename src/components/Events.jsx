@@ -1843,7 +1843,7 @@ END:VCALENDAR`;
         };
 
   return (
-    <section className={`day-page-theme day-page-theme-events pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-[calc(env(safe-area-inset-bottom)+10rem)] md:pb-20 md:pt-24 px-4 md:px-8 relative overflow-hidden flex-grow ${isDayMode ? "bg-[linear-gradient(180deg,#f8fbff_0%,#eef6ff_46%,#f8fafc_100%)] md:bg-transparent" : "bg-[#030817]"}`}>
+    <section className={`day-page-theme day-page-theme-events pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-[calc(env(safe-area-inset-bottom)+10rem)] md:pb-20 md:pt-24 px-4 md:px-8 relative overflow-x-hidden flex-grow ${isDayMode ? "bg-[linear-gradient(180deg,#f8fbff_0%,#eef6ff_46%,#f8fafc_100%)] md:bg-transparent" : "bg-[#030817]"}`}>
       <SEO
         title={t("events.meta_title")}
         description={t("events.meta_desc")}
@@ -2558,9 +2558,9 @@ END:VCALENDAR`;
               role="dialog"
               aria-modal="true"
               aria-label={selectedEvent?.title || t("events.title")}
-              className={`fixed inset-0 z-[140] flex justify-center p-0 md:items-center md:p-4 ${
+              className={`event-detail-modal-root ${useMiniProgramModalScroll ? "event-detail-modal-root-miniapp" : ""} fixed inset-0 z-[140] flex justify-center p-0 md:items-center md:p-4 ${
                 useMiniProgramModalScroll
-                  ? "items-start overflow-y-auto overscroll-y-contain"
+                  ? "items-start overflow-hidden"
                   : "items-end overflow-hidden md:overflow-y-auto"
               } ${isDayMode ? "bg-white/[0.12] backdrop-blur-md" : "bg-black/80 backdrop-blur-md"}`}
               onClick={closeEvent}
@@ -2576,9 +2576,9 @@ END:VCALENDAR`;
                     ? undefined
                     : { duration: 0.28, ease: [0.22, 1, 0.36, 1] }
                 }
-                className={`w-full max-w-5xl overscroll-contain relative flex flex-col ${
+                className={`event-detail-modal-panel ${useMiniProgramModalScroll ? "event-detail-modal-panel-miniapp" : ""} w-full max-w-5xl overscroll-contain relative flex flex-col ${
                   useMiniProgramModalScroll
-                    ? "min-h-[100dvh] rounded-none border-0 overflow-visible"
+                    ? "min-h-[100dvh] max-h-[100dvh] rounded-none border-0 overflow-y-auto overflow-x-hidden touch-pan-y"
                     : isMobileViewport
                       ? "min-h-[100dvh] max-h-[100dvh] rounded-none border-0 overflow-hidden"
                       : "min-h-[100dvh] md:min-h-0 max-h-[100dvh] md:max-h-[90vh] rounded-t-[7px] md:rounded-[7px] border-x-0 border-b-0 md:border overflow-hidden"
@@ -2602,7 +2602,7 @@ END:VCALENDAR`;
                   </button>
                 )}
                 <div
-                  className={`relative overscroll-contain custom-scrollbar ${
+                  className={`event-detail-modal-scroll ${useMiniProgramModalScroll ? "event-detail-modal-scroll-miniapp" : ""} relative overscroll-contain custom-scrollbar ${
                     useMiniProgramModalScroll
                       ? "flex-none overflow-visible"
                       : "flex-1 overflow-y-auto"

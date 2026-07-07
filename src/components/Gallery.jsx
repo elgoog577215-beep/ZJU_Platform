@@ -365,7 +365,7 @@ const Gallery = () => {
   );
 
   return (
-    <section className="pt-[calc(env(safe-area-inset-top)+76px)] pb-6 md:py-20 px-4 md:px-8 relative overflow-hidden flex-grow">
+    <section className="pt-[calc(env(safe-area-inset-top)+76px)] pb-6 md:py-20 px-4 md:px-8 relative overflow-x-hidden flex-grow">
       <SEO
         title={t("gallery.title")}
         description={t("gallery.subtitle")}

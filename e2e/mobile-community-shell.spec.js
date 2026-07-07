@@ -17,7 +17,7 @@ const newsItem = {
   created_at: "2026-06-20 10:00:00",
 };
 
-const installCommunityMocks = async (page) => {
+const installCommunityMocks = async (page, currentNewsItem = newsItem) => {
   await page.route("**/api/auth/me", (route) =>
     route.fulfill({ status: 401, json: { error: "Unauthorized" } }),
   );
@@ -28,12 +28,12 @@ const installCommunityMocks = async (page) => {
     route.fulfill({ json: { notifications: [], unreadCount: 0, unread_count: 0 } }),
   );
   await page.route("**/api/news/901", (route) =>
-    route.fulfill({ json: newsItem }),
+    route.fulfill({ json: currentNewsItem }),
   );
   await page.route("**/api/news?**", (route) =>
     route.fulfill({
       json: {
-        data: [newsItem],
+        data: [currentNewsItem],
         pagination: { total: 1, page: 1, limit: 12, totalPages: 1 },
       },
     }),
@@ -63,6 +63,58 @@ test("mobile profile tab opens auth modal for signed-out users", async ({ page }
 
   await page.goto("/me");
   await expect(page.getByRole("button", { name: "我的" })).not.toHaveAttribute("aria-current", "page");
+});
+
+test("miniapp news detail scrolls to the bottom without locking body", async ({ page }) => {
+  const longNewsItem = {
+    ...newsItem,
+    content_blocks: JSON.stringify(
+      Array.from({ length: 24 }, (_, index) => ({
+        type: "text",
+        style: index % 5 === 0 ? "heading" : "paragraph",
+        text:
+          index % 5 === 0
+            ? `Campus AI News Section ${index + 1}`
+            : "A long mini program detail paragraph used to verify that fixed overlays remain touch-scrollable all the way to the bottom.",
+      })),
+    ),
+  };
+
+  await installCommunityMocks(page, longNewsItem);
+  await page.setViewportSize(mobileViewport);
+  await page.goto("/articles?postTab=news&miniapp=1&miniapp_nav_inset=112");
+  await page.getByRole("button", { name: /Campus AI News/ }).click();
+
+  const detailDialog = page.getByRole("dialog", { name: "Campus AI News" });
+  await expect(detailDialog).toBeVisible();
+  await expect
+    .poll(() => page.evaluate(() => document.body.style.overflow))
+    .toBe("");
+
+  const scrollRoot = page.locator(".community-detail-modal-root");
+  const before = await scrollRoot.evaluate((element) => ({
+    scrollTop: element.scrollTop,
+    scrollHeight: element.scrollHeight,
+    clientHeight: element.clientHeight,
+  }));
+  expect(before.scrollHeight).toBeGreaterThan(before.clientHeight);
+
+  await page.mouse.move(195, 560);
+  await page.mouse.wheel(0, 900);
+  await expect
+    .poll(() => scrollRoot.evaluate((element) => element.scrollTop))
+    .toBeGreaterThan(before.scrollTop);
+
+  await page.mouse.wheel(0, 8000);
+  await expect
+    .poll(() =>
+      scrollRoot.evaluate(
+        (element) =>
+          element.scrollTop + element.clientHeight >=
+          element.scrollHeight - 8,
+      ),
+    )
+    .toBeTruthy();
 });
 
 test("mobile news tab opens detail fullscreen and closes with browser back", async ({ page }) => {

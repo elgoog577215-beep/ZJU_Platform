@@ -237,7 +237,7 @@ const CommunityDetailModal = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className={`fixed inset-0 z-[100] backdrop-blur-md overflow-y-auto ${th.modalBackdrop}`}
+          className={`community-detail-modal-root fixed inset-0 z-[100] backdrop-blur-md overflow-y-auto ${th.modalBackdrop}`}
           onClick={onClose}
         >
           <div className="min-h-full">
@@ -249,7 +249,7 @@ const CommunityDetailModal = ({
               role="dialog"
               aria-modal="true"
               aria-label={item.title || item.name || t('community.detail', '内容详情')}
-              className={`relative w-full min-h-screen shadow-2xl overflow-hidden ${th.modalSurface}`}
+              className={`community-detail-modal-panel relative w-full min-h-screen shadow-2xl overflow-x-hidden ${th.modalSurface}`}
             >
               <div
                 className={`${headerHeight} bg-gradient-to-br ${gradientFrom} ${th.gradientTo} relative ${coverImage ? 'bg-cover bg-center' : ''}`}

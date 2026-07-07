@@ -134,6 +134,50 @@ body {
     overflow-x: hidden !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: auto !important;
+    touch-action: pan-y;
+  }
+
+  .miniapp-webview .event-detail-modal-root-miniapp,
+  .miniapp-webview .community-detail-modal-root {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: auto !important;
+    touch-action: pan-y;
+  }
+
+  .miniapp-webview .event-detail-modal-panel-miniapp {
+    height: auto !important;
+    min-height: 100dvh !important;
+    max-height: 100dvh !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: auto !important;
+    touch-action: pan-y;
+  }
+
+  .miniapp-webview .community-detail-modal-panel {
+    height: auto !important;
+    min-height: 100dvh !important;
+    max-height: none !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+  }
+
+  .miniapp-webview .event-detail-modal-scroll-miniapp {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .miniapp-webview [aria-modal="true"].overflow-y-auto,
+  .miniapp-webview [aria-modal="true"] .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: auto !important;
+    touch-action: pan-y;
   }
 
   .miniapp-webview .upload-modal-panel:not(.upload-modal-article),

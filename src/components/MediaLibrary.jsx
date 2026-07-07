@@ -616,7 +616,7 @@ const MediaLibrary = () => {
   const totalVideoCount = Number(videoPagination?.total || visibleVideoCount);
 
   return (
-    <section className="day-page-theme day-page-theme-tech pt-[calc(env(safe-area-inset-top)+76px)] pb-6 md:py-16 px-4 md:px-6 relative overflow-hidden flex-grow">
+    <section className="day-page-theme day-page-theme-tech pt-[calc(env(safe-area-inset-top)+76px)] pb-6 md:py-16 px-4 md:px-6 relative overflow-x-hidden flex-grow">
       <SEO title={t("media_library.title", "影像库")} description={t("media_library.meta_desc", "按分类浏览现场照片与视频记录。")} />
 
       <div className="fixed inset-0 pointer-events-none z-0 hidden overflow-hidden md:block">

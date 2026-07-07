@@ -124,18 +124,30 @@ test.describe("event detail layout regression", () => {
         scrollTop: 0,
       });
 
-    const before = await dialog.evaluate((element) => ({
+    const scrollContainer = page.locator(".event-detail-modal-panel-miniapp");
+    const panelBefore = await scrollContainer.evaluate((element) => ({
       scrollTop: element.scrollTop,
       scrollHeight: element.scrollHeight,
       clientHeight: element.clientHeight,
     }));
-    expect(before.scrollHeight).toBeGreaterThan(before.clientHeight);
+    expect(panelBefore.scrollHeight).toBeGreaterThan(panelBefore.clientHeight);
 
     await page.mouse.move(195, 560);
     await page.mouse.wheel(0, 700);
     await expect
-      .poll(() => dialog.evaluate((element) => element.scrollTop))
-      .toBeGreaterThan(before.scrollTop);
+      .poll(() => scrollContainer.evaluate((element) => element.scrollTop))
+      .toBeGreaterThan(panelBefore.scrollTop);
+
+    await page.mouse.wheel(0, 5000);
+    await expect
+      .poll(() =>
+        scrollContainer.evaluate(
+          (element) =>
+            element.scrollTop + element.clientHeight >=
+            element.scrollHeight - 8,
+        ),
+      )
+      .toBeTruthy();
   });
 
   test("miniapp mobile detail opens native share page and keeps create entry visible", async ({

@@ -288,7 +288,7 @@ const Videos = () => {
   );
 
   return (
-    <section className="pt-[calc(env(safe-area-inset-top)+76px)] pb-6 md:py-24 px-4 md:px-8 min-h-screen relative z-10 overflow-hidden">
+    <section className="pt-[calc(env(safe-area-inset-top)+76px)] pb-6 md:py-24 px-4 md:px-8 min-h-screen relative z-10 overflow-x-hidden">
       <SEO
         title={t("videos.title")}
         description={t("videos.subtitle")}
