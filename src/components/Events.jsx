@@ -391,17 +391,10 @@ const EventCard = memo(
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col px-3.5 py-2.5">
-          <div className="flex min-h-[32px] min-w-0 items-start gap-2">
+          <div className="flex min-h-[32px] min-w-0 items-start">
             <h3 className={`line-clamp-1 min-w-0 flex-1 text-[19px] font-black leading-7 tracking-tight ${isDayMode ? "text-slate-950" : "text-white"}`}>
               {event.title}
             </h3>
-            <span className={`shrink-0 rounded-[5px] border px-2 py-0.5 text-[13px] font-black leading-5 ${
-              isDayMode
-                ? "border-slate-200 bg-slate-50 text-slate-700"
-                : "border-white/15 bg-white/10 text-slate-100"
-            }`}>
-              {formatDateTime(event.date).split(" ")[0] || "--"}
-            </span>
           </div>
 
           <div className="mt-1 flex min-h-[28px] min-w-0 items-center gap-2 overflow-hidden">
@@ -415,6 +408,13 @@ const EventCard = memo(
                 <span className="block truncate leading-[16px]">{formatEventAudience(event.target_audience)}</span>
               </span>
             )}
+            <span className={`ml-auto shrink-0 rounded-[5px] border px-2 py-0.5 text-[13px] font-black leading-5 ${
+              isDayMode
+                ? "border-slate-200 bg-slate-50 text-slate-700"
+                : "border-white/15 bg-white/10 text-slate-100"
+            }`}>
+              {formatDateTime(event.date).split(" ")[0] || "--"}
+            </span>
           </div>
 
           <div className={`mt-2 grid min-h-[48px] gap-1 text-[14px] leading-5 ${isDayMode ? "text-slate-500" : "text-slate-300"}`}>
