@@ -143,13 +143,20 @@ export const useCachedResource = (endpoint, params = {}, options = {}) => {
         silent = false
     } = options;
 
-    const [data, setData] = useState([]);
-    const [pagination, setPagination] = useState({});
-    const [loading, setLoading] = useState(true);
+    const { cacheKey, queryString } = useMemo(() => buildRequestKey(keyPrefix, endpoint, params), [keyPrefix, endpoint, params]);
+    const initialCachedPayload = useMemo(() => {
+        if (!enabled) return null;
+        return readStoredCache(cacheKey);
+    }, [cacheKey, enabled]);
+    const initialCachedData = initialCachedPayload?.data !== undefined
+        ? normalizePayloadData(endpoint, initialCachedPayload.data)
+        : [];
+
+    const [data, setData] = useState(initialCachedData);
+    const [pagination, setPagination] = useState(initialCachedPayload?.pagination || {});
+    const [loading, setLoading] = useState(enabled ? !initialCachedPayload : false);
     const [error, setError] = useState(null);
     const [refreshKey, setRefreshKey] = useState(0);
-
-    const { cacheKey, queryString } = useMemo(() => buildRequestKey(keyPrefix, endpoint, params), [keyPrefix, endpoint, params]);
 
     const dependenciesKey = useMemo(() => {
         try {

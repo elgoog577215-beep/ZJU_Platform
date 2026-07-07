@@ -2,11 +2,10 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Calendar, Rocket, Sparkles, Trees, UserCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { LayoutGroup, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import {
-  motionTokens,
   tabbarEntrance,
   tapPress,
   useReducedMotion,
@@ -103,7 +102,6 @@ const MobileNavbar = () => {
       className={`motion-gpu fixed inset-x-0 bottom-0 z-[80] border-t backdrop-blur-xl md:hidden ${isDayMode ? "border-slate-900/[0.08] bg-white/90 shadow-[0_-10px_24px_rgba(31,45,61,0.045)]" : "border-white/[0.08] bg-[#0b111c]/90 shadow-[0_-10px_24px_rgba(0,0,0,0.24)]"}`}
       aria-label={t("nav.mobile_tabbar")}
     >
-      <LayoutGroup id="mobile-tabbar">
       <div className="pb-[env(safe-area-inset-bottom)]">
       <div className="grid h-[var(--mobile-bottom-nav-height)] grid-cols-5 px-1.5">
         {navItems.map((item) => {
@@ -136,16 +134,9 @@ const MobileNavbar = () => {
               <div
                 className={iconClassName}
               >
-                {isActive &&
-                  (prefersReducedMotion ? (
-                    <span className={`absolute inset-0 ${activeIconSurface}`} />
-                  ) : (
-                    <motion.span
-                      layoutId="mobile-tab-active-icon"
-                      className={`absolute inset-0 ${activeIconSurface}`}
-                      transition={motionTokens.spring.tab}
-                    />
-                  ))}
+                {isActive && (
+                  <span className={`absolute inset-0 ${activeIconSurface}`} />
+                )}
                   <Icon className="relative z-10" size={20} strokeWidth={isActive ? 2.4 : 2} />
                 {showUnreadBadge && (
                   <span
@@ -197,7 +188,6 @@ const MobileNavbar = () => {
         })}
       </div>
       </div>
-      </LayoutGroup>
     </motion.nav>
   );
 };

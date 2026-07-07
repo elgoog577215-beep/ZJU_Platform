@@ -1822,6 +1822,15 @@ END:VCALENDAR`;
         whileTap: { opacity: 0.72 },
         transition: { type: "spring", stiffness: 520, damping: 34 },
       };
+  const pageHeaderMotion =
+    isMobileViewport || prefersReducedMotion
+      ? { initial: false }
+      : {
+          initial: { opacity: 0, y: 20 },
+          whileInView: { opacity: 1, y: 0 },
+          transition: { duration: 0.6 },
+          viewport: { once: true },
+        };
 
   return (
     <section className={`day-page-theme day-page-theme-events pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-[calc(env(safe-area-inset-bottom)+10rem)] md:pb-20 md:pt-24 px-4 md:px-8 relative overflow-hidden flex-grow ${isDayMode ? "bg-[linear-gradient(180deg,#f8fbff_0%,#eef6ff_46%,#f8fafc_100%)] md:bg-transparent" : "bg-[#030817]"}`}>
@@ -1832,10 +1841,7 @@ END:VCALENDAR`;
       {null}
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
+        {...pageHeaderMotion}
         className="mb-3 md:mb-9 relative z-40 md:pt-0 text-center"
       >
         <div className="mb-4 grid grid-cols-[56px_minmax(0,1fr)_112px] items-center gap-2 md:hidden">
