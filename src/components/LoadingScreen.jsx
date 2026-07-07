@@ -11,6 +11,7 @@ const LoadingScreen = () => {
   return (
     <div
       role="status"
+      data-testid="route-loading-screen"
       aria-live="polite"
       aria-label={loadingLabel}
       className={`flex min-h-[42vh] flex-col items-center justify-center ${

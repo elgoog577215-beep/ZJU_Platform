@@ -91,31 +91,65 @@ const lazyRoute = (loader) => lazy(() => loader().catch((error) => {
   throw error;
 }));
 
-const Gallery = lazyRoute(() => import('./components/Gallery'));
-const MediaLibrary = lazyRoute(() => import('./components/MediaLibrary'));
-const Videos = lazyRoute(() => import('./components/Videos'));
-const Articles = lazyRoute(() => import('./components/AICommunity'));
-const Events = lazyRoute(() => import('./components/Events'));
-const About = lazyRoute(() => import('./components/About'));
-const AppDownload = lazyRoute(() => import('./components/AppDownload'));
-const HackathonSeasonOne = lazyRoute(() => import('./components/HackathonSeasonOne'));
-const HackathonWorks = lazyRoute(() => import('./components/HackathonWorks'));
-const FutureLearningCenter = lazyRoute(() => import('./components/FutureLearningCenter'));
-const AdminDashboard = lazyRoute(() => import('./components/Admin/AdminDashboard'));
-const AdminAccessGate = lazyRoute(() => import('./components/Admin/AdminAccessGate'));
-const NotFound = lazyRoute(() => import('./components/NotFound'));
-const ProfilePage = lazyRoute(() => import('./components/ProfilePage'));
-const PublicProfile = lazyRoute(() => import('./components/PublicProfile'));
-const ProfileDirectory = lazyRoute(() => import('./components/ProfileDirectory'));
-const ProjectPlaza = lazyRoute(() => import('./components/ProjectPlaza'));
-const SearchPalette = lazyRoute(() => import('./components/SearchPalette'));
-const CustomCursor = lazyRoute(() => import('./components/CustomCursor'));
-const GlobalPlayer = lazyRoute(() => import('./components/GlobalPlayer'));
-const BackgroundSystem = lazyRoute(() => import('./components/BackgroundSystem'));
-const ScrollProgress = lazyRoute(() => import('./components/ScrollProgress'));
-const ScrollToTop = lazyRoute(() => import('./components/ScrollToTop'));
-const PWAInstallPrompt = lazyRoute(() => import('./components/PWAInstallPrompt'));
-const PerformancePanel = lazyRoute(() => import('./components/PerformancePanel'));
+const loadGallery = () => import('./components/Gallery');
+const loadMediaLibrary = () => import('./components/MediaLibrary');
+const loadVideos = () => import('./components/Videos');
+const loadArticles = () => import('./components/AICommunity');
+const loadEvents = () => import('./components/Events');
+const loadAbout = () => import('./components/About');
+const loadAppDownload = () => import('./components/AppDownload');
+const loadHackathonSeasonOne = () => import('./components/HackathonSeasonOne');
+const loadHackathonWorks = () => import('./components/HackathonWorks');
+const loadFutureLearningCenter = () => import('./components/FutureLearningCenter');
+const loadAdminDashboard = () => import('./components/Admin/AdminDashboard');
+const loadAdminAccessGate = () => import('./components/Admin/AdminAccessGate');
+const loadNotFound = () => import('./components/NotFound');
+const loadProfilePage = () => import('./components/ProfilePage');
+const loadPublicProfile = () => import('./components/PublicProfile');
+const loadProfileDirectory = () => import('./components/ProfileDirectory');
+const loadProjectPlaza = () => import('./components/ProjectPlaza');
+const loadSearchPalette = () => import('./components/SearchPalette');
+const loadCustomCursor = () => import('./components/CustomCursor');
+const loadGlobalPlayer = () => import('./components/GlobalPlayer');
+const loadBackgroundSystem = () => import('./components/BackgroundSystem');
+const loadScrollProgress = () => import('./components/ScrollProgress');
+const loadScrollToTop = () => import('./components/ScrollToTop');
+const loadPWAInstallPrompt = () => import('./components/PWAInstallPrompt');
+const loadPerformancePanel = () => import('./components/PerformancePanel');
+
+const Gallery = lazyRoute(loadGallery);
+const MediaLibrary = lazyRoute(loadMediaLibrary);
+const Videos = lazyRoute(loadVideos);
+const Articles = lazyRoute(loadArticles);
+const Events = lazyRoute(loadEvents);
+const About = lazyRoute(loadAbout);
+const AppDownload = lazyRoute(loadAppDownload);
+const HackathonSeasonOne = lazyRoute(loadHackathonSeasonOne);
+const HackathonWorks = lazyRoute(loadHackathonWorks);
+const FutureLearningCenter = lazyRoute(loadFutureLearningCenter);
+const AdminDashboard = lazyRoute(loadAdminDashboard);
+const AdminAccessGate = lazyRoute(loadAdminAccessGate);
+const NotFound = lazyRoute(loadNotFound);
+const ProfilePage = lazyRoute(loadProfilePage);
+const PublicProfile = lazyRoute(loadPublicProfile);
+const ProfileDirectory = lazyRoute(loadProfileDirectory);
+const ProjectPlaza = lazyRoute(loadProjectPlaza);
+const SearchPalette = lazyRoute(loadSearchPalette);
+const CustomCursor = lazyRoute(loadCustomCursor);
+const GlobalPlayer = lazyRoute(loadGlobalPlayer);
+const BackgroundSystem = lazyRoute(loadBackgroundSystem);
+const ScrollProgress = lazyRoute(loadScrollProgress);
+const ScrollToTop = lazyRoute(loadScrollToTop);
+const PWAInstallPrompt = lazyRoute(loadPWAInstallPrompt);
+const PerformancePanel = lazyRoute(loadPerformancePanel);
+
+const preloadRouteLoaders = [
+  loadEvents,
+  loadArticles,
+  loadProjectPlaza,
+  loadProfileDirectory,
+  loadHackathonSeasonOne,
+];
 
 const useDeferredMount = (delay = 0) => {
   const [mounted, setMounted] = useState(false);
@@ -148,9 +182,8 @@ const PageTransition = ({ children }) => {
   return (
     <motion.div
       variants={routeTransition}
-      initial="initial"
+      initial={false}
       animate="animate"
-      exit="exit"
       className="motion-gpu w-full"
     >
       {children}
@@ -340,6 +373,32 @@ const AppContent = () => {
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
 
+    let cancelled = false;
+    const preload = () => {
+      if (cancelled) return;
+      preloadRouteLoaders.forEach((loader) => {
+        loader().catch(() => {});
+      });
+    };
+
+    if ('requestIdleCallback' in window) {
+      const idleId = window.requestIdleCallback(preload, { timeout: 1600 });
+      return () => {
+        cancelled = true;
+        window.cancelIdleCallback?.(idleId);
+      };
+    }
+
+    const timeoutId = window.setTimeout(preload, 900);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
     const standaloneQuery = window.matchMedia?.('(display-mode: standalone)');
     const fullscreenQuery = window.matchMedia?.('(display-mode: fullscreen)');
     const updateDisplayMode = () => setIsAppRuntime(detectAppRuntime());
@@ -475,7 +534,7 @@ const AppContent = () => {
 
         <main id="main-content" className={`flex-grow ${isImmersiveRoute ? 'pb-0' : 'pb-[var(--mobile-content-bottom-padding)] md:pb-0'}`} role="main">
           <Suspense fallback={<LoadingScreen />}>
-            <Routes location={location} key={location.pathname}>
+            <Routes location={location}>
               <Route path="/" element={<PageTransition><Home /></PageTransition>} />
               <Route path="/media" element={<PageTransition><MediaLibrary /></PageTransition>} />
               <Route path="/gallery" element={<PageTransition><Gallery /></PageTransition>} />
