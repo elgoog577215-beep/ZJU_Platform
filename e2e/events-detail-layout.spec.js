@@ -138,7 +138,7 @@ test.describe("event detail layout regression", () => {
       .toBeGreaterThan(before.scrollTop);
   });
 
-  test("miniapp mobile detail keeps share visible and hides web upload buttons", async ({
+  test("miniapp mobile detail keeps share and create entry visible", async ({
     page,
     request,
   }) => {
@@ -183,7 +183,7 @@ test.describe("event detail layout regression", () => {
     expect(result.message.data.payload.url).toContain(`/events?id=${event.id}`);
 
     await page.goto("/events?miniapp=1&miniapp_nav_inset=112");
-    await expect(page.locator('[aria-label="创建活动"]')).toHaveCount(0);
+    await expect(page.getByTestId("event-create-mobile")).toBeVisible();
   });
 
   test("desktop detail keeps the close button topmost above the hero overlay", async ({

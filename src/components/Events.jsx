@@ -1157,7 +1157,6 @@ const Events = () => {
   // Listen for global events from Navbar
   useEffect(() => {
     const handleOpenUpload = (e) => {
-      if (isMiniProgramMode) return;
       if (e.detail.type === "event") setIsUploadOpen(true);
     };
 
@@ -1165,7 +1164,7 @@ const Events = () => {
     return () => {
       window.removeEventListener("open-upload-modal", handleOpenUpload);
     };
-  }, [isMiniProgramMode]);
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
@@ -1872,6 +1871,7 @@ END:VCALENDAR`;
               {...mobileControlMotion}
               type="button"
               aria-label={t("common.create_event")}
+              data-testid="event-create-mobile"
               onClick={() => {
                 if (!user) {
                   toast.error(t("auth.signin_required"));
