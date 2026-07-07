@@ -6,7 +6,11 @@ import QRCode from "qrcode";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { isMiniProgramWebView } from "../utils/miniProgramEnv";
-import { shareViaMiniProgram } from "../utils/wechatMiniProgramBridge";
+import {
+  buildWechatNativeShareBridgeUrl,
+  navigateToMiniProgramPage,
+  shareViaMiniProgram,
+} from "../utils/wechatMiniProgramBridge";
 
 const clampList = (items, limit) => (Array.isArray(items) ? items.filter(Boolean).slice(0, limit) : []);
 
@@ -128,10 +132,17 @@ const ProjectSharePoster = ({ project, onClose, variant = "playful" }) => {
 
     if (isMiniProgramWebView()) {
       try {
-        await shareViaMiniProgram(miniProgramShareData);
-        toast.success(t("common.miniapp_share_ready"));
+        await navigateToMiniProgramPage(buildWechatNativeShareBridgeUrl({
+          ...miniProgramShareData,
+          returnPath: miniProgramShareData.path,
+        }));
       } catch {
-        await handleCopy();
+        try {
+          await shareViaMiniProgram(miniProgramShareData);
+          toast.success(t("common.miniapp_share_ready"));
+        } catch {
+          await handleCopy();
+        }
       }
       return;
     }

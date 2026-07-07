@@ -96,6 +96,21 @@ export const buildWechatNativeUploadBridgeUrl = ({
     auto: auto ? '1' : '',
   });
 
+export const buildWechatNativeShareBridgeUrl = ({
+  title,
+  text,
+  path = '/events',
+  imageUrl,
+  returnPath,
+}) =>
+  buildBridgeUrl('/pages/native-share/index', {
+    title: title ? String(title).slice(0, 80) : '',
+    text: text ? String(text).slice(0, 180) : '',
+    path: path || '/events',
+    imageUrl: imageUrl || '',
+    returnPath: returnPath || path || '/events',
+  });
+
 export const navigateToMiniProgramPage = async (url) => {
   await loadWechatJssdk();
 

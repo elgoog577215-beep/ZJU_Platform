@@ -138,13 +138,14 @@ test.describe("event detail layout regression", () => {
       .toBeGreaterThan(before.scrollTop);
   });
 
-  test("miniapp mobile detail keeps share and create entry visible", async ({
+  test("miniapp mobile detail opens native share page and keeps create entry visible", async ({
     page,
     request,
   }) => {
     await page.setViewportSize(MOBILE_VIEWPORT);
     await page.addInitScript(() => {
       window.__miniShareMessages = [];
+      window.__miniNavigateUrls = [];
       window.__webShareCalled = false;
       Object.defineProperty(window.navigator, "share", {
         configurable: true,
@@ -154,7 +155,10 @@ test.describe("event detail layout regression", () => {
       });
       window.wx = {
         miniProgram: {
-          navigateTo: () => {},
+          navigateTo: ({ url, success }) => {
+            window.__miniNavigateUrls.push(url);
+            success?.();
+          },
           postMessage: (message) => {
             window.__miniShareMessages.push(message);
           },
@@ -169,18 +173,17 @@ test.describe("event detail layout regression", () => {
     await page.getByTestId("event-detail-share-mobile").click();
 
     await expect
-      .poll(() => page.evaluate(() => window.__miniShareMessages.length))
+      .poll(() => page.evaluate(() => window.__miniNavigateUrls.length))
       .toBeGreaterThan(0);
 
     const result = await page.evaluate(() => ({
-      message: window.__miniShareMessages.at(-1),
+      nativeShareUrl: window.__miniNavigateUrls.at(-1),
       webShareCalled: window.__webShareCalled,
     }));
     expect(result.webShareCalled).toBe(false);
-    expect(result.message.data.type).toBe("tuotu:share");
-    expect(result.message.data.payload.title).toBe(event.title);
-    expect(result.message.data.payload.path).toBe(`/events?id=${event.id}`);
-    expect(result.message.data.payload.url).toContain(`/events?id=${event.id}`);
+    expect(result.nativeShareUrl).toContain("/pages/native-share/index?");
+    expect(decodeURIComponent(result.nativeShareUrl)).toContain(`path=/events?id=${event.id}`);
+    expect(decodeURIComponent(result.nativeShareUrl)).toContain(event.title);
 
     await page.goto("/events?miniapp=1&miniapp_nav_inset=112");
     await expect(page.getByTestId("event-create-mobile")).toBeVisible();

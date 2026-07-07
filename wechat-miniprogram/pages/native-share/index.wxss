@@ -1,0 +1,116 @@
+page {
+  min-height: 100%;
+  background: #080912;
+  color: #ffffff;
+}
+
+.native-share-page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 150rpx 36rpx 64rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 28rpx;
+  background:
+    linear-gradient(180deg, rgba(20, 24, 38, 0.96) 0%, rgba(7, 9, 18, 1) 48%, rgba(12, 14, 24, 1) 100%),
+    linear-gradient(135deg, rgba(79, 70, 229, 0.14), rgba(147, 51, 234, 0.1));
+}
+
+.native-share-surface {
+  padding: 52rpx 40rpx 42rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.1);
+  border-radius: 14rpx;
+  background: rgba(10, 10, 16, 0.88);
+  box-shadow: 0 34rpx 92rpx rgba(0, 0, 0, 0.42);
+}
+
+.native-share-kicker {
+  color: #a5b4fc;
+  font-size: 24rpx;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+}
+
+.native-share-title {
+  margin-top: 22rpx;
+  color: #ffffff;
+  font-size: 50rpx;
+  font-weight: 900;
+  line-height: 1.12;
+}
+
+.native-share-desc {
+  margin-top: 18rpx;
+  color: rgba(226, 232, 240, 0.66);
+  font-size: 28rpx;
+  line-height: 1.65;
+}
+
+.native-share-preview {
+  margin-top: 34rpx;
+  overflow: hidden;
+  border: 1rpx solid rgba(255, 255, 255, 0.12);
+  border-radius: 12rpx;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.native-share-image {
+  width: 100%;
+  height: 260rpx;
+  display: block;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.native-share-preview-body {
+  padding: 26rpx 28rpx 28rpx;
+}
+
+.native-share-preview-title {
+  color: #ffffff;
+  font-size: 32rpx;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.native-share-preview-text {
+  margin-top: 14rpx;
+  color: rgba(226, 232, 240, 0.62);
+  font-size: 25rpx;
+  line-height: 1.55;
+}
+
+.native-share-actions {
+  display: grid;
+  gap: 18rpx;
+  padding: 0 26rpx;
+}
+
+.native-share-button {
+  padding: 0;
+  border: 0;
+  min-height: 92rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10rpx;
+  font-size: 30rpx;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.native-share-button::after {
+  border: 0;
+}
+
+.native-share-button.primary {
+  background: linear-gradient(90deg, #4f46e5 0%, #9333ea 100%);
+  color: #ffffff;
+  box-shadow: 0 18rpx 44rpx rgba(99, 102, 241, 0.32);
+}
+
+.native-share-button.secondary {
+  border: 1rpx solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(255, 255, 255, 0.9);
+}

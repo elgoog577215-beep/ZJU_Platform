@@ -75,7 +75,11 @@ import { getThumbnailUrl } from "../utils/imageUtils";
 import { useReducedMotion } from "../utils/animations";
 import { getOrCreateSiteVisitorKey } from "../utils/visitorKey";
 import { isMiniProgramWebView } from "../utils/miniProgramEnv";
-import { shareViaMiniProgram } from "../utils/wechatMiniProgramBridge";
+import {
+  buildWechatNativeShareBridgeUrl,
+  navigateToMiniProgramPage,
+  shareViaMiniProgram,
+} from "../utils/wechatMiniProgramBridge";
 
 const EVENT_CARD_GRID_CLASS =
   "grid grid-cols-1 items-start gap-3 md:[grid-template-columns:repeat(auto-fit,minmax(300px,1fr))] md:gap-4 lg:gap-5 xl:[grid-template-columns:repeat(auto-fit,minmax(235px,1fr))] 2xl:[grid-template-columns:repeat(4,minmax(0,1fr))]";
@@ -1633,6 +1637,16 @@ END:VCALENDAR`;
     if (!shareData) return;
 
     if (isMiniProgramWebView()) {
+      try {
+        await navigateToMiniProgramPage(buildWechatNativeShareBridgeUrl({
+          ...shareData,
+          returnPath: shareData.path,
+        }));
+        return;
+      } catch (nativeShareError) {
+        console.error("Error opening native mini program share page:", nativeShareError);
+      }
+
       try {
         await shareViaMiniProgram(shareData);
         toast.success(t("common.miniapp_share_ready"));

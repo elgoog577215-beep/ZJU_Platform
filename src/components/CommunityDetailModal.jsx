@@ -11,7 +11,11 @@ import { useBackClose, useBodyScrollLock } from '../hooks/useBackClose';
 import { communityTheme, extractTocItems, flattenLinkedResources } from './communityUtils';
 import { LinkifiedText, linkifyHtml } from '../utils/linkify';
 import { isMiniProgramWebView } from '../utils/miniProgramEnv';
-import { shareViaMiniProgram } from '../utils/wechatMiniProgramBridge';
+import {
+  buildWechatNativeShareBridgeUrl,
+  navigateToMiniProgramPage,
+  shareViaMiniProgram,
+} from '../utils/wechatMiniProgramBridge';
 
 const TYPE_META = {
   article: { label: '文章', icon: BookOpen },
@@ -87,8 +91,16 @@ const CommunityDetailModal = ({
 
     try {
       if (isMiniProgramWebView()) {
-        await shareViaMiniProgram(payload);
-        toast.success(t('common.miniapp_share_ready'));
+        try {
+          await navigateToMiniProgramPage(buildWechatNativeShareBridgeUrl({
+            ...payload,
+            returnPath: payload.path,
+          }));
+        } catch (nativeShareError) {
+          console.error('Error opening native mini program share page:', nativeShareError);
+          await shareViaMiniProgram(payload);
+          toast.success(t('common.miniapp_share_ready'));
+        }
         if (shareParam === 'id') {
           api.post('/community/metrics/track', {
             metric_type: 'article_share',
