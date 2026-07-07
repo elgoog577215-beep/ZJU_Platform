@@ -2,7 +2,7 @@ const PRODUCTION_WEB_ORIGIN = "https://tuotuzju.com";
 const LOCAL_WEB_ORIGIN = "http://10.195.244.93:5180";
 
 // Toggle this to true only for local DevTools debugging. Release builds must use production.
-const USE_LOCAL_WEB_ORIGIN = true;
+const USE_LOCAL_WEB_ORIGIN = false;
 const WEB_ORIGIN = USE_LOCAL_WEB_ORIGIN ? LOCAL_WEB_ORIGIN : PRODUCTION_WEB_ORIGIN;
 const DEFAULT_PATH = "/events";
 

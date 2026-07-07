@@ -10,7 +10,7 @@
     "pages/fallback/index"
   ],
   "window": {
-    "navigationBarTitleText": "本地调试 | TUOTUZJU",
+    "navigationBarTitleText": "\u62d3\u9014\u6d59\u4eab | TUOTUZJU",
     "navigationBarBackgroundColor": "#ffffff",
     "navigationBarTextStyle": "black",
     "backgroundColor": "#f8fafc"
