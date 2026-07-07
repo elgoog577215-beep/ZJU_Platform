@@ -42,6 +42,33 @@ const clampList = (items, limit) => (
     : []
 );
 
+const copyTextToClipboard = async (value) => {
+  const text = String(value || "");
+  if (!text) throw new Error("empty-copy-value");
+
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return;
+    } catch {
+      // Some embedded browsers reject Clipboard API writes despite a user gesture.
+    }
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.left = "-9999px";
+  textarea.style.top = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  textarea.setSelectionRange(0, textarea.value.length);
+  const copied = document.execCommand("copy");
+  document.body.removeChild(textarea);
+  if (!copied) throw new Error("fallback-copy-failed");
+};
+
 const ProfileSharePoster = ({
   profile,
   profileCard,
@@ -54,8 +81,10 @@ const ProfileSharePoster = ({
 }) => {
   const { t } = useTranslation();
   const posterRef = useRef(null);
+  const manualCopyRef = useRef(null);
   const [qrDataUrl, setQrDataUrl] = useState("");
   const [busy, setBusy] = useState("");
+  const [manualCopyOpen, setManualCopyOpen] = useState(false);
 
   const isPerson = profile?.type === "person";
   const name = displayName || profile?.display_name || t("profiles.types.subject");
@@ -105,6 +134,15 @@ const ProfileSharePoster = ({
     };
   }, [shareUrl, t]);
 
+  useEffect(() => {
+    if (!manualCopyOpen) return undefined;
+    const timer = window.setTimeout(() => {
+      manualCopyRef.current?.focus();
+      manualCopyRef.current?.select();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [manualCopyOpen]);
+
   const exportPoster = async () => {
     if (!posterRef.current) throw new Error("poster-not-ready");
     if (document.fonts?.ready) await document.fonts.ready;
@@ -133,10 +171,12 @@ const ProfileSharePoster = ({
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(shareUrl);
+      await copyTextToClipboard(shareUrl);
+      setManualCopyOpen(false);
       toast.success(t("profile_share_poster.copy_success"));
     } catch {
-      toast.error(t("common.copy_failed", "复制失败"));
+      setManualCopyOpen(true);
+      toast.error(t("profile_share_poster.copy_failed_manual"));
     }
   };
 
@@ -183,6 +223,7 @@ const ProfileSharePoster = ({
       >
         <button
           type="button"
+          data-testid="profile-share-close-button"
           onClick={onClose}
           className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-[6px] border border-slate-200 bg-white/90 text-slate-700 shadow-sm hover:text-slate-950"
           aria-label={t("common.close", "关闭")}
@@ -278,18 +319,19 @@ const ProfileSharePoster = ({
         </div>
 
         <aside className="flex min-w-0 flex-col px-1 pb-1 pt-0 md:pt-8">
-          <span className="text-[11px] font-black uppercase tracking-[0.14em] text-[#c85f3d]">
+          <span className="order-2 mt-4 text-[11px] font-black uppercase tracking-[0.14em] text-[#c85f3d] md:order-1 md:mt-0">
             {t("profile_share_poster.preview_label")}
           </span>
-          <h3 className="mt-2 text-2xl font-black leading-tight text-[#17231f]">
+          <h3 className="order-3 mt-2 text-xl font-black leading-tight text-[#17231f] md:order-2 md:text-2xl">
             {t("profile_share_poster.dialog_title")}
           </h3>
-          <p className="mt-3 text-sm font-semibold leading-6 text-[#65756d]">
+          <p className="order-4 mt-2 text-xs font-semibold leading-5 text-[#65756d] md:order-3 md:mt-3 md:text-sm md:leading-6">
             {t(isPerson ? "profile_share_poster.dialog_desc_person" : "profile_share_poster.dialog_desc_org")}
           </p>
-          <div className="mt-5 grid gap-2">
+          <div className="order-1 grid gap-2 md:order-4 md:mt-5">
             <button
               type="button"
+              data-testid="profile-share-download-button"
               disabled={Boolean(busy) || !qrDataUrl}
               onClick={handleDownload}
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-[6px] bg-[#17231f] px-4 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-55"
@@ -299,6 +341,7 @@ const ProfileSharePoster = ({
             </button>
             <button
               type="button"
+              data-testid="profile-share-native-button"
               disabled={Boolean(busy) || !qrDataUrl}
               onClick={handleNativeShare}
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-[6px] border border-[#d8d2c3] bg-white px-4 text-sm font-black text-[#17231f] disabled:cursor-not-allowed disabled:opacity-55"
@@ -308,14 +351,30 @@ const ProfileSharePoster = ({
             </button>
             <button
               type="button"
+              data-testid="profile-share-copy-button"
               onClick={handleCopy}
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-[6px] border border-[#d8d2c3] bg-white px-4 text-sm font-black text-[#17231f]"
             >
               <Copy size={16} />
               {t("profile_share_poster.copy_link")}
             </button>
+            {manualCopyOpen ? (
+              <label className="block rounded-[6px] border border-[#e4ded1] bg-[#f9f5eb] p-2">
+                <span className="sr-only">{t("profile_share_poster.manual_copy_label")}</span>
+                <input
+                  ref={manualCopyRef}
+                  type="text"
+                  readOnly
+                  value={shareUrl}
+                  onFocus={(event) => event.currentTarget.select()}
+                  aria-label={t("profile_share_poster.manual_copy_label")}
+                  data-testid="profile-share-manual-copy-input"
+                  className="h-9 w-full rounded-[5px] border border-[#d8d2c3] bg-white px-2 font-mono text-[11px] font-bold text-[#17231f] outline-none focus:border-[#17634e] focus:ring-2 focus:ring-[#17634e]/15"
+                />
+              </label>
+            ) : null}
           </div>
-          <div className="mt-5 rounded-[6px] border border-[#e4ded1] bg-[#f9f5eb] px-3 py-3 text-xs font-bold leading-5 text-[#6f7c73]">
+          <div className="order-5 mt-3 rounded-[6px] border border-[#e4ded1] bg-[#f9f5eb] px-3 py-2 text-[11px] font-bold leading-5 text-[#6f7c73] md:mt-5 md:py-3 md:text-xs">
             {t("profile_share_poster.privacy_note")}
           </div>
         </aside>

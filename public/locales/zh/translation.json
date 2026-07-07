@@ -2934,6 +2934,8 @@
     "download_success": "名片已生成",
     "download_failed": "名片生成失败，请检查图片是否可访问",
     "copy_success": "主页链接已复制",
+    "copy_failed_manual": "复制失败，请手动复制下方链接",
+    "manual_copy_label": "手动复制主页链接",
     "share_title": "{{name}} 的数字名片",
     "share_text_person": "看看这张拓浙 AI 生态个人名片",
     "share_text_org": "看看这张拓浙 AI 生态组织名片",

@@ -2896,6 +2896,8 @@
     "download_success": "Card generated",
     "download_failed": "Failed to generate card. Please check whether the image is accessible.",
     "copy_success": "Profile link copied",
+    "copy_failed_manual": "Copy failed. Copy the link below manually.",
+    "manual_copy_label": "Manually copy profile link",
     "share_title": "{{name}}'s digital card",
     "share_text_person": "Take a look at this TUOTU AI Ecosystem personal card",
     "share_text_org": "Take a look at this TUOTU AI Ecosystem organization card",
