@@ -221,21 +221,23 @@ const About = () => {
         grid: "opacity-[0.16] [background-image:linear-gradient(rgba(6,182,212,0.14)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.1)_1px,transparent_1px)]",
       }
     : {
-        page: "bg-[#030405] text-white",
-        hero: "bg-[linear-gradient(135deg,#020303_0%,#071111_54%,#020303_100%)]",
+        page:
+          "bg-[linear-gradient(135deg,#061011_0%,#091615_52%,#050909_100%)] text-white",
+        hero:
+          "bg-[linear-gradient(115deg,rgba(34,211,238,0.12)_0%,transparent_36%),linear-gradient(290deg,rgba(45,212,191,0.08)_0%,transparent_38%),linear-gradient(135deg,#050809_0%,#0a1919_54%,#040707_100%)]",
         section:
-          "bg-[linear-gradient(180deg,rgba(3,4,5,0.98)_0%,rgba(7,17,17,0.9)_100%)]",
+          "bg-[linear-gradient(118deg,rgba(34,211,238,0.08)_0%,transparent_38%),linear-gradient(180deg,rgba(5,9,10,0.98)_0%,rgba(9,24,23,0.92)_100%)]",
         final:
-          "bg-[linear-gradient(135deg,#020303_0%,#081012_52%,#030405_100%)]",
-        textSoft: "text-white/72",
-        textMuted: "text-white/48",
+          "bg-[linear-gradient(120deg,rgba(34,211,238,0.1)_0%,transparent_38%),linear-gradient(135deg,#050809_0%,#0b1a1a_52%,#060b0c_100%)]",
+        textSoft: "text-white/76",
+        textMuted: "text-white/54",
         label: "text-cyan-300",
-        border: "border-white/10",
+        border: "border-white/12",
         panel:
-          "border-white/10 bg-[#101516]/88 shadow-[0_28px_90px_rgba(0,0,0,0.46)]",
+          "border-white/12 bg-[#121c1d]/90 shadow-[0_28px_90px_rgba(0,0,0,0.38),0_0_60px_rgba(34,211,238,0.08)]",
         panelStrong:
-          "border-cyan-300/24 bg-[#081012]/86 shadow-[0_36px_120px_rgba(0,0,0,0.62)]",
-        card: "border-white/10 bg-[linear-gradient(180deg,rgba(16,21,22,0.92),rgba(16,21,22,0.64))]",
+          "border-cyan-200/30 bg-[#0b1718]/88 shadow-[0_36px_120px_rgba(0,0,0,0.52),0_0_86px_rgba(34,211,238,0.09)]",
+        card: "border-white/12 bg-[linear-gradient(180deg,rgba(19,29,30,0.92),rgba(11,21,21,0.72))]",
         accent: "text-cyan-300",
         accentBg: "bg-cyan-300",
         altAccent: "text-amber-200",
@@ -243,10 +245,10 @@ const About = () => {
         primary:
           "bg-cyan-300 text-slate-950 shadow-[0_0_42px_rgba(103,232,249,0.28)] hover:bg-white",
         secondary:
-          "border-white/16 bg-white/[0.045] text-white hover:border-cyan-300/70 hover:bg-cyan-300/10",
-        divider: "border-white/10",
-        watermark: "text-white/[0.04]",
-        grid: "opacity-[0.12] [background-image:linear-gradient(rgba(103,232,249,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(103,232,249,0.1)_1px,transparent_1px)]",
+          "border-white/18 bg-white/[0.06] text-white hover:border-cyan-300/70 hover:bg-cyan-300/12",
+        divider: "border-white/12",
+        watermark: "text-white/[0.072]",
+        grid: "opacity-[0.2] [background-image:linear-gradient(rgba(103,232,249,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(103,232,249,0.14)_1px,transparent_1px)]",
       };
 
   const pageSections = [
@@ -664,7 +666,7 @@ const About = () => {
                 <div
                   key={item.label}
                   className={`flex min-h-[64px] flex-col justify-center p-2 sm:min-h-[82px] sm:p-4 lg:min-h-[118px] lg:p-4 2xl:min-h-[144px] 2xl:p-6 ${
-                    isDayMode ? "bg-white/82" : "bg-[#071113]/82"
+                    isDayMode ? "bg-white/82" : "bg-[#0b1718]/86"
                   }`}
                 >
                   <div
