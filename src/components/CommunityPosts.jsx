@@ -289,7 +289,7 @@ const CommunityPosts = ({ headingCode, headingTitle }) => {
   return (
     <div className="relative">
       {(headingCode || headingTitle) ? (
-        <div className="mb-2 flex flex-col gap-2 md:mb-4 md:flex-row md:items-end md:justify-between">
+        <div className="mb-2 flex items-start justify-between gap-2 md:mb-4 md:items-end">
           <div className="min-w-0">
             {headingCode ? (
               <div className={`text-[11px] font-black uppercase tracking-[0.22em] ${isDayMode ? 'text-violet-700' : 'text-cyan-300'}`}>
@@ -304,8 +304,10 @@ const CommunityPosts = ({ headingCode, headingTitle }) => {
           </div>
           <button
             type="button"
+            aria-label={t('community.post_new', '发帖')}
+            data-testid="community-create-mobile"
             onClick={handleOpenTypePicker}
-            className={`inline-flex min-h-10 shrink-0 self-start items-center justify-center gap-2 rounded-lg border px-4 text-sm font-black transition-all active:scale-95 md:min-h-[44px] md:self-center md:px-5 ${
+            className={`inline-flex h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-[6px] border p-0 text-[0px] font-black transition-all active:scale-95 md:h-[44px] md:w-auto md:self-center md:rounded-lg md:px-5 md:text-sm ${
               isDayMode
                 ? 'border-violet-200 bg-violet-600 text-white shadow-[0_10px_24px_rgba(124,58,237,0.18)] hover:bg-violet-700'
                 : 'border-orange-300/40 bg-orange-400 text-slate-950 shadow-[0_0_28px_rgba(251,146,60,0.18)] hover:bg-orange-300'
