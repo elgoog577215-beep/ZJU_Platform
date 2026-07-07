@@ -127,12 +127,14 @@ export const buildWechatNativePosterSaveBridgeUrl = ({
   imageUrl,
   fileName,
   returnPath = '/projects',
+  action = 'save',
   auto = true,
 }) =>
   buildBridgeUrl('/pages/native-poster-save/index', {
     imageUrl: normalizeWebUrl(imageUrl),
     fileName: fileName ? String(fileName).slice(0, 100) : '',
     returnPath: returnPath || '/projects',
+    action: action === 'share' ? 'share' : 'save',
     auto: auto ? '1' : '',
   });
 
@@ -160,6 +162,12 @@ export const shareViaNativeMiniProgram = async (payload = {}) =>
 
 export const savePosterViaNativeMiniProgram = async (payload = {}) =>
   navigateToMiniProgramPage(buildWechatNativePosterSaveBridgeUrl(payload));
+
+export const sharePosterViaNativeMiniProgram = async (payload = {}) =>
+  navigateToMiniProgramPage(buildWechatNativePosterSaveBridgeUrl({
+    ...payload,
+    action: 'share',
+  }));
 
 const normalizeSharePayload = (payload = {}) => {
   const normalized = {};

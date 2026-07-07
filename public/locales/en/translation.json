@@ -2864,6 +2864,7 @@
     "download_failed": "Failed to generate poster. Please check whether the image is accessible.",
     "miniapp_save_opened": "Mini Program save page opened",
     "miniapp_save_failed": "Failed to open the Mini Program save page. Please try again later.",
+    "miniapp_share_opened": "Mini Program poster share opened",
     "copy_success": "Project link copied",
     "share_text": "Take a look at this campus project from Project Plaza",
     "share_failed": "Share failed. You can copy the link instead.",

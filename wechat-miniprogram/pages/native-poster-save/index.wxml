@@ -1,8 +1,8 @@
 <view class="poster-save-page">
   <view class="poster-save-surface">
-    <view class="poster-save-kicker">{{copy.kicker}}</view>
-    <view class="poster-save-title">{{copy.title}}</view>
-    <view class="poster-save-desc">{{copy.description}}</view>
+    <view class="poster-save-kicker">{{pageCopy.kicker}}</view>
+    <view class="poster-save-title">{{pageCopy.title}}</view>
+    <view class="poster-save-desc">{{pageCopy.description}}</view>
 
     <view class="poster-preview">
       <image
@@ -16,18 +16,26 @@
     </view>
 
     <view class="poster-status {{status}}">
-      {{status === 'saved' ? copy.saved : status === 'downloading' ? copy.downloading : status === 'failed' ? copy.failed : copy.ready}}
+      {{status === 'saved' ? copy.saved : status === 'shared' ? copy.sharePanelOpened : status === 'downloading' ? copy.downloading : status === 'failed' ? pageCopy.failed : pageCopy.ready}}
     </view>
   </view>
 
   <view class="poster-save-actions">
     <button
       class="poster-save-button primary"
-      loading="{{isSaving}}"
-      disabled="{{isSaving || !imageUrl}}"
+      loading="{{isBusy}}"
+      disabled="{{isBusy || !imageUrl}}"
+      bindtap="handlePrimaryAction"
+    >
+      {{isBusy ? pageCopy.busy : status === 'failed' ? pageCopy.retry : pageCopy.primary}}
+    </button>
+    <button
+      wx:if="{{action === 'share'}}"
+      class="poster-save-button secondary"
+      disabled="{{isBusy || !imageUrl}}"
       bindtap="savePoster"
     >
-      {{isSaving ? copy.saving : status === 'failed' ? copy.retry : copy.save}}
+      {{copy.save}}
     </button>
     <button class="poster-save-button secondary" bindtap="goBack">
       {{copy.back}}

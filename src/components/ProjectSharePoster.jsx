@@ -9,6 +9,7 @@ import api from "../services/api";
 import { isMiniProgramWebView } from "../utils/miniProgramEnv";
 import {
   savePosterViaNativeMiniProgram,
+  sharePosterViaNativeMiniProgram,
   shareViaNativeMiniProgram,
   shareViaMiniProgram,
 } from "../utils/wechatMiniProgramBridge";
@@ -147,15 +148,34 @@ const ProjectSharePoster = ({ project, onClose, variant = "playful" }) => {
     };
 
     if (isMiniProgramWebView()) {
+      setBusy("share");
       try {
-        await shareViaNativeMiniProgram(miniProgramShareData);
+        const dataUrl = await exportPoster();
+        const response = await api.post("/native-poster-sessions", {
+          imageData: dataUrl,
+          fileName,
+        });
+        await sharePosterViaNativeMiniProgram({
+          imageUrl: response.data?.imageUrl,
+          fileName: response.data?.fileName || fileName,
+          returnPath: `/projects?id=${encodeURIComponent(String(project?.id || ""))}`,
+          auto: true,
+        });
+        toast.success(t("project_share_poster.miniapp_share_opened", "已打开小程序海报分享"));
       } catch {
         try {
-          await shareViaMiniProgram(miniProgramShareData);
+          await shareViaNativeMiniProgram(miniProgramShareData);
           toast.success(t("common.miniapp_share_ready"));
         } catch {
-          await handleCopy();
+          try {
+            await shareViaMiniProgram(miniProgramShareData);
+            toast.success(t("common.miniapp_share_ready"));
+          } catch {
+            await handleCopy();
+          }
         }
+      } finally {
+        setBusy(null);
       }
       return;
     }
