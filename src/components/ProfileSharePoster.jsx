@@ -193,9 +193,9 @@ const ProfileSharePoster = ({
         <div className="flex min-w-0 justify-center pt-8 md:pt-3">
           <article
             ref={posterRef}
-            className="relative flex h-[500px] w-[326px] flex-col overflow-hidden rounded-[8px] border border-[#d8d2c3] bg-[#fffdf8] shadow-[0_18px_54px_rgba(39,58,49,0.2)] sm:h-[540px] sm:w-[360px]"
+            className="relative flex h-[430px] w-[294px] flex-col overflow-hidden rounded-[8px] border border-[#d8d2c3] bg-[#fffdf8] shadow-[0_18px_54px_rgba(39,58,49,0.2)] sm:h-[540px] sm:w-[360px]"
           >
-            <div className="relative h-28 shrink-0 overflow-hidden bg-[#dfeee8] sm:h-32">
+            <div className="relative h-24 shrink-0 overflow-hidden bg-[#dfeee8] sm:h-32">
               {coverUrl ? (
                 <img src={coverUrl} alt="" crossOrigin="anonymous" className="h-full w-full object-cover" />
               ) : (
@@ -203,48 +203,48 @@ const ProfileSharePoster = ({
               )}
               <div className="absolute inset-x-0 bottom-0 h-16 bg-[linear-gradient(180deg,transparent,rgba(255,253,248,0.96))]" />
               <div className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-[6px] border border-white/70 bg-white/88 px-2.5 py-1.5 shadow-sm">
-                <img src="/newlogo.png" alt="" crossOrigin="anonymous" className="h-6 w-6 object-contain" />
+                <img src="/newlogo.png" alt="" crossOrigin="anonymous" className="h-5 w-5 object-contain sm:h-6 sm:w-6" />
                 <div className="flex flex-col leading-none">
-                  <strong className="text-[10px] font-black text-[#17231f]">{t("profile_share_poster.site_name")}</strong>
-                  <span className="mt-1 text-[8px] font-black uppercase tracking-[0.08em] text-[#c85f3d]">{t("profile_share_poster.site_subtitle")}</span>
+                  <strong className="text-[9px] font-black text-[#17231f] sm:text-[10px]">{t("profile_share_poster.site_name")}</strong>
+                  <span className="mt-1 text-[7px] font-black uppercase tracking-[0.08em] text-[#c85f3d] sm:text-[8px]">{t("profile_share_poster.site_subtitle")}</span>
                 </div>
               </div>
             </div>
 
-            <div className="relative -mt-10 flex flex-1 flex-col px-5 pb-5 sm:px-6 sm:pb-6">
+            <div className="relative -mt-8 flex flex-1 flex-col px-5 pb-5 sm:-mt-10 sm:px-6 sm:pb-6">
               <div className="flex items-end justify-between gap-4">
-                <div className="h-[82px] w-[82px] overflow-hidden rounded-[8px] border-[3px] border-[#fffdf8] bg-[#17231f] shadow-[0_12px_26px_rgba(23,35,31,0.22)]">
+                <div className="h-[68px] w-[68px] overflow-hidden rounded-[8px] border-[3px] border-[#fffdf8] bg-[#17231f] shadow-[0_12px_26px_rgba(23,35,31,0.22)] sm:h-[82px] sm:w-[82px]">
                   {avatarUrl ? (
                     <img src={avatarUrl} alt="" crossOrigin="anonymous" className="h-full w-full object-cover" />
                   ) : (
                     <div className="grid h-full w-full place-items-center text-xl font-black text-white">{initials(name)}</div>
                   )}
                 </div>
-                <span className="mb-2 inline-flex items-center gap-1.5 rounded-[6px] border border-[#d8d2c3] bg-white px-2.5 py-1.5 text-[11px] font-black text-[#3d4f47]">
-                  <Icon size={13} />
+                <span className="mb-1 inline-flex items-center gap-1.5 rounded-[6px] border border-[#d8d2c3] bg-white px-2.5 py-1.5 text-[10px] font-black text-[#3d4f47] sm:mb-2 sm:text-[11px]">
+                  <Icon size={12} />
                   {metaLabel}
                 </span>
               </div>
 
-              <div className="mt-4 min-w-0">
+              <div className="mt-3 min-w-0 sm:mt-4">
                 <div className="flex items-center gap-2">
-                  <h2 className="line-clamp-2 text-[27px] font-black leading-[1.06] tracking-normal text-[#17231f] sm:text-[31px]">
+                  <h2 className="line-clamp-2 text-[24px] font-black leading-[1.06] tracking-normal text-[#17231f] sm:text-[31px]">
                     {name}
                   </h2>
-                  {profile?.verified ? <BadgeCheck className="shrink-0 text-[#0f8f6d]" size={20} /> : null}
+                  {profile?.verified ? <BadgeCheck className="shrink-0 text-[#0f8f6d]" size={18} /> : null}
                 </div>
-                <p className="mt-2 font-mono text-[12px] font-black text-[#728078]">@{profile?.handle}</p>
-                <p className="mt-4 line-clamp-3 text-[13px] font-bold leading-6 text-[#4d5f57]">
+                <p className="mt-2 font-mono text-[11px] font-black text-[#728078] sm:text-[12px]">@{profile?.handle}</p>
+                <p className="mt-3 line-clamp-3 text-[12px] font-bold leading-5 text-[#4d5f57] sm:mt-4 sm:text-[13px] sm:leading-6">
                   {intro}
                 </p>
               </div>
 
               {visibleTags.length > 0 ? (
-                <div className="mt-4 flex max-h-[58px] flex-wrap gap-2 overflow-hidden">
+                <div className="mt-3 flex max-h-[48px] flex-wrap gap-2 overflow-hidden sm:mt-4 sm:max-h-[58px]">
                   {visibleTags.map((tag) => (
                     <span
                       key={tag}
-                      className="inline-flex max-w-[142px] items-center rounded-[6px] border border-[#cfe1d9] bg-[#edf8f3] px-2.5 py-1 text-[10px] font-black text-[#17634e]"
+                      className="inline-flex max-w-[118px] items-center rounded-[6px] border border-[#cfe1d9] bg-[#edf8f3] px-2.5 py-1 text-[9px] font-black text-[#17634e] sm:max-w-[142px] sm:text-[10px]"
                     >
                       <span className="truncate">{tag}</span>
                     </span>
@@ -252,20 +252,20 @@ const ProfileSharePoster = ({
                 </div>
               ) : null}
 
-              <div className="mt-auto grid grid-cols-[1fr_82px] items-end gap-4 border-t border-dashed border-[#cfc7b8] pt-4">
+              <div className="mt-auto grid grid-cols-[1fr_72px] items-end gap-3 border-t border-dashed border-[#cfc7b8] pt-3 sm:grid-cols-[1fr_82px] sm:gap-4 sm:pt-4">
                 <div className="min-w-0">
-                  <div className="mb-2 inline-flex items-center gap-1.5 rounded-[6px] bg-[#17231f] px-2 py-1 text-[10px] font-black text-[#fffdf8]">
+                  <div className="mb-2 inline-flex items-center gap-1.5 rounded-[6px] bg-[#17231f] px-2 py-1 text-[9px] font-black text-[#fffdf8] sm:text-[10px]">
                     <QrCode size={12} />
                     {t("profile_share_poster.scan_badge")}
                   </div>
-                  <strong className="block text-[16px] font-black leading-tight text-[#17231f]">
+                  <strong className="block text-[14px] font-black leading-tight text-[#17231f] sm:text-[16px]">
                     {t(isPerson ? "profile_share_poster.scan_title_person" : "profile_share_poster.scan_title_org")}
                   </strong>
                   <span className="mt-1 block truncate text-[10px] font-bold text-[#7c897f]">
                     {compactUrl(shareUrl)}
                   </span>
                 </div>
-                <div className="h-[82px] w-[82px] rounded-[6px] border border-[#d8d2c3] bg-white p-1.5 shadow-sm">
+                <div className="h-[72px] w-[72px] rounded-[6px] border border-[#d8d2c3] bg-white p-1.5 shadow-sm sm:h-[82px] sm:w-[82px]">
                   {qrDataUrl ? (
                     <img src={qrDataUrl} alt={t("profile_share_poster.qr_alt")} className="h-full w-full" />
                   ) : (
