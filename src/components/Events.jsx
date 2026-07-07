@@ -2811,17 +2811,15 @@ END:VCALENDAR`;
                         >
                           <ArrowRight size={18} className="rotate-180" />
                         </button>
-                        {!isMiniProgramMode && (
-                          <button
-                            type="button"
-                            aria-label={t("common.share", "分享")}
-                            data-testid="event-detail-share-mobile"
-                            onClick={handleShare}
-                            className="absolute right-3 top-3 z-20 inline-flex h-9 w-9 items-center justify-center rounded-[6px] bg-black/35 text-white backdrop-blur-md"
-                          >
-                            <Share2 size={17} />
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          aria-label={t("common.share", "分享")}
+                          data-testid="event-detail-share-mobile"
+                          onClick={handleShare}
+                          className="absolute right-3 top-3 z-20 inline-flex h-9 w-9 items-center justify-center rounded-[6px] bg-black/35 text-white backdrop-blur-md"
+                        >
+                          <Share2 size={17} />
+                        </button>
                         <span className="absolute left-3 top-14 z-20 rounded-[5px] bg-black/62 px-2 py-1 text-[10px] font-black leading-4 text-white">
                           {formatDateTime(selectedEvent.date).split(" ")[0]}
                         </span>

@@ -138,7 +138,7 @@ test.describe("event detail layout regression", () => {
       .toBeGreaterThan(before.scrollTop);
   });
 
-  test("miniapp mobile detail syncs native share data and hides web upload/share buttons", async ({
+  test("miniapp mobile detail keeps share visible and hides web upload buttons", async ({
     page,
     request,
   }) => {
@@ -165,7 +165,8 @@ test.describe("event detail layout regression", () => {
 
     await page.goto(`/events?id=${event.id}&miniapp=1&miniapp_nav_inset=112`);
     await expect(page.getByRole("dialog", { name: event.title })).toBeVisible();
-    await expect(page.getByTestId("event-detail-share-mobile")).toHaveCount(0);
+    await expect(page.getByTestId("event-detail-share-mobile")).toBeVisible();
+    await page.getByTestId("event-detail-share-mobile").click();
 
     await expect
       .poll(() => page.evaluate(() => window.__miniShareMessages.length))
