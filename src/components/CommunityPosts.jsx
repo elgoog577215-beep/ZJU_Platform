@@ -179,6 +179,11 @@ const CommunityPosts = ({ headingCode, headingTitle }) => {
     setTypePickerOpen(true);
   }, []);
 
+  useEffect(() => {
+    window.addEventListener('open-community-post-picker', handleOpenTypePicker);
+    return () => window.removeEventListener('open-community-post-picker', handleOpenTypePicker);
+  }, [handleOpenTypePicker]);
+
   const handleSelectPostType = useCallback((boardKey) => {
     setTypePickerOpen(false);
     if (!isPublishableTab(boardKey)) {
@@ -307,7 +312,7 @@ const CommunityPosts = ({ headingCode, headingTitle }) => {
             aria-label={t('community.post_new', '发帖')}
             data-testid="community-create-mobile"
             onClick={handleOpenTypePicker}
-            className={`inline-flex h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-[6px] border p-0 text-[0px] font-black transition-all active:scale-95 md:h-[44px] md:w-auto md:self-center md:rounded-lg md:px-5 md:text-sm ${
+            className={`hidden h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-[6px] border p-0 text-[0px] font-black transition-all active:scale-95 md:inline-flex md:h-[44px] md:w-auto md:self-center md:rounded-lg md:px-5 md:text-sm ${
               isDayMode
                 ? 'border-violet-200 bg-violet-600 text-white shadow-[0_10px_24px_rgba(124,58,237,0.18)] hover:bg-violet-700'
                 : 'border-orange-300/40 bg-orange-400 text-slate-950 shadow-[0_0_28px_rgba(251,146,60,0.18)] hover:bg-orange-300'

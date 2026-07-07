@@ -170,6 +170,11 @@ const Navbar = ({ miniProgramMode = false }) => {
 
   // Map route to specific upload type, and dispatch custom event
   const handleUploadClick = () => {
+    if (location.pathname === "/articles") {
+      window.dispatchEvent(new Event("open-community-post-picker"));
+      return;
+    }
+
     if (!user) {
       toast.error(t("auth.signin_required"));
       setIsAuthOpen(true);
@@ -464,7 +469,7 @@ const Navbar = ({ miniProgramMode = false }) => {
             aria-label={t("nav.more", "更多")}
             aria-expanded={isMobileMoreOpen}
             onClick={() => setIsMobileMoreOpen(true)}
-             className={`motion-press rect-icon-button p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-200 hover:text-white"}`}
+             className={`motion-press rect-icon-button inline-flex h-9 w-9 items-center justify-center p-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-200 hover:text-white"}`}
           >
             <Menu size={18} aria-hidden="true" />
           </button>
@@ -482,7 +487,7 @@ const Navbar = ({ miniProgramMode = false }) => {
               type="button"
               aria-label={t("search.placeholder")}
               onClick={() => window.dispatchEvent(new Event("open-search-palette"))}
-              className={`motion-press rect-icon-button p-2 min-h-[44px] min-w-[44px] inline-flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-200 hover:text-white"}`}
+              className={`motion-press rect-icon-button inline-flex h-9 w-9 items-center justify-center p-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-200 hover:text-white"}`}
             >
               <Search size={18} />
             </button>
@@ -492,10 +497,11 @@ const Navbar = ({ miniProgramMode = false }) => {
             <button
               type="button"
               aria-label={t("common.upload", "上传")}
+              data-testid="mobile-upload-action"
               onClick={handleUploadClick}
-              className="motion-press rect-button-primary p-1.5 min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-white ml-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300/80"
+              className="motion-press rect-button-primary ml-1 inline-flex h-9 w-9 items-center justify-center p-0 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300/80"
             >
-              <Plus size={16} strokeWidth={3} />
+              <Plus size={19} strokeWidth={3} />
             </button>
           )}
           {!showMobileSearchAction && !showMobileUploadAction && (
