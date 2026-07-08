@@ -1909,13 +1909,13 @@ END:VCALENDAR`;
           }}
         />
         <div ref={mobilePartnerWallRef} className="scroll-mt-4 md:hidden">
-          <OrganizationPartnerWall
-            partners={eventOrganizationPartners}
-            isDayMode={isDayMode}
-            className="mb-4 text-left"
-            onApplyPartnerFilter={handleApplyPartnerFilter}
-            onOpenEvent={openEventFromList}
-          />
+            <OrganizationPartnerWall
+              partners={eventOrganizationPartners}
+              isDayMode={isDayMode}
+              className="mb-3 text-left"
+              onApplyPartnerFilter={handleApplyPartnerFilter}
+              onOpenEvent={openEventFromList}
+            />
         </div>
         {partnerFilter && (
           <div className={`${EVENT_CONTENT_WIDTH_CLASS} mb-4 hidden justify-start md:flex`}>
