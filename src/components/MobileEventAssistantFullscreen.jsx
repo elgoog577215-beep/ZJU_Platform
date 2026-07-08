@@ -14,44 +14,44 @@ const MobileEventAssistantLauncher = ({ isDayMode, onOpen }) => {
       transition={{ type: "spring", stiffness: 520, damping: 34 }}
       type="button"
       onClick={onOpen}
-      className={`group mb-3 flex min-h-[82px] w-full flex-wrap items-center gap-2 overflow-hidden rounded-[12px] border px-3 py-1.5 text-left transition-[background-color,border-color,box-shadow] min-[390px]:min-h-[82px] min-[390px]:flex-nowrap md:hidden ${
+      className={`group mb-4 flex min-h-[118px] w-full flex-wrap items-center gap-3 overflow-hidden rounded-[12px] border px-3.5 py-3 text-left transition-[background-color,border-color,box-shadow] min-[390px]:min-h-[104px] min-[390px]:flex-nowrap md:hidden ${
         isDayMode
           ? "border-blue-100/90 bg-[linear-gradient(105deg,#ffffff,#f7fbff_48%,#edf5ff)] text-slate-950 shadow-[0_16px_36px_rgba(37,99,235,0.09)] hover:border-blue-200"
           : "border-indigo-400/45 bg-[radial-gradient(circle_at_12%_50%,rgba(80,120,255,0.38),transparent_28%),linear-gradient(100deg,rgba(32,44,104,0.98),rgba(9,16,42,0.96))] text-white shadow-[0_18px_46px_rgba(20,40,120,0.28)] hover:border-indigo-300/70"
       }`}
     >
-      <span className="flex min-w-0 basis-full items-center gap-2.5 min-[390px]:basis-auto min-[390px]:flex-1">
+      <span className="flex min-w-0 basis-full items-center gap-3 min-[390px]:basis-auto min-[390px]:flex-1">
         <span
-          className={`relative inline-flex h-[60px] w-[74px] shrink-0 items-end justify-center overflow-hidden rounded-[10px] transition-transform group-hover:scale-[1.02] group-active:scale-95 ${
+          className={`relative inline-flex h-[72px] w-[88px] shrink-0 items-end justify-center overflow-hidden rounded-[10px] transition-transform group-hover:scale-[1.02] group-active:scale-95 ${
             isDayMode
               ? "bg-blue-50/90 text-blue-600 ring-1 ring-blue-100"
               : "bg-indigo-500/18 text-indigo-100 ring-1 ring-indigo-300/25"
           }`}
         >
           <span className={`absolute left-3 top-2 h-1.5 w-1.5 rounded-full ${isDayMode ? "bg-cyan-500 shadow-[0_0_16px_rgba(6,182,212,0.65)]" : "bg-cyan-300 shadow-[0_0_16px_rgba(103,232,249,0.9)]"}`} />
-          <span className={isDayMode ? "absolute right-3 top-4 text-blue-300" : "absolute right-3 top-4 text-indigo-200"}>
-            <Sparkles size={12} />
+          <span className={isDayMode ? "absolute right-3 top-5 text-blue-300" : "absolute right-3 top-5 text-indigo-200"}>
+            <Sparkles size={13} />
           </span>
-          <span className={`mb-2 inline-flex h-10 w-10 items-center justify-center rounded-full border shadow-[0_0_22px_rgba(99,102,241,0.3)] ${isDayMode ? "border-blue-100 bg-white" : "border-indigo-300/30 bg-[#111b46]"}`}>
-            <Bot size={23} />
+          <span className={`mb-2 inline-flex h-12 w-12 items-center justify-center rounded-full border shadow-[0_0_28px_rgba(99,102,241,0.34)] ${isDayMode ? "border-blue-100 bg-white" : "border-indigo-300/30 bg-[#111b46]"}`}>
+            <Bot size={28} />
           </span>
-          <span className={`absolute bottom-2 right-2 rounded-[5px] border px-1.5 py-0.5 text-[9px] font-black ${isDayMode ? "border-blue-200 bg-blue-50 text-blue-700" : "border-indigo-300/30 bg-indigo-600/80 text-white"}`}>
+          <span className={`absolute bottom-2 right-2 rounded-[5px] border px-1.5 py-0.5 text-[10px] font-black ${isDayMode ? "border-blue-200 bg-blue-50 text-blue-700" : "border-indigo-300/30 bg-indigo-600/80 text-white"}`}>
             AI
           </span>
         </span>
         <span className="min-w-0">
-          <span className="flex min-w-0 items-center gap-1 text-[18px] font-black leading-5 tracking-tight">
+          <span className="flex min-w-0 items-center gap-1 text-[20px] font-black leading-6 tracking-tight">
             {t("events.assistant.mobile_title", "AI 活动助手")}
-            <Sparkles size={14} className={`shrink-0 ${isDayMode ? "text-blue-400" : "text-indigo-200"}`} />
+            <Sparkles size={15} className={`shrink-0 ${isDayMode ? "text-blue-400" : "text-indigo-200"}`} />
           </span>
-          <span className={`mt-0.5 block text-[13px] leading-4 ${isDayMode ? "text-slate-600" : "text-slate-300"}`}>
+          <span className={`mt-1 block text-[14px] leading-5 ${isDayMode ? "text-slate-600" : "text-slate-300"}`}>
             为你发现合适的活动
           </span>
-          <span className="mt-1.5 flex max-w-full gap-1 overflow-hidden">
+          <span className="mt-2 flex max-w-full gap-1 overflow-hidden">
             {["兴趣推荐", "智能匹配", "活动答疑"].map((label) => (
               <span
                 key={label}
-                className={`inline-flex h-[18px] shrink-0 items-center rounded-[4px] border px-1.5 text-[9px] font-semibold ${isDayMode ? "border-blue-100 bg-white/80 text-blue-600" : "border-indigo-300/25 bg-indigo-500/15 text-indigo-100"}`}
+                className={`inline-flex h-5 shrink-0 items-center rounded-[4px] border px-1.5 text-[10px] font-semibold ${isDayMode ? "border-blue-100 bg-white/80 text-blue-600" : "border-indigo-300/25 bg-indigo-500/15 text-indigo-100"}`}
               >
                 {label}
               </span>
@@ -60,12 +60,12 @@ const MobileEventAssistantLauncher = ({ isDayMode, onOpen }) => {
         </span>
       </span>
       <span
-        className={`ml-[88px] inline-flex h-9 basis-[calc(100%-88px)] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-[8px] border px-3.5 text-[14px] font-bold leading-none shadow-[0_10px_24px_rgba(37,99,235,0.12)] min-[390px]:ml-2 min-[390px]:h-10 min-[390px]:basis-auto ${
+        className={`ml-[100px] inline-flex h-11 basis-[calc(100%-100px)] shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-[9px] border px-4 text-[15px] font-bold leading-none shadow-[0_10px_24px_rgba(37,99,235,0.12)] min-[390px]:ml-2 min-[390px]:h-12 min-[390px]:basis-auto ${
           isDayMode ? "border-blue-200 bg-white text-blue-700" : "border-indigo-300/20 bg-indigo-500 text-white"
         }`}
       >
         <span>去探索</span>
-        <ChevronRight size={15} className="shrink-0" />
+        <ChevronRight size={17} className="shrink-0" />
       </span>
     </motion.button>
   );
