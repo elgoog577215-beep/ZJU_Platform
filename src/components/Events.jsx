@@ -413,25 +413,10 @@ const EventCard = memo(
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col px-3.5 py-2.5">
-          <div className="flex min-h-[32px] min-w-0 items-start gap-2">
+          <div className="flex min-h-[32px] min-w-0 items-start">
             <h3 className={`line-clamp-1 min-w-0 flex-1 text-[19px] font-black leading-7 tracking-tight ${isDayMode ? "text-slate-950" : "text-white"}`}>
               {event.title}
             </h3>
-            <div onClick={(eventClick) => eventClick.stopPropagation()} className="-mr-1 -mt-1">
-              <FavoriteButton
-                itemId={event.id}
-                itemType="event"
-                size={22}
-                showCount={false}
-                count={event.likes || 0}
-                favorited={event.favorited}
-                initialFavorited={event.favorited}
-                className={`min-h-9 min-w-9 rounded-md p-1 ${isDayMode ? "text-slate-500 hover:bg-blue-50 hover:text-blue-600" : "text-slate-100"}`}
-                onToggle={(favorited, likes) =>
-                  onToggleFavorite(event.id, favorited, likes)
-                }
-              />
-            </div>
           </div>
 
           <div className="mt-1 flex min-h-[28px] min-w-0 items-center gap-2 overflow-hidden">
@@ -464,9 +449,6 @@ const EventCard = memo(
           <div className={`mt-auto flex items-center gap-1.5 text-[14px] font-semibold ${isDayMode ? "text-slate-500" : "text-slate-300"}`}>
             <Users size={15} />
             <span className="truncate">{event.registered_count || event.participant_count || 0} 人已报名</span>
-            <span className={`ml-auto inline-flex h-8 w-8 items-center justify-center rounded-full ${isDayMode ? "bg-blue-50 text-blue-700" : "bg-white/10 text-slate-200"}`}>
-              <ArrowRight size={17} />
-            </span>
           </div>
         </div>
       </motion.div>
@@ -1239,32 +1221,6 @@ const Events = () => {
       category: value || null,
     }));
   }, []);
-  const selectedMobileCategoryLabel =
-    mobileCategoryTabs.find((tab) => tab.value === (filters.category || null))
-      ?.label || t("common.all", "全部");
-  const activeMobileFilterChips = useMemo(() => {
-    const chips = [];
-    if (filters.category) {
-      chips.push({
-        key: "category",
-        label: selectedMobileCategoryLabel,
-        onClear: () => handleMobileCategoryChange(null),
-      });
-    }
-    if (partnerFilter) {
-      chips.push({
-        key: "campus",
-        label: partnerFilter.name,
-        onClear: () => setPartnerFilter(null),
-      });
-    }
-    return chips;
-  }, [
-    filters.category,
-    handleMobileCategoryChange,
-    partnerFilter,
-    selectedMobileCategoryLabel,
-  ]);
   // Debounce search
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -1886,7 +1842,7 @@ END:VCALENDAR`;
             <div
               ref={mobileCategoryScrollRef}
               {...mobileCategoryDragProps}
-              className={`scrollbar-none flex cursor-grab select-none snap-x snap-proximity gap-6 overflow-x-auto overscroll-x-contain scroll-smooth px-4 pb-2 pt-3 pr-10 touch-pan-x active:cursor-grabbing ${isDayMode ? "bg-transparent" : ""}`}
+              className={`scrollbar-none flex cursor-grab select-none snap-x snap-proximity gap-1 overflow-x-auto overscroll-x-contain scroll-smooth px-4 touch-pan-x active:cursor-grabbing ${isDayMode ? "bg-transparent" : ""}`}
             >
               {mobileCategoryTabs.map((tab) => {
                 const active = (filters.category || null) === tab.value;
@@ -1897,7 +1853,7 @@ END:VCALENDAR`;
                     type="button"
                     aria-pressed={active}
                     onClick={() => handleMobileCategoryChange(tab.value)}
-                    className={`relative h-12 shrink-0 snap-start px-0.5 text-[16px] font-black transition-colors ${
+                    className={`relative inline-flex min-h-10 shrink-0 snap-start items-center justify-center px-2.5 text-xs font-bold transition-colors ${
                       active
                         ? isDayMode
                           ? "text-blue-700"
@@ -1931,9 +1887,7 @@ END:VCALENDAR`;
             sort={sort}
             onSortChange={setSort}
             filterCount={mobileFilterCount}
-            filterButtonLabel="全部学院"
-            filterButtonIcon="users"
-            hideFilterCount
+            filterButtonLabel="学院"
             showClearAction={false}
           onOpenSort={() => {
             setIsMobileFilterOpen(false);
@@ -1941,36 +1895,11 @@ END:VCALENDAR`;
           }}
           onOpenFilter={() => {
             setIsMobileSortOpen(false);
-            setIsMobileFilterOpen(false);
-            mobilePartnerWallRef.current?.scrollIntoView({
-              behavior: "smooth",
-              block: "start",
-            });
+            setIsMobileFilterOpen(true);
           }}
           onClearFilters={resetMobileFilters}
           clearLabel={t("common.clear_all", "重置")}
         />
-        {activeMobileFilterChips.length > 0 && (
-          <div className="mb-3 md:hidden">
-            <div className="scrollbar-none flex gap-2 overflow-x-auto pr-3">
-              {activeMobileFilterChips.map((chip) => (
-                <button
-                  key={chip.key}
-                  type="button"
-                  onClick={chip.onClear}
-                  className={`inline-flex h-9 shrink-0 items-center gap-2 rounded-full border px-4 text-[15px] font-medium ${
-                    isDayMode
-                      ? "border-blue-100 bg-white/92 text-slate-700 shadow-[0_8px_18px_rgba(37,99,235,0.08)]"
-                      : "border-white/12 bg-white/[0.035] text-slate-300"
-                  }`}
-                >
-                  <span>{chip.label}</span>
-                  <X size={15} />
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
         <MobileEventAssistantLauncher
           isDayMode={isDayMode}
           onOpen={() => {
