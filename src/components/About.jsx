@@ -460,7 +460,7 @@ const About = () => {
   ];
 
   const sectionBaseClass =
-    "relative flex min-h-[100svh] scroll-mt-0 flex-col overflow-hidden px-4 pb-[calc(5.25rem+env(safe-area-inset-bottom))] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:px-6 sm:py-20 lg:h-[100svh] lg:snap-start lg:snap-always lg:pb-[clamp(1rem,3vh,2.5rem)] lg:pl-10 lg:pr-28 lg:pt-[calc(env(safe-area-inset-top)+clamp(4.5rem,8.2vh,5.125rem))] 2xl:pl-16 2xl:pr-36";
+    "relative flex scroll-mt-0 flex-col overflow-hidden px-4 pb-[calc(4.75rem+env(safe-area-inset-bottom))] pt-12 sm:px-6 sm:py-20 lg:h-[100svh] lg:min-h-[100svh] lg:snap-start lg:snap-always lg:pb-[clamp(1rem,3vh,2.5rem)] lg:pl-10 lg:pr-28 lg:pt-[calc(env(safe-area-inset-top)+clamp(4.5rem,8.2vh,5.125rem))] 2xl:pl-16 2xl:pr-36";
   const heroStageShellStyle = heroStageFrame.height
     ? { height: `${heroStageFrame.height}px` }
     : undefined;
@@ -507,7 +507,7 @@ const About = () => {
 
       <section
         id="about-hero"
-        className={`relative isolate min-h-[100svh] overflow-hidden px-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] pt-[calc(env(safe-area-inset-top)+76px)] sm:px-6 md:pt-[calc(env(safe-area-inset-top)+112px)] lg:h-[100svh] lg:snap-start lg:snap-always lg:pb-8 lg:pl-10 lg:pr-28 lg:pt-[calc(env(safe-area-inset-top)+84px)] 2xl:pl-16 2xl:pr-36 ${palette.hero}`}
+        className={`relative isolate overflow-hidden px-4 pb-[calc(4.75rem+env(safe-area-inset-bottom))] pt-[calc(env(safe-area-inset-top)+76px)] sm:px-6 md:pt-[calc(env(safe-area-inset-top)+112px)] lg:h-[100svh] lg:min-h-[100svh] lg:snap-start lg:snap-always lg:pb-8 lg:pl-10 lg:pr-28 lg:pt-[calc(env(safe-area-inset-top)+84px)] 2xl:pl-16 2xl:pr-36 ${palette.hero}`}
       >
         <div
           className={`pointer-events-none absolute inset-0 [background-size:46px_46px] ${palette.grid}`}
@@ -527,7 +527,7 @@ const About = () => {
             ref={heroStageRef}
             data-about-hero-stage
             style={heroStageStyle}
-            className="grid min-h-[calc(100svh-164px)] w-full content-start gap-5 pt-2 will-change-transform sm:gap-7 sm:pt-8 lg:min-h-[calc(100svh-118px)] lg:content-center lg:items-center lg:gap-10 lg:pt-0 xl:grid-cols-[minmax(0,1fr)_minmax(540px,680px)] xl:gap-12 2xl:grid-cols-[minmax(0,1fr)_minmax(700px,860px)] 2xl:gap-16"
+            className="grid w-full content-start gap-5 pt-2 will-change-transform sm:gap-7 sm:pt-8 lg:min-h-[calc(100svh-118px)] lg:content-center lg:items-center lg:gap-10 lg:pt-0 xl:grid-cols-[minmax(0,1fr)_minmax(540px,680px)] xl:gap-12 2xl:grid-cols-[minmax(0,1fr)_minmax(700px,860px)] 2xl:gap-16"
           >
             <motion.div
               {...heroReveal(shouldAnimate)}
@@ -700,7 +700,7 @@ const About = () => {
           <div
             className={`pointer-events-none absolute inset-0 [background-size:56px_56px] ${palette.grid}`}
           />
-          <div className="relative z-10 mx-auto flex min-h-0 w-full max-w-[2140px] flex-1 flex-col justify-center">
+          <div className="relative z-10 mx-auto flex w-full max-w-[2140px] flex-col lg:min-h-0 lg:flex-1 lg:justify-center">
             <div className="grid gap-5 lg:grid-cols-[minmax(0,0.86fr)_minmax(360px,0.7fr)] lg:items-end lg:gap-10 2xl:gap-14">
               <div className="max-w-[960px]">
                 <p className={`text-sm font-black uppercase ${palette.label}`}>
@@ -728,7 +728,7 @@ const About = () => {
               </p>
             </div>
 
-            <div className="-mx-4 mt-5 grid auto-cols-[86%] grid-flow-col gap-3 overflow-x-auto px-4 pb-1 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:grid-flow-row sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 sm:[scrollbar-width:auto] lg:mt-8 lg:h-[clamp(28rem,56vh,42rem)] lg:min-h-0 lg:grid-cols-4 lg:gap-5 2xl:gap-7 [&::-webkit-scrollbar]:hidden sm:[&::-webkit-scrollbar]:block">
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:mt-8 lg:h-[clamp(28rem,56vh,42rem)] lg:min-h-0 lg:grid-cols-4 lg:gap-5 2xl:gap-7">
               {supportGroups.map((group) => {
                 const Icon = group.icon;
                 const textItemCount = group.items?.length || 0;
@@ -748,7 +748,7 @@ const About = () => {
                 return (
                   <article
                     key={group.code}
-                    className={`relative flex min-h-[430px] snap-start flex-col overflow-hidden border p-5 sm:min-h-[360px] sm:p-6 lg:h-full lg:min-h-0 lg:p-6 2xl:p-7 ${palette.card}`}
+                    className={`relative flex min-h-[300px] flex-col overflow-hidden border p-5 sm:min-h-[360px] sm:p-6 lg:h-full lg:min-h-0 lg:p-6 2xl:p-7 ${palette.card}`}
                   >
                     <div
                       className={`pointer-events-none absolute -bottom-8 -right-6 text-[7rem] font-black uppercase leading-none ${palette.watermark}`}
@@ -870,7 +870,7 @@ const About = () => {
           >
             BUILD
           </div>
-          <div className="relative z-10 mx-auto flex min-h-0 w-full max-w-[2140px] flex-1 flex-col justify-center">
+          <div className="relative z-10 mx-auto flex w-full max-w-[2140px] flex-col lg:min-h-0 lg:flex-1 lg:justify-center">
             <div className="max-w-5xl">
               <p className={`text-sm font-black uppercase ${palette.label}`}>
                 Three Businesses
@@ -896,7 +896,7 @@ const About = () => {
               </p>
             </div>
 
-            <div className="-mx-4 mt-6 grid auto-cols-[84%] grid-flow-col gap-3 overflow-x-auto px-4 pb-1 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:grid-flow-row sm:grid-cols-1 sm:overflow-visible sm:px-0 sm:pb-0 sm:[scrollbar-width:auto] lg:mt-8 lg:h-[clamp(25rem,50vh,38rem)] lg:min-h-0 lg:grid-cols-3 lg:gap-5 2xl:gap-7 [&::-webkit-scrollbar]:hidden sm:[&::-webkit-scrollbar]:block">
+            <div className="mt-6 grid gap-3 sm:grid-cols-1 lg:mt-8 lg:h-[clamp(25rem,50vh,38rem)] lg:min-h-0 lg:grid-cols-3 lg:gap-5 2xl:gap-7">
               {businessLines.map((item) => {
                 const Icon = item.icon;
                 const isAmber = item.tone === "amber";
@@ -918,7 +918,7 @@ const About = () => {
                   <Link
                     key={item.code}
                     to={item.route}
-                    className={`group relative flex min-h-[360px] snap-start flex-col overflow-hidden border border-l-4 p-5 transition duration-300 hover:-translate-y-1 sm:min-h-[300px] sm:p-7 lg:h-full lg:min-h-0 lg:p-7 2xl:p-8 ${
+                    className={`group relative flex min-h-[280px] flex-col overflow-hidden border border-l-4 p-5 transition duration-300 hover:-translate-y-1 sm:min-h-[300px] sm:p-7 lg:h-full lg:min-h-0 lg:p-7 2xl:p-8 ${
                       isAmber
                         ? isDayMode
                           ? "border-l-amber-400"
@@ -1002,7 +1002,7 @@ const About = () => {
           <div
             className={`pointer-events-none absolute inset-0 [background-size:46px_46px] ${palette.grid}`}
           />
-          <div className="relative z-10 mx-auto grid min-h-0 w-full max-w-[2140px] flex-1 gap-6 lg:grid-cols-[minmax(0,0.78fr)_minmax(520px,0.92fr)] lg:items-center lg:gap-10 2xl:gap-14">
+          <div className="relative z-10 mx-auto grid w-full max-w-[2140px] gap-6 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,0.78fr)_minmax(520px,0.92fr)] lg:items-center lg:gap-10 2xl:gap-14">
             <div>
               <p className={`text-sm font-black uppercase ${palette.label}`}>
                 Join the Ecosystem
