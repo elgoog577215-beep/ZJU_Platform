@@ -406,14 +406,32 @@ const EventCard = memo(
             className="absolute inset-0 h-full w-full"
             imageClassName="h-full w-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/0 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/5 to-transparent" />
+          <span className="absolute left-2 top-2 rounded-[5px] bg-indigo-950/78 px-2 py-0.5 text-[14px] font-black leading-5 text-white shadow-[0_6px_16px_rgba(0,0,0,0.32)]">
+            {formatDateTime(event.date).split(" ")[0] || " -- "}
+          </span>
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col px-3.5 py-2.5">
-          <div className="flex min-h-[32px] min-w-0 items-start">
+          <div className="flex min-h-[32px] min-w-0 items-start gap-2">
             <h3 className={`line-clamp-1 min-w-0 flex-1 text-[19px] font-black leading-7 tracking-tight ${isDayMode ? "text-slate-950" : "text-white"}`}>
               {event.title}
             </h3>
+            <div onClick={(eventClick) => eventClick.stopPropagation()} className="-mr-1 -mt-1">
+              <FavoriteButton
+                itemId={event.id}
+                itemType="event"
+                size={22}
+                showCount={false}
+                count={event.likes || 0}
+                favorited={event.favorited}
+                initialFavorited={event.favorited}
+                className={`min-h-9 min-w-9 rounded-md p-1 ${isDayMode ? "text-slate-500 hover:bg-blue-50 hover:text-blue-600" : "text-slate-100"}`}
+                onToggle={(favorited, likes) =>
+                  onToggleFavorite(event.id, favorited, likes)
+                }
+              />
+            </div>
           </div>
 
           <div className="mt-1 flex min-h-[28px] min-w-0 items-center gap-2 overflow-hidden">
@@ -427,13 +445,6 @@ const EventCard = memo(
                 <span className="block truncate leading-[16px]">{formatEventAudience(event.target_audience)}</span>
               </span>
             )}
-            <span className={`ml-auto shrink-0 rounded-[5px] border px-2 py-0.5 text-[13px] font-black leading-5 ${
-              isDayMode
-                ? "border-slate-200 bg-slate-50 text-slate-700"
-                : "border-white/15 bg-white/10 text-slate-100"
-            }`}>
-              {formatDateTime(event.date).split(" ")[0] || "--"}
-            </span>
           </div>
 
           <div className={`mt-2 grid min-h-[48px] gap-1 text-[14px] leading-5 ${isDayMode ? "text-slate-500" : "text-slate-300"}`}>
@@ -453,25 +464,9 @@ const EventCard = memo(
           <div className={`mt-auto flex items-center gap-1.5 text-[14px] font-semibold ${isDayMode ? "text-slate-500" : "text-slate-300"}`}>
             <Users size={15} />
             <span className="truncate">{event.registered_count || event.participant_count || 0} 人已报名</span>
-            <div onClick={(eventClick) => eventClick.stopPropagation()} className="ml-auto">
-              <FavoriteButton
-                itemId={event.id}
-                itemType="event"
-                size={18}
-                showCount={false}
-                count={event.likes || 0}
-                favorited={event.favorited}
-                initialFavorited={event.favorited}
-                className={`!min-h-8 !min-w-8 h-8 w-8 rounded-full p-0 ${
-                  isDayMode
-                    ? "bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-pink-500"
-                    : "bg-white/10 text-slate-200 hover:bg-white/15 hover:text-pink-400"
-                }`}
-                onToggle={(favorited, likes) =>
-                  onToggleFavorite(event.id, favorited, likes)
-                }
-              />
-            </div>
+            <span className={`ml-auto inline-flex h-8 w-8 items-center justify-center rounded-full ${isDayMode ? "bg-blue-50 text-blue-700" : "bg-white/10 text-slate-200"}`}>
+              <ArrowRight size={17} />
+            </span>
           </div>
         </div>
       </motion.div>
@@ -1127,6 +1122,7 @@ const Events = () => {
   const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
   const [isMobileAssistantOpen, setIsMobileAssistantOpen] = useState(false);
   const [isDesktopAssistantOpen, setIsDesktopAssistantOpen] = useState(false);
+  const mobilePartnerWallRef = useRef(null);
   const [viewMode, setViewMode] = useState("cards");
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth < 768 : false,
@@ -1255,14 +1251,6 @@ const Events = () => {
         onClear: () => handleMobileCategoryChange(null),
       });
     }
-    if (filters.target_audience) {
-      chips.push({
-        key: "audience",
-        label: formatEventAudience(filters.target_audience),
-        onClear: () =>
-          setFilters((prev) => ({ ...prev, target_audience: null })),
-      });
-    }
     if (partnerFilter) {
       chips.push({
         key: "campus",
@@ -1270,25 +1258,13 @@ const Events = () => {
         onClear: () => setPartnerFilter(null),
       });
     }
-    if (chips.length > 0) {
-      chips.push({
-        key: "clear",
-        label: "清除筛选",
-        onClear: resetMobileFilters,
-        clearAll: true,
-      });
-    }
     return chips;
   }, [
     filters.category,
-    filters.target_audience,
-    formatEventAudience,
     handleMobileCategoryChange,
     partnerFilter,
-    resetMobileFilters,
     selectedMobileCategoryLabel,
   ]);
-
   // Debounce search
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -1902,7 +1878,7 @@ END:VCALENDAR`;
           </div>
         </div>
         <div className="md:hidden">
-          <div className={`relative -mx-4 mb-2 overflow-hidden rounded-b-[14px] border-y shadow-[0_12px_34px_rgba(15,23,42,0.10)] ${
+          <div className={`relative -mx-4 mb-3 overflow-hidden rounded-b-[14px] border-y shadow-[0_12px_34px_rgba(15,23,42,0.10)] ${
             isDayMode
               ? "border-blue-100/90 bg-white/88"
               : "border-indigo-400/20 bg-[#080f1f]/92 shadow-[0_12px_34px_rgba(15,23,42,0.32)]"
@@ -1910,7 +1886,7 @@ END:VCALENDAR`;
             <div
               ref={mobileCategoryScrollRef}
               {...mobileCategoryDragProps}
-              className={`scrollbar-none flex cursor-grab select-none snap-x snap-proximity gap-1 overflow-x-auto overscroll-x-contain scroll-smooth px-4 touch-pan-x active:cursor-grabbing ${isDayMode ? "bg-transparent" : ""}`}
+              className={`scrollbar-none flex cursor-grab select-none snap-x snap-proximity gap-6 overflow-x-auto overscroll-x-contain scroll-smooth px-4 pb-2 pt-3 pr-10 touch-pan-x active:cursor-grabbing ${isDayMode ? "bg-transparent" : ""}`}
             >
               {mobileCategoryTabs.map((tab) => {
                 const active = (filters.category || null) === tab.value;
@@ -1921,7 +1897,7 @@ END:VCALENDAR`;
                     type="button"
                     aria-pressed={active}
                     onClick={() => handleMobileCategoryChange(tab.value)}
-                    className={`relative inline-flex min-h-10 shrink-0 snap-start items-center justify-center px-2.5 text-xs font-bold transition-colors ${
+                    className={`relative h-12 shrink-0 snap-start px-0.5 text-[16px] font-black transition-colors ${
                       active
                         ? isDayMode
                           ? "text-blue-700"
@@ -1953,41 +1929,44 @@ END:VCALENDAR`;
             isDayMode={isDayMode}
             sortLabel={mobileSortLabel}
             sort={sort}
-            compact
             onSortChange={setSort}
             filterCount={mobileFilterCount}
+            filterButtonLabel="全部学院"
+            filterButtonIcon="users"
+            hideFilterCount
+            showClearAction={false}
           onOpenSort={() => {
             setIsMobileFilterOpen(false);
             setIsMobileSortOpen(true);
           }}
           onOpenFilter={() => {
             setIsMobileSortOpen(false);
-            setIsMobileFilterOpen(true);
+            setIsMobileFilterOpen(false);
+            mobilePartnerWallRef.current?.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
           }}
           onClearFilters={resetMobileFilters}
           clearLabel={t("common.clear_all", "重置")}
         />
         {activeMobileFilterChips.length > 0 && (
-          <div className="mb-4 md:hidden">
+          <div className="mb-3 md:hidden">
             <div className="scrollbar-none flex gap-2 overflow-x-auto pr-3">
               {activeMobileFilterChips.map((chip) => (
-              <button
-                key={chip.key}
-                type="button"
-                onClick={chip.onClear}
-                className={`inline-flex h-9 shrink-0 items-center gap-2 rounded-full border px-4 text-[15px] font-medium ${
-                  chip.clearAll
-                    ? isDayMode
-                      ? "border-transparent bg-transparent px-2 text-blue-700"
-                      : "border-transparent bg-transparent px-2 text-indigo-300"
-                    : isDayMode
+                <button
+                  key={chip.key}
+                  type="button"
+                  onClick={chip.onClear}
+                  className={`inline-flex h-9 shrink-0 items-center gap-2 rounded-full border px-4 text-[15px] font-medium ${
+                    isDayMode
                       ? "border-blue-100 bg-white/92 text-slate-700 shadow-[0_8px_18px_rgba(37,99,235,0.08)]"
                       : "border-white/12 bg-white/[0.035] text-slate-300"
-                }`}
-              >
-                <span>{chip.label}</span>
-                {!chip.clearAll && <X size={15} />}
-              </button>
+                  }`}
+                >
+                  <span>{chip.label}</span>
+                  <X size={15} />
+                </button>
               ))}
             </div>
           </div>
@@ -2000,7 +1979,7 @@ END:VCALENDAR`;
             setIsMobileAssistantOpen(true);
           }}
         />
-        <div className="md:hidden">
+        <div ref={mobilePartnerWallRef} className="scroll-mt-4 md:hidden">
           <OrganizationPartnerWall
             partners={eventOrganizationPartners}
             isDayMode={isDayMode}

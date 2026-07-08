@@ -14,7 +14,7 @@ const MobileEventAssistantLauncher = ({ isDayMode, onOpen }) => {
       transition={{ type: "spring", stiffness: 520, damping: 34 }}
       type="button"
       onClick={onOpen}
-      className={`group mb-4 flex min-h-[118px] w-full flex-wrap items-center gap-3 overflow-hidden rounded-[12px] border px-3.5 py-3 text-left transition-[background-color,border-color,box-shadow] min-[390px]:min-h-[104px] min-[390px]:flex-nowrap md:hidden ${
+      className={`group mb-1 flex min-h-[118px] w-full flex-wrap items-center gap-3 overflow-hidden rounded-[12px] border px-3.5 py-3 text-left transition-[background-color,border-color,box-shadow] min-[390px]:min-h-[104px] min-[390px]:flex-nowrap md:hidden ${
         isDayMode
           ? "border-blue-100/90 bg-[linear-gradient(105deg,#ffffff,#f7fbff_48%,#edf5ff)] text-slate-950 shadow-[0_16px_36px_rgba(37,99,235,0.09)] hover:border-blue-200"
           : "border-indigo-400/45 bg-[radial-gradient(circle_at_12%_50%,rgba(80,120,255,0.38),transparent_28%),linear-gradient(100deg,rgba(32,44,104,0.98),rgba(9,16,42,0.96))] text-white shadow-[0_18px_46px_rgba(20,40,120,0.28)] hover:border-indigo-300/70"

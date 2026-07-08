@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { ChevronDown, Clock, SlidersHorizontal, XCircle } from "lucide-react";
+import { ChevronDown, Clock, SlidersHorizontal, Users, XCircle } from "lucide-react";
 
 const MobileContentToolbar = ({
   isDayMode,
@@ -12,7 +12,10 @@ const MobileContentToolbar = ({
   onClearFilters,
   clearLabel,
   filterButtonLabel,
+  filterButtonIcon,
+  hideFilterCount = false,
   compact = false,
+  showClearAction = true,
 }) => {
   const { t } = useTranslation();
   const resetText = clearLabel || t("common.clear_all", "清空");
@@ -28,9 +31,10 @@ const MobileContentToolbar = ({
     whileTap: { scale: 0.965 },
     transition: { type: "spring", stiffness: 520, damping: 34 },
   };
+  const FilterIcon = filterButtonIcon === "users" ? Users : SlidersHorizontal;
 
   return (
-    <div className={`${compact ? "mb-2" : "mb-3"} grid w-full grid-cols-[1fr_1fr_0.98fr] gap-2 md:hidden`}>
+    <div className={`${compact ? "mb-2" : "mb-3"} grid w-full ${showClearAction ? "grid-cols-[1fr_1fr_0.98fr]" : "grid-cols-2"} gap-2 md:hidden`}>
       <motion.button
         {...motionProps}
         type="button"
@@ -52,9 +56,9 @@ const MobileContentToolbar = ({
         aria-label={filterText}
         title={filterText}
       >
-        <SlidersHorizontal size={17} />
+        <FilterIcon size={17} />
         <span>{filterText}</span>
-        {filterCount > 0 ? (
+        {!hideFilterCount && filterCount > 0 ? (
           <span className={`inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] leading-none text-white ${
             isDayMode ? "bg-blue-600" : "bg-indigo-500"
           }`}>
@@ -63,17 +67,19 @@ const MobileContentToolbar = ({
         ) : null}
       </motion.button>
 
-      <motion.button
-        {...motionProps}
-        type="button"
-        onClick={onClearFilters}
-        className={`inline-flex ${buttonHeightClass} min-w-0 items-center justify-center gap-2 rounded-[8px] border px-2.5 text-[14px] font-semibold transition-[background-color,border-color,box-shadow] ${baseButtonClass}`}
-        aria-label={resetText}
-        title={resetText}
-      >
-        <XCircle size={17} />
-        <span>{resetText}</span>
-      </motion.button>
+      {showClearAction ? (
+        <motion.button
+          {...motionProps}
+          type="button"
+          onClick={onClearFilters}
+          className={`inline-flex ${buttonHeightClass} min-w-0 items-center justify-center gap-2 rounded-[8px] border px-2.5 text-[14px] font-semibold transition-[background-color,border-color,box-shadow] ${baseButtonClass}`}
+          aria-label={resetText}
+          title={resetText}
+        >
+          <XCircle size={17} />
+          <span>{resetText}</span>
+        </motion.button>
+      ) : null}
     </div>
   );
 };
