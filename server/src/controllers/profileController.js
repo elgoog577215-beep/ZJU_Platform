@@ -13,6 +13,7 @@ const normalizeFeedType = (value) => {
 
 const PROFILE_STATUSES = new Set(['active', 'inactive', 'archived']);
 const PROFILE_MEMBER_ROLES = new Set(['owner', 'admin', 'editor']);
+const DIRECTORY_PROFILE_TYPES = new Set(['club', 'school', 'enterprise', 'organization']);
 
 const normalizeHandle = (value) =>
   String(value || '')
@@ -186,15 +187,23 @@ const loadProfileWithAliases = async (db, handle) => {
 const listProfiles = async (req, res, next) => {
   try {
     const db = await getDb();
-    const type = profileService.normalizeProfileType(req.query.type, '');
+    const requestedType = String(req.query.type || '').trim().toLowerCase();
+    const type = profileService.normalizeProfileType(requestedType, '');
     const q = String(req.query.q || req.query.search || '').trim();
     const limit = Math.min(Math.max(toInteger(req.query.limit, 48), 1), 100);
     const clauses = ['p.deleted_at IS NULL', "p.status = 'active'"];
     const params = [];
 
+    if (requestedType && !DIRECTORY_PROFILE_TYPES.has(type)) {
+      return res.json([]);
+    }
+
     if (type) {
       clauses.push('p.type = ?');
       params.push(type);
+    } else {
+      clauses.push(`p.type IN (${Array.from(DIRECTORY_PROFILE_TYPES).map(() => '?').join(',')})`);
+      params.push(...DIRECTORY_PROFILE_TYPES);
     }
     if (q) {
       const term = `%${q.toLowerCase()}%`;

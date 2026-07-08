@@ -3080,10 +3080,10 @@
     }
   },
   "profiles": {
-    "directory_title": "主体目录",
-    "directory_desc": "浏览个人、社团、学校、企业和组织主体主页",
-    "search_placeholder": "搜索主体",
-    "empty": "暂无匹配主体",
+    "directory_title": "组织目录",
+    "directory_desc": "浏览社团、学校、企业和组织主页",
+    "search_placeholder": "搜索组织、社团或学校",
+    "empty": "暂无匹配组织",
     "types": {
       "all": "全部",
       "person": "个人",

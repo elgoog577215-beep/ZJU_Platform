@@ -24,7 +24,6 @@ const ProfileDirectory = () => {
   const profileTypes = useMemo(
     () => [
       { value: "", label: t("profiles.types.all", "全部") },
-      { value: "person", label: t("profiles.types.person", "个人") },
       { value: "club", label: t("profiles.types.club", "社团") },
       { value: "school", label: t("profiles.types.school", "学校") },
       { value: "enterprise", label: t("profiles.types.enterprise", "企业") },
@@ -72,13 +71,13 @@ const ProfileDirectory = () => {
 
   return (
     <div className={`min-h-screen px-4 pb-6 pt-[calc(env(safe-area-inset-top)+76px)] sm:px-6 md:py-8 lg:px-8 ${isDayMode ? "bg-slate-50 text-slate-950" : "bg-[#0d0f14] text-white"}`}>
-      <SEO title={t("profiles.directory_title", "主体目录")} description={t("profiles.directory_desc", "浏览个人、社团、学校、企业和组织主体主页")} />
+      <SEO title={t("profiles.directory_title", "组织目录")} description={t("profiles.directory_desc", "浏览社团、学校、企业和组织主页")} />
       <main className="mx-auto max-w-6xl">
         <div className="mb-4 flex flex-col gap-3 md:mb-6 md:flex-row md:items-end md:justify-between md:gap-4">
           <div>
             <p className={`text-[11px] font-black uppercase tracking-[0.18em] md:text-xs md:tracking-[0.22em] ${isDayMode ? "text-indigo-700" : "text-indigo-300"}`}>Profiles</p>
             <h1 className="mt-1 text-2xl font-black tracking-tight md:mt-2 md:text-3xl">
-              {t("profiles.directory_title", "主体目录")}
+              {t("profiles.directory_title", "组织目录")}
             </h1>
           </div>
           <div className="flex w-full flex-col gap-2 sm:flex-row md:w-auto">
@@ -87,7 +86,7 @@ const ProfileDirectory = () => {
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder={t("profiles.search_placeholder", "搜索主体")}
+                placeholder={t("profiles.search_placeholder", "搜索组织、社团或学校")}
                 className={`min-h-10 w-full rounded-[6px] border py-2 pl-10 pr-3 text-sm outline-none md:min-h-[44px] md:py-2.5 ${isDayMode ? "border-slate-200 bg-white text-slate-950" : "border-white/10 bg-white/5 text-white"}`}
               />
             </div>

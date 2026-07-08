@@ -3042,10 +3042,10 @@
     }
   },
   "profiles": {
-    "directory_title": "Profile Directory",
-    "directory_desc": "Browse personal, club, school, enterprise, and organization profiles.",
-    "search_placeholder": "Search profiles",
-    "empty": "No matching profiles",
+    "directory_title": "Organization Directory",
+    "directory_desc": "Browse club, school, enterprise, and organization profiles.",
+    "search_placeholder": "Search organizations, clubs, or schools",
+    "empty": "No matching organizations",
     "types": {
       "all": "All",
       "person": "Person",
