@@ -118,6 +118,43 @@ const serializePartner = (row) => {
   };
 };
 
+const getPartnerEventTerms = (partner = {}) => normalizeAliasList([
+  ...normalizeAliasList(partner.event_organizer_aliases),
+  partner.name,
+  partner.name_en,
+]);
+
+const loadOrganizerEventCounts = async (db) => {
+  const rows = await db.all(
+    `SELECT TRIM(organizer) AS organizer, COUNT(*) AS count
+     FROM events
+     WHERE deleted_at IS NULL
+       AND status = 'approved'
+       AND organizer IS NOT NULL
+       AND TRIM(organizer) != ''
+     GROUP BY TRIM(organizer)`,
+  );
+  return rows.reduce((counts, row) => {
+    counts.set(row.organizer, toInteger(row.count, 0));
+    return counts;
+  }, new Map());
+};
+
+const attachEventCounts = async (db, partners) => {
+  const organizerCounts = await loadOrganizerEventCounts(db);
+  return partners.map((partner) => {
+    const terms = getPartnerEventTerms(partner);
+    const eventCount = terms.reduce(
+      (total, term) => total + (organizerCounts.get(term) || 0),
+      0,
+    );
+    return {
+      ...partner,
+      event_count: eventCount,
+    };
+  });
+};
+
 const selectPartnerSql = `
   SELECT ep.*, p.handle AS profile_handle, p.type AS profile_type
   FROM ecosystem_partners ep
@@ -259,8 +296,9 @@ const listPublicPartners = async (req, res, next) => {
         ep.sort_order ASC,
         ep.id ASC
     `, params);
+    const partners = await attachEventCounts(db, rows.map(serializePartner));
     res.setHeader('Cache-Control', 'no-store');
-    return res.json(rows.map(serializePartner));
+    return res.json(partners);
   } catch (error) {
     return next(error);
   }

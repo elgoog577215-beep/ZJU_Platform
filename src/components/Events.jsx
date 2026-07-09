@@ -1155,7 +1155,6 @@ const Events = () => {
   const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
   const [isMobileAssistantOpen, setIsMobileAssistantOpen] = useState(false);
   const [isDesktopAssistantOpen, setIsDesktopAssistantOpen] = useState(false);
-  const mobilePartnerWallRef = useRef(null);
   const [viewMode, setViewMode] = useState("cards");
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth < 768 : false,
@@ -1959,7 +1958,7 @@ END:VCALENDAR`;
           </motion.button>
         </div>
 
-        <div ref={mobilePartnerWallRef} className="scroll-mt-4 md:hidden">
+        <div className="scroll-mt-4 md:hidden">
           <OrganizationPartnerWall
             partners={eventOrganizationPartners}
             isDayMode={isDayMode}
@@ -1967,7 +1966,6 @@ END:VCALENDAR`;
             activePartnerId={partnerFilter?.id}
             onApplyPartnerFilter={handleApplyPartnerFilter}
             onClearPartnerFilter={clearPartnerFilter}
-            onOpenEvent={openEventFromList}
           />
         </div>
         {partnerFilter && (
@@ -2043,7 +2041,6 @@ END:VCALENDAR`;
           activePartnerId={partnerFilter?.id}
           onApplyPartnerFilter={handleApplyPartnerFilter}
           onClearPartnerFilter={clearPartnerFilter}
-          onOpenEvent={openEventFromList}
         />
 
         <div className={`${EVENT_CONTENT_WIDTH_CLASS} hidden items-center justify-between gap-4 md:flex`}>
