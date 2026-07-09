@@ -1880,6 +1880,8 @@
       "related": "相关活动",
       "loading_related": "正在加载相关活动...",
       "no_related": "暂未匹配到相关活动",
+      "filter_by_partner": "筛选 {{name}} 的活动",
+      "clear_partner_filter": "清除 {{name}} 筛选",
       "active_filter": "社团：{{name}}"
     },
     "no_upcoming_desc": "暂时没有即将开始的活动，稍后再来看看吧",

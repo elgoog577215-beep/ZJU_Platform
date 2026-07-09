@@ -2071,7 +2071,9 @@ END:VCALENDAR`;
             partners={eventOrganizationPartners}
             isDayMode={isDayMode}
             className="mb-4 text-left"
+            activePartnerId={partnerFilter?.id}
             onApplyPartnerFilter={handleApplyPartnerFilter}
+            onClearPartnerFilter={clearPartnerFilter}
             onOpenEvent={openEventFromList}
           />
         </div>
@@ -2145,7 +2147,9 @@ END:VCALENDAR`;
           partners={eventOrganizationPartners}
           isDayMode={isDayMode}
           className={`${EVENT_FILTER_WIDTH_CLASS} mb-3 hidden text-left md:mb-4 md:block`}
+          activePartnerId={partnerFilter?.id}
           onApplyPartnerFilter={handleApplyPartnerFilter}
+          onClearPartnerFilter={clearPartnerFilter}
           onOpenEvent={openEventFromList}
         />
 

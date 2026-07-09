@@ -57,7 +57,7 @@ const baseEvents = [
   },
 ];
 
-const installEventsMocks = async (page, partners = [partner]) => {
+const installEventsMocks = async (page, partners = [partner], eventRequests = []) => {
   await page.addInitScript(() => {
     localStorage.clear();
     localStorage.setItem("ui_mode_v2", "day");
@@ -88,6 +88,10 @@ const installEventsMocks = async (page, partners = [partner]) => {
 
     if (path === "/events" && request.method() === "GET") {
       const organizerAny = url.searchParams.get("organizer_any");
+      eventRequests.push({
+        organizerAny,
+        url: url.toString(),
+      });
       const terms = organizerAny
         ? organizerAny
             .split(",")
@@ -113,44 +117,66 @@ const installEventsMocks = async (page, partners = [partner]) => {
 };
 
 test.describe("events organization partner wall", () => {
-  test("desktop card opens the organization profile", async ({
+  test("desktop card filters events by organization", async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1366, height: 960 });
-    await installEventsMocks(page);
+    const eventRequests = [];
+    await installEventsMocks(page, [partner], eventRequests);
 
     await page.goto("/events");
 
-    await expect(page.getByTestId("organization-partner-wall")).toBeVisible();
+    const wall = page.locator('[data-testid="organization-partner-wall"]:visible');
+    await expect(wall).toBeVisible();
     await expect(
-      page.getByTestId("organization-partner-card-desktop-901"),
+      wall.getByTestId("organization-partner-card-desktop-901"),
     ).toBeVisible();
     await expect(
-      page.getByTestId("organization-partner-card-mobile-901"),
+      wall.getByTestId("organization-partner-card-mobile-901"),
     ).toBeHidden();
 
-    await page.getByTestId("organization-partner-card-desktop-901").click();
-    await expect(page).toHaveURL(/\/org\/partner-901/);
+    await wall.getByTestId("organization-partner-card-desktop-901").click();
+    await expect
+      .poll(() =>
+        eventRequests.some((item) =>
+          item.organizerAny?.includes("浙江大学学生会"),
+        ),
+      )
+      .toBe(true);
+    await expect(page).toHaveURL(/\/events/);
+    await expect(page.getByTestId("organization-partner-active-filter")).toContainText("浙江大学学生会");
+    await expect(page.getByRole("heading", { name: "学生会专场分享会" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "校园公益行动" })).toHaveCount(0);
   });
 
   test("mobile renders a compact horizontal partner rail", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await installEventsMocks(page);
+    const eventRequests = [];
+    await installEventsMocks(page, [partner], eventRequests);
 
     await page.goto("/events");
 
-    const wall = page.getByTestId("organization-partner-wall");
+    const wall = page.locator('[data-testid="organization-partner-wall"]:visible');
     await expect(wall).toBeVisible();
-    await expect(page.getByTestId("organization-partner-card-mobile-901")).toBeVisible();
+    await expect(wall.getByTestId("organization-partner-card-mobile-901")).toBeVisible();
     await expect(
-      page.getByTestId("organization-partner-card-desktop-901"),
+      wall.getByTestId("organization-partner-card-desktop-901"),
     ).toBeHidden();
 
     const box = await wall.boundingBox();
     expect(box?.height ?? 999).toBeLessThan(190);
 
-    await page.getByTestId("organization-partner-card-mobile-901").click();
-    await expect(page).toHaveURL(/\/org\/partner-901/);
+    await wall.getByTestId("organization-partner-card-mobile-901").click();
+    await expect
+      .poll(() =>
+        eventRequests.some((item) =>
+          item.organizerAny?.includes("浙江大学学生会"),
+        ),
+      )
+      .toBe(true);
+    await expect(page).toHaveURL(/\/events/);
+    await expect(page.getByRole("heading", { name: "学生会专场分享会" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "校园公益行动" })).toHaveCount(0);
   });
 
   test("large partner sets stay capped on page and open searchable directory", async ({
@@ -161,12 +187,13 @@ test.describe("events organization partner wall", () => {
 
     await page.goto("/events");
 
-    await expect(page.getByTestId("organization-partner-wall")).toBeVisible();
+    const wall = page.locator('[data-testid="organization-partner-wall"]:visible');
+    await expect(wall).toBeVisible();
     await expect(
-      page.locator('[data-testid^="organization-partner-card-desktop-"]'),
+      wall.locator('[data-testid^="organization-partner-card-desktop-"]'),
     ).toHaveCount(10);
     await expect(
-      page.getByTestId("organization-partner-card-desktop-914"),
+      wall.getByTestId("organization-partner-card-desktop-914"),
     ).toHaveCount(0);
 
     await page.getByRole("button", { name: "查看全部" }).click();

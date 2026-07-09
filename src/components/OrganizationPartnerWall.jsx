@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Calendar, ExternalLink, Loader2, MoreHorizontal, Search, Users, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import api from "../services/api";
 import { getPartnerLogoSrc, getPartnerProfilePath } from "../data/partnerLogos";
@@ -108,11 +108,12 @@ const OrganizationPartnerWall = ({
   partners = [],
   isDayMode,
   className = "",
+  activePartnerId = null,
   onApplyPartnerFilter,
+  onClearPartnerFilter,
   onOpenEvent,
 }) => {
   const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
   const language = i18n.resolvedLanguage || i18n.language || "zh";
   const [selectedPartner, setSelectedPartner] = useState(null);
   const [directoryOpen, setDirectoryOpen] = useState(false);
@@ -216,33 +217,39 @@ const OrganizationPartnerWall = ({
   const railClass = isDayMode
     ? "border-slate-200/70 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.018),0_10px_22px_rgba(15,23,42,0.03)]"
     : "border-white/[0.105] bg-[linear-gradient(145deg,rgba(8,18,34,0.86),rgba(5,12,24,0.78))] shadow-[0_16px_36px_rgba(0,0,0,0.22)]";
-  const chipClass = isDayMode
-    ? "border-slate-200/80 bg-white text-slate-800 hover:border-slate-300 hover:bg-white"
-    : "border-white/10 bg-white/[0.04] text-slate-100 hover:border-indigo-300/30 hover:bg-white/[0.07]";
   const partnerMotionProps = {
     whileHover: { opacity: 0.92 },
     whileTap: { opacity: 0.72 },
     transition: { type: "spring", stiffness: 520, damping: 34 },
   };
 
-  const applySelectedPartner = () => {
-    if (!selectedPartner || selectedTerms.length === 0) return;
-    onApplyPartnerFilter?.({
-      id: selectedPartner.id,
-      name: selectedName,
-      terms: selectedTerms,
-    });
-    setSelectedPartner(null);
-  };
-  const openPartnerProfile = (partner) => {
-    const profilePath = getPartnerProfilePath(partner);
-    if (profilePath) {
+  const applyPartnerFilter = (partner) => {
+    const terms = getPartnerEventTerms(partner);
+    if (terms.length === 0) return;
+
+    const partnerId = partner?.id ?? null;
+    if (
+      activePartnerId !== null &&
+      String(activePartnerId) === String(partnerId)
+    ) {
+      onClearPartnerFilter?.();
       setDirectoryOpen(false);
       setSelectedPartner(null);
-      navigate(profilePath);
       return;
     }
-    setSelectedPartner(partner);
+
+    onApplyPartnerFilter?.({
+      id: partnerId,
+      name: getLocalizedPartnerName(partner, language),
+      terms,
+    });
+    setDirectoryOpen(false);
+    setSelectedPartner(null);
+  };
+
+  const applySelectedPartner = () => {
+    if (!selectedPartner || selectedTerms.length === 0) return;
+    applyPartnerFilter(selectedPartner);
   };
 
   return (
@@ -287,15 +294,31 @@ const OrganizationPartnerWall = ({
           >
             {mobilePreviewPartners.map((partner) => {
               const name = getLocalizedPartnerName(partner, language);
+              const active = String(activePartnerId ?? "") === String(partner.id ?? "");
               return (
                 <motion.button
                   {...partnerMotionProps}
                   key={partner.id}
                   type="button"
+                  data-drag-scroll-ignore
+                  aria-label={t(
+                    active
+                      ? "events.organizations.clear_partner_filter"
+                      : "events.organizations.filter_by_partner",
+                    active ? "清除 {{name}} 筛选" : "筛选 {{name}} 的活动",
+                    { name },
+                  )}
+                  aria-pressed={active}
                   data-testid={`organization-partner-card-mobile-${partner.id}`}
-                  onClick={() => openPartnerProfile(partner)}
+                  onClick={() => applyPartnerFilter(partner)}
                   className={`flex min-w-[2.7rem] snap-start flex-col items-center gap-0.5 rounded-[4px] px-0.5 py-0.5 text-center md:hidden ${
-                    isDayMode ? "text-slate-800" : "text-slate-100"
+                    active
+                      ? isDayMode
+                        ? "bg-blue-50 text-blue-800"
+                        : "bg-indigo-400/12 text-indigo-100"
+                      : isDayMode
+                        ? "text-slate-800"
+                        : "text-slate-100"
                   }`}
                 >
                   <PartnerLogo partner={partner} name={name} isDayMode={isDayMode} size="mobile" />
@@ -307,6 +330,7 @@ const OrganizationPartnerWall = ({
               <motion.button
                 {...partnerMotionProps}
                 type="button"
+                data-drag-scroll-ignore
                 onClick={() => setDirectoryOpen(true)}
                 className={`flex min-w-[2.7rem] snap-start flex-col items-center gap-0.5 rounded-[4px] px-0.5 py-0.5 text-center text-xs font-semibold md:hidden ${
                   isDayMode ? "text-slate-800" : "text-slate-100"
@@ -323,39 +347,54 @@ const OrganizationPartnerWall = ({
 
             {desktopPreviewPartners.map((partner) => {
               const name = getLocalizedPartnerName(partner, language);
-              const direction = getLocalizedPartnerText(partner, "cooperation_direction", language);
+              const active = String(activePartnerId ?? "") === String(partner.id ?? "");
               return (
                 <button
                   key={partner.id}
                   type="button"
+                  data-drag-scroll-ignore
+                  aria-label={t(
+                    active
+                      ? "events.organizations.clear_partner_filter"
+                      : "events.organizations.filter_by_partner",
+                    active ? "清除 {{name}} 筛选" : "筛选 {{name}} 的活动",
+                    { name },
+                  )}
+                  aria-pressed={active}
                   data-testid={`organization-partner-card-desktop-${partner.id}`}
-                  onClick={() => openPartnerProfile(partner)}
-                  className={`hidden min-w-[10rem] items-center gap-2 rounded-[6px] border px-2.5 py-1.5 text-left transition-colors md:flex ${chipClass}`}
+                  onClick={() => applyPartnerFilter(partner)}
+                  className={`hidden min-w-[4.75rem] flex-col items-center gap-1.5 rounded-[4px] px-1 py-1.5 text-center transition-colors md:flex ${
+                    active
+                      ? isDayMode
+                        ? "bg-blue-50 text-blue-800"
+                        : "bg-indigo-400/12 text-indigo-100"
+                      : isDayMode
+                        ? "text-slate-700 hover:bg-slate-50"
+                        : "text-slate-100 hover:bg-white/[0.06]"
+                  }`}
                 >
-                  <PartnerLogo partner={partner} name={name} isDayMode={isDayMode} size="sm" />
-                  <div className="min-w-0">
-                    <div className={`truncate text-xs font-black leading-4 ${strongClass}`}>{name}</div>
-                    {direction ? (
-                      <div className={`mt-0.5 truncate text-[11px] font-semibold ${isDayMode ? "text-blue-700" : "text-indigo-200"}`}>
-                        {direction}
-                      </div>
-                    ) : null}
-                  </div>
+                  <PartnerLogo partner={partner} name={name} isDayMode={isDayMode} size="mobile" />
+                  <span className={`line-clamp-2 max-w-[5.4rem] text-[11px] font-bold leading-3 ${strongClass}`}>{name}</span>
                 </button>
               );
             })}
             {hasMorePartners ? (
               <button
                 type="button"
+                data-drag-scroll-ignore
                 onClick={() => setDirectoryOpen(true)}
-                className={`hidden min-w-[6.5rem] items-center justify-center gap-2 rounded-[6px] border px-3 py-1.5 text-xs font-black md:flex ${
+                className={`hidden min-w-[4.75rem] flex-col items-center justify-center gap-1.5 rounded-[4px] px-1 py-1.5 text-xs font-black md:flex ${
                   isDayMode
-                    ? "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
-                    : "border-white/10 bg-white/5 text-slate-200 hover:border-white/20"
+                    ? "text-slate-700 hover:bg-slate-50"
+                    : "text-slate-200 hover:bg-white/[0.06]"
                 }`}
               >
-                <Search size={14} />
-                {t("events.organizations.view_directory", "查看全部")}
+                <span className={`inline-flex h-8 w-8 items-center justify-center rounded-full border ${
+                  isDayMode ? "border-slate-200 bg-white text-slate-600" : "border-white/15 bg-white/[0.04] text-slate-200"
+                }`}>
+                  <Search size={15} />
+                </span>
+                <span>{t("events.organizations.view_directory", "查看全部")}</span>
               </button>
             ) : null}
           </div>
@@ -439,15 +478,28 @@ const OrganizationPartnerWall = ({
                               const name = getLocalizedPartnerName(partner, language);
                               const description = getLocalizedPartnerText(partner, "description", language);
                               const direction = getLocalizedPartnerText(partner, "cooperation_direction", language);
+                              const active = String(activePartnerId ?? "") === String(partner.id ?? "");
                               return (
                                 <button
                                   key={partner.id}
                                   type="button"
-                                  onClick={() => openPartnerProfile(partner)}
+                                  aria-label={t(
+                                    active
+                                      ? "events.organizations.clear_partner_filter"
+                                      : "events.organizations.filter_by_partner",
+                                    active ? "清除 {{name}} 筛选" : "筛选 {{name}} 的活动",
+                                    { name },
+                                  )}
+                                  aria-pressed={active}
+                                  onClick={() => applyPartnerFilter(partner)}
                                   className={`rounded-[6px] border p-3 text-left ${
-                                    isDayMode
-                                      ? "border-slate-200 bg-white hover:border-slate-300"
-                                      : "border-white/10 bg-white/[0.04] hover:border-indigo-300/30"
+                                    active
+                                      ? isDayMode
+                                        ? "border-blue-200 bg-blue-50"
+                                        : "border-indigo-300/35 bg-indigo-400/12"
+                                      : isDayMode
+                                        ? "border-slate-200 bg-white hover:border-slate-300"
+                                        : "border-white/10 bg-white/[0.04] hover:border-indigo-300/30"
                                   }`}
                                 >
                                   <div className="flex items-center gap-3">
