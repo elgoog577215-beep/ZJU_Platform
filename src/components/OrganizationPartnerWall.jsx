@@ -135,7 +135,7 @@ const OrganizationPartnerWall = ({
     ? "border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.018),0_10px_22px_rgba(15,23,42,0.03)]"
     : "border-white/[0.105] bg-[rgba(8,18,34,0.78)]";
   const buttonBase =
-    "relative flex w-[4.85rem] shrink-0 flex-col items-center gap-0.5 rounded-[4px] border px-1 py-1 text-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 md:gap-1 md:px-1.5 md:py-1.5";
+    "relative flex w-12 shrink-0 flex-col items-center gap-0.5 rounded-[4px] border px-0.5 py-1 text-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 md:w-[4.85rem] md:gap-1 md:px-1.5 md:py-1.5";
   const getButtonClass = (active) => {
     if (active) {
       return isDayMode
@@ -182,7 +182,7 @@ const OrganizationPartnerWall = ({
         <div
           ref={scrollRef}
           {...dragScrollProps}
-          className="scrollbar-none flex cursor-grab select-none gap-2 overflow-x-auto overscroll-x-contain scroll-smooth px-3 py-2 pr-10 touch-pan-x active:cursor-grabbing"
+          className="scrollbar-none flex cursor-grab select-none gap-1.5 overflow-x-auto overscroll-x-contain scroll-smooth px-3 py-2 pr-10 touch-pan-x active:cursor-grabbing md:gap-2"
           role="group"
           aria-label={t("events.organizations.filter_group", "按社团筛选活动")}
         >
