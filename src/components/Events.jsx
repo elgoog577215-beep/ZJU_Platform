@@ -86,6 +86,17 @@ const EVENT_CONTENT_WIDTH_CLASS =
   "mx-auto w-full max-w-[84rem] xl:mx-0 xl:ml-[max(0px,calc((100vw-84rem-300px-2rem)/2-2rem))] xl:max-w-[min(84rem,calc(100vw-364px))] 2xl:ml-[max(0px,calc((100vw-84rem-400px-2rem)/2-2rem))] 2xl:max-w-[min(84rem,calc(100vw-464px))]";
 const EVENT_FILTER_WIDTH_CLASS =
   "mx-auto w-full max-w-5xl xl:mx-0 xl:ml-[max(0px,calc((100vw-84rem-300px-2rem)/2-2rem))] xl:max-w-[min(84rem,calc(100vw-364px))] 2xl:ml-[max(0px,calc((100vw-84rem-400px-2rem)/2-2rem))] 2xl:max-w-[min(84rem,calc(100vw-464px))]";
+const MOBILE_EVENT_CATEGORY_ICONS = {
+  all: LayoutGrid,
+  [COLLEGE_NOTICE_CATEGORY_VALUE]: FileText,
+  lecture: Calendar,
+  competition: Award,
+  volunteer: Users,
+  recruitment: Building2,
+  culture_sports: Sparkles,
+  exchange: Users,
+  other: Tag,
+};
 
 const getEventTags = (event = {}) =>
   String(event.tags || "")
@@ -1228,7 +1239,7 @@ CollegeNoticeRow.displayName = "CollegeNoticeRow";
 
 const Events = () => {
   const { t, i18n } = useTranslation();
-  const { settings, uiMode, changeUiMode } = useSettings();
+  const { settings, uiMode } = useSettings();
   const { user } = useAuth();
   const { eventOrganizationPartners } = useEcosystemPartners();
   const prefersReducedMotion = useReducedMotion();
@@ -1346,11 +1357,16 @@ const Events = () => {
   } = useHorizontalDragScroll();
   const mobileCategoryTabs = useMemo(
     () => [
-      { value: null, label: t("common.all", "全部") },
-      { value: COLLEGE_NOTICE_CATEGORY_VALUE, label: t("events.college_notice.badge", "学院通知") },
+      { value: null, label: t("common.all", "全部"), icon: MOBILE_EVENT_CATEGORY_ICONS.all },
+      {
+        value: COLLEGE_NOTICE_CATEGORY_VALUE,
+        label: t("events.college_notice.badge", "学院通知"),
+        icon: MOBILE_EVENT_CATEGORY_ICONS[COLLEGE_NOTICE_CATEGORY_VALUE],
+      },
       ...EVENT_CATEGORIES.map((category) => ({
         value: category.value,
         label: getEventCategoryLabel(category.value, eventLanguage),
+        icon: MOBILE_EVENT_CATEGORY_ICONS[category.value] || Tag,
       })),
     ],
     [eventLanguage, t],
@@ -1930,28 +1946,25 @@ END:VCALENDAR`;
         {...pageHeaderMotion}
         className="relative z-40 mb-3 text-center md:mb-9 md:pt-0"
       >
-        <div className="mb-4 grid grid-cols-[48px_minmax(0,1fr)_96px] items-center gap-2 px-0.5 md:hidden">
+        <div className="mb-3 grid grid-cols-[44px_minmax(0,1fr)_88px] items-center gap-2 px-0.5 md:hidden">
           <motion.button
             {...mobileControlMotion}
             type="button"
-            aria-label={isDayMode ? t("nav.night_mode", "夜间模式") : t("nav.day_mode", "日间模式")}
-            title={isDayMode ? t("nav.night_mode", "夜间模式") : t("nav.day_mode", "日间模式")}
-            onClick={() => changeUiMode(isDayMode ? "dark" : "day")}
-            className={`inline-flex h-11 w-11 items-center justify-center rounded-[8px] border transition-[background-color,border-color,box-shadow] ${
+            aria-label={t("nav.more", "更多")}
+            aria-haspopup="dialog"
+            onClick={() => window.dispatchEvent(new Event("open-mobile-more-menu"))}
+            className={`inline-flex h-9 w-9 items-center justify-center rounded-[8px] border transition-[background-color,border-color,box-shadow] ${
               isDayMode
-                ? "border-blue-100 bg-white/95 text-slate-700 shadow-[0_10px_24px_rgba(37,99,235,0.10)]"
-                : "border-white/15 bg-[#07101f]/88 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_12px_28px_rgba(0,0,0,0.22)]"
+                ? "border-blue-100 bg-white/95 text-slate-700 shadow-[0_8px_18px_rgba(37,99,235,0.08)]"
+                : "border-white/10 bg-white/[0.055] text-slate-200"
             }`}
           >
-            <Menu size={23} strokeWidth={2.3} />
+            <Menu size={18} />
           </motion.button>
           <div className="min-w-0 text-center">
-            <h1 className={`text-[1.78rem] font-black leading-8 tracking-tight ${isDayMode ? "text-slate-950 drop-shadow-[0_8px_18px_rgba(37,99,235,0.12)]" : "text-white drop-shadow-[0_0_18px_rgba(255,255,255,0.08)]"}`}>
-              社区活动
+            <h1 className={`truncate text-base font-bold leading-9 tracking-wide ${isDayMode ? "text-slate-800" : "text-white/90"}`}>
+              {t("events.title", "社区活动")}
             </h1>
-            <p className={`mt-0.5 whitespace-nowrap text-[6.5px] font-black uppercase tracking-[0.2em] ${isDayMode ? "text-cyan-700" : "text-cyan-300"}`}>
-              DISCOVER · JOIN · 社区活动
-            </p>
           </div>
           <div className="flex justify-end gap-2">
             <motion.button
@@ -1959,9 +1972,9 @@ END:VCALENDAR`;
               type="button"
               aria-label={t("search.placeholder", "搜索")}
               onClick={() => window.dispatchEvent(new Event("open-search-palette"))}
-              className={`inline-flex h-11 w-11 items-center justify-center rounded-[8px] border transition-[background-color,border-color,box-shadow] ${isDayMode ? "border-blue-100 bg-white/95 text-slate-700 shadow-[0_10px_24px_rgba(37,99,235,0.10)]" : "border-white/15 bg-[#07101f]/88 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_12px_28px_rgba(0,0,0,0.22)]"}`}
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-[8px] border transition-[background-color,border-color,box-shadow] ${isDayMode ? "border-blue-100 bg-white/95 text-slate-700 shadow-[0_8px_18px_rgba(37,99,235,0.08)]" : "border-white/10 bg-white/[0.055] text-slate-200"}`}
             >
-              <Search size={22} />
+              <Search size={18} />
             </motion.button>
             <motion.button
               {...mobileControlMotion}
@@ -1975,9 +1988,9 @@ END:VCALENDAR`;
                 }
                 setIsUploadOpen(true);
               }}
-              className={`inline-flex h-11 w-11 items-center justify-center rounded-[8px] border ${isDayMode ? "border-blue-200 bg-white/95 text-blue-600 shadow-[0_10px_24px_rgba(37,99,235,0.10)]" : "border-transparent bg-indigo-500 text-white shadow-[0_0_24px_rgba(99,102,241,0.54)]"}`}
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-[8px] border ${isDayMode ? "border-blue-200 bg-white/95 text-blue-600 shadow-[0_8px_18px_rgba(37,99,235,0.08)]" : "border-transparent bg-indigo-500 text-white shadow-[0_0_16px_rgba(99,102,241,0.28)]"}`}
             >
-              <Plus size={23} strokeWidth={3} />
+              <Plus size={19} strokeWidth={3} />
             </motion.button>
           </div>
         </div>
@@ -1991,54 +2004,52 @@ END:VCALENDAR`;
           }}
         />
 
-        <div className="md:hidden">
-          <div className={`relative mb-1.5 overflow-hidden rounded-[12px] border shadow-[0_12px_34px_rgba(15,23,42,0.10)] ${
+        <nav
+          aria-label={t("events.category_label", "活动分类")}
+          className={`relative -mx-3 mb-3 border-b md:hidden ${
             isDayMode
-              ? "border-blue-100/90 bg-white/88"
-              : "border-white/[0.075] bg-[#07101d]/76 shadow-[0_16px_36px_rgba(0,0,0,0.24)]"
+              ? "border-slate-200/80"
+              : "border-white/10"
           }`}>
             <div
               ref={mobileCategoryScrollRef}
               {...mobileCategoryDragProps}
-              className="scrollbar-none flex min-h-[36px] cursor-grab select-none snap-x snap-proximity gap-5 overflow-x-auto overscroll-x-contain scroll-smooth px-4 touch-pan-x active:cursor-grabbing"
+              className="scrollbar-none flex cursor-grab select-none snap-x snap-proximity gap-1 overflow-x-auto overscroll-x-contain scroll-smooth px-3 touch-pan-x active:cursor-grabbing"
+              role="tablist"
             >
               {mobileCategoryTabs.map((tab) => {
                 const active = (filters.category || null) === tab.value;
+                const Icon = tab.icon || Tag;
                 return (
                   <motion.button
                     {...mobileTabMotion}
                     key={tab.value || "all"}
                     type="button"
+                    role="tab"
+                    aria-selected={active}
                     aria-pressed={active}
                     onClick={() => handleMobileCategoryChange(tab.value)}
-                    className={`relative inline-flex shrink-0 snap-start items-center justify-center px-0 text-[15px] font-semibold transition-colors ${
+                    className={`inline-flex min-h-10 shrink-0 snap-start items-center justify-center gap-1.5 border-b-2 px-2.5 text-xs font-bold transition-colors ${
                       active
                         ? isDayMode
-                          ? "text-blue-700"
-                          : "text-white"
+                          ? "border-blue-500 bg-blue-50/70 text-blue-700"
+                          : "border-orange-300 bg-orange-400/10 text-orange-200"
                         : isDayMode
-                          ? "text-slate-500"
-                          : "text-slate-400"
+                          ? "border-transparent text-slate-600 hover:bg-slate-50/70 hover:text-blue-700"
+                          : "border-transparent text-gray-300 hover:bg-white/8 hover:text-white"
                     }`}
                   >
+                    <Icon size={14} />
                     {tab.label}
-                    {active ? (
-                      <motion.span
-                        layoutId="events-mobile-category-underline"
-                        className={`absolute inset-x-0 bottom-0 h-1 rounded-full ${isDayMode ? "bg-blue-600" : "bg-indigo-400"}`}
-                        transition={{ type: "spring", stiffness: 520, damping: 38 }}
-                      />
-                    ) : null}
                   </motion.button>
                 );
               })}
             </div>
             <div
               aria-hidden="true"
-              className={`pointer-events-none absolute bottom-0 right-0 top-0 w-12 ${isDayMode ? "bg-gradient-to-l from-white to-transparent" : "bg-gradient-to-l from-[#080f1f] to-transparent"}`}
+              className={`pointer-events-none absolute bottom-0 right-0 top-0 w-12 ${isDayMode ? "bg-gradient-to-l from-[#f8fbff] to-transparent" : "bg-gradient-to-l from-[#030817] to-transparent"}`}
             />
-          </div>
-        </div>
+        </nav>
 
         <div className="mb-2 grid grid-cols-2 gap-2 md:hidden">
           <motion.button

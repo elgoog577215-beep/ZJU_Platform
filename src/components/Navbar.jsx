@@ -92,6 +92,13 @@ const Navbar = ({ miniProgramMode = false }) => {
   useBackClose(isThemeOpen, () => setIsThemeOpen(false));
   useBackClose(isMobileMoreOpen, () => setIsMobileMoreOpen(false));
 
+  useEffect(() => {
+    const openMobileMoreMenu = () => setIsMobileMoreOpen(true);
+    window.addEventListener("open-mobile-more-menu", openMobileMoreMenu);
+    return () =>
+      window.removeEventListener("open-mobile-more-menu", openMobileMoreMenu);
+  }, []);
+
   // Clock
   useEffect(() => {
     if (!weatherWidgetEnabled) {
