@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Calendar,
   MapPin,
+  ArrowLeft,
   ArrowRight,
   LayoutGrid,
   List,
@@ -2890,22 +2891,23 @@ END:VCALENDAR`;
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-[#030817] via-black/20 to-black/45" />
                         <button
+                          type="button"
                           onClick={closeEvent}
-                          aria-label={t("common.close", "关闭")}
-                          className="absolute left-3 top-3 z-20 inline-flex h-9 w-9 items-center justify-center rounded-[6px] bg-black/35 text-white backdrop-blur-md"
+                          aria-label={t("events.assistant.back_to_events", "返回活动列表")}
+                          className="absolute left-3 top-[calc(env(safe-area-inset-top)+0.75rem)] z-20 inline-flex h-9 w-9 items-center justify-center rounded-[6px] bg-black/35 text-white backdrop-blur-md"
                         >
-                          <ArrowRight size={18} className="rotate-180" />
+                          <ArrowLeft size={18} />
                         </button>
                         <button
                           type="button"
                           aria-label={t("common.share", "分享")}
                           data-testid="event-detail-share-mobile"
                           onClick={handleShare}
-                          className="absolute right-3 top-3 z-20 inline-flex h-9 w-9 items-center justify-center rounded-[6px] bg-black/35 text-white backdrop-blur-md"
+                          className="absolute right-3 top-[calc(env(safe-area-inset-top)+0.75rem)] z-20 inline-flex h-9 w-9 items-center justify-center rounded-[6px] bg-black/35 text-white backdrop-blur-md"
                         >
                           <Share2 size={17} />
                         </button>
-                        <span className="absolute left-3 top-14 z-20 rounded-[5px] bg-black/62 px-2 py-1 text-[10px] font-black leading-4 text-white">
+                        <span className="absolute left-3 top-[calc(env(safe-area-inset-top)+3.5rem)] z-20 rounded-[5px] bg-black/62 px-2 py-1 text-[10px] font-black leading-4 text-white">
                           {formatDateTime(selectedEvent.date).split(" ")[0]}
                         </span>
                       </div>
