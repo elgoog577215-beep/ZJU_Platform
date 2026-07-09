@@ -14,10 +14,10 @@ const MobileEventAssistantLauncher = ({ isDayMode, onOpen }) => {
       transition={{ type: "spring", stiffness: 520, damping: 34 }}
       type="button"
       onClick={onOpen}
-      className={`group mb-3 grid min-h-[82px] w-full grid-cols-[84px_minmax(0,1fr)_76px] items-center gap-2 overflow-hidden rounded-[12px] border px-2.5 py-2.5 text-left transition-[background-color,border-color,box-shadow] md:hidden ${
+      className={`group mb-3 grid min-h-[82px] w-full grid-cols-[84px_minmax(0,1fr)_86px] items-center gap-2 overflow-hidden rounded-[12px] border px-2.5 py-2.5 text-left transition-[background-color,border-color,box-shadow] md:hidden ${
         isDayMode
           ? "border-blue-100/90 bg-[linear-gradient(105deg,#ffffff,#f7fbff_48%,#edf5ff)] text-slate-950 shadow-[0_16px_36px_rgba(37,99,235,0.09)] hover:border-blue-200"
-          : "border-indigo-400/28 bg-[linear-gradient(105deg,rgba(20,31,76,0.96),rgba(7,15,33,0.98)_54%,rgba(6,13,28,0.96))] text-white shadow-[0_18px_46px_rgba(20,40,120,0.24)] hover:border-indigo-300/60"
+          : "border-[#172640] bg-[linear-gradient(105deg,rgba(16,29,62,0.94),rgba(6,14,29,0.98)_54%,rgba(5,12,25,0.96))] text-white shadow-[inset_0_0_0_1px_rgba(99,102,241,0.10),0_18px_46px_rgba(0,0,0,0.22)] hover:border-[#243963]"
       }`}
     >
       <span
@@ -47,7 +47,7 @@ const MobileEventAssistantLauncher = ({ isDayMode, onOpen }) => {
           为你发现更适合的活动
         </span>
         <span className="mt-1.5 flex max-w-full gap-1 overflow-hidden">
-          {["兴趣推荐", "智能匹配", "活动答疑", "行程规划"].map((label) => (
+          {["兴趣推荐", "智能匹配", "活动答疑"].map((label) => (
             <span
               key={label}
               className={`inline-flex h-5 shrink-0 items-center rounded-[4px] border px-1.5 text-[10px] font-semibold ${isDayMode ? "border-blue-100 bg-white/80 text-blue-600" : "border-indigo-300/20 bg-indigo-500/16 text-indigo-100"}`}
@@ -58,12 +58,12 @@ const MobileEventAssistantLauncher = ({ isDayMode, onOpen }) => {
         </span>
       </span>
       <span
-        className={`inline-flex h-10 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-[9px] border px-3 text-[14px] font-black leading-none shadow-[0_10px_24px_rgba(37,99,235,0.12)] ${
+        className={`relative inline-flex h-10 shrink-0 items-center justify-center whitespace-nowrap rounded-[9px] border px-3 text-[14px] font-black leading-none shadow-[0_10px_24px_rgba(37,99,235,0.12)] ${
           isDayMode ? "border-blue-200 bg-white text-blue-700" : "border-indigo-300/20 bg-indigo-500 text-white"
         }`}
       >
-        <span>去探索</span>
-        <ChevronRight size={17} className="shrink-0" />
+        <span className="w-full text-center">去探索</span>
+        <ChevronRight size={17} className="absolute right-2.5 top-1/2 -translate-y-1/2" />
       </span>
     </motion.button>
   );

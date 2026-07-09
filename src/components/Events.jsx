@@ -1963,7 +1963,7 @@ END:VCALENDAR`;
             <h1 className={`text-[2.05rem] font-black leading-10 tracking-tight ${isDayMode ? "text-slate-950 drop-shadow-[0_8px_18px_rgba(37,99,235,0.12)]" : "text-white drop-shadow-[0_0_18px_rgba(255,255,255,0.08)]"}`}>
               社区活动
             </h1>
-            <p className={`mt-1 truncate text-[9px] font-black uppercase tracking-[0.54em] ${isDayMode ? "text-cyan-700" : "text-cyan-300"}`}>
+            <p className={`mt-1 whitespace-nowrap text-[7.5px] font-black uppercase tracking-[0.24em] ${isDayMode ? "text-cyan-700" : "text-cyan-300"}`}>
               DISCOVER · JOIN · 社区活动
             </p>
           </div>
