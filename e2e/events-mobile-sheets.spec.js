@@ -11,7 +11,7 @@ const events = [
     end_date: "2026-06-20 21:00",
     location: "Zijingang",
     organizer: "College of Computer Science",
-    target_audience: "全校",
+    target_audience: "计算机科学与技术学院",
     score: "综合素质加分",
     volunteer_time: "",
     category: "lecture",
@@ -28,7 +28,7 @@ const events = [
     end_date: "2026-06-21 12:00",
     location: "Yuquan",
     organizer: "Student Union",
-    target_audience: "全校",
+    target_audience: "文学院",
     score: "",
     volunteer_time: "2h",
     category: "volunteer",
@@ -46,9 +46,16 @@ const setupRoutes = async (page) => {
   await page.route("**/api/events?**", (route) => {
     const url = new URL(route.request().url());
     const category = url.searchParams.get("category");
-    const filteredEvents = category
-      ? events.filter((event) => event.category === category)
-      : events;
+    const targetAudience = url.searchParams.get("target_audience");
+    let filteredEvents = events;
+    if (category) {
+      filteredEvents = filteredEvents.filter((event) => event.category === category);
+    }
+    if (targetAudience) {
+      filteredEvents = filteredEvents.filter(
+        (event) => event.target_audience === targetAudience,
+      );
+    }
 
     route.fulfill({
       json: {
@@ -68,22 +75,29 @@ const setupRoutes = async (page) => {
 };
 
 test.describe("events mobile sheets", () => {
-  test("mobile filter sheet closes after use and restores page interaction", async ({
+  test("mobile college sheet only shows college filtering and restores page interaction", async ({
     page,
   }) => {
     await setupRoutes(page);
     await page.setViewportSize(mobileViewport);
     await page.goto("/events");
 
-    await page.getByRole("button", { name: "筛选" }).click();
-    const filterDialog = page.getByRole("dialog", { name: "筛选活动" });
+    await page.getByRole("button", { name: "打开学院筛选" }).click();
+    const filterDialog = page.getByRole("dialog", { name: "学院范围" });
     await expect(filterDialog).toBeVisible();
     await expect
       .poll(() => page.evaluate(() => document.body.style.overflow))
       .toBe("hidden");
+    await expect(filterDialog.getByText("活动类型")).toHaveCount(0);
+    await expect(
+      filterDialog.getByRole("button", { name: "讲座", exact: true }),
+    ).toHaveCount(0);
 
-    await page.getByRole("button", { name: "讲座", exact: true }).click();
-    await page.getByRole("button", { name: "完成" }).click();
+    await filterDialog.getByLabel("搜索学院或学园").fill("计算机");
+    await filterDialog
+      .getByRole("button", { name: "计算机科学与技术学院" })
+      .click();
+    await filterDialog.getByRole("button", { name: "完成" }).click();
 
     await expect(filterDialog).toHaveCount(0);
     await expect
@@ -91,8 +105,10 @@ test.describe("events mobile sheets", () => {
       .toBe("");
 
     await expect(page.getByText("AI Agent Product Workshop")).toBeVisible();
-    await expect(page.getByRole("button", { name: "筛选" })).toBeVisible();
-    await page.getByRole("button", { name: "筛选" }).click();
+    await expect(page.getByRole("button", { name: "打开学院筛选" })).toContainText(
+      "计算机科学与技术学院",
+    );
+    await page.getByRole("button", { name: "打开学院筛选" }).click();
     await expect(filterDialog).toBeVisible();
     await page.getByRole("button", { name: "关闭" }).click();
     await expect(filterDialog).toHaveCount(0);
@@ -105,8 +121,8 @@ test.describe("events mobile sheets", () => {
     await page.setViewportSize(mobileViewport);
     await page.goto("/events");
 
-    await page.getByRole("button", { name: "筛选" }).click();
-    const filterDialog = page.getByRole("dialog", { name: "筛选活动" });
+    await page.getByRole("button", { name: "打开学院筛选" }).click();
+    const filterDialog = page.getByRole("dialog", { name: "学院范围" });
     await expect(filterDialog).toBeVisible();
     await page.goBack();
     await expect(filterDialog).toHaveCount(0);
