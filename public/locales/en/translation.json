@@ -2001,6 +2001,7 @@
         "feedback_login_required": "Log in to let the assistant remember feedback",
         "feedback_failed": "Failed to save feedback. Please try again later."
       },
+      "ask_ai": "Ask AI",
       "open_assistant": "Open AI Event Assistant"
     },
     "countdown": {

@@ -2003,6 +2003,7 @@
         "feedback_login_required": "登录后可以让助手记住反馈",
         "feedback_failed": "反馈记录失败，请稍后再试"
       },
+      "ask_ai": "问AI",
       "open_assistant": "打开 AI 活动助手"
     },
     "processing": "处理中...",

@@ -1,73 +1,7 @@
 import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, Bot, ChevronRight, Sparkles } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { ArrowLeft } from "lucide-react";
 import EventAssistantPanel from "./EventAssistantPanel";
-
-const MobileEventAssistantLauncher = ({ isDayMode, onOpen }) => {
-  const { t } = useTranslation();
-
-  return (
-    <motion.button
-      whileHover={{ y: -2 }}
-      whileTap={{ scale: 0.975 }}
-      transition={{ type: "spring", stiffness: 520, damping: 34 }}
-      type="button"
-      onClick={onOpen}
-      className={`group mb-2 grid min-h-[72px] w-full grid-cols-[70px_minmax(0,1fr)_80px] items-center gap-2 overflow-hidden rounded-[4px] border px-2 py-2 text-left transition-[background-color,border-color,box-shadow] md:hidden ${
-        isDayMode
-          ? "border-blue-100/90 bg-[linear-gradient(105deg,#ffffff,#f7fbff_48%,#edf5ff)] text-slate-950 shadow-[0_16px_36px_rgba(37,99,235,0.09)] hover:border-blue-200"
-          : "border-[#172640] bg-[linear-gradient(105deg,rgba(16,29,62,0.94),rgba(6,14,29,0.98)_54%,rgba(5,12,25,0.96))] text-white shadow-[inset_0_0_0_1px_rgba(99,102,241,0.10),0_18px_46px_rgba(0,0,0,0.22)] hover:border-[#243963]"
-      }`}
-    >
-      <span
-        className={`relative inline-flex h-[56px] w-[66px] shrink-0 items-end justify-center overflow-hidden rounded-[4px] transition-transform group-hover:scale-[1.02] group-active:scale-95 ${
-          isDayMode
-            ? "bg-blue-50/90 text-blue-600 ring-1 ring-blue-100"
-            : "bg-indigo-500/12 text-indigo-100 ring-1 ring-indigo-300/18"
-        }`}
-      >
-        <span className={isDayMode ? "absolute right-2.5 top-3 text-blue-300" : "absolute right-2.5 top-3 text-indigo-200"}>
-          <Sparkles size={12} />
-        </span>
-        <span className={`absolute bottom-1 left-1.5 h-6 w-12 rounded-[50%] border ${isDayMode ? "border-blue-200/70" : "border-indigo-400/35"}`} />
-        <span className={`mb-1.5 inline-flex h-10 w-10 items-center justify-center rounded-full border shadow-[0_0_24px_rgba(99,102,241,0.3)] ${isDayMode ? "border-blue-100 bg-white" : "border-indigo-300/30 bg-[#111b46]"}`}>
-          <Bot size={23} />
-        </span>
-        <span className={`absolute bottom-1.5 right-1 rounded-[5px] border px-1.5 py-0.5 text-[9px] font-black ${isDayMode ? "border-blue-200 bg-blue-50 text-blue-700" : "border-indigo-300/30 bg-indigo-600/80 text-white"}`}>
-          AI
-        </span>
-      </span>
-      <span className="min-w-0">
-        <span className="flex min-w-0 items-center gap-1 text-[15px] font-black leading-5 tracking-tight">
-          {t("events.assistant.mobile_title", "AI 活动助手")}
-          <Sparkles size={13} className={`shrink-0 ${isDayMode ? "text-blue-400" : "text-cyan-200"}`} />
-        </span>
-        <span className={`mt-0.5 block truncate text-[12px] leading-4 ${isDayMode ? "text-slate-600" : "text-slate-300"}`}>
-          为你发现更适合的活动
-        </span>
-        <span className="mt-1 flex max-w-full gap-1 overflow-hidden">
-          {["兴趣推荐", "智能匹配", "活动答疑"].map((label) => (
-            <span
-              key={label}
-              className={`inline-flex h-[18px] shrink-0 items-center rounded-[4px] border px-1.5 text-[9.5px] font-semibold ${isDayMode ? "border-blue-100 bg-white/80 text-blue-600" : "border-indigo-300/20 bg-indigo-500/16 text-indigo-100"}`}
-            >
-              {label}
-            </span>
-          ))}
-        </span>
-      </span>
-      <span
-        className={`relative inline-flex h-9 shrink-0 items-center justify-center whitespace-nowrap rounded-[4px] border px-3 text-[13px] font-black leading-none shadow-[0_10px_24px_rgba(37,99,235,0.12)] ${
-          isDayMode ? "border-blue-200 bg-white text-blue-700" : "border-indigo-300/20 bg-indigo-500 text-white"
-        }`}
-      >
-        <span className="w-full text-center">去探索</span>
-        <ChevronRight size={15} className="absolute right-2.5 top-1/2 -translate-y-1/2" />
-      </span>
-    </motion.button>
-  );
-};
 
 const MobileEventAssistantFullscreen = ({
   isOpen,
@@ -126,5 +60,4 @@ const MobileEventAssistantFullscreen = ({
   </AnimatePresence>
 );
 
-export { MobileEventAssistantLauncher };
 export default MobileEventAssistantFullscreen;

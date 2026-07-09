@@ -55,9 +55,7 @@ import EventFilterPanel from "./EventFilterPanel";
 import OrganizationPartnerWall from "./OrganizationPartnerWall";
 import SortSelector from "./SortSelector";
 import EventAssistantPanel from "./EventAssistantPanel";
-import MobileEventAssistantFullscreen, {
-  MobileEventAssistantLauncher,
-} from "./MobileEventAssistantFullscreen";
+import MobileEventAssistantFullscreen from "./MobileEventAssistantFullscreen";
 import DOMPurify from "dompurify";
 import SEO from "./SEO";
 import OfficialVerificationBadge from "./OfficialVerificationBadge";
@@ -1927,7 +1925,7 @@ END:VCALENDAR`;
         {...pageHeaderMotion}
         className="relative z-40 mb-3 text-center md:mb-9 md:pt-0"
       >
-        <div className="mb-3 grid grid-cols-[44px_minmax(0,1fr)_88px] items-center gap-2 px-0.5 md:hidden">
+        <div className="mb-3 grid grid-cols-[36px_minmax(5.25rem,1fr)_auto] items-center gap-1.5 px-0.5 md:hidden">
           <motion.button
             {...mobileControlMotion}
             type="button"
@@ -1942,12 +1940,29 @@ END:VCALENDAR`;
           >
             <Menu size={18} />
           </motion.button>
-          <div className="min-w-0 text-center">
+          <div className="min-w-0 text-left">
             <h1 className={`truncate text-base font-bold leading-9 tracking-wide ${isDayMode ? "text-slate-800" : "text-white/90"}`}>
               {t("events.title", "社区活动")}
             </h1>
           </div>
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-1.5">
+            <motion.button
+              {...mobileControlMotion}
+              type="button"
+              aria-label={t("events.assistant.open_assistant", "打开 AI 活动助手")}
+              onClick={() => {
+                setIsMobileFilterOpen(false);
+                setIsMobileSortOpen(false);
+                setIsMobileAssistantOpen(true);
+              }}
+              className={`inline-flex h-9 min-w-[3.15rem] items-center justify-center whitespace-nowrap rounded-[8px] border px-2 text-[12px] font-black transition-[background-color,border-color,box-shadow,transform] ${
+                isDayMode
+                  ? "border-violet-500 bg-violet-600 text-white shadow-[0_8px_18px_rgba(124,58,237,0.18)] hover:bg-violet-700"
+                  : "border-violet-300/30 bg-violet-500 text-white shadow-[0_0_16px_rgba(139,92,246,0.34)] hover:bg-violet-400"
+              }`}
+            >
+              {t("events.assistant.ask_ai", "问AI")}
+            </motion.button>
             <motion.button
               {...mobileControlMotion}
               type="button"
@@ -1975,15 +1990,6 @@ END:VCALENDAR`;
             </motion.button>
           </div>
         </div>
-
-        <MobileEventAssistantLauncher
-          isDayMode={isDayMode}
-          onOpen={() => {
-            setIsMobileFilterOpen(false);
-            setIsMobileSortOpen(false);
-            setIsMobileAssistantOpen(true);
-          }}
-        />
 
         <nav
           aria-label={t("events.category_label", "活动分类")}
