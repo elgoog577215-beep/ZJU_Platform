@@ -65,7 +65,7 @@ const getLocalizedPartnerText = (partner = {}, baseKey, language = "zh") => {
 const PartnerLogo = ({ partner, name, isDayMode, size = "md" }) => {
   const logoSrc = getPartnerLogoSrc(partner, isDayMode);
   const sizeClass =
-    size === "mobile" ? "h-9 w-9" : size === "sm" ? "h-9 w-9" : "h-12 w-12";
+    size === "mobile" ? "h-8 w-8" : size === "sm" ? "h-9 w-9" : "h-12 w-12";
   const roundedClass = size === "mobile" ? "rounded-full" : "rounded-[6px]";
   if (logoSrc) {
     return (
@@ -253,8 +253,8 @@ const OrganizationPartnerWall = ({
         data-testid="organization-partner-wall"
       >
         <div className={`overflow-hidden rounded-[12px] border md:flex md:items-center md:gap-3 md:rounded-none md:border-x-0 md:border-y md:px-0 md:py-2 ${railClass}`}>
-          <div className={`flex items-center justify-between px-4 pb-0 pt-2 md:hidden ${isDayMode ? "border-slate-200/70" : "border-white/10"}`}>
-            <div className={`text-[16px] font-black tracking-tight ${strongClass}`}>合作社团</div>
+          <div className={`flex items-center justify-between px-4 pb-0 pt-1.5 md:hidden ${isDayMode ? "border-slate-200/70" : "border-white/10"}`}>
+            <div className={`text-[15px] font-black tracking-tight ${strongClass}`}>合作社团</div>
             <motion.button
               {...partnerMotionProps}
               type="button"
@@ -265,7 +265,7 @@ const OrganizationPartnerWall = ({
               <ArrowRight size={15} />
             </motion.button>
           </div>
-          <div className="relative flex items-center gap-2 px-3 pb-1.5 pt-1 md:contents">
+          <div className="relative flex items-center gap-2 px-3 pb-1 pt-0.5 md:contents">
           <div className="hidden shrink-0 items-center gap-1.5 pl-1 md:flex md:gap-2 md:pl-3">
             <Users size={13} className={isDayMode ? "text-blue-700" : "text-indigo-200"} />
             <div className="hidden leading-none min-[360px]:block">
@@ -294,12 +294,12 @@ const OrganizationPartnerWall = ({
                   type="button"
                   data-testid={`organization-partner-card-mobile-${partner.id}`}
                   onClick={() => openPartnerProfile(partner)}
-                  className={`flex min-w-[2.85rem] snap-start flex-col items-center gap-0.5 rounded-[8px] px-0.5 py-0.5 text-center md:hidden ${
+                  className={`flex min-w-[2.7rem] snap-start flex-col items-center gap-0.5 rounded-[8px] px-0.5 py-0.5 text-center md:hidden ${
                     isDayMode ? "text-slate-800" : "text-slate-100"
                   }`}
                 >
                   <PartnerLogo partner={partner} name={name} isDayMode={isDayMode} size="mobile" />
-                  <span className={`line-clamp-1 max-w-[4.2rem] text-[10.5px] font-medium leading-4 ${strongClass}`}>{name}</span>
+                  <span className={`line-clamp-1 max-w-[4.2rem] text-[10px] font-medium leading-3 ${strongClass}`}>{name}</span>
                 </motion.button>
               );
             })}
@@ -308,11 +308,11 @@ const OrganizationPartnerWall = ({
                 {...partnerMotionProps}
                 type="button"
                 onClick={() => setDirectoryOpen(true)}
-                className={`flex min-w-[2.85rem] snap-start flex-col items-center gap-0.5 rounded-[8px] px-0.5 py-0.5 text-center text-xs font-semibold md:hidden ${
+                className={`flex min-w-[2.7rem] snap-start flex-col items-center gap-0.5 rounded-[8px] px-0.5 py-0.5 text-center text-xs font-semibold md:hidden ${
                   isDayMode ? "text-slate-800" : "text-slate-100"
                 }`}
               >
-                <span className={`inline-flex h-9 w-9 items-center justify-center rounded-full border ${
+                <span className={`inline-flex h-8 w-8 items-center justify-center rounded-full border ${
                   isDayMode ? "border-slate-200 bg-white text-slate-600" : "border-white/15 bg-white/[0.04] text-slate-200"
                 }`}>
                   <MoreHorizontal size={21} />

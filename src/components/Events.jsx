@@ -1929,7 +1929,7 @@ END:VCALENDAR`;
         };
 
   return (
-    <section className={`day-page-theme day-page-theme-events relative flex-grow overflow-x-hidden px-3 pb-[calc(env(safe-area-inset-bottom)+7.5rem)] pt-[calc(env(safe-area-inset-top)+1rem)] md:px-8 md:pb-20 md:pt-24 ${
+    <section className={`day-page-theme day-page-theme-events relative flex-grow overflow-x-hidden px-3 pb-[calc(env(safe-area-inset-bottom)+7.5rem)] pt-[calc(env(safe-area-inset-top)+0.5rem)] md:px-8 md:pb-20 md:pt-24 ${
       isDayMode
         ? "bg-[linear-gradient(180deg,#f8fbff_0%,#eef6ff_46%,#f8fafc_100%)] md:bg-transparent"
         : "bg-[radial-gradient(circle_at_50%_0%,rgba(28,54,92,0.28),transparent_30%),linear-gradient(180deg,#020915_0%,#03101e_46%,#030817_100%)]"
@@ -1942,28 +1942,28 @@ END:VCALENDAR`;
 
       <motion.div
         {...pageHeaderMotion}
-        className="relative z-40 mb-4 text-center md:mb-9 md:pt-0"
+        className="relative z-40 mb-3 text-center md:mb-9 md:pt-0"
       >
-        <div className="mb-6 grid grid-cols-[56px_minmax(0,1fr)_104px] items-center gap-2 px-0.5 md:hidden">
+        <div className="mb-4 grid grid-cols-[48px_minmax(0,1fr)_96px] items-center gap-2 px-0.5 md:hidden">
           <motion.button
             {...mobileControlMotion}
             type="button"
             aria-label={isDayMode ? t("nav.night_mode", "夜间模式") : t("nav.day_mode", "日间模式")}
             title={isDayMode ? t("nav.night_mode", "夜间模式") : t("nav.day_mode", "日间模式")}
             onClick={() => changeUiMode(isDayMode ? "dark" : "day")}
-            className={`inline-flex h-12 w-12 items-center justify-center rounded-[8px] border transition-[background-color,border-color,box-shadow] ${
+            className={`inline-flex h-11 w-11 items-center justify-center rounded-[8px] border transition-[background-color,border-color,box-shadow] ${
               isDayMode
                 ? "border-blue-100 bg-white/95 text-slate-700 shadow-[0_10px_24px_rgba(37,99,235,0.10)]"
                 : "border-white/15 bg-[#07101f]/88 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_12px_28px_rgba(0,0,0,0.22)]"
             }`}
           >
-            <Menu size={25} strokeWidth={2.3} />
+            <Menu size={23} strokeWidth={2.3} />
           </motion.button>
           <div className="min-w-0 text-center">
-            <h1 className={`text-[2.05rem] font-black leading-10 tracking-tight ${isDayMode ? "text-slate-950 drop-shadow-[0_8px_18px_rgba(37,99,235,0.12)]" : "text-white drop-shadow-[0_0_18px_rgba(255,255,255,0.08)]"}`}>
+            <h1 className={`text-[1.78rem] font-black leading-8 tracking-tight ${isDayMode ? "text-slate-950 drop-shadow-[0_8px_18px_rgba(37,99,235,0.12)]" : "text-white drop-shadow-[0_0_18px_rgba(255,255,255,0.08)]"}`}>
               社区活动
             </h1>
-            <p className={`mt-1 whitespace-nowrap text-[7.5px] font-black uppercase tracking-[0.24em] ${isDayMode ? "text-cyan-700" : "text-cyan-300"}`}>
+            <p className={`mt-0.5 whitespace-nowrap text-[6.5px] font-black uppercase tracking-[0.2em] ${isDayMode ? "text-cyan-700" : "text-cyan-300"}`}>
               DISCOVER · JOIN · 社区活动
             </p>
           </div>
@@ -1973,9 +1973,9 @@ END:VCALENDAR`;
               type="button"
               aria-label={t("search.placeholder", "搜索")}
               onClick={() => window.dispatchEvent(new Event("open-search-palette"))}
-              className={`inline-flex h-12 w-12 items-center justify-center rounded-[8px] border transition-[background-color,border-color,box-shadow] ${isDayMode ? "border-blue-100 bg-white/95 text-slate-700 shadow-[0_10px_24px_rgba(37,99,235,0.10)]" : "border-white/15 bg-[#07101f]/88 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_12px_28px_rgba(0,0,0,0.22)]"}`}
+              className={`inline-flex h-11 w-11 items-center justify-center rounded-[8px] border transition-[background-color,border-color,box-shadow] ${isDayMode ? "border-blue-100 bg-white/95 text-slate-700 shadow-[0_10px_24px_rgba(37,99,235,0.10)]" : "border-white/15 bg-[#07101f]/88 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_12px_28px_rgba(0,0,0,0.22)]"}`}
             >
-              <Search size={24} />
+              <Search size={22} />
             </motion.button>
             <motion.button
               {...mobileControlMotion}
@@ -1989,9 +1989,9 @@ END:VCALENDAR`;
                 }
                 setIsUploadOpen(true);
               }}
-              className={`inline-flex h-12 w-12 items-center justify-center rounded-[8px] border ${isDayMode ? "border-blue-200 bg-white/95 text-blue-600 shadow-[0_10px_24px_rgba(37,99,235,0.10)]" : "border-transparent bg-indigo-500 text-white shadow-[0_0_24px_rgba(99,102,241,0.54)]"}`}
+              className={`inline-flex h-11 w-11 items-center justify-center rounded-[8px] border ${isDayMode ? "border-blue-200 bg-white/95 text-blue-600 shadow-[0_10px_24px_rgba(37,99,235,0.10)]" : "border-transparent bg-indigo-500 text-white shadow-[0_0_24px_rgba(99,102,241,0.54)]"}`}
             >
-              <Plus size={25} strokeWidth={3} />
+              <Plus size={23} strokeWidth={3} />
             </motion.button>
           </div>
         </div>
@@ -2006,7 +2006,7 @@ END:VCALENDAR`;
         />
 
         <div className="md:hidden">
-          <div className={`relative mb-2 overflow-hidden rounded-[12px] border shadow-[0_12px_34px_rgba(15,23,42,0.10)] ${
+          <div className={`relative mb-1.5 overflow-hidden rounded-[12px] border shadow-[0_12px_34px_rgba(15,23,42,0.10)] ${
             isDayMode
               ? "border-blue-100/90 bg-white/88"
               : "border-white/[0.075] bg-[#07101d]/76 shadow-[0_16px_36px_rgba(0,0,0,0.24)]"
@@ -2014,7 +2014,7 @@ END:VCALENDAR`;
             <div
               ref={mobileCategoryScrollRef}
               {...mobileCategoryDragProps}
-              className="scrollbar-none flex min-h-[40px] cursor-grab select-none snap-x snap-proximity gap-5 overflow-x-auto overscroll-x-contain scroll-smooth px-4 touch-pan-x active:cursor-grabbing"
+              className="scrollbar-none flex min-h-[36px] cursor-grab select-none snap-x snap-proximity gap-5 overflow-x-auto overscroll-x-contain scroll-smooth px-4 touch-pan-x active:cursor-grabbing"
             >
               {mobileCategoryTabs.map((tab) => {
                 const active = (filters.category || null) === tab.value;
@@ -2025,7 +2025,7 @@ END:VCALENDAR`;
                     type="button"
                     aria-pressed={active}
                     onClick={() => handleMobileCategoryChange(tab.value)}
-                    className={`relative inline-flex shrink-0 snap-start items-center justify-center px-0 text-[16px] font-semibold transition-colors ${
+                    className={`relative inline-flex shrink-0 snap-start items-center justify-center px-0 text-[15px] font-semibold transition-colors ${
                       active
                         ? isDayMode
                           ? "text-blue-700"
@@ -2054,7 +2054,7 @@ END:VCALENDAR`;
           </div>
         </div>
 
-        <div className="mb-3 grid grid-cols-2 gap-2 md:hidden">
+        <div className="mb-2 grid grid-cols-2 gap-2 md:hidden">
           <motion.button
             {...mobileControlMotion}
             type="button"
@@ -2062,7 +2062,7 @@ END:VCALENDAR`;
               setIsMobileFilterOpen(false);
               setIsMobileSortOpen(true);
             }}
-            className={`inline-flex h-10 items-center justify-center gap-1.5 rounded-[10px] border text-[13px] font-semibold ${isDayMode ? "border-slate-200 bg-white text-slate-700" : "border-white/[0.105] bg-white/[0.045] text-slate-200"}`}
+            className={`inline-flex h-9 items-center justify-center gap-1.5 rounded-[10px] border text-[13px] font-semibold ${isDayMode ? "border-slate-200 bg-white text-slate-700" : "border-white/[0.105] bg-white/[0.045] text-slate-200"}`}
           >
             <Clock size={16} />
             <span className="truncate">{mobileSortLabel}</span>
@@ -2075,7 +2075,7 @@ END:VCALENDAR`;
               setIsMobileSortOpen(false);
               setIsMobileFilterOpen(true);
             }}
-            className={`inline-flex h-10 items-center justify-center gap-1.5 rounded-[10px] border text-[14px] font-semibold ${isDayMode ? "border-slate-200 bg-white text-slate-700" : "border-white/[0.105] bg-white/[0.045] text-slate-200"}`}
+            className={`inline-flex h-9 items-center justify-center gap-1.5 rounded-[10px] border text-[13px] font-semibold ${isDayMode ? "border-slate-200 bg-white text-slate-700" : "border-white/[0.105] bg-white/[0.045] text-slate-200"}`}
           >
             <SlidersHorizontal size={17} />
             全部学院
