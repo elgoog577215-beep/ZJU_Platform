@@ -516,7 +516,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
 
   if (error || !profile) {
     return (
-      <div className={`mx-auto flex min-h-[70vh] max-w-3xl flex-col items-center justify-center px-4 text-center ${
+      <div className={`mx-auto flex min-h-[70vh] max-w-3xl flex-col items-center justify-center px-4 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] text-center md:pb-12 md:pt-28 ${
         isDayMode ? "text-slate-900" : "text-white"
       }`}>
         <Search className={isDayMode ? "text-slate-400" : "text-white/35"} size={48} />
@@ -539,7 +539,7 @@ const ProfilePage = ({ forcedHandle = null }) => {
   }
 
   return (
-    <section className={`min-h-screen px-4 py-8 md:px-8 md:py-12 ${
+    <section className={`min-h-screen px-4 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] md:px-8 md:pb-12 md:pt-28 ${
       isDayMode ? "bg-slate-50 text-slate-950" : "text-white"
     }`}>
       <SEO title={`${displayName} - ${t("profiles.page.title_suffix")}`} description={description} />
