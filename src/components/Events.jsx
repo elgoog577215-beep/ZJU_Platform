@@ -1801,7 +1801,7 @@ END:VCALENDAR`;
         };
 
   return (
-    <section className={`day-page-theme day-page-theme-events relative flex-grow overflow-x-hidden px-3 pb-[calc(env(safe-area-inset-bottom)+7.5rem)] pt-[calc(env(safe-area-inset-top)+0.5rem)] md:px-8 md:pb-20 md:pt-24 ${isDayMode ? "" : "bg-[#030817]"}`}>
+    <section className="day-page-theme day-page-theme-events relative flex-grow overflow-x-hidden px-3 pb-[calc(env(safe-area-inset-bottom)+7.5rem)] pt-[calc(env(safe-area-inset-top)+0.5rem)] md:px-8 md:pb-20 md:pt-24">
       <SEO
         title={t("events.meta_title")}
         description={t("events.meta_desc")}
@@ -1904,7 +1904,7 @@ END:VCALENDAR`;
             </div>
             <div
               aria-hidden="true"
-              className={`pointer-events-none absolute bottom-0 right-0 top-0 w-12 ${isDayMode ? "bg-gradient-to-l from-[#f8fbff] to-transparent" : "bg-gradient-to-l from-[#030817] to-transparent"}`}
+              className="pointer-events-none absolute bottom-0 right-0 top-0 w-12 bg-gradient-to-l from-[var(--theme-bg)] to-transparent"
             />
         </nav>
 
