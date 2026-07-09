@@ -1812,7 +1812,7 @@ END:VCALENDAR`;
         {...pageHeaderMotion}
         className="relative z-40 mb-3 text-center md:mb-9 md:pt-0"
       >
-        <div className="mb-3 grid grid-cols-[36px_minmax(5.25rem,1fr)_auto] items-center gap-1.5 px-0.5 md:hidden">
+        <div className="mb-3 grid grid-cols-[88px_minmax(0,1fr)_88px] items-center gap-2 px-0.5 md:hidden">
           <motion.button
             {...mobileControlMotion}
             type="button"
@@ -1827,29 +1827,12 @@ END:VCALENDAR`;
           >
             <Menu size={18} />
           </motion.button>
-          <div className="min-w-0 text-left">
+          <div className="min-w-0 text-center">
             <h1 className={`truncate text-base font-bold leading-9 tracking-wide ${isDayMode ? "text-slate-800" : "text-white/90"}`}>
               {t("events.title", "社区活动")}
             </h1>
           </div>
           <div className="flex justify-end gap-1.5">
-            <motion.button
-              {...mobileControlMotion}
-              type="button"
-              aria-label={t("events.assistant.open_assistant", "打开 AI 活动助手")}
-              onClick={() => {
-                setIsMobileFilterOpen(false);
-                setIsMobileSortOpen(false);
-                setIsMobileAssistantOpen(true);
-              }}
-              className={`inline-flex h-9 min-w-[3.15rem] items-center justify-center whitespace-nowrap rounded-[8px] border px-2 text-[12px] font-black transition-[background-color,border-color,box-shadow,transform] ${
-                isDayMode
-                  ? "border-violet-500 bg-violet-600 text-white shadow-[0_8px_18px_rgba(124,58,237,0.18)] hover:bg-violet-700"
-                  : "border-violet-300/30 bg-violet-500 text-white shadow-[0_0_16px_rgba(139,92,246,0.34)] hover:bg-violet-400"
-              }`}
-            >
-              {t("events.assistant.ask_ai", "问AI")}
-            </motion.button>
             <motion.button
               {...mobileControlMotion}
               type="button"
@@ -1925,7 +1908,7 @@ END:VCALENDAR`;
             />
         </nav>
 
-        <div className="mb-2 grid grid-cols-2 gap-2 md:hidden">
+        <div className="mb-2 grid grid-cols-[minmax(0,1fr)_5.5rem_minmax(0,1fr)] gap-2 md:hidden">
           <motion.button
             {...mobileControlMotion}
             type="button"
@@ -1938,6 +1921,28 @@ END:VCALENDAR`;
             <Clock size={16} />
             <span className="truncate">{mobileSortLabel}</span>
             <ChevronDown size={15} />
+          </motion.button>
+          <motion.button
+            {...mobileControlMotion}
+            type="button"
+            aria-label={t("events.assistant.open_assistant", "打开 AI 活动助手")}
+            onClick={() => {
+              setIsMobileFilterOpen(false);
+              setIsMobileSortOpen(false);
+              setIsMobileAssistantOpen(true);
+            }}
+            className={`relative inline-flex h-9 min-w-0 items-center justify-center gap-1.5 overflow-hidden rounded-[4px] border px-2 text-[12px] font-black transition-[background-color,border-color,box-shadow,transform] ${
+              isDayMode
+                ? "border-cyan-200 bg-[linear-gradient(180deg,#ffffff,#eefbff)] text-cyan-800 shadow-[0_8px_18px_rgba(8,145,178,0.10)] hover:border-cyan-300"
+                : "border-cyan-300/24 bg-[linear-gradient(180deg,rgba(21,38,52,0.82),rgba(7,16,29,0.94))] text-cyan-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_18px_rgba(34,211,238,0.10)] hover:border-cyan-200/36 hover:bg-[linear-gradient(180deg,rgba(26,49,67,0.88),rgba(8,20,34,0.96))]"
+            }`}
+          >
+            <span
+              aria-hidden="true"
+              className={`pointer-events-none absolute inset-x-2 top-0 h-px ${isDayMode ? "bg-cyan-200/80" : "bg-cyan-100/28"}`}
+            />
+            <Sparkles size={14} className={isDayMode ? "shrink-0 text-cyan-600" : "shrink-0 text-cyan-200"} />
+            <span className="truncate">{t("events.assistant.ask_ai", "问AI")}</span>
           </motion.button>
           <motion.button
             {...mobileControlMotion}
