@@ -439,6 +439,8 @@ const listPosts = async (req, res, next) => {
     const requestedAuthorId = req.query.author_id || req.query.uploader_id;
     const authorId = requestedAuthorId ? parseInt(requestedAuthorId, 10) : null;
     const materialCourse = sanitizeShortText(req.query.material_course, 80);
+    const rawMaterialType = String(req.query.material_type || '').trim().toLowerCase();
+    const materialType = section === 'materials' && MATERIAL_TYPES.has(rawMaterialType) ? rawMaterialType : null;
     const q = String(req.query.search || '').trim();
     const sort = String(req.query.sort || 'newest');
     const viewer = viewerFromReq(req);
@@ -488,6 +490,11 @@ const listPosts = async (req, res, next) => {
     if (section === 'materials' && materialCourse) {
       whereClauses.push('material_course = ?');
       whereParams.push(materialCourse);
+    }
+
+    if (section === 'materials' && materialType) {
+      whereClauses.push('material_type = ?');
+      whereParams.push(materialType);
     }
 
     if (q.length >= 2) {
@@ -572,6 +579,33 @@ const listMaterialCourses = async (req, res, next) => {
         latest_post_title: row.latest_post_title || null,
       })),
     });
+  } catch (error) { next(error); }
+};
+
+const listMaterialTypes = async (req, res, next) => {
+  try {
+    const db = await getDb();
+    const rows = await db.all(
+      `
+      SELECT
+        COALESCE(NULLIF(TRIM(material_type), ''), 'other') AS type,
+        COUNT(*) AS count,
+        MAX(COALESCE(updated_at, created_at)) AS latest_at
+      FROM community_posts
+      WHERE section = 'materials'
+        AND status = 'approved'
+      GROUP BY COALESCE(NULLIF(TRIM(material_type), ''), 'other')
+      ORDER BY count DESC, latest_at DESC
+      `
+    );
+
+    const counts = new Map(rows.map((row) => [normalizeMaterialType(row.type) || 'other', row.count || 0]));
+    const data = Array.from(MATERIAL_TYPES).map((type) => ({
+      type,
+      count: counts.get(type) || 0,
+    }));
+
+    res.json({ data });
   } catch (error) { next(error); }
 };
 
@@ -1610,6 +1644,7 @@ module.exports = {
   importPostDocument,
   listPosts,
   listMaterialCourses,
+  listMaterialTypes,
   getPost,
   createPost,
   updatePost,

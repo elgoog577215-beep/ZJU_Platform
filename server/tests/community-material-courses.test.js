@@ -70,9 +70,57 @@ test.before(async () => {
     CREATE TABLE users (
       id INTEGER PRIMARY KEY,
       username TEXT,
-      nickname TEXT,
       avatar TEXT,
-      role TEXT
+      organization_cr TEXT,
+      nickname TEXT,
+      role TEXT,
+      review_permission TEXT
+    );
+
+    CREATE TABLE profiles (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      type TEXT NOT NULL,
+      handle TEXT UNIQUE NOT NULL,
+      display_name TEXT NOT NULL,
+      display_name_en TEXT,
+      avatar_url TEXT,
+      logo_url TEXT,
+      cover_url TEXT,
+      bio TEXT,
+      description TEXT,
+      description_en TEXT,
+      cooperation_direction TEXT,
+      cooperation_direction_en TEXT,
+      link_url TEXT,
+      verified INTEGER DEFAULT 0,
+      status TEXT DEFAULT 'active',
+      owner_user_id INTEGER,
+      source_type TEXT,
+      source_id INTEGER,
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now')),
+      deleted_at DATETIME
+    );
+
+    CREATE TABLE profile_members (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      profile_id INTEGER NOT NULL,
+      user_id INTEGER NOT NULL,
+      role TEXT DEFAULT 'editor',
+      status TEXT DEFAULT 'active',
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now')),
+      UNIQUE(profile_id, user_id)
+    );
+
+    CREATE TABLE profile_aliases (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      profile_id INTEGER NOT NULL,
+      alias TEXT NOT NULL,
+      normalized_alias TEXT NOT NULL,
+      purpose TEXT DEFAULT 'search',
+      created_at TEXT DEFAULT (datetime('now')),
+      UNIQUE(profile_id, normalized_alias, purpose)
     );
 
     CREATE TABLE community_posts (
@@ -122,8 +170,8 @@ test.after(async () => {
 
 test.beforeEach(async () => {
   const db = await getDb();
-  await db.exec('DELETE FROM community_posts; DELETE FROM users;');
-  await db.run('INSERT INTO users (id, username, nickname, role) VALUES (1, "alice", "Alice", "admin")');
+  await db.exec('DELETE FROM community_posts; DELETE FROM profile_aliases; DELETE FROM profile_members; DELETE FROM profiles; DELETE FROM users;');
+  await db.run('INSERT INTO users (id, username, nickname, role, review_permission) VALUES (1, "alice", "Alice", "admin", "admin")');
 });
 
 test('listMaterialCourses returns reusable course labels from approved material posts only', async () => {
@@ -164,4 +212,117 @@ test('listPosts filters final materials by one exact course label', async () => 
   assert.equal(res.body.pagination.total, 1);
   assert.deepEqual(res.body.data.map((item) => item.title), ['大学物理复习提纲']);
   assert.equal(res.body.data[0].material_course, '大学物理');
+});
+
+test('listMaterialTypes returns resource columns and listPosts filters by material type', async () => {
+  const db = await getDb();
+  await insertMaterialPost(db, { material_course: '大学物理', title: '大学物理往年题', material_type: 'exam' });
+  await insertMaterialPost(db, { material_course: '大学物理', title: '大学物理复习提纲', material_type: 'outline' });
+  await insertMaterialPost(db, { material_course: '微积分', title: '微积分课堂笔记', material_type: 'notes' });
+  await insertMaterialPost(db, { material_course: '线性代数', title: '待审核题解', material_type: 'solution', status: 'pending' });
+
+  const types = await invoke(communityController.listMaterialTypes, {
+    query: {},
+    user: null,
+  });
+
+  assert.equal(types.statusCode, 200);
+  const typeCounts = Object.fromEntries(types.body.data.map((item) => [item.type, item.count]));
+  assert.equal(typeCounts.exam, 1);
+  assert.equal(typeCounts.outline, 1);
+  assert.equal(typeCounts.notes, 1);
+  assert.equal(typeCounts.solution, 0);
+
+  const res = await invoke(communityController.listPosts, {
+    query: {
+      section: 'materials',
+      material_type: 'exam',
+      page: '1',
+      limit: '20',
+    },
+    user: null,
+  });
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.pagination.total, 1);
+  assert.deepEqual(res.body.data.map((item) => item.title), ['大学物理往年题']);
+  assert.equal(res.body.data[0].material_type, 'exam');
+});
+
+test('material upload review flow keeps pending hidden until admin approval', async () => {
+  const db = await getDb();
+  await db.run(
+    'INSERT INTO users (id, username, nickname, role, review_permission) VALUES (2, "bob", "Bob", "user", "normal")',
+  );
+
+  const contentBlocks = JSON.stringify([
+    { id: 'b1', type: 'text', style: 'heading', text: '创新思维复习提纲' },
+    { id: 'b2', type: 'text', style: 'paragraph', text: '课堂案例、作业重点与期末复习提示。' },
+  ]);
+
+  const created = await invoke(communityController.createPost, {
+    user: { id: 2, role: 'user' },
+    body: {
+      section: 'materials',
+      title: '创新思维复习资料',
+      content: '创新思维复习提纲\n\n课堂案例、作业重点与期末复习提示。',
+      content_blocks: contentBlocks,
+      tags: '创新思维,复习',
+      status: 'pending',
+      post_status: 'published',
+      material_course: '创新思维与创新设计',
+      material_teacher: '王老师',
+      material_semester: '2026 春夏',
+      material_type: 'notes',
+    },
+  });
+
+  assert.equal(created.statusCode, 201);
+  assert.equal(created.body.section, 'materials');
+  assert.equal(created.body.status, 'published');
+  assert.equal(created.body.workflow_status, 'pending');
+  assert.equal(created.body.review_status, 'pending');
+  assert.equal(created.body.material_course, '创新思维与创新设计');
+  assert.equal(created.body.content_blocks, contentBlocks);
+
+  const hiddenBeforeApproval = await invoke(communityController.listPosts, {
+    query: { section: 'materials', page: '1', limit: '20' },
+    user: null,
+  });
+  assert.equal(hiddenBeforeApproval.statusCode, 200);
+  assert.equal(hiddenBeforeApproval.body.pagination.total, 0);
+
+  const pendingForAdmin = await invoke(communityController.listPosts, {
+    query: { section: 'materials', workflow_status: 'pending', page: '1', limit: '20' },
+    user: { id: 1, role: 'admin' },
+  });
+  assert.equal(pendingForAdmin.statusCode, 200);
+  assert.equal(pendingForAdmin.body.pagination.total, 1);
+  assert.equal(pendingForAdmin.body.data[0].id, created.body.id);
+
+  const reviewed = await invoke(communityController.reviewPost, {
+    params: { id: created.body.id },
+    body: { action: 'approve' },
+    user: { id: 1, role: 'admin' },
+  });
+  assert.equal(reviewed.statusCode, 200);
+  assert.equal(reviewed.body.status, 'published');
+  assert.equal(reviewed.body.workflow_status, 'approved');
+  assert.equal(reviewed.body.review_status, 'approved');
+  assert.equal(reviewed.body.rejection_reason, null);
+
+  const visibleAfterApproval = await invoke(communityController.listPosts, {
+    query: { section: 'materials', material_course: '创新思维与创新设计', page: '1', limit: '20' },
+    user: null,
+  });
+  assert.equal(visibleAfterApproval.statusCode, 200);
+  assert.equal(visibleAfterApproval.body.pagination.total, 1);
+  assert.equal(visibleAfterApproval.body.data[0].title, '创新思维复习资料');
+  assert.equal(visibleAfterApproval.body.data[0].content_blocks, contentBlocks);
+
+  const courses = await invoke(communityController.listMaterialCourses, {
+    query: { search: '创新思维', limit: '20' },
+    user: null,
+  });
+  assert.deepEqual(courses.body.data.map((item) => item.name), ['创新思维与创新设计']);
 });

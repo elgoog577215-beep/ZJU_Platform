@@ -98,7 +98,7 @@ const PostCard = memo(({ post, index, onClick, canAnimate, isDayMode }) => {
             {materialMeta.map((item, metaIndex) => (
               <span
                 key={`${item}-${metaIndex}`}
-                className={`inline-flex max-w-full items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-semibold ${isDayMode ? 'border-emerald-100 bg-emerald-50 text-emerald-700' : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200'}`}
+                className={`inline-flex max-w-full items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-semibold ${isDayMode ? 'border-slate-200 bg-slate-50 text-slate-600' : 'border-white/10 bg-white/[0.05] text-gray-300'}`}
               >
                 <BookOpen size={11} />
                 <span className="truncate">{item}</span>
