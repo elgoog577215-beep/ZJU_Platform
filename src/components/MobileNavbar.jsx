@@ -99,7 +99,7 @@ const MobileNavbar = () => {
       variants={tabbarEntrance}
       initial={prefersReducedMotion ? false : "initial"}
       animate={prefersReducedMotion ? undefined : "animate"}
-      className={`motion-gpu fixed inset-x-0 bottom-0 z-[80] border-t backdrop-blur-xl md:hidden ${isDayMode ? "border-slate-900/[0.08] bg-white/90 shadow-[0_-10px_24px_rgba(31,45,61,0.045)]" : "border-white/[0.075] bg-[#07101b]/94 shadow-[0_-14px_30px_rgba(0,0,0,0.32)]"}`}
+      className={`motion-gpu fixed inset-x-0 bottom-0 z-[80] border-t md:hidden ${isDayMode ? "border-slate-900/[0.08] bg-white shadow-[0_-10px_24px_rgba(31,45,61,0.045)]" : "border-white/[0.075] bg-[#07101b] shadow-[0_-14px_30px_rgba(0,0,0,0.32)]"}`}
       aria-label={t("nav.mobile_tabbar")}
     >
       <div className="pb-[env(safe-area-inset-bottom)]">
