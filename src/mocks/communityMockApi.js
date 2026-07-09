@@ -66,6 +66,156 @@ const mockStore = {
       excerpt: '本文给出完整训练配置、数据配比策略与评估脚本。',
     },
     {
+      id: 9021,
+      section: 'materials',
+      title: '微积分 I 往年题与考点索引',
+      content: '整理 2023-2025 年微积分 I 期末题型、常见考点和对应复习章节。',
+      tags: ['微积分', '往年题', '复习'],
+      status: 'published',
+      author_id: 1,
+      author_name: '种子管理员',
+      author_avatar: null,
+      likes_count: 18,
+      comments_count: 2,
+      views_count: 312,
+      created_at: '2026-04-13 09:00:00',
+      updated_at: '2026-04-13 09:00:00',
+      solved_comment_id: null,
+      is_pinned: true,
+      pin_weight: 5,
+      last_replied_at: '2026-04-13 10:20:00',
+      excerpt: '整理 2023-2025 年微积分 I 期末题型、常见考点和对应复习章节。',
+      material_course: '微积分 I',
+      material_teacher: '数学公共课组',
+      material_semester: '2025-2026 秋冬',
+      material_type: 'exam',
+    },
+    {
+      id: 9022,
+      section: 'materials',
+      title: '大学物理复习提纲：力学与电磁学',
+      content: '按课堂章节拆分公式、易错点和实验题复习顺序。',
+      tags: ['大学物理', '复习提纲'],
+      status: 'published',
+      author_id: 2,
+      author_name: '演示用户',
+      author_avatar: null,
+      likes_count: 11,
+      comments_count: 1,
+      views_count: 198,
+      created_at: '2026-04-12 15:00:00',
+      updated_at: '2026-04-12 15:00:00',
+      solved_comment_id: null,
+      is_pinned: false,
+      pin_weight: 0,
+      last_replied_at: null,
+      excerpt: '按课堂章节拆分公式、易错点和实验题复习顺序。',
+      material_course: '大学物理',
+      material_teacher: '王老师',
+      material_semester: '2025-2026 春夏',
+      material_type: 'outline',
+    },
+    {
+      id: 9023,
+      section: 'materials',
+      title: '人工智能导论课件摘要',
+      content: '把搜索、概率图模型、神经网络三部分课件压缩成考前速览。',
+      tags: ['AI导论', '课件摘要'],
+      status: 'published',
+      author_id: 1,
+      author_name: '种子管理员',
+      author_avatar: null,
+      likes_count: 15,
+      comments_count: 0,
+      views_count: 226,
+      created_at: '2026-04-12 13:00:00',
+      updated_at: '2026-04-12 13:00:00',
+      solved_comment_id: null,
+      is_pinned: false,
+      pin_weight: 0,
+      last_replied_at: null,
+      excerpt: '把搜索、概率图模型、神经网络三部分课件压缩成考前速览。',
+      material_course: '人工智能导论',
+      material_teacher: '陈老师',
+      material_semester: '2025-2026 春夏',
+      material_type: 'slides',
+    },
+    {
+      id: 9024,
+      section: 'materials',
+      title: '机器学习课程笔记：优化与泛化',
+      content: '补齐 SGD、正则化、交叉验证和模型选择的课堂笔记。',
+      tags: ['机器学习', '笔记'],
+      status: 'published',
+      author_id: 2,
+      author_name: '演示用户',
+      author_avatar: null,
+      likes_count: 8,
+      comments_count: 1,
+      views_count: 174,
+      created_at: '2026-04-11 16:00:00',
+      updated_at: '2026-04-11 16:00:00',
+      solved_comment_id: null,
+      is_pinned: false,
+      pin_weight: 0,
+      last_replied_at: '2026-04-11 17:30:00',
+      excerpt: '补齐 SGD、正则化、交叉验证和模型选择的课堂笔记。',
+      material_course: '机器学习',
+      material_teacher: '李老师',
+      material_semester: '2025-2026 秋冬',
+      material_type: 'notes',
+    },
+    {
+      id: 9025,
+      section: 'materials',
+      title: '线性代数作业题解整理',
+      content: '矩阵分解、特征值和二次型部分的作业题解与常见错因。',
+      tags: ['线性代数', '题解'],
+      status: 'published',
+      author_id: 1,
+      author_name: '种子管理员',
+      author_avatar: null,
+      likes_count: 10,
+      comments_count: 0,
+      views_count: 143,
+      created_at: '2026-04-10 16:00:00',
+      updated_at: '2026-04-10 16:00:00',
+      solved_comment_id: null,
+      is_pinned: false,
+      pin_weight: 0,
+      last_replied_at: null,
+      excerpt: '矩阵分解、特征值和二次型部分的作业题解与常见错因。',
+      material_course: '线性代数',
+      material_teacher: '数学公共课组',
+      material_semester: '2025-2026 秋冬',
+      material_type: 'solution',
+    },
+    {
+      id: 9026,
+      section: 'materials',
+      title: 'AI 学习工具与资料链接合集',
+      content: '收集课程外常用论文检索、代码实验和 prompt 练习资料。',
+      tags: ['AI学习', '工具', '链接'],
+      status: 'published',
+      author_id: 2,
+      author_name: '演示用户',
+      author_avatar: null,
+      likes_count: 7,
+      comments_count: 0,
+      views_count: 132,
+      created_at: '2026-04-09 16:00:00',
+      updated_at: '2026-04-09 16:00:00',
+      solved_comment_id: null,
+      is_pinned: false,
+      pin_weight: 0,
+      last_replied_at: null,
+      excerpt: '收集课程外常用论文检索、代码实验和 prompt 练习资料。',
+      material_course: 'AI 自学',
+      material_teacher: '',
+      material_semester: '长期更新',
+      material_type: 'other',
+    },
+    {
       id: 9003,
       section: 'help',
       title: '求助：向量库检索结果重复且无关',
@@ -462,17 +612,61 @@ const resolveGet = (url, config) => {
   if (path === '/community/posts') {
     const section = String(params.section || '').trim();
     const status = String(params.status || 'all').trim();
+    const materialCourse = String(params.material_course || '').trim();
+    const materialType = String(params.material_type || '').trim();
     const tags = String(params.tags || '').split(',').map((s) => s.trim()).filter(Boolean);
     const sort = String(params.sort || 'newest').trim();
     let rows = mockStore.posts.filter((post) => (!section || post.section === section));
     if (section === 'help' && status !== 'all') {
       rows = rows.filter((post) => post.status === status);
     }
+    if (section === 'materials' && materialCourse) {
+      rows = rows.filter((post) => post.material_course === materialCourse);
+    }
+    if (section === 'materials' && materialType) {
+      rows = rows.filter((post) => post.material_type === materialType);
+    }
     if (tags.length) {
       rows = rows.filter((post) => tags.every((t) => (post.tags || []).includes(t)));
     }
     rows = applySort(rows, sort);
     return toResponse(paginate(rows, params.page, params.limit));
+  }
+
+  if (path === '/community/material-courses') {
+    const q = String(params.search || '').trim();
+    const limit = Math.max(Number(params.limit) || 24, 1);
+    const grouped = new Map();
+    mockStore.posts
+      .filter((post) => post.section === 'materials' && post.status === 'published' && post.material_course)
+      .filter((post) => !q || String(post.material_course).includes(q))
+      .forEach((post) => {
+        const name = String(post.material_course || '').trim();
+        const current = grouped.get(name) || { name, count: 0, latest_at: null, latest_post_title: '' };
+        current.count += 1;
+        if (!current.latest_at || new Date(post.updated_at || post.created_at) > new Date(current.latest_at)) {
+          current.latest_at = post.updated_at || post.created_at;
+          current.latest_post_title = post.title;
+        }
+        grouped.set(name, current);
+      });
+    const data = [...grouped.values()]
+      .sort((a, b) => (b.count - a.count) || new Date(b.latest_at) - new Date(a.latest_at) || a.name.localeCompare(b.name))
+      .slice(0, limit);
+    return toResponse({ data });
+  }
+
+  if (path === '/community/material-types') {
+    const types = ['exam', 'outline', 'slides', 'notes', 'solution', 'other'];
+    const data = types.map((type) => ({
+      type,
+      count: mockStore.posts.filter((post) => (
+        post.section === 'materials'
+        && post.status === 'published'
+        && (post.material_type || 'other') === type
+      )).length,
+    }));
+    return toResponse({ data });
   }
 
   const postDetail = path.match(/^\/community\/posts\/(\d+)$/);

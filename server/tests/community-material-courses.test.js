@@ -214,6 +214,41 @@ test('listPosts filters final materials by one exact course label', async () => 
   assert.equal(res.body.data[0].material_course, '大学物理');
 });
 
+test('listMaterialTypes returns resource columns and listPosts filters by material type', async () => {
+  const db = await getDb();
+  await insertMaterialPost(db, { material_course: '大学物理', title: '大学物理往年题', material_type: 'exam' });
+  await insertMaterialPost(db, { material_course: '大学物理', title: '大学物理复习提纲', material_type: 'outline' });
+  await insertMaterialPost(db, { material_course: '微积分', title: '微积分课堂笔记', material_type: 'notes' });
+  await insertMaterialPost(db, { material_course: '线性代数', title: '待审核题解', material_type: 'solution', status: 'pending' });
+
+  const types = await invoke(communityController.listMaterialTypes, {
+    query: {},
+    user: null,
+  });
+
+  assert.equal(types.statusCode, 200);
+  const typeCounts = Object.fromEntries(types.body.data.map((item) => [item.type, item.count]));
+  assert.equal(typeCounts.exam, 1);
+  assert.equal(typeCounts.outline, 1);
+  assert.equal(typeCounts.notes, 1);
+  assert.equal(typeCounts.solution, 0);
+
+  const res = await invoke(communityController.listPosts, {
+    query: {
+      section: 'materials',
+      material_type: 'exam',
+      page: '1',
+      limit: '20',
+    },
+    user: null,
+  });
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.pagination.total, 1);
+  assert.deepEqual(res.body.data.map((item) => item.title), ['大学物理往年题']);
+  assert.equal(res.body.data[0].material_type, 'exam');
+});
+
 test('material upload review flow keeps pending hidden until admin approval', async () => {
   const db = await getDb();
   await db.run(
