@@ -99,27 +99,39 @@ const MobileNavbar = () => {
       variants={tabbarEntrance}
       initial={prefersReducedMotion ? false : "initial"}
       animate={prefersReducedMotion ? undefined : "animate"}
-      className={`motion-gpu fixed inset-x-0 bottom-0 z-[80] border-t backdrop-blur-xl md:hidden ${isDayMode ? "border-slate-900/[0.08] bg-white/90 shadow-[0_-10px_24px_rgba(31,45,61,0.045)]" : "border-white/[0.075] bg-[#07101b]/94 shadow-[0_-14px_30px_rgba(0,0,0,0.32)]"}`}
+      className="motion-gpu fixed inset-x-0 bottom-0 z-[80] flex justify-center px-3 md:hidden"
       aria-label={t("nav.mobile_tabbar")}
     >
-      <div className="pb-[env(safe-area-inset-bottom)]">
-      <div className="grid h-[72px] grid-cols-5 px-1.5">
+      <span
+        aria-hidden="true"
+        className={`pointer-events-none absolute inset-x-0 bottom-0 h-16 ${
+          isDayMode
+            ? "bg-gradient-to-t from-white via-white/86 to-transparent"
+            : "bg-gradient-to-t from-[#020711] via-[#020711]/92 to-transparent"
+        }`}
+      />
+      <div className={`relative z-10 mb-1.5 w-full max-w-[390px] overflow-hidden rounded-[14px] border backdrop-blur-xl ${
+        isDayMode
+          ? "border-slate-900/[0.08] bg-white/90 shadow-[0_-10px_24px_rgba(31,45,61,0.045)]"
+          : "border-white/[0.14] bg-[linear-gradient(180deg,rgba(13,29,51,0.98),rgba(4,10,20,0.99))] shadow-[0_-12px_28px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)]"
+      }`}>
+      <div className="grid h-[56px] grid-cols-5 px-1 pb-[env(safe-area-inset-bottom)]">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = isItemActive(item.path, item.key);
 
-          const sharedClassName = `relative flex min-w-0 flex-col items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isActive ? (isDayMode ? "text-slate-900" : "text-indigo-300") : isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white"}`;
+          const sharedClassName = `relative flex min-w-0 flex-col items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isActive ? (isDayMode ? "text-slate-900" : "text-white") : isDayMode ? "text-slate-500 hover:text-slate-900" : "text-white/86 hover:text-white"}`;
           const activeIconSurface = isDayMode
             ? "rounded-[5px] bg-white ring-1 ring-slate-900/[0.12] shadow-[0_6px_14px_rgba(31,45,61,0.06)]"
-            : "rounded-[8px] bg-indigo-500/18 ring-1 ring-indigo-400/20 shadow-[0_0_22px_rgba(99,102,241,0.22)]";
-          const iconClassName = `relative p-1.5 transition-colors duration-300 ${
+            : "rounded-[7px] bg-indigo-500/28 ring-1 ring-indigo-300/32 shadow-[0_0_18px_rgba(99,102,241,0.24)]";
+          const iconClassName = `relative p-1 transition-colors duration-300 ${
             isActive
               ? isDayMode
                 ? "text-teal-700"
-                : "text-indigo-300"
+                : "text-white"
               : isDayMode
                 ? "text-slate-500"
-                : "text-gray-400"
+                : "text-white/86"
           }`;
 
           const showUnreadBadge =
@@ -129,7 +141,7 @@ const MobileNavbar = () => {
           const inner = (
             <motion.div
               whileTap={prefersReducedMotion ? undefined : tapPress}
-              className="flex min-w-0 flex-col items-center gap-1.5"
+              className="flex min-w-0 flex-col items-center gap-0.5"
             >
               <div
                 className={iconClassName}
@@ -137,7 +149,7 @@ const MobileNavbar = () => {
                 {isActive && (
                   <span className={`absolute inset-0 ${activeIconSurface}`} />
                 )}
-                  <Icon className="relative z-10" size={24} strokeWidth={isActive ? 2.35 : 2} />
+                  <Icon className="relative z-10" size={20} strokeWidth={isActive ? 2.35 : 2} />
                 {showUnreadBadge && (
                   <span
                     aria-label={t(
@@ -152,7 +164,7 @@ const MobileNavbar = () => {
                 )}
               </div>
               <span
-                className={`max-w-full truncate px-0.5 text-[12px] leading-none transition-all ${isActive ? "font-semibold opacity-100" : "font-medium opacity-85"}`}
+                className={`max-w-full truncate px-0.5 text-[11px] leading-none transition-all ${isActive ? "font-semibold opacity-100" : "font-medium opacity-100"} ${isDayMode ? "" : "drop-shadow-[0_1px_4px_rgba(0,0,0,1)]"}`}
               >
                 {item.label}
               </span>

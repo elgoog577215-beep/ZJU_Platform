@@ -665,7 +665,6 @@ const MobileReferenceEventCard = memo(
     const formatEventAudience = (value) =>
       getEventAudienceLabel(value, eventLanguage);
     const primaryDate = formatDateTime(event.date).split(" ")[0] || "--";
-    const showConsult = index === 2;
     const motionProps = reduceMotion
       ? {}
       : {
@@ -759,19 +758,6 @@ const MobileReferenceEventCard = memo(
               <span className="truncate">{event.registered_count || event.participant_count || event.registration_count || 0} 人已报名</span>
             </div>
           </div>
-
-          {showConsult && (
-            <button
-              type="button"
-              onClick={(buttonEvent) => {
-                buttonEvent.stopPropagation();
-                onClick(event);
-              }}
-              className="absolute bottom-7 right-0 inline-flex h-10 items-center justify-center rounded-[9px] bg-indigo-500 px-5 text-[15px] font-black text-white shadow-[0_12px_28px_rgba(99,102,241,0.36)]"
-            >
-              去咨询
-            </button>
-          )}
 
           <span className={`absolute bottom-0 right-0 inline-flex h-7 w-7 items-center justify-center rounded-full ${isDayMode ? "bg-slate-100 text-slate-700" : "bg-white/[0.065] text-white"}`}>
             <ArrowRight size={17} />
