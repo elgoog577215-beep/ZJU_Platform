@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { LayoutGrid, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { getPartnerLogoSrc } from "../data/partnerLogos";
 import { useHorizontalDragScroll } from "../hooks/useHorizontalDragScroll";
 
 const toArray = (value) => {
@@ -52,6 +53,42 @@ const getPartnerEventCount = (partner = {}) => {
   return Number.isFinite(count) ? count : 0;
 };
 
+const PartnerLogo = ({ partner, name, isDayMode }) => {
+  const logoSrc = getPartnerLogoSrc(partner, isDayMode);
+
+  if (logoSrc) {
+    return (
+      <span
+        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border px-1 ${
+          isDayMode
+            ? "border-slate-200 bg-white"
+            : "border-white/10 bg-white/[0.06]"
+        }`}
+      >
+        <img
+          src={logoSrc}
+          alt={`${name} logo`}
+          className="max-h-[70%] max-w-full object-contain"
+          loading="lazy"
+          decoding="async"
+        />
+      </span>
+    );
+  }
+
+  return (
+    <span
+      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border ${
+        isDayMode
+          ? "border-slate-200 bg-white text-slate-500"
+          : "border-white/10 bg-white/[0.04] text-slate-400"
+      }`}
+    >
+      <Users size={17} aria-hidden="true" />
+    </span>
+  );
+};
+
 const OrganizationPartnerWall = ({
   partners = [],
   isDayMode,
@@ -67,7 +104,9 @@ const OrganizationPartnerWall = ({
   const buttonPartners = useMemo(
     () =>
       partners
-        .filter((partner) => partner?.enabled !== false && partner?.enabled !== 0)
+        .filter(
+          (partner) => partner?.enabled !== false && partner?.enabled !== 0,
+        )
         .map((partner) => ({
           ...partner,
           eventCount: getPartnerEventCount(partner),
@@ -80,7 +119,8 @@ const OrganizationPartnerWall = ({
             return right.eventCount - left.eventCount;
           }
           const leftOrder = Number(left.sort_order ?? left.sortOrder ?? 0) || 0;
-          const rightOrder = Number(right.sort_order ?? right.sortOrder ?? 0) || 0;
+          const rightOrder =
+            Number(right.sort_order ?? right.sortOrder ?? 0) || 0;
           if (leftOrder !== rightOrder) return leftOrder - rightOrder;
           return left.displayName.localeCompare(right.displayName, language);
         }),
@@ -95,7 +135,7 @@ const OrganizationPartnerWall = ({
     ? "border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.018),0_10px_22px_rgba(15,23,42,0.03)]"
     : "border-white/[0.105] bg-[rgba(8,18,34,0.78)]";
   const buttonBase =
-    "inline-flex min-h-9 max-w-[11rem] shrink-0 items-center gap-2 rounded-[4px] border px-3 text-xs font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70";
+    "relative flex w-[4.85rem] shrink-0 flex-col items-center gap-0.5 rounded-[4px] border px-1 py-1 text-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 md:gap-1 md:px-1.5 md:py-1.5";
   const getButtonClass = (active) => {
     if (active) {
       return isDayMode
@@ -103,8 +143,8 @@ const OrganizationPartnerWall = ({
         : "border-indigo-300/30 bg-indigo-400/14 text-indigo-100";
     }
     return isDayMode
-      ? "border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-800"
-      : "border-white/10 bg-white/[0.045] text-slate-200 hover:border-indigo-300/30 hover:bg-white/[0.075]";
+      ? "border-transparent bg-transparent text-slate-700 hover:bg-slate-50 hover:text-blue-800"
+      : "border-transparent bg-transparent text-slate-100 hover:bg-white/[0.06]";
   };
   const partnerMotionProps = {
     whileHover: { opacity: 0.92 },
@@ -136,7 +176,9 @@ const OrganizationPartnerWall = ({
       aria-label={t("events.organizations.aria", "社团活动筛选")}
       data-testid="organization-partner-filter-bar"
     >
-      <div className={`relative overflow-hidden rounded-[4px] border md:rounded-none md:border-x-0 md:border-y ${shellClass}`}>
+      <div
+        className={`relative overflow-hidden rounded-[4px] border md:rounded-none md:border-x-0 md:border-y ${shellClass}`}
+      >
         <div
           ref={scrollRef}
           {...dragScrollProps}
@@ -152,12 +194,27 @@ const OrganizationPartnerWall = ({
             onClick={() => onClearPartnerFilter?.()}
             className={`${buttonBase} ${getButtonClass(isAllActive)}`}
           >
-            <LayoutGrid size={15} className="shrink-0" />
-            <span>{t("common.all", "全部")}</span>
+            <span
+              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border ${
+                isAllActive
+                  ? isDayMode
+                    ? "border-blue-100 bg-white text-blue-700"
+                    : "border-indigo-300/25 bg-white/10 text-indigo-100"
+                  : isDayMode
+                    ? "border-slate-200 bg-white text-slate-500"
+                    : "border-white/10 bg-white/[0.04] text-slate-300"
+              }`}
+            >
+              <LayoutGrid size={16} aria-hidden="true" />
+            </span>
+            <span className="line-clamp-1 max-w-full text-[11px] font-bold leading-3">
+              {t("common.all", "全部")}
+            </span>
           </motion.button>
 
           {buttonPartners.map((partner) => {
-            const active = String(activePartnerId ?? "") === String(partner.id ?? "");
+            const active =
+              String(activePartnerId ?? "") === String(partner.id ?? "");
             return (
               <motion.button
                 {...partnerMotionProps}
@@ -176,10 +233,16 @@ const OrganizationPartnerWall = ({
                 onClick={() => applyPartnerFilter(partner)}
                 className={`${buttonBase} ${getButtonClass(active)}`}
               >
-                <Users size={15} className="shrink-0" />
-                <span className="truncate">{partner.displayName}</span>
+                <PartnerLogo
+                  partner={partner}
+                  name={partner.displayName}
+                  isDayMode={isDayMode}
+                />
+                <span className="line-clamp-1 max-w-full text-[11px] font-bold leading-3 md:line-clamp-2">
+                  {partner.displayName}
+                </span>
                 <span
-                  className={`ml-auto rounded-[3px] px-1.5 py-0.5 text-[10px] font-black leading-none ${
+                  className={`absolute right-1 top-1 rounded-full px-1.5 py-0.5 text-[9px] font-black leading-none ${
                     active
                       ? isDayMode
                         ? "bg-white text-blue-700"
@@ -200,11 +263,16 @@ const OrganizationPartnerWall = ({
         <div
           aria-hidden="true"
           className={`pointer-events-none absolute bottom-1 right-0 top-1 w-12 ${
-            isDayMode ? "bg-gradient-to-l from-white to-transparent" : "bg-gradient-to-l from-[#0b1222] to-transparent"
+            isDayMode
+              ? "bg-gradient-to-l from-white to-transparent"
+              : "bg-gradient-to-l from-[#0b1222] to-transparent"
           }`}
         />
         <span className={`sr-only ${mutedClass}`}>
-          {t("events.organizations.sorted_by_count", "社团已按活动数量从高到低排序")}
+          {t(
+            "events.organizations.sorted_by_count",
+            "社团已按活动数量从高到低排序",
+          )}
         </span>
       </div>
     </section>
