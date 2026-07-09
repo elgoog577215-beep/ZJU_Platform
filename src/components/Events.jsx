@@ -428,14 +428,14 @@ const EventCard = memo(
       <motion.div
         {...motionProps}
         data-testid="event-card"
-        className={`group relative flex h-[176px] cursor-pointer overflow-hidden rounded-[12px] border p-2.5 md:hidden ${
+        className={`group relative flex h-[176px] cursor-pointer overflow-hidden rounded-[4px] border p-2.5 md:hidden ${
           isDayMode
             ? "border-blue-100 bg-white shadow-[0_14px_32px_rgba(37,99,235,0.10)]"
             : "border-white/10 bg-[#070d1a]/94 shadow-[0_18px_42px_rgba(0,0,0,0.22)]"
         }`}
         onClick={() => onClick(event)}
       >
-        <div className="relative h-full w-[126px] shrink-0 overflow-hidden rounded-[8px] bg-[#101827] min-[520px]:w-[150px]">
+        <div className="relative h-full w-[126px] shrink-0 overflow-hidden rounded-[3px] bg-[#101827] min-[520px]:w-[150px]">
           <SmartImage
             src={getEventCoverUrl(event)}
             alt={event.title}
@@ -447,7 +447,7 @@ const EventCard = memo(
             imageClassName="h-full w-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/5 to-transparent" />
-          <span className="absolute left-2 top-2 rounded-[5px] bg-indigo-950/78 px-2 py-0.5 text-[14px] font-black leading-5 text-white shadow-[0_6px_16px_rgba(0,0,0,0.32)]">
+          <span className="absolute left-2 top-2 rounded-[3px] bg-indigo-950/78 px-2 py-0.5 text-[14px] font-black leading-5 text-white shadow-[0_6px_16px_rgba(0,0,0,0.32)]">
             {formatDateTime(event.date).split(" ")[0] || " -- "}
           </span>
         </div>
@@ -484,11 +484,6 @@ const EventCard = memo(
               <MapPin size={15} className={isDayMode ? "text-slate-500" : "text-slate-300"} />
               <span className="truncate">{event.location || t("common.online", "线上")}</span>
             </div>
-          </div>
-
-          <div className={`mt-auto flex items-center gap-1.5 text-[14px] font-semibold ${isDayMode ? "text-slate-500" : "text-slate-300"}`}>
-            <Users size={15} />
-            <span className="truncate">{event.registered_count || event.participant_count || 0} 人已报名</span>
           </div>
         </div>
       </motion.div>
@@ -668,7 +663,7 @@ const EventCard = memo(
 EventCard.displayName = "EventCard";
 
 const MobileReferenceEventCard = memo(
-  ({ event, index, onClick, onToggleFavorite, reduceMotion, isDayMode }) => {
+  ({ event, index, onClick, reduceMotion, isDayMode }) => {
     const { i18n } = useTranslation();
     const eventLanguage = i18n.resolvedLanguage || i18n.language || "zh";
     const formatEventCategory = (value) =>
@@ -697,13 +692,13 @@ const MobileReferenceEventCard = memo(
         {...motionProps}
         data-testid="event-card"
         onClick={() => onClick(event)}
-        className={`group relative grid min-h-[132px] cursor-pointer grid-cols-[104px_minmax(0,1fr)] gap-3 overflow-hidden rounded-[14px] border px-2.5 py-2.5 text-left shadow-[0_18px_44px_rgba(0,0,0,0.28)] ${
+        className={`group relative grid min-h-[126px] cursor-pointer grid-cols-[104px_minmax(0,1fr)] gap-3 overflow-hidden rounded-[4px] border px-2.5 py-2.5 text-left shadow-[0_18px_44px_rgba(0,0,0,0.22)] ${
           isDayMode
             ? "border-blue-100 bg-white text-slate-950"
             : "border-white/[0.105] bg-[linear-gradient(145deg,rgba(9,18,33,0.96),rgba(4,11,22,0.94))] text-white"
         }`}
       >
-        <div className="relative h-[108px] overflow-hidden rounded-[8px] bg-slate-900 min-[390px]:h-[112px] min-[390px]:w-[104px]">
+        <div className="relative h-[106px] overflow-hidden rounded-[3px] bg-slate-900 min-[390px]:h-[110px] min-[390px]:w-[104px]">
           <SmartImage
             src={getEventCoverUrl(event)}
             alt={event.title}
@@ -715,47 +710,40 @@ const MobileReferenceEventCard = memo(
             imageClassName="h-full w-full object-cover"
           />
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,8,20,0.12),rgba(3,8,20,0.05)_45%,rgba(3,8,20,0.2))]" />
-          <div className="absolute left-2 top-2 rounded-[5px] bg-[#18265f]/92 px-2 py-0.5 text-[14px] font-black leading-5 text-white shadow-[0_8px_18px_rgba(0,0,0,0.28)]">
+          <div className="absolute left-2 top-2 rounded-[3px] bg-[#18265f]/92 px-2 py-0.5 text-[14px] font-black leading-5 text-white shadow-[0_8px_18px_rgba(0,0,0,0.28)]">
             {primaryDate}
           </div>
         </div>
 
-        <div className="relative flex min-w-0 flex-col py-0.5 pr-1">
-          <div className="flex min-w-0 items-start gap-2">
-            <h3 className={`line-clamp-1 flex-1 text-[17px] font-black leading-[22px] tracking-tight ${isDayMode ? "text-slate-950" : "text-white"}`}>
+        <div className="relative flex min-w-0 flex-col py-0.5">
+          <div className="flex min-w-0 items-start">
+            <h3 className={`line-clamp-1 min-w-0 flex-1 text-[17px] font-black leading-[22px] tracking-tight ${isDayMode ? "text-slate-950" : "text-white"}`}>
               {event.title}
             </h3>
-            <div onClick={(clickEvent) => clickEvent.stopPropagation()}>
-              <FavoriteButton
-                itemId={event.id}
-                itemType="event"
-                size={21}
-                showCount={false}
-                count={event.likes || 0}
-                favorited={event.favorited}
-                initialFavorited={event.favorited}
-                className={`-mr-1 -mt-1 rounded-full p-1.5 ${event.favorited ? "text-pink-500" : isDayMode ? "text-slate-500" : "text-white/88"}`}
-                onToggle={(favorited, likes) =>
-                  onToggleFavorite(event.id, favorited, likes)
-                }
-              />
-            </div>
           </div>
 
-          <div className="mt-1 flex min-h-[20px] min-w-0 items-center gap-1.5 overflow-hidden">
+          <div className="mt-1.5 flex min-h-[22px] min-w-0 items-center gap-1.5 overflow-hidden">
             {event.category && (
-              <span className="inline-flex h-[20px] max-w-[5.4rem] shrink-0 items-center rounded-[2px] bg-indigo-500/26 px-2 text-[11px] font-bold leading-none text-indigo-100">
+              <span className={`inline-flex h-[22px] max-w-[5.4rem] shrink-0 items-center rounded-[3px] border px-2 text-[11px] font-bold leading-none ${
+                isDayMode
+                  ? "border-blue-200 bg-blue-50 text-blue-700"
+                  : "border-orange-300/35 bg-orange-400/10 text-orange-100"
+              }`}>
                 <span className="truncate">{formatEventCategory(event.category)}</span>
               </span>
             )}
             {event.target_audience && (
-              <span className="inline-flex h-[20px] max-w-[5.2rem] shrink-0 items-center rounded-[2px] bg-white/10 px-2 text-[11px] font-bold leading-none text-white">
+              <span className={`inline-flex h-[22px] max-w-[5.2rem] shrink-0 items-center rounded-[3px] border px-2 text-[11px] font-bold leading-none ${
+                isDayMode
+                  ? "border-slate-200 bg-slate-50 text-slate-700"
+                  : "border-white/18 bg-white/[0.055] text-slate-100"
+              }`}>
                 <span className="truncate">{formatEventAudience(event.target_audience)}</span>
               </span>
             )}
           </div>
 
-          <div className={`mt-1.5 grid gap-1 text-[13px] font-medium leading-[17px] ${isDayMode ? "text-slate-600" : "text-slate-300"}`}>
+          <div className={`mt-2 grid gap-1.5 text-[13px] font-medium leading-[17px] ${isDayMode ? "text-slate-600" : "text-slate-300"}`}>
             <div className="flex min-w-0 items-center gap-1.5">
               <Clock size={14} className="shrink-0 text-slate-200" />
               <span className="truncate">{formatMobileEventSchedule(event.date, event.end_date)}</span>
@@ -764,15 +752,7 @@ const MobileReferenceEventCard = memo(
               <MapPin size={14} className="shrink-0 text-slate-200" />
               <span className="truncate">{event.location || "线上活动"}</span>
             </div>
-            <div className="flex min-w-0 items-center gap-1.5">
-              <Users size={14} className="shrink-0 text-slate-200" />
-              <span className="truncate">{event.registered_count || event.participant_count || event.registration_count || 0} 人已报名</span>
-            </div>
           </div>
-
-          <span className={`absolute bottom-0 right-0 inline-flex h-7 w-7 items-center justify-center rounded-full ${isDayMode ? "bg-slate-100 text-slate-700" : "bg-white/[0.065] text-white"}`}>
-            <ArrowRight size={17} />
-          </span>
         </div>
       </motion.article>
     );
@@ -2059,7 +2039,7 @@ END:VCALENDAR`;
               setIsMobileFilterOpen(false);
               setIsMobileSortOpen(true);
             }}
-            className={`inline-flex h-9 items-center justify-center gap-1.5 rounded-[10px] border text-[13px] font-semibold ${isDayMode ? "border-slate-200 bg-white text-slate-700" : "border-white/[0.105] bg-white/[0.045] text-slate-200"}`}
+            className={`inline-flex h-9 items-center justify-center gap-1.5 rounded-[4px] border text-[13px] font-semibold ${isDayMode ? "border-slate-200 bg-white text-slate-700" : "border-white/[0.105] bg-white/[0.045] text-slate-200"}`}
           >
             <Clock size={16} />
             <span className="truncate">{mobileSortLabel}</span>
@@ -2072,7 +2052,7 @@ END:VCALENDAR`;
               setIsMobileSortOpen(false);
               setIsMobileFilterOpen(true);
             }}
-            className={`inline-flex h-9 items-center justify-center gap-1.5 rounded-[10px] border text-[13px] font-semibold ${isDayMode ? "border-slate-200 bg-white text-slate-700" : "border-white/[0.105] bg-white/[0.045] text-slate-200"}`}
+            className={`inline-flex h-9 items-center justify-center gap-1.5 rounded-[4px] border text-[13px] font-semibold ${isDayMode ? "border-slate-200 bg-white text-slate-700" : "border-white/[0.105] bg-white/[0.045] text-slate-200"}`}
           >
             <SlidersHorizontal size={17} />
             全部学院
@@ -2532,7 +2512,6 @@ END:VCALENDAR`;
                   event={event}
                   index={index}
                   onClick={openEventFromList}
-                  onToggleFavorite={handleToggleFavorite}
                   reduceMotion={shouldReduceCardMotion}
                   isDayMode={isDayMode}
                 />

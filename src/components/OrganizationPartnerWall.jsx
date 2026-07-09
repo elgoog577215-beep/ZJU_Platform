@@ -252,7 +252,7 @@ const OrganizationPartnerWall = ({
         aria-label={t("events.organizations.aria", "合作社团")}
         data-testid="organization-partner-wall"
       >
-        <div className={`overflow-hidden rounded-[12px] border md:flex md:items-center md:gap-3 md:rounded-none md:border-x-0 md:border-y md:px-0 md:py-2 ${railClass}`}>
+        <div className={`overflow-hidden rounded-[4px] border md:flex md:items-center md:gap-3 md:rounded-none md:border-x-0 md:border-y md:px-0 md:py-2 ${railClass}`}>
           <div className={`flex items-center justify-between px-4 pb-0 pt-1.5 md:hidden ${isDayMode ? "border-slate-200/70" : "border-white/10"}`}>
             <div className={`text-[15px] font-black tracking-tight ${strongClass}`}>合作社团</div>
             <motion.button
@@ -294,7 +294,7 @@ const OrganizationPartnerWall = ({
                   type="button"
                   data-testid={`organization-partner-card-mobile-${partner.id}`}
                   onClick={() => openPartnerProfile(partner)}
-                  className={`flex min-w-[2.7rem] snap-start flex-col items-center gap-0.5 rounded-[8px] px-0.5 py-0.5 text-center md:hidden ${
+                  className={`flex min-w-[2.7rem] snap-start flex-col items-center gap-0.5 rounded-[4px] px-0.5 py-0.5 text-center md:hidden ${
                     isDayMode ? "text-slate-800" : "text-slate-100"
                   }`}
                 >
@@ -308,7 +308,7 @@ const OrganizationPartnerWall = ({
                 {...partnerMotionProps}
                 type="button"
                 onClick={() => setDirectoryOpen(true)}
-                className={`flex min-w-[2.7rem] snap-start flex-col items-center gap-0.5 rounded-[8px] px-0.5 py-0.5 text-center text-xs font-semibold md:hidden ${
+                className={`flex min-w-[2.7rem] snap-start flex-col items-center gap-0.5 rounded-[4px] px-0.5 py-0.5 text-center text-xs font-semibold md:hidden ${
                   isDayMode ? "text-slate-800" : "text-slate-100"
                 }`}
               >

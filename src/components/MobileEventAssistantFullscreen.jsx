@@ -14,14 +14,14 @@ const MobileEventAssistantLauncher = ({ isDayMode, onOpen }) => {
       transition={{ type: "spring", stiffness: 520, damping: 34 }}
       type="button"
       onClick={onOpen}
-      className={`group mb-2 grid min-h-[72px] w-full grid-cols-[70px_minmax(0,1fr)_80px] items-center gap-2 overflow-hidden rounded-[12px] border px-2 py-2 text-left transition-[background-color,border-color,box-shadow] md:hidden ${
+      className={`group mb-2 grid min-h-[72px] w-full grid-cols-[70px_minmax(0,1fr)_80px] items-center gap-2 overflow-hidden rounded-[4px] border px-2 py-2 text-left transition-[background-color,border-color,box-shadow] md:hidden ${
         isDayMode
           ? "border-blue-100/90 bg-[linear-gradient(105deg,#ffffff,#f7fbff_48%,#edf5ff)] text-slate-950 shadow-[0_16px_36px_rgba(37,99,235,0.09)] hover:border-blue-200"
           : "border-[#172640] bg-[linear-gradient(105deg,rgba(16,29,62,0.94),rgba(6,14,29,0.98)_54%,rgba(5,12,25,0.96))] text-white shadow-[inset_0_0_0_1px_rgba(99,102,241,0.10),0_18px_46px_rgba(0,0,0,0.22)] hover:border-[#243963]"
       }`}
     >
       <span
-        className={`relative inline-flex h-[56px] w-[66px] shrink-0 items-end justify-center overflow-hidden rounded-[10px] transition-transform group-hover:scale-[1.02] group-active:scale-95 ${
+        className={`relative inline-flex h-[56px] w-[66px] shrink-0 items-end justify-center overflow-hidden rounded-[4px] transition-transform group-hover:scale-[1.02] group-active:scale-95 ${
           isDayMode
             ? "bg-blue-50/90 text-blue-600 ring-1 ring-blue-100"
             : "bg-indigo-500/12 text-indigo-100 ring-1 ring-indigo-300/18"
@@ -58,7 +58,7 @@ const MobileEventAssistantLauncher = ({ isDayMode, onOpen }) => {
         </span>
       </span>
       <span
-        className={`relative inline-flex h-9 shrink-0 items-center justify-center whitespace-nowrap rounded-[9px] border px-3 text-[13px] font-black leading-none shadow-[0_10px_24px_rgba(37,99,235,0.12)] ${
+        className={`relative inline-flex h-9 shrink-0 items-center justify-center whitespace-nowrap rounded-[4px] border px-3 text-[13px] font-black leading-none shadow-[0_10px_24px_rgba(37,99,235,0.12)] ${
           isDayMode ? "border-blue-200 bg-white text-blue-700" : "border-indigo-300/20 bg-indigo-500 text-white"
         }`}
       >
