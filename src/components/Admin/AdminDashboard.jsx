@@ -199,7 +199,7 @@ const AdminDashboard = () => {
             icon: QrCode,
             description: t(
               "admin.descriptions.wechatMp",
-              "扫码登录公众号后台并导入文章",
+              "导入公众号文章并生成活动草稿",
             ),
           },
           {

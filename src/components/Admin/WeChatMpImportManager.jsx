@@ -72,6 +72,14 @@ const textParagraphs = (value) =>
     .filter(Boolean)
     .slice(0, 24);
 
+const loginStatusKey = (loginStage, credentialsReady) => {
+  if (credentialsReady || loginStage === "saved") return "logged_in";
+  if (loginStage === "failed") return "failed";
+  if (loginStage === "cancelled") return "cancelled";
+  if (LOGIN_ACTIVE_STAGES.has(loginStage)) return "waiting";
+  return "not_logged_in";
+};
+
 const statusTone = (isReady, isDayMode) =>
   isReady
     ? isDayMode
@@ -160,8 +168,10 @@ const WeChatMpImportManager = () => {
       const responseStatus = error?.response?.data;
       if (responseStatus?.runtime) {
         setStatus((previous) => ({ ...previous, runtime: responseStatus.runtime }));
+        toast.error(t("admin.wechat_mp.notes.runtime_missing"));
+      } else {
+        toast.error(getApiErrorMessage(error, t("admin.wechat_mp.toasts.login_failed")));
       }
-      toast.error(getApiErrorMessage(error, t("admin.wechat_mp.toasts.login_failed")));
     } finally {
       setLoginStarting(false);
     }
@@ -294,6 +304,7 @@ const WeChatMpImportManager = () => {
       ? t("admin.wechat_mp.notes.ready")
       : t("admin.wechat_mp.notes.need_login")
     : t("admin.wechat_mp.notes.runtime_missing");
+  const simpleLoginStatus = loginStatusKey(login.stage, credentialsReady);
   const paragraphs = textParagraphs(content?.contentText);
 
   return (
@@ -340,7 +351,7 @@ const WeChatMpImportManager = () => {
               />
               <AdminMetricCard
                 label={t("admin.wechat_mp.metrics.credentials")}
-                value={credentialsReady ? t("admin.wechat_mp.status.saved") : t("admin.wechat_mp.status.not_saved")}
+                value={t(`admin.wechat_mp.simple_status.${simpleLoginStatus}`)}
                 icon={KeyRound}
                 tone={credentialsReady ? "emerald" : "amber"}
               />
@@ -387,20 +398,27 @@ const WeChatMpImportManager = () => {
                   ) : null}
                 </div>
                 <div className={clsx("grid gap-2 text-xs", mutedTextClass)}>
-                  <div>
-                    {t("admin.wechat_mp.auth.cookie_names")}:{" "}
-                    {(status?.credentials?.cookie_names || []).length > 0
-                      ? status.credentials.cookie_names.join(", ")
-                      : t("admin.wechat_mp.status.none")}
-                  </div>
-                  <div>
-                    {t("admin.wechat_mp.auth.token_mask")}:{" "}
-                    {status?.credentials?.token_mask || t("admin.wechat_mp.status.none")}
-                  </div>
-                  <div className="break-all">
-                    {t("admin.wechat_mp.auth.chromium_path")}:{" "}
-                    {status?.runtime?.executable_path || t("admin.wechat_mp.status.none")}
-                  </div>
+                  <details className="group">
+                    <summary className="cursor-pointer text-xs font-semibold">
+                      {t("admin.wechat_mp.auth.diagnostics")}
+                    </summary>
+                    <div className="mt-2 grid gap-2">
+                      <div>
+                        {t("admin.wechat_mp.auth.cookie_names")}:{" "}
+                        {(status?.credentials?.cookie_names || []).length > 0
+                          ? status.credentials.cookie_names.join(", ")
+                          : t("admin.wechat_mp.status.none")}
+                      </div>
+                      <div>
+                        {t("admin.wechat_mp.auth.token_mask")}:{" "}
+                        {status?.credentials?.token_mask || t("admin.wechat_mp.status.none")}
+                      </div>
+                      <div className="break-all">
+                        {t("admin.wechat_mp.auth.chromium_path")}:{" "}
+                        {status?.runtime?.executable_path || t("admin.wechat_mp.status.none")}
+                      </div>
+                    </div>
+                  </details>
                 </div>
               </div>
             </div>
