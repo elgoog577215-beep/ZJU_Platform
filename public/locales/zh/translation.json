@@ -2139,6 +2139,7 @@
       "overview": "总览",
       "pending": "审核中心",
       "intelligence": "智能治理",
+      "wechatMp": "微信采集",
       "events": "活动管理",
       "hackathon": "黑客松",
       "articles": "文章",
@@ -2391,6 +2392,7 @@
       "overview": "关键数据、待办和常用入口",
       "pending": "集中处理待审核内容",
       "intelligence": "活动治理和模型接口",
+      "wechatMp": "导入公众号文章并生成活动草稿",
       "events": "活动内容、报名与基础信息",
       "hackathon": "黑客松报名与参赛信息",
       "articles": "文章、资讯和长内容",
@@ -2818,6 +2820,137 @@
       "initial_desc": "候选扫描是只读操作，不会修改任何历史数据。",
       "empty_title": "没有匹配的迁移候选",
       "empty_desc": "可以更换认证组织、补充组织别名，或检查历史活动主办方文本。"
+    },
+    "wechat_mp": {
+      "title": "公众号文章导入",
+      "description": "从公众号导入文章，并生成可编辑的活动内容。",
+      "actions": {
+        "refresh_status": "刷新状态",
+        "start_login": "扫码登录",
+        "cancel_login": "取消登录",
+        "search_account": "搜号",
+        "fetch_articles": "获取文章",
+        "fetch_content": "抓取正文",
+        "parse_content": "生成草稿"
+      },
+      "notes": {
+        "ready": "已登录，可以开始导入公众号文章。",
+        "need_login": "请先扫码登录，再导入公众号文章。",
+        "runtime_missing": "登录环境未准备好，请联系管理员处理。"
+      },
+      "auth": {
+        "title": "扫码登录",
+        "description": "请使用微信扫码登录公众号平台。",
+        "qr_alt": "微信公众平台登录二维码",
+        "qr_empty": "点击扫码登录后显示二维码",
+        "idle_message": "等待扫码登录",
+        "cookie_names": "已保存 Cookie",
+        "token_mask": "Token",
+        "chromium_path": "Chromium 路径",
+        "diagnostics": "高级诊断信息"
+      },
+      "collect": {
+        "title": "选择公众号",
+        "description": "输入公众号名称，可按关键词筛选文章。"
+      },
+      "articles": {
+        "title": "可导入文章",
+        "description": "选择一篇文章后，可以抓取正文并生成活动草稿。",
+        "empty_title": "还没有文章候选",
+        "empty_desc": "先完成扫码登录，再输入公众号名称获取文章列表。",
+        "loading": "正在获取文章...",
+        "untitled": "未命名文章",
+        "no_summary": "暂无摘要"
+      },
+      "preview": {
+        "title": "文章内容预览",
+        "description": "选择一篇文章后，内容会显示在这里。",
+        "open_original": "打开原文",
+        "loading_content": "正在抓取正文...",
+        "need_fetch_content": "请先抓取正文。获取成功后会在这里显示文章内容。",
+        "empty_title": "请选择文章",
+        "empty_desc": "文章链接获取完成后，从左侧列表选择一篇进行正文抓取。"
+      },
+      "parse": {
+        "title": "活动草稿",
+        "fields": {
+          "title": "标题",
+          "category": "分类",
+          "date": "时间",
+          "location": "地点",
+          "organizer": "主办方",
+          "notice_type": "通知类型"
+        }
+      },
+      "metrics": {
+        "browser": "登录环境",
+        "credentials": "登录状态",
+        "login_stage": "当前状态",
+        "fetched_articles": "已获取文章",
+        "remote_total": "后台总量",
+        "content_status": "正文状态",
+        "content_length": "正文长度",
+        "images": "正文图片"
+      },
+      "fields": {
+        "account_name": "公众号名称",
+        "fakeid": "公众号 fakeid",
+        "keyword": "关键词",
+        "count": "每页数量",
+        "max_pages": "页数",
+        "allow_first": "无法精确匹配时允许使用第一个候选账号"
+      },
+      "placeholders": {
+        "account_name": "例如：浙江大学",
+        "fakeid": "可由搜索结果自动填充",
+        "keyword": "可选，用于搜索文章标题"
+      },
+      "status": {
+        "ready": "可用",
+        "missing": "缺失",
+        "saved": "已保存",
+        "not_saved": "未保存",
+        "none": "无"
+      },
+      "simple_status": {
+        "not_logged_in": "未登录",
+        "waiting": "等待扫码",
+        "logged_in": "已登录",
+        "failed": "登录失败",
+        "cancelled": "已取消"
+      },
+      "login_stages": {
+        "idle": "未开始",
+        "starting": "准备中",
+        "opening": "准备二维码",
+        "waiting_for_scan": "等待扫码",
+        "qr_ready": "二维码已生成",
+        "saved": "已登录",
+        "failed": "登录失败",
+        "cancelled": "已取消"
+      },
+      "content_status": {
+        "not_fetched": "未抓取",
+        "fetched": "已抓取",
+        "empty": "无正文"
+      },
+      "toasts": {
+        "status_failed": "获取微信采集状态失败",
+        "login_started": "扫码登录已启动",
+        "login_failed": "启动扫码登录失败",
+        "login_cancelled": "登录已取消",
+        "cancel_failed": "取消登录失败",
+        "account_required": "请填写公众号名称或 fakeid",
+        "account_search_failed": "搜索公众号失败",
+        "login_required": "请先完成扫码登录",
+        "articles_failed": "获取文章列表失败",
+        "article_required": "请先选择文章",
+        "content_ready": "正文已获取",
+        "content_failed": "抓取正文失败",
+        "content_required": "请先抓取正文",
+        "parse_ready": "解析完成",
+        "parse_failed": "解析正文失败"
+      }
     }
   },
   "not_found": {
