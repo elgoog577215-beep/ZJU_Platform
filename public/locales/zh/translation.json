@@ -2920,6 +2920,8 @@
           "daily_run_time": "每日开始时间",
           "timezone": "时区",
           "query_delay": "账号间隔(秒)",
+          "delay_min": "最短等待",
+          "delay_max": "最长等待",
           "page_pause": "翻页暂停(秒)",
           "content_delay": "正文间隔(秒)",
           "fetch_content": "自动抓取正文",

@@ -2864,6 +2864,8 @@
           "daily_run_time": "Daily Start",
           "timezone": "Timezone",
           "query_delay": "Account Delay (s)",
+          "delay_min": "Minimum wait",
+          "delay_max": "Maximum wait",
           "page_pause": "Page Pause (s)",
           "content_delay": "Body Delay (s)",
           "fetch_content": "Fetch article bodies",

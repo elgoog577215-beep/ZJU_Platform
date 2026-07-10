@@ -826,20 +826,26 @@ const WeChatMpImportManager = () => {
                     {t("admin.wechat_mp.ingest.fields.query_delay")}
                   </div>
                   <div className="mt-1 grid grid-cols-2 gap-2">
-                    <input
-                      type="number"
-                      min="0"
-                      value={ingestSettings.query_delay_range?.[0] ?? 55}
-                      onChange={(event) => updateIngestDelay("query_delay_range", 0, event.target.value)}
-                      className="theme-admin-input rect-field min-h-[40px] w-full px-3 py-2 text-sm"
-                    />
-                    <input
-                      type="number"
-                      min="0"
-                      value={ingestSettings.query_delay_range?.[1] ?? 120}
-                      onChange={(event) => updateIngestDelay("query_delay_range", 1, event.target.value)}
-                      className="theme-admin-input rect-field min-h-[40px] w-full px-3 py-2 text-sm"
-                    />
+                    <label className={clsx("block text-xs font-semibold", mutedTextClass)}>
+                      {t("admin.wechat_mp.ingest.fields.delay_min")}
+                      <input
+                        type="number"
+                        min="0"
+                        value={ingestSettings.query_delay_range?.[0] ?? 55}
+                        onChange={(event) => updateIngestDelay("query_delay_range", 0, event.target.value)}
+                        className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                      />
+                    </label>
+                    <label className={clsx("block text-xs font-semibold", mutedTextClass)}>
+                      {t("admin.wechat_mp.ingest.fields.delay_max")}
+                      <input
+                        type="number"
+                        min="0"
+                        value={ingestSettings.query_delay_range?.[1] ?? 120}
+                        onChange={(event) => updateIngestDelay("query_delay_range", 1, event.target.value)}
+                        className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                      />
+                    </label>
                   </div>
                 </div>
                 <label className={clsx("block text-sm font-semibold", headingTextClass)}>
@@ -857,20 +863,26 @@ const WeChatMpImportManager = () => {
                     {t("admin.wechat_mp.ingest.fields.content_delay")}
                   </div>
                   <div className="mt-1 grid grid-cols-2 gap-2">
-                    <input
-                      type="number"
-                      min="0"
-                      value={ingestSettings.content_delay_range?.[0] ?? 3}
-                      onChange={(event) => updateIngestDelay("content_delay_range", 0, event.target.value)}
-                      className="theme-admin-input rect-field min-h-[40px] w-full px-3 py-2 text-sm"
-                    />
-                    <input
-                      type="number"
-                      min="0"
-                      value={ingestSettings.content_delay_range?.[1] ?? 8}
-                      onChange={(event) => updateIngestDelay("content_delay_range", 1, event.target.value)}
-                      className="theme-admin-input rect-field min-h-[40px] w-full px-3 py-2 text-sm"
-                    />
+                    <label className={clsx("block text-xs font-semibold", mutedTextClass)}>
+                      {t("admin.wechat_mp.ingest.fields.delay_min")}
+                      <input
+                        type="number"
+                        min="0"
+                        value={ingestSettings.content_delay_range?.[0] ?? 3}
+                        onChange={(event) => updateIngestDelay("content_delay_range", 0, event.target.value)}
+                        className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                      />
+                    </label>
+                    <label className={clsx("block text-xs font-semibold", mutedTextClass)}>
+                      {t("admin.wechat_mp.ingest.fields.delay_max")}
+                      <input
+                        type="number"
+                        min="0"
+                        value={ingestSettings.content_delay_range?.[1] ?? 8}
+                        onChange={(event) => updateIngestDelay("content_delay_range", 1, event.target.value)}
+                        className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                      />
+                    </label>
                   </div>
                 </div>
               </div>
