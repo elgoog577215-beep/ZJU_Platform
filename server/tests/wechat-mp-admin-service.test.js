@@ -9,12 +9,17 @@ const {
   credentialsFromBrowserState,
   extractArticleBody,
   extractAuthenticatedToken,
+  normalizeDelayRangeSeconds,
   normalizeLoginWaitMs,
   normalizeMpArticle,
+  normalizePacingOptions,
   parseMpArticlesPayload,
+  randomSecondsInRange,
   redactCredentials,
   sanitizeCredentials,
   trustedWechatAssetUrl,
+  waitDelayRange,
+  waitSeconds,
 } = require('../src/services/wechatMpAdminService');
 
 test('WeChat MP token extraction only accepts authenticated trusted backend URLs', () => {
@@ -229,4 +234,42 @@ test('WeChat MP credential sanitization and redaction avoid leaking secrets', ()
   assert.doesNotMatch(redacted, /1234567890/);
   assert.doesNotMatch(redacted, /sid-value/);
   assert.match(redacted, /\[REDACTED\]/);
+});
+
+test('WeChat MP pacing defaults inherit scrape-hub account delay range', () => {
+  assert.deepEqual(
+    normalizePacingOptions({}).queryDelayRangeSeconds,
+    [55, 120],
+  );
+  assert.deepEqual(
+    normalizePacingOptions({ query_delay_range: '' }).queryDelayRangeSeconds,
+    [55, 120],
+  );
+  assert.deepEqual(
+    normalizeDelayRangeSeconds([120, 55], [1, 2]),
+    [55, 120],
+  );
+  assert.deepEqual(
+    normalizeDelayRangeSeconds([0, 0], [55, 120]),
+    [],
+  );
+});
+
+test('WeChat MP pacing can compute and wait injected delays without sleeping in tests', async () => {
+  assert.equal(randomSecondsInRange([55, 120], () => 0), 55);
+  assert.equal(randomSecondsInRange([55, 120], () => 0.5), 87.5);
+
+  const waited = [];
+  const fixed = await waitSeconds(1.25, {
+    sleep: async (ms) => waited.push(ms),
+  });
+  assert.equal(fixed, 1.25);
+  assert.deepEqual(waited, [1250]);
+
+  const randomWait = await waitDelayRange([10, 20], {
+    random: () => 0.25,
+    sleep: async (ms) => waited.push(ms),
+  });
+  assert.equal(randomWait, 12.5);
+  assert.deepEqual(waited, [1250, 12500]);
 });

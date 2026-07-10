@@ -1,7 +1,9 @@
 const {
   cancelLogin,
   fetchArticleContent,
+  fetchArticleContents,
   fetchArticles,
+  fetchArticlesForAccounts,
   getStatus,
   searchAccounts,
   startLogin,
@@ -30,6 +32,12 @@ const sendError = (res, error, fallback = '微信 MP 操作失败') => {
     runtime: error?.runtime || undefined,
   });
 };
+
+const pacingFromBody = (body = {}) => ({
+  query_delay_range: body.query_delay_range ?? body.queryDelayRange ?? body.query_delay_range_seconds,
+  page_pause_seconds: body.page_pause_seconds ?? body.pagePauseSeconds ?? body.page_pause,
+  content_delay_range: body.content_delay_range ?? body.contentDelayRange ?? body.content_delay_range_seconds,
+});
 
 const getWechatMpStatus = (_req, res) => {
   try {
@@ -81,6 +89,17 @@ const searchWechatMpAccounts = async (req, res) => {
 
 const listWechatMpArticles = async (req, res) => {
   try {
+    if (Array.isArray(req.body?.accounts) && req.body.accounts.length > 0) {
+      const result = await fetchArticlesForAccounts({
+        accounts: req.body.accounts,
+        keyword: req.body?.keyword,
+        count: req.body?.count,
+        maxPages: req.body?.max_pages,
+        allowFirst: req.body?.allow_first === true,
+        pacing: pacingFromBody(req.body),
+      });
+      return res.json(result);
+    }
     const result = await fetchArticles({
       accountName: req.body?.account_name,
       fakeid: req.body?.fakeid,
@@ -88,6 +107,7 @@ const listWechatMpArticles = async (req, res) => {
       count: req.body?.count,
       maxPages: req.body?.max_pages,
       allowFirst: req.body?.allow_first === true,
+      pacing: pacingFromBody(req.body),
     });
     return res.json(result);
   } catch (error) {
@@ -97,6 +117,17 @@ const listWechatMpArticles = async (req, res) => {
 
 const getWechatMpArticleContent = async (req, res) => {
   try {
+    if (
+      (Array.isArray(req.body?.articles) && req.body.articles.length > 0) ||
+      (Array.isArray(req.body?.urls) && req.body.urls.length > 0)
+    ) {
+      const result = await fetchArticleContents({
+        articles: req.body?.articles,
+        urls: req.body?.urls,
+        pacing: pacingFromBody(req.body),
+      });
+      return res.json(result);
+    }
     const result = await fetchArticleContent({
       url: req.body?.url,
     });
