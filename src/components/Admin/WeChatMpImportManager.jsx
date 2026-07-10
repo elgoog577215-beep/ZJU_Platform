@@ -57,11 +57,10 @@ const initialForm = {
   allowFirst: false,
 };
 
-const getApiErrorMessage = (error, fallback) =>
-  error?.response?.data?.message ||
-  error?.response?.data?.error ||
-  error?.message ||
-  fallback;
+const getApiErrorMessage = (error, fallback, language) => {
+  if (!String(language || "").toLowerCase().startsWith("zh")) return fallback;
+  return error?.response?.data?.message || error?.response?.data?.error || error?.message || fallback;
+};
 
 const formatNumber = (value) => new Intl.NumberFormat().format(Number(value || 0));
 
@@ -90,7 +89,7 @@ const statusTone = (isReady, isDayMode) =>
       : "border-amber-500/20 bg-amber-500/10 text-amber-200";
 
 const WeChatMpImportManager = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { isDayMode, headingTextClass, mutedTextClass, subtleTextClass } = useAdminTheme();
   const [status, setStatus] = useState(initialStatus);
   const [statusLoading, setStatusLoading] = useState(true);
@@ -130,12 +129,12 @@ const WeChatMpImportManager = () => {
       setStatus({ ...initialStatus, ...response.data });
     } catch (error) {
       if (!silent) {
-        toast.error(getApiErrorMessage(error, t("admin.wechat_mp.toasts.status_failed")));
+        toast.error(getApiErrorMessage(error, t("admin.wechat_mp.toasts.status_failed"), i18n.resolvedLanguage));
       }
     } finally {
       if (!silent) setStatusLoading(false);
     }
-  }, [t]);
+  }, [i18n.resolvedLanguage, t]);
 
   useEffect(() => {
     loadStatus();
@@ -170,7 +169,7 @@ const WeChatMpImportManager = () => {
         setStatus((previous) => ({ ...previous, runtime: responseStatus.runtime }));
         toast.error(t("admin.wechat_mp.notes.runtime_missing"));
       } else {
-        toast.error(getApiErrorMessage(error, t("admin.wechat_mp.toasts.login_failed")));
+        toast.error(getApiErrorMessage(error, t("admin.wechat_mp.toasts.login_failed"), i18n.resolvedLanguage));
       }
     } finally {
       setLoginStarting(false);
@@ -184,7 +183,7 @@ const WeChatMpImportManager = () => {
       setStatus((previous) => ({ ...previous, login: response.data }));
       toast.success(t("admin.wechat_mp.toasts.login_cancelled"));
     } catch (error) {
-      toast.error(getApiErrorMessage(error, t("admin.wechat_mp.toasts.cancel_failed")));
+      toast.error(getApiErrorMessage(error, t("admin.wechat_mp.toasts.cancel_failed"), i18n.resolvedLanguage));
     } finally {
       setLoginCancelling(false);
     }
@@ -204,7 +203,7 @@ const WeChatMpImportManager = () => {
       });
       setAccounts(response.data?.accounts || []);
     } catch (error) {
-      toast.error(getApiErrorMessage(error, t("admin.wechat_mp.toasts.account_search_failed")));
+      toast.error(getApiErrorMessage(error, t("admin.wechat_mp.toasts.account_search_failed"), i18n.resolvedLanguage));
     } finally {
       setAccountSearching(false);
     }
@@ -245,7 +244,7 @@ const WeChatMpImportManager = () => {
       const firstArticle = response.data?.articles?.[0] || null;
       if (firstArticle) setSelectedArticle(firstArticle);
     } catch (error) {
-      toast.error(getApiErrorMessage(error, t("admin.wechat_mp.toasts.articles_failed")));
+      toast.error(getApiErrorMessage(error, t("admin.wechat_mp.toasts.articles_failed"), i18n.resolvedLanguage));
     } finally {
       setArticlesLoading(false);
     }
@@ -272,7 +271,7 @@ const WeChatMpImportManager = () => {
       setContent(response.data);
       toast.success(t("admin.wechat_mp.toasts.content_ready"));
     } catch (error) {
-      toast.error(getApiErrorMessage(error, t("admin.wechat_mp.toasts.content_failed")));
+      toast.error(getApiErrorMessage(error, t("admin.wechat_mp.toasts.content_failed"), i18n.resolvedLanguage));
     } finally {
       setContentLoading(false);
     }
@@ -292,7 +291,7 @@ const WeChatMpImportManager = () => {
       setParsedResult(response.data);
       toast.success(t("admin.wechat_mp.toasts.parse_ready"));
     } catch (error) {
-      toast.error(getApiErrorMessage(error, t("admin.wechat_mp.toasts.parse_failed")));
+      toast.error(getApiErrorMessage(error, t("admin.wechat_mp.toasts.parse_failed"), i18n.resolvedLanguage));
     } finally {
       setParsing(false);
     }
@@ -385,6 +384,8 @@ const WeChatMpImportManager = () => {
               </div>
               <div className="min-w-0 space-y-3">
                 <div
+                  role="status"
+                  aria-live="polite"
                   className={clsx(
                     "rounded-[8px] border px-3 py-2 text-sm leading-6",
                     statusTone(credentialsReady, isDayMode),

@@ -3,7 +3,7 @@
 ## 1. OpenSpec
 
 - [x] 1.1 创建 proposal、design、tasks 和 capability spec。
-- [ ] 1.2 运行 `openspec validate add-wechat-mp-auto-auth-import --strict`。当前环境缺少 `openspec` CLI，`npm run openspec:validate -- --strict` 返回 `openspec: command not found`。
+- [x] 1.2 运行 `openspec validate add-wechat-mp-auto-auth-import --strict`。
 
 ## 2. 后端微信 MP 服务
 
@@ -22,7 +22,7 @@
 ## 4. 测试与验证
 
 - [x] 4.1 补充后端服务层测试，不访问真实微信接口。
-- [ ] 4.2 运行 OpenSpec 校验。当前环境缺少 `openspec` CLI。
+- [x] 4.2 运行 OpenSpec 校验。
 - [x] 4.3 运行后端相关测试。
 - [x] 4.4 运行 lint/build 或说明环境限制。
-- [ ] 4.5 若启动本地页面，验证后台页面在桌面和移动宽度下无明显遮挡。
+- [x] 4.5 使用 Playwright mock API 验证桌面英文与移动中文页面无横向溢出，并走通文章列表、正文预览和解析结果展示。

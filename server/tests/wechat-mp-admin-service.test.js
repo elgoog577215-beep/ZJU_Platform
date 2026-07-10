@@ -3,13 +3,18 @@ const assert = require('node:assert/strict');
 
 const {
   authenticatedUrlFromLoginPayload,
+  assertTrustedMpRedirect,
+  buildTrustedMpApiUrl,
   cookiesToHeader,
   credentialsFromBrowserState,
   extractArticleBody,
   extractAuthenticatedToken,
+  normalizeLoginWaitMs,
+  normalizeMpArticle,
   parseMpArticlesPayload,
   redactCredentials,
   sanitizeCredentials,
+  trustedWechatAssetUrl,
 } = require('../src/services/wechatMpAdminService');
 
 test('WeChat MP token extraction only accepts authenticated trusted backend URLs', () => {
@@ -61,6 +66,33 @@ test('WeChat MP login payload resolves only successful trusted redirects', () =>
     }),
     '',
   );
+});
+
+test('WeChat MP request boundaries reject untrusted APIs, redirects, and assets', () => {
+  assert.equal(
+    buildTrustedMpApiUrl('/cgi-bin/searchbiz'),
+    'https://mp.weixin.qq.com/cgi-bin/searchbiz',
+  );
+  assert.throws(
+    () => buildTrustedMpApiUrl('https://example.com/cgi-bin/searchbiz'),
+    /不受信任/,
+  );
+  assert.doesNotThrow(() => assertTrustedMpRedirect({
+    href: 'https://mp.weixin.qq.com/s/example',
+  }));
+  assert.throws(
+    () => assertTrustedMpRedirect({ href: 'http://127.0.0.1/internal' }),
+    /不受信任/,
+  );
+  assert.equal(trustedWechatAssetUrl('https://mmbiz.qpic.cn/cover.png'), true);
+  assert.equal(trustedWechatAssetUrl('https://qpic.cn.evil.example/cover.png'), false);
+});
+
+test('WeChat MP login timeout is bounded to a safe operational range', () => {
+  assert.equal(normalizeLoginWaitMs(undefined), 300000);
+  assert.equal(normalizeLoginWaitMs(1), 30000);
+  assert.equal(normalizeLoginWaitMs(3600), 600000);
+  assert.equal(normalizeLoginWaitMs(Number.POSITIVE_INFINITY), 300000);
 });
 
 test('WeChat MP browser state requires token and session cookies', () => {
@@ -116,6 +148,33 @@ test('WeChat MP article list payload parser unwraps nested publish info', () => 
     parsed.articles.map((article) => article.title),
     ['First Article', 'Second Article'],
   );
+});
+
+test('WeChat MP article normalization drops unsafe links and cover URLs', () => {
+  const article = normalizeMpArticle({
+    title: 'Unsafe metadata',
+    link: 'javascript:alert(1)',
+    cover: 'http://127.0.0.1/private.png',
+  }, {
+    accountName: 'Test Account',
+    fakeid: 'fakeid',
+    keyword: '',
+  });
+
+  assert.equal(article.link, '');
+  assert.equal(article.cover, '');
+
+  const upgraded = normalizeMpArticle({
+    title: 'Legacy metadata',
+    link: 'http://mp.weixin.qq.com/s/legacy',
+    cover: '//mmbiz.qpic.cn/legacy.png',
+  }, {
+    accountName: 'Test Account',
+    fakeid: 'fakeid',
+    keyword: '',
+  });
+  assert.equal(upgraded.link, 'https://mp.weixin.qq.com/s/legacy');
+  assert.equal(upgraded.cover, 'https://mmbiz.qpic.cn/legacy.png');
 });
 
 test('WeChat MP article extractor returns clean text and image candidates', () => {

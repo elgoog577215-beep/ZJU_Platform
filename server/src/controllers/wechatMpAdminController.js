@@ -5,12 +5,15 @@ const {
   getStatus,
   searchAccounts,
   startLogin,
+  trustedWechatAssetUrl,
 } = require('../services/wechatMpAdminService');
 const {
   downloadWeChatImage,
   parseWithLLM,
 } = require('../utils/wechat');
 const { recordWechatParseRun } = require('./wechatParseController');
+
+const MAX_PARSE_CONTENT_CHARS = 200000;
 
 const toHttpStatus = (error) => {
   if (Number.isInteger(error?.status)) return error.status;
@@ -109,18 +112,28 @@ const parseWechatMpArticle = async (req, res) => {
     if (!contentPayload?.contentText && req.body?.url) {
       contentPayload = await fetchArticleContent({ url: req.body.url });
     }
-    if (!contentPayload?.contentText) {
+    const contentText = String(contentPayload?.contentText || '').trim();
+    if (!contentText) {
       return res.status(422).json({
         error: 'WECHAT_MP_EMPTY_CONTENT',
         message: '请先获取文章正文后再解析',
       });
     }
+    if (contentText.length > MAX_PARSE_CONTENT_CHARS) {
+      return res.status(413).json({
+        error: 'WECHAT_MP_CONTENT_TOO_LARGE',
+        message: '文章正文过长，请缩短到 20 万字符以内后重试',
+      });
+    }
+
+    const sourceCoverImage = String(contentPayload.coverImage || req.body?.article?.cover || '').trim();
+    const safeCoverImage = trustedWechatAssetUrl(sourceCoverImage) ? sourceCoverImage : '';
 
     const scrapedData = {
-      title: contentPayload.title || req.body?.article?.title || 'Untitled',
-      author: contentPayload.author || req.body?.article?.account || 'Unknown',
-      content: contentPayload.contentText,
-      coverImage: contentPayload.coverImage || req.body?.article?.cover || '',
+      title: String(contentPayload.title || req.body?.article?.title || 'Untitled').slice(0, 500),
+      author: String(contentPayload.author || req.body?.article?.account || 'Unknown').slice(0, 300),
+      content: contentText,
+      coverImage: safeCoverImage,
     };
     const parsedData = await parseWithLLM(scrapedData);
     if (!parsedData) {
@@ -192,4 +205,3 @@ module.exports = {
   searchWechatMpAccounts,
   startWechatMpLogin,
 };
-

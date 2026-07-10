@@ -6,6 +6,8 @@
 
 扫码登录是本 change 的硬依赖，不作为可选增强处理。后端依赖图必须包含 `playwright`，部署环境必须安装 Chromium；如果 Chromium 不存在，后台状态接口和登录启动接口都应明确暴露部署错误，方便运维修复。
 
+生产部署在安装后端依赖后显式运行 `npx playwright install chromium`，确保 PM2 所在用户的 Playwright 缓存中存在可执行浏览器；仅安装 npm 包不视为部署完成。
+
 核心流程：
 
 ```text
@@ -76,7 +78,8 @@
 - 前端只能看到二维码 data URL、登录阶段、脱敏状态和 Cookie 名称数量。
 - 后端不在响应、toast、日志、OpenSpec 或测试快照中输出 raw token/cookie。
 - 凭据文件写入 `server/data/wechat-mp/credentials.json`，写入时尽量使用 `0600` 权限。
-- 浏览器 profile 使用 `server/data/wechat-mp/browser-profile`，同一时间只允许一个登录任务。
+- `server/data/wechat-mp/` 与浏览器 profile 使用 `0700` 目录权限，凭据文件使用 `0600` 权限；同一时间只允许一个登录任务。
+- 携带 MP Cookie 的后台 API 请求不跟随重定向；公开文章抓取只允许在 `mp.weixin.qq.com` 内重定向，避免请求被导向其他主机。
 - API 全部挂在 admin 路由下，必须经过 `authenticateToken` 和 `isAdmin`。
 
 ## 可访问性与体验

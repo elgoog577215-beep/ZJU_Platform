@@ -58,6 +58,7 @@ jobs:
             git pull --ff-only origin master
             cd server
             npm install --omit=dev --legacy-peer-deps --package-lock=false
+            npx playwright install chromium
             cd ..
             pm2 restart zju-server --update-env
             for i in $(seq 1 30); do

@@ -1,6 +1,5 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
-const crypto = require('crypto');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -32,6 +31,9 @@ const CREDENTIAL_FILE = path.join(DATA_DIR, 'credentials.json');
 const BROWSER_PROFILE_DIR = path.join(DATA_DIR, 'browser-profile');
 const DEFAULT_LOGIN_WAIT_MS = 5 * 60 * 1000;
 const DEFAULT_REQUEST_TIMEOUT_MS = 30 * 1000;
+const MIN_LOGIN_WAIT_SECONDS = 30;
+const MAX_LOGIN_WAIT_SECONDS = 10 * 60;
+const MAX_ARTICLE_RESPONSE_BYTES = 5 * 1024 * 1024;
 
 const STEALTH_JS = `
 Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
@@ -47,8 +49,14 @@ let loginTask = null;
 const nowIso = () => new Date().toISOString();
 
 const ensureDataDir = () => {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-  fs.mkdirSync(BROWSER_PROFILE_DIR, { recursive: true });
+  for (const directory of [DATA_DIR, BROWSER_PROFILE_DIR]) {
+    fs.mkdirSync(directory, { recursive: true, mode: 0o700 });
+    try {
+      fs.chmodSync(directory, 0o700);
+    } catch {
+      // Best-effort only on non-POSIX filesystems.
+    }
+  }
 };
 
 const writePrivateFile = (filePath, content) => {
@@ -153,6 +161,84 @@ const trustedMpUrl = (url) => {
   }
 };
 
+const normalizeHttpsUrl = (value) => {
+  const text = String(value || '').trim();
+  if (text.startsWith('//')) return `https:${text}`;
+  try {
+    const parsed = new URL(text);
+    const hostname = parsed.hostname.toLowerCase();
+    const canUpgrade = (
+      parsed.protocol === 'http:' &&
+      (!parsed.port || parsed.port === '80') &&
+      !parsed.username &&
+      !parsed.password &&
+      (
+        hostname === 'mp.weixin.qq.com' ||
+        hostname.endsWith('.qpic.cn') ||
+        hostname.endsWith('.qlogo.cn')
+      )
+    );
+    if (canUpgrade) {
+      parsed.protocol = 'https:';
+      parsed.port = '';
+      return parsed.toString();
+    }
+  } catch {
+    return text;
+  }
+  return text;
+};
+
+const trustedWechatAssetUrl = (url) => {
+  try {
+    const parsed = new URL(normalizeHttpsUrl(url));
+    const hostname = parsed.hostname.toLowerCase();
+    return (
+      parsed.protocol === 'https:' &&
+      (!parsed.port || parsed.port === '443') &&
+      !parsed.username &&
+      !parsed.password &&
+      (
+        hostname === 'mp.weixin.qq.com' ||
+        hostname.endsWith('.qpic.cn') ||
+        hostname.endsWith('.qlogo.cn')
+      )
+    );
+  } catch {
+    return false;
+  }
+};
+
+const buildTrustedMpApiUrl = (apiPath) => {
+  const url = new URL(String(apiPath || ''), WECHAT_MP_BASE_URL).toString();
+  const parsed = new URL(url);
+  if (!trustedMpUrl(url) || !parsed.pathname.startsWith('/cgi-bin/')) {
+    const error = new Error('微信公众平台 API 地址不受信任');
+    error.code = 'WECHAT_MP_UNTRUSTED_API_URL';
+    error.status = 500;
+    throw error;
+  }
+  return url;
+};
+
+const redirectOptionsUrl = (options = {}) => {
+  if (options.href) return options.href;
+  const protocol = options.protocol || 'https:';
+  const hostname = options.hostname || options.host || '';
+  const port = options.port && String(options.port) !== '443' ? `:${options.port}` : '';
+  return `${protocol}//${hostname}${port}${options.path || options.pathname || '/'}`;
+};
+
+const assertTrustedMpRedirect = (options) => {
+  const redirectUrl = redirectOptionsUrl(options);
+  if (!trustedMpUrl(redirectUrl)) {
+    const error = new Error('微信文章重定向到了不受信任的地址');
+    error.code = 'WECHAT_MP_UNTRUSTED_REDIRECT';
+    error.status = 400;
+    throw error;
+  }
+};
+
 const extractAuthenticatedToken = (url) => {
   if (!url || !trustedMpUrl(url)) return '';
   const parsed = new URL(url);
@@ -232,7 +318,22 @@ const updateLoginTask = (patch) => {
   Object.assign(loginTask, patch, { updatedAt: nowIso() });
 };
 
+const finishLoginTask = (patch) => {
+  updateLoginTask({
+    ...patch,
+    active: false,
+    qrDataUrl: '',
+  });
+};
+
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const normalizeLoginWaitMs = (waitSeconds) => {
+  const parsed = Number(waitSeconds);
+  const fallbackSeconds = DEFAULT_LOGIN_WAIT_MS / 1000;
+  const seconds = Number.isFinite(parsed) && parsed > 0 ? parsed : fallbackSeconds;
+  return Math.min(MAX_LOGIN_WAIT_SECONDS, Math.max(MIN_LOGIN_WAIT_SECONDS, seconds)) * 1000;
+};
 
 const getBrowserRuntimeStatus = () => {
   const executablePath = chromium.executablePath();
@@ -318,7 +419,6 @@ const saveQrIfChanged = async (page, previousIdentity) => {
 
 const runLoginTask = async ({ waitMs }) => {
   let context = null;
-  let browserClosed = false;
   let lastUrl = '';
   const capturedUrls = [];
   let qrIdentity = '';
@@ -374,7 +474,7 @@ const runLoginTask = async ({ waitMs }) => {
     let switchedToQr = false;
     while (Date.now() < deadline) {
       if (loginTask.cancelled) {
-        updateLoginTask({ stage: 'cancelled', message: '登录已取消', active: false });
+        finishLoginTask({ stage: 'cancelled', message: '登录已取消' });
         return;
       }
       if (page.isClosed()) {
@@ -389,10 +489,9 @@ const runLoginTask = async ({ waitMs }) => {
       });
       if (credentials.token && credentials.cookie) {
         const saved = writeCredentials(credentials);
-        updateLoginTask({
+        finishLoginTask({
           stage: 'saved',
           message: '扫码确认成功，登录态已安全保存',
-          active: false,
           completedAt: nowIso(),
           credentials: sanitizeCredentials(saved),
         });
@@ -414,15 +513,18 @@ const runLoginTask = async ({ waitMs }) => {
     }
     throw new Error('等待微信扫码确认超时，请重新发起登录');
   } catch (error) {
+    if (loginTask?.cancelled) {
+      finishLoginTask({ stage: 'cancelled', message: '登录已取消', error: '' });
+      return;
+    }
     const safeError = redactCredentials(error.message || error);
-    updateLoginTask({
-      active: false,
+    finishLoginTask({
       stage: 'failed',
       message: '微信公众平台登录失败',
       error: safeError,
     });
   } finally {
-    if (context && !browserClosed) {
+    if (context) {
       try {
         await context.close();
       } catch {
@@ -437,7 +539,7 @@ const startLogin = ({ waitSeconds } = {}) => {
   ensureDataDir();
   assertBrowserRuntimeReady();
   if (loginTask?.active) return publicLoginState();
-  const waitMs = Math.max(30, Number(waitSeconds) || DEFAULT_LOGIN_WAIT_MS / 1000) * 1000;
+  const waitMs = normalizeLoginWaitMs(waitSeconds);
   loginTask = {
     active: true,
     cancelled: false,
@@ -464,7 +566,7 @@ const cancelLogin = async () => {
       // Ignore close failures.
     }
   }
-  updateLoginTask({ active: false, stage: 'cancelled', message: '登录已取消' });
+  finishLoginTask({ stage: 'cancelled', message: '登录已取消', error: '' });
   return publicLoginState();
 };
 
@@ -499,12 +601,13 @@ const raiseForMpError = (payload) => {
 
 const mpGetJson = async ({ path: apiPath, params, referer }) => {
   const credentials = requireCredentials();
-  const url = apiPath.startsWith('http') ? apiPath : `${WECHAT_MP_BASE_URL}${apiPath}`;
+  const url = buildTrustedMpApiUrl(apiPath);
   try {
     const response = await axios.get(url, {
       params,
       headers: mpHeaders(credentials, referer),
       timeout: DEFAULT_REQUEST_TIMEOUT_MS,
+      maxRedirects: 0,
     });
     raiseForMpError(response.data);
     return response.data;
@@ -608,7 +711,11 @@ const formatTimestamp = (value) => {
 };
 
 const normalizeMpArticle = (article, { accountName, fakeid, keyword }) => {
-  const link = String(article.link || article.content_url || '').replace(/&amp;/g, '&').trim();
+  const rawLink = normalizeHttpsUrl(
+    String(article.link || article.content_url || '').replace(/&amp;/g, '&').trim(),
+  );
+  const link = trustedMpUrl(rawLink) ? rawLink : '';
+  const rawCover = normalizeHttpsUrl(article.cover || article.cover_url || '');
   return {
     title: String(article.title || '').trim(),
     link,
@@ -618,7 +725,7 @@ const normalizeMpArticle = (article, { accountName, fakeid, keyword }) => {
     keyword: keyword || '',
     create_time: article.create_time || article.update_time || '',
     time_text: formatTimestamp(article.create_time || article.update_time),
-    cover: article.cover || article.cover_url || '',
+    cover: trustedWechatAssetUrl(rawCover) ? rawCover : '',
     author: article.author || '',
     content_status: 'not_fetched',
   };
@@ -718,7 +825,8 @@ const extractArticleBody = (html) => {
   const title = extractMeta($, 'og:title') || $('#activity-name').text().trim() || $('h1').first().text().trim() || $('title').text().trim();
   const author = extractMeta($, 'og:article:author') || $('#js_name').text().trim() || $('.profile_nickname').text().trim();
   const summary = extractMeta($, 'description') || extractMeta($, 'og:description');
-  let cover = extractMeta($, 'og:image') || extractMeta($, 'twitter:image');
+  let cover = normalizeHttpsUrl(extractMeta($, 'og:image') || extractMeta($, 'twitter:image'));
+  if (!trustedWechatAssetUrl(cover)) cover = '';
   let contentRoot = $('#js_content');
   if (!contentRoot.length) contentRoot = $('#js_article');
   if (!contentRoot.length) contentRoot = $('.rich_media_content');
@@ -726,8 +834,8 @@ const extractArticleBody = (html) => {
   contentRoot.find('script,style,iframe').remove();
   const images = [];
   contentRoot.find('img').each((_index, element) => {
-    const imageUrl = $(element).attr('data-src') || $(element).attr('src') || '';
-    if (!imageUrl) return;
+    const imageUrl = normalizeHttpsUrl($(element).attr('data-src') || $(element).attr('src') || '');
+    if (!trustedWechatAssetUrl(imageUrl)) return;
     if (imageUrl.includes('emoji') || imageUrl.includes('qrcode')) return;
     if (!images.includes(imageUrl)) images.push(imageUrl);
   });
@@ -754,10 +862,20 @@ const fetchArticleContent = async ({ url }) => {
     headers: publicArticleHeaders(),
     timeout: DEFAULT_REQUEST_TIMEOUT_MS,
     maxRedirects: 5,
+    maxContentLength: MAX_ARTICLE_RESPONSE_BYTES,
+    maxBodyLength: MAX_ARTICLE_RESPONSE_BYTES,
+    beforeRedirect: assertTrustedMpRedirect,
   });
+  const resolvedUrl = response.request?.res?.responseUrl || articleUrl;
+  if (!trustedMpUrl(resolvedUrl)) {
+    const error = new Error('微信文章最终地址不受信任');
+    error.code = 'WECHAT_MP_UNTRUSTED_REDIRECT';
+    error.status = 400;
+    throw error;
+  }
   const parsed = extractArticleBody(response.data || '');
   return {
-    url: response.request?.res?.responseUrl || articleUrl,
+    url: resolvedUrl,
     ...parsed,
     content_available: Boolean(parsed.contentText),
     content_status: parsed.contentText ? 'fetched' : 'empty',
@@ -772,7 +890,9 @@ const getStatus = () => ({
 
 module.exports = {
   WECHAT_MP_BASE_URL,
+  assertTrustedMpRedirect,
   authenticatedUrlFromLoginPayload,
+  buildTrustedMpApiUrl,
   cancelLogin,
   cookieNames,
   cookiesToHeader,
@@ -784,6 +904,8 @@ module.exports = {
   getBrowserRuntimeStatus,
   getStatus,
   maskSecret,
+  normalizeLoginWaitMs,
+  normalizeMpArticle,
   parseMpArticlesPayload,
   readCredentials,
   redactCredentials,
@@ -791,5 +913,6 @@ module.exports = {
   searchAccounts,
   startLogin,
   trustedMpUrl,
+  trustedWechatAssetUrl,
   writeCredentials,
 };
