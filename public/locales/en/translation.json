@@ -2136,6 +2136,7 @@
       "overview": "Overview",
       "pending": "Review Center",
       "intelligence": "Intelligence Governance",
+      "wechatMp": "WeChat Import",
       "events": "Events Hub",
       "hackathon": "Hackathon",
       "articles": "Articles",
@@ -2328,6 +2329,7 @@
       "overview": "Key metrics, tasks, and common shortcuts",
       "pending": "Review pending content in one place",
       "intelligence": "Event governance and model interfaces",
+      "wechatMp": "Scan into the MP backend and import articles",
       "events": "Event content, registration, and basics",
       "hackathon": "Hackathon registrations and participant data",
       "articles": "Articles, news, and long-form content",
@@ -2762,6 +2764,129 @@
       "initial_desc": "Candidate scanning is read-only and does not modify historical data.",
       "empty_title": "No matching migration candidates",
       "empty_desc": "Try another organization, add organization aliases, or inspect historical organizer text."
+    },
+    "wechat_mp": {
+      "title": "WeChat MP Import",
+      "description": "Scan into the WeChat MP backend, acquire article links automatically, fetch article bodies, render a preview, and send the content through the existing WeChat parser.",
+      "actions": {
+        "refresh_status": "Refresh Status",
+        "start_login": "Scan Login",
+        "cancel_login": "Cancel Login",
+        "search_account": "Search",
+        "fetch_articles": "Fetch Articles",
+        "fetch_content": "Fetch Body",
+        "parse_content": "AI Parse"
+      },
+      "notes": {
+        "ready": "The scanned login session is saved. Article link and body acquisition are available.",
+        "need_login": "Scan login is a hard dependency for collection. Complete MP backend login before fetching article links.",
+        "runtime_missing": "Scan login requires Playwright Chromium. The backend browser runtime is missing and must be installed before collection can run."
+      },
+      "auth": {
+        "title": "Scan Authentication",
+        "description": "The backend headless browser opens the WeChat MP login page, while this admin page renders the QR code and polls login state.",
+        "qr_alt": "WeChat MP login QR code",
+        "qr_empty": "Start scan login to show the QR code",
+        "idle_message": "Waiting to start scan login",
+        "cookie_names": "Saved Cookies",
+        "token_mask": "Token",
+        "chromium_path": "Chromium Path"
+      },
+      "collect": {
+        "title": "Article Link Acquisition",
+        "description": "Enter an account name or fakeid, then fetch published article links visible from the MP backend, optionally filtered by keyword."
+      },
+      "articles": {
+        "title": "Article List",
+        "description": "Candidate articles returned by the MP backend. Select one to fetch its body.",
+        "empty_title": "No article candidates yet",
+        "empty_desc": "Complete scan login first, then enter an account name to fetch articles.",
+        "loading": "Fetching articles...",
+        "untitled": "Untitled article",
+        "no_summary": "No summary"
+      },
+      "preview": {
+        "title": "Body Preview and Parse",
+        "description": "Select an article, fetch its body, and render it here.",
+        "open_original": "Open Original",
+        "loading_content": "Fetching body...",
+        "need_fetch_content": "Fetch the article body first. After body acquisition succeeds, the WeChat article content renders here.",
+        "empty_title": "Select an article",
+        "empty_desc": "After article link acquisition completes, select one item from the list to fetch the body."
+      },
+      "parse": {
+        "title": "Parsed Result",
+        "fields": {
+          "title": "Title",
+          "category": "Category",
+          "date": "Date",
+          "location": "Location",
+          "organizer": "Organizer",
+          "notice_type": "Notice Type"
+        }
+      },
+      "metrics": {
+        "browser": "Browser Runtime",
+        "credentials": "Login Session",
+        "login_stage": "Login Stage",
+        "fetched_articles": "Fetched Articles",
+        "remote_total": "Remote Total",
+        "content_status": "Body Status",
+        "content_length": "Body Length",
+        "images": "Body Images"
+      },
+      "fields": {
+        "account_name": "Account Name",
+        "fakeid": "Account fakeid",
+        "keyword": "Keyword",
+        "count": "Page Size",
+        "max_pages": "Pages",
+        "allow_first": "Allow the first candidate when no exact account match is found"
+      },
+      "placeholders": {
+        "account_name": "For example: Zhejiang University",
+        "fakeid": "Can be filled from search results",
+        "keyword": "Optional, used to search article titles"
+      },
+      "status": {
+        "ready": "Ready",
+        "missing": "Missing",
+        "saved": "Saved",
+        "not_saved": "Not Saved",
+        "none": "None"
+      },
+      "login_stages": {
+        "idle": "Idle",
+        "starting": "Starting",
+        "opening": "Opening login page",
+        "waiting_for_scan": "Waiting for scan",
+        "qr_ready": "QR ready",
+        "saved": "Saved",
+        "failed": "Failed",
+        "cancelled": "Cancelled"
+      },
+      "content_status": {
+        "not_fetched": "Not fetched",
+        "fetched": "Fetched",
+        "empty": "Empty"
+      },
+      "toasts": {
+        "status_failed": "Failed to load WeChat import status",
+        "login_started": "Scan login started",
+        "login_failed": "Failed to start scan login",
+        "login_cancelled": "Login cancelled",
+        "cancel_failed": "Failed to cancel login",
+        "account_required": "Enter an account name or fakeid",
+        "account_search_failed": "Failed to search accounts",
+        "login_required": "Complete scan login first",
+        "articles_failed": "Failed to fetch article list",
+        "article_required": "Select an article first",
+        "content_ready": "Body fetched",
+        "content_failed": "Failed to fetch body",
+        "content_required": "Fetch the body first",
+        "parse_ready": "Parsing complete",
+        "parse_failed": "Failed to parse body"
+      }
     }
   },
   "not_found": {

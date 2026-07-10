@@ -31,6 +31,7 @@ import {
   Trees,
   Handshake,
   GitBranch,
+  QrCode,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -50,6 +51,7 @@ import AiAssistantManager from "./AiAssistantManager";
 import EcosystemPartnerManager from "./EcosystemPartnerManager";
 import EventAttributionMigrationManager from "./EventAttributionMigrationManager";
 import MediaCategoryManager from "./MediaCategoryManager";
+import WeChatMpImportManager from "./WeChatMpImportManager";
 import { AdminButton } from "./AdminUI";
 
 const STORAGE_KEY = "admin.activeTab";
@@ -63,6 +65,7 @@ const KNOWN_TAB_IDS = new Set([
   "overview",
   "pending",
   "intelligence",
+  "wechat-mp",
   "attribution",
   "events",
   "hackathon",
@@ -188,6 +191,15 @@ const AdminDashboard = () => {
             description: t(
               "admin.descriptions.intelligence",
               "活动治理和模型接口",
+            ),
+          },
+          {
+            id: "wechat-mp",
+            label: t("admin.tabs.wechatMp", "微信采集"),
+            icon: QrCode,
+            description: t(
+              "admin.descriptions.wechatMp",
+              "扫码登录公众号后台并导入文章",
             ),
           },
           {
@@ -437,6 +449,8 @@ const AdminDashboard = () => {
         return <SettingsManager />;
       case "intelligence":
         return <AiAssistantManager />;
+      case "wechat-mp":
+        return <WeChatMpImportManager />;
       case "attribution":
         return <EventAttributionMigrationManager />;
       case "users":
