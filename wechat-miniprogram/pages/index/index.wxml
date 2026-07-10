@@ -1,12 +1,62 @@
-<web-view src="{{src}}" bindload="handleLoad" binderror="handleError" bindmessage="handleMessage"></web-view>
-<cover-view wx:if="{{isLocalDebug}}" class="local-debug-panel">
-  <cover-view class="local-debug-title">{{debugLabel}}</cover-view>
-  <cover-view class="local-debug-status">{{loadState}}</cover-view>
-  <cover-view class="local-debug-url">{{displaySrc}}</cover-view>
-  <cover-view class="local-debug-actions">
-    <cover-view class="local-debug-button primary" bindtap="loadLocal">刷新本地</cover-view>
-    <cover-view class="local-debug-button" bindtap="loadProduction">线上版</cover-view>
-    <cover-view class="local-debug-button" bindtap="copyCurrentUrl">复制地址</cover-view>
-    <cover-view class="local-debug-button danger" bindtap="exitWebView">退出</cover-view>
+<block wx:if="{{isProjectShare}}">
+  <view class="project-share-page">
+    <project-share-hero project="{{project}}" copy="{{copy}}" />
+
+    <view class="project-share-body">
+      <view wx:if="{{loading}}" class="project-status">{{copy.loading}}</view>
+      <view wx:elif="{{failed}}" class="project-status warn">{{copy.failed}}</view>
+
+      <project-share-meta items="{{metaItems}}" />
+      <project-share-tags sections="{{tagSections}}" />
+    </view>
+
+    <project-share-actions
+      copy="{{copy}}"
+      bind:opendetail="openDetail"
+      bind:openplaza="openPlaza"
+    />
+  </view>
+</block>
+
+<block wx:elif="{{!showWebView}}">
+  <view class="native-home-page">
+    <view class="native-home-card">
+      <view class="native-home-kicker">TUOTUZJU MINI PROGRAM</view>
+      <view class="native-home-title">拓途浙享</view>
+      <view class="native-home-desc">
+        校园项目、活动和资料的微信小程序入口。分享项目时会先进入原生项目名片，再前往详情或项目广场。
+      </view>
+      <view class="native-home-origin">https://tuotuzju.com</view>
+    </view>
+
+    <view class="native-home-actions">
+      <button class="bridge-button primary" bindtap="openPlaza">进入项目广场</button>
+      <button class="bridge-button secondary" bindtap="openEvents">查看校园活动</button>
+      <button class="bridge-button secondary" bindtap="exitWebView">诊断入口</button>
+    </view>
+  </view>
+</block>
+
+<block wx:else>
+  <web-view src="{{src}}" bindload="handleLoad" binderror="handleError" bindmessage="handleMessage"></web-view>
+  <cover-view wx:if="{{showWebViewStatus && !isLocalDebug}}" class="webview-status-panel">
+    <cover-view class="webview-status-title">正在打开拓途浙享</cover-view>
+    <cover-view class="webview-status-desc">{{loadState}}</cover-view>
+    <cover-view class="webview-status-url">{{displaySrc}}</cover-view>
+    <cover-view class="webview-status-actions">
+      <cover-view class="webview-status-button primary" bindtap="loadLocal">重新加载</cover-view>
+      <cover-view class="webview-status-button" bindtap="exitWebView">打开诊断页</cover-view>
+    </cover-view>
   </cover-view>
-</cover-view>
+  <cover-view wx:if="{{isLocalDebug}}" class="local-debug-panel">
+    <cover-view class="local-debug-title">{{debugLabel}}</cover-view>
+    <cover-view class="local-debug-status">{{loadState}}</cover-view>
+    <cover-view class="local-debug-url">{{displaySrc}}</cover-view>
+    <cover-view class="local-debug-actions">
+      <cover-view class="local-debug-button primary" bindtap="loadLocal">刷新本地</cover-view>
+      <cover-view class="local-debug-button" bindtap="loadProduction">线上版</cover-view>
+      <cover-view class="local-debug-button" bindtap="copyCurrentUrl">复制地址</cover-view>
+      <cover-view class="local-debug-button danger" bindtap="exitWebView">退出</cover-view>
+    </cover-view>
+  </cover-view>
+</block>

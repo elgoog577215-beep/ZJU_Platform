@@ -1,32 +1,16 @@
 <view class="native-share-page">
-  <view class="native-share-surface">
-    <view class="native-share-kicker">{{copy.kicker}}</view>
-    <view class="native-share-title">{{copy.title}}</view>
-    <view class="native-share-desc">{{copy.description}}</view>
+  <project-share-hero project="{{project}}" copy="{{copy}}" />
 
-    <view class="native-share-preview">
-      <image
-        wx:if="{{imageUrl}}"
-        class="native-share-image"
-        src="{{imageUrl}}"
-        mode="aspectFill"
-      />
-      <view class="native-share-preview-body">
-        <view class="native-share-preview-title">{{shareTitle}}</view>
-        <view wx:if="{{shareText}}" class="native-share-preview-text">{{shareText}}</view>
-        <view wx:if="{{imageStatus !== 'idle'}}" class="native-share-image-status {{imageStatus}}">
-          {{imageStatus === 'loading' ? copy.imagePreparing : imageStatus === 'ready' ? copy.imageReady : copy.imageFallback}}
-        </view>
-      </view>
-    </view>
+  <view class="native-share-body">
+    <view wx:if="{{loading}}" class="project-status">{{copy.loading}}</view>
+    <view wx:elif="{{failed}}" class="project-status warn">{{copy.failed}}</view>
+
+    <project-share-meta items="{{metaItems}}" />
+    <project-share-tags sections="{{tagSections}}" />
   </view>
 
   <view class="native-share-actions">
-    <button class="native-share-button primary" open-type="share">
-      {{copy.share}}
-    </button>
-    <button class="native-share-button secondary" bindtap="goBack">
-      {{copy.back}}
-    </button>
+    <button class="project-share-button primary" open-type="share">{{copy.shareNow}}</button>
+    <button class="project-share-button ghost" bindtap="goBack">{{copy.back}}</button>
   </view>
 </view>

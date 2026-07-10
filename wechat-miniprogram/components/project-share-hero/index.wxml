@@ -1,0 +1,15 @@
+<view class="project-share-hero">
+  <view class="project-share-kicker">{{copy.kicker}}</view>
+  <view class="project-share-title">{{project.title}}</view>
+  <view class="project-share-desc">{{project.intro}}</view>
+
+  <view class="project-share-cover-wrap">
+    <image
+      wx:if="{{project.hasCover}}"
+      class="project-share-cover"
+      src="{{project.coverUrl}}"
+      mode="aspectFill"
+    />
+    <view wx:else class="project-share-cover fallback">{{project.titleInitials}}</view>
+  </view>
+</view>

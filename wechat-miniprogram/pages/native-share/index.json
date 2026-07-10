@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "\u5206\u4eab\u9879\u76ee",
+  "usingComponents": {
+    "project-share-hero": "/components/project-share-hero/index",
+    "project-share-meta": "/components/project-share-meta/index",
+    "project-share-tags": "/components/project-share-tags/index"
+  }
+}

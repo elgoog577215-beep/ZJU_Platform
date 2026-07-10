@@ -1,15 +1,16 @@
 <view class="home-page">
   <view class="home-card">
     <view class="home-kicker">TUOTUZJU MINI PROGRAM</view>
-    <view class="home-title">Tuotu ZJU</view>
+    <view class="home-title">拓途浙享</view>
     <view class="home-desc">
-      Native diagnostic entry. If this page is visible, the mini program shell is compiling and rendering correctly.
+      校园项目、活动和资料的微信小程序入口。分享项目时会先进入原生项目名片，再前往详情或项目广场。
     </view>
     <view class="home-origin">{{webOrigin}}</view>
   </view>
 
   <view class="home-actions">
-    <button class="bridge-button primary" bindtap="openEvents">Open Events</button>
-    <button class="bridge-button secondary" bindtap="openFallback">Open Diagnostic</button>
+    <button class="bridge-button primary" bindtap="openProjects">进入项目广场</button>
+    <button class="bridge-button secondary" bindtap="openEvents">查看校园活动</button>
+    <button class="bridge-button secondary" bindtap="openFallback">诊断入口</button>
   </view>
 </view>

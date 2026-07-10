@@ -12,7 +12,7 @@ Page({
 
   openHome() {
     wx.reLaunch({
-      url: "/pages/webview/index",
+      url: "/pages/home/index",
     });
   },
 });

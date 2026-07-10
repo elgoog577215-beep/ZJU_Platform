@@ -1,12 +1,12 @@
 <view class="bridge-page">
   <view class="bridge-card">
     <view class="bridge-kicker">WECHAT WEBVIEW</view>
-    <view class="bridge-title">Page Unavailable</view>
+    <view class="bridge-title">页面暂时无法打开</view>
     <view class="bridge-desc">
-      The web page could not be loaded. Check the network, business domain allowlist, AppID, and web-view URL.
+      网页加载失败，请检查网络、业务域名配置和 WebView 地址。你可以先返回小程序首页，再重新进入。
     </view>
   </view>
   <view class="bridge-actions">
-    <button class="bridge-button primary" bindtap="openHome">Retry Events</button>
+    <button class="bridge-button primary" bindtap="openHome">返回小程序首页</button>
   </view>
 </view>

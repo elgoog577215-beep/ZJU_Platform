@@ -30,6 +30,7 @@ import ProjectSharePoster from "./ProjectSharePoster";
 import { PROJECT_PLAZA_CSS } from "./projectPlaza.styles";
 import BodyPortal from "../shared/ui/BodyPortal";
 import { isMiniProgramWebView } from "../utils/miniProgramEnv";
+import { shareViaMiniProgram, shareViaNativeMiniProgram } from "../utils/wechatMiniProgramBridge";
 
 const PROGRESS_META = {
   idea: { labelKey: "project_plaza.progress.idea", fallback: "构思中", c: "var(--p-idea)" },
@@ -222,7 +223,9 @@ const DetailModal = ({ p, onClose, onFav, loggedIn, onOpenPoster, variant }) => 
               : <span className="ppp-cbtn primary ppp-disabled"><Github size={16} />{t("project_plaza.actions.no_repo", "无仓库")}</span>}
             <button className="ppp-cbtn ghost" type="button" onClick={() => onOpenPoster(p)}>
               <Share2 size={16} />
-              {t("project_share_poster.open_action", "生成海报")}
+              {isMiniProgramWebView()
+                ? t("project_share_poster.miniapp_card_share", "分享小程序卡片")
+                : t("project_share_poster.open_action", "生成海报")}
             </button>
             {loggedIn
               ? <span className="ppp-cbtn ghost"><Mail size={16} />{p.contact_wechat ? `${t("project_plaza.contact.wechat", "微信")} · ${p.contact_wechat}` : (p.contact_email || t("project_plaza.contact.empty", "未留联系方式"))}</span>
@@ -461,10 +464,36 @@ const ProjectPlaza = () => {
 
   useBackClose(selected !== null, closeDetail);
 
-  const openPoster = useCallback((project) => {
+  const openPoster = useCallback(async (project) => {
+    if (isMiniProgramWebView()) {
+      const title = project?.title || t("project_plaza.untitled", "未命名项目");
+      const intro = project?.intro || project?.description || t("project_share_poster.default_intro", "一个正在生长的校园项目");
+      const projectId = String(project?.id || "");
+      const payload = {
+        title,
+        text: String(intro).slice(0, 120),
+        path: `/projects?id=${encodeURIComponent(projectId)}`,
+        imageUrl: project?.cover_url || project?.images?.[0] || "",
+      };
+
+      try {
+        await shareViaNativeMiniProgram(payload);
+        setSelected(null);
+        toast.success(t("project_share_poster.miniapp_share_opened", "已打开小程序分享"));
+      } catch {
+        try {
+          await shareViaMiniProgram(payload);
+          toast.success(t("common.miniapp_share_ready", "小程序分享已准备"));
+        } catch {
+          toast.error(t("project_share_poster.share_failed", "分享暂时不可用，请稍后重试"));
+        }
+      }
+      return;
+    }
+
     setPosterProject(project);
     setSelected(null);
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (!selected && !posterProject) return undefined;

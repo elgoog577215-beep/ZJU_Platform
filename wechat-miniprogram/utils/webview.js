@@ -5,7 +5,7 @@ const LOCAL_WEB_ORIGIN = "http://10.195.244.93:5180";
 const USE_LOCAL_WEB_ORIGIN = false;
 const WEB_ORIGIN = USE_LOCAL_WEB_ORIGIN ? LOCAL_WEB_ORIGIN : PRODUCTION_WEB_ORIGIN;
 const DEFAULT_PATH = "/events";
-const WEBVIEW_CACHE_VERSION = "20260707_poster_modal";
+const WEBVIEW_CACHE_VERSION = "20260710_project_share_card";
 
 const KNOWN_WEB_ORIGINS = Array.from(new Set([
   WEB_ORIGIN,
@@ -112,14 +112,14 @@ const appendQueryParam = (path, key, value) => {
 const getMiniappNavInset = () => {
   try {
     const windowInfo = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
-    const screenHeight = Number(windowInfo?.screenHeight || 0);
-    const windowHeight = Number(windowInfo?.windowHeight || 0);
+    const screenHeight = Number((windowInfo && windowInfo.screenHeight) || 0);
+    const windowHeight = Number((windowInfo && windowInfo.windowHeight) || 0);
     const windowDiff = Math.round(screenHeight - windowHeight);
     if (windowDiff > 40 && windowDiff < 180) {
       return windowDiff;
     }
 
-    const statusBarHeight = Number(windowInfo?.statusBarHeight || 0);
+    const statusBarHeight = Number((windowInfo && windowInfo.statusBarHeight) || 0);
     const menuButton = wx.getMenuButtonBoundingClientRect ? wx.getMenuButtonBoundingClientRect() : null;
     if (menuButton && statusBarHeight > 0) {
       const navBarHeight = (menuButton.top - statusBarHeight) * 2 + menuButton.height;
