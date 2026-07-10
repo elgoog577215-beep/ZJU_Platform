@@ -34,6 +34,7 @@ const DEFAULT_REQUEST_TIMEOUT_MS = 30 * 1000;
 const MIN_LOGIN_WAIT_SECONDS = 30;
 const MAX_LOGIN_WAIT_SECONDS = 10 * 60;
 const MAX_ARTICLE_RESPONSE_BYTES = 5 * 1024 * 1024;
+const MAX_DELAY_SECONDS = 60 * 60;
 
 const STEALTH_JS = `
 Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
@@ -333,6 +334,48 @@ const normalizeLoginWaitMs = (waitSeconds) => {
   const fallbackSeconds = DEFAULT_LOGIN_WAIT_MS / 1000;
   const seconds = Number.isFinite(parsed) && parsed > 0 ? parsed : fallbackSeconds;
   return Math.min(MAX_LOGIN_WAIT_SECONDS, Math.max(MIN_LOGIN_WAIT_SECONDS, seconds)) * 1000;
+};
+
+const normalizeDelayRangeSeconds = (value, fallback = []) => {
+  const source = Array.isArray(value)
+    ? value
+    : String(value || '')
+      .split(/[,\s，-]+/)
+      .filter(Boolean);
+  let values = source
+    .map((item) => Number(item))
+    .filter((item) => Number.isFinite(item) && item >= 0)
+    .map((item) => Math.min(MAX_DELAY_SECONDS, item));
+  if (values.length < 2 && Array.isArray(fallback) && fallback.length >= 2) {
+    values = fallback
+      .map((item) => Number(item))
+      .filter((item) => Number.isFinite(item) && item >= 0)
+      .map((item) => Math.min(MAX_DELAY_SECONDS, item));
+  }
+  if (values.length < 2) return [];
+  const [min, max] = values.slice(0, 2).sort((left, right) => left - right);
+  return [min, max];
+};
+
+const waitSeconds = async (seconds, runtime = {}) => {
+  const normalized = Number(seconds);
+  if (!Number.isFinite(normalized) || normalized <= 0) return 0;
+  const ms = Math.round(normalized * 1000);
+  if (typeof runtime.sleep === 'function') {
+    await runtime.sleep(ms);
+  } else {
+    await delay(ms);
+  }
+  return ms;
+};
+
+const waitDelayRange = async (range, runtime = {}) => {
+  const normalized = normalizeDelayRangeSeconds(range, []);
+  if (!normalized.length) return 0;
+  const [min, max] = normalized;
+  const random = typeof runtime.random === 'function' ? runtime.random() : Math.random();
+  const seconds = min + Math.max(0, Math.min(1, random)) * (max - min);
+  return waitSeconds(seconds, runtime);
 };
 
 const getBrowserRuntimeStatus = () => {
@@ -738,6 +781,9 @@ const fetchArticles = async ({
   count = 20,
   maxPages = 1,
   allowFirst = false,
+  pagePauseSeconds,
+  pacing = {},
+  runtime = {},
 }) => {
   const credentials = requireCredentials();
   const name = String(accountName || '').trim();
@@ -757,9 +803,13 @@ const fetchArticles = async ({
 
   const pageSize = Math.max(1, Math.min(Number(count) || 20, 100));
   const pages = Math.max(1, Math.min(Number(maxPages) || 1, 5));
+  const pauseSeconds = Math.max(0, Number(pagePauseSeconds ?? pacing.page_pause_seconds ?? 0) || 0);
   const articles = [];
   let total = 0;
   for (let pageIndex = 0; pageIndex < pages; pageIndex += 1) {
+    if (pageIndex > 0 && pauseSeconds > 0) {
+      await waitSeconds(pauseSeconds, runtime);
+    }
     const payload = await mpGetJson({
       path: '/cgi-bin/appmsgpublish',
       params: {
@@ -904,6 +954,7 @@ module.exports = {
   getBrowserRuntimeStatus,
   getStatus,
   maskSecret,
+  normalizeDelayRangeSeconds,
   normalizeLoginWaitMs,
   normalizeMpArticle,
   parseMpArticlesPayload,
@@ -914,5 +965,7 @@ module.exports = {
   startLogin,
   trustedMpUrl,
   trustedWechatAssetUrl,
+  waitDelayRange,
+  waitSeconds,
   writeCredentials,
 };

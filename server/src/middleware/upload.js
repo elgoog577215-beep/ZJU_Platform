@@ -25,8 +25,20 @@ const UPLOAD_CONFIG = {
       maxSize: 100 * 1024 * 1024 // 100MB for audio
     },
     document: {
-      extensions: ['.pdf', '.doc', '.docx', '.txt', '.md', '.markdown', '.html', '.htm'],
-      mimeTypes: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'text/markdown', 'text/x-markdown', 'text/html'],
+      extensions: ['.pdf', '.doc', '.docx', '.txt', '.md', '.markdown', '.html', '.htm', '.csv', '.tsv', '.json'],
+      mimeTypes: [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'text/plain',
+        'text/markdown',
+        'text/x-markdown',
+        'text/html',
+        'text/csv',
+        'text/tab-separated-values',
+        'application/json',
+        'application/vnd.ms-excel',
+      ],
       maxSize: 20 * 1024 * 1024 // 20MB for documents
     }
   }

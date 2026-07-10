@@ -3,25 +3,32 @@ import clsx from "clsx";
 import DOMPurify from "dompurify";
 import {
   AlertTriangle,
+  CalendarClock,
   CheckCircle2,
   ClipboardList,
+  Clock3,
   ExternalLink,
   FileText,
   KeyRound,
   Loader2,
   LogIn,
   Newspaper,
+  Play,
+  Plus,
   QrCode,
   RefreshCw,
   Search,
+  Settings2,
   ShieldCheck,
+  Trash2,
+  Upload,
   Wand2,
   XCircle,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 
-import api from "../../services/api";
+import api, { uploadFile } from "../../services/api";
 import {
   AdminButton,
   AdminEmptyState,
@@ -57,12 +64,59 @@ const initialForm = {
   allowFirst: false,
 };
 
+const initialIngestSettings = {
+  enabled: false,
+  daily_run_time: "03:30",
+  timezone: "Asia/Shanghai",
+  query_delay_range: [55, 120],
+  page_pause_seconds: 3,
+  content_delay_range: [3, 8],
+  count_per_page: 20,
+  max_pages: 1,
+  fetch_content: true,
+};
+
+const initialIngestOverview = {
+  settings: initialIngestSettings,
+  accounts: [],
+  runs: [],
+  articles: [],
+};
+
+const initialIngestAccountForm = {
+  name: "",
+  fakeid: "",
+  alias: "",
+  keywords: "",
+  enabled: true,
+  fetch_content: true,
+  count_per_page: 20,
+  max_pages: 1,
+};
+
 const getApiErrorMessage = (error, fallback, language) => {
   if (!String(language || "").toLowerCase().startsWith("zh")) return fallback;
   return error?.response?.data?.message || error?.response?.data?.error || error?.message || fallback;
 };
 
 const formatNumber = (value) => new Intl.NumberFormat().format(Number(value || 0));
+
+const formatDateTime = (value, language) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return new Intl.DateTimeFormat(language || undefined, {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+};
+
+const splitKeywords = (value) => String(value || "")
+  .split(/[，,;；\n]/)
+  .map((item) => item.trim())
+  .filter(Boolean);
 
 const textParagraphs = (value) =>
   String(value || "")
@@ -105,6 +159,13 @@ const WeChatMpImportManager = () => {
   const [contentLoading, setContentLoading] = useState(false);
   const [parsedResult, setParsedResult] = useState(null);
   const [parsing, setParsing] = useState(false);
+  const [ingestOverview, setIngestOverview] = useState(initialIngestOverview);
+  const [ingestLoading, setIngestLoading] = useState(true);
+  const [ingestSaving, setIngestSaving] = useState(false);
+  const [ingestRunning, setIngestRunning] = useState(false);
+  const [ingestImporting, setIngestImporting] = useState(false);
+  const [ingestFile, setIngestFile] = useState(null);
+  const [ingestAccountForm, setIngestAccountForm] = useState(initialIngestAccountForm);
 
   const login = status?.login || initialStatus.login;
   const runtimeReady = Boolean(status?.runtime?.chromium_installed);
@@ -113,6 +174,11 @@ const WeChatMpImportManager = () => {
   const articles = articlesResult?.articles || [];
   const selectedUrl = selectedArticle?.link || "";
   const contentTextLength = content?.contentText?.length || 0;
+  const ingestSettings = { ...initialIngestSettings, ...(ingestOverview.settings || {}) };
+  const ingestAccounts = ingestOverview.accounts || [];
+  const ingestRuns = ingestOverview.runs || [];
+  const ingestArticles = ingestOverview.articles || [];
+  const latestRun = ingestRuns[0] || null;
 
   const sanitizedContentHtml = useMemo(() => {
     if (!content?.contentHtml) return "";
@@ -136,9 +202,29 @@ const WeChatMpImportManager = () => {
     }
   }, [i18n.resolvedLanguage, t]);
 
+  const loadIngestOverview = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setIngestLoading(true);
+    try {
+      const response = await api.get("/admin/wechat-mp/ingest", { noRetry: true });
+      setIngestOverview({
+        settings: { ...initialIngestSettings, ...(response.data?.settings || {}) },
+        accounts: response.data?.accounts || [],
+        runs: response.data?.runs || [],
+        articles: response.data?.articles || [],
+      });
+    } catch (error) {
+      if (!silent) {
+        toast.error(getApiErrorMessage(error, t("admin.wechat_mp.toasts.ingest_load_failed"), i18n.resolvedLanguage));
+      }
+    } finally {
+      if (!silent) setIngestLoading(false);
+    }
+  }, [i18n.resolvedLanguage, t]);
+
   useEffect(() => {
     loadStatus();
-  }, [loadStatus]);
+    loadIngestOverview();
+  }, [loadIngestOverview, loadStatus]);
 
   useEffect(() => {
     if (!loginActive) return undefined;
@@ -294,6 +380,133 @@ const WeChatMpImportManager = () => {
       toast.error(getApiErrorMessage(error, t("admin.wechat_mp.toasts.parse_failed"), i18n.resolvedLanguage));
     } finally {
       setParsing(false);
+    }
+  };
+
+  const updateIngestSetting = (key, value) => {
+    setIngestOverview((previous) => ({
+      ...previous,
+      settings: {
+        ...initialIngestSettings,
+        ...(previous.settings || {}),
+        [key]: value,
+      },
+    }));
+  };
+
+  const updateIngestDelay = (key, index, value) => {
+    const next = [...(ingestSettings[key] || initialIngestSettings[key])];
+    next[index] = value;
+    updateIngestSetting(key, next);
+  };
+
+  const updateIngestAccountForm = (key, value) => {
+    setIngestAccountForm((previous) => ({ ...previous, [key]: value }));
+  };
+
+  const saveIngestSettings = async () => {
+    setIngestSaving(true);
+    try {
+      const payload = {
+        ...ingestSettings,
+        query_delay_range: [
+          Number(ingestSettings.query_delay_range?.[0]) || 55,
+          Number(ingestSettings.query_delay_range?.[1]) || 120,
+        ],
+        content_delay_range: [
+          Number(ingestSettings.content_delay_range?.[0]) || 3,
+          Number(ingestSettings.content_delay_range?.[1]) || 8,
+        ],
+        page_pause_seconds: Number(ingestSettings.page_pause_seconds) || 3,
+        count_per_page: Number(ingestSettings.count_per_page) || 20,
+        max_pages: Number(ingestSettings.max_pages) || 1,
+      };
+      const response = await api.put("/admin/wechat-mp/ingest/settings", payload);
+      setIngestOverview((previous) => ({
+        ...previous,
+        settings: { ...initialIngestSettings, ...(response.data?.settings || {}) },
+      }));
+      toast.success(t("admin.wechat_mp.toasts.ingest_settings_saved"));
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, t("admin.wechat_mp.toasts.ingest_settings_failed"), i18n.resolvedLanguage));
+    } finally {
+      setIngestSaving(false);
+    }
+  };
+
+  const saveIngestAccount = async () => {
+    if (!ingestAccountForm.name.trim() && !ingestAccountForm.fakeid.trim()) {
+      toast.error(t("admin.wechat_mp.toasts.account_required"));
+      return;
+    }
+    setIngestSaving(true);
+    try {
+      await api.post("/admin/wechat-mp/ingest/accounts", {
+        ...ingestAccountForm,
+        keywords: splitKeywords(ingestAccountForm.keywords),
+        count_per_page: Number(ingestAccountForm.count_per_page) || 20,
+        max_pages: Number(ingestAccountForm.max_pages) || 1,
+      });
+      setIngestAccountForm(initialIngestAccountForm);
+      await loadIngestOverview({ silent: true });
+      toast.success(t("admin.wechat_mp.toasts.ingest_account_saved"));
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, t("admin.wechat_mp.toasts.ingest_account_failed"), i18n.resolvedLanguage));
+    } finally {
+      setIngestSaving(false);
+    }
+  };
+
+  const deleteIngestAccount = async (account) => {
+    const confirmed = window.confirm(t("admin.wechat_mp.ingest.confirm_delete_account", {
+      name: account.name || account.fakeid,
+    }));
+    if (!confirmed) return;
+    try {
+      await api.delete(`/admin/wechat-mp/ingest/accounts/${account.id}`);
+      await loadIngestOverview({ silent: true });
+      toast.success(t("admin.wechat_mp.toasts.ingest_account_deleted"));
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, t("admin.wechat_mp.toasts.ingest_account_delete_failed"), i18n.resolvedLanguage));
+    }
+  };
+
+  const importIngestAccounts = async () => {
+    if (!ingestFile) {
+      toast.error(t("admin.wechat_mp.toasts.ingest_file_required"));
+      return;
+    }
+    setIngestImporting(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", ingestFile);
+      const response = await uploadFile("/admin/wechat-mp/ingest/accounts/import", formData);
+      setIngestFile(null);
+      await loadIngestOverview({ silent: true });
+      toast.success(t("admin.wechat_mp.toasts.ingest_imported", {
+        count: response.data?.imported_count || 0,
+      }));
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, t("admin.wechat_mp.toasts.ingest_import_failed"), i18n.resolvedLanguage));
+    } finally {
+      setIngestImporting(false);
+    }
+  };
+
+  const runIngestNow = async () => {
+    if (!credentialsReady) {
+      toast.error(t("admin.wechat_mp.toasts.login_required"));
+      return;
+    }
+    setIngestRunning(true);
+    try {
+      await api.post("/admin/wechat-mp/ingest/run", {}, { noRetry: true });
+      await loadIngestOverview({ silent: true });
+      toast.success(t("admin.wechat_mp.toasts.ingest_started"));
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, t("admin.wechat_mp.toasts.ingest_start_failed"), i18n.resolvedLanguage));
+    } finally {
+      setIngestRunning(false);
     }
   };
 
@@ -526,6 +739,312 @@ const WeChatMpImportManager = () => {
             </div>
           </AdminPanel>
         </div>
+
+        <AdminPanel
+          title={t("admin.wechat_mp.ingest.title")}
+          description={t("admin.wechat_mp.ingest.description")}
+          action={(
+            <ToolbarGroup className="justify-start sm:justify-end">
+              <AdminButton tone="subtle" onClick={() => loadIngestOverview()} disabled={ingestLoading}>
+                <RefreshCw size={16} className={ingestLoading ? "animate-spin" : ""} />
+                {t("admin.wechat_mp.actions.refresh_ingest")}
+              </AdminButton>
+              <AdminButton tone="primary" onClick={runIngestNow} disabled={ingestRunning || !credentialsReady}>
+                {ingestRunning ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} />}
+                {t("admin.wechat_mp.actions.run_ingest")}
+              </AdminButton>
+            </ToolbarGroup>
+          )}
+        >
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <AdminMetricCard
+              label={t("admin.wechat_mp.ingest.metrics.schedule")}
+              value={ingestSettings.enabled ? ingestSettings.daily_run_time : t("admin.wechat_mp.status.disabled")}
+              icon={CalendarClock}
+              tone={ingestSettings.enabled ? "emerald" : "amber"}
+            />
+            <AdminMetricCard
+              label={t("admin.wechat_mp.ingest.metrics.accounts")}
+              value={formatNumber(ingestAccounts.length)}
+              icon={ClipboardList}
+              tone="indigo"
+            />
+            <AdminMetricCard
+              label={t("admin.wechat_mp.ingest.metrics.latest_run")}
+              value={latestRun ? t(`admin.wechat_mp.ingest.run_status.${latestRun.status}`, latestRun.status) : t("admin.wechat_mp.status.none")}
+              icon={Clock3}
+              tone={latestRun?.status === "completed" ? "emerald" : latestRun?.status === "failed" ? "rose" : "violet"}
+            />
+            <AdminMetricCard
+              label={t("admin.wechat_mp.ingest.metrics.new_articles")}
+              value={formatNumber(latestRun?.new_articles || ingestArticles.length)}
+              icon={Newspaper}
+              tone="violet"
+            />
+          </div>
+
+          <div className="mt-3 grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(320px,0.9fr)]">
+            <div className="space-y-3">
+              <div className="grid gap-3 md:grid-cols-3">
+                <label className={clsx("block text-sm font-semibold", headingTextClass)}>
+                  {t("admin.wechat_mp.ingest.fields.enabled")}
+                  <select
+                    value={ingestSettings.enabled ? "1" : "0"}
+                    onChange={(event) => updateIngestSetting("enabled", event.target.value === "1")}
+                    className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                  >
+                    <option value="1">{t("admin.wechat_mp.status.enabled")}</option>
+                    <option value="0">{t("admin.wechat_mp.status.disabled")}</option>
+                  </select>
+                </label>
+                <label className={clsx("block text-sm font-semibold", headingTextClass)}>
+                  {t("admin.wechat_mp.ingest.fields.daily_run_time")}
+                  <input
+                    type="time"
+                    value={ingestSettings.daily_run_time}
+                    onChange={(event) => updateIngestSetting("daily_run_time", event.target.value)}
+                    className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                  />
+                </label>
+                <label className={clsx("block text-sm font-semibold", headingTextClass)}>
+                  {t("admin.wechat_mp.ingest.fields.timezone")}
+                  <input
+                    value={ingestSettings.timezone}
+                    onChange={(event) => updateIngestSetting("timezone", event.target.value)}
+                    className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                  />
+                </label>
+              </div>
+
+              <AdminInlineNote tone="warning">
+                {t("admin.wechat_mp.ingest.pacing_note")}
+              </AdminInlineNote>
+
+              <div className="grid gap-3 md:grid-cols-3">
+                <div>
+                  <div className={clsx("text-sm font-semibold", headingTextClass)}>
+                    {t("admin.wechat_mp.ingest.fields.query_delay")}
+                  </div>
+                  <div className="mt-1 grid grid-cols-2 gap-2">
+                    <input
+                      type="number"
+                      min="0"
+                      value={ingestSettings.query_delay_range?.[0] ?? 55}
+                      onChange={(event) => updateIngestDelay("query_delay_range", 0, event.target.value)}
+                      className="theme-admin-input rect-field min-h-[40px] w-full px-3 py-2 text-sm"
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      value={ingestSettings.query_delay_range?.[1] ?? 120}
+                      onChange={(event) => updateIngestDelay("query_delay_range", 1, event.target.value)}
+                      className="theme-admin-input rect-field min-h-[40px] w-full px-3 py-2 text-sm"
+                    />
+                  </div>
+                </div>
+                <label className={clsx("block text-sm font-semibold", headingTextClass)}>
+                  {t("admin.wechat_mp.ingest.fields.page_pause")}
+                  <input
+                    type="number"
+                    min="0"
+                    value={ingestSettings.page_pause_seconds}
+                    onChange={(event) => updateIngestSetting("page_pause_seconds", event.target.value)}
+                    className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                  />
+                </label>
+                <div>
+                  <div className={clsx("text-sm font-semibold", headingTextClass)}>
+                    {t("admin.wechat_mp.ingest.fields.content_delay")}
+                  </div>
+                  <div className="mt-1 grid grid-cols-2 gap-2">
+                    <input
+                      type="number"
+                      min="0"
+                      value={ingestSettings.content_delay_range?.[0] ?? 3}
+                      onChange={(event) => updateIngestDelay("content_delay_range", 0, event.target.value)}
+                      className="theme-admin-input rect-field min-h-[40px] w-full px-3 py-2 text-sm"
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      value={ingestSettings.content_delay_range?.[1] ?? 8}
+                      onChange={(event) => updateIngestDelay("content_delay_range", 1, event.target.value)}
+                      className="theme-admin-input rect-field min-h-[40px] w-full px-3 py-2 text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-3">
+                <label className={clsx("block text-sm font-semibold", headingTextClass)}>
+                  {t("admin.wechat_mp.fields.count")}
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={ingestSettings.count_per_page}
+                    onChange={(event) => updateIngestSetting("count_per_page", event.target.value)}
+                    className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                  />
+                </label>
+                <label className={clsx("block text-sm font-semibold", headingTextClass)}>
+                  {t("admin.wechat_mp.fields.max_pages")}
+                  <input
+                    type="number"
+                    min="1"
+                    max="5"
+                    value={ingestSettings.max_pages}
+                    onChange={(event) => updateIngestSetting("max_pages", event.target.value)}
+                    className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                  />
+                </label>
+                <label className={clsx("mt-7 inline-flex items-center gap-2 text-sm", subtleTextClass)}>
+                  <input
+                    type="checkbox"
+                    checked={Boolean(ingestSettings.fetch_content)}
+                    onChange={(event) => updateIngestSetting("fetch_content", event.target.checked)}
+                    className="h-4 w-4 rounded border-slate-300 text-indigo-600"
+                  />
+                  {t("admin.wechat_mp.ingest.fields.fetch_content")}
+                </label>
+              </div>
+
+              <div className="flex justify-end">
+                <AdminButton tone="primary" onClick={saveIngestSettings} disabled={ingestSaving}>
+                  {ingestSaving ? <Loader2 size={16} className="animate-spin" /> : <Settings2 size={16} />}
+                  {t("admin.wechat_mp.actions.save_ingest")}
+                </AdminButton>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="grid gap-2 sm:grid-cols-2">
+                <input
+                  value={ingestAccountForm.name}
+                  onChange={(event) => updateIngestAccountForm("name", event.target.value)}
+                  className="theme-admin-input rect-field min-h-[40px] w-full px-3 py-2 text-sm"
+                  placeholder={t("admin.wechat_mp.ingest.placeholders.account_name")}
+                />
+                <input
+                  value={ingestAccountForm.fakeid}
+                  onChange={(event) => updateIngestAccountForm("fakeid", event.target.value)}
+                  className="theme-admin-input rect-field min-h-[40px] w-full px-3 py-2 text-sm"
+                  placeholder={t("admin.wechat_mp.placeholders.fakeid")}
+                />
+                <input
+                  value={ingestAccountForm.keywords}
+                  onChange={(event) => updateIngestAccountForm("keywords", event.target.value)}
+                  className="theme-admin-input rect-field min-h-[40px] w-full px-3 py-2 text-sm sm:col-span-2"
+                  placeholder={t("admin.wechat_mp.ingest.placeholders.keywords")}
+                />
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <label className={clsx("inline-flex items-center gap-2 text-sm", subtleTextClass)}>
+                  <input
+                    type="checkbox"
+                    checked={Boolean(ingestAccountForm.enabled)}
+                    onChange={(event) => updateIngestAccountForm("enabled", event.target.checked)}
+                    className="h-4 w-4 rounded border-slate-300 text-indigo-600"
+                  />
+                  {t("admin.wechat_mp.ingest.fields.account_enabled")}
+                </label>
+                <AdminButton tone="subtle" onClick={saveIngestAccount} disabled={ingestSaving}>
+                  {ingestSaving ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
+                  {t("admin.wechat_mp.actions.add_account")}
+                </AdminButton>
+              </div>
+
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <input
+                  type="file"
+                  accept=".json,.csv,.tsv,.txt"
+                  onChange={(event) => setIngestFile(event.target.files?.[0] || null)}
+                  className="theme-admin-input rect-field min-h-[40px] min-w-0 flex-1 px-3 py-2 text-sm"
+                />
+                <AdminButton tone="subtle" onClick={importIngestAccounts} disabled={ingestImporting}>
+                  {ingestImporting ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                  {t("admin.wechat_mp.actions.import_accounts")}
+                </AdminButton>
+              </div>
+
+              <div className="max-h-[260px] space-y-2 overflow-y-auto pr-1">
+                {ingestAccounts.length > 0 ? ingestAccounts.map((account) => (
+                  <div
+                    key={account.id}
+                    className={clsx(
+                      "flex items-start justify-between gap-3 rounded-[8px] border p-3",
+                      isDayMode ? "border-slate-200/70 bg-white/[0.72]" : "border-white/10 bg-white/[0.04]",
+                    )}
+                  >
+                    <div className="min-w-0">
+                      <div className={clsx("truncate text-sm font-bold", headingTextClass)}>
+                        {account.name || account.fakeid}
+                      </div>
+                      <div className={clsx("mt-1 truncate text-xs", mutedTextClass)}>
+                        {account.fakeid || t("admin.wechat_mp.status.none")}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => deleteIngestAccount(account)}
+                      className={clsx(
+                        "rounded-[8px] border p-2 transition-colors",
+                        isDayMode ? "border-rose-200 text-rose-600 hover:bg-rose-50" : "border-rose-400/20 text-rose-300 hover:bg-rose-500/10",
+                      )}
+                      aria-label={t("admin.wechat_mp.actions.delete_account")}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                )) : (
+                  <AdminEmptyState
+                    icon={ClipboardList}
+                    title={t("admin.wechat_mp.ingest.empty_accounts_title")}
+                    description={t("admin.wechat_mp.ingest.empty_accounts_desc")}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-3 grid gap-3 lg:grid-cols-2">
+            <div className={clsx("rounded-[8px] border p-3", isDayMode ? "border-slate-200/70" : "border-white/10")}>
+              <div className={clsx("mb-2 text-sm font-bold", headingTextClass)}>
+                {t("admin.wechat_mp.ingest.runs_title")}
+              </div>
+              <div className="space-y-2">
+                {ingestRuns.length > 0 ? ingestRuns.slice(0, 4).map((run) => (
+                  <div key={run.id} className={clsx("flex items-center justify-between gap-3 text-sm", mutedTextClass)}>
+                    <span>{formatDateTime(run.started_at, i18n.resolvedLanguage)}</span>
+                    <span>{t(`admin.wechat_mp.ingest.run_status.${run.status}`, run.status)}</span>
+                    <span>{formatNumber(run.new_articles || 0)}</span>
+                  </div>
+                )) : (
+                  <div className={clsx("text-sm", mutedTextClass)}>{t("admin.wechat_mp.ingest.empty_runs")}</div>
+                )}
+              </div>
+            </div>
+            <div className={clsx("rounded-[8px] border p-3", isDayMode ? "border-slate-200/70" : "border-white/10")}>
+              <div className={clsx("mb-2 text-sm font-bold", headingTextClass)}>
+                {t("admin.wechat_mp.ingest.articles_title")}
+              </div>
+              <div className="space-y-2">
+                {ingestArticles.length > 0 ? ingestArticles.slice(0, 4).map((article) => (
+                  <div key={article.id || article.link} className="min-w-0">
+                    <div className={clsx("truncate text-sm font-semibold", headingTextClass)}>
+                      {article.title || t("admin.wechat_mp.articles.untitled")}
+                    </div>
+                    <div className={clsx("mt-1 truncate text-xs", mutedTextClass)}>
+                      {article.account_name || article.fakeid || t("admin.wechat_mp.status.none")}
+                    </div>
+                  </div>
+                )) : (
+                  <div className={clsx("text-sm", mutedTextClass)}>{t("admin.wechat_mp.ingest.empty_articles")}</div>
+                )}
+              </div>
+            </div>
+          </div>
+        </AdminPanel>
 
         <div className="grid gap-3 xl:grid-cols-[minmax(320px,0.85fr)_minmax(0,1.15fr)]">
           <AdminPanel

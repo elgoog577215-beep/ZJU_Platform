@@ -308,6 +308,17 @@ router.post('/admin/wechat-mp/accounts/search', authenticateToken, isAdmin, wech
 router.post('/admin/wechat-mp/articles', authenticateToken, isAdmin, wechatMpAdminController.listWechatMpArticles);
 router.post('/admin/wechat-mp/article-content', authenticateToken, isAdmin, wechatMpAdminController.getWechatMpArticleContent);
 router.post('/admin/wechat-mp/parse', authenticateToken, isAdmin, wechatMpAdminController.parseWechatMpArticle);
+router.get('/admin/wechat-mp/ingest', authenticateToken, isAdmin, wechatMpAdminController.getWechatMpIngestOverview);
+router.get('/admin/wechat-mp/ingest/settings', authenticateToken, isAdmin, wechatMpAdminController.getWechatMpIngestSettings);
+router.put('/admin/wechat-mp/ingest/settings', authenticateToken, isAdmin, wechatMpAdminController.updateWechatMpIngestSettings);
+router.get('/admin/wechat-mp/ingest/accounts', authenticateToken, isAdmin, wechatMpAdminController.listWechatMpIngestAccounts);
+router.post('/admin/wechat-mp/ingest/accounts', authenticateToken, isAdmin, wechatMpAdminController.upsertWechatMpIngestAccount);
+router.put('/admin/wechat-mp/ingest/accounts/:id', authenticateToken, isAdmin, wechatMpAdminController.upsertWechatMpIngestAccount);
+router.delete('/admin/wechat-mp/ingest/accounts/:id', authenticateToken, isAdmin, wechatMpAdminController.deleteWechatMpIngestAccount);
+router.post('/admin/wechat-mp/ingest/accounts/import', authenticateToken, isAdmin, upload.single('file'), wechatMpAdminController.importWechatMpIngestAccounts);
+router.post('/admin/wechat-mp/ingest/run', authenticateToken, isAdmin, wechatMpAdminController.startWechatMpIngestRun);
+router.get('/admin/wechat-mp/ingest/runs', authenticateToken, isAdmin, wechatMpAdminController.listWechatMpIngestRuns);
+router.get('/admin/wechat-mp/ingest/articles', authenticateToken, isAdmin, wechatMpAdminController.listWechatMpIngestArticles);
 router.get('/db/backup', authenticateToken, isAdmin, systemController.downloadDbBackup);
 router.get('/featured', systemController.getFeaturedContent);
 router.post('/events/crawl', authenticateToken, isAdmin, systemController.crawlEvents);

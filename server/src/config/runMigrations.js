@@ -1,6 +1,9 @@
 const { ensureCoreSchema } = require('./ensureCoreSchema');
 const { ensureColumns } = require('./migrations/helpers');
 const profileService = require('../services/profileService');
+const {
+  ensureWechatMpScheduledIngestSchema,
+} = require('../services/wechatMpScheduledIngestService');
 
 const ORGANIZATION_PARTNER_LOGOS = Object.freeze({
   '浙江大学本科生院': '/images/partner-logos/organizations/official/undergraduate-school.png',
@@ -13,6 +16,13 @@ const ORGANIZATION_PARTNER_LOGOS = Object.freeze({
 async function runMigrations(db) {
   console.log('🔄 Running database migrations...');
   await ensureCoreSchema(db);
+
+  try {
+    await ensureWechatMpScheduledIngestSchema(db);
+    console.log('✅ WeChat MP scheduled ingest schema ready');
+  } catch (err) {
+    console.warn('Migration warning (wechat mp scheduled ingest):', err.message);
+  }
 
   try {
     const eventsInfo = await db.all(`PRAGMA table_info(events)`);

@@ -1,3 +1,6 @@
+const fs = require('fs');
+
+const { getDb } = require('../config/db');
 const {
   cancelLogin,
   fetchArticleContent,
@@ -12,6 +15,7 @@ const {
   parseWithLLM,
 } = require('../utils/wechat');
 const { recordWechatParseRun } = require('./wechatParseController');
+const wechatMpScheduledIngestService = require('../services/wechatMpScheduledIngestService');
 
 const MAX_PARSE_CONTENT_CHARS = 200000;
 
@@ -195,13 +199,140 @@ const parseWechatMpArticle = async (req, res) => {
   }
 };
 
+const getWechatMpIngestOverview = async (_req, res) => {
+  try {
+    const db = await getDb();
+    const [settings, accounts, runs, articles] = await Promise.all([
+      wechatMpScheduledIngestService.getIngestSettings(db),
+      wechatMpScheduledIngestService.listIngestAccounts(db),
+      wechatMpScheduledIngestService.listIngestRuns(db, { limit: 10 }),
+      wechatMpScheduledIngestService.listIngestArticles(db, { limit: 20 }),
+    ]);
+    return res.json({ settings, accounts, runs, articles });
+  } catch (error) {
+    return sendError(res, error, '获取微信 MP 定时采集状态失败');
+  }
+};
+
+const getWechatMpIngestSettings = async (_req, res) => {
+  try {
+    const db = await getDb();
+    const settings = await wechatMpScheduledIngestService.getIngestSettings(db);
+    return res.json({ settings });
+  } catch (error) {
+    return sendError(res, error, '获取微信 MP 定时采集配置失败');
+  }
+};
+
+const updateWechatMpIngestSettings = async (req, res) => {
+  try {
+    const db = await getDb();
+    const settings = await wechatMpScheduledIngestService.updateIngestSettings(db, req.body || {});
+    return res.json({ settings });
+  } catch (error) {
+    return sendError(res, error, '保存微信 MP 定时采集配置失败');
+  }
+};
+
+const listWechatMpIngestAccounts = async (_req, res) => {
+  try {
+    const db = await getDb();
+    const accounts = await wechatMpScheduledIngestService.listIngestAccounts(db);
+    return res.json({ accounts });
+  } catch (error) {
+    return sendError(res, error, '获取微信 MP 公众号列表失败');
+  }
+};
+
+const upsertWechatMpIngestAccount = async (req, res) => {
+  try {
+    const db = await getDb();
+    const account = await wechatMpScheduledIngestService.upsertIngestAccount(db, {
+      ...req.body,
+      id: req.params?.id || req.body?.id,
+    });
+    return res.json({ account });
+  } catch (error) {
+    return sendError(res, error, '保存微信 MP 公众号失败');
+  }
+};
+
+const deleteWechatMpIngestAccount = async (req, res) => {
+  try {
+    const db = await getDb();
+    const result = await wechatMpScheduledIngestService.deleteIngestAccount(db, req.params.id);
+    return res.json(result);
+  } catch (error) {
+    return sendError(res, error, '删除微信 MP 公众号失败');
+  }
+};
+
+const importWechatMpIngestAccounts = async (req, res) => {
+  let uploadedPath = '';
+  try {
+    const db = await getDb();
+    uploadedPath = req.file?.path || '';
+    const result = await wechatMpScheduledIngestService.importIngestAccountsFromFile(db, req.file);
+    return res.json(result);
+  } catch (error) {
+    return sendError(res, error, '导入微信 MP 公众号列表失败');
+  } finally {
+    if (uploadedPath) {
+      fs.promises.unlink(uploadedPath).catch(() => {});
+    }
+  }
+};
+
+const startWechatMpIngestRun = async (req, res) => {
+  try {
+    const db = await getDb();
+    const run = await wechatMpScheduledIngestService.startWechatMpIngestRun(db, {
+      triggerType: 'manual',
+      userId: req.user?.id,
+    });
+    return res.status(202).json({ run });
+  } catch (error) {
+    return sendError(res, error, '启动微信 MP 增量采集失败');
+  }
+};
+
+const listWechatMpIngestRuns = async (req, res) => {
+  try {
+    const db = await getDb();
+    const runs = await wechatMpScheduledIngestService.listIngestRuns(db, { limit: req.query?.limit });
+    return res.json({ runs });
+  } catch (error) {
+    return sendError(res, error, '获取微信 MP 增量采集记录失败');
+  }
+};
+
+const listWechatMpIngestArticles = async (req, res) => {
+  try {
+    const db = await getDb();
+    const articles = await wechatMpScheduledIngestService.listIngestArticles(db, { limit: req.query?.limit });
+    return res.json({ articles });
+  } catch (error) {
+    return sendError(res, error, '获取微信 MP 增量文章失败');
+  }
+};
+
 module.exports = {
   cancelWechatMpLogin,
+  deleteWechatMpIngestAccount,
   getWechatMpArticleContent,
+  getWechatMpIngestOverview,
+  getWechatMpIngestSettings,
   getWechatMpLoginStatus,
   getWechatMpStatus,
+  importWechatMpIngestAccounts,
+  listWechatMpIngestAccounts,
+  listWechatMpIngestArticles,
+  listWechatMpIngestRuns,
   listWechatMpArticles,
   parseWechatMpArticle,
   searchWechatMpAccounts,
+  startWechatMpIngestRun,
   startWechatMpLogin,
+  updateWechatMpIngestSettings,
+  upsertWechatMpIngestAccount,
 };

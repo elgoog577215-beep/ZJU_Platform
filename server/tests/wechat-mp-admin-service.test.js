@@ -9,12 +9,14 @@ const {
   credentialsFromBrowserState,
   extractArticleBody,
   extractAuthenticatedToken,
+  normalizeDelayRangeSeconds,
   normalizeLoginWaitMs,
   normalizeMpArticle,
   parseMpArticlesPayload,
   redactCredentials,
   sanitizeCredentials,
   trustedWechatAssetUrl,
+  waitDelayRange,
 } = require('../src/services/wechatMpAdminService');
 
 test('WeChat MP token extraction only accepts authenticated trusted backend URLs', () => {
@@ -93,6 +95,20 @@ test('WeChat MP login timeout is bounded to a safe operational range', () => {
   assert.equal(normalizeLoginWaitMs(1), 30000);
   assert.equal(normalizeLoginWaitMs(3600), 600000);
   assert.equal(normalizeLoginWaitMs(Number.POSITIVE_INFINITY), 300000);
+});
+
+test('WeChat MP delay ranges normalize and use injectable sleep', async () => {
+  assert.deepEqual(normalizeDelayRangeSeconds([120, 55], [1, 2]), [55, 120]);
+  assert.deepEqual(normalizeDelayRangeSeconds('', [55, 120]), [55, 120]);
+  assert.deepEqual(normalizeDelayRangeSeconds('3,8', []), [3, 8]);
+  assert.deepEqual(normalizeDelayRangeSeconds('bad', []), []);
+
+  const waits = [];
+  await waitDelayRange([10, 20], {
+    random: () => 0.5,
+    sleep: async (ms) => { waits.push(ms); },
+  });
+  assert.deepEqual(waits, [15000]);
 });
 
 test('WeChat MP browser state requires token and session cookies', () => {

@@ -2831,7 +2831,13 @@
         "search_account": "搜号",
         "fetch_articles": "获取文章",
         "fetch_content": "抓取正文",
-        "parse_content": "生成草稿"
+        "parse_content": "生成草稿",
+        "refresh_ingest": "刷新任务",
+        "run_ingest": "立即采集",
+        "save_ingest": "保存配置",
+        "add_account": "添加账号",
+        "import_accounts": "导入列表",
+        "delete_account": "删除账号"
       },
       "notes": {
         "ready": "已登录，可以开始导入公众号文章。",
@@ -2892,6 +2898,43 @@
         "content_length": "正文长度",
         "images": "正文图片"
       },
+      "ingest": {
+        "title": "每日增量采集",
+        "description": "维护公众号列表，按固定时间自动获取新文章和正文。",
+        "pacing_note": "查询间隔是反风控参数，建议保持 55-120 秒；除非明确评估过账号安全，不要改得过短。",
+        "confirm_delete_account": "确认删除“{{name}}”？",
+        "runs_title": "最近任务",
+        "articles_title": "新增文章",
+        "empty_runs": "暂无任务记录",
+        "empty_articles": "暂无新增文章",
+        "empty_accounts_title": "暂无公众号",
+        "empty_accounts_desc": "可以手动添加，也可以上传 JSON、CSV、TSV 或 TXT 列表。",
+        "metrics": {
+          "schedule": "定时状态",
+          "accounts": "公众号数",
+          "latest_run": "最近任务",
+          "new_articles": "新增文章"
+        },
+        "fields": {
+          "enabled": "定时任务",
+          "daily_run_time": "每日开始时间",
+          "timezone": "时区",
+          "query_delay": "账号间隔(秒)",
+          "page_pause": "翻页暂停(秒)",
+          "content_delay": "正文间隔(秒)",
+          "fetch_content": "自动抓取正文",
+          "account_enabled": "启用该公众号"
+        },
+        "placeholders": {
+          "account_name": "公众号名称",
+          "keywords": "关键词，可用逗号分隔"
+        },
+        "run_status": {
+          "running": "运行中",
+          "completed": "已完成",
+          "failed": "失败"
+        }
+      },
       "fields": {
         "account_name": "公众号名称",
         "fakeid": "公众号 fakeid",
@@ -2910,6 +2953,8 @@
         "missing": "缺失",
         "saved": "已保存",
         "not_saved": "未保存",
+        "enabled": "已启用",
+        "disabled": "未启用",
         "none": "无"
       },
       "simple_status": {
@@ -2949,7 +2994,19 @@
         "content_failed": "抓取正文失败",
         "content_required": "请先抓取正文",
         "parse_ready": "解析完成",
-        "parse_failed": "解析正文失败"
+        "parse_failed": "解析正文失败",
+        "ingest_load_failed": "加载增量采集状态失败",
+        "ingest_settings_saved": "定时采集配置已保存",
+        "ingest_settings_failed": "保存定时采集配置失败",
+        "ingest_account_saved": "公众号已添加",
+        "ingest_account_failed": "保存公众号失败",
+        "ingest_account_deleted": "公众号已删除",
+        "ingest_account_delete_failed": "删除公众号失败",
+        "ingest_file_required": "请先选择公众号列表文件",
+        "ingest_imported": "已导入 {{count}} 个公众号",
+        "ingest_import_failed": "导入公众号列表失败",
+        "ingest_started": "增量采集已启动",
+        "ingest_start_failed": "启动增量采集失败"
       }
     }
   },
