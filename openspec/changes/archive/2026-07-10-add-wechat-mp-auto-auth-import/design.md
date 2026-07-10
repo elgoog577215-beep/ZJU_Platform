@@ -6,7 +6,7 @@
 
 扫码登录是本 change 的硬依赖，不作为可选增强处理。后端依赖图必须包含 `playwright`，部署环境必须安装 Chromium；如果 Chromium 不存在，后台状态接口和登录启动接口都应明确暴露部署错误，方便运维修复。
 
-生产部署在安装后端依赖后显式运行 `npx playwright install chromium`，确保 PM2 所在用户的 Playwright 缓存中存在可执行浏览器；仅安装 npm 包不视为部署完成。
+生产部署在安装后端依赖后显式运行 `npx playwright install --with-deps chromium`，同时安装 Linux 系统依赖与浏览器，并在 PM2 重启前实际 launch/close 一次 Chromium；仅安装 npm 包或只下载浏览器都不视为部署完成。
 
 核心流程：
 
