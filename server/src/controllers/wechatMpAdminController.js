@@ -18,6 +18,9 @@ const {
 } = require('../utils/wechat');
 const { recordWechatParseRun } = require('./wechatParseController');
 const wechatMpScheduledIngestService = require('../services/wechatMpScheduledIngestService');
+const {
+  buildWechatMpResourcePayload,
+} = require('../services/wechatMpResourcePayloadService');
 
 const MAX_PARSE_CONTENT_CHARS = 200000;
 const isLocalUploadUrl = (url) => String(url || '').startsWith('/uploads/');
@@ -40,6 +43,7 @@ const sendError = (res, error, fallback = '微信 MP 操作失败') => {
 
 const pacingFromBody = (body = {}) => ({
   query_delay_range: body.query_delay_range ?? body.queryDelayRange ?? body.query_delay_range_seconds,
+  page_pause_range: body.page_pause_range ?? body.pagePauseRange ?? body.page_pause_range_seconds,
   page_pause_seconds: body.page_pause_seconds ?? body.pagePauseSeconds ?? body.page_pause,
   content_delay_range: body.content_delay_range ?? body.contentDelayRange ?? body.content_delay_range_seconds,
 });
@@ -139,6 +143,38 @@ const getWechatMpArticleContent = async (req, res) => {
     return res.json(result);
   } catch (error) {
     return sendError(res, error, '获取微信文章正文失败');
+  }
+};
+
+const buildWechatMpImportPayload = async (req, res) => {
+  let contentPayload = req.body?.content || null;
+  try {
+    if (!contentPayload?.contentText && !contentPayload?.content_text && req.body?.url) {
+      contentPayload = await fetchArticleContent({ url: req.body.url });
+    }
+    const contentText = String(contentPayload?.contentText || contentPayload?.content_text || '').trim();
+    if (!contentText) {
+      return res.status(422).json({
+        error: 'WECHAT_MP_EMPTY_CONTENT',
+        message: '请先获取文章正文后再导入',
+      });
+    }
+    if (contentText.length > MAX_PARSE_CONTENT_CHARS) {
+      return res.status(413).json({
+        error: 'WECHAT_MP_CONTENT_TOO_LARGE',
+        message: '文章正文过长，请缩短到 20 万字符以内后重试',
+      });
+    }
+
+    const result = buildWechatMpResourcePayload({
+      resourceType: req.body?.resource_type || req.body?.resourceType || 'article',
+      article: req.body?.article || {},
+      content: contentPayload,
+      status: req.body?.status,
+    });
+    return res.json(result);
+  } catch (error) {
+    return sendError(res, error, '生成微信文章导入内容失败');
   }
 };
 
@@ -353,6 +389,7 @@ const listWechatMpIngestArticles = async (req, res) => {
 };
 
 module.exports = {
+  buildWechatMpImportPayload,
   cancelWechatMpLogin,
   deleteWechatMpIngestAccount,
   getWechatMpArticleContent,

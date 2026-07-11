@@ -307,6 +307,7 @@ router.post('/admin/wechat-mp/login/cancel', authenticateToken, isAdmin, wechatM
 router.post('/admin/wechat-mp/accounts/search', authenticateToken, isAdmin, wechatMpAdminController.searchWechatMpAccounts);
 router.post('/admin/wechat-mp/articles', authenticateToken, isAdmin, wechatMpAdminController.listWechatMpArticles);
 router.post('/admin/wechat-mp/article-content', authenticateToken, isAdmin, wechatMpAdminController.getWechatMpArticleContent);
+router.post('/admin/wechat-mp/import-payload', authenticateToken, isAdmin, wechatMpAdminController.buildWechatMpImportPayload);
 router.post('/admin/wechat-mp/parse', authenticateToken, isAdmin, wechatMpAdminController.parseWechatMpArticle);
 router.get('/admin/wechat-mp/ingest', authenticateToken, isAdmin, wechatMpAdminController.getWechatMpIngestOverview);
 router.get('/admin/wechat-mp/ingest/settings', authenticateToken, isAdmin, wechatMpAdminController.getWechatMpIngestSettings);
