@@ -35,7 +35,10 @@ const DEFAULT_REQUEST_TIMEOUT_MS = 30 * 1000;
 const MIN_LOGIN_WAIT_SECONDS = 30;
 const MAX_LOGIN_WAIT_SECONDS = 10 * 60;
 const MAX_ARTICLE_RESPONSE_BYTES = 5 * 1024 * 1024;
-const MAX_DELAY_SECONDS = 60 * 60;
+const DEFAULT_QUERY_DELAY_RANGE_SECONDS = Object.freeze([55, 120]);
+const DEFAULT_CONTENT_DELAY_RANGE_SECONDS = Object.freeze([3, 8]);
+const DEFAULT_PAGE_PAUSE_SECONDS = 3;
+const MAX_PACING_DELAY_SECONDS = 3600;
 
 const STEALTH_JS = `
 Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
@@ -339,47 +342,93 @@ const normalizeLoginWaitMs = (waitSeconds) => {
   return Math.min(MAX_LOGIN_WAIT_SECONDS, Math.max(MIN_LOGIN_WAIT_SECONDS, seconds)) * 1000;
 };
 
-const normalizeDelayRangeSeconds = (value, fallback = []) => {
-  const source = Array.isArray(value)
-    ? value
-    : String(value || '')
-      .split(/[,\s，-]+/)
-      .filter(Boolean);
-  let values = source
-    .map((item) => Number(item))
-    .filter((item) => Number.isFinite(item) && item >= 0)
-    .map((item) => Math.min(MAX_DELAY_SECONDS, item));
-  if (values.length < 2 && Array.isArray(fallback) && fallback.length >= 2) {
-    values = fallback
-      .map((item) => Number(item))
-      .filter((item) => Number.isFinite(item) && item >= 0)
-      .map((item) => Math.min(MAX_DELAY_SECONDS, item));
+const firstDefined = (...values) => values.find((value) => value !== undefined && value !== null);
+
+const toFiniteNumber = (value) => {
+  if (value === '' || value === undefined || value === null) return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+};
+
+const clampDelaySeconds = (value, fallback = 0) => {
+  const number = toFiniteNumber(value);
+  if (number === null) return fallback;
+  return Math.max(0, Math.min(number, MAX_PACING_DELAY_SECONDS));
+};
+
+const parseDelayRangeParts = (value) => {
+  if (value === false) return [];
+  if (typeof value === 'string') {
+    const parts = value.split(',').map((part) => part.trim()).filter(Boolean);
+    return parts.length ? parts : null;
   }
-  if (values.length < 2) return [];
-  const [min, max] = values.slice(0, 2).sort((left, right) => left - right);
-  return [min, max];
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'number') return [value, value];
+  return null;
+};
+
+const normalizeDelayRangeSeconds = (value, fallback = []) => {
+  const rawParts = parseDelayRangeParts(value);
+  const parts = rawParts === null ? fallback : rawParts;
+  if (!Array.isArray(parts) || parts.length === 0) return [];
+  const numbers = parts
+    .slice(0, 2)
+    .map((part) => clampDelaySeconds(part, null))
+    .filter((part) => part !== null);
+  if (numbers.length === 1) numbers.push(numbers[0]);
+  if (numbers.length !== 2) return [];
+  if (numbers[0] <= 0 || numbers[1] <= 0) return [];
+  const [low, high] = numbers.sort((left, right) => left - right);
+  return [low, high];
+};
+
+const normalizePacingOptions = (options = {}) => {
+  const rawQueryDelayRange = firstDefined(
+    options.queryDelayRangeSeconds,
+    options.queryDelayRange,
+    options.query_delay_range_seconds,
+    options.query_delay_range,
+  );
+  const rawContentDelayRange = firstDefined(
+    options.contentDelayRangeSeconds,
+    options.contentDelayRange,
+    options.content_delay_range_seconds,
+    options.content_delay_range,
+  );
+  const rawPagePauseSeconds = firstDefined(
+    options.pagePauseSeconds,
+    options.page_pause_seconds,
+    options.page_pause,
+  );
+  return {
+    queryDelayRangeSeconds: normalizeDelayRangeSeconds(rawQueryDelayRange, DEFAULT_QUERY_DELAY_RANGE_SECONDS),
+    contentDelayRangeSeconds: normalizeDelayRangeSeconds(rawContentDelayRange, DEFAULT_CONTENT_DELAY_RANGE_SECONDS),
+    pagePauseSeconds: clampDelaySeconds(rawPagePauseSeconds, DEFAULT_PAGE_PAUSE_SECONDS),
+  };
+};
+
+const randomSecondsInRange = (range, random = Math.random) => {
+  const normalized = normalizeDelayRangeSeconds(range, []);
+  if (!normalized.length) return 0;
+  const [low, high] = normalized;
+  const randomValue = Math.max(0, Math.min(Number(random()) || 0, 0.999999));
+  return low + ((high - low) * randomValue);
 };
 
 const waitSeconds = async (seconds, runtime = {}) => {
-  const normalized = Number(seconds);
-  if (!Number.isFinite(normalized) || normalized <= 0) return 0;
-  const ms = Math.round(normalized * 1000);
-  if (typeof runtime.sleep === 'function') {
-    await runtime.sleep(ms);
-  } else {
-    await delay(ms);
-  }
-  return ms;
+  const normalized = clampDelaySeconds(seconds, 0);
+  if (normalized <= 0) return 0;
+  const sleep = runtime.sleep || delay;
+  await sleep(normalized * 1000);
+  return normalized;
 };
 
-const waitDelayRange = async (range, runtime = {}) => {
-  const normalized = normalizeDelayRangeSeconds(range, []);
-  if (!normalized.length) return 0;
-  const [min, max] = normalized;
-  const random = typeof runtime.random === 'function' ? runtime.random() : Math.random();
-  const seconds = min + Math.max(0, Math.min(1, random)) * (max - min);
-  return waitSeconds(seconds, runtime);
-};
+const waitDelayRange = async (range, runtime = {}) => waitSeconds(
+  randomSecondsInRange(range, runtime.random || Math.random),
+  runtime,
+);
+
+const pacingFromOptions = (pacing) => normalizePacingOptions(pacing || {});
 
 const getBrowserRuntimeStatus = () => {
   const executablePath = chromium.executablePath();
@@ -784,11 +833,11 @@ const fetchArticles = async ({
   count = 20,
   maxPages = 1,
   allowFirst = false,
-  pagePauseSeconds,
   pacing = {},
   runtime = {},
 }) => {
   const credentials = requireCredentials();
+  const pacingOptions = pacingFromOptions(pacing);
   const name = String(accountName || '').trim();
   let resolvedFakeid = String(fakeid || '').trim();
   let selectedAccount = null;
@@ -806,13 +855,9 @@ const fetchArticles = async ({
 
   const pageSize = Math.max(1, Math.min(Number(count) || 20, 100));
   const pages = Math.max(1, Math.min(Number(maxPages) || 1, 5));
-  const pauseSeconds = Math.max(0, Number(pagePauseSeconds ?? pacing.page_pause_seconds ?? 0) || 0);
   const articles = [];
   let total = 0;
   for (let pageIndex = 0; pageIndex < pages; pageIndex += 1) {
-    if (pageIndex > 0 && pauseSeconds > 0) {
-      await waitSeconds(pauseSeconds, runtime);
-    }
     const payload = await mpGetJson({
       path: '/cgi-bin/appmsgpublish',
       params: {
@@ -839,7 +884,13 @@ const fetchArticles = async ({
       fakeid: resolvedFakeid,
       keyword,
     })));
-    if (parsed.articles.length < pageSize || (total && articles.length >= total)) break;
+    const hasNextPage = (
+      pageIndex < pages - 1 &&
+      parsed.articles.length >= pageSize &&
+      !(total && articles.length >= total)
+    );
+    if (!hasNextPage) break;
+    await waitSeconds(pacingOptions.pagePauseSeconds, runtime);
   }
 
   return {
@@ -850,6 +901,65 @@ const fetchArticles = async ({
     } : { fakeid: resolvedFakeid, nickname: name, alias: '' },
     total,
     articles,
+    pacing: pacingOptions,
+  };
+};
+
+const normalizeBatchAccount = (account) => {
+  if (typeof account === 'string') {
+    return { accountName: account.trim(), fakeid: '' };
+  }
+  return {
+    accountName: String(account?.account_name || account?.accountName || account?.name || '').trim(),
+    fakeid: String(account?.fakeid || '').trim(),
+    keyword: String(account?.keyword || '').trim(),
+    count: account?.count,
+    maxPages: firstDefined(account?.max_pages, account?.maxPages),
+    allowFirst: firstDefined(account?.allow_first, account?.allowFirst),
+  };
+};
+
+const fetchArticlesForAccounts = async ({
+  accounts = [],
+  keyword = '',
+  count = 20,
+  maxPages = 1,
+  allowFirst = false,
+  pacing,
+  runtime,
+} = {}) => {
+  const pacingOptions = pacingFromOptions(pacing);
+  const normalizedAccounts = (Array.isArray(accounts) ? accounts : [])
+    .map(normalizeBatchAccount)
+    .filter((account) => account.accountName || account.fakeid);
+  if (!normalizedAccounts.length) {
+    const error = new Error('公众号列表不能为空');
+    error.status = 400;
+    throw error;
+  }
+
+  const results = [];
+  for (let index = 0; index < normalizedAccounts.length; index += 1) {
+    if (index > 0) await waitDelayRange(pacingOptions.queryDelayRangeSeconds, runtime);
+    const account = normalizedAccounts[index];
+    const result = await fetchArticles({
+      accountName: account.accountName,
+      fakeid: account.fakeid,
+      keyword: account.keyword || keyword,
+      count: account.count || count,
+      maxPages: account.maxPages || maxPages,
+      allowFirst: account.allowFirst === undefined ? allowFirst : account.allowFirst === true,
+      pacing: pacingOptions,
+      runtime,
+    });
+    results.push(result);
+  }
+
+  return {
+    accounts: results,
+    total_accounts: results.length,
+    total_articles: results.reduce((sum, result) => sum + (result.articles?.length || 0), 0),
+    pacing: pacingOptions,
   };
 };
 
@@ -993,6 +1103,58 @@ const fetchArticleContent = async ({ url }) => {
   };
 };
 
+const normalizeContentInput = (item) => {
+  if (typeof item === 'string') return { url: item };
+  return {
+    url: item?.url || item?.link || '',
+    article: item,
+  };
+};
+
+const fetchArticleContents = async ({
+  articles = [],
+  urls = [],
+  pacing,
+  runtime,
+} = {}) => {
+  const pacingOptions = pacingFromOptions(pacing);
+  const inputs = [
+    ...(Array.isArray(articles) ? articles : []),
+    ...(Array.isArray(urls) ? urls : []),
+  ].map(normalizeContentInput).filter((item) => item.url);
+  if (!inputs.length) {
+    const error = new Error('微信文章链接不能为空');
+    error.status = 400;
+    throw error;
+  }
+
+  const contents = [];
+  for (let index = 0; index < inputs.length; index += 1) {
+    if (index > 0) await waitDelayRange(pacingOptions.contentDelayRangeSeconds, runtime);
+    try {
+      contents.push({
+        article: inputs[index].article || null,
+        content: await fetchArticleContent({ url: inputs[index].url }),
+        error: '',
+      });
+    } catch (error) {
+      contents.push({
+        article: inputs[index].article || null,
+        content: null,
+        error: error.message || '获取微信文章正文失败',
+      });
+    }
+  }
+
+  return {
+    contents,
+    total: contents.length,
+    succeeded: contents.filter((item) => item.content).length,
+    failed: contents.filter((item) => item.error).length,
+    pacing: pacingOptions,
+  };
+};
+
 const getStatus = () => ({
   credentials: sanitizeCredentials(readCredentials()),
   login: publicLoginState(),
@@ -1010,8 +1172,10 @@ module.exports = {
   credentialsFromBrowserState,
   extractArticleBody,
   extractAuthenticatedToken,
+  fetchArticleContents,
   fetchArticleContent,
   fetchArticles,
+  fetchArticlesForAccounts,
   getBrowserRuntimeStatus,
   getStatus,
   maskSecret,
@@ -1019,9 +1183,11 @@ module.exports = {
   normalizeDelayRangeSeconds,
   normalizeLoginWaitMs,
   normalizeMpArticle,
+  normalizePacingOptions,
   parseMpArticlesPayload,
   readCredentials,
   redactCredentials,
+  randomSecondsInRange,
   sanitizeCredentials,
   searchAccounts,
   startLogin,

@@ -2857,7 +2857,9 @@
       },
       "collect": {
         "title": "选择公众号",
-        "description": "输入公众号名称，可按关键词筛选文章。"
+        "description": "输入公众号名称，可按关键词筛选文章。",
+        "pacing_title": "采集节奏",
+        "pacing_note": "这些参数会影响登录态稳定和平台访问节奏。账号间隔已按 55-120 秒预填；如被清空，后端仍会继承 55-120 秒随机等待。"
       },
       "articles": {
         "title": "可导入文章",
@@ -2943,7 +2945,12 @@
         "keyword": "关键词",
         "count": "每页数量",
         "max_pages": "页数",
-        "allow_first": "无法精确匹配时允许使用第一个候选账号"
+        "allow_first": "无法精确匹配时允许使用第一个候选账号",
+        "query_delay_min": "账号间隔最小秒",
+        "query_delay_max": "账号间隔最大秒",
+        "page_pause_seconds": "翻页间隔秒",
+        "content_delay_min": "正文间隔最小秒",
+        "content_delay_max": "正文间隔最大秒"
       },
       "placeholders": {
         "account_name": "例如：浙江大学",

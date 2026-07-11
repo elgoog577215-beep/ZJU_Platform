@@ -2801,7 +2801,9 @@
       },
       "collect": {
         "title": "Choose Account",
-        "description": "Enter an official account name and optionally filter articles by keyword."
+        "description": "Enter an official account name and optionally filter articles by keyword.",
+        "pacing_title": "Collection Pacing",
+        "pacing_note": "These settings affect session stability and platform access rhythm. Account waits are prefilled as 55-120 seconds; if cleared, the backend still inherits the 55-120 second randomized wait."
       },
       "articles": {
         "title": "Importable Articles",
@@ -2887,7 +2889,12 @@
         "keyword": "Keyword",
         "count": "Page Size",
         "max_pages": "Pages",
-        "allow_first": "Allow the first candidate when no exact account match is found"
+        "allow_first": "Allow the first candidate when no exact account match is found",
+        "query_delay_min": "Min account wait (s)",
+        "query_delay_max": "Max account wait (s)",
+        "page_pause_seconds": "Page pause (s)",
+        "content_delay_min": "Min body wait (s)",
+        "content_delay_max": "Max body wait (s)"
       },
       "placeholders": {
         "account_name": "For example: Zhejiang University",
