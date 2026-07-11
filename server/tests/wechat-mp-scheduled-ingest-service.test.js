@@ -13,14 +13,17 @@ test('WeChat MP scheduled ingest settings keep conservative defaults', async () 
     const defaults = await service.getIngestSettings(db);
     assert.equal(defaults.enabled, false);
     assert.equal(defaults.daily_run_time, '03:30');
-    assert.deepEqual(defaults.query_delay_range, [55, 120]);
+    assert.deepEqual(defaults.query_delay_range, [95, 125]);
+    assert.deepEqual(defaults.page_pause_range, [10, 25]);
+    assert.equal(defaults.page_pause_seconds, 10);
+    assert.deepEqual(defaults.content_delay_range, [10, 20]);
 
     const updated = await service.updateIngestSettings(db, {
       enabled: true,
       daily_run_time: '7:05',
       timezone: 'Bad/Timezone',
       query_delay_range: '',
-      page_pause_seconds: 2,
+      page_pause_range: [2, 4],
       content_delay_range: [1, 2],
       count_per_page: 10,
       max_pages: 2,
@@ -29,11 +32,45 @@ test('WeChat MP scheduled ingest settings keep conservative defaults', async () 
     assert.equal(updated.enabled, true);
     assert.equal(updated.daily_run_time, '07:05');
     assert.equal(updated.timezone, 'Asia/Shanghai');
-    assert.deepEqual(updated.query_delay_range, [55, 120]);
+    assert.deepEqual(updated.query_delay_range, [95, 125]);
+    assert.deepEqual(updated.page_pause_range, [2, 4]);
     assert.equal(updated.page_pause_seconds, 2);
     assert.deepEqual(updated.content_delay_range, [1, 2]);
     assert.equal(updated.count_per_page, 10);
     assert.equal(updated.max_pages, 2);
+  } finally {
+    await db.close();
+  }
+});
+
+test('WeChat MP scheduled ingest migrates legacy pacing defaults without breaking custom page pause', async () => {
+  const db = await createDb();
+  try {
+    await db.exec(`
+      CREATE TABLE wechat_mp_ingest_settings (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        enabled INTEGER DEFAULT 0,
+        daily_run_time TEXT DEFAULT '03:30',
+        timezone TEXT DEFAULT 'Asia/Shanghai',
+        query_delay_range TEXT DEFAULT '[55,120]',
+        page_pause_seconds REAL DEFAULT 3,
+        content_delay_range TEXT DEFAULT '[3,8]',
+        count_per_page INTEGER DEFAULT 20,
+        max_pages INTEGER DEFAULT 1,
+        fetch_content INTEGER DEFAULT 1,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+      INSERT INTO wechat_mp_ingest_settings (
+        id, enabled, daily_run_time, timezone, query_delay_range,
+        page_pause_seconds, content_delay_range, count_per_page, max_pages, fetch_content
+      ) VALUES (1, 1, '06:10', 'Asia/Shanghai', '[55,120]', 2, '[3,8]', 20, 1, 1);
+    `);
+
+    const migrated = await service.getIngestSettings(db);
+    assert.deepEqual(migrated.query_delay_range, [95, 125]);
+    assert.deepEqual(migrated.page_pause_range, [2, 2]);
+    assert.equal(migrated.page_pause_seconds, 2);
+    assert.deepEqual(migrated.content_delay_range, [10, 20]);
   } finally {
     await db.close();
   }
@@ -104,6 +141,7 @@ test('WeChat MP incremental run saves new articles, bodies, and avoids duplicate
   try {
     await service.updateIngestSettings(db, {
       query_delay_range: [1, 1],
+      page_pause_range: [0.5, 0.5],
       content_delay_range: [0.25, 0.25],
       count_per_page: 2,
       max_pages: 1,
@@ -119,7 +157,8 @@ test('WeChat MP incremental run saves new articles, bodies, and avoids duplicate
     const wechatApi = {
       async fetchArticles({ accountName, fakeid, pacing, runtime }) {
         assert.deepEqual(pacing.query_delay_range, [1, 1]);
-        assert.equal(pacing.page_pause_seconds, 3);
+        assert.deepEqual(pacing.page_pause_range, [0.5, 0.5]);
+        assert.equal(pacing.page_pause_seconds, 0.5);
         assert.equal(runtime.sleep, testRuntime.sleep);
         return {
           articles: [

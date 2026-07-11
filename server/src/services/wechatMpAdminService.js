@@ -35,9 +35,9 @@ const DEFAULT_REQUEST_TIMEOUT_MS = 30 * 1000;
 const MIN_LOGIN_WAIT_SECONDS = 30;
 const MAX_LOGIN_WAIT_SECONDS = 10 * 60;
 const MAX_ARTICLE_RESPONSE_BYTES = 5 * 1024 * 1024;
-const DEFAULT_QUERY_DELAY_RANGE_SECONDS = Object.freeze([55, 120]);
-const DEFAULT_CONTENT_DELAY_RANGE_SECONDS = Object.freeze([3, 8]);
-const DEFAULT_PAGE_PAUSE_SECONDS = 3;
+const DEFAULT_QUERY_DELAY_RANGE_SECONDS = Object.freeze([95, 125]);
+const DEFAULT_PAGE_PAUSE_RANGE_SECONDS = Object.freeze([10, 25]);
+const DEFAULT_CONTENT_DELAY_RANGE_SECONDS = Object.freeze([10, 20]);
 const MAX_PACING_DELAY_SECONDS = 3600;
 
 const STEALTH_JS = `
@@ -395,15 +395,21 @@ const normalizePacingOptions = (options = {}) => {
     options.content_delay_range_seconds,
     options.content_delay_range,
   );
-  const rawPagePauseSeconds = firstDefined(
+  const rawPagePauseRange = firstDefined(
+    options.pagePauseRangeSeconds,
+    options.pagePauseRange,
+    options.page_pause_range_seconds,
+    options.page_pause_range,
     options.pagePauseSeconds,
     options.page_pause_seconds,
     options.page_pause,
   );
+  const pagePauseRangeSeconds = normalizeDelayRangeSeconds(rawPagePauseRange, DEFAULT_PAGE_PAUSE_RANGE_SECONDS);
   return {
     queryDelayRangeSeconds: normalizeDelayRangeSeconds(rawQueryDelayRange, DEFAULT_QUERY_DELAY_RANGE_SECONDS),
     contentDelayRangeSeconds: normalizeDelayRangeSeconds(rawContentDelayRange, DEFAULT_CONTENT_DELAY_RANGE_SECONDS),
-    pagePauseSeconds: clampDelaySeconds(rawPagePauseSeconds, DEFAULT_PAGE_PAUSE_SECONDS),
+    pagePauseRangeSeconds,
+    pagePauseSeconds: pagePauseRangeSeconds[0] || DEFAULT_PAGE_PAUSE_RANGE_SECONDS[0],
   };
 };
 
@@ -890,7 +896,7 @@ const fetchArticles = async ({
       !(total && articles.length >= total)
     );
     if (!hasNextPage) break;
-    await waitSeconds(pacingOptions.pagePauseSeconds, runtime);
+    await waitDelayRange(pacingOptions.pagePauseRangeSeconds, runtime);
   }
 
   return {

@@ -6,9 +6,10 @@ const DEFAULT_SETTINGS = Object.freeze({
   enabled: false,
   daily_run_time: '03:30',
   timezone: 'Asia/Shanghai',
-  query_delay_range: [55, 120],
-  page_pause_seconds: 3,
-  content_delay_range: [3, 8],
+  query_delay_range: [95, 125],
+  page_pause_range: [10, 25],
+  page_pause_seconds: 10,
+  content_delay_range: [10, 20],
   count_per_page: 20,
   max_pages: 1,
   fetch_content: true,
@@ -74,24 +75,31 @@ const normalizeDelayRange = (value, fallback) => {
   return normalized.length ? normalized : [];
 };
 
-const normalizeSettings = (row = {}) => ({
-  enabled: toBool(row.enabled, DEFAULT_SETTINGS.enabled),
-  daily_run_time: normalizeTime(row.daily_run_time, DEFAULT_SETTINGS.daily_run_time),
-  timezone: normalizeTimezone(row.timezone),
-  query_delay_range: normalizeDelayRange(
-    parseJson(row.query_delay_range, row.query_delay_range),
-    DEFAULT_SETTINGS.query_delay_range,
-  ),
-  page_pause_seconds: toNumber(row.page_pause_seconds, DEFAULT_SETTINGS.page_pause_seconds, 0, 3600),
-  content_delay_range: normalizeDelayRange(
-    parseJson(row.content_delay_range, row.content_delay_range),
-    DEFAULT_SETTINGS.content_delay_range,
-  ),
-  count_per_page: toInt(row.count_per_page, DEFAULT_SETTINGS.count_per_page, 1, 100),
-  max_pages: toInt(row.max_pages, DEFAULT_SETTINGS.max_pages, 1, 5),
-  fetch_content: toBool(row.fetch_content, DEFAULT_SETTINGS.fetch_content),
-  updated_at: row.updated_at || null,
-});
+const normalizeSettings = (row = {}) => {
+  const pagePauseRange = normalizeDelayRange(
+    parseJson(row.page_pause_range ?? row.page_pause_seconds, row.page_pause_range ?? row.page_pause_seconds),
+    DEFAULT_SETTINGS.page_pause_range,
+  );
+  return {
+    enabled: toBool(row.enabled, DEFAULT_SETTINGS.enabled),
+    daily_run_time: normalizeTime(row.daily_run_time, DEFAULT_SETTINGS.daily_run_time),
+    timezone: normalizeTimezone(row.timezone),
+    query_delay_range: normalizeDelayRange(
+      parseJson(row.query_delay_range, row.query_delay_range),
+      DEFAULT_SETTINGS.query_delay_range,
+    ),
+    page_pause_range: pagePauseRange,
+    page_pause_seconds: pagePauseRange[0] || DEFAULT_SETTINGS.page_pause_seconds,
+    content_delay_range: normalizeDelayRange(
+      parseJson(row.content_delay_range, row.content_delay_range),
+      DEFAULT_SETTINGS.content_delay_range,
+    ),
+    count_per_page: toInt(row.count_per_page, DEFAULT_SETTINGS.count_per_page, 1, 100),
+    max_pages: toInt(row.max_pages, DEFAULT_SETTINGS.max_pages, 1, 5),
+    fetch_content: toBool(row.fetch_content, DEFAULT_SETTINGS.fetch_content),
+    updated_at: row.updated_at || null,
+  };
+};
 
 const stringifyArray = (value) => JSON.stringify(Array.isArray(value) ? value : []);
 
@@ -102,19 +110,15 @@ const ensureWechatMpScheduledIngestSchema = async (db) => {
       enabled INTEGER DEFAULT 0,
       daily_run_time TEXT DEFAULT '03:30',
       timezone TEXT DEFAULT 'Asia/Shanghai',
-      query_delay_range TEXT DEFAULT '[55,120]',
-      page_pause_seconds REAL DEFAULT 3,
-      content_delay_range TEXT DEFAULT '[3,8]',
+      query_delay_range TEXT DEFAULT '[95,125]',
+      page_pause_range TEXT DEFAULT '[10,25]',
+      page_pause_seconds REAL DEFAULT 10,
+      content_delay_range TEXT DEFAULT '[10,20]',
       count_per_page INTEGER DEFAULT 20,
       max_pages INTEGER DEFAULT 1,
       fetch_content INTEGER DEFAULT 1,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
-
-    INSERT OR IGNORE INTO wechat_mp_ingest_settings (
-      id, enabled, daily_run_time, timezone, query_delay_range,
-      page_pause_seconds, content_delay_range, count_per_page, max_pages, fetch_content
-    ) VALUES (1, 0, '03:30', 'Asia/Shanghai', '[55,120]', 3, '[3,8]', 20, 1, 1);
 
     CREATE TABLE IF NOT EXISTS wechat_mp_ingest_accounts (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -182,6 +186,56 @@ const ensureWechatMpScheduledIngestSchema = async (db) => {
     CREATE INDEX IF NOT EXISTS idx_wechat_mp_ingest_runs_started
       ON wechat_mp_ingest_runs(started_at DESC);
   `);
+  const columns = await db.all('PRAGMA table_info(wechat_mp_ingest_settings)');
+  const hasPagePauseRange = columns.some((column) => column.name === 'page_pause_range');
+  if (!hasPagePauseRange) {
+    await db.exec(`ALTER TABLE wechat_mp_ingest_settings ADD COLUMN page_pause_range TEXT DEFAULT '[10,25]'`);
+    await db.run(`
+      UPDATE wechat_mp_ingest_settings
+      SET page_pause_range = CASE
+            WHEN page_pause_seconds IS NOT NULL
+             AND page_pause_seconds > 0
+             AND page_pause_seconds != 3
+            THEN '[' || page_pause_seconds || ',' || page_pause_seconds || ']'
+            ELSE '[10,25]'
+          END,
+          page_pause_seconds = CASE
+            WHEN page_pause_seconds IS NOT NULL
+             AND page_pause_seconds > 0
+             AND page_pause_seconds != 3
+            THEN page_pause_seconds
+            ELSE 10
+          END
+    `);
+  }
+  await db.run(`
+    UPDATE wechat_mp_ingest_settings
+    SET query_delay_range = '[95,125]'
+    WHERE query_delay_range IS NULL
+       OR query_delay_range = ''
+       OR replace(query_delay_range, ' ', '') = '[55,120]'
+  `);
+  await db.run(`
+    UPDATE wechat_mp_ingest_settings
+    SET page_pause_range = '[10,25]',
+        page_pause_seconds = 10
+    WHERE page_pause_range IS NULL
+       OR page_pause_range = ''
+       OR replace(page_pause_range, ' ', '') IN ('[3,3]', '[3]', '3')
+  `);
+  await db.run(`
+    UPDATE wechat_mp_ingest_settings
+    SET content_delay_range = '[10,20]'
+    WHERE content_delay_range IS NULL
+       OR content_delay_range = ''
+       OR replace(content_delay_range, ' ', '') = '[3,8]'
+  `);
+  await db.run(`
+    INSERT OR IGNORE INTO wechat_mp_ingest_settings (
+      id, enabled, daily_run_time, timezone, query_delay_range,
+      page_pause_range, page_pause_seconds, content_delay_range, count_per_page, max_pages, fetch_content
+    ) VALUES (1, 0, '03:30', 'Asia/Shanghai', '[95,125]', '[10,25]', 10, '[10,20]', 20, 1, 1)
+  `);
 };
 
 const getIngestSettings = async (db) => {
@@ -200,6 +254,7 @@ const updateIngestSettings = async (db, payload = {}) => {
         daily_run_time = ?,
         timezone = ?,
         query_delay_range = ?,
+        page_pause_range = ?,
         page_pause_seconds = ?,
         content_delay_range = ?,
         count_per_page = ?,
@@ -212,6 +267,7 @@ const updateIngestSettings = async (db, payload = {}) => {
     next.daily_run_time,
     next.timezone,
     stringifyArray(next.query_delay_range),
+    stringifyArray(next.page_pause_range),
     next.page_pause_seconds,
     stringifyArray(next.content_delay_range),
     next.count_per_page,
@@ -535,6 +591,7 @@ const executeIngestRun = async (db, {
         allowFirst: false,
         pacing: {
           page_pause_seconds: effectiveSettings.page_pause_seconds,
+          page_pause_range: effectiveSettings.page_pause_range,
           query_delay_range: effectiveSettings.query_delay_range,
           content_delay_range: effectiveSettings.content_delay_range,
         },

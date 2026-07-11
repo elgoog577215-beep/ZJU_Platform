@@ -270,11 +270,19 @@ test('WeChat MP credential sanitization and redaction avoid leaking secrets', ()
 test('WeChat MP pacing defaults inherit scrape-hub account delay range', () => {
   assert.deepEqual(
     normalizePacingOptions({}).queryDelayRangeSeconds,
-    [55, 120],
+    [95, 125],
   );
   assert.deepEqual(
     normalizePacingOptions({ query_delay_range: '' }).queryDelayRangeSeconds,
-    [55, 120],
+    [95, 125],
+  );
+  assert.deepEqual(
+    normalizePacingOptions({ page_pause_range: '' }).pagePauseRangeSeconds,
+    [10, 25],
+  );
+  assert.deepEqual(
+    normalizePacingOptions({ content_delay_range: '' }).contentDelayRangeSeconds,
+    [10, 20],
   );
   assert.deepEqual(
     normalizeDelayRangeSeconds([120, 55], [1, 2]),
@@ -287,8 +295,8 @@ test('WeChat MP pacing defaults inherit scrape-hub account delay range', () => {
 });
 
 test('WeChat MP pacing can compute and wait injected delays without sleeping in tests', async () => {
-  assert.equal(randomSecondsInRange([55, 120], () => 0), 55);
-  assert.equal(randomSecondsInRange([55, 120], () => 0.5), 87.5);
+  assert.equal(randomSecondsInRange([95, 125], () => 0), 95);
+  assert.equal(randomSecondsInRange([95, 125], () => 0.5), 110);
 
   const waited = [];
   const fixed = await waitSeconds(1.25, {
