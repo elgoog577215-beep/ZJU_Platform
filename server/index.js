@@ -32,6 +32,10 @@ const {
   performanceMonitor,
   conditionalRequest
 } = require('./src/middleware/performance');
+const {
+  blockDangerousUploadRequest,
+  setUploadStaticSecurityHeaders,
+} = require('./src/middleware/upload');
 
 const app = express();
 app.disable('x-powered-by');
@@ -220,19 +224,12 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 app.use('/uploads', 
+  blockDangerousUploadRequest,
   staticCacheControl, // Apply optimized cache headers
   express.static(uploadDir, {
     maxAge: '30d',
     immutable: true,
-    setHeaders: (res, path) => {
-      // Add security headers for static files
-      res.setHeader('X-Content-Type-Options', 'nosniff');
-      
-      // Prevent execution of uploaded files
-      if (path.match(/\.(php|jsp|asp|aspx|exe|sh|bat)$/i)) {
-        res.setHeader('Content-Type', 'text/plain');
-      }
-    }
+    setHeaders: setUploadStaticSecurityHeaders,
   })
 );
 

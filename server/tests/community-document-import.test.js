@@ -66,17 +66,16 @@ test('community document importer promotes plain text title and lists', async ()
   assert.equal(imported.contentBlocks[2].style, 'list');
 });
 
-test('community document importer strips html chrome into clean blocks', async () => {
-  const imported = await importCommunityDocument(await writeTempDocument(
+test('community document importer rejects html documents', async () => {
+  const html = await writeTempDocument(
     'news.html',
-    '<article><h1>AI News Digest</h1><p>Useful update &amp; context.</p><script>bad()</script></article>',
-  ));
+    '<article><h1>AI News Digest</h1><p>Useful update &amp; context.</p></article>',
+  );
 
-  assert.equal(imported.title, 'AI News Digest');
-  assert.equal(imported.meta.sourceType, 'html');
-  assert.equal(imported.contentBlocks[0].style, 'heading');
-  assert.match(imported.plainText, /Useful update & context/);
-  assert.doesNotMatch(imported.plainText, /bad\(\)/);
+  await assert.rejects(
+    () => importCommunityDocument(html),
+    (error) => error.statusCode === 400 && error.message === 'Unsupported document format',
+  );
 });
 
 test('community document importer rejects unsupported and empty inputs', async () => {
