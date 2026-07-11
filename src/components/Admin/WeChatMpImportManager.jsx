@@ -55,6 +55,11 @@ const initialForm = {
   count: 20,
   maxPages: 1,
   allowFirst: false,
+  queryDelayMin: 55,
+  queryDelayMax: 120,
+  pagePauseSeconds: "",
+  contentDelayMin: "",
+  contentDelayMax: "",
 };
 
 const getApiErrorMessage = (error, fallback, language) => {
@@ -70,6 +75,22 @@ const textParagraphs = (value) =>
     .map((part) => part.trim())
     .filter(Boolean)
     .slice(0, 24);
+
+const optionalNumber = (value) => {
+  const text = String(value ?? "").trim();
+  if (!text) return undefined;
+  const number = Number(text);
+  return Number.isFinite(number) ? number : undefined;
+};
+
+const optionalDelayRange = (minValue, maxValue) => {
+  const min = optionalNumber(minValue);
+  const max = optionalNumber(maxValue);
+  if (min === undefined && max === undefined) return undefined;
+  if (min === undefined) return [max, max];
+  if (max === undefined) return [min, min];
+  return [min, max];
+};
 
 const loginStatusKey = (loginStage, credentialsReady) => {
   if (credentialsReady || loginStage === "saved") return "logged_in";
@@ -217,6 +238,12 @@ const WeChatMpImportManager = () => {
     }));
   };
 
+  const pacingPayload = () => ({
+    query_delay_range: optionalDelayRange(form.queryDelayMin, form.queryDelayMax),
+    page_pause_seconds: optionalNumber(form.pagePauseSeconds),
+    content_delay_range: optionalDelayRange(form.contentDelayMin, form.contentDelayMax),
+  });
+
   const fetchArticles = async () => {
     if (!credentialsReady) {
       toast.error(t("admin.wechat_mp.toasts.login_required"));
@@ -239,6 +266,7 @@ const WeChatMpImportManager = () => {
         count: Number(form.count) || 20,
         max_pages: Number(form.maxPages) || 1,
         allow_first: form.allowFirst,
+        ...pacingPayload(),
       });
       setArticlesResult(response.data);
       const firstArticle = response.data?.articles?.[0] || null;
@@ -524,6 +552,82 @@ const WeChatMpImportManager = () => {
                 </FilterChip>
               ))}
             </div>
+
+            <details className={clsx("mt-4 rounded-[8px] border p-3", isDayMode ? "border-slate-200 bg-white/70" : "border-white/10 bg-white/[0.03]")}>
+              <summary className={clsx("cursor-pointer text-sm font-semibold", headingTextClass)}>
+                {t("admin.wechat_mp.collect.pacing_title")}
+              </summary>
+              <AdminInlineNote tone="warning" className="mt-3">
+                {t("admin.wechat_mp.collect.pacing_note")}
+              </AdminInlineNote>
+              <div className="mt-3 grid gap-3 md:grid-cols-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <label className={clsx("block text-xs font-semibold", headingTextClass)}>
+                    {t("admin.wechat_mp.fields.query_delay_min")}
+                    <input
+                      type="number"
+                      min="0"
+                      max="3600"
+                      value={form.queryDelayMin}
+                      onChange={(event) => updateForm("queryDelayMin", event.target.value)}
+                      className="theme-admin-input rect-field mt-1 min-h-[36px] w-full px-2 py-1 text-sm"
+                      placeholder="55"
+                    />
+                  </label>
+                  <label className={clsx("block text-xs font-semibold", headingTextClass)}>
+                    {t("admin.wechat_mp.fields.query_delay_max")}
+                    <input
+                      type="number"
+                      min="0"
+                      max="3600"
+                      value={form.queryDelayMax}
+                      onChange={(event) => updateForm("queryDelayMax", event.target.value)}
+                      className="theme-admin-input rect-field mt-1 min-h-[36px] w-full px-2 py-1 text-sm"
+                      placeholder="120"
+                    />
+                  </label>
+                </div>
+                <label className={clsx("block text-xs font-semibold", headingTextClass)}>
+                  {t("admin.wechat_mp.fields.page_pause_seconds")}
+                  <input
+                    type="number"
+                    min="0"
+                    max="3600"
+                    step="0.5"
+                    value={form.pagePauseSeconds}
+                    onChange={(event) => updateForm("pagePauseSeconds", event.target.value)}
+                    className="theme-admin-input rect-field mt-1 min-h-[36px] w-full px-2 py-1 text-sm"
+                    placeholder="3"
+                  />
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className={clsx("block text-xs font-semibold", headingTextClass)}>
+                    {t("admin.wechat_mp.fields.content_delay_min")}
+                    <input
+                      type="number"
+                      min="0"
+                      max="3600"
+                      value={form.contentDelayMin}
+                      onChange={(event) => updateForm("contentDelayMin", event.target.value)}
+                      className="theme-admin-input rect-field mt-1 min-h-[36px] w-full px-2 py-1 text-sm"
+                      placeholder="3"
+                    />
+                  </label>
+                  <label className={clsx("block text-xs font-semibold", headingTextClass)}>
+                    {t("admin.wechat_mp.fields.content_delay_max")}
+                    <input
+                      type="number"
+                      min="0"
+                      max="3600"
+                      value={form.contentDelayMax}
+                      onChange={(event) => updateForm("contentDelayMax", event.target.value)}
+                      className="theme-admin-input rect-field mt-1 min-h-[36px] w-full px-2 py-1 text-sm"
+                      placeholder="8"
+                    />
+                  </label>
+                </div>
+              </div>
+            </details>
           </AdminPanel>
         </div>
 
