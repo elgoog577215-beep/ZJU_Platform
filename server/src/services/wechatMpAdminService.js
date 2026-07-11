@@ -4,6 +4,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { chromium } = require('playwright');
+const { downloadWeChatImage } = require('../utils/wechatImageDownloader');
 
 const WECHAT_MP_BASE_URL = 'https://mp.weixin.qq.com';
 const WECHAT_MP_LOGIN_URL = `${WECHAT_MP_BASE_URL}/?lang=zh_CN`;
@@ -209,6 +210,8 @@ const trustedWechatAssetUrl = (url) => {
     return false;
   }
 };
+
+const isLocalUploadUrl = (url) => String(url || '').startsWith('/uploads/');
 
 const buildTrustedMpApiUrl = (apiPath) => {
   const url = new URL(String(apiPath || ''), WECHAT_MP_BASE_URL).toString();
@@ -901,6 +904,64 @@ const extractArticleBody = (html) => {
   };
 };
 
+const localizeWechatArticleImages = async (articleBody, { downloader = downloadWeChatImage } = {}) => {
+  const imageMap = new Map();
+  const localizedImages = [];
+
+  const localizeUrl = async (rawUrl) => {
+    const imageUrl = normalizeHttpsUrl(rawUrl);
+    if (!trustedWechatAssetUrl(imageUrl)) return '';
+    if (imageMap.has(imageUrl)) return imageMap.get(imageUrl);
+    let localUrl = '';
+    try {
+      localUrl = await downloader(imageUrl);
+    } catch {
+      localUrl = '';
+    }
+    const finalUrl = isLocalUploadUrl(localUrl) ? localUrl : imageUrl;
+    imageMap.set(imageUrl, finalUrl);
+    return finalUrl;
+  };
+
+  let coverImage = articleBody.coverImage || '';
+  if (coverImage) {
+    coverImage = await localizeUrl(coverImage) || coverImage;
+  }
+
+  for (const imageUrl of articleBody.images || []) {
+    const localUrl = await localizeUrl(imageUrl);
+    if (localUrl && !localizedImages.includes(localUrl)) localizedImages.push(localUrl);
+  }
+
+  let contentHtml = articleBody.contentHtml || '';
+  if (contentHtml) {
+    const $ = cheerio.load(contentHtml, { decodeEntities: false }, false);
+    const imageElements = $('img').toArray();
+    for (const element of imageElements) {
+      const $image = $(element);
+      const originalUrl = normalizeHttpsUrl($image.attr('data-src') || $image.attr('src') || '');
+      const localUrl = await localizeUrl(originalUrl);
+      if (!localUrl) continue;
+      $image.attr('src', localUrl);
+      $image.removeAttr('data-src');
+      $image.removeAttr('srcset');
+      if (!localizedImages.includes(localUrl)) localizedImages.push(localUrl);
+    }
+    contentHtml = $.root().html() || contentHtml;
+  }
+
+  if (!coverImage && localizedImages.length) {
+    coverImage = localizedImages[0];
+  }
+
+  return {
+    ...articleBody,
+    coverImage,
+    contentHtml,
+    images: localizedImages,
+  };
+};
+
 const fetchArticleContent = async ({ url }) => {
   const articleUrl = String(url || '').trim();
   if (!trustedMpUrl(articleUrl)) {
@@ -923,7 +984,7 @@ const fetchArticleContent = async ({ url }) => {
     error.status = 400;
     throw error;
   }
-  const parsed = extractArticleBody(response.data || '');
+  const parsed = await localizeWechatArticleImages(extractArticleBody(response.data || ''));
   return {
     url: resolvedUrl,
     ...parsed,
@@ -954,6 +1015,7 @@ module.exports = {
   getBrowserRuntimeStatus,
   getStatus,
   maskSecret,
+  localizeWechatArticleImages,
   normalizeDelayRangeSeconds,
   normalizeLoginWaitMs,
   normalizeMpArticle,

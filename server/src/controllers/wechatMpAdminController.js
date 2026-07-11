@@ -18,6 +18,7 @@ const { recordWechatParseRun } = require('./wechatParseController');
 const wechatMpScheduledIngestService = require('../services/wechatMpScheduledIngestService');
 
 const MAX_PARSE_CONTENT_CHARS = 200000;
+const isLocalUploadUrl = (url) => String(url || '').startsWith('/uploads/');
 
 const toHttpStatus = (error) => {
   if (Number.isInteger(error?.status)) return error.status;
@@ -131,7 +132,9 @@ const parseWechatMpArticle = async (req, res) => {
     }
 
     const sourceCoverImage = String(contentPayload.coverImage || req.body?.article?.cover || '').trim();
-    const safeCoverImage = trustedWechatAssetUrl(sourceCoverImage) ? sourceCoverImage : '';
+    const safeCoverImage = trustedWechatAssetUrl(sourceCoverImage) || isLocalUploadUrl(sourceCoverImage)
+      ? sourceCoverImage
+      : '';
 
     const scrapedData = {
       title: String(contentPayload.title || req.body?.article?.title || 'Untitled').slice(0, 500),
@@ -156,7 +159,9 @@ const parseWechatMpArticle = async (req, res) => {
     if (!parsedData.content) parsedData.content = scrapedData.content;
     parsedData.title = parsedData.title || scrapedData.title || 'Untitled';
     parsedData.description = parsedData.description || scrapedData.content.slice(0, 200);
-    if (scrapedData.coverImage) {
+    if (isLocalUploadUrl(scrapedData.coverImage)) {
+      parsedData.coverImage = scrapedData.coverImage;
+    } else if (scrapedData.coverImage) {
       try {
         parsedData.coverImage = await downloadWeChatImage(scrapedData.coverImage) || scrapedData.coverImage;
       } catch {

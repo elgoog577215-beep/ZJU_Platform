@@ -9,6 +9,7 @@ const {
   credentialsFromBrowserState,
   extractArticleBody,
   extractAuthenticatedToken,
+  localizeWechatArticleImages,
   normalizeDelayRangeSeconds,
   normalizeLoginWaitMs,
   normalizeMpArticle,
@@ -221,6 +222,22 @@ test('WeChat MP article extractor returns clean text and image candidates', () =
   assert.match(parsed.contentText, /Line two text/);
   assert.doesNotMatch(parsed.contentText, /alert/);
   assert.deepEqual(parsed.images, ['https://mmbiz.qpic.cn/cover.png']);
+});
+
+test('WeChat MP article images are localized before admin preview', async () => {
+  const localized = await localizeWechatArticleImages({
+    coverImage: 'https://mmbiz.qpic.cn/cover.png',
+    contentHtml: '<section><img data-src="https://mmbiz.qpic.cn/body.png" src="https://mp.weixin.qq.com/placeholder"></section>',
+    images: ['https://mmbiz.qpic.cn/body.png'],
+  }, {
+    downloader: async (url) => `/uploads/covers/${url.includes('cover') ? 'cover' : 'body'}.jpg`,
+  });
+
+  assert.equal(localized.coverImage, '/uploads/covers/cover.jpg');
+  assert.deepEqual(localized.images, ['/uploads/covers/body.jpg']);
+  assert.match(localized.contentHtml, /src="\/uploads\/covers\/body\.jpg"/);
+  assert.doesNotMatch(localized.contentHtml, /data-src/);
+  assert.doesNotMatch(localized.contentHtml, /srcset/);
 });
 
 test('WeChat MP credential sanitization and redaction avoid leaking secrets', () => {
