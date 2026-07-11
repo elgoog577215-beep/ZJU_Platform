@@ -43,6 +43,31 @@ const toAuthUser = (user) => ({
   avatar: user.avatar,
 });
 
+const isFalseSetting = (value) => ['false', '0', 'off', 'no'].includes(String(value ?? '').trim().toLowerCase());
+
+const isRegistrationEnabled = async (db) => {
+  try {
+    const setting = await db.get('SELECT value FROM settings WHERE key = ?', ['allow_registrations']);
+    return !isFalseSetting(setting?.value);
+  } catch (error) {
+    if (/no such table/i.test(error.message || '')) return true;
+    throw error;
+  }
+};
+
+const shouldAllowRegistration = async (db, userCount) => {
+  if (Number(userCount || 0) <= 0) return true;
+  return isRegistrationEnabled(db);
+};
+
+const recordInvalidLoginAttempt = (req) => {
+  req.loginTracker?.recordFailed();
+};
+
+const clearSuccessfulLoginAttempts = (req) => {
+  req.loginTracker?.clear();
+};
+
 const getWechatMiniappStatus = async (req, res, next) => {
   try {
     const db = await getDb();
@@ -153,6 +178,19 @@ const register = async (req, res, next) => {
       return res.status(400).json({ error: 'Username and password are required' });
     }
 
+    if (password.length < 6) {
+        return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+    }
+
+    // Check if first user, make admin
+    const userCount = await db.get('SELECT COUNT(*) as count FROM users');
+    if (!(await shouldAllowRegistration(db, userCount.count))) {
+      return res.status(403).json({
+        error: 'Registration is currently disabled',
+        errorCode: 'REGISTRATION_DISABLED',
+      });
+    }
+
     // Check if user already exists
     const existingUser = await db.get('SELECT id FROM users WHERE username = ?', [username]);
     if (existingUser) {
@@ -161,14 +199,7 @@ const register = async (req, res, next) => {
         return res.status(400).json({ error: 'Username already exists' });
     }
 
-    if (password.length < 6) {
-        return res.status(400).json({ error: 'Password must be at least 6 characters long' });
-    }
-
     const hashedPassword = await bcrypt.hash(password, 12); // Increased salt rounds
-    
-    // Check if first user, make admin
-    const userCount = await db.get('SELECT COUNT(*) as count FROM users');
     const role = userCount.count === 0 ? 'admin' : 'user';
 
     const reviewPermission = role === 'admin' ? 'admin' : 'normal';
@@ -208,11 +239,13 @@ const login = async (req, res, next) => {
 
     const user = await db.get('SELECT * FROM users WHERE username = ?', [username]);
     if (!user) {
+      recordInvalidLoginAttempt(req);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      recordInvalidLoginAttempt(req);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -232,6 +265,7 @@ const login = async (req, res, next) => {
       [user.id, 'auth', 0, 'login', 'User logged in']
     );
 
+    clearSuccessfulLoginAttempts(req);
     res.json({ token, user: toAuthUser(user) });
   } catch (error) { next(error); }
 };
@@ -394,4 +428,8 @@ module.exports = {
   me,
   changePassword,
   SECRET_KEY,
+  isRegistrationEnabled,
+  shouldAllowRegistration,
+  recordInvalidLoginAttempt,
+  clearSuccessfulLoginAttempts,
 };

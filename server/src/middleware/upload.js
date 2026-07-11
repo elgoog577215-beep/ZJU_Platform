@@ -10,22 +10,22 @@ const UPLOAD_CONFIG = {
   allowedTypes: {
     image: {
       // FIX: BUG-05 — Remove SVG to prevent stored XSS via event handlers (onload, onerror, etc.)
-      extensions: ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'],
-      mimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp'],
+      extensions: ['.jpg', '.jpeg', '.png', '.gif', '.webp'],
+      mimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
       maxSize: 50 * 1024 * 1024 // 50MB for images
     },
     video: {
-      extensions: ['.mp4', '.webm', '.mov', '.avi', '.mkv', '.flv'],
-      mimeTypes: ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska', 'video/x-flv'],
+      extensions: ['.mp4', '.webm', '.mov'],
+      mimeTypes: ['video/mp4', 'video/webm', 'video/quicktime'],
       maxSize: 500 * 1024 * 1024 // 500MB for videos
     },
     audio: {
-      extensions: ['.mp3', '.wav', '.ogg', '.flac', '.aac', '.m4a'],
-      mimeTypes: ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/flac', 'audio/aac', 'audio/mp4'],
+      extensions: ['.mp3', '.wav', '.ogg', '.m4a'],
+      mimeTypes: ['audio/mpeg', 'audio/wav', 'audio/x-wav', 'audio/ogg', 'audio/mp4', 'audio/x-m4a'],
       maxSize: 100 * 1024 * 1024 // 100MB for audio
     },
     document: {
-      extensions: ['.pdf', '.doc', '.docx', '.txt', '.md', '.markdown', '.html', '.htm', '.csv', '.tsv', '.json'],
+      extensions: ['.pdf', '.doc', '.docx', '.txt', '.md', '.markdown'],
       mimeTypes: [
         'application/pdf',
         'application/msword',
@@ -33,16 +33,25 @@ const UPLOAD_CONFIG = {
         'text/plain',
         'text/markdown',
         'text/x-markdown',
-        'text/html',
+      ],
+      maxSize: 20 * 1024 * 1024 // 20MB for documents
+    },
+    wechatAccountList: {
+      extensions: ['.csv', '.tsv', '.json'],
+      mimeTypes: [
         'text/csv',
         'text/tab-separated-values',
         'application/json',
         'application/vnd.ms-excel',
       ],
-      maxSize: 20 * 1024 * 1024 // 20MB for documents
+      maxSize: 5 * 1024 * 1024 // 5MB for account list imports
     }
   }
 };
+
+const DEFAULT_CONTENT_TYPES = ['image', 'video', 'audio', 'document'];
+const DANGEROUS_UPLOAD_EXTENSION_RE = /\.(php|php5|php7|phtml|asp|aspx|jsp|pl|py|sh|bash|zsh|bat|cmd|exe|dll|vbs|com|scr|jar|js|mjs|cjs|html|htm|svg|xml)(?:$|\.)/i;
+const DANGEROUS_STATIC_UPLOAD_RE = /\.(html?|svg|xml|js|mjs|cjs)$/i;
 
 // Ensure uploads directory exists
 if (!fs.existsSync(UPLOAD_CONFIG.uploadDir)) {
@@ -81,18 +90,20 @@ const getSubdirectory = (mimetype) => {
 /**
  * Check if file type is allowed
  */
-const isAllowedFile = (file) => {
+const isAllowedFile = (file, allowedTypeNames = DEFAULT_CONTENT_TYPES) => {
   const ext = path.extname(file.originalname).toLowerCase();
   const mimetype = file.mimetype;
   
   // Block dangerous extensions (double extension attack protection)
-  const dangerousExtensions = /\.(php|php5|php7|phtml|asp|aspx|jsp|pl|py|sh|bat|exe|dll|vbs|cmd|com|scr|js|jar)$/i;
-  if (dangerousExtensions.test(file.originalname)) {
+  if (DANGEROUS_UPLOAD_EXTENSION_RE.test(file.originalname)) {
     return { allowed: false, reason: 'Security: Dangerous file type not allowed' };
   }
   
   // Check against allowed types
-  for (const [type, config] of Object.entries(UPLOAD_CONFIG.allowedTypes)) {
+  for (const type of allowedTypeNames) {
+    const config = UPLOAD_CONFIG.allowedTypes[type];
+    if (!config) continue;
+
     const extAllowed = config.extensions.includes(ext);
     const mimeAllowed = config.mimeTypes.includes(mimetype);
     
@@ -111,6 +122,35 @@ const isAllowedFile = (file) => {
   return { allowed: false, reason: 'Invalid file type' };
 };
 
+const normalizeFieldTypeMap = (fieldTypeMap = {}) => ({
+  default: fieldTypeMap.default || DEFAULT_CONTENT_TYPES,
+  ...fieldTypeMap,
+});
+
+const createUpload = (fieldTypeMap = {}) => {
+  const allowedTypesByField = normalizeFieldTypeMap(fieldTypeMap);
+
+  return multer({
+    storage,
+    limits: {
+      fileSize: UPLOAD_CONFIG.maxFileSize,
+      files: 5,
+      fields: 20,
+    },
+    fileFilter: (_req, file, cb) => {
+      const allowedTypeNames = allowedTypesByField[file.fieldname] || allowedTypesByField.default;
+      const result = isAllowedFile(file, allowedTypeNames);
+
+      if (result.allowed) {
+        file.fileType = result.type;
+        cb(null, true);
+      } else {
+        cb(new Error(result.reason), false);
+      }
+    },
+  });
+};
+
 // Storage configuration
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -124,29 +164,22 @@ const storage = multer.diskStorage({
   }
 });
 
-// File filter
-const fileFilter = (req, file, cb) => {
-  const result = isAllowedFile(file);
-  
-  if (result.allowed) {
-    // Store file type info for later use
-    file.fileType = result.type;
-    cb(null, true);
-  } else {
-    cb(new Error(result.reason), false);
-  }
-};
-
-// Multer upload instance
-const upload = multer({
-  storage: storage,
-  limits: {
-    fileSize: UPLOAD_CONFIG.maxFileSize,
-    files: 5, // Max 5 files per upload
-    fields: 20 // Max 20 form fields
-  },
-  fileFilter: fileFilter
+const contentUpload = createUpload({
+  file: ['image', 'video', 'audio', 'document'],
+  cover: ['image'],
 });
+
+const documentUpload = createUpload({
+  document: ['document'],
+  file: ['document'],
+});
+
+const wechatAccountListUpload = createUpload({
+  file: ['wechatAccountList'],
+});
+
+// Backwards-compatible alias for legacy imports.
+const upload = contentUpload;
 
 const avatarUpload = multer({
   storage: multer.diskStorage({
@@ -173,6 +206,32 @@ const avatarUpload = multer({
     cb(null, true);
   }
 });
+
+const isDangerousStaticUploadPath = (requestPath = '') => {
+  try {
+    const decodedPath = decodeURIComponent(String(requestPath || ''));
+    return DANGEROUS_STATIC_UPLOAD_RE.test(decodedPath);
+  } catch {
+    return DANGEROUS_STATIC_UPLOAD_RE.test(String(requestPath || ''));
+  }
+};
+
+const blockDangerousUploadRequest = (req, res, next) => {
+  if (isDangerousStaticUploadPath(req.path || req.url || '')) {
+    return res.status(404).json({ error: 'File not found' });
+  }
+  return next();
+};
+
+const setUploadStaticSecurityHeaders = (res, filePath) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox");
+  res.setHeader('Referrer-Policy', 'no-referrer');
+
+  if (DANGEROUS_STATIC_UPLOAD_RE.test(String(filePath || ''))) {
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  }
+};
 
 /**
  * Error handling middleware for multer
@@ -292,11 +351,19 @@ const moveToPermanent = async (tempPath, filename, fileType) => {
 
 module.exports = {
   upload,
+  contentUpload,
+  documentUpload,
+  wechatAccountListUpload,
   avatarUpload,
   handleUploadError,
   scanFile,
   cleanupTempFiles,
   moveToPermanent,
   UPLOAD_CONFIG,
-  generateFilename
+  generateFilename,
+  isAllowedFile,
+  createUpload,
+  blockDangerousUploadRequest,
+  isDangerousStaticUploadPath,
+  setUploadStaticSecurityHeaders,
 };

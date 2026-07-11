@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 // Middleware
-const { upload, avatarUpload } = require('../middleware/upload');
+const { contentUpload, documentUpload, avatarUpload } = require('../middleware/upload');
 
 // Controllers
 const resourceController = require('../controllers/resourceController');
@@ -132,7 +132,7 @@ const authenticateNativeUploadSession = (req, res, next) => {
 };
 
 const importCommunityDocumentUpload = (req, res, next) => {
-  upload.single('document')(req, res, (error) => {
+  documentUpload.single('document')(req, res, (error) => {
     if (error) {
       error.statusCode = 400;
       return next(error);
@@ -142,7 +142,7 @@ const importCommunityDocumentUpload = (req, res, next) => {
 };
 
 const cliDocumentUpload = (req, res, next) => {
-  upload.single('file')(req, res, (error) => {
+  documentUpload.single('file')(req, res, (error) => {
     if (error) {
       error.statusCode = 400;
       return next(error);
@@ -292,12 +292,12 @@ router.get('/stats', authenticateToken, isAdmin, systemController.getStats);
 router.get('/site-metrics', systemController.getSiteMetrics);
 router.post('/site-metrics/visit', optionalAuth, systemController.trackVisit);
 router.get('/uploads/image-variant', systemController.getImageVariant);
-router.post('/upload', authenticateToken, upload.fields([{ name: 'file', maxCount: 1 }, { name: 'cover', maxCount: 1 }]), systemController.handleUpload);
+router.post('/upload', authenticateToken, contentUpload.fields([{ name: 'file', maxCount: 1 }, { name: 'cover', maxCount: 1 }]), systemController.handleUpload);
 router.post('/native-upload-sessions', authenticateToken, nativeUploadSessionLimiter, systemController.createNativeUploadSessionHandler);
 router.get('/native-upload-sessions/:sessionId', authenticateToken, systemController.getNativeUploadSessionHandler);
 router.post('/native-poster-sessions', nativePosterSessionLimiter, systemController.createNativePosterSessionHandler);
 router.get('/native-poster-sessions/:sessionId/image', systemController.getNativePosterSessionImageHandler);
-router.post('/upload/native', authenticateNativeUploadSession, upload.fields([{ name: 'file', maxCount: 1 }, { name: 'cover', maxCount: 1 }]), systemController.handleNativeUpload);
+router.post('/upload/native', authenticateNativeUploadSession, contentUpload.fields([{ name: 'file', maxCount: 1 }, { name: 'cover', maxCount: 1 }]), systemController.handleNativeUpload);
 router.post('/upload/native/cancel', authenticateNativeUploadSession, systemController.cancelNativeUpload);
 router.post('/resources/parse-wechat', authenticateToken, wechatParseController.parseWeChatResource);
 router.get('/admin/wechat-mp/status', authenticateToken, isAdmin, wechatMpAdminController.getWechatMpStatus);

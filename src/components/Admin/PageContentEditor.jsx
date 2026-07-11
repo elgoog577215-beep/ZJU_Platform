@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { LayoutTemplate, Save, Globe, FileText, Mail, Upload } from "lucide-react";
+import { LayoutTemplate, Save, Globe, FileText, Mail, Upload, ShieldCheck } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 import api from "../../services/api";
 import {
@@ -11,6 +12,7 @@ import {
 } from "./AdminUI";
 
 const PageContentEditor = () => {
+  const { t } = useTranslation();
   const [activeSection, setActiveSection] = useState("home");
   const [settings, setSettings] = useState({});
   const [initialSettings, setInitialSettings] = useState({});
@@ -83,6 +85,7 @@ const PageContentEditor = () => {
         "social_instagram",
         "social_linkedin",
       ],
+      security: ["allow_registrations"],
     }),
     [],
   );
@@ -118,6 +121,7 @@ const PageContentEditor = () => {
     { id: "home", label: "首页", icon: Globe },
     { id: "about", label: "关于页", icon: FileText },
     { id: "contact", label: "联系页", icon: Mail },
+    { id: "security", label: t("admin.editor.security_section", "安全"), icon: ShieldCheck },
   ];
 
   if (loading) {
@@ -285,6 +289,18 @@ const PageContentEditor = () => {
               </div>
             </>
           ) : null}
+
+          {activeSection === "security" ? (
+            <ToggleField
+              label={t("admin.editor.allow_registrations", "开放新用户注册")}
+              description={t(
+                "admin.editor.allow_registrations_desc",
+                "关闭后，除首个初始化管理员外，新的公开注册请求会被后端拒绝。",
+              )}
+              checked={readBooleanSetting(settings.allow_registrations, true)}
+              onChange={(checked) => handleChange("allow_registrations", checked ? "true" : "false")}
+            />
+          ) : null}
         </div>
       </AdminPanel>
     </AdminPageShell>
@@ -293,6 +309,11 @@ const PageContentEditor = () => {
 
 const baseInputClassName =
   "theme-admin-input w-full rounded-xl p-3";
+
+const readBooleanSetting = (value, defaultValue = true) => {
+  if (value === undefined || value === null || value === "") return defaultValue;
+  return !["false", "0", "off", "no"].includes(String(value).trim().toLowerCase());
+};
 
 const Field = ({ label, value, onChange }) => (
   <div>
@@ -343,6 +364,21 @@ const ImageField = ({ label, value, onChange, onUpload }) => (
       />
     ) : null}
   </div>
+);
+
+const ToggleField = ({ label, description, checked, onChange }) => (
+  <label className="flex cursor-pointer items-start justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+    <span>
+      <span className="block text-sm font-semibold text-white">{label}</span>
+      <span className="mt-1 block text-sm leading-6 text-gray-400">{description}</span>
+    </span>
+    <input
+      type="checkbox"
+      checked={checked}
+      onChange={(event) => onChange(event.target.checked)}
+      className="mt-1 h-5 w-5 rounded border-white/20 bg-transparent text-indigo-500"
+    />
+  </label>
 );
 
 export default PageContentEditor;
