@@ -22,7 +22,6 @@ import {
   ShieldCheck,
   Trash2,
   Upload,
-  Wand2,
   XCircle,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -62,20 +61,22 @@ const initialForm = {
   count: 20,
   maxPages: 1,
   allowFirst: false,
-  queryDelayMin: 55,
-  queryDelayMax: 120,
-  pagePauseSeconds: "",
-  contentDelayMin: "",
-  contentDelayMax: "",
+  queryDelayMin: 95,
+  queryDelayMax: 125,
+  pagePauseMin: 10,
+  pagePauseMax: 25,
+  contentDelayMin: 10,
+  contentDelayMax: 20,
 };
 
 const initialIngestSettings = {
   enabled: false,
   daily_run_time: "03:30",
   timezone: "Asia/Shanghai",
-  query_delay_range: [55, 120],
-  page_pause_seconds: 3,
-  content_delay_range: [3, 8],
+  query_delay_range: [95, 125],
+  page_pause_range: [10, 25],
+  page_pause_seconds: 10,
+  content_delay_range: [10, 20],
   count_per_page: 20,
   max_pages: 1,
   fetch_content: true,
@@ -166,6 +167,8 @@ const statusTone = (isReady, isDayMode) =>
 const WeChatMpImportManager = () => {
   const { t, i18n } = useTranslation();
   const { isDayMode, headingTextClass, mutedTextClass, subtleTextClass } = useAdminTheme();
+  const isChinese = String(i18n.resolvedLanguage || i18n.language || "").toLowerCase().startsWith("zh");
+  const fallbackText = (zhText, enText) => (isChinese ? zhText : enText);
   const [status, setStatus] = useState(initialStatus);
   const [statusLoading, setStatusLoading] = useState(true);
   const [loginStarting, setLoginStarting] = useState(false);
@@ -178,8 +181,7 @@ const WeChatMpImportManager = () => {
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [content, setContent] = useState(null);
   const [contentLoading, setContentLoading] = useState(false);
-  const [parsedResult, setParsedResult] = useState(null);
-  const [parsing, setParsing] = useState(false);
+  const [importingResource, setImportingResource] = useState("");
   const [ingestOverview, setIngestOverview] = useState(initialIngestOverview);
   const [ingestLoading, setIngestLoading] = useState(true);
   const [ingestSaving, setIngestSaving] = useState(false);
@@ -325,10 +327,10 @@ const WeChatMpImportManager = () => {
   };
 
   const pacingPayload = () => ({
-    query_delay_range: optionalDelayRange(form.queryDelayMin, form.queryDelayMax),
-    page_pause_seconds: optionalNumber(form.pagePauseSeconds),
-    content_delay_range: optionalDelayRange(form.contentDelayMin, form.contentDelayMax),
-  });
+  query_delay_range: optionalDelayRange(form.queryDelayMin, form.queryDelayMax),
+  page_pause_range: optionalDelayRange(form.pagePauseMin, form.pagePauseMax),
+  content_delay_range: optionalDelayRange(form.contentDelayMin, form.contentDelayMax),
+});
 
   const fetchArticles = async () => {
     if (!credentialsReady) {
@@ -343,7 +345,6 @@ const WeChatMpImportManager = () => {
     setArticlesResult(null);
     setSelectedArticle(null);
     setContent(null);
-    setParsedResult(null);
     try {
       const response = await api.post("/admin/wechat-mp/articles", {
         account_name: form.accountName.trim(),
@@ -367,7 +368,6 @@ const WeChatMpImportManager = () => {
   const selectArticle = (article) => {
     setSelectedArticle(article);
     setContent(null);
-    setParsedResult(null);
   };
 
   const fetchContent = async () => {
@@ -377,7 +377,6 @@ const WeChatMpImportManager = () => {
     }
     setContentLoading(true);
     setContent(null);
-    setParsedResult(null);
     try {
       const response = await api.post("/admin/wechat-mp/article-content", {
         url: selectedUrl,
@@ -391,23 +390,52 @@ const WeChatMpImportManager = () => {
     }
   };
 
-  const parseContent = async () => {
+  const importContent = async (resourceType) => {
     if (!content?.contentText) {
       toast.error(t("admin.wechat_mp.toasts.content_required"));
       return;
     }
-    setParsing(true);
+    setImportingResource(resourceType);
     try {
-      const response = await api.post("/admin/wechat-mp/parse", {
+      const payloadResponse = await api.post("/admin/wechat-mp/import-payload", {
+        resource_type: resourceType,
         article: selectedArticle,
         content,
       }, { retryWrites: true });
-      setParsedResult(response.data);
-      toast.success(t("admin.wechat_mp.toasts.parse_ready"));
+
+      const endpoint = payloadResponse.data?.endpoint;
+      const payload = payloadResponse.data?.payload;
+      if (!endpoint || !payload?.title) {
+        throw new Error(t(
+          "admin.wechat_mp.toasts.import_failed",
+          fallbackText("导入内容失败", "Failed to import content"),
+        ));
+      }
+
+      const createResponse = await api.post(endpoint, payload, { retryWrites: true });
+      const successFallback = resourceType === "event"
+        ? fallbackText(
+          "活动已导入，可在活动管理中继续补充时间地点",
+          "Event imported. You can add time and location in event management.",
+        )
+        : fallbackText(
+          "文章已导入，可在文章管理中继续编辑",
+          "Article imported. You can continue editing it in article management.",
+        );
+      toast.success(t(`admin.wechat_mp.toasts.import_${resourceType}_ready`, successFallback, {
+        id: createResponse.data?.id || "",
+      }));
     } catch (error) {
-      toast.error(getApiErrorMessage(error, t("admin.wechat_mp.toasts.parse_failed"), i18n.resolvedLanguage));
+      toast.error(getApiErrorMessage(
+        error,
+        t(
+          "admin.wechat_mp.toasts.import_failed",
+          fallbackText("导入内容失败", "Failed to import content"),
+        ),
+        i18n.resolvedLanguage,
+      ));
     } finally {
-      setParsing(false);
+      setImportingResource("");
     }
   };
 
@@ -438,14 +466,18 @@ const WeChatMpImportManager = () => {
       const payload = {
         ...ingestSettings,
         query_delay_range: [
-          Number(ingestSettings.query_delay_range?.[0]) || 55,
-          Number(ingestSettings.query_delay_range?.[1]) || 120,
+          Number(ingestSettings.query_delay_range?.[0]) || 95,
+          Number(ingestSettings.query_delay_range?.[1]) || 125,
+        ],
+        page_pause_range: [
+          Number(ingestSettings.page_pause_range?.[0]) || 10,
+          Number(ingestSettings.page_pause_range?.[1]) || 25,
         ],
         content_delay_range: [
-          Number(ingestSettings.content_delay_range?.[0]) || 3,
-          Number(ingestSettings.content_delay_range?.[1]) || 8,
+          Number(ingestSettings.content_delay_range?.[0]) || 10,
+          Number(ingestSettings.content_delay_range?.[1]) || 20,
         ],
-        page_pause_seconds: Number(ingestSettings.page_pause_seconds) || 3,
+        page_pause_seconds: Number(ingestSettings.page_pause_range?.[0]) || 10,
         count_per_page: Number(ingestSettings.count_per_page) || 20,
         max_pages: Number(ingestSettings.max_pages) || 1,
       };
@@ -784,7 +816,7 @@ const WeChatMpImportManager = () => {
                       value={form.queryDelayMin}
                       onChange={(event) => updateForm("queryDelayMin", event.target.value)}
                       className="theme-admin-input rect-field mt-1 min-h-[36px] w-full px-2 py-1 text-sm"
-                      placeholder="55"
+                      placeholder="95"
                     />
                   </label>
                   <label className={clsx("block text-xs font-semibold", headingTextClass)}>
@@ -796,23 +828,38 @@ const WeChatMpImportManager = () => {
                       value={form.queryDelayMax}
                       onChange={(event) => updateForm("queryDelayMax", event.target.value)}
                       className="theme-admin-input rect-field mt-1 min-h-[36px] w-full px-2 py-1 text-sm"
-                      placeholder="120"
+                      placeholder="125"
                     />
                   </label>
                 </div>
-                <label className={clsx("block text-xs font-semibold", headingTextClass)}>
-                  {t("admin.wechat_mp.fields.page_pause_seconds")}
-                  <input
-                    type="number"
-                    min="0"
-                    max="3600"
-                    step="0.5"
-                    value={form.pagePauseSeconds}
-                    onChange={(event) => updateForm("pagePauseSeconds", event.target.value)}
-                    className="theme-admin-input rect-field mt-1 min-h-[36px] w-full px-2 py-1 text-sm"
-                    placeholder="3"
-                  />
-                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className={clsx("block text-xs font-semibold", headingTextClass)}>
+                    {t("admin.wechat_mp.fields.page_pause_min")}
+                    <input
+                      type="number"
+                      min="0"
+                      max="3600"
+                      step="0.5"
+                      value={form.pagePauseMin}
+                      onChange={(event) => updateForm("pagePauseMin", event.target.value)}
+                      className="theme-admin-input rect-field mt-1 min-h-[36px] w-full px-2 py-1 text-sm"
+                      placeholder="10"
+                    />
+                  </label>
+                  <label className={clsx("block text-xs font-semibold", headingTextClass)}>
+                    {t("admin.wechat_mp.fields.page_pause_max")}
+                    <input
+                      type="number"
+                      min="0"
+                      max="3600"
+                      step="0.5"
+                      value={form.pagePauseMax}
+                      onChange={(event) => updateForm("pagePauseMax", event.target.value)}
+                      className="theme-admin-input rect-field mt-1 min-h-[36px] w-full px-2 py-1 text-sm"
+                      placeholder="25"
+                    />
+                  </label>
+                </div>
                 <div className="grid grid-cols-2 gap-2">
                   <label className={clsx("block text-xs font-semibold", headingTextClass)}>
                     {t("admin.wechat_mp.fields.content_delay_min")}
@@ -823,7 +870,7 @@ const WeChatMpImportManager = () => {
                       value={form.contentDelayMin}
                       onChange={(event) => updateForm("contentDelayMin", event.target.value)}
                       className="theme-admin-input rect-field mt-1 min-h-[36px] w-full px-2 py-1 text-sm"
-                      placeholder="3"
+                      placeholder="10"
                     />
                   </label>
                   <label className={clsx("block text-xs font-semibold", headingTextClass)}>
@@ -835,7 +882,7 @@ const WeChatMpImportManager = () => {
                       value={form.contentDelayMax}
                       onChange={(event) => updateForm("contentDelayMax", event.target.value)}
                       className="theme-admin-input rect-field mt-1 min-h-[36px] w-full px-2 py-1 text-sm"
-                      placeholder="8"
+                      placeholder="20"
                     />
                   </label>
                 </div>
@@ -931,58 +978,75 @@ const WeChatMpImportManager = () => {
                   </div>
                   <div className="mt-1 grid grid-cols-2 gap-2">
                     <label className={clsx("block text-xs font-semibold", mutedTextClass)}>
-                      {t("admin.wechat_mp.ingest.fields.delay_min")}
+                      {t("admin.wechat_mp.fields.query_delay_min")}
                       <input
                         type="number"
                         min="0"
-                        value={ingestSettings.query_delay_range?.[0] ?? 55}
+                        value={ingestSettings.query_delay_range?.[0] ?? 95}
                         onChange={(event) => updateIngestDelay("query_delay_range", 0, event.target.value)}
                         className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
                       />
                     </label>
                     <label className={clsx("block text-xs font-semibold", mutedTextClass)}>
-                      {t("admin.wechat_mp.ingest.fields.delay_max")}
+                      {t("admin.wechat_mp.fields.query_delay_max")}
                       <input
                         type="number"
                         min="0"
-                        value={ingestSettings.query_delay_range?.[1] ?? 120}
+                        value={ingestSettings.query_delay_range?.[1] ?? 125}
                         onChange={(event) => updateIngestDelay("query_delay_range", 1, event.target.value)}
                         className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
                       />
                     </label>
                   </div>
                 </div>
-                <label className={clsx("block text-sm font-semibold", headingTextClass)}>
-                  {t("admin.wechat_mp.ingest.fields.page_pause")}
-                  <input
-                    type="number"
-                    min="0"
-                    value={ingestSettings.page_pause_seconds}
-                    onChange={(event) => updateIngestSetting("page_pause_seconds", event.target.value)}
-                    className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
-                  />
-                </label>
+                <div>
+                  <div className={clsx("text-sm font-semibold", headingTextClass)}>
+                    {t("admin.wechat_mp.ingest.fields.page_pause")}
+                  </div>
+                  <div className="mt-1 grid grid-cols-2 gap-2">
+                    <label className={clsx("block text-xs font-semibold", mutedTextClass)}>
+                      {t("admin.wechat_mp.fields.page_pause_min")}
+                      <input
+                        type="number"
+                        min="0"
+                        value={ingestSettings.page_pause_range?.[0] ?? 10}
+                        onChange={(event) => updateIngestDelay("page_pause_range", 0, event.target.value)}
+                        className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                      />
+                    </label>
+                    <label className={clsx("block text-xs font-semibold", mutedTextClass)}>
+                      {t("admin.wechat_mp.fields.page_pause_max")}
+                      <input
+                        type="number"
+                        min="0"
+                        value={ingestSettings.page_pause_range?.[1] ?? 25}
+                        onChange={(event) => updateIngestDelay("page_pause_range", 1, event.target.value)}
+                        className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
+                      />
+                    </label>
+                  </div>
+                </div>
                 <div>
                   <div className={clsx("text-sm font-semibold", headingTextClass)}>
                     {t("admin.wechat_mp.ingest.fields.content_delay")}
                   </div>
                   <div className="mt-1 grid grid-cols-2 gap-2">
                     <label className={clsx("block text-xs font-semibold", mutedTextClass)}>
-                      {t("admin.wechat_mp.ingest.fields.delay_min")}
+                      {t("admin.wechat_mp.fields.content_delay_min")}
                       <input
                         type="number"
                         min="0"
-                        value={ingestSettings.content_delay_range?.[0] ?? 3}
+                        value={ingestSettings.content_delay_range?.[0] ?? 10}
                         onChange={(event) => updateIngestDelay("content_delay_range", 0, event.target.value)}
                         className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
                       />
                     </label>
                     <label className={clsx("block text-xs font-semibold", mutedTextClass)}>
-                      {t("admin.wechat_mp.ingest.fields.delay_max")}
+                      {t("admin.wechat_mp.fields.content_delay_max")}
                       <input
                         type="number"
                         min="0"
-                        value={ingestSettings.content_delay_range?.[1] ?? 8}
+                        value={ingestSettings.content_delay_range?.[1] ?? 20}
                         onChange={(event) => updateIngestDelay("content_delay_range", 1, event.target.value)}
                         className="theme-admin-input rect-field mt-1 min-h-[40px] w-full px-3 py-2 text-sm"
                       />
@@ -1238,9 +1302,21 @@ const WeChatMpImportManager = () => {
                   {contentLoading ? <Loader2 size={16} className="animate-spin" /> : <FileText size={16} />}
                   {t("admin.wechat_mp.actions.fetch_content")}
                 </AdminButton>
-                <AdminButton tone="primary" onClick={parseContent} disabled={parsing || !content?.contentText}>
-                  {parsing ? <Loader2 size={16} className="animate-spin" /> : <Wand2 size={16} />}
-                  {t("admin.wechat_mp.actions.parse_content")}
+                <AdminButton
+                  tone="subtle"
+                  onClick={() => importContent("article")}
+                  disabled={Boolean(importingResource) || !content?.contentText}
+                >
+                  {importingResource === "article" ? <Loader2 size={16} className="animate-spin" /> : <Newspaper size={16} />}
+                  {t("admin.wechat_mp.actions.import_article", fallbackText("导入为文章", "Import Article"))}
+                </AdminButton>
+                <AdminButton
+                  tone="primary"
+                  onClick={() => importContent("event")}
+                  disabled={Boolean(importingResource) || !content?.contentText}
+                >
+                  {importingResource === "event" ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
+                  {t("admin.wechat_mp.actions.import_event", fallbackText("导入为活动", "Import Event"))}
                 </AdminButton>
               </ToolbarGroup>
             ) : null}
@@ -1332,37 +1408,6 @@ const WeChatMpImportManager = () => {
                   </AdminInlineNote>
                 )}
 
-                {parsedResult?.parsed ? (
-                  <div
-                    className={clsx(
-                      "rounded-[8px] border p-4",
-                      isDayMode ? "border-emerald-500/20 bg-emerald-50" : "border-emerald-500/20 bg-emerald-500/10",
-                    )}
-                  >
-                    <div className={clsx("mb-3 text-sm font-bold", headingTextClass)}>
-                      {t("admin.wechat_mp.parse.title")}
-                    </div>
-                    <div className="grid gap-2 text-sm sm:grid-cols-2">
-                      {[
-                        ["title", parsedResult.parsed.title],
-                        ["category", parsedResult.parsed.category],
-                        ["date", parsedResult.parsed.date],
-                        ["location", parsedResult.parsed.location],
-                        ["organizer", parsedResult.parsed.organizer],
-                        ["notice_type", parsedResult.parsed.notice_type],
-                      ].map(([key, value]) => (
-                        <div key={key} className="min-w-0">
-                          <div className={clsx("text-xs font-semibold", mutedTextClass)}>
-                            {t(`admin.wechat_mp.parse.fields.${key}`)}
-                          </div>
-                          <div className={clsx("mt-1 truncate font-semibold", headingTextClass)}>
-                            {value || t("admin.wechat_mp.status.none")}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
               </div>
             ) : (
               <AdminEmptyState
