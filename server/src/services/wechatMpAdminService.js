@@ -4,6 +4,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { chromium } = require('playwright');
+const { downloadWeChatImage } = require('../utils/wechatImageDownloader');
 
 const WECHAT_MP_BASE_URL = 'https://mp.weixin.qq.com';
 const WECHAT_MP_LOGIN_URL = `${WECHAT_MP_BASE_URL}/?lang=zh_CN`;
@@ -34,9 +35,9 @@ const DEFAULT_REQUEST_TIMEOUT_MS = 30 * 1000;
 const MIN_LOGIN_WAIT_SECONDS = 30;
 const MAX_LOGIN_WAIT_SECONDS = 10 * 60;
 const MAX_ARTICLE_RESPONSE_BYTES = 5 * 1024 * 1024;
-const DEFAULT_QUERY_DELAY_RANGE_SECONDS = Object.freeze([55, 120]);
-const DEFAULT_CONTENT_DELAY_RANGE_SECONDS = Object.freeze([3, 8]);
-const DEFAULT_PAGE_PAUSE_SECONDS = 3;
+const DEFAULT_QUERY_DELAY_RANGE_SECONDS = Object.freeze([95, 125]);
+const DEFAULT_PAGE_PAUSE_RANGE_SECONDS = Object.freeze([10, 25]);
+const DEFAULT_CONTENT_DELAY_RANGE_SECONDS = Object.freeze([10, 20]);
 const MAX_PACING_DELAY_SECONDS = 3600;
 
 const STEALTH_JS = `
@@ -212,6 +213,8 @@ const trustedWechatAssetUrl = (url) => {
     return false;
   }
 };
+
+const isLocalUploadUrl = (url) => String(url || '').startsWith('/uploads/');
 
 const buildTrustedMpApiUrl = (apiPath) => {
   const url = new URL(String(apiPath || ''), WECHAT_MP_BASE_URL).toString();
@@ -392,15 +395,21 @@ const normalizePacingOptions = (options = {}) => {
     options.content_delay_range_seconds,
     options.content_delay_range,
   );
-  const rawPagePauseSeconds = firstDefined(
+  const rawPagePauseRange = firstDefined(
+    options.pagePauseRangeSeconds,
+    options.pagePauseRange,
+    options.page_pause_range_seconds,
+    options.page_pause_range,
     options.pagePauseSeconds,
     options.page_pause_seconds,
     options.page_pause,
   );
+  const pagePauseRangeSeconds = normalizeDelayRangeSeconds(rawPagePauseRange, DEFAULT_PAGE_PAUSE_RANGE_SECONDS);
   return {
     queryDelayRangeSeconds: normalizeDelayRangeSeconds(rawQueryDelayRange, DEFAULT_QUERY_DELAY_RANGE_SECONDS),
     contentDelayRangeSeconds: normalizeDelayRangeSeconds(rawContentDelayRange, DEFAULT_CONTENT_DELAY_RANGE_SECONDS),
-    pagePauseSeconds: clampDelaySeconds(rawPagePauseSeconds, DEFAULT_PAGE_PAUSE_SECONDS),
+    pagePauseRangeSeconds,
+    pagePauseSeconds: pagePauseRangeSeconds[0] || DEFAULT_PAGE_PAUSE_RANGE_SECONDS[0],
   };
 };
 
@@ -830,8 +839,8 @@ const fetchArticles = async ({
   count = 20,
   maxPages = 1,
   allowFirst = false,
-  pacing,
-  runtime,
+  pacing = {},
+  runtime = {},
 }) => {
   const credentials = requireCredentials();
   const pacingOptions = pacingFromOptions(pacing);
@@ -887,7 +896,7 @@ const fetchArticles = async ({
       !(total && articles.length >= total)
     );
     if (!hasNextPage) break;
-    await waitSeconds(pacingOptions.pagePauseSeconds, runtime);
+    await waitDelayRange(pacingOptions.pagePauseRangeSeconds, runtime);
   }
 
   return {
@@ -1011,6 +1020,64 @@ const extractArticleBody = (html) => {
   };
 };
 
+const localizeWechatArticleImages = async (articleBody, { downloader = downloadWeChatImage } = {}) => {
+  const imageMap = new Map();
+  const localizedImages = [];
+
+  const localizeUrl = async (rawUrl) => {
+    const imageUrl = normalizeHttpsUrl(rawUrl);
+    if (!trustedWechatAssetUrl(imageUrl)) return '';
+    if (imageMap.has(imageUrl)) return imageMap.get(imageUrl);
+    let localUrl = '';
+    try {
+      localUrl = await downloader(imageUrl);
+    } catch {
+      localUrl = '';
+    }
+    const finalUrl = isLocalUploadUrl(localUrl) ? localUrl : imageUrl;
+    imageMap.set(imageUrl, finalUrl);
+    return finalUrl;
+  };
+
+  let coverImage = articleBody.coverImage || '';
+  if (coverImage) {
+    coverImage = await localizeUrl(coverImage) || coverImage;
+  }
+
+  for (const imageUrl of articleBody.images || []) {
+    const localUrl = await localizeUrl(imageUrl);
+    if (localUrl && !localizedImages.includes(localUrl)) localizedImages.push(localUrl);
+  }
+
+  let contentHtml = articleBody.contentHtml || '';
+  if (contentHtml) {
+    const $ = cheerio.load(contentHtml, { decodeEntities: false }, false);
+    const imageElements = $('img').toArray();
+    for (const element of imageElements) {
+      const $image = $(element);
+      const originalUrl = normalizeHttpsUrl($image.attr('data-src') || $image.attr('src') || '');
+      const localUrl = await localizeUrl(originalUrl);
+      if (!localUrl) continue;
+      $image.attr('src', localUrl);
+      $image.removeAttr('data-src');
+      $image.removeAttr('srcset');
+      if (!localizedImages.includes(localUrl)) localizedImages.push(localUrl);
+    }
+    contentHtml = $.root().html() || contentHtml;
+  }
+
+  if (!coverImage && localizedImages.length) {
+    coverImage = localizedImages[0];
+  }
+
+  return {
+    ...articleBody,
+    coverImage,
+    contentHtml,
+    images: localizedImages,
+  };
+};
+
 const fetchArticleContent = async ({ url }) => {
   const articleUrl = String(url || '').trim();
   if (!trustedMpUrl(articleUrl)) {
@@ -1033,7 +1100,7 @@ const fetchArticleContent = async ({ url }) => {
     error.status = 400;
     throw error;
   }
-  const parsed = extractArticleBody(response.data || '');
+  const parsed = await localizeWechatArticleImages(extractArticleBody(response.data || ''));
   return {
     url: resolvedUrl,
     ...parsed,
@@ -1118,6 +1185,7 @@ module.exports = {
   getBrowserRuntimeStatus,
   getStatus,
   maskSecret,
+  localizeWechatArticleImages,
   normalizeDelayRangeSeconds,
   normalizeLoginWaitMs,
   normalizeMpArticle,

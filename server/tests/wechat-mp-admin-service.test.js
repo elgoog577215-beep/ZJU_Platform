@@ -9,6 +9,7 @@ const {
   credentialsFromBrowserState,
   extractArticleBody,
   extractAuthenticatedToken,
+  localizeWechatArticleImages,
   normalizeDelayRangeSeconds,
   normalizeLoginWaitMs,
   normalizeMpArticle,
@@ -98,6 +99,20 @@ test('WeChat MP login timeout is bounded to a safe operational range', () => {
   assert.equal(normalizeLoginWaitMs(1), 30000);
   assert.equal(normalizeLoginWaitMs(3600), 600000);
   assert.equal(normalizeLoginWaitMs(Number.POSITIVE_INFINITY), 300000);
+});
+
+test('WeChat MP delay ranges normalize and use injectable sleep', async () => {
+  assert.deepEqual(normalizeDelayRangeSeconds([120, 55], [1, 2]), [55, 120]);
+  assert.deepEqual(normalizeDelayRangeSeconds('', [55, 120]), [55, 120]);
+  assert.deepEqual(normalizeDelayRangeSeconds('3,8', []), [3, 8]);
+  assert.deepEqual(normalizeDelayRangeSeconds('bad', []), []);
+
+  const waits = [];
+  await waitDelayRange([10, 20], {
+    random: () => 0.5,
+    sleep: async (ms) => { waits.push(ms); },
+  });
+  assert.deepEqual(waits, [15000]);
 });
 
 test('WeChat MP browser state requires token and session cookies', () => {
@@ -212,6 +227,22 @@ test('WeChat MP article extractor returns clean text and image candidates', () =
   assert.deepEqual(parsed.images, ['https://mmbiz.qpic.cn/cover.png']);
 });
 
+test('WeChat MP article images are localized before admin preview', async () => {
+  const localized = await localizeWechatArticleImages({
+    coverImage: 'https://mmbiz.qpic.cn/cover.png',
+    contentHtml: '<section><img data-src="https://mmbiz.qpic.cn/body.png" src="https://mp.weixin.qq.com/placeholder"></section>',
+    images: ['https://mmbiz.qpic.cn/body.png'],
+  }, {
+    downloader: async (url) => `/uploads/covers/${url.includes('cover') ? 'cover' : 'body'}.jpg`,
+  });
+
+  assert.equal(localized.coverImage, '/uploads/covers/cover.jpg');
+  assert.deepEqual(localized.images, ['/uploads/covers/body.jpg']);
+  assert.match(localized.contentHtml, /src="\/uploads\/covers\/body\.jpg"/);
+  assert.doesNotMatch(localized.contentHtml, /data-src/);
+  assert.doesNotMatch(localized.contentHtml, /srcset/);
+});
+
 test('WeChat MP credential sanitization and redaction avoid leaking secrets', () => {
   const publicCredentials = sanitizeCredentials({
     token: '1234567890',
@@ -239,11 +270,19 @@ test('WeChat MP credential sanitization and redaction avoid leaking secrets', ()
 test('WeChat MP pacing defaults inherit scrape-hub account delay range', () => {
   assert.deepEqual(
     normalizePacingOptions({}).queryDelayRangeSeconds,
-    [55, 120],
+    [95, 125],
   );
   assert.deepEqual(
     normalizePacingOptions({ query_delay_range: '' }).queryDelayRangeSeconds,
-    [55, 120],
+    [95, 125],
+  );
+  assert.deepEqual(
+    normalizePacingOptions({ page_pause_range: '' }).pagePauseRangeSeconds,
+    [10, 25],
+  );
+  assert.deepEqual(
+    normalizePacingOptions({ content_delay_range: '' }).contentDelayRangeSeconds,
+    [10, 20],
   );
   assert.deepEqual(
     normalizeDelayRangeSeconds([120, 55], [1, 2]),
@@ -256,8 +295,8 @@ test('WeChat MP pacing defaults inherit scrape-hub account delay range', () => {
 });
 
 test('WeChat MP pacing can compute and wait injected delays without sleeping in tests', async () => {
-  assert.equal(randomSecondsInRange([55, 120], () => 0), 55);
-  assert.equal(randomSecondsInRange([55, 120], () => 0.5), 87.5);
+  assert.equal(randomSecondsInRange([95, 125], () => 0), 95);
+  assert.equal(randomSecondsInRange([95, 125], () => 0.5), 110);
 
   const waited = [];
   const fixed = await waitSeconds(1.25, {

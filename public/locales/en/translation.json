@@ -2767,7 +2767,7 @@
     },
     "wechat_mp": {
       "title": "Official Account Article Import",
-      "description": "Import articles from an official account and create an editable event draft.",
+      "description": "Import official account article bodies and convert them into editable, publishable site content.",
       "actions": {
         "refresh_status": "Refresh Status",
         "start_login": "Scan Login",
@@ -2775,7 +2775,14 @@
         "search_account": "Search",
         "fetch_articles": "Fetch Articles",
         "fetch_content": "Fetch Body",
-        "parse_content": "Create Draft"
+        "import_article": "Import Article",
+        "import_event": "Import Event",
+        "refresh_ingest": "Refresh Jobs",
+        "run_ingest": "Run Now",
+        "save_ingest": "Save Schedule",
+        "add_account": "Add Account",
+        "import_accounts": "Import List",
+        "delete_account": "Delete Account"
       },
       "notes": {
         "ready": "You are logged in and can start importing articles.",
@@ -2797,11 +2804,11 @@
         "title": "Choose Account",
         "description": "Enter an official account name and optionally filter articles by keyword.",
         "pacing_title": "Collection Pacing",
-        "pacing_note": "These settings affect session stability and platform access rhythm. Account waits are prefilled as 55-120 seconds; if cleared, the backend still inherits the 55-120 second randomized wait."
+        "pacing_note": "Attention! If you do not know what these settings do, keep the defaults and do not change them casually."
       },
       "articles": {
         "title": "Importable Articles",
-        "description": "Select an article, fetch its body, and create an event draft.",
+        "description": "Select an article, fetch its body, and import it as a site article or event.",
         "empty_title": "No article candidates yet",
         "empty_desc": "Complete scan login first, then enter an account name to fetch articles.",
         "loading": "Fetching articles...",
@@ -2838,6 +2845,45 @@
         "content_length": "Body Length",
         "images": "Body Images"
       },
+      "ingest": {
+        "title": "Daily Incremental Ingest",
+        "description": "Maintain official accounts and automatically fetch new articles and bodies every day.",
+        "pacing_note": "Attention! If you do not know what these settings do, keep the defaults and do not change them casually.",
+        "confirm_delete_account": "Delete “{{name}}”?",
+        "runs_title": "Recent Jobs",
+        "articles_title": "New Articles",
+        "empty_runs": "No job records yet",
+        "empty_articles": "No new articles yet",
+        "empty_accounts_title": "No accounts yet",
+        "empty_accounts_desc": "Add one manually or upload a JSON, CSV, TSV, or TXT list.",
+        "metrics": {
+          "schedule": "Schedule",
+          "accounts": "Accounts",
+          "latest_run": "Latest Job",
+          "new_articles": "New Articles"
+        },
+        "fields": {
+          "enabled": "Scheduled Job",
+          "daily_run_time": "Daily Start",
+          "timezone": "Timezone",
+          "query_delay": "Account interval",
+          "delay_min": "Min",
+          "delay_max": "Max",
+          "page_pause": "Page interval",
+          "content_delay": "Body interval",
+          "fetch_content": "Fetch article bodies",
+          "account_enabled": "Enable this account"
+        },
+        "placeholders": {
+          "account_name": "Official account name",
+          "keywords": "Keywords, comma separated"
+        },
+        "run_status": {
+          "running": "Running",
+          "completed": "Completed",
+          "failed": "Failed"
+        }
+      },
       "fields": {
         "account_name": "Account Name",
         "fakeid": "Account fakeid",
@@ -2845,11 +2891,13 @@
         "count": "Page Size",
         "max_pages": "Pages",
         "allow_first": "Allow the first candidate when no exact account match is found",
-        "query_delay_min": "Min account wait (s)",
-        "query_delay_max": "Max account wait (s)",
-        "page_pause_seconds": "Page pause (s)",
-        "content_delay_min": "Min body wait (s)",
-        "content_delay_max": "Max body wait (s)"
+        "query_delay_min": "Account interval min",
+        "query_delay_max": "Account interval max",
+        "page_pause_min": "Page interval min",
+        "page_pause_max": "Page interval max",
+        "page_pause_seconds": "Page interval",
+        "content_delay_min": "Body interval min",
+        "content_delay_max": "Body interval max"
       },
       "placeholders": {
         "account_name": "For example: Zhejiang University",
@@ -2861,6 +2909,8 @@
         "missing": "Missing",
         "saved": "Saved",
         "not_saved": "Not Saved",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
         "none": "None"
       },
       "simple_status": {
@@ -2899,8 +2949,21 @@
         "content_ready": "Body fetched",
         "content_failed": "Failed to fetch body",
         "content_required": "Fetch the body first",
-        "parse_ready": "Parsing complete",
-        "parse_failed": "Failed to parse body"
+        "import_article_ready": "Article imported. You can continue editing it in article management.",
+        "import_event_ready": "Event imported. You can add time and location in event management.",
+        "import_failed": "Failed to import content",
+        "ingest_load_failed": "Failed to load ingest status",
+        "ingest_settings_saved": "Scheduled ingest settings saved",
+        "ingest_settings_failed": "Failed to save scheduled ingest settings",
+        "ingest_account_saved": "Account added",
+        "ingest_account_failed": "Failed to save account",
+        "ingest_account_deleted": "Account deleted",
+        "ingest_account_delete_failed": "Failed to delete account",
+        "ingest_file_required": "Choose an account list file first",
+        "ingest_imported": "Imported {{count}} accounts",
+        "ingest_import_failed": "Failed to import account list",
+        "ingest_started": "Incremental ingest started",
+        "ingest_start_failed": "Failed to start incremental ingest"
       }
     }
   },

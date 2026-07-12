@@ -1,71 +1,17 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
-const fs = require('fs');
-const path = require('path');
-const crypto = require('crypto');
 const { getDb } = require('../config/db');
 const aiRuntime = require('../services/unifiedAiRuntimeService');
 const {
     buildEventCatalogPromptText,
     validateParsedEventPayload,
 } = require('../services/eventIntelligenceService');
+const { downloadWeChatImage } = require('./wechatImageDownloader');
 
 // Simple In-Memory Cache
 const CACHE_TTL = 1000 * 60 * 60 * 24; // 24 hours
 const wechatCache = new Map();
 
-
-// Download image from WeChat and save locally
-async function downloadWeChatImage(imageUrl) {
-    if (!imageUrl) return null;
-    
-    try {
-        // Generate unique filename
-        const hash = crypto.createHash('md5').update(imageUrl).digest('hex');
-        const ext = imageUrl.includes('.png') ? 'png' : 
-                   imageUrl.includes('.gif') ? 'gif' : 'jpg';
-        const filename = `wechat_${hash}.${ext}`;
-        
-        // Determine upload directory
-        const uploadDir = path.join(__dirname, '../../uploads/covers');
-        const filePath = path.join(uploadDir, filename);
-        
-        // Create directory if not exists
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-        }
-        
-        // Check if already downloaded
-        if (fs.existsSync(filePath)) {
-            console.log(`📸 Using cached image: ${filename}`);
-            return `/uploads/covers/${filename}`;
-        }
-        
-        console.log(`📥 Downloading image from WeChat...`);
-        
-        // Download with proper headers to bypass hotlink protection
-        const response = await axios({
-            method: 'GET',
-            url: imageUrl,
-            responseType: 'arraybuffer',
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Referer': 'https://mp.weixin.qq.com/',
-                'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8'
-            },
-            timeout: 15000
-        });
-        
-        // Save to local file
-        fs.writeFileSync(filePath, response.data);
-        console.log(`✅ Image saved: ${filename}`);
-        
-        return `/uploads/covers/${filename}`;
-    } catch (error) {
-        console.error(`❌ Failed to download image: ${error.message}`);
-        return null;
-    }
-}
 
 function cleanWeChatUrl(url) {
     try {
