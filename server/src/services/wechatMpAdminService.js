@@ -216,6 +216,72 @@ const trustedWechatAssetUrl = (url) => {
 
 const isLocalUploadUrl = (url) => String(url || '').startsWith('/uploads/');
 
+const styleUrlRegex = () => /url\(\s*(?:(["'])(.*?)\1|([^)]*?))\s*\)/gi;
+
+const uniquePush = (list, value) => {
+  if (value && !list.includes(value)) list.push(value);
+};
+
+const cleanCssUrl = (value) => {
+  let text = String(value || '').trim();
+  if (!text) return '';
+  text = text
+    .replace(/&quot;|&#34;|&#x22;/gi, '"')
+    .replace(/&#39;|&#x27;/gi, "'");
+  if (
+    (text.startsWith('\\"') && text.endsWith('\\"')) ||
+    (text.startsWith("\\'") && text.endsWith("\\'"))
+  ) {
+    text = text.slice(2, -2);
+  }
+  if (
+    (text.startsWith('"') && text.endsWith('"')) ||
+    (text.startsWith("'") && text.endsWith("'"))
+  ) {
+    text = text.slice(1, -1);
+  }
+  return text.replace(/^\\(["'])/, '$1').replace(/\\(["'])$/, '$1').trim();
+};
+
+const trustedArticleImageUrl = (url) => {
+  const imageUrl = normalizeHttpsUrl(url);
+  if (!trustedWechatAssetUrl(imageUrl)) return '';
+  if (imageUrl.includes('emoji') || imageUrl.includes('qrcode')) return '';
+  return imageUrl;
+};
+
+const extractStyleImageUrls = (styleValue) => {
+  const urls = [];
+  const matcher = styleUrlRegex();
+  let match = matcher.exec(String(styleValue || ''));
+  while (match) {
+    uniquePush(urls, trustedArticleImageUrl(cleanCssUrl(match[2] || match[3] || '')));
+    match = matcher.exec(String(styleValue || ''));
+  }
+  return urls;
+};
+
+const localizeStyleImageUrls = async (styleValue, localizeUrl, onLocalized = () => {}) => {
+  const style = String(styleValue || '');
+  const matcher = styleUrlRegex();
+  let next = matcher.exec(style);
+  if (!next) return styleValue;
+
+  let result = '';
+  let lastIndex = 0;
+  while (next) {
+    const [token, quote = '', quotedUrl = '', bareUrl = ''] = next;
+    const imageUrl = trustedArticleImageUrl(cleanCssUrl(quotedUrl || bareUrl));
+    const localUrl = imageUrl ? await localizeUrl(imageUrl) : '';
+    if (localUrl) onLocalized(localUrl);
+    result += style.slice(lastIndex, next.index);
+    result += localUrl ? `url(${quote}${localUrl}${quote})` : token;
+    lastIndex = next.index + token.length;
+    next = matcher.exec(style);
+  }
+  return result + style.slice(lastIndex);
+};
+
 const buildTrustedMpApiUrl = (apiPath) => {
   const url = new URL(String(apiPath || ''), WECHAT_MP_BASE_URL).toString();
   const parsed = new URL(url);
@@ -1002,13 +1068,17 @@ const extractArticleBody = (html) => {
   if (!contentRoot.length) contentRoot = $('article');
   contentRoot.find('script,style,iframe').remove();
   const images = [];
+  const embeddedImages = [];
   contentRoot.find('img').each((_index, element) => {
-    const imageUrl = normalizeHttpsUrl($(element).attr('data-src') || $(element).attr('src') || '');
-    if (!trustedWechatAssetUrl(imageUrl)) return;
-    if (imageUrl.includes('emoji') || imageUrl.includes('qrcode')) return;
-    if (!images.includes(imageUrl)) images.push(imageUrl);
+    uniquePush(images, trustedArticleImageUrl($(element).attr('data-src') || $(element).attr('src') || ''));
   });
   if (!cover && images.length) cover = images[0];
+  contentRoot.find('[style]').each((_index, element) => {
+    for (const imageUrl of extractStyleImageUrls($(element).attr('style'))) {
+      uniquePush(embeddedImages, imageUrl);
+    }
+  });
+  if (!cover && embeddedImages.length) cover = embeddedImages[0];
   return {
     title: title || 'Untitled',
     author: author || '',
@@ -1016,7 +1086,7 @@ const extractArticleBody = (html) => {
     coverImage: cover || '',
     contentText: cleanContentText(contentRoot.text() || $('body').text()),
     contentHtml: contentRoot.html() || '',
-    images,
+    images: [...images, ...embeddedImages.filter((imageUrl) => !images.includes(imageUrl))],
   };
 };
 
@@ -1062,6 +1132,16 @@ const localizeWechatArticleImages = async (articleBody, { downloader = downloadW
       $image.removeAttr('data-src');
       $image.removeAttr('srcset');
       if (!localizedImages.includes(localUrl)) localizedImages.push(localUrl);
+    }
+    const styledElements = $('[style]').toArray();
+    for (const element of styledElements) {
+      const $element = $(element);
+      const localizedStyle = await localizeStyleImageUrls(
+        $element.attr('style') || '',
+        localizeUrl,
+        (localUrl) => uniquePush(localizedImages, localUrl),
+      );
+      $element.attr('style', localizedStyle);
     }
     contentHtml = $.root().html() || contentHtml;
   }

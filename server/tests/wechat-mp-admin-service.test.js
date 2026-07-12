@@ -212,6 +212,8 @@ test('WeChat MP article extractor returns clean text and image candidates', () =
           <p>Line two text.</p>
           <img data-src="https://mmbiz.qpic.cn/cover.png">
           <img src="https://mmbiz.qpic.cn/emoji.png">
+          <section style="background-image:url('https://mmbiz.qpic.cn/background.png');">Decorated block</section>
+          <section style="background:url('https://mmbiz.qpic.cn/qrcode.png') center/cover;">QR block</section>
         </div>
       </body>
     </html>
@@ -224,23 +226,28 @@ test('WeChat MP article extractor returns clean text and image candidates', () =
   assert.match(parsed.contentText, /Line one text/);
   assert.match(parsed.contentText, /Line two text/);
   assert.doesNotMatch(parsed.contentText, /alert/);
-  assert.deepEqual(parsed.images, ['https://mmbiz.qpic.cn/cover.png']);
+  assert.deepEqual(parsed.images, [
+    'https://mmbiz.qpic.cn/cover.png',
+    'https://mmbiz.qpic.cn/background.png',
+  ]);
 });
 
 test('WeChat MP article images are localized before admin preview', async () => {
   const localized = await localizeWechatArticleImages({
     coverImage: 'https://mmbiz.qpic.cn/cover.png',
-    contentHtml: '<section><img data-src="https://mmbiz.qpic.cn/body.png" src="https://mp.weixin.qq.com/placeholder"></section>',
+    contentHtml: '<section style="background-image:url(&quot;https://mmbiz.qpic.cn/background.png&quot;);"><img data-src="https://mmbiz.qpic.cn/body.png" src="https://mp.weixin.qq.com/placeholder"></section>',
     images: ['https://mmbiz.qpic.cn/body.png'],
   }, {
-    downloader: async (url) => `/uploads/covers/${url.includes('cover') ? 'cover' : 'body'}.jpg`,
+    downloader: async (url) => `/uploads/covers/${url.includes('cover') ? 'cover' : url.includes('background') ? 'background' : 'body'}.jpg`,
   });
 
   assert.equal(localized.coverImage, '/uploads/covers/cover.jpg');
-  assert.deepEqual(localized.images, ['/uploads/covers/body.jpg']);
+  assert.deepEqual(localized.images, ['/uploads/covers/body.jpg', '/uploads/covers/background.jpg']);
   assert.match(localized.contentHtml, /src="\/uploads\/covers\/body\.jpg"/);
+  assert.match(localized.contentHtml, /background-image:url\(&quot;\/uploads\/covers\/background\.jpg&quot;\)/);
   assert.doesNotMatch(localized.contentHtml, /data-src/);
   assert.doesNotMatch(localized.contentHtml, /srcset/);
+  assert.doesNotMatch(localized.contentHtml, /mmbiz\.qpic\.cn/);
 });
 
 test('WeChat MP credential sanitization and redaction avoid leaking secrets', () => {
