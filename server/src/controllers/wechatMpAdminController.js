@@ -139,6 +139,8 @@ const getWechatMpArticleContent = async (req, res) => {
     }
     const result = await fetchArticleContent({
       url: req.body?.url,
+      article: req.body?.article || {},
+      cover: req.body?.cover,
     });
     return res.json(result);
   } catch (error) {

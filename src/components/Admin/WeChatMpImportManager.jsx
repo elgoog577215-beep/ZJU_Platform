@@ -196,6 +196,7 @@ const WeChatMpImportManager = () => {
   const loginActive = Boolean(login.active || LOGIN_ACTIVE_STAGES.has(login.stage));
   const articles = articlesResult?.articles || [];
   const selectedUrl = selectedArticle?.link || "";
+  const previewCoverSrc = content?.coverImage || selectedArticle?.cover || "";
   const contentTextLength = content?.contentText?.length || 0;
   const ingestSettings = { ...initialIngestSettings, ...(ingestOverview.settings || {}) };
   const ingestAccounts = ingestOverview.accounts || [];
@@ -380,6 +381,7 @@ const WeChatMpImportManager = () => {
     try {
       const response = await api.post("/admin/wechat-mp/article-content", {
         url: selectedUrl,
+        article: selectedArticle,
       });
       setContent(response.data);
       toast.success(t("admin.wechat_mp.toasts.content_ready"));
@@ -1324,11 +1326,14 @@ const WeChatMpImportManager = () => {
             {selectedArticle ? (
               <div className="space-y-4">
                 <div className="flex flex-col gap-3 lg:flex-row">
-                  {selectedArticle.cover || content?.coverImage ? (
+                  {previewCoverSrc ? (
                     <img
-                      src={content?.coverImage || selectedArticle.cover}
+                      src={previewCoverSrc}
                       alt=""
-                      className="h-36 w-full rounded-[8px] object-cover lg:w-48"
+                      className={clsx(
+                        "h-36 w-full rounded-[8px] object-contain lg:w-56",
+                        isDayMode ? "bg-slate-100" : "bg-white/[0.04]",
+                      )}
                     />
                   ) : null}
                   <div className="min-w-0 flex-1">

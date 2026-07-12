@@ -250,6 +250,13 @@ const trustedArticleImageUrl = (url) => {
   return imageUrl;
 };
 
+const resolveArticleCoverUrl = (article = {}, fallback = '') => {
+  const rawCover = normalizeHttpsUrl(
+    article?.cover || article?.coverImage || article?.cover_image || fallback || '',
+  );
+  return trustedWechatAssetUrl(rawCover) ? rawCover : '';
+};
+
 const extractStyleImageUrls = (styleValue) => {
   const urls = [];
   const matcher = styleUrlRegex();
@@ -1158,7 +1165,7 @@ const localizeWechatArticleImages = async (articleBody, { downloader = downloadW
   };
 };
 
-const fetchArticleContent = async ({ url }) => {
+const fetchArticleContent = async ({ url, article = {}, cover = '' }) => {
   const articleUrl = String(url || '').trim();
   if (!trustedMpUrl(articleUrl)) {
     const error = new Error('仅支持 mp.weixin.qq.com 文章链接');
@@ -1180,7 +1187,10 @@ const fetchArticleContent = async ({ url }) => {
     error.status = 400;
     throw error;
   }
-  const parsed = await localizeWechatArticleImages(extractArticleBody(response.data || ''));
+  const articleBody = extractArticleBody(response.data || '');
+  const fallbackCover = resolveArticleCoverUrl(article, cover);
+  if (!articleBody.coverImage && fallbackCover) articleBody.coverImage = fallbackCover;
+  const parsed = await localizeWechatArticleImages(articleBody);
   return {
     url: resolvedUrl,
     ...parsed,
@@ -1220,7 +1230,10 @@ const fetchArticleContents = async ({
     try {
       contents.push({
         article: inputs[index].article || null,
-        content: await fetchArticleContent({ url: inputs[index].url }),
+        content: await fetchArticleContent({
+          url: inputs[index].url,
+          article: inputs[index].article || {},
+        }),
         error: '',
       });
     } catch (error) {
@@ -1274,6 +1287,7 @@ module.exports = {
   readCredentials,
   redactCredentials,
   randomSecondsInRange,
+  resolveArticleCoverUrl,
   sanitizeCredentials,
   searchAccounts,
   startLogin,

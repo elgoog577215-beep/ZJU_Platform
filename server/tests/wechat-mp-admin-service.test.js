@@ -17,6 +17,7 @@ const {
   parseMpArticlesPayload,
   randomSecondsInRange,
   redactCredentials,
+  resolveArticleCoverUrl,
   sanitizeCredentials,
   trustedWechatAssetUrl,
   waitDelayRange,
@@ -248,6 +249,25 @@ test('WeChat MP article images are localized before admin preview', async () => 
   assert.doesNotMatch(localized.contentHtml, /data-src/);
   assert.doesNotMatch(localized.contentHtml, /srcset/);
   assert.doesNotMatch(localized.contentHtml, /mmbiz\.qpic\.cn/);
+});
+
+test('WeChat MP article cover fallback only accepts trusted assets', () => {
+  assert.equal(
+    resolveArticleCoverUrl({ cover: '//mmbiz.qpic.cn/list-cover.png' }),
+    'https://mmbiz.qpic.cn/list-cover.png',
+  );
+  assert.equal(
+    resolveArticleCoverUrl({ coverImage: 'https://mmbiz.qpic.cn/list-cover-image.png' }),
+    'https://mmbiz.qpic.cn/list-cover-image.png',
+  );
+  assert.equal(
+    resolveArticleCoverUrl({ cover: 'https://qpic.cn.evil.example/cover.png' }),
+    '',
+  );
+  assert.equal(
+    resolveArticleCoverUrl({}, 'https://mmbiz.qpic.cn/fallback-cover.png'),
+    'https://mmbiz.qpic.cn/fallback-cover.png',
+  );
 });
 
 test('WeChat MP credential sanitization and redaction avoid leaking secrets', () => {
