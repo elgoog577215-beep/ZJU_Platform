@@ -1,13 +1,17 @@
-const { WEB_ORIGIN } = require("../../utils/webview");
-
 Page({
   data: {
-    webOrigin: WEB_ORIGIN,
+    webOrigin: "https://tuotuzju.com",
   },
 
   openEvents() {
     wx.navigateTo({
       url: "/pages/webview/index?path=%2Fevents",
+    });
+  },
+
+  openProjects() {
+    wx.navigateTo({
+      url: "/pages/webview/index?path=%2Fprojects",
     });
   },
 

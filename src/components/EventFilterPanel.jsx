@@ -25,12 +25,14 @@ const EventFilterPanel = ({
   onSortChange,
   hideSort = false,
   mode = "default",
+  sheetScope = "all",
 }) => {
   const { t, i18n } = useTranslation();
   const { uiMode } = useSettings();
   const language = i18n.resolvedLanguage || i18n.language || "zh";
   const isDayMode = uiMode === "day";
   const isSheetMode = mode === "sheet";
+  const isAudienceOnlySheet = isSheetMode && sheetScope === "audience";
   const [audienceSearch, setAudienceSearch] = useState("");
   const [showAllAudiences, setShowAllAudiences] = useState(false);
   const [isAudienceOpen, setIsAudienceOpen] = useState(false);
@@ -183,60 +185,68 @@ const EventFilterPanel = ({
       }`;
 
     return (
-      <div className="space-y-5">
-        <section className="space-y-3">
-          <div className="flex items-end justify-between gap-3">
-            <div>
-              <div className={sheetSectionTitleClass}>
-                {t("events.filter.category_title", "活动类型")}
+      <div className={isAudienceOnlySheet ? "space-y-3" : "space-y-5"}>
+        {!isAudienceOnlySheet && (
+          <section className="space-y-3">
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <div className={sheetSectionTitleClass}>
+                  {t("events.filter.category_title", "活动类型")}
+                </div>
+                <p className={sheetHintClass}>
+                  {t("events.filter.category_hint", "先选类型，再按对象收窄结果。")}
+                </p>
               </div>
-              <p className={sheetHintClass}>
-                {t("events.filter.category_hint", "先选类型，再按对象收窄结果。")}
-              </p>
             </div>
-          </div>
 
-          <div className="grid grid-cols-2 gap-2 min-[420px]:grid-cols-3">
-            <button
-              type="button"
-              aria-pressed={!selectedCategory}
-              onClick={() => setCategory(null)}
-              className={sheetCategoryClass(!selectedCategory)}
-            >
-              {!selectedCategory && renderActivePill()}
-              <span className="relative z-10 whitespace-nowrap">
-                {t("common.all", "全部")}
-              </span>
-            </button>
+            <div className="grid grid-cols-2 gap-2 min-[420px]:grid-cols-3">
+              <button
+                type="button"
+                aria-pressed={!selectedCategory}
+                onClick={() => setCategory(null)}
+                className={sheetCategoryClass(!selectedCategory)}
+              >
+                {!selectedCategory && renderActivePill()}
+                <span className="relative z-10 whitespace-nowrap">
+                  {t("common.all", "全部")}
+                </span>
+              </button>
 
-            {EVENT_FILTER_CATEGORIES.map((category) => {
-              const active = selectedCategory === category.value;
-              return (
-                <button
-                  key={category.value}
-                  type="button"
-                  aria-pressed={active}
-                  onClick={() => setCategory(category.value)}
-                  className={sheetCategoryClass(active)}
-                >
-                  {active && renderActivePill()}
-                  <span className="relative z-10 whitespace-nowrap">
-                    {categoryLabel(category.value)}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
+              {EVENT_FILTER_CATEGORIES.map((category) => {
+                const active = selectedCategory === category.value;
+                return (
+                  <button
+                    key={category.value}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => setCategory(category.value)}
+                    className={sheetCategoryClass(active)}
+                  >
+                    {active && renderActivePill()}
+                    <span className="relative z-10 whitespace-nowrap">
+                      {categoryLabel(category.value)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
-        <section className={`space-y-3 border-t pt-5 ${sheetBorderClass}`}>
+        <section
+          className={
+            isAudienceOnlySheet
+              ? "space-y-3"
+              : `space-y-3 border-t pt-5 ${sheetBorderClass}`
+          }
+        >
           <div className="flex items-end justify-between gap-3">
             <div>
               <div className={sheetSectionTitleClass}>
-                {t("events.filter.audience_mobile_title", "面向对象")}
+                {t("events.filter.audience_title", "学院范围")}
               </div>
               <p className={sheetHintClass}>
-                {t("events.filter.audience_short_hint", "按学院、年级或群体缩小范围")}
+                {t("events.filter.audience_hint", "匹配该学院面向活动、学院通知和全校活动")}
               </p>
             </div>
             <div className="flex items-center justify-end gap-3">

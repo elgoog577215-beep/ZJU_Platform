@@ -1861,11 +1861,14 @@
     "title": "Community Events",
     "subtitle": "Join our latest activities and workshops",
     "organizations": {
-      "aria": "Partner organization wall",
+      "aria": "Organization event filter",
       "kicker": "Partner organizations",
       "title": "Campus groups co-creating events",
       "desc": "Explore the organizations helping plan, promote, and support campus activities.",
       "count": "{{count}} total",
+      "filter_group": "Filter events by organization",
+      "event_count_short": "{{count}} events",
+      "sorted_by_count": "Organizations are sorted from most events to fewest",
       "view_directory": "View all",
       "directory_title": "All partner organizations",
       "search_placeholder": "Search organizations, descriptions, or collaboration focus",
@@ -1879,6 +1882,8 @@
       "related": "Related events",
       "loading_related": "Loading related events...",
       "no_related": "No related events matched yet",
+      "filter_by_partner": "Filter events from {{name}}",
+      "clear_partner_filter": "Clear {{name}} filter",
       "active_filter": "Organization: {{name}}"
     },
     "no_upcoming_desc": "No upcoming events for now. Please check back later.",
@@ -1887,11 +1892,14 @@
     "filter": {
       "sheet_title": "Filter Events",
       "sheet_hint": "Type and audience filters apply immediately.",
+      "all_audiences": "All colleges",
+      "open_audience_sheet": "Open college filter",
       "category_title": "Event Type",
       "category_hint": "Choose a type first, then narrow by audience.",
       "audience_prefix": "College Scope: ",
       "audience_title": "College Scope",
       "audience_hint": "Matches college-targeted events, college notices, and all-campus events.",
+      "audience_sheet_hint": "Narrow events by college only.",
       "search_audience": "Search colleges or programs",
       "search_audience_placeholder": "Search college / program",
       "no_audience_matches": "No matching college or program",
@@ -2001,6 +2009,7 @@
         "feedback_login_required": "Log in to let the assistant remember feedback",
         "feedback_failed": "Failed to save feedback. Please try again later."
       },
+      "ask_ai": "Ask AI",
       "open_assistant": "Open AI Event Assistant"
     },
     "countdown": {
@@ -2127,6 +2136,7 @@
       "overview": "Overview",
       "pending": "Review Center",
       "intelligence": "Intelligence Governance",
+      "wechatMp": "WeChat Import",
       "events": "Events Hub",
       "hackathon": "Hackathon",
       "articles": "Articles",
@@ -2319,6 +2329,7 @@
       "overview": "Key metrics, tasks, and common shortcuts",
       "pending": "Review pending content in one place",
       "intelligence": "Event governance and model interfaces",
+      "wechatMp": "Import official account articles and create event drafts",
       "events": "Event content, registration, and basics",
       "hackathon": "Hackathon registrations and participant data",
       "articles": "Articles, news, and long-form content",
@@ -2753,6 +2764,144 @@
       "initial_desc": "Candidate scanning is read-only and does not modify historical data.",
       "empty_title": "No matching migration candidates",
       "empty_desc": "Try another organization, add organization aliases, or inspect historical organizer text."
+    },
+    "wechat_mp": {
+      "title": "Official Account Article Import",
+      "description": "Import articles from an official account and create an editable event draft.",
+      "actions": {
+        "refresh_status": "Refresh Status",
+        "start_login": "Scan Login",
+        "cancel_login": "Cancel Login",
+        "search_account": "Search",
+        "fetch_articles": "Fetch Articles",
+        "fetch_content": "Fetch Body",
+        "parse_content": "Create Draft"
+      },
+      "notes": {
+        "ready": "You are logged in and can start importing articles.",
+        "need_login": "Please scan to log in before importing official account articles.",
+        "runtime_missing": "The login environment is not ready. Please contact an administrator."
+      },
+      "auth": {
+        "title": "Scan Login",
+        "description": "Use WeChat to scan and log in to the official account platform.",
+        "qr_alt": "WeChat MP login QR code",
+        "qr_empty": "Start scan login to show the QR code",
+        "idle_message": "Waiting for scan login",
+        "cookie_names": "Saved Cookies",
+        "token_mask": "Token",
+        "chromium_path": "Chromium Path",
+        "diagnostics": "Advanced diagnostics"
+      },
+      "collect": {
+        "title": "Choose Account",
+        "description": "Enter an official account name and optionally filter articles by keyword.",
+        "pacing_title": "Collection Pacing",
+        "pacing_note": "These settings affect session stability and platform access rhythm. Account waits are prefilled as 55-120 seconds; if cleared, the backend still inherits the 55-120 second randomized wait."
+      },
+      "articles": {
+        "title": "Importable Articles",
+        "description": "Select an article, fetch its body, and create an event draft.",
+        "empty_title": "No article candidates yet",
+        "empty_desc": "Complete scan login first, then enter an account name to fetch articles.",
+        "loading": "Fetching articles...",
+        "untitled": "Untitled article",
+        "no_summary": "No summary"
+      },
+      "preview": {
+        "title": "Article Preview",
+        "description": "Select an article and its content will appear here.",
+        "open_original": "Open Original",
+        "loading_content": "Fetching body...",
+        "need_fetch_content": "Fetch the article body first. After it succeeds, the article content appears here.",
+        "empty_title": "Select an article",
+        "empty_desc": "After article link acquisition completes, select one item from the list to fetch the body."
+      },
+      "parse": {
+        "title": "Event Draft",
+        "fields": {
+          "title": "Title",
+          "category": "Category",
+          "date": "Date",
+          "location": "Location",
+          "organizer": "Organizer",
+          "notice_type": "Notice Type"
+        }
+      },
+      "metrics": {
+        "browser": "Login Environment",
+        "credentials": "Login Status",
+        "login_stage": "Current Status",
+        "fetched_articles": "Fetched Articles",
+        "remote_total": "Remote Total",
+        "content_status": "Body Status",
+        "content_length": "Body Length",
+        "images": "Body Images"
+      },
+      "fields": {
+        "account_name": "Account Name",
+        "fakeid": "Account fakeid",
+        "keyword": "Keyword",
+        "count": "Page Size",
+        "max_pages": "Pages",
+        "allow_first": "Allow the first candidate when no exact account match is found",
+        "query_delay_min": "Min account wait (s)",
+        "query_delay_max": "Max account wait (s)",
+        "page_pause_seconds": "Page pause (s)",
+        "content_delay_min": "Min body wait (s)",
+        "content_delay_max": "Max body wait (s)"
+      },
+      "placeholders": {
+        "account_name": "For example: Zhejiang University",
+        "fakeid": "Can be filled from search results",
+        "keyword": "Optional, used to search article titles"
+      },
+      "status": {
+        "ready": "Ready",
+        "missing": "Missing",
+        "saved": "Saved",
+        "not_saved": "Not Saved",
+        "none": "None"
+      },
+      "simple_status": {
+        "not_logged_in": "Not Logged In",
+        "waiting": "Waiting for Scan",
+        "logged_in": "Logged In",
+        "failed": "Login Failed",
+        "cancelled": "Cancelled"
+      },
+      "login_stages": {
+        "idle": "Not Started",
+        "starting": "Preparing",
+        "opening": "Preparing QR code",
+        "waiting_for_scan": "Waiting for scan",
+        "qr_ready": "QR ready",
+        "saved": "Logged In",
+        "failed": "Login Failed",
+        "cancelled": "Cancelled"
+      },
+      "content_status": {
+        "not_fetched": "Not fetched",
+        "fetched": "Fetched",
+        "empty": "Empty"
+      },
+      "toasts": {
+        "status_failed": "Failed to load WeChat import status",
+        "login_started": "Scan login started",
+        "login_failed": "Failed to start scan login",
+        "login_cancelled": "Login cancelled",
+        "cancel_failed": "Failed to cancel login",
+        "account_required": "Enter an account name or fakeid",
+        "account_search_failed": "Failed to search accounts",
+        "login_required": "Complete scan login first",
+        "articles_failed": "Failed to fetch article list",
+        "article_required": "Select an article first",
+        "content_ready": "Body fetched",
+        "content_failed": "Failed to fetch body",
+        "content_required": "Fetch the body first",
+        "parse_ready": "Parsing complete",
+        "parse_failed": "Failed to parse body"
+      }
     }
   },
   "not_found": {
@@ -3091,10 +3240,10 @@
     }
   },
   "profiles": {
-    "directory_title": "Profile Directory",
-    "directory_desc": "Browse personal, club, school, enterprise, and organization profiles.",
-    "search_placeholder": "Search profiles",
-    "empty": "No matching profiles",
+    "directory_title": "Organization Directory",
+    "directory_desc": "Browse club, school, enterprise, and organization profiles.",
+    "search_placeholder": "Search organizations, clubs, or schools",
+    "empty": "No matching organizations",
     "types": {
       "all": "All",
       "person": "Person",

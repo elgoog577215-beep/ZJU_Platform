@@ -11,6 +11,7 @@ const partner = {
   cooperation_direction_en: "Student activity co-creation and campus outreach",
   event_organizer_aliases: ["浙江大学学生会", "ZJU Student Union", "校学生会"],
   sort_order: 10,
+  event_count: 1,
   enabled: true,
   featured: true,
   partner_scope: "core_partner",
@@ -30,6 +31,7 @@ const manyPartners = Array.from({ length: 14 }, (_, index) => ({
   event_organizer_aliases:
     index === 13 ? ["Overflow Campus Org"] : [`${partner.name} ${index + 1}`],
   sort_order: 10 + index,
+  event_count: index === 13 ? 8 : Math.max(1, 14 - index),
 }));
 
 const baseEvents = [
@@ -57,7 +59,7 @@ const baseEvents = [
   },
 ];
 
-const installEventsMocks = async (page, partners = [partner]) => {
+const installEventsMocks = async (page, partners = [partner], eventRequests = []) => {
   await page.addInitScript(() => {
     localStorage.clear();
     localStorage.setItem("ui_mode_v2", "day");
@@ -88,6 +90,10 @@ const installEventsMocks = async (page, partners = [partner]) => {
 
     if (path === "/events" && request.method() === "GET") {
       const organizerAny = url.searchParams.get("organizer_any");
+      eventRequests.push({
+        organizerAny,
+        url: url.toString(),
+      });
       const terms = organizerAny
         ? organizerAny
             .split(",")
@@ -112,48 +118,74 @@ const installEventsMocks = async (page, partners = [partner]) => {
   });
 };
 
-test.describe("events organization partner wall", () => {
-  test("desktop card opens the organization profile", async ({
+test.describe("events organization partner filter", () => {
+  test("desktop button filters events by organization", async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1366, height: 960 });
-    await installEventsMocks(page);
+    const eventRequests = [];
+    await installEventsMocks(page, [partner], eventRequests);
 
     await page.goto("/events");
 
-    await expect(page.getByTestId("organization-partner-wall")).toBeVisible();
-    await expect(
-      page.getByTestId("organization-partner-card-desktop-901"),
-    ).toBeVisible();
-    await expect(
-      page.getByTestId("organization-partner-card-mobile-901"),
-    ).toBeHidden();
+    const filterBar = page.locator('[data-testid="organization-partner-filter-bar"]:visible');
+    await expect(filterBar).toBeVisible();
+    await expect(filterBar.getByRole("button").first()).toContainText("全部");
+    await expect(filterBar.getByTestId("organization-partner-button-901")).toContainText("1 场");
 
-    await page.getByTestId("organization-partner-card-desktop-901").click();
-    await expect(page).toHaveURL(/\/org\/partner-901/);
+    await filterBar.getByTestId("organization-partner-button-901").click();
+    await expect
+      .poll(() =>
+        eventRequests.some((item) =>
+          item.organizerAny?.includes("浙江大学学生会"),
+        ),
+      )
+      .toBe(true);
+    await expect(page).toHaveURL(/\/events/);
+    await expect(page.getByTestId("organization-partner-active-filter")).toContainText("浙江大学学生会");
+    await expect(page.getByRole("heading", { name: "学生会专场分享会" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "校园公益行动" })).toHaveCount(0);
+
+    const requestCountBeforeClear = eventRequests.length;
+    await filterBar.getByRole("button", { name: "全部" }).click();
+    await expect
+      .poll(() =>
+        eventRequests
+          .slice(requestCountBeforeClear)
+          .some((item) => item.organizerAny === null),
+      )
+      .toBe(true);
   });
 
-  test("mobile renders a compact horizontal partner rail", async ({ page }) => {
+  test("mobile renders the same direct partner buttons", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await installEventsMocks(page);
+    const eventRequests = [];
+    await installEventsMocks(page, [partner], eventRequests);
 
     await page.goto("/events");
 
-    const wall = page.getByTestId("organization-partner-wall");
-    await expect(wall).toBeVisible();
-    await expect(page.getByTestId("organization-partner-card-mobile-901")).toBeVisible();
-    await expect(
-      page.getByTestId("organization-partner-card-desktop-901"),
-    ).toBeHidden();
+    const filterBar = page.locator('[data-testid="organization-partner-filter-bar"]:visible');
+    await expect(filterBar).toBeVisible();
+    await expect(filterBar.getByRole("button").first()).toContainText("全部");
+    await expect(filterBar.getByTestId("organization-partner-button-901")).toBeVisible();
 
-    const box = await wall.boundingBox();
-    expect(box?.height ?? 999).toBeLessThan(190);
+    const box = await filterBar.boundingBox();
+    expect(box?.height ?? 999).toBeLessThan(80);
 
-    await page.getByTestId("organization-partner-card-mobile-901").click();
-    await expect(page).toHaveURL(/\/org\/partner-901/);
+    await filterBar.getByTestId("organization-partner-button-901").click();
+    await expect
+      .poll(() =>
+        eventRequests.some((item) =>
+          item.organizerAny?.includes("浙江大学学生会"),
+        ),
+      )
+      .toBe(true);
+    await expect(page).toHaveURL(/\/events/);
+    await expect(page.getByRole("heading", { name: "学生会专场分享会" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "校园公益行动" })).toHaveCount(0);
   });
 
-  test("large partner sets stay capped on page and open searchable directory", async ({
+  test("large partner sets render directly and sort by event count", async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1366, height: 960 });
@@ -161,27 +193,16 @@ test.describe("events organization partner wall", () => {
 
     await page.goto("/events");
 
-    await expect(page.getByTestId("organization-partner-wall")).toBeVisible();
+    const filterBar = page.locator('[data-testid="organization-partner-filter-bar"]:visible');
+    await expect(filterBar).toBeVisible();
+    await expect(filterBar.getByRole("button").first()).toContainText("全部");
     await expect(
-      page.locator('[data-testid^="organization-partner-card-desktop-"]'),
-    ).toHaveCount(10);
+      filterBar.locator('[data-testid^="organization-partner-button-"]'),
+    ).toHaveCount(14);
     await expect(
-      page.getByTestId("organization-partner-card-desktop-914"),
-    ).toHaveCount(0);
-
-    await page.getByRole("button", { name: "查看全部" }).click();
-    const directory = page.getByTestId("organization-partner-directory");
-    await expect(directory).toBeVisible();
-    await expect(
-      directory.getByRole("button", { name: /Overflow Campus Org/ }),
-    ).toBeVisible();
-
-    await directory
-      .getByPlaceholder("搜索社团、简介或合作方向")
-      .fill("Overflow");
-    await expect(
-      directory.getByRole("button", { name: /Overflow Campus Org/ }),
-    ).toBeVisible();
-    await expect(directory.getByRole("button", { name: /Partner Org 1/ })).toHaveCount(0);
+      filterBar.locator('[data-testid^="organization-partner-button-"]').first(),
+    ).toContainText("浙江大学学生会 1");
+    await expect(filterBar.getByTestId("organization-partner-button-914")).toBeVisible();
+    await expect(page.getByRole("button", { name: "查看全部" })).toHaveCount(0);
   });
 });

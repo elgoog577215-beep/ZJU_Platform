@@ -1,0 +1,6 @@
+<view class="project-share-meta-grid">
+  <view wx:for="{{items}}" wx:key="id" class="project-share-meta-card">
+    <text>{{item.label}}</text>
+    <view>{{item.value}}</view>
+  </view>
+</view>

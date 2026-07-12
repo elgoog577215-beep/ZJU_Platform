@@ -1,0 +1,5 @@
+<view class="project-share-actions">
+  <button class="project-share-button primary" bindtap="openDetail">{{copy.viewDetail}}</button>
+  <button class="project-share-button secondary" bindtap="openPlaza">{{copy.openPlaza}}</button>
+  <button class="project-share-button ghost" open-type="share">{{copy.shareAgain}}</button>
+</view>

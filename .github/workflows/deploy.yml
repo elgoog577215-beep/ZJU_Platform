@@ -58,6 +58,8 @@ jobs:
             git pull --ff-only origin master
             cd server
             npm install --omit=dev --legacy-peer-deps --package-lock=false
+            npx playwright install --with-deps chromium
+            node -e "const { chromium } = require('playwright'); chromium.launch({ headless: true }).then(async (browser) => { await browser.close(); console.log('Playwright Chromium launch verified'); }).catch((error) => { console.error(error); process.exit(1); });"
             cd ..
             pm2 restart zju-server --update-env
             for i in $(seq 1 30); do

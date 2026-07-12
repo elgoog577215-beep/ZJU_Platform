@@ -99,94 +99,94 @@ const MobileNavbar = () => {
       variants={tabbarEntrance}
       initial={prefersReducedMotion ? false : "initial"}
       animate={prefersReducedMotion ? undefined : "animate"}
-      className={`motion-gpu fixed inset-x-0 bottom-0 z-[80] border-t backdrop-blur-xl md:hidden ${isDayMode ? "border-slate-900/[0.08] bg-white/90 shadow-[0_-10px_24px_rgba(31,45,61,0.045)]" : "border-white/[0.08] bg-[#0b111c]/90 shadow-[0_-10px_24px_rgba(0,0,0,0.24)]"}`}
+      className={`motion-gpu fixed inset-x-0 bottom-0 z-[80] border-t md:hidden ${isDayMode ? "border-slate-900/[0.08] bg-white shadow-[0_-10px_24px_rgba(31,45,61,0.045)]" : "border-white/[0.075] bg-[#07101b] shadow-[0_-14px_30px_rgba(0,0,0,0.32)]"}`}
       aria-label={t("nav.mobile_tabbar")}
     >
       <div className="pb-[env(safe-area-inset-bottom)]">
-      <div className="grid h-[var(--mobile-bottom-nav-height)] grid-cols-5 px-1.5">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = isItemActive(item.path, item.key);
+        <div className="grid h-[72px] grid-cols-5 px-1.5">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = isItemActive(item.path, item.key);
 
-          const sharedClassName = `relative flex min-w-0 flex-col items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isActive ? (isDayMode ? "text-slate-900" : "text-white") : isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white"}`;
-          const activeIconSurface = isDayMode
-            ? "rounded-[5px] bg-white ring-1 ring-slate-900/[0.12] shadow-[0_6px_14px_rgba(31,45,61,0.06)]"
-            : "rounded-[5px] bg-[#172033] ring-1 ring-white/10";
-          const iconClassName = `relative p-1.5 transition-colors duration-300 ${
-            isActive
-              ? isDayMode
-                ? "text-teal-700"
-                : "text-indigo-200"
-              : isDayMode
-                ? "text-slate-500"
-                : "text-gray-400"
-          }`;
+            const sharedClassName = `relative flex min-w-0 flex-col items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 ${isActive ? (isDayMode ? "text-slate-900" : "text-indigo-300") : isDayMode ? "text-slate-500 hover:text-slate-900" : "text-gray-400 hover:text-white"}`;
+            const activeIconSurface = isDayMode
+              ? "rounded-[5px] bg-white ring-1 ring-slate-900/[0.12] shadow-[0_6px_14px_rgba(31,45,61,0.06)]"
+              : "rounded-[8px] bg-indigo-500/18 ring-1 ring-indigo-400/20 shadow-[0_0_22px_rgba(99,102,241,0.22)]";
+            const iconClassName = `relative p-1.5 transition-colors duration-300 ${
+              isActive
+                ? isDayMode
+                  ? "text-teal-700"
+                  : "text-indigo-300"
+                : isDayMode
+                  ? "text-slate-500"
+                  : "text-gray-400"
+            }`;
 
-          const showUnreadBadge =
-            item.key === "me" && user && unreadCount > 0;
-          const badgeLabel = unreadCount > 99 ? "99+" : String(unreadCount);
+            const showUnreadBadge =
+              item.key === "me" && user && unreadCount > 0;
+            const badgeLabel = unreadCount > 99 ? "99+" : String(unreadCount);
 
-          const inner = (
-            <motion.div
-              whileTap={prefersReducedMotion ? undefined : tapPress}
-              className="flex min-w-0 flex-col items-center gap-1"
-            >
-              <div
-                className={iconClassName}
+            const inner = (
+              <motion.div
+                whileTap={prefersReducedMotion ? undefined : tapPress}
+                className="flex min-w-0 flex-col items-center gap-1.5"
               >
-                {isActive && (
-                  <span className={`absolute inset-0 ${activeIconSurface}`} />
-                )}
-                  <Icon className="relative z-10" size={20} strokeWidth={isActive ? 2.4 : 2} />
-                {showUnreadBadge && (
-                  <span
-                    aria-label={t(
-                      "nav.unread_count",
-                      "{{count}} 条未读通知",
-                      { count: unreadCount },
-                    )}
-                    className={`absolute -top-0.5 -right-1 min-w-[18px] h-[18px] px-1 rounded-md bg-red-500 text-white text-[10px] font-bold leading-none flex items-center justify-center ring-2 shadow-sm ${isDayMode ? "ring-white" : "ring-[#101722]"}`}
-                  >
-                    {badgeLabel}
-                  </span>
-                )}
-              </div>
-              <span
-                className={`max-w-full truncate px-0.5 text-[10px] leading-none transition-all ${isActive ? "font-semibold opacity-100" : "font-medium opacity-85"}`}
-              >
-                {item.label}
-              </span>
-            </motion.div>
-          );
+                <div
+                  className={iconClassName}
+                >
+                  {isActive && (
+                    <span className={`absolute inset-0 ${activeIconSurface}`} />
+                  )}
+                  <Icon className="relative z-10" size={24} strokeWidth={isActive ? 2.35 : 2} />
+                  {showUnreadBadge && (
+                    <span
+                      aria-label={t(
+                        "nav.unread_count",
+                        "{{count}} 条未读通知",
+                        { count: unreadCount },
+                      )}
+                      className={`absolute -top-0.5 -right-1 min-w-[18px] h-[18px] px-1 rounded-md bg-red-500 text-white text-[10px] font-bold leading-none flex items-center justify-center ring-2 shadow-sm ${isDayMode ? "ring-white" : "ring-[#101722]"}`}
+                    >
+                      {badgeLabel}
+                    </span>
+                  )}
+                </div>
+                <span
+                  className={`max-w-full truncate px-0.5 text-[12px] leading-none transition-all ${isActive ? "font-semibold opacity-100" : "font-medium opacity-85"}`}
+                >
+                  {item.label}
+                </span>
+              </motion.div>
+            );
 
-          if (item.key === "me" && !item.path) {
+            if (item.key === "me" && !item.path) {
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  aria-label={item.label}
+                  aria-current={isActive ? "page" : undefined}
+                  onClick={() => window.dispatchEvent(new Event("open-auth-modal"))}
+                  className={sharedClassName}
+                >
+                  {inner}
+                </button>
+              );
+            }
+
             return (
-              <button
+              <Link
                 key={item.key}
-                type="button"
+                to={item.path}
                 aria-label={item.label}
                 aria-current={isActive ? "page" : undefined}
-                onClick={() => window.dispatchEvent(new Event("open-auth-modal"))}
                 className={sharedClassName}
               >
                 {inner}
-              </button>
+              </Link>
             );
-          }
-
-          return (
-            <Link
-              key={item.key}
-              to={item.path}
-              aria-label={item.label}
-              aria-current={isActive ? "page" : undefined}
-              className={sharedClassName}
-            >
-              {inner}
-            </Link>
-          );
-        })}
-      </div>
+          })}
+        </div>
       </div>
     </motion.nav>
   );

@@ -9,7 +9,6 @@ import api from "../services/api";
 import { isMiniProgramWebView } from "../utils/miniProgramEnv";
 import {
   savePosterViaNativeMiniProgram,
-  sharePosterViaNativeMiniProgram,
   shareViaNativeMiniProgram,
   shareViaMiniProgram,
 } from "../utils/wechatMiniProgramBridge";
@@ -55,6 +54,7 @@ const ProjectSharePoster = ({ project, onClose, variant = "playful" }) => {
   const projectUrl = useMemo(() => buildProjectUrl(project?.id), [project?.id]);
   const title = project?.title || t("project_share_poster.untitled", "未命名项目");
   const intro = project?.intro || t("project_share_poster.default_intro", "一个正在生长的校园项目");
+  const shareText = String(intro || t("project_share_poster.share_text", "看看这个项目广场里的校园项目")).slice(0, 120);
   const ownerName = project?.owner_name || t("project_share_poster.unknown_owner", "项目发起人");
   const ownerAvatar = resolveAssetUrl(project?.owner_avatar);
   const coverUrl = resolveAssetUrl(project?.cover_url || project?.images?.[0] || "");
@@ -130,18 +130,52 @@ const ProjectSharePoster = ({ project, onClose, variant = "playful" }) => {
   };
 
   const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(projectUrl);
-      toast.success(t("project_share_poster.copy_success", "项目链接已复制"));
-    } catch {
-      toast.error(t("common.copy_failed", "复制失败"));
+    const onSuccess = () => toast.success(t("project_share_poster.copy_success", "项目链接已复制"));
+    const onFailure = () => toast.error(t("common.copy_failed", "复制失败"));
+    // Try async Clipboard API first (works in secure contexts: https / localhost).
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(projectUrl);
+        onSuccess();
+        return;
+      } catch {
+        // fall through to legacy fallback (covers non-secure http WebViews such as
+        // the WeChat mini program shell when it opens a local dev URL)
+      }
     }
+    // Fallback: hidden textarea + document.execCommand('copy').
+    if (typeof document === "undefined") {
+      onFailure();
+      return;
+    }
+    const textarea = document.createElement("textarea");
+    textarea.value = projectUrl;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.top = "0";
+    textarea.style.left = "0";
+    textarea.style.width = "1px";
+    textarea.style.height = "1px";
+    textarea.style.opacity = "0";
+    textarea.style.pointerEvents = "none";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    let copied = false;
+    try {
+      copied = document.execCommand("copy");
+    } catch {
+      copied = false;
+    }
+    document.body.removeChild(textarea);
+    if (copied) onSuccess();
+    else onFailure();
   };
 
   const handleNativeShare = async () => {
     const miniProgramShareData = {
       title,
-      text: t("project_share_poster.share_text", "鐪嬬湅杩欎釜椤圭洰骞垮満閲岀殑鏍″洯椤圭洰"),
+      text: shareText,
       url: projectUrl,
       path: `/projects?id=${encodeURIComponent(String(project?.id || ""))}`,
       imageUrl: coverUrl,
@@ -150,29 +184,14 @@ const ProjectSharePoster = ({ project, onClose, variant = "playful" }) => {
     if (isMiniProgramWebView()) {
       setBusy("share");
       try {
-        const dataUrl = await exportPoster();
-        const response = await api.post("/native-poster-sessions", {
-          imageData: dataUrl,
-          fileName,
-        });
-        await sharePosterViaNativeMiniProgram({
-          imageUrl: response.data?.imageUrl,
-          fileName: response.data?.fileName || fileName,
-          returnPath: `/projects?id=${encodeURIComponent(String(project?.id || ""))}`,
-          auto: true,
-        });
-        toast.success(t("project_share_poster.miniapp_share_opened", "已打开小程序海报分享"));
+        await shareViaNativeMiniProgram(miniProgramShareData);
+        toast.success(t("project_share_poster.miniapp_share_opened", "已打开小程序分享"));
       } catch {
         try {
-          await shareViaNativeMiniProgram(miniProgramShareData);
+          await shareViaMiniProgram(miniProgramShareData);
           toast.success(t("common.miniapp_share_ready"));
         } catch {
-          try {
-            await shareViaMiniProgram(miniProgramShareData);
-            toast.success(t("common.miniapp_share_ready"));
-          } catch {
-            await handleCopy();
-          }
+          await handleCopy();
         }
       } finally {
         setBusy(null);
@@ -191,7 +210,7 @@ const ProjectSharePoster = ({ project, onClose, variant = "playful" }) => {
       const file = new File([blob], fileName, { type: "image/png" });
       const shareData = {
         title,
-        text: t("project_share_poster.share_text", "看看这个项目广场里的校园项目"),
+        text: shareText,
         url: projectUrl,
       };
       if (navigator.canShare?.({ files: [file] })) {
@@ -304,7 +323,7 @@ const ProjectSharePoster = ({ project, onClose, variant = "playful" }) => {
             </button>
             <button className="ppp-cbtn ghost" type="button" disabled={Boolean(busy) || !qrDataUrl} onClick={handleNativeShare}>
               <Share2 size={16} />
-              {busy === "share" ? t("project_share_poster.exporting", "生成中...") : t("project_share_poster.native_share", "系统分享")}
+              {busy === "share" ? t("project_share_poster.exporting", "生成中...") : t("project_share_poster.miniapp_card_share", "分享小程序卡片")}
             </button>
             <button className="ppp-cbtn ghost" type="button" onClick={handleCopy}>
               <Copy size={16} />

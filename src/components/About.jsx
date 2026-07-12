@@ -221,21 +221,23 @@ const About = () => {
         grid: "opacity-[0.16] [background-image:linear-gradient(rgba(6,182,212,0.14)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.1)_1px,transparent_1px)]",
       }
     : {
-        page: "bg-[#030405] text-white",
-        hero: "bg-[linear-gradient(135deg,#020303_0%,#071111_54%,#020303_100%)]",
+        page:
+          "bg-[linear-gradient(135deg,#061011_0%,#091615_52%,#050909_100%)] text-white",
+        hero:
+          "bg-[linear-gradient(115deg,rgba(34,211,238,0.12)_0%,transparent_36%),linear-gradient(290deg,rgba(45,212,191,0.08)_0%,transparent_38%),linear-gradient(135deg,#050809_0%,#0a1919_54%,#040707_100%)]",
         section:
-          "bg-[linear-gradient(180deg,rgba(3,4,5,0.98)_0%,rgba(7,17,17,0.9)_100%)]",
+          "bg-[linear-gradient(118deg,rgba(34,211,238,0.08)_0%,transparent_38%),linear-gradient(180deg,rgba(5,9,10,0.98)_0%,rgba(9,24,23,0.92)_100%)]",
         final:
-          "bg-[linear-gradient(135deg,#020303_0%,#081012_52%,#030405_100%)]",
-        textSoft: "text-white/72",
-        textMuted: "text-white/48",
+          "bg-[linear-gradient(120deg,rgba(34,211,238,0.1)_0%,transparent_38%),linear-gradient(135deg,#050809_0%,#0b1a1a_52%,#060b0c_100%)]",
+        textSoft: "text-white/76",
+        textMuted: "text-white/54",
         label: "text-cyan-300",
-        border: "border-white/10",
+        border: "border-white/12",
         panel:
-          "border-white/10 bg-[#101516]/88 shadow-[0_28px_90px_rgba(0,0,0,0.46)]",
+          "border-white/12 bg-[#121c1d]/90 shadow-[0_28px_90px_rgba(0,0,0,0.38),0_0_60px_rgba(34,211,238,0.08)]",
         panelStrong:
-          "border-cyan-300/24 bg-[#081012]/86 shadow-[0_36px_120px_rgba(0,0,0,0.62)]",
-        card: "border-white/10 bg-[linear-gradient(180deg,rgba(16,21,22,0.92),rgba(16,21,22,0.64))]",
+          "border-cyan-200/30 bg-[#0b1718]/88 shadow-[0_36px_120px_rgba(0,0,0,0.52),0_0_86px_rgba(34,211,238,0.09)]",
+        card: "border-white/12 bg-[linear-gradient(180deg,rgba(19,29,30,0.92),rgba(11,21,21,0.72))]",
         accent: "text-cyan-300",
         accentBg: "bg-cyan-300",
         altAccent: "text-amber-200",
@@ -243,10 +245,10 @@ const About = () => {
         primary:
           "bg-cyan-300 text-slate-950 shadow-[0_0_42px_rgba(103,232,249,0.28)] hover:bg-white",
         secondary:
-          "border-white/16 bg-white/[0.045] text-white hover:border-cyan-300/70 hover:bg-cyan-300/10",
-        divider: "border-white/10",
-        watermark: "text-white/[0.04]",
-        grid: "opacity-[0.12] [background-image:linear-gradient(rgba(103,232,249,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(103,232,249,0.1)_1px,transparent_1px)]",
+          "border-white/18 bg-white/[0.06] text-white hover:border-cyan-300/70 hover:bg-cyan-300/12",
+        divider: "border-white/12",
+        watermark: "text-white/[0.072]",
+        grid: "opacity-[0.2] [background-image:linear-gradient(rgba(103,232,249,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(103,232,249,0.14)_1px,transparent_1px)]",
       };
 
   const pageSections = [
@@ -458,7 +460,7 @@ const About = () => {
   ];
 
   const sectionBaseClass =
-    "relative flex min-h-[100svh] scroll-mt-0 flex-col overflow-hidden px-4 pb-[calc(5.25rem+env(safe-area-inset-bottom))] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:px-6 sm:py-20 lg:h-[100svh] lg:snap-start lg:snap-always lg:pb-[clamp(1rem,3vh,2.5rem)] lg:pl-10 lg:pr-28 lg:pt-[calc(env(safe-area-inset-top)+clamp(4.5rem,8.2vh,5.125rem))] 2xl:pl-16 2xl:pr-36";
+    "relative flex scroll-mt-0 flex-col overflow-hidden px-4 pb-[calc(4.75rem+env(safe-area-inset-bottom))] pt-12 sm:px-6 sm:py-20 lg:h-[100svh] lg:min-h-[100svh] lg:snap-start lg:snap-always lg:pb-[clamp(1rem,3vh,2.5rem)] lg:pl-10 lg:pr-28 lg:pt-[calc(env(safe-area-inset-top)+clamp(4.5rem,8.2vh,5.125rem))] 2xl:pl-16 2xl:pr-36";
   const heroStageShellStyle = heroStageFrame.height
     ? { height: `${heroStageFrame.height}px` }
     : undefined;
@@ -505,7 +507,7 @@ const About = () => {
 
       <section
         id="about-hero"
-        className={`relative isolate min-h-[100svh] overflow-hidden px-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] pt-[calc(env(safe-area-inset-top)+76px)] sm:px-6 md:pt-[calc(env(safe-area-inset-top)+112px)] lg:h-[100svh] lg:snap-start lg:snap-always lg:pb-8 lg:pl-10 lg:pr-28 lg:pt-[calc(env(safe-area-inset-top)+84px)] 2xl:pl-16 2xl:pr-36 ${palette.hero}`}
+        className={`relative isolate overflow-hidden px-4 pb-[calc(4.75rem+env(safe-area-inset-bottom))] pt-[calc(env(safe-area-inset-top)+76px)] sm:px-6 md:pt-[calc(env(safe-area-inset-top)+112px)] lg:h-[100svh] lg:min-h-[100svh] lg:snap-start lg:snap-always lg:pb-8 lg:pl-10 lg:pr-28 lg:pt-[calc(env(safe-area-inset-top)+84px)] 2xl:pl-16 2xl:pr-36 ${palette.hero}`}
       >
         <div
           className={`pointer-events-none absolute inset-0 [background-size:46px_46px] ${palette.grid}`}
@@ -525,7 +527,7 @@ const About = () => {
             ref={heroStageRef}
             data-about-hero-stage
             style={heroStageStyle}
-            className="grid min-h-[calc(100svh-164px)] w-full content-start gap-5 pt-2 will-change-transform sm:gap-7 sm:pt-8 lg:min-h-[calc(100svh-118px)] lg:content-center lg:items-center lg:gap-10 lg:pt-0 xl:grid-cols-[minmax(0,1fr)_minmax(540px,680px)] xl:gap-12 2xl:grid-cols-[minmax(0,1fr)_minmax(700px,860px)] 2xl:gap-16"
+            className="grid w-full content-start gap-5 pt-2 will-change-transform sm:gap-7 sm:pt-8 lg:min-h-[calc(100svh-118px)] lg:content-center lg:items-center lg:gap-10 lg:pt-0 xl:grid-cols-[minmax(0,1fr)_minmax(540px,680px)] xl:gap-12 2xl:grid-cols-[minmax(0,1fr)_minmax(700px,860px)] 2xl:gap-16"
           >
             <motion.div
               {...heroReveal(shouldAnimate)}
@@ -664,7 +666,7 @@ const About = () => {
                 <div
                   key={item.label}
                   className={`flex min-h-[64px] flex-col justify-center p-2 sm:min-h-[82px] sm:p-4 lg:min-h-[118px] lg:p-4 2xl:min-h-[144px] 2xl:p-6 ${
-                    isDayMode ? "bg-white/82" : "bg-[#071113]/82"
+                    isDayMode ? "bg-white/82" : "bg-[#0b1718]/86"
                   }`}
                 >
                   <div
@@ -698,7 +700,7 @@ const About = () => {
           <div
             className={`pointer-events-none absolute inset-0 [background-size:56px_56px] ${palette.grid}`}
           />
-          <div className="relative z-10 mx-auto flex min-h-0 w-full max-w-[2140px] flex-1 flex-col justify-center">
+          <div className="relative z-10 mx-auto flex w-full max-w-[2140px] flex-col lg:min-h-0 lg:flex-1 lg:justify-center">
             <div className="grid gap-5 lg:grid-cols-[minmax(0,0.86fr)_minmax(360px,0.7fr)] lg:items-end lg:gap-10 2xl:gap-14">
               <div className="max-w-[960px]">
                 <p className={`text-sm font-black uppercase ${palette.label}`}>
@@ -726,7 +728,7 @@ const About = () => {
               </p>
             </div>
 
-            <div className="-mx-4 mt-5 grid auto-cols-[86%] grid-flow-col gap-3 overflow-x-auto px-4 pb-1 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:grid-flow-row sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 sm:[scrollbar-width:auto] lg:mt-8 lg:h-[clamp(28rem,56vh,42rem)] lg:min-h-0 lg:grid-cols-4 lg:gap-5 2xl:gap-7 [&::-webkit-scrollbar]:hidden sm:[&::-webkit-scrollbar]:block">
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:mt-8 lg:h-[clamp(28rem,56vh,42rem)] lg:min-h-0 lg:grid-cols-4 lg:gap-5 2xl:gap-7">
               {supportGroups.map((group) => {
                 const Icon = group.icon;
                 const textItemCount = group.items?.length || 0;
@@ -746,7 +748,7 @@ const About = () => {
                 return (
                   <article
                     key={group.code}
-                    className={`relative flex min-h-[430px] snap-start flex-col overflow-hidden border p-5 sm:min-h-[360px] sm:p-6 lg:h-full lg:min-h-0 lg:p-6 2xl:p-7 ${palette.card}`}
+                    className={`relative flex min-h-[300px] flex-col overflow-hidden border p-5 sm:min-h-[360px] sm:p-6 lg:h-full lg:min-h-0 lg:p-6 2xl:p-7 ${palette.card}`}
                   >
                     <div
                       className={`pointer-events-none absolute -bottom-8 -right-6 text-[7rem] font-black uppercase leading-none ${palette.watermark}`}
@@ -868,7 +870,7 @@ const About = () => {
           >
             BUILD
           </div>
-          <div className="relative z-10 mx-auto flex min-h-0 w-full max-w-[2140px] flex-1 flex-col justify-center">
+          <div className="relative z-10 mx-auto flex w-full max-w-[2140px] flex-col lg:min-h-0 lg:flex-1 lg:justify-center">
             <div className="max-w-5xl">
               <p className={`text-sm font-black uppercase ${palette.label}`}>
                 Three Businesses
@@ -894,7 +896,7 @@ const About = () => {
               </p>
             </div>
 
-            <div className="-mx-4 mt-6 grid auto-cols-[84%] grid-flow-col gap-3 overflow-x-auto px-4 pb-1 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:grid-flow-row sm:grid-cols-1 sm:overflow-visible sm:px-0 sm:pb-0 sm:[scrollbar-width:auto] lg:mt-8 lg:h-[clamp(25rem,50vh,38rem)] lg:min-h-0 lg:grid-cols-3 lg:gap-5 2xl:gap-7 [&::-webkit-scrollbar]:hidden sm:[&::-webkit-scrollbar]:block">
+            <div className="mt-6 grid gap-3 sm:grid-cols-1 lg:mt-8 lg:h-[clamp(25rem,50vh,38rem)] lg:min-h-0 lg:grid-cols-3 lg:gap-5 2xl:gap-7">
               {businessLines.map((item) => {
                 const Icon = item.icon;
                 const isAmber = item.tone === "amber";
@@ -916,7 +918,7 @@ const About = () => {
                   <Link
                     key={item.code}
                     to={item.route}
-                    className={`group relative flex min-h-[360px] snap-start flex-col overflow-hidden border border-l-4 p-5 transition duration-300 hover:-translate-y-1 sm:min-h-[300px] sm:p-7 lg:h-full lg:min-h-0 lg:p-7 2xl:p-8 ${
+                    className={`group relative flex min-h-[280px] flex-col overflow-hidden border border-l-4 p-5 transition duration-300 hover:-translate-y-1 sm:min-h-[300px] sm:p-7 lg:h-full lg:min-h-0 lg:p-7 2xl:p-8 ${
                       isAmber
                         ? isDayMode
                           ? "border-l-amber-400"
@@ -1000,7 +1002,7 @@ const About = () => {
           <div
             className={`pointer-events-none absolute inset-0 [background-size:46px_46px] ${palette.grid}`}
           />
-          <div className="relative z-10 mx-auto grid min-h-0 w-full max-w-[2140px] flex-1 gap-6 lg:grid-cols-[minmax(0,0.78fr)_minmax(520px,0.92fr)] lg:items-center lg:gap-10 2xl:gap-14">
+          <div className="relative z-10 mx-auto grid w-full max-w-[2140px] gap-6 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,0.78fr)_minmax(520px,0.92fr)] lg:items-center lg:gap-10 2xl:gap-14">
             <div>
               <p className={`text-sm font-black uppercase ${palette.label}`}>
                 Join the Ecosystem

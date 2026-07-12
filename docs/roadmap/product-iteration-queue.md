@@ -56,6 +56,7 @@
 - 当前执行切片：等项目广场、社区投稿、黑客松成果的内容链路稳定后，把它们挂入统一后台队列。
 - 验证：admin e2e、URL tab 深链、审核状态和模型 key 管理回归。
 - 2026-06-29 执行记录：`admin-console.spec.js` 与 `admin-ecosystem-partners.spec.js` 通过；同步修正后台导航测试中过期的“首页”断言，改为当前 Logo 首页链接 + 总览模块入口。
+- 2026-07-08 定调升级：后台混乱已作为网站架构体检入口处理，不再只视为 P3 低优先体验项。新增 `docs/roadmap/admin-console-architecture-audit-20260708.md` 与 OpenSpec `reframe-admin-governance-console`，后续按“生态运营与治理控制台”推进。
 
 ## 暂不做
 

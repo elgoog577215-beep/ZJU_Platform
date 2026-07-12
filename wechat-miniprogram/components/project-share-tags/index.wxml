@@ -1,0 +1,8 @@
+<view wx:if="{{sections.length}}" class="project-share-tags-card">
+  <view wx:for="{{sections}}" wx:key="id" wx:for-item="section" class="project-share-tag-section">
+    <view class="project-share-tag-title">{{section.label}}</view>
+    <view class="project-share-tag-row">
+      <text wx:for="{{section.items}}" wx:key="*this" class="project-share-tag {{section.tone}}">{{item}}</text>
+    </view>
+  </view>
+</view>
