@@ -8,7 +8,6 @@ import {
   Camera,
   Film,
   Handshake,
-  Music2,
   Network,
   Orbit,
   Trees,
@@ -317,14 +316,6 @@ const PlatformStats = ({ hero } = {}) => {
       image: item.thumbnail,
       targetPath: `/videos?id=${item.id}`,
       icon: Film,
-    })),
-    ...(featuredData?.music || []).slice(0, 1).map((item) => ({
-      id: item.id,
-      title: item.title || t("home.platform.featured_audio", "Featured Audio"),
-      subtitle: t("home.platform.media_audio", "Audio"),
-      image: item.cover,
-      targetPath: `/articles?music=${item.id}#community-podcast`,
-      icon: Music2,
     })),
     ...(featuredData?.events || []).slice(0, 1).map((item) => ({
       id: item.id,

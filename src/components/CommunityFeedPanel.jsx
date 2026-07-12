@@ -47,11 +47,13 @@ const CommunityFeedPanel = ({
   hideSortSelector = false,
   hideMobileSummary = false,
   hideNewPostButton = false,
+  surfaceVariant = 'default',
 }) => {
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
   const th = communityTheme(isDayMode);
   const newPostText = newPostLabel || t('community.post_new', '发帖');
+  const isLearningSurface = surfaceVariant === 'learning';
   const {
     displayItems, isLoading, error, currentPage, totalPages, hasMore,
     isPaginationEnabled, sort, setSort, statusFilter, setStatusFilter,
@@ -102,18 +104,32 @@ const CommunityFeedPanel = ({
   }[accentColor] || 'text-amber-400';
 
   const statusControl = statusTabs ? (
-    <div className="scrollbar-none flex w-full max-w-full items-center gap-1.5 overflow-x-auto sm:w-auto">
+    <div className={`scrollbar-none flex w-full max-w-full items-center overflow-x-auto sm:w-auto ${
+      isLearningSurface
+        ? `gap-1 rounded-lg border p-1 ${isDayMode ? 'border-slate-200 bg-slate-50/85' : 'border-white/10 bg-white/[0.04]'}`
+        : 'gap-1.5'
+    }`}>
       {statusTabs.map(({ key, label }) => (
         <button
           key={key}
           type="button"
           aria-pressed={statusFilter === key}
           onClick={() => setStatusFilter(key)}
-          className={`min-h-10 min-w-fit border-b-2 px-3 text-xs font-semibold transition-colors whitespace-nowrap md:px-3 ${
-            statusFilter === key
-              ? accentTabClass
-              : (isDayMode ? 'border-transparent text-slate-600 hover:bg-white hover:text-slate-950' : 'border-transparent text-gray-400 hover:bg-white/8 hover:text-white')
-          }`}
+          className={isLearningSurface
+            ? `min-h-9 min-w-fit rounded-md px-3 text-xs font-semibold transition-colors whitespace-nowrap ${
+              statusFilter === key
+                ? isDayMode
+                  ? 'bg-white text-slate-950 shadow-[0_4px_12px_rgba(15,23,42,0.06)]'
+                  : 'bg-white/10 text-white'
+                : isDayMode
+                  ? 'text-slate-500 hover:bg-white/70 hover:text-slate-900'
+                  : 'text-gray-400 hover:bg-white/[0.06] hover:text-white'
+            }`
+            : `min-h-10 min-w-fit border-b-2 px-3 text-xs font-semibold transition-colors whitespace-nowrap md:px-3 ${
+              statusFilter === key
+                ? accentTabClass
+                : (isDayMode ? 'border-transparent text-slate-600 hover:bg-white hover:text-slate-950' : 'border-transparent text-gray-400 hover:bg-white/8 hover:text-white')
+            }`}
         >
           {t(label)}
         </button>
@@ -129,8 +145,8 @@ const CommunityFeedPanel = ({
         options={sortOptions}
         className="w-full"
         buttonClassName={isDayMode
-          ? 'border border-slate-200 bg-white text-slate-700 rounded-lg px-3 py-2 min-h-[40px] text-sm font-medium hover:bg-white'
-          : 'border border-white/10 bg-white/5 text-white rounded-lg px-3 py-2 min-h-[40px] text-sm font-medium hover:bg-white/10'}
+          ? `${isLearningSurface ? 'border border-slate-200 bg-white/90 text-slate-700 shadow-[0_4px_12px_rgba(15,23,42,0.035)]' : 'border border-slate-200 bg-white text-slate-700'} rounded-lg px-3 py-2 min-h-[40px] text-sm font-medium hover:bg-white`
+          : `${isLearningSurface ? 'border border-white/10 bg-white/[0.06] text-white' : 'border border-white/10 bg-white/5 text-white'} rounded-lg px-3 py-2 min-h-[40px] text-sm font-medium hover:bg-white/10`}
       />
     </div>
   ) : null;
@@ -151,7 +167,11 @@ const CommunityFeedPanel = ({
   return (
     <div role="tabpanel">
       {/* Controls */}
-      <div className={`mb-4 flex flex-col gap-2.5 rounded-lg border p-3 md:mb-6 md:gap-3 md:p-4 max-md:border-transparent max-md:bg-transparent max-md:p-0 max-md:shadow-none ${isDayMode ? 'bg-white border-slate-200/70 shadow-none' : 'bg-white/[0.035] border-white/10'}`}>
+      <div className={`mb-4 flex flex-col rounded-lg border md:mb-6 max-md:border-transparent max-md:bg-transparent max-md:p-0 max-md:shadow-none ${
+        isLearningSurface
+          ? `gap-2 p-2.5 md:gap-2.5 md:p-3 ${isDayMode ? 'border-slate-200/75 bg-white/86 shadow-[0_12px_34px_rgba(15,23,42,0.045)]' : 'border-white/10 bg-white/[0.035]'}`
+          : `gap-2.5 p-3 md:gap-3 md:p-4 ${isDayMode ? 'bg-white border-slate-200/70 shadow-none' : 'bg-white/[0.035] border-white/10'}`
+      }`}>
         <div className="grid gap-2.5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
           {extraControls ? (
             <div className="min-w-0">{extraControls}</div>
@@ -163,7 +183,13 @@ const CommunityFeedPanel = ({
             {onNewPost && !hideNewPostButton && (
               <button
                 onClick={onNewPost}
-                className={`hidden min-h-[40px] items-center gap-2 rounded-lg border px-4 text-sm font-semibold transition-all md:inline-flex ${accentBtnClass}`}
+                className={`hidden min-h-[40px] items-center gap-2 rounded-lg border px-4 text-sm font-semibold transition-all md:inline-flex ${
+                  isLearningSurface
+                    ? isDayMode
+                      ? 'border-slate-300 bg-white text-slate-800 shadow-[0_4px_14px_rgba(15,23,42,0.04)] hover:border-slate-400 hover:bg-slate-50'
+                      : 'border-white/15 bg-white/[0.07] text-white hover:bg-white/[0.1]'
+                    : accentBtnClass
+                }`}
                 title={newPostText}
               >
                 <Upload size={18} className="md:w-5 md:h-5" />
@@ -176,14 +202,24 @@ const CommunityFeedPanel = ({
           <button
             type="button"
             onClick={onNewPost}
-            className={`inline-flex min-h-[40px] w-full items-center justify-center gap-2 rounded-lg border px-4 text-sm font-semibold transition-all md:hidden ${accentBtnClass}`}
+            className={`inline-flex min-h-[40px] w-full items-center justify-center gap-2 rounded-lg border px-4 text-sm font-semibold transition-all md:hidden ${
+              isLearningSurface
+                ? isDayMode
+                  ? 'border-slate-300 bg-white text-slate-800 shadow-[0_4px_14px_rgba(15,23,42,0.04)] hover:border-slate-400 hover:bg-slate-50'
+                  : 'border-white/15 bg-white/[0.07] text-white hover:bg-white/[0.1]'
+                : accentBtnClass
+            }`}
             title={newPostText}
           >
             <Upload size={18} />
             <span>{newPostText}</span>
           </button>
         ) : null}
-        <div className={`${hideMobileSummary ? 'hidden md:flex' : 'flex'} flex-wrap items-center justify-between gap-2 border-t pt-3 text-xs max-md:border-transparent max-md:px-1 max-md:pt-0 ${isDayMode ? 'border-slate-200/60 text-slate-500' : 'border-white/10 text-gray-400'}`}>
+        <div className={`${hideMobileSummary ? 'hidden md:flex' : 'flex'} flex-wrap items-center justify-between gap-2 text-xs max-md:border-transparent max-md:px-1 max-md:pt-0 ${
+          isLearningSurface
+            ? `px-1 pt-0 ${isDayMode ? 'text-slate-500' : 'text-gray-400'}`
+            : `border-t pt-3 ${isDayMode ? 'border-slate-200/60 text-slate-500' : 'border-white/10 text-gray-400'}`
+        }`}>
           <div className="flex flex-wrap items-center gap-2.5">
             <span className={th.textSecondary}>
               {displayItems.length} {t('community.results_count', '条结果')}

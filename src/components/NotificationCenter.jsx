@@ -19,7 +19,6 @@ const isNotificationRead = (notification) => Boolean(notification?.is_read);
 const NEW_CONTENT_ROUTE_BUILDERS = {
   article: (id) => `/articles?postTab=tech&id=${id}`,
   photo: (id) => `/gallery?id=${id}`,
-  music: (id) => `/articles?music=${id}#community-podcast`,
   video: (id) => `/videos?id=${id}`,
   event: (id) => `/events?id=${id}`,
   news: (id) => `/articles?postTab=news&news=${id}`,
@@ -66,7 +65,6 @@ const buildNotificationTargetPath = (notification) => {
   const routeMap = {
     photo: "/gallery",
     photos: "/gallery",
-    music: "/articles",
     video: "/videos",
     videos: "/videos",
     article: "/articles",
@@ -78,9 +76,6 @@ const buildNotificationTargetPath = (notification) => {
 
   const basePath = routeMap[resourceType];
   if (!basePath) return null;
-  if (resourceType === "music") {
-    return `${basePath}?music=${resourceId}#community-podcast`;
-  }
   return `${basePath}?id=${resourceId}`;
 };
 

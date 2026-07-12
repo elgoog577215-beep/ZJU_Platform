@@ -170,11 +170,6 @@ const Navbar = ({ miniProgramMode = false }) => {
 
   // Map route to specific upload type, and dispatch custom event
   const handleUploadClick = () => {
-    if (location.pathname === "/articles") {
-      window.dispatchEvent(new Event("open-community-post-picker"));
-      return;
-    }
-
     if (!user) {
       toast.error(t("auth.signin_required"));
       setIsAuthOpen(true);
@@ -186,7 +181,6 @@ const Navbar = ({ miniProgramMode = false }) => {
     else if (location.pathname === "/gallery") type = "image";
     else if (location.pathname === "/media") type = "media";
     else if (location.pathname === "/videos") type = "video";
-    else if (location.pathname === "/articles") type = "article";
 
     if (type) {
       window.dispatchEvent(
@@ -200,7 +194,6 @@ const Navbar = ({ miniProgramMode = false }) => {
     "/gallery",
     "/media",
     "/videos",
-    "/articles",
   ];
   const showUploadButton = uploadablePaths.includes(location.pathname);
 

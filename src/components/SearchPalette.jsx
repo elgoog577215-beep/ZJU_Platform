@@ -76,8 +76,17 @@ const SearchPalette = ({ initialOpen = false }) => {
               ? payload
               : (payload?.results || payload?.legacy || []);
             const nextGroups = Array.isArray(payload?.groups) ? payload.groups : [];
-            setResults(nextResults);
-            setResultGroups(nextGroups);
+            const visibleResults = nextResults.filter((item) => item?.type !== 'music');
+            const visibleGroups = nextGroups
+              .map((group) => ({
+                ...group,
+                items: Array.isArray(group.items)
+                  ? group.items.filter((item) => item?.type !== 'music')
+                  : group.items,
+              }))
+              .filter((group) => !['music', 'podcast'].includes(String(group.type || group.key || '').toLowerCase()));
+            setResults(visibleResults);
+            setResultGroups(visibleGroups);
             setSearchMeta(Array.isArray(payload) ? null : payload);
             setSelectedIndex(0);
             setLoading(false);
@@ -120,21 +129,7 @@ const SearchPalette = ({ initialOpen = false }) => {
 
   const normalizeTarget = (item) => {
     const rawTarget = item.deepLink || item.link || '/';
-    if (item.type === 'music' || rawTarget.startsWith('/music')) {
-      const params = new URLSearchParams();
-      try {
-        const url = new URL(rawTarget, window.location.origin);
-        url.searchParams.forEach((value, key) => params.set(key, value));
-      } catch {
-        // Fall back to item id below; malformed result links should still
-        // land in the community podcast area.
-      }
-      const musicId = params.get('music') || params.get('id') || item.id;
-      params.delete('id');
-      if (musicId) params.set('music', musicId);
-      const query = params.toString();
-      return `/articles${query ? `?${query}` : ''}#community-podcast`;
-    }
+    if (item.type === 'music' || rawTarget.startsWith('/music')) return '/articles';
     return rawTarget;
   };
 

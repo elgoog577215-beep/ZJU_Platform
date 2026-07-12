@@ -12,7 +12,7 @@ import {
 import { useAuth, AuthProvider } from './context/AuthContext';
 import { motion } from 'framer-motion';
 import { Toaster } from 'react-hot-toast';
-import { MusicProvider, useMusic } from './context/MusicContext';
+import { MusicProvider } from './context/MusicContext';
 import { SettingsProvider, useSettings } from './context/SettingsContext';
 import { HelmetProvider } from 'react-helmet-async';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -110,7 +110,6 @@ const loadProfileDirectory = () => import('./components/ProfileDirectory');
 const loadProjectPlaza = () => import('./components/ProjectPlaza');
 const loadSearchPalette = () => import('./components/SearchPalette');
 const loadCustomCursor = () => import('./components/CustomCursor');
-const loadGlobalPlayer = () => import('./components/GlobalPlayer');
 const loadBackgroundSystem = () => import('./components/BackgroundSystem');
 const loadScrollProgress = () => import('./components/ScrollProgress');
 const loadScrollToTop = () => import('./components/ScrollToTop');
@@ -136,7 +135,6 @@ const ProfileDirectory = lazyRoute(loadProfileDirectory);
 const ProjectPlaza = lazyRoute(loadProjectPlaza);
 const SearchPalette = lazyRoute(loadSearchPalette);
 const CustomCursor = lazyRoute(loadCustomCursor);
-const GlobalPlayer = lazyRoute(loadGlobalPlayer);
 const BackgroundSystem = lazyRoute(loadBackgroundSystem);
 const ScrollProgress = lazyRoute(loadScrollProgress);
 const ScrollToTop = lazyRoute(loadScrollToTop);
@@ -208,15 +206,11 @@ const Home = () => {
 const MusicRedirect = () => {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
-  const legacyId = params.get('id');
-  if (legacyId) {
-    params.delete('id');
-    params.set('music', legacyId);
-  }
-  const query = params.toString();
+  params.delete('id');
+  params.delete('music');
   return (
     <Navigate
-      to={`/articles${query ? `?${query}` : ''}#community-podcast`}
+      to={`/articles${params.toString() ? `?${params.toString()}` : ''}`}
       replace
     />
   );
@@ -332,7 +326,6 @@ const AppContent = () => {
   const isImmersiveRoute = isHomeRoute || isAboutRoute || isDownloadRoute || location.pathname.startsWith('/hackathon');
   const hideGlobalShell = isHomeRoute;
   const { cursorEnabled, settings } = useSettings();
-  const { currentTrack, isMiniPlayerVisible } = useMusic();
   const hasDesktopPointer = useMediaQuery('(min-width: 768px) and (hover: hover) and (pointer: fine)');
   const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
   const shouldMountDeferredUi = useDeferredMount(700);
@@ -350,8 +343,6 @@ const AppContent = () => {
     !isAppRuntime &&
     !isMiniProgramMode &&
     shouldMountDeferredUi;
-  const shouldMountGlobalPlayer = Boolean(currentTrack && isMiniPlayerVisible);
-
   useServiceWorker({ enabled: !isMiniProgramMode });
 
   usePerformanceMonitor({
@@ -576,13 +567,6 @@ const AppContent = () => {
 
         {!hideGlobalShell && !isAdminRoute && !isImmersiveRoute && <Footer />}
 
-        {!hideGlobalShell && !isAdminRoute && shouldMountGlobalPlayer && (
-          <ErrorBoundary variant="inline" silent>
-            <Suspense fallback={null}>
-              <GlobalPlayer />
-            </Suspense>
-          </ErrorBoundary>
-        )}
         {!hideGlobalShell && !isAdminRoute && <MobileNavbar />}
         {!isImmersiveRoute && hasDesktopPointer && shouldMountDeferredUi && (
           <ErrorBoundary variant="inline" silent>

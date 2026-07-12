@@ -19,7 +19,7 @@ const STATUS_TABS = [
   { key: 'solved', label: 'community.tab_solved' },
 ];
 
-const CommunityHelp = ({ onNewPost, hideNewPostButton = false }) => {
+const CommunityHelp = ({ onNewPost, hideNewPostButton = false, discussionMode = false }) => {
   const { t } = useTranslation();
   const { uiMode } = useSettings();
   const { user } = useAuth();
@@ -146,12 +146,20 @@ const CommunityHelp = ({ onNewPost, hideNewPostButton = false }) => {
     />
   );
 
+  const statusTabs = discussionMode ? [
+    { key: 'all', label: 'community_learning.discuss_tab_all' },
+    { key: 'open', label: 'community_learning.discuss_tab_open' },
+    { key: 'solved', label: 'community_learning.discuss_tab_resolved' },
+  ] : STATUS_TABS;
+
   const helpControls = (
     <CommunitySearchInput
       value={feed.searchQuery}
       onChange={feed.setSearchQuery}
       onClear={() => feed.setSearchQuery('')}
-      placeholder={t('community.help_search_placeholder', '搜索求助帖（标题/正文）')}
+      placeholder={discussionMode
+        ? t('community_learning.discuss_search_placeholder', '搜索讨论标题或正文')
+        : t('community.help_search_placeholder', '搜索求助帖（标题/正文）')}
       isDayMode={isDayMode}
     />
   );
@@ -163,13 +171,15 @@ const CommunityHelp = ({ onNewPost, hideNewPostButton = false }) => {
       renderCard={renderCard}
       renderDetail={renderDetail}
       emptyIcon={HelpCircle}
-      emptyTitle={t('community.help_empty', '暂无帖子')}
-      emptyDesc={t('community.help_empty_desc', '成为第一个发帖的人吧！')}
+      emptyTitle={discussionMode ? t('community_learning.discuss_empty', '暂无讨论') : t('community.help_empty', '暂无帖子')}
+      emptyDesc={discussionMode ? t('community_learning.discuss_empty_desc', '发起第一个讨论，把问题、经验或学习卡点放到这里。') : t('community.help_empty_desc', '成为第一个发帖的人吧！')}
       accentColor="amber"
-      statusTabs={STATUS_TABS}
+      statusTabs={statusTabs}
       extraControls={helpControls}
       onNewPost={onNewPost || openComposer}
+      newPostLabel={discussionMode ? t('community_learning.discuss_new_post', '发起讨论') : undefined}
       hideNewPostButton={hideNewPostButton}
+      surfaceVariant={discussionMode ? 'learning' : 'default'}
       extraBottom={
         <UnifiedCommunityComposer
           isOpen={isComposerOpen}

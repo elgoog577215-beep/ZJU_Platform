@@ -14,7 +14,6 @@ import {
   Lock,
   Loader2,
   Image,
-  Music,
   Film,
   FileText,
   Download,
@@ -67,7 +66,6 @@ const CONTENT_TYPES = [
   { key: "all", labelKey: "user_profile.center.content_types.all" },
   { key: "photo", labelKey: "user_profile.center.content_types.photo" },
   { key: "video", labelKey: "user_profile.center.content_types.video" },
-  { key: "music", labelKey: "user_profile.center.content_types.music" },
   { key: "article", labelKey: "user_profile.center.content_types.article" },
   { key: "event", labelKey: "user_profile.center.content_types.event" },
   { key: "news", labelKey: "user_profile.center.content_types.news" },
@@ -777,16 +775,23 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
   // don't see a dead "图片" button. Backend already filters anonymous
   // help posts for non-owner non-admin viewers, so the count here is
   // authoritative for visibility.
+  const visibleResources = useMemo(
+    () => (resources || []).filter(
+      (item) => normalizeContentType(item) !== "music",
+    ),
+    [resources],
+  );
+
   const contentByType = useMemo(() => {
-    const map = { all: resources || [] };
+    const map = { all: visibleResources };
     for (const ct of CONTENT_TYPES) {
       if (ct.key === "all") continue;
-      map[ct.key] = (resources || []).filter(
+      map[ct.key] = visibleResources.filter(
         (item) => normalizeContentType(item) === ct.key,
       );
     }
     return map;
-  }, [resources]);
+  }, [visibleResources]);
 
   const tabsWithCount = useMemo(
     () =>
@@ -804,8 +809,8 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
   }, [activeContentType, tabsWithCount]);
 
   const totalLikes = useMemo(
-    () => resources.reduce((acc, curr) => acc + (Number(curr.likes) || 0), 0),
-    [resources],
+    () => visibleResources.reduce((acc, curr) => acc + (Number(curr.likes) || 0), 0),
+    [visibleResources],
   );
 
   // Restore tab + scroll position when returning from a resource detail.
@@ -1129,7 +1134,6 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
 
     const routeMap = {
       photo: "/gallery",
-      music: "/articles",
       video: "/videos",
       // Articles live under the AICommunity "tech" tab — must pin the tab
       // or AICommunity defaults to the help board and the id is ignored.
@@ -1142,9 +1146,6 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
 
     const basePath = routeMap[itemType];
     if (!basePath) return null;
-    if (itemType === "music") {
-      return `${basePath}?music=${itemId}#community-podcast`;
-    }
     const separator = basePath.includes("?") ? "&" : "?";
     return `${basePath}${separator}id=${itemId}`;
   };
@@ -1306,7 +1307,6 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
     const path = {
       photo: `/gallery?id=${item.id}`,
       video: `/videos?id=${item.id}`,
-      music: `/articles?music=${item.id}#community-podcast`,
       article: `/articles?postTab=tech&id=${item.id}`,
       event: `/events?id=${item.id}`,
       news: `/articles?postTab=news&news=${item.id}`,
@@ -1359,7 +1359,6 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
   const favoriteTypeOptions = [
     { value: "all", label: t("common.all", "全部"), icon: Grid },
     { value: "photo", label: t("nav.gallery"), icon: Image },
-    { value: "music", label: t("nav.music"), icon: Music },
     { value: "video", label: t("nav.videos"), icon: Film },
     { value: "article", label: t("nav.articles"), icon: FileText },
     { value: "event", label: t("nav.events"), icon: Calendar },
@@ -1380,7 +1379,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
     {
       key: "works",
       label: t("user_profile.stats.works", "作品"),
-      value: resources.length,
+      value: visibleResources.length,
       onClick: () => setActiveTab("published"),
     },
     {
@@ -1674,7 +1673,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                   <div
                     className={`text-lg md:text-2xl font-bold mb-0.5 md:mb-1 ${isDayMode ? "text-slate-900" : "text-white"}`}
                   >
-                    {resources.reduce(
+                    {visibleResources.reduce(
                       (acc, curr) => acc + (curr.likes || 0),
                       0,
                     )}
@@ -1689,7 +1688,7 @@ const PublicProfile = ({ profileId = null, initialTab = "published" }) => {
                   <div
                     className={`text-lg md:text-2xl font-bold mb-0.5 md:mb-1 ${isDayMode ? "text-slate-900" : "text-white"}`}
                   >
-                    {resources.length}
+                    {visibleResources.length}
                   </div>
                   <div
                     className={`text-[10px] md:text-xs uppercase tracking-wider ${isDayMode ? "text-slate-500" : "text-gray-500"}`}

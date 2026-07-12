@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 const SITE_NAME = '拓途浙享';
 const SITE_ALT_NAME = 'TUOTUZJU';
 const DEFAULT_DESCRIPTION =
-  'AI生态团队信息聚合平台，聚合活动、画廊、播客、视频与 AI 社区内容。';
+  'AI生态团队信息聚合平台，聚合活动、画廊、视频与 AI 社区内容。';
 
 const toAbsoluteUrl = (siteUrl, value) => {
   if (!value) return `${siteUrl}/newlogo.png`;
@@ -29,7 +29,7 @@ const SEO = ({
   const authorName = t('seo.author', 'AI生态团队');
   const keywords = t(
     'seo.keywords',
-    '拓途浙享, 浙江大学, AI生态团队, 活动, 画廊, 播客, 视频, AI社区, 校园平台',
+    '拓途浙享, 浙江大学, AI生态团队, 活动, 画廊, 视频, AI社区, 校园平台',
   );
 
   const seoTitle = title ? `${title} | ${siteName}` : `${siteName} | ${siteAltName}`;

@@ -11,7 +11,6 @@ import { useCachedResource } from '../hooks/useCachedResource';
 import { getHighResUrl } from '../utils/imageUtils';
 import ErrorBoundary from './ErrorBoundary';
 import { Link, useNavigate } from 'react-router-dom';
-import FullFeaturedMusicPlayer from './FullFeaturedMusicPlayer';
 import DOMPurify from 'dompurify';
 
 import DashboardEvent from './dashboard/DashboardEvent';
@@ -51,7 +50,6 @@ const HomeFeed = () => {
 
   // FIX: BUG-10 — Add null guards to prevent white-screen crash when content categories are empty
   const feedPhotos = (featuredContent.photos || []).slice(0, 10);
-  const feedTracks = featuredContent.music || [];
   const feedMainEvent = featuredContent.events?.[0] || null;
   const feedVideos = featuredContent.videos || [];
   const feedArticles = (featuredContent.articles || []).slice(0, 6).map(a => ({
@@ -93,19 +91,8 @@ const HomeFeed = () => {
         className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 h-auto lg:h-[calc(100vh-6rem)] max-w-[1920px] mx-auto w-full pb-4 lg:pb-0"
       >
         
-        {/* Left Column: Music (3) */}
-        <motion.div variants={item} className="lg:col-span-3 h-[500px] lg:h-full overflow-hidden">
-           <div className="h-full flex flex-col gap-4">
-             <div className="flex-1 min-h-0 overflow-hidden">
-                <ErrorBoundary variant="inline" silent>
-                    <FullFeaturedMusicPlayer tracks={feedTracks} />
-                </ErrorBoundary>
-             </div>
-           </div>
-        </motion.div>
-
-        {/* Center Column: Events & Videos (6) */}
-        <div className="lg:col-span-6 h-full flex flex-col gap-4 overflow-hidden">
+        {/* Center Column: Events & Videos */}
+        <div className="lg:col-span-8 h-full flex flex-col gap-4 overflow-hidden">
           {/* Top: Main Event (50% height) */}
           <motion.div variants={item} className="flex-1 min-h-[300px] lg:min-h-0 overflow-hidden">
             <ErrorBoundary variant="inline" silent>
@@ -120,8 +107,8 @@ const HomeFeed = () => {
           </motion.div>
         </div>
 
-        {/* Right Column: Photos & Articles (3) */}
-        <motion.div variants={item} className="lg:col-span-3 h-[600px] lg:h-full overflow-hidden">
+        {/* Right Column: Photos & Articles */}
+        <motion.div variants={item} className="lg:col-span-4 h-[600px] lg:h-full overflow-hidden">
            <div className="h-full flex flex-col gap-4">
               <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
                   <div className="mb-2 flex items-center justify-between">
