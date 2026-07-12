@@ -15,6 +15,28 @@ export const useServiceWorker = ({ enabled = true } = {}) => {
       return;
     }
 
+    let registration;
+    let isReloading = false;
+    const hadController = Boolean(navigator.serviceWorker.controller);
+
+    const handleControllerChange = () => {
+      if (!hadController || isReloading) return;
+      isReloading = true;
+      window.location.reload();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        registration?.update().catch(() => {});
+      }
+    };
+
+    navigator.serviceWorker.addEventListener(
+      "controllerchange",
+      handleControllerChange,
+    );
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     const registerSW = async () => {
       if (isMiniProgramWebView()) {
         const registrations = await navigator.serviceWorker.getRegistrations();
@@ -37,30 +59,25 @@ export const useServiceWorker = ({ enabled = true } = {}) => {
       }
 
       try {
-        const registration = await navigator.serviceWorker.register("/sw.js", {
+        registration = await navigator.serviceWorker.register("/sw.js", {
           scope: "/",
+          updateViaCache: "none",
         });
-
-        registration.addEventListener("updatefound", () => {
-          const newWorker = registration.installing;
-
-          if (!newWorker) return;
-
-          newWorker.addEventListener("statechange", () => {
-            if (
-              newWorker.state === "installed" &&
-              navigator.serviceWorker.controller
-            ) {
-              window.location.reload();
-            }
-          });
-        });
+        await registration.update();
       } catch (error) {
         console.error(error);
       }
     };
 
     registerSW();
+
+    return () => {
+      navigator.serviceWorker.removeEventListener(
+        "controllerchange",
+        handleControllerChange,
+      );
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [enabled]);
 };
 
