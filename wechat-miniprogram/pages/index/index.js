@@ -140,33 +140,11 @@ Page({
   loadProjectShare(params) {
     const projectId = cleanText(params.id, "");
     const projectPath = normalizePath(cleanText(params.path, projectId ? `/projects?id=${projectId}` : PROJECT_SHARE_COPY.plazaPath));
-    const fallbackPayload = sanitizeSharePayload({
-      title: cleanText(params.title, PROJECT_SHARE_COPY.fallbackTitle),
-      text: cleanText(params.text, PROJECT_SHARE_COPY.fallbackIntro),
-      path: projectPath,
-      imageUrl: cleanText(params.imageUrl, ""),
-    });
-
-    this.fallbackProjectPayload = {
-      ...fallbackPayload,
-      id: projectId,
-    };
-
     enableNativeShareMenu();
-    wx.setNavigationBarTitle({ title: fallbackPayload.title });
-    this.setData({
-      isProjectShare: true,
-      projectId,
-      projectPath,
-      ...buildProjectState(normalizeProject({}, this.fallbackProjectPayload), {
-        loading: Boolean(projectId),
-        failed: false,
-      }),
-    });
-
-    if (projectId) {
-      this.fetchProject(projectId);
-    }
+    this.targetPath = projectPath;
+    this.setData({ isProjectShare: false, projectId, projectPath });
+    this.loadLocal();
+    applyNavigationTitle();
   },
 
   fetchProject(projectId) {

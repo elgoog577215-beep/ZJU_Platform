@@ -27,6 +27,7 @@ import api, {
 } from "../services/api";
 import FavoriteButton from "./FavoriteButton";
 import ProjectSharePoster from "./ProjectSharePoster";
+import { getProjectShareCardUrl } from "../utils/projectShareCard";
 import { PROJECT_PLAZA_CSS } from "./projectPlaza.styles";
 import BodyPortal from "../shared/ui/BodyPortal";
 import { isMiniProgramWebView } from "../utils/miniProgramEnv";
@@ -473,7 +474,7 @@ const ProjectPlaza = () => {
         title,
         text: String(intro).slice(0, 120),
         path: `/projects?id=${encodeURIComponent(projectId)}`,
-        imageUrl: project?.cover_url || project?.images?.[0] || "",
+        imageUrl: getProjectShareCardUrl(project),
       };
 
       try {

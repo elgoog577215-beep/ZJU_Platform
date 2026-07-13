@@ -12,6 +12,7 @@ import {
   shareViaNativeMiniProgram,
   shareViaMiniProgram,
 } from "../utils/wechatMiniProgramBridge";
+import { getProjectShareCardUrl } from "../utils/projectShareCard";
 
 const clampList = (items, limit) => (Array.isArray(items) ? items.filter(Boolean).slice(0, limit) : []);
 
@@ -178,7 +179,7 @@ const ProjectSharePoster = ({ project, onClose, variant = "playful" }) => {
       text: shareText,
       url: projectUrl,
       path: `/projects?id=${encodeURIComponent(String(project?.id || ""))}`,
-      imageUrl: coverUrl,
+      imageUrl: getProjectShareCardUrl(project),
     };
 
     if (isMiniProgramWebView()) {
