@@ -3155,6 +3155,7 @@
     "level_expert": "高阶",
     "level_expert_desc": "阅读复杂案例、安全边界和生产经验。",
     "level_count": "{{count}} 篇",
+    "toggle_levels": "展开难度",
     "chapter_basics_title": "AI 基础",
     "chapter_basics_summary": "从模型概念、参数设置和第一步实践开始，建立 AI 入门的共同语言。",
     "chapter_basics_topics": "模型参数 / 推理方式 / 平台入门 / 基础实践",

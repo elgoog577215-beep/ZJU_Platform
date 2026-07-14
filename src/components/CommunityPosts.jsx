@@ -4,6 +4,7 @@ import {
   ArrowRight,
   BookOpen,
   Bot,
+  ChevronRight,
   Clock3,
   FileStack,
   Gauge,
@@ -383,6 +384,7 @@ const LearningArea = ({ isDayMode }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedArticle, setSelectedArticle] = useState(null);
+  const [expandedChapterKey, setExpandedChapterKey] = useState(searchParams.get('lesson') || 'basics');
 
   const activeChapterKey = CHAPTERS.some((chapter) => chapter.key === searchParams.get('lesson'))
     ? searchParams.get('lesson')
@@ -474,6 +476,10 @@ const LearningArea = ({ isDayMode }) => {
     }, { replace: false });
   }, [setSearchParams]);
 
+  const toggleChapterLevels = useCallback((chapterKey) => {
+    setExpandedChapterKey((current) => (current === chapterKey ? '' : chapterKey));
+  }, []);
+
   const handleOpenArticle = useCallback((item) => {
     setSelectedArticle(item);
     setSearchParams((prev) => {
@@ -514,13 +520,12 @@ const LearningArea = ({ isDayMode }) => {
             {CHAPTERS.map((chapter, index) => {
               const Icon = chapter.icon;
               const active = chapter.key === activeChapterKey;
+              const expanded = chapter.key === expandedChapterKey;
               const tone = toneClasses[chapter.tone] || toneClasses.violet;
-                return (
+              return (
                   <div key={chapter.key}>
-                    <button
-                      type="button"
-                      onClick={() => handleChapterChange(chapter.key)}
-                      className={`flex w-full items-center gap-3 rounded-md border px-3 py-2.5 text-left transition-colors ${
+                    <div
+                      className={`flex w-full items-center rounded-md border transition-colors ${
                         active
                           ? isDayMode
                             ? tone.card
@@ -530,21 +535,40 @@ const LearningArea = ({ isDayMode }) => {
                             : 'border-transparent text-gray-300 hover:bg-white/[0.06]'
                       }`}
                     >
-                      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${active ? 'bg-white/35' : isDayMode ? 'bg-slate-100' : 'bg-white/[0.06]'}`}>
-                        <Icon size={16} />
-                      </span>
-                      <span className="min-w-0">
-                        <span className="block text-xs font-black uppercase tracking-[0.16em] opacity-60">
-                          {String(index + 1).padStart(2, '0')}
+                      <button
+                        type="button"
+                        onClick={() => handleChapterChange(chapter.key)}
+                        className="flex min-h-[58px] min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-left"
+                      >
+                        <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${active ? 'bg-white/35' : isDayMode ? 'bg-slate-100' : 'bg-white/[0.06]'}`}>
+                          <Icon size={16} />
                         </span>
-                        <span className="block truncate text-sm font-bold">
-                          {t(chapter.titleKey, chapter.titleFallback)}
+                        <span className="min-w-0">
+                          <span className="block text-xs font-black uppercase tracking-[0.16em] opacity-60">
+                            {String(index + 1).padStart(2, '0')}
+                          </span>
+                          <span className="block truncate text-sm font-bold">
+                            {t(chapter.titleKey, chapter.titleFallback)}
+                          </span>
                         </span>
-                      </span>
-                      <span className="ml-auto text-xs opacity-70">{articlesByChapter[chapter.key]?.length || 0}</span>
-                    </button>
-                    {active ? (
-                      <div className={`ml-11 mt-1 grid gap-1 border-l pl-3 ${isDayMode ? 'border-slate-200' : 'border-white/10'}`}>
+                        <span className="ml-auto text-xs opacity-70">{articlesByChapter[chapter.key]?.length || 0}</span>
+                      </button>
+                      <button
+                        type="button"
+                        aria-expanded={expanded}
+                        aria-label={t('community_learning.toggle_levels', '展开难度')}
+                        onClick={() => toggleChapterLevels(chapter.key)}
+                        className={`mr-2 flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors ${
+                          isDayMode
+                            ? 'text-slate-500 hover:bg-white/70 hover:text-slate-900'
+                            : 'text-gray-400 hover:bg-white/[0.08] hover:text-white'
+                        }`}
+                      >
+                        <ChevronRight size={15} className={`transition-transform ${expanded ? 'rotate-90' : ''}`} />
+                      </button>
+                    </div>
+                    {expanded ? (
+                      <div className={`ml-11 mt-1 grid gap-0.5 border-l py-1 pl-3 ${isDayMode ? 'border-slate-200' : 'border-white/10'}`}>
                         {LEVELS.map((level) => {
                           const levelActive = activeLevelKey === level.key;
                           const count = articlesByChapterAndLevel[chapter.key]?.[level.key] || 0;
@@ -556,11 +580,11 @@ const LearningArea = ({ isDayMode }) => {
                               className={`flex min-h-8 items-center justify-between gap-2 rounded-md px-2.5 py-1.5 text-left text-xs font-bold transition-colors ${
                                 levelActive
                                   ? isDayMode
-                                    ? 'bg-slate-900 text-white'
-                                    : 'bg-white text-slate-950'
+                                    ? 'bg-slate-100 text-slate-950'
+                                    : 'bg-white/[0.08] text-white'
                                   : isDayMode
                                     ? 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-                                    : 'text-gray-400 hover:bg-white/[0.06] hover:text-white'
+                                    : 'text-gray-500 hover:bg-white/[0.045] hover:text-gray-200'
                               }`}
                             >
                               <span>{t(level.titleKey, level.titleFallback)}</span>

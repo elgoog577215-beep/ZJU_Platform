@@ -3117,6 +3117,7 @@
     "level_expert": "Expert",
     "level_expert_desc": "Read complex cases, safety boundaries, and production lessons.",
     "level_count": "{{count}} articles",
+    "toggle_levels": "Toggle levels",
     "chapter_basics_title": "AI Basics",
     "chapter_basics_summary": "Start with model concepts, parameter settings, and first-step practice to build a shared AI foundation.",
     "chapter_basics_topics": "Model parameters / Reasoning / Platform basics / Practice",
