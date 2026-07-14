@@ -31,7 +31,7 @@ import { getProjectShareCardUrl } from "../utils/projectShareCard";
 import { PROJECT_PLAZA_CSS } from "./projectPlaza.styles";
 import BodyPortal from "../shared/ui/BodyPortal";
 import { isMiniProgramWebView } from "../utils/miniProgramEnv";
-import { shareViaMiniProgram, shareViaNativeMiniProgram } from "../utils/wechatMiniProgramBridge";
+import { shareViaMiniProgram } from "../utils/wechatMiniProgramBridge";
 
 const PROGRESS_META = {
   idea: { labelKey: "project_plaza.progress.idea", fallback: "构思中", c: "var(--p-idea)" },
@@ -71,6 +71,17 @@ const getProgressLabel = (t, progress) => {
 };
 
 const getNeedLabel = (t, need) => (NEED_LABEL_KEYS[need] ? t(NEED_LABEL_KEYS[need], need) : need);
+const buildProjectSharePayload = (project, t) => {
+  const title = project?.title || t("project_plaza.untitled", "未命名项目");
+  const intro = project?.intro || project?.description || t("project_share_poster.default_intro", "一个正在生长的校园项目");
+  const projectId = String(project?.id || "");
+  return {
+    title,
+    text: String(intro).slice(0, 120),
+    path: `/projects?id=${encodeURIComponent(projectId)}`,
+    imageUrl: getProjectShareCardUrl(project),
+  };
+};
 const getRadarHeadline = (t, count) =>
   t(count === 1 ? "project_plaza.radar.headline_one" : "project_plaza.radar.headline_other", "{{count}} 个项目正在找同伴", { count });
 const projectScore = (p) =>
@@ -152,8 +163,9 @@ const Card = ({ p, onOpen, onFav, t }) => {
   );
 };
 
-const DetailModal = ({ p, onClose, onFav, loggedIn, onOpenPoster, variant }) => {
+const DetailModal = ({ p, onClose, onFav, loggedIn, onOpenPoster, variant, showShareCoachmark, onDismissShareCoachmark }) => {
   const { t } = useTranslation();
+  const inMiniProgram = isMiniProgramWebView();
   const imgs = p.images?.length ? p.images : (p.cover_url ? [p.cover_url] : []);
   const [active, setActive] = useState(0);
   const paras = (p.content || "").split(/\n+/).filter(Boolean);
@@ -220,12 +232,12 @@ const DetailModal = ({ p, onClose, onFav, loggedIn, onOpenPoster, variant }) => 
           )}
           <div className="ppp-mcontact">
             {p.repo_url
-              ? <a className="ppp-cbtn primary" href={p.repo_url} target="_blank" rel="noreferrer"><Github size={16} />{t("project_plaza.actions.repo", "看仓库")}</a>
-              : <span className="ppp-cbtn primary ppp-disabled"><Github size={16} />{t("project_plaza.actions.no_repo", "无仓库")}</span>}
-            <button className="ppp-cbtn ghost" type="button" onClick={() => onOpenPoster(p)}>
+              ? <a className={`ppp-cbtn ${inMiniProgram ? "ghost" : "primary"}`} href={p.repo_url} target="_blank" rel="noreferrer"><Github size={16} />{t("project_plaza.actions.repo", "看仓库")}</a>
+              : <span className={`ppp-cbtn ${inMiniProgram ? "ghost" : "primary"} ppp-disabled`}><Github size={16} />{t("project_plaza.actions.no_repo", "无仓库")}</span>}
+            <button className={`ppp-cbtn ${inMiniProgram ? "primary ppp-share-trigger" : "ghost"}`} type="button" onClick={() => onOpenPoster(p)}>
               <Share2 size={16} />
-              {isMiniProgramWebView()
-                ? t("project_share_poster.miniapp_card_share", "分享小程序卡片")
+              {inMiniProgram
+                ? t("project_share_poster.miniapp_share_short", "分享")
                 : t("project_share_poster.open_action", "生成海报")}
             </button>
             {loggedIn
@@ -244,6 +256,13 @@ const DetailModal = ({ p, onClose, onFav, loggedIn, onOpenPoster, variant }) => 
           </div>
         </div>
       </div>
+      {inMiniProgram && showShareCoachmark && (
+        <div className="ppp-share-coach" role="status" aria-live="polite">
+          <Share2 size={17} />
+          <span><strong>{t("project_share_poster.coach_title", "点击右上角 ···")}</strong>{t("project_share_poster.coach_body", "选择“转发给朋友”")}</span>
+          <button type="button" onClick={onDismissShareCoachmark} aria-label={t("common.close", "关闭")}><X size={15} /></button>
+        </div>
+      )}
     </div>
     </BodyPortal>
   );
@@ -418,6 +437,7 @@ const ProjectPlaza = () => {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
   const [posterProject, setPosterProject] = useState(null);
+  const [showShareCoachmark, setShowShareCoachmark] = useState(false);
   const [creating, setCreating] = useState(false);
   const [progFilter, setProgFilter] = useState("all");
   const [needFilter, setNeedFilter] = useState(null);
@@ -428,6 +448,7 @@ const ProjectPlaza = () => {
     searchParams.get("fromfav") === "1" || location.state?.fromFavorites === true
   );
   const deepLinkOpenedRef = useRef(false);
+  const shareCoachTimerRef = useRef(null);
 
   const fetchList = useCallback(async () => {
     setLoading(true);
@@ -458,6 +479,7 @@ const ProjectPlaza = () => {
   };
 
   const closeDetail = useCallback(() => {
+    setShowShareCoachmark(false);
     if (fromFavoritesRef.current) { fromFavoritesRef.current = false; navigate(-2); return; }
     setSelected(null);
     deepLinkOpenedRef.current = false;
@@ -465,30 +487,26 @@ const ProjectPlaza = () => {
 
   useBackClose(selected !== null, closeDetail);
 
+  useEffect(() => () => {
+    if (shareCoachTimerRef.current) clearTimeout(shareCoachTimerRef.current);
+  }, []);
+
+  useEffect(() => {
+    if (!selected || !isMiniProgramWebView()) return;
+    shareViaMiniProgram(buildProjectSharePayload(selected, t)).catch(() => {});
+  }, [selected, t]);
+
   const openPoster = useCallback(async (project) => {
     if (isMiniProgramWebView()) {
-      const title = project?.title || t("project_plaza.untitled", "未命名项目");
-      const intro = project?.intro || project?.description || t("project_share_poster.default_intro", "一个正在生长的校园项目");
-      const projectId = String(project?.id || "");
-      const payload = {
-        title,
-        text: String(intro).slice(0, 120),
-        path: `/projects?id=${encodeURIComponent(projectId)}`,
-        imageUrl: getProjectShareCardUrl(project),
-      };
-
       try {
-        await shareViaNativeMiniProgram(payload);
-        setSelected(null);
-        toast.success(t("project_share_poster.miniapp_share_opened", "已打开小程序分享"));
+        await shareViaMiniProgram(buildProjectSharePayload(project, t));
       } catch {
-        try {
-          await shareViaMiniProgram(payload);
-          toast.success(t("common.miniapp_share_ready", "小程序分享已准备"));
-        } catch {
-          toast.error(t("project_share_poster.share_failed", "分享暂时不可用，请稍后重试"));
-        }
+        toast.error(t("project_share_poster.share_failed", "分享暂时不可用，请稍后重试"));
+        return;
       }
+      setShowShareCoachmark(true);
+      if (shareCoachTimerRef.current) clearTimeout(shareCoachTimerRef.current);
+      shareCoachTimerRef.current = setTimeout(() => setShowShareCoachmark(false), 12000);
       return;
     }
 
@@ -647,6 +665,8 @@ const ProjectPlaza = () => {
           onFav={applyFav}
           loggedIn={Boolean(user)}
           onOpenPoster={openPoster}
+          showShareCoachmark={showShareCoachmark}
+          onDismissShareCoachmark={() => setShowShareCoachmark(false)}
           variant={variant}
         />
       )}

@@ -9,7 +9,6 @@ import api from "../services/api";
 import { isMiniProgramWebView } from "../utils/miniProgramEnv";
 import {
   savePosterViaNativeMiniProgram,
-  shareViaNativeMiniProgram,
   shareViaMiniProgram,
 } from "../utils/wechatMiniProgramBridge";
 import { getProjectShareCardUrl } from "../utils/projectShareCard";
@@ -185,15 +184,10 @@ const ProjectSharePoster = ({ project, onClose, variant = "playful" }) => {
     if (isMiniProgramWebView()) {
       setBusy("share");
       try {
-        await shareViaNativeMiniProgram(miniProgramShareData);
-        toast.success(t("project_share_poster.miniapp_share_opened", "已打开小程序分享"));
+        await shareViaMiniProgram(miniProgramShareData);
+        toast.success(t("project_share_poster.use_top_right_share", "请点击右上角 ···，选择转发给朋友"));
       } catch {
-        try {
-          await shareViaMiniProgram(miniProgramShareData);
-          toast.success(t("common.miniapp_share_ready"));
-        } catch {
-          await handleCopy();
-        }
+        await handleCopy();
       } finally {
         setBusy(null);
       }
