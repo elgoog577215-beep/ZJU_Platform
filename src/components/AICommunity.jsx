@@ -19,8 +19,8 @@ const LEGACY_TAB_TO_AREA = {
 const LEGACY_TAB_TO_LESSON = {
   tech: "prompt",
   featured: "prompt",
-  news: "evaluation",
-  project: "tools",
+  news: "launch",
+  project: "agent",
 };
 
 const AICommunity = () => {
@@ -46,7 +46,7 @@ const AICommunity = () => {
       const area = LEGACY_TAB_TO_AREA[legacyTab] || (searchParams.get("group") ? "discuss" : "learn");
       next.set("area", area);
       if (area === "learn") {
-        next.set("lesson", LEGACY_TAB_TO_LESSON[legacyTab] || "prompt");
+        next.set("lesson", LEGACY_TAB_TO_LESSON[legacyTab] || "basics");
       } else {
         next.delete("lesson");
       }
