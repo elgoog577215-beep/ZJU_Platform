@@ -142,6 +142,7 @@ export const PROJECT_PLAZA_CSS = `
 .ppp-share-coach span{font-size:12.5px;line-height:1.5;}
 .ppp-share-coach strong{display:block;color:#67e8f9;font-size:13px;}
 .ppp-share-coach button{width:28px;height:28px;border:0;border-radius:6px;background:rgba(255,255,255,0.07);color:#cbd5e1;display:grid;place-items:center;cursor:pointer;}
+.miniapp-webview .ppp-share-coach button{position:relative;z-index:1;width:36px;height:36px;margin:-4px 0 -4px -4px;touch-action:manipulation;pointer-events:auto;}
 @keyframes pppcoach{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:none}}
 .ppp-cbar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border);}
 .ppp-back{background:transparent;border:0;color:var(--muted);font-size:13px;font-weight:900;cursor:pointer;font-family:var(--body);padding:6px 0;}

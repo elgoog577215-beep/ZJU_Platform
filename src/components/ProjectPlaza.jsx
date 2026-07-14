@@ -257,7 +257,7 @@ const DetailModal = ({ p, onClose, onFav, loggedIn, onOpenPoster, variant, showS
         </div>
       </div>
       {inMiniProgram && showShareCoachmark && (
-        <div className="ppp-share-coach" role="status" aria-live="polite">
+        <div className="ppp-share-coach" role="status" aria-live="polite" onClick={(event) => event.stopPropagation()}>
           <Share2 size={17} />
           <span><strong>{t("project_share_poster.coach_title", "点击右上角 ···")}</strong>{t("project_share_poster.coach_body", "选择“转发给朋友”")}</span>
           <button type="button" onClick={onDismissShareCoachmark} aria-label={t("common.close", "关闭")}><X size={15} /></button>
